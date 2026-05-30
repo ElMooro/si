@@ -1,0 +1,121 @@
+{
+  "started": "2026-05-30T21:00:44.256943+00:00",
+  "redeploy": "OK",
+  "registry": {
+    "n_contexts": 30
+  },
+  "invoke_status": 200,
+  "invoke_fn_err": null,
+  "invoke_summary": {
+    "duration_s": 20.75,
+    "n_contexts": 7,
+    "n_ok": 6
+  },
+  "log_tail": "START RequestId: bb3ec389-64fa-4ef5-b5bc-16bb0e24352e Version: $LATEST\n[ai-brief-router] running 7 contexts in parallel: ['baggers-names', 'eps-velocity-names', 'insider-clusters-names', 'smart-money-names', 'activist-13d-names', 'deep-value-names', 'momentum-names']\n[ai-brief-router] baggers-names: OK 1.59s \n[ai-brief-router] eps-velocity-names: OK 1.68s \n[ai-brief-router] activist-13d-names: OK 1.73s \n[ai-brief-router] momentum-names: OK 1.85s \n[ai-brief-router] deep-value-names: OK 2.61s \n[ai-brief-router] smart-money-names: OK 17.27s \n[ai-brief-router] insider-clusters-names: ERR_CLAUDE ?s \n[ai-brief-router] done: 6/7 OK in 20.75s\nEND RequestId: bb3ec389-64fa-4ef5-b5bc-16bb0e24352e\nREPORT RequestId: bb3ec389-64fa-4ef5-b5bc-16bb0e24352e\tDuration: 20748.44 ms\tBilled Duration: 21432 ms\tMemory Size: 1024 MB\tMax Memory Used: 110 MB\tInit Duration: 682.72 ms\t\nXRAY TraceId: 1-6a1b5005-7e27661b08e3f0255782cdfc\tSegmentId: 7423979587774bf8\tSampled: true\t\n",
+  "verify": [
+    {
+      "context": "baggers-names",
+      "output_key": "data/baggers-names.json",
+      "status": "OK",
+      "title": "\ud83d\ude80 100x Bagger Candidates \u2014 AI Briefs",
+      "regime_note": "Empty candidate universe; neutral liquidity + VIX contango = no high-conviction 100x setups identified.",
+      "n_names": 0,
+      "age_sec": 21.4,
+      "fresh": true,
+      "sample": []
+    },
+    {
+      "context": "eps-velocity-names",
+      "output_key": "data/eps-velocity-names.json",
+      "status": "OK",
+      "title": "EPS Revision Velocity \u2014 AI Briefs",
+      "regime_note": "No candidates in universe; VIX contango suggests low-volatility grind\u2014growth revisions may face headwinds if rates spike.",
+      "n_names": 0,
+      "age_sec": 21.4,
+      "fresh": true,
+      "sample": []
+    },
+    {
+      "context": "insider-clusters-names",
+      "output_key": "data/insider-clusters-names.json",
+      "status": "NOT_WRITTEN"
+    },
+    {
+      "context": "smart-money-names",
+      "output_key": "data/smart-money-names.json",
+      "status": "OK",
+      "title": "Smart Money 13F Clusters \u2014 AI Briefs",
+      "regime_note": "Steep VIX contango favors defensive, cash-generative names; yield curve unknown creates duration ambiguity.",
+      "n_names": 12,
+      "age_sec": 6.5,
+      "fresh": true,
+      "sample": [
+        {
+          "ticker": "PEP",
+          "rank": 1,
+          "score": 81.7,
+          "fit": "STRONG_FIT",
+          "one_liner": "Defensive staple with 10-buyer cluster (2 new) at 16% discount; Duration Capital 36% portfolio weight signals conviction.",
+          "catalyst": "Q3 earnings reaffirm pricing power; dividend yield expansion if rates stabilize.",
+          "analog": "KO",
+          "asym": "3-5x over 24 months at 25% probability; downside capped by 3.5% dividend yield."
+        },
+        {
+          "ticker": "V",
+          "rank": 2,
+          "score": 75.1,
+          "fit": "STRONG_FIT",
+          "one_liner": "Payments network with 3 legend new buys (Coatue, Baupost, Lone Pine) despite Berkshire exit; 13% drawdown attractive.",
+          "catalyst": "Cross-border transaction recovery post-travel normalization; FX tailwind if dollar weakens",
+          "analog": "MA",
+          "asym": "4-7x over 30 months at 20% probability; Berkshire exit creates overhang risk."
+        },
+        {
+          "ticker": "UNKNOWN_3",
+          "rank": 3,
+          "score": null,
+          "fit": "NEUTRAL",
+          "one_liner": "Data truncated; unable to analyze third candidate.",
+          "catalyst": "Pending data.",
+          "analog": "N/A",
+          "asym": "Unable to estimate."
+        }
+      ]
+    },
+    {
+      "context": "activist-13d-names",
+      "output_key": "data/activist-13d-names.json",
+      "status": "OK",
+      "title": "Activist 13D Filings \u2014 AI Briefs",
+      "regime_note": "No 13D filings in dataset; VIX contango favors patient capital but activist dry spell suggests macro caution.",
+      "n_names": 0,
+      "age_sec": 21.5,
+      "fresh": true,
+      "sample": []
+    },
+    {
+      "context": "deep-value-names",
+      "output_key": "data/deep-value-names.json",
+      "status": "OK",
+      "title": "Deep Value Setups \u2014 AI Briefs",
+      "regime_note": "No candidates provided; empty universe. Await data refresh or sector rotation signal.",
+      "n_names": 0,
+      "age_sec": 20.6,
+      "fresh": true,
+      "sample": []
+    },
+    {
+      "context": "momentum-names",
+      "output_key": "data/momentum-names.json",
+      "status": "OK",
+      "title": "Momentum Scanner \u2014 AI Briefs",
+      "regime_note": "Empty universe: no momentum candidates above threshold in steep contango grind. VIX structure supports low-vol carry, not breakout plays.",
+      "n_names": 0,
+      "age_sec": 21.6,
+      "fresh": true,
+      "sample": []
+    }
+  ],
+  "n_briefs": 6,
+  "finished": "2026-05-30T21:01:18.622612+00:00"
+}
