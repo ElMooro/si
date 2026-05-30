@@ -1,0 +1,68 @@
+{
+  "started": "2026-05-30T23:59:16.721028+00:00",
+  "registry": {
+    "n_contexts": 36,
+    "digests_present": [
+      "alerts-digest",
+      "alerts-digest-close"
+    ]
+  },
+  "redeploy": {
+    "attempt": 1,
+    "status": "OK"
+  },
+  "eb_schedule": {
+    "rule": "created",
+    "permission": "added",
+    "rule_arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-alerts-digest-close-daily"
+  },
+  "close_invoke": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 0.88,
+    "results": [
+      {
+        "context_id": "alerts-digest-close",
+        "title": "Front-Run Alerts Closing Digest",
+        "brief_type": "digest",
+        "session": "close",
+        "output_key": "alerts-digest-close",
+        "status": "OK",
+        "telegram_ok": true,
+        "message_chars": 804,
+        "audit_key": "data/_alerts/digest-2026-05-30-close.json",
+        "duration_s": 0.73
+      }
+    ]
+  },
+  "close_log": "START RequestId: e04fbecf-be73-4584-9a4e-2e57e02583cb Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['alerts-digest-close']\n[ai-brief-router] alerts-digest-close: OK 0.73s \n[ai-brief-router] done: 1/1 OK in 0.88s\nEND RequestId: e04fbecf-be73-4584-9a4e-2e57e02583cb\nREPORT RequestId: e04fbecf-be73-4584-9a4e-2e57e02583cb\tDuration: 885.10 ms\tBilled Duration: 1433 ms\tMemory Size: 1024 MB\tMax Memory Used: 96 MB\tInit Duration: 546.90 ms\t\nXRAY TraceId: 1-6a1b79dc-25e9fb8e317a8efb36e7248a\tSegmentId: cc593eb4087508a5\tSampled: true\t\n",
+  "close_audit": {
+    "date": "2026-05-30",
+    "session": "close",
+    "telegram_ok": true,
+    "message_chars": 804,
+    "message_preview": "\ud83d\udd14 *DAILY CLOSE DIGEST* \u2014 2026-05-30 21:00 UTC \u00b7 US session debrief\n\n\ud83d\udce1 *Current state:*\n  \ud83c\udfaf Equity:  score *28* \u00b7 regime *NORMAL* \u00b7 last alert never \u00b7 0/8 today\n  \ud83c\udfdb Macro:   score *42* \u00b7 regime *NORMAL* \u00b7 last alert never \u00b7 0/8 today\n\n\u2b50 *Convergence fingerprints:*\n  \ud83c\udfaf Equity:  \u2717 GEX  \u2713 OptFlow  \u2713 Skew/Vol  \u2717 CFTC/Short  *(2/4)*\n  \ud83c\udfdb Macro:   `CALM` auction \u00b7 `NEUTRAL` dealer \u00b7 `HEALED` funding  *(0/3)*\n\n\ud83d\uddd3 *US session events:* none \u2014 tape was quiet \u2713\n\n\ud83d\udcca *7-day score trajectory:*\n  \ud83c\udfaf Equity:  mean *38.5*, range *28-42*, 8 cycles \u00b7 0 extreme, 6 elevated\n  \ud83c\udfdb Macro:   mean *42.0*, range *42-42*, 2 cycles \u00b7 0 extreme, 0 elevated\n\n\ud83c\udfaf *Most targeted (last 7d):*\n  \ud83c\udfaf Equity:  `PEP`\u00d73, `AMD`\u00d71, `PEP (PepsiCo)`\u00d71, `AMZN`\u00d71, `SPY / Broad Equity Market`\u00d71\n  \ud83c\udfdb Macro:   `TLT`\u00d72\n\n\u2192 https://justhodl.ai/alerts.html"
+  },
+  "index_state": {
+    "n_entries_total": 2,
+    "n_entries_today": 2,
+    "today_sessions": [
+      "close",
+      "open"
+    ],
+    "earliest_date": "2026-05-30",
+    "latest_date": "2026-05-30",
+    "activity_breakdown": {
+      "extreme": 0,
+      "active": 0,
+      "quiet": 2
+    }
+  },
+  "eb_verify": {
+    "state": "ENABLED",
+    "schedule": "cron(0 21 * * ? *)",
+    "n_targets": 1,
+    "target_input": "{\"contexts\": [\"alerts-digest-close\"]}"
+  },
+  "finished": "2026-05-30T23:59:28.334986+00:00"
+}
