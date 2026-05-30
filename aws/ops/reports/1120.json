@@ -1,0 +1,117 @@
+{
+  "started": "2026-05-30T18:26:38.895570+00:00",
+  "cadences": [
+    {
+      "tick": "daily-06utc",
+      "n_targets": 5,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 5,
+        "err": 0,
+        "expected": 5,
+        "verified": true
+      },
+      "deleted_count": 5
+    },
+    {
+      "tick": "every_6h",
+      "n_targets": 4,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 4,
+        "err": 0,
+        "expected": 4,
+        "verified": true
+      },
+      "deleted_count": 4
+    },
+    {
+      "tick": "every_3h",
+      "n_targets": 4,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 4,
+        "err": 0,
+        "expected": 4,
+        "verified": true
+      },
+      "deleted_count": 4
+    },
+    {
+      "tick": "daily-08utc",
+      "n_targets": 4,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 4,
+        "err": 0,
+        "expected": 4,
+        "verified": true
+      },
+      "deleted_count": 4
+    },
+    {
+      "tick": "daily-16utc",
+      "n_targets": 2,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 2,
+        "err": 0,
+        "expected": 2,
+        "verified": true
+      },
+      "deleted_count": 2
+    },
+    {
+      "tick": "daily-15utc",
+      "n_targets": 2,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 2,
+        "err": 0,
+        "expected": 2,
+        "verified": true
+      },
+      "deleted_count": 2
+    },
+    {
+      "tick": "daily-07utc",
+      "n_targets": 1,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 1,
+        "err": 0,
+        "expected": 1,
+        "verified": true
+      },
+      "deleted_count": 1
+    },
+    {
+      "tick": "daily-17utc",
+      "n_targets": 1,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 1,
+        "err": 0,
+        "expected": 1,
+        "verified": true
+      },
+      "deleted_count": 1
+    }
+  ],
+  "summary": {
+    "initial_rule_count": 83,
+    "final_rule_count": 68,
+    "ticks_created": 8,
+    "individual_rules_deleted": 23,
+    "net_slots_freed": 15
+  },
+  "finished": "2026-05-30T18:27:02.219459+00:00"
+}
