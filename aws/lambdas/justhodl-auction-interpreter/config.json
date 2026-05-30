@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-auction-interpreter",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "layers": ["arn:aws:lambda:us-east-1:857687956942:layer:justhodl-core:1"],
+  "environment_keys": ["ANTHROPIC_API_KEY"],
+  "description": "AI institutional auction brief — reads auction-crisis tape + cross-context regimes + crisis-KB, asks Claude for regime/confidence/thesis/historical-analogs/cross-asset/trade-ideas/tripwires/next-auctions. 4hourly schedule. Output: data/auction-decisive-call.json."
+}

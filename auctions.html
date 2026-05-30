@@ -215,6 +215,7 @@
            background-size:200% 100%; animation:sk 1.5s infinite; height:14px; border-radius:3px; }
   @keyframes sk { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 </style>
+<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
 
@@ -268,8 +269,11 @@
   </div>
 </div>
 
-<!-- ─────────── DECISIVE CALL ─────────── -->
-<div class="call-banner" id="callBanner">
+<!-- ─────────── DECISIVE CALL (AI brief — falls back to static) ─────────── -->
+<div id="ai-decisive-call"></div>
+
+<!-- Static fallback (only visible if AI brief fails to load) -->
+<div class="call-banner" id="callBanner" style="display:none">
   <div class="h">⚡ DECISIVE CALL</div>
   <div class="verdict" id="callVerdict">Loading…</div>
   <div class="reasoning" id="callReasoning"></div>
@@ -964,6 +968,18 @@ async function loadData() {
     renderTape(d);
     renderAnchors(d);
     renderMarketImpact(d);
+
+    // AI brief mount — if it succeeds, the static call banner stays hidden.
+    // If it fails, reveal the static one as a graceful fallback.
+    if (window.JHAIBrief) {
+      window.JHAIBrief.mount("ai-decisive-call", "auction-decisive-call", {
+        onError: function () {
+          document.getElementById("callBanner").style.display = "";
+        },
+      });
+    } else {
+      document.getElementById("callBanner").style.display = "";
+    }
   } catch (e) {
     console.error("Failed to load auction data", e);
     document.getElementById("interpretText").innerHTML =
