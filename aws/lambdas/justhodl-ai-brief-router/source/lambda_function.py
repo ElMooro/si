@@ -37,7 +37,7 @@ DEFAULT_TIMEOUT = 95
 # ─────────────────────────────────────────────────────────────────────
 # Local Claude wrapper — bypasses jhcore.claude's 30s default
 # ─────────────────────────────────────────────────────────────────────
-def claude_json(prompt, system, max_tokens=5500, temperature=0.25,
+def claude_json(prompt, system, max_tokens=8000, temperature=0.25,
                  model="claude-haiku-4-5-20251001", timeout=DEFAULT_TIMEOUT):
     key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not key:
@@ -75,7 +75,35 @@ def claude_json(prompt, system, max_tokens=5500, temperature=0.25,
     try:
         return json.loads(txt), None
     except Exception as e:
+        # Attempt recovery: Claude sometimes truncates mid-array if it hits max_tokens.
+        # Try to find the last complete top-level key and close the JSON.
+        repaired = _attempt_json_repair(txt)
+        if repaired is not None:
+            return repaired, f"recovered_truncated (orig err: {str(e)[:80]})"
         return None, f"parse: {e} head={txt[:200]}"
+
+
+def _attempt_json_repair(txt):
+    """Best-effort repair for max_tokens-truncated JSON. Returns dict or None."""
+    if not txt.startswith("{"):
+        return None
+    # Strategy: trim back to the last complete `"key": value,` pattern, close braces.
+    # Walk backwards looking for a complete value followed by ",\n" or "\n}"
+    s = txt.rstrip()
+    # Strip the dangling tail until we hit a likely end of a value (a quote, ], or })
+    for trim_to in range(len(s), 0, -1):
+        c = s[trim_to - 1]
+        if c not in '}"]':
+            continue
+        candidate = s[:trim_to]
+        # Try closing common patterns:
+        for closer in ["}", "]}", "}]}", "]]}", "\"}"]:
+            attempt = candidate.rstrip(",").rstrip() + closer
+            try:
+                return json.loads(attempt)
+            except Exception:
+                continue
+    return None
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -100,10 +128,10 @@ BASE_SYSTEM = (
 
 def build_prompt(ctx_id, cfg, primary_data, cross_data, episode_ref, kb_chunks):
     """Generate the brief-generation prompt for one context."""
-    # Primary data — truncate if huge
+    # Primary data — truncate if huge (leave token budget for richer output)
     primary_str = json.dumps(primary_data, indent=2, default=str)
-    if len(primary_str) > 4500:
-        primary_str = primary_str[:4500] + "\n... (truncated)"
+    if len(primary_str) > 3500:
+        primary_str = primary_str[:3500] + "\n... (truncated)"
 
     # Cross-regime summary
     cross_lines = []
@@ -269,7 +297,7 @@ def generate_one_brief(ctx_id, cfg, episode_ref):
         prompt_len = len(prompt)
 
         brief, err = claude_json(prompt, system=system,
-                                  max_tokens=cfg.get("max_tokens", 5500),
+                                  max_tokens=cfg.get("max_tokens", 8000),
                                   temperature=cfg.get("temperature", 0.25),
                                   timeout=cfg.get("timeout", DEFAULT_TIMEOUT))
         if err or not brief:
