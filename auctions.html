@@ -659,7 +659,8 @@ function renderHero(d) {
   if (iss != null) {
     const el = document.getElementById("m_issuance");
     el.textContent = (iss >= 0 ? "+" : "") + iss.toFixed(1) + "%";
-    el.classList.add(iss < 0 ? "up" : (iss > 10 ? "dn" : ""));
+    const cls = iss < 0 ? "up" : (iss > 10 ? "dn" : "");
+    if (cls) el.classList.add(cls);
   }
   document.getElementById("m_fedfunds").textContent = d.fed_funds_rate ? d.fed_funds_rate.toFixed(2) + "%" : "—";
   const fr = d.freshness || {};
