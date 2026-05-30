@@ -2149,6 +2149,208 @@ def generate_macro_frontrun_brief(ctx_id, cfg, episode_ref):
 
 
 # ─────────────────────────────────────────────────────────────────────
+# DAILY ALERTS DIGEST — single 9am UTC summary across both sniffers
+# ─────────────────────────────────────────────────────────────────────
+def _events_in_last_24h(events_list):
+    """Filter event list to last 24h. Newest first."""
+    if not events_list: return []
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+    recent = []
+    for e in events_list:
+        try:
+            t = datetime.fromisoformat((e.get("ts") or "").replace("Z", "+00:00"))
+            if t >= cutoff:
+                recent.append(e)
+        except Exception: pass
+    recent.sort(key=lambda e: e.get("ts") or "", reverse=True)
+    return recent
+
+
+def _format_digest(equity_brief, macro_brief,
+                    equity_state, macro_state,
+                    equity_hist, macro_hist):
+    """Build the daily digest Markdown message."""
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # Current state
+    eq_score  = (equity_brief or {}).get("overall_anomaly_score")
+    eq_regime = ((equity_brief or {}).get("anomaly_regime") or "—").upper()
+    mc_score  = (macro_brief or {}).get("overall_macro_score")
+    mc_regime = ((macro_brief or {}).get("macro_regime") or "—").upper()
+
+    eq_last_at = (equity_state or {}).get("last_alert_at")
+    mc_last_at = (macro_state  or {}).get("last_alert_at")
+
+    def age(iso):
+        if not iso: return "never"
+        try:
+            ms = (datetime.now(timezone.utc) - datetime.fromisoformat(iso.replace("Z","+00:00"))).total_seconds()
+            if ms < 60: return "just now"
+            if ms < 3600: return f"{int(ms/60)}m ago"
+            if ms < 86400: return f"{int(ms/3600)}h ago"
+            return f"{int(ms/86400)}d ago"
+        except Exception: return "—"
+
+    eq_alerts_today = (equity_state or {}).get("alerts_today", 0)
+    mc_alerts_today = (macro_state  or {}).get("alerts_today", 0)
+
+    # Convergence fingerprints — current state
+    eq_conv_fired, eq_conv_detail = _equity_convergence_fingerprint(equity_brief or {})
+    mc_conv_fired, mc_conv_detail = _macro_convergence_fingerprint(macro_brief or {})
+    eq_n = eq_conv_detail.get("n_cardinal_present", 0)
+    mc_n = mc_conv_detail.get("n_pillars_stressed", 0)
+
+    # Yesterday's events from both history files (events[] = score≥60 or EXTREME)
+    eq_events_24h = _events_in_last_24h((equity_hist or {}).get("events") or [])
+    mc_events_24h = _events_in_last_24h((macro_hist  or {}).get("events") or [])
+
+    # Week stats from each history file
+    eq_stats = (equity_hist or {}).get("stats_7d") or {}
+    mc_stats = (macro_hist  or {}).get("stats_7d") or {}
+
+    # ── Build message ──
+    msg = f"📅 *DAILY FRONT-RUN DIGEST* — {today_str} 09:00 UTC\n\n"
+
+    # Current state
+    msg += "📡 *Current state:*\n"
+    msg += f"  🎯 Equity:  score *{eq_score if eq_score is not None else '—'}* · regime *{eq_regime}* · last alert {age(eq_last_at)} · {eq_alerts_today}/8 today\n"
+    msg += f"  🏛 Macro:   score *{mc_score if mc_score is not None else '—'}* · regime *{mc_regime}* · last alert {age(mc_last_at)} · {mc_alerts_today}/8 today\n\n"
+
+    # Convergence fingerprints
+    msg += "⭐ *Convergence fingerprints:*\n"
+    if eq_conv_detail and "cardinals_fired" in eq_conv_detail:
+        c = eq_conv_detail["cardinals_fired"]
+        msg += f"  🎯 Equity:  {'✓' if c.get('DEALER_GEX') else '✗'} GEX  {'✓' if c.get('OPTIONS_FLOW_GAMMA') else '✗'} OptFlow  {'✓' if c.get('SKEW_VOL') else '✗'} Skew/Vol  {'✓' if c.get('CFTC_SHORT') else '✗'} CFTC/Short  *({eq_n}/4{' — FIRED' if eq_conv_fired else ''})*\n"
+    else:
+        msg += "  🎯 Equity:  (no brief yet)\n"
+
+    if mc_conv_detail and "auction_tape_state" in mc_conv_detail:
+        msg += (f"  🏛 Macro:   `{mc_conv_detail.get('auction_tape_state','—')}` auction · "
+                f"`{mc_conv_detail.get('primary_dealer_state','—')}` dealer · "
+                f"`{mc_conv_detail.get('funding_state','—')}` funding  "
+                f"*({mc_n}/3{' — FIRED' if mc_conv_fired else ''})*\n")
+    else:
+        msg += "  🏛 Macro:   (no brief yet)\n"
+    msg += "\n"
+
+    # Yesterday's events
+    total_events = len(eq_events_24h) + len(mc_events_24h)
+    if total_events:
+        msg += f"🗓 *Last 24h events ({total_events}):*\n"
+        merged = []
+        for e in eq_events_24h: merged.append({**e, "_src": "🎯"})
+        for e in mc_events_24h: merged.append({**e, "_src": "🏛"})
+        merged.sort(key=lambda x: x.get("ts") or "", reverse=True)
+        for e in merged[:8]:
+            try:
+                t = datetime.fromisoformat((e.get("ts") or "").replace("Z","+00:00"))
+                hh = t.strftime("%H:%M")
+            except Exception: hh = "??:??"
+            target = e.get("top_setup_asset") or e.get("top_setup_instr") or ""
+            direction = e.get("top_setup_dir") or ""
+            msg += f"  • {hh}  {e.get('_src')} score *{e.get('score')}* {(e.get('regime') or '').upper()}"
+            if target: msg += f" — `{target}` {direction}"
+            msg += "\n"
+        msg += "\n"
+    else:
+        msg += "🗓 *Last 24h events:* none — tape was quiet ✓\n\n"
+
+    # 7-day trajectory
+    msg += "📊 *7-day score trajectory:*\n"
+    if eq_stats:
+        msg += (f"  🎯 Equity:  mean *{eq_stats.get('score_mean','—')}*, "
+                f"range *{eq_stats.get('score_min','—')}-{eq_stats.get('score_max','—')}*, "
+                f"{eq_stats.get('n_snapshots_7d',0)} cycles · "
+                f"{eq_stats.get('n_extreme_7d',0)} extreme, {eq_stats.get('n_elevated_7d',0)} elevated\n")
+    if mc_stats:
+        msg += (f"  🏛 Macro:   mean *{mc_stats.get('score_mean','—')}*, "
+                f"range *{mc_stats.get('score_min','—')}-{mc_stats.get('score_max','—')}*, "
+                f"{mc_stats.get('n_snapshots_7d',0)} cycles · "
+                f"{mc_stats.get('n_extreme_7d',0)} extreme, {mc_stats.get('n_elevated_7d',0)} elevated\n")
+    msg += "\n"
+
+    # Most targeted
+    eq_targets = eq_stats.get("most_targeted_assets") if isinstance(eq_stats, dict) else None
+    mc_instrs  = mc_stats.get("most_targeted_instruments") if isinstance(mc_stats, dict) else None
+    if eq_targets or mc_instrs:
+        msg += "🎯 *Most targeted (last 7d):*\n"
+        if eq_targets:
+            txt = ", ".join(f"`{t.get('asset')}`×{t.get('n_times')}" for t in eq_targets[:5])
+            msg += f"  🎯 Equity:  {txt}\n"
+        if mc_instrs:
+            txt = ", ".join(f"`{t.get('instrument')}`×{t.get('n_times')}" for t in mc_instrs[:5])
+            msg += f"  🏛 Macro:   {txt}\n"
+        msg += "\n"
+
+    msg += "→ https://justhodl.ai/alerts.html"
+    return msg
+
+
+def generate_alerts_digest(ctx_id, cfg, episode_ref):
+    """Run the daily alerts digest. Reads all 6 data sources, builds the
+    summary message, sends via Telegram, writes an audit log to S3."""
+    t0 = time.time()
+    result = {"context_id": ctx_id, "title": cfg.get("title"),
+              "brief_type": "digest", "output_key": cfg.get("output_key")}
+    try:
+        sources = cfg.get("read_sources") or {}
+        feeds = {}
+        for k, key in sources.items():
+            feeds[k] = s3io.get_json(key, default={}) or {}
+
+        equity_brief    = feeds.get("equity_brief")
+        macro_brief     = feeds.get("macro_brief")
+        equity_state    = feeds.get("equity_state")
+        macro_state     = feeds.get("macro_state")
+        equity_history  = feeds.get("equity_history")
+        macro_history   = feeds.get("macro_history")
+
+        msg = _format_digest(
+            equity_brief, macro_brief,
+            equity_state, macro_state,
+            equity_history, macro_history,
+        )
+
+        # Send Telegram (with plain-text fallback)
+        ok, info = _telegram_post(msg)
+
+        # Write audit log
+        today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        audit = {
+            "version": "1.0",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "date": today_str,
+            "telegram_ok": ok,
+            "telegram_info": info,
+            "message_chars": len(msg),
+            "message_preview": msg[:1200],
+            "equity_score": (equity_brief or {}).get("overall_anomaly_score"),
+            "equity_regime": (equity_brief or {}).get("anomaly_regime"),
+            "macro_score": (macro_brief or {}).get("overall_macro_score"),
+            "macro_regime": (macro_brief or {}).get("macro_regime"),
+            "n_equity_alerts_today": (equity_state or {}).get("alerts_today", 0),
+            "n_macro_alerts_today":  (macro_state  or {}).get("alerts_today", 0),
+        }
+        audit_key = f"data/_alerts/digest-{today_str}.json"
+        s3io.put_json(audit_key, audit, cache_control="no-store")
+        # Also keep a "latest" alias for the cockpit to point to
+        s3io.put_json("data/_alerts/digest-latest.json", audit, cache_control="no-store")
+
+        result.update({
+            "status": "OK",
+            "telegram_ok": ok,
+            "message_chars": len(msg),
+            "audit_key": audit_key,
+            "duration_s": round(time.time() - t0, 2),
+        })
+    except Exception as e:
+        result["status"] = "ERR_EXC"
+        result["err"] = str(e)[:300]
+        result["traceback"] = traceback.format_exc()[-800:]
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Per-context worker — dispatches based on brief_type
 # ─────────────────────────────────────────────────────────────────────
 def generate_one_brief(ctx_id, cfg, episode_ref):
@@ -2164,6 +2366,8 @@ def generate_one_brief(ctx_id, cfg, episode_ref):
         return generate_frontrun_brief(ctx_id, cfg, episode_ref)
     if bt == "macro_frontrun":
         return generate_macro_frontrun_brief(ctx_id, cfg, episode_ref)
+    if bt == "digest":
+        return generate_alerts_digest(ctx_id, cfg, episode_ref)
     # Default: regime brief
     return _generate_regime_brief(ctx_id, cfg, episode_ref)
 
