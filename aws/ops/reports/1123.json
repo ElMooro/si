@@ -1,0 +1,60 @@
+{
+  "started": "2026-05-30T19:05:01.380534+00:00",
+  "redeploy": "OK",
+  "invoke_status": 200,
+  "invoke_fn_err": null,
+  "invoke_body": {
+    "regime": "WATCH",
+    "composite_score": 18.4,
+    "n_series": 51,
+    "transitions_count": 2
+  },
+  "log_tail": "e] fred WLRRAL HTTP 429, retry in 1.5s (attempt 1/5)\n[lce] fred OTHL1690 HTTP 429, retry in 1.3s (attempt 1/5)\n[lce] fred SWPT HTTP 429, retry in 1.8s (attempt 1/5)\n[lce] fred BAMLH0A0HYM2 HTTP 429, retry in 1.1s (attempt 1/5)\n[lce] fred BAMLH0A2HYB HTTP 429, retry in 1.5s (attempt 1/5)\n[lce] fred BAMLC0A0CM HTTP 429, retry in 1.1s (attempt 1/5)\n[lce] fred BAMLC0A2CAA HTTP 429, retry in 1.0s (attempt 1/5)\n[lce] fred BAMLC0A4CBBB HTTP 429, retry in 1.9s (attempt 1/5)\n[lce] fred BAMLEMHBHYCRPIOAS HTTP 429, retry in 1.5s (attempt 1/5)\n[lce] fred HQMCB1YR HTTP 429, retry in 1.7s (attempt 1/5)\n[lce] fred HQMCB5YR HTTP 429, retry in 1.4s (attempt 1/5)\n[lce] fred HQMCB30YR HTTP 429, retry in 1.6s (attempt 1/5)\n[lce] fred DGS2 HTTP 429, retry in 1.3s (attempt 1/5)\n[lce] fred DGS10 HTTP 429, retry in 1.6s (attempt 1/5)\n[lce] fred DRTSCILM HTTP 429, retry in 1.1s (attempt 1/5)\n[lce] fred DRSDCILM HTTP 429, retry in 1.4s (attempt 1/5)\n[lce] fred SUBLPDRCSC HTTP 429, retry in 1.5s (attempt 1/5)\n[lce] fred SUBLPDRCSM HTTP 429, retry in 1.2s (attempt 1/5)\n[lce] fred DRTSCLCC HTTP 429, retry in 1.7s (attempt 1/5)\n[lce] regime=WATCH composite=18.4 firing=0 transitions=2 series=51\nEND RequestId: 45bdcc9a-74fe-4689-a617-21cb894c2401\nREPORT RequestId: 45bdcc9a-74fe-4689-a617-21cb894c2401\tDuration: 57122.51 ms\tBilled Duration: 57723 ms\tMemory Size: 512 MB\tMax Memory Used: 96 MB\tInit Duration: 599.94 ms\t\nXRAY TraceId: 1-6a1b34e0-2f0c088b494978b5640f3d5a\tSegmentId: 9c7b881cdb84a565\tSampled: true\t\n",
+  "new_lce_generated_at": "2026-05-30T19:06:02.366444+00:00",
+  "check_seven": {
+    "RESPPALGUONNWW": {
+      "available": true,
+      "error": null,
+      "latest_value": 3999.005,
+      "signal": "NORMAL"
+    },
+    "WGCAL": {
+      "available": true,
+      "error": null,
+      "latest_value": 11.037,
+      "signal": "NORMAL"
+    },
+    "RESPPNTEPNWW": {
+      "available": true,
+      "error": null,
+      "latest_value": 6091.471,
+      "signal": "NORMAL"
+    },
+    "WRESBAL": {
+      "available": true,
+      "error": null,
+      "latest_value": 3066.56,
+      "signal": "WATCH"
+    },
+    "WCURCIR": {
+      "available": true,
+      "error": null,
+      "latest_value": 2464.264,
+      "signal": "NORMAL"
+    },
+    "RRPONTSYD": {
+      "available": true,
+      "error": null,
+      "latest_value": 0.0117,
+      "signal": "NORMAL"
+    },
+    "WLRRAL": {
+      "available": true,
+      "error": null,
+      "latest_value": 300.879,
+      "signal": "NORMAL"
+    }
+  },
+  "n_now_available": 7,
+  "finished": "2026-05-30T19:06:04.746685+00:00"
+}
