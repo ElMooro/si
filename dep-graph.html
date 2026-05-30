@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dependency Graph · JustHodl</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --bg:#070a0f; --panel:#0f131a; --panel-2:#11161f; --line:#1c2433;
+    --fg:#e6eaf2; --dim:#a8b3c7; --muted:#6f7b91;
+    --cy:#00d4ff; --vi:#a78bfa; --gr:#26ffaf; --rd:#ff5577; --or:#ff7a18; --yl:#ffd266;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  a{color:var(--cy);text-decoration:none}
+  .wrap{max-width:1280px;margin:0 auto;padding:18px 16px 60px}
+  header{display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .crumb{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  h1{font:600 18px/1.2 var(--mono);margin:0;letter-spacing:0.5px;color:var(--fg)}
+  h1 .accent{color:var(--cy)}
+  .age{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+  .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .stat .v{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--fg)}
+  .stat .v.danger{color:var(--rd)} .stat .v.warn{color:var(--or)} .stat .v.ok{color:var(--gr)}
+  .tabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--line);overflow-x:auto}
+  .tab{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+       padding:9px 14px;cursor:pointer;color:var(--muted);background:none;border:none;
+       border-bottom:2px solid transparent;white-space:nowrap}
+  .tab.active{color:var(--cy);border-bottom-color:var(--cy)}
+  .tab:hover{color:var(--fg)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+  .panel h2{font:600 12px/1 var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--cy);margin:0 0 12px}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+  th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:1px}
+  tbody tr:hover{background:var(--panel-2)}
+  td.num{text-align:right;color:var(--fg)}
+  td.dim{color:var(--dim);font-size:11.5px}
+  .badge{display:inline-block;padding:1px 7px;border-radius:4px;font-size:10px;font-family:var(--mono);font-weight:700}
+  .badge.orphan{background:rgba(255,85,119,.13);color:var(--rd)}
+  .badge.hot{background:rgba(38,255,175,.13);color:var(--gr)}
+  .badge.cold{background:rgba(168,179,199,.12);color:var(--muted)}
+  .search{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--fg);
+          font:13px var(--mono);padding:8px 10px;border-radius:6px;margin-bottom:10px}
+  .search:focus{outline:none;border-color:var(--cy)}
+  .hidden{display:none}
+  .empty{padding:30px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px}
+  .chip{display:inline-block;padding:1px 6px;margin:1px 2px 1px 0;border-radius:3px;background:var(--panel-2);
+        color:var(--dim);font-size:10.5px;font-family:var(--mono)}
+  #graph-svg{width:100%;height:560px;background:var(--panel-2);border-radius:6px;border:1px solid var(--line)}
+  .legend{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:6px}
+  .legend span{margin-right:14px}
+  .legend .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:1px}
+  footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);
+         font-family:var(--mono);font-size:11px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <div class="crumb"><a href="/">justhodl</a> / <a href="/observability.html">observability</a> / dep-graph</div>
+    <h1>DEPENDENCY <span class="accent">GRAPH</span></h1>
+  </div>
+  <div class="age" id="age">loading…</div>
+</header>
+
+<div class="stats" id="stats"></div>
+
+<div class="tabs" role="tablist">
+  <button class="tab active" data-tab="orphans">Orphan Lambdas</button>
+  <button class="tab" data-tab="topfeeds">Top Consumed Feeds</button>
+  <button class="tab" data-tab="blast">Blast Radius</button>
+  <button class="tab" data-tab="graph">Force Graph</button>
+  <button class="tab" data-tab="health">Page Health</button>
+</div>
+
+<section id="tab-orphans">
+  <div class="panel">
+    <h2>Orphan Lambdas <span style="color:var(--muted);font-weight:400">— write feeds that nothing reads</span></h2>
+    <div id="orphans-body"><div class="empty">loading…</div></div>
+  </div>
+</section>
+
+<section id="tab-topfeeds" class="hidden">
+  <div class="panel">
+    <h2>Top Consumed Feeds <span style="color:var(--muted);font-weight:400">— highest-leverage data</span></h2>
+    <div id="topfeeds-body"><div class="empty">loading…</div></div>
+  </div>
+</section>
+
+<section id="tab-blast" class="hidden">
+  <div class="panel">
+    <h2>Blast Radius <span style="color:var(--muted);font-weight:400">— remove this Lambda, these break</span></h2>
+    <input class="search" id="blast-q" placeholder="filter Lambdas…">
+    <div id="blast-body"><div class="empty">loading…</div></div>
+  </div>
+</section>
+
+<section id="tab-graph" class="hidden">
+  <div class="panel">
+    <h2>Force Graph <span style="color:var(--muted);font-weight:400">— top consumed feeds + writers + readers</span></h2>
+    <svg id="graph-svg"></svg>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--vi)"></span>Lambda</span>
+      <span><span class="dot" style="background:var(--cy)"></span>Feed</span>
+      <span><span class="dot" style="background:var(--gr)"></span>Page</span>
+    </div>
+  </div>
+</section>
+
+<section id="tab-health" class="hidden">
+  <div class="panel">
+    <h2>Page Health <span style="color:var(--muted);font-weight:400">— synthetic monitor (15 min)</span></h2>
+    <div id="health-body"><div class="empty">loading…</div></div>
+  </div>
+</section>
+
+<footer>data/dependency-graph.json + data/synthetic-monitor.json · refreshed daily-eve / 15 min</footer>
+
+</div>
+
+<script>
+const PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+const fetchJSON = async (path) => {
+  try {
+    const r = await fetch(`${PROXY}/${path}?t=${Date.now()}`);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+};
+
+const fmtNum = (n) => (n == null ? "—" : n.toLocaleString());
+const ageStr = (iso) => {
+  if (!iso) return "—";
+  const ms = Date.now() - new Date(iso).getTime();
+  const m = Math.round(ms / 60000);
+  if (m < 60) return m + "m ago";
+  if (m < 1440) return Math.round(m / 60) + "h ago";
+  return Math.round(m / 1440) + "d ago";
+};
+
+let dep = null, monitor = null;
+
+function renderStats(d, mon) {
+  const s = d?.stats || {};
+  const cells = [
+    { k: "Lambdas", v: s.lambdas_analyzed, c: "" },
+    { k: "Pages", v: s.pages_analyzed, c: "" },
+    { k: "Feeds", v: s.feeds_total, c: "" },
+    { k: "With I/O", v: s.lambdas_with_io, c: "" },
+    { k: "Orphan Lambdas", v: s.orphan_lambdas, c: s.orphan_lambdas > 10 ? "warn" : "" },
+    { k: "Orphan Feeds", v: s.orphan_feeds, c: s.orphan_feeds > 20 ? "warn" : "" },
+    { k: "Page Health", v: mon ? `${mon.page_ok}/${mon.pages_total}` : "—", c: mon?.all_ok ? "ok" : "warn" },
+    { k: "Feed Health", v: mon ? `${mon.feed_ok}/${mon.feeds_total}` : "—", c: mon?.all_ok ? "ok" : "warn" },
+  ];
+  document.getElementById("stats").innerHTML = cells.map(c =>
+    `<div class="stat"><div class="k">${c.k}</div><div class="v ${c.c}">${fmtNum(c.v)}</div></div>`
+  ).join("");
+  document.getElementById("age").textContent =
+    `dep: ${ageStr(d?.generated_at)} · monitor: ${ageStr(mon?.generated_at)}`;
+}
+
+function renderOrphans(d) {
+  const orphs = d?.orphan_lambdas || [];
+  const io = d?.lambda_io || {};
+  const body = document.getElementById("orphans-body");
+  if (!orphs.length) {
+    body.innerHTML = '<div class="empty">No orphan Lambdas — every writer has at least one reader. 🟢</div>';
+    return;
+  }
+  let html = '<table><thead><tr><th>Lambda</th><th>Writes</th><th>Reads</th><th class="num">Status</th></tr></thead><tbody>';
+  for (const fn of orphs) {
+    const w = (io[fn]?.writes) || [];
+    const r = (io[fn]?.reads) || [];
+    html += `<tr>
+      <td><span class="badge orphan">ORPHAN</span> ${fn}</td>
+      <td class="dim">${w.map(k => `<span class="chip">${k.replace(/^data\//, "")}</span>`).join("") || "<i>none</i>"}</td>
+      <td class="dim">${r.length} feed${r.length === 1 ? "" : "s"}</td>
+      <td class="num"><span class="badge cold">candidate to delete</span></td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+function renderTopFeeds(d) {
+  const top = d?.top_consumed_feeds || [];
+  const body = document.getElementById("topfeeds-body");
+  if (!top.length) { body.innerHTML = '<div class="empty">No data</div>'; return; }
+  let html = '<table><thead><tr><th>Feed</th><th class="num">Consumers</th><th>Pages</th><th>Lambdas</th></tr></thead><tbody>';
+  for (const f of top.slice(0, 30)) {
+    const isHot = f.n_consumers >= 10;
+    html += `<tr>
+      <td>${isHot ? '<span class="badge hot">HOT</span> ' : ''}<code>${f.feed.replace(/^data\//, "")}</code></td>
+      <td class="num">${f.n_consumers}</td>
+      <td class="dim">${(f.pages || []).slice(0, 5).map(p => `<span class="chip">${p.replace(/\.html$/, "")}</span>`).join("") || "—"}</td>
+      <td class="dim">${(f.lambdas || []).slice(0, 4).map(l => `<span class="chip">${l.replace(/^justhodl-/, "")}</span>`).join("") || "—"}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+function renderBlast(d, filter = "") {
+  const blast = d?.blast_radius || {};
+  const body = document.getElementById("blast-body");
+  const entries = Object.entries(blast)
+    .filter(([fn]) => !filter || fn.toLowerCase().includes(filter.toLowerCase()))
+    .sort((a, b) => (b[1]?.length || 0) - (a[1]?.length || 0))
+    .slice(0, 80);
+  if (!entries.length) { body.innerHTML = '<div class="empty">No matches</div>'; return; }
+  let html = '<table><thead><tr><th>Lambda</th><th class="num">Affects</th><th>What breaks</th></tr></thead><tbody>';
+  for (const [fn, affected] of entries) {
+    const aList = affected || [];
+    if (!aList.length) continue;
+    html += `<tr>
+      <td>${fn}</td>
+      <td class="num">${aList.length}</td>
+      <td class="dim">${aList.slice(0, 6).map(x => `<span class="chip">${x.replace(/\.html$/, "").replace(/^justhodl-/, "")}</span>`).join("")}${aList.length > 6 ? ` <span style="color:var(--muted)">+${aList.length - 6} more</span>` : ""}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+function renderHealth(mon) {
+  const body = document.getElementById("health-body");
+  if (!mon || !mon.pages) { body.innerHTML = '<div class="empty">synthetic-monitor.json not yet available</div>'; return; }
+  let html = '<table><thead><tr><th>Page</th><th class="num">TTFB</th><th class="num">Size</th><th class="num">Status</th><th>Reason</th></tr></thead><tbody>';
+  for (const p of [...mon.pages].sort((a, b) => Number(b.ok) - Number(a.ok))) {
+    html += `<tr>
+      <td>${p.title} <span class="chip">${p.path}</span></td>
+      <td class="num">${p.ttfb_ms || "—"} ms</td>
+      <td class="num">${p.size_kb ? p.size_kb + " KB" : "—"}</td>
+      <td class="num"><span class="badge ${p.ok ? "hot" : "orphan"}">${p.ok ? "OK" : "FAIL"}</span></td>
+      <td class="dim">${p.reason || ""}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+function renderGraph(d) {
+  const svg = document.getElementById("graph-svg");
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  if (!d?.top_consumed_feeds) return;
+
+  const top = d.top_consumed_feeds.slice(0, 12);
+  const nodes = new Map();
+  const links = [];
+  const addNode = (id, type) => { if (!nodes.has(id)) nodes.set(id, { id, type }); };
+
+  for (const f of top) {
+    addNode(f.feed, "feed");
+    for (const fn of Object.keys(d.lambda_io || {})) {
+      const io = d.lambda_io[fn] || {};
+      if ((io.writes || []).includes(f.feed)) {
+        addNode(fn, "lambda");
+        links.push({ source: fn, target: f.feed });
+      }
+    }
+    for (const p of (f.pages || []).slice(0, 4)) {
+      addNode(p, "page");
+      links.push({ source: f.feed, target: p });
+    }
+    for (const l of (f.lambdas || []).slice(0, 4)) {
+      addNode(l, "lambda");
+      links.push({ source: f.feed, target: l, isRead: true });
+    }
+  }
+
+  const w = svg.clientWidth || 1100, h = 560;
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  const nodeArr = [...nodes.values()];
+  for (const n of nodeArr) {
+    n.x = w / 2 + (Math.random() - 0.5) * w * 0.7;
+    n.y = h / 2 + (Math.random() - 0.5) * h * 0.7;
+    n.vx = 0; n.vy = 0;
+  }
+  const byId = new Map(nodeArr.map(n => [n.id, n]));
+
+  for (let i = 0; i < 280; i++) {
+    for (const a of nodeArr) {
+      for (const b of nodeArr) {
+        if (a === b) continue;
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const d2 = dx * dx + dy * dy + 0.01;
+        const f = 900 / d2;
+        a.vx += (dx / Math.sqrt(d2)) * f;
+        a.vy += (dy / Math.sqrt(d2)) * f;
+      }
+    }
+    for (const l of links) {
+      const s = byId.get(l.source), t = byId.get(l.target);
+      if (!s || !t) continue;
+      const dx = t.x - s.x, dy = t.y - s.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
+      const f = (dist - 90) * 0.02;
+      s.vx += (dx / dist) * f; s.vy += (dy / dist) * f;
+      t.vx -= (dx / dist) * f; t.vy -= (dy / dist) * f;
+    }
+    for (const n of nodeArr) {
+      n.vx += (w / 2 - n.x) * 0.001;
+      n.vy += (h / 2 - n.y) * 0.001;
+      n.vx *= 0.86; n.vy *= 0.86;
+      n.x += n.vx; n.y += n.vy;
+      n.x = Math.max(20, Math.min(w - 20, n.x));
+      n.y = Math.max(20, Math.min(h - 20, n.y));
+    }
+  }
+
+  for (const l of links) {
+    const s = byId.get(l.source), t = byId.get(l.target);
+    if (!s || !t) continue;
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", s.x); line.setAttribute("y1", s.y);
+    line.setAttribute("x2", t.x); line.setAttribute("y2", t.y);
+    line.setAttribute("stroke", l.isRead ? "#26ffaf30" : "#a78bfa30");
+    line.setAttribute("stroke-width", "0.7");
+    svg.appendChild(line);
+  }
+  const color = { feed: "#00d4ff", lambda: "#a78bfa", page: "#26ffaf" };
+  for (const n of nodeArr) {
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    const r = n.type === "feed" ? 7 : 4.5;
+    c.setAttribute("cx", n.x); c.setAttribute("cy", n.y); c.setAttribute("r", r);
+    c.setAttribute("fill", color[n.type] || "#888");
+    c.setAttribute("stroke", "#070a0f"); c.setAttribute("stroke-width", "1.5");
+    svg.appendChild(c);
+
+    const label = (n.id || "").replace(/^data\//, "").replace(/\.json$/, "").replace(/^justhodl-/, "").replace(/\.html$/, "");
+    if (label.length <= 28) {
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", n.x + r + 3); t.setAttribute("y", n.y + 3);
+      t.setAttribute("fill", "#a8b3c7"); t.setAttribute("font-size", "9");
+      t.setAttribute("font-family", "ui-monospace,monospace");
+      t.textContent = label;
+      svg.appendChild(t);
+    }
+  }
+}
+
+function setTab(name) {
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+  ["orphans", "topfeeds", "blast", "graph", "health"].forEach(t =>
+    document.getElementById("tab-" + t).classList.toggle("hidden", t !== name));
+  if (name === "graph" && dep) renderGraph(dep);
+}
+document.querySelectorAll(".tab").forEach(b =>
+  b.addEventListener("click", () => setTab(b.dataset.tab)));
+
+document.getElementById("blast-q").addEventListener("input", e => renderBlast(dep, e.target.value));
+
+(async () => {
+  [dep, monitor] = await Promise.all([
+    fetchJSON("dependency-graph.json"),
+    fetchJSON("synthetic-monitor.json"),
+  ]);
+  if (!dep) {
+    document.getElementById("stats").innerHTML =
+      '<div class="stat"><div class="k">Status</div><div class="v danger">no data</div></div>';
+    return;
+  }
+  renderStats(dep, monitor);
+  renderOrphans(dep);
+  renderTopFeeds(dep);
+  renderBlast(dep);
+  renderHealth(monitor);
+})();
+</script>
+</body>
+</html>

@@ -27,6 +27,7 @@ from jhcore import s3io, notify
 # post-JS DOM — but signature strings are still present in the source.)
 PAGES = [
     {"path": "/", "title": "Home", "must_contain": ["JustHodl"]},
+    # Macro flagships with full Bottom Line + Matrix
     {"path": "/yield-curve.html", "title": "Yield Curve", "must_contain": ["yield"]},
     {"path": "/vix-curve.html", "title": "VIX Curve", "must_contain": ["interp-kit.js"]},
     {"path": "/systemic-stress.html", "title": "Systemic Stress", "must_contain": ["interp-kit.js", "jh-mtx"]},
@@ -35,9 +36,27 @@ PAGES = [
     {"path": "/risk-radar.html", "title": "Risk Radar", "must_contain": ["interp-kit.js", "jh-mtx"]},
     {"path": "/bond-vol.html", "title": "Bond Vol", "must_contain": ["interp-kit.js", "jh-mtx"]},
     {"path": "/defcon.html", "title": "Defcon", "must_contain": ["interp-kit.js", "jh-mtx"]},
+    # Moderate-tier pages on the kit
+    {"path": "/divergence-v2.html", "title": "Divergence v2", "must_contain": ["interp-kit.js"]},
+    {"path": "/valuations.html", "title": "Valuations", "must_contain": ["interp-kit.js"]},
+    {"path": "/consumer-pulse.html", "title": "Consumer Pulse", "must_contain": ["interp-kit.js"]},
+    {"path": "/trend-engine.html", "title": "Trend Engine", "must_contain": ["interp-kit.js"]},
+    {"path": "/conviction.html", "title": "Conviction", "must_contain": ["interp-kit.js"]},
+    {"path": "/fundamentals.html", "title": "Fundamentals", "must_contain": ["interp-kit.js"]},
+    # Wealth / planning
     {"path": "/baggers.html", "title": "100x Baggers", "must_contain": ["bagger"]},
     {"path": "/wealth-plan.html", "title": "Wealth Plan", "must_contain": ["wealth"]},
     {"path": "/tax-plan.html", "title": "Tax Plan", "must_contain": ["tax"]},
+    {"path": "/compass.html", "title": "Capital Compass", "must_contain": ["compass"]},
+    {"path": "/portfolio-manager.html", "title": "Portfolio Manager", "must_contain": ["portfolio"]},
+    # Core hubs
+    {"path": "/signal-board.html", "title": "Signal Board", "must_contain": ["signal"]},
+    {"path": "/retail-edges.html", "title": "Retail Edges", "must_contain": ["edge"]},
+    {"path": "/liquidity.html", "title": "Liquidity", "must_contain": ["liquidity"]},
+    {"path": "/today.html", "title": "Today", "must_contain": ["today"]},
+    # Observability
+    {"path": "/observability.html", "title": "Fleet Observability", "must_contain": ["bservab"]},
+    {"path": "/dep-graph.html", "title": "Dependency Graph", "must_contain": ["dependency-graph"]},
 ]
 
 CRITICAL_FEEDS = [
