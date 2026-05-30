@@ -1,0 +1,333 @@
+{
+  "started": "2026-05-30T21:11:27.960598+00:00",
+  "redeploy": "OK",
+  "registry": {
+    "n_contexts": 30
+  },
+  "patched_ctx_config": {
+    "baggers-names": {
+      "primary_feed": "data/bagger-engine.json",
+      "primary_tickers_field": "top_100",
+      "primary_score_field": "bagger_score",
+      "ticker_id_field": "symbol",
+      "top_n": 15
+    },
+    "eps-velocity-names": {
+      "primary_feed": "data/eps-revision-velocity.json",
+      "primary_tickers_field": "all_qualifying",
+      "primary_score_field": "score",
+      "ticker_id_field": "symbol",
+      "top_n": 12
+    },
+    "insider-clusters-names": {
+      "primary_feed": "data/insider-clusters.json",
+      "primary_tickers_field": "clusters",
+      "primary_score_field": "score",
+      "ticker_id_field": "ticker",
+      "top_n": 12
+    },
+    "smart-money-names": {
+      "primary_feed": "data/smart-money-clusters.json",
+      "primary_tickers_field": "clusters",
+      "primary_score_field": "score",
+      "ticker_id_field": "ticker",
+      "top_n": 12
+    },
+    "activist-13d-names": {
+      "primary_feed": "data/activist-13d.json",
+      "primary_tickers_field": "top_setups",
+      "primary_score_field": "score",
+      "ticker_id_field": "ticker",
+      "top_n": 10
+    },
+    "deep-value-names": {
+      "primary_feed": "data/deep-value.json",
+      "primary_tickers_field": "all_qualifying",
+      "primary_score_field": "score",
+      "ticker_id_field": "symbol",
+      "top_n": 12
+    },
+    "momentum-names": {
+      "primary_feed": "data/momentum-scanner.json",
+      "primary_tickers_field": "rankings.composite_top_50",
+      "primary_score_field": "composite_score",
+      "ticker_id_field": "ticker",
+      "top_n": 15
+    }
+  },
+  "invoke_status": 200,
+  "invoke_fn_err": null,
+  "invoke_summary": {
+    "duration_s": 35.46,
+    "n_contexts": 7,
+    "n_ok": 7
+  },
+  "log_tail": "START RequestId: 4a8e5912-ba48-496d-8ef5-22a820809f4f Version: $LATEST\n[ai-brief-router] running 7 contexts in parallel: ['baggers-names', 'eps-velocity-names', 'insider-clusters-names', 'smart-money-names', 'activist-13d-names', 'deep-value-names', 'momentum-names']\n[ai-brief-router] activist-13d-names: OK 1.58s \n[ai-brief-router] baggers-names: OK 26.01s \n[ai-brief-router] deep-value-names: OK 26.08s \n[ai-brief-router] eps-velocity-names: OK 31.09s \n[ai-brief-router] smart-money-names: OK 32.8s \n[ai-brief-router] momentum-names: OK 34.71s \n[ai-brief-router] insider-clusters-names: OK 35.31s \n[ai-brief-router] done: 7/7 OK in 35.46s\nEND RequestId: 4a8e5912-ba48-496d-8ef5-22a820809f4f\nREPORT RequestId: 4a8e5912-ba48-496d-8ef5-22a820809f4f\tDuration: 35466.36 ms\tBilled Duration: 36016 ms\tMemory Size: 1024 MB\tMax Memory Used: 105 MB\tInit Duration: 549.06 ms\t\nXRAY TraceId: 1-6a1b5285-3b48d2bc5b57b9612af70758\tSegmentId: f11915cf5726cadb\tSampled: true\t\n",
+  "verify": [
+    {
+      "context": "baggers-names",
+      "output_key": "data/baggers-names.json",
+      "status": "OK",
+      "title": "\ud83d\ude80 100x Bagger Candidates \u2014 AI Briefs",
+      "regime_note": "Neutral liquidity, VIX contango grind favours quality compounders with ROIC inflection; risk-on bias but no tailwind confirmation yet.",
+      "n_names": 15,
+      "age_sec": 12.5,
+      "fresh": true,
+      "sample": [
+        {
+          "ticker": "PPIH",
+          "rank": 1,
+          "score": 89.7,
+          "fit": "STRONG_FIT",
+          "one_liner": "Micro-cap industrials with 20% revenue CAGR, 14% ROIC inflection, insider net-buying\u2014classic 25x setup.",
+          "catalyst": "Margin expansion confirmation in next 2 quarters; operating leverage realization in constr",
+          "analog": "SMCI",
+          "asym": "8-15x over 24-36 months at 25% probability; 3-5x base case."
+        },
+        {
+          "ticker": "SMID",
+          "rank": 2,
+          "score": 85.4,
+          "fit": "STRONG_FIT",
+          "one_liner": "Construction materials micro-cap: 16% revenue CAGR, 17% ROIC (+11pp inflection), 28% gross margin expanding.",
+          "catalyst": "Margin expansion in next 2-3 quarters; infrastructure spending cycle tailwind confirmation",
+          "analog": "AEHR",
+          "asym": "6-12x over 24-36 months at 20% probability; 3-4x base case."
+        },
+        {
+          "ticker": "ADMA",
+          "rank": 3,
+          "score": 83.4,
+          "fit": "STRONG_FIT",
+          "one_liner": "Biotech with 65% revenue CAGR, 28% ROIC inflection, 57% gross margin\u2014but 35% annual dilution is bagger killer.",
+          "catalyst": "Revenue acceleration confirmation; gross margin expansion to 60%+ in next 2 quarters.",
+          "analog": "ENPH",
+          "asym": "3-8x over 24-36 months at 15% probability; dilution caps upside vs peers."
+        }
+      ]
+    },
+    {
+      "context": "eps-velocity-names",
+      "output_key": "data/eps-velocity-names.json",
+      "status": "OK",
+      "title": "EPS Revision Velocity \u2014 AI Briefs",
+      "regime_note": "Steep VIX contango favors high-beta growth; yield curve unknown creates timing risk. Semiconductor/AI infrastructure cycle in late-stage acceleration phase.",
+      "n_names": 12,
+      "age_sec": 6.6,
+      "fresh": true,
+      "sample": [
+        {
+          "ticker": "AMD",
+          "rank": 1,
+          "score": 86.5,
+          "fit": "STRONG_FIT",
+          "one_liner": "FY27 EPS +76% on +53% revenue growth; sell-side still under-estimating AI datacenter TAM expansion.",
+          "catalyst": "Q4 2025 datacenter guidance raise; FY27 revenue beat on GPU/CPU mix shift.",
+          "analog": "AMD",
+          "asym": "3-6x over 18-24 months at 35% probability if datacenter TAM inflection confirmed."
+        },
+        {
+          "ticker": "SNDK",
+          "rank": 2,
+          "score": 86.5,
+          "fit": "STRONG_FIT",
+          "one_liner": "FY27 EPS +172% on +117% revenue growth; extreme leverage to NAND supply tightness and AI storage demand.",
+          "catalyst": "Q1 2026 NAND spot-price inflection; enterprise SSD demand acceleration from AI inference s",
+          "analog": "SNDK",
+          "asym": "4-8x over 18-24 months at 25% probability if supply remains tight through 2026."
+        },
+        {
+          "ticker": "PLTR",
+          "rank": 3,
+          "score": 85.9,
+          "fit": "NEUTRAL",
+          "one_liner": "FY27 EPS +43% on +45% revenue growth; commercial AI adoption still under-modeled by sell-side.",
+          "catalyst": "Commercial segment acceleration in Q4 2025; government contract wins; margin expansion pro",
+          "analog": "PLTR",
+          "asym": "2-4x over 24-36 months at 30% probability if commercial revenue inflection confirmed."
+        }
+      ]
+    },
+    {
+      "context": "insider-clusters-names",
+      "output_key": "data/insider-clusters-names.json",
+      "status": "OK",
+      "title": "Insider Cluster Buys \u2014 AI Briefs",
+      "regime_note": "Steep contango grind favors value/income plays; financial services cluster buying signals capitulation lows; crypto/fintech names show extreme drawdowns.",
+      "n_names": 12,
+      "age_sec": 2.6,
+      "fresh": true,
+      "sample": [
+        {
+          "ticker": "SLMT",
+          "rank": 1,
+          "score": 83.5,
+          "fit": "NEUTRAL",
+          "one_liner": "CEO conviction buy at 99% drawdown; crypto asset mgmt capitulation signal.",
+          "catalyst": "Crypto market stabilization; potential M&A or restructuring announcement within 6 months.",
+          "analog": "GBTC",
+          "asym": "3-8x over 12-24 months at 20% probability; binary on crypto macro."
+        },
+        {
+          "ticker": "UBCP",
+          "rank": 2,
+          "score": 83.5,
+          "fit": "STRONG_FIT",
+          "one_liner": "CEO+CFO+Chairman+6 directors cluster buy; regional bank capitulation at 11% discount.",
+          "catalyst": "Fed rate-cut cycle confirmation; deposit stabilization narrative; Q1 earnings beat.",
+          "analog": "PACW",
+          "asym": "2-4x over 12-18 months at 35% probability; strongest cluster signal in universe."
+        },
+        {
+          "ticker": "PSEC",
+          "rank": 3,
+          "score": 77.2,
+          "fit": "NEUTRAL",
+          "one_liner": "CEO solo buy $1.01M at $2.32; BDC at 31% discount signals distressed-credit opportunity.",
+          "catalyst": "Credit spread compression; portfolio company exit/dividend reset; rate-cut narrative.",
+          "analog": "ARCC",
+          "asym": "2-3.5x over 18-24 months at 25% probability; BDC sector macro-dependent."
+        }
+      ]
+    },
+    {
+      "context": "smart-money-names",
+      "output_key": "data/smart-money-names.json",
+      "status": "OK",
+      "title": "Smart Money 13F Clusters \u2014 AI Briefs",
+      "regime_note": "Steep VIX contango favors duration/defensive plays; elite cluster buying defensives (PEP, VZ, KO, JNJ) + selective growth (V, NVDA, META) signals rotation into quality.",
+      "n_names": 12,
+      "age_sec": 5.7,
+      "fresh": true,
+      "sample": [
+        {
+          "ticker": "PEP",
+          "rank": 1,
+          "score": 81.7,
+          "fit": "STRONG_FIT",
+          "one_liner": "Duration legend DURATION initiates PEP at 16% discount; defensive staple in contango grind.",
+          "catalyst": "Q4 earnings + dividend confirmation; potential sector rotation into defensives if equity v",
+          "analog": "KO",
+          "asym": "12-18% upside over 12-18 months at 70% probability; 25%+ if macro deteriorates."
+        },
+        {
+          "ticker": "V",
+          "rank": 2,
+          "score": 75.1,
+          "fit": "STRONG_FIT",
+          "one_liner": "Three-legend cluster (COATUE, BAUPOST, LONE_PINE) initiates V; fintech secular growth at 13% discount.",
+          "catalyst": "Cross-border payment volume acceleration; AI-driven fraud detection monetization; Q1 guida",
+          "analog": "V",
+          "asym": "15-25% over 18 months at 65% probability; 40%+ if macro stabilizes."
+        },
+        {
+          "ticker": "HUM",
+          "rank": 3,
+          "score": 72.4,
+          "fit": "STRONG_FIT",
+          "one_liner": "DURATION initiates HUM; healthcare consolidation + margin expansion at near-YTD highs.",
+          "catalyst": "2025 MA rate announcements; cost-ratio compression; potential M&A in fragmented sector.",
+          "analog": "UNH",
+          "asym": "10-15% over 12 months at 60% probability; 30%+ if MA rates surprise high."
+        }
+      ]
+    },
+    {
+      "context": "activist-13d-names",
+      "output_key": "data/activist-13d-names.json",
+      "status": "OK",
+      "title": "Activist 13D Filings \u2014 AI Briefs",
+      "regime_note": "No 13D filings in dataset; VIX contango favors patient capital but activist dry spell suggests macro caution.",
+      "n_names": 0,
+      "age_sec": 36.7,
+      "fresh": true,
+      "sample": []
+    },
+    {
+      "context": "deep-value-names",
+      "output_key": "data/deep-value-names.json",
+      "status": "OK",
+      "title": "Deep Value Setups \u2014 AI Briefs",
+      "regime_note": "Steep contango grind favors cash-generative, low-volatility deep value; financials excluded from scoring but present in universe.",
+      "n_names": 12,
+      "age_sec": 11.8,
+      "fresh": true,
+      "sample": [
+        {
+          "ticker": "ELV",
+          "rank": 1,
+          "score": 64.7,
+          "fit": "STRONG_FIT",
+          "one_liner": "Healthcare insurer at 0.43\u00d7 revenue with 19% net cash and 4/4 OCF positive\u2014rare margin of safety.",
+          "catalyst": "Q4 earnings, margin expansion from cost synergies, potential M&A premium in consolidation ",
+          "analog": "UNH",
+          "asym": "3\u20135\u00d7 over 24\u201336 months at 25% probability; downside protected by net cash and OCF."
+        },
+        {
+          "ticker": "PGR",
+          "rank": 2,
+          "score": 19.5,
+          "fit": "NEUTRAL",
+          "one_liner": "Insurance stock down 34% from high with 77% net cash; financials excluded but OCF solid.",
+          "catalyst": "Underwriting margin stabilization, dividend growth resumption, rate-environment clarity.",
+          "analog": "PGR",
+          "asym": "2\u20133\u00d7 over 36 months at 20% probability; financial-sector cyclicality is headwind."
+        },
+        {
+          "ticker": "COF",
+          "rank": 3,
+          "score": 19.0,
+          "fit": "NEUTRAL",
+          "one_liner": "Credit-card lender down 28% with 464% net cash; balance-sheet fortress but credit-cycle risk.",
+          "catalyst": "Credit stabilization, net-interest-margin expansion, capital return acceleration.",
+          "analog": "COF",
+          "asym": "2\u20134\u00d7 over 24\u201336 months at 18% probability; credit cycle timing is critical."
+        }
+      ]
+    },
+    {
+      "context": "momentum-names",
+      "output_key": "data/momentum-names.json",
+      "status": "OK",
+      "title": "Momentum Scanner \u2014 AI Briefs",
+      "regime_note": "Steep contango grind favors hardware/semis with extreme 12m momentum; watch for vol regime shift kill-switch.",
+      "n_names": 15,
+      "age_sec": 3.8,
+      "fresh": true,
+      "sample": [
+        {
+          "ticker": "SNDK",
+          "rank": 1,
+          "score": 99.4,
+          "fit": "STRONG_FIT",
+          "one_liner": "Extreme 4293% 12m momentum with -626 deceleration signals late-cycle exhaustion risk despite 99.4 score.",
+          "catalyst": "Earnings confirmation of demand sustainability; any guidance miss triggers reversal.",
+          "analog": "NVDA",
+          "asym": "2-3x over 6-12 months at 25% probability; 40% downside risk dominates."
+        },
+        {
+          "ticker": "STX",
+          "rank": 2,
+          "score": 98.84,
+          "fit": "STRONG_FIT",
+          "one_liner": "649% 12m return with 448 momentum and -31 deceleration; hardware cycle tailwind but late-stage signal.",
+          "catalyst": "Storage demand from AI/data-center capex cycle; earnings beat on margin expansion.",
+          "analog": "WDC",
+          "asym": "3-5x over 18-24 months at 35% probability."
+        },
+        {
+          "ticker": "MU",
+          "rank": 3,
+          "score": 98.69,
+          "fit": "STRONG_FIT",
+          "one_liner": "910% 12m return with +383 acceleration and -1% drawdown; strongest momentum persistence in cohort.",
+          "catalyst": "AI capex cycle confirmation; earnings beat on HBM demand; guidance raise.",
+          "analog": "MU",
+          "asym": "4-7x over 24-36 months at 40% probability."
+        }
+      ]
+    }
+  ],
+  "n_briefs": 6,
+  "finished": "2026-05-30T21:12:12.809750+00:00"
+}
