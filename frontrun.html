@@ -94,56 +94,73 @@ footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);colo
   <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-frontrun-history","frontrun-sniffer-history");</script>
 
   <section class="meth-section">
-    <div class="meth-h">📐 How the sniffer works</div>
+    <div class="meth-h">📐 How the sniffer works — 35+ flow feeds across 11 categories</div>
     <div class="meth-grid">
+      <div class="meth-card" style="border-left-color:#22d3ee">
+        <div class="t" style="color:#22d3ee">🏛 Auction + Primary Dealer</div>
+        <div class="b">Treasury auction tape stress + NYFed dealer survey + sovereign TIC flows — the highest-leading-indicator rates pattern.</div>
+        <div class="feeds">auction-crisis · dealer-survey · tic-flows</div>
+      </div>
+      <div class="meth-card" style="border-left-color:#ef4444">
+        <div class="t" style="color:#ef4444">🔧 Funding Plumbing + Rates Vol</div>
+        <div class="b">MOVE index, eurodollar/FRA-OIS/SOFR stress, BTFP/swap-line/discount-window usage — pre-equity-vol signal.</div>
+        <div class="feeds">bond-vol · eurodollar-stress · crisis-plumbing</div>
+      </div>
+      <div class="meth-card" style="border-left-color:#22c55e">
+        <div class="t" style="color:#22c55e">💧 Net Liquidity + Fed Path</div>
+        <div class="b">WALCL-TGA-RRP composite + macro nowcast + Fed-speak NLP hawk-dove score — what dealers are positioning for Fed-wise.</div>
+        <div class="feeds">liquidity-data · liquidity-flow · macro-nowcast · fed-speak · fed-nlp</div>
+      </div>
       <div class="meth-card">
-        <div class="t">Whale / Smart Money</div>
-        <div class="b">Detects accumulation patterns hedge funds use to enter before catalysts.</div>
+        <div class="t">🐋 Whale / Smart Money</div>
+        <div class="b">13F clusters, CFTC commitments, consensus-bottom + forced-selling marks — institutional accumulation patterns.</div>
         <div class="feeds">13f-price-divergence · 13f-positions · smart-money-clusters · consensus-bottom · forced-selling-bounce · cftc-deep-view</div>
       </div>
       <div class="meth-card">
-        <div class="t">Dealer / Market Maker</div>
-        <div class="b">GEX flips, put walls, dealer-survey leans — what MMs are positioned for.</div>
-        <div class="feeds">dealer-gex · dealer-survey · options-flow · options-gamma · auction-crisis</div>
+        <div class="t">🎩 Dealer MM Equity (GEX + Options)</div>
+        <div class="b">Dealer gamma exposure, unusual options flow, call/put activity — equity-side MM positioning.</div>
+        <div class="feeds">dealer-gex · options-flow · options-gamma</div>
       </div>
       <div class="meth-card">
-        <div class="t">Vol / Skew Anomalies</div>
-        <div class="b">OTM put bidding, skew steepening, IV term-structure dislocation — the protection-demand layer.</div>
+        <div class="t">📊 Vol / Skew (Protection Demand)</div>
+        <div class="b">OTM put bidding, catalyst-skew steepening, IV term-structure dislocation, short-squeeze pre-triggers.</div>
         <div class="feeds">skew-tail-hedging · catalyst-skew-premove · earnings-iv-crush · squeeze-pretrigger · short-interest</div>
       </div>
       <div class="meth-card">
-        <div class="t">Insider / Activist</div>
+        <div class="t">👁 Insider / Activist</div>
         <div class="b">CEO+CFO cluster buys, activist 13D filings — corporate-internal signal.</div>
         <div class="feeds">insider-clusters · activist-13d</div>
       </div>
       <div class="meth-card">
-        <div class="t">Cross-Exchange Flows</div>
-        <div class="b">ETF/exchange/stablecoin/TIC flows — which side of the order book is being built quietly.</div>
-        <div class="feeds">etf-flows · exchange-flows · stablecoin-flow · tic-flows · liquidity-flow</div>
+        <div class="t">🌊 Cross-Exchange Flows</div>
+        <div class="b">ETF/exchange/stablecoin flows — quiet accumulation in crypto / FX / commodities.</div>
+        <div class="feeds">etf-flows · exchange-flows · stablecoin-flow</div>
       </div>
       <div class="meth-card">
-        <div class="t">Sentiment (Contra)</div>
+        <div class="t">📢 Sentiment (Contra)</div>
         <div class="b">When retail is one-sided extreme, smart money is positioning the other way.</div>
         <div class="feeds">aaii-sentiment · retail-sentiment</div>
       </div>
       <div class="meth-card">
-        <div class="t">Catalyst Calendar</div>
-        <div class="b">WHAT they're front-running — every upcoming earnings, Fed meeting, OPEX, data print, OPEC, geo-event.</div>
+        <div class="t">📅 Catalyst Calendar</div>
+        <div class="b">WHAT they're front-running — earnings, FOMC, refunding announcements, NFP, CPI, OPEX, geopolitical.</div>
         <div class="feeds">catalyst-calendar</div>
       </div>
       <div class="meth-card">
-        <div class="t">Macro + Synthesis Context</div>
-        <div class="b">Where the desk consensus sits + cross-asset divergence map.</div>
-        <div class="feeds">divergence-v2 · desk-consensus · vix-curve · yield-curve · credit-spreads</div>
+        <div class="t">🎯 Synthesis + Macro Context</div>
+        <div class="b">Cross-asset divergence + the 30-desk consensus + bonds-desk decisive call + macro context (VIX, curve, credit).</div>
+        <div class="feeds">divergence-v2 · desk-consensus · bonds-decisive-call · vix-curve · yield-curve · credit-spreads</div>
       </div>
     </div>
     <div class="meth-foot">
-      The sniffer requires CONVERGENCE — every suspected setup cites 3+ smoking-gun signals from
+      <b>The convergence rule</b> — every suspected setup MUST cite 3+ smoking-gun signals from
       DIFFERENT categories. Single-feed anomalies appear in the "loudest anomaly" panel as
-      noise-to-watch but do not become actionable setups until they converge. Every actionable
-      setup also includes the historical analog episode (Aug 2007 quant melt, Dec 2018 dealer
-      gamma cascade, Mar 2020 hedging unwind, Feb 2018 vol regime, Jan 2021 GME, etc), and the
-      specific data-condition tripwire that would invalidate the hypothesis.
+      noise-to-watch but do not become actionable setups until they converge across categories.
+      <b>Rates/macro signals get priority</b> — when AUCTION + PRIMARY DEALER + FUNDING PLUMBING
+      converge, that's the highest-conviction macro fingerprint (Aug 2007 jumbo auction tail
+      pre-Lehman, Sep 2019 repo spike, Mar 2020 Treasury basis trade unwind, Mar 2023 SVB BTFP).
+      Every actionable setup names the historical analog, the specific data tripwire that would
+      invalidate the hypothesis, and a paired ride-flow / fade-flow trade.
     </div>
   </section>
 

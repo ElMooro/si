@@ -903,26 +903,67 @@ BASE_SYSTEM_FRONTRUN = (
 
 
 def _compact_feed(d, cap=900):
-    """Compact a feed dict to its essential signals for the prompt — drop noise, keep numbers."""
+    """Compact a feed dict to its essential signals for the prompt — drop noise, keep numbers.
+    Covers BOTH equity microstructure and rates/macro/auction signal fields."""
     if not isinstance(d, dict):
         return d
-    # High-signal field names common across flow feeds
+    # High-signal field names common across all flow + macro/rates feeds
     keep_keys = {
+        # Common scoring / regime
         "regime", "score", "composite_score", "anomaly_score", "anomaly_regime",
         "signal", "signal_strength", "signal_type", "signal_types", "flag",
         "state", "severity", "summary", "headline", "one_liner",
         "top_setups", "top_5", "top", "top_10", "clusters", "alerts",
         "warning", "warnings", "rationale", "as_of", "current_readings",
-        "n_buyers", "n_funds_holding", "n_insiders", "legend_buyers",
-        "gex", "gamma", "skew", "iv", "put_call_ratio",
-        "directional_bias", "n_signals", "primary_signal",
         "key_levels", "level", "threshold", "tripwire", "tripwires",
+
+        # Equity microstructure
+        "n_buyers", "n_funds_holding", "n_insiders", "legend_buyers",
+        "gex", "gamma", "skew", "iv", "put_call_ratio", "directional_bias",
+        "n_signals", "primary_signal",
+
+        # ── RATES / AUCTION / MACRO SIGNAL FIELDS ──
+        # Auction tape
+        "btc_ratio", "indirect", "indirect_pct", "aah", "dealer_take",
+        "tail_bps", "tail", "stop_yield", "high_yield", "issue_size",
+        "auction_date", "recent_auctions", "upcoming_auctions",
+        "crisis_pattern_indicators", "zero_rate_floor", "btc_extreme",
+        "indirect_drought", "aah_dependency", "tail_blowout", "ratio_inversion",
+        # Primary dealer survey
+        "dealer_positions", "n_dealers", "median_forecast", "dispersion",
+        "duration_bias", "credit_bias",
+        # Funding plumbing
+        "fra_ois", "sofr_iorb", "swap_lines", "btfp_balance", "discount_window",
+        "repo_rate", "ted_spread", "ois_spread", "funding_severity",
+        # MOVE / rates vol
+        "move_index", "move_vix_ratio", "move_pctile",
+        # Net liquidity
+        "walcl", "tga", "rrp", "net_liquidity", "delta_net_liquidity",
+        "soma", "m2", "fed_balance_sheet",
+        # TIC flows
+        "tic_net_flow", "foreign_holdings", "central_bank_holdings",
+        "n_buyers_sovereign", "country_top_buyers",
+        # Macro nowcast
+        "gdpnow", "lei", "cli", "ism", "sahm", "nfp_nowcast",
+        "cycle_phase", "expansion_probability",
+        # Fed-speak NLP
+        "hawk_dove_score", "fed_lean", "n_speeches",
+        "recent_speakers", "tone_delta", "tone_change_7d",
+        # Catalyst calendar
+        "upcoming_fomc", "upcoming_nfp", "upcoming_cpi", "upcoming_refunding",
+        "n_events_next_week", "events", "near_term_events",
+        # Yield curve
+        "twos_tens", "tens_thirties", "real_yield", "breakeven",
+        "term_premium", "curve_velocity"
     }
     out = {}
     for k, v in d.items():
         if k in keep_keys:
             out[k] = v
         elif isinstance(v, (int, float, bool)):
+            out[k] = v
+        elif isinstance(v, str) and len(v) < 200:
+            # Keep short strings (often regime/state labels)
             out[k] = v
     s = json.dumps(out, default=str)
     if len(s) > cap:
@@ -933,22 +974,45 @@ def _compact_feed(d, cap=900):
 
 
 def build_frontrun_prompt(ctx_id, cfg, feeds, kb_chunks):
-    """Build the front-run sniffer prompt — feed Claude every flow signal we have."""
-    # Categorize feeds for the prompt
+    """Build the front-run sniffer prompt — feed Claude every flow signal we have.
+    Covers BOTH equity microstructure AND rates/macro/auction front-running."""
+    # 9 categories — rates/macro categories listed FIRST (most front-run leading-indicator value)
     categorized = {
-        "WHALE / SMART MONEY": ["13f_divergence", "13f_positions", "smart_money_clusters",
-                                  "consensus_bottom", "forced_selling", "cftc_deep"],
-        "DEALER / MARKET MAKER": ["dealer_gex", "dealer_survey", "options_flow",
-                                    "options_gamma", "auction_crisis"],
-        "VOL / SKEW (PROTECTION DEMAND)": ["skew_tail", "catalyst_skew", "earnings_iv_crush",
-                                             "squeeze_pretrigger", "short_interest"],
+        # ── RATES / MACRO FRONT-RUN CATEGORIES (often LEAD equity moves) ──
+        "AUCTION TAPE + PRIMARY DEALER + SOVEREIGN FLOWS": [
+            "auction_crisis", "dealer_survey", "tic_flows"
+        ],
+        "FUNDING PLUMBING / RATES VOL (PRE-STRESS SIGNAL)": [
+            "bond_vol", "eurodollar_stress", "crisis_plumbing"
+        ],
+        "NET LIQUIDITY + FED PATH (WALCL/TGA/RRP + FED-SPEAK NLP)": [
+            "liquidity_data", "liquidity_flow", "macro_nowcast", "fed_speak", "fed_nlp"
+        ],
+
+        # ── EQUITY MICROSTRUCTURE CATEGORIES ──
+        "WHALE / SMART MONEY (13F, CFTC, CAPITULATION)": [
+            "13f_divergence", "13f_positions", "smart_money_clusters",
+            "consensus_bottom", "forced_selling", "cftc_deep"
+        ],
+        "DEALER / MM EQUITY (GEX, OPTIONS FLOW + GAMMA)": [
+            "dealer_gex", "options_flow", "options_gamma"
+        ],
+        "VOL / SKEW (PROTECTION DEMAND + SQUEEZE)": [
+            "skew_tail", "catalyst_skew", "earnings_iv_crush",
+            "squeeze_pretrigger", "short_interest"
+        ],
         "INSIDER / ACTIVIST": ["insider_clusters", "activist_13d"],
-        "LIQUIDITY / CROSS-EXCHANGE FLOWS": ["etf_flows", "exchange_flows", "stablecoin_flow",
-                                              "tic_flows", "liquidity_flow"],
+        "CROSS-EXCHANGE FLOWS (CRYPTO / ETF / TIC)": [
+            "etf_flows", "exchange_flows", "stablecoin_flow"
+        ],
         "SENTIMENT (CONTRA INDICATOR)": ["aaii_sentiment", "retail_sentiment"],
-        "CATALYST CALENDAR": ["catalyst_calendar"],
-        "CROSS-ASSET DIVERGENCE + CONSENSUS": ["divergence", "desk_consensus"],
-        "MACRO CONTEXT": ["vix", "yield_curve", "credit"]
+
+        # ── SYNTHESIS + MACRO CONTEXT ──
+        "CATALYST CALENDAR (WHAT THEY'RE FRONT-RUNNING)": ["catalyst_calendar"],
+        "CROSS-ASSET DIVERGENCE + DESK CONSENSUS + BONDS DESK": [
+            "divergence", "desk_consensus", "bonds_decisive"
+        ],
+        "MACRO CONTEXT (VIX/RATES/CREDIT)": ["vix", "yield_curve", "credit"]
     }
 
     blocks = []
@@ -980,14 +1044,16 @@ def build_frontrun_prompt(ctx_id, cfg, feeds, kb_chunks):
 ## YOUR ROLE
 {cfg["prompt_intro"]}
 
-## CURRENT FLOW DATA — {feeds_loaded} feeds loaded ({feeds_missing} unavailable)
+## CURRENT FLOW + RATES + MACRO DATA — {feeds_loaded} feeds loaded ({feeds_missing} unavailable)
 
-{feed_block[:20000]}
+{feed_block[:26000]}
 {kb_block}
 
 ## TASK
 
-Return EXACTLY this JSON. Detect CONVERGENT anomalies (3+ flow categories pointing same asset same direction). Single-feed anomalies are noise — call them out as "watching" but don't promote to suspected_setups.
+Return EXACTLY this JSON. Detect CONVERGENT anomalies (3+ flow/macro categories pointing same asset same direction). Single-feed anomalies are noise. Cross-category convergence is signal.
+
+CRITICAL: Pay special attention to RATES/MACRO front-runs because they often LEAD equity moves. If you see primary-dealer positioning + auction-tape stress + funding-plumbing widening together, that's the highest-conviction macro fingerprint — flag it explicitly.
 
 {{
   "overall_anomaly_score": <0-100, "how loud is the institutional positioning right now">,
@@ -999,27 +1065,27 @@ Return EXACTLY this JSON. Detect CONVERGENT anomalies (3+ flow categories pointi
     {{
       "rank": 1,
       "confidence": "<HIGH | MEDIUM | LOW>",
-      "target_asset": "<specific instrument — ticker or asset class>",
-      "target_direction": "<UPSIDE | DOWNSIDE | SIDEWAYS_SQUEEZE>",
-      "magnitude_pct": "<e.g. '-8% to -15%'>",
+      "target_asset": "<specific instrument — equity ticker, sector ETF, bond ETF (TLT/IEF/HYG/LQD/TIP), currency, commodity, or rate>",
+      "target_direction": "<UPSIDE | DOWNSIDE | SIDEWAYS_SQUEEZE | STEEPENER | FLATTENER | BREAKEVEN_BID>",
+      "magnitude_pct": "<e.g. '-8% to -15%' OR '+15 to +30 bps' for rates>",
       "horizon": "<e.g. '4-8 weeks'>",
       "probability_pct": <integer>,
 
-      "who_is_positioning": "<dealers / hedge funds / primary dealers / insiders / sovereigns / activists — name the player class>",
+      "who_is_positioning": "<primary dealers / hedge funds / sovereign wealth / central banks / commercials / insiders / dealers MM — name the player class>",
 
       "smoking_gun_signals": [
-        {{"category": "<DEALER_GEX | CFTC | SKEW | OPTIONS_FLOW | 13F | INSIDER | etc>",
+        {{"category": "<DEALER_GEX | CFTC | SKEW | OPTIONS_FLOW | 13F | INSIDER | AUCTION | DEALER_SURVEY | TIC | FUNDING_PLUMBING | BOND_VOL | NET_LIQUIDITY | FED_SPEAK | etc>",
          "feed": "<the feed id this came from>",
          "signal": "<specific signal with the number, ≤150 chars>",
          "anomaly_pctile": <0-100, how unusual is this value>}}
-        // 3-5 convergent signals minimum
+        // 3-5 convergent signals minimum, from DIFFERENT categories
       ],
 
-      "catalyst_being_front_run": "<the catalyst this positioning is pricing — earnings, Fed meeting, OPEX, geopolitical, etc>",
+      "catalyst_being_front_run": "<the catalyst this positioning is pricing — earnings, FOMC, refunding announcement, NFP, CPI, OPEX, geopolitical, etc>",
       "catalyst_date": "<date or window>",
 
       "historical_analog": {{
-        "period": "<specific period e.g. 2007 Q3 pre-GFC>",
+        "period": "<specific period e.g. Aug 2007 jumbo auction tail OR Mar 2023 SVB BTFP launch>",
         "what_happened": "<concrete outcome ≤30 words>",
         "similarity_pct": <integer>
       }},
@@ -1032,16 +1098,18 @@ Return EXACTLY this JSON. Detect CONVERGENT anomalies (3+ flow categories pointi
   ],
 
   "whale_alerts": [
-    {{"asset": "<ticker/asset>", "channel": "<13F | OPTIONS | CFTC | DARK_POOL | ONCHAIN | TIC>",
+    {{"asset": "<ticker/asset>",
+     "channel": "<13F | OPTIONS | CFTC | DARK_POOL | ONCHAIN | TIC | AUCTION | CENTRAL_BANK | PRIMARY_DEALER | SOVEREIGN>",
      "actor": "<player type>", "size": "<dollar or % anomaly>", "direction": "<long/short>",
      "implication": "<what this means ≤120 chars>"}}
-    // 2-5 whale alerts
+    // 2-5 alerts. Include AT LEAST ONE rates/macro channel (TIC/AUCTION/CENTRAL_BANK/PRIMARY_DEALER) if signal exists.
   ],
 
   "dealer_hedging_flows": [
-    {{"flow_type": "<GEX_FLIP | PUT_WALL | SHORT_GAMMA | VOL_BID | etc>",
-     "asset": "<ticker>", "signal": "<specific>", "implication": "<what dealers are positioning for>"}}
-    // 1-3 dealer flows
+    {{"flow_type": "<GEX_FLIP | PUT_WALL | SHORT_GAMMA | VOL_BID | AUCTION_ABSORPTION | TGA_BUILD | DURATION_BID | FUNDING_STRESS | CURVE_STEEPENER | CURVE_FLATTENER | BREAKEVEN_SPIKE | RRP_DRAIN | etc>",
+     "asset": "<ticker/rate>", "signal": "<specific>",
+     "implication": "<what dealers/primary dealers are positioning for>"}}
+    // 1-4 dealer flows. Mix EQUITY (GEX/PUT_WALL/SHORT_GAMMA) AND RATES (AUCTION_ABSORPTION/DURATION_BID/FUNDING_STRESS/CURVE_*) signals.
   ],
 
   "insider_capitulation_alerts": [
@@ -1051,7 +1119,7 @@ Return EXACTLY this JSON. Detect CONVERGENT anomalies (3+ flow categories pointi
   ],
 
   "loudest_anomaly": {{
-    "signal": "<the single most-extreme single-feed datapoint right now>",
+    "signal": "<the single most-extreme single-feed datapoint right now — equity OR rates>",
     "from_feed": "<feed id>",
     "value": "<the number>",
     "anomaly_pctile": <integer>,
@@ -1064,8 +1132,11 @@ Return EXACTLY this JSON. Detect CONVERGENT anomalies (3+ flow categories pointi
 ## RULES
 - Be specific. Name the feed each signal came from. Quote the actual number.
 - Convergence requirement: every suspected_setup MUST cite 3+ smoking_gun_signals from DIFFERENT categories.
+- WHEN RATES + MACRO + AUCTION signals converge, flag that explicitly — it's the highest-signal pattern.
 - If no convergent setup exists, suspected_setups can be empty array — DO NOT FABRICATE.
-- Historical analog must be a REAL past episode (Aug 2007 quant melt, Dec 2018 dealer gamma, Mar 2020 cascade, Feb 2018 vol unwind, Jan 2021 GME, Q3 2023 SMCI, Nov 2021 crypto top, etc).
+- Historical analog must be a REAL past episode:
+  * EQUITY: Aug 2007 quant melt, Dec 2018 dealer gamma, Mar 2020 cascade, Feb 2018 vol, Jan 2021 GME, Q3 2023 SMCI, Nov 2021 crypto top.
+  * RATES/MACRO: 1979 Volcker, 1994 bond massacre, 1998 LTCM, 2007 jumbo auction tail, Sep 2019 repo, Mar 2020 Treasury basis unwind, Sep 2022 UK gilt LDI, Mar 2023 SVB BTFP, 2013 taper tantrum, BOJ 2022 JGB intervention, Druckenmiller 1992 pound short.
 - ride_this_flow and fade_this_flow must name SPECIFIC instruments + entry levels.
 - Invalidation tripwire must be a specific data condition that would prove you wrong."""
 
