@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digest Trends · 60-Day Analytics · JustHodl.AI</title>
+<meta name="description" content="Longitudinal analytics turning the daily digest archive into a 60-day dataset. Summary KPIs (quiet/active/extreme percentages, total alerts, longest quiet streak, score means). 60-day score trajectory chart overlaying both sniffers. Daily activity strip color-coded by activity level. Top-10 noisiest days leaderboard ranked by composite badness.">
+<style>
+:root{
+  --bg:#070a10; --bg-raised:#0a0f17; --panel:#11161f; --border:#1c2433; --border-strong:#2a3548;
+  --fg:#e6eaf2; --fg-2:#cbd2dc; --fg-3:#a8b3c7; --fg-4:#6f7b91;
+  --cyan:#22d3ee; --green:#26ffaf; --gold:#fbbf24; --red:#ff5577; --purple:#a78bfa;
+  --orange:#ff7a18;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.55;font-size:14px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,10,16,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;gap:14px}
+.brand{font-family:var(--mono);font-size:13px;font-weight:800;letter-spacing:1px;color:var(--fg);text-decoration:none}
+.brand span{color:var(--purple)}
+.brand .dot{display:inline-block;width:8px;height:8px;background:var(--purple);border-radius:50%;box-shadow:0 0 8px var(--purple);margin-right:6px}
+.nav-links{display:flex;gap:14px;align-items:center;font-size:11px;font-family:var(--mono);letter-spacing:0.5px;flex-wrap:wrap}
+.nav-links a{color:var(--fg-3);text-decoration:none;transition:color 0.15s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a.active{color:var(--purple);font-weight:700}
+.shell{max-width:1280px;margin:0 auto;padding:24px 22px 60px}
+.hero{padding:28px 0 18px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.hero h1{font-size:30px;margin:0 0 10px;letter-spacing:-0.015em;font-weight:700;line-height:1.1}
+.hero h1 em{font-style:italic;color:var(--purple);font-weight:500}
+.hero .sub{color:var(--fg-3);font-size:13.5px;line-height:1.6;max-width:780px}
+.hero .sub b{color:var(--fg-2);font-weight:600}
+.hero-pills{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:0.5px;color:var(--fg-3);padding:3px 9px;background:var(--panel);border:1px solid var(--border);border-radius:3px}
+.pill b{color:var(--cyan)}
+
+.method{margin-top:24px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:13px 16px;font-size:12px;color:var(--fg-3);line-height:1.65}
+.method b{color:var(--fg-2)}
+.method code{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--panel);padding:1px 6px;border-radius:3px}
+
+footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);color:var(--fg-4);font-size:11.5px;font-family:var(--mono);text-align:center}
+</style>
+<script src="/ai-digest-trends-kit.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+  <nav class="nav-links">
+    <a href="/">DESK</a>
+    <a href="/today.html">TODAY</a>
+    <a href="/frontrun.html" style="color:#ff7a18">🎯 FRONT-RUN</a>
+    <a href="/macro-frontrun.html" style="color:#22d3ee">🏛 MACRO FRONT-RUN</a>
+    <a href="/alerts.html" style="color:#a78bfa">📡 ALERTS</a>
+    <a href="/digest-archive.html" style="color:#a78bfa">📂 ARCHIVE</a>
+    <a href="/digest-trends.html" class="active">📊 TRENDS</a>
+    <a href="/defcon.html">DEFCON</a>
+  </nav>
+</header>
+
+<main class="shell">
+
+  <section class="hero">
+    <h1>📊 Digest <em>Trends</em> · 60-Day Analytics</h1>
+    <p class="sub">
+      Every daily digest writes a compact entry to the rolling index. This
+      page reads that index and turns it into longitudinal analytics:
+      <b>summary KPIs</b> (quiet/active/extreme breakdown, total alerts,
+      longest quiet streak, score means + maxes per sniffer),
+      <b>60-day score trajectory</b> (both sniffers overlaid on one chart
+      with regime bands), <b>daily activity strip</b> (one cell per day,
+      color-coded by activity level, hover for details), and a
+      <b>noisiest-days leaderboard</b> (top 10 ranked by composite
+      badness: alerts × 10 + average score + extreme bonus).
+    </p>
+    <div class="hero-pills">
+      <span class="pill">⏱ updated daily 09:00 UTC</span>
+      <span class="pill">📂 source: <b>digests-index.json</b></span>
+      <span class="pill">📐 rolling cap: <b>60 days</b></span>
+      <span class="pill">🆓 cost: <b>no Claude calls</b></span>
+    </div>
+  </section>
+
+  <div id="ai-digest-trends"></div>
+  <script>if(window.JHAITrends)JHAITrends.mount("ai-digest-trends");</script>
+
+  <section class="method">
+    <b>How the metrics are computed:</b>
+    <br><br>
+    <b>Activity level</b> is set by the router at digest-write time:
+    <code>EXTREME</code> = regime EXTREME on either sniffer OR score ≥ 70 ·
+    <code>ACTIVE</code> = alerts fired OR score ≥ 45 ·
+    <code>QUIET</code> = nothing fired, scores below 45.
+    <br><br>
+    <b>Quiet streak</b> walks the chronologically-sorted entries from
+    newest backward and counts consecutive QUIET days. The "longest"
+    is the max streak ever recorded in the 60-day window.
+    <br><br>
+    <b>Noisiest-days badness</b> = (alerts × 10) + ((equity_score + macro_score) / 2) + 30
+    if either sniffer hit EXTREME. Composite designed to surface days when
+    multiple alerts AND elevated scores AND regime breaks all coincided.
+    <br><br>
+    <b>Score trajectory chart</b> shows one datapoint per daily digest
+    (so cadence is 1 point per day, vs the 4h-cadence 7d charts on the
+    per-sniffer cockpits). Designed for spotting weekly cyclicality and
+    monthly regime drift, not intraday moves — use <a href="/frontrun.html" style="color:var(--orange);text-decoration:none">/frontrun.html</a>
+    or <a href="/macro-frontrun.html" style="color:var(--cyan);text-decoration:none">/macro-frontrun.html</a>
+    for the higher-resolution view.
+  </section>
+
+</main>
+
+<footer>
+  Trends from rolling 60-day digest index · Updated 09:00 UTC by EventBridge ·
+  <a href="https://justhodl.ai" style="color:var(--fg-4)">JustHodl.AI</a>
+</footer>
+
+</body>
+</html>
