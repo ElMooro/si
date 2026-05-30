@@ -1,0 +1,173 @@
+{
+  "started": "2026-05-30T21:43:20.975035+00:00",
+  "redeploy": "OK",
+  "registry": {
+    "n_contexts": 33
+  },
+  "new_ctx_present": true,
+  "invoke_status": 200,
+  "invoke_fn_err": null,
+  "invoke_body": {
+    "duration_s": 30.81,
+    "n_contexts": 1,
+    "n_ok": 1,
+    "results": [
+      {
+        "context_id": "frontrun-sniffer",
+        "title": "Front-Run Sniffer \u2014 Institutional Flow Anomaly Detector",
+        "output_key": "data/frontrun-sniffer.json",
+        "brief_type": "frontrun",
+        "status": "OK",
+        "anomaly_score": 42,
+        "anomaly_regime": "ELEVATED",
+        "n_setups": 3,
+        "n_whale_alerts": 4,
+        "n_dealer_flows": 2,
+        "n_insider_alerts": 1,
+        "duration_s": 30.64
+      }
+    ]
+  },
+  "log_tail": "START RequestId: 02c9dfe4-174b-4c2e-8c66-2c8f7d44016e Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['frontrun-sniffer']\n[ai-brief-router] frontrun-sniffer: OK 30.64s \n[ai-brief-router] done: 1/1 OK in 30.81s\nEND RequestId: 02c9dfe4-174b-4c2e-8c66-2c8f7d44016e\nREPORT RequestId: 02c9dfe4-174b-4c2e-8c66-2c8f7d44016e\tDuration: 30812.15 ms\tBilled Duration: 31374 ms\tMemory Size: 1024 MB\tMax Memory Used: 161 MB\tInit Duration: 561.10 ms\t\nXRAY TraceId: 1-6a1b59fc-5ae6fcfd353ba89441134269\tSegmentId: 5bb45b1ba12c6bfa\tSampled: true\t\n",
+  "sniffer_brief": {
+    "anomaly_score": 42,
+    "anomaly_regime": "ELEVATED",
+    "headline": "AMD + LLY options surge + smart money PEP initiation = selective sector rotation, not systemic front-run.",
+    "thesis": "Three distinct but uncoordinated signals are firing: (1) AMD and LLY show extreme options call-put ratios (CPR 205-346% surge) with call volume 3X normal and short covering, suggesting dealer gamma hedging into a squeeze setup; (2) smart money (DURATION, Renaissance, AQR, Citadel) are initiating PEP at 16% off 52w high with strong conviction clustering; (3) insider activity is isolated to SLMT (mi",
+    "n_setups": 3,
+    "n_whale_alerts": 4,
+    "n_dealer_flows": 2,
+    "n_insider_alerts": 1,
+    "feeds_loaded": 29,
+    "feeds_missing": [
+      "cftc_deep",
+      "credit"
+    ],
+    "loaded_feeds": [
+      "13f_divergence",
+      "13f_positions",
+      "aaii_sentiment",
+      "activist_13d",
+      "auction_crisis",
+      "catalyst_calendar",
+      "catalyst_skew",
+      "consensus_bottom",
+      "dealer_gex",
+      "dealer_survey",
+      "desk_consensus",
+      "divergence",
+      "earnings_iv_crush",
+      "etf_flows",
+      "exchange_flows",
+      "forced_selling",
+      "insider_clusters",
+      "liquidity_flow",
+      "options_flow",
+      "options_gamma",
+      "retail_sentiment",
+      "short_interest",
+      "skew_tail",
+      "smart_money_clusters",
+      "squeeze_pretrigger",
+      "stablecoin_flow",
+      "tic_flows",
+      "vix",
+      "yield_curve"
+    ],
+    "age_sec": 1.7,
+    "fresh": true,
+    "loudest_anomaly": {
+      "signal": "LLY CPR (Call-Put Ratio) surging 346.4% with call volume 22.34% above normal",
+      "from_feed": "options_flow",
+      "value": "CPR 547.42 (up from baseline ~158), call volume surge 22.34%",
+      "anomaly_pctile": 91,
+      "interpretation": "Extreme call-put ratio expansion in mega-cap pharma; dealers hedging short calls by buying stock, creating self-reinforcing gamma squeeze. Highest single-feed anomaly in dataset."
+    },
+    "most_actionable": "AMD + LLY tactical options squeeze (rank 1-2): Both show 3-signal convergence (options CPR surge + gamma hedging + short covering). Ride via call spreads (Jun/Jul 520/530 for AMD, 1110/1125 for LLY) with 1-2% portfolio weight each. Horizon 2-4 weeks. Invalidation: CPR reverts below 50 + call volume collapses. Risk: dealer gamma hedging reversal if IV drops or retail call buying exhausts.",
+    "top_setups": [
+      {
+        "rank": 1,
+        "confidence": "MEDIUM",
+        "target_asset": "AMD",
+        "target_direction": "UPSIDE",
+        "magnitude_pct": "+5% to +12%",
+        "horizon": "2-4 weeks",
+        "probability_pct": 58,
+        "who_is_positioning": "dealers / market makers (gamma hedging) + retail options flow",
+        "n_smoking_guns": 3,
+        "smoking_guns_sample": [
+          {
+            "category": "OPTIONS_FLOW",
+            "feed": "options_flow",
+            "signal": "AMD CPR surging 205.5%, call volume 3X normal (54.4% surge), shorts covering -3.08%, TIER_A_BULLISH_FLOW score 93.0",
+            "anomaly_pctile": 89
+          },
+          {
+            "category": "OPTIONS_GAMMA",
+            "feed": "options_gamma",
+            "signal": "VIX 16 (regime market_closed), spot 756.48 \u2014 low vol environment favors gamma squeeze mechanics",
+            "anomaly_pctile": 72
+          },
+          {
+            "category": "SHORT_INTEREST",
+            "feed": "short_interest",
+            "signal": "AMD in watchlist of 158 tickers with FINRA short data available; short covering signal (-3.08% pct change) suggests squeeze setup",
+            "anomaly_pctile": 65
+          }
+        ],
+        "catalyst": "AMD earnings or product cycle catalyst (not explicitly in calendar, but options market pricing volatility expansion)",
+        "catalyst_date": "Next 2-4 weeks (earnings TBD)",
+        "analog": {
+          "period": "Jan 2021 GME gamma squeeze",
+          "what_happened": "Retail + dealer gamma hedging created self-reinforcing call buying loop; stock +1700% in 4 weeks.",
+          "similarity_pct": 35
+        },
+        "ride": "Long AMD call spreads (Jun/Jul 520/530 calls, 1-2% portfolio weight) \u2014 entry on any dip to 510-512; target 530+. Size: 0.5-1% notional. Stop: close below 505.",
+        "fade": "Short AMD 525 calls (sell 1 call per 100 shares held) if CPR reverts below 100 and call volume collapses; kill if stock breaks 535.",
+        "invalidation": "CPR falls below 50 (from 230.99) AND call volume drops below 2X normal AND short covering reverses to short buildup."
+      },
+      {
+        "rank": 2,
+        "confidence": "MEDIUM",
+        "target_asset": "LLY",
+        "target_direction": "UPSIDE",
+        "magnitude_pct": "+4% to +10%",
+        "horizon": "2-4 weeks",
+        "probability_pct": 55,
+        "who_is_positioning": "dealers / market makers (gamma hedging) + retail options flow",
+        "n_smoking_guns": 3,
+        "smoking_guns_sample": [
+          {
+            "category": "OPTIONS_FLOW",
+            "feed": "options_flow",
+            "signal": "LLY CPR surging 346.4%, call volume 3X normal (22.34% surge), shorts covering -4.03%, TIER_A_BULLISH_FLOW score 85.0",
+            "anomaly_pctile": 87
+          },
+          {
+            "category": "OPTIONS_GAMMA",
+            "feed": "options_gamma",
+            "signal": "VIX 16, spot 1105.44 \u2014 low vol regime supports gamma squeeze; LLY is mega-cap pharma with deep options liquidity",
+            "anomaly_pctile": 70
+          },
+          {
+            "category": "SHORT_INTEREST",
+            "feed": "short_interest",
+            "signal": "LLY in watchlist with FINRA short data; short covering -4.03% pct change indicates squeeze mechanics active",
+            "anomaly_pctile": 68
+          }
+        ],
+        "catalyst": "LLY earnings or GLP-1 competitive catalyst (not explicitly in calendar)",
+        "catalyst_date": "Next 2-4 weeks (earnings TBD)",
+        "analog": {
+          "period": "Dec 2018 dealer gamma cascade",
+          "what_happened": "Dealer gamma hedging into year-end volatility created self-reinforcing short squeeze; SPX rallied 19% in 6 weeks.",
+          "similarity_pct": 32
+        },
+        "ride": "Long LLY call spreads (Jun/Jul 1110/1125 calls, 1-2% portfolio weight) \u2014 entry on dips to 1100-1102; target 1130+. Size: 0.5-1% notional. Stop: close below 1095.",
+        "fade": "Short LLY 1125 calls if CPR reverts below 100 and call volume collapses; kill if stock breaks 1140.",
+        "invalidation": "CPR falls below 50 (from 547.42) AND call volume drops below 2X normal AND short covering reverses."
+      }
+    ]
+  },
+  "finished": "2026-05-30T21:43:57.700425+00:00"
+}
