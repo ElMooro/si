@@ -24,7 +24,7 @@ import time
 import urllib.request
 import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from jhcore import s3io, kb
 
@@ -1124,6 +1124,111 @@ def generate_frontrun_brief(ctx_id, cfg, episode_ref):
         }
         output_key = f"data/{cfg['output_key']}.json"
         s3io.put_json(output_key, brief, cache_control="public, max-age=900")
+
+        # ────────────────────────────────────────────────────────────
+        # Append a compact snapshot to the 7-day history file
+        # ────────────────────────────────────────────────────────────
+        try:
+            history_key = f"data/{cfg['output_key']}-history.json"
+            history = s3io.get_json(history_key, default={}) or {}
+            snaps = history.get("snapshots") if isinstance(history, dict) else None
+            if not isinstance(snaps, list):
+                snaps = []
+
+            # Top setup compaction
+            top_setups = brief.get("suspected_setups") or []
+            top = top_setups[0] if top_setups else {}
+            la = brief.get("loudest_anomaly") or {}
+
+            snap = {
+                "ts": brief["generated_at"],
+                "score": brief.get("overall_anomaly_score"),
+                "regime": brief.get("anomaly_regime"),
+                "headline": (brief.get("headline") or "")[:200],
+                "n_setups": len(top_setups),
+                "n_whales": len(brief.get("whale_alerts") or []),
+                "n_dealers": len(brief.get("dealer_hedging_flows") or []),
+                "n_insiders": len(brief.get("insider_capitulation_alerts") or []),
+                "top_setup_asset": top.get("target_asset"),
+                "top_setup_dir": top.get("target_direction"),
+                "top_setup_conf": top.get("confidence"),
+                "top_setup_prob": top.get("probability_pct"),
+                "top_setup_catalyst": (top.get("catalyst_being_front_run") or "")[:150],
+                "loudest_signal": (la.get("signal") or "")[:200],
+                "loudest_feed": la.get("from_feed"),
+                "loudest_pctile": la.get("anomaly_pctile"),
+                "most_actionable": (brief.get("most_actionable_setup") or "")[:200],
+                "feeds_loaded": len(feeds),
+            }
+            snaps.append(snap)
+            # 7-day cap. 168 = hourly × 7 days. 42 = 4h × 7 days. Keep up to 200 for safety.
+            snaps = snaps[-200:]
+
+            # ────────────────────────────────────────────────────────
+            # Compute 7-day stats (numeric ones only — skip None)
+            # ────────────────────────────────────────────────────────
+            now = datetime.now(timezone.utc)
+            week_ago = now - timedelta(days=7)
+            recent = []
+            for s in snaps:
+                try:
+                    t = datetime.fromisoformat((s.get("ts") or "").replace("Z", "+00:00"))
+                    if t >= week_ago:
+                        recent.append(s)
+                except Exception:
+                    pass
+
+            scores_7d = [s["score"] for s in recent if isinstance(s.get("score"), (int, float))]
+            stats_7d = {
+                "n_snapshots_7d": len(recent),
+                "score_mean": round(sum(scores_7d) / len(scores_7d), 1) if scores_7d else None,
+                "score_min":  min(scores_7d) if scores_7d else None,
+                "score_max":  max(scores_7d) if scores_7d else None,
+                "score_latest": snap.get("score"),
+                "score_delta_vs_mean_7d": (round(snap["score"] - sum(scores_7d) / len(scores_7d), 1)
+                                            if (scores_7d and isinstance(snap.get("score"), (int, float))) else None),
+                "n_extreme_7d":  sum(1 for s in recent if (s.get("regime") or "").upper() == "EXTREME"),
+                "n_elevated_7d": sum(1 for s in recent if (s.get("regime") or "").upper() == "ELEVATED"),
+                "n_normal_7d":   sum(1 for s in recent if (s.get("regime") or "").upper() == "NORMAL"),
+                "max_setups_7d": max((s.get("n_setups") or 0) for s in recent) if recent else 0,
+            }
+
+            # Most common front-run target asset in last 7 days
+            from collections import Counter
+            tgt_counter = Counter([s.get("top_setup_asset") for s in recent if s.get("top_setup_asset")])
+            stats_7d["most_targeted_assets"] = [
+                {"asset": k, "n_times": v} for k, v in tgt_counter.most_common(5)
+            ]
+
+            # ────────────────────────────────────────────────────────
+            # Extract HIGH-signal events (score >= 60 OR regime EXTREME)
+            # ────────────────────────────────────────────────────────
+            events = []
+            for s in snaps[::-1]:  # newest first
+                if ((s.get("score") or 0) >= 60) or ((s.get("regime") or "").upper() == "EXTREME"):
+                    events.append({
+                        "ts": s.get("ts"),
+                        "score": s.get("score"),
+                        "regime": s.get("regime"),
+                        "headline": s.get("headline"),
+                        "top_setup_asset": s.get("top_setup_asset"),
+                        "top_setup_dir": s.get("top_setup_dir"),
+                        "n_setups": s.get("n_setups"),
+                    })
+                if len(events) >= 12:
+                    break
+
+            history_out = {
+                "version": "1.0",
+                "generated_at": brief["generated_at"],
+                "snapshots": snaps,
+                "stats_7d": stats_7d,
+                "events": events,
+            }
+            s3io.put_json(history_key, history_out, cache_control="public, max-age=300")
+        except Exception as _h_e:
+            # Don't fail the main brief generation on history errors
+            print(f"[frontrun] history append failed: {_h_e}")
 
         result.update({
             "status": "OK",

@@ -44,6 +44,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,Bli
 footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);color:var(--fg-4);font-size:11.5px;font-family:var(--mono);text-align:center}
 </style>
 <script src="/ai-frontrun-kit.js"></script>
+<script src="/ai-frontrun-history-kit.js"></script>
 <script src="/ai-brief-kit.js"></script>
 </head>
 <body>
@@ -87,6 +88,10 @@ footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);colo
   <!-- THE SNIFFER OUTPUT — the whole page payload -->
   <div id="ai-frontrun"></div>
   <script>if(window.JHAIFront)JHAIFront.mount("ai-frontrun","frontrun-sniffer");</script>
+
+  <!-- 7-DAY HISTORY PANEL — score trajectory + events table -->
+  <div id="ai-frontrun-history"></div>
+  <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-frontrun-history","frontrun-sniffer-history");</script>
 
   <section class="meth-section">
     <div class="meth-h">📐 How the sniffer works</div>
