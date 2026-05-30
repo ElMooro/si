@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Digest Archive · JustHodl.AI</title>
+<meta name="description" content="Scrollable archive of every daily front-run alerts digest. Reverse-chronological. Each card shows the date, day of week, activity level (QUIET/ACTIVE/EXTREME), both sniffer scores + regimes, total alerts that fired, and an expand-to-see-full-message preview. Updated daily at 09:00 UTC.">
+<style>
+:root{
+  --bg:#070a10; --bg-raised:#0a0f17; --panel:#11161f; --border:#1c2433; --border-strong:#2a3548;
+  --fg:#e6eaf2; --fg-2:#cbd2dc; --fg-3:#a8b3c7; --fg-4:#6f7b91;
+  --cyan:#22d3ee; --green:#26ffaf; --gold:#fbbf24; --red:#ff5577; --purple:#a78bfa;
+  --orange:#ff7a18;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.55;font-size:14px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,10,16,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;gap:14px}
+.brand{font-family:var(--mono);font-size:13px;font-weight:800;letter-spacing:1px;color:var(--fg);text-decoration:none}
+.brand span{color:var(--purple)}
+.brand .dot{display:inline-block;width:8px;height:8px;background:var(--purple);border-radius:50%;box-shadow:0 0 8px var(--purple);margin-right:6px}
+.nav-links{display:flex;gap:14px;align-items:center;font-size:11px;font-family:var(--mono);letter-spacing:0.5px;flex-wrap:wrap}
+.nav-links a{color:var(--fg-3);text-decoration:none;transition:color 0.15s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a.active{color:var(--purple);font-weight:700}
+.shell{max-width:1100px;margin:0 auto;padding:24px 22px 60px}
+.hero{padding:28px 0 18px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.hero h1{font-size:30px;margin:0 0 10px;letter-spacing:-0.015em;font-weight:700;line-height:1.1}
+.hero h1 em{font-style:italic;color:var(--purple);font-weight:500}
+.hero .sub{color:var(--fg-3);font-size:13.5px;line-height:1.6;max-width:780px}
+.hero .sub b{color:var(--fg-2);font-weight:600}
+.hero-pills{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:0.5px;color:var(--fg-3);padding:3px 9px;background:var(--panel);border:1px solid var(--border);border-radius:3px}
+.pill b{color:var(--cyan)}
+
+.legend{margin-top:18px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:13px 16px;font-size:12px;color:var(--fg-3);line-height:1.65}
+.legend b{color:var(--fg-2)}
+.legend .swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.legend .swatch.q{background:var(--green)}
+.legend .swatch.a{background:var(--orange)}
+.legend .swatch.x{background:var(--red)}
+
+footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);color:var(--fg-4);font-size:11.5px;font-family:var(--mono);text-align:center}
+</style>
+<script src="/ai-digest-archive-kit.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+  <nav class="nav-links">
+    <a href="/">DESK</a>
+    <a href="/today.html">TODAY</a>
+    <a href="/frontrun.html" style="color:#ff7a18">🎯 FRONT-RUN</a>
+    <a href="/macro-frontrun.html" style="color:#22d3ee">🏛 MACRO FRONT-RUN</a>
+    <a href="/alerts.html" style="color:#a78bfa">📡 ALERTS</a>
+    <a href="/digest-archive.html" class="active">📂 DIGEST ARCHIVE</a>
+    <a href="/defcon.html">DEFCON</a>
+    <a href="/auctions.html">AUCTIONS</a>
+    <a href="/bonds.html">BONDS</a>
+  </nav>
+</header>
+
+<main class="shell">
+
+  <section class="hero">
+    <h1>📂 Daily Digest <em>Archive</em></h1>
+    <p class="sub">
+      Every morning at 09:00 UTC the platform sends a comprehensive digest to
+      <b>@Justhodl_bot</b> summarizing both sniffers' state, both convergence
+      fingerprints, last 24h events, 7-day score trajectory, and most-targeted
+      assets. This page archives all of those digests in reverse-chronological
+      order. <b>Click any row to expand and see the full message exactly as it
+      was sent</b>. Activity level is auto-classified: <b>QUIET</b> = no alerts
+      fired and scores below 45; <b>ACTIVE</b> = alerts fired or scores 45+;
+      <b>EXTREME</b> = regime EXTREME on either sniffer or scores 70+.
+    </p>
+    <div class="hero-pills">
+      <span class="pill">⏱ digest cadence: <b>daily 09:00 UTC</b></span>
+      <span class="pill">📂 rolling cap: <b>60 days (~2 months)</b></span>
+      <span class="pill">📡 source: <b>EventBridge → router → @Justhodl_bot</b></span>
+      <span class="pill">🆓 cost: <b>no Claude calls</b></span>
+    </div>
+  </section>
+
+  <!-- THE ARCHIVE LIST -->
+  <div id="ai-digest-archive"></div>
+  <script>if(window.JHAIDigest)JHAIDigest.mount("ai-digest-archive");</script>
+
+  <section class="legend">
+    <b>Activity levels:</b>
+    &nbsp;<span class="swatch q"></span>QUIET — no alerts fired, both scores below 45
+    &nbsp;·&nbsp;<span class="swatch a"></span>ACTIVE — alerts fired or score ≥ 45
+    &nbsp;·&nbsp;<span class="swatch x"></span>EXTREME — regime EXTREME or score ≥ 70 (pulses red)
+    <br><br>
+    Each card shows the date, day of week, activity badge, equity sniffer (🎯 EQ) score + regime,
+    macro sniffer (🏛 MC) score + regime, and total alerts that fired that day.
+    Expand any card to read the full Telegram message that was sent.
+    <br><br>
+    The archive is maintained automatically — every successful digest run prepends a fresh entry
+    to <code style="font-family:var(--mono);font-size:11px;color:var(--cyan)">data/_alerts/digests-index.json</code>
+    and the page reads that index directly via the Cloudflare proxy. No re-deploys needed.
+  </section>
+
+</main>
+
+<footer>
+  Daily digest archive · Updated 09:00 UTC by EventBridge · 60-day rolling cap ·
+  <a href="https://justhodl.ai" style="color:var(--fg-4)">JustHodl.AI</a>
+</footer>
+
+</body>
+</html>

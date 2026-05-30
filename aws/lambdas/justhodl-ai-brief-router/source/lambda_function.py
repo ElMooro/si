@@ -2336,6 +2336,72 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
         # Also keep a "latest" alias for the cockpit to point to
         s3io.put_json("data/_alerts/digest-latest.json", audit, cache_control="no-store")
 
+        # ────────────────────────────────────────────────────────────
+        # Maintain a rolling index so the archive page can list digests
+        # ────────────────────────────────────────────────────────────
+        try:
+            index_key = "data/_alerts/digests-index.json"
+            idx = s3io.get_json(index_key, default={}) or {}
+            entries = idx.get("entries") if isinstance(idx, dict) else None
+            if not isinstance(entries, list):
+                entries = []
+
+            # Compute activity level
+            eq_extreme = (equity_brief or {}).get("anomaly_regime") == "EXTREME"
+            mc_extreme = (macro_brief  or {}).get("macro_regime")   == "EXTREME"
+            eq_score_v = audit.get("equity_score") or 0
+            mc_score_v = audit.get("macro_score")  or 0
+            n_alerts = audit.get("n_equity_alerts_today", 0) + audit.get("n_macro_alerts_today", 0)
+            if eq_extreme or mc_extreme or eq_score_v >= 70 or mc_score_v >= 70:
+                activity_level = "EXTREME"
+            elif n_alerts > 0 or eq_score_v >= 45 or mc_score_v >= 45:
+                activity_level = "ACTIVE"
+            else:
+                activity_level = "QUIET"
+
+            # Compact entry for the index
+            entry = {
+                "date":                  today_str,
+                "key":                   audit_key,
+                "generated_at":          audit["generated_at"],
+                "telegram_ok":           audit["telegram_ok"],
+                "equity_score":          audit.get("equity_score"),
+                "equity_regime":         audit.get("equity_regime"),
+                "macro_score":           audit.get("macro_score"),
+                "macro_regime":          audit.get("macro_regime"),
+                "n_equity_alerts_today": audit.get("n_equity_alerts_today", 0),
+                "n_macro_alerts_today":  audit.get("n_macro_alerts_today",  0),
+                "activity_level":        activity_level,
+                "message_chars":         audit.get("message_chars"),
+            }
+
+            # De-dupe: replace any existing entry for this date
+            entries = [e for e in entries if e.get("date") != today_str]
+            entries.append(entry)
+            # Newest first
+            entries.sort(key=lambda e: e.get("date") or "", reverse=True)
+            # Cap to 60 (~2 months)
+            entries = entries[:60]
+
+            n_extreme = sum(1 for e in entries if e.get("activity_level") == "EXTREME")
+            n_active  = sum(1 for e in entries if e.get("activity_level") == "ACTIVE")
+            n_quiet   = sum(1 for e in entries if e.get("activity_level") == "QUIET")
+
+            idx_out = {
+                "version": "1.0",
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "n_entries": len(entries),
+                "earliest_date": (entries[-1].get("date") if entries else None),
+                "latest_date":   (entries[0].get("date")  if entries else None),
+                "activity_breakdown": {
+                    "extreme": n_extreme, "active": n_active, "quiet": n_quiet,
+                },
+                "entries": entries,
+            }
+            s3io.put_json(index_key, idx_out, cache_control="no-store")
+        except Exception as _i_e:
+            print(f"[digest] index update failed: {_i_e}")
+
         result.update({
             "status": "OK",
             "telegram_ok": ok,
