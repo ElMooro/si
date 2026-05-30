@@ -289,45 +289,82 @@ def build_names_prompt(ctx_id, cfg, primary_data, cross_data, episode_ref, kb_ch
     top_n = cfg.get("top_n", 15)
     tickers_field = cfg.get("primary_tickers_field", "names")
     score_field = cfg.get("primary_score_field", "score")
+    ticker_id_field = cfg.get("ticker_id_field", "ticker")
 
-    # Try several common shapes — list of dicts, or dict with "names"/"top"/"results"
-    tickers = []
+    def _get_path(d, path):
+        """Traverse a dotted path through a nested dict."""
+        cur = d
+        for k in str(path).split("."):
+            if isinstance(cur, dict):
+                cur = cur.get(k)
+            else:
+                return None
+            if cur is None:
+                return None
+        return cur
+
+    # Try several common shapes — first the configured path (supports dots), then fallbacks
+    tickers = None
     if isinstance(primary_data, dict):
-        for k in (tickers_field, "names", "top", "results", "tickers", "candidates", "items"):
-            v = primary_data.get(k)
-            if isinstance(v, list) and v:
-                tickers = v
-                break
+        # Configured path first (may be nested with dots)
+        v = _get_path(primary_data, tickers_field)
+        if isinstance(v, list) and v:
+            tickers = v
+        else:
+            # Fallback: try common top-level keys
+            for k in ("names", "top", "top_100", "all_qualifying", "clusters", "top_setups",
+                      "results", "tickers", "candidates", "items"):
+                v2 = primary_data.get(k)
+                if isinstance(v2, list) and v2:
+                    tickers = v2
+                    break
     elif isinstance(primary_data, list):
         tickers = primary_data
+    tickers = tickers or []
 
     # Take top N by score field if sortable
     if tickers and isinstance(tickers[0], dict):
         try:
             tickers = sorted(tickers,
-                              key=lambda t: -(float(t.get(score_field) or t.get("score") or 0)),
-                              reverse=False)
+                              key=lambda t: float(t.get(score_field) or t.get("score") or 0),
+                              reverse=True)
         except Exception:
             pass
     tickers = tickers[:top_n]
 
-    # Compact each ticker's data — keep what fits
+    # Compact each ticker's data — keep what fits. Normalize the ID to "ticker" key
+    # for Claude consistency.
     compact = []
     for t in tickers:
         if isinstance(t, str):
             compact.append({"ticker": t})
             continue
-        # Truncate each ticker record to ~600 chars
-        s = json.dumps(t, default=str)
-        if len(s) > 600:
-            s = s[:600] + "...}"
-            try:
-                t_compact = json.loads(s)
-            except Exception:
-                t_compact = t
-        else:
-            t_compact = t
-        compact.append(t_compact)
+        # Make a trimmed dict with the most useful fields
+        rec = dict(t)
+        # If ID is under a non-"ticker" field, copy it
+        if "ticker" not in rec and ticker_id_field in rec:
+            rec["ticker"] = rec[ticker_id_field]
+        # Truncate each ticker record to ~700 chars so Claude can see ~10-15 names
+        s = json.dumps(rec, default=str)
+        if len(s) > 700:
+            # Try to keep the high-signal fields only
+            keep = {}
+            for k in (ticker_id_field, "ticker", "symbol", "name", "company", "sector", "industry",
+                      score_field, "score", "rank", "flag", "rationale", "thesis", "signal_type",
+                      "signal_types", "fundamentals", "n_buyers", "n_insiders", "n_funds_holding",
+                      "legend_buyers", "has_ceo", "has_cfo", "pillars", "key_stats",
+                      "ret_1m", "ret_3m", "ret_12m", "mom_12_1", "composite_score"):
+                if k in rec:
+                    keep[k] = rec[k]
+            rec = keep
+            s = json.dumps(rec, default=str)
+            if len(s) > 700:
+                s = s[:700] + "...}"
+                try:
+                    rec = json.loads(s)
+                except Exception:
+                    pass
+        compact.append(rec)
 
     # Cross regime summary
     cross_lines = []
@@ -346,12 +383,6 @@ def build_names_prompt(ctx_id, cfg, primary_data, cross_data, episode_ref, kb_ch
             f"### {c['framework']}\n{c['excerpt'][:700]}" for c in kb_chunks
         )
 
-    # Universe size estimate
-    n_universe = (primary_data.get("n_total") if isinstance(primary_data, dict) else None) \
-                  or (primary_data.get("universe_size") if isinstance(primary_data, dict) else None) \
-                  or (len(primary_data.get(tickers_field, []) or []) if isinstance(primary_data, dict) else None) \
-                  or len(tickers)
-
     score_label = cfg.get("score_label", "Score")
 
     prompt = f"""# {cfg["title"]} — PER-NAME BRIEFS
@@ -364,7 +395,7 @@ def build_names_prompt(ctx_id, cfg, primary_data, cross_data, episode_ref, kb_ch
 {kb_block}
 
 ## TOP {len(compact)} CANDIDATES FROM THE UNIVERSE (sorted by {score_label})
-{json.dumps(compact, indent=2, default=str)[:5500]}
+{json.dumps(compact, indent=2, default=str)[:7500]}
 
 ## TASK
 

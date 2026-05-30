@@ -3,27 +3,46 @@
   "generated_at": "2026-05-30",
   "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
   "asset_universe_standard": [
-    {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-    {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-    {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-    {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
-    {"asset": "High-Yield Credit",      "ticker": "HYG"},
-    {"asset": "Gold",                   "ticker": "GLD"},
-    {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+    {
+      "asset": "US Equities (SPX/NDX)",
+      "ticker": "SPX"
+    },
+    {
+      "asset": "Bitcoin (BTC)",
+      "ticker": "BTC"
+    },
+    {
+      "asset": "Ethereum (ETH)",
+      "ticker": "ETH"
+    },
+    {
+      "asset": "Crypto Total Market",
+      "ticker": "TOTAL"
+    },
+    {
+      "asset": "High-Yield Credit",
+      "ticker": "HYG"
+    },
+    {
+      "asset": "Gold",
+      "ticker": "GLD"
+    },
+    {
+      "asset": "US Dollar (DXY)",
+      "ticker": "DXY"
+    }
   ],
-
   "contexts": {
-
     "yield-curve-decisive-call": {
-      "title": "Yield Curve — Decisive Call",
+      "title": "Yield Curve \u2014 Decisive Call",
       "output_key": "yield-curve-decisive-call",
       "primary_feed": "data/yield-curve.json",
       "cross_feeds": {
-        "vix":         "data/vix-curve.json",
-        "dollar":      "data/dollar-radar.json",
-        "credit":      "data/credit-spreads.json",
-        "eurodollar":  "data/eurodollar-stress.json",
-        "auctions":    "data/auction-crisis.json"
+        "vix": "data/vix-curve.json",
+        "dollar": "data/dollar-radar.json",
+        "credit": "data/credit-spreads.json",
+        "eurodollar": "data/eurodollar-stress.json",
+        "auctions": "data/auction-crisis.json"
       },
       "cross_regime_fields": {
         "vix": "composite_regime",
@@ -33,33 +52,67 @@
         "auctions": "regime"
       },
       "kb_keywords": [
-        "yield curve inversion", "Hugh Hendry", "1979 Volcker", "term premium",
-        "recession indicator", "Druckenmiller", "real yields", "Volcker shock",
-        "curve steepening", "bull steepener", "bear flattener"
+        "yield curve inversion",
+        "Hugh Hendry",
+        "1979 Volcker",
+        "term premium",
+        "recession indicator",
+        "Druckenmiller",
+        "real yields",
+        "Volcker shock",
+        "curve steepening",
+        "bull steepener",
+        "bear flattener"
       ],
-      "episode_indicators_to_show": ["T10Y2Y", "T10Y3M", "DGS10", "DFII10", "DGS2"],
+      "episode_indicators_to_show": [
+        "T10Y2Y",
+        "T10Y3M",
+        "DGS10",
+        "DFII10",
+        "DGS2"
+      ],
       "system_addendum": "You are specifically a SENIOR RATES STRATEGIST focused on term structure. You think about 2s10s, 3m10s, term premium decomposition, real-yield dynamics, and what the curve is signaling about Fed reaction function. You cite Druckenmiller, Hugh Hendry, and Powell explicitly when their frameworks apply.",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Crypto Total Market",
+          "ticker": "TOTAL"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
-      "prompt_intro": "You are analysing the US Treasury yield curve regime — what the curve shape (2s10s, 3m10s, real yields) is signaling for the broader macro cycle. The primary data below contains the latest yield levels, spreads, and regime classification. Focus on: (1) curve shape implication (recession signal? rate-cut pricing? term-premium reset?), (2) divergence from cross-context regimes (does VIX/credit/dollar confirm or contradict?), (3) what risk assets historically did when the curve looked like this."
+      "prompt_intro": "You are analysing the US Treasury yield curve regime \u2014 what the curve shape (2s10s, 3m10s, real yields) is signaling for the broader macro cycle. The primary data below contains the latest yield levels, spreads, and regime classification. Focus on: (1) curve shape implication (recession signal? rate-cut pricing? term-premium reset?), (2) divergence from cross-context regimes (does VIX/credit/dollar confirm or contradict?), (3) what risk assets historically did when the curve looked like this."
     },
-
     "vix-curve-decisive-call": {
-      "title": "VIX Curve — Decisive Call",
+      "title": "VIX Curve \u2014 Decisive Call",
       "output_key": "vix-curve-decisive-call",
       "primary_feed": "data/vix-curve.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "eurodollar":  "data/eurodollar-stress.json",
-        "dollar":      "data/dollar-radar.json"
+        "credit": "data/credit-spreads.json",
+        "eurodollar": "data/eurodollar-stress.json",
+        "dollar": "data/dollar-radar.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -68,33 +121,65 @@
         "dollar": "regime"
       },
       "kb_keywords": [
-        "VIX term structure", "VVIX", "vol of vol", "volatility crush",
-        "1987 Black Monday", "2018 Volmageddon", "2020 March vol explosion",
-        "contango backwardation", "vol risk premium", "Hugh Hendry vol"
+        "VIX term structure",
+        "VVIX",
+        "vol of vol",
+        "volatility crush",
+        "1987 Black Monday",
+        "2018 Volmageddon",
+        "2020 March vol explosion",
+        "contango backwardation",
+        "vol risk premium",
+        "Hugh Hendry vol"
       ],
-      "episode_indicators_to_show": ["VIXCLS", "VXVCLS", "T10Y2Y", "BAMLH0A0HYM2"],
+      "episode_indicators_to_show": [
+        "VIXCLS",
+        "VXVCLS",
+        "T10Y2Y",
+        "BAMLH0A0HYM2"
+      ],
       "system_addendum": "You are specifically a SENIOR VOLATILITY TRADER at a top hedge fund. You think about VIX term structure (contango vs backwardation), VVIX, vol-of-vol, realized vs implied. You cite 1987, 2018 Volmageddon, March 2020 explicitly when the curve shape rhymes.",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Crypto Total Market",
+          "ticker": "TOTAL"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
-      "prompt_intro": "You are analysing the VIX term structure — what the shape and level of implied volatility is signaling about market regime. Primary data has VIX1m/3m/6m levels, contango/backwardation state, VVIX. Focus on: (1) is the curve in contango (complacent/risk-on) or backwardation (panic)?, (2) is VVIX elevated relative to VIX (vol-of-vol stress)?, (3) which historical vol regime does this match — pre-Feb 2018, late-Jan 2020, March 2020 explosion, June 2022 capitulation?"
+      "prompt_intro": "You are analysing the VIX term structure \u2014 what the shape and level of implied volatility is signaling about market regime. Primary data has VIX1m/3m/6m levels, contango/backwardation state, VVIX. Focus on: (1) is the curve in contango (complacent/risk-on) or backwardation (panic)?, (2) is VVIX elevated relative to VIX (vol-of-vol stress)?, (3) which historical vol regime does this match \u2014 pre-Feb 2018, late-Jan 2020, March 2020 explosion, June 2022 capitulation?"
     },
-
     "dollar-decisive-call": {
-      "title": "Dollar (DXY) — Decisive Call",
+      "title": "Dollar (DXY) \u2014 Decisive Call",
       "output_key": "dollar-decisive-call",
       "primary_feed": "data/dollar-radar.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "eurodollar":  "data/eurodollar-stress.json",
-        "vix":         "data/vix-curve.json"
+        "credit": "data/credit-spreads.json",
+        "eurodollar": "data/eurodollar-stress.json",
+        "vix": "data/vix-curve.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -103,33 +188,66 @@
         "vix": "composite_regime"
       },
       "kb_keywords": [
-        "dollar milkshake", "DXY", "EM stress", "1985 Plaza Accord",
-        "2014 dollar rally", "Brent Johnson", "real yields dollar",
-        "currency wars", "RoRo", "risk on risk off"
+        "dollar milkshake",
+        "DXY",
+        "EM stress",
+        "1985 Plaza Accord",
+        "2014 dollar rally",
+        "Brent Johnson",
+        "real yields dollar",
+        "currency wars",
+        "RoRo",
+        "risk on risk off"
       ],
-      "episode_indicators_to_show": ["DTWEXBGS", "DTWEXEMEGS", "DGS10", "DFII10", "VIXCLS"],
+      "episode_indicators_to_show": [
+        "DTWEXBGS",
+        "DTWEXEMEGS",
+        "DGS10",
+        "DFII10",
+        "VIXCLS"
+      ],
       "system_addendum": "You are specifically a SENIOR FX STRATEGIST with macro overlay. You think about DXY in real-yield terms, EM stress via dollar strength, the dollar milkshake thesis (Brent Johnson), and which periods rhyme (1985 Plaza, 2014-15 oil/EM bust, 2022 rate-hike super-dollar).",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Emerging Markets (EM)",  "ticker": "EEM"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "Commodities (Broad)",    "ticker": "DBC"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Emerging Markets (EM)",
+          "ticker": "EEM"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "Commodities (Broad)",
+          "ticker": "DBC"
+        }
       ],
-      "prompt_intro": "You are analysing the US Dollar regime via DXY + broad-trade-weighted dollar + EM-trade-weighted dollar. Focus on: (1) is the dollar in a strengthening, weakening, or range regime?, (2) what's driving it — real yields, risk-off bid, EM stress, milkshake dynamics?, (3) when has this pattern shown up before (1985 Plaza, 2014-15, 2022) and what did risk assets / EM / commodities / crypto do?"
+      "prompt_intro": "You are analysing the US Dollar regime via DXY + broad-trade-weighted dollar + EM-trade-weighted dollar. Focus on: (1) is the dollar in a strengthening, weakening, or range regime?, (2) what's driving it \u2014 real yields, risk-off bid, EM stress, milkshake dynamics?, (3) when has this pattern shown up before (1985 Plaza, 2014-15, 2022) and what did risk assets / EM / commodities / crypto do?"
     },
-
     "eurodollar-decisive-call": {
-      "title": "Eurodollar / Funding Stress — Decisive Call",
+      "title": "Eurodollar / Funding Stress \u2014 Decisive Call",
       "output_key": "eurodollar-decisive-call",
       "primary_feed": "data/eurodollar-stress.json",
       "cross_feeds": {
-        "credit":      "data/credit-spreads.json",
-        "dollar":      "data/dollar-radar.json",
+        "credit": "data/credit-spreads.json",
+        "dollar": "data/dollar-radar.json",
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json"
+        "vix": "data/vix-curve.json"
       },
       "cross_regime_fields": {
         "credit": "regime",
@@ -138,33 +256,66 @@
         "vix": "composite_regime"
       },
       "kb_keywords": [
-        "funding stress", "1997 Asia crisis", "2008 GFC funding",
-        "LIBOR-OIS", "SOFR", "Eurodollar futures", "FRA-OIS",
-        "swap line stress", "dollar funding shortage", "repo market"
+        "funding stress",
+        "1997 Asia crisis",
+        "2008 GFC funding",
+        "LIBOR-OIS",
+        "SOFR",
+        "Eurodollar futures",
+        "FRA-OIS",
+        "swap line stress",
+        "dollar funding shortage",
+        "repo market"
       ],
-      "episode_indicators_to_show": ["DGS10", "VIXCLS", "BAMLH0A0HYM2", "DTWEXBGS", "DGS2"],
+      "episode_indicators_to_show": [
+        "DGS10",
+        "VIXCLS",
+        "BAMLH0A0HYM2",
+        "DTWEXBGS",
+        "DGS2"
+      ],
       "system_addendum": "You are specifically a SENIOR CROSS-CURRENCY BASIS / FUNDING-MARKETS TRADER. You think about FRA-OIS, swap-line usage, dollar funding shortages, the Eurodollar futures curve, repo stress, and which periods rhyme (1997 Asia, 2008 GFC, March 2020 dollar shortage, 2022 UK gilt funding episode).",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Crypto Total Market",
+          "ticker": "TOTAL"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
-      "prompt_intro": "You are analysing the global dollar funding regime — FRA-OIS, swap-line usage, SOFR-vs-IORB, cross-currency basis. Stress here is upstream of equity vol because dollar shortages force forced selling across asset classes. Focus on: (1) is funding tight, loose, or stressed?, (2) which historical episode matches (1997 Asia, 2008 Lehman week, March 2020 COVID dollar shortage)?, (3) is the Fed already providing liquidity or are we pre-bazooka?"
+      "prompt_intro": "You are analysing the global dollar funding regime \u2014 FRA-OIS, swap-line usage, SOFR-vs-IORB, cross-currency basis. Stress here is upstream of equity vol because dollar shortages force forced selling across asset classes. Focus on: (1) is funding tight, loose, or stressed?, (2) which historical episode matches (1997 Asia, 2008 Lehman week, March 2020 COVID dollar shortage)?, (3) is the Fed already providing liquidity or are we pre-bazooka?"
     },
-
     "lce-decisive-call": {
-      "title": "Liquidity & Credit — Decisive Call",
+      "title": "Liquidity & Credit \u2014 Decisive Call",
       "output_key": "lce-decisive-call",
       "primary_feed": "data/liquidity-credit-engine.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json",
-        "eurodollar":  "data/eurodollar-stress.json",
-        "dollar":      "data/dollar-radar.json"
+        "vix": "data/vix-curve.json",
+        "eurodollar": "data/eurodollar-stress.json",
+        "dollar": "data/dollar-radar.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -173,36 +324,72 @@
         "dollar": "regime"
       },
       "kb_keywords": [
-        "high yield spreads", "credit cycle", "2008 GFC credit",
-        "2015 energy crash", "2020 COVID credit", "OAS option-adjusted spread",
-        "Stan Druckenmiller credit", "Minsky moment", "default cycle",
-        "WALCL", "TGA", "reserve balances", "liquidity drain",
-        "Fed balance sheet", "QT quantitative tightening"
+        "high yield spreads",
+        "credit cycle",
+        "2008 GFC credit",
+        "2015 energy crash",
+        "2020 COVID credit",
+        "OAS option-adjusted spread",
+        "Stan Druckenmiller credit",
+        "Minsky moment",
+        "default cycle",
+        "WALCL",
+        "TGA",
+        "reserve balances",
+        "liquidity drain",
+        "Fed balance sheet",
+        "QT quantitative tightening"
       ],
-      "episode_indicators_to_show": ["BAMLH0A0HYM2", "BAMLC0A0CM", "VIXCLS", "T10Y2Y", "DGS10"],
+      "episode_indicators_to_show": [
+        "BAMLH0A0HYM2",
+        "BAMLC0A0CM",
+        "VIXCLS",
+        "T10Y2Y",
+        "DGS10"
+      ],
       "system_addendum": "You are specifically a SENIOR CREDIT + LIQUIDITY STRATEGIST. You think about HY OAS, IG OAS, the HY-IG gap, the Fed balance sheet (WALCL), TGA drain/refill, reserve balances at the Fed, and which credit-cycle episodes rhyme (2007-08 GFC, 2015 energy/EM bust, March 2020 COVID, Sep-Oct 2022 forced-selling).",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Investment Grade (IG)",  "ticker": "LQD"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Emerging Mkts Bonds",    "ticker": "EMB"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Investment Grade (IG)",
+          "ticker": "LQD"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Emerging Mkts Bonds",
+          "ticker": "EMB"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
-      "prompt_intro": "You are analysing the joint LIQUIDITY + CREDIT regime. Primary data has Fed balance sheet (WALCL), TGA, reserve balances, RRP, plus HY OAS, IG OAS, and a composite regime. Liquidity is upstream of credit; credit is upstream of equity. Focus on: (1) is the system flush, draining, or stressed?, (2) where do credit spreads sit historically — complacent, fair, or already widening?, (3) which historical credit-cycle episode matches (2017 ultra-tight complacency, late-2018 widening, March 2020 panic, Sep-Oct 2022 forced-selling)?"
+      "prompt_intro": "You are analysing the joint LIQUIDITY + CREDIT regime. Primary data has Fed balance sheet (WALCL), TGA, reserve balances, RRP, plus HY OAS, IG OAS, and a composite regime. Liquidity is upstream of credit; credit is upstream of equity. Focus on: (1) is the system flush, draining, or stressed?, (2) where do credit spreads sit historically \u2014 complacent, fair, or already widening?, (3) which historical credit-cycle episode matches (2017 ultra-tight complacency, late-2018 widening, March 2020 panic, Sep-Oct 2022 forced-selling)?"
     },
-
     "systemic-stress-decisive-call": {
-      "title": "Systemic Stress — Decisive Call",
+      "title": "Systemic Stress \u2014 Decisive Call",
       "output_key": "systemic-stress-decisive-call",
       "primary_feed": "data/systemic-stress.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json",
-        "dollar":      "data/dollar-radar.json",
-        "credit":      "data/credit-spreads.json",
-        "eurodollar":  "data/eurodollar-stress.json"
+        "vix": "data/vix-curve.json",
+        "dollar": "data/dollar-radar.json",
+        "credit": "data/credit-spreads.json",
+        "eurodollar": "data/eurodollar-stress.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -212,34 +399,68 @@
         "eurodollar": "severity"
       },
       "kb_keywords": [
-        "systemic risk", "financial conditions index", "2008 GFC",
-        "2020 COVID", "1998 LTCM", "Minsky moment",
-        "Ray Dalio big debt cycles", "deleveraging", "cascade failure",
-        "contagion", "liquidity crisis"
+        "systemic risk",
+        "financial conditions index",
+        "2008 GFC",
+        "2020 COVID",
+        "1998 LTCM",
+        "Minsky moment",
+        "Ray Dalio big debt cycles",
+        "deleveraging",
+        "cascade failure",
+        "contagion",
+        "liquidity crisis"
       ],
-      "episode_indicators_to_show": ["T10Y2Y", "VIXCLS", "BAMLH0A0HYM2", "DTWEXBGS", "DFII10", "DGS10"],
-      "system_addendum": "You are specifically the CHIEF RISK OFFICER at a multi-strategy hedge fund. You synthesize across all asset classes — rates, vol, FX, credit, funding — and you think in Ray Dalio big-debt-cycle terms. You explicitly call out when MULTIPLE pillars are stressed simultaneously (the cascade-risk pattern).",
+      "episode_indicators_to_show": [
+        "T10Y2Y",
+        "VIXCLS",
+        "BAMLH0A0HYM2",
+        "DTWEXBGS",
+        "DFII10",
+        "DGS10"
+      ],
+      "system_addendum": "You are specifically the CHIEF RISK OFFICER at a multi-strategy hedge fund. You synthesize across all asset classes \u2014 rates, vol, FX, credit, funding \u2014 and you think in Ray Dalio big-debt-cycle terms. You explicitly call out when MULTIPLE pillars are stressed simultaneously (the cascade-risk pattern).",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"},
-        {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        },
+        {
+          "asset": "Duration / Long Bonds",
+          "ticker": "TLT"
+        }
       ],
-      "prompt_intro": "You are analysing the AGGREGATE SYSTEMIC stress level — the cross-pillar synthesis (rates + vol + FX + credit + funding all combined). When MULTIPLE pillars are stressed simultaneously, that's the cascade-risk pattern (1998 LTCM, 2008 GFC week of Lehman, March 2020). Focus on: (1) how many pillars are stressed and how badly?, (2) is the system absorbing or amplifying shocks?, (3) is this early-warning, mid-crisis, or post-Fed-intervention healing?"
+      "prompt_intro": "You are analysing the AGGREGATE SYSTEMIC stress level \u2014 the cross-pillar synthesis (rates + vol + FX + credit + funding all combined). When MULTIPLE pillars are stressed simultaneously, that's the cascade-risk pattern (1998 LTCM, 2008 GFC week of Lehman, March 2020). Focus on: (1) how many pillars are stressed and how badly?, (2) is the system absorbing or amplifying shocks?, (3) is this early-warning, mid-crisis, or post-Fed-intervention healing?"
     },
-
     "bond-vol-decisive-call": {
-      "title": "Bond Vol (MOVE Composite) — Decisive Call",
+      "title": "Bond Vol (MOVE Composite) \u2014 Decisive Call",
       "output_key": "bond-vol-decisive-call",
       "primary_feed": "data/bond-vol.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "eurodollar":  "data/eurodollar-stress.json"
+        "vix": "data/vix-curve.json",
+        "credit": "data/credit-spreads.json",
+        "eurodollar": "data/eurodollar-stress.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -248,35 +469,69 @@
         "eurodollar": "severity"
       },
       "kb_keywords": [
-        "MOVE index", "bond volatility", "rates vol", "swaption vol",
-        "2008 rates vol", "2020 March rates vol", "2022 UK gilt crisis",
-        "2023 March SVB rates vol", "duration risk", "convexity hedging",
-        "MBS gamma", "Treasury basis trade"
+        "MOVE index",
+        "bond volatility",
+        "rates vol",
+        "swaption vol",
+        "2008 rates vol",
+        "2020 March rates vol",
+        "2022 UK gilt crisis",
+        "2023 March SVB rates vol",
+        "duration risk",
+        "convexity hedging",
+        "MBS gamma",
+        "Treasury basis trade"
       ],
-      "episode_indicators_to_show": ["DGS10", "DGS2", "T10Y2Y", "VIXCLS", "DFII10"],
+      "episode_indicators_to_show": [
+        "DGS10",
+        "DGS2",
+        "T10Y2Y",
+        "VIXCLS",
+        "DFII10"
+      ],
       "system_addendum": "You are specifically a SENIOR RATES VOLATILITY TRADER. You think about MOVE-vs-VIX divergence (when rates vol leads equity vol, that's pre-credit-stress), MBS convexity hedging flows, swaption skew, the 1y1y vs 1y10y vol surface. You cite March 2020 (MOVE 163), Sep 2022 UK gilt (MOVE 158), March 2023 SVB (MOVE 198) explicitly.",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Duration / Long Bonds",  "ticker": "TLT"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Duration / Long Bonds",
+          "ticker": "TLT"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
-      "prompt_intro": "You are analysing the bond/rates volatility regime via the synthetic MOVE composite. Rates vol is often UPSTREAM of equity vol — when MOVE elevates while VIX stays calm, that's a divergence signal (MBS hedging stress, Treasury basis-trade unwind risk, dealer balance-sheet strain). Focus on: (1) is rates vol elevated, normal, or compressed?, (2) is MOVE leading VIX (early-stress) or lagging (post-stress)?, (3) which historical rates-vol episode rhymes — March 2020, Sep 2022 UK gilts, March 2023 SVB, or normal?"
+      "prompt_intro": "You are analysing the bond/rates volatility regime via the synthetic MOVE composite. Rates vol is often UPSTREAM of equity vol \u2014 when MOVE elevates while VIX stays calm, that's a divergence signal (MBS hedging stress, Treasury basis-trade unwind risk, dealer balance-sheet strain). Focus on: (1) is rates vol elevated, normal, or compressed?, (2) is MOVE leading VIX (early-stress) or lagging (post-stress)?, (3) which historical rates-vol episode rhymes \u2014 March 2020, Sep 2022 UK gilts, March 2023 SVB, or normal?"
     },
-
     "risk-radar-decisive-call": {
-      "title": "Risk Radar — Decisive Call",
+      "title": "Risk Radar \u2014 Decisive Call",
       "output_key": "risk-radar-decisive-call",
       "primary_feed": "data/risk-radar.json",
       "cross_feeds": {
-        "yield_curve":      "data/yield-curve.json",
-        "vix":              "data/vix-curve.json",
-        "dollar":           "data/dollar-radar.json",
-        "eurodollar":       "data/eurodollar-stress.json",
-        "systemic_stress":  "data/systemic-stress.json"
+        "yield_curve": "data/yield-curve.json",
+        "vix": "data/vix-curve.json",
+        "dollar": "data/dollar-radar.json",
+        "eurodollar": "data/eurodollar-stress.json",
+        "systemic_stress": "data/systemic-stress.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -286,33 +541,66 @@
         "systemic_stress": "regime"
       },
       "kb_keywords": [
-        "risk parity", "tail risk", "drawdown", "fat tails",
-        "Mandelbrot", "Taleb black swan", "Sharpe ratio inversion",
-        "regime change", "correlation breakdown", "factor crowding"
+        "risk parity",
+        "tail risk",
+        "drawdown",
+        "fat tails",
+        "Mandelbrot",
+        "Taleb black swan",
+        "Sharpe ratio inversion",
+        "regime change",
+        "correlation breakdown",
+        "factor crowding"
       ],
-      "episode_indicators_to_show": ["VIXCLS", "T10Y2Y", "BAMLH0A0HYM2", "DTWEXBGS", "DGS10"],
+      "episode_indicators_to_show": [
+        "VIXCLS",
+        "T10Y2Y",
+        "BAMLH0A0HYM2",
+        "DTWEXBGS",
+        "DGS10"
+      ],
       "system_addendum": "You are specifically a SENIOR MULTI-ASSET RISK STRATEGIST. You think in terms of tail risk, correlation breakdowns, factor crowding, drawdown asymmetry, and which periods showed sudden risk-regime shifts (Aug 2007 quant melt, Feb 2018 vol regime change, Sep 2019 repo stress, March 2020, March 2023 SVB).",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"},
-        {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        },
+        {
+          "asset": "Duration / Long Bonds",
+          "ticker": "TLT"
+        }
       ],
-      "prompt_intro": "You are analysing the multi-asset risk landscape — what's flashing on the radar across rates, vol, FX, credit, equity factors. Focus on: (1) which indicators are flashing red right now and how persistent are they?, (2) are correlations behaving normally or breaking down (regime-change signal)?, (3) which historical risk-regime-shift episode rhymes (Aug 2007 quant melt, Feb 2018 vol regime, March 2020, March 2023 SVB)?"
+      "prompt_intro": "You are analysing the multi-asset risk landscape \u2014 what's flashing on the radar across rates, vol, FX, credit, equity factors. Focus on: (1) which indicators are flashing red right now and how persistent are they?, (2) are correlations behaving normally or breaking down (regime-change signal)?, (3) which historical risk-regime-shift episode rhymes (Aug 2007 quant melt, Feb 2018 vol regime, March 2020, March 2023 SVB)?"
     },
-
     "compass-decisive-call": {
-      "title": "Capital Compass (15-Asset Forward Returns) — Decisive Call",
+      "title": "Capital Compass (15-Asset Forward Returns) \u2014 Decisive Call",
       "output_key": "compass-decisive-call",
       "primary_feed": "data/forward-returns.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json",
-        "dollar":      "data/dollar-radar.json",
-        "credit":      "data/credit-spreads.json"
+        "vix": "data/vix-curve.json",
+        "dollar": "data/dollar-radar.json",
+        "credit": "data/credit-spreads.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -321,36 +609,68 @@
         "credit": "regime"
       },
       "kb_keywords": [
-        "asset allocation", "forward returns", "expected returns",
-        "GMO 7-year forecast", "Bridgewater all-weather",
-        "Ray Dalio holy grail", "60/40 portfolio", "risk parity",
-        "valuation mean reversion", "cycle-adjusted earnings"
+        "asset allocation",
+        "forward returns",
+        "expected returns",
+        "GMO 7-year forecast",
+        "Bridgewater all-weather",
+        "Ray Dalio holy grail",
+        "60/40 portfolio",
+        "risk parity",
+        "valuation mean reversion",
+        "cycle-adjusted earnings"
       ],
-      "episode_indicators_to_show": ["DGS10", "T10Y2Y", "VIXCLS", "BAMLH0A0HYM2", "DTWEXBGS"],
+      "episode_indicators_to_show": [
+        "DGS10",
+        "T10Y2Y",
+        "VIXCLS",
+        "BAMLH0A0HYM2",
+        "DTWEXBGS"
+      ],
       "system_addendum": "You are specifically a SENIOR CROSS-ASSET ALLOCATION STRATEGIST in the GMO / Bridgewater tradition. You think about 6-24 month forward returns, valuation mean-reversion, regime-aware allocation tilts, and what the asset-mix shape implies about the broader macro cycle.",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Crypto Total Market",
+          "ticker": "TOTAL"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
-      "prompt_intro": "You are analysing the Capital Compass — the 15-asset forward-return model that scores each major asset class by expected risk-adjusted return over the next 6-18 months. Focus on: (1) which assets are showing the strongest forward-return signal and why?, (2) is the cross-asset shape consistent with a single macro story or contradictory?, (3) which historical allocation regime does this match (late-1990s tech-led, 2000s commodity supercycle, 2010s low-vol carry, 2022 hike-shock, etc.)?"
+      "prompt_intro": "You are analysing the Capital Compass \u2014 the 15-asset forward-return model that scores each major asset class by expected risk-adjusted return over the next 6-18 months. Focus on: (1) which assets are showing the strongest forward-return signal and why?, (2) is the cross-asset shape consistent with a single macro story or contradictory?, (3) which historical allocation regime does this match (late-1990s tech-led, 2000s commodity supercycle, 2010s low-vol carry, 2022 hike-shock, etc.)?"
     },
-
     "defcon-decisive-call": {
-      "title": "DEFCON (Master Crisis Composite) — Decisive Call",
+      "title": "DEFCON (Master Crisis Composite) \u2014 Decisive Call",
       "output_key": "defcon-decisive-call",
       "primary_feed": "data/crisis-composite.json",
       "cross_feeds": {
-        "capitulation":     "data/capitulation.json",
-        "china_liquidity":  "data/china-liquidity.json",
-        "bank_stress":      "data/bank-stress.json",
-        "leading_markets":  "data/leading-markets.json",
-        "yield_curve":      "data/yield-curve.json",
-        "vix":              "data/vix-curve.json"
+        "capitulation": "data/capitulation.json",
+        "china_liquidity": "data/china-liquidity.json",
+        "bank_stress": "data/bank-stress.json",
+        "leading_markets": "data/leading-markets.json",
+        "yield_curve": "data/yield-curve.json",
+        "vix": "data/vix-curve.json"
       },
       "cross_regime_fields": {
         "capitulation": "regime",
@@ -361,34 +681,67 @@
         "vix": "composite_regime"
       },
       "kb_keywords": [
-        "crisis composite", "DEFCON", "early warning system",
-        "Aug 2007 quant melt", "2008 GFC progression", "March 2020 COVID",
-        "Sep-Oct 2022 forced selling", "March 2023 SVB",
-        "capitulation signals", "China liquidity", "bank stress"
+        "crisis composite",
+        "DEFCON",
+        "early warning system",
+        "Aug 2007 quant melt",
+        "2008 GFC progression",
+        "March 2020 COVID",
+        "Sep-Oct 2022 forced selling",
+        "March 2023 SVB",
+        "capitulation signals",
+        "China liquidity",
+        "bank stress"
       ],
-      "episode_indicators_to_show": ["VIXCLS", "T10Y2Y", "BAMLH0A0HYM2", "DTWEXBGS", "DGS10"],
-      "system_addendum": "You are specifically the HEAD OF MACRO at a multi-strat fund running a master crisis-composite — the synthesis of capitulation signals, China liquidity, bank stress, leading-market breakdowns. You name the DEFCON level explicitly (DEFCON 5 = peace, DEFCON 1 = active crisis) and you justify the level with the underlying pillar reads.",
+      "episode_indicators_to_show": [
+        "VIXCLS",
+        "T10Y2Y",
+        "BAMLH0A0HYM2",
+        "DTWEXBGS",
+        "DGS10"
+      ],
+      "system_addendum": "You are specifically the HEAD OF MACRO at a multi-strat fund running a master crisis-composite \u2014 the synthesis of capitulation signals, China liquidity, bank stress, leading-market breakdowns. You name the DEFCON level explicitly (DEFCON 5 = peace, DEFCON 1 = active crisis) and you justify the level with the underlying pillar reads.",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"},
-        {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        },
+        {
+          "asset": "Duration / Long Bonds",
+          "ticker": "TLT"
+        }
       ],
-      "prompt_intro": "You are analysing the master crisis composite — the DEFCON-style synthesis of capitulation, China liquidity, bank stress, leading-market signals, plus rates/vol cross-context. Focus on: (1) what's the current DEFCON level (5=peace, 4=watch, 3=elevated, 2=high alert, 1=active crisis) and which pillar is driving it?, (2) is the crisis progression early/mid/late stage?, (3) which historical crisis sequence rhymes (Aug 2007 → Mar 2008, Sep-Oct 2022, Mar 2023 SVB)?"
+      "prompt_intro": "You are analysing the master crisis composite \u2014 the DEFCON-style synthesis of capitulation, China liquidity, bank stress, leading-market signals, plus rates/vol cross-context. Focus on: (1) what's the current DEFCON level (5=peace, 4=watch, 3=elevated, 2=high alert, 1=active crisis) and which pillar is driving it?, (2) is the crisis progression early/mid/late stage?, (3) which historical crisis sequence rhymes (Aug 2007 \u2192 Mar 2008, Sep-Oct 2022, Mar 2023 SVB)?"
     },
-
     "retail-edges-decisive-call": {
-      "title": "Retail Edges (5-Tier Signal Synthesis) — Decisive Call",
+      "title": "Retail Edges (5-Tier Signal Synthesis) \u2014 Decisive Call",
       "output_key": "retail-edges-decisive-call",
       "primary_feed": "data/signal-board.json",
       "cross_feeds": {
-        "vix":         "data/vix-curve.json",
+        "vix": "data/vix-curve.json",
         "yield_curve": "data/yield-curve.json",
-        "dollar":      "data/dollar-radar.json",
-        "credit":      "data/credit-spreads.json"
+        "dollar": "data/dollar-radar.json",
+        "credit": "data/credit-spreads.json"
       },
       "cross_regime_fields": {
         "vix": "composite_regime",
@@ -397,36 +750,69 @@
         "credit": "regime"
       },
       "kb_keywords": [
-        "retail flow", "options skew", "gamma exposure", "0DTE",
-        "MEME stocks", "Reddit WSB", "retail capitulation",
-        "earnings IV crush", "stealth accumulation", "squeeze setup",
-        "sentiment extreme", "Baker Wurgler sentiment"
+        "retail flow",
+        "options skew",
+        "gamma exposure",
+        "0DTE",
+        "MEME stocks",
+        "Reddit WSB",
+        "retail capitulation",
+        "earnings IV crush",
+        "stealth accumulation",
+        "squeeze setup",
+        "sentiment extreme",
+        "Baker Wurgler sentiment"
       ],
-      "episode_indicators_to_show": ["VIXCLS", "BAMLH0A0HYM2", "T10Y2Y", "DGS10"],
+      "episode_indicators_to_show": [
+        "VIXCLS",
+        "BAMLH0A0HYM2",
+        "T10Y2Y",
+        "DGS10"
+      ],
       "system_addendum": "You are specifically a SENIOR FLOW + POSITIONING STRATEGIST. You think about retail flow, options skew, gamma exposure, dealer positioning, sentiment extremes (Baker-Wurgler, AAII bull-bear). You synthesize the 5-tier signal stack (sentiment / flow / positioning / vol / regime) into one positioning call.",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Crypto Total Market",
+          "ticker": "TOTAL"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
       "prompt_intro": "You are analysing the aggregate signal board across the 5 retail-edge tiers (sentiment extremes / flow / positioning / vol regime / cross-asset confirmation). The primary data has the live composite signals firing across the platform. Focus on: (1) which tier is producing the strongest signal right now and is it confirmed across tiers?, (2) is retail positioning at an extreme (contrarian setup) or aligned (trend confirmation)?, (3) which historical retail-positioning episode rhymes (Jan 2021 GME meme top, Nov 2021 crypto top, June 2022 capitulation, May 2023 AI mania, Dec 2024 rally exhaustion)?"
     },
-
     "bonds-decisive-call": {
-      "title": "Bonds & Yield Curve (Duration Desk) — Decisive Call",
+      "title": "Bonds & Yield Curve (Duration Desk) \u2014 Decisive Call",
       "output_key": "bonds-decisive-call",
       "primary_feed": "data/report.json",
       "cross_feeds": {
-        "yield_curve":   "data/yield-curve.json",
-        "auctions":      "data/auction-crisis.json",
+        "yield_curve": "data/yield-curve.json",
+        "auctions": "data/auction-crisis.json",
         "crisis_plumbing": "data/crisis-plumbing.json",
-        "vix":           "data/vix-curve.json",
-        "dollar":        "data/dollar-radar.json",
-        "eurodollar":    "data/eurodollar-stress.json"
+        "vix": "data/vix-curve.json",
+        "dollar": "data/dollar-radar.json",
+        "eurodollar": "data/eurodollar-stress.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -436,35 +822,72 @@
         "eurodollar": "severity"
       },
       "kb_keywords": [
-        "duration trade", "bond portfolio", "Bill Gross", "Jeff Gundlach",
-        "PIMCO total return", "1994 bond massacre", "2013 taper tantrum",
-        "2022 hike shock", "real yields", "TIPS breakeven", "MBS convexity",
-        "term premium", "carry roll-down", "TLT IEF AGG"
+        "duration trade",
+        "bond portfolio",
+        "Bill Gross",
+        "Jeff Gundlach",
+        "PIMCO total return",
+        "1994 bond massacre",
+        "2013 taper tantrum",
+        "2022 hike shock",
+        "real yields",
+        "TIPS breakeven",
+        "MBS convexity",
+        "term premium",
+        "carry roll-down",
+        "TLT IEF AGG"
       ],
-      "episode_indicators_to_show": ["DGS10", "DGS2", "T10Y2Y", "DFII10", "T10YIE", "BAMLH0A0HYM2"],
+      "episode_indicators_to_show": [
+        "DGS10",
+        "DGS2",
+        "T10Y2Y",
+        "DFII10",
+        "T10YIE",
+        "BAMLH0A0HYM2"
+      ],
       "system_addendum": "You are specifically a SENIOR DURATION TRADER / BOND PORTFOLIO MANAGER in the PIMCO / DoubleLine tradition (Bill Gross, Jeff Gundlach, Mohamed El-Erian). You think about the 10-year as the price of money, real yields as the gold/duration arbiter, breakevens as Fed credibility, MOVE as bond stress, and carry+roll-down as the bond PM's edge. You cite specific bond-cycle episodes (1994 bond massacre, 2003-04 rate-cut bottom, 2013 taper tantrum, 2016 election shock, 2020 March COVID rates explosion, 2022 hike shock, 2023 March SVB rates relief rally). Your trade ideas name specific bond ETFs (TLT for long-duration, IEF for belly, AGG for broad, TIP for inflation-linked, HYG for credit beta) with specific entry levels and DV01-sized positions.",
       "assets_to_predict": [
-        {"asset": "Long Duration (TLT 20+yr)",    "ticker": "TLT"},
-        {"asset": "Belly Duration (IEF 7-10yr)",   "ticker": "IEF"},
-        {"asset": "Broad Bonds (AGG)",             "ticker": "AGG"},
-        {"asset": "Inflation-Linked (TIP)",        "ticker": "TIP"},
-        {"asset": "Investment Grade (LQD)",        "ticker": "LQD"},
-        {"asset": "High-Yield Credit (HYG)",       "ticker": "HYG"},
-        {"asset": "Gold (real-rate sensitive)",    "ticker": "GLD"}
+        {
+          "asset": "Long Duration (TLT 20+yr)",
+          "ticker": "TLT"
+        },
+        {
+          "asset": "Belly Duration (IEF 7-10yr)",
+          "ticker": "IEF"
+        },
+        {
+          "asset": "Broad Bonds (AGG)",
+          "ticker": "AGG"
+        },
+        {
+          "asset": "Inflation-Linked (TIP)",
+          "ticker": "TIP"
+        },
+        {
+          "asset": "Investment Grade (LQD)",
+          "ticker": "LQD"
+        },
+        {
+          "asset": "High-Yield Credit (HYG)",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold (real-rate sensitive)",
+          "ticker": "GLD"
+        }
       ],
-      "prompt_intro": "You are analysing the US BOND MARKET regime — duration, real yields, breakevens, MOVE, and how the bond complex is positioned to perform. The primary report has nominal yields (DGS2/DGS10/DGS30), real yield (DFII10), breakevens (T10YIE), 2s10s spread, MOVE index, bond regime classification. Focus on: (1) is duration cheap, fair, or expensive given current real yields + breakevens?, (2) what's the carry+roll-down opportunity vs duration risk?, (3) which historical bond-market episode rhymes (1994 massacre, 2013 taper tantrum, 2022 hike shock, 2023 SVB relief)? (4) DV01-aware position sizing — which part of the curve to express the view in."
+      "prompt_intro": "You are analysing the US BOND MARKET regime \u2014 duration, real yields, breakevens, MOVE, and how the bond complex is positioned to perform. The primary report has nominal yields (DGS2/DGS10/DGS30), real yield (DFII10), breakevens (T10YIE), 2s10s spread, MOVE index, bond regime classification. Focus on: (1) is duration cheap, fair, or expensive given current real yields + breakevens?, (2) what's the carry+roll-down opportunity vs duration risk?, (3) which historical bond-market episode rhymes (1994 massacre, 2013 taper tantrum, 2022 hike shock, 2023 SVB relief)? (4) DV01-aware position sizing \u2014 which part of the curve to express the view in."
     },
-
     "liquidity-decisive-call": {
-      "title": "Net Liquidity (WALCL - TGA - RRP) — Decisive Call",
+      "title": "Net Liquidity (WALCL - TGA - RRP) \u2014 Decisive Call",
       "output_key": "liquidity-decisive-call",
       "primary_feed": "liquidity-data.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "dollar":      "data/dollar-radar.json",
-        "vix":         "data/vix-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "auctions":    "data/auction-crisis.json"
+        "dollar": "data/dollar-radar.json",
+        "vix": "data/vix-curve.json",
+        "credit": "data/credit-spreads.json",
+        "auctions": "data/auction-crisis.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -474,34 +897,71 @@
         "auctions": "regime"
       },
       "kb_keywords": [
-        "net liquidity", "WALCL", "TGA", "RRP", "Fed balance sheet",
-        "Druckenmiller follow the liquidity", "Raoul Pal", "Steno Research",
-        "Macro Compass", "Fed put", "QE QT", "2013 taper tantrum",
-        "2018 QT shock", "2020 QE explosion", "2022 QT hike combo"
+        "net liquidity",
+        "WALCL",
+        "TGA",
+        "RRP",
+        "Fed balance sheet",
+        "Druckenmiller follow the liquidity",
+        "Raoul Pal",
+        "Steno Research",
+        "Macro Compass",
+        "Fed put",
+        "QE QT",
+        "2013 taper tantrum",
+        "2018 QT shock",
+        "2020 QE explosion",
+        "2022 QT hike combo"
       ],
-      "episode_indicators_to_show": ["DGS10", "DFII10", "VIXCLS", "DTWEXBGS", "BAMLH0A0HYM2"],
-      "system_addendum": "You are specifically a SENIOR LIQUIDITY STRATEGIST in the Druckenmiller / Raoul Pal / Steno Research tradition. You think 'follow the liquidity' — net liquidity (WALCL - TGA - RRP) is upstream of risk assets, not downstream. You cite specific liquidity inflection points: March 2009 (QE1 launch → 5yr equity bull), Oct 2014 (QE3 end → vol regime change), Dec 2018 (Powell pivot → 2019 rally), March 2020 (unlimited QE → 18mo melt-up), April 2022 (QT begin → 2yr drawdown), Oct 2022 (TGA refill bottom → rally).",
+      "episode_indicators_to_show": [
+        "DGS10",
+        "DFII10",
+        "VIXCLS",
+        "DTWEXBGS",
+        "BAMLH0A0HYM2"
+      ],
+      "system_addendum": "You are specifically a SENIOR LIQUIDITY STRATEGIST in the Druckenmiller / Raoul Pal / Steno Research tradition. You think 'follow the liquidity' \u2014 net liquidity (WALCL - TGA - RRP) is upstream of risk assets, not downstream. You cite specific liquidity inflection points: March 2009 (QE1 launch \u2192 5yr equity bull), Oct 2014 (QE3 end \u2192 vol regime change), Dec 2018 (Powell pivot \u2192 2019 rally), March 2020 (unlimited QE \u2192 18mo melt-up), April 2022 (QT begin \u2192 2yr drawdown), Oct 2022 (TGA refill bottom \u2192 rally).",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Crypto Total Market",
+          "ticker": "TOTAL"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
-      "prompt_intro": "You are analysing NET LIQUIDITY (WALCL - TGA - RRP) — the Druckenmiller/Raoul Pal lens. The primary data has the Fed balance sheet (WALCL), Treasury General Account (TGA drains/refills), Reverse Repo (RRP), SOMA holdings, money supply (M2), and the net-liquidity composite. Focus on: (1) is liquidity currently expanding, contracting, or neutral?, (2) what's the rate of change (the second derivative — that's what risk assets actually trade on)?, (3) which historical liquidity episode rhymes (Mar 2009 QE1 launch, Oct 2014 QE3 end, Dec 2018 Powell pivot, Mar 2020 unlimited QE, Apr 2022 QT begin, Oct 2022 TGA refill bottom)?"
+      "prompt_intro": "You are analysing NET LIQUIDITY (WALCL - TGA - RRP) \u2014 the Druckenmiller/Raoul Pal lens. The primary data has the Fed balance sheet (WALCL), Treasury General Account (TGA drains/refills), Reverse Repo (RRP), SOMA holdings, money supply (M2), and the net-liquidity composite. Focus on: (1) is liquidity currently expanding, contracting, or neutral?, (2) what's the rate of change (the second derivative \u2014 that's what risk assets actually trade on)?, (3) which historical liquidity episode rhymes (Mar 2009 QE1 launch, Oct 2014 QE3 end, Dec 2018 Powell pivot, Mar 2020 unlimited QE, Apr 2022 QT begin, Oct 2022 TGA refill bottom)?"
     },
-
     "macro-data-decisive-call": {
-      "title": "Macro Nowcast — Decisive Call",
+      "title": "Macro Nowcast \u2014 Decisive Call",
       "output_key": "macro-data-decisive-call",
       "primary_feed": "data/macro-nowcast.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "dollar":      "data/dollar-radar.json",
-        "auctions":    "data/auction-crisis.json"
+        "credit": "data/credit-spreads.json",
+        "dollar": "data/dollar-radar.json",
+        "auctions": "data/auction-crisis.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -510,34 +970,66 @@
         "auctions": "regime"
       },
       "kb_keywords": [
-        "macro nowcasting", "leading indicators", "PMI ISM",
-        "Atlanta Fed GDPNow", "Nowcasting Fed", "OECD CLI",
-        "Conference Board LEI", "recession nowcast", "Sahm rule",
+        "macro nowcasting",
+        "leading indicators",
+        "PMI ISM",
+        "Atlanta Fed GDPNow",
+        "Nowcasting Fed",
+        "OECD CLI",
+        "Conference Board LEI",
+        "recession nowcast",
+        "Sahm rule",
         "Conference Board Coincident Index"
       ],
-      "episode_indicators_to_show": ["T10Y2Y", "VIXCLS", "BAMLH0A0HYM2", "DGS10", "DFII10"],
-      "system_addendum": "You are specifically a SENIOR MACRO NOWCASTER / BUSINESS-CYCLE ANALYST. You think in nowcast terms (Atlanta Fed GDPNow, Conference Board LEI, OECD CLI, PMIs) and cycle terms (expansion/peak/contraction/trough). You cite Sahm rule triggers, ISM thresholds (50 line), and which past nowcast inflections rhyme — Jan 2008 (ISM rolling over), Mar 2009 (LEI bottom), Aug 2011 (mid-cycle scare), Q1 2016 (industrial recession scare), 2018-Q4 (synchronised slowdown), Mar 2020, Q1 2022 (peak).",
-      "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Small Cap (Russell 2000)", "ticker": "IWM"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"},
-        {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
+      "episode_indicators_to_show": [
+        "T10Y2Y",
+        "VIXCLS",
+        "BAMLH0A0HYM2",
+        "DGS10",
+        "DFII10"
       ],
-      "prompt_intro": "You are analysing the macro nowcast — the current best estimate of where the US business cycle sits. Primary data has growth/inflation/labor/leading-indicator readings. Focus on: (1) which phase of the cycle are we in (expansion-mid, expansion-late, peak, contraction, trough)?, (2) is the data inflecting (early-warning) or confirming an existing trend?, (3) which past nowcast turning point rhymes? Cite Sahm-rule + Conference Board LEI + ISM in your evidence."
+      "system_addendum": "You are specifically a SENIOR MACRO NOWCASTER / BUSINESS-CYCLE ANALYST. You think in nowcast terms (Atlanta Fed GDPNow, Conference Board LEI, OECD CLI, PMIs) and cycle terms (expansion/peak/contraction/trough). You cite Sahm rule triggers, ISM thresholds (50 line), and which past nowcast inflections rhyme \u2014 Jan 2008 (ISM rolling over), Mar 2009 (LEI bottom), Aug 2011 (mid-cycle scare), Q1 2016 (industrial recession scare), 2018-Q4 (synchronised slowdown), Mar 2020, Q1 2022 (peak).",
+      "assets_to_predict": [
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Small Cap (Russell 2000)",
+          "ticker": "IWM"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        },
+        {
+          "asset": "Duration / Long Bonds",
+          "ticker": "TLT"
+        }
+      ],
+      "prompt_intro": "You are analysing the macro nowcast \u2014 the current best estimate of where the US business cycle sits. Primary data has growth/inflation/labor/leading-indicator readings. Focus on: (1) which phase of the cycle are we in (expansion-mid, expansion-late, peak, contraction, trough)?, (2) is the data inflecting (early-warning) or confirming an existing trend?, (3) which past nowcast turning point rhymes? Cite Sahm-rule + Conference Board LEI + ISM in your evidence."
     },
-
     "crisis-decisive-call": {
-      "title": "Crisis Plumbing — Decisive Call",
+      "title": "Crisis Plumbing \u2014 Decisive Call",
       "output_key": "crisis-decisive-call",
       "primary_feed": "data/crisis-plumbing.json",
       "cross_feeds": {
-        "credit":      "data/credit-spreads.json",
-        "eurodollar":  "data/eurodollar-stress.json",
-        "vix":         "data/vix-curve.json",
-        "dollar":      "data/dollar-radar.json",
+        "credit": "data/credit-spreads.json",
+        "eurodollar": "data/eurodollar-stress.json",
+        "vix": "data/vix-curve.json",
+        "dollar": "data/dollar-radar.json",
         "yield_curve": "data/yield-curve.json"
       },
       "cross_regime_fields": {
@@ -548,34 +1040,69 @@
         "yield_curve": "regime"
       },
       "kb_keywords": [
-        "credit plumbing", "TED spread", "FRA-OIS", "SOFR-IORB",
-        "swap line", "discount window", "BTFP", "primary credit",
-        "2008 funding stress", "2020 dollar shortage", "2023 SVB",
-        "repo market dysfunction", "Sep 2019 repo spike"
+        "credit plumbing",
+        "TED spread",
+        "FRA-OIS",
+        "SOFR-IORB",
+        "swap line",
+        "discount window",
+        "BTFP",
+        "primary credit",
+        "2008 funding stress",
+        "2020 dollar shortage",
+        "2023 SVB",
+        "repo market dysfunction",
+        "Sep 2019 repo spike"
       ],
-      "episode_indicators_to_show": ["BAMLH0A0HYM2", "VIXCLS", "T10Y2Y", "DTWEXBGS", "DGS2"],
-      "system_addendum": "You are specifically the HEAD OF FUNDING-MARKETS DESK at a top dealer. You think about the wholesale-funding plumbing — repo rates, FRA-OIS, SOFR-IORB, discount-window usage, BTFP balances, central-bank swap lines. You spot stress upstream of equity vol. You cite Sep 2019 repo (when SOFR spiked 5.25% intraday), March 2020 (FRA-OIS to 80bps, swap lines maxed), March 2023 (discount window at all-time-high $164B + BTFP launch), and explain whether current plumbing looks pre-stress, mid-stress, or healed.",
+      "episode_indicators_to_show": [
+        "BAMLH0A0HYM2",
+        "VIXCLS",
+        "T10Y2Y",
+        "DTWEXBGS",
+        "DGS2"
+      ],
+      "system_addendum": "You are specifically the HEAD OF FUNDING-MARKETS DESK at a top dealer. You think about the wholesale-funding plumbing \u2014 repo rates, FRA-OIS, SOFR-IORB, discount-window usage, BTFP balances, central-bank swap lines. You spot stress upstream of equity vol. You cite Sep 2019 repo (when SOFR spiked 5.25% intraday), March 2020 (FRA-OIS to 80bps, swap lines maxed), March 2023 (discount window at all-time-high $164B + BTFP launch), and explain whether current plumbing looks pre-stress, mid-stress, or healed.",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"},
-        {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        },
+        {
+          "asset": "Duration / Long Bonds",
+          "ticker": "TLT"
+        }
       ],
-      "prompt_intro": "You are analysing the WHOLESALE FUNDING PLUMBING — the dealer-bank repo + swap-line + discount-window + BTFP layer that goes haywire BEFORE equity vol spikes. Primary data has TED spread, FRA-OIS, SOFR-IORB, swap-line usage, primary-credit balances. Focus on: (1) is the plumbing showing pre-stress (spreads widening), active-stress (forced selling), or healed (post-Fed-bazooka)?, (2) is the Fed already providing emergency liquidity or are we pre-bazooka?, (3) which historical funding-stress episode rhymes (Sep 2019 repo spike, March 2020 dollar shortage, March 2023 SVB)?"
+      "prompt_intro": "You are analysing the WHOLESALE FUNDING PLUMBING \u2014 the dealer-bank repo + swap-line + discount-window + BTFP layer that goes haywire BEFORE equity vol spikes. Primary data has TED spread, FRA-OIS, SOFR-IORB, swap-line usage, primary-credit balances. Focus on: (1) is the plumbing showing pre-stress (spreads widening), active-stress (forced selling), or healed (post-Fed-bazooka)?, (2) is the Fed already providing emergency liquidity or are we pre-bazooka?, (3) which historical funding-stress episode rhymes (Sep 2019 repo spike, March 2020 dollar shortage, March 2023 SVB)?"
     },
-
     "divergence-decisive-call": {
-      "title": "Cross-Asset Divergence — Decisive Call",
+      "title": "Cross-Asset Divergence \u2014 Decisive Call",
       "output_key": "divergence-decisive-call",
       "primary_feed": "data/divergence-v2.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "dollar":      "data/dollar-radar.json"
+        "vix": "data/vix-curve.json",
+        "credit": "data/credit-spreads.json",
+        "dollar": "data/dollar-radar.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -584,35 +1111,65 @@
         "dollar": "regime"
       },
       "kb_keywords": [
-        "cross-asset divergence", "bonds say recession equities say boom",
-        "intermarket analysis", "John Murphy intermarket",
-        "equity-bond divergence", "VIX-SPX divergence",
-        "credit-equity divergence", "dollar-EM divergence",
-        "negative divergence", "regime tell"
+        "cross-asset divergence",
+        "bonds say recession equities say boom",
+        "intermarket analysis",
+        "John Murphy intermarket",
+        "equity-bond divergence",
+        "VIX-SPX divergence",
+        "credit-equity divergence",
+        "dollar-EM divergence",
+        "negative divergence",
+        "regime tell"
       ],
-      "episode_indicators_to_show": ["T10Y2Y", "VIXCLS", "BAMLH0A0HYM2", "DTWEXBGS"],
-      "system_addendum": "You are specifically a SENIOR INTERMARKET STRATEGIST in the John Murphy / Tom McClellan tradition. You hunt cross-asset DIVERGENCES — when equities say one thing and bonds/credit/vol/FX say another, that disagreement is the highest-information signal. You name the specific divergence pattern (bullish/bearish, leading/lagging, who-blinks-first), cite the historical analog where that pattern resolved, and explain which side typically wins.",
+      "episode_indicators_to_show": [
+        "T10Y2Y",
+        "VIXCLS",
+        "BAMLH0A0HYM2",
+        "DTWEXBGS"
+      ],
+      "system_addendum": "You are specifically a SENIOR INTERMARKET STRATEGIST in the John Murphy / Tom McClellan tradition. You hunt cross-asset DIVERGENCES \u2014 when equities say one thing and bonds/credit/vol/FX say another, that disagreement is the highest-information signal. You name the specific divergence pattern (bullish/bearish, leading/lagging, who-blinks-first), cite the historical analog where that pattern resolved, and explain which side typically wins.",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"},
-        {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        },
+        {
+          "asset": "Duration / Long Bonds",
+          "ticker": "TLT"
+        }
       ],
-      "prompt_intro": "You are analysing CROSS-ASSET DIVERGENCES — bonds vs equities, credit vs equities, VIX vs SPX, dollar vs EM. Divergences are the second-derivative signal that bigger players use to position before regime shifts. Focus on: (1) which divergence is most extreme right now and which direction does history say it resolves?, (2) is this a leading divergence (early warning) or lagging (confirmation)?, (3) which prior divergence-resolution episode rhymes (2007 credit-vs-equity divergence, 2015 commodities-vs-equity, 2018 Q4, 2021 Q4 bond-vs-tech, 2022 Q3 dollar-vs-EM)?"
+      "prompt_intro": "You are analysing CROSS-ASSET DIVERGENCES \u2014 bonds vs equities, credit vs equities, VIX vs SPX, dollar vs EM. Divergences are the second-derivative signal that bigger players use to position before regime shifts. Focus on: (1) which divergence is most extreme right now and which direction does history say it resolves?, (2) is this a leading divergence (early warning) or lagging (confirmation)?, (3) which prior divergence-resolution episode rhymes (2007 credit-vs-equity divergence, 2015 commodities-vs-equity, 2018 Q4, 2021 Q4 bond-vs-tech, 2022 Q3 dollar-vs-EM)?"
     },
-
     "trend-engine-decisive-call": {
-      "title": "Trend Engine — Decisive Call",
+      "title": "Trend Engine \u2014 Decisive Call",
       "output_key": "trend-engine-decisive-call",
       "primary_feed": "data/trend-engine.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json",
-        "dollar":      "data/dollar-radar.json",
-        "credit":      "data/credit-spreads.json"
+        "vix": "data/vix-curve.json",
+        "dollar": "data/dollar-radar.json",
+        "credit": "data/credit-spreads.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -621,33 +1178,65 @@
         "credit": "regime"
       },
       "kb_keywords": [
-        "trend following", "momentum factor", "CTA managed futures",
-        "AQR momentum", "AHL Man Group", "Winton Capital",
-        "12-1 momentum", "200-day moving average", "Donchian breakout",
-        "trend persistence", "momentum crash"
+        "trend following",
+        "momentum factor",
+        "CTA managed futures",
+        "AQR momentum",
+        "AHL Man Group",
+        "Winton Capital",
+        "12-1 momentum",
+        "200-day moving average",
+        "Donchian breakout",
+        "trend persistence",
+        "momentum crash"
       ],
-      "episode_indicators_to_show": ["VIXCLS", "T10Y2Y", "DGS10", "DTWEXBGS"],
-      "system_addendum": "You are specifically a SENIOR CTA / SYSTEMATIC TREND TRADER (AQR, AHL, Winton, Man Group style). You think in trend-strength + persistence + crash-risk terms. You cite specific momentum crashes (Q1 2009, Q1 2016, Q4 2018, Q1 2020, June 2022) and inflection points (when 200-DMA breaks decisively). You quantify trend strength via the slope-of-trend × persistence-of-trend product.",
+      "episode_indicators_to_show": [
+        "VIXCLS",
+        "T10Y2Y",
+        "DGS10",
+        "DTWEXBGS"
+      ],
+      "system_addendum": "You are specifically a SENIOR CTA / SYSTEMATIC TREND TRADER (AQR, AHL, Winton, Man Group style). You think in trend-strength + persistence + crash-risk terms. You cite specific momentum crashes (Q1 2009, Q1 2016, Q4 2018, Q1 2020, June 2022) and inflection points (when 200-DMA breaks decisively). You quantify trend strength via the slope-of-trend \u00d7 persistence-of-trend product.",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Crypto Total Market",
+          "ticker": "TOTAL"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
-      "prompt_intro": "You are analysing TREND across the major asset classes — slope, persistence, breakout/breakdown signals. Trends persist longer than people expect (positive autocorrelation) until they crash sharply. Focus on: (1) which assets have the strongest trends right now (12-1 momentum + 200-DMA slope)?, (2) is trend strength rising or fading (the second derivative — pre-crash signal)?, (3) which prior trend-persistence vs trend-crash episode rhymes?"
+      "prompt_intro": "You are analysing TREND across the major asset classes \u2014 slope, persistence, breakout/breakdown signals. Trends persist longer than people expect (positive autocorrelation) until they crash sharply. Focus on: (1) which assets have the strongest trends right now (12-1 momentum + 200-DMA slope)?, (2) is trend strength rising or fading (the second derivative \u2014 pre-crash signal)?, (3) which prior trend-persistence vs trend-crash episode rhymes?"
     },
-
     "regime-decisive-call": {
-      "title": "Regime Anomaly Detector — Decisive Call",
+      "title": "Regime Anomaly Detector \u2014 Decisive Call",
       "output_key": "regime-decisive-call",
       "primary_feed": "data/regime-anomaly.json",
       "cross_feeds": {
-        "yield_curve":     "data/yield-curve.json",
-        "vix":             "data/vix-curve.json",
-        "credit":          "data/credit-spreads.json",
+        "yield_curve": "data/yield-curve.json",
+        "vix": "data/vix-curve.json",
+        "credit": "data/credit-spreads.json",
         "systemic_stress": "data/systemic-stress.json"
       },
       "cross_regime_fields": {
@@ -657,33 +1246,64 @@
         "systemic_stress": "regime"
       },
       "kb_keywords": [
-        "regime change", "structural break", "Markov regime switching",
-        "Hamilton filter", "factor crowding", "vol regime shift",
-        "correlation breakdown", "Feb 2018 Volmageddon",
-        "Aug 2007 quant melt", "March 2020 regime shift"
+        "regime change",
+        "structural break",
+        "Markov regime switching",
+        "Hamilton filter",
+        "factor crowding",
+        "vol regime shift",
+        "correlation breakdown",
+        "Feb 2018 Volmageddon",
+        "Aug 2007 quant melt",
+        "March 2020 regime shift"
       ],
-      "episode_indicators_to_show": ["VIXCLS", "T10Y2Y", "BAMLH0A0HYM2", "DGS10"],
+      "episode_indicators_to_show": [
+        "VIXCLS",
+        "T10Y2Y",
+        "BAMLH0A0HYM2",
+        "DGS10"
+      ],
       "system_addendum": "You are specifically a SENIOR REGIME-DETECTION QUANT / Markov-switching practitioner. You think in terms of structural breaks, regime transitions, hidden-state probability shifts. You cite specific structural-break episodes (Aug 2007 quant melt = factor regime shift, Feb 2018 = vol regime shift, March 2020 = correlation regime shift, Q4 2022 = duration regime shift) and explain whether current data looks like a regime is ABOUT to change, IS changing, or HAS changed.",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"},
-        {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        },
+        {
+          "asset": "Duration / Long Bonds",
+          "ticker": "TLT"
+        }
       ],
-      "prompt_intro": "You are analysing REGIME ANOMALIES — statistical evidence that the current regime is breaking. Primary data has regime classifications, anomaly scores, hidden-state probabilities. Focus on: (1) what regime is the system currently classifying us in?, (2) what's the probability of a regime SHIFT in the near term?, (3) which prior regime-change episode rhymes (Aug 2007, Feb 2018, March 2020, Q4 2022)?"
+      "prompt_intro": "You are analysing REGIME ANOMALIES \u2014 statistical evidence that the current regime is breaking. Primary data has regime classifications, anomaly scores, hidden-state probabilities. Focus on: (1) what regime is the system currently classifying us in?, (2) what's the probability of a regime SHIFT in the near term?, (3) which prior regime-change episode rhymes (Aug 2007, Feb 2018, March 2020, Q4 2022)?"
     },
-
     "valuations-decisive-call": {
-      "title": "Equity Valuations — Decisive Call",
+      "title": "Equity Valuations \u2014 Decisive Call",
       "output_key": "valuations-decisive-call",
       "primary_feed": "valuations-data.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "dollar":      "data/dollar-radar.json"
+        "credit": "data/credit-spreads.json",
+        "dollar": "data/dollar-radar.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -691,35 +1311,67 @@
         "dollar": "regime"
       },
       "kb_keywords": [
-        "equity valuations", "Shiller CAPE", "Buffett indicator",
-        "Tobin's Q", "forward PE", "GMO 7-year forecast",
-        "Jeremy Grantham", "Hussman", "valuation mean reversion",
-        "earnings yield", "ERP equity risk premium",
+        "equity valuations",
+        "Shiller CAPE",
+        "Buffett indicator",
+        "Tobin's Q",
+        "forward PE",
+        "GMO 7-year forecast",
+        "Jeremy Grantham",
+        "Hussman",
+        "valuation mean reversion",
+        "earnings yield",
+        "ERP equity risk premium",
         "Druckenmiller PE compression"
       ],
-      "episode_indicators_to_show": ["DGS10", "DFII10", "BAMLH0A0HYM2", "VIXCLS"],
-      "system_addendum": "You are specifically a SENIOR VALUATION STRATEGIST in the GMO / Hussman / Jeremy Grantham tradition. You think in cycle-adjusted earnings (CAPE), market-cap-to-GDP (Buffett indicator), Tobin's Q, forward earnings yield vs real bond yield (ERP). You cite specific valuation extreme episodes — Mar 2000 (CAPE 44, dot-com top), 2007 Q3 (CAPE 27, pre-GFC), 2021 Q4 (CAPE 38, ZIRP top), 1929 (CAPE 32), 1949 (CAPE 11 bottom), 1982 (CAPE 7 bottom). You quantify expected 7-10yr forward returns based on starting valuation.",
-      "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Small Cap (Russell 2000)", "ticker": "IWM"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Emerging Markets",       "ticker": "EEM"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"},
-        {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
+      "episode_indicators_to_show": [
+        "DGS10",
+        "DFII10",
+        "BAMLH0A0HYM2",
+        "VIXCLS"
       ],
-      "prompt_intro": "You are analysing EQUITY VALUATIONS — CAPE, Buffett indicator, forward PE, earnings yield vs bond yield. Valuations don't time tops but they DO set the 7-10yr forward-return ceiling. Focus on: (1) where do current valuations sit historically (decile/percentile)?, (2) what's the implied 7-10yr forward return at this starting valuation?, (3) which prior valuation regime rhymes (1929 top, 1949 bottom, 1982 bottom, 2000 top, 2007 top, 2009 bottom, 2021 top, 2022 bottom)?"
+      "system_addendum": "You are specifically a SENIOR VALUATION STRATEGIST in the GMO / Hussman / Jeremy Grantham tradition. You think in cycle-adjusted earnings (CAPE), market-cap-to-GDP (Buffett indicator), Tobin's Q, forward earnings yield vs real bond yield (ERP). You cite specific valuation extreme episodes \u2014 Mar 2000 (CAPE 44, dot-com top), 2007 Q3 (CAPE 27, pre-GFC), 2021 Q4 (CAPE 38, ZIRP top), 1929 (CAPE 32), 1949 (CAPE 11 bottom), 1982 (CAPE 7 bottom). You quantify expected 7-10yr forward returns based on starting valuation.",
+      "assets_to_predict": [
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Small Cap (Russell 2000)",
+          "ticker": "IWM"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Emerging Markets",
+          "ticker": "EEM"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        },
+        {
+          "asset": "Duration / Long Bonds",
+          "ticker": "TLT"
+        }
+      ],
+      "prompt_intro": "You are analysing EQUITY VALUATIONS \u2014 CAPE, Buffett indicator, forward PE, earnings yield vs bond yield. Valuations don't time tops but they DO set the 7-10yr forward-return ceiling. Focus on: (1) where do current valuations sit historically (decile/percentile)?, (2) what's the implied 7-10yr forward return at this starting valuation?, (3) which prior valuation regime rhymes (1929 top, 1949 bottom, 1982 bottom, 2000 top, 2007 top, 2009 bottom, 2021 top, 2022 bottom)?"
     },
-
     "conviction-decisive-call": {
-      "title": "High-Conviction Setups — Decisive Call",
+      "title": "High-Conviction Setups \u2014 Decisive Call",
       "output_key": "conviction-decisive-call",
       "primary_feed": "data/conviction.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "auctions":    "data/auction-crisis.json"
+        "vix": "data/vix-curve.json",
+        "credit": "data/credit-spreads.json",
+        "auctions": "data/auction-crisis.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -728,33 +1380,63 @@
         "auctions": "regime"
       },
       "kb_keywords": [
-        "high conviction", "concentrated portfolio", "Buffett size",
-        "Druckenmiller concentration", "Kelly criterion", "edge sizing",
-        "asymmetric payoff", "convexity", "Soros reflexivity",
+        "high conviction",
+        "concentrated portfolio",
+        "Buffett size",
+        "Druckenmiller concentration",
+        "Kelly criterion",
+        "edge sizing",
+        "asymmetric payoff",
+        "convexity",
+        "Soros reflexivity",
         "Stan Druckenmiller Get on the train"
       ],
-      "episode_indicators_to_show": ["VIXCLS", "T10Y2Y", "BAMLH0A0HYM2"],
-      "system_addendum": "You are specifically Druckenmiller in conviction-position-sizing mode. When the signal is loud and the macro setup is right, you size aggressively. When signals are muddy, you sit on cash. You quantify the conviction in terms of: signal-strength × cross-asset-confirmation × asymmetric-payoff × macro-regime-fit. You cite specific high-conviction historical setups: 1992 pound short (10x leverage), 1999-2000 tech long (60% of fund), 2008 short bonds (later flipped to long), 2020 March equity long.",
-      "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+      "episode_indicators_to_show": [
+        "VIXCLS",
+        "T10Y2Y",
+        "BAMLH0A0HYM2"
       ],
-      "prompt_intro": "You are analysing the current HIGH-CONVICTION ASYMMETRIC SETUPS — moments when signal × macro × payoff all align. Most of the time the answer is 'sit on cash, wait for fat pitches'. Focus on: (1) is the current setup a fat pitch worth sizing aggressively, a marginal edge, or no-edge?, (2) what's the asymmetric payoff shape (e.g. 1:3 R:R or 1:10)?, (3) which Druckenmiller-style historical concentration trade rhymes?"
+      "system_addendum": "You are specifically Druckenmiller in conviction-position-sizing mode. When the signal is loud and the macro setup is right, you size aggressively. When signals are muddy, you sit on cash. You quantify the conviction in terms of: signal-strength \u00d7 cross-asset-confirmation \u00d7 asymmetric-payoff \u00d7 macro-regime-fit. You cite specific high-conviction historical setups: 1992 pound short (10x leverage), 1999-2000 tech long (60% of fund), 2008 short bonds (later flipped to long), 2020 March equity long.",
+      "assets_to_predict": [
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Crypto Total Market",
+          "ticker": "TOTAL"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
+      ],
+      "prompt_intro": "You are analysing the current HIGH-CONVICTION ASYMMETRIC SETUPS \u2014 moments when signal \u00d7 macro \u00d7 payoff all align. Most of the time the answer is 'sit on cash, wait for fat pitches'. Focus on: (1) is the current setup a fat pitch worth sizing aggressively, a marginal edge, or no-edge?, (2) what's the asymmetric payoff shape (e.g. 1:3 R:R or 1:10)?, (3) which Druckenmiller-style historical concentration trade rhymes?"
     },
-
     "fundamentals-decisive-call": {
-      "title": "Equity Fundamentals — Decisive Call",
+      "title": "Equity Fundamentals \u2014 Decisive Call",
       "output_key": "fundamentals-decisive-call",
       "primary_feed": "data/fundamentals.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "dollar":      "data/dollar-radar.json"
+        "credit": "data/credit-spreads.json",
+        "dollar": "data/dollar-radar.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -762,33 +1444,64 @@
         "dollar": "regime"
       },
       "kb_keywords": [
-        "earnings revisions", "EPS growth", "margin trajectory",
-        "Stanley Druckenmiller earnings", "GMO quality",
-        "Joel Greenblatt magic formula", "ROIC", "free cash flow yield",
-        "earnings surprise", "guidance cut", "Q3 2007 earnings inflection"
+        "earnings revisions",
+        "EPS growth",
+        "margin trajectory",
+        "Stanley Druckenmiller earnings",
+        "GMO quality",
+        "Joel Greenblatt magic formula",
+        "ROIC",
+        "free cash flow yield",
+        "earnings surprise",
+        "guidance cut",
+        "Q3 2007 earnings inflection"
       ],
-      "episode_indicators_to_show": ["DGS10", "BAMLH0A0HYM2", "VIXCLS"],
+      "episode_indicators_to_show": [
+        "DGS10",
+        "BAMLH0A0HYM2",
+        "VIXCLS"
+      ],
       "system_addendum": "You are specifically a SENIOR EQUITY FUNDAMENTAL ANALYST in the Greenblatt / GMO quality tradition. You think in earnings-revision momentum, margin trajectory, ROIC vs cost-of-capital, free-cash-flow yield, and which fundamentals inflections rhyme with prior cycles (Q3 2007 earnings inflection before GFC, 2015-16 industrial earnings recession, 2018 Q4 China-demand collapse, 2020 Q1 COVID shock, 2022 Q4 margin peak).",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Small Cap (Russell 2000)", "ticker": "IWM"},
-        {"asset": "Tech (QQQ)",             "ticker": "QQQ"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Emerging Markets",       "ticker": "EEM"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Small Cap (Russell 2000)",
+          "ticker": "IWM"
+        },
+        {
+          "asset": "Tech (QQQ)",
+          "ticker": "QQQ"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Emerging Markets",
+          "ticker": "EEM"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
-      "prompt_intro": "You are analysing EQUITY FUNDAMENTALS — earnings revisions, margin trajectory, ROIC, free-cash-flow yield. Fundamentals are slow-moving but they set the ceiling and floor for multi-quarter returns. Focus on: (1) are earnings revisions positive / negative / inflecting?, (2) are margins expanding, peaking, or contracting?, (3) which prior fundamentals inflection rhymes (Q3 2007 pre-GFC peak, 2015-16 industrial recession, Q4 2018, Q1 2020, Q4 2022)?"
+      "prompt_intro": "You are analysing EQUITY FUNDAMENTALS \u2014 earnings revisions, margin trajectory, ROIC, free-cash-flow yield. Fundamentals are slow-moving but they set the ceiling and floor for multi-quarter returns. Focus on: (1) are earnings revisions positive / negative / inflecting?, (2) are margins expanding, peaking, or contracting?, (3) which prior fundamentals inflection rhymes (Q3 2007 pre-GFC peak, 2015-16 industrial recession, Q4 2018, Q1 2020, Q4 2022)?"
     },
-
     "consumer-pulse-decisive-call": {
-      "title": "Consumer Pulse — Decisive Call",
+      "title": "Consumer Pulse \u2014 Decisive Call",
       "output_key": "consumer-pulse-decisive-call",
       "primary_feed": "data/consumer-pulse.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "dollar":      "data/dollar-radar.json"
+        "credit": "data/credit-spreads.json",
+        "dollar": "data/dollar-radar.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -796,36 +1509,66 @@
         "dollar": "regime"
       },
       "kb_keywords": [
-        "consumer spending", "retail sales", "consumer credit",
-        "U Michigan sentiment", "Conference Board confidence",
-        "credit card delinquency", "personal savings rate",
-        "wage growth", "real disposable income",
-        "Sahm rule labor", "household balance sheet"
+        "consumer spending",
+        "retail sales",
+        "consumer credit",
+        "U Michigan sentiment",
+        "Conference Board confidence",
+        "credit card delinquency",
+        "personal savings rate",
+        "wage growth",
+        "real disposable income",
+        "Sahm rule labor",
+        "household balance sheet"
       ],
-      "episode_indicators_to_show": ["DGS10", "BAMLH0A0HYM2", "DTWEXBGS"],
-      "system_addendum": "You are specifically a SENIOR CONSUMER ECONOMIST. You think in real-disposable-income trajectory, wage-vs-inflation gap, consumer credit health (delinquencies, utilization), sentiment surveys, and which consumer-cycle inflections rhyme — 2007 Q3 (consumer credit topping), 2008 Lehman (sentiment collapse), 2020 March (forced-savings shock), 2021 (stimulus boom), 2022 (inflation crunch on real income), 2023-24 (excess-savings depletion).",
+      "episode_indicators_to_show": [
+        "DGS10",
+        "BAMLH0A0HYM2",
+        "DTWEXBGS"
+      ],
+      "system_addendum": "You are specifically a SENIOR CONSUMER ECONOMIST. You think in real-disposable-income trajectory, wage-vs-inflation gap, consumer credit health (delinquencies, utilization), sentiment surveys, and which consumer-cycle inflections rhyme \u2014 2007 Q3 (consumer credit topping), 2008 Lehman (sentiment collapse), 2020 March (forced-savings shock), 2021 (stimulus boom), 2022 (inflation crunch on real income), 2023-24 (excess-savings depletion).",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Consumer Discretionary (XLY)", "ticker": "XLY"},
-        {"asset": "Consumer Staples (XLP)", "ticker": "XLP"},
-        {"asset": "Small Cap (Russell 2000)", "ticker": "IWM"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Consumer Discretionary (XLY)",
+          "ticker": "XLY"
+        },
+        {
+          "asset": "Consumer Staples (XLP)",
+          "ticker": "XLP"
+        },
+        {
+          "asset": "Small Cap (Russell 2000)",
+          "ticker": "IWM"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
-      "prompt_intro": "You are analysing the US CONSUMER PULSE — real wages, credit health, sentiment, spending trajectory. The consumer is 70% of US GDP, so consumer inflections are leading indicators for the whole economy. Focus on: (1) is the consumer accelerating, decelerating, or rolling over?, (2) is credit health healthy or stressed (delinquencies, utilization)?, (3) which prior consumer-cycle inflection rhymes (2007 Q3 pre-GFC, 2020 stimulus surge, 2022 real-wage crunch)?"
+      "prompt_intro": "You are analysing the US CONSUMER PULSE \u2014 real wages, credit health, sentiment, spending trajectory. The consumer is 70% of US GDP, so consumer inflections are leading indicators for the whole economy. Focus on: (1) is the consumer accelerating, decelerating, or rolling over?, (2) is credit health healthy or stressed (delinquencies, utilization)?, (3) which prior consumer-cycle inflection rhymes (2007 Q3 pre-GFC, 2020 stimulus surge, 2022 real-wage crunch)?"
     },
-
     "auction-decisive-call": {
-      "title": "Treasury Auction Tape — Decisive Call",
+      "title": "Treasury Auction Tape \u2014 Decisive Call",
       "output_key": "auction-decisive-call",
       "primary_feed": "data/auction-crisis.json",
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "dollar":      "data/dollar-radar.json",
-        "eurodollar":  "data/eurodollar-stress.json",
-        "credit":      "data/credit-spreads.json",
-        "vix":         "data/vix-curve.json"
+        "dollar": "data/dollar-radar.json",
+        "eurodollar": "data/eurodollar-stress.json",
+        "credit": "data/credit-spreads.json",
+        "vix": "data/vix-curve.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -835,67 +1578,110 @@
         "vix": "composite_regime"
       },
       "kb_keywords": [
-        "Treasury auction", "bid-to-cover", "indirect bidders", "primary dealer",
-        "auction tail", "1979 Volcker", "2008 funding stress",
-        "2020 COVID auctions", "Hugh Hendry", "issuance",
-        "Reserve Bank Wednesday", "WALCL", "TGA"
+        "Treasury auction",
+        "bid-to-cover",
+        "indirect bidders",
+        "primary dealer",
+        "auction tail",
+        "1979 Volcker",
+        "2008 funding stress",
+        "2020 COVID auctions",
+        "Hugh Hendry",
+        "issuance",
+        "Reserve Bank Wednesday",
+        "WALCL",
+        "TGA"
       ],
-      "episode_indicators_to_show": ["T10Y2Y", "DGS10", "DFII10", "VIXCLS", "BAMLH0A0HYM2"],
+      "episode_indicators_to_show": [
+        "T10Y2Y",
+        "DGS10",
+        "DFII10",
+        "VIXCLS",
+        "BAMLH0A0HYM2"
+      ],
       "system_addendum": "You are specifically a SENIOR RATES STRATEGIST analysing the Treasury auction tape. You cite BTC ratios, Indirect %, AAH (primary dealer take), tails in bps. You compare to specific historical auction episodes (2024-Q1 healthy, 2020-03 COVID auctions, 2008-09 GFC funding stress, 1979 Volcker shock).",
       "assets_to_predict": [
-        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
-        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
-        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
-        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
-        {"asset": "High-Yield Credit",      "ticker": "HYG"},
-        {"asset": "Gold",                   "ticker": "GLD"},
-        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Crypto Total Market",
+          "ticker": "TOTAL"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
       ],
       "prompt_intro": "You are analysing the US Treasury auction tape. Primary data has composite_score (0=calm, 100=crisis), regime, 6 crisis-pattern indicators (zero-rate floor, BTC extreme, indirect drought, AAH dependency, tail blowout, ratio inversion), recent auctions with their stats, and upcoming auctions. Focus on: (1) what's the auction tape signalling about institutional demand vs dealer absorption?, (2) is this consistent or divergent vs broader macro regime?, (3) what's the next critical auction and what would clean/dirty look like?"
     },
-
     "baggers-names": {
       "brief_type": "names",
-      "title": "🚀 100x Bagger Candidates — AI Briefs",
+      "title": "\ud83d\ude80 100x Bagger Candidates \u2014 AI Briefs",
       "output_key": "baggers-names",
       "primary_feed": "data/bagger-engine.json",
-      "primary_tickers_field": "top",
+      "primary_tickers_field": "top_100",
       "primary_score_field": "bagger_score",
       "score_label": "Bagger Score",
       "top_n": 15,
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "liquidity":   "liquidity-data.json",
-        "vix":         "data/vix-curve.json",
-        "regime":      "data/regime-anomaly.json"
+        "liquidity": "liquidity-data.json",
+        "vix": "data/vix-curve.json",
+        "regime": "data/regime-anomaly.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
         "vix": "composite_regime"
       },
       "kb_keywords": [
-        "100 bagger", "Christopher Mayer multibagger", "Peter Lynch tenbagger",
-        "Phil Fisher growth", "asymmetric payoff", "small cap compounder",
-        "coffee can investing", "Nick Sleep", "AMD turnaround",
-        "NVDA AI compute", "ENPH solar", "AEHR semiconductor cycle"
+        "100 bagger",
+        "Christopher Mayer multibagger",
+        "Peter Lynch tenbagger",
+        "Phil Fisher growth",
+        "asymmetric payoff",
+        "small cap compounder",
+        "coffee can investing",
+        "Nick Sleep",
+        "AMD turnaround",
+        "NVDA AI compute",
+        "ENPH solar",
+        "AEHR semiconductor cycle"
       ],
-      "system_addendum": "You are specifically a high-conviction small-cap / multibagger analyst in the Christopher Mayer / Peter Lynch / Nick Sleep tradition. You hunt for 7-pillar quality (hiring velocity, insider behaviour, fundamentals quality, coffee-can stickiness, R&D intensity, ROIC trajectory, market expansion). You name SPECIFIC prior multibaggers as analogs (AMD 2016 = $2→$28; NVDA 2019-21 = $10→$84; ENPH 2020 = $3→$300; AEHR 2023 = $4→$50; SMCI 2023 = $80→$1100; PLTR 2023-24 = $7→$80).",
-      "prompt_intro": "You are analysing the TOP 100x BAGGER CANDIDATES from the bagger-engine universe of 1,200+ tickers. Each ticker is scored on 7 quality pillars. Pick winners by combining: pillar score × current macro tailwind × asymmetric payoff shape. Most names will have STRONG_FIT to risk-on regimes. POOR_FIT in risk-off (high duration growth gets killed when real yields spike)."
+      "system_addendum": "You are specifically a high-conviction small-cap / multibagger analyst in the Christopher Mayer / Peter Lynch / Nick Sleep tradition. You hunt for 7-pillar quality (hiring velocity, insider behaviour, fundamentals quality, coffee-can stickiness, R&D intensity, ROIC trajectory, market expansion). You name SPECIFIC prior multibaggers as analogs (AMD 2016 = $2\u2192$28; NVDA 2019-21 = $10\u2192$84; ENPH 2020 = $3\u2192$300; AEHR 2023 = $4\u2192$50; SMCI 2023 = $80\u2192$1100; PLTR 2023-24 = $7\u2192$80).",
+      "prompt_intro": "You are analysing the TOP 100x BAGGER CANDIDATES from the bagger-engine universe of 1,200+ tickers. Each ticker is scored on 7 quality pillars. Pick winners by combining: pillar score \u00d7 current macro tailwind \u00d7 asymmetric payoff shape. Most names will have STRONG_FIT to risk-on regimes. POOR_FIT in risk-off (high duration growth gets killed when real yields spike).",
+      "ticker_id_field": "symbol"
     },
-
     "eps-velocity-names": {
       "brief_type": "names",
-      "title": "EPS Revision Velocity — AI Briefs",
+      "title": "EPS Revision Velocity \u2014 AI Briefs",
       "output_key": "eps-velocity-names",
       "primary_feed": "data/eps-revision-velocity.json",
-      "primary_tickers_field": "top",
-      "primary_score_field": "velocity_score",
+      "primary_tickers_field": "all_qualifying",
+      "primary_score_field": "score",
       "score_label": "EPS Velocity Score",
       "top_n": 12,
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "vix":         "data/vix-curve.json"
+        "credit": "data/credit-spreads.json",
+        "vix": "data/vix-curve.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -903,28 +1689,33 @@
         "vix": "composite_regime"
       },
       "kb_keywords": [
-        "earnings revision", "EPS upgrade cycle", "sell-side consensus",
-        "earnings momentum", "Joel Greenblatt magic formula",
-        "Druckenmiller earnings inflection", "estimate revision factor",
-        "Wall Street upgrades", "EPS guidance raise"
+        "earnings revision",
+        "EPS upgrade cycle",
+        "sell-side consensus",
+        "earnings momentum",
+        "Joel Greenblatt magic formula",
+        "Druckenmiller earnings inflection",
+        "estimate revision factor",
+        "Wall Street upgrades",
+        "EPS guidance raise"
       ],
       "system_addendum": "You are specifically a SELL-SIDE earnings-revision analyst. You think in terms of consensus upgrades, magnitude of revisions, breadth of upgrades, and which prior earnings-revision inflections preceded major moves (NVDA Q1 2023, META Q4 2022, AMD 2017, AAPL Q1 2020). You note when sell-side is still UNDER-estimating vs when consensus has caught up.",
-      "prompt_intro": "You are analysing top names with the strongest current sell-side EPS-revision upgrades. Each ticker has velocity score, magnitude, breadth, consensus direction. Pick highest-conviction setups by combining: revision velocity × magnitude × cross-asset regime fit. Note: revisions cycles can run 6-18 months, so timing matters."
+      "prompt_intro": "You are analysing top names with the strongest current sell-side EPS-revision upgrades. Each ticker has velocity score, magnitude, breadth, consensus direction. Pick highest-conviction setups by combining: revision velocity \u00d7 magnitude \u00d7 cross-asset regime fit. Note: revisions cycles can run 6-18 months, so timing matters.",
+      "ticker_id_field": "symbol"
     },
-
     "insider-clusters-names": {
       "brief_type": "names",
-      "title": "Insider Cluster Buys — AI Briefs",
+      "title": "Insider Cluster Buys \u2014 AI Briefs",
       "output_key": "insider-clusters-names",
       "primary_feed": "data/insider-clusters.json",
       "primary_tickers_field": "clusters",
-      "primary_score_field": "cluster_score",
+      "primary_score_field": "score",
       "score_label": "Cluster Score",
       "top_n": 12,
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json",
-        "credit":      "data/credit-spreads.json"
+        "vix": "data/vix-curve.json",
+        "credit": "data/credit-spreads.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -932,83 +1723,105 @@
         "credit": "regime"
       },
       "kb_keywords": [
-        "insider buying", "CEO buys", "CFO buys", "Form 4",
-        "cluster buys", "Nejat Seyhun insider", "insider conviction",
-        "open market purchases", "10b5-1 plan", "insider information edge",
+        "insider buying",
+        "CEO buys",
+        "CFO buys",
+        "Form 4",
+        "cluster buys",
+        "Nejat Seyhun insider",
+        "insider conviction",
+        "open market purchases",
+        "10b5-1 plan",
+        "insider information edge",
         "insider cluster precedes upside"
       ],
       "system_addendum": "You are specifically an insider-flow analyst in the Nejat Seyhun tradition. You think: cluster buys > single buys; CEO+CFO together = highest conviction; size relative to insider net worth matters more than absolute dollars; sector-wide insider buying is the loudest macro tell (insider energy buying 2020 Q1, insider regional bank buying May 2023). You cite specific high-conviction insider cluster setups that worked (PSX 2020, NUE 2021, AEHR 2022).",
-      "prompt_intro": "You are analysing top tickers with the strongest current insider cluster buys. Each has number of insiders, dollar volume, % of float, days since last buy. Score by: cluster breadth × dollar size × insider seniority × historical analog hit-rate. CEO+CFO cluster is the rarest and most predictive."
+      "prompt_intro": "You are analysing top tickers with the strongest current insider cluster buys. Each has number of insiders, dollar volume, % of float, days since last buy. Score by: cluster breadth \u00d7 dollar size \u00d7 insider seniority \u00d7 historical analog hit-rate. CEO+CFO cluster is the rarest and most predictive.",
+      "ticker_id_field": "ticker"
     },
-
     "smart-money-names": {
       "brief_type": "names",
-      "title": "Smart Money 13F Clusters — AI Briefs",
+      "title": "Smart Money 13F Clusters \u2014 AI Briefs",
       "output_key": "smart-money-names",
       "primary_feed": "data/smart-money-clusters.json",
       "primary_tickers_field": "clusters",
-      "primary_score_field": "cluster_score",
+      "primary_score_field": "score",
       "score_label": "Smart Money Score",
       "top_n": 12,
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json",
-        "regime":      "data/regime-anomaly.json"
+        "vix": "data/vix-curve.json",
+        "regime": "data/regime-anomaly.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
         "vix": "composite_regime"
       },
       "kb_keywords": [
-        "13F filings", "smart money", "hedge fund holdings",
-        "Buffett 13F", "Druckenmiller 13F", "Berkshire holdings",
-        "Soros 13F", "Tepper Appaloosa", "Burry Scion",
-        "institutional accumulation", "13F cluster buys"
+        "13F filings",
+        "smart money",
+        "hedge fund holdings",
+        "Buffett 13F",
+        "Druckenmiller 13F",
+        "Berkshire holdings",
+        "Soros 13F",
+        "Tepper Appaloosa",
+        "Burry Scion",
+        "institutional accumulation",
+        "13F cluster buys"
       ],
-      "system_addendum": "You are specifically a 13F-tracking analyst. You watch the elite cluster — Buffett, Druckenmiller, Tepper, Burry, Soros, Klarman, Ackman, Greenblatt — and you note when 3+ of them concentrate on the same ticker simultaneously (rare, high-signal). You distinguish new positions (highest signal) from add-ons (medium) from trims (negative). You note the 45-day reporting lag.",
-      "prompt_intro": "You are analysing top tickers with strongest current 13F cluster buys from elite managers. Each has number of managers, dollar size, % of fund allocation, new-vs-add pattern. Weight by: manager track record × concentration % × convergence × new-position indicator."
+      "system_addendum": "You are specifically a 13F-tracking analyst. You watch the elite cluster \u2014 Buffett, Druckenmiller, Tepper, Burry, Soros, Klarman, Ackman, Greenblatt \u2014 and you note when 3+ of them concentrate on the same ticker simultaneously (rare, high-signal). You distinguish new positions (highest signal) from add-ons (medium) from trims (negative). You note the 45-day reporting lag.",
+      "prompt_intro": "You are analysing top tickers with strongest current 13F cluster buys from elite managers. Each has number of managers, dollar size, % of fund allocation, new-vs-add pattern. Weight by: manager track record \u00d7 concentration % \u00d7 convergence \u00d7 new-position indicator.",
+      "ticker_id_field": "ticker"
     },
-
     "activist-13d-names": {
       "brief_type": "names",
-      "title": "Activist 13D Filings — AI Briefs",
+      "title": "Activist 13D Filings \u2014 AI Briefs",
       "output_key": "activist-13d-names",
       "primary_feed": "data/activist-13d.json",
-      "primary_tickers_field": "filings",
+      "primary_tickers_field": "top_setups",
       "primary_score_field": "score",
       "score_label": "Activist Score",
       "top_n": 10,
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json"
+        "vix": "data/vix-curve.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
         "vix": "composite_regime"
       },
       "kb_keywords": [
-        "13D filing", "activist investor", "Carl Icahn",
-        "Bill Ackman Pershing", "Elliott Management", "Starboard Value",
-        "Nelson Peltz Trian", "proxy fight", "board representation",
-        "value unlock", "spin-off", "buyback authorization"
+        "13D filing",
+        "activist investor",
+        "Carl Icahn",
+        "Bill Ackman Pershing",
+        "Elliott Management",
+        "Starboard Value",
+        "Nelson Peltz Trian",
+        "proxy fight",
+        "board representation",
+        "value unlock",
+        "spin-off",
+        "buyback authorization"
       ],
       "system_addendum": "You are specifically an event-driven / activist-tracking analyst. You watch Icahn, Ackman, Elliott, Starboard, Trian, ValueAct, Engaged Capital. You think in terms of value-unlock catalysts (spin-offs, buybacks, board changes, asset sales). You cite specific activist wins (Icahn-AAPL 2013, Elliott-AT&T 2019, Peltz-DIS 2023).",
-      "prompt_intro": "You are analysing top tickers with recent 13D activist filings. Each has activist name, target action (board seat / spin-off / buyback / strategic review), ownership %, days since filing. Higher conviction when: top-tier activist × specific catalyst named × material % stake × short time-since-filing."
+      "prompt_intro": "You are analysing top tickers with recent 13D activist filings. Each has activist name, target action (board seat / spin-off / buyback / strategic review), ownership %, days since filing. Higher conviction when: top-tier activist \u00d7 specific catalyst named \u00d7 material % stake \u00d7 short time-since-filing.",
+      "ticker_id_field": "ticker"
     },
-
     "deep-value-names": {
       "brief_type": "names",
-      "title": "Deep Value Setups — AI Briefs",
+      "title": "Deep Value Setups \u2014 AI Briefs",
       "output_key": "deep-value-names",
       "primary_feed": "data/deep-value.json",
-      "primary_tickers_field": "top",
-      "primary_score_field": "value_score",
+      "primary_tickers_field": "all_qualifying",
+      "primary_score_field": "score",
       "score_label": "Deep Value Score",
       "top_n": 12,
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "credit":      "data/credit-spreads.json",
-        "vix":         "data/vix-curve.json"
+        "credit": "data/credit-spreads.json",
+        "vix": "data/vix-curve.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -1016,28 +1829,37 @@
         "vix": "composite_regime"
       },
       "kb_keywords": [
-        "deep value", "Ben Graham", "net-net Graham", "Tobin's Q",
-        "price to book", "Greenblatt magic formula", "value trap",
-        "cigar butt", "Walter Schloss", "Seth Klarman margin of safety",
-        "GMO deep value", "1999 dot-com value crash", "2009 value bottom"
+        "deep value",
+        "Ben Graham",
+        "net-net Graham",
+        "Tobin's Q",
+        "price to book",
+        "Greenblatt magic formula",
+        "value trap",
+        "cigar butt",
+        "Walter Schloss",
+        "Seth Klarman margin of safety",
+        "GMO deep value",
+        "1999 dot-com value crash",
+        "2009 value bottom"
       ],
       "system_addendum": "You are specifically a Graham-Klarman deep-value analyst. You think P/B, P/TBV, EV/EBITDA, FCF yield, net-cash positions, asset-backed margin of safety. You distinguish DEEP VALUE (margin of safety, catalyst likely) from VALUE TRAPS (cheap but melting). You cite specific deep-value cycle bottoms (1974, 1982, 2002, 2009, March 2020, October 2022) and specific value-trap warnings (TSM 2015, JCP 2017, GE 2018).",
-      "prompt_intro": "You are analysing top deep-value setups. Each ticker has valuation multiples, balance-sheet quality, FCF/dividend yield, and a value score. Distinguish actionable deep-value (margin of safety + catalyst) from value traps (cheap but rolling). Weight by macro fit — deep value works best in late-recession / early-expansion."
+      "prompt_intro": "You are analysing top deep-value setups. Each ticker has valuation multiples, balance-sheet quality, FCF/dividend yield, and a value score. Distinguish actionable deep-value (margin of safety + catalyst) from value traps (cheap but rolling). Weight by macro fit \u2014 deep value works best in late-recession / early-expansion.",
+      "ticker_id_field": "symbol"
     },
-
     "momentum-names": {
       "brief_type": "names",
-      "title": "Momentum Scanner — AI Briefs",
+      "title": "Momentum Scanner \u2014 AI Briefs",
       "output_key": "momentum-names",
       "primary_feed": "data/momentum-scanner.json",
-      "primary_tickers_field": "top",
-      "primary_score_field": "momentum_score",
+      "primary_tickers_field": "rankings.composite_top_50",
+      "primary_score_field": "composite_score",
       "score_label": "Momentum Score",
       "top_n": 15,
       "cross_feeds": {
         "yield_curve": "data/yield-curve.json",
-        "vix":         "data/vix-curve.json",
-        "credit":      "data/credit-spreads.json"
+        "vix": "data/vix-curve.json",
+        "credit": "data/credit-spreads.json"
       },
       "cross_regime_fields": {
         "yield_curve": "regime",
@@ -1045,15 +1867,22 @@
         "credit": "regime"
       },
       "kb_keywords": [
-        "momentum factor", "12-1 momentum", "AQR momentum",
-        "Cliff Asness", "trend persistence", "momentum crash",
-        "200 day moving average", "relative strength",
-        "Donchian breakout", "NVDA 2023 momentum",
-        "TSLA 2020 momentum", "SMCI 2023 momentum"
+        "momentum factor",
+        "12-1 momentum",
+        "AQR momentum",
+        "Cliff Asness",
+        "trend persistence",
+        "momentum crash",
+        "200 day moving average",
+        "relative strength",
+        "Donchian breakout",
+        "NVDA 2023 momentum",
+        "TSLA 2020 momentum",
+        "SMCI 2023 momentum"
       ],
       "system_addendum": "You are specifically a momentum / trend-following analyst (AQR / Asness / William O'Neil tradition). You think 12-1 momentum + 200-DMA + relative strength + breakout patterns. You cite specific high-momentum periods that worked (NVDA 2023, TSLA 2020, SMCI 2023, AAPL 2019) and momentum crashes (Q1 2009, Q1 2016, Q4 2018, Q1 2020).",
-      "prompt_intro": "You are analysing top momentum setups. Each ticker has momentum score, slope, persistence, relative strength, breakout/breakdown signal. Score weighted by: slope strength × persistence × relative strength × macro fit. Momentum crashes after vol regime shifts — flag risk if VIX is regime-changing."
+      "prompt_intro": "You are analysing top momentum setups. Each ticker has momentum score, slope, persistence, relative strength, breakout/breakdown signal. Score weighted by: slope strength \u00d7 persistence \u00d7 relative strength \u00d7 macro fit. Momentum crashes after vol regime shifts \u2014 flag risk if VIX is regime-changing.",
+      "ticker_id_field": "ticker"
     }
-
   }
 }
