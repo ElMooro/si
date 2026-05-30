@@ -1,0 +1,44 @@
+{
+  "started": "2026-05-30T23:10:54.590842+00:00",
+  "redeploy": "OK",
+  "invoke": {
+    "fn_err": null,
+    "n_ok": 0,
+    "duration_s": 29.48
+  },
+  "alert_log_lines": "",
+  "equity_convergence_detection": {
+    "fired": false,
+    "n_cardinal_present": 2,
+    "n_cardinal_total": 4,
+    "cardinals_fired": {
+      "DEALER_GEX": false,
+      "OPTIONS_FLOW_GAMMA": true,
+      "SKEW_VOL": true,
+      "CFTC_SHORT": false
+    },
+    "top_setup_target": "SPY / QQQ (mega-cap tech concentration)",
+    "top_setup_direction": "DOWNSIDE",
+    "contributing_signals": [
+      {
+        "cardinal": "OPTIONS_FLOW_GAMMA",
+        "category": "OPTIONS_FLOW",
+        "signal": "AMZN: CPR surging 81.3% to 29.38, call-vol 3x normal, shorts covering (-9.91%); MSFT: CPR +32.5%, call-vol 3x, shorts co"
+      },
+      {
+        "cardinal": "SKEW_VOL",
+        "category": "SKEW_TAIL",
+        "signal": "Skew in normal range (0.2 signal strength); no tail-hedging demand = complacency"
+      }
+    ],
+    "all_smoking_gun_categories_seen": [
+      "13F",
+      "INSIDER",
+      "OPTIONS_FLOW",
+      "SENTIMENT",
+      "SKEW_TAIL"
+    ]
+  },
+  "equity_alert_state": "NOT_WRITTEN_YET (no alert condition met \u2014 fine)",
+  "finished": "2026-05-30T23:11:32.597220+00:00"
+}
