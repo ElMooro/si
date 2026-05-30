@@ -989,7 +989,71 @@ def _macro_convergence_fingerprint(brief):
     }
 
 
-def _format_equity_alert(brief, label, page_url, kind, prev_state):
+def _equity_convergence_fingerprint(brief):
+    """Detect the equity gamma-squeeze / vol-cascade fingerprint.
+    Looks across the smoking_gun_signals of the top 2 setups for 3+ of these
+    4 cardinal equity-microstructure categories firing together:
+      1. DEALER_GEX        (dealer gamma exposure shifts)
+      2. OPTIONS_FLOW/GAMMA (unusual options activity, gamma exposure)
+      3. SKEW/VOL          (skew steepening, tail-hedge bidding, IV crush)
+      4. CFTC/SHORT_INTEREST (commercials flip, short interest stress)
+
+    When 3+ cardinals fire simultaneously, that's the:
+      - Jan 2021 GME gamma squeeze signature
+      - Feb 2018 vol regime unwind signature
+      - Dec 2018 dealer gamma cascade signature
+      - Aug 2007 quant crowd same-trade signature
+
+    Returns (fired, detail_dict).
+    """
+    setups = brief.get("suspected_setups") or []
+    if not setups:
+        return False, {"reason": "no_setups"}
+
+    cardinals = {
+        "DEALER_GEX": False,
+        "OPTIONS_FLOW_GAMMA": False,
+        "SKEW_VOL": False,
+        "CFTC_SHORT": False,
+    }
+    contributing = []
+    for sx in setups[:2]:  # Top 2 setups
+        for g in (sx.get("smoking_gun_signals") or []):
+            cat = (g.get("category") or "").upper()
+            sig = (g.get("signal") or "")[:120]
+            # DEALER_GEX
+            if ("DEALER_GEX" in cat or "GEX" in cat) and not cardinals["DEALER_GEX"]:
+                cardinals["DEALER_GEX"] = True
+                contributing.append({"cardinal": "DEALER_GEX", "category": g.get("category"), "signal": sig})
+            # OPTIONS_FLOW or OPTIONS_GAMMA (excluding pure DEALER_GEX which is separate)
+            elif ("OPTIONS_FLOW" in cat or "OPTIONS_GAMMA" in cat or cat == "GAMMA") and not cardinals["OPTIONS_FLOW_GAMMA"]:
+                cardinals["OPTIONS_FLOW_GAMMA"] = True
+                contributing.append({"cardinal": "OPTIONS_FLOW_GAMMA", "category": g.get("category"), "signal": sig})
+            # SKEW / VOL / TAIL HEDGING
+            elif ("SKEW" in cat or "IV_CRUSH" in cat or "TAIL" in cat
+                  or cat == "VOL" or "CATALYST_SKEW" in cat) and not cardinals["SKEW_VOL"]:
+                cardinals["SKEW_VOL"] = True
+                contributing.append({"cardinal": "SKEW_VOL", "category": g.get("category"), "signal": sig})
+            # CFTC / SHORT_INTEREST / SQUEEZE
+            elif ("CFTC" in cat or "SHORT_INTEREST" in cat
+                  or "SHORT" == cat or "SQUEEZE" in cat) and not cardinals["CFTC_SHORT"]:
+                cardinals["CFTC_SHORT"] = True
+                contributing.append({"cardinal": "CFTC_SHORT", "category": g.get("category"), "signal": sig})
+
+    n_present = sum(1 for v in cardinals.values() if v)
+    fired = n_present >= 3
+
+    return fired, {
+        "n_cardinal_present": n_present,
+        "n_cardinal_total": 4,
+        "cardinals_fired": cardinals,
+        "top_setup_target": (setups[0].get("target_asset") if setups else None),
+        "top_setup_direction": (setups[0].get("target_direction") if setups else None),
+        "contributing_signals": contributing[:6],
+    }
+
+
+def _format_equity_alert(brief, label, page_url, kind, prev_state, conv_fired=False, conv_detail=None):
     """Build the Telegram message for an equity sniffer alert."""
     score = brief.get("overall_anomaly_score")
     regime = (brief.get("anomaly_regime") or "NORMAL").upper()
@@ -999,7 +1063,9 @@ def _format_equity_alert(brief, label, page_url, kind, prev_state):
     top = top_setups[0] if top_setups else {}
     la = brief.get("loudest_anomaly") or {}
 
-    if kind == "REGIME_UP":
+    if conv_fired:
+        title = f"🚨🎯 *EQUITY CONVERGENCE FINGERPRINT* — Jan 2021 GME / Feb 2018 vol unwind / Dec 2018 dealer cascade signature"
+    elif kind == "REGIME_UP":
         title = f"🚨 *FRONT-RUN ALERT — REGIME ESCALATION*"
     elif kind == "REGIME_DOWN":
         title = f"✅ *FRONT-RUN — Regime de-escalated*"
@@ -1025,6 +1091,20 @@ def _format_equity_alert(brief, label, page_url, kind, prev_state):
         delta_line += f"  regime: *{regime}*"
 
     msg = f"{title}\n\n{delta_line}\n\n"
+
+    # Convergence pillar breakdown
+    if conv_fired and conv_detail:
+        cardinals = conv_detail.get("cardinals_fired") or {}
+        n_present = conv_detail.get("n_cardinal_present", 0)
+        msg += (f"⚠ *Equity convergence fingerprint* ({n_present}/4 cardinal categories):\n"
+                f"  {'✓' if cardinals.get('DEALER_GEX') else '✗'} Dealer GEX\n"
+                f"  {'✓' if cardinals.get('OPTIONS_FLOW_GAMMA') else '✗'} Options Flow / Gamma\n"
+                f"  {'✓' if cardinals.get('SKEW_VOL') else '✗'} Skew / Vol / Tail Hedge\n"
+                f"  {'✓' if cardinals.get('CFTC_SHORT') else '✗'} CFTC / Short Interest\n")
+        if conv_detail.get("top_setup_target"):
+            msg += f"  → target: *{conv_detail['top_setup_target']}* {conv_detail.get('top_setup_direction','')}\n"
+        msg += "\n"
+
     if headline:
         msg += f"📰 {headline[:240]}\n\n"
     if top.get("target_asset"):
@@ -1161,7 +1241,10 @@ def _decide_alert_kind(prev_state, new_score, new_regime, conv_fired_now, conv_w
 
 
 def _maybe_alert_equity_sniffer(brief, page_url="https://justhodl.ai/frontrun.html"):
-    """Check the equity sniffer state and fire a Telegram alert if needed."""
+    """Check the equity sniffer state and fire a Telegram alert if needed.
+    Now includes equity convergence-fingerprint detection (Jan 2021 GME /
+    Feb 2018 vol unwind / Dec 2018 dealer cascade signature) — priority-1
+    alert symmetric to the macro convergence fingerprint."""
     try:
         state_key = "frontrun-sniffer-alert-state"
         prev = _alert_state_io(state_key) or {}
@@ -1170,11 +1253,24 @@ def _maybe_alert_equity_sniffer(brief, page_url="https://justhodl.ai/frontrun.ht
         regime = (brief.get("anomaly_regime") or "NORMAL").upper()
         if score is None: return {"ok": False, "reason": "no_score"}
 
-        kind, reason = _decide_alert_kind(prev, score, regime, False, False)
-        if kind is None:
-            return {"ok": False, "reason": reason, "score": score, "regime": regime}
+        # Equity convergence fingerprint detection (DEALER_GEX + OPTIONS_FLOW +
+        # SKEW + CFTC across top 2 setups — 3-of-4 cardinals required)
+        conv_fired, conv_detail = _equity_convergence_fingerprint(brief)
+        conv_was_recent = False
+        last_conv_at = prev.get("last_convergence_fingerprint_at")
+        if last_conv_at:
+            try:
+                lc = datetime.fromisoformat(last_conv_at.replace("Z","+00:00"))
+                hrs_since = (datetime.now(timezone.utc) - lc).total_seconds() / 3600
+                conv_was_recent = hrs_since < 4
+            except Exception: pass
 
-        msg = _format_equity_alert(brief, "Front-Run Sniffer", page_url, kind, prev)
+        kind, reason = _decide_alert_kind(prev, score, regime, conv_fired, conv_was_recent)
+        if kind is None:
+            return {"ok": False, "reason": reason, "score": score, "regime": regime,
+                    "conv_fired": conv_fired, "conv_detail": conv_detail}
+
+        msg = _format_equity_alert(brief, "Front-Run Sniffer", page_url, kind, prev, conv_fired, conv_detail)
         ok, info = _telegram_post(msg)
 
         # Update state
@@ -1189,9 +1285,15 @@ def _maybe_alert_equity_sniffer(brief, page_url="https://justhodl.ai/frontrun.ht
             "last_alert_reason": reason,
             "alerts_today": (prev.get("alerts_today", 0) + 1),
             "alerts_today_date": today_str,
+            "last_convergence_fingerprint_at": (
+                datetime.now(timezone.utc).isoformat() if conv_fired
+                else prev.get("last_convergence_fingerprint_at")
+            ),
+            "last_convergence_detail": conv_detail if conv_fired else prev.get("last_convergence_detail"),
         }
         _alert_state_io(state_key, write=new_state)
-        return {"ok": ok, "kind": kind, "reason": reason, "telegram": info}
+        return {"ok": ok, "kind": kind, "reason": reason,
+                "conv_fired": conv_fired, "telegram": info}
     except Exception as e:
         return {"ok": False, "err": str(e)[:300]}
 

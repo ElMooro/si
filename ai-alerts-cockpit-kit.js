@@ -120,13 +120,12 @@
 
     var html = '<div class="jha-conv ' + firedClass + '">' +
                  '<div class="jha-conv-hdr">' +
-                   '<div class="jha-conv-title">⭐ MACRO CONVERGENCE FINGERPRINT — Aug 2007 / Sep 2019 / Mar 2020 / Mar 2023 signature</div>' +
+                   '<div class="jha-conv-title">🏛 MACRO CONVERGENCE FINGERPRINT — Aug 2007 / Sep 2019 / Mar 2020 / Mar 2023 signature</div>' +
                    '<div class="jha-conv-status">' + esc(status) + '</div>' +
                  '</div>' +
                  '<div class="jha-conv-desc">' +
                    'When <b>auction tape</b>, <b>primary dealer positioning</b>, and <b>funding plumbing</b> ' +
-                   'all stress simultaneously, that\'s the highest-conviction macro front-running pattern in the history book. ' +
-                   'Fires a priority-1 Telegram alert that bypasses cooldown.' +
+                   'all stress simultaneously, that\'s the highest-conviction macro front-running pattern in the history book.' +
                  '</div>' +
                  '<div class="jha-pillars">' +
                    pillarCell("auction tape", auc, aucStressed) +
@@ -138,6 +137,82 @@
                '</div>';
     return html;
   }
+
+
+  function detectEquityConvergence(equityBrief) {
+    var setups = (equityBrief || {}).suspected_setups || [];
+    if (!setups.length) return { fired: false, cardinals: { DEALER_GEX:false, OPTIONS_FLOW_GAMMA:false, SKEW_VOL:false, CFTC_SHORT:false }, n_present: 0, sample: [] };
+
+    var cards = { DEALER_GEX:false, OPTIONS_FLOW_GAMMA:false, SKEW_VOL:false, CFTC_SHORT:false };
+    var sample = [];
+    setups.slice(0, 2).forEach(function (sx) {
+      (sx.smoking_gun_signals || []).forEach(function (g) {
+        var cat = String(g.category || "").toUpperCase();
+        if ((cat.includes("DEALER_GEX") || cat.includes("GEX")) && !cards.DEALER_GEX) {
+          cards.DEALER_GEX = true;
+          sample.push({ cardinal:"DEALER_GEX", signal:(g.signal||"").substring(0,120) });
+        } else if ((cat.includes("OPTIONS_FLOW") || cat.includes("OPTIONS_GAMMA") || cat === "GAMMA") && !cards.OPTIONS_FLOW_GAMMA) {
+          cards.OPTIONS_FLOW_GAMMA = true;
+          sample.push({ cardinal:"OPTIONS_FLOW_GAMMA", signal:(g.signal||"").substring(0,120) });
+        } else if ((cat.includes("SKEW") || cat.includes("IV_CRUSH") || cat.includes("TAIL") || cat === "VOL" || cat.includes("CATALYST_SKEW")) && !cards.SKEW_VOL) {
+          cards.SKEW_VOL = true;
+          sample.push({ cardinal:"SKEW_VOL", signal:(g.signal||"").substring(0,120) });
+        } else if ((cat.includes("CFTC") || cat.includes("SHORT_INTEREST") || cat === "SHORT" || cat.includes("SQUEEZE")) && !cards.CFTC_SHORT) {
+          cards.CFTC_SHORT = true;
+          sample.push({ cardinal:"CFTC_SHORT", signal:(g.signal||"").substring(0,120) });
+        }
+      });
+    });
+    var n_present = Object.values(cards).filter(function(v){return v;}).length;
+    return { fired: n_present >= 3, cardinals: cards, n_present: n_present, sample: sample,
+              top_target: setups[0] ? setups[0].target_asset : null,
+              top_direction: setups[0] ? setups[0].target_direction : null };
+  }
+
+
+  function renderEquityConvergence(equityBrief, equityState) {
+    var c = detectEquityConvergence(equityBrief);
+    var fired = c.fired;
+    var firedClass = fired ? "FIRED" : "";
+    var status = fired ? "🚨 FINGERPRINT FIRED" : (c.n_present > 0 ? "⚠ PARTIAL — " + c.n_present + "/4 stressed" : "✅ ALL CALM");
+    var lastConv = equityState ? equityState.last_convergence_fingerprint_at : null;
+
+    function card(name, label, sub) {
+      var stressed = c.cardinals[name];
+      var cls = stressed ? "stressed" : "calm";
+      var state = stressed ? "FIRED" : "QUIET";
+      // Find the contributing signal if fired
+      var contrib = c.sample.find(function (s) { return s.cardinal === name; });
+      return '<div class="jha-pillar ' + cls + '">' +
+               '<div class="jha-pillar-name">' + esc(label) + '</div>' +
+               '<div class="jha-pillar-state">' + esc(state) + '</div>' +
+               '<div class="jha-pillar-mean">' + esc(sub) +
+                 (contrib && contrib.signal ? '<br><span style="color:#a8b3c7">↳ ' + esc(contrib.signal) + '</span>' : '') +
+               '</div>' +
+             '</div>';
+    }
+
+    var html = '<div class="jha-conv ' + firedClass + '" style="border-left-color:' + (fired ? '#ff5577' : '#ff7a18') + '">' +
+                 '<div class="jha-conv-hdr">' +
+                   '<div class="jha-conv-title" style="color:' + (fired ? '#ff5577' : '#ff7a18') + '">🎯 EQUITY CONVERGENCE FINGERPRINT — Jan 2021 GME / Feb 2018 vol unwind / Dec 2018 dealer cascade signature</div>' +
+                   '<div class="jha-conv-status">' + esc(status) + '</div>' +
+                 '</div>' +
+                 '<div class="jha-conv-desc">' +
+                   'When 3+ of these 4 cardinal equity-microstructure categories fire together in the top setup\'s smoking guns: <b>Dealer GEX</b>, <b>Options Flow / Gamma</b>, <b>Skew / Vol / Tail Hedge</b>, <b>CFTC / Short Interest</b>.' +
+                 '</div>' +
+                 '<div class="jha-pillars" style="grid-template-columns:repeat(4,1fr)">' +
+                   card("DEALER_GEX",         "dealer gex",         "Dealer gamma exposure shift") +
+                   card("OPTIONS_FLOW_GAMMA", "options flow/gamma", "Unusual call/put activity") +
+                   card("SKEW_VOL",           "skew / vol",         "Tail-hedge bidding, IV moves") +
+                   card("CFTC_SHORT",         "cftc / short int",   "Commercials flip, squeeze setup") +
+                 '</div>' +
+                 (c.top_target ? '<div class="jha-conv-count">Top target on this fingerprint: <b>' + esc(c.top_target) + ' ' + esc(c.top_direction || '') + '</b></div>' : '') +
+                 (lastConv ? '<div class="jha-conv-count">Last convergence fire: <b>' + esc(tsShort(lastConv)) + ' (' + esc(ageStr(lastConv)) + ')</b></div>' :
+                   '<div class="jha-conv-count">Last convergence fire: <b>never</b> (since alerting deployed)</div>') +
+               '</div>';
+    return html;
+  }
+
 
   function pillarCell(name, p, stressed) {
     var cls = stressed === true ? "stressed" : (stressed === false ? "calm" : "");
@@ -247,8 +322,12 @@
       );
       html += '</div>';
 
-      // Section 2: convergence fingerprint live state
-      html += '<div class="jha-section-h">⭐ Macro Convergence Fingerprint — live 3-pillar state</div>';
+      // Section 2a: equity convergence fingerprint live state
+      html += '<div class="jha-section-h">🎯 Equity Convergence Fingerprint — live 4-cardinal state</div>';
+      html += renderEquityConvergence(equityBrief, equityState);
+
+      // Section 2b: macro convergence fingerprint live state
+      html += '<div class="jha-section-h">🏛 Macro Convergence Fingerprint — live 3-pillar state</div>';
       html += renderConvergence(macroBrief, macroState);
 
       // Section 3: chronological alert event timeline
