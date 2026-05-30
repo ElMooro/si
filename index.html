@@ -574,6 +574,7 @@ table.tbl tr:last-child td{border-bottom: none}
 </style>
 <script src="/ai-synthesis-kit.js"></script>
 <script src="/ai-frontrun-kit.js"></script>
+<script src="/ai-frontrun-history-kit.js"></script>
 </head>
 <body>
 <!-- INTEL TERMINAL BANNER -->
@@ -595,6 +596,7 @@ table.tbl tr:last-child td{border-bottom: none}
   <nav class="nav-links">
     <a href="/" class="active">DESK</a>
     <a href="/directory.html" style="color:#00f4a8;font-weight:700;background:rgba(0,214,143,0.1);border:1px solid rgba(0,214,143,0.4);border-radius:5px;padding:2px 9px">📁 DIRECTORY</a>
+    <a href="/frontrun.html" style="color:#ff7a18;font-weight:700;background:rgba(255,122,24,0.10);border:1px solid rgba(255,122,24,0.45);border-radius:5px;padding:2px 9px">🎯 FRONT-RUN</a>
     <a href="/best-ideas.html" style="color:#26ffaf;font-weight:700">⭐ BEST IDEAS</a>
     <a href="/why.html" style="color:#fbbf24;font-weight:700">🔍 WHY</a>
     <!-- ═══ PRO PACK v3 — Institutional Cockpits (10 engines + retail edges + squeeze) ═══ -->
@@ -743,6 +745,10 @@ table.tbl tr:last-child td{border-bottom: none}
   <!-- AI Front-Run Sniffer (institutional flow anomaly detector) -->
   <div id="ai-frontrun" style="margin-bottom:18px"></div>
   <script>if(window.JHAIFront)JHAIFront.mount("ai-frontrun","frontrun-sniffer");</script>
+
+  <!-- Front-Run 7-day History Chart -->
+  <div id="ai-frontrun-history" style="margin-bottom:18px"></div>
+  <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-frontrun-history","frontrun-sniffer-history");</script>
 
   <!-- ────────── TOP STRIP ────────── -->
   <div class="strip" id="strip">
