@@ -1,0 +1,87 @@
+{
+  "started": "2026-05-30T22:51:18.268070+00:00",
+  "env_vars_set": [
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_CHAT_ID"
+  ],
+  "env_vars_total": 3,
+  "env_update": "OK",
+  "redeploy": "OK",
+  "telegram_direct_test": {
+    "ok": true,
+    "result": {
+      "ok": true,
+      "result": {
+        "message_id": 5200,
+        "from": {
+          "id": 8679881066,
+          "is_bot": true,
+          "first_name": "#FREEVPN VPN \u0411\u042b\u0421\u0422\u0420\u042b\u0419 \u0411\u0415\u041b\u042b\u0415 \u0421\u041f\u0418\u0421\u041a\u0418 @vpn38_bot",
+          "username": "Justhodl_bot"
+        },
+        "chat": {
+          "id": 8678089260,
+          "first_name": "BotFather",
+          "type": "private"
+        },
+        "date": 1780181487,
+        "text": "\ud83e\uddea Front-Run Alerting Deployed\n\nBoth sniffers are now wired for Telegram alerts:\n  \u2022 \ud83c\udfaf Equity sniffer (frontrun-sniffer)\n  \u2022 \ud83c\udfdb Macro sniffer (macro-frontrun-sniffer)\n\nAlert triggers:\n  1. Convergence fingerprint (macro) \u2014 when AUCTION + PRIMARYDEALER + FUNDINGPLUMBING all stress simultaneously (Aug 2007 / Sep 2019 / Mar 2020 / Mar 2023 signature)\n  2. Regime transitions (NORMAL\u2192ELEVATED\u2192EXTREME or reverse)\n  3. EXTREME persisting (every 60 min)\n  4. Score jump \u2265 15 points\n\nCap: 8 alerts/day/sniffer. State stored in S3 alongside the sniffer outputs.\n\n\u2192 https://justhodl.ai/frontrun.html\n\u2192 https://justhodl.ai/macro-frontrun.html",
+        "entities": [
+          {
+            "offset": 3,
+            "length": 27,
+            "type": "bold"
+          },
+          {
+            "offset": 104,
+            "length": 16,
+            "type": "code"
+          },
+          {
+            "offset": 144,
+            "length": 22,
+            "type": "code"
+          },
+          {
+            "offset": 190,
+            "length": 23,
+            "type": "bold"
+          },
+          {
+            "offset": 246,
+            "length": 16,
+            "type": "italic"
+          },
+          {
+            "offset": 560,
+            "length": 33,
+            "type": "url"
+          },
+          {
+            "offset": 596,
+            "length": 39,
+            "type": "url"
+          }
+        ],
+        "link_preview_options": {
+          "is_disabled": true
+        }
+      }
+    }
+  },
+  "equity_invoke": {
+    "err": null,
+    "n_ok": 1,
+    "duration_s": 29.74
+  },
+  "equity_log_alert": "[frontrun] alert: {'ok': False, 'reason': 'no_threshold_met', 'score': 28, 'regime': 'NORMAL'}",
+  "macro_invoke": {
+    "err": null,
+    "n_ok": 1,
+    "duration_s": 61.42
+  },
+  "macro_log_alert": "[macro_frontrun] alert: {'ok': False, 'reason': 'no_threshold_met', 'score': 42, 'regime': 'NORMAL', 'conv_fired': False, 'conv_detail': {'n_pillars_stressed': 0, 'auction_tape_state': 'CALM', 'auction_stressed': False, 'primary_dealer_state': 'NEUTRAL', 'pd_stressed': False, 'funding_state': 'HEALED', 'funding_stressed': False}}",
+  "equity_state": "NOT_WRITTEN (likely no alert condition met \u2014 that's fine)",
+  "macro_state": "NOT_WRITTEN (likely no alert condition met \u2014 that's fine)",
+  "finished": "2026-05-30T22:53:07.498181+00:00"
+}
