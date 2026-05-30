@@ -59,6 +59,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .tschart .tt{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--txt);margin-bottom:2px}
 .tschart .tl{font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:8px}
 </style>
+<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
 <div class="container">
@@ -69,6 +70,9 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
   </header>
 
   <div id="hero"><div class="loading">LOADING CURVE…</div></div>
+
+  <div id="ai-decisive-call" style="margin:18px 0"></div>
+  <script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","yield-curve-decisive-call");</script>
 
   <div id="bottomline"></div>
 

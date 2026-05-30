@@ -293,6 +293,7 @@
           background-size:200% 100%; animation:shimmer 1.4s infinite; height:14px; border-radius:3px; }
   @keyframes shimmer { 0%{background-position:-200% 0;} 100%{background-position:200% 0;} }
 </style>
+<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
 
@@ -356,6 +357,9 @@
       <div class="sub" id="decisiveSub" style="line-height:1.4">—</div>
     </div>
   </section>
+
+  <div id="ai-decisive-call" style="margin:18px 0"></div>
+  <script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","lce-decisive-call");</script>
 
   <!-- INTERPRETATION & PORTFOLIO ACTIONS -->
   <section class="interp" id="interp">

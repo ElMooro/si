@@ -57,6 +57,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .note{color:var(--dim);font-size:11px;margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:12px}
 .timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:10px}
 </style>
+<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
 <div class="container">
@@ -241,7 +242,8 @@ window.addEventListener("resize",()=>{charts.forEach(c=>{try{c.resize();}catch(e
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['DTWEXBGS','DEXUSEU']);});</script>
 
-<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><div id="jh-bl"></div><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">What This Means for Markets &amp; Risk Assets</h2><div id="jh-mtx"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">INTERPRETING…</div></div></div>
+<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><div id="ai-decisive-call"></div><div id="jh-bl"></div><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">What This Means for Markets &amp; Risk Assets</h2><div id="jh-mtx"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">INTERPRETING…</div></div></div>
+<script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","dollar-decisive-call");</script>
 <script src="/interp-kit.js"></script>
 <script>
 (async function(){

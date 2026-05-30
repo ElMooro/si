@@ -29,6 +29,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
 .timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
 </style>
+<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
 <div class="container">
@@ -38,6 +39,8 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
     <nav class="crumbs"><a href="/index.html">desk</a><a href="/signal-board.html">signal board</a><a href="/defcon.html">defcon</a></nav>
   </header>
   <div id="hero"><div class="loading">LOADING VOL CURVE…</div></div>
+  <div id="ai-decisive-call" style="margin:18px 0"></div>
+  <script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","vix-curve-decisive-call");</script>
   <h2>Curve Spreads</h2>
   <div class="grid" id="metrics"><div class="loading">…</div></div>
   <h2>Historical Context — VIX vs Crises, Tops &amp; Bottoms</h2>
