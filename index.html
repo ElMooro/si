@@ -573,6 +573,7 @@ table.tbl tr:last-child td{border-bottom: none}
 
 </style>
 <script src="/ai-synthesis-kit.js"></script>
+<script src="/ai-frontrun-kit.js"></script>
 </head>
 <body>
 <!-- INTEL TERMINAL BANNER -->
@@ -738,6 +739,10 @@ table.tbl tr:last-child td{border-bottom: none}
   <!-- AI Master Synthesis (CIO desk consensus from all 30 desks) -->
   <div id="ai-synthesis" style="margin-bottom:18px"></div>
   <script>if(window.JHAISynth)JHAISynth.mount("ai-synthesis","desk-consensus");</script>
+
+  <!-- AI Front-Run Sniffer (institutional flow anomaly detector) -->
+  <div id="ai-frontrun" style="margin-bottom:18px"></div>
+  <script>if(window.JHAIFront)JHAIFront.mount("ai-frontrun","frontrun-sniffer");</script>
 
   <!-- ────────── TOP STRIP ────────── -->
   <div class="strip" id="strip">

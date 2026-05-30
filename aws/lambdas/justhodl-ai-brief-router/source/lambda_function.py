@@ -888,6 +888,262 @@ def generate_portfolio_brief(ctx_id, cfg, episode_ref):
 
 
 # ─────────────────────────────────────────────────────────────────────
+# FRONT-RUN SNIFFER — Institutional flow anomaly detection
+# ─────────────────────────────────────────────────────────────────────
+BASE_SYSTEM_FRONTRUN = (
+    "You are the HEAD OF MARKET MICROSTRUCTURE / DEALER FLOW INTELLIGENCE at an "
+    "elite multi-strategy fund. Your specialty is detecting institutional FRONT-RUNNING "
+    "— moments when dealers, market makers, primary dealers, hedge funds, insiders, or "
+    "sovereign wealth funds are positioning ahead of a market-moving event the rest of "
+    "the market hasn't priced. You hunt CONVERGENT anomalies (3+ flow categories pointing "
+    "same direction same asset same window aligned with an upcoming catalyst). Single-feed "
+    "anomalies are noise. Cross-category convergence is signal. You are paranoid by training "
+    "and write with the urgency of someone reading institutional smoke signals."
+)
+
+
+def _compact_feed(d, cap=900):
+    """Compact a feed dict to its essential signals for the prompt — drop noise, keep numbers."""
+    if not isinstance(d, dict):
+        return d
+    # High-signal field names common across flow feeds
+    keep_keys = {
+        "regime", "score", "composite_score", "anomaly_score", "anomaly_regime",
+        "signal", "signal_strength", "signal_type", "signal_types", "flag",
+        "state", "severity", "summary", "headline", "one_liner",
+        "top_setups", "top_5", "top", "top_10", "clusters", "alerts",
+        "warning", "warnings", "rationale", "as_of", "current_readings",
+        "n_buyers", "n_funds_holding", "n_insiders", "legend_buyers",
+        "gex", "gamma", "skew", "iv", "put_call_ratio",
+        "directional_bias", "n_signals", "primary_signal",
+        "key_levels", "level", "threshold", "tripwire", "tripwires",
+    }
+    out = {}
+    for k, v in d.items():
+        if k in keep_keys:
+            out[k] = v
+        elif isinstance(v, (int, float, bool)):
+            out[k] = v
+    s = json.dumps(out, default=str)
+    if len(s) > cap:
+        s = s[:cap] + "...}"
+        try: out = json.loads(s)
+        except Exception: out = {"_truncated": s[:cap]}
+    return out
+
+
+def build_frontrun_prompt(ctx_id, cfg, feeds, kb_chunks):
+    """Build the front-run sniffer prompt — feed Claude every flow signal we have."""
+    # Categorize feeds for the prompt
+    categorized = {
+        "WHALE / SMART MONEY": ["13f_divergence", "13f_positions", "smart_money_clusters",
+                                  "consensus_bottom", "forced_selling", "cftc_deep"],
+        "DEALER / MARKET MAKER": ["dealer_gex", "dealer_survey", "options_flow",
+                                    "options_gamma", "auction_crisis"],
+        "VOL / SKEW (PROTECTION DEMAND)": ["skew_tail", "catalyst_skew", "earnings_iv_crush",
+                                             "squeeze_pretrigger", "short_interest"],
+        "INSIDER / ACTIVIST": ["insider_clusters", "activist_13d"],
+        "LIQUIDITY / CROSS-EXCHANGE FLOWS": ["etf_flows", "exchange_flows", "stablecoin_flow",
+                                              "tic_flows", "liquidity_flow"],
+        "SENTIMENT (CONTRA INDICATOR)": ["aaii_sentiment", "retail_sentiment"],
+        "CATALYST CALENDAR": ["catalyst_calendar"],
+        "CROSS-ASSET DIVERGENCE + CONSENSUS": ["divergence", "desk_consensus"],
+        "MACRO CONTEXT": ["vix", "yield_curve", "credit"]
+    }
+
+    blocks = []
+    feeds_loaded = 0
+    feeds_missing = 0
+    for category, feed_ids in categorized.items():
+        category_blocks = []
+        for fid in feed_ids:
+            d = feeds.get(fid)
+            if not d:
+                feeds_missing += 1
+                continue
+            feeds_loaded += 1
+            compact = _compact_feed(d, cap=900)
+            category_blocks.append(f"  ## {fid}\n  {json.dumps(compact, default=str)}")
+        if category_blocks:
+            blocks.append(f"### {category}\n" + "\n\n".join(category_blocks))
+
+    feed_block = "\n\n".join(blocks) or "(no flow feeds loaded)"
+
+    kb_block = ""
+    if kb_chunks:
+        kb_block = "\n\nRELEVANT FRAMEWORKS:\n" + "\n\n".join(
+            f"### {c['framework']}\n{c['excerpt'][:600]}" for c in kb_chunks
+        )
+
+    prompt = f"""# {cfg["title"]}
+
+## YOUR ROLE
+{cfg["prompt_intro"]}
+
+## CURRENT FLOW DATA — {feeds_loaded} feeds loaded ({feeds_missing} unavailable)
+
+{feed_block[:20000]}
+{kb_block}
+
+## TASK
+
+Return EXACTLY this JSON. Detect CONVERGENT anomalies (3+ flow categories pointing same asset same direction). Single-feed anomalies are noise — call them out as "watching" but don't promote to suspected_setups.
+
+{{
+  "overall_anomaly_score": <0-100, "how loud is the institutional positioning right now">,
+  "anomaly_regime": "<NORMAL | ELEVATED | EXTREME>",
+  "headline": "<single decisive sentence ≤140 chars naming THE most coordinated front-run setup right now>",
+  "thesis": "<3-4 sentences on the dominant convergent pattern across categories>",
+
+  "suspected_setups": [
+    {{
+      "rank": 1,
+      "confidence": "<HIGH | MEDIUM | LOW>",
+      "target_asset": "<specific instrument — ticker or asset class>",
+      "target_direction": "<UPSIDE | DOWNSIDE | SIDEWAYS_SQUEEZE>",
+      "magnitude_pct": "<e.g. '-8% to -15%'>",
+      "horizon": "<e.g. '4-8 weeks'>",
+      "probability_pct": <integer>,
+
+      "who_is_positioning": "<dealers / hedge funds / primary dealers / insiders / sovereigns / activists — name the player class>",
+
+      "smoking_gun_signals": [
+        {{"category": "<DEALER_GEX | CFTC | SKEW | OPTIONS_FLOW | 13F | INSIDER | etc>",
+         "feed": "<the feed id this came from>",
+         "signal": "<specific signal with the number, ≤150 chars>",
+         "anomaly_pctile": <0-100, how unusual is this value>}}
+        // 3-5 convergent signals minimum
+      ],
+
+      "catalyst_being_front_run": "<the catalyst this positioning is pricing — earnings, Fed meeting, OPEX, geopolitical, etc>",
+      "catalyst_date": "<date or window>",
+
+      "historical_analog": {{
+        "period": "<specific period e.g. 2007 Q3 pre-GFC>",
+        "what_happened": "<concrete outcome ≤30 words>",
+        "similarity_pct": <integer>
+      }},
+
+      "ride_this_flow": "<specific actionable trade to position alongside the smart money, with instrument + direction + sizing>",
+      "fade_this_flow": "<specific reversal trade if it's a head-fake, with kill criteria>",
+      "invalidation_tripwire": "<specific data condition that disproves the hypothesis>"
+    }}
+    // 2-5 setups, ranked by confidence × convergence × asymmetry
+  ],
+
+  "whale_alerts": [
+    {{"asset": "<ticker/asset>", "channel": "<13F | OPTIONS | CFTC | DARK_POOL | ONCHAIN | TIC>",
+     "actor": "<player type>", "size": "<dollar or % anomaly>", "direction": "<long/short>",
+     "implication": "<what this means ≤120 chars>"}}
+    // 2-5 whale alerts
+  ],
+
+  "dealer_hedging_flows": [
+    {{"flow_type": "<GEX_FLIP | PUT_WALL | SHORT_GAMMA | VOL_BID | etc>",
+     "asset": "<ticker>", "signal": "<specific>", "implication": "<what dealers are positioning for>"}}
+    // 1-3 dealer flows
+  ],
+
+  "insider_capitulation_alerts": [
+    {{"ticker": "<ticker>", "pattern": "<CEO_CFO_CLUSTER | EXEC_SELL_WAVE | CLUSTER_AT_LOWS | etc>",
+     "implication": "<what insiders see ≤120 chars>"}}
+    // 0-5 alerts; empty array if no insider-specific signal
+  ],
+
+  "loudest_anomaly": {{
+    "signal": "<the single most-extreme single-feed datapoint right now>",
+    "from_feed": "<feed id>",
+    "value": "<the number>",
+    "anomaly_pctile": <integer>,
+    "interpretation": "<≤150 chars what it means>"
+  }},
+
+  "most_actionable_setup": "<which of the suspected_setups above is the single best risk-adjusted action right now, ≤200 chars>"
+}}
+
+## RULES
+- Be specific. Name the feed each signal came from. Quote the actual number.
+- Convergence requirement: every suspected_setup MUST cite 3+ smoking_gun_signals from DIFFERENT categories.
+- If no convergent setup exists, suspected_setups can be empty array — DO NOT FABRICATE.
+- Historical analog must be a REAL past episode (Aug 2007 quant melt, Dec 2018 dealer gamma, Mar 2020 cascade, Feb 2018 vol unwind, Jan 2021 GME, Q3 2023 SMCI, Nov 2021 crypto top, etc).
+- ride_this_flow and fade_this_flow must name SPECIFIC instruments + entry levels.
+- Invalidation tripwire must be a specific data condition that would prove you wrong."""
+
+    return prompt
+
+
+def generate_frontrun_brief(ctx_id, cfg, episode_ref):
+    t0 = time.time()
+    result = {"context_id": ctx_id, "title": cfg.get("title"),
+              "output_key": cfg.get("output_key"), "brief_type": "frontrun"}
+    try:
+        # Read all flow feeds in parallel via individual S3 reads
+        flow_sources = cfg.get("flow_sources") or {}
+        feeds = {}
+        for fid, feed_key in flow_sources.items():
+            d = s3io.get_json(feed_key, default={})
+            if d:
+                feeds[fid] = d
+
+        if not feeds:
+            result["status"] = "ERR_NO_INPUTS"
+            result["err"] = "no flow feeds loaded"
+            return result
+
+        kb_chunks = kb.lookup(cfg.get("kb_keywords") or [], max_chunks=2)
+
+        system = BASE_SYSTEM_FRONTRUN
+        if cfg.get("system_addendum"):
+            system = system + "\n\n" + cfg["system_addendum"]
+
+        prompt = build_frontrun_prompt(ctx_id, cfg, feeds, kb_chunks)
+        prompt_len = len(prompt)
+
+        brief, err = claude_json(prompt, system=system,
+                                  max_tokens=cfg.get("max_tokens", 8000),
+                                  temperature=cfg.get("temperature", 0.3),
+                                  timeout=cfg.get("timeout", DEFAULT_TIMEOUT))
+        if err or not brief:
+            result["status"] = "ERR_CLAUDE"
+            result["err"] = err or "no parseable JSON"
+            result["prompt_len"] = prompt_len
+            return result
+
+        brief["version"] = "1.0"
+        brief["brief_type"] = "frontrun"
+        brief["generated_at"] = datetime.now(timezone.utc).isoformat()
+        brief["model"] = "claude-haiku-4-5-20251001"
+        brief["context"] = ctx_id
+        brief["title"] = cfg.get("title")
+        brief["input_state"] = {
+            "n_feeds_attempted": len(flow_sources),
+            "n_feeds_loaded": len(feeds),
+            "loaded": sorted(feeds.keys()),
+            "missing": sorted(set(flow_sources.keys()) - set(feeds.keys())),
+            "prompt_len_chars": prompt_len,
+        }
+        output_key = f"data/{cfg['output_key']}.json"
+        s3io.put_json(output_key, brief, cache_control="public, max-age=900")
+
+        result.update({
+            "status": "OK",
+            "output_key": output_key,
+            "anomaly_score": brief.get("overall_anomaly_score"),
+            "anomaly_regime": brief.get("anomaly_regime"),
+            "n_setups": len(brief.get("suspected_setups") or []),
+            "n_whale_alerts": len(brief.get("whale_alerts") or []),
+            "n_dealer_flows": len(brief.get("dealer_hedging_flows") or []),
+            "n_insider_alerts": len(brief.get("insider_capitulation_alerts") or []),
+            "duration_s": round(time.time() - t0, 2),
+        })
+    except Exception as e:
+        result["status"] = "ERR_EXC"
+        result["err"] = str(e)[:300]
+        result["traceback"] = traceback.format_exc()[-800:]
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Per-context worker — dispatches based on brief_type
 # ─────────────────────────────────────────────────────────────────────
 def generate_one_brief(ctx_id, cfg, episode_ref):
@@ -899,6 +1155,8 @@ def generate_one_brief(ctx_id, cfg, episode_ref):
         return generate_synthesis_brief(ctx_id, cfg, episode_ref)
     if bt == "portfolio":
         return generate_portfolio_brief(ctx_id, cfg, episode_ref)
+    if bt == "frontrun":
+        return generate_frontrun_brief(ctx_id, cfg, episode_ref)
     # Default: regime brief
     return _generate_regime_brief(ctx_id, cfg, episode_ref)
 

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Front-Run Sniffer · JustHodl.AI</title>
+<meta name="description" content="Institutional flow anomaly detector. Hunts convergent front-running signals across 25+ data feeds (dealer GEX, 13F, CFTC, insider clusters, skew, options flow, ETF/exchange/stablecoin flows).">
+<style>
+:root{
+  --bg:#070a10; --bg-raised:#0a0f17; --panel:#11161f; --border:#1c2433; --border-strong:#2a3548;
+  --fg:#e6eaf2; --fg-2:#cbd2dc; --fg-3:#a8b3c7; --fg-4:#6f7b91;
+  --cyan:#00d4ff; --green:#26ffaf; --orange:#ff7a18; --red:#ff5577; --yellow:#ffd266; --purple:#a78bfa;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.55;font-size:14px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,10,16,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;gap:14px}
+.brand{font-family:var(--mono);font-size:13px;font-weight:800;letter-spacing:1px;color:var(--fg);text-decoration:none}
+.brand span{color:var(--orange)}
+.brand .dot{display:inline-block;width:8px;height:8px;background:var(--orange);border-radius:50%;box-shadow:0 0 8px var(--orange);margin-right:6px}
+.nav-links{display:flex;gap:14px;align-items:center;font-size:11px;font-family:var(--mono);letter-spacing:0.5px}
+.nav-links a{color:var(--fg-3);text-decoration:none;transition:color 0.15s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a.active{color:var(--orange);font-weight:700}
+.shell{max-width:1280px;margin:0 auto;padding:24px 22px 60px}
+.hero{padding:28px 0 18px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.hero h1{font-size:30px;margin:0 0 10px;letter-spacing:-0.015em;font-weight:700;line-height:1.1}
+.hero h1 em{font-style:italic;color:var(--orange);font-weight:500}
+.hero .sub{color:var(--fg-3);font-size:13.5px;line-height:1.6;max-width:780px}
+.hero .sub b{color:var(--fg-2);font-weight:600}
+.hero-pills{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:0.5px;color:var(--fg-3);padding:3px 9px;background:var(--panel);border:1px solid var(--border);border-radius:3px}
+.pill b{color:var(--cyan)}
+
+.meth-section{margin-top:22px;background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:20px 24px}
+.meth-h{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);margin:0 0 14px;font-weight:700}
+.meth-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px}
+.meth-card{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--purple);border-radius:6px;padding:11px 14px}
+.meth-card .t{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--purple);margin-bottom:4px;font-weight:700}
+.meth-card .b{font-size:12.5px;color:var(--fg-2);line-height:1.5}
+.meth-card .feeds{font-family:var(--mono);font-size:10.5px;color:var(--fg-4);margin-top:6px;line-height:1.6}
+.meth-foot{font-size:12px;color:var(--fg-3);line-height:1.6;padding-top:12px;border-top:1px solid var(--border);font-style:italic}
+
+footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);color:var(--fg-4);font-size:11.5px;font-family:var(--mono);text-align:center}
+</style>
+<script src="/ai-frontrun-kit.js"></script>
+<script src="/ai-brief-kit.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+  <nav class="nav-links">
+    <a href="/">DESK</a>
+    <a href="/today.html">TODAY</a>
+    <a href="/index.html">INDEX</a>
+    <a href="/frontrun.html" class="active">🎯 FRONT-RUN</a>
+    <a href="/defcon.html">DEFCON</a>
+    <a href="/dealer-gex.html">GEX</a>
+    <a href="/cftc.html">CFTC</a>
+    <a href="/insider-clusters.html">INSIDER</a>
+    <a href="/auctions.html">AUCTIONS</a>
+  </nav>
+</header>
+
+<main class="shell">
+
+  <section class="hero">
+    <h1>🎯 Front-Run <em>Sniffer</em></h1>
+    <p class="sub">
+      <b>Institutional flow anomaly detector.</b> Reads 25+ flow data feeds — dealer GEX,
+      options flow, 13F clusters, CFTC commitments, insider buys, skew/tail-hedging,
+      ETF/exchange/stablecoin flows, primary-dealer survey, auction tape, and the
+      catalyst calendar — and hunts for <b>convergent anomalies</b> (3+ flow categories
+      pointing at the same asset, same direction, same window, aligned with an upcoming
+      catalyst). That's the signature of <b>coordinated institutional front-running</b>.
+      Single-feed anomalies are noise. Cross-category convergence is signal.
+    </p>
+    <div class="hero-pills">
+      <span class="pill">⏱ refresh: <b>every 4h</b></span>
+      <span class="pill">🎯 feeds scanned: <b>25+</b></span>
+      <span class="pill">⚡ powered by Haiku 4.5 + flow KB</span>
+      <span class="pill">📐 historical-analog grounded</span>
+    </div>
+  </section>
+
+  <!-- THE SNIFFER OUTPUT — the whole page payload -->
+  <div id="ai-frontrun"></div>
+  <script>if(window.JHAIFront)JHAIFront.mount("ai-frontrun","frontrun-sniffer");</script>
+
+  <section class="meth-section">
+    <div class="meth-h">📐 How the sniffer works</div>
+    <div class="meth-grid">
+      <div class="meth-card">
+        <div class="t">Whale / Smart Money</div>
+        <div class="b">Detects accumulation patterns hedge funds use to enter before catalysts.</div>
+        <div class="feeds">13f-price-divergence · 13f-positions · smart-money-clusters · consensus-bottom · forced-selling-bounce · cftc-deep-view</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">Dealer / Market Maker</div>
+        <div class="b">GEX flips, put walls, dealer-survey leans — what MMs are positioned for.</div>
+        <div class="feeds">dealer-gex · dealer-survey · options-flow · options-gamma · auction-crisis</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">Vol / Skew Anomalies</div>
+        <div class="b">OTM put bidding, skew steepening, IV term-structure dislocation — the protection-demand layer.</div>
+        <div class="feeds">skew-tail-hedging · catalyst-skew-premove · earnings-iv-crush · squeeze-pretrigger · short-interest</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">Insider / Activist</div>
+        <div class="b">CEO+CFO cluster buys, activist 13D filings — corporate-internal signal.</div>
+        <div class="feeds">insider-clusters · activist-13d</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">Cross-Exchange Flows</div>
+        <div class="b">ETF/exchange/stablecoin/TIC flows — which side of the order book is being built quietly.</div>
+        <div class="feeds">etf-flows · exchange-flows · stablecoin-flow · tic-flows · liquidity-flow</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">Sentiment (Contra)</div>
+        <div class="b">When retail is one-sided extreme, smart money is positioning the other way.</div>
+        <div class="feeds">aaii-sentiment · retail-sentiment</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">Catalyst Calendar</div>
+        <div class="b">WHAT they're front-running — every upcoming earnings, Fed meeting, OPEX, data print, OPEC, geo-event.</div>
+        <div class="feeds">catalyst-calendar</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">Macro + Synthesis Context</div>
+        <div class="b">Where the desk consensus sits + cross-asset divergence map.</div>
+        <div class="feeds">divergence-v2 · desk-consensus · vix-curve · yield-curve · credit-spreads</div>
+      </div>
+    </div>
+    <div class="meth-foot">
+      The sniffer requires CONVERGENCE — every suspected setup cites 3+ smoking-gun signals from
+      DIFFERENT categories. Single-feed anomalies appear in the "loudest anomaly" panel as
+      noise-to-watch but do not become actionable setups until they converge. Every actionable
+      setup also includes the historical analog episode (Aug 2007 quant melt, Dec 2018 dealer
+      gamma cascade, Mar 2020 hedging unwind, Feb 2018 vol regime, Jan 2021 GME, etc), and the
+      specific data-condition tripwire that would invalidate the hypothesis.
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Powered by Claude Haiku 4.5 · 25-feed institutional flow scan · Refreshes every 4h ·
+  <a href="https://justhodl.ai" style="color:var(--fg-4)">JustHodl.AI</a>
+</footer>
+
+</body>
+</html>
