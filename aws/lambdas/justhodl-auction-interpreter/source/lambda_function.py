@@ -52,9 +52,56 @@ Schema:
 import json
 import os
 import time
+import urllib.request
 from datetime import datetime, timezone
 
-from jhcore import s3io, claude, kb
+from jhcore import s3io, kb
+
+# Local Claude wrapper with a longer timeout than jhcore.claude's 30s default.
+# The historical_predictions section adds ~7 deeply-structured items so the
+# response can take 40-70s with Haiku. We give it 90s of headroom.
+def _claude_complete_json(prompt, system=None, max_tokens=5500, temperature=0.25,
+                            model="claude-haiku-4-5-20251001", timeout=90):
+    key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not key:
+        print("[auction-interp] ANTHROPIC_API_KEY missing")
+        return None
+    body = {
+        "model": model,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "messages": [{"role": "user", "content": prompt + "\n\nRespond ONLY with valid JSON, no preamble or markdown."}],
+    }
+    if system:
+        body["system"] = system
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=json.dumps(body).encode("utf-8"),
+        headers={
+            "x-api-key": key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            data = json.loads(r.read())
+    except Exception as e:
+        print(f"[auction-interp] claude http err: {e}")
+        return None
+    parts = []
+    for blk in data.get("content", []):
+        if blk.get("type") == "text":
+            parts.append(blk.get("text", ""))
+    txt = "\n".join(parts).strip()
+    if txt.startswith("```"):
+        lines = [l for l in txt.split("\n") if not l.strip().startswith("```")]
+        txt = "\n".join(lines).strip()
+    try:
+        return json.loads(txt)
+    except Exception as e:
+        print(f"[auction-interp] json parse err: {e} | head: {txt[:300]}")
+        return None
 
 REGIMES = ["RISK_ON_AGGRESSIVE", "RISK_ON", "NEUTRAL", "RISK_OFF", "CRISIS_PREP"]
 CONFIDENCES = ["HIGH", "MEDIUM", "LOW"]
@@ -331,10 +378,11 @@ def lambda_handler(event=None, context=None):
     prompt = build_prompt(auction, cross_regimes, kb_chunks, episode_ref)
     print(f"[auction-interp] prompt {len(prompt)} chars, kb_chunks={len(kb_chunks)}, cross={len(cross_regimes)}")
 
-    brief = claude.complete_json(prompt,
-                                  system=SYSTEM_PROMPT,
-                                  max_tokens=5500,
-                                  temperature=0.25)
+    brief = _claude_complete_json(prompt,
+                                    system=SYSTEM_PROMPT,
+                                    max_tokens=5500,
+                                    temperature=0.25,
+                                    timeout=90)
 
     if not brief:
         return {"statusCode": 502,
