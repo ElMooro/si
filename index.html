@@ -572,6 +572,7 @@ table.tbl tr:last-child td{border-bottom: none}
 .footer .meta span{color: var(--fg-4)}
 
 </style>
+<script src="/ai-synthesis-kit.js"></script>
 </head>
 <body>
 <!-- INTEL TERMINAL BANNER -->
@@ -733,6 +734,10 @@ table.tbl tr:last-child td{border-bottom: none}
 </header>
 
 <main class="page">
+
+  <!-- AI Master Synthesis (CIO desk consensus from all 30 desks) -->
+  <div id="ai-synthesis" style="margin-bottom:18px"></div>
+  <script>if(window.JHAISynth)JHAISynth.mount("ai-synthesis","desk-consensus");</script>
 
   <!-- ────────── TOP STRIP ────────── -->
   <div class="strip" id="strip">

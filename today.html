@@ -111,6 +111,7 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
 <script src="/liquidity-pulse.js" defer></script>
+<script src="/ai-synthesis-kit.js"></script>
 </head>
 <body>
 
@@ -166,6 +167,10 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
       <span class="ki-pill">Khalid Index <strong id="ki-val">—</strong> / 100</span>
     </div>
   </section>
+
+  <!-- AI Master Synthesis (CIO desk consensus from all 30 desks) -->
+  <div id="ai-synthesis"></div>
+  <script>if(window.JHAISynth)JHAISynth.mount("ai-synthesis","desk-consensus");</script>
 
   <div class="section-eyebrow">The 3 things to watch</div>
   <h2 class="section-title">Top signals right now</h2>

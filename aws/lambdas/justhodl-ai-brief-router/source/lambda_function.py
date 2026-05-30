@@ -505,14 +505,401 @@ def generate_names_brief(ctx_id, cfg, episode_ref):
 
 
 # ─────────────────────────────────────────────────────────────────────
+# SYNTHESIS brief — meta-summary that reads ALL existing briefs
+# ─────────────────────────────────────────────────────────────────────
+BASE_SYSTEM_SYNTHESIS = (
+    "You are the CHIEF INVESTMENT OFFICER of a multi-strategy hedge fund. You consolidate "
+    "the views of 23 specialist macro/regime desks plus 6 per-name analyst teams into ONE "
+    "master decisive read. You think in terms of: (a) where the consensus is and how strong, "
+    "(b) where credible dissent is and which desks disagree, (c) where 3+ desks agree on a "
+    "specific asset direction (high-signal because the desks use different frameworks), (d) "
+    "per-name tickers appearing as STRONG_FIT across multiple screener desks (very rare), "
+    "(e) the loudest single tripwire on the platform right now, (f) the single best actionable "
+    "trade today with the most multi-desk support. You are decisive. You DO NOT HEDGE. You name names."
+)
+
+
+def build_synthesis_prompt(ctx_id, cfg, regime_briefs, name_briefs):
+    """Build the master synthesis prompt — feeds Claude a tight summary of all 30 briefs."""
+    # Compact each regime brief to its essence
+    regime_summary = []
+    for k, b in regime_briefs.items():
+        if not b: continue
+        # Take just the headline + 1-2 key fields per brief
+        item = {
+            "desk": k.replace("-decisive-call", ""),
+            "regime": b.get("regime"),
+            "confidence": b.get("confidence"),
+            "one_liner": (b.get("one_liner") or "")[:200],
+        }
+        # Pull each desk's BTC and SPX prediction directions for cross-asset voting
+        for p in (b.get("historical_predictions") or []):
+            t = p.get("ticker")
+            if t in ("BTC", "SPX", "GLD", "DXY", "TLT", "HYG"):
+                item[f"pred_{t}"] = {
+                    "dir": p.get("prediction_direction"),
+                    "range": f"{p.get('prediction_range_low_pct')}% to {p.get('prediction_range_high_pct')}%",
+                    "wk": p.get("prediction_horizon_weeks"),
+                    "prob": p.get("probability_pct"),
+                }
+        # Highest-severity tripwire from each desk
+        for tw in (b.get("tripwires") or []):
+            if (tw.get("severity") or "").upper() == "HIGH":
+                item["high_tripwire"] = tw.get("condition")[:150]
+                break
+        regime_summary.append(item)
+
+    # Compact each per-name brief — just top 3 STRONG_FIT picks
+    name_summary = []
+    for k, b in name_briefs.items():
+        if not b: continue
+        desk_name = k.replace("-names", "")
+        strong_picks = []
+        for n in (b.get("names") or []):
+            if (n.get("regime_fit") or "").upper() == "STRONG_FIT":
+                strong_picks.append({
+                    "ticker": n.get("ticker"),
+                    "rank": n.get("rank"),
+                    "score": n.get("primary_score"),
+                    "one_liner": (n.get("one_liner") or "")[:120],
+                    "analog": (n.get("historical_analog") or {}).get("ticker"),
+                })
+            if len(strong_picks) >= 3:
+                break
+        if strong_picks:
+            name_summary.append({"desk": desk_name, "top_strong_picks": strong_picks})
+
+    prompt = f"""# {cfg["title"]}
+
+## YOUR ROLE
+{cfg["prompt_intro"]}
+
+## INPUT — 23 REGIME DESKS
+
+{json.dumps(regime_summary, indent=2, default=str)}
+
+## INPUT — 6 PER-NAME DESKS (top STRONG_FIT picks only)
+
+{json.dumps(name_summary, indent=2, default=str)}
+
+## TASK
+
+Synthesize the above into a master CIO-grade decisive read. Return EXACTLY this JSON:
+
+{{
+  "consensus": {{
+    "regime": "<RISK_ON | RISK_ON_AGGRESSIVE | NEUTRAL | RISK_OFF | RISK_OFF_AGGRESSIVE>",
+    "confidence": "<HIGH | MEDIUM | LOW>",
+    "one_liner": "<one decisive sentence ≤140 chars>",
+    "n_supporting_desks": <integer>,
+    "supporting_desks": ["<desk1>", "<desk2>", ...],
+    "thesis": "<3-4 sentences explaining the consensus read and what's driving it>"
+  }},
+  "dissent": [
+    {{
+      "desk": "<desk name>",
+      "their_call": "<their regime + confidence>",
+      "key_signal": "<the most divergent specific signal they're flagging, ≤180 chars>",
+      "why_credible": "<why this dissent could be right — what would have to happen for it to resolve their way, ≤150 chars>"
+    }}
+    // 1-3 dissenters max
+  ],
+  "asymmetric_setups": [
+    {{
+      "asset": "<BTC | SPX | GLD | DXY | TLT | HYG | etc>",
+      "n_bullish": <int>,
+      "n_bearish": <int>,
+      "n_sideways": <int>,
+      "consensus_direction": "<STRONG_UPSIDE | MILDLY_UPSIDE | SIDEWAYS | MILDLY_DOWNSIDE | STRONG_DOWNSIDE | SPLIT>",
+      "best_horizon_weeks": <int>,
+      "loudest_bull": "<desk: brief signal, ≤140 chars>",
+      "loudest_bear": "<desk: brief signal, ≤140 chars>",
+      "trade_implication": "<actionable implication ≤150 chars>"
+    }}
+    // 3-6 assets
+  ],
+  "convergent_names": [
+    {{
+      "ticker": "<ticker>",
+      "appearing_in": ["<desk1>", "<desk2>", ...],
+      "strongest_score": <score>,
+      "best_analog": "<analog ticker>",
+      "synthesis_one_liner": "<≤120 chars why this name is multi-desk-confirmed>"
+    }}
+    // ONLY tickers appearing in 2+ desks' STRONG_FIT picks. May be empty.
+  ],
+  "loudest_tripwire": {{
+    "severity": "<HIGH | MEDIUM>",
+    "from_desk": "<desk>",
+    "condition": "<the trigger>",
+    "action": "<what to do if triggered>"
+  }},
+  "today_action": {{
+    "primary_trade": "<the one trade with most multi-desk support, instrument + direction + thesis, ≤200 chars>",
+    "primary_hedge": "<the matched hedge, ≤200 chars>",
+    "position_sizing_note": "<sizing guidance grounded in consensus confidence, ≤150 chars>"
+  }}
+}}
+
+## RULES
+- Be decisive. NO 'wait and see'. NO 'monitor for'.
+- Cite specific desks by name when supporting claims.
+- For convergent_names: only include tickers that genuinely appear in 2+ desks' STRONG_FIT lists. If none, return empty array.
+- asymmetric_setups: count desks by their predicted direction for each asset. STRONG = 3+ agreement. SPLIT = 2+ each way.
+- Today's trade must be implementable in liquid instruments (ETFs, futures, options on major names)."""
+
+    return prompt
+
+
+def generate_synthesis_brief(ctx_id, cfg, episode_ref):
+    t0 = time.time()
+    result = {"context_id": ctx_id, "title": cfg.get("title"), "output_key": cfg.get("output_key"),
+              "brief_type": "synthesis"}
+    try:
+        # Read all the regime briefs in parallel via thread pool
+        regime_briefs = {}
+        name_briefs = {}
+        for src in (cfg.get("synthesis_sources") or []):
+            d = s3io.get_json(src, default={})
+            if d:
+                regime_briefs[src.replace("data/", "").replace(".json", "")] = d
+        for src in (cfg.get("synthesis_name_sources") or []):
+            d = s3io.get_json(src, default={})
+            if d:
+                name_briefs[src.replace("data/", "").replace(".json", "")] = d
+
+        if not regime_briefs:
+            result["status"] = "ERR_NO_INPUTS"
+            result["err"] = "no regime briefs loaded"
+            return result
+
+        prompt = build_synthesis_prompt(ctx_id, cfg, regime_briefs, name_briefs)
+        prompt_len = len(prompt)
+
+        system = BASE_SYSTEM_SYNTHESIS
+        if cfg.get("system_addendum"):
+            system = system + "\n\n" + cfg["system_addendum"]
+
+        brief, err = claude_json(prompt, system=system,
+                                  max_tokens=cfg.get("max_tokens", 7000),
+                                  temperature=cfg.get("temperature", 0.3),
+                                  timeout=cfg.get("timeout", DEFAULT_TIMEOUT))
+        if err or not brief:
+            result["status"] = "ERR_CLAUDE"
+            result["err"] = err or "no parseable JSON"
+            result["prompt_len"] = prompt_len
+            return result
+
+        brief["version"] = "1.0"
+        brief["brief_type"] = "synthesis"
+        brief["generated_at"] = datetime.now(timezone.utc).isoformat()
+        brief["model"] = "claude-haiku-4-5-20251001"
+        brief["context"] = ctx_id
+        brief["title"] = cfg.get("title")
+        brief["input_state"] = {
+            "n_regime_briefs": len(regime_briefs),
+            "n_name_briefs": len(name_briefs),
+            "prompt_len_chars": prompt_len,
+        }
+        output_key = f"data/{cfg['output_key']}.json"
+        s3io.put_json(output_key, brief, cache_control="public, max-age=900")
+
+        result.update({
+            "status": "OK",
+            "output_key": output_key,
+            "regime": (brief.get("consensus") or {}).get("regime"),
+            "confidence": (brief.get("consensus") or {}).get("confidence"),
+            "n_dissent": len(brief.get("dissent") or []),
+            "n_asymmetric": len(brief.get("asymmetric_setups") or []),
+            "n_convergent_names": len(brief.get("convergent_names") or []),
+            "duration_s": round(time.time() - t0, 2),
+        })
+    except Exception as e:
+        result["status"] = "ERR_EXC"
+        result["err"] = str(e)[:300]
+        result["traceback"] = traceback.format_exc()[-800:]
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────
+# PORTFOLIO brief — personalized to a specific portfolio
+# ─────────────────────────────────────────────────────────────────────
+BASE_SYSTEM_PORTFOLIO = (
+    "You are the PRIVATE PORTFOLIO MANAGER for one specific client. You see their actual "
+    "positions, sector concentrations, vol, beta, VAR, correlation matrix. You give DIRECT, "
+    "PERSONAL advice grounded in their book vs the current macro regime. You highlight "
+    "positions out-of-regime, concentration risk, hedge opportunities, position-sizing "
+    "adjustments. Every observation must reference a SPECIFIC holding or exposure. You do "
+    "not generalize. You write as if speaking directly to the client."
+)
+
+
+def build_portfolio_prompt(ctx_id, cfg, risk_data, holdings_data, history_data, cross_data, consensus, kb_chunks):
+    cross_lines = []
+    for cid, d in (cross_data or {}).items():
+        if not d: continue
+        field = (cfg.get("cross_regime_fields") or {}).get(cid)
+        v = d.get(field) if field else (d.get("regime") or d.get("severity") or d.get("composite_regime"))
+        if v: cross_lines.append(f"  - {cid}: {v}")
+
+    kb_block = ""
+    if kb_chunks:
+        kb_block = "\n\nRELEVANT FRAMEWORKS:\n" + "\n\n".join(
+            f"### {c['framework']}\n{c['excerpt'][:500]}" for c in kb_chunks
+        )
+
+    consensus_block = ""
+    if consensus:
+        cs = (consensus.get("consensus") or {})
+        consensus_block = (f"\n## DESK CONSENSUS (from the 23-desk synthesis)\n"
+                           f"  regime: {cs.get('regime')}  confidence: {cs.get('confidence')}\n"
+                           f"  thesis: {cs.get('one_liner') or cs.get('thesis')}\n")
+        if consensus.get("loudest_tripwire"):
+            t = consensus["loudest_tripwire"]
+            consensus_block += f"  loudest tripwire: [{t.get('severity')}] {t.get('condition')}\n"
+
+    prompt = f"""# {cfg["title"]}
+
+## YOUR ROLE
+{cfg["prompt_intro"]}
+
+## PORTFOLIO RISK PROFILE
+{json.dumps(risk_data, indent=2, default=str)[:3000]}
+
+## CURRENT HOLDINGS
+{json.dumps(holdings_data, indent=2, default=str)[:3500] if holdings_data else "(no holdings snapshot)"}
+
+## RECENT PM-DECISION HISTORY
+{json.dumps((history_data.get("snapshots") or [])[-5:] if isinstance(history_data, dict) else [], indent=2, default=str)[:2000]}
+
+## CROSS-CONTEXT REGIMES
+{chr(10).join(cross_lines) or "  (none loaded)"}
+{consensus_block}
+{kb_block}
+
+## TASK
+
+Return EXACTLY this JSON shape — a personalized portfolio memo:
+
+{{
+  "headline": "<single decisive sentence ≤140 chars about the book's current alignment>",
+  "regime_fit": "<STRONG_FIT | NEUTRAL | POOR_FIT — is the current book well-aligned with the consensus regime>",
+  "thesis": "<3-4 sentences synthesizing book vs regime>",
+  "biggest_strength": "<the position or exposure that's most well-aligned right now, name specific holding>",
+  "biggest_concern": "<the position or exposure most at risk right now, name specific holding>",
+  "concentration_flags": [
+    {{
+      "type": "<SECTOR | SINGLE_NAME | FACTOR | CORRELATION>",
+      "what": "<specific concentration, name positions>",
+      "severity": "<HIGH | MEDIUM | LOW>",
+      "action": "<concrete trim/hedge suggestion>"
+    }}
+  ],
+  "out_of_regime_holdings": [
+    {{"ticker": "<specific holding>", "why": "<why it's wrong for current regime, ≤120 chars>"}}
+  ],
+  "this_weeks_action": {{
+    "primary_trade": "<the single most important trade this week — specific instrument, direction, sizing>",
+    "rationale": "<≤180 chars why>",
+    "if_can_only_do_one_thing": "<the minimum-viable version of this>"
+  }},
+  "tripwires_for_this_book": [
+    {{"severity": "<HIGH | MEDIUM>", "condition": "<specific condition>", "action": "<what to do>"}}
+  ]
+}}
+
+## RULES
+- Name SPECIFIC holdings by ticker. Never say 'tech exposure' — say 'NVDA + AMD + MSFT'.
+- Be direct. The client wants opinions, not options.
+- If holdings data is missing, work with what's present and note the gap in your response.
+- this_weeks_action.primary_trade must be implementable with a specific ticker + direction."""
+
+    return prompt
+
+
+def generate_portfolio_brief(ctx_id, cfg, episode_ref):
+    t0 = time.time()
+    result = {"context_id": ctx_id, "title": cfg.get("title"), "output_key": cfg.get("output_key"),
+              "brief_type": "portfolio"}
+    try:
+        risk_data = s3io.get_json(cfg["primary_feed"], default={})
+        secondary = cfg.get("secondary_feeds") or {}
+        holdings_data = s3io.get_json(secondary.get("holdings", ""), default={}) if secondary.get("holdings") else {}
+        history_data = s3io.get_json(secondary.get("pm_history", ""), default={}) if secondary.get("pm_history") else {}
+
+        cross_data = {}
+        consensus = None
+        for cid, feed_key in (cfg.get("cross_feeds") or {}).items():
+            d = s3io.get_json(feed_key, default={})
+            if d:
+                cross_data[cid] = d
+                if cid == "consensus":
+                    consensus = d
+
+        kb_chunks = kb.lookup(cfg.get("kb_keywords") or [], max_chunks=2)
+
+        system = BASE_SYSTEM_PORTFOLIO
+        if cfg.get("system_addendum"):
+            system = system + "\n\n" + cfg["system_addendum"]
+
+        prompt = build_portfolio_prompt(ctx_id, cfg, risk_data, holdings_data, history_data,
+                                          cross_data, consensus, kb_chunks)
+        prompt_len = len(prompt)
+
+        brief, err = claude_json(prompt, system=system,
+                                  max_tokens=cfg.get("max_tokens", 6000),
+                                  temperature=cfg.get("temperature", 0.3),
+                                  timeout=cfg.get("timeout", DEFAULT_TIMEOUT))
+        if err or not brief:
+            result["status"] = "ERR_CLAUDE"
+            result["err"] = err or "no parseable JSON"
+            result["prompt_len"] = prompt_len
+            return result
+
+        brief["version"] = "1.0"
+        brief["brief_type"] = "portfolio"
+        brief["generated_at"] = datetime.now(timezone.utc).isoformat()
+        brief["model"] = "claude-haiku-4-5-20251001"
+        brief["context"] = ctx_id
+        brief["title"] = cfg.get("title")
+        brief["input_state"] = {
+            "risk_loaded": bool(risk_data),
+            "holdings_loaded": bool(holdings_data),
+            "history_loaded": bool(history_data),
+            "n_cross": len(cross_data),
+            "prompt_len_chars": prompt_len,
+        }
+        output_key = f"data/{cfg['output_key']}.json"
+        s3io.put_json(output_key, brief, cache_control="private, max-age=300")
+
+        result.update({
+            "status": "OK",
+            "output_key": output_key,
+            "regime_fit": brief.get("regime_fit"),
+            "headline": brief.get("headline"),
+            "n_flags": len(brief.get("concentration_flags") or []),
+            "duration_s": round(time.time() - t0, 2),
+        })
+    except Exception as e:
+        result["status"] = "ERR_EXC"
+        result["err"] = str(e)[:300]
+        result["traceback"] = traceback.format_exc()[-800:]
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Per-context worker — dispatches based on brief_type
 # ─────────────────────────────────────────────────────────────────────
 def generate_one_brief(ctx_id, cfg, episode_ref):
     """Generate the brief for a single context. Dispatches by brief_type."""
-    # Per-name briefs use a totally different schema + prompt
-    if cfg.get("brief_type") == "names":
+    bt = cfg.get("brief_type")
+    if bt == "names":
         return generate_names_brief(ctx_id, cfg, episode_ref)
-    # Default: regime brief (the original Tier-1/2/3 flow)
+    if bt == "synthesis":
+        return generate_synthesis_brief(ctx_id, cfg, episode_ref)
+    if bt == "portfolio":
+        return generate_portfolio_brief(ctx_id, cfg, episode_ref)
+    # Default: regime brief
     return _generate_regime_brief(ctx_id, cfg, episode_ref)
 
 

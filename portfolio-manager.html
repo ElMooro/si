@@ -58,6 +58,7 @@ tr:hover td{background:var(--panel2)}
 .editrow input{padding:5px 7px;font-size:11px}
 @media(max-width:880px){.formgrid{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr}}
 </style>
+<script src="/ai-portfolio-kit.js"></script>
 </head>
 <body>
 <div class="container">
@@ -84,6 +85,18 @@ tr:hover td{background:var(--panel2)}
   </div>
 
   <div id="app" style="display:none">
+
+    <!-- AI Personalized Portfolio Brief (CIO view on YOUR book) -->
+    <div id="ai-portfolio" style="margin-bottom:18px"></div>
+    <script>
+      // Mount once the gate opens. Re-mount on PIN connect.
+      window.addEventListener("DOMContentLoaded", function(){
+        if (window.JHAIPortfolio && document.getElementById("ai-portfolio")) {
+          JHAIPortfolio.mount("ai-portfolio","portfolio-manager-brief");
+        }
+      });
+    </script>
+
     <div class="grid3" id="kpis"></div>
 
     <h2>Add Position</h2>

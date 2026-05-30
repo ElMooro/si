@@ -1883,6 +1883,88 @@
       "system_addendum": "You are specifically a momentum / trend-following analyst (AQR / Asness / William O'Neil tradition). You think 12-1 momentum + 200-DMA + relative strength + breakout patterns. You cite specific high-momentum periods that worked (NVDA 2023, TSLA 2020, SMCI 2023, AAPL 2019) and momentum crashes (Q1 2009, Q1 2016, Q4 2018, Q1 2020).",
       "prompt_intro": "You are analysing top momentum setups. Each ticker has momentum score, slope, persistence, relative strength, breakout/breakdown signal. Score weighted by: slope strength \u00d7 persistence \u00d7 relative strength \u00d7 macro fit. Momentum crashes after vol regime shifts \u2014 flag risk if VIX is regime-changing.",
       "ticker_id_field": "ticker"
+    },
+    "desk-consensus": {
+      "brief_type": "synthesis",
+      "title": "JustHodl Master Synthesis \u2014 Today's Desk Consensus",
+      "output_key": "desk-consensus",
+      "synthesis_sources": [
+        "data/yield-curve-decisive-call.json",
+        "data/vix-curve-decisive-call.json",
+        "data/dollar-decisive-call.json",
+        "data/eurodollar-decisive-call.json",
+        "data/lce-decisive-call.json",
+        "data/systemic-stress-decisive-call.json",
+        "data/bond-vol-decisive-call.json",
+        "data/risk-radar-decisive-call.json",
+        "data/compass-decisive-call.json",
+        "data/defcon-decisive-call.json",
+        "data/retail-edges-decisive-call.json",
+        "data/auction-decisive-call.json",
+        "data/bonds-decisive-call.json",
+        "data/liquidity-decisive-call.json",
+        "data/macro-data-decisive-call.json",
+        "data/crisis-decisive-call.json",
+        "data/divergence-decisive-call.json",
+        "data/trend-engine-decisive-call.json",
+        "data/regime-decisive-call.json",
+        "data/valuations-decisive-call.json",
+        "data/conviction-decisive-call.json",
+        "data/fundamentals-decisive-call.json",
+        "data/consumer-pulse-decisive-call.json"
+      ],
+      "synthesis_name_sources": [
+        "data/baggers-names.json",
+        "data/eps-velocity-names.json",
+        "data/insider-clusters-names.json",
+        "data/smart-money-names.json",
+        "data/deep-value-names.json",
+        "data/momentum-names.json"
+      ],
+      "system_addendum": "You are the CHIEF INVESTMENT OFFICER consolidating the views of 23 specialist desks plus 6 per-name analysts. Your job is the SYNTHESIS read \u2014 what the consensus is, where the dissent is, where 3+ desks AGREE (high-conviction multi-desk signals), and the single best actionable trade today. You are decisive. You do NOT hedge. You name names.",
+      "prompt_intro": "You will receive (a) the latest decisive-call briefs from 23 macro/regime desks, and (b) the per-name briefs from 6 stock-screener desks. Synthesize into ONE master read. Look for: (1) the dominant regime consensus, (2) the most credible dissent and which desks dissent, (3) cross-asset directions where 3+ desks agree, (4) per-name tickers that appear strong in multiple screener desks (rare, high-signal), (5) the LOUDEST tripwire from any single desk, (6) the single best trade with the most multi-desk support today.",
+      "max_tokens": 7000
+    },
+    "portfolio-manager-brief": {
+      "brief_type": "portfolio",
+      "title": "Portfolio Manager \u2014 Decisive Call (Personalized)",
+      "output_key": "portfolio-manager-brief",
+      "primary_feed": "portfolio/risk.json",
+      "secondary_feeds": {
+        "holdings": "portfolio/holdings.json",
+        "pm_history": "portfolio/pm-history.json"
+      },
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "vix": "data/vix-curve.json",
+        "credit": "data/credit-spreads.json",
+        "dollar": "data/dollar-radar.json",
+        "valuations": "data/valuations-decisive-call.json",
+        "consensus": "data/desk-consensus.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "vix": "composite_regime",
+        "credit": "regime",
+        "dollar": "regime"
+      },
+      "kb_keywords": [
+        "portfolio construction",
+        "Markowitz efficient frontier",
+        "Kelly criterion",
+        "risk parity",
+        "Ray Dalio all-weather",
+        "Druckenmiller concentration",
+        "Buffett size bets",
+        "Soros reflexivity sizing",
+        "tail hedge",
+        "concentration risk",
+        "factor exposure",
+        "drawdown management"
+      ],
+      "system_addendum": "You are specifically the PRIVATE PORTFOLIO MANAGER for one client (Khalid). You see his actual positions, his risk profile, his concentration. You give DIRECT, PERSONAL advice grounded in his current book vs the current macro regime. You highlight: positions that are out-of-regime, concentration risk, hedge opportunities, position-sizing adjustments, and the single most important action this week. You do NOT generalize \u2014 every observation must reference a specific holding or specific exposure in his book.",
+      "prompt_intro": "You will receive the client's current portfolio risk profile (vol, beta, VAR, sector concentration), holdings, and pm-decision history. Plus the current macro regime via the desk consensus and key flagship desks. Your job: SYNTHESIZE what this means FOR HIS BOOK. (1) what holdings are out-of-regime right now?, (2) what concentration is uncomfortable?, (3) what one trade would most improve the book's risk-adjusted return today?, (4) what tripwire to watch for this week?",
+      "max_tokens": 6000
     }
   }
 }
