@@ -128,10 +128,13 @@ body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-
   });
 })();
 </script>
+<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
 <div class="topbar"><div class="topbar-left"><div><div class="logo">JustHodl.AI</div><div class="logo-sub">Valuations Intelligence</div></div></div><div class="topbar-right"><span><span class="live-dot"></span>&nbsp; Updated: <span id="ts" class="mono">—</span></span><a href="/" class="home-btn">← Main Terminal</a></div></div>
 <div class="gauge-section"><div class="gauge-title">Composite Valuation Score</div><div class="gauge-ring"><svg viewBox="0 0 200 200"><circle class="gauge-bg" cx="100" cy="100" r="88"/><circle class="gauge-fill" id="gaugeFill" cx="100" cy="100" r="88" stroke-dasharray="553" stroke-dashoffset="553"/></svg><div class="gauge-value"><div class="score" id="compositeScore">—</div><div class="regime" id="compositeRegime">LOADING</div></div></div><div class="gauge-stats"><div class="gauge-stat"><div class="n" id="statOver" style="color:var(--red)">—</div><div class="l">Overvalued</div></div><div class="gauge-stat"><div class="n" id="statFair" style="color:var(--green)">—</div><div class="l">Fair Value</div></div><div class="gauge-stat"><div class="n" id="statUnder" style="color:var(--blue)">—</div><div class="l">Undervalued</div></div><div class="gauge-stat"><div class="n" id="statTotal" style="color:var(--t2)">—</div><div class="l">Total Metrics</div></div></div></div>
+<div id="ai-decisive-call" style="max-width:1180px;margin:14px auto 0;padding:0 20px"></div>
+<script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","valuations-decisive-call");</script>
 <div class="tabs"><div class="tab active" onclick="showTab('overview')"><span class="icon">📊</span> Overview</div><div class="tab" onclick="showTab('sp500')"><span class="icon">🏛️</span> S&P 500</div><div class="tab" onclick="showTab('gold')"><span class="icon">🥇</span> Gold & Metals</div><div class="tab" onclick="showTab('crypto')"><span class="icon">₿</span> Crypto</div><div class="tab" onclick="showTab('commodities')"><span class="icon">🛢️</span> Oil & Commodities</div><div class="tab" onclick="showTab('matrix')"><span class="icon">📋</span> Full Matrix</div></div>
 <div class="panel active" id="p-overview"><div class="loading"><div class="spinner"></div>Loading valuations data...</div></div>
 <div class="panel" id="p-sp500"></div>

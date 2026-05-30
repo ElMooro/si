@@ -30,7 +30,7 @@ from jhcore import s3io, kb
 
 REGISTRY_KEY = "config/ai-brief-contexts.json"
 EPISODE_REF_KEY = "data/episode-reference.json"
-MAX_WORKERS = 6  # 6 contexts in parallel
+MAX_WORKERS = 12  # 23 contexts → 2 batches; before was 6 → 4 batches
 DEFAULT_TIMEOUT = 95
 
 
