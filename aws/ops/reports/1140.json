@@ -1,0 +1,291 @@
+{
+  "started": "2026-05-30T22:43:04.422130+00:00",
+  "redeploy": "OK",
+  "registry": {
+    "n_contexts": 34,
+    "new_ctx_present": true,
+    "macro_pillar_feeds": 20
+  },
+  "invoke_attempt_1": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 56.16
+  },
+  "brief": {
+    "macro_score": 42,
+    "macro_regime": "NORMAL",
+    "headline": "Auction tape calm, liquidity expanding, but real yields at GFC extremes signal duration compression risk ahead.",
+    "thesis": "The macro complex is pricing a benign scenario: auction demand healthy (BTC 2.76, indirect 54%), net liquidity expanding $162B over 1mo (TGA spending), and funding plumbing healed (Eurodollar stress 25.85 = ABUNDANT). However, real yields at 2.06% (GFC-bottom territory) and 2s10s at +46bps (near inversion) suggest term-premium compression is already priced, not a forward signal. Primary dealers are NOT yet loading duration ahead of a Fed pivot\u2014su",
+    "n_setups": 4,
+    "n_catalysts": 6,
+    "pillars_loaded": 19,
+    "pillars_missing": [
+      "cftc_deep"
+    ],
+    "loaded_pillars": [
+      "auction_brief",
+      "auction_tape",
+      "bond_vol_move",
+      "bonds_desk_brief",
+      "catalyst_calendar",
+      "crisis_brief",
+      "crisis_plumbing",
+      "eurodollar_brief",
+      "eurodollar_stress",
+      "fed_nlp",
+      "fed_speak",
+      "lce_brief",
+      "liquidity_data",
+      "liquidity_flow",
+      "macro_nowcast",
+      "primary_dealer_survey",
+      "tic_flows",
+      "yield_curve",
+      "yield_curve_brief"
+    ],
+    "age_sec": 1.5,
+    "fresh": true,
+    "pillar_states": {
+      "auction_tape": {
+        "state": "CALM",
+        "pctile": 15,
+        "key_signal": "4-week bill BTC 2.76, indirect 54%, PD 40%, no tail stress\u2014auctions clearing normally."
+      },
+      "primary_dealer_positioning": {
+        "state": "NEUTRAL",
+        "pctile": 25,
+        "key_signal": "NYFed survey stale (last Apr 27, no new data); no recent duration-loading signal detected."
+      },
+      "funding_plumbing": {
+        "state": "HEALED",
+        "pctile": 10,
+        "key_signal": "Eurodollar stress 25.85 (ABUNDANT regime), 6 of 8 signals unavailable but 2 live signals benign."
+      },
+      "net_liquidity": {
+        "state": "EXPANDING",
+        "pctile": null,
+        "key_signal": "Net liquidity expanded $162B over 1mo (TGA -$176B spending, RRP/WALCL neutral); risk-asset tailwind."
+      },
+      "fed_path": {
+        "state": "NEUTRAL",
+        "pctile": null,
+        "key_signal": "Fed-speak NLP data stale (12 speeches in 30d, 1 new classified, no hawk-dove score update)."
+      },
+      "yield_curve_velocity": {
+        "state": "FLATTENING",
+        "pctile": null,
+        "key_signal": "2s10s at +46bps (near inversion), 10Y real yield 2.06% (GFC-bottom), 10Y nominal 4.45%."
+      },
+      "tic_flows": {
+        "state": "INFLOW",
+        "pctile": null,
+        "key_signal": "TIC composite stress 0, regime STRONG_FOREIGN_DEMAND; foreign demand healthy."
+      }
+    },
+    "loudest_macro_anomaly": {
+      "pillar": "yield_curve_velocity",
+      "signal": "10Y real yield (TIPS) at 2.06% = GFC-bottom extreme; 2s10s at +46bps near inversion",
+      "value": "2.06% real yield, +46bps 2s10s",
+      "pctile": 92,
+      "interp": "Real yields at 2009 lows despite Fed at 3.62% funds rate; term-premium compression extreme. Curve inversion risk rising if nominal yields fall below 4.10%."
+    },
+    "most_actionable": "SHORT TLT (92.50 entry, 90.50 target, 94.50 stop) for 4-6% portfolio size. Real yields at GFC extremes + calm auction tape + no dealer duration loading = asymmetric short setup into June FOMC. If Fed stays hawkish or refunding supply is heavy, TLT re-tests lows. Expected return +2 to +4% over 4-8 we",
+    "setup_samples": [
+      {
+        "rank": 1,
+        "setup_type": "DURATION_SHORT",
+        "confidence": "MEDIUM",
+        "headline": "Real yields at GFC extremes; sell TLT rallies into June FOMC as term-premium compression unwinds.",
+        "instrument": "TLT",
+        "direction": "SHORT",
+        "entry": "92.50 (current ~92.8, wait for 93.0+ rally into FOMC)",
+        "target": "90.50 (2.06% real yield \u2192 2.25% real yield = ~200bps nominal yield rise)",
+        "stop": "94.50 (breaks above = Fed pivot signal, cover short)",
+        "horizon": "4-8 weeks (through June FOMC + refunding)",
+        "expected_pnl": "+2 to +4% (200bps duration move on 20Y bond \u2248 2-3% price move)",
+        "dv01_note": "TLT DV01 ~$1.50/bp; 200bp move = $300 per $1M notional; size 4-6% of portfolio for 2-4% expected return.",
+        "n_smoking_guns": 3,
+        "smoking_guns_sample": [
+          {
+            "pillar": "yield_curve_velocity",
+            "signal": "10Y real yield 2.06% = GFC-bottom extreme; 2s10s +46bps near inversion",
+            "pctile": 92
+          },
+          {
+            "pillar": "net_liquidity",
+            "signal": "Net liquidity expanded $162B/mo but TGA balance at $830B (near depletion); expansion decelerating",
+            "pctile": 75
+          },
+          {
+            "pillar": "auction_tape",
+            "signal": "Indirect demand 54% (healthy), no tail stress; auctions clearing normally = no flight-to-safety bid",
+            "pctile": 20
+          }
+        ],
+        "catalyst": {
+          "event": "June FOMC (Jun 17-18) + Refunding Announcement (early June)",
+          "date": "2026-06-01 to 2026-06-18",
+          "consensus": "Market expects Fed to hold rates steady at 3.50-3.75%, with dovish tilt in dot plot (1-2 cuts priced for 2H26).",
+          "what_dealers_are_pricing": "Real yields at GFC extremes (2.06%) suggest dealers have ALREADY priced in dovish pivot; no further duration upside.",
+          "consensus_vs_dealer_position": "DIVERGENT\u2014consensus expects dovish tilt, but dealer positioning (real yields compressed) suggests dovish move is already priced. If Fed stays hawkish or refunding supply is heavy, duration will sell off."
+        },
+        "analog": {
+          "period": "2013 Taper Tantrum (May-Jun 2013)",
+          "what_happened": "Bernanke signaled QE taper; market had front-run dovish pivot; real yields spiked 100bps; TLT fell 10%.",
+          "similarity_pct": 65
+        },
+        "invalidation": "If 10Y nominal yield breaks below 4.10% (intraday close) and holds for 3+ days, Fed pivot is real; cover TLT short and reassess."
+      },
+      {
+        "rank": 2,
+        "setup_type": "CURVE_FLATTENER",
+        "confidence": "MEDIUM",
+        "headline": "2s10s at +46bps near inversion; flatten curve via short 10Y / long 2Y into FOMC.",
+        "instrument": "ZB futures (short) / ZN futures (long) OR TLT (short) / IEF (long) spread",
+        "direction": "FLATTENER",
+        "entry": "ZB 155.00 / ZN 110.50 (2s10s +46bps); or TLT 92.8 / IEF 96.2",
+        "target": "ZB 154.00 / ZN 111.50 (2s10s +20bps); or TLT 91.5 / IEF 97.0",
+        "stop": "ZB 156.00 / ZN 109.50 (2s10s +70bps); or TLT 94.0 / IEF 95.5",
+        "horizon": "4-8 weeks",
+        "expected_pnl": "+2 to +3% (26bps curve flattening = ~50bps move on 10Y, ~24bps on 2Y = net ~1.5-2% spread move)",
+        "dv01_note": "Curve trade: ZB DV01 ~$1.80/bp, ZN DV01 ~$0.75/bp; ratio hedge ~2.4:1 (short 2.4 ZB per 1 long ZN) for DV01-neutral flattener. TLT/IEF spread: TLT DV01 $1.50, I",
+        "n_smoking_guns": 3,
+        "smoking_guns_sample": [
+          {
+            "pillar": "yield_curve_velocity",
+            "signal": "2s10s +46bps (near inversion), 10Y real yield 2.06% (GFC-bottom)",
+            "pctile": 88
+          },
+          {
+            "pillar": "primary_dealer_positioning",
+            "signal": "No recent duration-loading signal; dealers not front-running dovish pivot",
+            "pctile": 25
+          },
+          {
+            "pillar": "auction_tape",
+            "signal": "Indirect demand 54%, no tail stress; no flight-to-safety bid under long end",
+            "pctile": 20
+          }
+        ],
+        "catalyst": {
+          "event": "June FOMC (Jun 17-18) + Refunding Announcement (early June)",
+          "date": "2026-06-01 to 2026-06-18",
+          "consensus": "Market expects Fed to hold rates, with dovish tilt; 2Y expected to fall faster than 10Y (curve steepens).",
+          "what_dealers_are_pricing": "Real yields at GFC extremes suggest curve is already compressed; if Fed stays hawkish, 10Y will hold up better than 2Y (curve flattens further).",
+          "consensus_vs_dealer_position": "DIVERGENT\u2014consensus expects steepening, but dealer positioning (real yields compressed, no duration loading) suggests flattening continues."
+        },
+        "analog": {
+          "period": "Mar 2020 Treasury basis unwind (COVID crash)",
+          "what_happened": "Curve inverted as flight-to-safety bid long end; dealers forced to unwind basis trades; 2s10s fell to -50bps.",
+          "similarity_pct": 40
+        },
+        "invalidation": "If 2s10s steepens above +70bps (Fed pivot signal confirmed), cover flattener and reassess."
+      },
+      {
+        "rank": 3,
+        "setup_type": "BREAKEVEN_SHORT",
+        "confidence": "LOW",
+        "headline": "5Y5Y breakeven at elevated levels; short TIP / long IEF as inflation expectations roll over.",
+        "instrument": "TIP (short) / IEF (long) OR SCHP (short)",
+        "direction": "SHORT",
+        "entry": "TIP 108.5 / IEF 96.2 (5Y5Y breakeven ~2.39%)",
+        "target": "TIP 106.5 / IEF 97.0 (5Y5Y breakeven ~2.15%)",
+        "stop": "TIP 110.5 / IEF 95.0 (5Y5Y breakeven >2.60%)",
+        "horizon": "8-12 weeks",
+        "expected_pnl": "+1 to +2% (24bps breakeven compression = ~1.5% move on TIPS)",
+        "dv01_note": "TIP/IEF spread: TIP DV01 ~$1.40 (real duration), IEF DV01 ~$0.65; ratio ~2.2:1 for DV01-neutral breakeven short.",
+        "n_smoking_guns": 3,
+        "smoking_guns_sample": [
+          {
+            "pillar": "yield_curve_velocity",
+            "signal": "10Y real yield 2.06% (GFC-bottom), nominal 4.45% \u2192 5Y5Y breakeven ~2.39% (elevated vs 2% target)",
+            "pctile": 78
+          },
+          {
+            "pillar": "net_liquidity",
+            "signal": "Net liquidity expanding $162B/mo; no stagflation signal",
+            "pctile": 30
+          },
+          {
+            "pillar": "auction_tape",
+            "signal": "Indirect demand 54%, no inflation-flight bid; auctions clearing normally",
+            "pctile": 20
+          }
+        ],
+        "catalyst": {
+          "event": "June CPI (Jun 12) + June FOMC (Jun 17-18)",
+          "date": "2026-06-12 to 2026-06-18",
+          "consensus": "Consensus expects CPI to cool (headline ~2.5%, core ~2.3%); Fed to hold rates with dovish tilt.",
+          "what_dealers_are_pricing": "Breakevens at 2.39% suggest dealers expect inflation to remain sticky; but real yields at GFC extremes suggest dealers have already priced in dovish pivot.",
+          "consensus_vs_dealer_position": "DIVERGENT\u2014consensus expects inflation to cool and Fed to pivot dovish, but breakevens remain elevated (dealers hedging inflation tail risk)."
+        },
+        "analog": {
+          "period": "2021-2022 inflation spike + FOMC pivot (Nov 2021 taper, Mar 2022 hike)",
+          "what_happened": "Breakevens spiked to 2.7% (May 2022); then fell to 2.0% (Dec 2022) as Fed hiked and inflation rolled over.",
+          "similarity_pct": 35
+        },
+        "invalidation": "If June CPI prints hot (headline >3.0%, core >2.5%), cover breakeven short and reassess inflation risk."
+      }
+    ],
+    "catalyst_samples": [
+      {
+        "event": "13-Week & 26-Week Bill Auctions",
+        "date": "2026-06-01",
+        "consensus": "Routine bill auctions; expected to clear normally with healthy demand.",
+        "front_run_strength": "WEAK",
+        "what_to_watch": "BTC ratio and indirect demand; if BTC falls below 2.5 or indirect below 50%, dealer absorption stress emerging."
+      },
+      {
+        "event": "6-Week Bill Auction",
+        "date": "2026-06-02",
+        "consensus": "Routine bill auction; expected to clear normally.",
+        "front_run_strength": "WEAK",
+        "what_to_watch": "BTC and indirect demand; no stress signal expected."
+      },
+      {
+        "event": "June CPI Release",
+        "date": "2026-06-12",
+        "consensus": "Headline CPI expected ~2.5%, core ~2.3%; inflation cooling narrative intact.",
+        "front_run_strength": "MODERATE",
+        "what_to_watch": "If CPI prints hot (headline >3.0%), breakevens will spike and duration will sell off. If CPI prints cool, Fed pivot narrative strengthens an"
+      },
+      {
+        "event": "June FOMC Meeting & Announcement",
+        "date": "2026-06-17 to 2026-06-18",
+        "consensus": "Fed expected to hold rates at 3.50-3.75%, with dovish tilt in dot plot (1-2 cuts priced for 2H26).",
+        "front_run_strength": "STRONG",
+        "what_to_watch": "Fed-speak NLP shift (hawk-dove score); if Fed stays hawkish, real yields will spike and TLT will sell off. If Fed pivots dovish, duration wi"
+      },
+      {
+        "event": "Treasury Refunding Announcement",
+        "date": "2026-06-01 to 2026-06-05 (estimated)",
+        "consensus": "Refunding supply expected to be heavy (post-quarter-end); dealers may need to absorb supply.",
+        "front_run_strength": "MODERATE",
+        "what_to_watch": "Dealer inventory levels and auction tape demand; if indirect demand falls below 50%, dealer absorption stress will emerge and duration will "
+      }
+    ]
+  },
+  "history_file": {
+    "n_snapshots": 1,
+    "stats_7d": {
+      "n_snapshots_7d": 1,
+      "score_mean": 42.0,
+      "score_min": 42,
+      "score_max": 42,
+      "score_latest": 42,
+      "score_delta_vs_mean_7d": 0.0,
+      "n_extreme_7d": 0,
+      "n_elevated_7d": 0,
+      "n_normal_7d": 1,
+      "max_setups_7d": 4,
+      "most_targeted_instruments": [
+        {
+          "instrument": "TLT",
+          "n_times": 1
+        }
+      ]
+    },
+    "fresh": true
+  },
+  "finished": "2026-05-30T22:44:08.493714+00:00"
+}
