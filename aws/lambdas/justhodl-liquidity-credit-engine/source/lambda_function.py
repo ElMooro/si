@@ -30,6 +30,7 @@ import os
 import time
 import urllib.parse
 import urllib.request
+import urllib.error
 from datetime import datetime, timezone, timedelta
 from statistics import mean, pstdev
 
@@ -261,7 +262,13 @@ def _now_iso():
 
 
 def fred_observations(series_id, days=400):
-    """Pull last N days of observations from FRED."""
+    """Pull last N days of observations from FRED with retry-on-429.
+
+    FRED limits to ~120 req/min per key; concurrent Lambdas (LCE + other engines)
+    can push past it transiently. Retry up to 4 times with exponential backoff +
+    jitter so a 429 storm doesn't mark a valid series as unavailable.
+    """
+    import random
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=days)
     url = (f"https://api.stlouisfed.org/fred/series/observations"
@@ -269,23 +276,36 @@ def fred_observations(series_id, days=400):
            f"&observation_start={start.isoformat()}"
            f"&observation_end={end.isoformat()}"
            f"&sort_order=asc")
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-LCE/1.0"})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        obs = []
-        for o in data.get("observations", []):
-            v = o.get("value")
-            if v in (".", "", None):
+    for attempt in range(5):  # 0..4 — up to 5 attempts
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-LCE/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                data = json.loads(r.read().decode("utf-8"))
+            obs = []
+            for o in data.get("observations", []):
+                v = o.get("value")
+                if v in (".", "", None):
+                    continue
+                try:
+                    obs.append({"date": o["date"], "value": float(v)})
+                except (ValueError, TypeError):
+                    continue
+            return obs
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 503) and attempt < 4:
+                wait = min(8, (2 ** attempt) + random.uniform(0, 1))
+                print(f"[lce] fred {series_id} HTTP {e.code}, retry in {wait:.1f}s (attempt {attempt+1}/5)")
+                time.sleep(wait)
                 continue
-            try:
-                obs.append({"date": o["date"], "value": float(v)})
-            except (ValueError, TypeError):
+            print(f"[lce] fred {series_id} HTTP {e.code}: giving up after {attempt+1} attempts")
+            return []
+        except Exception as e:
+            if attempt < 2:
+                time.sleep(1.0 + random.uniform(0, 0.5))
                 continue
-        return obs
-    except Exception as e:
-        print(f"[lce] fred {series_id} error: {e}")
-        return []
+            print(f"[lce] fred {series_id} error: {e}")
+            return []
+    return []
 
 
 def fred_observations_long(series_id, days=1900):
