@@ -1,0 +1,104 @@
+{
+  "started": "2026-05-30T21:54:17.497678+00:00",
+  "runs": [
+    {
+      "idx": 1,
+      "fn_err": null,
+      "summary": {
+        "n_ok": 0,
+        "duration_s": 34.96
+      }
+    },
+    {
+      "idx": 2,
+      "fn_err": null,
+      "summary": {
+        "n_ok": 1,
+        "duration_s": 27.05
+      }
+    },
+    {
+      "idx": 3,
+      "fn_err": null,
+      "summary": {
+        "n_ok": 0,
+        "duration_s": 23.8
+      }
+    }
+  ],
+  "redeploy": "OK",
+  "history_file": {
+    "n_snapshots": 1,
+    "stats_7d": {
+      "n_snapshots_7d": 1,
+      "score_mean": 42.0,
+      "score_min": 42,
+      "score_max": 42,
+      "score_latest": 42,
+      "score_delta_vs_mean_7d": 0.0,
+      "n_extreme_7d": 0,
+      "n_elevated_7d": 1,
+      "n_normal_7d": 0,
+      "max_setups_7d": 2,
+      "most_targeted_assets": [
+        {
+          "asset": "AMD",
+          "n_times": 1
+        }
+      ]
+    },
+    "n_events": 0,
+    "first_snap": {
+      "ts": "2026-05-30T21:56:01.080858+00:00",
+      "score": 42,
+      "regime": "ELEVATED",
+      "headline": "AMD/LLY options surge + smart money PEP initiation = selective sector rotation, not broad front-run.",
+      "n_setups": 2,
+      "n_whales": 3,
+      "n_dealers": 2,
+      "n_insiders": 1,
+      "top_setup_asset": "AMD",
+      "top_setup_dir": "UPSIDE",
+      "top_setup_conf": "MEDIUM",
+      "top_setup_prob": 58,
+      "top_setup_catalyst": "Tech sector earnings cycle (late May/early June) + potential Fed pivot signal from softer inflation data",
+      "loudest_signal": "IBM CPR surging 8364.4% with call_vol +66.35% and HIGH_SHORT_SQUEEZE_SETUP flagged",
+      "loudest_feed": "options_flow",
+      "loudest_pctile": 99,
+      "most_actionable": "AMD upside (rank 1): 3-signal convergence (options CPR surge, call vol 3X, shorts covering) + dealer long gamma + tech earnings catalyst. Entry on dip to 512-514; target 530-535 by mid-June. Risk/rewa",
+      "feeds_loaded": 29
+    },
+    "last_snap": {
+      "ts": "2026-05-30T21:56:01.080858+00:00",
+      "score": 42,
+      "regime": "ELEVATED",
+      "headline": "AMD/LLY options surge + smart money PEP initiation = selective sector rotation, not broad front-run.",
+      "n_setups": 2,
+      "n_whales": 3,
+      "n_dealers": 2,
+      "n_insiders": 1,
+      "top_setup_asset": "AMD",
+      "top_setup_dir": "UPSIDE",
+      "top_setup_conf": "MEDIUM",
+      "top_setup_prob": 58,
+      "top_setup_catalyst": "Tech sector earnings cycle (late May/early June) + potential Fed pivot signal from softer inflation data",
+      "loudest_signal": "IBM CPR surging 8364.4% with call_vol +66.35% and HIGH_SHORT_SQUEEZE_SETUP flagged",
+      "loudest_feed": "options_flow",
+      "loudest_pctile": 99,
+      "most_actionable": "AMD upside (rank 1): 3-signal convergence (options CPR surge, call vol 3X, shorts covering) + dealer long gamma + tech earnings catalyst. Entry on dip to 512-514; target 530-535 by mid-June. Risk/rewa",
+      "feeds_loaded": 29
+    },
+    "first_ts": "2026-05-30T21:56:01.080858+00:00",
+    "last_ts": "2026-05-30T21:56:01.080858+00:00",
+    "all_scores": [
+      42
+    ],
+    "all_regimes": [
+      "ELEVATED"
+    ],
+    "all_targets": [
+      "AMD"
+    ]
+  },
+  "finished": "2026-05-30T21:57:03.459477+00:00"
+}
