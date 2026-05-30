@@ -1,0 +1,305 @@
+{
+  "started": "2026-05-30T20:50:02.705652+00:00",
+  "redeploy": "OK",
+  "registry": {
+    "n_contexts": 23,
+    "all": [
+      "auction-decisive-call",
+      "bond-vol-decisive-call",
+      "bonds-decisive-call",
+      "compass-decisive-call",
+      "consumer-pulse-decisive-call",
+      "conviction-decisive-call",
+      "crisis-decisive-call",
+      "defcon-decisive-call",
+      "divergence-decisive-call",
+      "dollar-decisive-call",
+      "eurodollar-decisive-call",
+      "fundamentals-decisive-call",
+      "lce-decisive-call",
+      "liquidity-decisive-call",
+      "macro-data-decisive-call",
+      "regime-decisive-call",
+      "retail-edges-decisive-call",
+      "risk-radar-decisive-call",
+      "systemic-stress-decisive-call",
+      "trend-engine-decisive-call",
+      "valuations-decisive-call",
+      "vix-curve-decisive-call",
+      "yield-curve-decisive-call"
+    ]
+  },
+  "invoke_status": 200,
+  "invoke_fn_err": null,
+  "invoke_summary": {
+    "duration_s": 46.77,
+    "n_contexts": 10,
+    "n_ok": 10
+  },
+  "log_tail": "e-decisive-call', 'trend-engine-decisive-call', 'regime-decisive-call', 'valuations-decisive-call', 'conviction-decisive-call', 'fundamentals-decisive-call', 'consumer-pulse-decisive-call']\n[ai-brief-router] consumer-pulse-decisive-call: OK 43.56s Consumer data blackout + inverted yield curve + soaring dollar = forced to trade cross-ass\n[ai-brief-router] liquidity-decisive-call: OK 43.98s Net liquidity flat YTD; Fed BS contracting masks TGA neutrality\u2014equity signal weak, cross-\n[ai-brief-router] regime-decisive-call: OK 43.96s EXPANSION regime at 100% probability, zero anomalies, but curve inversion (34.9th pctile) \n[ai-brief-router] macro-data-decisive-call: OK 44.36s Data feed failure masks cycle inflection risk; curve inversion + real yields at 85th pctil\n[ai-brief-router] valuations-decisive-call: OK 44.58s Extreme valuations (crypto +65%, gold +62% vs avg) clash with benign credit spreads; regim\n[ai-brief-router] fundamentals-decisive-call: OK 45.09s Quality equities fairly valued; earnings revisions positive but margin peak risk emerging\u2014\n[ai-brief-router] divergence-decisive-call: OK 45.31s Equity-credit divergence at extremes; HY spreads (272bps) signal complacency while curve i\n[ai-brief-router] trend-engine-decisive-call: OK 46.0s 71% of universe trending; QQQ conviction 88.7% leads broad equity/commodity rally, but VIX\n[ai-brief-router] crisis-decisive-call: OK 46.37s Plumbing healed, credit tight but stable; equity vol benign masks upstream funding stress \n[ai-brief-router] conviction-decisive-call: OK 46.48s Equity value signals RISK-OFF (conviction 45%) but positioning + macro cross-checks confli\n[ai-brief-router] done: 10/10 OK in 46.77s\nEND RequestId: 062c2026-3e9a-4264-96f8-497b3ecf12b7\nREPORT RequestId: 062c2026-3e9a-4264-96f8-497b3ecf12b7\tDuration: 46771.53 ms\tBilled Duration: 47325 ms\tMemory Size: 1024 MB\tMax Memory Used: 108 MB\tInit Duration: 552.68 ms\t\nXRAY TraceId: 1-6a1b4d84-0dbc2d8b0b39ba9c5f629c23\tSegmentId: a90fb3ededddb78e\tSampled: true\t\n",
+  "verify": [
+    {
+      "context": "liquidity-decisive-call",
+      "output_key": "data/liquidity-decisive-call.json",
+      "regime": "NEUTRAL",
+      "confidence": "LOW",
+      "one_liner": "Net liquidity flat YTD; Fed BS contracting masks TGA neutrality\u2014equity signal weak, cross-asset divergence high.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "age_sec": 5.5,
+      "fresh": true,
+      "spx": {
+        "dir": "UPSIDE",
+        "range": "4% to 12%",
+        "wk": 12,
+        "prob": 58
+      },
+      "btc": {
+        "dir": "UPSIDE",
+        "range": "8% to 25%",
+        "wk": 12,
+        "prob": 55,
+        "analog": "2024 Q1 (Post-Halving Anticipation / ATH Setup)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "macro-data-decisive-call",
+      "output_key": "data/macro-data-decisive-call.json",
+      "regime": "NEUTRAL",
+      "confidence": "LOW",
+      "one_liner": "Data feed failure masks cycle inflection risk; curve inversion + real yields at 85th pctile signal late-cycle, but equity vol/spreads lag\u2014wait for ISM/payroll c",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "age_sec": 5.6,
+      "fresh": true,
+      "spx": {
+        "dir": "DOWNSIDE",
+        "range": "-8% to -15%",
+        "wk": 8,
+        "prob": 62
+      },
+      "btc": {
+        "dir": "DOWNSIDE",
+        "range": "-18% to -28%",
+        "wk": 8,
+        "prob": 55,
+        "analog": "2022-Q2 Capitulation"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "crisis-decisive-call",
+      "output_key": "data/crisis-decisive-call.json",
+      "regime": "RISK_ON",
+      "confidence": "MEDIUM",
+      "one_liner": "Plumbing healed, credit tight but stable; equity vol benign masks upstream funding stress brewing.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "age_sec": 3.7,
+      "fresh": true,
+      "spx": {
+        "dir": "UPSIDE",
+        "range": "5% to 12%",
+        "wk": 8,
+        "prob": 62
+      },
+      "btc": {
+        "dir": "UPSIDE",
+        "range": "8% to 18%",
+        "wk": 8,
+        "prob": 58,
+        "analog": "2024 Q1 (Post-Halving Rally)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "divergence-decisive-call",
+      "output_key": "data/divergence-decisive-call.json",
+      "regime": "RISK_ON",
+      "confidence": "MEDIUM",
+      "one_liner": "Equity-credit divergence at extremes; HY spreads (272bps) signal complacency while curve inversion (46bps) warns of lag\u2014dollar dump may be the tell.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "age_sec": 4.7,
+      "fresh": true,
+      "spx": {
+        "dir": "SIDEWAYS",
+        "range": "-8% to 3%",
+        "wk": 8,
+        "prob": 58
+      },
+      "btc": {
+        "dir": "UPSIDE",
+        "range": "5% to 18%",
+        "wk": 8,
+        "prob": 55,
+        "analog": "2022 Q2 Capitulation \u2192 2023 Q1 Recovery"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "trend-engine-decisive-call",
+      "output_key": "data/trend-engine-decisive-call.json",
+      "regime": "RISK_ON_AGGRESSIVE",
+      "confidence": "MEDIUM",
+      "one_liner": "71% of universe trending; QQQ conviction 88.7% leads broad equity/commodity rally, but VIX at GFC-peak levels signals complacency crash risk.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "age_sec": 3.8,
+      "fresh": true,
+      "spx": {
+        "dir": "UPSIDE",
+        "range": "8% to 16%",
+        "wk": 8,
+        "prob": 62
+      },
+      "btc": {
+        "dir": "UPSIDE",
+        "range": "12% to 35%",
+        "wk": 12,
+        "prob": 48,
+        "analog": "2024 Q1 (post-ETF approval rally, Jan-Mar 2024)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "regime-decisive-call",
+      "output_key": "data/regime-decisive-call.json",
+      "regime": "RISK_ON",
+      "confidence": "MEDIUM",
+      "one_liner": "EXPANSION regime at 100% probability, zero anomalies, but curve inversion (34.9th pctile) signals late-cycle compression ahead.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "age_sec": 5.9,
+      "fresh": true,
+      "spx": {
+        "dir": "SIDEWAYS",
+        "range": "-8% to 3%",
+        "wk": 8,
+        "prob": 58
+      },
+      "btc": {
+        "dir": "UPSIDE",
+        "range": "8% to 18%",
+        "wk": 6,
+        "prob": 62,
+        "analog": "2024 Q1 (ATH recovery and momentum)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "valuations-decisive-call",
+      "output_key": "data/valuations-decisive-call.json",
+      "regime": "RISK_ON_AGGRESSIVE",
+      "confidence": "LOW",
+      "one_liner": "Extreme valuations (crypto +65%, gold +62% vs avg) clash with benign credit spreads; regime fragile.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "age_sec": 5.0,
+      "fresh": true,
+      "spx": {
+        "dir": "DOWNSIDE",
+        "range": "-12% to -25%",
+        "wk": 16,
+        "prob": 58
+      },
+      "btc": {
+        "dir": "DOWNSIDE",
+        "range": "-22% to -42%",
+        "wk": 12,
+        "prob": 68,
+        "analog": "2017 Q4 (Crypto Bubble Top)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "conviction-decisive-call",
+      "output_key": "data/conviction-decisive-call.json",
+      "regime": "NEUTRAL",
+      "confidence": "LOW",
+      "one_liner": "Equity value signals RISK-OFF (conviction 45%) but positioning + macro cross-checks conflict; sit tight, wait for clarity.",
+      "n_predictions": 7,
+      "n_trades": 4,
+      "n_tripwires": 5,
+      "age_sec": 3.1,
+      "fresh": true,
+      "spx": {
+        "dir": "SIDEWAYS",
+        "range": "-8% to 3%",
+        "wk": 8,
+        "prob": 55
+      },
+      "btc": {
+        "dir": "SIDEWAYS",
+        "range": "-8% to 10%",
+        "wk": 8,
+        "prob": 50,
+        "analog": "2024 Q1 ATH Setup"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "fundamentals-decisive-call",
+      "output_key": "data/fundamentals-decisive-call.json",
+      "regime": "RISK_ON",
+      "confidence": "MEDIUM",
+      "one_liner": "Quality equities fairly valued; earnings revisions positive but margin peak risk emerging\u2014selective longs in NEM/GILD, reduce NVDA concentration.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "age_sec": 5.1,
+      "fresh": true,
+      "spx": {
+        "dir": "SIDEWAYS",
+        "range": "-8% to 6%",
+        "wk": 12,
+        "prob": 55
+      },
+      "btc": {
+        "dir": "SIDEWAYS",
+        "range": "-12% to 18%",
+        "wk": 12,
+        "prob": 50,
+        "analog": "2024-Q1 ATH \u2192 2024-Q2 correction (post-halving cycle)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "consumer-pulse-decisive-call",
+      "output_key": "data/consumer-pulse-decisive-call.json",
+      "regime": "RISK_OFF",
+      "confidence": "LOW",
+      "one_liner": "Consumer data blackout + inverted yield curve + soaring dollar = forced to trade cross-asset regime signals, not consumer fundamentals.",
+      "n_predictions": 7,
+      "n_trades": 4,
+      "n_tripwires": 5,
+      "age_sec": 6.2,
+      "fresh": true,
+      "spx": {
+        "dir": "SIDEWAYS",
+        "range": "-8% to 3%",
+        "wk": 8,
+        "prob": 55
+      },
+      "btc": {
+        "dir": "SIDEWAYS",
+        "range": "-12% to 8%",
+        "wk": 8,
+        "prob": 50,
+        "analog": "2023 Q1 (SVB panic + risk-off, then recovery as Fed paused)"
+      },
+      "status": "OK"
+    }
+  ],
+  "n_fresh": 10,
+  "n_briefs_exist": 10,
+  "finished": "2026-05-30T20:51:04.214596+00:00"
+}
