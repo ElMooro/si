@@ -1320,6 +1320,369 @@ def generate_frontrun_brief(ctx_id, cfg, episode_ref):
 
 
 # ─────────────────────────────────────────────────────────────────────
+# MACRO FRONT-RUN BRIEF — Rates / Auctions / Funding / Bonds deep dive
+# ─────────────────────────────────────────────────────────────────────
+BASE_SYSTEM_MACRO_FRONTRUN = (
+    "You are a SENIOR MACRO STRATEGIST in the Stanley Druckenmiller / Ray Dalio / "
+    "Bill Gross / Jeff Gundlach tradition. Your specialty is rates + auctions + "
+    "Treasury + funding markets — NOT equity microstructure. You think in DV01, "
+    "curve shape, breakevens, funding levels, Fed-path probability, and sovereign "
+    "flow. You detect institutional FRONT-RUNNING in the macro complex: primary "
+    "dealers loading duration before Fed pivots, sovereigns rotating TIC flows "
+    "before currency moves, funding plumbing stress brewing before equity vol spikes, "
+    "auction tape dealer-absorption fingerprints. You are decisive. You generate "
+    "SPECIFIC rates trades (TLT/IEF/AGG/TIP/HYG/LQD/GLD/UUP, Treasury futures, "
+    "curve spreads, breakeven trades) with entry/target/stop and DV01-aware sizing."
+)
+
+
+# Macro pillars — each pillar groups feeds for the prompt structure
+MACRO_PILLAR_GROUPS = {
+    "auction_tape":              "🏛 Auction Tape (BTC ratio, indirect %, AAH, tail bps)",
+    "primary_dealer_survey":     "🤝 NY Fed Primary Dealer Survey",
+    "tic_flows":                 "🌐 TIC Flows (sovereign Treasury holdings)",
+    "bond_vol_move":             "📈 Bond Vol / MOVE Index",
+    "eurodollar_stress":         "💸 Eurodollar / Funding Stress",
+    "crisis_plumbing":           "🔧 Crisis Plumbing (repo / FRA-OIS / BTFP / swap lines)",
+    "liquidity_data":            "💧 Net Liquidity (WALCL / TGA / RRP)",
+    "liquidity_flow":            "💧 Liquidity Flow rate-of-change",
+    "macro_nowcast":             "📊 Macro Nowcast (GDPNow / LEI / Sahm)",
+    "fed_speak":                 "🎤 Fed-Speak (recent speeches)",
+    "fed_nlp":                   "🎤 Fed-NLP (hawk-dove score)",
+    "yield_curve":               "📉 Yield Curve (slope + velocity)",
+    "bonds_desk_brief":          "📓 Duration Desk Decisive Call",
+    "eurodollar_brief":          "📓 Eurodollar Desk Brief",
+    "auction_brief":             "📓 Auction Desk Brief",
+    "crisis_brief":              "📓 Crisis Desk Brief",
+    "yield_curve_brief":         "📓 Yield Curve Desk Brief",
+    "lce_brief":                 "📓 LCE Desk Brief",
+    "catalyst_calendar":         "📅 Catalyst Calendar (FOMC / NFP / CPI / Refunding)",
+    "cftc_deep":                 "📊 CFTC Rate-Futures Positioning"
+}
+
+
+def build_macro_frontrun_prompt(ctx_id, cfg, feeds, kb_chunks):
+    """Build the macro front-run prompt with pillar-organized feed data."""
+    blocks = []
+    feeds_loaded = 0
+    feeds_missing_list = []
+    for pillar_id, pillar_label in MACRO_PILLAR_GROUPS.items():
+        d = feeds.get(pillar_id)
+        if not d:
+            feeds_missing_list.append(pillar_id)
+            continue
+        feeds_loaded += 1
+        compact = _compact_feed(d, cap=1000)
+        blocks.append(f"### {pillar_label}\n  ## {pillar_id}\n  {json.dumps(compact, default=str)}")
+
+    feed_block = "\n\n".join(blocks) or "(no macro feeds loaded)"
+
+    kb_block = ""
+    if kb_chunks:
+        kb_block = "\n\nRELEVANT FRAMEWORKS:\n" + "\n\n".join(
+            f"### {c['framework']}\n{c['excerpt'][:600]}" for c in kb_chunks
+        )
+
+    prompt = f"""# {cfg["title"]}
+
+## YOUR ROLE
+{cfg["prompt_intro"]}
+
+## CURRENT MACRO + RATES + AUCTION + FUNDING DATA — {feeds_loaded} pillars loaded
+
+{feed_block[:26000]}
+{kb_block}
+
+## TASK
+
+Return EXACTLY this JSON. This is a PURE MACRO front-run read — equity microstructure is NOT in scope. You're scanning rates, auctions, funding, bonds, Fed path, sovereign flows for convergent institutional positioning.
+
+{{
+  "overall_macro_score": <0-100, "how loud is the macro/rates institutional positioning right now">,
+  "macro_regime": "<NORMAL | ELEVATED | EXTREME>",
+  "headline": "<single decisive sentence ≤140 chars naming THE most coordinated macro front-run setup right now>",
+  "thesis": "<3-4 sentences on the dominant cross-pillar pattern. Cite specific numbers from pillar feeds.>",
+
+  "pillars": {{
+    "auction_tape": {{
+      "state": "<CALM | STRESSED | CRISIS>",
+      "anomaly_pctile": <0-100>,
+      "key_signal": "<the loudest auction-tape datapoint, ≤140 chars>",
+      "what_it_means": "<1 sentence interpretation>"
+    }},
+    "primary_dealer_positioning": {{
+      "state": "<NEUTRAL | DURATION_BID | DURATION_SHORT | STRESSED>",
+      "anomaly_pctile": <0-100>,
+      "key_signal": "<NYFed survey / dealer behavior signal>",
+      "what_it_means": "<1 sentence>"
+    }},
+    "funding_plumbing": {{
+      "state": "<HEALED | TIGHT | STRESS | CRISIS>",
+      "anomaly_pctile": <0-100>,
+      "key_signal": "<FRA-OIS / SOFR-IORB / BTFP / repo signal>",
+      "what_it_means": "<1 sentence>"
+    }},
+    "net_liquidity": {{
+      "state": "<EXPANDING | NEUTRAL | CONTRACTING>",
+      "delta_direction": "<UP | FLAT | DOWN>",
+      "key_signal": "<WALCL-TGA-RRP rate-of-change>",
+      "what_it_means": "<1 sentence on risk-asset implication>"
+    }},
+    "fed_path": {{
+      "state": "<DOVISH_TILT | NEUTRAL | HAWKISH_TILT>",
+      "hawk_dove_score": <number or null>,
+      "key_signal": "<Fed-speak NLP shift / recent dovish-hawkish flip>",
+      "what_it_means": "<1 sentence>"
+    }},
+    "yield_curve_velocity": {{
+      "shape": "<NORMAL | FLATTENING | INVERTED | STEEPENING | BULL_STEEPENER | BEAR_FLATTENER>",
+      "key_signal": "<2s10s / 3m10s / real yield / breakeven>",
+      "what_it_means": "<1 sentence>"
+    }},
+    "tic_flows": {{
+      "state": "<INFLOW | NEUTRAL | OUTFLOW>",
+      "key_signal": "<foreign holding shift>",
+      "what_it_means": "<1 sentence sovereign-positioning implication>"
+    }}
+  }},
+
+  "macro_setups": [
+    {{
+      "rank": 1,
+      "confidence": "<HIGH | MEDIUM | LOW>",
+      "setup_type": "<DURATION_LONG | DURATION_SHORT | CURVE_STEEPENER | CURVE_FLATTENER | BREAKEVEN_LONG | BREAKEVEN_SHORT | FUNDING_SHORT | AUCTION_FRONTRUN | FED_PIVOT_LONG | DOLLAR_LONG | DOLLAR_SHORT | TIPS_LONG | HYG_SHORT>",
+      "headline": "<1 decisive line ≤120 chars>",
+      "thesis": "<2-3 sentences citing pillar data>",
+      "trade_specifics": {{
+        "primary_instrument": "<TLT | IEF | AGG | TIP | LQD | HYG | GLD | UUP | ZN futures | ZB futures | SOFR futures | etc>",
+        "direction": "<LONG | SHORT | STEEPENER | FLATTENER | BARBELL>",
+        "entry_level": "<price/yield/spread>",
+        "target_level": "<price/yield/spread>",
+        "stop_level": "<price/yield/spread>",
+        "size_pct_of_portfolio": "<e.g. 3-5%>",
+        "horizon": "<e.g. 4-8 weeks>",
+        "expected_pnl_pct": "<e.g. +5 to +10%>",
+        "dv01_aware_note": "<1 line on DV01 sizing or curve-trade neutrality>"
+      }},
+      "smoking_guns": [
+        {{"pillar": "<auction_tape | primary_dealer | tic_flows | funding | net_liquidity | fed_path | yield_curve | etc>",
+         "signal": "<specific datapoint with the number>",
+         "anomaly_pctile": <0-100>}}
+        // MINIMUM 3 from DIFFERENT pillars
+      ],
+      "front_running_catalyst": {{
+        "event": "<FOMC | Refunding | NFP | CPI | OPEX | BOJ_meeting | OPEC | geo>",
+        "date": "<date or window>",
+        "consensus": "<what consensus expects>",
+        "what_dealers_are_pricing": "<what positioning implies dealers expect>",
+        "consensus_vs_dealer_position": "<aligned / divergent — and the implication>"
+      }},
+      "historical_analog": {{
+        "period": "<specific episode e.g. Aug 2007 jumbo auction tail OR Mar 2023 SVB BTFP>",
+        "what_happened": "<concrete outcome ≤30 words>",
+        "similarity_pct": <0-100>
+      }},
+      "invalidation_tripwire": "<specific macro data condition that disproves the hypothesis>"
+    }}
+    // 2-5 setups, ranked by confidence × convergence × asymmetric payoff
+  ],
+
+  "upcoming_macro_catalysts": [
+    {{
+      "event": "<FOMC, NFP, CPI, refunding announcement, OPEC, etc>",
+      "date": "<specific date or window>",
+      "consensus": "<consensus expectation>",
+      "front_run_signal_strength": "<STRONG | MODERATE | WEAK | NONE>",
+      "what_to_watch": "<the specific pillar reading that would confirm or invalidate dealer positioning>"
+    }}
+    // 3-6 upcoming events
+  ],
+
+  "loudest_macro_anomaly": {{
+    "pillar": "<which pillar>",
+    "signal": "<the single most-extreme single-pillar datapoint>",
+    "value": "<the number>",
+    "anomaly_pctile": <0-100>,
+    "interpretation": "<≤150 chars>"
+  }},
+
+  "most_actionable_macro_trade": "<which of the macro_setups above is the single best risk-adjusted action right now, ≤220 chars>"
+}}
+
+## RULES
+- Be specific. Quote actual numbers from pillar feeds. Don't invent prices.
+- Convergence requirement: every macro_setup MUST cite 3+ smoking_gun signals from DIFFERENT pillars.
+- This is RATES/MACRO ONLY — no equity microstructure setups (no AMD options squeezes, no SPY options gamma, etc).
+- Trade instruments must be RATES/MACRO instruments: bond ETFs (TLT/IEF/AGG/TIP/LQD/HYG), gold (GLD), dollar (UUP), Treasury futures (ZN/ZB/UB), SOFR/Eurodollar futures, or curve spreads (TLT/IEF, TIP/IEF).
+- Historical analog must be a REAL macro episode (Aug 2007 jumbo tail, Sep 2019 repo, Mar 2020 basis unwind, Mar 2023 SVB BTFP, 2013 taper tantrum, 1994 massacre, Sep 2022 UK gilt LDI, 1979 Volcker, etc).
+- Invalidation tripwire must be a specific pillar-data condition.
+- DV01 sizing notes on curve trades, breakeven trades, duration trades."""
+
+    return prompt
+
+
+def generate_macro_frontrun_brief(ctx_id, cfg, episode_ref):
+    t0 = time.time()
+    result = {"context_id": ctx_id, "title": cfg.get("title"),
+              "output_key": cfg.get("output_key"), "brief_type": "macro_frontrun"}
+    try:
+        pillar_feeds_cfg = cfg.get("pillar_feeds") or {}
+        feeds = {}
+        for pid, feed_key in pillar_feeds_cfg.items():
+            d = s3io.get_json(feed_key, default={})
+            if d:
+                feeds[pid] = d
+
+        if not feeds:
+            result["status"] = "ERR_NO_INPUTS"
+            result["err"] = "no macro pillar feeds loaded"
+            return result
+
+        kb_chunks = kb.lookup(cfg.get("kb_keywords") or [], max_chunks=2)
+
+        system = BASE_SYSTEM_MACRO_FRONTRUN
+        if cfg.get("system_addendum"):
+            system = system + "\n\n" + cfg["system_addendum"]
+
+        prompt = build_macro_frontrun_prompt(ctx_id, cfg, feeds, kb_chunks)
+        prompt_len = len(prompt)
+
+        brief, err = claude_json(prompt, system=system,
+                                  max_tokens=cfg.get("max_tokens", 9000),
+                                  temperature=cfg.get("temperature", 0.3),
+                                  timeout=cfg.get("timeout", DEFAULT_TIMEOUT))
+        if err or not brief:
+            result["status"] = "ERR_CLAUDE"
+            result["err"] = err or "no parseable JSON"
+            result["prompt_len"] = prompt_len
+            return result
+
+        brief["version"] = "1.0"
+        brief["brief_type"] = "macro_frontrun"
+        brief["generated_at"] = datetime.now(timezone.utc).isoformat()
+        brief["model"] = "claude-haiku-4-5-20251001"
+        brief["context"] = ctx_id
+        brief["title"] = cfg.get("title")
+        brief["input_state"] = {
+            "n_pillars_attempted": len(pillar_feeds_cfg),
+            "n_pillars_loaded": len(feeds),
+            "loaded": sorted(feeds.keys()),
+            "missing": sorted(set(pillar_feeds_cfg.keys()) - set(feeds.keys())),
+            "prompt_len_chars": prompt_len,
+        }
+        output_key = f"data/{cfg['output_key']}.json"
+        s3io.put_json(output_key, brief, cache_control="public, max-age=900")
+
+        # ────────────────────────────────────────────────────────────
+        # 7-day history snapshot (separate file from equity sniffer)
+        # ────────────────────────────────────────────────────────────
+        try:
+            hist_key = f"data/{cfg['output_key']}-history.json"
+            history = s3io.get_json(hist_key, default={}) or {}
+            snaps = history.get("snapshots") if isinstance(history, dict) else None
+            if not isinstance(snaps, list):
+                snaps = []
+
+            top_setups = brief.get("macro_setups") or []
+            top = top_setups[0] if top_setups else {}
+            la = brief.get("loudest_macro_anomaly") or {}
+            pillars = brief.get("pillars") or {}
+
+            snap = {
+                "ts": brief["generated_at"],
+                "score": brief.get("overall_macro_score"),
+                "regime": brief.get("macro_regime"),
+                "headline": (brief.get("headline") or "")[:200],
+                "n_setups": len(top_setups),
+                "n_catalysts": len(brief.get("upcoming_macro_catalysts") or []),
+                "top_setup_type": top.get("setup_type"),
+                "top_setup_instr": (top.get("trade_specifics") or {}).get("primary_instrument"),
+                "top_setup_dir":   (top.get("trade_specifics") or {}).get("direction"),
+                "top_setup_conf":  top.get("confidence"),
+                "top_setup_catalyst": (top.get("front_running_catalyst") or {}).get("event"),
+                "loudest_pillar":  la.get("pillar"),
+                "loudest_signal": (la.get("signal") or "")[:200],
+                "loudest_pctile":  la.get("anomaly_pctile"),
+                "auction_state":   (pillars.get("auction_tape") or {}).get("state"),
+                "funding_state":   (pillars.get("funding_plumbing") or {}).get("state"),
+                "liquidity_state": (pillars.get("net_liquidity") or {}).get("state"),
+                "fed_path_state":  (pillars.get("fed_path") or {}).get("state"),
+                "most_actionable": (brief.get("most_actionable_macro_trade") or "")[:200],
+                "pillars_loaded":  len(feeds),
+            }
+            snaps.append(snap)
+            snaps = snaps[-200:]
+
+            now = datetime.now(timezone.utc)
+            week_ago = now - timedelta(days=7)
+            recent = []
+            for s in snaps:
+                try:
+                    t = datetime.fromisoformat((s.get("ts") or "").replace("Z", "+00:00"))
+                    if t >= week_ago: recent.append(s)
+                except Exception: pass
+
+            scores_7d = [s["score"] for s in recent if isinstance(s.get("score"), (int, float))]
+            stats_7d = {
+                "n_snapshots_7d": len(recent),
+                "score_mean":   round(sum(scores_7d) / len(scores_7d), 1) if scores_7d else None,
+                "score_min":    min(scores_7d) if scores_7d else None,
+                "score_max":    max(scores_7d) if scores_7d else None,
+                "score_latest": snap.get("score"),
+                "score_delta_vs_mean_7d": (round(snap["score"] - sum(scores_7d) / len(scores_7d), 1)
+                                            if (scores_7d and isinstance(snap.get("score"), (int, float))) else None),
+                "n_extreme_7d":  sum(1 for s in recent if (s.get("regime") or "").upper() == "EXTREME"),
+                "n_elevated_7d": sum(1 for s in recent if (s.get("regime") or "").upper() == "ELEVATED"),
+                "n_normal_7d":   sum(1 for s in recent if (s.get("regime") or "").upper() == "NORMAL"),
+                "max_setups_7d": max((s.get("n_setups") or 0) for s in recent) if recent else 0,
+            }
+            from collections import Counter
+            instr_counter = Counter([s.get("top_setup_instr") for s in recent if s.get("top_setup_instr")])
+            stats_7d["most_targeted_instruments"] = [
+                {"instrument": k, "n_times": v} for k, v in instr_counter.most_common(5)
+            ]
+
+            events = []
+            for s in snaps[::-1]:
+                if ((s.get("score") or 0) >= 60) or ((s.get("regime") or "").upper() == "EXTREME"):
+                    events.append({
+                        "ts": s.get("ts"),
+                        "score": s.get("score"),
+                        "regime": s.get("regime"),
+                        "headline": s.get("headline"),
+                        "top_setup_instr": s.get("top_setup_instr"),
+                        "top_setup_dir": s.get("top_setup_dir"),
+                    })
+                if len(events) >= 12: break
+
+            history_out = {
+                "version": "1.0",
+                "generated_at": brief["generated_at"],
+                "snapshots": snaps,
+                "stats_7d": stats_7d,
+                "events": events,
+            }
+            s3io.put_json(hist_key, history_out, cache_control="public, max-age=300")
+        except Exception as _h_e:
+            print(f"[macro_frontrun] history append failed: {_h_e}")
+
+        result.update({
+            "status": "OK",
+            "output_key": output_key,
+            "macro_score": brief.get("overall_macro_score"),
+            "macro_regime": brief.get("macro_regime"),
+            "n_setups": len(brief.get("macro_setups") or []),
+            "n_catalysts": len(brief.get("upcoming_macro_catalysts") or []),
+            "duration_s": round(time.time() - t0, 2),
+        })
+    except Exception as e:
+        result["status"] = "ERR_EXC"
+        result["err"] = str(e)[:300]
+        result["traceback"] = traceback.format_exc()[-800:]
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Per-context worker — dispatches based on brief_type
 # ─────────────────────────────────────────────────────────────────────
 def generate_one_brief(ctx_id, cfg, episode_ref):
@@ -1333,6 +1696,8 @@ def generate_one_brief(ctx_id, cfg, episode_ref):
         return generate_portfolio_brief(ctx_id, cfg, episode_ref)
     if bt == "frontrun":
         return generate_frontrun_brief(ctx_id, cfg, episode_ref)
+    if bt == "macro_frontrun":
+        return generate_macro_frontrun_brief(ctx_id, cfg, episode_ref)
     # Default: regime brief
     return _generate_regime_brief(ctx_id, cfg, episode_ref)
 

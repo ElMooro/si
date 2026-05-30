@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro Front-Run Sniffer · Rates / Auctions / Bonds Deep Dive · JustHodl.AI</title>
+<meta name="description" content="Pure rates/macro front-run detector. Scans 20 pillars: auction tape (BTC/indirect/AAH/tail), primary dealer survey, TIC flows, MOVE/bond vol, eurodollar/FRA-OIS stress, crisis plumbing (repo/BTFP/swap lines), WALCL-TGA-RRP net liquidity, macro nowcast, Fed-speak NLP, yield curve velocity, and 6 desk decisive calls. Detects primary dealers loading duration before Fed pivots, sovereigns rotating TIC ahead of currency moves, funding plumbing stress brewing.">
+<style>
+:root{
+  --bg:#070a10; --bg-raised:#0a0f17; --panel:#11161f; --border:#1c2433; --border-strong:#2a3548;
+  --fg:#e6eaf2; --fg-2:#cbd2dc; --fg-3:#a8b3c7; --fg-4:#6f7b91;
+  --cyan:#22d3ee; --green:#22c55e; --gold:#fbbf24; --red:#ef4444; --purple:#a78bfa;
+  --orange:#ff7a18;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.55;font-size:14px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,10,16,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;gap:14px}
+.brand{font-family:var(--mono);font-size:13px;font-weight:800;letter-spacing:1px;color:var(--fg);text-decoration:none}
+.brand span{color:var(--cyan)}
+.brand .dot{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;box-shadow:0 0 8px var(--cyan);margin-right:6px}
+.nav-links{display:flex;gap:14px;align-items:center;font-size:11px;font-family:var(--mono);letter-spacing:0.5px;flex-wrap:wrap}
+.nav-links a{color:var(--fg-3);text-decoration:none;transition:color 0.15s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a.active{color:var(--cyan);font-weight:700}
+.shell{max-width:1280px;margin:0 auto;padding:24px 22px 60px}
+.hero{padding:28px 0 18px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.hero h1{font-size:30px;margin:0 0 10px;letter-spacing:-0.015em;font-weight:700;line-height:1.1}
+.hero h1 em{font-style:italic;color:var(--cyan);font-weight:500}
+.hero .sub{color:var(--fg-3);font-size:13.5px;line-height:1.6;max-width:820px}
+.hero .sub b{color:var(--fg-2);font-weight:600}
+.hero-pills{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:0.5px;color:var(--fg-3);padding:3px 9px;background:var(--panel);border:1px solid var(--border);border-radius:3px}
+.pill b{color:var(--cyan)}
+
+.crosslink{margin:14px 0;padding:11px 14px;background:rgba(255,122,24,.05);border:1px solid rgba(255,122,24,.22);border-left:3px solid var(--orange);border-radius:6px;font-size:12.5px;color:var(--fg-2)}
+.crosslink a{color:var(--orange);text-decoration:none;font-weight:700}
+.crosslink a:hover{text-decoration:underline}
+
+.meth-section{margin-top:22px;background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:20px 24px}
+.meth-h{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);margin:0 0 14px;font-weight:700}
+.meth-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:14px}
+.meth-card{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:6px;padding:11px 14px}
+.meth-card .t{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--cyan);margin-bottom:4px;font-weight:700}
+.meth-card .b{font-size:12.5px;color:var(--fg-2);line-height:1.5}
+.meth-card .feeds{font-family:var(--mono);font-size:10.5px;color:var(--fg-4);margin-top:6px;line-height:1.6}
+.meth-foot{font-size:12px;color:var(--fg-3);line-height:1.6;padding-top:12px;border-top:1px solid var(--border);font-style:italic}
+
+footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);color:var(--fg-4);font-size:11.5px;font-family:var(--mono);text-align:center}
+</style>
+<script src="/ai-macro-frontrun-kit.js"></script>
+<script src="/ai-frontrun-history-kit.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+  <nav class="nav-links">
+    <a href="/">DESK</a>
+    <a href="/today.html">TODAY</a>
+    <a href="/index.html">INDEX</a>
+    <a href="/frontrun.html" style="color:#ff7a18">🎯 FRONT-RUN</a>
+    <a href="/macro-frontrun.html" class="active">🏛 MACRO FRONT-RUN</a>
+    <a href="/auctions.html">AUCTIONS</a>
+    <a href="/bonds.html">BONDS</a>
+    <a href="/eurodollar.html">EURODOLLAR</a>
+    <a href="/liquidity.html">LIQUIDITY</a>
+    <a href="/yield-curve.html">CURVE</a>
+    <a href="/defcon.html">DEFCON</a>
+  </nav>
+</header>
+
+<main class="shell">
+
+  <section class="hero">
+    <h1>🏛 Macro Front-Run <em>Sniffer</em> · Rates · Auctions · Bonds · Fed Path Deep Dive</h1>
+    <p class="sub">
+      <b>Pure macro institutional flow detector.</b> Scans 20 pillars across treasury
+      auction tape (BTC ratio / indirect % / AAH / tail bps), NY Fed primary-dealer
+      survey, TIC sovereign flows, MOVE bond vol, eurodollar/FRA-OIS funding stress,
+      crisis plumbing (repo / BTFP / swap lines), WALCL-TGA-RRP net liquidity, macro
+      nowcast (GDPNow / LEI / Sahm), Fed-speak NLP hawk-dove score, yield curve
+      velocity, and 6 desk decisive calls. Detects <b>primary dealers loading
+      duration ahead of Fed dovish pivots</b>, <b>sovereigns rotating TIC flows
+      before currency moves</b>, <b>funding plumbing stress brewing pre-equity-vol</b>,
+      and <b>auction tape demand drought pre-stress</b>. Every actionable setup names
+      a DV01-aware trade (TLT/IEF/TIP/GLD/UUP/curve-spread/Treasury-futures) with
+      entry/target/stop, the catalyst being front-run, and the macro historical
+      analog (Aug 2007 / Sep 2019 / Mar 2020 / Mar 2023).
+    </p>
+    <div class="hero-pills">
+      <span class="pill">⏱ refresh: <b>every 4h</b></span>
+      <span class="pill">🏛 pillars scanned: <b>20</b></span>
+      <span class="pill">⚡ persona: Druckenmiller / Dalio / Gross / Gundlach</span>
+      <span class="pill">📐 15 macro historical analogs</span>
+    </div>
+  </section>
+
+  <div class="crosslink">
+    ↔ For the <b>unified equity + macro</b> view (options gamma, 13F, insider clusters layered with rates),
+    see the <a href="/frontrun.html">🎯 Front-Run Sniffer</a>. This page is the <b>rates/macro deep dive</b>
+    — equity microstructure is intentionally OUT of scope here.
+  </div>
+
+  <!-- THE MACRO SNIFFER OUTPUT -->
+  <div id="ai-macro-frontrun"></div>
+  <script>if(window.JHAIMacroFront)JHAIMacroFront.mount("ai-macro-frontrun","macro-frontrun-sniffer");</script>
+
+  <!-- 7-DAY HISTORY (separate file: macro-frontrun-sniffer-history) -->
+  <div id="ai-macro-frontrun-history"></div>
+  <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-macro-frontrun-history","macro-frontrun-sniffer-history");</script>
+
+  <section class="meth-section">
+    <div class="meth-h">📐 How the 7 Macro Pillars Work</div>
+    <div class="meth-grid">
+      <div class="meth-card">
+        <div class="t">🏛 Auction Tape</div>
+        <div class="b">BTC ratio sliding, indirect % collapsing, AAH (dealer take) climbing, tail blowouts — signals demand running out, dealers backing away from absorption (Aug 2007 / Mar 2020 fingerprint).</div>
+        <div class="feeds">auction-crisis</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">🤝 Primary Dealer</div>
+        <div class="b">NY Fed primary-dealer survey duration bias + dealer Treasury inventory shifts. Tracks the institutional sell-side positioning that LEADS the market.</div>
+        <div class="feeds">dealer-survey</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">🌐 TIC Flows</div>
+        <div class="b">Foreign central-bank Treasury holdings shifts. Sovereign rotation ahead of currency moves (BOJ before intervention, China before USDCNH adjustment).</div>
+        <div class="feeds">tic-flows</div>
+      </div>
+      <div class="meth-card" style="border-left-color:var(--gold)">
+        <div class="t" style="color:var(--gold)">📈 MOVE / Bond Vol</div>
+        <div class="b">MOVE index elevation when VIX still calm = MBS convexity hedging or Treasury basis trade unwind. Rates vol LEADS equity vol.</div>
+        <div class="feeds">bond-vol</div>
+      </div>
+      <div class="meth-card" style="border-left-color:var(--red)">
+        <div class="t" style="color:var(--red)">💸 Eurodollar / Funding</div>
+        <div class="b">FRA-OIS spread widening, SOFR-IORB blowing out, swap-line bids. Pre-equity-vol stress — Sep 2019 repo spike pattern.</div>
+        <div class="feeds">eurodollar-stress</div>
+      </div>
+      <div class="meth-card" style="border-left-color:var(--red)">
+        <div class="t" style="color:var(--red)">🔧 Crisis Plumbing</div>
+        <div class="b">Repo dysfunction, BTFP balance climb, discount-window usage, swap-line activation. The "is something breaking?" sentinel layer.</div>
+        <div class="feeds">crisis-plumbing</div>
+      </div>
+      <div class="meth-card" style="border-left-color:var(--green)">
+        <div class="t" style="color:var(--green)">💧 Net Liquidity</div>
+        <div class="b">WALCL minus TGA minus RRP rate-of-change. Risk assets trade on the SECOND DERIVATIVE of net liquidity, not the level.</div>
+        <div class="feeds">liquidity-data · liquidity-flow</div>
+      </div>
+      <div class="meth-card" style="border-left-color:var(--green)">
+        <div class="t" style="color:var(--green)">📊 Macro Nowcast</div>
+        <div class="b">GDPNow / Conference Board LEI / Sahm rule composite — the cycle-phase read. Distinguishes cycle peaks from mid-cycle slowdowns.</div>
+        <div class="feeds">macro-nowcast</div>
+      </div>
+      <div class="meth-card" style="border-left-color:var(--purple)">
+        <div class="t" style="color:var(--purple)">🎤 Fed-Speak NLP</div>
+        <div class="b">Hawk-dove NLP score on Fed speeches in last 4 weeks. Communication tone drift LEADS official policy by 2-8 weeks (2013 taper tantrum analog).</div>
+        <div class="feeds">fed-speak · fed-nlp</div>
+      </div>
+      <div class="meth-card" style="border-left-color:var(--gold)">
+        <div class="t" style="color:var(--gold)">📉 Yield Curve Velocity</div>
+        <div class="b">Bull-steepener + breakevens rising = inflation front-run. Bear-flattener + real-yields spiking = recession front-run. Shape AND velocity matter.</div>
+        <div class="feeds">yield-curve</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">📓 6 Desk Decisive Calls</div>
+        <div class="b">Synthesis from Bonds, Eurodollar, Auction, Crisis, Yield-Curve, and LCE desk briefs — already-decisive macro reads layered in as context.</div>
+        <div class="feeds">bonds · eurodollar · auction · crisis · yield-curve · lce</div>
+      </div>
+      <div class="meth-card">
+        <div class="t">📅 Catalyst Calendar + CFTC</div>
+        <div class="b">What dealers are front-running — FOMC, NFP, CPI, refunding announcements, OPEC, BoJ. Plus CFTC rate-futures positioning.</div>
+        <div class="feeds">catalyst-calendar · cftc-deep-view</div>
+      </div>
+    </div>
+    <div class="meth-foot">
+      <b>The macro convergence rule</b> — every macro_setup MUST cite 3+ smoking guns from
+      DIFFERENT pillars. <b>The highest-conviction macro fingerprint</b> is when AUCTION TAPE +
+      PRIMARY DEALER + FUNDING PLUMBING all co-fire — that's the Aug 2007 jumbo auction tail
+      pre-Bear-Stearns signature, Sep 2019 repo spike, Mar 2020 Treasury basis trade unwind,
+      Mar 2023 SVB BTFP launch pattern. Every setup names a specific RATES instrument
+      (bond ETFs / Treasury futures / curve spreads / breakeven trades) with entry/target/stop
+      and a DV01-aware sizing note. Persona is Druckenmiller / Dalio / Gross / Gundlach —
+      this brief speaks the macro book's language, not the equity microstructure book's.
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Powered by Claude Haiku 4.5 · 20-pillar macro/rates scan · Refreshes every 4h ·
+  <a href="https://justhodl.ai" style="color:var(--fg-4)">JustHodl.AI</a>
+</footer>
+
+</body>
+</html>
