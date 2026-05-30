@@ -1,0 +1,210 @@
+{
+  "started": "2026-05-30T20:19:02.559247+00:00",
+  "redeploy": "OK",
+  "invoke_status": 200,
+  "invoke_body": {
+    "duration_s": 48.52,
+    "n_contexts": 6,
+    "n_ok": 6,
+    "results": [
+      {
+        "context_id": "eurodollar-decisive-call",
+        "title": "Eurodollar / Funding Stress \u2014 Decisive Call",
+        "output_key": "data/eurodollar-decisive-call.json",
+        "status": "OK",
+        "regime": "RISK_ON",
+        "confidence": "MEDIUM",
+        "one_liner": "Dollar abundant liquidity masks structural tightness; equity vol benign but funding stress data gaps create blind spot.",
+        "n_predictions": 7,
+        "n_trades": 5,
+        "n_tripwires": 5,
+        "duration_s": 44.02
+      },
+      {
+        "context_id": "dollar-decisive-call",
+        "title": "Dollar (DXY) \u2014 Decisive Call",
+        "output_key": "data/dollar-decisive-call.json",
+        "status": "OK",
+        "regime": "RISK_ON",
+        "confidence": "MEDIUM",
+        "one_liner": "Dollar in modest dump regime; liquidity flood + real-yield uptick clash; risk-on bias intact but fragile.",
+        "n_predictions": 7,
+        "n_trades": 5,
+        "n_tripwires": 5,
+        "duration_s": 44.78
+      },
+      {
+        "context_id": "vix-curve-decisive-call",
+        "title": "VIX Curve \u2014 Decisive Call",
+        "output_key": "data/vix-curve-decisive-call.json",
+        "status": "OK",
+        "regime": "RISK_ON",
+        "confidence": "MEDIUM",
+        "one_liner": "Steep contango + low VIX mask elevated cross-asset stress; vol-sell carry dominates but tail risk priced cheap.",
+        "n_predictions": 7,
+        "n_trades": 5,
+        "n_tripwires": 5,
+        "duration_s": 46.04
+      },
+      {
+        "context_id": "yield-curve-decisive-call",
+        "title": "Yield Curve \u2014 Decisive Call",
+        "output_key": "data/yield-curve-decisive-call.json",
+        "status": "OK",
+        "regime": "NEUTRAL",
+        "confidence": "LOW",
+        "one_liner": "Curve flattening from historic lows signals recession risk, but cross-asset calm contradicts\u2014data gap prevents conviction.",
+        "n_predictions": 7,
+        "n_trades": 4,
+        "n_tripwires": 5,
+        "duration_s": 47.14
+      },
+      {
+        "context_id": "lce-decisive-call",
+        "title": "Liquidity & Credit \u2014 Decisive Call",
+        "output_key": "data/lce-decisive-call.json",
+        "status": "OK",
+        "regime": "RISK_ON",
+        "confidence": "MEDIUM",
+        "one_liner": "Credit complacency at extremes; liquidity flush masks duration risk; equity upside capped until spreads widen.",
+        "n_predictions": 7,
+        "n_trades": 5,
+        "n_tripwires": 5,
+        "duration_s": 47.94
+      },
+      {
+        "context_id": "systemic-stress-decisive-call",
+        "title": "Systemic Stress \u2014 Decisive Call",
+        "output_key": "data/systemic-stress-decisive-call.json",
+        "status": "OK",
+        "regime": "NEUTRAL",
+        "confidence": "MEDIUM",
+        "one_liner": "Euro-area systemic stress dormant (6th pctile); UK/France fragmentation rising; dollar strength + real yields at crisis-era levels signal structural tightness.",
+        "n_predictions": 7,
+        "n_trades": 5,
+        "n_tripwires": 5,
+        "duration_s": 48.21
+      }
+    ]
+  },
+  "invoke_fn_err": null,
+  "log_tail": "START RequestId: 48e4c45e-dda4-458c-bef7-7263cea8cedb Version: $LATEST\n[ai-brief-router] running 6 contexts in parallel: ['yield-curve-decisive-call', 'vix-curve-decisive-call', 'dollar-decisive-call', 'eurodollar-decisive-call', 'lce-decisive-call', 'systemic-stress-decisive-call']\n[ai-brief-router] eurodollar-decisive-call: OK 44.02s Dollar abundant liquidity masks structural tightness; equity vol benign but funding stress\n[ai-brief-router] dollar-decisive-call: OK 44.78s Dollar in modest dump regime; liquidity flood + real-yield uptick clash; risk-on bias inta\n[ai-brief-router] vix-curve-decisive-call: OK 46.04s Steep contango + low VIX mask elevated cross-asset stress; vol-sell carry dominates but ta\n[ai-brief-router] yield-curve-decisive-call: OK 47.14s Curve flattening from historic lows signals recession risk, but cross-asset calm contradic\n[ai-brief-router] lce-decisive-call: OK 47.94s Credit complacency at extremes; liquidity flush masks duration risk; equity upside capped \n[ai-brief-router] systemic-stress-decisive-call: OK 48.21s Euro-area systemic stress dormant (6th pctile); UK/France fragmentation rising; dollar str\n[ai-brief-router] done: 6/6 OK in 48.52s\nEND RequestId: 48e4c45e-dda4-458c-bef7-7263cea8cedb\nREPORT RequestId: 48e4c45e-dda4-458c-bef7-7263cea8cedb\tDuration: 48527.27 ms\tBilled Duration: 49073 ms\tMemory Size: 1024 MB\tMax Memory Used: 106 MB\tInit Duration: 545.18 ms\t\nXRAY TraceId: 1-6a1b463f-57a39a2b432a32d21c13d33c\tSegmentId: e2e8ea099a587534\tSampled: true\t\n",
+  "verify": [
+    {
+      "context": "yield-curve-decisive-call",
+      "output_key": "data/yield-curve-decisive-call.json",
+      "regime": "NEUTRAL",
+      "confidence": "LOW",
+      "one_liner": "Curve flattening from historic lows signals recession risk, but cross-asset calm contradicts\u2014data gap prevents conviction.",
+      "n_predictions": 7,
+      "n_trades": 4,
+      "n_tripwires": 5,
+      "generated_at": "2026-05-30T20:19:59.663569+00:00",
+      "btc_pred": {
+        "dir": "UPSIDE",
+        "range": "12% to 28%",
+        "horizon_wk": 12,
+        "prob": 52,
+        "analog": "2019-Q1 Post-Capitulation"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "vix-curve-decisive-call",
+      "output_key": "data/vix-curve-decisive-call.json",
+      "regime": "RISK_ON",
+      "confidence": "MEDIUM",
+      "one_liner": "Steep contango + low VIX mask elevated cross-asset stress; vol-sell carry dominates but tail risk priced cheap.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "generated_at": "2026-05-30T20:19:58.624775+00:00",
+      "btc_pred": {
+        "dir": "DOWNSIDE",
+        "range": "-12% to 2%",
+        "horizon_wk": 6,
+        "prob": 62,
+        "analog": "2021 Q4 (Nov-Dec 2021, pre-taper tantrum)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "dollar-decisive-call",
+      "output_key": "data/dollar-decisive-call.json",
+      "regime": "RISK_ON",
+      "confidence": "MEDIUM",
+      "one_liner": "Dollar in modest dump regime; liquidity flood + real-yield uptick clash; risk-on bias intact but fragile.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "generated_at": "2026-05-30T20:19:57.377821+00:00",
+      "btc_pred": {
+        "dir": "UPSIDE",
+        "range": "12% to 28%",
+        "horizon_wk": 12,
+        "prob": 58,
+        "analog": "2024 Q1 (post-halving, pre-rate-cut cycle)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "eurodollar-decisive-call",
+      "output_key": "data/eurodollar-decisive-call.json",
+      "regime": "RISK_ON",
+      "confidence": "MEDIUM",
+      "one_liner": "Dollar abundant liquidity masks structural tightness; equity vol benign but funding stress data gaps create blind spot.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "generated_at": "2026-05-30T20:19:56.529159+00:00",
+      "btc_pred": {
+        "dir": "UPSIDE",
+        "range": "18% to 32%",
+        "horizon_wk": 12,
+        "prob": 58,
+        "analog": "2024 Q1 (post-ETF launch, risk-on rally)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "lce-decisive-call",
+      "output_key": "data/lce-decisive-call.json",
+      "regime": "RISK_ON",
+      "confidence": "MEDIUM",
+      "one_liner": "Credit complacency at extremes; liquidity flush masks duration risk; equity upside capped until spreads widen.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "generated_at": "2026-05-30T20:20:00.506956+00:00",
+      "btc_pred": {
+        "dir": "UPSIDE",
+        "range": "12% to 35%",
+        "horizon_wk": 8,
+        "prob": 45,
+        "analog": "2024 Q1 (post-ETF launch, pre-halving rally)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "systemic-stress-decisive-call",
+      "output_key": "data/systemic-stress-decisive-call.json",
+      "regime": "NEUTRAL",
+      "confidence": "MEDIUM",
+      "one_liner": "Euro-area systemic stress dormant (6th pctile); UK/France fragmentation rising; dollar strength + real yields at crisis-era levels signal structural tightness.",
+      "n_predictions": 7,
+      "n_trades": 5,
+      "n_tripwires": 5,
+      "generated_at": "2026-05-30T20:20:00.888354+00:00",
+      "btc_pred": {
+        "dir": "DOWNSIDE",
+        "range": "-18% to -8%",
+        "horizon_wk": 8,
+        "prob": 62,
+        "analog": "2024-Q1 Post-ATH Consolidation"
+      },
+      "status": "OK"
+    }
+  ],
+  "n_briefs": 6,
+  "finished": "2026-05-30T20:20:04.286576+00:00"
+}
