@@ -416,6 +416,45 @@
       "prompt_intro": "You are analysing the aggregate signal board across the 5 retail-edge tiers (sentiment extremes / flow / positioning / vol regime / cross-asset confirmation). The primary data has the live composite signals firing across the platform. Focus on: (1) which tier is producing the strongest signal right now and is it confirmed across tiers?, (2) is retail positioning at an extreme (contrarian setup) or aligned (trend confirmation)?, (3) which historical retail-positioning episode rhymes (Jan 2021 GME meme top, Nov 2021 crypto top, June 2022 capitulation, May 2023 AI mania, Dec 2024 rally exhaustion)?"
     },
 
+    "bonds-decisive-call": {
+      "title": "Bonds & Yield Curve (Duration Desk) — Decisive Call",
+      "output_key": "bonds-decisive-call",
+      "primary_feed": "data/report.json",
+      "cross_feeds": {
+        "yield_curve":   "data/yield-curve.json",
+        "auctions":      "data/auction-crisis.json",
+        "crisis_plumbing": "data/crisis-plumbing.json",
+        "vix":           "data/vix-curve.json",
+        "dollar":        "data/dollar-radar.json",
+        "eurodollar":    "data/eurodollar-stress.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "auctions": "regime",
+        "vix": "composite_regime",
+        "dollar": "regime",
+        "eurodollar": "severity"
+      },
+      "kb_keywords": [
+        "duration trade", "bond portfolio", "Bill Gross", "Jeff Gundlach",
+        "PIMCO total return", "1994 bond massacre", "2013 taper tantrum",
+        "2022 hike shock", "real yields", "TIPS breakeven", "MBS convexity",
+        "term premium", "carry roll-down", "TLT IEF AGG"
+      ],
+      "episode_indicators_to_show": ["DGS10", "DGS2", "T10Y2Y", "DFII10", "T10YIE", "BAMLH0A0HYM2"],
+      "system_addendum": "You are specifically a SENIOR DURATION TRADER / BOND PORTFOLIO MANAGER in the PIMCO / DoubleLine tradition (Bill Gross, Jeff Gundlach, Mohamed El-Erian). You think about the 10-year as the price of money, real yields as the gold/duration arbiter, breakevens as Fed credibility, MOVE as bond stress, and carry+roll-down as the bond PM's edge. You cite specific bond-cycle episodes (1994 bond massacre, 2003-04 rate-cut bottom, 2013 taper tantrum, 2016 election shock, 2020 March COVID rates explosion, 2022 hike shock, 2023 March SVB rates relief rally). Your trade ideas name specific bond ETFs (TLT for long-duration, IEF for belly, AGG for broad, TIP for inflation-linked, HYG for credit beta) with specific entry levels and DV01-sized positions.",
+      "assets_to_predict": [
+        {"asset": "Long Duration (TLT 20+yr)",    "ticker": "TLT"},
+        {"asset": "Belly Duration (IEF 7-10yr)",   "ticker": "IEF"},
+        {"asset": "Broad Bonds (AGG)",             "ticker": "AGG"},
+        {"asset": "Inflation-Linked (TIP)",        "ticker": "TIP"},
+        {"asset": "Investment Grade (LQD)",        "ticker": "LQD"},
+        {"asset": "High-Yield Credit (HYG)",       "ticker": "HYG"},
+        {"asset": "Gold (real-rate sensitive)",    "ticker": "GLD"}
+      ],
+      "prompt_intro": "You are analysing the US BOND MARKET regime — duration, real yields, breakevens, MOVE, and how the bond complex is positioned to perform. The primary report has nominal yields (DGS2/DGS10/DGS30), real yield (DFII10), breakevens (T10YIE), 2s10s spread, MOVE index, bond regime classification. Focus on: (1) is duration cheap, fair, or expensive given current real yields + breakevens?, (2) what's the carry+roll-down opportunity vs duration risk?, (3) which historical bond-market episode rhymes (1994 massacre, 2013 taper tantrum, 2022 hike shock, 2023 SVB relief)? (4) DV01-aware position sizing — which part of the curve to express the view in."
+    },
+
     "auction-decisive-call": {
       "title": "Treasury Auction Tape — Decisive Call",
       "output_key": "auction-decisive-call",

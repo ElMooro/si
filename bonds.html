@@ -206,6 +206,7 @@ footer a{margin:0 10px}
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
 <script src="/liquidity-pulse.js" defer></script>
+<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
 <div class="topbar">
@@ -257,6 +258,10 @@ footer a{margin:0 10px}
       <div class="sub" id="regime-days">DAYS<br/>IN REGIME</div>
     </div>
   </div>
+
+  <!-- AI Decisive Call (duration desk) -->
+  <div id="ai-decisive-call" style="margin-bottom:24px"></div>
+  <script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","bonds-decisive-call");</script>
 
   <!-- ───────────────────────── KEY METRICS ───────────────────────── -->
   <div class="section-hdr">
