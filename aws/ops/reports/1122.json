@@ -1,0 +1,270 @@
+{
+  "started": "2026-05-30T18:59:45.273026+00:00",
+  "lce_generated_at": "2026-05-30T17:13:08.977209+00:00",
+  "lce_n_series": 51,
+  "diagnosis": {
+    "RESPPALGUONNWW": {
+      "in_lce_output": true,
+      "lce_keys": [
+        "_category",
+        "_label",
+        "_threshold_kind",
+        "_threshold_note",
+        "_units",
+        "available",
+        "error"
+      ],
+      "lce_available": false,
+      "lce_error": "No data for RESPPALGUONNWW",
+      "lce__label": "Securities Held Outright: Treasury Notes & Bonds",
+      "lce_latest_value": null,
+      "lce_signal": null,
+      "fred_probe": {
+        "fred_status": "OK",
+        "n_obs_returned": 3,
+        "n_non_null": 3,
+        "latest_date": "2026-05-27",
+        "latest_value": "3999005",
+        "first_three": [
+          {
+            "realtime_start": "2026-05-30",
+            "realtime_end": "2026-05-30",
+            "date": "2026-05-27",
+            "value": "3999005"
+          },
+          {
+            "realtime_start": "2026-05-30",
+            "realtime_end": "2026-05-30",
+            "date": "2026-05-20",
+            "value": "3998105"
+          },
+          {
+            "realtime_start": "2026-05-30",
+            "realtime_end": "2026-05-30",
+            "date": "2026-05-13",
+            "value": "3997204"
+          }
+        ]
+      },
+      "fred_meta": {
+        "meta_status": "OK",
+        "id": "RESPPALGUONNWW",
+        "title": "Assets: Securities Held Outright: U.S. Treasury Securities: Notes and Bonds: Wednesday Level",
+        "units": "Mil. of U.S. $",
+        "frequency": "W",
+        "last_updated": "2026-05-28 15:33:06-05",
+        "observation_end": "2026-05-27",
+        "notes": "For questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h41/%). For questions on FRED functionality, please contact us h"
+      }
+    },
+    "WGCAL": {
+      "in_lce_output": true,
+      "lce_keys": [
+        "_category",
+        "_label",
+        "_threshold_kind",
+        "_threshold_note",
+        "_units",
+        "available",
+        "error"
+      ],
+      "lce_available": false,
+      "lce_error": "No data for WGCAL",
+      "lce__label": "Gold Stock (assets)",
+      "lce_latest_value": null,
+      "lce_signal": null,
+      "fred_probe": {
+        "fred_status": "HTTP 429",
+        "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+      },
+      "fred_meta": {
+        "meta_status": "HTTP 429",
+        "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+      }
+    },
+    "RESPPNTEPNWW": {
+      "in_lce_output": true,
+      "lce_keys": [
+        "_category",
+        "_label",
+        "_threshold_kind",
+        "_threshold_note",
+        "_units",
+        "available",
+        "error"
+      ],
+      "lce_available": false,
+      "lce_error": "No data for RESPPNTEPNWW",
+      "lce__label": "MEMO: Treasury/Agency/MBS Eligible to Be Pledged",
+      "lce_latest_value": null,
+      "lce_signal": null,
+      "fred_probe": {
+        "fred_status": "HTTP 429",
+        "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+      },
+      "fred_meta": {
+        "meta_status": "OK",
+        "id": "RESPPNTEPNWW",
+        "title": "Collateralization of Currency: Memo Items: U.S. Treasury, Agency Debt, and Mortgage-Backed Securities Eligible to Be Pledged: Wednesday Level",
+        "units": "Mil. of U.S. $",
+        "frequency": "W",
+        "last_updated": "2026-05-28 15:33:05-05",
+        "observation_end": "2026-05-27",
+        "notes": "For questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h41/%). For questions on FRED functionality, please contact us h"
+      }
+    },
+    "WRESBAL": {
+      "in_lce_output": true,
+      "lce_keys": [
+        "_category",
+        "_label",
+        "_threshold_kind",
+        "_threshold_note",
+        "_units",
+        "available",
+        "error"
+      ],
+      "lce_available": false,
+      "lce_error": "No data for WRESBAL",
+      "lce__label": "Bank Reserves (depository institutions)",
+      "lce_latest_value": null,
+      "lce_signal": null,
+      "fred_probe": {
+        "fred_status": "OK",
+        "n_obs_returned": 3,
+        "n_non_null": 3,
+        "latest_date": "2026-05-27",
+        "latest_value": "3066560.0",
+        "first_three": [
+          {
+            "realtime_start": "2026-05-30",
+            "realtime_end": "2026-05-30",
+            "date": "2026-05-27",
+            "value": "3066560.0"
+          },
+          {
+            "realtime_start": "2026-05-30",
+            "realtime_end": "2026-05-30",
+            "date": "2026-05-20",
+            "value": "3129562.0"
+          },
+          {
+            "realtime_start": "2026-05-30",
+            "realtime_end": "2026-05-30",
+            "date": "2026-05-13",
+            "value": "3102810.0"
+          }
+        ]
+      },
+      "fred_meta": {
+        "meta_status": "HTTP 429",
+        "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+      }
+    },
+    "WCURCIR": {
+      "in_lce_output": true,
+      "lce_keys": [
+        "_category",
+        "_label",
+        "_threshold_kind",
+        "_threshold_note",
+        "_units",
+        "available",
+        "error"
+      ],
+      "lce_available": false,
+      "lce_error": "No data for WCURCIR",
+      "lce__label": "Currency in Circulation (liability)",
+      "lce_latest_value": null,
+      "lce_signal": null,
+      "fred_probe": {
+        "fred_status": "HTTP 429",
+        "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+      },
+      "fred_meta": {
+        "meta_status": "HTTP 429",
+        "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+      }
+    },
+    "RRPONTSYD": {
+      "in_lce_output": true,
+      "lce_keys": [
+        "_category",
+        "_label",
+        "_threshold_kind",
+        "_threshold_note",
+        "_units",
+        "available",
+        "error"
+      ],
+      "lce_available": false,
+      "lce_error": "No data for RRPONTSYD",
+      "lce__label": "Overnight Reverse Repo (RRP)",
+      "lce_latest_value": null,
+      "lce_signal": null,
+      "fred_probe": {
+        "fred_status": "HTTP 429",
+        "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+      },
+      "fred_meta": {
+        "meta_status": "OK",
+        "id": "RRPONTSYD",
+        "title": "Overnight Reverse Repurchase Agreements: Treasury Securities Sold by the Federal Reserve in the Temporary Open Market Operations",
+        "units": "Bil. of US $",
+        "frequency": "D",
+        "last_updated": "2026-05-29 13:02:39-05",
+        "observation_end": "2026-05-29",
+        "notes": "This series is constructed as the aggregated daily amount value of the RRP transactions reported by the New York Fed as part of the Temporary Open Market Operations.\n\nTemporary open market operations "
+      }
+    },
+    "WLRRAL": {
+      "in_lce_output": true,
+      "lce_keys": [
+        "_category",
+        "_label",
+        "_threshold_kind",
+        "_threshold_note",
+        "_units",
+        "available",
+        "error"
+      ],
+      "lce_available": false,
+      "lce_error": "No data for WLRRAL",
+      "lce__label": "Reverse Repos with Foreign Officials",
+      "lce_latest_value": null,
+      "lce_signal": null,
+      "fred_probe": {
+        "fred_status": "OK",
+        "n_obs_returned": 3,
+        "n_non_null": 3,
+        "latest_date": "2026-05-27",
+        "latest_value": "300879",
+        "first_three": [
+          {
+            "realtime_start": "2026-05-30",
+            "realtime_end": "2026-05-30",
+            "date": "2026-05-27",
+            "value": "300879"
+          },
+          {
+            "realtime_start": "2026-05-30",
+            "realtime_end": "2026-05-30",
+            "date": "2026-05-20",
+            "value": "342628"
+          },
+          {
+            "realtime_start": "2026-05-30",
+            "realtime_end": "2026-05-30",
+            "date": "2026-05-13",
+            "value": "326347"
+          }
+        ]
+      },
+      "fred_meta": {
+        "meta_status": "HTTP 429",
+        "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+      }
+    }
+  },
+  "finished": "2026-05-30T18:59:48.512881+00:00"
+}
