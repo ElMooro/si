@@ -2126,6 +2126,22 @@
         "equity_history": "data/frontrun-sniffer-history.json",
         "macro_history": "data/macro-frontrun-sniffer-history.json"
       },
+      "page_url": "https://justhodl.ai/alerts.html",
+      "session_flavor": "open"
+    },
+    "alerts-digest-close": {
+      "brief_type": "digest",
+      "title": "Front-Run Alerts Closing Digest",
+      "output_key": "alerts-digest-close",
+      "session_flavor": "close",
+      "read_sources": {
+        "equity_brief": "data/frontrun-sniffer.json",
+        "macro_brief": "data/macro-frontrun-sniffer.json",
+        "equity_state": "data/_alerts/frontrun-sniffer-alert-state.json",
+        "macro_state": "data/_alerts/macro-frontrun-sniffer-alert-state.json",
+        "equity_history": "data/frontrun-sniffer-history.json",
+        "macro_history": "data/macro-frontrun-sniffer-history.json"
+      },
       "page_url": "https://justhodl.ai/alerts.html"
     }
   }

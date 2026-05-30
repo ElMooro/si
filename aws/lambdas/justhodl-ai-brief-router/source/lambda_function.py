@@ -2168,9 +2168,23 @@ def _events_in_last_24h(events_list):
 
 def _format_digest(equity_brief, macro_brief,
                     equity_state, macro_state,
-                    equity_hist, macro_hist):
-    """Build the daily digest Markdown message."""
+                    equity_hist, macro_hist, session="open"):
+    """Build the daily digest Markdown message.
+
+    session: 'open'  → morning brief (09:00 UTC pre-market, forward-looking)
+             'close' → US session debrief (21:00 UTC post-close, retrospective)
+    """
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if session == "close":
+        title_emoji = "🔔"
+        title_text = "DAILY CLOSE DIGEST"
+        time_label = "21:00 UTC · US session debrief"
+        events_window_label = "US session events"
+    else:
+        title_emoji = "📅"
+        title_text = "DAILY OPEN DIGEST"
+        time_label = "09:00 UTC · pre-market"
+        events_window_label = "Last 24h events"
 
     # Current state
     eq_score  = (equity_brief or {}).get("overall_anomaly_score")
@@ -2209,7 +2223,7 @@ def _format_digest(equity_brief, macro_brief,
     mc_stats = (macro_hist  or {}).get("stats_7d") or {}
 
     # ── Build message ──
-    msg = f"📅 *DAILY FRONT-RUN DIGEST* — {today_str} 09:00 UTC\n\n"
+    msg = f"{title_emoji} *{title_text}* — {today_str} {time_label}\n\n"
 
     # Current state
     msg += "📡 *Current state:*\n"
@@ -2236,7 +2250,7 @@ def _format_digest(equity_brief, macro_brief,
     # Yesterday's events
     total_events = len(eq_events_24h) + len(mc_events_24h)
     if total_events:
-        msg += f"🗓 *Last 24h events ({total_events}):*\n"
+        msg += f"🗓 *{events_window_label} ({total_events}):*\n"
         merged = []
         for e in eq_events_24h: merged.append({**e, "_src": "🎯"})
         for e in mc_events_24h: merged.append({**e, "_src": "🏛"})
@@ -2253,7 +2267,7 @@ def _format_digest(equity_brief, macro_brief,
             msg += "\n"
         msg += "\n"
     else:
-        msg += "🗓 *Last 24h events:* none — tape was quiet ✓\n\n"
+        msg += f"🗓 *{events_window_label}:* none — tape was quiet ✓\n\n"
 
     # 7-day trajectory
     msg += "📊 *7-day score trajectory:*\n"
@@ -2288,10 +2302,19 @@ def _format_digest(equity_brief, macro_brief,
 
 def generate_alerts_digest(ctx_id, cfg, episode_ref):
     """Run the daily alerts digest. Reads all 6 data sources, builds the
-    summary message, sends via Telegram, writes an audit log to S3."""
+    summary message, sends via Telegram, writes an audit log to S3.
+
+    session_flavor (from cfg, default 'open'):
+      'open'  → morning 09:00 UTC pre-market brief
+      'close' → 21:00 UTC US-session debrief
+    """
     t0 = time.time()
+    session = (cfg.get("session_flavor") or "open").lower()
+    if session not in ("open", "close"): session = "open"
+
     result = {"context_id": ctx_id, "title": cfg.get("title"),
-              "brief_type": "digest", "output_key": cfg.get("output_key")}
+              "brief_type": "digest", "session": session,
+              "output_key": cfg.get("output_key")}
     try:
         sources = cfg.get("read_sources") or {}
         feeds = {}
@@ -2309,21 +2332,23 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
             equity_brief, macro_brief,
             equity_state, macro_state,
             equity_history, macro_history,
+            session=session,
         )
 
         # Send Telegram (with plain-text fallback)
         ok, info = _telegram_post(msg)
 
-        # Write audit log
+        # Write audit log — separate key per session
         today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         audit = {
             "version": "1.0",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "date": today_str,
+            "session": session,
             "telegram_ok": ok,
             "telegram_info": info,
             "message_chars": len(msg),
-            "message_preview": msg[:1200],
+            "message_preview": msg[:1500],
             "equity_score": (equity_brief or {}).get("overall_anomaly_score"),
             "equity_regime": (equity_brief or {}).get("anomaly_regime"),
             "macro_score": (macro_brief or {}).get("overall_macro_score"),
@@ -2331,9 +2356,14 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
             "n_equity_alerts_today": (equity_state or {}).get("alerts_today", 0),
             "n_macro_alerts_today":  (macro_state  or {}).get("alerts_today", 0),
         }
-        audit_key = f"data/_alerts/digest-{today_str}.json"
+        # Audit key: open keeps legacy 'digest-{date}.json' for backward compat;
+        # close gets 'digest-{date}-close.json'
+        if session == "close":
+            audit_key = f"data/_alerts/digest-{today_str}-close.json"
+        else:
+            audit_key = f"data/_alerts/digest-{today_str}.json"
         s3io.put_json(audit_key, audit, cache_control="no-store")
-        # Also keep a "latest" alias for the cockpit to point to
+        # Latest alias: always points to whichever just ran
         s3io.put_json("data/_alerts/digest-latest.json", audit, cache_control="no-store")
 
         # ────────────────────────────────────────────────────────────
@@ -2362,6 +2392,7 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
             # Compact entry for the index
             entry = {
                 "date":                  today_str,
+                "session":               session,
                 "key":                   audit_key,
                 "generated_at":          audit["generated_at"],
                 "telegram_ok":           audit["telegram_ok"],
@@ -2375,13 +2406,17 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
                 "message_chars":         audit.get("message_chars"),
             }
 
-            # De-dupe: replace any existing entry for this date
-            entries = [e for e in entries if e.get("date") != today_str]
+            # De-dupe by (date, session) — both sessions per day are kept.
+            # Entries without a session field default to "open" (back-compat).
+            def _key(e): return (e.get("date") or "", (e.get("session") or "open"))
+            entries = [e for e in entries if _key(e) != (today_str, session)]
             entries.append(entry)
-            # Newest first
-            entries.sort(key=lambda e: e.get("date") or "", reverse=True)
-            # Cap to 60 (~2 months)
-            entries = entries[:60]
+            # Sort newest first; within same date 'close' comes before 'open'
+            def _rank(e):
+                return (e.get("date") or "", 1 if (e.get("session") or "open") == "close" else 0)
+            entries.sort(key=_rank, reverse=True)
+            # Cap to 120 (~2 months × 2 sessions)
+            entries = entries[:120]
 
             n_extreme = sum(1 for e in entries if e.get("activity_level") == "EXTREME")
             n_active  = sum(1 for e in entries if e.get("activity_level") == "ACTIVE")

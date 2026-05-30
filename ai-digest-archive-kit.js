@@ -50,10 +50,16 @@
     var eqRegime = (entry.equity_regime || "—").toUpperCase();
     var mcRegime = (entry.macro_regime  || "—").toUpperCase();
 
+    var session = (entry.session || "open").toLowerCase();
+    var sessionEmoji = session === "close" ? "🔔" : "📅";
+    var sessionLabel = session === "close" ? "CLOSE" : "OPEN";
+    var sessionColor = session === "close" ? "#fbbf24" : "#22d3ee";
+
     var html = '<div class="jhdg-card ' + act + '" data-key="' + esc(entry.key) + '">' +
                  '<div class="jhdg-card-hdr">' +
                    '<span class="jhdg-card-date">' + esc(entry.date) + '</span>' +
                    '<span class="jhdg-card-dow">' + esc(dow(entry.date)) + '</span>' +
+                   '<span style="font-family:ui-monospace,monospace;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:3px;background:rgba(34,211,238,.10);color:' + sessionColor + ';letter-spacing:0.7px;border:1px solid rgba(34,211,238,.25)">' + sessionEmoji + ' ' + sessionLabel + '</span>' +
                    '<span class="jhdg-card-activity ' + act + '">' + esc(act) + '</span>' +
                    '<div class="jhdg-card-scores">' +
                      '<span class="pill eq">' +
@@ -76,6 +82,7 @@
                    '<div class="jhdg-card-msg" data-loaded="0">loading message…</div>' +
                    '<div class="jhdg-card-meta">' +
                      '<span>generated: ' + esc(entry.generated_at) + '</span>' +
+                     '<span>session: ' + esc(sessionLabel.toLowerCase()) + '</span>' +
                      '<span>telegram: ' + (entry.telegram_ok ? '✓ delivered' : '✗ failed') + '</span>' +
                      '<span>chars: ' + esc(entry.message_chars || '—') + '</span>' +
                    '</div>' +
