@@ -902,9 +902,355 @@ BASE_SYSTEM_FRONTRUN = (
 )
 
 
+# ═════════════════════════════════════════════════════════════════════
+# TELEGRAM ALERTING — convergence-aware, anti-spam, daily-capped
+# ═════════════════════════════════════════════════════════════════════
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID", "")
+ALERT_DAILY_CAP     = 8   # max alerts per sniffer per UTC day
+ALERT_COOLDOWN_MIN  = 60  # min minutes between same-type alerts (regime-transition exempt)
+
+
+def _telegram_post(text, parse_mode="Markdown"):
+    """POST to Telegram. Returns (ok, info_dict). Silently no-op if no token."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return False, {"err": "no_token_or_chat"}
+    api = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": text[:4096],
+        "parse_mode": parse_mode,
+        "disable_web_page_preview": True,
+    }
+    try:
+        req = urllib.request.Request(
+            api, data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            return True, json.loads(r.read().decode())
+    except Exception as e:
+        # Retry without Markdown in case parsing fails
+        try:
+            payload["parse_mode"] = ""
+            req = urllib.request.Request(
+                api, data=json.dumps(payload).encode(),
+                headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=12) as r:
+                return True, json.loads(r.read().decode())
+        except Exception as e2:
+            return False, {"err": str(e2)[:200]}
+
+
+def _alert_state_io(state_key, write=None):
+    """Read or write the alert-state JSON for a sniffer."""
+    full_key = f"data/_alerts/{state_key}.json"
+    if write is not None:
+        s3io.put_json(full_key, write, cache_control="no-store")
+        return write
+    return s3io.get_json(full_key, default={}) or {}
+
+
+def _is_stressed_state(state, calm_values):
+    """Return True if `state` is anything OTHER than one of the calm_values."""
+    if not state: return False
+    s = str(state).upper()
+    return all(s != cv.upper() for cv in calm_values)
+
+
+def _macro_convergence_fingerprint(brief):
+    """Detect the AUCTION + PRIMARY_DEALER + FUNDING_PLUMBING co-stress fingerprint.
+    Returns (fired, details_dict). This is the highest-conviction macro pattern
+    (Aug 2007 / Sep 2019 / Mar 2020 / Mar 2023)."""
+    pillars = brief.get("pillars") or {}
+    auc = pillars.get("auction_tape") or {}
+    pd  = pillars.get("primary_dealer_positioning") or {}
+    fp  = pillars.get("funding_plumbing") or {}
+
+    auc_state = (auc.get("state") or "").upper()
+    pd_state  = (pd.get("state") or "").upper()
+    fp_state  = (fp.get("state") or "").upper()
+
+    # An "stressed" state for each pillar
+    auc_stressed = auc_state in ("STRESSED", "CRISIS")
+    pd_stressed  = pd_state  in ("DURATION_BID", "STRESSED", "DURATION_SHORT")
+    fp_stressed  = fp_state  in ("TIGHT", "STRESS", "CRISIS")
+
+    n_stressed = sum([auc_stressed, pd_stressed, fp_stressed])
+    fired = n_stressed >= 3
+
+    return fired, {
+        "n_pillars_stressed": n_stressed,
+        "auction_tape_state":  auc.get("state"),
+        "auction_stressed":   auc_stressed,
+        "primary_dealer_state":pd.get("state"),
+        "pd_stressed":        pd_stressed,
+        "funding_state":      fp.get("state"),
+        "funding_stressed":   fp_stressed,
+    }
+
+
+def _format_equity_alert(brief, label, page_url, kind, prev_state):
+    """Build the Telegram message for an equity sniffer alert."""
+    score = brief.get("overall_anomaly_score")
+    regime = (brief.get("anomaly_regime") or "NORMAL").upper()
+    headline = brief.get("headline") or ""
+    most_actionable = brief.get("most_actionable_setup") or ""
+    top_setups = brief.get("suspected_setups") or []
+    top = top_setups[0] if top_setups else {}
+    la = brief.get("loudest_anomaly") or {}
+
+    if kind == "REGIME_UP":
+        title = f"🚨 *FRONT-RUN ALERT — REGIME ESCALATION*"
+    elif kind == "REGIME_DOWN":
+        title = f"✅ *FRONT-RUN — Regime de-escalated*"
+    elif kind == "SCORE_JUMP":
+        title = f"📈 *FRONT-RUN — Score jump*"
+    elif kind == "EXTREME":
+        title = f"🔥 *FRONT-RUN — EXTREME REGIME ACTIVE*"
+    else:
+        title = f"🎯 *FRONT-RUN ALERT*"
+
+    prev_score = prev_state.get("last_score")
+    prev_regime = prev_state.get("last_regime")
+    delta_line = ""
+    if prev_score is not None:
+        delta = score - prev_score
+        sign = "+" if delta >= 0 else ""
+        delta_line = f"Score: *{prev_score} → {score}* ({sign}{delta})"
+    else:
+        delta_line = f"Score: *{score}/100*"
+    if prev_regime and prev_regime != regime:
+        delta_line += f"  ({prev_regime} → *{regime}*)"
+    else:
+        delta_line += f"  regime: *{regime}*"
+
+    msg = f"{title}\n\n{delta_line}\n\n"
+    if headline:
+        msg += f"📰 {headline[:240]}\n\n"
+    if top.get("target_asset"):
+        msg += (f"🎯 Top setup: *{top.get('target_asset')}* "
+                f"{top.get('target_direction','')} "
+                f"@ {top.get('probability_pct','?')}% prob "
+                f"({top.get('confidence','?')})\n")
+    if la.get("signal"):
+        msg += f"⚠ Loudest anomaly: {la.get('signal')[:180]}\n\n"
+    if most_actionable:
+        msg += f"⚡ Action: {most_actionable[:280]}\n\n"
+    msg += f"→ {page_url}"
+    return msg
+
+
+def _format_macro_alert(brief, label, page_url, kind, prev_state, conv_fired, conv_detail):
+    """Build the Telegram message for a macro sniffer alert."""
+    score = brief.get("overall_macro_score")
+    regime = (brief.get("macro_regime") or "NORMAL").upper()
+    headline = brief.get("headline") or ""
+    most_actionable = brief.get("most_actionable_macro_trade") or ""
+    setups = brief.get("macro_setups") or []
+    top = setups[0] if setups else {}
+    ts = (top.get("trade_specifics") or {})
+    la = brief.get("loudest_macro_anomaly") or {}
+
+    if conv_fired:
+        title = f"🚨🏛 *MACRO CONVERGENCE FINGERPRINT* — Aug 2007 / Sep 2019 / Mar 2020 / Mar 2023 signature"
+    elif kind == "REGIME_UP":
+        title = f"🚨 *MACRO FRONT-RUN — REGIME ESCALATION*"
+    elif kind == "REGIME_DOWN":
+        title = f"✅ *MACRO FRONT-RUN — Regime de-escalated*"
+    elif kind == "SCORE_JUMP":
+        title = f"📈 *MACRO FRONT-RUN — Score jump*"
+    elif kind == "EXTREME":
+        title = f"🔥 *MACRO FRONT-RUN — EXTREME REGIME ACTIVE*"
+    else:
+        title = f"🏛 *MACRO FRONT-RUN ALERT*"
+
+    prev_score = prev_state.get("last_score")
+    prev_regime = prev_state.get("last_regime")
+    delta_line = ""
+    if prev_score is not None:
+        delta = score - prev_score
+        sign = "+" if delta >= 0 else ""
+        delta_line = f"Score: *{prev_score} → {score}* ({sign}{delta})"
+    else:
+        delta_line = f"Score: *{score}/100*"
+    if prev_regime and prev_regime != regime:
+        delta_line += f"  ({prev_regime} → *{regime}*)"
+    else:
+        delta_line += f"  regime: *{regime}*"
+
+    msg = f"{title}\n\n{delta_line}\n\n"
+
+    if conv_fired:
+        msg += (f"⚠ *Convergence fingerprint*:\n"
+                f"  • Auction tape: `{conv_detail.get('auction_tape_state')}`\n"
+                f"  • Primary dealer: `{conv_detail.get('primary_dealer_state')}`\n"
+                f"  • Funding plumbing: `{conv_detail.get('funding_state')}`\n"
+                f"  → 3/3 pillars stressed simultaneously\n\n")
+
+    if headline:
+        msg += f"📰 {headline[:240]}\n\n"
+
+    if top.get("setup_type") and ts.get("primary_instrument"):
+        msg += (f"🎯 Top trade: *{ts.get('primary_instrument')}* "
+                f"{ts.get('direction','')}\n"
+                f"  entry: `{ts.get('entry_level','—')}`  "
+                f"target: `{ts.get('target_level','—')}`  "
+                f"stop: `{ts.get('stop_level','—')}`\n"
+                f"  size: {ts.get('size_pct_of_portfolio','—')}  "
+                f"horizon: {ts.get('horizon','—')}\n\n")
+
+    if la.get("signal"):
+        msg += f"⚠ Loudest pillar anomaly ({la.get('pillar','?')}): {la.get('signal','')[:180]}\n\n"
+    if most_actionable:
+        msg += f"⚡ Action: {most_actionable[:280]}\n\n"
+    msg += f"→ {page_url}"
+    return msg
+
+
+def _decide_alert_kind(prev_state, new_score, new_regime, conv_fired_now, conv_was_recent):
+    """Return (kind, reason) or (None, reason) if no alert should fire."""
+    prev_regime = (prev_state.get("last_regime") or "").upper()
+    prev_score  = prev_state.get("last_score")
+    last_alert_at = prev_state.get("last_alert_at")
+    alerts_today = prev_state.get("alerts_today", 0)
+    alerts_today_date = prev_state.get("alerts_today_date", "")
+
+    # Reset daily counter
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if alerts_today_date != today_str:
+        alerts_today = 0
+
+    if alerts_today >= ALERT_DAILY_CAP:
+        return None, f"daily_cap_reached ({alerts_today})"
+
+    # Cooldown check (but convergence-fingerprint and regime-transitions bypass)
+    cooldown_ok = True
+    if last_alert_at:
+        try:
+            la_dt = datetime.fromisoformat(last_alert_at.replace("Z","+00:00"))
+            mins_since = (datetime.now(timezone.utc) - la_dt).total_seconds() / 60
+            if mins_since < ALERT_COOLDOWN_MIN:
+                cooldown_ok = False
+        except Exception: pass
+
+    # PRIORITY 1: Convergence fingerprint fires for first time in 4h
+    if conv_fired_now and not conv_was_recent:
+        return "CONVERGENCE", "convergence_first_in_4h"
+
+    # PRIORITY 2: Regime transitions (bypass cooldown)
+    if prev_regime and new_regime != prev_regime:
+        order = {"NORMAL": 0, "ELEVATED": 1, "EXTREME": 2}
+        po = order.get(prev_regime, 0)
+        no = order.get(new_regime, 0)
+        if no > po:
+            return "REGIME_UP", f"{prev_regime}->{new_regime}"
+        elif no < po:
+            return "REGIME_DOWN", f"{prev_regime}->{new_regime}"
+
+    # PRIORITY 3: EXTREME persisting (every cooldown window)
+    if new_regime == "EXTREME" and cooldown_ok:
+        return "EXTREME", "extreme_persisting"
+
+    # PRIORITY 4: Score jump (>= 15 points in either direction) — respect cooldown
+    if prev_score is not None and cooldown_ok:
+        delta = abs(new_score - prev_score)
+        if delta >= 15:
+            return "SCORE_JUMP", f"delta_{delta}"
+
+    return None, ("cooldown" if not cooldown_ok else "no_threshold_met")
+
+
+def _maybe_alert_equity_sniffer(brief, page_url="https://justhodl.ai/frontrun.html"):
+    """Check the equity sniffer state and fire a Telegram alert if needed."""
+    try:
+        state_key = "frontrun-sniffer-alert-state"
+        prev = _alert_state_io(state_key) or {}
+
+        score = brief.get("overall_anomaly_score")
+        regime = (brief.get("anomaly_regime") or "NORMAL").upper()
+        if score is None: return {"ok": False, "reason": "no_score"}
+
+        kind, reason = _decide_alert_kind(prev, score, regime, False, False)
+        if kind is None:
+            return {"ok": False, "reason": reason, "score": score, "regime": regime}
+
+        msg = _format_equity_alert(brief, "Front-Run Sniffer", page_url, kind, prev)
+        ok, info = _telegram_post(msg)
+
+        # Update state
+        today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if prev.get("alerts_today_date") != today_str:
+            prev["alerts_today"] = 0
+        new_state = {
+            "last_regime": regime,
+            "last_score":  score,
+            "last_alert_at": datetime.now(timezone.utc).isoformat(),
+            "last_alert_kind": kind,
+            "last_alert_reason": reason,
+            "alerts_today": (prev.get("alerts_today", 0) + 1),
+            "alerts_today_date": today_str,
+        }
+        _alert_state_io(state_key, write=new_state)
+        return {"ok": ok, "kind": kind, "reason": reason, "telegram": info}
+    except Exception as e:
+        return {"ok": False, "err": str(e)[:300]}
+
+
+def _maybe_alert_macro_sniffer(brief, page_url="https://justhodl.ai/macro-frontrun.html"):
+    """Check the macro sniffer state and fire a Telegram alert if needed,
+    with the convergence-fingerprint priority detection."""
+    try:
+        state_key = "macro-frontrun-sniffer-alert-state"
+        prev = _alert_state_io(state_key) or {}
+
+        score = brief.get("overall_macro_score")
+        regime = (brief.get("macro_regime") or "NORMAL").upper()
+        if score is None: return {"ok": False, "reason": "no_score"}
+
+        # Convergence fingerprint detection
+        conv_fired, conv_detail = _macro_convergence_fingerprint(brief)
+        conv_was_recent = False
+        last_conv_at = prev.get("last_convergence_fingerprint_at")
+        if last_conv_at:
+            try:
+                lc = datetime.fromisoformat(last_conv_at.replace("Z","+00:00"))
+                hrs_since = (datetime.now(timezone.utc) - lc).total_seconds() / 3600
+                conv_was_recent = hrs_since < 4
+            except Exception: pass
+
+        kind, reason = _decide_alert_kind(prev, score, regime, conv_fired, conv_was_recent)
+        if kind is None:
+            return {"ok": False, "reason": reason, "score": score, "regime": regime,
+                    "conv_fired": conv_fired, "conv_detail": conv_detail}
+
+        msg = _format_macro_alert(brief, "Macro Front-Run Sniffer", page_url, kind, prev, conv_fired, conv_detail)
+        ok, info = _telegram_post(msg)
+
+        today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if prev.get("alerts_today_date") != today_str:
+            prev["alerts_today"] = 0
+        new_state = {
+            "last_regime": regime,
+            "last_score":  score,
+            "last_alert_at": datetime.now(timezone.utc).isoformat(),
+            "last_alert_kind": kind,
+            "last_alert_reason": reason,
+            "alerts_today": (prev.get("alerts_today", 0) + 1),
+            "alerts_today_date": today_str,
+            "last_convergence_fingerprint_at": (
+                datetime.now(timezone.utc).isoformat() if conv_fired
+                else prev.get("last_convergence_fingerprint_at")
+            ),
+            "last_convergence_detail": conv_detail if conv_fired else prev.get("last_convergence_detail"),
+        }
+        _alert_state_io(state_key, write=new_state)
+        return {"ok": ok, "kind": kind, "reason": reason,
+                "conv_fired": conv_fired, "telegram": info}
+    except Exception as e:
+        return {"ok": False, "err": str(e)[:300]}
+
+
 def _compact_feed(d, cap=900):
-    """Compact a feed dict to its essential signals for the prompt — drop noise, keep numbers.
-    Covers BOTH equity microstructure and rates/macro/auction signal fields."""
     if not isinstance(d, dict):
         return d
     # High-signal field names common across all flow + macro/rates feeds
@@ -1301,6 +1647,15 @@ def generate_frontrun_brief(ctx_id, cfg, episode_ref):
             # Don't fail the main brief generation on history errors
             print(f"[frontrun] history append failed: {_h_e}")
 
+        # ────────────────────────────────────────────────────────────
+        # Telegram alerting — anti-spam, daily-capped, regime-aware
+        # ────────────────────────────────────────────────────────────
+        try:
+            alert_result = _maybe_alert_equity_sniffer(brief)
+            print(f"[frontrun] alert: {alert_result}")
+        except Exception as _a_e:
+            print(f"[frontrun] alert failed: {_a_e}")
+
         result.update({
             "status": "OK",
             "output_key": output_key,
@@ -1665,6 +2020,15 @@ def generate_macro_frontrun_brief(ctx_id, cfg, episode_ref):
             s3io.put_json(hist_key, history_out, cache_control="public, max-age=300")
         except Exception as _h_e:
             print(f"[macro_frontrun] history append failed: {_h_e}")
+
+        # ────────────────────────────────────────────────────────────
+        # Telegram alerting — convergence-fingerprint-aware
+        # ────────────────────────────────────────────────────────────
+        try:
+            alert_result = _maybe_alert_macro_sniffer(brief)
+            print(f"[macro_frontrun] alert: {alert_result}")
+        except Exception as _a_e:
+            print(f"[macro_frontrun] alert failed: {_a_e}")
 
         result.update({
             "status": "OK",
