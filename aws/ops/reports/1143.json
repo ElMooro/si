@@ -1,0 +1,52 @@
+{
+  "started": "2026-05-30T23:32:04.635686+00:00",
+  "registry": {
+    "n_contexts": 35,
+    "digest_present": true
+  },
+  "redeploy": "OK",
+  "eb_schedule": {
+    "rule": "created",
+    "permission": "added",
+    "rule_arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-alerts-digest-daily"
+  },
+  "test_invoke": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 1.22,
+    "results": [
+      {
+        "context_id": "alerts-digest",
+        "title": "Front-Run Alerts Daily Digest",
+        "brief_type": "digest",
+        "output_key": "alerts-digest",
+        "status": "OK",
+        "telegram_ok": true,
+        "message_chars": 785,
+        "audit_key": "data/_alerts/digest-2026-05-30.json",
+        "duration_s": 1.1
+      }
+    ]
+  },
+  "test_invoke_log": "START RequestId: 8780dd8f-27be-45d9-a0c5-36c9ea606ee3 Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['alerts-digest']\n[ai-brief-router] alerts-digest: OK 1.1s \n[ai-brief-router] done: 1/1 OK in 1.22s\nEND RequestId: 8780dd8f-27be-45d9-a0c5-36c9ea606ee3\nREPORT RequestId: 8780dd8f-27be-45d9-a0c5-36c9ea606ee3\tDuration: 1224.21 ms\tBilled Duration: 1757 ms\tMemory Size: 1024 MB\tMax Memory Used: 96 MB\tInit Duration: 532.25 ms\t\nXRAY TraceId: 1-6a1b737c-79b081c466ac2ea92320381b\tSegmentId: 6292ff4007b66dd7\tSampled: true\t\n",
+  "digest_audit": {
+    "date": "2026-05-30",
+    "telegram_ok": true,
+    "message_chars": 785,
+    "equity_score": 28,
+    "equity_regime": "NORMAL",
+    "macro_score": 42,
+    "macro_regime": "NORMAL",
+    "n_equity_alerts_today": 0,
+    "n_macro_alerts_today": 0,
+    "message_preview": "\ud83d\udcc5 *DAILY FRONT-RUN DIGEST* \u2014 2026-05-30 09:00 UTC\n\n\ud83d\udce1 *Current state:*\n  \ud83c\udfaf Equity:  score *28* \u00b7 regime *NORMAL* \u00b7 last alert never \u00b7 0/8 today\n  \ud83c\udfdb Macro:   score *42* \u00b7 regime *NORMAL* \u00b7 last alert never \u00b7 0/8 today\n\n\u2b50 *Convergence fingerprints:*\n  \ud83c\udfaf Equity:  \u2717 GEX  \u2713 OptFlow  \u2713 Skew/Vol  \u2717 CFTC/Short  *(2/4)*\n  \ud83c\udfdb Macro:   `CALM` auction \u00b7 `NEUTRAL` dealer \u00b7 `HEALED` funding  *(0/3)*\n\n\ud83d\uddd3 *Last 24h events:* none \u2014 tape was quiet \u2713\n\n\ud83d\udcca *7-day score trajectory:*\n  \ud83c\udfaf Equity:  mean *38.5*, range *28-42*, 8 cycles \u00b7 0 extreme, 6 elevated\n  \ud83c\udfdb Macro:   mean *42.0*, range *42-42*, 2 cycles \u00b7 0 extreme, 0 elevated\n\n\ud83c\udfaf *Most targeted (last 7d):*\n  \ud83c\udfaf Equity:  `PEP`\u00d73, `AMD`\u00d71, `PEP (PepsiCo)`\u00d71, `AMZN`\u00d71, `SPY / Broad Equity Market`\u00d71\n  \ud83c\udfdb Macro:   `TLT`\u00d72\n\n\u2192 https://justhodl.ai/alerts.html"
+  },
+  "eb_verify": {
+    "state": "ENABLED",
+    "schedule": "cron(0 9 * * ? *)",
+    "arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-alerts-digest-daily",
+    "n_targets": 1,
+    "target_input": "{\"contexts\": [\"alerts-digest\"]}"
+  },
+  "finished": "2026-05-30T23:32:16.866308+00:00"
+}
