@@ -1,0 +1,129 @@
+{
+  "started": "2026-05-30T20:12:34.310961+00:00",
+  "registry_uploaded": {
+    "key": "config/ai-brief-contexts.json",
+    "n_contexts": 6,
+    "contexts": [
+      "dollar-decisive-call",
+      "eurodollar-decisive-call",
+      "lce-decisive-call",
+      "systemic-stress-decisive-call",
+      "vix-curve-decisive-call",
+      "yield-curve-decisive-call"
+    ]
+  },
+  "env_pull": "OK (key 108 chars)",
+  "deploy": "SYNCED",
+  "manifest": "ADDED to 4hourly (now 16 jobs)",
+  "invoke_status": 200,
+  "invoke_body": {
+    "duration_s": 48.69,
+    "n_contexts": 6,
+    "n_ok": 1,
+    "results": [
+      {
+        "context_id": "lce-decisive-call",
+        "title": "Liquidity & Credit \u2014 Decisive Call",
+        "output_key": "lce-decisive-call",
+        "status": "ERR_CLAUDE",
+        "err": "parse: Expecting property name enclosed in double quotes: line 283 column 30 (char 15103) head={\n  \"regime\": \"RISK_ON\",\n  \"confidence\": \"MEDIUM\",\n  \"one_liner\": \"Credit complacency at extremes (HY 272bps, IG 73bps) masks liquidity drain; equity vol benign but regime fragile.\",\n  \"thesis\": \"Cred",
+        "prompt_len": 9775
+      },
+      {
+        "context_id": "vix-curve-decisive-call",
+        "title": "VIX Curve \u2014 Decisive Call",
+        "output_key": "data/vix-curve-decisive-call.json",
+        "status": "OK",
+        "regime": "RISK_ON",
+        "confidence": "MEDIUM",
+        "one_liner": "Steep contango + low VIX mask elevated cross-asset stress; vol-carry regime fragile if realized vol spikes.",
+        "n_predictions": 7,
+        "n_trades": 4,
+        "n_tripwires": 5,
+        "duration_s": 44.42
+      },
+      {
+        "context_id": "yield-curve-decisive-call",
+        "title": "Yield Curve \u2014 Decisive Call",
+        "output_key": "yield-curve-decisive-call",
+        "status": "ERR_CLAUDE",
+        "err": "parse: Unterminated string starting at: line 278 column 33 (char 16254) head={\n  \"regime\": \"NEUTRAL\",\n  \"confidence\": \"LOW\",\n  \"one_liner\": \"Curve flattened to COVID-crash levels; real yields at GFC-bottom extremes signal regime confusion\u2014cross-asset divergence demands caution",
+        "prompt_len": 7460
+      },
+      {
+        "context_id": "systemic-stress-decisive-call",
+        "title": "Systemic Stress \u2014 Decisive Call",
+        "output_key": "systemic-stress-decisive-call",
+        "status": "ERR_CLAUDE",
+        "err": "parse: Unterminated string starting at: line 278 column 33 (char 15367) head={\n  \"regime\": \"NEUTRAL\",\n  \"confidence\": \"MEDIUM\",\n  \"one_liner\": \"Euro systemic stress benign (6th pctile); peripheral sovereign fragmentation rising\u2014watch France/Italy divergence.\",\n  \"thesis\": \"Eur",
+        "prompt_len": 9783
+      },
+      {
+        "context_id": "dollar-decisive-call",
+        "title": "Dollar (DXY) \u2014 Decisive Call",
+        "output_key": "dollar-decisive-call",
+        "status": "ERR_CLAUDE",
+        "err": "parse: Unterminated string starting at: line 288 column 24 (char 15782) head={\n  \"regime\": \"RISK_ON\",\n  \"confidence\": \"MEDIUM\",\n  \"one_liner\": \"Dollar in modest dump regime; liquidity flood + real-yield uptick create conflicting signals. Risk-on bias, but not aggressive.\",\n  \"",
+        "prompt_len": 9560
+      },
+      {
+        "context_id": "eurodollar-decisive-call",
+        "title": "Eurodollar / Funding Stress \u2014 Decisive Call",
+        "output_key": "eurodollar-decisive-call",
+        "status": "ERR_CLAUDE",
+        "err": "parse: Unterminated string starting at: line 275 column 16 (char 16590) head={\n  \"regime\": \"RISK_ON\",\n  \"confidence\": \"MEDIUM\",\n  \"one_liner\": \"Abundant dollar liquidity masks structural tightness; dollar strength at 81.4th pctile signals funding stress ahead.\",\n  \"thesis\": \"T",
+        "prompt_len": 6978
+      }
+    ]
+  },
+  "invoke_fn_err": null,
+  "log_tail": "START RequestId: 69ecd60c-1b36-4833-8a03-47b4519152eb Version: $LATEST\n[ai-brief-router] running 6 contexts in parallel: ['yield-curve-decisive-call', 'vix-curve-decisive-call', 'dollar-decisive-call', 'eurodollar-decisive-call', 'lce-decisive-call', 'systemic-stress-decisive-call']\n[ai-brief-router] lce-decisive-call: ERR_CLAUDE ?s \n[ai-brief-router] vix-curve-decisive-call: OK 44.42s Steep contango + low VIX mask elevated cross-asset stress; vol-carry regime fragile if rea\n[ai-brief-router] yield-curve-decisive-call: ERR_CLAUDE ?s \n[ai-brief-router] systemic-stress-decisive-call: ERR_CLAUDE ?s \n[ai-brief-router] dollar-decisive-call: ERR_CLAUDE ?s \n[ai-brief-router] eurodollar-decisive-call: ERR_CLAUDE ?s \n[ai-brief-router] done: 1/6 OK in 48.69s\nEND RequestId: 69ecd60c-1b36-4833-8a03-47b4519152eb\nREPORT RequestId: 69ecd60c-1b36-4833-8a03-47b4519152eb\tDuration: 48688.80 ms\tBilled Duration: 49217 ms\tMemory Size: 1024 MB\tMax Memory Used: 105 MB\tInit Duration: 528.13 ms\t\nXRAY TraceId: 1-6a1b44c2-56fdf063149f4980173453ad\tSegmentId: 6f30d633e1886dca\tSampled: true\t\n",
+  "verify": [
+    {
+      "context": "dollar-decisive-call",
+      "output_key": "data/dollar-decisive-call.json",
+      "status": "NOT_WRITTEN"
+    },
+    {
+      "context": "eurodollar-decisive-call",
+      "output_key": "data/eurodollar-decisive-call.json",
+      "status": "NOT_WRITTEN"
+    },
+    {
+      "context": "lce-decisive-call",
+      "output_key": "data/lce-decisive-call.json",
+      "status": "NOT_WRITTEN"
+    },
+    {
+      "context": "systemic-stress-decisive-call",
+      "output_key": "data/systemic-stress-decisive-call.json",
+      "status": "NOT_WRITTEN"
+    },
+    {
+      "context": "vix-curve-decisive-call",
+      "output_key": "data/vix-curve-decisive-call.json",
+      "regime": "RISK_ON",
+      "confidence": "MEDIUM",
+      "one_liner": "Steep contango + low VIX mask elevated cross-asset stress; vol-carry regime fragile if realized vol spikes.",
+      "n_predictions": 7,
+      "n_trades": 4,
+      "n_tripwires": 5,
+      "generated_at": "2026-05-30T20:13:35.411083+00:00",
+      "btc_pred": {
+        "dir": "UPSIDE",
+        "range": "8% to 22%",
+        "horizon_wk": 12,
+        "prob": 55,
+        "analog": "2024-Q1 (post-ATH consolidation, pre-halving rally)"
+      },
+      "status": "OK"
+    },
+    {
+      "context": "yield-curve-decisive-call",
+      "output_key": "data/yield-curve-decisive-call.json",
+      "status": "NOT_WRITTEN"
+    }
+  ],
+  "n_briefs_written": 1,
+  "finished": "2026-05-30T20:13:43.335513+00:00"
+}
