@@ -1,0 +1,169 @@
+{
+  "started": "2026-05-31T11:15:51.094171+00:00",
+  "universe.json": {
+    "size": 445340,
+    "modified": "2026-05-31 08:00:10+00:00",
+    "preview": "{\"schema_version\": 3, \"method\": \"universe_builder_v3_multicap\", \"generated_at\": \"2026-05-31T08:00:09+00:00\", \"duration_s\": 1.1, \"stats\": {\"total_stocks\": 1830, \"by_cap_bucket\": {\"nano\": 261, \"micro\": 320, \"small\": 365, \"mid\": 418, \"large\": 410, \"mega\": 56, \"unknown\": 0}, \"by_sector_top_10\": {\"Healthcare\": 337, \"Financial Services\": 323, \"Technology\": 293, \"Industrials\": 251, \"Consumer Cyclical\": 156, \"Real Estate\": 110, \"Energy\": 101, \"Communication Services\": 67, \"Consumer Defensive\": 66, \"Utilities\": 63}, \"n_curated_seed_added\": 29}, \"cap_buckets\": [{\"name\": \"nano\", \"low\": 5000000, \"high\": 50000000}, {\"name\": \"micro\", \"low\": 50000000, \"high\": 300000000}, {\"name\": \"small\", \"low\": 300000000, \"high\": 2000000000}, {\"name\": \"mid\", \"low\": 2000000000, \"high\": 10000000000}, {\"name\": \"large\", \"low\": 10000000000, \"high\": 200000000000}, {\"name\": \"mega\", \"low\": 200000000000, \"high\": 100000000000000}], \"stocks\": [{\"symbol\": \"NVDA\", \"name\": \"NVIDIA Corporation\", \"sector\": \"Technology\", \"industry\": \"Semiconductors\", \"exchange\": \"NASDAQ Global Select\", \"market_cap\": 5114021940000, \"price\": 211.14, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"GOOGL\", \"name\": \"Alphabet Inc.\", \"sector\": \"Communication Services\", \"industry\": \"Internet Content & Information\", \"exchange\": \"NASDAQ Global Select\", \"market_cap\": 4600162967240, \"price\": 380.34, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"AAPL\", \"name\": \"Apple Inc.\", \"sector\": \"Technology\", \"industry\": \"Consumer Electronics\", \"exchange\": \"NASDAQ Global Select\", \"market_cap\": 4583336313360, \"price\": 312.06, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"GOOG\", \"name\": \"Alphabet Inc.\", \"sector\": \"Communication Services\", \"industry\": \"Internet Content & Information\", \"exchange\": \"NASDAQ Global Select\", \"market_cap\": 4552872024394, \"price\": 376.43, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"MSFT\", \"name\": \"Microsoft Corporation\", \"sector\": \"Technology\", \"industry\": \"Software - Infrastructure\", \"exchange\": \"NASDAQ Global Select\", \"market_cap\": 3344576323200, \"price\": 450.24, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"AMZN\", \"name\": \"Amazon.com, Inc.\", \"sector\": \"Consumer Cyclical\", \"industry\": \"Specialty Retail\", \"exchange\": \"NASDAQ Global Select\", \"market_cap\": 2911301544000, \"price\": 270.64, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"AVGO\", \"name\": \"Broadcom Inc.\", \"sector\": \"Technology\", \"industry\": \"Semiconductors\", \"exchange\": \"NASDAQ Global Select\", \"market_cap\": 2115308515900, \"price\": 446.77, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"TSLA\", \"name\": \"Tesla, Inc.\", \"sector\": \"Consumer Cyclical\", \"industry\": \"Auto - Manufacturers\", \"exchange\": \"NASDAQ Global Select\", \"market_cap\": 1636705218800, \"price\": 435.79, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"META\", \"name\": \"Meta Platforms, Inc.\", \"sector\": \"Communication Services\", \"industry\": \"Internet Content & Information\", \"exchange\": \"NASDAQ Global Select\", \"market_cap\": 1605578129073, \"price\": 632.51, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"MU\", \"name\": \"Micron Technology, Inc.\", \"sector\": \"Technology\", \"industry\": \"Semiconductors\", \"exchange\": \"NASDAQ Global Select\", \"market_cap\": 1095025830000, \"price\": 971, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"LLY\", \"name\": \"Eli Lilly and Company\", \"sector\": \"Healthcare\", \"industry\": \"Drug Manufacturers - General\", \"exchange\": \"New York Stock Exchange\", \"market_cap\": 1041038171040, \"price\": 1105.44, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"BRK-B\", \"name\": \"Berkshire Hathaway Inc.\", \"sector\": \"Financial Services\", \"industry\": \"Insurance - Diversified\", \"exchange\": \"New York Stock Exchange\", \"market_cap\": 1023362458546, \"price\": 474.47, \"cap_bucket\": \"mega\", \"source\": \"screener\"}, {\"symbol\": \"BRK-A\", \"name\": \"Berkshire Hathaway Inc.\", \"sector\": \"Financial Services\", \"industry\": \"Insurance - Diversified\", \"exchange\": \"New York Stock Exchange\", \"market_cap\": 10",
+    "parsed_keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "duration_s",
+      "stats",
+      "cap_buckets",
+      "stocks"
+    ]
+  },
+  "master-ranker.json": {
+    "size": 68519,
+    "modified": "2026-05-31 11:00:33+00:00",
+    "preview": "{\n  \"schema_version\": \"1.0\",\n  \"method\": \"master_signal_ranker_v1\",\n  \"as_of\": \"2026-05-31T11:00:32+00:00\",\n  \"regime_context\": {\n    \"regime\": \"MUDDLE\",\n    \"regime_color\": \"yellow\",\n    \"composite_z\": 0,\n    \"coverage_pct\": 0,\n    \"spy_fwd_6m\": \"+5.3%\",\n    \"spy_fwd_12m\": \"+12.7%\",\n    \"defcon_level\": 3,\n    \"defcon_name\": \"ELEVATED\",\n    \"crisis_trend\": \"stable\",\n    \"leading_markets_signal\": \"TOP_WARNING\",\n    \"flashing_buckets\": [\n      \"commodity_cycle\"\n    ],\n    \"capitulation_signal\": null,\n    \"risk_posture\": \"CAUTIOUS \\u2014 trim leverage; quality over speculative names\"\n  },\n  \"n_tickers_total\": 223,\n  \"n_macro_signals\": 9,\n  \"alerts\": {\n    \"n_tier_3_plus_systems\": 38,\n    \"n_tier_5_plus_systems\": 3,\n    \"n_extreme_macro\": 3,\n    \"calibration_active\": false\n  },\n  \"top_tickers\": [\n    {\n      \"ticker\": \"MU\",\n      \"score\": 146.9,\n      \"n_systems\": 4,\n      \"systems\": [\n        \"compound\",\n        \"eps_velocity\",\n        \"pead\",\n        \"revenue_accel\"\n      ],\n      \"contributions\": [\n        {\n          \"system\": \"compound\",\n          \"raw_score\": 1138.2,\n          \"normalized\": 100,\n          \"weight\": 1.0,\n          \"contribution\": 100.0\n        },\n        {\n          \"system\": \"eps_velocity\",\n          \"raw_score\": 85.0,\n          \"normalized\": 85.0,\n          \"weight\": 1.0,\n          \"contribution\": 85.0\n        },\n        {\n          \"system\": \"pead\",\n          \"raw_score\": 100,\n          \"normalized\": 100,\n          \"weight\": 1.0,\n          \"contribution\": 100.0\n        },\n        {\n          \"system\": \"revenue_accel\",\n          \"raw_score\": 93.0,\n          \"normalized\": 93.0,\n          \"weight\": 1.0,\n          \"contribution\": 93.0\n        }\n      ],\n      \"rationale\": \"4 systems agree (compound=146.9) [compound, eps_velocity, pead, revenue_accel] \\u00b7 PEAD drift +165%\",\n      \"details\": {\n        \"compound\": {\n          \"score\": 1138.2,\n          \"n_systems\": 5,\n          \"systems\": [\n            \"eps_velocity\",\n            \"momentum\",\n            \"nobrainers\",\n            \"pead\",\n            \"rev_accel\"\n          ],\n          \"details\": {\n            \"nobrainers\": {\n              \"theme\": \"SMH\",\n              \"tier\": 2,\n              \"flag\": \"TIER_B_HIGH_CONVICTION\",\n              \"name\": \"Micron Technology, Inc.\"\n            },\n            \"eps_velocity\": {\n              \"flag\": \"HIGH_VELOCITY_TIER_B\",\n              \"fy2_lift_pct\": 72.6,\n              \"fwd_rev_growth_pct\": 64.4,\n              \"company\": \"Micron Technology, Inc.\"\n            },\n            \"momentum\": {\n              \"tier\": \"MARGINAL\",\n              \"flags\": [\n                \"AT_60D_HIGH\",\n                \"RS_20D_+82\",\n                \"RS_60D_+132\",\n                \"PARABOLIC_DISCOUNT\"\n              ],\n              \"ret_60d\": 142.3,\n              \"ret_20d\": 87.8,\n              \"vol_ratio\": 1.08,\n              \"rs_vs_spy_20d\": 82.5\n            },\n            \"rev_accel\": {\n              \"tier\": \"TIER_A_ACCELERATING\",\n              \"score\": 93.0,\n        ",
+    "parsed_keys": [
+      "schema_version",
+      "method",
+      "as_of",
+      "regime_context",
+      "n_tickers_total",
+      "n_macro_signals",
+      "alerts",
+      "top_tickers",
+      "top_macro",
+      "feed_health",
+      "calibration_weights",
+      "duration_s"
+    ]
+  },
+  "conviction.json": {
+    "size": 7444,
+    "modified": "2026-05-31 09:00:37+00:00",
+    "preview": "{\"schema_version\": \"1.0\", \"method\": \"skill_weighted_decorrelated_conviction_synthesis\", \"generated_at\": \"2026-05-31T09:00:35.385723+00:00\", \"elapsed_s\": 0.86, \"book_posture\": \"MILDLY RISK-OFF\", \"book_net_signal\": -0.38, \"headline_call\": {\"subject\": \"US equity \\u2014 value tilt\", \"direction\": \"RISK-OFF / DEFENSIVE\", \"conviction\": 45, \"confidence\": \"MODERATE\"}, \"n_setups\": 6, \"n_actionable\": 1, \"setups\": [{\"subject\": \"US equity \\u2014 value tilt\", \"direction\": \"RISK-OFF / DEFENSIVE\", \"conviction\": 45, \"confidence\": \"MODERATE\", \"net_signal\": -1.55, \"n_engines\": 3, \"corroboration_capped\": true, \"n_agree\": 3, \"n_disagree\": 0, \"agreement_pct\": 100, \"n_families\": 1, \"thesis\": \"3 engine(s) across 1 independent family -> risk-off. 0 bargains vs 95 expensive/avoid (S&P 500 scan); 2 undervalued vs 21 overvalued (DCF); 72 cheap vs 103 rich on own multiple history. Conviction capped \\u2014 limited cross-confirmation; needs agreement from independent engine families to rate higher.\", \"invalidation\": \"Flips if net signal crosses neutral \\u2014 specifically if the DCF / multiple scans flip to net-rich.\", \"contributing_engines\": [{\"engine\": \"Opportunity Engine\", \"family\": \"equity-value\", \"signal\": -2, \"signal_label\": \"STRONG RISK-OFF\", \"skill_weight\": 1.0, \"skill_calibrated\": false, \"read\": \"0 bargains vs 95 expensive/avoid (S&P 500 scan)\"}, {\"engine\": \"Fundamentals X-Ray\", \"family\": \"equity-value\", \"signal\": -1, \"signal_label\": \"RISK-OFF\", \"skill_weight\": 1.0, \"skill_calibrated\": false, \"read\": \"2 undervalued vs 21 overvalued (DCF)\"}, {\"engine\": \"Mean Reversion\", \"family\": \"equity-value\", \"signal\": -1, \"signal_label\": \"RISK-OFF\", \"skill_weight\": 1.0, \"skill_calibrated\": false, \"read\": \"72 cheap vs 103 rich on own multiple history\"}], \"rank\": 1}, {\"subject\": \"US macro / housing cycle\", \"direction\": \"RISK-OFF / DEFENSIVE\", \"conviction\": 35, \"confidence\": \"LOW\", \"net_signal\": -1.0, \"n_engines\": 1, \"corroboration_capped\": true, \"n_agree\": 1, \"n_disagree\": 0, \"agreement_pct\": 50, \"n_families\": 1, \"thesis\": \"1 engine(s) across 1 independent family -> risk-off. Housing cycle SLOWING. Conviction capped \\u2014 limited cross-confirmation; needs agreement from independent engine families to rate higher.\", \"invalidation\": \"Flips if net signal crosses neutral \\u2014 specifically if the housing regime flips to CONTRACTION.\", \"contributing_engines\": [{\"engine\": \"Housing Cycle\", \"family\": \"macro-fundamental\", \"signal\": -1, \"signal_label\": \"RISK-OFF\", \"skill_weight\": 1.0, \"skill_calibrated\": false, \"read\": \"Housing cycle SLOWING\"}], \"rank\": 2}, {\"subject\": \"US equity \\u2014 positioning\", \"direction\": \"RISK-ON / LONG\", \"conviction\": 35, \"confidence\": \"LOW\", \"net_signal\": 1.0, \"n_engines\": 1, \"corroboration_capped\": true, \"n_agree\": 1, \"n_disagree\": 0, \"agreement_pct\": 50, \"n_families\": 1, \"thesis\": \"1 engine(s) across 1 independent family -> risk-on. 3 building short pressure, 6 covering. Conviction capped \\u2014 limited cross-confirmation; needs agreement from independent engine families to rate higher.\", \"invalidation\": \"Flips if net signal crosses neutral \\u2014 specifically if short pressure flips from covering back to building.\", \"contributing_engines\": [{\"engine\": \"Short Pressure\", \"family\": \"positioning\", \"signal\": 1, \"signal_label\": \"RISK-ON\", \"skill_weight\": 1.0, \"skill_calibrated\": false, \"read\": \"3 building short pressure, 6 covering\"}], \"rank\": 3}, {\"subject\": \"Crypto\", \"direction\": \"RISK-ON / LONG\", \"conviction\": 35, \"confidence\": \"LOW\", \"net_signal\": 2.0, \"n_engines\": 1, \"corroboration_capped\": true, \"n_agree\": 1, \"n_disagree\": 0, \"agreement_pct\": 50, \"n_families\": 1, \"thesis\": \"1 engine(s) across 1 independent family -> risk-on. Crypto RISK-ON ROTATION (81.9% breadth). Conviction capped \\u2014 limited cross-confirmation; needs agreement from independent engine families to rate higher.\", \"invalidation\": \"Flips if net signal crosses neutral \\u2014 specifically if crypto narratives flip to RISK-OFF.\", \"contributing_engines\": [{\"engine\": \"Crypto Nar",
+    "parsed_keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "book_posture",
+      "book_net_signal",
+      "headline_call",
+      "n_setups",
+      "n_actionable",
+      "setups",
+      "single_names",
+      "n_engines",
+      "n_live",
+      "n_stale",
+      "skill_weighting",
+      "note"
+    ]
+  },
+  "signal-scorecard.json": {
+    "size": 24088,
+    "modified": "2026-05-31 11:00:36+00:00",
+    "preview": "{\"schema_version\": \"2.1\", \"method\": \"signal_scorecard_wilson_lb_scored_only\", \"generated_at\": \"2026-05-31T11:00:35.595113+00:00\", \"elapsed_s\": 18.3, \"n_outcomes_scanned\": 18622, \"n_outcomes_scored\": 10081, \"n_outcomes_neutral\": 4859, \"n_outcomes_legacy\": 3335, \"n_outcomes_unresolved\": 347, \"n_signals_tracked\": 47, \"n_signals_graded\": 33, \"n_promoted\": 10, \"n_deprecated\": 18, \"n_insufficient\": 14, \"avg_graded_wilson_lb\": 0.379, \"promoted_signals\": [\"carry_risk\", \"ml_risk\", \"macro_composite_z\", \"plumbing_stress\", \"momentum_top_pick\", \"eurodollar_stress\", \"crisis_dfii10_vs_gld\", \"momentum_spy\", \"screener_top_pick\", \"earnings_pead\"], \"deprecated_signals\": [\"correlation_break\", \"divergence_extreme\", \"yc_regime\", \"momentum_gld\", \"crisis_broad_dollar_vs_eem\", \"crypto_risk_score\", \"corr_break_composite_vs_spy\", \"crisis_sofr_iorb\", \"corr_break_top_pair\", \"crisis_broad_dollar_vs_spy\", \"crisis_rate_diff_jpy_3m\", \"corr_break_composite_vs_vxx\", \"crisis_rate_diff_eur_3m\", \"crisis_obfr_iorb\", \"edge_regime\", \"market_phase\", \"crisis_dfii10_vs_spy\", \"sector_breadth\"], \"data_quality_flags\": [{\"signal_type\": \"carry_risk\", \"n_total\": 372, \"n_legacy\": 183, \"n_unresolved\": 31, \"n_scored\": 158, \"note\": \"mostly legacy \\u2014 pre-baseline backfill\"}, {\"signal_type\": \"ml_risk\", \"n_total\": 702, \"n_legacy\": 336, \"n_unresolved\": 34, \"n_scored\": 92, \"note\": \"mostly legacy \\u2014 pre-baseline backfill\"}, {\"signal_type\": \"momentum_tlt\", \"n_total\": 84, \"n_legacy\": 79, \"n_unresolved\": 0, \"n_scored\": 5, \"note\": \"mostly legacy \\u2014 pre-baseline backfill\"}, {\"signal_type\": \"cot_extreme\", \"n_total\": 104, \"n_legacy\": 0, \"n_unresolved\": 104, \"n_scored\": 0, \"note\": \"outcome-checker cannot resolve a realised move\"}, {\"signal_type\": \"market_phase\", \"n_total\": 454, \"n_legacy\": 183, \"n_unresolved\": 92, \"n_scored\": 179, \"note\": \"mostly legacy \\u2014 pre-baseline backfill\"}], \"scorecard\": [{\"signal_type\": \"carry_risk\", \"n_total\": 372, \"n_scored\": 158, \"n_neutral\": 0, \"n_legacy\": 183, \"n_unresolved\": 31, \"hits\": 158, \"hit_rate\": 1.0, \"wilson_lb\": 0.976, \"edge_vs_coinflip_pct\": 47.6, \"avg_return_pct\": 4.66, \"stored_flag_agreement\": 0.987, \"grade\": \"A\", \"status\": \"PROMOTED\", \"performance_multiplier\": 1.25, \"by_window\": {\"day_14\": {\"n\": 96, \"hit_rate\": 1.0, \"wilson_lb\": 0.962}, \"day_30\": {\"n\": 62, \"hit_rate\": 1.0, \"wilson_lb\": 0.942}}}, {\"signal_type\": \"ml_risk\", \"n_total\": 702, \"n_scored\": 92, \"n_neutral\": 240, \"n_legacy\": 336, \"n_unresolved\": 34, \"hits\": 92, \"hit_rate\": 1.0, \"wilson_lb\": 0.96, \"edge_vs_coinflip_pct\": 46.0, \"avg_return_pct\": 6.74, \"stored_flag_agreement\": 1.0, \"grade\": \"A\", \"status\": \"PROMOTED\", \"performance_multiplier\": 1.25, \"by_window\": {\"day_30\": {\"n\": 59, \"hit_rate\": 1.0, \"wilson_lb\": 0.939}, \"day_14\": {\"n\": 29, \"hit_rate\": 1.0, \"wilson_lb\": 0.883}, \"day_7\": {\"n\": 4, \"hit_rate\": 1.0, \"wilson_lb\": 0.51}}}, {\"signal_type\": \"macro_composite_z\", \"n_total\": 114, \"n_scored\": 114, \"n_neutral\": 0, \"n_legacy\": 0, \"n_unresolved\": 0, \"hits\": 107, \"hit_rate\": 0.939, \"wilson_lb\": 0.879",
+    "parsed_keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "n_outcomes_scanned",
+      "n_outcomes_scored",
+      "n_outcomes_neutral",
+      "n_outcomes_legacy",
+      "n_outcomes_unresolved",
+      "n_signals_tracked",
+      "n_signals_graded",
+      "n_promoted",
+      "n_deprecated",
+      "n_insufficient",
+      "avg_graded_wilson_lb",
+      "promoted_signals",
+      "deprecated_signals",
+      "data_quality_flags",
+      "scorecard",
+      "thresholds",
+      "interpretation"
+    ]
+  },
+  "miss-summary.json": {
+    "size": 596,
+    "modified": "2026-05-31 03:17:23+00:00",
+    "preview": "{\"window_days\":30,\"generated_at\":\"2026-05-31T03:17:22.143857+00:00\",\"totals\":{\"wrong_signal_type\":200},\"near_misses_by_signal\":{},\"top_recurring_tickers\":{\"STG\":1,\"PRFX\":1,\"REPL\":1,\"OLOX\":1,\"ASTC\":1,\"DLLL\":1,\"OKTG\":1,\"VCIG\":1,\"CMND\":1,\"IOTR\":1,\"SPCE\":1,\"SPPL\":1,\"PD\":1,\"DELL\":1,\"GITS\":1,\"ASTY\":1,\"OKTA\":1,\"MX\":1,\"ASTX\":1,\"ASTN\":1,\"NOWL\":1,\"ADVB\":1,\"NCT\":1,\"CUPR\":1,\"IBX\":1,\"PIII\":1,\"CHA\":1,\"AKTX\":1,\"AEMD\":1,\"CODX\":1,\"SMCZ\":1,\"SMCL\":1,\"SCLX\":1,\"OCS\":1,\"SMCX\":1,\"HOOX\":1,\"HODU\":1,\"HOOZ\":1,\"AXTX\":1,\"NTAP\":1,\"AXTU\":1,\"HOOG\":1,\"ROBN\":1,\"TSSI\":1,\"ORCX\":1,\"ORCU\":1,\"EEIQ\":1,\"AMBA\":1,\"WNW\":1,\"ATPC\":1}}",
+    "parsed_keys": [
+      "window_days",
+      "generated_at",
+      "totals",
+      "near_misses_by_signal",
+      "top_recurring_tickers"
+    ]
+  },
+  "ddb_sample": [
+    {
+      "signal_id": "deepvalue_ELV_1778537171",
+      "signal_type": "",
+      "status": null,
+      "metadata_keys": [
+        "mcap_to_rev",
+        "flag",
+        "net_cash_pct",
+        "rev_yield"
+      ],
+      "metadata_sample": {
+        "mcap_to_rev": "0.41",
+        "flag": "MARGINAL",
+        "net_cash_pct": "0.193",
+        "rev_yield": "2.425"
+      }
+    },
+    {
+      "signal_id": "06c69359-b82a-4d2c-8589-68ac2e",
+      "signal_type": "crisis_index_nfci",
+      "status": "partial",
+      "metadata_keys": [
+        "pct_rank",
+        "is_stressed",
+        "latest"
+      ],
+      "metadata_sample": {
+        "pct_rank": "41.6",
+        "is_stressed": false,
+        "latest": "-0.518"
+      }
+    },
+    {
+      "signal_id": "8bad03d7-21c2-49ef-ad1e-b13485",
+      "signal_type": "screener_top_pick",
+      "status": "partial",
+      "metadata_keys": [
+        "rank",
+        "piotroski"
+      ],
+      "metadata_sample": {
+        "rank": "3",
+        "piotroski": "1"
+      }
+    },
+    {
+      "signal_id": "epsvelocity_TSLA_1779854772",
+      "signal_type": "",
+      "status": null,
+      "metadata_keys": [
+        "fwd_rev_growth_pct",
+        "fy2_lift_pct",
+        "flag"
+      ],
+      "metadata_sample": {
+        "fwd_rev_growth_pct": "14.8",
+        "fy2_lift_pct": "28",
+        "flag": "HIGH_VELOCITY_TIER_B"
+      }
+    },
+    {
+      "signal_id": "f781f8ca-b1ad-4cc7-bf41-dc7c82",
+      "signal_type": "etf_rotation",
+      "status": "partial",
+      "metadata_keys": [],
+      "metadata_sample": {}
+    }
+  ],
+  "finished": "2026-05-31T11:15:52.560910+00:00"
+}
