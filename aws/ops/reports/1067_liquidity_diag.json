@@ -1,0 +1,254 @@
+{
+  "started": "2026-05-31T22:30:08.390778+00:00",
+  "s3_file": {
+    "size_bytes": 1961,
+    "last_modified": "2026-05-31T11:01:10+00:00"
+  },
+  "meta": {
+    "generated_at": "2026-05-31T11:01:09.815093+00:00",
+    "elapsed_sec": 53.9,
+    "agent_version": "2.0.0",
+    "data_sources": [
+      "FRED"
+    ]
+  },
+  "core_keys": [
+    "net_liquidity",
+    "fed_balance_sheet",
+    "tga",
+    "rrp"
+  ],
+  "net_liquidity": {
+    "value_bn": 0,
+    "label": "NEUTRAL",
+    "components": {}
+  },
+  "core_walcl": {
+    "latest": null,
+    "latest_value": null,
+    "value_bn": null,
+    "n_observations": 0
+  },
+  "core_wtregen": {
+    "latest": null,
+    "latest_value": null,
+    "value_bn": null,
+    "n_observations": 0
+  },
+  "core_rrpontsyd": {
+    "latest": null,
+    "latest_value": null,
+    "value_bn": null,
+    "n_observations": 0
+  },
+  "core_fed_balance_sheet": {
+    "value_bn": 0
+  },
+  "core_tga": {
+    "value_bn": 0
+  },
+  "core_rrp": {
+    "value_bn": 0
+  },
+  "schedule_rules": [],
+  "recent_streams": [
+    {
+      "stream": "2026/05/31/[$LATEST]b85747b8498648c48cd31f8d11444d10",
+      "last_event": 1780225269965
+    },
+    {
+      "stream": "2026/05/30/[$LATEST]5f10d608075a40029c7dac5e57a9854d",
+      "last_event": 1780138829192
+    },
+    {
+      "stream": "2026/05/29/[$LATEST]567cdf86b61b43688a9f2934160d8043",
+      "last_event": 1780052449895
+    },
+    {
+      "stream": "2026/05/28/[$LATEST]7625c8e0a4bb4733be05c7772820c27c",
+      "last_event": 1779997648405
+    },
+    {
+      "stream": "2026/05/28/[$LATEST]cd589e606a1f4fc49c3de4108dd1673a",
+      "last_event": 1779971453738
+    }
+  ],
+  "log_events": [
+    {
+      "ts": 1780225215909,
+      "msg": "[LiqAgent] Starting TGA + Fed Liquidity analysis..."
+    },
+    {
+      "ts": 1780225215909,
+      "msg": "[LiqAgent] Fetching FRED series..."
+    },
+    {
+      "ts": 1780225218896,
+      "msg": "[FRED] WALCL error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225223617,
+      "msg": "[FRED] WTREGEN error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225229215,
+      "msg": "[FRED] RRPONTSYD error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225229215,
+      "msg": "[LiqAgent] WARNING: Core series missing \u2014 WALCL=None, TGA=None, RRP=None"
+    },
+    {
+      "ts": 1780225229215,
+      "msg": "[LiqAgent] Net Liquidity: $0B (WALCL=0, TGA=0, RRP=0)"
+    },
+    {
+      "ts": 1780225229215,
+      "msg": "[LiqAgent] Fetching historical data for regime analysis..."
+    },
+    {
+      "ts": 1780225234519,
+      "msg": "[FRED] WALCL error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225236068,
+      "msg": "[FRED] WTREGEN error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225237277,
+      "msg": "[FRED] RRPONTSYD error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225242439,
+      "msg": "[FRED] M2SL error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225242439,
+      "msg": "[LiqAgent] Fetching supplemental FRED series..."
+    },
+    {
+      "ts": 1780225243787,
+      "msg": "[FRED] WSHOSHO error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225245349,
+      "msg": "[FRED] WSHOTSL error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225248653,
+      "msg": "[FRED] WSHOMCB error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225249068,
+      "msg": "[FRED] WRESBAL error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225251510,
+      "msg": "[FRED] EXCSRESNW error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225252184,
+      "msg": "[FRED] M2SL error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225254041,
+      "msg": "[FRED] M1SL error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225256942,
+      "msg": "[FRED] BOGMBASE error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225259504,
+      "msg": "[FRED] DTWEXBGS error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225261837,
+      "msg": "[FRED] DTWEXAFEGS error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225263642,
+      "msg": "[FRED] DTWEXEMEGS error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225264825,
+      "msg": "[FRED] DGS2 error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225266525,
+      "msg": "[FRED] DGS10 error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225267627,
+      "msg": "[FRED] DGS30 error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225268330,
+      "msg": "[FRED] T10Y2Y error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225268689,
+      "msg": "[FRED] T10Y3M error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225268912,
+      "msg": "[FRED] DFII10 error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225269167,
+      "msg": "[FRED] SOFR error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225269401,
+      "msg": "[FRED] DFF error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225269814,
+      "msg": "[FRED] DTWEXBGS error: HTTP Error 429: Too Many Requests"
+    },
+    {
+      "ts": 1780225269962,
+      "msg": "[LiqAgent] \u2705 Saved to s3://justhodl-dashboard-live/liquidity-data.json"
+    },
+    {
+      "ts": 1780225269962,
+      "msg": "[LiqAgent] Done in 53.9s | Net Liq=0B | Score=50 (NEUTRAL)"
+    },
+    {
+      "ts": 1780225269965,
+      "msg": "REPORT RequestId: 96022a6e-c38a-48b3-bc5a-0da591175f9a\tDuration: 54055.77 ms\tBilled Duration: 54594 ms\tMemory Size: 512 MB\tMax Memory Used: 98 MB\tInit Duration: 537.26 ms\t\nXRAY TraceId: 1-6a1c14ba-2e7737634e71865c680da831\tSegmentId: 671340cfa93ac173\tSampled: true"
+    }
+  ],
+  "fred_probes": {
+    "WALCL": {
+      "err": "HTTP 429",
+      "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+    },
+    "WTREGEN": {
+      "err": "HTTP 429",
+      "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+    },
+    "RRPONTSYD": {
+      "err": "HTTP 429",
+      "body": "{\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}"
+    }
+  },
+  "invoke": {
+    "elapsed_s": 9.2,
+    "status": 200,
+    "raw": "{\"statusCode\": 200, \"body\": \"{\\\"net_liquidity_bn\\\": 0, \\\"score\\\": 50, \\\"label\\\": \\\"NEUTRAL\\\", \\\"spy_signal\\\": \\\"NEUTRAL\\\", \\\"regime\\\": \\\"NEUTRAL\\\", \\\"elapsed_sec\\\": 8.2}\"}",
+    "parsed": {
+      "statusCode": 200,
+      "body": "{\"net_liquidity_bn\": 0, \"score\": 50, \"label\": \"NEUTRAL\", \"spy_signal\": \"NEUTRAL\", \"regime\": \"NEUTRAL\", \"elapsed_sec\": 8.2}"
+    }
+  },
+  "after_invoke": {
+    "size_bytes": 1960,
+    "last_modified": "2026-05-31T22:30:26+00:00",
+    "meta_generated_at": "2026-05-31T22:30:25.797856+00:00",
+    "core_walcl_value": null,
+    "core_wtregen_value": null,
+    "core_rrpontsyd_value": null
+  },
+  "finished": "2026-05-31T22:30:28.056308+00:00"
+}
