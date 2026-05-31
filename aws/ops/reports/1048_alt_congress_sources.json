@@ -1,0 +1,57 @@
+{
+  "started": "2026-05-31T16:33:09.437560+00:00",
+  "probe": {
+    "captrades_recent": {
+      "err": "HTTP Error 503: Service Unavailable"
+    },
+    "captrades_v2": {
+      "err": "HTTP Error 503: Service Unavailable"
+    },
+    "captrades_politicians": {
+      "err": "HTTP Error 503: Service Unavailable"
+    },
+    "quiver_congress_aapl": {
+      "status": 200,
+      "size": 482460,
+      "first_300": "[{\"Representative\": \"David J. Taylor\", \"BioGuideID\": \"T000490\", \"ReportDate\": \"2026-05-28\", \"TransactionDate\": \"2026-05-15\", \"Ticker\": \"AAPL\", \"Transaction\": \"Sale\", \"Range\": \"$1,001 - $15,000\", \"House\": \"Representatives\", \"Amount\": \"1001.0\", \"Party\": \"Republican\", \"last_modified\": \"2026-05-29\", \"Ti",
+      "json_ok": true,
+      "n_items": 1093,
+      "sample_keys": [
+        "Representative",
+        "BioGuideID",
+        "ReportDate",
+        "TransactionDate",
+        "Ticker",
+        "Transaction",
+        "Range",
+        "House",
+        "Amount",
+        "Party",
+        "last_modified",
+        "TickerType",
+        "Description",
+        "ExcessReturn",
+        "PriceChange"
+      ]
+    },
+    "uw_congress": {
+      "err": "HTTP Error 404: Not Found"
+    },
+    "house_clerk_2025": {
+      "status": 200,
+      "size": 87618,
+      "first_300": "PK\u0003\u0004\u0014\u0000\u0000\u0000\b\u0000 H\ufffd\\\ufffdp&\rt\ufffd\u0000\u0000\ufffd\ufffd\u0001\u0000\n\u0000$\u00002025FD.txt\n\u0000 \u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0018\u0000:\ufffd\u007f3k\ufffd\ufffd\u0001:\ufffd\u007f3k\ufffd\ufffd\u0001\ufffd\ufffd\ufffd\ufffd\u001e]\ufffd\u0001\ufffd}\ufffdr\ufffd\u02b2\ufffd\u00187\ufffd\ufffd\u0003\ufffdL\ufffd\ufffd\ufffdB\ufffd\fiR\ufffd-K\ufffd\ufffd\u04b1\ufffd3\ufffd$X\ufffd\u0016\th\ufffd\ufffd\ufffd\ufffd\ufffdy\ufffd\ufffd~\ufffdef\u0015\ufffd2\ufffd\ufffd\ufffd;q8\ufffd\\\u0004PMV6+\ufffdn\ufffd\ufffdg\ufffdwY-W\ufffdY\ufffd\u00df\ufffd\ufffd\ufffd/g\u037ci\ufffd\ufffd6/\ufffdw\ufffd\ufffdV\ufffd\u0014\ufffd\ufffdG]\ufffd\ufffd?\ufffd\ufffdO\u07b4{\ufffd4\ufffd\ufffd\ufffd\ufffd\ufffdU\u07f5\ufffd\ufffd\ufffdaV\ufffd\ufffd\ufffd7\ufffd\ufffd>\ufffd\ufffd\u0017\ufffda\ufffdE'a|B\u007f\ufffd}\u07cf\ufffd\ufffd@\ufffd\ufffdz\ufffd}o\ufffd\ufffdZ\ufffdn\ufffd{\ufffd\u013b+\ufffd@!\u0002\ufffd$\bO\ufffd_\ufffd,Lc\ufffd\ufffd\ufffd\ufffd\u007f\u000f\ufffdn\ufffdW\u056d\u001fk\ufffdk\ufffd\ufffd<\u001a?\u00af\\\ufffd\u007fL\ufffd\ufffdK?\ufffd\ufffd",
+      "parse_err": "'utf-8' codec can't decode byte 0xbd in position 12: invalid start byte"
+    },
+    "senate_efd": {
+      "status": 200,
+      "size": 11880,
+      "first_300": "<!DOCTYPE HTML>\n    <html lang=\"en\">\n        <head>\n            <title>eFD: Home</title>\n            <meta name=\"robots\" content=\"noindex\">\n            <meta charset=\"utf-8\">\n            <meta content=\"IE=edge\" http-equiv=\"X-UA-Compatible\">\n            <meta content=\"width=device-width, initial-scal",
+      "parse_err": "Expecting value: line 1 column 1 (char 0)"
+    },
+    "github_repo_mirror": {
+      "err": "HTTP Error 404: Not Found"
+    }
+  },
+  "finished": "2026-05-31T16:33:17.274585+00:00"
+}
