@@ -1,0 +1,50 @@
+{
+  "started": "2026-05-31T16:52:53.679338+00:00",
+  "probe": {
+    "quiver_live": {
+      "status": 200,
+      "size": 430573,
+      "elapsed_s": 0.28,
+      "json_ok": true,
+      "n_items": 1000,
+      "first_keys": [
+        "Representative",
+        "BioGuideID",
+        "ReportDate",
+        "TransactionDate",
+        "Ticker",
+        "Transaction",
+        "Range",
+        "House"
+      ]
+    },
+    "legislators": {
+      "err": "<urlopen error [Errno 110] Connection timed out>"
+    }
+  },
+  "invoke": {
+    "ok": true,
+    "n_quiver": 0,
+    "n_house": 0,
+    "n_senate": 0,
+    "n_tickers": 0,
+    "n_clusters": 0,
+    "n_bipartisan": 0,
+    "duration_s": 50.2
+  },
+  "final": {
+    "schema": "1.2",
+    "generated_at": "2026-05-31T16:55:40+00:00",
+    "n_trades_total": 0,
+    "n_trades_house": 0,
+    "n_trades_senate": 0,
+    "n_tickers": 0,
+    "n_party_map": 39,
+    "n_top_buys": 0,
+    "n_clusters": 0,
+    "n_bipartisan": 0,
+    "top_5_buys": [],
+    "bipartisan_top_5": []
+  },
+  "finished": "2026-05-31T16:55:42.605653+00:00"
+}
