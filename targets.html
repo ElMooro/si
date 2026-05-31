@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sustained Targets · 30-Day Front-Run Leaderboard · JustHodl.AI</title>
+<meta name="description" content="30-day rolling leaderboard of the most front-run targets — names that keep showing up at the top of the equity sniffer (assets) and macro sniffer (instruments). Each digest run (09:00 + 21:00 UTC) contributes observations. Tracks n_digest_appearances + max events/window + first-seen + last-seen + recency. Sustained patterns (high appearance count, recent) are the strongest signal vs one-off flags.">
+<style>
+:root{
+  --bg:#070a10; --bg-raised:#0a0f17; --panel:#11161f; --border:#1c2433; --border-strong:#2a3548;
+  --fg:#e6eaf2; --fg-2:#cbd2dc; --fg-3:#a8b3c7; --fg-4:#6f7b91;
+  --cyan:#22d3ee; --green:#26ffaf; --gold:#fbbf24; --red:#ff5577; --purple:#a78bfa;
+  --orange:#ff7a18;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.55;font-size:14px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,10,16,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;gap:14px}
+.brand{font-family:var(--mono);font-size:13px;font-weight:800;letter-spacing:1px;color:var(--fg);text-decoration:none}
+.brand span{color:var(--purple)}
+.brand .dot{display:inline-block;width:8px;height:8px;background:var(--purple);border-radius:50%;box-shadow:0 0 8px var(--purple);margin-right:6px}
+.nav-links{display:flex;gap:14px;align-items:center;font-size:11px;font-family:var(--mono);letter-spacing:0.5px;flex-wrap:wrap}
+.nav-links a{color:var(--fg-3);text-decoration:none;transition:color 0.15s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a.active{color:var(--purple);font-weight:700}
+.shell{max-width:1280px;margin:0 auto;padding:24px 22px 60px}
+.hero{padding:28px 0 18px;border-bottom:1px solid var(--border);margin-bottom:18px}
+.hero h1{font-size:30px;margin:0 0 10px;letter-spacing:-0.015em;font-weight:700;line-height:1.1}
+.hero h1 em{font-style:italic;color:var(--purple);font-weight:500}
+.hero .sub{color:var(--fg-3);font-size:13.5px;line-height:1.6;max-width:840px}
+.hero .sub b{color:var(--fg-2);font-weight:600}
+.hero-pills{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:0.5px;color:var(--fg-3);padding:3px 9px;background:var(--panel);border:1px solid var(--border);border-radius:3px}
+.pill b{color:var(--cyan)}
+.pill.eq b{color:var(--orange)}
+.pill.mc b{color:var(--cyan)}
+.pill.rec b{color:var(--green)}
+
+.method{margin-top:24px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:13px 16px;font-size:12px;color:var(--fg-3);line-height:1.65}
+.method b{color:var(--fg-2)}
+.method code{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--panel);padding:1px 6px;border-radius:3px}
+.method .ex{margin-top:8px;padding:9px 12px;background:#11161f;border-radius:5px;border-left:3px solid var(--purple)}
+.method .ex b{color:var(--purple)}
+
+footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);color:var(--fg-4);font-size:11.5px;font-family:var(--mono);text-align:center}
+</style>
+<script src="/ai-targets-leaderboard-kit.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+  <nav class="nav-links">
+    <a href="/">DESK</a>
+    <a href="/today.html">TODAY</a>
+    <a href="/frontrun.html" style="color:#ff7a18">🎯 FRONT-RUN</a>
+    <a href="/macro-frontrun.html" style="color:#22d3ee">🏛 MACRO FRONT-RUN</a>
+    <a href="/alerts.html" style="color:#a78bfa">📡 ALERTS</a>
+    <a href="/digest-archive.html" style="color:#a78bfa">📂 ARCHIVE</a>
+    <a href="/digest-trends.html" style="color:#a78bfa">📊 TRENDS</a>
+    <a href="/targets.html" class="active">🎯 TARGETS</a>
+    <a href="/defcon.html">DEFCON</a>
+  </nav>
+</header>
+
+<main class="shell">
+
+  <section class="hero">
+    <h1>🎯 Sustained <em>Targets</em> · 30-Day Front-Run Leaderboard</h1>
+    <p class="sub">
+      <b>Which names keep getting front-run?</b> Each daily digest (09:00 + 21:00 UTC)
+      captures the top-targeted assets from the equity sniffer's 7-day rolling stats
+      and the top-targeted instruments from the macro sniffer's 7-day stats. This
+      page aggregates those observations into a 30-day rolling leaderboard so you
+      can distinguish <b>sustained patterns</b> (a name appearing in 8+ digests
+      with high max-events-per-window — true smart-money flag) from <b>one-off
+      flags</b> (a name appearing once or twice and disappearing). Up to 2
+      observations contribute per name per day (one per digest session).
+      Names not seen in 30+ days auto-prune.
+    </p>
+    <div class="hero-pills">
+      <span class="pill"><b>30-day</b> rolling window</span>
+      <span class="pill eq">🎯 <b>equity</b> assets (39-feed sniffer)</span>
+      <span class="pill mc">🏛 <b>macro</b> instruments (20-pillar sniffer)</span>
+      <span class="pill rec">● = <b>active</b> in last 7d</span>
+      <span class="pill">○ = <b>cooling off</b> (8-30d)</span>
+      <span class="pill">updated each digest · 09:00 + 21:00 UTC</span>
+    </div>
+  </section>
+
+  <!-- THE LEADERBOARD -->
+  <div id="ai-targets"></div>
+  <script>if(window.JHAITargets)JHAITargets.mount("ai-targets");</script>
+
+  <section class="method">
+    <b>What it means when a name is high on the leaderboard:</b>
+    <br><br>
+    <b>n_digest_appearances</b> — the bar + count. Each digest that flagged
+    this name in its top-targeted list contributes one count. With 2 digests/day
+    × 30 days = 60 maximum possible. A name at 8×+ over 30 days = present in
+    13%+ of digests = sustained pattern. A name at 1-2× = recent one-off.
+    <br><br>
+    <b>max events / window</b> — the peak n_times observed in any single
+    7-day rolling window. The equity sniffer might flag PEP because it
+    appeared 3 times in 7 days as the top setup target. That 3 is the max
+    for that window. Across multiple digests, the highest 3 sticks as the
+    max even if subsequent windows show 1 or 2.
+    <br><br>
+    <b>last seen</b> — relative to today. If <code>today</code> or <code>1d ago</code>,
+    the green <b>●</b> recent indicator lights up. <code>8d</code> or older
+    means the pattern is cooling — name still tracked but flagged with grey
+    <b>○</b>. After 30 days of no observations, the entry prunes automatically.
+    <div class="ex">
+      <b>Example read:</b><br>
+      Suppose after 2 weeks the equity leaderboard shows:
+      <br>&nbsp;&nbsp;<code>#1 PEP&nbsp;&nbsp;●&nbsp;&nbsp;14× bar full · max 4/win · today</code> →
+      sustained smart-money / 13F flag, very strong signal
+      <br>&nbsp;&nbsp;<code>#2 AMD&nbsp;●&nbsp;&nbsp;8× &nbsp;bar 57% · max 3/win · 1d ago</code> →
+      meaningful recurring pattern, recent activity
+      <br>&nbsp;&nbsp;<code>#7 SPY&nbsp;○&nbsp;&nbsp;3× &nbsp;bar 21% · max 1/win · 12d ago</code> →
+      cooling off, originally flagged for downside but not recurring
+    </div>
+    <br>
+    Reads <code>data/_alerts/targets-index.json</code> directly via the
+    Cloudflare proxy. No re-deploys needed — populated automatically by the
+    router's digest handler.
+  </section>
+
+</main>
+
+<footer>
+  30-day sustained-target leaderboard · Refreshed each 09:00 + 21:00 UTC digest cycle ·
+  <a href="https://justhodl.ai" style="color:var(--fg-4)">JustHodl.AI</a>
+</footer>
+
+</body>
+</html>

@@ -2166,6 +2166,97 @@ def _events_in_last_24h(events_list):
     return recent
 
 
+def _update_targets_index(equity_history, macro_history, session, today_str):
+    """Maintain a rolling 30-day targets leaderboard from each digest's
+    'most_targeted_assets' / 'most_targeted_instruments' snapshots.
+
+    Each digest run upserts the current top-N targets into a persistent
+    index. Targets whose last_seen is older than 30 days drop off. Sorted
+    by n_digest_appearances DESC (which names KEEP showing up = sustained
+    front-running pattern, vs. one-off flags).
+
+    Returns the updated index object.
+    """
+    index_key = "data/_alerts/targets-index.json"
+    try:
+        idx = s3io.get_json(index_key, default={}) or {}
+        eq_idx = idx.get("equity_targets") if isinstance(idx, dict) else []
+        mc_idx = idx.get("macro_targets")  if isinstance(idx, dict) else []
+        if not isinstance(eq_idx, list): eq_idx = []
+        if not isinstance(mc_idx, list): mc_idx = []
+
+        # Current top targets from history files (already rolling 7-day stats)
+        eq_stats = (equity_history or {}).get("stats_7d") or {}
+        mc_stats = (macro_history  or {}).get("stats_7d") or {}
+        eq_today = eq_stats.get("most_targeted_assets") or []
+        mc_today = mc_stats.get("most_targeted_instruments") or []
+
+        # Build name → entry maps from existing index
+        eq_map = {(e.get("asset") or ""): e for e in eq_idx if e.get("asset")}
+        mc_map = {(e.get("instrument") or ""): e for e in mc_idx if e.get("instrument")}
+
+        def _upsert(map_, target, key_field):
+            name = target.get(key_field)
+            if not name: return
+            n_times = target.get("n_times", 1) or 1
+            existing = map_.get(name) or {
+                key_field:               name,
+                "n_digest_appearances":  0,
+                "max_n_times_in_window": 0,
+                "first_seen":            today_str,
+                "last_seen_session":     session,
+                "sessions":              {"open": 0, "close": 0},
+            }
+            existing["n_digest_appearances"] = existing.get("n_digest_appearances", 0) + 1
+            existing["max_n_times_in_window"] = max(existing.get("max_n_times_in_window", 0), n_times)
+            existing["last_seen"] = today_str
+            existing["last_seen_session"] = session
+            if not existing.get("first_seen"): existing["first_seen"] = today_str
+            sess = existing.get("sessions") or {"open": 0, "close": 0}
+            sess[session] = sess.get(session, 0) + 1
+            existing["sessions"] = sess
+            map_[name] = existing
+
+        for t in eq_today: _upsert(eq_map, t, "asset")
+        for t in mc_today: _upsert(mc_map, t, "instrument")
+
+        # Drop entries whose last_seen is older than 30 days
+        cutoff_30d = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
+        eq_filt = [e for e in eq_map.values() if (e.get("last_seen") or "") >= cutoff_30d]
+        mc_filt = [e for e in mc_map.values() if (e.get("last_seen") or "") >= cutoff_30d]
+
+        # Sort: by n_digest_appearances DESC, then last_seen DESC
+        def _rk(e): return (e.get("n_digest_appearances", 0), e.get("last_seen") or "")
+        eq_filt.sort(key=_rk, reverse=True)
+        mc_filt.sort(key=_rk, reverse=True)
+
+        # Tag is_recent (last_seen within last 7 days = active pattern)
+        cutoff_7d = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
+        for e in eq_filt: e["is_recent"] = (e.get("last_seen") or "") >= cutoff_7d
+        for e in mc_filt: e["is_recent"] = (e.get("last_seen") or "") >= cutoff_7d
+
+        # Cap each list at 50 (more than enough — typical Wow leaderboards are 10-20)
+        eq_filt = eq_filt[:50]
+        mc_filt = mc_filt[:50]
+
+        out = {
+            "version":           "1.0",
+            "updated_at":        datetime.now(timezone.utc).isoformat(),
+            "lookback_days":     30,
+            "n_equity_targets":  len(eq_filt),
+            "n_macro_targets":   len(mc_filt),
+            "n_equity_recent":   sum(1 for e in eq_filt if e.get("is_recent")),
+            "n_macro_recent":    sum(1 for e in mc_filt if e.get("is_recent")),
+            "equity_targets":    eq_filt,
+            "macro_targets":     mc_filt,
+        }
+        s3io.put_json(index_key, out, cache_control="no-store")
+        return out
+    except Exception as _e:
+        print(f"[digest] targets-index update failed: {_e}")
+        return None
+
+
 def _format_digest(equity_brief, macro_brief,
                     equity_state, macro_state,
                     equity_hist, macro_hist, session="open"):
@@ -2436,6 +2527,19 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
             s3io.put_json(index_key, idx_out, cache_control="no-store")
         except Exception as _i_e:
             print(f"[digest] index update failed: {_i_e}")
+
+        # ────────────────────────────────────────────────────────────
+        # Maintain a 30-day rolling targets leaderboard
+        # ────────────────────────────────────────────────────────────
+        targets_idx = _update_targets_index(equity_history, macro_history,
+                                             session, today_str)
+        if targets_idx:
+            result["targets_index"] = {
+                "n_equity_targets": targets_idx.get("n_equity_targets"),
+                "n_macro_targets":  targets_idx.get("n_macro_targets"),
+                "n_equity_recent":  targets_idx.get("n_equity_recent"),
+                "n_macro_recent":   targets_idx.get("n_macro_recent"),
+            }
 
         result.update({
             "status": "OK",
