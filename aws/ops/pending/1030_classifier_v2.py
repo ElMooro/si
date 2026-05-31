@@ -205,6 +205,14 @@ def classify(fn_meta: dict, all_names: set) -> dict:
             "classification": "PROTECTED",
             "reasons": ["NAME_IN_PROTECTED_LIST"],
             "score": -10,
+            "net_score": -10,
+            "delete_score": 0,
+            "keep_score": 10,
+            "delete_reasons": [],
+            "keep_reasons": ["NAME_IN_PROTECTED_LIST"],
+            "description": (fn_meta.get("description") or "")[:140],
+            "code_size_kb": fn_meta.get("code_size_kb", 0),
+            "last_modified": fn_meta.get("last_modified", ""),
             "evidence": {},
         }
     
