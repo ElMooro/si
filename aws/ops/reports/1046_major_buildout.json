@@ -1,0 +1,155 @@
+{
+  "started": "2026-05-31T16:22:06.091146+00:00",
+  "phases": {
+    "1_create_new": {
+      "justhodl-sec-filings-intel": {
+        "action": "create",
+        "size": "ok",
+        "schedule": "sec-filings-intel-3x-daily cron(0 9,15,21 * * ? *)"
+      },
+      "justhodl-political-stocks": {
+        "action": "create",
+        "size": "ok",
+        "schedule": "political-stocks-daily cron(0 14 * * ? *)"
+      }
+    },
+    "2_update_existing": {
+      "justhodl-forward-orders": {
+        "action": "update_code",
+        "size": 13691
+      },
+      "justhodl-rotation-chain": {
+        "action": "update_code",
+        "size": 13103
+      },
+      "justhodl-buzz-velocity": {
+        "action": "update_code",
+        "size": 12556
+      },
+      "justhodl-event-coordinator": {
+        "action": "update_code",
+        "size": 8901
+      }
+    },
+    "3_invoke_new": {
+      "justhodl-sec-filings-intel": {
+        "elapsed_s": 32.9,
+        "ok": true,
+        "n_events": 364,
+        "n_tickers": 276,
+        "n_house": null,
+        "n_senate": null,
+        "n_critical": 20,
+        "n_clusters": null,
+        "duration_s": 31.5,
+        "err": null
+      },
+      "justhodl-political-stocks": {
+        "elapsed_s": 2.4,
+        "ok": true,
+        "n_events": null,
+        "n_tickers": 0,
+        "n_house": 0,
+        "n_senate": 0,
+        "n_critical": null,
+        "n_clusters": 0,
+        "duration_s": 1.5,
+        "err": null
+      }
+    },
+    "4_verify_s3": {
+      "data/sec-filings-intel.json": {
+        "size_kb": 0,
+        "fields_present": {
+          "generated_at": true,
+          "n_events_total": true,
+          "n_tickers_with_signals": true,
+          "highlights": true
+        },
+        "generated_at": "2026-05-31T16:23:25+00:00",
+        "n_events_total": 364,
+        "n_tickers": 276,
+        "events_by_signal": {
+          "going_concern": 28,
+          "material_weakness": 36,
+          "restatement": 39,
+          "auditor_change": 0,
+          "cfo_departure": 0,
+          "investigation": 45,
+          "bankruptcy": 27,
+          "definitive_agreement": 0,
+          "share_buyback_authorized": 36,
+          "going_private": 40,
+          "exclusive_partnership": 29,
+          "fda_approval": 47,
+          "atm_shelf": 0,
+          "bought_deal": 37
+        },
+        "n_risks": 30,
+        "n_opportunities": 30,
+        "n_critical": 20,
+        "critical_sample": [
+          {
+            "ticker": "OLOX",
+            "score": -100,
+            "verdict": "RISK",
+            "n_events": 3
+          },
+          {
+            "ticker": "TSEOF",
+            "score": -100,
+            "verdict": "RISK",
+            "n_events": 7
+          },
+          {
+            "ticker": "NINE",
+            "score": -100,
+            "verdict": "RISK",
+            "n_events": 3
+          }
+        ]
+      },
+      "data/political-stocks.json": {
+        "size_kb": 0,
+        "fields_present": {
+          "generated_at": true,
+          "trump_holdings": true,
+          "congress": true
+        },
+        "generated_at": "2026-05-31T16:23:29+00:00",
+        "trump_n_positions": 4,
+        "trump_filing_date": "2025-03-19",
+        "trump_primary_holding": "DJT",
+        "congress_n_trades_house": 0,
+        "congress_n_trades_senate": 0,
+        "congress_n_tickers": 0,
+        "congress_n_clusters": 0,
+        "congress_n_bipartisan": 0,
+        "congress_top_buys": []
+      }
+    },
+    "5_invoke_updated": {
+      "justhodl-rotation-chain": {
+        "elapsed_s": 18.9,
+        "ok": true,
+        "n_results": null,
+        "schema_version": null,
+        "err": null
+      },
+      "justhodl-buzz-velocity": {
+        "elapsed_s": 233.2,
+        "ok": true,
+        "n_results": 185,
+        "schema_version": null,
+        "err": null
+      },
+      "justhodl-forward-orders": {
+        "action": "async_invoked"
+      }
+    },
+    "6_coordinator": {
+      "audit_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    }
+  },
+  "finished": "2026-05-31T16:27:49.103626+00:00"
+}
