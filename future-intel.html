@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Future Intelligence · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🔮</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1280px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h2 .lab{color:var(--purple);font-size:9.5px;margin-left:8px;letter-spacing:1px;font-weight:normal}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}
+.subtitle b{color:var(--txt)}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.hero .stat{padding:6px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .v{font-family:var(--mono);font-size:24px;font-weight:700;margin-top:4px}
+.hero .v.hot{color:var(--orange)}
+.hero .v.go{color:var(--green)}
+.hero .v.cy{color:var(--cyan)}
+.hero .n{font-size:10px;color:var(--dim);margin-top:2px}
+
+.feeds{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.feed{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px}
+.feed.stale{border-color:var(--orange)}
+.feed.miss{border-color:var(--red)}
+.feed .name{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.feed .gen{font-family:var(--mono);font-size:11px;color:var(--txt);margin-top:3px}
+.feed .age{font-family:var(--mono);font-size:9.5px;color:var(--mute);margin-top:2px}
+.feed .age.stale{color:var(--orange)}
+.feed .age.miss{color:var(--red)}
+
+.pillpanels{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:18px}
+.pillpanel{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:7px;padding:14px}
+.pillpanel.hc{border-left-color:var(--orange)}
+.pillpanel.ms{border-left-color:var(--cyan)}
+.pillpanel.lfv{border-left-color:var(--green)}
+.pillpanel.nur{border-left-color:var(--purple)}
+.pillpanel.gs{border-left-color:var(--yellow)}
+.pillpanel.sb{border-left-color:var(--red)}
+.pillpanel h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+.pillpanel h3 .badge{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:3px;padding:1px 6px;font-size:9px;color:var(--txt);margin-left:6px}
+.pickrow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(28,36,51,.55);font-family:var(--mono);font-size:11.5px}
+.pickrow:last-child{border-bottom:none}
+.pickrow .l{flex:1}
+.pickrow .l a{color:var(--cyan);text-decoration:none}
+.pickrow .l a:hover{text-decoration:underline}
+.pickrow .r{color:var(--mute);font-size:10.5px;text-align:right;margin-left:8px}
+.pickrow .thesis{display:block;color:var(--dim);font-size:10px;margin-top:2px;font-family:'Inter',sans-serif;line-height:1.4}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 6px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:9.5px}
+th.r{text-align:right}
+td{padding:8px 6px;border-bottom:1px solid rgba(28,36,51,.55)}
+td.r{text-align:right}
+tr:hover td{background:var(--panel2)}
+.tick{font-weight:700;color:var(--txt)}
+.tick a{color:var(--cyan);text-decoration:none}
+.tick a:hover{text-decoration:underline}
+
+.subbar{position:relative;height:14px;width:100%;background:#1c2433;border-radius:2px;overflow:hidden;font-family:var(--mono);font-size:9px}
+.subbar .fill{height:100%;background:linear-gradient(90deg,#26ffaf66,#26ffaf);border-radius:2px;position:relative}
+.subbar .val{position:absolute;right:4px;top:0;line-height:14px;color:var(--txt);font-weight:700;font-size:9px;text-shadow:0 0 4px var(--bg)}
+.subbar.fwd .fill{background:linear-gradient(90deg,#a78bfa44,var(--purple))}
+.subbar.rot .fill{background:linear-gradient(90deg,#00d4ff44,var(--cyan))}
+.subbar.buzz .fill{background:linear-gradient(90deg,#ff7a1844,var(--orange))}
+.subbar.trends .fill{background:linear-gradient(90deg,#ffd26644,var(--yellow))}
+.subbar.empty .fill{width:0%}
+.subbar.empty::after{content:"—";position:absolute;left:50%;top:0;line-height:14px;font-size:10px;color:var(--dim);transform:translateX(-50%)}
+
+.composite{font-family:var(--mono);font-weight:700;font-size:13px;display:inline-block;padding:2px 10px;border-radius:3px}
+.comp-hi{background:rgba(255,122,24,.16);color:var(--orange)}
+.comp-mi{background:rgba(0,212,255,.13);color:var(--cyan)}
+.comp-lo{background:rgba(168,179,199,.08);color:var(--mute)}
+
+.sigbadges{display:flex;gap:2px;font-family:var(--mono);font-size:8px}
+.sigbadges .b{width:10px;height:10px;border-radius:2px;background:#1c2433}
+.sigbadges .b.on{background:var(--green)}
+
+.note{color:var(--dim);font-size:11px;line-height:1.6;margin-top:14px;max-width:1100px;font-family:'Inter',sans-serif}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 12px}
+
+.stealth-tag{display:inline-block;background:rgba(255,210,102,.16);color:var(--yellow);font-family:var(--mono);font-size:9px;padding:1px 5px;border-radius:2px;margin-left:4px;letter-spacing:.5px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🔮 Future Intelligence</h1>
+    <p class="subtitle">
+      The forward-looking signal layer: <b>RPO + order backlog</b> (locked future revenue from SEC XBRL),
+      <b>sector rotation chains</b> (lead-lag detection across value chains), <b>Reddit/News buzz velocity</b>,
+      and <b>Wikipedia search interest</b>. Composite weights these 40/25/20/15 with bonuses for multi-signal
+      convergence. STEALTH picks = attention rising while price hasn't moved yet (pre-pump alpha).
+    </p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/signal-board.html">signal board</a>
+      <a href="/alpha-compass.html">alpha compass</a>
+      <a href="/baggers.html">baggers</a>
+      <a href="/retail-edges.html">retail edges</a>
+      <a href="/risk-desk.html">risk desk</a>
+    </nav>
+  </header>
+
+  <div id="hero" class="hero"><div class="loading">LOADING FUTURE INTELLIGENCE…</div></div>
+
+  <h2>Feed Freshness <span class="lab">all 4 sources must be live for full composite</span></h2>
+  <div id="feeds" class="feeds"></div>
+
+  <h2>Conviction Buckets</h2>
+  <div id="pillpanels" class="pillpanels"></div>
+
+  <h2>Top 25 Overall — 4-Signal Composite</h2>
+  <div class="card"><div id="table"><div class="loading">…</div></div></div>
+  <p class="note" id="note">
+    Each ticker is scored on 4 independent forward-looking dimensions, then weighted into a composite:
+    <b>forward_orders</b> 40% (RPO yield + growth + contracts + book-to-bill from SEC XBRL),
+    <b>rotation_chain</b> 25% (lag vs leader tier in active value chain),
+    <b>buzz_velocity</b> 20% (Reddit + News mention growth),
+    <b>ticker_trends</b> 15% (Wikipedia pageview velocity as proxy for search interest).
+    Multi-signal bonus: +8 for 2 signals confirming, +6 for 3, +4 for 4.
+    Composite threshold for high-conviction events is currently 65 (env-tunable).
+  </p>
+  <p class="timestamp" id="ts"></p>
+</div>
+
+<script>
+const S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const fetchJson = (k) => fetch(S3 + k + "?_=" + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null);
+const esc = s => String(s == null ? "" : s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+function ageFrom(iso) {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (isNaN(t)) return null;
+  const ms = Date.now() - t;
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return { hours: h, label: h >= 1 ? `${h}h ${m}m ago` : `${m}m ago`, stale: h >= 28 };
+}
+
+function compositeClass(score) {
+  if (score >= 65) return "comp-hi";
+  if (score >= 30) return "comp-mi";
+  return "comp-lo";
+}
+
+function subbar(klass, val) {
+  if (val == null || val === 0) return `<div class="subbar empty ${klass}"><div class="fill" style="width:0%"></div></div>`;
+  const pct = Math.min(100, Math.max(0, val));
+  return `<div class="subbar ${klass}"><div class="fill" style="width:${pct}%"></div><div class="val">${val.toFixed(0)}</div></div>`;
+}
+
+function sigBadges(n) {
+  return [1,2,3,4].map(i => `<span class="b ${i <= n ? "on" : ""}"></span>`).join("");
+}
+
+function renderHero(d) {
+  const hero = document.getElementById("hero");
+  const totalScored = d.n_scored || 0;
+  const high = (d.highlights?.high_conviction || []).length;
+  const multi = (d.highlights?.multi_signal || []).length;
+  const fourSig = (d.highlights?.["4_signal_alignment"] || []).length;
+  const lfv = (d.highlights?.locked_future_value || []).length;
+  const stealth = ((d.highlights?.stealth_buzz || []).length + (d.highlights?.google_stealth || []).length);
+  const nextUp = (d.highlights?.next_up_rotation || []).length;
+  hero.innerHTML = `
+    <div class="stat"><div class="lab">Tickers scored</div><div class="v cy">${totalScored}</div><div class="n">across 4 forward signals</div></div>
+    <div class="stat"><div class="lab">High conviction</div><div class="v hot">${high}</div><div class="n">composite ≥ 65</div></div>
+    <div class="stat"><div class="lab">Multi-signal</div><div class="v go">${multi}</div><div class="n">2+ signals confirming</div></div>
+    <div class="stat"><div class="lab">4-signal aligned</div><div class="v go">${fourSig}</div><div class="n">3+ signals confirming</div></div>
+    <div class="stat"><div class="lab">Locked future value</div><div class="v cy">${lfv}</div><div class="n">RPO yield ≥30% of mcap</div></div>
+    <div class="stat"><div class="lab">Stealth picks</div><div class="v hot">${stealth}</div><div class="n">attention up, price flat</div></div>
+    <div class="stat"><div class="lab">Next-up rotation</div><div class="v cy">${nextUp}</div><div class="n">lagging the leader tier</div></div>
+  `;
+}
+
+function renderFeeds(d) {
+  const container = document.getElementById("feeds");
+  const ff = d.feed_freshness || {};
+  const names = {
+    forward_orders: "Forward Orders (RPO)",
+    rotation_chain: "Rotation Chains",
+    buzz_velocity:  "Buzz Velocity",
+    ticker_trends:  "Search Interest",
+  };
+  const order = ["forward_orders", "rotation_chain", "buzz_velocity", "ticker_trends"];
+  container.innerHTML = order.map(k => {
+    const ts = ff[k];
+    const ageInfo = ageFrom(ts);
+    let stateClass = "";
+    let ageClass = "";
+    let label = "";
+    if (!ts) {
+      stateClass = "miss"; ageClass = "miss"; label = "MISSING";
+    } else if (ageInfo && ageInfo.stale) {
+      stateClass = "stale"; ageClass = "stale"; label = ageInfo.label + " — STALE";
+    } else if (ageInfo) {
+      label = ageInfo.label;
+    }
+    return `<div class="feed ${stateClass}">
+      <div class="name">${names[k]}</div>
+      <div class="gen">${ts ? ts.slice(0,16).replace("T"," ") + " UTC" : "—"}</div>
+      <div class="age ${ageClass}">${label}</div>
+    </div>`;
+  }).join("");
+}
+
+function pickRow(r, source) {
+  const sub = r.subscores || {};
+  const tickStr = esc(r.ticker);
+  const score = (r.future_intel_score ?? r.score ?? 0);
+  const sigCount = r.n_independent_signals ?? r.n_signals ?? 0;
+  let detail = "";
+  if (source === "lfv") {
+    const fo = r.forward_orders || {};
+    detail = `RPO ${fo.rpo_yield_pct?.toFixed(0)}% of mcap, +${fo.rpo_growth_pct?.toFixed(0) ?? "?"}% YoY`;
+  } else if (source === "nur") {
+    const rc = r.rotation_chain || {};
+    detail = `${rc.chain} chain · lag ${rc.lag_pct?.toFixed(0)}pp`;
+  } else if (source === "gs") {
+    const tt = r.ticker_trends || {};
+    detail = `Search ${tt.velocity?.toFixed(2)}x · price ${tt.price_7d_pct?.toFixed(1)}% 7d`;
+  } else if (source === "sb") {
+    const bv = r.buzz_velocity || {};
+    detail = `Buzz ${bv.composite_velocity?.toFixed(2)}x · price ${bv.price_7d_pct?.toFixed(1)}% 7d`;
+  } else {
+    detail = r.thesis ? r.thesis.slice(0, 90) : "";
+  }
+  return `<div class="pickrow">
+    <div class="l">
+      <a href="/chart-pro.html?ticker=${tickStr}"><b>${tickStr}</b></a>
+      ${score ? `<span class="composite ${compositeClass(score)}" style="font-size:10.5px;padding:1px 6px;margin-left:8px">${score.toFixed(0)}</span>` : ""}
+      <span class="thesis">${esc(detail)}</span>
+    </div>
+    <div class="r">${sigCount ? `${sigCount}/4` : ""}</div>
+  </div>`;
+}
+
+function renderPanels(d) {
+  const hl = d.highlights || {};
+  const panels = [
+    { klass: "hc",  title: "🎯 High Conviction",   src: "hc",  data: hl.high_conviction || [],     note: "composite ≥ 65 — fires events to Telegram" },
+    { klass: "ms",  title: "🔗 Multi-Signal",      src: "ms",  data: hl.multi_signal || [],         note: "2+ signals confirming the same ticker" },
+    { klass: "lfv", title: "🏦 Locked Future",     src: "lfv", data: hl.locked_future_value || [],  note: "SEC-disclosed RPO ≥ 30% of mcap" },
+    { klass: "nur", title: "🔄 Next-Up Rotation",  src: "nur", data: hl.next_up_rotation || [],     note: "next tier lagging the leader" },
+    { klass: "gs",  title: "⚡ Google Stealth",    src: "gs",  data: hl.google_stealth || [],       note: "search velocity ≥ 2x but |7d|<5%" },
+    { klass: "sb",  title: "⚡ Buzz Stealth",      src: "sb",  data: hl.stealth_buzz || [],         note: "Reddit/News velocity ≥ 2.5x, price flat" },
+  ];
+  const container = document.getElementById("pillpanels");
+  container.innerHTML = panels.map(p => `
+    <div class="pillpanel ${p.klass}">
+      <h3>${p.title}<span class="badge">${p.data.length}</span></h3>
+      ${p.data.length ? p.data.slice(0,6).map(r => pickRow(r, p.src)).join("") : `<div style="color:var(--dim);font-size:11px;font-family:var(--mono);padding:8px 0">No picks at current threshold.<br><span style="font-size:10px">${esc(p.note)}</span></div>`}
+    </div>
+  `).join("");
+}
+
+function renderTable(d) {
+  const rows = d.top_25 || [];
+  if (!rows.length) {
+    document.getElementById("table").innerHTML = `<div class="loading">No data.</div>`;
+    return;
+  }
+  document.getElementById("table").innerHTML = `<table>
+    <thead><tr>
+      <th>Ticker</th>
+      <th class="r">Composite</th>
+      <th>Forward (40%)</th>
+      <th>Rotation (25%)</th>
+      <th>Buzz (20%)</th>
+      <th>Search (15%)</th>
+      <th class="r">Signals</th>
+      <th>Thesis</th>
+    </tr></thead>
+    <tbody>${rows.map(r => {
+      const s = r.subscores || {};
+      const bv = r.buzz_velocity || {};
+      const tt = r.ticker_trends || {};
+      let thesis = r.thesis || "";
+      let extras = "";
+      if (bv.stealth) extras += `<span class="stealth-tag">BUZZ STEALTH</span>`;
+      if (tt.stealth) extras += `<span class="stealth-tag">GOOG STEALTH</span>`;
+      return `<tr>
+        <td><span class="tick"><a href="/chart-pro.html?ticker=${esc(r.ticker)}">${esc(r.ticker)}</a></span>${extras}</td>
+        <td class="r"><span class="composite ${compositeClass(r.future_intel_score)}">${r.future_intel_score?.toFixed(1)}</span></td>
+        <td>${subbar("fwd",   s.forward_orders)}</td>
+        <td>${subbar("rot",   s.rotation_chain)}</td>
+        <td>${subbar("buzz",  s.buzz_velocity)}</td>
+        <td>${subbar("trends", s.ticker_trends)}</td>
+        <td class="r"><div class="sigbadges">${sigBadges(r.n_independent_signals || 0)}</div></td>
+        <td style="color:var(--mute);font-family:'Inter',sans-serif;font-size:11px;line-height:1.35">${esc(thesis).slice(0, 120)}</td>
+      </tr>`;
+    }).join("")}</tbody>
+  </table>`;
+}
+
+async function load() {
+  const d = await fetchJson("future-intelligence.json");
+  if (!d) {
+    document.getElementById("hero").innerHTML = `<div class="loading" style="color:var(--red)">FAILED to load future-intelligence.json</div>`;
+    return;
+  }
+  renderHero(d);
+  renderFeeds(d);
+  renderPanels(d);
+  renderTable(d);
+  document.getElementById("ts").innerHTML =
+    `generated ${esc(d.generated_at || "?")} · ${d.method || "future_intelligence"} v${esc(d.schema_version || "?")}`;
+}
+
+load();
+</script>
+</body>
+</html>

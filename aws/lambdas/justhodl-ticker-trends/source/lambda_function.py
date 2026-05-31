@@ -101,7 +101,7 @@ TICKER_TO_WIKI = {
     # Quantum
     "IONQ":  "IonQ",
     "RGTI":  "Rigetti_Computing",
-    "QBTS":  "D-Wave_Quantum",
+    "QBTS":  "D-Wave_Systems",   # Wikipedia still uses pre-rename canonical
     # Fintech / Crypto-adjacent
     "COIN":  "Coinbase",
     "HOOD":  "Robinhood_Markets",
@@ -134,7 +134,7 @@ TICKER_TO_WIKI = {
     "SCCO":  "Southern_Copper_Corporation",
     "CCJ":   "Cameco",
     "DNN":   "Denison_Mines",
-    "UEC":   "Uranium_Energy_Corp",
+    # UEC removed — no Wikipedia article exists for Uranium Energy Corp
     # Datacenter REITs
     "EQIX":  "Equinix",
     "DLR":   "Digital_Realty",
@@ -143,14 +143,14 @@ TICKER_TO_WIKI = {
     "AMC":   "AMC_Theatres",
     "BB":    "BlackBerry_Limited",
     "PLTR":  "Palantir_Technologies",
-    "DJT":   "Trump_Media_%26_Technology_Group",
+    "DJT":   "Trump_Media_&_Technology_Group",  # literal & — urllib will encode
     "RDDT":  "Reddit,_Inc.",
     "DUOL":  "Duolingo",
     "RBLX":  "Roblox",
     # Speculative
     "MP":    "MP_Materials",
     "USAR":  "USA_Rare_Earth",
-    "OKLO":  "Oklo_(company)",
+    "OKLO":  "Oklo_Inc.",          # was Oklo_(company)
     "SMR":   "NuScale_Power",
     "NNE":   "Nano_Nuclear_Energy",
 }
