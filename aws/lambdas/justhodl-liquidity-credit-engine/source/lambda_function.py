@@ -951,7 +951,33 @@ def interpret_state(output):
 # ────────────────────────────────────────────────────────────────────────
 # Main
 # ────────────────────────────────────────────────────────────────────────
+def _emit_engine_error(error: Exception, phase: str = "handler"):
+    """Best-effort engine.error event. Never raises."""
+    try:
+        from system_events import publish, EVT_ENGINE_ERROR
+        import traceback
+        publish(EVT_ENGINE_ERROR, {
+            "engine":   "justhodl-liquidity-credit-engine",
+            "phase":    phase,
+            "error":    f"{type(error).__name__}: {str(error)[:200]}",
+            "traceback": traceback.format_exc()[-400:],
+        }, source_engine="liquidity-credit-engine")
+    except Exception:
+        pass
+
+
 def lambda_handler(event=None, context=None):
+    """Top-level safety net. Captures any uncaught exception, emits an
+    engine.error event (Telegram alert fires for critical engines), and
+    re-raises so CloudWatch metric still records the failure."""
+    try:
+        return _do_handler(event, context)
+    except Exception as e:
+        _emit_engine_error(e, phase="handler")
+        raise
+
+
+def _do_handler(event=None, context=None):
     started = time.time()
     print("[lce] start")
 

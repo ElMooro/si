@@ -742,7 +742,33 @@ def compute_composite_score(crisis_index_results):
 # Main handler
 # ─────────────────────────────────────────────────────────────────────
 
+def _emit_engine_error(error: Exception, phase: str = "handler"):
+    """Best-effort engine.error event. Never raises."""
+    try:
+        from system_events import publish, EVT_ENGINE_ERROR
+        import traceback
+        publish(EVT_ENGINE_ERROR, {
+            "engine":   "justhodl-crisis-plumbing",
+            "phase":    phase,
+            "error":    f"{type(error).__name__}: {str(error)[:200]}",
+            "traceback": traceback.format_exc()[-400:],
+        }, source_engine="crisis-plumbing")
+    except Exception:
+        pass
+
+
 def lambda_handler(event, context):
+    """Top-level safety net. Captures any uncaught exception, emits an
+    engine.error event (Telegram alert fires for critical engines), and
+    re-raises so CloudWatch metric still records the failure."""
+    try:
+        return _do_handler(event, context)
+    except Exception as e:
+        _emit_engine_error(e, phase="handler")
+        raise
+
+
+def _do_handler(event, context):
     t0 = time.time()
     print(f"[crisis-plumbing] starting fetch at {datetime.now(timezone.utc).isoformat()}")
 

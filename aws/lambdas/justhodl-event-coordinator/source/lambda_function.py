@@ -76,6 +76,17 @@ CRITICAL_ENGINES = {
     "justhodl-conviction-engine", "justhodl-signal-board",
     "justhodl-outcome-checker", "justhodl-calibrator",
     "justhodl-master-ranker", "justhodl-alpha-compass",
+    # Engines flagged by ops/1020 audit as high-error rate; now monitor closely
+    "justhodl-crisis-plumbing",
+    "justhodl-liquidity-credit-engine",
+    # Engines flagged as expensive; still want alerts if they fail
+    "justhodl-crypto-opportunities",
+    # Crisis tier
+    "justhodl-crisis-composite",
+    "justhodl-eurodollar-stress",
+    # Regime + signal infrastructure
+    "justhodl-signal-scorecard", "justhodl-magnitude-distributions",
+    "justhodl-miss-detector", "justhodl-miss-calibrator",
 }
 
 # ─── Routing table ──────────────────────────────────────────────────────

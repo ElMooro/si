@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JustHodl · System Health</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    :root{--green:#34d399;--yellow:#facc15;--red:#f87171;--blue:#60a5fa;--gray:#64748b}
+    body{background:#0a0e14;color:#e6edf3;font-family:-apple-system,system-ui,sans-serif;margin:0;padding:0}
+    .wrap{max-width:1400px;margin:0 auto;padding:1.5rem}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+    h1{font-size:1.4rem;margin:0}
+    .updated{font-size:.8rem;color:var(--gray)}
+    .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-bottom:1.5rem}
+    .card{background:#11161e;border:1px solid #1e2530;border-radius:12px;padding:1rem 1.25rem}
+    .card h3{margin:0 0 .6rem;font-size:.85rem;color:#94a3b8;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+    .stat{font-size:2rem;font-weight:600;line-height:1.1}
+    .stat.green{color:var(--green)}
+    .stat.yellow{color:var(--yellow)}
+    .stat.red{color:var(--red)}
+    .stat.blue{color:var(--blue)}
+    .substat{font-size:.78rem;color:var(--gray);margin-top:.2rem}
+    .section{background:#11161e;border:1px solid #1e2530;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem}
+    .section h2{margin:0 0 1rem;font-size:1rem;font-weight:600}
+    table{width:100%;border-collapse:collapse;font-size:.85rem}
+    th{text-align:left;padding:.5rem .75rem;color:#94a3b8;font-weight:500;border-bottom:1px solid #1e2530;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
+    td{padding:.55rem .75rem;border-bottom:1px solid #181f2a;vertical-align:top}
+    tr:hover td{background:#161d27}
+    .tag{display:inline-block;padding:.15rem .45rem;border-radius:4px;font-size:.7rem;font-weight:600}
+    .tag.ok{background:rgba(52,211,153,.15);color:var(--green)}
+    .tag.warn{background:rgba(250,204,21,.15);color:var(--yellow)}
+    .tag.err{background:rgba(248,113,113,.15);color:var(--red)}
+    .tag.info{background:rgba(96,165,250,.15);color:var(--blue)}
+    code{font-family:ui-monospace,monospace;font-size:.8rem;color:#cbd5e1}
+    .ev-event{font-weight:600;color:var(--blue)}
+    .ev-detail{font-size:.78rem;color:#94a3b8}
+    .ev-row{padding:.5rem .75rem;border-bottom:1px solid #181f2a;display:grid;grid-template-columns:130px 1fr 60px;gap:1rem;align-items:start;font-size:.85rem}
+    .ev-row:last-child{border-bottom:none}
+    .pill{display:inline-block;padding:.1rem .4rem;border-radius:3px;font-size:.7rem}
+    .pill.invoke-ok{background:rgba(52,211,153,.15);color:var(--green)}
+    .pill.invoke-err{background:rgba(248,113,113,.15);color:var(--red)}
+    .empty{text-align:center;color:var(--gray);padding:2rem;font-size:.9rem}
+    .meta{font-size:.75rem;color:var(--gray);margin-top:.5rem}
+    a{color:var(--blue);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .legend{font-size:.75rem;color:var(--gray);margin-bottom:1rem}
+    .legend strong{color:#e6edf3}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>System Health</h1>
+        <div class="updated" id="last-updated">loading…</div>
+      </div>
+      <div>
+        <a href="/" style="margin-right:1rem">← Home</a>
+        <a href="/alpha-compass.html">Alpha Compass</a>
+      </div>
+    </header>
+
+    <div class="legend">
+      Live operational view of the system. Pulls from <code>aws/ops/reports/1020_full_audit.json</code> for inventory and from
+      <code>system-events/audit/&lt;today&gt;.jsonl</code> for the live coordinator event log.
+      Built on the EventBridge coordination layer (<code>justhodl-system-events</code> bus →
+      <code>justhodl-event-coordinator</code> → downstream Lambda invokes + Telegram).
+    </div>
+
+    <div class="grid" id="stat-grid">
+      <div class="card"><h3>Lambdas</h3><div class="stat" id="stat-lambdas">—</div><div class="substat" id="stat-lambdas-sub"></div></div>
+      <div class="card"><h3>Scheduled</h3><div class="stat" id="stat-scheduled">—</div><div class="substat" id="stat-scheduled-sub"></div></div>
+      <div class="card"><h3>Issues Found</h3><div class="stat" id="stat-issues">—</div><div class="substat" id="stat-issues-sub"></div></div>
+      <div class="card"><h3>Events Today</h3><div class="stat" id="stat-events">—</div><div class="substat" id="stat-events-sub"></div></div>
+    </div>
+
+    <div class="section">
+      <h2>🚨 Active Issues</h2>
+      <div id="issue-list">loading…</div>
+    </div>
+
+    <div class="section">
+      <h2>📡 Live Coordinator Events <span class="meta">(rolling, last 30)</span></h2>
+      <div id="event-list">loading…</div>
+    </div>
+
+    <div class="section">
+      <h2>⚙️ Critical Engines · Last 7 Days</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Engine</th>
+            <th>Schedule</th>
+            <th style="text-align:right">Invokes</th>
+            <th style="text-align:right">Errors</th>
+            <th style="text-align:right">Error %</th>
+            <th style="text-align:right">Avg Duration</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="critical-engines-tbody">
+          <tr><td colspan="7" class="empty">loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>📦 S3 Output Freshness <span class="meta">(top 15 most recent under data/)</span></h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th style="text-align:right">Size (KB)</th>
+            <th style="text-align:right">Age</th>
+            <th>Modified</th>
+          </tr>
+        </thead>
+        <tbody id="s3-freshness-tbody">
+          <tr><td colspan="4" class="empty">loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+(async function(){
+  const AUDIT_URL  = "/aws/ops/reports/1020_full_audit.json";
+  // Coordinator audit log lives at /system-events/audit/YYYY-MM-DD.jsonl
+  function todayKey(){
+    const d = new Date();
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth()+1).padStart(2,"0");
+    const dd = String(d.getUTCDate()).padStart(2,"0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  // We have to fetch the audit log via the proxy/CDN — under system-events/ prefix
+  const EVENT_LOG_URL = `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/system-events/audit/${todayKey()}.jsonl`;
+  const S3_LISTING_URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/?list-type=2&prefix=data/&max-keys=200";
+
+  function fmtAge(modifiedIso){
+    const now = Date.now();
+    const m = new Date(modifiedIso).getTime();
+    const diffMin = Math.round((now - m) / 60000);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.round(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    const diffDay = Math.round(diffHr / 24);
+    return `${diffDay}d ago`;
+  }
+
+  function el(tag, props = {}, children = []){
+    const e = document.createElement(tag);
+    for (const k in props) {
+      if (k === "class") e.className = props[k];
+      else if (k === "style") e.style.cssText = props[k];
+      else if (k === "html") e.innerHTML = props[k];
+      else e.setAttribute(k, props[k]);
+    }
+    children.forEach(c => {
+      if (typeof c === "string") e.appendChild(document.createTextNode(c));
+      else if (c) e.appendChild(c);
+    });
+    return e;
+  }
+
+  // 1. Load + render audit
+  let audit;
+  try {
+    const r = await fetch(AUDIT_URL, {cache: "no-cache"});
+    audit = await r.json();
+  } catch(e) {
+    document.getElementById("last-updated").textContent = "audit not available";
+    return;
+  }
+
+  document.getElementById("last-updated").textContent = 
+    `Audit ran ${fmtAge(audit.generated_at)} · ${audit.elapsed_s}s`;
+
+  document.getElementById("stat-lambdas").textContent = audit.n_lambdas || "—";
+  document.getElementById("stat-lambdas-sub").textContent = 
+    `${audit.n_s3_keys} S3 keys · ${audit.n_ddb_tables} DDB tables`;
+  document.getElementById("stat-scheduled").textContent = audit.n_scheduled || "—";
+  document.getElementById("stat-scheduled-sub").textContent = "active cron rules";
+
+  const issueCount = Object.values(audit.issue_counts || {})
+    .reduce((a,b) => a + (b || 0), 0);
+  const realIssues = (audit.issue_counts?.broken_scheduled || 0) +
+                       (audit.issue_counts?.high_error_rate || 0) +
+                       (audit.issue_counts?.expensive_invokes || 0) +
+                       (audit.issue_counts?.stale_outputs || 0);
+  document.getElementById("stat-issues").textContent = realIssues;
+  document.getElementById("stat-issues").className = "stat " + (realIssues === 0 ? "green" : realIssues < 5 ? "yellow" : "red");
+  document.getElementById("stat-issues-sub").textContent = 
+    `${audit.issue_counts?.dead_unscheduled || 0} dead Lambdas not counted`;
+
+  // 2. Render issues
+  const issuesContainer = document.getElementById("issue-list");
+  issuesContainer.innerHTML = "";
+  const issueOrder = ["broken_scheduled", "high_error_rate", "expensive_invokes",
+                       "stale_outputs", "disabled_rules", "no_recent_logs"];
+  let totalShown = 0;
+  for (const cat of issueOrder){
+    const items = audit.issues?.[cat] || [];
+    if (items.length === 0) continue;
+    totalShown++;
+    const section = el("div", {style:"margin-bottom:1rem"});
+    section.appendChild(el("h3", {
+      style:"margin:0 0 .5rem;font-size:.85rem;color:#94a3b8;font-weight:500;text-transform:uppercase;letter-spacing:.05em"
+    }, [`${cat.replace(/_/g," ")} (${items.length})`]));
+    items.slice(0, 8).forEach(it => {
+      const row = el("div", {style:"padding:.4rem .6rem;background:#0d121a;border-radius:6px;margin-bottom:.3rem;font-size:.85rem"});
+      row.appendChild(el("code", {}, [JSON.stringify(it).slice(0, 220)]));
+      section.appendChild(row);
+    });
+    if (items.length > 8) {
+      section.appendChild(el("div", {style:"font-size:.75rem;color:#64748b;padding:.3rem .6rem"}, 
+        [`… and ${items.length - 8} more`]));
+    }
+    issuesContainer.appendChild(section);
+  }
+  if (totalShown === 0) {
+    issuesContainer.innerHTML = '<div class="empty" style="color:var(--green)">✅ All systems nominal — no actionable issues</div>';
+  }
+
+  // 3. Critical engines table
+  const CRITICAL = [
+    "justhodl-conviction-engine","justhodl-signal-board",
+    "justhodl-outcome-checker","justhodl-calibrator","justhodl-alpha-calibrator",
+    "justhodl-miss-detector","justhodl-miss-calibrator","justhodl-near-miss-monitor",
+    "justhodl-engine-signal-map","justhodl-alpha-compass",
+    "justhodl-signal-scorecard","justhodl-master-ranker",
+    "justhodl-magnitude-distributions","justhodl-event-coordinator",
+    "justhodl-crisis-plumbing","justhodl-liquidity-credit-engine",
+    "justhodl-crypto-opportunities","justhodl-eurodollar-stress",
+  ];
+  const fm = audit.full_metrics || [];
+  const fsm = audit.full_schedule_map || {};
+  const tbody = document.getElementById("critical-engines-tbody");
+  tbody.innerHTML = "";
+  let critRowCount = 0;
+  for (const eng of CRITICAL){
+    const row = fm.find(x => x.name === eng);
+    if (!row) continue;
+    const m = row.metrics || {};
+    const sched = fsm[eng];
+    const errRate = m.error_rate_pct || 0;
+    let status = "ok";
+    let statusLabel = "✓";
+    if (errRate > 20) { status = "err"; statusLabel = "broken"; }
+    else if (errRate > 5) { status = "warn"; statusLabel = "degraded"; }
+    else if (m.invocations === 0 && sched) { status = "warn"; statusLabel = "no invokes"; }
+    
+    const tr = el("tr");
+    tr.appendChild(el("td", {}, [el("code", {}, [eng])]));
+    tr.appendChild(el("td", {}, [sched ? sched.schedule || "" : ""]));
+    tr.appendChild(el("td", {style:"text-align:right"}, [String(m.invocations || 0)]));
+    tr.appendChild(el("td", {style:"text-align:right"}, [String(m.errors || 0)]));
+    tr.appendChild(el("td", {style:"text-align:right"}, [`${errRate.toFixed(1)}%`]));
+    const dur = m.duration_avg_ms ? `${(m.duration_avg_ms/1000).toFixed(1)}s` : "—";
+    tr.appendChild(el("td", {style:"text-align:right"}, [dur]));
+    tr.appendChild(el("td", {}, [el("span", {class:`tag ${status==="ok"?"ok":status==="warn"?"warn":"err"}`}, [statusLabel])]));
+    tbody.appendChild(tr);
+    critRowCount++;
+  }
+  if (critRowCount === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">no critical engines found in audit</td></tr>';
+  }
+
+  // 4. Event log (from S3) — falls back gracefully on CORS / missing
+  try {
+    const r = await fetch(EVENT_LOG_URL, {cache: "no-cache"});
+    if (r.ok) {
+      const body = await r.text();
+      const lines = body.split("\n").filter(l => l.trim());
+      const entries = lines.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+      document.getElementById("stat-events").textContent = entries.length;
+      document.getElementById("stat-events").className = "stat " + (entries.length > 0 ? "blue" : "");
+      document.getElementById("stat-events-sub").textContent = entries.length > 0
+        ? `latest ${fmtAge(entries[entries.length-1].ts)}` : "(no events yet)";
+
+      const evContainer = document.getElementById("event-list");
+      evContainer.innerHTML = "";
+      const lastN = entries.slice(-30).reverse();
+      lastN.forEach(entry => {
+        const ts = new Date(entry.ts).toLocaleTimeString("en-US", {hour12: false});
+        const route = entry.route || {};
+        const invokes = route.invokes || [];
+        const row = el("div", {class:"ev-row"});
+        row.appendChild(el("div", {style:"font-family:ui-monospace,monospace;color:#94a3b8;font-size:.78rem"}, [ts]));
+        const center = el("div", {});
+        center.appendChild(el("span", {class:"ev-event"}, [entry.event || "?"]));
+        const detailParts = [];
+        const src = entry.detail?._source_engine;
+        if (src) detailParts.push(`from ${src}`);
+        invokes.forEach(inv => {
+          detailParts.push(`→ ${inv.fn} ${inv.ok ? "✓" : "✗"}`);
+        });
+        if (route.notify === true) detailParts.push("📲 telegram");
+        center.appendChild(el("div", {class:"ev-detail"}, [detailParts.join(" · ")]));
+        row.appendChild(center);
+        const status = invokes.every(i => i.ok) ?
+          el("span", {class:"pill invoke-ok"}, ["ok"]) :
+          invokes.length > 0 ? el("span", {class:"pill invoke-err"}, ["err"]) :
+          el("span", {class:"pill"}, []);
+        row.appendChild(status);
+        evContainer.appendChild(row);
+      });
+      if (lastN.length === 0) {
+        evContainer.innerHTML = '<div class="empty">no coordinator events today yet</div>';
+      }
+    } else {
+      document.getElementById("stat-events").textContent = "—";
+      document.getElementById("stat-events-sub").textContent = "log not yet populated today";
+      document.getElementById("event-list").innerHTML = 
+        '<div class="empty">no coordinator events today yet · the bus is live, waiting for real engine emissions</div>';
+    }
+  } catch(e) {
+    document.getElementById("stat-events").textContent = "?";
+    document.getElementById("event-list").innerHTML = 
+      `<div class="empty">event log fetch failed: ${e.message}</div>`;
+  }
+
+  // 5. S3 freshness from listing
+  try {
+    const r = await fetch(S3_LISTING_URL);
+    if (r.ok) {
+      const txt = await r.text();
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(txt, "text/xml");
+      const items = Array.from(xml.querySelectorAll("Contents")).map(c => ({
+        key: c.querySelector("Key")?.textContent,
+        size: parseInt(c.querySelector("Size")?.textContent || "0"),
+        modified: c.querySelector("LastModified")?.textContent,
+      }));
+      // Sort by most recent first
+      items.sort((a, b) => new Date(b.modified) - new Date(a.modified));
+      const tbody = document.getElementById("s3-freshness-tbody");
+      tbody.innerHTML = "";
+      items.slice(0, 15).forEach(it => {
+        const tr = el("tr");
+        tr.appendChild(el("td", {}, [el("code", {}, [it.key])]));
+        tr.appendChild(el("td", {style:"text-align:right"}, [(it.size/1024).toFixed(1)]));
+        tr.appendChild(el("td", {style:"text-align:right"}, [fmtAge(it.modified)]));
+        tr.appendChild(el("td", {style:"font-size:.75rem;color:#94a3b8"}, [new Date(it.modified).toLocaleString()]));
+        tbody.appendChild(tr);
+      });
+    } else {
+      document.getElementById("s3-freshness-tbody").innerHTML = 
+        '<tr><td colspan="4" class="empty">S3 listing not accessible (CORS or auth)</td></tr>';
+    }
+  } catch(e) {
+    document.getElementById("s3-freshness-tbody").innerHTML = 
+      `<tr><td colspan="4" class="empty">listing failed: ${e.message}</td></tr>`;
+  }
+})();
+</script>
+</body>
+</html>
