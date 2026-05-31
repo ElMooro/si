@@ -214,24 +214,52 @@ def _http_get(url, timeout=HTTP_TIMEOUT, retries=2):
 # ─── Full congressional party map via theunitedstates.io ────────────────
 # The legislators-current.json file is maintained by the unitedstates.io
 # project — every current member of Congress with their BioGuide ID and
-# party. ~535 entries (435 House + 100 Senate). Replaces the small hand-
-# curated dict above which only covered top-30 active traders.
+# party. ~535 entries (435 House + 100 Senate).
+#
+# We pre-cache to S3 via ops/1053 (and refresh monthly) because direct
+# fetches from us-east-1 sometimes time out (theunitedstates.io's
+# Cloudflare config blocks some AWS IPs). Reading from S3 is fast and
+# reliable; falls back to live fetch then hardcoded dict if needed.
+
+S3_PARTY_MAP_KEY  = "data/congress-party-map.json"
+S3_QUIVER_CACHE_KEY = "data/quiver-congress-cache.json"
+
+
+def load_party_map_from_s3() -> dict:
+    """Read pre-cached party map from S3. Returns {bioguide_id: party_letter}."""
+    try:
+        obj = s3.get_object(Bucket=BUCKET, Key=S3_PARTY_MAP_KEY)
+        data = json.loads(obj["Body"].read().decode("utf-8"))
+        pm = data.get("party_map") or {}
+        if pm:
+            print(f"[political] loaded {len(pm)} party mappings from S3 cache "
+                  f"(generated {data.get('generated_at','?')})")
+            return pm
+    except Exception as e:
+        print(f"[political] S3 party map load failed: {e}")
+    return None
+
 
 def fetch_full_legislators_map() -> dict:
     """Returns {bioguide_id: party_letter} for ALL current Congress.
-    Party letters: D / R / I (Independent) / L (Libertarian) / ? unknown.
-    Falls back to the small hardcoded BIOGUIDE_TO_PARTY map if upstream
-    fetch fails."""
+    Tries: S3 cache → live fetch → hardcoded fallback."""
+    # Try S3 cache first (fast, reliable)
+    pm = load_party_map_from_s3()
+    if pm:
+        return pm
+    
+    # Live fetch fallback (slow, sometimes blocked from us-east-1)
+    print("[political] S3 cache miss — trying live fetch")
     url = "https://theunitedstates.io/congress-legislators/legislators-current.json"
-    body = _http_get(url, timeout=30)
+    body = _http_get(url, timeout=20, retries=1)
     if not body:
-        print("[political] legislators fetch failed — using hardcoded fallback")
+        print("[political] live fetch also failed — using hardcoded fallback")
         return dict(BIOGUIDE_TO_PARTY)
     
     try:
         data = json.loads(body)
     except Exception as e:
-        print(f"[political] legislators parse err: {e}")
+        print(f"[political] live parse err: {e}")
         return dict(BIOGUIDE_TO_PARTY)
     
     party_map = {}
@@ -253,12 +281,53 @@ def fetch_full_legislators_map() -> dict:
         except Exception:
             continue
     
-    # Merge in hardcoded values (in case upstream missed someone)
     for k, v in BIOGUIDE_TO_PARTY.items():
         party_map.setdefault(k, v)
     
-    print(f"[political] loaded {len(party_map)} party mappings from legislators-current.json")
     return party_map
+
+
+def fetch_quiver_with_cache() -> tuple:
+    """Try live Quiver first. If it fails or returns empty, fall back to
+    S3 cache (which ops/1053 refreshes). Returns (trades_list, source_label)."""
+    # Try live
+    trades = fetch_quiver_congress()
+    if trades:
+        print(f"[political] live Quiver: {len(trades)} trades")
+        # Update S3 cache opportunistically
+        try:
+            cache_obj = {
+                "schema_version": "1.0",
+                "generated_at":   datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                "source":         "https://api.quiverquant.com/beta/live/congresstrading",
+                "n_trades":       len(trades),
+                "trades":         trades,
+            }
+            s3.put_object(
+                Bucket=BUCKET, Key=S3_QUIVER_CACHE_KEY,
+                Body=json.dumps(cache_obj, default=str, separators=(",", ":")).encode("utf-8"),
+                ContentType="application/json",
+                CacheControl="public, max-age=21600",
+            )
+        except Exception as e:
+            print(f"[political] cache write skipped: {e}")
+        return trades, "live"
+    
+    # Fall back to S3 cache
+    print("[political] live Quiver returned empty — trying S3 cache")
+    try:
+        obj = s3.get_object(Bucket=BUCKET, Key=S3_QUIVER_CACHE_KEY)
+        data = json.loads(obj["Body"].read().decode("utf-8"))
+        cached_trades = data.get("trades") or []
+        cache_age_s = (datetime.now(timezone.utc) -
+                        datetime.fromisoformat(data["generated_at"].replace("Z", "+00:00")
+                                                .replace("+00:00+00:00", "+00:00"))).total_seconds()
+        print(f"[political] using S3 Quiver cache: {len(cached_trades)} trades "
+              f"(age {cache_age_s/3600:.1f}h)")
+        return cached_trades, f"s3_cache_{cache_age_s/3600:.1f}h"
+    except Exception as e:
+        print(f"[political] S3 cache also missing: {e}")
+        return [], "none"
 
 
 # Populated by handler() per invocation
@@ -434,18 +503,16 @@ def aggregate_trades(quiver_trades: list):
 def handler(event, context):
     started = datetime.now(timezone.utc)
     
-    # 0. Load full party map (every current Congress member with BioGuide ID)
+    # 0. Load party map (S3 cache → live → hardcoded)
     global _current_party_map
     _current_party_map = fetch_full_legislators_map()
     
-    # 1. Fetch Congress trades from Quiver
-    print("[political] fetching Quiver live/congresstrading…")
-    quiver_trades = fetch_quiver_congress()
-    print(f"[political] Quiver: {len(quiver_trades)} total trades in feed")
+    # 1. Fetch Congress trades (live → S3 cache)
+    print("[political] fetching Congress trades…")
+    quiver_trades, source = fetch_quiver_with_cache()
+    print(f"[political] got {len(quiver_trades)} trades from: {source}")
     
-    # Tally house/senate split — Quiver's House field is "Representatives" or "Senate"
-    # Bug fix: use exact match (was substring matching, where "sen" matches
-    # "repreSENtatives" — yielded 500 House + 1000 Senate impossibly summing > 1000)
+    # Tally house/senate split (Quiver's House field is "Representatives" or "Senate")
     n_house = sum(1 for t in quiver_trades if (t.get("House") or "") == "Representatives")
     n_senate = sum(1 for t in quiver_trades if (t.get("House") or "") == "Senate")
     
@@ -462,13 +529,14 @@ def handler(event, context):
                         if r["bipartisan"] and r["n_buys"] >= 2][:20]
     
     out = {
-        "schema_version":   "1.2",
-        "method":           "political_stocks_v1_quiver_fullparty",
+        "schema_version":   "1.3",
+        "method":           "political_stocks_v1_s3cached",
         "generated_at":     datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s":       round((datetime.now(timezone.utc) - started).total_seconds(), 1),
         "lookback_days":    LOOKBACK_DAYS,
         "data_source":      "https://api.quiverquant.com/beta/live/congresstrading",
         "party_source":     "https://theunitedstates.io/congress-legislators/legislators-current.json",
+        "quiver_source":    source,  # "live", "s3_cache_Xh", or "none"
         
         "trump_holdings":   TRUMP_HOLDINGS,
         
@@ -478,6 +546,7 @@ def handler(event, context):
             "n_trades_senate": n_senate,
             "n_tickers":       len(ticker_aggregation),
             "n_party_map":     len(_current_party_map or {}),
+            "trade_source":    source,
             "top_buys":        top_buys,
             "top_sells":       top_sells,
             "clusters":        clusters,
