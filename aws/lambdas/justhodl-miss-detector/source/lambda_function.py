@@ -129,6 +129,21 @@ def prior_trading_session(today: datetime) -> str:
             return d.strftime("%Y-%m-%d")
 
 
+def trading_day_before(date_str: str) -> str:
+    """Return YYYY-MM-DD of the trading day STRICTLY BEFORE the given date.
+
+    Used to compute previous-close for percentage-move calculation. The bug
+    we're fixing here: passing target_date + 1 day into prior_trading_session
+    can return target_date itself when target_date+1 is Saturday — making
+    prev_date == target_date and every move compute as 0%.
+    """
+    d = datetime.strptime(date_str, "%Y-%m-%d").date()
+    while True:
+        d = d - timedelta(days=1)
+        if d.weekday() < 5:
+            return d.strftime("%Y-%m-%d")
+
+
 def fetch_grouped_daily(date_str: str) -> list:
     """Polygon grouped daily bars — every US stock in one call."""
     url = (f"https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{date_str}"
@@ -286,8 +301,8 @@ def handler(event, context):
 
     # Determine which session to analyse — last completed trading day
     target_date = prior_trading_session(started)
-    prev_date = prior_trading_session(datetime.strptime(target_date, "%Y-%m-%d")
-                                       .replace(tzinfo=timezone.utc) + timedelta(days=1))
+    prev_date = trading_day_before(target_date)
+    print(f"[miss] target_date={target_date}  prev_date={prev_date}")
 
     bars = fetch_grouped_daily(target_date)
     if not bars:
@@ -295,7 +310,18 @@ def handler(event, context):
         return {"statusCode": 200, "body": json.dumps({"ok": False, "reason": "no bars"})}
 
     prev_bars = fetch_grouped_daily(prev_date)
+    if not prev_bars:
+        # Holiday on prev_date — walk back further
+        for back in range(2, 6):
+            alt = trading_day_before(prev_date)
+            prev_bars = fetch_grouped_daily(alt)
+            if prev_bars:
+                prev_date = alt
+                print(f"[miss] prev_date holiday — walked back to {alt}")
+                break
+            prev_date = alt
     prev_by_ticker = {b.get("T"): b for b in prev_bars if b.get("T")}
+    print(f"[miss] {len(bars)} target bars, {len(prev_by_ticker)} prev_by_ticker")
 
     candidates = compute_candidates(bars, prev_by_ticker)
     print(f"[miss] {len(candidates)} candidates moved ≥{MOVE_THRESHOLD_PCT}%")
