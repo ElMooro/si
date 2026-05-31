@@ -1,0 +1,33 @@
+{
+  "started": "2026-05-31T16:49:47.180144+00:00",
+  "zip_size": 12942,
+  "deploy": "ok",
+  "invoke": {
+    "ok": true,
+    "n_quiver": 0,
+    "n_house": 0,
+    "n_senate": 0,
+    "n_tickers": 0,
+    "n_clusters": 0,
+    "n_bipartisan": 0,
+    "duration_s": 50.5
+  },
+  "snapshot": {
+    "schema_version": "1.2",
+    "method": "political_stocks_v1_quiver_fullparty",
+    "data_source": "https://api.quiverquant.com/beta/live/congresstrading",
+    "party_source": "https://theunitedstates.io/congress-legislators/legislators-current.json",
+    "n_trades_total": 0,
+    "n_trades_house": 0,
+    "n_trades_senate": 0,
+    "n_tickers": 0,
+    "n_party_map": 39,
+    "chambers_sum_check": 0,
+    "n_clusters": 0,
+    "n_bipartisan": 0,
+    "n_top_buys": 0,
+    "top_5_buys_with_parties": [],
+    "bipartisan_buys_top_5": []
+  },
+  "finished": "2026-05-31T16:50:55.090358+00:00"
+}
