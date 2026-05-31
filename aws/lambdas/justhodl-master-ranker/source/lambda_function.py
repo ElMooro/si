@@ -659,6 +659,68 @@ def lambda_handler(event, context):
           f"{len(top_tickers)} tickers · {len(macro_signals)} macro · "
           f"{n_tier_3_plus} tier-3+, {n_tier_5_plus} tier-5+")
 
+    # ─── Emit convergence.tier_up events for new tier-3+/tier-5+ tickers ──
+    # Institutional value: when multiple independent systems converge on
+    # the same ticker, that's a stronger signal than any one system alone.
+    # Operators want to know IMMEDIATELY when a name reaches tier-5+ (5
+    # independent systems agree).
+    try:
+        # Read previous run's ranked tickers to detect new tier crossings
+        prev_tier = {}
+        try:
+            prev_obj = S3.get_object(Bucket=BUCKET, Key=S3_KEY_OUT + ".prev")
+            prev_data = json.loads(prev_obj["Body"].read().decode("utf-8"))
+            for t in prev_data.get("top_tickers", []) or []:
+                prev_tier[t.get("ticker")] = t.get("n_systems", 0)
+        except Exception:
+            pass
+        
+        from system_events import publish_many
+        tier_events = []
+        for t in top_tickers:
+            ticker = t.get("ticker")
+            curr_n = t.get("n_systems", 0)
+            prev_n = prev_tier.get(ticker, 0)
+            
+            # Tier-3 first appearance OR tier-5 first appearance
+            if prev_n < 3 and curr_n >= 3:
+                tier_events.append(("convergence.tier_up", {
+                    "ticker":    ticker,
+                    "new_tier":  3,
+                    "n_systems": curr_n,
+                    "systems":   [s.get("system") for s in (t.get("systems") or [])][:10],
+                    "score":     t.get("score"),
+                }))
+            if prev_n < 5 and curr_n >= 5:
+                tier_events.append(("convergence.tier_up", {
+                    "ticker":    ticker,
+                    "new_tier":  5,
+                    "n_systems": curr_n,
+                    "systems":   [s.get("system") for s in (t.get("systems") or [])][:10],
+                    "score":     t.get("score"),
+                }))
+        
+        # Publish in 10-entry batches per EventBridge limit
+        for i in range(0, len(tier_events), 10):
+            publish_many(tier_events[i:i+10])
+        
+        # Persist current state for next run's comparison
+        S3.put_object(
+            Bucket=BUCKET, Key=S3_KEY_OUT + ".prev",
+            Body=json.dumps({
+                "as_of":   payload["as_of"],
+                "top_tickers": [
+                    {"ticker": t.get("ticker"), "n_systems": t.get("n_systems")}
+                    for t in top_tickers
+                ],
+            }, default=str).encode("utf-8"),
+            ContentType="application/json",
+        )
+        if tier_events:
+            print(f"[master-ranker] emitted {len(tier_events)} tier-up events")
+    except Exception as e:
+        print(f"[master-ranker] event publish failed: {e}")
+
     return {
         "statusCode": 200,
         "body": json.dumps({

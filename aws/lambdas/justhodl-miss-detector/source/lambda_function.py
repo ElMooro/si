@@ -514,6 +514,24 @@ def handler(event, context):
     print(f"[miss] {target_date}: {len(misses)} misses / {attributed} attributed "
           f"from {len(candidates)} candidates")
 
+    # ─── Emit miss.detected event with aggregate counts ─────────────────
+    # Coordinator currently routes this to audit-only, but downstream
+    # consumers can subscribe to track miss patterns over time.
+    try:
+        from system_events import publish
+        publish("miss.detected", {
+            "session_date":      target_date,
+            "n_candidates":      len(candidates),
+            "n_attributed":      attributed,
+            "n_misses":          len(misses),
+            "by_category":       cats,
+            "move_threshold_pct": MOVE_THRESHOLD_PCT,
+            "rolling_30d_totals": summary.get("totals"),
+            "n_near_miss_signals": len(summary.get("near_misses_by_signal") or {}),
+        }, source_engine="miss-detector")
+    except Exception as e:
+        print(f"[miss] event publish failed: {e}")
+
     return {
         "statusCode": 200,
         "body": json.dumps({

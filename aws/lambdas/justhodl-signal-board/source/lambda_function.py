@@ -773,6 +773,42 @@ def lambda_handler(event, context):
                   CacheControl="public, max-age=1800")
     print(f"[signal-board] posture={posture} composite={composite} "
           f"{len(live)}/{len(engines)} live, {stale} stale, {out['elapsed_s']}s")
+    
+    # ─── Emit posture.changed event if posture flipped vs previous run ──
+    # Posture transitions across the RISK_ON / NEUTRAL / RISK_OFF axis are
+    # institutional-level events — they move portfolio exposure decisions.
+    # Best-effort, never blocks the engine.
+    try:
+        prev_posture = None
+        try:
+            prev_obj = s3.get_object(Bucket=S3_BUCKET, Key=OUT_KEY + ".prev")
+            prev_data = json.loads(prev_obj["Body"].read().decode("utf-8"))
+            prev_posture = prev_data.get("composite_posture")
+        except Exception:
+            pass
+        
+        if prev_posture and prev_posture != posture:
+            from system_events import publish
+            publish("posture.changed", {
+                "previous":         prev_posture,
+                "current":          posture,
+                "composite_signal": composite,
+                "n_live":           len(live),
+                "n_stale":          stale,
+                "n_engines_total":  len(engines),
+            }, source_engine="signal-board")
+        
+        # Save current state for next run's comparison
+        s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY + ".prev",
+                       Body=json.dumps({
+                           "composite_posture": posture,
+                           "composite_signal":  composite,
+                           "generated_at":      now.isoformat(),
+                       }).encode("utf-8"),
+                       ContentType="application/json")
+    except Exception as e:
+        print(f"[signal-board] event publish failed: {e}")
+    
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "composite_posture": posture,
         "composite_signal": composite, "n_live": len(live),

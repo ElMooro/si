@@ -1,0 +1,102 @@
+name: Controlled Lambda Redeploy
+
+# Manual rollout tool for large-scale Lambda redeploys.
+# Use when the standard deploy-lambdas.yml workflow is too coarse —
+# e.g., when redeploying many Lambdas after a shared module change or
+# fixing a systemic config issue, and you want gradual rollout with
+# health gating between batches.
+
+on:
+  workflow_dispatch:
+    inputs:
+      function_names:
+        description: 'Comma-separated Lambda names, "CONFIG_DIFF" (last commit), or "ALL" (every Lambda with local source)'
+        required: true
+        default: 'CONFIG_DIFF'
+      batch_size:
+        description: 'Lambdas per batch (smaller = safer)'
+        required: false
+        default: '10'
+      batch_pause_s:
+        description: 'Seconds to pause between batches (gives CloudWatch time to record errors)'
+        required: false
+        default: '30'
+      dry_run:
+        description: 'true = show what would be deployed without doing it'
+        required: true
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
+      abort_on_error:
+        description: 'true = abort if error rate spikes >threshold after a batch'
+        required: true
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
+      err_pct_threshold:
+        description: 'Max allowed error rate increase (percentage points)'
+        required: false
+        default: '20'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  redeploy:
+    name: Controlled redeploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install boto3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Show parameters
+        run: |
+          echo "============================================"
+          echo " Controlled Redeploy"
+          echo "============================================"
+          echo " function_names:    ${{ inputs.function_names }}"
+          echo " batch_size:        ${{ inputs.batch_size }}"
+          echo " batch_pause_s:     ${{ inputs.batch_pause_s }}"
+          echo " dry_run:           ${{ inputs.dry_run }}"
+          echo " abort_on_error:    ${{ inputs.abort_on_error }}"
+          echo " err_pct_threshold: ${{ inputs.err_pct_threshold }}"
+          echo "============================================"
+
+      - name: Run controlled redeploy
+        env:
+          CR_FUNCTIONS:        ${{ inputs.function_names }}
+          CR_BATCH_SIZE:       ${{ inputs.batch_size }}
+          CR_BATCH_PAUSE_S:    ${{ inputs.batch_pause_s }}
+          CR_DRY_RUN:          ${{ inputs.dry_run }}
+          CR_ABORT_ON_ERROR:   ${{ inputs.abort_on_error }}
+          CR_ERR_PCT_THRESHOLD: ${{ inputs.err_pct_threshold }}
+        run: python aws/ops/pending/1028_controlled_redeploy.py
+
+      - name: Commit report
+        run: |
+          git config user.email "raafouis@gmail.com"
+          git config user.name  "controlled-redeploy"
+          if [ -f aws/ops/reports/1028_controlled_redeploy.json ]; then
+            git add aws/ops/reports/1028_controlled_redeploy.json
+            git commit -m "controlled-redeploy: ${{ inputs.function_names }} (dry_run=${{ inputs.dry_run }}) [skip-deploy]" || true
+            git push || true
+          fi

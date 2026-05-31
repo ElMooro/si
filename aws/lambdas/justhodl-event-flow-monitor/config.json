@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-event-flow-monitor",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Institutional-grade event bus health monitor. Watches coordinator audit log, detects silence/spikes/error anomalies, fires Telegram alerts with cool-down.",
+  "schedule": {
+    "rule_name": "event-flow-monitor-hourly",
+    "cron": "cron(0 * * * ? *)",
+    "description": "Event flow health monitor — hourly on the hour"
+  }
+}

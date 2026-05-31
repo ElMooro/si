@@ -153,6 +153,25 @@ ROUTES = {
         "notify":  False,
         "audit":   False,   # too noisy to audit
     },
+    
+    # ─── Newer event types (1028+ session) ──────────────────────────────
+    
+    # Signal-board posture transitions move the whole portfolio's risk
+    # stance — operator wants immediate notification.
+    "posture.changed": {
+        "invoke":  ["justhodl-alpha-compass"],   # refresh top calls with new posture
+        "notify":  True,
+        "audit":   True,
+    },
+    
+    # When a ticker reaches multi-system convergence (tier-3 or tier-5),
+    # alpha-compass should refresh and the operator should know about
+    # tier-5 (rare) events specifically. Tier-3 is more common; just audit.
+    "convergence.tier_up": {
+        "invoke":  ["justhodl-alpha-compass"],
+        "notify":  True,   # we filter inside coordinator to only notify tier-5
+        "audit":   True,
+    },
 }
 
 
@@ -241,6 +260,19 @@ def send_telegram_alert(event_name: str, detail: dict) -> bool:
         elif event_name == "signal.deprecated":
             lines.append(f"  signal: <b>{detail.get('signal_type','?')}</b>")
             lines.append(f"  reason: {detail.get('reason','?')}")
+        elif event_name == "posture.changed":
+            lines.append(f"  {detail.get('previous','?')} → <b>{detail.get('current','?')}</b>")
+            cs = detail.get("composite_signal")
+            if cs is not None:
+                lines.append(f"  composite_signal: <b>{cs}</b>")
+            lines.append(f"  engines: {detail.get('n_live','?')}/{detail.get('n_engines_total','?')} live")
+        elif event_name == "convergence.tier_up":
+            lines.append(f"  ticker: <b>{detail.get('ticker','?')}</b>")
+            lines.append(f"  new_tier: <b>{detail.get('new_tier','?')}</b>")
+            lines.append(f"  systems: {', '.join((detail.get('systems') or [])[:6])}")
+            score = detail.get("score")
+            if score is not None:
+                lines.append(f"  score: <b>{score}</b>")
         else:
             # Fallback: dump the first few keys
             payload = {k: v for k, v in detail.items()
@@ -343,6 +375,12 @@ def handler(event, context):
             should = eng in CRITICAL_ENGINES or eng.replace("justhodl-", "") in CRITICAL_ENGINES
             if should:
                 result["notify"] = send_telegram_alert(event_name, detail)
+        # For convergence.tier_up: noisy. Only notify on tier-5 (rare).
+        elif event_name == "convergence.tier_up":
+            if detail.get("new_tier", 0) >= 5:
+                result["notify"] = send_telegram_alert(event_name, detail)
+            else:
+                result["notify"] = "suppressed_tier_3_noise"
         else:
             result["notify"] = send_telegram_alert(event_name, detail)
     
