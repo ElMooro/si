@@ -1,0 +1,28 @@
+{
+  "started": "2026-05-31T16:59:41.061090+00:00",
+  "cache_results": {
+    "legislators": {
+      "ok": false,
+      "err": "<urlopen error [Errno 110] Connection timed out>"
+    },
+    "quiver": {
+      "ok": true,
+      "n_trades": 1000,
+      "bytes_written": 398727,
+      "elapsed_s": 0.11,
+      "attempt": 3
+    }
+  },
+  "s3_verify": {
+    "data/congress-party-map.json": {
+      "err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "data/quiver-congress-cache.json": {
+      "size": 398727,
+      "last_modified": "2026-05-31 17:01:38",
+      "exists": true,
+      "n_items": 1000
+    }
+  },
+  "finished": "2026-05-31T17:01:38.134467+00:00"
+}
