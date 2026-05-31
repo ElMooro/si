@@ -529,6 +529,7 @@ def lambda_handler(event,context):
         if isinstance(fr, dict):
             setups = fr.get("suspected_setups") or []
             for i, sx in enumerate(setups[:3]):  # Top 3 per cycle
+              try:
                 target = sx.get("target_asset") or sx.get("primary_asset")
                 if not target: continue
                 # Pull ticker out of free-form text (e.g. "SPY / Broad Equity Market" → "SPY")
@@ -565,14 +566,16 @@ def lambda_handler(event,context):
                         "regime":         fr.get("anomaly_regime"),
                         "anomaly_score":  fr.get("overall_anomaly_score"),
                     },
-                    rationale=(sx.get("thesis_summary") or sx.get("invalidation") or "")[:300]
+                    rationale=str(sx.get("thesis_summary") or sx.get("invalidation") or "")[:300]
                 ))
+              except Exception as _se: print(f"[equity_setup #{i}] {_se}")
 
         # ─── 2. Macro front-run sniffer setups ───
         mfr = fs3("data/macro-frontrun-sniffer.json")
         if isinstance(mfr, dict):
             setups_m = mfr.get("macro_setups") or []
             for i, sx in enumerate(setups_m[:3]):
+              try:
                 ts = sx.get("trade_specifics") or {}
                 instr = ts.get("primary_instrument")
                 if not instr: continue
@@ -611,8 +614,9 @@ def lambda_handler(event,context):
                         "stop_level":     ts.get("stop_level"),
                         "size_pct":       ts.get("size_pct_of_portfolio"),
                     },
-                    rationale=(sx.get("thesis_summary") or sx.get("front_running_catalyst") or "")[:300]
+                    rationale=str(sx.get("thesis_summary") or sx.get("front_running_catalyst") or "")[:300]
                 ))
+              except Exception as _se: print(f"[macro_setup #{i}] {_se}")
 
         # ─── 3. Convergence fingerprint fires (special signals — implied risk-off) ───
         # When either fingerprint fires (3/3 macro or 3-4/4 equity), that's
@@ -673,45 +677,47 @@ def lambda_handler(event,context):
                     ))
             except Exception as _e: print(f"[equity_conv_log] {_e}")
 
-        # ─── 4. Sustained-target alerts (when a name crosses 8+ appearances) ───
+        # ─── 4. Sustained-target alerts (when a name crosses 4+ appearances) ───
         # Each top-of-leaderboard name is implicitly a "smart-money flagged this
         # name" prediction. Log the top 2 sustained names as predictions tied to
         # the direction of their most recent setup mention.
         tx = fs3("data/_alerts/targets-index.json")
         if isinstance(tx, dict):
             for entry in (tx.get("equity_targets") or [])[:2]:
-                if not entry.get("is_recent"): continue
-                if (entry.get("n_digest_appearances") or 0) < 6: continue  # threshold
-                asset = entry.get("asset")
-                if not asset: continue
-                import re
-                tk_match = re.match(r"^([A-Z]{1,5})", str(asset).strip())
-                if not tk_match: continue
-                ticker = tk_match.group(1)
-                # Pull direction from the live frontrun brief if it mentions this name
-                pred = "UP"  # default — leaderboard implies bullish positioning typically
-                if isinstance(fr, dict):
-                    for sx in (fr.get("suspected_setups") or []):
-                        if str(sx.get("target_asset") or "").upper().startswith(ticker):
-                            pred = _dir_from_label(sx.get("target_direction"))
-                            if pred == "NEUTRAL": pred = "UP"
-                            break
-                logged.append(log_sig(
-                    "sustained_target_equity",
-                    f"{ticker}_{pred}",
-                    pred,
-                    0.65,
-                    ticker,
-                    [7, 14],
-                    meta={
-                        "engine":              "sustained_target_equity",
-                        "n_digest_appearances": entry.get("n_digest_appearances"),
-                        "max_n_times_in_window": entry.get("max_n_times_in_window"),
-                        "first_seen":          entry.get("first_seen"),
-                        "last_seen":           entry.get("last_seen"),
-                    },
-                    rationale=f"Appeared in {entry.get('n_digest_appearances')} digests — sustained smart-money flag"
-                ))
+                try:
+                    if not entry.get("is_recent"): continue
+                    if (entry.get("n_digest_appearances") or 0) < 4: continue  # threshold
+                    asset = entry.get("asset")
+                    if not asset: continue
+                    import re
+                    tk_match = re.match(r"^([A-Z]{1,5})", str(asset).strip())
+                    if not tk_match: continue
+                    ticker = tk_match.group(1)
+                    # Pull direction from the live frontrun brief if it mentions this name
+                    pred = "UP"  # default — leaderboard implies bullish positioning typically
+                    if isinstance(fr, dict):
+                        for sx in (fr.get("suspected_setups") or []):
+                            if str(sx.get("target_asset") or "").upper().startswith(ticker):
+                                pred = _dir_from_label(sx.get("target_direction"))
+                                if pred == "NEUTRAL": pred = "UP"
+                                break
+                    logged.append(log_sig(
+                        "sustained_target_equity",
+                        f"{ticker}_{pred}",
+                        pred,
+                        0.65,
+                        ticker,
+                        [7, 14],
+                        meta={
+                            "engine":              "sustained_target_equity",
+                            "n_digest_appearances": entry.get("n_digest_appearances"),
+                            "max_n_times_in_window": entry.get("max_n_times_in_window"),
+                            "first_seen":          entry.get("first_seen"),
+                            "last_seen":           entry.get("last_seen"),
+                        },
+                        rationale=f"Appeared in {entry.get('n_digest_appearances')} digests — sustained smart-money flag"
+                    ))
+                except Exception as _se: print(f"[sustained_target] {_se}")
 
     except Exception as ex:
         print(f"[FRONTRUN-PREDICTIONS] {ex}")
