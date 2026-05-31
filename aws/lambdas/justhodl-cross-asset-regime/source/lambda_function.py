@@ -406,6 +406,22 @@ def lambda_handler(event=None, context=None):
            " risk=" + str(regime_info["risk_score"]) + " (" + regime_info["risk_label"] + ")")
     if regime_change:
         print("[regime] CHANGE: " + regime_change["from"] + " → " + regime_change["to"])
+        # Emit regime.changed event — coordinator triggers master-ranker,
+        # alpha-compass, and signal-board to refresh immediately rather
+        # than wait for their own crons.
+        try:
+            from system_events import publish, EVT_REGIME_CHANGED
+            publish(EVT_REGIME_CHANGED, {
+                "previous":   regime_change.get("from"),
+                "current":    regime_change.get("to"),
+                "confidence": regime_info.get("confidence"),
+                "risk_score": regime_info.get("risk_score"),
+                "risk_label": regime_info.get("risk_label"),
+                "rationale":  (regime_info.get("rationale") or [])[:3],
+                "lookback":   "20d",
+            }, source_engine="cross-asset-regime")
+        except Exception as e:
+            print(f"[regime] event publish failed: {e}")
     if correlation_breaks[:3]:
         print("[regime] top breaks: " + str([(b["pair"], b["delta"]) for b in correlation_breaks[:3]]))
 

@@ -383,6 +383,39 @@ def lambda_handler(event, context):
         if newly_pro:
             lines.append("PROMOTED (proven edge): " + ", ".join(newly_pro))
         maybe_telegram("[signal-scorecard] <b>Signal status changes</b>\n" + "\n".join(lines))
+        
+        # Emit one event per newly-changed signal so downstream engines
+        # (engine-signal-map, miss-calibrator) can refresh immediately.
+        # Fire-and-forget — never blocks scorecard run.
+        try:
+            from system_events import (
+                publish_many, EVT_SIGNAL_DEPRECATED, EVT_SIGNAL_PROMOTED,
+            )
+            events_to_pub = []
+            for s in newly_dep:
+                # Find this signal's stats for richer event payload
+                row = next((r for r in scorecard if r.get("signal_type") == s), {})
+                events_to_pub.append((EVT_SIGNAL_DEPRECATED, {
+                    "signal_type":   s,
+                    "wilson_lb":     row.get("wilson_lb"),
+                    "n_scored":      row.get("n_scored"),
+                    "previous_status": prior.get(s),
+                    "reason":        "scorecard moved below deprecate threshold",
+                }))
+            for s in newly_pro:
+                row = next((r for r in scorecard if r.get("signal_type") == s), {})
+                events_to_pub.append((EVT_SIGNAL_PROMOTED, {
+                    "signal_type":   s,
+                    "wilson_lb":     row.get("wilson_lb"),
+                    "n_scored":      row.get("n_scored"),
+                    "previous_status": prior.get(s),
+                    "reason":        "scorecard reached promote threshold",
+                }))
+            # EventBridge limit: 10 per batch
+            for i in range(0, len(events_to_pub), 10):
+                publish_many(events_to_pub[i:i+10])
+        except Exception as e:
+            print(f"[signal-scorecard] event publish failed: {e}")
     try:
         s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY + ".prev",
                        Body=json.dumps(out, default=str).encode("utf-8"),
