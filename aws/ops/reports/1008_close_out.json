@@ -1,0 +1,118 @@
+{
+  "started": "2026-05-31T03:17:09.918773+00:00",
+  "justhodl-magnitude-distributions": {
+    "error": "ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: Conflict due to concurrent requests on this function. Please try this request again."
+  },
+  "justhodl-miss-detector": {
+    "zip_size": 8724,
+    "invoke": {
+      "fn_err": null,
+      "status": 200,
+      "result": {
+        "ok": true,
+        "session_date": "2026-05-29",
+        "candidates": 511,
+        "attributed": 0,
+        "misses": 200
+      }
+    }
+  },
+  "justhodl-alpha-compass": {
+    "invoke": {
+      "fn_err": null,
+      "status": 200,
+      "result": {
+        "ok": true,
+        "top_calls": 3,
+        "watchlist": 3
+      }
+    }
+  },
+  "s3": {
+    "data/magnitude-distributions.json": {
+      "size": 290,
+      "modified": "2026-05-31 02:58:50+00:00"
+    },
+    "data/alpha-compass.json": {
+      "size": 5571,
+      "modified": "2026-05-31 03:17:25+00:00"
+    },
+    "data/miss-summary.json": {
+      "size": 596,
+      "modified": "2026-05-31 03:17:23+00:00"
+    }
+  },
+  "magdist_payload": {
+    "totals": {
+      "checked_signals_scanned": 0,
+      "usable_outcomes": 0,
+      "unique_stacks": 0,
+      "published_stacks": 0,
+      "unique_signal_types": 0
+    },
+    "stacks_returned": 0,
+    "by_signal_count": 0,
+    "top_3_stacks": []
+  },
+  "miss_summary_payload": {
+    "window_days": 30,
+    "generated_at": "2026-05-31T03:17:22.143857+00:00",
+    "totals": {
+      "wrong_signal_type": 200
+    },
+    "near_misses_by_signal": {},
+    "top_recurring_tickers": {
+      "STG": 1,
+      "PRFX": 1,
+      "REPL": 1,
+      "OLOX": 1,
+      "ASTC": 1,
+      "DLLL": 1,
+      "OKTG": 1,
+      "VCIG": 1,
+      "CMND": 1,
+      "IOTR": 1,
+      "SPCE": 1,
+      "SPPL": 1,
+      "PD": 1,
+      "DELL": 1,
+      "GITS": 1,
+      "ASTY": 1,
+      "OKTA": 1,
+      "MX": 1,
+      "ASTX": 1,
+      "ASTN": 1,
+      "NOWL": 1,
+      "ADVB": 1,
+      "NCT": 1,
+      "CUPR": 1,
+      "IBX": 1,
+      "PIII": 1,
+      "CHA": 1,
+      "AKTX": 1,
+      "AEMD": 1,
+      "CODX": 1,
+      "SMCZ": 1,
+      "SMCL": 1,
+      "SCLX": 1,
+      "OCS": 1,
+      "SMCX": 1,
+      "HOOX": 1,
+      "HODU": 1,
+      "HOOZ": 1,
+      "AXTX": 1,
+      "NTAP": 1,
+      "AXTU": 1,
+      "HOOG": 1,
+      "ROBN": 1,
+      "TSSI": 1,
+      "ORCX": 1,
+      "ORCU": 1,
+      "EEIQ": 1,
+      "AMBA": 1,
+      "WNW": 1,
+      "ATPC": 1
+    }
+  },
+  "finished": "2026-05-31T03:17:24.736637+00:00"
+}
