@@ -1,0 +1,13 @@
+{
+  "started": "2026-05-31T02:43:54.027251+00:00",
+  "worker_status": 200,
+  "worker_err": null,
+  "result": {
+    "justhodl-magnitude-distributions": {
+      "error": "An error occurred (AccessDeniedException) when calling the UpdateFunctionCode operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-create-missing-v2 is not authorized to perform: lambda:UpdateFunctionCode on resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-magnitude-distributions because no identity-based policy allows the lambda:UpdateFunctionCod"
+    },
+    "justhodl-miss-detector": {
+      "error": "An error occurred (AccessDeniedException) when calling the CreateFunction operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-create-missing-v2 is not authorized to perform: iam:PassRole on resource: arn:aws:iam::857687956942:role/lambda-execution-role because no identity-based policy allows the iam:PassRole action"
+    }
+  }
+}
