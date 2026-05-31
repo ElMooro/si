@@ -92,3 +92,38 @@ To find replacement DBnomics codes: visit https://db.nomics.world/ and search by
 ## Completed (for audit trail)
 
 _(none yet — file initialized 2026-05-21)_
+
+---
+
+## 🟡 Unblocks autonomous work — newer items
+
+### 3. PatentsView API Key — unblocks `justhodl-patent-velocity` engine
+
+The Lambda `justhodl-patent-velocity` is deployed and scheduled (daily 17 UTC), but PatentsView migrated from no-auth Legacy API to PatentSearch API in Feb 2025 which requires a free API key. The Lambda currently writes a stub to `data/patent-velocity.json` indicating `needs_api_key`, and `/patent-velocity.html` shows an actionable "Register for API Key" link.
+
+**Why it matters:** Patent grant velocity is a 12-24 month leading indicator for new product launches, M&A activity, and strategic pivots. Top quant funds (Susquehanna, RBC, Two Sigma) use patent analytics in tech / biotech / industrial momentum strategies. Universe is curated to ~80 high-IP filers.
+
+**Steps (~5 min + manual approval wait):**
+
+1. Visit https://patentsview.org/apis/ → service desk request for API key (free)
+2. Once received, drop key in SSM:
+   ```bash
+   aws ssm put-parameter \
+     --name /justhodl/patentsview-key \
+     --value YOUR_KEY \
+     --type SecureString \
+     --region us-east-1
+   ```
+3. Add to Lambda env:
+   ```bash
+   aws lambda update-function-configuration \
+     --function-name justhodl-patent-velocity \
+     --environment "Variables={PATENTSVIEW_API_KEY=YOUR_KEY}" \
+     --region us-east-1
+   ```
+4. Trigger a fresh run:
+   ```bash
+   aws lambda invoke --function-name justhodl-patent-velocity --invocation-type Event /tmp/out
+   ```
+
+**Note:** PatentsView is migrating to USPTO Open Data Portal (data.uspto.gov) as of March 20, 2026. Once that migration stabilizes, consider switching to the ODP endpoint instead. The current Lambda still uses `search.patentsview.org/api/v1/patent/` which is the surviving v1 endpoint.

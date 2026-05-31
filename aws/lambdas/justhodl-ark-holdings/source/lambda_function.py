@@ -75,7 +75,9 @@ ARK_FUNDS = {
               "ARK Space Exploration & Innovation ETF"),
 }
 
-BASE_URL = "https://ark-funds.com/wp-content/uploads/funds-etf-csv/"
+BASE_URL = "https://ark-funds.com/wp-content/fundsiteliterature/csv/"
+# NOTE: ARK changed CMS path 2025/2026 from /wp-content/uploads/funds-etf-csv/
+# to /wp-content/fundsiteliterature/csv/. Confirmed via direct probe (ops/1060).
 
 s3 = boto3.client("s3", region_name=REGION)
 

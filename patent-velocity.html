@@ -148,6 +148,17 @@ function renderTable(d){
 async function load(){
   const d=await fetchJson("patent-velocity.json");
   if(!d){document.getElementById("hero").innerHTML='<div class="loading" style="color:var(--orange)">Engine not yet run — first scheduled invocation will populate at 17 UTC.</div>';return}
+  if(d.status==="needs_api_key"){
+    document.getElementById("hero").innerHTML=`<div style="grid-column:1/-1;padding:30px;text-align:center;background:rgba(255,179,71,.07);border:1px solid rgba(255,179,71,.25);border-radius:8px">
+      <div style="font-family:var(--mono);font-size:14px;color:var(--gold);margin-bottom:10px">⚠ Engine deployed — API key registration needed</div>
+      <div style="color:var(--mute);font-size:12.5px;max-width:700px;margin:0 auto;line-height:1.55">PatentsView migrated from no-auth Legacy API to PatentSearch API which requires a free API key. Universe ready: ${d.universe_size||0} high-IP companies. Once key provisioned in SSM <code style="background:var(--panel2);padding:1px 6px;border-radius:3px;color:var(--cyan)">/justhodl/patentsview-key</code> + Lambda env <code style="background:var(--panel2);padding:1px 6px;border-radius:3px;color:var(--cyan)">PATENTSVIEW_API_KEY</code>, engine activates on next 17 UTC schedule.</div>
+      <div style="margin-top:14px"><a href="${esc(d.register_url||'https://patentsview.org/apis/')}" target="_blank" style="color:var(--cyan);text-decoration:none;font-family:var(--mono);font-size:11px;border-bottom:1px dashed var(--line);letter-spacing:1px">→ REGISTER FOR API KEY</a></div>
+    </div>`;
+    document.getElementById("panels").innerHTML="";
+    document.getElementById("table").innerHTML="";
+    document.getElementById("ts").innerHTML=`stub written ${esc(d.generated_at||"?")} · waiting for credentials`;
+    return;
+  }
   renderHero(d);renderPanels(d);renderTable(d);
   document.getElementById("ts").innerHTML=`generated ${esc(d.generated_at||"?")} · ${esc(d.method||"?")} · source=USPTO PatentsView`;
 }

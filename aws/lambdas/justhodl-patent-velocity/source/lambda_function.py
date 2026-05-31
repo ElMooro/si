@@ -73,6 +73,12 @@ OUTPUT_KEY = "data/patent-velocity.json"
 HTTP_TIMEOUT = 25
 USER_AGENT = "JustHodl-PatentVelocity/1.0 (raafouis@gmail.com)"
 
+# PatentsView migrated 2024-2025 from no-auth Legacy API to PatentSearch API
+# which REQUIRES an API key. Free, register at https://patentsview.org/apis/
+# (or USPTO ODP successor at data.uspto.gov). Until key is provisioned in SSM,
+# the engine will fail gracefully and write a stub indicating registration needed.
+PATENTSVIEW_API_KEY = os.environ.get("PATENTSVIEW_API_KEY", "").strip()
+
 # Windows
 RECENT_DAYS = int(os.environ.get("RECENT_DAYS", "90"))
 BASELINE_DAYS = int(os.environ.get("BASELINE_DAYS", "365"))
@@ -191,6 +197,8 @@ def _http_post(url, payload, timeout=HTTP_TIMEOUT, retries=2):
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
+    if PATENTSVIEW_API_KEY:
+        h["X-Api-Key"] = PATENTSVIEW_API_KEY
     for attempt in range(retries + 1):
         try:
             req = urllib.request.Request(url, data=data, headers=h, method="POST")
@@ -357,6 +365,35 @@ def analyze_ticker(ticker: str, assignee_names: list) -> dict:
 @track_errors
 def handler(event, context):
     started = datetime.now(timezone.utc)
+    
+    # Bail early if API key not provisioned. PatentsView migrated to require
+    # key in 2024-2025; write a stub output so dashboard shows actionable msg.
+    if not PATENTSVIEW_API_KEY:
+        msg = ("PatentsView API key not provisioned. Register at "
+                "https://patentsview.org/apis/ (free) → service desk request → "
+                "drop key in SSM at /justhodl/patentsview-key + Lambda env "
+                "PATENTSVIEW_API_KEY.")
+        print(f"[patent] ABORT: {msg}")
+        stub = {
+            "schema_version": "1.0",
+            "method":         "patent_velocity_v1",
+            "generated_at":   datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "status":         "needs_api_key",
+            "needs_setup":    msg,
+            "register_url":   "https://patentsview.org/apis/",
+            "universe_size":  len(TICKER_TO_ASSIGNEE),
+            "n_results":      0,
+            "highlights":     {"velocity_spikes": [], "new_tech_focus": [], "highest_scale": []},
+            "all_results":    [],
+        }
+        s3.put_object(Bucket=BUCKET, Key=OUTPUT_KEY,
+                       Body=json.dumps(stub, default=str, separators=(",", ":")).encode("utf-8"),
+                       ContentType="application/json",
+                       CacheControl="public, max-age=3600")
+        return {"statusCode": 200, "body": json.dumps({
+            "ok": False, "reason": "needs_api_key",
+            "message": msg,
+        })}
     
     tickers = list(TICKER_TO_ASSIGNEE.keys())[:MAX_COMPANIES]
     print(f"[patent] processing {len(tickers)} tickers w/ patent activity")
