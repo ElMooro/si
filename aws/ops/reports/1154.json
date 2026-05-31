@@ -1,0 +1,156 @@
+{
+  "started": "2026-05-31T01:28:36.251346+00:00",
+  "registry": {
+    "n_contexts": 40,
+    "calibrator_present": true,
+    "opp_ranker_present": true
+  },
+  "initial_calibration_config": "written (v1.0, no overrides)",
+  "redeploy_router": {
+    "attempt": 1,
+    "status": "OK"
+  },
+  "redeploy_logger": {
+    "attempt": 1,
+    "status": "OK"
+  },
+  "eb_calibrator": {
+    "rule": "created",
+    "permission": "added"
+  },
+  "eb_opp_ranker": {
+    "rule": "created",
+    "permission": "added"
+  },
+  "calibrator_fire": {
+    "fn_err": null,
+    "n_ok": 1,
+    "results": [
+      {
+        "context_id": "self-improvement-calibrator",
+        "title": "Self-Improvement Calibrator",
+        "brief_type": "calibrator",
+        "output_key": "self-improvement-calibrator",
+        "status": "OK",
+        "n_engines_analyzed": 2,
+        "n_auto_applied": 0,
+        "n_pending": 0,
+        "n_skipped": 2,
+        "config_version": "1.0",
+        "duration_s": 0.1,
+        "auto_applied": [],
+        "pending": []
+      }
+    ]
+  },
+  "opp_ranker_fire": {
+    "fn_err": null,
+    "n_ok": 1,
+    "results": [
+      {
+        "context_id": "opportunity-ranker",
+        "title": "Best-Opportunities Ranker",
+        "brief_type": "opportunity_ranker",
+        "output_key": "opportunity-ranker",
+        "status": "OK",
+        "n_opportunities": 3,
+        "n_engines_used": 2,
+        "duration_s": 0.14,
+        "top_5": [
+          {
+            "rank": 1,
+            "asset": "TLT",
+            "direction": "SHORT (tactical fade on rallies)",
+            "score": 0.2151,
+            "engine": "macro_frontrun_sniffer"
+          },
+          {
+            "rank": 2,
+            "asset": "HYG",
+            "direction": "SHORT",
+            "score": 0.2151,
+            "engine": "macro_frontrun_sniffer"
+          },
+          {
+            "rank": 3,
+            "asset": "ZN",
+            "direction": "FLATTENER (short ZN, long ZB)",
+            "score": 0.2151,
+            "engine": "macro_frontrun_sniffer"
+          }
+        ]
+      }
+    ]
+  },
+  "logger_fire": {
+    "fn_err": null,
+    "logged": 52
+  },
+  "frontrun_lines": "[LOG] macro_frontrun_sniffer_setup=TLT_DOWN DOWN conf=0.60 baseline=$85.76\n[LOG] macro_frontrun_sniffer_setup=HYG_DOWN DOWN conf=0.60 baseline=$80.31\n[LOG] macro_frontrun_sniffer_setup=ZN_DOWN DOWN conf=0.60 baseline=$0.23\n[LOG] sustained_target_equity=PEP_UP UP conf=0.65 baseline=$144.19\n[LOG] sustained_target_equity=AMD_UP UP conf=0.65 baseline=$516.10",
+  "calibration_config": {
+    "version": "1.0",
+    "n_engine_overrides": 0,
+    "n_history": 0,
+    "n_pending": 0,
+    "n_skipped": 2,
+    "thresholds": {
+      "min_n_scored": 20,
+      "err_threshold": 0.1,
+      "max_step": 0.15,
+      "scale_min": 0.5,
+      "scale_max": 1.5,
+      "step_factor": 0.5
+    }
+  },
+  "opportunity_rankings": {
+    "generated_at": "2026-05-31T01:28:57.652356+00:00",
+    "n_total": 3,
+    "engine_hit_rates": {
+      "sustained_target_equity": 0.5,
+      "macro_frontrun_sniffer": 0.5
+    },
+    "top_5": [
+      {
+        "rank": 1,
+        "asset": "TLT",
+        "direction": "SHORT (tactical fade on rallies)",
+        "score": 0.2151,
+        "engine": "macro_frontrun_sniffer"
+      },
+      {
+        "rank": 2,
+        "asset": "HYG",
+        "direction": "SHORT",
+        "score": 0.2151,
+        "engine": "macro_frontrun_sniffer"
+      },
+      {
+        "rank": 3,
+        "asset": "ZN",
+        "direction": "FLATTENER (short ZN, long ZB)",
+        "score": 0.2151,
+        "engine": "macro_frontrun_sniffer"
+      }
+    ]
+  },
+  "skill_index": {
+    "n_total": 5,
+    "n_scored": 0,
+    "n_pending": 5,
+    "engines": [
+      "sustained_target_equity",
+      "macro_frontrun_sniffer"
+    ]
+  },
+  "verify_justhodl-self-improvement-daily": {
+    "state": "ENABLED",
+    "schedule": "cron(0 11 * * ? *)",
+    "input": "{\"contexts\": [\"self-improvement-calibrator\"]}"
+  },
+  "verify_justhodl-opportunity-ranker-4h": {
+    "state": "ENABLED",
+    "schedule": "rate(4 hours)",
+    "input": "{\"contexts\": [\"opportunity-ranker\"]}"
+  },
+  "finished": "2026-05-31T01:29:10.960701+00:00"
+}
