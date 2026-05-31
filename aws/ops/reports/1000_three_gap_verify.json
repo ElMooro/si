@@ -1,0 +1,36 @@
+{
+  "started": "2026-05-31T02:27:32.679776+00:00",
+  "test": {
+    "justhodl-magnitude-distributions": {
+      "exists": false,
+      "err": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-magnitude-distributions"
+    },
+    "justhodl-miss-detector": {
+      "exists": false,
+      "err": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-miss-detector"
+    },
+    "justhodl-alpha-compass": {
+      "exists": true,
+      "last_modified": "2026-05-31T02:24:33.000+0000",
+      "timeout": 120,
+      "memory_mb": 256,
+      "state": "Active",
+      "invoke_status": 200,
+      "invoke_err": "Unhandled",
+      "invoke_result": {
+        "errorMessage": "'int' object has no attribute 'lower'",
+        "errorType": "AttributeError",
+        "requestId": "354efe41-0b62-415e-89bf-02ead01e12b8",
+        "stackTrace": [
+          "  File \"/var/task/_sentry_lite.py\", line 68, in wrapped\n    return handler(event, context)\n",
+          "  File \"/var/task/lambda_function.py\", line 306, in handler\n    top_calls = [build_card(s, magdist, scorecard, sizer, i + 1)\n",
+          "  File \"/var/task/lambda_function.py\", line 237, in build_card\n    scard = scorecard_lookup(scorecard, engines)\n",
+          "  File \"/var/task/lambda_function.py\", line 162, in scorecard_lookup\n    rec = by_type.get(sig) or by_type.get(sig.lower())\n"
+        ]
+      },
+      "s3_output_missing": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "compass_content_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+    "magdist_content_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  }
+}
