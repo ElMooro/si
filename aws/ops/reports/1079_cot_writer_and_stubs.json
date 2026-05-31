@@ -1,0 +1,155 @@
+{
+  "started": "2026-05-31T23:39:39.279355+00:00",
+  "cot_writers": [
+    {
+      "lambda": "justhodl-cot-extremes-scanner",
+      "file": "lambda_function.py",
+      "evidence": "put_s3_json(\"cot/extremes/current.json\", snapshot, cache=\"public, max-age=900\")"
+    },
+    {
+      "lambda": "justhodl-wave-signal-logger",
+      "file": "lambda_function.py",
+      "evidence": "Real path: cot/extremes/current.json. Contract symbols are CME codes (GC, CL, ES, etc)."
+    },
+    {
+      "lambda": "justhodl-alert-router",
+      "file": "lambda_function.py",
+      "evidence": "d = load_json(\"data/cot-extremes.json\") or load_json(\"cot/extremes.json\")"
+    }
+  ],
+  "n_scanned": 448,
+  "justhodl-edge-engine": {
+    "files": [
+      "api_auth.py",
+      "calibration.py",
+      "_sentry_lite.py",
+      "lambda_function.py"
+    ],
+    "code_signatures": {
+      "lambda_function.py": {
+        "total_lines": 253,
+        "first_30": [
+          "import json, os, sys, boto3, urllib.request, time, concurrent.futures",
+          "from datetime import datetime, timezone",
+          "",
+          "# Bundle api_auth.py alongside lambda_function.py",
+          "sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))",
+          "from api_auth import authorize",
+          "from _sentry_lite import track_errors",
+          "",
+          "# Allowed origins \u2014 edge.html on justhodl.ai calls this Lambda",
+          "ALLOWED_ORIGINS = [",
+          "    \"https://justhodl.ai\",",
+          "    \"https://www.justhodl.ai\",",
+          "]",
+          "",
+          "",
+          "# Calibration helper \u2014 Loop 1 (light-touch: edge-engine sub-engines",
+          "# aren't currently tracked signal types, so weights = 1.0 today;",
+          "# infrastructure ready for future calibration)",
+          "try:",
+          "    from calibration import blend_score, get_calibration",
+          "    _CALIBRATION_AVAILABLE = True",
+          "except Exception as _e:",
+          "    print('WARN: calibration module unavailable: ' + str(_e))",
+          "    _CALIBRATION_AVAILABLE = False",
+          "    def blend_score(scores, default_weight=1.0):",
+          "        if not scores: return {'value': 0.0, 'raw_value': 0.0, 'contributions': [],",
+          "                                'total_weight': 0.0, 'is_calibrated': False, 'n_calibrated': 0}",
+          "        n = len(scores)",
+          "        avg = sum(float(v) for v in scores.values() if v is not None) / n if n else 0.0",
+          "        return {'value': avg, 'raw_value': avg, 'contributions': [],"
+        ],
+        "handler_excerpt": [
+          "def lambda_handler(event, context):",
+          "    cors = {",
+          "        'Access-Control-Allow-Origin': '*',",
+          "        'Access-Control-Allow-Headers': 'Content-Type',",
+          "        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',",
+          "        'Content-Type': 'application/json'",
+          "    }",
+          "    if event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':",
+          "        return {'statusCode': 200, 'headers': cors, 'body': ''}",
+          "",
+          "    # Auth gate \u2014 Origin-bypass mode for justhodl.ai frontend",
+          "    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)",
+          "    if err:",
+          "        return err",
+          "",
+          "    try:",
+          "        t0 = time.time()",
+          "        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as ex:",
+          "            f1 = ex.submit(engine_options)",
+          "            f2 = ex.submit(engine_sentiment)"
+        ]
+      }
+    }
+  },
+  "justhodl-options-flow": {
+    "files": [
+      "api_auth.py",
+      "lambda_function.py",
+      "_fred_shim.py"
+    ],
+    "code_signatures": {
+      "lambda_function.py": {
+        "total_lines": 4707,
+        "first_30": [
+          "import json",
+          "import os",
+          "import sys",
+          "import _fred_shim  # noqa: F401  \u2014 cache-first FRED + 429 backoff (ops/1074)",
+          "",
+          "# Bundle api_auth.py alongside lambda_function.py",
+          "sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))",
+          "from api_auth import authorize",
+          "",
+          "# Allowed origins \u2014 flow.html on justhodl.ai calls this Lambda",
+          "ALLOWED_ORIGINS = [",
+          "    \"https://justhodl.ai\",",
+          "    \"https://www.justhodl.ai\",",
+          "]",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "import urllib.request",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        "handler_excerpt": [
+          "def lambda_handler(event, context):",
+          "",
+          "    # Auth gate \u2014 Origin-bypass mode for justhodl.ai frontend",
+          "    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)",
+          "    if err:",
+          "        return err",
+          "",
+          "    try:",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "        now = datetime.utcnow()",
+          "",
+          ""
+        ]
+      }
+    }
+  },
+  "finished": "2026-05-31T23:42:27.203180+00:00"
+}
