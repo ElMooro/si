@@ -84,12 +84,34 @@ def safe_load(key: str) -> dict:
         return {}
 
 
+def _engine_name(e) -> str:
+    """Extract a stable lowercased name from a contributing-engine record.
+
+    conviction-engine writes `signal` as a NUMERIC level (-2..+2) so we
+    cannot use it as a name — we look for family / engine / name fields
+    in priority order. Defensive against any value type.
+    """
+    if not isinstance(e, dict):
+        return ""
+    for k in ("family", "engine", "name", "signal_type", "signal_label", "id"):
+        v = e.get(k)
+        if v is None:
+            continue
+        try:
+            s = str(v).strip().lower()
+        except Exception:
+            continue
+        if s:
+            return s
+    return ""
+
+
 def find_matching_stack(stacks: list, contributing_engines: list,
                          horizon_hint: int = 30) -> dict:
     """Match a conviction setup's contributing engines to a published stack.
 
     Strategy:
-      1. Build a candidate signal-name set from the contributing-engines list.
+      1. Build a candidate name set from the contributing-engines list.
       2. Score each published stack by Jaccard overlap with that set.
       3. Return the best match at the requested horizon (or any horizon if
          no horizon match found and overlap is high enough).
@@ -97,22 +119,18 @@ def find_matching_stack(stacks: list, contributing_engines: list,
     if not stacks or not contributing_engines:
         return {}
 
-    # Extract a set of signal names from the contributing engines (they may
-    # store the signal type under different keys depending on origin).
     candidate = set()
     for e in contributing_engines:
-        for k in ("signal", "engine", "name", "id"):
-            v = e.get(k) if isinstance(e, dict) else None
-            if v:
-                candidate.add(str(v).strip().lower())
-                break
+        name = _engine_name(e)
+        if name:
+            candidate.add(name)
 
     if not candidate:
         return {}
 
-    best, best_score, best_horizon_score = None, 0.0, 0.0
+    best, best_score = None, 0.0
     for s in stacks:
-        members = set(str(x).strip().lower() for x in (s.get("signals") or []))
+        members = set(str(x).strip().lower() for x in (s.get("signals") or []) if x)
         if not members:
             continue
         inter = candidate & members
@@ -123,9 +141,9 @@ def find_matching_stack(stacks: list, contributing_engines: list,
         horizon_match = 1.0 if s.get("horizon_days") == horizon_hint else 0.5
         score = jaccard * horizon_match
         if score > best_score:
-            best, best_score, best_horizon_score = s, score, horizon_match
+            best, best_score = s, score
 
-    if best and best_score >= 0.30:  # require minimum overlap
+    if best and best_score >= 0.30:
         return best
     return {}
 
@@ -150,26 +168,45 @@ def stop_target_from_distribution(stack_match: dict) -> tuple:
 
 
 def scorecard_lookup(scorecard: dict, engines: list) -> dict:
-    """Aggregate scorecard metrics across the engines in a setup."""
+    """Aggregate scorecard metrics across the engines in a setup.
+
+    Resilient: lowercases lookup keys, skips records that don't have a
+    matching signal-type entry. Uses _engine_name() to extract the engine's
+    name (NOT the numeric signal level emitted by conviction-engine).
+    """
     if not scorecard or not engines:
         return {}
     by_type = scorecard.get("by_signal_type") or scorecard.get("signals") or {}
     if isinstance(by_type, list):
-        by_type = {r.get("signal_type") or r.get("name"): r for r in by_type if isinstance(r, dict)}
+        by_type = {
+            (r.get("signal_type") or r.get("name") or "").strip().lower(): r
+            for r in by_type if isinstance(r, dict)
+        }
+    elif isinstance(by_type, dict):
+        by_type = {k.strip().lower() if isinstance(k, str) else k: v
+                   for k, v in by_type.items()}
     hits, ns, avg_returns, grades = [], [], [], []
     for e in engines:
-        sig = (e.get("signal") if isinstance(e, dict) else None) or ""
-        rec = by_type.get(sig) or by_type.get(sig.lower())
+        name = _engine_name(e)
+        if not name:
+            continue
+        rec = by_type.get(name)
         if not isinstance(rec, dict):
             continue
         n = rec.get("n_scored") or rec.get("n")
         wlb = rec.get("wilson_lb") or rec.get("hit_rate_lb")
         ar = rec.get("avg_return") or rec.get("mean_return")
         grade = rec.get("grade")
-        if n is not None: ns.append(n)
-        if wlb is not None: hits.append(float(wlb))
-        if ar is not None: avg_returns.append(float(ar))
-        if grade: grades.append(grade)
+        if n is not None:
+            try: ns.append(int(n))
+            except (TypeError, ValueError): pass
+        if wlb is not None:
+            try: hits.append(float(wlb))
+            except (TypeError, ValueError): pass
+        if ar is not None:
+            try: avg_returns.append(float(ar))
+            except (TypeError, ValueError): pass
+        if grade: grades.append(str(grade))
     if not (ns or hits or avg_returns):
         return {}
     return {
@@ -263,10 +300,12 @@ def build_card(setup: dict, magdist: dict, scorecard: dict, sizer: dict,
         "invalidation":      setup.get("invalidation"),
         "engines": [
             {
-                "signal":   e.get("signal"),
-                "label":    e.get("signal_label") or e.get("signal"),
-                "read":     e.get("read"),
-                "skill":    e.get("skill_weight"),
+                "name":     _engine_name(e),
+                "signal":   e.get("signal") if isinstance(e, dict) else None,
+                "label":    (e.get("signal_label") or e.get("family")
+                              or _engine_name(e)) if isinstance(e, dict) else None,
+                "read":     e.get("read") if isinstance(e, dict) else None,
+                "skill":    e.get("skill_weight") if isinstance(e, dict) else None,
             } for e in engines[:8] if isinstance(e, dict)
         ],
         "distribution": {
