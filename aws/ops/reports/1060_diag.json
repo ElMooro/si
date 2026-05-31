@@ -1,0 +1,79 @@
+{
+  "started": "2026-05-31T18:44:18.856446+00:00",
+  "ark_url_probes": {
+    "ARKK": {
+      "err": "HTTP 404",
+      "body_preview": "HTTP Error 404: Not Found"
+    },
+    "ARKQ": {
+      "err": "HTTP 404",
+      "body_preview": "HTTP Error 404: Not Found"
+    }
+  },
+  "patentsview_tests": {
+    "v1_full": {
+      "err": "URLError: <urlopen error [Errno -2] Name or service not known>"
+    },
+    "v2_simple": {
+      "err": "URLError: <urlopen error [Errno -2] Name or service not known>"
+    },
+    "v3_text_phrase": {
+      "err": "URLError: <urlopen error [Errno -2] Name or service not known>"
+    }
+  },
+  "ark_logs": [
+    "INIT_START Runtime Version: python:3.12.mainlinev2.v7\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244",
+    "[ark] fetching ARKK\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv",
+    "[ark]   \u274c ARKK fetch failed",
+    "[ark] fetching ARKQ\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_AUTONOMOUS_TECH_%26_ROBOTICS_ETF_ARKQ_HOL",
+    "[ark]   \u274c ARKQ fetch failed",
+    "[ark] fetching ARKW\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_NEXT_GENERATION_INTERNET_ETF_ARKW_HOLDING",
+    "[ark]   \u274c ARKW fetch failed",
+    "[ark] fetching ARKF\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_FINTECH_INNOVATION_ETF_ARKF_HOLDINGS.csv",
+    "[ark]   \u274c ARKF fetch failed",
+    "[ark] fetching ARKG\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS.csv",
+    "[ark]   \u274c ARKG fetch failed",
+    "[ark] fetching ARKX\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_SPACE_EXPLORATION_%26_INNOVATION_ETF_ARKX",
+    "[ark]   \u274c ARKX fetch failed",
+    "[ark] no funds fetched \u2014 aborting"
+  ],
+  "patent_logs": [
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] processed 60/76  found 0  elapsed 288s",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] err: URLError <urlopen error [Errno 16] Device or resource busy>",
+    "[patent] wrote 919B  results=0  spikes=0  duration=365.1s"
+  ],
+  "finished": "2026-05-31T18:44:22.178659+00:00"
+}
