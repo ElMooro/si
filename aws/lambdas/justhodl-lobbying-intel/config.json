@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-lobbying-intel",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Forward signal from Congressional lobbying disclosures. 4 signal layers: SPIKE (client recent vs baseline), CLUSTER (3+ peers same issue), NEW ENTRANT (first-time lobbyist), BILL TRACKER (H.R.XXXX/S.XXXX extraction). S3-cache + Quiver fallback. Emits lobbying.crowd_signal.",
+  "schedule": {
+    "rule_name": "lobbying-intel-daily",
+    "cron": "cron(0 16 * * ? *)",
+    "description": "Lobbying intel — daily 16 UTC (lobbying disclosures publish slowly so daily is plenty)"
+  }
+}

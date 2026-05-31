@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lobbying Intel · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>📊</text></svg>">
+<style>
+:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;--mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;--gold:#ffb347}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1380px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--gold)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}.subtitle b{color:var(--txt)}
+nav.crumbs{margin-top:10px}nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.stat{padding:6px}.stat .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.stat .v{font-family:var(--mono);font-size:24px;font-weight:700;margin-top:4px;color:var(--gold)}.stat .n{font-size:10px;color:var(--dim);margin-top:2px}
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px;margin-bottom:24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;border-left-width:4px}
+.panel.spike{border-left-color:var(--orange)}.panel.cluster{border-left-color:var(--purple)}.panel.new-entrant{border-left-color:var(--cyan)}.panel.bills{border-left-color:var(--gold)}
+.panel h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;margin:0 0 8px;color:var(--mute)}
+.panel h3 .count{background:rgba(255,255,255,.06);border:1px solid var(--line);padding:1px 6px;font-size:9px;margin-left:6px;border-radius:3px;color:var(--txt)}
+.row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(28,36,51,.5);font-family:var(--mono);font-size:11px}
+.row:last-child{border-bottom:none}.row .l{flex:1}.row a{color:var(--cyan);text-decoration:none;font-weight:700}.row a:hover{text-decoration:underline}
+.row .meta{color:var(--mute);font-size:10px;margin-top:3px;font-family:'Inter',sans-serif;line-height:1.4}
+.row .r{margin-left:8px;text-align:right;font-family:var(--mono);font-size:11px}
+.score{font-family:var(--mono);font-weight:700;display:inline-block;padding:2px 8px;border-radius:3px}.score.hi{background:rgba(255,179,71,.16);color:var(--gold)}.score.mi{background:rgba(167,139,250,.13);color:var(--purple)}.score.lo{background:rgba(168,179,199,.08);color:var(--mute)}
+.bill-pill{display:inline-block;font-family:var(--mono);font-size:10px;padding:1px 6px;background:rgba(255,179,71,.13);color:var(--gold);border-radius:3px;margin:1px 3px 1px 0;border:1px solid rgba(255,179,71,.25)}
+.issue-pill{display:inline-block;font-family:'Inter',sans-serif;font-size:10.5px;padding:2px 7px;background:var(--panel2);color:var(--mute);border-radius:3px;margin:1px 3px 1px 0;border:1px solid var(--line);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top}
+.issue-pill.new{background:rgba(38,255,175,.13);color:var(--green);border-color:rgba(38,255,175,.3)}
+.accel-tag{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 5px;border-radius:2px;letter-spacing:.5px;margin-left:4px}
+.accel-tag.extreme{background:rgba(255,85,119,.16);color:var(--red)}.accel-tag.high{background:rgba(255,122,24,.16);color:var(--orange)}.accel-tag.mid{background:rgba(255,210,102,.16);color:var(--yellow)}
+.cluster-card{padding:12px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--purple);border-radius:5px;margin-bottom:10px}
+.cluster-card h4{font-family:'Inter',sans-serif;font-size:12px;margin:0 0 6px;color:var(--txt);line-height:1.4}
+.cluster-card .ticker-list{margin-top:8px;font-family:var(--mono);font-size:11px}.cluster-card .ticker-list a{color:var(--cyan);margin-right:8px;text-decoration:none}.cluster-card .ticker-list a:hover{text-decoration:underline}
+.cluster-card .stats{display:flex;gap:18px;font-family:var(--mono);font-size:10.5px;color:var(--mute);margin-top:4px}.cluster-card .stats b{color:var(--gold);font-size:11px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;padding:9px 6px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:9.5px}
+th.r{text-align:right}td{padding:9px 6px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}td.r{text-align:right}tr:hover td{background:var(--panel2)}
+.tick{font-weight:700}.tick a{color:var(--cyan);text-decoration:none}.tick a:hover{text-decoration:underline}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 12px}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono)}
+.note{color:var(--dim);font-size:11px;line-height:1.6;margin-top:14px;max-width:1100px;font-family:'Inter',sans-serif}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:18px}
+</style></head><body>
+<div class="container">
+  <header>
+    <h1>📊 Lobbying Intel · Policy Catalyst Forensics</h1>
+    <p class="subtitle">
+      Companies don't lobby hard on issues that don't matter to their P&L. When lobbying spend
+      SPIKES vs the client's own baseline, or when 3+ peers in the same sector suddenly push the
+      same issue, that's typically a leading indicator of regulatory/policy change weeks before
+      stocks price it in. Four signal layers: <b>SPIKE</b> (own baseline acceleration),
+      <b>CLUSTER</b> (sector catalyst), <b>NEW ENTRANT</b> (first-time lobbyist), and
+      <b>BILL TRACKER</b> (specific H.R./S. legislation getting concentrated $$$).
+    </p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a><a href="/future-intel.html">future intel</a>
+      <a href="/forward-orders.html">forward orders</a><a href="/rotation-chains.html">rotation</a>
+      <a href="/buzz-velocity.html">buzz</a><a href="/sec-filings.html">sec filings</a>
+      <a href="/political.html">political</a>
+    </nav>
+  </header>
+  <div id="hero" class="hero"><div class="loading">LOADING LOBBYING INTEL…</div></div>
+  <h2>Sector Issue Clusters · (3+ companies same issue = catalyst incoming)</h2>
+  <div id="clusters"><div class="loading">…</div></div>
+  <h2>Conviction Buckets</h2>
+  <div id="panels" class="panels"><div class="loading">…</div></div>
+  <h2>All Tickers by Score</h2>
+  <div class="card"><div id="table"><div class="loading">…</div></div></div>
+  <p class="note" id="note">
+    Score weighting: SPIKE up to +60 (accel ≥5x), new issues +5 each (cap 20), new entrant +25,
+    bill mentions +5 each (cap 15), volume bonus up to +10. Spike threshold for ALERT bucket: ≥2.0x
+    acceleration AND ≥$50k recent. Bills extracted via H.R.XXXX / S.XXXX / H.Res / S.Res patterns
+    from Specific_Issue text — when one bill has many companies + millions in $$, that's policy
+    money on the table.
+  </p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const fetchJson=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const fmtUSD=v=>{if(!v)return "—";if(v>=1e6)return "$"+(v/1e6).toFixed(1)+"M";if(v>=1e3)return "$"+(v/1e3).toFixed(0)+"K";return "$"+v.toFixed(0)};
+function scoreClass(s){return s>=60?"hi":s>=35?"mi":"lo"}
+function accelTag(r){if(r==null)return "";if(r>=5)return `<span class="accel-tag extreme">${r.toFixed(1)}x EXTREME</span>`;if(r>=3)return `<span class="accel-tag high">${r.toFixed(1)}x HIGH</span>`;if(r>=2)return `<span class="accel-tag mid">${r.toFixed(1)}x SPIKE</span>`;return ""}
+
+function renderHero(d){
+  document.getElementById("hero").innerHTML=`
+    <div class="stat"><div class="lab">Records ingested</div><div class="v">${(d.n_records_total||0).toLocaleString()}</div><div class="n">live Quiver feed</div></div>
+    <div class="stat"><div class="lab">Companies tracked</div><div class="v">${d.n_tickers||0}</div><div class="n">with ticker mapping</div></div>
+    <div class="stat"><div class="lab">⚡ Spike alerts</div><div class="v" style="color:var(--orange)">${d.n_spike_alerts||0}</div><div class="n">≥2x baseline + ≥$50k</div></div>
+    <div class="stat"><div class="lab">🎯 Issue clusters</div><div class="v" style="color:var(--purple)">${d.n_clusters||0}</div><div class="n">3+ peers same issue</div></div>
+    <div class="stat"><div class="lab">🆕 New lobbyists</div><div class="v" style="color:var(--cyan)">${d.n_new_lobbyists||0}</div><div class="n">first-time entrants</div></div>
+    <div class="stat"><div class="lab">📜 Bills tracked</div><div class="v" style="color:var(--gold)">${d.n_bills_tracked||0}</div><div class="n">H.R. / S. references</div></div>
+  `;
+}
+
+function renderClusters(d){
+  const clusters=(d.highlights||{}).issue_clusters||[];
+  if(!clusters.length){document.getElementById("clusters").innerHTML='<div class="loading">No active sector clusters in window.</div>';return}
+  document.getElementById("clusters").innerHTML=clusters.slice(0,8).map(c=>{
+    const tickerStr=(c.top_tickers||[]).slice(0,8).map(t=>`<a href="/chart-pro.html?ticker=${esc(t)}">${esc(t)}</a>`).join("");
+    const billStr=(c.top_bills||[]).slice(0,3).map(b=>`<span class="bill-pill">${esc(b.bill)} ×${b.count}</span>`).join("");
+    return `<div class="cluster-card">
+      <h4>📋 ${esc(c.issue||'?').slice(0,140)}</h4>
+      <div class="stats">
+        <span><b>${fmtUSD(c.total_amount)}</b> total in 90d</span>
+        <span><b>${c.n_clients}</b> clients</span>
+        <span><b>${c.n_tickers}</b> public co's</span>
+      </div>
+      <div class="ticker-list">Tickers: ${tickerStr||'<span style="color:var(--dim)">none mapped</span>'}</div>
+      ${billStr?`<div style="margin-top:6px">Bills: ${billStr}</div>`:''}
+    </div>`;
+  }).join("");
+}
+
+function renderPanels(d){
+  const hl=d.highlights||{};
+  const renderTickerList=(rows,labelExtra)=>{
+    if(!rows||!rows.length)return '<div style="color:var(--dim);font-size:11px;padding:8px;font-family:var(--mono)">No tickers in this bucket.</div>';
+    return rows.slice(0,8).map(r=>`<div class="row"><div class="l">
+      <a href="/chart-pro.html?ticker=${esc(r.ticker)}">${esc(r.ticker)}</a>${accelTag(r.acceleration_ratio)}
+      <div class="meta">${esc((r.client||"").slice(0,40))}<br>${esc((r.thesis||"").slice(0,140))}</div>
+    </div><div class="r">
+      <span class="score ${scoreClass(r.score)}">${r.score}</span>
+      <div style="color:var(--dim);font-size:10px;margin-top:2px">${fmtUSD(r.recent_amount_usd)} 90d</div>
+    </div></div>`).join("");
+  };
+  
+  const bills=(hl.bills_tracked||[]).slice(0,8);
+  const billsHtml=bills.length?bills.map(b=>`<div class="row"><div class="l">
+    <span class="bill-pill">${esc(b.bill)}</span>
+    <div class="meta">${b.n_clients} clients · ${b.n_tickers} tickers — ${(b.tickers||[]).slice(0,5).map(t=>`<a href="/chart-pro.html?ticker=${esc(t)}">${esc(t)}</a>`).join(" ")}</div>
+  </div><div class="r" style="font-weight:700;color:var(--gold)">${fmtUSD(b.amount_usd)}</div></div>`).join(""):'<div style="color:var(--dim);font-size:11px;padding:8px;font-family:var(--mono)">No specific bills extracted from Specific_Issue text yet.</div>';
+  
+  document.getElementById("panels").innerHTML=`
+    <div class="panel spike"><h3>⚡ SPIKE ALERTS<span class="count">${(hl.spike_alerts||[]).length}</span></h3>${renderTickerList(hl.spike_alerts)}</div>
+    <div class="panel new-entrant"><h3>🆕 NEW ENTRANTS<span class="count">${(hl.new_lobbyists||[]).length}</span></h3>${renderTickerList(hl.new_lobbyists)}</div>
+    <div class="panel bills"><h3>📜 BILLS TRACKED<span class="count">${(hl.bills_tracked||[]).length}</span></h3>${billsHtml}</div>
+  `;
+}
+
+function renderTable(d){
+  const rows=(d.all_tickers||[]).slice(0,40);
+  if(!rows.length){document.getElementById("table").innerHTML='<div class="loading">No tickers.</div>';return}
+  document.getElementById("table").innerHTML=`<table><thead><tr>
+    <th>Ticker</th><th>Client</th><th class="r">Score</th><th class="r">90d $</th>
+    <th class="r">Accel</th><th>New Issues</th><th>Bills</th><th>Thesis</th>
+  </tr></thead><tbody>${rows.map(r=>{
+    const newIssuesHtml=(r.new_issues||[]).slice(0,2).map(i=>`<span class="issue-pill new">${esc(i.slice(0,32))}</span>`).join("");
+    const billsHtml=(r.bills_mentioned||[]).slice(0,3).map(b=>`<span class="bill-pill">${esc(b)}</span>`).join("");
+    let tags="";
+    if(r.is_new_entrant)tags+='<span class="accel-tag mid">NEW</span>';
+    return `<tr>
+      <td><span class="tick"><a href="/chart-pro.html?ticker=${esc(r.ticker)}">${esc(r.ticker)}</a></span>${tags}</td>
+      <td style="font-family:'Inter',sans-serif;font-size:11px">${esc((r.client||"").slice(0,28))}</td>
+      <td class="r"><span class="score ${scoreClass(r.score)}">${r.score}</span></td>
+      <td class="r">${fmtUSD(r.recent_amount_usd)}</td>
+      <td class="r">${r.acceleration_ratio!=null?r.acceleration_ratio.toFixed(2)+'x':'—'}</td>
+      <td>${newIssuesHtml||'<span style="color:var(--dim);font-size:10px">—</span>'}</td>
+      <td>${billsHtml||'<span style="color:var(--dim);font-size:10px">—</span>'}</td>
+      <td style="color:var(--mute);font-family:'Inter',sans-serif;font-size:11px;max-width:260px">${esc((r.thesis||"").slice(0,110))}</td>
+    </tr>`;
+  }).join("")}</tbody></table>`;
+}
+
+async function load(){
+  const d=await fetchJson("lobbying-intel.json");
+  if(!d){document.getElementById("hero").innerHTML='<div class="loading" style="color:var(--orange)">Engine not yet run — first scheduled invocation will populate.</div>';return}
+  renderHero(d);renderClusters(d);renderPanels(d);renderTable(d);
+  document.getElementById("ts").innerHTML=`generated ${esc(d.generated_at||"?")} · ${esc(d.method||"?")} · source=${esc(d.lobbying_source||"?")}`;
+}
+load();
+</script></body></html>

@@ -232,6 +232,15 @@ ROUTES = {
         "notify":  True,
         "audit":   True,
     },
+    
+    # Lobbying crowd signal — 3+ companies in same sector lobbying on same
+    # issue in 90d window, ≥$500k aggregate. Sector-level policy catalyst.
+    # Often precedes regulatory/legislative action that prices into stocks.
+    "lobbying.crowd_signal": {
+        "invoke":  ["justhodl-alpha-compass"],
+        "notify":  True,
+        "audit":   True,
+    },
 }
 
 
@@ -413,6 +422,21 @@ def send_telegram_alert(event_name: str, detail: dict) -> bool:
             if dollar_est:
                 lines.append(f"  estimated buys: ~${dollar_est:,.0f}")
             lines.append(f"  score: {detail.get('score','?')}")
+        elif event_name == "lobbying.crowd_signal":
+            # Suppress smaller clusters (need 4+ clients OR aggregate ≥$1M)
+            n_clients = detail.get("n_clients", 0)
+            total = detail.get("total_amount", 0)
+            if n_clients < 4 and total < 1_000_000:
+                return False
+            lines.append(f"  📊 issue: <b>{(detail.get('issue','?') or '?')[:80]}</b>")
+            lines.append(f"  {n_clients} clients · {detail.get('n_tickers','?')} public companies")
+            lines.append(f"  total: ${total:,.0f} in 90d window")
+            tickers = detail.get("top_tickers") or []
+            if tickers:
+                lines.append(f"  top: {', '.join(tickers[:5])}")
+            top_bill = detail.get("top_bill")
+            if top_bill:
+                lines.append(f"  most-cited bill: <b>{top_bill}</b>")
         else:
             # Fallback: dump the first few keys
             payload = {k: v for k, v in detail.items()
