@@ -1,0 +1,98 @@
+{
+  "started": "2026-05-31T12:15:12.656341+00:00",
+  "deploys": {
+    "justhodl-event-coordinator": {
+      "zip_size": 6487,
+      "op": {
+        "action": "updated"
+      }
+    },
+    "justhodl-outcome-checker": {
+      "zip_size": 9836,
+      "op": {
+        "action": "updated"
+      }
+    },
+    "justhodl-miss-calibrator": {
+      "zip_size": 10648,
+      "op": {
+        "action": "updated"
+      }
+    }
+  },
+  "bus": {
+    "action": "created"
+  },
+  "rule": {
+    "action": "ensured",
+    "pattern": "{\"source\": [{\"prefix\": \"justhodl.\"}]}"
+  },
+  "permission": {
+    "action": "added",
+    "rule_arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-system-events/justhodl-events-to-coordinator"
+  },
+  "outcome_checker_invoke": {
+    "status": 200,
+    "fn_err": null,
+    "result": {
+      "processed": 0,
+      "timestamp": "2026-05-31T12:16:22.433905+00:00"
+    }
+  },
+  "miss_calibrator_invoke": {
+    "status": 200,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "proposals": 4,
+      "universe_candidates": 0,
+      "skipped_deprecated": 0
+    }
+  },
+  "audit_log": {
+    "missing": true,
+    "key": "system-events/audit/2026-05-31.jsonl"
+  },
+  "synthetic_publish": {
+    "failed_count": 0,
+    "entries": [
+      {
+        "EventId": "a1dd7b02-6cdc-05db-52c8-a7cf54dc8d51"
+      }
+    ]
+  },
+  "audit_log_after_synthetic": {
+    "key": "system-events/audit/2026-05-31.jsonl",
+    "n_events": 1,
+    "entries": [
+      {
+        "ts": "2026-05-31T12:16:42.091544+00:00",
+        "event": "outcome.resolved",
+        "detail": {
+          "n_resolved": 99,
+          "source": "ops-1022-synthetic-test",
+          "_emitted_at": "2026-05-31T12:16:40.662059+00:00",
+          "_source_engine": "ops-1022"
+        },
+        "route": {
+          "event": "outcome.resolved",
+          "source": "justhodl.test",
+          "started": "2026-05-31T12:16:41.847872+00:00",
+          "invokes": [
+            {
+              "fn": "justhodl-calibrator",
+              "ok": true,
+              "status": 202
+            },
+            {
+              "fn": "justhodl-alpha-calibrator",
+              "ok": true,
+              "status": 202
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "finished": "2026-05-31T12:16:49.204464+00:00"
+}
