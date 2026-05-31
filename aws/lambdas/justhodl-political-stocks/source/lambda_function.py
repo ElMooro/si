@@ -24,14 +24,19 @@ Aggregates political insider stock activity:
 
 DATA SOURCES
 ════════════
-  - https://housestockwatcher.com/api  (free community API)
-  - https://senatestockwatcher.com/api (free community API)
-  - Trump's holdings: manually curated from his 2025 OGE 278e filing
-    (regenerated periodically as new filings are published)
+  - Trump holdings: manually curated from his 2025 OGE 278e filing
+    (re-cached periodically as new filings are published)
+  - Congress trades: https://api.quiverquant.com/beta/live/congresstrading
+    (Quiver Quant's no-auth public endpoint — returns 1000 most recent
+    trades across all House+Senate members. Fields: Representative,
+    BioGuideID, ReportDate, TransactionDate, Ticker, Transaction, Range,
+    House. Party data not in /live/ — we maintain a known-trader → party
+    map for bipartisan detection on top 30 most active.)
   
-  The OGE search portal at https://efts.sec.gov/LATEST/search-index has
-  some of this; for Executive Branch we use the OGE public disclosure
-  search (which doesn't have a clean API, so we cache + manually update).
+  Previous source (now dead): House/Senate Stock Watcher S3 buckets at
+  house-stock-watcher-data.s3-us-west-2 / senate-stock-watcher-data.s3-
+  us-west-2 returned HTTP 403 — community project shut down its public
+  data buckets in 2026.
 
 OUTPUT
 ══════
@@ -54,11 +59,65 @@ REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/political-stocks.json"
 
-HTTP_TIMEOUT = 15
-USER_AGENT = "JustHodl-PoliticalStocks/1.0 (raafouis@gmail.com)"
+HTTP_TIMEOUT = 25
+USER_AGENT = "Mozilla/5.0 (compatible; JustHodl/1.0; raafouis@gmail.com)"
 
 # Lookback for Congress trades
 LOOKBACK_DAYS = int(os.environ.get("LOOKBACK_DAYS", "90"))
+
+# Quiver's `live` endpoint doesn't include Party — maintain known mapping
+# for the most active Congress traders so bipartisan detection still works
+# Source: ballotpedia.org / congress.gov. Update annually for new sessions.
+BIOGUIDE_TO_PARTY = {
+    # ── House — top active traders (frequently on PTRs) ────────────
+    "T000490": "R",  # David J. Taylor (R-OH)
+    "G000596": "R",  # Marjorie Taylor Greene (R-GA)
+    "P000197": "D",  # Nancy Pelosi (D-CA)
+    "K000392": "D",  # Ro Khanna (D-CA)
+    "C001078": "D",  # Lou Correa (D-CA)
+    "H001046": "R",  # French Hill (R-AR)
+    "G000587": "D",  # Josh Gottheimer (D-NJ)
+    "K000378": "D",  # Daniel Kildee (D-MI)
+    "G000578": "R",  # Bob Gibbs (R-OH)
+    "M001213": "R",  # Daniel Meuser (R-PA)
+    "B000490": "R",  # Earl L. "Buddy" Carter (R-GA)
+    "F000462": "R",  # A. Drew Ferguson IV (R-GA)
+    "S001213": "D",  # Adam Schiff (D-CA)
+    "B001302": "R",  # Andy Barr (R-KY)
+    "C001120": "R",  # Bruce Westerman (R-AR)
+    "H001077": "R"  ,  # Kevin Hern (R-OK)
+    "G000591": "D",  # Vicente Gonzalez (D-TX)
+    "C000059": "R",  # Mike Carey (R-OH)
+    "W000827": "D",  # Frederica Wilson (D-FL)
+    "M001137": "D",  # Donald McEachin (D-VA)
+    
+    # ── Senate — top active traders ─────────────────────────────────
+    "T000250": "R",  # Tommy Tuberville (R-AL)
+    "M001197": "R",  # Markwayne Mullin (R-OK)
+    "C001056": "R",  # Shelley Moore Capito (R-WV)
+    "P000605": "R",  # Rand Paul (R-KY)
+    "B001288": "R",  # Marsha Blackburn (R-TN)
+    "B001277": "R",  # Roy Blunt (R-MO)
+    "C000567": "I",  # Mazie Hirono (D-HI)
+    "D000620": "D",  # Sheldon Whitehouse (D-RI)
+    "B000944": "D",  # Sherrod Brown (D-OH)
+    "G000386": "D",  # Kirsten Gillibrand (D-NY)
+    "M001183": "R",  # Roger Marshall (R-KS)
+    "W000817": "D",  # Elizabeth Warren (D-MA)
+    "S000033": "I",  # Bernie Sanders (I-VT)
+    "M000312": "R",  # Mitch McConnell (R-KY)
+    "S001181": "R",  # Tim Scott (R-SC)
+    "G000359": "R",  # Lindsey Graham (R-SC)
+    "C001047": "R",  # Bill Cassidy (R-LA)
+    "C001098": "R",  # Bill Hagerty (R-TN)
+    "L000174": "D",  # Patrick Leahy (D-VT)
+    "C001056": "R",  # Shelley Moore Capito (R-WV)
+}
+
+
+# Universe of politicians to track is now implicit — Quiver returns all
+TRACK_HOUSE = True
+TRACK_SENATE = True
 
 # ─── TRUMP HOLDINGS (from 2025-03-19 OGE 278e filing) ────────────────────
 # Trump's 2025 public financial disclosure shows the following major
@@ -156,51 +215,54 @@ def _http_get(url, timeout=HTTP_TIMEOUT, retries=2):
     return None
 
 
-# ─── House Stock Watcher ─────────────────────────────────────────────────
+# ─── Quiver Quant live/congresstrading endpoint ─────────────────────────
 
-def fetch_house_trades():
-    """House Stock Watcher's all-transactions JSON dump.
-    Returns list of {representative, ticker, transaction_date, type, amount}"""
-    url = "https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/all_transactions.json"
+def fetch_quiver_congress():
+    """Single call returns 1000 most recent Congress trades across all
+    House + Senate members. Fields: Representative, BioGuideID,
+    ReportDate, TransactionDate, Ticker, Transaction, Range, House.
+    
+    No auth needed. ~430KB per call. Replaces dead Stock Watcher feeds."""
+    url = "https://api.quiverquant.com/beta/live/congresstrading"
     body = _http_get(url, timeout=30)
     if not body:
         return []
     try:
         data = json.loads(body)
-    except Exception:
+    except Exception as e:
+        print(f"[political] parse err: {e}")
         return []
     return data if isinstance(data, list) else []
 
 
-def fetch_senate_trades():
-    """Senate Stock Watcher's all-transactions JSON dump."""
-    url = "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/all_transactions.json"
-    body = _http_get(url, timeout=30)
-    if not body:
-        return []
-    try:
-        data = json.loads(body)
-    except Exception:
-        return []
-    return data if isinstance(data, list) else []
-
-
-def parse_trade_amount(amount_str: str):
-    """Convert ranges like '$1,001 - $15,000' to mid-point estimate."""
-    if not amount_str:
+def parse_trade_amount(range_str: str):
+    """Convert Quiver ranges like '$1,001 - $15,000' to mid-point estimate.
+    Also handles '$1,000,001 - $5,000,000' and 'Less than $1,001' formats."""
+    if not range_str:
         return None
     import re
-    nums = re.findall(r"\$?([\d,]+)", amount_str)
+    s = range_str.replace("Less than", "0 -").strip()
+    nums = re.findall(r"\$?([\d,]+)", s)
     nums = [int(n.replace(",", "")) for n in nums if n.replace(",", "").isdigit()]
     if not nums:
         return None
+    # If single value, use it; otherwise mid-point
     return sum(nums) // len(nums)
+
+
+def party_for_bioguide(bioguide_id: str) -> str:
+    """Return party (D/R/I/?) for a politician by their BioGuide ID.
+    Falls back to '?' for unknown — bipartisan detection still works for
+    known active traders, which cover most volume."""
+    return BIOGUIDE_TO_PARTY.get(bioguide_id, "?")
 
 
 # ─── Aggregation ────────────────────────────────────────────────────────
 
-def aggregate_trades(house_trades: list, senate_trades: list):
-    """Group recent trades by ticker, compute buy/sell pressure + cluster signals."""
+def aggregate_trades(quiver_trades: list):
+    """Group recent Quiver trades by ticker, compute buy/sell pressure +
+    cluster signals. Single source now (no more split between House and
+    Senate inputs)."""
     cutoff = (datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)).date().isoformat()
     
     by_ticker = defaultdict(lambda: {
@@ -217,37 +279,38 @@ def aggregate_trades(house_trades: list, senate_trades: list):
         "recent_trades": [],
     })
     
-    def process_trade(t, chamber):
-        # Normalize keys (House vs Senate JSONs differ)
-        date = t.get("transaction_date") or t.get("date_recieved") or t.get("disclosure_date")
+    for t in quiver_trades:
+        # Quiver field shape:
+        # {"Representative": "...", "BioGuideID": "T000490",
+        #  "ReportDate": "2026-05-28", "TransactionDate": "2026-05-15",
+        #  "Ticker": "MEDP", "Transaction": "Purchase",
+        #  "Range": "$1,001 - $15,000", "House": "Representatives"}
+        date = t.get("TransactionDate") or t.get("ReportDate")
         if not date:
-            return
+            continue
         date_s = date[:10] if isinstance(date, str) else date
         if date_s < cutoff:
-            return
+            continue
         
-        # Ticker symbol — various keys
-        sym = (t.get("ticker") or t.get("asset_ticker") or "").strip().upper()
+        sym = (t.get("Ticker") or "").strip().upper()
         if not sym or sym in ("--", "N/A", ""):
-            return
-        # Skip ETFs and dups (some have suffixes)
+            continue
+        # Skip non-equity tickers (some have suffixes for bonds/options)
         sym = sym.split(".")[0].split(" ")[0]
-        if not sym.isalpha() or len(sym) > 5:
-            return
+        if not sym.replace("-", "").isalpha() or len(sym) > 6:
+            continue
         
-        # Trade type
-        trade_type = (t.get("type") or t.get("transaction_type") or "").lower()
-        is_buy  = "purchase" in trade_type or "buy" in trade_type
-        is_sell = "sale" in trade_type or "sell" in trade_type or "exchange" in trade_type
+        trade_type = (t.get("Transaction") or "").lower()
+        # Quiver examples: "Purchase", "Sale (Partial)", "Sale (Full)",
+        # "Exchange". Map to buy/sell.
+        is_buy  = "purchase" in trade_type
+        is_sell = "sale" in trade_type or "exchange" in trade_type
         
-        # Politician name
-        name = (t.get("representative") or t.get("senator") or
-                 t.get("trader") or "Unknown").strip()
-        # Party (some sources have it)
-        party = t.get("party") or t.get("political_party") or ""
-        
-        # Amount
-        amount = parse_trade_amount(t.get("amount") or t.get("trade_amount") or "")
+        name = (t.get("Representative") or "Unknown").strip()
+        bioguide = t.get("BioGuideID", "")
+        party = party_for_bioguide(bioguide)
+        chamber = "house" if "rep" in (t.get("House") or "").lower() else "senate"
+        amount = parse_trade_amount(t.get("Range") or "")
         
         rec = by_ticker[sym]
         rec["ticker"] = sym
@@ -255,7 +318,7 @@ def aggregate_trades(house_trades: list, senate_trades: list):
         rec["unique_politicians"].add(name)
         if chamber == "house": rec["house_trades"] += 1
         else: rec["senate_trades"] += 1
-        if party: rec["parties"][party] += 1
+        if party != "?": rec["parties"][party] += 1
         
         if is_buy:
             rec["n_buys"] += 1
@@ -266,18 +329,15 @@ def aggregate_trades(house_trades: list, senate_trades: list):
         
         rec["recent_trades"].append({
             "politician": name,
+            "bioguide":   bioguide,
             "chamber":    chamber,
-            "party":      party or "?",
+            "party":      party,
             "date":       date_s,
+            "report_date": t.get("ReportDate", ""),
             "type":       trade_type,
-            "amount":     t.get("amount") or "?",
+            "amount":     t.get("Range") or "?",
             "amount_est": amount,
         })
-    
-    for t in house_trades:
-        process_trade(t, "house")
-    for t in senate_trades:
-        process_trade(t, "senate")
     
     # Build per-ticker output
     result = []
@@ -298,8 +358,8 @@ def aggregate_trades(house_trades: list, senate_trades: list):
         else:
             rec["cluster_signal"] = None
         
-        # Bipartisan if both parties involved
-        rec["bipartisan"] = len(rec["parties"]) >= 2
+        # Bipartisan if both parties involved (and party data was available)
+        rec["bipartisan"] = len(rec["parties"]) >= 2 and "D" in rec["parties"] and "R" in rec["parties"]
         
         # Score: signed measure of buying pressure
         # +25 per buy, -20 per sell, bonus for bipartisan + cluster
@@ -322,19 +382,17 @@ def aggregate_trades(house_trades: list, senate_trades: list):
 def handler(event, context):
     started = datetime.now(timezone.utc)
     
-    # 1. Fetch Congress trades
-    print("[political] fetching House Stock Watcher data…")
-    house = fetch_house_trades() if TRACK_HOUSE else []
-    print(f"[political] House: {len(house)} total trades in feed")
+    # 1. Fetch Congress trades from Quiver
+    print("[political] fetching Quiver live/congresstrading…")
+    quiver_trades = fetch_quiver_congress()
+    print(f"[political] Quiver: {len(quiver_trades)} total trades in feed")
     
-    time.sleep(1)
-    
-    print("[political] fetching Senate Stock Watcher data…")
-    senate = fetch_senate_trades() if TRACK_SENATE else []
-    print(f"[political] Senate: {len(senate)} total trades in feed")
+    # Tally house/senate split for reporting
+    n_house = sum(1 for t in quiver_trades if "rep" in (t.get("House") or "").lower())
+    n_senate = sum(1 for t in quiver_trades if "sen" in (t.get("House") or "").lower())
     
     # 2. Aggregate
-    ticker_aggregation = aggregate_trades(house, senate)
+    ticker_aggregation = aggregate_trades(quiver_trades)
     print(f"[political] {len(ticker_aggregation)} unique tickers traded "
           f"in last {LOOKBACK_DAYS} days")
     
@@ -346,18 +404,21 @@ def handler(event, context):
                         if r["bipartisan"] and r["n_buys"] >= 2][:20]
     
     out = {
-        "schema_version":   "1.0",
-        "method":           "political_stocks_v1",
+        "schema_version":   "1.1",
+        "method":           "political_stocks_v1_quiver",
         "generated_at":     datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s":       round((datetime.now(timezone.utc) - started).total_seconds(), 1),
         "lookback_days":    LOOKBACK_DAYS,
+        "data_source":      "https://api.quiverquant.com/beta/live/congresstrading",
         
         "trump_holdings":   TRUMP_HOLDINGS,
         
         "congress": {
-            "n_trades_house":  len([t for t in house if t]),
-            "n_trades_senate": len([t for t in senate if t]),
+            "n_trades_total":  len(quiver_trades),
+            "n_trades_house":  n_house,
+            "n_trades_senate": n_senate,
             "n_tickers":       len(ticker_aggregation),
+            "n_known_parties": len(BIOGUIDE_TO_PARTY),
             "top_buys":        top_buys,
             "top_sells":       top_sells,
             "clusters":        clusters,
@@ -367,10 +428,12 @@ def handler(event, context):
         
         "notes": (
             "Trump holdings from OGE 278e (annual, manually re-curated). "
-            "Congress trades from House/Senate Stock Watcher community APIs "
-            "(STOCK Act mandated within-45-day disclosure). "
-            "Cluster signal = 3+ politicians same direction. Bipartisan = both "
-            "parties trading same ticker in same direction (higher conviction)."
+            "Congress trades from Quiver Quant live/congresstrading endpoint "
+            "(1000 most recent across all House+Senate members, STOCK Act-required). "
+            "Party detection limited to known active traders (~40 politicians) since "
+            "Quiver's /live/ endpoint doesn't include Party field — bipartisan flag "
+            "fires only when both D and R are confirmed in our BIOGUIDE_TO_PARTY map. "
+            "Cluster signal = 3+ politicians same direction in lookback window."
         ),
     }
     
@@ -378,7 +441,8 @@ def handler(event, context):
     s3.put_object(Bucket=BUCKET, Key=OUTPUT_KEY, Body=body,
                   ContentType="application/json",
                   CacheControl="public, max-age=14400")
-    print(f"[political] wrote {len(body):,}B  duration={out['duration_s']}s")
+    print(f"[political] wrote {len(body):,}B  duration={out['duration_s']}s  "
+          f"tickers={len(ticker_aggregation)}  clusters={len(clusters)}")
     
     # Emit cluster events
     try:
@@ -401,10 +465,12 @@ def handler(event, context):
     
     return {"statusCode": 200, "body": json.dumps({
         "ok":           True,
-        "n_house":      len(house),
-        "n_senate":     len(senate),
+        "n_quiver":     len(quiver_trades),
+        "n_house":      n_house,
+        "n_senate":     n_senate,
         "n_tickers":    len(ticker_aggregation),
         "n_clusters":   len(clusters),
+        "n_bipartisan": len(bipartisan_buys),
         "duration_s":   out["duration_s"],
     })}
 
