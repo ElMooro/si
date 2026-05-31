@@ -1,0 +1,322 @@
+{
+  "started": "2026-05-31T15:01:49.274638+00:00",
+  "phase_summaries": {},
+  "deploys": {
+    "justhodl-event-coordinator": {
+      "zip_size": 8249,
+      "op": {
+        "action": "updated"
+      }
+    },
+    "justhodl-rotation-chain": {
+      "zip_size": 12184,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "rotation-chain-2x-daily",
+        "cron": "cron(0 12,20 * * ? *)"
+      }
+    },
+    "justhodl-buzz-velocity": {
+      "zip_size": 11338,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "buzz-velocity-4x-daily",
+        "cron": "cron(0 10,14,18,22 * * ? *)"
+      }
+    },
+    "justhodl-forward-orders": {
+      "zip_size": 12272,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "forward-orders-daily",
+        "cron": "cron(0 11 * * ? *)"
+      }
+    },
+    "justhodl-ticker-trends": {
+      "zip_size": 10671,
+      "op": {
+        "action": "created"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "ticker-trends-2x-daily",
+        "cron": "cron(0 13,21 * * ? *)"
+      }
+    },
+    "justhodl-future-intelligence": {
+      "zip_size": 9334,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "future-intel-2x-daily",
+        "cron": "cron(30 12,20 * * ? *)"
+      }
+    }
+  },
+  "fix_1_buzz_universe": {
+    "async_invoke": {
+      "async": true,
+      "status": 202
+    },
+    "completed": true,
+    "total_tickers": 185,
+    "dot_suffix_tickers": [],
+    "passed": true
+  },
+  "fix_4_value_chains": {
+    "invoke": {
+      "status": 200,
+      "fn_err": null,
+      "result": {
+        "ok": true,
+        "n_chains": 11,
+        "n_rotating": 6,
+        "top_next_up": "VST",
+        "duration_s": 18.7
+      }
+    },
+    "chain_names": [
+      "AI",
+      "EV",
+      "GLP1",
+      "RESHORING",
+      "DEFENSE",
+      "QUANTUM",
+      "URANIUM",
+      "BIOTECH",
+      "COPPER_SILVER",
+      "DATACENTER",
+      "LITHIUM"
+    ],
+    "n_chains": 11,
+    "new_chains_present": {
+      "BIOTECH": true,
+      "COPPER_SILVER": true,
+      "DATACENTER": true,
+      "LITHIUM": true
+    },
+    "BIOTECH_state": {
+      "leader_tier": 1,
+      "leader_perf_30d": 4.68,
+      "next_tier_perf": -2.99,
+      "state": "ROTATING",
+      "n_next_up": 4,
+      "top_2_next_up": [
+        {
+          "t": "MRNA",
+          "lag": 18.38
+        },
+        {
+          "t": "BNTX",
+          "lag": 10.72
+        }
+      ]
+    },
+    "COPPER_SILVER_state": {
+      "leader_tier": 2,
+      "leader_perf_30d": 4.92,
+      "next_tier_perf": -3.24,
+      "state": "ROTATING",
+      "n_next_up": 3,
+      "top_2_next_up": [
+        {
+          "t": "HL",
+          "lag": 11.93
+        },
+        {
+          "t": "FSM",
+          "lag": 8.47
+        }
+      ]
+    },
+    "DATACENTER_state": {
+      "leader_tier": 3,
+      "leader_perf_30d": 12.7,
+      "next_tier_perf": 11.36,
+      "state": "SYNCHRONIZED",
+      "n_next_up": 2,
+      "top_2_next_up": [
+        {
+          "t": "ANET",
+          "lag": 13.66
+        },
+        {
+          "t": "JNPR",
+          "lag": 2.13
+        }
+      ]
+    },
+    "LITHIUM_state": {
+      "leader_tier": 4,
+      "leader_perf_30d": 27.92,
+      "next_tier_perf": null,
+      "state": "SYNCHRONIZED",
+      "n_next_up": 0,
+      "top_2_next_up": []
+    }
+  },
+  "fix_3_ticker_trends": {
+    "async_invoke": {
+      "async": true,
+      "status": 202
+    },
+    "note": "No output file yet (still running or failed)",
+    "completed": false
+  },
+  "fix_2_threshold": {
+    "invoke": {
+      "status": 200,
+      "fn_err": null,
+      "result": {
+        "ok": true,
+        "n_scored": 202,
+        "top_ticker": "GEV",
+        "top_score": 65.0,
+        "duration_s": 0.4
+      }
+    },
+    "n_high_conviction": 1,
+    "high_conviction_picks": [
+      {
+        "ticker": "GEV",
+        "score": 65.0,
+        "n_signals": 2,
+        "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel \u00b7 rotation: next_up_tier_3 in AI"
+      }
+    ],
+    "top_10_overall": [
+      {
+        "ticker": "GEV",
+        "score": 65.0,
+        "subscores": {
+          "forward_orders": 67.5,
+          "rotation_chain": 100,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        }
+      },
+      {
+        "ticker": "ORCL",
+        "score": 35.4,
+        "subscores": {
+          "forward_orders": 76.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        }
+      },
+      {
+        "ticker": "RTX",
+        "score": 31.8,
+        "subscores": {
+          "forward_orders": 67.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        }
+      },
+      {
+        "ticker": "DELL",
+        "score": 28.2,
+        "subscores": {
+          "forward_orders": 58.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        }
+      },
+      {
+        "ticker": "GE",
+        "score": 27.8,
+        "subscores": {
+          "forward_orders": 57.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        }
+      },
+      {
+        "ticker": "CAT",
+        "score": 25.0,
+        "subscores": {
+          "forward_orders": 50.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        }
+      },
+      {
+        "ticker": "CEG",
+        "score": 25.0,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        }
+      },
+      {
+        "ticker": "CRH",
+        "score": 25.0,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        }
+      },
+      {
+        "ticker": "ETN",
+        "score": 25.0,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        }
+      },
+      {
+        "ticker": "FORM",
+        "score": 25.0,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        }
+      }
+    ],
+    "passed": true,
+    "feed_freshness": {
+      "forward_orders": "2026-05-31T14:36:59+00:00",
+      "rotation_chain": "2026-05-31T15:03:38+00:00",
+      "buzz_velocity": "2026-05-31T15:07:09+00:00",
+      "ticker_trends": null
+    }
+  },
+  "audit_events_today": {
+    "outcome.resolved": 1,
+    "convergence.tier_up": 9,
+    "rotation.next_up": 4,
+    "forward_orders.high_conviction": 1,
+    "future.signal.high_conviction": 1
+  },
+  "new_events_count": {
+    "future.signal.high_conviction": 1,
+    "ticker_trends.spike": 0,
+    "rotation.next_up": 4,
+    "forward_orders.high_conviction": 1
+  },
+  "finished": "2026-05-31T15:07:33.346898+00:00"
+}
