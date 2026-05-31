@@ -1,0 +1,32 @@
+{
+  "n_entries": 1,
+  "entries": [
+    {
+      "ts": "2026-05-31T12:16:42.091544+00:00",
+      "event": "outcome.resolved",
+      "detail": {
+        "n_resolved": 99,
+        "source": "ops-1022-synthetic-test",
+        "_emitted_at": "2026-05-31T12:16:40.662059+00:00",
+        "_source_engine": "ops-1022"
+      },
+      "route": {
+        "event": "outcome.resolved",
+        "source": "justhodl.test",
+        "started": "2026-05-31T12:16:41.847872+00:00",
+        "invokes": [
+          {
+            "fn": "justhodl-calibrator",
+            "ok": true,
+            "status": 202
+          },
+          {
+            "fn": "justhodl-alpha-calibrator",
+            "ok": true,
+            "status": 202
+          }
+        ]
+      }
+    }
+  ]
+}
