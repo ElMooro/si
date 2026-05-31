@@ -1,0 +1,156 @@
+{
+  "started": "2026-05-31T00:06:18.098931+00:00",
+  "redeploy": {
+    "attempt": 1,
+    "status": "OK"
+  },
+  "fire_open": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 0.91,
+    "results": [
+      {
+        "context_id": "alerts-digest",
+        "title": "Front-Run Alerts Daily Digest",
+        "brief_type": "digest",
+        "session": "open",
+        "output_key": "alerts-digest",
+        "targets_index": {
+          "n_equity_targets": 5,
+          "n_macro_targets": 1,
+          "n_equity_recent": 5,
+          "n_macro_recent": 1
+        },
+        "status": "OK",
+        "telegram_ok": true,
+        "message_chars": 758,
+        "audit_key": "data/_alerts/digest-2026-05-31.json",
+        "duration_s": 0.75
+      }
+    ]
+  },
+  "fire_close": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 0.8,
+    "results": [
+      {
+        "context_id": "alerts-digest-close",
+        "title": "Front-Run Alerts Closing Digest",
+        "brief_type": "digest",
+        "session": "close",
+        "output_key": "alerts-digest-close",
+        "targets_index": {
+          "n_equity_targets": 5,
+          "n_macro_targets": 1,
+          "n_equity_recent": 5,
+          "n_macro_recent": 1
+        },
+        "status": "OK",
+        "telegram_ok": true,
+        "message_chars": 769,
+        "audit_key": "data/_alerts/digest-2026-05-31-close.json",
+        "duration_s": 0.74
+      }
+    ]
+  },
+  "targets_index": {
+    "version": "1.0",
+    "updated_at": "2026-05-31T00:06:27.318030+00:00",
+    "lookback_days": 30,
+    "n_equity_targets": 5,
+    "n_macro_targets": 1,
+    "n_equity_recent": 5,
+    "n_macro_recent": 1,
+    "equity_top5": [
+      {
+        "asset": "PEP",
+        "n_digest_appearances": 2,
+        "max_n_times_in_window": 3,
+        "first_seen": "2026-05-31",
+        "last_seen_session": "close",
+        "sessions": {
+          "open": 1,
+          "close": 1
+        },
+        "last_seen": "2026-05-31",
+        "is_recent": true
+      },
+      {
+        "asset": "AMD",
+        "n_digest_appearances": 2,
+        "max_n_times_in_window": 1,
+        "first_seen": "2026-05-31",
+        "last_seen_session": "close",
+        "sessions": {
+          "open": 1,
+          "close": 1
+        },
+        "last_seen": "2026-05-31",
+        "is_recent": true
+      },
+      {
+        "asset": "PEP (PepsiCo)",
+        "n_digest_appearances": 2,
+        "max_n_times_in_window": 1,
+        "first_seen": "2026-05-31",
+        "last_seen_session": "close",
+        "sessions": {
+          "open": 1,
+          "close": 1
+        },
+        "last_seen": "2026-05-31",
+        "is_recent": true
+      },
+      {
+        "asset": "AMZN",
+        "n_digest_appearances": 2,
+        "max_n_times_in_window": 1,
+        "first_seen": "2026-05-31",
+        "last_seen_session": "close",
+        "sessions": {
+          "open": 1,
+          "close": 1
+        },
+        "last_seen": "2026-05-31",
+        "is_recent": true
+      },
+      {
+        "asset": "SPY / Broad Equity Market",
+        "n_digest_appearances": 2,
+        "max_n_times_in_window": 1,
+        "first_seen": "2026-05-31",
+        "last_seen_session": "close",
+        "sessions": {
+          "open": 1,
+          "close": 1
+        },
+        "last_seen": "2026-05-31",
+        "is_recent": true
+      }
+    ],
+    "macro_top5": [
+      {
+        "instrument": "TLT",
+        "n_digest_appearances": 2,
+        "max_n_times_in_window": 3,
+        "first_seen": "2026-05-31",
+        "last_seen_session": "close",
+        "sessions": {
+          "open": 1,
+          "close": 1
+        },
+        "last_seen": "2026-05-31",
+        "is_recent": true
+      }
+    ]
+  },
+  "digests_index_today": {
+    "n_today": 2,
+    "sessions": [
+      "close",
+      "open"
+    ]
+  },
+  "finished": "2026-05-31T00:06:29.843167+00:00"
+}
