@@ -1,0 +1,85 @@
+{
+  "started": "2026-05-31T16:39:50.373018+00:00",
+  "probe": {
+    "live_congress": {
+      "status": 200,
+      "size": 430573,
+      "n_items": 1000,
+      "sample_keys": [
+        "Representative",
+        "BioGuideID",
+        "ReportDate",
+        "TransactionDate",
+        "Ticker",
+        "Transaction",
+        "Range",
+        "House",
+        "Amount",
+        "Party",
+        "last_modified",
+        "TickerType",
+        "Description",
+        "ExcessReturn",
+        "PriceChange"
+      ],
+      "sample_item": {
+        "Representative": "David J. Taylor",
+        "BioGuideID": "T000490",
+        "ReportDate": "2026-05-28",
+        "TransactionDate": "2026-05-15",
+        "Ticker": "MEDP",
+        "Transaction": "Purchase",
+        "Range": "$1,001 - $15,000",
+        "House": "Representatives"
+      }
+    },
+    "bulk_congress": {
+      "err": "HTTP Error 401: Unauthorized"
+    },
+    "recent_congress": {
+      "err": "HTTP Error 404: Not Found"
+    },
+    "congresstrading_root": {
+      "err": "HTTP Error 404: Not Found"
+    },
+    "historical_root": {
+      "err": "HTTP Error 404: Not Found"
+    },
+    "historical_nvda": {
+      "err": "HTTP Error 401: Unauthorized"
+    },
+    "live_senate": {
+      "err": "HTTP Error 401: Unauthorized"
+    },
+    "live_house": {
+      "err": "HTTP Error 401: Unauthorized"
+    },
+    "live_insiders": {
+      "err": "HTTP Error 401: Unauthorized"
+    },
+    "live_lobbying": {
+      "status": 200,
+      "size": 12417174,
+      "n_items": 20000,
+      "sample_keys": [
+        "Date",
+        "Amount",
+        "Client",
+        "Issue",
+        "Specific_Issue",
+        "Registrant",
+        "Ticker"
+      ],
+      "sample_item": {
+        "Date": "2026-05-30",
+        "Amount": "20000.0",
+        "Client": "MCCORMICK & COMPANY INCORPORATED",
+        "Issue": "Trade (domestic/foreign) \n Taxation/Internal Revenue Code",
+        "Specific_Issue": "Issues related to tariffs \n Issues related to upcoming tax d",
+        "Registrant": "MCCORMICK & COMPANY, INCORPORATED",
+        "Ticker": "MKC"
+      }
+    }
+  },
+  "finished": "2026-05-31T16:39:58.910811+00:00"
+}
