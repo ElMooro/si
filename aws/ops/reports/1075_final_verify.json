@@ -1,0 +1,76 @@
+{
+  "started": "2026-05-31T23:12:05.743607+00:00",
+  "shim_presence": {
+    "justhodl-divergence-engine-v2": {
+      "has_shim_import": false,
+      "evidence": null
+    },
+    "justhodl-daily-report-v3": {
+      "has_shim_import": true,
+      "evidence": "import _fred_shim  # noqa: F401  \u2014 cache-first FRED + 429 backoff (ops/1074)"
+    },
+    "justhodl-cds-proxy": {
+      "has_shim_import": false,
+      "evidence": null
+    }
+  },
+  "invokes": [
+    {
+      "name": "justhodl-daily-report-v3",
+      "err": "An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 4): Rate Exceeded."
+    },
+    {
+      "name": "justhodl-canary-grid",
+      "elapsed_s": 56.1,
+      "status": 200,
+      "statusCode": 200,
+      "body_summary": {
+        "ok": true
+      }
+    },
+    {
+      "name": "justhodl-yield-curve",
+      "elapsed_s": 9.3,
+      "status": 200,
+      "statusCode": 200,
+      "body_summary": {
+        "regime": "BULL_FLATTENER",
+        "n_signals": 0,
+        "duration_s": 8.38
+      }
+    },
+    {
+      "name": "justhodl-crisis-knowledge-base",
+      "elapsed_s": 2.0,
+      "status": 200,
+      "statusCode": 200,
+      "body_summary": {
+        "ok": true
+      }
+    },
+    {
+      "name": "justhodl-valuations-agent",
+      "elapsed_s": 24.5,
+      "status": 200,
+      "statusCode": 200,
+      "body_summary": {
+        "composite": {
+          "score": 74.4,
+          "regime": "OVERVALUED",
+          "color": "#f97316",
+          "sample_size": 7
+        }
+      }
+    }
+  ],
+  "liquidity_tile": {
+    "generated_at": "2026-05-31T22:43:08.046249+00:00",
+    "elapsed_sec": 20.2,
+    "net_liquidity_bn": 5874075.32,
+    "net_liquidity_label": "VERY_BULLISH",
+    "fed_balance_sheet": 6704383.0,
+    "tga": 830296.0,
+    "rrp": 11.677
+  },
+  "finished": "2026-05-31T23:16:56.876761+00:00"
+}
