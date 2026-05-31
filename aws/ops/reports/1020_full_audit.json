@@ -1,0 +1,4450 @@
+{
+  "started": "2026-05-31T12:01:10.135108+00:00",
+  "n_lambdas": 430,
+  "n_scheduled": 47,
+  "n_s3_keys": 5001,
+  "n_ddb_tables": 18,
+  "n_ssm_params": 73,
+  "generated_at": "2026-05-31T12:01:10.135108+00:00",
+  "finished_at": "2026-05-31T12:02:42.566377+00:00",
+  "elapsed_s": 92.4,
+  "lambdas_sample": [
+    {
+      "name": "justhodl-merger-arb",
+      "runtime": "python3.12",
+      "memory_mb": 1024,
+      "timeout_s": 300,
+      "last_modified": "2026-05-30T18:27:06.000+0000",
+      "code_size_kb": 6.5,
+      "description": "Merger-arbitrage spread desk - parses SEC S-4 deal terms on announced M&A, prices gross spread + annualized return + deal-break risk, writes",
+      "state": null,
+      "last_update_status": null
+    },
+    {
+      "name": "justhodl-data-collector",
+      "runtime": "python3.9",
+      "memory_mb": 128,
+      "timeout_s": 15,
+      "last_modified": "2026-05-30T18:27:08.000+0000",
+      "code_size_kb": 1.2,
+      "description": "Collects historical data - safe to delete",
+      "state": null,
+      "last_update_status": null
+    },
+    {
+      "name": "justhodl-leading-markets",
+      "runtime": "python3.12",
+      "memory_mb": 256,
+      "timeout_s": 180,
+      "last_modified": "2026-05-30T18:27:10.000+0000",
+      "code_size_kb": 5.5,
+      "description": "Leading Markets engine \u2014 canary markets that lead macro tops/bottoms",
+      "state": null,
+      "last_update_status": null
+    },
+    {
+      "name": "justhodl-vix-backwardation-trigger",
+      "runtime": "python3.12",
+      "memory_mb": 256,
+      "timeout_s": 60,
+      "last_modified": "2026-05-30T18:27:15.000+0000",
+      "code_size_kb": 7.3,
+      "description": "Institutional once-per-cycle capitulation buy signal. State machine NULL->WARM->ARMED->FIRED->COOLDOWN based on VIX9D/VIX/VIX3M term structu",
+      "state": null,
+      "last_update_status": null
+    },
+    {
+      "name": "justhodl-synthetic-monitor",
+      "runtime": "python3.12",
+      "memory_mb": 512,
+      "timeout_s": 60,
+      "last_modified": "2026-05-30T18:26:55.000+0000",
+      "code_size_kb": 3.0,
+      "description": "Arch #7 \u2014 end-to-end synthetic monitor. Every 15min: HTTPS-checks 13 critical pages + 4 critical feeds, validates signature markers + freshn",
+      "state": null,
+      "last_update_status": null
+    }
+  ],
+  "schedules_sample": {
+    "justhodl-alpha-compass": {
+      "rule": "alpha-compass-3h",
+      "schedule": "cron(50 */3 * * ? *)",
+      "state": "ENABLED",
+      "description": "Alpha Compass synthesis \u2014 every 3 hours at :50, just after conviction-engine (:4"
+    },
+    "alphavantage-market-agent": {
+      "rule": "alphavantage-market-update",
+      "schedule": "cron(*/15 13-21 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Update market data every 15 minutes during market hours"
+    },
+    "justhodl-bank-stress": {
+      "rule": "bank-stress-daily",
+      "schedule": "cron(0 15 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Bank funding stress daily refresh"
+    },
+    "cftc-futures-positioning-agent": {
+      "rule": "cftc-cot-weekly-update",
+      "schedule": "cron(0 18 ? * FRI *)",
+      "state": "ENABLED",
+      "description": "Weekly CFTC COT refresh"
+    },
+    "justhodl-chart-vision": {
+      "rule": "chart-vision-daily",
+      "schedule": "cron(0 16 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Weekdays 16 UTC \u2014 pattern recognition on top-conviction names"
+    }
+  },
+  "metrics_sample": [
+    {
+      "name": "alphavantage-market-agent",
+      "metrics": {
+        "days": 7,
+        "invocations": 64,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 2837.8,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:00:21.447000+00:00"
+    },
+    {
+      "name": "cftc-futures-positioning-agent",
+      "metrics": {
+        "days": 7,
+        "invocations": 161,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 6762.1,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:01:17.986000+00:00"
+    },
+    {
+      "name": "ecb-auto-updater",
+      "metrics": {
+        "days": 7,
+        "invocations": 1,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 993.6,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-25T06:06:02.015000+00:00"
+    },
+    {
+      "name": "justhodl-13f-positions",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 8245.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T10:51:18.439000+00:00"
+    },
+    {
+      "name": "justhodl-ai-brief",
+      "metrics": {
+        "days": 7,
+        "invocations": 42,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 32195.6,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T08:06:15.951000+00:00"
+    }
+  ],
+  "issue_counts": {
+    "dead_unscheduled": 367,
+    "broken_scheduled": 0,
+    "stale_outputs": 6,
+    "low_use_scheduled": 0,
+    "high_error_rate": 2,
+    "expensive_invokes": 3,
+    "disabled_rules": 0,
+    "no_recent_logs": 0
+  },
+  "issues": {
+    "dead_unscheduled": [
+      {
+        "name": "justhodl-merger-arb",
+        "last_modified": "2026-05-30T18:27:06.000+0000",
+        "code_size_kb": 6.5
+      },
+      {
+        "name": "justhodl-data-collector",
+        "last_modified": "2026-05-30T18:27:08.000+0000",
+        "code_size_kb": 1.2
+      },
+      {
+        "name": "justhodl-leading-markets",
+        "last_modified": "2026-05-30T18:27:10.000+0000",
+        "code_size_kb": 5.5
+      },
+      {
+        "name": "justhodl-vix-backwardation-trigger",
+        "last_modified": "2026-05-30T18:27:15.000+0000",
+        "code_size_kb": 7.3
+      },
+      {
+        "name": "justhodl-synthetic-monitor",
+        "last_modified": "2026-05-30T18:26:55.000+0000",
+        "code_size_kb": 3.0
+      },
+      {
+        "name": "justhodl-stablecoin-flow",
+        "last_modified": "2026-05-30T18:27:18.000+0000",
+        "code_size_kb": 7.1
+      },
+      {
+        "name": "justhodl-asymmetric-scorer",
+        "last_modified": "2026-05-30T18:27:23.000+0000",
+        "code_size_kb": 8.6
+      },
+      {
+        "name": "ofrapi",
+        "last_modified": "2026-05-22T11:00:47.000+0000",
+        "code_size_kb": 21.4
+      },
+      {
+        "name": "openbb-websocket-broadcast",
+        "last_modified": "2026-05-22T10:55:26.000+0000",
+        "code_size_kb": 3.5
+      },
+      {
+        "name": "justhodl-fedwatch-rate-probability",
+        "last_modified": "2026-05-30T18:27:25.000+0000",
+        "code_size_kb": 5.4
+      },
+      {
+        "name": "justhodl-cds-proxy",
+        "last_modified": "2026-05-30T18:27:29.000+0000",
+        "code_size_kb": 4.1
+      },
+      {
+        "name": "justhodl-esi",
+        "last_modified": "2026-05-30T18:27:31.000+0000",
+        "code_size_kb": 4.0
+      },
+      {
+        "name": "justhodl-momentum-scanner",
+        "last_modified": "2026-05-30T18:27:38.000+0000",
+        "code_size_kb": 3.5
+      },
+      {
+        "name": "justhodl-divergence-interpreter",
+        "last_modified": "2026-05-30T18:27:42.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "bls-labor-agent",
+        "last_modified": "2026-05-22T10:55:26.000+0000",
+        "code_size_kb": 2.1
+      },
+      {
+        "name": "justhodl-pnl-tracker",
+        "last_modified": "2026-05-30T18:27:46.000+0000",
+        "code_size_kb": 5.6
+      },
+      {
+        "name": "justhodl-cro-escalation",
+        "last_modified": "2026-05-30T18:27:48.000+0000",
+        "code_size_kb": 9.6
+      },
+      {
+        "name": "justhodl-spinoff-desk",
+        "last_modified": "2026-05-30T18:27:50.000+0000",
+        "code_size_kb": 7.9
+      },
+      {
+        "name": "justhodl-volatility-squeeze-hunter",
+        "last_modified": "2026-05-30T18:27:53.000+0000",
+        "code_size_kb": 16.0
+      },
+      {
+        "name": "justhodl-coffee-can",
+        "last_modified": "2026-05-30T18:27:55.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-smart-beta",
+        "last_modified": "2026-05-30T18:27:59.000+0000",
+        "code_size_kb": 6.3
+      },
+      {
+        "name": "justhodl-hedge-planner",
+        "last_modified": "2026-05-30T18:28:01.000+0000",
+        "code_size_kb": 9.0
+      },
+      {
+        "name": "justhodl-bond-trace",
+        "last_modified": "2026-05-30T18:28:03.000+0000",
+        "code_size_kb": 4.0
+      },
+      {
+        "name": "justhodl-ultimate-orchestrator",
+        "last_modified": "2026-05-30T18:28:07.000+0000",
+        "code_size_kb": 2.4
+      },
+      {
+        "name": "justhodl-theme-tier-classifier",
+        "last_modified": "2026-05-30T18:28:11.000+0000",
+        "code_size_kb": 20.6
+      },
+      {
+        "name": "justhodl-multi-tf-convergence",
+        "last_modified": "2026-05-30T18:28:15.000+0000",
+        "code_size_kb": 5.7
+      },
+      {
+        "name": "justhodl-firm-stress",
+        "last_modified": "2026-05-30T18:28:17.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "justhodl-crypto-enricher",
+        "last_modified": "2026-05-30T18:28:21.000+0000",
+        "code_size_kb": 3.9
+      },
+      {
+        "name": "volatility-monitor-agent",
+        "last_modified": "2026-05-22T10:55:27.000+0000",
+        "code_size_kb": 2.7
+      },
+      {
+        "name": "justhodl-liquidity-flow",
+        "last_modified": "2026-05-30T18:28:23.000+0000",
+        "code_size_kb": 4.0
+      },
+      {
+        "name": "justhodl-causality-scanner",
+        "last_modified": "2026-05-30T18:28:25.000+0000",
+        "code_size_kb": 6.0
+      },
+      {
+        "name": "justhodl-best-ideas",
+        "last_modified": "2026-05-30T18:28:28.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-metals-miners",
+        "last_modified": "2026-05-30T18:28:31.000+0000",
+        "code_size_kb": 7.3
+      },
+      {
+        "name": "justhodl-catalyst-calendar",
+        "last_modified": "2026-05-30T18:28:36.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-market-extremes",
+        "last_modified": "2026-05-30T18:28:38.000+0000",
+        "code_size_kb": 5.1
+      },
+      {
+        "name": "justhodl-divcut-warning",
+        "last_modified": "2026-05-30T18:28:42.000+0000",
+        "code_size_kb": 5.4
+      },
+      {
+        "name": "justhodl-fed-speak",
+        "last_modified": "2026-05-30T18:28:46.000+0000",
+        "code_size_kb": 4.9
+      },
+      {
+        "name": "justhodl-stock-analyzer",
+        "last_modified": "2026-05-30T18:28:53.000+0000",
+        "code_size_kb": 12.0
+      },
+      {
+        "name": "justhodl-global-macro",
+        "last_modified": "2026-05-30T18:28:55.000+0000",
+        "code_size_kb": 4.7
+      },
+      {
+        "name": "justhodl-event-study",
+        "last_modified": "2026-05-30T18:28:57.000+0000",
+        "code_size_kb": 4.7
+      },
+      {
+        "name": "justhodl-divergence-scanner",
+        "last_modified": "2026-05-30T18:29:01.000+0000",
+        "code_size_kb": 14.1
+      },
+      {
+        "name": "justhodl-trade-logger",
+        "last_modified": "2026-05-30T18:29:09.000+0000",
+        "code_size_kb": 4.2
+      },
+      {
+        "name": "justhodl-sellside-views",
+        "last_modified": "2026-05-30T18:29:15.000+0000",
+        "code_size_kb": 3.6
+      },
+      {
+        "name": "justhodl-ecb-detail",
+        "last_modified": "2026-05-30T18:29:17.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "bond-indices-agent",
+        "last_modified": "2026-05-22T10:55:29.000+0000",
+        "code_size_kb": 2.6
+      },
+      {
+        "name": "ecb-data-daily-updater",
+        "last_modified": "2026-05-22T11:00:47.000+0000",
+        "code_size_kb": 2.5
+      },
+      {
+        "name": "justhodl-desk-allocator",
+        "last_modified": "2026-05-30T18:29:25.000+0000",
+        "code_size_kb": 10.0
+      },
+      {
+        "name": "justhodl-construction-housing",
+        "last_modified": "2026-05-30T18:29:28.000+0000",
+        "code_size_kb": 3.2
+      },
+      {
+        "name": "justhodl-market-internals",
+        "last_modified": "2026-05-30T18:29:30.000+0000",
+        "code_size_kb": 5.4
+      },
+      {
+        "name": "google-trends-agent",
+        "last_modified": "2026-05-22T10:55:29.000+0000",
+        "code_size_kb": 2.2
+      },
+      {
+        "name": "justhodl-crypto-narratives",
+        "last_modified": "2026-05-30T18:29:34.000+0000",
+        "code_size_kb": 2.3
+      },
+      {
+        "name": "justhodl-live-pulse",
+        "last_modified": "2026-05-30T18:29:36.000+0000",
+        "code_size_kb": 4.7
+      },
+      {
+        "name": "justhodl-ma-tracker",
+        "last_modified": "2026-05-30T18:29:38.000+0000",
+        "code_size_kb": 3.5
+      },
+      {
+        "name": "justhodl-stock-screener",
+        "last_modified": "2026-05-30T18:29:42.000+0000",
+        "code_size_kb": 23.6
+      },
+      {
+        "name": "justhodl-vix9d-vix-inversion",
+        "last_modified": "2026-05-30T18:29:47.000+0000",
+        "code_size_kb": 4.6
+      },
+      {
+        "name": "justhodl-risk-monitor",
+        "last_modified": "2026-05-30T18:29:49.000+0000",
+        "code_size_kb": 6.1
+      },
+      {
+        "name": "justhodl-transcript-indexer",
+        "last_modified": "2026-05-30T18:29:55.000+0000",
+        "code_size_kb": 4.4
+      },
+      {
+        "name": "justhodl-crypto-funding",
+        "last_modified": "2026-05-30T18:29:57.000+0000",
+        "code_size_kb": 5.4
+      },
+      {
+        "name": "justhodl-concentration-liquidity",
+        "last_modified": "2026-05-30T18:30:06.000+0000",
+        "code_size_kb": 5.2
+      },
+      {
+        "name": "justhodl-screener-alerts",
+        "last_modified": "2026-05-30T18:30:08.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-magic-formula",
+        "last_modified": "2026-05-30T18:30:12.000+0000",
+        "code_size_kb": 4.4
+      },
+      {
+        "name": "justhodl-cross-asset-regime",
+        "last_modified": "2026-05-30T18:30:14.000+0000",
+        "code_size_kb": 15.5
+      },
+      {
+        "name": "justhodl-consensus-bottom",
+        "last_modified": "2026-05-30T18:30:18.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-forward-returns",
+        "last_modified": "2026-05-30T18:30:26.000+0000",
+        "code_size_kb": 9.7
+      },
+      {
+        "name": "justhodl-political-trades",
+        "last_modified": "2026-05-30T18:30:28.000+0000",
+        "code_size_kb": 5.0
+      },
+      {
+        "name": "justhodl-email-reports-v2",
+        "last_modified": "2026-05-30T18:30:30.000+0000",
+        "code_size_kb": 6.6
+      },
+      {
+        "name": "fmp-fundamentals-agent",
+        "last_modified": "2026-05-22T10:55:30.000+0000",
+        "code_size_kb": 1.4
+      },
+      {
+        "name": "justhodl-52wk-quality-breakout",
+        "last_modified": "2026-05-30T18:30:34.000+0000",
+        "code_size_kb": 6.1
+      },
+      {
+        "name": "justhodl-gf-value",
+        "last_modified": "2026-05-30T18:30:36.000+0000",
+        "code_size_kb": 6.8
+      },
+      {
+        "name": "justhodl-dxy-equity-divergence",
+        "last_modified": "2026-05-30T18:30:41.000+0000",
+        "code_size_kb": 5.0
+      },
+      {
+        "name": "eia-energy-agent",
+        "last_modified": "2026-05-22T10:55:31.000+0000",
+        "code_size_kb": 2.0
+      },
+      {
+        "name": "justhodl-seasonality",
+        "last_modified": "2026-05-30T18:30:45.000+0000",
+        "code_size_kb": 3.5
+      },
+      {
+        "name": "justhodl-portfolio-admin",
+        "last_modified": "2026-05-30T18:30:47.000+0000",
+        "code_size_kb": 3.9
+      },
+      {
+        "name": "justhodl-earnings-nlp",
+        "last_modified": "2026-05-30T18:30:49.000+0000",
+        "code_size_kb": 7.0
+      },
+      {
+        "name": "justhodl-sector-rotation",
+        "last_modified": "2026-05-30T18:30:51.000+0000",
+        "code_size_kb": 8.4
+      },
+      {
+        "name": "justhodl-consumer-pulse",
+        "last_modified": "2026-05-30T18:30:55.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-nyfed-dealer-survey",
+        "last_modified": "2026-05-30T18:30:57.000+0000",
+        "code_size_kb": 2.5
+      },
+      {
+        "name": "justhodl-global-stress",
+        "last_modified": "2026-05-30T18:31:02.000+0000",
+        "code_size_kb": 17.0
+      },
+      {
+        "name": "justhodl-smart-money-holdings",
+        "last_modified": "2026-05-30T18:31:06.000+0000",
+        "code_size_kb": 7.6
+      },
+      {
+        "name": "justhodl-alpha-confluence",
+        "last_modified": "2026-05-30T18:31:10.000+0000",
+        "code_size_kb": 4.7
+      },
+      {
+        "name": "justhodl-streaming-fanout",
+        "last_modified": "2026-05-30T18:31:13.000+0000",
+        "code_size_kb": 4.0
+      },
+      {
+        "name": "justhodl-insider-cluster-scanner",
+        "last_modified": "2026-05-30T18:31:17.000+0000",
+        "code_size_kb": 9.2
+      },
+      {
+        "name": "justhodl-momentum-breakout",
+        "last_modified": "2026-05-30T18:31:21.000+0000",
+        "code_size_kb": 12.7
+      },
+      {
+        "name": "justhodl-liquidity-agent",
+        "last_modified": "2026-05-30T18:31:25.000+0000",
+        "code_size_kb": 6.9
+      },
+      {
+        "name": "justhodl-stress-simulator",
+        "last_modified": "2026-05-30T18:31:27.000+0000",
+        "code_size_kb": 6.6
+      },
+      {
+        "name": "justhodl-reit-nav-discount",
+        "last_modified": "2026-05-30T18:31:29.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-russell-recon-frontrun",
+        "last_modified": "2026-05-30T18:31:33.000+0000",
+        "code_size_kb": 9.8
+      },
+      {
+        "name": "justhodl-trade-evaluator",
+        "last_modified": "2026-05-30T18:31:36.000+0000",
+        "code_size_kb": 5.0
+      },
+      {
+        "name": "justhodl-bond-regime-detector",
+        "last_modified": "2026-05-30T18:31:38.000+0000",
+        "code_size_kb": 13.9
+      },
+      {
+        "name": "justhodl-opportunity-engine",
+        "last_modified": "2026-05-30T18:31:40.000+0000",
+        "code_size_kb": 8.9
+      },
+      {
+        "name": "justhodl-watchlist",
+        "last_modified": "2026-05-30T18:31:44.000+0000",
+        "code_size_kb": 4.2
+      },
+      {
+        "name": "justhodl-supply-chain-linkage",
+        "last_modified": "2026-05-30T18:31:48.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-desk-returns",
+        "last_modified": "2026-05-30T18:31:51.000+0000",
+        "code_size_kb": 5.7
+      },
+      {
+        "name": "justhodl-starmine",
+        "last_modified": "2026-05-30T18:31:54.000+0000",
+        "code_size_kb": 8.1
+      },
+      {
+        "name": "justhodl-sequence-alpha-detector",
+        "last_modified": "2026-05-30T18:31:58.000+0000",
+        "code_size_kb": 7.7
+      },
+      {
+        "name": "justhodl-microcap-float-squeeze",
+        "last_modified": "2026-05-30T18:32:00.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "justhodl-breadth-thrust",
+        "last_modified": "2026-05-30T18:32:04.000+0000",
+        "code_size_kb": 8.5
+      },
+      {
+        "name": "justhodl-oecd-cli",
+        "last_modified": "2026-05-30T18:32:08.000+0000",
+        "code_size_kb": 3.5
+      },
+      {
+        "name": "justhodl-cftc-deep-view",
+        "last_modified": "2026-05-30T18:32:10.000+0000",
+        "code_size_kb": 6.2
+      },
+      {
+        "name": "justhodl-smart-money-tracker",
+        "last_modified": "2026-05-30T18:32:15.000+0000",
+        "code_size_kb": 3.9
+      },
+      {
+        "name": "justhodl-crypto-intel",
+        "last_modified": "2026-05-30T18:32:19.000+0000",
+        "code_size_kb": 17.7
+      },
+      {
+        "name": "justhodl-auction-grader",
+        "last_modified": "2026-05-30T18:32:21.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-insider-buys-enriched",
+        "last_modified": "2026-05-30T18:32:23.000+0000",
+        "code_size_kb": 6.0
+      },
+      {
+        "name": "justhodl-eps-revision-velocity",
+        "last_modified": "2026-05-30T18:32:26.000+0000",
+        "code_size_kb": 16.1
+      },
+      {
+        "name": "justhodl-earnings-whisper",
+        "last_modified": "2026-05-30T18:32:29.000+0000",
+        "code_size_kb": 5.1
+      },
+      {
+        "name": "justhodl-cta-trend-exhaust",
+        "last_modified": "2026-05-30T18:32:34.000+0000",
+        "code_size_kb": 5.2
+      },
+      {
+        "name": "justhodl-portfolio-risk",
+        "last_modified": "2026-05-30T18:32:36.000+0000",
+        "code_size_kb": 6.9
+      },
+      {
+        "name": "justhodl-failed-pattern-reversal",
+        "last_modified": "2026-05-30T18:32:40.000+0000",
+        "code_size_kb": 6.9
+      },
+      {
+        "name": "census-economic-agent",
+        "last_modified": "2026-05-22T10:55:33.000+0000",
+        "code_size_kb": 1.6
+      },
+      {
+        "name": "justhodl-portfolio-snapshot",
+        "last_modified": "2026-05-30T18:32:45.000+0000",
+        "code_size_kb": 5.2
+      },
+      {
+        "name": "justhodl-cef-discount",
+        "last_modified": "2026-05-30T18:32:49.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "justhodl-tax-plan",
+        "last_modified": "2026-05-30T18:32:51.000+0000",
+        "code_size_kb": 9.8
+      },
+      {
+        "name": "justhodl-commodity-curves",
+        "last_modified": "2026-05-30T18:32:53.000+0000",
+        "code_size_kb": 6.3
+      },
+      {
+        "name": "justhodl-ipo-pipeline",
+        "last_modified": "2026-05-30T18:32:57.000+0000",
+        "code_size_kb": 3.7
+      },
+      {
+        "name": "justhodl-hiring-velocity",
+        "last_modified": "2026-05-30T18:32:59.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-behavior-mirror",
+        "last_modified": "2026-05-30T18:33:03.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "justhodl-liquidity-capacity",
+        "last_modified": "2026-05-30T18:33:07.000+0000",
+        "code_size_kb": 5.2
+      },
+      {
+        "name": "justhodl-factor-risk",
+        "last_modified": "2026-05-30T18:33:09.000+0000",
+        "code_size_kb": 7.8
+      },
+      {
+        "name": "justhodl-ab-test",
+        "last_modified": "2026-05-30T18:33:13.000+0000",
+        "code_size_kb": 4.7
+      },
+      {
+        "name": "justhodl-sec-8k",
+        "last_modified": "2026-05-30T18:33:15.000+0000",
+        "code_size_kb": 3.2
+      },
+      {
+        "name": "justhodl-sec-13f",
+        "last_modified": "2026-05-30T18:33:17.000+0000",
+        "code_size_kb": 3.2
+      },
+      {
+        "name": "dollar-strength-agent",
+        "last_modified": "2026-05-22T10:55:34.000+0000",
+        "code_size_kb": 2.9
+      },
+      {
+        "name": "economyapi",
+        "last_modified": "2026-05-22T11:00:47.000+0000",
+        "code_size_kb": 12.0
+      },
+      {
+        "name": "justhodl-earnings-quality",
+        "last_modified": "2026-05-30T18:33:21.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-investor-agents",
+        "last_modified": "2026-05-30T18:33:23.000+0000",
+        "code_size_kb": 12.9
+      },
+      {
+        "name": "justhodl-predictability",
+        "last_modified": "2026-05-30T18:33:28.000+0000",
+        "code_size_kb": 6.3
+      },
+      {
+        "name": "aiapi-market-analyzer",
+        "last_modified": "2026-05-22T11:00:48.000+0000",
+        "code_size_kb": 2.4
+      },
+      {
+        "name": "justhodl-allocator",
+        "last_modified": "2026-05-30T18:33:32.000+0000",
+        "code_size_kb": 9.0
+      },
+      {
+        "name": "justhodl-bond-vol",
+        "last_modified": "2026-05-30T18:33:36.000+0000",
+        "code_size_kb": 4.4
+      },
+      {
+        "name": "autonomous-ai-processor",
+        "last_modified": "2026-05-22T10:55:35.000+0000",
+        "code_size_kb": 1.0
+      },
+      {
+        "name": "justhodl-rv-iv-scanner",
+        "last_modified": "2026-05-30T18:33:39.000+0000",
+        "code_size_kb": 8.8
+      },
+      {
+        "name": "justhodl-credit-equity-divergence",
+        "last_modified": "2026-05-30T18:33:42.000+0000",
+        "code_size_kb": 5.1
+      },
+      {
+        "name": "treasury-auto-updater",
+        "last_modified": "2026-05-22T10:55:35.000+0000",
+        "code_size_kb": 1.5
+      },
+      {
+        "name": "justhodl-regime-composite",
+        "last_modified": "2026-05-30T18:33:44.000+0000",
+        "code_size_kb": 8.2
+      },
+      {
+        "name": "justhodl-global-business-cycle",
+        "last_modified": "2026-05-30T18:33:48.000+0000",
+        "code_size_kb": 14.5
+      },
+      {
+        "name": "justhodl-calibration-fleet",
+        "last_modified": "2026-05-30T18:33:50.000+0000",
+        "code_size_kb": 7.1
+      },
+      {
+        "name": "justhodl-earnings-iv-crush",
+        "last_modified": "2026-05-30T18:33:52.000+0000",
+        "code_size_kb": 8.2
+      },
+      {
+        "name": "justhodl-transcript-query",
+        "last_modified": "2026-05-30T18:33:58.000+0000",
+        "code_size_kb": 2.7
+      },
+      {
+        "name": "justhodl-alpha-alerts",
+        "last_modified": "2026-05-30T18:34:01.000+0000",
+        "code_size_kb": 3.6
+      },
+      {
+        "name": "justhodl-beneish",
+        "last_modified": "2026-05-30T18:34:05.000+0000",
+        "code_size_kb": 6.0
+      },
+      {
+        "name": "justhodl-13f-price-divergence",
+        "last_modified": "2026-05-30T18:34:07.000+0000",
+        "code_size_kb": 5.0
+      },
+      {
+        "name": "justhodl-plumbing-aggregator",
+        "last_modified": "2026-05-30T18:34:09.000+0000",
+        "code_size_kb": 8.1
+      },
+      {
+        "name": "justhodl-history-snapshotter",
+        "last_modified": "2026-05-30T18:34:11.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "permanent-market-intelligence",
+        "last_modified": "2026-05-22T10:55:36.000+0000",
+        "code_size_kb": 4.2
+      },
+      {
+        "name": "ultimate-multi-agent",
+        "last_modified": "2026-05-22T10:55:36.000+0000",
+        "code_size_kb": 1.9
+      },
+      {
+        "name": "justhodl-cb-injection",
+        "last_modified": "2026-05-30T18:34:15.000+0000",
+        "code_size_kb": 5.4
+      },
+      {
+        "name": "justhodl-fleet-monitor",
+        "last_modified": "2026-05-30T18:34:18.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-dex-scanner",
+        "last_modified": "2026-05-30T18:34:22.000+0000",
+        "code_size_kb": 0.7
+      },
+      {
+        "name": "justhodl-opportunity-screener",
+        "last_modified": "2026-05-30T18:34:24.000+0000",
+        "code_size_kb": 7.1
+      },
+      {
+        "name": "justhodl-sector-tilt",
+        "last_modified": "2026-05-30T18:34:28.000+0000",
+        "code_size_kb": 5.2
+      },
+      {
+        "name": "justhodl-narrative-density-tracker",
+        "last_modified": "2026-05-30T18:34:32.000+0000",
+        "code_size_kb": 18.3
+      },
+      {
+        "name": "justhodl-premortem-engine",
+        "last_modified": "2026-05-30T18:34:34.000+0000",
+        "code_size_kb": 5.6
+      },
+      {
+        "name": "justhodl-correlation-break-trade-router",
+        "last_modified": "2026-05-30T18:34:37.000+0000",
+        "code_size_kb": 6.4
+      },
+      {
+        "name": "justhodl-repo-monitor",
+        "last_modified": "2026-05-30T18:34:41.000+0000",
+        "code_size_kb": 13.0
+      },
+      {
+        "name": "justhodl-tail-hedge",
+        "last_modified": "2026-05-30T18:34:49.000+0000",
+        "code_size_kb": 8.3
+      },
+      {
+        "name": "justhodl-dep-graph",
+        "last_modified": "2026-05-28T20:46:47.000+0000",
+        "code_size_kb": 3.1
+      },
+      {
+        "name": "justhodl-implied-prob",
+        "last_modified": "2026-05-30T18:34:54.000+0000",
+        "code_size_kb": 6.4
+      },
+      {
+        "name": "justhodl-anomaly-detector",
+        "last_modified": "2026-05-30T18:34:56.000+0000",
+        "code_size_kb": 15.2
+      },
+      {
+        "name": "global-liquidity-agent-v2",
+        "last_modified": "2026-05-22T10:55:37.000+0000",
+        "code_size_kb": 0.7
+      },
+      {
+        "name": "justhodl-rating-change-cluster",
+        "last_modified": "2026-05-30T18:35:02.000+0000",
+        "code_size_kb": 5.4
+      },
+      {
+        "name": "justhodl-mean-reversion",
+        "last_modified": "2026-05-30T18:35:04.000+0000",
+        "code_size_kb": 2.8
+      },
+      {
+        "name": "justhodl-treasury-proxy",
+        "last_modified": "2026-05-30T18:35:08.000+0000",
+        "code_size_kb": 7.6
+      },
+      {
+        "name": "justhodl-position-monitor",
+        "last_modified": "2026-05-30T18:35:10.000+0000",
+        "code_size_kb": 3.9
+      },
+      {
+        "name": "justhodl-daily-report-v3",
+        "last_modified": "2026-05-30T18:35:14.000+0000",
+        "code_size_kb": 38.4
+      },
+      {
+        "name": "justhodl-market-interpreter",
+        "last_modified": "2026-05-28T20:29:10.000+0000",
+        "code_size_kb": 3.7
+      },
+      {
+        "name": "justhodl-prompt-iterator",
+        "last_modified": "2026-05-30T18:35:18.000+0000",
+        "code_size_kb": 13.3
+      },
+      {
+        "name": "scrapeMacroData",
+        "last_modified": "2026-05-22T11:00:48.000+0000",
+        "code_size_kb": 1.1
+      },
+      {
+        "name": "justhodl-precatalyst-vol-expansion",
+        "last_modified": "2026-05-30T18:35:22.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-history-api",
+        "last_modified": "2026-05-30T18:35:24.000+0000",
+        "code_size_kb": 2.8
+      },
+      {
+        "name": "justhodl-theme-rotation-engine",
+        "last_modified": "2026-05-30T18:35:26.000+0000",
+        "code_size_kb": 9.0
+      },
+      {
+        "name": "daily-liquidity-report",
+        "last_modified": "2026-05-22T11:00:48.000+0000",
+        "code_size_kb": 4.6
+      },
+      {
+        "name": "justhodl-chart-data",
+        "last_modified": "2026-05-30T18:35:30.000+0000",
+        "code_size_kb": 7.8
+      },
+      {
+        "name": "justhodl-fx-decomposition",
+        "last_modified": "2026-05-30T18:35:32.000+0000",
+        "code_size_kb": 5.6
+      },
+      {
+        "name": "justhodl-asymmetric-hunter",
+        "last_modified": "2026-05-30T18:35:39.000+0000",
+        "code_size_kb": 19.8
+      },
+      {
+        "name": "justhodl-finra-short",
+        "last_modified": "2026-05-30T18:35:41.000+0000",
+        "code_size_kb": 8.7
+      },
+      {
+        "name": "justhodl-ndx-spx-spread",
+        "last_modified": "2026-05-30T18:35:43.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-pairs-arb",
+        "last_modified": "2026-05-30T18:35:47.000+0000",
+        "code_size_kb": 7.1
+      },
+      {
+        "name": "fred-ice-bofa-api",
+        "last_modified": "2026-05-22T10:55:38.000+0000",
+        "code_size_kb": 0.5
+      },
+      {
+        "name": "MLPredictor",
+        "last_modified": "2026-05-22T10:55:38.000+0000",
+        "code_size_kb": 0.8
+      },
+      {
+        "name": "justhodl-squeeze-pretrigger",
+        "last_modified": "2026-05-30T18:35:49.000+0000",
+        "code_size_kb": 8.1
+      },
+      {
+        "name": "justhodl-sec-filing-diff",
+        "last_modified": "2026-05-30T18:35:52.000+0000",
+        "code_size_kb": 7.3
+      },
+      {
+        "name": "justhodl-intelligence",
+        "last_modified": "2026-05-30T18:35:56.000+0000",
+        "code_size_kb": 19.2
+      },
+      {
+        "name": "justhodl-stealth-accumulation",
+        "last_modified": "2026-05-30T18:35:59.000+0000",
+        "code_size_kb": 6.3
+      },
+      {
+        "name": "justhodl-signal-portfolio",
+        "last_modified": "2026-05-30T18:36:03.000+0000",
+        "code_size_kb": 6.6
+      },
+      {
+        "name": "justhodl-ma-target-predictor",
+        "last_modified": "2026-05-30T18:36:07.000+0000",
+        "code_size_kb": 7.8
+      },
+      {
+        "name": "justhodl-quality-on-sale",
+        "last_modified": "2026-05-30T18:36:11.000+0000",
+        "code_size_kb": 6.6
+      },
+      {
+        "name": "justhodl-reports-builder",
+        "last_modified": "2026-05-30T18:36:13.000+0000",
+        "code_size_kb": 7.0
+      },
+      {
+        "name": "justhodl-insider-trades",
+        "last_modified": "2026-05-30T18:36:17.000+0000",
+        "code_size_kb": 8.7
+      },
+      {
+        "name": "justhodl-capital-return",
+        "last_modified": "2026-05-30T18:36:19.000+0000",
+        "code_size_kb": 3.9
+      },
+      {
+        "name": "justhodl-deep-value-screener",
+        "last_modified": "2026-05-30T18:36:21.000+0000",
+        "code_size_kb": 18.5
+      },
+      {
+        "name": "justhodl-gdelt-sentiment",
+        "last_modified": "2026-05-30T18:36:25.000+0000",
+        "code_size_kb": 4.3
+      },
+      {
+        "name": "justhodl-engine-contribution",
+        "last_modified": "2026-05-30T18:36:27.000+0000",
+        "code_size_kb": 5.2
+      },
+      {
+        "name": "justhodl-sympathetic-momentum",
+        "last_modified": "2026-05-30T18:36:30.000+0000",
+        "code_size_kb": 5.4
+      },
+      {
+        "name": "justhodl-news-velocity",
+        "last_modified": "2026-05-30T18:36:32.000+0000",
+        "code_size_kb": 6.0
+      },
+      {
+        "name": "xccy-basis-agent",
+        "last_modified": "2026-05-22T10:55:39.000+0000",
+        "code_size_kb": 2.5
+      },
+      {
+        "name": "justhodl-khalid-adaptive",
+        "last_modified": "2026-05-30T18:36:36.000+0000",
+        "code_size_kb": 4.1
+      },
+      {
+        "name": "justhodl-alpha-score",
+        "last_modified": "2026-05-30T18:36:38.000+0000",
+        "code_size_kb": 9.4
+      },
+      {
+        "name": "justhodl-stress-loadings",
+        "last_modified": "2026-05-30T18:36:40.000+0000",
+        "code_size_kb": 3.6
+      },
+      {
+        "name": "justhodl-dollar-radar",
+        "last_modified": "2026-05-30T18:36:44.000+0000",
+        "code_size_kb": 8.9
+      },
+      {
+        "name": "justhodl-nobrainer-tracker",
+        "last_modified": "2026-05-30T18:36:47.000+0000",
+        "code_size_kb": 5.4
+      },
+      {
+        "name": "justhodl-aaii-sentiment",
+        "last_modified": "2026-05-30T18:36:49.000+0000",
+        "code_size_kb": 4.0
+      },
+      {
+        "name": "justhodl-fundamentals-engine",
+        "last_modified": "2026-05-30T18:36:53.000+0000",
+        "code_size_kb": 3.5
+      },
+      {
+        "name": "justhodl-pm-decision",
+        "last_modified": "2026-05-30T18:36:55.000+0000",
+        "code_size_kb": 4.4
+      },
+      {
+        "name": "justhodl-vol-regime",
+        "last_modified": "2026-05-30T18:36:59.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-buyback-scanner",
+        "last_modified": "2026-05-30T18:37:03.000+0000",
+        "code_size_kb": 10.2
+      },
+      {
+        "name": "justhodl-lockup-expiration",
+        "last_modified": "2026-05-30T18:37:07.000+0000",
+        "code_size_kb": 6.1
+      },
+      {
+        "name": "justhodl-debate-engine",
+        "last_modified": "2026-05-30T18:37:11.000+0000",
+        "code_size_kb": 8.3
+      },
+      {
+        "name": "justhodl-vrp",
+        "last_modified": "2026-05-30T18:37:13.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-insider-buyback-confluence",
+        "last_modified": "2026-05-30T18:37:15.000+0000",
+        "code_size_kb": 4.7
+      },
+      {
+        "name": "coinmarketcap-agent",
+        "last_modified": "2026-05-22T10:55:40.000+0000",
+        "code_size_kb": 8.2
+      },
+      {
+        "name": "justhodl-factor-decomposition",
+        "last_modified": "2026-05-30T18:37:19.000+0000",
+        "code_size_kb": 6.8
+      },
+      {
+        "name": "justhodl-correlation-breaks",
+        "last_modified": "2026-05-30T18:37:21.000+0000",
+        "code_size_kb": 9.4
+      },
+      {
+        "name": "multi-agent-orchestrator",
+        "last_modified": "2026-05-22T10:55:40.000+0000",
+        "code_size_kb": 1.5
+      },
+      {
+        "name": "justhodl-skew-tail-hedging",
+        "last_modified": "2026-05-30T18:37:28.000+0000",
+        "code_size_kb": 6.9
+      },
+      {
+        "name": "justhodl-bagger-engine",
+        "last_modified": "2026-05-30T18:37:30.000+0000",
+        "code_size_kb": 8.3
+      },
+      {
+        "name": "justhodl-options-flow",
+        "last_modified": "2026-05-30T18:37:32.000+0000",
+        "code_size_kb": 14.7
+      },
+      {
+        "name": "justhodl-supply-inflection-scanner",
+        "last_modified": "2026-05-30T18:37:34.000+0000",
+        "code_size_kb": 26.9
+      },
+      {
+        "name": "justhodl-peer-comparison",
+        "last_modified": "2026-05-30T18:37:37.000+0000",
+        "code_size_kb": 6.9
+      },
+      {
+        "name": "justhodl-email-reports",
+        "last_modified": "2026-05-30T18:37:40.000+0000",
+        "code_size_kb": 4.7
+      },
+      {
+        "name": "justhodl-news-wire",
+        "last_modified": "2026-05-30T18:37:43.000+0000",
+        "code_size_kb": 4.0
+      },
+      {
+        "name": "justhodl-theme-detector",
+        "last_modified": "2026-05-30T18:37:45.000+0000",
+        "code_size_kb": 10.4
+      },
+      {
+        "name": "treasury-api",
+        "last_modified": "2026-05-22T10:55:41.000+0000",
+        "code_size_kb": 51.9
+      },
+      {
+        "name": "benzinga-news-agent",
+        "last_modified": "2026-05-22T10:55:41.000+0000",
+        "code_size_kb": 1.3
+      },
+      {
+        "name": "justhodl-alpha-daily-brief",
+        "last_modified": "2026-05-30T18:37:59.000+0000",
+        "code_size_kb": 5.9
+      },
+      {
+        "name": "justhodl-convexity-scorer",
+        "last_modified": "2026-05-30T18:38:02.000+0000",
+        "code_size_kb": 4.6
+      },
+      {
+        "name": "justhodl-chart-patterns",
+        "last_modified": "2026-05-30T18:38:10.000+0000",
+        "code_size_kb": 5.4
+      },
+      {
+        "name": "justhodl-historical-analogs",
+        "last_modified": "2026-05-30T18:38:12.000+0000",
+        "code_size_kb": 4.4
+      },
+      {
+        "name": "justhodl-khalid-metrics",
+        "last_modified": "2026-05-30T18:38:16.000+0000",
+        "code_size_kb": 7.3
+      },
+      {
+        "name": "justhodl-episode-reference",
+        "last_modified": "2026-05-30T18:38:19.000+0000",
+        "code_size_kb": 4.2
+      },
+      {
+        "name": "justhodl-catalyst-skew-premove",
+        "last_modified": "2026-05-30T18:38:23.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-trade-journal",
+        "last_modified": "2026-05-30T18:38:27.000+0000",
+        "code_size_kb": 5.5
+      },
+      {
+        "name": "justhodl-boj-detail",
+        "last_modified": "2026-05-30T18:38:29.000+0000",
+        "code_size_kb": 6.4
+      },
+      {
+        "name": "openbb-websocket-handler",
+        "last_modified": "2026-05-22T10:55:42.000+0000",
+        "code_size_kb": 2.2
+      },
+      {
+        "name": "justhodl-options-flow-scanner",
+        "last_modified": "2026-05-30T18:38:35.000+0000",
+        "code_size_kb": 5.4
+      },
+      {
+        "name": "justhodl-merger-arb-risk",
+        "last_modified": "2026-05-30T18:38:38.000+0000",
+        "code_size_kb": 5.2
+      },
+      {
+        "name": "justhodl-watchlist-debate",
+        "last_modified": "2026-05-30T18:38:40.000+0000",
+        "code_size_kb": 6.0
+      },
+      {
+        "name": "justhodl-pre-pump-detector",
+        "last_modified": "2026-05-30T18:38:44.000+0000",
+        "code_size_kb": 12.4
+      },
+      {
+        "name": "justhodl-regime-anomaly",
+        "last_modified": "2026-05-30T18:38:46.000+0000",
+        "code_size_kb": 10.3
+      },
+      {
+        "name": "securities-banking-agent",
+        "last_modified": "2026-05-22T10:55:42.000+0000",
+        "code_size_kb": 2.5
+      },
+      {
+        "name": "justhodl-alert-router",
+        "last_modified": "2026-05-30T18:38:48.000+0000",
+        "code_size_kb": 11.6
+      },
+      {
+        "name": "justhodl-activist-filings-scanner",
+        "last_modified": "2026-05-30T18:38:54.000+0000",
+        "code_size_kb": 24.3
+      },
+      {
+        "name": "justhodl-vix-curve",
+        "last_modified": "2026-05-30T18:38:57.000+0000",
+        "code_size_kb": 5.0
+      },
+      {
+        "name": "justhodl-crisis-knowledge-base",
+        "last_modified": "2026-05-30T18:38:59.000+0000",
+        "code_size_kb": 8.8
+      },
+      {
+        "name": "bls-employment-api-v2",
+        "last_modified": "2026-05-22T11:00:49.000+0000",
+        "code_size_kb": 5.6
+      },
+      {
+        "name": "justhodl-ml-predictions",
+        "last_modified": "2026-05-30T18:39:01.000+0000",
+        "code_size_kb": 7.2
+      },
+      {
+        "name": "justhodl-sector-earnings-diffusion",
+        "last_modified": "2026-05-30T18:39:13.000+0000",
+        "code_size_kb": 15.4
+      },
+      {
+        "name": "justhodl-breadth-divergence",
+        "last_modified": "2026-05-30T18:39:17.000+0000",
+        "code_size_kb": 5.0
+      },
+      {
+        "name": "justhodl-api-keys-admin",
+        "last_modified": "2026-05-30T18:39:19.000+0000",
+        "code_size_kb": 3.5
+      },
+      {
+        "name": "justhodl-beta-laggard",
+        "last_modified": "2026-05-30T18:39:23.000+0000",
+        "code_size_kb": 4.1
+      },
+      {
+        "name": "justhodl-china-liquidity",
+        "last_modified": "2026-05-30T18:39:27.000+0000",
+        "code_size_kb": 4.1
+      },
+      {
+        "name": "justhodl-gsi-horizons",
+        "last_modified": "2026-05-30T18:39:31.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-morning-intelligence",
+        "last_modified": "2026-05-30T18:39:35.000+0000",
+        "code_size_kb": 23.8
+      },
+      {
+        "name": "justhodl-canary-grid",
+        "last_modified": "2026-05-30T18:39:39.000+0000",
+        "code_size_kb": 7.8
+      },
+      {
+        "name": "justhodl-trend-engine",
+        "last_modified": "2026-05-30T18:39:45.000+0000",
+        "code_size_kb": 7.3
+      },
+      {
+        "name": "justhodl-powell-pivot",
+        "last_modified": "2026-05-30T18:39:49.000+0000",
+        "code_size_kb": 6.7
+      },
+      {
+        "name": "justhodl-signal-registry-ingest",
+        "last_modified": "2026-05-30T18:39:53.000+0000",
+        "code_size_kb": 1.7
+      },
+      {
+        "name": "justhodl-fleet-error-monitor",
+        "last_modified": "2026-05-30T18:39:55.000+0000",
+        "code_size_kb": 4.1
+      },
+      {
+        "name": "justhodl-dix",
+        "last_modified": "2026-05-30T18:39:57.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "justhodl-morning-brief-tg",
+        "last_modified": "2026-05-30T18:40:03.000+0000",
+        "code_size_kb": 6.1
+      },
+      {
+        "name": "justhodl-index-recon",
+        "last_modified": "2026-05-30T18:40:05.000+0000",
+        "code_size_kb": 6.7
+      },
+      {
+        "name": "justhodl-buyback-yield-ranking",
+        "last_modified": "2026-05-30T18:40:09.000+0000",
+        "code_size_kb": 5.1
+      },
+      {
+        "name": "justhodl-stock-ai-research",
+        "last_modified": "2026-05-30T18:40:14.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-spac-floor-warrant",
+        "last_modified": "2026-05-30T18:40:20.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "justhodl-fx-intelligence",
+        "last_modified": "2026-05-30T18:40:22.000+0000",
+        "code_size_kb": 5.6
+      },
+      {
+        "name": "justhodl-compound-aggregator",
+        "last_modified": "2026-05-30T18:40:24.000+0000",
+        "code_size_kb": 18.1
+      },
+      {
+        "name": "justhodl-push-api",
+        "last_modified": "2026-05-30T18:40:27.000+0000",
+        "code_size_kb": 4.2
+      },
+      {
+        "name": "justhodl-firm-risk-board",
+        "last_modified": "2026-05-30T18:40:33.000+0000",
+        "code_size_kb": 7.7
+      },
+      {
+        "name": "justhodl-bloomberg-v8",
+        "last_modified": "2026-05-30T18:40:35.000+0000",
+        "code_size_kb": 10.0
+      },
+      {
+        "name": "justhodl-nobrainer-rationale",
+        "last_modified": "2026-05-30T18:40:37.000+0000",
+        "code_size_kb": 8.8
+      },
+      {
+        "name": "justhodl-news-sentiment",
+        "last_modified": "2026-05-30T18:40:39.000+0000",
+        "code_size_kb": 4.1
+      },
+      {
+        "name": "justhodl-cro-digest",
+        "last_modified": "2026-05-30T18:40:42.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "justhodl-master-allocator",
+        "last_modified": "2026-05-30T18:40:46.000+0000",
+        "code_size_kb": 6.5
+      },
+      {
+        "name": "fedliquidityapi",
+        "last_modified": "2026-05-22T11:00:49.000+0000",
+        "code_size_kb": 6.0
+      },
+      {
+        "name": "justhodl-fred-proxy",
+        "last_modified": "2026-05-30T18:40:50.000+0000",
+        "code_size_kb": 6.7
+      },
+      {
+        "name": "justhodl-short-pressure",
+        "last_modified": "2026-05-30T18:40:52.000+0000",
+        "code_size_kb": 2.6
+      },
+      {
+        "name": "justhodl-auction-interpreter",
+        "last_modified": "2026-05-30T19:46:19.000+0000",
+        "code_size_kb": 6.7
+      },
+      {
+        "name": "enhanced-repo-agent",
+        "last_modified": "2026-05-22T10:55:46.000+0000",
+        "code_size_kb": 1.9
+      },
+      {
+        "name": "justhodl-engine-robustness",
+        "last_modified": "2026-05-30T18:40:54.000+0000",
+        "code_size_kb": 6.6
+      },
+      {
+        "name": "justhodl-correlation-surface",
+        "last_modified": "2026-05-30T18:40:56.000+0000",
+        "code_size_kb": 4.2
+      },
+      {
+        "name": "justhodl-insider-sell-cluster",
+        "last_modified": "2026-05-30T18:41:00.000+0000",
+        "code_size_kb": 5.1
+      },
+      {
+        "name": "justhodl-calibration-snapshot",
+        "last_modified": "2026-05-30T18:41:02.000+0000",
+        "code_size_kb": 3.0
+      },
+      {
+        "name": "manufacturing-global-agent",
+        "last_modified": "2026-05-22T10:55:46.000+0000",
+        "code_size_kb": 2.9
+      },
+      {
+        "name": "justhodl-fleet-freshness-monitor",
+        "last_modified": "2026-05-30T18:41:07.000+0000",
+        "code_size_kb": 3.7
+      },
+      {
+        "name": "justhodl-put-call-extreme",
+        "last_modified": "2026-05-30T18:41:09.000+0000",
+        "code_size_kb": 5.5
+      },
+      {
+        "name": "justhodl-whats-changed",
+        "last_modified": "2026-05-30T18:41:13.000+0000",
+        "code_size_kb": 4.1
+      },
+      {
+        "name": "justhodl-cost-anomaly",
+        "last_modified": "2026-05-30T18:41:15.000+0000",
+        "code_size_kb": 5.0
+      },
+      {
+        "name": "justhodl-systemic-stress",
+        "last_modified": "2026-05-30T18:41:18.000+0000",
+        "code_size_kb": 5.1
+      },
+      {
+        "name": "justhodl-cot-tracker",
+        "last_modified": "2026-05-30T18:41:21.000+0000",
+        "code_size_kb": 2.8
+      },
+      {
+        "name": "justhodl-ka-metrics",
+        "last_modified": "2026-05-30T18:41:24.000+0000",
+        "code_size_kb": 7.3
+      },
+      {
+        "name": "justhodl-earnings-sentiment",
+        "last_modified": "2026-05-30T18:41:26.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "justhodl-firm-book",
+        "last_modified": "2026-05-30T18:41:28.000+0000",
+        "code_size_kb": 6.4
+      },
+      {
+        "name": "justhodl-carry-surface",
+        "last_modified": "2026-05-30T18:41:30.000+0000",
+        "code_size_kb": 9.9
+      },
+      {
+        "name": "justhodl-activity-nowcast",
+        "last_modified": "2026-05-30T18:41:33.000+0000",
+        "code_size_kb": 4.3
+      },
+      {
+        "name": "justhodl-ecb-proxy",
+        "last_modified": "2026-05-30T18:41:36.000+0000",
+        "code_size_kb": 8.5
+      },
+      {
+        "name": "justhodl-public-api-demo",
+        "last_modified": "2026-05-30T18:41:39.000+0000",
+        "code_size_kb": 6.8
+      },
+      {
+        "name": "justhodl-price-redundancy",
+        "last_modified": "2026-05-30T18:41:41.000+0000",
+        "code_size_kb": 3.3
+      },
+      {
+        "name": "justhodl-opex-calendar",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 8.6
+      },
+      {
+        "name": "bea-economic-agent",
+        "last_modified": "2026-05-22T10:55:47.000+0000",
+        "code_size_kb": 7.1
+      },
+      {
+        "name": "justhodl-sec-10kq",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 2.6
+      },
+      {
+        "name": "justhodl-yen-carry",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 7.7
+      },
+      {
+        "name": "fmp-stock-picks-agent",
+        "last_modified": "2026-05-22T11:00:49.000+0000",
+        "code_size_kb": 6.5
+      },
+      {
+        "name": "justhodl-tic-flows",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 4.1
+      },
+      {
+        "name": "justhodl-global-markets",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 5.7
+      },
+      {
+        "name": "justhodl-reversal-radar",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 4.3
+      },
+      {
+        "name": "justhodl-tenor-signal-interpreter",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 7.8
+      },
+      {
+        "name": "justhodl-screen-builder",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-post-earnings-mean-rev",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-revenue-acceleration",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 17.5
+      },
+      {
+        "name": "justhodl-earnings-cascade",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 5.6
+      },
+      {
+        "name": "justhodl-charts-agent",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 7.4
+      },
+      {
+        "name": "justhodl-insider-aggregate",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 4.5
+      },
+      {
+        "name": "justhodl-gold-equity-rotation",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 4.6
+      },
+      {
+        "name": "justhodl-activist-13d",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 8.4
+      },
+      {
+        "name": "justhodl-euro-fragmentation",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-health-monitor",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 15.1
+      },
+      {
+        "name": "justhodl-risk-radar",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 6.6
+      },
+      {
+        "name": "justhodl-cb-stance",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 7.0
+      },
+      {
+        "name": "justhodl-cds-monitor",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 8.6
+      },
+      {
+        "name": "justhodl-cross-asset-rv",
+        "last_modified": "2026-05-30T18:45:24.000+0000",
+        "code_size_kb": 5.6
+      },
+      {
+        "name": "justhodl-dividend-growth",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 6.2
+      },
+      {
+        "name": "justhodl-global-liquidity",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 4.9
+      },
+      {
+        "name": "justhodl-dr-snapshot",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 4.4
+      },
+      {
+        "name": "justhodl-auction-crisis-detector",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 8.4
+      },
+      {
+        "name": "justhodl-stress-scenarios",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "justhodl-snb-detail",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 6.6
+      },
+      {
+        "name": "justhodl-vol-radar",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 6.0
+      },
+      {
+        "name": "alphavantage-technical-analysis",
+        "last_modified": "2026-05-22T10:55:49.000+0000",
+        "code_size_kb": 0.8
+      },
+      {
+        "name": "justhodl-signal-orthogonality",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 4.6
+      },
+      {
+        "name": "news-sentiment-agent",
+        "last_modified": "2026-05-22T10:55:49.000+0000",
+        "code_size_kb": 0.9
+      },
+      {
+        "name": "justhodl-backtest-harness",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 5.3
+      },
+      {
+        "name": "justhodl-credit-stress",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 5.8
+      },
+      {
+        "name": "macro-financial-intelligence",
+        "last_modified": "2026-05-22T11:00:50.000+0000",
+        "code_size_kb": 327.1
+      },
+      {
+        "name": "justhodl-analyst-consensus",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 6.9
+      },
+      {
+        "name": "justhodl-financial-secretary",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 20.6
+      },
+      {
+        "name": "justhodl-smart-money-cluster",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 13.6
+      },
+      {
+        "name": "justhodl-hedge-pnl",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 5.2
+      },
+      {
+        "name": "justhodl-feed-catalog",
+        "last_modified": "2026-05-28T20:35:02.000+0000",
+        "code_size_kb": 3.0
+      },
+      {
+        "name": "justhodl-forced-selling-bounce",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 6.7
+      },
+      {
+        "name": "justhodl-eva-spread",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 7.0
+      },
+      {
+        "name": "justhodl-portfolio-sizer",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 7.1
+      },
+      {
+        "name": "justhodl-econ-calendar",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 4.8
+      },
+      {
+        "name": "justhodl-meta-improver",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 7.6
+      },
+      {
+        "name": "justhodl-labor-leading",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 3.0
+      },
+      {
+        "name": "nasdaq-datalink-agent",
+        "last_modified": "2026-05-22T10:55:50.000+0000",
+        "code_size_kb": 7.5
+      },
+      {
+        "name": "justhodl-options-gamma",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 4.7
+      },
+      {
+        "name": "justhodl-calibration-snapshotter",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 3.2
+      },
+      {
+        "name": "justhodl-vol-target-unwind",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 8.9
+      },
+      {
+        "name": "justhodl-wealth-plan",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 8.1
+      },
+      {
+        "name": "justhodl-feedback",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 3.1
+      },
+      {
+        "name": "justhodl-tape-reader",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 5.5
+      },
+      {
+        "name": "justhodl-earnings-pead",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 4.4
+      },
+      {
+        "name": "justhodl-earnings-tone-velocity",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 5.5
+      },
+      {
+        "name": "chatgpt-agent-api",
+        "last_modified": "2026-05-22T11:00:50.000+0000",
+        "code_size_kb": 2.8
+      },
+      {
+        "name": "justhodl-pead-detector",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 19.3
+      },
+      {
+        "name": "justhodl-macro-calendar",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 3.6
+      },
+      {
+        "name": "justhodl-crypto-etf-arb",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 6.6
+      },
+      {
+        "name": "justhodl-vol-surface",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 6.3
+      },
+      {
+        "name": "justhodl-redflag-alerter",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 3.3
+      },
+      {
+        "name": "openbb-system2-api",
+        "last_modified": "2026-05-22T11:00:50.000+0000",
+        "code_size_kb": 3.4
+      },
+      {
+        "name": "justhodl-gap-fill-confirm",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 4.9
+      },
+      {
+        "name": "justhodl-risk-sizer",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 6.6
+      },
+      {
+        "name": "justhodl-track-record",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 3.6
+      },
+      {
+        "name": "justhodl-valuations-agent",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 5.1
+      },
+      {
+        "name": "justhodl-liquidity-profile",
+        "last_modified": "2026-05-30T18:45:26.000+0000",
+        "code_size_kb": 3.8
+      },
+      {
+        "name": "justhodl-fed-pivot-factor-router",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 4.6
+      },
+      {
+        "name": "justhodl-vvix-vov-regime",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 4.7
+      },
+      {
+        "name": "justhodl-calls-backtest",
+        "last_modified": "2026-05-30T18:45:25.000+0000",
+        "code_size_kb": 4.1
+      }
+    ],
+    "broken_scheduled": [],
+    "stale_outputs": [
+      {
+        "key": "data/_archive/dex-scanner-data.json",
+        "modified": "2026-05-17T19:01:58+00:00",
+        "age_days": 13.7,
+        "size_kb": 140.9
+      },
+      {
+        "key": "data/_archive/institutional-convergence.json",
+        "modified": "2026-05-17T19:01:58+00:00",
+        "age_days": 13.7,
+        "size_kb": 1.3
+      },
+      {
+        "key": "data/_archive/pre-pump-calibration.json",
+        "modified": "2026-05-17T19:01:58+00:00",
+        "age_days": 13.7,
+        "size_kb": 2.8
+      },
+      {
+        "key": "data/_archive/skew.json",
+        "modified": "2026-05-17T19:01:58+00:00",
+        "age_days": 13.7,
+        "size_kb": 0.3
+      },
+      {
+        "key": "data/_freshness-status.json",
+        "modified": "2026-05-22T13:09:24+00:00",
+        "age_days": 9.0,
+        "size_kb": 3.2
+      },
+      {
+        "key": "data/_freshness-manifest.json",
+        "modified": "2026-05-23T15:20:01+00:00",
+        "age_days": 7.9,
+        "size_kb": 3.4
+      }
+    ],
+    "low_use_scheduled": [],
+    "high_error_rate": [
+      {
+        "name": "justhodl-liquidity-credit-engine",
+        "error_rate_pct": 32.43,
+        "errors_7d": 12,
+        "invocations_7d": 37
+      },
+      {
+        "name": "justhodl-crisis-plumbing",
+        "error_rate_pct": 21.21,
+        "errors_7d": 7,
+        "invocations_7d": 33
+      }
+    ],
+    "expensive_invokes": [
+      {
+        "name": "justhodl-crypto-opportunities",
+        "duration_avg_ms": 81418.7,
+        "timeout_s": 240,
+        "memory_mb": 512
+      },
+      {
+        "name": "justhodl-liquidity-credit-engine",
+        "duration_avg_ms": 63626.2,
+        "timeout_s": 300,
+        "memory_mb": 512
+      },
+      {
+        "name": "justhodl-outcome-checker",
+        "duration_avg_ms": 62668.1,
+        "timeout_s": 300,
+        "memory_mb": 256
+      }
+    ],
+    "disabled_rules": [],
+    "no_recent_logs": []
+  },
+  "ddb_tables": [
+    {
+      "name": "WebSocketConnections",
+      "items": 0,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-05-08 21:32:16.085000+00:00"
+    },
+    {
+      "name": "ai-assistant-tasks",
+      "items": 6,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2025-09-29 19:25:46.691000+00:00"
+    },
+    {
+      "name": "fed-liquidity-cache",
+      "items": 267828,
+      "size_mb": 18.93,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2025-09-05 18:51:31.255000+00:00"
+    },
+    {
+      "name": "justhodl-alert-actions",
+      "items": 0,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-05-22 12:18:27.266000+00:00"
+    },
+    {
+      "name": "justhodl-api-keys",
+      "items": 14,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-05-06 21:03:04.749000+00:00"
+    },
+    {
+      "name": "justhodl-api-rate",
+      "items": 0,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-05-06 21:03:13.418000+00:00"
+    },
+    {
+      "name": "justhodl-backtest",
+      "items": 1812,
+      "size_mb": 0.34,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-04-27 22:01:41.090000+00:00"
+    },
+    {
+      "name": "justhodl-feedback",
+      "items": 1,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-05-04 12:46:55.967000+00:00"
+    },
+    {
+      "name": "justhodl-history",
+      "items": 8021,
+      "size_mb": 153.3,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-05-06 16:23:18.336000+00:00"
+    },
+    {
+      "name": "justhodl-outcomes",
+      "items": 18622,
+      "size_mb": 7.68,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-03-11 09:13:04.714000+00:00"
+    },
+    {
+      "name": "justhodl-portfolio",
+      "items": 1,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-05-12 22:46:42.459000+00:00"
+    },
+    {
+      "name": "justhodl-push-subscriptions",
+      "items": 0,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-05-08 20:37:53.562000+00:00"
+    },
+    {
+      "name": "justhodl-signal-registry",
+      "items": 49814,
+      "size_mb": 14.58,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-05-22 11:46:28.107000+00:00"
+    },
+    {
+      "name": "justhodl-signals",
+      "items": 25625,
+      "size_mb": 14.05,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-03-11 09:13:03.210000+00:00"
+    },
+    {
+      "name": "justhodl-trades",
+      "items": 1351,
+      "size_mb": 0.77,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2026-05-13 00:06:16.994000+00:00"
+    },
+    {
+      "name": "liquidity-metrics-v2",
+      "items": 1,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2025-09-14 00:40:28.827000+00:00"
+    },
+    {
+      "name": "openbb-historical-data",
+      "items": 1,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2025-08-10 01:48:02.575000+00:00"
+    },
+    {
+      "name": "openbb-trading-signals",
+      "items": 2,
+      "size_mb": 0.0,
+      "billing_mode": "PAY_PER_REQUEST",
+      "created": "2025-08-10 01:48:05.084000+00:00"
+    }
+  ],
+  "ssm_params": [
+    {
+      "name": "/justhodl/13f-price-divergence/state",
+      "type": "String",
+      "last_modified": "2026-05-26 06:00:03.060000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/52wk-quality-breakout/state",
+      "type": "String",
+      "last_modified": "2026-05-30 22:00:39.357000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/ai-chat/auth-token",
+      "type": "SecureString",
+      "last_modified": "2026-04-22 15:29:43.041000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/alerts/webhook_urls",
+      "type": "SecureString",
+      "last_modified": "2026-05-06 17:47:03.433000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/anthropic/api-key",
+      "type": "SecureString",
+      "last_modified": "2026-05-05 16:22:49.091000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/anthropic/api_key",
+      "type": "SecureString",
+      "last_modified": "2026-05-07 09:07:57.005000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/api-admin/token",
+      "type": "SecureString",
+      "last_modified": "2026-05-06 21:03:29.256000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/breadth-divergence/state",
+      "type": "String",
+      "last_modified": "2026-05-29 22:00:32.685000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/breadth-thrust/state",
+      "type": "String",
+      "last_modified": "2026-05-20 15:31:12.200000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/buyback-yield-ranking/state",
+      "type": "String",
+      "last_modified": "2026-05-25 13:00:45.068000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration-fleet/weights",
+      "type": "String",
+      "last_modified": "2026-05-31 09:10:35.576000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/accuracy",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.506000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/miss_recurring_tickers",
+      "type": "String",
+      "last_modified": "2026-05-31 11:51:06.609000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/miss_threshold_proposals",
+      "type": "String",
+      "last_modified": "2026-05-31 11:51:06.552000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/report",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.954000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/scorecard",
+      "type": "String",
+      "last_modified": "2026-05-31 11:00:35.912000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/weights",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.458000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/weights/day_14",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.648000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/weights/day_3",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.553000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/weights/day_30",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.705000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/weights/day_1",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.802000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/weights/day_21",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.601000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/weights/day_5",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.906000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/weights/day_60",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.755000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/calibration/weights/day_7",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:49.855000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/cef-discount/state",
+      "type": "String",
+      "last_modified": "2026-05-30 22:30:26.145000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/credit-equity-divergence/state",
+      "type": "String",
+      "last_modified": "2026-05-30 21:00:50.806000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/crypto-etf-arb/state",
+      "type": "String",
+      "last_modified": "2026-05-29 21:30:12.982000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/crypto-opportunities/state",
+      "type": "String",
+      "last_modified": "2026-05-31 08:01:39.386000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/cta-trend-exhaust/state",
+      "type": "String",
+      "last_modified": "2026-05-26 23:00:43.161000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/divcut-warning/state",
+      "type": "String",
+      "last_modified": "2026-05-24 22:00:34.967000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/dxy-equity-divergence/state",
+      "type": "String",
+      "last_modified": "2026-05-30 21:00:14.911000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/earnings-quality/state",
+      "type": "String",
+      "last_modified": "2026-05-27 13:30:33.230000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/feedback/auth-token",
+      "type": "SecureString",
+      "last_modified": "2026-05-04 12:47:16.465000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/gap-fill-confirm/state",
+      "type": "String",
+      "last_modified": "2026-05-29 14:30:32.992000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/gold-equity-rotation/state",
+      "type": "String",
+      "last_modified": "2026-05-30 22:45:04.399000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/gsi/weights",
+      "type": "String",
+      "last_modified": "2026-05-31 09:00:47.319000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/gsi/weights/21d",
+      "type": "String",
+      "last_modified": "2026-05-31 09:30:38.127000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/gsi/weights/252d",
+      "type": "String",
+      "last_modified": "2026-05-31 09:30:38.249000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/gsi/weights/63d",
+      "type": "String",
+      "last_modified": "2026-05-31 09:30:38.186000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/gsi/weights/5d",
+      "type": "String",
+      "last_modified": "2026-05-31 09:30:38.076000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/history-api/url",
+      "type": "String",
+      "last_modified": "2026-05-06 17:59:40.934000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/insider-buyback-confluence/state",
+      "type": "String",
+      "last_modified": "2026-05-30 23:00:07.592000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/insider-sell-cluster/state",
+      "type": "String",
+      "last_modified": "2026-05-30 23:30:13.889000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/master-allocation/target",
+      "type": "String",
+      "last_modified": "2026-05-31 09:20:27.431000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/multi-tf-convergence/state",
+      "type": "String",
+      "last_modified": "2026-05-31 00:00:33.484000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/ndx-spx-spread/state",
+      "type": "String",
+      "last_modified": "2026-05-30 21:45:08.816000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/nowcast/last_state",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:39.655000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/opex-calendar/state",
+      "type": "String",
+      "last_modified": "2026-05-20 14:06:52.718000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/opportunity/weights",
+      "type": "String",
+      "last_modified": "2026-05-31 12:00:36.284000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/portfolio-admin/manager-pass",
+      "type": "SecureString",
+      "last_modified": "2026-05-16 22:40:27.368000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/portfolio-admin/token",
+      "type": "SecureString",
+      "last_modified": "2026-05-16 21:58:24.016000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/post-earnings-mean-rev/state",
+      "type": "String",
+      "last_modified": "2026-05-20 23:09:57.511000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/precatalyst-vol-expansion/state",
+      "type": "String",
+      "last_modified": "2026-05-30 21:30:16.192000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/push/admin-token",
+      "type": "SecureString",
+      "last_modified": "2026-05-08 20:38:14.242000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/push/vapid-private-key",
+      "type": "SecureString",
+      "last_modified": "2026-05-08 20:38:13.981000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/push/vapid-public-key",
+      "type": "String",
+      "last_modified": "2026-05-08 20:38:13.889000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/push/vapid-subject",
+      "type": "String",
+      "last_modified": "2026-05-08 20:38:14.081000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/put-call-extreme/state",
+      "type": "String",
+      "last_modified": "2026-05-30 21:15:11.260000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/rating-change-cluster/state",
+      "type": "String",
+      "last_modified": "2026-05-30 23:30:03.051000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/reit-nav-discount/state",
+      "type": "String",
+      "last_modified": "2026-05-25 22:00:14.492000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/skew-tail-hedging/state",
+      "type": "String",
+      "last_modified": "2026-05-30 22:30:13.810000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/spac-floor-warrant/state",
+      "type": "String",
+      "last_modified": "2026-05-25 22:00:32.304000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/stablecoin-flow/state",
+      "type": "String",
+      "last_modified": "2026-05-20 13:55:22.540000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/stress/simulator-url",
+      "type": "String",
+      "last_modified": "2026-05-09 11:39:05.980000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/sympathetic-momentum/state",
+      "type": "String",
+      "last_modified": "2026-05-27 23:30:09.607000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/telegram/bot_token",
+      "type": "SecureString",
+      "last_modified": "2026-04-25 01:16:47.932000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/telegram/chat_id",
+      "type": "String",
+      "last_modified": "2026-03-12 00:23:22.644000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/vix-backwardation/state",
+      "type": "String",
+      "last_modified": "2026-05-20 15:30:59.704000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/vix9d-vix-inversion/state",
+      "type": "String",
+      "last_modified": "2026-05-30 21:30:38.856000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/vol-target-unwind/state",
+      "type": "String",
+      "last_modified": "2026-05-20 15:38:46.016000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/vvix-vov-regime/state",
+      "type": "String",
+      "last_modified": "2026-05-21 22:00:55.636000+00:00",
+      "tier": "Standard"
+    },
+    {
+      "name": "/justhodl/wss/endpoint",
+      "type": "String",
+      "last_modified": "2026-05-08 21:39:31.931000+00:00",
+      "tier": "Standard"
+    }
+  ],
+  "full_lambda_list": [
+    "justhodl-merger-arb",
+    "justhodl-data-collector",
+    "justhodl-leading-markets",
+    "justhodl-vix-backwardation-trigger",
+    "justhodl-synthetic-monitor",
+    "justhodl-stablecoin-flow",
+    "justhodl-pnl-attribution",
+    "justhodl-asymmetric-scorer",
+    "ofrapi",
+    "openbb-websocket-broadcast",
+    "justhodl-fedwatch-rate-probability",
+    "justhodl-cds-proxy",
+    "justhodl-esi",
+    "justhodl-onchain-ratios",
+    "justhodl-momentum-scanner",
+    "justhodl-chart-vision",
+    "justhodl-divergence-interpreter",
+    "bls-labor-agent",
+    "justhodl-pnl-tracker",
+    "justhodl-cro-escalation",
+    "justhodl-spinoff-desk",
+    "justhodl-volatility-squeeze-hunter",
+    "justhodl-coffee-can",
+    "justhodl-smart-beta",
+    "justhodl-hedge-planner",
+    "justhodl-bond-trace",
+    "justhodl-ultimate-orchestrator",
+    "justhodl-theme-tier-classifier",
+    "justhodl-multi-tf-convergence",
+    "justhodl-firm-stress",
+    "justhodl-crypto-enricher",
+    "volatility-monitor-agent",
+    "justhodl-liquidity-flow",
+    "justhodl-causality-scanner",
+    "justhodl-best-ideas",
+    "justhodl-metals-miners",
+    "justhodl-crisis-plumbing",
+    "justhodl-catalyst-calendar",
+    "justhodl-market-extremes",
+    "justhodl-cot-extremes-scanner",
+    "justhodl-divcut-warning",
+    "justhodl-fed-speak",
+    "justhodl-liquidity-pulse",
+    "justhodl-stock-analyzer",
+    "justhodl-global-macro",
+    "justhodl-event-study",
+    "justhodl-divergence-scanner",
+    "justhodl-ai-brief",
+    "justhodl-alpha-compass",
+    "justhodl-trade-logger",
+    "justhodl-position-sizer-v2",
+    "justhodl-sellside-views",
+    "justhodl-ecb-detail",
+    "bond-indices-agent",
+    "justhodl-ai-chat",
+    "justhodl-wave-signal-logger",
+    "ecb-data-daily-updater",
+    "justhodl-desk-allocator",
+    "justhodl-construction-housing",
+    "justhodl-market-internals",
+    "google-trends-agent",
+    "justhodl-crypto-narratives",
+    "justhodl-live-pulse",
+    "justhodl-ma-tracker",
+    "justhodl-stock-screener",
+    "justhodl-signal-scorecard",
+    "justhodl-vix9d-vix-inversion",
+    "justhodl-risk-monitor",
+    "justhodl-yield-curve",
+    "justhodl-transcript-indexer",
+    "justhodl-crypto-funding",
+    "justhodl-retail-sentiment",
+    "justhodl-sector-heatmap",
+    "justhodl-concentration-liquidity",
+    "justhodl-screener-alerts",
+    "justhodl-magic-formula",
+    "justhodl-cross-asset-regime",
+    "justhodl-consensus-bottom",
+    "justhodl-calibrator",
+    "justhodl-forward-returns",
+    "justhodl-political-trades",
+    "justhodl-email-reports-v2",
+    "fmp-fundamentals-agent",
+    "justhodl-52wk-quality-breakout",
+    "justhodl-gf-value",
+    "justhodl-conviction-engine",
+    "justhodl-dxy-equity-divergence",
+    "eia-energy-agent",
+    "justhodl-seasonality",
+    "justhodl-portfolio-admin",
+    "justhodl-earnings-nlp",
+    "justhodl-sector-rotation",
+    "justhodl-consumer-pulse",
+    "justhodl-nyfed-dealer-survey",
+    "justhodl-universe-builder",
+    "justhodl-global-stress",
+    "justhodl-smart-money-holdings",
+    "justhodl-alpha-confluence",
+    "justhodl-streaming-fanout",
+    "justhodl-near-miss-monitor",
+    "justhodl-insider-cluster-scanner",
+    "justhodl-momentum-breakout",
+    "justhodl-liquidity-agent",
+    "ecb-auto-updater",
+    "justhodl-stress-simulator",
+    "justhodl-reit-nav-discount",
+    "justhodl-russell-recon-frontrun",
+    "justhodl-trade-evaluator",
+    "justhodl-bond-regime-detector",
+    "justhodl-opportunity-engine",
+    "justhodl-watchlist",
+    "justhodl-supply-chain-linkage",
+    "justhodl-desk-returns",
+    "justhodl-starmine",
+    "justhodl-sequence-alpha-detector",
+    "justhodl-microcap-float-squeeze",
+    "justhodl-exchange-flows",
+    "justhodl-breadth-thrust",
+    "justhodl-oecd-cli",
+    "justhodl-cftc-deep-view",
+    "justhodl-repo-lending",
+    "justhodl-smart-money-tracker",
+    "justhodl-crypto-intel",
+    "justhodl-auction-grader",
+    "justhodl-insider-buys-enriched",
+    "justhodl-eps-revision-velocity",
+    "justhodl-earnings-whisper",
+    "justhodl-signal-board",
+    "justhodl-cta-trend-exhaust",
+    "justhodl-portfolio-risk",
+    "justhodl-failed-pattern-reversal",
+    "census-economic-agent",
+    "justhodl-forensic-screen",
+    "justhodl-portfolio-snapshot",
+    "justhodl-cef-discount",
+    "justhodl-tax-plan",
+    "justhodl-commodity-curves",
+    "justhodl-ipo-pipeline",
+    "justhodl-hiring-velocity",
+    "justhodl-behavior-mirror",
+    "justhodl-liquidity-capacity",
+    "justhodl-factor-risk",
+    "justhodl-ab-test",
+    "justhodl-sec-8k",
+    "justhodl-sec-13f",
+    "dollar-strength-agent",
+    "economyapi",
+    "justhodl-earnings-quality",
+    "justhodl-investor-agents",
+    "justhodl-backtest-engine",
+    "justhodl-predictability",
+    "aiapi-market-analyzer",
+    "justhodl-allocator",
+    "justhodl-bond-vol",
+    "autonomous-ai-processor",
+    "justhodl-rv-iv-scanner",
+    "justhodl-credit-equity-divergence",
+    "treasury-auto-updater",
+    "justhodl-regime-composite",
+    "justhodl-global-business-cycle",
+    "justhodl-calibration-fleet",
+    "justhodl-earnings-iv-crush",
+    "justhodl-master-ranker",
+    "justhodl-transcript-query",
+    "justhodl-alpha-alerts",
+    "justhodl-beneish",
+    "justhodl-13f-price-divergence",
+    "justhodl-plumbing-aggregator",
+    "justhodl-history-snapshotter",
+    "permanent-market-intelligence",
+    "ultimate-multi-agent",
+    "justhodl-cb-injection",
+    "justhodl-fleet-monitor",
+    "justhodl-dex-scanner",
+    "justhodl-opportunity-screener",
+    "justhodl-system-signal-logger",
+    "justhodl-sector-tilt",
+    "justhodl-narrative-density-tracker",
+    "justhodl-premortem-engine",
+    "justhodl-correlation-break-trade-router",
+    "justhodl-repo-monitor",
+    "justhodl-liquidity-credit-engine",
+    "justhodl-bank-stress",
+    "justhodl-tail-hedge",
+    "justhodl-alpha-calibrator",
+    "justhodl-dep-graph",
+    "justhodl-implied-prob",
+    "justhodl-anomaly-detector",
+    "global-liquidity-agent-v2",
+    "justhodl-macro-surprise",
+    "justhodl-rating-change-cluster",
+    "justhodl-mean-reversion",
+    "justhodl-treasury-proxy",
+    "justhodl-position-monitor",
+    "justhodl-daily-report-v3",
+    "justhodl-market-interpreter",
+    "justhodl-prompt-iterator",
+    "scrapeMacroData",
+    "justhodl-precatalyst-vol-expansion",
+    "justhodl-history-api",
+    "justhodl-theme-rotation-engine",
+    "daily-liquidity-report",
+    "justhodl-chart-data",
+    "justhodl-fx-decomposition",
+    "justhodl-gsi-calibrator",
+    "justhodl-engine-signal-map",
+    "justhodl-asymmetric-hunter",
+    "justhodl-finra-short",
+    "justhodl-ndx-spx-spread",
+    "justhodl-pairs-arb",
+    "justhodl-miss-calibrator",
+    "fred-ice-bofa-api",
+    "MLPredictor",
+    "justhodl-squeeze-pretrigger",
+    "justhodl-sec-filing-diff",
+    "justhodl-intelligence",
+    "justhodl-stealth-accumulation",
+    "justhodl-signal-portfolio",
+    "justhodl-ma-target-predictor",
+    "justhodl-quality-on-sale",
+    "justhodl-reports-builder",
+    "justhodl-insider-trades",
+    "justhodl-capital-return",
+    "cftc-futures-positioning-agent",
+    "justhodl-deep-value-screener",
+    "justhodl-gdelt-sentiment",
+    "justhodl-engine-contribution",
+    "justhodl-sympathetic-momentum",
+    "justhodl-news-velocity",
+    "xccy-basis-agent",
+    "justhodl-khalid-adaptive",
+    "justhodl-alpha-score",
+    "justhodl-stress-loadings",
+    "justhodl-dollar-radar",
+    "justhodl-nobrainer-tracker",
+    "justhodl-aaii-sentiment",
+    "justhodl-fundamentals-engine",
+    "justhodl-pm-decision",
+    "justhodl-vol-regime",
+    "justhodl-buyback-scanner",
+    "justhodl-lockup-expiration",
+    "justhodl-debate-engine",
+    "justhodl-vrp",
+    "justhodl-insider-buyback-confluence",
+    "coinmarketcap-agent",
+    "justhodl-factor-decomposition",
+    "justhodl-correlation-breaks",
+    "multi-agent-orchestrator",
+    "alphavantage-market-agent",
+    "justhodl-regime-conditional-router",
+    "justhodl-skew-tail-hedging",
+    "justhodl-bagger-engine",
+    "justhodl-options-flow",
+    "justhodl-supply-inflection-scanner",
+    "justhodl-peer-comparison",
+    "justhodl-email-reports",
+    "justhodl-news-wire",
+    "justhodl-theme-detector",
+    "treasury-api",
+    "benzinga-news-agent",
+    "justhodl-outcome-checker",
+    "justhodl-short-interest",
+    "justhodl-macro-nowcast",
+    "justhodl-alpha-daily-brief",
+    "justhodl-convexity-scorer",
+    "justhodl-margin-lending",
+    "justhodl-chart-patterns",
+    "justhodl-historical-analogs",
+    "justhodl-khalid-metrics",
+    "justhodl-episode-reference",
+    "justhodl-catalyst-skew-premove",
+    "justhodl-divergence-engine-v2",
+    "justhodl-trade-journal",
+    "justhodl-boj-detail",
+    "openbb-websocket-handler",
+    "justhodl-opportunity-calibrator",
+    "justhodl-options-flow-scanner",
+    "justhodl-merger-arb-risk",
+    "justhodl-watchlist-debate",
+    "justhodl-pre-pump-detector",
+    "justhodl-regime-anomaly",
+    "securities-banking-agent",
+    "justhodl-alert-router",
+    "justhodl-cross-asset-confirm",
+    "justhodl-activist-filings-scanner",
+    "justhodl-vix-curve",
+    "justhodl-crisis-knowledge-base",
+    "bls-employment-api-v2",
+    "justhodl-ml-predictions",
+    "justhodl-13f-positions",
+    "justhodl-dealer-gex",
+    "justhodl-sector-earnings-diffusion",
+    "justhodl-breadth-divergence",
+    "justhodl-api-keys-admin",
+    "justhodl-beta-laggard",
+    "justhodl-telegram-bot",
+    "justhodl-china-liquidity",
+    "justhodl-gsi-horizons",
+    "justhodl-morning-intelligence",
+    "justhodl-canary-grid",
+    "justhodl-earnings-tracker",
+    "justhodl-trend-engine",
+    "justhodl-powell-pivot",
+    "justhodl-magnitude-distributions",
+    "justhodl-signal-registry-ingest",
+    "justhodl-fleet-error-monitor",
+    "justhodl-dix",
+    "justhodl-signal-halflife",
+    "justhodl-morning-brief-tg",
+    "justhodl-index-recon",
+    "justhodl-buyback-yield-ranking",
+    "justhodl-crypto-opportunities",
+    "justhodl-stock-ai-research",
+    "justhodl-edge-engine",
+    "justhodl-scheduler",
+    "justhodl-spac-floor-warrant",
+    "justhodl-fx-intelligence",
+    "justhodl-compound-aggregator",
+    "justhodl-push-api",
+    "justhodl-crisis-composite",
+    "justhodl-firm-risk-board",
+    "justhodl-bloomberg-v8",
+    "justhodl-nobrainer-rationale",
+    "justhodl-news-sentiment",
+    "justhodl-cro-digest",
+    "justhodl-master-allocator",
+    "fedliquidityapi",
+    "justhodl-fred-proxy",
+    "justhodl-short-pressure",
+    "justhodl-auction-interpreter",
+    "enhanced-repo-agent",
+    "justhodl-engine-robustness",
+    "justhodl-correlation-surface",
+    "justhodl-insider-sell-cluster",
+    "justhodl-calibration-snapshot",
+    "manufacturing-global-agent",
+    "justhodl-signal-logger",
+    "justhodl-fleet-freshness-monitor",
+    "justhodl-put-call-extreme",
+    "justhodl-ai-brief-router",
+    "justhodl-whats-changed",
+    "justhodl-cost-anomaly",
+    "justhodl-systemic-stress",
+    "justhodl-cot-tracker",
+    "justhodl-ka-metrics",
+    "justhodl-earnings-sentiment",
+    "justhodl-firm-book",
+    "justhodl-carry-surface",
+    "justhodl-activity-nowcast",
+    "justhodl-ecb-proxy",
+    "justhodl-public-api-demo",
+    "justhodl-price-redundancy",
+    "justhodl-etf-flows",
+    "justhodl-opex-calendar",
+    "bea-economic-agent",
+    "justhodl-sec-10kq",
+    "justhodl-yen-carry",
+    "fmp-stock-picks-agent",
+    "justhodl-tic-flows",
+    "justhodl-global-markets",
+    "justhodl-reversal-radar",
+    "justhodl-tenor-signal-interpreter",
+    "justhodl-screen-builder",
+    "justhodl-miss-detector",
+    "justhodl-post-earnings-mean-rev",
+    "justhodl-revenue-acceleration",
+    "justhodl-earnings-cascade",
+    "justhodl-charts-agent",
+    "justhodl-insider-aggregate",
+    "justhodl-gold-equity-rotation",
+    "justhodl-activist-13d",
+    "justhodl-euro-fragmentation",
+    "justhodl-eurodollar-stress",
+    "justhodl-health-monitor",
+    "justhodl-risk-radar",
+    "justhodl-portfolio-catalysts",
+    "justhodl-cb-stance",
+    "justhodl-cds-monitor",
+    "justhodl-failure-library",
+    "justhodl-cross-asset-rv",
+    "justhodl-dividend-growth",
+    "justhodl-global-liquidity",
+    "justhodl-dr-snapshot",
+    "justhodl-auction-crisis-detector",
+    "justhodl-stress-scenarios",
+    "justhodl-snb-detail",
+    "justhodl-vol-radar",
+    "alphavantage-technical-analysis",
+    "justhodl-signal-orthogonality",
+    "news-sentiment-agent",
+    "justhodl-backtest-harness",
+    "justhodl-credit-stress",
+    "macro-financial-intelligence",
+    "justhodl-analyst-consensus",
+    "justhodl-financial-secretary",
+    "justhodl-smart-money-cluster",
+    "justhodl-hedge-pnl",
+    "justhodl-feed-catalog",
+    "justhodl-pairs-scanner",
+    "justhodl-forced-selling-bounce",
+    "justhodl-eva-spread",
+    "justhodl-portfolio-sizer",
+    "justhodl-econ-calendar",
+    "justhodl-meta-improver",
+    "justhodl-labor-leading",
+    "nasdaq-datalink-agent",
+    "justhodl-options-gamma",
+    "justhodl-calibration-snapshotter",
+    "justhodl-vol-target-unwind",
+    "justhodl-wealth-plan",
+    "justhodl-feedback",
+    "justhodl-tape-reader",
+    "justhodl-earnings-pead",
+    "justhodl-earnings-tone-velocity",
+    "chatgpt-agent-api",
+    "justhodl-pead-detector",
+    "justhodl-macro-calendar",
+    "justhodl-crypto-etf-arb",
+    "justhodl-vol-surface",
+    "justhodl-redflag-alerter",
+    "openbb-system2-api",
+    "justhodl-gap-fill-confirm",
+    "justhodl-risk-sizer",
+    "justhodl-track-record",
+    "justhodl-valuations-agent",
+    "justhodl-liquidity-profile",
+    "justhodl-fed-pivot-factor-router",
+    "justhodl-vvix-vov-regime",
+    "justhodl-calls-backtest",
+    "justhodl-fed-nlp"
+  ],
+  "full_schedule_map": {
+    "justhodl-alpha-compass": {
+      "rule": "alpha-compass-3h",
+      "schedule": "cron(50 */3 * * ? *)",
+      "state": "ENABLED",
+      "description": "Alpha Compass synthesis \u2014 every 3 hours at :50, just after conviction-engine (:4"
+    },
+    "alphavantage-market-agent": {
+      "rule": "alphavantage-market-update",
+      "schedule": "cron(*/15 13-21 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Update market data every 15 minutes during market hours"
+    },
+    "justhodl-bank-stress": {
+      "rule": "bank-stress-daily",
+      "schedule": "cron(0 15 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Bank funding stress daily refresh"
+    },
+    "cftc-futures-positioning-agent": {
+      "rule": "cftc-cot-weekly-update",
+      "schedule": "cron(0 18 ? * FRI *)",
+      "state": "ENABLED",
+      "description": "Weekly CFTC COT refresh"
+    },
+    "justhodl-chart-vision": {
+      "rule": "chart-vision-daily",
+      "schedule": "cron(0 16 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Weekdays 16 UTC \u2014 pattern recognition on top-conviction names"
+    },
+    "justhodl-cross-asset-confirm": {
+      "rule": "cross-asset-confirm-3h",
+      "schedule": "rate(3 hours)",
+      "state": "ENABLED",
+      "description": "CACF refresh every 3 hours (matches signal-board cadence)"
+    },
+    "justhodl-crypto-opportunities": {
+      "rule": "crypto-opportunities-4h",
+      "schedule": "cron(0 0,4,8,12,16,20 ? * * *)",
+      "state": "ENABLED",
+      "description": "Crypto retail-opportunity scan every 4 hours (vol surge / social velocity / stab"
+    },
+    "justhodl-divergence-engine-v2": {
+      "rule": "divergence-v2-2hourly",
+      "schedule": "rate(2 hours)",
+      "state": "ENABLED",
+      "description": "Run divergence-engine-v2 every 2 hours"
+    },
+    "ecb-auto-updater": {
+      "rule": "ecb-weekly-update",
+      "schedule": "cron(0 6 ? * MON *)",
+      "state": "ENABLED",
+      "description": "Weekly ECB data update - Every Monday 6 AM UTC"
+    },
+    "justhodl-engine-signal-map": {
+      "rule": "engine-signal-map-daily",
+      "schedule": "cron(0 9 * * ? *)",
+      "state": "ENABLED",
+      "description": "Engine to signal-type map \u2014 daily 09:00 UTC, before alpha-compass at :50"
+    },
+    "justhodl-failure-library": {
+      "rule": "failure-library-daily",
+      "schedule": "cron(0 15 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Weekdays 15 UTC \u2014 daily pre-disaster watchlist scan"
+    },
+    "justhodl-fed-nlp": {
+      "rule": "fed-nlp-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Every 6h \u2014 Fed communications hawkish/dovish drift tracker"
+    },
+    "justhodl-scheduler": {
+      "rule": "jhk-tick-weekly-sun",
+      "schedule": "cron(0 12 ? * SUN *)",
+      "state": "ENABLED",
+      "description": "JustHodl scheduler fanout \u2014 weekly-sun"
+    },
+    "justhodl-13f-positions": {
+      "rule": "justhodl-13f-positions-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Trigger justhodl-13f-positions"
+    },
+    "justhodl-ai-brief": {
+      "rule": "justhodl-ai-brief-4h",
+      "schedule": "cron(5 0,4,8,12,16,20 ? * * *)",
+      "state": "ENABLED",
+      "description": "AI brief synthesis \u2014 runs every 4h"
+    },
+    "justhodl-ai-brief-router": {
+      "rule": "justhodl-uptime-monitor-hourly",
+      "schedule": "cron(0 * * * ? *)",
+      "state": "ENABLED",
+      "description": "Hourly system uptime heartbeat \u2014 checks staleness of critical briefs"
+    },
+    "justhodl-backtest-engine": {
+      "rule": "justhodl-backtest-engine-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Recompute calibrated alpha replay every 6h after calibrator runs"
+    },
+    "justhodl-cot-extremes-scanner": {
+      "rule": "justhodl-cot-extremes-scanner-weekly",
+      "schedule": "cron(0 19 ? * FRI *)",
+      "state": "ENABLED",
+      "description": "Phase 2A \u2014 Friday 19:00 UTC after CFTC weekly COT publish"
+    },
+    "justhodl-crisis-plumbing": {
+      "rule": "justhodl-crisis-plumbing-refresh",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Refresh crisis-plumbing.json every 6h"
+    },
+    "justhodl-dealer-gex": {
+      "rule": "justhodl-dealer-gex-hourly",
+      "schedule": "cron(7 13-21 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Hourly :07 during US market hours (9:07 AM - 5:07 PM ET) Mon-Fri \u2014 gamma matters"
+    },
+    "justhodl-earnings-tracker": {
+      "rule": "justhodl-earnings-tracker-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Earnings tracker \u2014 every 6h"
+    },
+    "justhodl-edge-engine": {
+      "rule": "justhodl-edge-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": ""
+    },
+    "justhodl-etf-flows": {
+      "rule": "justhodl-etf-flows-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "6h trigger for justhodl-etf-flows"
+    },
+    "justhodl-exchange-flows": {
+      "rule": "justhodl-exchange-flows-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Trigger justhodl-exchange-flows"
+    },
+    "justhodl-forensic-screen": {
+      "rule": "justhodl-forensic-screen-12h",
+      "schedule": "rate(12 hours)",
+      "state": "ENABLED",
+      "description": "Trigger justhodl-forensic-screen every 12 hours"
+    },
+    "justhodl-macro-nowcast": {
+      "rule": "justhodl-macro-nowcast-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Compute composite macro nowcast every 6h"
+    },
+    "justhodl-macro-surprise": {
+      "rule": "justhodl-macro-surprise-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "6h trigger for justhodl-macro-surprise"
+    },
+    "justhodl-margin-lending": {
+      "rule": "justhodl-margin-lending-weekday-16",
+      "schedule": "cron(0 16 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Margin debt weekday after-close pull"
+    },
+    "justhodl-onchain-ratios": {
+      "rule": "justhodl-onchain-ratios-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Trigger justhodl-onchain-ratios"
+    },
+    "justhodl-portfolio-catalysts": {
+      "rule": "justhodl-portfolio-catalysts-3x-daily",
+      "schedule": "cron(0 11,17,23 * * ? *)",
+      "state": "ENABLED",
+      "description": "Three runs daily 11/17/23 UTC = ~7am/1pm/7pm ET (pre-market, mid-day, post-close"
+    },
+    "justhodl-repo-lending": {
+      "rule": "justhodl-repo-lending-daily",
+      "schedule": "cron(0 16 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Repo + lending daily"
+    },
+    "justhodl-retail-sentiment": {
+      "rule": "justhodl-retail-sentiment-30min",
+      "schedule": "cron(0,30 * ? * * *)",
+      "state": "ENABLED",
+      "description": "Retail sentiment refresh every 30 min"
+    },
+    "justhodl-short-interest": {
+      "rule": "justhodl-short-interest-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "6h trigger for justhodl-short-interest"
+    },
+    "justhodl-signal-logger": {
+      "rule": "justhodl-signal-logger-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": ""
+    },
+    "justhodl-system-signal-logger": {
+      "rule": "justhodl-system-signal-logger-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": ""
+    },
+    "justhodl-telegram-bot": {
+      "rule": "justhodl-telegram-alerts",
+      "schedule": "rate(2 hours)",
+      "state": "ENABLED",
+      "description": ""
+    },
+    "justhodl-wave-signal-logger": {
+      "rule": "justhodl-wave-signal-logger-6h",
+      "schedule": "cron(30 0,6,12,18 ? * * *)",
+      "state": "ENABLED",
+      "description": "Wave 1+2 signal logger \u2014 6h offset from main signal-logger"
+    },
+    "justhodl-yield-curve": {
+      "rule": "justhodl-yield-curve-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "6h trigger for justhodl-yield-curve"
+    },
+    "justhodl-liquidity-credit-engine": {
+      "rule": "lce-every-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Every 6h liquidity & credit engine refresh (FRED daily/H.4.1 weekly)"
+    },
+    "justhodl-liquidity-pulse": {
+      "rule": "liquidity-pulse-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Liquidity pulse refresh every 6 hours (FRED publishes weekly Wednesday + daily c"
+    },
+    "justhodl-magnitude-distributions": {
+      "rule": "magnitude-distributions-daily",
+      "schedule": "cron(30 7 * * ? *)",
+      "state": "ENABLED",
+      "description": "Per-stack realised return distributions \u2014 daily 07:30 UTC, after outcome-checker"
+    },
+    "justhodl-miss-calibrator": {
+      "rule": "miss-calibrator-weekly",
+      "schedule": "cron(15 9 ? * MON *)",
+      "state": "ENABLED",
+      "description": "Miss-Calibrator weekly proposals \u2014 Mondays 09:15 UTC, after Sunday calibrator at"
+    },
+    "justhodl-miss-detector": {
+      "rule": "miss-detector-nightly",
+      "schedule": "cron(0 1 * * ? *)",
+      "state": "ENABLED",
+      "description": "Miss Detector \u2014 nightly 9PM ET (01:00 UTC). Post-market scan of every US mover \u2265"
+    },
+    "justhodl-near-miss-monitor": {
+      "rule": "near-miss-monitor-hourly",
+      "schedule": "cron(30 * * * ? *)",
+      "state": "ENABLED",
+      "description": "Near-miss monitor \u2014 every hour at :30, ahead of signal-board (:15) and alpha-com"
+    },
+    "justhodl-pairs-scanner": {
+      "rule": "pairs-scanner-6hourly",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "description": "Pairs-scanner every 6h \u2014 36 curated pairs, Z-scores + half-life"
+    },
+    "justhodl-sector-heatmap": {
+      "rule": "sector-heatmap-30m",
+      "schedule": "cron(*/30 13-21 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "description": "Sector Heatmap refresh every 30 min during US market hours"
+    },
+    "justhodl-signal-halflife": {
+      "rule": "signal-halflife-weekly",
+      "schedule": "cron(0 6 ? * MON *)",
+      "state": "ENABLED",
+      "description": "Weekly Monday 06 UTC \u2014 compute signal decay curves and half-lives"
+    }
+  },
+  "full_metrics": [
+    {
+      "name": "alphavantage-market-agent",
+      "metrics": {
+        "days": 7,
+        "invocations": 64,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 2837.8,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:00:21.447000+00:00"
+    },
+    {
+      "name": "cftc-futures-positioning-agent",
+      "metrics": {
+        "days": 7,
+        "invocations": 161,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 6762.1,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:01:17.986000+00:00"
+    },
+    {
+      "name": "ecb-auto-updater",
+      "metrics": {
+        "days": 7,
+        "invocations": 1,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 993.6,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-25T06:06:02.015000+00:00"
+    },
+    {
+      "name": "justhodl-13f-positions",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 8245.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T10:51:18.439000+00:00"
+    },
+    {
+      "name": "justhodl-ai-brief",
+      "metrics": {
+        "days": 7,
+        "invocations": 42,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 32195.6,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T08:06:15.951000+00:00"
+    },
+    {
+      "name": "justhodl-ai-brief-router",
+      "metrics": {
+        "days": 7,
+        "invocations": 59,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 24848.6,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:25.314000+00:00"
+    },
+    {
+      "name": "justhodl-ai-chat",
+      "metrics": {
+        "days": 7,
+        "invocations": 26,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 600.6,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-28T17:26:07.296000+00:00"
+    },
+    {
+      "name": "justhodl-alpha-calibrator",
+      "metrics": {
+        "days": 7,
+        "invocations": 2,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 2710.4,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:37.916000+00:00"
+    },
+    {
+      "name": "justhodl-alpha-compass",
+      "metrics": {
+        "days": 7,
+        "invocations": 14,
+        "errors": 1,
+        "throttles": 0,
+        "duration_avg_ms": 459.7,
+        "last_invoked": null,
+        "error_rate_pct": 7.14
+      },
+      "last_log": "2026-05-31T11:51:18.125000+00:00"
+    },
+    {
+      "name": "justhodl-backtest-engine",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 7013.4,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:07:23.715000+00:00"
+    },
+    {
+      "name": "justhodl-bank-stress",
+      "metrics": {
+        "days": 7,
+        "invocations": 5,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 5933.5,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-29T15:01:03.260000+00:00"
+    },
+    {
+      "name": "justhodl-calibrator",
+      "metrics": {
+        "days": 7,
+        "invocations": 1,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 10971.7,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:35.731000+00:00"
+    },
+    {
+      "name": "justhodl-chart-vision",
+      "metrics": {
+        "days": 7,
+        "invocations": 5,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 632.1,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-29T16:00:43.698000+00:00"
+    },
+    {
+      "name": "justhodl-conviction-engine",
+      "metrics": {
+        "days": 7,
+        "invocations": 57,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 1257.4,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:36.493000+00:00"
+    },
+    {
+      "name": "justhodl-cot-extremes-scanner",
+      "metrics": {
+        "days": 7,
+        "invocations": 1,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 8941.7,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-29T19:00:45.915000+00:00"
+    },
+    {
+      "name": "justhodl-crisis-composite",
+      "metrics": {
+        "days": 7,
+        "invocations": 170,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 840.8,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:31.221000+00:00"
+    },
+    {
+      "name": "justhodl-crisis-plumbing",
+      "metrics": {
+        "days": 7,
+        "invocations": 33,
+        "errors": 7,
+        "throttles": 0,
+        "duration_avg_ms": 22152.3,
+        "last_invoked": null,
+        "error_rate_pct": 21.21
+      },
+      "last_log": "2026-05-31T09:12:55.720000+00:00"
+    },
+    {
+      "name": "justhodl-cross-asset-confirm",
+      "metrics": {
+        "days": 7,
+        "invocations": 56,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 4187.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T10:58:55.485000+00:00"
+    },
+    {
+      "name": "justhodl-crypto-opportunities",
+      "metrics": {
+        "days": 7,
+        "invocations": 83,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 81418.7,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:20.917000+00:00"
+    },
+    {
+      "name": "justhodl-dealer-gex",
+      "metrics": {
+        "days": 7,
+        "invocations": 90,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 7784.8,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-29T21:07:24.608000+00:00"
+    },
+    {
+      "name": "justhodl-divergence-engine-v2",
+      "metrics": {
+        "days": 7,
+        "invocations": 84,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 5124.9,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T10:48:52.412000+00:00"
+    },
+    {
+      "name": "justhodl-earnings-tracker",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 33610.6,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:46:01.959000+00:00"
+    },
+    {
+      "name": "justhodl-edge-engine",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 2.4,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T10:04:05.627000+00:00"
+    },
+    {
+      "name": "justhodl-engine-signal-map",
+      "metrics": {
+        "days": 7,
+        "invocations": 3,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 1053.1,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:50:27.825000+00:00"
+    },
+    {
+      "name": "justhodl-etf-flows",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 2282.4,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T06:18:53.320000+00:00"
+    },
+    {
+      "name": "justhodl-eurodollar-stress",
+      "metrics": {
+        "days": 7,
+        "invocations": 170,
+        "errors": 3,
+        "throttles": 0,
+        "duration_avg_ms": 7904.1,
+        "last_invoked": null,
+        "error_rate_pct": 1.76
+      },
+      "last_log": "2026-05-31T12:00:30.806000+00:00"
+    },
+    {
+      "name": "justhodl-exchange-flows",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 1113.2,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T10:10:40.198000+00:00"
+    },
+    {
+      "name": "justhodl-failure-library",
+      "metrics": {
+        "days": 7,
+        "invocations": 5,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 3937.8,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-29T15:00:48.498000+00:00"
+    },
+    {
+      "name": "justhodl-fed-nlp",
+      "metrics": {
+        "days": 7,
+        "invocations": 56,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 847.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T06:11:31.389000+00:00"
+    },
+    {
+      "name": "justhodl-forensic-screen",
+      "metrics": {
+        "days": 7,
+        "invocations": 14,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 23726.2,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T04:53:34.948000+00:00"
+    },
+    {
+      "name": "justhodl-gsi-calibrator",
+      "metrics": {
+        "days": 7,
+        "invocations": 1,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 360.5,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T09:00:47.375000+00:00"
+    },
+    {
+      "name": "justhodl-liquidity-credit-engine",
+      "metrics": {
+        "days": 7,
+        "invocations": 37,
+        "errors": 12,
+        "throttles": 0,
+        "duration_avg_ms": 63626.2,
+        "last_invoked": null,
+        "error_rate_pct": 32.43
+      },
+      "last_log": "2026-05-31T11:14:32.759000+00:00"
+    },
+    {
+      "name": "justhodl-liquidity-pulse",
+      "metrics": {
+        "days": 7,
+        "invocations": 30,
+        "errors": 3,
+        "throttles": 0,
+        "duration_avg_ms": 25031.2,
+        "last_invoked": null,
+        "error_rate_pct": 10.0
+      },
+      "last_log": "2026-05-31T11:12:41.610000+00:00"
+    },
+    {
+      "name": "justhodl-macro-nowcast",
+      "metrics": {
+        "days": 7,
+        "invocations": 198,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 4506.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:36.222000+00:00"
+    },
+    {
+      "name": "justhodl-macro-surprise",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 2654.6,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T06:16:06.477000+00:00"
+    },
+    {
+      "name": "justhodl-magnitude-distributions",
+      "metrics": {
+        "days": 7,
+        "invocations": 4,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 5624.8,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T07:30:36.135000+00:00"
+    },
+    {
+      "name": "justhodl-margin-lending",
+      "metrics": {
+        "days": 7,
+        "invocations": 5,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 16461.4,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-29T16:00:16.716000+00:00"
+    },
+    {
+      "name": "justhodl-master-ranker",
+      "metrics": {
+        "days": 7,
+        "invocations": 170,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 2226.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:32.631000+00:00"
+    },
+    {
+      "name": "justhodl-miss-calibrator",
+      "metrics": {
+        "days": 7,
+        "invocations": 3,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 941.1,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:51:06.256000+00:00"
+    },
+    {
+      "name": "justhodl-miss-detector",
+      "metrics": {
+        "days": 7,
+        "invocations": 6,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 4259.7,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:50:51.600000+00:00"
+    },
+    {
+      "name": "justhodl-near-miss-monitor",
+      "metrics": {
+        "days": 7,
+        "invocations": 2,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 441.4,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:50:39.490000+00:00"
+    },
+    {
+      "name": "justhodl-onchain-ratios",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 1394.1,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T06:44:07.381000+00:00"
+    },
+    {
+      "name": "justhodl-opportunity-calibrator",
+      "metrics": {
+        "days": 7,
+        "invocations": 4,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 362.2,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:36.369000+00:00"
+    },
+    {
+      "name": "justhodl-outcome-checker",
+      "metrics": {
+        "days": 7,
+        "invocations": 10,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 62668.1,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:36.135000+00:00"
+    },
+    {
+      "name": "justhodl-pairs-scanner",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 3528.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T09:55:24.781000+00:00"
+    },
+    {
+      "name": "justhodl-pnl-attribution",
+      "metrics": {
+        "days": 7,
+        "invocations": 7,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 642.1,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T03:00:24.690000+00:00"
+    },
+    {
+      "name": "justhodl-portfolio-catalysts",
+      "metrics": {
+        "days": 7,
+        "invocations": 21,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 575.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:00:39.474000+00:00"
+    },
+    {
+      "name": "justhodl-position-sizer-v2",
+      "metrics": {
+        "days": 7,
+        "invocations": 9,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 664.8,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:00:16.859000+00:00"
+    },
+    {
+      "name": "justhodl-regime-conditional-router",
+      "metrics": {
+        "days": 7,
+        "invocations": 84,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 522.0,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:18.306000+00:00"
+    },
+    {
+      "name": "justhodl-repo-lending",
+      "metrics": {
+        "days": 7,
+        "invocations": 5,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 10862.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-29T16:00:33.289000+00:00"
+    },
+    {
+      "name": "justhodl-retail-sentiment",
+      "metrics": {
+        "days": 7,
+        "invocations": 336,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 2530.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:50.391000+00:00"
+    },
+    {
+      "name": "justhodl-scheduler",
+      "metrics": {
+        "days": 7,
+        "invocations": 1275,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 447.9,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:34.495000+00:00"
+    },
+    {
+      "name": "justhodl-sector-heatmap",
+      "metrics": {
+        "days": 7,
+        "invocations": 90,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 7467.2,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-29T21:30:35.952000+00:00"
+    },
+    {
+      "name": "justhodl-short-interest",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 4668.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T06:03:42.752000+00:00"
+    },
+    {
+      "name": "justhodl-signal-board",
+      "metrics": {
+        "days": 7,
+        "invocations": 58,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 3509.8,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:38.563000+00:00"
+    },
+    {
+      "name": "justhodl-signal-halflife",
+      "metrics": {
+        "days": 7,
+        "invocations": 1,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 4250.0,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-25T06:00:11.356000+00:00"
+    },
+    {
+      "name": "justhodl-signal-logger",
+      "metrics": {
+        "days": 7,
+        "invocations": 31,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 10543.3,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T09:10:21.917000+00:00"
+    },
+    {
+      "name": "justhodl-signal-scorecard",
+      "metrics": {
+        "days": 7,
+        "invocations": 8,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 16408.4,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:00:36.177000+00:00"
+    },
+    {
+      "name": "justhodl-system-signal-logger",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 2844.1,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T10:06:13.678000+00:00"
+    },
+    {
+      "name": "justhodl-telegram-bot",
+      "metrics": {
+        "days": 7,
+        "invocations": 84,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 3024.0,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T11:01:08.165000+00:00"
+    },
+    {
+      "name": "justhodl-universe-builder",
+      "metrics": {
+        "days": 7,
+        "invocations": 44,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 1698.7,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T12:00:11.765000+00:00"
+    },
+    {
+      "name": "justhodl-wave-signal-logger",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 1927.9,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T06:30:50.558000+00:00"
+    },
+    {
+      "name": "justhodl-yield-curve",
+      "metrics": {
+        "days": 7,
+        "invocations": 28,
+        "errors": 0,
+        "throttles": 0,
+        "duration_avg_ms": 2091.9,
+        "last_invoked": null,
+        "error_rate_pct": 0.0
+      },
+      "last_log": "2026-05-31T06:19:49.614000+00:00"
+    }
+  ],
+  "s3_keys_sample": [
+    {
+      "key": "data/10kq-filings.json",
+      "size_kb": 106.7,
+      "modified": "2026-05-31T12:00:11+00:00"
+    },
+    {
+      "key": "data/13f-positions.json",
+      "size_kb": 14492.2,
+      "modified": "2026-05-31T10:51:24+00:00"
+    },
+    {
+      "key": "data/13f-price-divergence.json",
+      "size_kb": 1.2,
+      "modified": "2026-05-26T06:00:04+00:00"
+    },
+    {
+      "key": "data/52wk-quality-breakout.json",
+      "size_kb": 1.2,
+      "modified": "2026-05-30T22:00:40+00:00"
+    },
+    {
+      "key": "data/8k-filings.json",
+      "size_kb": 154.9,
+      "modified": "2026-05-31T12:00:13+00:00"
+    },
+    {
+      "key": "data/_alerts/digest-2026-05-30-close.json",
+      "size_kb": 4.0,
+      "modified": "2026-05-30T23:59:26+00:00"
+    },
+    {
+      "key": "data/_alerts/digest-2026-05-30.json",
+      "size_kb": 4.0,
+      "modified": "2026-05-30T23:44:22+00:00"
+    },
+    {
+      "key": "data/_alerts/digest-2026-05-31-close.json",
+      "size_kb": 4.8,
+      "modified": "2026-05-31T12:01:44+00:00"
+    },
+    {
+      "key": "data/_alerts/digest-2026-05-31.json",
+      "size_kb": 4.7,
+      "modified": "2026-05-31T12:01:44+00:00"
+    },
+    {
+      "key": "data/_alerts/digest-latest.json",
+      "size_kb": 4.8,
+      "modified": "2026-05-31T12:01:45+00:00"
+    },
+    {
+      "key": "data/_alerts/digests-index.json",
+      "size_kb": 1.6,
+      "modified": "2026-05-31T12:01:45+00:00"
+    },
+    {
+      "key": "data/_alerts/frontrun-sniffer-alert-state.json",
+      "size_kb": 0.0,
+      "modified": "2026-05-31T00:24:51+00:00"
+    },
+    {
+      "key": "data/_alerts/macro-frontrun-sniffer-alert-state.json",
+      "size_kb": 0.3,
+      "modified": "2026-05-31T12:02:32+00:00"
+    },
+    {
+      "key": "data/_alerts/targets-index.json",
+      "size_kb": 1.5,
+      "modified": "2026-05-31T12:01:44+00:00"
+    },
+    {
+      "key": "data/_alerts/uptime-state.json",
+      "size_kb": 2.1,
+      "modified": "2026-05-31T12:01:45+00:00"
+    },
+    {
+      "key": "data/_alerts/uptime-status.json",
+      "size_kb": 1.9,
+      "modified": "2026-05-31T12:01:45+00:00"
+    },
+    {
+      "key": "data/_archive/dex-scanner-data.json",
+      "size_kb": 140.9,
+      "modified": "2026-05-17T19:01:58+00:00"
+    },
+    {
+      "key": "data/_archive/institutional-convergence.json",
+      "size_kb": 1.3,
+      "modified": "2026-05-17T19:01:58+00:00"
+    },
+    {
+      "key": "data/_archive/pre-pump-calibration.json",
+      "size_kb": 2.8,
+      "modified": "2026-05-17T19:01:58+00:00"
+    },
+    {
+      "key": "data/_archive/skew.json",
+      "size_kb": 0.3,
+      "modified": "2026-05-17T19:01:58+00:00"
+    },
+    {
+      "key": "data/_fleet-monitor-alert-history.json",
+      "size_kb": 0.4,
+      "modified": "2026-05-31T11:06:12+00:00"
+    },
+    {
+      "key": "data/_fleet-monitor.json",
+      "size_kb": 0.4,
+      "modified": "2026-05-31T12:01:11+00:00"
+    },
+    {
+      "key": "data/_freshness-alert-history.json",
+      "size_kb": 1.1,
+      "modified": "2026-05-31T12:00:18+00:00"
+    },
+    {
+      "key": "data/_freshness-manifest.json",
+      "size_kb": 3.4,
+      "modified": "2026-05-23T15:20:01+00:00"
+    },
+    {
+      "key": "data/_freshness-monitor.json",
+      "size_kb": 1.7,
+      "modified": "2026-05-31T12:00:18+00:00"
+    },
+    {
+      "key": "data/_freshness-status.json",
+      "size_kb": 3.2,
+      "modified": "2026-05-22T13:09:24+00:00"
+    },
+    {
+      "key": "data/_skill/calibration-config.json",
+      "size_kb": 0.5,
+      "modified": "2026-05-31T12:01:45+00:00"
+    },
+    {
+      "key": "data/_skill/frontrun-skill-index.json",
+      "size_kb": 0.8,
+      "modified": "2026-05-31T01:18:04+00:00"
+    },
+    {
+      "key": "data/_skill/opportunity-rankings.json",
+      "size_kb": 2.7,
+      "modified": "2026-05-31T12:01:45+00:00"
+    },
+    {
+      "key": "data/_streaming/crisis_composite_last.json",
+      "size_kb": 0.3,
+      "modified": "2026-05-29T20:59:34+00:00"
+    },
+    {
+      "key": "data/_streaming/dollar_radar_last.json",
+      "size_kb": 0.3,
+      "modified": "2026-05-29T20:59:34+00:00"
+    },
+    {
+      "key": "data/_streaming/global_stress_last.json",
+      "size_kb": 0.4,
+      "modified": "2026-05-29T20:59:33+00:00"
+    },
+    {
+      "key": "data/_streaming/live_pulse_last.json",
+      "size_kb": 0.4,
+      "modified": "2026-05-29T20:59:33+00:00"
+    },
+    {
+      "key": "data/_streaming/master_alloc_last.json",
+      "size_kb": 0.4,
+      "modified": "2026-05-29T20:59:34+00:00"
+    },
+    {
+      "key": "data/_streaming/signal_board_last.json",
+      "size_kb": 0.3,
+      "modified": "2026-05-29T20:59:33+00:00"
+    },
+    {
+      "key": "data/_streaming/vol_radar_last.json",
+      "size_kb": 0.3,
+      "modified": "2026-05-29T20:59:33+00:00"
+    },
+    {
+      "key": "data/aaii-sentiment.json",
+      "size_kb": 1.2,
+      "modified": "2026-05-30T22:00:28+00:00"
+    },
+    {
+      "key": "data/ab-test-results.json",
+      "size_kb": 0.8,
+      "modified": "2026-05-30T18:27:04+00:00"
+    },
+    {
+      "key": "data/activist-13d-names.json",
+      "size_kb": 0.5,
+      "modified": "2026-05-31T12:01:33+00:00"
+    },
+    {
+      "key": "data/activist-13d.json",
+      "size_kb": 3.7,
+      "modified": "2026-05-31T11:00:15+00:00"
+    },
+    {
+      "key": "data/activist-filings-state.json",
+      "size_kb": 0.1,
+      "modified": "2026-05-31T11:00:15+00:00"
+    },
+    {
+      "key": "data/activist-filings.json",
+      "size_kb": 1.4,
+      "modified": "2026-05-31T11:00:15+00:00"
+    },
+    {
+      "key": "data/activity-nowcast.json",
+      "size_kb": 0.4,
+      "modified": "2026-05-31T11:01:13+00:00"
+    },
+    {
+      "key": "data/activity-nowcast/snapshots/2026-05-17.json",
+      "size_kb": 0.1,
+      "modified": "2026-05-17T17:44:36+00:00"
+    },
+    {
+      "key": "data/activity-nowcast/snapshots/2026-05-18.json",
+      "size_kb": 0.1,
+      "modified": "2026-05-18T12:30:36+00:00"
+    },
+    {
+      "key": "data/activity-nowcast/snapshots/2026-05-19.json",
+      "size_kb": 0.1,
+      "modified": "2026-05-19T12:30:43+00:00"
+    },
+    {
+      "key": "data/activity-nowcast/snapshots/2026-05-20.json",
+      "size_kb": 0.1,
+      "modified": "2026-05-20T12:30:38+00:00"
+    },
+    {
+      "key": "data/activity-nowcast/snapshots/2026-05-21.json",
+      "size_kb": 0.1,
+      "modified": "2026-05-21T12:30:40+00:00"
+    },
+    {
+      "key": "data/activity-nowcast/snapshots/2026-05-22.json",
+      "size_kb": 0.1,
+      "modified": "2026-05-22T12:30:36+00:00"
+    },
+    {
+      "key": "data/activity-nowcast/snapshots/2026-05-23.json",
+      "size_kb": 0.1,
+      "modified": "2026-05-23T12:30:38+00:00"
+    }
+  ],
+  "n_s3_keys_total": 5001
+}
