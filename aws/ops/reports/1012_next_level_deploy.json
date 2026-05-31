@@ -1,0 +1,189 @@
+{
+  "started": "2026-05-31T11:24:04.319184+00:00",
+  "lambdas": {
+    "justhodl-engine-signal-map": {
+      "zip_size": 6304,
+      "op": {
+        "action": "created"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "engine-signal-map-daily",
+        "cron": "cron(0 9 * * ? *)"
+      },
+      "invoke": {
+        "status": 200,
+        "fn_err": null,
+        "result": {
+          "ok": true,
+          "engines": 18,
+          "families": 10,
+          "unknown_signal_types": 43
+        }
+      }
+    },
+    "justhodl-miss-detector": {
+      "zip_size": 9114,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "miss-detector-nightly",
+        "cron": "cron(0 1 * * ? *)"
+      },
+      "invoke": {
+        "status": 200,
+        "fn_err": null,
+        "result": {
+          "ok": true,
+          "session_date": "2026-05-29",
+          "candidates": 511,
+          "attributed": 0,
+          "misses": 200
+        }
+      }
+    },
+    "justhodl-miss-calibrator": {
+      "zip_size": 7308,
+      "op": {
+        "action": "created"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "miss-calibrator-weekly",
+        "cron": "cron(15 9 ? * MON *)"
+      },
+      "invoke": {
+        "status": 200,
+        "fn_err": null,
+        "result": {
+          "ok": true,
+          "proposals": 0,
+          "universe_candidates": 0,
+          "skipped_deprecated": 0
+        }
+      }
+    },
+    "justhodl-alpha-compass": {
+      "zip_size": 7969,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "alpha-compass-3h",
+        "cron": "cron(50 */3 * * ? *)"
+      },
+      "invoke": {
+        "status": 200,
+        "fn_err": null,
+        "result": {
+          "ok": true,
+          "top_calls": 3,
+          "watchlist": 3
+        }
+      }
+    }
+  },
+  "s3": {
+    "data/engine-signal-map.json": {
+      "size": 7487,
+      "modified": "2026-05-31 11:24:45+00:00"
+    },
+    "data/miss-summary.json": {
+      "size": 617,
+      "modified": "2026-05-31 11:24:53+00:00"
+    },
+    "data/miss-calibrator-proposals.json": {
+      "size": 578,
+      "modified": "2026-05-31 11:24:57+00:00"
+    },
+    "data/alpha-compass.json": {
+      "size": 5911,
+      "modified": "2026-05-31 11:25:02+00:00"
+    }
+  },
+  "engine_map_content": {
+    "totals": {
+      "curated_engines": 18,
+      "curated_signals": 47,
+      "families": 10,
+      "ddb_observed_types": 63,
+      "unknown_after_attribution": 43
+    },
+    "families": [
+      "desk-posture",
+      "crisis-monitor",
+      "market-regime",
+      "macro-fundamental",
+      "relative-value",
+      "equity-value",
+      "positioning",
+      "crypto",
+      "momentum",
+      "edge-composite"
+    ],
+    "n_unknown": 43,
+    "sample_family": [
+      [
+        "desk-posture",
+        [
+          "pm_book_net_signal",
+          "pm_book_posture"
+        ]
+      ],
+      [
+        "crisis-monitor",
+        [
+          "canary_breadth",
+          "canary_internal",
+          "carry_risk",
+          "crisis_broad_dollar_vs_eem",
+          "crisis_dfii10_vs_gld",
+          "crisis_index_nfci",
+          "eurodollar_stress",
+          "fcip_composite",
+          "nfci_subindex",
+          "plumbing_stress"
+        ]
+      ]
+    ]
+  },
+  "miss_calibrator_content": {
+    "totals": {
+      "n_misses_total_30d": 200,
+      "n_signals_with_near_misses": 0,
+      "n_proposals": 0,
+      "n_skipped_deprecated": 0,
+      "n_skipped_below_min": 0,
+      "n_universe_candidates": 0
+    },
+    "n_proposals": 0,
+    "n_universe_candidates": 0,
+    "top_3_proposals": []
+  },
+  "miss_summary_content": {
+    "totals": {
+      "out_of_universe": 160,
+      "wrong_signal_type": 40
+    },
+    "n_near_miss_signals": 0,
+    "n_recurring_tickers": 50
+  },
+  "alpha_compass_content": {
+    "top_calls": 3,
+    "watchlist": 3,
+    "cards_with_distribution": 1,
+    "feeds": {
+      "conviction": true,
+      "magnitude_distributions": true,
+      "scorecard": true,
+      "sizer": true,
+      "miss_summary": true,
+      "engine_signal_map": true
+    },
+    "first_match_via": null
+  },
+  "finished": "2026-05-31T11:25:02.556621+00:00"
+}
