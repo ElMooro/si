@@ -2192,6 +2192,19 @@
           "expected_cadence": "daily"
         }
       ]
+    },
+    "frontrun-skill-aggregator": {
+      "brief_type": "skill_aggregator",
+      "title": "Front-Run Skill Aggregator",
+      "output_key": "frontrun-skill-aggregator",
+      "tracked_signal_types": [
+        "frontrun_sniffer_setup",
+        "macro_frontrun_sniffer_setup",
+        "macro_convergence_fingerprint",
+        "equity_convergence_fingerprint",
+        "sustained_target_equity"
+      ],
+      "lookback_days": 90
     }
   }
 }

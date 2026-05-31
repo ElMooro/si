@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System Skill · Closed-Loop Learning · JustHodl.AI</title>
+<meta name="description" content="Closed-loop accuracy cockpit. Every front-run sniffer setup, convergence-fingerprint fire, and sustained-target alert gets logged to DynamoDB as a prediction with horizon. After horizon expires, outcome-checker fetches actual market data and grades it. This page aggregates per-engine hit rate, profit factor, regime breakdown, calibration plot, and recent graded predictions. The system grades its own calls and uses that data to improve over time.">
+<style>
+:root{
+  --bg:#070a10; --bg-raised:#0a0f17; --panel:#11161f; --border:#1c2433; --border-strong:#2a3548;
+  --fg:#e6eaf2; --fg-2:#cbd2dc; --fg-3:#a8b3c7; --fg-4:#6f7b91;
+  --cyan:#22d3ee; --green:#26ffaf; --gold:#fbbf24; --red:#ff5577; --purple:#a78bfa;
+  --orange:#ff7a18;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.55;font-size:14px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,10,16,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;gap:14px}
+.brand{font-family:var(--mono);font-size:13px;font-weight:800;letter-spacing:1px;color:var(--fg);text-decoration:none}
+.brand span{color:var(--purple)}
+.brand .dot{display:inline-block;width:8px;height:8px;background:var(--purple);border-radius:50%;box-shadow:0 0 8px var(--purple);margin-right:6px}
+.nav-links{display:flex;gap:14px;align-items:center;font-size:11px;font-family:var(--mono);letter-spacing:0.5px;flex-wrap:wrap}
+.nav-links a{color:var(--fg-3);text-decoration:none;transition:color 0.15s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a.active{color:var(--purple);font-weight:700}
+.shell{max-width:1280px;margin:0 auto;padding:24px 22px 60px}
+.hero{padding:28px 0 18px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.hero h1{font-size:30px;margin:0 0 10px;letter-spacing:-0.015em;font-weight:700;line-height:1.1}
+.hero h1 em{font-style:italic;color:var(--purple);font-weight:500}
+.hero .sub{color:var(--fg-3);font-size:13.5px;line-height:1.6;max-width:840px}
+.hero .sub b{color:var(--fg-2);font-weight:600}
+.hero-pills{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:0.5px;color:var(--fg-3);padding:3px 9px;background:var(--panel);border:1px solid var(--border);border-radius:3px}
+.pill b{color:var(--cyan)}
+
+.loop{margin-top:24px;background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:14px 18px;font-family:var(--mono);font-size:11.5px;color:var(--fg-3);line-height:1.7}
+.loop b{color:var(--fg-2)}
+.loop .step{display:inline-block;padding:2px 10px;background:var(--panel);border:1px solid var(--border);border-radius:3px;margin:0 2px;color:var(--purple)}
+
+footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);color:var(--fg-4);font-size:11.5px;font-family:var(--mono);text-align:center}
+</style>
+<script src="/ai-skill-cockpit-kit.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+  <nav class="nav-links">
+    <a href="/">DESK</a>
+    <a href="/today.html">TODAY</a>
+    <a href="/frontrun.html" style="color:#ff7a18">🎯 FRONT-RUN</a>
+    <a href="/macro-frontrun.html" style="color:#22d3ee">🏛 MACRO FRONT-RUN</a>
+    <a href="/alerts.html" style="color:#a78bfa">📡 ALERTS</a>
+    <a href="/digest-archive.html" style="color:#a78bfa">📂 ARCHIVE</a>
+    <a href="/digest-trends.html" style="color:#a78bfa">📊 TRENDS</a>
+    <a href="/targets.html" style="color:#ff7a18">🎯 TARGETS</a>
+    <a href="/uptime.html" style="color:#26ffaf">🟢 UPTIME</a>
+    <a href="/skill.html" class="active">🧠 SKILL</a>
+  </nav>
+</header>
+
+<main class="shell">
+
+  <section class="hero">
+    <h1>🧠 System <em>Skill</em> · Closed-Loop Learning</h1>
+    <p class="sub">
+      <b>The platform grades itself.</b> Every front-run sniffer setup,
+      convergence-fingerprint fire, and sustained-target alert is logged to
+      DynamoDB the moment it's generated, with a target asset, predicted
+      direction, confidence, and horizon. After the horizon expires, the
+      <b>outcome-checker</b> fetches actual market data and scores the
+      prediction. This page aggregates accuracy per engine, per regime, and
+      per confidence bucket — turning every call the system has ever made
+      into a verifiable track record. <b>The next phase is self-improvement</b>:
+      a weekly calibrator will read this skill data and propose prompt /
+      threshold tweaks where engines are systematically over- or under-confident.
+    </p>
+    <div class="hero-pills">
+      <span class="pill">📊 lookback: <b>90 days</b></span>
+      <span class="pill">🎯 5 engines tracked</span>
+      <span class="pill">⏱ aggregator: <b>daily</b></span>
+      <span class="pill">📈 horizons: <b>3d, 7d, 14d, 30d</b></span>
+      <span class="pill">🆓 0 Claude calls (pure metric aggregation)</span>
+    </div>
+  </section>
+
+  <!-- THE COCKPIT -->
+  <div id="ai-skill"></div>
+  <script>if(window.JHAISkill)JHAISkill.mount("ai-skill");</script>
+
+  <section class="loop">
+    <b>The closed loop, end-to-end:</b><br><br>
+    <span class="step">①</span> Every 4h, sniffers produce setups + maybe fire convergence alerts.<br>
+    <span class="step">②</span> Every 6h, signal-logger reads the briefs and writes predictions to DynamoDB <code style="color:var(--cyan)">justhodl-signals</code> table with target asset, predicted_direction (UP/DOWN), confidence (0.30-0.95), check_timestamps for 3d/7d/14d/30d windows, baseline_price snapshot.<br>
+    <span class="step">③</span> Daily, outcome-checker scans for predictions whose windows have elapsed, fetches current price via Polygon/AlphaVantage, computes <b>score_directional</b> (was the move in the predicted direction?) and writes <code style="color:var(--cyan)">accuracy_scores</code> + <code style="color:var(--cyan)">outcomes</code> on the row.<br>
+    <span class="step">④</span> Daily, the skill aggregator reads back the table, computes per-engine hit rate, profit factor, regime breakdown, calibration buckets, and writes <code style="color:var(--cyan)">data/_skill/frontrun-skill-index.json</code>.<br>
+    <span class="step">⑤</span> This page renders that index. Coming next: weekly calibrator proposes prompt tweaks where engines are mis-calibrated.<br><br>
+    <b>Self-correction in action:</b> if equity_convergence_fingerprint claims 70% confidence but actual hit rate is 30% over 30 calls → calibrator flags it as <span style="color:var(--red)">OVERCONFIDENT</span>, proposes lowering the claimed confidence weight. If macro_frontrun_sniffer setups at 60% confidence actually hit at 85% → calibrator notes they're <span style="color:var(--gold)">UNDERCONFIDENT</span>, recommends bumping the prompt's confidence anchors. Every loop iteration tightens the system's predictions toward truth.
+  </section>
+
+</main>
+
+<footer>
+  Closed-loop learning · Predictions logged on every cycle · Graded daily · Aggregated daily ·
+  <a href="https://justhodl.ai" style="color:var(--fg-4)">JustHodl.AI</a>
+</footer>
+
+</body>
+</html>

@@ -2905,6 +2905,234 @@ def _format_uptime_alert(alert_kind, briefs_status, newly_stale):
 
 
 # ─────────────────────────────────────────────────────────────────────
+# FRONT-RUN SKILL AGGREGATOR — closes the learning loop
+# ─────────────────────────────────────────────────────────────────────
+def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
+    """Scan the DynamoDB justhodl-signals table for predictions logged by
+    signal-logger (frontrun_sniffer_setup, macro_frontrun_sniffer_setup,
+    convergence_fingerprint, sustained_target_*) that have been graded by
+    outcome-checker. Aggregate accuracy metrics per engine + per regime +
+    per confidence bucket, and write data/_skill/frontrun-skill-index.json
+    for the /skill.html cockpit.
+
+    Output schema:
+      {
+        "version": "1.0",
+        "updated_at": "...",
+        "lookback_days": 90,
+        "n_total_predictions": N,
+        "n_scored": N,
+        "n_pending": N,
+        "by_engine": {
+            "equity_frontrun_sniffer": {
+                "n_total": 42, "n_scored": 28, "n_correct": 17,
+                "hit_rate": 0.607, "avg_return_pct": 1.42,
+                "profit_factor": 1.85, "rolling_30d_hit_rate": 0.62,
+                "n_pending_grade": 14
+            },
+            "macro_frontrun_sniffer": {...},
+            "macro_convergence_fingerprint": {...},
+            "equity_convergence_fingerprint": {...},
+            "sustained_target_equity": {...}
+        },
+        "by_regime": {"NORMAL": {hit_rate, n}, "ELEVATED": {...}, "EXTREME": {...}},
+        "by_confidence_bucket": {"0.30-0.50": {...}, ...},  # calibration data
+        "recent_calls": [last 12 graded predictions for the timeline]
+      }
+    """
+    import boto3
+    from boto3.dynamodb.conditions import Attr
+    t0 = time.time()
+    result = {"context_id": ctx_id, "title": cfg.get("title"),
+              "brief_type": "skill_aggregator", "output_key": cfg.get("output_key")}
+    try:
+        tracked = cfg.get("tracked_signal_types") or []
+        lookback_days = cfg.get("lookback_days", 90)
+        cutoff_epoch = int((datetime.now(timezone.utc) - timedelta(days=lookback_days)).timestamp())
+
+        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
+        table = dynamodb.Table("justhodl-signals")
+
+        # Scan with filter for our signal_types + lookback window
+        items = []
+        scan_kwargs = {
+            "FilterExpression": Attr("signal_type").is_in(tracked) & Attr("logged_epoch").gte(cutoff_epoch),
+        }
+        done = False
+        n_scans = 0
+        while not done and n_scans < 25:  # Hard cap to avoid runaway scans
+            resp = table.scan(**scan_kwargs)
+            items.extend(resp.get("Items", []))
+            if "LastEvaluatedKey" in resp:
+                scan_kwargs["ExclusiveStartKey"] = resp["LastEvaluatedKey"]
+                n_scans += 1
+            else:
+                done = True
+
+        # Aggregate
+        by_engine = {}
+        by_regime = {"NORMAL": {"n": 0, "correct": 0},
+                     "ELEVATED": {"n": 0, "correct": 0},
+                     "EXTREME": {"n": 0, "correct": 0}}
+        by_conf_bucket = {}  # "0.30-0.50": {"n": ..., "correct": ...}
+        recent_graded = []
+        n_total = len(items)
+        n_scored = 0
+        n_pending = 0
+        cutoff_30d = int((datetime.now(timezone.utc) - timedelta(days=30)).timestamp())
+
+        for it in items:
+            stype = it.get("signal_type") or "?"
+            engine = (it.get("metadata") or {}).get("engine") or stype
+            status = str(it.get("status") or "").lower()
+            scores = it.get("accuracy_scores") or {}
+            outcomes = it.get("outcomes") or {}
+            logged_epoch = int(it.get("logged_epoch") or 0)
+
+            # Find the best-scored window (longest horizon with a verdict)
+            verdict_pct = None
+            window_used = None
+            for window_key in sorted(scores.keys(), key=lambda k: int(str(k).split("_")[-1]) if "_" in str(k) else 0, reverse=True):
+                v = scores[window_key]
+                if v is not None:
+                    try:
+                        verdict_pct = float(v)
+                        window_used = window_key
+                        break
+                    except: pass
+
+            is_graded = verdict_pct is not None
+            if not is_graded:
+                n_pending += 1
+                # Still tag in by_engine bucket so totals include pending
+                if engine not in by_engine:
+                    by_engine[engine] = {"n_total": 0, "n_scored": 0, "n_correct": 0,
+                                          "sum_return_pct": 0.0, "n_recent_30d": 0,
+                                          "n_correct_30d": 0, "wins": [], "losses": []}
+                by_engine[engine]["n_total"] += 1
+                continue
+
+            n_scored += 1
+            is_correct = verdict_pct >= 50.0  # outcome-checker uses 0-100 score
+            # Return % from outcomes (per-window)
+            outcome_obj = outcomes.get(window_used) or {}
+            ret_pct = None
+            try: ret_pct = float(outcome_obj.get("return_pct") or 0)
+            except: ret_pct = None
+
+            # Bucket: engine
+            if engine not in by_engine:
+                by_engine[engine] = {"n_total": 0, "n_scored": 0, "n_correct": 0,
+                                      "sum_return_pct": 0.0, "n_recent_30d": 0,
+                                      "n_correct_30d": 0, "wins": [], "losses": []}
+            be = by_engine[engine]
+            be["n_total"]  += 1
+            be["n_scored"] += 1
+            if is_correct: be["n_correct"] += 1
+            if ret_pct is not None: be["sum_return_pct"] += ret_pct
+            if logged_epoch >= cutoff_30d:
+                be["n_recent_30d"] += 1
+                if is_correct: be["n_correct_30d"] += 1
+            if ret_pct is not None and is_correct:
+                be["wins"].append(ret_pct)
+            elif ret_pct is not None:
+                be["losses"].append(ret_pct)
+
+            # Bucket: regime at time of log
+            regime = (it.get("regime_at_log") or "").upper() or "NORMAL"
+            if regime in by_regime:
+                by_regime[regime]["n"] += 1
+                if is_correct: by_regime[regime]["correct"] += 1
+
+            # Bucket: confidence (calibration)
+            try: conf = float(it.get("confidence") or 0)
+            except: conf = 0
+            if conf <= 0.50:   ck = "0.30-0.50"
+            elif conf <= 0.65: ck = "0.50-0.65"
+            elif conf <= 0.80: ck = "0.65-0.80"
+            else:              ck = "0.80-0.95"
+            if ck not in by_conf_bucket: by_conf_bucket[ck] = {"n": 0, "correct": 0}
+            by_conf_bucket[ck]["n"] += 1
+            if is_correct: by_conf_bucket[ck]["correct"] += 1
+
+            # Recent timeline entries
+            if logged_epoch >= cutoff_30d and len(recent_graded) < 25:
+                recent_graded.append({
+                    "logged_at":    it.get("logged_at"),
+                    "engine":       engine,
+                    "signal_type":  stype,
+                    "signal_value": it.get("signal_value"),
+                    "asset":        it.get("measure_against"),
+                    "direction":    it.get("predicted_direction"),
+                    "confidence":   conf,
+                    "window":       window_used,
+                    "verdict_pct":  verdict_pct,
+                    "is_correct":   is_correct,
+                    "return_pct":   ret_pct,
+                })
+
+        # Finalize engine metrics
+        for engine, be in by_engine.items():
+            n_scored_e = be["n_scored"]
+            if n_scored_e > 0:
+                be["hit_rate"] = round(be["n_correct"] / n_scored_e, 4)
+                be["avg_return_pct"] = round(be["sum_return_pct"] / n_scored_e, 3)
+            else:
+                be["hit_rate"] = None
+                be["avg_return_pct"] = None
+            if be["n_recent_30d"] > 0:
+                be["rolling_30d_hit_rate"] = round(be["n_correct_30d"] / be["n_recent_30d"], 4)
+            else:
+                be["rolling_30d_hit_rate"] = None
+            # Profit factor = sum(wins) / |sum(losses)|
+            sum_wins = sum(be["wins"])
+            sum_losses = abs(sum(be["losses"])) if be["losses"] else 0
+            be["profit_factor"] = round(sum_wins / sum_losses, 3) if sum_losses > 0 else None
+            be["n_pending_grade"] = be["n_total"] - be["n_scored"]
+            # Strip raw arrays from output (keep response compact)
+            be.pop("wins",   None)
+            be.pop("losses", None)
+            be.pop("sum_return_pct", None)
+            be.pop("n_correct_30d",  None)
+
+        # Finalize regime + bucket metrics
+        for rg, rb in by_regime.items():
+            rb["hit_rate"] = round(rb["correct"] / rb["n"], 4) if rb["n"] > 0 else None
+        for ck, cb in by_conf_bucket.items():
+            cb["hit_rate"] = round(cb["correct"] / cb["n"], 4) if cb["n"] > 0 else None
+
+        # Sort recent
+        recent_graded.sort(key=lambda x: x.get("logged_at") or "", reverse=True)
+
+        out = {
+            "version":          "1.0",
+            "updated_at":       datetime.now(timezone.utc).isoformat(),
+            "lookback_days":    lookback_days,
+            "n_total_predictions": n_total,
+            "n_scored":         n_scored,
+            "n_pending":        n_pending,
+            "scored_pct":       round((n_scored / n_total) * 100, 1) if n_total else 0,
+            "by_engine":        by_engine,
+            "by_regime":        by_regime,
+            "by_confidence_bucket": by_conf_bucket,
+            "recent_calls":     recent_graded[:12],
+        }
+        s3io.put_json("data/_skill/frontrun-skill-index.json", out, cache_control="no-store")
+
+        result.update({
+            "status": "OK",
+            "n_total": n_total, "n_scored": n_scored, "n_pending": n_pending,
+            "n_engines_tracked": len(by_engine),
+            "duration_s": round(time.time() - t0, 2),
+        })
+    except Exception as e:
+        result["status"] = "ERR_EXC"
+        result["err"] = str(e)[:300]
+        result["traceback"] = traceback.format_exc()[-800:]
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Per-context worker — dispatches based on brief_type
 # ─────────────────────────────────────────────────────────────────────
 def generate_one_brief(ctx_id, cfg, episode_ref):
@@ -2924,6 +3152,8 @@ def generate_one_brief(ctx_id, cfg, episode_ref):
         return generate_alerts_digest(ctx_id, cfg, episode_ref)
     if bt == "uptime":
         return generate_uptime_check(ctx_id, cfg, episode_ref)
+    if bt == "skill_aggregator":
+        return generate_frontrun_skill_check(ctx_id, cfg, episode_ref)
     # Default: regime brief
     return _generate_regime_brief(ctx_id, cfg, episode_ref)
 

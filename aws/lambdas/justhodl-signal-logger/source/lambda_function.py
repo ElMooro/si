@@ -489,6 +489,234 @@ def lambda_handler(event,context):
     except Exception as ex: print(f"[CORRELATION-BREAK signals] {ex}")
     # ─── End Phase 9.6 additions ───
 
+    # ─── Phase 11: Front-Run System predictions (added 2026-05-31) ───
+    # Wires the new front-run sniffers + convergence fingerprints + sustained
+    # targets into the existing outcome-checker → calibrator learning loop.
+    # Each prediction gets a horizon and a target ticker so outcome-checker
+    # grades it automatically. Skill aggregator reads from the same outcomes
+    # table to produce /skill.html accuracy boards.
+    try:
+        def _parse_horizon_days(s, default=7):
+            """Convert horizon strings like '1-3 days', '1-2 weeks', '3-7d' to
+            an integer day count (use the upper bound). Falls back to default."""
+            if not s: return default
+            s = str(s).lower().strip()
+            import re
+            m = re.findall(r"(\d+)\s*-?\s*(\d+)?\s*(day|week|month|d|w|m)", s)
+            if not m:
+                m2 = re.findall(r"(\d+)", s)
+                if m2:
+                    try: return min(60, int(m2[-1]))
+                    except: pass
+                return default
+            lo, hi, unit = m[0]
+            try: n = int(hi) if hi else int(lo)
+            except: return default
+            if unit.startswith("w"): n *= 7
+            elif unit.startswith("m"): n *= 30
+            return min(60, max(1, n))
+
+        def _dir_from_label(direction_label):
+            """Map directional labels to UP/DOWN/NEUTRAL."""
+            if not direction_label: return "NEUTRAL"
+            d = str(direction_label).upper()
+            if any(x in d for x in ("DOWN", "SHORT", "BEAR", "FLAT")): return "DOWN"
+            if any(x in d for x in ("UP", "LONG", "BULL", "STEEP")):   return "UP"
+            return "NEUTRAL"
+
+        # ─── 1. Equity front-run sniffer setups ───
+        fr = fs3("data/frontrun-sniffer.json")
+        if isinstance(fr, dict):
+            setups = fr.get("suspected_setups") or []
+            for i, sx in enumerate(setups[:3]):  # Top 3 per cycle
+                target = sx.get("target_asset") or sx.get("primary_asset")
+                if not target: continue
+                # Pull ticker out of free-form text (e.g. "SPY / Broad Equity Market" → "SPY")
+                import re
+                tk_match = re.match(r"^([A-Z]{1,5})", str(target).strip())
+                if not tk_match: continue
+                ticker = tk_match.group(1)
+                direction = sx.get("target_direction") or sx.get("direction")
+                pred = _dir_from_label(direction)
+                if pred == "NEUTRAL": continue  # skip non-directional
+                # Probability → confidence
+                prob = sx.get("probability_pct") or sx.get("conviction_pct") or 60
+                try: conf = float(prob) / 100.0
+                except: conf = 0.60
+                conf = max(0.30, min(0.95, conf))
+                horizon_text = sx.get("horizon") or sx.get("horizon_days") or "7d"
+                horizon_days = _parse_horizon_days(horizon_text, default=7)
+                cats = [g.get("category") for g in (sx.get("smoking_gun_signals") or []) if g.get("category")]
+                logged.append(log_sig(
+                    "frontrun_sniffer_setup",
+                    f"{ticker}_{pred}",
+                    pred,
+                    conf,
+                    ticker,
+                    sorted(set([3, 7, horizon_days])),
+                    meta={
+                        "engine": "equity_frontrun_sniffer",
+                        "setup_rank": i + 1,
+                        "setup_type": sx.get("setup_type"),
+                        "confidence_label": sx.get("confidence"),
+                        "n_smoking_guns": len(sx.get("smoking_gun_signals") or []),
+                        "n_categories":   len(set(cats)),
+                        "categories":     cats[:6],
+                        "regime":         fr.get("anomaly_regime"),
+                        "anomaly_score":  fr.get("overall_anomaly_score"),
+                    },
+                    rationale=(sx.get("thesis_summary") or sx.get("invalidation") or "")[:300]
+                ))
+
+        # ─── 2. Macro front-run sniffer setups ───
+        mfr = fs3("data/macro-frontrun-sniffer.json")
+        if isinstance(mfr, dict):
+            setups_m = mfr.get("macro_setups") or []
+            for i, sx in enumerate(setups_m[:3]):
+                ts = sx.get("trade_specifics") or {}
+                instr = ts.get("primary_instrument")
+                if not instr: continue
+                import re
+                tk_match = re.match(r"^([A-Z]{1,6})", str(instr).strip())
+                if not tk_match: continue
+                ticker = tk_match.group(1)
+                direction = ts.get("direction") or sx.get("direction")
+                pred = _dir_from_label(direction)
+                if pred == "NEUTRAL": continue
+                prob = sx.get("probability_pct") or sx.get("conviction_pct") or 60
+                try: conf = float(prob) / 100.0
+                except: conf = 0.60
+                conf = max(0.30, min(0.95, conf))
+                horizon_text = ts.get("horizon") or sx.get("horizon") or "14d"
+                horizon_days = _parse_horizon_days(horizon_text, default=14)
+                target_price = ts.get("target_level") or ts.get("target_price")
+                try: tp = float(str(target_price).replace("$","").replace(",","")) if target_price else None
+                except: tp = None
+                logged.append(log_sig(
+                    "macro_frontrun_sniffer_setup",
+                    f"{ticker}_{pred}",
+                    pred,
+                    conf,
+                    ticker,
+                    sorted(set([7, 14, horizon_days])),
+                    target_price=tp,
+                    meta={
+                        "engine":         "macro_frontrun_sniffer",
+                        "setup_rank":     i + 1,
+                        "setup_type":     sx.get("setup_type"),
+                        "historical":     sx.get("historical_analog"),
+                        "regime":         mfr.get("macro_regime"),
+                        "macro_score":    mfr.get("overall_macro_score"),
+                        "entry_level":    ts.get("entry_level"),
+                        "stop_level":     ts.get("stop_level"),
+                        "size_pct":       ts.get("size_pct_of_portfolio"),
+                    },
+                    rationale=(sx.get("thesis_summary") or sx.get("front_running_catalyst") or "")[:300]
+                ))
+
+        # ─── 3. Convergence fingerprint fires (special signals — implied risk-off) ───
+        # When either fingerprint fires (3/3 macro or 3-4/4 equity), that's
+        # historically a leading indicator of risk-off. Log as a SPY-DOWN
+        # prediction with the historical-analog 14d horizon for scoring.
+        ms = fs3("data/_alerts/macro-frontrun-sniffer-alert-state.json") or {}
+        if ms.get("last_alert_kind") == "CONVERGENCE" and ms.get("last_convergence_fingerprint_at"):
+            try:
+                from datetime import datetime as _dt
+                conv_at = _dt.fromisoformat(ms["last_convergence_fingerprint_at"].replace("Z","+00:00"))
+                hrs_since = (datetime.now(timezone.utc) - conv_at).total_seconds() / 3600
+                if hrs_since < 6:  # Only log if convergence fired in this cycle (avoid dupes)
+                    logged.append(log_sig(
+                        "macro_convergence_fingerprint",
+                        "FIRED_3_OF_3",
+                        "DOWN",        # convergence → expect risk-off → SPY down
+                        0.75,          # historical analog hit rate
+                        "SPY",
+                        [7, 14, 30],
+                        meta={
+                            "engine":            "macro_convergence_fingerprint",
+                            "pillars_state":     ms.get("last_convergence_detail"),
+                            "historical_analogs": ["Aug 2007", "Sep 2019", "Mar 2020", "Mar 2023"],
+                        },
+                        rationale="3/3 macro pillars stressed simultaneously — historical risk-off signature"
+                    ))
+            except Exception as _e: print(f"[macro_conv_log] {_e}")
+
+        es = fs3("data/_alerts/frontrun-sniffer-alert-state.json") or {}
+        if es.get("last_alert_kind") == "CONVERGENCE" and es.get("last_convergence_fingerprint_at"):
+            try:
+                from datetime import datetime as _dt
+                conv_at = _dt.fromisoformat(es["last_convergence_fingerprint_at"].replace("Z","+00:00"))
+                hrs_since = (datetime.now(timezone.utc) - conv_at).total_seconds() / 3600
+                if hrs_since < 6:
+                    conv_det = es.get("last_convergence_detail") or {}
+                    target = conv_det.get("top_setup_target") or "SPY"
+                    direction = conv_det.get("top_setup_direction") or "DOWNSIDE"
+                    pred = _dir_from_label(direction)
+                    import re
+                    tk_match = re.match(r"^([A-Z]{1,5})", str(target).strip())
+                    ticker = tk_match.group(1) if tk_match else "SPY"
+                    logged.append(log_sig(
+                        "equity_convergence_fingerprint",
+                        f"FIRED_{conv_det.get('n_cardinal_present', 3)}_OF_4",
+                        pred,
+                        0.70,          # GME/Feb-2018 historical hit rate
+                        ticker,
+                        [3, 7, 14],
+                        meta={
+                            "engine":              "equity_convergence_fingerprint",
+                            "cardinals_fired":     conv_det.get("cardinals_fired"),
+                            "n_cardinal_present":  conv_det.get("n_cardinal_present"),
+                            "historical_analogs":  ["Jan 2021 GME", "Feb 2018 vol unwind", "Dec 2018 dealer cascade"],
+                            "top_setup_target":    target,
+                        },
+                        rationale=f"{conv_det.get('n_cardinal_present',3)}/4 equity cardinals firing — gamma squeeze / vol-cascade signature"
+                    ))
+            except Exception as _e: print(f"[equity_conv_log] {_e}")
+
+        # ─── 4. Sustained-target alerts (when a name crosses 8+ appearances) ───
+        # Each top-of-leaderboard name is implicitly a "smart-money flagged this
+        # name" prediction. Log the top 2 sustained names as predictions tied to
+        # the direction of their most recent setup mention.
+        tx = fs3("data/_alerts/targets-index.json")
+        if isinstance(tx, dict):
+            for entry in (tx.get("equity_targets") or [])[:2]:
+                if not entry.get("is_recent"): continue
+                if (entry.get("n_digest_appearances") or 0) < 6: continue  # threshold
+                asset = entry.get("asset")
+                if not asset: continue
+                import re
+                tk_match = re.match(r"^([A-Z]{1,5})", str(asset).strip())
+                if not tk_match: continue
+                ticker = tk_match.group(1)
+                # Pull direction from the live frontrun brief if it mentions this name
+                pred = "UP"  # default — leaderboard implies bullish positioning typically
+                if isinstance(fr, dict):
+                    for sx in (fr.get("suspected_setups") or []):
+                        if str(sx.get("target_asset") or "").upper().startswith(ticker):
+                            pred = _dir_from_label(sx.get("target_direction"))
+                            if pred == "NEUTRAL": pred = "UP"
+                            break
+                logged.append(log_sig(
+                    "sustained_target_equity",
+                    f"{ticker}_{pred}",
+                    pred,
+                    0.65,
+                    ticker,
+                    [7, 14],
+                    meta={
+                        "engine":              "sustained_target_equity",
+                        "n_digest_appearances": entry.get("n_digest_appearances"),
+                        "max_n_times_in_window": entry.get("max_n_times_in_window"),
+                        "first_seen":          entry.get("first_seen"),
+                        "last_seen":           entry.get("last_seen"),
+                    },
+                    rationale=f"Appeared in {entry.get('n_digest_appearances')} digests — sustained smart-money flag"
+                ))
+
+    except Exception as ex:
+        print(f"[FRONTRUN-PREDICTIONS] {ex}")
+    # ─── End Phase 11 front-run learning loop additions ───
+
     # save summary
     s3.put_object(Bucket=S3_BUCKET,Key="learning/last_log_run.json",Body=json.dumps({"logged_at":datetime.now(timezone.utc).isoformat(),"count":len([l for l in logged if l]),"action":event.get("action","auto")}),ContentType="application/json")
     total=len([l for l in logged if l])
