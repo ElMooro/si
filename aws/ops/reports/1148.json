@@ -1,0 +1,88 @@
+{
+  "started": "2026-05-31T00:12:12.268934+00:00",
+  "redeploy": {
+    "attempt": 1,
+    "status": "OK"
+  },
+  "fire_open": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 1.08
+  },
+  "fire_close": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 0.92
+  },
+  "latest_digest": {
+    "date": "2026-05-31",
+    "session": "close",
+    "telegram_ok": true,
+    "message_chars": 968,
+    "has_sustained_section": true,
+    "message_preview": "\ud83d\udd14 *DAILY CLOSE DIGEST* \u2014 2026-05-31 21:00 UTC \u00b7 US session debrief\n\n\ud83d\udce1 *Current state:*\n  \ud83c\udfaf Equity:  score *28* \u00b7 regime *NORMAL* \u00b7 last alert never \u00b7 0/8 today\n  \ud83c\udfdb Macro:   score *42* \u00b7 regime *ELEVATED* \u00b7 last alert never \u00b7 0/8 today\n\n\u2b50 *Convergence fingerprints:*\n  \ud83c\udfaf Equity:  (no brief yet)\n  \ud83c\udfdb Macro:   `CALM` auction \u00b7 `NEUTRAL` dealer \u00b7 `STRESS` funding  *(1/3)*\n\n\ud83d\uddd3 *US session events:* none \u2014 tape was quiet \u2713\n\n\ud83d\udcca *7-day score trajectory:*\n  \ud83c\udfaf Equity:  mean *37.3*, range *28-42*, 9 cycles \u00b7 0 extreme, 6 elevated\n  \ud83c\udfdb Macro:   mean *42.0*, range *42-42*, 3 cycles \u00b7 0 extreme, 1 elevated\n\n\ud83c\udfaf *Most targeted (last 7d):*\n  \ud83c\udfaf Equity:  `PEP`\u00d73, `AMD`\u00d71, `PEP (PepsiCo)`\u00d71, `AMZN`\u00d71, `SPY / Broad Equity Market`\u00d71\n  \ud83c\udfdb Macro:   `TLT`\u00d73\n\n\ud83d\udcc8 *Sustained patterns (30d rolling index):*\n  \ud83c\udfaf Equity:  `PEP`\u00d74\u25cf, `AMD`\u00d74\u25cf, `PEP (PepsiCo)`\u00d74\u25cf\n  \ud83c\udfdb Macro:   `TLT`\u00d74\u25cf\n  _(\u25cf = active in last 7d, \u25cb = cooling off)_\n\n\u2192 https://justhodl.ai/targets.html \u00b7 https://justhodl.ai/alerts.html"
+  },
+  "targets_index_state": {
+    "n_equity_targets": 5,
+    "n_macro_targets": 1,
+    "n_equity_recent": 5,
+    "n_macro_recent": 1,
+    "equity_top3": [
+      {
+        "asset": "PEP",
+        "n_digest_appearances": 4,
+        "max_n_times_in_window": 3,
+        "first_seen": "2026-05-31",
+        "last_seen_session": "close",
+        "sessions": {
+          "open": 2,
+          "close": 2
+        },
+        "last_seen": "2026-05-31",
+        "is_recent": true
+      },
+      {
+        "asset": "AMD",
+        "n_digest_appearances": 4,
+        "max_n_times_in_window": 1,
+        "first_seen": "2026-05-31",
+        "last_seen_session": "close",
+        "sessions": {
+          "open": 2,
+          "close": 2
+        },
+        "last_seen": "2026-05-31",
+        "is_recent": true
+      },
+      {
+        "asset": "PEP (PepsiCo)",
+        "n_digest_appearances": 4,
+        "max_n_times_in_window": 1,
+        "first_seen": "2026-05-31",
+        "last_seen_session": "close",
+        "sessions": {
+          "open": 2,
+          "close": 2
+        },
+        "last_seen": "2026-05-31",
+        "is_recent": true
+      }
+    ],
+    "macro_top3": [
+      {
+        "instrument": "TLT",
+        "n_digest_appearances": 4,
+        "max_n_times_in_window": 3,
+        "first_seen": "2026-05-31",
+        "last_seen_session": "close",
+        "sessions": {
+          "open": 2,
+          "close": 2
+        },
+        "last_seen": "2026-05-31",
+        "is_recent": true
+      }
+    ]
+  },
+  "finished": "2026-05-31T00:12:24.807869+00:00"
+}
