@@ -1,0 +1,503 @@
+{
+  "started": "2026-05-31T14:48:22.150048+00:00",
+  "forward_orders_top_10": [
+    {
+      "ticker": "ORCL",
+      "composite": 76.0,
+      "name": "Oracle Corporation",
+      "rpo_usd_bn": 552.6,
+      "rpo_yield_pct": 85.1,
+      "rpo_growth_yoy": 324.4,
+      "book_to_bill": 316.0,
+      "thesis": "RPO $552.6B = 85% of mcap \u00b7 RPO growing +324% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+    },
+    {
+      "ticker": "GEV",
+      "composite": 67.5,
+      "name": "GE Vernova Inc.",
+      "rpo_usd_bn": 163.28,
+      "rpo_yield_pct": 62.7,
+      "rpo_growth_yoy": 32.3,
+      "book_to_bill": 23.3,
+      "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+    },
+    {
+      "ticker": "RTX",
+      "composite": 67.0,
+      "name": "RTX Corporation",
+      "rpo_usd_bn": 271.0,
+      "rpo_yield_pct": 112.0,
+      "rpo_growth_yoy": 24.9,
+      "book_to_bill": 7.8,
+      "thesis": "RPO $271.0B = 112% of mcap \u00b7 RPO growing +25% YoY"
+    },
+    {
+      "ticker": "DELL",
+      "composite": 58.0,
+      "name": "Dell Technologies Inc.",
+      "rpo_usd_bn": 82.0,
+      "rpo_yield_pct": 29.3,
+      "rpo_growth_yoy": 115.8,
+      "book_to_bill": 97.0,
+      "thesis": "RPO growing +116% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+    },
+    {
+      "ticker": "GE",
+      "composite": 57.0,
+      "name": "GE Aerospace",
+      "rpo_usd_bn": 211.3,
+      "rpo_yield_pct": 62.5,
+      "rpo_growth_yoy": 22.4,
+      "book_to_bill": 3.9,
+      "thesis": "RPO $211.3B = 62% of mcap \u00b7 RPO growing +22% YoY"
+    },
+    {
+      "ticker": "GOOGL",
+      "composite": 50.0,
+      "name": "Alphabet Inc.",
+      "rpo_usd_bn": 467.6,
+      "rpo_yield_pct": 10.2,
+      "rpo_growth_yoy": 406.1,
+      "book_to_bill": 349.7,
+      "thesis": "RPO growing +406% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+    },
+    {
+      "ticker": "GOOG",
+      "composite": 50.0,
+      "name": "Alphabet Inc.",
+      "rpo_usd_bn": 467.6,
+      "rpo_yield_pct": 10.3,
+      "rpo_growth_yoy": 406.1,
+      "book_to_bill": 349.7,
+      "thesis": "RPO growing +406% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+    },
+    {
+      "ticker": "CAT",
+      "composite": 50.0,
+      "name": "Caterpillar Inc.",
+      "rpo_usd_bn": 37.1,
+      "rpo_yield_pct": 9.2,
+      "rpo_growth_yoy": 110.8,
+      "book_to_bill": 106.5,
+      "thesis": "RPO growing +111% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+    },
+    {
+      "ticker": "MSFT",
+      "composite": 48.0,
+      "name": "Microsoft Corporation",
+      "rpo_usd_bn": 633.0,
+      "rpo_yield_pct": 18.9,
+      "rpo_growth_yoy": 97.2,
+      "book_to_bill": null,
+      "thesis": "RPO growing +97% YoY"
+    },
+    {
+      "ticker": "AMZN",
+      "composite": 44.0,
+      "name": "Amazon.com, Inc.",
+      "rpo_usd_bn": 41.0,
+      "rpo_yield_pct": 1.4,
+      "rpo_growth_yoy": 63.3,
+      "book_to_bill": 50.9,
+      "thesis": "RPO growing +63% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+    }
+  ],
+  "rotation_chains": [
+    {
+      "chain": "AI",
+      "leader_tier": 2,
+      "leader_perf_30d": 49.9,
+      "next_tier_perf": 3.75,
+      "expected_catchup": 46.15,
+      "state": "ROTATING",
+      "next_up_tickers": [
+        {
+          "ticker": "VST",
+          "lag_pct": 53.1,
+          "score": 100
+        },
+        {
+          "ticker": "GEV",
+          "lag_pct": 50.92,
+          "score": 100
+        },
+        {
+          "ticker": "CEG",
+          "lag_pct": 53.71,
+          "score": 100
+        },
+        {
+          "ticker": "VRT",
+          "lag_pct": 42.56,
+          "score": 100
+        },
+        {
+          "ticker": "ETN",
+          "lag_pct": 47.9,
+          "score": 100
+        }
+      ]
+    },
+    {
+      "chain": "EV",
+      "leader_tier": 4,
+      "leader_perf_30d": 16.91,
+      "next_tier_perf": null,
+      "expected_catchup": 16.91,
+      "state": "SYNCHRONIZED",
+      "next_up_tickers": []
+    },
+    {
+      "chain": "GLP1",
+      "leader_tier": 1,
+      "leader_perf_30d": 16.8,
+      "next_tier_perf": 13.9,
+      "expected_catchup": 2.9,
+      "state": "SYNCHRONIZED",
+      "next_up_tickers": [
+        {
+          "ticker": "CTLT",
+          "lag_pct": 8.64,
+          "score": 43.2
+        }
+      ]
+    },
+    {
+      "chain": "RESHORING",
+      "leader_tier": 3,
+      "leader_perf_30d": 32.84,
+      "next_tier_perf": -3.4,
+      "expected_catchup": 36.24,
+      "state": "ROTATING",
+      "next_up_tickers": [
+        {
+          "ticker": "MLM",
+          "lag_pct": 37.17,
+          "score": 100
+        },
+        {
+          "ticker": "VMC",
+          "lag_pct": 33.84,
+          "score": 100
+        },
+        {
+          "ticker": "CRH",
+          "lag_pct": 37.71,
+          "score": 100
+        }
+      ]
+    },
+    {
+      "chain": "DEFENSE",
+      "leader_tier": 3,
+      "leader_perf_30d": 20.6,
+      "next_tier_perf": 12.38,
+      "expected_catchup": 8.22,
+      "state": "ROTATING",
+      "next_up_tickers": [
+        {
+          "ticker": "TDG",
+          "lag_pct": 18.15,
+          "score": 90.8
+        }
+      ]
+    },
+    {
+      "chain": "QUANTUM",
+      "leader_tier": 2,
+      "leader_perf_30d": 44.22,
+      "next_tier_perf": 8.86,
+      "expected_catchup": 35.36,
+      "state": "ROTATING",
+      "next_up_tickers": [
+        {
+          "ticker": "MKSI",
+          "lag_pct": 24.07,
+          "score": 100
+        },
+        {
+          "ticker": "FORM",
+          "lag_pct": 46.64,
+          "score": 100
+        }
+      ]
+    },
+    {
+      "chain": "URANIUM",
+      "leader_tier": 4,
+      "leader_perf_30d": -4.28,
+      "next_tier_perf": null,
+      "expected_catchup": -4.28,
+      "state": "SYNCHRONIZED",
+      "next_up_tickers": []
+    }
+  ],
+  "buzz_stealth_us_only": [],
+  "future_intel": {
+    "n_scored": 198,
+    "generated_at": "2026-05-31T14:40:19+00:00",
+    "top_10_overall": [
+      {
+        "ticker": "GEV",
+        "score": 70.4,
+        "n_signals": 2,
+        "subscores": {
+          "forward_orders": 67.5,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel \u00b7 rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "ORCL",
+        "score": 40.5,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 76.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0
+        },
+        "thesis": "RPO $552.6B = 85% of mcap \u00b7 RPO growing +324% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "RTX",
+        "score": 30.2,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 67.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 0
+        },
+        "thesis": "RPO $271.0B = 112% of mcap \u00b7 RPO growing +25% YoY"
+      },
+      {
+        "ticker": "CEG",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "CRH",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_4 in RESHORING chain"
+      },
+      {
+        "ticker": "ETN",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "FORM",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in QUANTUM chain"
+      },
+      {
+        "ticker": "MKSI",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in QUANTUM chain"
+      },
+      {
+        "ticker": "MLM",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_4 in RESHORING chain"
+      },
+      {
+        "ticker": "PWR",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      }
+    ],
+    "multi_signal": [
+      {
+        "ticker": "GEV",
+        "score": 70.4,
+        "n_signals": 2,
+        "subscores": {
+          "forward_orders": 67.5,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel \u00b7 rotation: next_up_tier_3 in AI chain"
+      }
+    ],
+    "locked_future": [
+      {
+        "ticker": "GEV",
+        "score": 70.4,
+        "n_signals": 2,
+        "subscores": {
+          "forward_orders": 67.5,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel \u00b7 rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "ORCL",
+        "score": 40.5,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 76.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0
+        },
+        "thesis": "RPO $552.6B = 85% of mcap \u00b7 RPO growing +324% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "RTX",
+        "score": 30.2,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 67.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 0
+        },
+        "thesis": "RPO $271.0B = 112% of mcap \u00b7 RPO growing +25% YoY"
+      },
+      {
+        "ticker": "GE",
+        "score": 25.7,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 57.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 0
+        },
+        "thesis": "RPO $211.3B = 62% of mcap \u00b7 RPO growing +22% YoY"
+      }
+    ],
+    "next_up_rotation": [
+      {
+        "ticker": "GEV",
+        "score": 70.4,
+        "n_signals": 2,
+        "subscores": {
+          "forward_orders": 67.5,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel \u00b7 rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "CEG",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "CRH",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_4 in RESHORING chain"
+      },
+      {
+        "ticker": "ETN",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "FORM",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in QUANTUM chain"
+      },
+      {
+        "ticker": "MKSI",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in QUANTUM chain"
+      },
+      {
+        "ticker": "MLM",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_4 in RESHORING chain"
+      },
+      {
+        "ticker": "PWR",
+        "score": 30.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      }
+    ],
+    "stealth_buzz": []
+  },
+  "finished": "2026-05-31T14:48:22.748402+00:00"
+}
