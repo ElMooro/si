@@ -1,0 +1,129 @@
+{
+  "started": "2026-05-31T12:53:28.925856+00:00",
+  "redeploys": {
+    "justhodl-signal-scorecard": {
+      "action": "updated",
+      "zip_size": 9247
+    },
+    "justhodl-cross-asset-regime": {
+      "action": "updated",
+      "zip_size": 8530
+    }
+  },
+  "memory": {
+    "justhodl-outcome-checker": {
+      "action": "no_change",
+      "memory_mb": 1024
+    },
+    "justhodl-crisis-plumbing": {
+      "action": "no_change",
+      "memory_mb": 768
+    }
+  },
+  "invokes": {
+    "justhodl-signal-scorecard": {
+      "status": 200,
+      "fn_err": null,
+      "result": {
+        "ok": true,
+        "n_signals_tracked": 47,
+        "n_signals_graded": 33,
+        "n_promoted": 10,
+        "n_deprecated": 18,
+        "n_insufficient": 14,
+        "avg_graded_wilson_lb": 0.377,
+        "n_outcomes_scored": 10299,
+        "n_outcomes_legacy": 3335,
+        "n_outcomes_unresolved": 357
+      }
+    },
+    "justhodl-cross-asset-regime": {
+      "status": 200,
+      "fn_err": null,
+      "result": {
+        "regime": "MIXED",
+        "risk_score": 7.0,
+        "risk_label": "STRONG_RISK_ON",
+        "n_breaks": 10,
+        "n_alerts": 5,
+        "duration_s": 0.8
+      }
+    }
+  },
+  "async_invokes": {
+    "justhodl-crisis-plumbing": {
+      "async": true,
+      "status": 202
+    },
+    "justhodl-liquidity-credit-engine": {
+      "async": true,
+      "status": 202
+    }
+  },
+  "audit_log": {
+    "key": "system-events/audit/2026-05-31.jsonl",
+    "n_events": 1,
+    "entries": [
+      {
+        "ts": "2026-05-31T12:16:42.091544+00:00",
+        "event": "outcome.resolved",
+        "detail": {
+          "n_resolved": 99,
+          "source": "ops-1022-synthetic-test",
+          "_emitted_at": "2026-05-31T12:16:40.662059+00:00",
+          "_source_engine": "ops-1022"
+        },
+        "route": {
+          "event": "outcome.resolved",
+          "source": "justhodl.test",
+          "started": "2026-05-31T12:16:41.847872+00:00",
+          "invokes": [
+            {
+              "fn": "justhodl-calibrator",
+              "ok": true,
+              "status": 202
+            },
+            {
+              "fn": "justhodl-alpha-calibrator",
+              "ok": true,
+              "status": 202
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "final_config": {
+    "justhodl-outcome-checker": {
+      "memory_mb": 1024,
+      "timeout_s": 300,
+      "last_modified": "2026-05-31T12:54:22.000+0000",
+      "code_size_kb": 9.8
+    },
+    "justhodl-crisis-plumbing": {
+      "memory_mb": 768,
+      "timeout_s": 120,
+      "last_modified": "2026-05-31T12:53:42.000+0000",
+      "code_size_kb": 15.8
+    },
+    "justhodl-liquidity-credit-engine": {
+      "memory_mb": 512,
+      "timeout_s": 300,
+      "last_modified": "2026-05-31T12:25:59.000+0000",
+      "code_size_kb": 17.4
+    },
+    "justhodl-signal-scorecard": {
+      "memory_mb": 256,
+      "timeout_s": 120,
+      "last_modified": "2026-05-31T12:54:46.000+0000",
+      "code_size_kb": 9.2
+    },
+    "justhodl-cross-asset-regime": {
+      "memory_mb": 512,
+      "timeout_s": 300,
+      "last_modified": "2026-05-31T12:54:00.000+0000",
+      "code_size_kb": 8.4
+    }
+  },
+  "finished": "2026-05-31T12:56:04.459408+00:00"
+}
