@@ -1,0 +1,791 @@
+{
+  "generated_at": "2026-05-31T13:39:50.984770+00:00",
+  "n_reviewed": 25,
+  "counts": {
+    "INVESTIGATE": 1,
+    "KEEP": 24
+  },
+  "candidates": [
+    {
+      "name": "justhodl-ab-test",
+      "description": "A/B test of competing prompt strategies",
+      "config_last_modified": "2026-05-30T18:33:13.000+0000",
+      "code_size_kb": 4.7,
+      "invoke_stats": {
+        "n_invocations_30d": 29,
+        "last_invoke_date": "2026-05-30T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-30T18:27:03.946000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 351,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": true,
+        "has_handler": true
+      },
+      "recommendation": "INVESTIGATE",
+      "reasons": [
+        "ACTIVE_29_INVOKES_30D",
+        "NAME_HAS_TEST"
+      ]
+    },
+    {
+      "name": "justhodl-backtest-harness",
+      "description": "Daily snapshot of all signal types + forward-return tracker. DDB table justhodl-backtest.",
+      "config_last_modified": "2026-05-30T18:45:25.000+0000",
+      "code_size_kb": 5.3,
+      "invoke_stats": {
+        "n_invocations_30d": 31,
+        "last_invoke_date": "2026-05-30T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-30T22:00:34.405000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 449,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": true,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_31_INVOKES_30D"
+      ]
+    },
+    {
+      "name": "justhodl-breadth-thrust",
+      "description": "Zweig Breadth Thrust + Whaley January Barometer + Coppock Curve. 11-of-11 historical 12m positive returns when fired. State machine NULL/ARMED/FIRED/COOLDOWN. Polygon grouped aggs for NYSE A/D ratio, ",
+      "config_last_modified": "2026-05-30T18:32:04.000+0000",
+      "code_size_kb": 8.5,
+      "invoke_stats": {
+        "n_invocations_30d": 2,
+        "last_invoke_date": "2026-05-20T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-20T15:31:12.341000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 704,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": true,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "SOME_INVOKES_2_30D"
+      ]
+    },
+    {
+      "name": "justhodl-calls-backtest",
+      "description": "Replays decisive-call ledger as SPY-exposure backtest. Daily.",
+      "config_last_modified": "2026-05-30T18:45:25.000+0000",
+      "code_size_kb": 4.1,
+      "invoke_stats": {
+        "n_invocations_30d": 29,
+        "last_invoke_date": "2026-05-30T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-31T11:00:13.789000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 305,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": true,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_29_INVOKES_30D"
+      ]
+    },
+    {
+      "name": "justhodl-capital-return",
+      "description": "Capital-return cannibal screen - companies shrinking their share count via FCF-funded net buybacks at a reasonable valuation with a healthy business. Shareholder-yield factor with funding/valuation/qu",
+      "config_last_modified": "2026-05-30T18:36:19.000+0000",
+      "code_size_kb": 3.9,
+      "invoke_stats": {
+        "n_invocations_30d": 18,
+        "last_invoke_date": "2026-05-30T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-31T11:00:14.318000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "data/capital-return.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 238,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_18_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-carry-surface",
+      "description": "UNIVERSAL CARRY SURFACE \u2014 institutional cross-asset carry engine. Answers: 'which asset is the market paying me most to hold, right now?' across equity / FX / FI / commodity / crypto. Z-scored within ",
+      "config_last_modified": "2026-05-30T18:41:30.000+0000",
+      "code_size_kb": 9.9,
+      "invoke_stats": {
+        "n_invocations_30d": 56,
+        "last_invoke_date": "2026-05-30T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-31T12:01:42.363000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [
+        "carry.html"
+      ],
+      "code_stats": {
+        "local_source": true,
+        "loc": 826,
+        "imports_boto3": true,
+        "imports_fred": true,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_56_INVOKES_30D",
+        "REFERENCED_BY_1_PAGES"
+      ]
+    },
+    {
+      "name": "justhodl-coffee-can",
+      "description": "Coffee-Can Tracker \u2014 multibagger holding-discipline + thesis-break detection",
+      "config_last_modified": "2026-05-30T18:27:55.000+0000",
+      "code_size_kb": 5.8,
+      "invoke_stats": {
+        "n_invocations_30d": 14,
+        "last_invoke_date": "2026-05-30T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-31T11:00:13.775000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [
+        "coffee-can-daily"
+      ],
+      "s3_outputs": [],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 447,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "EVENTBRIDGE_TARGET",
+        "ACTIVE_14_INVOKES_30D"
+      ]
+    },
+    {
+      "name": "justhodl-firm-stress",
+      "description": "Firm Stress Desk - re-prices the firm book through 15 scenarios (historical replays + macro shocks) via cached six-factor loadings, attributes each loss by desk / sector / name and runs a reverse stre",
+      "config_last_modified": "2026-05-30T18:28:17.000+0000",
+      "code_size_kb": 5.3,
+      "invoke_stats": {
+        "n_invocations_30d": 14,
+        "last_invoke_date": "2026-05-30T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-31T03:00:40.794000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "data/firm-stress.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 382,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_14_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-forward-returns",
+      "description": "Capital Compass \u2014 forward 10y expected returns per asset class (Damodaran/GMO/AQR methodology). Earnings yield + growth for stocks, YTM for bonds, Erb-Harvey gold, real yield TIPS, AFFO REITs. Vs 30y ",
+      "config_last_modified": "2026-05-30T18:30:26.000+0000",
+      "code_size_kb": 9.7,
+      "invoke_stats": {
+        "n_invocations_30d": 7,
+        "last_invoke_date": "2026-05-30T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-31T12:00:59.552000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "data/forward-returns.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 597,
+        "imports_boto3": true,
+        "imports_fred": true,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_7_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-gdelt-sentiment",
+      "description": "GDELT 2.0 global news + geopolitical sentiment. Pulls latest 15-min GKG batch, filters financial themes, computes per-asset sentiment.",
+      "config_last_modified": "2026-05-30T18:36:25.000+0000",
+      "code_size_kb": 4.3,
+      "invoke_stats": {
+        "n_invocations_30d": 1442,
+        "last_invoke_date": "2026-05-30T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-31T13:30:12.445000+00:00",
+      "function_url": "https://sfots654xx2sprhteqdtdpdmqy0kapla.lambda-url.us-east-1.on.aws/",
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 309,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "HAS_FUNCTION_URL",
+        "ACTIVE_1442_INVOKES_30D"
+      ]
+    },
+    {
+      "name": "justhodl-global-macro",
+      "description": "Per-country economic regime aggregator. 15 countries \u00d7 5 dimensions (unemp, PMI, IP YoY, equity ETF, currency). Composite Health Score 0-100 + HOT/MIXED/COLD regime classification.",
+      "config_last_modified": "2026-05-30T18:28:55.000+0000",
+      "code_size_kb": 4.7,
+      "invoke_stats": {
+        "n_invocations_30d": 28,
+        "last_invoke_date": "2026-05-30T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-30T22:01:03.230000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 326,
+        "imports_boto3": true,
+        "imports_fred": true,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_28_INVOKES_30D"
+      ]
+    },
+    {
+      "name": "justhodl-gold-equity-rotation",
+      "description": "Gold-equity rotation. 5-factor: SPY/GLD ratio z-score, 20d momentum + MA50/MA200, 5d persistence, GDX+SLV strength, DXY overlay. GOLD_BREAKOUT_RICH or EQUITY_DOMINANT_RICH. Erb-Harvey 2013, Baur-Lucey",
+      "config_last_modified": "2026-05-30T18:45:24.000+0000",
+      "code_size_kb": 4.6,
+      "invoke_stats": {
+        "n_invocations_30d": 11,
+        "last_invoke_date": "2026-05-30T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-30T22:45:04.537000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "data/gold-equity-rotation.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 368,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_11_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-history-api",
+      "description": "Read-only API for justhodl-history DDB. Function URL exposes /index, /snapshot, /latest, /timestamps. Reserved concurrency=5.",
+      "config_last_modified": "2026-05-30T18:35:24.000+0000",
+      "code_size_kb": 2.8,
+      "invoke_stats": {
+        "n_invocations_30d": 3,
+        "last_invoke_date": "2026-05-06T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-06T17:59:46.543000+00:00",
+      "function_url": "https://67eohg2wno7aaceipjmcro4o3y0xgsiw.lambda-url.us-east-1.on.aws/",
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [
+        "audit.html"
+      ],
+      "code_stats": {
+        "local_source": true,
+        "loc": 250,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": true,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "HAS_FUNCTION_URL",
+        "SOME_INVOKES_3_30D",
+        "REFERENCED_BY_1_PAGES"
+      ]
+    },
+    {
+      "name": "justhodl-magic-formula",
+      "description": "Greenblatt Magic Formula Screener: rank S&P 500 (ex-fin/utils/REITs) by Earnings Yield + ROIC. GuruFocus signature. Greenblatt 2010 30.8% CAGR backtest. Daily 22:45 UTC.",
+      "config_last_modified": "2026-05-30T18:30:12.000+0000",
+      "code_size_kb": 4.4,
+      "invoke_stats": {
+        "n_invocations_30d": 11,
+        "last_invoke_date": "2026-05-30T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-30T22:45:19.781000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "data/magic-formula.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 349,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_11_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-metals-miners",
+      "description": "Metals & Miners screen - scores gold/silver/copper/uranium/lithium miners as leveraged calls on their metal vs proxy-ETF trend regimes, gated on balance-sheet survivability, with metal-anchored price ",
+      "config_last_modified": "2026-05-30T18:28:31.000+0000",
+      "code_size_kb": 7.3,
+      "invoke_stats": {
+        "n_invocations_30d": 13,
+        "last_invoke_date": "2026-05-30T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-30T14:10:16.971000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "screener/metals-miners.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 493,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_13_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-opex-calendar",
+      "description": "OPEX/0DTE gamma pinning calendar (Edge #8). Classifies trading day into OPEX regime (PRE/OPEX/POST/QUAD), computes Polygon max-pain, backtests 5y SPY post-OPEX returns, provides state-aware trade tick",
+      "config_last_modified": "2026-05-30T18:45:24.000+0000",
+      "code_size_kb": 8.6,
+      "invoke_stats": {
+        "n_invocations_30d": 2,
+        "last_invoke_date": "2026-05-20T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-20T14:06:52.745000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "data/opex-calendar.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 732,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": true,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "SOME_INVOKES_2_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-portfolio-snapshot",
+      "description": "Portfolio enrichment (#9). Joins positions+watchlist with alpha/confluence/regime/sentiment + latest prices. Auto-syncs watchlist with TIER S/A from alpha-score.",
+      "config_last_modified": "2026-05-30T18:32:45.000+0000",
+      "code_size_kb": 5.2,
+      "invoke_stats": {
+        "n_invocations_30d": 517,
+        "last_invoke_date": "2026-05-30T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-31T13:05:23.618000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 431,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": true,
+        "imports_dynamodb": true,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_517_INVOKES_30D"
+      ]
+    },
+    {
+      "name": "justhodl-post-earnings-mean-rev",
+      "description": "Post-earnings drift exhaustion / mean-rev scanner. 4-factor: earnings 5-15td ago + RSI<=25 or >=75 + price ext >=1.5 std vs 50dMA + IV crushed. Counter-trend 5-10d hold. Bernard-Thomas 1989, Bali 2008",
+      "config_last_modified": "2026-05-30T18:45:24.000+0000",
+      "code_size_kb": 5.8,
+      "invoke_stats": {
+        "n_invocations_30d": 13,
+        "last_invoke_date": "2026-05-30T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-31T00:00:44.494000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "data/post-earnings-mean-rev.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 466,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_13_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-public-api-demo",
+      "description": "Reference public API endpoint demonstrating api_auth.py.",
+      "config_last_modified": "2026-05-30T18:41:39.000+0000",
+      "code_size_kb": 6.8,
+      "invoke_stats": {
+        "n_invocations_30d": 106,
+        "last_invoke_date": "2026-05-06T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-06T21:24:43.862000+00:00",
+      "function_url": "https://odoy2bydzufzjbp765n3ix6w5u0rvqmj.lambda-url.us-east-1.on.aws/",
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 114,
+        "imports_boto3": false,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "HAS_FUNCTION_URL",
+        "ACTIVE_106_INVOKES_30D"
+      ]
+    },
+    {
+      "name": "justhodl-smart-money-holdings",
+      "description": "Builds inverse mapping {symbol: top funds holding it} for screener integration",
+      "config_last_modified": "2026-05-30T18:31:06.000+0000",
+      "code_size_kb": 7.6,
+      "invoke_stats": {
+        "n_invocations_30d": 28,
+        "last_invoke_date": "2026-05-30T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-31T11:00:50.364000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "screener/smart-money-holdings.json"
+      ],
+      "page_references": [
+        "screener/index.html"
+      ],
+      "code_stats": {
+        "local_source": true,
+        "loc": 396,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_28_INVOKES_30D",
+        "REFERENCED_BY_1_PAGES",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-smart-money-tracker",
+      "description": "Top hedge funds / institutional holders activity (13F-based)",
+      "config_last_modified": "2026-05-30T18:32:15.000+0000",
+      "code_size_kb": 3.9,
+      "invoke_stats": {
+        "n_invocations_30d": 24,
+        "last_invoke_date": "2026-05-30T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-31T11:00:38.522000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "screener/smart-money.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 265,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_24_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-tax-plan",
+      "description": "Tax-Aware Portfolio Engine. Per-position LT/ST classification + tax-if-sold-today. After-tax forward returns (taxable/IRA/Roth) per Capital Compass asset. Tax-loss harvest candidates with substitute E",
+      "config_last_modified": "2026-05-30T18:32:51.000+0000",
+      "code_size_kb": 9.8,
+      "invoke_stats": {
+        "n_invocations_30d": 10,
+        "last_invoke_date": "2026-05-30T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-31T11:00:17.386000+00:00",
+      "function_url": "https://a2orhvvfva3kh5r6jx5soijcbm0uecuw.lambda-url.us-east-1.on.aws/",
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "data/tax-plan-snapshot.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 658,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "HAS_FUNCTION_URL",
+        "ACTIVE_10_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-tic-flows",
+      "description": "TIC Flows \u2014 foreign Treasury holdings + de-dollarization tracker",
+      "config_last_modified": "2026-05-30T18:45:24.000+0000",
+      "code_size_kb": 4.1,
+      "invoke_stats": {
+        "n_invocations_30d": 6,
+        "last_invoke_date": "2026-05-30T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-30T22:01:01.855000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "data/tic-flows.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 281,
+        "imports_boto3": true,
+        "imports_fred": true,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_6_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    },
+    {
+      "name": "justhodl-vix-backwardation-trigger",
+      "description": "Institutional once-per-cycle capitulation buy signal. State machine NULL->WARM->ARMED->FIRED->COOLDOWN based on VIX9D/VIX/VIX3M term structure + VVIX panic gauge. Emits retail trade ticket + forward 1",
+      "config_last_modified": "2026-05-30T18:27:15.000+0000",
+      "code_size_kb": 7.3,
+      "invoke_stats": {
+        "n_invocations_30d": 2,
+        "last_invoke_date": "2026-05-20T13:35:00+00:00"
+      },
+      "last_log_event": "2026-05-20T15:30:59.941000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 575,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "SOME_INVOKES_2_30D"
+      ]
+    },
+    {
+      "name": "justhodl-vol-target-unwind",
+      "description": "Vol-target unwind trigger (Edge #4). RV21 vs 16/20/25 thresholds; estimates AUM mechanically rebalancing; outputs trade ticket and forward expectations.",
+      "config_last_modified": "2026-05-30T18:45:25.000+0000",
+      "code_size_kb": 8.9,
+      "invoke_stats": {
+        "n_invocations_30d": 8,
+        "last_invoke_date": "2026-05-20T13:40:00+00:00"
+      },
+      "last_log_event": "2026-05-20T15:38:46.045000+00:00",
+      "function_url": null,
+      "event_source_mappings": [],
+      "eventbridge_rules": [],
+      "s3_outputs": [
+        "data/vol-target-unwind.json"
+      ],
+      "page_references": [],
+      "code_stats": {
+        "local_source": true,
+        "loc": 700,
+        "imports_boto3": true,
+        "imports_fred": false,
+        "imports_polygon": false,
+        "imports_dynamodb": false,
+        "has_handler": true
+      },
+      "recommendation": "KEEP",
+      "reasons": [
+        "ACTIVE_8_INVOKES_30D",
+        "WRITES_S3"
+      ]
+    }
+  ]
+}
