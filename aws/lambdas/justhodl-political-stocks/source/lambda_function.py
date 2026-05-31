@@ -115,10 +115,6 @@ BIOGUIDE_TO_PARTY = {
 }
 
 
-# Universe of politicians to track is now implicit — Quiver returns all
-TRACK_HOUSE = True
-TRACK_SENATE = True
-
 # ─── TRUMP HOLDINGS (from 2025-03-19 OGE 278e filing) ────────────────────
 # Trump's 2025 public financial disclosure shows the following major
 # directly-held or trust-held positions. Re-cache when new filings appear.
@@ -215,6 +211,60 @@ def _http_get(url, timeout=HTTP_TIMEOUT, retries=2):
     return None
 
 
+# ─── Full congressional party map via theunitedstates.io ────────────────
+# The legislators-current.json file is maintained by the unitedstates.io
+# project — every current member of Congress with their BioGuide ID and
+# party. ~535 entries (435 House + 100 Senate). Replaces the small hand-
+# curated dict above which only covered top-30 active traders.
+
+def fetch_full_legislators_map() -> dict:
+    """Returns {bioguide_id: party_letter} for ALL current Congress.
+    Party letters: D / R / I (Independent) / L (Libertarian) / ? unknown.
+    Falls back to the small hardcoded BIOGUIDE_TO_PARTY map if upstream
+    fetch fails."""
+    url = "https://theunitedstates.io/congress-legislators/legislators-current.json"
+    body = _http_get(url, timeout=30)
+    if not body:
+        print("[political] legislators fetch failed — using hardcoded fallback")
+        return dict(BIOGUIDE_TO_PARTY)
+    
+    try:
+        data = json.loads(body)
+    except Exception as e:
+        print(f"[political] legislators parse err: {e}")
+        return dict(BIOGUIDE_TO_PARTY)
+    
+    party_map = {}
+    party_short = {
+        "Democrat":    "D",
+        "Republican":  "R",
+        "Independent": "I",
+        "Libertarian": "L",
+    }
+    for legislator in (data or []):
+        try:
+            bioguide = (legislator.get("id") or {}).get("bioguide")
+            terms = legislator.get("terms") or []
+            if not bioguide or not terms:
+                continue
+            latest_term = terms[-1]
+            party_full = latest_term.get("party", "")
+            party_map[bioguide] = party_short.get(party_full, party_full[:1] or "?")
+        except Exception:
+            continue
+    
+    # Merge in hardcoded values (in case upstream missed someone)
+    for k, v in BIOGUIDE_TO_PARTY.items():
+        party_map.setdefault(k, v)
+    
+    print(f"[political] loaded {len(party_map)} party mappings from legislators-current.json")
+    return party_map
+
+
+# Populated by handler() per invocation
+_current_party_map = None
+
+
 # ─── Quiver Quant live/congresstrading endpoint ─────────────────────────
 
 def fetch_quiver_congress():
@@ -252,8 +302,10 @@ def parse_trade_amount(range_str: str):
 
 def party_for_bioguide(bioguide_id: str) -> str:
     """Return party (D/R/I/?) for a politician by their BioGuide ID.
-    Falls back to '?' for unknown — bipartisan detection still works for
-    known active traders, which cover most volume."""
+    Uses the auto-loaded full Congress map if available, else falls back
+    to the hardcoded BIOGUIDE_TO_PARTY map."""
+    if _current_party_map is not None:
+        return _current_party_map.get(bioguide_id, "?")
     return BIOGUIDE_TO_PARTY.get(bioguide_id, "?")
 
 
@@ -309,7 +361,7 @@ def aggregate_trades(quiver_trades: list):
         name = (t.get("Representative") or "Unknown").strip()
         bioguide = t.get("BioGuideID", "")
         party = party_for_bioguide(bioguide)
-        chamber = "house" if "rep" in (t.get("House") or "").lower() else "senate"
+        chamber = "house" if (t.get("House") or "") == "Representatives" else "senate"
         amount = parse_trade_amount(t.get("Range") or "")
         
         rec = by_ticker[sym]
@@ -382,14 +434,20 @@ def aggregate_trades(quiver_trades: list):
 def handler(event, context):
     started = datetime.now(timezone.utc)
     
+    # 0. Load full party map (every current Congress member with BioGuide ID)
+    global _current_party_map
+    _current_party_map = fetch_full_legislators_map()
+    
     # 1. Fetch Congress trades from Quiver
     print("[political] fetching Quiver live/congresstrading…")
     quiver_trades = fetch_quiver_congress()
     print(f"[political] Quiver: {len(quiver_trades)} total trades in feed")
     
-    # Tally house/senate split for reporting
-    n_house = sum(1 for t in quiver_trades if "rep" in (t.get("House") or "").lower())
-    n_senate = sum(1 for t in quiver_trades if "sen" in (t.get("House") or "").lower())
+    # Tally house/senate split — Quiver's House field is "Representatives" or "Senate"
+    # Bug fix: use exact match (was substring matching, where "sen" matches
+    # "repreSENtatives" — yielded 500 House + 1000 Senate impossibly summing > 1000)
+    n_house = sum(1 for t in quiver_trades if (t.get("House") or "") == "Representatives")
+    n_senate = sum(1 for t in quiver_trades if (t.get("House") or "") == "Senate")
     
     # 2. Aggregate
     ticker_aggregation = aggregate_trades(quiver_trades)
@@ -404,12 +462,13 @@ def handler(event, context):
                         if r["bipartisan"] and r["n_buys"] >= 2][:20]
     
     out = {
-        "schema_version":   "1.1",
-        "method":           "political_stocks_v1_quiver",
+        "schema_version":   "1.2",
+        "method":           "political_stocks_v1_quiver_fullparty",
         "generated_at":     datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s":       round((datetime.now(timezone.utc) - started).total_seconds(), 1),
         "lookback_days":    LOOKBACK_DAYS,
         "data_source":      "https://api.quiverquant.com/beta/live/congresstrading",
+        "party_source":     "https://theunitedstates.io/congress-legislators/legislators-current.json",
         
         "trump_holdings":   TRUMP_HOLDINGS,
         
@@ -418,7 +477,7 @@ def handler(event, context):
             "n_trades_house":  n_house,
             "n_trades_senate": n_senate,
             "n_tickers":       len(ticker_aggregation),
-            "n_known_parties": len(BIOGUIDE_TO_PARTY),
+            "n_party_map":     len(_current_party_map or {}),
             "top_buys":        top_buys,
             "top_sells":       top_sells,
             "clusters":        clusters,
