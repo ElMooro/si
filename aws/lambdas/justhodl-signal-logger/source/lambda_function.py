@@ -495,7 +495,28 @@ def lambda_handler(event,context):
     # Each prediction gets a horizon and a target ticker so outcome-checker
     # grades it automatically. Skill aggregator reads from the same outcomes
     # table to produce /skill.html accuracy boards.
+    #
+    # Phase 12 (2026-05-31): the self-improvement calibrator writes
+    # data/_skill/calibration-config.json with per-engine confidence_scale
+    # overrides. We READ it here and apply scaling to each engine's raw
+    # confidence claim. This is the closing of the learning loop — the
+    # system applies what it has learned about its own track record.
     try:
+        # Read calibration config (applied by self-improvement-calibrator)
+        _cal_cfg = fs3("data/_skill/calibration-config.json") or {}
+        _engine_overrides = _cal_cfg.get("engine_overrides") or {}
+        _cal_version = _cal_cfg.get("version") or "1.0"
+
+        def _apply_calibration(engine, raw_conf):
+            """Apply per-engine confidence scaling based on track record.
+            Returns (calibrated_conf, scale_applied)."""
+            ovr = _engine_overrides.get(engine) or {}
+            scale = float(ovr.get("confidence_scale", 1.0))
+            calibrated = raw_conf * scale
+            # Always bound to valid range
+            calibrated = max(0.30, min(0.95, calibrated))
+            return calibrated, scale
+
         def _parse_horizon_days(s, default=7):
             """Convert horizon strings like '1-3 days', '1-2 weeks', '3-7d' to
             an integer day count (use the upper bound). Falls back to default."""
@@ -545,6 +566,8 @@ def lambda_handler(event,context):
                 try: conf = float(prob) / 100.0
                 except: conf = 0.60
                 conf = max(0.30, min(0.95, conf))
+                _raw_conf = conf
+                conf, _scale = _apply_calibration("equity_frontrun_sniffer", conf)
                 horizon_text = sx.get("horizon") or sx.get("horizon_days") or "7d"
                 horizon_days = _parse_horizon_days(horizon_text, default=7)
                 cats = [g.get("category") for g in (sx.get("smoking_gun_signals") or []) if g.get("category")]
@@ -565,6 +588,9 @@ def lambda_handler(event,context):
                         "categories":     cats[:6],
                         "regime":         fr.get("anomaly_regime"),
                         "anomaly_score":  fr.get("overall_anomaly_score"),
+                        "raw_confidence": round(_raw_conf, 4),
+                        "calibration_scale_applied": round(_scale, 4),
+                        "calibration_version": _cal_version,
                     },
                     rationale=str(sx.get("thesis_summary") or sx.get("invalidation") or "")[:300]
                 ))
@@ -590,6 +616,8 @@ def lambda_handler(event,context):
                 try: conf = float(prob) / 100.0
                 except: conf = 0.60
                 conf = max(0.30, min(0.95, conf))
+                _raw_conf_m = conf
+                conf, _scale_m = _apply_calibration("macro_frontrun_sniffer", conf)
                 horizon_text = ts.get("horizon") or sx.get("horizon") or "14d"
                 horizon_days = _parse_horizon_days(horizon_text, default=14)
                 target_price = ts.get("target_level") or ts.get("target_price")
@@ -613,6 +641,9 @@ def lambda_handler(event,context):
                         "entry_level":    ts.get("entry_level"),
                         "stop_level":     ts.get("stop_level"),
                         "size_pct":       ts.get("size_pct_of_portfolio"),
+                        "raw_confidence": round(_raw_conf_m, 4),
+                        "calibration_scale_applied": round(_scale_m, 4),
+                        "calibration_version": _cal_version,
                     },
                     rationale=str(sx.get("thesis_summary") or sx.get("front_running_catalyst") or "")[:300]
                 ))
@@ -629,17 +660,22 @@ def lambda_handler(event,context):
                 conv_at = _dt.fromisoformat(ms["last_convergence_fingerprint_at"].replace("Z","+00:00"))
                 hrs_since = (datetime.now(timezone.utc) - conv_at).total_seconds() / 3600
                 if hrs_since < 6:  # Only log if convergence fired in this cycle (avoid dupes)
+                    _raw_conf_mc = 0.75
+                    _cal_conf_mc, _scale_mc = _apply_calibration("macro_convergence_fingerprint", _raw_conf_mc)
                     logged.append(log_sig(
                         "macro_convergence_fingerprint",
                         "FIRED_3_OF_3",
                         "DOWN",        # convergence → expect risk-off → SPY down
-                        0.75,          # historical analog hit rate
+                        _cal_conf_mc,
                         "SPY",
                         [7, 14, 30],
                         meta={
                             "engine":            "macro_convergence_fingerprint",
                             "pillars_state":     ms.get("last_convergence_detail"),
                             "historical_analogs": ["Aug 2007", "Sep 2019", "Mar 2020", "Mar 2023"],
+                            "raw_confidence":    round(_raw_conf_mc, 4),
+                            "calibration_scale_applied": round(_scale_mc, 4),
+                            "calibration_version": _cal_version,
                         },
                         rationale="3/3 macro pillars stressed simultaneously — historical risk-off signature"
                     ))
@@ -659,11 +695,13 @@ def lambda_handler(event,context):
                     import re
                     tk_match = re.match(r"^([A-Z]{1,5})", str(target).strip())
                     ticker = tk_match.group(1) if tk_match else "SPY"
+                    _raw_conf_ec = 0.70
+                    _cal_conf_ec, _scale_ec = _apply_calibration("equity_convergence_fingerprint", _raw_conf_ec)
                     logged.append(log_sig(
                         "equity_convergence_fingerprint",
                         f"FIRED_{conv_det.get('n_cardinal_present', 3)}_OF_4",
                         pred,
-                        0.70,          # GME/Feb-2018 historical hit rate
+                        _cal_conf_ec,
                         ticker,
                         [3, 7, 14],
                         meta={
@@ -672,6 +710,9 @@ def lambda_handler(event,context):
                             "n_cardinal_present":  conv_det.get("n_cardinal_present"),
                             "historical_analogs":  ["Jan 2021 GME", "Feb 2018 vol unwind", "Dec 2018 dealer cascade"],
                             "top_setup_target":    target,
+                            "raw_confidence":      round(_raw_conf_ec, 4),
+                            "calibration_scale_applied": round(_scale_ec, 4),
+                            "calibration_version": _cal_version,
                         },
                         rationale=f"{conv_det.get('n_cardinal_present',3)}/4 equity cardinals firing — gamma squeeze / vol-cascade signature"
                     ))
@@ -701,11 +742,13 @@ def lambda_handler(event,context):
                                 pred = _dir_from_label(sx.get("target_direction"))
                                 if pred == "NEUTRAL": pred = "UP"
                                 break
+                    _raw_conf_st = 0.65
+                    _cal_conf_st, _scale_st = _apply_calibration("sustained_target_equity", _raw_conf_st)
                     logged.append(log_sig(
                         "sustained_target_equity",
                         f"{ticker}_{pred}",
                         pred,
-                        0.65,
+                        _cal_conf_st,
                         ticker,
                         [7, 14],
                         meta={
@@ -714,6 +757,9 @@ def lambda_handler(event,context):
                             "max_n_times_in_window": entry.get("max_n_times_in_window"),
                             "first_seen":          entry.get("first_seen"),
                             "last_seen":           entry.get("last_seen"),
+                            "raw_confidence":      round(_raw_conf_st, 4),
+                            "calibration_scale_applied": round(_scale_st, 4),
+                            "calibration_version": _cal_version,
                         },
                         rationale=f"Appeared in {entry.get('n_digest_appearances')} digests — sustained smart-money flag"
                     ))

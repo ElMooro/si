@@ -62,25 +62,26 @@ footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);colo
 <main class="shell">
 
   <section class="hero">
-    <h1>🧠 System <em>Skill</em> · Closed-Loop Learning</h1>
+    <h1>🧠 System <em>Skill</em> · Closed-Loop Learning <span style="color:var(--green);font-style:normal;font-weight:500;font-size:18px;letter-spacing:0">· Phase 2 LIVE</span></h1>
     <p class="sub">
-      <b>The platform grades itself.</b> Every front-run sniffer setup,
-      convergence-fingerprint fire, and sustained-target alert is logged to
-      DynamoDB the moment it's generated, with a target asset, predicted
-      direction, confidence, and horizon. After the horizon expires, the
-      <b>outcome-checker</b> fetches actual market data and scores the
-      prediction. This page aggregates accuracy per engine, per regime, and
-      per confidence bucket — turning every call the system has ever made
-      into a verifiable track record. <b>The next phase is self-improvement</b>:
-      a weekly calibrator will read this skill data and propose prompt /
-      threshold tweaks where engines are systematically over- or under-confident.
+      <b>The platform grades itself AND applies what it learns.</b>
+      Every front-run setup, convergence fire, and sustained-target alert is
+      logged with target, direction, and horizon. The <b>outcome-checker</b>
+      grades them against actual market data. The <b>self-improvement
+      calibrator</b> detects per-engine miscalibration and writes a
+      <code>calibration-config.json</code> with confidence-scale overrides.
+      <b>Signal-logger reads that config on every cycle</b> and applies the
+      learned overrides to new predictions. The system literally tunes itself
+      every day. The <b>opportunity ranker</b> combines engine hit-rates with
+      live setups to surface the highest-conviction trades currently available.
     </p>
     <div class="hero-pills">
       <span class="pill">📊 lookback: <b>90 days</b></span>
       <span class="pill">🎯 5 engines tracked</span>
-      <span class="pill">⏱ aggregator: <b>daily</b></span>
-      <span class="pill">📈 horizons: <b>3d, 7d, 14d, 30d</b></span>
-      <span class="pill">🆓 0 Claude calls (pure metric aggregation)</span>
+      <span class="pill">⏱ aggregator: <b>daily 10:30 UTC</b></span>
+      <span class="pill">🔧 calibrator: <b>daily 11:00 UTC</b></span>
+      <span class="pill">🏆 opportunity ranker: <b>every 4h</b></span>
+      <span class="pill">🆓 0 Claude calls in this loop</span>
     </div>
   </section>
 

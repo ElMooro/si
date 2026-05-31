@@ -167,13 +167,124 @@
     return html;
   }
 
+  function renderImprovementLog(cfg){
+    if (!cfg) return '<div class="jhsk-empty">No calibration config yet — populates on the first self-improvement-calibrator run.</div>';
+    var overrides = cfg.engine_overrides || {};
+    var history = cfg.history || [];
+    var pending = cfg.pending_proposals || [];
+    var nEngines = Object.keys(overrides).length;
+
+    var html = '';
+
+    // Current active calibration scales
+    html += '<div class="jhsk-row-grid">' +
+              '<div class="h">Active calibration overrides · version ' + esc(cfg.version || '1.0') + '</div>';
+    if (nEngines === 0) {
+      html += '<div style="padding:10px 4px;color:#6f7b91;font-size:11.5px;font-family:ui-monospace,monospace">No engine has crossed the significance threshold yet (need n_scored ≥ ' + esc((cfg.thresholds||{}).min_n_scored || 20) + '). All engines running at confidence_scale = 1.00 (no calibration).</div>';
+    } else {
+      html += '<table>';
+      Object.keys(overrides).forEach(function(eng){
+        var ovr = overrides[eng] || {};
+        var scale = ovr.confidence_scale || 1.0;
+        var direction = scale > 1.0 ? 'upweight' : (scale < 1.0 ? 'downweight' : 'neutral');
+        var color = scale > 1.05 ? '#26ffaf' : (scale < 0.95 ? '#fbbf24' : '#a8b3c7');
+        html += '<tr>' +
+                  '<td class="lbl">' + esc(eng.replace(/_/g,' ')) + '</td>' +
+                  '<td class="bar-cell"><div style="display:flex;align-items:center;gap:9px;font-size:11px;color:#6f7b91"><span style="color:' + color + ';font-weight:700">' + esc(direction) + '</span><span>n=' + esc(ovr.n_predictions_at_tweak || 0) + '</span></div></td>' +
+                  '<td class="v" style="color:' + color + '">×' + esc(scale.toFixed(2)) + '</td>' +
+                '</tr>';
+      });
+      html += '</table>';
+    }
+    html += '</div>';
+
+    // Recent tweaks log
+    if (history.length > 0) {
+      html += '<div class="jhsk-recent">' +
+                '<div class="jhsk-rec-hdr">Recent calibration tweaks (last ' + esc(Math.min(history.length, 10)) + ')</div>';
+      history.slice(-10).reverse().forEach(function(t){
+        var statusColor = t.status === 'AUTO_APPLIED' ? '#26ffaf' : (t.status === 'PENDING_REVIEW' ? '#fbbf24' : '#6f7b91');
+        var dirIcon = t.calibration_type === 'underconfident' ? '↑' : '↓';
+        html += '<div class="jhsk-rec-row" style="grid-template-columns:14px 90px 1fr auto 80px">' +
+                  '<span class="jhsk-rec-dot ' + (t.status === 'AUTO_APPLIED' ? 'correct' : 'wrong') + '" style="background:' + statusColor + '"></span>' +
+                  '<span class="jhsk-rec-ts">' + esc(ageOf(t.proposed_at || t.applied_at)) + ' ago</span>' +
+                  '<span class="jhsk-rec-detail">' +
+                    '<b>' + esc(t.engine) + '</b> ' + esc(dirIcon) + ' ' +
+                    esc((t.current_scale||1).toFixed(2)) + ' → <b>' + esc((t.proposed_scale||1).toFixed(2)) + '</b> · ' +
+                    '<span style="color:#6f7b91">' + esc((t.calibration_type||'')) + ' by ' + esc((Math.abs(t.calibration_error||0)*100).toFixed(0)) + '% (n=' + esc(t.n_predictions||0) + ')</span>' +
+                  '</span>' +
+                  '<span class="jhsk-rec-conf" style="color:' + statusColor + '">' + esc(t.status || '?') + '</span>' +
+                  '<span class="jhsk-rec-ret">v' + esc((t.tweak_id||'').split('-')[1] || '?') + '</span>' +
+                '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="jhsk-empty" style="margin-top:11px">No tweaks yet — calibrator runs daily but only acts when an engine accumulates ≥' + esc((cfg.thresholds||{}).min_n_scored || 20) + ' scored predictions with calibration error ≥' + esc(((cfg.thresholds||{}).err_threshold || 0.10)*100) + '%.</div>';
+    }
+
+    // Pending proposals (require human review)
+    if (pending && pending.length > 0) {
+      html += '<div class="jhsk-row-grid" style="margin-top:11px;border-left:3px solid #fbbf24">' +
+                '<div class="h" style="color:#fbbf24">⏸ Pending review · ' + esc(pending.length) + ' proposals</div>' +
+                '<table>';
+      pending.forEach(function(p){
+        html += '<tr>' +
+                  '<td class="lbl">' + esc(p.engine) + '</td>' +
+                  '<td colspan="2" style="color:#cbd2dc">' + esc((p.current_scale||1).toFixed(2)) + ' → ' + esc((p.proposed_scale||1).toFixed(2)) + ' · <span style="color:#6f7b91">' + esc(p.reason_pending || 'step too large') + '</span></td>' +
+                '</tr>';
+      });
+      html += '</table></div>';
+    }
+
+    return html;
+  }
+
+  function renderOpportunities(rank){
+    if (!rank || !rank.ranked_opportunities) return '<div class="jhsk-empty">No opportunity rankings yet — populates after the next opportunity-ranker run (every 4h).</div>';
+    var opps = rank.ranked_opportunities || [];
+    if (opps.length === 0) return '<div class="jhsk-empty">No active opportunities right now — sniffers have no setups in this cycle.</div>';
+
+    var html = '<div style="font-family:ui-monospace,monospace;font-size:10.5px;color:#6f7b91;margin-bottom:10px;line-height:1.55">' +
+                 '<b style="color:#cbd2dc">Formula:</b> <code style="background:#11161f;padding:1px 6px;border-radius:3px;color:#22d3ee">score = engine_hit_rate × claimed_conf × recency × (0.5 + 0.5×richness)</code><br>' +
+                 'Engines with strong track records get higher scores. Newer setups score higher than stale ones. More confluence (categories/pillars) = more weight.' +
+               '</div>';
+
+    html += '<div class="jhsk-recent">' +
+              '<div class="jhsk-rec-hdr">Top ' + esc(Math.min(opps.length, 12)) + ' opportunities · ranked by closed-loop score</div>';
+    opps.slice(0, 12).forEach(function(o){
+      var scoreColor = o.score >= 0.45 ? '#26ffaf' : (o.score >= 0.30 ? '#fbbf24' : '#a8b3c7');
+      var sourceColor = o.source === 'macro_sniffer' ? '#22d3ee' : '#ff7a18';
+      html += '<div class="jhsk-rec-row" style="grid-template-columns:36px 70px 1fr 100px 60px">' +
+                '<span style="font-family:ui-monospace,monospace;font-size:13px;font-weight:800;color:#a78bfa">#' + esc(o.rank) + '</span>' +
+                '<span style="font-family:ui-monospace,monospace;font-size:11px;color:' + sourceColor + ';font-weight:700">' + esc(o.engine.indexOf('macro')>-1?'🏛 MACRO':'🎯 EQUITY') + '</span>' +
+                '<span class="jhsk-rec-detail">' +
+                  '<b>' + esc(o.asset) + '</b> ' + esc(o.direction) + ' · ' +
+                  '<span style="color:#6f7b91">hit_rate ' + esc((o.engine_hit_rate*100).toFixed(0)) + '% × conf ' + esc((o.claimed_confidence*100).toFixed(0)) + '%</span>' +
+                '</span>' +
+                '<span style="text-align:right;font-family:ui-monospace,monospace;font-size:11px;color:#6f7b91">' + esc(o.age_hours.toFixed(1)) + 'h old</span>' +
+                '<span style="text-align:right;font-family:ui-monospace,monospace;font-weight:800;font-size:13px;color:' + scoreColor + '">' + esc(o.score.toFixed(3)) + '</span>' +
+              '</div>';
+    });
+    html += '</div>';
+
+    if (rank.generated_at) {
+      html += '<div style="margin-top:8px;font-family:ui-monospace,monospace;font-size:10px;color:#6f7b91;text-align:right">refreshed ' + esc(ageOf(rank.generated_at)) + ' ago · ' + esc(opps.length) + ' total ranked</div>';
+    }
+    return html;
+  }
+
   function mount(elId, opts) {
     injectCSS();
     var el = document.getElementById(elId); if (!el) return;
     el.classList.add("jhsk-wrap");
-    el.innerHTML = '<div class="jhsk-loading">🧠 loading skill index…</div>';
+    el.innerHTML = '<div class="jhsk-loading">🧠 loading skill + calibration + opportunities…</div>';
 
-    return fetchJSON("_skill/frontrun-skill-index.json").then(function (idx) {
+    return Promise.all([
+      fetchJSON("_skill/frontrun-skill-index.json"),
+      fetchJSON("_skill/calibration-config.json"),
+      fetchJSON("_skill/opportunity-rankings.json"),
+    ]).then(function (results) {
+      var idx = results[0], cal = results[1], opps = results[2];
       if (!idx) {
         el.innerHTML = '<div class="jhsk-empty">' +
                        'No skill index yet — populates on the first skill-aggregator run.<br>' +
@@ -183,6 +294,16 @@
         return null;
       }
       var html = "";
+
+      // ─── Section 1: Best Opportunities (top of cockpit — most actionable) ───
+      html += '<div class="jhsk-section-h">🏆 Best Opportunities — closed-loop ranked</div>';
+      html += renderOpportunities(opps);
+
+      // ─── Section 2: Self-Improvement Log (system applying what it learned) ───
+      html += '<div class="jhsk-section-h">🔧 Self-Improvement · per-engine calibration overrides</div>';
+      html += renderImprovementLog(cal);
+
+      // ─── Section 3: Overall System Skill ───
       html += '<div class="jhsk-section-h">🧠 System Skill — overall accuracy</div>';
       html += renderHeadline(idx);
       html += '<div class="jhsk-section-h">⚙️ Per-Engine Leaderboard</div>';
@@ -195,20 +316,17 @@
       html += renderRecent(idx.recent_calls);
 
       html += '<div class="jhsk-meta">' +
-                '<b>How this works:</b>' +
-                ' Every front-run sniffer cycle logs its top setups to DynamoDB <code>justhodl-signals</code> via signal-logger (every 6h).' +
-                ' Outcome-checker grades them after their horizon expires by fetching actual market data.' +
-                ' This page reads the daily skill aggregator output at <code>data/_skill/frontrun-skill-index.json</code>.' +
-                '<br><b>Engines tracked:</b> equity_frontrun_sniffer, macro_frontrun_sniffer, equity_convergence_fingerprint, macro_convergence_fingerprint, sustained_target_equity.' +
-                '<br><b>Calibration meaning:</b> if engines claim 80% confidence and their actual hit rate is 80%, they\'re ' +
-                '<span style="color:#26ffaf">CALIBRATED</span>. If actual is below claimed → <span style="color:#ff5577">OVERCONFIDENT</span>. If actual exceeds claimed → <span style="color:#fbbf24">UNDERCONFIDENT</span>.' +
-                '<br><b>Self-improvement:</b> the next milestone is a weekly calibrator that proposes prompt/threshold tweaks based on this data (Phase 2 of the learning loop).' +
+                '<b>The closed loop:</b>' +
+                ' Sniffers produce setups → signal-logger writes predictions to DynamoDB (with calibration_version stamped) → outcome-checker grades them → skill aggregator computes per-engine accuracy → self-improvement-calibrator detects miscalibration and writes calibration-config.json → signal-logger reads that config on next cycle and scales confidence claims accordingly. The system applies what it has learned.' +
+                '<br><b>Auto-application rules:</b> bounded step size ≤ 0.15 per cycle · scale clamped to [0.5, 1.5] · n_scored ≥ 20 required for any tweak · |error| ≥ 10% required to trigger. Half-step convergence prevents oscillation.' +
+                '<br><b>Verification:</b> every tweak gets a calibration_version stamped onto subsequent predictions, so before/after hit rates per version can be measured. The system can prove its own improvement.' +
+                '<br><b>Coming next:</b> Claude-driven prompt rewrites for systematically wrong engines (Phase 3 of the loop — beyond mere scaling).' +
               '</div>';
 
       el.innerHTML = html;
-      return idx;
+      return {idx: idx, cal: cal, opps: opps};
     }).catch(function (e) {
-      el.innerHTML = '<div class="jhsk-err">Skill index unavailable: ' + esc(e.message || e) + '</div>';
+      el.innerHTML = '<div class="jhsk-err">Skill cockpit unavailable: ' + esc(e.message || e) + '</div>';
       throw e;
     });
   }

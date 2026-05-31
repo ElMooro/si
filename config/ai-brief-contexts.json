@@ -2205,6 +2205,22 @@
         "sustained_target_equity"
       ],
       "lookback_days": 90
+    },
+    "self-improvement-calibrator": {
+      "brief_type": "calibrator",
+      "title": "Self-Improvement Calibrator",
+      "output_key": "self-improvement-calibrator",
+      "min_n_scored": 20,
+      "calibration_error_threshold": 0.1,
+      "max_scale_step": 0.15,
+      "scale_min": 0.5,
+      "scale_max": 1.5,
+      "step_factor": 0.5
+    },
+    "opportunity-ranker": {
+      "brief_type": "opportunity_ranker",
+      "title": "Best-Opportunities Ranker",
+      "output_key": "opportunity-ranker"
     }
   }
 }

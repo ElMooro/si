@@ -3024,12 +3024,20 @@ def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
             if engine not in by_engine:
                 by_engine[engine] = {"n_total": 0, "n_scored": 0, "n_correct": 0,
                                       "sum_return_pct": 0.0, "n_recent_30d": 0,
-                                      "n_correct_30d": 0, "wins": [], "losses": []}
+                                      "n_correct_30d": 0, "wins": [], "losses": [],
+                                      "sum_claimed_conf": 0.0, "sum_claimed_conf_n": 0}
             be = by_engine[engine]
             be["n_total"]  += 1
             be["n_scored"] += 1
             if is_correct: be["n_correct"] += 1
             if ret_pct is not None: be["sum_return_pct"] += ret_pct
+            # Track avg claimed confidence (vital for calibration error)
+            try:
+                _c = float(it.get("confidence") or 0)
+                if _c > 0:
+                    be["sum_claimed_conf"] += _c
+                    be["sum_claimed_conf_n"] += 1
+            except: pass
             if logged_epoch >= cutoff_30d:
                 be["n_recent_30d"] += 1
                 if is_correct: be["n_correct_30d"] += 1
@@ -3080,6 +3088,16 @@ def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
             else:
                 be["hit_rate"] = None
                 be["avg_return_pct"] = None
+            # Average claimed confidence (across ALL predictions for this engine)
+            if be["sum_claimed_conf_n"] > 0:
+                be["avg_claimed_confidence"] = round(be["sum_claimed_conf"] / be["sum_claimed_conf_n"], 4)
+            else:
+                be["avg_claimed_confidence"] = None
+            # Calibration error: hit_rate − claimed (positive = underconfident, negative = overconfident)
+            if be["hit_rate"] is not None and be["avg_claimed_confidence"] is not None:
+                be["calibration_error"] = round(be["hit_rate"] - be["avg_claimed_confidence"], 4)
+            else:
+                be["calibration_error"] = None
             if be["n_recent_30d"] > 0:
                 be["rolling_30d_hit_rate"] = round(be["n_correct_30d"] / be["n_recent_30d"], 4)
             else:
@@ -3094,6 +3112,8 @@ def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
             be.pop("losses", None)
             be.pop("sum_return_pct", None)
             be.pop("n_correct_30d",  None)
+            be.pop("sum_claimed_conf",   None)
+            be.pop("sum_claimed_conf_n", None)
 
         # Finalize regime + bucket metrics
         for rg, rb in by_regime.items():
@@ -3133,6 +3153,405 @@ def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
 
 
 # ─────────────────────────────────────────────────────────────────────
+# SELF-IMPROVEMENT CALIBRATOR — the actual closed-loop learning brain
+# ─────────────────────────────────────────────────────────────────────
+def generate_self_improvement_check(ctx_id, cfg, episode_ref):
+    """The brain of the closed-loop system. Reads the skill index, detects
+    miscalibration per engine, and writes calibration-config.json that the
+    signal-logger reads on each cycle to adjust confidence claims toward
+    actual track record.
+
+    Two types of action:
+      AUTO_APPLIED — safe tweaks within bounds (|ΔS| ≤ 0.15) applied immediately
+      PENDING_REVIEW — larger tweaks proposed for human review (not auto-applied)
+
+    Auto-application rules (defensive, preserves stability):
+      • n_scored ≥ MIN_N_SCORED (default 20)  — statistical significance gate
+      • |calibration_error| ≥ ERR_THRESHOLD (default 0.10)
+      • |new_scale - current_scale| ≤ MAX_STEP (default 0.15) — bounded step size
+      • new_scale clamped to [0.5, 1.5]                       — absolute bounds
+      • half-step adjustment: new_scale = current × (1 + error × 0.5)
+        (slow convergence prevents oscillation when signal is noisy)
+
+    Output: data/_skill/calibration-config.json (signal-logger reads this)
+            data/_skill/improvement-history.json (full audit trail)
+            Telegram: "🔧 Self-Improvement Update" with applied + pending tweaks
+    """
+    t0 = time.time()
+    result = {"context_id": ctx_id, "title": cfg.get("title"),
+              "brief_type": "calibrator", "output_key": cfg.get("output_key")}
+    try:
+        # Configuration with sensible defaults
+        MIN_N_SCORED   = cfg.get("min_n_scored", 20)
+        ERR_THRESHOLD  = cfg.get("calibration_error_threshold", 0.10)
+        MAX_STEP       = cfg.get("max_scale_step", 0.15)
+        SCALE_MIN      = cfg.get("scale_min", 0.5)
+        SCALE_MAX      = cfg.get("scale_max", 1.5)
+        STEP_FACTOR    = cfg.get("step_factor", 0.5)  # half-step for stability
+
+        # 1) Read current skill data
+        skill = s3io.get_json("data/_skill/frontrun-skill-index.json", default={}) or {}
+        by_engine = skill.get("by_engine") or {}
+
+        # 2) Read previous calibration config (if any)
+        prev_cfg = s3io.get_json("data/_skill/calibration-config.json", default={}) or {}
+        engine_overrides = dict(prev_cfg.get("engine_overrides") or {})
+        prev_version_int = int(prev_cfg.get("version_int") or 0)
+        history = list(prev_cfg.get("history") or [])
+
+        # 3) Analyze each engine
+        auto_applied = []
+        pending = []
+        skipped = []
+
+        for engine, m in by_engine.items():
+            n_scored = m.get("n_scored", 0)
+            hit_rate = m.get("hit_rate")
+            claimed = m.get("avg_claimed_confidence")
+            cal_err = m.get("calibration_error")
+
+            existing = engine_overrides.get(engine) or {}
+            current_scale = float(existing.get("confidence_scale", 1.0))
+
+            # Statistical significance gate
+            if n_scored < MIN_N_SCORED:
+                skipped.append({
+                    "engine": engine, "reason": "insufficient_data",
+                    "n_scored": n_scored, "min_required": MIN_N_SCORED,
+                    "current_scale": current_scale
+                })
+                continue
+
+            if hit_rate is None or claimed is None or cal_err is None:
+                skipped.append({
+                    "engine": engine, "reason": "no_metrics",
+                    "n_scored": n_scored, "current_scale": current_scale
+                })
+                continue
+
+            # No material miscalibration → leave alone
+            if abs(cal_err) < ERR_THRESHOLD:
+                skipped.append({
+                    "engine": engine, "reason": "calibrated",
+                    "n_scored": n_scored, "calibration_error": cal_err,
+                    "current_scale": current_scale, "hit_rate": hit_rate,
+                    "claimed_avg": claimed
+                })
+                continue
+
+            # Compute proposed scale (half-step toward truth)
+            # If hit_rate > claimed (underconfident) → cal_err > 0 → scale up
+            # If hit_rate < claimed (overconfident)  → cal_err < 0 → scale down
+            raw_new_scale = current_scale * (1 + cal_err * STEP_FACTOR)
+            new_scale = max(SCALE_MIN, min(SCALE_MAX, raw_new_scale))
+            scale_delta = new_scale - current_scale
+
+            calibration_type = "underconfident" if cal_err > 0 else "overconfident"
+            proposal = {
+                "tweak_id":              f"tweak-{prev_version_int + 1}-{engine}",
+                "engine":                engine,
+                "kind":                  "confidence_scale",
+                "current_scale":         round(current_scale, 4),
+                "proposed_scale":        round(new_scale, 4),
+                "scale_delta":           round(scale_delta, 4),
+                "n_predictions":         n_scored,
+                "claimed_avg_conf":      round(claimed, 4),
+                "actual_hit_rate":       round(hit_rate, 4),
+                "calibration_error":     round(cal_err, 4),
+                "calibration_type":      calibration_type,
+                "proposed_at":           datetime.now(timezone.utc).isoformat(),
+                "rationale":             (
+                    f"{engine} claimed avg confidence {claimed:.0%} but actual "
+                    f"hit rate {hit_rate:.0%} over {n_scored} predictions "
+                    f"({calibration_type} by {abs(cal_err):.1%}). "
+                    f"Proposing scale {current_scale:.2f} → {new_scale:.2f}."
+                ),
+            }
+
+            # Auto-apply gate: small step size only
+            if abs(scale_delta) <= MAX_STEP:
+                proposal["status"] = "AUTO_APPLIED"
+                proposal["applied_at"] = datetime.now(timezone.utc).isoformat()
+                # Record metric snapshot at time of apply (for before/after audit)
+                proposal["snapshot_at_apply"] = {
+                    "hit_rate":       hit_rate,
+                    "avg_claimed":    claimed,
+                    "n_predictions":  n_scored,
+                    "avg_return_pct": m.get("avg_return_pct"),
+                    "profit_factor":  m.get("profit_factor"),
+                }
+                engine_overrides[engine] = {
+                    "confidence_scale":       round(new_scale, 4),
+                    "last_tweak_at":          proposal["applied_at"],
+                    "last_tweak_rationale":   proposal["rationale"],
+                    "n_predictions_at_tweak": n_scored,
+                    "calibration_version":    prev_version_int + 1,
+                }
+                auto_applied.append(proposal)
+            else:
+                proposal["status"] = "PENDING_REVIEW"
+                proposal["reason_pending"] = f"step too large ({abs(scale_delta):.3f} > max {MAX_STEP})"
+                pending.append(proposal)
+
+            history.append(proposal)
+
+        # 4) Write new calibration config
+        new_version_int = prev_version_int + (1 if (auto_applied or pending) else 0)
+        new_cfg = {
+            "version":          f"{new_version_int}.0",
+            "version_int":      new_version_int,
+            "updated_at":       datetime.now(timezone.utc).isoformat(),
+            "engine_overrides": engine_overrides,
+            "history":          history[-100:],  # keep last 100 tweaks
+            "pending_proposals": pending,
+            "skipped":          skipped,
+            "thresholds": {
+                "min_n_scored":     MIN_N_SCORED,
+                "err_threshold":    ERR_THRESHOLD,
+                "max_step":         MAX_STEP,
+                "scale_min":        SCALE_MIN,
+                "scale_max":        SCALE_MAX,
+                "step_factor":      STEP_FACTOR,
+            },
+        }
+        s3io.put_json("data/_skill/calibration-config.json", new_cfg, cache_control="no-store")
+
+        # 5) Telegram if anything actionable happened
+        if auto_applied or pending:
+            msg = "🔧 *Self-Improvement Update* — calibration cycle\n\n"
+            msg += f"Calibration version: *{prev_version_int} → {new_version_int}*\n\n"
+            if auto_applied:
+                msg += "*✓ Auto-applied tweaks*:\n"
+                for p in auto_applied:
+                    msg += (f"  • `{p['engine']}` "
+                            f"scale {p['current_scale']:.2f} → *{p['proposed_scale']:.2f}* "
+                            f"({p['calibration_type']} by {abs(p['calibration_error']):.0%}, "
+                            f"n={p['n_predictions']})\n")
+                msg += "\n"
+            if pending:
+                msg += "*⏸ Pending review (step too large to auto-apply)*:\n"
+                for p in pending:
+                    msg += (f"  • `{p['engine']}` "
+                            f"would go {p['current_scale']:.2f} → {p['proposed_scale']:.2f} "
+                            f"({p['calibration_type']} by {abs(p['calibration_error']):.0%})\n")
+                msg += "\n"
+            msg += f"→ https://justhodl.ai/skill.html"
+            _telegram_post(msg)
+
+        result.update({
+            "status":              "OK",
+            "n_engines_analyzed":  len(by_engine),
+            "n_auto_applied":      len(auto_applied),
+            "n_pending":           len(pending),
+            "n_skipped":           len(skipped),
+            "config_version":      new_cfg["version"],
+            "duration_s":          round(time.time() - t0, 2),
+            "auto_applied":        [{"engine": p["engine"], "current_scale": p["current_scale"],
+                                      "new_scale": p["proposed_scale"], "n": p["n_predictions"],
+                                      "calibration_error": p["calibration_error"]}
+                                     for p in auto_applied],
+            "pending":             [{"engine": p["engine"], "reason": p["reason_pending"]}
+                                     for p in pending],
+        })
+    except Exception as e:
+        result["status"] = "ERR_EXC"
+        result["err"] = str(e)[:300]
+        result["traceback"] = traceback.format_exc()[-800:]
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────
+# OPPORTUNITY RANKER — combines engine track records with current setups
+# to surface the best opportunities CURRENTLY in the market
+# ─────────────────────────────────────────────────────────────────────
+def generate_opportunity_ranker(ctx_id, cfg, episode_ref):
+    """Reads current setups from all front-run sources + engine hit rates from
+    the skill index, then ranks every active opportunity by:
+
+      score = engine_hit_rate × claimed_confidence × recency_decay × signal_richness
+
+    Where:
+      engine_hit_rate    = from skill index (proven track record, default 0.50 if unknown)
+      claimed_confidence = from the setup itself (probability_pct or 0.6 default)
+      recency_decay      = exp(-age_hours / 24) for setups, 1.0 for active alerts
+      signal_richness    = n_categories present (more diverse signals = higher confidence)
+
+    The ranking is what "best opportunities" means after the system has learned
+    which engines work. As more outcomes get graded, this ranking becomes more
+    accurate. Engines with poor track records get DOWN-weighted automatically.
+
+    Output: data/_skill/opportunity-rankings.json
+      {ranked_opportunities: [...sorted by score DESC], generated_at, n_total}
+    """
+    t0 = time.time()
+    result = {"context_id": ctx_id, "title": cfg.get("title"),
+              "brief_type": "opportunity_ranker", "output_key": cfg.get("output_key")}
+    try:
+        # 1) Read skill index for per-engine hit rates
+        skill = s3io.get_json("data/_skill/frontrun-skill-index.json", default={}) or {}
+        engine_hit_rates = {}
+        for engine, m in (skill.get("by_engine") or {}).items():
+            hr = m.get("hit_rate")
+            # Use 30d rolling if we have it (more responsive to recent skill drift)
+            rolling = m.get("rolling_30d_hit_rate")
+            n_scored = m.get("n_scored", 0)
+            if rolling is not None and m.get("n_recent_30d", 0) >= 10:
+                engine_hit_rates[engine] = rolling
+            elif hr is not None and n_scored >= 5:
+                engine_hit_rates[engine] = hr
+            else:
+                # Default to claimed avg or 0.5 (neutral) if not enough data
+                engine_hit_rates[engine] = m.get("avg_claimed_confidence") or 0.50
+
+        # 2) Collect active opportunities from both sniffers
+        opps = []
+        now = datetime.now(timezone.utc)
+
+        # Equity sniffer setups
+        eq_brief = s3io.get_json("data/frontrun-sniffer.json", default=None)
+        if isinstance(eq_brief, dict):
+            try:
+                gen_at = eq_brief.get("generated_at")
+                age_h = 0
+                if gen_at:
+                    dt = datetime.fromisoformat(gen_at.replace("Z","+00:00"))
+                    age_h = (now - dt).total_seconds() / 3600
+                import math
+                recency_decay = math.exp(-age_h / 24)
+            except: recency_decay = 1.0
+
+            for sx in (eq_brief.get("suspected_setups") or [])[:5]:
+                try:
+                    target = sx.get("target_asset") or sx.get("primary_asset")
+                    if not target: continue
+                    import re
+                    tk = re.match(r"^([A-Z]{1,5})", str(target).strip())
+                    if not tk: continue
+                    ticker = tk.group(1)
+                    direction = sx.get("target_direction") or sx.get("direction") or ""
+                    prob = sx.get("probability_pct") or sx.get("conviction_pct") or 60
+                    try: conf = float(prob) / 100.0
+                    except: conf = 0.60
+                    conf = max(0.30, min(0.95, conf))
+                    n_cats = len(set(g.get("category") for g in (sx.get("smoking_gun_signals") or []) if g.get("category")))
+                    richness = min(1.0, n_cats / 4.0)  # 4 categories = max richness
+                    engine = "equity_frontrun_sniffer"
+                    hit_rate = engine_hit_rates.get(engine, 0.50)
+                    score = hit_rate * conf * recency_decay * (0.5 + 0.5 * richness)
+                    opps.append({
+                        "rank":                None,
+                        "opportunity_id":      f"eq_{ticker}_{direction[:4]}_{int(now.timestamp())}",
+                        "engine":              engine,
+                        "engine_hit_rate":     round(hit_rate, 4),
+                        "asset":               ticker,
+                        "direction":           direction,
+                        "setup_type":          sx.get("setup_type"),
+                        "claimed_confidence":  round(conf, 4),
+                        "n_smoking_gun_categories": n_cats,
+                        "signal_richness":     round(richness, 4),
+                        "recency_decay":       round(recency_decay, 4),
+                        "age_hours":           round(age_h, 1),
+                        "score":               round(score, 4),
+                        "thesis_summary":      str(sx.get("thesis_summary") or "")[:240],
+                        "source":              "equity_sniffer",
+                    })
+                except Exception: continue
+
+        # Macro sniffer setups
+        mac_brief = s3io.get_json("data/macro-frontrun-sniffer.json", default=None)
+        if isinstance(mac_brief, dict):
+            try:
+                gen_at = mac_brief.get("generated_at")
+                age_h_m = 0
+                if gen_at:
+                    dt = datetime.fromisoformat(gen_at.replace("Z","+00:00"))
+                    age_h_m = (now - dt).total_seconds() / 3600
+                import math
+                recency_decay_m = math.exp(-age_h_m / 24)
+            except: recency_decay_m = 1.0
+
+            for sx in (mac_brief.get("macro_setups") or [])[:5]:
+                try:
+                    ts = sx.get("trade_specifics") or {}
+                    instr = ts.get("primary_instrument")
+                    if not instr: continue
+                    import re
+                    tk = re.match(r"^([A-Z]{1,6})", str(instr).strip())
+                    if not tk: continue
+                    ticker = tk.group(1)
+                    direction = ts.get("direction") or sx.get("direction") or ""
+                    prob = sx.get("probability_pct") or sx.get("conviction_pct") or 60
+                    try: conf = float(prob) / 100.0
+                    except: conf = 0.60
+                    conf = max(0.30, min(0.95, conf))
+                    # Macro richness: 3 pillars potentially confirming
+                    n_pillars = 0
+                    p = (sx.get("pillars_supporting") or [])
+                    if isinstance(p, list): n_pillars = len(p)
+                    richness = min(1.0, n_pillars / 3.0) if n_pillars else 0.5
+                    engine = "macro_frontrun_sniffer"
+                    hit_rate = engine_hit_rates.get(engine, 0.50)
+                    score = hit_rate * conf * recency_decay_m * (0.5 + 0.5 * richness)
+                    opps.append({
+                        "rank":                None,
+                        "opportunity_id":      f"mac_{ticker}_{direction[:4]}_{int(now.timestamp())}",
+                        "engine":              engine,
+                        "engine_hit_rate":     round(hit_rate, 4),
+                        "asset":               ticker,
+                        "direction":           direction,
+                        "setup_type":          sx.get("setup_type"),
+                        "claimed_confidence":  round(conf, 4),
+                        "n_pillars_supporting":n_pillars,
+                        "signal_richness":     round(richness, 4),
+                        "recency_decay":       round(recency_decay_m, 4),
+                        "age_hours":           round(age_h_m, 1),
+                        "score":               round(score, 4),
+                        "entry_level":         ts.get("entry_level"),
+                        "target_level":        ts.get("target_level"),
+                        "stop_level":          ts.get("stop_level"),
+                        "thesis_summary":      str(sx.get("thesis_summary") or "")[:240],
+                        "source":              "macro_sniffer",
+                    })
+                except Exception: continue
+
+        # 3) Sort + assign ranks
+        opps.sort(key=lambda x: x.get("score", 0), reverse=True)
+        for i, o in enumerate(opps): o["rank"] = i + 1
+
+        # 4) Write ranking
+        out = {
+            "version":              "1.0",
+            "generated_at":         now.isoformat(),
+            "n_total":              len(opps),
+            "engine_hit_rates":     engine_hit_rates,
+            "ranked_opportunities": opps[:25],   # top 25
+            "ranking_formula":      "score = engine_hit_rate × claimed_confidence × recency_decay × (0.5 + 0.5 × signal_richness)",
+            "skill_data_age_h":     None,
+        }
+        if skill.get("updated_at"):
+            try:
+                dt = datetime.fromisoformat(skill["updated_at"].replace("Z","+00:00"))
+                out["skill_data_age_h"] = round((now - dt).total_seconds() / 3600, 2)
+            except: pass
+        s3io.put_json("data/_skill/opportunity-rankings.json", out, cache_control="no-store")
+
+        result.update({
+            "status":           "OK",
+            "n_opportunities":  len(opps),
+            "n_engines_used":   len(engine_hit_rates),
+            "duration_s":       round(time.time() - t0, 2),
+            "top_5":            [{"rank": o["rank"], "asset": o["asset"],
+                                   "direction": o["direction"], "score": o["score"],
+                                   "engine": o["engine"]} for o in opps[:5]],
+        })
+    except Exception as e:
+        result["status"] = "ERR_EXC"
+        result["err"] = str(e)[:300]
+        result["traceback"] = traceback.format_exc()[-800:]
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Per-context worker — dispatches based on brief_type
 # ─────────────────────────────────────────────────────────────────────
 def generate_one_brief(ctx_id, cfg, episode_ref):
@@ -3154,6 +3573,10 @@ def generate_one_brief(ctx_id, cfg, episode_ref):
         return generate_uptime_check(ctx_id, cfg, episode_ref)
     if bt == "skill_aggregator":
         return generate_frontrun_skill_check(ctx_id, cfg, episode_ref)
+    if bt == "calibrator":
+        return generate_self_improvement_check(ctx_id, cfg, episode_ref)
+    if bt == "opportunity_ranker":
+        return generate_opportunity_ranker(ctx_id, cfg, episode_ref)
     # Default: regime brief
     return _generate_regime_brief(ctx_id, cfg, episode_ref)
 
