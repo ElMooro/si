@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patent Velocity · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>💡</text></svg>">
+<style>
+:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;--mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;--gold:#ffb347}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1380px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--yellow)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}.subtitle b{color:var(--txt)}
+nav.crumbs{margin-top:10px}nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.stat{padding:6px}.stat .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.stat .v{font-family:var(--mono);font-size:24px;font-weight:700;margin-top:4px;color:var(--yellow)}.stat .n{font-size:10px;color:var(--dim);margin-top:2px}
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px;margin-bottom:24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;border-left-width:4px}
+.panel.spike{border-left-color:var(--yellow)}.panel.new{border-left-color:var(--green)}.panel.scale{border-left-color:var(--gold)}
+.panel h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;margin:0 0 8px;color:var(--mute)}
+.panel h3 .count{background:rgba(255,255,255,.06);border:1px solid var(--line);padding:1px 6px;font-size:9px;margin-left:6px;border-radius:3px;color:var(--txt)}
+.row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(28,36,51,.5);font-family:var(--mono);font-size:11px}
+.row:last-child{border-bottom:none}.row .l{flex:1}.row a{color:var(--cyan);text-decoration:none;font-weight:700}.row a:hover{text-decoration:underline}
+.row .meta{color:var(--mute);font-size:10px;margin-top:3px;font-family:'Inter',sans-serif;line-height:1.4}
+.row .r{margin-left:8px;text-align:right;font-family:var(--mono);font-size:11px}
+.score{font-family:var(--mono);font-weight:700;display:inline-block;padding:2px 8px;border-radius:3px}.score.hi{background:rgba(255,210,102,.18);color:var(--yellow)}.score.mi{background:rgba(255,179,71,.13);color:var(--gold)}.score.lo{background:rgba(168,179,199,.08);color:var(--mute)}
+.cpc-pill{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 6px;background:var(--panel2);color:var(--mute);border-radius:2px;margin:1px 3px 1px 0;border:1px solid var(--line)}
+.cpc-pill.new{background:rgba(38,255,175,.14);color:var(--green);border-color:rgba(38,255,175,.3)}
+.vel-tag{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 5px;border-radius:2px;letter-spacing:.5px;margin-left:5px;font-weight:700}
+.vel-tag.extreme{background:rgba(255,85,119,.16);color:var(--red)}.vel-tag.high{background:rgba(255,210,102,.18);color:var(--yellow)}.vel-tag.mid{background:rgba(255,122,24,.16);color:var(--orange)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;padding:9px 6px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:9.5px}
+th.r{text-align:right}td{padding:9px 6px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}td.r{text-align:right}tr:hover td{background:var(--panel2)}
+.tick{font-weight:700}.tick a{color:var(--cyan);text-decoration:none}.tick a:hover{text-decoration:underline}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 12px}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono)}
+.note{color:var(--dim);font-size:11px;line-height:1.6;margin-top:14px;max-width:1100px;font-family:'Inter',sans-serif}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:18px}
+.lit-bar{background:rgba(255,210,102,.07);border:1px solid rgba(255,210,102,.2);border-radius:6px;padding:12px;margin-bottom:18px;font-family:'Inter',sans-serif;font-size:12px;color:var(--mute);line-height:1.5}
+.lit-bar b{color:var(--yellow)}.lit-bar em{color:var(--txt);font-style:normal;font-weight:700}
+</style></head><body>
+<div class="container">
+  <header>
+    <h1>💡 Patent Velocity · R&amp;D Leading Indicator</h1>
+    <p class="subtitle">
+      Patent grants are a <b>12-24 month leading indicator</b> for new product launches, M&amp;A activity,
+      and strategic pivots. Top quant funds (Susquehanna, RBC, Two Sigma) use patent analytics
+      as a discriminator in tech / biotech / industrial momentum strategies. The signal is in
+      <b>velocity</b> (acceleration vs own baseline), not absolute count — Apple/IBM always file
+      thousands; the alpha is when a company's filings <b>accelerate</b>, especially in NEW
+      technology categories. USPTO PatentsView API · free, no auth.
+    </p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a><a href="/future-intel.html">future intel</a>
+      <a href="/forward-orders.html">forward orders</a><a href="/buzz-velocity.html">buzz</a>
+      <a href="/sec-filings.html">sec filings</a><a href="/political.html">political</a>
+      <a href="/lobbying.html">lobbying</a><a href="/ark.html">ark</a>
+    </nav>
+  </header>
+
+  <div class="lit-bar">
+    <b>📚 Why this works:</b> &nbsp; Companies file patents <em>before</em> they launch products (R&amp;D → patent → product cycle 12-24mo).
+    Acquirers <em>pre-position</em> in target's domain via patents. Sudden CPC category appearance = institutional R&amp;D money entering new tech.
+    Free signal that hedge funds pay $50K+ for via specialized vendors.
+  </div>
+
+  <div id="hero" class="hero"><div class="loading">LOADING PATENT VELOCITY…</div></div>
+  <h2>Conviction Buckets</h2>
+  <div id="panels" class="panels"><div class="loading">…</div></div>
+  <h2>All Companies by Score</h2>
+  <div class="card"><div id="table"><div class="loading">…</div></div></div>
+  <p class="note">
+    Score weighting: velocity ≥5x +90 / ≥3x +70 / ≥2x +50 / ≥1.5x +30 / &lt;0.5x penalty -10.
+    Absolute scale bonus: ≥50 patents +15 / ≥20 +10 / ≥5 +5. New CPC categories (Cooperative Patent
+    Classification codes appearing recently but not in baseline) +10. Recent window 90d vs trailing
+    baseline 365d. Universe curated to ~80 high-IP filers across tech / biotech / semis / defense /
+    industrial / EVs / quantum. Score capped at 100.
+  </p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const fetchJson=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function scoreClass(s){return s>=60?"hi":s>=35?"mi":"lo"}
+function velTag(r){if(r==null)return "";if(r>=5)return `<span class="vel-tag extreme">${r.toFixed(1)}x EXTREME</span>`;if(r>=3)return `<span class="vel-tag high">${r.toFixed(1)}x STRONG</span>`;if(r>=2)return `<span class="vel-tag mid">${r.toFixed(1)}x SPIKE</span>`;return ""}
+
+function renderHero(d){
+  document.getElementById("hero").innerHTML=`
+    <div class="stat"><div class="lab">Universe</div><div class="v">${d.universe_size||0}</div><div class="n">high-IP companies</div></div>
+    <div class="stat"><div class="lab">With data</div><div class="v">${d.n_results||0}</div><div class="n">patents in window</div></div>
+    <div class="stat"><div class="lab">⚡ Velocity spikes</div><div class="v" style="color:var(--yellow)">${d.n_velocity_spikes||0}</div><div class="n">≥2x acceleration</div></div>
+    <div class="stat"><div class="lab">🆕 New tech focus</div><div class="v" style="color:var(--green)">${d.n_new_tech_focus||0}</div><div class="n">new CPC categories</div></div>
+    <div class="stat"><div class="lab">Window</div><div class="v">${(d.windows||{}).recent_days||90}d</div><div class="n">vs ${(d.windows||{}).baseline_days||365}d baseline</div></div>
+  `;
+}
+
+function panelRows(rows,kind){
+  if(!rows||!rows.length)return '<div style="color:var(--dim);font-size:11px;padding:8px;font-family:var(--mono)">No companies in bucket.</div>';
+  return rows.slice(0,8).map(r=>{
+    const newCpcs=(r.new_cpcs||[]).slice(0,3).map(c=>`<span class="cpc-pill new">${esc(c)}</span>`).join("");
+    const topCpcs=(r.top_cpcs_recent||[]).slice(0,3).map(c=>`<span class="cpc-pill">${esc(c.cpc)}×${c.count}</span>`).join("");
+    return `<div class="row"><div class="l">
+      <a href="/chart-pro.html?ticker=${esc(r.ticker)}">${esc(r.ticker)}</a>${velTag(r.velocity_ratio)}
+      <div style="margin-top:3px">${newCpcs}${topCpcs}</div>
+      <div class="meta">${esc((r.thesis||"").slice(0,140))}</div>
+    </div><div class="r">
+      <span class="score ${scoreClass(r.score)}">${r.score}</span>
+      <div style="color:var(--dim);font-size:10px;margin-top:2px">${r.n_recent_patents} / ${r.n_baseline_patents}</div>
+    </div></div>`;
+  }).join("");
+}
+
+function renderPanels(d){
+  const hl=d.highlights||{};
+  document.getElementById("panels").innerHTML=`
+    <div class="panel spike"><h3>⚡ VELOCITY SPIKES<span class="count">${(hl.velocity_spikes||[]).length}</span></h3>${panelRows(hl.velocity_spikes,'spike')}</div>
+    <div class="panel new"><h3>🆕 NEW TECH FOCUS<span class="count">${(hl.new_tech_focus||[]).length}</span></h3>${panelRows(hl.new_tech_focus,'new')}</div>
+    <div class="panel scale"><h3>📊 HIGHEST SCALE<span class="count">${(hl.highest_scale||[]).length}</span></h3>${panelRows(hl.highest_scale,'scale')}</div>
+  `;
+}
+
+function renderTable(d){
+  const rows=(d.all_results||[]).slice(0,60);
+  if(!rows.length){document.getElementById("table").innerHTML='<div class="loading">No data yet — first run pending.</div>';return}
+  document.getElementById("table").innerHTML=`<table><thead><tr>
+    <th>Ticker</th><th class="r">Score</th><th class="r">90d</th><th class="r">Baseline</th>
+    <th class="r">Velocity</th><th>New CPC</th><th>Top CPC</th><th>Thesis</th>
+  </tr></thead><tbody>${rows.map(r=>{
+    const newCpcs=(r.new_cpcs||[]).slice(0,2).map(c=>`<span class="cpc-pill new">${esc(c)}</span>`).join("");
+    const topCpcs=(r.top_cpcs_recent||[]).slice(0,2).map(c=>`<span class="cpc-pill">${esc(c.cpc)}</span>`).join("");
+    return `<tr>
+      <td><span class="tick"><a href="/chart-pro.html?ticker=${esc(r.ticker)}">${esc(r.ticker)}</a></span></td>
+      <td class="r"><span class="score ${scoreClass(r.score)}">${r.score}</span></td>
+      <td class="r">${r.n_recent_patents}</td>
+      <td class="r" style="color:var(--dim)">${r.n_baseline_patents}</td>
+      <td class="r">${r.velocity_ratio!=null?r.velocity_ratio.toFixed(2)+'x':'—'}</td>
+      <td>${newCpcs||'<span style="color:var(--dim);font-size:10px">—</span>'}</td>
+      <td>${topCpcs||'<span style="color:var(--dim);font-size:10px">—</span>'}</td>
+      <td style="color:var(--mute);font-family:'Inter',sans-serif;font-size:11px;max-width:260px">${esc((r.thesis||"").slice(0,110))}</td>
+    </tr>`;
+  }).join("")}</tbody></table>`;
+}
+
+async function load(){
+  const d=await fetchJson("patent-velocity.json");
+  if(!d){document.getElementById("hero").innerHTML='<div class="loading" style="color:var(--orange)">Engine not yet run — first scheduled invocation will populate at 17 UTC.</div>';return}
+  renderHero(d);renderPanels(d);renderTable(d);
+  document.getElementById("ts").innerHTML=`generated ${esc(d.generated_at||"?")} · ${esc(d.method||"?")} · source=USPTO PatentsView`;
+}
+load();
+</script></body></html>

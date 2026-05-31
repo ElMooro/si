@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-ark-holdings",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Daily ARK Invest ETF holdings tracker. Diffs 6 ETFs (ARKK/ARKQ/ARKW/ARKF/ARKG/ARKX) day-over-day to detect NEW POSITIONS / ADDS / TRIMS / CLOSED. Cathie Wood smart-money positioning with same-day visibility (vs 45-day-lagged 13Fs). Emits ark.position_change.",
+  "schedule": {
+    "rule_name": "ark-holdings-daily",
+    "cron": "cron(0 6 * * ? *)",
+    "description": "ARK holdings — daily 6 UTC (~1 AM ET, after ARK publishes overnight)"
+  }
+}

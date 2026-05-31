@@ -241,6 +241,24 @@ ROUTES = {
         "notify":  True,
         "audit":   True,
     },
+
+    # ARK Invest position change — Cathie Wood smart money positioning.
+    # Same-day visibility (vs 45-day-lagged 13Fs). New positions ≥$5M and
+    # major adds (≥15%) get notified; smaller positioning suppressed.
+    "ark.position_change": {
+        "invoke":  ["justhodl-alpha-compass"],
+        "notify":  True,
+        "audit":   True,
+    },
+
+    # Patent velocity spike — R&D acceleration as 12-24mo leading indicator
+    # for product launches, M&A, strategic pivots. Notify on ≥3x velocity
+    # AND ≥20 recent patents (filters out small-base noise).
+    "patent.velocity_spike": {
+        "invoke":  ["justhodl-alpha-compass"],
+        "notify":  True,
+        "audit":   True,
+    },
 }
 
 
@@ -437,6 +455,39 @@ def send_telegram_alert(event_name: str, detail: dict) -> bool:
             top_bill = detail.get("top_bill")
             if top_bill:
                 lines.append(f"  most-cited bill: <b>{top_bill}</b>")
+        elif event_name == "ark.position_change":
+            # ARK Invest position change. Suppress small trims/closes (noise);
+            # notify on NEW positions ≥$5M and ADDS ≥15% with current ≥$5M.
+            change_type = detail.get("change_type", "?")
+            ticker = detail.get("ticker", "?")
+            fund = detail.get("fund", "?")
+            if change_type == "new_position":
+                value = detail.get("value", 0)
+                if value < 5_000_000:
+                    return False
+                lines.append(f"  🚀 <b>{fund}</b> NEW position: <b>{ticker}</b>")
+                lines.append(f"  size: ${value:,.0f} · {detail.get('shares', '?')} shares")
+            elif change_type == "add":
+                pct = detail.get("pct_change", 0)
+                cv = detail.get("current_value", 0)
+                if pct < 15 or cv < 5_000_000:
+                    return False
+                lines.append(f"  📈 <b>{fund}</b> ADDED to: <b>{ticker}</b>")
+                lines.append(f"  change: +{pct:.1f}% · current value ${cv:,.0f}")
+            else:
+                return False  # trims/closes suppressed
+        elif event_name == "patent.velocity_spike":
+            # USPTO patent velocity. Suppress if velocity below 3x OR fewer
+            # than 20 recent patents (small base = noisy).
+            vel = detail.get("velocity_ratio", 0)
+            n_recent = detail.get("n_recent", 0)
+            if vel < 3.0 or n_recent < 20:
+                return False
+            lines.append(f"  💡 <b>{detail.get('ticker','?')}</b> patent velocity: <b>{vel:.1f}x</b> baseline")
+            lines.append(f"  {n_recent} patents in 90d window · score {detail.get('score','?')}")
+            new_cpcs = detail.get("new_cpcs") or []
+            if new_cpcs:
+                lines.append(f"  NEW tech focus: {', '.join(new_cpcs[:3])}")
         else:
             # Fallback: dump the first few keys
             payload = {k: v for k, v in detail.items()

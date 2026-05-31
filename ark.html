@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ARK Invest Holdings · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🚀</text></svg>">
+<style>
+:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;--mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;--ark:#fb923c}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1380px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--ark)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}.subtitle b{color:var(--txt)}
+nav.crumbs{margin-top:10px}nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.stat{padding:6px}.stat .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.stat .v{font-family:var(--mono);font-size:24px;font-weight:700;margin-top:4px;color:var(--ark)}.stat .n{font-size:10px;color:var(--dim);margin-top:2px}
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px;margin-bottom:24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;border-left-width:4px}
+.panel.new{border-left-color:var(--green)}.panel.add{border-left-color:var(--cyan)}.panel.trim{border-left-color:var(--orange)}.panel.closed{border-left-color:var(--red)}
+.panel h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;margin:0 0 8px;color:var(--mute)}
+.panel h3 .count{background:rgba(255,255,255,.06);border:1px solid var(--line);padding:1px 6px;font-size:9px;margin-left:6px;border-radius:3px;color:var(--txt)}
+.row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(28,36,51,.5);font-family:var(--mono);font-size:11px}
+.row:last-child{border-bottom:none}.row .l{flex:1}.row a{color:var(--cyan);text-decoration:none;font-weight:700}.row a:hover{text-decoration:underline}
+.row .meta{color:var(--mute);font-size:10px;margin-top:2px;font-family:'Inter',sans-serif;line-height:1.4}
+.row .r{margin-left:8px;text-align:right;font-family:var(--mono);font-size:11px}
+.fund-tag{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 5px;background:rgba(251,146,60,.16);color:var(--ark);border-radius:2px;margin:0 3px 0 0;border:1px solid rgba(251,146,60,.3);letter-spacing:.5px;font-weight:700}
+.delta-pos{color:var(--green);font-weight:700}.delta-neg{color:var(--red);font-weight:700}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;padding:9px 6px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:9.5px}
+th.r{text-align:right}td{padding:9px 6px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}td.r{text-align:right}tr:hover td{background:var(--panel2)}
+.tick{font-weight:700}.tick a{color:var(--cyan);text-decoration:none}.tick a:hover{text-decoration:underline}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 12px}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono)}
+.note{color:var(--dim);font-size:11px;line-height:1.6;margin-top:14px;max-width:1100px;font-family:'Inter',sans-serif}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:18px}
+.fund-key{background:rgba(251,146,60,.07);border:1px solid rgba(251,146,60,.2);border-radius:6px;padding:10px 14px;margin-bottom:18px;font-family:'Inter',sans-serif;font-size:11.5px;color:var(--mute);line-height:1.6}
+.fund-key b{color:var(--ark)}
+</style></head><body>
+<div class="container">
+  <header>
+    <h1>🚀 ARK Invest · Daily Smart Money Positioning</h1>
+    <p class="subtitle">
+      Cathie Wood publishes ARK's complete ETF holdings every day at midnight. By diff'ing day-over-day,
+      we get <b>same-day visibility</b> into smart-money positioning — institutional-grade transparency at
+      $0/month (vs 13Fs which are 45-day-lagged quarterly). Six ETFs: <b>ARKK / ARKQ / ARKW / ARKF / ARKG / ARKX</b>
+      covering disruptive innovation, robotics, internet, fintech, genomics, space. Multi-fund conviction = strongest signal.
+    </p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a><a href="/future-intel.html">future intel</a>
+      <a href="/forward-orders.html">forward orders</a><a href="/buzz-velocity.html">buzz</a>
+      <a href="/sec-filings.html">sec filings</a><a href="/political.html">political</a>
+      <a href="/lobbying.html">lobbying</a><a href="/13f.html">13f</a>
+    </nav>
+  </header>
+  
+  <div class="fund-key" id="fundKey">Loading fund descriptions…</div>
+  <div id="hero" class="hero"><div class="loading">LOADING ARK HOLDINGS…</div></div>
+  <h2>Day-over-Day Changes (smart-money signals)</h2>
+  <div id="panels" class="panels"><div class="loading">…</div></div>
+  <h2>Cross-Fund Top Holdings · Aggregate ARK Exposure</h2>
+  <div class="card"><div id="cross-fund"><div class="loading">…</div></div></div>
+  <p class="note">
+    Threshold for ADD/TRIM detection: ≥1% share count change (filters routine rebalancing noise).
+    NEW POSITION = ticker first appears across any fund. CLOSED POSITION = ticker disappears. Multi-fund
+    holdings = stronger thematic conviction. Telegram alerts fire for new positions ≥$5M and adds ≥10%
+    when current position ≥$5M.
+  </p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const fetchJson=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const fmtUSD=v=>{if(!v)return "—";if(v>=1e9)return "$"+(v/1e9).toFixed(2)+"B";if(v>=1e6)return "$"+(v/1e6).toFixed(1)+"M";if(v>=1e3)return "$"+(v/1e3).toFixed(0)+"K";return "$"+Math.round(v)};
+const fmtShares=n=>{if(!n)return "—";if(n>=1e6)return (n/1e6).toFixed(1)+"M";if(n>=1e3)return (n/1e3).toFixed(0)+"K";return n.toLocaleString()};
+
+function renderFundKey(d){
+  const descs=d.fund_descriptions||{};
+  const html=Object.entries(descs).map(([code,desc])=>`<span class="fund-tag">${esc(code)}</span> ${esc(desc.replace(/\sETF.*$/,''))}`).join(" &nbsp;·&nbsp; ");
+  document.getElementById("fundKey").innerHTML=`<b>ARK ETF universe:</b> &nbsp; ${html}`;
+}
+
+function renderHero(d){
+  const diff=d.diff_vs_prev||{};
+  document.getElementById("hero").innerHTML=`
+    <div class="stat"><div class="lab">Funds tracked</div><div class="v">${d.n_funds_fetched||0}</div><div class="n">of ${(d.funds_tracked||[]).length}</div></div>
+    <div class="stat"><div class="lab">Positions</div><div class="v">${d.n_positions_total||0}</div><div class="n">across all funds</div></div>
+    <div class="stat"><div class="lab">Unique tickers</div><div class="v">${d.n_unique_tickers||0}</div><div class="n">post-dedup</div></div>
+    <div class="stat"><div class="lab">🆕 New positions</div><div class="v" style="color:var(--green)">${diff.n_new_positions||0}</div><div class="n">vs prior day</div></div>
+    <div class="stat"><div class="lab">📈 Adds</div><div class="v" style="color:var(--cyan)">${diff.n_position_adds||0}</div><div class="n">share count rising</div></div>
+    <div class="stat"><div class="lab">📉 Trims</div><div class="v" style="color:var(--orange)">${diff.n_position_trims||0}</div><div class="n">share count falling</div></div>
+    <div class="stat"><div class="lab">❌ Closed</div><div class="v" style="color:var(--red)">${diff.n_closed_positions||0}</div><div class="n">thesis broken</div></div>
+  `;
+}
+
+function renderPanels(d){
+  const diff=d.diff_vs_prev||{};
+  const hl=diff.highlights||{};
+  const renderList=(rows,kind)=>{
+    if(!rows||!rows.length)return '<div style="color:var(--dim);font-size:11px;padding:8px;font-family:var(--mono)">No changes in this bucket.</div>';
+    return rows.slice(0,8).map(r=>{
+      let valStr,deltaStr;
+      if(kind==='new'){
+        valStr=fmtUSD(r.market_value);
+        deltaStr=`<div style="color:var(--dim);font-size:10px">${fmtShares(r.shares)} shares · ${r.weight.toFixed(1)}% wt</div>`;
+      }else if(kind==='add'){
+        valStr=fmtUSD(r.current_value);
+        deltaStr=`<div class="delta-pos" style="font-size:11px">+${r.pct_change.toFixed(1)}%</div><div style="color:var(--dim);font-size:10px">+${fmtShares(r.shares_added)} shares</div>`;
+      }else if(kind==='trim'){
+        valStr=fmtUSD(r.current_value);
+        deltaStr=`<div class="delta-neg" style="font-size:11px">${r.pct_change.toFixed(1)}%</div><div style="color:var(--dim);font-size:10px">−${fmtShares(r.shares_sold)} shares</div>`;
+      }else{
+        valStr=fmtUSD(r.prev_value);
+        deltaStr=`<div class="delta-neg" style="font-size:11px">CLOSED</div><div style="color:var(--dim);font-size:10px">had ${fmtShares(r.prev_shares)}</div>`;
+      }
+      return `<div class="row"><div class="l">
+        <span class="fund-tag">${esc(r.fund)}</span>
+        <a href="/chart-pro.html?ticker=${esc(r.ticker)}">${esc(r.ticker)}</a>
+        <div class="meta">${esc((r.company||"").slice(0,42))}</div>
+      </div><div class="r">
+        <div style="font-weight:700">${valStr}</div>
+        ${deltaStr}
+      </div></div>`;
+    }).join("");
+  };
+  
+  document.getElementById("panels").innerHTML=`
+    <div class="panel new"><h3>🆕 NEW POSITIONS<span class="count">${(hl.new_positions||[]).length}</span></h3>${renderList(hl.new_positions,'new')}</div>
+    <div class="panel add"><h3>📈 BIGGEST ADDS<span class="count">${(hl.biggest_adds||[]).length}</span></h3>${renderList(hl.biggest_adds,'add')}</div>
+    <div class="panel trim"><h3>📉 BIGGEST TRIMS<span class="count">${(hl.biggest_trims||[]).length}</span></h3>${renderList(hl.biggest_trims,'trim')}</div>
+    <div class="panel closed"><h3>❌ CLOSED POSITIONS<span class="count">${(hl.closed_positions||[]).length}</span></h3>${renderList(hl.closed_positions,'closed')}</div>
+  `;
+}
+
+function renderCrossFund(d){
+  const rows=d.cross_fund_top||[];
+  if(!rows.length){document.getElementById("cross-fund").innerHTML='<div class="loading">No data yet — first run pending.</div>';return}
+  document.getElementById("cross-fund").innerHTML=`<table><thead><tr>
+    <th>Ticker</th><th>Company</th><th class="r">Funds</th><th class="r">Total Shares</th>
+    <th class="r">Total Value</th><th class="r">Max Wt</th><th>In Funds</th>
+  </tr></thead><tbody>${rows.slice(0,25).map(r=>{
+    const fundsList=(r.funds||[]).map(f=>`<span class="fund-tag" title="${fmtUSD(f.value)}">${esc(f.fund)}</span>`).join("");
+    return `<tr>
+      <td><span class="tick"><a href="/chart-pro.html?ticker=${esc(r.ticker)}">${esc(r.ticker)}</a></span></td>
+      <td style="font-family:'Inter',sans-serif;font-size:11px">${esc((r.company||"").slice(0,38))}</td>
+      <td class="r"><b>${r.n_funds}</b></td>
+      <td class="r">${fmtShares(r.total_shares)}</td>
+      <td class="r" style="color:var(--ark);font-weight:700">${fmtUSD(r.total_value)}</td>
+      <td class="r">${r.max_weight.toFixed(1)}%</td>
+      <td>${fundsList}</td>
+    </tr>`;
+  }).join("")}</tbody></table>`;
+}
+
+async function load(){
+  const d=await fetchJson("ark-holdings.json");
+  if(!d){document.getElementById("hero").innerHTML='<div class="loading" style="color:var(--orange)">Engine not yet run — first scheduled invocation will populate.</div>';return}
+  renderFundKey(d);renderHero(d);renderPanels(d);renderCrossFund(d);
+  document.getElementById("ts").innerHTML=`generated ${esc(d.generated_at||"?")} · prior snapshot ${esc(d.prev_snapshot_at||"first run")} · ${esc(d.method||"?")}`;
+}
+load();
+</script></body></html>
