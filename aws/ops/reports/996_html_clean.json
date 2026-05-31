@@ -1,0 +1,30 @@
+{
+  "started": "2026-05-31T01:59:01.472608+00:00",
+  "test": {
+    "html_size": 17838,
+    "html_cf_cache": "",
+    "html_age": "0",
+    "html_etag": "\"6a1b9567-45ae\"",
+    "has_api_var": true,
+    "api_line": "var API=\"https://api.justhodl.ai/agent/cftc-positioning\",",
+    "lambda_url_count": 0,
+    "proxy_url_count": 1,
+    "fetch_calls": [
+      "fetch(API+\"/signals?t=\"+Date.now()",
+      "fetch(API+\"/cot/all?t=\"+Date.now()",
+      "fetch(API+\"/futures?t=\"+Date.now()"
+    ],
+    "test /signals": {
+      "status": 200,
+      "size": 2178
+    },
+    "test /cot/all": {
+      "status": 200,
+      "size": 99428
+    },
+    "test /futures": {
+      "status": 200,
+      "size": 1332
+    }
+  }
+}
