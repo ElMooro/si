@@ -1,0 +1,329 @@
+{
+  "started": "2026-05-31T17:23:30.798627+00:00",
+  "lobbying_action": "create",
+  "zip_size": 11359,
+  "lobbying_schedule": "lobbying-intel-daily cron(0 16 * * ? *)",
+  "coordinator_update": "ok",
+  "invoke": {
+    "elapsed_s": 3.3,
+    "ok": true,
+    "source": "live",
+    "n_records": 20000,
+    "n_tickers": 1203,
+    "n_clusters": 53,
+    "n_spike_alerts": 25,
+    "n_new_lobbyists": 20,
+    "duration_s": 2.3,
+    "err": null
+  },
+  "snapshot": {
+    "size_kb": 564.7,
+    "schema": "1.0",
+    "method": "lobbying_intel_v1",
+    "source": "live",
+    "generated_at": "2026-05-31T17:23:56+00:00",
+    "duration_s": 2.3,
+    "n_records": 20000,
+    "n_tickers": 1203,
+    "n_clusters": 53,
+    "n_spikes": 25,
+    "n_new_lob": 20,
+    "n_bills": 20,
+    "top_3_clusters": [
+      {
+        "issue": "Health Issues",
+        "n_clients": 261,
+        "n_tickers": 183,
+        "total_amount": 67740550.0,
+        "top_tickers": [
+          "ABBV",
+          "ABT",
+          "ACAD",
+          "ACHC",
+          "ACN",
+          "ADIL"
+        ],
+        "top_bills": [
+          {
+            "bill": "H.R.1",
+            "count": 19
+          },
+          {
+            "bill": "H.R.1262",
+            "count": 8
+          },
+          {
+            "bill": "S.864",
+            "count": 8
+          }
+        ]
+      },
+      {
+        "issue": "Taxation/Internal Revenue Code",
+        "n_clients": 229,
+        "n_tickers": 179,
+        "total_amount": 43409030.0,
+        "top_tickers": [
+          "AAL",
+          "AAPL",
+          "ABBV",
+          "ABNB",
+          "ABT",
+          "ACAD"
+        ],
+        "top_bills": [
+          {
+            "bill": "H.R.1",
+            "count": 46
+          },
+          {
+            "bill": "S.2296",
+            "count": 6
+          },
+          {
+            "bill": "S.1404",
+            "count": 5
+          }
+        ]
+      },
+      {
+        "issue": "Budget/Appropriations",
+        "n_clients": 161,
+        "n_tickers": 137,
+        "total_amount": 41091250.0,
+        "top_tickers": [
+          "ABT",
+          "ACHR",
+          "ACN",
+          "ACXP",
+          "ADBE",
+          "ADI"
+        ],
+        "top_bills": [
+          {
+            "bill": "H.R.1",
+            "count": 18
+          },
+          {
+            "bill": "H.R.7148",
+            "count": 15
+          },
+          {
+            "bill": "H.R.4016",
+            "count": 9
+          }
+        ]
+      }
+    ],
+    "top_5_spikes": [
+      {
+        "ticker": "BTSG",
+        "client": "RESCARE INC (DBA BRIGHTSPRING HEALTH SER",
+        "score": 90,
+        "acceleration_ratio": 9.09,
+        "recent_usd": 1250000.0,
+        "new_issues": [
+          "Health Issues"
+        ],
+        "bills": [
+          "H.R.1",
+          "H.R.5031",
+          "H.R.5142",
+          "S.3159"
+        ]
+      },
+      {
+        "ticker": "IOT",
+        "client": "SAMSARA INC.",
+        "score": 80,
+        "acceleration_ratio": 5.75,
+        "recent_usd": 320000.0,
+        "new_issues": [
+          "Aviation/Airlines/Airports \n Defense \n Budget/Appropriations"
+        ],
+        "bills": [
+          "H.R.3684",
+          "H.R.906"
+        ]
+      },
+      {
+        "ticker": "QW",
+        "client": "QNITY ELECTRONICS INC.",
+        "score": 80,
+        "acceleration_ratio": 12.22,
+        "recent_usd": 320000.0,
+        "new_issues": [
+          "Taxation/Internal Revenue Code \n Manufacturing"
+        ],
+        "bills": [
+          "H.R.6055",
+          "S.1642"
+        ]
+      },
+      {
+        "ticker": "CTVA",
+        "client": "CORTEVA AGRISCIENCE",
+        "score": 75,
+        "acceleration_ratio": 3.06,
+        "recent_usd": 3320000.0,
+        "new_issues": [
+          "Agriculture \n Labor Issues/Antitrust/Workplace"
+        ],
+        "bills": [
+          "H.R.1",
+          "H.R.4550",
+          "H.R.7567"
+        ]
+      },
+      {
+        "ticker": "GM",
+        "client": "GENERAL MOTORS COMPANY",
+        "score": 75,
+        "acceleration_ratio": 2.74,
+        "recent_usd": 12100000.0,
+        "new_issues": [
+          "Automotive Industry \n Labor Issues/Antitrust/Workplace",
+          "Budget/Appropriations \n Copyright/Patent/Trademark \n Automot",
+          "Financial Institutions/Investments/Securities \n Copyright/Pa",
+          "Transportation \n Automotive Industry \n Environment/Superfund"
+        ],
+        "bills": [
+          "H.R.1",
+          "H.R.1435",
+          "H.R.1566",
+          "H.R.1707",
+          "H.R.1990",
+          "H.R.2110",
+          "H.R.2981",
+          "H.R.3360",
+          "H.R.3413",
+          "H.R.3838",
+          "H.R.4249",
+          "H.R.5166",
+          "H.R.5221",
+          "H.R.621",
+          "H.R.6687",
+          "H.R.6688",
+          "H.R.6762",
+          "H.R.7353",
+          "H.R.7372",
+          "H.R.7377",
+          "H.R.7389",
+          "H.R.7390",
+          "H.R.8449",
+          "H.R.8774",
+          "H.R.906",
+          "H.R.9338",
+          "H.R.979",
+          "S.1219",
+          "S.1379",
+          "S.154",
+          "S.161",
+          "S.1639",
+          "S.1669",
+          "S.1711",
+          "S.2220",
+          "S.2296",
+          "S.2934",
+          "S.315",
+          "S.3468",
+          "S.3486",
+          "S.711"
+        ]
+      }
+    ],
+    "top_5_bills": [
+      {
+        "bill": "H.R.1",
+        "n_clients": 337,
+        "n_tickers": 340,
+        "tickers": [
+          "AAL",
+          "AAPL",
+          "ABBV",
+          "ABNB",
+          "ACN",
+          "AD",
+          "ADUS",
+          "AEE",
+          "AEP",
+          "AFL"
+        ],
+        "amount_usd": 390236686.0
+      },
+      {
+        "bill": "S.2296",
+        "n_clients": 103,
+        "n_tickers": 103,
+        "tickers": [
+          "AAOI",
+          "ACM",
+          "ACXP",
+          "AFL",
+          "AI",
+          "ALB",
+          "AMD",
+          "AMGN",
+          "AMTM",
+          "AMZN"
+        ],
+        "amount_usd": 162331493.0
+      },
+      {
+        "bill": "H.R.1968",
+        "n_clients": 92,
+        "n_tickers": 92,
+        "tickers": [
+          "AAL",
+          "ABNB",
+          "ADBE",
+          "AEP",
+          "ALB",
+          "AMGN",
+          "AWK",
+          "AXON",
+          "AXTI",
+          "BA"
+        ],
+        "amount_usd": 142485905.0
+      },
+      {
+        "bill": "H.R.3838",
+        "n_clients": 89,
+        "n_tickers": 90,
+        "tickers": [
+          "AAOI",
+          "ACM",
+          "ACXP",
+          "AFL",
+          "AI",
+          "ALB",
+          "AMTM",
+          "AMZN",
+          "ATI",
+          "AVAV"
+        ],
+        "amount_usd": 137543442.0
+      },
+      {
+        "bill": "H.R.7024",
+        "n_clients": 78,
+        "n_tickers": 78,
+        "tickers": [
+          "AAL",
+          "ABBV",
+          "AEE",
+          "AEP",
+          "AMAT",
+          "AMD",
+          "AMZN",
+          "ARMK",
+          "AVA",
+          "AXTI"
+        ],
+        "amount_usd": 127584231.0
+      }
+    ]
+  },
+  "finished": "2026-05-31T17:23:59.060809+00:00"
+}
