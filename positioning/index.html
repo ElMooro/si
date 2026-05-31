@@ -39,7 +39,7 @@
 <div class="topbar"><div class="topbar-left"><a href="https://justhodl.ai" class="logo">JUSTHODL.AI</a><div class="logo-sub">Futures Positioning Intelligence</div></div><div class="topbar-right"><span><span class="live-dot"></span> LIVE</span><span id="timestamp">Loading...</span><a href="/" class="back-link">Terminal</a></div></div>
 <div class="container"><div id="app"><div class="loading"><div class="spinner"></div><div style="color:var(--t2);font-size:13px;font-family:JetBrains Mono,monospace">Loading CFTC Positioning Data...</div></div></div></div>
 <script>
-var API="https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws",DATA=null,activeCategory="all";
+var API="https://api.justhodl.ai/agent/cftc-positioning",DATA=null,activeCategory="all";
 var ICONS={equity_index:"\u{1F4C8}",treasury:"\u{1F3E6}",currency:"\u{1F4B1}",energy:"\u26FD",metals:"\u{1F7E1}",agriculture:"\u{1F33E}",volatility:"\u26A1"};
 async function loadData(){try{var r=await Promise.all([fetch(API+"/signals?t="+Date.now()),fetch(API+"/cot/all?t="+Date.now()),fetch(API+"/futures?t="+Date.now())]);var sig=await r[0].json(),cot=await r[1].json(),fut=await r[2].json();DATA={signals:sig,cot:cot.data||{},futures:fut.data||{}};render();document.getElementById("timestamp").textContent=new Date().toLocaleTimeString()}catch(e){console.error(e);document.getElementById("app").innerHTML='<div class="loading" style="color:var(--red)">Failed. Retrying...</div>';setTimeout(loadData,5000)}}
 function cc(v,p){return v>0||p==="BULLISH"?"var(--green)":v<0||p==="BEARISH"?"var(--red)":"var(--t2)"}

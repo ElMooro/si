@@ -46,6 +46,8 @@ const AGENT_LAMBDAS = {
   'secretary':       'https://nqzbtg3pnxhcyj4rdlmft2vu4y0xxfvk.lambda-url.us-east-1.on.aws/',
   'chart-data':      'https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/',
   // ↑ chart-pro.html catalog + multi-source historical chart data
+  'cftc-positioning': 'https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws/',
+  // ↑ positioning/index.html + cot-extremes.html — COT futures + signals + futures
 };
 
 const ALLOWED_ORIGINS = new Set([
