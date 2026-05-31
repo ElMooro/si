@@ -1,0 +1,1953 @@
+{
+  "started": "2026-05-31T22:49:17.119985+00:00",
+  "lambdas": [
+    {
+      "name": "justhodl-cds-proxy",
+      "last_modified": "2026-05-31T13:15:08.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 13,17,21 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:78 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-esi",
+      "last_modified": "2026-05-31T13:24:16.000+0000",
+      "memory": 256,
+      "timeout": 60,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "cron(30 12 ? * MON-FRI *)",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-bond-trace",
+      "last_modified": "2026-05-31T13:13:38.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 21 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:73 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "volatility-monitor-agent",
+      "last_modified": "2026-05-22T10:55:27.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_volatility_agent.py:38 url = f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-liquidity-flow",
+      "last_modified": "2026-05-31T13:31:26.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:65 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:81 url = (f\"{FRED_BASE}?series_id={series_id}&api_key={FRED_KEY}\""
+      ]
+    },
+    {
+      "name": "justhodl-crisis-plumbing",
+      "last_modified": "2026-05-31T13:16:23.000+0000",
+      "memory": 768,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:90 url = \"https://api.stlouisfed.org/fred/series/observations?\" + urllib.parse.urlencode(params)",
+        "lambda_function.py:914 \"fred_api\": \"https://api.stlouisfed.org/fred\","
+      ]
+    },
+    {
+      "name": "justhodl-liquidity-pulse",
+      "last_modified": "2026-05-30T18:28:49.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:132 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-global-macro",
+      "last_modified": "2026-05-30T18:28:55.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:126 d = http_get_json(f\"https://api.stlouisfed.org/fred/series/observations?{qs}\", timeout=15)"
+      ]
+    },
+    {
+      "name": "justhodl-event-study",
+      "last_modified": "2026-05-30T18:28:57.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:48 \"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-sellside-views",
+      "last_modified": "2026-05-31T13:42:40.000+0000",
+      "memory": 256,
+      "timeout": 60,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 14 ? * MON,WED,FRI *)",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-ecb-detail",
+      "last_modified": "2026-05-30T18:29:17.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:82 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "bond-indices-agent",
+      "last_modified": "2026-05-22T10:55:29.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:41 base_url = \"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-construction-housing",
+      "last_modified": "2026-05-30T18:29:28.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:59 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-market-internals",
+      "last_modified": "2026-05-31T13:32:40.000+0000",
+      "memory": 1024,
+      "timeout": 900,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "cron(15 21 ? * MON-FRI *)",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-vix9d-vix-inversion",
+      "last_modified": "2026-05-30T18:29:47.000+0000",
+      "memory": 512,
+      "timeout": 180,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-yield-curve",
+      "last_modified": "2026-05-30T18:29:53.000+0000",
+      "memory": 512,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:81 \"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-forward-returns",
+      "last_modified": "2026-05-30T18:30:26.000+0000",
+      "memory": 1024,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:134 url = f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_KEY}&file_type=json&sort"
+      ]
+    },
+    {
+      "name": "justhodl-email-reports-v2",
+      "last_modified": "2026-05-30T18:30:30.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:29 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-dxy-equity-divergence",
+      "last_modified": "2026-05-30T18:30:41.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-seasonality",
+      "last_modified": "2026-05-31T13:40:40.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 11 ? * MON *)",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-consumer-pulse",
+      "last_modified": "2026-05-30T18:30:55.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:68 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-global-stress",
+      "last_modified": "2026-05-30T18:31:02.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:46 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:208 % (FRED_BASE, series_id, FRED_KEY, start))"
+      ]
+    },
+    {
+      "name": "justhodl-liquidity-agent",
+      "last_modified": "2026-05-31T22:42:52.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "HYBRID_CACHE_AND_DIRECT",
+      "n_fred_refs": 3,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:36 FRED_BASE     = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:123 f\"{FRED_BASE}?series_id={series_id}\"",
+        "lambda_function.py:95 # data/fred-cache.json is maintained by justhodl-financial-secretary v2.2 with",
+        "lambda_function.py:105 def _load_fred_cache():"
+      ]
+    },
+    {
+      "name": "justhodl-repo-lending",
+      "last_modified": "2026-05-31T13:39:01.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 16 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:81 f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-commodity-curves",
+      "last_modified": "2026-05-31T13:17:01.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:134 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "dollar-strength-agent",
+      "last_modified": "2026-05-22T10:55:34.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_dollar_agent.py:63 url = f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-bond-vol",
+      "last_modified": "2026-05-30T18:33:36.000+0000",
+      "memory": 512,
+      "timeout": 180,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:103 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-credit-equity-divergence",
+      "last_modified": "2026-05-30T18:33:42.000+0000",
+      "memory": 512,
+      "timeout": 180,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-global-business-cycle",
+      "last_modified": "2026-05-30T18:33:48.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:29 \u2022 FRED (where fresh, supplementary)            https://api.stlouisfed.org",
+        "lambda_function.py:172 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-13f-price-divergence",
+      "last_modified": "2026-05-30T18:34:07.000+0000",
+      "memory": 1024,
+      "timeout": 540,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-plumbing-aggregator",
+      "last_modified": "2026-05-30T18:34:09.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:209 body = http_get(f\"https://api.stlouisfed.org/fred/series/observations?{qs}\")"
+      ]
+    },
+    {
+      "name": "ultimate-multi-agent",
+      "last_modified": "2026-05-22T10:55:36.000+0000",
+      "memory": 1024,
+      "timeout": 60,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-cb-injection",
+      "last_modified": "2026-05-30T18:34:15.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:63 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-repo-monitor",
+      "last_modified": "2026-05-31T13:39:26.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:16 d=http_get(f\"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_API_KEY}&file_type=json&l"
+      ]
+    },
+    {
+      "name": "justhodl-liquidity-credit-engine",
+      "last_modified": "2026-05-31T13:16:49.000+0000",
+      "memory": 512,
+      "timeout": 480,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:274 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-bank-stress",
+      "last_modified": "2026-05-31T13:12:49.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 15 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:71 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-implied-prob",
+      "last_modified": "2026-05-30T18:34:54.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 11,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:99 d = http_get_json(f\"https://api.stlouisfed.org/fred/series/observations?{qs}\")",
+        "lambda_function.py:317 d = http_get_json(f\"https://api.stlouisfed.org/fred/series/observations?{qs}\")"
+      ]
+    },
+    {
+      "name": "justhodl-anomaly-detector",
+      "last_modified": "2026-05-30T18:34:56.000+0000",
+      "memory": 1024,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:115 url = f\"https://api.stlouisfed.org/fred/series/observations?{params}\""
+      ]
+    },
+    {
+      "name": "global-liquidity-agent-v2",
+      "last_modified": "2026-05-22T10:55:37.000+0000",
+      "memory": 1024,
+      "timeout": 300,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-macro-surprise",
+      "last_modified": "2026-05-30T18:35:00.000+0000",
+      "memory": 512,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:94 f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-daily-report-v3",
+      "last_modified": "2026-05-31T13:20:20.000+0000",
+      "memory": 1024,
+      "timeout": 900,
+      "pattern": "HYBRID_CACHE_AND_DIRECT",
+      "n_fred_refs": 3,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:444 url = f\"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&sort_order",
+        "lambda_function.py:299 _FRED_CACHE_KEY = \"data/fred-cache.json\"",
+        "lambda_function.py:301 def _load_fred_cache():"
+      ]
+    },
+    {
+      "name": "scrapeMacroData",
+      "last_modified": "2026-05-22T11:00:48.000+0000",
+      "memory": 3008,
+      "timeout": 900,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-chart-data",
+      "last_modified": "2026-05-30T18:35:30.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 4,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:105 url = f\"https://api.stlouisfed.org/fred/series/observations?{urllib.parse.urlencode(params)}\""
+      ]
+    },
+    {
+      "name": "justhodl-sympathetic-momentum",
+      "last_modified": "2026-05-30T18:36:30.000+0000",
+      "memory": 1024,
+      "timeout": 540,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "xccy-basis-agent",
+      "last_modified": "2026-05-22T10:55:39.000+0000",
+      "memory": 256,
+      "timeout": 30,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:28 base_url = \"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-dollar-radar",
+      "last_modified": "2026-05-30T18:36:44.000+0000",
+      "memory": 256,
+      "timeout": 180,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:45 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:142 req = urllib.request.Request(\"%s?%s\" % (FRED_BASE, qs),"
+      ]
+    },
+    {
+      "name": "justhodl-insider-buyback-confluence",
+      "last_modified": "2026-05-30T18:37:15.000+0000",
+      "memory": 768,
+      "timeout": 300,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-correlation-breaks",
+      "last_modified": "2026-05-30T18:37:21.000+0000",
+      "memory": 1024,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:56 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:119 url = FRED_BASE + \"?\" + urllib.parse.urlencode(params)",
+        "lambda_function.py:491 \"fred_api\": \"https://api.stlouisfed.org/fred\","
+      ]
+    },
+    {
+      "name": "justhodl-skew-tail-hedging",
+      "last_modified": "2026-05-30T18:37:28.000+0000",
+      "memory": 512,
+      "timeout": 180,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:140 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-options-flow",
+      "last_modified": "2026-05-31T13:35:49.000+0000",
+      "memory": 1024,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:403 url = f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_KEY}&file_type=json&sort",
+        "lambda_function.py:693 urls = {sid: f\"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&sor"
+      ]
+    },
+    {
+      "name": "justhodl-supply-inflection-scanner",
+      "last_modified": "2026-05-30T18:37:34.000+0000",
+      "memory": 1024,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:40 FRED_BASE = \"https://api.stlouisfed.org/fred\"",
+        "lambda_function.py:260 f\"{FRED_BASE}/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-macro-nowcast",
+      "last_modified": "2026-05-30T18:37:55.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:55 url = (\"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-margin-lending",
+      "last_modified": "2026-05-31T13:32:15.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 16 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:86 url = (f\"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-historical-analogs",
+      "last_modified": "2026-05-30T18:38:12.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:71 \"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-khalid-metrics",
+      "last_modified": "2026-05-31T13:30:13.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:25 url=f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_KEY}&file_type=json&observ"
+      ]
+    },
+    {
+      "name": "justhodl-episode-reference",
+      "last_modified": "2026-05-30T18:38:19.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:97 url = f\"https://api.stlouisfed.org/fred/series/observations?{qs}\""
+      ]
+    },
+    {
+      "name": "justhodl-divergence-engine-v2",
+      "last_modified": "2026-05-31T13:21:06.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "rate(2 hours)",
+      "evidence": [
+        "lambda_function.py:573 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-boj-detail",
+      "last_modified": "2026-05-30T18:38:29.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:74 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "securities-banking-agent",
+      "last_modified": "2026-05-22T10:55:42.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_securities_agent.py:57 url = f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-cross-asset-confirm",
+      "last_modified": "2026-05-30T18:38:50.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(3 hours)",
+      "evidence": [
+        "lambda_function.py:104 url = (f\"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-crisis-knowledge-base",
+      "last_modified": "2026-05-31T13:18:19.000+0000",
+      "memory": 256,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 3,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:515 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-breadth-divergence",
+      "last_modified": "2026-05-30T18:39:17.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-china-liquidity",
+      "last_modified": "2026-05-31T13:16:09.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(30 14 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:69 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-canary-grid",
+      "last_modified": "2026-05-30T18:39:39.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 5,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:125 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-bloomberg-v8",
+      "last_modified": "2026-05-31T13:13:14.000+0000",
+      "memory": 2048,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:131 url = f\"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&limit=260&"
+      ]
+    },
+    {
+      "name": "justhodl-insider-sell-cluster",
+      "last_modified": "2026-05-30T18:41:00.000+0000",
+      "memory": 768,
+      "timeout": 300,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "manufacturing-global-agent",
+      "last_modified": "2026-05-31T13:48:16.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_manufacturing_agent.py:71 url = f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-put-call-extreme",
+      "last_modified": "2026-05-30T18:41:09.000+0000",
+      "memory": 512,
+      "timeout": 180,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:101 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-ka-metrics",
+      "last_modified": "2026-05-31T13:29:24.000+0000",
+      "memory": 256,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:26 url=f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_KEY}&file_type=json&observ"
+      ]
+    },
+    {
+      "name": "justhodl-carry-surface",
+      "last_modified": "2026-05-30T18:41:30.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:171 url = (f\"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-yen-carry",
+      "last_modified": "2026-05-30T18:45:24.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:74 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-tic-flows",
+      "last_modified": "2026-05-31T13:45:51.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 22 ? * THU *)",
+      "evidence": [
+        "lambda_function.py:67 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-tenor-signal-interpreter",
+      "last_modified": "2026-05-30T18:45:24.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 1,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:101 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-post-earnings-mean-rev",
+      "last_modified": "2026-05-30T18:45:24.000+0000",
+      "memory": 1024,
+      "timeout": 540,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-euro-fragmentation",
+      "last_modified": "2026-05-30T18:45:24.000+0000",
+      "memory": 256,
+      "timeout": 150,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:107 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-eurodollar-stress",
+      "last_modified": "2026-05-30T18:45:24.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:51 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:91 req = urllib.request.Request(f\"{FRED_BASE}?{qs}\", headers={\"User-Agent\": \"justhodl-stress/1.0\"})"
+      ]
+    },
+    {
+      "name": "justhodl-cds-monitor",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:98 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-cross-asset-rv",
+      "last_modified": "2026-05-31T13:18:43.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "cron(45 22 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:63 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-global-liquidity",
+      "last_modified": "2026-05-31T13:26:15.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 14 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:84 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-auction-crisis-detector",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 1024,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 1,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:404 \"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-snb-detail",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:82 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-credit-stress",
+      "last_modified": "2026-05-31T13:17:27.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:143 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "macro-financial-intelligence",
+      "last_modified": "2026-05-31T13:47:53.000+0000",
+      "memory": 512,
+      "timeout": 900,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:13 r=http.request('GET','https://api.stlouisfed.org/fred/series/observations',fields={'series_id':sid,'api_key':FRED_KEY,'f"
+      ]
+    },
+    {
+      "name": "justhodl-analyst-consensus",
+      "last_modified": "2026-05-31T13:10:44.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "cron(45 11 ? * MON-FRI *)",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-financial-secretary",
+      "last_modified": "2026-05-31T13:25:05.000+0000",
+      "memory": 1024,
+      "timeout": 300,
+      "pattern": "HYBRID_CACHE_AND_DIRECT",
+      "n_fred_refs": 4,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:180 url = f\"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&sort_order",
+        "lambda_function.py:208 _cache_obj = s3.get_object(Bucket=BUCKET, Key=\"data/fred-cache.json\")",
+        "lambda_function.py:260 Bucket=BUCKET, Key=\"data/fred-cache-secretary.json\","
+      ]
+    },
+    {
+      "name": "justhodl-eva-spread",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:74 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:144 url = (f\"{FRED_BASE}?series_id={series_id}&api_key={FRED_KEY}\""
+      ]
+    },
+    {
+      "name": "justhodl-macro-calendar",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-vol-surface",
+      "last_modified": "2026-05-31T13:47:27.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:95 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "openbb-system2-api",
+      "last_modified": "2026-05-31T13:50:02.000+0000",
+      "memory": 1024,
+      "timeout": 30,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:27 url = f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-gap-fill-confirm",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-valuations-agent",
+      "last_modified": "2026-05-31T13:46:39.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 1,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:20 url = (\"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:31 url = (\"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:86 _cu = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-liquidity-profile",
+      "last_modified": "2026-05-31T13:31:49.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 22 ? * FRI *)",
+      "evidence": []
+    },
+    {
+      "name": "justhodl-vvix-vov-regime",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 512,
+      "timeout": 180,
+      "pattern": "NO_FRED_REFERENCES",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": []
+    }
+  ],
+  "summary": {
+    "total": 93,
+    "cache_aware": 0,
+    "hybrid": 3,
+    "direct_fred_only": 69,
+    "no_fred_refs": 21,
+    "errors": 0
+  },
+  "needs_patching": [
+    {
+      "name": "justhodl-implied-prob",
+      "last_modified": "2026-05-30T18:34:54.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 11,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:99 d = http_get_json(f\"https://api.stlouisfed.org/fred/series/observations?{qs}\")",
+        "lambda_function.py:317 d = http_get_json(f\"https://api.stlouisfed.org/fred/series/observations?{qs}\")"
+      ]
+    },
+    {
+      "name": "justhodl-canary-grid",
+      "last_modified": "2026-05-30T18:39:39.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 5,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:125 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-chart-data",
+      "last_modified": "2026-05-30T18:35:30.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 4,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:105 url = f\"https://api.stlouisfed.org/fred/series/observations?{urllib.parse.urlencode(params)}\""
+      ]
+    },
+    {
+      "name": "justhodl-crisis-knowledge-base",
+      "last_modified": "2026-05-31T13:18:19.000+0000",
+      "memory": 256,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 3,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:515 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-liquidity-pulse",
+      "last_modified": "2026-05-30T18:28:49.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:132 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-commodity-curves",
+      "last_modified": "2026-05-31T13:17:01.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:134 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-plumbing-aggregator",
+      "last_modified": "2026-05-30T18:34:09.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:209 body = http_get(f\"https://api.stlouisfed.org/fred/series/observations?{qs}\")"
+      ]
+    },
+    {
+      "name": "justhodl-supply-inflection-scanner",
+      "last_modified": "2026-05-30T18:37:34.000+0000",
+      "memory": 1024,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:40 FRED_BASE = \"https://api.stlouisfed.org/fred\"",
+        "lambda_function.py:260 f\"{FRED_BASE}/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-divergence-engine-v2",
+      "last_modified": "2026-05-31T13:21:06.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "rate(2 hours)",
+      "evidence": [
+        "lambda_function.py:573 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-cross-asset-rv",
+      "last_modified": "2026-05-31T13:18:43.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 2,
+      "schedule": "cron(45 22 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:63 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-tenor-signal-interpreter",
+      "last_modified": "2026-05-30T18:45:24.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 1,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:101 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-auction-crisis-detector",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 1024,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 1,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:404 \"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-valuations-agent",
+      "last_modified": "2026-05-31T13:46:39.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 1,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:20 url = (\"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:31 url = (\"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:86 _cu = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-cds-proxy",
+      "last_modified": "2026-05-31T13:15:08.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 13,17,21 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:78 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-bond-trace",
+      "last_modified": "2026-05-31T13:13:38.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 21 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:73 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "volatility-monitor-agent",
+      "last_modified": "2026-05-22T10:55:27.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_volatility_agent.py:38 url = f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-liquidity-flow",
+      "last_modified": "2026-05-31T13:31:26.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:65 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:81 url = (f\"{FRED_BASE}?series_id={series_id}&api_key={FRED_KEY}\""
+      ]
+    },
+    {
+      "name": "justhodl-crisis-plumbing",
+      "last_modified": "2026-05-31T13:16:23.000+0000",
+      "memory": 768,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:90 url = \"https://api.stlouisfed.org/fred/series/observations?\" + urllib.parse.urlencode(params)",
+        "lambda_function.py:914 \"fred_api\": \"https://api.stlouisfed.org/fred\","
+      ]
+    },
+    {
+      "name": "justhodl-global-macro",
+      "last_modified": "2026-05-30T18:28:55.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:126 d = http_get_json(f\"https://api.stlouisfed.org/fred/series/observations?{qs}\", timeout=15)"
+      ]
+    },
+    {
+      "name": "justhodl-event-study",
+      "last_modified": "2026-05-30T18:28:57.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:48 \"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-ecb-detail",
+      "last_modified": "2026-05-30T18:29:17.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:82 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "bond-indices-agent",
+      "last_modified": "2026-05-22T10:55:29.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:41 base_url = \"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-construction-housing",
+      "last_modified": "2026-05-30T18:29:28.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:59 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-yield-curve",
+      "last_modified": "2026-05-30T18:29:53.000+0000",
+      "memory": 512,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:81 \"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-forward-returns",
+      "last_modified": "2026-05-30T18:30:26.000+0000",
+      "memory": 1024,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:134 url = f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_KEY}&file_type=json&sort"
+      ]
+    },
+    {
+      "name": "justhodl-email-reports-v2",
+      "last_modified": "2026-05-30T18:30:30.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:29 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-consumer-pulse",
+      "last_modified": "2026-05-30T18:30:55.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:68 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-global-stress",
+      "last_modified": "2026-05-30T18:31:02.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:46 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:208 % (FRED_BASE, series_id, FRED_KEY, start))"
+      ]
+    },
+    {
+      "name": "justhodl-repo-lending",
+      "last_modified": "2026-05-31T13:39:01.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 16 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:81 f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "dollar-strength-agent",
+      "last_modified": "2026-05-22T10:55:34.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_dollar_agent.py:63 url = f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-bond-vol",
+      "last_modified": "2026-05-30T18:33:36.000+0000",
+      "memory": 512,
+      "timeout": 180,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:103 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-global-business-cycle",
+      "last_modified": "2026-05-30T18:33:48.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:29 \u2022 FRED (where fresh, supplementary)            https://api.stlouisfed.org",
+        "lambda_function.py:172 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-cb-injection",
+      "last_modified": "2026-05-30T18:34:15.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:63 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-repo-monitor",
+      "last_modified": "2026-05-31T13:39:26.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:16 d=http_get(f\"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_API_KEY}&file_type=json&l"
+      ]
+    },
+    {
+      "name": "justhodl-liquidity-credit-engine",
+      "last_modified": "2026-05-31T13:16:49.000+0000",
+      "memory": 512,
+      "timeout": 480,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:274 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-bank-stress",
+      "last_modified": "2026-05-31T13:12:49.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 15 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:71 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-anomaly-detector",
+      "last_modified": "2026-05-30T18:34:56.000+0000",
+      "memory": 1024,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:115 url = f\"https://api.stlouisfed.org/fred/series/observations?{params}\""
+      ]
+    },
+    {
+      "name": "justhodl-macro-surprise",
+      "last_modified": "2026-05-30T18:35:00.000+0000",
+      "memory": 512,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:94 f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "xccy-basis-agent",
+      "last_modified": "2026-05-22T10:55:39.000+0000",
+      "memory": 256,
+      "timeout": 30,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:28 base_url = \"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-dollar-radar",
+      "last_modified": "2026-05-30T18:36:44.000+0000",
+      "memory": 256,
+      "timeout": 180,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:45 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:142 req = urllib.request.Request(\"%s?%s\" % (FRED_BASE, qs),"
+      ]
+    },
+    {
+      "name": "justhodl-correlation-breaks",
+      "last_modified": "2026-05-30T18:37:21.000+0000",
+      "memory": 1024,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:56 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:119 url = FRED_BASE + \"?\" + urllib.parse.urlencode(params)",
+        "lambda_function.py:491 \"fred_api\": \"https://api.stlouisfed.org/fred\","
+      ]
+    },
+    {
+      "name": "justhodl-skew-tail-hedging",
+      "last_modified": "2026-05-30T18:37:28.000+0000",
+      "memory": 512,
+      "timeout": 180,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:140 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-options-flow",
+      "last_modified": "2026-05-31T13:35:49.000+0000",
+      "memory": 1024,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:403 url = f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_KEY}&file_type=json&sort",
+        "lambda_function.py:693 urls = {sid: f\"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&sor"
+      ]
+    },
+    {
+      "name": "justhodl-macro-nowcast",
+      "last_modified": "2026-05-30T18:37:55.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(6 hours)",
+      "evidence": [
+        "lambda_function.py:55 url = (\"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-margin-lending",
+      "last_modified": "2026-05-31T13:32:15.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 16 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:86 url = (f\"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-historical-analogs",
+      "last_modified": "2026-05-30T18:38:12.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:71 \"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-khalid-metrics",
+      "last_modified": "2026-05-31T13:30:13.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:25 url=f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_KEY}&file_type=json&observ"
+      ]
+    },
+    {
+      "name": "justhodl-episode-reference",
+      "last_modified": "2026-05-30T18:38:19.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:97 url = f\"https://api.stlouisfed.org/fred/series/observations?{qs}\""
+      ]
+    },
+    {
+      "name": "justhodl-boj-detail",
+      "last_modified": "2026-05-30T18:38:29.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:74 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "securities-banking-agent",
+      "last_modified": "2026-05-22T10:55:42.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_securities_agent.py:57 url = f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-cross-asset-confirm",
+      "last_modified": "2026-05-30T18:38:50.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "rate(3 hours)",
+      "evidence": [
+        "lambda_function.py:104 url = (f\"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-china-liquidity",
+      "last_modified": "2026-05-31T13:16:09.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(30 14 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:69 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-bloomberg-v8",
+      "last_modified": "2026-05-31T13:13:14.000+0000",
+      "memory": 2048,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:131 url = f\"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&limit=260&"
+      ]
+    },
+    {
+      "name": "manufacturing-global-agent",
+      "last_modified": "2026-05-31T13:48:16.000+0000",
+      "memory": 512,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_manufacturing_agent.py:71 url = f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-put-call-extreme",
+      "last_modified": "2026-05-30T18:41:09.000+0000",
+      "memory": 512,
+      "timeout": 180,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:101 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-ka-metrics",
+      "last_modified": "2026-05-31T13:29:24.000+0000",
+      "memory": 256,
+      "timeout": 60,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:26 url=f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={FRED_KEY}&file_type=json&observ"
+      ]
+    },
+    {
+      "name": "justhodl-carry-surface",
+      "last_modified": "2026-05-30T18:41:30.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:171 url = (f\"https://api.stlouisfed.org/fred/series/observations?\""
+      ]
+    },
+    {
+      "name": "justhodl-yen-carry",
+      "last_modified": "2026-05-30T18:45:24.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:74 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-tic-flows",
+      "last_modified": "2026-05-31T13:45:51.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 22 ? * THU *)",
+      "evidence": [
+        "lambda_function.py:67 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-euro-fragmentation",
+      "last_modified": "2026-05-30T18:45:24.000+0000",
+      "memory": 256,
+      "timeout": 150,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:107 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-eurodollar-stress",
+      "last_modified": "2026-05-30T18:45:24.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:51 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:91 req = urllib.request.Request(f\"{FRED_BASE}?{qs}\", headers={\"User-Agent\": \"justhodl-stress/1.0\"})"
+      ]
+    },
+    {
+      "name": "justhodl-cds-monitor",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:98 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-global-liquidity",
+      "last_modified": "2026-05-31T13:26:15.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "cron(0 14 ? * MON-FRI *)",
+      "evidence": [
+        "lambda_function.py:84 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "justhodl-snb-detail",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 256,
+      "timeout": 90,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:82 url = (\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "justhodl-credit-stress",
+      "last_modified": "2026-05-31T13:17:27.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:143 url = (f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    },
+    {
+      "name": "macro-financial-intelligence",
+      "last_modified": "2026-05-31T13:47:53.000+0000",
+      "memory": 512,
+      "timeout": 900,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:13 r=http.request('GET','https://api.stlouisfed.org/fred/series/observations',fields={'series_id':sid,'api_key':FRED_KEY,'f"
+      ]
+    },
+    {
+      "name": "justhodl-eva-spread",
+      "last_modified": "2026-05-30T18:45:25.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:74 FRED_BASE = \"https://api.stlouisfed.org/fred/series/observations\"",
+        "lambda_function.py:144 url = (f\"{FRED_BASE}?series_id={series_id}&api_key={FRED_KEY}\""
+      ]
+    },
+    {
+      "name": "justhodl-vol-surface",
+      "last_modified": "2026-05-31T13:47:27.000+0000",
+      "memory": 256,
+      "timeout": 120,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:95 url = (f\"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}\""
+      ]
+    },
+    {
+      "name": "openbb-system2-api",
+      "last_modified": "2026-05-31T13:50:02.000+0000",
+      "memory": 1024,
+      "timeout": 30,
+      "pattern": "DIRECT_FRED_ONLY",
+      "n_fred_refs": 0,
+      "schedule": "no-schedule",
+      "evidence": [
+        "lambda_function.py:27 url = f\"https://api.stlouisfed.org/fred/series/observations\""
+      ]
+    }
+  ],
+  "finished": "2026-05-31T22:50:08.072840+00:00"
+}
