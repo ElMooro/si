@@ -1,0 +1,229 @@
+{
+  "started": "2026-05-31T11:45:55.963479+00:00",
+  "opportunities_top_keys": [
+    "schema_version",
+    "method",
+    "generated_at",
+    "elapsed_s",
+    "n_covered",
+    "factor_weights",
+    "verdict_counts",
+    "changes",
+    "top_opportunities",
+    "avoid_list",
+    "all",
+    "sector_benchmarks",
+    "disclaimer",
+    "note"
+  ],
+  "opportunities_structure": {
+    "schema_version": "'2.0'",
+    "method": "'retail_edge_multi_method_synthesis'",
+    "generated_at": "'2026-05-31T11:00:16.745174+00:00'",
+    "elapsed_s": "0.74",
+    "n_covered": "501",
+    "factor_weights": "<dict with 4 keys: ['value', 'quality', 'growth', 'momentum']>",
+    "verdict_counts": "<dict with 6 keys: ['STRONG OPPORTUNITY', 'OPPORTUNITY', 'FAIR VALUE', 'HIGH RISK', 'EXPENSIVE', 'HOLD / NEUTRAL']>",
+    "changes": "<dict with 4 keys: ['baseline', 'newly_opportunity', 'newly_high_risk', 'verdict_flips']>",
+    "top_opportunities": "<list[30] of dicts with keys: ['ticker', 'company', 'sector', 'industry', 'price', 'fair_value_low', 'fair_value_mid', 'fair_value_high', 'undervalued_pct', 'confidence']>",
+    "_top_opportunities[0]": {
+      "ticker": "BKNG",
+      "company": "Booking Holdings Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Travel Services",
+      "price": 167.43,
+      "fair_value_low": 230.7,
+      "fair_value_mid": 247.65,
+      "fair_value_high": 264.6
+    },
+    "avoid_list": "<list[12] of dicts with keys: ['ticker', 'company', 'sector', 'industry', 'price', 'fair_value_low', 'fair_value_mid', 'fair_value_high', 'undervalued_pct', 'confidence']>",
+    "_avoid_list[0]": {
+      "ticker": "GS",
+      "company": "The Goldman Sachs Group, Inc.",
+      "sector": "Financial Services",
+      "industry": "Financial - Capital Markets",
+      "price": 1025.56,
+      "fair_value_low": 710.78,
+      "fair_value_mid": 870.79,
+      "fair_value_high": 980.78
+    },
+    "all": "<list[501] of dicts with keys: ['ticker', 'company', 'sector', 'industry', 'price', 'fair_value_low', 'fair_value_mid', 'fair_value_high', 'undervalued_pct', 'confidence']>",
+    "_all[0]": {
+      "ticker": "BKNG",
+      "company": "Booking Holdings Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Travel Services",
+      "price": 167.43,
+      "fair_value_low": 230.7,
+      "fair_value_mid": 247.65,
+      "fair_value_high": 264.6
+    },
+    "sector_benchmarks": "<dict with 11 keys: ['Technology', 'Healthcare', 'Consumer Cyclical', 'Industrials', 'Basic Materials', 'Financial Services', 'Communication Services', 'Energy']>",
+    "disclaimer": "'Research and education only \u2014 not financial advice. Every stock carries risk of",
+    "note": "'Each verdict triangulates three independent fair-value methods (DCF, historical"
+  },
+  "opportunities_first_array": {
+    "key": "top_opportunities",
+    "len": 30,
+    "first_item_keys": [
+      "ticker",
+      "company",
+      "sector",
+      "industry",
+      "price",
+      "fair_value_low",
+      "fair_value_mid",
+      "fair_value_high",
+      "undervalued_pct",
+      "confidence",
+      "valuation_methods",
+      "n_methods",
+      "verdict",
+      "verdict_color",
+      "bottom_line",
+      "opportunity_score",
+      "scores",
+      "cycle",
+      "guru",
+      "entry_zone_below",
+      "vs_industry",
+      "opportunities",
+      "risks"
+    ],
+    "first_item_sample": {
+      "ticker": "BKNG",
+      "company": "Booking Holdings Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Travel Services",
+      "price": 167.43,
+      "fair_value_low": 230.7,
+      "fair_value_mid": 247.65,
+      "fair_value_high": 264.6,
+      "undervalued_pct": 47.9,
+      "confidence": "high",
+      "n_methods": 2,
+      "verdict": "STRONG OPPORTUNITY",
+      "verdict_color": "green",
+      "bottom_line": "BKNG looks meaningfully undervalued (~48% below fair value) with multiple methods in agreement \u2014 a wide moat business worth a close look."
+    }
+  },
+  "near_misses_current": {
+    "earnings_pead": 14,
+    "screener_top_pick": 0,
+    "momentum_top_pick": 0,
+    "valuation_composite": 0,
+    "earnings_cascade": 0,
+    "crisis_composite_near_extreme": 0
+  },
+  "near_misses_diag": [
+    {
+      "signal_type": "earnings_pead",
+      "snapshot": "data/earnings-pead.json",
+      "extractor": "tier_label",
+      "count": 14
+    },
+    {
+      "signal_type": "screener_top_pick",
+      "snapshot": "data/opportunities.json",
+      "extractor": "score_band",
+      "count": 0
+    },
+    {
+      "signal_type": "momentum_top_pick",
+      "snapshot": "data/opportunities.json",
+      "extractor": "score_band",
+      "count": 0
+    },
+    {
+      "signal_type": "valuation_composite",
+      "snapshot": "data/opportunities.json",
+      "extractor": "score_band",
+      "count": 0
+    },
+    {
+      "signal_type": "earnings_cascade",
+      "snapshot": "data/earnings-cascade.json",
+      "extractor": "array_length",
+      "count": 0
+    },
+    {
+      "signal_type": "crisis_composite_near_extreme",
+      "snapshot": "data/crisis-composite.json",
+      "extractor": "z_score_band",
+      "count": 0
+    }
+  ],
+  "unknowns_remaining": [
+    {
+      "signal_type": "nobrainer_PICK",
+      "count": 15
+    },
+    {
+      "signal_type": "nobrainer_XOP",
+      "count": 13
+    },
+    {
+      "signal_type": "nobrainer_BOTZ",
+      "count": 12
+    },
+    {
+      "signal_type": "macro_frontrun_sniffer_setup",
+      "count": 12
+    },
+    {
+      "signal_type": "nobrainer_ROBO",
+      "count": 11
+    },
+    {
+      "signal_type": "nobrainer_SIL",
+      "count": 9
+    },
+    {
+      "signal_type": "nobrainer_REMX",
+      "count": 9
+    },
+    {
+      "signal_type": "sustained_target_equity",
+      "count": 8
+    },
+    {
+      "signal_type": "nobrainer_LIT",
+      "count": 7
+    },
+    {
+      "signal_type": "nobrainer_COPX",
+      "count": 7
+    },
+    {
+      "signal_type": "nobrainer_XLE",
+      "count": 3
+    },
+    {
+      "signal_type": "etf_flow_extreme",
+      "count": 1
+    },
+    {
+      "signal_type": "nobrainer_URA",
+      "count": 1
+    }
+  ],
+  "new_id_prefixes": [],
+  "crisis_composite_structure": {
+    "schema_version": "str = '1.0'",
+    "method": "str = 'crisis_composite_v1'",
+    "generated_at": "str = '2026-05-31T11:00:31.187682+00:00'",
+    "elapsed_s": "float = 0.6",
+    "master_crisis_score": "float = 40.8",
+    "defcon_level": "int = 3",
+    "defcon_name": "str = 'ELEVATED'",
+    "defcon_color": "str = 'var(--yellow)'",
+    "playbook": "str = 'Caution. Reduce leverage, tighten stops, lighten the most s",
+    "trend": "str = 'stable'",
+    "components_available": "int = 8",
+    "components": "list (11 items)",
+    "primary_drivers": "list (1 items)",
+    "scale": "dict (5 items)",
+    "methodology": "str = \"Fuses the platform's dedicated risk engines (eurodollar-str"
+  },
+  "finished": "2026-05-31T11:45:56.286803+00:00"
+}
