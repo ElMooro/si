@@ -4,13 +4,13 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "memory": 256,
-  "timeout": 900,
+  "timeout": 600,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Per-ticker Google search interest velocity. Direct API (no pytrends/pandas). Heavy rate-limited (8s/req). Outputs to data/ticker-trends.json; emits ticker_trends.spike events for velocity >= 3.0. Complementary to justhodl-google-trends which tracks macro indices.",
+  "description": "v2: Per-ticker search velocity. Wikipedia pageviews PRIMARY (free, unlimited, no IP blocks). Google Trends FALLBACK best-effort. Outputs data/ticker-trends.json (~2-3min runtime).",
   "schedule": {
     "rule_name": "ticker-trends-2x-daily",
     "cron": "cron(0 13,21 * * ? *)",
-    "description": "Per-ticker Google trends — 2x daily 13/21 UTC (after forward-orders + rotation-chain so future-intel has all 4 signals)"
+    "description": "Per-ticker search velocity — 2x daily 13/21 UTC (after forward-orders + rotation-chain so future-intel has all 4 signals)"
   }
 }

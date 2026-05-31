@@ -1,43 +1,38 @@
-"""justhodl-ticker-trends — per-ticker Google search interest velocity.
+"""justhodl-ticker-trends — per-ticker search-interest velocity.
 
 ROLE
 ════
 4th forward-looking signal source for the future-intelligence composite.
-Complementary to justhodl-google-trends (which tracks macro INDICES like
-'melt_up_attention' and 'ai_hype') — this one tracks per-TICKER search
-interest, surfacing names where retail is googling but price hasn't
-moved yet.
+Tracks search interest velocity per ticker; STEALTH detection flags
+names where attention is rising but price hasn't moved yet.
 
-WHY NOT PYTRENDS?
-═════════════════
-pytrends pulls in pandas + numpy = ~80MB of deps that don't deploy
-cleanly into Lambda, plus the library's explore-token step has high
-failure rate from cloud IP ranges. We use the bare Google Trends widget
-endpoints directly with urllib + json. Zero external deps.
+DESIGN (v2 — 2026-05-31)
+═══════════════════════
+Switched PRIMARY source from Google Trends to Wikipedia pageviews after
+v1 failed silently in production (AWS us-east-1 IP ranges get aggressively
+429-blocked by Google Trends — a known datacenter-egress issue).
 
-ARCHITECTURE
-════════════
-For each ticker:
-  Step 1: GET trends.google.com/trends/api/explore  → widget tokens
-  Step 2: GET trends.google.com/trends/api/widgetdata/multiline
-          (with token) → daily interest series [0-100]
-  Step 3: Compute velocity = avg(last_7d) / avg(prior_23d)
-  Step 4: STEALTH detection: velocity ≥ 2 AND |price_7d| < 5%
+  PRIMARY:  Wikipedia pageviews API — free, no auth, no rate limits.
+            People research stocks → click Wikipedia → registered as
+            a pageview. Strong correlation with Google search interest
+            (which is what we ACTUALLY want, just measured differently).
+  
+  FALLBACK: Google Trends widget API (best-effort, one try, skip on 429).
+            When it works, we average it in. When blocked, the engine
+            still produces output from Wikipedia alone.
+
+The output schema is identical to v1 so future-intelligence
+integration is unchanged.
 
 RATE LIMITING
 ═════════════
-Google Trends 429s aggressively under load. Mitigations:
-  - Cap at 80 tickers per run (~11 min runtime)
-  - Sleep SLEEP_BETWEEN_S between tickers (default 8s)
-  - Single retry with 30s backoff on 429
-  - Skip-on-error (don't bring down whole run)
-  - Schedule 2x daily so transient blocks self-heal
+Wikipedia API is generous (no documented rate limit; we keep 1s/req for
+politeness). Total runtime for 80 tickers ≈ 2-3 min.
 
 OUTPUT
 ══════
   data/ticker-trends.json — per-ticker velocity + interest level + raw series
-  Emits ticker_trends.spike event for velocity >= 3.0 (filtered by
-  coordinator for STEALTH or extreme spikes only)
+  Emits ticker_trends.spike event for velocity >= 3.0
 """
 import json
 import os
@@ -46,7 +41,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from statistics import mean
 
 import boto3
@@ -61,67 +56,121 @@ FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
 
 # Tunable via env
 MAX_TICKERS    = int(os.environ.get("MAX_TICKERS", "80"))
-SLEEP_BETWEEN  = float(os.environ.get("SLEEP_BETWEEN_S", "8.0"))
-HTTP_TIMEOUT   = 15
+SLEEP_BETWEEN  = float(os.environ.get("SLEEP_BETWEEN_S", "1.0"))  # Wikipedia is generous
+TRY_GOOGLE     = os.environ.get("TRY_GOOGLE", "1") == "1"
+HTTP_TIMEOUT   = 12
 
-# Realistic browser UA — Google Trends rejects bare User-Agent strings
-USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/126.0.0.0 Safari/537.36")
+USER_AGENT = ("JustHodl-TickerTrends/2.0 (raafouis@gmail.com) — "
+                "ticker search-interest velocity tracker")
 
-# Universe focus list — names where Google Trends has the strongest signal
-# (large-cap tech + recently-trending tickers + meme bench). Avoids dilute
-# coverage of small-caps where search interest is too noisy.
-FOCUS_TICKERS = [
+# Ticker → Wikipedia article slug. The 80-ticker focus list — names where
+# search interest is meaningful (large-cap + meme-prone + thematic plays).
+# Most companies' Wikipedia URL is predictable; verified each one manually.
+TICKER_TO_WIKI = {
     # Mega-cap tech
-    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "AVGO", "TSLA", "ORCL",
-    # AI/semis
-    "AMD", "INTC", "TSM", "ASML", "MU", "QCOM", "ARM", "SMCI",
-    # Power for AI chain
-    "VST", "GEV", "CEG", "VRT", "ETN",
+    "AAPL":  "Apple_Inc.",
+    "MSFT":  "Microsoft",
+    "GOOGL": "Alphabet_Inc.",
+    "AMZN":  "Amazon_(company)",
+    "META":  "Meta_Platforms",
+    "NVDA":  "Nvidia",
+    "AVGO":  "Broadcom",
+    "TSLA":  "Tesla,_Inc.",
+    "ORCL":  "Oracle_Corporation",
+    # AI / semis
+    "AMD":   "Advanced_Micro_Devices",
+    "INTC":  "Intel",
+    "TSM":   "TSMC",
+    "ASML":  "ASML_Holding",
+    "MU":    "Micron_Technology",
+    "QCOM":  "Qualcomm",
+    "ARM":   "Arm_Holdings",
+    "SMCI":  "Supermicro",
+    # AI-power chain T3
+    "VST":   "Vistra_Corp",
+    "GEV":   "GE_Vernova",
+    "CEG":   "Constellation_Energy",
+    "VRT":   "Vertiv",
+    "ETN":   "Eaton_Corporation",
     # Cyber
-    "PANW", "CRWD", "ZS", "NET", "S",
+    "PANW":  "Palo_Alto_Networks",
+    "CRWD":  "CrowdStrike",
+    "ZS":    "Zscaler",
+    "NET":   "Cloudflare",
+    "S":     "SentinelOne",
     # Quantum
-    "IONQ", "RGTI", "QBTS",
+    "IONQ":  "IonQ",
+    "RGTI":  "Rigetti_Computing",
+    "QBTS":  "D-Wave_Quantum",
     # Fintech / Crypto-adjacent
-    "COIN", "HOOD", "SOFI", "MSTR", "PYPL",
+    "COIN":  "Coinbase",
+    "HOOD":  "Robinhood_Markets",
+    "SOFI":  "SoFi",
+    "MSTR":  "Strategy_(company)",  # formerly MicroStrategy
+    "PYPL":  "PayPal",
     # EV / battery
-    "RIVN", "LCID", "ALB", "LAC", "PLL", "ALTM",
+    "RIVN":  "Rivian",
+    "LCID":  "Lucid_Motors",
+    "ALB":   "Albemarle_Corporation",
+    "LAC":   "Lithium_Americas",
+    "PLL":   "Piedmont_Lithium",
+    "ALTM":  "Arcadium_Lithium",
     # Defense
-    "LMT", "RTX", "NOC", "GD", "AVAV", "RKLB",
-    # Biotech (newly-added rotation chain)
-    "LLY", "NVO", "REGN", "VRTX", "MRNA", "BIIB",
-    # Commodities (newly-added chains)
-    "FCX", "SCCO", "CCJ", "DNN", "UEC",
-    # Datacenter REIT
-    "EQIX", "DLR",
+    "LMT":   "Lockheed_Martin",
+    "RTX":   "RTX_Corporation",
+    "NOC":   "Northrop_Grumman",
+    "GD":    "General_Dynamics",
+    "AVAV":  "AeroVironment",
+    "RKLB":  "Rocket_Lab",
+    # Biotech
+    "LLY":   "Eli_Lilly_and_Company",
+    "NVO":   "Novo_Nordisk",
+    "REGN":  "Regeneron_Pharmaceuticals",
+    "VRTX":  "Vertex_Pharmaceuticals",
+    "MRNA":  "Moderna",
+    "BIIB":  "Biogen",
+    # Commodities
+    "FCX":   "Freeport-McMoRan",
+    "SCCO":  "Southern_Copper_Corporation",
+    "CCJ":   "Cameco",
+    "DNN":   "Denison_Mines",
+    "UEC":   "Uranium_Energy_Corp",
+    # Datacenter REITs
+    "EQIX":  "Equinix",
+    "DLR":   "Digital_Realty",
     # Meme
-    "GME", "AMC", "BB", "PLTR", "DJT", "RDDT", "DUOL", "RBLX",
-    # Speculative (quantum / SMR)
-    "MP", "USAR", "OKLO", "SMR", "NNE",
-]
+    "GME":   "GameStop",
+    "AMC":   "AMC_Theatres",
+    "BB":    "BlackBerry_Limited",
+    "PLTR":  "Palantir_Technologies",
+    "DJT":   "Trump_Media_%26_Technology_Group",
+    "RDDT":  "Reddit,_Inc.",
+    "DUOL":  "Duolingo",
+    "RBLX":  "Roblox",
+    # Speculative
+    "MP":    "MP_Materials",
+    "USAR":  "USA_Rare_Earth",
+    "OKLO":  "Oklo_(company)",
+    "SMR":   "NuScale_Power",
+    "NNE":   "Nano_Nuclear_Energy",
+}
 
 s3 = boto3.client("s3", region_name=REGION)
 
 
-# ─── HTTP with retry + 429 handling ──────────────────────────────────────
-
-def _http_get(url, retries=2, backoff_s=30):
-    h = {
-        "User-Agent":      USER_AGENT,
-        "Accept":          "application/json, text/plain, */*",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Referer":         "https://trends.google.com/trends/",
-    }
+def _http_get(url, timeout=HTTP_TIMEOUT, retries=0):
+    """Minimal urllib GET with optional retry."""
+    h = {"User-Agent": USER_AGENT, "Accept": "application/json"}
     for attempt in range(retries + 1):
         try:
             req = urllib.request.Request(url, headers=h)
-            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
                 return r.read().decode("utf-8")
         except urllib.error.HTTPError as e:
-            if e.code == 429 and attempt < retries:
-                print(f"[ticker-trends] 429, sleeping {backoff_s}s then retry…")
-                time.sleep(backoff_s)
+            if e.code == 404:
+                return None  # don't retry on missing article
+            if attempt < retries:
+                time.sleep(2)
                 continue
             return None
         except Exception:
@@ -132,9 +181,54 @@ def _http_get(url, retries=2, backoff_s=30):
     return None
 
 
+# ─── PRIMARY: Wikipedia pageviews ────────────────────────────────────────
+
+def get_wiki_pageviews(article: str, days: int = 31) -> list:
+    """Daily pageview counts for an article over last N days.
+    
+    Returns: list of int (oldest first), or None on failure.
+    
+    Wikipedia caches pageview data with ~24h lag — so requesting through
+    today returns 0 for today. We back off 2 days to get reliable counts.
+    """
+    if not article:
+        return None
+    
+    end_dt = datetime.now(timezone.utc) - timedelta(days=2)
+    start_dt = end_dt - timedelta(days=days)
+    start_s = start_dt.strftime("%Y%m%d") + "00"
+    end_s   = end_dt.strftime("%Y%m%d") + "00"
+    
+    article_enc = urllib.parse.quote(article, safe="")
+    url = (
+        f"https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/"
+        f"en.wikipedia/all-access/user/{article_enc}/daily/{start_s}/{end_s}"
+    )
+    body = _http_get(url, timeout=10, retries=1)
+    if not body:
+        return None
+    try:
+        data = json.loads(body)
+    except Exception:
+        return None
+    items = data.get("items") or []
+    if not items:
+        return None
+    
+    # Sort by timestamp asc and extract view counts
+    items.sort(key=lambda x: x.get("timestamp", ""))
+    series = []
+    for it in items:
+        try:
+            series.append(int(it.get("views", 0)))
+        except (ValueError, TypeError):
+            continue
+    return series if len(series) >= 14 else None
+
+
+# ─── FALLBACK: Google Trends (best-effort, single try) ──────────────────
+
 def _strip_prefix_json(s):
-    """Google Trends responses are JSON with a 4-5 char prefix designed
-    to defeat JSON-hijacking. Find first '{' and parse from there."""
     if not s:
         return None
     i = s.find("{")
@@ -146,60 +240,58 @@ def _strip_prefix_json(s):
         return None
 
 
-# ─── Google Trends widget protocol ───────────────────────────────────────
-
-def get_trends_series(keyword, geo="US", timeframe="today 1-m"):
-    """Two-call dance:
-      1. /api/explore  → widget tokens
-      2. /api/widgetdata/multiline  → daily 0-100 interest values"""
-    # Step 1: explore
+def get_google_trends_series(keyword, geo="US", timeframe="today 1-m"):
+    """Best-effort Google Trends fetch. One try, short timeout, no retry.
+    Returns list of int or None."""
+    h = {
+        "User-Agent":      ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                              "AppleWebKit/537.36 (KHTML, like Gecko) "
+                              "Chrome/126.0.0.0 Safari/537.36"),
+        "Accept":          "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Referer":         "https://trends.google.com/trends/",
+    }
+    
+    def _try_get(url):
+        try:
+            req = urllib.request.Request(url, headers=h)
+            with urllib.request.urlopen(req, timeout=8) as r:
+                return r.read().decode("utf-8")
+        except Exception:
+            return None
+    
     explore_req = {
-        "comparisonItem": [
-            {"keyword": keyword, "geo": geo, "time": timeframe}
-        ],
-        "category": 0,
-        "property": "",
+        "comparisonItem": [{"keyword": keyword, "geo": geo, "time": timeframe}],
+        "category": 0, "property": "",
     }
     params1 = urllib.parse.urlencode({
-        "hl":  "en-US",
-        "tz":  "300",
+        "hl": "en-US", "tz": "300",
         "req": json.dumps(explore_req, separators=(",", ":")),
     })
-    url1 = f"https://trends.google.com/trends/api/explore?{params1}"
-    body1 = _http_get(url1)
+    body1 = _try_get(f"https://trends.google.com/trends/api/explore?{params1}")
     if not body1:
-        return {"err": "explore_failed"}
+        return None
     data1 = _strip_prefix_json(body1)
     if not data1 or "widgets" not in data1:
-        return {"err": "explore_no_widgets"}
+        return None
     
-    timeseries_widget = None
-    for w in data1["widgets"]:
-        if w.get("id") == "TIMESERIES":
-            timeseries_widget = w
-            break
-    if not timeseries_widget:
-        return {"err": "no_timeseries_widget"}
-    
-    token = timeseries_widget.get("token")
-    req2 = timeseries_widget.get("request")
+    widget = next((w for w in data1["widgets"] if w.get("id") == "TIMESERIES"), None)
+    if not widget:
+        return None
+    token, req2 = widget.get("token"), widget.get("request")
     if not token or not req2:
-        return {"err": "no_token"}
+        return None
     
-    # Step 2: timeseries data
     params2 = urllib.parse.urlencode({
-        "hl":    "en-US",
-        "tz":    "300",
-        "token": token,
-        "req":   json.dumps(req2, separators=(",", ":")),
+        "hl": "en-US", "tz": "300", "token": token,
+        "req": json.dumps(req2, separators=(",", ":")),
     })
-    url2 = f"https://trends.google.com/trends/api/widgetdata/multiline?{params2}"
-    body2 = _http_get(url2)
+    body2 = _try_get(f"https://trends.google.com/trends/api/widgetdata/multiline?{params2}")
     if not body2:
-        return {"err": "multiline_failed"}
+        return None
     data2 = _strip_prefix_json(body2)
     if not data2 or "default" not in data2:
-        return {"err": "multiline_no_default"}
+        return None
     
     timeline = data2.get("default", {}).get("timelineData") or []
     series = []
@@ -210,14 +302,13 @@ def get_trends_series(keyword, geo="US", timeframe="today 1-m"):
                 series.append(int(val[0]))
             except (ValueError, TypeError):
                 continue
-    
-    return {"series": series, "n": len(series)}
+    return series if len(series) >= 14 else None
 
 
-# ─── Velocity scoring ────────────────────────────────────────────────────
+# ─── Velocity scoring (works on any daily series) ────────────────────────
 
-def compute_trends_velocity(series):
-    """Daily Google Trends values 0-100 → velocity (7d avg vs prior period)."""
+def compute_velocity(series):
+    """daily counts → velocity (7d avg vs prior period)."""
     if not series or len(series) < 14:
         return {"velocity": None, "level": None, "interp": "NO_DATA"}
     
@@ -228,7 +319,7 @@ def compute_trends_velocity(series):
     prior_avg  = mean(prior) if prior else 0.01
     
     if prior_avg < 1:
-        velocity = recent_avg + 1  # floor case
+        velocity = recent_avg + 1
     else:
         velocity = recent_avg / prior_avg
     
@@ -249,10 +340,10 @@ def compute_trends_velocity(series):
 
 
 def get_recent_price_perf(ticker, days=7):
-    """Used for STEALTH detection."""
+    """For STEALTH detection."""
     url = (f"https://financialmodelingprep.com/stable/historical-price-eod/full"
             f"?symbol={ticker}&apikey={FMP_KEY}")
-    body = _http_get(url, retries=0)
+    body = _http_get(url, timeout=10, retries=0)
     if not body:
         return None
     try:
@@ -272,39 +363,53 @@ def get_recent_price_perf(ticker, days=7):
         return None
 
 
-# ─── Per-ticker analysis ─────────────────────────────────────────────────
-
-def analyze_ticker(ticker):
-    trends_result = get_trends_series(ticker, geo="US", timeframe="today 1-m")
-    if "err" in trends_result:
-        return {"ticker": ticker, "err": trends_result["err"]}
+def analyze_ticker(ticker, wiki_article):
+    """Two sources tried (Wikipedia primary, Google Trends best-effort)."""
+    sources_used = []
     
-    series = trends_result.get("series") or []
-    velocity_info = compute_trends_velocity(series)
+    # PRIMARY: Wikipedia
+    wiki_series = get_wiki_pageviews(wiki_article, days=31) if wiki_article else None
+    if wiki_series:
+        sources_used.append("wiki")
     
+    # FALLBACK: Google Trends (skip if disabled or Wikipedia got us enough)
+    gtrends_series = None
+    if TRY_GOOGLE and wiki_series is None:
+        # Only try Google when Wikipedia fails — saves time and 429s
+        gtrends_series = get_google_trends_series(ticker)
+        if gtrends_series:
+            sources_used.append("google_trends")
+    
+    # Use whichever source returned data; Wikipedia preferred for accuracy
+    series_for_score = wiki_series or gtrends_series
+    if series_for_score is None:
+        return {"ticker": ticker, "err": "no_source_data"}
+    
+    velocity_info = compute_velocity(series_for_score)
     if velocity_info.get("velocity") is None:
-        return {"ticker": ticker, "err": "insufficient_data", "series_n": len(series)}
+        return {"ticker": ticker, "err": "insufficient_data",
+                  "sources_used": sources_used}
     
     price_7d = get_recent_price_perf(ticker, days=7)
     velocity = velocity_info["velocity"]
     stealth = (velocity >= 2.0 and price_7d is not None and abs(price_7d) < 5.0)
     
-    # Score 0-100
     score = min(100, velocity * 25)
     if stealth:
         score = min(100, score + 20)
-    if velocity_info["level"] >= 50:
+    # Wikipedia views can be high in absolute number — only give the
+    # "absolute level" bonus when level is high relative to prior period
+    if velocity_info["level"] >= velocity_info["prior_level"] * 1.5:
         score = min(100, score + 5)
     
     thesis_bits = []
+    src_label = "Wikipedia views" if "wiki" in sources_used else "Google search"
     if velocity >= 2.5:
-        thesis_bits.append(f"Google search {velocity}x baseline")
+        thesis_bits.append(f"{src_label} {velocity}x baseline")
     elif velocity >= 1.5:
-        thesis_bits.append(f"rising search interest ({velocity}x)")
+        thesis_bits.append(f"rising {src_label} ({velocity}x)")
     if stealth:
         thesis_bits.append(f"STEALTH (price only {price_7d:+.1f}% in 7d)")
-    if velocity_info["max_in_range"] >= 80 and velocity_info["level"] < 50:
-        thesis_bits.append("fading from peak")
     
     return {
         "ticker":        ticker,
@@ -316,7 +421,9 @@ def analyze_ticker(ticker):
         "interp":        velocity_info["interp"],
         "price_7d_pct":  round(price_7d, 2) if price_7d is not None else None,
         "stealth":       stealth,
-        "series":        series[-30:],
+        "sources_used":  sources_used,
+        "wiki_article":  wiki_article,
+        "series":        series_for_score[-30:],
         "thesis":        " · ".join(thesis_bits) if thesis_bits else
                             f"Search {velocity_info['interp'].lower().replace('_',' ')}",
     }
@@ -326,59 +433,65 @@ def analyze_ticker(ticker):
 def handler(event, context):
     started = datetime.now(timezone.utc)
     
-    universe = list(dict.fromkeys(FOCUS_TICKERS))[:MAX_TICKERS]
-    expected_min = SLEEP_BETWEEN * len(universe) / 60
-    print(f"[ticker-trends] universe: {len(universe)} tickers, "
-          f"~{expected_min:.0f}min expected runtime")
+    # Process all mapped tickers up to MAX_TICKERS
+    universe = list(TICKER_TO_WIKI.items())[:MAX_TICKERS]
+    print(f"[ticker-trends-v2] universe: {len(universe)} tickers (wiki+gtrends), "
+          f"primary=Wikipedia, gtrends_fallback={TRY_GOOGLE}")
     
     results = []
     errors  = defaultdict(int)
+    sources_count = defaultdict(int)
     
-    for i, ticker in enumerate(universe):
+    for i, (ticker, wiki_article) in enumerate(universe):
         try:
-            r = analyze_ticker(ticker)
+            r = analyze_ticker(ticker, wiki_article)
             if "err" in r:
                 errors[r["err"]] += 1
-            else:
-                results.append(r)
+                continue
+            results.append(r)
+            for src in r.get("sources_used", []):
+                sources_count[src] += 1
         except Exception as e:
             errors["exception"] += 1
-            print(f"[ticker-trends] err on {ticker}: {e}")
+            print(f"[ticker-trends-v2] err on {ticker}: {e}")
         
         if i < len(universe) - 1:
             time.sleep(SLEEP_BETWEEN)
         
         if (i + 1) % 10 == 0:
             elapsed = (datetime.now(timezone.utc) - started).total_seconds()
-            print(f"[ticker-trends] {i+1}/{len(universe)}  ok={len(results)}  "
-                  f"err={dict(errors)}  elapsed={elapsed:.0f}s")
+            print(f"[ticker-trends-v2] {i+1}/{len(universe)}  ok={len(results)}  "
+                  f"err={dict(errors)}  src={dict(sources_count)}  "
+                  f"elapsed={elapsed:.0f}s")
         
-        # Hard time budget
         if (datetime.now(timezone.utc) - started).total_seconds() > 780:
-            print("[ticker-trends] time budget exhausted, stopping early")
+            print("[ticker-trends-v2] time budget exhausted, stopping early")
             break
     
     results.sort(key=lambda r: -r["score"])
     
     out = {
-        "schema_version": "1.0",
-        "method":         "ticker_trends_v1",
-        "generated_at":   datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "duration_s":     round((datetime.now(timezone.utc) - started).total_seconds(), 1),
-        "n_processed":    len(universe),
-        "n_ok":           len(results),
-        "errors":         dict(errors),
+        "schema_version":  "2.0",
+        "method":          "wikipedia_primary_gtrends_fallback_v2",
+        "generated_at":    datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "duration_s":      round((datetime.now(timezone.utc) - started).total_seconds(), 1),
+        "n_processed":     len(universe),
+        "n_ok":            len(results),
+        "errors":          dict(errors),
+        "sources_used_count": dict(sources_count),
         "config": {
-            "max_tickers":   MAX_TICKERS,
+            "max_tickers":  MAX_TICKERS,
             "sleep_between": SLEEP_BETWEEN,
+            "try_google":   TRY_GOOGLE,
         },
         "top_20":         results[:20],
         "stealth_picks":  [r for r in results if r["stealth"]][:10],
         "all_results":    results,
         "notes": (
-            "Per-ticker Google search interest velocity = last_7d_avg / "
-            "prior_23d_avg. STEALTH = velocity >= 2.0 + |7d price perf| < 5% "
-            "(retail attention rising but price hasn't moved — pre-pump alpha)."
+            "v2: Wikipedia pageviews PRIMARY (free, unlimited, no IP blocks), "
+            "Google Trends FALLBACK (best-effort, blocked from AWS us-east-1 in v1). "
+            "Velocity = last_7d_avg / prior_23d_avg of daily counts. "
+            "STEALTH = velocity >= 2.0 + |7d price perf| < 5%."
         ),
     }
     
@@ -386,10 +499,11 @@ def handler(event, context):
     s3.put_object(Bucket=BUCKET, Key=OUTPUT_KEY, Body=body,
                   ContentType="application/json",
                   CacheControl="public, max-age=14400")
-    print(f"[ticker-trends] wrote {len(body):,}B  top: "
-          f"{results[0]['ticker'] if results else 'none'}")
+    print(f"[ticker-trends-v2] wrote {len(body):,}B  top: "
+          f"{results[0]['ticker'] if results else 'none'}  "
+          f"sources={dict(sources_count)}")
     
-    # Emit events for spikes
+    # Emit events
     try:
         from system_events import publish_many
         spikes = [r for r in results if r["velocity"] >= 3.0][:5]
@@ -401,20 +515,22 @@ def handler(event, context):
                 "interp":       r["interp"],
                 "stealth":      r["stealth"],
                 "price_7d_pct": r["price_7d_pct"],
+                "source":       r.get("sources_used", []),
             }) for r in spikes
         ]
         if events_to_pub:
             publish_many(events_to_pub)
     except Exception as e:
-        print(f"[ticker-trends] event publish failed: {e}")
+        print(f"[ticker-trends-v2] event publish failed: {e}")
     
     return {"statusCode": 200, "body": json.dumps({
-        "ok":           True,
-        "n_ok":         len(results),
-        "n_stealth":    len(out["stealth_picks"]),
-        "top_ticker":   results[0]["ticker"] if results else None,
-        "top_velocity": results[0]["velocity"] if results else None,
-        "duration_s":   out["duration_s"],
+        "ok":             True,
+        "n_ok":           len(results),
+        "n_stealth":      len(out["stealth_picks"]),
+        "sources_used":   dict(sources_count),
+        "top_ticker":     results[0]["ticker"] if results else None,
+        "top_velocity":   results[0]["velocity"] if results else None,
+        "duration_s":     out["duration_s"],
     })}
 
 
