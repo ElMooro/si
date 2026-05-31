@@ -2163,7 +2163,7 @@
         },
         {
           "key": "data/_alerts/digest-latest.json",
-          "label": "\ud83d\udcc5 Daily Digest",
+          "label": "\ud83d\udcc5 Daily Digest (latest)",
           "max_age_hours": 26,
           "expected_cadence": "09:00 + 21:00 UTC"
         },
@@ -2180,16 +2180,16 @@
           "expected_cadence": "with each digest"
         },
         {
-          "key": "data/master-cio-synthesis.json",
-          "label": "\ud83c\udfa9 CIO Synthesis",
+          "key": "data/desk-consensus.json",
+          "label": "\ud83c\udfa9 Desk Consensus (CIO)",
           "max_age_hours": 30,
           "expected_cadence": "daily"
         },
         {
-          "key": "data/portfolio-brief.json",
-          "label": "\ud83d\udcbc Portfolio Brief",
-          "max_age_hours": 4,
-          "expected_cadence": "every 1h"
+          "key": "data/portfolio-manager-brief.json",
+          "label": "\ud83d\udcbc Portfolio Manager Brief",
+          "max_age_hours": 30,
+          "expected_cadence": "daily"
         }
       ]
     }
