@@ -1,0 +1,62 @@
+{
+  "started": "2026-05-31T18:37:54.693536+00:00",
+  "ark": {
+    "exists": true,
+    "memory": 512,
+    "timeout": 180,
+    "last_modified": "2026-05-31T17:56:27.000+0000"
+  },
+  "patent": {
+    "exists": true,
+    "memory": 512,
+    "timeout": 600,
+    "last_modified": "2026-05-31T17:57:17.000+0000"
+  },
+  "coord": {
+    "exists": true,
+    "memory": 256,
+    "timeout": 60,
+    "last_modified": "2026-05-31T17:56:53.000+0000"
+  },
+  "ark_sched": {
+    "exists": true,
+    "schedule": "cron(0 6 * * ? *)",
+    "state": "ENABLED"
+  },
+  "patent_sched": {
+    "exists": true,
+    "schedule": "cron(0 17 * * ? *)",
+    "state": "ENABLED"
+  },
+  "ark_invoke": {
+    "elapsed_s": 3.3,
+    "ok": false,
+    "n_funds": null,
+    "n_positions": null,
+    "n_unique_tickers": null,
+    "n_new": null,
+    "n_adds": null,
+    "n_trims": null,
+    "n_closed": null
+  },
+  "patent_async": {
+    "status_code": 202,
+    "executed_version": null
+  },
+  "patent_completed": true,
+  "ark_snapshot_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+  "patent_snapshot": {
+    "size_kb": 0.9,
+    "schema": "1.0",
+    "method": "patent_velocity_v1",
+    "generated_at": "2026-05-31T18:32:27+00:00",
+    "duration_s": 365.2,
+    "universe_size": 76,
+    "n_results": 0,
+    "n_velocity_spikes": 0,
+    "n_new_tech_focus": 0,
+    "top_5_spikes": []
+  },
+  "finished": "2026-05-31T18:38:28.717761+00:00",
+  "total_runtime_s": 34.0
+}
