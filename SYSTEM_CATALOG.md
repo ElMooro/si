@@ -539,4 +539,97 @@ Use `claude-haiku-4-5-20251001` for all Lambdas calling Anthropic API. `claude-3
 
 ---
 
+## 2026-05-31 — Major Forward-Intel Expansion (this session)
+
+Two new Lambdas + three v3 upgrades + five dedicated dashboards landed in a single
+multi-pass session. Total: 6 Lambdas touched, 5 HTML pages added, 5 new ops scripts
+(1046–1055).
+
+### New Lambdas
+
+**`justhodl-sec-filings-intel`** — `cron(0 9,15,21 * * ? *)` · 256MB / 600s
+Comprehensive SEC EDGAR full-text scanner across 14 institutional alpha signals.
+First run: 364 events scanned, 276 tickers with signals, 20 critical-severity.
+BEARISH weights: bankruptcy (-50), going concern (-40), restatement (-30),
+material weakness (-25), investigation (-22), auditor change (-20), CFO departure
+(-15), ATM offering (-10), bought deal (-5). BULLISH: M&A definitive (+30), FDA
+approval (+25), going-private (+25), buyback (+12), strategic partnership (+8).
+Emits `sec_filings.material_event` for critical+high severity only (formatter
+filters lower).
+
+**`justhodl-political-stocks`** v1.3 — `cron(0 14 * * ? *)` · 512MB / 300s
+S3-cache-first architecture. Three resilience layers:
+- Party map: `data/congress-party-map.json` (S3 → live → 39-entry hardcoded)
+- Trades: live Quiver → `data/quiver-congress-cache.json` (S3 fallback)
+- Output: `data/political-stocks.json` schema 1.3 with `quiver_source` provenance
+Live state: 1000 trades, 283 tickers, 25 clusters, 14 bipartisan buys,
+536 party mappings (D=260 / R=273 / I=3). Top bipartisan: MSFT (R×5 D×6, +230),
+HD (R×6 D×3, +180), PH, UNH, GE. Trump holdings: 4 positions from 2025-03-19 OGE
+278e (DJT controlling, T-Bills, $TRUMP coin, Trump Org).
+
+### v3 Upgrades to existing engines
+
+**`justhodl-forward-orders`** — schema 3.0 — added 2 subscores:
+- `rpo_acceleration` 15% — multi-quarter QoQ trend (acceleration_pp =
+  qoq_recent − qoq_prior). Positive = backlog growing FASTER than last quarter.
+- `peer_percentile` 5% — sector-relative rank via two-pass scoring
+WEIGHTS rebalanced: yield 30 / growth 25 / accel 15 / contracts 15 / B2B 10 / peer 5
+
+**`justhodl-rotation-chain`** v2 — added per-tier:
+- `tier_breadth_30d` (% of tier members with positive returns)
+- `volume_confirmation_20d` (recent 20d avg vol / prior 20d)
+- `rotation_confidence` 0-100: +25 if leader breadth ≥75%, +15 if volume ≥1.3x
+Distinguishes real rotation from HFT noise.
+
+**`justhodl-buzz-velocity`** v3 — added:
+- `lightweight_sentiment()` rule-based on ~25 bull/25 bear keywords on Reddit+News
+  title sample. Returns score in [-1,+1].
+- `divergence` detection: negative_divergence = velocity ≥1.8x + 7d price ≤-8%
+  (attention up, price tanking = warning). positive_divergence = price ≥+12% but
+  sentiment <-0.2.
+- Score adj: +8 sentiment ≥0.4, -8 sentiment ≤-0.4.
+
+### Event coordinator — 2 new routes
+
+- `sec_filings.material_event` — suppresses non-critical/non-high in formatter
+- `political.cluster_buy` — suppresses single-party clusters under 4 politicians;
+  bipartisan flag always triggers regardless of cluster size
+
+### Five new dashboard tabs
+
+All linked from `index.html` between Future Intel and Opportunities:
+- `/forward-orders.html` — 5-stat hero · top-30 table · 6 sub-bars · contract callouts
+- `/rotation-chains.html` — 11 chain cards by state (ROTATING/SYNC/DIV) · per-tier
+  perf+breadth+vol grid · next-up ticker rows with lag · confidence score
+- `/buzz-velocity.html` — STEALTH/DIVERGENCE/EXTREME panels · top-30 with sentiment
+  badges + divergence tags
+- `/sec-filings.html` — 14-signal legend · CRITICAL/RISKS/OPPORTUNITIES panels ·
+  full ticker table with event pills per row
+- `/political.html` — Trump holdings card · 6-stat hero · TOP BUYS/CLUSTERS/
+  BIPARTISAN/TOP SELLS panels · party tags (D×N R×N format)
+
+### Notable debugging arc (worth knowing for next time)
+
+1. House/Senate Stock Watcher S3 buckets at house-stock-watcher-data.s3-us-west-2
+   went HTTP 403 — community project shut down public data (ops/1047).
+2. Capitol Trades BFF API: 503 from AWS us-east-1 (Cloudflare blocks DC IPs) (1048).
+3. Quiver Quant probe: `/beta/live/congresstrading` works no-auth, 1000 recent
+   trades, 430KB (1049). Bonus: `/beta/live/lobbying` works (20K records — future
+   signal source).
+4. `theunitedstates.io/congress-legislators/legislators-current.json` blocks AWS
+   us-east-1 IPs (Errno 110 timeout) — used since 2026 (1052-1053).
+5. GitHub `main` branch returns 404 for `.json` files — that repo maintains YAML
+   on main; JSON files are auto-built and live on `gh-pages` (1054-1055).
+6. ⚠ Quiver rate-limits repeat calls within seconds from same VPC IP. Mitigation:
+   S3-cache-first pattern with live fallback in the Lambda.
+
+### Future signal source identified but not yet wired
+
+`api.quiverquant.com/beta/live/lobbying` — 20K records, no auth. Format:
+{Date, Amount, Client, Issue, Specific_Issue, Registrant, Ticker}. Strong
+forward-intelligence data (companies don't lobby hard on issues that don't
+matter to them; lobbying expenditure often precedes policy/regulatory change
+that moves prices). Candidate engine: `justhodl-lobbying-intel` — flag companies
+with rising lobbying spend by issue category.
+
 _Generated by ops 1021 on 2026-05-21. Refresh by re-running `aws/ops/pending/1021_system_full_audit.py` and re-running this generator._
