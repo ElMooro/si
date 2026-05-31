@@ -1,0 +1,122 @@
+{
+  "started": "2026-05-31T03:20:38.001845+00:00",
+  "zip_size": 6933,
+  "deploy_attempt": 1,
+  "deploy_ok": true,
+  "fn_err": null,
+  "result": {
+    "ok": true,
+    "stacks": 44,
+    "outcomes": 6576
+  },
+  "logs": [],
+  "payload": {
+    "totals": {
+      "checked_signals_scanned": 9781,
+      "usable_outcomes": 6576,
+      "unique_stacks": 47,
+      "published_stacks": 44,
+      "unique_signal_types": 46
+    },
+    "stacks_count": 44,
+    "by_signal_count": 46,
+    "top_5_stacks": [
+      {
+        "stack_hash": "d7f449434bfc",
+        "signals": [
+          "correlation_break"
+        ],
+        "horizon_days": 21,
+        "n": 485,
+        "mean": -0.034,
+        "median": 0.496,
+        "std": 3.315,
+        "min": -14.934,
+        "max": 6.413,
+        "p10": -4.599,
+        "p25": -0.858,
+        "p75": 1.527,
+        "p90": 2.76,
+        "iqr": 2.385,
+        "win_rate": 0.668
+      },
+      {
+        "stack_hash": "92e5e438ea06",
+        "signals": [
+          "etf_rotation"
+        ],
+        "horizon_days": 21,
+        "n": 381,
+        "mean": -0.478,
+        "median": 0.309,
+        "std": 4.305,
+        "min": -19.547,
+        "max": 8.676,
+        "p10": -5.993,
+        "p25": -1.286,
+        "p75": 1.189,
+        "p90": 3.205,
+        "iqr": 2.475,
+        "win_rate": 0.617
+      },
+      {
+        "stack_hash": "206a40894efe",
+        "signals": [
+          "crypto_risk_score"
+        ],
+        "horizon_days": 14,
+        "n": 314,
+        "mean": 0.177,
+        "median": 0.0,
+        "std": 1.702,
+        "min": -3.727,
+        "max": 8.672,
+        "p10": -1.533,
+        "p25": 0.0,
+        "p75": 0.279,
+        "p90": 1.719,
+        "iqr": 0.279,
+        "win_rate": 0.268
+      },
+      {
+        "stack_hash": "dee9f410b5f3",
+        "signals": [
+          "crypto_fear_greed"
+        ],
+        "horizon_days": 14,
+        "n": 313,
+        "mean": 0.159,
+        "median": 0.0,
+        "std": 1.694,
+        "min": -3.727,
+        "max": 8.672,
+        "p10": -1.536,
+        "p25": 0.0,
+        "p75": 0.182,
+        "p90": 1.647,
+        "iqr": 0.182,
+        "win_rate": 0.265
+      },
+      {
+        "stack_hash": "847b7e740756",
+        "signals": [
+          "edge_composite"
+        ],
+        "horizon_days": 14,
+        "n": 298,
+        "mean": 0.12,
+        "median": 0.0,
+        "std": 0.476,
+        "min": -1.203,
+        "max": 2.854,
+        "p10": -0.187,
+        "p25": 0.0,
+        "p75": 0.047,
+        "p90": 0.664,
+        "iqr": 0.047,
+        "win_rate": 0.268
+      }
+    ]
+  },
+  "finished": "2026-05-31T03:20:55.116197+00:00"
+}
