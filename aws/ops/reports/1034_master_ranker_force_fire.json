@@ -1,0 +1,52 @@
+{
+  "started": "2026-05-31T14:07:08.233337+00:00",
+  "redeploy": {
+    "action": "updated",
+    "zip_size": 11253
+  },
+  "prev_deleted": true,
+  "invoke": {
+    "status": 200,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "n_tickers": 25,
+      "n_macro": 9,
+      "n_tier_3_plus": 38,
+      "n_tier_5_plus": 3,
+      "regime": "MUDDLE",
+      "duration_s": 1.52
+    }
+  },
+  "audit": {
+    "n_total": 1,
+    "n_convergence": 0,
+    "tier_5_count": 0,
+    "tier_3_count": 0,
+    "sample_convergence": []
+  },
+  "coordinator_logs": [
+    {
+      "ts": "2026-05-31T12:16:42.309000+00:00",
+      "msg": "[coordinator] routed event=outcome.resolved invokes=2"
+    }
+  ],
+  "new_prev": {
+    "as_of": "2026-05-31T14:07:24+00:00",
+    "n_tickers": 25
+  },
+  "master_ranker_log": [
+    "[master-ranker] Loading regime context\u2026",
+    "[master-ranker] fetch_json(data/capitulation.json) failed: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+    "[master-ranker] Loading calibration weights\u2026",
+    "[master-ranker] Building ticker index across 14 systems\u2026",
+    "[master-ranker] 223 unique tickers indexed",
+    "[master-ranker] Collecting macro signals\u2026",
+    "[master-ranker] fetch_json(data/capitulation.json) failed: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+    "[master-ranker] DONE in 1.52s \u00b7 25 tickers \u00b7 9 macro \u00b7 38 tier-3+, 3 tier-5+",
+    "[system_events] publish_many err: AccessDeniedException: An error occurred (AccessDeniedException) when calling the PutEvents operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-r",
+    "[system_events] publish_many err: AccessDeniedException: An error occurred (AccessDeniedException) when calling the PutEvents operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-r",
+    "[master-ranker] emitted 20 tier-up events"
+  ],
+  "finished": "2026-05-31T14:08:40.902050+00:00"
+}
