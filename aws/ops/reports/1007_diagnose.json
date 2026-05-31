@@ -1,0 +1,216 @@
+{
+  "started": "2026-05-31T03:12:12.109022+00:00",
+  "ddb": {
+    "scan_20_returned": 20,
+    "scanned_count": 20,
+    "samples": [
+      {
+        "signal_id": "deepvalue_ELV_1778537171",
+        "signal_type": "",
+        "status": null,
+        "horizon_days_primary": "180",
+        "check_windows": [
+          "180",
+          "360"
+        ],
+        "predicted_direction": null,
+        "supporting_signals": null,
+        "outcomes_keys": [],
+        "outcomes_value": null,
+        "schema_version": null
+      },
+      {
+        "signal_id": "06c69359-b82a-4d2c-8589-68ac2e",
+        "signal_type": "crisis_index_nfci",
+        "status": "partial",
+        "horizon_days_primary": "30",
+        "check_windows": [
+          "14",
+          "30"
+        ],
+        "predicted_direction": "NEUTRAL",
+        "supporting_signals": null,
+        "outcomes_keys": [
+          "day_14"
+        ],
+        "outcomes_value": {
+          "day_14": {
+            "price_at_check": "738.65",
+            "actual_direction": "UP",
+            "return_pct": "2.48068",
+            "checked_at": "2026-05-18T22:30:03.192683+00:00",
+            "correct": false,
+            "price_at_signal": "720.77"
+          }
+        },
+        "schema_version": "2"
+      },
+      {
+        "signal_id": "8bad03d7-21c2-49ef-ad1e-b13485",
+        "signal_type": "screener_top_pick",
+        "status": "partial",
+        "horizon_days_primary": null,
+        "check_windows": [
+          "30",
+          "60",
+          "90"
+        ],
+        "predicted_direction": "OUTPERFORM",
+        "supporting_signals": null,
+        "outcomes_keys": [
+          "day_30"
+        ],
+        "outcomes_value": {
+          "day_30": {
+            "benchmark_price": "738.18",
+            "asset_price": "129.38",
+            "checked_at": "2026-05-12T22:30:03.090690+00:00",
+            "correct": false,
+            "excess_return": "-8.027801"
+          }
+        },
+        "schema_version": null
+      },
+      {
+        "signal_id": "epsvelocity_TSLA_1779854772",
+        "signal_type": "",
+        "status": null,
+        "horizon_days_primary": "120",
+        "check_windows": [
+          "120",
+          "240"
+        ],
+        "predicted_direction": null,
+        "supporting_signals": null,
+        "outcomes_keys": [],
+        "outcomes_value": null,
+        "schema_version": null
+      },
+      {
+        "signal_id": "f781f8ca-b1ad-4cc7-bf41-dc7c82",
+        "signal_type": "etf_rotation",
+        "status": "partial",
+        "horizon_days_primary": "21",
+        "check_windows": [
+          "3",
+          "14",
+          "21"
+        ],
+        "predicted_direction": "UP",
+        "supporting_signals": null,
+        "outcomes_keys": [
+          "day_3"
+        ],
+        "outcomes_value": {
+          "day_3": {
+            "price_at_check": "32.65",
+            "actual_direction": "DOWN",
+            "return_pct": "-8.696868",
+            "checked_at": "2026-05-21T22:30:03.011559+00:00",
+            "correct": false,
+            "price_at_signal": "35.76"
+          }
+        },
+        "schema_version": "2"
+      }
+    ],
+    "status_counts": {
+      "?": 13,
+      "partial": 3,
+      "pending": 2,
+      "unscoreable": 1,
+      "complete": 1
+    },
+    "checked_found": 0,
+    "checked_scanned": 20
+  },
+  "miss_invoke": {
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "session_date": "2026-05-29",
+      "candidates": 511,
+      "attributed": 0,
+      "misses": 511
+    },
+    "logs": [
+      "INIT_START Runtime Version: python:3.12.mainlinev2.v7\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244",
+      "START RequestId: 6d24fbc0-a3ee-49ff-8be4-97b2b48fa14d Version: $LATEST"
+    ]
+  },
+  "s3": {
+    "data/magnitude-distributions.json": {
+      "size": 290,
+      "modified": "2026-05-31 02:58:50+00:00"
+    },
+    "data/miss-summary.json": {
+      "size": 596,
+      "modified": "2026-05-31 03:12:18+00:00"
+    },
+    "data/alpha-compass.json": {
+      "size": 5433,
+      "modified": "2026-05-31 02:59:24+00:00"
+    }
+  },
+  "miss_summary_content": {
+    "window_days": 30,
+    "generated_at": "2026-05-31T03:12:17.314300+00:00",
+    "totals": {
+      "wrong_signal_type": 511
+    },
+    "near_misses_by_signal": {},
+    "top_recurring_tickers": {
+      "STG": 1,
+      "PRFX": 1,
+      "REPL": 1,
+      "OLOX": 1,
+      "ASTC": 1,
+      "DLLL": 1,
+      "OKTG": 1,
+      "VCIG": 1,
+      "CMND": 1,
+      "IOTR": 1,
+      "SPCE": 1,
+      "SPPL": 1,
+      "PD": 1,
+      "DELL": 1,
+      "GITS": 1,
+      "ASTY": 1,
+      "OKTA": 1,
+      "MX": 1,
+      "ASTX": 1,
+      "ASTN": 1,
+      "NOWL": 1,
+      "ADVB": 1,
+      "NCT": 1,
+      "CUPR": 1,
+      "IBX": 1,
+      "PIII": 1,
+      "CHA": 1,
+      "AKTX": 1,
+      "AEMD": 1,
+      "CODX": 1,
+      "SMCZ": 1,
+      "SMCL": 1,
+      "SCLX": 1,
+      "OCS": 1,
+      "SMCX": 1,
+      "HOOX": 1,
+      "HODU": 1,
+      "HOOZ": 1,
+      "AXTX": 1,
+      "NTAP": 1,
+      "AXTU": 1,
+      "HOOG": 1,
+      "ROBN": 1,
+      "TSSI": 1,
+      "ORCX": 1,
+      "ORCU": 1,
+      "EEIQ": 1,
+      "AMBA": 1,
+      "WNW": 1,
+      "ATPC": 1
+    }
+  },
+  "finished": "2026-05-31T03:12:18.539858+00:00"
+}
