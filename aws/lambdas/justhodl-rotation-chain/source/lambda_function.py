@@ -122,6 +122,44 @@ VALUE_CHAINS = {
         3: ["BWXT", "FLR"],                              # nuclear engineering
         4: ["NEE", "DUK", "SO"],                         # nuclear-heavy utilities
     },
+    # ─── New chains (2026-05-31 expansion) ───────────────────────────────
+    
+    # Biotech — large-cap leaders → next tier → mid-cap specialty → gene therapy
+    "BIOTECH": {
+        1: ["LLY", "NVO", "REGN", "VRTX"],               # mega-cap biotech leaders
+        2: ["BIIB", "MRNA", "BNTX", "GILD", "AMGN"],     # next-tier biotechs
+        3: ["ALNY", "ARGX", "INCY", "BMRN"],             # mid-cap specialty
+        4: ["IONS", "SRPT", "RARE", "CRSP", "BEAM"],     # gene therapy / small caps
+    },
+    
+    # Copper + silver — base-metals "doctor copper" + monetary metals chain.
+    # Crucial for electrification + AI buildout (copper) and currency
+    # debasement plays (silver).
+    "COPPER_SILVER": {
+        1: ["FCX", "SCCO"],                              # copper majors
+        2: ["TECK", "ERO", "IVPAF"],                     # mid-cap copper / diversified
+        3: ["PAAS", "HL", "FSM"],                        # silver majors
+        4: ["CDE", "FNV", "WPM"],                        # smaller silver + royalty
+    },
+    
+    # Data-center REIT chain — owners → adjacent infra → equipment → networking.
+    # Note VRT also appears in AI chain T3 (correctly — power+cooling is the
+    # bottleneck for both AI compute and DC capacity)
+    "DATACENTER": {
+        1: ["EQIX", "DLR"],                              # pure-play DC REITs
+        2: ["IRM", "AMT", "CCI"],                        # adjacent infrastructure REITs
+        3: ["VRT", "NVT", "ETN"],                        # DC cooling + power equipment
+        4: ["ANET", "JNPR", "FFIV"],                     # DC networking
+    },
+    
+    # Lithium / battery materials. Upstream miners → pure-plays → EV consumers
+    # → specialty / rare-earth alternatives. ALTM = Arcadium (LAC+Livent merger).
+    "LITHIUM": {
+        1: ["ALB", "SQM"],                               # lithium majors
+        2: ["LAC", "PLL", "ALTM"],                       # pure-play lithium
+        3: ["GM", "TSLA", "F"],                          # downstream EV buyers
+        4: ["MP", "USAR"],                               # processors / rare earth
+    },
 }
 
 # How far back to look for lead-lag

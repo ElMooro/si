@@ -207,11 +207,15 @@ def fmp_get(path, **params):
 
 
 def get_universe():
-    """Top US large/mid-caps. Returns list of {symbol, marketCap, sector}."""
+    """Top US large/mid-caps. Returns list of {symbol, marketCap, sector}.
+    
+    Filters out foreign-listed dual-tickers (e.g. LMT.BA) which would
+    otherwise eat budget without producing alpha (SEC XBRL is US-only)."""
     res = fmp_get("company-screener",
                     marketCapMoreThan=UNIVERSE_MIN_MCAP,
                     isActivelyTrading="true",
                     country="US",
+                    exchange="NYSE,NASDAQ",
                     limit=UNIVERSE_MAX_RESULTS)
     if not res:
         return []
@@ -224,7 +228,7 @@ def get_universe():
             "industry":  r.get("industry"),
         }
         for r in res
-        if r.get("symbol") and r.get("marketCap")
+        if r.get("symbol") and r.get("marketCap") and "." not in r.get("symbol")
     ]
 
 

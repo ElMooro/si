@@ -47,12 +47,26 @@ OUTPUT_KEY = "data/future-intelligence.json"
 FEED_FWD     = "data/forward-orders.json"
 FEED_ROT     = "data/rotation-chains.json"
 FEED_BUZZ    = "data/buzz-velocity.json"
+FEED_TRENDS  = "data/ticker-trends.json"
 
+# Weights rebalanced 2026-05-31 to add 4th signal (Google search interest).
+# Forward-orders still dominates (hard data) but each behavioral signal
+# (Reddit/News buzz + Google search) gets independent weight.
 WEIGHTS = {
-    "forward_orders": 0.45,
-    "rotation_chain": 0.30,
-    "buzz_velocity":  0.25,
+    "forward_orders": 0.40,
+    "rotation_chain": 0.25,
+    "buzz_velocity":  0.20,
+    "ticker_trends":  0.15,
 }
+
+# Threshold for future.signal.high_conviction events.
+# Was 75, lowered to 65 after observing real conviction levels (top was
+# GEV at 70.4). Tunable via env so we can dial it without redeploy.
+HIGH_CONVICTION_THRESHOLD = int(os.environ.get("HIGH_CONVICTION_THRESHOLD", "65"))
+
+# Threshold for ticker INCLUSION in the all_results list (anything weaker
+# than this is filtered out as noise). Was implicit max < 15; explicit now.
+MIN_INCLUSION_SCORE = int(os.environ.get("MIN_INCLUSION_SCORE", "15"))
 
 s3 = boto3.client("s3", region_name=REGION)
 
@@ -136,16 +150,34 @@ def score_forward(fwd_data: dict, ticker: str) -> tuple:
     }
 
 
-def composite_score(fwd_s, rot_s, buzz_s) -> float:
+def score_trends(trends_data: dict, ticker: str) -> tuple:
+    """Look up ticker in ticker-trends (Google search) results."""
+    if not trends_data:
+        return 0, None
+    by_ticker = index_by_ticker(trends_data.get("all_results"))
+    rec = by_ticker.get(ticker)
+    if not rec:
+        return 0, None
+    return rec.get("score", 0), {
+        "velocity":     rec.get("velocity"),
+        "current_level": rec.get("current_level"),
+        "interp":       rec.get("interp"),
+        "stealth":      rec.get("stealth"),
+        "price_7d_pct": rec.get("price_7d_pct"),
+    }
+
+
+def composite_score(fwd_s, rot_s, buzz_s, trends_s) -> float:
     return round(
-        fwd_s  * WEIGHTS["forward_orders"] +
-        rot_s  * WEIGHTS["rotation_chain"] +
-        buzz_s * WEIGHTS["buzz_velocity"],
+        fwd_s    * WEIGHTS["forward_orders"] +
+        rot_s    * WEIGHTS["rotation_chain"] +
+        buzz_s   * WEIGHTS["buzz_velocity"] +
+        trends_s * WEIGHTS["ticker_trends"],
         1,
     )
 
 
-def synthesize_thesis(fwd_role, rot_role, buzz_role) -> str:
+def synthesize_thesis(fwd_role, rot_role, buzz_role, trends_role) -> str:
     bits = []
     if fwd_role and fwd_role.get("thesis"):
         bits.append(fwd_role["thesis"])
@@ -154,6 +186,9 @@ def synthesize_thesis(fwd_role, rot_role, buzz_role) -> str:
     if buzz_role and buzz_role.get("composite_velocity", 0) >= 2:
         sb = "stealth " if buzz_role.get("stealth") else ""
         bits.append(f"{sb}buzz {buzz_role.get('composite_velocity')}x")
+    if trends_role and trends_role.get("velocity", 0) >= 2:
+        st = "stealth " if trends_role.get("stealth") else ""
+        bits.append(f"{st}google search {trends_role.get('velocity')}x")
     return " · ".join(bits) if bits else "—"
 
 
@@ -161,20 +196,25 @@ def synthesize_thesis(fwd_role, rot_role, buzz_role) -> str:
 def handler(event, context):
     started = datetime.now(timezone.utc)
     
-    fwd_data  = read_json(FEED_FWD)  or {}
-    rot_data  = read_json(FEED_ROT)  or {}
-    buzz_data = read_json(FEED_BUZZ) or {}
+    fwd_data    = read_json(FEED_FWD)    or {}
+    rot_data    = read_json(FEED_ROT)    or {}
+    buzz_data   = read_json(FEED_BUZZ)   or {}
+    trends_data = read_json(FEED_TRENDS) or {}
     
-    print(f"[future-intel] fwd: {len(fwd_data.get('all_results') or [])} tickers")
-    print(f"[future-intel] rot: {len(rot_data.get('chains') or {})} chains")
-    print(f"[future-intel] buzz: {len(buzz_data.get('all_results') or [])} tickers")
+    print(f"[future-intel] fwd:    {len(fwd_data.get('all_results') or [])} tickers")
+    print(f"[future-intel] rot:    {len(rot_data.get('chains') or {})} chains")
+    print(f"[future-intel] buzz:   {len(buzz_data.get('all_results') or [])} tickers")
+    print(f"[future-intel] trends: {len(trends_data.get('all_results') or [])} tickers")
     
-    # Build union of all tickers across the three feeds
+    # Build union of all tickers across the four feeds
     all_tickers = set()
     for r in (fwd_data.get("all_results") or []):
         if r.get("ticker"):
             all_tickers.add(r["ticker"])
     for r in (buzz_data.get("all_results") or []):
+        if r.get("ticker"):
+            all_tickers.add(r["ticker"])
+    for r in (trends_data.get("all_results") or []):
         if r.get("ticker"):
             all_tickers.add(r["ticker"])
     for chain in (rot_data.get("chains") or {}).values():
@@ -184,25 +224,29 @@ def handler(event, context):
     
     print(f"[future-intel] union: {len(all_tickers)} tickers to score")
     
-    # Score each ticker
+    # Score each ticker across 4 signals
     results = []
     for ticker in sorted(all_tickers):
-        fwd_s, fwd_role = score_forward(fwd_data, ticker)
-        rot_s, rot_role = score_rotation_position(rot_data, ticker)
-        buzz_s, buzz_role = score_buzz(buzz_data, ticker)
+        fwd_s, fwd_role       = score_forward(fwd_data, ticker)
+        rot_s, rot_role       = score_rotation_position(rot_data, ticker)
+        buzz_s, buzz_role     = score_buzz(buzz_data, ticker)
+        trends_s, trends_role = score_trends(trends_data, ticker)
         
-        # Skip tickers with no signal at all
-        if max(fwd_s, rot_s, buzz_s) < 15:
+        # Skip tickers with no meaningful signal
+        if max(fwd_s, rot_s, buzz_s, trends_s) < MIN_INCLUSION_SCORE:
             continue
         
-        composite = composite_score(fwd_s, rot_s, buzz_s)
+        composite = composite_score(fwd_s, rot_s, buzz_s, trends_s)
         
-        n_signals = sum(1 for s in (fwd_s, rot_s, buzz_s) if s >= 30)
-        # Bonus: tickers with 2+ independent signals get +10
+        # Count independent signals (any score >= 30 counts)
+        n_signals = sum(1 for s in (fwd_s, rot_s, buzz_s, trends_s) if s >= 30)
+        # Bonus for multi-signal convergence
         if n_signals >= 2:
-            composite = min(100, composite + 10)
+            composite = min(100, composite + 8)
         if n_signals >= 3:
-            composite = min(100, composite + 5)
+            composite = min(100, composite + 6)
+        if n_signals >= 4:
+            composite = min(100, composite + 4)
         
         results.append({
             "ticker":          ticker,
@@ -212,11 +256,13 @@ def handler(event, context):
                 "forward_orders":  round(fwd_s, 1),
                 "rotation_chain":  round(rot_s, 1),
                 "buzz_velocity":   round(buzz_s, 1),
+                "ticker_trends":   round(trends_s, 1),
             },
             "forward_orders":  fwd_role,
             "rotation_chain":  rot_role,
             "buzz_velocity":   buzz_role,
-            "thesis":          synthesize_thesis(fwd_role, rot_role, buzz_role),
+            "ticker_trends":   trends_role,
+            "thesis":          synthesize_thesis(fwd_role, rot_role, buzz_role, trends_role),
         })
     
     results.sort(key=lambda r: -r["future_intel_score"])
@@ -232,16 +278,19 @@ def handler(event, context):
             "forward_orders":  fwd_data.get("generated_at"),
             "rotation_chain":  rot_data.get("generated_at"),
             "buzz_velocity":   buzz_data.get("generated_at"),
+            "ticker_trends":   trends_data.get("generated_at"),
         },
         "top_25":          results[:25],
         "all_results":     results,
         "highlights": {
-            "high_conviction":      [r for r in results if r["future_intel_score"] >= 75][:10],
+            "high_conviction":      [r for r in results if r["future_intel_score"] >= HIGH_CONVICTION_THRESHOLD][:10],
             "multi_signal":         [r for r in results if r["n_independent_signals"] >= 2][:15],
             "stealth_buzz":         [r for r in results if (r.get("buzz_velocity") or {}).get("stealth")][:10],
+            "google_stealth":       [r for r in results if (r.get("ticker_trends") or {}).get("stealth")][:10],
             "next_up_rotation":     [r for r in results if (r.get("rotation_chain") or {}).get("role", "").startswith("next_up")][:10],
             "locked_future_value":  [r for r in results
                                        if (r.get("forward_orders") or {}).get("rpo_yield_pct", 0) >= 30][:10],
+            "4_signal_alignment":   [r for r in results if r["n_independent_signals"] >= 3][:10],
         },
         "notes": "Composite of forward-orders (45%) + rotation-chain (30%) + buzz-velocity (25%) with bonus for multi-signal convergence.",
     }
@@ -256,14 +305,15 @@ def handler(event, context):
     try:
         from system_events import publish_many
         events_to_pub = []
-        for r in results[:5]:
-            if r["future_intel_score"] >= 75:
+        for r in results[:8]:
+            if r["future_intel_score"] >= HIGH_CONVICTION_THRESHOLD:
                 events_to_pub.append(("future.signal.high_conviction", {
                     "ticker":              r["ticker"],
                     "score":               r["future_intel_score"],
                     "n_independent_signals": r["n_independent_signals"],
                     "subscores":           r["subscores"],
                     "thesis":              r["thesis"],
+                    "threshold":           HIGH_CONVICTION_THRESHOLD,
                 }))
         if events_to_pub:
             publish_many(events_to_pub)

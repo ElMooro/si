@@ -85,23 +85,30 @@ def _get_json(url, headers=None, timeout=HTTP_TIMEOUT):
 # ─── Universe ────────────────────────────────────────────────────────────
 
 def get_universe():
-    """Top US large/mid caps + the meme candidates list (union)."""
+    """Top US large/mid caps + the meme candidates list (union).
+    
+    Filters out foreign-listed dual-tickers (e.g. LMT.BA = Buenos Aires
+    listing of Lockheed Martin) which were leaking through with just
+    country=US since FMP returns those as 'US-headquartered' anyway.
+    """
     url = (
         f"https://financialmodelingprep.com/stable/company-screener"
         f"?marketCapMoreThan=1000000000&isActivelyTrading=true"
-        f"&country=US&limit={UNIVERSE_LIMIT}&apikey={FMP_KEY}"
+        f"&country=US&exchange=NYSE,NASDAQ"
+        f"&limit={UNIVERSE_LIMIT}&apikey={FMP_KEY}"
     )
     data = _get_json(url)
     tickers = []
     if isinstance(data, list):
         for r in data:
             t = r.get("symbol")
-            if t:
+            # Post-filter: any ticker with a dot is a foreign listing
+            if t and "." not in t:
                 tickers.append({"symbol": t, "name": r.get("companyName", "")})
     # Union with meme candidates
     have = {t["symbol"] for t in tickers}
     for m in MEME_CANDIDATES:
-        if m not in have:
+        if m not in have and "." not in m:
             tickers.append({"symbol": m, "name": m})
     return tickers
 

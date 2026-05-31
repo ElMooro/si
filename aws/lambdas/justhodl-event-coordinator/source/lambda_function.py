@@ -199,6 +199,14 @@ ROUTES = {
         "audit":   True,
     },
     
+    # Ticker-trends spike — per-ticker Google search interest surge.
+    # Same noise-filtering as buzz.spike (STEALTH or extreme only).
+    "ticker_trends.spike": {
+        "invoke":  ["justhodl-alpha-compass"],
+        "notify":  True,
+        "audit":   True,
+    },
+    
     # Future intelligence composite — when forward-orders + rotation + buzz
     # ALL align on the same ticker, that's the strongest pre-pump signal.
     "future.signal.high_conviction": {
@@ -337,6 +345,21 @@ def send_telegram_alert(event_name: str, detail: dict) -> bool:
             ni = detail.get("news_interp")
             if ri or ni:
                 lines.append(f"  reddit: {ri or '—'} · news: {ni or '—'}")
+        elif event_name == "ticker_trends.spike":
+            lines.append(f"  ticker: <b>{detail.get('ticker','?')}</b>")
+            v = detail.get("velocity")
+            if v is not None:
+                lines.append(f"  google search: <b>{v}x</b> baseline")
+            level = detail.get("level")
+            if level is not None:
+                lines.append(f"  current interest level: <b>{level}/100</b>")
+            if detail.get("stealth"):
+                p7 = detail.get("price_7d_pct")
+                if p7 is not None:
+                    lines.append(f"  ⚡ <b>STEALTH</b> (price only {p7:+.1f}% in 7d)")
+            interp = detail.get("interp")
+            if interp:
+                lines.append(f"  interpretation: {interp}")
         elif event_name == "future.signal.high_conviction":
             lines.append(f"  ticker: <b>{detail.get('ticker','?')}</b>")
             lines.append(f"  composite: <b>{detail.get('score','?')}</b>")
@@ -459,6 +482,12 @@ def handler(event, context):
         # if velocity is extreme (≥4x baseline).
         elif event_name == "buzz.spike":
             if detail.get("stealth") or (detail.get("composite_velocity") or 0) >= 4.0:
+                result["notify"] = send_telegram_alert(event_name, detail)
+            else:
+                result["notify"] = "suppressed_non_stealth"
+        # For ticker_trends.spike: same noise-filter as buzz.spike.
+        elif event_name == "ticker_trends.spike":
+            if detail.get("stealth") or (detail.get("velocity") or 0) >= 4.0:
                 result["notify"] = send_telegram_alert(event_name, detail)
             else:
                 result["notify"] = "suppressed_non_stealth"
