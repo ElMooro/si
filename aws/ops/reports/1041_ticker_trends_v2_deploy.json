@@ -1,0 +1,262 @@
+{
+  "started": "2026-05-31T15:36:10.348995+00:00",
+  "deploy": {
+    "zip_size": 12021,
+    "action": "updated",
+    "scheduled": true
+  },
+  "invoke_ticker_trends": {
+    "status": 200,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "n_ok": 0,
+      "n_stealth": 0,
+      "sources_used": {},
+      "top_ticker": null,
+      "top_velocity": null,
+      "duration_s": 10.6
+    }
+  },
+  "ticker_trends_output": {
+    "generated_at": "2026-05-31T15:36:41+00:00",
+    "duration_s": 10.6,
+    "n_processed": 5,
+    "n_ok": 0,
+    "errors": {
+      "no_source_data": 5
+    },
+    "sources_used_count": {},
+    "top_15": [],
+    "stealth_picks": []
+  },
+  "invoke_future_intel": {
+    "status": 200,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "n_scored": 202,
+      "top_ticker": "GEV",
+      "top_score": 65.0,
+      "duration_s": 0.5
+    }
+  },
+  "future_intel_output": {
+    "generated_at": "2026-05-31T15:36:43+00:00",
+    "n_scored": 202,
+    "feed_freshness": {
+      "forward_orders": "2026-05-31T14:36:59+00:00",
+      "rotation_chain": "2026-05-31T15:03:38+00:00",
+      "buzz_velocity": "2026-05-31T15:07:09+00:00",
+      "ticker_trends": "2026-05-31T15:36:41+00:00"
+    },
+    "n_high_conviction": 1,
+    "n_4_signal_alignment": 0,
+    "n_google_stealth": 0,
+    "n_multi_signal": 1,
+    "top_15": [
+      {
+        "ticker": "GEV",
+        "score": 65.0,
+        "n_signals": 2,
+        "subscores": {
+          "forward_orders": 67.5,
+          "rotation_chain": 100,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel \u00b7 rotation: next_up_tier_3 in AI"
+      },
+      {
+        "ticker": "ORCL",
+        "score": 35.4,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 76.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO $552.6B = 85% of mcap \u00b7 RPO growing +324% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "RTX",
+        "score": 31.8,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 67.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO $271.0B = 112% of mcap \u00b7 RPO growing +25% YoY"
+      },
+      {
+        "ticker": "DELL",
+        "score": 28.2,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 58.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO growing +116% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "GE",
+        "score": 27.8,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 57.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO $211.3B = 62% of mcap \u00b7 RPO growing +22% YoY"
+      },
+      {
+        "ticker": "CAT",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 50.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO growing +111% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "CEG",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "CRH",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_4 in RESHORING chain"
+      },
+      {
+        "ticker": "ETN",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "FORM",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in QUANTUM chain"
+      },
+      {
+        "ticker": "GOOG",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 50.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO growing +406% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "GOOGL",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 50.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO growing +406% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "MKSI",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in QUANTUM chain"
+      },
+      {
+        "ticker": "MLM",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_4 in RESHORING chain"
+      },
+      {
+        "ticker": "PWR",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      }
+    ],
+    "high_conviction": [
+      {
+        "ticker": "GEV",
+        "score": 65.0,
+        "n_signals": 2,
+        "subscores": {
+          "forward_orders": 67.5,
+          "rotation_chain": 100,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel \u00b7 rotation: next_up_tier_3 in AI chain"
+      }
+    ]
+  },
+  "audit_events_today": {
+    "outcome.resolved": 1,
+    "convergence.tier_up": 11,
+    "rotation.next_up": 4,
+    "forward_orders.high_conviction": 1,
+    "future.signal.high_conviction": 2
+  },
+  "finished": "2026-05-31T15:36:46.471796+00:00"
+}
