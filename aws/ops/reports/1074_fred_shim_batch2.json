@@ -1,0 +1,473 @@
+{
+  "started": "2026-05-31T23:03:57.373735+00:00",
+  "patches": [
+    {
+      "name": "volatility-monitor-agent",
+      "main_file": "lambda_volatility_agent.py",
+      "deploy": {
+        "ok": true,
+        "zip_size": 5897
+      },
+      "action": "patched_alt_entry"
+    },
+    {
+      "name": "justhodl-global-macro",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7953
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-event-study",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8101
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-ecb-detail",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8627
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "bond-indices-agent",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 5811
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-construction-housing",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 6511
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-forward-returns",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 13214
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-email-reports-v2",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 9949
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-consumer-pulse",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8119
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-global-stress",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 20649
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-commodity-curves",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 9565
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "dollar-strength-agent",
+      "main_file": "lambda_dollar_agent.py",
+      "deploy": {
+        "ok": true,
+        "zip_size": 6133
+      },
+      "action": "patched_alt_entry"
+    },
+    {
+      "name": "justhodl-bond-vol",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7721
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-global-business-cycle",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 18067
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-plumbing-aggregator",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 11464
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-cb-injection",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8742
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-repo-monitor",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 16433
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-anomaly-detector",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 18828
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-daily-report-v3",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 42629
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-chart-data",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 11100
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "xccy-basis-agent",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 5670
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-dollar-radar",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 12311
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-correlation-breaks",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 12798
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-skew-tail-hedging",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 10218
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-options-flow",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 18193
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-supply-inflection-scanner",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 10909
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-historical-analogs",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7766
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-khalid-metrics",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 10694
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-episode-reference",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7547
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-boj-detail",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 9795
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "securities-banking-agent",
+      "main_file": "lambda_securities_agent.py",
+      "deploy": {
+        "ok": true,
+        "zip_size": 5712
+      },
+      "action": "patched_alt_entry"
+    },
+    {
+      "name": "justhodl-crisis-knowledge-base",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 12216
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-canary-grid",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 11119
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-bloomberg-v8",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 13384
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "manufacturing-global-agent",
+      "main_file": "lambda_manufacturing_agent.py",
+      "deploy": {
+        "ok": true,
+        "zip_size": 6063
+      },
+      "action": "patched_alt_entry"
+    },
+    {
+      "name": "justhodl-put-call-extreme",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8812
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-ka-metrics",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 10680
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-carry-surface",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 13334
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-yen-carry",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 11032
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-tenor-signal-interpreter",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 11200
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-euro-fragmentation",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 9163
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-eurodollar-stress",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7611
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-cds-monitor",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 12025
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-auction-crisis-detector",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 11818
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-snb-detail",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 10007
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-credit-stress",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 9084
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "macro-financial-intelligence",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 131520
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-eva-spread",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 10327
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-vol-surface",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 9619
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "openbb-system2-api",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 6681
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-valuations-agent",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8491
+      },
+      "action": "patched_and_deployed"
+    }
+  ],
+  "shim_size": 8588,
+  "summary": {
+    "total": 51,
+    "patched": 51,
+    "already": 0,
+    "shim_only": 0,
+    "errors": 0
+  },
+  "finished": "2026-05-31T23:09:40.346160+00:00"
+}
