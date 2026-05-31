@@ -91,36 +91,85 @@ IN_MILLIONS = {"M2SL", "M1SL"}
 
 
 # ─── FRED FETCH ────────────────────────────────────────────────────────────
-def fetch_fred(series_id: str, limit: int = 30, observation_start: str = "2020-01-01") -> Optional[List[Dict]]:
-    """Fetch FRED series observations. Returns list of {date, value} dicts."""
+# CACHE-FIRST PATTERN (added 2026-05-31 ops 1071):
+# data/fred-cache.json is maintained by justhodl-financial-secretary v2.2 with
+# smart TTL per-series (88% hit rate). Reading it as primary source avoids
+# the 429 rate-limit storm that occurs when 30+ Lambdas hit shared FRED key.
+# Falls back to live FRED with exponential backoff on 429 only when cache miss.
+
+import time as _time_mod
+
+_FRED_CACHE = None  # lazy-loaded once per warm container
+
+
+def _load_fred_cache():
+    """Lazy-load data/fred-cache.json. Returns dict {series_id: [{date,value},...]}."""
+    global _FRED_CACHE
+    if _FRED_CACHE is not None:
+        return _FRED_CACHE
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="data/fred-cache.json")
+        _FRED_CACHE = json.loads(obj["Body"].read().decode("utf-8"))
+        print(f"[FRED-cache] loaded {len(_FRED_CACHE)} series from S3 cache")
+    except Exception as e:
+        print(f"[FRED-cache] load failed: {e}")
+        _FRED_CACHE = {}
+    return _FRED_CACHE
+
+
+def _fred_live(series_id, limit, observation_start, max_retries=3):
+    """Live FRED call with exponential backoff on 429. Returns list or None."""
     url = (
         f"{FRED_BASE}?series_id={series_id}"
         f"&api_key={FRED_API_KEY}"
-        f"&file_type=json"
-        f"&limit={limit}"
-        f"&sort_order=desc"
+        f"&file_type=json&limit={limit}&sort_order=desc"
         f"&observation_start={observation_start}"
     )
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-LiqAgent/2.0"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        observations = data.get("observations", [])
-        results = []
-        for obs in observations:
-            val_str = obs.get("value", ".")
-            if val_str not in (".", "", None):
-                try:
-                    results.append({
-                        "date": obs["date"],
-                        "value": float(val_str)
-                    })
-                except (ValueError, TypeError):
-                    pass
-        return results if results else None
-    except Exception as e:
-        print(f"[FRED] {series_id} error: {e}")
-        return None
+    for attempt in range(max_retries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-LiqAgent/2.1"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            observations = data.get("observations", [])
+            results = []
+            for obs in observations:
+                val_str = obs.get("value", ".")
+                if val_str not in (".", "", None):
+                    try:
+                        results.append({"date": obs["date"], "value": float(val_str)})
+                    except (ValueError, TypeError):
+                        pass
+            return results if results else None
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < max_retries - 1:
+                wait_s = 2 ** (attempt + 1)  # 2s, 4s, 8s
+                print(f"[FRED-live] {series_id} HTTP 429, backoff {wait_s}s (attempt {attempt+1}/{max_retries})")
+                _time_mod.sleep(wait_s)
+                continue
+            print(f"[FRED-live] {series_id} HTTP {e.code}")
+            return None
+        except Exception as e:
+            print(f"[FRED-live] {series_id} {type(e).__name__}: {e}")
+            return None
+    return None
+
+
+def fetch_fred(series_id: str, limit: int = 30, observation_start: str = "2020-01-01") -> Optional[List[Dict]]:
+    """Fetch FRED series observations. CACHE-FIRST: tries S3 cache, falls back
+    to live with 429-aware backoff. Returns list of {date, value} dicts."""
+    cache = _load_fred_cache()
+    cached_obs = cache.get(series_id)
+    if isinstance(cached_obs, list) and len(cached_obs) > 0:
+        # Cache hit. Return up to `limit` most recent entries.
+        # Cache stores newest first per ops/1070 schema audit.
+        sliced = cached_obs[:limit] if limit > 0 else cached_obs
+        # Strip _meta field if present (cache adds it on first entry)
+        clean = [{"date": o["date"], "value": o["value"]}
+                  for o in sliced if "date" in o and "value" in o]
+        if clean:
+            return clean
+    # Cache miss — go live with backoff
+    return _fred_live(series_id, limit, observation_start)
 
 
 def get_latest(series_id: str, limit: int = 10) -> Tuple[Optional[float], Optional[str]]:
