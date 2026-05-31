@@ -1,0 +1,432 @@
+{
+  "started": "2026-05-31T23:47:49.438011+00:00",
+  "edge-data.json": {
+    "size_kb": 2.0,
+    "last_modified": "2026-05-06T21:39:09+00:00",
+    "top_keys": [
+      "generated_at",
+      "composite_score",
+      "calibrated_composite",
+      "raw_composite",
+      "calibration",
+      "regime",
+      "engine_scores",
+      "options_flow",
+      "fund_flow",
+      "earnings_momentum",
+      "global_liquidity",
+      "correlation",
+      "alerts",
+      "fetch_time_s"
+    ],
+    "meta": {},
+    "timestamp_field": "2026-05-06T21:39:08.377946+00:00",
+    "deep_keys": {
+      "generated_at": "<str: 2026-05-06T21:39:08.377946+00:00>",
+      "composite_score": "<int: 58>",
+      "calibrated_composite": "<float: 58.0>",
+      "raw_composite": "<float: 58.0>",
+      "calibration": [
+        "is_meaningful",
+        "n_calibrated",
+        "n_signals",
+        "contributions"
+      ],
+      "regime": "<str: NEUTRAL>",
+      "engine_scores": [
+        "options_flow",
+        "fund_sentiment",
+        "earnings",
+        "liquidity",
+        "correlation"
+      ],
+      "options_flow": [
+        "vix",
+        "vix_3m",
+        "term_structure",
+        "regime",
+        "score",
+        "signal"
+      ],
+      "fund_flow": [
+        "hy_spread",
+        "ig_spread",
+        "ted_spread",
+        "fear_greed",
+        "fear_greed_label",
+        "score",
+        "signal"
+      ],
+      "earnings_momentum": [
+        "yield_curve",
+        "t10y",
+        "t2y",
+        "bellwethers",
+        "avg_change",
+        "score",
+        "signal"
+      ],
+      "global_liquidity": [
+        "fed_assets_b",
+        "m2_b",
+        "rrp_b",
+        "net_liquidity_b",
+        "sofr",
+        "ff_rate",
+        "score",
+        "signal"
+      ],
+      "correlation": [
+        "changes",
+        "alerts",
+        "score",
+        "signal"
+      ],
+      "alerts": "<list of 1 items>",
+      "fetch_time_s": "<float: 0.8>"
+    }
+  },
+  "flow-data.json": {
+    "size_kb": 30.9,
+    "last_modified": "2026-05-06T21:38:58+00:00",
+    "top_keys": [
+      "success",
+      "timestamp",
+      "engine",
+      "data",
+      "meta"
+    ],
+    "meta": {
+      "data_sources": [
+        "FRED",
+        "Polygon.io",
+        "Polygon ETF Global",
+        "AlphaVantage"
+      ],
+      "refresh_interval": 300,
+      "execution_ms": 11081
+    },
+    "timestamp_field": "2026-05-06T21:38:46.886583Z",
+    "deep_keys": {
+      "success": "<bool: True>",
+      "timestamp": "<str: 2026-05-06T21:38:46.886583Z>",
+      "engine": "<str: JustHodl Options Flow & Sentiment Engine v3.0>",
+      "data": [
+        "vix_complex",
+        "skew",
+        "put_call",
+        "gamma_exposure",
+        "fund_flows",
+        "sentiment",
+        "unusual_activity",
+        "market_internals",
+        "trading_signals"
+      ],
+      "meta": [
+        "data_sources",
+        "refresh_interval",
+        "execution_ms"
+      ]
+    }
+  },
+  "n_scanned": 448,
+  "edge_data_writers": [
+    {
+      "lambda": "justhodl-intelligence",
+      "file": "lambda_function.py",
+      "line": "\"_synth_source\": \"edge-data + report.json + flow-data + repo-data\","
+    },
+    {
+      "lambda": "justhodl-morning-intelligence",
+      "file": "lambda_function.py",
+      "line": "\"edge\":\"edge-data.json\","
+    },
+    {
+      "lambda": "justhodl-edge-engine",
+      "file": "lambda_function.py",
+      "line": "s3.put_object(Bucket=S3_BUCKET, Key='edge-data.json',"
+    },
+    {
+      "lambda": "justhodl-signal-logger",
+      "file": "lambda_function.py",
+      "line": "e=fs3(\"edge-data.json\")"
+    },
+    {
+      "lambda": "justhodl-health-monitor",
+      "file": "expectations.py",
+      "line": "\"key\": \"edge-data.json\","
+    }
+  ],
+  "flow_data_writers": [
+    {
+      "lambda": "justhodl-options-flow",
+      "file": "lambda_function.py",
+      "line": "Key=\"flow-data.json\","
+    },
+    {
+      "lambda": "justhodl-morning-intelligence",
+      "file": "lambda_function.py",
+      "line": "\"flow\":\"flow-data.json\","
+    },
+    {
+      "lambda": "justhodl-health-monitor",
+      "file": "expectations.py",
+      "line": "\"key\": \"flow-data.json\","
+    },
+    {
+      "lambda": "justhodl-financial-secretary",
+      "file": "lambda_function.py",
+      "line": "obj = s3.get_object(Bucket=BUCKET, Key=\"flow-data.json\")"
+    }
+  ],
+  "callers_of_engine": [
+    {
+      "lambda": "openbb-websocket-broadcast",
+      "file": "lambda_function.py",
+      "line": "\"data/options-flow.json\": \"options_flow\","
+    },
+    {
+      "lambda": "justhodl-trade-logger",
+      "file": "lambda_function.py",
+      "line": "OPTIONS_FLOW_KEY = \"data/options-flow.json\""
+    },
+    {
+      "lambda": "justhodl-earnings-whisper",
+      "file": "lambda_function.py",
+      "line": "From options-flow.json \u2014 score / tier:"
+    },
+    {
+      "lambda": "justhodl-regime-composite",
+      "file": "lambda_function.py",
+      "line": "LIQUIDITY    dix, options-flow                  positive = supportive"
+    },
+    {
+      "lambda": "justhodl-master-ranker",
+      "file": "lambda_function.py",
+      "line": "- options-flow       (unusual options activity)"
+    },
+    {
+      "lambda": "justhodl-history-snapshotter",
+      "file": "lambda_function.py",
+      "line": "\"data/options-flow.json\","
+    },
+    {
+      "lambda": "justhodl-stealth-accumulation",
+      "file": "lambda_function.py",
+      "line": "- data/options-flow.json (if available -- optional 4th signal)"
+    },
+    {
+      "lambda": "justhodl-alpha-score",
+      "file": "lambda_function.py",
+      "line": "OPTIONS_FLOW_KEY = \"data/options-flow.json\""
+    },
+    {
+      "lambda": "justhodl-debate-engine",
+      "file": "lambda_function.py",
+      "line": "data/options-flow.json        \u2192 options-flow signal"
+    },
+    {
+      "lambda": "justhodl-skew-tail-hedging",
+      "file": "lambda_function.py",
+      "line": "This is the proven SKEW data path used by anomaly-detector and options-flow."
+    },
+    {
+      "lambda": "justhodl-catalyst-skew-premove",
+      "file": "lambda_function.py",
+      "line": "options-implied \"expected move\". When the options-flow shows DIRECTIONAL"
+    },
+    {
+      "lambda": "openbb-websocket-handler",
+      "file": "lambda_function.py",
+      "line": "\"options_flow\",          # data/options-flow.json"
+    },
+    {
+      "lambda": "justhodl-options-flow-scanner",
+      "file": "lambda_function.py",
+      "line": "justhodl-options-flow-scanner \u2014 institutional options + short-interest tracker"
+    },
+    {
+      "lambda": "justhodl-compound-aggregator",
+      "file": "lambda_function.py",
+      "line": "\"options_flow\":   (\"data/options-flow.json\",           \"summary.top_25_overall\",  \"symbol\"),"
+    },
+    {
+      "lambda": "justhodl-fleet-freshness-monitor",
+      "file": "lambda_function.py",
+      "line": "\"key_overrides\": {\"data/options-flow.json\": 0.2, ...}"
+    },
+    {
+      "lambda": "justhodl-health-monitor",
+      "file": "expectations.py",
+      "line": "\"note\": \"Composite ML risk score, regime. edge-engine every 6h.\","
+    },
+    {
+      "lambda": "justhodl-financial-secretary",
+      "file": "lambda_function.py",
+      "line": "\"\"\"Pull options-flow + crypto-intel from S3. Returns {'options', 'crypto', 'sector_rotation'}.\"\"\""
+    },
+    {
+      "lambda": "justhodl-tape-reader",
+      "file": "lambda_function.py",
+      "line": "The platform has options-flow but NO equity-side tape reader. Block trades,"
+    }
+  ],
+  "function_urls": {
+    "justhodl-edge-engine": {
+      "url": "https://vsxv2775x5aojiuwaoqb7wipam0rmuln.lambda-url.us-east-1.on.aws/",
+      "auth_type": "NONE",
+      "cors": {
+        "AllowCredentials": false,
+        "AllowHeaders": [
+          "content-type"
+        ],
+        "AllowMethods": [
+          "*"
+        ],
+        "AllowOrigins": [
+          "*"
+        ],
+        "MaxAge": 86400
+      },
+      "call_status": 200,
+      "call_size": 1877,
+      "response_keys": [
+        "generated_at",
+        "composite_score",
+        "calibrated_composite",
+        "raw_composite",
+        "calibration",
+        "regime",
+        "engine_scores",
+        "options_flow",
+        "fund_flow",
+        "earnings_momentum",
+        "global_liquidity",
+        "correlation",
+        "alerts",
+        "fetch_time_s"
+      ],
+      "response_structure": {
+        "generated_at": "2026-05-31T23:50:36.468473+00:00",
+        "composite_score": 50,
+        "calibrated_composite": 50.0,
+        "raw_composite": 50.0,
+        "calibration": [
+          "is_meaningful",
+          "n_calibrated",
+          "n_signals",
+          "contributions"
+        ],
+        "regime": "NEUTRAL",
+        "engine_scores": [
+          "options_flow",
+          "fund_sentiment",
+          "earnings",
+          "liquidity",
+          "correlation"
+        ],
+        "options_flow": [
+          "vix",
+          "vix_3m",
+          "term_structure",
+          "regime",
+          "score",
+          "signal"
+        ],
+        "fund_flow": [
+          "hy_spread",
+          "ig_spread",
+          "ted_spread",
+          "fear_greed",
+          "fear_greed_label",
+          "score",
+          "signal"
+        ],
+        "earnings_momentum": [
+          "yield_curve",
+          "t10y",
+          "t2y",
+          "bellwethers",
+          "avg_change",
+          "score",
+          "signal"
+        ],
+        "global_liquidity": [
+          "fed_assets_b",
+          "m2_b",
+          "rrp_b",
+          "net_liquidity_b",
+          "sofr",
+          "ff_rate",
+          "score",
+          "signal"
+        ],
+        "correlation": [
+          "changes",
+          "alerts",
+          "score",
+          "signal"
+        ],
+        "alerts": "<list of 0>",
+        "fetch_time_s": 1.4
+      }
+    },
+    "justhodl-options-flow": {
+      "url": "https://g65enkjk3uu4woaoy764ow3q340sppvg.lambda-url.us-east-1.on.aws/",
+      "auth_type": "NONE",
+      "cors": {
+        "AllowHeaders": [
+          "content-type"
+        ],
+        "AllowMethods": [
+          "GET",
+          "POST"
+        ],
+        "AllowOrigins": [
+          "*"
+        ],
+        "MaxAge": 86400
+      },
+      "call_status": 200,
+      "call_size": 29789,
+      "response_keys": [
+        "success",
+        "timestamp",
+        "engine",
+        "data",
+        "meta"
+      ],
+      "response_structure": {
+        "success": true,
+        "timestamp": "2026-05-31T23:50:37.502894Z",
+        "engine": "JustHodl Options Flow & Sentiment Engine v3.0",
+        "data": [
+          "vix_complex",
+          "skew",
+          "put_call",
+          "gamma_exposure",
+          "fund_flows",
+          "sentiment",
+          "unusual_activity",
+          "market_internals"
+        ],
+        "meta": [
+          "data_sources",
+          "refresh_interval",
+          "execution_ms"
+        ]
+      }
+    }
+  },
+  "schedules": {
+    "justhodl-edge-engine": [
+      {
+        "name": "justhodl-edge-6h",
+        "schedule": "rate(6 hours)",
+        "state": "ENABLED"
+      }
+    ],
+    "justhodl-options-flow": []
+  },
+  "finished": "2026-05-31T23:50:59.528846+00:00"
+}
