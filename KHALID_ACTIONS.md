@@ -6,9 +6,9 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
-### 1. PAT Rotation — due ~2026-05-25 (4 days)
+### 1. PAT Rotation — ⚠️ 6 DAYS OVERDUE (was due 2026-05-25)
 
-The fine-grained PAT on `justhodl-dex-scanner` Lambda has a 30-day expiration set 2026-04-25.
+The fine-grained PAT on `justhodl-dex-scanner` Lambda was set with 30-day expiration on 2026-04-25 and is now past expiration. Dex scanner may be failing silently.
 
 **Steps (3 min):**
 1. Generate fresh fine-grained PAT at https://github.com/settings/personal-access-tokens/new
