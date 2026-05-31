@@ -1,0 +1,695 @@
+{
+  "started": "2026-05-31T14:34:59.903737+00:00",
+  "deploys": {
+    "justhodl-event-coordinator": {
+      "zip_size": 8070,
+      "op": {
+        "action": "updated"
+      }
+    },
+    "justhodl-forward-orders": {
+      "zip_size": 12159,
+      "op": {
+        "action": "created"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "forward-orders-daily",
+        "cron": "cron(0 11 * * ? *)"
+      }
+    },
+    "justhodl-rotation-chain": {
+      "zip_size": 11412,
+      "op": {
+        "action": "created"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "rotation-chain-2x-daily",
+        "cron": "cron(0 12,20 * * ? *)"
+      }
+    },
+    "justhodl-buzz-velocity": {
+      "zip_size": 11145,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "buzz-velocity-4x-daily",
+        "cron": "cron(0 10,14,18,22 * * ? *)"
+      }
+    },
+    "justhodl-future-intelligence": {
+      "zip_size": 8676,
+      "op": {
+        "action": "created"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "future-intel-2x-daily",
+        "cron": "cron(30 12,20 * * ? *)"
+      }
+    },
+    "justhodl-master-ranker": {
+      "zip_size": 11572,
+      "op": {
+        "action": "updated"
+      }
+    },
+    "justhodl-bagger-engine": {
+      "zip_size": 9302,
+      "error": "'function_name'"
+    }
+  },
+  "async_invokes": {
+    "justhodl-forward-orders": {
+      "async": true,
+      "status": 202
+    },
+    "justhodl-rotation-chain": {
+      "async": true,
+      "status": 202
+    },
+    "justhodl-buzz-velocity": {
+      "async": true,
+      "status": 202
+    }
+  },
+  "completion_times_s": {
+    "data/forward-orders.json": 61.248098611831665,
+    "data/rotation-chains.json": 30.85746741294861,
+    "data/buzz-velocity.json": 243.0137345790863
+  },
+  "future_intel_invoke": {
+    "status": 200,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "n_scored": 198,
+      "top_ticker": "GEV",
+      "top_score": 70.4,
+      "duration_s": 0.3
+    }
+  },
+  "outputs": {
+    "data/forward-orders.json": {
+      "exists": true,
+      "size_kb": 56.4,
+      "generated_at": "2026-05-31T14:36:59+00:00",
+      "duration_s": 49.3,
+      "n_results": 20,
+      "top_3": [
+        {
+          "ticker": "ORCL",
+          "name": "Oracle Corporation",
+          "sector": "Technology",
+          "industry": "Software - Infrastructure",
+          "market_cap": 649439947260,
+          "composite": 76.0,
+          "subscores": {
+            "rpo_yield": 90,
+            "rpo_growth": 100,
+            "contracts": 0,
+            "book_to_bill": 100
+          },
+          "data": {
+            "rpo_latest_usd": 552600000000,
+            "rpo_yield_pct": 85.1,
+            "rpo_growth_yoy_pct": 324.4,
+            "book_to_bill_spread_pct": 316.0,
+            "rpo_tag": "RevenueRemainingPerformanceObligation",
+            "rpo_as_of": "2026-02-28",
+            "rpo_history": [
+              {
+                "value": 552600000000,
+                "end": "2026-02-28",
+                "fy": 2026,
+                "fp": "Q3",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 523300000000,
+                "end": "2025-11-30",
+                "fy": 2026,
+                "fp": "Q2",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 455300000000,
+                "end": "2025-08-31",
+                "fy": 2026,
+                "fp": "Q1",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 137800000000,
+                "end": "2025-05-31",
+                "fy": 2025,
+                "fp": "FY",
+                "form": "10-K",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 130200000000,
+                "end": "2025-02-28",
+                "fy": 2025,
+                "fp": "Q3",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 97300000000,
+                "end": "2024-11-30",
+                "fy": 2025,
+                "fp": "Q2",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              }
+            ],
+            "revenue_history": [
+              {
+                "value": 57399000000,
+                "end": "2025-05-31",
+                "fy": 2025
+              },
+              {
+                "value": 52961000000,
+                "end": "2024-05-31",
+                "fy": 2024
+              },
+              {
+                "value": 49954000000,
+                "end": "2023-05-31",
+                "fy": 2023
+              }
+            ]
+          },
+          "contracts": {
+            "n": 0,
+            "total_usd": 0,
+            "headlines": [],
+            "err": ""
+          },
+          "thesis": "RPO $552.6B = 85% of mcap \u00b7 RPO growing +324% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+        },
+        {
+          "ticker": "GEV",
+          "name": "GE Vernova Inc.",
+          "sector": "Utilities",
+          "industry": "Renewable Utilities",
+          "market_cap": 260206950400,
+          "composite": 67.5,
+          "subscores": {
+            "rpo_yield": 80,
+            "rpo_growth": 85,
+            "contracts": 0,
+            "book_to_bill": 100
+          },
+          "data": {
+            "rpo_latest_usd": 163276000000,
+            "rpo_yield_pct": 62.7,
+            "rpo_growth_yoy_pct": 32.3,
+            "book_to_bill_spread_pct": 23.3,
+            "rpo_tag": "RevenueRemainingPerformanceObligation",
+            "rpo_as_of": "2026-03-31",
+            "rpo_history": [
+              {
+                "value": 163276000000,
+                "end": "2026-03-31",
+                "fy": 2026,
+                "fp": "Q1",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 150238000000,
+                "end": "2025-12-31",
+                "fy": 2025,
+                "fp": "FY",
+                "form": "10-K",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 135269000000,
+                "end": "2025-09-30",
+                "fy": 2025,
+                "fp": "Q3",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 128650000000,
+                "end": "2025-06-30",
+                "fy": 2025,
+                "fp": "Q2",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 123438000000,
+                "end": "2025-03-31",
+                "fy": 2025,
+                "fp": "Q1",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 119023000000,
+                "end": "2024-12-31",
+                "fy": 2024,
+                "fp": "FY",
+                "form": "10-K",
+                "tag": "RevenueRemainingPerformanceObligation"
+              }
+            ],
+            "revenue_history": [
+              {
+                "value": 38068000000,
+                "end": "2025-12-31",
+                "fy": 2025
+              },
+              {
+                "value": 34935000000,
+                "end": "2024-12-31",
+                "fy": 2024
+              }
+            ]
+          },
+          "contracts": {
+            "n": 0,
+            "total_usd": 0,
+            "headlines": [],
+            "err": ""
+          },
+          "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+        },
+        {
+          "ticker": "RTX",
+          "name": "RTX Corporation",
+          "sector": "Industrials",
+          "industry": "Aerospace & Defense",
+          "market_cap": 241944528800,
+          "composite": 67.0,
+          "subscores": {
+            "rpo_yield": 100,
+            "rpo_growth": 70,
+            "contracts": 0,
+            "book_to_bill": 60
+          },
+          "data": {
+            "rpo_latest_usd": 271000000000,
+            "rpo_yield_pct": 112.0,
+            "rpo_growth_yoy_pct": 24.9,
+            "book_to_bill_spread_pct": 7.8,
+            "rpo_tag": "RevenueRemainingPerformanceObligation",
+            "rpo_as_of": "2026-03-31",
+            "rpo_history": [
+              {
+                "value": 271000000000,
+                "end": "2026-03-31",
+                "fy": 2026,
+                "fp": "Q1",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 268000000000,
+                "end": "2025-12-31",
+                "fy": 2025,
+                "fp": "FY",
+                "form": "10-K",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 251000000000,
+                "end": "2025-09-30",
+                "fy": 2025,
+                "fp": "Q3",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 236000000000,
+                "end": "2025-06-30",
+                "fy": 2025,
+                "fp": "Q2",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 217000000000,
+                "end": "2025-03-31",
+                "fy": 2025,
+                "fp": "Q1",
+                "form": "10-Q",
+                "tag": "RevenueRemainingPerformanceObligation"
+              },
+              {
+                "value": 218000000000,
+                "end": "2024-12-31",
+                "fy": 2024,
+                "fp": "FY",
+                "form": "10-K",
+                "tag": "RevenueRemainingPerformanceObligation"
+              }
+            ],
+            "revenue_history": [
+              {
+                "value": 80738000000,
+                "end": "2024-12-31",
+                "fy": 2024
+              },
+              {
+                "value": 68920000000,
+                "end": "2023-12-31",
+                "fy": 2023
+              },
+              {
+                "value": 67074000000,
+                "end": "2022-12-31",
+                "fy": 2022
+              }
+            ]
+          },
+          "contracts": {
+            "n": 0,
+            "total_usd": 0,
+            "headlines": [],
+            "err": ""
+          },
+          "thesis": "RPO $271.0B = 112% of mcap \u00b7 RPO growing +25% YoY"
+        }
+      ]
+    },
+    "data/rotation-chains.json": {
+      "exists": true,
+      "size_kb": 5.5,
+      "generated_at": "2026-05-31T14:36:23+00:00",
+      "duration_s": 11.4,
+      "n_results": 7,
+      "top_3": []
+    },
+    "data/buzz-velocity.json": {
+      "exists": true,
+      "size_kb": 100.7,
+      "generated_at": "2026-05-31T14:40:05+00:00",
+      "duration_s": 230.8,
+      "n_results": 179,
+      "top_3": [
+        {
+          "ticker": "LMT.BA",
+          "name": "Lockheed Martin Corporation",
+          "score": 85.0,
+          "composite_velocity": 2.6,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 5.0,
+            "interpretation": "FROM_ZERO",
+            "n_short": 8
+          },
+          "price_perf_7d_pct": 1.29,
+          "stealth_signal": true,
+          "reddit_breakdown_7d": {
+            "wallstreetbets": 0,
+            "stocks": 0,
+            "investing": 0,
+            "options": 0,
+            "SecurityAnalysis": 0
+          },
+          "news_7d_count": 8,
+          "news_30d_count": 0,
+          "sample_headlines": [
+            {
+              "title": "Hypersonic Spending Surge Brings A New Wave Of Defense Execution Talent Into The Commercial Space Race",
+              "source": "Financial Post",
+              "publishedAt": "2026-05-29T15:59:05Z"
+            },
+            {
+              "title": "Hypersonic Spending Surge Brings A New Wave Of Defense Execution Talent Into The Commercial Space Race",
+              "source": "GlobeNewswire",
+              "publishedAt": "2026-05-29T15:51:00Z"
+            }
+          ],
+          "thesis": "accelerating buzz (2.6x) \u00b7 STEALTH (price only +1.3% in 7d)"
+        },
+        {
+          "ticker": "UNH.BA",
+          "name": "UnitedHealth Group Incorporated",
+          "score": 36.5,
+          "composite_velocity": 1.46,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 2.14,
+            "interpretation": "ACCELERATING",
+            "n_short": 3,
+            "n_long": 6,
+            "expected_short": 1.4
+          },
+          "price_perf_7d_pct": -2.96,
+          "stealth_signal": false,
+          "reddit_breakdown_7d": {
+            "wallstreetbets": 0,
+            "stocks": 0,
+            "investing": 0,
+            "options": 0,
+            "SecurityAnalysis": 0
+          },
+          "news_7d_count": 3,
+          "news_30d_count": 6,
+          "sample_headlines": [
+            {
+              "title": "UnitedHealth (UNH) Gets Higher Price Target from Bernstein Amid EPS Recovery Outlook",
+              "source": "Yahoo Entertainment",
+              "publishedAt": "2026-05-28T12:43:17Z"
+            },
+            {
+              "title": "Bernstein Maintains Outperform Rating on UnitedHealth (UNH) Following PBM Transparency Push",
+              "source": "Yahoo Entertainment",
+              "publishedAt": "2026-05-27T10:28:00Z"
+            }
+          ],
+          "thesis": "Moderate buzz"
+        },
+        {
+          "ticker": "AXP.BA",
+          "name": "American Express Company",
+          "score": 33.5,
+          "composite_velocity": 1.34,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.84,
+            "interpretation": "RISING",
+            "n_short": 3,
+            "n_long": 7,
+            "expected_short": 1.6
+          },
+          "price_perf_7d_pct": 2.15,
+          "stealth_signal": false,
+          "reddit_breakdown_7d": {
+            "wallstreetbets": 0,
+            "stocks": 0,
+            "investing": 0,
+            "options": 0,
+            "SecurityAnalysis": 0
+          },
+          "news_7d_count": 3,
+          "news_30d_count": 7,
+          "sample_headlines": [
+            {
+              "title": "History of American Express: Company timeline & facts",
+              "source": "Yahoo Entertainment",
+              "publishedAt": "2026-05-29T00:03:51Z"
+            },
+            {
+              "title": "Disney CEO Josh D\u2019Amaro, Sony Boss Hiroki Totoki Among New Paley Center Board of Trustees Members; Brian Grazer Added to",
+              "source": "Variety",
+              "publishedAt": "2026-05-28T13:00:00Z"
+            }
+          ],
+          "thesis": "Moderate buzz"
+        }
+      ]
+    },
+    "data/future-intelligence.json": {
+      "exists": true,
+      "size_kb": 80.5,
+      "generated_at": "2026-05-31T14:40:19+00:00",
+      "duration_s": 0.3,
+      "n_results": 198,
+      "top_3": [
+        {
+          "ticker": "GEV",
+          "future_intel_score": 70.4,
+          "n_independent_signals": 2,
+          "subscores": {
+            "forward_orders": 67.5,
+            "rotation_chain": 100,
+            "buzz_velocity": 0
+          },
+          "forward_orders": {
+            "rpo_yield_pct": 62.7,
+            "rpo_growth_pct": 32.3,
+            "contracts_total": 0,
+            "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+          },
+          "rotation_chain": {
+            "chain": "AI",
+            "role": "next_up_tier_3",
+            "lag_pct": 50.92,
+            "leader_30d": 49.9
+          },
+          "buzz_velocity": null,
+          "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel \u00b7 rotation: next_up_tier_3 in AI chain"
+        },
+        {
+          "ticker": "ORCL",
+          "future_intel_score": 40.5,
+          "n_independent_signals": 1,
+          "subscores": {
+            "forward_orders": 76.0,
+            "rotation_chain": 0,
+            "buzz_velocity": 25.0
+          },
+          "forward_orders": {
+            "rpo_yield_pct": 85.1,
+            "rpo_growth_pct": 324.4,
+            "contracts_total": 0,
+            "thesis": "RPO $552.6B = 85% of mcap \u00b7 RPO growing +324% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+          },
+          "rotation_chain": null,
+          "buzz_velocity": {
+            "interpretation": "NO_DATA",
+            "composite_velocity": 1.0,
+            "stealth": false,
+            "price_7d_pct": 24.42
+          },
+          "thesis": "RPO $552.6B = 85% of mcap \u00b7 RPO growing +324% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+        },
+        {
+          "ticker": "RTX",
+          "future_intel_score": 30.2,
+          "n_independent_signals": 1,
+          "subscores": {
+            "forward_orders": 67.0,
+            "rotation_chain": 0,
+            "buzz_velocity": 0
+          },
+          "forward_orders": {
+            "rpo_yield_pct": 112.0,
+            "rpo_growth_pct": 24.9,
+            "contracts_total": 0,
+            "thesis": "RPO $271.0B = 112% of mcap \u00b7 RPO growing +25% YoY"
+          },
+          "rotation_chain": null,
+          "buzz_velocity": null,
+          "thesis": "RPO $271.0B = 112% of mcap \u00b7 RPO growing +25% YoY"
+        }
+      ]
+    }
+  },
+  "audit": {
+    "n_total": 6,
+    "by_event": {
+      "outcome.resolved": 1,
+      "convergence.tier_up": 3,
+      "rotation.next_up": 1,
+      "forward_orders.high_conviction": 1
+    },
+    "new_event_counts": {
+      "forward_orders.high_conviction": 1,
+      "rotation.next_up": 1,
+      "buzz.spike": 0,
+      "future.signal.high_conviction": 0
+    },
+    "samples": [
+      {
+        "ts": "2026-05-31T12:16:42",
+        "event": "outcome.resolved",
+        "detail_keys": [
+          "n_resolved",
+          "source",
+          "_emitted_at",
+          "_source_engine"
+        ],
+        "_source": "ops-1022"
+      },
+      {
+        "ts": "2026-05-31T14:13:09",
+        "event": "convergence.tier_up",
+        "detail_keys": [
+          "ticker",
+          "new_tier",
+          "n_systems",
+          "systems",
+          "score"
+        ],
+        "_source": "master-ranker"
+      },
+      {
+        "ts": "2026-05-31T14:13:09",
+        "event": "convergence.tier_up",
+        "detail_keys": [
+          "ticker",
+          "new_tier",
+          "n_systems",
+          "systems",
+          "score"
+        ],
+        "_source": "master-ranker"
+      },
+      {
+        "ts": "2026-05-31T14:13:09",
+        "event": "convergence.tier_up",
+        "detail_keys": [
+          "ticker",
+          "new_tier",
+          "n_systems",
+          "systems",
+          "score"
+        ],
+        "_source": "master-ranker"
+      },
+      {
+        "ts": "2026-05-31T14:36:25",
+        "event": "rotation.next_up",
+        "detail_keys": [
+          "chain",
+          "leader_tier",
+          "leader_perf_30d",
+          "expected_catchup",
+          "top_3_next_up"
+        ],
+        "_source": "rotation-chain"
+      },
+      {
+        "ts": "2026-05-31T14:36:59",
+        "event": "forward_orders.high_conviction",
+        "detail_keys": [
+          "ticker",
+          "composite",
+          "rpo_yield_pct",
+          "rpo_growth_pct",
+          "thesis"
+        ],
+        "_source": "forward-orders"
+      }
+    ]
+  },
+  "finished": "2026-05-31T14:40:20.817951+00:00"
+}
