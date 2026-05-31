@@ -1,0 +1,210 @@
+{
+  "started": "2026-05-31T11:50:13.159757+00:00",
+  "engine_signal_map": {
+    "zip_size": 6947,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "engines": 21,
+      "families": 10,
+      "unknown_signal_types": 0
+    }
+  },
+  "near_miss_monitor": {
+    "zip_size": 6357,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "signals_with_count": 4,
+      "total_near_misses": 543
+    }
+  },
+  "miss_detector": {
+    "zip_size": 9451,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "session_date": "2026-05-29",
+      "candidates": 511,
+      "attributed": 0,
+      "misses": 200
+    }
+  },
+  "miss_calibrator": {
+    "zip_size": 7308,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "proposals": 4,
+      "universe_candidates": 0,
+      "skipped_deprecated": 0
+    }
+  },
+  "alpha_compass": {
+    "zip_size": 7969,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "top_calls": 3,
+      "watchlist": 3
+    }
+  },
+  "engine_map_final": {
+    "totals": {
+      "curated_engines": 21,
+      "curated_signals": 90,
+      "families": 10,
+      "ddb_observed_types": 63,
+      "unknown_after_attribution": 0
+    },
+    "unknown_remaining": []
+  },
+  "near_miss_final": {
+    "totals": {
+      "n_signals_configured": 6,
+      "n_signals_with_count": 4,
+      "n_total_near_misses": 543,
+      "n_snapshots_loaded": 4,
+      "n_snapshots_failed": 0
+    },
+    "near_misses_by_signal": {
+      "screener_top_pick": 240,
+      "valuation_composite": 163,
+      "momentum_top_pick": 126,
+      "earnings_pead": 14,
+      "earnings_cascade": 0,
+      "crisis_composite_near_extreme": 0
+    },
+    "diagnostics": [
+      {
+        "signal_type": "earnings_pead",
+        "snapshot": "data/earnings-pead.json",
+        "extractor": "tier_label",
+        "count": 14
+      },
+      {
+        "signal_type": "screener_top_pick",
+        "snapshot": "data/opportunities.json",
+        "extractor": "score_band",
+        "count": 240
+      },
+      {
+        "signal_type": "momentum_top_pick",
+        "snapshot": "data/opportunities.json",
+        "extractor": "score_band",
+        "count": 126
+      },
+      {
+        "signal_type": "valuation_composite",
+        "snapshot": "data/opportunities.json",
+        "extractor": "score_band",
+        "count": 163
+      },
+      {
+        "signal_type": "earnings_cascade",
+        "snapshot": "data/earnings-cascade.json",
+        "extractor": "array_length",
+        "count": 0
+      },
+      {
+        "signal_type": "crisis_composite_near_extreme",
+        "snapshot": "data/crisis-composite.json",
+        "extractor": "score_band_single",
+        "count": 0
+      }
+    ]
+  },
+  "miss_summary_final": {
+    "totals": {
+      "out_of_universe": 160,
+      "wrong_signal_type": 40
+    },
+    "near_misses_by_signal": {
+      "screener_top_pick": 240,
+      "valuation_composite": 163,
+      "momentum_top_pick": 126,
+      "earnings_pead": 14,
+      "earnings_cascade": 0,
+      "crisis_composite_near_extreme": 0
+    },
+    "near_miss_monitor_meta": {
+      "as_of": "2026-05-31T11:50:39.045191+00:00",
+      "total_added": 543,
+      "n_signals": 6
+    }
+  },
+  "miss_calibrator_final": {
+    "totals": {
+      "n_misses_total_30d": 200,
+      "n_signals_with_near_misses": 6,
+      "n_proposals": 4,
+      "n_skipped_deprecated": 0,
+      "n_skipped_below_min": 2,
+      "n_universe_candidates": 0
+    },
+    "proposals": [
+      {
+        "signal_type": "screener_top_pick",
+        "delta_pct": -0.2,
+        "near_misses_30d": 240,
+        "confidence": "MODERATE",
+        "is_promoted": true,
+        "scorecard_wilson_lb": null,
+        "scorecard_n": null,
+        "scorecard_grade": null,
+        "rationale": "240 near-misses in last 30 days. Proposed threshold reduction -20.0%. Signal exists in scorecard but not in promoted list.",
+        "expires_at": "2026-06-14T11:51:06.257320+00:00"
+      },
+      {
+        "signal_type": "valuation_composite",
+        "delta_pct": -0.1998,
+        "near_misses_30d": 163,
+        "confidence": "MODERATE",
+        "is_promoted": false,
+        "scorecard_wilson_lb": null,
+        "scorecard_n": null,
+        "scorecard_grade": null,
+        "rationale": "163 near-misses in last 30 days. Proposed threshold reduction -20.0%. Signal exists in scorecard but not in promoted list.",
+        "expires_at": "2026-06-14T11:51:06.257320+00:00"
+      },
+      {
+        "signal_type": "momentum_top_pick",
+        "delta_pct": -0.1985,
+        "near_misses_30d": 126,
+        "confidence": "MODERATE",
+        "is_promoted": true,
+        "scorecard_wilson_lb": null,
+        "scorecard_n": null,
+        "scorecard_grade": null,
+        "rationale": "126 near-misses in last 30 days. Proposed threshold reduction -19.9%. Signal exists in scorecard but not in promoted list.",
+        "expires_at": "2026-06-14T11:51:06.257320+00:00"
+      },
+      {
+        "signal_type": "earnings_pead",
+        "delta_pct": -0.0758,
+        "near_misses_30d": 14,
+        "confidence": "LOW",
+        "is_promoted": true,
+        "scorecard_wilson_lb": null,
+        "scorecard_n": null,
+        "scorecard_grade": null,
+        "rationale": "14 near-misses in last 30 days. Proposed threshold reduction -7.6%. Signal exists in scorecard but not in promoted list.",
+        "expires_at": "2026-06-14T11:51:06.257320+00:00"
+      }
+    ]
+  },
+  "alpha_compass_final": {
+    "top_calls": 3,
+    "watchlist": 3,
+    "cards_with_distribution": 1,
+    "feeds": {
+      "conviction": true,
+      "magnitude_distributions": true,
+      "scorecard": true,
+      "sizer": true,
+      "miss_summary": true,
+      "engine_signal_map": true
+    }
+  },
+  "finished": "2026-05-31T11:51:18.840624+00:00"
+}
