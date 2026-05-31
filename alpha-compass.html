@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Alpha Compass · JustHodl.AI</title>
+<meta name="description" content="Top 3 highest-conviction calls across the platform's 270+ engines — with realised distributions, sizing, and regime context. The institutional landing screen.">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#06090f;--bg1:#0c1220;--bg2:#111b2e;--bg3:#172038;
+  --brd:#1a2744;--brd2:#243352;
+  --t1:#e8edf5;--t2:#8896b0;--t3:#5a6a85;
+  --green:#00e68a;--red:#ff4757;--yellow:#ffd43b;--blue:#4dabf7;
+  --purple:#b197fc;--cyan:#22d3ee;--orange:#ff922b;
+  --bg-card:linear-gradient(145deg,#0e1628,#131f35);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg0);color:var(--t1);font-family:DM Sans,sans-serif;overflow-x:hidden;font-size:14px;line-height:1.5}
+.mono{font-family:JetBrains Mono,monospace}
+a{color:var(--blue);text-decoration:none}
+
+.topbar{background:linear-gradient(180deg,#080d18,var(--bg0));border-bottom:1px solid var(--brd);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.logo{font-size:22px;font-weight:700;background:linear-gradient(135deg,#00e68a,#4dabf7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px}
+.logo-sub{font-size:10px;color:var(--t3);letter-spacing:3px;text-transform:uppercase;font-family:JetBrains Mono,monospace}
+.topbar-right{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--t2);font-family:JetBrains Mono,monospace}
+.live-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,230,138,.4)}50%{opacity:.7;box-shadow:0 0 0 8px rgba(0,230,138,0)}}
+.back-link{color:var(--blue);font-size:12px;font-family:JetBrains Mono,monospace;padding:6px 12px;border:1px solid var(--brd);border-radius:6px}
+.back-link:hover{border-color:var(--blue);background:rgba(77,171,247,.08)}
+
+.container{max-width:1500px;margin:0 auto;padding:22px 24px}
+
+.regime-strip{display:flex;align-items:center;gap:18px;background:var(--bg-card);border:1px solid var(--brd);border-radius:12px;padding:14px 22px;margin-bottom:24px}
+.regime-strip .regime-label{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;font-family:JetBrains Mono,monospace}
+.regime-strip .regime-value{font-size:20px;font-weight:700;font-family:JetBrains Mono,monospace}
+.regime-strip .regime-dot{width:12px;height:12px;border-radius:50%}
+.regime-strip .regime-meta{margin-left:auto;font-size:11px;color:var(--t2);font-family:JetBrains Mono,monospace}
+
+.section-head{display:flex;align-items:center;gap:12px;margin:24px 0 14px}
+.section-head h2{font-size:17px;font-weight:600}
+.section-head .badge{font-size:10px;font-family:JetBrains Mono,monospace;padding:3px 10px;border-radius:4px;background:rgba(77,171,247,.12);color:var(--blue);text-transform:uppercase;letter-spacing:1px}
+
+.calls-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:8px}
+@media(max-width:1100px){.calls-grid{grid-template-columns:1fr;}}
+
+.call-card{background:var(--bg-card);border:1px solid var(--brd);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:.2s}
+.call-card:hover{border-color:var(--brd2);transform:translateY(-2px)}
+.call-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),transparent);border-radius:14px 14px 0 0}
+.call-card.down::before{background:linear-gradient(90deg,var(--red),transparent)}
+.call-card.neutral::before{background:linear-gradient(90deg,var(--yellow),transparent)}
+
+.cc-rank{position:absolute;top:14px;right:14px;font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace;letter-spacing:1px}
+.cc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:10px}
+.cc-subject{font-size:13px;color:var(--t2);font-weight:500;text-transform:uppercase;letter-spacing:1.2px;font-family:JetBrains Mono,monospace}
+.cc-ticker{font-size:26px;font-weight:700;font-family:JetBrains Mono,monospace;margin-top:3px;color:var(--t1)}
+.cc-direction{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;margin-top:4px;font-family:JetBrains Mono,monospace;letter-spacing:1px}
+.cc-direction.up{background:rgba(0,230,138,.15);color:var(--green)}
+.cc-direction.down{background:rgba(255,71,87,.15);color:var(--red)}
+.cc-direction.neutral{background:rgba(255,212,59,.15);color:var(--yellow)}
+
+.cc-conviction{text-align:right;padding-left:8px}
+.cc-conviction .num{font-size:36px;font-weight:700;font-family:JetBrains Mono,monospace;line-height:1;color:var(--t1)}
+.cc-conviction .lbl{font-size:9px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;font-family:JetBrains Mono,monospace}
+
+.gauge{height:6px;background:var(--bg0);border-radius:6px;margin:14px 0;overflow:hidden}
+.gauge-fill{height:100%;border-radius:6px;transition:width .8s ease;background:linear-gradient(90deg,var(--blue),var(--green))}
+
+.cc-thesis{font-size:13px;color:var(--t1);line-height:1.55;margin:10px 0 14px;font-style:italic;border-left:2px solid var(--brd2);padding-left:10px}
+.cc-invalidation{font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace;margin-top:6px}
+.cc-invalidation b{color:var(--red);font-weight:600}
+
+.cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:14px 0;padding:12px;background:rgba(255,255,255,.02);border:1px solid var(--brd);border-radius:8px}
+.cc-grid .row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:JetBrains Mono,monospace;font-size:11px}
+.cc-grid .row .k{color:var(--t3);letter-spacing:.5px}
+.cc-grid .row .v{color:var(--t1);font-weight:600}
+.cc-grid .row .v.pos{color:var(--green)}
+.cc-grid .row .v.neg{color:var(--red)}
+.cc-grid .row .v.warn{color:var(--yellow)}
+
+.cc-engines{margin-top:8px}
+.cc-engines .lbl{font-size:9px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:JetBrains Mono,monospace}
+.cc-engine{display:flex;justify-content:space-between;font-size:10.5px;padding:3px 0;border-bottom:1px solid rgba(26,39,68,.4);font-family:JetBrains Mono,monospace}
+.cc-engine .e-name{color:var(--t2)}
+.cc-engine .e-read{color:var(--t1);font-weight:500}
+
+.watchlist-table{width:100%;border-collapse:separate;border-spacing:0;background:var(--bg1);border:1px solid var(--brd);border-radius:12px;overflow:hidden;font-size:12px;font-family:JetBrains Mono,monospace}
+.watchlist-table th{text-align:left;padding:12px 14px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--brd);font-weight:600}
+.watchlist-table td{padding:12px 14px;border-bottom:1px solid rgba(26,39,68,.5)}
+.watchlist-table tr:last-child td{border-bottom:none}
+.watchlist-table tr:hover td{background:rgba(77,171,247,.03)}
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-size:9.5px;font-weight:600;letter-spacing:.5px}
+.pill-up{background:rgba(0,230,138,.12);color:var(--green)}
+.pill-dn{background:rgba(255,71,87,.12);color:var(--red)}
+.pill-neut{background:rgba(137,150,176,.12);color:var(--t2)}
+
+.coverage{margin-top:30px;background:var(--bg-card);border:1px solid var(--brd);border-radius:12px;padding:18px}
+.coverage h3{font-size:14px;margin-bottom:10px}
+.coverage .row{display:flex;gap:18px;font-size:12px;font-family:JetBrains Mono,monospace;color:var(--t2);flex-wrap:wrap}
+.coverage .row .it{display:flex;gap:8px}
+.coverage .row .it .k{color:var(--t3);text-transform:uppercase;letter-spacing:1px;font-size:10px}
+.coverage .row .it .v{color:var(--t1);font-weight:600}
+
+.loading{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:14px}
+.spinner{width:42px;height:42px;border:3px solid var(--brd);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.footer-note{margin-top:30px;padding:14px;background:var(--bg1);border:1px solid var(--brd);border-radius:8px;font-size:11px;color:var(--t3);line-height:1.6;font-family:JetBrains Mono,monospace}
+.footer-note b{color:var(--yellow)}
+
+@media(max-width:768px){
+  .cc-grid{grid-template-columns:1fr}
+  .container{padding:14px}
+  .topbar{padding:10px 16px}
+  .topbar-right span:nth-child(2){display:none}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="https://justhodl.ai" class="logo">JUSTHODL.AI</a>
+    <div class="logo-sub">Alpha Compass</div>
+  </div>
+  <div class="topbar-right">
+    <span><span class="live-dot"></span> LIVE</span>
+    <span id="ts">Loading...</span>
+    <a href="/" class="back-link">Terminal</a>
+  </div>
+</div>
+
+<div class="container">
+  <div id="app">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div style="color:var(--t2);font-size:13px;font-family:JetBrains Mono,monospace">Loading alpha compass…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const DATA_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-compass.json";
+const FALLBACK_PROXY = "https://api.justhodl.ai/agent/secretary?key=data/alpha-compass.json";
+
+function fmt(n, d){ if(n==null||isNaN(n)) return "—"; const s=(d===0?n.toFixed(0):n.toFixed(d??2)); return s; }
+function pct(n,d){ if(n==null||isNaN(n)) return "—"; const sign=n>0?"+":""; return sign+fmt(n,d??1)+"%"; }
+function pctClass(n){ if(n==null) return ""; return n>0?"pos":n<0?"neg":""; }
+function dirCls(d){ if(!d) return "neutral"; const u=d.toUpperCase(); if(u.includes("UP")||u.includes("LONG")||u.includes("OVER")) return "up"; if(u.includes("DOWN")||u.includes("SHORT")||u.includes("UNDER")) return "down"; return "neutral"; }
+function dirArrow(d){ const c=dirCls(d); return c==="up"?"▲":c==="down"?"▼":"●"; }
+function safe(s){ return s==null?"":String(s).replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+async function loadData(){
+  try{
+    const r = await fetch(DATA_URL+"?t="+Date.now(),{cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
+  }catch(e){
+    console.warn("primary fetch fail, trying proxy:",e);
+    const r2 = await fetch(FALLBACK_PROXY+"&t="+Date.now(),{cache:"no-store"});
+    if(!r2.ok) throw new Error("proxy "+r2.status);
+    return await r2.json();
+  }
+}
+
+function renderRegime(reg){
+  if(!reg) return "";
+  return `<div class="regime-strip">
+    <span class="regime-dot" style="background:${reg.color||"#888"}"></span>
+    <div>
+      <div class="regime-label">Macro Regime</div>
+      <div class="regime-value">${safe(reg.label||"Unknown")}</div>
+    </div>
+    <div class="regime-meta">
+      ${reg.khalid_score!=null?`Khalid Score: <b style="color:var(--t1)">${fmt(reg.khalid_score,1)}</b>`:""}
+    </div>
+  </div>`;
+}
+
+function renderCard(c){
+  if(!c) return "";
+  const dc = dirCls(c.direction);
+  const arr = dirArrow(c.direction);
+  const conv = c.conviction ?? 0;
+  const d = c.distribution || {};
+  const sc = c.scorecard || {};
+  const sz = c.sizing || {};
+  const engines = c.engines || [];
+  const tk = c.ticker || (c.tickers && c.tickers[0]?.ticker) || c.subject || "—";
+  return `<div class="call-card ${dc}">
+    <div class="cc-rank">#${c.rank}</div>
+    <div class="cc-head">
+      <div>
+        <div class="cc-subject">${safe(c.subject||"")}</div>
+        <div class="cc-ticker">${safe(tk)}</div>
+        <span class="cc-direction ${dc}">${arr} ${safe(c.direction||"NEUTRAL")}</span>
+      </div>
+      <div class="cc-conviction">
+        <div class="num">${fmt(conv,0)}</div>
+        <div class="lbl">${safe(c.confidence_band||"")}</div>
+      </div>
+    </div>
+    <div class="gauge"><div class="gauge-fill" style="width:${Math.min(100,Math.max(0,conv))}%"></div></div>
+    ${c.thesis?`<div class="cc-thesis">${safe(c.thesis)}</div>`:""}
+    <div class="cc-grid">
+      <div class="row"><span class="k">Target</span><span class="v pos">${c.target_pct!=null?pct(c.target_pct,1):"—"}</span></div>
+      <div class="row"><span class="k">Stop</span><span class="v neg">${c.stop_pct!=null?pct(c.stop_pct,1):"—"}</span></div>
+      <div class="row"><span class="k">Sample (n)</span><span class="v">${d.n||"—"}</span></div>
+      <div class="row"><span class="k">Win rate</span><span class="v ${d.win_rate>=0.55?"pos":d.win_rate>=0.45?"":"neg"}">${d.win_rate!=null?(d.win_rate*100).toFixed(0)+"%":"—"}</span></div>
+      <div class="row"><span class="k">Median</span><span class="v ${pctClass(d.median)}">${pct(d.median,1)}</span></div>
+      <div class="row"><span class="k">P25 → P75</span><span class="v">${pct(d.p25,1)} → ${pct(d.p75,1)}</span></div>
+      <div class="row"><span class="k">Engines</span><span class="v">${c.n_engines||"—"} / ${c.n_families||"—"} fam</span></div>
+      <div class="row"><span class="k">Agreement</span><span class="v">${c.agreement_pct!=null?c.agreement_pct+"%":"—"}</span></div>
+      ${sc.mean_wilson_lb!=null?`<div class="row"><span class="k">Scorecard WLB</span><span class="v">${(sc.mean_wilson_lb*100).toFixed(0)}%</span></div>`:""}
+      ${sz.kelly_pct!=null?`<div class="row"><span class="k">Kelly size</span><span class="v warn">${(sz.kelly_pct*100).toFixed(1)}%</span></div>`:""}
+    </div>
+    ${engines.length?`<div class="cc-engines">
+      <div class="lbl">Contributing engines</div>
+      ${engines.slice(0,5).map(e=>`<div class="cc-engine">
+        <span class="e-name">${safe(e.label||e.signal||"")}</span>
+        <span class="e-read">${safe(e.read||"")}</span>
+      </div>`).join("")}
+    </div>`:""}
+    ${c.invalidation?`<div class="cc-invalidation">Invalidation: <b>${safe(c.invalidation)}</b></div>`:""}
+  </div>`;
+}
+
+function renderWatchlist(list){
+  if(!list||!list.length) return "";
+  return `<table class="watchlist-table">
+    <thead><tr>
+      <th>#</th><th>Subject / Ticker</th><th>Dir</th><th>Conv</th>
+      <th>Median</th><th>P25-P75</th><th>Win%</th><th>N</th>
+      <th>Engines</th><th>Stop</th><th>Target</th>
+    </tr></thead>
+    <tbody>
+    ${list.map(c=>{
+      const d=c.distribution||{};
+      const tk=c.ticker||(c.tickers&&c.tickers[0]?.ticker)||c.subject||"—";
+      const dc=dirCls(c.direction);
+      return `<tr>
+        <td>${c.rank}</td>
+        <td><b>${safe(tk)}</b><div style="color:var(--t3);font-size:10px">${safe(c.subject||"")}</div></td>
+        <td><span class="pill pill-${dc==="up"?"up":dc==="down"?"dn":"neut"}">${safe(c.direction||"—")}</span></td>
+        <td>${fmt(c.conviction,0)}</td>
+        <td class="${pctClass(d.median)}">${pct(d.median,1)}</td>
+        <td>${pct(d.p25,0)}→${pct(d.p75,0)}</td>
+        <td>${d.win_rate!=null?(d.win_rate*100).toFixed(0)+"%":"—"}</td>
+        <td>${d.n||"—"}</td>
+        <td>${c.n_engines||"—"}</td>
+        <td class="${c.stop_pct!=null?"":""}">${c.stop_pct!=null?pct(c.stop_pct,1):"—"}</td>
+        <td>${c.target_pct!=null?pct(c.target_pct,1):"—"}</td>
+      </tr>`;
+    }).join("")}
+    </tbody>
+  </table>`;
+}
+
+function renderCoverage(cov,feeds){
+  if(!cov) return "";
+  const tot = cov.miss_summary_30d_totals || {};
+  const totRows = Object.keys(tot).length?Object.entries(tot).map(([k,v])=>`
+    <div class="it"><span class="k">${safe(k)}</span><span class="v">${v}</span></div>`).join(""):
+    "<span style='color:var(--t3)'>no miss data yet — system running &lt; 1d</span>";
+  return `<div class="coverage">
+    <h3>📡 30-day Coverage State</h3>
+    <div class="row">${totRows}</div>
+    <div class="row" style="margin-top:10px;color:var(--t3)">
+      Source feeds:
+      ${Object.entries(feeds||{}).map(([k,v])=>`
+        <span style="color:${v.present?'var(--green)':'var(--red)'}">${safe(k)}${v.present?'':' (offline)'}</span>
+      `).join(" · ")}
+    </div>
+  </div>`;
+}
+
+function render(d){
+  const app = document.getElementById("app");
+  const top = d.top_calls || [];
+  const wl  = d.watchlist || [];
+  app.innerHTML = `
+    ${renderRegime(d.regime)}
+    <div class="section-head">
+      <h2>Top conviction calls</h2>
+      <span class="badge">${top.length} of 3</span>
+    </div>
+    <div class="calls-grid">
+      ${top.length?top.map(renderCard).join(""):'<div style="color:var(--t3);grid-column:1/-1;text-align:center;padding:40px">No setups above conviction threshold right now.</div>'}
+    </div>
+    ${wl.length?`<div class="section-head">
+      <h2>Watchlist</h2>
+      <span class="badge">${wl.length} setups</span>
+    </div>
+    ${renderWatchlist(wl)}`:""}
+    ${renderCoverage(d.coverage, d.source_feeds)}
+    <div class="footer-note">
+      <b>This is the consumer surface, not the brain.</b> The 270+ engines underneath
+      produce signals; the conviction-engine ranks them; magnitude-distributions
+      attaches realised return profiles; position-sizer-v2 sizes Kelly; miss-detector
+      tracks what we didn't catch. This page is the synthesis layer.
+      Generated ${d.generated_at?new Date(d.generated_at).toLocaleString():""}.
+    </div>
+  `;
+  document.getElementById("ts").textContent = new Date().toLocaleTimeString();
+}
+
+async function main(){
+  try{
+    const d = await loadData();
+    render(d);
+  }catch(e){
+    console.error(e);
+    document.getElementById("app").innerHTML = `
+      <div class="loading" style="color:var(--red)">
+        <div style="font-size:14px">Could not load alpha compass.</div>
+        <div style="font-size:11px;color:var(--t3);font-family:monospace">${safe(e.message)}</div>
+        <button onclick="location.reload()" style="margin-top:14px;padding:8px 16px;background:transparent;color:var(--blue);border:1px solid var(--brd);border-radius:6px;cursor:pointer;font-family:inherit">Retry</button>
+      </div>`;
+  }
+}
+main();
+setInterval(main, 5*60*1000); // auto-refresh every 5 min
+</script>
+</body>
+</html>

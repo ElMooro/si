@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-miss-detector",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Closed-loop opportunity-cost engine. Nightly scans every US stock with |daily move| >= 5%, checks DDB justhodl-signals for prior signals in 10d lookback, classifies misses (near_miss/wrong_signal_type/out_of_universe/regime_misfire). Outputs daily ledger + rolling 30d summary that feeds the calibrator.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "miss-detector-nightly",
+    "cron": "cron(0 1 * * ? *)",
+    "description": "Miss Detector — nightly 9PM ET (01:00 UTC). Post-market scan of every US mover ≥5% to find what we didn't catch."
+  }
+}

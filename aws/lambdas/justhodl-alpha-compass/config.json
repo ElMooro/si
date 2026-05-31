@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-alpha-compass",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Single-screen landing payload. Joins conviction.json + magnitude-distributions.json + signal-scorecard.json + sizer-v2.json + regime-flag + miss-summary into one institutional card per setup. Output data/alpha-compass.json consumed by alpha-compass.html.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "alpha-compass-3h",
+    "cron": "cron(50 */3 * * ? *)",
+    "description": "Alpha Compass synthesis — every 3 hours at :50, just after conviction-engine (:45) updates"
+  }
+}

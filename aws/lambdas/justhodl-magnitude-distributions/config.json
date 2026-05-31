@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-magnitude-distributions",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Per signal-stack realised return distributions (n, median, P25/P75, win rate). Reads checked outcomes from DDB justhodl-signals; outputs data/magnitude-distributions.json. Institutional answer to 'how much will it pump?' — distributions, never point estimates.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "magnitude-distributions-daily",
+    "cron": "cron(30 7 * * ? *)",
+    "description": "Per-stack realised return distributions — daily 07:30 UTC, after outcome-checker + scorecard"
+  }
+}
