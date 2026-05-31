@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-forward-orders",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 900,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Forward-revenue intelligence: RPO + contracts + book-to-bill. Pulls SEC XBRL companyfacts for backlog data + NewsAPI for contract announcements.",
+  "schedule": {
+    "rule_name": "forward-orders-daily",
+    "cron": "cron(0 11 * * ? *)",
+    "description": "Forward orders engine — daily at 11 UTC (after market open, before US market open)"
+  }
+}

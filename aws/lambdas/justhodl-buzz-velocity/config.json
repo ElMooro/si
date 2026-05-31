@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-buzz-velocity",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 900,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Social mention velocity tracker. Reddit (5 subs) + NewsAPI counts at 7d vs 30d windows. Composite velocity + STEALTH signal (high buzz + low price move = pre-pump alpha).",
+  "schedule": {
+    "rule_name": "buzz-velocity-4x-daily",
+    "cron": "cron(0 10,14,18,22 * * ? *)",
+    "description": "Buzz velocity — 4x daily at 10/14/18/22 UTC"
+  }
+}

@@ -121,6 +121,8 @@ def build_ticker_index():
         "options_flow":     fetch_json("data/options-flow.json"),
         "momentum_breakout": fetch_json("data/momentum-breakout.json"),
         "volatility_squeeze": fetch_json("data/volatility-squeeze.json"),
+        # Forward-looking (added 2026-05-31)
+        "future_intel":     fetch_json("data/future-intelligence.json"),
         "supply_inflection": fetch_json("data/supply-inflection.json"),
         "pre_pump":         fetch_json("data/pre-pump-signals.json"),
         "revenue_accel":    fetch_json("data/revenue-acceleration.json"),
@@ -300,6 +302,27 @@ def build_ticker_index():
             idx.setdefault(sym, {})["revenue_accel"] = {
                 "score": r.get("score"),
                 "tier": r.get("tier"),
+            }
+
+    # 15. future intelligence — composite of forward-orders, rotation-chain, buzz
+    # This is the institutional alpha layer: what's about to happen, not what
+    # has happened. RPO + value-chain rotation + buzz velocity composite.
+    if feeds["future_intel"]:
+        for r in (feeds["future_intel"].get("all_results") or []):
+            sym = r.get("ticker")
+            if not sym:
+                continue
+            idx.setdefault(sym, {})["future_intel"] = {
+                "score":              r.get("future_intel_score"),
+                "n_signals":          r.get("n_independent_signals"),
+                "rpo_yield_pct":      (r.get("forward_orders") or {}).get("rpo_yield_pct"),
+                "rpo_growth_pct":     (r.get("forward_orders") or {}).get("rpo_growth_pct"),
+                "rotation_role":      (r.get("rotation_chain") or {}).get("role"),
+                "rotation_chain":     (r.get("rotation_chain") or {}).get("chain"),
+                "rotation_lag_pct":   (r.get("rotation_chain") or {}).get("lag_pct"),
+                "buzz_velocity":      (r.get("buzz_velocity") or {}).get("composite_velocity"),
+                "buzz_stealth":       (r.get("buzz_velocity") or {}).get("stealth"),
+                "thesis":             r.get("thesis"),
             }
 
     return idx, feeds

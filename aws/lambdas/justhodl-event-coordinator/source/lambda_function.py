@@ -172,6 +172,40 @@ ROUTES = {
         "notify":  True,   # we filter inside coordinator to only notify tier-5
         "audit":   True,
     },
+    
+    # ─── Forward-looking signal types (1036+ session) ───────────────────
+    
+    # RPO + contract intelligence — high-conviction forward-orders signal.
+    # Notify operator on these because they're rare + alpha-rich.
+    "forward_orders.high_conviction": {
+        "invoke":  ["justhodl-alpha-compass"],
+        "notify":  True,
+        "audit":   True,
+    },
+    
+    # Sector rotation detected — a value chain has the leader tier
+    # pumping while next tier hasn't caught up. Time-sensitive alpha.
+    "rotation.next_up": {
+        "invoke":  ["justhodl-alpha-compass"],
+        "notify":  True,
+        "audit":   True,
+    },
+    
+    # Buzz spike — Reddit + News mention velocity surge. Especially
+    # important when STEALTH (high buzz but price hasn't moved yet).
+    "buzz.spike": {
+        "invoke":  ["justhodl-alpha-compass"],
+        "notify":  True,   # noisy — coordinator will filter to stealth-only
+        "audit":   True,
+    },
+    
+    # Future intelligence composite — when forward-orders + rotation + buzz
+    # ALL align on the same ticker, that's the strongest pre-pump signal.
+    "future.signal.high_conviction": {
+        "invoke":  ["justhodl-alpha-compass", "justhodl-master-ranker"],
+        "notify":  True,
+        "audit":   True,
+    },
 }
 
 
@@ -273,6 +307,45 @@ def send_telegram_alert(event_name: str, detail: dict) -> bool:
             score = detail.get("score")
             if score is not None:
                 lines.append(f"  score: <b>{score}</b>")
+        elif event_name == "forward_orders.high_conviction":
+            lines.append(f"  ticker: <b>{detail.get('ticker','?')}</b>")
+            lines.append(f"  composite: <b>{detail.get('composite','?')}</b>")
+            ry = detail.get("rpo_yield_pct")
+            if ry is not None:
+                lines.append(f"  RPO yield: <b>{ry:.0f}%</b> of mcap")
+            rg = detail.get("rpo_growth_pct")
+            if rg is not None:
+                lines.append(f"  RPO growth YoY: <b>{rg:+.0f}%</b>")
+            lines.append(f"  {detail.get('thesis','?')}")
+        elif event_name == "rotation.next_up":
+            lines.append(f"  chain: <b>{detail.get('chain','?')}</b>")
+            lines.append(f"  leader_tier: {detail.get('leader_tier','?')} ({detail.get('leader_perf_30d','?')}% in 30d)")
+            lines.append(f"  expected_catchup: <b>{detail.get('expected_catchup','?')}%</b>")
+            top3 = detail.get('top_3_next_up') or []
+            if top3:
+                lines.append(f"  next-up tickers: <b>{', '.join(top3)}</b>")
+        elif event_name == "buzz.spike":
+            lines.append(f"  ticker: <b>{detail.get('ticker','?')}</b>")
+            v = detail.get("composite_velocity")
+            if v is not None:
+                lines.append(f"  velocity: <b>{v}x</b> baseline")
+            if detail.get("stealth"):
+                p7 = detail.get("price_7d_pct")
+                if p7 is not None:
+                    lines.append(f"  ⚡ <b>STEALTH</b> (price only {p7:+.1f}% in 7d)")
+            ri = detail.get("reddit_interp")
+            ni = detail.get("news_interp")
+            if ri or ni:
+                lines.append(f"  reddit: {ri or '—'} · news: {ni or '—'}")
+        elif event_name == "future.signal.high_conviction":
+            lines.append(f"  ticker: <b>{detail.get('ticker','?')}</b>")
+            lines.append(f"  composite: <b>{detail.get('score','?')}</b>")
+            lines.append(f"  signals confirming: <b>{detail.get('n_independent_signals','?')}</b>")
+            sub = detail.get("subscores") or {}
+            lines.append(f"  forward_orders={sub.get('forward_orders','?')} "
+                          f"rotation={sub.get('rotation_chain','?')} "
+                          f"buzz={sub.get('buzz_velocity','?')}")
+            lines.append(f"  {detail.get('thesis','?')}")
         else:
             # Fallback: dump the first few keys
             payload = {k: v for k, v in detail.items()
@@ -381,6 +454,14 @@ def handler(event, context):
                 result["notify"] = send_telegram_alert(event_name, detail)
             else:
                 result["notify"] = "suppressed_tier_3_noise"
+        # For buzz.spike: too many tickers spike daily. Only notify if STEALTH
+        # (the rare case where buzz is rising but price hasn't moved yet) or
+        # if velocity is extreme (≥4x baseline).
+        elif event_name == "buzz.spike":
+            if detail.get("stealth") or (detail.get("composite_velocity") or 0) >= 4.0:
+                result["notify"] = send_telegram_alert(event_name, detail)
+            else:
+                result["notify"] = "suppressed_non_stealth"
         else:
             result["notify"] = send_telegram_alert(event_name, detail)
     

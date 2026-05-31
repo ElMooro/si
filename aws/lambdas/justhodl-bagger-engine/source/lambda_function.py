@@ -429,9 +429,75 @@ def twin_engine(rev_cagr, roic, market_cap, net_margin_latest):
 
 # ───────────────────────── per-stock ─────────────────────────
 WEIGHTS = {
-    "small_base": 0.18, "revenue": 0.20, "roic": 0.18,
-    "reinvestment": 0.14, "margins": 0.12, "alignment": 0.08, "valuation": 0.10,
+    "small_base": 0.15, "revenue": 0.17, "roic": 0.15,
+    "reinvestment": 0.12, "margins": 0.10, "alignment": 0.07, "valuation": 0.09,
+    "future_intel": 0.15,   # NEW — forward-orders + rotation + buzz composite
 }
+
+
+# ─── Future Intelligence cache ─────────────────────────────────
+# Loaded once at handler init, then queried per-stock. Reads from
+# data/future-intelligence.json (the composite of forward-orders,
+# rotation-chain, and buzz-velocity engines).
+_future_intel_cache = None
+
+def _load_future_intel():
+    global _future_intel_cache
+    if _future_intel_cache is not None:
+        return _future_intel_cache
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="data/future-intelligence.json")
+        data = json.loads(obj["Body"].read().decode("utf-8"))
+        # Build per-ticker lookup
+        _future_intel_cache = {}
+        for r in (data.get("all_results") or []):
+            sym = r.get("ticker")
+            if sym:
+                _future_intel_cache[sym] = r
+        print(f"[bagger] loaded future-intel for {len(_future_intel_cache)} tickers")
+    except Exception as e:
+        print(f"[bagger] future-intel load failed: {e}")
+        _future_intel_cache = {}
+    return _future_intel_cache
+
+
+def score_future_intelligence(sym):
+    """Forward-looking pillar: RPO + rotation + buzz composite.
+    Returns (score 0-100, note). When the ticker has no future-intel
+    signal, returns 50 (neutral) so it doesn't dominate backward pillars."""
+    fi = _load_future_intel()
+    rec = fi.get(sym)
+    if not rec:
+        return 50, "no future signal"
+    score = rec.get("future_intel_score", 50)
+    n_sigs = rec.get("n_independent_signals", 0)
+    
+    # Build a tight note
+    notes = []
+    fo = rec.get("forward_orders") or {}
+    if (fo.get("rpo_yield_pct") or 0) >= 30:
+        notes.append(f"RPO {fo['rpo_yield_pct']:.0f}% of mcap")
+    elif (fo.get("rpo_growth_pct") or 0) >= 20:
+        notes.append(f"RPO growing {fo['rpo_growth_pct']:.0f}% YoY")
+    
+    rc = rec.get("rotation_chain") or {}
+    if rc.get("role", "").startswith("next_up"):
+        notes.append(f"next-up in {rc.get('chain','?')} chain")
+    
+    bv = rec.get("buzz_velocity") or {}
+    if bv.get("stealth"):
+        notes.append("stealth buzz")
+    elif (bv.get("composite_velocity") or 0) >= 2.5:
+        notes.append(f"buzz {bv['composite_velocity']:.1f}x")
+    
+    if not notes and score < 50:
+        notes.append("muted forward signal")
+    elif not notes:
+        notes.append(f"composite {score:.0f}")
+    
+    note = " · ".join(notes[:3])
+    return score, note
+
 
 
 def analyze_stock(stock):
@@ -457,11 +523,12 @@ def analyze_stock(stock):
     p5, n5 = score_margins(ratios)
     p6, n6 = score_owner_alignment(insider, income)
     p7, n7 = score_valuation(km, ratios, rev_cagr)
+    p8, n8 = score_future_intelligence(sym)   # NEW — forward-looking pillar
 
     raw_score = (p1 * WEIGHTS["small_base"] + p2 * WEIGHTS["revenue"]
                  + p3 * WEIGHTS["roic"] + p4 * WEIGHTS["reinvestment"]
                  + p5 * WEIGHTS["margins"] + p6 * WEIGHTS["alignment"]
-                 + p7 * WEIGHTS["valuation"])
+                 + p7 * WEIGHTS["valuation"] + p8 * WEIGHTS["future_intel"])
 
     survives, surv_note = survival_check(km, ratios)
     score = raw_score
@@ -498,6 +565,7 @@ def analyze_stock(stock):
             "margin_moat": {"score": round(p5, 1), "note": n5},
             "owner_alignment": {"score": round(p6, 1), "note": n6},
             "entry_valuation": {"score": round(p7, 1), "note": n7},
+            "future_intelligence": {"score": round(p8, 1), "note": n8},
         },
         "twin_engine": twin,
         "key_stats": {

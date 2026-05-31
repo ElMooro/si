@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-rotation-chain",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Sector rotation chain detection: lead-lag correlation across pre-defined value chains (AI, EV, GLP-1, reshoring, defense, quantum, uranium). Identifies next-up tickers when leader tier is rotating.",
+  "schedule": {
+    "rule_name": "rotation-chain-2x-daily",
+    "cron": "cron(0 12,20 * * ? *)",
+    "description": "Rotation chain — twice daily at 12 + 20 UTC"
+  }
+}
