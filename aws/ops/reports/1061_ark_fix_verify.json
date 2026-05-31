@@ -1,0 +1,33 @@
+{
+  "started": "2026-05-31T18:54:31.467766+00:00",
+  "ark_invoke": {
+    "elapsed_s": 3.2,
+    "ok": false,
+    "n_funds": null,
+    "n_positions": null,
+    "n_unique": null,
+    "n_new": null,
+    "n_adds": null,
+    "n_trims": null,
+    "n_closed": null,
+    "duration_s": null,
+    "raw": null
+  },
+  "patent_invoke": {
+    "elapsed_s": 181.7,
+    "ok": false,
+    "reason": "needs_api_key",
+    "message": "PatentsView API key not provisioned. Register at https://patentsview.org/apis/ (free) \u2192 service desk request \u2192 drop key in SSM at /justhodl/patentsview-key + Lambda env PATENTSVIEW_API_KEY."
+  },
+  "ark_snapshot_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+  "patent_snapshot": {
+    "size_kb": 0.5,
+    "schema": "1.0",
+    "generated_at": "2026-05-31T18:57:38+00:00",
+    "status": "needs_api_key",
+    "needs_setup": "PatentsView API key not provisioned. Register at https://patentsview.org/apis/ (free) \u2192 service desk request \u2192 drop key in SSM at /justhodl/patentsview-key + Lambda env PATENTSVIEW_API_KEY.",
+    "register_url": "https://patentsview.org/apis/",
+    "universe_size": 76
+  },
+  "finished": "2026-05-31T18:57:40.810287+00:00"
+}
