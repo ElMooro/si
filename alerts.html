@@ -124,20 +124,33 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
         <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:#ff7a18;margin-bottom:5px">🚨 Regime Transition</div>
         <div style="font-size:12px;color:var(--t2);line-height:1.5">NORMAL→ELEVATED, ELEVATED→EXTREME, or de-escalation in the reverse direction. Each transition fires its own alert — the de-escalation pings are the all-clear signal.</div>
       </div>
+      <div style="background:var(--bg1);border:1px solid var(--brd);border-left:3px solid #ff7a18;border-radius:7px;padding:12px 14px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 3 · bypasses cooldown</div>
+        <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:#ff7a18;margin-bottom:5px">⚠️ Partial Buildup (NEW)</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.5"><b style="color:#22d3ee">🏛 Macro:</b> first transition to <b>2/3 pillars stressed</b> (auction + dealer + funding cardinals). <b style="color:#ff7a18">🎯 Equity:</b> first transition to <b>2/4 cardinals firing</b>. Fires once per upward crossing — you'll see the convergence brewing 3-7 days before the full fingerprint typically.</div>
+      </div>
       <div style="background:var(--bg1);border:1px solid var(--brd);border-left:3px solid var(--yellow);border-radius:7px;padding:12px 14px">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 3 · respects cooldown</div>
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 4 · respects cooldown</div>
         <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:var(--yellow);margin-bottom:5px">🔥 EXTREME Regime Persisting</div>
         <div style="font-size:12px;color:var(--t2);line-height:1.5">Score ≥ 60 and regime EXTREME for another 60-min window. Keeps you informed during a sustained crisis without spamming.</div>
       </div>
+      <div style="background:var(--bg1);border:1px solid var(--brd);border-left:3px solid #4a90e2;border-radius:7px;padding:12px 14px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 5 · bypasses cooldown</div>
+        <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:#4a90e2;margin-bottom:5px">🔵 Partial Early Warning (NEW)</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.5"><b style="color:#22d3ee">🏛 Macro only.</b> First transition to <b>1/3 pillars stressed</b> — the earliest signal in the convergence sequence. Historically the auction tape or funding plumbing moves first; this catches it. Equity 1/4 not alerted (too noisy).</div>
+      </div>
       <div style="background:var(--bg1);border:1px solid var(--brd);border-left:3px solid var(--cyan);border-radius:7px;padding:12px 14px">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 4 · respects cooldown</div>
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 6 · respects cooldown</div>
         <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:var(--cyan);margin-bottom:5px">📈 Score Jump ≥ 15</div>
         <div style="font-size:12px;color:var(--t2);line-height:1.5">Absolute score change of 15+ points in either direction since the last cycle. Catches significant moves that haven't yet crossed a regime threshold.</div>
       </div>
     </div>
     <div style="margin-top:12px;font-size:12px;color:var(--t2);line-height:1.55;padding:11px 14px;background:var(--bg1);border:1px solid var(--brd);border-left:3px solid var(--purple);border-radius:6px;font-style:italic">
       <b style="color:var(--purple);font-style:normal">Hard cap:</b> 8 alerts/day/sniffer (resets at UTC midnight). State is stored
-      per-sniffer in S3 at <code style="font-family:var(--mono);font-size:11px;color:var(--cyan)">data/_alerts/{sniffer}-alert-state.json</code>.
+      per-sniffer in S3 at <code style="font-family:var(--mono);font-size:11px;color:var(--cyan)">data/_alerts/{sniffer}-alert-state.json</code>.<br>
+      <b style="color:var(--purple);font-style:normal">New cardinal tracking:</b> alert state now persists
+      <code style="font-family:var(--mono);font-size:11px;color:var(--cyan)">last_cardinal_count</code> per cycle so
+      transitions across thresholds (0→1, 1→2, 2→3) fire alerts once and don't spam at steady states.
     </div>
   </div>
 

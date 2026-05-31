@@ -1065,6 +1065,8 @@ def _format_equity_alert(brief, label, page_url, kind, prev_state, conv_fired=Fa
 
     if conv_fired:
         title = f"🚨🎯 *EQUITY CONVERGENCE FINGERPRINT* — Jan 2021 GME / Feb 2018 vol unwind / Dec 2018 dealer cascade signature"
+    elif kind == "PARTIAL_BUILDUP":
+        title = f"⚠️ *EQUITY BUILDUP — 2/4 CARDINALS FIRING*"
     elif kind == "REGIME_UP":
         title = f"🚨 *FRONT-RUN ALERT — REGIME ESCALATION*"
     elif kind == "REGIME_DOWN":
@@ -1092,17 +1094,23 @@ def _format_equity_alert(brief, label, page_url, kind, prev_state, conv_fired=Fa
 
     msg = f"{title}\n\n{delta_line}\n\n"
 
-    # Convergence pillar breakdown
-    if conv_fired and conv_detail:
+    # Convergence pillar breakdown (for both full fire and partial buildup)
+    if (conv_fired or kind == "PARTIAL_BUILDUP") and conv_detail:
         cardinals = conv_detail.get("cardinals_fired") or {}
         n_present = conv_detail.get("n_cardinal_present", 0)
-        msg += (f"⚠ *Equity convergence fingerprint* ({n_present}/4 cardinal categories):\n"
+        if conv_fired:
+            hdr = f"⚠ *Equity convergence fingerprint* ({n_present}/4 cardinal categories):"
+        else:
+            hdr = f"⚠ *Equity convergence buildup* ({n_present}/4 cardinals firing):"
+        msg += (f"{hdr}\n"
                 f"  {'✓' if cardinals.get('DEALER_GEX') else '✗'} Dealer GEX\n"
                 f"  {'✓' if cardinals.get('OPTIONS_FLOW_GAMMA') else '✗'} Options Flow / Gamma\n"
                 f"  {'✓' if cardinals.get('SKEW_VOL') else '✗'} Skew / Vol / Tail Hedge\n"
                 f"  {'✓' if cardinals.get('CFTC_SHORT') else '✗'} CFTC / Short Interest\n")
         if conv_detail.get("top_setup_target"):
             msg += f"  → target: *{conv_detail['top_setup_target']}* {conv_detail.get('top_setup_direction','')}\n"
+        if kind == "PARTIAL_BUILDUP":
+            msg += "  → If 1 more lights up: Jan 2021 GME / Feb 2018 / Dec 2018 signature.\n"
         msg += "\n"
 
     if headline:
@@ -1133,6 +1141,10 @@ def _format_macro_alert(brief, label, page_url, kind, prev_state, conv_fired, co
 
     if conv_fired:
         title = f"🚨🏛 *MACRO CONVERGENCE FINGERPRINT* — Aug 2007 / Sep 2019 / Mar 2020 / Mar 2023 signature"
+    elif kind == "PARTIAL_BUILDUP":
+        title = f"⚠️ *MACRO BUILDUP — 2/3 PILLARS STRESSED*"
+    elif kind == "PARTIAL_EARLY":
+        title = f"🔵 *MACRO EARLY WARNING — first pillar moved*"
     elif kind == "REGIME_UP":
         title = f"🚨 *MACRO FRONT-RUN — REGIME ESCALATION*"
     elif kind == "REGIME_DOWN":
@@ -1160,12 +1172,37 @@ def _format_macro_alert(brief, label, page_url, kind, prev_state, conv_fired, co
 
     msg = f"{title}\n\n{delta_line}\n\n"
 
-    if conv_fired:
-        msg += (f"⚠ *Convergence fingerprint*:\n"
-                f"  • Auction tape: `{conv_detail.get('auction_tape_state')}`\n"
-                f"  • Primary dealer: `{conv_detail.get('primary_dealer_state')}`\n"
-                f"  • Funding plumbing: `{conv_detail.get('funding_state')}`\n"
-                f"  → 3/3 pillars stressed simultaneously\n\n")
+    # Render the 3-pillar state for any convergence-related kind
+    if (conv_fired or kind in ("PARTIAL_BUILDUP", "PARTIAL_EARLY")) and conv_detail:
+        auc = conv_detail.get("auction_tape_state") or "—"
+        pd  = conv_detail.get("primary_dealer_state") or "—"
+        fp  = conv_detail.get("funding_state") or "—"
+        n   = conv_detail.get("n_pillars_stressed", 0)
+        # Stressed if NOT in the calm set
+        def _icon(state, calm_set):
+            return "✓" if str(state).upper() not in calm_set else "✗"
+        auc_icon = _icon(auc, {"CALM"})
+        pd_icon  = _icon(pd,  {"NEUTRAL"})
+        fp_icon  = _icon(fp,  {"HEALED"})
+
+        if conv_fired:
+            hdr = "⚠ *Convergence fingerprint — all 3 pillars stressed*:"
+        elif kind == "PARTIAL_BUILDUP":
+            hdr = f"⚠ *Convergence buildup — {n}/3 pillars stressed*:"
+        else:
+            hdr = f"🔵 *Early warning — {n}/3 pillar(s) stressed*:"
+
+        msg += (f"{hdr}\n"
+                f"  {auc_icon} Auction tape: `{auc}`\n"
+                f"  {pd_icon} Primary dealer: `{pd}`\n"
+                f"  {fp_icon} Funding plumbing: `{fp}`\n")
+
+        if kind == "PARTIAL_BUILDUP":
+            msg += "  → If 1 more moves: Aug 2007 / Sep 2019 / Mar 2020 / Mar 2023 signature.\n\n"
+        elif kind == "PARTIAL_EARLY":
+            msg += "  → Earliest signal in the convergence pattern. Watch the other 2 pillars.\n\n"
+        else:
+            msg += "  → 3/3 pillars stressed simultaneously — highest-conviction macro pattern.\n\n"
 
     if headline:
         msg += f"📰 {headline[:240]}\n\n"
@@ -1187,10 +1224,29 @@ def _format_macro_alert(brief, label, page_url, kind, prev_state, conv_fired, co
     return msg
 
 
-def _decide_alert_kind(prev_state, new_score, new_regime, conv_fired_now, conv_was_recent):
-    """Return (kind, reason) or (None, reason) if no alert should fire."""
+def _decide_alert_kind(prev_state, new_score, new_regime, conv_fired_now, conv_was_recent,
+                        n_cardinals=None, total_cardinals=None,
+                        partial_buildup_threshold=None, partial_early_threshold=None):
+    """Return (kind, reason) or (None, reason) if no alert should fire.
+
+    Priority ladder:
+      1. CONVERGENCE_FIRE      — full fingerprint (3/3 macro or 3-4/4 equity)
+      2. REGIME transitions    — NORMAL/ELEVATED/EXTREME shifts
+      3. PARTIAL_BUILDUP       — crossed into N≥2 stressed cardinals (transition)
+      4. EXTREME persisting    — regime EXTREME continuing
+      5. PARTIAL_EARLY         — crossed into N=1 stressed (macro only typically)
+      6. SCORE_JUMP            — |Δ| ≥ 15
+
+    Partial alerts fire ONLY on upward transitions across a threshold:
+      prev_n < threshold AND new_n >= threshold → fire (bypasses cooldown).
+      Otherwise (already at/above the threshold) → suppressed to avoid spam.
+
+    For equity: partial_early_threshold can be None (skip 1/4 early-warning).
+    For macro:  partial_early_threshold=1 → fires on first cardinal moving.
+    """
     prev_regime = (prev_state.get("last_regime") or "").upper()
     prev_score  = prev_state.get("last_score")
+    prev_n      = prev_state.get("last_cardinal_count", 0) or 0
     last_alert_at = prev_state.get("last_alert_at")
     alerts_today = prev_state.get("alerts_today", 0)
     alerts_today_date = prev_state.get("alerts_today_date", "")
@@ -1203,7 +1259,7 @@ def _decide_alert_kind(prev_state, new_score, new_regime, conv_fired_now, conv_w
     if alerts_today >= ALERT_DAILY_CAP:
         return None, f"daily_cap_reached ({alerts_today})"
 
-    # Cooldown check (but convergence-fingerprint and regime-transitions bypass)
+    # Cooldown check (priority alerts bypass)
     cooldown_ok = True
     if last_alert_at:
         try:
@@ -1227,11 +1283,27 @@ def _decide_alert_kind(prev_state, new_score, new_regime, conv_fired_now, conv_w
         elif no < po:
             return "REGIME_DOWN", f"{prev_regime}->{new_regime}"
 
-    # PRIORITY 3: EXTREME persisting (every cooldown window)
+    # PRIORITY 3: PARTIAL_BUILDUP — crossed upward into buildup threshold (bypasses cooldown)
+    # Only fires when the fingerprint is NOT already firing (CONVERGENCE handles that case).
+    if (not conv_fired_now and n_cardinals is not None and
+        partial_buildup_threshold is not None and
+        n_cardinals >= partial_buildup_threshold and
+        prev_n < partial_buildup_threshold):
+        return "PARTIAL_BUILDUP", f"crossed_to_{n_cardinals}_of_{total_cardinals}"
+
+    # PRIORITY 4: EXTREME persisting (respects cooldown)
     if new_regime == "EXTREME" and cooldown_ok:
         return "EXTREME", "extreme_persisting"
 
-    # PRIORITY 4: Score jump (>= 15 points in either direction) — respect cooldown
+    # PRIORITY 5: PARTIAL_EARLY — first cardinal moved (bypasses cooldown, gentler than buildup)
+    # Macro only typically (1/3 = leading indicator). For equity skip to avoid noise.
+    if (not conv_fired_now and n_cardinals is not None and
+        partial_early_threshold is not None and
+        n_cardinals >= partial_early_threshold and
+        prev_n < partial_early_threshold):
+        return "PARTIAL_EARLY", f"crossed_to_{n_cardinals}_of_{total_cardinals}"
+
+    # PRIORITY 6: Score jump (>= 15 points) — respects cooldown
     if prev_score is not None and cooldown_ok:
         delta = abs(new_score - prev_score)
         if delta >= 15:
@@ -1244,7 +1316,8 @@ def _maybe_alert_equity_sniffer(brief, page_url="https://justhodl.ai/frontrun.ht
     """Check the equity sniffer state and fire a Telegram alert if needed.
     Now includes equity convergence-fingerprint detection (Jan 2021 GME /
     Feb 2018 vol unwind / Dec 2018 dealer cascade signature) — priority-1
-    alert symmetric to the macro convergence fingerprint."""
+    alert symmetric to the macro convergence fingerprint. Also fires
+    PARTIAL_BUILDUP alerts on transitions to 2/4 cardinals."""
     try:
         state_key = "frontrun-sniffer-alert-state"
         prev = _alert_state_io(state_key) or {}
@@ -1254,8 +1327,9 @@ def _maybe_alert_equity_sniffer(brief, page_url="https://justhodl.ai/frontrun.ht
         if score is None: return {"ok": False, "reason": "no_score"}
 
         # Equity convergence fingerprint detection (DEALER_GEX + OPTIONS_FLOW +
-        # SKEW + CFTC across top 2 setups — 3-of-4 cardinals required)
+        # SKEW + CFTC across top 2 setups — 3-of-4 cardinals required for full fire)
         conv_fired, conv_detail = _equity_convergence_fingerprint(brief)
+        n_cardinals = conv_detail.get("n_cardinal_present", 0) if conv_detail else 0
         conv_was_recent = False
         last_conv_at = prev.get("last_convergence_fingerprint_at")
         if last_conv_at:
@@ -1265,10 +1339,20 @@ def _maybe_alert_equity_sniffer(brief, page_url="https://justhodl.ai/frontrun.ht
                 conv_was_recent = hrs_since < 4
             except Exception: pass
 
-        kind, reason = _decide_alert_kind(prev, score, regime, conv_fired, conv_was_recent)
+        kind, reason = _decide_alert_kind(
+            prev, score, regime, conv_fired, conv_was_recent,
+            n_cardinals=n_cardinals, total_cardinals=4,
+            partial_buildup_threshold=2,          # 2/4 cardinals = buildup
+            partial_early_threshold=None,         # Skip 1/4 (too noisy for equity)
+        )
         if kind is None:
+            # Still update cardinal count even if no alert fires (for next cycle)
+            silent_state = dict(prev)
+            silent_state["last_cardinal_count"] = n_cardinals
+            _alert_state_io(state_key, write=silent_state)
             return {"ok": False, "reason": reason, "score": score, "regime": regime,
-                    "conv_fired": conv_fired, "conv_detail": conv_detail}
+                    "conv_fired": conv_fired, "conv_detail": conv_detail,
+                    "n_cardinals": n_cardinals}
 
         msg = _format_equity_alert(brief, "Front-Run Sniffer", page_url, kind, prev, conv_fired, conv_detail)
         ok, info = _telegram_post(msg)
@@ -1280,6 +1364,7 @@ def _maybe_alert_equity_sniffer(brief, page_url="https://justhodl.ai/frontrun.ht
         new_state = {
             "last_regime": regime,
             "last_score":  score,
+            "last_cardinal_count": n_cardinals,
             "last_alert_at": datetime.now(timezone.utc).isoformat(),
             "last_alert_kind": kind,
             "last_alert_reason": reason,
@@ -1293,14 +1378,17 @@ def _maybe_alert_equity_sniffer(brief, page_url="https://justhodl.ai/frontrun.ht
         }
         _alert_state_io(state_key, write=new_state)
         return {"ok": ok, "kind": kind, "reason": reason,
-                "conv_fired": conv_fired, "telegram": info}
+                "conv_fired": conv_fired, "n_cardinals": n_cardinals, "telegram": info}
     except Exception as e:
         return {"ok": False, "err": str(e)[:300]}
 
 
 def _maybe_alert_macro_sniffer(brief, page_url="https://justhodl.ai/macro-frontrun.html"):
     """Check the macro sniffer state and fire a Telegram alert if needed,
-    with the convergence-fingerprint priority detection."""
+    with the convergence-fingerprint priority detection PLUS:
+      - PARTIAL_EARLY  at 1/3 pillars (transition from 0)
+      - PARTIAL_BUILDUP at 2/3 pillars (transition from <2)
+      - CONVERGENCE   at 3/3 (full fingerprint, transition handled)"""
     try:
         state_key = "macro-frontrun-sniffer-alert-state"
         prev = _alert_state_io(state_key) or {}
@@ -1311,6 +1399,7 @@ def _maybe_alert_macro_sniffer(brief, page_url="https://justhodl.ai/macro-frontr
 
         # Convergence fingerprint detection
         conv_fired, conv_detail = _macro_convergence_fingerprint(brief)
+        n_pillars = conv_detail.get("n_pillars_stressed", 0) if conv_detail else 0
         conv_was_recent = False
         last_conv_at = prev.get("last_convergence_fingerprint_at")
         if last_conv_at:
@@ -1320,10 +1409,20 @@ def _maybe_alert_macro_sniffer(brief, page_url="https://justhodl.ai/macro-frontr
                 conv_was_recent = hrs_since < 4
             except Exception: pass
 
-        kind, reason = _decide_alert_kind(prev, score, regime, conv_fired, conv_was_recent)
+        kind, reason = _decide_alert_kind(
+            prev, score, regime, conv_fired, conv_was_recent,
+            n_cardinals=n_pillars, total_cardinals=3,
+            partial_buildup_threshold=2,         # 2/3 = buildup
+            partial_early_threshold=1,           # 1/3 = early warning (first pillar moves)
+        )
         if kind is None:
+            # Still update cardinal count even if no alert fires
+            silent_state = dict(prev)
+            silent_state["last_cardinal_count"] = n_pillars
+            _alert_state_io(state_key, write=silent_state)
             return {"ok": False, "reason": reason, "score": score, "regime": regime,
-                    "conv_fired": conv_fired, "conv_detail": conv_detail}
+                    "conv_fired": conv_fired, "conv_detail": conv_detail,
+                    "n_pillars": n_pillars}
 
         msg = _format_macro_alert(brief, "Macro Front-Run Sniffer", page_url, kind, prev, conv_fired, conv_detail)
         ok, info = _telegram_post(msg)
@@ -1334,6 +1433,7 @@ def _maybe_alert_macro_sniffer(brief, page_url="https://justhodl.ai/macro-frontr
         new_state = {
             "last_regime": regime,
             "last_score":  score,
+            "last_cardinal_count": n_pillars,
             "last_alert_at": datetime.now(timezone.utc).isoformat(),
             "last_alert_kind": kind,
             "last_alert_reason": reason,
@@ -1347,7 +1447,7 @@ def _maybe_alert_macro_sniffer(brief, page_url="https://justhodl.ai/macro-frontr
         }
         _alert_state_io(state_key, write=new_state)
         return {"ok": ok, "kind": kind, "reason": reason,
-                "conv_fired": conv_fired, "telegram": info}
+                "conv_fired": conv_fired, "n_pillars": n_pillars, "telegram": info}
     except Exception as e:
         return {"ok": False, "err": str(e)[:300]}
 
