@@ -1,0 +1,73 @@
+{
+  "started": "2026-05-31T23:36:10.442907+00:00",
+  "lambdas": {
+    "cftc-futures-positioning-agent": {
+      "events": [
+        "REPORT RequestId: 0910d6be-bacc-472e-9538-4b4e881536e8\tDuration: 2.25 ms\tBilled Duration: 605 ms\tMemory Size: 512 MB\tMax Memory Used: 92 MB\tInit Duration: 602.35 ms\t\nXRAY TraceId: 1-6a1cc39e-177daf9f47c899e16733feb2\tSegmentId: a5c1e4b79889bc22\tSampled: true",
+        "[OK] ES (S&P 500 E-Mini): 8 weeks via tff",
+        "[OK] NQ (NASDAQ 100 E-Mini): 8 weeks via tff",
+        "[OK] YM (Dow Jones E-Mini): 8 weeks via tff",
+        "[OK] RTY (Russell 2000 E-Mini): 8 weeks via tff",
+        "[OK] VX (VIX Futures): 8 weeks via tff",
+        "[OK] ZB (30-Year T-Bond): 8 weeks via tff",
+        "[OK] ZN (10-Year T-Note): 8 weeks via tff",
+        "[OK] ZF (5-Year T-Note): 8 weeks via tff",
+        "[OK] ZT (2-Year T-Note): 8 weeks via tff",
+        "[OK] 6E (Euro FX): 8 weeks via tff",
+        "[OK] 6J (Japanese Yen): 8 weeks via tff",
+        "[OK] 6B (British Pound): 8 weeks via tff",
+        "[OK] 6C (Canadian Dollar): 8 weeks via tff",
+        "[OK] 6S (Swiss Franc): 8 weeks via tff",
+        "[OK] DX (US Dollar Index): 8 weeks via tff",
+        "[OK] CL (Crude Oil WTI): 8 weeks via disagg",
+        "[OK] NG (Natural Gas): 8 weeks via disagg",
+        "[OK] RB (RBOB Gasoline): 8 weeks via disagg",
+        "[OK] HO (Heating Oil): 8 weeks via disagg",
+        "[OK] GC (Gold): 8 weeks via disagg",
+        "[OK] SI (Silver): 8 weeks via disagg",
+        "[OK] HG (Copper): 8 weeks via disagg",
+        "[OK] PL (Platinum): 8 weeks via disagg",
+        "[OK] ZC (Corn): 8 weeks via disagg",
+        "[OK] ZS (Soybeans): 8 weeks via disagg",
+        "[OK] ZW (Wheat): 8 weeks via disagg",
+        "[OK] CT (Cotton): 8 weeks via disagg",
+        "[OK] KC (Coffee): 8 weeks via disagg",
+        "[OK] SB (Sugar): 8 weeks via disagg",
+        "[ERROR] Fetch https://api.polygon.io/v2/aggs/ticker/I:SPX/prev?adjusted=true&apiKey=zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d: HTTP Error 403: Forbidden",
+        "REPORT RequestId: 228c2e83-7fa9-4815-8049-d777932b49b4\tDuration: 29022.56 ms\tBilled Duration: 29023 ms\tMemory Size: 512 MB\tMax Memory Used: 94 MB\t\nXRAY TraceId: 1-6a1cc3b7-6be29a4542a9f70e0da2da98\tSegmentId: 534e1669dbcb6f97\tSampled: true"
+      ],
+      "errors_only": [
+        "[OK] ES (S&P 500 E-Mini): 8 weeks via tff",
+        "[ERROR] Fetch https://api.polygon.io/v2/aggs/ticker/I:SPX/prev?adjusted=true&apiKey=zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d: HTTP Error 403: Forbidden"
+      ],
+      "stream_count": 5,
+      "latest_stream": "2026/05/31/[$LATEST]4c08e64b3a6047d7830d205781a7bc6f",
+      "latest_event_at": 1780269983166
+    },
+    "justhodl-edge-engine": {
+      "events": [
+        "REPORT RequestId: 2ae5a4b8-824d-480e-a889-bb7c9c813f42\tDuration: 2.32 ms\tBilled Duration: 475 ms\tMemory Size: 512 MB\tMax Memory Used: 90 MB\tInit Duration: 472.07 ms\t\nXRAY TraceId: 1-6a1cc3a1-76ef69293474cb535bfe6cbc\tSegmentId: c77e66c6290f1572\tSampled: true"
+      ],
+      "errors_only": [],
+      "stream_count": 5,
+      "latest_stream": "2026/05/31/[$LATEST]170ebb3a75c245649aa2c7abfeafd90d",
+      "latest_event_at": 1780269985702
+    },
+    "justhodl-options-flow": {
+      "events": [
+        "REPORT RequestId: 4643d2f9-83e9-4265-b7ec-16d18e33f6f3\tDuration: 1.78 ms\tBilled Duration: 315 ms\tMemory Size: 1024 MB\tMax Memory Used: 64 MB\tInit Duration: 312.47 ms\t\nXRAY TraceId: 1-6a1cbff8-52c32d8e7bbdd29170c5e950\tSegmentId: d233a231c1f09da4\tSampled: true",
+        "REPORT RequestId: 1feccb89-60f5-445a-9593-f587e4b611f5\tDuration: 3.12 ms\tBilled Duration: 4 ms\tMemory Size: 1024 MB\tMax Memory Used: 66 MB\t\nXRAY TraceId: 1-6a1cc124-7bc60ecb0db848a83f682858\tSegmentId: 9dbbae796092f6d1\tSampled: true",
+        "REPORT RequestId: 1a2d8085-d748-4158-9b55-db6f3f5e9225\tDuration: 1.26 ms\tBilled Duration: 2 ms\tMemory Size: 1024 MB\tMax Memory Used: 66 MB\t\nXRAY TraceId: 1-6a1cc250-50b54d8b7527c1af6a2b0d8e\tSegmentId: a69e37e5987cc10b\tSampled: true",
+        "REPORT RequestId: de177ff0-69db-4df1-9357-45604022b874\tDuration: 1.49 ms\tBilled Duration: 2 ms\tMemory Size: 1024 MB\tMax Memory Used: 66 MB\t\nXRAY TraceId: 1-6a1cc37c-32bc3d36543b4ee01057e147\tSegmentId: fffc96905c7c4814\tSampled: true",
+        "REPORT RequestId: 39b9f203-d16a-4f47-b6f0-91bd4034a9b8\tDuration: 1.99 ms\tBilled Duration: 2 ms\tMemory Size: 1024 MB\tMax Memory Used: 66 MB\t\nXRAY TraceId: 1-6a1cc3a3-7d3898ec5d32acd851fc78ce\tSegmentId: 45753abd4bec7e18\tSampled: true",
+        "REPORT RequestId: e88c5b90-0539-4a9a-8663-ed1ff0ff14e6\tDuration: 1.97 ms\tBilled Duration: 2 ms\tMemory Size: 1024 MB\tMax Memory Used: 66 MB\t\nXRAY TraceId: 1-6a1cc4a8-07d3360b61fe328358523faa\tSegmentId: edc2b6e1710ee618\tSampled: true",
+        "REPORT RequestId: 97b03122-d920-4238-9e52-d6e4341faff7\tDuration: 1.39 ms\tBilled Duration: 2 ms\tMemory Size: 1024 MB\tMax Memory Used: 66 MB\t\nXRAY TraceId: 1-6a1cc5d4-68dfc4294b3fdcb7359dde2b\tSegmentId: c381166335429893\tSampled: true"
+      ],
+      "errors_only": [],
+      "stream_count": 5,
+      "latest_stream": "2026/05/31/[$LATEST]38206af42e70429db547934f6d9b661b",
+      "latest_event_at": 1780269048920
+    }
+  },
+  "finished": "2026-05-31T23:36:11.899932+00:00"
+}
