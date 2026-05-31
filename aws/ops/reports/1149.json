@@ -1,0 +1,70 @@
+{
+  "started": "2026-05-31T00:23:22.101786+00:00",
+  "redeploy": {
+    "attempt": 1,
+    "status": "OK"
+  },
+  "fire_macro": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 55.67,
+    "results": [
+      {
+        "context_id": "macro-frontrun-sniffer",
+        "title": "Macro Front-Run Sniffer \u2014 Rates \u00b7 Auctions \u00b7 Bonds \u00b7 Fed Path Deep Dive",
+        "output_key": "data/macro-frontrun-sniffer.json",
+        "brief_type": "macro_frontrun",
+        "status": "OK",
+        "macro_score": 32,
+        "macro_regime": "NORMAL",
+        "n_setups": 3,
+        "n_catalysts": 6,
+        "duration_s": 55.29
+      }
+    ],
+    "log_tail": "START RequestId: aea565df-e8e4-410f-9679-dc8eb619bbb5 Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['macro-frontrun-sniffer']\n[macro_frontrun] alert: {'ok': False, 'reason': 'no_threshold_met', 'score': 32, 'regime': 'NORMAL', 'conv_fired': False, 'conv_detail': {'n_pillars_stressed': 0, 'auction_tape_state': 'CALM', 'auction_stressed': False, 'primary_dealer_state': 'NEUTRAL', 'pd_stressed': False, 'funding_state': 'HEALED', 'funding_stressed': False}, 'n_pillars': 0}\n[ai-brief-router] macro-frontrun-sniffer: OK 55.29s \n[ai-brief-router] done: 1/1 OK in 55.67s\nEND RequestId: aea565df-e8e4-410f-9679-dc8eb619bbb5\nREPORT RequestId: aea565df-e8e4-410f-9679-dc8eb619bbb5\tDuration: 55669.61 ms\tBilled Duration: 56178 ms\tMemory Size: 1024 MB\tMax Memory Used: 98 MB\tInit Duration: 508.26 ms\t\nXRAY TraceId: 1-6a1b7f81-278b8de35c83eee5642b6a52\tSegmentId: d529ccd195d3e9e3\tSampled: true\t\n"
+  },
+  "fire_macro_alert_log": "[macro_frontrun] alert: {'ok': False, 'reason': 'no_threshold_met', 'score': 32, 'regime': 'NORMAL', 'conv_fired': False, 'conv_detail': {'n_pillars_stressed': 0, 'auction_tape_state': 'CALM', 'auction_stressed': False, 'primary_dealer_state': 'NEUTRAL', 'pd_stressed': False, 'funding_state': 'HEALED', 'funding_stressed': False}, 'n_pillars': 0}",
+  "fire_equity": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 21.02,
+    "results": [
+      {
+        "context_id": "frontrun-sniffer",
+        "title": "Front-Run Sniffer \u2014 Institutional Flow Anomaly Detector",
+        "output_key": "data/frontrun-sniffer.json",
+        "brief_type": "frontrun",
+        "status": "OK",
+        "anomaly_score": 28,
+        "anomaly_regime": "NORMAL",
+        "n_setups": 0,
+        "n_whale_alerts": 4,
+        "n_dealer_flows": 2,
+        "n_insider_alerts": 1,
+        "duration_s": 20.85
+      }
+    ],
+    "log_tail": "START RequestId: c8ed7b63-541e-4127-ac62-8d89cd4abd43 Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['frontrun-sniffer']\n[frontrun] alert: {'ok': False, 'reason': 'no_threshold_met', 'score': 28, 'regime': 'NORMAL', 'conv_fired': False, 'conv_detail': {'reason': 'no_setups'}, 'n_cardinals': 0}\n[ai-brief-router] frontrun-sniffer: OK 20.85s \n[ai-brief-router] done: 1/1 OK in 21.02s\nEND RequestId: c8ed7b63-541e-4127-ac62-8d89cd4abd43\nREPORT RequestId: c8ed7b63-541e-4127-ac62-8d89cd4abd43\tDuration: 21023.61 ms\tBilled Duration: 21558 ms\tMemory Size: 1024 MB\tMax Memory Used: 161 MB\tInit Duration: 533.47 ms\t\nXRAY TraceId: 1-6a1b7fbd-29b22cf66f85a26f669d1260\tSegmentId: b0252ee4fcb67e53\tSampled: true\t\n"
+  },
+  "fire_equity_alert_log": "[frontrun] alert: {'ok': False, 'reason': 'no_threshold_met', 'score': 28, 'regime': 'NORMAL', 'conv_fired': False, 'conv_detail': {'reason': 'no_setups'}, 'n_cardinals': 0}",
+  "macro_state": {
+    "last_regime": null,
+    "last_score": null,
+    "last_cardinal_count": 0,
+    "last_alert_kind": null,
+    "last_alert_reason": null,
+    "last_alert_at": null,
+    "alerts_today": null
+  },
+  "equity_state": {
+    "last_regime": null,
+    "last_score": null,
+    "last_cardinal_count": 0,
+    "last_alert_kind": null,
+    "last_alert_reason": null,
+    "last_alert_at": null,
+    "alerts_today": null
+  },
+  "finished": "2026-05-31T00:24:54.461976+00:00"
+}
