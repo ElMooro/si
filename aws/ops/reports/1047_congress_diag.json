@@ -1,0 +1,15 @@
+{
+  "started": "2026-05-31T16:30:01.496481+00:00",
+  "log_lines": [
+    "[political] fetching House Stock Watcher data\u2026",
+    "[political] HTTP 403 from https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/all_transactions.json",
+    "[political] House: 0 total trades in feed",
+    "[political] fetching Senate Stock Watcher data\u2026",
+    "[political] HTTP 403 from https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/all_transactions.json",
+    "[political] Senate: 0 total trades in feed",
+    "[political] 0 unique tickers traded in last 90 days",
+    "[political] wrote 2,117B  duration=1.5s"
+  ],
+  "log_tail_excerpt": "START RequestId: 901170a6-2ef1-49e1-b4b5-41330c3395f0 Version: $LATEST\n{\"https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/all_transactions.json\": {\"err\": \"HTTP Error 403: Forbidden\"}, \"https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/all_transactions.json\": {\"err\": \"HTTP Error 403: Forbidden\"}, \"https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/all_transactions_summary.json\": {\"err\": \"HTTP Error 403: Forbidden\"}}\nEND RequestId: 901170a6-2ef1-49e1-b4b5-41330c3395f0\nREPORT RequestId: 901170a6-2ef1-49e1-b4b5-41330c3395f0\tDuration: 1273.94 ms\tBilled Duration: 1371 ms\tMemory Size: 256 MB\tMax Memory Used: 53 MB\tInit Duration: 96.30 ms\t\n",
+  "finished": "2026-05-31T16:30:09.435462+00:00"
+}
