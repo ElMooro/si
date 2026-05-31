@@ -1,0 +1,83 @@
+{
+  "started": "2026-05-31T14:02:07.127053+00:00",
+  "prev_file": {
+    "exists": false
+  },
+  "recent_logs": [
+    {
+      "ts": "2026-05-31T14:00:32.185000+00:00",
+      "msg": "[master-ranker] Building ticker index across 14 systems\u2026"
+    },
+    {
+      "ts": "2026-05-31T14:00:32.887000+00:00",
+      "msg": "[master-ranker] 223 unique tickers indexed"
+    },
+    {
+      "ts": "2026-05-31T14:00:32.890000+00:00",
+      "msg": "[master-ranker] Collecting macro signals\u2026"
+    },
+    {
+      "ts": "2026-05-31T14:00:33.140000+00:00",
+      "msg": "[master-ranker] fetch_json(data/capitulation.json) failed: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "ts": "2026-05-31T14:00:33.230000+00:00",
+      "msg": "[master-ranker] DONE in 1.41s \u00b7 25 tickers \u00b7 9 macro \u00b7 38 tier-3+, 3 tier-5+"
+    },
+    {
+      "ts": "2026-05-31T14:00:33.260000+00:00",
+      "msg": "[master-ranker] event publish failed: 'str' object has no attribute 'get'"
+    },
+    {
+      "ts": "2026-05-31T13:53:29.205000+00:00",
+      "msg": "[master-ranker] Loading regime context\u2026"
+    },
+    {
+      "ts": "2026-05-31T13:53:29.531000+00:00",
+      "msg": "[master-ranker] fetch_json(data/capitulation.json) failed: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "ts": "2026-05-31T13:53:29.531000+00:00",
+      "msg": "[master-ranker] Loading calibration weights\u2026"
+    },
+    {
+      "ts": "2026-05-31T13:53:29.656000+00:00",
+      "msg": "[master-ranker] Building ticker index across 14 systems\u2026"
+    },
+    {
+      "ts": "2026-05-31T13:53:30.708000+00:00",
+      "msg": "[master-ranker] 223 unique tickers indexed"
+    },
+    {
+      "ts": "2026-05-31T13:53:30.710000+00:00",
+      "msg": "[master-ranker] Collecting macro signals\u2026"
+    },
+    {
+      "ts": "2026-05-31T13:53:30.981000+00:00",
+      "msg": "[master-ranker] fetch_json(data/capitulation.json) failed: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "ts": "2026-05-31T13:53:31.106000+00:00",
+      "msg": "[master-ranker] DONE in 1.82s \u00b7 25 tickers \u00b7 9 macro \u00b7 38 tier-3+, 3 tier-5+"
+    },
+    {
+      "ts": "2026-05-31T13:53:31.122000+00:00",
+      "msg": "[master-ranker] event publish failed: 'str' object has no attribute 'get'"
+    }
+  ],
+  "invoke_result": {
+    "ok": true,
+    "n_tickers": 25,
+    "n_macro": 9,
+    "n_tier_3_plus": 38,
+    "n_tier_5_plus": 3,
+    "regime": "MUDDLE",
+    "duration_s": 1.26
+  },
+  "audit_after_invoke": {
+    "n_total": 1,
+    "convergence_events": []
+  },
+  "new_prev_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+  "finished": "2026-05-31T14:03:09.340067+00:00"
+}
