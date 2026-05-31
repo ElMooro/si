@@ -295,11 +295,12 @@ def main():
     # ─── Resolve target Lambda list ─────────────────────────────────────
     targets = resolve_function_names(FUNCTION_NAMES_INPUT)
     if not targets:
-        out["error"] = "no targets resolved from CR_FUNCTIONS — set to 'ALL', 'CONFIG_DIFF', or a comma-separated list"
+        out["status"] = "skipped"
+        out["reason"] = "CR_FUNCTIONS not set — only runs via controlled-redeploy.yml workflow_dispatch"
         pathlib.Path(os.path.dirname(REPORT)).mkdir(parents=True, exist_ok=True)
         pathlib.Path(REPORT).write_text(json.dumps(out, indent=2, default=str))
-        print(out["error"])
-        sys.exit(1)
+        print(out["reason"])
+        return  # exit 0, don't kill the workflow
     
     out["n_targets"] = len(targets)
     out["targets"] = targets
