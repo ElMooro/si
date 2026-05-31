@@ -1,0 +1,60 @@
+{
+  "started": "2026-05-31T01:17:42.089114+00:00",
+  "redeploy": {
+    "attempt": 1,
+    "status": "OK"
+  },
+  "logger_fire": {
+    "fn_err": null,
+    "logged": 52
+  },
+  "frontrun_log_lines": "[LOG] macro_frontrun_sniffer_setup=TLT_DOWN DOWN conf=0.60 baseline=$85.76\n[LOG] macro_frontrun_sniffer_setup=HYG_DOWN DOWN conf=0.60 baseline=$80.31\n[LOG] macro_frontrun_sniffer_setup=ZN_DOWN DOWN conf=0.60 baseline=$0.23\n[LOG] sustained_target_equity=PEP_UP UP conf=0.65 baseline=$144.19\n[LOG] sustained_target_equity=AMD_UP UP conf=0.65 baseline=$516.10",
+  "frontrun_predictions_in_db": {
+    "n_total": 0,
+    "by_type": {},
+    "samples": []
+  },
+  "skill_aggregator_fire": {
+    "fn_err": null,
+    "n_ok": 1,
+    "results": [
+      {
+        "context_id": "frontrun-skill-aggregator",
+        "title": "Front-Run Skill Aggregator",
+        "brief_type": "skill_aggregator",
+        "output_key": "frontrun-skill-aggregator",
+        "status": "OK",
+        "n_total": 5,
+        "n_scored": 0,
+        "n_pending": 5,
+        "n_engines_tracked": 2,
+        "duration_s": 0.49
+      }
+    ]
+  },
+  "skill_index": {
+    "updated_at": "2026-05-31T01:18:03.308350+00:00",
+    "n_total": 5,
+    "n_scored": 0,
+    "n_pending": 5,
+    "engines": [
+      "sustained_target_equity",
+      "macro_frontrun_sniffer"
+    ],
+    "engine_summary": {
+      "sustained_target_equity": {
+        "n_total": 2,
+        "n_scored": 0,
+        "hit_rate": null,
+        "n_pending": 2
+      },
+      "macro_frontrun_sniffer": {
+        "n_total": 3,
+        "n_scored": 0,
+        "hit_rate": null,
+        "n_pending": 3
+      }
+    }
+  },
+  "finished": "2026-05-31T01:18:05.701123+00:00"
+}
