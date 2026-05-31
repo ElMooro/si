@@ -158,8 +158,8 @@ TICKER_TO_WIKI = {
 s3 = boto3.client("s3", region_name=REGION)
 
 
-def _http_get(url, timeout=HTTP_TIMEOUT, retries=0):
-    """Minimal urllib GET with optional retry."""
+def _http_get(url, timeout=HTTP_TIMEOUT, retries=0, log_label=""):
+    """Minimal urllib GET with optional retry. Logs errors at debug level."""
     h = {"User-Agent": USER_AGENT, "Accept": "application/json"}
     for attempt in range(retries + 1):
         try:
@@ -167,13 +167,15 @@ def _http_get(url, timeout=HTTP_TIMEOUT, retries=0):
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return r.read().decode("utf-8")
         except urllib.error.HTTPError as e:
+            print(f"[ticker-trends-v2] {log_label} HTTP {e.code} from {url[:120]}")
             if e.code == 404:
-                return None  # don't retry on missing article
+                return None
             if attempt < retries:
                 time.sleep(2)
                 continue
             return None
-        except Exception:
+        except Exception as e:
+            print(f"[ticker-trends-v2] {log_label} {type(e).__name__}: {str(e)[:100]} from {url[:120]}")
             if attempt < retries:
                 time.sleep(2)
                 continue
@@ -204,7 +206,7 @@ def get_wiki_pageviews(article: str, days: int = 31) -> list:
         f"https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/"
         f"en.wikipedia/all-access/user/{article_enc}/daily/{start_s}/{end_s}"
     )
-    body = _http_get(url, timeout=10, retries=1)
+    body = _http_get(url, timeout=10, retries=1, log_label=f"wiki[{article}]")
     if not body:
         return None
     try:
