@@ -1,0 +1,52 @@
+{
+  "started": "2026-05-31T13:11:55.320628+00:00",
+  "code_check": {
+    "justhodl-crisis-plumbing": {
+      "files": [
+        "ka_aliases.py",
+        "system_events.py",
+        "lambda_function.py"
+      ],
+      "has_emit_wrap": true,
+      "has_events_import": true,
+      "has_events_module": true,
+      "code_size_kb": 51.0
+    },
+    "justhodl-liquidity-credit-engine": {
+      "files": [
+        "system_events.py",
+        "lambda_function.py"
+      ],
+      "has_emit_wrap": true,
+      "has_events_import": true,
+      "has_events_module": true,
+      "code_size_kb": 60.3
+    }
+  },
+  "log_analysis": {
+    "justhodl-crisis-plumbing": {
+      "timeouts": [],
+      "exceptions": [],
+      "ok_runs": 5
+    },
+    "justhodl-liquidity-credit-engine": {
+      "timeouts": [],
+      "exceptions": [],
+      "ok_runs": 8
+    }
+  },
+  "timeout_updates": {
+    "justhodl-crisis-plumbing": {
+      "action": "updated",
+      "from_timeout": 120,
+      "to_timeout": 240
+    },
+    "justhodl-liquidity-credit-engine": {
+      "action": "updated",
+      "from_timeout": 300,
+      "to_timeout": 480
+    }
+  },
+  "next_action": "Update aws/lambdas/justhodl-crisis-plumbing/config.json timeout to 240 and aws/lambdas/justhodl-liquidity-credit-engine/config.json timeout to 480 so the deploy-lambdas workflow respects these on next redeploy.",
+  "finished": "2026-05-31T13:12:14.451739+00:00"
+}
