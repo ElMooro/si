@@ -1,0 +1,100 @@
+{
+  "started": "2026-05-31T01:00:41.806784+00:00",
+  "registry": {
+    "n_contexts": 37,
+    "uptime_present": true
+  },
+  "redeploy": {
+    "attempt": 1,
+    "status": "OK"
+  },
+  "eb_schedule": {
+    "rule": "created",
+    "permission": "added",
+    "rule_arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-uptime-monitor-hourly"
+  },
+  "test_invoke": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 0.91,
+    "results": [
+      {
+        "context_id": "system-uptime-monitor",
+        "title": "System Uptime Monitor",
+        "brief_type": "uptime",
+        "output_key": "system-uptime-monitor",
+        "telegram_ok": true,
+        "status": "OK",
+        "overall_status": "STALE",
+        "n_stale": 2,
+        "n_warning": 0,
+        "n_fresh": 5,
+        "n_missing": 2,
+        "alert_kind": "STALE_NEW",
+        "alert_reason": "2_briefs_transitioned_to_stale",
+        "duration_s": 0.79
+      }
+    ]
+  },
+  "test_log": "START RequestId: 946ff81f-31da-4793-b33b-52b498824d00 Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['system-uptime-monitor']\n[ai-brief-router] system-uptime-monitor: OK 0.79s \n[ai-brief-router] done: 1/1 OK in 0.91s\nEND RequestId: 946ff81f-31da-4793-b33b-52b498824d00\nREPORT RequestId: 946ff81f-31da-4793-b33b-52b498824d00\tDuration: 909.13 ms\tBilled Duration: 1512 ms\tMemory Size: 1024 MB\tMax Memory Used: 96 MB\tInit Duration: 602.63 ms\t\nXRAY TraceId: 1-6a1b8840-512687631eb58dcd03aa374a\tSegmentId: 2db17c7da40905c2\tSampled: true\t\n",
+  "uptime_status": {
+    "checked_at": "2026-05-31T01:00:49.928767+00:00",
+    "n_monitored": 7,
+    "n_fresh": 5,
+    "n_warning": 0,
+    "n_stale": 2,
+    "n_missing": 2,
+    "overall_status": "STALE",
+    "briefs": [
+      {
+        "label": "\ud83c\udfaf Equity Front-Run Sniffer",
+        "status": "FRESH",
+        "age_hours": 0.6,
+        "max_age_hours": 8
+      },
+      {
+        "label": "\ud83c\udfdb Macro Front-Run Sniffer",
+        "status": "FRESH",
+        "age_hours": 0.61,
+        "max_age_hours": 8
+      },
+      {
+        "label": "\ud83d\udcc5 Daily Digest",
+        "status": "FRESH",
+        "age_hours": 0.81,
+        "max_age_hours": 26
+      },
+      {
+        "label": "\ud83d\udcc2 Digest Archive Index",
+        "status": "FRESH",
+        "age_hours": 0.81,
+        "max_age_hours": 26
+      },
+      {
+        "label": "\ud83c\udfaf Targets Index",
+        "status": "FRESH",
+        "age_hours": 0.81,
+        "max_age_hours": 26
+      },
+      {
+        "label": "\ud83c\udfa9 CIO Synthesis",
+        "status": "MISSING",
+        "age_hours": null,
+        "max_age_hours": 30
+      },
+      {
+        "label": "\ud83d\udcbc Portfolio Brief",
+        "status": "MISSING",
+        "age_hours": null,
+        "max_age_hours": 4
+      }
+    ]
+  },
+  "eb_verify": {
+    "state": "ENABLED",
+    "schedule": "cron(0 * * * ? *)",
+    "n_targets": 1,
+    "target_input": "{\"contexts\": [\"system-uptime-monitor\"]}"
+  },
+  "finished": "2026-05-31T01:00:52.234853+00:00"
+}
