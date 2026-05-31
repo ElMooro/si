@@ -1,0 +1,327 @@
+{
+  "started": "2026-05-31T19:14:49.089870+00:00",
+  "size_kb": 45.4,
+  "schema": "2.0",
+  "method": "ark_holdings_v2_arkfunds_io",
+  "generated_at": "2026-05-31T19:12:22+00:00",
+  "duration_s": 1.8,
+  "data_source": "https://arkfunds.io/api/v2/etf/holdings (community-maintained)",
+  "n_funds": 6,
+  "n_positions": 221,
+  "n_unique": 119,
+  "fund_breakdown": {
+    "ARKF": {
+      "n_positions": 36,
+      "top_3": [
+        {
+          "ticker": "SHOP",
+          "weight": 9.03,
+          "value": 73738141
+        },
+        {
+          "ticker": "CRCL",
+          "weight": 6.42,
+          "value": 52420740
+        },
+        {
+          "ticker": "COIN",
+          "weight": 5.54,
+          "value": 45228254
+        }
+      ]
+    },
+    "ARKG": {
+      "n_positions": 32,
+      "top_3": [
+        {
+          "ticker": "TWST",
+          "weight": 8.95,
+          "value": 115135758
+        },
+        {
+          "ticker": "CRSP",
+          "weight": 8.36,
+          "value": 107580708
+        },
+        {
+          "ticker": "TEM",
+          "weight": 8.01,
+          "value": 103096695
+        }
+      ]
+    },
+    "ARKK": {
+      "n_positions": 40,
+      "top_3": [
+        {
+          "ticker": "TSLA",
+          "weight": 10.55,
+          "value": 756768654
+        },
+        {
+          "ticker": "AMD",
+          "weight": 5.6,
+          "value": 401551353
+        },
+        {
+          "ticker": "CRSP",
+          "weight": 5.02,
+          "value": 359960478
+        }
+      ]
+    },
+    "ARKQ": {
+      "n_positions": 38,
+      "top_3": [
+        {
+          "ticker": "TSLA",
+          "weight": 10.22,
+          "value": 247784229
+        },
+        {
+          "ticker": "AMD",
+          "weight": 8.29,
+          "value": 201030318
+        },
+        {
+          "ticker": "TER",
+          "weight": 7.61,
+          "value": 184397504
+        }
+      ]
+    },
+    "ARKW": {
+      "n_positions": 39,
+      "top_3": [
+        {
+          "ticker": "AMD",
+          "weight": 9.67,
+          "value": 173418711
+        },
+        {
+          "ticker": "TSLA",
+          "weight": 9.13,
+          "value": 163766661
+        },
+        {
+          "ticker": "HOOD",
+          "weight": 4.94,
+          "value": 88653897
+        }
+      ]
+    },
+    "ARKX": {
+      "n_positions": 33,
+      "top_3": [
+        {
+          "ticker": "RKLB UQ",
+          "weight": 8.95,
+          "value": 100180043
+        },
+        {
+          "ticker": "AMD",
+          "weight": 7.84,
+          "value": 87772217
+        },
+        {
+          "ticker": "LHX",
+          "weight": 7.04,
+          "value": 78823745
+        }
+      ]
+    }
+  },
+  "top_15_cross_fund": [
+    {
+      "ticker": "TSLA",
+      "company": "TESLA INC",
+      "n_funds": 4,
+      "total_value": 1196549397.3000002,
+      "max_weight": 10.55,
+      "funds_in": [
+        "ARKK",
+        "ARKQ",
+        "ARKW",
+        "ARKX"
+      ]
+    },
+    {
+      "ticker": "AMD",
+      "company": "ADVANCED MICRO DEVICES",
+      "n_funds": 5,
+      "total_value": 898477376.9900001,
+      "max_weight": 9.67,
+      "funds_in": [
+        "ARKF",
+        "ARKK",
+        "ARKQ",
+        "ARKW",
+        "ARKX"
+      ]
+    },
+    {
+      "ticker": "CRSP",
+      "company": "CRISPR THERAPEUTICS AG",
+      "n_funds": 2,
+      "total_value": 467541185.64,
+      "max_weight": 8.36,
+      "funds_in": [
+        "ARKG",
+        "ARKK"
+      ]
+    },
+    {
+      "ticker": "HOOD",
+      "company": "ROBINHOOD MARKETS INC - A",
+      "n_funds": 3,
+      "total_value": 464946361.32,
+      "max_weight": 4.94,
+      "funds_in": [
+        "ARKF",
+        "ARKK",
+        "ARKW"
+      ]
+    },
+    {
+      "ticker": "SHOP",
+      "company": "SHOPIFY INC - CLASS A",
+      "n_funds": 3,
+      "total_value": 458301490.73,
+      "max_weight": 9.03,
+      "funds_in": [
+        "ARKF",
+        "ARKK",
+        "ARKW"
+      ]
+    },
+    {
+      "ticker": "TEM",
+      "company": "TEMPUS AI INC-CL A",
+      "n_funds": 2,
+      "total_value": 456352672.41999996,
+      "max_weight": 8.01,
+      "funds_in": [
+        "ARKG",
+        "ARKK"
+      ]
+    },
+    {
+      "ticker": "CRCL",
+      "company": "CIRCLE INTERNET GROUP INC",
+      "n_funds": 3,
+      "total_value": 440443497.12,
+      "max_weight": 6.42,
+      "funds_in": [
+        "ARKF",
+        "ARKK",
+        "ARKW"
+      ]
+    },
+    {
+      "ticker": "PLTR",
+      "company": "PALANTIR TECHNOLOGIES INC-A",
+      "n_funds": 5,
+      "total_value": 415276190.94000006,
+      "max_weight": 4.24,
+      "funds_in": [
+        "ARKF",
+        "ARKK",
+        "ARKQ",
+        "ARKW",
+        "ARKX"
+      ]
+    },
+    {
+      "ticker": "AMZN",
+      "company": "AMAZON.COM INC",
+      "n_funds": 5,
+      "total_value": 414561178.0,
+      "max_weight": 4.01,
+      "funds_in": [
+        "ARKF",
+        "ARKK",
+        "ARKQ",
+        "ARKW",
+        "ARKX"
+      ]
+    },
+    {
+      "ticker": "ROKU",
+      "company": "ROKU INC",
+      "n_funds": 3,
+      "total_value": 405164451.15,
+      "max_weight": 4.26,
+      "funds_in": [
+        "ARKF",
+        "ARKK",
+        "ARKW"
+      ]
+    },
+    {
+      "ticker": "COIN",
+      "company": "COINBASE GLOBAL INC -CLASS A",
+      "n_funds": 3,
+      "total_value": 380240203.5,
+      "max_weight": 5.54,
+      "funds_in": [
+        "ARKF",
+        "ARKK",
+        "ARKW"
+      ]
+    },
+    {
+      "ticker": "TWST",
+      "company": "TWIST BIOSCIENCE CORP",
+      "n_funds": 2,
+      "total_value": 339845941.89,
+      "max_weight": 8.95,
+      "funds_in": [
+        "ARKG",
+        "ARKK"
+      ]
+    },
+    {
+      "ticker": "TER",
+      "company": "TERADYNE INC",
+      "n_funds": 3,
+      "total_value": 339190143.6,
+      "max_weight": 7.61,
+      "funds_in": [
+        "ARKK",
+        "ARKQ",
+        "ARKX"
+      ]
+    },
+    {
+      "ticker": "GOOG",
+      "company": "ALPHABET INC-CL C",
+      "n_funds": 4,
+      "total_value": 307014051.12,
+      "max_weight": 4.19,
+      "funds_in": [
+        "ARKK",
+        "ARKQ",
+        "ARKW",
+        "ARKX"
+      ]
+    },
+    {
+      "ticker": "BEAM",
+      "company": "BEAM THERAPEUTICS INC",
+      "n_funds": 2,
+      "total_value": 287785691.2,
+      "max_weight": 5.12,
+      "funds_in": [
+        "ARKG",
+        "ARKK"
+      ]
+    }
+  ],
+  "diff_vs_prev": {
+    "n_new": 0,
+    "n_adds": 0,
+    "n_trims": 0,
+    "n_closed": 0
+  },
+  "finished": "2026-05-31T19:14:49.194794+00:00"
+}
