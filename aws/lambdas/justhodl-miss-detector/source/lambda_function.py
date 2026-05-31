@@ -197,11 +197,19 @@ def compute_candidates(bars: list, prev_bars_by_ticker: dict) -> list:
 def signals_fired_for(table, ticker: str, since_dt: datetime) -> list:
     """Find any signals targeting this ticker logged in the lookback window.
 
-    We use a filtered scan with `measure_against = <ticker>` — this is the
-    field the signal-logger uses to record the asset under prediction. Cap
-    is high but bounded by lookback days.
+    Two query paths because DDB schema is heterogeneous:
+      A. Newer schema v2: measure_against = <ticker> field is set
+      B. Older schema v1: ticker embedded in signal_id like
+         'deepvalue_ELV_1778537171' — we can't index this without GSI,
+         so we use a contains() filter on signal_id
+
+    Cap on both paths. The miss-detector tolerates duplicates from the
+    OR (a hit on either branch counts as 'attributed').
     """
     since_epoch = int(since_dt.timestamp())
+    found = []
+    
+    # Path A: explicit measure_against match (preferred)
     try:
         resp = table.scan(
             FilterExpression=(
@@ -210,12 +218,29 @@ def signals_fired_for(table, ticker: str, since_dt: datetime) -> list:
             ),
             ProjectionExpression="signal_id, signal_type, signal_value, confidence, "
                                  "predicted_direction, logged_at, metadata",
-            Limit=200,
+            Limit=100,
         )
-        return resp.get("Items", [])
+        found.extend(resp.get("Items", []))
     except Exception as e:
-        print(f"[miss] DDB scan fail {ticker}: {e}")
-        return []
+        print(f"[miss] A-scan fail {ticker}: {e}")
+    
+    # Path B: ticker contained in signal_id (older schema)
+    if not found:
+        try:
+            resp = table.scan(
+                FilterExpression=(
+                    Attr("signal_id").contains(f"_{ticker}_")
+                    & Attr("logged_epoch").gte(since_epoch)
+                ),
+                ProjectionExpression="signal_id, signal_type, confidence, "
+                                     "predicted_direction, logged_at",
+                Limit=50,
+            )
+            found.extend(resp.get("Items", []))
+        except Exception as e:
+            print(f"[miss] B-scan fail {ticker}: {e}")
+    
+    return found
 
 
 def classify_miss(ticker: str, recent_signals: list) -> dict:
@@ -330,7 +355,9 @@ def handler(event, context):
     misses = []
     attributed = 0
 
-    for cand in candidates[:600]:   # safety cap: top 600 movers
+    # Performance cap: we do 1-2 DDB scans per ticker. 511 candidates × 2 scans
+    # × ~500ms = 8.5 min. Lambda timeout is 10min. Cap at top 200 movers.
+    for cand in candidates[:200]:
         ticker = cand["ticker"]
         recent = signals_fired_for(table, ticker, since)
         clsf = classify_miss(ticker, recent)
@@ -344,7 +371,7 @@ def handler(event, context):
             "volume": cand["volume"],
             "category": clsf["category"],
             "detail": clsf["detail"],
-            "signals_attempted": [],   # populated when near-miss classification activated
+            "signals_attempted": [],
         })
 
     output = {

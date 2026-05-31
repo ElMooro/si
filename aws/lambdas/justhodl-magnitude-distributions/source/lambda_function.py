@@ -96,15 +96,42 @@ def _decimal_default(o):
     raise TypeError(f"unencodeable {type(o)}")
 
 
-def stack_signature(signal_type: str, supporting: list) -> tuple:
-    """Deterministic stack identifier: sorted tuple of all participating signals.
+def _to_int(v, default=None):
+    if v is None:
+        return default
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        try:
+            return int(float(v))
+        except (TypeError, ValueError):
+            return default
 
-    A lone signal has signature (signal_type,). A stack with 3 supporting
-    signals has signature (sorted union of 4 names). Stable across runs.
+
+def _signal_type_from_id(signal_id: str) -> str:
+    """Fallback: extract signal_type prefix from a signal_id when the
+    explicit signal_type field is empty.
+
+    Real DDB items have ids like 'deepvalue_ELV_1778537171' where the
+    first token is the signal class. Older schema v1 items often have
+    signal_type='' but a populated signal_id.
     """
+    if not signal_id:
+        return ""
+    s = str(signal_id)
+    parts = s.split("_", 2)
+    return parts[0] if parts else ""
+
+
+def stack_signature(signal_type: str, supporting: list, signal_id: str = "") -> tuple:
+    """Deterministic stack identifier with fallback to signal_id-derived type."""
     members = set()
     if signal_type:
         members.add(str(signal_type).strip().lower())
+    elif signal_id:
+        derived = _signal_type_from_id(signal_id)
+        if derived:
+            members.add(derived.lower())
     for s in supporting or []:
         if s:
             members.add(str(s).strip().lower())
@@ -117,17 +144,24 @@ def stack_hash(sig_tuple: tuple) -> str:
     return h[:12]
 
 
-def scan_checked_signals(table) -> list:
+def scan_resolved_signals(table) -> list:
     """Full scan of signals table for outcomes that have been resolved.
 
-    The signals table is bounded (TTL 365d) and DDB scan is acceptable for
-    a nightly batch at this scale. If volume grows we can move to a
-    GSI on status='checked'.
+    Real DDB status values observed: 'complete', 'partial', 'pending',
+    'unscoreable', plus older items with status=None. Status='checked' was
+    initially expected but doesn't actually exist. We accept 'complete'
+    and 'partial' (both have at least some resolved outcome horizons).
     """
     items = []
     last_key = None
     while True:
-        kw = {"FilterExpression": Attr("status").eq("checked")}
+        kw = {
+            "FilterExpression": (
+                Attr("status").eq("complete")
+                | Attr("status").eq("partial")
+                | Attr("status").eq("checked")
+            )
+        }
         if last_key:
             kw["ExclusiveStartKey"] = last_key
         resp = table.scan(**kw)
@@ -144,26 +178,37 @@ def scan_checked_signals(table) -> list:
 def extract_realized_return(item: dict) -> tuple:
     """Pull the realized return at the PRIMARY horizon for this signal.
 
-    Returns (return_pct, horizon_days, predicted_direction) or (None, None, None)
-    if outcome not usable.
+    DDB stores horizon_days_primary as a STRING ('180' not 180), and
+    check_windows entries are strings too. We coerce defensively.
+    Returns (return_pct, horizon_days, predicted_direction) or
+    (None, None, None) if outcome not usable.
     """
-    horizon = item.get("horizon_days_primary")
+    horizon = _to_int(item.get("horizon_days_primary"))
     if horizon is None:
-        # Fall back: use the longest check window present
         windows = item.get("check_windows") or []
         if not windows:
             return None, None, None
-        try:
-            horizon = max(int(w) for w in windows)
-        except (TypeError, ValueError):
+        horizons = [_to_int(w) for w in windows if _to_int(w) is not None]
+        if not horizons:
             return None, None, None
-    horizon = int(horizon)
+        horizon = max(horizons)
 
     outcomes = item.get("outcomes") or {}
-    # outcomes is a map keyed by horizon (as str or int depending on writer)
-    o = outcomes.get(str(horizon)) or outcomes.get(horizon)
-    if not isinstance(o, dict):
+    if not isinstance(outcomes, dict):
         return None, None, None
+    # Outcomes may be keyed as str or int
+    o = (outcomes.get(str(horizon))
+         or outcomes.get(horizon)
+         or outcomes.get(f"{horizon}d"))
+    if not isinstance(o, dict):
+        # Some schemas key outcomes by the FULL date — fall back to any
+        # outcome value whose dict contains a return_pct.
+        for v in outcomes.values():
+            if isinstance(v, dict) and v.get("return_pct") is not None:
+                o = v
+                break
+        else:
+            return None, None, None
     ret = _to_float(o.get("return_pct"))
     if ret is None:
         return None, None, None
@@ -217,8 +262,8 @@ def handler(event, context):
     s3 = boto3.client("s3", region_name=REGION)
     table = dynamodb.Table(SIGNALS_TABLE)
 
-    items = scan_checked_signals(table)
-    print(f"[magdist] scanned {len(items)} checked signals")
+    items = scan_resolved_signals(table)
+    print(f"[magdist] scanned {len(items)} resolved-status signals")
 
     # Bucket by (stack_sig, horizon)
     by_stack_horizon = defaultdict(list)
@@ -229,7 +274,11 @@ def handler(event, context):
         ret, horizon, direction = extract_realized_return(it)
         if ret is None or horizon is None:
             continue
-        sig_tuple = stack_signature(it.get("signal_type"), it.get("supporting_signals") or [])
+        sig_tuple = stack_signature(
+            it.get("signal_type"),
+            it.get("supporting_signals") or [],
+            signal_id=it.get("signal_id", ""),
+        )
         if not sig_tuple:
             continue
         key = (sig_tuple, horizon)
