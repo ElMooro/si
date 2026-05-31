@@ -1,0 +1,60 @@
+{
+  "started": "2026-05-31T01:27:06.741067+00:00",
+  "test": {
+    "direct/signals": {
+      "status": 200,
+      "size": 2178,
+      "json_ok": true,
+      "preview": "{\"positioning_score\": 31.0, \"risk_appetite\": 30.0, \"smart_money\": \"DISTRIBUTING\", \"crisis_indicators\": {\"score\": 20, \"level\": \"LOW\", \"vix_positioning\": \"BEARISH\", \"treasury_flight\": \"BULLISH\", \"gold_safe_haven\": \"BEARISH\", \"crowded_trade_count\": 8}, \"extreme_positions\": [{\"contract\": \"6S\", \"name\": \"",
+      "top_keys": [
+        "positioning_score",
+        "risk_appetite",
+        "smart_money",
+        "crisis_indicators",
+        "extreme_positions",
+        "reversal_candidates",
+        "sector_positioning",
+        "summary",
+        "timestamp"
+      ]
+    },
+    "direct/cot/all": {
+      "status": 200,
+      "size": 99428,
+      "json_ok": true,
+      "preview": "{\"source\": \"CFTC.gov\", \"contracts\": 29, \"data\": {\"ES\": {\"contract\": \"ES\", \"name\": \"S&P 500 E-Mini\", \"category\": \"equity_index\", \"cftc_code\": \"13874A\", \"report_type\": \"tff\", \"weekly_reports\": [{\"report_date\": \"2026-05-26\", \"open_interest\": 2093621, \"noncommercial_long\": 1354181, \"noncommercial_short\"",
+      "top_keys": [
+        "source",
+        "contracts",
+        "data",
+        "timestamp",
+        "cached_at",
+        "from_cache",
+        "cache_age_hours"
+      ]
+    },
+    "direct/futures": {
+      "status": 200,
+      "size": 1332,
+      "json_ok": true,
+      "preview": "{\"source\": \"Polygon.io\", \"data\": {\"NQ\": {\"ticker\": \"I:NDX\", \"name\": \"NASDAQ 100\", \"open\": 30333.86374107741, \"high\": 30470.03366156688, \"low\": 30210.00595615849, \"close\": 30333.17966581892, \"volume\": null, \"vwap\": null, \"timestamp\": 1780084800000, \"change_pct\": -0.0}, \"6E\": {\"ticker\": \"C:EURUSD\", \"n",
+      "top_keys": [
+        "source",
+        "data",
+        "timestamp"
+      ]
+    },
+    "proxy/signals": {
+      "http_err": 404,
+      "body": "{\"error\":\"Unknown agent\",\"agent\":\"cftc-positioning\",\"available\":[\"volatility\",\"dollar\",\"bonds\",\"bea\",\"manufacturing\",\"banking\",\"trends\",\"sentiment\",\"secretary\",\"chart-data\"]}"
+    },
+    "proxy/cot/all": {
+      "http_err": 404,
+      "body": "{\"error\":\"Unknown agent\",\"agent\":\"cftc-positioning\",\"available\":[\"volatility\",\"dollar\",\"bonds\",\"bea\",\"manufacturing\",\"banking\",\"trends\",\"sentiment\",\"secretary\",\"chart-data\"]}"
+    },
+    "proxy/futures": {
+      "http_err": 404,
+      "body": "{\"error\":\"Unknown agent\",\"agent\":\"cftc-positioning\",\"available\":[\"volatility\",\"dollar\",\"bonds\",\"bea\",\"manufacturing\",\"banking\",\"trends\",\"sentiment\",\"secretary\",\"chart-data\"]}"
+    }
+  }
+}
