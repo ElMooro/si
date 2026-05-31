@@ -1,0 +1,34 @@
+{
+  "started": "2026-05-31T19:12:10.314001+00:00",
+  "lambda_meta": {
+    "last_modified": "2026-05-31T19:04:46.000+0000",
+    "version": "$LATEST",
+    "code_size": 9823,
+    "code_sha256": "xdqeb3w+rPAF8odfoqsqqvbe/FMATyW3yC2wKOYNIdc="
+  },
+  "zip_size": 9823,
+  "files_in_zip": [
+    "system_events.py",
+    "_sentry_lite.py",
+    "lambda_function.py"
+  ],
+  "deployed_code_size": 15437,
+  "deployed_first_50_lines": "\"\"\"justhodl-ark-holdings \u2014 daily ARK Invest ETF holdings tracker (v2).\n\nTHESIS\n\u2550\u2550\u2550\u2550\u2550\u2550\nCathie Wood publishes ARK Invest's COMPLETE ETF holdings every day. ARK's\nown CSV downloads went behind a session-token portal in 2025, but a\ncommunity-maintained API (arkfunds.io by frefrik) provides clean JSON\naccess to the same underlying data \u2014 same-day position visibility (vs\n45-day-lagged 13Fs).\n\nDay-over-day diffs reveal:\n  NEW POSITION    \u2014 ARK initiating a thesis (first appearance)\n  POSITION ADD    \u2014 conviction increasing (share count rises)\n  POSITION TRIM   \u2014 de-risking\n  CLOSED POSITION \u2014 thesis broken (ticker disappears)\n\nDATA SOURCE\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  https://arkfunds.io/api/v2/etf/holdings?symbol=ARKK,ARKQ,ARKW,ARKF,ARKG,ARKX\n  Community API mirroring ARK's daily disclosure. Not affiliated with ARK.\n  Free, no auth, supports multi-fund queries.\n\nOUTPUT\n\u2550\u2550\u2550\u2550\u2550\u2550\n  data/ark-holdings.json \u2014 current snapshot + day-over-day diff\n  data/ark-holdings-prev.json \u2014 prior snapshot for diffing\n  Emits ark.position_change event for material adds/trims/new/closed.\n\"\"\"\nimport json\nimport os\nimport time\nimport urllib.error\nimport urllib.request\nfrom collections import defaultdict\nfrom datetime import datetime, timezone\n\nimport boto3\nfrom _sentry_lite import track_errors\n\nREGION = \"us-east-1\"\nBUCKET = \"justhodl-dashboard-live\"\nOUTPUT_KEY = \"data/ark-holdings.json\"\nPREV_KEY   = \"data/ark-holdings-prev.json\"\n\nHTTP_TIMEOUT = 30\nUSER_AGENT = \"JustHodl-ArkHoldings/1.0 (raafouis@gmail.com)\"\n\n# 6 ARK ETFs tracked\nARK_FUND_CODES = [\"ARKK\", \"ARKQ\", \"ARKW\", \"ARKF\", \"ARKG\", \"ARKX\"]\nARK_FUND_DESC = {",
+  "has_arkfunds_io": true,
+  "has_old_csv_url": false,
+  "has_v2_method": true,
+  "force_redeploy": {
+    "zip_size": 9667,
+    "status": "ok"
+  },
+  "invoke_after": {
+    "elapsed_s": 2.6,
+    "ok": true,
+    "n_funds": 6,
+    "n_positions": 221,
+    "n_unique": 119,
+    "n_new": 0,
+    "n_adds": 0
+  },
+  "finished": "2026-05-31T19:12:22.496212+00:00"
+}
