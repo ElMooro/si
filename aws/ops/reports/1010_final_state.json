@@ -1,0 +1,334 @@
+{
+  "started": "2026-05-31T03:23:27.429533+00:00",
+  "compass_invoke": {
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "top_calls": 3,
+      "watchlist": 3
+    }
+  },
+  "s3": {
+    "data/magnitude-distributions.json": {
+      "size": 11884,
+      "modified": "2026-05-31 03:20:55+00:00"
+    },
+    "data/alpha-compass.json": {
+      "size": 5572,
+      "modified": "2026-05-31 03:23:29+00:00"
+    },
+    "data/miss-summary.json": {
+      "size": 596,
+      "modified": "2026-05-31 03:17:23+00:00"
+    }
+  },
+  "compass_full": {
+    "schema_version": "1.0",
+    "generated_at": "2026-05-31T03:23:28.310372+00:00",
+    "regime": {
+      "label": "Unknown",
+      "color": "#888",
+      "regime": null
+    },
+    "top_calls": [
+      {
+        "rank": 1,
+        "subject": "US equity \u2014 value tilt",
+        "ticker": null,
+        "direction": "RISK-OFF / DEFENSIVE",
+        "conviction": 45,
+        "confidence_band": "MODERATE",
+        "n_engines": 3,
+        "n_families": 1,
+        "agreement_pct": 100,
+        "thesis": "3 engine(s) across 1 independent family -> risk-off. 0 bargains vs 95 expensive/avoid (S&P 500 scan); 2 undervalued vs 21 overvalued (DCF); 72 cheap vs 103 rich on own multiple history. Conviction capped \u2014 limited cross-confirmation; needs agreement from independent engine families to rate higher.",
+        "invalidation": "Flips if net signal crosses neutral \u2014 specifically if the DCF / multiple scans flip to net-rich.",
+        "engines": [
+          {
+            "name": "equity-value",
+            "signal": -2,
+            "label": "STRONG RISK-OFF",
+            "read": "0 bargains vs 95 expensive/avoid (S&P 500 scan)",
+            "skill": 1.0
+          },
+          {
+            "name": "equity-value",
+            "signal": -1,
+            "label": "RISK-OFF",
+            "read": "2 undervalued vs 21 overvalued (DCF)",
+            "skill": 1.0
+          },
+          {
+            "name": "equity-value",
+            "signal": -1,
+            "label": "RISK-OFF",
+            "read": "72 cheap vs 103 rich on own multiple history",
+            "skill": 1.0
+          }
+        ],
+        "distribution": null,
+        "scorecard": null,
+        "sizing": null,
+        "stop_pct": null,
+        "target_pct": null,
+        "tickers": []
+      },
+      {
+        "rank": 2,
+        "subject": "US macro / housing cycle",
+        "ticker": null,
+        "direction": "RISK-OFF / DEFENSIVE",
+        "conviction": 35,
+        "confidence_band": "LOW",
+        "n_engines": 1,
+        "n_families": 1,
+        "agreement_pct": 50,
+        "thesis": "1 engine(s) across 1 independent family -> risk-off. Housing cycle SLOWING. Conviction capped \u2014 limited cross-confirmation; needs agreement from independent engine families to rate higher.",
+        "invalidation": "Flips if net signal crosses neutral \u2014 specifically if the housing regime flips to CONTRACTION.",
+        "engines": [
+          {
+            "name": "macro-fundamental",
+            "signal": -1,
+            "label": "RISK-OFF",
+            "read": "Housing cycle SLOWING",
+            "skill": 1.0
+          }
+        ],
+        "distribution": null,
+        "scorecard": null,
+        "sizing": null,
+        "stop_pct": null,
+        "target_pct": null,
+        "tickers": []
+      },
+      {
+        "rank": 3,
+        "subject": "US equity \u2014 positioning",
+        "ticker": null,
+        "direction": "RISK-ON / LONG",
+        "conviction": 35,
+        "confidence_band": "LOW",
+        "n_engines": 1,
+        "n_families": 1,
+        "agreement_pct": 50,
+        "thesis": "1 engine(s) across 1 independent family -> risk-on. 3 building short pressure, 6 covering. Conviction capped \u2014 limited cross-confirmation; needs agreement from independent engine families to rate higher.",
+        "invalidation": "Flips if net signal crosses neutral \u2014 specifically if short pressure flips from covering back to building.",
+        "engines": [
+          {
+            "name": "positioning",
+            "signal": 1,
+            "label": "RISK-ON",
+            "read": "3 building short pressure, 6 covering",
+            "skill": 1.0
+          }
+        ],
+        "distribution": null,
+        "scorecard": null,
+        "sizing": null,
+        "stop_pct": null,
+        "target_pct": null,
+        "tickers": []
+      }
+    ],
+    "watchlist": [
+      {
+        "rank": 4,
+        "subject": "Crypto",
+        "ticker": null,
+        "direction": "RISK-ON / LONG",
+        "conviction": 35,
+        "confidence_band": "LOW",
+        "n_engines": 1,
+        "n_families": 1,
+        "agreement_pct": 50,
+        "thesis": "1 engine(s) across 1 independent family -> risk-on. Crypto RISK-ON ROTATION (82.2% breadth). Conviction capped \u2014 limited cross-confirmation; needs agreement from independent engine families to rate higher.",
+        "invalidation": "Flips if net signal crosses neutral \u2014 specifically if crypto narratives flip to RISK-OFF.",
+        "engines": [
+          {
+            "name": "crypto",
+            "signal": 2,
+            "label": "STRONG RISK-ON",
+            "read": "Crypto RISK-ON ROTATION (82.2% breadth)",
+            "skill": 1.0
+          }
+        ],
+        "distribution": null,
+        "scorecard": null,
+        "sizing": null,
+        "stop_pct": null,
+        "target_pct": null,
+        "tickers": []
+      },
+      {
+        "rank": 5,
+        "subject": "Broad risk / equity beta",
+        "ticker": null,
+        "direction": "RISK-OFF / DEFENSIVE",
+        "conviction": 11,
+        "confidence_band": "MARGINAL",
+        "n_engines": 4,
+        "n_families": 3,
+        "agreement_pct": 50,
+        "thesis": "4 engine(s) across 3 independent families -> risk-off. Desk posture CAUTIOUS; Crisis DEFCON 3 ELEVATED; Global early-warning NO DATA (None/100).",
+        "invalidation": "Flips if net signal crosses neutral \u2014 specifically if Crisis Composite DEFCON to <=2, Canary Grid prints WARNING/CRITICAL, or the PM desk turns DEFENSIVE.",
+        "engines": [
+          {
+            "name": "desk-posture",
+            "signal": -1,
+            "label": "RISK-OFF",
+            "read": "Desk posture CAUTIOUS",
+            "skill": 1.0
+          },
+          {
+            "name": "crisis-monitor",
+            "signal": 0,
+            "label": "NEUTRAL",
+            "read": "Crisis DEFCON 3 ELEVATED",
+            "skill": 1.25
+          },
+          {
+            "name": "crisis-monitor",
+            "signal": 0,
+            "label": "NEUTRAL",
+            "read": "Global early-warning NO DATA (None/100)",
+            "skill": 1.0
+          },
+          {
+            "name": "market-regime",
+            "signal": 0,
+            "label": "NEUTRAL",
+            "read": "Leading markets n/a \u2014 TOP_WARNING",
+            "skill": 1.0
+          }
+        ],
+        "distribution": null,
+        "scorecard": null,
+        "sizing": null,
+        "stop_pct": null,
+        "target_pct": null,
+        "tickers": []
+      },
+      {
+        "rank": 6,
+        "subject": "Cross-asset relative value",
+        "ticker": null,
+        "direction": "NEUTRAL / MIXED",
+        "conviction": 0,
+        "confidence_band": "MARGINAL",
+        "n_engines": 1,
+        "n_families": 1,
+        "agreement_pct": 50,
+        "thesis": "1 engine(s) across 1 independent family -> neutral. RV stretched.",
+        "invalidation": "Flips if net signal crosses neutral \u2014 specifically if a fresh cross-asset DISLOCATION opens up.",
+        "engines": [
+          {
+            "name": "relative-value",
+            "signal": 0,
+            "label": "NEUTRAL",
+            "read": "RV stretched",
+            "skill": 1.0
+          }
+        ],
+        "distribution": null,
+        "scorecard": null,
+        "sizing": null,
+        "stop_pct": null,
+        "target_pct": null,
+        "tickers": []
+      }
+    ],
+    "coverage": {
+      "miss_summary_30d_totals": {
+        "wrong_signal_type": 200
+      },
+      "top_recurring_misses": [
+        [
+          "STG",
+          1
+        ],
+        [
+          "PRFX",
+          1
+        ],
+        [
+          "REPL",
+          1
+        ],
+        [
+          "OLOX",
+          1
+        ],
+        [
+          "ASTC",
+          1
+        ],
+        [
+          "DLLL",
+          1
+        ],
+        [
+          "OKTG",
+          1
+        ],
+        [
+          "VCIG",
+          1
+        ],
+        [
+          "CMND",
+          1
+        ],
+        [
+          "IOTR",
+          1
+        ]
+      ]
+    },
+    "source_feeds": {
+      "conviction": {
+        "present": true,
+        "as_of": "2026-05-31T03:00:35.318197+00:00"
+      },
+      "magnitude_distributions": {
+        "present": true,
+        "as_of": "2026-05-31T03:20:47.362222+00:00",
+        "stacks": 44
+      },
+      "scorecard": {
+        "present": true
+      },
+      "sizer": {
+        "present": true
+      },
+      "miss_summary": {
+        "present": true
+      }
+    }
+  },
+  "magdist_totals": {
+    "checked_signals_scanned": 9781,
+    "usable_outcomes": 6576,
+    "unique_stacks": 47,
+    "published_stacks": 44,
+    "unique_signal_types": 46
+  },
+  "magdist_stack_count": 44,
+  "schedules": {
+    "justhodl-magnitude-distributions": {
+      "rule": "magnitude-distributions-daily",
+      "expression": "cron(30 7 * * ? *)",
+      "state": "ENABLED"
+    },
+    "justhodl-miss-detector": {
+      "rule": "miss-detector-nightly",
+      "expression": "cron(0 1 * * ? *)",
+      "state": "ENABLED"
+    },
+    "justhodl-alpha-compass": {
+      "rule": "alpha-compass-3h",
+      "expression": "cron(50 */3 * * ? *)",
+      "state": "ENABLED"
+    }
+  },
+  "finished": "2026-05-31T03:23:31.622683+00:00"
+}
