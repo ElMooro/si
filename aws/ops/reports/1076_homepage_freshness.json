@@ -1,0 +1,267 @@
+{
+  "started": "2026-05-31T23:22:28.315632+00:00",
+  "files": [
+    {
+      "key": "cot/extremes/current.json",
+      "producer": "cftc-futures-positioning-agent",
+      "size_kb": 8.1,
+      "last_modified": "2026-05-29T19:00:46+00:00",
+      "age_hours": 52.4,
+      "age_days": 2.2,
+      "null_or_zero_ratio": 0.11,
+      "meta_generated_at": null,
+      "top_keys": [
+        "as_of",
+        "v",
+        "summary",
+        "cluster_alerts",
+        "contracts",
+        "thresholds"
+      ],
+      "is_stale": true,
+      "producer_exists": true
+    },
+    {
+      "key": "crypto-intel.json",
+      "producer": "justhodl-crypto-intel",
+      "size_kb": 49.3,
+      "last_modified": "2026-05-31T23:00:42+00:00",
+      "age_hours": 0.4,
+      "age_days": 0.0,
+      "null_or_zero_ratio": 0.02,
+      "meta_generated_at": null,
+      "top_keys": [
+        "generated_at",
+        "fetch_time",
+        "version",
+        "tvl",
+        "global_market",
+        "stablecoins",
+        "dex",
+        "top_coins"
+      ],
+      "is_stale": false,
+      "producer_exists": true
+    },
+    {
+      "key": "data/signal-board.json",
+      "producer": "justhodl-signal-board",
+      "size_kb": 11.4,
+      "last_modified": "2026-05-31T21:15:25+00:00",
+      "age_hours": 2.1,
+      "age_days": 0.1,
+      "null_or_zero_ratio": 0.07,
+      "meta_generated_at": null,
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "elapsed_s",
+        "composite_signal",
+        "composite_posture",
+        "n_engines",
+        "n_live"
+      ],
+      "is_stale": false,
+      "producer_exists": true
+    },
+    {
+      "key": "divergence/current.json",
+      "producer": "justhodl-divergence-engine-v2",
+      "size_kb": 6.1,
+      "last_modified": "2026-05-31T11:00:16+00:00",
+      "age_hours": 12.4,
+      "age_days": 0.5,
+      "null_or_zero_ratio": 0.0,
+      "meta_generated_at": null,
+      "top_keys": [
+        "as_of",
+        "v",
+        "summary",
+        "relationships",
+        "thresholds"
+      ],
+      "is_stale": false,
+      "producer_exists": true
+    },
+    {
+      "key": "edge-data.json",
+      "producer": "justhodl-edge-engine",
+      "size_kb": 2.0,
+      "last_modified": "2026-05-06T21:39:09+00:00",
+      "age_hours": 601.7,
+      "age_days": 25.1,
+      "null_or_zero_ratio": 0.01,
+      "meta_generated_at": null,
+      "top_keys": [
+        "generated_at",
+        "composite_score",
+        "calibrated_composite",
+        "raw_composite",
+        "calibration",
+        "regime",
+        "engine_scores",
+        "options_flow"
+      ],
+      "is_stale": true,
+      "producer_exists": true
+    },
+    {
+      "key": "flow-data.json",
+      "producer": "justhodl-options-flow",
+      "size_kb": 30.9,
+      "last_modified": "2026-05-06T21:38:58+00:00",
+      "age_hours": 601.7,
+      "age_days": 25.1,
+      "null_or_zero_ratio": 0.05,
+      "meta_generated_at": null,
+      "top_keys": [
+        "success",
+        "timestamp",
+        "engine",
+        "data",
+        "meta"
+      ],
+      "is_stale": true,
+      "producer_exists": true
+    },
+    {
+      "key": "intelligence-report.json",
+      "producer": "justhodl-morning-intelligence",
+      "size_kb": 4.1,
+      "last_modified": "2026-05-31T11:00:17+00:00",
+      "age_hours": 12.4,
+      "age_days": 0.5,
+      "null_or_zero_ratio": 0.08,
+      "meta_generated_at": null,
+      "top_keys": [
+        "timestamp",
+        "generated_at",
+        "version",
+        "data_sources",
+        "headline",
+        "headline_detail",
+        "phase",
+        "phase_color"
+      ],
+      "is_stale": false,
+      "producer_exists": true
+    },
+    {
+      "key": "liquidity-data.json",
+      "producer": "justhodl-liquidity-agent",
+      "size_kb": 10.2,
+      "last_modified": "2026-05-31T22:43:09+00:00",
+      "age_hours": 0.7,
+      "age_days": 0.0,
+      "null_or_zero_ratio": 0.02,
+      "meta_generated_at": "2026-05-31T22:43:08.046249+00:00",
+      "top_keys": [
+        "meta",
+        "core",
+        "regime",
+        "components",
+        "spy_signal",
+        "soma",
+        "reserves",
+        "money_supply"
+      ],
+      "is_stale": false,
+      "producer_exists": true
+    },
+    {
+      "key": "opportunities/asymmetric-equity.json",
+      "producer": "justhodl-opportunities",
+      "size_kb": 28.2,
+      "last_modified": "2026-05-31T11:00:14+00:00",
+      "age_hours": 12.4,
+      "age_days": 0.5,
+      "null_or_zero_ratio": 0.0,
+      "meta_generated_at": null,
+      "top_keys": [
+        "as_of",
+        "v",
+        "summary",
+        "cross_pollination",
+        "cutoffs",
+        "sector_breakdown",
+        "top_setups",
+        "value_traps"
+      ],
+      "is_stale": false,
+      "producer_exists": false,
+      "fuzzy_candidates": [
+        "justhodl-crypto-opportunities"
+      ]
+    },
+    {
+      "key": "portfolio/pnl-daily.json",
+      "producer": "justhodl-portfolio-snapshot",
+      "size_kb": 1.5,
+      "last_modified": "2026-05-31T22:00:28+00:00",
+      "age_hours": 1.4,
+      "age_days": 0.1,
+      "null_or_zero_ratio": 0.0,
+      "meta_generated_at": null,
+      "top_keys": [
+        "as_of",
+        "generated_at",
+        "inception",
+        "days_since_inception",
+        "starting_value_usd",
+        "current_phase",
+        "current_regime",
+        "current_action_required"
+      ],
+      "is_stale": false,
+      "producer_exists": true
+    },
+    {
+      "key": "regime/current.json",
+      "producer": "justhodl-regime-engine",
+      "size_kb": 1.4,
+      "last_modified": "2026-05-31T20:00:08+00:00",
+      "age_hours": 3.4,
+      "age_days": 0.1,
+      "null_or_zero_ratio": 0.03,
+      "meta_generated_at": null,
+      "top_keys": [
+        "as_of",
+        "regime",
+        "regime_strength",
+        "indicators_extreme",
+        "indicators_total",
+        "n_risk_off",
+        "n_risk_on",
+        "consensus_direction"
+      ],
+      "is_stale": false,
+      "producer_exists": false,
+      "fuzzy_candidates": []
+    },
+    {
+      "key": "risk/recommendations.json",
+      "producer": "justhodl-risk-engine",
+      "size_kb": 15.5,
+      "last_modified": "2026-05-31T11:00:18+00:00",
+      "age_hours": 12.4,
+      "age_days": 0.5,
+      "null_or_zero_ratio": 0.02,
+      "meta_generated_at": null,
+      "top_keys": [
+        "as_of",
+        "v",
+        "regime",
+        "regime_strength",
+        "max_gross_exposure_pct",
+        "drawdown_status",
+        "summary",
+        "constraints_applied"
+      ],
+      "is_stale": false,
+      "producer_exists": false,
+      "fuzzy_candidates": []
+    }
+  ],
+  "finished": "2026-05-31T23:22:33.085403+00:00"
+}
