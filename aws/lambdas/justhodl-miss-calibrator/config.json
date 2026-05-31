@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-miss-calibrator",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Closed-loop self-improvement. Reads 30d miss-summary, proposes threshold adjustments to SSM. Final link in the calibrator chain.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "miss-calibrator-weekly",
+    "cron": "cron(15 9 ? * MON *)",
+    "description": "Miss-Calibrator weekly proposals — Mondays 09:15 UTC, after Sunday calibrator at 09:00"
+  }
+}

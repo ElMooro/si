@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-engine-signal-map",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Engine family to signal_types map. Curated table plus DDB observation of recent 30d signals. Output data/engine-signal-map.json consumed by alpha-compass for magdist join.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "engine-signal-map-daily",
+    "cron": "cron(0 9 * * ? *)",
+    "description": "Engine to signal-type map — daily 09:00 UTC, before alpha-compass at :50"
+  }
+}

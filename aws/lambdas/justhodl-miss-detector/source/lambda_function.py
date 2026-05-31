@@ -243,21 +243,43 @@ def signals_fired_for(table, ticker: str, since_dt: datetime) -> list:
     return found
 
 
-def classify_miss(ticker: str, recent_signals: list) -> dict:
-    """Categorise a missed mover by why we didn't catch it."""
+def classify_miss(ticker: str, recent_signals: list,
+                   universe_tickers: set = None,
+                   ranker_tickers: set = None) -> dict:
+    """Categorise a missed mover by why we didn't catch it.
+
+    Categories:
+      - attributed         : prior signal exists → not actually a miss
+      - near_miss          : signal close to firing (requires engine cooperation
+                              to log near-fires; placeholder for now)
+      - wrong_signal_type  : ticker IS in our universe, but no engine class
+                              produced any signal for it in the lookback window
+                              (universe coverage is OK, signal coverage is not)
+      - out_of_universe    : ticker NOT in any of our tracked universes
+                              (we don't even watch it; expansion candidate)
+    """
     if recent_signals:
-        # Even a near-direction-correct signal counts as ATTRIBUTED — not a miss.
         return {"category": "attributed", "detail": f"{len(recent_signals)} prior signals"}
 
-    # No prior signals → must determine if the ticker is even in our universe.
-    # Heuristic: if the ticker shows up in any prior signal record at all (any
-    # field, any time), it IS in our universe but no signal fired. Otherwise it
-    # is out of universe.
-    # Without scanning all of DDB per ticker we'll mark all such cases as
-    # `wrong_signal_type` here and let the summary engine refine.
+    t = ticker.upper()
+
+    # Out-of-universe → we don't watch it
+    in_universe = (universe_tickers is not None and t in universe_tickers)
+    in_ranker   = (ranker_tickers is not None and t in ranker_tickers)
+
+    if not in_universe and not in_ranker:
+        return {
+            "category": "out_of_universe",
+            "detail": "ticker not present in universe.json nor master-ranker top-tickers",
+        }
+    
+    # In universe but no signal → engine coverage gap
+    where = []
+    if in_universe: where.append("universe")
+    if in_ranker:   where.append("ranker")
     return {
         "category": "wrong_signal_type",
-        "detail": "no prior signal for this ticker; no engine class produced one",
+        "detail": f"ticker is in {'+'.join(where)} but no engine produced a signal in {LOOKBACK_DAYS}d",
     }
 
 
@@ -351,6 +373,32 @@ def handler(event, context):
     candidates = compute_candidates(bars, prev_by_ticker)
     print(f"[miss] {len(candidates)} candidates moved ≥{MOVE_THRESHOLD_PCT}%")
 
+    # Load universe + master-ranker for universe-aware classification
+    universe_tickers = set()
+    ranker_tickers = set()
+    try:
+        u_obj = s3.get_object(Bucket=BUCKET, Key="data/universe.json")
+        u = json.loads(u_obj["Body"].read().decode("utf-8"))
+        for stk in (u.get("stocks") or []):
+            t = (stk.get("ticker") or stk.get("symbol") or "").upper()
+            if t:
+                universe_tickers.add(t)
+    except Exception as e:
+        print(f"[miss] could not load universe.json: {e}")
+    
+    try:
+        r_obj = s3.get_object(Bucket=BUCKET, Key="data/master-ranker.json")
+        r = json.loads(r_obj["Body"].read().decode("utf-8"))
+        for stk in (r.get("top_tickers") or []):
+            t = (stk.get("ticker") or "").upper()
+            if t:
+                ranker_tickers.add(t)
+    except Exception as e:
+        print(f"[miss] could not load master-ranker.json: {e}")
+    
+    print(f"[miss] universe={len(universe_tickers)} tickers, "
+          f"ranker={len(ranker_tickers)} tickers")
+
     since = started - timedelta(days=LOOKBACK_DAYS)
     misses = []
     attributed = 0
@@ -360,7 +408,9 @@ def handler(event, context):
     for cand in candidates[:200]:
         ticker = cand["ticker"]
         recent = signals_fired_for(table, ticker, since)
-        clsf = classify_miss(ticker, recent)
+        clsf = classify_miss(ticker, recent,
+                              universe_tickers=universe_tickers,
+                              ranker_tickers=ranker_tickers)
         if clsf["category"] == "attributed":
             attributed += 1
             continue

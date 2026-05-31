@@ -61,6 +61,7 @@ KEY_SCORECARD   = "data/signal-scorecard.json"
 KEY_SIZER       = "portfolio/sizer-v2.json"
 KEY_REGIME      = "data/regime-flag.json"
 KEY_MISS_SUMMARY = "data/miss-summary.json"
+KEY_ENGINE_MAP  = "data/engine-signal-map.json"
 OUTPUT_KEY      = "data/alpha-compass.json"
 
 s3 = boto3.client("s3", region_name=REGION)
@@ -106,29 +107,64 @@ def _engine_name(e) -> str:
     return ""
 
 
-def find_matching_stack(stacks: list, contributing_engines: list,
-                         horizon_hint: int = 30) -> dict:
-    """Match a conviction setup's contributing engines to a published stack.
+def expand_engine_to_signal_types(contributing_engines: list,
+                                    engine_map: dict) -> set:
+    """Given conviction's contributing_engines, return the set of underlying
+    signal_types they collectively represent (via engine-signal-map.json).
+    
+    Each contributing engine has a 'family' field (e.g. 'crisis-monitor',
+    'equity-value'). engine_map.by_family is a dict { family → [signal_types] }.
+    We union all relevant signal_types across the families present.
+    """
+    if not engine_map or not contributing_engines:
+        return set()
+    by_family = engine_map.get("by_family") or {}
+    if not isinstance(by_family, dict):
+        return set()
+    
+    out = set()
+    for e in contributing_engines:
+        if not isinstance(e, dict):
+            continue
+        family = e.get("family")
+        if family and family in by_family:
+            for st in by_family[family] or []:
+                if st:
+                    out.add(str(st).strip().lower())
+    return out
 
-    Strategy:
-      1. Build a candidate name set from the contributing-engines list.
-      2. Score each published stack by Jaccard overlap with that set.
-      3. Return the best match at the requested horizon (or any horizon if
-         no horizon match found and overlap is high enough).
+
+def find_matching_stack(stacks: list, contributing_engines: list,
+                         engine_map: dict = None,
+                         horizon_hint: int = 30) -> dict:
+    """Match a conviction setup to a published magdist stack.
+
+    TWO MATCHING PATHS:
+      A. Family expansion (preferred): use engine-signal-map to expand each
+         family → underlying signal_types, then Jaccard-match against stacks.
+      B. Name overlap (fallback): direct Jaccard on engine names — used when
+         engine_map isn't available.
+
+    Returns the best-scoring stack at the requested horizon (or any horizon).
     """
     if not stacks or not contributing_engines:
         return {}
 
-    candidate = set()
+    # Build the candidate signal-type set
+    candidate_via_map = expand_engine_to_signal_types(contributing_engines, engine_map or {})
+    candidate_via_names = set()
     for e in contributing_engines:
         name = _engine_name(e)
         if name:
-            candidate.add(name)
-
+            candidate_via_names.add(name)
+    
+    # Prefer the family-expanded set if it's substantially larger
+    candidate = candidate_via_map if len(candidate_via_map) >= len(candidate_via_names) else candidate_via_names
     if not candidate:
         return {}
 
     best, best_score = None, 0.0
+    best_via = None
     for s in stacks:
         members = set(str(x).strip().lower() for x in (s.get("signals") or []) if x)
         if not members:
@@ -141,10 +177,14 @@ def find_matching_stack(stacks: list, contributing_engines: list,
         horizon_match = 1.0 if s.get("horizon_days") == horizon_hint else 0.5
         score = jaccard * horizon_match
         if score > best_score:
-            best, best_score = s, score
+            best, best_score, best_via = s, score, ("family_map" if candidate is candidate_via_map else "name_overlap")
 
-    if best and best_score >= 0.30:
-        return best
+    if best and best_score >= 0.15:  # lower threshold since family expansion is fuzzier
+        # Attach the match method for debugging
+        match = dict(best)
+        match["_match_via"] = best_via
+        match["_match_score"] = round(best_score, 3)
+        return match
     return {}
 
 
@@ -263,12 +303,13 @@ def regime_context(regime_json: dict) -> dict:
 
 
 def build_card(setup: dict, magdist: dict, scorecard: dict, sizer: dict,
-                rank: int) -> dict:
+                rank: int, engine_map: dict = None) -> dict:
     """Assemble one institutional-format card."""
     engines = setup.get("contributing_engines") or []
     horizon_hint = 30
     stack_match = find_matching_stack(
-        magdist.get("stacks") or [], engines, horizon_hint=horizon_hint
+        magdist.get("stacks") or [], engines,
+        engine_map=engine_map, horizon_hint=horizon_hint
     )
     stop_pct, target_pct = stop_target_from_distribution(stack_match)
     scard = scorecard_lookup(scorecard, engines)
@@ -334,17 +375,17 @@ def handler(event, context):
     sizer        = safe_load(KEY_SIZER)
     regime_json  = safe_load(KEY_REGIME)
     miss_summary = safe_load(KEY_MISS_SUMMARY)
+    engine_map   = safe_load(KEY_ENGINE_MAP)
 
     setups = (conviction.get("setups")
               or conviction.get("conviction_sheet")
               or conviction.get("ranked") or [])
-    # conviction-engine output may be a list of subject blocks; sort by conviction desc
     if setups and isinstance(setups, list):
         setups.sort(key=lambda r: -(r.get("conviction") or 0))
 
-    top_calls = [build_card(s, magdist, scorecard, sizer, i + 1)
+    top_calls = [build_card(s, magdist, scorecard, sizer, i + 1, engine_map=engine_map)
                  for i, s in enumerate(setups[:3])]
-    watchlist = [build_card(s, magdist, scorecard, sizer, i + 4)
+    watchlist = [build_card(s, magdist, scorecard, sizer, i + 4, engine_map=engine_map)
                  for i, s in enumerate(setups[3:13])]
 
     coverage = {
@@ -366,6 +407,8 @@ def handler(event, context):
             "scorecard":               {"present": bool(scorecard)},
             "sizer":                   {"present": bool(sizer)},
             "miss_summary":            {"present": bool(miss_summary)},
+            "engine_signal_map":       {"present": bool(engine_map),
+                                         "families": len(engine_map.get("by_family", {})) if engine_map else 0},
         },
     }
 
