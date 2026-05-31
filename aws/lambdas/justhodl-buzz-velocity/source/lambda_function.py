@@ -264,6 +264,58 @@ def compute_velocity(short_window_count, long_window_count, window_ratio: float)
     }
 
 
+# v3 — sentiment scoring on a sample of titles
+# Lightweight rule-based since we can't deploy ML models in Lambda easily.
+# Returns score in [-1, 1] where +1 = bullish, -1 = bearish.
+_BULLISH_WORDS = {
+    "moon", "rocket", "🚀", "bullish", "buy", "long", "calls", "yolo", "diamond",
+    "hands", "💎", "loaded", "loading", "accumulating", "breakout", "rally",
+    "squeeze", "🟢", "gem", "undervalued", "moass", "tendies", "winning",
+    "soaring", "surging", "pump", "explode", "ath", "epic", "massive", "monster",
+}
+_BEARISH_WORDS = {
+    "puts", "short", "bearish", "🩸", "rug", "rugpull", "dump", "crash",
+    "tanking", "tanked", "drilling", "🔴", "guh", "bagholder", "fud", "rekt",
+    "exit", "selling", "dumping", "down", "drop", "dropping", "loss", "losses",
+    "scam", "fraud", "warning", "avoid", "trash", "garbage", "bankruptcy",
+    "delisting", "investigation",
+}
+
+def lightweight_sentiment(titles: list) -> dict:
+    """Rule-based sentiment scoring across a sample of titles.
+    Returns {score, n_bullish, n_bearish, n_neutral}."""
+    if not titles:
+        return {"score": 0, "n_bullish": 0, "n_bearish": 0, "n_neutral": 0, "n_total": 0}
+    
+    n_bullish = n_bearish = n_neutral = 0
+    for title in titles:
+        if not title:
+            continue
+        words = title.lower().split()
+        b_hits = sum(1 for w in words if any(bull in w for bull in _BULLISH_WORDS))
+        s_hits = sum(1 for w in words if any(bear in w for bear in _BEARISH_WORDS))
+        if b_hits > s_hits and b_hits > 0:
+            n_bullish += 1
+        elif s_hits > b_hits and s_hits > 0:
+            n_bearish += 1
+        else:
+            n_neutral += 1
+    
+    total = n_bullish + n_bearish + n_neutral
+    if total == 0:
+        return {"score": 0, "n_bullish": 0, "n_bearish": 0, "n_neutral": 0, "n_total": 0}
+    
+    # Net sentiment: -1 to +1
+    score = (n_bullish - n_bearish) / max(total, 1)
+    return {
+        "score":     round(score, 3),
+        "n_bullish": n_bullish,
+        "n_bearish": n_bearish,
+        "n_neutral": n_neutral,
+        "n_total":   total,
+    }
+
+
 def analyze_ticker(stock: dict) -> dict:
     ticker = stock["symbol"]
     name = stock.get("name") or ""
@@ -311,6 +363,18 @@ def analyze_ticker(stock: dict) -> dict:
         reddit_velocity["velocity"] * 0.6 + news_velocity["velocity"] * 0.4, 2
     )
     
+    # ── v3 NEW: Sentiment scoring on sample titles
+    # Pool Reddit + News titles
+    all_titles = []
+    for sr in SUBREDDITS:
+        for sample in reddit_short.get(sr, {}).get("sample", []) or []:
+            if sample.get("title"):
+                all_titles.append(sample["title"])
+    for sample in (news_7d.get("sample") or []):
+        if sample.get("title"):
+            all_titles.append(sample["title"])
+    sentiment = lightweight_sentiment(all_titles)
+    
     # ── "Stealth" check: high velocity + LOW price move = pre-pump alpha
     try:
         price_perf_7d = get_recent_price_perf(ticker, days=7)
@@ -320,10 +384,23 @@ def analyze_ticker(stock: dict) -> dict:
     stealth = (composite_velocity >= 2.5 and price_perf_7d is not None
                  and abs(price_perf_7d) < 5.0)
     
+    # ── v3 NEW: DIVERGENCE — buzz rising but price falling (bearish drift or contrarian)
+    divergence = None
+    if composite_velocity >= 1.8 and price_perf_7d is not None:
+        if price_perf_7d <= -8:
+            divergence = "negative_divergence"  # attention up, price tanking (bad news)
+        elif price_perf_7d >= 12 and sentiment["score"] < -0.2:
+            divergence = "positive_divergence"  # price up but sentiment turning sour
+    
     # ── Score: 0-100
     score = min(100, composite_velocity * 25)
     if stealth:
         score = min(100, score + 20)  # bonus for pre-pump positioning
+    # Sentiment-direction adjustment: if strongly bullish, boost; bearish, reduce
+    if sentiment["score"] >= 0.4:
+        score = min(100, score + 8)
+    elif sentiment["score"] <= -0.4:
+        score = max(0, score - 8)
     
     return {
         "ticker":             ticker,
@@ -332,8 +409,10 @@ def analyze_ticker(stock: dict) -> dict:
         "composite_velocity": composite_velocity,
         "reddit_velocity":    reddit_velocity,
         "news_velocity":      news_velocity,
+        "sentiment":          sentiment,
         "price_perf_7d_pct":  round(price_perf_7d, 2) if price_perf_7d is not None else None,
         "stealth_signal":     stealth,
+        "divergence":         divergence,
         "reddit_breakdown_7d": {
             sr: reddit_short.get(sr, {}).get("n_posts", 0) for sr in SUBREDDITS
         },
@@ -341,11 +420,12 @@ def analyze_ticker(stock: dict) -> dict:
         "news_30d_count":     news_30d.get("total"),
         "sample_headlines":   (news_7d.get("sample") or [])[:2],
         "thesis":             _thesis(composite_velocity, stealth, price_perf_7d,
-                                         reddit_velocity, news_velocity),
+                                         reddit_velocity, news_velocity, sentiment,
+                                         divergence),
     }
 
 
-def _thesis(velocity, stealth, price_perf, reddit_v, news_v):
+def _thesis(velocity, stealth, price_perf, reddit_v, news_v, sentiment=None, divergence=None):
     bits = []
     if velocity >= 3:
         bits.append(f"buzz velocity {velocity}x baseline")
@@ -355,6 +435,13 @@ def _thesis(velocity, stealth, price_perf, reddit_v, news_v):
         bits.append(f"Reddit: {reddit_v['interpretation'].lower().replace('_',' ')}")
     if news_v.get("interpretation") in ("EXTREME_SURGE", "SPIKE"):
         bits.append("news spiking")
+    if sentiment and abs(sentiment.get("score", 0)) >= 0.3:
+        tone = "bullish" if sentiment["score"] > 0 else "bearish"
+        bits.append(f"sentiment {tone} ({sentiment['score']:+.2f})")
+    if divergence == "negative_divergence":
+        bits.append("⚠ NEG DIVERGENCE — attention up, price tanking")
+    elif divergence == "positive_divergence":
+        bits.append("⚠ POS DIVERGENCE — price up, sentiment turning")
     if stealth:
         bits.append(f"STEALTH (price only {price_perf:+.1f}% in 7d)")
     return " · ".join(bits) if bits else "Moderate buzz"

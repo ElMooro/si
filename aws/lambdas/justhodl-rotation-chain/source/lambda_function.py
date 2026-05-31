@@ -180,7 +180,7 @@ def _get_json(url, timeout=HTTP_TIMEOUT):
 
 
 def fmp_history(ticker: str, lookback_days: int = 200) -> list:
-    """FMP historical price endpoint. Returns list of {date, close} desc."""
+    """FMP historical price endpoint. Returns list of {date, close, volume} desc."""
     url = f"https://financialmodelingprep.com/stable/historical-price-eod/full?symbol={ticker}&apikey={FMP_KEY}"
     data = _get_json(url)
     if isinstance(data, dict) and "_err" in data:
@@ -189,11 +189,59 @@ def fmp_history(ticker: str, lookback_days: int = 200) -> list:
     out = []
     for r in items[:lookback_days]:
         try:
-            out.append({"date": r["date"], "close": float(r["close"])})
+            out.append({
+                "date":   r["date"],
+                "close":  float(r["close"]),
+                "volume": float(r.get("volume", 0)),
+            })
         except Exception:
             continue
     out.sort(key=lambda x: x["date"], reverse=True)
     return out
+
+
+def volume_confirmation(history, days: int = 20) -> float:
+    """Volume surge confirms real money flow vs price-only noise.
+    Returns ratio of recent vs prior volume average."""
+    if not history or len(history) < days * 2:
+        return 1.0
+    recent_vols = [h.get("volume", 0) for h in history[:days]]
+    prior_vols  = [h.get("volume", 0) for h in history[days:days*2]]
+    recent_avg = mean(recent_vols) if recent_vols else 0
+    prior_avg  = mean(prior_vols) if prior_vols else 1
+    return round(recent_avg / max(prior_avg, 1), 2)
+
+
+def tier_breadth(histories: dict, tickers: list, days: int = 20) -> dict:
+    """How many of tier's tickers are participating in the move?
+    
+    A move where 9/10 of the tier participated is real; 3/10 is HFT noise.
+    Returns (participation_rate, n_participating, n_in_tier, top_performers)"""
+    if not tickers:
+        return {"participation": 0, "n_up": 0, "n_total": 0}
+    
+    perfs = []
+    for t in tickers:
+        h = histories.get(t)
+        if h:
+            r = returns_window(h, days)
+            if r is not None:
+                perfs.append({"ticker": t, "return": r})
+    
+    if not perfs:
+        return {"participation": 0, "n_up": 0, "n_total": 0}
+    
+    n_up = sum(1 for p in perfs if p["return"] > 0)
+    participation = round(n_up / len(perfs) * 100, 1)
+    perfs.sort(key=lambda p: -p["return"])
+    
+    return {
+        "participation":   participation,
+        "n_up":            n_up,
+        "n_total":         len(perfs),
+        "top_performers":  perfs[:3],
+        "worst_performers": perfs[-2:] if len(perfs) >= 3 else [],
+    }
 
 
 def returns_window(history, days: int) -> float:
@@ -351,14 +399,25 @@ def detect_next_up(histories: dict, leader_tier_data: dict,
 
 
 def analyze_chain(chain_name: str, chain_def: dict, histories: dict) -> dict:
-    """Compute everything for one chain."""
+    """Compute everything for one chain (v2 — added breadth + volume + multi-tf)."""
     tier_data = {}
     for tier_num, tickers in sorted(chain_def.items()):
         tier_data[tier_num] = chain_tier_aggregate(histories, tickers)
-        # Aggregate daily returns for cross-tier lead-lag
+        # NEW: breadth — how many of tier's tickers are participating
+        tier_data[tier_num]["breadth_30d"] = tier_breadth(histories, tickers, days=30)
+        # NEW: aggregate daily returns + volume for cross-tier lead-lag
         if tier_data[tier_num].get("daily_series"):
             tier_data[tier_num]["aggregated_daily"] = \
                 aggregate_tier_daily(tier_data[tier_num]["daily_series"])
+        # NEW: volume confirmation per tier (avg across tier members)
+        vol_ratios = []
+        for t in chain_def[tier_num]:
+            h = histories.get(t)
+            if h:
+                vol_ratios.append(volume_confirmation(h, days=20))
+        tier_data[tier_num]["volume_confirmation_20d"] = (
+            round(mean(vol_ratios), 2) if vol_ratios else None
+        )
     
     # Find current leader: tier with highest 30d avg return
     perf_by_tier = {n: d.get("avg_return_30d") for n, d in tier_data.items()
@@ -393,18 +452,41 @@ def analyze_chain(chain_name: str, chain_def: dict, histories: dict) -> dict:
             leader_perf,
         )
     
+    # NEW v2: rotation conviction score includes volume + breadth
+    leader_breadth = tier_data[current_leader].get("breadth_30d", {}).get("participation", 0)
+    leader_volume = tier_data[current_leader].get("volume_confirmation_20d", 1.0) or 1.0
+    
+    # Confidence in this rotation read (0-100)
+    confidence = 50
+    if leader_breadth >= 75:    confidence += 25  # broad participation
+    elif leader_breadth >= 50:  confidence += 10
+    elif leader_breadth < 30:   confidence -= 20  # narrow / suspect
+    if leader_volume >= 1.3:    confidence += 15  # volume surge confirms
+    elif leader_volume >= 1.1:  confidence += 5
+    elif leader_volume < 0.8:   confidence -= 10  # volume fading
+    confidence = max(0, min(100, confidence))
+    
     return {
         "chain":                chain_name,
         "current_leader_tier":  current_leader,
         "leader_perf_30d_pct":  round(leader_perf, 2),
+        "leader_breadth_pct":   leader_breadth,
+        "leader_volume_ratio":  leader_volume,
+        "rotation_confidence":  confidence,
         "next_tier":            next_tier_n if next_tier_n in chain_def else None,
         "next_tier_perf_30d":   tier_data.get(next_tier_n, {}).get("avg_return_30d"),
+        "next_tier_breadth":    tier_data.get(next_tier_n, {}).get("breadth_30d", {}).get("participation"),
+        "next_tier_volume":     tier_data.get(next_tier_n, {}).get("volume_confirmation_20d"),
         "expected_catchup_pct": round(
             leader_perf - (tier_data.get(next_tier_n, {}).get("avg_return_30d") or 0),
             2,
         ),
         "next_up_tickers":      next_up_tickers,
         "tier_returns_30d":     {n: d.get("avg_return_30d") for n, d in tier_data.items()},
+        "tier_breadth_30d":     {n: d.get("breadth_30d", {}).get("participation")
+                                 for n, d in tier_data.items()},
+        "tier_volume_20d":      {n: d.get("volume_confirmation_20d")
+                                 for n, d in tier_data.items()},
         "lead_lag_relations":   lead_lag,
         "rotation_state": (
             "ROTATING" if next_up_tickers and

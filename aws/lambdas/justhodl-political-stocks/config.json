@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-political-stocks",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Political insider stock tracker. Trump 278e holdings (manual cache) + Congress trades from House/Senate Stock Watcher community APIs. Detects cluster buys (3+ politicians same ticker) and bipartisan signals.",
+  "schedule": {
+    "rule_name": "political-stocks-daily",
+    "cron": "cron(0 14 * * ? *)",
+    "description": "Political stock activity — daily 14 UTC"
+  }
+}

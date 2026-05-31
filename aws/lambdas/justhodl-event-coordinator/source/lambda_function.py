@@ -214,6 +214,24 @@ ROUTES = {
         "notify":  True,
         "audit":   True,
     },
+    
+    # SEC filings material event — going-concern, CFO departure, restatement,
+    # bankruptcy, major M&A definitive agreement. Critical-severity only is
+    # filtered in the formatter; mediums get audit-only.
+    "sec_filings.material_event": {
+        "invoke":  ["justhodl-alpha-compass"],
+        "notify":  True,
+        "audit":   True,
+    },
+    
+    # Political cluster buy — 3+ Congress members buying same ticker.
+    # Particularly notable when bipartisan (suppress single-party clusters
+    # under cluster size 4 since those happen often for political reasons).
+    "political.cluster_buy": {
+        "invoke":  ["justhodl-alpha-compass"],
+        "notify":  True,
+        "audit":   True,
+    },
 }
 
 
@@ -369,6 +387,32 @@ def send_telegram_alert(event_name: str, detail: dict) -> bool:
                           f"rotation={sub.get('rotation_chain','?')} "
                           f"buzz={sub.get('buzz_velocity','?')}")
             lines.append(f"  {detail.get('thesis','?')}")
+        elif event_name == "sec_filings.material_event":
+            # Suppress non-critical to keep Telegram noise low
+            severity = detail.get("severity")
+            if severity not in ("critical", "high"):
+                return False  # skip Telegram entirely
+            polarity = detail.get("polarity", "?")
+            polarity_emoji = "📉" if polarity == "bearish" else "📈" if polarity == "bullish" else "📑"
+            lines.append(f"  {polarity_emoji} ticker: <b>{detail.get('ticker','?')}</b>")
+            lines.append(f"  signal: <b>{detail.get('signal','?')}</b>")
+            lines.append(f"  severity: <b>{severity}</b> · polarity: {polarity}")
+            lines.append(f"  form: {detail.get('form','?')} · filed: {detail.get('filed_at','?')}")
+            lines.append(f"  composite score: {detail.get('score','?')}")
+            lines.append(f"  verdict: <b>{detail.get('verdict','?')}</b>")
+        elif event_name == "political.cluster_buy":
+            # Suppress small single-party clusters (need 4+ politicians or bipartisan)
+            n_pols = detail.get("n_politicians", 0)
+            is_bipartisan = detail.get("bipartisan", False)
+            if n_pols < 4 and not is_bipartisan:
+                return False
+            party_tag = "🤝 BIPARTISAN" if is_bipartisan else "single-party"
+            lines.append(f"  🏛 ticker: <b>{detail.get('ticker','?')}</b>")
+            lines.append(f"  cluster: {n_pols} politicians, {detail.get('n_buys','?')} buys ({party_tag})")
+            dollar_est = detail.get("buy_dollar_est", 0)
+            if dollar_est:
+                lines.append(f"  estimated buys: ~${dollar_est:,.0f}")
+            lines.append(f"  score: {detail.get('score','?')}")
         else:
             # Fallback: dump the first few keys
             payload = {k: v for k, v in detail.items()

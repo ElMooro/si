@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-sec-filings-intel",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Comprehensive SEC filings risk/opportunity scanner. Searches EDGAR full-text for 14 institutional alpha signals across 8-K/10-Q/Form 4/13F/S-3: going concern, CFO departures, restatements, investigations, M&A deals, FDA approvals, buybacks, dilution. Per-ticker composite + per-event drill-down.",
+  "schedule": {
+    "rule_name": "sec-filings-intel-3x-daily",
+    "cron": "cron(0 9,15,21 * * ? *)",
+    "description": "SEC filings scanner — 3x daily 9/15/21 UTC (covers pre-market, mid-day, post-close)"
+  }
+}

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forward Orders · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>📜</text></svg>">
+<style>
+:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;--mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1380px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--purple)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}.subtitle b{color:var(--txt)}
+nav.crumbs{margin-top:10px}nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.stat{padding:6px}.stat .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.stat .v{font-family:var(--mono);font-size:24px;font-weight:700;margin-top:4px;color:var(--purple)}.stat .n{font-size:10px;color:var(--dim);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;padding:9px 6px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:9.5px}
+th.r{text-align:right}td{padding:9px 6px;border-bottom:1px solid rgba(28,36,51,.55);vertical-align:top}td.r{text-align:right}tr:hover td{background:var(--panel2)}
+.tick{font-weight:700}.tick a{color:var(--cyan);text-decoration:none}.tick a:hover{text-decoration:underline}
+.composite{font-family:var(--mono);font-weight:700;font-size:13px;display:inline-block;padding:2px 10px;border-radius:3px}
+.hi{background:rgba(255,122,24,.16);color:var(--orange)}.mi{background:rgba(167,139,250,.13);color:var(--purple)}.lo{background:rgba(168,179,199,.08);color:var(--mute)}
+.subbar{position:relative;height:14px;width:100%;background:#1c2433;border-radius:2px;overflow:hidden;font-family:var(--mono);font-size:9px;min-width:60px}
+.subbar .fill{height:100%;background:linear-gradient(90deg,#a78bfa44,var(--purple));border-radius:2px}
+.subbar .val{position:absolute;right:4px;top:0;line-height:14px;color:var(--txt);font-weight:700;font-size:9px}
+.thesis{color:var(--mute);font-family:'Inter',sans-serif;font-size:11px;line-height:1.35;max-width:380px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 12px}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px}
+.note{color:var(--dim);font-size:11px;line-height:1.6;margin-top:14px;max-width:1100px;font-family:'Inter',sans-serif}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:18px}
+.rpobar{display:inline-block;height:8px;background:rgba(167,139,250,.12);border-radius:2px;width:100%;max-width:200px;position:relative;vertical-align:middle}
+.rpobar .fill{height:100%;background:var(--purple);border-radius:2px}
+.detail{color:var(--dim);font-size:10px;font-family:var(--mono);margin-top:2px}
+.contract{color:var(--green);font-family:var(--mono);font-size:10px}
+.accel-pos{color:var(--green)}.accel-neg{color:var(--red)}
+</style></head><body>
+<div class="container">
+  <header>
+    <h1>📜 Forward Orders · RPO + Backlog</h1>
+    <p class="subtitle">
+      The biggest institutional alpha SEC requires but retail rarely tracks. We pull <b>RPO (Remaining
+      Performance Obligations)</b> + backlog from each company's XBRL filings via SEC EDGAR. v3 adds
+      <b>multi-quarter QoQ acceleration</b> (is the backlog growing FASTER than last quarter?),
+      <b>peer-relative percentile</b> (sector-adjusted), plus contract-announcement scanning across NewsAPI.
+    </p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a><a href="/future-intel.html">future intel</a>
+      <a href="/rotation-chains.html">rotation chains</a><a href="/buzz-velocity.html">buzz</a>
+      <a href="/sec-filings.html">sec filings</a><a href="/political.html">political</a>
+    </nav>
+  </header>
+  <div id="hero" class="hero"><div class="loading">LOADING FORWARD ORDERS…</div></div>
+  <h2>Top 30 by Composite</h2>
+  <div class="card"><div id="table"><div class="loading">…</div></div></div>
+  <p class="note" id="note">
+    Composite weighting (v3): <b>RPO Yield 30%</b> (RPO/mcap) · <b>RPO Growth 25%</b> (YoY) ·
+    <b>QoQ Acceleration 15%</b> (multi-quarter trend) · <b>Contracts 15%</b> (NewsAPI $100M+ wins) ·
+    <b>Book-to-Bill 10%</b> (RPO growing faster than revenue) · <b>Peer Percentile 5%</b> (sector relative).
+  </p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const fetchJson=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function compClass(s){return s>=65?"hi":s>=30?"mi":"lo"}
+function subbar(val,maxv=100){if(val==null||val===0)return `<div class="subbar"><div class="fill" style="width:0"></div><div class="val">—</div></div>`;const pct=Math.min(100,Math.max(0,val/maxv*100));return `<div class="subbar"><div class="fill" style="width:${pct}%"></div><div class="val">${val.toFixed(0)}</div></div>`}
+function rpoBar(yieldPct){const pct=Math.min(100,(yieldPct||0));return `<span class="rpobar"><span class="fill" style="width:${pct}%"></span></span>`}
+function renderHero(d){
+  const top=d.top_25_by_score||d.all_results||[];
+  const avg=top.length?(top.reduce((s,r)=>s+(r.composite||0),0)/top.length):0;
+  const exceptional=top.filter(r=>r.composite>=70).length;
+  const accelPos=top.filter(r=>(r.data?.rpo_qoq_acceleration_pp||0)>=5).length;
+  const yields=top.filter(r=>(r.data?.rpo_yield_pct||0)>=50).length;
+  document.getElementById("hero").innerHTML=`
+    <div class="stat"><div class="lab">With RPO disclosed</div><div class="v">${d.n_with_rpo||0}</div><div class="n">of ${d.n_universe||0} universe</div></div>
+    <div class="stat"><div class="lab">Avg composite (top 25)</div><div class="v">${avg.toFixed(1)}</div><div class="n">institutional benchmark</div></div>
+    <div class="stat"><div class="lab">Exceptional (≥70)</div><div class="v">${exceptional}</div><div class="n">elite RPO concentration</div></div>
+    <div class="stat"><div class="lab">Accelerating QoQ</div><div class="v">${accelPos}</div><div class="n">backlog momentum rising</div></div>
+    <div class="stat"><div class="lab">RPO yield ≥50%</div><div class="v">${yields}</div><div class="n">half of mcap locked</div></div>
+  `;
+}
+function renderTable(d){
+  const rows=(d.top_25_by_score||d.all_results||[]).slice(0,30);
+  if(!rows.length){document.getElementById("table").innerHTML='<div class="loading">No data yet.</div>';return}
+  document.getElementById("table").innerHTML=`<table><thead><tr>
+    <th>Ticker</th><th>Company</th><th class="r">Composite</th>
+    <th>Yield (30%)</th><th>Growth (25%)</th><th>QoQ Accel (15%)</th>
+    <th class="r">RPO ($B)</th><th class="r">Yield %</th><th>Thesis</th>
+  </tr></thead><tbody>${rows.map(r=>{
+    const dt=r.data||{};const s=r.subscores||{};
+    const accelPp=dt.rpo_qoq_acceleration_pp;
+    const accelStr=accelPp==null?"—":`<span class="${accelPp>=0?'accel-pos':'accel-neg'}">${accelPp>=0?'+':''}${accelPp.toFixed(1)}pp</span>`;
+    return `<tr>
+      <td><span class="tick"><a href="/chart-pro.html?ticker=${esc(r.ticker)}">${esc(r.ticker)}</a></span>
+          <div class="detail">${esc(r.sector||"")}</div></td>
+      <td style="font-family:'Inter',sans-serif;font-size:12px">${esc((r.name||"").slice(0,40))}</td>
+      <td class="r"><span class="composite ${compClass(r.composite)}">${(r.composite||0).toFixed(1)}</span></td>
+      <td>${subbar(s.rpo_yield)}</td><td>${subbar(s.rpo_growth)}</td><td>${subbar(s.rpo_acceleration)}</td>
+      <td class="r">$${((dt.rpo_latest_usd||0)/1e9).toFixed(1)}B</td>
+      <td class="r">${(dt.rpo_yield_pct||0).toFixed(0)}%${rpoBar(dt.rpo_yield_pct)}</td>
+      <td><div class="thesis">${esc((r.thesis||"").slice(0,160))}</div>
+          ${(r.contracts?.n||0)>0?`<div class="contract">📰 $${((r.contracts.total_usd||0)/1e9).toFixed(1)}B in contracts</div>`:''}</td>
+    </tr>`}).join("")}</tbody></table>`;
+}
+async function load(){
+  const d=await fetchJson("forward-orders.json");
+  if(!d){document.getElementById("hero").innerHTML='<div class="loading" style="color:var(--red)">FAILED to load forward-orders.json</div>';return}
+  renderHero(d);renderTable(d);
+  document.getElementById("ts").innerHTML=`generated ${esc(d.generated_at||"?")} · ${esc(d.method||"?")} v${esc(d.schema_version||"?")}`;
+}
+load();
+</script></body></html>

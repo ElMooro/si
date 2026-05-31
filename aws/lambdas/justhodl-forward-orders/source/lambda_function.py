@@ -398,11 +398,77 @@ def score_book_to_bill(rpo_growth_pct, revenue_series) -> tuple:
 
 
 WEIGHTS = {
-    "rpo_yield":          0.40,
-    "rpo_growth":         0.30,
-    "contracts":          0.20,
-    "book_to_bill":       0.10,
+    "rpo_yield":          0.30,    # was 0.40
+    "rpo_growth":         0.25,    # was 0.30
+    "rpo_acceleration":   0.15,    # NEW — multi-quarter QoQ trend
+    "contracts":          0.15,    # was 0.20
+    "book_to_bill":       0.10,    # was 0.10
+    "peer_percentile":    0.05,    # NEW — vs industry median
 }
+
+
+def compute_rpo_acceleration(rpo_series) -> tuple:
+    """Multi-quarter QoQ growth trend. Detects acceleration vs flat/decel.
+    Returns (score 0-100, qoq_change_pct, n_quarters_used).
+    
+    With 4 most-recent quarters (Q-3, Q-2, Q-1, Q-0):
+      qoq_recent = (Q0 - Q-1) / Q-1
+      qoq_prior  = (Q-1 - Q-2) / Q-2
+      acceleration = qoq_recent - qoq_prior
+    
+    Positive acceleration = backlog growing FASTER than prior quarter.
+    This is the strongest forward signal — order book momentum is increasing."""
+    if not rpo_series or len(rpo_series) < 4:
+        return 0, None, 0
+    
+    # Use first 4 entries (most recent)
+    vals = [r["value"] for r in rpo_series[:4] if r.get("value")]
+    if len(vals) < 4:
+        return 0, None, len(vals)
+    
+    q0, q1, q2, q3 = vals[0], vals[1], vals[2], vals[3]
+    if not all([q0, q1, q2, q3]) or q1 <= 0 or q2 <= 0:
+        return 0, None, len(vals)
+    
+    qoq_recent = (q0 - q1) / abs(q1) * 100
+    qoq_prior  = (q1 - q2) / abs(q2) * 100
+    acceleration_pp = qoq_recent - qoq_prior
+    
+    # Score: +10pp acceleration is exceptional
+    if acceleration_pp >= 15:   s = 100
+    elif acceleration_pp >= 8:  s = 85
+    elif acceleration_pp >= 3:  s = 70
+    elif acceleration_pp >= 0:  s = 50
+    elif acceleration_pp >= -5: s = 30
+    elif acceleration_pp >= -10: s = 15
+    else: s = 0
+    return s, round(acceleration_pp, 1), len(vals)
+
+
+# Module-level peer cache populated mid-run for percentile scoring
+_peer_yields_by_sector = {}
+
+def compute_peer_percentile(sector, my_yield_pct) -> tuple:
+    """Score = percentile rank of this ticker's RPO yield within its sector.
+    Sector-relative analysis: a 30% RPO yield is exceptional for industrials
+    but middling for SaaS (Oracle at 85%). Use sector median as benchmark."""
+    if not sector or not my_yield_pct:
+        return 50, None  # neutral if can't compare
+    
+    peer_yields = _peer_yields_by_sector.get(sector, [])
+    if len(peer_yields) < 3:
+        return 50, None  # not enough peers
+    
+    sorted_peers = sorted(peer_yields)
+    n = len(sorted_peers)
+    # Find rank of my_yield
+    rank = sum(1 for p in sorted_peers if p < my_yield_pct)
+    percentile = round(rank / n * 100, 1)
+    
+    # Score: 80th-percentile peer = 90 score
+    score = min(100, percentile * 1.1)
+    return score, percentile
+
 
 
 def analyze_ticker(stock):
@@ -424,16 +490,25 @@ def analyze_ticker(stock):
     s_yield = score_rpo_yield(rpo_latest, mcap)
     s_growth, growth_pct = score_rpo_growth(rpo_series)
     
+    # NEW v3: multi-quarter acceleration
+    s_accel, accel_pp, n_quarters = compute_rpo_acceleration(rpo_series)
+    
     contracts = scan_contracts_for(ticker, stock.get("name"))
     s_contracts = score_contracts(contracts, mcap)
     
     s_b2b, spread = score_book_to_bill(growth_pct, rev_series)
     
+    # NEW v3: peer-relative percentile (sector benchmark)
+    my_yield_pct = (rpo_latest / mcap * 100) if mcap else None
+    s_peer, peer_pct = compute_peer_percentile(stock.get("sector"), my_yield_pct)
+    
     composite = (
-        s_yield * WEIGHTS["rpo_yield"] +
-        s_growth * WEIGHTS["rpo_growth"] +
+        s_yield     * WEIGHTS["rpo_yield"] +
+        s_growth    * WEIGHTS["rpo_growth"] +
+        s_accel     * WEIGHTS["rpo_acceleration"] +
         s_contracts * WEIGHTS["contracts"] +
-        s_b2b * WEIGHTS["book_to_bill"]
+        s_b2b       * WEIGHTS["book_to_bill"] +
+        s_peer      * WEIGHTS["peer_percentile"]
     )
     
     return {
@@ -444,38 +519,48 @@ def analyze_ticker(stock):
         "market_cap":     mcap,
         "composite":      round(composite, 1),
         "subscores": {
-            "rpo_yield":     round(s_yield, 1),
-            "rpo_growth":    round(s_growth, 1),
-            "contracts":     round(s_contracts, 1),
-            "book_to_bill":  round(s_b2b, 1),
+            "rpo_yield":         round(s_yield, 1),
+            "rpo_growth":        round(s_growth, 1),
+            "rpo_acceleration":  round(s_accel, 1),
+            "contracts":         round(s_contracts, 1),
+            "book_to_bill":      round(s_b2b, 1),
+            "peer_percentile":   round(s_peer, 1),
         },
         "data": {
-            "rpo_latest_usd":   rpo_latest,
-            "rpo_yield_pct":    round(rpo_latest / mcap * 100, 1) if mcap else None,
-            "rpo_growth_yoy_pct": growth_pct,
-            "book_to_bill_spread_pct": spread,
-            "rpo_tag":          rpo_series[0].get("tag"),
-            "rpo_as_of":        rpo_series[0].get("end"),
-            "rpo_history":      rpo_series[:6],
-            "revenue_history":  rev_series[:3],
+            "rpo_latest_usd":           rpo_latest,
+            "rpo_yield_pct":            round(my_yield_pct, 1) if my_yield_pct else None,
+            "rpo_growth_yoy_pct":       growth_pct,
+            "rpo_qoq_acceleration_pp":  accel_pp,
+            "rpo_quarters_available":   n_quarters,
+            "book_to_bill_spread_pct":  spread,
+            "peer_percentile":          peer_pct,
+            "rpo_tag":                  rpo_series[0].get("tag"),
+            "rpo_as_of":                rpo_series[0].get("end"),
+            "rpo_history":              rpo_series[:6],
+            "revenue_history":          rev_series[:3],
         },
         "contracts": contracts,
         "thesis":  _build_thesis(s_yield, s_growth, s_contracts, s_b2b,
-                                   rpo_latest, mcap, growth_pct, contracts),
+                                   rpo_latest, mcap, growth_pct, contracts,
+                                   accel_pp, peer_pct),
     }
 
 
 def _build_thesis(s_yield, s_growth, s_contracts, s_b2b,
-                    rpo, mcap, growth_pct, contracts):
+                    rpo, mcap, growth_pct, contracts, accel_pp=None, peer_pct=None):
     bits = []
     if s_yield >= 70:
         bits.append(f"RPO ${rpo/1e9:.1f}B = {rpo/mcap*100:.0f}% of mcap")
     if s_growth >= 70 and growth_pct:
         bits.append(f"RPO growing {growth_pct:+.0f}% YoY")
+    if accel_pp is not None and accel_pp >= 5:
+        bits.append(f"acceleration +{accel_pp:.0f}pp QoQ")
     if s_contracts >= 65:
         bits.append(f"${contracts.get('total_usd',0)/1e9:.1f}B in 90d contract wins")
     if s_b2b >= 70:
         bits.append("RPO outpacing revenue → future accel")
+    if peer_pct is not None and peer_pct >= 80:
+        bits.append(f"top-{100-int(peer_pct)}% peer")
     if not bits:
         return "Moderate forward-orders signal"
     return " · ".join(bits)
@@ -497,7 +582,7 @@ def handler(event, context):
     get_cik_for_ticker("AAPL")  # forces the cache fill
     print(f"[fwd-orders] CIK cache loaded: {len(_cik_cache)} entries")
     
-    # ─── 3. Analyze each ticker ─────────────────────────────────────────
+    # ─── 3. Analyze each ticker (single pass — peer percentile is iterative) ─
     # SEC rate limit is 10 requests/sec — pace ourselves
     results = []
     for i, stock in enumerate(universe):
@@ -505,6 +590,12 @@ def handler(event, context):
             r = analyze_ticker(stock)
             if r and r["composite"] >= 20:  # only keep meaningful scores
                 results.append(r)
+                # As we score, accumulate yields per sector so subsequent
+                # tickers benefit from the peer-comparison signal
+                sector = stock.get("sector")
+                yp = r["data"].get("rpo_yield_pct")
+                if sector and yp:
+                    _peer_yields_by_sector.setdefault(sector, []).append(yp)
         except Exception as e:
             print(f"[fwd-orders] err on {stock['symbol']}: {e}")
         # Rate-limit pacing for SEC
@@ -519,13 +610,36 @@ def handler(event, context):
             print("[fwd-orders] time budget exhausted, stopping early")
             break
     
-    # Sort by composite
+    # Second pass: re-score peer percentile now that we have full sector populations.
+    # Only re-runs the peer dimension (cheap; no network calls).
+    for r in results:
+        sector = r.get("sector")
+        yp = r["data"].get("rpo_yield_pct")
+        if sector and yp:
+            s_peer, peer_pct = compute_peer_percentile(sector, yp)
+            # Update subscore + composite
+            old_s_peer = r["subscores"]["peer_percentile"]
+            r["subscores"]["peer_percentile"] = round(s_peer, 1)
+            r["data"]["peer_percentile"] = peer_pct
+            # Recompute composite (since we changed one of the 6 subscores)
+            ss = r["subscores"]
+            r["composite"] = round(
+                ss["rpo_yield"] * WEIGHTS["rpo_yield"] +
+                ss["rpo_growth"] * WEIGHTS["rpo_growth"] +
+                ss["rpo_acceleration"] * WEIGHTS["rpo_acceleration"] +
+                ss["contracts"] * WEIGHTS["contracts"] +
+                ss["book_to_bill"] * WEIGHTS["book_to_bill"] +
+                ss["peer_percentile"] * WEIGHTS["peer_percentile"],
+                1,
+            )
+    
+    # Re-sort
     results.sort(key=lambda r: -r["composite"])
     
     # ─── 4. Emit composite output ───────────────────────────────────────
     out = {
-        "schema_version":     "1.0",
-        "method":             "forward_orders_v1",
+        "schema_version":     "3.0",
+        "method":             "forward_orders_v3",
         "generated_at":       datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s":         round((datetime.now(timezone.utc) - started).total_seconds(), 1),
         "n_universe":         len(universe),
