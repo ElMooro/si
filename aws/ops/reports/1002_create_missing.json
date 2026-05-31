@@ -1,0 +1,15 @@
+{
+  "started": "2026-05-31T02:40:42.025144+00:00",
+  "worker_status": 200,
+  "worker_err": null,
+  "result": {
+    "justhodl-magnitude-distributions": {
+      "zip_size": 6482,
+      "error": "An error occurred (ValidationException) when calling the CreateFunction operation: 1 validation error detected: Value 'Per signal-stack realised return distributions (n, median, P25/P75, win rate). Reads checked outcomes from DDB justhodl-signals; outputs data/magnitude-distributions.json. Institutional answer to 'how much will it pump?' \u2014 distributions, never point estimates.' at 'description' fa"
+    },
+    "justhodl-miss-detector": {
+      "zip_size": 8144,
+      "error": "An error occurred (ValidationException) when calling the CreateFunction operation: 1 validation error detected: Value 'Closed-loop opportunity-cost engine. Nightly scans every US stock with |daily move| >= 5%, checks DDB justhodl-signals for prior signals in 10d lookback, classifies misses (near_miss/wrong_signal_type/out_of_universe/regime_misfire). Outputs daily ledger + rolling 30d summary that"
+    }
+  }
+}
