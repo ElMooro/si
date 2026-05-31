@@ -1,0 +1,208 @@
+{
+  "started": "2026-05-31T22:58:16.804527+00:00",
+  "patches": [
+    {
+      "name": "justhodl-divergence-engine-v2",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 15392
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-cross-asset-confirm",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 9083
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-liquidity-pulse",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 10225
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-crisis-plumbing",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 19346
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-yield-curve",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8093
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-liquidity-credit-engine",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 20990
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-macro-surprise",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7527
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-macro-nowcast",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 10265
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-cds-proxy",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7365
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-bond-trace",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7275
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-bank-stress",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7916
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-repo-lending",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8376
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-margin-lending",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8752
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-china-liquidity",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7426
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-global-liquidity",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8246
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-cross-asset-rv",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 8904
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-tic-flows",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7360
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-implied-prob",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 9709
+      },
+      "action": "patched_and_deployed"
+    },
+    {
+      "name": "justhodl-liquidity-flow",
+      "already_patched": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 7286
+      },
+      "action": "patched_and_deployed"
+    }
+  ],
+  "shim_size": 8588,
+  "summary": {
+    "total": 19,
+    "patched": 19,
+    "already": 0,
+    "shim_only": 0,
+    "errors": 0
+  },
+  "verifications": [
+    {
+      "name": "justhodl-divergence-engine-v2",
+      "elapsed_s": 32.6,
+      "status": 200,
+      "body_status_code": 200,
+      "body_preview": "{\"ok\": true, \"n_relationships\": 71, \"n_flagged\": 6, \"n_extreme\": 3, \"composite_index\": 25.7, \"duration_s\": 31.0}"
+    },
+    {
+      "name": "justhodl-yield-curve",
+      "elapsed_s": 9.7,
+      "status": 200,
+      "body_status_code": 200,
+      "body_preview": "{\"regime\": \"BULL_FLATTENER\", \"twos_tens_bps\": 49.0, \"butterfly_bps\": -8.5, \"n_signals\": 0, \"duration_s\": 8.8}"
+    },
+    {
+      "name": "justhodl-cds-proxy",
+      "elapsed_s": 50.0,
+      "status": 200,
+      "body_status_code": 200,
+      "body_preview": "{\"ok\": true, \"composite\": 0, \"regime\": \"CALM\"}"
+    }
+  ],
+  "finished": "2026-05-31T23:02:03.916742+00:00"
+}
