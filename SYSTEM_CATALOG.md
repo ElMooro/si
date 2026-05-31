@@ -646,4 +646,111 @@ fwd-orders/rotation/buzz/ticker-trends) once 30d of data validates signal
 consistency — currently isolated to avoid polluting composite with
 unvalidated signals.
 
+## 2026-05-31 (late session) — ARK Invest + USPTO Patents (Free Data Expansion)
+
+After exhaustive audit (451 deployed Lambdas confirmed — system has grown
+73 since prior snapshot of 378), only TWO genuine free-data gaps survived:
+**ARK Invest daily holdings** and **USPTO patent velocity**. Most signal
+classes already covered: insider clusters (cluster-scanner v2),
+13F/smart-money (6 dedicated Lambdas), StockTwits + ApeWisdom (retail-
+sentiment), news sentiment (news-sentiment v2), earnings transcripts (3
+Lambdas), on-chain crypto (onchain-ratios), even FINRA short interest
+(4 Lambdas already use cdn.finra.org/equity/regsho/daily).
+
+### `justhodl-ark-holdings` — LIVE (daily 6 UTC, 512MB/180s)
+
+**First-build went wrong, then we fixed it.** Initial implementation hit
+ark-funds.com CSV downloads directly — those returned HTTP 404 across all
+6 ETFs. ARK moved CSVs behind a session-token portal in 2025. Fund pages
+are now JS-rendered SPAs with zero direct CSV links in HTML (verified
+via ops/1062 — scraped 6 fund pages, all 140KB SPAs, 0 CSV links found).
+
+**Solution: migrated to arkfunds.io (frefrik/ark-invest-api)** — community
+mirror, free, no auth, multi-fund queries. Single REST call returns all
+6 ETF positions in clean JSON.
+
+Current live state (ops/1066):
+  - 221 positions across all 6 ETFs (ARKK 40, ARKQ 38, ARKW 39, ARKF 36,
+    ARKG 32, ARKX 33)
+  - 119 unique tickers post-dedup
+  - 45.4KB output to `data/ark-holdings.json` (schema 2.0,
+    method=ark_holdings_v2_arkfunds_io)
+  - Top cross-fund conviction: TSLA in 4 funds ($1.20B), AMD in 5 funds
+    ($898M), PLTR in 5 funds ($415M), AMZN in 5 funds ($415M)
+  - Schema includes day-over-day diff (NEW/ADD/TRIM/CLOSED with 1%+
+    share-count threshold filtering rebalancing noise)
+  - `ark.position_change` event route wired in coordinator (suppresses
+    NEW < $5M and ADDS < 15%)
+  - Dashboard at `/ark.html` linked between lobbying and opportunities
+
+### `justhodl-patent-velocity` — DEPLOYED, AWAITING KEY (daily 17 UTC)
+
+Patent grants are 12-24mo leading indicator for product launches + M&A
++ pivots (Cohen-Malloy-Pomorski-style academic backing for tech/biotech
+verticals). Universe of ~80 high-IP filers across tech / biotech /
+semis / defense / industrial / EVs / quantum / quantum-computing.
+
+**PatentsView migrated to require API key Feb 2025.** Engine deployed
+but currently writes informative stub to `data/patent-velocity.json`
+with `status=needs_api_key`. Dashboard at `/patent-velocity.html` shows
+actionable setup card with register link instead of empty state.
+
+Activation steps documented in KHALID_ACTIONS.md item #3:
+  1. Request key at https://patentsview.org/apis/ (free)
+  2. SSM put `/justhodl/patentsview-key`
+  3. Lambda env `PATENTSVIEW_API_KEY`
+  4. Engine activates automatically on next 17 UTC schedule
+
+**Future migration note:** PatentsView is migrating to USPTO Open Data
+Portal (data.uspto.gov) on March 20, 2026. Engine currently targets
+`search.patentsview.org/api/v1/patent/` which is the surviving v1
+endpoint. Once ODP stabilizes, consider switching upstream.
+
+### Operational learnings (added to behavior toolkit)
+
+1. **Async invoke for slow Lambdas.** ops/1057 + ops/1058 were both
+   cancelled at the 15-min GitHub Actions runner timeout while
+   synchronously waiting on the patent Lambda (USPTO 0.8s pacing × 80
+   companies = ~10min minimum). The fix in ops/1059:
+   `InvocationType="Event"` (fire & forget) + S3 poll every 30s for up
+   to 8min. Total runtime ≤10min vs the 15-min cap. This is the
+   correct pattern for any engine with >5min runtime.
+
+2. **CloudWatch logs can be stale 1-2 minutes post-deploy.** ops/1063
+   showed the ARK Lambda still logging old `ark-funds.com` URLs while
+   the deployed code already had `arkfunds.io`. Verified via
+   ops/1065 — downloaded the deployed zip and inspected `lambda_function.py`
+   directly. New code WAS deployed, the CloudWatch events were just
+   from an invocation that started before deploy completed.
+
+3. **Defensive force-redeploy pattern.** When debugging "did the
+   deploy work?", use `lam.get_function()["Code"]["Location"]` to
+   download the actual deployed zip and inspect contents. Don't trust
+   workflow success badge alone — verify the artifact.
+
+### Silently broken Lambdas (flagged for future remediation)
+
+Side-effect of survey: 3 Lambdas detected using known-dead endpoints:
+
+  - `fmp-fundamentals-agent` — uses dead FMP `/api/v3` endpoints
+    (sunset 2025-08-31). May be unused/deprecated — verify before
+    fixing.
+  - `justhodl-short-interest` — uses dead Polygon SI endpoint
+    (sunset 2018) BUT also pulls from cdn.finra.org/equity/regsho/daily
+    (free public file) so likely has working fallback.
+  - `justhodl-political-stocks` — still has fallback reference to
+    `theunitedstates.io` (blocked from AWS us-east-1 IPs) even though
+    main path migrated to gh-pages branch. Fallback is safe (just won't
+    fire), but worth removing for cleanliness.
+
+### Free data sources audit — verified actively in use (not gaps)
+
+For institutional discipline: verified the platform already uses CBOE
+delayed options quotes (`cdn.cboe.com/api/global/delayed_quotes/options`),
+EIA energy data, Treasury FiscalData, GDELT global news, DeFiLlama TVL,
+Etherscan, Beaconcha.in (ETH consensus), OFR financial research data,
+Eurostat, ECB SDMX (extensive — 4 endpoints), CoinMetrics community,
+Nasdaq Data Link. The "missing options data" concern from earlier
+audit was overstated — CBOE free delayed quotes are already integrated.
+
 _Generated by ops 1021 on 2026-05-21. Refresh by re-running `aws/ops/pending/1021_system_full_audit.py` and re-running this generator._
