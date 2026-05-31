@@ -1,0 +1,222 @@
+{
+  "started": "2026-05-31T15:53:37.925593+00:00",
+  "zip_size": 12174,
+  "redeploy": "ok",
+  "invoke": {
+    "ok": true,
+    "n_ok": 71,
+    "n_stealth": 0,
+    "sources_used": {
+      "wiki": 71
+    },
+    "top_ticker": "MU",
+    "top_velocity": 2.62,
+    "duration_s": 79.1
+  },
+  "ticker_trends_summary": {
+    "generated_at": "2026-05-31T15:55:11+00:00",
+    "duration_s": 79.1,
+    "n_processed": 72,
+    "n_ok": 71,
+    "errors": {
+      "no_source_data": 1
+    }
+  },
+  "previously_404": {
+    "QBTS": {
+      "status": "ok",
+      "score": 29.5,
+      "velocity": 1.18,
+      "level": 297.9,
+      "wiki_article": "D-Wave_Systems",
+      "sources": [
+        "wiki"
+      ]
+    },
+    "OKLO": {
+      "status": "ok",
+      "score": 29.5,
+      "velocity": 1.18,
+      "level": 344.9,
+      "wiki_article": "Oklo_Inc.",
+      "sources": [
+        "wiki"
+      ]
+    },
+    "DJT": {
+      "status": "ok",
+      "score": 18.8,
+      "velocity": 0.75,
+      "level": 290.7,
+      "wiki_article": "Trump_Media_&_Technology_Group",
+      "sources": [
+        "wiki"
+      ]
+    }
+  },
+  "top_10": [
+    {
+      "ticker": "MU",
+      "score": 70.5,
+      "velocity": 2.62,
+      "stealth": false,
+      "sources": [
+        "wiki"
+      ]
+    },
+    {
+      "ticker": "ZS",
+      "score": 49.8,
+      "velocity": 1.79,
+      "stealth": false,
+      "sources": [
+        "wiki"
+      ]
+    },
+    {
+      "ticker": "MSTR",
+      "score": 34.2,
+      "velocity": 1.37,
+      "stealth": false,
+      "sources": [
+        "wiki"
+      ]
+    },
+    {
+      "ticker": "RGTI",
+      "score": 32.8,
+      "velocity": 1.31,
+      "stealth": false,
+      "sources": [
+        "wiki"
+      ]
+    },
+    {
+      "ticker": "RDDT",
+      "score": 32.2,
+      "velocity": 1.29,
+      "stealth": false,
+      "sources": [
+        "wiki"
+      ]
+    },
+    {
+      "ticker": "LLY",
+      "score": 30.5,
+      "velocity": 1.22,
+      "stealth": false,
+      "sources": [
+        "wiki"
+      ]
+    },
+    {
+      "ticker": "PLTR",
+      "score": 30.5,
+      "velocity": 1.22,
+      "stealth": false,
+      "sources": [
+        "wiki"
+      ]
+    },
+    {
+      "ticker": "DUOL",
+      "score": 30.2,
+      "velocity": 1.21,
+      "stealth": false,
+      "sources": [
+        "wiki"
+      ]
+    },
+    {
+      "ticker": "TSM",
+      "score": 30.0,
+      "velocity": 1.2,
+      "stealth": false,
+      "sources": [
+        "wiki"
+      ]
+    },
+    {
+      "ticker": "S",
+      "score": 29.8,
+      "velocity": 1.19,
+      "stealth": false,
+      "sources": [
+        "wiki"
+      ]
+    }
+  ],
+  "future_intel_invoke": {
+    "ok": true,
+    "n_scored": 229,
+    "top_ticker": "GEV",
+    "top_score": 68.4,
+    "duration_s": 0.5
+  },
+  "future_intel_snapshot": {
+    "generated_at": "2026-05-31T15:55:15+00:00",
+    "n_scored": 229,
+    "feed_freshness": {
+      "forward_orders": "2026-05-31T14:36:59+00:00",
+      "rotation_chain": "2026-05-31T15:03:38+00:00",
+      "buzz_velocity": "2026-05-31T15:07:09+00:00",
+      "ticker_trends": "2026-05-31T15:55:11+00:00"
+    },
+    "n_high_conviction": 1,
+    "n_4_signal": 0,
+    "n_google_stealth": 0,
+    "top_5_with_trends": [
+      {
+        "ticker": "GEV",
+        "score": 68.4,
+        "subscores": {
+          "forward_orders": 67.5,
+          "rotation_chain": 100,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 22.8
+        }
+      },
+      {
+        "ticker": "ORCL",
+        "score": 38.5,
+        "subscores": {
+          "forward_orders": 76.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 20.8
+        }
+      },
+      {
+        "ticker": "RTX",
+        "score": 35.4,
+        "subscores": {
+          "forward_orders": 67.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 23.8
+        }
+      },
+      {
+        "ticker": "PLTR",
+        "score": 35.2,
+        "subscores": {
+          "forward_orders": 44.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 30.5
+        }
+      },
+      {
+        "ticker": "VST",
+        "score": 29.2,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 27.8
+        }
+      }
+    ]
+  },
+  "finished": "2026-05-31T15:55:17.633771+00:00"
+}
