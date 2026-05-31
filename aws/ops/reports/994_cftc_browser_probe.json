@@ -1,0 +1,88 @@
+{
+  "started": "2026-05-31T01:54:05.194828+00:00",
+  "test": {
+    "GET /signals": {
+      "status": 200,
+      "size_first2k": 2048,
+      "preview": "{\"positioning_score\": 31.0, \"risk_appetite\": 30.0, \"smart_money\": \"DISTRIBUTING\", \"crisis_indicators\": {\"score\": 20, \"level\": \"LOW\", \"vix_positioning\": \"BEARISH\", \"treasury_flight\": \"BULLISH\", \"gold_s",
+      "cors_headers": {
+        "Access-Control-Allow-Origin": "https://justhodl.ai",
+        "Vary": "Origin",
+        "Access-Control-Allow-Headers": "Content-Type, x-mgr-pass",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Max-Age": "300",
+        "CF-RAY": "a0425968db351877-IAD"
+      },
+      "content_type": "application/json",
+      "cf_ray": ""
+    },
+    "OPTIONS /signals": {
+      "status": 204,
+      "cors_headers": {
+        "Access-Control-Allow-Origin": "https://justhodl.ai",
+        "Access-Control-Allow-Headers": "Content-Type, x-mgr-pass",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Max-Age": "300"
+      }
+    },
+    "GET /cot/all": {
+      "status": 200,
+      "size_first2k": 2048,
+      "preview": "{\"source\": \"CFTC.gov\", \"contracts\": 29, \"data\": {\"ES\": {\"contract\": \"ES\", \"name\": \"S&P 500 E-Mini\", \"category\": \"equity_index\", \"cftc_code\": \"13874A\", \"report_type\": \"tff\", \"weekly_reports\": [{\"report",
+      "cors_headers": {
+        "Access-Control-Allow-Origin": "https://justhodl.ai",
+        "Vary": "Origin",
+        "Access-Control-Allow-Headers": "Content-Type, x-mgr-pass",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Max-Age": "300",
+        "CF-RAY": "a042598fe8f5e3e7-IAD"
+      },
+      "content_type": "application/json",
+      "cf_ray": ""
+    },
+    "OPTIONS /cot/all": {
+      "status": 204,
+      "cors_headers": {
+        "Access-Control-Allow-Origin": "https://justhodl.ai",
+        "Access-Control-Allow-Headers": "Content-Type, x-mgr-pass",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Max-Age": "300"
+      }
+    },
+    "GET /futures": {
+      "status": 200,
+      "size_first2k": 1332,
+      "preview": "{\"source\": \"Polygon.io\", \"data\": {\"NQ\": {\"ticker\": \"I:NDX\", \"name\": \"NASDAQ 100\", \"open\": 30333.86374107741, \"high\": 30470.03366156688, \"low\": 30210.00595615849, \"close\": 30333.17966581892, \"volume\": ",
+      "cors_headers": {
+        "Access-Control-Allow-Origin": "https://justhodl.ai",
+        "Vary": "Origin",
+        "Access-Control-Allow-Headers": "Content-Type, x-mgr-pass",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Max-Age": "300",
+        "CF-RAY": "a04259917d1b9c5e-IAD"
+      },
+      "content_type": "application/json",
+      "cf_ray": ""
+    },
+    "OPTIONS /futures": {
+      "status": 204,
+      "cors_headers": {
+        "Access-Control-Allow-Origin": "https://justhodl.ai",
+        "Access-Control-Allow-Headers": "Content-Type, x-mgr-pass",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Max-Age": "300"
+      }
+    },
+    "html": {
+      "status": 200,
+      "size_first2k": 2048,
+      "preview": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\">\n<title>JustHodl.AI | Futures Positioning Intelligence</title>\n<link",
+      "cors_headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Vary": "Accept-Encoding"
+      },
+      "content_type": "text/html; charset=utf-8",
+      "cf_ray": ""
+    }
+  }
+}
