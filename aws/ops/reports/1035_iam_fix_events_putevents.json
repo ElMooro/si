@@ -1,0 +1,116 @@
+{
+  "started": "2026-05-31T14:12:19.941240+00:00",
+  "before": {
+    "attached_policies": [
+      "AmazonSSMFullAccess",
+      "AmazonSESFullAccess",
+      "AWSLambdaBasicExecutionRole",
+      "AWSLambdaRole",
+      "AmazonDynamoDBFullAccess",
+      "AmazonS3FullAccess"
+    ],
+    "inline_policies": [
+      "api-keys-admin-permissions",
+      "ddb-push-subscriptions",
+      "ddb-websocket-connections",
+      "execute-api-manage-connections",
+      "fleet-monitor-perms",
+      "HealthMonitorEventBridgeRead",
+      "HealthMonitorTelegramSSM",
+      "justhodl-dlq-send",
+      "justhodl-fleet-monitor-perm",
+      "lambda-describe-self-and-peers",
+      "SESPolicy",
+      "signal-registry-ddb-write",
+      "ssm-ai-chat-auth-read",
+      "ssm-justhodl-alerts-read",
+      "ssm-justhodl-nowcast-state",
+      "ssm-push-vapid"
+    ]
+  },
+  "policy_attached": true,
+  "policy_verified": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "AllowPublishToCustomBus",
+        "Effect": "Allow",
+        "Action": [
+          "events:PutEvents"
+        ],
+        "Resource": [
+          "arn:aws:events:us-east-1:857687956942:event-bus/default",
+          "arn:aws:events:us-east-1:857687956942:event-bus/justhodl-system-events"
+        ]
+      }
+    ]
+  },
+  "invoke": {
+    "ok": true,
+    "n_tickers": 25,
+    "n_macro": 9,
+    "n_tier_3_plus": 38,
+    "n_tier_5_plus": 3,
+    "regime": "MUDDLE",
+    "duration_s": 1.61
+  },
+  "audit": {
+    "n_total": 4,
+    "n_convergence": 3,
+    "tier_5_count": 0,
+    "tier_3_count": 3,
+    "sample_first_5": [
+      {
+        "ts": "2026-05-31T14:13:09",
+        "ticker": "NVDA",
+        "new_tier": 3,
+        "n_systems": 5,
+        "systems": [
+          "asymmetric",
+          "compound",
+          "eps_velocity",
+          "revenue_accel"
+        ],
+        "alpha_compass": true,
+        "telegram_sent": "suppressed_tier_3_noise"
+      },
+      {
+        "ts": "2026-05-31T14:13:09",
+        "ticker": "GE",
+        "new_tier": 3,
+        "n_systems": 4,
+        "systems": [
+          "compound",
+          "eps_velocity",
+          "pead",
+          "smart_money"
+        ],
+        "alpha_compass": true,
+        "telegram_sent": "suppressed_tier_3_noise"
+      },
+      {
+        "ts": "2026-05-31T14:13:09",
+        "ticker": "DE",
+        "new_tier": 3,
+        "n_systems": 4,
+        "systems": [
+          "compound",
+          "eps_velocity",
+          "pead",
+          "smart_money"
+        ],
+        "alpha_compass": true,
+        "telegram_sent": "suppressed_tier_3_noise"
+      }
+    ],
+    "by_event_type": {
+      "outcome.resolved": 1,
+      "convergence.tier_up": 3
+    },
+    "by_source_engine": {
+      "ops-1022": 1,
+      "master-ranker": 3
+    }
+  },
+  "finished": "2026-05-31T14:14:24.181608+00:00"
+}
