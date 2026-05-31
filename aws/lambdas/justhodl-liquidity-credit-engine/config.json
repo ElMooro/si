@@ -1,0 +1,8 @@
+{
+  "function_name": "justhodl-liquidity-credit-engine",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 480,
+  "description": "Liquidity + credit composite engine. Pulls FRED series for system liquidity/credit-market stress, computes z-scores and signal classifications"
+}
