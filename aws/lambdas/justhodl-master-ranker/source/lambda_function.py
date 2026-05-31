@@ -688,7 +688,7 @@ def lambda_handler(event, context):
                     "ticker":    ticker,
                     "new_tier":  3,
                     "n_systems": curr_n,
-                    "systems":   [s.get("system") for s in (t.get("systems") or [])][:10],
+                    "systems":   list(t.get("systems") or [])[:10],
                     "score":     t.get("score"),
                 }))
             if prev_n < 5 and curr_n >= 5:
@@ -696,7 +696,7 @@ def lambda_handler(event, context):
                     "ticker":    ticker,
                     "new_tier":  5,
                     "n_systems": curr_n,
-                    "systems":   [s.get("system") for s in (t.get("systems") or [])][:10],
+                    "systems":   list(t.get("systems") or [])[:10],
                     "score":     t.get("score"),
                 }))
         
