@@ -1,0 +1,83 @@
+{
+  "started": "2026-05-31T23:55:20.271318+00:00",
+  "current_edge-data.json": {
+    "last_modified": "2026-05-31T23:50:37+00:00",
+    "size": 1877
+  },
+  "current_flow-data.json": {
+    "last_modified": "2026-05-31T23:50:59+00:00",
+    "size": 29789
+  },
+  "justhodl-edge-engine": {
+    "files": [
+      "api_auth.py",
+      "calibration.py",
+      "_sentry_lite.py",
+      "lambda_function.py"
+    ],
+    "writes_in_lambda_function.py": [
+      {
+        "around_line": 243,
+        "context": "                'options_flow': e1.get('score'),\n                'fund_sentiment': e2.get('score'),\n                'earnings': e3.get('score'),\n                'liquidity': e4.get('score'),\n                'correlation': e5.get('score')\n            },\n            'options_flow': e1,\n            'fund_flow': e2,\n            'earnings_momentum': e3,\n            'global_liquidity': e4,\n            'correlation': e5,\n            'alerts': alerts,\n            'fetch_time_s': round(time.time() - t0, 1)\n        }\n        s3 = boto3.client('s3', region_name='us-east-1')\n        s3.put_object(Bucket=S3_BUCKET, Key='edge-data.json',\n                      Body=json.dumps(output).encode('utf-8'),\n                      ContentType='application/json', CacheControl='no-cache')\n        print('Done score=' + str(composite) + ' time=' + str(output['fetch_time_s']) + 's')\n        return {'statusCode': 200, 'headers': cors, 'body': json.dumps(output)}\n    except Exception as e:"
+      }
+    ],
+    "handler_first_60_lines": "def lambda_handler(event, context):\n    cors = {\n        'Access-Control-Allow-Origin': '*',\n        'Access-Control-Allow-Headers': 'Content-Type',\n        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',\n        'Content-Type': 'application/json'\n    }\n    if event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':\n        return {'statusCode': 200, 'headers': cors, 'body': ''}\n\n    # Auth gate \u2014 Origin-bypass mode for justhodl.ai frontend\n    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)\n    if err:\n        return err\n\n    try:\n        t0 = time.time()\n        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as ex:\n            f1 = ex.submit(engine_options)\n            f2 = ex.submit(engine_sentiment)\n            f3 = ex.submit(engine_earnings)\n            f4 = ex.submit(engine_liquidity)\n            f5 = ex.submit(engine_correlation)\n            e1 = f1.result(timeout=25)\n            e2 = f2.result(timeout=25)\n            e3 = f3.result(timeout=25)\n            e4 = f4.result(timeout=25)\n            e5 = f5.result(timeout=25)\n        scores = [e.get('score', 50) for e in [e1, e2, e3, e4, e5]]\n        composite = round(sum(scores) / len(scores))\n        regime = 'RISK_ON' if composite >= 65 else ('RISK_OFF' if composite <= 35 else 'NEUTRAL')\n\n        # \u2500\u2500\u2500 Loop 1: calibration-weighted composite \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n        # Sub-engine score names aren't currently tracked signal types,\n        # so weights are 1.0 today. Will start mattering only if/when\n        # we begin scoring outcomes for these specific signals.\n        _loop1_blend = blend_score({\n            'engine_options_flow': scores[0],\n            'engine_fund_sentiment': scores[1],\n            'engine_earnings': scores[2],\n            'engine_liquidity': scores[3],\n            'engine_correlation': scores[4],\n        })\n        _loop1_meta = {\n            'is_meaningful': _loop1_blend['is_calibrated'],\n            'n_calibrated': _loop1_blend['n_calibrated'],\n            'n_signals': len(scores),\n            'contributions': _loop1_blend['contributions'],\n        }\n        alerts = list(e5.get('alerts', []))\n        if e1.get('vix') and e1['vix'] > 25:\n            alerts.append('VIX elevated: ' + str(e1['vix']))\n        if e4.get('signal') == 'CONTRACTING':\n            alerts.append('Liquidity contracting: $' + str(e4.get('net_liquidity_b')) + 'B')\n        output = {\n            'generated_at': datetime.now(timezone.utc).isoformat(),\n            'composite_score': composite,\n            'calibrated_composite': round(_loop1_blend['value'], 2),\n            'raw_composite': round(_loop1_blend['raw_value'], 2),\n            'calibration': _loop1_meta,",
+    "put_object_count": 2,
+    "last_60_lines": "        scores = [e.get('score', 50) for e in [e1, e2, e3, e4, e5]]\n        composite = round(sum(scores) / len(scores))\n        regime = 'RISK_ON' if composite >= 65 else ('RISK_OFF' if composite <= 35 else 'NEUTRAL')\n\n        # \u2500\u2500\u2500 Loop 1: calibration-weighted composite \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n        # Sub-engine score names aren't currently tracked signal types,\n        # so weights are 1.0 today. Will start mattering only if/when\n        # we begin scoring outcomes for these specific signals.\n        _loop1_blend = blend_score({\n            'engine_options_flow': scores[0],\n            'engine_fund_sentiment': scores[1],\n            'engine_earnings': scores[2],\n            'engine_liquidity': scores[3],\n            'engine_correlation': scores[4],\n        })\n        _loop1_meta = {\n            'is_meaningful': _loop1_blend['is_calibrated'],\n            'n_calibrated': _loop1_blend['n_calibrated'],\n            'n_signals': len(scores),\n            'contributions': _loop1_blend['contributions'],\n        }\n        alerts = list(e5.get('alerts', []))\n        if e1.get('vix') and e1['vix'] > 25:\n            alerts.append('VIX elevated: ' + str(e1['vix']))\n        if e4.get('signal') == 'CONTRACTING':\n            alerts.append('Liquidity contracting: $' + str(e4.get('net_liquidity_b')) + 'B')\n        output = {\n            'generated_at': datetime.now(timezone.utc).isoformat(),\n            'composite_score': composite,\n            'calibrated_composite': round(_loop1_blend['value'], 2),\n            'raw_composite': round(_loop1_blend['raw_value'], 2),\n            'calibration': _loop1_meta,\n            'regime': regime,\n            'engine_scores': {\n                'options_flow': e1.get('score'),\n                'fund_sentiment': e2.get('score'),\n                'earnings': e3.get('score'),\n                'liquidity': e4.get('score'),\n                'correlation': e5.get('score')\n            },\n            'options_flow': e1,\n            'fund_flow': e2,\n            'earnings_momentum': e3,\n            'global_liquidity': e4,\n            'correlation': e5,\n            'alerts': alerts,\n            'fetch_time_s': round(time.time() - t0, 1)\n        }\n        s3 = boto3.client('s3', region_name='us-east-1')\n        s3.put_object(Bucket=S3_BUCKET, Key='edge-data.json',\n                      Body=json.dumps(output).encode('utf-8'),\n                      ContentType='application/json', CacheControl='no-cache')\n        print('Done score=' + str(composite) + ' time=' + str(output['fetch_time_s']) + 's')\n        return {'statusCode': 200, 'headers': cors, 'body': json.dumps(output)}\n    except Exception as e:\n        import traceback\n        err = traceback.format_exc()\n        print('ERROR: ' + str(e))\n        return {'statusCode': 500, 'headers': cors,\n                'body': json.dumps({'error': str(e), 'detail': err[:500]})}"
+  },
+  "justhodl-options-flow": {
+    "files": [
+      "api_auth.py",
+      "lambda_function.py",
+      "_fred_shim.py"
+    ],
+    "writes_in_lambda_function.py": [
+      {
+        "around_line": 4643,
+        "context": "\n\n\n\n\n\n\n\n\n\n\n        try:\n            import boto3 as _b\n            _s3 = _b.client(\"s3\", region_name=\"us-east-1\")\n            _s3.put_object(Bucket=\"justhodl-dashboard-live\",\n                Key=\"flow-data.json\",\n                Body=json.dumps(payload, default=str).encode(),\n                ContentType=\"application/json\",\n                CacheControl=\"no-cache\")\n            print(\"flow S3 saved\")\n        except Exception as _e:"
+      }
+    ],
+    "handler_first_60_lines": "def lambda_handler(event, context):\n\n    # Auth gate \u2014 Origin-bypass mode for justhodl.ai frontend\n    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)\n    if err:\n        return err\n\n    try:\n\n\n\n\n\n\n\n\n\n        now = datetime.utcnow()\n\n\n\n\n\n\n\n\n\n        # Phase 1: All FRED data in parallel\n\n\n\n\n\n\n\n\n\n        fred = get_all_fred()\n\n\n\n\n\n\n\n\n\n        # Phase 2: Polygon data in parallel groups\n\n\n\n\n\n\n\n\n\n        vix = build_vix(fred)\n\n",
+    "put_object_count": 2,
+    "last_60_lines": "        except Exception as _e:\n            # audit P2.5: emit EMF metric for silent put_object failure\n            print(__import__('json').dumps({\"_aws\":{\"Timestamp\":int(__import__('time').time()*1000),\"CloudWatchMetrics\":[{\"Namespace\":\"JustHodl/Reliability\",\"Dimensions\":[[\"Lambda\"]],\"Metrics\":[{\"Name\":\"S3PutFailure\",\"Unit\":\"Count\"}]}]},\"Lambda\":__import__('os').environ.get(\"AWS_LAMBDA_FUNCTION_NAME\",\"?\"),\"S3PutFailure\":1,\"error\":str(e)[:200] if 'e' in dir() else \"unknown\"}))\n            print(\"flow S3 err:\", str(_e))\n        return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps(payload, default=str)}\n\n\n\n\n\n\n\n\n\n    except Exception as e:\n\n\n\n\n\n\n\n\n\n        import traceback\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n        return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'success': False, 'error': str(e), 'trace': traceback.format_exc(), 'timestamp': datetime.utcnow().isoformat()+'Z'})}\n\n\n\n\n\n\n\n\n\n"
+  },
+  "edge_engine_schedules": [
+    {
+      "rule_name": "justhodl-edge-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "target_id": "edge",
+      "input": null,
+      "input_path": null
+    }
+  ],
+  "empty_invoke_justhodl-edge-engine": {
+    "elapsed_s": 0.1,
+    "status": 200,
+    "raw": "{\"statusCode\": 401, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\", \"Access-Control-Allow-Headers\": \"Content-Type, Authorization, x-api-key\", \"Access-Control-Allow-Methods\": \"GET, POST, OPTIONS\"}, \"body\": \"{\\\"error\\\": \\\"unauthorized\\\", \\\"message\\\": \\\"Missing API key. Pass 'Authorization: Bearer jhd_<key>' or 'x-api-key: jhd_<key>'.\\\"}\"}",
+    "body_status": 401,
+    "inner_top_keys": [
+      "error",
+      "message"
+    ]
+  },
+  "empty_invoke_justhodl-options-flow": {
+    "elapsed_s": 0.1,
+    "status": 200,
+    "raw": "{\"statusCode\": 401, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\", \"Access-Control-Allow-Headers\": \"Content-Type, Authorization, x-api-key\", \"Access-Control-Allow-Methods\": \"GET, POST, OPTIONS\"}, \"body\": \"{\\\"error\\\": \\\"unauthorized\\\", \\\"message\\\": \\\"Missing API key. Pass 'Authorization: Bearer jhd_<key>' or 'x-api-key: jhd_<key>'.\\\"}\"}",
+    "body_status": 401,
+    "inner_top_keys": [
+      "error",
+      "message"
+    ]
+  },
+  "after_invoke_edge-data.json": {
+    "last_modified": "2026-05-31T23:50:37+00:00",
+    "size": 1877
+  },
+  "after_invoke_flow-data.json": {
+    "last_modified": "2026-05-31T23:50:59+00:00",
+    "size": 29789
+  },
+  "finished": "2026-05-31T23:55:26.371007+00:00"
+}
