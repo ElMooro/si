@@ -2259,11 +2259,14 @@ def _update_targets_index(equity_history, macro_history, session, today_str):
 
 def _format_digest(equity_brief, macro_brief,
                     equity_state, macro_state,
-                    equity_hist, macro_hist, session="open"):
+                    equity_hist, macro_hist, session="open",
+                    targets_idx=None):
     """Build the daily digest Markdown message.
 
     session: 'open'  → morning brief (09:00 UTC pre-market, forward-looking)
              'close' → US session debrief (21:00 UTC post-close, retrospective)
+    targets_idx: optional rolling 30-day targets-index dict from _update_targets_index.
+                  When provided, adds a 'Sustained patterns (30d)' section.
     """
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if session == "close":
@@ -2387,7 +2390,35 @@ def _format_digest(equity_brief, macro_brief,
             msg += f"  🏛 Macro:   {txt}\n"
         msg += "\n"
 
-    msg += "→ https://justhodl.ai/alerts.html"
+    # Sustained patterns from rolling 30-day targets index — shows which names
+    # KEEP showing up across digest snapshots (vs one-off flags). Threshold ≥2
+    # appearances filters out single observations. Each name marked recent ● if
+    # last_seen within last 7 days, ○ if cooling.
+    if targets_idx:
+        eq_idx = targets_idx.get("equity_targets") or []
+        mc_idx = targets_idx.get("macro_targets")  or []
+        eq_sustained = [t for t in eq_idx if (t.get("n_digest_appearances", 0) or 0) >= 2][:3]
+        mc_sustained = [t for t in mc_idx if (t.get("n_digest_appearances", 0) or 0) >= 2][:3]
+        if eq_sustained or mc_sustained:
+            msg += "📈 *Sustained patterns (30d rolling index):*\n"
+            if eq_sustained:
+                txt = ", ".join(
+                    f"`{t.get('asset')}`×{t.get('n_digest_appearances')}"
+                    f"{'●' if t.get('is_recent') else '○'}"
+                    for t in eq_sustained
+                )
+                msg += f"  🎯 Equity:  {txt}\n"
+            if mc_sustained:
+                txt = ", ".join(
+                    f"`{t.get('instrument')}`×{t.get('n_digest_appearances')}"
+                    f"{'●' if t.get('is_recent') else '○'}"
+                    for t in mc_sustained
+                )
+                msg += f"  🏛 Macro:   {txt}\n"
+            msg += "  _(● = active in last 7d, ○ = cooling off)_\n"
+            msg += "\n"
+
+    msg += "→ https://justhodl.ai/targets.html · https://justhodl.ai/alerts.html"
     return msg
 
 
@@ -2419,18 +2450,32 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
         equity_history  = feeds.get("equity_history")
         macro_history   = feeds.get("macro_history")
 
+        # Update the 30-day rolling targets leaderboard FIRST so the digest
+        # message can reflect the freshly-incremented counts (including
+        # today's observation).
+        today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        targets_idx = _update_targets_index(equity_history, macro_history,
+                                             session, today_str)
+        if targets_idx:
+            result["targets_index"] = {
+                "n_equity_targets": targets_idx.get("n_equity_targets"),
+                "n_macro_targets":  targets_idx.get("n_macro_targets"),
+                "n_equity_recent":  targets_idx.get("n_equity_recent"),
+                "n_macro_recent":   targets_idx.get("n_macro_recent"),
+            }
+
         msg = _format_digest(
             equity_brief, macro_brief,
             equity_state, macro_state,
             equity_history, macro_history,
             session=session,
+            targets_idx=targets_idx,
         )
 
         # Send Telegram (with plain-text fallback)
         ok, info = _telegram_post(msg)
 
         # Write audit log — separate key per session
-        today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         audit = {
             "version": "1.0",
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -2527,19 +2572,6 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
             s3io.put_json(index_key, idx_out, cache_control="no-store")
         except Exception as _i_e:
             print(f"[digest] index update failed: {_i_e}")
-
-        # ────────────────────────────────────────────────────────────
-        # Maintain a 30-day rolling targets leaderboard
-        # ────────────────────────────────────────────────────────────
-        targets_idx = _update_targets_index(equity_history, macro_history,
-                                             session, today_str)
-        if targets_idx:
-            result["targets_index"] = {
-                "n_equity_targets": targets_idx.get("n_equity_targets"),
-                "n_macro_targets":  targets_idx.get("n_macro_targets"),
-                "n_equity_recent":  targets_idx.get("n_equity_recent"),
-                "n_macro_recent":   targets_idx.get("n_macro_recent"),
-            }
 
         result.update({
             "status": "OK",
