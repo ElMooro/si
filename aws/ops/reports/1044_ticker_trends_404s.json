@@ -1,0 +1,49 @@
+{
+  "started": "2026-05-31T15:48:45.241436+00:00",
+  "unique_404_articles": [
+    {
+      "article": "D-Wave_Quantum",
+      "ts": "2026-05-31T15:42:36",
+      "stream": "e99eed92ec4376ac618af6747d11a8"
+    },
+    {
+      "article": "Uranium_Energy_Corp",
+      "ts": "2026-05-31T15:43:07",
+      "stream": "e99eed92ec4376ac618af6747d11a8"
+    },
+    {
+      "article": "Trump_Media_%26_Technology_Group",
+      "ts": "2026-05-31T15:43:14",
+      "stream": "e99eed92ec4376ac618af6747d11a8"
+    },
+    {
+      "article": "Oklo_(company)",
+      "ts": "2026-05-31T15:43:19",
+      "stream": "e99eed92ec4376ac618af6747d11a8"
+    }
+  ],
+  "all_404_events_count": 4,
+  "err_lines_sample": [
+    {
+      "msg": "[ticker-trends-v2] 40/73  ok=39  err={'no_source_data': 1}  src={'wiki': 39}  elapsed=43s\n",
+      "ts": "2026-05-31T15:42:47"
+    },
+    {
+      "msg": "[ticker-trends-v2] 50/73  ok=49  err={'no_source_data': 1}  src={'wiki': 49}  elapsed=55s\n",
+      "ts": "2026-05-31T15:42:59"
+    },
+    {
+      "msg": "[ticker-trends-v2] 60/73  ok=58  err={'no_source_data': 2}  src={'wiki': 58}  elapsed=65s\n",
+      "ts": "2026-05-31T15:43:09"
+    },
+    {
+      "msg": "[ticker-trends-v2] 70/73  ok=67  err={'no_source_data': 3}  src={'wiki': 67}  elapsed=75s\n",
+      "ts": "2026-05-31T15:43:19"
+    }
+  ],
+  "universe_log_lines": [
+    "[ticker-trends-v2] universe: 73 tickers (wiki+gtrends), primary=Wikipedia, gtrends_fallback=True",
+    "[ticker-trends-v2] universe: 8 tickers (wiki+gtrends), primary=Wikipedia, gtrends_fallback=True"
+  ],
+  "finished": "2026-05-31T15:48:46.118205+00:00"
+}
