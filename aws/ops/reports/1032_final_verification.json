@@ -1,0 +1,171 @@
+{
+  "started": "2026-05-31T13:57:47.811450+00:00",
+  "audit": {
+    "n_events": 1,
+    "by_event_type": {
+      "outcome.resolved": 1
+    },
+    "by_source_engine": {
+      "ops-1022": 1
+    },
+    "convergence_events": [],
+    "posture_events": [],
+    "all_events": [
+      {
+        "ts": "2026-05-31T12:16:42",
+        "event": "outcome.resolved",
+        "source": "ops-1022",
+        "summary": null
+      }
+    ]
+  },
+  "flow_health": {
+    "pulse": {
+      "status": "GREEN",
+      "last_event_age_minutes": 96.5,
+      "last_event_ts": "2026-05-31T12:16:42.091544+00:00",
+      "last_event_type": "outcome.resolved"
+    },
+    "n_anomalies": 0,
+    "anomalies": [],
+    "coordinator_health": {
+      "invocations_24h": 1,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "status": "GREEN"
+    },
+    "generated_at": "2026-05-31T13:53:10.696314+00:00",
+    "n_event_types_seen": 1,
+    "by_event_today": {
+      "outcome.resolved": 1
+    }
+  },
+  "schedules": {
+    "event-flow-monitor-hourly": {
+      "schedule": "cron(0 * * * ? *)",
+      "state": "ENABLED"
+    },
+    "signal-board-1h": {
+      "err": "not_found"
+    },
+    "miss-detector-daily": {
+      "err": "not_found"
+    },
+    "justhodl-master-ranker-daily": {
+      "err": "not_found"
+    }
+  },
+  "producers": {
+    "justhodl-calibrator": [
+      "calibrator.weights.updated"
+    ],
+    "justhodl-crisis-plumbing": [
+      "engine.error"
+    ],
+    "justhodl-cross-asset-regime": [
+      "regime.changed"
+    ],
+    "justhodl-liquidity-credit-engine": [
+      "engine.error"
+    ],
+    "justhodl-master-ranker": [
+      "convergence.tier_up"
+    ],
+    "justhodl-miss-calibrator": [
+      "calibrator.proposal_high_confidence",
+      "near_miss.extreme"
+    ],
+    "justhodl-miss-detector": [
+      "miss.detected"
+    ],
+    "justhodl-outcome-checker": [
+      "outcome.resolved"
+    ],
+    "justhodl-signal-board": [
+      "posture.changed"
+    ]
+  },
+  "n_producers": 9,
+  "routes": [
+    {
+      "event": "outcome.resolved",
+      "invokes": [
+        "justhodl-calibrator",
+        "justhodl-alpha-calibrator"
+      ]
+    },
+    {
+      "event": "outcome.deferred",
+      "invokes": []
+    },
+    {
+      "event": "regime.changed",
+      "invokes": [
+        "justhodl-master-ranker",
+        "justhodl-alpha-compass",
+        "justhodl-signal-board"
+      ]
+    },
+    {
+      "event": "regime.flashing_bucket",
+      "invokes": [
+        "justhodl-alpha-compass"
+      ]
+    },
+    {
+      "event": "near_miss.extreme",
+      "invokes": [
+        "justhodl-miss-calibrator"
+      ]
+    },
+    {
+      "event": "calibrator.proposal_high_confidence",
+      "invokes": []
+    },
+    {
+      "event": "calibrator.weights_updated",
+      "invokes": [
+        "justhodl-alpha-compass"
+      ]
+    },
+    {
+      "event": "signal.deprecated",
+      "invokes": [
+        "justhodl-engine-signal-map"
+      ]
+    },
+    {
+      "event": "signal.promoted",
+      "invokes": [
+        "justhodl-engine-signal-map"
+      ]
+    },
+    {
+      "event": "miss.detected",
+      "invokes": []
+    },
+    {
+      "event": "engine.error",
+      "invokes": []
+    },
+    {
+      "event": "signal.fired",
+      "invokes": []
+    },
+    {
+      "event": "posture.changed",
+      "invokes": [
+        "justhodl-alpha-compass"
+      ]
+    },
+    {
+      "event": "convergence.tier_up",
+      "invokes": [
+        "justhodl-alpha-compass"
+      ]
+    }
+  ],
+  "n_routes": 14,
+  "events_last_hour": 0,
+  "finished": "2026-05-31T13:57:48.415907+00:00"
+}
