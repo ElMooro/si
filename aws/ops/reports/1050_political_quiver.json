@@ -1,0 +1,223 @@
+{
+  "started": "2026-05-31T16:44:54.055920+00:00",
+  "zip_size": 12169,
+  "deploy": "ok",
+  "invoke": {
+    "ok": true,
+    "n_quiver": 1000,
+    "n_house": 500,
+    "n_senate": 1000,
+    "n_tickers": 283,
+    "n_clusters": 25,
+    "n_bipartisan": 0,
+    "duration_s": 0.2
+  },
+  "snapshot": {
+    "generated_at": "2026-05-31T16:45:19+00:00",
+    "schema_version": "1.1",
+    "data_source": "https://api.quiverquant.com/beta/live/congresstrading",
+    "lookback_days": 90,
+    "duration_s": 0.2,
+    "trump_n_positions": 4,
+    "trump_filing_date": "2025-03-19",
+    "congress_n_trades_total": 1000,
+    "congress_n_trades_house": 500,
+    "congress_n_trades_senate": 1000,
+    "congress_n_tickers": 283,
+    "congress_n_known_parties": 39,
+    "congress_n_top_buys": 30,
+    "congress_n_clusters": 25,
+    "congress_n_bipartisan": 0,
+    "top_5_buys": [
+      {
+        "ticker": "MSFT",
+        "score": 215,
+        "n_buys": 9,
+        "n_sells": 2,
+        "n_politicians": 8,
+        "cluster": "buy_cluster",
+        "bipartisan": false,
+        "parties": {}
+      },
+      {
+        "ticker": "HD",
+        "score": 165,
+        "n_buys": 7,
+        "n_sells": 2,
+        "n_politicians": 5,
+        "cluster": "buy_cluster",
+        "bipartisan": false,
+        "parties": {
+          "R": 4
+        }
+      },
+      {
+        "ticker": "DASH",
+        "score": 165,
+        "n_buys": 7,
+        "n_sells": 2,
+        "n_politicians": 1,
+        "cluster": "buy_cluster",
+        "bipartisan": false,
+        "parties": {}
+      },
+      {
+        "ticker": "TDG",
+        "score": 160,
+        "n_buys": 6,
+        "n_sells": 1,
+        "n_politicians": 2,
+        "cluster": "buy_cluster",
+        "bipartisan": false,
+        "parties": {}
+      },
+      {
+        "ticker": "PANW",
+        "score": 155,
+        "n_buys": 5,
+        "n_sells": 0,
+        "n_politicians": 2,
+        "cluster": "buy_cluster",
+        "bipartisan": false,
+        "parties": {}
+      }
+    ],
+    "top_5_clusters": [
+      {
+        "ticker": "MSFT",
+        "score": 215,
+        "n_buys": 9,
+        "n_sells": 2,
+        "type": "buy_cluster",
+        "bipartisan": false,
+        "n_politicians": 8
+      },
+      {
+        "ticker": "HD",
+        "score": 165,
+        "n_buys": 7,
+        "n_sells": 2,
+        "type": "buy_cluster",
+        "bipartisan": false,
+        "n_politicians": 5
+      },
+      {
+        "ticker": "DASH",
+        "score": 165,
+        "n_buys": 7,
+        "n_sells": 2,
+        "type": "buy_cluster",
+        "bipartisan": false,
+        "n_politicians": 1
+      },
+      {
+        "ticker": "TDG",
+        "score": 160,
+        "n_buys": 6,
+        "n_sells": 1,
+        "type": "buy_cluster",
+        "bipartisan": false,
+        "n_politicians": 2
+      },
+      {
+        "ticker": "PANW",
+        "score": 155,
+        "n_buys": 5,
+        "n_sells": 0,
+        "type": "buy_cluster",
+        "bipartisan": false,
+        "n_politicians": 2
+      }
+    ],
+    "sample_trades": [
+      {
+        "ticker": "MSFT",
+        "recent_trades": [
+          {
+            "politician": "Maria Elvira Salazar",
+            "party": "?",
+            "chamber": "house",
+            "date": "2026-04-17",
+            "type": "purchase",
+            "amount": "$15,001 - $50,000"
+          },
+          {
+            "politician": "John Mcguire",
+            "party": "?",
+            "chamber": "house",
+            "date": "2026-04-15",
+            "type": "purchase",
+            "amount": "$1,001 - $15,000"
+          },
+          {
+            "politician": "Gilbert Cisneros",
+            "party": "?",
+            "chamber": "house",
+            "date": "2026-04-14",
+            "type": "sale",
+            "amount": "$15,001 - $50,000"
+          }
+        ]
+      },
+      {
+        "ticker": "HD",
+        "recent_trades": [
+          {
+            "politician": "David J. Taylor",
+            "party": "R",
+            "chamber": "house",
+            "date": "2026-05-15",
+            "type": "purchase",
+            "amount": "$1,001 - $15,000"
+          },
+          {
+            "politician": "David J. Taylor",
+            "party": "R",
+            "chamber": "house",
+            "date": "2026-05-15",
+            "type": "purchase",
+            "amount": "$1,001 - $15,000"
+          },
+          {
+            "politician": "David J. Taylor",
+            "party": "R",
+            "chamber": "house",
+            "date": "2026-04-27",
+            "type": "sale",
+            "amount": "$1,001 - $15,000"
+          }
+        ]
+      },
+      {
+        "ticker": "DASH",
+        "recent_trades": [
+          {
+            "politician": "Gilbert Cisneros",
+            "party": "?",
+            "chamber": "house",
+            "date": "2026-05-01",
+            "type": "purchase",
+            "amount": "$1,001 - $15,000"
+          },
+          {
+            "politician": "Gilbert Cisneros",
+            "party": "?",
+            "chamber": "house",
+            "date": "2026-04-15",
+            "type": "purchase",
+            "amount": "$1,001 - $15,000"
+          },
+          {
+            "politician": "Gilbert Cisneros",
+            "party": "?",
+            "chamber": "house",
+            "date": "2026-04-14",
+            "type": "purchase",
+            "amount": "$1,001 - $15,000"
+          }
+        ]
+      }
+    ]
+  },
+  "finished": "2026-05-31T16:45:22.506904+00:00"
+}
