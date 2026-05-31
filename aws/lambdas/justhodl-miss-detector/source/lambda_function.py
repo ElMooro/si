@@ -302,7 +302,14 @@ def send_telegram(text: str):
 
 
 def rolling_summary(s3, today_str: str) -> dict:
-    """Aggregate the last SUMMARY_ROLLING_DAYS of miss reports."""
+    """Aggregate the last SUMMARY_ROLLING_DAYS of miss reports.
+
+    Also folds in near-misses from near-miss-monitor's hourly output.
+    near-miss-monitor populates `data/near-misses-by-signal.json` with
+    per-signal_type near-miss COUNTS derived from engine snapshots; we
+    accumulate those across the rolling window by summing the latest
+    snapshot (a daily run of miss-calibrator uses the latest figure).
+    """
     summary = {
         "window_days": SUMMARY_ROLLING_DAYS,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -328,6 +335,26 @@ def rolling_summary(s3, today_str: str) -> dict:
         except Exception as e:
             print(f"[miss] rolling read fail {d}: {e}")
             continue
+    
+    # Fold in near-miss-monitor's snapshot-derived counts
+    try:
+        nm_obj = s3.get_object(Bucket=BUCKET, Key="data/near-misses-by-signal.json")
+        nm = json.loads(nm_obj["Body"].read().decode("utf-8"))
+        for sig, count in (nm.get("near_misses_by_signal") or {}).items():
+            try:
+                summary["near_misses_by_signal"][sig] += int(count)
+            except (TypeError, ValueError):
+                pass
+        summary["near_miss_monitor"] = {
+            "as_of": nm.get("generated_at"),
+            "total_added": sum(int(v) for v in (nm.get("near_misses_by_signal") or {}).values()),
+            "n_signals": len(nm.get("near_misses_by_signal") or {}),
+        }
+    except s3.exceptions.NoSuchKey:
+        summary["near_miss_monitor"] = {"missing": True}
+    except Exception as e:
+        summary["near_miss_monitor"] = {"err": str(e)[:120]}
+    
     # Convert defaultdicts to dicts for JSON
     summary["totals"] = dict(summary["totals"])
     summary["near_misses_by_signal"] = dict(sorted(

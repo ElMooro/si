@@ -88,9 +88,20 @@ KNOWN_ENGINE_SIGNALS = {
     "crisis-composite": {
         "family": "crisis-monitor",
         "signal_types": [
+            # Core composites
             "crisis_index_nfci", "nfci_subindex", "fcip_composite",
-            "crisis_dfii10_vs_gld", "crisis_broad_dollar_vs_eem",
             "carry_risk", "plumbing_stress",
+            # Cross-asset crisis indicators (vs SPY, vs other risk benchmarks)
+            "crisis_dfii10_vs_gld", "crisis_broad_dollar_vs_eem",
+            "crisis_dfii10_vs_spy", "crisis_broad_dollar_vs_spy",
+            "crisis_hy_oas_vs_spy", "crisis_hy_oas_vs_hyg",
+            # Macro stress indicators
+            "crisis_sloos_tighten", "crisis_ig_bbb_oas",
+            "crisis_index_stlfsi4", "crisis_index_anfci", "crisis_index_kcfsi",
+            "crisis_t10yie_extreme",
+            # Rate-diff extremes
+            "crisis_rate_diff_eur_3m", "crisis_rate_diff_jpy_3m",
+            "crisis_sofr_iorb", "crisis_obfr_iorb",
         ],
         "aliases": ["Crisis Composite"],
     },
@@ -113,7 +124,12 @@ KNOWN_ENGINE_SIGNALS = {
     },
     "macro-composite": {
         "family": "market-regime",
-        "signal_types": ["macro_composite_z", "macro_composite_index"],
+        "signal_types": [
+            "macro_composite_z", "macro_composite_index",
+            "market_phase", "edge_regime",
+            "analog_signal", "sector_breadth",
+            "khalid_index",   # top-level composite — also a market-regime read
+        ],
         "aliases": ["Macro Composite"],
     },
 
@@ -130,6 +146,9 @@ KNOWN_ENGINE_SIGNALS = {
         "signal_types": [
             "etf_rotation", "correlation_break", "corr_break_comp",
             "divergence_extreme", "yc_regime",
+            # Correlation-break sub-composites (vs major risk benchmarks)
+            "corr_break_composite_vs_vxx", "corr_break_top_pair",
+            "corr_break_composite_vs_spy",
         ],
         "aliases": ["Cross-Asset RV"],
     },
@@ -164,12 +183,30 @@ KNOWN_ENGINE_SIGNALS = {
         "signal_types": ["epsvelocity"],
         "aliases": ["EPS Velocity"],
     },
+    # nobrainer-etfs: thematic/sector ETF picks (SOXX, SLX, SMH, OIH, AIQ).
+    # Each ETF is logged as its own signal_type (nobrainer_<symbol>).
+    "nobrainer-etfs": {
+        "family": "equity-value",
+        "signal_types": [
+            "nobrainer_SOXX", "nobrainer_SLX", "nobrainer_SMH",
+            "nobrainer_OIH",  "nobrainer_AIQ",
+        ],
+        "aliases": ["NoBrainer ETFs", "Sector ETFs"],
+    },
 
     # ─── positioning family
     "short-pressure": {
         "family": "positioning",
-        "signal_types": ["short_pressure", "short_interest_extreme"],
+        "signal_types": [
+            "short_pressure", "short_interest_extreme",
+            "squeeze_risk",   # the high-volume signal observed in DDB
+        ],
         "aliases": ["Short Pressure"],
+    },
+    "cot-positioning": {
+        "family": "positioning",
+        "signal_types": ["cot_extreme"],
+        "aliases": ["CFTC Positioning", "COT Tracker"],
     },
     "earnings-pead": {
         "family": "positioning",
@@ -187,7 +224,11 @@ KNOWN_ENGINE_SIGNALS = {
     # ─── momentum family (often standalone)
     "momentum": {
         "family": "momentum",
-        "signal_types": ["momentum_spy", "momentum_gld", "momentum_qqq", "ml_risk"],
+        "signal_types": [
+            "momentum_spy", "momentum_gld", "momentum_qqq",
+            "momentum_uso",   # USO oil ETF momentum
+            "ml_risk",
+        ],
         "aliases": ["Momentum"],
     },
 

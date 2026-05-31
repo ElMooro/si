@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-near-miss-monitor",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Near-miss detection from engine S3 snapshots. No engine cooperation needed. Output data/near-misses-by-signal.json which miss-detector folds into miss-summary.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "near-miss-monitor-hourly",
+    "cron": "cron(30 * * * ? *)",
+    "description": "Near-miss monitor — every hour at :30, ahead of signal-board (:15) and alpha-compass (:50)"
+  }
+}
