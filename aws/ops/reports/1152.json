@@ -1,0 +1,61 @@
+{
+  "started": "2026-05-31T01:14:23.600736+00:00",
+  "registry": {
+    "n_contexts": 38,
+    "skill_aggregator_present": true
+  },
+  "redeploy_signal_logger": {
+    "attempt": 1,
+    "status": "OK"
+  },
+  "redeploy_router": {
+    "attempt": 1,
+    "status": "OK"
+  },
+  "eb_schedule": {
+    "rule": "created",
+    "permission": "added",
+    "rule_arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-frontrun-skill-daily"
+  },
+  "signal_logger_invoke": {
+    "fn_err": null,
+    "logged": 47
+  },
+  "frontrun_log_lines": "[FRONTRUN-PREDICTIONS] slice(None, 300, None)",
+  "skill_aggregator_invoke": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 0.71,
+    "results": [
+      {
+        "context_id": "frontrun-skill-aggregator",
+        "title": "Front-Run Skill Aggregator",
+        "brief_type": "skill_aggregator",
+        "output_key": "frontrun-skill-aggregator",
+        "status": "OK",
+        "n_total": 0,
+        "n_scored": 0,
+        "n_pending": 0,
+        "n_engines_tracked": 0,
+        "duration_s": 0.61
+      }
+    ]
+  },
+  "skill_index": {
+    "updated_at": "2026-05-31T01:14:54.969145+00:00",
+    "lookback_days": 90,
+    "n_total": 0,
+    "n_scored": 0,
+    "n_pending": 0,
+    "scored_pct": 0,
+    "engines_tracked": [],
+    "engine_summary": {}
+  },
+  "eb_verify": {
+    "state": "ENABLED",
+    "schedule": "cron(30 10 * * ? *)",
+    "n_targets": 1,
+    "target_input": "{\"contexts\": [\"frontrun-skill-aggregator\"]}"
+  },
+  "finished": "2026-05-31T01:14:57.297879+00:00"
+}
