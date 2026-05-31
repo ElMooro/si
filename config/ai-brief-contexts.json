@@ -2143,6 +2143,55 @@
         "macro_history": "data/macro-frontrun-sniffer-history.json"
       },
       "page_url": "https://justhodl.ai/alerts.html"
+    },
+    "system-uptime-monitor": {
+      "brief_type": "uptime",
+      "title": "System Uptime Monitor",
+      "output_key": "system-uptime-monitor",
+      "monitored_briefs": [
+        {
+          "key": "data/frontrun-sniffer.json",
+          "label": "\ud83c\udfaf Equity Front-Run Sniffer",
+          "max_age_hours": 8,
+          "expected_cadence": "every 4h"
+        },
+        {
+          "key": "data/macro-frontrun-sniffer.json",
+          "label": "\ud83c\udfdb Macro Front-Run Sniffer",
+          "max_age_hours": 8,
+          "expected_cadence": "every 4h"
+        },
+        {
+          "key": "data/_alerts/digest-latest.json",
+          "label": "\ud83d\udcc5 Daily Digest",
+          "max_age_hours": 26,
+          "expected_cadence": "09:00 + 21:00 UTC"
+        },
+        {
+          "key": "data/_alerts/digests-index.json",
+          "label": "\ud83d\udcc2 Digest Archive Index",
+          "max_age_hours": 26,
+          "expected_cadence": "with each digest"
+        },
+        {
+          "key": "data/_alerts/targets-index.json",
+          "label": "\ud83c\udfaf Targets Index",
+          "max_age_hours": 26,
+          "expected_cadence": "with each digest"
+        },
+        {
+          "key": "data/master-cio-synthesis.json",
+          "label": "\ud83c\udfa9 CIO Synthesis",
+          "max_age_hours": 30,
+          "expected_cadence": "daily"
+        },
+        {
+          "key": "data/portfolio-brief.json",
+          "label": "\ud83d\udcbc Portfolio Brief",
+          "max_age_hours": 4,
+          "expected_cadence": "every 1h"
+        }
+      ]
     }
   }
 }

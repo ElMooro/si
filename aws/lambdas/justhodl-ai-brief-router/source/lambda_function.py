@@ -2688,6 +2688,223 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
 
 
 # ─────────────────────────────────────────────────────────────────────
+# SYSTEM UPTIME MONITOR — heartbeat checker that catches silent failures
+# ─────────────────────────────────────────────────────────────────────
+def _brief_age_hours(s3_key):
+    """Compute age of a brief in hours by reading its 'generated_at' or
+    falling back to S3 LastModified. Returns (age_hours, generated_at_iso)
+    or (None, None) if the object doesn't exist."""
+    try:
+        # Prefer the generated_at inside the JSON body if present
+        body = s3io.get_json(s3_key, default=None)
+        gen_at = None
+        if isinstance(body, dict):
+            gen_at = body.get("generated_at") or body.get("updated_at") or body.get("date_generated")
+        if gen_at:
+            try:
+                dt = datetime.fromisoformat(gen_at.replace("Z","+00:00"))
+                age = (datetime.now(timezone.utc) - dt).total_seconds() / 3600
+                return round(age, 2), gen_at
+            except Exception: pass
+        # Fallback: S3 head LastModified
+        try:
+            head = s3io.head(s3_key)
+            lm = head.get("LastModified") if isinstance(head, dict) else None
+            if lm:
+                if isinstance(lm, str):
+                    dt = datetime.fromisoformat(lm.replace("Z","+00:00"))
+                else:
+                    dt = lm
+                if dt.tzinfo is None: dt = dt.replace(tzinfo=timezone.utc)
+                age = (datetime.now(timezone.utc) - dt).total_seconds() / 3600
+                return round(age, 2), dt.isoformat()
+        except Exception: pass
+        return None, None
+    except Exception:
+        return None, None
+
+
+def generate_uptime_check(ctx_id, cfg, episode_ref):
+    """Hourly system-uptime heartbeat. Reads age of each monitored brief.
+    Fires a Telegram alert when:
+      - Any brief just transitioned FRESH → STALE (priority alert)
+      - Briefs that were stale all become FRESH again (ALL_CLEAR)
+      - Persistent staleness > 4h since last STALE alert (reminder)
+
+    Writes data/_alerts/uptime-status.json for the cockpit to read.
+    """
+    t0 = time.time()
+    result = {"context_id": ctx_id, "title": cfg.get("title"),
+              "brief_type": "uptime", "output_key": cfg.get("output_key")}
+    try:
+        monitored = cfg.get("monitored_briefs") or []
+        if not monitored:
+            return {**result, "status": "NO_MONITORED_BRIEFS"}
+
+        # Read previous state
+        state_key = "data/_alerts/uptime-state.json"
+        prev = s3io.get_json(state_key, default={}) or {}
+        prev_briefs = prev.get("briefs_status") or {}
+        prev_alert_at = prev.get("last_alert_at")
+        prev_alert_type = prev.get("last_alert_type")
+
+        # Check each monitored brief
+        briefs_status = {}
+        any_stale = False
+        any_missing = False
+        newly_stale = []  # transitioned FRESH→STALE this cycle
+        for entry in monitored:
+            key = entry.get("key")
+            if not key: continue
+            label = entry.get("label") or key
+            max_age = entry.get("max_age_hours", 8) or 8
+            age, gen_at = _brief_age_hours(key)
+            if age is None:
+                # File missing or unreadable
+                status = "MISSING"
+                is_stale = True
+                any_missing = True
+            elif age > max_age:
+                status = "STALE"
+                is_stale = True
+            elif age > max_age * 0.75:
+                status = "WARNING"
+                is_stale = False
+            else:
+                status = "FRESH"
+                is_stale = False
+            if is_stale: any_stale = True
+
+            prev_entry = prev_briefs.get(key) or {}
+            was_stale = bool(prev_entry.get("is_stale"))
+            if is_stale and not was_stale:
+                newly_stale.append({"key": key, "label": label, "age_hours": age,
+                                     "max_age_hours": max_age, "status": status})
+
+            briefs_status[key] = {
+                "label":          label,
+                "key":            key,
+                "max_age_hours":  max_age,
+                "expected":       entry.get("expected_cadence", ""),
+                "age_hours":      age,
+                "generated_at":   gen_at,
+                "status":         status,
+                "is_stale":       is_stale,
+            }
+
+        # Decide alert
+        alert_kind = None
+        alert_reason = None
+        # Check cooldown for reminder
+        mins_since_last_alert = None
+        if prev_alert_at:
+            try:
+                la = datetime.fromisoformat(prev_alert_at.replace("Z","+00:00"))
+                mins_since_last_alert = (datetime.now(timezone.utc) - la).total_seconds() / 60
+            except Exception: pass
+
+        if newly_stale:
+            alert_kind = "STALE_NEW"
+            alert_reason = f"{len(newly_stale)}_briefs_transitioned_to_stale"
+        elif prev_alert_type == "STALE_NEW" or prev_alert_type == "STALE_REMINDER":
+            if not any_stale:
+                alert_kind = "ALL_CLEAR"
+                alert_reason = "all_briefs_fresh_again"
+            elif mins_since_last_alert and mins_since_last_alert >= 240:  # 4h reminder
+                alert_kind = "STALE_REMINDER"
+                alert_reason = "still_stale_after_4h"
+
+        telegram_info = None
+        if alert_kind:
+            msg = _format_uptime_alert(alert_kind, briefs_status, newly_stale)
+            ok, telegram_info = _telegram_post(msg)
+            result["telegram_ok"] = ok
+
+        # Write uptime-status (for the cockpit) and uptime-state (for dedup)
+        status_doc = {
+            "version": "1.0",
+            "checked_at":      datetime.now(timezone.utc).isoformat(),
+            "n_monitored":     len(monitored),
+            "n_stale":         sum(1 for b in briefs_status.values() if b["is_stale"]),
+            "n_warning":       sum(1 for b in briefs_status.values() if b["status"] == "WARNING"),
+            "n_fresh":         sum(1 for b in briefs_status.values() if b["status"] == "FRESH"),
+            "n_missing":       sum(1 for b in briefs_status.values() if b["status"] == "MISSING"),
+            "overall_status":  "STALE" if any_stale else ("WARNING" if any(b["status"]=="WARNING" for b in briefs_status.values()) else "HEALTHY"),
+            "briefs":          list(briefs_status.values()),
+        }
+        s3io.put_json("data/_alerts/uptime-status.json", status_doc, cache_control="no-store")
+
+        state_doc = {
+            "last_check_at":   datetime.now(timezone.utc).isoformat(),
+            "briefs_status":   briefs_status,
+        }
+        if alert_kind:
+            state_doc["last_alert_at"]   = datetime.now(timezone.utc).isoformat()
+            state_doc["last_alert_type"] = alert_kind
+        else:
+            state_doc["last_alert_at"]   = prev_alert_at
+            state_doc["last_alert_type"] = prev_alert_type
+        s3io.put_json(state_key, state_doc, cache_control="no-store")
+
+        result.update({
+            "status": "OK",
+            "overall_status": status_doc["overall_status"],
+            "n_stale": status_doc["n_stale"],
+            "n_warning": status_doc["n_warning"],
+            "n_fresh":  status_doc["n_fresh"],
+            "n_missing": status_doc["n_missing"],
+            "alert_kind": alert_kind,
+            "alert_reason": alert_reason,
+            "duration_s": round(time.time() - t0, 2),
+        })
+    except Exception as e:
+        result["status"] = "ERR_EXC"
+        result["err"] = str(e)[:300]
+        result["traceback"] = traceback.format_exc()[-800:]
+    return result
+
+
+def _format_uptime_alert(alert_kind, briefs_status, newly_stale):
+    """Build the Telegram message for an uptime alert."""
+    if alert_kind == "STALE_NEW":
+        title = "🚨 *SYSTEM UPTIME ALERT — briefs going stale*"
+    elif alert_kind == "STALE_REMINDER":
+        title = "⚠️ *SYSTEM UPTIME — still stale after 4h*"
+    elif alert_kind == "ALL_CLEAR":
+        title = "✅ *SYSTEM UPTIME — all briefs fresh again*"
+    else:
+        title = "📡 *SYSTEM UPTIME UPDATE*"
+
+    msg = f"{title}\n\n"
+    n_total = len(briefs_status)
+    n_fresh = sum(1 for b in briefs_status.values() if b["status"] == "FRESH")
+    n_warn  = sum(1 for b in briefs_status.values() if b["status"] == "WARNING")
+    n_stale = sum(1 for b in briefs_status.values() if b["is_stale"])
+    msg += f"Overall: {n_fresh}/{n_total} fresh · {n_warn} warning · {n_stale} stale\n\n"
+
+    # If alerting on staleness, list the stale briefs
+    if alert_kind in ("STALE_NEW", "STALE_REMINDER"):
+        stale_list = [b for b in briefs_status.values() if b["is_stale"]]
+        if stale_list:
+            msg += "*Stale briefs:*\n"
+            for b in stale_list[:10]:
+                age = b.get("age_hours")
+                age_str = f"{age:.1f}h" if isinstance(age, (int, float)) else "missing"
+                msg += f"  • {b.get('label')}: *{age_str}* (threshold {b.get('max_age_hours')}h)\n"
+                if b.get("generated_at"):
+                    msg += f"      last seen: `{b['generated_at'][:19]}` UTC\n"
+            msg += "\n"
+        msg += ("Likely causes: Claude returning malformed JSON, Lambda errors, "
+                "S3 write failures, or scheduled rule disabled.\n\n")
+    elif alert_kind == "ALL_CLEAR":
+        msg += "All monitored briefs back within their freshness thresholds. "
+        msg += "Previously stale briefs have been refreshed.\n\n"
+
+    msg += "→ https://justhodl.ai/uptime.html"
+    return msg
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Per-context worker — dispatches based on brief_type
 # ─────────────────────────────────────────────────────────────────────
 def generate_one_brief(ctx_id, cfg, episode_ref):
@@ -2705,6 +2922,8 @@ def generate_one_brief(ctx_id, cfg, episode_ref):
         return generate_macro_frontrun_brief(ctx_id, cfg, episode_ref)
     if bt == "digest":
         return generate_alerts_digest(ctx_id, cfg, episode_ref)
+    if bt == "uptime":
+        return generate_uptime_check(ctx_id, cfg, episode_ref)
     # Default: regime brief
     return _generate_regime_brief(ctx_id, cfg, episode_ref)
 
