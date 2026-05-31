@@ -1,0 +1,118 @@
+{
+  "started": "2026-05-31T02:58:32.805713+00:00",
+  "lambdas": {
+    "justhodl-magnitude-distributions": {
+      "state_before": {
+        "exists": true,
+        "state": "Active",
+        "modified": "2026-05-31T02:43:57.000+0000",
+        "code_size": 6586
+      },
+      "zip_size": 6482,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "magnitude-distributions-daily",
+        "cron": "cron(30 7 * * ? *)"
+      },
+      "invoke": {
+        "status": 200,
+        "fn_err": null,
+        "result": {
+          "ok": true,
+          "stacks": 0,
+          "outcomes": 0
+        }
+      },
+      "state_after": {
+        "exists": true,
+        "state": "Active",
+        "modified": "2026-05-31T02:58:39.000+0000",
+        "code_size": 6482
+      }
+    },
+    "justhodl-miss-detector": {
+      "state_before": {
+        "exists": true,
+        "state": "Active",
+        "modified": "2026-05-31T02:44:12.000+0000",
+        "code_size": 8248
+      },
+      "zip_size": 8144,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "miss-detector-nightly",
+        "cron": "cron(0 1 * * ? *)"
+      },
+      "invoke": {
+        "status": 200,
+        "fn_err": null,
+        "result": {
+          "ok": true,
+          "session_date": "2026-05-29",
+          "candidates": 0,
+          "attributed": 0,
+          "misses": 0
+        }
+      },
+      "state_after": {
+        "exists": true,
+        "state": "Active",
+        "modified": "2026-05-31T02:58:55.000+0000",
+        "code_size": 8144
+      }
+    },
+    "justhodl-alpha-compass": {
+      "state_before": {
+        "exists": true,
+        "state": "Active",
+        "modified": "2026-05-31T02:32:14.000+0000",
+        "code_size": 7470
+      },
+      "zip_size": 7366,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "alpha-compass-3h",
+        "cron": "cron(50 */3 * * ? *)"
+      },
+      "invoke": {
+        "status": 200,
+        "fn_err": null,
+        "result": {
+          "ok": true,
+          "top_calls": 3,
+          "watchlist": 3
+        }
+      },
+      "state_after": {
+        "exists": true,
+        "state": "Active",
+        "modified": "2026-05-31T02:59:13.000+0000",
+        "code_size": 7366
+      }
+    }
+  },
+  "s3": {
+    "data/magnitude-distributions.json": {
+      "size": 290,
+      "modified": "2026-05-31 02:58:50+00:00"
+    },
+    "data/alpha-compass.json": {
+      "size": 5433,
+      "modified": "2026-05-31 02:59:24+00:00"
+    },
+    "data/miss-summary.json": {
+      "size": 134,
+      "modified": "2026-05-31 02:59:08+00:00"
+    }
+  },
+  "finished": "2026-05-31T02:59:24.459347+00:00"
+}
