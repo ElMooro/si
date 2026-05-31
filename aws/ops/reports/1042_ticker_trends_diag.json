@@ -1,0 +1,115 @@
+{
+  "started": "2026-05-31T15:39:39.475549+00:00",
+  "env_before": {
+    "MAX_TICKERS": "5",
+    "SLEEP_BETWEEN_S": "2"
+  },
+  "env_after": {
+    "TRY_GOOGLE": "1",
+    "MAX_TICKERS": "8"
+  },
+  "zip_size": 12102,
+  "redeploy": "ok",
+  "invoke": {
+    "status": 200,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "n_ok": 0,
+      "n_stealth": 0,
+      "sources_used": {},
+      "top_ticker": null,
+      "top_velocity": null,
+      "duration_s": 16.9
+    }
+  },
+  "log_events": [
+    {
+      "ts": "2026-05-31T15:39:53",
+      "msg": "INIT_START Runtime Version: python:3.12.mainlinev2.v7\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244"
+    },
+    {
+      "ts": "2026-05-31T15:39:54",
+      "msg": "START RequestId: f7cb1482-b0fd-4abb-81b4-35ce6b9657ea Version: $LATEST"
+    },
+    {
+      "ts": "2026-05-31T15:39:54",
+      "msg": "[ticker-trends-v2] universe: 8 tickers (wiki+gtrends), primary=Wikipedia, gtrends_fallback=True"
+    },
+    {
+      "ts": "2026-05-31T15:39:54",
+      "msg": "[ticker-trends-v2] wiki[Apple_Inc.] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Apple_Inc./daily/2026042800"
+    },
+    {
+      "ts": "2026-05-31T15:39:56",
+      "msg": "[ticker-trends-v2] wiki[Apple_Inc.] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Apple_Inc./daily/2026042800"
+    },
+    {
+      "ts": "2026-05-31T15:39:56",
+      "msg": "[ticker-trends-v2] wiki[Microsoft] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Microsoft/daily/2026042800/"
+    },
+    {
+      "ts": "2026-05-31T15:39:58",
+      "msg": "[ticker-trends-v2] wiki[Microsoft] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Microsoft/daily/2026042800/"
+    },
+    {
+      "ts": "2026-05-31T15:39:58",
+      "msg": "[ticker-trends-v2] wiki[Alphabet_Inc.] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Alphabet_Inc./daily/2026042"
+    },
+    {
+      "ts": "2026-05-31T15:40:00",
+      "msg": "[ticker-trends-v2] wiki[Alphabet_Inc.] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Alphabet_Inc./daily/2026042"
+    },
+    {
+      "ts": "2026-05-31T15:40:00",
+      "msg": "[ticker-trends-v2] wiki[Amazon_(company)] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Amazon_%28company%29/daily/"
+    },
+    {
+      "ts": "2026-05-31T15:40:02",
+      "msg": "[ticker-trends-v2] wiki[Amazon_(company)] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Amazon_%28company%29/daily/"
+    },
+    {
+      "ts": "2026-05-31T15:40:02",
+      "msg": "[ticker-trends-v2] wiki[Meta_Platforms] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Meta_Platforms/daily/202604"
+    },
+    {
+      "ts": "2026-05-31T15:40:04",
+      "msg": "[ticker-trends-v2] wiki[Meta_Platforms] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Meta_Platforms/daily/202604"
+    },
+    {
+      "ts": "2026-05-31T15:40:05",
+      "msg": "[ticker-trends-v2] wiki[Nvidia] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Nvidia/daily/2026042800/202"
+    },
+    {
+      "ts": "2026-05-31T15:40:07",
+      "msg": "[ticker-trends-v2] wiki[Nvidia] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Nvidia/daily/2026042800/202"
+    },
+    {
+      "ts": "2026-05-31T15:40:07",
+      "msg": "[ticker-trends-v2] wiki[Broadcom] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Broadcom/daily/2026042800/2"
+    },
+    {
+      "ts": "2026-05-31T15:40:09",
+      "msg": "[ticker-trends-v2] wiki[Broadcom] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Broadcom/daily/2026042800/2"
+    },
+    {
+      "ts": "2026-05-31T15:40:09",
+      "msg": "[ticker-trends-v2] wiki[Tesla,_Inc.] UnicodeEncodeError: 'latin-1' codec can't encode character '\\u2014' in position 47: ordinal not in range(256) from https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Tesla%2C_Inc./daily/2026042"
+    }
+  ],
+  "error_pattern": {
+    "gtrends_attempt": 1,
+    "wiki_attempt": 15
+  },
+  "s3_output": {
+    "generated_at": "2026-05-31T15:40:11+00:00",
+    "n_processed": 8,
+    "n_ok": 0,
+    "errors": {
+      "no_source_data": 8
+    },
+    "sources_used_count": {},
+    "top_5": []
+  },
+  "finished": "2026-05-31T15:40:13.995579+00:00"
+}
