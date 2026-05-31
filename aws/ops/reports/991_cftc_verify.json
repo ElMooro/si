@@ -1,0 +1,43 @@
+{
+  "started": "2026-05-31T01:40:00.185491+00:00",
+  "test": {
+    "sig_proxy": {
+      "status": 200,
+      "size": 2178,
+      "top_keys": [
+        "positioning_score",
+        "risk_appetite",
+        "smart_money",
+        "crisis_indicators",
+        "extreme_positions",
+        "reversal_candidates",
+        "sector_positioning",
+        "summary"
+      ]
+    },
+    "cot_proxy": {
+      "status": 200,
+      "size": 99428,
+      "top_keys": [
+        "source",
+        "contracts",
+        "data",
+        "timestamp",
+        "cached_at",
+        "from_cache",
+        "cache_age_hours"
+      ]
+    },
+    "fut_proxy": {
+      "status": 200,
+      "size": 1332,
+      "top_keys": [
+        "source",
+        "data",
+        "timestamp"
+      ]
+    },
+    "page_api": "https://api.justhodl.ai/agent/cftc-positioning",
+    "page_uses_proxy": true
+  }
+}
