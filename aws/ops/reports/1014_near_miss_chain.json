@@ -1,0 +1,266 @@
+{
+  "started": "2026-05-31T11:41:55.727957+00:00",
+  "lambdas": {
+    "justhodl-engine-signal-map": {
+      "zip_size": 6814,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "engine-signal-map-daily",
+        "cron": "cron(0 9 * * ? *)"
+      },
+      "invoke": {
+        "status": 200,
+        "fn_err": null,
+        "result": {
+          "ok": true,
+          "engines": 20,
+          "families": 10,
+          "unknown_signal_types": 13
+        }
+      }
+    },
+    "justhodl-near-miss-monitor": {
+      "zip_size": 6153,
+      "op": {
+        "action": "created"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "near-miss-monitor-hourly",
+        "cron": "cron(30 * * * ? *)"
+      },
+      "invoke": {
+        "status": 200,
+        "fn_err": null,
+        "result": {
+          "ok": true,
+          "signals_with_count": 1,
+          "total_near_misses": 14
+        }
+      }
+    },
+    "justhodl-miss-detector": {
+      "zip_size": 9451,
+      "op": {
+        "action": "updated"
+      },
+      "schedule": {
+        "scheduled": true,
+        "rule": "miss-detector-nightly",
+        "cron": "cron(0 1 * * ? *)"
+      },
+      "invoke": {
+        "status": 200,
+        "fn_err": null,
+        "result": {
+          "ok": true,
+          "session_date": "2026-05-29",
+          "candidates": 511,
+          "attributed": 0,
+          "misses": 200
+        }
+      }
+    }
+  },
+  "miss_calibrator": {
+    "invoke": {
+      "status": 200,
+      "fn_err": null,
+      "result": {
+        "ok": true,
+        "proposals": 1,
+        "universe_candidates": 0,
+        "skipped_deprecated": 0
+      }
+    }
+  },
+  "alpha_compass": {
+    "invoke": {
+      "status": 200,
+      "fn_err": null,
+      "result": {
+        "ok": true,
+        "top_calls": 3,
+        "watchlist": 3
+      }
+    }
+  },
+  "s3": {
+    "data/engine-signal-map.json": {
+      "size": 8607,
+      "modified": "2026-05-31 11:42:46+00:00"
+    },
+    "data/near-misses-by-signal.json": {
+      "size": 1097,
+      "modified": "2026-05-31 11:42:51+00:00"
+    },
+    "data/miss-summary.json": {
+      "size": 854,
+      "modified": "2026-05-31 11:42:58+00:00"
+    },
+    "data/miss-calibrator-proposals.json": {
+      "size": 1212,
+      "modified": "2026-05-31 11:43:03+00:00"
+    },
+    "data/alpha-compass.json": {
+      "size": 5911,
+      "modified": "2026-05-31 11:43:08+00:00"
+    }
+  },
+  "engine_map": {
+    "totals": {
+      "curated_engines": 20,
+      "curated_signals": 77,
+      "families": 10,
+      "ddb_observed_types": 63,
+      "unknown_after_attribution": 13
+    },
+    "unknown_remaining": 13,
+    "top_unknowns_remaining": [
+      {
+        "signal_type": "nobrainer_PICK",
+        "count": 15
+      },
+      {
+        "signal_type": "nobrainer_XOP",
+        "count": 13
+      },
+      {
+        "signal_type": "nobrainer_BOTZ",
+        "count": 12
+      },
+      {
+        "signal_type": "macro_frontrun_sniffer_setup",
+        "count": 12
+      },
+      {
+        "signal_type": "nobrainer_ROBO",
+        "count": 11
+      },
+      {
+        "signal_type": "nobrainer_SIL",
+        "count": 9
+      },
+      {
+        "signal_type": "nobrainer_REMX",
+        "count": 9
+      },
+      {
+        "signal_type": "sustained_target_equity",
+        "count": 8
+      },
+      {
+        "signal_type": "nobrainer_LIT",
+        "count": 7
+      },
+      {
+        "signal_type": "nobrainer_COPX",
+        "count": 7
+      }
+    ]
+  },
+  "near_miss_payload": {
+    "totals": {
+      "n_signals_configured": 6,
+      "n_signals_with_count": 1,
+      "n_total_near_misses": 14,
+      "n_snapshots_loaded": 4,
+      "n_snapshots_failed": 0
+    },
+    "near_misses_by_signal": {
+      "earnings_pead": 14,
+      "screener_top_pick": 0,
+      "momentum_top_pick": 0,
+      "valuation_composite": 0,
+      "earnings_cascade": 0,
+      "crisis_composite_near_extreme": 0
+    },
+    "diagnostics_sample": [
+      {
+        "signal_type": "earnings_pead",
+        "snapshot": "data/earnings-pead.json",
+        "extractor": "tier_label",
+        "count": 14
+      },
+      {
+        "signal_type": "screener_top_pick",
+        "snapshot": "data/opportunities.json",
+        "extractor": "score_band",
+        "count": 0
+      },
+      {
+        "signal_type": "momentum_top_pick",
+        "snapshot": "data/opportunities.json",
+        "extractor": "score_band",
+        "count": 0
+      },
+      {
+        "signal_type": "valuation_composite",
+        "snapshot": "data/opportunities.json",
+        "extractor": "score_band",
+        "count": 0
+      },
+      {
+        "signal_type": "earnings_cascade",
+        "snapshot": "data/earnings-cascade.json",
+        "extractor": "array_length",
+        "count": 0
+      },
+      {
+        "signal_type": "crisis_composite_near_extreme",
+        "snapshot": "data/crisis-composite.json",
+        "extractor": "z_score_band",
+        "count": 0
+      }
+    ]
+  },
+  "miss_summary_after": {
+    "totals": {
+      "out_of_universe": 160,
+      "wrong_signal_type": 40
+    },
+    "n_near_miss_signals": 6,
+    "near_misses_by_signal": {
+      "earnings_pead": 14,
+      "screener_top_pick": 0,
+      "momentum_top_pick": 0,
+      "valuation_composite": 0,
+      "earnings_cascade": 0,
+      "crisis_composite_near_extreme": 0
+    },
+    "near_miss_monitor_meta": {
+      "as_of": "2026-05-31T11:42:49.666722+00:00",
+      "total_added": 14,
+      "n_signals": 6
+    }
+  },
+  "miss_calibrator_after": {
+    "totals": {
+      "n_misses_total_30d": 200,
+      "n_signals_with_near_misses": 6,
+      "n_proposals": 1,
+      "n_skipped_deprecated": 0,
+      "n_skipped_below_min": 5,
+      "n_universe_candidates": 0
+    },
+    "n_proposals": 1,
+    "proposals": [
+      {
+        "signal_type": "earnings_pead",
+        "delta_pct": -0.0758,
+        "near_misses_30d": 14,
+        "confidence": "LOW",
+        "is_promoted": true,
+        "scorecard_wilson_lb": null,
+        "scorecard_n": null,
+        "scorecard_grade": null,
+        "rationale": "14 near-misses in last 30 days. Proposed threshold reduction -7.6%. Signal exists in scorecard but not in promoted list.",
+        "expires_at": "2026-06-14T11:43:02.278977+00:00"
+      }
+    ]
+  },
+  "finished": "2026-05-31T11:43:08.612037+00:00"
+}
