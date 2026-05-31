@@ -1,0 +1,101 @@
+{
+  "started": "2026-05-31T19:08:11.912340+00:00",
+  "log_events": [
+    "[ark] fetching ARKK\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/fundsiteliterature/csv/ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv",
+    "[ark]   \u274c ARKK fetch failed",
+    "[ark] fetching ARKQ\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/fundsiteliterature/csv/ARK_AUTONOMOUS_TECH_%26_ROBOTICS_ETF_ARKQ_HO",
+    "[ark]   \u274c ARKQ fetch failed",
+    "[ark] fetching ARKW\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/fundsiteliterature/csv/ARK_NEXT_GENERATION_INTERNET_ETF_ARKW_HOLDIN",
+    "[ark]   \u274c ARKW fetch failed",
+    "[ark] fetching ARKF\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/fundsiteliterature/csv/ARK_FINTECH_INNOVATION_ETF_ARKF_HOLDINGS.csv",
+    "[ark]   \u274c ARKF fetch failed",
+    "[ark] fetching ARKG\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/fundsiteliterature/csv/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS.csv",
+    "[ark]   \u274c ARKG fetch failed",
+    "[ark] fetching ARKX\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/fundsiteliterature/csv/ARK_SPACE_EXPLORATION_%26_INNOVATION_ETF_ARK",
+    "[ark]   \u274c ARKX fetch failed",
+    "[ark] no funds fetched \u2014 aborting",
+    "[ark] fetching ARKK\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv",
+    "[ark]   \u274c ARKK fetch failed",
+    "[ark] fetching ARKQ\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_AUTONOMOUS_TECH_%26_ROBOTICS_ETF_ARKQ_HOL",
+    "[ark]   \u274c ARKQ fetch failed",
+    "[ark] fetching ARKW\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_NEXT_GENERATION_INTERNET_ETF_ARKW_HOLDING",
+    "[ark]   \u274c ARKW fetch failed",
+    "[ark] fetching ARKF\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_FINTECH_INNOVATION_ETF_ARKF_HOLDINGS.csv",
+    "[ark]   \u274c ARKF fetch failed",
+    "[ark] fetching ARKG\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS.csv",
+    "[ark]   \u274c ARKG fetch failed",
+    "[ark] fetching ARKX\u2026",
+    "[ark] HTTP 404 from https://ark-funds.com/wp-content/uploads/funds-etf-csv/ARK_SPACE_EXPLORATION_%26_INNOVATION_ETF_ARKX",
+    "[ark]   \u274c ARKX fetch failed",
+    "[ark] no funds fetched \u2014 aborting"
+  ],
+  "probe_holdings?symbol=ARKK": {
+    "status": 200,
+    "size": 9424,
+    "preview": "{\"symbol\":\"ARKK\",\"date_from\":\"2026-05-29\",\"date_to\":\"2026-05-29\",\"holdings\":[{\"fund\":\"ARKK\",\"date\":\"2026-05-29\",\"ticker\":\"TSLA\",\"company\":\"TESLA INC\",\"cusip\":\"88160R101\",\"shares\":1711759,\"market_value\":756768653.9,\"share_price\":442.1,\"weight\":10.55,\"weight_rank\":1},{\"fund\":\"ARKK\",\"date\":\"2026-05-29\",\"ticker\":\"AMD\",\"company\":\"ADVANCED MICRO DEVICES\",\"cusip\":\"007903107\",\"shares\":775061,\"market_value\":401551353.49,\"share_price\":518.09,\"weight\":5.6,\"weight_rank\":2},{\"fund\":\"ARKK\",\"date\":\"2026-05-29\",\"ticker\":\"CRSP\",\"company\":\"CRISPR THERAPEUTICS AG\",\"cusip\":\"H17182108\",\"shares\":6384542,\"market_val",
+    "top_keys": [
+      "symbol",
+      "date_from",
+      "date_to",
+      "holdings"
+    ],
+    "n_holdings": 47,
+    "sample": {
+      "fund": "ARKK",
+      "date": "2026-05-29",
+      "ticker": "TSLA",
+      "company": "TESLA INC",
+      "cusip": "88160R101",
+      "shares": 1711759,
+      "market_value": 756768653.9,
+      "share_price": 442.1,
+      "weight": 10.55,
+      "weight_rank": 1
+    }
+  },
+  "probe_holdings?symbol=ARKK,ARKQ,ARKW,ARKF,ARKG,ARKX": {
+    "status": 200,
+    "size": 47066,
+    "preview": "{\"symbol\":\"ARKK,ARKQ,ARKW,ARKF,ARKG,ARKX\",\"date_from\":\"2026-05-29\",\"date_to\":\"2026-05-29\",\"holdings\":[{\"fund\":\"ARKF\",\"date\":\"2026-05-29\",\"ticker\":\"SHOP\",\"company\":\"SHOPIFY INC - CLASS A\",\"cusip\":\"82509L107\",\"shares\":641034,\"market_value\":73738141.02,\"share_price\":115.03,\"weight\":9.03,\"weight_rank\":1},{\"fund\":\"ARKF\",\"date\":\"2026-05-29\",\"ticker\":\"CRCL\",\"company\":\"CIRCLE INTERNET GROUP INC\",\"cusip\":\"172573107\",\"shares\":484301,\"market_value\":52420740.24,\"share_price\":108.24,\"weight\":6.42,\"weight_rank\":2},{\"fund\":\"ARKF\",\"date\":\"2026-05-29\",\"ticker\":null,\"company\":\"ARK BITCOIN ETF HOLDCO (ARKF)\",\"cu",
+    "top_keys": [
+      "symbol",
+      "date_from",
+      "date_to",
+      "holdings"
+    ],
+    "n_holdings": 238,
+    "sample": {
+      "fund": "ARKF",
+      "date": "2026-05-29",
+      "ticker": "SHOP",
+      "company": "SHOPIFY INC - CLASS A",
+      "cusip": "82509L107",
+      "shares": 641034,
+      "market_value": 73738141.02,
+      "share_price": 115.03,
+      "weight": 9.03,
+      "weight_rank": 1
+    }
+  },
+  "probe_profile?symbol=ARKK": {
+    "status": 200,
+    "size": 521,
+    "preview": "{\"symbol\":\"ARKK\",\"profile\":{\"symbol\":\"ARKK\",\"name\":\"ARK Innovation ETF\",\"description\":\"ARKK is an actively managed ETF that seeks long-term growth of capital by investing under normal circumstances primarily (at least 65% of its assets) in domestic and foreign equity securities of companies that are relevant to the Fund\u2019s investment theme of disruptive innovation.\",\"fund_type\":\"Active Equity ETF\",\"inception_date\":\"2014-10-31\",\"cusip\":\"00214Q104\",\"isin\":\"US00214Q1040\",\"website\":\"https://ark-funds.com/funds/arkk/\"}}",
+    "top_keys": [
+      "symbol",
+      "profile"
+    ]
+  },
+  "finished": "2026-05-31T19:08:17.172056+00:00"
+}
