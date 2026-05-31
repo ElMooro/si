@@ -1,0 +1,91 @@
+{
+  "started": "2026-05-31T02:35:06.201086+00:00",
+  "test": {
+    "justhodl-magnitude-distributions": {
+      "exists": false,
+      "err": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-magnitude-distributions"
+    },
+    "justhodl-miss-detector": {
+      "exists": false,
+      "err": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-miss-detector"
+    },
+    "justhodl-alpha-compass": {
+      "exists": true,
+      "last_modified": "2026-05-31T02:32:14.000+0000",
+      "state": "Active",
+      "invoke_err": null,
+      "invoke_result": {
+        "ok": true,
+        "top_calls": 3,
+        "watchlist": 3
+      }
+    },
+    "s3_outputs": {
+      "data/magnitude-distributions.json": {
+        "missing": "An error occurred (404) when calling the HeadObject operation: Not Found"
+      },
+      "data/alpha-compass.json": {
+        "size": 5408,
+        "modified": "2026-05-31 02:35:15+00:00"
+      },
+      "data/miss-summary.json": {
+        "missing": "An error occurred (404) when calling the HeadObject operation: Not Found"
+      }
+    },
+    "compass_sample": {
+      "top_calls": 3,
+      "watchlist": 3,
+      "regime": "Unknown",
+      "feeds": {
+        "conviction": true,
+        "magnitude_distributions": false,
+        "scorecard": true,
+        "sizer": true,
+        "miss_summary": false
+      },
+      "first_call": {
+        "rank": 1,
+        "subject": "US equity \u2014 value tilt",
+        "ticker": null,
+        "direction": "RISK-OFF / DEFENSIVE",
+        "conviction": 45,
+        "confidence_band": "MODERATE",
+        "n_engines": 3,
+        "n_families": 1,
+        "agreement_pct": 100,
+        "thesis": "3 engine(s) across 1 independent family -> risk-off. 0 bargains vs 95 expensive/avoid (S&P 500 scan); 2 undervalued vs 21 overvalued (DCF); 72 cheap vs 103 rich on own multiple history. Conviction capped \u2014 limited cross-confirmation; needs agreement from independent engine families to rate higher.",
+        "invalidation": "Flips if net signal crosses neutral \u2014 specifically if the DCF / multiple scans flip to net-rich.",
+        "engines": [
+          {
+            "name": "equity-value",
+            "signal": -2,
+            "label": "STRONG RISK-OFF",
+            "read": "0 bargains vs 95 expensive/avoid (S&P 500 scan)",
+            "skill": 1.0
+          },
+          {
+            "name": "equity-value",
+            "signal": -1,
+            "label": "RISK-OFF",
+            "read": "2 undervalued vs 21 overvalued (DCF)",
+            "skill": 1.0
+          },
+          {
+            "name": "equity-value",
+            "signal": -1,
+            "label": "RISK-OFF",
+            "read": "72 cheap vs 103 rich on own multiple history",
+            "skill": 1.0
+          }
+        ],
+        "distribution": null,
+        "scorecard": null,
+        "sizing": null,
+        "stop_pct": null,
+        "target_pct": null,
+        "tickers": []
+      }
+    },
+    "magdist_sample_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  }
+}
