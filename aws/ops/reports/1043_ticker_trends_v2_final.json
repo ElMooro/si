@@ -1,0 +1,606 @@
+{
+  "started": "2026-05-31T15:41:49.852705+00:00",
+  "zip_size": 12103,
+  "redeploy": "ok",
+  "invoke": {
+    "status": 200,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "n_ok": 68,
+      "n_stealth": 0,
+      "sources_used": {
+        "wiki": 68
+      },
+      "top_ticker": "MU",
+      "top_velocity": 2.62,
+      "duration_s": 76.2
+    }
+  },
+  "ticker_trends": {
+    "generated_at": "2026-05-31T15:43:21+00:00",
+    "duration_s": 76.2,
+    "n_processed": 73,
+    "n_ok": 68,
+    "errors": {
+      "no_source_data": 5
+    },
+    "sources_used_count": {
+      "wiki": 68
+    },
+    "top_20": [
+      {
+        "ticker": "MU",
+        "score": 70.5,
+        "velocity": 2.62,
+        "level": 5418.7,
+        "prior_level": 2070.8,
+        "interp": "SPIKE",
+        "price_7d_pct": 38.96,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Wikipedia views 2.62x baseline"
+      },
+      {
+        "ticker": "ZS",
+        "score": 49.8,
+        "velocity": 1.79,
+        "level": 551.6,
+        "prior_level": 308.8,
+        "interp": "RISING",
+        "price_7d_pct": -20.27,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "rising Wikipedia views (1.79x)"
+      },
+      {
+        "ticker": "MSTR",
+        "score": 34.2,
+        "velocity": 1.37,
+        "level": 1.6,
+        "prior_level": 1.1,
+        "interp": "RISING",
+        "price_7d_pct": -3.37,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search rising"
+      },
+      {
+        "ticker": "RGTI",
+        "score": 32.8,
+        "velocity": 1.31,
+        "level": 303.9,
+        "prior_level": 231.9,
+        "interp": "RISING",
+        "price_7d_pct": 60.03,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search rising"
+      },
+      {
+        "ticker": "RDDT",
+        "score": 32.2,
+        "velocity": 1.29,
+        "level": 0.3,
+        "prior_level": 0.9,
+        "interp": "FLAT",
+        "price_7d_pct": 13.64,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "LLY",
+        "score": 30.5,
+        "velocity": 1.22,
+        "level": 1893.1,
+        "prior_level": 1548.2,
+        "interp": "FLAT",
+        "price_7d_pct": 8.18,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "PLTR",
+        "score": 30.5,
+        "velocity": 1.22,
+        "level": 1625.9,
+        "prior_level": 1329.3,
+        "interp": "FLAT",
+        "price_7d_pct": 15.73,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "DUOL",
+        "score": 30.2,
+        "velocity": 1.21,
+        "level": 1492.3,
+        "prior_level": 1232.0,
+        "interp": "FLAT",
+        "price_7d_pct": -2.4,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "TSM",
+        "score": 30.0,
+        "velocity": 1.2,
+        "level": 2525.4,
+        "prior_level": 2105.3,
+        "interp": "FLAT",
+        "price_7d_pct": 6.58,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "S",
+        "score": 29.8,
+        "velocity": 1.19,
+        "level": 193.4,
+        "prior_level": 162.4,
+        "interp": "FLAT",
+        "price_7d_pct": -6.29,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "RBLX",
+        "score": 28.7,
+        "velocity": 1.15,
+        "level": 9002,
+        "prior_level": 7799.2,
+        "interp": "FLAT",
+        "price_7d_pct": 6.07,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "VST",
+        "score": 27.8,
+        "velocity": 1.11,
+        "level": 31,
+        "prior_level": 28.0,
+        "interp": "FLAT",
+        "price_7d_pct": 18.94,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "RKLB",
+        "score": 27.8,
+        "velocity": 1.11,
+        "level": 1294.9,
+        "prior_level": 1164.6,
+        "interp": "FLAT",
+        "price_7d_pct": 12.7,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "AVAV",
+        "score": 27.5,
+        "velocity": 1.1,
+        "level": 199,
+        "prior_level": 181.3,
+        "interp": "FLAT",
+        "price_7d_pct": 29.34,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "ASML",
+        "score": 27.3,
+        "velocity": 1.09,
+        "level": 190.4,
+        "prior_level": 175,
+        "interp": "FLAT",
+        "price_7d_pct": 10.51,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "SMCI",
+        "score": 27.0,
+        "velocity": 1.08,
+        "level": 543.4,
+        "prior_level": 503,
+        "interp": "FLAT",
+        "price_7d_pct": 50.82,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "AMC",
+        "score": 27.0,
+        "velocity": 1.08,
+        "level": 596,
+        "prior_level": 553.7,
+        "interp": "FLAT",
+        "price_7d_pct": 27.21,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "REGN",
+        "score": 26.8,
+        "velocity": 1.07,
+        "level": 242.4,
+        "prior_level": 227.3,
+        "interp": "FLAT",
+        "price_7d_pct": -2.46,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "MSFT",
+        "score": 26.5,
+        "velocity": 1.06,
+        "level": 5230.6,
+        "prior_level": 4927.9,
+        "interp": "FLAT",
+        "price_7d_pct": 7.86,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      },
+      {
+        "ticker": "HOOD",
+        "score": 26.5,
+        "velocity": 1.06,
+        "level": 652.7,
+        "prior_level": 616.7,
+        "interp": "FLAT",
+        "price_7d_pct": 27.16,
+        "stealth": false,
+        "sources": [
+          "wiki"
+        ],
+        "thesis": "Search flat"
+      }
+    ],
+    "stealth_picks": []
+  },
+  "fi_invoke": {
+    "status": 200,
+    "fn_err": null,
+    "result": {
+      "ok": true,
+      "n_scored": 227,
+      "top_ticker": "GEV",
+      "top_score": 68.4,
+      "duration_s": 0.5
+    }
+  },
+  "future_intel": {
+    "generated_at": "2026-05-31T15:43:24+00:00",
+    "n_scored": 227,
+    "feed_freshness": {
+      "forward_orders": "2026-05-31T14:36:59+00:00",
+      "rotation_chain": "2026-05-31T15:03:38+00:00",
+      "buzz_velocity": "2026-05-31T15:07:09+00:00",
+      "ticker_trends": "2026-05-31T15:43:21+00:00"
+    },
+    "n_high_conviction": 1,
+    "n_4_signal_alignment": 0,
+    "n_google_stealth": 0,
+    "n_multi_signal": 2,
+    "top_20": [
+      {
+        "ticker": "GEV",
+        "score": 68.4,
+        "n_signals": 2,
+        "subscores": {
+          "forward_orders": 67.5,
+          "rotation_chain": 100,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 22.8
+        },
+        "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel \u00b7 rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "ORCL",
+        "score": 38.5,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 76.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 20.8
+        },
+        "thesis": "RPO $552.6B = 85% of mcap \u00b7 RPO growing +324% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "RTX",
+        "score": 35.4,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 67.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 23.8
+        },
+        "thesis": "RPO $271.0B = 112% of mcap \u00b7 RPO growing +25% YoY"
+      },
+      {
+        "ticker": "PLTR",
+        "score": 35.2,
+        "n_signals": 2,
+        "subscores": {
+          "forward_orders": 44.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 30.5
+        },
+        "thesis": "RPO growing +137% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "VST",
+        "score": 29.2,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 27.8
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "ETN",
+        "score": 28.7,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 24.8
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "GOOGL",
+        "score": 28.6,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 50.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 23.8
+        },
+        "thesis": "RPO growing +406% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "VRT",
+        "score": 28.6,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 23.8
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "CEG",
+        "score": 28.2,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 21.5
+        },
+        "thesis": "rotation: next_up_tier_3 in AI chain"
+      },
+      {
+        "ticker": "DELL",
+        "score": 28.2,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 58.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO growing +116% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "MSFT",
+        "score": 28.2,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 48.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 26.5
+        },
+        "thesis": "RPO growing +97% YoY"
+      },
+      {
+        "ticker": "GE",
+        "score": 27.8,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 57.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO $211.3B = 62% of mcap \u00b7 RPO growing +22% YoY"
+      },
+      {
+        "ticker": "AMZN",
+        "score": 26.2,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 44.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 24.2
+        },
+        "thesis": "RPO growing +63% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "MRNA",
+        "score": 25.5,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 91.9,
+          "buzz_velocity": 0,
+          "ticker_trends": 16.8
+        },
+        "thesis": "rotation: next_up_tier_2 in BIOTECH chain"
+      },
+      {
+        "ticker": "CAT",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 50.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO growing +111% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "CRH",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_4 in RESHORING chain"
+      },
+      {
+        "ticker": "FORM",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in QUANTUM chain"
+      },
+      {
+        "ticker": "GOOG",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 50.0,
+          "rotation_chain": 0,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 0
+        },
+        "thesis": "RPO growing +406% YoY \u00b7 RPO outpacing revenue \u2192 future accel"
+      },
+      {
+        "ticker": "MKSI",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_3 in QUANTUM chain"
+      },
+      {
+        "ticker": "MLM",
+        "score": 25.0,
+        "n_signals": 1,
+        "subscores": {
+          "forward_orders": 0,
+          "rotation_chain": 100,
+          "buzz_velocity": 0,
+          "ticker_trends": 0
+        },
+        "thesis": "rotation: next_up_tier_4 in RESHORING chain"
+      }
+    ],
+    "high_conviction": [
+      {
+        "ticker": "GEV",
+        "score": 68.4,
+        "n_signals": 2,
+        "subscores": {
+          "forward_orders": 67.5,
+          "rotation_chain": 100,
+          "buzz_velocity": 25.0,
+          "ticker_trends": 22.8
+        },
+        "thesis": "RPO $163.3B = 63% of mcap \u00b7 RPO growing +32% YoY \u00b7 RPO outpacing revenue \u2192 future accel \u00b7 rotation: next_up_tier_3 in AI chain"
+      }
+    ],
+    "4_signal_aligned": [],
+    "google_stealth": []
+  },
+  "audit_events_today": {
+    "outcome.resolved": 1,
+    "convergence.tier_up": 11,
+    "rotation.next_up": 4,
+    "forward_orders.high_conviction": 1,
+    "future.signal.high_conviction": 3
+  },
+  "finished": "2026-05-31T15:43:27.058703+00:00"
+}
