@@ -85,14 +85,17 @@ NEAR_MISS_CONFIGS = [
         },
     },
 
-    # opportunity-engine: stocks with opportunity_score 60-79 are near-misses
-    # for verdict=OPPORTUNITY (typically score >= 80).
+    # opportunity-engine: opportunities.json schema (verified ops/1015):
+    #   top_opportunities[]  — top items already firing (verdict=STRONG OPPORTUNITY)
+    #   all[]                — every evaluated ticker with verdict + opportunity_score
+    # Near-miss zone: opportunity_score in [60, 80) — strong fundamentals
+    # but not quite a "STRONG OPPORTUNITY" call.
     {
         "signal_type":  "screener_top_pick",
         "snapshot_key": "data/opportunities.json",
         "extractor":    "score_band",
         "params": {
-            "array_path":  "rows",
+            "array_path":  "all",
             "score_field": "opportunity_score",
             "lower":       60,
             "upper":       80,
@@ -103,20 +106,18 @@ NEAR_MISS_CONFIGS = [
         "snapshot_key": "data/opportunities.json",
         "extractor":    "score_band",
         "params": {
-            "array_path":  "rows",
-            "score_field": "momentum_score",
+            "array_path":  "all",
+            "score_field": "scores.momentum",
             "lower":       60,
             "upper":       80,
         },
     },
-    # Same engine, alternate score paths — opportunities.json may store
-    # scores under nested 'scores' object
     {
         "signal_type":  "valuation_composite",
         "snapshot_key": "data/opportunities.json",
         "extractor":    "score_band",
         "params": {
-            "array_path":  "rows",
+            "array_path":  "all",
             "score_field": "scores.value",
             "lower":       60,
             "upper":       80,
@@ -132,16 +133,17 @@ NEAR_MISS_CONFIGS = [
         "params": {"array_path": "emerging_cascades"},
     },
 
-    # crisis-composite: z-score in [1.5, 2.0) range = near firing extreme
-    # of 2.0 sigma. (Reads composite z-score from the composite payload.)
+    # crisis-composite: master_crisis_score 0-100, DEFCON level 1-5.
+    # Score in [55, 75) → near-DEFCON-4 territory (we'd fire on DEFCON_4).
+    # ops/1015 confirmed master_crisis_score is the right field.
     {
         "signal_type":  "crisis_composite_near_extreme",
         "snapshot_key": "data/crisis-composite.json",
-        "extractor":    "z_score_band",
+        "extractor":    "score_band_single",
         "params": {
-            "score_field": "composite_z",
-            "lower":       1.5,
-            "upper":       2.0,
+            "score_field": "master_crisis_score",
+            "lower":       55,
+            "upper":       75,
         },
     },
 ]
@@ -229,6 +231,21 @@ def extract_z_score_band(snapshot: dict, params: dict) -> int:
     return 1 if (lower <= abs_val < upper) else 0
 
 
+def extract_score_band_single(snapshot: dict, params: dict) -> int:
+    """Single non-z-score reading. Returns 1 if value is in [lower, upper).
+
+    Differs from extract_z_score_band by NOT taking absolute value —
+    used for 0-100 composite scores (e.g., master_crisis_score) where
+    the band is a directional 'elevated but not extreme' zone.
+    """
+    val = _to_float(get_nested(snapshot, params["score_field"]))
+    if val is None:
+        return 0
+    lower = float(params["lower"])
+    upper = float(params["upper"])
+    return 1 if (lower <= val < upper) else 0
+
+
 def extract_array_length(snapshot: dict, params: dict) -> int:
     """Length of an array — used when the engine already buckets items
     into a 'near-miss' category itself (e.g., earnings-cascade.emerging_cascades)."""
@@ -237,10 +254,11 @@ def extract_array_length(snapshot: dict, params: dict) -> int:
 
 
 EXTRACTORS = {
-    "tier_label":    extract_tier_label,
-    "score_band":    extract_score_band,
-    "z_score_band":  extract_z_score_band,
-    "array_length":  extract_array_length,
+    "tier_label":         extract_tier_label,
+    "score_band":         extract_score_band,
+    "z_score_band":       extract_z_score_band,
+    "score_band_single":  extract_score_band_single,
+    "array_length":       extract_array_length,
 }
 
 

@@ -129,6 +129,7 @@ KNOWN_ENGINE_SIGNALS = {
             "market_phase", "edge_regime",
             "analog_signal", "sector_breadth",
             "khalid_index",   # top-level composite — also a market-regime read
+            "macro_frontrun_sniffer_setup",   # macro-frontrun-sniffer engine
         ],
         "aliases": ["Macro Composite"],
     },
@@ -146,6 +147,7 @@ KNOWN_ENGINE_SIGNALS = {
         "signal_types": [
             "etf_rotation", "correlation_break", "corr_break_comp",
             "divergence_extreme", "yc_regime",
+            "etf_flow_extreme",
             # Correlation-break sub-composites (vs major risk benchmarks)
             "corr_break_composite_vs_vxx", "corr_break_top_pair",
             "corr_break_composite_vs_spy",
@@ -183,15 +185,25 @@ KNOWN_ENGINE_SIGNALS = {
         "signal_types": ["epsvelocity"],
         "aliases": ["EPS Velocity"],
     },
-    # nobrainer-etfs: thematic/sector ETF picks (SOXX, SLX, SMH, OIH, AIQ).
-    # Each ETF is logged as its own signal_type (nobrainer_<symbol>).
+    # nobrainer-etfs: thematic/sector ETF picks. Each ETF is logged as
+    # its own signal_type (nobrainer_<symbol>).
     "nobrainer-etfs": {
         "family": "equity-value",
         "signal_types": [
             "nobrainer_SOXX", "nobrainer_SLX", "nobrainer_SMH",
-            "nobrainer_OIH",  "nobrainer_AIQ",
+            "nobrainer_OIH",  "nobrainer_AIQ",  "nobrainer_PICK",
+            "nobrainer_XOP",  "nobrainer_BOTZ", "nobrainer_ROBO",
+            "nobrainer_SIL",  "nobrainer_REMX", "nobrainer_LIT",
+            "nobrainer_COPX", "nobrainer_XLE",  "nobrainer_URA",
         ],
         "aliases": ["NoBrainer ETFs", "Sector ETFs"],
+    },
+
+    # ─── small new equity-value engines absorbed
+    "sustained-target": {
+        "family": "equity-value",
+        "signal_types": ["sustained_target_equity"],
+        "aliases": ["Sustained Target Equity"],
     },
 
     # ─── positioning family
