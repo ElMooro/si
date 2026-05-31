@@ -380,6 +380,19 @@ def check_pending_signals():
 @track_errors
 def lambda_handler(event, context):
     processed = check_pending_signals()
+    
+    # Emit outcome.resolved event so calibrator can run immediately
+    # rather than waiting for its scheduled cron. Best-effort — never blocks.
+    if processed > 0:
+        try:
+            from system_events import publish, EVT_OUTCOME_RESOLVED
+            publish(EVT_OUTCOME_RESOLVED, {
+                "n_resolved": processed,
+                "as_of":      datetime.now(timezone.utc).isoformat(),
+            }, source_engine="outcome-checker")
+        except Exception as e:
+            print(f"[CHECKER] event publish failed: {e}")
+    
     return {
         "statusCode": 200,
         "body": json.dumps({

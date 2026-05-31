@@ -353,6 +353,50 @@ def handler(event, context):
           f"{len(universe_candidates)} universe candidates, "
           f"{len(skipped_deprecated)} skipped deprecated")
 
+    # ─── Emit events for downstream coordination ────────────────────────
+    # When we generate HIGH-confidence proposals, the system needs to know
+    # immediately so engines can opt in or operator can review.
+    try:
+        from system_events import publish, publish_many
+        events_to_publish = []
+        
+        for p in proposals:
+            if p.get("confidence") == "HIGH":
+                events_to_publish.append((
+                    "calibrator.proposal_high_confidence",
+                    {
+                        "signal_type":   p["signal_type"],
+                        "delta_pct":     p["delta_pct"],
+                        "near_misses":   p["near_misses_30d"],
+                        "confidence":    p["confidence"],
+                        "is_promoted":   p.get("is_promoted"),
+                        "expires_at":    p.get("expires_at"),
+                    },
+                ))
+        
+        # Also emit near_miss.extreme for signals with extreme near-miss counts (>= 50)
+        for sig_type, count in (near_by_signal or {}).items():
+            try:
+                count_int = int(count)
+            except (TypeError, ValueError):
+                continue
+            if count_int >= 50:
+                events_to_publish.append((
+                    "near_miss.extreme",
+                    {
+                        "signal_type": sig_type,
+                        "count":       count_int,
+                        "window":      "30d",
+                    },
+                ))
+        
+        if events_to_publish:
+            # publish_many caps at 10 events per call
+            for i in range(0, len(events_to_publish), 10):
+                publish_many(events_to_publish[i:i+10])
+    except Exception as e:
+        print(f"[miss-cal] event publish: {e}")
+
     return {
         "statusCode": 200,
         "body": json.dumps({
