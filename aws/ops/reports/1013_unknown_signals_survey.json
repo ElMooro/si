@@ -1,0 +1,1336 @@
+{
+  "started": "2026-05-31T11:34:15.629185+00:00",
+  "engine_map_totals": {
+    "curated_engines": 18,
+    "curated_signals": 47,
+    "families": 10,
+    "ddb_observed_types": 63,
+    "unknown_after_attribution": 43
+  },
+  "unknown_signal_types": [
+    {
+      "signal_type": "squeeze_risk",
+      "count": 252
+    },
+    {
+      "signal_type": "edge_regime",
+      "count": 123
+    },
+    {
+      "signal_type": "khalid_index",
+      "count": 123
+    },
+    {
+      "signal_type": "market_phase",
+      "count": 123
+    },
+    {
+      "signal_type": "crisis_sloos_tighten",
+      "count": 122
+    },
+    {
+      "signal_type": "crisis_broad_dollar_vs_spy",
+      "count": 121
+    },
+    {
+      "signal_type": "crisis_ig_bbb_oas",
+      "count": 121
+    },
+    {
+      "signal_type": "crisis_index_stlfsi4",
+      "count": 120
+    },
+    {
+      "signal_type": "crisis_index_anfci",
+      "count": 120
+    },
+    {
+      "signal_type": "crisis_hy_oas_vs_spy",
+      "count": 120
+    },
+    {
+      "signal_type": "crisis_hy_oas_vs_hyg",
+      "count": 120
+    },
+    {
+      "signal_type": "crisis_dfii10_vs_spy",
+      "count": 120
+    },
+    {
+      "signal_type": "corr_break_composite_vs_vxx",
+      "count": 119
+    },
+    {
+      "signal_type": "corr_break_top_pair",
+      "count": 119
+    },
+    {
+      "signal_type": "corr_break_composite_vs_spy",
+      "count": 119
+    },
+    {
+      "signal_type": "crisis_index_kcfsi",
+      "count": 119
+    },
+    {
+      "signal_type": "crisis_rate_diff_eur_3m",
+      "count": 119
+    },
+    {
+      "signal_type": "momentum_uso",
+      "count": 119
+    },
+    {
+      "signal_type": "crisis_t10yie_extreme",
+      "count": 118
+    },
+    {
+      "signal_type": "crisis_rate_diff_jpy_3m",
+      "count": 118
+    },
+    {
+      "signal_type": "crisis_sofr_iorb",
+      "count": 116
+    },
+    {
+      "signal_type": "crisis_obfr_iorb",
+      "count": 114
+    },
+    {
+      "signal_type": "cot_extreme",
+      "count": 110
+    },
+    {
+      "signal_type": "analog_signal",
+      "count": 105
+    },
+    {
+      "signal_type": "sector_breadth",
+      "count": 45
+    },
+    {
+      "signal_type": "nobrainer_SOXX",
+      "count": 21
+    },
+    {
+      "signal_type": "nobrainer_SLX",
+      "count": 21
+    },
+    {
+      "signal_type": "nobrainer_SMH",
+      "count": 21
+    },
+    {
+      "signal_type": "nobrainer_OIH",
+      "count": 17
+    },
+    {
+      "signal_type": "nobrainer_AIQ",
+      "count": 15
+    },
+    {
+      "signal_type": "nobrainer_PICK",
+      "count": 15
+    },
+    {
+      "signal_type": "nobrainer_XOP",
+      "count": 13
+    },
+    {
+      "signal_type": "nobrainer_BOTZ",
+      "count": 12
+    },
+    {
+      "signal_type": "macro_frontrun_sniffer_setup",
+      "count": 12
+    },
+    {
+      "signal_type": "nobrainer_ROBO",
+      "count": 11
+    },
+    {
+      "signal_type": "nobrainer_SIL",
+      "count": 9
+    },
+    {
+      "signal_type": "nobrainer_REMX",
+      "count": 9
+    },
+    {
+      "signal_type": "sustained_target_equity",
+      "count": 8
+    },
+    {
+      "signal_type": "nobrainer_LIT",
+      "count": 7
+    },
+    {
+      "signal_type": "nobrainer_COPX",
+      "count": 7
+    },
+    {
+      "signal_type": "nobrainer_XLE",
+      "count": 3
+    },
+    {
+      "signal_type": "etf_flow_extreme",
+      "count": 1
+    },
+    {
+      "signal_type": "nobrainer_URA",
+      "count": 1
+    }
+  ],
+  "new_id_prefixes": [],
+  "known_families": [
+    "desk-posture",
+    "crisis-monitor",
+    "market-regime",
+    "macro-fundamental",
+    "relative-value",
+    "equity-value",
+    "positioning",
+    "crypto",
+    "momentum",
+    "edge-composite"
+  ],
+  "scorecard_promoted": [
+    "carry_risk",
+    "ml_risk",
+    "macro_composite_z",
+    "plumbing_stress",
+    "momentum_top_pick",
+    "eurodollar_stress",
+    "crisis_dfii10_vs_gld",
+    "momentum_spy",
+    "screener_top_pick",
+    "earnings_pead"
+  ],
+  "scorecard_deprecated": [
+    "correlation_break",
+    "divergence_extreme",
+    "yc_regime",
+    "momentum_gld",
+    "crisis_broad_dollar_vs_eem",
+    "crypto_risk_score",
+    "corr_break_composite_vs_spy",
+    "crisis_sofr_iorb",
+    "corr_break_top_pair",
+    "crisis_broad_dollar_vs_spy",
+    "crisis_rate_diff_jpy_3m",
+    "corr_break_composite_vs_vxx",
+    "crisis_rate_diff_eur_3m",
+    "crisis_obfr_iorb",
+    "edge_regime"
+  ],
+  "scorecard_promoted_stats": [],
+  "s3_snapshots": [
+    {
+      "key": "data/10kq-filings.json",
+      "size": 109282,
+      "modified": "2026-05-31 08:00:11+00:00"
+    },
+    {
+      "key": "data/13f-price-divergence.json",
+      "size": 1256,
+      "modified": "2026-05-26 06:00:04+00:00"
+    },
+    {
+      "key": "data/52wk-quality-breakout.json",
+      "size": 1260,
+      "modified": "2026-05-30 22:00:40+00:00"
+    },
+    {
+      "key": "data/8k-filings.json",
+      "size": 158649,
+      "modified": "2026-05-31 11:30:13+00:00"
+    },
+    {
+      "key": "data/_alerts/digest-2026-05-30-close.json",
+      "size": 4124,
+      "modified": "2026-05-30 23:59:26+00:00"
+    },
+    {
+      "key": "data/_alerts/digest-2026-05-30.json",
+      "size": 4055,
+      "modified": "2026-05-30 23:44:22+00:00"
+    },
+    {
+      "key": "data/_alerts/digest-2026-05-31-close.json",
+      "size": 4875,
+      "modified": "2026-05-31 08:01:45+00:00"
+    },
+    {
+      "key": "data/_alerts/digest-2026-05-31.json",
+      "size": 4847,
+      "modified": "2026-05-31 09:00:14+00:00"
+    },
+    {
+      "key": "data/_alerts/digest-latest.json",
+      "size": 4847,
+      "modified": "2026-05-31 09:00:14+00:00"
+    },
+    {
+      "key": "data/_alerts/digests-index.json",
+      "size": 1651,
+      "modified": "2026-05-31 09:00:14+00:00"
+    },
+    {
+      "key": "data/_alerts/macro-frontrun-sniffer-alert-state.json",
+      "size": 325,
+      "modified": "2026-05-31 08:02:41+00:00"
+    },
+    {
+      "key": "data/_alerts/targets-index.json",
+      "size": 1532,
+      "modified": "2026-05-31 09:00:13+00:00"
+    },
+    {
+      "key": "data/_alerts/uptime-state.json",
+      "size": 2110,
+      "modified": "2026-05-31 11:00:26+00:00"
+    },
+    {
+      "key": "data/_alerts/uptime-status.json",
+      "size": 1902,
+      "modified": "2026-05-31 11:00:26+00:00"
+    },
+    {
+      "key": "data/_archive/dex-scanner-data.json",
+      "size": 144314,
+      "modified": "2026-05-17 19:01:58+00:00"
+    },
+    {
+      "key": "data/_archive/institutional-convergence.json",
+      "size": 1373,
+      "modified": "2026-05-17 19:01:58+00:00"
+    },
+    {
+      "key": "data/_archive/pre-pump-calibration.json",
+      "size": 2893,
+      "modified": "2026-05-17 19:01:58+00:00"
+    },
+    {
+      "key": "data/_archive/skew.json",
+      "size": 322,
+      "modified": "2026-05-17 19:01:58+00:00"
+    },
+    {
+      "key": "data/_fleet-monitor-alert-history.json",
+      "size": 405,
+      "modified": "2026-05-31 11:06:12+00:00"
+    },
+    {
+      "key": "data/_fleet-monitor.json",
+      "size": 434,
+      "modified": "2026-05-31 11:31:10+00:00"
+    },
+    {
+      "key": "data/_freshness-alert-history.json",
+      "size": 1160,
+      "modified": "2026-05-31 08:00:18+00:00"
+    },
+    {
+      "key": "data/_freshness-manifest.json",
+      "size": 3459,
+      "modified": "2026-05-23 15:20:01+00:00"
+    },
+    {
+      "key": "data/_freshness-monitor.json",
+      "size": 585,
+      "modified": "2026-05-31 11:30:18+00:00"
+    },
+    {
+      "key": "data/_freshness-status.json",
+      "size": 3300,
+      "modified": "2026-05-22 13:09:24+00:00"
+    },
+    {
+      "key": "data/_skill/calibration-config.json",
+      "size": 548,
+      "modified": "2026-05-31 11:00:04+00:00"
+    },
+    {
+      "key": "data/_skill/frontrun-skill-index.json",
+      "size": 821,
+      "modified": "2026-05-31 01:18:04+00:00"
+    },
+    {
+      "key": "data/_skill/opportunity-rankings.json",
+      "size": 2758,
+      "modified": "2026-05-31 09:29:36+00:00"
+    },
+    {
+      "key": "data/_streaming/crisis_composite_last.json",
+      "size": 268,
+      "modified": "2026-05-29 20:59:34+00:00"
+    },
+    {
+      "key": "data/_streaming/dollar_radar_last.json",
+      "size": 264,
+      "modified": "2026-05-29 20:59:34+00:00"
+    },
+    {
+      "key": "data/_streaming/global_stress_last.json",
+      "size": 366,
+      "modified": "2026-05-29 20:59:33+00:00"
+    },
+    {
+      "key": "data/_streaming/live_pulse_last.json",
+      "size": 407,
+      "modified": "2026-05-29 20:59:33+00:00"
+    },
+    {
+      "key": "data/_streaming/master_alloc_last.json",
+      "size": 431,
+      "modified": "2026-05-29 20:59:34+00:00"
+    },
+    {
+      "key": "data/_streaming/signal_board_last.json",
+      "size": 264,
+      "modified": "2026-05-29 20:59:33+00:00"
+    },
+    {
+      "key": "data/_streaming/vol_radar_last.json",
+      "size": 261,
+      "modified": "2026-05-29 20:59:33+00:00"
+    },
+    {
+      "key": "data/aaii-sentiment.json",
+      "size": 1233,
+      "modified": "2026-05-30 22:00:28+00:00"
+    },
+    {
+      "key": "data/ab-test-results.json",
+      "size": 786,
+      "modified": "2026-05-30 18:27:04+00:00"
+    },
+    {
+      "key": "data/activist-13d-names.json",
+      "size": 481,
+      "modified": "2026-05-31 08:01:35+00:00"
+    },
+    {
+      "key": "data/activist-13d.json",
+      "size": 3744,
+      "modified": "2026-05-31 11:00:15+00:00"
+    },
+    {
+      "key": "data/activist-filings.json",
+      "size": 1438,
+      "modified": "2026-05-31 11:00:15+00:00"
+    },
+    {
+      "key": "data/activity-nowcast.json",
+      "size": 428,
+      "modified": "2026-05-31 11:01:13+00:00"
+    },
+    {
+      "key": "data/ai-brief.json",
+      "size": 21472,
+      "modified": "2026-05-31 08:06:16+00:00"
+    },
+    {
+      "key": "data/ai-brief.md",
+      "size": 6916,
+      "modified": "2026-05-31 08:06:16+00:00"
+    },
+    {
+      "key": "data/alert-history.json",
+      "size": 61706,
+      "modified": "2026-05-31 11:30:13+00:00"
+    },
+    {
+      "key": "data/allocator.json",
+      "size": 5761,
+      "modified": "2026-05-31 08:00:09+00:00"
+    },
+    {
+      "key": "data/alpha-brief.json",
+      "size": 5205,
+      "modified": "2026-05-31 11:00:33+00:00"
+    },
+    {
+      "key": "data/alpha-brief.md",
+      "size": 4784,
+      "modified": "2026-05-31 11:00:33+00:00"
+    },
+    {
+      "key": "data/alpha-compass.json",
+      "size": 5911,
+      "modified": "2026-05-31 11:25:02+00:00"
+    },
+    {
+      "key": "data/analyst-consensus.json",
+      "size": 111849,
+      "modified": "2026-05-31 11:01:04+00:00"
+    },
+    {
+      "key": "data/asymmetric-scorer.json",
+      "size": 28849,
+      "modified": "2026-05-31 11:00:14+00:00"
+    },
+    {
+      "key": "data/ath.json",
+      "size": 18707,
+      "modified": "2026-05-30 11:04:49+00:00"
+    },
+    {
+      "key": "data/auction-crisis.json",
+      "size": 11611,
+      "modified": "2026-05-31 08:00:14+00:00"
+    },
+    {
+      "key": "data/auction-decisive-call.json",
+      "size": 14361,
+      "modified": "2026-05-31 08:01:44+00:00"
+    },
+    {
+      "key": "data/auction-grades.json",
+      "size": 17389,
+      "modified": "2026-05-31 11:00:31+00:00"
+    },
+    {
+      "key": "data/auction-tenor-signals.json",
+      "size": 3285,
+      "modified": "2026-05-30 20:01:15+00:00"
+    },
+    {
+      "key": "data/backtest-summary.json",
+      "size": 1235,
+      "modified": "2026-05-30 22:00:35+00:00"
+    },
+    {
+      "key": "data/baggers-names.json",
+      "size": 10380,
+      "modified": "2026-05-31 08:01:25+00:00"
+    },
+    {
+      "key": "data/bank-stress-history.json",
+      "size": 1861,
+      "modified": "2026-05-29 15:01:04+00:00"
+    },
+    {
+      "key": "data/bank-stress.json",
+      "size": 1508,
+      "modified": "2026-05-29 15:01:04+00:00"
+    },
+    {
+      "key": "data/behavior-mirror.json",
+      "size": 823,
+      "modified": "2026-05-28 19:48:00+00:00"
+    },
+    {
+      "key": "data/beneish.json",
+      "size": 11194,
+      "modified": "2026-05-31 03:01:48+00:00"
+    },
+    {
+      "key": "data/beta-laggards.json",
+      "size": 20886,
+      "modified": "2026-05-31 11:00:22+00:00"
+    },
+    {
+      "key": "data/boj-detail.json",
+      "size": 2515,
+      "modified": "2026-05-31 11:01:19+00:00"
+    },
+    {
+      "key": "data/bond-trace.json",
+      "size": 624,
+      "modified": "2026-05-30 22:00:31+00:00"
+    },
+    {
+      "key": "data/bond-vol-decisive-call.json",
+      "size": 14407,
+      "modified": "2026-05-31 08:00:56+00:00"
+    },
+    {
+      "key": "data/bond-vol.json",
+      "size": 2761,
+      "modified": "2026-05-31 11:15:52+00:00"
+    },
+    {
+      "key": "data/bonds-decisive-call.json",
+      "size": 15621,
+      "modified": "2026-05-31 08:01:00+00:00"
+    },
+    {
+      "key": "data/breadth-divergence.json",
+      "size": 344,
+      "modified": "2026-05-30 22:00:40+00:00"
+    },
+    {
+      "key": "data/breadth-history.json",
+      "size": 648,
+      "modified": "2026-05-20 15:31:12+00:00"
+    },
+    {
+      "key": "data/breadth-thrust.json",
+      "size": 4446,
+      "modified": "2026-05-20 15:31:13+00:00"
+    },
+    {
+      "key": "data/buyback-scanner.json",
+      "size": 59242,
+      "modified": "2026-05-20 14:06:48+00:00"
+    },
+    {
+      "key": "data/buyback-yield-ranking.json",
+      "size": 63412,
+      "modified": "2026-05-25 13:00:46+00:00"
+    },
+    {
+      "key": "data/calibration-fleet-history.json",
+      "size": 1820,
+      "modified": "2026-05-31 09:10:35+00:00"
+    },
+    {
+      "key": "data/calibration-fleet.json",
+      "size": 4452,
+      "modified": "2026-05-31 09:10:36+00:00"
+    },
+    {
+      "key": "data/calibration-history.json",
+      "size": 3123,
+      "modified": "2026-05-28 19:47:59+00:00"
+    },
+    {
+      "key": "data/calibration-latest.json",
+      "size": 2731,
+      "modified": "2026-05-28 19:47:59+00:00"
+    },
+    {
+      "key": "data/calibration-snapshot.json",
+      "size": 41296,
+      "modified": "2026-05-31 11:30:18+00:00"
+    },
+    {
+      "key": "data/canary-grid.json",
+      "size": 3293,
+      "modified": "2026-05-31 06:00:57+00:00"
+    },
+    {
+      "key": "data/capital-return.json",
+      "size": 54396,
+      "modified": "2026-05-31 11:00:15+00:00"
+    },
+    {
+      "key": "data/capitulation-history.json",
+      "size": 3200,
+      "modified": "2026-05-20 15:45:07+00:00"
+    },
+    {
+      "key": "data/carry-surface.json",
+      "size": 76322,
+      "modified": "2026-05-31 08:01:26+00:00"
+    },
+    {
+      "key": "data/carry-surface/history/2026-05-22.json",
+      "size": 66363,
+      "modified": "2026-05-22 23:20:39+00:00"
+    },
+    {
+      "key": "data/carry-surface/history/2026-05-23.json",
+      "size": 66366,
+      "modified": "2026-05-23 22:35:22+00:00"
+    },
+    {
+      "key": "data/carry-surface/history/2026-05-24.json",
+      "size": 66366,
+      "modified": "2026-05-24 22:35:25+00:00"
+    },
+    {
+      "key": "data/carry-surface/history/2026-05-25.json",
+      "size": 66366,
+      "modified": "2026-05-25 22:35:26+00:00"
+    },
+    {
+      "key": "data/carry-surface/history/2026-05-26.json",
+      "size": 66370,
+      "modified": "2026-05-26 22:35:29+00:00"
+    },
+    {
+      "key": "data/carry-surface/history/2026-05-27.json",
+      "size": 66403,
+      "modified": "2026-05-27 22:35:28+00:00"
+    },
+    {
+      "key": "data/carry-surface/history/2026-05-28.json",
+      "size": 63849,
+      "modified": "2026-05-28 20:01:14+00:00"
+    },
+    {
+      "key": "data/carry-surface/history/2026-05-29.json",
+      "size": 65048,
+      "modified": "2026-05-29 20:00:57+00:00"
+    },
+    {
+      "key": "data/carry-surface/history/2026-05-30.json",
+      "size": 65283,
+      "modified": "2026-05-30 20:00:55+00:00"
+    },
+    {
+      "key": "data/carry-surface/history/2026-05-31.json",
+      "size": 57852,
+      "modified": "2026-05-31 08:01:26+00:00"
+    },
+    {
+      "key": "data/catalyst-calendar.json",
+      "size": 3367,
+      "modified": "2026-05-31 11:00:31+00:00"
+    },
+    {
+      "key": "data/catalyst-skew-premove.json",
+      "size": 2063,
+      "modified": "2026-05-31 00:30:45+00:00"
+    },
+    {
+      "key": "data/causality-discoveries.json",
+      "size": 245,
+      "modified": "2026-05-28 19:48:05+00:00"
+    },
+    {
+      "key": "data/cb-injection.json",
+      "size": 2956,
+      "modified": "2026-05-31 11:01:25+00:00"
+    },
+    {
+      "key": "data/cb-stance.json",
+      "size": 3466,
+      "modified": "2026-05-31 06:00:15+00:00"
+    },
+    {
+      "key": "data/cds-monitor.json",
+      "size": 7977,
+      "modified": "2026-05-30 11:01:04+00:00"
+    },
+    {
+      "key": "data/cds-proxy.json",
+      "size": 705,
+      "modified": "2026-05-31 11:00:53+00:00"
+    },
+    {
+      "key": "data/cef-discount.json",
+      "size": 1201,
+      "modified": "2026-05-30 22:30:27+00:00"
+    },
+    {
+      "key": "data/cftc-all-cache.json",
+      "size": 99383,
+      "modified": "2026-05-31 11:01:18+00:00"
+    },
+    {
+      "key": "data/chart-vision.json",
+      "size": 1395,
+      "modified": "2026-05-29 16:00:44+00:00"
+    },
+    {
+      "key": "data/china-liquidity-history.json",
+      "size": 2337,
+      "modified": "2026-05-31 11:01:33+00:00"
+    },
+    {
+      "key": "data/china-liquidity.json",
+      "size": 1069,
+      "modified": "2026-05-31 11:01:32+00:00"
+    },
+    {
+      "key": "data/coffee-can.json",
+      "size": 588,
+      "modified": "2026-05-31 11:00:14+00:00"
+    },
+    {
+      "key": "data/commodity-curves.json",
+      "size": 6262,
+      "modified": "2026-05-30 22:00:33+00:00"
+    },
+    {
+      "key": "data/compass-decisive-call.json",
+      "size": 14803,
+      "modified": "2026-05-31 08:00:56+00:00"
+    },
+    {
+      "key": "data/compound-signals-state.json",
+      "size": 1586,
+      "modified": "2026-05-31 11:00:32+00:00"
+    },
+    {
+      "key": "data/compound-signals.json",
+      "size": 37131,
+      "modified": "2026-05-31 11:00:32+00:00"
+    },
+    {
+      "key": "data/concentration-liquidity.json",
+      "size": 74470,
+      "modified": "2026-05-31 11:00:19+00:00"
+    },
+    {
+      "key": "data/consensus-bottom.json",
+      "size": 1891,
+      "modified": "2026-05-26 07:00:04+00:00"
+    },
+    {
+      "key": "data/construction-housing.json",
+      "size": 1747,
+      "modified": "2026-05-31 11:01:26+00:00"
+    },
+    {
+      "key": "data/consumer-pulse-decisive-call.json",
+      "size": 15824,
+      "modified": "2026-05-31 08:01:44+00:00"
+    },
+    {
+      "key": "data/consumer-pulse.json",
+      "size": 542,
+      "modified": "2026-05-31 11:01:22+00:00"
+    },
+    {
+      "key": "data/convexity-scores.json",
+      "size": 24044,
+      "modified": "2026-05-31 11:00:19+00:00"
+    },
+    {
+      "key": "data/conviction-decisive-call.json",
+      "size": 15708,
+      "modified": "2026-05-31 04:01:45+00:00"
+    },
+    {
+      "key": "data/conviction.json",
+      "size": 7444,
+      "modified": "2026-05-31 09:00:37+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-17.json",
+      "size": 737,
+      "modified": "2026-05-17 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-18.json",
+      "size": 626,
+      "modified": "2026-05-18 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-19.json",
+      "size": 730,
+      "modified": "2026-05-19 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-20.json",
+      "size": 730,
+      "modified": "2026-05-20 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-21.json",
+      "size": 730,
+      "modified": "2026-05-21 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-22.json",
+      "size": 737,
+      "modified": "2026-05-22 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-23.json",
+      "size": 623,
+      "modified": "2026-05-23 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-24.json",
+      "size": 505,
+      "modified": "2026-05-24 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-25.json",
+      "size": 619,
+      "modified": "2026-05-25 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-26.json",
+      "size": 738,
+      "modified": "2026-05-26 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-27.json",
+      "size": 744,
+      "modified": "2026-05-27 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-28.json",
+      "size": 737,
+      "modified": "2026-05-28 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-29.json",
+      "size": 730,
+      "modified": "2026-05-29 21:45:22+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-30.json",
+      "size": 731,
+      "modified": "2026-05-30 21:00:37+00:00"
+    },
+    {
+      "key": "data/conviction/snapshots/2026-05-31.json",
+      "size": 737,
+      "modified": "2026-05-31 09:00:37+00:00"
+    },
+    {
+      "key": "data/correlation-break-trades.json",
+      "size": 2547,
+      "modified": "2026-05-31 10:15:45+00:00"
+    },
+    {
+      "key": "data/correlation-breaks.json",
+      "size": 20011,
+      "modified": "2026-05-30 22:02:03+00:00"
+    },
+    {
+      "key": "data/correlation-surface.json",
+      "size": 43434,
+      "modified": "2026-05-30 18:26:59+00:00"
+    },
+    {
+      "key": "data/cost-anomaly.json",
+      "size": 4185,
+      "modified": "2026-05-31 11:00:33+00:00"
+    },
+    {
+      "key": "data/cost-anomaly/history/2026-05-23.json",
+      "size": 1863,
+      "modified": "2026-05-23 09:00:41+00:00"
+    },
+    {
+      "key": "data/cost-anomaly/history/2026-05-24.json",
+      "size": 2348,
+      "modified": "2026-05-24 09:00:40+00:00"
+    },
+    {
+      "key": "data/cost-anomaly/history/2026-05-25.json",
+      "size": 2164,
+      "modified": "2026-05-25 09:00:41+00:00"
+    },
+    {
+      "key": "data/cost-anomaly/history/2026-05-26.json",
+      "size": 2076,
+      "modified": "2026-05-26 09:00:41+00:00"
+    },
+    {
+      "key": "data/cost-anomaly/history/2026-05-27.json",
+      "size": 2064,
+      "modified": "2026-05-27 09:00:41+00:00"
+    },
+    {
+      "key": "data/cost-anomaly/history/2026-05-28.json",
+      "size": 2066,
+      "modified": "2026-05-28 19:47:44+00:00"
+    },
+    {
+      "key": "data/cost-anomaly/history/2026-05-29.json",
+      "size": 2328,
+      "modified": "2026-05-29 11:00:33+00:00"
+    },
+    {
+      "key": "data/cost-anomaly/history/2026-05-30.json",
+      "size": 2419,
+      "modified": "2026-05-30 11:00:32+00:00"
+    },
+    {
+      "key": "data/cost-anomaly/history/2026-05-31.json",
+      "size": 2971,
+      "modified": "2026-05-31 11:00:34+00:00"
+    },
+    {
+      "key": "data/credit-equity-divergence.json",
+      "size": 1409,
+      "modified": "2026-05-30 21:00:51+00:00"
+    },
+    {
+      "key": "data/credit-stress.json",
+      "size": 2161,
+      "modified": "2026-05-30 22:01:38+00:00"
+    },
+    {
+      "key": "data/crisis-composite-history.json",
+      "size": 26057,
+      "modified": "2026-05-31 11:00:32+00:00"
+    },
+    {
+      "key": "data/crisis-composite.json",
+      "size": 2723,
+      "modified": "2026-05-31 11:00:32+00:00"
+    },
+    {
+      "key": "data/crisis-decisive-call.json",
+      "size": 14333,
+      "modified": "2026-05-31 08:01:40+00:00"
+    },
+    {
+      "key": "data/crisis-knowledge-base.json",
+      "size": 15945,
+      "modified": "2026-05-31 06:00:29+00:00"
+    },
+    {
+      "key": "data/crisis-plumbing.json",
+      "size": 7910,
+      "modified": "2026-05-30 21:04:21+00:00"
+    },
+    {
+      "key": "data/cro-digest-history.json",
+      "size": 2632,
+      "modified": "2026-05-31 11:05:30+00:00"
+    },
+    {
+      "key": "data/cro-digest.json",
+      "size": 1578,
+      "modified": "2026-05-31 11:05:30+00:00"
+    },
+    {
+      "key": "data/cro-escalation.json",
+      "size": 2066,
+      "modified": "2026-05-30 20:00:47+00:00"
+    },
+    {
+      "key": "data/cross-asset-confirm.json",
+      "size": 13472,
+      "modified": "2026-05-31 10:59:06+00:00"
+    },
+    {
+      "key": "data/cross-asset-regime-state.json",
+      "size": 302,
+      "modified": "2026-05-31 11:00:16+00:00"
+    },
+    {
+      "key": "data/cross-asset-regime.json",
+      "size": 6954,
+      "modified": "2026-05-31 11:00:16+00:00"
+    },
+    {
+      "key": "data/cross-asset-rv-history.json",
+      "size": 1651,
+      "modified": "2026-05-30 22:01:30+00:00"
+    },
+    {
+      "key": "data/cross-asset-rv.json",
+      "size": 1801,
+      "modified": "2026-05-30 22:01:30+00:00"
+    },
+    {
+      "key": "data/crypto-etf-arb.json",
+      "size": 33393,
+      "modified": "2026-05-29 21:30:14+00:00"
+    },
+    {
+      "key": "data/crypto-funding.json",
+      "size": 5474,
+      "modified": "2026-05-31 11:00:33+00:00"
+    },
+    {
+      "key": "data/crypto-narratives.json",
+      "size": 3844,
+      "modified": "2026-05-31 06:00:15+00:00"
+    },
+    {
+      "key": "data/crypto-opportunities.json",
+      "size": 7322,
+      "modified": "2026-05-31 08:50:49+00:00"
+    },
+    {
+      "key": "data/cta-trend-exhaust.json",
+      "size": 1431,
+      "modified": "2026-05-26 23:00:44+00:00"
+    },
+    {
+      "key": "data/dealer-gex-history.json",
+      "size": 32198,
+      "modified": "2026-05-29 21:07:25+00:00"
+    },
+    {
+      "key": "data/dealer-gex.json",
+      "size": 36806,
+      "modified": "2026-05-29 21:07:25+00:00"
+    },
+    {
+      "key": "data/dealer-survey.json",
+      "size": 776,
+      "modified": "2026-05-30 22:00:29+00:00"
+    },
+    {
+      "key": "data/debate.json",
+      "size": 27184,
+      "modified": "2026-05-31 11:00:35+00:00"
+    },
+    {
+      "key": "data/decisive-call-history.json",
+      "size": 72331,
+      "modified": "2026-05-31 08:06:16+00:00"
+    },
+    {
+      "key": "data/deep-value-names.json",
+      "size": 13006,
+      "modified": "2026-05-31 08:02:09+00:00"
+    },
+    {
+      "key": "data/deep-value.json",
+      "size": 11772,
+      "modified": "2026-05-31 11:00:21+00:00"
+    },
+    {
+      "key": "data/defcon-decisive-call.json",
+      "size": 14898,
+      "modified": "2026-05-31 08:00:55+00:00"
+    },
+    {
+      "key": "data/dependency-graph.json",
+      "size": 83455,
+      "modified": "2026-05-30 22:00:36+00:00"
+    },
+    {
+      "key": "data/desk-allocator-history.json",
+      "size": 15523,
+      "modified": "2026-05-31 00:30:28+00:00"
+    },
+    {
+      "key": "data/desk-allocator.json",
+      "size": 9167,
+      "modified": "2026-05-31 00:30:27+00:00"
+    },
+    {
+      "key": "data/desk-consensus.json",
+      "size": 9507,
+      "modified": "2026-05-31 08:02:09+00:00"
+    },
+    {
+      "key": "data/desk-returns.json",
+      "size": 12688,
+      "modified": "2026-05-29 23:30:41+00:00"
+    },
+    {
+      "key": "data/divcut-warning.json",
+      "size": 1333,
+      "modified": "2026-05-24 22:00:36+00:00"
+    },
+    {
+      "key": "data/divergence-decisive-call.json",
+      "size": 13362,
+      "modified": "2026-05-31 08:01:36+00:00"
+    },
+    {
+      "key": "data/divergence-interpreted.json",
+      "size": 3869,
+      "modified": "2026-05-31 08:00:22+00:00"
+    },
+    {
+      "key": "data/divergence-v2.json",
+      "size": 42857,
+      "modified": "2026-05-31 10:48:52+00:00"
+    },
+    {
+      "key": "data/dividend-growth.json",
+      "size": 111007,
+      "modified": "2026-05-30 13:45:14+00:00"
+    },
+    {
+      "key": "data/dix-history.json",
+      "size": 128288,
+      "modified": "2026-05-30 22:00:28+00:00"
+    },
+    {
+      "key": "data/dix.json",
+      "size": 2714,
+      "modified": "2026-05-30 22:00:28+00:00"
+    },
+    {
+      "key": "data/dollar-decisive-call.json",
+      "size": 15751,
+      "modified": "2026-05-31 08:00:55+00:00"
+    },
+    {
+      "key": "data/dollar-radar.json",
+      "size": 1031,
+      "modified": "2026-05-31 07:17:08+00:00"
+    },
+    {
+      "key": "data/dr-snapshot-latest.json",
+      "size": 901,
+      "modified": "2026-05-31 06:00:55+00:00"
+    },
+    {
+      "key": "data/dxy-equity-divergence.json",
+      "size": 1336,
+      "modified": "2026-05-30 21:00:15+00:00"
+    },
+    {
+      "key": "data/earnings-cascade.json",
+      "size": 16010,
+      "modified": "2026-05-30 14:15:35+00:00"
+    },
+    {
+      "key": "data/earnings-iv-crush.json",
+      "size": 2896,
+      "modified": "2026-05-29 22:00:37+00:00"
+    },
+    {
+      "key": "data/earnings-nlp.json",
+      "size": 25189,
+      "modified": "2026-05-31 11:00:18+00:00"
+    },
+    {
+      "key": "data/earnings-pead.json",
+      "size": 95544,
+      "modified": "2026-05-31 08:00:51+00:00"
+    },
+    {
+      "key": "data/earnings-quality.json",
+      "size": 68901,
+      "modified": "2026-05-27 13:30:34+00:00"
+    },
+    {
+      "key": "data/earnings-tone-velocity.json",
+      "size": 733,
+      "modified": "2026-05-30 14:30:20+00:00"
+    },
+    {
+      "key": "data/earnings-tracker.json",
+      "size": 30973,
+      "modified": "2026-05-31 05:46:36+00:00"
+    },
+    {
+      "key": "data/earnings-whisper.json",
+      "size": 10842,
+      "modified": "2026-05-31 08:00:41+00:00"
+    },
+    {
+      "key": "data/ecb-detail.json",
+      "size": 2055,
+      "modified": "2026-05-31 11:01:10+00:00"
+    },
+    {
+      "key": "data/econ-calendar.json",
+      "size": 1290,
+      "modified": "2026-05-31 11:00:45+00:00"
+    },
+    {
+      "key": "data/engine-contributions.json",
+      "size": 24863,
+      "modified": "2026-05-28 19:48:14+00:00"
+    },
+    {
+      "key": "data/engine-contributions/history/2026-05-22.json",
+      "size": 16916,
+      "modified": "2026-05-22 23:21:05+00:00"
+    },
+    {
+      "key": "data/engine-contributions/history/2026-05-24.json",
+      "size": 16921,
+      "modified": "2026-05-24 02:00:58+00:00"
+    }
+  ],
+  "n_snapshots": 200,
+  "snapshot_samples": [
+    {
+      "key": "data/_skill/opportunity-rankings.json",
+      "size": 2758,
+      "top_keys": [
+        "version",
+        "generated_at",
+        "n_total",
+        "engine_hit_rates",
+        "ranked_opportunities",
+        "ranking_formula",
+        "skill_data_age_h"
+      ]
+    },
+    {
+      "key": "data/crisis-knowledge-base.json",
+      "size": 15945,
+      "top_keys": [
+        "version",
+        "generated_at",
+        "n_patterns",
+        "n_frameworks",
+        "patterns",
+        "frameworks",
+        "current_state",
+        "build_duration_s"
+      ]
+    },
+    {
+      "key": "data/earnings-cascade.json",
+      "size": 16010,
+      "top_keys": [
+        "engine",
+        "version",
+        "generated_at",
+        "state",
+        "state_description",
+        "n_titans",
+        "n_strong",
+        "n_emerging",
+        "titans",
+        "strong_cascades",
+        "emerging_cascades",
+        "all_evaluated_with_cascade",
+        "feeds_available",
+        "thresholds",
+        "methodology"
+      ]
+    },
+    {
+      "key": "data/earnings-iv-crush.json",
+      "size": 2896,
+      "top_keys": [
+        "engine",
+        "version",
+        "as_of",
+        "state",
+        "previous_state",
+        "state_description",
+        "signal_strength",
+        "summary",
+        "current_readings",
+        "top_rich",
+        "top_cheap",
+        "fair_priced",
+        "trigger_conditions",
+        "forward_expectations",
+        "recommended_trade"
+      ]
+    },
+    {
+      "key": "data/earnings-nlp.json",
+      "size": 25189,
+      "top_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "model",
+        "source",
+        "elapsed_seconds",
+        "universe",
+        "n_tickers",
+        "n_with_data",
+        "n_with_err",
+        "by_ticker",
+        "ranked",
+        "market_summary",
+        "regime_changed_from_prior"
+      ]
+    },
+    {
+      "key": "data/earnings-pead.json",
+      "size": 95544,
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ]
+    }
+  ],
+  "ddb_unknown_samples": {},
+  "finished": "2026-05-31T11:34:23.968469+00:00"
+}
