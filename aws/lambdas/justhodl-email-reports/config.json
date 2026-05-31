@@ -3,7 +3,6 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "khalid_enhanced_report.lambda_handler",
-  "memory_size": 1024,
   "timeout": 120,
   "architectures": [
     "x86_64"
@@ -20,5 +19,6 @@
   "code_size": 4721,
   "files_imported": 1,
   "secrets_sanitized": [],
-  "imported_at": "2026-04-22T22:20:26+00:00"
+  "imported_at": "2026-04-22T22:20:26+00:00",
+  "memory": 1024
 }

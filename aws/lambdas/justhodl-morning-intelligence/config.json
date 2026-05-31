@@ -3,7 +3,6 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 256,
   "timeout": 120,
   "architectures": [
     "x86_64"
@@ -22,5 +21,6 @@
   "secrets_sanitized": [
     "Anthropic API key on line 9 \u2192 os.environ['ANTHROPIC_API_KEY']"
   ],
-  "imported_at": "2026-04-22T22:20:28+00:00"
+  "imported_at": "2026-04-22T22:20:28+00:00",
+  "memory": 256
 }

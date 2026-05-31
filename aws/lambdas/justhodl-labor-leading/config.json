@@ -4,7 +4,6 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 512,
   "memory_mb": 512,
   "timeout": 180,
   "timeout_s": 180,
@@ -36,5 +35,6 @@
   "eventbridge_rules": [
     "justhodl-labor-leading-daily"
   ],
-  "description": "JOLTS + Challenger + Initial Claims labor market leading indicators. Computes openings/unemployed ratio, quits rate z-score, claims 4-week MA trend."
+  "description": "JOLTS + Challenger + Initial Claims labor market leading indicators. Computes openings/unemployed ratio, quits rate z-score, claims 4-week MA trend.",
+  "memory": 512
 }

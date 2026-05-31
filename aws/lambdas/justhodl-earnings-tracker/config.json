@@ -2,7 +2,6 @@
   "function_name": "justhodl-earnings-tracker",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 512,
   "timeout": 600,
   "description": "Earnings calendar + beat/miss reactivity + PEAD signals",
   "environment": {
@@ -16,5 +15,6 @@
     "Project": "JustHodl",
     "Component": "intelligence",
     "Tier": "earnings"
-  }
+  },
+  "memory": 512
 }

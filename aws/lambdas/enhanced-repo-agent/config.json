@@ -3,7 +3,6 @@
   "region": "us-east-1",
   "runtime": "python3.9",
   "handler": "update_repo_agent.lambda_handler",
-  "memory_size": 512,
   "timeout": 60,
   "architectures": [
     "x86_64"
@@ -34,5 +33,6 @@
   "code_size": 1899,
   "files_imported": 1,
   "secrets_sanitized": [],
-  "imported_at": "2026-04-22T22:20:21+00:00"
+  "imported_at": "2026-04-22T22:20:21+00:00",
+  "memory": 512
 }

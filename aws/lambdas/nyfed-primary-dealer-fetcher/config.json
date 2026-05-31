@@ -3,7 +3,6 @@
   "region": "us-east-1",
   "runtime": "python3.9",
   "handler": "pd_fixed.lambda_handler",
-  "memory_size": 256,
   "timeout": 30,
   "architectures": [
     "x86_64"
@@ -18,5 +17,6 @@
   "code_size": 1640,
   "files_imported": 1,
   "secrets_sanitized": [],
-  "imported_at": "2026-04-22T22:20:33+00:00"
+  "imported_at": "2026-04-22T22:20:33+00:00",
+  "memory": 256
 }

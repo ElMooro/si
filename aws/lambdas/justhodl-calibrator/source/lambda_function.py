@@ -496,6 +496,26 @@ def lambda_handler(event, context):
     for rec in report.get("recommendations", []):
         print(f"  {rec}")
 
+    # Emit calibrator.weights_updated so alpha-compass + other consumers
+    # of SSM weights know to re-read. Best-effort.
+    try:
+        from system_events import publish, EVT_CALIBRATOR_WEIGHTS_UPDATED
+        # Find signals with the biggest weight changes vs default
+        changed = []
+        for sig, w in (report.get("weights") or {}).items():
+            default = 0.7  # default fallback
+            if abs(w - default) > 0.15:
+                changed.append({"signal": sig, "weight": round(w, 3)})
+        publish(EVT_CALIBRATOR_WEIGHTS_UPDATED, {
+            "n_outcomes":      report.get("total_outcomes"),
+            "n_signals_weighted": len(report.get("weights") or {}),
+            "n_horizon_lift":  n_horizon_lift,
+            "top_changes":     sorted(changed, key=lambda r: -abs(r["weight"]-0.7))[:8],
+            "khalid_components": report.get("khalid_component_weights"),
+        }, source_engine="calibrator")
+    except Exception as e:
+        print(f"[calibrator] event publish failed: {e}")
+
     return {
         "statusCode": 200,
         "body": json.dumps({

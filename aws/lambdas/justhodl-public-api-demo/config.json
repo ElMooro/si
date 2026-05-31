@@ -3,9 +3,10 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 256,
   "timeout": 15,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "environment_keys": [
     "JUSTHODL_API_KEYS_TABLE",
@@ -15,5 +16,6 @@
   "reserved_concurrency": 5,
   "function_url": "to-be-created",
   "eventbridge_rules": [],
-  "description": "Reference implementation showing api_auth.py in a public-facing Lambda. Demonstrates full auth + rate-limit flow with FREE/PRO/ENTERPRISE tiers."
+  "description": "Reference implementation showing api_auth.py in a public-facing Lambda. Demonstrates full auth + rate-limit flow with FREE/PRO/ENTERPRISE tiers.",
+  "memory": 256
 }

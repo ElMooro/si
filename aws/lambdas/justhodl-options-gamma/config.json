@@ -4,7 +4,6 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 1024,
   "memory_mb": 1024,
   "timeout": 300,
   "timeout_s": 300,
@@ -38,5 +37,6 @@
   "eventbridge_rules": [
     "justhodl-options-gamma-30min"
   ],
-  "description": "SPY dealer gamma exposure (GEX). Pulls full options chain via Polygon, computes Black-Scholes gamma, aggregates by strike/expiry, classifies regime."
+  "description": "SPY dealer gamma exposure (GEX). Pulls full options chain via Polygon, computes Black-Scholes gamma, aggregates by strike/expiry, classifies regime.",
+  "memory": 1024
 }

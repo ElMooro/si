@@ -1,18 +1,24 @@
 {
-  "memory_size": 1024,
   "memory": 1024,
   "timeout": 600,
   "runtime": "python3.12",
-  "description": "Hiring & Expansion Velocity — headcount-inflection leading-growth detector",
+  "description": "Hiring & Expansion Velocity \u2014 headcount-inflection leading-growth detector",
   "environment": {
     "MAX_WORKERS": "8"
   },
   "inherit_env": [
-    {"from_function": "justhodl-sector-heatmap", "keys": ["FMP_KEY", "TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+    {
+      "from_function": "justhodl-sector-heatmap",
+      "keys": [
+        "FMP_KEY",
+        "TELEGRAM_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ]
+    }
   ],
   "schedule": {
     "rule_name": "hiring-velocity-weekly",
     "cron": "cron(30 12 ? * SUN *)",
-    "description": "Hiring & Expansion Velocity weekly rescore — Sunday"
+    "description": "Hiring & Expansion Velocity weekly rescore \u2014 Sunday"
   }
 }

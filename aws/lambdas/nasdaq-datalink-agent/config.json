@@ -3,7 +3,6 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 512,
   "timeout": 120,
   "architectures": [
     "x86_64"
@@ -35,5 +34,6 @@
   "code_size": 1964,
   "files_imported": 1,
   "secrets_sanitized": [],
-  "imported_at": "2026-04-22T22:20:32+00:00"
+  "imported_at": "2026-04-22T22:20:32+00:00",
+  "memory": 512
 }

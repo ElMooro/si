@@ -4,7 +4,6 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 768,
   "memory_mb": 768,
   "timeout": 300,
   "timeout_s": 300,
@@ -36,5 +35,6 @@
   "eventbridge_rules": [
     "justhodl-sec-13f-daily"
   ],
-  "description": "SEC 13F-HR institutional position tracker. Watches 18 major funds for new quarterly filings (Berkshire, Bridgewater, Citadel, Pershing, etc.)."
+  "description": "SEC 13F-HR institutional position tracker. Watches 18 major funds for new quarterly filings (Berkshire, Bridgewater, Citadel, Pershing, etc.).",
+  "memory": 768
 }

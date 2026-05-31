@@ -1,12 +1,18 @@
 {
-  "memory_size": 256,
   "memory": 256,
   "timeout": 120,
   "runtime": "python3.12",
-  "description": "Global Liquidity Index — combined Fed/ECB/BOJ balance sheets + Fed net liquidity + M2",
+  "description": "Global Liquidity Index \u2014 combined Fed/ECB/BOJ balance sheets + Fed net liquidity + M2",
   "environment": {},
   "inherit_env": [
-    {"from_function": "justhodl-vol-surface", "keys": ["FRED_API_KEY", "TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+    {
+      "from_function": "justhodl-vol-surface",
+      "keys": [
+        "FRED_API_KEY",
+        "TELEGRAM_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ]
+    }
   ],
   "schedule": {
     "rule_name": "global-liquidity-daily",

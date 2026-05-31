@@ -3,9 +3,10 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 256,
   "timeout": 30,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "environment_keys": [
     "JUSTHODL_API_KEYS_TABLE",
@@ -15,5 +16,6 @@
   "reserved_concurrency": 2,
   "function_url": "to-be-created",
   "eventbridge_rules": [],
-  "description": "Admin Lambda for managing Public API keys: create, revoke, list, rotate. Protected by SSM admin token. Backed by DynamoDB justhodl-api-keys table."
+  "description": "Admin Lambda for managing Public API keys: create, revoke, list, rotate. Protected by SSM admin token. Backed by DynamoDB justhodl-api-keys table.",
+  "memory": 256
 }

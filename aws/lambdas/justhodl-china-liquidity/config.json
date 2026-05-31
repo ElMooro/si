@@ -1,12 +1,18 @@
 {
-  "memory_size": 256,
   "memory": 256,
   "timeout": 120,
   "runtime": "python3.12",
-  "description": "China liquidity + credit-impulse engine — the missing piece of global liquidity",
+  "description": "China liquidity + credit-impulse engine \u2014 the missing piece of global liquidity",
   "environment": {},
   "inherit_env": [
-    {"from_function": "justhodl-vol-surface", "keys": ["FRED_API_KEY", "TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+    {
+      "from_function": "justhodl-vol-surface",
+      "keys": [
+        "FRED_API_KEY",
+        "TELEGRAM_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ]
+    }
   ],
   "schedule": {
     "rule_name": "china-liquidity-daily",

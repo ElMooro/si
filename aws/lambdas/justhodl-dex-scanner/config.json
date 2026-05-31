@@ -3,7 +3,6 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 256,
   "timeout": 120,
   "architectures": [
     "x86_64"
@@ -38,5 +37,6 @@
   "secrets_sanitized": [
     "GitHub PAT on line 5 \u2192 os.environ['GITHUB_TOKEN']"
   ],
-  "imported_at": "2026-04-22T22:20:25+00:00"
+  "imported_at": "2026-04-22T22:20:25+00:00",
+  "memory": 256
 }

@@ -4,11 +4,12 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 512,
   "memory_mb": 512,
   "timeout": 300,
   "timeout_s": 300,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "environment_keys": [
     "S3_BUCKET",
@@ -26,12 +27,21 @@
     "auth_type": "NONE",
     "cors": {
       "AllowCredentials": false,
-      "AllowHeaders": ["content-type"],
-      "AllowMethods": ["*"],
-      "AllowOrigins": ["*"],
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ],
       "MaxAge": 86400
     }
   },
-  "eventbridge_rules": ["justhodl-insider-trades-30min"],
-  "description": "SEC EDGAR Form 4 pipeline: pulls recent insider trades, filters for >$25k buys, computes cluster buys (3+ insiders/14d), writes data/insider-trades.json. Runs every 30 min."
+  "eventbridge_rules": [
+    "justhodl-insider-trades-30min"
+  ],
+  "description": "SEC EDGAR Form 4 pipeline: pulls recent insider trades, filters for >$25k buys, computes cluster buys (3+ insiders/14d), writes data/insider-trades.json. Runs every 30 min.",
+  "memory": 512
 }

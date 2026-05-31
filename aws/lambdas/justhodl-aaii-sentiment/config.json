@@ -4,7 +4,6 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 512,
   "memory_mb": 512,
   "timeout": 180,
   "timeout_s": 180,
@@ -36,5 +35,6 @@
   "eventbridge_rules": [
     "justhodl-aaii-sentiment-daily"
   ],
-  "description": "AAII Investor Sentiment Survey weekly retail bull/bear/neutral. Released Thursdays. Daily check for new release; 26-week z-scores; extreme flags."
+  "description": "AAII Investor Sentiment Survey weekly retail bull/bear/neutral. Released Thursdays. Daily check for new release; 26-week z-scores; extreme flags.",
+  "memory": 512
 }

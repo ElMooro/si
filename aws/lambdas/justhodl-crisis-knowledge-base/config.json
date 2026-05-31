@@ -2,9 +2,8 @@
   "function_name": "justhodl-crisis-knowledge-base",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_size": 256,
   "timeout": 60,
-  "description": "Builds Crisis Pattern Knowledge Base — RAG corpus for ai-chat",
+  "description": "Builds Crisis Pattern Knowledge Base \u2014 RAG corpus for ai-chat",
   "environment": {
     "S3_BUCKET": "justhodl-dashboard-live",
     "S3_KEY": "data/crisis-knowledge-base.json",
@@ -14,5 +13,6 @@
     "Project": "JustHodl",
     "Component": "intelligence",
     "Tier": "knowledge_base"
-  }
+  },
+  "memory": 256
 }

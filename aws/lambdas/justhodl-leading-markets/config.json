@@ -1,16 +1,22 @@
 {
-  "memory_size": 256,
   "memory": 256,
   "timeout": 180,
   "runtime": "python3.12",
-  "description": "Leading Markets engine — canary markets that lead macro tops/bottoms",
+  "description": "Leading Markets engine \u2014 canary markets that lead macro tops/bottoms",
   "environment": {},
   "inherit_env": [
-    {"from_function": "justhodl-sector-heatmap", "keys": ["FMP_KEY", "TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+    {
+      "from_function": "justhodl-sector-heatmap",
+      "keys": [
+        "FMP_KEY",
+        "TELEGRAM_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ]
+    }
   ],
   "schedule": {
     "rule_name": "leading-markets-daily",
     "cron": "cron(30 22 ? * MON-FRI *)",
-    "description": "Leading Markets canary tracker — daily after US close"
+    "description": "Leading Markets canary tracker \u2014 daily after US close"
   }
 }

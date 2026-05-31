@@ -1,12 +1,17 @@
 {
-  "memory_size": 256,
   "memory": 256,
   "timeout": 60,
   "runtime": "python3.12",
-  "description": "Master Crisis Composite — fuses all risk engines into one DEFCON 5-1 score",
+  "description": "Master Crisis Composite \u2014 fuses all risk engines into one DEFCON 5-1 score",
   "environment": {},
   "inherit_env": [
-    {"from_function": "justhodl-vol-surface", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+    {
+      "from_function": "justhodl-vol-surface",
+      "keys": [
+        "TELEGRAM_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ]
+    }
   ],
   "schedule": {
     "rule_name": "crisis-composite-hourly",

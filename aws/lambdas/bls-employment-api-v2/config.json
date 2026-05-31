@@ -3,7 +3,6 @@
   "region": "us-east-1",
   "runtime": "nodejs18.x",
   "handler": "index.handler",
-  "memory_size": 512,
   "timeout": 900,
   "architectures": [
     "x86_64"
@@ -23,5 +22,6 @@
   "code_size": 5726,
   "files_imported": 2,
   "secrets_sanitized": [],
-  "imported_at": "2026-04-22T22:20:20+00:00"
+  "imported_at": "2026-04-22T22:20:20+00:00",
+  "memory": 512
 }
