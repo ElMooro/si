@@ -11,7 +11,7 @@
 "x86_64"
 ],
 "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-"description": "Per signal-stack realised return distributions (n, median, P25/P75, win rate). Reads checked outcomes from DDB justhodl-signals; outputs data/magnitude-distributions.json. Institutional answer to 'how much will it pump?' \u2014 distributions, never point estimates.",
+"description": "Per signal-stack realised return distributions (n, median, P25/P75, win rate).",
 "environment": {},
 "schedule": {
 "rule_name": "magnitude-distributions-daily",
@@ -36,7 +36,7 @@
 "x86_64"
 ],
 "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-"description": "Closed-loop opportunity-cost engine. Nightly scans every US stock with |daily move| >= 5%, checks DDB justhodl-signals for prior signals in 10d lookback, classifies misses (near_miss/wrong_signal_type/out_of_universe/regime_misfire). Outputs daily ledger + rolling 30d summary that feeds the calibrator.",
+"description": "Closed-loop opportunity-cost engine.",
 "environment": {},
 "schedule": {
 "rule_name": "miss-detector-nightly",
