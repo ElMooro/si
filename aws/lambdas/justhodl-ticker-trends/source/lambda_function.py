@@ -60,7 +60,7 @@ SLEEP_BETWEEN  = float(os.environ.get("SLEEP_BETWEEN_S", "1.0"))  # Wikipedia is
 TRY_GOOGLE     = os.environ.get("TRY_GOOGLE", "1") == "1"
 HTTP_TIMEOUT   = 12
 
-USER_AGENT = ("JustHodl-TickerTrends/2.0 (raafouis@gmail.com) — "
+USER_AGENT = ("JustHodl-TickerTrends/2.0 (raafouis@gmail.com) - "
                 "ticker search-interest velocity tracker")
 
 # Ticker → Wikipedia article slug. The 80-ticker focus list — names where
