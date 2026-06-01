@@ -1,0 +1,129 @@
+{
+  "started": "2026-06-01T19:25:20.939000+00:00",
+  "phases": [
+    {
+      "name": "invoke_brief_retry",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 31.8,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 30.79,
+          "claude_elapsed": 30.23,
+          "conviction": "B+",
+          "temperature": "54.7 (TEPID)",
+          "n_long_ideas": 3,
+          "n_pair_trades": 2,
+          "n_warnings": 4
+        }
+      }
+    },
+    {
+      "name": "read_brief_full",
+      "status": "ok",
+      "result": {
+        "size_kb": 8.7,
+        "elapsed_sec": 30.79,
+        "claude_elapsed": 30.23,
+        "conviction_grade": "B+",
+        "executive_summary": "Lean LONG selectively with B+ conviction in PEAD + bullish options confluence: PLTR (HIGH, 5% position, perfect 8-engine convergence despite 93% overvaluation), MSFT (HIGH, 5%, ULTRA tier + $50B Cloud inflection + TIER_A flow), and NEM (MED-HIGH, 5%, record FCF + capital-return offset commodities headwinds). Hedge with NEM/GFI and LLY/JNJ pair trades (expected alpha 3\u201310%). Basket 40% invested, 60% cash; tepid market temperature (54.7%) and sub-55% pump scores across positions signal range-bound setup; monitor early-June earnings (PANW, AVGO, CRWD) and options expiration unwind risk.",
+        "macro_frame": "NEUTRAL regime with 40% basket exposure across 12 positions favors selective long accumulation in high-conviction PEAD + options-flow confluence. No macro headwinds yet; positioning remains defensive (60% cash) despite avg pump likelihood of 54.7% across top candidates, signaling institutional restraint into earnings clusters.",
+        "market_temperature": {
+          "score": 54.7,
+          "rank": "TEPID",
+          "components": {
+            "max_pump": 57.3,
+            "avg_top5_pump": 54.9,
+            "n_bullish_opts_5": 3,
+            "basket_exposure": 40.0
+          },
+          "label_from_ai": "TEPID"
+        },
+        "top_3_long_ideas": [
+          {
+            "ticker": "PLTR",
+            "conviction": "HIGH",
+            "thesis_1liner": "Perfect 8-engine convergence, TIER_A bullish options, 8Q beat streak overwhelms 93% DCF overvaluation.",
+            "bull_bullets": [
+              "Perfect 100/100 convergence across all 8 quant engines with pump_likelihood 54.5; only ULTRA-tier name with full institutional breadth",
+              "TIER_A_BULLISH_FLOW in options (vs. only 3 of top 5 showing bullish skew); IV_rank 35.2 with backwardation structure signals directional conviction",
+              "Guidance raised to $7.656B (+71% FY growth); U.S. commercial acceleration 143% ex-transition validates 'agentic enterprise' narrative; 8-quarter PEAD streak intact"
+            ],
+            "key_risk": "93% DCF overvaluation vs. fundamentals-quality engine signals sentiment-dependent pump; unwind risk high if guidance misses or options flow reverses post-expiration",
+            "sized_position": "5.0% position with stop at $149.12 (-7.68%) targeting TP1 $167.72 / TP2 $173.92",
+            "catalyst_window": "no near catalyst (no earnings date disclosed)"
+          },
+          {
+            "ticker": "MSFT",
+            "conviction": "HIGH",
+            "thesis_1liner": "Eight-engine ULTRA convergence (88.6), TIER_A bullish options flow, WATCH momentum on 60D breakout signals institutional accumulation.",
+            "bull_bullets": [
+              "Eight-engine ULTRA convergence (88.6) with pump_likelihood 53.9; TIER_A_BULLISH_FLOW confirmed, IV_rank 90.4 (backwardation) = highest convexity among basket",
+              "Cloud milestone $50B+ crossed; M365 Copilot 15M paid seats (record 160% growth) and 10x DAU growth validates monetization inflection; $140B+ annual capex commitment signals management conviction in ROI",
+              "Eight-quarter high-quality beat streak; rotation_accel 1.11 (highest in mechanics layer); perf_20d +11.33% with idio_alpha_20d_pct +6.57% vs. sector"
+            ],
+            "key_risk": "Operating expense growth (5-7%) outpacing guidance; capital expenditure $34.9B Q1 implies $140B+ FY commitment with multiyear ROI timeline unproven",
+            "sized_position": "5.0% position with stop at $437.39 (-5.26%) targeting TP1 $473.81 / TP2 $485.94",
+            "catalyst_window": "no near catalyst (earnings window ~90 days)"
+          },
+          {
+            "ticker": "NEM",
+            "conviction": "MEDIUM-HIGH",
+            "thesis_1liner": "Six-quarter PEAD streak converges 3-engine bullish (convergence 62.0); record FCF + buyback authorization offset geopolitical headwinds.",
+            "bull_bullets": [
+              "Three-engine convergence (earnings-pead, fundamentals-quality, capital-return) with pump_likelihood 57.3 and directional 83.6; bullish engines = 3, bearish = 0",
+              "Record Q1 free cash flow (all-time quarterly high) with systematic buyback expansion authorization; management confidence in intrinsic value despite Q2 Cadia mill feed gap",
+              "Six-quarter earnings beat streak; tone_trajectory rising (+5pts), tone_delta +5; cautionary headwinds (geopolitical energy cost, Ghana royalty $25/oz) priced but not consensus-breaking; pump_implication reinforces transitory Q2 dip narrative"
+            ],
+            "key_risk": "Commodity-linked exposure; Cadia earthquake recovery narrative depends on execution; macro rate sensitivity and geopolitical escalation could compress gold demand",
+            "sized_position": "5.0% position with stop at $99.25 (-8.28%) targeting TP1 $112.69 / TP2 $117.17",
+            "catalyst_window": "no near catalyst"
+          }
+        ],
+        "top_2_pair_trades": [
+          {
+            "long_ticker": "NEM",
+            "short_ticker": "GFI",
+            "why_hedged": "correlation 0.849 = excellent hedge; sector peer with -9.97% 20d underperformance vs. NEM -0.33%",
+            "expected_alpha_1m": "+3-6%",
+            "trade_thesis": "Long NEM for 57.3% pump_likelihood + record FCF narrative / Short GFI (Gold Fields) because -9.97% 20d laggard; spread +9.62% with 0.85 correlation captures NEM relative strength even in commodities sector pullback; hedge quality excellent"
+          },
+          {
+            "long_ticker": "LLY",
+            "short_ticker": "JNJ",
+            "why_hedged": "correlation 0.528 = good hedge; healthcare sector peer with -1.46% 20d underperformance vs. LLY +12.1%",
+            "expected_alpha_1m": "+5-10%",
+            "trade_thesis": "Long LLY for 54.2% pump_likelihood + Koundeo approval + retatrutide Phase III data / Short JNJ (healthcare laggard) because -1.46% 20d underperformance; spread +13.56% with 0.53 correlation captures LLY's obesity market dominance narrative; TIER_A bullish options flow supports momentum"
+          }
+        ],
+        "what_to_watch_today": [
+          "PANW reports earnings 2026-06-02 AMC; cybersecurity sector bellwether may influence CRM/CRWD momentum into early week",
+          "AVGO earnings 2026-06-03 AMC (EPS consensus $2.02); semiconductor/infrastructure play signals AI capex demand confidence\u2014watch for WDC/APH correlation spillover",
+          "Pump basket temperature 54.7% (TEPID rank)\u2014avg top-5 pump_likelihood 54.9% suggests range-bound consolidation; tighten stops if SPY breaks below prior support or options flow reverses into options expiration window"
+        ],
+        "risk_warnings": [
+          "All 8 core positions pump_likelihood <55%: APH, PLTR, LLY, MSFT, WDC, FCX, CRM all in 'PUMP_POSSIBLE' (51.5\u201354.7%) tier; thin conviction margin suggests multiple fragility if macro regime shifts or earnings guidance misses",
+          "Technology sector concentration: 6 of 8 positions (PLTR, APH, MSFT, WDC, CRM) = 23.5% basket exposure, or 59% of total 40% allocation; MSFT + PLTR 8-engine ULTRA tier linked via 0.65 90d correlation creates crowded-trade risk if sentiment reverses",
+          "Valuation dispersion: PLTR +93% DCF overvaluation vs. CRM -41% undervaluation signals asymmetric downside if correction broadens; pairs hedges (NEM/GFI, LLY/JNJ) rated 'good' to 'excellent' but expected alpha thin (3\u201310%) relative to single-name unwind risk",
+          "Earnings catalysts front-loaded into early June (PANW, AVGO, CRWD, MDT, DOCU 2026-06-02 to 2026-06-04) but core basket (PLTR, MSFT, LLY) have no disclosed near-term earnings; momentum extension depends on macro sentiment + options expiration dynamics post-June-20"
+        ],
+        "whats_changed": "No prior brief available; baseline established at neutral macro regime (60% cash, 40% exposure) with 8-position core favoring PEAD + bullish options confluence. PLTR and MSFT elevated to HIGH conviction on perfect/near-perfect engine convergence and TIER_A options flow; NEM rotated in as MED-HIGH conviction on record FCF + capital-return narrative. Cautionary: all pump_likelihood scores remain sub-55%, signaling thin institutional consensus despite multi-engine alignment.",
+        "whats_changed_data": {
+          "no_prior": true
+        },
+        "source_versions": {
+          "convergence": "2026-06-01T19:00:12.716139+00:00",
+          "positioning": "2026-06-01T19:10:49.494394+00:00",
+          "mechanics": "2026-06-01T19:21:14.170285+00:00",
+          "analytics": "2026-06-01T19:01:21.884533+00:00",
+          "pairs": "2026-06-01T19:20:46.083811+00:00",
+          "nlp": "2026-06-01T19:02:33.451038+00:00",
+          "research": "2026-06-01T19:06:32.005177+00:00",
+          "synthesis": "2026-06-01T18:25:34.477674+00:00",
+          "earnings_cal": "2026-06-01T17:46:40.267731+00:00"
+        }
+      }
+    }
+  ],
+  "finished": "2026-06-01T19:25:54.825374+00:00"
+}
