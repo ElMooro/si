@@ -1947,9 +1947,11 @@ table.tbl tr:last-child td{border-bottom: none}
 
 <script>
 /* ──────────────────────────────────────────────────────────────
-   DATA SOURCES — read directly from S3 over HTTPS
+   DATA SOURCES — read through Cloudflare proxy worker for edge caching + auto-gzip.
+   Worker auto-compresses application/json at the edge (typically 60-80% wire savings).
+   Same S3 paths as before, just routed through the proxy.
    ────────────────────────────────────────────────────────────── */
-const S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com';
+const S3 = 'https://justhodl-data-proxy.raafouis.workers.dev';
 const SOURCES = {
   intel:    `${S3}/intelligence-report.json`,
   edge:     `${S3}/edge-data.json`,
@@ -1965,7 +1967,7 @@ const SOURCES = {
   signalBoard: `${S3}/data/signal-board.json`,
 };
 
-// Pre-pump radar — single slim fetch (~3 KB raw, ~700B gzipped).
+// Pre-pump radar — single slim fetch (~3 KB raw, ~700B gzipped via edge).
 // Replaces the previous 5-file fetch totaling 137.5 KB.
 // File is built by justhodl-prepump-summary Lambda every 30 min.
 const PP_SOURCES = {
