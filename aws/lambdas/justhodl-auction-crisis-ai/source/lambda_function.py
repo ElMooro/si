@@ -433,6 +433,20 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=S3_BUCKET, Key=archive_key, Body=body,
                     ContentType="application/json")
 
+    # ═══════════════════════════════════════════════════════════════════
+    # TELEGRAM REGIME-TRANSITION ALERT LAYER
+    # Compares current state to prior alert state; sends a Telegram
+    # message ONLY when an actionable transition is detected. State is
+    # tracked in data/auction-crisis-alert-state.json.
+    # ═══════════════════════════════════════════════════════════════════
+    alerts = []
+    try:
+        alerts = maybe_send_alerts(source_data, commentary)
+        output["alerts_sent"] = alerts
+    except Exception as e:
+        print(f"[alerts] error (non-fatal): {e}")
+        output["alerts_error"] = str(e)[:160]
+
     summary = {
         "status":         "ok",
         "elapsed_sec":    output["elapsed_sec"],
@@ -441,6 +455,8 @@ def lambda_handler(event, context):
         "composite":      output["composite"],
         "executive_summary_chars": len(commentary.get("executive_summary", "")),
         "forward_predictions_count": len(commentary.get("forward_predictions") or []),
+        "alerts_sent":    len(alerts),
+        "alert_types":    [a.get("type") for a in alerts],
     }
     print(f"[auction-crisis-ai] done: {summary}")
     return {"statusCode": 200, "body": json.dumps(summary)}
@@ -465,3 +481,236 @@ def _write_error(message: str, **extras) -> dict:
         print(f"[ai] failed to write error payload: {e}")
     print(f"[auction-crisis-ai] ERROR: {message}")
     return {"statusCode": 500, "body": json.dumps({"status": "error", "error": message})}
+
+
+# ═════════════════════════════════════════════════════════════════════
+# TELEGRAM ALERT LAYER
+# State tracking + transition detection. Sends a Telegram message ONLY
+# when a meaningful transition is detected. Avoids alert fatigue by
+# requiring CHANGE in state, not just current high-stress levels.
+# ═════════════════════════════════════════════════════════════════════
+
+TELEGRAM_TOKEN   = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_CHAT_ID = "8678089260"
+ALERT_STATE_KEY  = "data/auction-crisis-alert-state.json"
+
+REGIME_RANK = {"CALM": 0, "WATCH": 1, "ELEVATED": 2, "ACUTE_STRESS": 3}
+
+
+def compute_alert_state(data: dict) -> dict:
+    """Distill source data into the minimal state needed for transition detection."""
+    state = {
+        "regime":           data.get("regime"),
+        "composite":        data.get("composite_score"),
+        "indicator_max":    {},
+        "tail_p":           {},
+        "snapshot_at":      datetime.now(timezone.utc).isoformat(),
+    }
+    for sig, agg in (data.get("indicator_aggregate_14d") or {}).items():
+        state["indicator_max"][sig] = agg.get("max_score", 0)
+    for k in ("p_failed_auction_30d", "p_regime_escalation_14d", "p_supply_volatility_30d"):
+        state["tail_p"][k] = ((data.get("tail_risk") or {}).get(k) or {}).get("probability", 0)
+    return state
+
+
+def detect_transitions(prior_state: dict, current_state: dict) -> list:
+    """Return a list of alert events."""
+    alerts = []
+    if not prior_state:
+        # First-ever run: send 'system initialized' notification
+        return [{
+            "type":      "SYSTEM_INITIALIZED",
+            "current_regime": current_state.get("regime"),
+            "composite": current_state.get("composite"),
+        }]
+
+    # 1. Regime transitions
+    cur_r = current_state.get("regime")
+    prior_r = prior_state.get("regime")
+    if cur_r != prior_r and cur_r and prior_r:
+        cur_rank = REGIME_RANK.get(cur_r, 0)
+        prior_rank = REGIME_RANK.get(prior_r, 0)
+        if cur_rank > prior_rank:
+            alerts.append({
+                "type": "REGIME_ESCALATION",
+                "from": prior_r,
+                "to":   cur_r,
+                "composite": current_state.get("composite"),
+            })
+        elif cur_rank < prior_rank:
+            alerts.append({
+                "type": "REGIME_DEESCALATION",
+                "from": prior_r,
+                "to":   cur_r,
+                "composite": current_state.get("composite"),
+            })
+
+    # 2. New indicator firing at score >= 70 (was below 70)
+    THRESH = 70
+    cur_ind = current_state.get("indicator_max", {})
+    prior_ind = prior_state.get("indicator_max", {})
+    for sig, cur_max in cur_ind.items():
+        prior_max = prior_ind.get(sig, 0)
+        if cur_max >= THRESH and prior_max < THRESH:
+            alerts.append({
+                "type":      "INDICATOR_FIRED",
+                "signal":    sig,
+                "max_score": cur_max,
+                "prior_max": prior_max,
+            })
+        elif cur_max < THRESH and prior_max >= THRESH:
+            alerts.append({
+                "type":      "INDICATOR_CLEARED",
+                "signal":    sig,
+                "max_score": cur_max,
+                "prior_max": prior_max,
+            })
+
+    # 3. Tail risk probability crossing 50%
+    TAIL_THRESH = 50
+    cur_tail = current_state.get("tail_p", {})
+    prior_tail = prior_state.get("tail_p", {})
+    for key, cur_p in cur_tail.items():
+        prior_p = prior_tail.get(key, 0)
+        if cur_p >= TAIL_THRESH and prior_p < TAIL_THRESH:
+            alerts.append({
+                "type":        "TAIL_RISK_CROSSED",
+                "key":         key,
+                "probability": cur_p,
+                "prior":       prior_p,
+            })
+        elif cur_p < TAIL_THRESH and prior_p >= TAIL_THRESH:
+            alerts.append({
+                "type":        "TAIL_RISK_CLEARED",
+                "key":         key,
+                "probability": cur_p,
+                "prior":       prior_p,
+            })
+
+    # 4. Composite jump > 15 in either direction (rapid move)
+    cur_c = current_state.get("composite", 0) or 0
+    prior_c = prior_state.get("composite", 0) or 0
+    delta = cur_c - prior_c
+    if abs(delta) >= 15:
+        alerts.append({
+            "type":     "COMPOSITE_JUMP",
+            "from":     prior_c,
+            "to":       cur_c,
+            "delta":    delta,
+            "direction": "up" if delta > 0 else "down",
+        })
+
+    return alerts
+
+
+def format_telegram_message(alerts: list, commentary: dict, data: dict) -> str:
+    """Compose a Markdown Telegram message."""
+    lines = []
+    # Header
+    has_escalation = any(a["type"] in ("REGIME_ESCALATION", "INDICATOR_FIRED", "TAIL_RISK_CROSSED") for a in alerts)
+    has_deescal   = any(a["type"] in ("REGIME_DEESCALATION", "INDICATOR_CLEARED", "TAIL_RISK_CLEARED") for a in alerts)
+    if has_escalation:
+        lines.append("🚨 *Treasury Auction Crisis Alert* 🚨")
+    elif has_deescal:
+        lines.append("✅ *Treasury Auction — Stress Easing*")
+    else:
+        lines.append("📊 *Treasury Auction System Notice*")
+    lines.append("")
+
+    for a in alerts:
+        t = a["type"]
+        if t == "SYSTEM_INITIALIZED":
+            lines.append(f"🆕 System ONLINE — alert layer initialized.")
+            lines.append(f"   Regime: *{a['current_regime']}* · composite {a['composite']:.1f}/100")
+        elif t == "REGIME_ESCALATION":
+            lines.append(f"⚠️ Regime ESCALATED: *{a['from']} → {a['to']}* (composite {a['composite']:.1f})")
+        elif t == "REGIME_DEESCALATION":
+            lines.append(f"✅ Regime DEESCALATED: *{a['from']} → {a['to']}* (composite {a['composite']:.1f})")
+        elif t == "INDICATOR_FIRED":
+            sig = a["signal"].replace("_", " ").title()
+            lines.append(f"🔴 *{sig}* fired: max score {a['max_score']} (was {a['prior_max']})")
+        elif t == "INDICATOR_CLEARED":
+            sig = a["signal"].replace("_", " ").title()
+            lines.append(f"🟢 *{sig}* cleared: max score {a['max_score']} (was {a['prior_max']})")
+        elif t == "TAIL_RISK_CROSSED":
+            k = a["key"].replace("p_", "").replace("_", " ")
+            lines.append(f"📈 Tail risk *{k}* crossed 50%: {a['probability']:.0f}% (was {a['prior']:.0f}%)")
+        elif t == "TAIL_RISK_CLEARED":
+            k = a["key"].replace("p_", "").replace("_", " ")
+            lines.append(f"📉 Tail risk *{k}* cleared 50%: {a['probability']:.0f}% (was {a['prior']:.0f}%)")
+        elif t == "COMPOSITE_JUMP":
+            arrow = "↗️" if a["direction"] == "up" else "↘️"
+            lines.append(f"{arrow} Composite jumped: {a['from']:.1f} → {a['to']:.1f} ({a['delta']:+.1f} in 1h)")
+
+    # Add AI decisive call if present and we're escalating
+    if has_escalation or any(a["type"] == "SYSTEM_INITIALIZED" for a in alerts):
+        dc = (commentary or {}).get("decisive_call", "")
+        if dc:
+            lines.append("")
+            lines.append(f"_Decisive call_: {dc[:600]}")
+
+    lines.append("")
+    lines.append(f"🔗 https://justhodl.ai/auction-crisis.html")
+    return "\n".join(lines)
+
+
+def send_telegram(text: str) -> bool:
+    """Send a Markdown-formatted message via Telegram bot. Returns success bool."""
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = json.dumps({
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text":    text,
+        "parse_mode": "Markdown",
+        "disable_web_page_preview": False,
+    }).encode("utf-8")
+    try:
+        req = urllib.request.Request(
+            url, data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            response = json.loads(r.read().decode("utf-8"))
+            return bool(response.get("ok"))
+    except Exception as e:
+        print(f"[telegram] send error: {e}")
+        return False
+
+
+def maybe_send_alerts(source_data: dict, commentary: dict) -> list:
+    """Main alert orchestration: load prior state, compute new state, detect transitions, send Telegram."""
+    current_state = compute_alert_state(source_data)
+
+    # Load prior state (None if first run)
+    prior_state = None
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key=ALERT_STATE_KEY)
+        prior_state = json.loads(obj["Body"].read())
+    except s3.exceptions.NoSuchKey:
+        pass
+    except Exception as e:
+        print(f"[alerts] prior state load error: {e}")
+
+    # Detect transitions
+    alerts = detect_transitions(prior_state, current_state)
+    print(f"[alerts] detected {len(alerts)} transition(s): {[a.get('type') for a in alerts]}")
+
+    # Send Telegram if any alerts
+    if alerts:
+        msg = format_telegram_message(alerts, commentary, source_data)
+        sent_ok = send_telegram(msg)
+        print(f"[alerts] telegram sent: {sent_ok}")
+        for a in alerts:
+            a["telegram_sent"] = sent_ok
+
+    # Save current state ALWAYS (so next run has comparison point)
+    try:
+        s3.put_object(
+            Bucket=S3_BUCKET, Key=ALERT_STATE_KEY,
+            Body=json.dumps(current_state, indent=2, default=str),
+            ContentType="application/json",
+        )
+    except Exception as e:
+        print(f"[alerts] state save error: {e}")
+
+    return alerts
