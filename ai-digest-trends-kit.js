@@ -13,7 +13,22 @@
  */
 (function () {
   if (window.JHAITrends) return;
+  var S3_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+  function jhFetch(path) {
+    var ts = "?t=" + Date.now();
+    var sep = path.indexOf("?") >= 0 ? "&t=" + Date.now() : ts;
+    var p = S3_BASE + "/" + path + sep;
+    var f = PROXY   + "/" + path + sep;
+    return fetch(p).then(function (r) {
+      if (r.ok) return r;
+      return fetch(f).then(function (r2) {
+        if (!r2.ok) throw new Error("Both endpoints failed (S3=" + r.status + ", proxy=" + r2.status + ")");
+        return r2;
+      });
+    });
+  }
+
 
   function injectCSS() {
     if (document.getElementById("jh-ai-trends-css")) return;
@@ -32,8 +47,7 @@
     return ["sun","mon","tue","wed","thu","fri","sat"][d.getUTCDay()];
   }
   function fetchJSON(path) {
-    var url = PROXY + "/" + path + "?t=" + Date.now();
-    return fetch(url).then(function (r) { return r.ok ? r.json() : null; })
+    return jhFetch(path).then(function (r) { return r.ok ? r.json() : null; })
                      .catch(function () { return null; });
   }
 

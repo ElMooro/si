@@ -15,7 +15,21 @@
 (function () {
   if (window.JHAIPortfolio) return;
 
+  var S3_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+  function jhFetch(slug, suffix) {
+    var ts = Date.now();
+    var p = S3_BASE + "/" + slug + ".json" + (suffix || "") + (suffix && suffix.indexOf("?") >= 0 ? "&" : "?") + "t=" + ts;
+    var f = PROXY   + "/" + slug + ".json" + (suffix || "") + (suffix && suffix.indexOf("?") >= 0 ? "&" : "?") + "t=" + ts;
+    return fetch(p).then(function (r) {
+      if (r.ok) return r;
+      return fetch(f).then(function (r2) {
+        if (!r2.ok) throw new Error("Both endpoints failed (S3=" + r.status + ", proxy=" + r2.status + ")");
+        return r2;
+      });
+    });
+  }
+
   var DEFAULT_KEY = "portfolio-manager-brief";
 
   function injectCSS() {

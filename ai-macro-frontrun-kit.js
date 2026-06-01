@@ -10,7 +10,10 @@
  */
 (function () {
   if (window.JHAIMacroFront) return;
-  var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+  // Primary: S3 direct (always works since the bucket is public-read on /data/*)
+  // Fallback: Cloudflare Worker proxy (sometimes returns 403 due to misconfig)
+  var S3_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
+  var PROXY   = "https://justhodl-data-proxy.raafouis.workers.dev";
   var DEFAULT_KEY = "macro-frontrun-sniffer";
 
   function injectCSS() {
@@ -91,10 +94,17 @@
     var el = document.getElementById(elId); if (!el) return;
     el.classList.add("jhmf-wrap");
     el.innerHTML = '<div class="jhmf-loading">🏛 sniffing 20 macro/rates/auction pillars for dealer front-running…</div>';
-    var url = PROXY + "/" + (contextSlug || DEFAULT_KEY) + ".json?t=" + Date.now();
-    return fetch(url).then(function (r) {
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return r.json();
+    var key = contextSlug || DEFAULT_KEY;
+    var ts = Date.now();
+    // Try S3 direct first; if that fails fall back to the Worker proxy.
+    var primary = S3_BASE + "/" + key + ".json?t=" + ts;
+    var fallback = PROXY + "/" + key + ".json?t=" + ts;
+    return fetch(primary).then(function (r) {
+      if (r.ok) return r.json();
+      return fetch(fallback).then(function (r2) {
+        if (!r2.ok) throw new Error("Both endpoints failed (S3=" + r.status + ", proxy=" + r2.status + ")");
+        return r2.json();
+      });
     }).then(function (b) {
       var regime = (b.macro_regime || "NORMAL").toUpperCase();
       var html = '';

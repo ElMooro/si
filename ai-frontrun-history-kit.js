@@ -11,7 +11,7 @@
  */
 (function () {
   if (window.JHAIFrontHist) return;
-  var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+  var PROXY = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
   var DEFAULT_KEY = "frontrun-sniffer-history";
 
   function injectCSS() {

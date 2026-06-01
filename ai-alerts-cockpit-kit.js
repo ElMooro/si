@@ -13,7 +13,22 @@
  */
 (function () {
   if (window.JHAIAlerts) return;
+  var S3_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+  function jhFetch(path) {
+    var ts = "?t=" + Date.now();
+    var sep = path.indexOf("?") >= 0 ? "&t=" + Date.now() : ts;
+    var p = S3_BASE + "/" + path + sep;
+    var f = PROXY   + "/" + path + sep;
+    return fetch(p).then(function (r) {
+      if (r.ok) return r;
+      return fetch(f).then(function (r2) {
+        if (!r2.ok) throw new Error("Both endpoints failed (S3=" + r.status + ", proxy=" + r2.status + ")");
+        return r2;
+      });
+    });
+  }
+
 
   function injectCSS() {
     if (document.getElementById("jh-ai-alerts-css")) return;
@@ -47,8 +62,7 @@
     return Math.round(m/1440) + "d ago";
   }
   function fetchJSON(slug) {
-    var url = PROXY + "/" + slug + "?t=" + Date.now();
-    return fetch(url).then(function (r) {
+    return jhFetch(slug).then(function (r) {
       if (!r.ok) return null;
       return r.json();
     }).catch(function () { return null; });

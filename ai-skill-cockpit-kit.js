@@ -16,7 +16,22 @@
  */
 (function () {
   if (window.JHAISkill) return;
+  var S3_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+  function jhFetch(path) {
+    var ts = "?t=" + Date.now();
+    var sep = path.indexOf("?") >= 0 ? "&t=" + Date.now() : ts;
+    var p = S3_BASE + "/" + path + sep;
+    var f = PROXY   + "/" + path + sep;
+    return fetch(p).then(function (r) {
+      if (r.ok) return r;
+      return fetch(f).then(function (r2) {
+        if (!r2.ok) throw new Error("Both endpoints failed (S3=" + r.status + ", proxy=" + r2.status + ")");
+        return r2;
+      });
+    });
+  }
+
 
   function injectCSS() {
     if (document.getElementById("jh-ai-skill-css")) return;
@@ -29,7 +44,7 @@
   function pct(v){return v==null ? '—' : (v * 100).toFixed(1) + '%';}
   function fmtRet(v){if(v==null)return '—';var s=v>=0?'+':'';return s + v.toFixed(2) + '%';}
   function ageOf(iso){if(!iso)return '—';try{var d=new Date(iso);var ms=Date.now()-d.getTime();if(ms<3600000)return Math.round(ms/60000)+'m';if(ms<86400000)return Math.round(ms/3600000)+'h';return Math.round(ms/86400000)+'d';}catch(e){return '—';}}
-  function fetchJSON(path){var url=PROXY+'/'+path+'?t='+Date.now();return fetch(url).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
+  function fetchJSON(path){var url=(S3_BASE+"/"+path+"?t="+Date.now());return fetch(url).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
 
   function classifyHitRate(hr){
     if (hr == null) return 'pending';
