@@ -1,0 +1,113 @@
+{
+  "started": "2026-06-01T00:55:11.470624+00:00",
+  "s3_meta": {
+    "last_modified": "2026-06-01T00:00:11+00:00",
+    "size_kb": 11.4
+  },
+  "top_keys": [
+    "schema_version",
+    "generated_at",
+    "elapsed_sec",
+    "regime",
+    "composite_score",
+    "interpretation",
+    "n_recent_auctions_14d",
+    "issuance_anomaly",
+    "fed_funds_rate",
+    "freshness",
+    "recent_auctions",
+    "indicator_aggregate_14d",
+    "historical_reference",
+    "data_source",
+    "methodology"
+  ],
+  "composite_score": 9.3,
+  "regime": "CALM",
+  "generated_at": "2026-06-01T00:00:10.974700+00:00",
+  "schema_deep": {
+    "schema_version": "1.1",
+    "generated_at": "2026-06-01T00:00:10.974700+00:00",
+    "elapsed_sec": "2.88",
+    "regime": "CALM",
+    "composite_score": "9.3",
+    "interpretation": "Auctions clearing normally. Healthy demand profile, no flight-to-safety pattern.",
+    "n_recent_auctions_14d": "19",
+    "issuance_anomaly": {
+      "_type": "dict",
+      "keys": [
+        "score",
+        "pct_above_baseline"
+      ],
+      "score": "0",
+      "pct_above_baseline": "7.1"
+    },
+    "fed_funds_rate": "3.62",
+    "freshness": {
+      "_type": "dict",
+      "keys": [
+        "latest_auction_date",
+        "latest_cusip",
+        "hours_since_latest_auction",
+        "previous_latest_cusip",
+        "is_new_auction_this_run",
+        "n_total_auctions_pulled",
+        "data_window_start",
+        "data_window_end",
+        "fetched_via"
+      ],
+      "latest_auction_date": "2026-05-28",
+      "latest_cusip": "912797UC9",
+      "hours_since_latest_auction": "96.0"
+    },
+    "recent_auctions": {
+      "_type": "list",
+      "len": 10,
+      "sample": [
+        "auction_date",
+        "issue_date",
+        "security_type",
+        "security_term",
+        "cusip",
+        "tenor_bucket",
+        "high_rate",
+        "low_rate",
+        "median_rate",
+        "allocated_at_high_pct"
+      ]
+    },
+    "indicator_aggregate_14d": {
+      "_type": "dict",
+      "keys": [
+        "btc_extreme",
+        "tail_stress"
+      ],
+      "btc_extreme": [
+        "n_fired",
+        "max_score",
+        "auctions"
+      ],
+      "tail_stress": [
+        "n_fired",
+        "max_score",
+        "auctions"
+      ]
+    },
+    "historical_reference": {
+      "_type": "list",
+      "len": 10,
+      "sample": [
+        "date",
+        "regime",
+        "btc",
+        "low_rate",
+        "aah",
+        "pd_share_pct",
+        "indirect_share_pct"
+      ]
+    },
+    "data_source": "https://api.fiscaldata.treasury.gov (auctions_query)",
+    "methodology": "Crisis pattern signatures extracted from 9 historical auction PDFs covering 2008"
+  },
+  "full_data_saved": "aws/ops/reports/1089_auction_data.json",
+  "finished": "2026-06-01T00:55:11.630654+00:00"
+}
