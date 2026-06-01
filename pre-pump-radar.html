@@ -294,6 +294,86 @@ a:hover{color:var(--violet)}
 .brief-source{margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:.5px}
 .brief-source b{color:var(--fg-2)}
 
+/* ─── Momentum Leaders (the actual movers) ─── */
+.momentum-panel{background:linear-gradient(135deg,rgba(255,177,61,.06),rgba(255,92,122,.04),rgba(167,139,250,.02));border:1px solid var(--amber-dim);border-radius:10px;padding:18px 22px;margin-bottom:24px}
+.momentum-panel .panel-hdr h3{color:var(--amber)}
+.momentum-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.momentum-stats .stat{background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;padding:6px 11px;font-family:var(--font-mono);font-size:11px}
+.momentum-stats .stat .lbl{font-size:9px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase}
+.momentum-stats .stat .v{font-size:14px;font-weight:700;color:var(--fg-1)}
+.momentum-stats .stat .v.spy-up{color:var(--green)}
+.momentum-stats .stat .v.spy-down{color:var(--red)}
+.mom-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px;background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;overflow:hidden}
+.mom-table th{font-size:9px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase;padding:8px 9px;background:var(--bg-sunken);border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+.mom-table th.lt,.mom-table td.lt{text-align:left}
+.mom-table td{padding:8px 9px;text-align:right;border-bottom:1px solid var(--border);font-size:11px;white-space:nowrap}
+.mom-table tr:last-child td{border-bottom:none}
+.mom-table tr.pump-confirmed{background:rgba(56,255,168,.06)}
+.mom-table tr.pump-confirmed:hover{background:rgba(56,255,168,.1)}
+.mom-table tr:hover{background:rgba(255,255,255,.02)}
+.mom-table .rank{color:var(--amber);font-weight:700}
+.mom-table .tkr{font-weight:700;color:var(--fg-1)}
+.mom-table .score{font-weight:700}
+.mom-table .score.elite{color:var(--red)}
+.mom-table .score.high{color:var(--amber)}
+.mom-table .score.med{color:var(--cyan)}
+.mom-table .perf.pos{color:var(--green)}
+.mom-table .perf.neg{color:var(--red)}
+.mom-table .perf.huge{color:var(--green);font-weight:700}
+.mom-table .rs.pos{color:var(--green)}
+.mom-table .rs.huge{color:var(--green);font-weight:700}
+.mom-table .wk52{color:var(--cyan)}
+.mom-table .vol-surge{color:var(--violet)}
+.mom-table .tags{font-size:9px;color:var(--fg-3);max-width:240px;white-space:normal;text-align:left;line-height:1.5}
+.mom-table .tag-pill{display:inline-block;background:var(--bg-sunken);color:var(--fg-2);padding:1px 5px;border-radius:2px;margin-right:3px;font-size:8.5px;letter-spacing:.4px}
+.mom-table .tag-pill.PUMP_CONFIRMED{background:rgba(56,255,168,.20);color:var(--green);font-weight:700}
+.mom-table .tag-pill.AT_52W_HIGH{background:rgba(0,212,255,.18);color:var(--cyan)}
+.mom-table .tag-pill.RS_LEADER{background:rgba(255,177,61,.14);color:var(--amber)}
+.mom-table .tag-pill.BREAKOUT_VOLUME{background:rgba(167,139,250,.18);color:var(--violet);font-weight:700}
+.mom-table .tag-pill.ACCELERATING{background:rgba(255,92,122,.14);color:var(--red)}
+.mom-table .tag-pill.MOMENTUM_LEADER{background:rgba(56,255,168,.14);color:var(--green)}
+.mom-table .pc-star{color:var(--green);font-weight:700;font-size:13px}
+
+.pump-confirmed-callout{margin-top:14px;padding:14px;background:linear-gradient(135deg,rgba(56,255,168,.10),rgba(56,255,168,.04));border:1px solid var(--green-dim);border-radius:6px}
+.pump-confirmed-callout .ph-title{font-family:var(--font-mono);font-size:11px;letter-spacing:1.4px;color:var(--green);text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.pump-confirmed-callout .pc-row{display:flex;gap:14px;align-items:center;padding:6px 0;font-family:var(--font-mono);font-size:11.5px;border-bottom:1px solid var(--border)}
+.pump-confirmed-callout .pc-row:last-child{border-bottom:none}
+.pump-confirmed-callout .pc-row .pc-tkr{color:var(--green);font-weight:700;cursor:pointer;font-size:14px;min-width:60px}
+.pump-confirmed-callout .pc-row .pc-meta{color:var(--fg-2);font-size:11px;flex:1}
+
+/* ─── Aggressive Basket Panel ─── */
+.aggressive-panel{background:linear-gradient(135deg,rgba(255,92,122,.06),rgba(255,177,61,.04),rgba(167,139,250,.02));border:1px solid var(--red-dim);border-radius:10px;padding:18px 22px;margin-bottom:24px}
+.aggressive-panel .panel-hdr h3{color:var(--red)}
+.aggressive-panel .pump-mode-pill{display:inline-block;background:var(--red);color:#fff;font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;padding:3px 10px;border-radius:3px;font-weight:700;margin-left:8px;animation:pulse-ultra 2.4s ease-in-out infinite}
+.basket-toggle{display:flex;gap:8px;margin-bottom:14px;font-family:var(--font-mono);font-size:10.5px}
+.basket-toggle .tab{padding:7px 14px;background:var(--bg-raised);border:1px solid var(--border);color:var(--fg-3);border-radius:4px;cursor:pointer;letter-spacing:.6px}
+.basket-toggle .tab.active{background:var(--red);color:#fff;border-color:var(--red)}
+.basket-toggle .tab:not(.active):hover{color:var(--fg-1);border-color:var(--red-dim)}
+.agg-position{background:var(--bg-raised);border-radius:6px;padding:11px 14px;margin-bottom:8px;border-left:3px solid var(--red)}
+.agg-position.pc{border-left-color:var(--green);background:linear-gradient(90deg,rgba(56,255,168,.04),var(--bg-raised) 30%)}
+.agg-position .head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.agg-position .head .tkr{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--fg-1);cursor:pointer}
+.agg-position .head .tkr:hover{color:var(--cyan)}
+.agg-position .head .size{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--red);min-width:60px;text-align:right}
+.agg-position .head .size.huge{color:var(--red);font-size:20px}
+.agg-position .head .pc-marker{background:rgba(56,255,168,.16);color:var(--green);font-family:var(--font-mono);font-size:9.5px;letter-spacing:1px;padding:2px 7px;border-radius:3px;font-weight:700}
+.agg-position .scores{display:flex;gap:12px;font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);margin-bottom:6px;flex-wrap:wrap}
+.agg-position .scores .s-item b{color:var(--fg-1);margin:0 3px}
+.agg-position .scores .combined{color:var(--amber);font-weight:700}
+.agg-position .tags-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.agg-position .levels{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-2);background:var(--bg-sunken);padding:6px 10px;border-radius:3px;margin-top:4px}
+.agg-position .levels .lvl-lbl{color:var(--fg-3);margin-right:3px}
+.agg-position .levels .entry{color:var(--cyan);font-weight:600}
+.agg-position .levels .stop{color:var(--red);font-weight:600}
+.agg-position .levels .tp{color:var(--green)}
+.agg-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:14px;font-family:var(--font-mono);font-size:11px}
+.agg-meta .cell{background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;padding:8px 11px}
+.agg-meta .cell .lbl{font-size:9px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase}
+.agg-meta .cell .v{font-size:15px;font-weight:700;color:var(--fg-1);margin-top:2px}
+.agg-meta .cell .v.danger{color:var(--red)}
+.agg-meta .cell .v.warning{color:var(--amber)}
+.agg-philosophy{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);font-style:italic;padding:8px 12px;background:var(--bg-sunken);border-radius:4px;margin-bottom:12px;border-left:2px solid var(--red);line-height:1.5}
+
 /* ─── Hedge-fund v2 panels: mechanics, correlations, pairs, NLP ─── */
 .hf-panel{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:24px}
 .hf-panel.violet{background:linear-gradient(135deg,rgba(167,139,250,.04),rgba(0,212,255,.02),transparent)}
@@ -448,10 +528,28 @@ a:hover{color:var(--violet)}
   <!-- Portfolio Basket Panel -->
   <div class="basket-panel" id="basket-panel">
     <div class="panel-hdr">
-      <h3>🎒 Portfolio Basket</h3>
-      <div class="sub">sector-neutralized sizing · max 5%/name · max 30%/sector</div>
+      <h3>🎒 Portfolio Basket (Conservative)</h3>
+      <div class="sub">sector-neutralized · max 5%/name · max 30%/sector · vol-targeted sizing</div>
     </div>
     <div id="basket-content"><div class="edge-empty">loading positioning…</div></div>
+  </div>
+
+  <!-- Aggressive (Pump-Hunter) Basket -->
+  <div class="aggressive-panel" id="agg-panel">
+    <div class="panel-hdr">
+      <h3>🔥 Aggressive Pump-Hunter Basket <span class="pump-mode-pill">PUMP MODE</span></h3>
+      <div class="sub">concentrated · 5-7 names · up to 15%/name · sized by combined pump × momentum</div>
+    </div>
+    <div id="agg-content"><div class="edge-empty">loading aggressive basket…</div></div>
+  </div>
+
+  <!-- Momentum Leaders -->
+  <div class="momentum-panel" id="mom-panel">
+    <div class="panel-hdr">
+      <h3>🚀 Momentum Leaders — The Actual Movers</h3>
+      <div class="sub">composite: 30 perf_20d_rank + 25 perf_60d_rank + 20 RS_SPY + 15 wk52_proximity + 10 vol_surge</div>
+    </div>
+    <div id="mom-content"><div class="edge-empty">loading momentum…</div></div>
   </div>
 
   <!-- Pump Mechanics Panel: Squeeze + Options Skew + IV Rank -->
@@ -596,6 +694,7 @@ const ANALYTICS_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/por
 const PAIRS_URL    = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pair-trades.json";
 const NLP_URL      = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump-earnings-nlp.json";
 const BRIEF_URL    = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump-radar-brief.json";
+const MOMENTUM_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/momentum-leaders.json";
 let DATA = null;
 let RESEARCH = null;
 let POSITIONING = null;
@@ -605,6 +704,7 @@ let ANALYTICS = null;
 let PAIRS = null;
 let NLP = null;
 let BRIEF = null;
+let MOMENTUM = null;
 let activeTier = "ALL";
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -620,7 +720,7 @@ function ageStr(iso){
 async function load(){
   try {
     // Fetch convergence-radar (primary) + all hedge-fund layers in parallel
-    const [radarR, posR, btR, mechR, anR, prR, nlpR, brR] = await Promise.all([
+    const [radarR, posR, btR, mechR, anR, prR, nlpR, brR, momR] = await Promise.all([
       fetch(S3_URL + "?t=" + Date.now()),
       fetch(POSITIONING_URL + "?t=" + Date.now()).catch(() => null),
       fetch(BACKTEST_URL + "?t=" + Date.now()).catch(() => null),
@@ -629,6 +729,7 @@ async function load(){
       fetch(PAIRS_URL + "?t=" + Date.now()).catch(() => null),
       fetch(NLP_URL + "?t=" + Date.now()).catch(() => null),
       fetch(BRIEF_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(MOMENTUM_URL + "?t=" + Date.now()).catch(() => null),
     ]);
     if (!radarR.ok) throw new Error("HTTP " + radarR.status);
     DATA = await radarR.json();
@@ -639,10 +740,13 @@ async function load(){
     if (prR && prR.ok)    { try { PAIRS       = await prR.json(); } catch(_) {} }
     if (nlpR && nlpR.ok)  { try { NLP         = await nlpR.json(); } catch(_) {} }
     if (brR && brR.ok)    { try { BRIEF       = await brR.json(); } catch(_) {} }
+    if (momR && momR.ok)  { try { MOMENTUM    = await momR.json(); } catch(_) {} }
     render();
     renderBriefHero();
     renderEdgePanel();
     renderBasketPanel();
+    renderAggressivePanel();
+    renderMomentumPanel();
     renderMechanicsPanel();
     renderCorrelationPanel();
     renderFactorPanel();
@@ -652,6 +756,172 @@ async function load(){
     document.getElementById('leaderboard-tbody').innerHTML =
       '<tr><td colspan="7"><div class="error">Failed to load: ' + esc(e.message) + '</div></td></tr>';
   }
+}
+
+// ─── Aggressive Pump-Hunter Basket ──────────────────────────────────
+function renderAggressivePanel(){
+  const el = document.getElementById('agg-content');
+  if (!POSITIONING || POSITIONING.status === "error" || !POSITIONING.aggressive_basket) {
+    el.innerHTML = '<div class="edge-empty">⏳ Aggressive basket loading — runs hourly at :10 UTC.</div>';
+    return;
+  }
+  const agg = POSITIONING.aggressive_basket;
+  const positions = agg.positions || [];
+  if (!positions.length) {
+    el.innerHTML = '<div class="edge-empty">No eligible pump candidates in current scan.</div>';
+    return;
+  }
+
+  let html = '';
+
+  // Meta cells row
+  html += '<div class="agg-meta">';
+  html += '<div class="cell"><div class="lbl">Positions</div><div class="v">' + agg.n_positions + '</div></div>';
+  html += '<div class="cell"><div class="lbl">Total Deployed</div><div class="v ' + (agg.total_exposure >= 80 ? 'danger' : agg.total_exposure >= 50 ? 'warning' : '') + '">' + (agg.total_exposure || 0).toFixed(0) + '%</div></div>';
+  html += '<div class="cell"><div class="lbl">Cash Buffer</div><div class="v">' + (agg.cash_pct || 0).toFixed(0) + '%</div></div>';
+  html += '<div class="cell"><div class="lbl">Max Drawdown @ stops</div><div class="v warning">' + (agg.max_risk_at_stops_pct || 0).toFixed(1) + '%</div></div>';
+  const nPC = positions.filter(p => p.pump_confirmed).length;
+  html += '<div class="cell"><div class="lbl">Pump Confirmed</div><div class="v" style="color:var(--green)">' + nPC + ' of ' + agg.n_positions + '</div></div>';
+  html += '</div>';
+
+  // Philosophy
+  if (agg.philosophy) {
+    html += '<div class="agg-philosophy">⚡ ' + esc(agg.philosophy) + '</div>';
+  }
+
+  // Sector breakdown
+  if (agg.sector_breakdown) {
+    html += '<div class="sector-tags" style="margin-bottom:12px">';
+    Object.entries(agg.sector_breakdown)
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([s, pct]) => {
+        const cls = pct > 40 ? 'style="background:rgba(255,92,122,.10);color:var(--red);border-color:var(--red-dim)"' : '';
+        html += '<span class="tag" ' + cls + '><b>' + esc(s) + '</b>' + pct.toFixed(1) + '%</span>';
+      });
+    html += '</div>';
+  }
+
+  // Positions
+  positions.forEach(p => {
+    const isPC = p.pump_confirmed;
+    html += '<div class="agg-position ' + (isPC ? 'pc' : '') + '">';
+    html += '<div class="head">';
+    html += '<span class="tkr ticker clickable" data-ticker="' + esc(p.ticker) + '">' + esc(p.ticker) + '</span>';
+    if (isPC) html += '<span class="pc-marker">PUMP_CONFIRMED</span>';
+    html += '<span class="size ' + (p.position_pct >= 12 ? 'huge' : '') + '">' + (p.position_pct || 0).toFixed(1) + '%</span>';
+    html += '</div>';
+    html += '<div class="scores">';
+    html += '<span class="s-item">pump:<b>' + (p.pump_score || 0).toFixed(1) + '</b></span>';
+    if (p.momentum_score != null) html += '<span class="s-item">momentum:<b>' + p.momentum_score.toFixed(1) + '</b></span>';
+    if (p.combined_score != null) html += '<span class="s-item combined">combined: ' + p.combined_score.toFixed(1) + '</span>';
+    html += '<span class="s-item">sector:<b>' + esc((p.sector || '').slice(0, 16)) + '</b></span>';
+    html += '</div>';
+    if (p.mom_tags && p.mom_tags.length) {
+      html += '<div class="tags-row">';
+      p.mom_tags.forEach(t => html += '<span class="tag-pill ' + esc(t) + '">' + esc(t) + '</span>');
+      html += '</div>';
+    }
+    html += '<div class="levels">';
+    html += '<span class="lvl-lbl">entry</span><span class="entry">$' + (p.entry || '?') + '</span>  ';
+    html += '<span class="lvl-lbl">stop</span><span class="stop">$' + (p.stop || '?') + '</span>  ';
+    html += '<span class="lvl-lbl">TPs</span><span class="tp">$' + (p.tp1 || '?') + ' / $' + (p.tp2 || '?') + ' / $' + (p.tp3 || '?') + '</span>  ';
+    if (p.rr_ratio) html += '<span class="lvl-lbl">R:R</span> ' + esc(p.rr_ratio);
+    html += '</div>';
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+  wireTickerClicks();
+}
+
+// ─── Momentum Leaders ───────────────────────────────────────────────
+function renderMomentumPanel(){
+  const el = document.getElementById('mom-content');
+  if (!MOMENTUM || MOMENTUM.status === "error" || !MOMENTUM.leaders) {
+    el.innerHTML = '<div class="edge-empty">⏳ Momentum-leaders Lambda loading — runs hourly at :25 UTC.</div>';
+    return;
+  }
+  const leaders = MOMENTUM.leaders || [];
+  if (!leaders.length) {
+    el.innerHTML = '<div class="edge-empty">No leaders above cutoff in current scan.</div>';
+    return;
+  }
+
+  let html = '';
+
+  // Stats
+  const meta = MOMENTUM.metadata || {};
+  html += '<div class="momentum-stats">';
+  html += '<div class="stat"><div class="lbl">Universe scored</div><div class="v">' + (MOMENTUM.n_scored || 0) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Leaders ≥ 50</div><div class="v">' + (MOMENTUM.n_leaders || 0) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Pump Confirmed</div><div class="v" style="color:var(--green)">' + (MOMENTUM.n_pump_confirmed || 0) + '</div></div>';
+  if (meta.spy_perf_20d != null) {
+    html += '<div class="stat"><div class="lbl">SPY 20d</div><div class="v ' + (meta.spy_perf_20d > 0 ? 'spy-up' : 'spy-down') + '">' + (meta.spy_perf_20d > 0 ? '+' : '') + meta.spy_perf_20d.toFixed(2) + '%</div></div>';
+  }
+  html += '</div>';
+
+  // PUMP_CONFIRMED callout (highlighted)
+  if (MOMENTUM.pump_confirmed && MOMENTUM.pump_confirmed.length) {
+    html += '<div class="pump-confirmed-callout">';
+    html += '<div class="ph-title">🎯 PUMP CONFIRMED — momentum ≥ 70 AND in convergence pump_candidates</div>';
+    MOMENTUM.pump_confirmed.forEach(pc => {
+      const tags = (pc.tags || []).filter(t => t !== 'PUMP_CONFIRMED').slice(0, 4);
+      html += '<div class="pc-row">';
+      html += '<span class="pc-tkr ticker clickable" data-ticker="' + esc(pc.ticker) + '">' + esc(pc.ticker) + '</span>';
+      html += '<span class="pc-meta">momentum <b style="color:var(--amber)">' + (pc.momentum_score || 0).toFixed(1) + '</b> · pump_likelihood <b style="color:var(--cyan)">' + (pc.pump_likelihood || 0).toFixed(1) + '</b> · <b>' + (pc.n_engines || '?') + ' engines</b> · ' + tags.join(' · ') + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Top leaders table
+  html += '<div style="margin-top:14px;overflow-x:auto"><table class="mom-table"><thead><tr>' +
+            '<th>#</th>' +
+            '<th class="lt">Ticker</th>' +
+            '<th>Score</th>' +
+            '<th>5d %</th>' +
+            '<th>20d %</th>' +
+            '<th>60d %</th>' +
+            '<th>RS SPY</th>' +
+            '<th>52w %</th>' +
+            '<th>Vol×</th>' +
+            '<th class="lt">Tags</th>' +
+            '</tr></thead><tbody>';
+  leaders.forEach(l => {
+    const pc = l.pump_confirmed;
+    const scoreClass = l.momentum_score >= 85 ? 'elite' : l.momentum_score >= 70 ? 'high' : 'med';
+    const p20 = l.perf_20d_pct;
+    const p60 = l.perf_60d_pct;
+    const rs = l.rs_spy_20d_pct;
+    html += '<tr class="' + (pc ? 'pump-confirmed' : '') + '">';
+    html += '<td class="rank">' + l.rank + '</td>';
+    html += '<td class="lt"><span class="tkr ticker clickable" data-ticker="' + esc(l.ticker) + '">' + esc(l.ticker) + '</span>' + (pc ? ' <span class="pc-star">★</span>' : '') + '</td>';
+    html += '<td class="score ' + scoreClass + '">' + (l.momentum_score || 0).toFixed(1) + '</td>';
+    html += '<td class="perf ' + (l.perf_5d_pct >= 20 ? 'huge' : l.perf_5d_pct > 0 ? 'pos' : 'neg') + '">' + (l.perf_5d_pct != null ? (l.perf_5d_pct > 0 ? '+' : '') + l.perf_5d_pct.toFixed(1) : '—') + '</td>';
+    html += '<td class="perf ' + (p20 >= 30 ? 'huge' : p20 > 0 ? 'pos' : 'neg') + '">' + (p20 != null ? (p20 > 0 ? '+' : '') + p20.toFixed(1) : '—') + '</td>';
+    html += '<td class="perf ' + (p60 >= 80 ? 'huge' : p60 > 0 ? 'pos' : 'neg') + '">' + (p60 != null ? (p60 > 0 ? '+' : '') + p60.toFixed(1) : '—') + '</td>';
+    html += '<td class="rs ' + (rs >= 30 ? 'huge' : rs > 0 ? 'pos' : '') + '">' + (rs != null ? (rs > 0 ? '+' : '') + rs.toFixed(1) : '—') + '</td>';
+    html += '<td class="wk52">' + (l.wk52_proximity != null ? (l.wk52_proximity * 100).toFixed(1) + '%' : '—') + '</td>';
+    html += '<td class="vol-surge">' + (l.volume_surge != null ? l.volume_surge.toFixed(2) + '×' : '—') + '</td>';
+    html += '<td class="tags">';
+    (l.tags || []).slice(0, 5).forEach(t => html += '<span class="tag-pill ' + esc(t) + '">' + esc(t) + '</span>');
+    html += '</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+
+  // Methodology footer
+  if (meta.tag_definitions) {
+    html += '<div style="margin-top:10px;font-family:var(--font-mono);font-size:9.5px;color:var(--fg-3);line-height:1.7">';
+    html += '<b style="color:var(--fg-2)">Tag legend:</b> ';
+    Object.entries(meta.tag_definitions).forEach(([t, defn]) => {
+      html += '<span style="margin-right:14px"><span style="color:var(--fg-1)">' + t + '</span>: ' + esc(defn) + '</span>';
+    });
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+  wireTickerClicks();
 }
 
 // ─── Master Morning Brief Hero ──────────────────────────────────────
@@ -1503,6 +1773,31 @@ function renderResearch(r){
       html += '<div class="sub-lbl" style="margin-top:14px">Warnings</div><ul>';
       pos.warnings.forEach(w => html += '<li>' + esc(w) + '</li>');
       html += '</ul>';
+    }
+    html += '</div>';
+  }
+
+  // ─── MOMENTUM DRAWER (for THIS ticker) ───
+  const mom = MOMENTUM && (MOMENTUM.all_scored || MOMENTUM.leaders || []).find(m => m.ticker === r.ticker);
+  if (mom) {
+    const pc = mom.pump_confirmed;
+    html += '<div class="r-sec frame"><div class="sec-hdr"><h4>🚀 Momentum Profile' + (pc ? ' <span style="background:rgba(56,255,168,.18);color:var(--green);font-size:10px;padding:2px 8px;border-radius:3px;letter-spacing:1px;margin-left:8px">PUMP_CONFIRMED</span>' : '') + '</h4></div>';
+    html += '<div class="r-meta">';
+    html += '<div class="cell"><div class="lbl">Momentum Score</div><div class="v" style="color:' + (mom.momentum_score >= 80 ? 'var(--red)' : mom.momentum_score >= 60 ? 'var(--amber)' : 'var(--cyan)') + '">' + (mom.momentum_score || 0).toFixed(1) + '/100</div></div>';
+    html += '<div class="cell"><div class="lbl">Rank in universe</div><div class="v">#' + (mom.rank || '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">5d / 20d / 60d perf</div><div class="v" style="font-size:12px">' +
+            (mom.perf_5d_pct != null ? (mom.perf_5d_pct > 0 ? '+' : '') + mom.perf_5d_pct.toFixed(1) + '% / ' : '?/') +
+            (mom.perf_20d_pct != null ? (mom.perf_20d_pct > 0 ? '+' : '') + mom.perf_20d_pct.toFixed(1) + '% / ' : '?/') +
+            (mom.perf_60d_pct != null ? (mom.perf_60d_pct > 0 ? '+' : '') + mom.perf_60d_pct.toFixed(1) + '%' : '?') +
+            '</div></div>';
+    html += '<div class="cell"><div class="lbl">RS vs SPY (20d)</div><div class="v" style="color:' + ((mom.rs_spy_20d_pct || 0) > 0 ? 'var(--green)' : 'var(--red)') + '">' + (mom.rs_spy_20d_pct != null ? (mom.rs_spy_20d_pct > 0 ? '+' : '') + mom.rs_spy_20d_pct.toFixed(1) + '%' : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">52w Proximity</div><div class="v">' + (mom.wk52_proximity != null ? (mom.wk52_proximity * 100).toFixed(1) + '%' : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Volume Surge</div><div class="v">' + (mom.volume_surge != null ? mom.volume_surge.toFixed(2) + '×' : '?') + '</div></div>';
+    html += '</div>';
+    if (mom.tags && mom.tags.length) {
+      html += '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px">';
+      mom.tags.forEach(t => html += '<span class="tag-pill ' + esc(t) + '" style="font-size:10px;padding:3px 8px">' + esc(t) + '</span>');
+      html += '</div>';
     }
     html += '</div>';
   }
