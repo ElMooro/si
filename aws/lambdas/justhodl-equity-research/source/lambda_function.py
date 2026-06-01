@@ -1,5 +1,5 @@
 """
-justhodl-equity-research
+justhodl-equity-research (v1.0.1)
 ════════════════════════
 Institutional-grade equity research desk. Given a ticker, produces a
 full research paper with the same coverage a hedge fund analyst would

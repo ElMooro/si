@@ -14,14 +14,8 @@
     "keys": ["ANTHROPIC_API_KEY"]
   },
   "function_url": {
+    "enabled": true,
     "auth_type": "NONE",
-    "cors": {
-      "AllowCredentials": false,
-      "AllowHeaders": ["*"],
-      "AllowMethods": ["GET", "POST", "OPTIONS"],
-      "AllowOrigins": ["*"],
-      "ExposeHeaders": ["*"],
-      "MaxAge": 86400
-    }
+    "cors_origins": ["*"]
   }
 }
