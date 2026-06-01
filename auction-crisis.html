@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Treasury Auction Crisis Detector · JustHodl.AI</title>
-<meta name="description" content="Live US Treasury auction crisis detector · 6 historical-pattern signals from 2008/2020/2024 PDFs · hourly refresh">
+<title>Treasury Auction Crisis Detector · AI Edition · JustHodl.AI</title>
+<meta name="description" content="AI-augmented US Treasury auction crisis detector · 6 historical-pattern signals + tenor decomposition + forward calendar + historical analog matching + tail risk probabilities + Claude-powered narrative">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
-  --bg-glow:rgba(0,212,255,0.04);
+  --bg-glow:rgba(0,212,255,0.04); --bg-ai:rgba(167,139,250,0.05);
   --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
   --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
   --green:#38ffa8; --green-dim:#1b8a5c;
   --amber:#ffb13d; --amber-dim:#8a5e10;
   --red:#ff5c7a; --red-dim:#8a2c44;
   --cyan:#00d4ff; --cyan-dim:#0a6080;
-  --violet:#a78bfa;
+  --violet:#a78bfa; --violet-dim:#5b3fa0;
   --font-mono:'IBM Plex Mono',ui-monospace,monospace;
   --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
 }
@@ -26,7 +26,9 @@
 html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
 body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
 a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
+code{font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:rgba(0,212,255,0.06);padding:1px 6px;border-radius:3px}
 
+/* ─── Topbar ─── */
 .topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
 .brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
 .brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
@@ -37,126 +39,273 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
 .nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
 .nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
 
-.container{max-width:1400px;margin:0 auto;padding:24px}
+.container{max-width:1500px;margin:0 auto;padding:24px}
 .page-hdr{margin-bottom:28px}
-.page-hdr h1{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
-.page-hdr p{color:var(--fg-3);font-size:13px;max-width:920px}
+.page-hdr h1{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:6px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.page-hdr h1 .ai-tag{font-size:11px;font-weight:600;letter-spacing:2px;background:linear-gradient(90deg,var(--violet),var(--cyan));color:var(--bg-base);padding:4px 10px;border-radius:3px}
+.page-hdr p{color:var(--fg-3);font-size:13px;max-width:1080px}
+.page-hdr .meta-row{display:flex;gap:16px;margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);flex-wrap:wrap}
 
-.regime-banner{background:linear-gradient(135deg,var(--bg-raised),var(--bg-elevated));border:1px solid var(--border-strong);border-radius:8px;padding:22px 26px;margin-bottom:24px;display:grid;grid-template-columns:auto 1fr auto;gap:32px;align-items:center}
+.error-banner{display:none;background:rgba(255,92,122,.08);border:1px solid var(--red-dim);color:var(--red);padding:10px 14px;border-radius:6px;margin-bottom:20px;font-family:var(--font-mono);font-size:12px}
+
+/* ─── Hero: regime + composite + AI executive summary ─── */
+.hero-grid{display:grid;grid-template-columns:380px 1fr;gap:20px;margin-bottom:20px}
+@media (max-width:900px){.hero-grid{grid-template-columns:1fr}}
+
+.regime-banner{background:linear-gradient(135deg,var(--bg-raised),var(--bg-elevated));border:1px solid var(--border-strong);border-radius:8px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px}
 .regime-banner.ACUTE_STRESS{border-color:var(--red);box-shadow:0 0 30px rgba(255,92,122,.18)}
 .regime-banner.ELEVATED{border-color:var(--amber);box-shadow:0 0 30px rgba(255,177,61,.16)}
 .regime-banner.WATCH{border-color:var(--cyan-dim)}
 .regime-banner.CALM{border-color:var(--green-dim)}
 
-.score-circle{width:120px;height:120px;border-radius:50%;background:var(--bg-sunken);border:3px solid var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-mono)}
-.score-circle.ACUTE_STRESS{border-color:var(--red);box-shadow:inset 0 0 20px rgba(255,92,122,.12)}
-.score-circle.ELEVATED{border-color:var(--amber);box-shadow:inset 0 0 20px rgba(255,177,61,.12)}
-.score-circle.WATCH{border-color:var(--amber-dim)}
-.score-circle .big{font-size:34px;font-weight:700;line-height:1}
-.score-circle .sub{font-size:10px;color:var(--fg-3);margin-top:4px;letter-spacing:1px}
+.score-circle{width:160px;height:160px;border-radius:50%;background:var(--bg-sunken);border:4px solid var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-mono);position:relative}
+.score-circle.ACUTE_STRESS{border-color:var(--red);box-shadow:inset 0 0 30px rgba(255,92,122,.15)}
+.score-circle.ELEVATED{border-color:var(--amber);box-shadow:inset 0 0 30px rgba(255,177,61,.15)}
+.score-circle.WATCH{border-color:var(--amber-dim);box-shadow:inset 0 0 30px rgba(255,177,61,.10)}
+.score-circle .big{font-size:48px;font-weight:700;line-height:1}
+.score-circle .sub{font-size:10px;color:var(--fg-3);margin-top:6px;letter-spacing:1.5px;font-weight:500}
 
-.regime-banner h2{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--fg-3);font-weight:500;margin-bottom:8px}
-.signal-text{font-family:var(--font-mono);font-size:24px;font-weight:700;letter-spacing:1.5px;color:var(--green)}
-.signal-text.ACUTE_STRESS{color:var(--red)}
-.signal-text.ELEVATED{color:var(--amber)}
-.signal-text.WATCH{color:var(--amber)}
-.regime-banner .desc{margin-top:6px;color:var(--fg-2);font-size:13px;line-height:1.55}
+.regime-meta{display:flex;flex-direction:column;align-items:center;gap:4px}
+.regime-meta h2{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--fg-3);font-weight:500}
+.regime-meta .signal-text{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:1.5px;color:var(--green)}
+.regime-meta.ACUTE_STRESS .signal-text{color:var(--red)}
+.regime-meta.ELEVATED .signal-text{color:var(--amber)}
+.regime-meta.WATCH .signal-text{color:var(--amber)}
+.regime-meta .desc{font-size:11.5px;color:var(--fg-2);margin-top:6px;line-height:1.5;max-width:280px}
 
-.consensus{text-align:right}
-.consensus .big{font-family:var(--font-mono);font-size:32px;font-weight:700;line-height:1}
-.consensus .sub{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);margin-top:4px}
+.regime-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:6px}
+.regime-stats .stat{background:var(--bg-sunken);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center}
+.regime-stats .stat .v{font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--fg-1)}
+.regime-stats .stat .l{font-size:9.5px;color:var(--fg-3);margin-top:2px;letter-spacing:.5px;text-transform:uppercase}
 
-.section-hdr{display:flex;align-items:baseline;justify-content:space-between;margin:32px 0 14px;flex-wrap:wrap;gap:8px}
-.section-hdr h3{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:2px;color:var(--fg-2);text-transform:uppercase}
-.section-hdr .sub{font-size:11px;color:var(--fg-3);font-family:var(--font-mono)}
+/* ─── AI Executive Summary card ─── */
+.ai-card{background:linear-gradient(135deg,rgba(167,139,250,0.04),var(--bg-raised));border:1px solid var(--violet-dim);border-radius:8px;padding:22px 26px;position:relative;overflow:hidden}
+.ai-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--violet),var(--cyan))}
+.ai-card .ai-label{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.ai-card .ai-label .dot{width:6px;height:6px;border-radius:50%;background:var(--violet);box-shadow:0 0 8px var(--violet);animation:pulse 2s ease-in-out infinite}
+.ai-card .ai-label .lbl{font-family:var(--font-mono);font-size:10.5px;letter-spacing:2px;color:var(--violet);font-weight:600;text-transform:uppercase}
+.ai-card .ai-label .stale{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-left:auto}
+.ai-card .ai-title{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:.5px;color:var(--fg-1);margin-bottom:10px;text-transform:uppercase}
+.ai-card .ai-body{font-size:13.5px;line-height:1.6;color:var(--fg-1)}
+.ai-card .ai-body strong{color:var(--cyan)}
+.ai-card .ai-meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-top:14px;display:flex;gap:14px;flex-wrap:wrap}
 
-/* indicator panels */
-.indicator-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
-.indicator-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px}
-.indicator-card.fired{border-color:var(--red);background:linear-gradient(135deg,var(--bg-raised),rgba(255,92,122,.05))}
-.indicator-card.warning{border-color:var(--amber-dim)}
-.indicator-card .name{font-family:var(--font-mono);font-size:11px;color:var(--fg-2);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
-.indicator-card .pill{display:inline-block;font-family:var(--font-mono);font-size:9px;padding:3px 8px;border-radius:10px;background:var(--bg-elevated);color:var(--fg-3);border:1px solid var(--border);font-weight:600;text-transform:uppercase;margin-left:6px}
-.indicator-card .pill.fired{color:var(--red);border-color:var(--red);background:rgba(255,92,122,.1)}
-.indicator-card .pill.warning{color:var(--amber);border-color:var(--amber-dim)}
-.indicator-card .pill.calm{color:var(--green);border-color:var(--green-dim)}
-.indicator-card .desc{color:var(--fg-3);font-size:11.5px;line-height:1.55;margin-top:10px}
-.indicator-card .stats{font-family:var(--font-mono);font-size:11px;color:var(--fg-2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-.indicator-card .stats .label{color:var(--fg-3);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+/* ─── AI Decisive Call strip ─── */
+.decisive-call{background:linear-gradient(90deg,rgba(0,212,255,.06),rgba(167,139,250,.03),transparent);border:1px solid var(--cyan-dim);border-radius:8px;padding:18px 24px;margin-bottom:20px;display:flex;align-items:center;gap:20px}
+.decisive-call.ACUTE_STRESS{border-color:var(--red);background:linear-gradient(90deg,rgba(255,92,122,.06),rgba(255,177,61,.03),transparent)}
+.decisive-call.ELEVATED{border-color:var(--amber)}
+.decisive-call .label{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--cyan);font-weight:700;text-transform:uppercase;flex-shrink:0}
+.decisive-call .text{font-size:14px;line-height:1.5;color:var(--fg-1)}
 
-/* recent auctions table */
-.auctions-table{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;overflow-x:auto}
-.auctions-table table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px;min-width:900px}
-.auctions-table th{padding:10px 8px;background:var(--bg-elevated);color:var(--fg-3);font-weight:500;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;text-align:left;border-bottom:1px solid var(--border)}
-.auctions-table td{padding:9px 8px;border-bottom:1px solid var(--border)}
+/* ─── Section header ─── */
+.section-hdr{margin:32px 0 12px;display:flex;align-items:baseline;gap:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.section-hdr h3{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:1.5px;color:var(--fg-1);text-transform:uppercase}
+.section-hdr .sub{font-size:11.5px;color:var(--fg-3)}
+.section-hdr .badge{margin-left:auto;font-family:var(--font-mono);font-size:9.5px;letter-spacing:1.5px;padding:3px 8px;border-radius:3px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--fg-3);text-transform:uppercase}
+.section-hdr .badge.ai{background:rgba(167,139,250,.1);border-color:var(--violet-dim);color:var(--violet)}
+
+/* ─── AI What Changed card ─── */
+.what-changed-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:20px;line-height:1.6;font-size:13px;color:var(--fg-2)}
+.what-changed-card strong{color:var(--cyan)}
+
+/* ─── Tenor decomposition heatmap ─── */
+.tenor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.tenor-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px 16px;position:relative;transition:all .15s;cursor:default}
+.tenor-card:hover{border-color:var(--border-hover);background:var(--bg-elevated)}
+.tenor-card .name{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--fg-1);margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tenor-card .rank-pill{font-size:9px;padding:2px 6px;border-radius:3px;background:var(--bg-sunken);color:var(--fg-3);border:1px solid var(--border)}
+.tenor-card .score-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.tenor-card .score{font-family:var(--font-mono);font-size:26px;font-weight:700;line-height:1}
+.tenor-card .max{font-family:var(--font-mono);font-size:11px;color:var(--fg-3)}
+.tenor-card .meta{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);margin-bottom:8px}
+.tenor-card .meta b{color:var(--fg-2);font-weight:500}
+.tenor-card .risk{font-size:11px;color:var(--fg-2);line-height:1.4;font-style:italic;border-top:1px dashed var(--border);padding-top:8px;margin-top:6px}
+.tenor-card.stress-0{border-left:3px solid var(--green-dim)}
+.tenor-card.stress-0 .score{color:var(--green)}
+.tenor-card.stress-1{border-left:3px solid var(--amber-dim)}
+.tenor-card.stress-1 .score{color:var(--amber)}
+.tenor-card.stress-2{border-left:3px solid var(--red-dim)}
+.tenor-card.stress-2 .score{color:var(--red)}
+.tenor-card.stress-no-data{border-left:3px solid var(--fg-4);opacity:.6}
+.tenor-card.stress-no-data .score{color:var(--fg-3);font-size:16px}
+
+/* ─── Cross-signals strip ─── */
+.cross-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:20px}
+.cross-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.cross-card .nm{font-family:var(--font-mono);font-size:10.5px;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.cross-card .val{font-family:var(--font-mono);font-size:20px;font-weight:600;color:var(--fg-1);margin-bottom:4px}
+.cross-card .regime-pill{display:inline-block;font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;padding:2px 7px;border-radius:3px;font-weight:600}
+.regime-pill.CALM,.regime-pill.NORMAL,.regime-pill.STABLE,.regime-pill.ANCHORED{background:rgba(56,255,168,.1);color:var(--green);border:1px solid var(--green-dim)}
+.regime-pill.WATCH,.regime-pill.WEAKENING,.regime-pill.FLAT{background:rgba(255,177,61,.1);color:var(--amber);border:1px solid var(--amber-dim)}
+.regime-pill.ELEVATED,.regime-pill.UNANCHORED,.regime-pill.STRENGTHENING,.regime-pill.INVERTED{background:rgba(255,92,122,.1);color:var(--red);border:1px solid var(--red-dim)}
+.regime-pill.ACUTE,.regime-pill.ACUTE_STRESS{background:var(--red);color:var(--bg-base);border:1px solid var(--red)}
+.cross-card .interp{font-size:11px;color:var(--fg-3);margin-top:8px;line-height:1.4}
+
+/* ─── 30-day composite chart ─── */
+.chart-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:18px 20px;margin-bottom:20px}
+.chart-card svg{width:100%;height:260px}
+.chart-card .legend{display:flex;gap:18px;font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);flex-wrap:wrap;margin-top:10px}
+.chart-card .legend .item{display:flex;align-items:center;gap:6px}
+.chart-card .legend .item .sw{width:10px;height:10px;border-radius:2px}
+
+/* ─── Historical analog card ─── */
+.analog-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px 22px;margin-bottom:20px}
+.analog-top-match{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--border)}
+.analog-top-match .similarity-circle{width:90px;height:90px;border-radius:50%;background:var(--bg-sunken);border:3px solid var(--violet);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-mono)}
+.analog-top-match .similarity-circle .big{font-size:24px;font-weight:700;color:var(--violet);line-height:1}
+.analog-top-match .similarity-circle .sub{font-size:8.5px;color:var(--fg-3);margin-top:3px;letter-spacing:1px}
+.analog-top-match .info .anchor-date{font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--fg-1);letter-spacing:.5px}
+.analog-top-match .info .anchor-regime{display:inline-block;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--red);background:rgba(255,92,122,.1);border:1px solid var(--red-dim);padding:2px 8px;border-radius:3px;margin-left:10px}
+.analog-top-match .info .anchor-context{font-size:12px;color:var(--fg-2);margin-top:8px;line-height:1.5}
+.analog-top-match .info .anchor-next{font-size:12.5px;color:var(--fg-1);margin-top:10px;line-height:1.5;padding:10px 12px;background:rgba(167,139,250,.06);border-left:2px solid var(--violet);border-radius:0 4px 4px 0}
+.analog-top-match .info .anchor-next strong{color:var(--violet)}
+
+.analog-other-matches{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:14px}
+.analog-other-matches .om{background:var(--bg-sunken);border:1px solid var(--border);border-radius:4px;padding:10px 12px}
+.analog-other-matches .om .d{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--fg-1)}
+.analog-other-matches .om .r{font-family:var(--font-mono);font-size:9.5px;color:var(--fg-3);letter-spacing:1px;margin-top:2px}
+.analog-other-matches .om .s{font-family:var(--font-mono);font-size:14px;color:var(--violet);font-weight:600;margin-top:4px}
+.analog-other-matches .om .nxt{font-size:11px;color:var(--fg-2);margin-top:4px;line-height:1.4}
+
+.analog-ai-discussion{margin-top:6px;font-size:13px;line-height:1.6;color:var(--fg-1);padding:14px 16px;background:rgba(167,139,250,.04);border-left:3px solid var(--violet);border-radius:0 6px 6px 0}
+.analog-ai-discussion .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--violet);font-weight:600;margin-bottom:6px;text-transform:uppercase}
+
+/* ─── Forward calendar table ─── */
+.forward-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg-raised);border-radius:6px;overflow:hidden;border:1px solid var(--border);margin-bottom:20px}
+.forward-table th{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:10px 12px;text-align:left;background:var(--bg-sunken);border-bottom:1px solid var(--border)}
+.forward-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:11.5px;color:var(--fg-1)}
+.forward-table tbody tr:hover{background:var(--bg-elevated)}
+.forward-table tbody tr:last-child td{border-bottom:none}
+.forward-table .date-cell{color:var(--cyan);font-weight:500}
+.forward-table .term-cell{font-size:11px;color:var(--fg-2)}
+.forward-table .size-cell{text-align:right;color:var(--fg-2)}
+.forward-table .score-cell{font-weight:700}
+.forward-table .score-cell.CALM{color:var(--green)}
+.forward-table .score-cell.WATCH{color:var(--amber)}
+.forward-table .score-cell.ELEVATED{color:var(--amber)}
+.forward-table .score-cell.ACUTE{color:var(--red)}
+.forward-table .conf-cell{font-size:10px;color:var(--fg-3)}
+.forward-table .conf-cell.HIGH{color:var(--green)}
+.forward-table .conf-cell.MEDIUM{color:var(--amber)}
+.forward-table .conf-cell.LOW{color:var(--fg-3)}
+
+/* ─── AI Forward Predictions cards ─── */
+.forward-pred-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;margin-bottom:24px}
+.forward-pred-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px 18px;border-left:3px solid var(--violet-dim)}
+.forward-pred-card.CALM{border-left-color:var(--green-dim)}
+.forward-pred-card.WATCH{border-left-color:var(--amber-dim)}
+.forward-pred-card.ELEVATED{border-left-color:var(--amber)}
+.forward-pred-card.ACUTE{border-left-color:var(--red)}
+.forward-pred-card .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.forward-pred-card .head .when{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--fg-1)}
+.forward-pred-card .head .when .term{color:var(--fg-3);font-weight:400;margin-left:6px}
+.forward-pred-card .head .score-tag{font-family:var(--font-mono);font-size:14px;font-weight:700;padding:3px 9px;border-radius:3px;background:var(--bg-sunken)}
+.forward-pred-card .head .score-tag.CALM{color:var(--green)}
+.forward-pred-card .head .score-tag.WATCH{color:var(--amber)}
+.forward-pred-card .head .score-tag.ELEVATED{color:var(--amber)}
+.forward-pred-card .head .score-tag.ACUTE{color:var(--red)}
+.forward-pred-card .outcome{font-size:12.5px;color:var(--fg-2);line-height:1.5;margin-bottom:10px}
+.forward-pred-card .watch{font-size:11.5px;color:var(--fg-2);line-height:1.5;padding:8px 10px;background:rgba(255,177,61,.04);border-left:2px solid var(--amber-dim);border-radius:0 3px 3px 0}
+.forward-pred-card .watch strong{color:var(--amber)}
+
+/* ─── Tail risk bars ─── */
+.tail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px}
+.tail-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px 18px}
+.tail-card .nm{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;color:var(--fg-2);text-transform:uppercase;margin-bottom:10px;font-weight:500}
+.tail-card .bar-wrap{height:10px;background:var(--bg-sunken);border-radius:5px;overflow:hidden;margin-bottom:8px;position:relative}
+.tail-card .bar{height:100%;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));border-radius:5px;transition:width .5s ease}
+.tail-card .pct{font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--fg-1);line-height:1}
+.tail-card .pct .unit{font-size:14px;color:var(--fg-3);font-weight:400}
+.tail-card .interp{font-size:11.5px;color:var(--fg-3);margin-top:8px;line-height:1.4}
+.tail-card .drivers{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-top:6px;display:flex;flex-wrap:wrap;gap:8px}
+.tail-card .drivers span{padding:2px 6px;background:var(--bg-sunken);border-radius:3px;border:1px solid var(--border)}
+
+.tail-ai-card{background:rgba(167,139,250,0.04);border:1px solid var(--violet-dim);border-left:3px solid var(--violet);border-radius:6px;padding:16px 20px;margin-bottom:20px;font-size:13px;line-height:1.6;color:var(--fg-1)}
+.tail-ai-card .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--violet);font-weight:600;margin-bottom:8px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.tail-ai-card .lbl .dot{width:5px;height:5px;border-radius:50%;background:var(--violet);box-shadow:0 0 6px var(--violet)}
+.tail-ai-card strong{color:var(--cyan)}
+
+/* ─── Triggers ─── */
+.trigger-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;margin-bottom:16px}
+.trigger-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.trigger-card.monitoring{border-left:3px solid var(--green-dim)}
+.trigger-card.tactical{border-left:3px solid var(--amber)}
+.trigger-card.strategic{border-left:3px solid var(--red)}
+.trigger-card .name{font-family:var(--font-mono);font-size:11.5px;font-weight:600;color:var(--fg-1);margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.trigger-card .urgency-pill{font-size:8.5px;letter-spacing:1.5px;padding:2px 6px;border-radius:3px;font-weight:600;text-transform:uppercase}
+.trigger-card .urgency-pill.monitoring{background:rgba(56,255,168,.1);color:var(--green);border:1px solid var(--green-dim)}
+.trigger-card .urgency-pill.tactical{background:rgba(255,177,61,.1);color:var(--amber);border:1px solid var(--amber-dim)}
+.trigger-card .urgency-pill.strategic{background:rgba(255,92,122,.1);color:var(--red);border:1px solid var(--red-dim)}
+.trigger-card .condition{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);margin-bottom:8px}
+.trigger-card .vals{display:flex;gap:12px;font-family:var(--font-mono);font-size:11px;color:var(--fg-2);margin-bottom:8px;flex-wrap:wrap}
+.trigger-card .vals span b{color:var(--fg-1)}
+.trigger-card .vals .dist{color:var(--cyan);font-weight:600}
+.trigger-card .action{font-size:11.5px;color:var(--fg-2);line-height:1.5}
+.trigger-card .action strong{color:var(--fg-1)}
+
+.triggers-ai-card{background:var(--bg-raised);border:1px solid var(--violet-dim);border-left:3px solid var(--violet);border-radius:6px;padding:16px 20px;margin-bottom:24px;font-size:13px;line-height:1.7;color:var(--fg-1)}
+.triggers-ai-card .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--violet);font-weight:600;margin-bottom:10px;text-transform:uppercase}
+.triggers-ai-card strong{color:var(--cyan)}
+
+/* ─── 6 indicators (existing) ─── */
+.indicator-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:16px}
+.indicator-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px 16px;position:relative}
+.indicator-card.fired{border-color:var(--amber);background:linear-gradient(135deg,rgba(255,177,61,.04),var(--bg-raised))}
+.indicator-card.fired-acute{border-color:var(--red);background:linear-gradient(135deg,rgba(255,92,122,.06),var(--bg-raised))}
+.indicator-card .name{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--fg-1);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.indicator-card .pill{font-size:9.5px;padding:2px 7px;border-radius:3px;font-weight:600;letter-spacing:1px}
+.indicator-card .pill.fired{background:rgba(255,177,61,.15);color:var(--amber);border:1px solid var(--amber-dim)}
+.indicator-card .pill.calm{background:rgba(56,255,168,.1);color:var(--green);border:1px solid var(--green-dim)}
+.indicator-card .pill.acute{background:rgba(255,92,122,.15);color:var(--red);border:1px solid var(--red-dim)}
+.indicator-card .stats{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);margin-bottom:6px}
+.indicator-card .stats .label{color:var(--fg-3)}
+.indicator-card .stats > div:last-child{color:var(--fg-1);font-weight:600}
+.indicator-card .desc{font-size:11.5px;color:var(--fg-2);line-height:1.45;margin-top:8px}
+.indicator-card .desc em{color:var(--fg-4);font-style:italic}
+.indicator-card .ai-take{font-size:11px;color:var(--fg-2);line-height:1.5;margin-top:10px;padding:8px 10px;background:rgba(167,139,250,.04);border-left:2px solid var(--violet);border-radius:0 3px 3px 0}
+.indicator-card .ai-take .lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;color:var(--violet);font-weight:600;text-transform:uppercase;margin-bottom:4px}
+.indicator-card .ai-take strong{color:var(--cyan)}
+
+/* ─── Recent auctions table ─── */
+.auctions-table{overflow-x:auto;margin-bottom:20px}
+.auctions-table table{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--bg-raised);border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.auctions-table th{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:10px 8px;text-align:left;background:var(--bg-sunken);border-bottom:1px solid var(--border)}
+.auctions-table th.num{text-align:right}
+.auctions-table td{padding:9px 8px;border-bottom:1px solid var(--border);font-family:var(--font-mono);color:var(--fg-1)}
+.auctions-table td.num{text-align:right}
 .auctions-table tr:last-child td{border-bottom:none}
-.auctions-table .score-cell{font-weight:700}
-.auctions-table .score-cell.crisis{color:var(--red)}
-.auctions-table .score-cell.elevated{color:var(--amber)}
-.auctions-table .score-cell.calm{color:var(--green)}
-.auctions-table tr.fired{background:rgba(255,92,122,.05)}
-.auctions-table tr.warning{background:rgba(255,177,61,.04)}
+.auctions-table tr:hover{background:var(--bg-elevated)}
+.auctions-table .stress-0{color:var(--green)}
+.auctions-table .stress-1{color:var(--amber)}
+.auctions-table .stress-2{color:var(--red);font-weight:600}
 
-/* historical reference */
-.hist-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.hist-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px;font-family:var(--font-mono);font-size:11px}
-.hist-card .date{font-weight:700;color:var(--fg-1);font-size:12px;margin-bottom:4px}
-.hist-card .regime{font-size:9px;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
-.hist-card .regime.GFC_PEAK{color:var(--red)}
-.hist-card .regime.COVID_CRASH{color:var(--red)}
-.hist-card .regime.COVID_BAZOOKA{color:var(--amber)}
-.hist-card .regime.COMPLACENCY{color:var(--violet)}
-.hist-card .regime.NORMAL{color:var(--green)}
-.hist-card .stat{display:flex;justify-content:space-between;font-size:10px;margin-top:3px;color:var(--fg-2)}
-.hist-card .stat .k{color:var(--fg-3)}
+/* ─── Historical reference (existing 9 anchors) ─── */
+.hist-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.hist-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:12px 14px;font-size:11px}
+.hist-card .date{font-family:var(--font-mono);font-size:12.5px;font-weight:600;color:var(--fg-1);margin-bottom:4px}
+.hist-card .regime{display:inline-block;font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;padding:2px 7px;border-radius:3px;margin-bottom:8px;font-weight:600}
+.hist-card .regime.GFC_PEAK{background:rgba(255,92,122,.15);color:var(--red);border:1px solid var(--red-dim)}
+.hist-card .regime.COVID_CRASH{background:rgba(255,92,122,.12);color:var(--red);border:1px solid var(--red-dim)}
+.hist-card .regime.COVID_BAZOOKA{background:rgba(255,177,61,.12);color:var(--amber);border:1px solid var(--amber-dim)}
+.hist-card .regime.COMPLACENCY{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.hist-card .regime.NORMAL{background:rgba(56,255,168,.1);color:var(--green);border:1px solid var(--green-dim)}
+.hist-card .metrics{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-2);line-height:1.5}
+.hist-card .metrics b{color:var(--fg-1);font-weight:500}
 
-/* call banner */
-.call-banner{background:linear-gradient(135deg,var(--bg-raised),var(--bg-elevated));border:2px solid var(--green);border-radius:8px;padding:24px 28px;margin-top:20px}
-.call-banner.ACUTE_STRESS{border-color:var(--red);background:linear-gradient(135deg,var(--bg-raised),rgba(255,92,122,.05))}
-.call-banner.ELEVATED{border-color:var(--amber)}
-.call-banner.WATCH{border-color:var(--amber-dim)}
-.call-banner h2{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--fg-3);font-weight:500;margin-bottom:10px;text-transform:uppercase}
-.call-banner .verdict{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:.5px;margin-bottom:12px;color:var(--green)}
-.call-banner.ACUTE_STRESS .verdict{color:var(--red)}
-.call-banner.ELEVATED .verdict, .call-banner.WATCH .verdict{color:var(--amber)}
-.call-banner .body{color:var(--fg-2);font-size:13px;line-height:1.6}
+/* ─── Methodology ─── */
+.methodology-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px;color:var(--fg-2);font-size:12.5px;line-height:1.7}
+.methodology-card p{margin-bottom:12px}
+.methodology-card p:last-child{margin-bottom:0}
+.methodology-card strong{color:var(--fg-1)}
+.methodology-card .footer-note{margin-top:16px;color:var(--fg-3);font-size:11px;font-family:var(--font-mono)}
 
-.error-banner{background:rgba(255,92,122,.08);border:1px solid var(--red);color:var(--fg-1);padding:14px 18px;border-radius:6px;font-family:var(--font-mono);font-size:12px;margin-bottom:20px;display:none}
+/* ─── Loading skeleton ─── */
+.skeleton{background:linear-gradient(90deg,var(--bg-raised) 0%,var(--bg-elevated) 50%,var(--bg-raised) 100%);background-size:200% 100%;animation:skeleton-shimmer 1.4s linear infinite;border-radius:4px}
+@keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--fg-3);text-align:center}
-footer a{margin:0 10px}
-
-
-/* ─── MOBILE RESPONSIVE — auto-injected 2026-05-06 ─── */
-@media (max-width: 900px){
-  .kpis{grid-template-columns: repeat(2, 1fr) !important; gap: 12px}
-  .grid{grid-template-columns: repeat(6, 1fr)}
-  .col-4,.col-5{grid-column: span 6 !important}
-  .col-6,.col-7,.col-8{grid-column: span 12 !important}
-  .strip{grid-template-columns: repeat(2, 1fr)}
-  .tools{grid-template-columns: repeat(2, 1fr)}
-  .card-grid{grid-template-columns: repeat(2, 1fr)}
-  .tabs{overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch}
-  .nav-tabs{overflow-x: auto; -webkit-overflow-scrolling: touch}
-  h1{font-size: 22px !important; line-height: 1.25}
-  .lede,.hero p{font-size: 13px !important}
-  main{padding: 14px !important}
-  header.hero{padding: 14px 18px !important}
-  table{font-size: 11.5px}
-  .meta{flex-wrap: wrap; gap: 8px}
-}
-@media (max-width: 600px){
-  .kpis{grid-template-columns: 1fr !important}
-  .col-4,.col-5,.col-6{grid-column: span 12 !important}
-  .strip{grid-template-columns: 1fr}
-  .tools{grid-template-columns: 1fr}
-  .card-grid{grid-template-columns: 1fr}
-  h1{font-size: 19px !important}
-  table{font-size: 11px}
-  th,td{padding: 6px 8px !important}
-  .kpi h3{font-size: 10px !important}
-  .kpi .v{font-size: 22px !important}
-}
+footer{border-top:1px solid var(--border);margin-top:50px;padding:20px;text-align:center;color:var(--fg-3);font-family:var(--font-mono);font-size:11px;letter-spacing:.5px}
+footer a{color:var(--fg-2);margin:0 6px}
+footer a:hover{color:var(--cyan)}
 </style>
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
@@ -184,45 +333,194 @@ footer a{margin:0 10px}
 
 <main class="container">
   <div class="page-hdr">
-    <h1>TREASURY AUCTION CRISIS DETECTOR</h1>
-    <p>Live US Treasury auction stress detection. 6 quantified pattern signatures extracted from 9 historical auction PDFs covering 2008-09-17 (Lehman week), 2020-03-19/26 (COVID liquidity crisis + Fed bazooka), 2021-10-21 (crypto top complacency), and 2024 normal market. Hourly refresh from <code style="color:var(--cyan)">api.fiscaldata.treasury.gov</code>.</p>
-    <div style="display:flex;gap:16px;margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);flex-wrap:wrap">
-      <span>📊 last update: <span id="updated">—</span></span>
-      <span>🔄 hourly refresh</span>
-      <span>📜 data: <a href="https://fiscaldata.treasury.gov/datasets/auctions-query/auctions-query" target="_blank">Treasury fiscal data</a></span>
+    <h1>TREASURY AUCTION CRISIS DETECTOR <span class="ai-tag">AI EDITION</span></h1>
+    <p>Institutional-grade Treasury auction stress detection. 6 quantified pattern signatures from 9 historical auction PDFs (2008 GFC, 2020 COVID, 2021 complacency, 2024 normal) PLUS tenor decomposition · forward calendar with stress forecasts · cosine-similarity historical analog matching · 4 corroborating FRED signals · 30-day composite trajectory · 3 forward-looking tail risk probabilities · named regime triggers · Claude-powered narrative analysis + per-auction predictions.</p>
+    <div class="meta-row">
+      <span>📊 data refresh: hourly</span>
+      <span>🤖 ai layer: <code>claude-haiku-4-5</code></span>
+      <span>📅 last update: <span id="updated">—</span></span>
+      <span>🧠 ai update: <span id="ai-updated">—</span></span>
+      <span>📜 source: <a href="https://fiscaldata.treasury.gov/datasets/auctions-query/auctions-query" target="_blank">Treasury fiscal data</a> + <a href="https://www.treasurydirect.gov" target="_blank">TreasuryDirect</a> + FRED</span>
     </div>
   </div>
 
   <div id="errorBanner" class="error-banner"></div>
 
-  <!-- Composite regime banner -->
-  <div id="regime-banner" class="regime-banner CALM">
-    <div id="score-circle" class="score-circle CALM">
-      <div class="big" id="composite-score">—</div>
-      <div class="sub">SCORE / 100</div>
+  <!-- Hero: Regime banner + AI Executive Summary -->
+  <div class="hero-grid">
+    <div id="regime-banner" class="regime-banner CALM">
+      <div id="score-circle" class="score-circle CALM">
+        <div class="big" id="composite-score">—</div>
+        <div class="sub">SCORE / 100</div>
+      </div>
+      <div id="regime-meta" class="regime-meta CALM">
+        <h2>AUCTION CRISIS REGIME · 14-DAY ROLLING</h2>
+        <div class="signal-text" id="regime-text">LOADING…</div>
+        <div class="desc" id="regime-desc">Composite of 6 historical-pattern indicators weighted by recent auction size.</div>
+      </div>
+      <div class="regime-stats">
+        <div class="stat"><div class="v" id="n-recent">—</div><div class="l">Auctions 14d</div></div>
+        <div class="stat"><div class="v" id="fed-rate">—</div><div class="l">Fed Funds %</div></div>
+      </div>
     </div>
-    <div>
-      <h2>AUCTION CRISIS REGIME · 14-DAY ROLLING</h2>
-      <div class="signal-text" id="regime-text">LOADING…</div>
-      <div class="desc" id="regime-desc">Composite of 6 historical-pattern indicators weighted by recent auction size.</div>
-    </div>
-    <div class="consensus">
-      <div class="big" id="n-recent">—</div>
-      <div class="sub">AUCTIONS<br/>LAST 14d</div>
+
+    <div class="ai-card" id="ai-exec-card">
+      <div class="ai-label">
+        <div class="dot"></div>
+        <div class="lbl">AI Executive Summary</div>
+        <div class="stale" id="ai-stale">—</div>
+      </div>
+      <div class="ai-title" id="ai-exec-title">Loading institutional analysis…</div>
+      <div class="ai-body" id="ai-exec-body">
+        <div class="skeleton" style="height:14px;width:90%;margin-bottom:6px"></div>
+        <div class="skeleton" style="height:14px;width:80%;margin-bottom:6px"></div>
+        <div class="skeleton" style="height:14px;width:85%"></div>
+      </div>
+      <div class="ai-meta" id="ai-meta">
+        <span>model: claude-haiku-4-5</span>
+        <span>regime: <span id="ai-regime">—</span></span>
+      </div>
     </div>
   </div>
 
-  <!-- Indicator grid -->
+  <!-- AI Decisive Call -->
+  <div id="decisive-call" class="decisive-call CALM">
+    <div class="label">Decisive Call</div>
+    <div class="text" id="decisive-text">
+      <div class="skeleton" style="height:14px;width:70%"></div>
+    </div>
+  </div>
+
+  <!-- What Changed -->
   <div class="section-hdr">
-    <h3>SIX CRISIS INDICATORS</h3>
-    <div class="sub">how many recent auctions fired each pattern</div>
+    <h3>What Changed</h3>
+    <div class="sub">14-day delta narrative</div>
+    <div class="badge ai">AI Generated</div>
+  </div>
+  <div class="what-changed-card" id="what-changed">
+    <div class="skeleton" style="height:14px;width:95%;margin-bottom:6px"></div>
+    <div class="skeleton" style="height:14px;width:80%"></div>
+  </div>
+
+  <!-- Tenor decomposition -->
+  <div class="section-hdr">
+    <h3>Stress by Tenor</h3>
+    <div class="sub">Where in the curve is stress concentrating? · 14-day rolling</div>
+  </div>
+  <div id="tenor-grid" class="tenor-grid"></div>
+
+  <!-- Cross-signals strip -->
+  <div class="section-hdr">
+    <h3>Cross-Signals</h3>
+    <div class="sub">Corroborating context · FRED-sourced real-time</div>
+  </div>
+  <div id="cross-strip" class="cross-strip"></div>
+
+  <!-- 30-day composite trajectory chart -->
+  <div class="section-hdr">
+    <h3>30-Day Composite Trajectory</h3>
+    <div class="sub">Daily rolling 14-day composite · with regime changeover markers</div>
+  </div>
+  <div class="chart-card">
+    <svg id="composite-chart" viewBox="0 0 1000 260" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="legend">
+      <div class="item"><div class="sw" style="background:var(--cyan)"></div>Composite score</div>
+      <div class="item"><div class="sw" style="background:var(--green-dim)"></div>CALM (&lt;25)</div>
+      <div class="item"><div class="sw" style="background:var(--amber-dim)"></div>WATCH (25-50)</div>
+      <div class="item"><div class="sw" style="background:rgba(255,177,61,.6)"></div>ELEVATED (50-75)</div>
+      <div class="item"><div class="sw" style="background:var(--red)"></div>ACUTE (≥75)</div>
+      <div class="item"><div class="sw" style="background:var(--violet)"></div>Regime change</div>
+    </div>
+  </div>
+
+  <!-- Historical analog -->
+  <div class="section-hdr">
+    <h3>Historical Analog Match</h3>
+    <div class="sub">Cosine similarity of current 6D crisis vector vs 9 anchor crises</div>
+    <div class="badge ai">AI Discussion</div>
+  </div>
+  <div class="analog-card" id="analog-card">
+    <div class="analog-top-match" id="analog-top">
+      <div class="similarity-circle"><div class="big">—</div><div class="sub">SIMILARITY</div></div>
+      <div class="info">
+        <div class="skeleton" style="height:16px;width:50%;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:12px;width:90%;margin-bottom:6px"></div>
+        <div class="skeleton" style="height:12px;width:75%"></div>
+      </div>
+    </div>
+    <div class="analog-other-matches" id="analog-others"></div>
+    <div class="analog-ai-discussion" id="analog-ai">
+      <div class="lbl">AI Analog Discussion</div>
+      <div class="skeleton" style="height:14px;width:95%;margin-top:6px"></div>
+    </div>
+  </div>
+
+  <!-- Forward calendar -->
+  <div class="section-hdr">
+    <h3>Forward Auction Calendar · Next 30 Days</h3>
+    <div class="sub">Per-auction stress forecasts with components + confidence</div>
+  </div>
+  <table class="forward-table" id="forward-table">
+    <thead><tr>
+      <th>Date</th>
+      <th>Days</th>
+      <th>Tenor</th>
+      <th>Term</th>
+      <th class="size-cell">Offering ($B)</th>
+      <th>Forecast</th>
+      <th>Confidence</th>
+      <th>Driver</th>
+    </tr></thead>
+    <tbody id="forward-tbody"></tbody>
+  </table>
+
+  <!-- AI Forward Predictions -->
+  <div class="section-hdr">
+    <h3>AI Forward Predictions</h3>
+    <div class="sub">Top upcoming auctions · expected outcome + what to watch</div>
+    <div class="badge ai">AI Generated</div>
+  </div>
+  <div id="ai-forward-grid" class="forward-pred-grid"></div>
+
+  <!-- Tail risk -->
+  <div class="section-hdr">
+    <h3>Forward-Looking Tail Risk</h3>
+    <div class="sub">Heuristic probability estimates · drivers exposed</div>
+  </div>
+  <div class="tail-grid" id="tail-grid"></div>
+  <div class="tail-ai-card" id="tail-ai">
+    <div class="lbl"><div class="dot"></div>AI Tail Risk Assessment</div>
+    <div id="tail-ai-text">
+      <div class="skeleton" style="height:14px;width:95%;margin-bottom:6px"></div>
+      <div class="skeleton" style="height:14px;width:80%"></div>
+    </div>
+  </div>
+
+  <!-- Triggers to watch -->
+  <div class="section-hdr">
+    <h3>Triggers to Watch</h3>
+    <div class="sub">Named thresholds with current distance + recommended action</div>
+  </div>
+  <div id="trigger-grid" class="trigger-grid"></div>
+  <div class="triggers-ai-card" id="triggers-ai">
+    <div class="lbl">AI Actionable Triggers Narrative</div>
+    <div id="triggers-ai-text">
+      <div class="skeleton" style="height:14px;width:95%;margin-bottom:6px"></div>
+      <div class="skeleton" style="height:14px;width:80%"></div>
+    </div>
+  </div>
+
+  <!-- Six indicators (existing + AI interpretation) -->
+  <div class="section-hdr">
+    <h3>Six Crisis Indicators</h3>
+    <div class="sub">14-day fire counts · AI interpretation linked where firing</div>
   </div>
   <div id="indicator-grid" class="indicator-grid"></div>
 
   <!-- Recent auctions table -->
   <div class="section-hdr">
-    <h3>RECENT AUCTIONS · LAST 10</h3>
-    <div class="sub">click any row to see indicator breakdown</div>
+    <h3>Recent Auctions · Last 10</h3>
+    <div class="sub">Most recent settled auctions with per-auction composite</div>
   </div>
   <div class="auctions-table">
     <table id="auctions-tbl"></table>
@@ -230,36 +528,37 @@ footer a{margin:0 10px}
 
   <!-- Historical reference -->
   <div class="section-hdr">
-    <h3>HISTORICAL REFERENCE — WHAT CRISIS LOOKS LIKE</h3>
-    <div class="sub">the 9 auctions that calibrated the detector · use as anchors</div>
+    <h3>Historical Reference</h3>
+    <div class="sub">9 anchor auctions calibrating the detector</div>
   </div>
   <div id="hist-grid" class="hist-grid"></div>
 
-  <!-- Decisive call -->
-  <div id="call-banner" class="call-banner CALM">
-    <h2>DECISIVE CALL</h2>
-    <div class="verdict" id="call-verdict">LOADING…</div>
-    <div class="body" id="call-body"></div>
-  </div>
-
   <!-- Methodology -->
   <div class="section-hdr">
-    <h3>METHODOLOGY — HOW THE 6 PATTERNS WORK</h3>
+    <h3>Methodology</h3>
+    <div class="sub">How the v2 pipeline produces composite + 7 analytical layers + AI narrative</div>
   </div>
-  <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px;color:var(--fg-2);font-size:12.5px;line-height:1.7">
-    <p style="margin-bottom:10px"><strong style="color:var(--fg-1)">1. Zero-rate bill floor.</strong> Historical pattern: when policy rates are positive but bills auction with low rate ≤ 0.001%, money is parking at any cost. Saw this on <strong>Sep 17, 18, 23, 2008</strong> (all 0.000% lows in Lehman week) and <strong>Mar 19, 26, 2020</strong> (COVID liquidity crisis). Doesn't fire when Fed is at zero-bound by policy — only when investors voluntarily abandon yield. Fires score 100 when low_rate &lt; 0.001 with Fed funds &gt; 1%.</p>
-    <p style="margin-bottom:10px"><strong style="color:var(--fg-1)">2. Bid-to-cover extremes.</strong> 2020-Mar-26 hit BTC 4.74 on the 28-day bill — historic high — pure flight to safety after the Fed bazooka. Conversely, BTC &lt; 2.0 on coupons signals near-failed-auction. Z-scored against bill-vs-coupon-specific baselines computed from the 2024 normal-market sample.</p>
-    <p style="margin-bottom:10px"><strong style="color:var(--fg-1)">3. Allotted-at-high tail stress.</strong> 2024-10-09 had AAH = 99.31% on the 10-year — meaning 99% of accepted bids were at the highest yield = dealers got stuck with the tail. Correctly flagged the November 2024 vol setup. Score fires &gt; 90% on coupons OR very low (&lt; 20%) on bills during stress (panic clustering).</p>
-    <p style="margin-bottom:10px"><strong style="color:var(--fg-1)">4. Primary dealer absorption.</strong> When other bidders step back, dealers must absorb supply. 2008-09-18 had PD share = 69% on the 76-day bill — extreme. 2024 normal: PD share 14-24%. Score fires &gt; 35% on coupons, &gt; 50% = GFC-extreme.</p>
-    <p style="margin-bottom:10px"><strong style="color:var(--fg-1)">5. Indirect (foreign) collapse.</strong> Foreign central banks bid through the New York Fed (indirect). 2008-09-18 indirect share = 29% (collapse). 2024 normal: 60-78%. Score fires &lt; 50% on coupons during USD-stress periods. Diagnostic for foreign demand exodus.</p>
-    <p><strong style="color:var(--fg-1)">6. Bill issuance explosion.</strong> Trailing 4-week bill issuance vs. trailing 1-year average. 2020-Mar saw $60B bills issued in one auction — multiple times normal size. Fires &gt; +30% above 1Y baseline = Treasury liquidity injection or fiscal panic.</p>
-    <p style="margin-top:14px;color:var(--fg-3);font-size:11px;font-family:var(--font-mono)">Composite formula: 70% × max-indicator + 30% × avg-indicator, weighted by accepted size over trailing 14 days. Issuance-explosion adds up to 15 points overlay.</p>
+  <div class="methodology-card">
+    <p><strong>Data sources.</strong> Live: <code>api.fiscaldata.treasury.gov</code> (auction results), <code>treasurydirect.gov</code> (upcoming calendar), FRED (SOFR, IORB, DTWEXBGS, T10Y2Y, T5YIFR, DFF). Refresh: hourly via EventBridge.</p>
+    <p><strong>1. Zero-rate bill floor.</strong> Diagnostic only when policy rate &gt; 0. Bills auctioned at ≤ 0.001% with Fed funds &gt; 1% = panic money parking. Saw this Sep 17-23, 2008 and Mar 19-26, 2020.</p>
+    <p><strong>2. Bid-to-cover extremes.</strong> Z-scored vs 2024 baselines. High BTC on bills (≥+3σ) = flight-to-safety; low BTC on coupons (≤-2.5σ) = failed-auction warning.</p>
+    <p><strong>3. Allotted-at-high tail stress.</strong> AAH &gt; 95% on coupons = dealers absorbed the tail (Oct 9, 2024 had 99.31%); AAH &lt; 15% on bills during stress = panic clustering.</p>
+    <p><strong>4. Primary dealer absorption.</strong> PD share &gt; 35% on coupons = dealers stuck (Sep 18, 2008 hit 69% — extreme); &gt; 50% = GFC-tier.</p>
+    <p><strong>5. Indirect (foreign) collapse.</strong> Foreign CB bid via NY Fed. &lt; 50% on coupons = exodus pattern (Sep 18, 2008 hit 29%); 2024 baseline 60-78%.</p>
+    <p><strong>6. Bill issuance explosion.</strong> 4-week vs 1-year average. &gt; +30% = fiscal panic or liquidity injection. Overlay adds up to 15 pts to composite.</p>
+    <p><strong>Tenor decomposition.</strong> Per-bucket (bills_lt_90d, bills_gte_90d, coupons_lt_3y, coupons_gt_3y, tips, frn) composite + rank + dominant signal. Identifies WHERE stress concentrates.</p>
+    <p><strong>Forward calendar.</strong> Next 30 days pulled from TreasuryDirect. Per-auction forecast = 50% own-tenor stress + 25% cross-tenor contagion + 25% size shock, scaled by time-decay (1.0 ≤3d, 0.55 21-30d).</p>
+    <p><strong>Historical analog matching.</strong> Current crisis vector (6D: zero_rate, btc, tail, pd, indirect, issuance) cosine-similarity vs each of 9 anchor crises. Top match + "what happened next" provides forward implication.</p>
+    <p><strong>Tail risk probabilities.</strong> Heuristic models for P(failed auction in 30d), P(regime escalation in 14d), P(supply volatility in 30d). Driven by tenor stress + cross-signals + momentum.</p>
+    <p><strong>AI commentary layer.</strong> Separate Lambda (justhodl-auction-crisis-ai) reads the full v2 data snapshot and calls <code>claude-haiku-4-5-20251001</code> with a structured prompt. Produces narrative + per-upcoming-auction predictions + decisive call. 10-min cron offset from main data Lambda.</p>
+    <p class="footer-note">Composite formula: 70% × max-indicator + 30% × avg-indicator, weighted by accepted size over trailing 14 days. Issuance-explosion adds up to 15 points overlay.</p>
   </div>
 
   <footer>
     <a href="/bonds.html">Bonds</a> ·
     <a href="/crisis.html">Crisis</a> ·
     <a href="/correlation.html">Correlations</a> ·
+    <a href="/repo.html">Repo</a> ·
     <a href="https://fiscaldata.treasury.gov/datasets/auctions-query/auctions-query">Treasury data</a> ·
     <a href="/">JustHodl.AI</a>
     <div style="margin-top:6px">data refresh hourly · last fetch: <span id="footer-ts">—</span></div>
@@ -267,209 +566,12 @@ footer a{margin:0 10px}
 
 <div style="max-width:1500px; margin:18px auto; padding:0 18px;">
   <div id="tenor-signals-panel"></div>
-<div id="liquidity-credit-panel" style="margin-top:18px"></div>
-<div id="liquidity-pulse-panel" style="margin-bottom:18px"></div>
-
+  <div id="liquidity-credit-panel" style="margin-top:18px"></div>
+  <div id="liquidity-pulse-panel" style="margin-top:18px"></div>
 </div>
+
 </main>
 
-<script>
-const URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/auction-crisis.json?t=' + Date.now();
-let DATA = null;
-
-function fmtAge(iso){if(!iso)return'—';const m=(Date.now()-new Date(iso).getTime())/60000;if(m<60)return Math.round(m)+'m ago';const h=m/60;return h<24?h.toFixed(1)+'h ago':(h/24).toFixed(1)+'d ago';}
-function setError(msg){const eb=document.getElementById('errorBanner');eb.textContent='⚠️ '+msg;eb.style.display='block';}
-
-const INDICATOR_DEFS = {
-  zero_rate_floor: {
-    name: 'Zero-Rate Bill Floor',
-    short: 'Bills clearing at 0% while Fed has positive policy rate',
-    historical: '2008 Lehman week (0.000% lows), 2020 Mar 19/26 (COVID liquidity crisis)',
-  },
-  btc_extreme: {
-    name: 'Bid-to-Cover Extreme',
-    short: 'BTC > 3.5 on bills (panic flight) or < 2.0 on coupons (failed auction)',
-    historical: '2020-Mar-26 BTC=4.74 (record), 2008 BTCs 2.16-2.86 (Lehman week)',
-  },
-  tail_stress: {
-    name: 'Allotted-at-High Tail',
-    short: 'AAH > 90% on coupons = dealer absorption; < 20% on bills = panic clustering',
-    historical: '2024-10-09 AAH=99.31% predated Nov vol; 2008-09-23 AAH=6.92% (panic)',
-  },
-  pd_absorption: {
-    name: 'Primary Dealer Absorption',
-    short: 'PD share > 35% on coupons = dealers stuck with paper',
-    historical: '2008-09-18 PD share=69%, 2008-10-08 TIPS PD=52%',
-  },
-  indirect_collapse: {
-    name: 'Indirect (Foreign) Collapse',
-    short: 'Indirect share < 50% on coupons = foreign demand exodus',
-    historical: '2008-09-18 indirect=29.3% (record low) vs. 2024 normal 60-78%',
-  },
-  issuance_explosion: {
-    name: 'Bill Issuance Explosion',
-    short: '4-week bill issuance > +30% vs. 1Y baseline = Treasury liquidity inject',
-    historical: '2020 Mar saw $60B bill auctions vs. ~$30B normal',
-  },
-};
-
-function classifyScore(score){
-  if(score>=75)return'crisis';
-  if(score>=50)return'elevated';
-  if(score>=25)return'warning';
-  return'calm';
-}
-
-function renderRegime(){
-  const r = DATA.regime || 'CALM';
-  document.getElementById('regime-banner').className = 'regime-banner ' + r;
-  document.getElementById('score-circle').className = 'score-circle ' + r;
-  document.getElementById('composite-score').textContent =
-    DATA.composite_score != null ? Math.round(DATA.composite_score) : '—';
-  const txt = document.getElementById('regime-text');
-  txt.textContent = r;
-  txt.className = 'signal-text ' + r;
-  document.getElementById('regime-desc').textContent = DATA.interpretation || '—';
-  document.getElementById('n-recent').textContent = DATA.n_recent_auctions_14d ?? '—';
-}
-
-function renderIndicators(){
-  const agg = DATA.indicator_aggregate_14d || {};
-  const issuance = DATA.issuance_anomaly;
-  const grid = document.getElementById('indicator-grid');
-  let html = '';
-  for(const key of Object.keys(INDICATOR_DEFS)){
-    const def = INDICATOR_DEFS[key];
-    if(key === 'issuance_explosion'){
-      // special — comes from issuance_anomaly object not aggregate
-      const score = issuance?.score || 0;
-      const pct = issuance?.pct_above_baseline;
-      const cls = score >= 50 ? 'fired' : score >= 25 ? 'warning' : '';
-      const pillCls = score >= 50 ? 'fired' : score >= 25 ? 'warning' : 'calm';
-      const pillText = score >= 50 ? 'FIRED' : score >= 25 ? 'WARNING' : 'CALM';
-      html += `<div class="indicator-card ${cls}">
-        <div class="name">${def.name}<span class="pill ${pillCls}">${pillText}</span></div>
-        <div class="stats"><div class="label">4w vs 1Y baseline</div><div>${pct != null ? (pct>0?'+':'')+pct.toFixed(1)+'%' : '—'}</div></div>
-        <div class="desc">${def.short}<br/><em style="color:var(--fg-4)">${def.historical}</em></div>
-      </div>`;
-      continue;
-    }
-    const data = agg[key];
-    const fired = data ? data.n_fired : 0;
-    const maxScore = data ? data.max_score : 0;
-    const cls = fired >= 2 ? 'fired' : fired >= 1 ? 'warning' : '';
-    const pillCls = fired >= 2 ? 'fired' : fired >= 1 ? 'warning' : 'calm';
-    const pillText = fired >= 2 ? 'FIRED' : fired >= 1 ? 'WARNING' : 'CALM';
-    html += `<div class="indicator-card ${cls}">
-      <div class="name">${def.name}<span class="pill ${pillCls}">${pillText}</span></div>
-      <div class="stats">
-        <div class="label">14d auctions firing</div>
-        <div>${fired} ${fired ? `· max score ${Math.round(maxScore)}` : ''}</div>
-      </div>
-      <div class="desc">${def.short}<br/><em style="color:var(--fg-4)">${def.historical}</em></div>
-    </div>`;
-  }
-  grid.innerHTML = html;
-}
-
-function renderAuctions(){
-  const auctions = DATA.recent_auctions || [];
-  const tbl = document.getElementById('auctions-tbl');
-  let html = `<thead><tr>
-    <th>Date</th><th>Term</th><th>Type</th>
-    <th>BTC</th><th>Low Rate</th><th>High Rate</th><th>Tail (bp)</th>
-    <th>AAH%</th><th>PD%</th><th>Indirect%</th>
-    <th>Score</th>
-  </tr></thead><tbody>`;
-  auctions.forEach(a => {
-    const sc = a.composite_score || 0;
-    const cls = sc >= 75 ? 'fired' : sc >= 50 ? 'warning' : '';
-    const scCls = sc >= 75 ? 'crisis' : sc >= 50 ? 'elevated' : 'calm';
-    html += `<tr class="${cls}">
-      <td>${a.auction_date ? a.auction_date.slice(0, 10) : '—'}</td>
-      <td>${a.security_term || '—'}</td>
-      <td>${a.security_type || '—'}</td>
-      <td>${a.btc != null ? a.btc.toFixed(2) : '—'}</td>
-      <td>${a.low_rate != null ? a.low_rate.toFixed(3) + '%' : '—'}</td>
-      <td>${a.high_rate != null ? a.high_rate.toFixed(3) + '%' : '—'}</td>
-      <td>${a.tail_bp != null ? a.tail_bp.toFixed(1) : '—'}</td>
-      <td>${a.allocated_at_high_pct != null ? a.allocated_at_high_pct.toFixed(1) + '%' : '—'}</td>
-      <td>${a.primary_dealer_pct != null ? a.primary_dealer_pct.toFixed(1) + '%' : '—'}</td>
-      <td>${a.indirect_pct != null ? a.indirect_pct.toFixed(1) + '%' : '—'}</td>
-      <td class="score-cell ${scCls}">${Math.round(sc)}</td>
-    </tr>`;
-  });
-  html += '</tbody>';
-  tbl.innerHTML = html;
-}
-
-function renderHistorical(){
-  const ref = DATA.historical_reference || [];
-  const grid = document.getElementById('hist-grid');
-  let html = '';
-  ref.forEach(h => {
-    html += `<div class="hist-card">
-      <div class="date">${h.date}</div>
-      <div class="regime ${h.regime}">${h.regime.replace(/_/g,' ')}</div>
-      <div class="stat"><span class="k">BTC</span><span>${h.btc}</span></div>
-      <div class="stat"><span class="k">Low rate</span><span>${h.low_rate.toFixed(3)}%</span></div>
-      <div class="stat"><span class="k">AAH</span><span>${h.aah}%</span></div>
-      <div class="stat"><span class="k">PD share</span><span>${h.pd_share_pct}%</span></div>
-      <div class="stat"><span class="k">Indirect</span><span>${h.indirect_share_pct}%</span></div>
-    </div>`;
-  });
-  grid.innerHTML = html;
-}
-
-function renderCall(){
-  const r = DATA.regime || 'CALM';
-  const calls = {
-    ACUTE_STRESS: {
-      verdict: '🔴 EXIT ALL RISK ASSETS — TREASURY MARKET STRESS',
-      body: '<p>Auction stress signature matches GFC-Lehman-week or COVID-Mar-19 pattern. Multiple indicators firing simultaneously.</p><p>Position: <strong>Short-dated T-Bills 40-50%</strong>, <strong>Long Treasuries (TLT) 20-30%</strong>, <strong>Gold 10-15%</strong>, equity exposure max 10% in defensives. NO BTC, NO long-duration tech, NO HY credit.</p><p>This is the <em>"exit all risk assets immediately"</em> regime. Historically &gt;75% accuracy when this configuration appears with corroborating crisis-plumbing signals.</p>',
-    },
-    ELEVATED: {
-      verdict: '🟠 TRIM RISK TO 50% — AUCTION PRESSURE BUILDING',
-      body: '<p>One or two auction-stress indicators firing on recent auctions. Pre-crisis pattern; reduce risk now while you still can at favorable levels.</p><p>Position: cash 25-30%, TLT 15%, gold 10%, equities 30-40% (defensives weighted), HY credit only if mandate requires.</p><p>Watch the indicator panel — if a third indicator fires, regime escalates to ACUTE.</p>',
-    },
-    WATCH: {
-      verdict: '🟡 STAY LONG WITH HEDGES — ONE INDICATOR FLICKERING',
-      body: '<p>Single auction-stress indicator firing. Not yet a clear crisis pattern but the system is alerting. Tighten stops and prepare hedges.</p><p>Position: maintain core allocations but add 5-8% gold and 5-10% cash buffer for opportunity. Review the recent auctions table for which specific indicator is firing.</p>',
-    },
-    CALM: {
-      verdict: '🟢 STAY LONG — AUCTIONS CLEARING NORMALLY',
-      body: '<p>All 6 indicators reading calm. Auctions clearing with healthy demand profile. No flight-to-safety pattern in the Treasury market.</p><p>Position: standard diversified allocations. Auction stress doesn\'t add a tilt either way; defer to other regime signals (curve, credit, correlation breaks).</p><p>This is one of the most reliable contrarian signals — when auctions are clearing this calmly, the bond market sees no immediate crisis.</p>',
-    },
-  };
-  const c = calls[r] || calls.CALM;
-  document.getElementById('call-banner').className = 'call-banner ' + r;
-  document.getElementById('call-verdict').textContent = c.verdict;
-  document.getElementById('call-body').innerHTML = c.body;
-}
-
-async function loadData(){
-  try{
-    const res = await fetch(URL);
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    DATA = await res.json();
-    if(DATA.status === 'no_data'){
-      setError(DATA.message || 'No auction data');
-      return;
-    }
-    document.getElementById('updated').textContent = fmtAge(DATA.generated_at);
-    document.getElementById('footer-ts').textContent = DATA.generated_at || '—';
-    renderRegime();
-    renderIndicators();
-    renderAuctions();
-    renderHistorical();
-    renderCall();
-  } catch(e){
-    setError('Failed to load: ' + e.message);
-  }
-}
-
-loadData();
-setInterval(loadData, 5 * 60 * 1000);
-</script>
+<script src="/auction-crisis.js?t=20260601a" defer></script>
 </body>
 </html>
