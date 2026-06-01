@@ -134,13 +134,16 @@ def load_s3_json(key: str) -> Optional[dict]:
 # ═════════════════════════════════════════════════════════════════════
 
 def detect_temporal_earnings_clusters(catalysts: List[dict], basket_tickers: Set[str]) -> List[dict]:
-    """Names in the basket whose catalyst_date is within EARNINGS_WINDOW_DAYS of another."""
+    """Names with EARNINGS_BEAT catalyst within EARNINGS_WINDOW_DAYS of each other.
+
+    Cluster scope expanded to ALL classified catalysts (not just basket members)
+    so we surface CLUSTERS-TO-CONSIDER as well as basket-internal clusters. Each
+    cluster is tagged BASKET_LOCAL / MIXED / ADJACENT based on member composition.
+    """
     clusters = []
-    # Filter to basket members with dated catalysts of type EARNINGS_BEAT
+    # ALL dated EARNINGS_BEAT catalysts (basket and adjacent)
     dated = []
     for c in catalysts:
-        if c["ticker"] not in basket_tickers:
-            continue
         if c.get("catalyst_type") != "EARNINGS_BEAT":
             continue
         if not c.get("catalyst_date"):
@@ -154,7 +157,6 @@ def detect_temporal_earnings_clusters(catalysts: List[dict], basket_tickers: Set
     if len(dated) < MIN_MEMBERS_FOR_CLUSTER:
         return []
 
-    # Sort by date, then greedily group within window
     dated.sort(key=lambda x: x["_date"])
     used = set()
     for i, anchor in enumerate(dated):
@@ -170,13 +172,20 @@ def detect_temporal_earnings_clusters(catalysts: List[dict], basket_tickers: Set
             for m in members: used.add(m["ticker"])
             min_date = min(m["_date"] for m in members)
             max_date = max(m["_date"] for m in members)
+            in_basket = [m["ticker"] for m in members if m["ticker"] in basket_tickers]
+            adjacent  = [m["ticker"] for m in members if m["ticker"] not in basket_tickers]
+            scope = ("BASKET_LOCAL" if len(adjacent) == 0
+                      else ("ADJACENT" if len(in_basket) == 0 else "MIXED"))
             clusters.append({
                 "cluster_id":   f"earnings_{min_date.isoformat()}",
                 "cluster_type": "TEMPORAL_EARNINGS",
+                "scope":        scope,
                 "date_window":  f"{min_date.isoformat()} to {max_date.isoformat()}",
                 "start_date":   min_date.isoformat(),
                 "end_date":     max_date.isoformat(),
                 "members":      [m["ticker"] for m in members],
+                "in_basket":    in_basket,
+                "adjacent":     adjacent,
                 "member_records": [{k: v for k, v in m.items() if not k.startswith("_")} for m in members],
             })
     return clusters
@@ -184,23 +193,21 @@ def detect_temporal_earnings_clusters(catalysts: List[dict], basket_tickers: Set
 
 def detect_thematic_clusters(catalysts: List[dict], basket_tickers: Set[str],
                                 themes_doc: Optional[dict]) -> List[dict]:
-    """Group basket names sharing same catalyst_type + theme."""
+    """Group ALL classified catalysts sharing catalyst_type + theme.
+    Tag clusters as BASKET_LOCAL / MIXED / ADJACENT based on composition.
+    """
     if not themes_doc:
         return []
 
     ticker_to_theme = themes_doc.get("ticker_to_theme", {}) or {}
     theme_meta_map = themes_doc.get("themes", {}) or {}
 
-    # Bucket by (catalyst_type, theme)
     buckets: Dict[Tuple[str, str], List[dict]] = {}
     for c in catalysts:
-        if c["ticker"] not in basket_tickers:
-            continue
         ct = c.get("catalyst_type")
         theme = ticker_to_theme.get(c["ticker"])
         if not ct or not theme:
             continue
-        # Only certain types form thematic clusters (not earnings — those are temporal)
         if ct not in ("PRODUCT_LAUNCH", "MACRO_TAILWIND", "GUIDANCE_RAISE", "SYMPATHY_MOVE"):
             continue
         buckets.setdefault((ct, theme), []).append(c)
@@ -210,13 +217,20 @@ def detect_thematic_clusters(catalysts: List[dict], basket_tickers: Set[str],
         if len(members) < MIN_MEMBERS_FOR_CLUSTER:
             continue
         theme_label = (theme_meta_map.get(theme) or {}).get("label") or theme
+        in_basket = [m["ticker"] for m in members if m["ticker"] in basket_tickers]
+        adjacent  = [m["ticker"] for m in members if m["ticker"] not in basket_tickers]
+        scope = ("BASKET_LOCAL" if len(adjacent) == 0
+                  else ("ADJACENT" if len(in_basket) == 0 else "MIXED"))
         clusters.append({
             "cluster_id":     f"thematic_{theme}_{ct}",
             "cluster_type":   "THEMATIC_" + ct,
+            "scope":          scope,
             "theme":          theme,
             "theme_label":    theme_label,
             "shared_catalyst_type": ct,
             "members":        [m["ticker"] for m in members],
+            "in_basket":      in_basket,
+            "adjacent":       adjacent,
             "member_records": members,
         })
     return clusters
@@ -286,17 +300,41 @@ def grade_cluster(cluster: dict, momentum_map: Dict[str, float]) -> dict:
 
 def recommend_action(cluster: dict, current_sizes: Dict[str, float],
                        macro_regime: str) -> dict:
-    """Per-cluster action: BOOST, RE_RANK, TRIM, or HEDGE."""
+    """Per-cluster action: BOOST, RE_RANK, TRIM, HEDGE, or CONSIDER_ADD."""
     q_grade = cluster["quality_grade"]
     leader = cluster["leader"]
     members = cluster["members"]
     n_d_grade = cluster["n_d_grade"]
     cluster_type = cluster["cluster_type"]
+    scope = cluster.get("scope", "BASKET_LOCAL")
     macro_adverse = macro_regime in ("DEFENSIVE", "EXTREME", "RISK_OFF")
 
     leader_current = current_sizes.get(leader, 0)
 
-    # Default action mapping
+    # ADJACENT clusters — members aren't in the basket, suggest ADD
+    if scope == "ADJACENT":
+        if q_grade in ("A", "B"):
+            action = "CONSIDER_ADD"
+            rationale = (f"{cluster_type} {q_grade}-grade cluster outside the basket. "
+                          f"Leader {leader} would be a strong addition — consider opening a position. "
+                          f"Cluster will move together; missing the leader means missing the trade.")
+        else:
+            action = "MONITOR"
+            rationale = f"Adjacent cluster but quality grade {q_grade} — watch only, don't add."
+        return {
+            "action":             action,
+            "scope":              scope,
+            "leader":             leader,
+            "leader_current":     0,
+            "leader_new_size":    None,  # not in basket, no resize
+            "suggested_entry":    leader if action == "CONSIDER_ADD" else None,
+            "laggard_new_sizes":  {},
+            "rationale":          rationale,
+            "hedge_suggest":      None,
+            "macro_adverse":      macro_adverse,
+        }
+
+    # Default action mapping for BASKET_LOCAL and MIXED clusters
     action = "RE_RANK"
     leader_new_size = leader_current
     laggard_sizes: Dict[str, float] = {}
@@ -306,16 +344,16 @@ def recommend_action(cluster: dict, current_sizes: Dict[str, float],
     if cluster_type.startswith("MACRO_"):
         action = "HEDGE_OR_TRIM"
         hedge_suggest = "Consider trimming risk pre-event or buying protective puts on cluster proxy ETF"
-        # Cut sizes by 30%
         for t in members:
-            laggard_sizes[t] = round(current_sizes.get(t, 0) * 0.7, 2)
-        rationale_parts.append("Macro event cluster — pre-event vol risk; tape moves all together")
+            if t in current_sizes:
+                laggard_sizes[t] = round(current_sizes.get(t, 0) * 0.7, 2)
+        rationale_parts.append("Macro event cluster — pre-event vol risk; tape moves all together.")
 
     elif q_grade == "A":
         action = "BOOST"
         leader_new_size = min(25, round(leader_current * 1.6, 2))
         for t in members:
-            if t == leader: continue
+            if t == leader or t not in current_sizes: continue
             cur = current_sizes.get(t, 0)
             laggard_sizes[t] = round(cur * 0.7, 2)
         rationale_parts.append("Strong cluster — leader has A-grade catalyst, members coordinated.")
@@ -325,7 +363,7 @@ def recommend_action(cluster: dict, current_sizes: Dict[str, float],
         action = "RE_RANK"
         leader_new_size = min(20, round(leader_current * 1.3, 2))
         for t in members:
-            if t == leader: continue
+            if t == leader or t not in current_sizes: continue
             cur = current_sizes.get(t, 0)
             laggard_sizes[t] = round(cur * 0.5, 2)
         rationale_parts.append("Mixed cluster — leader is solid B+ but laggards are weaker.")
@@ -335,7 +373,7 @@ def recommend_action(cluster: dict, current_sizes: Dict[str, float],
         action = "RE_RANK"
         leader_new_size = leader_current  # hold
         for t in members:
-            if t == leader: continue
+            if t == leader or t not in current_sizes: continue
             laggard_sizes[t] = round(current_sizes.get(t, 0) * 0.5, 2)
         rationale_parts.append("Cautious cluster — laggards lack edge. Hold leader, cut laggards 50%.")
 
@@ -343,19 +381,19 @@ def recommend_action(cluster: dict, current_sizes: Dict[str, float],
         action = "TRIM"
         leader_new_size = round(leader_current * 0.5, 2)
         for t in members:
-            if t == leader: continue
+            if t == leader or t not in current_sizes: continue
             laggard_sizes[t] = 0  # exclude entirely
         rationale_parts.append("Bad cluster — predominantly D-grade catalysts.")
         rationale_parts.append("Hidden leverage with no edge. Trim leader 50%, drop laggards.")
 
     if macro_adverse:
-        rationale_parts.append(f"Macro regime {macro_regime} — consider reducing exposure across cluster.")
-        # Scale down further
+        rationale_parts.append(f"Macro regime {macro_regime} — additional 30% downscale.")
         leader_new_size = round(leader_new_size * 0.7, 2)
         laggard_sizes = {t: round(s * 0.7, 2) for t, s in laggard_sizes.items()}
 
     return {
         "action":             action,
+        "scope":              scope,
         "leader":             leader,
         "leader_current":     leader_current,
         "leader_new_size":    leader_new_size,
@@ -424,6 +462,7 @@ def lambda_handler(event, context):
     boost: List[str] = []
     trim: List[str] = []
     exclude: List[str] = []
+    suggested_additions: List[dict] = []   # NEW — names not in basket the system says to add
     hedges: List[dict] = []
 
     proposed_new_sizes: Dict[str, float] = dict(current_sizes)
@@ -431,7 +470,22 @@ def lambda_handler(event, context):
     for c in all_clusters:
         rec = c["recommendation"]
         leader = rec["leader"]
+
+        # Handle ADJACENT-scope clusters: suggest adding the leader
+        if rec.get("action") == "CONSIDER_ADD":
+            suggested_additions.append({
+                "ticker":       leader,
+                "cluster_id":   c["cluster_id"],
+                "quality_grade": c["quality_grade"],
+                "rationale":    rec["rationale"][:200],
+                "cluster_members": c["members"],
+            })
+            continue
+
+        # In-basket / mixed: actually resize
         leader_new = rec.get("leader_new_size", current_sizes.get(leader, 0))
+        if leader_new is None:
+            continue
         if leader_new > current_sizes.get(leader, 0):
             boost.append(leader)
             proposed_new_sizes[leader] = max(proposed_new_sizes.get(leader, 0), leader_new)
@@ -458,10 +512,11 @@ def lambda_handler(event, context):
         "n_thematic":      len(thematic_clusters),
         "clusters":        all_clusters,
         "basket_action_summary": {
-            "boost":   sorted(set(boost)),
-            "trim":    sorted(set(trim)),
-            "exclude": sorted(set(exclude)),
-            "hedges":  hedges,
+            "boost":              sorted(set(boost)),
+            "trim":               sorted(set(trim)),
+            "exclude":            sorted(set(exclude)),
+            "suggested_additions": suggested_additions,
+            "hedges":             hedges,
         },
         "current_sizes":      current_sizes,
         "proposed_new_sizes": proposed_new_sizes,
