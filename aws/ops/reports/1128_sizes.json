@@ -1,0 +1,129 @@
+{
+  "generated_at": "2026-06-01T22:12:39.433564+00:00",
+  "summary": {
+    "n_existing": 12,
+    "n_new_added": 5,
+    "total_old_kb": 162.5,
+    "total_new_kb": 137.5,
+    "ratio_pct": 84.6
+  },
+  "per_key": {
+    "signalBoard": {
+      "s3_key": "data/signal-board.json",
+      "size_bytes": 11930,
+      "size_kb": 11.7,
+      "cache_control": "public, max-age=1800",
+      "is_new": false
+    },
+    "intel": {
+      "s3_key": "intel/current.json",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found",
+      "is_new": false
+    },
+    "edge": {
+      "s3_key": "edge-data.json",
+      "size_bytes": 1930,
+      "size_kb": 1.9,
+      "cache_control": "no-cache",
+      "is_new": false
+    },
+    "liq": {
+      "s3_key": "liquidity-data.json",
+      "size_bytes": 10474,
+      "size_kb": 10.2,
+      "cache_control": "no-cache, max-age=0",
+      "is_new": false
+    },
+    "flow": {
+      "s3_key": "flow-data.json",
+      "size_bytes": 29286,
+      "size_kb": 28.6,
+      "cache_control": "no-cache",
+      "is_new": false
+    },
+    "crypto": {
+      "s3_key": "crypto-intel.json",
+      "size_bytes": 50521,
+      "size_kb": 49.3,
+      "cache_control": "max-age=60",
+      "is_new": false
+    },
+    "regime": {
+      "s3_key": "regime/current.json",
+      "size_bytes": 1438,
+      "size_kb": 1.4,
+      "cache_control": "public, max-age=900",
+      "is_new": false
+    },
+    "div": {
+      "s3_key": "divergence/current.json",
+      "size_bytes": 6275,
+      "size_kb": 6.1,
+      "cache_control": "public, max-age=900",
+      "is_new": false
+    },
+    "cot": {
+      "s3_key": "cot/extremes/current.json",
+      "size_bytes": 8339,
+      "size_kb": 8.1,
+      "cache_control": "public, max-age=900",
+      "is_new": false
+    },
+    "risk": {
+      "s3_key": "risk/recommendations.json",
+      "size_bytes": 15911,
+      "size_kb": 15.5,
+      "cache_control": "public, max-age=900",
+      "is_new": false
+    },
+    "setups": {
+      "s3_key": "opportunities/asymmetric-equity.json",
+      "size_bytes": 28829,
+      "size_kb": 28.2,
+      "cache_control": "public, max-age=900",
+      "is_new": false
+    },
+    "pnl": {
+      "s3_key": "portfolio/pnl-daily.json",
+      "size_bytes": 1516,
+      "size_kb": 1.5,
+      "cache_control": "public, max-age=300",
+      "is_new": false
+    },
+    "ppBrief": {
+      "s3_key": "data/pump-radar-brief.json",
+      "size_bytes": 10382,
+      "size_kb": 10.1,
+      "cache_control": "max-age=600",
+      "is_new": true
+    },
+    "ppPositioning": {
+      "s3_key": "data/pump-positioning.json",
+      "size_bytes": 85838,
+      "size_kb": 83.8,
+      "cache_control": "max-age=600",
+      "is_new": true
+    },
+    "ppCatalysts": {
+      "s3_key": "data/catalysts.json",
+      "size_bytes": 32243,
+      "size_kb": 31.5,
+      "cache_control": "max-age=900",
+      "is_new": true
+    },
+    "ppClusters": {
+      "s3_key": "data/catalyst-clusters.json",
+      "size_bytes": 9950,
+      "size_kb": 9.7,
+      "cache_control": "max-age=900",
+      "is_new": true
+    },
+    "ppEarly": {
+      "s3_key": "data/velocity-acceleration.json",
+      "size_bytes": 2357,
+      "size_kb": 2.3,
+      "cache_control": "max-age=300",
+      "is_new": true
+    }
+  }
+}
