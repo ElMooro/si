@@ -4,7 +4,7 @@
   "timeout": 180,
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Reads 12 engine outputs (signal-board, auction-crisis, macro-frontrun, crisis, bonds, repo, regime, intelligence, correlations, sentiment, vol, portfolio) and calls Claude haiku-4-5 to produce a cross-engine narrative + per-page synthesis: site-wide AI insights surface.",
+  "description": "Cross-engine AI synthesis. Reads 12 engines, calls Claude haiku-4-5, writes ai-website-synthesis.json. Hourly cron at :25.",
   "inherit_env": {
     "from_function": "justhodl-ai-chat",
     "keys": ["ANTHROPIC_API_KEY"]
@@ -14,6 +14,6 @@
     "cron": "cron(25 * * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
-    "description": "Cross-engine AI synthesis for site-wide insights, 25min past every hour"
+    "description": "Cross-engine AI synthesis hourly"
   }
 }
