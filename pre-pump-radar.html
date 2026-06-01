@@ -374,6 +374,76 @@ a:hover{color:var(--violet)}
 .agg-meta .cell .v.warning{color:var(--amber)}
 .agg-philosophy{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);font-style:italic;padding:8px 12px;background:var(--bg-sunken);border-radius:4px;margin-bottom:12px;border-left:2px solid var(--red);line-height:1.5}
 
+/* ─── Catalyst pills + multipliers (inside aggressive basket) ─── */
+.agg-position.cg-a{border-left-color:#38ffa8;background:linear-gradient(90deg,rgba(56,255,168,.06),var(--bg-raised) 30%)}
+.agg-position.cg-b{border-left-color:#00d4ff}
+.agg-position.cg-c{border-left-color:#ffb13d}
+.agg-position.cg-d{border-left-color:#ff5c7a;opacity:.9}
+.agg-position .head .cat-pill{font-family:var(--font-mono);font-size:11px;font-weight:700;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;letter-spacing:0}
+.agg-position .head .cat-pill.cg-a{background:rgba(56,255,168,.22);color:#38ffa8;border:1px solid rgba(56,255,168,.4)}
+.agg-position .head .cat-pill.cg-b{background:rgba(0,212,255,.18);color:#00d4ff;border:1px solid rgba(0,212,255,.4)}
+.agg-position .head .cat-pill.cg-c{background:rgba(255,177,61,.18);color:#ffb13d;border:1px solid rgba(255,177,61,.4)}
+.agg-position .head .cat-pill.cg-d{background:rgba(255,92,122,.18);color:#ff5c7a;border:1px solid rgba(255,92,122,.4)}
+.agg-position .head .cat-type{font-family:var(--font-mono);font-size:9px;color:var(--violet);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.6px;font-weight:600}
+.agg-position .catalyst-text{font-family:var(--font-sans);font-size:11.5px;color:var(--fg-2);background:var(--bg-sunken);padding:6px 10px;border-radius:4px;margin:4px 0 6px 0;line-height:1.45;border-left:2px solid var(--amber)}
+.agg-position .scores .mult-up{color:#38ffa8}
+.agg-position .scores .mult-down{color:#ff5c7a}
+
+/* ─── Suggested additions (cluster leaders not in basket) ─── */
+.suggested-additions{margin-top:14px;background:var(--bg-raised);border:1px solid var(--violet);border-radius:6px;padding:12px 14px}
+.suggested-additions .sa-hdr{font-family:var(--font-mono);font-size:10px;letter-spacing:1.4px;color:var(--violet);text-transform:uppercase;font-weight:700;margin-bottom:10px}
+.suggested-additions .sa-item{background:var(--bg-sunken);border-radius:4px;padding:8px 11px;margin-bottom:6px;border-left:2px solid var(--violet);font-family:var(--font-sans);font-size:11.5px;line-height:1.5}
+.suggested-additions .sa-item.cg-a{border-left-color:#38ffa8}
+.suggested-additions .sa-item.cg-b{border-left-color:#00d4ff}
+.suggested-additions .sa-item.cg-c{border-left-color:#ffb13d}
+.suggested-additions .sa-item .sa-tkr{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--fg-1);margin-right:6px;cursor:pointer}
+.suggested-additions .sa-item .sa-tkr:hover{color:var(--cyan)}
+.suggested-additions .sa-item .sa-grade-pill{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;margin-right:8px;vertical-align:middle}
+.suggested-additions .sa-item .sa-grade-pill.cg-a{background:rgba(56,255,168,.22);color:#38ffa8}
+.suggested-additions .sa-item .sa-grade-pill.cg-b{background:rgba(0,212,255,.18);color:#00d4ff}
+.suggested-additions .sa-item .sa-grade-pill.cg-c{background:rgba(255,177,61,.18);color:#ffb13d}
+.suggested-additions .sa-item .sa-rat{color:var(--fg-2)}
+.suggested-additions .sa-item .sa-members{margin-top:5px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3)}
+.suggested-additions .sa-item .sa-members .ticker{color:var(--cyan);cursor:pointer;margin:0 2px}
+
+/* ─── Catalyst Clusters Panel ─── */
+.clusters-panel{background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(0,212,255,.04),rgba(56,255,168,.02));border:2px solid var(--violet);border-radius:12px;padding:20px 24px;margin-bottom:24px;position:relative;overflow:hidden}
+.clusters-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--violet),var(--cyan),var(--green))}
+.clusters-panel .panel-hdr h3{color:var(--violet);font-size:14px}
+.clusters-panel .panel-hdr h3 .cluster-pill{display:inline-block;background:var(--violet);color:var(--bg);font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;padding:3px 9px;border-radius:3px;margin-left:8px;font-weight:700;vertical-align:middle}
+.clusters-panel .panel-hdr .sub{color:var(--fg-2);font-size:11px}
+.clusters-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-family:var(--font-mono)}
+.clusters-meta .stat{background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;padding:7px 12px;font-size:11px;flex:1;min-width:120px}
+.clusters-meta .stat .lbl{font-size:9px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase}
+.clusters-meta .stat .v{font-size:16px;font-weight:700;color:var(--fg-1);margin-top:2px}
+.cluster-card{background:var(--bg-raised);border-radius:6px;padding:13px 16px;margin-bottom:10px;border-left:3px solid var(--violet)}
+.cluster-card.q-a{border-left-color:#38ffa8;background:linear-gradient(180deg,rgba(56,255,168,.04),var(--bg-raised) 30%)}
+.cluster-card.q-b{border-left-color:#00d4ff;background:linear-gradient(180deg,rgba(0,212,255,.04),var(--bg-raised) 30%)}
+.cluster-card.q-c{border-left-color:#ffb13d}
+.cluster-card.q-d{border-left-color:#ff5c7a;opacity:.85}
+.cluster-card .ch{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.cluster-card .ch .title{font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--fg-1)}
+.cluster-card .ch .scope-pill{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:3px;font-weight:700;background:var(--bg-sunken);color:var(--fg-3)}
+.cluster-card .ch .q-pill{font-family:var(--font-mono);font-size:11px;font-weight:700;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px}
+.cluster-card .ch .q-pill.q-a{background:rgba(56,255,168,.22);color:#38ffa8}
+.cluster-card .ch .q-pill.q-b{background:rgba(0,212,255,.18);color:#00d4ff}
+.cluster-card .ch .q-pill.q-c{background:rgba(255,177,61,.18);color:#ffb13d}
+.cluster-card .ch .q-pill.q-d{background:rgba(255,92,122,.18);color:#ff5c7a}
+.cluster-card .ch .action-pill{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;letter-spacing:.6px;margin-left:auto}
+.cluster-card .ch .action-pill.boost{background:rgba(56,255,168,.18);color:#38ffa8}
+.cluster-card .ch .action-pill.re_rank{background:rgba(0,212,255,.18);color:#00d4ff}
+.cluster-card .ch .action-pill.consider_add{background:rgba(167,139,250,.18);color:var(--violet)}
+.cluster-card .ch .action-pill.trim,.cluster-card .ch .action-pill.hedge_or_trim{background:rgba(255,177,61,.18);color:#ffb13d}
+.cluster-card .ch .action-pill.monitor{background:var(--bg-sunken);color:var(--fg-3)}
+.cluster-card .members-row{margin:6px 0;font-family:var(--font-mono);font-size:11px}
+.cluster-card .members-row .mem{display:inline-block;background:var(--bg-sunken);color:var(--cyan);padding:2px 7px;border-radius:3px;margin:2px;cursor:pointer}
+.cluster-card .members-row .mem.in-basket{background:rgba(56,255,168,.14);color:#38ffa8;font-weight:600}
+.cluster-card .members-row .mem.adjacent{background:rgba(167,139,250,.12);color:var(--violet)}
+.cluster-card .members-row .mem:hover{filter:brightness(1.3)}
+.cluster-card .rationale{font-family:var(--font-sans);font-size:11.5px;color:var(--fg-2);background:var(--bg-sunken);padding:8px 11px;border-radius:4px;margin-top:6px;line-height:1.5}
+.cluster-card .meta-row{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+.cluster-card .meta-row b{color:var(--fg-2)}
+
 /* ─── Early Detection Panel (THE EARLINESS LAYER) ─── */
 .early-panel{background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(56,255,168,.04),rgba(255,177,61,.02));border:2px solid var(--cyan);border-radius:12px;padding:20px 24px;margin-bottom:24px;position:relative;overflow:hidden}
 .early-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--green),var(--amber));animation:gradient-shift 4s linear infinite}
@@ -610,9 +680,18 @@ a:hover{color:var(--violet)}
   <div class="aggressive-panel" id="agg-panel">
     <div class="panel-hdr">
       <h3>🔥 Aggressive Pump-Hunter Basket <span class="pump-mode-pill">PUMP MODE</span></h3>
-      <div class="sub">concentrated · 5-7 names · up to 15%/name · sized by combined pump × momentum</div>
+      <div class="sub">concentrated · 5-7 names · up to 18%/name · sized by sqrt(pump × momentum) × catalyst grade × cluster modifier</div>
     </div>
     <div id="agg-content"><div class="edge-empty">loading aggressive basket…</div></div>
+  </div>
+
+  <!-- Catalyst Clusters Panel (post-aggressive, pre-momentum) -->
+  <div class="clusters-panel" id="clusters-panel" style="display:none">
+    <div class="panel-hdr">
+      <h3>🎯 Catalyst Clusters <span class="cluster-pill">SHARED EXPOSURE</span></h3>
+      <div class="sub">3+ names with shared catalyst windows — quality-graded A→D with action recommendations</div>
+    </div>
+    <div id="clusters-content"></div>
   </div>
 
   <!-- Momentum Leaders -->
@@ -769,6 +848,8 @@ const BRIEF_URL    = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump
 const MOMENTUM_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/momentum-leaders.json";
 const EARLY_URL    = "https://justhodl-dashboard-live.s3.amazonaws.com/data/velocity-acceleration.json";
 const THEMES_URL   = "https://justhodl-dashboard-live.s3.amazonaws.com/data/themes.json";
+const CATALYSTS_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/catalysts.json";
+const CLUSTERS_URL  = "https://justhodl-dashboard-live.s3.amazonaws.com/data/catalyst-clusters.json";
 let DATA = null;
 let RESEARCH = null;
 let POSITIONING = null;
@@ -781,6 +862,8 @@ let BRIEF = null;
 let MOMENTUM = null;
 let EARLY = null;
 let THEMES = null;
+let CATALYSTS = null;
+let CLUSTERS = null;
 let activeTier = "ALL";
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -796,7 +879,7 @@ function ageStr(iso){
 async function load(){
   try {
     // Fetch convergence-radar (primary) + all hedge-fund layers in parallel
-    const [radarR, posR, btR, mechR, anR, prR, nlpR, brR, momR, earlyR, themesR] = await Promise.all([
+    const [radarR, posR, btR, mechR, anR, prR, nlpR, brR, momR, earlyR, themesR, catR, clusR] = await Promise.all([
       fetch(S3_URL + "?t=" + Date.now()),
       fetch(POSITIONING_URL + "?t=" + Date.now()).catch(() => null),
       fetch(BACKTEST_URL + "?t=" + Date.now()).catch(() => null),
@@ -808,6 +891,8 @@ async function load(){
       fetch(MOMENTUM_URL + "?t=" + Date.now()).catch(() => null),
       fetch(EARLY_URL + "?t=" + Date.now()).catch(() => null),
       fetch(THEMES_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(CATALYSTS_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(CLUSTERS_URL + "?t=" + Date.now()).catch(() => null),
     ]);
     if (!radarR.ok) throw new Error("HTTP " + radarR.status);
     DATA = await radarR.json();
@@ -821,9 +906,12 @@ async function load(){
     if (momR && momR.ok)    { try { MOMENTUM    = await momR.json(); } catch(_) {} }
     if (earlyR && earlyR.ok){ try { EARLY       = await earlyR.json(); } catch(_) {} }
     if (themesR && themesR.ok){ try { THEMES    = await themesR.json(); } catch(_) {} }
+    if (catR && catR.ok)    { try { CATALYSTS   = await catR.json(); } catch(_) {} }
+    if (clusR && clusR.ok)  { try { CLUSTERS    = await clusR.json(); } catch(_) {} }
     render();
     renderBriefHero();
     renderEarlyDetection();
+    renderClustersPanel();
     renderEdgePanel();
     renderBasketPanel();
     renderAggressivePanel();
@@ -922,6 +1010,88 @@ function renderEarlyDetection(){
     html += 'Universe restricted to momentum + theme members → false-positive rate drops from ~60% to ~15%. ';
     html += 'Fire threshold: composite score ≥' + (EARLY.config?.fire_threshold || 60) + ' (slope+accumulation+floor-lift). ';
     html += 'Confirmation = momentum-breakout, options-flow, or buzz-velocity within ' + (EARLY.config?.pending_max_sessions || 3) + ' sessions.</div>';
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+  wireTickerClicks();
+}
+
+// ─── CATALYST CLUSTERS — the clustering layer ───────────────────────
+function renderClustersPanel(){
+  const wrapEl = document.getElementById('clusters-panel');
+  const el = document.getElementById('clusters-content');
+  if (!CLUSTERS || CLUSTERS.status === "error" ||
+      !CLUSTERS.clusters || !CLUSTERS.clusters.length) {
+    wrapEl.style.display = 'none';
+    return;
+  }
+  wrapEl.style.display = 'block';
+
+  const clusters = CLUSTERS.clusters || [];
+  const bas = CLUSTERS.basket_action_summary || {};
+
+  let html = '';
+
+  // Meta row
+  html += '<div class="clusters-meta">';
+  html += '<div class="stat"><div class="lbl">Clusters detected</div><div class="v">' + (CLUSTERS.n_clusters || 0) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Temporal (earnings)</div><div class="v">' + (CLUSTERS.n_temporal || 0) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Thematic</div><div class="v">' + (CLUSTERS.n_thematic || 0) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Boost</div><div class="v" style="color:#38ffa8">' + ((bas.boost || []).length) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Trim</div><div class="v" style="color:#ffb13d">' + ((bas.trim || []).length) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Exclude</div><div class="v" style="color:#ff5c7a">' + ((bas.exclude || []).length) + '</div></div>';
+  html += '</div>';
+
+  // Cluster cards
+  clusters.forEach(c => {
+    const qg = (c.quality_grade || 'D').toLowerCase();
+    const action = (c.recommendation?.action || 'MONITOR').toLowerCase();
+    const scope = c.scope || 'BASKET_LOCAL';
+    html += '<div class="cluster-card q-' + qg + '">';
+    html += '<div class="ch">';
+    html += '<span class="title">' + esc(c.cluster_type || '?') + (c.theme_label ? ' · ' + esc(c.theme_label) : '') + '</span>';
+    html += '<span class="q-pill q-' + qg + '" title="cluster quality grade">' + (c.quality_grade || '?') + '</span>';
+    html += '<span class="scope-pill">' + esc(scope) + '</span>';
+    html += '<span class="action-pill ' + action + '">' + esc(action.replace(/_/g, ' ')) + '</span>';
+    html += '</div>';
+
+    // Members
+    if (c.members && c.members.length) {
+      html += '<div class="members-row">';
+      c.members.forEach(m => {
+        const inBasket = (c.in_basket || []).includes(m);
+        const isAdjacent = (c.adjacent || []).includes(m);
+        const cls = inBasket ? 'in-basket' : (isAdjacent ? 'adjacent' : '');
+        html += '<span class="mem ' + cls + ' ticker clickable" data-ticker="' + esc(m) + '">' + esc(m) + '</span>';
+      });
+      html += '</div>';
+    }
+
+    // Window + leader
+    const meta = [];
+    if (c.start_date && c.end_date) meta.push('<span>Window: <b>' + esc(c.start_date) + ' → ' + esc(c.end_date) + '</b></span>');
+    if (c.recommendation?.leader) meta.push('<span>Leader: <b>' + esc(c.recommendation.leader) + '</b></span>');
+    if (c.n_a_grade != null) meta.push('<span>A-grade: <b>' + c.n_a_grade + '</b></span>');
+    if (c.n_d_grade != null && c.n_d_grade > 0) meta.push('<span>D-grade: <b>' + c.n_d_grade + '</b></span>');
+    if (c.shared_catalyst_type) meta.push('<span>Shared catalyst: <b>' + esc(c.shared_catalyst_type) + '</b></span>');
+    if (meta.length) html += '<div class="meta-row">' + meta.join('') + '</div>';
+
+    // Rationale
+    if (c.recommendation?.rationale) {
+      html += '<div class="rationale">⚡ ' + esc(c.recommendation.rationale) + '</div>';
+    }
+
+    html += '</div>';
+  });
+
+  // Hedge suggestions
+  if (bas.hedges && bas.hedges.length) {
+    html += '<div class="rationale" style="border-left:2px solid var(--amber);margin-top:10px">';
+    html += '<b style="color:var(--amber)">Hedge suggestions:</b><br>';
+    bas.hedges.forEach(h => {
+      html += '<span style="font-family:var(--font-mono);font-size:10.5px">• ' + esc(h.suggestion) + ' (' + esc(h.cluster_id) + ')</span><br>';
+    });
     html += '</div>';
   }
 
@@ -1029,16 +1199,40 @@ function renderAggressivePanel(){
   // Positions
   positions.forEach(p => {
     const isPC = p.pump_confirmed;
-    html += '<div class="agg-position ' + (isPC ? 'pc' : '') + '">';
+    const cg = p.catalyst_grade || '';
+    const ct = p.catalyst_type || '';
+    const cat = p.catalyst || '';
+    const cgClass = cg === 'A' ? 'cg-a' : cg === 'B' ? 'cg-b' : cg === 'C' ? 'cg-c' : cg === 'D' ? 'cg-d' : '';
+    html += '<div class="agg-position ' + (isPC ? 'pc' : '') + ' ' + cgClass + '">';
     html += '<div class="head">';
     html += '<span class="tkr ticker clickable" data-ticker="' + esc(p.ticker) + '">' + esc(p.ticker) + '</span>';
+    if (cg) {
+      html += '<span class="cat-pill ' + cgClass + '" title="catalyst grade">' + esc(cg) + '</span>';
+    }
+    if (ct && ct !== 'NO_CLEAR_CATALYST') {
+      html += '<span class="cat-type">' + esc(ct.replace(/_/g, ' ')) + '</span>';
+    }
     if (isPC) html += '<span class="pc-marker">PUMP_CONFIRMED</span>';
     html += '<span class="size ' + (p.position_pct >= 12 ? 'huge' : '') + '">' + (p.position_pct || 0).toFixed(1) + '%</span>';
     html += '</div>';
+
+    // Catalyst inline (the "why")
+    if (cat) {
+      html += '<div class="catalyst-text">⚡ ' + esc(cat) + '</div>';
+    }
+
     html += '<div class="scores">';
     html += '<span class="s-item">pump:<b>' + (p.pump_score || 0).toFixed(1) + '</b></span>';
     if (p.momentum_score != null) html += '<span class="s-item">momentum:<b>' + p.momentum_score.toFixed(1) + '</b></span>';
     if (p.combined_score != null) html += '<span class="s-item combined">combined: ' + p.combined_score.toFixed(1) + '</span>';
+    if (p.catalyst_mult != null && p.catalyst_mult !== 1) {
+      const cmCls = p.catalyst_mult > 1 ? 'mult-up' : 'mult-down';
+      html += '<span class="s-item ' + cmCls + '">cat×<b>' + p.catalyst_mult.toFixed(2) + '</b></span>';
+    }
+    if (p.cluster_mult != null && p.cluster_mult !== 1) {
+      const clCls = p.cluster_mult > 1 ? 'mult-up' : 'mult-down';
+      html += '<span class="s-item ' + clCls + '">clust×<b>' + p.cluster_mult.toFixed(2) + '</b></span>';
+    }
     html += '<span class="s-item">sector:<b>' + esc((p.sector || '').slice(0, 16)) + '</b></span>';
     html += '</div>';
     if (p.mom_tags && p.mom_tags.length) {
@@ -1054,6 +1248,24 @@ function renderAggressivePanel(){
     html += '</div>';
     html += '</div>';
   });
+
+  // Suggested additions from clusters Lambda
+  if (agg.suggested_additions && agg.suggested_additions.length) {
+    html += '<div class="suggested-additions">';
+    html += '<div class="sa-hdr">💡 Suggested additions — cluster leaders not currently in basket</div>';
+    agg.suggested_additions.forEach(sa => {
+      const gradeCls = sa.quality_grade === 'A' ? 'cg-a' : sa.quality_grade === 'B' ? 'cg-b' : 'cg-c';
+      html += '<div class="sa-item ' + gradeCls + '">';
+      html += '<span class="sa-tkr ticker clickable" data-ticker="' + esc(sa.ticker) + '">' + esc(sa.ticker) + '</span>';
+      html += '<span class="sa-grade-pill ' + gradeCls + '">' + esc(sa.quality_grade) + '</span>';
+      html += '<span class="sa-rat">' + esc((sa.rationale || '').slice(0, 220)) + '</span>';
+      if (sa.cluster_members && sa.cluster_members.length) {
+        html += '<div class="sa-members">cluster: ' + sa.cluster_members.map(m => '<span class="ticker clickable" data-ticker="' + esc(m) + '">' + esc(m) + '</span>').join(' · ') + '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  }
 
   el.innerHTML = html;
   wireTickerClicks();

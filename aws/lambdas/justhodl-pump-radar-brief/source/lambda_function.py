@@ -97,6 +97,9 @@ INPUT_KEYS = {
     "synthesis":     "data/ai-website-synthesis.json",
     "earnings_cal":  "data/earnings-tracker.json",
     "momentum":      "data/momentum-leaders.json",
+    "catalysts":     "data/catalysts.json",
+    "clusters":      "data/catalyst-clusters.json",
+    "early":         "data/velocity-acceleration.json",
 }
 PRIOR_KEY = "data/pump-radar-brief.json"
 
@@ -324,6 +327,91 @@ def compact_earnings_cal(d: dict) -> dict:
     }
 
 
+def compact_catalysts(d: dict) -> dict:
+    """Compact catalysts.json — keep records, grade rollups, and flagged names."""
+    if not d:
+        return {}
+    cats = d.get("catalysts") or []
+    return {
+        "n_classified": d.get("n_classified", len(cats)),
+        "by_grade":     d.get("by_grade", {}),
+        "flagged":      d.get("flagged", []),
+        # Per-ticker compact records — keep the human-readable catalyst text
+        "records": [
+            {
+                "ticker":             c.get("ticker"),
+                "catalyst_grade":     c.get("catalyst_grade"),
+                "catalyst_type":      c.get("catalyst_type"),
+                "primary_catalyst":   (c.get("primary_catalyst") or "")[:200],
+                "catalyst_date":      c.get("catalyst_date"),
+                "days_to_catalyst":   c.get("days_to_catalyst"),
+                "thesis_durability":  c.get("thesis_durability"),
+                "invalidation":       (c.get("invalidation") or "")[:160],
+            }
+            for c in cats[:15]
+        ],
+    }
+
+
+def compact_clusters(d: dict) -> dict:
+    """Compact catalyst-clusters.json — detected clusters + basket actions."""
+    if not d:
+        return {}
+    clusters = d.get("clusters") or []
+    return {
+        "n_clusters":      d.get("n_clusters", len(clusters)),
+        "n_temporal":      d.get("n_temporal", 0),
+        "n_thematic":      d.get("n_thematic", 0),
+        "macro_regime":    d.get("macro_regime"),
+        "clusters": [
+            {
+                "cluster_id":     c.get("cluster_id"),
+                "cluster_type":   c.get("cluster_type"),
+                "scope":          c.get("scope"),
+                "quality_grade":  c.get("quality_grade"),
+                "members":        c.get("members"),
+                "in_basket":      c.get("in_basket"),
+                "adjacent":       c.get("adjacent"),
+                "theme_label":    c.get("theme_label"),
+                "start_date":     c.get("start_date"),
+                "end_date":       c.get("end_date"),
+                "leader":         (c.get("recommendation") or {}).get("leader"),
+                "action":         (c.get("recommendation") or {}).get("action"),
+                "rationale":      ((c.get("recommendation") or {}).get("rationale") or "")[:240],
+            }
+            for c in clusters[:6]
+        ],
+        "basket_action_summary": d.get("basket_action_summary", {}),
+    }
+
+
+def compact_early(d: dict) -> dict:
+    """Compact velocity-acceleration.json — earliness layer for the brief."""
+    if not d:
+        return {}
+    return {
+        "trading_date":      d.get("trading_date"),
+        "n_actionable":      d.get("n_actionable", 0),
+        "n_fresh":           d.get("n_fresh", 0),
+        "n_confirmed_today": d.get("n_confirmed_today", 0),
+        "n_aging":           d.get("n_aging", 0),
+        "actionable":        d.get("actionable_tickers", [])[:12],
+        "fresh_top":         [
+            {"ticker": r.get("ticker"), "tier": r.get("tier"),
+             "theme_label": r.get("theme_label"),
+             "current_score": r.get("current_score")}
+            for r in (d.get("fresh_fires") or [])[:8]
+        ],
+        "confirmed_today":  [
+            {"ticker": r.get("ticker"), "tier": r.get("tier"),
+             "theme_label": r.get("theme_label"),
+             "current_score": r.get("current_score"),
+             "confirmations": r.get("confirmations", [])}
+            for r in (d.get("confirmed_today") or [])[:8]
+        ],
+    }
+
+
 def _compact_research(research_doc) -> list:
     """Ticker-research-bundle.json may store 'research' as either a list of
     dossiers OR a dict keyed by ticker. Normalize to a list of compacted
@@ -477,11 +565,18 @@ Produce JSON with these sections:
                                           numbers ('pump_likelihood 54.5, +19.04%
                                           5d, RS_SPY +11.8, ULTRA tier across 8
                                           engines, IV_rank 35.2')
-                      key_risk:         one risk bullet
+                      key_risk:         one risk bullet (USE the invalidation field
+                                          from the catalysts layer if available)
                       sized_position:   AGGRESSIVE: 'X.X% position with stop at $Y
                                           (-Z%) targeting TP1 $A / TP2 $B'.
                                           Use the AGGRESSIVE basket sizing, NOT the
-                                          conservative one (10-15% per name is fine).
+                                          conservative one (10-18% per name is fine).
+                      catalyst:         REQUIRED FIELD. Cite from catalysts layer:
+                                          'A-grade EARNINGS_BEAT 2026-06-10 (9 days):
+                                          beat on 2026-06-10; +44% 20d, RS leader'.
+                                          If catalyst_grade is D, FLAG: 'D-grade
+                                          NO_CLEAR_CATALYST — naked momentum'.
+                      catalyst_grade:   'A' | 'B' | 'C' | 'D'  (from catalysts layer)
                       catalyst_window:  'next earnings in X days' | 'no near catalyst'
                       momentum_data:    'momentum_score X.X, perf_20d Y%, tags: [...]'
 
@@ -494,12 +589,27 @@ Produce JSON with these sections:
                        expected_alpha:  (from pairs.expected_alpha_1m)
                        trade_thesis:    'long X for Y / short Z because W'
 
+  catalyst_clusters: 0-3 cluster observations from the clusters layer.
+                     For each cluster with quality_grade A or B:
+                       cluster_id, cluster_type, scope, leader, members,
+                       quality_grade, recommended_action, rationale (1 sentence).
+                     CONSIDER_ADD suggestions go in 'suggested_additions' (separate).
+
+  suggested_additions: 0-3 ticker additions from clusters layer if any have
+                       quality_grade A or B and action CONSIDER_ADD.
+                       For each: ticker, why_consider, cluster_window.
+
+  early_detection:  0-3 names from the early layer's confirmed_today list.
+                     Only include T1 (HIGH) or T2 (MED) tier names.
+                     For each: ticker, tier, theme, score, confirmations.
+
   what_to_watch_today: Array of 3-5 watch items.
 
   risk_warnings: Array of 1-3 ONLY. Be CONCISE. Skip generic warnings about
                   concentration — the PM has chosen concentration. Focus on
                   SPECIFIC catalysts that could invalidate: 'PLTR earnings in 5d
                   could IV-crush the trade' or 'Macro regime deteriorating'.
+                  PREFER referencing 'invalidation' fields from the catalysts layer.
                   If basket is healthy and no specific risks loom, return [].
 
   whats_changed: 2-3 sentences on what shifted since yesterday's brief. Use the
@@ -511,18 +621,22 @@ Produce JSON with these sections:
                      because POSITION SIZE × WIN RATE × R MULTIPLE is the formula
                      and pump_likelihood >50 with momentum >70 is usually B+ or A-.
 
-  executive_summary: 40-60 word top-line. Lead with the verb:
-                       'CONCENTRATE LONG in 3 pump-confirmed names: PLTR (15%),
-                       MSFT (12%), NEM (10%). PUMP_CONFIRMED setups across 3 of 8
-                       basket positions. Aggressive 90% deployment with hard stops...'
+  executive_summary: 40-60 word top-line. Lead with the verb. MENTION CATALYSTS:
+                       'CONCENTRATE LONG in 3 A-grade catalyst names: ORCL 15%
+                       (EARNINGS_BEAT 6/10), WDC 13% (PRODUCT_LAUNCH HAMR ramp),
+                       CRM 10% (GUIDANCE_RAISE Agent Force). Active semi-earnings
+                       cluster 6/2-6/3 — consider adding PANW. 68% deployed...'
 
 STYLE RULES
 ═══════════
 - Every number you cite must be from the provided data. Don't invent.
 - AGGRESSIVE SIZING is the default. Use the aggressive_basket positions, not
   the conservative_basket. The user has explicitly chosen concentration.
-- The aggressive basket has 5-7 names; if it returns 3 names sized 15/12/10,
+- The aggressive basket has 5-7 names; if it returns 3 names sized 18/13/10,
   surface those as your top 3 — don't dilute by adding marginal names.
+- ALWAYS cite catalyst_grade for top_3_long_ideas. Naked momentum without
+  a catalyst should be downweighted; the system already excludes most D-grade
+  names but the brief is the final filter.
 - Be DIRECTIONAL. Pump-hunter funds don't hedge for theoretical concerns.
 - LIMIT risk_warnings to 1-3 SPECIFIC items; skip generic concentration warnings.
 
@@ -532,6 +646,9 @@ OUTPUT FORMAT — pure JSON, no markdown:
   "market_temperature_label": "HOT|WARM|TEPID|COOL",
   "top_3_long_ideas": [...],
   "top_2_pair_trades": [...],
+  "catalyst_clusters": [...],
+  "suggested_additions": [...],
+  "early_detection": [...],
   "what_to_watch_today": [...],
   "risk_warnings": [...],
   "whats_changed": "...",
@@ -546,7 +663,7 @@ def build_user_prompt(payload: dict) -> str:
     parts = [
         f"# Morning brief synthesis for {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
         "",
-        "Below are 8 structured data layers. Synthesize into the brief.",
+        f"Below are {len(payload)} structured data layers. Synthesize into the brief.",
         "",
     ]
     for layer_name, layer_data in payload.items():
@@ -630,6 +747,9 @@ def lambda_handler(event, context):
         },
         "macro":        compact_synthesis(raw.get("synthesis", {})),
         "earnings_cal": compact_earnings_cal(raw.get("earnings_cal", {})),
+        "catalysts":    compact_catalysts(raw.get("catalysts", {})),
+        "clusters":     compact_clusters(raw.get("clusters", {})),
+        "early":        compact_early(raw.get("early", {})),
     }
 
     # Compute market temperature (lightweight composite)
