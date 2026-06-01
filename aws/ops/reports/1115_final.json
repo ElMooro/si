@@ -1,0 +1,218 @@
+{
+  "started": "2026-06-01T17:44:09.396848+00:00",
+  "elapsed_s": 69.2,
+  "summary": {
+    "status": "ok",
+    "elapsed_sec": 68.1,
+    "claude_elapsed": 67.97,
+    "n_tickers": 10,
+    "tickers": [
+      "NEM",
+      "APH",
+      "PLTR",
+      "LLY",
+      "MSFT",
+      "WDC",
+      "FCX",
+      "CRM",
+      "AMZN",
+      "GLW"
+    ]
+  },
+  "bundle": {
+    "size_kb": 34.5,
+    "last_modified": "2026-06-01T17:45:19+00:00",
+    "schema": "1.0",
+    "elapsed_sec": 68.1,
+    "claude_elapsed": 67.97,
+    "n_tickers": 10,
+    "tickers": [
+      "NEM",
+      "APH",
+      "PLTR",
+      "LLY",
+      "MSFT",
+      "WDC",
+      "FCX",
+      "CRM",
+      "AMZN",
+      "GLW"
+    ],
+    "status": "ok"
+  },
+  "samples": [
+    {
+      "ticker": "NEM",
+      "convergence_summary": {
+        "n_engines": 3,
+        "pump_likelihood": 57.3,
+        "pump_category": "PUMP_POSSIBLE",
+        "directional_score": 83.6,
+        "convergence_score": 62.0,
+        "tier": "MED",
+        "domain_coverage": [
+          "earnings",
+          "fundamentals",
+          "valuation"
+        ],
+        "n_bullish_eng": 2,
+        "n_bearish_eng": 0
+      },
+      "bull_headline": "Six-quarter earnings beat streak with 122.7% DCF upside signals sustained fundamental outperformance.",
+      "bull_thesis": "Earnings-pead engine shows TIER_S_PEAD_DRIFT across six quarters, indicating consistent earnings surprises. Fundamentals-quality engine flags stock as UNDERVALUED with 122.7% DCF gap and robust Altman Z of 4.58. Capital-return activity (1.96% buyback yield) provides additional support.",
+      "bull_catalysts": [
+        "Q2 earnings beat continuation",
+        "DCF gap closure as market reprices",
+        "Share buyback execution acceleration"
+      ],
+      "bull_leading_signals": [
+        "earnings-pead: TIER_S_PEAD_DRIFT, 6Q streak",
+        "fundamentals-quality: UNDERVALUED, DCF +122.7%",
+        "capital-return: 1.96% buyback yield"
+      ],
+      "risk_headline": "Thin convergence (62.0/100) and commodity-sector volatility expose thesis to macro shocks.",
+      "risk_primary": [
+        "Convergence score of 62.0 indicates only 3 engines aligned; sentiment/momentum engines absent",
+        "Precious metals sector vulnerable to USD strength and real-rate spikes",
+        "Buyback sustainability depends on cash generation in volatile commodity cycles"
+      ],
+      "risk_valuation": "While DCF gap is wide, market may have rational reasons for discount; gold/silver input volatility limits model reliability.",
+      "risk_breaks_thesis": [
+        "Fed rate hold or hike signal triggering USD rally",
+        "Earnings miss breaking 6Q streak",
+        "Buyback pause due to cash constraints"
+      ],
+      "trade_framework": {
+        "conviction": "MED",
+        "time_horizon": "1-3mo",
+        "what_to_watch": [
+          "Next earnings date for beat/miss confirmation",
+          "Gold/silver price action vs. USD index",
+          "Insider selling vs. buyback execution"
+        ],
+        "invalidation_signal": "Break of 6Q earnings beat streak or FCF contraction in latest quarter",
+        "historical_analog": "Similar setup in 2021 for GLD/miners\u2014beatstreak held but macro headwinds (rates) overrode valuation thesis"
+      },
+      "one_liner": "Six-quarter earnings drift plus 122% DCF gap suggests upside, but macro commodity risk and thin engine convergence warrant caution."
+    },
+    {
+      "ticker": "APH",
+      "convergence_summary": {
+        "n_engines": 2,
+        "pump_likelihood": 54.7,
+        "pump_category": "PUMP_POSSIBLE",
+        "directional_score": 70.4,
+        "convergence_score": 37.9,
+        "tier": "LOW",
+        "domain_coverage": [
+          "earnings",
+          "momentum"
+        ],
+        "n_bullish_eng": 1,
+        "n_bearish_eng": 0
+      },
+      "bull_headline": "Eight-quarter earnings beat streak with fresh momentum breakout accelerates upside into technical resistance.",
+      "bull_thesis": "Earnings-pead engine registers TIER_A_HIGH_QUALITY_BEAT across eight consecutive quarters, demonstrating consistent execution. Momentum-breakout shows MARGINAL tier with AT_20D_HIGH flag and acceleration component of +10.0 signals fresh entry by technical traders.",
+      "bull_catalysts": [
+        "Breakout above 20-day highs into fresh resistance",
+        "Next earnings release sustains beat streak",
+        "Institutional inflows on momentum confirmation"
+      ],
+      "bull_leading_signals": [
+        "earnings-pead: TIER_A_HIGH_QUALITY_BEAT, 8Q streak",
+        "momentum-breakout: AT_20D_HIGH, acceleration +10",
+        "directional score: +70.4 (bullish bias intact)"
+      ],
+      "risk_headline": "Low convergence (37.9/100) with only two engines aligned exposes signal fragility to momentum reversal.",
+      "risk_primary": [
+        "Convergence score of 37.9 indicates weak multi-engine support; only earnings and momentum present",
+        "AT_20D_HIGH flag suggests limited runway; technical pullback risk elevated",
+        "Absence of options, sentiment, or insider signals weakens thesis durability",
+        "Zero prior engines flagged this ticker; acceleration is new and unproven"
+      ],
+      "risk_valuation": "No valuation engine data provided; cannot assess fair value vs. momentum-driven price action.",
+      "risk_breaks_thesis": [
+        "Earnings miss breaking 8Q streak",
+        "20-day momentum reversal or volume decline",
+        "Technical rejection at resistance without follow-through buying"
+      ],
+      "trade_framework": {
+        "conviction": "LOW",
+        "time_horizon": "1-2w",
+        "what_to_watch": [
+          "Volume confirmation on breakout above 20-day high",
+          "Next earnings release timing and guide",
+          "Relative strength sustain vs. sector"
+        ],
+        "invalidation_signal": "Close below 20-day moving average with volume decline",
+        "historical_analog": "Typical MARGINAL momentum breakout without fundamental confirmation tends to fade 60% of the time within 2 weeks"
+      },
+      "one_liner": "Eight-quarter beat streak plus momentum breakout attractive, but weak convergence and AT resistance limits upside window."
+    },
+    {
+      "ticker": "PLTR",
+      "convergence_summary": {
+        "n_engines": 8,
+        "pump_likelihood": 54.5,
+        "pump_category": "PUMP_POSSIBLE",
+        "directional_score": 59.0,
+        "convergence_score": 100,
+        "tier": "ULTRA",
+        "domain_coverage": [
+          "earnings",
+          "insider",
+          "institutional",
+          "momentum",
+          "options",
+          "sentiment",
+          "valuation"
+        ],
+        "n_bullish_eng": 3,
+        "n_bearish_eng": 1
+      },
+      "bull_headline": "ULTRA-tier convergence across eight engines\u2014options flow, earnings drift, EPS revisions, and momentum all bullish despite 93% overvaluation.",
+      "bull_thesis": "Options-flow engine shows TIER_A_BULLISH_FLOW with call volumes surging 3X and CPR rising\u2014institutional accumulation signal. Earnings-pead TIER_S_PEAD_DRIFT spans eight quarters; EPS-revision-velocity HIGH_VELOCITY_TIER_B; momentum-breakout shows RISING_20D+AT_20D_HIGH with volume surge 1.8X. ARK holdings total $415M at 4.24% weight signaling sustained conviction.",
+      "bull_catalysts": [
+        "Options flow completion into earnings",
+        "EPS revision velocity inflection point",
+        "Next earnings beat sustains 8Q streak",
+        "Institutional inflows from ARK and others"
+      ],
+      "bull_leading_signals": [
+        "options-flow: TIER_A_BULLISH_FLOW, CPR_SURGING, CALL_VOL_3X",
+        "earnings-pead: TIER_S_PEAD_DRIFT, 8Q streak",
+        "eps-revision-velocity: HIGH_VELOCITY_TIER_B",
+        "momentum-breakout: MARGINAL, RISING_20D+AT_20D_HIGH+VOL_SURGE_1.8X",
+        "convergence: 100/100 (maximum signal alignment)"
+      ],
+      "risk_headline": "Fundamental overvaluation (DCF gap -93.2%) directly contradicts valuation engines; momentum-driven rally risks sharp reversion.",
+      "risk_primary": [
+        "Fundamentals-quality engine flags OVERVALUED with DCF gap of -93.2%\u2014valuation thesis broken",
+        "Price has risen 15.73% in 7 days; parabolic exhaustion risk elevated despite non-parabolic flag",
+        "Options flow bullishness could reverse sharply post-earnings; call vol crush typical",
+        "Altman Z of 121.94 is suspiciously high; indicates potential distress metric manipulation or low financial leverage bias",
+        "AT_20D_HIGH suggests limited technical runway; momentum may be front-running institutional positioning"
+      ],
+      "risk_valuation": "Fundamentals-quality engine explicitly labels OVERVALUED with -93.2% DCF gap. This is not a minor concern\u2014it is a hard valuation brake on the bull case.",
+      "risk_breaks_thesis": [
+        "Earnings miss breaking 8Q streak",
+        "Post-earnings options volatility crush and profit-taking",
+        "DCF revaluation lower on guidance miss or capex raise",
+        "Momentum reversal on volume decline from current levels"
+      ],
+      "trade_framework": {
+        "conviction": "MED",
+        "time_horizon": "1-3d",
+        "what_to_watch": [
+          "Earnings date and guide on capex/profitability timelines",
+          "Options IV rank and call skew post-earnings",
+          "ARK fund flows and rebalancing trades",
+          "Momentum sustain vs. pullback into 20-day MA"
+        ],
+        "invalidation_signal": "Earnings miss OR options IV crush post-earnings with volume roll-off",
+        "historical_analog": "PLTR 2021: ULTRA convergence on growth narrative, then -80% when growth inflection delayed and valuation reset lower"
+      },
+      "one_liner": "Eight-engine convergence with surging options flow and earnings drift attractive, but -93% DCF gap and parabolic price action pose severe reversal risk."
+    }
+  ]
+}
