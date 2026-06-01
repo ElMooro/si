@@ -1,0 +1,129 @@
+{
+  "started": "2026-06-01T22:40:15.648875+00:00",
+  "n_files": 13,
+  "n_ok": 13,
+  "n_errors": 0,
+  "total_wire_kb": 37.5,
+  "max_ms_parallel": 807.8,
+  "sum_ms_sequential": 5479.4,
+  "rows": [
+    {
+      "key": "intel",
+      "path": "/intelligence-report.json",
+      "wire_size_bytes": 1751,
+      "elapsed_ms": 663.4,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "edge",
+      "path": "/edge-data.json",
+      "wire_size_bytes": 773,
+      "elapsed_ms": 283.1,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "liq",
+      "path": "/liquidity-data.json",
+      "wire_size_bytes": 2364,
+      "elapsed_ms": 396.8,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "flow",
+      "path": "/flow-data.json",
+      "wire_size_bytes": 6962,
+      "elapsed_ms": 404.2,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "crypto",
+      "path": "/crypto-intel.json",
+      "wire_size_bytes": 10603,
+      "elapsed_ms": 376.0,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "regime",
+      "path": "/regime/current.json",
+      "wire_size_bytes": 548,
+      "elapsed_ms": 343.6,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "div",
+      "path": "/divergence/current.json",
+      "wire_size_bytes": 1727,
+      "elapsed_ms": 354.0,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "cot",
+      "path": "/cot/extremes/current.json",
+      "wire_size_bytes": 1262,
+      "elapsed_ms": 417.4,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "risk",
+      "path": "/risk/recommendations.json",
+      "wire_size_bytes": 2435,
+      "elapsed_ms": 807.8,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "setups",
+      "path": "/opportunities/asymmetric-equity.json",
+      "wire_size_bytes": 5280,
+      "elapsed_ms": 368.2,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "pnl",
+      "path": "/portfolio/pnl-daily.json",
+      "wire_size_bytes": 628,
+      "elapsed_ms": 383.6,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "signalBoard",
+      "path": "/data/signal-board.json",
+      "wire_size_bytes": 2977,
+      "elapsed_ms": 361.0,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    },
+    {
+      "key": "ppSummary",
+      "path": "/data/pump-radar-summary.json",
+      "wire_size_bytes": 1094,
+      "elapsed_ms": 320.3,
+      "content_encoding": "br",
+      "x_edge_cache": "MISS",
+      "status": 200
+    }
+  ],
+  "proxy_url": "https://justhodl-data-proxy.raafouis.workers.dev"
+}
