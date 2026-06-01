@@ -1,0 +1,2447 @@
+{
+  "started": "2026-06-01T17:08:15.095190+00:00",
+  "engines": {
+    "buzz-velocity": {
+      "path": "top_30",
+      "is_dict": false,
+      "size": 30,
+      "all_fields": [
+        "composite_velocity",
+        "divergence",
+        "name",
+        "news_30d_count",
+        "news_7d_count",
+        "news_velocity",
+        "price_perf_7d_pct",
+        "reddit_breakdown_7d",
+        "reddit_velocity",
+        "sample_headlines",
+        "score",
+        "sentiment",
+        "stealth_signal",
+        "thesis",
+        "ticker"
+      ],
+      "directional_fields": [
+        {
+          "field": "sentiment",
+          "sample_value": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          }
+        },
+        {
+          "field": "stealth_signal",
+          "sample_value": false
+        }
+      ]
+    },
+    "momentum-breakout": {
+      "path": "all_qualifying",
+      "is_dict": false,
+      "size": 84,
+      "all_fields": [
+        "flags",
+        "is_parabolic",
+        "metrics",
+        "score",
+        "symbol",
+        "tier"
+      ],
+      "directional_fields": [
+        {
+          "field": "tier",
+          "sample_value": "TIER_A_BREAKOUT"
+        },
+        {
+          "field": "flags",
+          "sample_value": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "VOL_SURGE_1.8X",
+            "RS_20D_+35",
+            "RS_60D_+38"
+          ]
+        }
+      ]
+    },
+    "options-flow": {
+      "path": "all_qualifying",
+      "is_dict": false,
+      "size": 37,
+      "all_fields": [
+        "flags",
+        "metrics",
+        "score",
+        "symbol",
+        "tier"
+      ],
+      "directional_fields": [
+        {
+          "field": "tier",
+          "sample_value": "TIER_A_BULLISH_FLOW"
+        },
+        {
+          "field": "flags",
+          "sample_value": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        }
+      ]
+    },
+    "eps-revision-velocity": {
+      "path": "all_qualifying",
+      "is_dict": false,
+      "size": 61,
+      "all_fields": [
+        "company",
+        "estimates",
+        "flag",
+        "fundamentals",
+        "ratings_breadth",
+        "rationale",
+        "score",
+        "status",
+        "symbol"
+      ],
+      "directional_fields": [
+        {
+          "field": "flag",
+          "sample_value": "HIGH_VELOCITY_TIER_B"
+        },
+        {
+          "field": "status",
+          "sample_value": "ok"
+        },
+        {
+          "field": "ratings_breadth",
+          "sample_value": {
+            "n_recent_90d": 30,
+            "n_upgrades": 3,
+            "n_downgrades": 0,
+            "upgrade_pct": 0.1
+          }
+        }
+      ]
+    },
+    "earnings-pead": {
+      "path": "all_qualifying",
+      "is_dict": false,
+      "size": 121,
+      "all_fields": [
+        "beat_streak",
+        "flags",
+        "metrics",
+        "score",
+        "surprise_history",
+        "symbol",
+        "tier"
+      ],
+      "directional_fields": [
+        {
+          "field": "tier",
+          "sample_value": "TIER_S_PEAD_DRIFT"
+        },
+        {
+          "field": "flags",
+          "sample_value": [
+            "BEAT_STREAK_4Q+",
+            "BIG_BEAT_30%+",
+            "AVG_SURPRISE_20%+",
+            "DRIFT_ACTIVE",
+            "DRIFT_CONFIRMED_5%+"
+          ]
+        },
+        {
+          "field": "beat_streak",
+          "sample_value": 8
+        }
+      ]
+    },
+    "sec-filings-intel": {
+      "path": "all_tickers",
+      "is_dict": false,
+      "size": 200,
+      "all_fields": [
+        "bearish_signals",
+        "bullish_signals",
+        "cik",
+        "events",
+        "highest_severity",
+        "latest_filing",
+        "n_events",
+        "name",
+        "raw_score",
+        "score",
+        "ticker",
+        "verdict"
+      ],
+      "directional_fields": [
+        {
+          "field": "bearish_signals",
+          "sample_value": 4
+        },
+        {
+          "field": "bullish_signals",
+          "sample_value": 0
+        },
+        {
+          "field": "highest_severity",
+          "sample_value": "high"
+        }
+      ]
+    },
+    "political-trades": {
+      "path": "high_watch_recent_15",
+      "is_dict": false,
+      "size": 15,
+      "all_fields": [
+        "amount_max_usd",
+        "amount_range",
+        "asset_description",
+        "asset_type",
+        "chamber",
+        "disclosure_date",
+        "link",
+        "member",
+        "office",
+        "reporting_lag_days",
+        "ticker",
+        "transaction_date",
+        "transaction_type"
+      ],
+      "directional_fields": [
+        {
+          "field": "transaction_type",
+          "sample_value": "sale"
+        },
+        {
+          "field": "transaction_date",
+          "sample_value": "2026-04-27"
+        }
+      ]
+    },
+    "lobbying-intel": {
+      "path": "all_tickers",
+      "is_dict": false,
+      "size": 200,
+      "all_fields": [
+        "acceleration_ratio",
+        "baseline_amount_usd",
+        "bills_mentioned",
+        "client",
+        "disappeared_issues",
+        "first_filing",
+        "is_new_entrant",
+        "last_filing",
+        "n_baseline_issues",
+        "n_recent_issues",
+        "n_records",
+        "new_issues",
+        "recent_amount_usd",
+        "registrants",
+        "sample_records",
+        "score",
+        "thesis",
+        "ticker"
+      ],
+      "directional_fields": []
+    },
+    "ark-holdings": {
+      "path": "cross_fund_top",
+      "is_dict": false,
+      "size": 30,
+      "all_fields": [
+        "company",
+        "funds",
+        "max_weight",
+        "n_funds",
+        "ticker",
+        "total_shares",
+        "total_value"
+      ],
+      "directional_fields": []
+    },
+    "fundamentals": {
+      "path": "companies",
+      "is_dict": false,
+      "size": 25,
+      "all_fields": [
+        "altman_z",
+        "dcf",
+        "dcf_gap_pct",
+        "fiscal_year",
+        "geo_mix",
+        "n_products",
+        "n_regions",
+        "ok",
+        "piotroski",
+        "price",
+        "product_mix",
+        "quality_label",
+        "ticker",
+        "top_product",
+        "top_product_pct",
+        "top_region",
+        "top_region_pct",
+        "valuation_label"
+      ],
+      "directional_fields": [
+        {
+          "field": "valuation_label",
+          "sample_value": "UNDERVALUED"
+        }
+      ]
+    },
+    "ticker-trends": {
+      "path": "top_20",
+      "is_dict": false,
+      "size": 20,
+      "all_fields": [
+        "current_level",
+        "interp",
+        "max_in_range",
+        "price_7d_pct",
+        "prior_level",
+        "score",
+        "series",
+        "sources_used",
+        "stealth",
+        "thesis",
+        "ticker",
+        "velocity",
+        "wiki_article"
+      ],
+      "directional_fields": []
+    },
+    "retail-sentiment": {
+      "path": "top_30_by_mentions",
+      "is_dict": false,
+      "size": 30,
+      "all_fields": [
+        "mentions",
+        "mentions_24h_ago",
+        "name",
+        "rank",
+        "rank_24h_ago",
+        "rank_climb",
+        "stwt_bear_pct",
+        "stwt_bull_bear_ratio",
+        "stwt_bull_pct",
+        "stwt_n_messages",
+        "stwt_total_likes",
+        "stwt_watchlist_count",
+        "ticker",
+        "upvotes",
+        "velocity_pct"
+      ],
+      "directional_fields": []
+    },
+    "hiring-velocity": {
+      "path": "double_confirmed",
+      "is_dict": false,
+      "size": 22,
+      "all_fields": [
+        "bagger_score",
+        "cap_bucket",
+        "expansion_score",
+        "headcount_accel_pp",
+        "headcount_latest",
+        "headcount_multiyr_cagr_pct",
+        "headcount_yoy_pct",
+        "history",
+        "inflection",
+        "market_cap",
+        "name",
+        "notes",
+        "rank",
+        "revenue_per_employee",
+        "revenue_per_employee_trend_pct",
+        "sector",
+        "state",
+        "symbol"
+      ],
+      "directional_fields": []
+    },
+    "capital-return": {
+      "path": "cannibals",
+      "is_dict": false,
+      "size": 60,
+      "all_fields": [
+        "buyback_yield_pct",
+        "cannibal_score",
+        "debt_to_equity",
+        "dividend_yield_pct",
+        "fcf_yield_pct",
+        "market_cap",
+        "name",
+        "pe_ratio",
+        "price",
+        "price_target",
+        "revenue_growth_pct",
+        "risk_flags",
+        "sector",
+        "shareholder_yield_pct",
+        "symbol",
+        "target_basis",
+        "upside_pct",
+        "why"
+      ],
+      "directional_fields": [
+        {
+          "field": "upside_pct",
+          "sample_value": 44.4
+        },
+        {
+          "field": "risk_flags",
+          "sample_value": []
+        }
+      ]
+    },
+    "earnings-cascade": {
+      "path": "strong_cascades",
+      "is_dict": false,
+      "size": 3,
+      "all_fields": [
+        "band",
+        "breakdown",
+        "cascade_score",
+        "company",
+        "market_cap_usd",
+        "pead_detail",
+        "predictability_detail",
+        "sector",
+        "thesis",
+        "ticker",
+        "tone_detail",
+        "trade_label",
+        "trade_note"
+      ],
+      "directional_fields": []
+    },
+    "dividend-growth": {
+      "path": "compounders",
+      "is_dict": false,
+      "size": 104,
+      "all_fields": [
+        "altman_z",
+        "annual_history",
+        "compounder_score",
+        "debt_to_equity",
+        "div_cagr_3y_pct",
+        "div_cagr_5y_pct",
+        "dividend_yield_pct",
+        "earnings_payout_pct",
+        "fcf_coverage",
+        "fcf_yield_pct",
+        "growth_streak_years",
+        "had_cut",
+        "industry",
+        "market_cap",
+        "name",
+        "piotroski",
+        "price",
+        "sector",
+        "symbol",
+        "tier",
+        "why",
+        "years_history"
+      ],
+      "directional_fields": [
+        {
+          "field": "tier",
+          "sample_value": "ARISTOCRAT"
+        }
+      ]
+    },
+    "sympathetic-momentum": {
+      "path": "top_proxies",
+      "err": "path 'top_proxies' missing"
+    },
+    "news-velocity": {
+      "path": "by_ticker",
+      "is_dict": true,
+      "size": 15,
+      "all_fields": [
+        "err",
+        "ticker"
+      ],
+      "directional_fields": []
+    }
+  },
+  "ticker_samples": {
+    "AVGO": {
+      "buzz-velocity": {
+        "ticker": "AVGO",
+        "name": "Broadcom Inc.",
+        "score": 25.0,
+        "composite_velocity": 1.0,
+        "reddit_velocity": {
+          "velocity": 1.0,
+          "interpretation": "NO_DATA",
+          "n_short": 0
+        },
+        "news_velocity": {
+          "velocity": 1.0,
+          "interpretation": "NO_DATA",
+          "n_short": 0
+        },
+        "sentiment": {
+          "score": 0,
+          "n_bullish": 0,
+          "n_bearish": 0,
+          "n_neutral": 0,
+          "n_total": 0
+        },
+        "price_perf_7d_pct": 7.47,
+        "stealth_signal": false,
+        "divergence": null,
+        "reddit_breakdown_7d": {
+          "wallstreetbets": 0,
+          "stocks": 0,
+          "investing": 0,
+          "options": 0,
+          "SecurityAnalysis": 0
+        },
+        "news_7d_count": 0,
+        "news_30d_count": 0,
+        "sample_headlines": [],
+        "thesis": "Moderate buzz"
+      },
+      "momentum-breakout": {
+        "symbol": "AVGO",
+        "score": 49.2,
+        "tier": "WATCH",
+        "flags": [
+          "RISING_20D",
+          "AT_60D_HIGH",
+          "VOL_SURGE_1.8X",
+          "RS_60D_+30"
+        ],
+        "is_parabolic": false,
+        "metrics": {
+          "today_close": 446.77,
+          "ret_5d_pct": 7.8,
+          "ret_10d_pct": 1.6,
+          "ret_20d_pct": 7.0,
+          "ret_60d_pct": 40.7,
+          "pct_from_60d_high": 0.0,
+          "pct_from_20d_high": 0.0,
+          "vol_ratio_today": 2.14,
+          "rs_vs_spy_20d_pct": 1.8,
+          "rs_vs_spy_60d_pct": 30.3,
+          "accum_pct": 26.3,
+          "avg_dollar_vol_20d": 8307608273.0
+        }
+      },
+      "options-flow": {
+        "symbol": "AVGO",
+        "score": 40.0,
+        "tier": "WATCH",
+        "flags": [
+          "CALL_VOL_3X",
+          "ABS_CPR_3X"
+        ],
+        "metrics": {
+          "spot": 446.77,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 180.27,
+          "avg_cpr_older": 242.42,
+          "cpr_change_pct": -25.6,
+          "total_call_vol_5d": 27118,
+          "total_put_vol_5d": 750,
+          "call_vol_surge": 9.41,
+          "short_metrics": {
+            "recent_avg_short_pct": 32.5,
+            "older_avg_short_pct": 31.3,
+            "short_pct_change": 1.16,
+            "avg_total_vol_5d": 7476880,
+            "n_finra_days": 20
+          }
+        }
+      },
+      "eps-revision-velocity": {
+        "symbol": "AVGO",
+        "company": "Broadcom Inc.",
+        "score": 85.0,
+        "flag": "HIGH_VELOCITY_TIER_B",
+        "status": "ok",
+        "fundamentals": {
+          "price": 446.77,
+          "market_cap": 2115308515900,
+          "sector": "",
+          "industry": "",
+          "pct_from_52w_high": -0.5
+        },
+        "estimates": {
+          "fy1_year": "2026",
+          "fy1_eps_avg": 11.27035,
+          "fy1_rev_avg": 103250650220,
+          "fy1_n_estimates": 25,
+          "fy2_year": "2027",
+          "fy2_eps_avg": 18.28009,
+          "fy2_lift_pct": 62.2,
+          "fwd_rev_growth_pct": 58.5,
+          "dispersion": 0.269
+        },
+        "ratings_breadth": {
+          "n_recent_90d": 23,
+          "n_upgrades": 0,
+          "n_downgrades": 0,
+          "upgrade_pct": 0.0
+        },
+        "rationale": "AVGO (): EPS estimate FY27 vs FY26 = +62% forward revenue growth +59%."
+      },
+      "earnings-pead": {
+        "symbol": "AVGO",
+        "score": 34.0,
+        "tier": "WATCH",
+        "flags": [
+          "BEAT_STREAK_4Q+"
+        ],
+        "beat_streak": 8,
+        "metrics": {
+          "latest_earnings_date": "2026-03-04",
+          "days_since_earnings": 89.0,
+          "drift_active": false,
+          "latest_surprise_pct": 1.0,
+          "avg_surprise_4q": 1.9,
+          "post_earnings_return_pct": null,
+          "market_cap": 2115308515900,
+          "cap_bucket": "mega",
+          "sector": "Technology",
+          "industry": "Semiconductors"
+        },
+        "surprise_history": [
+          {
+            "date": "2026-03-04",
+            "actual": 2.05,
+            "estimate": 2.03,
+            "surprise_pct": 0.9852216748768483,
+            "beat": true
+          },
+          {
+            "date": "2025-12-11",
+            "actual": 1.95,
+            "estimate": 1.87,
+            "surprise_pct": 4.278074866310152,
+            "beat": true
+          },
+          {
+            "date": "2025-09-04",
+            "actual": 1.69,
+            "estimate": 1.66,
+            "surprise_pct": 1.8072289156626522,
+            "beat": true
+          },
+          {
+            "date": "2025-06-05",
+            "actual": 1.58,
+            "estimate": 1.57,
+            "surprise_pct": 0.6369426751592362,
+            "beat": true
+          },
+          {
+            "date": "2025-03-06",
+            "actual": 1.6,
+            "estimate": 1.51,
+            "surprise_pct": 5.960264900662257,
+            "beat": true
+          }
+        ]
+      },
+      "political-trades": {
+        "chamber": "SENATE",
+        "member": "Shelley Moore Capito",
+        "office": "Shelley Moore Capito",
+        "ticker": "AVGO",
+        "asset_description": "Broadcom Inc",
+        "asset_type": "Sale",
+        "transaction_type": "sale",
+        "amount_range": "$1,001 - $15,000",
+        "amount_max_usd": 15000,
+        "transaction_date": "2026-04-13",
+        "disclosure_date": "2026-05-07",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/029f67f3-121a-406c-bddf-a9a7e7d6267b/",
+        "reporting_lag_days": 24
+      },
+      "ark-holdings": {
+        "ticker": "AVGO",
+        "company": "BROADCOM INC",
+        "total_shares": 360037,
+        "total_value": 153584583.46,
+        "funds": [
+          {
+            "fund": "ARKK",
+            "shares": 187211,
+            "value": 79860468.38,
+            "weight": 1.11
+          },
+          {
+            "fund": "ARKQ",
+            "shares": 80987,
+            "value": 34547434.46,
+            "weight": 1.43
+          },
+          {
+            "fund": "ARKW",
+            "shares": 91839,
+            "value": 39176680.62,
+            "weight": 2.18
+          }
+        ],
+        "max_weight": 2.18,
+        "n_funds": 3
+      },
+      "fundamentals": {
+        "ticker": "AVGO",
+        "price": 446.77,
+        "dcf": 201.11,
+        "dcf_gap_pct": -55.0,
+        "valuation_label": "OVERVALUED",
+        "altman_z": 15.2,
+        "piotroski": 6,
+        "quality_label": "OK",
+        "top_region": "Asia Pacific",
+        "top_region_pct": 56.2,
+        "n_regions": 3,
+        "geo_mix": {
+          "Americas": 29.6,
+          "Asia Pacific": 56.2,
+          "EMEA": 14.2
+        },
+        "top_product": "Semiconductor Solutions",
+        "top_product_pct": 57.7,
+        "n_products": 2,
+        "product_mix": {
+          "Infrastructure Software": 42.3,
+          "Semiconductor Solutions": 57.7
+        },
+        "fiscal_year": 2025,
+        "ok": true
+      },
+      "retail-sentiment": {
+        "rank": 26,
+        "ticker": "AVGO",
+        "name": "Broadcom",
+        "mentions": 50,
+        "mentions_24h_ago": 25,
+        "rank_24h_ago": 14,
+        "upvotes": 143,
+        "velocity_pct": 100.0,
+        "rank_climb": -12
+      },
+      "dividend-growth": {
+        "symbol": "AVGO",
+        "name": "Broadcom Inc.",
+        "sector": "Technology",
+        "industry": "Semiconductors",
+        "price": 446.77,
+        "market_cap": 2115308515900.0,
+        "dividend_yield_pct": 0.56,
+        "div_cagr_5y_pct": 12.6,
+        "div_cagr_3y_pct": 12.7,
+        "growth_streak_years": 15,
+        "had_cut": false,
+        "years_history": 16,
+        "fcf_coverage": 2.27,
+        "earnings_payout_pct": 47.5,
+        "fcf_yield_pct": 1.27,
+        "piotroski": 9,
+        "altman_z": 15.2,
+        "debt_to_equity": 0.83,
+        "annual_history": [
+          {
+            "year": 2018,
+            "dividend": 0.79
+          },
+          {
+            "year": 2019,
+            "dividend": 1.12
+          },
+          {
+            "year": 2020,
+            "dividend": 1.335
+          },
+          {
+            "year": 2021,
+            "dividend": 1.49
+          },
+          {
+            "year": 2022,
+            "dividend": 1.69
+          },
+          {
+            "year": 2023,
+            "dividend": 1.905
+          },
+          {
+            "year": 2024,
+            "dividend": 2.17
+          },
+          {
+            "year": 2025,
+            "dividend": 2.42
+          }
+        ],
+        "tier": "ARISTOCRAT",
+        "compounder_score": 86.2,
+        "why": "0.6% yield growing at a 12.6%/yr clip, raised 15 years running with no cut; free cash flow covers it 2.27x. A aristocrat-grade dividend compounder - the income rises while you hold it."
+      },
+      "news-velocity": {
+        "ticker": "AVGO",
+        "err": "no GDELT data"
+      }
+    },
+    "AMD": {
+      "buzz-velocity": {
+        "ticker": "AMD",
+        "name": "Advanced Micro Devices, Inc.",
+        "score": 25.0,
+        "composite_velocity": 1.0,
+        "reddit_velocity": {
+          "velocity": 1.0,
+          "interpretation": "NO_DATA",
+          "n_short": 0
+        },
+        "news_velocity": {
+          "velocity": 1.0,
+          "interpretation": "NO_DATA",
+          "n_short": 0
+        },
+        "sentiment": {
+          "score": 0,
+          "n_bullish": 0,
+          "n_bearish": 0,
+          "n_neutral": 0,
+          "n_total": 0
+        },
+        "price_perf_7d_pct": 9.48,
+        "stealth_signal": false,
+        "divergence": null,
+        "reddit_breakdown_7d": {
+          "wallstreetbets": 0,
+          "stocks": 0,
+          "investing": 0,
+          "options": 0,
+          "SecurityAnalysis": 0
+        },
+        "news_7d_count": 0,
+        "news_30d_count": 0,
+        "sample_headlines": [],
+        "thesis": "Moderate buzz"
+      },
+      "momentum-breakout": {
+        "symbol": "AMD",
+        "score": 65,
+        "tier": "TIER_B_MOMENTUM",
+        "flags": [
+          "RISING_20D",
+          "AT_60D_HIGH",
+          "RS_20D_+40",
+          "RS_60D_+145"
+        ],
+        "is_parabolic": false,
+        "metrics": {
+          "today_close": 516.1,
+          "ret_5d_pct": 14.8,
+          "ret_10d_pct": 14.8,
+          "ret_20d_pct": 45.6,
+          "ret_60d_pct": 155.4,
+          "pct_from_60d_high": -0.4,
+          "pct_from_20d_high": -0.4,
+          "vol_ratio_today": 0.77,
+          "rs_vs_spy_20d_pct": 40.3,
+          "rs_vs_spy_60d_pct": 145.0,
+          "accum_pct": 21.1,
+          "avg_dollar_vol_20d": 17278416884.0
+        }
+      },
+      "options-flow": {
+        "symbol": "AMD",
+        "score": 63.0,
+        "tier": "TIER_B_FLOW_BUILDING",
+        "flags": [
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "metrics": {
+          "spot": 516.1,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 11.62,
+          "avg_cpr_older": 27.75,
+          "cpr_change_pct": -58.1,
+          "total_call_vol_5d": 30985,
+          "total_put_vol_5d": 9894,
+          "call_vol_surge": 53.42,
+          "short_metrics": {
+            "recent_avg_short_pct": 47.9,
+            "older_avg_short_pct": 51.0,
+            "short_pct_change": -3.08,
+            "avg_total_vol_5d": 15294590,
+            "n_finra_days": 20
+          }
+        }
+      },
+      "eps-revision-velocity": {
+        "symbol": "AMD",
+        "company": "Advanced Micro Devices, Inc.",
+        "score": 86.5,
+        "flag": "HIGH_VELOCITY_TIER_B",
+        "status": "ok",
+        "fundamentals": {
+          "price": 516.1,
+          "market_cap": 841552660000,
+          "sector": "",
+          "industry": "",
+          "pct_from_52w_high": -2.1
+        },
+        "estimates": {
+          "fy1_year": "2026",
+          "fy1_eps_avg": 7.44303,
+          "fy1_rev_avg": 49865887475,
+          "fy1_n_estimates": 30,
+          "fy2_year": "2027",
+          "fy2_eps_avg": 13.10448,
+          "fy2_lift_pct": 76.1,
+          "fwd_rev_growth_pct": 53.0,
+          "dispersion": 0.205
+        },
+        "ratings_breadth": {
+          "n_recent_90d": 30,
+          "n_upgrades": 3,
+          "n_downgrades": 0,
+          "upgrade_pct": 0.1
+        },
+        "rationale": "AMD (): EPS estimate FY27 vs FY26 = +76% forward revenue growth +53%."
+      },
+      "earnings-pead": {
+        "symbol": "AMD",
+        "score": 60.0,
+        "tier": "TIER_A_HIGH_QUALITY_BEAT",
+        "flags": [
+          "BEAT_STREAK_4Q+",
+          "BEAT_5%+",
+          "DRIFT_ACTIVE",
+          "DRIFT_CONFIRMED_5%+"
+        ],
+        "beat_streak": 6,
+        "metrics": {
+          "latest_earnings_date": "2026-05-05",
+          "days_since_earnings": 27.0,
+          "drift_active": true,
+          "latest_surprise_pct": 6.2,
+          "avg_surprise_4q": 6.2,
+          "post_earnings_return_pct": 45.3,
+          "market_cap": 841552660000,
+          "cap_bucket": "mega",
+          "sector": "Technology",
+          "industry": "Semiconductors"
+        },
+        "surprise_history": [
+          {
+            "date": "2026-05-05",
+            "actual": 1.37,
+            "estimate": 1.29,
+            "surprise_pct": 6.201550387596905,
+            "beat": true
+          },
+          {
+            "date": "2026-02-03",
+            "actual": 1.53,
+            "estimate": 1.32,
+            "surprise_pct": 15.909090909090907,
+            "beat": true
+          },
+          {
+            "date": "2025-11-04",
+            "actual": 1.2,
+            "estimate": 1.17,
+            "surprise_pct": 2.5641025641025665,
+            "beat": true
+          },
+          {
+            "date": "2025-08-05",
+            "actual": 0.48,
+            "estimate": 0.4787,
+            "surprise_pct": 0.2715688322540146,
+            "beat": true
+          },
+          {
+            "date": "2025-05-06",
+            "actual": 0.96,
+            "estimate": 0.944,
+            "surprise_pct": 1.6949152542372898,
+            "beat": true
+          }
+        ]
+      },
+      "ark-holdings": {
+        "ticker": "AMD",
+        "company": "ADVANCED MICRO DEVICES",
+        "total_shares": 1734211,
+        "total_value": 898477376.9900001,
+        "funds": [
+          {
+            "fund": "ARKF",
+            "shares": 66986,
+            "value": 34704776.74,
+            "weight": 4.25
+          },
+          {
+            "fund": "ARKK",
+            "shares": 775061,
+            "value": 401551353.49,
+            "weight": 5.6
+          },
+          {
+            "fund": "ARKQ",
+            "shares": 388022,
+            "value": 201030317.98,
+            "weight": 8.29
+          },
+          {
+            "fund": "ARKW",
+            "shares": 334727,
+            "value": 173418711.43,
+            "weight": 9.67
+          },
+          {
+            "fund": "ARKX",
+            "shares": 169415,
+            "value": 87772217.35,
+            "weight": 7.84
+          }
+        ],
+        "max_weight": 9.67,
+        "n_funds": 5
+      },
+      "fundamentals": {
+        "ticker": "AMD",
+        "price": 516.1,
+        "dcf": 51.65,
+        "dcf_gap_pct": -90.0,
+        "valuation_label": "OVERVALUED",
+        "altman_z": 34.36,
+        "piotroski": 7,
+        "quality_label": "STRONG",
+        "top_region": "UNITED STATES",
+        "top_region_pct": 32.8,
+        "n_regions": 5,
+        "geo_mix": {
+          "CHINA": 22.4,
+          "Other Countries": 17.5,
+          "SINGAPORE": 12.4,
+          "TAIWAN, PROVINCE OF CHINA": 15.0,
+          "UNITED STATES": 32.8
+        },
+        "top_product": "Data Center",
+        "top_product_pct": 43.2,
+        "n_products": 4,
+        "product_mix": {
+          "Client and Gaming": 37.7,
+          "Data Center": 43.2,
+          "Embedded": 9.0,
+          "Gaming": 10.1
+        },
+        "fiscal_year": 2025,
+        "ok": true
+      },
+      "retail-sentiment": {
+        "rank": 12,
+        "ticker": "AMD",
+        "name": "AMD",
+        "mentions": 106,
+        "mentions_24h_ago": 32,
+        "rank_24h_ago": 11,
+        "upvotes": 1441,
+        "velocity_pct": 231.2,
+        "rank_climb": -1,
+        "stwt_bull_pct": 92.9,
+        "stwt_bear_pct": 7.1,
+        "stwt_bull_bear_ratio": 13.0,
+        "stwt_n_messages": 30,
+        "stwt_total_likes": 0,
+        "stwt_watchlist_count": 559281
+      }
+    },
+    "TSLA": {
+      "buzz-velocity": {
+        "ticker": "TSLA",
+        "name": "Tesla, Inc.",
+        "score": 25.0,
+        "composite_velocity": 1.0,
+        "reddit_velocity": {
+          "velocity": 1.0,
+          "interpretation": "NO_DATA",
+          "n_short": 0
+        },
+        "news_velocity": {
+          "velocity": 1.0,
+          "interpretation": "NO_DATA",
+          "n_short": 0
+        },
+        "sentiment": {
+          "score": 0,
+          "n_bullish": 0,
+          "n_bearish": 0,
+          "n_neutral": 0,
+          "n_total": 0
+        },
+        "price_perf_7d_pct": 2.06,
+        "stealth_signal": false,
+        "divergence": null,
+        "reddit_breakdown_7d": {
+          "wallstreetbets": 0,
+          "stocks": 0,
+          "investing": 0,
+          "options": 0,
+          "SecurityAnalysis": 0
+        },
+        "news_7d_count": 0,
+        "news_30d_count": 0,
+        "sample_headlines": [],
+        "thesis": "Moderate buzz"
+      },
+      "momentum-breakout": {
+        "symbol": "TSLA",
+        "score": 27.9,
+        "tier": "MARGINAL",
+        "flags": [
+          "RISING_20D",
+          "NEAR_60D_HIGH",
+          "RS_20D_+9"
+        ],
+        "is_parabolic": false,
+        "metrics": {
+          "today_close": 435.79,
+          "ret_5d_pct": 4.3,
+          "ret_10d_pct": -1.7,
+          "ret_20d_pct": 14.2,
+          "ret_60d_pct": 7.4,
+          "pct_from_60d_high": -2.1,
+          "pct_from_20d_high": -2.1,
+          "vol_ratio_today": 0.86,
+          "rs_vs_spy_20d_pct": 8.9,
+          "rs_vs_spy_60d_pct": -3.1,
+          "accum_pct": 26.3,
+          "avg_dollar_vol_20d": 22164793243.0
+        }
+      },
+      "options-flow": {
+        "symbol": "TSLA",
+        "score": 48.0,
+        "tier": "WATCH",
+        "flags": [
+          "CALL_VOL_3X",
+          "ABS_CPR_3X"
+        ],
+        "metrics": {
+          "spot": 435.79,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 3.32,
+          "avg_cpr_older": 97.28,
+          "cpr_change_pct": -96.6,
+          "total_call_vol_5d": 247787,
+          "total_put_vol_5d": 140144,
+          "call_vol_surge": 52.01,
+          "short_metrics": {
+            "recent_avg_short_pct": 47.8,
+            "older_avg_short_pct": 48.2,
+            "short_pct_change": -0.42,
+            "avg_total_vol_5d": 20486644,
+            "n_finra_days": 20
+          }
+        }
+      },
+      "eps-revision-velocity": {
+        "symbol": "TSLA",
+        "company": "Tesla, Inc.",
+        "score": 68.3,
+        "flag": "HIGH_VELOCITY_TIER_B",
+        "status": "ok",
+        "fundamentals": {
+          "price": 435.79,
+          "market_cap": 1636705218800,
+          "sector": "",
+          "industry": "",
+          "pct_from_52w_high": -12.6
+        },
+        "estimates": {
+          "fy1_year": "2026",
+          "fy1_eps_avg": 1.90369,
+          "fy1_rev_avg": 102749875362,
+          "fy1_n_estimates": 25,
+          "fy2_year": "2027",
+          "fy2_eps_avg": 2.43597,
+          "fy2_lift_pct": 28.0,
+          "fwd_rev_growth_pct": 14.8,
+          "dispersion": 1.04
+        },
+        "ratings_breadth": {
+          "n_recent_90d": 18,
+          "n_upgrades": 0,
+          "n_downgrades": 2,
+          "upgrade_pct": 0.0
+        },
+        "rationale": "TSLA (): EPS estimate FY27 vs FY26 = +28% forward revenue growth +15%."
+      },
+      "earnings-pead": {
+        "symbol": "TSLA",
+        "score": 50.0,
+        "tier": "TIER_B_BUILDING",
+        "flags": [
+          "BEAT_STREAK_2Q",
+          "BIG_BEAT_15%+",
+          "DRIFT_ACTIVE",
+          "DRIFT_CONFIRMED_5%+"
+        ],
+        "beat_streak": 2,
+        "metrics": {
+          "latest_earnings_date": "2026-04-22",
+          "days_since_earnings": 40.0,
+          "drift_active": true,
+          "latest_surprise_pct": 15.9,
+          "avg_surprise_4q": 4.0,
+          "post_earnings_return_pct": 12.5,
+          "market_cap": 1636705218800,
+          "cap_bucket": "mega",
+          "sector": "Consumer Cyclical",
+          "industry": "Auto - Manufacturers"
+        },
+        "surprise_history": [
+          {
+            "date": "2026-04-22",
+            "actual": 0.41,
+            "estimate": 0.3539,
+            "surprise_pct": 15.851935575021189,
+            "beat": true
+          },
+          {
+            "date": "2026-01-28",
+            "actual": 0.5,
+            "estimate": 0.4548,
+            "surprise_pct": 9.938434476693056,
+            "beat": true
+          },
+          {
+            "date": "2025-10-22",
+            "actual": 0.5,
+            "estimate": 0.558,
+            "surprise_pct": -10.394265232974918,
+            "beat": false
+          },
+          {
+            "date": "2025-07-23",
+            "actual": 0.4,
+            "estimate": 0.3972,
+            "surprise_pct": 0.7049345417925541,
+            "beat": true
+          },
+          {
+            "date": "2025-04-22",
+            "actual": 0.27,
+            "estimate": 0.4136,
+            "surprise_pct": -34.719535783365565,
+            "beat": false
+          }
+        ]
+      },
+      "lobbying-intel": {
+        "ticker": "TSLA",
+        "client": "TESLA INC.",
+        "score": 50,
+        "recent_amount_usd": 1000000.0,
+        "baseline_amount_usd": 1635162.0,
+        "acceleration_ratio": 1.87,
+        "n_recent_issues": 5,
+        "n_baseline_issues": 9,
+        "new_issues": [
+          "Automotive Industry \n Natural Resources \n Budget/Appropriati",
+          "Trade (domestic/foreign)"
+        ],
+        "disappeared_issues": [
+          "Automotive Industry \n Taxation/Internal Revenue Code \n Trade",
+          "Energy/Nuclear \n Taxation/Internal Revenue Code",
+          "Natural Resources \n Budget/Appropriations \n Telecommunicatio",
+          "Taxation/Internal Revenue Code \n Trade (domestic/foreign) \n ",
+          "Trade (domestic/foreign) \n Energy/Nuclear \n Taxation/Interna",
+          "Transportation \n Automotive Industry \n Manufacturing \n Telec"
+        ],
+        "is_new_entrant": false,
+        "registrants": [
+          "AKIN GUMP STRAUSS HAUER & FELD",
+          "CAPITOL CONSULTING GROUP LLC (DC)",
+          "CONTINENTAL STRATEGY, LLC",
+          "RICH FEUER ANDERSON",
+          "TESLA INC."
+        ],
+        "bills_mentioned": [
+          "H.R.1",
+          "H.R.1566",
+          "H.R.3413",
+          "H.R.8315",
+          "H.R.906",
+          "H.R.979",
+          "S.1669",
+          "S.315",
+          "S.4753"
+        ],
+        "n_records": 24,
+        "first_filing": "2025-01-21",
+        "last_filing": "2026-04-20",
+        "sample_records": [
+          {
+            "date": "2026-04-20",
+            "amount": 760000.0,
+            "issue": "Automotive Industry \n Natural Resources \n Budget/Appropriati",
+            "registrant": "TESLA INC.",
+            "specific": "Autonomous Vehicle policies Artificial Intelligence/Robotics Surface Transportation Reauthorization EV Fees/Highway Trust Fund Reform EV charging infrastructure/EV signage National Electric Vehicle In"
+          },
+          {
+            "date": "2026-04-20",
+            "amount": 20000.0,
+            "issue": "Transportation",
+            "registrant": "CAPITOL CONSULTING GROUP LLC (DC)",
+            "specific": "Transportation and mobility, solar energy and energy storage policy issues."
+          },
+          {
+            "date": "2026-04-20",
+            "amount": 40000.0,
+            "issue": "Energy/Nuclear \n Taxation/Internal Revenue Code \n Automotive",
+            "registrant": "RICH FEUER ANDERSON",
+            "specific": "Issues related to electric power distribution and storage. \n Tax issues related to the storage and generation of electricity. \n Issues related to electric power distribution and storage. \n General tra"
+          },
+          {
+            "date": "2026-04-20",
+            "amount": 90000.0,
+            "issue": "Trade (domestic/foreign)",
+            "registrant": "AKIN GUMP STRAUSS HAUER & FELD",
+            "specific": "Issues related to supply chains; Issues related to Section 232 tariffs."
+          },
+          {
+            "date": "2026-04-18",
+            "amount": 90000.0,
+            "issue": "Automotive Industry",
+            "registrant": "CONTINENTAL STRATEGY, LLC",
+            "specific": "mobility and transportation issues"
+          }
+        ],
+        "thesis": "2 new issues introduced \u00b7 specific bills tracked: H.R.1, H.R.1566, H.R.3413"
+      },
+      "ark-holdings": {
+        "ticker": "TSLA",
+        "company": "TESLA INC",
+        "total_shares": 2706513,
+        "total_value": 1196549397.3000002,
+        "funds": [
+          {
+            "fund": "ARKK",
+            "shares": 1711759,
+            "value": 756768653.9,
+            "weight": 10.55
+          },
+          {
+            "fund": "ARKQ",
+            "shares": 560471,
+            "value": 247784229.1,
+            "weight": 10.22
+          },
+          {
+            "fund": "ARKW",
+            "shares": 370429,
+            "value": 163766660.9,
+            "weight": 9.13
+          },
+          {
+            "fund": "ARKX",
+            "shares": 63854,
+            "value": 28229853.4,
+            "weight": 2.52
+          }
+        ],
+        "max_weight": 10.55,
+        "n_funds": 4
+      },
+      "retail-sentiment": {
+        "rank": 22,
+        "ticker": "TSLA",
+        "name": "Tesla",
+        "mentions": 62,
+        "mentions_24h_ago": 31,
+        "rank_24h_ago": 13,
+        "upvotes": 285,
+        "velocity_pct": 100.0,
+        "rank_climb": -9,
+        "stwt_bull_pct": 81.2,
+        "stwt_bear_pct": 18.8,
+        "stwt_bull_bear_ratio": 4.33,
+        "stwt_n_messages": 30,
+        "stwt_total_likes": 0,
+        "stwt_watchlist_count": 1053854
+      },
+      "news-velocity": {
+        "ticker": "TSLA",
+        "err": "no GDELT data"
+      }
+    },
+    "NVDA": {
+      "buzz-velocity": {
+        "ticker": "NVDA",
+        "name": "NVIDIA Corporation",
+        "score": 25.0,
+        "composite_velocity": 1.0,
+        "reddit_velocity": {
+          "velocity": 1.0,
+          "interpretation": "NO_DATA",
+          "n_short": 0
+        },
+        "news_velocity": {
+          "velocity": 1.0,
+          "interpretation": "NO_DATA",
+          "n_short": 0
+        },
+        "sentiment": {
+          "score": 0,
+          "n_bullish": 0,
+          "n_bearish": 0,
+          "n_neutral": 0,
+          "n_total": 0
+        },
+        "price_perf_7d_pct": -1.51,
+        "stealth_signal": false,
+        "divergence": null,
+        "reddit_breakdown_7d": {
+          "wallstreetbets": 0,
+          "stocks": 0,
+          "investing": 0,
+          "options": 0,
+          "SecurityAnalysis": 0
+        },
+        "news_7d_count": 0,
+        "news_30d_count": 0,
+        "sample_headlines": [],
+        "thesis": "Moderate buzz"
+      },
+      "momentum-breakout": {
+        "symbol": "NVDA",
+        "score": 13.6,
+        "tier": "MARGINAL",
+        "flags": [
+          "RISING_20D"
+        ],
+        "is_parabolic": false,
+        "metrics": {
+          "today_close": 211.14,
+          "ret_5d_pct": -3.8,
+          "ret_10d_pct": -10.4,
+          "ret_20d_pct": 5.8,
+          "ret_60d_pct": 15.4,
+          "pct_from_60d_high": -10.4,
+          "pct_from_20d_high": -10.4,
+          "vol_ratio_today": 1.74,
+          "rs_vs_spy_20d_pct": 0.5,
+          "rs_vs_spy_60d_pct": 4.9,
+          "accum_pct": 21.1,
+          "avg_dollar_vol_20d": 35912547430.0
+        }
+      },
+      "options-flow": {
+        "symbol": "NVDA",
+        "score": 25.0,
+        "tier": "NEUTRAL",
+        "flags": [
+          "CALL_VOL_3X"
+        ],
+        "metrics": {
+          "spot": 211.14,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 1.29,
+          "avg_cpr_older": 3.28,
+          "cpr_change_pct": -60.7,
+          "total_call_vol_5d": 178119,
+          "total_put_vol_5d": 149721,
+          "call_vol_surge": 15.09,
+          "short_metrics": {
+            "recent_avg_short_pct": 38.0,
+            "older_avg_short_pct": 37.8,
+            "short_pct_change": 0.26,
+            "avg_total_vol_5d": 69186970,
+            "n_finra_days": 20
+          }
+        }
+      },
+      "eps-revision-velocity": {
+        "symbol": "NVDA",
+        "company": "NVIDIA Corporation",
+        "score": 85.0,
+        "flag": "HIGH_VELOCITY_TIER_B",
+        "status": "ok",
+        "fundamentals": {
+          "price": 211.14,
+          "market_cap": 5114021940000,
+          "sector": "",
+          "industry": "",
+          "pct_from_52w_high": -10.7
+        },
+        "estimates": {
+          "fy1_year": "2027",
+          "fy1_eps_avg": 8.87296,
+          "fy1_rev_avg": 389343121085,
+          "fy1_n_estimates": 31,
+          "fy2_year": "2028",
+          "fy2_eps_avg": 12.36853,
+          "fy2_lift_pct": 39.4,
+          "fwd_rev_growth_pct": 41.5,
+          "dispersion": 0.168
+        },
+        "ratings_breadth": {
+          "n_recent_90d": 30,
+          "n_upgrades": 0,
+          "n_downgrades": 0,
+          "upgrade_pct": 0.0
+        },
+        "rationale": "NVDA (): EPS estimate FY28 vs FY27 = +39% forward revenue growth +41%."
+      },
+      "earnings-pead": {
+        "symbol": "NVDA",
+        "score": 35.0,
+        "tier": "WATCH",
+        "flags": [
+          "BEAT_STREAK_4Q+",
+          "BEAT_5%+",
+          "DRIFT_ACTIVE",
+          "DRIFT_REJECTED"
+        ],
+        "beat_streak": 8,
+        "metrics": {
+          "latest_earnings_date": "2026-05-20",
+          "days_since_earnings": 12.0,
+          "drift_active": true,
+          "latest_surprise_pct": 6.3,
+          "avg_surprise_4q": 4.6,
+          "post_earnings_return_pct": -5.5,
+          "market_cap": 5114021940000,
+          "cap_bucket": "mega",
+          "sector": "Technology",
+          "industry": "Semiconductors"
+        },
+        "surprise_history": [
+          {
+            "date": "2026-05-20",
+            "actual": 1.87,
+            "estimate": 1.76,
+            "surprise_pct": 6.250000000000005,
+            "beat": true
+          },
+          {
+            "date": "2026-02-25",
+            "actual": 1.62,
+            "estimate": 1.54,
+            "surprise_pct": 5.194805194805199,
+            "beat": true
+          },
+          {
+            "date": "2025-11-19",
+            "actual": 1.3,
+            "estimate": 1.26,
+            "surprise_pct": 3.174603174603177,
+            "beat": true
+          },
+          {
+            "date": "2025-08-27",
+            "actual": 1.05,
+            "estimate": 1.01,
+            "surprise_pct": 3.960396039603964,
+            "beat": true
+          },
+          {
+            "date": "2025-05-28",
+            "actual": 0.81,
+            "estimate": 0.737,
+            "surprise_pct": 9.905020352781555,
+            "beat": true
+          }
+        ]
+      },
+      "ark-holdings": {
+        "ticker": "NVDA",
+        "company": "NVIDIA CORP",
+        "total_shares": 929798,
+        "total_value": 199209221.5,
+        "funds": [
+          {
+            "fund": "ARKF",
+            "shares": 72862,
+            "value": 15610683.5,
+            "weight": 1.91
+          },
+          {
+            "fund": "ARKK",
+            "shares": 399302,
+            "value": 85550453.5,
+            "weight": 1.19
+          },
+          {
+            "fund": "ARKQ",
+            "shares": 246805,
+            "value": 52877971.25,
+            "weight": 2.18
+          },
+          {
+            "fund": "ARKW",
+            "shares": 88386,
+            "value": 18936700.5,
+            "weight": 1.06
+          },
+          {
+            "fund": "ARKX",
+            "shares": 122443,
+            "value": 26233412.75,
+            "weight": 2.34
+          }
+        ],
+        "max_weight": 2.34,
+        "n_funds": 5
+      },
+      "fundamentals": {
+        "ticker": "NVDA",
+        "price": 211.14,
+        "dcf": 243.25,
+        "dcf_gap_pct": 15.2,
+        "valuation_label": "FAIR",
+        "altman_z": 52.83,
+        "piotroski": 7,
+        "quality_label": "STRONG",
+        "top_region": "UNITED STATES",
+        "top_region_pct": 69.3,
+        "n_regions": 4,
+        "geo_mix": {
+          "CHINA": 9.1,
+          "Other Americas": 2.0,
+          "TAIWAN, PROVINCE OF CHINA": 19.6,
+          "UNITED STATES": 69.3
+        },
+        "top_product": "Data Center",
+        "top_product_pct": 89.7,
+        "n_products": 5,
+        "product_mix": {
+          "Automotive": 1.1,
+          "Data Center": 89.7,
+          "Gaming": 7.4,
+          "OEM And Other": 0.3,
+          "Professional Visualization": 1.5
+        },
+        "fiscal_year": 2026,
+        "ok": true
+      },
+      "retail-sentiment": {
+        "rank": 4,
+        "ticker": "NVDA",
+        "name": "NVIDIA",
+        "mentions": 253,
+        "mentions_24h_ago": 61,
+        "rank_24h_ago": 4,
+        "upvotes": 2174,
+        "velocity_pct": 314.8,
+        "rank_climb": 0,
+        "stwt_bull_pct": 90.0,
+        "stwt_bear_pct": 10.0,
+        "stwt_bull_bear_ratio": 9.0,
+        "stwt_n_messages": 30,
+        "stwt_total_likes": 0,
+        "stwt_watchlist_count": 648369
+      },
+      "news-velocity": {
+        "ticker": "NVDA",
+        "current_volume": 0.7304,
+        "current_date": "2026-06-01",
+        "avg_3d": 0.3872,
+        "avg_7d": 0.3165,
+        "avg_30d": 0.2985,
+        "stdev_30d": 0.1399,
+        "z_score_30d": 3.09,
+        "velocity_pct": 144.7,
+        "velocity_flag": "SURGE",
+        "n_days": 30,
+        "timeline_last_7": [
+          {
+            "date": "2026-05-26",
+            "value": 0.2594
+          },
+          {
+            "date": "2026-05-27",
+            "value": 0.3357
+          },
+          {
+            "date": "2026-05-28",
+            "value": 0.2579
+          },
+          {
+            "date": "2026-05-29",
+            "value": 0.2007
+          },
+          {
+            "date": "2026-05-30",
+            "value": 0.2101
+          },
+          {
+            "date": "2026-05-31",
+            "value": 0.2212
+          },
+          {
+            "date": "2026-06-01",
+            "value": 0.7304
+          }
+        ]
+      }
+    },
+    "PLTR": {
+      "momentum-breakout": {
+        "symbol": "PLTR",
+        "score": 37.5,
+        "tier": "MARGINAL",
+        "flags": [
+          "RISING_20D",
+          "AT_20D_HIGH",
+          "VOL_SURGE_1.8X",
+          "RS_20D_+7"
+        ],
+        "is_parabolic": false,
+        "metrics": {
+          "today_close": 156.54,
+          "ret_5d_pct": 13.9,
+          "ret_10d_pct": 17.1,
+          "ret_20d_pct": 12.5,
+          "ret_60d_pct": 2.2,
+          "pct_from_60d_high": -2.7,
+          "pct_from_20d_high": 0.0,
+          "vol_ratio_today": 2.05,
+          "rs_vs_spy_20d_pct": 7.3,
+          "rs_vs_spy_60d_pct": -8.2,
+          "accum_pct": 21.1,
+          "avg_dollar_vol_20d": 6265712443.0
+        }
+      },
+      "options-flow": {
+        "symbol": "PLTR",
+        "score": 78.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_EASING"
+        ],
+        "metrics": {
+          "spot": 156.54,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 77.57,
+          "avg_cpr_older": 31.71,
+          "cpr_change_pct": 144.6,
+          "total_call_vol_5d": 104588,
+          "total_put_vol_5d": 10453,
+          "call_vol_surge": 11.0,
+          "short_metrics": {
+            "recent_avg_short_pct": 35.7,
+            "older_avg_short_pct": 38.4,
+            "short_pct_change": -2.76,
+            "avg_total_vol_5d": 20001072,
+            "n_finra_days": 20
+          }
+        }
+      },
+      "eps-revision-velocity": {
+        "symbol": "PLTR",
+        "company": "Palantir Technologies Inc.",
+        "score": 86.0,
+        "flag": "HIGH_VELOCITY_TIER_B",
+        "status": "ok",
+        "fundamentals": {
+          "price": 156.54,
+          "market_cap": 359426797800,
+          "sector": "",
+          "industry": "",
+          "pct_from_52w_high": -24.6
+        },
+        "estimates": {
+          "fy1_year": "2026",
+          "fy1_eps_avg": 1.4574,
+          "fy1_rev_avg": 7720454231,
+          "fy1_n_estimates": 19,
+          "fy2_year": "2027",
+          "fy2_eps_avg": 2.07777,
+          "fy2_lift_pct": 42.6,
+          "fwd_rev_growth_pct": 45.2,
+          "dispersion": 0.208
+        },
+        "ratings_breadth": {
+          "n_recent_90d": 15,
+          "n_upgrades": 1,
+          "n_downgrades": 1,
+          "upgrade_pct": 0.07
+        },
+        "rationale": "PLTR (): EPS estimate FY27 vs FY26 = +43% forward revenue growth +45%."
+      },
+      "earnings-pead": {
+        "symbol": "PLTR",
+        "score": 78.0,
+        "tier": "TIER_S_PEAD_DRIFT",
+        "flags": [
+          "BEAT_STREAK_4Q+",
+          "BIG_BEAT_15%+",
+          "AVG_SURPRISE_10%+",
+          "DRIFT_ACTIVE",
+          "DRIFT_CONFIRMED_5%+"
+        ],
+        "beat_streak": 8,
+        "metrics": {
+          "latest_earnings_date": "2026-05-04",
+          "days_since_earnings": 28.0,
+          "drift_active": true,
+          "latest_surprise_pct": 19.0,
+          "avg_surprise_4q": 17.1,
+          "post_earnings_return_pct": 7.2,
+          "market_cap": 359426797800,
+          "cap_bucket": "mega",
+          "sector": "Technology",
+          "industry": "Software - Infrastructure"
+        },
+        "surprise_history": [
+          {
+            "date": "2026-05-04",
+            "actual": 0.33,
+            "estimate": 0.2774,
+            "surprise_pct": 18.961788031723156,
+            "beat": true
+          },
+          {
+            "date": "2026-02-02",
+            "actual": 0.25,
+            "estimate": 0.2302,
+            "surprise_pct": 8.601216333622942,
+            "beat": true
+          },
+          {
+            "date": "2025-11-03",
+            "actual": 0.21,
+            "estimate": 0.1679,
+            "surprise_pct": 25.074449076831446,
+            "beat": true
+          },
+          {
+            "date": "2025-08-04",
+            "actual": 0.16,
+            "estimate": 0.1382,
+            "surprise_pct": 15.774240231548491,
+            "beat": true
+          },
+          {
+            "date": "2025-05-05",
+            "actual": 0.13,
+            "estimate": 0.1286,
+            "surprise_pct": 1.0886469673406005,
+            "beat": true
+          }
+        ]
+      },
+      "lobbying-intel": {
+        "ticker": "PLTR",
+        "client": "PALANTIR TECHNOLOGIES INC.",
+        "score": 45,
+        "recent_amount_usd": 2920000.0,
+        "baseline_amount_usd": 7165000.0,
+        "acceleration_ratio": 1.25,
+        "n_recent_issues": 11,
+        "n_baseline_issues": 11,
+        "new_issues": [
+          "Defense \n Health Issues \n Homeland Security \n Intelligence \n",
+          "Defense \n Health Issues \n Homeland Security \n Science/Techno",
+          "Health Issues \n Agriculture",
+          "Science/Technology \n Health Issues",
+          "Veterans"
+        ],
+        "disappeared_issues": [
+          "Budget/Appropriations",
+          "Health Issues \n Defense \n Science/Technology \n Taxation/Inte",
+          "Health Issues \n Science/Technology",
+          "Science/Technology \n Health Issues \n Defense",
+          "Science/Technology \n Veterans"
+        ],
+        "is_new_entrant": false,
+        "registrants": [
+          "ALPINE GROUP PARTNERS, LLC.",
+          "ANCHOR & ARROW STRATEGIES",
+          "BALLARD PARTNERS",
+          "BROWNSTEIN HYATT FARBER SCHRECK, LLP",
+          "CORNERSTONE GOVERNMENT AFFAIRS, INC.",
+          "FEROX STRATEGIES",
+          "INVARIANT LLC",
+          "J.A. GREEN AND COMPANY (FORMERLY LLC)",
+          "MILLER STRATEGIES, LLC",
+          "PALANTIR TECHNOLOGIES, INC.",
+          "PENN AVENUE PARTNERS",
+          "RED+BLUE STRATEGIES"
+        ],
+        "bills_mentioned": [
+          "H.R.1",
+          "H.R.3838",
+          "H.R.4016",
+          "S.1071",
+          "S.2296",
+          "S.2572"
+        ],
+        "n_records": 62,
+        "first_filing": "2025-01-20",
+        "last_filing": "2026-04-20",
+        "sample_records": [
+          {
+            "date": "2026-04-20",
+            "amount": 110000.0,
+            "issue": "Budget/Appropriations \n Defense \n Intelligence \n Science/Tec",
+            "registrant": "ALPINE GROUP PARTNERS, LLC.",
+            "specific": "Data issues, DOD Software Technology Procurement, FY27 appropriations \n Data issues, DOD Software Technology Procurement, FY27 appropriations \n Data issues, DOD Software Technology Procurement, FY27 a"
+          },
+          {
+            "date": "2026-04-20",
+            "amount": 40000.0,
+            "issue": "Health Issues \n Agriculture",
+            "registrant": "RED+BLUE STRATEGIES",
+            "specific": "Issues related to the FY27 Labor-HHS appropriations process - highlighting the One CDC Data Platform (1CDP). \n Educating policymakers about how Palantir's technology is supporting the U.S. Department "
+          },
+          {
+            "date": "2026-04-20",
+            "amount": 40000.0,
+            "issue": "Defense",
+            "registrant": "J.A. GREEN AND COMPANY (FORMERLY LLC)",
+            "specific": "Issues related to AI and data"
+          },
+          {
+            "date": "2026-04-20",
+            "amount": 40000.0,
+            "issue": "Defense",
+            "registrant": "J.A. GREEN AND COMPANY (FORMERLY LLC)",
+            "specific": "Issues related to AI and data analysis"
+          },
+          {
+            "date": "2026-04-20",
+            "amount": 200000.0,
+            "issue": "Defense",
+            "registrant": "MILLER STRATEGIES, LLC",
+            "specific": "Issues related to defense policy and appropriations."
+          }
+        ],
+        "thesis": "5 new issues introduced \u00b7 specific bills tracked: H.R.1, H.R.3838, H.R.4016"
+      },
+      "ark-holdings": {
+        "ticker": "PLTR",
+        "company": "PALANTIR TECHNOLOGIES INC-A",
+        "total_shares": 2897141,
+        "total_value": 415276190.94000006,
+        "funds": [
+          {
+            "fund": "ARKF",
+            "shares": 241325,
+            "value": 34591525.5,
+            "weight": 4.24
+          },
+          {
+            "fund": "ARKK",
+            "shares": 1511005,
+            "value": 216587456.7,
+            "weight": 3.02
+          },
+          {
+            "fund": "ARKQ",
+            "shares": 594899,
+            "value": 85272822.66,
+            "weight": 3.52
+          },
+          {
+            "fund": "ARKW",
+            "shares": 332926,
+            "value": 47721612.84,
+            "weight": 2.66
+          },
+          {
+            "fund": "ARKX",
+            "shares": 216986,
+            "value": 31102773.24,
+            "weight": 2.78
+          }
+        ],
+        "max_weight": 4.24,
+        "n_funds": 5
+      },
+      "fundamentals": {
+        "ticker": "PLTR",
+        "price": 156.54,
+        "dcf": 10.66,
+        "dcf_gap_pct": -93.2,
+        "valuation_label": "OVERVALUED",
+        "altman_z": 121.94,
+        "piotroski": 7,
+        "quality_label": "STRONG",
+        "top_region": "Geographic Concentration Risk",
+        "top_region_pct": 50.0,
+        "n_regions": 4,
+        "geo_mix": {
+          "Rest Of World": 8.1,
+          "UNITED KINGDOM": 4.8,
+          "UNITED STATES": 37.1,
+          "Geographic Concentration Risk": 50.0
+        },
+        "top_product": "Government Operating Segment",
+        "top_product_pct": 53.7,
+        "n_products": 2,
+        "product_mix": {
+          "Commercial": 46.3,
+          "Government Operating Segment": 53.7
+        },
+        "fiscal_year": 2025,
+        "ok": true
+      },
+      "ticker-trends": {
+        "ticker": "PLTR",
+        "score": 34.2,
+        "velocity": 1.37,
+        "current_level": 1790.6,
+        "prior_level": 1302.5,
+        "max_in_range": 3384,
+        "interp": "RISING",
+        "price_7d_pct": 15.73,
+        "stealth": false,
+        "sources_used": [
+          "wiki"
+        ],
+        "wiki_article": "Palantir_Technologies",
+        "series": [
+          1601,
+          1213,
+          1188,
+          1376,
+          1450,
+          1420,
+          1356,
+          1307,
+          1355,
+          1137,
+          1415,
+          1707,
+          1465,
+          1450,
+          1229,
+          1016,
+          1141,
+          1266,
+          1230,
+          1124,
+          1248,
+          1201,
+          1062,
+          1145,
+          1325,
+          1398,
+          1343,
+          1724,
+          3384,
+          2215
+        ],
+        "thesis": "Search rising"
+      }
+    },
+    "ARM": {
+      "momentum-breakout": {
+        "symbol": "ARM",
+        "score": 25.0,
+        "tier": "MARGINAL",
+        "flags": [
+          "AT_60D_HIGH",
+          "RS_20D_+63",
+          "RS_60D_+174",
+          "PARABOLIC_DISCOUNT"
+        ],
+        "is_parabolic": true,
+        "metrics": {
+          "today_close": 353.29,
+          "ret_5d_pct": 18.5,
+          "ret_10d_pct": 54.6,
+          "ret_20d_pct": 68.0,
+          "ret_60d_pct": 184.7,
+          "pct_from_60d_high": 0.0,
+          "pct_from_20d_high": 0.0,
+          "vol_ratio_today": 0.85,
+          "rs_vs_spy_20d_pct": 62.7,
+          "rs_vs_spy_60d_pct": 174.2,
+          "accum_pct": 26.3,
+          "avg_dollar_vol_20d": 3105579984.0
+        }
+      },
+      "options-flow": {
+        "symbol": "ARM",
+        "score": 56.0,
+        "tier": "TIER_B_FLOW_BUILDING",
+        "flags": [
+          "CALL_VOL_2X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "metrics": {
+          "spot": 353.29,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 55.39,
+          "avg_cpr_older": 721.01,
+          "cpr_change_pct": -92.3,
+          "total_call_vol_5d": 17459,
+          "total_put_vol_5d": 1350,
+          "call_vol_surge": 2.29,
+          "short_metrics": {
+            "recent_avg_short_pct": 43.9,
+            "older_avg_short_pct": 51.4,
+            "short_pct_change": -7.51,
+            "avg_total_vol_5d": 5298740,
+            "n_finra_days": 20
+          }
+        }
+      },
+      "eps-revision-velocity": {
+        "symbol": "ARM",
+        "company": "Arm Holdings plc American Depositary Shares",
+        "score": 85.4,
+        "flag": "HIGH_VELOCITY_TIER_B",
+        "status": "ok",
+        "fundamentals": {
+          "price": 353.29,
+          "market_cap": 375900560000,
+          "sector": "",
+          "industry": "",
+          "pct_from_52w_high": -0.9
+        },
+        "estimates": {
+          "fy1_year": "2027",
+          "fy1_eps_avg": 2.17922,
+          "fy1_rev_avg": 5991151948,
+          "fy1_n_estimates": 18,
+          "fy2_year": "2028",
+          "fy2_eps_avg": 3.03745,
+          "fy2_lift_pct": 39.4,
+          "fwd_rev_growth_pct": 33.3,
+          "dispersion": 0.233
+        },
+        "ratings_breadth": {
+          "n_recent_90d": 29,
+          "n_upgrades": 3,
+          "n_downgrades": 2,
+          "upgrade_pct": 0.1
+        },
+        "rationale": "ARM (): EPS estimate FY28 vs FY27 = +39% forward revenue growth +33%."
+      },
+      "earnings-pead": {
+        "symbol": "ARM",
+        "score": 36.0,
+        "tier": "WATCH",
+        "flags": [
+          "BEAT_STREAK_2Q",
+          "DRIFT_ACTIVE",
+          "DRIFT_CONFIRMED_5%+"
+        ],
+        "beat_streak": 2,
+        "metrics": {
+          "latest_earnings_date": "2026-05-06",
+          "days_since_earnings": 26.0,
+          "drift_active": true,
+          "latest_surprise_pct": 3.4,
+          "avg_surprise_4q": -11.4,
+          "post_earnings_return_pct": 48.9,
+          "market_cap": 375900560000,
+          "cap_bucket": "mega",
+          "sector": "Technology",
+          "industry": "Semiconductors"
+        },
+        "surprise_history": [
+          {
+            "date": "2026-05-06",
+            "actual": 0.6,
+            "estimate": 0.58,
+            "surprise_pct": 3.448275862068969,
+            "beat": true
+          },
+          {
+            "date": "2026-02-04",
+            "actual": 0.43,
+            "estimate": 0.41,
+            "surprise_pct": 4.878048780487809,
+            "beat": true
+          },
+          {
+            "date": "2025-11-05",
+            "actual": 0.15,
+            "estimate": 0.3287,
+            "surprise_pct": -54.365682993611195,
+            "beat": false
+          },
+          {
+            "date": "2025-07-30",
+            "actual": 0.35,
+            "estimate": 0.3491,
+            "surprise_pct": 0.25780578630763573,
+            "beat": true
+          },
+          {
+            "date": "2025-05-07",
+            "actual": 0.55,
+            "estimate": 0.525,
+            "surprise_pct": 4.761904761904765,
+            "beat": true
+          }
+        ]
+      },
+      "fundamentals": {
+        "ticker": "ARM",
+        "price": 353.29,
+        "dcf": 7.22,
+        "dcf_gap_pct": -98.0,
+        "valuation_label": "OVERVALUED",
+        "altman_z": 95.28,
+        "piotroski": 6,
+        "quality_label": "OK",
+        "top_region": "UNITED STATES",
+        "top_region_pct": 35.8,
+        "n_regions": 6,
+        "geo_mix": {
+          "CHINA": 17.8,
+          "JAPAN": 16.8,
+          "KOREA, REPUBLIC OF": 8.0,
+          "Other Countries": 7.6,
+          "TAIWAN": 14.1,
+          "UNITED STATES": 35.8
+        },
+        "top_product": "Royalty",
+        "top_product_pct": 53.1,
+        "n_products": 2,
+        "product_mix": {
+          "License And Other Revenue": 46.9,
+          "Royalty": 53.1
+        },
+        "fiscal_year": 2026,
+        "ok": true
+      },
+      "ticker-trends": {
+        "ticker": "ARM",
+        "score": 27.5,
+        "velocity": 1.1,
+        "current_level": 866.3,
+        "prior_level": 785.7,
+        "max_in_range": 1391,
+        "interp": "FLAT",
+        "price_7d_pct": 58.32,
+        "stealth": false,
+        "sources_used": [
+          "wiki"
+        ],
+        "wiki_article": "Arm_Holdings",
+        "series": [
+          631,
+          518,
+          541,
+          655,
+          700,
+          1278,
+          1391,
+          837,
+          655,
+          550,
+          751,
+          752,
+          745,
+          749,
+          713,
+          616,
+          573,
+          784,
+          749,
+          949,
+          1247,
+          1099,
+          587,
+          562,
+          632,
+          839,
+          808,
+          1058,
+          1111,
+          1054
+        ],
+        "thesis": "Search flat"
+      },
+      "retail-sentiment": {
+        "rank": 16,
+        "ticker": "ARM",
+        "name": "Arm Holdings",
+        "mentions": 77,
+        "mentions_24h_ago": 7,
+        "rank_24h_ago": 38,
+        "upvotes": 338,
+        "velocity_pct": 1000.0,
+        "rank_climb": 22,
+        "stwt_bull_pct": 76.9,
+        "stwt_bear_pct": 23.1,
+        "stwt_bull_bear_ratio": 3.33,
+        "stwt_n_messages": 30,
+        "stwt_total_likes": 0,
+        "stwt_watchlist_count": 32124
+      }
+    },
+    "NBIS": {
+      "lobbying-intel": {
+        "ticker": "NBIS",
+        "client": "NEBIUS GROUP N.V. (FKA YANDEX N.V.)",
+        "score": 45,
+        "recent_amount_usd": 200000.0,
+        "baseline_amount_usd": 200000.0,
+        "acceleration_ratio": 3.06,
+        "n_recent_issues": 1,
+        "n_baseline_issues": 2,
+        "new_issues": [],
+        "disappeared_issues": [
+          "Energy/Nuclear \n Environment/Superfund \n Transportation \n Sc"
+        ],
+        "is_new_entrant": false,
+        "registrants": [
+          "BGR GOVERNMENT AFFAIRS",
+          "CORNERSTONE GOVERNMENT AFFAIRS, INC."
+        ],
+        "bills_mentioned": [],
+        "n_records": 4,
+        "first_filing": "2025-04-20",
+        "last_filing": "2026-04-20",
+        "sample_records": [
+          {
+            "date": "2026-04-20",
+            "amount": 200000.0,
+            "issue": "Science/Technology \n Energy/Nuclear \n Environment/Superfund ",
+            "registrant": "BGR GOVERNMENT AFFAIRS",
+            "specific": "Provide strategic counsel and advocate on issues related to U.S. data center, energy, and federal permitting policy \n Provide strategic counsel and advocate on issues related to U.S. data center, ener"
+          },
+          {
+            "date": "2026-01-20",
+            "amount": 200000.0,
+            "issue": "Energy/Nuclear \n Environment/Superfund \n Transportation \n Sc",
+            "registrant": "BGR GOVERNMENT AFFAIRS",
+            "specific": "Provide strategic counsel and advocate on issues related to U.S. data center, energy, and federal permitting policy \n Provide strategic counsel and advocate on issues related to U.S. data center, ener"
+          },
+          {
+            "date": "2025-11-20",
+            "amount": 0.0,
+            "issue": "Science/Technology \n Energy/Nuclear \n Environment/Superfund ",
+            "registrant": "BGR GOVERNMENT AFFAIRS",
+            "specific": "Provide strategic counsel and advocate on issues related to U.S. data center, energy, and federal permitting policy \n Provide strategic counsel and advocate on issues related to U.S. data center, ener"
+          },
+          {
+            "date": "2025-04-20",
+            "amount": 300000.0,
+            "issue": "",
+            "registrant": "CORNERSTONE GOVERNMENT AFFAIRS, INC.",
+            "specific": ""
+          }
+        ],
+        "thesis": "lobbying spend 3.1x baseline"
+      },
+      "retail-sentiment": {
+        "rank": 11,
+        "ticker": "NBIS",
+        "name": "Nebius Group",
+        "mentions": 128,
+        "mentions_24h_ago": 13,
+        "rank_24h_ago": 33,
+        "upvotes": 340,
+        "velocity_pct": 884.6,
+        "rank_climb": 22,
+        "stwt_bull_pct": 83.3,
+        "stwt_bear_pct": 16.7,
+        "stwt_bull_bear_ratio": 5.0,
+        "stwt_n_messages": 30,
+        "stwt_total_likes": 0,
+        "stwt_watchlist_count": 42266
+      }
+    },
+    "RDDT": {
+      "ticker-trends": {
+        "ticker": "RDDT",
+        "score": 35.8,
+        "velocity": 1.43,
+        "current_level": 0.4,
+        "prior_level": 0.9,
+        "max_in_range": 7,
+        "interp": "RISING",
+        "price_7d_pct": 13.64,
+        "stealth": false,
+        "sources_used": [
+          "wiki"
+        ],
+        "wiki_article": "Reddit,_Inc.",
+        "series": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          7,
+          3,
+          3,
+          0,
+          1,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1
+        ],
+        "thesis": "Search rising"
+      },
+      "retail-sentiment": {
+        "rank": 17,
+        "ticker": "RDDT",
+        "name": "Reddit",
+        "mentions": 72,
+        "mentions_24h_ago": 9,
+        "rank_24h_ago": 57,
+        "upvotes": 259,
+        "velocity_pct": 700.0,
+        "rank_climb": 40,
+        "stwt_bull_pct": 100.0,
+        "stwt_bear_pct": 0.0,
+        "stwt_bull_bear_ratio": 200,
+        "stwt_n_messages": 30,
+        "stwt_total_likes": 0,
+        "stwt_watchlist_count": 33908
+      }
+    }
+  }
+}
