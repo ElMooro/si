@@ -1,0 +1,89 @@
+{
+  "started": "2026-06-01T02:28:08.363293+00:00",
+  "elapsed_s": 4.6,
+  "status_code": 200,
+  "summary": {
+    "status": "ok",
+    "elapsed_sec": 3.61,
+    "regime": "CALM",
+    "composite_score": 9.3,
+    "n_recent": 19,
+    "issuance_anomaly_pct": 7.1,
+    "latest_auction_date": "2026-05-28",
+    "latest_cusip": "912797UC9",
+    "hours_since_latest_auction": 98.5,
+    "is_new_auction_this_run": false
+  },
+  "meta": {
+    "size_kb": 45.8,
+    "last_modified": "2026-06-01T02:28:13+00:00",
+    "schema_version": "2.1",
+    "regime": "CALM",
+    "composite": 9.3,
+    "elapsed_v2_sec": 0.29
+  },
+  "forward_count": 13,
+  "concession_regime_counts": {
+    "HEAVY_CONCESSION": 0,
+    "CONCESSION": 0,
+    "FLAT": 9,
+    "RALLY": 0,
+    "STRONG_RALLY": 4,
+    "NO_DATA": 0
+  },
+  "concession_samples": [
+    {
+      "auction_date": "2026-06-01",
+      "security_term": "13-Week",
+      "concession_series": "DGS3MO",
+      "concession_5d_bp": 1.0,
+      "concession_1d_bp": 0.0,
+      "concession_today_yield": 3.69,
+      "concession_regime": "FLAT",
+      "concession_interpretation": "Yields essentially unchanged (+1.0bp / 5d). Market priced for stable absorption."
+    },
+    {
+      "auction_date": "2026-06-01",
+      "security_term": "26-Week",
+      "concession_series": "DGS6MO",
+      "concession_5d_bp": 0.0,
+      "concession_1d_bp": 0.0,
+      "concession_today_yield": 3.79,
+      "concession_regime": "FLAT",
+      "concession_interpretation": "Yields essentially unchanged (+0.0bp / 5d). Market priced for stable absorption."
+    },
+    {
+      "auction_date": "2026-06-02",
+      "security_term": "6-Week",
+      "concession_series": "DGS3MO",
+      "concession_5d_bp": 1.0,
+      "concession_1d_bp": 0.0,
+      "concession_today_yield": 3.69,
+      "concession_regime": "FLAT",
+      "concession_interpretation": "Yields essentially unchanged (+1.0bp / 5d). Market priced for stable absorption."
+    },
+    {
+      "auction_date": "2026-06-03",
+      "security_term": "17-Week",
+      "concession_series": "DGS6MO",
+      "concession_5d_bp": 0.0,
+      "concession_1d_bp": 0.0,
+      "concession_today_yield": 3.79,
+      "concession_regime": "FLAT",
+      "concession_interpretation": "Yields essentially unchanged (+0.0bp / 5d). Market priced for stable absorption."
+    }
+  ],
+  "recent_count": 10,
+  "postissue_class_counts": {
+    "STRONG": 0,
+    "FIRM": 0,
+    "FLAT": 0,
+    "SOFT": 0,
+    "WEAK": 0,
+    "PENDING": 9,
+    "PENDING_5D": 0,
+    "MISSING": 1
+  },
+  "postissue_samples": [],
+  "finished": "2026-06-01T02:28:15.308837+00:00"
+}
