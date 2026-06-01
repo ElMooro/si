@@ -1,0 +1,17 @@
+{
+  "runtime": "python3.12",
+  "memory": 768,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Master synthesis: Claude reads 9 quant layers (radar, positioning, mechanics, analytics, pairs, NLP, research, macro, earnings cal) and produces a one-page institutional morning brief. Daily 13:30 UTC.",
+  "inherit_env": {"from_function": "justhodl-ai-chat", "keys": ["ANTHROPIC_API_KEY"]},
+  "environment": {},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-pump-radar-brief-daily",
+    "cron": "cron(30 13 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Master morning brief daily 13:30 UTC (8:30 AM ET premarket)"
+  }
+}
