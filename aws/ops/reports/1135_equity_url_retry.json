@@ -1,0 +1,78 @@
+{
+  "started": "2026-06-01T23:12:27.962672+00:00",
+  "phases": [
+    {
+      "name": "create_url",
+      "status": "ok",
+      "result": {
+        "url": "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/",
+        "auth_type": "NONE",
+        "creation_time": "2026-06-01T23:12:28.311085161Z"
+      }
+    },
+    {
+      "name": "patch_html",
+      "status": "ok",
+      "result": {
+        "patched": true,
+        "occurrences": 1,
+        "new_url": "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/"
+      }
+    },
+    {
+      "name": "smoke_AAPL",
+      "status": "ok",
+      "result": {
+        "status_code": 200,
+        "elapsed_s": 34.5,
+        "size_kb": 33.3,
+        "ticker": "AAPL",
+        "company": "Apple Inc.",
+        "sector": "Technology",
+        "industry": "Consumer Electronics",
+        "mkt_cap_b": 4498.9,
+        "price": 306.31,
+        "from_cache": false,
+        "rating": "SELL",
+        "conviction": "B+",
+        "price_target": 245,
+        "upside_pct": -20,
+        "confidence": 68,
+        "position_size": 0,
+        "horizon_months": 12,
+        "rationale": "Apple's valuation premium (29.9x P/E, 10.2% above 5yr avg) is unjustified by 1.8% revenue 3yr CAGR and deteriorating leverage (1.52x D/E, negative WC). DCF downside of 48% vs 6.1% analyst upside creates asymmetric risk. ",
+        "exec_summary": "SELL. Apple trades at 10.2% premium to 5-year average P/E (29.9x) with a DCF-implied 48% downside, while revenue growth has collapsed to 1.8% 3-year CAGR despite recent quarter momentum. Elevated leverage (1.52x D/E), ne",
+        "thesis_chars": 796,
+        "risk_chars": 797,
+        "valuation_chars": 808,
+        "health_chars": 690,
+        "n_catalysts": 5,
+        "n_triggers": 5,
+        "income_years": 20,
+        "balance_years": 20,
+        "cf_years": 20,
+        "pe_ttm": null,
+        "pe_5y_avg": 29.9,
+        "dcf_estimate": 159.31,
+        "dcf_upside_pct": -48.0,
+        "fcf_yield_pct": 2.87,
+        "roe_ttm": 146.69,
+        "roic_ttm": 49.57,
+        "rev_5y_cagr": 8.677354924090741,
+        "rev_10y_cagr": 5.939392743056771,
+        "eps_5y_cagr": 17.86178028193879,
+        "fcf_5y_cagr": 6.126682412684636,
+        "consecutive_qs": 4,
+        "ytd_pct": 13.03,
+        "1yr_pct": 53.19,
+        "5y_cagr_pct": 19.23,
+        "max_dd_pct": 38.73,
+        "health_overall": 69.0,
+        "claude_elapsed": 33.09,
+        "fmp_loaded": "19/19",
+        "fmp_failed": []
+      }
+    }
+  ],
+  "finished": "2026-06-01T23:13:05.829311+00:00"
+}
