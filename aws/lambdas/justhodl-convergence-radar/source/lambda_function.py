@@ -543,11 +543,24 @@ def build_alert_message(new_high: list, accelerating: list, ultra: list) -> str:
 
 
 def maybe_alert(records: List[dict], prior_state: dict, recent_alerts: dict) -> dict:
-    """Detect transitions and emit Telegram alerts."""
+    """Detect transitions and emit Telegram alerts.
+
+    FIRST RUN (empty prior state): send SYSTEM_INITIALIZED with current top 5 ULTRA
+      tickers as a snapshot — don't flood with all 130 multi-engine candidates.
+
+    SUBSEQUENT RUNS: only fire on genuine TRANSITIONS:
+      - NEW_HIGH:     crossed 4-engine threshold this cycle (was below 4)
+      - ACCELERATING: n_engines jumped 3+ in single cycle, AND ended at >= 5
+      - ULTRA:        crossed into 8+ engines this cycle (was below 8)
+
+    Cool-down: 24h per ticker (no repeat alerts).
+    """
+    prior_tickers = (prior_state or {}).get("tickers", {})
+    is_first_run = (len(prior_tickers) == 0)
+
     new_high      = []
     accelerating  = []
-    ultra         = []
-    prior_tickers = (prior_state or {}).get("tickers", {})
+    ultra_new     = []
 
     for r in records:
         t = r["ticker"]
@@ -557,39 +570,70 @@ def maybe_alert(records: List[dict], prior_state: dict, recent_alerts: dict) -> 
         prior_n = prior.get("n_engines", 0)
 
         r["prior_n_engines"] = prior_n
-        r["is_new_high"] = (cur_n >= 4 and prior_n < 4)
-        r["is_accelerating"] = (cur_n - prior_n >= 3 and cur_n >= 3)
-        r["is_ultra"] = (cur_n >= 8)
+        # For first run we suppress transition detection so we don't flood
+        if is_first_run:
+            r["is_new_high"] = False
+            r["is_accelerating"] = False
+            r["is_ultra_new"] = False
+        else:
+            r["is_new_high"]     = (cur_n >= 4 and prior_n < 4)
+            r["is_accelerating"] = (cur_n - prior_n >= 3 and cur_n >= 5)
+            r["is_ultra_new"]    = (cur_n >= 8 and prior_n < 8)
 
         # Skip if already alerted in last 24h
         if t in recent_alerts:
             continue
 
-        if r["is_ultra"]:
-            ultra.append(r)
-        elif r["is_new_high"]:
+        if r["is_ultra_new"]:
+            ultra_new.append(r)
+        elif r["is_new_high"] and cur_score >= 60:
+            # Only NEW_HIGH if score is meaningful (avoid noise from low-quality 4-engine convergences)
             new_high.append(r)
-        elif r["is_accelerating"]:
+        elif r["is_accelerating"] and cur_score >= 55:
             accelerating.append(r)
 
     sent = False
-    if ultra or new_high or accelerating:
-        msg = build_alert_message(new_high[:6], accelerating[:6], ultra[:4])
+    msg = None
+
+    if is_first_run:
+        # Boot message with current top ULTRA tickers
+        cur_ultra = [r for r in records if r["n_engines"] >= 8][:8]
+        cur_high  = [r for r in records if r["tier"] == "HIGH"][:6]
+        lines = [
+            "🆕 *Convergence Radar ONLINE*",
+            f"_{datetime.now(timezone.utc).strftime('%b %d %H:%M')} UTC_",
+            "",
+            f"📊 Tracking *{len(records)}* multi-engine tickers",
+            f"🚨 Currently ULTRA: *{len(cur_ultra)}*  |  HIGH: *{len(cur_high)}*",
+            "",
+            "*Current ULTRA convergence (8+ engines):*",
+        ]
+        for r in cur_ultra:
+            lines.append(f"  • *{r['ticker']}*  ({r['n_engines']} engines, score {r['convergence_score']:.0f}/100)")
+        lines.append("")
+        lines.append("Next runs will alert only on NEW transitions (no flooding).")
+        lines.append("")
+        lines.append("🔗 https://justhodl.ai/pre-pump-radar.html")
+        msg = "\n".join(lines)
         sent = send_telegram(msg)
-        if sent:
-            # Mark all alerted tickers as recently alerted
-            now_iso = datetime.now(timezone.utc).isoformat()
-            for r in ultra + new_high + accelerating:
-                recent_alerts[r["ticker"]] = now_iso
-            save_recent_alerts(recent_alerts)
+    elif ultra_new or new_high or accelerating:
+        msg = build_alert_message(new_high[:6], accelerating[:6], ultra_new[:4])
+        sent = send_telegram(msg)
+
+    if sent:
+        now_iso = datetime.now(timezone.utc).isoformat()
+        for r in ultra_new + new_high + accelerating:
+            recent_alerts[r["ticker"]] = now_iso
+        save_recent_alerts(recent_alerts)
 
     return {
-        "sent":           sent,
-        "n_ultra":        len(ultra),
-        "n_new_high":     len(new_high),
-        "n_accelerating": len(accelerating),
-        "ultra_tickers":  [r["ticker"] for r in ultra],
-        "new_high_tickers": [r["ticker"] for r in new_high],
+        "sent":              sent,
+        "is_first_run":      is_first_run,
+        "n_ultra_new":       len(ultra_new),
+        "n_new_high":        len(new_high),
+        "n_accelerating":    len(accelerating),
+        "ultra_new_tickers": [r["ticker"] for r in ultra_new],
+        "new_high_tickers":  [r["ticker"] for r in new_high],
         "accelerating_tickers": [r["ticker"] for r in accelerating],
     }
 

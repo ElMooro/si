@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Pump Radar · Convergence Detector · JustHodl.AI</title>
+<meta name="description" content="Cross-engine convergence detector. Surfaces tickers being flagged simultaneously by 20+ engines before they pump.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="/jh-ai-insights.js?t=20260601a" defer></script>
+<style>
+:root{
+  --bg:#07090f;--bg-sunken:#0a0e17;--bg-raised:#11161f;--bg-elevated:#1a212f;
+  --fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;--fg-4:#3d4759;
+  --border:#1c2433;
+  --cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.32);
+  --green:#38ffa8;--green-dim:rgba(56,255,168,.32);
+  --amber:#ffb13d;--amber-dim:rgba(255,177,61,.32);
+  --red:#ff5c7a;--red-dim:rgba(255,92,122,.5);
+  --violet:#a78bfa;--violet-dim:rgba(167,139,250,.32);
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg-1);font-family:var(--font-sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}
+a:hover{color:var(--violet)}
+.wrap{max-width:1480px;margin:0 auto;padding:28px 32px 80px}
+
+/* Header */
+.page-hdr{display:flex;align-items:baseline;gap:22px;flex-wrap:wrap;padding-bottom:18px;margin-bottom:22px;border-bottom:1px solid var(--border)}
+.page-hdr .title{font-family:var(--font-mono);font-size:11.5px;letter-spacing:1.6px;color:var(--violet);font-weight:600;text-transform:uppercase}
+.page-hdr h1{margin:0;font-size:24px;font-weight:600;color:var(--fg-1);letter-spacing:-.2px}
+.page-hdr .meta{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--fg-3)}
+.page-hdr .meta b{color:var(--fg-1)}
+.nav-back{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase}
+.nav-back:hover{color:var(--cyan)}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,rgba(167,139,250,.06),rgba(0,212,255,.04),transparent);border:1px solid var(--border);border-left:4px solid var(--violet);border-radius:10px;padding:22px 26px;margin-bottom:28px}
+.hero h2{margin:0 0 10px;font-size:18px;font-weight:600;color:var(--fg-1)}
+.hero p{margin:6px 0;color:var(--fg-2);font-size:13.5px;line-height:1.6}
+.hero p code{font-family:var(--font-mono);font-size:12px;color:var(--cyan);background:var(--bg-sunken);padding:1px 6px;border-radius:3px}
+
+/* Tier badges */
+.tier{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:2px 9px;border-radius:3px;letter-spacing:1.2px;text-transform:uppercase}
+.tier.ULTRA{background:rgba(255,92,122,.18);color:var(--red);border:1px solid var(--red-dim);animation:pulse-ultra 2.4s ease-in-out infinite}
+.tier.HIGH{background:rgba(255,177,61,.16);color:var(--amber);border:1px solid var(--amber-dim)}
+.tier.MED{background:rgba(0,212,255,.12);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.tier.LOW{background:rgba(167,139,250,.10);color:var(--violet);border:1px solid var(--violet-dim)}
+.tier.NOISE{background:var(--bg-sunken);color:var(--fg-3);border:1px solid var(--border)}
+@keyframes pulse-ultra{0%,100%{box-shadow:0 0 0 0 rgba(255,92,122,.0)}50%{box-shadow:0 0 14px 1px rgba(255,92,122,.35)}}
+
+/* Summary grid */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:28px}
+.summary-tile{background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.summary-tile .lbl{font-family:var(--font-mono);font-size:9.5px;letter-spacing:1.4px;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+.summary-tile .val{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--fg-1);line-height:1}
+.summary-tile .val.ULTRA{color:var(--red)}
+.summary-tile .val.HIGH{color:var(--amber)}
+.summary-tile .sub{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-top:5px}
+
+/* Section headers */
+.section-hdr{display:flex;align-items:baseline;gap:12px;margin:30px 0 14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.section-hdr h3{margin:0;font-size:14px;font-weight:600;color:var(--fg-1);letter-spacing:.5px}
+.section-hdr .sub{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px;margin-left:auto}
+
+/* Leaderboard table */
+.lead-table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--bg-raised);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.lead-table th{font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:1.4px;color:var(--fg-3);text-transform:uppercase;padding:11px 14px;text-align:left;background:var(--bg-sunken);border-bottom:1px solid var(--border);position:sticky;top:0}
+.lead-table th.num{text-align:right}
+.lead-table td{padding:11px 14px;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:12px;vertical-align:middle}
+.lead-table td.num{text-align:right;font-weight:500}
+.lead-table tbody tr:hover{background:var(--bg-elevated)}
+.lead-table tbody tr:last-child td{border-bottom:none}
+.lead-table .ticker{font-weight:700;color:var(--fg-1);font-size:13.5px;letter-spacing:.3px}
+.lead-table .score-cell{font-weight:600;color:var(--cyan);font-size:13px}
+.lead-table .score-cell.ULTRA{color:var(--red)}
+.lead-table .score-cell.HIGH{color:var(--amber)}
+.lead-table .n-engines{font-weight:600;color:var(--fg-1)}
+.lead-table .n-engines.high{color:var(--red)}
+.lead-table .n-engines.medhigh{color:var(--amber)}
+.lead-table .domains{font-size:10.5px;color:var(--fg-2)}
+.lead-table .domains .dom{display:inline-block;background:var(--bg-sunken);color:var(--fg-2);padding:1px 6px;border-radius:3px;margin-right:3px;margin-bottom:2px;font-size:9.5px;letter-spacing:.5px}
+.lead-table .domains .dom.sentiment{color:var(--violet);background:rgba(167,139,250,.08)}
+.lead-table .domains .dom.momentum{color:var(--amber);background:rgba(255,177,61,.08)}
+.lead-table .domains .dom.options{color:var(--cyan);background:rgba(0,212,255,.08)}
+.lead-table .domains .dom.earnings{color:var(--green);background:rgba(56,255,168,.08)}
+.lead-table .domains .dom.valuation{color:#9eb3ff;background:rgba(158,179,255,.08)}
+.lead-table .domains .dom.insider{color:var(--red);background:rgba(255,92,122,.08)}
+.lead-table .domains .dom.institutional{color:#ff9e7f;background:rgba(255,158,127,.08)}
+.lead-table .domains .dom.fundamentals{color:#7fcdff;background:rgba(127,205,255,.08)}
+.lead-table .engines-list{font-size:9.5px;color:var(--fg-3);max-width:340px}
+
+/* Filter bar */
+.filters{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.filters .btn{background:var(--bg-raised);border:1px solid var(--border);color:var(--fg-2);font-family:var(--font-mono);font-size:11px;letter-spacing:.8px;padding:5px 12px;border-radius:4px;cursor:pointer;transition:all .15s}
+.filters .btn:hover{border-color:var(--cyan);color:var(--fg-1)}
+.filters .btn.active{background:var(--cyan);color:var(--bg);border-color:var(--cyan)}
+.filters .search{background:var(--bg-raised);border:1px solid var(--border);color:var(--fg-1);font-family:var(--font-mono);font-size:11.5px;padding:6px 12px;border-radius:4px;width:170px;outline:none}
+.filters .search:focus{border-color:var(--cyan)}
+.filters .count{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);margin-left:auto}
+
+.loading{padding:60px 20px;text-align:center;color:var(--fg-3);font-family:var(--font-mono);font-size:13px}
+.error{padding:20px;background:rgba(255,92,122,.06);border:1px solid var(--red-dim);border-radius:6px;color:var(--red);font-size:12.5px;font-family:var(--font-mono)}
+
+/* Mobile */
+@media (max-width:768px){
+  .wrap{padding:20px 14px 80px}
+  .page-hdr h1{font-size:19px}
+  .lead-table .engines-list{display:none}
+  .lead-table th,.lead-table td{padding:8px 10px;font-size:11px}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/" class="nav-back">← justhodl.ai</a>
+  <div class="page-hdr" style="margin-top:8px">
+    <div>
+      <div class="title">CROSS-ENGINE CONVERGENCE</div>
+      <h1>Pre-Pump Radar</h1>
+    </div>
+    <div class="meta">
+      data updated <b id="data-age">—</b>
+      <br>schedule <b>every 30 min</b>
+    </div>
+  </div>
+
+  <div class="hero">
+    <h2>Why this exists</h2>
+    <p>Today's <code>velocity surge &gt;200%</code> alert on SAP, CXAI, NBIS, ARM, RDDT fired <em>after</em> they pumped. But ARM was already showing in <b>10 separate engines</b> before the move. The signal was there — just not unified.</p>
+    <p>This page surfaces every ticker simultaneously flagged by multiple independent engines across 8 domains: sentiment · momentum · options · earnings · valuation · insider · institutional · fundamentals. Tier <code>ULTRA</code> means 8+ engines agree. Click a ticker to see which.</p>
+  </div>
+
+  <!-- Summary tiles -->
+  <div class="summary-grid" id="summary-grid">
+    <div class="summary-tile"><div class="lbl">ULTRA</div><div class="val ULTRA" id="sum-ultra">—</div><div class="sub">8+ engines</div></div>
+    <div class="summary-tile"><div class="lbl">HIGH</div><div class="val HIGH" id="sum-high">—</div><div class="sub">5–7 engines</div></div>
+    <div class="summary-tile"><div class="lbl">MED</div><div class="val" id="sum-med">—</div><div class="sub">3–4 engines</div></div>
+    <div class="summary-tile"><div class="lbl">New convergence</div><div class="val" id="sum-newhigh">—</div><div class="sub">crossed 4 this cycle</div></div>
+    <div class="summary-tile"><div class="lbl">Accelerating</div><div class="val" id="sum-accel">—</div><div class="sub">+3 engines in 30min</div></div>
+    <div class="summary-tile"><div class="lbl">Total tracked</div><div class="val" id="sum-total">—</div><div class="sub">multi-engine tickers</div></div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="section-hdr">
+    <h3>Convergence Leaderboard</h3>
+    <div class="sub">tier order then convergence_score desc</div>
+  </div>
+
+  <div class="filters">
+    <button class="btn active" data-tier="ALL">All</button>
+    <button class="btn" data-tier="ULTRA">ULTRA</button>
+    <button class="btn" data-tier="HIGH">HIGH</button>
+    <button class="btn" data-tier="MED">MED</button>
+    <button class="btn" data-tier="LOW">LOW</button>
+    <input class="search" id="search" placeholder="search ticker…">
+    <span class="count" id="visible-count"></span>
+  </div>
+
+  <table class="lead-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Ticker</th>
+        <th>Tier</th>
+        <th class="num">N Engines</th>
+        <th class="num">Score</th>
+        <th>Domains</th>
+        <th>Flagging Engines</th>
+      </tr>
+    </thead>
+    <tbody id="leaderboard-tbody">
+      <tr><td colspan="7" class="loading">loading convergence data…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+const S3_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/convergence-radar.json";
+let DATA = null;
+let activeTier = "ALL";
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function ageStr(iso){
+  if(!iso) return "—";
+  const m = Math.round((Date.now() - new Date(iso).getTime())/60000);
+  if(m<1) return "just now";
+  if(m<60) return m + "m ago";
+  if(m<1440) return Math.round(m/60) + "h ago";
+  return Math.round(m/1440) + "d ago";
+}
+
+async function load(){
+  try {
+    const r = await fetch(S3_URL + "?t=" + Date.now());
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    DATA = await r.json();
+    render();
+  } catch(e) {
+    document.getElementById('leaderboard-tbody').innerHTML =
+      '<tr><td colspan="7"><div class="error">Failed to load: ' + esc(e.message) + '</div></td></tr>';
+  }
+}
+
+function render(){
+  if(!DATA) return;
+
+  // Header age
+  document.getElementById('data-age').textContent = ageStr(DATA.generated_at);
+
+  // Summary tiles
+  const s = DATA.summary || {};
+  document.getElementById('sum-ultra').textContent = s.n_ultra || 0;
+  document.getElementById('sum-high').textContent  = s.n_high  || 0;
+  document.getElementById('sum-med').textContent   = s.n_med   || 0;
+  document.getElementById('sum-newhigh').textContent = s.n_new_high_convergence || 0;
+  document.getElementById('sum-accel').textContent = s.n_accelerating || 0;
+  document.getElementById('sum-total').textContent = s.n_tickers_multi_engine || 0;
+
+  renderLeaderboard();
+}
+
+function renderLeaderboard(){
+  const tickers = DATA.tickers || [];
+  const q = (document.getElementById('search').value || '').trim().toUpperCase();
+  const filtered = tickers.filter(t => {
+    if (activeTier !== "ALL" && t.tier !== activeTier) return false;
+    if (q && !t.ticker.includes(q)) return false;
+    return true;
+  });
+  document.getElementById('visible-count').textContent = filtered.length + " showing";
+
+  if (!filtered.length){
+    document.getElementById('leaderboard-tbody').innerHTML =
+      '<tr><td colspan="7" class="loading">no matches</td></tr>';
+    return;
+  }
+
+  let html = '';
+  filtered.forEach((t, i) => {
+    const engines = Object.keys(t.engines || {}).sort();
+    const engineCount = t.n_engines;
+    const nEngClass = engineCount >= 8 ? 'high' : engineCount >= 5 ? 'medhigh' : '';
+    const domains = (t.domain_coverage || []).map(d =>
+      '<span class="dom ' + esc(d) + '">' + esc(d) + '</span>'
+    ).join('');
+    html += '<tr>' +
+      '<td class="num">' + (i+1) + '</td>' +
+      '<td class="ticker">' + esc(t.ticker) + '</td>' +
+      '<td><span class="tier ' + esc(t.tier) + '">' + esc(t.tier) + '</span></td>' +
+      '<td class="num n-engines ' + nEngClass + '">' + engineCount + '</td>' +
+      '<td class="num score-cell ' + esc(t.tier) + '">' + (t.convergence_score || 0).toFixed(1) + '</td>' +
+      '<td class="domains">' + domains + '</td>' +
+      '<td class="engines-list">' + engines.join(", ") + '</td>' +
+      '</tr>';
+  });
+  document.getElementById('leaderboard-tbody').innerHTML = html;
+}
+
+// Filter buttons
+document.querySelectorAll('.filters .btn[data-tier]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filters .btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTier = btn.dataset.tier;
+    renderLeaderboard();
+  });
+});
+
+// Search
+document.getElementById('search').addEventListener('input', renderLeaderboard);
+
+// Initial load + refresh every 5 min
+load();
+setInterval(load, 5*60*1000);
+</script>
+
+</body>
+</html>
