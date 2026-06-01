@@ -1,0 +1,277 @@
+{
+  "started": "2026-06-01T21:38:40.877948+00:00",
+  "phases": [
+    {
+      "name": "invoke_clusters",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 1.2,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 0.29,
+          "n_clusters": 2,
+          "n_temporal": 1,
+          "n_thematic": 1,
+          "boost": [],
+          "trim": [
+            "AVGO"
+          ],
+          "exclude": [],
+          "cluster_grades": [
+            [
+              "earnings_2026-06-02",
+              "C",
+              "RE_RANK"
+            ],
+            [
+              "thematic_Semiconductors_SYMPATHY_MOVE",
+              "D",
+              "MONITOR"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "name": "read_clusters",
+      "status": "ok",
+      "result": {
+        "n_clusters": 2,
+        "n_temporal": 1,
+        "n_thematic": 1,
+        "clusters": [
+          {
+            "cluster_id": "earnings_2026-06-02",
+            "cluster_type": "TEMPORAL_EARNINGS",
+            "scope": "MIXED",
+            "date_window": "2026-06-02 to 2026-06-03",
+            "start_date": "2026-06-02",
+            "end_date": "2026-06-03",
+            "members": [
+              "PANW",
+              "AVGO",
+              "CRWD"
+            ],
+            "in_basket": [
+              "AVGO"
+            ],
+            "adjacent": [
+              "PANW",
+              "CRWD"
+            ],
+            "member_records": [
+              {
+                "ticker": "PANW",
+                "primary_catalyst": "Earnings on 2026-06-02 AMC; cybersecurity sector momentum with elevated volatility (IV rank 100 proxy).",
+                "catalyst_type": "EARNINGS_BEAT",
+                "catalyst_grade": "B",
+                "catalyst_date": "2026-06-02",
+                "days_to_catalyst": 1,
+                "thesis_durability": "1W",
+                "secondary_catalysts": [
+                  "0.43 EPS consensus at 52W high",
+                  "Momentum leader (85.6 score, +65% 20d)",
+                  "Software infrastructure avg momentum 75.6"
+                ],
+                "invalidation": "Earnings miss or weak forward visibility; cybersecurity spending stalls.",
+                "claude_reasoning": "PANW has imminent earnings (2026-06-02 AMC) with 0.43 EPS consensus and at 52W high technical setup. Momentum is strong (85.6 score, +65% 20d, RS +60% vs SPY). However, the bundle provides no bull thesis, guidance, or beat history\u2014only technical setup. Grade B reflects the named earnings trigger but absence of forward catalyst or conviction driver."
+              },
+              {
+                "ticker": "AVGO",
+                "primary_catalyst": "Earnings on 2026-06-03 AMC; AI semis sector momentum with 56.8 momentum score and near 52W high.",
+                "catalyst_type": "EARNINGS_BEAT",
+                "catalyst_grade": "B",
+                "catalyst_date": "2026-06-03",
+                "days_to_catalyst": 2,
+                "thesis_durability": "1W",
+                "secondary_catalysts": [
+                  "2.02 EPS consensus with at 52W high setup",
+                  "AI semis sector avg momentum 71.2",
+                  "Accelerating technical with multi-gap up"
+                ],
+                "invalidation": "Earnings miss or weak guidance; AI semis sector rotation stalls.",
+                "claude_reasoning": "AVGO has a near-term earnings catalyst (2026-06-03 AMC) with 2.02 EPS consensus. Momentum is solid (56.8 score, +38% 60d RS) and near 52W high. However, the bundle contains no specific bull thesis, guidance info, or beat history. Grade B reflects the named earnings date but lack of conviction-building context or forward guidance signal."
+              },
+              {
+                "ticker": "CRWD",
+                "primary_catalyst": "Earnings on 2026-06-03 AMC; cybersecurity demand inflection with momentum leader status (85.3 score).",
+                "catalyst_type": "EARNINGS_BEAT",
+                "catalyst_grade": "B",
+                "catalyst_date": "2026-06-03",
+                "days_to_catalyst": 2,
+                "thesis_durability": "1W",
+                "secondary_catalysts": [
+                  "0.13 EPS consensus at 52W high",
+                  "Momentum leader with +71% 20d return",
+                  "Software infrastructure peer momentum 75.6 avg"
+                ],
+                "invalidation": "Earnings miss or soft guidance; cybersecurity TAM growth disappointment.",
+                "claude_reasoning": "CRWD has a near-term earnings catalyst (2026-06-03 AMC) with 0.13 EPS consensus and strong momentum (85.3 score, +71% 20d, at 52W high). Grade B reflects the named earnings date but complete absence of bull thesis, guidance commentary, or product catalyst in the bundle\u2014pure technical/momentum setup."
+              }
+            ],
+            "quality": 0.46,
+            "quality_grade": "C",
+            "avg_grade_score": 0.75,
+            "n_a_grade": 0,
+            "n_d_grade": 0,
+            "momentum_spread": 28.8,
+            "leader": "PANW",
+            "ranked_members": [
+              {
+                "ticker": "PANW",
+                "catalyst_grade": "B",
+                "momentum": 85.6
+              },
+              {
+                "ticker": "CRWD",
+                "catalyst_grade": "B",
+                "momentum": 85.3
+              },
+              {
+                "ticker": "AVGO",
+                "catalyst_grade": "B",
+                "momentum": 56.8
+              }
+            ],
+            "recommendation": {
+              "action": "RE_RANK",
+              "scope": "MIXED",
+              "leader": "PANW",
+              "leader_current": 0,
+              "leader_new_size": 0,
+              "laggard_new_sizes": {
+                "AVGO": 2.5
+              },
+              "rationale": "Cautious cluster \u2014 laggards lack edge. Hold leader, cut laggards 50%.",
+              "hedge_suggest": null,
+              "macro_adverse": false
+            }
+          },
+          {
+            "cluster_id": "thematic_Semiconductors_SYMPATHY_MOVE",
+            "cluster_type": "THEMATIC_SYMPATHY_MOVE",
+            "scope": "ADJACENT",
+            "theme": "Semiconductors",
+            "theme_label": "AI semis",
+            "shared_catalyst_type": "SYMPATHY_MOVE",
+            "members": [
+              "ARM",
+              "MU",
+              "MRVL"
+            ],
+            "in_basket": [],
+            "adjacent": [
+              "ARM",
+              "MU",
+              "MRVL"
+            ],
+            "member_records": [
+              {
+                "ticker": "ARM",
+                "primary_catalyst": "AI semis sector momentum; no ARM-specific catalyst identified in bundle (sympathy move only).",
+                "catalyst_type": "SYMPATHY_MOVE",
+                "catalyst_grade": "D",
+                "catalyst_date": null,
+                "days_to_catalyst": null,
+                "thesis_durability": "1W",
+                "secondary_catalysts": [
+                  "Extreme momentum (90.7 score, +93% 20d, +238% 60d)",
+                  "RS leader in AI semis (88% RS/SPY 20d)"
+                ],
+                "invalidation": "AI semis cycle softens; ARM-specific execution risk emerges; price extension unwinds.",
+                "claude_reasoning": "ARM exhibits explosive momentum (90.7 score, +93% 20d, +238% 60d, RS leader) but the bundle provides zero ARM-specific research, earnings date, product news, or guidance. This is pure momentum/sympathy riding the AI semis peer rally. Grade D (NO_CLEAR_CATALYST) because no nameable ARM trigger exists\u2014only sector tailwinds."
+              },
+              {
+                "ticker": "MU",
+                "primary_catalyst": "AI semis sector momentum; no MU-specific catalyst identified in bundle (sympathy move only).",
+                "catalyst_type": "SYMPATHY_MOVE",
+                "catalyst_grade": "D",
+                "catalyst_date": null,
+                "days_to_catalyst": null,
+                "thesis_durability": "1W",
+                "secondary_catalysts": [
+                  "Extreme momentum (87.2 score, +90% 20d, +160% 60d)",
+                  "RS leader in AI semis (85% RS/SPY 20d)"
+                ],
+                "invalidation": "Memory chip cycle softens; DRAM/NAND pricing deteriorates; peer guidance disappoints.",
+                "claude_reasoning": "MU shows elite momentum (87.2 score, +90% 20d, +160% 60d, at 52W high) but the bundle contains no MU research, earnings date, product catalyst, or guidance. This is pure AI semis sector sympathy with zero company-specific trigger. Grade D (NO_CLEAR_CATALYST) reflects naked momentum without a nameable catalyst."
+              },
+              {
+                "ticker": "MRVL",
+                "primary_catalyst": "AI semis sector momentum; no MRVL-specific catalyst identified in bundle.",
+                "catalyst_type": "SYMPATHY_MOVE",
+                "catalyst_grade": "D",
+                "catalyst_date": null,
+                "days_to_catalyst": null,
+                "thesis_durability": "1W",
+                "secondary_catalysts": [
+                  "Momentum leader (82.8 score, +189% 60d)",
+                  "RS outperformance (+27% vs SPY 20d)",
+                  "Near 52W high with multi-gap up technicals"
+                ],
+                "invalidation": "AI semis cycle softens; MRVL data center mix pressure; peer guidance disappointment.",
+                "claude_reasoning": "MRVL exhibits strong momentum (82.8 score, +33% 20d, +189% 60d, near 52W high) but the bundle contains zero MRVL-specific research, earnings date, guidance, or product catalyst. Grade D (NO_CLEAR_CATALYST) because the entire thesis is sector-wide AI semis sympathy without a named MRVL trigger."
+              }
+            ],
+            "quality": 0.268,
+            "quality_grade": "D",
+            "avg_grade_score": 0.2,
+            "n_a_grade": 0,
+            "n_d_grade": 3,
+            "momentum_spread": 7.9,
+            "leader": "ARM",
+            "ranked_members": [
+              {
+                "ticker": "ARM",
+                "catalyst_grade": "D",
+                "momentum": 90.7
+              },
+              {
+                "ticker": "MU",
+                "catalyst_grade": "D",
+                "momentum": 87.2
+              },
+              {
+                "ticker": "MRVL",
+                "catalyst_grade": "D",
+                "momentum": 82.8
+              }
+            ],
+            "recommendation": {
+              "action": "MONITOR",
+              "scope": "ADJACENT",
+              "leader": "ARM",
+              "leader_current": 0,
+              "leader_new_size": null,
+              "suggested_entry": null,
+              "laggard_new_sizes": {},
+              "rationale": "Adjacent cluster but quality grade D \u2014 watch only, don't add.",
+              "hedge_suggest": null,
+              "macro_adverse": false
+            }
+          }
+        ],
+        "basket_action_summary": {
+          "boost": [],
+          "trim": [
+            "AVGO"
+          ],
+          "exclude": [],
+          "suggested_additions": [],
+          "hedges": []
+        },
+        "size_deltas": {
+          "ORCL": 0.0,
+          "WDC": 0.0,
+          "DELL": 0.0,
+          "CRM": 0.0,
+          "FCX": 0.0,
+          "MSFT": 0.0,
+          "AVGO": -2.5,
+          "LLY": 0.0
+        }
+      }
+    }
+  ],
+  "finished": "2026-06-01T21:38:44.321493+00:00"
+}
