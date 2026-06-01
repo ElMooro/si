@@ -1,0 +1,111 @@
+{
+  "started": "2026-06-01T01:54:56.773972+00:00",
+  "html": {
+    "size_kb": 40.0,
+    "lines": 578,
+    "has_ai_tag": true,
+    "has_ai_exec": true,
+    "has_decisive": true,
+    "has_tenor": true,
+    "has_cross": true,
+    "has_chart": true,
+    "has_analog": true,
+    "has_forward": true,
+    "has_ai_fwd": true,
+    "has_tail": true,
+    "has_triggers": true,
+    "has_js_ref": true,
+    "title_has_ai_edition": true
+  },
+  "js": {
+    "size_kb": 24.9,
+    "lines": 572,
+    "has_DATA_URL": true,
+    "has_AI_URL": true,
+    "has_renderHero": true,
+    "has_renderTenor": true,
+    "has_renderChart": true,
+    "has_renderAnalog": true,
+    "has_renderForward": true,
+    "has_renderTail": true,
+    "has_renderAI": true,
+    "has_boldNumbers": true
+  },
+  "data": {
+    "size_kb": 39.4,
+    "last_modified": "2026-06-01T01:06:56+00:00",
+    "schema_version": "2.0",
+    "composite": 9.3,
+    "regime": "CALM",
+    "v2_sections_present": {
+      "tenor_decomposition": true,
+      "forward_calendar": true,
+      "historical_analog": true,
+      "cross_signals": true,
+      "composite_history": true,
+      "tail_risk": true,
+      "triggers": true
+    },
+    "forward_calendar_count": 13,
+    "triggers_count": 7,
+    "tenor_buckets": [
+      "bills_lt_90d",
+      "bills_gte_90d",
+      "coupons_lt_3y",
+      "coupons_gt_3y",
+      "tips",
+      "frn"
+    ],
+    "cross_signals": [
+      "repo_stress",
+      "dollar_strength",
+      "curve_slope",
+      "inflation_expectations"
+    ],
+    "composite_history_len": 31
+  },
+  "ai": {
+    "size_kb": 11.4,
+    "last_modified": "2026-06-01T01:37:54+00:00",
+    "status": "ok",
+    "model": "claude-haiku-4-5-20251001",
+    "regime": "CALM",
+    "claude_elapsed_s": 42.13,
+    "data_age_min": 30.3,
+    "sections_present": {
+      "executive_summary": true,
+      "what_changed": true,
+      "indicator_interpretation": true,
+      "historical_analog_discussion": true,
+      "forward_predictions": true,
+      "tail_risk_assessment": true,
+      "actionable_triggers": true,
+      "decisive_call": true
+    },
+    "forward_pred_count": 5,
+    "indicator_interp_count": 4
+  },
+  "schedule": {
+    "name": "justhodl-auction-crisis-ai-hourly",
+    "state": "ENABLED",
+    "cron": "cron(10 * * * ? *)",
+    "timezone": "UTC"
+  },
+  "lambdas": {
+    "justhodl-auction-crisis-detector": {
+      "state": "Active",
+      "last_modified": "2026-06-01T01:03:55.000+0000",
+      "memory": 1024,
+      "timeout": 240,
+      "code_size_kb": 43.8
+    },
+    "justhodl-auction-crisis-ai": {
+      "state": "Active",
+      "last_modified": "2026-06-01T01:37:08.000+0000",
+      "memory": 512,
+      "timeout": 120,
+      "code_size_kb": 28.5
+    }
+  },
+  "finished": "2026-06-01T01:54:57.822280+00:00"
+}
