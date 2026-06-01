@@ -1,0 +1,86 @@
+{
+  "started": "2026-06-01T16:06:04.148195+00:00",
+  "phases": [
+    {
+      "name": "check",
+      "status": "ok",
+      "result": {
+        "exists": true,
+        "state": "Active",
+        "last_modified": "2026-06-01T16:02:57.000+0000"
+      }
+    },
+    {
+      "name": "create_lambda",
+      "status": "skipped \u2014 already exists"
+    },
+    {
+      "name": "invoke",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 16.6,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 15.16,
+          "claude_elapsed": 14.39,
+          "engines_loaded": "7/12",
+          "global_posture": "NEUTRAL",
+          "headline": "Soft-landing narrative masking emerging dealer distribution stress and accelerating liquidity drain\u2014auction tape diverging from complacent e",
+          "alert_sent": true,
+          "alert_reason": "system_initialized"
+        }
+      }
+    },
+    {
+      "name": "read_output",
+      "status": "ok",
+      "result": {
+        "size_kb": 5.3,
+        "last_modified": "2026-06-01T16:06:21+00:00",
+        "status": "ok",
+        "model": "claude-haiku-4-5-20251001",
+        "engines_loaded": 7,
+        "engines_total": 12,
+        "claude_elapsed": 14.39,
+        "alert_info": null,
+        "global_posture": "NEUTRAL",
+        "headline": "Soft-landing narrative masking emerging dealer distribution stress and accelerating liquidity drain\u2014auction tape diverging from complacent equity/credit backdrop.",
+        "thesis": "Markets are pricing a Fed-cut scenario with bull-flattened curve (2s10s 49bps, term premium 3bps) and healthy auction surface (composite 10.8 CALM). However, subsurface signals reveal friction: 26W bill tail stress at 60bps, elevated dealer absorption (allocated_at_high_pct 44.66%), and aggressive TGA drain (-$176B in 1 month, 72nd percentile anomaly) indicate primary dealers are front-running a r",
+        "decisive_call": "Reduce duration exposure immediately and position for curve bear-steepening: sell 2s10s (current 49bps, target 70bps+), cover short equity vega, and raise cash allocation ahead of macro pivot confirmation.",
+        "key_drivers": [
+          "TGA drain accelerating (-$176B/mo) signaling pre-positioned liquidity tightening",
+          "26W bill auction tail widening (60bps) + elevated dealer take-up masking distribution risk",
+          "Bull-flattening curve + compressed term premium front-running Fed-cut narrative not yet confirmed",
+          "Macro nowcast weakening (-0.66) while credit/equity remain priced for soft landing",
+          "Primary dealer positioning opaque\u2014no new NYFed survey, but auction tape behavior suggests active front-running"
+        ],
+        "key_dissonances": [
+          "Auction composite CALM (10.8) but 26W tail stress (60bps) + dealer absorption (44.66%) suggests subsurface friction not yet reflected in headline score",
+          "Curve flattening + compressed term premium (3bps) vs. macro nowcast slowing (-0.66)\u2014consensus long duration into weakening fundamentals",
+          "VIX complacency (15.74) + HY OAS complacency (272bps) vs. TGA drain anomaly (72nd percentile) and dealer distribution stress\u2014equities not pricing liquidity repricing"
+        ],
+        "watch_list": [
+          "TGA trajectory\u2014next weekly release; drain >$40B weekly would confirm pre-positioning narrative",
+          "26W + 52W bill composite\u2014watch for composite score crossing into WATCH territory (\u226525) signaling dealer capitulation",
+          "Fed communication (next FOMC preview/speaker)\u2014timing of first public pivot narrative confirmation",
+          "2s10s curve slope\u2014if compression continues despite macro weakness, signals trapped short-duration positioning",
+          "Credit spread blowout trigger\u2014HY OAS 300bps+ would cascade into equity de-risking and liquidity tightening"
+        ],
+        "per_page_focus_keys": [
+          "auction-crisis",
+          "macro-frontrun",
+          "crisis",
+          "bonds",
+          "repo",
+          "regime",
+          "correlation",
+          "sentiment",
+          "volatility"
+        ],
+        "macro_focus": "TGA drain (-$176B/mo, 72nd percentile anomaly) + dealer absorption pattern signals primary dealers front-running Fed-cut repricing not yet confirmed by Fed; macro nowcast slowing (-0.66) into flattened curve creates repricing trap.",
+        "auction_focus": "26W bill tail stress (60bps) + allocated_at_high_pct (44.66%) reveals dealer distribution friction beneath CALM surface; watch for composite crossing 25 (WATCH regime) within 14d."
+      }
+    }
+  ],
+  "finished": "2026-06-01T16:06:21.501353+00:00"
+}
