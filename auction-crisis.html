@@ -213,6 +213,36 @@ code{font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:
 .postissue-table .pi-weak{background:rgba(255,92,122,.15);color:var(--red);border:1px solid var(--red-dim)}
 .postissue-table .pi-pending,.postissue-table .pi-pending_5d{background:var(--bg-sunken);color:var(--fg-3);border:1px solid var(--border)}
 
+/* ─── Pre-auction concession call-out ─── */
+.concession-callout{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:20px}
+.concession-tile{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px 16px;position:relative;transition:all .15s}
+.concession-tile.HEAVY_CONCESSION{border-left:3px solid var(--red);background:linear-gradient(135deg,rgba(255,92,122,.04),var(--bg-raised))}
+.concession-tile.CONCESSION{border-left:3px solid var(--amber);background:linear-gradient(135deg,rgba(255,177,61,.04),var(--bg-raised))}
+.concession-tile.STRONG_RALLY{border-left:3px solid var(--cyan);background:linear-gradient(135deg,rgba(0,212,255,.05),var(--bg-raised));box-shadow:0 0 18px rgba(0,212,255,.08)}
+.concession-tile.RALLY{border-left:3px solid var(--cyan-dim);background:linear-gradient(135deg,rgba(0,212,255,.03),var(--bg-raised))}
+.concession-tile.FLAT{border-left:3px solid var(--fg-4);opacity:.7}
+.concession-tile.NO_DATA{border-left:3px solid var(--fg-4);opacity:.5}
+.concession-tile .hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.concession-tile .hd .when{font-family:var(--font-mono);font-size:12.5px;color:var(--fg-1);font-weight:600}
+.concession-tile .hd .when .days{color:var(--fg-3);font-weight:400;margin-left:6px;font-size:10.5px}
+.concession-tile .hd .regime-pill{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;padding:2px 8px;border-radius:3px;font-weight:700}
+.concession-tile.HEAVY_CONCESSION .regime-pill{background:rgba(255,92,122,.15);color:var(--red);border:1px solid var(--red-dim)}
+.concession-tile.CONCESSION .regime-pill{background:rgba(255,177,61,.15);color:var(--amber);border:1px solid var(--amber-dim)}
+.concession-tile.STRONG_RALLY .regime-pill{background:rgba(0,212,255,.15);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.concession-tile.RALLY .regime-pill{background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.concession-tile.FLAT .regime-pill{background:var(--bg-sunken);color:var(--fg-3);border:1px solid var(--border)}
+.concession-tile .bp-row{display:flex;align-items:baseline;gap:14px;margin-bottom:8px;font-family:var(--font-mono)}
+.concession-tile .bp-row .bp5{font-size:24px;font-weight:700;line-height:1}
+.concession-tile .bp-row .bp5.pos{color:var(--red)}
+.concession-tile .bp-row .bp5.neg{color:var(--cyan)}
+.concession-tile .bp-row .bp5.flat{color:var(--fg-2)}
+.concession-tile .bp-row .bp1{font-size:11px;color:var(--fg-3)}
+.concession-tile .bp-row .bp1 b{color:var(--fg-1);font-weight:500}
+.concession-tile .meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-bottom:6px}
+.concession-tile .meta b{color:var(--fg-2);font-weight:500}
+.concession-tile .interp{font-size:11.5px;color:var(--fg-2);line-height:1.45;border-top:1px dashed var(--border);padding-top:8px;margin-top:6px}
+.concession-empty{padding:14px;color:var(--fg-3);font-size:11.5px;text-align:center;background:var(--bg-raised);border:1px solid var(--border);border-radius:6px}
+
 /* ─── AI Forward Predictions cards ─── */
 .forward-pred-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;margin-bottom:24px}
 .forward-pred-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px 18px;border-left:3px solid var(--violet-dim)}
@@ -479,6 +509,13 @@ footer a:hover{color:var(--cyan)}
     </div>
   </div>
 
+  <!-- Pre-auction concession call-out (high-conviction signals) -->
+  <div class="section-hdr">
+    <h3>Pre-Auction Concession Signals</h3>
+    <div class="sub">Yield moves vs 5d ago in each auction's tenor · the buy-side's primary positioning tool</div>
+  </div>
+  <div id="concession-callout" class="concession-callout"></div>
+
   <!-- Forward calendar -->
   <div class="section-hdr">
     <h3>Forward Auction Calendar · Next 30 Days</h3>
@@ -605,6 +642,6 @@ footer a:hover{color:var(--cyan)}
 
 </main>
 
-<script src="/auction-crisis.js?t=20260601b" defer></script>
+<script src="/auction-crisis.js?t=20260601c" defer></script>
 </body>
 </html>

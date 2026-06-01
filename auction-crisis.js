@@ -83,6 +83,7 @@ function renderAllDataSections() {
   renderCompositeChart();
   renderAnalogDataOnly();
   renderForwardTable();
+  renderConcessionCallout();
   renderPostIssuePerformance();
   renderTailRiskDataOnly();
   renderTriggers();
@@ -330,6 +331,65 @@ function renderForwardTable() {
     </tr>`;
   }
   $('forward-tbody').innerHTML = html;
+}
+
+function renderConcessionCallout() {
+  // Surface the actionable concession signals up front. Sort by
+  // regime priority then |5d_bp| descending so HEAVY_CONCESSION and
+  // STRONG_RALLY rise to the top.
+  const cal = DATA.forward_calendar || [];
+  const callout = $('concession-callout');
+  if (!callout) return;
+  if (!cal.length) {
+    callout.innerHTML = '<div class="concession-empty">No upcoming auctions to evaluate</div>';
+    return;
+  }
+
+  // Show entries with material moves (>= 2bp either direction) OR
+  // any long coupons (>= 5y) even at flat — those are always diagnostic.
+  const interesting = cal.filter(f => {
+    const c5 = f.concession_5d_bp;
+    if (c5 == null) return false;
+    if (Math.abs(c5) >= 2) return true;
+    const t = (f.security_term || '').toUpperCase();
+    // Always include 5y, 7y, 10y, 20y, 30y notes/bonds + TIPS
+    return /\bYEAR\b/.test(t) && !t.startsWith('1-') && !t.startsWith('2-') && !t.startsWith('3-');
+  });
+
+  if (!interesting.length) {
+    callout.innerHTML = '<div class="concession-empty">All upcoming auctions in stable yield environments (&lt; 2bp moves). Normal pre-auction conditions.</div>';
+    return;
+  }
+
+  const order = {HEAVY_CONCESSION: 0, STRONG_RALLY: 1, CONCESSION: 2, RALLY: 3, FLAT: 4, NO_DATA: 5};
+  interesting.sort((a, b) => {
+    const oa = order[a.concession_regime] ?? 9;
+    const ob = order[b.concession_regime] ?? 9;
+    if (oa !== ob) return oa - ob;
+    return Math.abs(b.concession_5d_bp || 0) - Math.abs(a.concession_5d_bp || 0);
+  });
+
+  let html = '';
+  for (const f of interesting) {
+    const c5 = f.concession_5d_bp;
+    const c1 = f.concession_1d_bp;
+    const regime = f.concession_regime || 'NO_DATA';
+    const bpClass = c5 > 0 ? 'pos' : c5 < 0 ? 'neg' : 'flat';
+    const sign = c5 > 0 ? '+' : '';
+    html += `<div class="concession-tile ${regime}">
+      <div class="hd">
+        <div class="when">${esc(f.auction_date)} ${esc(f.security_type)} ${esc(f.security_term)} <span class="days">(${f.days_ahead}d ahead)</span></div>
+        <div class="regime-pill">${esc(regime.replace(/_/g, ' '))}</div>
+      </div>
+      <div class="bp-row">
+        <div class="bp5 ${bpClass}">${sign}${c5 != null ? c5.toFixed(1) : '—'}<span style="font-size:13px;color:var(--fg-3);font-weight:400;margin-left:4px">bp / 5d</span></div>
+        <div class="bp1">1d: <b>${c1 != null ? (c1 >= 0 ? '+' : '') + c1.toFixed(1) + 'bp' : '—'}</b></div>
+      </div>
+      <div class="meta">FRED series: <b>${esc(f.concession_series || '—')}</b> · today's yield <b>${f.concession_today_yield != null ? f.concession_today_yield.toFixed(3) + '%' : '—'}</b> · offering <b>${f.offering_amount_billions != null ? '$' + f.offering_amount_billions.toFixed(0) + 'B' : '—'}</b></div>
+      <div class="interp">${esc(f.concession_interpretation || '')}</div>
+    </div>`;
+  }
+  callout.innerHTML = html;
 }
 
 function renderPostIssuePerformance() {

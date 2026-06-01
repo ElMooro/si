@@ -1035,7 +1035,14 @@ _yield_cache: Dict[str, List[Tuple[str, float]]] = {}
 
 
 def _parse_term_days(security_term: str) -> Optional[int]:
-    """'10-Year' → 3650, '28-Day' → 28, '13-Week' → 91."""
+    """'10-Year' → 3650, '28-Day' → 28, '13-Week' → 91,
+    '9-Year 11-Month' → ~3650, '29-Year 11-Month' → ~10920.
+
+    Unit precedence: YEAR > MONTH > WEEK > DAY (largest unit wins).
+    This handles multi-unit terms like '9-Year 11-Month' correctly —
+    without this ordering, the MONTH check would fire first and
+    return 9 * 30 = 270 days, mis-mapping a 10-year note to DGS1.
+    """
     if not security_term:
         return None
     t = security_term.upper().strip()
@@ -1044,10 +1051,10 @@ def _parse_term_days(security_term: str) -> Optional[int]:
         n = int(parts[0])
     except (ValueError, IndexError):
         return None
-    if "DAY" in t:    return n
-    if "WEEK" in t:   return n * 7
+    if "YEAR" in t:   return n * 365   # check largest unit first
     if "MONTH" in t:  return n * 30
-    if "YEAR" in t:   return n * 365
+    if "WEEK" in t:   return n * 7
+    if "DAY" in t:    return n
     return None
 
 
