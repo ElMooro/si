@@ -1,0 +1,93 @@
+{
+  "started": "2026-06-01T22:00:47.860938+00:00",
+  "phases": [
+    {
+      "name": "invoke_brief",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 39.7,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 38.63,
+          "claude_elapsed": 38.08,
+          "conviction": "A-",
+          "temperature": "50.0 (TEPID)",
+          "n_long_ideas": 3,
+          "n_pair_trades": 2,
+          "n_warnings": 3
+        }
+      }
+    },
+    {
+      "name": "read_brief",
+      "status": "ok",
+      "result": {
+        "size_kb": 10.1,
+        "conviction": "A-",
+        "market_temp_label": null,
+        "executive_summary": "CONCENTRATE LONG in 3 A-grade catalyst names: ORCL 15% (EARNINGS_BEAT 6/10, +44% 20d momentum, 11-engine convergence), WDC 13% (PRODUCT_LAUNCH multi-quarter, exabyte +22% YoY, +195 alpha_spy), CRM 10% (GUIDANCE_RAISE, 40% repeat bookings, +13.5% idio_alpha). Pair-trade CRM long / INTU short (+25% spread) and NEM long / GFI short (+9% spread) for hedged exposure. Monitor semi-earnings cluster 6/2-6/3 (PANW/CRWD momentum leaders, AVGO laggard \u2014 trim 50%). 68% deployed; DELL/IBM early detection signals support cluster thesis but wk52_proximity >97% indicates extended technicals. Macro NEUTRAL; avoid D-grade sympathy (ARM/MU) without catalysts.",
+        "macro_frame": "NEUTRAL regime favors tactical concentration in A-grade catalyst names over broad exposure. Tech leadership in cloud/AI infrastructure (MSFT, ORCL, WDC) and agentic enterprise (CRM) anchors the bias. Semi-earnings cluster 6/2-6/3 provides near-term volatility; avoid D-grade sympathy moves (ARM, MU) without independent catalysts.",
+        "top_3_long_ideas": [
+          {
+            "ticker": "ORCL",
+            "conviction": "HIGH",
+            "thesis_1liner": "A-grade EARNINGS_BEAT 6/10 (9d) with +44% 20d, RS +39.2%, PUMP_CONFIRMED across 11 engines. Breakout volume + backwardation.",
+            "bull_bullets": [
+              "pump_likelihood 55.8, momentum_score 80.9, combined 88.5; PUMP_CONFIRMED across 11 engines; convergence maximum.",
+              "Perf_20d +44.42%, RS_SPY +39.16%, BREAKOUT_VOLUME tag, rotation_accel 2.12 (MILD_SQUEEZE potential), IV_rank 100 (backwardation favors calls).",
+              "A-grade EARNINGS_BEAT catalyst 2026-06-10 (9 days); thesis durability 1W. Cloud business surpassing $50B symbolic AI infrastructure inflection; Copilot 10x YoY DAU growth."
+            ],
+            "key_risk": "Miss earnings consensus or issue negative guidance; lose RS leadership above 20D MA. IV_rank 100 suggests elevated vol crush post-beat.",
+            "sized_position": "AGGRESSIVE: 15.0% position with stop at $226.06 (-8.9%) targeting TP1 $259.07 (+4.4%) / TP2 $270.08 (+8.8%).",
+            "catalyst": "A-grade EARNINGS_BEAT 2026-06-10 (9 days): beat on 2026-06-10; momentum breakout with 44% 20d return and RS outperformance.",
+            "catalyst_grade": "A",
+            "catalyst_window": "next earnings in 9 days",
+            "momentum_data": "momentum_score 80.9, perf_20d +44.42%, tags: [BREAKOUT_VOLUME, RS_LEADER, ALL_GREEN, ACCELERATING, MULTI_GAP_UP, MOMENTUM_LEADER, PUMP_CONFIRMED]"
+          },
+          {
+            "ticker": "WDC",
+            "conviction": "HIGH",
+            "thesis_1liner": "A-grade PRODUCT_LAUNCH with +22% YoY exabyte delivery, PUMP_CONFIRMED, +26.6% 20d, RS +21.3%, NEAR_52W_HIGH momentum.",
+            "bull_bullets": [
+              "pump_likelihood 53.6, momentum_score 75.3, combined 87.7; PUMP_CONFIRMED across 4 engines; alpha_spy_ann +195.2 (idio_alpha_20d +10.22%).",
+              "Perf_20d +26.58%, RS_SPY +21.32%, NEAR_52W_HIGH, rotation_accel 1.22, vol_surge 0.78; beta_spy 2.635 = high beta play; IV_rank data unavailable but backwardation typical for semis.",
+              "A-grade PRODUCT_LAUNCH catalyst: Q2 exabyte delivery +22% YoY (215 units) with margin expansion; HAMR commercialization ramp H2 2026. Thesis durability MULTI_QUARTER."
+            ],
+            "key_risk": "HAMR qualification delays beyond H2 2026; exabyte demand softens; customer concentration risk (3-year LTAs limit repricing upside).",
+            "sized_position": "AGGRESSIVE: 13.0% position with stop at $486.23 (-10.9%) targeting TP1 $576.18 (+5.5%) / TP2 $606.17 (+10.9%).",
+            "catalyst": "A-grade PRODUCT_LAUNCH: Q2 exabyte delivery +22% YoY (215 units) with margin expansion; HAMR commercialization ramp H2 2026.",
+            "catalyst_grade": "A",
+            "catalyst_window": "no near catalyst; multi-quarter structural tailwind",
+            "momentum_data": "momentum_score 75.3, perf_20d +26.58%, tags: [NEAR_52W_HIGH, RS_LEADER, ALL_GREEN, ACCELERATING, MULTI_GAP_UP, PUMP_CONFIRMED]"
+          },
+          {
+            "ticker": "CRM",
+            "conviction": "MEDIUM-HIGH",
+            "thesis_1liner": "A-grade GUIDANCE_RAISE on Agent Force 40% repeat bookings, FY guidance raise, +14% 20d, ALL_GREEN, idio_alpha +13.5%.",
+            "bull_bullets": [
+              "pump_likelihood 56.9, momentum_score 54.2, combined 66.6; convergence 77.8/5 engines; CRM is diversifying top-scorer (1.032 score); minimal SPY beta (-0.039).",
+              "Perf_20d +14.02%, idio_alpha_20d +13.52%; spread vs INTU -11.35% = +25.4% pair alpha; rotation_accel 1.83 (acceleration into positions).",
+              "A-grade GUIDANCE_RAISE catalyst: Agent Force 40% repeat bookings from existing customers validating agentic enterprise flywheel; FY guidance raise. Thesis durability MULTI_QUARTER."
+            ],
+            "key_risk": "Agent Force adoption slowdown or repeat bookings decline below 40%; SaaS sector multiple compression (no valuation screen active). Informatica acquisition financing risk.",
+            "sized_position": "AGGRESSIVE: 10.0% position with stop at $191.39 (-8.6%) targeting TP1 $218.70 (+4.3%) / TP2 $227.81 (+8.7%).",
+            "catalyst": "A-grade GUIDANCE_RAISE: Agent Force 40% repeat bookings from existing customers validating agentic enterprise flywheel; FY guidance raise.",
+            "catalyst_grade": "A",
+            "catalyst_window": "no near catalyst; multi-quarter structural catalyst",
+            "momentum_data": "momentum_score 54.2, perf_20d +14.02%, tags: [ALL_GREEN, ACCELERATING, MULTI_GAP_UP]"
+          }
+        ],
+        "catalyst_clusters": null,
+        "suggested_additions": null,
+        "early_detection": null,
+        "risk_warnings": [
+          "ORCL: IV_rank 100 (backwardation) inflates premium; post-earnings IV crush + profit-taking could unwind +44% 20d gains if guidance is in line. Invalidation: earnings miss or negative forward commentary.",
+          "CRM: No valuation screen active; SaaS multiple compression risk unmonitored. Informatica acquisition debt unknown; integration execution risk. Thesis durability MULTI_QUARTER but sentiment unvetted.",
+          "Macro regime NEUTRAL with basket 68% deployed (aggressive sizing): concentration risk if semi-earnings cluster (PANW/AVGO/CRWD) disappoints on 6/2-6/3. Monitor AI capex cycle for reversal signals; DELL/IBM/PLTR momentum highly extended (wk52_proximity >97%)."
+        ],
+        "whats_changed": null
+      }
+    }
+  ],
+  "finished": "2026-06-01T22:01:29.809023+00:00"
+}
