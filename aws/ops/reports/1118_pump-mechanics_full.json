@@ -1,0 +1,352 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-01T19:01:20.317545+00:00",
+  "elapsed_sec": 0.67,
+  "n_candidates": 12,
+  "candidates": [
+    {
+      "ticker": "LLY",
+      "pump_likelihood": 54.2,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 32.18,
+        "atr_pct": 2.98,
+        "concentration_signals": [],
+        "shorts_covering_flag": true,
+        "squeeze_proxy_score": 24.5,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": true,
+        "from_engine": "options-flow",
+        "tier": "TIER_A_BULLISH_FLOW",
+        "engine_score": 85.0,
+        "skew": "bullish",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "call_vol_multiplier": 3.0,
+        "shorts_covering": true,
+        "cpr_surging": true,
+        "abs_cpr_unusual": true,
+        "iv_rank_proxy": 77.3,
+        "iv_pct_explanation": "Current 14d ATR at 77.3% of 90d range (high expected move pressure)",
+        "realized_vol_5d": 41.14,
+        "realized_vol_30d": 42.03,
+        "term_structure": "flat"
+      }
+    },
+    {
+      "ticker": "MSFT",
+      "pump_likelihood": 53.9,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 12.14,
+        "atr_pct": 2.63,
+        "concentration_signals": [],
+        "shorts_covering_flag": true,
+        "squeeze_proxy_score": 18.0,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": true,
+        "from_engine": "options-flow",
+        "tier": "TIER_A_BULLISH_FLOW",
+        "engine_score": 75.0,
+        "skew": "bullish",
+        "flags": [
+          "CPR_RISING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "call_vol_multiplier": 3.0,
+        "shorts_covering": true,
+        "cpr_surging": false,
+        "abs_cpr_unusual": true,
+        "iv_rank_proxy": 90.4,
+        "iv_pct_explanation": "Current 14d ATR at 90.4% of 90d range (high expected move pressure)",
+        "realized_vol_5d": 41.76,
+        "realized_vol_30d": 31.46,
+        "term_structure": "backwardation"
+      }
+    },
+    {
+      "ticker": "PLTR",
+      "pump_likelihood": 54.5,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 6.2,
+        "atr_pct": 3.84,
+        "concentration_signals": [],
+        "shorts_covering_flag": false,
+        "squeeze_proxy_score": 17.8,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": true,
+        "from_engine": "options-flow",
+        "tier": "TIER_A_BULLISH_FLOW",
+        "engine_score": 78.0,
+        "skew": "bullish",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_EASING"
+        ],
+        "call_vol_multiplier": 3.0,
+        "shorts_covering": false,
+        "cpr_surging": true,
+        "abs_cpr_unusual": true,
+        "iv_rank_proxy": 35.2,
+        "iv_pct_explanation": "Current 14d ATR at 35.2% of 90d range (moderate expected move pressure)",
+        "realized_vol_5d": 80.81,
+        "realized_vol_30d": 54.83,
+        "term_structure": "backwardation"
+      }
+    },
+    {
+      "ticker": "GLW",
+      "pump_likelihood": 50.0,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 12.22,
+        "atr_pct": 6.93,
+        "concentration_signals": [],
+        "shorts_covering_flag": false,
+        "squeeze_proxy_score": 10.4,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": false
+      }
+    },
+    {
+      "ticker": "WDC",
+      "pump_likelihood": 53.6,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 29.98,
+        "atr_pct": 5.46,
+        "concentration_signals": [],
+        "shorts_covering_flag": false,
+        "squeeze_proxy_score": 8.2,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": false
+      }
+    },
+    {
+      "ticker": "CRM",
+      "pump_likelihood": 51.5,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 9.08,
+        "atr_pct": 4.33,
+        "concentration_signals": [],
+        "shorts_covering_flag": false,
+        "squeeze_proxy_score": 6.5,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": false
+      }
+    },
+    {
+      "ticker": "SCCO",
+      "pump_likelihood": 50.0,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 8.54,
+        "atr_pct": 4.35,
+        "concentration_signals": [],
+        "shorts_covering_flag": false,
+        "squeeze_proxy_score": 6.5,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": false
+      }
+    },
+    {
+      "ticker": "FCX",
+      "pump_likelihood": 53.3,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 2.85,
+        "atr_pct": 4.23,
+        "concentration_signals": [],
+        "shorts_covering_flag": false,
+        "squeeze_proxy_score": 6.4,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": false
+      }
+    },
+    {
+      "ticker": "NEM",
+      "pump_likelihood": 57.3,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 4.48,
+        "atr_pct": 4.13,
+        "concentration_signals": [],
+        "shorts_covering_flag": false,
+        "squeeze_proxy_score": 6.2,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": false
+      }
+    },
+    {
+      "ticker": "APH",
+      "pump_likelihood": 54.7,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 5.81,
+        "atr_pct": 3.97,
+        "concentration_signals": [],
+        "shorts_covering_flag": false,
+        "squeeze_proxy_score": 6.0,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": false
+      }
+    },
+    {
+      "ticker": "ISRG",
+      "pump_likelihood": 49.3,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 12.82,
+        "atr_pct": 3.1,
+        "concentration_signals": [],
+        "shorts_covering_flag": false,
+        "squeeze_proxy_score": 4.7,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": false
+      }
+    },
+    {
+      "ticker": "GILD",
+      "pump_likelihood": 49.7,
+      "pump_category": "PUMP_POSSIBLE",
+      "squeeze_profile": {
+        "shares_outstanding": null,
+        "float_tier": "?",
+        "float_tier_bonus": 0,
+        "rotation_today": null,
+        "rotation_20d_avg": null,
+        "rotation_accel": null,
+        "atr_14": 3.31,
+        "atr_pct": 2.52,
+        "concentration_signals": [],
+        "shorts_covering_flag": false,
+        "squeeze_proxy_score": 3.8,
+        "squeeze_potential": "LOW",
+        "squeeze_caveat": "Score is a PROXY built from float / rotation / options-flow / concentration. Direct SI requires FINRA Reg SHO (manual setup). Use as relative ranker, not absolute SI %."
+      },
+      "options_structure": {
+        "available": false
+      }
+    }
+  ],
+  "metadata": {
+    "squeeze_score_caveat": "Proxy score \u2014 direct SI %/days-to-cover requires FINRA Reg SHO data (KHALID_ACTIONS #2). Use as relative ranker.",
+    "options_data_source": "Existing options-flow engine \u2014 TIER/flags + locally computed IV rank proxy from ATR range.",
+    "components": {
+      "float_tier_weight": 30,
+      "rotation_accel_weight": 25,
+      "options_signals_weight": 20,
+      "atr_pct_weight": 15,
+      "concentration_weight": 10
+    }
+  }
+}

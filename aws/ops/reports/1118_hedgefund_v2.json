@@ -1,0 +1,684 @@
+{
+  "started": "2026-06-01T19:01:12.906701+00:00",
+  "phases": [
+    {
+      "name": "check_lambdas",
+      "status": "ok",
+      "result": {
+        "justhodl-pump-mechanics": {
+          "state": "Active",
+          "code_size_kb": 28.6,
+          "memory": 768,
+          "timeout": 240,
+          "has_fmp_key": true,
+          "has_anth_key": false
+        },
+        "justhodl-portfolio-analytics": {
+          "state": "Active",
+          "code_size_kb": 28.1,
+          "memory": 1024,
+          "timeout": 300,
+          "has_fmp_key": true,
+          "has_anth_key": false
+        },
+        "justhodl-pair-trades": {
+          "state": "Active",
+          "code_size_kb": 27.6,
+          "memory": 1024,
+          "timeout": 300,
+          "has_fmp_key": true,
+          "has_anth_key": false
+        },
+        "justhodl-pump-earnings-nlp": {
+          "state": "Active",
+          "code_size_kb": 27.3,
+          "memory": 768,
+          "timeout": 180,
+          "has_fmp_key": true,
+          "has_anth_key": true
+        }
+      }
+    },
+    {
+      "name": "setup_schedules",
+      "status": "ok",
+      "result": {
+        "justhodl-pump-mechanics": {
+          "schedule": "justhodl-pump-mechanics-hourly",
+          "cron": "cron(15 * * * ? *)"
+        },
+        "justhodl-portfolio-analytics": {
+          "schedule": "justhodl-portfolio-analytics-daily",
+          "cron": "cron(0 4 * * ? *)"
+        },
+        "justhodl-pair-trades": {
+          "schedule": "justhodl-pair-trades-hourly",
+          "cron": "cron(20 * * * ? *)"
+        },
+        "justhodl-pump-earnings-nlp": {
+          "schedule": "justhodl-pump-earnings-nlp-daily",
+          "cron": "cron(0 3 * * ? *)"
+        }
+      }
+    },
+    {
+      "name": "invoke_pump-mechanics",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 1.7,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 0.67,
+          "n_candidates": 12,
+          "top_squeeze": [
+            "LLY",
+            "MSFT",
+            "PLTR",
+            "GLW",
+            "WDC"
+          ],
+          "n_primed": 0
+        }
+      }
+    },
+    {
+      "name": "invoke_portfolio-analytics",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 1.6,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 0.76,
+          "n_candidates": 20,
+          "n_clusters": 3,
+          "n_singletons": 14,
+          "top_diversifier": "CRM"
+        }
+      }
+    },
+    {
+      "name": "invoke_pair-trades",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 2.0,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 1.09,
+          "n_pairs": 12,
+          "n_excellent_hedge": 1,
+          "n_good_hedge": 6,
+          "top_pair": "NEM/GFI"
+        }
+      }
+    },
+    {
+      "name": "invoke_pump-earnings-nlp",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 69.6,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 68.59,
+          "claude_elapsed": 67.6,
+          "n_tickers": 8,
+          "tickers": [
+            "NEM",
+            "PLTR",
+            "APH",
+            "MSFT",
+            "WDC",
+            "LLY",
+            "CRM",
+            "FCX"
+          ]
+        }
+      }
+    },
+    {
+      "name": "read_pump-mechanics",
+      "status": "ok",
+      "result": {
+        "key": "data/pump-mechanics.json",
+        "size_kb": 11.8,
+        "last_modified": "2026-06-01T19:01:21+00:00",
+        "schema": "1.0",
+        "elapsed_sec": 0.67,
+        "n_candidates": 12,
+        "samples": [
+          {
+            "ticker": "LLY",
+            "pump_likelihood": 54.2,
+            "float_tier": "?",
+            "shares_out": null,
+            "rotation_today": null,
+            "rotation_accel": null,
+            "atr_pct": 2.98,
+            "squeeze_score": 24.5,
+            "squeeze_tier": "LOW",
+            "concentration": [],
+            "options_skew": "bullish",
+            "options_tier": "TIER_A_BULLISH_FLOW",
+            "iv_rank": 77.3,
+            "term_struct": "flat",
+            "rv_5d": 41.14,
+            "rv_30d": 42.03
+          },
+          {
+            "ticker": "MSFT",
+            "pump_likelihood": 53.9,
+            "float_tier": "?",
+            "shares_out": null,
+            "rotation_today": null,
+            "rotation_accel": null,
+            "atr_pct": 2.63,
+            "squeeze_score": 18.0,
+            "squeeze_tier": "LOW",
+            "concentration": [],
+            "options_skew": "bullish",
+            "options_tier": "TIER_A_BULLISH_FLOW",
+            "iv_rank": 90.4,
+            "term_struct": "backwardation",
+            "rv_5d": 41.76,
+            "rv_30d": 31.46
+          },
+          {
+            "ticker": "PLTR",
+            "pump_likelihood": 54.5,
+            "float_tier": "?",
+            "shares_out": null,
+            "rotation_today": null,
+            "rotation_accel": null,
+            "atr_pct": 3.84,
+            "squeeze_score": 17.8,
+            "squeeze_tier": "LOW",
+            "concentration": [],
+            "options_skew": "bullish",
+            "options_tier": "TIER_A_BULLISH_FLOW",
+            "iv_rank": 35.2,
+            "term_struct": "backwardation",
+            "rv_5d": 80.81,
+            "rv_30d": 54.83
+          },
+          {
+            "ticker": "GLW",
+            "pump_likelihood": 50.0,
+            "float_tier": "?",
+            "shares_out": null,
+            "rotation_today": null,
+            "rotation_accel": null,
+            "atr_pct": 6.93,
+            "squeeze_score": 10.4,
+            "squeeze_tier": "LOW",
+            "concentration": [],
+            "options_skew": null,
+            "options_tier": null,
+            "iv_rank": null,
+            "term_struct": null,
+            "rv_5d": null,
+            "rv_30d": null
+          },
+          {
+            "ticker": "WDC",
+            "pump_likelihood": 53.6,
+            "float_tier": "?",
+            "shares_out": null,
+            "rotation_today": null,
+            "rotation_accel": null,
+            "atr_pct": 5.46,
+            "squeeze_score": 8.2,
+            "squeeze_tier": "LOW",
+            "concentration": [],
+            "options_skew": null,
+            "options_tier": null,
+            "iv_rank": null,
+            "term_struct": null,
+            "rv_5d": null,
+            "rv_30d": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "read_portfolio-analytics",
+      "status": "ok",
+      "result": {
+        "key": "data/portfolio-analytics.json",
+        "size_kb": 19.5,
+        "last_modified": "2026-06-01T19:01:22+00:00",
+        "schema": "1.0",
+        "elapsed_sec": 0.76,
+        "n_candidates": 20,
+        "clusters": [
+          {
+            "members": [
+              "NEM",
+              "SCCO"
+            ],
+            "size": 2,
+            "avg_corr": 0.671
+          },
+          {
+            "members": [
+              "MSFT",
+              "PLTR"
+            ],
+            "size": 2,
+            "avg_corr": 0.65
+          },
+          {
+            "members": [
+              "STX",
+              "WDC"
+            ],
+            "size": 2,
+            "avg_corr": 0.86
+          },
+          {
+            "members": [
+              "APH"
+            ],
+            "size": 1,
+            "avg_corr": null
+          },
+          {
+            "members": [
+              "LLY"
+            ],
+            "size": 1,
+            "avg_corr": null
+          },
+          {
+            "members": [
+              "FCX"
+            ],
+            "size": 1,
+            "avg_corr": null
+          },
+          {
+            "members": [
+              "CRM"
+            ],
+            "size": 1,
+            "avg_corr": null
+          },
+          {
+            "members": [
+              "GLW"
+            ],
+            "size": 1,
+            "avg_corr": null
+          }
+        ],
+        "most_divers": [
+          {
+            "ticker": "CRM",
+            "score": 1.032
+          },
+          {
+            "ticker": "WMT",
+            "score": 0.989
+          },
+          {
+            "ticker": "QCOM",
+            "score": 0.856
+          },
+          {
+            "ticker": "PLTR",
+            "score": 0.85
+          },
+          {
+            "ticker": "APP",
+            "score": 0.847
+          }
+        ],
+        "most_correl": [
+          {
+            "ticker": "SCCO",
+            "score": 0.643
+          },
+          {
+            "ticker": "FCX",
+            "score": 0.662
+          },
+          {
+            "ticker": "AMD",
+            "score": 0.733
+          },
+          {
+            "ticker": "AMZN",
+            "score": 0.736
+          },
+          {
+            "ticker": "APH",
+            "score": 0.741
+          }
+        ],
+        "factor_sample": {
+          "NEM": {
+            "sector_etf": "XLB",
+            "beta_spy": 1.796,
+            "alpha_spy_ann": -110.52,
+            "r_sq_spy": 0.275,
+            "beta_qqq": 1.444,
+            "r_sq_qqq": 0.303,
+            "beta_sector": 1.821,
+            "r_sq_sector": 0.442,
+            "idio_alpha_20d_pct": -9.59,
+            "sector_name": "Basic Materials"
+          },
+          "APH": {
+            "sector_etf": "XLK",
+            "beta_spy": 1.657,
+            "alpha_spy_ann": -45.93,
+            "r_sq_spy": 0.266,
+            "beta_qqq": 1.068,
+            "r_sq_qqq": 0.188,
+            "beta_sector": 0.752,
+            "r_sq_sector": 0.162,
+            "idio_alpha_20d_pct": -5.98,
+            "sector_name": "Technology"
+          },
+          "PLTR": {
+            "sector_etf": "XLK",
+            "beta_spy": 0.96,
+            "alpha_spy_ann": -20.48,
+            "r_sq_spy": 0.066,
+            "beta_qqq": 0.753,
+            "r_sq_qqq": 0.069,
+            "beta_sector": 0.809,
+            "r_sq_sector": 0.139,
+            "idio_alpha_20d_pct": 6.31,
+            "sector_name": "Technology"
+          },
+          "LLY": {
+            "sector_etf": "XLV",
+            "beta_spy": 0.854,
+            "alpha_spy_ann": 0.81,
+            "r_sq_spy": 0.111,
+            "beta_qqq": 0.458,
+            "r_sq_qqq": 0.054,
+            "beta_sector": 1.862,
+            "r_sq_sector": 0.578,
+            "idio_alpha_20d_pct": 7.03,
+            "sector_name": "Healthcare"
+          },
+          "MSFT": {
+            "sector_etf": "XLK",
+            "beta_spy": 0.771,
+            "alpha_spy_ann": 13.22,
+            "r_sq_spy": 0.148,
+            "beta_qqq": 0.598,
+            "r_sq_qqq": 0.152,
+            "beta_sector": 0.548,
+            "r_sq_sector": 0.222,
+            "idio_alpha_20d_pct": 6.57,
+            "sector_name": "Technology"
+          }
+        },
+        "sample_correlation_row": {
+          "ticker": "NEM",
+          "top_5_with_corr": [
+            [
+              "SCCO",
+              0.671
+            ],
+            [
+              "FCX",
+              0.598
+            ],
+            [
+              "AMD",
+              0.575
+            ],
+            [
+              "GLW",
+              0.556
+            ],
+            [
+              "AMZN",
+              0.413
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "name": "read_pair-trades",
+      "status": "ok",
+      "result": {
+        "key": "data/pair-trades.json",
+        "size_kb": 30.2,
+        "last_modified": "2026-06-01T19:01:24+00:00",
+        "schema": "1.0",
+        "elapsed_sec": 1.09,
+        "n_pairs": 12,
+        "samples": [
+          {
+            "long": "NEM",
+            "long_perf_20d": -0.15,
+            "long_pump": 57.3,
+            "short": "GFI",
+            "short_company": "Gold Fields Limited",
+            "short_perf_20d": -9.67,
+            "spread_20d": 9.52,
+            "correlation_90d": 0.849,
+            "hedge_quality": "excellent",
+            "ratio": "1.0 : 0.91",
+            "expected_alpha_1m": "+3-6%",
+            "thesis": "Long NEM pump setup (-0.1% 20d) / Short GFI sector laggard (-9.7% 20d). Spread +9.5%, correlation 0.85 = excellent hedge. Pair captures relative strength even in tech-sector pullback."
+          },
+          {
+            "long": "APH",
+            "long_perf_20d": 2.77,
+            "long_pump": 54.7,
+            "short": "INTU",
+            "short_company": "Intuit Inc.",
+            "short_perf_20d": -11.46,
+            "spread_20d": 14.23,
+            "correlation_90d": -0.132,
+            "hedge_quality": "poor",
+            "ratio": "1.0 : 0.6",
+            "expected_alpha_1m": "n/a (low pair quality)",
+            "thesis": "Long APH pump setup (+2.8% 20d) / Short INTU sector laggard (-11.5% 20d). Spread +14.2%, correlation -0.13 = poor hedge. Pair captures relative strength even in tech-sector pullback."
+          },
+          {
+            "long": "PLTR",
+            "long_perf_20d": 12.03,
+            "long_pump": 54.5,
+            "short": "ADBE",
+            "short_company": "Adobe Inc.",
+            "short_perf_20d": 9.08,
+            "spread_20d": 2.95,
+            "correlation_90d": 0.465,
+            "hedge_quality": "fair",
+            "ratio": "1.0 : 1.2",
+            "expected_alpha_1m": "thin spread (+1-3%)",
+            "thesis": "Long PLTR pump setup (+12.0% 20d) / Short ADBE sector laggard (+9.1% 20d). Spread +2.9%, correlation 0.47 = fair hedge. Pair captures relative strength even in tech-sector pullback."
+          },
+          {
+            "long": "LLY",
+            "long_perf_20d": 12.21,
+            "long_pump": 54.2,
+            "short": "JNJ",
+            "short_company": "Johnson & Johnson",
+            "short_perf_20d": -1.46,
+            "spread_20d": 13.67,
+            "correlation_90d": 0.528,
+            "hedge_quality": "good",
+            "ratio": "1.0 : 2.13",
+            "expected_alpha_1m": "+5-10%",
+            "thesis": "Long LLY pump setup (+12.2% 20d) / Short JNJ sector laggard (-1.5% 20d). Spread +13.7%, correlation 0.53 = good hedge. Pair captures relative strength even in tech-sector pullback."
+          },
+          {
+            "long": "MSFT",
+            "long_perf_20d": 11.21,
+            "long_pump": 53.9,
+            "short": "SPSC",
+            "short_company": "SPS Commerce, Inc.",
+            "short_perf_20d": 1.27,
+            "spread_20d": 9.94,
+            "correlation_90d": 0.555,
+            "hedge_quality": "good",
+            "ratio": "1.0 : 0.63",
+            "expected_alpha_1m": "+3-6%",
+            "thesis": "Long MSFT pump setup (+11.2% 20d) / Short SPSC sector laggard (+1.3% 20d). Spread +9.9%, correlation 0.56 = good hedge. Pair captures relative strength even in tech-sector pullback."
+          }
+        ]
+      }
+    },
+    {
+      "name": "read_pump-earnings-nlp",
+      "status": "ok",
+      "result": {
+        "key": "data/pump-earnings-nlp.json",
+        "size_kb": 25.5,
+        "last_modified": "2026-06-01T19:02:34+00:00",
+        "schema": "1.0",
+        "elapsed_sec": 68.59,
+        "n_tickers": 8,
+        "claude_elapsed": 67.6,
+        "samples": [
+          {
+            "ticker": "NEM",
+            "transcripts": [
+              "QQ1 2026",
+              "QQ4 2025"
+            ],
+            "tone_trajectory": "rising",
+            "tone_delta": 5,
+            "tone_per_quarter": {
+              "Q1_2026": {
+                "score": 75,
+                "summary": "Strong operational recovery post-earthquake with record free cash flow, maintaining guidance, and announcing $6B buyback authorization signals confidence."
+              },
+              "Q4_2025": {
+                "score": 70,
+                "summary": "Solid finish to 2025 with achieved guidance, robust capital allocation framework launched, and expanded dividend growth potential despite operational headwinds."
+              }
+            },
+            "emerging_themes": [
+              "Earthquake resilience narrative at Cadia; rapid recovery framing",
+              "Enhanced capital allocation framework with systematic buybacks",
+              "Record free cash flow generation emphasized as all-time quarterly high"
+            ],
+            "fading_themes": [
+              "Reserve price assumption updates (less prominent than Q4)",
+              "Exploration success detail (less featured than prior quarter)"
+            ],
+            "cautionary": [
+              "Geopolitical headwinds from Middle East conflict impacting energy costs",
+              "Q2 production expected lower due to Cadia mill feed gap",
+              "Ghana sliding scale royalty cost headwind of $25/oz"
+            ],
+            "growth_freq": "high",
+            "guidance": "maintained",
+            "qa_pressure": [
+              "Timeline and certainty of Cadia recovery pace",
+              "Sustainability of record free cash flow generation",
+              "Geopolitical energy cost mitigation strategies"
+            ],
+            "key_quotes": [
+              "Record free cash flow generation...reflecting the strength and resilience of our world-class portfolio.",
+              "We are maintaining our full year cost guidance at this time despite notable energy price increases."
+            ],
+            "pump_implication": "Earthquake at Cadia de-risks near-term operational uncertainty; record FCF and buyback authorization suggest management confidence in intrinsic value. Q2 dip is transitory, supporting sustained upside",
+            "ai_synthesis": "NEM pivoted from Q4 stabilization narrative to Q1 'operational excellence + record cash generation' story. Buyback expansion and maintained guidance despite geopolitical headwinds reinforce bullish posture."
+          },
+          {
+            "ticker": "PLTR",
+            "transcripts": [
+              "QQ1 2026",
+              "QQ4 2025"
+            ],
+            "tone_trajectory": "rising",
+            "tone_delta": 10,
+            "tone_per_quarter": {
+              "Q1_2026": {
+                "score": 95,
+                "summary": "Exceptional acceleration with 85% YoY revenue growth, 145 Rule of 40 score, U.S. business 104% YoY growth, and largest FY guidance raise ever signal dominance."
+              },
+              "Q4_2025": {
+                "score": 85,
+                "summary": "Historic quarter with 70% YoY growth, Rule of 40 at 127, $4.3B TCV bookings record, and proof-of-concept across government and commercial AI deployments."
+              }
+            },
+            "emerging_themes": [
+              "Jevons' Paradox framing: cheaper tokens \u2192 exponential task growth",
+              "'No-slop zone' AIP platform positioning as only trustworthy AI for enterprise",
+              "Agentic autonomy as limiting factor (vs. inference costs), not the bottleneck"
+            ],
+            "fading_themes": [
+              "Strategic commercial contracts revenue (< $1M/quarter going forward)",
+              "Sovereign AI choices narrative (less emphasized than growth)"
+            ],
+            "cautionary": [
+              "International commercial revenue modest (26% YoY growth vs. U.S. 133%)",
+              "Revenue guidance dependent on continued AI model cost decline and adoption",
+              "Customer concentration risk in defense/government (though diversifying)"
+            ],
+            "growth_freq": "high",
+            "guidance": "raised",
+            "qa_pressure": [
+              "Durability of 100%+ U.S. growth rates at scale",
+              "Competitive positioning vs. Microsoft Copilot/Foundry",
+              "Path to profitability and margin sustainability"
+            ],
+            "key_quotes": [
+              "AIP is the no-slop zone\u2014the platform where every agent action is governed, attributed, and auditable.",
+              "When tokens are so much cheaper, agent flows self-correct. But more tokens mean more slop."
+            ],
+            "pump_implication": "PLTR's Q1 acceleration on U.S. commercial (143% ex-transition) and government traction suggests AIP market dominance narrative intact. Raised FY guidance to $7.656B (+71% growth) validates pump thesis",
+            "ai_synthesis": "PLTR narrative shifted from 'AI platform player' (Q4) to 'only trustworthy enterprise agentic OS + government strategic asset' (Q1). U.S. business acceleration and governance advantage positioning as structural moat."
+          },
+          {
+            "ticker": "APH",
+            "transcripts": [
+              "QQ1 2026",
+              "QQ4 2025"
+            ],
+            "tone_trajectory": "rising",
+            "tone_delta": 5,
+            "tone_per_quarter": {
+              "Q1_2026": {
+                "score": 80,
+                "summary": "Record sales $7.6B (+58% YoY, +33% organic), 27.3% adjusted margins (+380 bps YoY), 1.24:1 book-to-bill driven by AI datacom strength and CommScope acquisition integration progressing."
+              },
+              "Q4_2025": {
+                "score": 75,
+                "summary": "Strong close to 2025 with record $6.4B sales (+49% YoY, +37% organic), 27.5% adjusted margins, record $8.4B orders, and CommScope acquisition closed underway."
+              }
+            },
+            "emerging_themes": [
+              "IT datacom now 40%+ of sales driven by AI data center build-out",
+              "CommScope acquisition dilution being overcome faster than expected",
+              "Organic growth acceleration across all end markets in Q1"
+            ],
+            "fading_themes": [
+              "Organic vs. acquisition growth detail (focus on total momentum)",
+              "M&A pipeline discussion (Trexon/CommScope integration focus)"
+            ],
+            "cautionary": [
+              "China tax accrual ($130M Q1 + $160M provision) raises effective tax rate to 27%",
+              "Sequential margin compression (-20 bps) from acquisition dilution",
+              "Mobile devices market modest (1% organic growth) and declining sequentially"
+            ],
+            "growth_freq": "high",
+            "guidance": "maintained",
+            "qa_pressure": [
+              "Sustainability of incremental 75%+ gross margins amid AI data center concentration",
+              "CommScope integration timeline and cost synergy realization",
+              "China tax matter resolution and forward tax rate impact"
+            ],
+            "key_quotes": [
+              "We're pleased that the company's end market exposure remains diversified, balanced and broad.",
+              "The IT datacom market represented just over 40% of our sales, driven by extraordinary investments in AI."
+            ],
+            "pump_implication": "APH's AI datacom dominance (40%+ mix, 99% growth organic) and margin accretion trajectory offset China tax headwind. CommScope integration success narrative supports continued multiple expansion.",
+            "ai_synthesis": "APH elevated from 'AI beneficiary' (Q4) to 'critical AI infrastructure oligopolist with pricing power' (Q1). Organic growth re-acceleration and margin resilience despite acquisition dilution reinforce structural thesis."
+          }
+        ]
+      }
+    }
+  ],
+  "finished": "2026-06-01T19:02:42.252454+00:00"
+}
