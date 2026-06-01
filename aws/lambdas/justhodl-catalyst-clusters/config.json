@@ -1,0 +1,16 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 180,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Catalyst clusters: detects time-windowed clusters (earnings within 5d) + thematic clusters (shared catalyst+theme). Grades quality A-D, recommends BOOST/RE_RANK/TRIM/HEDGE. Daily 14:15 UTC.",
+  "environment": {},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-catalyst-clusters-daily",
+    "cron": "cron(15 14 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Catalyst clusters daily at 14:15 UTC (after catalyst-classifier)"
+  }
+}
