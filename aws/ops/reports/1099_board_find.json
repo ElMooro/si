@@ -1,0 +1,47 @@
+{
+  "started": "2026-06-01T02:17:41.641808+00:00",
+  "top_keys": [
+    "schema_version",
+    "method",
+    "generated_at",
+    "elapsed_s",
+    "composite_signal",
+    "composite_posture",
+    "n_engines",
+    "n_live",
+    "n_stale",
+    "categories",
+    "engines",
+    "note"
+  ],
+  "n_engines": 55,
+  "engine_sample": {
+    "engine": "PM Decision",
+    "category": "positioning",
+    "signal": -1,
+    "signal_label": "RISK-OFF",
+    "read": "Desk posture CAUTIOUS",
+    "as_of": "2026-06-01T02:05:27.503968+00:00",
+    "stale": false
+  },
+  "engine_keys": [
+    "engine",
+    "category",
+    "signal",
+    "signal_label",
+    "read",
+    "as_of",
+    "stale"
+  ],
+  "matches": [
+    {
+      "engine": "Auction Crisis",
+      "category": "macro",
+      "signal": 1,
+      "signal_label": "RISK-ON",
+      "read": "Auctions CALM (9.3/100, 19 in 14d)",
+      "as_of": "2026-06-01T01:06:55.147075+00:00",
+      "stale": false
+    }
+  ]
+}
