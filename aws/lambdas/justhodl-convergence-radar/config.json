@@ -1,0 +1,15 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 180,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Reads 21 engine outputs every 30 min, scores each ticker by convergence across engines + domains. Fires Telegram on transitions (NEW_HIGH at 4+ engines, ACCELERATING when n jumps 3+ in single cycle, ULTRA at 8+).",
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-convergence-radar-30min",
+    "cron": "cron(*/30 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Convergence radar every 30 min for early pre-pump detection"
+  }
+}
