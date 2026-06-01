@@ -1,0 +1,115 @@
+{
+  "started": "2026-06-01T23:14:12.141126+00:00",
+  "phases": [
+    {
+      "name": "fetch_why_html",
+      "status": "ok",
+      "result": {
+        "status_code": 200,
+        "size_kb": 40.3,
+        "has_research_url": true,
+        "has_placeholder": false,
+        "has_picker": true,
+        "has_quick_buttons": true,
+        "has_fetchAndRender": true,
+        "has_renderReport": true,
+        "title": "Research Desk \u00b7 JustHodl.AI"
+      }
+    },
+    {
+      "name": "prewarm_MSFT",
+      "status": "ok",
+      "result": {
+        "ticker": "MSFT",
+        "ok": true,
+        "elapsed_s": 38.5,
+        "size_kb": 35.4,
+        "from_cache": false,
+        "company": "Microsoft Corporation",
+        "price": 460.52,
+        "rating": "HOLD",
+        "conviction": "A-",
+        "price_target": 475,
+        "upside_pct": 3.1,
+        "income_yrs": 20,
+        "claude_s": 37.6,
+        "fmp_ok": 19,
+        "rationale": "MSFT is a world-class compounder executing on AI superbly, but valuation\u201410.75x P/S, 35.6x implied P/E, -32% vs. DCF\u2014has outpaced fundamentals. Modest 3% upside"
+      }
+    },
+    {
+      "name": "prewarm_NVDA",
+      "status": "ok",
+      "result": {
+        "ticker": "NVDA",
+        "ok": true,
+        "elapsed_s": 39.4,
+        "size_kb": 34.9,
+        "from_cache": false,
+        "company": "NVIDIA Corporation",
+        "price": 224.36,
+        "rating": "STRONG_BUY",
+        "conviction": "A",
+        "price_target": 300,
+        "upside_pct": 33.7,
+        "income_yrs": 20,
+        "claude_s": 38.83,
+        "fmp_ok": 19,
+        "rationale": "NVIDIA is a rare high-conviction long despite premium valuation. Unmatched AI GPU dominance, 67% YoY earnings growth, fortress balance sheet (D/E 0.07x), and $9"
+      }
+    },
+    {
+      "name": "prewarm_GOOGL",
+      "status": "ok",
+      "result": {
+        "ticker": "GOOGL",
+        "ok": true,
+        "elapsed_s": 39.3,
+        "size_kb": 34.9,
+        "from_cache": false,
+        "company": "Alphabet Inc.",
+        "price": 376.37,
+        "rating": "STRONG_BUY",
+        "conviction": "A-",
+        "price_target": 455.0,
+        "upside_pct": 20.9,
+        "income_yrs": 20,
+        "claude_s": 38.32,
+        "fmp_ok": 19,
+        "rationale": "Alphabet is a best-in-class compounder at inflection: 21.8% YoY revenue growth, 29.8% EPS CAGR, fortress balance sheet (D/E 0.14), and $73B annual FCF justify a"
+      }
+    },
+    {
+      "name": "prewarm_BRK-B",
+      "status": "ok",
+      "result": {
+        "ticker": "BRK-B",
+        "ok": false,
+        "error": "HTTP Error 400: Bad Request",
+        "elapsed_s": 0.2
+      }
+    },
+    {
+      "name": "prewarm_TSLA",
+      "status": "ok",
+      "result": {
+        "ticker": "TSLA",
+        "ok": true,
+        "elapsed_s": 35.4,
+        "size_kb": 33.1,
+        "from_cache": false,
+        "company": "Tesla, Inc.",
+        "price": 415.88,
+        "rating": "SELL",
+        "conviction": "A-",
+        "price_target": 240,
+        "upside_pct": -42.3,
+        "income_yrs": 20,
+        "claude_s": 34.66,
+        "fmp_ok": 18,
+        "rationale": "Tesla is a mature, slowing growth auto manufacturer trading at technology-sector multiples. Profitability collapsed 73% YoY, margins are compressing, growth is "
+      }
+    }
+  ],
+  "finished": "2026-06-01T23:16:45.064749+00:00"
+}
