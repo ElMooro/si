@@ -1,0 +1,571 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-01T21:25:14.867152+00:00",
+  "model": "claude-haiku-4-5-20251001",
+  "elapsed_sec": 37.87,
+  "claude_elapsed": 37.57,
+  "n_classified": 15,
+  "catalysts": [
+    {
+      "ticker": "ORCL",
+      "primary_catalyst": "Earnings beat on 2026-06-10; momentum breakout with 44% 20d return and RS outperformance.",
+      "catalyst_type": "EARNINGS_BEAT",
+      "catalyst_grade": "A",
+      "catalyst_date": "2026-06-10",
+      "days_to_catalyst": 9,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "RS leader with 10 momentum engines firing",
+        "Accelerating technical setup (multi-gap up)",
+        "IV rank at 100, volatility peak"
+      ],
+      "invalidation": "Miss earnings consensus or issue negative guidance; lose RS leadership above 20D MA.",
+      "claude_reasoning": "ORCL has a named, imminent earnings catalyst (2026-06-10) with 1.58 EPS consensus and confirmed pump status. Momentum is elite (80.8 score, 44% 20d, +39% RS/SPY) with 10 engines and accelerating breakout tags. However, no forward guidance raise or beat history is cited in the bundle, making this a solid A-grade but not ultra-high conviction."
+    },
+    {
+      "ticker": "WDC",
+      "primary_catalyst": "Q2 exabyte delivery +22% YoY (215 units) with margin expansion; HAMR commercialization ramp H2 2026.",
+      "catalyst_type": "PRODUCT_LAUNCH",
+      "catalyst_grade": "A",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "MULTI_QUARTER",
+      "secondary_catalysts": [
+        "8-quarter PEAD streak with +93% 60d RS outperformance",
+        "AI infrastructure oligopoly positioning (multi-year customer agreements)",
+        "UltraSMR ramp upside 2027+"
+      ],
+      "invalidation": "HAMR qualification delays; exabyte demand softens; customer concentration risk materializes.",
+      "claude_reasoning": "WDC exhibits clear product-driven catalysts: Q2 exabyte acceleration (215 units, +22% YoY) and HAMR qualification progressing toward H2 2026 commercialization. Earnings guidance was raised per NLP. 8-quarter PEAD streak and high RS (+93% 60d) validate structural AI data-center tailwinds. Grade A for durability over multiple quarters, though no specific earnings date provided."
+    },
+    {
+      "ticker": "DELL",
+      "primary_catalyst": "AI compute hardware demand inflection; sympathy momentum from semis/cloud peers (121% 20d return).",
+      "catalyst_type": "SYMPATHY_MOVE",
+      "catalyst_grade": "B",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "1M",
+      "secondary_catalysts": [
+        "At 52-week high with breakout volume",
+        "RS outperformance vs SPY (+116% 20d)",
+        "Compute hardware sector leader momentum (avg 81.4)"
+      ],
+      "invalidation": "AI capex cycle slows or PC demand disappoints; peers correct sharply.",
+      "claude_reasoning": "DELL shows explosive technical momentum (92.1 score, 121% 20d, 218% 60d) and is riding the AI compute hardware wave alongside sector peers. However, the context bundle provides no company-specific catalyst\u2014no earnings date, no product news, no guidance raise. This is pure sympathy/sector rotation momentum. Grade B reflects clarity of the macro tailwind (AI infrastructure) but lack of DELL-specific trigger."
+    },
+    {
+      "ticker": "CRM",
+      "primary_catalyst": "Agent Force 40% repeat bookings from existing customers validating agentic enterprise flywheel; FY guidance raise.",
+      "catalyst_type": "GUIDANCE_RAISE",
+      "catalyst_grade": "A",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "MULTI_QUARTER",
+      "secondary_catalysts": [
+        "Informatica acquisition expanding TAM",
+        "ITSM entry broadening serviceable market",
+        "41% DCF undervaluation with 8% buyback yield"
+      ],
+      "invalidation": "Agent Force adoption slowdown or repeat bookings decline; SaaS sector multiple compression.",
+      "claude_reasoning": "CRM's FY guidance was raised (per NLP), with Agent Force showing 40% repeat bookings from existing customers\u2014a high-signal product-market fit indicator. TIER_S PEAD drift on 6-quarter beat streak and Informatica acquisition support multi-quarter narrative. 41% DCF gap and 8% buyback yield provide downside cushion. Grade A despite MARGINAL momentum tier (54.2 score), as guidance raise is a powerful catalyst."
+    },
+    {
+      "ticker": "FCX",
+      "primary_catalyst": "Indonesia MOU extending mining rights through 2041; copper supercycle tailwinds from electrification and AI.",
+      "catalyst_type": "MACRO_TAILWIND",
+      "catalyst_grade": "B",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "STRUCTURAL",
+      "secondary_catalysts": [
+        "Grasberg ramp (60K tpd mid-2026) near-term headwind offset by long-term optionality",
+        "El Abra expansion 2027+ upside"
+      ],
+      "invalidation": "Copper price collapse; Indonesia regulatory reversal; Grasberg ramp delays extend beyond H2 2026.",
+      "claude_reasoning": "FCX benefits from structural copper demand drivers (electrification, AI data centers) and regulatory clarity (Indonesia MOU through 2041). However, the research flags only 2 engines, low convergence (45.2/100), and a near-term Grasberg ramp shortfall (60K vs 100K tpd). Guidance was withdrawn. Grade B reflects solid macro thesis but brittle near-term execution and thin technical confirmation."
+    },
+    {
+      "ticker": "MSFT",
+      "primary_catalyst": "Cloud business surpassing $50B symbolic AI infrastructure inflection; Copilot 10x YoY DAU growth.",
+      "catalyst_type": "PRODUCT_LAUNCH",
+      "catalyst_grade": "A",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "MULTI_QUARTER",
+      "secondary_catalysts": [
+        "8-engine ULTRA convergence (88.5/100 \u2014 highest tier)",
+        "TIER_A bullish options (CPR_SURGING)",
+        "8-quarter beat streak with raised guidance"
+      ],
+      "invalidation": "Copilot monetization fails to materialize; Cloud capex ROI timeline extends; valuation compresses.",
+      "claude_reasoning": "MSFT exhibits elite research convergence (88.5/100, ULTRA-tier with 8 engines), TIER_A options flow, and 8-quarter earnings quality. Cloud hitting $50B and Copilot DAU growth are meaningful product inflection signals. Guidance raised per NLP. However, momentum tier is WATCH (not TIER_A), and valuation unvetted. Grade A for strong fundamental catalysts despite momentum caution."
+    },
+    {
+      "ticker": "AVGO",
+      "primary_catalyst": "Earnings on 2026-06-03 AMC; AI semis sector momentum with 56.8 momentum score and near 52W high.",
+      "catalyst_type": "EARNINGS_BEAT",
+      "catalyst_grade": "B",
+      "catalyst_date": "2026-06-03",
+      "days_to_catalyst": 2,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "2.02 EPS consensus with at 52W high setup",
+        "AI semis sector avg momentum 71.2",
+        "Accelerating technical with multi-gap up"
+      ],
+      "invalidation": "Earnings miss or weak guidance; AI semis sector rotation stalls.",
+      "claude_reasoning": "AVGO has a near-term earnings catalyst (2026-06-03 AMC) with 2.02 EPS consensus. Momentum is solid (56.8 score, +38% 60d RS) and near 52W high. However, the bundle contains no specific bull thesis, guidance info, or beat history. Grade B reflects the named earnings date but lack of conviction-building context or forward guidance signal."
+    },
+    {
+      "ticker": "LLY",
+      "primary_catalyst": "Koundeo oral GLP-1 approval unlocking obesity market scalability; FY guidance raised to $82-85B.",
+      "catalyst_type": "GUIDANCE_RAISE",
+      "catalyst_grade": "A",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "MULTI_QUARTER",
+      "secondary_catalysts": [
+        "7-engine convergence with TIER_A bullish options",
+        "TIER_S PEAD drift on earnings beat streak",
+        "Retatrutide Phase III data (cardiovascular safety)"
+      ],
+      "invalidation": "Koundeo fails to reach adoption targets; GLP-1 reimbursement headwinds; Phase III safety signals emerge.",
+      "claude_reasoning": "LLY's FY guidance raise to $82-85B and Koundeo oral GLP-1 approval are material catalysts. 7-engine convergence with TIER_A options (CPR_SURGING) and TIER_S PEAD streak on beat history provide strong technical confirmation. 42 active Phase III programs signal pipeline confidence. Grade A for named, recent product approval + guidance raise, though conviction flagged as HIGH despite missing valuation screen."
+    },
+    {
+      "ticker": "ARM",
+      "primary_catalyst": "AI semis sector momentum; no ARM-specific catalyst identified in bundle (sympathy move only).",
+      "catalyst_type": "SYMPATHY_MOVE",
+      "catalyst_grade": "D",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "Extreme momentum (90.7 score, +93% 20d, +238% 60d)",
+        "RS leader in AI semis (88% RS/SPY 20d)"
+      ],
+      "invalidation": "AI semis cycle softens; ARM-specific execution risk emerges; price extension unwinds.",
+      "claude_reasoning": "ARM exhibits explosive momentum (90.7 score, +93% 20d, +238% 60d, RS leader) but the bundle provides zero ARM-specific research, earnings date, product news, or guidance. This is pure momentum/sympathy riding the AI semis peer rally. Grade D (NO_CLEAR_CATALYST) because no nameable ARM trigger exists\u2014only sector tailwinds."
+    },
+    {
+      "ticker": "MU",
+      "primary_catalyst": "AI semis sector momentum; no MU-specific catalyst identified in bundle (sympathy move only).",
+      "catalyst_type": "SYMPATHY_MOVE",
+      "catalyst_grade": "D",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "Extreme momentum (87.2 score, +90% 20d, +160% 60d)",
+        "RS leader in AI semis (85% RS/SPY 20d)"
+      ],
+      "invalidation": "Memory chip cycle softens; DRAM/NAND pricing deteriorates; peer guidance disappoints.",
+      "claude_reasoning": "MU shows elite momentum (87.2 score, +90% 20d, +160% 60d, at 52W high) but the bundle contains no MU research, earnings date, product catalyst, or guidance. This is pure AI semis sector sympathy with zero company-specific trigger. Grade D (NO_CLEAR_CATALYST) reflects naked momentum without a nameable catalyst."
+    },
+    {
+      "ticker": "SNDK",
+      "primary_catalyst": "Storage/SSD cycle momentum; no SNDK-specific catalyst identified in bundle.",
+      "catalyst_type": "SYMPATHY_MOVE",
+      "catalyst_grade": "D",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "RS leader momentum (86.3 score, +211% 60d)",
+        "Accelerating technicals with multi-gap up"
+      ],
+      "invalidation": "Flash memory cycle deteriorates; peer guidance disappoints; SNDK exec risk.",
+      "claude_reasoning": "SNDK displays strong momentum (86.3 score, +48% 20d, +211% 60d, RS leader) but zero specific research, earnings date, or product catalyst in the bundle. Grade D (NO_CLEAR_CATALYST) because the entire setup is momentum/peer sympathy without a named SNDK trigger."
+    },
+    {
+      "ticker": "PANW",
+      "primary_catalyst": "Earnings on 2026-06-02 AMC; cybersecurity sector momentum with elevated volatility (IV rank 100 proxy).",
+      "catalyst_type": "EARNINGS_BEAT",
+      "catalyst_grade": "B",
+      "catalyst_date": "2026-06-02",
+      "days_to_catalyst": 1,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "0.43 EPS consensus at 52W high",
+        "Momentum leader (85.6 score, +65% 20d)",
+        "Software infrastructure avg momentum 75.6"
+      ],
+      "invalidation": "Earnings miss or weak forward visibility; cybersecurity spending stalls.",
+      "claude_reasoning": "PANW has imminent earnings (2026-06-02 AMC) with 0.43 EPS consensus and at 52W high technical setup. Momentum is strong (85.6 score, +65% 20d, RS +60% vs SPY). However, the bundle provides no bull thesis, guidance, or beat history\u2014only technical setup. Grade B reflects the named earnings trigger but absence of forward catalyst or conviction driver."
+    },
+    {
+      "ticker": "CRWD",
+      "primary_catalyst": "Earnings on 2026-06-03 AMC; cybersecurity demand inflection with momentum leader status (85.3 score).",
+      "catalyst_type": "EARNINGS_BEAT",
+      "catalyst_grade": "B",
+      "catalyst_date": "2026-06-03",
+      "days_to_catalyst": 2,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "0.13 EPS consensus at 52W high",
+        "Momentum leader with +71% 20d return",
+        "Software infrastructure peer momentum 75.6 avg"
+      ],
+      "invalidation": "Earnings miss or soft guidance; cybersecurity TAM growth disappointment.",
+      "claude_reasoning": "CRWD has a near-term earnings catalyst (2026-06-03 AMC) with 0.13 EPS consensus and strong momentum (85.3 score, +71% 20d, at 52W high). Grade B reflects the named earnings date but complete absence of bull thesis, guidance commentary, or product catalyst in the bundle\u2014pure technical/momentum setup."
+    },
+    {
+      "ticker": "AMD",
+      "primary_catalyst": "AI processor demand inflection; 8-engine momentum confirmation with 83.9 score and confirmed pump status.",
+      "catalyst_type": "MACRO_TAILWIND",
+      "catalyst_grade": "B",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "MULTI_QUARTER",
+      "secondary_catalysts": [
+        "8 momentum engines firing (strongest in semis cohort)",
+        "+41% 20d return with +155% 60d RS outperformance",
+        "Pump confirmed with accelerating multi-gap technicals"
+      ],
+      "invalidation": "AI capex cycle slows; NVIDIA/Intel gain share; AMD execution disappoints.",
+      "claude_reasoning": "AMD shows elite momentum (83.9 score, +41% 20d, +155% 60d, 8 engines) with confirmed pump status and accelerating technicals. The AI semis sector tailwind is clear (avg peer momentum 71.2). However, the bundle provides zero AMD-specific catalyst\u2014no earnings date, guidance, product launch, or beat. Grade B for the macro AI thesis but loss of points for lack of company-specific trigger."
+    },
+    {
+      "ticker": "MRVL",
+      "primary_catalyst": "AI semis sector momentum; no MRVL-specific catalyst identified in bundle.",
+      "catalyst_type": "SYMPATHY_MOVE",
+      "catalyst_grade": "D",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "Momentum leader (82.8 score, +189% 60d)",
+        "RS outperformance (+27% vs SPY 20d)",
+        "Near 52W high with multi-gap up technicals"
+      ],
+      "invalidation": "AI semis cycle softens; MRVL data center mix pressure; peer guidance disappointment.",
+      "claude_reasoning": "MRVL exhibits strong momentum (82.8 score, +33% 20d, +189% 60d, near 52W high) but the bundle contains zero MRVL-specific research, earnings date, guidance, or product catalyst. Grade D (NO_CLEAR_CATALYST) because the entire thesis is sector-wide AI semis sympathy without a named MRVL trigger."
+    }
+  ],
+  "ticker_to_catalyst": {
+    "ORCL": {
+      "ticker": "ORCL",
+      "primary_catalyst": "Earnings beat on 2026-06-10; momentum breakout with 44% 20d return and RS outperformance.",
+      "catalyst_type": "EARNINGS_BEAT",
+      "catalyst_grade": "A",
+      "catalyst_date": "2026-06-10",
+      "days_to_catalyst": 9,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "RS leader with 10 momentum engines firing",
+        "Accelerating technical setup (multi-gap up)",
+        "IV rank at 100, volatility peak"
+      ],
+      "invalidation": "Miss earnings consensus or issue negative guidance; lose RS leadership above 20D MA.",
+      "claude_reasoning": "ORCL has a named, imminent earnings catalyst (2026-06-10) with 1.58 EPS consensus and confirmed pump status. Momentum is elite (80.8 score, 44% 20d, +39% RS/SPY) with 10 engines and accelerating breakout tags. However, no forward guidance raise or beat history is cited in the bundle, making this a solid A-grade but not ultra-high conviction."
+    },
+    "WDC": {
+      "ticker": "WDC",
+      "primary_catalyst": "Q2 exabyte delivery +22% YoY (215 units) with margin expansion; HAMR commercialization ramp H2 2026.",
+      "catalyst_type": "PRODUCT_LAUNCH",
+      "catalyst_grade": "A",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "MULTI_QUARTER",
+      "secondary_catalysts": [
+        "8-quarter PEAD streak with +93% 60d RS outperformance",
+        "AI infrastructure oligopoly positioning (multi-year customer agreements)",
+        "UltraSMR ramp upside 2027+"
+      ],
+      "invalidation": "HAMR qualification delays; exabyte demand softens; customer concentration risk materializes.",
+      "claude_reasoning": "WDC exhibits clear product-driven catalysts: Q2 exabyte acceleration (215 units, +22% YoY) and HAMR qualification progressing toward H2 2026 commercialization. Earnings guidance was raised per NLP. 8-quarter PEAD streak and high RS (+93% 60d) validate structural AI data-center tailwinds. Grade A for durability over multiple quarters, though no specific earnings date provided."
+    },
+    "DELL": {
+      "ticker": "DELL",
+      "primary_catalyst": "AI compute hardware demand inflection; sympathy momentum from semis/cloud peers (121% 20d return).",
+      "catalyst_type": "SYMPATHY_MOVE",
+      "catalyst_grade": "B",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "1M",
+      "secondary_catalysts": [
+        "At 52-week high with breakout volume",
+        "RS outperformance vs SPY (+116% 20d)",
+        "Compute hardware sector leader momentum (avg 81.4)"
+      ],
+      "invalidation": "AI capex cycle slows or PC demand disappoints; peers correct sharply.",
+      "claude_reasoning": "DELL shows explosive technical momentum (92.1 score, 121% 20d, 218% 60d) and is riding the AI compute hardware wave alongside sector peers. However, the context bundle provides no company-specific catalyst\u2014no earnings date, no product news, no guidance raise. This is pure sympathy/sector rotation momentum. Grade B reflects clarity of the macro tailwind (AI infrastructure) but lack of DELL-specific trigger."
+    },
+    "CRM": {
+      "ticker": "CRM",
+      "primary_catalyst": "Agent Force 40% repeat bookings from existing customers validating agentic enterprise flywheel; FY guidance raise.",
+      "catalyst_type": "GUIDANCE_RAISE",
+      "catalyst_grade": "A",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "MULTI_QUARTER",
+      "secondary_catalysts": [
+        "Informatica acquisition expanding TAM",
+        "ITSM entry broadening serviceable market",
+        "41% DCF undervaluation with 8% buyback yield"
+      ],
+      "invalidation": "Agent Force adoption slowdown or repeat bookings decline; SaaS sector multiple compression.",
+      "claude_reasoning": "CRM's FY guidance was raised (per NLP), with Agent Force showing 40% repeat bookings from existing customers\u2014a high-signal product-market fit indicator. TIER_S PEAD drift on 6-quarter beat streak and Informatica acquisition support multi-quarter narrative. 41% DCF gap and 8% buyback yield provide downside cushion. Grade A despite MARGINAL momentum tier (54.2 score), as guidance raise is a powerful catalyst."
+    },
+    "FCX": {
+      "ticker": "FCX",
+      "primary_catalyst": "Indonesia MOU extending mining rights through 2041; copper supercycle tailwinds from electrification and AI.",
+      "catalyst_type": "MACRO_TAILWIND",
+      "catalyst_grade": "B",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "STRUCTURAL",
+      "secondary_catalysts": [
+        "Grasberg ramp (60K tpd mid-2026) near-term headwind offset by long-term optionality",
+        "El Abra expansion 2027+ upside"
+      ],
+      "invalidation": "Copper price collapse; Indonesia regulatory reversal; Grasberg ramp delays extend beyond H2 2026.",
+      "claude_reasoning": "FCX benefits from structural copper demand drivers (electrification, AI data centers) and regulatory clarity (Indonesia MOU through 2041). However, the research flags only 2 engines, low convergence (45.2/100), and a near-term Grasberg ramp shortfall (60K vs 100K tpd). Guidance was withdrawn. Grade B reflects solid macro thesis but brittle near-term execution and thin technical confirmation."
+    },
+    "MSFT": {
+      "ticker": "MSFT",
+      "primary_catalyst": "Cloud business surpassing $50B symbolic AI infrastructure inflection; Copilot 10x YoY DAU growth.",
+      "catalyst_type": "PRODUCT_LAUNCH",
+      "catalyst_grade": "A",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "MULTI_QUARTER",
+      "secondary_catalysts": [
+        "8-engine ULTRA convergence (88.5/100 \u2014 highest tier)",
+        "TIER_A bullish options (CPR_SURGING)",
+        "8-quarter beat streak with raised guidance"
+      ],
+      "invalidation": "Copilot monetization fails to materialize; Cloud capex ROI timeline extends; valuation compresses.",
+      "claude_reasoning": "MSFT exhibits elite research convergence (88.5/100, ULTRA-tier with 8 engines), TIER_A options flow, and 8-quarter earnings quality. Cloud hitting $50B and Copilot DAU growth are meaningful product inflection signals. Guidance raised per NLP. However, momentum tier is WATCH (not TIER_A), and valuation unvetted. Grade A for strong fundamental catalysts despite momentum caution."
+    },
+    "AVGO": {
+      "ticker": "AVGO",
+      "primary_catalyst": "Earnings on 2026-06-03 AMC; AI semis sector momentum with 56.8 momentum score and near 52W high.",
+      "catalyst_type": "EARNINGS_BEAT",
+      "catalyst_grade": "B",
+      "catalyst_date": "2026-06-03",
+      "days_to_catalyst": 2,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "2.02 EPS consensus with at 52W high setup",
+        "AI semis sector avg momentum 71.2",
+        "Accelerating technical with multi-gap up"
+      ],
+      "invalidation": "Earnings miss or weak guidance; AI semis sector rotation stalls.",
+      "claude_reasoning": "AVGO has a near-term earnings catalyst (2026-06-03 AMC) with 2.02 EPS consensus. Momentum is solid (56.8 score, +38% 60d RS) and near 52W high. However, the bundle contains no specific bull thesis, guidance info, or beat history. Grade B reflects the named earnings date but lack of conviction-building context or forward guidance signal."
+    },
+    "LLY": {
+      "ticker": "LLY",
+      "primary_catalyst": "Koundeo oral GLP-1 approval unlocking obesity market scalability; FY guidance raised to $82-85B.",
+      "catalyst_type": "GUIDANCE_RAISE",
+      "catalyst_grade": "A",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "MULTI_QUARTER",
+      "secondary_catalysts": [
+        "7-engine convergence with TIER_A bullish options",
+        "TIER_S PEAD drift on earnings beat streak",
+        "Retatrutide Phase III data (cardiovascular safety)"
+      ],
+      "invalidation": "Koundeo fails to reach adoption targets; GLP-1 reimbursement headwinds; Phase III safety signals emerge.",
+      "claude_reasoning": "LLY's FY guidance raise to $82-85B and Koundeo oral GLP-1 approval are material catalysts. 7-engine convergence with TIER_A options (CPR_SURGING) and TIER_S PEAD streak on beat history provide strong technical confirmation. 42 active Phase III programs signal pipeline confidence. Grade A for named, recent product approval + guidance raise, though conviction flagged as HIGH despite missing valuation screen."
+    },
+    "ARM": {
+      "ticker": "ARM",
+      "primary_catalyst": "AI semis sector momentum; no ARM-specific catalyst identified in bundle (sympathy move only).",
+      "catalyst_type": "SYMPATHY_MOVE",
+      "catalyst_grade": "D",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "Extreme momentum (90.7 score, +93% 20d, +238% 60d)",
+        "RS leader in AI semis (88% RS/SPY 20d)"
+      ],
+      "invalidation": "AI semis cycle softens; ARM-specific execution risk emerges; price extension unwinds.",
+      "claude_reasoning": "ARM exhibits explosive momentum (90.7 score, +93% 20d, +238% 60d, RS leader) but the bundle provides zero ARM-specific research, earnings date, product news, or guidance. This is pure momentum/sympathy riding the AI semis peer rally. Grade D (NO_CLEAR_CATALYST) because no nameable ARM trigger exists\u2014only sector tailwinds."
+    },
+    "MU": {
+      "ticker": "MU",
+      "primary_catalyst": "AI semis sector momentum; no MU-specific catalyst identified in bundle (sympathy move only).",
+      "catalyst_type": "SYMPATHY_MOVE",
+      "catalyst_grade": "D",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "Extreme momentum (87.2 score, +90% 20d, +160% 60d)",
+        "RS leader in AI semis (85% RS/SPY 20d)"
+      ],
+      "invalidation": "Memory chip cycle softens; DRAM/NAND pricing deteriorates; peer guidance disappoints.",
+      "claude_reasoning": "MU shows elite momentum (87.2 score, +90% 20d, +160% 60d, at 52W high) but the bundle contains no MU research, earnings date, product catalyst, or guidance. This is pure AI semis sector sympathy with zero company-specific trigger. Grade D (NO_CLEAR_CATALYST) reflects naked momentum without a nameable catalyst."
+    },
+    "SNDK": {
+      "ticker": "SNDK",
+      "primary_catalyst": "Storage/SSD cycle momentum; no SNDK-specific catalyst identified in bundle.",
+      "catalyst_type": "SYMPATHY_MOVE",
+      "catalyst_grade": "D",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "RS leader momentum (86.3 score, +211% 60d)",
+        "Accelerating technicals with multi-gap up"
+      ],
+      "invalidation": "Flash memory cycle deteriorates; peer guidance disappoints; SNDK exec risk.",
+      "claude_reasoning": "SNDK displays strong momentum (86.3 score, +48% 20d, +211% 60d, RS leader) but zero specific research, earnings date, or product catalyst in the bundle. Grade D (NO_CLEAR_CATALYST) because the entire setup is momentum/peer sympathy without a named SNDK trigger."
+    },
+    "PANW": {
+      "ticker": "PANW",
+      "primary_catalyst": "Earnings on 2026-06-02 AMC; cybersecurity sector momentum with elevated volatility (IV rank 100 proxy).",
+      "catalyst_type": "EARNINGS_BEAT",
+      "catalyst_grade": "B",
+      "catalyst_date": "2026-06-02",
+      "days_to_catalyst": 1,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "0.43 EPS consensus at 52W high",
+        "Momentum leader (85.6 score, +65% 20d)",
+        "Software infrastructure avg momentum 75.6"
+      ],
+      "invalidation": "Earnings miss or weak forward visibility; cybersecurity spending stalls.",
+      "claude_reasoning": "PANW has imminent earnings (2026-06-02 AMC) with 0.43 EPS consensus and at 52W high technical setup. Momentum is strong (85.6 score, +65% 20d, RS +60% vs SPY). However, the bundle provides no bull thesis, guidance, or beat history\u2014only technical setup. Grade B reflects the named earnings trigger but absence of forward catalyst or conviction driver."
+    },
+    "CRWD": {
+      "ticker": "CRWD",
+      "primary_catalyst": "Earnings on 2026-06-03 AMC; cybersecurity demand inflection with momentum leader status (85.3 score).",
+      "catalyst_type": "EARNINGS_BEAT",
+      "catalyst_grade": "B",
+      "catalyst_date": "2026-06-03",
+      "days_to_catalyst": 2,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "0.13 EPS consensus at 52W high",
+        "Momentum leader with +71% 20d return",
+        "Software infrastructure peer momentum 75.6 avg"
+      ],
+      "invalidation": "Earnings miss or soft guidance; cybersecurity TAM growth disappointment.",
+      "claude_reasoning": "CRWD has a near-term earnings catalyst (2026-06-03 AMC) with 0.13 EPS consensus and strong momentum (85.3 score, +71% 20d, at 52W high). Grade B reflects the named earnings date but complete absence of bull thesis, guidance commentary, or product catalyst in the bundle\u2014pure technical/momentum setup."
+    },
+    "AMD": {
+      "ticker": "AMD",
+      "primary_catalyst": "AI processor demand inflection; 8-engine momentum confirmation with 83.9 score and confirmed pump status.",
+      "catalyst_type": "MACRO_TAILWIND",
+      "catalyst_grade": "B",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "MULTI_QUARTER",
+      "secondary_catalysts": [
+        "8 momentum engines firing (strongest in semis cohort)",
+        "+41% 20d return with +155% 60d RS outperformance",
+        "Pump confirmed with accelerating multi-gap technicals"
+      ],
+      "invalidation": "AI capex cycle slows; NVIDIA/Intel gain share; AMD execution disappoints.",
+      "claude_reasoning": "AMD shows elite momentum (83.9 score, +41% 20d, +155% 60d, 8 engines) with confirmed pump status and accelerating technicals. The AI semis sector tailwind is clear (avg peer momentum 71.2). However, the bundle provides zero AMD-specific catalyst\u2014no earnings date, guidance, product launch, or beat. Grade B for the macro AI thesis but loss of points for lack of company-specific trigger."
+    },
+    "MRVL": {
+      "ticker": "MRVL",
+      "primary_catalyst": "AI semis sector momentum; no MRVL-specific catalyst identified in bundle.",
+      "catalyst_type": "SYMPATHY_MOVE",
+      "catalyst_grade": "D",
+      "catalyst_date": null,
+      "days_to_catalyst": null,
+      "thesis_durability": "1W",
+      "secondary_catalysts": [
+        "Momentum leader (82.8 score, +189% 60d)",
+        "RS outperformance (+27% vs SPY 20d)",
+        "Near 52W high with multi-gap up technicals"
+      ],
+      "invalidation": "AI semis cycle softens; MRVL data center mix pressure; peer guidance disappointment.",
+      "claude_reasoning": "MRVL exhibits strong momentum (82.8 score, +33% 20d, +189% 60d, near 52W high) but the bundle contains zero MRVL-specific research, earnings date, guidance, or product catalyst. Grade D (NO_CLEAR_CATALYST) because the entire thesis is sector-wide AI semis sympathy without a named MRVL trigger."
+    }
+  },
+  "by_grade": {
+    "A": [
+      "ORCL",
+      "WDC",
+      "CRM",
+      "MSFT",
+      "LLY"
+    ],
+    "B": [
+      "DELL",
+      "FCX",
+      "AVGO",
+      "PANW",
+      "CRWD",
+      "AMD"
+    ],
+    "C": [],
+    "D": [
+      "ARM",
+      "MU",
+      "SNDK",
+      "MRVL"
+    ]
+  },
+  "by_type": {
+    "EARNINGS_BEAT": [
+      "ORCL",
+      "AVGO",
+      "PANW",
+      "CRWD"
+    ],
+    "PRODUCT_LAUNCH": [
+      "WDC",
+      "MSFT"
+    ],
+    "SYMPATHY_MOVE": [
+      "DELL",
+      "ARM",
+      "MU",
+      "SNDK",
+      "MRVL"
+    ],
+    "GUIDANCE_RAISE": [
+      "CRM",
+      "LLY"
+    ],
+    "MACRO_TAILWIND": [
+      "FCX",
+      "AMD"
+    ]
+  },
+  "flagged": [
+    "ARM",
+    "MU",
+    "SNDK",
+    "MRVL"
+  ],
+  "schema": {
+    "catalyst_types": [
+      "EARNINGS_BEAT",
+      "FDA_APPROVAL",
+      "GEOPOLITICAL",
+      "GUIDANCE_RAISE",
+      "INDEX_INCLUSION",
+      "INSIDER_BUYING",
+      "M&A",
+      "MACRO_TAILWIND",
+      "NO_CLEAR_CATALYST",
+      "PRODUCT_LAUNCH",
+      "SQUEEZE_SETUP",
+      "SYMPATHY_MOVE"
+    ],
+    "catalyst_grades": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "durability": [
+      "1D",
+      "1M",
+      "1W",
+      "MULTI_QUARTER",
+      "STRUCTURAL"
+    ]
+  },
+  "disclaimer": "Catalyst classification by Claude AI based on context bundles synthesized from quant engines. Catalyst grades reflect Claude's interpretation; verify before sizing. Grade D / NO_CLEAR_CATALYST items should be downgraded or excluded from aggressive sizing."
+}
