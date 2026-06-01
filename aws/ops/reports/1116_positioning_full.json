@@ -1,0 +1,2275 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-01T18:14:59.885048+00:00",
+  "elapsed_sec": 0.98,
+  "n_candidates": 12,
+  "macro_regime": "NEUTRAL",
+  "candidates": [
+    {
+      "ticker": "NEM",
+      "n_engines": 3,
+      "convergence_score": 62.0,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals",
+        "valuation"
+      ],
+      "n_domains": 3,
+      "avg_signal": 76.7,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 75.0,
+          "raw_score": 75.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 6
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 100,
+          "raw_score": 9,
+          "valuation_label": "UNDERVALUED",
+          "dcf_gap_pct": 122.7,
+          "altman_z": 4.58
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 55.1,
+          "raw_score": 55.1,
+          "buyback_yield_pct": 1.96,
+          "dividend_yield_pct": 0.93
+        }
+      },
+      "tier": "MED",
+      "directional_score": 83.6,
+      "n_bullish_eng": 2,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 1,
+      "bullish_engines": [
+        {
+          "engine": "earnings-pead",
+          "mag": 1.0,
+          "weight": 1.2,
+          "weighted": 1.2,
+          "note": "TIER_S_PEAD_DRIFT \u00b7 streak 6Q ()"
+        },
+        {
+          "engine": "fundamentals-quality",
+          "mag": 1.0,
+          "weight": 0.4,
+          "weighted": 0.4,
+          "note": "UNDERVALUED, DCF gap 122.7%"
+        },
+        {
+          "engine": "capital-return",
+          "mag": 0.4,
+          "weight": 0.6,
+          "weighted": 0.24,
+          "note": "cannibal buyback"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 3,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 57.3,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 41.8,
+        "convergence": 15.5,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 108.375,
+        "atr_14": 4.48,
+        "atr_pct": 4.13,
+        "hv_30": 53.03,
+        "perf_5d_pct": 0.58,
+        "perf_20d_pct": -0.33,
+        "perf_60d_pct": -6.74,
+        "volume_avg_20d": 6839143,
+        "adv_dollars": 741192209,
+        "beta_spy": 0.448
+      },
+      "context": {
+        "sector": "Basic Materials",
+        "industry": "Gold",
+        "sector_etf": "XLB",
+        "market_cap": 115696030799,
+        "liquidity_tier": "M",
+        "adv_dollars": 741192209.3249999,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 105.24,
+          "high": 110.61,
+          "current": 108.375
+        },
+        "stop_loss": 99.42,
+        "stop_loss_pct": -8.26,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 112.85,
+            "rr": 0.5,
+            "gain_pct": 4.13,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 117.33,
+            "rr": 1.0,
+            "gain_pct": 8.26,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 121.81,
+            "rr": 1.5,
+            "gain_pct": 12.4,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 5.0,
+        "kelly_fraction": 0.146,
+        "vol_target_size_pct": 26.77,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 8.95,
+        "max_dollar_risk_pct": 0.41
+      },
+      "warnings": []
+    },
+    {
+      "ticker": "APH",
+      "n_engines": 2,
+      "convergence_score": 37.9,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 39.5,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 63.0,
+          "raw_score": 63.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 16.0,
+          "raw_score": 16.0,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_20D_HIGH"
+          ],
+          "is_parabolic": false
+        }
+      },
+      "tier": "LOW",
+      "directional_score": 70.4,
+      "n_bullish_eng": 1,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 1,
+      "bullish_engines": [
+        {
+          "engine": "earnings-pead",
+          "mag": 1.0,
+          "weight": 1.2,
+          "weighted": 1.2,
+          "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 8Q ()"
+        },
+        {
+          "engine": "momentum-breakout",
+          "mag": 0.45,
+          "weight": 1.4,
+          "weighted": 0.63,
+          "note": "MARGINAL (AT_20D_HIGH)"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 54.7,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 35.2,
+        "convergence": 9.5,
+        "acceleration": 10.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 147.395,
+        "atr_14": 5.81,
+        "atr_pct": 3.94,
+        "hv_30": 49.58,
+        "perf_5d_pct": 11.71,
+        "perf_20d_pct": 3.67,
+        "perf_60d_pct": 8.28,
+        "volume_avg_20d": 12276114,
+        "adv_dollars": 1809437823,
+        "beta_spy": 1.297
+      },
+      "context": {
+        "sector": "Technology",
+        "industry": "Hardware, Equipment & Parts",
+        "sector_etf": "XLK",
+        "market_cap": 181329750850,
+        "liquidity_tier": "L",
+        "adv_dollars": 1809437823.0300002,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 143.33,
+          "high": 150.3,
+          "current": 147.395
+        },
+        "stop_loss": 135.78,
+        "stop_loss_pct": -7.88,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 153.2,
+            "rr": 0.5,
+            "gain_pct": 3.94,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 159.01,
+            "rr": 1.0,
+            "gain_pct": 7.88,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 164.82,
+            "rr": 1.5,
+            "gain_pct": 11.82,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 5.0,
+        "kelly_fraction": 0.094,
+        "vol_target_size_pct": 28.64,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 11.62,
+        "max_dollar_risk_pct": 0.39
+      },
+      "warnings": [
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    },
+    {
+      "ticker": "PLTR",
+      "n_engines": 8,
+      "convergence_score": 100,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 7,
+      "avg_signal": 63.0,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 78.0,
+          "raw_score": 78.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 8
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 78.0,
+          "raw_score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ]
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 37.5,
+          "raw_score": 37.5,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "AT_20D_HIGH",
+            "VOL_SURGE_1.8X",
+            "RS_20D_+7"
+          ],
+          "is_parabolic": false
+        },
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.4,
+          "raw_score": 1.37,
+          "current_level": 1790.6,
+          "interp": "RISING",
+          "price_7d_pct": 15.73
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -93.2,
+          "altman_z": 121.94
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 100,
+          "raw_score": 5,
+          "total_value": 415276190.94000006,
+          "max_weight": 4.24
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 86.0,
+          "raw_score": 86.0,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 2920000.0,
+          "acceleration_ratio": 1.25
+        }
+      },
+      "tier": "ULTRA",
+      "directional_score": 59.0,
+      "n_bullish_eng": 3,
+      "n_bearish_eng": 1,
+      "n_neutral_eng": 4,
+      "bullish_engines": [
+        {
+          "engine": "options-flow",
+          "mag": 1.0,
+          "weight": 1.5,
+          "weighted": 1.5,
+          "note": "TIER_A_BULLISH_FLOW (CPR_SURGING+CALL_VOL_3X)"
+        },
+        {
+          "engine": "earnings-pead",
+          "mag": 1.0,
+          "weight": 1.2,
+          "weighted": 1.2,
+          "note": "TIER_S_PEAD_DRIFT \u00b7 streak 8Q ()"
+        },
+        {
+          "engine": "eps-revision-velocity",
+          "mag": 0.7,
+          "weight": 1.1,
+          "weighted": 0.77,
+          "note": "HIGH_VELOCITY_TIER_B"
+        },
+        {
+          "engine": "momentum-breakout",
+          "mag": 0.45,
+          "weight": 1.4,
+          "weighted": 0.63,
+          "note": "MARGINAL (RISING_20D+AT_20D_HIGH+VOL_SURGE_1.8X)"
+        },
+        {
+          "engine": "ark-holdings",
+          "mag": 0.35,
+          "weight": 0.5,
+          "weighted": 0.17,
+          "note": "in 0 ARK fund"
+        }
+      ],
+      "bearish_engines": [
+        {
+          "engine": "fundamentals-quality",
+          "mag": -1.0,
+          "weight": 0.4,
+          "weighted": -0.4,
+          "note": "OVERVALUED, DCF gap -93.2%"
+        }
+      ],
+      "prior_n_engines": 8,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 54.5,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 29.5,
+        "convergence": 25.0,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 162.81,
+        "atr_14": 6.2,
+        "atr_pct": 3.81,
+        "hv_30": 55.31,
+        "perf_5d_pct": 19.04,
+        "perf_20d_pct": 13.1,
+        "perf_60d_pct": 6.73,
+        "volume_avg_20d": 43405706,
+        "adv_dollars": 7066883091,
+        "beta_spy": 1.521
+      },
+      "context": {
+        "sector": "Technology",
+        "industry": "Software - Infrastructure",
+        "sector_etf": "XLK",
+        "market_cap": 373880558450,
+        "liquidity_tier": "XL",
+        "adv_dollars": 7066883091.5460005,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 158.47,
+          "high": 165.91,
+          "current": 162.81
+        },
+        "stop_loss": 150.41,
+        "stop_loss_pct": -7.62,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 169.01,
+            "rr": 0.5,
+            "gain_pct": 3.81,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 175.21,
+            "rr": 1.0,
+            "gain_pct": 7.62,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 181.42,
+            "rr": 1.5,
+            "gain_pct": 11.43,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 5.0,
+        "kelly_fraction": 0.09,
+        "vol_target_size_pct": 25.67,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 12.4,
+        "max_dollar_risk_pct": 0.38
+      },
+      "warnings": [
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    },
+    {
+      "ticker": "LLY",
+      "n_engines": 7,
+      "convergence_score": 83.5,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 4,
+      "avg_signal": 45.0,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 78.0,
+          "raw_score": 78.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 6
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 85.0,
+          "raw_score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 40.3,
+          "raw_score": 40.3,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "RS_20D_+13"
+          ],
+          "is_parabolic": false
+        },
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.2,
+          "raw_score": 1.22,
+          "current_level": 1866.9,
+          "interp": "FLAT",
+          "price_7d_pct": 8.18
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 6.12
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 59.2,
+          "raw_score": 59.2,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        }
+      },
+      "tier": "HIGH",
+      "directional_score": 66.7,
+      "n_bullish_eng": 3,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 4,
+      "bullish_engines": [
+        {
+          "engine": "options-flow",
+          "mag": 1.0,
+          "weight": 1.5,
+          "weighted": 1.5,
+          "note": "TIER_A_BULLISH_FLOW (CPR_SURGING+CALL_VOL_3X)"
+        },
+        {
+          "engine": "earnings-pead",
+          "mag": 1.0,
+          "weight": 1.2,
+          "weighted": 1.2,
+          "note": "TIER_S_PEAD_DRIFT \u00b7 streak 6Q ()"
+        },
+        {
+          "engine": "eps-revision-velocity",
+          "mag": 0.7,
+          "weight": 1.1,
+          "weighted": 0.77,
+          "note": "HIGH_VELOCITY_TIER_B"
+        },
+        {
+          "engine": "momentum-breakout",
+          "mag": 0.45,
+          "weight": 1.4,
+          "weighted": 0.63,
+          "note": "MARGINAL (RISING_20D+NEAR_60D_HIGH+RS_20D_+13)"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 7,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 54.2,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 33.4,
+        "convergence": 20.9,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 1078.86,
+        "atr_14": 32.18,
+        "atr_pct": 2.98,
+        "hv_30": 42.26,
+        "perf_5d_pct": 1.11,
+        "perf_20d_pct": 11.78,
+        "perf_60d_pct": 9.51,
+        "volume_avg_20d": 3170358,
+        "adv_dollars": 3420373456,
+        "beta_spy": 0.481
+      },
+      "context": {
+        "sector": "Healthcare",
+        "industry": "Drug Manufacturers - General",
+        "sector_etf": "XLV",
+        "market_cap": 1016006695260,
+        "liquidity_tier": "L",
+        "adv_dollars": 3420373456.797,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 1056.34,
+          "high": 1094.95,
+          "current": 1078.86
+        },
+        "stop_loss": 1014.51,
+        "stop_loss_pct": -5.96,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 1111.04,
+            "rr": 0.5,
+            "gain_pct": 2.98,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 1143.21,
+            "rr": 1.0,
+            "gain_pct": 5.96,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 1175.39,
+            "rr": 1.5,
+            "gain_pct": 8.95,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 5.0,
+        "kelly_fraction": 0.084,
+        "vol_target_size_pct": 33.6,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 64.35,
+        "max_dollar_risk_pct": 0.3
+      },
+      "warnings": [
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    },
+    {
+      "ticker": "MSFT",
+      "n_engines": 8,
+      "convergence_score": 88.8,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 5,
+      "avg_signal": 46.0,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 75.0,
+          "raw_score": 75.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_RISING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 45.1,
+          "raw_score": 45.1,
+          "tier": "WATCH",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "VOL_SURGE_1.8X",
+            "RS_20D_+5"
+          ],
+          "is_parabolic": false
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 52.1,
+          "raw_score": 521.1,
+          "mentions": 236,
+          "upvotes": 2146,
+          "rank": 6
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 9.58
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 49.9,
+          "raw_score": 49.9,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 3272500.0,
+          "acceleration_ratio": 1.03
+        }
+      },
+      "tier": "ULTRA",
+      "directional_score": 63.5,
+      "n_bullish_eng": 3,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 5,
+      "bullish_engines": [
+        {
+          "engine": "options-flow",
+          "mag": 1.0,
+          "weight": 1.5,
+          "weighted": 1.5,
+          "note": "TIER_A_BULLISH_FLOW (CPR_RISING+CALL_VOL_3X)"
+        },
+        {
+          "engine": "earnings-pead",
+          "mag": 1.0,
+          "weight": 1.2,
+          "weighted": 1.2,
+          "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 8Q ()"
+        },
+        {
+          "engine": "eps-revision-velocity",
+          "mag": 0.7,
+          "weight": 1.1,
+          "weighted": 0.77,
+          "note": "HIGH_VELOCITY_TIER_B"
+        },
+        {
+          "engine": "momentum-breakout",
+          "mag": 0.45,
+          "weight": 1.4,
+          "weighted": 0.63,
+          "note": "WATCH (RISING_20D+AT_60D_HIGH+VOL_SURGE_1.8X)"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 8,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 54.0,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 31.8,
+        "convergence": 22.2,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 461.0671,
+        "atr_14": 12.14,
+        "atr_pct": 2.63,
+        "hv_30": 31.46,
+        "perf_5d_pct": 10.11,
+        "perf_20d_pct": 11.21,
+        "perf_60d_pct": 12.23,
+        "volume_avg_20d": 33386817,
+        "adv_dollars": 15393563076,
+        "beta_spy": 1.093
+      },
+      "context": {
+        "sector": "Technology",
+        "industry": "Software - Infrastructure",
+        "sector_etf": "XLK",
+        "market_cap": 3425004677652.9995,
+        "liquidity_tier": "XL",
+        "adv_dollars": 15393563076.847538,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 452.57,
+          "high": 467.14,
+          "current": 461.0671
+        },
+        "stop_loss": 436.79,
+        "stop_loss_pct": -5.27,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 473.21,
+            "rr": 0.5,
+            "gain_pct": 2.63,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 485.35,
+            "rr": 1.0,
+            "gain_pct": 5.27,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 497.49,
+            "rr": 1.5,
+            "gain_pct": 7.9,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 5.0,
+        "kelly_fraction": 0.08,
+        "vol_target_size_pct": 45.13,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 24.28,
+        "max_dollar_risk_pct": 0.26
+      },
+      "warnings": [
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    },
+    {
+      "ticker": "AMZN",
+      "n_engines": 9,
+      "convergence_score": 94.0,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 6,
+      "avg_signal": 46.6,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 58.0,
+          "raw_score": 58.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 1
+        },
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 8.2,
+          "raw_score": 8.15,
+          "watchlist_count": 690536,
+          "sector": "RetailTrade"
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 85.0,
+          "raw_score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 26.3,
+          "raw_score": 26.3,
+          "tier": "MARGINAL",
+          "flags": [
+            "NEAR_60D_HIGH",
+            "RS_60D_+14"
+          ],
+          "is_parabolic": false
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": -0.32
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 100,
+          "raw_score": 5,
+          "total_value": 414561178.0,
+          "max_weight": 4.01
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 45.5,
+          "raw_score": 45.5,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 5135000.0,
+          "acceleration_ratio": 1.01
+        }
+      },
+      "tier": "ULTRA",
+      "directional_score": 50.9,
+      "n_bullish_eng": 2,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 7,
+      "bullish_engines": [
+        {
+          "engine": "options-flow",
+          "mag": 1.0,
+          "weight": 1.5,
+          "weighted": 1.5,
+          "note": "TIER_A_BULLISH_FLOW (CPR_SURGING+CALL_VOL_3X)"
+        },
+        {
+          "engine": "earnings-pead",
+          "mag": 0.65,
+          "weight": 1.2,
+          "weighted": 0.78,
+          "note": "TIER_B_BUILDING \u00b7 streak 1Q ()"
+        },
+        {
+          "engine": "momentum-breakout",
+          "mag": 0.45,
+          "weight": 1.4,
+          "weighted": 0.63,
+          "note": "MARGINAL (NEAR_60D_HIGH+RS_60D_+14)"
+        },
+        {
+          "engine": "ark-holdings",
+          "mag": 0.35,
+          "weight": 0.5,
+          "weighted": 0.17,
+          "note": "in 0 ARK fund"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 8,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 54.0,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 25.4,
+        "convergence": 23.5,
+        "acceleration": 5.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 262.19,
+        "atr_14": 6.77,
+        "atr_pct": 2.58,
+        "hv_30": 23.67,
+        "perf_5d_pct": -1.44,
+        "perf_20d_pct": -2.15,
+        "perf_60d_pct": 19.89,
+        "volume_avg_20d": 36980265,
+        "adv_dollars": 9695855863,
+        "beta_spy": 1.468
+      },
+      "context": {
+        "sector": "Consumer Cyclical",
+        "industry": "Specialty Retail",
+        "sector_etf": "XLY",
+        "market_cap": 2820404075262,
+        "liquidity_tier": "XL",
+        "adv_dollars": 9695855863.883001,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 257.45,
+          "high": 265.57,
+          "current": 262.19
+        },
+        "stop_loss": 248.66,
+        "stop_loss_pct": -5.16,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 268.96,
+            "rr": 0.5,
+            "gain_pct": 2.58,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 275.72,
+            "rr": 1.0,
+            "gain_pct": 5.16,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 282.49,
+            "rr": 1.5,
+            "gain_pct": 7.74,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 5.0,
+        "kelly_fraction": 0.08,
+        "vol_target_size_pct": 59.99,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 13.53,
+        "max_dollar_risk_pct": 0.26
+      },
+      "warnings": [
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    },
+    {
+      "ticker": "WDC",
+      "n_engines": 4,
+      "convergence_score": 67.5,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 68.3,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 70.0,
+          "raw_score": 70.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 63.4,
+          "raw_score": 63.4,
+          "tier": "TIER_B_MOMENTUM",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "RS_20D_+17",
+            "RS_60D_+93"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 85.0,
+          "raw_score": 85.0,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 55.0,
+          "raw_score": 55,
+          "recent_amount_usd": 460000.0,
+          "acceleration_ratio": 2.93
+        }
+      },
+      "tier": "HIGH",
+      "directional_score": 73.5,
+      "n_bullish_eng": 3,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 1,
+      "bullish_engines": [
+        {
+          "engine": "earnings-pead",
+          "mag": 1.0,
+          "weight": 1.2,
+          "weighted": 1.2,
+          "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 8Q ()"
+        },
+        {
+          "engine": "momentum-breakout",
+          "mag": 0.65,
+          "weight": 1.4,
+          "weighted": 0.91,
+          "note": "TIER_B_MOMENTUM (RISING_20D+AT_60D_HIGH+RS_20D_+17)"
+        },
+        {
+          "engine": "eps-revision-velocity",
+          "mag": 0.7,
+          "weight": 1.1,
+          "weighted": 0.77,
+          "note": "HIGH_VELOCITY_TIER_B"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 4,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 53.6,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 36.8,
+        "convergence": 16.9,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 556.95,
+        "atr_14": 29.98,
+        "atr_pct": 5.38,
+        "hv_30": 54.02,
+        "perf_5d_pct": 15.07,
+        "perf_20d_pct": 29.14,
+        "perf_60d_pct": 115.13,
+        "volume_avg_20d": 7074633,
+        "adv_dollars": 3940216988,
+        "beta_spy": 2.158
+      },
+      "context": {
+        "sector": "Technology",
+        "industry": "Computer Hardware",
+        "sector_etf": "XLK",
+        "market_cap": 191970639900,
+        "liquidity_tier": "L",
+        "adv_dollars": 3940216988.5875,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 535.96,
+          "high": 571.94,
+          "current": 556.95
+        },
+        "stop_loss": 496.98,
+        "stop_loss_pct": -10.77,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 586.93,
+            "rr": 0.5,
+            "gain_pct": 5.38,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 616.92,
+            "rr": 1.0,
+            "gain_pct": 10.77,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 646.9,
+            "rr": 1.5,
+            "gain_pct": 16.15,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 5.0,
+        "kelly_fraction": 0.072,
+        "vol_target_size_pct": 26.28,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 59.97,
+        "max_dollar_risk_pct": 0.54
+      },
+      "warnings": [
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    },
+    {
+      "ticker": "FCX",
+      "n_engines": 2,
+      "convergence_score": 45.2,
+      "domain_coverage": [
+        "earnings",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 64.0,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 83.0,
+          "raw_score": 83.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 5
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 440000.0,
+          "acceleration_ratio": 1.89
+        }
+      },
+      "tier": "MED",
+      "directional_score": 84.0,
+      "n_bullish_eng": 1,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 1,
+      "bullish_engines": [
+        {
+          "engine": "earnings-pead",
+          "mag": 1.0,
+          "weight": 1.2,
+          "weighted": 1.2,
+          "note": "TIER_S_PEAD_DRIFT \u00b7 streak 5Q ()"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 2,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 53.3,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 42.0,
+        "convergence": 11.3,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 67.13,
+        "atr_14": 2.84,
+        "atr_pct": 4.22,
+        "hv_30": 60.4,
+        "perf_5d_pct": 8.13,
+        "perf_20d_pct": 18.53,
+        "perf_60d_pct": 6.97,
+        "volume_avg_20d": 12777351,
+        "adv_dollars": 857743606,
+        "beta_spy": 1.316
+      },
+      "context": {
+        "sector": "Basic Materials",
+        "industry": "Copper",
+        "sector_etf": "XLB",
+        "market_cap": 96503393737,
+        "liquidity_tier": "M",
+        "adv_dollars": 857743606.1949999,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 65.14,
+          "high": 68.55,
+          "current": 67.13
+        },
+        "stop_loss": 61.46,
+        "stop_loss_pct": -8.45,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 69.97,
+            "rr": 0.5,
+            "gain_pct": 4.23,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 72.8,
+            "rr": 1.0,
+            "gain_pct": 8.45,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 75.64,
+            "rr": 1.5,
+            "gain_pct": 12.68,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 5.0,
+        "kelly_fraction": 0.066,
+        "vol_target_size_pct": 23.51,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 5.67,
+        "max_dollar_risk_pct": 0.42
+      },
+      "warnings": [
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    },
+    {
+      "ticker": "CRM",
+      "n_engines": 4,
+      "convergence_score": 68.9,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals",
+        "momentum",
+        "valuation"
+      ],
+      "n_domains": 4,
+      "avg_signal": 56.5,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 78.0,
+          "raw_score": 78.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 6
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 27.0,
+          "raw_score": 27.0,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "AT_20D_HIGH",
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 66.7,
+          "raw_score": 6,
+          "valuation_label": "UNDERVALUED",
+          "dcf_gap_pct": 41.1,
+          "altman_z": 2.24
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 54.2,
+          "raw_score": 54.2,
+          "buyback_yield_pct": 8.05,
+          "dividend_yield_pct": 0.88
+        }
+      },
+      "tier": "HIGH",
+      "directional_score": 68.6,
+      "n_bullish_eng": 2,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 2,
+      "bullish_engines": [
+        {
+          "engine": "earnings-pead",
+          "mag": 1.0,
+          "weight": 1.2,
+          "weighted": 1.2,
+          "note": "TIER_S_PEAD_DRIFT \u00b7 streak 6Q ()"
+        },
+        {
+          "engine": "momentum-breakout",
+          "mag": 0.45,
+          "weight": 1.4,
+          "weighted": 0.63,
+          "note": "MARGINAL (RISING_20D+AT_20D_HIGH+VOL_SURGE_1.8X)"
+        },
+        {
+          "engine": "fundamentals-quality",
+          "mag": 1.0,
+          "weight": 0.4,
+          "weighted": 0.4,
+          "note": "UNDERVALUED, DCF gap 41.1%"
+        },
+        {
+          "engine": "capital-return",
+          "mag": 0.4,
+          "weight": 0.6,
+          "weighted": 0.24,
+          "note": "cannibal buyback"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 4,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 51.5,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 34.3,
+        "convergence": 17.2,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 210.13,
+        "atr_14": 9.08,
+        "atr_pct": 4.32,
+        "hv_30": 56.12,
+        "perf_5d_pct": 16.75,
+        "perf_20d_pct": 14.37,
+        "perf_60d_pct": 4.39,
+        "volume_avg_20d": 13481464,
+        "adv_dollars": 2832860166,
+        "beta_spy": 1.139
+      },
+      "context": {
+        "sector": "Technology",
+        "industry": "Software - Application",
+        "sector_etf": "XLK",
+        "market_cap": 172096470000,
+        "liquidity_tier": "L",
+        "adv_dollars": 2832860166.9045,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 203.77,
+          "high": 214.67,
+          "current": 210.13
+        },
+        "stop_loss": 191.96,
+        "stop_loss_pct": -8.65,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 219.22,
+            "rr": 0.5,
+            "gain_pct": 4.33,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 228.3,
+            "rr": 1.0,
+            "gain_pct": 8.65,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 237.38,
+            "rr": 1.5,
+            "gain_pct": 12.97,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 3.0,
+        "kelly_fraction": 0.03,
+        "vol_target_size_pct": 25.3,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 18.17,
+        "max_dollar_risk_pct": 0.26
+      },
+      "warnings": [
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    },
+    {
+      "ticker": "ORCL",
+      "n_engines": 10,
+      "convergence_score": 88.0,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 5,
+      "avg_signal": 43.3,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 32.0,
+          "raw_score": 32.0,
+          "tier": "WATCH",
+          "beat_streak": 2
+        },
+        "earnings-tracker-upcoming": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50,
+          "earnings_date": "2026-06-10",
+          "time": "TBD",
+          "eps_consensus": 1.58
+        },
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 9.8,
+          "raw_score": 9.79,
+          "watchlist_count": 61905,
+          "sector": "TechnologyServices"
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 55.0,
+          "raw_score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 75.0,
+          "raw_score": 75,
+          "tier": "TIER_A_BREAKOUT",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "VOL_SURGE_1.8X",
+            "RS_20D_+35",
+            "RS_60D_+38"
+          ],
+          "is_parabolic": false
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 73.3,
+          "raw_score": 733.3,
+          "mentions": 50,
+          "upvotes": 1000,
+          "rank": 27
+        },
+        "earnings-whisper": {
+          "domain": "earnings",
+          "score": 55.0,
+          "raw_score": 55,
+          "earnings_date": "2026-06-10",
+          "days_to_earnings": 9
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 23.13
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 46.5,
+          "raw_score": 46.5,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 3420000.0,
+          "acceleration_ratio": 0.95
+        }
+      },
+      "tier": "ULTRA",
+      "directional_score": 38.6,
+      "n_bullish_eng": 2,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 8,
+      "bullish_engines": [
+        {
+          "engine": "momentum-breakout",
+          "mag": 0.85,
+          "weight": 1.4,
+          "weighted": 1.19,
+          "note": "TIER_A_BREAKOUT (RISING_20D+AT_60D_HIGH+VOL_SURGE_1.8X)"
+        },
+        {
+          "engine": "earnings-pead",
+          "mag": 0.5,
+          "weight": 1.2,
+          "weighted": 0.6,
+          "note": "WATCH \u00b7 streak 2Q ()"
+        },
+        {
+          "engine": "retail-sentiment",
+          "mag": 0.35,
+          "weight": 0.6,
+          "weighted": 0.21,
+          "note": "retail-sentiment score 73"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 9,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 51.3,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 19.3,
+        "convergence": 22.0,
+        "acceleration": 5.0,
+        "earnings_cat": 5.0
+      },
+      "price_data": {
+        "current": 248.78,
+        "atr_14": 10.88,
+        "atr_pct": 4.37,
+        "hv_30": 61.29,
+        "perf_5d_pct": 29.23,
+        "perf_20d_pct": 44.46,
+        "perf_60d_pct": 60.37,
+        "volume_avg_20d": 21515569,
+        "adv_dollars": 5352643405,
+        "beta_spy": 1.544
+      },
+      "context": {
+        "sector": "Technology",
+        "industry": "Software - Infrastructure",
+        "sector_etf": "XLK",
+        "market_cap": 715502723880,
+        "liquidity_tier": "XL",
+        "adv_dollars": 5352643405.088,
+        "days_to_earnings": 9,
+        "next_earnings_date": "2026-06-10",
+        "next_earnings_time": "TBD",
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 241.16,
+          "high": 254.22,
+          "current": 248.78
+        },
+        "stop_loss": 227.02,
+        "stop_loss_pct": -8.75,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 259.66,
+            "rr": 0.5,
+            "gain_pct": 4.37,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 270.54,
+            "rr": 1.0,
+            "gain_pct": 8.75,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 281.42,
+            "rr": 1.5,
+            "gain_pct": 13.12,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 2.6,
+        "kelly_fraction": 0.026,
+        "vol_target_size_pct": 23.17,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 21.76,
+        "max_dollar_risk_pct": 0.23
+      },
+      "warnings": [
+        "\ud83d\udcc5 Earnings in 9d \u2014 TP1 before report ideally",
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    },
+    {
+      "ticker": "GLW",
+      "n_engines": 2,
+      "convergence_score": 37.8,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 39.3,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 24.6,
+          "raw_score": 24.6,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "RS_20D_+5",
+            "RS_60D_+15"
+          ],
+          "is_parabolic": false
+        }
+      },
+      "tier": "LOW",
+      "directional_score": 61.2,
+      "n_bullish_eng": 1,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 1,
+      "bullish_engines": [
+        {
+          "engine": "earnings-pead",
+          "mag": 0.8,
+          "weight": 1.2,
+          "weighted": 0.96,
+          "note": "TIER_B_BUILDING \u00b7 streak 8Q ()"
+        },
+        {
+          "engine": "momentum-breakout",
+          "mag": 0.45,
+          "weight": 1.4,
+          "weighted": 0.63,
+          "note": "MARGINAL (RISING_20D+RS_20D_+5+RS_60D_+15)"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 50.0,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 30.6,
+        "convergence": 9.4,
+        "acceleration": 10.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 176.44,
+        "atr_14": 12.22,
+        "atr_pct": 6.92,
+        "hv_30": 77.12,
+        "perf_5d_pct": -9.13,
+        "perf_20d_pct": 11.42,
+        "perf_60d_pct": 30.87,
+        "volume_avg_20d": 15233152,
+        "adv_dollars": 2687737444,
+        "beta_spy": 1.136
+      },
+      "context": {
+        "sector": "Technology",
+        "industry": "Hardware, Equipment & Parts",
+        "sector_etf": "XLK",
+        "market_cap": 151850937843,
+        "liquidity_tier": "L",
+        "adv_dollars": 2687737444.744,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 167.89,
+          "high": 182.55,
+          "current": 176.44
+        },
+        "stop_loss": 152.01,
+        "stop_loss_pct": -13.85,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 188.66,
+            "rr": 0.5,
+            "gain_pct": 6.93,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 200.87,
+            "rr": 1.0,
+            "gain_pct": 13.85,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 213.09,
+            "rr": 1.5,
+            "gain_pct": 20.77,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 0.5,
+        "kelly_fraction": 0,
+        "vol_target_size_pct": 18.41,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 24.43,
+        "max_dollar_risk_pct": 0.07
+      },
+      "warnings": [
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    },
+    {
+      "ticker": "SCCO",
+      "n_engines": 2,
+      "convergence_score": 37.5,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 38.4,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 5
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 22.8,
+          "raw_score": 22.8,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "RS_20D_+7"
+          ],
+          "is_parabolic": false
+        }
+      },
+      "tier": "LOW",
+      "directional_score": 61.2,
+      "n_bullish_eng": 1,
+      "n_bearish_eng": 0,
+      "n_neutral_eng": 1,
+      "bullish_engines": [
+        {
+          "engine": "earnings-pead",
+          "mag": 0.8,
+          "weight": 1.2,
+          "weighted": 0.96,
+          "note": "TIER_B_BUILDING \u00b7 streak 5Q ()"
+        },
+        {
+          "engine": "momentum-breakout",
+          "mag": 0.45,
+          "weight": 1.4,
+          "weighted": 0.63,
+          "note": "MARGINAL (RISING_20D+NEAR_60D_HIGH+RS_20D_+7)"
+        }
+      ],
+      "bearish_engines": [],
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra_new": false,
+      "pump_likelihood": 50.0,
+      "pump_category": "PUMP_POSSIBLE",
+      "exclude_from_longs": false,
+      "pump_components": {
+        "directional": 30.6,
+        "convergence": 9.4,
+        "acceleration": 10.0,
+        "earnings_cat": 0.0
+      },
+      "price_data": {
+        "current": 197.04,
+        "atr_14": 8.51,
+        "atr_pct": 4.32,
+        "hv_30": 49.88,
+        "perf_5d_pct": 9.55,
+        "perf_20d_pct": 16.13,
+        "perf_60d_pct": 2.59,
+        "volume_avg_20d": 1259365,
+        "adv_dollars": 248145437,
+        "beta_spy": 1.079
+      },
+      "context": {
+        "sector": "Basic Materials",
+        "industry": "Copper",
+        "sector_etf": "XLB",
+        "market_cap": 164395534155,
+        "liquidity_tier": "M",
+        "adv_dollars": 248145437.232,
+        "days_to_earnings": null,
+        "next_earnings_date": null,
+        "next_earnings_time": null,
+        "macro_regime": "NEUTRAL",
+        "regime_supports_long": true
+      },
+      "trade_framework": {
+        "entry_zone": {
+          "low": 191.09,
+          "high": 201.29,
+          "current": 197.04
+        },
+        "stop_loss": 180.03,
+        "stop_loss_pct": -8.63,
+        "stop_multiplier": 2.0,
+        "tp_ladder": [
+          {
+            "level": "TP1",
+            "price": 205.55,
+            "rr": 0.5,
+            "gain_pct": 4.32,
+            "size_pct": 33
+          },
+          {
+            "level": "TP2",
+            "price": 214.05,
+            "rr": 1.0,
+            "gain_pct": 8.63,
+            "size_pct": 33
+          },
+          {
+            "level": "TP3",
+            "price": 222.56,
+            "rr": 1.5,
+            "gain_pct": 12.95,
+            "size_pct": 34
+          }
+        ],
+        "position_size_pct": 0.5,
+        "kelly_fraction": 0,
+        "vol_target_size_pct": 28.47,
+        "rr_ratio": "1:1.0",
+        "avg_tp_rr": 1.0,
+        "risk_per_share": 17.01,
+        "max_dollar_risk_pct": 0.04
+      },
+      "warnings": [
+        "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+      ]
+    }
+  ],
+  "portfolio_basket": {
+    "n_positions": 12,
+    "total_exposure": 46.6,
+    "cash_pct": 53.4,
+    "max_risk_at_stops_pct": 4.66,
+    "sector_breakdown": {
+      "Basic Materials": 10.5,
+      "Technology": 26.1,
+      "Healthcare": 5.0,
+      "Consumer Cyclical": 5.0
+    },
+    "positions": [
+      {
+        "ticker": "NEM",
+        "position_pct": 5.0,
+        "pump_score": 57.3,
+        "sector": "Basic Materials",
+        "stop": 99.42,
+        "tp1": 112.85,
+        "tp2": 117.33,
+        "tp3": 121.81,
+        "entry": 108.375,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "APH",
+        "position_pct": 5.0,
+        "pump_score": 54.7,
+        "sector": "Technology",
+        "stop": 135.78,
+        "tp1": 153.2,
+        "tp2": 159.01,
+        "tp3": 164.82,
+        "entry": 147.395,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "PLTR",
+        "position_pct": 5.0,
+        "pump_score": 54.5,
+        "sector": "Technology",
+        "stop": 150.41,
+        "tp1": 169.01,
+        "tp2": 175.21,
+        "tp3": 181.42,
+        "entry": 162.81,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "LLY",
+        "position_pct": 5.0,
+        "pump_score": 54.2,
+        "sector": "Healthcare",
+        "stop": 1014.51,
+        "tp1": 1111.04,
+        "tp2": 1143.21,
+        "tp3": 1175.39,
+        "entry": 1078.86,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "MSFT",
+        "position_pct": 5.0,
+        "pump_score": 54.0,
+        "sector": "Technology",
+        "stop": 436.79,
+        "tp1": 473.21,
+        "tp2": 485.35,
+        "tp3": 497.49,
+        "entry": 461.0671,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "AMZN",
+        "position_pct": 5.0,
+        "pump_score": 54.0,
+        "sector": "Consumer Cyclical",
+        "stop": 248.66,
+        "tp1": 268.96,
+        "tp2": 275.72,
+        "tp3": 282.49,
+        "entry": 262.19,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "WDC",
+        "position_pct": 5.0,
+        "pump_score": 53.6,
+        "sector": "Technology",
+        "stop": 496.98,
+        "tp1": 586.93,
+        "tp2": 616.92,
+        "tp3": 646.9,
+        "entry": 556.95,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "FCX",
+        "position_pct": 5.0,
+        "pump_score": 53.3,
+        "sector": "Basic Materials",
+        "stop": 61.46,
+        "tp1": 69.97,
+        "tp2": 72.8,
+        "tp3": 75.64,
+        "entry": 67.13,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "CRM",
+        "position_pct": 3.0,
+        "pump_score": 51.5,
+        "sector": "Technology",
+        "stop": 191.96,
+        "tp1": 219.22,
+        "tp2": 228.3,
+        "tp3": 237.38,
+        "entry": 210.13,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "ORCL",
+        "position_pct": 2.6,
+        "pump_score": 51.3,
+        "sector": "Technology",
+        "stop": 227.02,
+        "tp1": 259.66,
+        "tp2": 270.54,
+        "tp3": 281.42,
+        "entry": 248.78,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "GLW",
+        "position_pct": 0.5,
+        "pump_score": 50.0,
+        "sector": "Technology",
+        "stop": 152.01,
+        "tp1": 188.66,
+        "tp2": 200.87,
+        "tp3": 213.09,
+        "entry": 176.44,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      },
+      {
+        "ticker": "SCCO",
+        "position_pct": 0.5,
+        "pump_score": 50.0,
+        "sector": "Basic Materials",
+        "stop": 180.03,
+        "tp1": 205.55,
+        "tp2": 214.05,
+        "tp3": 222.56,
+        "entry": 197.04,
+        "rr_ratio": "1:1.0",
+        "horizon": "1-2w"
+      }
+    ],
+    "construction_rules": {
+      "max_per_position": 5.0,
+      "min_per_position": 0.5,
+      "max_per_sector": 30,
+      "min_pump_score": 45,
+      "target_vol_per_name": 0.02,
+      "kelly_cap": 0.25
+    }
+  },
+  "sizing_assumptions": {
+    "target_vol_per_name": 0.02,
+    "kelly_cap": 0.25,
+    "max_position_pct": 5.0,
+    "min_position_pct": 0.5,
+    "atr_stop_multiplier": 2.0,
+    "horizon_days": 5
+  }
+}

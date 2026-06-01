@@ -1,0 +1,313 @@
+{
+  "started": "2026-06-01T18:14:55.590298+00:00",
+  "phases": [
+    {
+      "name": "check_both_lambdas",
+      "status": "ok",
+      "result": {
+        "justhodl-pump-positioning": {
+          "state": "Active",
+          "code_size_kb": 30.5,
+          "memory": 768,
+          "timeout": 300,
+          "has_fmp_key": true
+        },
+        "justhodl-radar-backtest": {
+          "state": "Active",
+          "code_size_kb": 27.4,
+          "memory": 512,
+          "timeout": 300,
+          "has_fmp_key": true
+        }
+      }
+    },
+    {
+      "name": "setup_schedules",
+      "status": "ok",
+      "result": {
+        "justhodl-pump-positioning": {
+          "schedule": "justhodl-pump-positioning-hourly",
+          "cron": "cron(10 * * * ? *)"
+        },
+        "justhodl-radar-backtest": {
+          "schedule": "justhodl-radar-backtest-daily",
+          "cron": "cron(0 6 * * ? *)"
+        }
+      }
+    },
+    {
+      "name": "invoke_pump_positioning",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 1.8,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 0.98,
+          "n_candidates": 12,
+          "macro_regime": "NEUTRAL",
+          "basket_size": 12,
+          "total_exposure": 46.6
+        }
+      }
+    },
+    {
+      "name": "read_positioning_output",
+      "status": "ok",
+      "result": {
+        "size_kb": 57.8,
+        "elapsed_sec": 0.98,
+        "n_candidates": 12,
+        "macro_regime": "NEUTRAL",
+        "basket_positions": 12,
+        "total_exposure": 46.6,
+        "cash_pct": 53.4,
+        "sector_breakdown": {
+          "Basic Materials": 10.5,
+          "Technology": 26.1,
+          "Healthcare": 5.0,
+          "Consumer Cyclical": 5.0
+        },
+        "basket_top_5": [
+          {
+            "ticker": "NEM",
+            "position_pct": 5.0,
+            "pump_score": 57.3,
+            "sector": "Basic Materials",
+            "stop": 99.42,
+            "tp1": 112.85,
+            "tp2": 117.33,
+            "tp3": 121.81,
+            "entry": 108.375,
+            "rr_ratio": "1:1.0",
+            "horizon": "1-2w"
+          },
+          {
+            "ticker": "APH",
+            "position_pct": 5.0,
+            "pump_score": 54.7,
+            "sector": "Technology",
+            "stop": 135.78,
+            "tp1": 153.2,
+            "tp2": 159.01,
+            "tp3": 164.82,
+            "entry": 147.395,
+            "rr_ratio": "1:1.0",
+            "horizon": "1-2w"
+          },
+          {
+            "ticker": "PLTR",
+            "position_pct": 5.0,
+            "pump_score": 54.5,
+            "sector": "Technology",
+            "stop": 150.41,
+            "tp1": 169.01,
+            "tp2": 175.21,
+            "tp3": 181.42,
+            "entry": 162.81,
+            "rr_ratio": "1:1.0",
+            "horizon": "1-2w"
+          },
+          {
+            "ticker": "LLY",
+            "position_pct": 5.0,
+            "pump_score": 54.2,
+            "sector": "Healthcare",
+            "stop": 1014.51,
+            "tp1": 1111.04,
+            "tp2": 1143.21,
+            "tp3": 1175.39,
+            "entry": 1078.86,
+            "rr_ratio": "1:1.0",
+            "horizon": "1-2w"
+          },
+          {
+            "ticker": "MSFT",
+            "position_pct": 5.0,
+            "pump_score": 54.0,
+            "sector": "Technology",
+            "stop": 436.79,
+            "tp1": 473.21,
+            "tp2": 485.35,
+            "tp3": 497.49,
+            "entry": 461.0671,
+            "rr_ratio": "1:1.0",
+            "horizon": "1-2w"
+          }
+        ],
+        "sample_candidates": [
+          {
+            "ticker": "NEM",
+            "pump_likelihood": 57.3,
+            "category": "PUMP_POSSIBLE",
+            "current_price": 108.375,
+            "atr_14": 4.48,
+            "hv_30": 53.03,
+            "perf_5d_pct": 0.58,
+            "perf_20d_pct": -0.33,
+            "adv_dollars": 741192209,
+            "beta": 0.448,
+            "stop_loss": 99.42,
+            "stop_pct": -8.26,
+            "tp1": 112.85,
+            "tp2": 117.33,
+            "tp3": 121.81,
+            "position_size_pct": 5.0,
+            "kelly_fraction": 0.146,
+            "rr_ratio": "1:1.0",
+            "sector": "Basic Materials",
+            "industry": "Gold",
+            "days_to_earnings": null,
+            "liquidity_tier": "M",
+            "warnings": []
+          },
+          {
+            "ticker": "APH",
+            "pump_likelihood": 54.7,
+            "category": "PUMP_POSSIBLE",
+            "current_price": 147.395,
+            "atr_14": 5.81,
+            "hv_30": 49.58,
+            "perf_5d_pct": 11.71,
+            "perf_20d_pct": 3.67,
+            "adv_dollars": 1809437823,
+            "beta": 1.297,
+            "stop_loss": 135.78,
+            "stop_pct": -7.88,
+            "tp1": 153.2,
+            "tp2": 159.01,
+            "tp3": 164.82,
+            "position_size_pct": 5.0,
+            "kelly_fraction": 0.094,
+            "rr_ratio": "1:1.0",
+            "sector": "Technology",
+            "industry": "Hardware, Equipment & Parts",
+            "days_to_earnings": null,
+            "liquidity_tier": "L",
+            "warnings": [
+              "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+            ]
+          },
+          {
+            "ticker": "PLTR",
+            "pump_likelihood": 54.5,
+            "category": "PUMP_POSSIBLE",
+            "current_price": 162.81,
+            "atr_14": 6.2,
+            "hv_30": 55.31,
+            "perf_5d_pct": 19.04,
+            "perf_20d_pct": 13.1,
+            "adv_dollars": 7066883091,
+            "beta": 1.521,
+            "stop_loss": 150.41,
+            "stop_pct": -7.62,
+            "tp1": 169.01,
+            "tp2": 175.21,
+            "tp3": 181.42,
+            "position_size_pct": 5.0,
+            "kelly_fraction": 0.09,
+            "rr_ratio": "1:1.0",
+            "sector": "Technology",
+            "industry": "Software - Infrastructure",
+            "days_to_earnings": null,
+            "liquidity_tier": "XL",
+            "warnings": [
+              "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+            ]
+          },
+          {
+            "ticker": "LLY",
+            "pump_likelihood": 54.2,
+            "category": "PUMP_POSSIBLE",
+            "current_price": 1078.86,
+            "atr_14": 32.18,
+            "hv_30": 42.26,
+            "perf_5d_pct": 1.11,
+            "perf_20d_pct": 11.78,
+            "adv_dollars": 3420373456,
+            "beta": 0.481,
+            "stop_loss": 1014.51,
+            "stop_pct": -5.96,
+            "tp1": 1111.04,
+            "tp2": 1143.21,
+            "tp3": 1175.39,
+            "position_size_pct": 5.0,
+            "kelly_fraction": 0.084,
+            "rr_ratio": "1:1.0",
+            "sector": "Healthcare",
+            "industry": "Drug Manufacturers - General",
+            "days_to_earnings": null,
+            "liquidity_tier": "L",
+            "warnings": [
+              "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+            ]
+          },
+          {
+            "ticker": "MSFT",
+            "pump_likelihood": 54.0,
+            "category": "PUMP_POSSIBLE",
+            "current_price": 461.0671,
+            "atr_14": 12.14,
+            "hv_30": 31.46,
+            "perf_5d_pct": 10.11,
+            "perf_20d_pct": 11.21,
+            "adv_dollars": 15393563076,
+            "beta": 1.093,
+            "stop_loss": 436.79,
+            "stop_pct": -5.27,
+            "tp1": 473.21,
+            "tp2": 485.35,
+            "tp3": 497.49,
+            "position_size_pct": 5.0,
+            "kelly_fraction": 0.08,
+            "rr_ratio": "1:1.0",
+            "sector": "Technology",
+            "industry": "Software - Infrastructure",
+            "days_to_earnings": null,
+            "liquidity_tier": "XL",
+            "warnings": [
+              "\u26a0 Pump score <55 \u2014 speculative tier; use smallest size"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "invoke_radar_backtest",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 2.7,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 2.01,
+          "n_snapshots": 1,
+          "n_signals": 0,
+          "overall_hit_5d": 0,
+          "overall_avg_5d": 0
+        }
+      }
+    },
+    {
+      "name": "read_backtest_output",
+      "status": "ok",
+      "result": {
+        "size_kb": 0.4,
+        "elapsed_sec": 2.01,
+        "lookback_days": 30,
+        "n_snapshots": 1,
+        "n_unique_signals": 130,
+        "n_with_returns": 0,
+        "n_unique_tickers": 95,
+        "overall_5d": {
+          "hit_rate": 0,
+          "avg_return": 0
+        },
+        "per_tier_5d": {},
+        "transitions": {},
+        "pump_categories": {},
+        "best_signals_top_5": [],
+        "worst_signals_top_5": []
+      }
+    }
+  ],
+  "finished": "2026-06-01T18:15:06.929486+00:00"
+}
