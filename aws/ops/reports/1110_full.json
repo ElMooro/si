@@ -1,0 +1,7122 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-01T16:43:38.867777+00:00",
+  "elapsed_sec": 1.45,
+  "summary": {
+    "n_tickers_total": 588,
+    "n_tickers_multi_engine": 130,
+    "n_ultra": 18,
+    "n_high": 24,
+    "n_med": 53,
+    "n_new_high_convergence": 45,
+    "n_accelerating": 27,
+    "top_10": [
+      "AVGO",
+      "PLTR",
+      "AMD",
+      "TSLA",
+      "AMZN",
+      "NVDA",
+      "MU",
+      "GOOG",
+      "META",
+      "GE"
+    ],
+    "engines_loaded": 20,
+    "engines_stale": 1
+  },
+  "tickers": [
+    {
+      "ticker": "AVGO",
+      "n_engines": 12,
+      "convergence_score": 100,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 7,
+      "avg_signal": 53.9,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 49.2,
+          "raw_score": 49.2,
+          "tier": "WATCH",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "VOL_SURGE_1.8X",
+            "RS_60D_+30"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-whisper": {
+          "domain": "earnings",
+          "score": 55.0,
+          "raw_score": 55,
+          "earnings_date": "2026-06-03",
+          "days_to_earnings": 2
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 7.47
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 40.0,
+          "raw_score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ]
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 95.8,
+          "raw_score": 95.8,
+          "mentions": 47,
+          "upvotes": 137,
+          "rank": 27
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 85.0,
+          "raw_score": 85.0,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 60.0,
+          "raw_score": 3,
+          "total_value": 153584583.46,
+          "max_weight": 2.18
+        },
+        "political-trades": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "member": "Shelley Moore Capito",
+          "transaction_type": "sale",
+          "amount_range": "$1,001 - $15,000"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 66.7,
+          "raw_score": 6,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -55.0,
+          "altman_z": 15.2
+        },
+        "earnings-tracker-upcoming": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50,
+          "earnings_date": "2026-06-03",
+          "time": "AMC",
+          "eps_consensus": 2.02
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 34.0,
+          "raw_score": 34.0,
+          "tier": "WATCH",
+          "beat_streak": 8
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "PLTR",
+      "n_engines": 8,
+      "convergence_score": 100,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 7,
+      "avg_signal": 63.0,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.4,
+          "raw_score": 1.37,
+          "current_level": 1790.6,
+          "interp": "RISING",
+          "price_7d_pct": 15.73
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 37.5,
+          "raw_score": 37.5,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "AT_20D_HIGH",
+            "VOL_SURGE_1.8X",
+            "RS_20D_+7"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 78.0,
+          "raw_score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 86.0,
+          "raw_score": 86.0,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 100,
+          "raw_score": 5,
+          "total_value": 415276190.94000006,
+          "max_weight": 4.24
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -93.2,
+          "altman_z": 121.94
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 78.0,
+          "raw_score": 78.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 2920000.0,
+          "acceleration_ratio": 1.25
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "AMD",
+      "n_engines": 8,
+      "convergence_score": 97.8,
+      "domain_coverage": [
+        "earnings",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 6,
+      "avg_signal": 59.3,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 65.0,
+          "raw_score": 65,
+          "tier": "TIER_B_MOMENTUM",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "RS_20D_+40",
+            "RS_60D_+145"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 9.48
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 63.0,
+          "raw_score": 63.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 21.2,
+          "raw_score": 211.8,
+          "mentions": 106,
+          "upvotes": 1437,
+          "rank": 12
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 86.5,
+          "raw_score": 86.5,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 100,
+          "raw_score": 5,
+          "total_value": 898477376.9900001,
+          "max_weight": 9.67
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -90.0,
+          "altman_z": 34.36
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 6
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "TSLA",
+      "n_engines": 9,
+      "convergence_score": 95.5,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 6,
+      "avg_signal": 51.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 27.9,
+          "raw_score": 27.9,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "RS_20D_+9"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 2.06
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 48.0,
+          "raw_score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ]
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 90.3,
+          "raw_score": 90.3,
+          "mentions": 59,
+          "upvotes": 283,
+          "rank": 23
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 68.3,
+          "raw_score": 68.3,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 80.0,
+          "raw_score": 4,
+          "total_value": 1196549397.3000002,
+          "max_weight": 10.55
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 2
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 50.0,
+          "raw_score": 50,
+          "recent_amount_usd": 1000000.0,
+          "acceleration_ratio": 1.87
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "AMZN",
+      "n_engines": 8,
+      "convergence_score": 95.4,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 6,
+      "avg_signal": 51.4,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 26.3,
+          "raw_score": 26.3,
+          "tier": "MARGINAL",
+          "flags": [
+            "NEAR_60D_HIGH",
+            "RS_60D_+14"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": -0.32
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 85.0,
+          "raw_score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 45.5,
+          "raw_score": 45.5,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 100,
+          "raw_score": 5,
+          "total_value": 414561178.0,
+          "max_weight": 4.01
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 58.0,
+          "raw_score": 58.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 1
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 5135000.0,
+          "acceleration_ratio": 1.01
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "NVDA",
+      "n_engines": 9,
+      "convergence_score": 93.9,
+      "domain_coverage": [
+        "earnings",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 6,
+      "avg_signal": 46.3,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 13.6,
+          "raw_score": 13.6,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": -1.51
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 25.0,
+          "raw_score": 25.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "CALL_VOL_3X"
+          ]
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 29.0,
+          "raw_score": 290.3,
+          "mentions": 242,
+          "upvotes": 2074,
+          "rank": 4
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null,
+          "current_volume": 0.7304
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 85.0,
+          "raw_score": 85.0,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 100,
+          "raw_score": 5,
+          "total_value": 199209221.5,
+          "max_weight": 2.34
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "FAIR",
+          "dcf_gap_pct": 15.2,
+          "altman_z": 52.83
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 35.0,
+          "raw_score": 35.0,
+          "tier": "WATCH",
+          "beat_streak": 8
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "MU",
+      "n_engines": 9,
+      "convergence_score": 93.5,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 6,
+      "avg_signal": 45.1,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 2.7,
+          "raw_score": 2.67,
+          "current_level": 5586.6,
+          "interp": "SPIKE",
+          "price_7d_pct": 38.96
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 25.0,
+          "raw_score": 25.0,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_60D_HIGH",
+            "RS_20D_+82",
+            "RS_60D_+132",
+            "PARABOLIC_DISCOUNT"
+          ],
+          "is_parabolic": true
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 40.73
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 48.0,
+          "raw_score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ]
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 41.3,
+          "raw_score": 412.8,
+          "mentions": 559,
+          "upvotes": 3230,
+          "rank": 2
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 85.0,
+          "raw_score": 85.0,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "political-trades": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "member": "Ro Khanna",
+          "transaction_type": "sale",
+          "amount_range": "$1,001 - $15,000"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -53.8,
+          "altman_z": 25.27
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 65.0,
+          "raw_score": 65.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "GOOG",
+      "n_engines": 6,
+      "convergence_score": 92.5,
+      "domain_coverage": [
+        "earnings",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 6,
+      "avg_signal": 48.3,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 23.0,
+          "raw_score": 23.0,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X",
+            "RS_60D_+14"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": -3.57
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 18.0,
+          "raw_score": 18.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "CALL_VOL_2X"
+          ]
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 80.0,
+          "raw_score": 4,
+          "total_value": 307014051.12,
+          "max_weight": 4.19
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -65.7,
+          "altman_z": 14.51
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 90.0,
+          "raw_score": 90.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "META",
+      "n_engines": 10,
+      "convergence_score": 90.4,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 6,
+      "avg_signal": 34.8,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 17.0,
+          "raw_score": 17,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_20D_HIGH"
+          ],
+          "is_parabolic": false
+        },
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 9.7,
+          "raw_score": 9.74,
+          "watchlist_count": 597050,
+          "sector": "TechnologyServices"
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 2.57
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 55.0,
+          "raw_score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 45.0,
+          "raw_score": 450.0,
+          "mentions": 66,
+          "upvotes": 221,
+          "rank": 19
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null,
+          "current_volume": 0.2514
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 36.5,
+          "raw_score": 36.5,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 43.3,
+          "raw_score": 43.3,
+          "buyback_yield_pct": 1.63,
+          "dividend_yield_pct": 0.33
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 45.0,
+          "raw_score": 45.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 8122500.0,
+          "acceleration_ratio": 0.92
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "GE",
+      "n_engines": 6,
+      "convergence_score": 90.0,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "valuation"
+      ],
+      "n_domains": 5,
+      "avg_signal": 56.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 30.4,
+          "raw_score": 30.4,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "AT_20D_HIGH",
+            "RS_20D_+6"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 63.0,
+          "raw_score": 63.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 42.2,
+          "raw_score": 42.2,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 66.7,
+          "raw_score": 6,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -79.8,
+          "altman_z": 3.44
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 78.0,
+          "raw_score": 78.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "recent_amount_usd": 2971000.0,
+          "acceleration_ratio": 2.53
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "INTC",
+      "n_engines": 6,
+      "convergence_score": 89.3,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 5,
+      "avg_signal": 54.4,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 47.8,
+          "raw_score": 47.8,
+          "tier": "WATCH",
+          "flags": [
+            "RISING_20D",
+            "RS_20D_+16",
+            "RS_60D_+141"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 16.0,
+          "raw_score": 16.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "SHORTS_EASING"
+          ]
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 54.4,
+          "raw_score": 544.4,
+          "mentions": 58,
+          "upvotes": 1064,
+          "rank": 24
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 70.4,
+          "raw_score": 70.4,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 55.6,
+          "raw_score": 5,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -97.5,
+          "altman_z": 5.07
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 82.0,
+          "raw_score": 82.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 3
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "MSFT",
+      "n_engines": 8,
+      "convergence_score": 88.6,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 5,
+      "avg_signal": 45.3,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 45.1,
+          "raw_score": 45.1,
+          "tier": "WATCH",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "VOL_SURGE_1.8X",
+            "RS_20D_+5"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 9.58
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 75.0,
+          "raw_score": 75.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_RISING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 46.5,
+          "raw_score": 465.0,
+          "mentions": 226,
+          "upvotes": 2271,
+          "rank": 5
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null,
+          "current_volume": 0.8096
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 49.9,
+          "raw_score": 49.9,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 3272500.0,
+          "acceleration_ratio": 1.03
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "ARM",
+      "n_engines": 8,
+      "convergence_score": 88.3,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 5,
+      "avg_signal": 44.4,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.1,
+          "raw_score": 1.1,
+          "current_level": 866.3,
+          "interp": "FLAT",
+          "price_7d_pct": 58.32
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 25.0,
+          "raw_score": 25.0,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_60D_HIGH",
+            "RS_20D_+63",
+            "RS_60D_+174",
+            "PARABOLIC_DISCOUNT"
+          ],
+          "is_parabolic": true
+        },
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 11.6,
+          "raw_score": 11.6,
+          "watchlist_count": 32119,
+          "sector": "ElectronicTechnology"
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 56.0,
+          "raw_score": 56.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 73.3,
+          "raw_score": 733.3,
+          "mentions": 75,
+          "upvotes": 333,
+          "rank": 16
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 85.4,
+          "raw_score": 85.4,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 66.7,
+          "raw_score": 6,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -98.0,
+          "altman_z": 95.28
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 36.0,
+          "raw_score": 36.0,
+          "tier": "WATCH",
+          "beat_streak": 2
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "ORCL",
+      "n_engines": 8,
+      "convergence_score": 88.1,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 5,
+      "avg_signal": 43.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 75.0,
+          "raw_score": 75,
+          "tier": "TIER_A_BREAKOUT",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "VOL_SURGE_1.8X",
+            "RS_20D_+35",
+            "RS_60D_+38"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-whisper": {
+          "domain": "earnings",
+          "score": 55.0,
+          "raw_score": 55,
+          "earnings_date": "2026-06-10",
+          "days_to_earnings": 9
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 23.13
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 55.0,
+          "raw_score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 46.5,
+          "raw_score": 46.5,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-tracker-upcoming": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50,
+          "earnings_date": "2026-06-10",
+          "time": "TBD",
+          "eps_consensus": 1.58
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 32.0,
+          "raw_score": 32.0,
+          "tier": "WATCH",
+          "beat_streak": 2
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 3420000.0,
+          "acceleration_ratio": 0.95
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "AAPL",
+      "n_engines": 8,
+      "convergence_score": 87.5,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 5,
+      "avg_signal": 41.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 50.0,
+          "raw_score": 50.0,
+          "tier": "WATCH",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "RS_20D_+10"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 2.61
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 48.0,
+          "raw_score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ]
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 35.8,
+          "raw_score": 35.8,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "political-trades": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "member": "Shelley Moore Capito",
+          "transaction_type": "sale",
+          "amount_range": "$1,001 - $15,000"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 3340000.0,
+          "acceleration_ratio": 0.56
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": true
+    },
+    {
+      "ticker": "GOOGL",
+      "n_engines": 6,
+      "convergence_score": 86.9,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 5,
+      "avg_signal": 46.2,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 18.5,
+          "raw_score": 18.5,
+          "tier": "MARGINAL",
+          "flags": [
+            "RS_60D_+15"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": -3.39
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 40.0,
+          "raw_score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -65.7,
+          "altman_z": 15.03
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 90.0,
+          "raw_score": 90.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "WMT",
+      "n_engines": 7,
+      "convergence_score": 85.3,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 5,
+      "avg_signal": 34.4,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 10.0,
+          "raw_score": 10,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": -11.62
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 71.0,
+          "raw_score": 71.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_EASING"
+          ]
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 27.7,
+          "raw_score": 27.7,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 31.0,
+          "raw_score": 31.0,
+          "tier": "WATCH",
+          "beat_streak": 3
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 50.0,
+          "raw_score": 50,
+          "recent_amount_usd": 3979000.0,
+          "acceleration_ratio": 1.52
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "JPM",
+      "n_engines": 7,
+      "convergence_score": 85.2,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 5,
+      "avg_signal": 34.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.0,
+          "raw_score": 5,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": -1.59
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 85.0,
+          "raw_score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 16.7,
+          "raw_score": 16.7,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "political-trades": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "member": "Sheldon Whitehouse",
+          "transaction_type": "sale",
+          "amount_range": "$15,001 - $50,000"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 20.0,
+          "raw_score": 20.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        }
+      },
+      "tier": "ULTRA",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "LLY",
+      "n_engines": 7,
+      "convergence_score": 83.5,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 4,
+      "avg_signal": 45.0,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.2,
+          "raw_score": 1.22,
+          "current_level": 1866.9,
+          "interp": "FLAT",
+          "price_7d_pct": 8.18
+        },
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 40.3,
+          "raw_score": 40.3,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "RS_20D_+13"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": 6.12
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 85.0,
+          "raw_score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 59.2,
+          "raw_score": 59.2,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 78.0,
+          "raw_score": 78.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 6
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "SNDK",
+      "n_engines": 5,
+      "convergence_score": 83.4,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 4,
+      "avg_signal": 78.1,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 25.0,
+          "raw_score": 25.0,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_60D_HIGH",
+            "RS_20D_+49",
+            "RS_60D_+173",
+            "PARABOLIC_DISCOUNT"
+          ],
+          "is_parabolic": true
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 100,
+          "raw_score": 181.2,
+          "mentions": 45,
+          "upvotes": 170,
+          "rank": 28
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 86.5,
+          "raw_score": 86.5,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 88.9,
+          "raw_score": 8,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -100.4,
+          "altman_z": 48.22
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 90.0,
+          "raw_score": 90.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 5
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "CRWD",
+      "n_engines": 7,
+      "convergence_score": 83.2,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "valuation"
+      ],
+      "n_domains": 4,
+      "avg_signal": 44.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 27.5,
+          "raw_score": 27.5,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_60D_HIGH",
+            "RS_20D_+59",
+            "RS_60D_+69",
+            "PARABOLIC_DISCOUNT"
+          ],
+          "is_parabolic": true
+        },
+        "earnings-whisper": {
+          "domain": "earnings",
+          "score": 55.0,
+          "raw_score": 55,
+          "earnings_date": "2026-06-03",
+          "days_to_earnings": 2
+        },
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 25.0,
+          "raw_score": 25,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "CRWD",
+              "name": "CrowdStrike Holdings, Inc.",
+              "cik": "0001535527",
+              "form": "8-K",
+              "filed_at": "2026-04-21",
+              "accession": "000153552726000018",
+              "snippet": "",
+              "signal_id": "going_private",
+              "signal_label": "Going-private signal",
+              "polarity": "bullish",
+              "severity": "high",
+              "weight": 25,
+              "desc": "Going-private transaction discussed",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/1535527/000153552726000018/0001535527-26-000018-index.htm"
+            }
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 72.4,
+          "raw_score": 72.4,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 44.4,
+          "raw_score": 4,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -96.7,
+          "altman_z": 17.47
+        },
+        "earnings-tracker-upcoming": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50,
+          "earnings_date": "2026-06-03",
+          "time": "AMC",
+          "eps_consensus": 0.13
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 34.0,
+          "raw_score": 34.0,
+          "tier": "WATCH",
+          "beat_streak": 8
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "V",
+      "n_engines": 7,
+      "convergence_score": 82.5,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 4,
+      "avg_signal": 41.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 18.6,
+          "raw_score": 18.6,
+          "tier": "MARGINAL",
+          "flags": [
+            "NEAR_60D_HIGH",
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": -2.32
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 60.0,
+          "raw_score": 60.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_2X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 42.0,
+          "raw_score": 42.0,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-cascade": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60,
+          "band": "STRONG_CASCADE",
+          "sector": "Financial Services"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 7
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "XOM",
+      "n_engines": 6,
+      "convergence_score": 82.3,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 5,
+      "avg_signal": 31.2,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.0,
+          "raw_score": 5,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "buzz-velocity": {
+          "domain": "sentiment",
+          "score": 1.0,
+          "raw_score": 1.0,
+          "reddit_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "news_velocity": {
+            "velocity": 1.0,
+            "interpretation": "NO_DATA",
+            "n_short": 0
+          },
+          "sentiment": {
+            "score": 0,
+            "n_bullish": 0,
+            "n_bearish": 0,
+            "n_neutral": 0,
+            "n_total": 0
+          },
+          "price_perf_7d_pct": -4.38
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 23.0,
+          "raw_score": 23.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "SHORTS_COVERING"
+          ]
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 53.0,
+          "raw_score": 53.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 5
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 55.0,
+          "raw_score": 55,
+          "recent_amount_usd": 3640000.0,
+          "acceleration_ratio": 1.73
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "MA",
+      "n_engines": 6,
+      "convergence_score": 79.6,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 4,
+      "avg_signal": 38.6,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.0,
+          "raw_score": 5,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 15.0,
+          "raw_score": 15.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "SHORTS_COVERING"
+          ]
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null,
+          "current_volume": 0.0163
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 47.4,
+          "raw_score": 47.4,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "earnings-cascade": {
+          "domain": "earnings",
+          "score": 75.0,
+          "raw_score": 75,
+          "band": "STRONG_CASCADE",
+          "sector": "Financial Services"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 39.0,
+          "raw_score": 39.0,
+          "tier": "WATCH",
+          "beat_streak": 8
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "LRCX",
+      "n_engines": 5,
+      "convergence_score": 79.5,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options",
+        "valuation"
+      ],
+      "n_domains": 4,
+      "avg_signal": 65.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 52.0,
+          "raw_score": 52.0,
+          "tier": "WATCH",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "RS_20D_+18",
+            "RS_60D_+32"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 40.0,
+          "raw_score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 84.0,
+          "raw_score": 84.0,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 88.9,
+          "raw_score": 8,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -84.8,
+          "altman_z": 28.31
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "CVX",
+      "n_engines": 5,
+      "convergence_score": 78.4,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "valuation"
+      ],
+      "n_domains": 5,
+      "avg_signal": 44.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.0,
+          "raw_score": 5,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 53.0,
+          "raw_score": 53.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CPR_RISING",
+            "CALL_VOL_2X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 55.6,
+          "raw_score": 5,
+          "valuation_label": "FAIR",
+          "dcf_gap_pct": -5.9,
+          "altman_z": 3.19
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 70.0,
+          "raw_score": 70.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 5
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 40.0,
+          "raw_score": 40,
+          "recent_amount_usd": 2190000.0,
+          "acceleration_ratio": 0.84
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "DELL",
+      "n_engines": 5,
+      "convergence_score": 78.1,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "sentiment",
+        "valuation"
+      ],
+      "n_domains": 4,
+      "avg_signal": 60.2,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 32.5,
+          "raw_score": 32.5,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_60D_HIGH",
+            "VOL_SURGE_2.5X",
+            "RS_20D_+96",
+            "RS_60D_+176",
+            "PARABOLIC_DISCOUNT"
+          ],
+          "is_parabolic": true
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 24.2,
+          "raw_score": 242.1,
+          "mentions": 65,
+          "upvotes": 1293,
+          "rank": 20
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 85.6,
+          "raw_score": 85.6,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 88.9,
+          "raw_score": 8,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -66.2,
+          "altman_z": 2.98
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 70.0,
+          "raw_score": 70.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 4
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "AMAT",
+      "n_engines": 5,
+      "convergence_score": 76.7,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options",
+        "valuation"
+      ],
+      "n_domains": 4,
+      "avg_signal": 55.8,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 38.9,
+          "raw_score": 38.9,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "RS_20D_+9",
+            "RS_60D_+15"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 30.0,
+          "raw_score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 79.3,
+          "raw_score": 79.3,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -179.4,
+          "altman_z": 17.15
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 53.0,
+          "raw_score": 53.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "JNJ",
+      "n_engines": 6,
+      "convergence_score": 75.7,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 4,
+      "avg_signal": 25.5,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 10.0,
+          "raw_score": 10,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 33.0,
+          "raw_score": 33.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "CALL_VOL_3X"
+          ]
+        },
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 25.0,
+          "raw_score": 25,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "JNJ",
+              "name": "JOHNSON & JOHNSON",
+              "cik": "0000200406",
+              "form": "8-K",
+              "filed_at": "2026-04-14",
+              "accession": "000020040626000076",
+              "snippet": "",
+              "signal_id": "fda_approval",
+              "signal_label": "FDA approval",
+              "polarity": "bullish",
+              "severity": "high",
+              "weight": 25,
+              "desc": "Drug/device FDA approval received",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/200406/000020040626000076/0000200406-26-000076-index.htm"
+            }
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 36.1,
+          "raw_score": 36.1,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 4.0,
+          "raw_score": 4.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 4300000.0,
+          "acceleration_ratio": 1.84
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "BA",
+      "n_engines": 5,
+      "convergence_score": 74.0,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "valuation"
+      ],
+      "n_domains": 4,
+      "avg_signal": 46.8,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 8.6,
+          "raw_score": 8.6,
+          "tier": "MARGINAL",
+          "flags": [
+            "NEAR_60D_HIGH"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 56.5,
+          "raw_score": 56.5,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 66.7,
+          "raw_score": 6,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -300.5,
+          "altman_z": 1.63
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 57.0,
+          "raw_score": 57.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 2
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 3020000.0,
+          "acceleration_ratio": 0.91
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "CSCO",
+      "n_engines": 5,
+      "convergence_score": 73.7,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 4,
+      "avg_signal": 45.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 70.0,
+          "raw_score": 70,
+          "tier": "TIER_B_MOMENTUM",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "RS_20D_+26",
+            "RS_60D_+38"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 30.0,
+          "raw_score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 39.5,
+          "raw_score": 39.5,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 1740000.0,
+          "acceleration_ratio": 1.26
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "HD",
+      "n_engines": 5,
+      "convergence_score": 73.6,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 4,
+      "avg_signal": 45.2,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 0,
+          "raw_score": 0,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 68.0,
+          "raw_score": 68.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_RISING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 19.2,
+          "raw_score": 19.2,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 29.0,
+          "raw_score": 29.0,
+          "tier": "WATCH",
+          "beat_streak": 2
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "recent_amount_usd": 1950000.0,
+          "acceleration_ratio": 2.31
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "ABBV",
+      "n_engines": 5,
+      "convergence_score": 71.1,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 4,
+      "avg_signal": 37.1,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 17.0,
+          "raw_score": 17,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_20D_HIGH"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 23.0,
+          "raw_score": 23.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 41.6,
+          "raw_score": 41.6,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 5
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 50.0,
+          "raw_score": 50,
+          "recent_amount_usd": 2820000.0,
+          "acceleration_ratio": 1.68
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "KO",
+      "n_engines": 5,
+      "convergence_score": 70.7,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 4,
+      "avg_signal": 35.8,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 18.4,
+          "raw_score": 18.4,
+          "tier": "MARGINAL",
+          "flags": [
+            "NEAR_60D_HIGH",
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 30.0,
+          "raw_score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 17.7,
+          "raw_score": 17.7,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 53.0,
+          "raw_score": 53.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "recent_amount_usd": 2060000.0,
+          "acceleration_ratio": 3.38
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "UNH",
+      "n_engines": 5,
+      "convergence_score": 70.3,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "n_domains": 4,
+      "avg_signal": 34.5,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 20.0,
+          "raw_score": 20,
+          "tier": "MARGINAL",
+          "flags": [
+            "RS_60D_+20"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 20.0,
+          "raw_score": 20.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "SHORTS_COVERING"
+          ]
+        },
+        "news-velocity": {
+          "domain": "sentiment",
+          "score": null,
+          "raw_score": null,
+          "current_volume": 0.0226
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 30.4,
+          "raw_score": 30.4,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 52.0,
+          "raw_score": 52.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 3
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "BAC",
+      "n_engines": 5,
+      "convergence_score": 70.0,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 4,
+      "avg_signal": 33.4,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.9,
+          "raw_score": 5.9,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 38.0,
+          "raw_score": 38.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "SHORTS_EASING"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 28.3,
+          "raw_score": 28.3,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 35.0,
+          "raw_score": 35.0,
+          "tier": "WATCH",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "recent_amount_usd": 1830000.0,
+          "acceleration_ratio": 2.74
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "STX",
+      "n_engines": 4,
+      "convergence_score": 70.0,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "valuation"
+      ],
+      "n_domains": 3,
+      "avg_signal": 76.6,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 65.0,
+          "raw_score": 65,
+          "tier": "TIER_B_MOMENTUM",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "RS_20D_+25",
+            "RS_60D_+124"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 85.7,
+          "raw_score": 85.7,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -96.9,
+          "altman_z": 16.63
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 78.0,
+          "raw_score": 78.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "CRM",
+      "n_engines": 4,
+      "convergence_score": 68.9,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals",
+        "momentum",
+        "valuation"
+      ],
+      "n_domains": 4,
+      "avg_signal": 56.5,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 27.0,
+          "raw_score": 27.0,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "AT_20D_HIGH",
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 66.7,
+          "raw_score": 6,
+          "valuation_label": "UNDERVALUED",
+          "dcf_gap_pct": 41.1,
+          "altman_z": 2.24
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 54.2,
+          "raw_score": 54.2,
+          "buyback_yield_pct": 8.05,
+          "dividend_yield_pct": 0.88
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 78.0,
+          "raw_score": 78.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 6
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "IBM",
+      "n_engines": 5,
+      "convergence_score": 68.1,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "sentiment"
+      ],
+      "n_domains": 3,
+      "avg_signal": 43.8,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 28.2,
+          "raw_score": 28.2,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_60D_HIGH",
+            "VOL_SURGE_2.5X",
+            "RS_20D_+24",
+            "PARABOLIC_DISCOUNT"
+          ],
+          "is_parabolic": true
+        },
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 11.2,
+          "raw_score": 11.2,
+          "watchlist_count": 64740,
+          "sector": "TechnologyServices"
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 100,
+          "raw_score": 196.4,
+          "mentions": 166,
+          "upvotes": 1512,
+          "rank": 8
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 19.7,
+          "raw_score": 19.7,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "WDC",
+      "n_engines": 4,
+      "convergence_score": 67.5,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 68.3,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 63.4,
+          "raw_score": 63.4,
+          "tier": "TIER_B_MOMENTUM",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "RS_20D_+17",
+            "RS_60D_+93"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 85.0,
+          "raw_score": 85.0,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 70.0,
+          "raw_score": 70.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 55.0,
+          "raw_score": 55,
+          "recent_amount_usd": 460000.0,
+          "acceleration_ratio": 2.93
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "UBER",
+      "n_engines": 4,
+      "convergence_score": 66.0,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals",
+        "insider",
+        "valuation"
+      ],
+      "n_domains": 4,
+      "avg_signal": 46.6,
+      "engines": {
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "UNDERVALUED",
+          "dcf_gap_pct": 105.4,
+          "altman_z": 3.49
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 54.8,
+          "raw_score": 54.8,
+          "buyback_yield_pct": 4.55,
+          "dividend_yield_pct": 0.0
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 19.0,
+          "raw_score": 19.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 1515000.0,
+          "acceleration_ratio": 0.73
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "HOOD",
+      "n_engines": 4,
+      "convergence_score": 63.6,
+      "domain_coverage": [
+        "insider",
+        "institutional",
+        "sentiment"
+      ],
+      "n_domains": 3,
+      "avg_signal": 55.3,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.1,
+          "raw_score": 1.1,
+          "current_level": 668.1,
+          "interp": "FLAT",
+          "price_7d_pct": 27.16
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 100,
+          "raw_score": 103.3,
+          "mentions": 61,
+          "upvotes": 218,
+          "rank": 22
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 60.0,
+          "raw_score": 3,
+          "total_value": 464946361.32,
+          "max_weight": 4.94
+        },
+        "political-trades": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "member": "Ro Khanna",
+          "transaction_type": "purchase",
+          "amount_range": "$1,001 - $15,000"
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "PANW",
+      "n_engines": 5,
+      "convergence_score": 63.0,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 43.4,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 31.5,
+          "raw_score": 31.5,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_60D_HIGH",
+            "MOD_ACCUM",
+            "RS_20D_+52",
+            "RS_60D_+67",
+            "PARABOLIC_DISCOUNT"
+          ],
+          "is_parabolic": true
+        },
+        "earnings-whisper": {
+          "domain": "earnings",
+          "score": 55.0,
+          "raw_score": 55,
+          "earnings_date": "2026-06-02",
+          "days_to_earnings": 1
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 40.6,
+          "raw_score": 40.6,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-tracker-upcoming": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50,
+          "earnings_date": "2026-06-02",
+          "time": "AMC",
+          "eps_consensus": 0.43
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 40.0,
+          "raw_score": 40.0,
+          "tier": "WATCH",
+          "beat_streak": 5
+        }
+      },
+      "tier": "HIGH",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "ACN",
+      "n_engines": 4,
+      "convergence_score": 62.4,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals",
+        "insider"
+      ],
+      "n_domains": 3,
+      "avg_signal": 51.4,
+      "engines": {
+        "earnings-whisper": {
+          "domain": "earnings",
+          "score": 55.0,
+          "raw_score": 55,
+          "earnings_date": "2026-06-18",
+          "days_to_earnings": 17
+        },
+        "earnings-tracker-upcoming": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50,
+          "earnings_date": "2026-06-18",
+          "time": "BMO",
+          "eps_consensus": 3.68
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 60.7,
+          "raw_score": 60.7,
+          "buyback_yield_pct": 4.01,
+          "dividend_yield_pct": 3.41
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 40.0,
+          "raw_score": 40,
+          "recent_amount_usd": 1350000.0,
+          "acceleration_ratio": 1.11
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "GS",
+      "n_engines": 4,
+      "convergence_score": 62.1,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 3,
+      "avg_signal": 50.5,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 46.5,
+          "raw_score": 46.5,
+          "tier": "WATCH",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "MOD_ACCUM",
+            "RS_20D_+6"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 63.0,
+          "raw_score": 63.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 22.4,
+          "raw_score": 22.4,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 70.0,
+          "raw_score": 70.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "NEM",
+      "n_engines": 3,
+      "convergence_score": 62.0,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals",
+        "valuation"
+      ],
+      "n_domains": 3,
+      "avg_signal": 76.7,
+      "engines": {
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 100,
+          "raw_score": 9,
+          "valuation_label": "UNDERVALUED",
+          "dcf_gap_pct": 122.7,
+          "altman_z": 4.58
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 55.1,
+          "raw_score": 55.1,
+          "buyback_yield_pct": 1.96,
+          "dividend_yield_pct": 0.93
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 75.0,
+          "raw_score": 75.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 6
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "INTU",
+      "n_engines": 4,
+      "convergence_score": 61.7,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals",
+        "insider"
+      ],
+      "n_domains": 3,
+      "avg_signal": 49.0,
+      "engines": {
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 52.1,
+          "raw_score": 52.1,
+          "buyback_yield_pct": 3.06,
+          "dividend_yield_pct": 1.4
+        },
+        "earnings-cascade": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60,
+          "band": "STRONG_CASCADE",
+          "sector": "Technology"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 39.0,
+          "raw_score": 39.0,
+          "tier": "WATCH",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 2650000.0,
+          "acceleration_ratio": 1.49
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "MS",
+      "n_engines": 4,
+      "convergence_score": 60.8,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 3,
+      "avg_signal": 46.1,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 43.5,
+          "raw_score": 43.5,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "RS_60D_+14"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 40.0,
+          "raw_score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 30.8,
+          "raw_score": 30.8,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 70.0,
+          "raw_score": 70.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "MRK",
+      "n_engines": 4,
+      "convergence_score": 60.0,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 43.3,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 23.2,
+          "raw_score": 23.2,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 25.0,
+          "raw_score": 25,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "MRK",
+              "name": "Merck & Co., Inc.",
+              "cik": "0000310158",
+              "form": "8-K",
+              "filed_at": "2026-04-30",
+              "accession": "000110465926052081",
+              "snippet": "",
+              "signal_id": "fda_approval",
+              "signal_label": "FDA approval",
+              "polarity": "bullish",
+              "severity": "high",
+              "weight": 25,
+              "desc": "Drug/device FDA approval received",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/310158/000110465926052081/0001104659-26-052081-index.htm"
+            }
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 65.1,
+          "raw_score": 65.1,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 5
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "COP",
+      "n_engines": 4,
+      "convergence_score": 59.9,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 4,
+      "avg_signal": 26.2,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.0,
+          "raw_score": 5,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 55.0,
+          "raw_score": 55.0,
+          "buyback_yield_pct": 3.61,
+          "dividend_yield_pct": 2.9
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 10.0,
+          "raw_score": 10.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 2160000.0,
+          "acceleration_ratio": 1.32
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "ANET",
+      "n_engines": 4,
+      "convergence_score": 59.3,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "valuation"
+      ],
+      "n_domains": 3,
+      "avg_signal": 41.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 6.1,
+          "raw_score": 6.1,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 67.3,
+          "raw_score": 67.3,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 55.6,
+          "raw_score": 5,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -48.9,
+          "altman_z": 17.17
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 35.0,
+          "raw_score": 35.0,
+          "tier": "WATCH",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "WFC",
+      "n_engines": 4,
+      "convergence_score": 59.2,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 40.6,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 0,
+          "raw_score": 0,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 27.6,
+          "raw_score": 27.6,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 0,
+          "raw_score": 0,
+          "tier": "WATCH",
+          "beat_streak": 0
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 1003000.0,
+          "acceleration_ratio": 1.05
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "DE",
+      "n_engines": 3,
+      "convergence_score": 59.1,
+      "domain_coverage": [
+        "earnings",
+        "institutional",
+        "valuation"
+      ],
+      "n_domains": 3,
+      "avg_signal": 66.9,
+      "engines": {
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 60.0,
+          "raw_score": 3,
+          "total_value": 208401655.0,
+          "max_weight": 4.67
+        },
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -61.4,
+          "altman_z": 2.52
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 63.0,
+          "raw_score": 63.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "CAT",
+      "n_engines": 4,
+      "convergence_score": 58.8,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 3,
+      "avg_signal": 39.5,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 16.6,
+          "raw_score": 16.6,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 40.0,
+          "raw_score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 56.2,
+          "raw_score": 56.2,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 45.0,
+          "raw_score": 45.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 3
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "ADBE",
+      "n_engines": 4,
+      "convergence_score": 57.7,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals"
+      ],
+      "n_domains": 2,
+      "avg_signal": 52.2,
+      "engines": {
+        "earnings-whisper": {
+          "domain": "earnings",
+          "score": 55.0,
+          "raw_score": 55,
+          "earnings_date": "2026-06-11",
+          "days_to_earnings": 10
+        },
+        "earnings-tracker-upcoming": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50,
+          "earnings_date": "2026-06-11",
+          "time": "AMC",
+          "eps_consensus": 4.74
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 69.9,
+          "raw_score": 69.9,
+          "buyback_yield_pct": 10.77,
+          "dividend_yield_pct": 0.0
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 34.0,
+          "raw_score": 34.0,
+          "tier": "WATCH",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "COST",
+      "n_engines": 4,
+      "convergence_score": 57.0,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 3,
+      "avg_signal": 33.4,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 15.0,
+          "raw_score": 15,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_2.5X"
+          ],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 33.0,
+          "raw_score": 33.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "CALL_VOL_3X"
+          ]
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 35.6,
+          "raw_score": 35.6,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 0,
+          "raw_score": 0,
+          "tier": "WATCH",
+          "beat_streak": 0
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "VZ",
+      "n_engines": 4,
+      "convergence_score": 56.5,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 31.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 10.0,
+          "raw_score": 10,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 18.9,
+          "raw_score": 18.9,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 53.0,
+          "raw_score": 53.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 5
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 4355000.0,
+          "acceleration_ratio": 1.11
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "FDX",
+      "n_engines": 3,
+      "convergence_score": 56.1,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "valuation"
+      ],
+      "n_domains": 3,
+      "avg_signal": 56.9,
+      "engines": {
+        "fundamentals-quality": {
+          "domain": "valuation",
+          "score": 77.8,
+          "raw_score": 7,
+          "valuation_label": "OVERVALUED",
+          "dcf_gap_pct": -63.2,
+          "altman_z": 2.83
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 58.0,
+          "raw_score": 58.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 4
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 6850000.0,
+          "acceleration_ratio": 1.38
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "DIS",
+      "n_engines": 4,
+      "convergence_score": 55.2,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 27.2,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.0,
+          "raw_score": 5,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 22.7,
+          "raw_score": 22.7,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 46.1,
+          "raw_score": 46.1,
+          "buyback_yield_pct": 1.98,
+          "dividend_yield_pct": 1.23
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 35.0,
+          "raw_score": 35.0,
+          "tier": "WATCH",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "PEP",
+      "n_engines": 4,
+      "convergence_score": 54.5,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 25.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 10.0,
+          "raw_score": 10,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 15.9,
+          "raw_score": 15.9,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 29.0,
+          "raw_score": 29.0,
+          "tier": "WATCH",
+          "beat_streak": 4
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 2060000.0,
+          "acceleration_ratio": 1.61
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": true,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "QCOM",
+      "n_engines": 3,
+      "convergence_score": 54.4,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 51.3,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 65.0,
+          "raw_score": 65,
+          "tier": "TIER_B_MOMENTUM",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "RS_20D_+35",
+            "RS_60D_+70"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 3120000.0,
+          "acceleration_ratio": 1.09
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "APP",
+      "n_engines": 3,
+      "convergence_score": 54.0,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 66.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 64.0,
+          "raw_score": 64.0,
+          "tier": "TIER_B_MOMENTUM",
+          "flags": [
+            "RISING_20D",
+            "AT_60D_HIGH",
+            "RS_20D_+32",
+            "RS_60D_+17"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 82.0,
+          "raw_score": 82.0,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "MRVL",
+      "n_engines": 3,
+      "convergence_score": 51.7,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 59.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 52.5,
+          "raw_score": 52.5,
+          "tier": "WATCH",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "RS_20D_+19",
+            "RS_60D_+152"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 85.5,
+          "raw_score": 85.5,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 39.0,
+          "raw_score": 39.0,
+          "tier": "WATCH",
+          "beat_streak": 3
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "PFE",
+      "n_engines": 3,
+      "convergence_score": 50.9,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 39.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.0,
+          "raw_score": 5,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "recent_amount_usd": 9940000.0,
+          "acceleration_ratio": 1.52
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "KLAC",
+      "n_engines": 3,
+      "convergence_score": 50.2,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 54.1,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 28.9,
+          "raw_score": 28.9,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "RS_60D_+20"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 79.3,
+          "raw_score": 79.3,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "CI",
+      "n_engines": 3,
+      "convergence_score": 48.8,
+      "domain_coverage": [
+        "fundamentals",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 49.5,
+      "engines": {
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 22.0,
+          "raw_score": -22,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "CI",
+              "name": "Cigna Group",
+              "cik": "0001739940",
+              "form": "10-Q",
+              "filed_at": "2026-04-30",
+              "accession": "000173994026000043",
+              "snippet": "",
+              "signal_id": "investigation",
+              "signal_label": "Investigation disclosed",
+              "polarity": "bearish",
+              "severity": "high",
+              "weight": -22,
+              "desc": "Active regulatory investigation or subpoena",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/1739940/000173994026000043/0001739940-26-000043-index.htm"
+            }
+          ]
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 66.4,
+          "raw_score": 66.4,
+          "buyback_yield_pct": 4.93,
+          "dividend_yield_pct": 2.2
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "recent_amount_usd": 5720000.0,
+          "acceleration_ratio": 2.06
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "MDT",
+      "n_engines": 3,
+      "convergence_score": 48.6,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals"
+      ],
+      "n_domains": 2,
+      "avg_signal": 48.7,
+      "engines": {
+        "earnings-whisper": {
+          "domain": "earnings",
+          "score": 55.0,
+          "raw_score": 55,
+          "earnings_date": "2026-06-03",
+          "days_to_earnings": 2
+        },
+        "earnings-tracker-upcoming": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50,
+          "earnings_date": "2026-06-03",
+          "time": "BMO",
+          "eps_consensus": 1.54
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 41.0,
+          "raw_score": 41.0,
+          "buyback_yield_pct": 3.41,
+          "dividend_yield_pct": 3.85
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "NBIS",
+      "n_engines": 3,
+      "convergence_score": 48.0,
+      "domain_coverage": [
+        "insider",
+        "sentiment"
+      ],
+      "n_domains": 2,
+      "avg_signal": 46.6,
+      "engines": {
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 8.7,
+          "raw_score": 8.72,
+          "watchlist_count": 42259,
+          "sector": "TechnologyServices"
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 86.2,
+          "raw_score": 861.5,
+          "mentions": 125,
+          "upvotes": 327,
+          "rank": 11
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 200000.0,
+          "acceleration_ratio": 3.06
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "PG",
+      "n_engines": 3,
+      "convergence_score": 47.7,
+      "domain_coverage": [
+        "earnings",
+        "momentum",
+        "options"
+      ],
+      "n_domains": 3,
+      "avg_signal": 29.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.0,
+          "raw_score": 5,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "options-flow": {
+          "domain": "options",
+          "score": 43.0,
+          "raw_score": 43.0,
+          "tier": "WATCH",
+          "flags": [
+            "ABS_CPR_2X",
+            "SHORTS_EASING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ]
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 39.0,
+          "raw_score": 39.0,
+          "tier": "WATCH",
+          "beat_streak": 5
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "GEV",
+      "n_engines": 3,
+      "convergence_score": 47.6,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 28.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 15.0,
+          "raw_score": 15.0,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 26.0,
+          "raw_score": 26.0,
+          "tier": "WATCH",
+          "beat_streak": 2
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 830000.0,
+          "acceleration_ratio": 2.54
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "REGN",
+      "n_engines": 3,
+      "convergence_score": 47.4,
+      "domain_coverage": [
+        "fundamentals",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 44.5,
+      "engines": {
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 25.0,
+          "raw_score": 25,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "REGN",
+              "name": "REGENERON PHARMACEUTICALS, INC.",
+              "cik": "0000872589",
+              "form": "8-K",
+              "filed_at": "2026-04-29",
+              "accession": "000087258926000014",
+              "snippet": "",
+              "signal_id": "fda_approval",
+              "signal_label": "FDA approval",
+              "polarity": "bullish",
+              "severity": "high",
+              "weight": 25,
+              "desc": "Drug/device FDA approval received",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/872589/000087258926000014/0000872589-26-000014-index.htm"
+            }
+          ]
+        },
+        "political-trades": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "member": "Ro Khanna",
+          "transaction_type": "purchase",
+          "amount_range": "$1,001 - $15,000"
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 48.6,
+          "raw_score": 48.6,
+          "buyback_yield_pct": 6.27,
+          "dividend_yield_pct": 0.59
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "ADI",
+      "n_engines": 3,
+      "convergence_score": 47.0,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 43.3,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 20.1,
+          "raw_score": 20.1,
+          "tier": "MARGINAL",
+          "flags": [
+            "NEAR_60D_HIGH",
+            "RS_60D_+11"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 56.7,
+          "raw_score": 56.7,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 53.0,
+          "raw_score": 53.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "UNP",
+      "n_engines": 3,
+      "convergence_score": 46.4,
+      "domain_coverage": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "n_domains": 3,
+      "avg_signal": 24.7,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 10.0,
+          "raw_score": 10,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 14.0,
+          "raw_score": 14.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 50.0,
+          "raw_score": 50,
+          "recent_amount_usd": 1864000.0,
+          "acceleration_ratio": 1.95
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "TXN",
+      "n_engines": 3,
+      "convergence_score": 46.3,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 41.1,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 30.3,
+          "raw_score": 30.3,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "VOL_SURGE_1.8X",
+            "RS_60D_+41"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50.0,
+          "flag": "HIGH_VELOCITY_TIER_B",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 43.0,
+          "raw_score": 43.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "RTX",
+      "n_engines": 3,
+      "convergence_score": 45.4,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 37.9,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 17.0,
+          "raw_score": 17,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_20D_HIGH"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 33.7,
+          "raw_score": 33.7,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 63.0,
+          "raw_score": 63.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "FCX",
+      "n_engines": 2,
+      "convergence_score": 45.2,
+      "domain_coverage": [
+        "earnings",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 64.0,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 83.0,
+          "raw_score": 83.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 5
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 440000.0,
+          "acceleration_ratio": 1.89
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "TMO",
+      "n_engines": 3,
+      "convergence_score": 44.4,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 34.5,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 17.0,
+          "raw_score": 17,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_20D_HIGH"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 32.6,
+          "raw_score": 32.6,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "MCD",
+      "n_engines": 3,
+      "convergence_score": 44.3,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 34.4,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 0,
+          "raw_score": 0,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 32.3,
+          "raw_score": 32.3,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 21.0,
+          "raw_score": 21.0,
+          "tier": "WATCH",
+          "beat_streak": 2
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "TJX",
+      "n_engines": 3,
+      "convergence_score": 44.0,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 33.4,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 10.0,
+          "raw_score": 10,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 37.1,
+          "raw_score": 37.1,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 53.0,
+          "raw_score": 53.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "COIN",
+      "n_engines": 2,
+      "convergence_score": 44.0,
+      "domain_coverage": [
+        "insider",
+        "institutional"
+      ],
+      "n_domains": 2,
+      "avg_signal": 60.0,
+      "engines": {
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 60.0,
+          "raw_score": 3,
+          "total_value": 380240203.5,
+          "max_weight": 5.54
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "recent_amount_usd": 3580000.0,
+          "acceleration_ratio": 2.1
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "BLSH",
+      "n_engines": 2,
+      "convergence_score": 44.0,
+      "domain_coverage": [
+        "insider",
+        "institutional"
+      ],
+      "n_domains": 2,
+      "avg_signal": 60.0,
+      "engines": {
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 60.0,
+          "raw_score": 3,
+          "total_value": 219870431.46,
+          "max_weight": 3.45
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "recent_amount_usd": 180000.0,
+          "acceleration_ratio": 11.0
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "FOXA",
+      "n_engines": 2,
+      "convergence_score": 43.8,
+      "domain_coverage": [
+        "fundamentals",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 59.4,
+      "engines": {
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 58.8,
+          "raw_score": 58.8,
+          "buyback_yield_pct": 3.57,
+          "dividend_yield_pct": 0.98
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "recent_amount_usd": 1320000.0,
+          "acceleration_ratio": 2.41
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "VRSK",
+      "n_engines": 2,
+      "convergence_score": 43.5,
+      "domain_coverage": [
+        "fundamentals",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 58.3,
+      "engines": {
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 41.6,
+          "raw_score": 41.6,
+          "buyback_yield_pct": 2.72,
+          "dividend_yield_pct": 1.06
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 75.0,
+          "raw_score": 75,
+          "recent_amount_usd": 260000.0,
+          "acceleration_ratio": 7.22
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "TMUS",
+      "n_engines": 3,
+      "convergence_score": 43.4,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 31.2,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.0,
+          "raw_score": 5,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 60.6,
+          "raw_score": 60.6,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 28.0,
+          "raw_score": 28.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "PLD",
+      "n_engines": 2,
+      "convergence_score": 42.0,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 53.5,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 24.0,
+          "raw_score": 24.0,
+          "tier": "MARGINAL",
+          "flags": [
+            "NEAR_60D_HIGH",
+            "VOL_SURGE_2.5X"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 83.0,
+          "raw_score": 83.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "AMGN",
+      "n_engines": 2,
+      "convergence_score": 41.8,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 52.5,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 0,
+          "raw_score": 0,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 55.0,
+          "raw_score": 55.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 7
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "AXP",
+      "n_engines": 3,
+      "convergence_score": 41.6,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 25.4,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 13.6,
+          "raw_score": 13.6,
+          "tier": "MARGINAL",
+          "flags": [
+            "NEAR_60D_HIGH"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 42.5,
+          "raw_score": 42.5,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 20.0,
+          "raw_score": 20.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "TXT",
+      "n_engines": 2,
+      "convergence_score": 41.4,
+      "domain_coverage": [
+        "fundamentals",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 51.5,
+      "engines": {
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 47.9,
+          "raw_score": 47.9,
+          "buyback_yield_pct": 6.75,
+          "dividend_yield_pct": 0.09
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 55.0,
+          "raw_score": 55,
+          "recent_amount_usd": 2757441.0,
+          "acceleration_ratio": 2.17
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "T",
+      "n_engines": 3,
+      "convergence_score": 41.2,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 24.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 10.0,
+          "raw_score": 10,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 23.1,
+          "raw_score": 23.1,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 39.0,
+          "raw_score": 39.0,
+          "tier": "WATCH",
+          "beat_streak": 7
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "PM",
+      "n_engines": 3,
+      "convergence_score": 41.2,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 24.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 4.5,
+          "raw_score": 4.5,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 32.6,
+          "raw_score": 32.6,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 35.0,
+          "raw_score": 35.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "BB",
+      "n_engines": 2,
+      "convergence_score": 41.1,
+      "domain_coverage": [
+        "insider",
+        "sentiment"
+      ],
+      "n_domains": 2,
+      "avg_signal": 50.3,
+      "engines": {
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 20.6,
+          "raw_score": 206.2,
+          "mentions": 49,
+          "upvotes": 260,
+          "rank": 26
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 80.0,
+          "raw_score": 80,
+          "recent_amount_usd": 20000.0,
+          "acceleration_ratio": 6.11
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "ELV",
+      "n_engines": 2,
+      "convergence_score": 41.1,
+      "domain_coverage": [
+        "fundamentals",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 50.4,
+      "engines": {
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 40.8,
+          "raw_score": 40.8,
+          "buyback_yield_pct": 3.05,
+          "dividend_yield_pct": 1.74
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "recent_amount_usd": 4245000.0,
+          "acceleration_ratio": 2.07
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "DXCM",
+      "n_engines": 2,
+      "convergence_score": 41.0,
+      "domain_coverage": [
+        "fundamentals",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 50.0,
+      "engines": {
+        "political-trades": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "member": "Ro Khanna",
+          "transaction_type": "purchase",
+          "amount_range": "$1,001 - $15,000"
+        },
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 39.9,
+          "raw_score": 39.9,
+          "buyback_yield_pct": 1.76,
+          "dividend_yield_pct": 0.0
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "C",
+      "n_engines": 3,
+      "convergence_score": 40.9,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 23.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 9.4,
+          "raw_score": 9.4,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 31.5,
+          "raw_score": 31.5,
+          "flag": "WATCH",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 28.0,
+          "raw_score": 28.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "HON",
+      "n_engines": 2,
+      "convergence_score": 39.8,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 46.1,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 32.3,
+          "raw_score": 32.3,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "AT_20D_HIGH",
+            "MOD_ACCUM",
+            "RS_20D_+6"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "IBKR",
+      "n_engines": 2,
+      "convergence_score": 39.8,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 46.1,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 32.2,
+          "raw_score": 32.2,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "RS_60D_+15"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 60.0,
+          "raw_score": 60.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 4
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "WELL",
+      "n_engines": 2,
+      "convergence_score": 39.5,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 45.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 15.0,
+          "raw_score": 15,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_2.5X"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 75.0,
+          "raw_score": 75.0,
+          "tier": "TIER_S_PEAD_DRIFT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "NEE",
+      "n_engines": 3,
+      "convergence_score": 39.4,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 18.1,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 10.0,
+          "raw_score": 10,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_1.8X"
+          ],
+          "is_parabolic": false
+        },
+        "eps-revision-velocity": {
+          "domain": "earnings",
+          "score": 34.4,
+          "raw_score": 34.4,
+          "flag": "MONITOR",
+          "status": "ok"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 10.0,
+          "raw_score": 10.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        }
+      },
+      "tier": "MED",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": true,
+      "is_ultra": false
+    },
+    {
+      "ticker": "TSCO",
+      "n_engines": 2,
+      "convergence_score": 39.2,
+      "domain_coverage": [
+        "fundamentals",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 44.1,
+      "engines": {
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 43.3,
+          "raw_score": 43.3,
+          "buyback_yield_pct": 2.18,
+          "dividend_yield_pct": 2.98
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 45.0,
+          "raw_score": 45,
+          "recent_amount_usd": 440000.0,
+          "acceleration_ratio": 2.4
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "SPCE",
+      "n_engines": 2,
+      "convergence_score": 39.1,
+      "domain_coverage": [
+        "sentiment"
+      ],
+      "n_domains": 1,
+      "avg_signal": 60.3,
+      "engines": {
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 20.6,
+          "raw_score": 20.62,
+          "watchlist_count": 147541,
+          "sector": "ElectronicTechnology"
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 100,
+          "raw_score": 147.8,
+          "mentions": 2443,
+          "upvotes": 27608,
+          "rank": 1
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "CEG",
+      "n_engines": 2,
+      "convergence_score": 39.0,
+      "domain_coverage": [
+        "earnings",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 43.5,
+      "engines": {
+        "political-trades": {
+          "domain": "insider",
+          "score": 60.0,
+          "raw_score": 60,
+          "member": "Shelley Moore Capito",
+          "transaction_type": "sale",
+          "amount_range": "$1,001 - $15,000"
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 27.0,
+          "raw_score": 27.0,
+          "tier": "WATCH",
+          "beat_streak": 2
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "TSM",
+      "n_engines": 2,
+      "convergence_score": 38.2,
+      "domain_coverage": [
+        "institutional",
+        "sentiment"
+      ],
+      "n_domains": 2,
+      "avg_signal": 40.6,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.2,
+          "raw_score": 1.2,
+          "current_level": 2538.1,
+          "interp": "FLAT",
+          "price_7d_pct": 6.58
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 80.0,
+          "raw_score": 4,
+          "total_value": 191028527.22,
+          "max_weight": 2.91
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "SEM",
+      "n_engines": 2,
+      "convergence_score": 38.2,
+      "domain_coverage": [
+        "insider"
+      ],
+      "n_domains": 1,
+      "avg_signal": 57.5,
+      "engines": {
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 75.0,
+          "raw_score": 75,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "SEM",
+              "name": "SELECT MEDICAL HOLDINGS CORP",
+              "cik": "0001320414",
+              "form": "SC 13E3/A",
+              "filed_at": "2026-05-20",
+              "accession": "000110465926064120",
+              "snippet": "",
+              "signal_id": "going_private",
+              "signal_label": "Going-private signal",
+              "polarity": "bullish",
+              "severity": "high",
+              "weight": 25,
+              "desc": "Going-private transaction discussed",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/1320414/000110465926064120/0001104659-26-064120-index.htm"
+            },
+            {
+              "ticker": "SEM",
+              "name": "SELECT MEDICAL HOLDINGS CORP",
+              "cik": "0001320414",
+              "form": "SC 13E3/A",
+              "filed_at": "2026-05-15",
+              "accession": "000110465926062307",
+              "snippet": "",
+              "signal_id": "going_private",
+              "signal_label": "Going-private signal",
+              "polarity": "bullish",
+              "severity": "high",
+              "weight": 25,
+              "desc": "Going-private transaction discussed",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/1320414/000110465926062307/0001104659-26-062307-index.htm"
+            },
+            {
+              "ticker": "SEM",
+              "name": "SELECT MEDICAL HOLDINGS CORP",
+              "cik": "0001320414",
+              "form": "SC 13E3",
+              "filed_at": "2026-04-15",
+              "accession": "000110465926043531",
+              "snippet": "",
+              "signal_id": "going_private",
+              "signal_label": "Going-private signal",
+              "polarity": "bullish",
+              "severity": "high",
+              "weight": 25,
+              "desc": "Going-private transaction discussed",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/1320414/000110465926043531/0001104659-26-043531-index.htm"
+            }
+          ]
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 40.0,
+          "raw_score": 40,
+          "recent_amount_usd": 1240000.0,
+          "acceleration_ratio": 2.28
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "APH",
+      "n_engines": 2,
+      "convergence_score": 37.9,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 39.5,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 16.0,
+          "raw_score": 16.0,
+          "tier": "MARGINAL",
+          "flags": [
+            "AT_20D_HIGH"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 63.0,
+          "raw_score": 63.0,
+          "tier": "TIER_A_HIGH_QUALITY_BEAT",
+          "beat_streak": 8
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "GLW",
+      "n_engines": 2,
+      "convergence_score": 37.8,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 39.3,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 24.6,
+          "raw_score": 24.6,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "RS_20D_+5",
+            "RS_60D_+15"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "SCCO",
+      "n_engines": 2,
+      "convergence_score": 37.5,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 38.4,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 22.8,
+          "raw_score": 22.8,
+          "tier": "MARGINAL",
+          "flags": [
+            "RISING_20D",
+            "NEAR_60D_HIGH",
+            "RS_20D_+7"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 54.0,
+          "raw_score": 54.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 5
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "UPS",
+      "n_engines": 2,
+      "convergence_score": 37.4,
+      "domain_coverage": [
+        "earnings",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 38.0,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 41.0,
+          "raw_score": 41.0,
+          "tier": "WATCH",
+          "beat_streak": 3
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 2160000.0,
+          "acceleration_ratio": 1.39
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "ILMN",
+      "n_engines": 2,
+      "convergence_score": 37.2,
+      "domain_coverage": [
+        "insider",
+        "institutional"
+      ],
+      "n_domains": 2,
+      "avg_signal": 37.5,
+      "engines": {
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 40.0,
+          "raw_score": 2,
+          "total_value": 157811121.3,
+          "max_weight": 4.42
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 656250.0,
+          "acceleration_ratio": 0.84
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "BKNG",
+      "n_engines": 2,
+      "convergence_score": 36.9,
+      "domain_coverage": [
+        "earnings",
+        "fundamentals"
+      ],
+      "n_domains": 2,
+      "avg_signal": 36.4,
+      "engines": {
+        "capital-return": {
+          "domain": "fundamentals",
+          "score": 52.7,
+          "raw_score": 52.7,
+          "buyback_yield_pct": 4.96,
+          "dividend_yield_pct": 0.94
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 20.0,
+          "raw_score": 20.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "DOCU",
+      "n_engines": 2,
+      "convergence_score": 36.8,
+      "domain_coverage": [
+        "earnings"
+      ],
+      "n_domains": 1,
+      "avg_signal": 52.5,
+      "engines": {
+        "earnings-whisper": {
+          "domain": "earnings",
+          "score": 55.0,
+          "raw_score": 55,
+          "earnings_date": "2026-06-04",
+          "days_to_earnings": 3
+        },
+        "earnings-tracker-upcoming": {
+          "domain": "earnings",
+          "score": 50.0,
+          "raw_score": 50,
+          "earnings_date": "2026-06-04",
+          "time": "AMC",
+          "eps_consensus": 0.38
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "GILD",
+      "n_engines": 2,
+      "convergence_score": 36.2,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 34.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 15.0,
+          "raw_score": 15,
+          "tier": "MARGINAL",
+          "flags": [
+            "VOL_SURGE_2.5X"
+          ],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 53.0,
+          "raw_score": 53.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "NOW",
+      "n_engines": 2,
+      "convergence_score": 36.2,
+      "domain_coverage": [
+        "earnings",
+        "sentiment"
+      ],
+      "n_domains": 2,
+      "avg_signal": 34.1,
+      "engines": {
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 48.2,
+          "raw_score": 481.8,
+          "mentions": 320,
+          "upvotes": 1784,
+          "rank": 3
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 20.0,
+          "raw_score": 20.0,
+          "tier": "WATCH",
+          "beat_streak": 0
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "VRTX",
+      "n_engines": 2,
+      "convergence_score": 35.5,
+      "domain_coverage": [
+        "earnings",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 31.5,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 28.0,
+          "raw_score": 28.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 1770000.0,
+          "acceleration_ratio": 0.84
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "RBLX",
+      "n_engines": 2,
+      "convergence_score": 35.2,
+      "domain_coverage": [
+        "institutional",
+        "sentiment"
+      ],
+      "n_domains": 2,
+      "avg_signal": 30.6,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.1,
+          "raw_score": 1.14,
+          "current_level": 8944.9,
+          "interp": "FLAT",
+          "price_7d_pct": 6.07
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 60.0,
+          "raw_score": 3,
+          "total_value": 250189415.49,
+          "max_weight": 2.59
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "ISRG",
+      "n_engines": 2,
+      "convergence_score": 34.7,
+      "domain_coverage": [
+        "earnings",
+        "momentum"
+      ],
+      "n_domains": 2,
+      "avg_signal": 29.0,
+      "engines": {
+        "momentum-breakout": {
+          "domain": "momentum",
+          "score": 5.0,
+          "raw_score": 5,
+          "tier": "MARGINAL",
+          "flags": [],
+          "is_parabolic": false
+        },
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 53.0,
+          "raw_score": 53.0,
+          "tier": "TIER_B_BUILDING",
+          "beat_streak": 8
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "SO",
+      "n_engines": 2,
+      "convergence_score": 34.2,
+      "domain_coverage": [
+        "earnings",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 27.5,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 20.0,
+          "raw_score": 20.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 3220000.0,
+          "acceleration_ratio": 0.63
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "CMG",
+      "n_engines": 2,
+      "convergence_score": 33.6,
+      "domain_coverage": [
+        "insider"
+      ],
+      "n_domains": 1,
+      "avg_signal": 42.0,
+      "engines": {
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 44.0,
+          "raw_score": -44,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "CMG",
+              "name": "CHIPOTLE MEXICAN GRILL INC",
+              "cik": "0001058090",
+              "form": "10-Q",
+              "filed_at": "2026-04-30",
+              "accession": "000105809026000028",
+              "snippet": "",
+              "signal_id": "investigation",
+              "signal_label": "Investigation disclosed",
+              "polarity": "bearish",
+              "severity": "high",
+              "weight": -22,
+              "desc": "Active regulatory investigation or subpoena",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/1058090/000105809026000028/0001058090-26-000028-index.htm"
+            },
+            {
+              "ticker": "CMG",
+              "name": "CHIPOTLE MEXICAN GRILL INC",
+              "cik": "0001058090",
+              "form": "10-Q",
+              "filed_at": "2026-04-30",
+              "accession": "000105809026000028",
+              "snippet": "",
+              "signal_id": "investigation",
+              "signal_label": "Investigation disclosed",
+              "polarity": "bearish",
+              "severity": "high",
+              "weight": -22,
+              "desc": "Active regulatory investigation or subpoena",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/1058090/000105809026000028/0001058090-26-000028-index.htm"
+            }
+          ]
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 40.0,
+          "raw_score": 40,
+          "recent_amount_usd": 660000.0,
+          "acceleration_ratio": 2.22
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "INFQ",
+      "n_engines": 2,
+      "convergence_score": 33.5,
+      "domain_coverage": [
+        "insider",
+        "sentiment"
+      ],
+      "n_domains": 2,
+      "avg_signal": 24.9,
+      "engines": {
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 9.9,
+          "raw_score": 9.89,
+          "watchlist_count": 12646,
+          "sector": "ElectronicTechnology"
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 40.0,
+          "raw_score": 40,
+          "recent_amount_usd": 530000.0
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "SPGI",
+      "n_engines": 2,
+      "convergence_score": 33.4,
+      "domain_coverage": [
+        "earnings",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 24.5,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 14.0,
+          "raw_score": 14.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 800000.0,
+          "acceleration_ratio": 1.64
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "TEM",
+      "n_engines": 2,
+      "convergence_score": 33.2,
+      "domain_coverage": [
+        "institutional",
+        "sentiment"
+      ],
+      "n_domains": 2,
+      "avg_signal": 24.1,
+      "engines": {
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 8.3,
+          "raw_score": 8.26,
+          "watchlist_count": 20429,
+          "sector": "TechnologyServices"
+        },
+        "ark-holdings": {
+          "domain": "institutional",
+          "score": 40.0,
+          "raw_score": 2,
+          "total_value": 456352672.41999996,
+          "max_weight": 8.01
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "LMT",
+      "n_engines": 2,
+      "convergence_score": 33.2,
+      "domain_coverage": [
+        "earnings",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 24.0,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 13.0,
+          "raw_score": 13.0,
+          "tier": "WATCH",
+          "beat_streak": 0
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 4685200.0,
+          "acceleration_ratio": 0.82
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "SLNO",
+      "n_engines": 2,
+      "convergence_score": 33.0,
+      "domain_coverage": [
+        "insider"
+      ],
+      "n_domains": 1,
+      "avg_signal": 40.0,
+      "engines": {
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 25.0,
+          "raw_score": 25,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "SLNO",
+              "name": "SOLENO THERAPEUTICS INC",
+              "cik": "0001484565",
+              "form": "8-K",
+              "filed_at": "2026-04-06",
+              "accession": "000119312526142911",
+              "snippet": "",
+              "signal_id": "fda_approval",
+              "signal_label": "FDA approval",
+              "polarity": "bullish",
+              "severity": "high",
+              "weight": 25,
+              "desc": "Drug/device FDA approval received",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/1484565/000119312526142911/0001193125-26-142911-index.htm"
+            }
+          ]
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 55.0,
+          "raw_score": 55,
+          "recent_amount_usd": 100000.0,
+          "acceleration_ratio": 2.04
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "CVS",
+      "n_engines": 2,
+      "convergence_score": 32.9,
+      "domain_coverage": [
+        "insider"
+      ],
+      "n_domains": 1,
+      "avg_signal": 39.5,
+      "engines": {
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 44.0,
+          "raw_score": -44,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "CVS",
+              "name": "CVS HEALTH Corp",
+              "cik": "0000064803",
+              "form": "10-Q",
+              "filed_at": "2026-05-06",
+              "accession": "000006480326000052",
+              "snippet": "",
+              "signal_id": "investigation",
+              "signal_label": "Investigation disclosed",
+              "polarity": "bearish",
+              "severity": "high",
+              "weight": -22,
+              "desc": "Active regulatory investigation or subpoena",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/64803/000006480326000052/0000064803-26-000052-index.htm"
+            },
+            {
+              "ticker": "CVS",
+              "name": "CVS HEALTH Corp",
+              "cik": "0000064803",
+              "form": "10-Q",
+              "filed_at": "2026-05-06",
+              "accession": "000006480326000052",
+              "snippet": "",
+              "signal_id": "investigation",
+              "signal_label": "Investigation disclosed",
+              "polarity": "bearish",
+              "severity": "high",
+              "weight": -22,
+              "desc": "Active regulatory investigation or subpoena",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/64803/000006480326000052/0000064803-26-000052-index.htm"
+            }
+          ]
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 35.0,
+          "raw_score": 35,
+          "recent_amount_usd": 3835000.0,
+          "acceleration_ratio": 1.49
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "ABT",
+      "n_engines": 2,
+      "convergence_score": 32.6,
+      "domain_coverage": [
+        "earnings",
+        "insider"
+      ],
+      "n_domains": 2,
+      "avg_signal": 22.0,
+      "engines": {
+        "earnings-pead": {
+          "domain": "earnings",
+          "score": 4.0,
+          "raw_score": 4.0,
+          "tier": "WATCH",
+          "beat_streak": 1
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 40.0,
+          "raw_score": 40,
+          "recent_amount_usd": 1750000.0,
+          "acceleration_ratio": 1.38
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "SOFI",
+      "n_engines": 2,
+      "convergence_score": 32.2,
+      "domain_coverage": [
+        "insider",
+        "sentiment"
+      ],
+      "n_domains": 2,
+      "avg_signal": 20.6,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.1,
+          "raw_score": 1.08,
+          "current_level": 676.9,
+          "interp": "FLAT",
+          "price_7d_pct": 19.63
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 40.0,
+          "raw_score": 40,
+          "recent_amount_usd": 560000.0,
+          "acceleration_ratio": 1.82
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "RDDT",
+      "n_engines": 2,
+      "convergence_score": 31.5,
+      "domain_coverage": [
+        "sentiment"
+      ],
+      "n_domains": 1,
+      "avg_signal": 35.2,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.4,
+          "raw_score": 1.43,
+          "current_level": 0.4,
+          "interp": "RISING",
+          "price_7d_pct": 13.64
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 68.9,
+          "raw_score": 688.9,
+          "mentions": 71,
+          "upvotes": 257,
+          "rank": 18
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "AAOI",
+      "n_engines": 2,
+      "convergence_score": 30.8,
+      "domain_coverage": [
+        "insider"
+      ],
+      "n_domains": 1,
+      "avg_signal": 32.5,
+      "engines": {
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 25.0,
+          "raw_score": -25,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "AAOI",
+              "name": "APPLIED OPTOELECTRONICS, INC.",
+              "cik": "0001158114",
+              "form": "8-K",
+              "filed_at": "2026-05-08",
+              "accession": "000168316826003572",
+              "snippet": "",
+              "signal_id": "material_weakness",
+              "signal_label": "Material weakness in controls",
+              "polarity": "bearish",
+              "severity": "high",
+              "weight": -25,
+              "desc": "Internal controls failure disclosed",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/1158114/000168316826003572/0001683168-26-003572-index.htm"
+            }
+          ]
+        },
+        "lobbying-intel": {
+          "domain": "insider",
+          "score": 40.0,
+          "raw_score": 40,
+          "recent_amount_usd": 120000.0,
+          "acceleration_ratio": 2.44
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "MDB",
+      "n_engines": 2,
+      "convergence_score": 30.3,
+      "domain_coverage": [
+        "insider",
+        "sentiment"
+      ],
+      "n_domains": 2,
+      "avg_signal": 14.4,
+      "engines": {
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 6.9,
+          "raw_score": 6.94,
+          "watchlist_count": 21220,
+          "sector": "TechnologyServices"
+        },
+        "sec-filings-intel": {
+          "domain": "insider",
+          "score": 22.0,
+          "raw_score": -22,
+          "highest_severity": "high",
+          "events": [
+            {
+              "ticker": "MDB",
+              "name": "MongoDB, Inc.",
+              "cik": "0001441816",
+              "form": "10-Q",
+              "filed_at": "2026-05-29",
+              "accession": "000162828026039150",
+              "snippet": "",
+              "signal_id": "investigation",
+              "signal_label": "Investigation disclosed",
+              "polarity": "bearish",
+              "severity": "high",
+              "weight": -22,
+              "desc": "Active regulatory investigation or subpoena",
+              "filing_url": "https://www.sec.gov/Archives/edgar/data/1441816/000162828026039150/0001628280-26-039150-index.htm"
+            }
+          ]
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "RKLB",
+      "n_engines": 2,
+      "convergence_score": 25.6,
+      "domain_coverage": [
+        "sentiment"
+      ],
+      "n_domains": 1,
+      "avg_signal": 15.4,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.1,
+          "raw_score": 1.08,
+          "current_level": 1288.4,
+          "interp": "FLAT",
+          "price_7d_pct": 12.7
+        },
+        "retail-sentiment": {
+          "domain": "sentiment",
+          "score": 29.7,
+          "raw_score": 297.1,
+          "mentions": 139,
+          "upvotes": 668,
+          "rank": 9
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    },
+    {
+      "ticker": "MSTR",
+      "n_engines": 2,
+      "convergence_score": 22.7,
+      "domain_coverage": [
+        "sentiment"
+      ],
+      "n_domains": 1,
+      "avg_signal": 5.6,
+      "engines": {
+        "ticker-trends": {
+          "domain": "sentiment",
+          "score": 1.4,
+          "raw_score": 1.43,
+          "current_level": 1.6,
+          "interp": "RISING",
+          "price_7d_pct": -3.37
+        },
+        "stocktwits-trending": {
+          "domain": "sentiment",
+          "score": 9.8,
+          "raw_score": 9.75,
+          "watchlist_count": 79414,
+          "sector": "TechnologyServices"
+        }
+      },
+      "tier": "LOW",
+      "prior_n_engines": 0,
+      "is_new_high": false,
+      "is_accelerating": false,
+      "is_ultra": false
+    }
+  ],
+  "engine_ages_h": {
+    "ticker-trends": 3.7,
+    "sympathetic-momentum": 17.2,
+    "momentum-breakout": 5.7,
+    "earnings-whisper": 8.7,
+    "stocktwits-trending": 0.2,
+    "buzz-velocity": 2.7,
+    "options-flow": 18.7,
+    "sec-filings-intel": 1.7,
+    "retail-sentiment": 0.2,
+    "news-velocity": 0.6,
+    "eps-revision-velocity": 5.7,
+    "hiring-velocity": 28.7,
+    "ark-holdings": 10.7,
+    "political-trades": 5.7,
+    "fundamentals-quality": 5.7,
+    "earnings-tracker-upcoming": 5.0,
+    "capital-return": 5.7,
+    "earnings-cascade": 2.5,
+    "earnings-pead": 8.7,
+    "lobbying-intel": 0.7
+  },
+  "alert_info": {
+    "sent": false,
+    "n_ultra": 12,
+    "n_new_high": 45,
+    "n_accelerating": 27,
+    "ultra_tickers": [
+      "AVGO",
+      "PLTR",
+      "AMD",
+      "TSLA",
+      "AMZN",
+      "NVDA",
+      "MU",
+      "META",
+      "MSFT",
+      "ARM",
+      "ORCL",
+      "AAPL"
+    ],
+    "new_high_tickers": [
+      "GOOG",
+      "GE",
+      "INTC",
+      "GOOGL",
+      "WMT",
+      "JPM",
+      "LLY",
+      "SNDK",
+      "CRWD",
+      "V",
+      "XOM",
+      "MA",
+      "LRCX",
+      "CVX",
+      "DELL",
+      "AMAT",
+      "JNJ",
+      "BA",
+      "CSCO",
+      "HD",
+      "ABBV",
+      "KO",
+      "UNH",
+      "BAC",
+      "STX",
+      "CRM",
+      "IBM",
+      "WDC",
+      "UBER",
+      "HOOD",
+      "PANW",
+      "ACN",
+      "GS",
+      "INTU",
+      "MS",
+      "MRK",
+      "COP",
+      "ANET",
+      "WFC",
+      "CAT",
+      "ADBE",
+      "COST",
+      "VZ",
+      "DIS",
+      "PEP"
+    ],
+    "accelerating_tickers": [
+      "NEM",
+      "DE",
+      "FDX",
+      "QCOM",
+      "APP",
+      "MRVL",
+      "PFE",
+      "KLAC",
+      "CI",
+      "MDT",
+      "NBIS",
+      "PG",
+      "GEV",
+      "REGN",
+      "ADI",
+      "UNP",
+      "TXN",
+      "RTX",
+      "TMO",
+      "MCD",
+      "TJX",
+      "TMUS",
+      "AXP",
+      "T",
+      "PM",
+      "C",
+      "NEE"
+    ]
+  }
+}

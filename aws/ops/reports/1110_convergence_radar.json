@@ -1,0 +1,600 @@
+{
+  "started": "2026-06-01T16:43:34.886854+00:00",
+  "phases": [
+    {
+      "name": "check_lambda",
+      "status": "ok",
+      "result": {
+        "state": "Active",
+        "last_modified": "2026-06-01T16:38:32.000+0000",
+        "code_size_kb": 29.5,
+        "memory": 512,
+        "timeout": 180
+      }
+    },
+    {
+      "name": "setup_schedule",
+      "status": "ok",
+      "result": {
+        "schedule": "justhodl-convergence-radar-30min",
+        "cron": "cron(*/30 * * * ? *)"
+      }
+    },
+    {
+      "name": "invoke",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 2.4,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 1.45,
+          "n_tickers": 130,
+          "n_ultra": 18,
+          "n_high": 24,
+          "alert_sent": false,
+          "top_3": [
+            "AVGO",
+            "PLTR",
+            "AMD"
+          ]
+        }
+      }
+    },
+    {
+      "name": "read_output",
+      "status": "ok",
+      "result": {
+        "size_kb": 173.6,
+        "last_modified": "2026-06-01T16:43:39+00:00",
+        "schema": "1.0",
+        "elapsed": 1.45,
+        "summary": {
+          "n_tickers_total": 588,
+          "n_tickers_multi_engine": 130,
+          "n_ultra": 18,
+          "n_high": 24,
+          "n_med": 53,
+          "n_new_high_convergence": 45,
+          "n_accelerating": 27,
+          "top_10": [
+            "AVGO",
+            "PLTR",
+            "AMD",
+            "TSLA",
+            "AMZN",
+            "NVDA",
+            "MU",
+            "GOOG",
+            "META",
+            "GE"
+          ],
+          "engines_loaded": 20,
+          "engines_stale": 1
+        },
+        "alert_info": {
+          "sent": false,
+          "n_ultra": 12,
+          "n_new_high": 45,
+          "n_accelerating": 27,
+          "ultra_tickers": [
+            "AVGO",
+            "PLTR",
+            "AMD",
+            "TSLA",
+            "AMZN",
+            "NVDA",
+            "MU",
+            "META",
+            "MSFT",
+            "ARM",
+            "ORCL",
+            "AAPL"
+          ],
+          "new_high_tickers": [
+            "GOOG",
+            "GE",
+            "INTC",
+            "GOOGL",
+            "WMT",
+            "JPM",
+            "LLY",
+            "SNDK",
+            "CRWD",
+            "V",
+            "XOM",
+            "MA",
+            "LRCX",
+            "CVX",
+            "DELL",
+            "AMAT",
+            "JNJ",
+            "BA",
+            "CSCO",
+            "HD",
+            "ABBV",
+            "KO",
+            "UNH",
+            "BAC",
+            "STX",
+            "CRM",
+            "IBM",
+            "WDC",
+            "UBER",
+            "HOOD",
+            "PANW",
+            "ACN",
+            "GS",
+            "INTU",
+            "MS",
+            "MRK",
+            "COP",
+            "ANET",
+            "WFC",
+            "CAT",
+            "ADBE",
+            "COST",
+            "VZ",
+            "DIS",
+            "PEP"
+          ],
+          "accelerating_tickers": [
+            "NEM",
+            "DE",
+            "FDX",
+            "QCOM",
+            "APP",
+            "MRVL",
+            "PFE",
+            "KLAC",
+            "CI",
+            "MDT",
+            "NBIS",
+            "PG",
+            "GEV",
+            "REGN",
+            "ADI",
+            "UNP",
+            "TXN",
+            "RTX",
+            "TMO",
+            "MCD",
+            "TJX",
+            "TMUS",
+            "AXP",
+            "T",
+            "PM",
+            "C",
+            "NEE"
+          ]
+        },
+        "top_15": [
+          {
+            "ticker": "AVGO",
+            "tier": "ULTRA",
+            "n_engines": 12,
+            "convergence_score": 100,
+            "domain_coverage": [
+              "earnings",
+              "insider",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ],
+            "engines_list": [
+              "ark-holdings",
+              "buzz-velocity",
+              "earnings-pead",
+              "earnings-tracker-upcoming",
+              "earnings-whisper",
+              "eps-revision-velocity",
+              "fundamentals-quality",
+              "momentum-breakout",
+              "news-velocity",
+              "options-flow",
+              "political-trades",
+              "retail-sentiment"
+            ]
+          },
+          {
+            "ticker": "PLTR",
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "convergence_score": 100,
+            "domain_coverage": [
+              "earnings",
+              "insider",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ],
+            "engines_list": [
+              "ark-holdings",
+              "earnings-pead",
+              "eps-revision-velocity",
+              "fundamentals-quality",
+              "lobbying-intel",
+              "momentum-breakout",
+              "options-flow",
+              "ticker-trends"
+            ]
+          },
+          {
+            "ticker": "AMD",
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "convergence_score": 97.8,
+            "domain_coverage": [
+              "earnings",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ],
+            "engines_list": [
+              "ark-holdings",
+              "buzz-velocity",
+              "earnings-pead",
+              "eps-revision-velocity",
+              "fundamentals-quality",
+              "momentum-breakout",
+              "options-flow",
+              "retail-sentiment"
+            ]
+          },
+          {
+            "ticker": "TSLA",
+            "tier": "ULTRA",
+            "n_engines": 9,
+            "convergence_score": 95.5,
+            "domain_coverage": [
+              "earnings",
+              "insider",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment"
+            ],
+            "engines_list": [
+              "ark-holdings",
+              "buzz-velocity",
+              "earnings-pead",
+              "eps-revision-velocity",
+              "lobbying-intel",
+              "momentum-breakout",
+              "news-velocity",
+              "options-flow",
+              "retail-sentiment"
+            ]
+          },
+          {
+            "ticker": "AMZN",
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "convergence_score": 95.4,
+            "domain_coverage": [
+              "earnings",
+              "insider",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment"
+            ],
+            "engines_list": [
+              "ark-holdings",
+              "buzz-velocity",
+              "earnings-pead",
+              "eps-revision-velocity",
+              "lobbying-intel",
+              "momentum-breakout",
+              "news-velocity",
+              "options-flow"
+            ]
+          },
+          {
+            "ticker": "NVDA",
+            "tier": "ULTRA",
+            "n_engines": 9,
+            "convergence_score": 93.9,
+            "domain_coverage": [
+              "earnings",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ],
+            "engines_list": [
+              "ark-holdings",
+              "buzz-velocity",
+              "earnings-pead",
+              "eps-revision-velocity",
+              "fundamentals-quality",
+              "momentum-breakout",
+              "news-velocity",
+              "options-flow",
+              "retail-sentiment"
+            ]
+          },
+          {
+            "ticker": "MU",
+            "tier": "ULTRA",
+            "n_engines": 9,
+            "convergence_score": 93.5,
+            "domain_coverage": [
+              "earnings",
+              "insider",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ],
+            "engines_list": [
+              "buzz-velocity",
+              "earnings-pead",
+              "eps-revision-velocity",
+              "fundamentals-quality",
+              "momentum-breakout",
+              "options-flow",
+              "political-trades",
+              "retail-sentiment",
+              "ticker-trends"
+            ]
+          },
+          {
+            "ticker": "GOOG",
+            "tier": "ULTRA",
+            "n_engines": 6,
+            "convergence_score": 92.5,
+            "domain_coverage": [
+              "earnings",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ],
+            "engines_list": [
+              "ark-holdings",
+              "buzz-velocity",
+              "earnings-pead",
+              "fundamentals-quality",
+              "momentum-breakout",
+              "options-flow"
+            ]
+          },
+          {
+            "ticker": "META",
+            "tier": "ULTRA",
+            "n_engines": 10,
+            "convergence_score": 90.4,
+            "domain_coverage": [
+              "earnings",
+              "fundamentals",
+              "insider",
+              "momentum",
+              "options",
+              "sentiment"
+            ],
+            "engines_list": [
+              "buzz-velocity",
+              "capital-return",
+              "earnings-pead",
+              "eps-revision-velocity",
+              "lobbying-intel",
+              "momentum-breakout",
+              "news-velocity",
+              "options-flow",
+              "retail-sentiment",
+              "stocktwits-trending"
+            ]
+          },
+          {
+            "ticker": "GE",
+            "tier": "ULTRA",
+            "n_engines": 6,
+            "convergence_score": 90.0,
+            "domain_coverage": [
+              "earnings",
+              "insider",
+              "momentum",
+              "options",
+              "valuation"
+            ],
+            "engines_list": [
+              "earnings-pead",
+              "eps-revision-velocity",
+              "fundamentals-quality",
+              "lobbying-intel",
+              "momentum-breakout",
+              "options-flow"
+            ]
+          },
+          {
+            "ticker": "INTC",
+            "tier": "ULTRA",
+            "n_engines": 6,
+            "convergence_score": 89.3,
+            "domain_coverage": [
+              "earnings",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ],
+            "engines_list": [
+              "earnings-pead",
+              "eps-revision-velocity",
+              "fundamentals-quality",
+              "momentum-breakout",
+              "options-flow",
+              "retail-sentiment"
+            ]
+          },
+          {
+            "ticker": "MSFT",
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "convergence_score": 88.6,
+            "domain_coverage": [
+              "earnings",
+              "insider",
+              "momentum",
+              "options",
+              "sentiment"
+            ],
+            "engines_list": [
+              "buzz-velocity",
+              "earnings-pead",
+              "eps-revision-velocity",
+              "lobbying-intel",
+              "momentum-breakout",
+              "news-velocity",
+              "options-flow",
+              "retail-sentiment"
+            ]
+          },
+          {
+            "ticker": "ARM",
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "convergence_score": 88.3,
+            "domain_coverage": [
+              "earnings",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ],
+            "engines_list": [
+              "earnings-pead",
+              "eps-revision-velocity",
+              "fundamentals-quality",
+              "momentum-breakout",
+              "options-flow",
+              "retail-sentiment",
+              "stocktwits-trending",
+              "ticker-trends"
+            ]
+          },
+          {
+            "ticker": "ORCL",
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "convergence_score": 88.1,
+            "domain_coverage": [
+              "earnings",
+              "insider",
+              "momentum",
+              "options",
+              "sentiment"
+            ],
+            "engines_list": [
+              "buzz-velocity",
+              "earnings-pead",
+              "earnings-tracker-upcoming",
+              "earnings-whisper",
+              "eps-revision-velocity",
+              "lobbying-intel",
+              "momentum-breakout",
+              "options-flow"
+            ]
+          },
+          {
+            "ticker": "AAPL",
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "convergence_score": 87.5,
+            "domain_coverage": [
+              "earnings",
+              "insider",
+              "momentum",
+              "options",
+              "sentiment"
+            ],
+            "engines_list": [
+              "buzz-velocity",
+              "earnings-pead",
+              "eps-revision-velocity",
+              "lobbying-intel",
+              "momentum-breakout",
+              "news-velocity",
+              "options-flow",
+              "political-trades"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "check_alert_tickers",
+      "status": "ok",
+      "result": {
+        "hits": {
+          "ARM": {
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "convergence_score": 88.3,
+            "domain_coverage": [
+              "earnings",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ],
+            "engines": [
+              "ticker-trends",
+              "momentum-breakout",
+              "stocktwits-trending",
+              "options-flow",
+              "retail-sentiment",
+              "eps-revision-velocity",
+              "fundamentals-quality",
+              "earnings-pead"
+            ]
+          },
+          "NBIS": {
+            "tier": "MED",
+            "n_engines": 3,
+            "convergence_score": 48.0,
+            "domain_coverage": [
+              "insider",
+              "sentiment"
+            ],
+            "engines": [
+              "stocktwits-trending",
+              "retail-sentiment",
+              "lobbying-intel"
+            ]
+          },
+          "RDDT": {
+            "tier": "LOW",
+            "n_engines": 2,
+            "convergence_score": 31.5,
+            "domain_coverage": [
+              "sentiment"
+            ],
+            "engines": [
+              "ticker-trends",
+              "retail-sentiment"
+            ]
+          }
+        },
+        "found": [
+          "ARM",
+          "NBIS",
+          "RDDT"
+        ],
+        "missing": [
+          "SAP",
+          "CXAI"
+        ]
+      }
+    }
+  ],
+  "finished": "2026-06-01T16:43:39.618949+00:00"
+}
