@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 120,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Reads auction-crisis.json, calls Claude (haiku-4-5), writes auction-crisis-ai.json with executive summary, what-changed narrative, per-indicator interpretation, historical analog discussion, forward predictions for upcoming auctions, tail risk assessment, and actionable triggers. Hourly cron 10min after detector.",
+  "inherit_env": {
+    "from_function": "justhodl-buyback-scanner",
+    "keys": ["ANTHROPIC_API_KEY"]
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-auction-crisis-ai-hourly",
+    "cron": "cron(10 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "AI commentary on auction crisis data, 10min past every hour"
+  }
+}
