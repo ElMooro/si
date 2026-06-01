@@ -127,6 +127,25 @@ def n_global_stress(d):
     return sig, f"Global market stress {lvl} ({gsi}/100)"
 
 
+def n_auction_crisis(d):
+    """Treasury auction crisis detector (Waves A-D, 2026-06).
+    composite_score 0-100; regime CALM/WATCH/ELEVATED/ACUTE_STRESS.
+    High composite = auction stress = bond market dysfunction = risk-off."""
+    composite = d.get("composite_score")
+    regime    = (d.get("regime") or "").upper()
+    n_recent  = d.get("n_recent_auctions_14d") or 0
+    if not isinstance(composite, (int, float)):
+        return 0, "Auction crisis n/a"
+    # Regime-anchored signal mapping (composite-aligned thresholds)
+    regime_map = {"ACUTE_STRESS": -2, "ELEVATED": -2, "WATCH": -1, "CALM": 1}
+    sig = regime_map.get(regime, 0)
+    # Pull a representative bit of tail-risk context if present
+    tail = d.get("tail_risk") or {}
+    p_esc = ((tail.get("p_regime_escalation_14d") or {}).get("probability")) or 0
+    tail_note = f", esc-risk {p_esc:.0f}%/14d" if p_esc >= 25 else ""
+    return sig, f"Auctions {regime or 'n/a'} ({composite:.1f}/100, {n_recent} in 14d{tail_note})"
+
+
 # ── 10-Edge institutional roadmap normalisers ──────────────────────────
 def n_vix_backwardation(d):
     """Edge #1: VIX backwardation post-capitulation trigger."""
@@ -643,6 +662,7 @@ FEEDS = [
     ("Canary Grid",        "macro",            "data/canary-grid.json",        n_canary_grid),
     ("Dollar Radar",       "macro",            "data/dollar-radar.json",       n_dollar_radar),
     ("Global Stress",      "macro",            "data/global-stress.json",      n_global_stress),
+    ("Auction Crisis",     "macro",            "data/auction-crisis.json",     n_auction_crisis),
     # 10-Edge institutional roadmap
     ("Edge#1 VIX Backwardation",  "volatility",  "data/vix-backwardation-trigger.json", n_vix_backwardation),
     ("Edge#2 Insider Buys",       "smart money", "data/insider-buys-enriched.json",     n_insider_buys),
