@@ -60,6 +60,20 @@ import boto3
 from concurrent.futures import ThreadPoolExecutor
 import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
+# v2 expansion module — tenor decomp, forward calendar, analog matching,
+# cross-signals, composite history, tail risk, triggers. Each function is
+# pure (no S3, no env). See auction_crisis_v2.py for full implementation.
+from auction_crisis_v2 import (
+    compute_tenor_decomposition,
+    fetch_upcoming_auctions,
+    build_forward_calendar,
+    find_historical_analogs,
+    compute_cross_signals,
+    build_composite_history,
+    compute_tail_risk,
+    build_triggers,
+)
+
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "data/auction-crisis.json"
 FISCAL_BASE = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query"
@@ -596,11 +610,83 @@ def lambda_handler(event, context):
         # First run, or no prior file
         pass
 
+    # ═══════════════════════════════════════════════════════════════════
+    # V2 EXPANSION (ops/1089) — institutional-grade analytical layers
+    # Each computation is fail-soft: errors degrade the corresponding
+    # section to {} or [] rather than crashing the whole Lambda.
+    # ═══════════════════════════════════════════════════════════════════
+    v2_start = time.time()
+    print(f"[auction-crisis] v2: building expansion layers…")
+
+    # 1. Tenor decomposition
+    try:
+        tenor_decomp = compute_tenor_decomposition(scored_auctions, window_days=14)
+    except Exception as e:
+        print(f"[v2] tenor_decomp error: {e}")
+        tenor_decomp = {}
+
+    # 2. Forward calendar
+    try:
+        upcoming_raw = fetch_upcoming_auctions(days_ahead=30)
+        forward_calendar = build_forward_calendar(upcoming_raw, tenor_decomp, scored_auctions)
+    except Exception as e:
+        print(f"[v2] forward_calendar error: {e}")
+        forward_calendar = []
+
+    # 3. Historical analog matching
+    try:
+        issuance_score_for_analog = (issuance.get("score") if issuance else 0) or 0
+        historical_analog = find_historical_analogs(
+            scored_auctions, CRISIS_REFERENCE,
+            issuance_score=issuance_score_for_analog, top_n=3,
+        )
+    except Exception as e:
+        print(f"[v2] historical_analog error: {e}")
+        historical_analog = {}
+
+    # 4. Cross-signals from FRED
+    try:
+        cross_signals = compute_cross_signals()
+    except Exception as e:
+        print(f"[v2] cross_signals error: {e}")
+        cross_signals = {}
+
+    # 5. Composite history (30-day trend)
+    try:
+        composite_history = build_composite_history(scored_auctions, days=30)
+    except Exception as e:
+        print(f"[v2] composite_history error: {e}")
+        composite_history = {"series": [], "change_points": [], "current": None}
+
+    # Need indicator_aggregate before triggers
+    indicator_aggregate = _aggregate_indicators(recent)
+
+    # 6. Tail risk probabilities
+    try:
+        tail_risk = compute_tail_risk(
+            scored_auctions, composite_history, tenor_decomp,
+            historical_analog, cross_signals,
+        )
+    except Exception as e:
+        print(f"[v2] tail_risk error: {e}")
+        tail_risk = {}
+
+    # 7. Triggers
+    try:
+        triggers = build_triggers(scored_auctions, indicator_aggregate, composite_history)
+    except Exception as e:
+        print(f"[v2] triggers error: {e}")
+        triggers = []
+
+    v2_elapsed = round(time.time() - v2_start, 2)
+    print(f"[auction-crisis] v2 elapsed: {v2_elapsed}s")
+
     # Build report
     report = {
-        "schema_version": "1.1",  # bumped: added freshness tracking
+        "schema_version": "2.0",  # v2: full institutional-grade expansion (ops/1089)
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_sec": round(time.time() - t0, 2),
+        "elapsed_v2_sec": v2_elapsed,
         "regime": regime,
         "composite_score": round(recent_composite, 1),
         "interpretation": interp,
@@ -625,19 +711,49 @@ def lambda_handler(event, context):
         "recent_auctions": scored_auctions[:10],
 
         # Aggregate indicator counts: how many of last 14d auctions fired each pattern
-        "indicator_aggregate_14d": _aggregate_indicators(recent),
+        "indicator_aggregate_14d": indicator_aggregate,
 
         # Historical reference: where do current readings sit vs. crisis benchmarks?
         "historical_reference": CRISIS_REFERENCE,
 
-        "data_source": "https://api.fiscaldata.treasury.gov (auctions_query)",
+        # ════════════ V2 EXPANSION (ops/1089) ════════════
+        # Per-tenor stress breakdown — shows WHERE in the curve stress concentrates.
+        "tenor_decomposition": tenor_decomp,
+
+        # Next 30 days of upcoming Treasury auctions with per-auction
+        # forward stress forecasts (offering size, tenor stress, contagion).
+        "forward_calendar": forward_calendar,
+
+        # Cosine-similarity match of current crisis vector to 9 historical
+        # anchor auctions, with "what happened next" forward implications.
+        "historical_analog": historical_analog,
+
+        # FRED-sourced corroborating signals: repo stress (SOFR-IORB), USD
+        # strength (DTWEXBGS), curve slope (T10Y2Y), and forward inflation.
+        "cross_signals": cross_signals,
+
+        # 30-day rolling composite score time series + detected regime
+        # changeover points.
+        "composite_history": composite_history,
+
+        # Forward-looking probability estimates: failed-auction risk,
+        # regime escalation risk, supply-driven volatility risk.
+        "tail_risk": tail_risk,
+
+        # Specific, named conditions that would flip the regime, with
+        # current value, threshold, and recommended action.
+        "triggers": triggers,
+        # ════════════════════════════════════════════════════
+
+        "data_source": "https://api.fiscaldata.treasury.gov (auctions_query) + treasurydirect.gov + FRED",
         "methodology": (
             "Crisis pattern signatures extracted from 9 historical auction PDFs "
-            "covering 2008-09-17 through 2024-10-09. Each live auction is scored "
-            "0-100 against 6 patterns: zero-rate floor, BTC extremes, AAH tail, "
-            "PD absorption, indirect collapse, issuance explosion. "
-            "Composite = 70% max-indicator + 30% avg-indicator, weighted by "
-            "auction size over trailing 14 days."
+            "covering 2008-09-17 through 2024-10-09. Each live auction scored 0-100 "
+            "against 6 patterns. v2 adds: tenor-level decomposition, 30-day forward "
+            "calendar with per-auction stress forecasts, cosine-similarity matching "
+            "vs 9 historical crisis anchors, 4 corroborating FRED signals (repo, USD, "
+            "curve, inflation), 30-day composite history, 3 forward-looking tail risk "
+            "probabilities, and named actionable triggers."
         ),
     }
 
