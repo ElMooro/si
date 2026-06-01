@@ -1,0 +1,17 @@
+{
+  "runtime": "python3.12",
+  "memory": 768,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Catalyst classifier — Claude reads context bundles for aggressive basket + top 10 momentum names, outputs structured catalyst_type / grade A-D / date / durability / invalidation. Daily 14:00 UTC.",
+  "inherit_env": {"from_function": "justhodl-ai-chat", "keys": ["ANTHROPIC_API_KEY"]},
+  "environment": {},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-catalyst-classifier-daily",
+    "cron": "cron(0 14 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Catalyst classifier daily at 14:00 UTC (9 AM ET)"
+  }
+}
