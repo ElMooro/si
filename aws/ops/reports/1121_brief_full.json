@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-01T20:08:22.360810+00:00",
+  "model": "claude-haiku-4-5-20251001",
+  "elapsed_sec": 31.39,
+  "claude_elapsed": 30.85,
+  "executive_summary": "CONCENTRATE LONG in WDC (15%), LLY (10%), FCX (12%); 37% direct exposure to 3 pump-confirmed/high-conviction setups. PUMP_CONFIRMED WDC (75.4 momentum, 53.6% pump_likelihood) leads with HDD oligopoly + HAMR ramp. LLY TIER_A options flow + 6Q beat streak + Koundeo approval. FCX copper supercycle + Indonesia certainty offset by Grasberg execution risk. 67% basket deployment with hard stops; 1-2w tactical window before mean-reversion pressure spikes.",
+  "conviction_grade": "B+",
+  "macro_frame": "Neutral regime favoring selective long concentration in high-momentum pump setups. Tech leadership (AI infrastructure, security, storage) combined with healthcare (obesity pharma) and materials (copper) creates tactical 1-3w window. No macro headwinds; regime neither bullish nor bearish\u2014winners are pure alpha plays on convergent quant signals.",
+  "market_temperature": {
+    "score": 48.7,
+    "rank": "TEPID",
+    "components": {
+      "max_pump": 57.3,
+      "avg_top5_pump": 54.9,
+      "n_bullish_opts_5": 3,
+      "basket_exposure": 0
+    },
+    "label_from_ai": "TEPID"
+  },
+  "top_3_long_ideas": [
+    {
+      "ticker": "WDC",
+      "conviction": "HIGH",
+      "thesis_1liner": "PUMP_CONFIRMED: +26.64% 20d, 75.4 momentum, 53.6% pump_likelihood. AI data-center HDD oligopolist with structural pricing power.",
+      "bull_bullets": [
+        "Momentum_score 75.4, perf_20d +26.64%, RS_SPY +21.39, PUMP_CONFIRMED across 4 engines, NEAR_52W_HIGH + RS_LEADER",
+        "Pump_likelihood 53.6, convergence 67.5, directional 73.5. ePMR mix >50% nearline portfolio; HAMR ramp H2 2026 catalyst",
+        "Exabyte acceleration +22% YoY (215 delivered Q2); 75%+ incremental margins, 3-year customer LTAs lock in demand"
+      ],
+      "key_risk": "HDD oligopoly pricing power could erode if SSD adoption accelerates in AI workloads; HAMR commercialization timing slips beyond H1 2026",
+      "sized_position": "15% position, entry $546.30, stop $486.33 (-10.98%), TP1 $576.28 (+5.5%), TP2 $606.26 (+11.0%)",
+      "catalyst_window": "no near catalyst; HAMR qualification H2 2026",
+      "momentum_data": "momentum_score 75.4, perf_20d +26.64%, tags: [NEAR_52W_HIGH, RS_LEADER, ALL_GREEN, ACCELERATING, MULTI_GAP_UP, PUMP_CONFIRMED]"
+    },
+    {
+      "ticker": "LLY",
+      "conviction": "HIGH",
+      "thesis_1liner": "TIER_A bullish options flow + 6Q beat streak + HIGH_VELOCITY EPS revisions. Koundeo oral GLP-1 + retatrutide Phase III unlock obesity market durability.",
+      "bull_bullets": [
+        "Pump_likelihood 54.2, momentum_score 53.3, convergence 83.5, directional 66.7. TIER_A bullish options flow, 7-engine HIGH convergence",
+        "Koundeo oral GLP-1 approval unlocks obesity scalability vs. injectables; retatrutide Phase III shows superior A1c + weight loss. FY guidance raised to $82-85B (+23% growth)",
+        "Perf_20d +12.31%, NEAR_52W_HIGH, ALL_GREEN, MULTI_GAP_UP. IV_rank 78.0 (high volatility premium intact). Flat term structure supports theta decay play"
+      ],
+      "key_risk": "Medicaid access losses (California) and U.S. pricing headwinds in low-to-mid teens 2026; Phase III binary event risk on retatrutide cardiovascular safety",
+      "sized_position": "10% position, entry $1081.96, stop $1017.46 (-5.96%), TP1 $1114.21 (+2.98%), TP2 $1146.46 (+5.95%)",
+      "catalyst_window": "no near catalyst; Koundeo already approved; Phase III data drip expected Q2-Q3",
+      "momentum_data": "momentum_score 53.3, perf_20d +12.31%, tags: [NEAR_52W_HIGH, ALL_GREEN, MULTI_GAP_UP]"
+    },
+    {
+      "ticker": "FCX",
+      "conviction": "MEDIUM-HIGH",
+      "thesis_1liner": "Copper supply-deficit supercycle + Indonesia MOU certainty through 2041. Grasberg ramp acceleration 60K\u2192100K tpd mid-2027 supports 18-month structural upside.",
+      "bull_bullets": [
+        "Pump_likelihood 53.3, directional 84.0 (highest in top 5). Copper secular tailwinds (electrification, AI data centers). Indonesia regulatory risk removed via 2041 MOU extension",
+        "Perf_20d +3.35% idio alpha despite commodity headwinds. Grasberg 60K tpd ramp 'very early'; material handling bottleneck resolution timeline uncertainty creates 1-2w tension",
+        "5-quarter TIER_S beat streak. El Abra expansion 2027+. Autonomous trucks + AI optimization showing early progress. Only 2 engines (thin convergence 45.2) offset by +84 directional score"
+      ],
+      "key_risk": "Grasberg wet ore conditions (45% vs. 30% Sept 2025) require chute mods; ramp timing highly uncertain. Copper price volatility; guidance withdrawn signals execution caution",
+      "sized_position": "12% position, entry $67.04, stop $61.35 (-8.47%), TP1 $69.89 (+4.3%), TP2 $72.73 (+8.5%)",
+      "catalyst_window": "Grasberg bottleneck resolution (timing TBD); El Abra expansion 2027",
+      "momentum_data": "momentum_score 58.7, perf_20d +3.35%, tags: [NEAR_52W_HIGH, ALL_GREEN, ACCELERATING]"
+    }
+  ],
+  "top_2_pair_trades": [
+    {
+      "long_ticker": "NEM",
+      "short_ticker": "GFI",
+      "why_hedged": "correlation 0.849 = excellent sector hedge. Long NEM pump setup (-0.35% 20d, pump_likelihood 57.3) paired vs. GFI laggard (-9.97% 20d). Spread +9.62%.",
+      "expected_alpha_1m": "+3-6%",
+      "trade_thesis": "Long NEM for earthquake-resilience narrative + record FCF + buyback authorization (122.7% DCF undervaluation support). Short GFI because sector laggard in same commodity complex. Pair captures NEM relative strength even in broader materials pullback."
+    },
+    {
+      "long_ticker": "LLY",
+      "short_ticker": "JNJ",
+      "why_hedged": "correlation 0.528 = good healthcare hedge. Long LLY pump setup (+12.1% 20d, pump_likelihood 54.2) vs. JNJ laggard (-1.46% 20d). Spread +13.56%.",
+      "expected_alpha_1m": "+5-10%",
+      "trade_thesis": "Long LLY for Koundeo oral GLP-1 + retatrutide Phase III upside; FY guidance raise to $82-85B. Short JNJ (mature dividend play, low growth, exposed to pricing headwinds). Pair isolates obesity/cardiometabolic inflection thesis from broader pharma sector risk."
+    }
+  ],
+  "what_to_watch_today": [
+    "PANW earnings AMC tomorrow (06-02); IV_rank elevated across options tier. Cyber security leadership continuation thesis tested.",
+    "AVGO + CRWD earnings 06-03 AMC; both bellwethers for semiconductor/security momentum. Beats could extend pump window; misses could trigger sector rotation.",
+    "WDC storage leadership thesis vs. QCOM semicon weakness divergence: if storage pulls ahead post-earnings, concentration thesis strengthens.",
+    "Copper price action (HG futures): FCX thesis depends on spot price stabilizing above $4.10/lb; break below $4.05 invalidates supply-deficit narrative."
+  ],
+  "risk_warnings": [
+    "PLTR and MSFT both hit ULTRA-tier crowding (8 engines each) with retail rank implications; mean-reversion risk spiking if earnings disappoint 06-10 (ORCL) / 06-11 (ADBE). Concentration in tech with no sector hedges exposed.",
+    "Grasberg Grasberg wet-ore bottleneck timing remains opaque; FCX 60K ramp 'very early' language suggests execution risk. Guidance withdrawal is orange flag; stop losses mandatory at -8.47%.",
+    "Macro regime NEUTRAL = no tailwind. If 10Y yields spike >4.2% on Fed surprise, growth names (PLTR, LLY, MSFT) will see IV crush despite bullish options flow. Watch 2y-10y curve for regime shift."
+  ],
+  "whats_changed_narrative": "APH and LLY entered bullish signal set (new to brief), while NEM and PLTR retained from prior session. Temperature fell from 54.7 (prior WARM) to 48.7 (TEPID) \u2014 mean pump_likelihood unchanged but basket cooling as outliers regress. Conviction steady B+ \u2192 consolidating into 3 PUMP_CONFIRMED setups (WDC + momentum leaders) plus 2 HIGH-conviction non-confirmed (LLY + FCX) anchors conviction.",
+  "whats_changed_data": {
+    "new_signals": [
+      "APH",
+      "LLY"
+    ],
+    "removed_signals": [],
+    "retained_signals": [
+      "MSFT",
+      "NEM",
+      "PLTR"
+    ],
+    "n_new": 2,
+    "n_removed": 0,
+    "n_retained": 3,
+    "prior_temperature": 54.7,
+    "prior_conviction": "B+"
+  },
+  "source_versions": {
+    "convergence": "2026-06-01T20:00:12.957807+00:00",
+    "positioning": "2026-06-01T20:07:47.930493+00:00",
+    "mechanics": "2026-06-01T19:21:14.170285+00:00",
+    "analytics": "2026-06-01T19:01:21.884533+00:00",
+    "pairs": "2026-06-01T19:20:46.083811+00:00",
+    "nlp": "2026-06-01T19:02:33.451038+00:00",
+    "research": "2026-06-01T20:06:30.201842+00:00",
+    "synthesis": "2026-06-01T19:25:34.303489+00:00",
+    "earnings_cal": "2026-06-01T17:46:40.267731+00:00",
+    "momentum": "2026-06-01T20:07:43.673169+00:00"
+  },
+  "disclaimer": "Synthesis of 9 quant data layers via Claude. Sized positions are parametric (vol/Kelly-derived); pair-trade alpha estimates are spread-mean-reversion proxies. Not financial advice. Verify before acting and adjust to your own risk tolerance."
+}

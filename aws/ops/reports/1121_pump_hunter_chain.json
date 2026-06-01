@@ -1,0 +1,684 @@
+{
+  "started": "2026-06-01T20:07:40.193408+00:00",
+  "phases": [
+    {
+      "name": "check_momentum_lambda",
+      "status": "ok",
+      "result": {
+        "state": "Active",
+        "code_kb": 28.7,
+        "memory": 1024,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "setup_momentum_schedule",
+      "status": "ok",
+      "result": {
+        "schedule": "justhodl-momentum-leaders-hourly",
+        "cron": "cron(25 * * * ? *)"
+      }
+    },
+    {
+      "name": "invoke_momentum_leaders",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 1.8,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 0.88,
+          "n_scored": 60,
+          "n_leaders": 31,
+          "n_pump_confirmed": 5,
+          "top_3": [
+            "DELL:89.5",
+            "ARM:89.0",
+            "MU:87.2"
+          ],
+          "pump_confirmed": [
+            "AMD",
+            "ORCL",
+            "STX",
+            "WDC",
+            "QCOM"
+          ]
+        }
+      }
+    },
+    {
+      "name": "read_momentum_leaders",
+      "status": "ok",
+      "result": {
+        "size_kb": 79.7,
+        "elapsed_sec": 0.88,
+        "n_scored": 60,
+        "n_leaders": 31,
+        "n_pump_confirmed": 5,
+        "universe_sources": [
+          "convergence-pump",
+          "momentum-breakout"
+        ],
+        "spy_perf_20d": 5.25,
+        "top_10_leaders": [
+          {
+            "ticker": "DELL",
+            "rank": 1,
+            "momentum_score": 89.5,
+            "perf_5d": 57.86,
+            "perf_20d": 121.73,
+            "perf_60d": 218.11,
+            "rs_spy_20d": 116.48,
+            "wk52_prox": 0.9926,
+            "vol_surge": 0.35,
+            "tags": [
+              "AT_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "ACCELERATING",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER"
+            ],
+            "in_pump_cands": false,
+            "n_engines": null,
+            "pump_likelihood": null
+          },
+          {
+            "ticker": "ARM",
+            "rank": 2,
+            "momentum_score": 89.0,
+            "perf_5d": 33.39,
+            "perf_20d": 93.6,
+            "perf_60d": 238.96,
+            "rs_spy_20d": 88.35,
+            "wk52_prox": 0.9696,
+            "vol_surge": 0.19,
+            "tags": [
+              "NEAR_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER"
+            ],
+            "in_pump_cands": false,
+            "n_engines": null,
+            "pump_likelihood": null
+          },
+          {
+            "ticker": "MU",
+            "rank": 3,
+            "momentum_score": 87.2,
+            "perf_5d": 37.88,
+            "perf_20d": 90.98,
+            "perf_60d": 160.8,
+            "rs_spy_20d": 85.73,
+            "wk52_prox": 0.989,
+            "vol_surge": 0.81,
+            "tags": [
+              "AT_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "ACCELERATING",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER"
+            ],
+            "in_pump_cands": false,
+            "n_engines": null,
+            "pump_likelihood": null
+          },
+          {
+            "ticker": "SNDK",
+            "rank": 4,
+            "momentum_score": 86.3,
+            "perf_5d": 19.08,
+            "perf_20d": 48.34,
+            "perf_60d": 211.32,
+            "rs_spy_20d": 43.09,
+            "wk52_prox": 0.9761,
+            "vol_surge": 0.62,
+            "tags": [
+              "NEAR_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "ACCELERATING",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER"
+            ],
+            "in_pump_cands": false,
+            "n_engines": null,
+            "pump_likelihood": null
+          },
+          {
+            "ticker": "PANW",
+            "rank": 5,
+            "momentum_score": 85.2,
+            "perf_5d": 15.33,
+            "perf_20d": 65.97,
+            "perf_60d": 84.19,
+            "rs_spy_20d": 60.72,
+            "wk52_prox": 0.992,
+            "vol_surge": 1.44,
+            "tags": [
+              "AT_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER"
+            ],
+            "in_pump_cands": false,
+            "n_engines": null,
+            "pump_likelihood": null
+          },
+          {
+            "ticker": "CRWD",
+            "rank": 6,
+            "momentum_score": 85.0,
+            "perf_5d": 17.84,
+            "perf_20d": 71.59,
+            "perf_60d": 83.45,
+            "rs_spy_20d": 66.34,
+            "wk52_prox": 0.9951,
+            "vol_surge": 1.29,
+            "tags": [
+              "AT_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER"
+            ],
+            "in_pump_cands": false,
+            "n_engines": null,
+            "pump_likelihood": null
+          },
+          {
+            "ticker": "AMD",
+            "rank": 7,
+            "momentum_score": 83.9,
+            "perf_5d": 9.14,
+            "perf_20d": 41.52,
+            "perf_60d": 155.82,
+            "rs_spy_20d": 36.27,
+            "wk52_prox": 0.9678,
+            "vol_surge": 0.12,
+            "tags": [
+              "NEAR_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER",
+              "PUMP_CONFIRMED"
+            ],
+            "in_pump_cands": true,
+            "n_engines": 8,
+            "pump_likelihood": 46.7
+          },
+          {
+            "ticker": "MRVL",
+            "rank": 8,
+            "momentum_score": 82.6,
+            "perf_5d": 11.77,
+            "perf_20d": 33.03,
+            "perf_60d": 189.96,
+            "rs_spy_20d": 27.78,
+            "wk52_prox": 0.9747,
+            "vol_surge": 1.1,
+            "tags": [
+              "NEAR_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "MOMENTUM_LEADER"
+            ],
+            "in_pump_cands": false,
+            "n_engines": null,
+            "pump_likelihood": null
+          },
+          {
+            "ticker": "IBM",
+            "rank": 9,
+            "momentum_score": 81.0,
+            "perf_5d": 26.11,
+            "perf_20d": 37.87,
+            "perf_60d": 24.78,
+            "rs_spy_20d": 32.62,
+            "wk52_prox": 0.9763,
+            "vol_surge": 3.29,
+            "tags": [
+              "NEAR_52W_HIGH",
+              "BREAKOUT_VOLUME",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "ACCELERATING",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER"
+            ],
+            "in_pump_cands": false,
+            "n_engines": null,
+            "pump_likelihood": null
+          },
+          {
+            "ticker": "ORCL",
+            "rank": 10,
+            "momentum_score": 80.2,
+            "perf_5d": 29.16,
+            "perf_20d": 44.39,
+            "perf_60d": 60.28,
+            "rs_spy_20d": 39.14,
+            "wk52_prox": 0.7176,
+            "vol_surge": 1.99,
+            "tags": [
+              "RS_LEADER",
+              "ALL_GREEN",
+              "ACCELERATING",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER",
+              "PUMP_CONFIRMED"
+            ],
+            "in_pump_cands": true,
+            "n_engines": 10,
+            "pump_likelihood": 46.9
+          }
+        ],
+        "pump_confirmed": [
+          {
+            "ticker": "AMD",
+            "momentum_score": 83.9,
+            "pump_likelihood": 46.7,
+            "n_engines": 8,
+            "tags": [
+              "NEAR_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER",
+              "PUMP_CONFIRMED"
+            ]
+          },
+          {
+            "ticker": "ORCL",
+            "momentum_score": 80.2,
+            "pump_likelihood": 46.9,
+            "n_engines": 10,
+            "tags": [
+              "RS_LEADER",
+              "ALL_GREEN",
+              "ACCELERATING",
+              "MULTI_GAP_UP",
+              "MOMENTUM_LEADER",
+              "PUMP_CONFIRMED"
+            ]
+          },
+          {
+            "ticker": "STX",
+            "momentum_score": 76.9,
+            "pump_likelihood": 47.8,
+            "n_engines": 4,
+            "tags": [
+              "NEAR_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "ACCELERATING",
+              "MULTI_GAP_UP",
+              "PUMP_CONFIRMED"
+            ]
+          },
+          {
+            "ticker": "WDC",
+            "momentum_score": 75.4,
+            "pump_likelihood": 53.6,
+            "n_engines": 4,
+            "tags": [
+              "NEAR_52W_HIGH",
+              "RS_LEADER",
+              "ALL_GREEN",
+              "ACCELERATING",
+              "MULTI_GAP_UP",
+              "PUMP_CONFIRMED"
+            ]
+          },
+          {
+            "ticker": "QCOM",
+            "momentum_score": 75.0,
+            "pump_likelihood": 46.9,
+            "n_engines": 3,
+            "tags": [
+              "RS_LEADER",
+              "MULTI_GAP_UP",
+              "PUMP_CONFIRMED"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "reinvoke_positioning",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 1.8,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 0.71,
+          "n_candidates": 12,
+          "macro_regime": "NEUTRAL",
+          "basket_size": 12,
+          "total_exposure": 40.0
+        }
+      }
+    },
+    {
+      "name": "read_positioning_with_agg",
+      "status": "ok",
+      "result": {
+        "size_kb": 61.5,
+        "conservative": {
+          "n_positions": 12,
+          "total_exposure": 40.0,
+          "cash_pct": 60.0,
+          "top_3": [
+            [
+              "NEM",
+              5.0
+            ],
+            [
+              "APH",
+              5.0
+            ],
+            [
+              "PLTR",
+              5.0
+            ]
+          ]
+        },
+        "aggressive": {
+          "n_positions": 8,
+          "total_exposure": 67.0,
+          "cash_pct": 33.0,
+          "max_risk_at_stops_pct": 6.03,
+          "sector_breakdown": {
+            "Technology": 40.0,
+            "Basic Materials": 17.0,
+            "Healthcare": 10.0
+          },
+          "positions": [
+            {
+              "ticker": "WDC",
+              "position_pct": 15.0,
+              "pump_score": 53.6,
+              "momentum_score": 75.4,
+              "combined_score": 73.11,
+              "pump_confirmed": true,
+              "mom_tags": [
+                "NEAR_52W_HIGH",
+                "RS_LEADER",
+                "ALL_GREEN",
+                "ACCELERATING"
+              ],
+              "sector": "Technology",
+              "stop": 486.33,
+              "tp1": 576.28,
+              "tp2": 606.26,
+              "tp3": 636.25,
+              "entry": 546.295,
+              "rr_ratio": "1:1.0",
+              "horizon": "1-2w"
+            },
+            {
+              "ticker": "FCX",
+              "position_pct": 12.0,
+              "pump_score": 53.3,
+              "momentum_score": 58.7,
+              "combined_score": 55.93,
+              "pump_confirmed": false,
+              "mom_tags": [
+                "NEAR_52W_HIGH",
+                "ALL_GREEN",
+                "ACCELERATING"
+              ],
+              "sector": "Basic Materials",
+              "stop": 61.35,
+              "tp1": 69.89,
+              "tp2": 72.73,
+              "tp3": 75.58,
+              "entry": 67.04,
+              "rr_ratio": "1:1.0",
+              "horizon": "1-2w"
+            },
+            {
+              "ticker": "LLY",
+              "position_pct": 10.0,
+              "pump_score": 54.2,
+              "momentum_score": 53.3,
+              "combined_score": 53.75,
+              "pump_confirmed": false,
+              "mom_tags": [
+                "NEAR_52W_HIGH",
+                "ALL_GREEN",
+                "MULTI_GAP_UP"
+              ],
+              "sector": "Healthcare",
+              "stop": 1017.46,
+              "tp1": 1114.21,
+              "tp2": 1146.46,
+              "tp3": 1178.7,
+              "entry": 1081.96,
+              "rr_ratio": "1:1.0",
+              "horizon": "1-2w"
+            },
+            {
+              "ticker": "GLW",
+              "position_pct": 8.0,
+              "pump_score": 50.0,
+              "momentum_score": 56.7,
+              "combined_score": 53.24,
+              "pump_confirmed": false,
+              "mom_tags": [
+                "MULTI_GAP_UP"
+              ],
+              "sector": "Technology",
+              "stop": 152.22,
+              "tp1": 188.88,
+              "tp2": 201.1,
+              "tp3": 213.32,
+              "entry": 176.66,
+              "rr_ratio": "1:1.0",
+              "horizon": "1-2w"
+            },
+            {
+              "ticker": "MSFT",
+              "position_pct": 6.0,
+              "pump_score": 53.9,
+              "momentum_score": 50.1,
+              "combined_score": 51.97,
+              "pump_confirmed": false,
+              "mom_tags": [
+                "ALL_GREEN",
+                "ACCELERATING",
+                "MULTI_GAP_UP"
+              ],
+              "sector": "Technology",
+              "stop": 436.24,
+              "tp1": 472.66,
+              "tp2": 484.8,
+              "tp3": 496.94,
+              "entry": 460.52,
+              "rr_ratio": "1:1.0",
+              "horizon": "1-2w"
+            },
+            {
+              "ticker": "CRM",
+              "position_pct": 6.0,
+              "pump_score": 51.5,
+              "momentum_score": 51.9,
+              "combined_score": 51.7,
+              "pump_confirmed": false,
+              "mom_tags": [
+                "ALL_GREEN",
+                "ACCELERATING",
+                "MULTI_GAP_UP"
+              ],
+              "sector": "Technology",
+              "stop": 191.35,
+              "tp1": 218.66,
+              "tp2": 227.77,
+              "tp3": 236.87,
+              "entry": 209.56,
+              "rr_ratio": "1:1.0",
+              "horizon": "1-2w"
+            },
+            {
+              "ticker": "SCCO",
+              "position_pct": 5.0,
+              "pump_score": 50.0,
+              "momentum_score": 52.9,
+              "combined_score": 51.43,
+              "pump_confirmed": false,
+              "mom_tags": [
+                "ALL_GREEN",
+                "ACCELERATING"
+              ],
+              "sector": "Basic Materials",
+              "stop": 177.49,
+              "tp1": 203.1,
+              "tp2": 211.64,
+              "tp3": 220.18,
+              "entry": 194.565,
+              "rr_ratio": "1:1.0",
+              "horizon": "1-2w"
+            },
+            {
+              "ticker": "PLTR",
+              "position_pct": 5.0,
+              "pump_score": 54.5,
+              "momentum_score": 48.1,
+              "combined_score": 51.2,
+              "pump_confirmed": false,
+              "mom_tags": [
+                "ALL_GREEN",
+                "ACCELERATING",
+                "MULTI_GAP_UP"
+              ],
+              "sector": "Technology",
+              "stop": 148.25,
+              "tp1": 166.85,
+              "tp2": 173.05,
+              "tp3": 179.26,
+              "entry": 160.65,
+              "rr_ratio": "1:1.0",
+              "horizon": "1-2w"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "reinvoke_brief",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 32.4,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 31.39,
+          "claude_elapsed": 30.85,
+          "conviction": "B+",
+          "temperature": "48.7 (TEPID)",
+          "n_long_ideas": 3,
+          "n_pair_trades": 2,
+          "n_warnings": 3
+        }
+      }
+    },
+    {
+      "name": "read_brief_aggressive",
+      "status": "ok",
+      "result": {
+        "size_kb": 8.9,
+        "claude_elapsed": 30.85,
+        "conviction_grade": "B+",
+        "executive_summary": "CONCENTRATE LONG in WDC (15%), LLY (10%), FCX (12%); 37% direct exposure to 3 pump-confirmed/high-conviction setups. PUMP_CONFIRMED WDC (75.4 momentum, 53.6% pump_likelihood) leads with HDD oligopoly + HAMR ramp. LLY TIER_A options flow + 6Q beat streak + Koundeo approval. FCX copper supercycle + Indonesia certainty offset by Grasberg execution risk. 67% basket deployment with hard stops; 1-2w tactical window before mean-reversion pressure spikes.",
+        "macro_frame": "Neutral regime favoring selective long concentration in high-momentum pump setups. Tech leadership (AI infrastructure, security, storage) combined with healthcare (obesity pharma) and materials (copper) creates tactical 1-3w window. No macro headwinds; regime neither bullish nor bearish\u2014winners are pure alpha plays on convergent quant signals.",
+        "market_temperature": {
+          "score": 48.7,
+          "rank": "TEPID",
+          "components": {
+            "max_pump": 57.3,
+            "avg_top5_pump": 54.9,
+            "n_bullish_opts_5": 3,
+            "basket_exposure": 0
+          },
+          "label_from_ai": "TEPID"
+        },
+        "top_3_long_ideas": [
+          {
+            "ticker": "WDC",
+            "conviction": "HIGH",
+            "thesis_1liner": "PUMP_CONFIRMED: +26.64% 20d, 75.4 momentum, 53.6% pump_likelihood. AI data-center HDD oligopolist with structural pricing power.",
+            "bull_bullets": [
+              "Momentum_score 75.4, perf_20d +26.64%, RS_SPY +21.39, PUMP_CONFIRMED across 4 engines, NEAR_52W_HIGH + RS_LEADER",
+              "Pump_likelihood 53.6, convergence 67.5, directional 73.5. ePMR mix >50% nearline portfolio; HAMR ramp H2 2026 catalyst",
+              "Exabyte acceleration +22% YoY (215 delivered Q2); 75%+ incremental margins, 3-year customer LTAs lock in demand"
+            ],
+            "key_risk": "HDD oligopoly pricing power could erode if SSD adoption accelerates in AI workloads; HAMR commercialization timing slips beyond H1 2026",
+            "sized_position": "15% position, entry $546.30, stop $486.33 (-10.98%), TP1 $576.28 (+5.5%), TP2 $606.26 (+11.0%)",
+            "catalyst_window": "no near catalyst; HAMR qualification H2 2026",
+            "momentum_data": "momentum_score 75.4, perf_20d +26.64%, tags: [NEAR_52W_HIGH, RS_LEADER, ALL_GREEN, ACCELERATING, MULTI_GAP_UP, PUMP_CONFIRMED]"
+          },
+          {
+            "ticker": "LLY",
+            "conviction": "HIGH",
+            "thesis_1liner": "TIER_A bullish options flow + 6Q beat streak + HIGH_VELOCITY EPS revisions. Koundeo oral GLP-1 + retatrutide Phase III unlock obesity market durability.",
+            "bull_bullets": [
+              "Pump_likelihood 54.2, momentum_score 53.3, convergence 83.5, directional 66.7. TIER_A bullish options flow, 7-engine HIGH convergence",
+              "Koundeo oral GLP-1 approval unlocks obesity scalability vs. injectables; retatrutide Phase III shows superior A1c + weight loss. FY guidance raised to $82-85B (+23% growth)",
+              "Perf_20d +12.31%, NEAR_52W_HIGH, ALL_GREEN, MULTI_GAP_UP. IV_rank 78.0 (high volatility premium intact). Flat term structure supports theta decay play"
+            ],
+            "key_risk": "Medicaid access losses (California) and U.S. pricing headwinds in low-to-mid teens 2026; Phase III binary event risk on retatrutide cardiovascular safety",
+            "sized_position": "10% position, entry $1081.96, stop $1017.46 (-5.96%), TP1 $1114.21 (+2.98%), TP2 $1146.46 (+5.95%)",
+            "catalyst_window": "no near catalyst; Koundeo already approved; Phase III data drip expected Q2-Q3",
+            "momentum_data": "momentum_score 53.3, perf_20d +12.31%, tags: [NEAR_52W_HIGH, ALL_GREEN, MULTI_GAP_UP]"
+          },
+          {
+            "ticker": "FCX",
+            "conviction": "MEDIUM-HIGH",
+            "thesis_1liner": "Copper supply-deficit supercycle + Indonesia MOU certainty through 2041. Grasberg ramp acceleration 60K\u2192100K tpd mid-2027 supports 18-month structural upside.",
+            "bull_bullets": [
+              "Pump_likelihood 53.3, directional 84.0 (highest in top 5). Copper secular tailwinds (electrification, AI data centers). Indonesia regulatory risk removed via 2041 MOU extension",
+              "Perf_20d +3.35% idio alpha despite commodity headwinds. Grasberg 60K tpd ramp 'very early'; material handling bottleneck resolution timeline uncertainty creates 1-2w tension",
+              "5-quarter TIER_S beat streak. El Abra expansion 2027+. Autonomous trucks + AI optimization showing early progress. Only 2 engines (thin convergence 45.2) offset by +84 directional score"
+            ],
+            "key_risk": "Grasberg wet ore conditions (45% vs. 30% Sept 2025) require chute mods; ramp timing highly uncertain. Copper price volatility; guidance withdrawn signals execution caution",
+            "sized_position": "12% position, entry $67.04, stop $61.35 (-8.47%), TP1 $69.89 (+4.3%), TP2 $72.73 (+8.5%)",
+            "catalyst_window": "Grasberg bottleneck resolution (timing TBD); El Abra expansion 2027",
+            "momentum_data": "momentum_score 58.7, perf_20d +3.35%, tags: [NEAR_52W_HIGH, ALL_GREEN, ACCELERATING]"
+          }
+        ],
+        "top_2_pair_trades": [
+          {
+            "long_ticker": "NEM",
+            "short_ticker": "GFI",
+            "why_hedged": "correlation 0.849 = excellent sector hedge. Long NEM pump setup (-0.35% 20d, pump_likelihood 57.3) paired vs. GFI laggard (-9.97% 20d). Spread +9.62%.",
+            "expected_alpha_1m": "+3-6%",
+            "trade_thesis": "Long NEM for earthquake-resilience narrative + record FCF + buyback authorization (122.7% DCF undervaluation support). Short GFI because sector laggard in same commodity complex. Pair captures NEM relative strength even in broader materials pullback."
+          },
+          {
+            "long_ticker": "LLY",
+            "short_ticker": "JNJ",
+            "why_hedged": "correlation 0.528 = good healthcare hedge. Long LLY pump setup (+12.1% 20d, pump_likelihood 54.2) vs. JNJ laggard (-1.46% 20d). Spread +13.56%.",
+            "expected_alpha_1m": "+5-10%",
+            "trade_thesis": "Long LLY for Koundeo oral GLP-1 + retatrutide Phase III upside; FY guidance raise to $82-85B. Short JNJ (mature dividend play, low growth, exposed to pricing headwinds). Pair isolates obesity/cardiometabolic inflection thesis from broader pharma sector risk."
+          }
+        ],
+        "what_to_watch_today": [
+          "PANW earnings AMC tomorrow (06-02); IV_rank elevated across options tier. Cyber security leadership continuation thesis tested.",
+          "AVGO + CRWD earnings 06-03 AMC; both bellwethers for semiconductor/security momentum. Beats could extend pump window; misses could trigger sector rotation.",
+          "WDC storage leadership thesis vs. QCOM semicon weakness divergence: if storage pulls ahead post-earnings, concentration thesis strengthens.",
+          "Copper price action (HG futures): FCX thesis depends on spot price stabilizing above $4.10/lb; break below $4.05 invalidates supply-deficit narrative."
+        ],
+        "risk_warnings": [
+          "PLTR and MSFT both hit ULTRA-tier crowding (8 engines each) with retail rank implications; mean-reversion risk spiking if earnings disappoint 06-10 (ORCL) / 06-11 (ADBE). Concentration in tech with no sector hedges exposed.",
+          "Grasberg Grasberg wet-ore bottleneck timing remains opaque; FCX 60K ramp 'very early' language suggests execution risk. Guidance withdrawal is orange flag; stop losses mandatory at -8.47%.",
+          "Macro regime NEUTRAL = no tailwind. If 10Y yields spike >4.2% on Fed surprise, growth names (PLTR, LLY, MSFT) will see IV crush despite bullish options flow. Watch 2y-10y curve for regime shift."
+        ],
+        "whats_changed": "APH and LLY entered bullish signal set (new to brief), while NEM and PLTR retained from prior session. Temperature fell from 54.7 (prior WARM) to 48.7 (TEPID) \u2014 mean pump_likelihood unchanged but basket cooling as outliers regress. Conviction steady B+ \u2192 consolidating into 3 PUMP_CONFIRMED setups (WDC + momentum leaders) plus 2 HIGH-conviction non-confirmed (LLY + FCX) anchors conviction."
+      }
+    }
+  ],
+  "finished": "2026-06-01T20:08:24.888418+00:00"
+}
