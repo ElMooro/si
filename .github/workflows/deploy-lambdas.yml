@@ -215,9 +215,30 @@ jobs:
             fi
 
             # Build zip
+            # New pattern (2026-05-31): bundle aws/shared/*.py first, then
+            # overlay $dir/source/ on top. This means any shared file
+            # (api_auth.py, _fred_shim.py, system_events.py, etc.) is
+            # automatically included in every Lambda zip — but if the
+            # Lambda's own source/ directory has the same filename, the
+            # local copy wins (preserves existing per-Lambda override
+            # semantics like calibration.py customizations).
             tmp=$(mktemp -d)
-            (cd "$dir/source" && zip -qr "$tmp/deploy.zip" .)
-            echo "Built $(du -h $tmp/deploy.zip | cut -f1) zip for $fn"
+            staging="$tmp/stage"
+            mkdir -p "$staging"
+
+            # Defaults — copy all shared *.py files into staging (skip __pycache__).
+            # `find` instead of `cp aws/shared/*.py` so we silently skip non-Python
+            # files and the __pycache__ subdirectory.
+            if [ -d aws/shared ]; then
+              find aws/shared -maxdepth 1 -name '*.py' -type f -exec cp {} "$staging/" \;
+            fi
+
+            # Overrides — copy the Lambda's own source/ contents on top.
+            # Files with the same name as a shared file win.
+            cp -rT "$dir/source" "$staging"
+
+            (cd "$staging" && zip -qr "$tmp/deploy.zip" .)
+            echo "Built $(du -h $tmp/deploy.zip | cut -f1) zip for $fn (with shared/ bundle)"
 
             # Check if Lambda exists. If not, create it with defaults / config.json overrides.
             if aws lambda get-function --function-name "$fn" --region "${{ secrets.AWS_REGION }}" >/dev/null 2>&1; then
