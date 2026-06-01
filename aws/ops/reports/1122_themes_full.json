@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-01T21:10:25.496761+00:00",
+  "elapsed_sec": 0.97,
+  "n_momentum_leaders": 30,
+  "n_active_themes": 3,
+  "n_classified": 30,
+  "n_unknown": 0,
+  "min_tickers_for_theme": 3,
+  "themes": {
+    "Semiconductors": {
+      "tickers": [
+        "ARM",
+        "MU",
+        "AMD",
+        "MRVL",
+        "QCOM",
+        "LRCX",
+        "AMAT",
+        "KLAC",
+        "INTC",
+        "AVGO",
+        "TXN"
+      ],
+      "n_leaders": 11,
+      "avg_momentum": 71.23,
+      "label": "AI semis",
+      "is_active": true,
+      "top_ticker": "ARM",
+      "top_score": 90.7
+    },
+    "Software - Infrastructure": {
+      "tickers": [
+        "PANW",
+        "CRWD",
+        "ORCL",
+        "MSFT"
+      ],
+      "n_leaders": 4,
+      "avg_momentum": 75.6,
+      "label": "Software - Infrastructure",
+      "is_active": true,
+      "top_ticker": "PANW",
+      "top_score": 85.6
+    },
+    "Computer Hardware": {
+      "tickers": [
+        "DELL",
+        "STX",
+        "WDC"
+      ],
+      "n_leaders": 3,
+      "avg_momentum": 81.43,
+      "label": "Compute hardware",
+      "is_active": true,
+      "top_ticker": "DELL",
+      "top_score": 92.1
+    }
+  },
+  "ticker_to_theme": {
+    "DELL": "Computer Hardware",
+    "STX": "Computer Hardware",
+    "WDC": "Computer Hardware",
+    "ARM": "Semiconductors",
+    "MU": "Semiconductors",
+    "AMD": "Semiconductors",
+    "MRVL": "Semiconductors",
+    "QCOM": "Semiconductors",
+    "LRCX": "Semiconductors",
+    "AMAT": "Semiconductors",
+    "KLAC": "Semiconductors",
+    "INTC": "Semiconductors",
+    "AVGO": "Semiconductors",
+    "TXN": "Semiconductors",
+    "PANW": "Software - Infrastructure",
+    "CRWD": "Software - Infrastructure",
+    "ORCL": "Software - Infrastructure",
+    "MSFT": "Software - Infrastructure"
+  },
+  "unclassified": [],
+  "all_industries_seen": [
+    "Communication Equipment",
+    "Computer Hardware",
+    "Copper",
+    "Drug Manufacturers - General",
+    "Financial - Capital Markets",
+    "Hardware, Equipment & Parts",
+    "Information Technology Services",
+    "Investment - Banking & Investment Services",
+    "Semiconductors",
+    "Software - Application",
+    "Software - Infrastructure"
+  ],
+  "metadata": {
+    "top_n_leaders_used": 30,
+    "cache_ttl_days": 7,
+    "n_profiles_fetched": 30,
+    "n_profiles_cached": 0
+  }
+}

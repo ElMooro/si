@@ -1,0 +1,442 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-01T21:10:29.827946+00:00",
+  "elapsed_sec": 1.25,
+  "trading_date": "2026-06-01",
+  "new_session": true,
+  "universe_size": 31,
+  "n_fired": 6,
+  "n_fresh": 6,
+  "n_confirmed_today": 6,
+  "n_aging": 0,
+  "n_expired_today": 0,
+  "n_actionable": 6,
+  "fresh_fires": [
+    {
+      "ticker": "DELL",
+      "tier": 1,
+      "tier_label": "HIGH (momentum + theme)",
+      "theme": "Computer Hardware",
+      "theme_label": "Compute hardware",
+      "momentum_score": 92.1,
+      "first_score": 100.0,
+      "current_score": 100.0,
+      "highest_score": 100.0,
+      "first_detected": "2026-06-01T21:10:29.777243+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "momentum-breakout"
+      ],
+      "n_confirmations": 1,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.7186,
+        "slope_score": 100,
+        "accum_ratio": 0.896,
+        "accum_score": 100,
+        "floor_score": 100,
+        "current_ratio": 3.55
+      }
+    },
+    {
+      "ticker": "ORCL",
+      "tier": 1,
+      "tier_label": "HIGH (momentum + theme)",
+      "theme": "Software - Infrastructure",
+      "theme_label": "Software - Infrastructure",
+      "momentum_score": 80.8,
+      "first_score": 83.5,
+      "current_score": 83.5,
+      "highest_score": 83.5,
+      "first_detected": "2026-06-01T21:10:29.777272+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "buzz-velocity",
+        "momentum-breakout"
+      ],
+      "n_confirmations": 2,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.2666,
+        "slope_score": 100,
+        "accum_ratio": 0.775,
+        "accum_score": 96.2,
+        "floor_score": 23.0,
+        "current_ratio": 1.98
+      }
+    },
+    {
+      "ticker": "CRM",
+      "tier": 2,
+      "tier_label": "MEDIUM (momentum only)",
+      "theme": null,
+      "theme_label": null,
+      "momentum_score": 54.2,
+      "first_score": 77.3,
+      "current_score": 77.3,
+      "highest_score": 77.3,
+      "first_detected": "2026-06-01T21:10:29.777280+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "momentum-breakout"
+      ],
+      "n_confirmations": 1,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.3033,
+        "slope_score": 100,
+        "accum_ratio": 0.121,
+        "accum_score": 24.3,
+        "floor_score": 100,
+        "current_ratio": 2.19
+      }
+    },
+    {
+      "ticker": "AVGO",
+      "tier": 3,
+      "tier_label": "LOW-MED (theme only)",
+      "theme": "Semiconductors",
+      "theme_label": "AI semis",
+      "momentum_score": 56.8,
+      "first_score": 69.1,
+      "current_score": 69.1,
+      "highest_score": 69.1,
+      "first_detected": "2026-06-01T21:10:29.777276+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "buzz-velocity",
+        "momentum-breakout"
+      ],
+      "n_confirmations": 2,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.164,
+        "slope_score": 65.6,
+        "accum_ratio": 0.697,
+        "accum_score": 87.6,
+        "floor_score": 49.9,
+        "current_ratio": 1.53
+      }
+    },
+    {
+      "ticker": "MSFT",
+      "tier": 3,
+      "tier_label": "LOW-MED (theme only)",
+      "theme": "Software - Infrastructure",
+      "theme_label": "Software - Infrastructure",
+      "momentum_score": 50.7,
+      "first_score": 68.2,
+      "current_score": 68.2,
+      "highest_score": 68.2,
+      "first_detected": "2026-06-01T21:10:29.777284+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "buzz-velocity",
+        "momentum-breakout"
+      ],
+      "n_confirmations": 2,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.1988,
+        "slope_score": 79.5,
+        "accum_ratio": 0.41,
+        "accum_score": 56.1,
+        "floor_score": 58.2,
+        "current_ratio": 1.5
+      }
+    },
+    {
+      "ticker": "IBM",
+      "tier": 2,
+      "tier_label": "MEDIUM (momentum only)",
+      "theme": null,
+      "theme_label": null,
+      "momentum_score": 81.6,
+      "first_score": 65.2,
+      "current_score": 65.2,
+      "highest_score": 65.2,
+      "first_detected": "2026-06-01T21:10:29.777265+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "momentum-breakout"
+      ],
+      "n_confirmations": 1,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.2202,
+        "slope_score": 88.1,
+        "accum_ratio": 0.537,
+        "accum_score": 70.1,
+        "floor_score": 0.4,
+        "current_ratio": 4.71
+      }
+    }
+  ],
+  "confirmed_today": [
+    {
+      "ticker": "DELL",
+      "tier": 1,
+      "tier_label": "HIGH (momentum + theme)",
+      "theme": "Computer Hardware",
+      "theme_label": "Compute hardware",
+      "momentum_score": 92.1,
+      "first_score": 100.0,
+      "current_score": 100.0,
+      "highest_score": 100.0,
+      "first_detected": "2026-06-01T21:10:29.777243+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "momentum-breakout"
+      ],
+      "n_confirmations": 1,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.7186,
+        "slope_score": 100,
+        "accum_ratio": 0.896,
+        "accum_score": 100,
+        "floor_score": 100,
+        "current_ratio": 3.55
+      }
+    },
+    {
+      "ticker": "ORCL",
+      "tier": 1,
+      "tier_label": "HIGH (momentum + theme)",
+      "theme": "Software - Infrastructure",
+      "theme_label": "Software - Infrastructure",
+      "momentum_score": 80.8,
+      "first_score": 83.5,
+      "current_score": 83.5,
+      "highest_score": 83.5,
+      "first_detected": "2026-06-01T21:10:29.777272+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "buzz-velocity",
+        "momentum-breakout"
+      ],
+      "n_confirmations": 2,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.2666,
+        "slope_score": 100,
+        "accum_ratio": 0.775,
+        "accum_score": 96.2,
+        "floor_score": 23.0,
+        "current_ratio": 1.98
+      }
+    },
+    {
+      "ticker": "CRM",
+      "tier": 2,
+      "tier_label": "MEDIUM (momentum only)",
+      "theme": null,
+      "theme_label": null,
+      "momentum_score": 54.2,
+      "first_score": 77.3,
+      "current_score": 77.3,
+      "highest_score": 77.3,
+      "first_detected": "2026-06-01T21:10:29.777280+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "momentum-breakout"
+      ],
+      "n_confirmations": 1,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.3033,
+        "slope_score": 100,
+        "accum_ratio": 0.121,
+        "accum_score": 24.3,
+        "floor_score": 100,
+        "current_ratio": 2.19
+      }
+    },
+    {
+      "ticker": "AVGO",
+      "tier": 3,
+      "tier_label": "LOW-MED (theme only)",
+      "theme": "Semiconductors",
+      "theme_label": "AI semis",
+      "momentum_score": 56.8,
+      "first_score": 69.1,
+      "current_score": 69.1,
+      "highest_score": 69.1,
+      "first_detected": "2026-06-01T21:10:29.777276+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "buzz-velocity",
+        "momentum-breakout"
+      ],
+      "n_confirmations": 2,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.164,
+        "slope_score": 65.6,
+        "accum_ratio": 0.697,
+        "accum_score": 87.6,
+        "floor_score": 49.9,
+        "current_ratio": 1.53
+      }
+    },
+    {
+      "ticker": "MSFT",
+      "tier": 3,
+      "tier_label": "LOW-MED (theme only)",
+      "theme": "Software - Infrastructure",
+      "theme_label": "Software - Infrastructure",
+      "momentum_score": 50.7,
+      "first_score": 68.2,
+      "current_score": 68.2,
+      "highest_score": 68.2,
+      "first_detected": "2026-06-01T21:10:29.777284+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "buzz-velocity",
+        "momentum-breakout"
+      ],
+      "n_confirmations": 2,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.1988,
+        "slope_score": 79.5,
+        "accum_ratio": 0.41,
+        "accum_score": 56.1,
+        "floor_score": 58.2,
+        "current_ratio": 1.5
+      }
+    },
+    {
+      "ticker": "IBM",
+      "tier": 2,
+      "tier_label": "MEDIUM (momentum only)",
+      "theme": null,
+      "theme_label": null,
+      "momentum_score": 81.6,
+      "first_score": 65.2,
+      "current_score": 65.2,
+      "highest_score": 65.2,
+      "first_detected": "2026-06-01T21:10:29.777265+00:00",
+      "first_detected_date": "2026-06-01",
+      "sessions_pending": 0,
+      "confirmations": [
+        "momentum-breakout"
+      ],
+      "n_confirmations": 1,
+      "status": "confirmed",
+      "accel_components": {
+        "slope": 0.2202,
+        "slope_score": 88.1,
+        "accum_ratio": 0.537,
+        "accum_score": 70.1,
+        "floor_score": 0.4,
+        "current_ratio": 4.71
+      }
+    }
+  ],
+  "aging": [],
+  "expired_today": [],
+  "actionable_tickers": [
+    "AVGO",
+    "CRM",
+    "DELL",
+    "IBM",
+    "MSFT",
+    "ORCL"
+  ],
+  "by_tier": {
+    "1": [
+      "DELL",
+      "ORCL",
+      "DELL",
+      "ORCL"
+    ],
+    "2": [
+      "CRM",
+      "IBM",
+      "CRM",
+      "IBM"
+    ],
+    "3": [
+      "AVGO",
+      "MSFT",
+      "AVGO",
+      "MSFT"
+    ]
+  },
+  "themes": [
+    {
+      "industry": "Semiconductors",
+      "label": "AI semis",
+      "tickers": [
+        "ARM",
+        "MU",
+        "AMD",
+        "MRVL",
+        "QCOM",
+        "LRCX",
+        "AMAT",
+        "KLAC",
+        "INTC",
+        "AVGO",
+        "TXN"
+      ],
+      "n_leaders": 11
+    },
+    {
+      "industry": "Software - Infrastructure",
+      "label": "Software - Infrastructure",
+      "tickers": [
+        "PANW",
+        "CRWD",
+        "ORCL",
+        "MSFT"
+      ],
+      "n_leaders": 4
+    },
+    {
+      "industry": "Computer Hardware",
+      "label": "Compute hardware",
+      "tickers": [
+        "DELL",
+        "STX",
+        "WDC"
+      ],
+      "n_leaders": 3
+    }
+  ],
+  "config": {
+    "lookback_days": 7,
+    "baseline_days": 20,
+    "fire_threshold": 60,
+    "max_universe": 80,
+    "pending_max_sessions": 3,
+    "confirmer_engines": [
+      "momentum-breakout",
+      "options-flow",
+      "buzz-velocity"
+    ]
+  },
+  "methodology": {
+    "score_formula": "0.50 \u00d7 slope_score + 0.30 \u00d7 accum_score + 0.20 \u00d7 floor_score",
+    "slope": "Linear-regression slope of vol/baseline over lookback window",
+    "accum": "Sum(vol_ratio \u00d7 sign(daily_return)) / Sum(vol_ratio) \u2014 accumulation if positive",
+    "floor_lift": "Improvement in 5-day minimum vol ratio across the lookback window",
+    "tier_1_meaning": "momentum_score >=60 AND in active theme \u2014 HIGH confidence",
+    "tier_2_meaning": "momentum_score >=60 OR moderate momentum, no theme \u2014 MEDIUM",
+    "tier_3_meaning": "momentum <60 but in theme \u2014 LOW-MEDIUM (watchlist only)",
+    "confirmation": "Targeted confirmers only \u2014 momentum-breakout, options-flow, buzz-velocity",
+    "expiration": "Pending entries drop after 3 trading sessions without confirmation"
+  }
+}
