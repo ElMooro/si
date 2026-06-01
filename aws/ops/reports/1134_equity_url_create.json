@@ -1,0 +1,38 @@
+{
+  "started": "2026-06-01T23:11:08.198056+00:00",
+  "phases": [
+    {
+      "name": "list_existing_urls",
+      "status": "ok",
+      "result": {
+        "configs": []
+      }
+    },
+    {
+      "name": "ensure_env_vars",
+      "status": "ok",
+      "result": {
+        "changed": true,
+        "new_keys": [
+          "ANTHROPIC_API_KEY",
+          "FMP_KEY"
+        ]
+      }
+    },
+    {
+      "name": "ensure_url",
+      "status": "ERROR",
+      "error": "An error occurred (ValidationException) when calling the CreateFunctionUrlConfig operation: 1 validation error detected: Value '[GET, POST, OPTIONS]' at 'cors.allowMethods' failed to satisfy constraint: Member must satisfy constraint: [Member must have length less than or equal to 6, Member must have length greater than or equal to 0, Member must satisfy regular expression pattern: .*, Member must",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/1134_equity_url_create.py\", line 20, in phase\n    r = fn()\n        ^^^^\n  File \"/home/runner/work/si/si/aws/ops/pending/1134_equity_url_create.py\", line 62, in ensure_url\n    r = lam.create_function_url_config(\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateFunctionUrlConfig operation: 1 validation error detected: Value '[GET, POST, OPTIONS]' at 'cors.allowMethods' failed to satisfy constraint: Member must satisfy constraint: [Member must have length less than or equal to 6, Member must have length greater than or equal to 0, Member must satisfy regular expression pattern: .*, Member must not be null]\n"
+    },
+    {
+      "name": "add_permission",
+      "status": "ok",
+      "result": {
+        "added": false,
+        "reason": "permission already exists"
+      }
+    }
+  ],
+  "finished": "2026-06-01T23:11:11.919135+00:00"
+}
