@@ -72,6 +72,8 @@ from auction_crisis_v2 import (
     build_composite_history,
     compute_tail_risk,
     build_triggers,
+    compute_preauction_concession,
+    compute_postissue_performance,
 )
 
 S3_BUCKET = "justhodl-dashboard-live"
@@ -678,12 +680,24 @@ def lambda_handler(event, context):
         print(f"[v2] triggers error: {e}")
         triggers = []
 
+    # 8. Pre-auction concession (yield moves BEFORE upcoming auctions)
+    try:
+        forward_calendar = compute_preauction_concession(forward_calendar)
+    except Exception as e:
+        print(f"[v2] concession error: {e}")
+
+    # 9. Post-issue performance (yield moves AFTER recent auctions)
+    try:
+        scored_auctions = compute_postissue_performance(scored_auctions, max_lookback_days=60)
+    except Exception as e:
+        print(f"[v2] postissue error: {e}")
+
     v2_elapsed = round(time.time() - v2_start, 2)
     print(f"[auction-crisis] v2 elapsed: {v2_elapsed}s")
 
     # Build report
     report = {
-        "schema_version": "2.0",  # v2: full institutional-grade expansion (ops/1089)
+        "schema_version": "2.1",  # v2.1: + pre-auction concession + post-issue performance (ops/1100)
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_sec": round(time.time() - t0, 2),
         "elapsed_v2_sec": v2_elapsed,
@@ -753,7 +767,10 @@ def lambda_handler(event, context):
             "calendar with per-auction stress forecasts, cosine-similarity matching "
             "vs 9 historical crisis anchors, 4 corroborating FRED signals (repo, USD, "
             "curve, inflation), 30-day composite history, 3 forward-looking tail risk "
-            "probabilities, and named actionable triggers."
+            "probabilities, and named actionable triggers. v2.1 adds pre-auction "
+            "concession tracking (5d/1d yield change in each tenor leading up to "
+            "upcoming auctions) and post-issue performance (1d/5d/30d yield change "
+            "after each recently settled auction, classified STRONG/FIRM/FLAT/SOFT/WEAK)."
         ),
     }
 

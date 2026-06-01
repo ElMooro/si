@@ -996,3 +996,285 @@ def _classify_tenor_bucket_simple(security_type: str, security_term: str) -> str
     except (ValueError, IndexError):
         pass
     return "coupons_gt_3y"
+
+
+# ═════════════════════════════════════════════════════════════════════
+# 8. PRE-AUCTION CONCESSION + POST-ISSUE PERFORMANCE TRACKING
+# ═════════════════════════════════════════════════════════════════════
+# This is THE institutional metric professional bond traders use to
+# position around Treasury auctions. The market sells off into the
+# auction = "concession" being built; this absorbs supply at a higher
+# yield. Strong concession + healthy auction = clean clearing. Weak
+# concession + heavy demand = no premium for taking down supply
+# (auctions price tight, no buy-side opportunity).
+#
+# Post-issue: did the bid hold or dump? Strong post-issue rally =
+# auction priced cheap; weak post-issue selloff = mispriced auction.
+#
+# Both metrics use FRED daily constant-maturity Treasury yields, mapped
+# to each auction's effective tenor.
+
+# Mapping from term-days to the most relevant FRED CMT series
+TENOR_TO_FRED = [
+    # (max_days, series_id)
+    (31,      "DGS1MO"),
+    (95,      "DGS3MO"),
+    (190,     "DGS6MO"),
+    (370,     "DGS1"),
+    (730,     "DGS2"),
+    (1095,    "DGS3"),
+    (1825,    "DGS5"),
+    (2555,    "DGS7"),
+    (3650,    "DGS10"),
+    (7300,    "DGS20"),
+    (11000,   "DGS30"),
+]
+
+# Cache to avoid re-fetching the same series within a single Lambda run
+_yield_cache: Dict[str, List[Tuple[str, float]]] = {}
+
+
+def _parse_term_days(security_term: str) -> Optional[int]:
+    """'10-Year' → 3650, '28-Day' → 28, '13-Week' → 91."""
+    if not security_term:
+        return None
+    t = security_term.upper().strip()
+    parts = t.replace("-", " ").split()
+    try:
+        n = int(parts[0])
+    except (ValueError, IndexError):
+        return None
+    if "DAY" in t:    return n
+    if "WEEK" in t:   return n * 7
+    if "MONTH" in t:  return n * 30
+    if "YEAR" in t:   return n * 365
+    return None
+
+
+def _tenor_to_fred_series(security_type: str, security_term: str) -> Optional[str]:
+    """Return the most appropriate FRED CMT series for a security's term."""
+    days = _parse_term_days(security_term)
+    if days is None:
+        return None
+    for max_d, series in TENOR_TO_FRED:
+        if days <= max_d:
+            return series
+    return TENOR_TO_FRED[-1][1]
+
+
+def fetch_cmt_yield_history(days: int = 90) -> Dict[str, Dict[str, float]]:
+    """Pull all 11 CMT yield histories from FRED in one batch.
+
+    Returns: {series_id: {date_iso: yield_pct}}
+    Cached per Lambda invocation.
+    """
+    if _yield_cache:
+        return _yield_cache  # already populated this run
+
+    for _, series in TENOR_TO_FRED:
+        history = _fred_get_history(series, days=days)
+        # _fred_get_history returns [(date_str, value)] — convert to dict
+        _yield_cache[series] = {d: v for (d, v) in history if d}
+    return _yield_cache
+
+
+def _yield_on_or_before(series_data: Dict[str, float], target_date) -> Optional[Tuple[str, float]]:
+    """Find the latest yield observation on or before target_date.
+    FRED yields skip weekends/holidays so we walk back up to 5 days."""
+    if hasattr(target_date, "isoformat"):
+        target_iso = target_date.isoformat()
+    else:
+        target_iso = str(target_date)[:10]
+    # Sort dates desc; find first <= target
+    dates = sorted(series_data.keys(), reverse=True)
+    for d in dates:
+        if d <= target_iso:
+            return (d, series_data[d])
+    return None
+
+
+def _yield_on_or_after(series_data: Dict[str, float], target_date) -> Optional[Tuple[str, float]]:
+    """Find the earliest yield observation on or after target_date."""
+    if hasattr(target_date, "isoformat"):
+        target_iso = target_date.isoformat()
+    else:
+        target_iso = str(target_date)[:10]
+    dates = sorted(series_data.keys())
+    for d in dates:
+        if d >= target_iso:
+            return (d, series_data[d])
+    return None
+
+
+def compute_preauction_concession(upcoming_auctions: List[dict]) -> List[dict]:
+    """Enrich each upcoming auction with the concession built in its tenor.
+
+    Concession = yield_today - yield_5d_ago (or 1d_ago)
+    Positive bp = market sold off into the auction (concession built)
+    Negative bp = market rallied into the auction (no concession)
+
+    Adds to each auction:
+      - concession_series:        the FRED series ID used
+      - concession_5d_bp:         5-trading-day yield change leading up to today
+      - concession_1d_bp:         1-trading-day yield change
+      - concession_regime:        CONCESSION / RALLY / FLAT
+      - concession_interpretation: plain-English read
+    """
+    history = fetch_cmt_yield_history(days=30)
+    today = datetime.now(timezone.utc).date()
+    five_d_ago = today - timedelta(days=7)  # 5 trading + 2 weekend ≈ 7
+    one_d_ago  = today - timedelta(days=2)  # 1 trading + maybe weekend
+
+    enriched = []
+    for u in upcoming_auctions:
+        series = _tenor_to_fred_series(u.get("security_type", ""),
+                                          u.get("security_term", ""))
+        if not series or series not in history or not history[series]:
+            enriched.append({**u, "concession_series": series,
+                              "concession_5d_bp": None, "concession_1d_bp": None,
+                              "concession_regime": "NO_DATA"})
+            continue
+
+        series_data = history[series]
+        today_obs = _yield_on_or_before(series_data, today)
+        five_d_obs = _yield_on_or_before(series_data, five_d_ago)
+        one_d_obs  = _yield_on_or_before(series_data, one_d_ago)
+
+        c5 = None
+        c1 = None
+        if today_obs and five_d_obs:
+            c5 = round((today_obs[1] - five_d_obs[1]) * 100, 1)  # bp
+        if today_obs and one_d_obs:
+            c1 = round((today_obs[1] - one_d_obs[1]) * 100, 1)
+
+        # Regime classification on the 5d change
+        regime = "NO_DATA"
+        interp = ""
+        if c5 is not None:
+            if c5 >= 5:
+                regime = "HEAVY_CONCESSION"
+                interp = (f"Market built {c5:+.1f}bp concession in {series} over 5d "
+                          f"— strong supply pressure ahead of this auction. "
+                          f"Suggests dealers expect difficulty placing the issue.")
+            elif c5 >= 2:
+                regime = "CONCESSION"
+                interp = (f"Modest {c5:+.1f}bp concession built in 5d. "
+                          f"Normal pre-auction positioning — bid-side expects "
+                          f"reasonable demand at marginally higher yields.")
+            elif c5 <= -5:
+                regime = "STRONG_RALLY"
+                interp = (f"Market RALLIED {c5:+.1f}bp in 5d — buyers stepping in "
+                          f"before the auction. May signal scarcity bid or risk-off. "
+                          f"Watch for auction to price TIGHT (low yield).")
+            elif c5 <= -2:
+                regime = "RALLY"
+                interp = (f"Modest {c5:+.1f}bp rally pre-auction. "
+                          f"Market is comfortable absorbing supply without concession.")
+            else:
+                regime = "FLAT"
+                interp = (f"Yields essentially unchanged ({c5:+.1f}bp / 5d). "
+                          f"Market priced for stable absorption.")
+
+        enriched.append({
+            **u,
+            "concession_series":        series,
+            "concession_5d_bp":         c5,
+            "concession_1d_bp":         c1,
+            "concession_today_yield":   round(today_obs[1], 3) if today_obs else None,
+            "concession_today_date":    today_obs[0] if today_obs else None,
+            "concession_regime":        regime,
+            "concession_interpretation": interp,
+        })
+    return enriched
+
+
+def compute_postissue_performance(scored_auctions: List[dict], max_lookback_days: int = 60) -> List[dict]:
+    """Enrich settled auctions with post-issue yield performance.
+
+    For each recent auction:
+      yield_1d_after  = first FRED CMT obs >= (issue_date + 1)
+      yield_5d_after  = first FRED CMT obs >= (issue_date + 5)
+      yield_30d_after = first FRED CMT obs >= (issue_date + 30)
+
+    perf_1d_bp = (yield_at_T - yield_1d_after) * 100  [from auction's high_rate]
+    Positive bp = yield WENT DOWN after issuance = price went UP = strong bid held
+    Negative bp = yield WENT UP after issuance = price went DOWN = weak bid
+
+    Adds:
+      - postissue_series:      FRED series
+      - postissue_1d_bp:       (negative = sold off, positive = rallied)
+      - postissue_5d_bp:
+      - postissue_30d_bp:
+      - postissue_classification: STRONG | WEAK | FLAT | PENDING
+    """
+    history = fetch_cmt_yield_history(days=max_lookback_days + 30)
+    today = datetime.now(timezone.utc).date()
+    enriched = []
+
+    for a in scored_auctions:
+        issue_str = a.get("issue_date")
+        high_rate = a.get("high_rate")
+        if not issue_str or high_rate is None:
+            enriched.append({**a})
+            continue
+        try:
+            issue_d = datetime.strptime(issue_str[:10], "%Y-%m-%d").date()
+        except ValueError:
+            enriched.append({**a})
+            continue
+        if (today - issue_d).days > max_lookback_days:
+            enriched.append({**a})
+            continue
+
+        series = _tenor_to_fred_series(a.get("security_type", ""),
+                                          a.get("security_term", ""))
+        if not series or series not in history or not history[series]:
+            enriched.append({**a, "postissue_series": series})
+            continue
+
+        series_data = history[series]
+
+        # Find observations at issue+1, +5, +30
+        obs_1d  = _yield_on_or_after(series_data, issue_d + timedelta(days=1))
+        obs_5d  = _yield_on_or_after(series_data, issue_d + timedelta(days=5))
+        obs_30d = _yield_on_or_after(series_data, issue_d + timedelta(days=30))
+
+        # Compute changes (negative bp = yield went DOWN = bid held = STRONG)
+        # We want sign: positive bp = STRONG performance (yield down vs auction high)
+        def _delta(obs):
+            if obs is None or high_rate is None:
+                return None
+            # Auction high_rate is in pct (e.g. 4.20%); FRED is also pct
+            return round((high_rate - obs[1]) * 100, 1)
+
+        p1  = _delta(obs_1d)
+        p5  = _delta(obs_5d)
+        p30 = _delta(obs_30d)
+
+        # Classification based on 5d (most reliable mid-window)
+        cls = "PENDING"
+        if p5 is not None:
+            if p5 >= 8:
+                cls = "STRONG"
+            elif p5 >= 3:
+                cls = "FIRM"
+            elif p5 <= -8:
+                cls = "WEAK"
+            elif p5 <= -3:
+                cls = "SOFT"
+            else:
+                cls = "FLAT"
+        elif p1 is not None:
+            # Recent auction without 5d data yet
+            cls = "PENDING_5D"
+
+        enriched.append({
+            **a,
+            "postissue_series":         series,
+            "postissue_1d_bp":          p1,
+            "postissue_5d_bp":          p5,
+            "postissue_30d_bp":         p30,
+            "postissue_classification": cls,
+        })
+    return enriched
+
