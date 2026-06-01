@@ -559,6 +559,82 @@ def compute_financial_health(scores: list, ratios_ttm: dict, key_ttm: dict,
     }
 
 
+def build_peer_comparison(subject_ticker: str, subject_ratios_ttm: dict,
+                            subject_key_ttm: dict, subject_quote: dict,
+                            subject_company: dict, peers_list: list,
+                            peer_details: dict) -> dict:
+    """Build a side-by-side comparison table: subject + peers with key valuation
+    metrics, plus peer-median summary stats. The peer median functions as the
+    'industry P/E' benchmark hedge fund analysts compare against."""
+    import statistics as _stats
+
+    def make_row(sym, name, price, mkt_cap, ratios, key_metrics, is_subject=False):
+        return {
+            "symbol":      sym,
+            "name":        name,
+            "price":       price,
+            "market_cap":  mkt_cap,
+            "pe":          _safe_num(ratios, "peRatioTTM") or _safe_num(ratios, "priceEarningsRatioTTM"),
+            "pb":          _safe_num(ratios, "priceToBookRatioTTM"),
+            "ps":          _safe_num(ratios, "priceToSalesRatioTTM"),
+            "ev_ebitda":   (_safe_num(ratios, "enterpriseValueMultipleTTM")
+                              or _safe_num(key_metrics, "enterpriseValueOverEBITDATTM")),
+            "roe_pct":     _pct(_safe_num(ratios, "returnOnEquityTTM")),
+            "op_margin_pct": _pct(_safe_num(ratios, "operatingProfitMarginTTM")),
+            "is_subject":  is_subject,
+        }
+
+    rows = [
+        make_row(subject_ticker, subject_company.get("name") or subject_ticker,
+                  _safe_num(subject_quote, "price"),
+                  _safe_num(subject_quote, "marketCap") or subject_company.get("market_cap"),
+                  subject_ratios_ttm, subject_key_ttm, is_subject=True)
+    ]
+    for peer in peers_list[:5]:
+        sym = peer.get("symbol")
+        if not sym: continue
+        detail = peer_details.get(sym, {})
+        rows.append(make_row(
+            sym, peer.get("companyName") or sym,
+            peer.get("price"), peer.get("mktCap"),
+            detail.get("ratios", {}), detail.get("key_metrics", {}),
+        ))
+
+    def median(vals):
+        clean = [v for v in vals if isinstance(v, (int, float)) and v == v]  # filter NaN
+        # Also filter ridiculous outliers (P/E > 500 = junk)
+        clean = [v for v in clean if -500 < v < 500]
+        return round(_stats.median(clean), 2) if clean else None
+
+    peer_rows = rows[1:]
+    summary = {
+        "n_peers":           len(peer_rows),
+        "median_pe":         median([r["pe"] for r in peer_rows]),
+        "median_pb":         median([r["pb"] for r in peer_rows]),
+        "median_ps":         median([r["ps"] for r in peer_rows]),
+        "median_ev_ebitda":  median([r["ev_ebitda"] for r in peer_rows]),
+        "median_roe_pct":    median([r["roe_pct"] for r in peer_rows]),
+        "median_op_margin_pct": median([r["op_margin_pct"] for r in peer_rows]),
+    }
+
+    # Subject's premium / discount vs peer median (negative = trading at discount)
+    subject = rows[0]
+    relative: Dict[str, Any] = {}
+    for key in ("pe", "pb", "ps", "ev_ebitda"):
+        sub = subject.get(key)
+        med = summary.get(f"median_{key}")
+        if isinstance(sub, (int, float)) and isinstance(med, (int, float)) and med > 0:
+            relative[f"premium_pct_{key}"] = round((sub / med - 1) * 100, 1)
+
+    return {
+        "sector":     subject_company.get("sector"),
+        "industry":   subject_company.get("industry"),
+        "rows":       rows,
+        "summary":    summary,
+        "relative":   relative,
+    }
+
+
 # ═════════════════════════════════════════════════════════════════════
 # Claude synthesis
 # ═════════════════════════════════════════════════════════════════════
@@ -592,6 +668,7 @@ Schema:
     ]
   },
   "valuation_assessment": "150 words on whether the stock is cheap/fair/expensive given P/E vs 5yr avg, DCF gap, peer multiples, and FCF yield. Be specific.",
+  "peer_comparison_assessment": "100 words on how the subject's valuation multiples compare to the peer-median (which functions as the industry P/E benchmark). Reference SPECIFIC peer ticker(s) where helpful. Frame as: 'trading at X% premium/discount to peer median P/E of Y'.",
   "financial_health_summary": "100 words on the 5-pillar score, calling out the strongest and weakest pillars with the actual numbers.",
   "competitive_position": "100 words on the company's moat and industry position based on margins, growth durability, and ROIC vs peers.",
   "catalysts_12m": [
@@ -727,6 +804,27 @@ def lambda_handler(event, context):
     dividends        = raw.get("dividends") if isinstance(raw.get("dividends"), list) else []
     earnings         = raw.get("earnings") if isinstance(raw.get("earnings"), list) else []
 
+    # The peers endpoint returns a LIST of peer objects directly (not wrapped).
+    # Each has symbol, companyName, price, mktCap.
+    peers_list = raw.get("peers") if isinstance(raw.get("peers"), list) else []
+    peer_symbols = [p.get("symbol") for p in peers_list if p.get("symbol")][:5]
+
+    # ── Second-round parallel fetch: peer ratios + key metrics for comparison
+    peer_details: Dict[str, Dict[str, Any]] = {}
+    if peer_symbols:
+        with ThreadPoolExecutor(max_workers=10) as ex:
+            futures = {}
+            for s in peer_symbols:
+                futures[ex.submit(fmp_get, "ratios-ttm", symbol=s)] = (s, "ratios")
+                futures[ex.submit(fmp_get, "key-metrics-ttm", symbol=s)] = (s, "key_metrics")
+            for fut in as_completed(futures):
+                sym, kind = futures[fut]
+                try:
+                    peer_details.setdefault(sym, {})[kind] = _first(fut.result()) or {}
+                except Exception:
+                    peer_details.setdefault(sym, {})[kind] = {}
+        print(f"[peers] fetched detail for {len(peer_details)} peers")
+
     # ── Derive analytics
     growth_metrics    = compute_growth(income_annual)
     fcf_metrics       = compute_fcf_cagr(cashflow_annual)
@@ -741,6 +839,18 @@ def lambda_handler(event, context):
     health            = compute_financial_health(scores, ratios_ttm, key_ttm,
                                                    balance_qual, cf_qual,
                                                    {**growth_metrics, **fcf_metrics})
+
+    # Company block needs to be built BEFORE peer comparison since we pass it in.
+    _company_block_for_peers = {
+        "name":         profile_obj.get("companyName") or profile_obj.get("name"),
+        "sector":       profile_obj.get("sector"),
+        "industry":     profile_obj.get("industry"),
+        "market_cap":   _safe_num(profile_obj, "mktCap") or _safe_num(profile_obj, "marketCap"),
+    }
+    peer_comparison = build_peer_comparison(
+        ticker, ratios_ttm, key_ttm, quote_obj,
+        _company_block_for_peers, peers_list, peer_details,
+    )
 
     # ── Compact statements (every year, just essential fields)
     def compact_income(rows):
@@ -814,7 +924,7 @@ def lambda_handler(event, context):
         "financial_health": health,
         "returns":         returns,
         "analyst_estimates": est_block,
-        "peers":           peers_obj.get("peersList") if isinstance(peers_obj.get("peersList"), list) else [],
+        "peer_comparison": peer_comparison,
         "statements_preview": {
             "income_top_5y":      compact_income(income_annual[:5]),
             "balance_top_5y":     compact_balance(balance_annual[:5]),
@@ -853,6 +963,7 @@ def lambda_handler(event, context):
         "investment_thesis":   claude_synthesis.get("investment_thesis"),
         "risk_factors":        claude_synthesis.get("risk_factors"),
         "valuation_assessment":claude_synthesis.get("valuation_assessment"),
+        "peer_comparison_assessment": claude_synthesis.get("peer_comparison_assessment"),
         "financial_health_summary": claude_synthesis.get("financial_health_summary"),
         "competitive_position":claude_synthesis.get("competitive_position"),
         "catalysts_12m":       claude_synthesis.get("catalysts_12m") or [],
@@ -865,7 +976,7 @@ def lambda_handler(event, context):
         "financial_health":    health,
         "returns":             returns,
         "analyst_estimates":   est_block,
-        "peers":               peers_obj.get("peersList") if isinstance(peers_obj.get("peersList"), list) else [],
+        "peer_comparison":     peer_comparison,
         "statements": {
             "income_annual":     compact_income(income_annual),
             "balance_annual":    compact_balance(balance_annual),

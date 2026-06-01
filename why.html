@@ -418,6 +418,7 @@ function renderReport(d){
   html += renderExecSummary(d);
   html += renderBullBear(d);
   html += renderValuation(d);
+  html += renderPeerComparison(d);
   html += renderFinancialHealth(d);
   html += renderGrowth(d);
   html += renderReturns(d);
@@ -586,6 +587,105 @@ function renderFinancialHealth(d){
         ${pillarCard('leverage',      'Leverage',      'leverage',      subDetail.leverage)}
         ${pillarCard('liquidity',     'Liquidity',     'liquidity',     subDetail.liquidity)}
         ${pillarCard('quality',       'Quality',       'quality',       subDetail.quality)}
+      </div>
+    </section>`;
+}
+
+function renderPeerComparison(d){
+  const pc = d.peer_comparison || {};
+  const rows = pc.rows || [];
+  const summary = pc.summary || {};
+  const relative = pc.relative || {};
+  if(rows.length < 2) return ""; // need subject + at least 1 peer
+
+  // Premium / discount tile builder
+  const relTile = (key, label, fmtFn) => {
+    const v = relative['premium_pct_' + key];
+    if(v == null) return "";
+    const isPremium = v > 0;
+    const arrow = isPremium ? '▲' : '▼';
+    const cls = isPremium ? 'down' : 'up';   // premium = expensive (bad), so down/red
+    const peerMed = summary['median_' + key];
+    return `<div class="metric">
+      <div class="lbl">vs peer median ${label}</div>
+      <div class="val ${cls}">${arrow} ${fmtPct(v, 1)}</div>
+      <div class="sub">peer median ${fmtFn(peerMed)}</div>
+    </div>`;
+  };
+
+  // Comparison table cells — color subject row + highlight outliers
+  const fmtMetric = (v, suffix='') => {
+    if(v == null || isNaN(v)) return '<span style="color:var(--text-muted)">—</span>';
+    return fmtNum(v, 2) + suffix;
+  };
+
+  const tableRows = rows.map(r => {
+    const sub = r.is_subject;
+    const style = sub
+      ? 'background:rgba(250,204,21,0.08); border-left:3px solid var(--accent);'
+      : '';
+    const ticker = sub
+      ? `<b style="color:var(--accent)">${esc(r.symbol)}</b>`
+      : `<a href="?ticker=${esc(r.symbol)}" style="color:var(--cyan); text-decoration:none">${esc(r.symbol)}</a>`;
+    return `<tr style="${style}">
+      <td style="font-family:var(--font-mono); font-weight:700">${ticker}</td>
+      <td style="font-family:var(--font-sans); text-align:left; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc(r.name || '')}</td>
+      <td>${fmtPrice(r.price)}</td>
+      <td>${fmt$(r.market_cap, 1)}</td>
+      <td>${fmtMetric(r.pe)}</td>
+      <td>${fmtMetric(r.pb)}</td>
+      <td>${fmtMetric(r.ps)}</td>
+      <td>${fmtMetric(r.ev_ebitda)}</td>
+      <td>${fmtMetric(r.roe_pct, '%')}</td>
+      <td>${fmtMetric(r.op_margin_pct, '%')}</td>
+    </tr>`;
+  }).join("");
+
+  // Peer median footer row
+  const medianRow = `<tr style="border-top:2px solid var(--border-strong); background:var(--bg-sunken)">
+    <td style="font-family:var(--font-mono); font-weight:700; color:var(--text-dim)">MED</td>
+    <td style="color:var(--text-dim); text-align:left">peer median (industry proxy)</td>
+    <td>—</td>
+    <td>—</td>
+    <td><b>${fmtMetric(summary.median_pe)}</b></td>
+    <td>${fmtMetric(summary.median_pb)}</td>
+    <td>${fmtMetric(summary.median_ps)}</td>
+    <td>${fmtMetric(summary.median_ev_ebitda)}</td>
+    <td>${fmtMetric(summary.median_roe_pct, '%')}</td>
+    <td>${fmtMetric(summary.median_op_margin_pct, '%')}</td>
+  </tr>`;
+
+  return `
+    <section class="block">
+      <h3><span class="ico">⚖</span> Peer Comparison
+        <span class="pill">${esc(pc.industry || pc.sector || '—')} · ${summary.n_peers || 0} peers</span>
+      </h3>
+      ${d.peer_comparison_assessment ? `<p>${esc(d.peer_comparison_assessment)}</p>` : ""}
+      <div class="table-wrap" style="margin-top:12px">
+        <table>
+          <thead><tr>
+            <th>Ticker</th>
+            <th style="text-align:left">Company</th>
+            <th>Price</th>
+            <th>Mkt Cap</th>
+            <th>P/E</th>
+            <th>P/B</th>
+            <th>P/S</th>
+            <th>EV/EBITDA</th>
+            <th>ROE</th>
+            <th>Op Margin</th>
+          </tr></thead>
+          <tbody>
+            ${tableRows}
+            ${medianRow}
+          </tbody>
+        </table>
+      </div>
+      <div class="grid" style="margin-top:14px">
+        ${relTile('pe',        'P/E',       (v) => fmtNum(v, 1))}
+        ${relTile('pb',        'P/B',       (v) => fmtNum(v, 2))}
+        ${relTile('ps',        'P/S',       (v) => fmtNum(v, 2))}
+        ${relTile('ev_ebitda', 'EV/EBITDA', (v) => fmtNum(v, 2))}
       </div>
     </section>`;
 }
