@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-01T22:27:47.080923+00:00",
+  "elapsed_sec": 0.3,
+  "sources_freshness": {
+    "brief_seconds": 1579,
+    "positioning_seconds": 1017,
+    "catalysts_seconds": 3752,
+    "clusters_seconds": 2945,
+    "early_seconds": 3449
+  },
+  "sources_loaded": {
+    "brief": true,
+    "positioning": true,
+    "catalysts": true,
+    "clusters": true,
+    "early": true
+  },
+  "conviction": "A-",
+  "temperature": {
+    "label": "TEPID",
+    "score": 50.0
+  },
+  "executive_summary": "CONCENTRATE LONG in 3 A-grade catalyst names: ORCL 15% (EARNINGS_BEAT 6/10, +44% 20d momentum, 11-engine convergence), WDC 13% (PRODUCT_LAUNCH multi-quarter, exabyte +22% YoY, +195 alpha_spy), CRM 10% (GUIDANCE_RAISE, 40% repeat bookings, +",
+  "top_picks": [
+    {
+      "ticker": "ORCL",
+      "catalyst_grade": "A",
+      "catalyst_type": "EARNINGS_BEAT",
+      "position_pct": 15.0,
+      "pump_confirmed": true,
+      "thesis_1liner": "A-grade EARNINGS_BEAT 6/10 (9d) with +44% 20d, RS +39.2%, PUMP_CONFIRMED across 11 engines. Breakout volume + backwardation.",
+      "conviction": "HIGH"
+    },
+    {
+      "ticker": "WDC",
+      "catalyst_grade": "A",
+      "catalyst_type": "PRODUCT_LAUNCH",
+      "position_pct": 13.0,
+      "pump_confirmed": true,
+      "thesis_1liner": "A-grade PRODUCT_LAUNCH with +22% YoY exabyte delivery, PUMP_CONFIRMED, +26.6% 20d, RS +21.3%, NEAR_52W_HIGH momentum.",
+      "conviction": "HIGH"
+    },
+    {
+      "ticker": "CRM",
+      "catalyst_grade": "A",
+      "catalyst_type": "GUIDANCE_RAISE",
+      "position_pct": 10.0,
+      "pump_confirmed": false,
+      "thesis_1liner": "A-grade GUIDANCE_RAISE on Agent Force 40% repeat bookings, FY guidance raise, +14% 20d, ALL_GREEN, idio_alpha +13.5%.",
+      "conviction": "MEDIUM-HIGH"
+    }
+  ],
+  "catalysts": {
+    "n_a_grade": 5,
+    "n_b_grade": 6,
+    "n_c_grade": 0,
+    "n_d_grade": 4,
+    "n_classified": 15,
+    "flagged": [
+      "ARM",
+      "MU",
+      "SNDK",
+      "MRVL"
+    ]
+  },
+  "basket": {
+    "n_positions": 8,
+    "n_pump_confirmed": 2,
+    "total_exposure": 68.0
+  },
+  "clusters": [
+    {
+      "id": "earnings_2026-06-02",
+      "type": "TEMPORAL_EARNINGS",
+      "quality": "C",
+      "scope": "MIXED",
+      "members": [
+        "PANW",
+        "AVGO",
+        "CRWD"
+      ],
+      "leader": "PANW",
+      "action": "RE_RANK"
+    },
+    {
+      "id": "thematic_Semiconductors_SYMPATHY_MOVE",
+      "type": "THEMATIC_SYMPATHY_MOVE",
+      "quality": "D",
+      "scope": "ADJACENT",
+      "members": [
+        "ARM",
+        "MU",
+        "MRVL"
+      ],
+      "leader": "ARM",
+      "action": "MONITOR"
+    }
+  ],
+  "suggested_additions": [],
+  "early": {
+    "trading_date": "2026-06-01",
+    "n_confirmed_today": 0,
+    "n_fresh": 0,
+    "n_aging": 0,
+    "n_actionable": 6,
+    "actionable": [
+      "AVGO",
+      "CRM",
+      "DELL",
+      "IBM",
+      "MSFT",
+      "ORCL"
+    ]
+  }
+}

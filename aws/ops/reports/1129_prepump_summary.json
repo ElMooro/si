@@ -1,0 +1,91 @@
+{
+  "started": "2026-06-01T22:27:44.636197+00:00",
+  "phases": [
+    {
+      "name": "schedule",
+      "status": "ok",
+      "result": {
+        "schedule": "justhodl-prepump-summary-30min",
+        "cron": "cron(12,42 * * * ? *)"
+      }
+    },
+    {
+      "name": "invoke",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 1.3,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 0.3,
+          "bytes_gzipped": 1079,
+          "n_top_picks": 3,
+          "n_clusters": 2,
+          "n_suggested": 0,
+          "conviction": "A-"
+        }
+      }
+    },
+    {
+      "name": "verify_summary",
+      "status": "ok",
+      "result": {
+        "gzipped_size_bytes": 1079,
+        "gzipped_size_kb": 1.05,
+        "plain_size_bytes": 2931,
+        "plain_size_kb": 2.86,
+        "content_encoding": "gzip",
+        "cache_control": "public, max-age=300",
+        "old_payload_kb": 137.5,
+        "shrinkage_pct": 99.2,
+        "conviction": "A-",
+        "n_top_picks": 3,
+        "n_clusters": 2,
+        "n_suggested": 0,
+        "sources_loaded": {
+          "brief": true,
+          "positioning": true,
+          "catalysts": true,
+          "clusters": true,
+          "early": true
+        },
+        "sources_freshness": {
+          "brief_seconds": 1579,
+          "positioning_seconds": 1017,
+          "catalysts_seconds": 3752,
+          "clusters_seconds": 2945,
+          "early_seconds": 3449
+        },
+        "top_picks_preview": [
+          {
+            "ticker": "ORCL",
+            "catalyst_grade": "A",
+            "catalyst_type": "EARNINGS_BEAT",
+            "position_pct": 15.0,
+            "pump_confirmed": true,
+            "thesis_1liner": "A-grade EARNINGS_BEAT 6/10 (9d) with +44% 20d, RS +39.2%, PUMP_CONFIRMED across 11 engines. Breakout volume + backwardation.",
+            "conviction": "HIGH"
+          },
+          {
+            "ticker": "WDC",
+            "catalyst_grade": "A",
+            "catalyst_type": "PRODUCT_LAUNCH",
+            "position_pct": 13.0,
+            "pump_confirmed": true,
+            "thesis_1liner": "A-grade PRODUCT_LAUNCH with +22% YoY exabyte delivery, PUMP_CONFIRMED, +26.6% 20d, RS +21.3%, NEAR_52W_HIGH momentum.",
+            "conviction": "HIGH"
+          },
+          {
+            "ticker": "CRM",
+            "catalyst_grade": "A",
+            "catalyst_type": "GUIDANCE_RAISE",
+            "position_pct": 10.0,
+            "pump_confirmed": false,
+            "thesis_1liner": "A-grade GUIDANCE_RAISE on Agent Force 40% repeat bookings, FY guidance raise, +14% 20d, ALL_GREEN, idio_alpha +13.5%.",
+            "conviction": "MEDIUM-HIGH"
+          }
+        ]
+      }
+    }
+  ],
+  "finished": "2026-06-01T22:27:49.550448+00:00"
+}
