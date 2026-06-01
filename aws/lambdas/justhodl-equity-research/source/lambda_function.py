@@ -429,20 +429,29 @@ def compute_valuation(profile: dict, ratios_ttm: dict, key_ttm: dict,
                        ratios_annual: list, dcf: dict, pt_consensus: dict,
                        quote: dict) -> dict:
     """Pull all the valuation metrics into one section."""
-    pe_ttm     = _safe_num(ratios_ttm, "peRatioTTM")
+    # FMP /stable/ratios-ttm field names (verified by ops 1139):
+    #   priceToEarningsRatioTTM, priceToBookRatioTTM, priceToSalesRatioTTM,
+    #   priceToFreeCashFlowRatioTTM (NO 's'), enterpriseValueMultipleTTM,
+    #   operatingProfitMarginTTM. priceEarningsToGrowthRatioTTM doesn't exist —
+    #   it's priceToEarningsGrowthRatioTTM.
+    # ROE/ROIC live in /stable/key-metrics-ttm not ratios-ttm.
+    pe_ttm     = (_safe_num(ratios_ttm, "priceToEarningsRatioTTM")
+                  or _safe_num(ratios_ttm, "peRatioTTM"))
     pb_ttm     = _safe_num(ratios_ttm, "priceToBookRatioTTM")
     ps_ttm     = _safe_num(ratios_ttm, "priceToSalesRatioTTM")
-    pfcf_ttm   = _safe_num(ratios_ttm, "priceToFreeCashFlowsRatioTTM")
-    ev_ebitda  = _safe_num(ratios_ttm, "enterpriseValueMultipleTTM") \
-                 or _safe_num(key_ttm,  "enterpriseValueOverEBITDATTM")
+    pfcf_ttm   = (_safe_num(ratios_ttm, "priceToFreeCashFlowRatioTTM")
+                  or _safe_num(ratios_ttm, "priceToFreeCashFlowsRatioTTM"))
+    ev_ebitda  = (_safe_num(ratios_ttm, "enterpriseValueMultipleTTM")
+                  or _safe_num(key_ttm,  "evToEBITDATTM")
+                  or _safe_num(key_ttm,  "enterpriseValueOverEBITDATTM"))
     fcf_yield  = _safe_num(key_ttm, "freeCashFlowYieldTTM")
-    div_yield  = _safe_num(ratios_ttm, "dividendYieldTTM") \
-                 or _safe_num(key_ttm, "dividendYieldTTM")
-    peg        = _safe_num(ratios_ttm, "priceEarningsToGrowthRatioTTM")
-    roe        = _safe_num(ratios_ttm, "returnOnEquityTTM") \
-                 or _safe_num(key_ttm, "returnOnEquityTTM")
-    roic       = _safe_num(key_ttm, "returnOnInvestedCapitalTTM") \
-                 or _safe_num(ratios_ttm, "returnOnInvestedCapitalTTM")
+    div_yield  = (_safe_num(ratios_ttm, "dividendYieldTTM")
+                  or _safe_num(ratios_ttm, "dividendYieldPercentageTTM")
+                  or _safe_num(key_ttm, "dividendYieldTTM"))
+    peg        = (_safe_num(ratios_ttm, "priceToEarningsGrowthRatioTTM")
+                  or _safe_num(ratios_ttm, "priceEarningsToGrowthRatioTTM"))
+    roe        = _safe_num(key_ttm, "returnOnEquityTTM")
+    roic       = _safe_num(key_ttm, "returnOnInvestedCapitalTTM")
 
     # 5yr avg PE from annual ratios
     pe_5yr = None
@@ -504,7 +513,8 @@ def compute_financial_health(scores: list, ratios_ttm: dict, key_ttm: dict,
     pillars: Dict[str, Any] = {}
 
     # 1. Profitability — ROE > 15, margin > 10
-    roe = _safe_num(ratios_ttm, "returnOnEquityTTM") or 0
+    # ROE lives in key-metrics-ttm not ratios-ttm (FMP).
+    roe = _safe_num(key_ttm, "returnOnEquityTTM") or _safe_num(ratios_ttm, "returnOnEquityTTM") or 0
     op_margin = _safe_num(ratios_ttm, "operatingProfitMarginTTM") or 0
     prof_score = min(100, (roe * 100 * 3 + op_margin * 100 * 3) / 2)  # cap at 100
     pillars["profitability"] = {
@@ -569,17 +579,22 @@ def build_peer_comparison(subject_ticker: str, subject_ratios_ttm: dict,
     import statistics as _stats
 
     def make_row(sym, name, price, mkt_cap, ratios, key_metrics, is_subject=False):
+        # ratios = /stable/ratios-ttm response.  Provides PE/PB/PS/EV multiple / op margin.
+        # key_metrics = /stable/key-metrics-ttm response.  Provides ROE / ROIC / EV/EBITDA.
+        # FMP field naming verified by ops 1139.
         return {
             "symbol":      sym,
             "name":        name,
             "price":       price,
             "market_cap":  mkt_cap,
-            "pe":          _safe_num(ratios, "peRatioTTM") or _safe_num(ratios, "priceEarningsRatioTTM"),
+            "pe":          (_safe_num(ratios, "priceToEarningsRatioTTM")
+                              or _safe_num(ratios, "peRatioTTM")),
             "pb":          _safe_num(ratios, "priceToBookRatioTTM"),
             "ps":          _safe_num(ratios, "priceToSalesRatioTTM"),
             "ev_ebitda":   (_safe_num(ratios, "enterpriseValueMultipleTTM")
+                              or _safe_num(key_metrics, "evToEBITDATTM")
                               or _safe_num(key_metrics, "enterpriseValueOverEBITDATTM")),
-            "roe_pct":     _pct(_safe_num(ratios, "returnOnEquityTTM")),
+            "roe_pct":     _pct(_safe_num(key_metrics, "returnOnEquityTTM")),
             "op_margin_pct": _pct(_safe_num(ratios, "operatingProfitMarginTTM")),
             "is_subject":  is_subject,
         }
