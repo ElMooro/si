@@ -1,0 +1,70 @@
+{
+  "started": "2026-06-01T01:33:20.386442+00:00",
+  "phases": [
+    {
+      "name": "check_existing",
+      "status": "ok",
+      "result": {
+        "exists": false
+      }
+    },
+    {
+      "name": "get_api_key",
+      "status": "ok",
+      "result": {
+        "has_key": false,
+        "prefix": null
+      }
+    },
+    {
+      "name": "build_zip",
+      "status": "ok",
+      "result": {
+        "size_kb": 28.5,
+        "files": [
+          "_fred_shim.py",
+          "_sentry_lite.py",
+          "api_auth.py",
+          "calibration.py",
+          "finra_si.py",
+          "ka_aliases.py",
+          "lambda_function.py",
+          "system_events.py"
+        ]
+      }
+    },
+    {
+      "name": "create_lambda",
+      "status": "ok",
+      "result": {
+        "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-auction-crisis-ai",
+        "state": "Pending"
+      }
+    },
+    {
+      "name": "wait_active",
+      "status": "ok",
+      "result": {
+        "state": "Active",
+        "waited_s": 3
+      }
+    },
+    {
+      "name": "invoke",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 0.8,
+        "status": 500,
+        "body_preview": "{\"status\": \"error\", \"error\": \"Claude API error: ANTHROPIC_API_KEY not set in env\"}"
+      }
+    },
+    {
+      "name": "schedule",
+      "status": "ok",
+      "result": {
+        "created": true
+      }
+    }
+  ],
+  "finished": "2026-06-01T01:33:26.834627+00:00"
+}
