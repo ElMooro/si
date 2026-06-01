@@ -96,6 +96,7 @@ INPUT_KEYS = {
     "research":      "data/ticker-research-bundle.json",
     "synthesis":     "data/ai-website-synthesis.json",
     "earnings_cal":  "data/earnings-tracker.json",
+    "momentum":      "data/momentum-leaders.json",
 }
 PRIOR_KEY = "data/pump-radar-brief.json"
 
@@ -144,10 +145,11 @@ def compact_radar(d: dict) -> dict:
 def compact_positioning(d: dict) -> dict:
     if not d: return {}
     basket = d.get("portfolio_basket") or {}
+    aggressive = d.get("aggressive_basket") or {}
     return {
         "generated_at": d.get("generated_at"),
         "macro_regime": d.get("macro_regime"),
-        "basket": {
+        "conservative_basket": {
             "n_positions":    basket.get("n_positions"),
             "total_exposure": basket.get("total_exposure"),
             "cash_pct":       basket.get("cash_pct"),
@@ -157,6 +159,15 @@ def compact_positioning(d: dict) -> dict:
                  if k in ("ticker","position_pct","pump_score","sector","entry","stop","tp1","tp2","tp3","rr_ratio")}
                 for p in (basket.get("positions") or [])[:8]
             ],
+        },
+        "aggressive_basket": {
+            "n_positions":    aggressive.get("n_positions"),
+            "total_exposure": aggressive.get("total_exposure"),
+            "cash_pct":       aggressive.get("cash_pct"),
+            "max_risk_at_stops_pct": aggressive.get("max_risk_at_stops_pct"),
+            "sector_breakdown": aggressive.get("sector_breakdown"),
+            "philosophy":     aggressive.get("philosophy"),
+            "positions": aggressive.get("positions") or [],   # full 5-7 names
         },
         "candidates_framework": [
             {
@@ -170,10 +181,51 @@ def compact_positioning(d: dict) -> dict:
                 "stop_loss":       (c.get("trade_framework") or {}).get("stop_loss"),
                 "stop_pct":        (c.get("trade_framework") or {}).get("stop_loss_pct"),
                 "position_size":   (c.get("trade_framework") or {}).get("position_size_pct"),
+                "momentum_score":  (c.get("momentum") or {}).get("momentum_score"),
+                "momentum_tags":   (c.get("momentum") or {}).get("tags", [])[:5],
                 "warnings":        c.get("warnings", [])[:3],
             }
             for c in (d.get("candidates") or [])[:8]
         ],
+    }
+
+
+def compact_momentum(d: dict) -> dict:
+    """Compact the momentum-leaders.json for synthesis."""
+    if not d: return {}
+    return {
+        "generated_at": d.get("generated_at"),
+        "n_scored":     d.get("n_scored"),
+        "n_pump_confirmed": d.get("n_pump_confirmed"),
+        "leaders": [
+            {
+                "ticker":         l.get("ticker"),
+                "rank":           l.get("rank"),
+                "momentum_score": l.get("momentum_score"),
+                "perf_5d":        l.get("perf_5d_pct"),
+                "perf_20d":       l.get("perf_20d_pct"),
+                "perf_60d":       l.get("perf_60d_pct"),
+                "rs_spy_20d":     l.get("rs_spy_20d_pct"),
+                "wk52_proximity": l.get("wk52_proximity"),
+                "vol_surge":      l.get("volume_surge"),
+                "tags":           l.get("tags", []),
+                "pump_confirmed": l.get("pump_confirmed"),
+                "pump_likelihood": l.get("pump_likelihood"),
+                "n_engines":      l.get("n_engines"),
+            }
+            for l in (d.get("leaders") or [])[:15]
+        ],
+        "pump_confirmed": [
+            {
+                "ticker":         c.get("ticker"),
+                "momentum_score": c.get("momentum_score"),
+                "pump_likelihood": c.get("pump_likelihood"),
+                "n_engines":      c.get("n_engines"),
+                "tags":           c.get("tags", []),
+            }
+            for c in (d.get("pump_confirmed") or [])
+        ],
+        "spy_perf_20d": (d.get("metadata") or {}).get("spy_perf_20d"),
     }
 
 
@@ -395,73 +447,84 @@ def compute_whats_changed(prior: Optional[dict], current_top: List[dict]) -> dic
 # Claude synthesis
 # ═════════════════════════════════════════════════════════════════════
 
-SYSTEM_PROMPT = """You are the chief investment officer's morning desk \
-synthesizing 7 quantitative layers into a one-page institutional brief. \
-You are NOT writing fluff. Every claim must reference a specific number \
-from the data provided.
+SYSTEM_PROMPT = """You are the head trader at a small pump-hunting prop \
+fund. The PM is here to MAKE MONEY. Risk management matters only insofar as it \
+keeps the account from going to zero — concentration is acceptable, hedging is \
+optional. Your job is to surface the highest-probability pump setups and \
+SIZE THEM TO MATTER.
 
 YOUR JOB
 ═════════
-Read the structured data (no transcripts — these are summaries of 7 different
-quant engines) and produce a single morning brief with these sections:
+Read the 10 structured data layers (no transcripts — these are numerical
+summaries of independent quant engines) and produce a one-page brief.
 
-  macro_frame: 2-3 sentences. Current macro regime + what specifically favors
-               or disfavors longs right now. Reference the regime summary.
+PRIORITIZE PUMP CANDIDATES — names with HIGH momentum AND multi-engine
+convergence. These are the PUMP_CONFIRMED tier. Lead with these.
+
+Produce JSON with these sections:
+
+  macro_frame: 2-3 sentences on the regime. Be DIRECTIONAL — if it favors longs,
+                 say so. Don't equivocate. Reference the regime summary.
 
   top_3_long_ideas: An array of EXACTLY 3 ticker recommendations, ranked by
-                    conviction. For each, provide a JSON object with:
+                    PUMP PROBABILITY (combined pump_likelihood × momentum_score).
+                    PREFER PUMP_CONFIRMED tickers when available.
+                    For each, a JSON object with:
                       ticker:           (string)
-                      conviction:       "HIGH" | "MEDIUM" | "MEDIUM-HIGH" | "LOW"
+                      conviction:       "HIGH" | "MEDIUM-HIGH" | "MEDIUM"
                       thesis_1liner:    25-word punchy thesis
-                      bull_bullets:     array of EXACTLY 3 bullet strings, each
-                                          referencing specific data (e.g. 'PLTR is
-                                          in 8 engines with pump_likelihood 54.5;
-                                          earnings tone rising +10pts')
+                      bull_bullets:     EXACTLY 3 bullets, each with specific
+                                          numbers ('pump_likelihood 54.5, +19.04%
+                                          5d, RS_SPY +11.8, ULTRA tier across 8
+                                          engines, IV_rank 35.2')
                       key_risk:         one risk bullet
-                      sized_position:   "X.X% position with stop at $Y (-Z%)
-                                          targeting TP1 $A / TP2 $B"
-                      catalyst_window:  "next earnings in X days" | "no near catalyst"
+                      sized_position:   AGGRESSIVE: 'X.X% position with stop at $Y
+                                          (-Z%) targeting TP1 $A / TP2 $B'.
+                                          Use the AGGRESSIVE basket sizing, NOT the
+                                          conservative one (10-15% per name is fine).
+                      catalyst_window:  'next earnings in X days' | 'no near catalyst'
+                      momentum_data:    'momentum_score X.X, perf_20d Y%, tags: [...]'
 
   top_2_pair_trades: An array of EXACTLY 2 pair trades from the pairs data.
+                     ONLY include pairs with hedge_quality 'excellent' or 'good'.
+                     If only 1 pair meets that bar, return 1.
                      For each:
-                       long_ticker:     (string)
-                       short_ticker:    (string)
-                       why_hedged:      "correlation X.XX = excellent/good hedge"
+                       long_ticker, short_ticker,
+                       why_hedged:      'correlation X.XX = excellent/good hedge'
                        expected_alpha:  (from pairs.expected_alpha_1m)
-                       trade_thesis:    "long X for Y / short Z because W"
+                       trade_thesis:    'long X for Y / short Z because W'
 
-  what_to_watch_today: Array of 3-5 watch items. Each item is a short string:
-                         "X reports earnings on YYYY-MM-DD AMC/BMO"
-                         "FOMC at 2:00pm ET — likely to move yield-sensitive names"
-                         "Pump basket has Z% exposure; tighten stops if SPY breaks below..."
+  what_to_watch_today: Array of 3-5 watch items.
 
-  risk_warnings: Array of 1-4 risk items. Each is a short string. Focus on
-                  PORTFOLIO-LEVEL concerns: concentration, regime risk, expired
-                  edges, low-quality pairs. If basket is healthy, can be empty.
+  risk_warnings: Array of 1-3 ONLY. Be CONCISE. Skip generic warnings about
+                  concentration — the PM has chosen concentration. Focus on
+                  SPECIFIC catalysts that could invalidate: 'PLTR earnings in 5d
+                  could IV-crush the trade' or 'Macro regime deteriorating'.
+                  If basket is healthy and no specific risks loom, return [].
 
   whats_changed: 2-3 sentences on what shifted since yesterday's brief. Use the
-                  whats_changed data provided to ground this.
+                  whats_changed data provided.
 
-  conviction_grade: One of "A+" "A" "A-" "B+" "B" "B-" "C+" "C" "C-" "D"
-                     What's our overall confidence in the day's setup?
-                     A: high conviction + multi-engine convergence + regime
-                        supports longs + earnings tone bullish
-                     C: mixed signals, defensive regime, no clear leader
-                     D: avoid; warnings outweigh edges
+  conviction_grade: "A+" "A" "A-" "B+" "B" "B-" "C+" "C" "C-" "D"
+                     Reflects the actual setup. Be honest — but in pump-hunter
+                     mode, even moderate conviction can warrant aggressive sizing
+                     because POSITION SIZE × WIN RATE × R MULTIPLE is the formula
+                     and pump_likelihood >50 with momentum >70 is usually B+ or A-.
 
-  executive_summary: 40-60 word top-line. The one paragraph that goes on the
-                       desk and at the top of the report. Lead with the verb,
-                       e.g. 'Lean LONG with high conviction in technology
-                       infrastructure: PLTR (sized 5%), APH (5%), MSFT (5%)...'
+  executive_summary: 40-60 word top-line. Lead with the verb:
+                       'CONCENTRATE LONG in 3 pump-confirmed names: PLTR (15%),
+                       MSFT (12%), NEM (10%). PUMP_CONFIRMED setups across 3 of 8
+                       basket positions. Aggressive 90% deployment with hard stops...'
 
 STYLE RULES
 ═══════════
 - Every number you cite must be from the provided data. Don't invent.
-- If data is missing for a candidate, say so ('no transcript data available').
-- Be DIRECTIONAL. Hedge funds don't pay for 'it could go either way'.
-- conviction_grade must reflect the actual setup. Don't grade-inflate.
-- 'whats_changed' should be tactical: 'NEM and APH rotated in; LLY rotated out
-  on tone-falling signal. Conviction lifted from B to B+ on PLTR's raised guidance.'
+- AGGRESSIVE SIZING is the default. Use the aggressive_basket positions, not
+  the conservative_basket. The user has explicitly chosen concentration.
+- The aggressive basket has 5-7 names; if it returns 3 names sized 15/12/10,
+  surface those as your top 3 — don't dilute by adding marginal names.
+- Be DIRECTIONAL. Pump-hunter funds don't hedge for theoretical concerns.
+- LIMIT risk_warnings to 1-3 SPECIFIC items; skip generic concentration warnings.
 
 OUTPUT FORMAT — pure JSON, no markdown:
 {
@@ -561,6 +624,7 @@ def lambda_handler(event, context):
         "analytics":    compact_analytics(raw.get("analytics", {})),
         "pairs":        compact_pairs(raw.get("pairs", {})),
         "nlp":          compact_nlp(raw.get("nlp", {})),
+        "momentum":     compact_momentum(raw.get("momentum", {})),
         "research":     {  # ticker-research is large; only summaries
             "research": _compact_research(raw.get("research")),
         },

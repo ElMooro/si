@@ -551,6 +551,39 @@ def enrich_candidate(cand: dict, catalyst_map: Dict[str, dict],
 # Portfolio basket construction
 # ═════════════════════════════════════════════════════════════════════
 
+# AGGRESSIVE MODE constants (user wants to make money — concentration is fine)
+AGGRESSIVE_MAX_PER_NAME   = 15.0   # up to 15% per name
+AGGRESSIVE_MIN_PER_NAME   = 5.0    # min 5% (meaningful position)
+AGGRESSIVE_MAX_PER_SECTOR = 60.0   # allow up to 60% in one sector
+AGGRESSIVE_N_NAMES_TARGET = 6      # concentrate in 5-7 names
+AGGRESSIVE_TOTAL_EXPOSURE = 100.0  # near-full deployment
+
+
+def load_momentum_leaders() -> Dict[str, dict]:
+    """Map ticker → momentum_score from momentum-leaders.json (if available)."""
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="data/momentum-leaders.json")
+        d = json.loads(obj["Body"].read())
+        out = {}
+        for r in (d.get("all_scored") or []):
+            t = r.get("ticker")
+            if t:
+                out[t] = {
+                    "momentum_score":  r.get("momentum_score"),
+                    "rank":            r.get("rank"),
+                    "tags":            r.get("tags", []),
+                    "perf_5d":         r.get("perf_5d_pct"),
+                    "perf_20d":        r.get("perf_20d_pct"),
+                    "rs_spy_20d":      r.get("rs_spy_20d_pct"),
+                    "wk52_proximity":  r.get("wk52_proximity"),
+                    "pump_confirmed":  r.get("pump_confirmed"),
+                }
+        return out
+    except Exception as e:
+        print(f"[momentum-load] {e}")
+        return {}
+
+
 def build_portfolio_basket(candidates: List[dict]) -> dict:
     """Construct a sector-aware basket from the enriched candidates.
 
@@ -631,6 +664,143 @@ def build_portfolio_basket(candidates: List[dict]) -> dict:
     }
 
 
+def build_aggressive_basket(candidates: List[dict],
+                              momentum_map: Dict[str, dict]) -> dict:
+    """Pump-hunter basket — concentrated in the highest-conviction names.
+
+    Philosophy: Concentration is the price of returns. We're not running a
+    pension fund. Build a 5-7 name basket weighted by COMBINED conviction:
+
+        combined_score = pump_likelihood × momentum_score (if momentum available)
+                          OR pump_likelihood alone
+
+    Sizing rules:
+    - Top conviction → 12-15% per name
+    - Mid conviction → 8-10% per name
+    - Min position size: 5% (no toe-dipping)
+    - Sector cap raised to 60% (allow concentrated bets)
+    - Target ~100% deployed
+    - Stops still required — concentration without stops is suicide
+
+    Returns a basket dict similar to build_portfolio_basket but with the
+    aggressive sizing applied.
+    """
+    eligible = []
+    for c in candidates:
+        if not isinstance(c.get("trade_framework"), dict) or "err" in c["trade_framework"]:
+            continue
+        if c.get("pump_likelihood", 0) < 45:
+            continue
+        # Build combined conviction score
+        pump = c.get("pump_likelihood", 50)
+        mom = (momentum_map.get(c["ticker"], {}) or {}).get("momentum_score")
+        mom_tags = (momentum_map.get(c["ticker"], {}) or {}).get("tags", [])
+        pump_confirmed = "PUMP_CONFIRMED" in mom_tags
+
+        if mom is not None:
+            # Geometric mean — both must be reasonable for high combined
+            combined = (pump * mom) ** 0.5
+        else:
+            combined = pump * 0.85  # discount for no momentum data
+        # Boost for PUMP_CONFIRMED
+        if pump_confirmed:
+            combined *= 1.15
+        eligible.append({
+            "cand": c,
+            "combined_score": combined,
+            "pump_likelihood": pump,
+            "momentum_score": mom,
+            "pump_confirmed": pump_confirmed,
+            "mom_tags": mom_tags,
+        })
+
+    eligible.sort(key=lambda x: -x["combined_score"])
+
+    # Aggressive sizing: top picks get big positions
+    # Map conviction tier → position size
+    def size_for_combined(score: float, rank: int) -> float:
+        if rank == 0 and score >= 60:    return 15.0  # top conviction
+        if rank <= 1 and score >= 55:    return 12.0
+        if rank <= 2 and score >= 50:    return 10.0
+        if rank <= 3 and score >= 45:    return 8.0
+        if rank <= 5 and score >= 40:    return 6.0
+        return AGGRESSIVE_MIN_PER_NAME    # min 5%
+
+    allocations = []
+    sector_totals: Dict[str, float] = {}
+    total_pct = 0.0
+
+    for i, e in enumerate(eligible[:AGGRESSIVE_N_NAMES_TARGET + 2]):
+        c = e["cand"]
+        fw = c["trade_framework"]
+        ctx = c.get("context") or {}
+        sector = ctx.get("sector", "Unknown")
+        sec_so_far = sector_totals.get(sector, 0)
+
+        proposed = size_for_combined(e["combined_score"], i)
+        proposed = min(AGGRESSIVE_MAX_PER_NAME, proposed)
+
+        # Sector cap 60%
+        if sec_so_far + proposed > AGGRESSIVE_MAX_PER_SECTOR:
+            proposed = max(0, AGGRESSIVE_MAX_PER_SECTOR - sec_so_far)
+        if proposed < AGGRESSIVE_MIN_PER_NAME:
+            continue
+        # Total cap
+        if total_pct + proposed > AGGRESSIVE_TOTAL_EXPOSURE:
+            proposed = max(0, AGGRESSIVE_TOTAL_EXPOSURE - total_pct)
+        if proposed < AGGRESSIVE_MIN_PER_NAME:
+            break
+
+        allocations.append({
+            "ticker":          c["ticker"],
+            "position_pct":    round(proposed, 2),
+            "pump_score":      c.get("pump_likelihood"),
+            "momentum_score":  e.get("momentum_score"),
+            "combined_score":  round(e["combined_score"], 2),
+            "pump_confirmed":  e["pump_confirmed"],
+            "mom_tags":        e["mom_tags"][:4],
+            "sector":          sector,
+            "stop":            fw.get("stop_loss"),
+            "tp1":             fw["tp_ladder"][0]["price"] if fw.get("tp_ladder") else None,
+            "tp2":             fw["tp_ladder"][1]["price"] if fw.get("tp_ladder") and len(fw["tp_ladder"]) > 1 else None,
+            "tp3":             fw["tp_ladder"][2]["price"] if fw.get("tp_ladder") and len(fw["tp_ladder"]) > 2 else None,
+            "entry":           (fw.get("entry_zone") or {}).get("current"),
+            "rr_ratio":        fw.get("rr_ratio"),
+            "horizon":         "1-2w",
+        })
+        sector_totals[sector] = sec_so_far + proposed
+        total_pct += proposed
+
+    # Worst-case dollar drawdown if every stop hits
+    risk_at_stops = sum(
+        a["position_pct"] * abs((c["trade_framework"].get("stop_loss_pct", -8) or -8) / 100)
+        for a in allocations
+        for c in [next((x for x in candidates if x["ticker"] == a["ticker"]), {"trade_framework": {}})]
+    )
+
+    return {
+        "n_positions":           len(allocations),
+        "total_exposure":        round(total_pct, 2),
+        "cash_pct":              round(100 - total_pct, 2),
+        "max_risk_at_stops_pct": round(risk_at_stops, 2),
+        "sector_breakdown":      {s: round(v, 2) for s, v in sector_totals.items()},
+        "positions":             allocations,
+        "philosophy":           ("PUMP-HUNTER MODE: Concentration is the price of "
+                                   "returns. 5-7 names, up to 15% each, near-full deployment. "
+                                   "Sized by combined pump_likelihood × momentum_score (geometric "
+                                   "mean), boosted 15% for PUMP_CONFIRMED. Sector cap relaxed to "
+                                   "60%. Stops are MANDATORY — concentration without stops is suicide."),
+        "construction_rules": {
+            "max_per_position":   AGGRESSIVE_MAX_PER_NAME,
+            "min_per_position":   AGGRESSIVE_MIN_PER_NAME,
+            "max_per_sector":     AGGRESSIVE_MAX_PER_SECTOR,
+            "n_names_target":     AGGRESSIVE_N_NAMES_TARGET,
+            "target_exposure":    AGGRESSIVE_TOTAL_EXPOSURE,
+            "combined_score":     "geometric_mean(pump × momentum) × 1.15 if PUMP_CONFIRMED",
+        },
+    }
+
+
 # ═════════════════════════════════════════════════════════════════════
 # Lambda handler
 # ═════════════════════════════════════════════════════════════════════
@@ -650,7 +820,9 @@ def lambda_handler(event, context):
 
     catalyst_map = build_catalyst_map()
     macro_regime = get_macro_regime()
-    print(f"[positioning] {len(candidates)} candidates · macro={macro_regime} · {len(catalyst_map)} earnings dates")
+    momentum_map = load_momentum_leaders()
+    print(f"[positioning] {len(candidates)} candidates · macro={macro_regime} · "
+            f"{len(catalyst_map)} earnings dates · {len(momentum_map)} momentum entries")
 
     # Enrich in parallel (each ticker fires 3 FMP calls, so cap concurrency)
     enriched = []
@@ -665,12 +837,20 @@ def lambda_handler(event, context):
                 print(f"[enrich] {cand['ticker']} err: {e}")
                 enriched.append({**cand, "err": str(e)[:120]})
 
+    # Attach momentum data to each enriched candidate
+    for c in enriched:
+        mom = momentum_map.get(c.get("ticker"))
+        if mom:
+            c["momentum"] = mom
+
     # Sort by pump_likelihood
     enriched.sort(key=lambda r: -r.get("pump_likelihood", 0))
 
-    # Build portfolio basket
+    # Build BOTH baskets — conservative (sector-neutral) AND aggressive (pump-hunter)
     basket = build_portfolio_basket(enriched)
-    print(f"[positioning] basket: {basket['n_positions']} positions, total exposure {basket['total_exposure']}%")
+    aggressive = build_aggressive_basket(enriched, momentum_map)
+    print(f"[positioning] conservative: {basket['n_positions']} pos {basket['total_exposure']}% · "
+            f"aggressive: {aggressive['n_positions']} pos {aggressive['total_exposure']}%")
 
     # Build output
     output = {
@@ -681,6 +861,7 @@ def lambda_handler(event, context):
         "macro_regime":    macro_regime,
         "candidates":      enriched,
         "portfolio_basket": basket,
+        "aggressive_basket": aggressive,
         "sizing_assumptions": {
             "target_vol_per_name":  TARGET_VOL_PER_NAME,
             "kelly_cap":            KELLY_CAP,

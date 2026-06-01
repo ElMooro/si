@@ -1,0 +1,16 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Pure momentum ranker: 30 perf_20d_rank + 25 perf_60d_rank + 20 RS_SPY + 15 wk52_proximity + 10 vol_surge. Tags AT_52W_HIGH, RS_LEADER, ACCELERATING, PUMP_CONFIRMED. Hourly :25.",
+  "environment": {"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-momentum-leaders-hourly",
+    "cron": "cron(25 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Momentum leaders hourly at :25"
+  }
+}
