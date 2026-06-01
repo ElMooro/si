@@ -1,0 +1,1434 @@
+{
+  "schema_version": "2.0",
+  "generated_at": "2026-06-01T01:06:55.147075+00:00",
+  "elapsed_sec": 3.18,
+  "elapsed_v2_sec": 0.28,
+  "regime": "CALM",
+  "composite_score": 9.3,
+  "interpretation": "Auctions clearing normally. Healthy demand profile, no flight-to-safety pattern.",
+  "n_recent_auctions_14d": 19,
+  "issuance_anomaly": {
+    "score": 0,
+    "pct_above_baseline": 7.1
+  },
+  "fed_funds_rate": 3.62,
+  "freshness": {
+    "latest_auction_date": "2026-05-28",
+    "latest_cusip": "912797UC9",
+    "hours_since_latest_auction": 97.1,
+    "previous_latest_cusip": "912797UC9",
+    "is_new_auction_this_run": false,
+    "n_total_auctions_pulled": 480,
+    "data_window_start": "2025-04-27",
+    "data_window_end": "2026-06-01",
+    "fetched_via": "https://api.fiscaldata.treasury.gov (no-cache headers, format=json)"
+  },
+  "recent_auctions": [
+    {
+      "auction_date": "2026-05-28",
+      "issue_date": "2026-06-02",
+      "security_type": "Bill",
+      "security_term": "4-Week",
+      "cusip": "912797UC9",
+      "tenor_bucket": "bills_lt_90d",
+      "high_rate": 3.63,
+      "low_rate": 3.5,
+      "median_rate": null,
+      "allocated_at_high_pct": 41.91,
+      "btc": 2.76,
+      "primary_dealer_pct": 39.954608596263434,
+      "indirect_pct": 54.11698381813868,
+      "direct_pct": 5.928407585597896,
+      "tail_bp": null,
+      "accepted_billions": 88.335393,
+      "indicator_scores": {
+        "zero_rate_floor": 0,
+        "btc_extreme": 0,
+        "tail_stress": 0,
+        "pd_absorption": 0
+      },
+      "max_indicator_score": 0,
+      "avg_indicator_score": 0.0,
+      "composite_score": 0.0
+    },
+    {
+      "auction_date": "2026-05-28",
+      "issue_date": "2026-06-02",
+      "security_type": "Bill",
+      "security_term": "8-Week",
+      "cusip": "912797UR6",
+      "tenor_bucket": "bills_lt_90d",
+      "high_rate": 3.615,
+      "low_rate": 3.52,
+      "median_rate": null,
+      "allocated_at_high_pct": 82.33,
+      "btc": 3.08,
+      "primary_dealer_pct": 32.18521549370709,
+      "indirect_pct": 64.69043142706884,
+      "direct_pct": 3.1243530792240635,
+      "tail_bp": null,
+      "accepted_billions": 83.1397335,
+      "indicator_scores": {
+        "zero_rate_floor": 0,
+        "btc_extreme": 0,
+        "tail_stress": 0,
+        "pd_absorption": 0
+      },
+      "max_indicator_score": 0,
+      "avg_indicator_score": 0.0,
+      "composite_score": 0.0
+    },
+    {
+      "auction_date": "2026-05-28",
+      "issue_date": "2026-06-01",
+      "security_type": "Note",
+      "security_term": "7-Year",
+      "cusip": "91282CQT1",
+      "tenor_bucket": "coupons_gt_3y",
+      "high_rate": 4.29,
+      "low_rate": 2.88,
+      "median_rate": null,
+      "allocated_at_high_pct": 71.23,
+      "btc": 2.52,
+      "primary_dealer_pct": 10.41872706721464,
+      "indirect_pct": 78.38687190979195,
+      "direct_pct": 11.194401022993404,
+      "tail_bp": null,
+      "accepted_billions": 50.4918888,
+      "indicator_scores": {
+        "btc_extreme": 0,
+        "tail_stress": 0,
+        "pd_absorption": 0,
+        "indirect_collapse": 0
+      },
+      "max_indicator_score": 0,
+      "avg_indicator_score": 0.0,
+      "composite_score": 0.0
+    },
+    {
+      "auction_date": "2026-05-27",
+      "issue_date": "2026-06-02",
+      "security_type": "Bill",
+      "security_term": "17-Week",
+      "cusip": "912797VE4",
+      "tenor_bucket": "bills_gte_90d",
+      "high_rate": 3.63,
+      "low_rate": 3.4,
+      "median_rate": null,
+      "allocated_at_high_pct": 25.59,
+      "btc": 3.01,
+      "primary_dealer_pct": 39.055921014228176,
+      "indirect_pct": 56.27983918105366,
+      "direct_pct": 4.664239804718163,
+      "tail_bp": null,
+      "accepted_billions": 71.7080518,
+      "indicator_scores": {
+        "btc_extreme": 0,
+        "tail_stress": 0,
+        "pd_absorption": 0
+      },
+      "max_indicator_score": 0,
+      "avg_indicator_score": 0.0,
+      "composite_score": 0.0
+    },
+    {
+      "auction_date": "2026-05-27",
+      "issue_date": "2026-05-29",
+      "security_type": "Note",
+      "security_term": "1-Year 11-Month",
+      "cusip": "91282CQM6",
+      "tenor_bucket": "coupons_lt_3y",
+      "high_rate": null,
+      "low_rate": null,
+      "median_rate": null,
+      "allocated_at_high_pct": 53.61,
+      "btc": 3.49,
+      "primary_dealer_pct": 26.841013596302925,
+      "indirect_pct": 72.44417911751057,
+      "direct_pct": 0.714807286186496,
+      "tail_bp": null,
+      "accepted_billions": 28.000453,
+      "indicator_scores": {
+        "btc_extreme": 0,
+        "tail_stress": 0,
+        "pd_absorption": 35,
+        "indirect_collapse": 0
+      },
+      "max_indicator_score": 35,
+      "avg_indicator_score": 8.8,
+      "composite_score": 27.1
+    },
+    {
+      "auction_date": "2026-05-27",
+      "issue_date": "2026-06-01",
+      "security_type": "Note",
+      "security_term": "5-Year",
+      "cusip": "91282CQU8",
+      "tenor_bucket": "coupons_gt_3y",
+      "high_rate": 4.182,
+      "low_rate": 4.07,
+      "median_rate": null,
+      "allocated_at_high_pct": 75.22,
+      "btc": 2.34,
+      "primary_dealer_pct": 12.802893049952175,
+      "indirect_pct": 74.85374344254377,
+      "direct_pct": 12.343363507504055,
+      "tail_bp": null,
+      "accepted_billions": 80.328049,
+      "indicator_scores": {
+        "btc_extreme": 0,
+        "tail_stress": 0,
+        "pd_absorption": 0,
+        "indirect_collapse": 0
+      },
+      "max_indicator_score": 0,
+      "avg_indicator_score": 0.0,
+      "composite_score": 0.0
+    },
+    {
+      "auction_date": "2026-05-26",
+      "issue_date": "2026-05-28",
+      "security_type": "Bill",
+      "security_term": "6-Week",
+      "cusip": "912797RF6",
+      "tenor_bucket": "bills_lt_90d",
+      "high_rate": 3.62,
+      "low_rate": 3.505,
+      "median_rate": null,
+      "allocated_at_high_pct": 68.12,
+      "btc": 2.71,
+      "primary_dealer_pct": 45.06066563840726,
+      "indirect_pct": 49.269410998099055,
+      "direct_pct": 5.669923363493686,
+      "tail_bp": null,
+      "accepted_billions": 88.2780634,
+      "indicator_scores": {
+        "zero_rate_floor": 0,
+        "btc_extreme": 0,
+        "tail_stress": 0,
+        "pd_absorption": 0
+      },
+      "max_indicator_score": 0,
+      "avg_indicator_score": 0.0,
+      "composite_score": 0.0
+    },
+    {
+      "auction_date": "2026-05-26",
+      "issue_date": "2026-05-28",
+      "security_type": "Bill",
+      "security_term": "26-Week",
+      "cusip": "912797SU2",
+      "tenor_bucket": "bills_gte_90d",
+      "high_rate": 3.65,
+      "low_rate": 3.5,
+      "median_rate": null,
+      "allocated_at_high_pct": 37.55,
+      "btc": 2.77,
+      "primary_dealer_pct": 34.18010262552453,
+      "indirect_pct": 57.3886541919738,
+      "direct_pct": 8.431243182501664,
+      "tail_bp": null,
+      "accepted_billions": 79.9683093,
+      "indicator_scores": {
+        "btc_extreme": 0,
+        "tail_stress": 0,
+        "pd_absorption": 0
+      },
+      "max_indicator_score": 0,
+      "avg_indicator_score": 0.0,
+      "composite_score": 0.0
+    },
+    {
+      "auction_date": "2026-05-26",
+      "issue_date": "2026-06-01",
+      "security_type": "Note",
+      "security_term": "2-Year",
+      "cusip": "91282CQS3",
+      "tenor_bucket": "coupons_lt_3y",
+      "high_rate": 4.071,
+      "low_rate": 3.9,
+      "median_rate": null,
+      "allocated_at_high_pct": 42.14,
+      "btc": 2.64,
+      "primary_dealer_pct": 12.337303236856485,
+      "indirect_pct": 57.55275472025978,
+      "direct_pct": 30.109942042883738,
+      "tail_bp": null,
+      "accepted_billions": 79.1805037,
+      "indicator_scores": {
+        "btc_extreme": 0,
+        "tail_stress": 0,
+        "pd_absorption": 0,
+        "indirect_collapse": 30
+      },
+      "max_indicator_score": 30,
+      "avg_indicator_score": 7.5,
+      "composite_score": 23.2
+    },
+    {
+      "auction_date": "2026-05-26",
+      "issue_date": "2026-05-28",
+      "security_type": "Bill",
+      "security_term": "13-Week",
+      "cusip": "912797TY3",
+      "tenor_bucket": "bills_gte_90d",
+      "high_rate": 3.595,
+      "low_rate": 3.5,
+      "median_rate": null,
+      "allocated_at_high_pct": 25.6,
+      "btc": 3.08,
+      "primary_dealer_pct": 32.753090276876264,
+      "indirect_pct": 60.2601707884335,
+      "direct_pct": 6.986738934690238,
+      "tail_bp": null,
+      "accepted_billions": 92.4313448,
+      "indicator_scores": {
+        "btc_extreme": 0,
+        "tail_stress": 0,
+        "pd_absorption": 0
+      },
+      "max_indicator_score": 0,
+      "avg_indicator_score": 0.0,
+      "composite_score": 0.0
+    }
+  ],
+  "indicator_aggregate_14d": {
+    "btc_extreme": {
+      "n_fired": 1,
+      "max_score": 70,
+      "auctions": [
+        {
+          "date": "2026-05-21",
+          "term": "27-Day",
+          "score": 70
+        }
+      ]
+    },
+    "tail_stress": {
+      "n_fired": 4,
+      "max_score": 70,
+      "auctions": [
+        {
+          "date": "2026-05-21",
+          "term": "27-Day",
+          "score": 60
+        },
+        {
+          "date": "2026-05-20",
+          "term": "20-Year",
+          "score": 70
+        },
+        {
+          "date": "2026-05-20",
+          "term": "17-Week",
+          "score": 50
+        },
+        {
+          "date": "2026-05-18",
+          "term": "13-Week",
+          "score": 60
+        }
+      ]
+    }
+  },
+  "historical_reference": [
+    {
+      "date": "2008-09-17",
+      "regime": "GFC_PEAK",
+      "btc": 2.45,
+      "low_rate": 0.0,
+      "aah": 83.72,
+      "pd_share_pct": 46.7,
+      "indirect_share_pct": 51.1
+    },
+    {
+      "date": "2008-09-18",
+      "regime": "GFC_PEAK",
+      "btc": 2.16,
+      "low_rate": 0.0,
+      "aah": 76.68,
+      "pd_share_pct": 69.0,
+      "indirect_share_pct": 29.3
+    },
+    {
+      "date": "2008-09-23",
+      "regime": "GFC_PEAK",
+      "btc": 2.86,
+      "low_rate": 0.0,
+      "aah": 6.92,
+      "pd_share_pct": 52.1,
+      "indirect_share_pct": 47.1
+    },
+    {
+      "date": "2008-10-08",
+      "regime": "GFC_PEAK",
+      "btc": 2.22,
+      "low_rate": 2.359,
+      "aah": 73.9,
+      "pd_share_pct": 52.4,
+      "indirect_share_pct": 47.5
+    },
+    {
+      "date": "2020-03-11",
+      "regime": "COVID_CRASH",
+      "btc": 2.36,
+      "low_rate": 0.08,
+      "aah": 74.94,
+      "pd_share_pct": 29.8,
+      "indirect_share_pct": 61.0
+    },
+    {
+      "date": "2020-03-19",
+      "regime": "COVID_CRASH",
+      "btc": 2.91,
+      "low_rate": 0.0,
+      "aah": 53.83,
+      "pd_share_pct": 41.8,
+      "indirect_share_pct": 46.4
+    },
+    {
+      "date": "2020-03-26",
+      "regime": "COVID_BAZOOKA",
+      "btc": 4.74,
+      "low_rate": 0.0,
+      "aah": 28.74,
+      "pd_share_pct": 44.3,
+      "indirect_share_pct": 51.3
+    },
+    {
+      "date": "2021-10-21",
+      "regime": "COMPLACENCY",
+      "btc": 3.52,
+      "low_rate": 0.02,
+      "aah": 79.47,
+      "pd_share_pct": 42.1,
+      "indirect_share_pct": 53.0
+    },
+    {
+      "date": "2024-04-10",
+      "regime": "NORMAL",
+      "btc": 2.34,
+      "low_rate": 4.4,
+      "aah": 54.1,
+      "pd_share_pct": 24.0,
+      "indirect_share_pct": 61.8
+    },
+    {
+      "date": "2024-10-09",
+      "regime": "NORMAL",
+      "btc": 2.48,
+      "low_rate": 2.88,
+      "aah": 99.31,
+      "pd_share_pct": 13.9,
+      "indirect_share_pct": 77.6
+    }
+  ],
+  "tenor_decomposition": {
+    "bills_lt_90d": {
+      "n_auctions": 7,
+      "composite": 2.7,
+      "max_composite": 61.4,
+      "latest_date": "2026-05-28",
+      "dominant_signal": "btc_extreme",
+      "label": "T-Bills < 90d",
+      "risk_profile": "Flight-to-safety pattern. Money parking. Usually first signal.",
+      "rank": 4
+    },
+    "bills_gte_90d": {
+      "n_auctions": 6,
+      "composite": 15.0,
+      "max_composite": 48.0,
+      "latest_date": "2026-05-27",
+      "dominant_signal": "tail_stress",
+      "label": "T-Bills 13w-52w",
+      "risk_profile": "Term funding stress. Less acute but more persistent.",
+      "rank": 2
+    },
+    "coupons_lt_3y": {
+      "n_auctions": 2,
+      "composite": 24.2,
+      "max_composite": 27.1,
+      "latest_date": "2026-05-27",
+      "dominant_signal": null,
+      "label": "Notes 2y-3y",
+      "risk_profile": "Front-end dislocation. Often coincides with Fed expectations shift.",
+      "rank": 1
+    },
+    "coupons_gt_3y": {
+      "n_auctions": 4,
+      "composite": 5.9,
+      "max_composite": 54.2,
+      "latest_date": "2026-05-28",
+      "dominant_signal": "tail_stress",
+      "label": "Notes/Bonds 5y-30y",
+      "risk_profile": "Long-duration absorption stress. Dealer balance-sheet limit signal.",
+      "rank": 3
+    },
+    "tips": {
+      "n_auctions": 0,
+      "composite": null,
+      "max_composite": null,
+      "latest_date": null,
+      "dominant_signal": null,
+      "label": "TIPS (Inflation-Linked)",
+      "risk_profile": "Inflation-expectations dislocation. Real-rate stress."
+    },
+    "frn": {
+      "n_auctions": 0,
+      "composite": null,
+      "max_composite": null,
+      "latest_date": null,
+      "dominant_signal": null,
+      "label": "Floating Rate Notes",
+      "risk_profile": "Banking-sector funding alternative. Marginal signal."
+    }
+  },
+  "forward_calendar": [
+    {
+      "auction_date": "2026-06-01",
+      "issue_date": "2026-06-04",
+      "security_type": "Bill",
+      "security_term": "13-Week",
+      "offering_amount_billions": 89.0,
+      "cusip": "912797RS8",
+      "tenor_bucket": "bills_gte_90d",
+      "days_ahead": 0,
+      "forecast": {
+        "forecast_score": 16.7,
+        "forecast_label": "CALM",
+        "confidence": "HIGH",
+        "components": {
+          "own_tenor_stress": 15.0,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 17.1,
+          "size_shock_score": 25,
+          "time_decay_factor": 1.0
+        },
+        "narrative": "Offering size $89B vs trailing avg $76B = +17% supply shock."
+      }
+    },
+    {
+      "auction_date": "2026-06-01",
+      "issue_date": "2026-06-04",
+      "security_type": "Bill",
+      "security_term": "26-Week",
+      "offering_amount_billions": 77.0,
+      "cusip": "912797VA2",
+      "tenor_bucket": "bills_gte_90d",
+      "days_ahead": 0,
+      "forecast": {
+        "forecast_score": 13.0,
+        "forecast_label": "CALM",
+        "confidence": "HIGH",
+        "components": {
+          "own_tenor_stress": 15.0,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 1.3,
+          "size_shock_score": 10,
+          "time_decay_factor": 1.0
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-02",
+      "issue_date": "2026-06-04",
+      "security_type": "Bill",
+      "security_term": "6-Week",
+      "offering_amount_billions": 75.0,
+      "cusip": "912797TN7",
+      "tenor_bucket": "bills_lt_90d",
+      "days_ahead": 1,
+      "forecast": {
+        "forecast_score": 4.3,
+        "forecast_label": "CALM",
+        "confidence": "HIGH",
+        "components": {
+          "own_tenor_stress": 2.7,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": -11.3,
+          "size_shock_score": 0,
+          "time_decay_factor": 1.0
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-03",
+      "issue_date": "2026-06-09",
+      "security_type": "Bill",
+      "security_term": "17-Week",
+      "offering_amount_billions": null,
+      "cusip": "912797VK0",
+      "tenor_bucket": "bills_gte_90d",
+      "days_ahead": 2,
+      "forecast": {
+        "forecast_score": 10.5,
+        "forecast_label": "CALM",
+        "confidence": "HIGH",
+        "components": {
+          "own_tenor_stress": 15.0,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 0.0,
+          "size_shock_score": 0,
+          "time_decay_factor": 1.0
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-04",
+      "issue_date": "2026-06-09",
+      "security_type": "Bill",
+      "security_term": "4-Week",
+      "offering_amount_billions": null,
+      "cusip": "912797UN5",
+      "tenor_bucket": "bills_lt_90d",
+      "days_ahead": 3,
+      "forecast": {
+        "forecast_score": 4.3,
+        "forecast_label": "CALM",
+        "confidence": "HIGH",
+        "components": {
+          "own_tenor_stress": 2.7,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 0.0,
+          "size_shock_score": 0,
+          "time_decay_factor": 1.0
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-04",
+      "issue_date": "2026-06-09",
+      "security_type": "Bill",
+      "security_term": "8-Week",
+      "offering_amount_billions": null,
+      "cusip": "912797US4",
+      "tenor_bucket": "bills_lt_90d",
+      "days_ahead": 3,
+      "forecast": {
+        "forecast_score": 4.3,
+        "forecast_label": "CALM",
+        "confidence": "HIGH",
+        "components": {
+          "own_tenor_stress": 2.7,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 0.0,
+          "size_shock_score": 0,
+          "time_decay_factor": 1.0
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-08",
+      "issue_date": "2026-06-11",
+      "security_type": "Bill",
+      "security_term": "13-Week",
+      "offering_amount_billions": null,
+      "cusip": "912797UF2",
+      "tenor_bucket": "bills_gte_90d",
+      "days_ahead": 7,
+      "forecast": {
+        "forecast_score": 8.9,
+        "forecast_label": "CALM",
+        "confidence": "MEDIUM",
+        "components": {
+          "own_tenor_stress": 15.0,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 0.0,
+          "size_shock_score": 0,
+          "time_decay_factor": 0.85
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-08",
+      "issue_date": "2026-06-11",
+      "security_type": "Bill",
+      "security_term": "26-Week",
+      "offering_amount_billions": null,
+      "cusip": "912797VG9",
+      "tenor_bucket": "bills_gte_90d",
+      "days_ahead": 7,
+      "forecast": {
+        "forecast_score": 8.9,
+        "forecast_label": "CALM",
+        "confidence": "MEDIUM",
+        "components": {
+          "own_tenor_stress": 15.0,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 0.0,
+          "size_shock_score": 0,
+          "time_decay_factor": 0.85
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-09",
+      "issue_date": "2026-06-11",
+      "security_type": "Bill",
+      "security_term": "52-Week",
+      "offering_amount_billions": null,
+      "cusip": "912797VF1",
+      "tenor_bucket": "bills_gte_90d",
+      "days_ahead": 8,
+      "forecast": {
+        "forecast_score": 8.9,
+        "forecast_label": "CALM",
+        "confidence": "MEDIUM",
+        "components": {
+          "own_tenor_stress": 15.0,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 0.0,
+          "size_shock_score": 0,
+          "time_decay_factor": 0.85
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-09",
+      "issue_date": "2026-06-11",
+      "security_type": "Bill",
+      "security_term": "6-Week",
+      "offering_amount_billions": null,
+      "cusip": "912797TP2",
+      "tenor_bucket": "bills_lt_90d",
+      "days_ahead": 8,
+      "forecast": {
+        "forecast_score": 3.7,
+        "forecast_label": "CALM",
+        "confidence": "MEDIUM",
+        "components": {
+          "own_tenor_stress": 2.7,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 0.0,
+          "size_shock_score": 0,
+          "time_decay_factor": 0.85
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-09",
+      "issue_date": "2026-06-15",
+      "security_type": "Note",
+      "security_term": "3-Year",
+      "offering_amount_billions": null,
+      "cusip": "91282CQV6",
+      "tenor_bucket": "coupons_gt_3y",
+      "days_ahead": 8,
+      "forecast": {
+        "forecast_score": 5.0,
+        "forecast_label": "CALM",
+        "confidence": "MEDIUM",
+        "components": {
+          "own_tenor_stress": 5.9,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 0.0,
+          "size_shock_score": 0,
+          "time_decay_factor": 0.85
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-10",
+      "issue_date": "2026-06-15",
+      "security_type": "Note",
+      "security_term": "9-Year 11-Month",
+      "offering_amount_billions": null,
+      "cusip": "91282CQQ7",
+      "tenor_bucket": "coupons_gt_3y",
+      "days_ahead": 9,
+      "forecast": {
+        "forecast_score": 5.0,
+        "forecast_label": "CALM",
+        "confidence": "MEDIUM",
+        "components": {
+          "own_tenor_stress": 5.9,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 0.0,
+          "size_shock_score": 0,
+          "time_decay_factor": 0.85
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    },
+    {
+      "auction_date": "2026-06-11",
+      "issue_date": "2026-06-15",
+      "security_type": "Bond",
+      "security_term": "29-Year 11-Month",
+      "offering_amount_billions": null,
+      "cusip": "912810UU0",
+      "tenor_bucket": "coupons_gt_3y",
+      "days_ahead": 10,
+      "forecast": {
+        "forecast_score": 5.0,
+        "forecast_label": "CALM",
+        "confidence": "MEDIUM",
+        "components": {
+          "own_tenor_stress": 5.9,
+          "cross_tenor_contagion": 11.9,
+          "size_shock_pct": 0.0,
+          "size_shock_score": 0,
+          "time_decay_factor": 0.85
+        },
+        "narrative": "No material stress signals in inputs. Expected normal clearing."
+      }
+    }
+  ],
+  "historical_analog": {
+    "current_vector": [
+      0.0,
+      70.0,
+      70.0,
+      35.0,
+      30.0,
+      0
+    ],
+    "vector_labels": [
+      "zero_rate_floor",
+      "btc_extreme",
+      "tail_stress",
+      "pd_absorption",
+      "indirect_collapse",
+      "issuance_anomaly"
+    ],
+    "top_matches": [
+      {
+        "date": "2021-10-21",
+        "regime": "COMPLACENCY",
+        "similarity": 0.7304,
+        "anchor_vec": [
+          0.0,
+          70.0,
+          0.0,
+          70.0,
+          30.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 3.52,
+          "low_rate": 0.02,
+          "aah": 79.47,
+          "pd_share_pct": 42.1,
+          "indirect_share_pct": 53.0
+        },
+        "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+        "what_happened_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+        "duration": "Inflation regime + tightening cycle began Jan 2022."
+      },
+      {
+        "date": "2024-10-09",
+        "regime": "NORMAL",
+        "similarity": 0.641,
+        "anchor_vec": [
+          0.0,
+          0.0,
+          75.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 2.48,
+          "low_rate": 2.88,
+          "aah": 99.31,
+          "pd_share_pct": 13.9,
+          "indirect_share_pct": 77.6
+        },
+        "context": "Late-cycle normal. AAH=99.31 (near-100 = very thin tail, healthy).",
+        "what_happened_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+        "duration": "Normal regime persisted."
+      },
+      {
+        "date": "2020-03-26",
+        "regime": "COVID_BAZOOKA",
+        "similarity": 0.5901,
+        "anchor_vec": [
+          100.0,
+          100.0,
+          0.0,
+          70.0,
+          30.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 4.74,
+          "low_rate": 0.0,
+          "aah": 28.74,
+          "pd_share_pct": 44.3,
+          "indirect_share_pct": 51.3
+        },
+        "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+        "what_happened_next": "Demand for Treasuries continued through April. Equity recovery began.",
+        "duration": "Stampede pattern lasted ~6 weeks."
+      }
+    ],
+    "all_matches": [
+      {
+        "date": "2021-10-21",
+        "regime": "COMPLACENCY",
+        "similarity": 0.7304,
+        "anchor_vec": [
+          0.0,
+          70.0,
+          0.0,
+          70.0,
+          30.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 3.52,
+          "low_rate": 0.02,
+          "aah": 79.47,
+          "pd_share_pct": 42.1,
+          "indirect_share_pct": 53.0
+        },
+        "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+        "what_happened_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+        "duration": "Inflation regime + tightening cycle began Jan 2022."
+      },
+      {
+        "date": "2024-10-09",
+        "regime": "NORMAL",
+        "similarity": 0.641,
+        "anchor_vec": [
+          0.0,
+          0.0,
+          75.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 2.48,
+          "low_rate": 2.88,
+          "aah": 99.31,
+          "pd_share_pct": 13.9,
+          "indirect_share_pct": 77.6
+        },
+        "context": "Late-cycle normal. AAH=99.31 (near-100 = very thin tail, healthy).",
+        "what_happened_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+        "duration": "Normal regime persisted."
+      },
+      {
+        "date": "2020-03-26",
+        "regime": "COVID_BAZOOKA",
+        "similarity": 0.5901,
+        "anchor_vec": [
+          100.0,
+          100.0,
+          0.0,
+          70.0,
+          30.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 4.74,
+          "low_rate": 0.0,
+          "aah": 28.74,
+          "pd_share_pct": 44.3,
+          "indirect_share_pct": 51.3
+        },
+        "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+        "what_happened_next": "Demand for Treasuries continued through April. Equity recovery began.",
+        "duration": "Stampede pattern lasted ~6 weeks."
+      },
+      {
+        "date": "2008-09-23",
+        "regime": "GFC_PEAK",
+        "similarity": 0.5671,
+        "anchor_vec": [
+          100.0,
+          0.0,
+          75.0,
+          100.0,
+          65.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 2.86,
+          "low_rate": 0.0,
+          "aah": 6.92,
+          "pd_share_pct": 52.1,
+          "indirect_share_pct": 47.1
+        },
+        "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+        "what_happened_next": "Continued through Oct 8. TIPS auction also stressed.",
+        "duration": "Bill stress lasted ~4 months."
+      },
+      {
+        "date": "2008-10-08",
+        "regime": "GFC_PEAK",
+        "similarity": 0.4184,
+        "anchor_vec": [
+          0.0,
+          0.0,
+          0.0,
+          100.0,
+          65.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 2.22,
+          "low_rate": 2.359,
+          "aah": 73.9,
+          "pd_share_pct": 52.4,
+          "indirect_share_pct": 47.5
+        },
+        "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+        "what_happened_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+        "duration": "Real yield distortion persisted into 2010."
+      },
+      {
+        "date": "2008-09-18",
+        "regime": "GFC_PEAK",
+        "similarity": 0.3437,
+        "anchor_vec": [
+          100.0,
+          0.0,
+          0.0,
+          100.0,
+          100.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 2.16,
+          "low_rate": 0.0,
+          "aah": 76.68,
+          "pd_share_pct": 69.0,
+          "indirect_share_pct": 29.3
+        },
+        "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+        "what_happened_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+        "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+      },
+      {
+        "date": "2020-03-11",
+        "regime": "COVID_CRASH",
+        "similarity": 0.3205,
+        "anchor_vec": [
+          0.0,
+          0.0,
+          0.0,
+          35.0,
+          0.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 2.36,
+          "low_rate": 0.08,
+          "aah": 74.94,
+          "pd_share_pct": 29.8,
+          "indirect_share_pct": 61.0
+        },
+        "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+        "what_happened_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+        "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+      },
+      {
+        "date": "2020-03-19",
+        "regime": "COVID_CRASH",
+        "similarity": 0.2914,
+        "anchor_vec": [
+          100.0,
+          0.0,
+          0.0,
+          70.0,
+          65.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 2.91,
+          "low_rate": 0.0,
+          "aah": 53.83,
+          "pd_share_pct": 41.8,
+          "indirect_share_pct": 46.4
+        },
+        "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+        "what_happened_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+        "duration": "Acute for 3 weeks, then explosive recovery."
+      },
+      {
+        "date": "2008-09-17",
+        "regime": "GFC_PEAK",
+        "similarity": 0.2441,
+        "anchor_vec": [
+          100.0,
+          0.0,
+          0.0,
+          70.0,
+          30.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 2.45,
+          "low_rate": 0.0,
+          "aah": 83.72,
+          "pd_share_pct": 46.7,
+          "indirect_share_pct": 51.1
+        },
+        "context": "Day after Lehman bankruptcy. Money markets seized.",
+        "what_happened_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+        "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+      },
+      {
+        "date": "2024-04-10",
+        "regime": "NORMAL",
+        "similarity": 0.0,
+        "anchor_vec": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "anchor_metrics": {
+          "btc": 2.34,
+          "low_rate": 4.4,
+          "aah": 54.1,
+          "pd_share_pct": 24.0,
+          "indirect_share_pct": 61.8
+        },
+        "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+        "what_happened_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+        "duration": "Multi-quarter normal regime."
+      }
+    ]
+  },
+  "cross_signals": {
+    "repo_stress": {
+      "sofr_pct": 3.62,
+      "iorb_pct": 3.65,
+      "spread_bp": -3.0,
+      "regime": "CALM",
+      "interpretation": "SOFR 3.620% vs IORB 3.650% = -3.0bp. Normal repo conditions."
+    },
+    "dollar_strength": {
+      "level": 119.29,
+      "change_30d_pct": 0.47,
+      "regime": "STABLE",
+      "interpretation": "Trade-weighted USD at 119.3, +0.5% in 30d. Soft USD supportive of foreign demand."
+    },
+    "curve_slope": {
+      "spread_bp": 46.0,
+      "regime": "FLAT",
+      "interpretation": "10y-2y at +46bp. Curve positive."
+    },
+    "inflation_expectations": {
+      "rate_pct": 2.24,
+      "regime": "ANCHORED",
+      "interpretation": "5y5y forward BE inflation 2.24%. Anchored at target."
+    }
+  },
+  "composite_history": {
+    "series": [
+      {
+        "date": "2026-05-02",
+        "composite": 10.0,
+        "regime": "CALM",
+        "n_auctions": 18
+      },
+      {
+        "date": "2026-05-03",
+        "composite": 10.0,
+        "regime": "CALM",
+        "n_auctions": 18
+      },
+      {
+        "date": "2026-05-04",
+        "composite": 14.7,
+        "regime": "CALM",
+        "n_auctions": 20
+      },
+      {
+        "date": "2026-05-05",
+        "composite": 13.3,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-05-06",
+        "composite": 13.3,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-05-07",
+        "composite": 14.8,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-05-08",
+        "composite": 17.1,
+        "regime": "CALM",
+        "n_auctions": 16
+      },
+      {
+        "date": "2026-05-09",
+        "composite": 17.1,
+        "regime": "CALM",
+        "n_auctions": 16
+      },
+      {
+        "date": "2026-05-10",
+        "composite": 17.1,
+        "regime": "CALM",
+        "n_auctions": 16
+      },
+      {
+        "date": "2026-05-11",
+        "composite": 14.2,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-05-12",
+        "composite": 19.4,
+        "regime": "CALM",
+        "n_auctions": 18
+      },
+      {
+        "date": "2026-05-13",
+        "composite": 16.6,
+        "regime": "CALM",
+        "n_auctions": 17
+      },
+      {
+        "date": "2026-05-14",
+        "composite": 15.0,
+        "regime": "CALM",
+        "n_auctions": 18
+      },
+      {
+        "date": "2026-05-15",
+        "composite": 16.9,
+        "regime": "CALM",
+        "n_auctions": 16
+      },
+      {
+        "date": "2026-05-16",
+        "composite": 16.9,
+        "regime": "CALM",
+        "n_auctions": 16
+      },
+      {
+        "date": "2026-05-17",
+        "composite": 16.9,
+        "regime": "CALM",
+        "n_auctions": 16
+      },
+      {
+        "date": "2026-05-18",
+        "composite": 18.0,
+        "regime": "CALM",
+        "n_auctions": 18
+      },
+      {
+        "date": "2026-05-19",
+        "composite": 12.9,
+        "regime": "CALM",
+        "n_auctions": 17
+      },
+      {
+        "date": "2026-05-20",
+        "composite": 15.6,
+        "regime": "CALM",
+        "n_auctions": 18
+      },
+      {
+        "date": "2026-05-21",
+        "composite": 14.8,
+        "regime": "CALM",
+        "n_auctions": 21
+      },
+      {
+        "date": "2026-05-22",
+        "composite": 14.3,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-05-23",
+        "composite": 14.3,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-05-24",
+        "composite": 14.3,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-05-25",
+        "composite": 14.3,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-05-26",
+        "composite": 14.7,
+        "regime": "CALM",
+        "n_auctions": 20
+      },
+      {
+        "date": "2026-05-27",
+        "composite": 8.8,
+        "regime": "CALM",
+        "n_auctions": 20
+      },
+      {
+        "date": "2026-05-28",
+        "composite": 8.1,
+        "regime": "CALM",
+        "n_auctions": 21
+      },
+      {
+        "date": "2026-05-29",
+        "composite": 9.3,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-05-30",
+        "composite": 9.3,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-05-31",
+        "composite": 9.3,
+        "regime": "CALM",
+        "n_auctions": 19
+      },
+      {
+        "date": "2026-06-01",
+        "composite": 9.3,
+        "regime": "CALM",
+        "n_auctions": 19
+      }
+    ],
+    "change_points": [],
+    "current": {
+      "date": "2026-06-01",
+      "composite": 9.3,
+      "regime": "CALM",
+      "n_auctions": 19
+    },
+    "min_composite": 8.1,
+    "max_composite": 19.4
+  },
+  "tail_risk": {
+    "p_failed_auction_30d": {
+      "probability": 8.0,
+      "drivers": {
+        "coupons_long_stress": 5.9,
+        "pd_concern": false,
+        "indirect_concern": false,
+        "momentum": -5.4
+      },
+      "interpretation": "~8% probability of a coupon BTC < 2.0 or AAH > 95% in next 30 days. Low probability \u2014 auction demand healthy."
+    },
+    "p_regime_escalation_14d": {
+      "probability": 13.0,
+      "drivers": {
+        "current_composite": 9.3,
+        "momentum_7d": -5.4,
+        "distance_to_next_threshold": 15.7,
+        "top_analog_regime": "COMPLACENCY"
+      },
+      "interpretation": "~13% probability of crossing into a higher-stress regime in next 14 days. Current is CALM, composite trajectory -5.4/wk."
+    },
+    "p_supply_volatility_30d": {
+      "probability": 11.9,
+      "drivers": {
+        "repo_stress": "CALM",
+        "dollar_change_30d": 0.47,
+        "momentum": -5.4
+      },
+      "interpretation": "~12% probability of a 1+ sigma yield move on an upcoming auction settlement day. Repo stress: CALM, USD: +0.5% / 30d."
+    }
+  },
+  "triggers": [
+    {
+      "name": "Crosses into WATCH",
+      "condition": "Composite score \u2265 25",
+      "current": 9.3,
+      "threshold": 25,
+      "distance": 15.7,
+      "action": "Tighten stops, prepare 5y-10y hedges (TLT puts, ES options).",
+      "urgency": "monitoring"
+    },
+    {
+      "name": "Crosses into ELEVATED",
+      "condition": "Composite score \u2265 50",
+      "current": 9.3,
+      "threshold": 50,
+      "distance": 40.7,
+      "action": "Reduce duration significantly. Add carry to USD. Hedge equity beta.",
+      "urgency": "monitoring"
+    },
+    {
+      "name": "Crosses into ACUTE_STRESS",
+      "condition": "Composite score \u2265 75",
+      "current": 9.3,
+      "threshold": 75,
+      "distance": 65.7,
+      "action": "Full defensive posture. Cash, gold, vol. Trade auction concession aggressively.",
+      "urgency": "strategic"
+    },
+    {
+      "name": "Pd Absorption fires next auction",
+      "condition": "pd_absorption score \u2265 70 on any new auction",
+      "current": 0,
+      "threshold": 70,
+      "distance": 70,
+      "auctions_already_fired_14d": 0,
+      "action": "Dealers absorbing >35% on coupons. Watch for failed auction follow-on.",
+      "urgency": "monitoring"
+    },
+    {
+      "name": "Indirect Collapse fires next auction",
+      "condition": "indirect_collapse score \u2265 70 on any new auction",
+      "current": 0,
+      "threshold": 70,
+      "distance": 70,
+      "auctions_already_fired_14d": 0,
+      "action": "Foreign demand cratered. USD strength forecast \u2192 buy DXY/sell EM.",
+      "urgency": "monitoring"
+    },
+    {
+      "name": "Btc Extreme fires next auction",
+      "condition": "btc_extreme score \u2265 70 on any new auction",
+      "current": 70,
+      "threshold": 70,
+      "distance": 0,
+      "auctions_already_fired_14d": 1,
+      "action": "Demand anomaly \u2014 confirms stress regime. Tighten exposure.",
+      "urgency": "tactical"
+    },
+    {
+      "name": "Zero Rate Floor fires next auction",
+      "condition": "zero_rate_floor score \u2265 70 on any new auction",
+      "current": 0,
+      "threshold": 70,
+      "distance": 70,
+      "auctions_already_fired_14d": 0,
+      "action": "Bills at zero \u2014 money parking pattern. Liquidity crisis warning.",
+      "urgency": "monitoring"
+    }
+  ],
+  "data_source": "https://api.fiscaldata.treasury.gov (auctions_query) + treasurydirect.gov + FRED",
+  "methodology": "Crisis pattern signatures extracted from 9 historical auction PDFs covering 2008-09-17 through 2024-10-09. Each live auction scored 0-100 against 6 patterns. v2 adds: tenor-level decomposition, 30-day forward calendar with per-auction stress forecasts, cosine-similarity matching vs 9 historical crisis anchors, 4 corroborating FRED signals (repo, USD, curve, inflation), 30-day composite history, 3 forward-looking tail risk probabilities, and named actionable triggers."
+}

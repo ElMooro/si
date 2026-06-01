@@ -1,0 +1,164 @@
+{
+  "started": "2026-06-01T01:06:50.862492+00:00",
+  "zip_files": [
+    "finra_si.py",
+    "_fred_shim.py",
+    "ka_aliases.py",
+    "api_auth.py",
+    "calibration.py",
+    "system_events.py",
+    "_sentry_lite.py",
+    "lambda_function.py",
+    "auction_crisis_v2.py"
+  ],
+  "has_v2_module": true,
+  "last_modified": "2026-06-01T01:03:55.000+0000",
+  "elapsed_s": 4.0,
+  "invoke_status": 200,
+  "summary": {
+    "status": "ok",
+    "elapsed_sec": 3.18,
+    "regime": "CALM",
+    "composite_score": 9.3,
+    "n_recent": 19,
+    "issuance_anomaly_pct": 7.1,
+    "latest_auction_date": "2026-05-28",
+    "latest_cusip": "912797UC9",
+    "hours_since_latest_auction": 97.1,
+    "is_new_auction_this_run": false
+  },
+  "s3_last_modified": "2026-06-01T01:06:56+00:00",
+  "s3_size_kb": 39.4,
+  "schema_version": "2.0",
+  "composite_score": 9.3,
+  "regime": "CALM",
+  "v2_sections": {
+    "tenor_decomposition": {
+      "status": "ok",
+      "type": "dict",
+      "keys": [
+        "bills_lt_90d",
+        "bills_gte_90d",
+        "coupons_lt_3y",
+        "coupons_gt_3y",
+        "tips",
+        "frn"
+      ],
+      "n_keys": 6,
+      "sample": {
+        "key": "bills_lt_90d",
+        "value_keys": [
+          "n_auctions",
+          "composite",
+          "max_composite",
+          "latest_date",
+          "dominant_signal",
+          "label",
+          "risk_profile",
+          "rank"
+        ]
+      }
+    },
+    "forward_calendar": {
+      "status": "ok",
+      "type": "list",
+      "len": 13,
+      "item_keys": [
+        "auction_date",
+        "issue_date",
+        "security_type",
+        "security_term",
+        "offering_amount_billions",
+        "cusip",
+        "tenor_bucket",
+        "days_ahead",
+        "forecast"
+      ]
+    },
+    "historical_analog": {
+      "status": "ok",
+      "type": "dict",
+      "keys": [
+        "current_vector",
+        "vector_labels",
+        "top_matches",
+        "all_matches"
+      ],
+      "n_keys": 4,
+      "sample": {
+        "key": "current_vector",
+        "value": "[0.0, 70.0, 70.0, 35.0, 30.0, 0]"
+      }
+    },
+    "cross_signals": {
+      "status": "ok",
+      "type": "dict",
+      "keys": [
+        "repo_stress",
+        "dollar_strength",
+        "curve_slope",
+        "inflation_expectations"
+      ],
+      "n_keys": 4,
+      "sample": {
+        "key": "repo_stress",
+        "value_keys": [
+          "sofr_pct",
+          "iorb_pct",
+          "spread_bp",
+          "regime",
+          "interpretation"
+        ]
+      }
+    },
+    "composite_history": {
+      "status": "ok",
+      "type": "dict",
+      "keys": [
+        "series",
+        "change_points",
+        "current",
+        "min_composite",
+        "max_composite"
+      ],
+      "n_keys": 5,
+      "sample": {
+        "key": "series",
+        "value": "[{'date': '2026-05-02', 'composite': 10.0, 'regime': 'CALM', 'n_auctions': 18}, {'date': '2026-05-03', 'composite': 10.0"
+      }
+    },
+    "tail_risk": {
+      "status": "ok",
+      "type": "dict",
+      "keys": [
+        "p_failed_auction_30d",
+        "p_regime_escalation_14d",
+        "p_supply_volatility_30d"
+      ],
+      "n_keys": 3,
+      "sample": {
+        "key": "p_failed_auction_30d",
+        "value_keys": [
+          "probability",
+          "drivers",
+          "interpretation"
+        ]
+      }
+    },
+    "triggers": {
+      "status": "ok",
+      "type": "list",
+      "len": 7,
+      "item_keys": [
+        "name",
+        "condition",
+        "current",
+        "threshold",
+        "distance",
+        "action",
+        "urgency"
+      ]
+    }
+  },
+  "finished": "2026-06-01T01:06:55.452041+00:00"
+}
