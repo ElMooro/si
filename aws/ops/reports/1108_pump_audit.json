@@ -1,0 +1,319 @@
+{
+  "started": "2026-06-01T16:26:30.165549+00:00",
+  "alert_tickers": [
+    "SAP",
+    "CXAI",
+    "NBIS",
+    "ARM",
+    "RDDT"
+  ],
+  "engines": {
+    "retail-sentiment": {
+      "key": "data/retail-sentiment.json",
+      "exists": true,
+      "size_kb": 24.1,
+      "last_modified": "2026-06-01T16:00:51+00:00",
+      "age_h": 0.4
+    },
+    "buzz-velocity": {
+      "key": "data/buzz-velocity.json",
+      "exists": true,
+      "size_kb": 119.9,
+      "last_modified": "2026-06-01T14:04:35+00:00",
+      "age_h": 2.4
+    },
+    "momentum-breakout": {
+      "key": "data/momentum-breakout.json",
+      "exists": true,
+      "size_kb": 40.7,
+      "last_modified": "2026-06-01T11:00:20+00:00",
+      "age_h": 5.4
+    },
+    "options-flow": {
+      "key": "data/options-flow.json",
+      "exists": true,
+      "size_kb": 23.7,
+      "last_modified": "2026-05-31T22:00:34+00:00",
+      "age_h": 18.4
+    },
+    "news-velocity": {
+      "key": "data/news-velocity.json",
+      "exists": true,
+      "size_kb": 4.7,
+      "last_modified": "2026-06-01T16:10:08+00:00",
+      "age_h": 0.3
+    },
+    "gdelt-sentiment": {
+      "key": "data/gdelt-sentiment.json",
+      "exists": false
+    },
+    "earnings-tracker": {
+      "key": "data/earnings-tracker.json",
+      "exists": true,
+      "size_kb": 31.6,
+      "last_modified": "2026-06-01T11:46:29+00:00",
+      "age_h": 4.7
+    },
+    "earnings-whisper": {
+      "key": "data/earnings-whisper.json",
+      "exists": true,
+      "size_kb": 10.7,
+      "last_modified": "2026-06-01T08:00:41+00:00",
+      "age_h": 8.4
+    },
+    "eps-revision-velocity": {
+      "key": "data/eps-revision-velocity.json",
+      "exists": true,
+      "size_kb": 43.6,
+      "last_modified": "2026-06-01T11:00:20+00:00",
+      "age_h": 5.4
+    },
+    "earnings-sentiment": {
+      "key": "data/earnings-sentiment.json",
+      "exists": false
+    },
+    "earnings-tone-velocity": {
+      "key": "data/earnings-tone-velocity.json",
+      "exists": true,
+      "size_kb": 0.7,
+      "last_modified": "2026-06-01T14:30:20+00:00",
+      "age_h": 1.9
+    },
+    "earnings-pead": {
+      "key": "data/earnings-pead.json",
+      "exists": true,
+      "size_kb": 143.8,
+      "last_modified": "2026-06-01T08:00:52+00:00",
+      "age_h": 8.4
+    },
+    "earnings-quality": {
+      "key": "data/earnings-quality.json",
+      "exists": true,
+      "size_kb": 67.3,
+      "last_modified": "2026-05-27T13:30:34+00:00",
+      "age_h": 122.9
+    },
+    "sector-earnings-diffusion": {
+      "key": "data/sector-earnings-diffusion.json",
+      "exists": true,
+      "size_kb": 31.9,
+      "last_modified": "2026-06-01T11:00:20+00:00",
+      "age_h": 5.4
+    },
+    "post-earnings-mean-rev": {
+      "key": "data/post-earnings-mean-rev.json",
+      "exists": true,
+      "size_kb": 1.1,
+      "last_modified": "2026-06-01T00:00:45+00:00",
+      "age_h": 16.4
+    },
+    "valuations": {
+      "key": "data/valuations.json",
+      "exists": false
+    },
+    "fundamentals": {
+      "key": "data/fundamentals.json",
+      "exists": true,
+      "size_kb": 14.7,
+      "last_modified": "2026-06-01T11:00:16+00:00",
+      "age_h": 5.4
+    },
+    "etf-flows": {
+      "key": "data/etf-flows.json",
+      "exists": true,
+      "size_kb": 27.8,
+      "last_modified": "2026-06-01T12:18:54+00:00",
+      "age_h": 4.1
+    },
+    "capital-return": {
+      "key": "data/capital-return.json",
+      "exists": true,
+      "size_kb": 53.2,
+      "last_modified": "2026-06-01T11:00:14+00:00",
+      "age_h": 5.4
+    },
+    "stablecoin-flow": {
+      "key": "data/stablecoin-flow.json",
+      "exists": true,
+      "size_kb": 45.3,
+      "last_modified": "2026-05-20T13:55:23+00:00",
+      "age_h": 290.5
+    },
+    "tic-flows": {
+      "key": "data/tic-flows.json",
+      "exists": true,
+      "size_kb": 0.6,
+      "last_modified": "2026-05-31T22:01:00+00:00",
+      "age_h": 18.4
+    },
+    "sympathetic-momentum": {
+      "key": "data/sympathetic-momentum.json",
+      "exists": true,
+      "size_kb": 21.8,
+      "last_modified": "2026-05-31T23:30:10+00:00",
+      "age_h": 16.9
+    },
+    "ticker-trends": {
+      "key": "data/ticker-trends.json",
+      "exists": true,
+      "size_kb": 33.9,
+      "last_modified": "2026-06-01T13:01:25+00:00",
+      "age_h": 3.4
+    },
+    "synthetic-monitor": {
+      "key": "data/synthetic-monitor.json",
+      "exists": true,
+      "size_kb": 6.0,
+      "last_modified": "2026-06-01T16:15:28+00:00",
+      "age_h": 0.2
+    },
+    "political-trades": {
+      "key": "data/political-trades.json",
+      "exists": true,
+      "size_kb": 30.4,
+      "last_modified": "2026-06-01T11:00:16+00:00",
+      "age_h": 5.4
+    },
+    "sec-filings": {
+      "key": "data/sec-filings-intel.json",
+      "exists": true,
+      "size_kb": 256.9,
+      "last_modified": "2026-06-01T15:00:30+00:00",
+      "age_h": 1.4
+    },
+    "insider-aggregate": {
+      "key": "data/insider-aggregate.json",
+      "exists": true,
+      "size_kb": 1.5,
+      "last_modified": "2026-05-31T22:00:27+00:00",
+      "age_h": 18.4
+    },
+    "options-flow-scanner": {
+      "key": "data/options-flow-scanner.json",
+      "exists": false
+    },
+    "exchange-flows": {
+      "key": "data/exchange-flows.json",
+      "exists": true,
+      "size_kb": 11.2,
+      "last_modified": "2026-06-01T16:10:41+00:00",
+      "age_h": 0.3
+    },
+    "liquidity-flow": {
+      "key": "data/liquidity-flow.json",
+      "exists": true,
+      "size_kb": 15.2,
+      "last_modified": "2026-05-29T22:00:31+00:00",
+      "age_h": 66.4
+    },
+    "aaii-sentiment": {
+      "key": "data/aaii-sentiment.json",
+      "exists": true,
+      "size_kb": 1.2,
+      "last_modified": "2026-05-31T22:00:28+00:00",
+      "age_h": 18.4
+    },
+    "news-sentiment": {
+      "key": "data/news-sentiment.json",
+      "exists": false
+    },
+    "event-flow-monitor": {
+      "key": "data/event-flow-monitor.json",
+      "exists": false
+    },
+    "earnings-cascade": {
+      "key": "data/earnings-cascade.json",
+      "exists": true,
+      "size_kb": 15.6,
+      "last_modified": "2026-06-01T14:15:35+00:00",
+      "age_h": 2.2
+    },
+    "earnings-iv-crush": {
+      "key": "data/earnings-iv-crush.json",
+      "exists": true,
+      "size_kb": 2.8,
+      "last_modified": "2026-05-31T22:00:35+00:00",
+      "age_h": 18.4
+    },
+    "dividend-growth": {
+      "key": "data/dividend-growth.json",
+      "exists": true,
+      "size_kb": 107.5,
+      "last_modified": "2026-06-01T13:45:14+00:00",
+      "age_h": 2.7
+    },
+    "fmp-fundamentals": {
+      "key": "data/fmp-fundamentals.json",
+      "exists": false
+    },
+    "lobbying-intel": {
+      "key": "data/lobbying-intel.json",
+      "exists": true,
+      "size_kb": 564.7,
+      "last_modified": "2026-06-01T16:00:12+00:00",
+      "age_h": 0.4
+    },
+    "ark-holdings": {
+      "key": "data/ark-holdings.json",
+      "exists": true,
+      "size_kb": 45.4,
+      "last_modified": "2026-06-01T06:00:41+00:00",
+      "age_h": 10.4
+    },
+    "patent-velocity": {
+      "key": "data/patent-velocity.json",
+      "exists": true,
+      "size_kb": 0.9,
+      "last_modified": "2026-05-31T19:00:43+00:00",
+      "age_h": 21.4
+    },
+    "political-stocks": {
+      "key": "data/political-stocks.json",
+      "exists": true,
+      "size_kb": 212.8,
+      "last_modified": "2026-06-01T14:00:25+00:00",
+      "age_h": 2.4
+    },
+    "hiring-velocity": {
+      "key": "data/hiring-velocity.json",
+      "exists": true,
+      "size_kb": 84.7,
+      "last_modified": "2026-05-31T12:03:19+00:00",
+      "age_h": 28.4
+    },
+    "buzz-velocity-summary": {
+      "key": "data/buzz-velocity-summary.json",
+      "exists": false
+    }
+  },
+  "ticker_hits": {
+    "SAP": [
+      "retail-sentiment"
+    ],
+    "CXAI": [
+      "retail-sentiment"
+    ],
+    "NBIS": [
+      "retail-sentiment",
+      "lobbying-intel"
+    ],
+    "ARM": [
+      "retail-sentiment",
+      "buzz-velocity",
+      "momentum-breakout",
+      "options-flow",
+      "eps-revision-velocity",
+      "earnings-pead",
+      "sector-earnings-diffusion",
+      "fundamentals",
+      "ticker-trends",
+      "lobbying-intel"
+    ],
+    "RDDT": [
+      "retail-sentiment",
+      "buzz-velocity",
+      "earnings-tracker",
+      "ticker-trends"
+    ]
+  }
+}
