@@ -188,6 +188,30 @@ code{font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:
 .forward-table .conf-cell.HIGH{color:var(--green)}
 .forward-table .conf-cell.MEDIUM{color:var(--amber)}
 .forward-table .conf-cell.LOW{color:var(--fg-3)}
+.forward-table .concession-heavy{color:var(--red);font-weight:700}
+.forward-table .concession-mild{color:var(--amber);font-weight:600}
+.forward-table .concession-flat{color:var(--fg-2)}
+.forward-table .concession-rally{color:var(--cyan)}
+.forward-table .concession-strong-rally{color:var(--cyan);font-weight:700}
+.forward-table .concession-na{color:var(--fg-4)}
+
+/* ─── Post-issue performance table ─── */
+.postissue-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg-raised);border-radius:6px;overflow:hidden;border:1px solid var(--border);margin-bottom:20px}
+.postissue-table th{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:10px 12px;text-align:left;background:var(--bg-sunken);border-bottom:1px solid var(--border)}
+.postissue-table th.num{text-align:right}
+.postissue-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:11.5px;color:var(--fg-1)}
+.postissue-table td.num{text-align:right}
+.postissue-table tbody tr:hover{background:var(--bg-elevated)}
+.postissue-table tbody tr:last-child td{border-bottom:none}
+.postissue-table .pi-positive{color:var(--green);font-weight:500}
+.postissue-table .pi-negative{color:var(--red);font-weight:500}
+.postissue-table .pi-class{font-family:var(--font-mono);font-size:9.5px;letter-spacing:1px;padding:2px 8px;border-radius:3px;font-weight:600}
+.postissue-table .pi-strong{background:rgba(56,255,168,.15);color:var(--green);border:1px solid var(--green-dim)}
+.postissue-table .pi-firm{background:rgba(56,255,168,.08);color:var(--green);border:1px solid var(--green-dim)}
+.postissue-table .pi-flat{background:var(--bg-sunken);color:var(--fg-2);border:1px solid var(--border)}
+.postissue-table .pi-soft{background:rgba(255,177,61,.1);color:var(--amber);border:1px solid var(--amber-dim)}
+.postissue-table .pi-weak{background:rgba(255,92,122,.15);color:var(--red);border:1px solid var(--red-dim)}
+.postissue-table .pi-pending,.postissue-table .pi-pending_5d{background:var(--bg-sunken);color:var(--fg-3);border:1px solid var(--border)}
 
 /* ─── AI Forward Predictions cards ─── */
 .forward-pred-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;margin-bottom:24px}
@@ -458,7 +482,7 @@ footer a:hover{color:var(--cyan)}
   <!-- Forward calendar -->
   <div class="section-hdr">
     <h3>Forward Auction Calendar · Next 30 Days</h3>
-    <div class="sub">Per-auction stress forecasts with components + confidence</div>
+    <div class="sub">Per-auction stress forecasts + pre-auction concession from FRED CMT yields</div>
   </div>
   <table class="forward-table" id="forward-table">
     <thead><tr>
@@ -469,10 +493,19 @@ footer a:hover{color:var(--cyan)}
       <th class="size-cell">Offering ($B)</th>
       <th>Forecast</th>
       <th>Confidence</th>
+      <th>5d Concession</th>
+      <th>Regime</th>
       <th>Driver</th>
     </tr></thead>
     <tbody id="forward-tbody"></tbody>
   </table>
+
+  <!-- Post-issue performance -->
+  <div class="section-hdr">
+    <h3>Post-Issue Performance</h3>
+    <div class="sub">1d / 5d / 30d yield change vs auction high · STRONG=bid held · WEAK=sold off</div>
+  </div>
+  <div id="postissue-section"></div>
 
   <!-- AI Forward Predictions -->
   <div class="section-hdr">
@@ -572,6 +605,6 @@ footer a:hover{color:var(--cyan)}
 
 </main>
 
-<script src="/auction-crisis.js?t=20260601a" defer></script>
+<script src="/auction-crisis.js?t=20260601b" defer></script>
 </body>
 </html>

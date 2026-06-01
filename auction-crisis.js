@@ -83,6 +83,7 @@ function renderAllDataSections() {
   renderCompositeChart();
   renderAnalogDataOnly();
   renderForwardTable();
+  renderPostIssuePerformance();
   renderTailRiskDataOnly();
   renderTriggers();
   renderIndicators();
@@ -292,14 +293,29 @@ function renderAnalogDataOnly() {
 function renderForwardTable() {
   const cal = DATA.forward_calendar || [];
   if (cal.length === 0) {
-    $('forward-tbody').innerHTML = '<tr><td colspan="8" style="color:var(--fg-3);text-align:center;padding:16px">No upcoming auctions in window</td></tr>';
+    $('forward-tbody').innerHTML = '<tr><td colspan="10" style="color:var(--fg-3);text-align:center;padding:16px">No upcoming auctions in window</td></tr>';
     return;
   }
   // Already sorted by auction_date asc
   let html = '';
   for (const f of cal) {
     const fc = f.forecast || {};
-    const drv = (fc.narrative || '').slice(0, 90) + (fc.narrative && fc.narrative.length > 90 ? '…' : '');
+    const drv = (fc.narrative || '').slice(0, 70) + (fc.narrative && fc.narrative.length > 70 ? '…' : '');
+
+    // v2.1 concession fields
+    const c5 = f.concession_5d_bp;
+    const cRegime = f.concession_regime || '';
+    let cClass = 'concession-na', cDisplay = '—';
+    if (c5 != null) {
+      cDisplay = (c5 >= 0 ? '+' : '') + c5.toFixed(1) + 'bp';
+      if (cRegime === 'HEAVY_CONCESSION') cClass = 'concession-heavy';
+      else if (cRegime === 'CONCESSION')   cClass = 'concession-mild';
+      else if (cRegime === 'STRONG_RALLY') cClass = 'concession-strong-rally';
+      else if (cRegime === 'RALLY')        cClass = 'concession-rally';
+      else                                  cClass = 'concession-flat';
+    }
+    const cTooltip = esc(f.concession_interpretation || '');
+
     html += `<tr>
       <td class="date-cell">${esc(f.auction_date)}</td>
       <td>${f.days_ahead}d</td>
@@ -308,10 +324,46 @@ function renderForwardTable() {
       <td class="size-cell">${f.offering_amount_billions != null ? '$' + f.offering_amount_billions.toFixed(0) + 'B' : '—'}</td>
       <td class="score-cell ${esc(fc.forecast_label || '')}">${fc.forecast_score != null ? fc.forecast_score.toFixed(1) : '—'} <span style="font-size:9.5px;color:var(--fg-3);font-weight:400">[${esc(fc.forecast_label || '?')}]</span></td>
       <td class="conf-cell ${esc(fc.confidence || '')}">${esc(fc.confidence || '?')}</td>
+      <td class="${cClass}" title="${cTooltip}">${cDisplay}</td>
+      <td style="font-size:9.5px;color:var(--fg-3)">${esc(cRegime.replace(/_/g,' '))}</td>
       <td style="font-size:10.5px;color:var(--fg-3)">${esc(drv)}</td>
     </tr>`;
   }
   $('forward-tbody').innerHTML = html;
+}
+
+function renderPostIssuePerformance() {
+  const auctions = (DATA.recent_auctions || []).filter(a => a.postissue_classification);
+  const el = $('postissue-section');
+  if (!el) return;
+  if (!auctions.length) {
+    el.innerHTML = '<div style="color:var(--fg-3);font-size:11.5px;padding:14px">No post-issue performance data yet (settled auctions appear here once 1+ day past issuance)</div>';
+    return;
+  }
+  let html = `<table class="postissue-table">
+    <thead><tr>
+      <th>Issue Date</th><th>Tenor</th><th>Term</th>
+      <th class="num">High%</th>
+      <th class="num">1d Δbp</th><th class="num">5d Δbp</th><th class="num">30d Δbp</th>
+      <th>Classification</th>
+    </tr></thead><tbody>`;
+  for (const a of auctions) {
+    const cls = a.postissue_classification || 'PENDING';
+    const fmt = (v) => v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(1);
+    const cellCls = (v) => v == null ? '' : (v >= 0 ? 'pi-positive' : 'pi-negative');
+    html += `<tr>
+      <td>${esc((a.issue_date || '').slice(0,10))}</td>
+      <td>${esc(a.security_type)}</td>
+      <td>${esc(a.security_term)}</td>
+      <td class="num">${a.high_rate != null ? a.high_rate.toFixed(3) : '—'}</td>
+      <td class="num ${cellCls(a.postissue_1d_bp)}">${fmt(a.postissue_1d_bp)}</td>
+      <td class="num ${cellCls(a.postissue_5d_bp)}">${fmt(a.postissue_5d_bp)}</td>
+      <td class="num ${cellCls(a.postissue_30d_bp)}">${fmt(a.postissue_30d_bp)}</td>
+      <td><span class="pi-class pi-${cls.toLowerCase()}">${esc(cls)}</span></td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
 }
 
 function renderTailRiskDataOnly() {
