@@ -584,6 +584,48 @@ def load_momentum_leaders() -> Dict[str, dict]:
         return {}
 
 
+def load_catalysts_map() -> Dict[str, dict]:
+    """Map ticker → catalyst record from catalysts.json."""
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="data/catalysts.json")
+        d = json.loads(obj["Body"].read())
+        return d.get("ticker_to_catalyst", {}) or {}
+    except Exception as e:
+        print(f"[catalyst-load] {e}")
+        return {}
+
+
+def load_clusters_data() -> dict:
+    """Load cluster recommendations (BOOST/TRIM/EXCLUDE)."""
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="data/catalyst-clusters.json")
+        d = json.loads(obj["Body"].read())
+        bas = d.get("basket_action_summary") or {}
+        return {
+            "boost":   set(bas.get("boost", [])),
+            "trim":    set(bas.get("trim", [])),
+            "exclude": set(bas.get("exclude", [])),
+            "suggested_additions": bas.get("suggested_additions", []),
+            "proposed_new_sizes":  d.get("proposed_new_sizes", {}),
+            "n_clusters":          d.get("n_clusters", 0),
+            "macro_adverse":       d.get("macro_regime") in ("DEFENSIVE", "EXTREME", "RISK_OFF"),
+        }
+    except Exception as e:
+        print(f"[clusters-load] {e}")
+        return {"boost": set(), "trim": set(), "exclude": set(),
+                "suggested_additions": [], "proposed_new_sizes": {},
+                "n_clusters": 0, "macro_adverse": False}
+
+
+# Catalyst grade weights for sizing (higher grade = bigger position multiplier)
+CATALYST_GRADE_MULTIPLIER = {
+    "A": 1.20,   # A-grade: 20% size boost
+    "B": 1.00,   # B-grade: neutral
+    "C": 0.80,   # C-grade: 20% downsize
+    "D": 0.40,   # D-grade: 60% downsize (naked momentum)
+}
+
+
 def build_portfolio_basket(candidates: List[dict]) -> dict:
     """Construct a sector-aware basket from the enriched candidates.
 
@@ -665,62 +707,102 @@ def build_portfolio_basket(candidates: List[dict]) -> dict:
 
 
 def build_aggressive_basket(candidates: List[dict],
-                              momentum_map: Dict[str, dict]) -> dict:
+                              momentum_map: Dict[str, dict],
+                              catalysts_map: Dict[str, dict] = None,
+                              clusters_data: dict = None) -> dict:
     """Pump-hunter basket — concentrated in the highest-conviction names.
 
     Philosophy: Concentration is the price of returns. We're not running a
     pension fund. Build a 5-7 name basket weighted by COMBINED conviction:
 
-        combined_score = pump_likelihood × momentum_score (if momentum available)
-                          OR pump_likelihood alone
+        combined_score = (pump_likelihood × momentum_score) ** 0.5
+                         × catalyst_grade_multiplier  (A=1.2, B=1.0, C=0.8, D=0.4)
+                         × 1.15 if PUMP_CONFIRMED
+                         × cluster_modifier  (BOOST=1.4, TRIM=0.6, EXCLUDE=0)
 
-    Sizing rules:
-    - Top conviction → 12-15% per name
-    - Mid conviction → 8-10% per name
-    - Min position size: 5% (no toe-dipping)
-    - Sector cap raised to 60% (allow concentrated bets)
-    - Target ~100% deployed
-    - Stops still required — concentration without stops is suicide
+    Cluster recommendations from catalyst-clusters.json override sizing
+    when present — leaders in BOOST clusters scale up to 20-25%, members
+    in EXCLUDE clusters get dropped entirely.
 
-    Returns a basket dict similar to build_portfolio_basket but with the
-    aggressive sizing applied.
+    Names with grade D / NO_CLEAR_CATALYST get a 60% downsize multiplier —
+    naked momentum without a nameable reason is speculative.
     """
+    catalysts_map = catalysts_map or {}
+    clusters_data = clusters_data or {"boost": set(), "trim": set(), "exclude": set()}
+
     eligible = []
     for c in candidates:
         if not isinstance(c.get("trade_framework"), dict) or "err" in c["trade_framework"]:
             continue
         if c.get("pump_likelihood", 0) < 45:
             continue
+        ticker = c["ticker"]
+
+        # Hard exclude from cluster recommendation
+        if ticker in clusters_data["exclude"]:
+            print(f"[aggressive] EXCLUDE {ticker} per cluster recommendation")
+            continue
+
         # Build combined conviction score
         pump = c.get("pump_likelihood", 50)
-        mom = (momentum_map.get(c["ticker"], {}) or {}).get("momentum_score")
-        mom_tags = (momentum_map.get(c["ticker"], {}) or {}).get("tags", [])
+        mom = (momentum_map.get(ticker, {}) or {}).get("momentum_score")
+        mom_tags = (momentum_map.get(ticker, {}) or {}).get("tags", [])
         pump_confirmed = "PUMP_CONFIRMED" in mom_tags
 
+        # Geometric mean of pump × momentum
         if mom is not None:
-            # Geometric mean — both must be reasonable for high combined
-            combined = (pump * mom) ** 0.5
+            base_combined = (pump * mom) ** 0.5
         else:
-            combined = pump * 0.85  # discount for no momentum data
-        # Boost for PUMP_CONFIRMED
+            base_combined = pump * 0.85
+
+        # Catalyst grade multiplier
+        catalyst_rec = catalysts_map.get(ticker, {})
+        catalyst_grade = catalyst_rec.get("catalyst_grade", "B")
+        catalyst_type = catalyst_rec.get("catalyst_type", "")
+        catalyst_mult = CATALYST_GRADE_MULTIPLIER.get(catalyst_grade, 1.0)
+
+        # NO_CLEAR_CATALYST is downweighted regardless of grade
+        if catalyst_type == "NO_CLEAR_CATALYST":
+            catalyst_mult = min(catalyst_mult, 0.4)
+
+        # Apply catalyst multiplier
+        combined = base_combined * catalyst_mult
+
+        # PUMP_CONFIRMED bonus
         if pump_confirmed:
             combined *= 1.15
+
+        # Cluster modifier
+        cluster_mult = 1.0
+        if ticker in clusters_data["boost"]:
+            cluster_mult = 1.4
+        elif ticker in clusters_data["trim"]:
+            cluster_mult = 0.6
+        combined *= cluster_mult
+
         eligible.append({
-            "cand": c,
-            "combined_score": combined,
+            "cand":            c,
+            "combined_score":  combined,
+            "base_combined":   base_combined,
             "pump_likelihood": pump,
-            "momentum_score": mom,
-            "pump_confirmed": pump_confirmed,
-            "mom_tags": mom_tags,
+            "momentum_score":  mom,
+            "pump_confirmed":  pump_confirmed,
+            "mom_tags":        mom_tags,
+            "catalyst_grade":  catalyst_grade,
+            "catalyst_type":   catalyst_type,
+            "catalyst_mult":   catalyst_mult,
+            "cluster_mult":    cluster_mult,
+            "catalyst":        catalyst_rec.get("primary_catalyst", ""),
         })
 
     eligible.sort(key=lambda x: -x["combined_score"])
 
-    # Aggressive sizing: top picks get big positions
-    # Map conviction tier → position size
+    # Aggressive sizing tiered by combined_score rank
     def size_for_combined(score: float, rank: int) -> float:
-        if rank == 0 and score >= 60:    return 15.0  # top conviction
-        if rank <= 1 and score >= 55:    return 12.0
+        # Top tier gets bigger now that catalyst-grade is in the mix
+        if rank == 0 and score >= 60:    return 18.0  # top conviction (was 15)
+        if rank == 0 and score >= 50:    return 15.0
+        if rank <= 1 and score >= 55:    return 13.0  # was 12
         if rank <= 2 and score >= 50:    return 10.0
         if rank <= 3 and score >= 45:    return 8.0
         if rank <= 5 and score >= 40:    return 6.0
@@ -757,6 +839,12 @@ def build_aggressive_basket(candidates: List[dict],
             "pump_score":      c.get("pump_likelihood"),
             "momentum_score":  e.get("momentum_score"),
             "combined_score":  round(e["combined_score"], 2),
+            "base_combined":   round(e.get("base_combined", 0), 2),
+            "catalyst_grade":  e.get("catalyst_grade"),
+            "catalyst_type":   e.get("catalyst_type"),
+            "catalyst":        e.get("catalyst"),
+            "catalyst_mult":   round(e.get("catalyst_mult", 1.0), 2),
+            "cluster_mult":    round(e.get("cluster_mult", 1.0), 2),
             "pump_confirmed":  e["pump_confirmed"],
             "mom_tags":        e["mom_tags"][:4],
             "sector":          sector,
@@ -785,18 +873,24 @@ def build_aggressive_basket(candidates: List[dict],
         "max_risk_at_stops_pct": round(risk_at_stops, 2),
         "sector_breakdown":      {s: round(v, 2) for s, v in sector_totals.items()},
         "positions":             allocations,
-        "philosophy":           ("PUMP-HUNTER MODE: Concentration is the price of "
-                                   "returns. 5-7 names, up to 15% each, near-full deployment. "
-                                   "Sized by combined pump_likelihood × momentum_score (geometric "
-                                   "mean), boosted 15% for PUMP_CONFIRMED. Sector cap relaxed to "
-                                   "60%. Stops are MANDATORY — concentration without stops is suicide."),
+        "suggested_additions":   clusters_data.get("suggested_additions", []),
+        "philosophy":           ("PUMP-HUNTER MODE with CATALYST-AWARE SIZING. "
+                                   "5-7 names, 5-18% each, ~100% deployment. Sized by "
+                                   "sqrt(pump × momentum) × catalyst_grade_mult (A=1.2 / "
+                                   "B=1.0 / C=0.8 / D=0.4) × 1.15 if PUMP_CONFIRMED × "
+                                   "cluster_modifier. Grade D / no-catalyst names get 60% "
+                                   "downsize — naked momentum is speculative. "
+                                   "Sector cap 60%. Stops mandatory."),
         "construction_rules": {
             "max_per_position":   AGGRESSIVE_MAX_PER_NAME,
             "min_per_position":   AGGRESSIVE_MIN_PER_NAME,
             "max_per_sector":     AGGRESSIVE_MAX_PER_SECTOR,
             "n_names_target":     AGGRESSIVE_N_NAMES_TARGET,
             "target_exposure":    AGGRESSIVE_TOTAL_EXPOSURE,
-            "combined_score":     "geometric_mean(pump × momentum) × 1.15 if PUMP_CONFIRMED",
+            "combined_score":     ("sqrt(pump × momentum) × catalyst_grade_mult "
+                                     "× 1.15 if PUMP_CONFIRMED × cluster_modifier"),
+            "catalyst_grade_multipliers": CATALYST_GRADE_MULTIPLIER,
+            "cluster_modifiers": {"BOOST": 1.4, "TRIM": 0.6, "EXCLUDE": 0},
         },
     }
 
@@ -821,8 +915,11 @@ def lambda_handler(event, context):
     catalyst_map = build_catalyst_map()
     macro_regime = get_macro_regime()
     momentum_map = load_momentum_leaders()
+    catalysts_map = load_catalysts_map()
+    clusters_data = load_clusters_data()
     print(f"[positioning] {len(candidates)} candidates · macro={macro_regime} · "
-            f"{len(catalyst_map)} earnings dates · {len(momentum_map)} momentum entries")
+            f"{len(catalyst_map)} earnings dates · {len(momentum_map)} momentum entries · "
+            f"{len(catalysts_map)} catalyst records · {clusters_data.get('n_clusters', 0)} clusters")
 
     # Enrich in parallel (each ticker fires 3 FMP calls, so cap concurrency)
     enriched = []
@@ -842,15 +939,20 @@ def lambda_handler(event, context):
         mom = momentum_map.get(c.get("ticker"))
         if mom:
             c["momentum"] = mom
+        cat = catalysts_map.get(c.get("ticker"))
+        if cat:
+            c["catalyst_record"] = cat
 
     # Sort by pump_likelihood
     enriched.sort(key=lambda r: -r.get("pump_likelihood", 0))
 
     # Build BOTH baskets — conservative (sector-neutral) AND aggressive (pump-hunter)
     basket = build_portfolio_basket(enriched)
-    aggressive = build_aggressive_basket(enriched, momentum_map)
+    aggressive = build_aggressive_basket(enriched, momentum_map, catalysts_map, clusters_data)
     print(f"[positioning] conservative: {basket['n_positions']} pos {basket['total_exposure']}% · "
-            f"aggressive: {aggressive['n_positions']} pos {aggressive['total_exposure']}%")
+            f"aggressive: {aggressive['n_positions']} pos {aggressive['total_exposure']}% · "
+            f"cluster boost: {sorted(clusters_data.get('boost', set()))} · "
+            f"cluster trim: {sorted(clusters_data.get('trim', set()))}")
 
     # Build output
     output = {
