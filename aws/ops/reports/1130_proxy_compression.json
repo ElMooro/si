@@ -1,0 +1,342 @@
+{
+  "started": "2026-06-01T22:35:29.017186+00:00",
+  "comparisons": [
+    {
+      "path": "crypto-intel.json",
+      "direct_s3": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "50009",
+        "content_type": "application/json",
+        "x_edge_cache": null,
+        "x_edge_ttl": null,
+        "body_size_bytes": 50009,
+        "elapsed_ms": 130.3
+      },
+      "proxy_plain": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "50009",
+        "content_type": "application/json",
+        "x_edge_cache": "MISS",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 50009,
+        "elapsed_ms": 179.4
+      },
+      "proxy_gzip": {
+        "status": 200,
+        "content_encoding": "br",
+        "content_length": null,
+        "content_type": "application/json",
+        "x_edge_cache": "HIT",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 10646,
+        "elapsed_ms": 68.3
+      }
+    },
+    {
+      "path": "flow-data.json",
+      "direct_s3": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "29283",
+        "content_type": "application/json",
+        "x_edge_cache": null,
+        "x_edge_ttl": null,
+        "body_size_bytes": 29283,
+        "elapsed_ms": 60.4
+      },
+      "proxy_plain": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "29283",
+        "content_type": "application/json",
+        "x_edge_cache": "MISS",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 29283,
+        "elapsed_ms": 287.5
+      },
+      "proxy_gzip": {
+        "status": 200,
+        "content_encoding": "br",
+        "content_length": null,
+        "content_type": "application/json",
+        "x_edge_cache": "HIT",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 6970,
+        "elapsed_ms": 54.3
+      }
+    },
+    {
+      "path": "opportunities/asymmetric-equity.json",
+      "direct_s3": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "28829",
+        "content_type": "application/json",
+        "x_edge_cache": null,
+        "x_edge_ttl": null,
+        "body_size_bytes": 28829,
+        "elapsed_ms": 85.8
+      },
+      "proxy_plain": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "28829",
+        "content_type": "application/json",
+        "x_edge_cache": "MISS",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 28829,
+        "elapsed_ms": 147.2
+      },
+      "proxy_gzip": {
+        "status": 200,
+        "content_encoding": "br",
+        "content_length": null,
+        "content_type": "application/json",
+        "x_edge_cache": "HIT",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 5250,
+        "elapsed_ms": 44.2
+      }
+    },
+    {
+      "path": "risk/recommendations.json",
+      "direct_s3": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "15911",
+        "content_type": "application/json",
+        "x_edge_cache": null,
+        "x_edge_ttl": null,
+        "body_size_bytes": 15911,
+        "elapsed_ms": 78.5
+      },
+      "proxy_plain": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "15911",
+        "content_type": "application/json",
+        "x_edge_cache": "MISS",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 15911,
+        "elapsed_ms": 124.7
+      },
+      "proxy_gzip": {
+        "status": 200,
+        "content_encoding": "br",
+        "content_length": null,
+        "content_type": "application/json",
+        "x_edge_cache": "HIT",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 2444,
+        "elapsed_ms": 30.6
+      }
+    },
+    {
+      "path": "data/signal-board.json",
+      "direct_s3": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "11930",
+        "content_type": "application/json",
+        "x_edge_cache": null,
+        "x_edge_ttl": null,
+        "body_size_bytes": 11930,
+        "elapsed_ms": 77.3
+      },
+      "proxy_plain": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "11930",
+        "content_type": "application/json",
+        "x_edge_cache": "MISS",
+        "x_edge_ttl": "3600",
+        "body_size_bytes": 11930,
+        "elapsed_ms": 135.2
+      },
+      "proxy_gzip": {
+        "status": 200,
+        "content_encoding": "br",
+        "content_length": null,
+        "content_type": "application/json",
+        "x_edge_cache": "HIT",
+        "x_edge_ttl": "3600",
+        "body_size_bytes": 2977,
+        "elapsed_ms": 35.3
+      }
+    },
+    {
+      "path": "data/pump-radar-summary.json",
+      "direct_s3": {
+        "status": 200,
+        "content_encoding": "gzip",
+        "content_length": "1079",
+        "content_type": "application/json",
+        "x_edge_cache": null,
+        "x_edge_ttl": null,
+        "body_size_bytes": 1079,
+        "elapsed_ms": 81.8
+      },
+      "proxy_plain": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "2210",
+        "content_type": "application/json",
+        "x_edge_cache": "MISS",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 2210,
+        "elapsed_ms": 107.8
+      },
+      "proxy_gzip": {
+        "status": 200,
+        "content_encoding": "br",
+        "content_length": null,
+        "content_type": "application/json",
+        "x_edge_cache": "HIT",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 1094,
+        "elapsed_ms": 54.7
+      }
+    },
+    {
+      "path": "data/pump-positioning.json",
+      "direct_s3": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "85838",
+        "content_type": "application/json",
+        "x_edge_cache": null,
+        "x_edge_ttl": null,
+        "body_size_bytes": 85838,
+        "elapsed_ms": 124.6
+      },
+      "proxy_plain": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "85838",
+        "content_type": "application/json",
+        "x_edge_cache": "MISS",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 85838,
+        "elapsed_ms": 132.4
+      },
+      "proxy_gzip": {
+        "status": 200,
+        "content_encoding": "br",
+        "content_length": null,
+        "content_type": "application/json",
+        "x_edge_cache": "HIT",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 12311,
+        "elapsed_ms": 82.5
+      }
+    },
+    {
+      "path": "data/catalysts.json",
+      "direct_s3": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "32243",
+        "content_type": "application/json",
+        "x_edge_cache": null,
+        "x_edge_ttl": null,
+        "body_size_bytes": 32243,
+        "elapsed_ms": 89.1
+      },
+      "proxy_plain": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "32243",
+        "content_type": "application/json",
+        "x_edge_cache": "MISS",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 32243,
+        "elapsed_ms": 102.8
+      },
+      "proxy_gzip": {
+        "status": 200,
+        "content_encoding": "br",
+        "content_length": null,
+        "content_type": "application/json",
+        "x_edge_cache": "HIT",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 4832,
+        "elapsed_ms": 37.7
+      }
+    },
+    {
+      "path": "edge-data.json",
+      "direct_s3": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "1930",
+        "content_type": "application/json",
+        "x_edge_cache": null,
+        "x_edge_ttl": null,
+        "body_size_bytes": 1930,
+        "elapsed_ms": 81.3
+      },
+      "proxy_plain": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "1930",
+        "content_type": "application/json",
+        "x_edge_cache": "MISS",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 1930,
+        "elapsed_ms": 163.4
+      },
+      "proxy_gzip": {
+        "status": 200,
+        "content_encoding": "br",
+        "content_length": null,
+        "content_type": "application/json",
+        "x_edge_cache": "HIT",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 773,
+        "elapsed_ms": 32.4
+      }
+    },
+    {
+      "path": "liquidity-data.json",
+      "direct_s3": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "10474",
+        "content_type": "application/json",
+        "x_edge_cache": null,
+        "x_edge_ttl": null,
+        "body_size_bytes": 10474,
+        "elapsed_ms": 121.1
+      },
+      "proxy_plain": {
+        "status": 200,
+        "content_encoding": null,
+        "content_length": "10474",
+        "content_type": "application/json",
+        "x_edge_cache": "MISS",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 10474,
+        "elapsed_ms": 128.6
+      },
+      "proxy_gzip": {
+        "status": 200,
+        "content_encoding": "br",
+        "content_length": null,
+        "content_type": "application/json",
+        "x_edge_cache": "HIT",
+        "x_edge_ttl": "300",
+        "body_size_bytes": 2347,
+        "elapsed_ms": 59.5
+      }
+    }
+  ],
+  "totals": {
+    "direct_s3_total_kb": 261.3,
+    "proxy_gzip_total_kb": 48.5,
+    "savings_kb": 212.8,
+    "savings_pct": 81.4
+  },
+  "finished": "2026-06-01T22:35:32.960664+00:00"
+}
