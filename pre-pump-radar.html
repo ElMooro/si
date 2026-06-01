@@ -238,6 +238,62 @@ a:hover{color:var(--violet)}
 .sector-tags .tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.6px;background:var(--bg-raised);color:var(--fg-2);border:1px solid var(--border);padding:3px 8px;border-radius:3px}
 .sector-tags .tag b{color:var(--fg-1);margin-right:4px}
 
+/* ─── Master Morning Brief (hero) ─── */
+.brief-hero{background:linear-gradient(135deg,rgba(56,255,168,.06),rgba(0,212,255,.04),rgba(167,139,250,.03));border:1px solid var(--green-dim);border-radius:12px;padding:22px 26px;margin-bottom:28px;position:relative;overflow:hidden}
+.brief-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--cyan),var(--violet));opacity:.8}
+.brief-hdr{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.brief-hdr .title{font-family:var(--font-mono);font-size:10px;letter-spacing:1.8px;color:var(--green);text-transform:uppercase;font-weight:700}
+.brief-hdr .age{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-left:auto}
+.brief-grade-box{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.grade-tile{font-family:var(--font-mono);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 14px;min-width:90px}
+.grade-tile .lbl{font-size:9px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:3px}
+.grade-tile .v{font-size:22px;font-weight:700;color:var(--fg-1);font-family:var(--font-mono);line-height:1}
+.grade-tile .v.A{color:var(--green)}
+.grade-tile .v.B{color:var(--cyan)}
+.grade-tile .v.C{color:var(--amber)}
+.grade-tile .v.D{color:var(--red)}
+.grade-tile .v.HOT{color:var(--red)}
+.grade-tile .v.WARM{color:var(--amber)}
+.grade-tile .v.TEPID{color:var(--cyan)}
+.grade-tile .v.COOL{color:var(--fg-3)}
+.grade-tile .sub{font-family:var(--font-mono);font-size:9.5px;color:var(--fg-3);margin-top:3px}
+.brief-exec{font-family:var(--font-sans);font-size:14px;color:var(--fg-1);line-height:1.65;margin-bottom:18px;padding:14px 18px;background:var(--bg);border-left:3px solid var(--green);border-radius:0 5px 5px 0}
+.brief-macro{font-family:var(--font-sans);font-size:12.5px;color:var(--fg-2);line-height:1.6;margin-bottom:18px;padding:12px 16px;background:var(--bg-raised);border-radius:5px;border:1px solid var(--border)}
+.brief-section-title{font-family:var(--font-mono);font-size:11px;letter-spacing:1.4px;color:var(--cyan);text-transform:uppercase;font-weight:700;margin-bottom:10px;margin-top:18px}
+.long-idea{background:var(--bg-raised);border-radius:6px;padding:12px 15px;margin-bottom:10px;border-left:3px solid var(--green)}
+.long-idea .ih{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.long-idea .ih .rank{font-family:var(--font-mono);font-size:18px;color:var(--green);font-weight:700}
+.long-idea .ih .tkr{font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--fg-1);cursor:pointer}
+.long-idea .ih .tkr:hover{color:var(--cyan)}
+.long-idea .ih .conv{font-family:var(--font-mono);font-size:9.5px;letter-spacing:1.2px;padding:2px 8px;border-radius:3px;font-weight:700;text-transform:uppercase}
+.long-idea .ih .conv.HIGH{background:rgba(56,255,168,.16);color:var(--green);border:1px solid var(--green-dim)}
+.long-idea .ih .conv.MED,.long-idea .ih .conv.MEDIUM{background:rgba(0,212,255,.12);color:var(--cyan)}
+.long-idea .ih .conv.MED-HIGH,.long-idea .ih .conv.MEDIUM-HIGH{background:rgba(0,212,255,.18);color:var(--cyan)}
+.long-idea .ih .conv.LOW{background:rgba(255,177,61,.14);color:var(--amber)}
+.long-idea .ih .catalyst{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-left:auto}
+.long-idea .ih .catalyst.urgent{color:var(--red);font-weight:600}
+.long-idea .thesis{font-family:var(--font-sans);font-size:12.5px;color:var(--fg-1);line-height:1.55;margin-bottom:5px;font-weight:500}
+.long-idea .sized{font-family:var(--font-mono);font-size:10.5px;color:var(--cyan);margin-bottom:8px;padding:5px 9px;background:var(--bg-sunken);border-radius:3px;display:inline-block}
+.long-idea ul.bullets{margin:6px 0 6px 0;padding-left:16px;font-size:11.5px;color:var(--fg-2);line-height:1.55}
+.long-idea ul.bullets li{margin-bottom:3px}
+.long-idea .risk{font-family:var(--font-sans);font-size:11px;color:var(--amber);margin-top:8px;padding-top:7px;border-top:1px solid var(--border);line-height:1.45}
+.long-idea .risk b{color:var(--red);margin-right:4px}
+.pair-idea{background:var(--bg-raised);border-radius:6px;padding:12px 15px;margin-bottom:10px;border-left:3px solid var(--cyan)}
+.pair-idea .ph{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;font-family:var(--font-mono);font-size:13px;flex-wrap:wrap}
+.pair-idea .ph .lp{color:var(--green);font-weight:700;cursor:pointer}
+.pair-idea .ph .sp{color:var(--red);font-weight:700}
+.pair-idea .ph .lp:hover{filter:brightness(1.3)}
+.pair-idea .meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-bottom:5px}
+.pair-idea .thesis{font-family:var(--font-sans);font-size:11.5px;color:var(--fg-2);line-height:1.55}
+.brief-watch,.brief-warn,.brief-changed{padding:10px 14px;background:var(--bg-raised);border-radius:5px;margin-bottom:10px;font-family:var(--font-sans);font-size:11.5px;color:var(--fg-2);line-height:1.6}
+.brief-watch{border-left:2px solid var(--cyan)}
+.brief-warn{border-left:2px solid var(--amber)}
+.brief-changed{border-left:2px solid var(--violet)}
+.brief-watch ul,.brief-warn ul{margin:3px 0;padding-left:18px}
+.brief-watch li,.brief-warn li{margin-bottom:3px}
+.brief-source{margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:.5px}
+.brief-source b{color:var(--fg-2)}
+
 /* ─── Hedge-fund v2 panels: mechanics, correlations, pairs, NLP ─── */
 .hf-panel{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:24px}
 .hf-panel.violet{background:linear-gradient(135deg,rgba(167,139,250,.04),rgba(0,212,255,.02),transparent)}
@@ -363,6 +419,15 @@ a:hover{color:var(--violet)}
       data updated <b id="data-age">—</b>
       <br>schedule <b>every 30 min</b>
     </div>
+  </div>
+
+  <!-- Master Morning Brief (the synthesis layer) -->
+  <div class="brief-hero" id="brief-hero" style="display:none">
+    <div class="brief-hdr">
+      <div class="title">📋 Morning Desk Brief</div>
+      <div class="age" id="brief-age">—</div>
+    </div>
+    <div id="brief-content"></div>
   </div>
 
   <div class="hero">
@@ -530,6 +595,7 @@ const MECHANICS_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pum
 const ANALYTICS_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/portfolio-analytics.json";
 const PAIRS_URL    = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pair-trades.json";
 const NLP_URL      = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump-earnings-nlp.json";
+const BRIEF_URL    = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump-radar-brief.json";
 let DATA = null;
 let RESEARCH = null;
 let POSITIONING = null;
@@ -538,6 +604,7 @@ let MECHANICS = null;
 let ANALYTICS = null;
 let PAIRS = null;
 let NLP = null;
+let BRIEF = null;
 let activeTier = "ALL";
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -553,7 +620,7 @@ function ageStr(iso){
 async function load(){
   try {
     // Fetch convergence-radar (primary) + all hedge-fund layers in parallel
-    const [radarR, posR, btR, mechR, anR, prR, nlpR] = await Promise.all([
+    const [radarR, posR, btR, mechR, anR, prR, nlpR, brR] = await Promise.all([
       fetch(S3_URL + "?t=" + Date.now()),
       fetch(POSITIONING_URL + "?t=" + Date.now()).catch(() => null),
       fetch(BACKTEST_URL + "?t=" + Date.now()).catch(() => null),
@@ -561,6 +628,7 @@ async function load(){
       fetch(ANALYTICS_URL + "?t=" + Date.now()).catch(() => null),
       fetch(PAIRS_URL + "?t=" + Date.now()).catch(() => null),
       fetch(NLP_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(BRIEF_URL + "?t=" + Date.now()).catch(() => null),
     ]);
     if (!radarR.ok) throw new Error("HTTP " + radarR.status);
     DATA = await radarR.json();
@@ -570,7 +638,9 @@ async function load(){
     if (anR && anR.ok)    { try { ANALYTICS   = await anR.json(); } catch(_) {} }
     if (prR && prR.ok)    { try { PAIRS       = await prR.json(); } catch(_) {} }
     if (nlpR && nlpR.ok)  { try { NLP         = await nlpR.json(); } catch(_) {} }
+    if (brR && brR.ok)    { try { BRIEF       = await brR.json(); } catch(_) {} }
     render();
+    renderBriefHero();
     renderEdgePanel();
     renderBasketPanel();
     renderMechanicsPanel();
@@ -582,6 +652,134 @@ async function load(){
     document.getElementById('leaderboard-tbody').innerHTML =
       '<tr><td colspan="7"><div class="error">Failed to load: ' + esc(e.message) + '</div></td></tr>';
   }
+}
+
+// ─── Master Morning Brief Hero ──────────────────────────────────────
+function renderBriefHero(){
+  const wrapEl = document.getElementById('brief-hero');
+  const el = document.getElementById('brief-content');
+  if (!BRIEF || BRIEF.status === "error" || !BRIEF.conviction_grade) {
+    wrapEl.style.display = 'none';
+    return;
+  }
+  wrapEl.style.display = 'block';
+
+  // Age label
+  const ageEl = document.getElementById('brief-age');
+  if (ageEl && BRIEF.generated_at) {
+    ageEl.textContent = 'synthesized ' + ageStr(BRIEF.generated_at) + ' · claude ' + (BRIEF.claude_elapsed || 0).toFixed(0) + 's';
+  }
+
+  let html = '';
+
+  // Grade + temperature + macro tiles
+  const grade = BRIEF.conviction_grade || '—';
+  const gradeClass = grade.startsWith('A') ? 'A' : grade.startsWith('B') ? 'B' : grade.startsWith('C') ? 'C' : 'D';
+  const temp = BRIEF.market_temperature || {};
+  const tempRank = temp.rank || '';
+  html += '<div class="brief-grade-box">';
+  html += '<div class="grade-tile"><div class="lbl">Conviction</div><div class="v ' + gradeClass + '">' + grade + '</div></div>';
+  html += '<div class="grade-tile"><div class="lbl">Temperature</div><div class="v ' + tempRank + '">' + (temp.score != null ? temp.score : '?') + '</div><div class="sub">' + tempRank + '</div></div>';
+  if (temp.components) {
+    html += '<div class="grade-tile"><div class="lbl">Max Pump</div><div class="v">' + temp.components.max_pump + '</div></div>';
+    html += '<div class="grade-tile"><div class="lbl">Basket Exposure</div><div class="v">' + temp.components.basket_exposure + '%</div></div>';
+  }
+  html += '</div>';
+
+  // Executive Summary
+  if (BRIEF.executive_summary) {
+    html += '<div class="brief-exec">' + esc(BRIEF.executive_summary) + '</div>';
+  }
+
+  // Macro Frame
+  if (BRIEF.macro_frame) {
+    html += '<div class="brief-macro"><b style="color:var(--fg-1)">🌍 Macro:</b> ' + esc(BRIEF.macro_frame) + '</div>';
+  }
+
+  // Top 3 Long Ideas
+  if (BRIEF.top_3_long_ideas && BRIEF.top_3_long_ideas.length) {
+    html += '<div class="brief-section-title">🎯 Top 3 Long Ideas</div>';
+    BRIEF.top_3_long_ideas.forEach((idea, i) => {
+      const conv = (idea.conviction || '').toUpperCase().replace(' ', '-');
+      html += '<div class="long-idea">';
+      html += '<div class="ih">';
+      html += '<span class="rank">#' + (i+1) + '</span>';
+      html += '<span class="tkr ticker clickable" data-ticker="' + esc(idea.ticker) + '">' + esc(idea.ticker) + '</span>';
+      html += '<span class="conv ' + esc(conv) + '">' + esc(idea.conviction || '?') + '</span>';
+      if (idea.catalyst_window) {
+        const urg = /in \d+d/i.test(idea.catalyst_window || '') && /\b[1-7]d/.test(idea.catalyst_window || '');
+        html += '<span class="catalyst ' + (urg ? 'urgent' : '') + '">📅 ' + esc(idea.catalyst_window) + '</span>';
+      }
+      html += '</div>';
+      if (idea.thesis_1liner) html += '<div class="thesis">' + esc(idea.thesis_1liner) + '</div>';
+      if (idea.sized_position) html += '<div class="sized">' + esc(idea.sized_position) + '</div>';
+      if (idea.bull_bullets && idea.bull_bullets.length) {
+        html += '<ul class="bullets">';
+        idea.bull_bullets.forEach(b => html += '<li>' + esc(b) + '</li>');
+        html += '</ul>';
+      }
+      if (idea.key_risk) {
+        html += '<div class="risk"><b>RISK:</b> ' + esc(idea.key_risk) + '</div>';
+      }
+      html += '</div>';
+    });
+  }
+
+  // Top 2 Pair Trades
+  if (BRIEF.top_2_pair_trades && BRIEF.top_2_pair_trades.length) {
+    html += '<div class="brief-section-title">⚖️ Top 2 Pair Trades</div>';
+    BRIEF.top_2_pair_trades.forEach(p => {
+      html += '<div class="pair-idea">';
+      html += '<div class="ph"><span class="lp ticker clickable" data-ticker="' + esc(p.long_ticker) + '">LONG ' + esc(p.long_ticker) + '</span><span style="color:var(--fg-3)">/</span><span class="sp">SHORT ' + esc(p.short_ticker) + '</span></div>';
+      if (p.why_hedged) html += '<div class="meta">' + esc(p.why_hedged) + (p.expected_alpha ? ' · expected α: ' + esc(p.expected_alpha) : '') + '</div>';
+      if (p.trade_thesis) html += '<div class="thesis">' + esc(p.trade_thesis) + '</div>';
+      html += '</div>';
+    });
+  }
+
+  // What to watch
+  if (BRIEF.what_to_watch_today && BRIEF.what_to_watch_today.length) {
+    html += '<div class="brief-section-title">📅 What to Watch Today</div>';
+    html += '<div class="brief-watch"><ul>';
+    BRIEF.what_to_watch_today.forEach(w => html += '<li>' + esc(w) + '</li>');
+    html += '</ul></div>';
+  }
+
+  // Risk warnings
+  if (BRIEF.risk_warnings && BRIEF.risk_warnings.length) {
+    html += '<div class="brief-section-title" style="color:var(--amber)">⚠ Risk Warnings</div>';
+    html += '<div class="brief-warn"><ul>';
+    BRIEF.risk_warnings.forEach(w => html += '<li>' + esc(w) + '</li>');
+    html += '</ul></div>';
+  }
+
+  // Whats changed
+  if (BRIEF.whats_changed_narrative) {
+    html += '<div class="brief-section-title" style="color:var(--violet)">🔄 What\'s Changed</div>';
+    html += '<div class="brief-changed">' + esc(BRIEF.whats_changed_narrative);
+    const wcd = BRIEF.whats_changed_data || {};
+    if (wcd.n_new || wcd.n_removed) {
+      html += '<div style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-top:6px">' +
+              (wcd.n_new ? '+' + wcd.n_new + ' new: ' + (wcd.new_signals || []).join(', ') + ' · ' : '') +
+              (wcd.n_removed ? '-' + wcd.n_removed + ' removed: ' + (wcd.removed_signals || []).join(', ') + ' · ' : '') +
+              '=' + (wcd.n_retained || 0) + ' kept' +
+              '</div>';
+    }
+    html += '</div>';
+  }
+
+  // Source freshness footer
+  if (BRIEF.source_versions) {
+    const layers = Object.keys(BRIEF.source_versions);
+    html += '<div class="brief-source">📡 <b>synthesized from:</b> ' + layers.length + ' data layers';
+    if (BRIEF.disclaimer) {
+      html += ' · <span style="color:var(--fg-3);font-style:italic">' + esc(BRIEF.disclaimer.slice(0, 180)) + '</span>';
+    }
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+  wireTickerClicks();
 }
 
 // ─── Pump Mechanics Panel (squeeze + options skew + IV rank) ────────
