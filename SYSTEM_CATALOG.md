@@ -875,4 +875,101 @@ functional and real data flows:
     on `Invoke`). This is unrelated to FRED 429s and just means: pace
     your verification invokes.
 
+## 2026-06-01 (continuing) — Edge/Flow Tile Resurrection + Workflow Hardening
+
+### Edge-data + flow-data tiles (25 days stale → live)
+
+**Symptom:** `edge-data.json` and `flow-data.json` had not refreshed since
+2026-05-06 — exactly the date the API auth tier rollout went live
+(memory item #7). Both Lambdas have an `authorize(event, allowed_origins=...)`
+gate as the first step in `lambda_handler`.
+
+**Root cause (ops/1081):** EventBridge cron fires the Lambda with an empty
+event. No Authorization header, no x-api-key, no Origin header. `authorize()`
+returns 401 → handler exits BEFORE the S3 write code at the bottom. Function
+URL calls from the browser succeed because they DO have an Origin header.
+So the Lambdas appear to work but the cron path was silently broken.
+
+**Fix (ops/1082):**
+  1. Inject internal-invocation bypass before `authorize()`:
+     ```python
+     if not event.get("requestContext", {}).get("http"):
+         key_meta = {"auth_mode": "internal", "tier": "ENTERPRISE", ...}
+         err = None
+     else:
+         key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
+         if err:
+             return err
+     ```
+     Logic: Function URL calls always set `requestContext.http`. Absence
+     of that key means EventBridge cron / boto3 direct invoke — trusted
+     internal path, bypass auth.
+  
+  2. Added EventBridge schedule `justhodl-options-flow-30m = rate(30 minutes)`
+     — options-flow had NO schedule at all. Even after fixing the auth
+     gate, flow-data.json would never refresh without a cron.
+  
+  3. Added FRED shim to `justhodl-edge-engine` (ops/1084) — was missed by
+     the original shim batches because the audit didn't catch its
+     indirect FRED calls via `engine_liquidity` sub-engine.
+
+**Platform audit (ops/1083):** Confirmed only 11 Lambdas use `authorize()`,
+of which 9 are HTTP-only with no schedule (not affected) and 2 are these
+two scheduled ones (now fixed). No other silently-broken tiles to find.
+
+**Result:** edge-data.json + flow-data.json now refreshing on schedule.
+Composite scores: edge composite=55 NEUTRAL, flow sentiment 72.4 GREED.
+
+### Workflow architectural hardening (ops/1085-1087)
+
+**Problem:** `deploy-lambdas.yml` previously zipped only `$dir/source/`.
+It did NOT include `aws/shared/*.py`. The existing convention worked
+around this by manually copying shared files into each Lambda's source/
+folder (29× `_sentry_lite.py`, 20× `system_events.py`, etc.). The newly
+added `_fred_shim.py` (today's session) had 0 copies in any source/
+folder — patched only into deployed zips via ops scripts. ANY future
+repo push to any of the 71 shimmed Lambdas would have un-shimmed them
+via the workflow rebuild.
+
+**Fix:** Modified deploy-lambdas.yml zip step to use a two-layer staging
+pattern:
+  1. Default layer: `find aws/shared -maxdepth 1 -name '*.py' -exec cp ...`
+     (skip `__pycache__`)
+  2. Override layer: `cp -rT "$dir/source" "$staging"`
+     — Lambda's own source/ wins over shared files of the same name
+
+Preserves all existing override semantics. Lambdas without per-source
+copies now automatically get the shared default included.
+
+**Discovered casualty:** Workflow_dispatch test on `justhodl-yield-curve`
+deployed cleanly, **but** the redeployed Lambda's `lambda_function.py`
+came from repo source which lacked `import _fred_shim`. Even though the
+zip now contained `_fred_shim.py` from aws/shared/, the shim wasn't
+imported anywhere → Lambda fell back to direct FRED calls →
+`regime: UNKNOWN, twos_tens_bps: None`.
+
+**Resolution (ops/1086):** Synced all 72 Lambda source/lambda_function.py
+files in the repo with their deployed code (which already has all the
+patches from today: shim import, auth bypass, liquidity-agent inline
+cache). Plus manually added the missing shim line to yield-curve repo
+source. Second canary (`cds-proxy`) via workflow_dispatch confirmed:
+zip contains shim file + lambda imports it + Lambda returns real data.
+
+### Architectural state after this session
+
+| Layer | What it does |
+|---|---|
+| `aws/shared/*.py` | Single source of truth for shared Lambda code. 7 files (api_auth, calibration, _sentry_lite, system_events, ka_aliases, finra_si, _fred_shim). |
+| `aws/lambdas/{name}/source/` | Lambda-specific code. May contain per-Lambda overrides of shared files (29 still have own `_sentry_lite.py`, etc.) — these win over shared. |
+| `deploy-lambdas.yml` | Auto-bundles shared/ files into every Lambda zip with source/ overrides on top. |
+| 72 Lambda source files | Now synced with deployed code (single source of truth). |
+
+### Optional future cleanup (low priority)
+
+The 29× `_sentry_lite.py` copies, 20× `system_events.py` copies, etc.
+in individual source/ folders are now technically redundant since the
+workflow auto-bundles them. Future cleanup PR could remove these
+duplicates, leaving only `aws/shared/` as the canonical location.
+Not urgent — they don't cause functional issues, just storage redundancy.
+
 _Generated by ops 1021 on 2026-05-21. Refresh by re-running `aws/ops/pending/1021_system_full_audit.py` and re-running this generator._
