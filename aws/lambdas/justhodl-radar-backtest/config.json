@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Backtest convergence-radar archive over 30d. Per-tier hit rate / avg return / Sharpe + per-transition + per-pump-category stats. Best/worst trades. Daily 06:00 UTC.",
+  "environment": {
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-radar-backtest-daily",
+    "cron": "cron(0 6 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily edge-validation backtest at 06:00 UTC"
+  }
+}
