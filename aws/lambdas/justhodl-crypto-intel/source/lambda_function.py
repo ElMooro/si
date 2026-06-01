@@ -3729,7 +3729,7 @@ def lambda_handler(event, context):
     try:
         # Phase 2 dual-write — duplicate khalid_* keys as ka_*
         out = add_ka_aliases(out)
-        s3.put_object(Bucket=S3_BUCKET,Key='crypto-intel.json',Body=json.dumps(out,default=str),ContentType='application/json',CacheControl='max-age=60')
+        s3.put_object(Bucket=S3_BUCKET,Key='crypto-intel.json',Body=json.dumps(out,default=str),ContentType='application/json',CacheControl='public, max-age=900')
 
 
 

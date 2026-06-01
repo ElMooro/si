@@ -4652,7 +4652,7 @@ def lambda_handler(event, context):
                 Key="flow-data.json",
                 Body=json.dumps(payload, default=str).encode(),
                 ContentType="application/json",
-                CacheControl="no-cache")
+                CacheControl="public, max-age=300")
             print("flow S3 saved")
         except Exception as _e:
             # audit P2.5: emit EMF metric for silent put_object failure
