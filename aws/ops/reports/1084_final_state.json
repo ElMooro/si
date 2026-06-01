@@ -1,0 +1,74 @@
+{
+  "started": "2026-06-01T00:13:11.591158+00:00",
+  "already_shimmed": false,
+  "had_shim_file": false,
+  "shim_deploy": {
+    "ok": true,
+    "zip_size": 16315
+  },
+  "invokes": [
+    {
+      "name": "justhodl-edge-engine",
+      "elapsed_s": 16.0,
+      "status": 200,
+      "body_status": 200,
+      "composite_score": 55,
+      "regime": "NEUTRAL",
+      "engine_scores": {
+        "options_flow": 50,
+        "fund_sentiment": 60,
+        "earnings": 50,
+        "liquidity": 65,
+        "correlation": 50
+      },
+      "alerts": []
+    },
+    {
+      "name": "justhodl-options-flow",
+      "elapsed_s": 16.9,
+      "status": 200,
+      "body_status": 200,
+      "vix": null,
+      "pc": 0.162,
+      "pc_signal": "COMPLACENCY",
+      "gex": 24257.0,
+      "gex_regime": "POSITIVE_GAMMA",
+      "sentiment": {
+        "score": 72.4,
+        "label": "GREED",
+        "color": "#22c55e",
+        "components": 7
+      }
+    }
+  ],
+  "s3": {
+    "edge-data.json": {
+      "last_modified": "2026-06-01T00:13:37+00:00",
+      "size": 1890,
+      "meta_generated_at": "2026-06-01T00:13:36.580760+00:00",
+      "top_keys": [
+        "generated_at",
+        "composite_score",
+        "calibrated_composite",
+        "raw_composite",
+        "calibration",
+        "regime",
+        "engine_scores",
+        "options_flow"
+      ]
+    },
+    "flow-data.json": {
+      "last_modified": "2026-06-01T00:13:57+00:00",
+      "size": 29888,
+      "meta_generated_at": "2026-06-01T00:13:39.790430Z",
+      "top_keys": [
+        "success",
+        "timestamp",
+        "engine",
+        "data",
+        "meta"
+      ]
+    }
+  },
+  "finished": "2026-06-01T00:13:59.995936+00:00"
+}
