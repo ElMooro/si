@@ -598,6 +598,7 @@ table.tbl tr:last-child td{border-bottom: none}
     <a href="/" class="active">DESK</a>
     <a href="/directory.html" style="color:#00f4a8;font-weight:700;background:rgba(0,214,143,0.1);border:1px solid rgba(0,214,143,0.4);border-radius:5px;padding:2px 9px">📁 DIRECTORY</a>
     <a href="/frontrun.html" style="color:#ff7a18;font-weight:700;background:rgba(255,122,24,0.10);border:1px solid rgba(255,122,24,0.45);border-radius:5px;padding:2px 9px">🎯 FRONT-RUN</a>
+    <a href="/pre-pump-radar.html" style="color:#ef4444;font-weight:700;background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.45);border-radius:5px;padding:2px 9px;text-shadow:0 0 8px rgba(239,68,68,.3)">🔥 PRE-PUMP RADAR</a>
     <a href="/macro-frontrun.html" style="color:#22d3ee;font-weight:700;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.42);border-radius:5px;padding:2px 9px">🏛 MACRO FRONT-RUN</a>
     <a href="/alerts.html" style="color:#a78bfa;font-weight:700;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.42);border-radius:5px;padding:2px 9px">📡 ALERTS</a>
     <a href="/digest-archive.html" style="color:#a78bfa;font-weight:700">📂 ARCHIVE</a>
@@ -838,6 +839,38 @@ table.tbl tr:last-child td{border-bottom: none}
         <div>
           <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Top Movers</div>
           <div id="sbMovers" style="font-size:12px;line-height:1.6;color:var(--text)">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PRE-PUMP RADAR hero card — the catalyst-aware pump-hunter desk ═══ -->
+    <section class="card col-12" id="prePumpHero" style="border-left:3px solid #ef4444;background:linear-gradient(135deg,rgba(239,68,68,.05),rgba(167,139,250,.04) 50%,rgba(0,212,255,.03))">
+      <div class="card-head">
+        <div>
+          <div class="card-title">🔥 PRE-PUMP RADAR <span style="color:#ef4444;font-weight:600;font-size:11px;letter-spacing:1.5px;background:rgba(239,68,68,.15);padding:2px 8px;border-radius:3px;margin-left:6px">LIVE</span></div>
+          <div class="card-subtitle" id="ppSub">Catalyst-aware pump-hunter desk · loading…</div>
+        </div>
+        <a href="/pre-pump-radar.html" class="card-action" style="color:#ef4444">OPEN DESK →</a>
+      </div>
+      <div id="prePumpBody" style="display:grid;grid-template-columns:1.2fr 1.2fr 2fr 1.4fr;gap:16px;align-items:start">
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Conviction</div>
+          <div id="ppConviction" style="font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--text)">—</div>
+          <div id="ppTemperature" style="font-size:12px;color:var(--muted);margin-top:2px">temp —</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">A-grade Catalysts</div>
+          <div id="ppAGrade" style="font-size:28px;font-weight:600;color:#26ffaf">—</div>
+          <div id="ppPumpConf" style="font-size:12px;color:var(--muted);margin-top:2px">pump confirmed —</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Top Picks</div>
+          <div id="ppPicks" style="font-size:12px;line-height:1.65;color:var(--text)">loading…</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Catalyst Clusters</div>
+          <div id="ppClusters" style="font-size:12px;line-height:1.55;color:var(--text)">—</div>
+          <div id="ppEarly" style="font-size:11px;line-height:1.5;color:var(--muted);margin-top:4px">—</div>
         </div>
       </div>
     </section>
@@ -1930,6 +1963,11 @@ const SOURCES = {
   setups:   `${S3}/opportunities/asymmetric-equity.json`,
   pnl:      `${S3}/portfolio/pnl-daily.json`,
   signalBoard: `${S3}/data/signal-board.json`,
+  ppBrief:     `${S3}/data/pump-radar-brief.json`,
+  ppPositioning: `${S3}/data/pump-positioning.json`,
+  ppCatalysts:   `${S3}/data/catalysts.json`,
+  ppClusters:    `${S3}/data/catalyst-clusters.json`,
+  ppEarly:       `${S3}/data/velocity-acceleration.json`,
 };
 
 const STATE = {data: {}, errors: {}, lastUpdate: null};
@@ -2507,6 +2545,121 @@ function renderSignalBoard(){
   }
 }
 
+// ── PRE-PUMP RADAR hero card (catalyst-aware pump-hunter desk) ───────
+function renderPrePumpRadar(){
+  const brief = STATE.data.ppBrief || {};
+  const pos   = STATE.data.ppPositioning || {};
+  const cat   = STATE.data.ppCatalysts || {};
+  const clus  = STATE.data.ppClusters || {};
+  const early = STATE.data.ppEarly || {};
+
+  // ── Conviction grade
+  const conviction = brief.conviction_grade || '—';
+  const tempLabel = brief.market_temperature_label || brief.market_temperature?.rank || '';
+  const tempScore = brief.market_temperature?.score;
+  const convEl = document.getElementById('ppConviction');
+  if(convEl){
+    convEl.textContent = conviction;
+    // Color the conviction grade
+    let c = 'var(--text)';
+    if(conviction.startsWith('A')) c = '#10b981';
+    else if(conviction.startsWith('B+') || conviction === 'B') c = '#22d3ee';
+    else if(conviction.startsWith('B')) c = '#facc15';
+    else if(conviction.startsWith('C')) c = '#f59e0b';
+    else if(conviction.startsWith('D')) c = '#ef4444';
+    convEl.style.color = c;
+  }
+  const tempEl = document.getElementById('ppTemperature');
+  if(tempEl){
+    let s = tempLabel || '—';
+    if(tempScore != null) s = `${tempLabel || '—'} · ${Number(tempScore).toFixed(0)}/100`;
+    tempEl.textContent = `temp ${s}`;
+  }
+
+  // ── A-grade catalysts + pump-confirmed count
+  const byGrade = cat.by_grade || {};
+  const nA = (byGrade.A || []).length;
+  const nB = (byGrade.B || []).length;
+  const positions = pos.aggressive_basket?.positions || [];
+  const nPC = positions.filter(p => p.pump_confirmed).length;
+  const aEl = document.getElementById('ppAGrade');
+  if(aEl){
+    aEl.textContent = String(nA);
+    aEl.title = `${nA} A-grade + ${nB} B-grade catalysts`;
+  }
+  const pcEl = document.getElementById('ppPumpConf');
+  if(pcEl){
+    pcEl.textContent = `${nPC} of ${positions.length} pump-confirmed`;
+  }
+
+  // ── Top picks from aggressive basket (or top_3_long_ideas in brief)
+  const picksEl = document.getElementById('ppPicks');
+  if(picksEl){
+    const ideas = brief.top_3_long_ideas || [];
+    if(ideas.length){
+      picksEl.innerHTML = ideas.slice(0, 3).map(idea => {
+        const cg = idea.catalyst_grade || '?';
+        const cgColor = cg === 'A' ? '#10b981' : cg === 'B' ? '#22d3ee' : cg === 'C' ? '#f59e0b' : cg === 'D' ? '#ef4444' : 'var(--muted)';
+        const ct = (idea.catalyst_type || '').replace(/_/g, ' ').slice(0, 20);
+        // Extract size from sized_position string
+        let sz = '';
+        const m = (idea.sized_position || '').match(/(\d+\.\d+)\s*%/);
+        if(m) sz = ` <span style="color:#ef4444;font-weight:700">${m[1]}%</span>`;
+        return `<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:3px"><span style="color:var(--text);font-weight:700;font-size:13px">${escHtml(idea.ticker || '—')}</span><span style="background:${cgColor};color:#0b0e13;font-weight:700;padding:1px 5px;border-radius:2px;font-size:9px">${escHtml(cg)}</span><span style="color:var(--muted);font-size:10.5px">${escHtml(ct)}</span>${sz}</div>`;
+      }).join('');
+    } else if(positions.length){
+      picksEl.innerHTML = positions.slice(0, 3).map(p => {
+        const cg = p.catalyst_grade || '?';
+        const cgColor = cg === 'A' ? '#10b981' : cg === 'B' ? '#22d3ee' : cg === 'C' ? '#f59e0b' : cg === 'D' ? '#ef4444' : 'var(--muted)';
+        return `<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:3px"><span style="color:var(--text);font-weight:700;font-size:13px">${escHtml(p.ticker)}</span><span style="background:${cgColor};color:#0b0e13;font-weight:700;padding:1px 5px;border-radius:2px;font-size:9px">${escHtml(cg)}</span><span style="color:#ef4444;font-weight:700">${Number(p.position_pct).toFixed(1)}%</span></div>`;
+      }).join('');
+    } else {
+      picksEl.textContent = 'No positions';
+    }
+  }
+
+  // ── Catalyst clusters + early detection
+  const clusEl = document.getElementById('ppClusters');
+  if(clusEl){
+    const clusters = clus.clusters || [];
+    const sa = (clus.basket_action_summary || {}).suggested_additions || [];
+    if(clusters.length){
+      const top = clusters.slice(0, 2).map(c => {
+        const qg = c.quality_grade || '?';
+        const qColor = qg === 'A' ? '#10b981' : qg === 'B' ? '#22d3ee' : qg === 'C' ? '#f59e0b' : '#ef4444';
+        const type = (c.cluster_type || '').replace('TEMPORAL_', '').replace('THEMATIC_', '');
+        const members = (c.members || []).slice(0, 4).join(', ');
+        return `<div><span style="color:${qColor};font-weight:700">${escHtml(qg)}</span> ${escHtml(type)}: ${escHtml(members)}</div>`;
+      }).join('');
+      clusEl.innerHTML = top || '—';
+    } else {
+      clusEl.textContent = 'No active clusters';
+    }
+    if(sa.length){
+      clusEl.innerHTML += `<div style="margin-top:3px;color:#a78bfa;font-size:11px">💡 Consider: ${sa.slice(0,3).map(s => escHtml(s.ticker)).join(', ')}</div>`;
+    }
+  }
+  const earlyEl = document.getElementById('ppEarly');
+  if(earlyEl){
+    const conf = early.n_confirmed_today || 0;
+    const fresh = early.n_fresh || 0;
+    const aging = early.n_aging || 0;
+    const tickers = (early.actionable_tickers || []).slice(0, 4).join(', ');
+    earlyEl.innerHTML = `<span style="color:#10b981">${conf} confirmed</span> · <span style="color:#22d3ee">${fresh} fresh</span> · <span style="color:#f59e0b">${aging} aging</span>${tickers ? ' · ' + escHtml(tickers) : ''}`;
+  }
+
+  // ── Update subtitle
+  const subEl = document.getElementById('ppSub');
+  if(subEl){
+    const exec = brief.executive_summary || '';
+    if(exec){
+      subEl.textContent = exec.slice(0, 130) + (exec.length > 130 ? '…' : '');
+    } else {
+      subEl.textContent = `Catalyst-aware pump-hunter desk · ${positions.length} positions · ${nA} A-grade catalysts`;
+    }
+  }
+}
+
 /* ──────────────────────────────────────────────────────────────
    FETCH ORCHESTRATION — parallel, fault-tolerant
    ────────────────────────────────────────────────────────────── */
@@ -2532,6 +2685,9 @@ async function loadAll(){
     const sb = document.getElementById('signalBoardBody');
     if(sb) sb.innerHTML = `<div class="err" style="grid-column:1/-1">⚠ Signal-board feed unavailable</div>`;
   }
+
+  // PRE-PUMP RADAR hero card (right after signal board)
+  renderPrePumpRadar();
 
   // Render each card, even if some failed
   if(STATE.data.setups) renderSetups();
