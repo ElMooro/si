@@ -1,0 +1,183 @@
+{
+  "started": "2026-06-01T18:43:05.530622+00:00",
+  "endpoints": {
+    "profile": {
+      "ok": true,
+      "type": "list",
+      "n": 1,
+      "first_keys": [
+        "symbol",
+        "price",
+        "marketCap",
+        "beta",
+        "lastDividend",
+        "range",
+        "change",
+        "changePercentage",
+        "volume",
+        "averageVolume",
+        "companyName",
+        "currency",
+        "cik",
+        "isin"
+      ],
+      "sample_values": {
+        "symbol": "PLTR",
+        "price": "161.66",
+        "marketCap": "371182676200",
+        "beta": "1.521",
+        "lastDividend": "0",
+        "range": "118.93-207.52"
+      }
+    },
+    "share-float": {
+      "ok": false,
+      "err": "HTTP Error 404: Not Found"
+    },
+    "historical-share-count": {
+      "ok": false,
+      "err": "HTTP Error 404: Not Found"
+    },
+    "short-interest": {
+      "ok": false,
+      "err": "HTTP Error 404: Not Found"
+    },
+    "fail-to-deliver": {
+      "ok": false,
+      "err": "HTTP Error 404: Not Found"
+    },
+    "stock-peers": {
+      "ok": true,
+      "type": "list",
+      "n": 10,
+      "first_keys": [
+        "symbol",
+        "companyName",
+        "price",
+        "mktCap"
+      ],
+      "sample_values": {
+        "symbol": "ADBE",
+        "companyName": "Adobe Inc.",
+        "price": "272.98",
+        "mktCap": "110338516000"
+      }
+    },
+    "peers": {
+      "ok": false,
+      "err": "HTTP Error 404: Not Found"
+    },
+    "earning-call-transcript": {
+      "ok": true,
+      "type": "list",
+      "n": 1,
+      "first_keys": [
+        "symbol",
+        "period",
+        "year",
+        "date",
+        "content"
+      ],
+      "sample_values": {
+        "symbol": "PLTR",
+        "period": "Q3",
+        "year": "2025",
+        "date": "2025-11-04",
+        "content": "Ana Soro: Good afternoon. I'm Ana Soro from Palantir's finance team, and I'd like to welcome you to our third quarter 20"
+      }
+    },
+    "earning-call-transcripts-list": {
+      "ok": false,
+      "err": "HTTP Error 404: Not Found"
+    },
+    "ratios": {
+      "ok": true,
+      "type": "list",
+      "n": 5,
+      "first_keys": [
+        "symbol",
+        "date",
+        "fiscalYear",
+        "period",
+        "reportedCurrency",
+        "grossProfitMargin",
+        "ebitMargin",
+        "ebitdaMargin",
+        "operatingProfitMargin",
+        "pretaxProfitMargin",
+        "continuousOperationsProfitMargin",
+        "netProfitMargin",
+        "bottomLineProfitMargin",
+        "receivablesTurnover"
+      ],
+      "sample_values": {
+        "symbol": "PLTR",
+        "date": "2025-12-31",
+        "fiscalYear": "2025",
+        "period": "FY",
+        "reportedCurrency": "USD",
+        "grossProfitMargin": "0.8236651721415028"
+      }
+    },
+    "key-metrics": {
+      "ok": true,
+      "type": "list",
+      "n": 5,
+      "first_keys": [
+        "symbol",
+        "date",
+        "fiscalYear",
+        "period",
+        "reportedCurrency",
+        "marketCap",
+        "enterpriseValue",
+        "evToSales",
+        "evToOperatingCashFlow",
+        "evToFreeCashFlow",
+        "evToEBITDA",
+        "netDebtToEBITDA",
+        "currentRatio",
+        "incomeQuality"
+      ],
+      "sample_values": {
+        "symbol": "PLTR",
+        "date": "2025-12-31",
+        "fiscalYear": "2025",
+        "period": "FY",
+        "reportedCurrency": "USD",
+        "marketCap": "421198533000"
+      }
+    },
+    "options-chain": {
+      "ok": false,
+      "err": "HTTP Error 404: Not Found"
+    },
+    "historical-options": {
+      "ok": false,
+      "err": "HTTP Error 404: Not Found"
+    },
+    "institutional-ownership": {
+      "ok": false,
+      "err": "HTTP Error 404: Not Found"
+    },
+    "etf-sector-weightings": {
+      "ok": false,
+      "err": "HTTP Error 404: Not Found"
+    },
+    "market-cap": {
+      "ok": true,
+      "type": "list",
+      "n": 1,
+      "first_keys": [
+        "symbol",
+        "date",
+        "marketCap"
+      ],
+      "sample_values": {
+        "symbol": "PLTR",
+        "date": "2026-06-01",
+        "marketCap": "371139739691"
+      }
+    }
+  }
+}
