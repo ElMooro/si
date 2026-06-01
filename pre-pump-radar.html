@@ -238,6 +238,105 @@ a:hover{color:var(--violet)}
 .sector-tags .tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.6px;background:var(--bg-raised);color:var(--fg-2);border:1px solid var(--border);padding:3px 8px;border-radius:3px}
 .sector-tags .tag b{color:var(--fg-1);margin-right:4px}
 
+/* ─── Hedge-fund v2 panels: mechanics, correlations, pairs, NLP ─── */
+.hf-panel{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:24px}
+.hf-panel.violet{background:linear-gradient(135deg,rgba(167,139,250,.04),rgba(0,212,255,.02),transparent)}
+.hf-panel.green{background:linear-gradient(135deg,rgba(56,255,168,.04),rgba(0,212,255,.02),transparent)}
+.hf-panel.amber{background:linear-gradient(135deg,rgba(255,177,61,.04),rgba(167,139,250,.02),transparent)}
+.hf-panel.red{background:linear-gradient(135deg,rgba(255,92,122,.04),rgba(255,177,61,.02),transparent)}
+.hf-panel .panel-hdr{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.hf-panel .panel-hdr h3{margin:0;font-family:var(--font-mono);font-size:11px;letter-spacing:1.6px;font-weight:700;text-transform:uppercase}
+.hf-panel.violet .panel-hdr h3{color:var(--violet)}
+.hf-panel.green .panel-hdr h3{color:var(--green)}
+.hf-panel.amber .panel-hdr h3{color:var(--amber)}
+.hf-panel.red .panel-hdr h3{color:var(--red)}
+.hf-panel .panel-hdr .sub{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-left:auto}
+
+/* Mechanics — squeeze + options table */
+.mech-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px;background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;overflow:hidden}
+.mech-table th{font-size:9px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase;padding:7px 9px;background:var(--bg-sunken);border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+.mech-table th.lt,.mech-table td.lt{text-align:left}
+.mech-table td{padding:7px 9px;text-align:right;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
+.mech-table tr:last-child td{border-bottom:none}
+.mech-table .tkr{font-weight:700;color:var(--fg-1)}
+.mech-table .badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;letter-spacing:.6px;font-weight:600}
+.mech-table .badge.tier-XS{background:rgba(255,92,122,.16);color:var(--red)}
+.mech-table .badge.tier-S{background:rgba(255,177,61,.16);color:var(--amber)}
+.mech-table .badge.tier-M{background:rgba(0,212,255,.12);color:var(--cyan)}
+.mech-table .badge.tier-L,.mech-table .badge.tier-XL{background:var(--bg-sunken);color:var(--fg-3)}
+.mech-table .badge.tier-{background:var(--bg-sunken);color:var(--fg-3)}
+.mech-table .skew-bullish{color:var(--green)}
+.mech-table .skew-bearish{color:var(--red)}
+.mech-table .skew-neutral,.mech-table .skew-mixed,.mech-table .skew-unusual_mixed{color:var(--fg-3)}
+.mech-table .term-backwardation{color:var(--amber);font-weight:600}
+.mech-table .term-contango{color:var(--cyan)}
+.mech-table .term-flat{color:var(--fg-3)}
+.mech-table .iv-high{color:var(--red)}
+.mech-table .iv-med{color:var(--amber)}
+.mech-table .iv-low{color:var(--green)}
+.mech-table .sq-score{font-weight:700}
+.mech-table .sq-score.high{color:var(--red)}
+.mech-table .sq-score.med{color:var(--amber)}
+
+/* Correlation heatmap */
+.corr-wrap{overflow-x:auto;background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;padding:10px}
+.corr-grid{display:inline-block;font-family:var(--font-mono);font-size:9.5px;border-collapse:collapse}
+.corr-grid th,.corr-grid td{padding:4px 6px;text-align:center;border:1px solid rgba(255,255,255,.04);min-width:34px}
+.corr-grid th{font-size:8.5px;letter-spacing:.6px;color:var(--fg-3);font-weight:600}
+.corr-grid th.row-hdr{text-align:right;background:var(--bg-sunken);position:sticky;left:0;z-index:1}
+.corr-grid th.col-hdr{background:var(--bg-sunken);transform:rotate(-30deg);transform-origin:bottom left;white-space:nowrap;padding-bottom:8px;height:34px}
+.corr-grid td.c-strong-pos{background:rgba(56,255,168,.32);color:#fff;font-weight:700}
+.corr-grid td.c-pos{background:rgba(56,255,168,.18);color:var(--green)}
+.corr-grid td.c-mid{background:rgba(0,212,255,.10);color:var(--cyan)}
+.corr-grid td.c-low{background:var(--bg-raised);color:var(--fg-3)}
+.corr-grid td.c-neg{background:rgba(255,92,122,.10);color:var(--red)}
+.corr-grid td.c-diag{background:var(--bg-sunken);color:var(--fg-2);font-weight:600}
+.cluster-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.cluster-card{font-family:var(--font-mono);font-size:10.5px;background:var(--bg-sunken);border:1px solid var(--violet);border-radius:5px;padding:7px 11px}
+.cluster-card .ct{color:var(--violet);font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;font-weight:700}
+.cluster-card .cm{color:var(--fg-1)}
+
+/* Pair-trade table */
+.pair-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px;background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;overflow:hidden}
+.pair-table th{font-size:9px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase;padding:7px 9px;background:var(--bg-sunken);border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+.pair-table td{padding:8px 9px;border-bottom:1px solid var(--border);font-size:11px;vertical-align:top}
+.pair-table tr:last-child td{border-bottom:none}
+.pair-table .long-side{color:var(--green);font-weight:700}
+.pair-table .short-side{color:var(--red);font-weight:700}
+.pair-table .perf{font-size:10.5px;color:var(--fg-3)}
+.pair-table .perf.pos{color:var(--green)}
+.pair-table .perf.neg{color:var(--red)}
+.pair-table .hedge-excellent{color:var(--green);font-weight:700}
+.pair-table .hedge-good{color:var(--cyan);font-weight:600}
+.pair-table .hedge-fair{color:var(--amber)}
+.pair-table .hedge-poor{color:var(--red);font-weight:600}
+.pair-table .thesis{font-size:10px;color:var(--fg-2);max-width:340px;line-height:1.5}
+
+/* Earnings NLP cards */
+.nlp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.nlp-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.nlp-card .hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.nlp-card .hdr .tk{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--fg-1);cursor:pointer}
+.nlp-card .hdr .tk:hover{color:var(--cyan)}
+.nlp-card .tone-pill{font-family:var(--font-mono);font-size:9.5px;letter-spacing:1px;padding:3px 8px;border-radius:3px;font-weight:700}
+.nlp-card .tone-rising{background:rgba(56,255,168,.14);color:var(--green);border:1px solid var(--green-dim)}
+.nlp-card .tone-stable{background:rgba(0,212,255,.10);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.nlp-card .tone-falling{background:rgba(255,92,122,.14);color:var(--red);border:1px solid var(--red-dim)}
+.nlp-card .q-line{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-bottom:4px}
+.nlp-card .q-line .qs{color:var(--fg-1);font-weight:700}
+.nlp-card .q-line .qs.up{color:var(--green)}
+.nlp-card .q-line .qs.down{color:var(--red)}
+.nlp-card .sec{margin-top:9px}
+.nlp-card .sec .lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:1.1px;color:var(--fg-3);text-transform:uppercase;margin-bottom:3px}
+.nlp-card .sec ul{margin:0;padding-left:14px;font-size:10.5px;color:var(--fg-2);line-height:1.55}
+.nlp-card .sec ul li{margin-bottom:2px}
+.nlp-card .emerging .lbl{color:var(--green)}
+.nlp-card .fading .lbl{color:var(--fg-3)}
+.nlp-card .cautionary .lbl{color:var(--amber)}
+.nlp-card .quote{font-style:italic;font-size:10px;color:var(--fg-2);background:var(--bg-sunken);padding:6px 10px;border-left:2px solid var(--violet);margin-top:6px;line-height:1.5}
+.nlp-card .synth{font-family:var(--font-sans);font-size:11px;color:var(--fg-1);margin-top:10px;line-height:1.5;padding-top:10px;border-top:1px solid var(--border)}
+.nlp-card .impl{font-family:var(--font-sans);font-size:11px;color:var(--cyan);margin-top:8px;line-height:1.5;font-style:italic}
+
 /* Mobile */
 @media (max-width:768px){
   .wrap{padding:20px 14px 80px}
@@ -246,6 +345,9 @@ a:hover{color:var(--violet)}
   .lead-table th,.lead-table td{padding:8px 10px;font-size:11px}
   .summary-grid{grid-template-columns:repeat(2,1fr)}
   .basket-table th,.basket-table td{padding:6px 7px;font-size:10px}
+  .mech-table th,.mech-table td{padding:5px 6px;font-size:9.5px}
+  .corr-grid th,.corr-grid td{padding:3px 4px;font-size:8.5px;min-width:26px}
+  .pair-table th,.pair-table td{padding:6px 7px;font-size:10px}
 }
 </style>
 </head>
@@ -285,6 +387,51 @@ a:hover{color:var(--violet)}
       <div class="sub">sector-neutralized sizing · max 5%/name · max 30%/sector</div>
     </div>
     <div id="basket-content"><div class="edge-empty">loading positioning…</div></div>
+  </div>
+
+  <!-- Pump Mechanics Panel: Squeeze + Options Skew + IV Rank -->
+  <div class="hf-panel amber" id="mech-panel">
+    <div class="panel-hdr">
+      <h3>🔥 Pump Mechanics — Squeeze + Options Structure</h3>
+      <div class="sub">squeeze proxy (no FINRA Reg SHO yet) · options skew from flow engine · IV rank from ATR range</div>
+    </div>
+    <div id="mech-content"><div class="edge-empty">loading mechanics…</div></div>
+  </div>
+
+  <!-- Correlation Matrix Panel -->
+  <div class="hf-panel violet" id="corr-panel">
+    <div class="panel-hdr">
+      <h3>🔗 Correlation Matrix — Avoid Crowded Longs</h3>
+      <div class="sub">60d daily-return Pearson · clusters at corr ≥ 0.65 · diversification scores</div>
+    </div>
+    <div id="corr-content"><div class="edge-empty">loading correlations…</div></div>
+  </div>
+
+  <!-- Factor Exposure Panel -->
+  <div class="hf-panel green" id="factor-panel">
+    <div class="panel-hdr">
+      <h3>📐 Factor Exposure — Beta vs SPY / QQQ / Sector ETF</h3>
+      <div class="sub">OLS regression on daily returns · α annualized · idiosyncratic alpha 20d</div>
+    </div>
+    <div id="factor-content"><div class="edge-empty">loading factor exposure…</div></div>
+  </div>
+
+  <!-- Pair Trades Panel -->
+  <div class="hf-panel red" id="pair-panel">
+    <div class="panel-hdr">
+      <h3>⚖️ Pair Trades — Long Candidate / Short Weakest Peer</h3>
+      <div class="sub">hedge fund classic · relative value · captures alpha even in sector pullbacks</div>
+    </div>
+    <div id="pair-content"><div class="edge-empty">loading pair-trades…</div></div>
+  </div>
+
+  <!-- Earnings NLP Panel -->
+  <div class="hf-panel violet" id="nlp-panel">
+    <div class="panel-hdr">
+      <h3>📞 Earnings Call NLP — Management Tone Shift</h3>
+      <div class="sub">Claude haiku-4-5 reads last 2 quarters of transcripts · extracts emerging themes, guidance posture, Q&amp;A pressure</div>
+    </div>
+    <div id="nlp-content"><div class="edge-empty">loading transcript analysis…</div></div>
   </div>
 
   <!-- Summary tiles -->
@@ -379,10 +526,18 @@ const S3_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/convergenc
 const RESEARCH_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/ticker-research-bundle.json";
 const POSITIONING_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump-positioning.json";
 const BACKTEST_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/radar-backtest.json";
+const MECHANICS_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump-mechanics.json";
+const ANALYTICS_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/portfolio-analytics.json";
+const PAIRS_URL    = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pair-trades.json";
+const NLP_URL      = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump-earnings-nlp.json";
 let DATA = null;
 let RESEARCH = null;
 let POSITIONING = null;
 let BACKTEST = null;
+let MECHANICS = null;
+let ANALYTICS = null;
+let PAIRS = null;
+let NLP = null;
 let activeTier = "ALL";
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -397,27 +552,323 @@ function ageStr(iso){
 
 async function load(){
   try {
-    // Fetch convergence-radar (primary), positioning, backtest in parallel
-    const [radarR, posR, btR] = await Promise.all([
+    // Fetch convergence-radar (primary) + all hedge-fund layers in parallel
+    const [radarR, posR, btR, mechR, anR, prR, nlpR] = await Promise.all([
       fetch(S3_URL + "?t=" + Date.now()),
       fetch(POSITIONING_URL + "?t=" + Date.now()).catch(() => null),
       fetch(BACKTEST_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(MECHANICS_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(ANALYTICS_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(PAIRS_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(NLP_URL + "?t=" + Date.now()).catch(() => null),
     ]);
     if (!radarR.ok) throw new Error("HTTP " + radarR.status);
     DATA = await radarR.json();
-    if (posR && posR.ok) {
-      try { POSITIONING = await posR.json(); } catch(_) {}
-    }
-    if (btR && btR.ok) {
-      try { BACKTEST = await btR.json(); } catch(_) {}
-    }
+    if (posR && posR.ok)  { try { POSITIONING = await posR.json(); } catch(_) {} }
+    if (btR && btR.ok)    { try { BACKTEST    = await btR.json(); } catch(_) {} }
+    if (mechR && mechR.ok){ try { MECHANICS   = await mechR.json(); } catch(_) {} }
+    if (anR && anR.ok)    { try { ANALYTICS   = await anR.json(); } catch(_) {} }
+    if (prR && prR.ok)    { try { PAIRS       = await prR.json(); } catch(_) {} }
+    if (nlpR && nlpR.ok)  { try { NLP         = await nlpR.json(); } catch(_) {} }
     render();
     renderEdgePanel();
     renderBasketPanel();
+    renderMechanicsPanel();
+    renderCorrelationPanel();
+    renderFactorPanel();
+    renderPairPanel();
+    renderNlpPanel();
   } catch(e) {
     document.getElementById('leaderboard-tbody').innerHTML =
       '<tr><td colspan="7"><div class="error">Failed to load: ' + esc(e.message) + '</div></td></tr>';
   }
+}
+
+// ─── Pump Mechanics Panel (squeeze + options skew + IV rank) ────────
+function renderMechanicsPanel(){
+  const el = document.getElementById('mech-content');
+  if (!MECHANICS || MECHANICS.status === "error" || !MECHANICS.candidates) {
+    el.innerHTML = '<div class="edge-empty">⏳ Mechanics Lambda hasn\'t produced data yet — runs hourly at :15 UTC.</div>';
+    return;
+  }
+  const cands = MECHANICS.candidates;
+  let html = '<table class="mech-table"><thead><tr>' +
+              '<th class="lt">Ticker</th>' +
+              '<th>Pump</th>' +
+              '<th>Float Tier</th>' +
+              '<th>Shares (B)</th>' +
+              '<th>Rotation Today</th>' +
+              '<th>Accel</th>' +
+              '<th>ATR %</th>' +
+              '<th>Squeeze /100</th>' +
+              '<th>Squeeze Status</th>' +
+              '<th class="lt">Options Skew</th>' +
+              '<th>IV Rank</th>' +
+              '<th>Term Struct</th>' +
+              '<th>Real Vol 5d/30d</th>' +
+              '</tr></thead><tbody>';
+  cands.forEach(c => {
+    const sq = c.squeeze_profile || {};
+    const opt = c.options_structure || {};
+    const sqScore = sq.squeeze_proxy_score || 0;
+    const sqClass = sqScore >= 60 ? 'high' : sqScore >= 40 ? 'med' : '';
+    const ivRank = opt.iv_rank_proxy;
+    const ivClass = ivRank == null ? '' : ivRank >= 70 ? 'iv-high' : ivRank >= 30 ? 'iv-med' : 'iv-low';
+    const skew = opt.skew || '—';
+    html += '<tr>' +
+      '<td class="lt"><span class="tkr ticker clickable" data-ticker="' + esc(c.ticker) + '">' + esc(c.ticker) + '</span></td>' +
+      '<td>' + (c.pump_likelihood || 0).toFixed(1) + '</td>' +
+      '<td><span class="badge tier-' + esc(sq.float_tier || '') + '">' + esc(sq.float_tier || '?') + '</span></td>' +
+      '<td>' + (sq.shares_outstanding ? (sq.shares_outstanding/1e9).toFixed(2) : '—') + '</td>' +
+      '<td>' + (sq.rotation_today != null ? (sq.rotation_today * 100).toFixed(2) + '%' : '—') + '</td>' +
+      '<td>' + (sq.rotation_accel != null ? sq.rotation_accel.toFixed(2) + 'x' : '—') + '</td>' +
+      '<td>' + (sq.atr_pct != null ? sq.atr_pct.toFixed(1) + '%' : '—') + '</td>' +
+      '<td class="sq-score ' + sqClass + '">' + sqScore.toFixed(1) + '</td>' +
+      '<td>' + esc(sq.squeeze_potential || '—') + '</td>' +
+      '<td class="lt skew-' + esc(skew) + '">' + esc(skew) + (opt.tier ? ' · ' + esc(opt.tier.replace('TIER_','T_')) : '') + '</td>' +
+      '<td class="' + ivClass + '">' + (ivRank != null ? ivRank.toFixed(0) + '%' : '—') + '</td>' +
+      '<td class="term-' + esc(opt.term_structure || '') + '">' + esc(opt.term_structure || '—') + '</td>' +
+      '<td>' + (opt.realized_vol_5d != null ? opt.realized_vol_5d.toFixed(0) + '/' + (opt.realized_vol_30d || 0).toFixed(0) + '%' : '—') + '</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  if (MECHANICS.metadata && MECHANICS.metadata.squeeze_score_caveat) {
+    html += '<div style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-top:10px;padding:8px 10px;background:var(--bg-sunken);border-radius:4px">⚠ ' +
+            esc(MECHANICS.metadata.squeeze_score_caveat) + '</div>';
+  }
+  el.innerHTML = html;
+  wireTickerClicks();
+}
+
+// ─── Correlation Matrix Panel (heatmap + clusters) ──────────────────
+function renderCorrelationPanel(){
+  const el = document.getElementById('corr-content');
+  if (!ANALYTICS || ANALYTICS.status === "error" || !ANALYTICS.correlations) {
+    el.innerHTML = '<div class="edge-empty">⏳ Portfolio analytics hasn\'t produced data yet — runs daily 04:00 UTC.</div>';
+    return;
+  }
+  const corr = ANALYTICS.correlations;
+  const matrix = corr.matrix || {};
+  const tickers = Object.keys(matrix);
+
+  // Build heatmap
+  let html = '<div class="corr-wrap"><table class="corr-grid"><thead><tr><th></th>';
+  tickers.forEach(t => html += '<th class="col-hdr">' + esc(t) + '</th>');
+  html += '</tr></thead><tbody>';
+  tickers.forEach(t1 => {
+    html += '<tr><th class="row-hdr">' + esc(t1) + '</th>';
+    tickers.forEach(t2 => {
+      if (t1 === t2) {
+        html += '<td class="c-diag">1.0</td>';
+      } else {
+        const v = (matrix[t1] || {})[t2];
+        if (v == null) {
+          html += '<td class="c-low">—</td>';
+        } else {
+          let cls = 'c-low';
+          if (v >= 0.7) cls = 'c-strong-pos';
+          else if (v >= 0.5) cls = 'c-pos';
+          else if (v >= 0.25) cls = 'c-mid';
+          else if (v < 0) cls = 'c-neg';
+          html += '<td class="' + cls + '">' + v.toFixed(2) + '</td>';
+        }
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+
+  // Clusters
+  const clusters = (corr.clusters || []).filter(c => c.size >= 2);
+  if (clusters.length) {
+    html += '<div style="margin-top:14px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase">Correlation Clusters (crowded trades)</div>';
+    html += '<div class="cluster-list">';
+    clusters.forEach((c, i) => {
+      html += '<div class="cluster-card"><div class="ct">Cluster ' + (i+1) + ' · avg corr ' + (c.avg_corr || 0).toFixed(2) + '</div>' +
+              '<div class="cm">' + c.members.map(m => '<span class="ticker clickable" data-ticker="' + esc(m) + '" style="cursor:pointer">' + esc(m) + '</span>').join(' + ') + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Diversifiers callout
+  const divers = corr.most_diversifying_top_5 || [];
+  const cross = corr.most_correlated_top_5 || [];
+  if (divers.length) {
+    html += '<div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px">';
+    html += '<div><div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.2px;color:var(--green);text-transform:uppercase;margin-bottom:6px">🟢 Most Diversifying (independent edge)</div>';
+    divers.forEach(d => {
+      html += '<div style="font-family:var(--font-mono);font-size:11px;color:var(--fg-2);padding:2px 0"><span class="ticker clickable" data-ticker="' + esc(d.ticker) + '" style="color:var(--fg-1);font-weight:700;cursor:pointer">' + esc(d.ticker) + '</span> · div=' + d.score.toFixed(2) + '</div>';
+    });
+    html += '</div>';
+    html += '<div><div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.2px;color:var(--red);text-transform:uppercase;margin-bottom:6px">🔴 Most Correlated (overlapping beta)</div>';
+    cross.forEach(d => {
+      html += '<div style="font-family:var(--font-mono);font-size:11px;color:var(--fg-2);padding:2px 0"><span class="ticker clickable" data-ticker="' + esc(d.ticker) + '" style="color:var(--fg-1);font-weight:700;cursor:pointer">' + esc(d.ticker) + '</span> · div=' + d.score.toFixed(2) + '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  el.innerHTML = html;
+  wireTickerClicks();
+}
+
+// ─── Factor Exposure Panel (beta + alpha + idio) ────────────────────
+function renderFactorPanel(){
+  const el = document.getElementById('factor-content');
+  if (!ANALYTICS || ANALYTICS.status === "error" || !ANALYTICS.factor_exposure) {
+    el.innerHTML = '<div class="edge-empty">⏳ Factor exposure hasn\'t loaded yet.</div>';
+    return;
+  }
+  const fe = ANALYTICS.factor_exposure.per_ticker || {};
+  const tickers = Object.keys(fe);
+  let html = '<table class="mech-table"><thead><tr>' +
+              '<th class="lt">Ticker</th>' +
+              '<th>Sector</th>' +
+              '<th>β SPY</th>' +
+              '<th>β QQQ</th>' +
+              '<th>β Sector</th>' +
+              '<th>R² SPY</th>' +
+              '<th>α ann %</th>' +
+              '<th>Idio α 20d %</th>' +
+              '<th class="lt">Interpretation</th>' +
+              '</tr></thead><tbody>';
+  tickers.forEach(t => {
+    const x = fe[t];
+    const bSpy = x.beta_spy;
+    const idio = x.idio_alpha_20d_pct;
+    const interpretation =
+      idio == null ? '—' :
+      idio > 5  ? '🟢 outperforming market beta' :
+      idio < -5 ? '🔴 lagging what beta predicts' :
+      bSpy != null && bSpy > 1.4 ? '⚡ high market beta' :
+      bSpy != null && bSpy < 0.6 ? '🛡️ defensive' :
+      '⚪ market-tracking';
+    html += '<tr>' +
+      '<td class="lt"><span class="tkr ticker clickable" data-ticker="' + esc(t) + '">' + esc(t) + '</span></td>' +
+      '<td class="lt" style="font-size:10px;color:var(--fg-3)">' + esc((x.sector_name || '').slice(0,16)) + ' · ' + esc(x.sector_etf || '') + '</td>' +
+      '<td>' + (bSpy != null ? bSpy.toFixed(2) : '—') + '</td>' +
+      '<td>' + (x.beta_qqq != null ? x.beta_qqq.toFixed(2) : '—') + '</td>' +
+      '<td>' + (x.beta_sector != null ? x.beta_sector.toFixed(2) : '—') + '</td>' +
+      '<td>' + (x.r_sq_spy != null ? x.r_sq_spy.toFixed(2) : '—') + '</td>' +
+      '<td>' + (x.alpha_spy_ann != null ? (x.alpha_spy_ann > 0 ? '+' : '') + x.alpha_spy_ann.toFixed(1) : '—') + '</td>' +
+      '<td style="color:' + (idio == null ? 'var(--fg-3)' : idio > 0 ? 'var(--green)' : 'var(--red)') + ';font-weight:600">' +
+        (idio != null ? (idio > 0 ? '+' : '') + idio.toFixed(2) : '—') + '</td>' +
+      '<td class="lt" style="font-size:10px">' + interpretation + '</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+  wireTickerClicks();
+}
+
+// ─── Pair Trades Panel ──────────────────────────────────────────────
+function renderPairPanel(){
+  const el = document.getElementById('pair-content');
+  if (!PAIRS || PAIRS.status === "error" || !PAIRS.pairs) {
+    el.innerHTML = '<div class="edge-empty">⏳ Pair-trades Lambda hasn\'t produced data yet — runs hourly at :20 UTC.</div>';
+    return;
+  }
+  let html = '<table class="pair-table"><thead><tr>' +
+              '<th>LONG</th>' +
+              '<th>SHORT</th>' +
+              '<th>Spread 20d</th>' +
+              '<th>Corr 90d</th>' +
+              '<th>Hedge</th>' +
+              '<th>Ratio L:S</th>' +
+              '<th>Exp α (1m)</th>' +
+              '<th>Thesis</th>' +
+              '</tr></thead><tbody>';
+  PAIRS.pairs.forEach(p => {
+    const lp = p.long_perf_20d || 0;
+    const sp = p.short_perf_20d || 0;
+    html += '<tr>' +
+      '<td><span class="long-side ticker clickable" data-ticker="' + esc(p.long_ticker) + '">' + esc(p.long_ticker) + '</span>' +
+        '<div class="perf ' + (lp > 0 ? 'pos' : 'neg') + '">' + (lp > 0 ? '+' : '') + lp.toFixed(1) + '% · pump ' + (p.long_pump_likelihood || 0).toFixed(0) + '</div></td>' +
+      '<td><span class="short-side">' + esc(p.short_ticker) + '</span>' +
+        '<div class="perf ' + (sp > 0 ? 'pos' : 'neg') + '">' + (sp > 0 ? '+' : '') + sp.toFixed(1) + '% · ' + esc((p.short_company || '').slice(0,20)) + '</div></td>' +
+      '<td>' + (p.spread_20d_pct != null ? (p.spread_20d_pct > 0 ? '+' : '') + p.spread_20d_pct.toFixed(1) + '%' : '—') + '</td>' +
+      '<td>' + (p.correlation_90d != null ? p.correlation_90d.toFixed(2) : '—') + '</td>' +
+      '<td class="hedge-' + esc(p.hedge_quality || '') + '">' + esc(p.hedge_quality || '—') + '</td>' +
+      '<td>' + esc(p.ratio_long_short || '—') + '</td>' +
+      '<td>' + esc(p.expected_alpha_1m || '—') + '</td>' +
+      '<td class="thesis">' + esc((p.thesis_one_liner || '').slice(0,200)) + '</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+  wireTickerClicks();
+}
+
+// ─── Earnings NLP Panel (cards per ticker) ──────────────────────────
+function renderNlpPanel(){
+  const el = document.getElementById('nlp-content');
+  if (!NLP || NLP.status === "error" || !NLP.research) {
+    el.innerHTML = '<div class="edge-empty">⏳ Pump-earnings-NLP Lambda hasn\'t produced data yet — runs daily 03:00 UTC.</div>';
+    return;
+  }
+  const research = NLP.research;
+  const tickers = Object.keys(research);
+  if (!tickers.length) {
+    el.innerHTML = '<div class="edge-empty">No transcripts available for current pump candidates.</div>';
+    return;
+  }
+  let html = '<div class="nlp-grid">';
+  tickers.forEach(t => {
+    const r = research[t];
+    const traj = r.tone_trajectory || 'stable';
+    const tonePill = '<span class="tone-pill tone-' + esc(traj) + '">' + esc(traj.toUpperCase()) +
+                    (r.tone_delta != null ? ' Δ' + (r.tone_delta > 0 ? '+' : '') + r.tone_delta : '') + '</span>';
+
+    html += '<div class="nlp-card">';
+    html += '<div class="hdr"><span class="tk ticker clickable" data-ticker="' + esc(t) + '">' + esc(t) + '</span>' + tonePill + '</div>';
+
+    // Q-by-Q tone
+    const tpq = r.tone_per_quarter || {};
+    Object.keys(tpq).forEach(q => {
+      const qd = tpq[q];
+      if (qd && qd.score != null) {
+        const cls = qd.score > 60 ? 'up' : qd.score < 0 ? 'down' : '';
+        html += '<div class="q-line">' + esc(q) + ' <span class="qs ' + cls + '">' + qd.score + '</span> · ' + esc((qd.summary || '').slice(0, 90)) + '…</div>';
+      }
+    });
+
+    if (r.forward_guidance_posture || r.growth_language_freq) {
+      html += '<div class="q-line" style="margin-top:5px">guidance: <b>' + esc(r.forward_guidance_posture || '?') + '</b> · growth lang: <b>' + esc(r.growth_language_freq || '?') + '</b></div>';
+    }
+
+    if (r.emerging_themes && r.emerging_themes.length) {
+      html += '<div class="sec emerging"><div class="lbl">⬆ Emerging themes</div><ul>';
+      r.emerging_themes.slice(0,3).forEach(x => html += '<li>' + esc(x) + '</li>');
+      html += '</ul></div>';
+    }
+    if (r.fading_themes && r.fading_themes.length) {
+      html += '<div class="sec fading"><div class="lbl">⬇ Fading</div><ul>';
+      r.fading_themes.slice(0,2).forEach(x => html += '<li>' + esc(x) + '</li>');
+      html += '</ul></div>';
+    }
+    if (r.cautionary_signals && r.cautionary_signals.length) {
+      html += '<div class="sec cautionary"><div class="lbl">⚠ Cautionary</div><ul>';
+      r.cautionary_signals.slice(0,2).forEach(x => html += '<li>' + esc(x) + '</li>');
+      html += '</ul></div>';
+    }
+    if (r.qa_pressure_topics && r.qa_pressure_topics.length) {
+      html += '<div class="sec"><div class="lbl">🎯 Q&amp;A Pressure</div><ul>';
+      r.qa_pressure_topics.slice(0,2).forEach(x => html += '<li>' + esc(x) + '</li>');
+      html += '</ul></div>';
+    }
+    if (r.key_quotes && r.key_quotes.length) {
+      r.key_quotes.slice(0,1).forEach(q => html += '<div class="quote">"' + esc((q || '').slice(0,180)) + '"</div>');
+    }
+    if (r.pump_implication) {
+      html += '<div class="impl">💡 ' + esc(r.pump_implication) + '</div>';
+    }
+    if (r.ai_synthesis) {
+      html += '<div class="synth">🧠 ' + esc(r.ai_synthesis) + '</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+  wireTickerClicks();
 }
 
 // ─── Edge Validation Panel ───────────────────────────────────────────
@@ -854,6 +1305,130 @@ function renderResearch(r){
       html += '<div class="sub-lbl" style="margin-top:14px">Warnings</div><ul>';
       pos.warnings.forEach(w => html += '<li>' + esc(w) + '</li>');
       html += '</ul>';
+    }
+    html += '</div>';
+  }
+
+  // ─── MECHANICS DRAWER (squeeze + options skew + IV rank for THIS ticker) ───
+  const mech = MECHANICS && MECHANICS.candidates && MECHANICS.candidates.find(c => c.ticker === r.ticker);
+  if (mech) {
+    const sq = mech.squeeze_profile || {};
+    const opt = mech.options_structure || {};
+    html += '<div class="r-sec frame"><div class="sec-hdr"><h4>🔥 Squeeze + Options Structure</h4></div>';
+    html += '<div class="r-meta" style="margin-bottom:10px">';
+    html += '<div class="cell"><div class="lbl">Squeeze Score</div><div class="v" style="color:' + (sq.squeeze_proxy_score >= 60 ? 'var(--red)' : sq.squeeze_proxy_score >= 40 ? 'var(--amber)' : 'var(--fg-2)') + '">' + (sq.squeeze_proxy_score || 0).toFixed(0) + '/100</div></div>';
+    html += '<div class="cell"><div class="lbl">Float Tier</div><div class="v">' + esc(sq.float_tier || '?') + ' · ' + (sq.shares_outstanding ? (sq.shares_outstanding/1e9).toFixed(2) + 'B' : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Rotation Today</div><div class="v">' + (sq.rotation_today != null ? (sq.rotation_today * 100).toFixed(2) + '%' : '?') + (sq.rotation_accel ? ' · ' + sq.rotation_accel.toFixed(1) + 'x baseline' : '') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Options Skew</div><div class="v" style="color:' + (opt.skew === 'bullish' ? 'var(--green)' : opt.skew === 'bearish' ? 'var(--red)' : 'var(--fg-2)') + '">' + esc(opt.skew || '—') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">IV Rank</div><div class="v">' + (opt.iv_rank_proxy != null ? opt.iv_rank_proxy.toFixed(0) + '%' : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Term Structure</div><div class="v">' + esc(opt.term_structure || '?') + '</div></div>';
+    html += '</div>';
+    if (opt.flags && opt.flags.length) {
+      html += '<div style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-bottom:6px">Options flags: ' +
+              opt.flags.map(f => '<span style="background:var(--bg-sunken);padding:2px 6px;border-radius:3px;margin-right:4px">' + esc(f) + '</span>').join('') + '</div>';
+    }
+    if (sq.concentration_signals && sq.concentration_signals.length) {
+      html += '<div class="sub-lbl">Concentration signals</div><ul>';
+      sq.concentration_signals.slice(0,3).forEach(c => html += '<li style="font-size:11px">' + esc(c) + '</li>');
+      html += '</ul>';
+    }
+    if (opt.iv_pct_explanation) {
+      html += '<div style="font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);margin-top:8px;font-style:italic">' + esc(opt.iv_pct_explanation) + '</div>';
+    }
+    html += '</div>';
+  }
+
+  // ─── FACTOR EXPOSURE DRAWER ───
+  const fe = ANALYTICS && ANALYTICS.factor_exposure && ANALYTICS.factor_exposure.per_ticker && ANALYTICS.factor_exposure.per_ticker[r.ticker];
+  if (fe) {
+    html += '<div class="r-sec frame"><div class="sec-hdr"><h4>📐 Factor Exposure (60d OLS)</h4></div>';
+    html += '<div class="r-meta">';
+    html += '<div class="cell"><div class="lbl">β SPY</div><div class="v">' + (fe.beta_spy != null ? fe.beta_spy.toFixed(2) : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">β QQQ</div><div class="v">' + (fe.beta_qqq != null ? fe.beta_qqq.toFixed(2) : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">β Sector (' + esc(fe.sector_etf || '?') + ')</div><div class="v">' + (fe.beta_sector != null ? fe.beta_sector.toFixed(2) : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">R² SPY</div><div class="v">' + (fe.r_sq_spy != null ? fe.r_sq_spy.toFixed(2) : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">α annualized</div><div class="v">' + (fe.alpha_spy_ann != null ? (fe.alpha_spy_ann > 0 ? '+' : '') + fe.alpha_spy_ann.toFixed(1) + '%' : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Idio α (20d)</div><div class="v" style="color:' + (fe.idio_alpha_20d_pct == null ? 'var(--fg-3)' : fe.idio_alpha_20d_pct > 0 ? 'var(--green)' : 'var(--red)') + '">' + (fe.idio_alpha_20d_pct != null ? (fe.idio_alpha_20d_pct > 0 ? '+' : '') + fe.idio_alpha_20d_pct.toFixed(2) + '%' : '?') + '</div></div>';
+    html += '</div>';
+    html += '</div>';
+  }
+
+  // ─── PAIR TRADE SUGGESTION (if this ticker is a long candidate) ───
+  const pair = PAIRS && PAIRS.pairs && PAIRS.pairs.find(p => p.long_ticker === r.ticker);
+  if (pair) {
+    html += '<div class="r-sec frame"><div class="sec-hdr"><h4>⚖️ Pair Trade Suggestion</h4></div>';
+    html += '<div style="font-family:var(--font-mono);font-size:13px;margin-bottom:10px"><span style="color:var(--green);font-weight:700">LONG ' + esc(pair.long_ticker) + '</span>  /  <span style="color:var(--red);font-weight:700">SHORT ' + esc(pair.short_ticker) + '</span> <span style="color:var(--fg-3);font-size:10px">· ' + esc(pair.short_company || '') + '</span></div>';
+    html += '<div class="r-meta">';
+    html += '<div class="cell"><div class="lbl">Spread 20d</div><div class="v" style="color:' + (pair.spread_20d_pct > 0 ? 'var(--green)' : 'var(--red)') + '">' + (pair.spread_20d_pct > 0 ? '+' : '') + (pair.spread_20d_pct || 0).toFixed(1) + '%</div></div>';
+    html += '<div class="cell"><div class="lbl">Correlation 90d</div><div class="v">' + (pair.correlation_90d != null ? pair.correlation_90d.toFixed(2) : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Hedge Quality</div><div class="v" style="color:' + (pair.hedge_quality === 'excellent' ? 'var(--green)' : pair.hedge_quality === 'good' ? 'var(--cyan)' : pair.hedge_quality === 'fair' ? 'var(--amber)' : 'var(--red)') + '">' + esc(pair.hedge_quality || '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Ratio L:S</div><div class="v">' + esc(pair.ratio_long_short || '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Expected α (1m)</div><div class="v">' + esc(pair.expected_alpha_1m || '?') + '</div></div>';
+    html += '</div>';
+    if (pair.thesis_one_liner) {
+      html += '<div style="font-family:var(--font-sans);font-size:11.5px;color:var(--fg-2);margin-top:10px;line-height:1.55">' + esc(pair.thesis_one_liner) + '</div>';
+    }
+    if (pair.peer_pool && pair.peer_pool.length) {
+      html += '<div class="sub-lbl" style="margin-top:10px">Other peers considered</div>';
+      html += '<div style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3)">';
+      pair.peer_pool.slice(1,5).forEach(p => {
+        html += '<span style="display:inline-block;margin-right:10px">' + esc(p.ticker) + ' · ' +
+                  (p.perf_20d > 0 ? '+' : '') + (p.perf_20d || 0).toFixed(1) + '% · corr ' + ((p.correlation || 0).toFixed(2)) + '</span>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  // ─── EARNINGS NLP DRAWER ───
+  const nlpRec = NLP && NLP.research && NLP.research[r.ticker];
+  if (nlpRec) {
+    const traj = nlpRec.tone_trajectory || 'stable';
+    const trajColor = traj === 'rising' ? 'var(--green)' : traj === 'falling' ? 'var(--red)' : 'var(--cyan)';
+    html += '<div class="r-sec frame"><div class="sec-hdr"><h4>📞 Earnings Call NLP (last 2 quarters)</h4></div>';
+    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">';
+    html += '<span style="font-family:var(--font-mono);font-size:11px;color:' + trajColor + ';font-weight:700">TONE ' + traj.toUpperCase() + '</span>';
+    if (nlpRec.tone_delta != null) html += '<span style="color:var(--fg-3);font-size:11px">(Δ ' + (nlpRec.tone_delta > 0 ? '+' : '') + nlpRec.tone_delta + ')</span>';
+    if (nlpRec.forward_guidance_posture) html += '<span style="color:var(--fg-2);font-size:11px">· guidance: <b>' + esc(nlpRec.forward_guidance_posture) + '</b></span>';
+    if (nlpRec.growth_language_freq) html += '<span style="color:var(--fg-2);font-size:11px">· growth lang: <b>' + esc(nlpRec.growth_language_freq) + '</b></span>';
+    html += '</div>';
+    // Per-quarter
+    const tpq = nlpRec.tone_per_quarter || {};
+    Object.keys(tpq).forEach(q => {
+      const qd = tpq[q];
+      if (qd && qd.score != null) {
+        html += '<div style="font-family:var(--font-mono);font-size:10.5px;color:var(--fg-2);margin-bottom:3px">' + esc(q) + ' <span style="color:var(--fg-1);font-weight:700">[' + qd.score + ']</span> ' + esc(qd.summary || '').slice(0,180) + '</div>';
+      }
+    });
+    if (nlpRec.emerging_themes && nlpRec.emerging_themes.length) {
+      html += '<div class="sub-lbl" style="margin-top:10px;color:var(--green)">⬆ Emerging themes</div><ul>';
+      nlpRec.emerging_themes.forEach(x => html += '<li>' + esc(x) + '</li>');
+      html += '</ul>';
+    }
+    if (nlpRec.fading_themes && nlpRec.fading_themes.length) {
+      html += '<div class="sub-lbl" style="color:var(--fg-3)">⬇ Fading themes</div><ul>';
+      nlpRec.fading_themes.forEach(x => html += '<li>' + esc(x) + '</li>');
+      html += '</ul>';
+    }
+    if (nlpRec.cautionary_signals && nlpRec.cautionary_signals.length) {
+      html += '<div class="sub-lbl" style="color:var(--amber)">⚠ Cautionary signals</div><ul>';
+      nlpRec.cautionary_signals.forEach(x => html += '<li>' + esc(x) + '</li>');
+      html += '</ul>';
+    }
+    if (nlpRec.qa_pressure_topics && nlpRec.qa_pressure_topics.length) {
+      html += '<div class="sub-lbl">🎯 Analyst Q&A pressure</div><ul>';
+      nlpRec.qa_pressure_topics.forEach(x => html += '<li>' + esc(x) + '</li>');
+      html += '</ul>';
+    }
+    if (nlpRec.key_quotes && nlpRec.key_quotes.length) {
+      html += '<div class="sub-lbl">Key quotes</div>';
+      nlpRec.key_quotes.forEach(q => html += '<div style="font-family:var(--font-mono);font-size:10.5px;color:var(--fg-2);background:var(--bg-sunken);padding:6px 10px;border-left:2px solid var(--violet);margin-bottom:5px;font-style:italic;line-height:1.5">"' + esc((q || '').slice(0,250)) + '"</div>');
+    }
+    if (nlpRec.pump_implication) {
+      html += '<div style="font-family:var(--font-sans);font-size:11.5px;color:var(--cyan);margin-top:10px;line-height:1.55;padding:8px 12px;background:rgba(0,212,255,.04);border-left:2px solid var(--cyan)">💡 ' + esc(nlpRec.pump_implication) + '</div>';
+    }
+    if (nlpRec.ai_synthesis) {
+      html += '<div style="font-family:var(--font-sans);font-size:11.5px;color:var(--fg-1);margin-top:10px;line-height:1.55">🧠 ' + esc(nlpRec.ai_synthesis) + '</div>';
     }
     html += '</div>';
   }

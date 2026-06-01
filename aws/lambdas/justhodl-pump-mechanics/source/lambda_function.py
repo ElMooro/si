@@ -389,6 +389,12 @@ def enrich_candidate(cand: dict, options_map: Dict[str, dict],
     rows = fetch_price_history(ticker, 90)
 
     shares_out = (profile or {}).get("sharesOutstanding") or (profile or {}).get("shares_outstanding")
+    # Fallback: derive from marketCap / price (FMP /stable/profile doesn't expose shares directly)
+    if not shares_out and profile:
+        mcap  = profile.get("marketCap")
+        price = profile.get("price")
+        if mcap and price and price > 0:
+            shares_out = mcap / price
     float_tier, float_pts = classify_float_tier(shares_out)
     rotation_today = compute_float_rotation(rows, shares_out, days=1) if shares_out and rows else None
     rotation_20d   = compute_float_rotation(rows, shares_out, days=20) if shares_out and rows else None
