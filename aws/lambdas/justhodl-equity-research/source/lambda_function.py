@@ -671,7 +671,10 @@ def lambda_handler(event, context):
     if not ticker:
         return _http_error(400, "Missing 'ticker' query parameter")
     ticker = ticker.strip().upper()
-    if not ticker.isalnum() or len(ticker) > 8:
+    # Tickers can contain letters, digits, and class-share separators (- or .)
+    # e.g. AAPL, MSFT, BRK-B, BRK.B, RDS-A
+    import re as _re
+    if not _re.fullmatch(r"[A-Z0-9.\-]{1,10}", ticker):
         return _http_error(400, f"Invalid ticker: {ticker}")
 
     # ── Check cache
