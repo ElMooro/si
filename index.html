@@ -1965,14 +1965,11 @@ const SOURCES = {
   signalBoard: `${S3}/data/signal-board.json`,
 };
 
-// Pre-pump radar fetches — SEPARATE from main SOURCES so they don't
-// block the dashboard. Loaded lazily after the page is interactive.
+// Pre-pump radar — single slim fetch (~3 KB raw, ~700B gzipped).
+// Replaces the previous 5-file fetch totaling 137.5 KB.
+// File is built by justhodl-prepump-summary Lambda every 30 min.
 const PP_SOURCES = {
-  ppBrief:        `${S3}/data/pump-radar-brief.json`,
-  ppPositioning:  `${S3}/data/pump-positioning.json`,
-  ppCatalysts:    `${S3}/data/catalysts.json`,
-  ppClusters:     `${S3}/data/catalyst-clusters.json`,
-  ppEarly:        `${S3}/data/velocity-acceleration.json`,
+  ppSummary:  `${S3}/data/pump-radar-summary.json`,
 };
 
 const STATE = {data: {}, errors: {}, lastUpdate: null};
@@ -2569,20 +2566,21 @@ async function loadPrePumpRadar(){
 }
 
 function renderPrePumpRadar(){
-  const brief = STATE.data.ppBrief || {};
-  const pos   = STATE.data.ppPositioning || {};
-  const cat   = STATE.data.ppCatalysts || {};
-  const clus  = STATE.data.ppClusters || {};
-  const early = STATE.data.ppEarly || {};
+  // Reads single slim summary file (data/pump-radar-summary.json) built
+  // by justhodl-prepump-summary Lambda — ~3 KB raw, ~700B over the wire.
+  const s = STATE.data.ppSummary;
+  if(!s){
+    // Summary file not loaded yet or failed; leave placeholders
+    return;
+  }
 
   // ── Conviction grade
-  const conviction = brief.conviction_grade || '—';
-  const tempLabel = brief.market_temperature_label || brief.market_temperature?.rank || '';
-  const tempScore = brief.market_temperature?.score;
+  const conviction = s.conviction || '—';
+  const tempLabel  = (s.temperature && s.temperature.label) || '';
+  const tempScore  = s.temperature && s.temperature.score;
   const convEl = document.getElementById('ppConviction');
   if(convEl){
     convEl.textContent = conviction;
-    // Color the conviction grade
     let c = 'var(--text)';
     if(conviction.startsWith('A')) c = '#10b981';
     else if(conviction.startsWith('B+') || conviction === 'B') c = '#22d3ee';
@@ -2593,17 +2591,16 @@ function renderPrePumpRadar(){
   }
   const tempEl = document.getElementById('ppTemperature');
   if(tempEl){
-    let s = tempLabel || '—';
-    if(tempScore != null) s = `${tempLabel || '—'} · ${Number(tempScore).toFixed(0)}/100`;
-    tempEl.textContent = `temp ${s}`;
+    let str = tempLabel || '—';
+    if(tempScore != null) str = `${tempLabel || '—'} · ${Number(tempScore).toFixed(0)}/100`;
+    tempEl.textContent = `temp ${str}`;
   }
 
   // ── A-grade catalysts + pump-confirmed count
-  const byGrade = cat.by_grade || {};
-  const nA = (byGrade.A || []).length;
-  const nB = (byGrade.B || []).length;
-  const positions = pos.aggressive_basket?.positions || [];
-  const nPC = positions.filter(p => p.pump_confirmed).length;
+  const nA = (s.catalysts && s.catalysts.n_a_grade) || 0;
+  const nB = (s.catalysts && s.catalysts.n_b_grade) || 0;
+  const nPC = (s.basket && s.basket.n_pump_confirmed) || 0;
+  const nPos = (s.basket && s.basket.n_positions) || 0;
   const aEl = document.getElementById('ppAGrade');
   if(aEl){
     aEl.textContent = String(nA);
@@ -2611,73 +2608,61 @@ function renderPrePumpRadar(){
   }
   const pcEl = document.getElementById('ppPumpConf');
   if(pcEl){
-    pcEl.textContent = `${nPC} of ${positions.length} pump-confirmed`;
+    pcEl.textContent = `${nPC} of ${nPos} pump-confirmed`;
   }
 
-  // ── Top picks from aggressive basket (or top_3_long_ideas in brief)
+  // ── Top picks
   const picksEl = document.getElementById('ppPicks');
   if(picksEl){
-    const ideas = brief.top_3_long_ideas || [];
-    if(ideas.length){
-      picksEl.innerHTML = ideas.slice(0, 3).map(idea => {
-        const cg = idea.catalyst_grade || '?';
-        const cgColor = cg === 'A' ? '#10b981' : cg === 'B' ? '#22d3ee' : cg === 'C' ? '#f59e0b' : cg === 'D' ? '#ef4444' : 'var(--muted)';
-        const ct = (idea.catalyst_type || '').replace(/_/g, ' ').slice(0, 20);
-        // Extract size from sized_position string
-        let sz = '';
-        const m = (idea.sized_position || '').match(/(\d+\.\d+)\s*%/);
-        if(m) sz = ` <span style="color:#ef4444;font-weight:700">${m[1]}%</span>`;
-        return `<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:3px"><span style="color:var(--text);font-weight:700;font-size:13px">${escHtml(idea.ticker || '—')}</span><span style="background:${cgColor};color:#0b0e13;font-weight:700;padding:1px 5px;border-radius:2px;font-size:9px">${escHtml(cg)}</span><span style="color:var(--muted);font-size:10.5px">${escHtml(ct)}</span>${sz}</div>`;
-      }).join('');
-    } else if(positions.length){
-      picksEl.innerHTML = positions.slice(0, 3).map(p => {
+    const picks = s.top_picks || [];
+    if(picks.length){
+      picksEl.innerHTML = picks.slice(0, 3).map(p => {
         const cg = p.catalyst_grade || '?';
         const cgColor = cg === 'A' ? '#10b981' : cg === 'B' ? '#22d3ee' : cg === 'C' ? '#f59e0b' : cg === 'D' ? '#ef4444' : 'var(--muted)';
-        return `<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:3px"><span style="color:var(--text);font-weight:700;font-size:13px">${escHtml(p.ticker)}</span><span style="background:${cgColor};color:#0b0e13;font-weight:700;padding:1px 5px;border-radius:2px;font-size:9px">${escHtml(cg)}</span><span style="color:#ef4444;font-weight:700">${Number(p.position_pct).toFixed(1)}%</span></div>`;
+        const ct = (p.catalyst_type || '').replace(/_/g, ' ').slice(0, 20);
+        const sz = (p.position_pct != null) ? ` <span style="color:#ef4444;font-weight:700">${Number(p.position_pct).toFixed(1)}%</span>` : '';
+        return `<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:3px"><span style="color:var(--text);font-weight:700;font-size:13px">${escHtml(p.ticker || '—')}</span><span style="background:${cgColor};color:#0b0e13;font-weight:700;padding:1px 5px;border-radius:2px;font-size:9px">${escHtml(cg)}</span><span style="color:var(--muted);font-size:10.5px">${escHtml(ct)}</span>${sz}</div>`;
       }).join('');
     } else {
       picksEl.textContent = 'No positions';
     }
   }
 
-  // ── Catalyst clusters + early detection
+  // ── Clusters + early detection
   const clusEl = document.getElementById('ppClusters');
   if(clusEl){
-    const clusters = clus.clusters || [];
-    const sa = (clus.basket_action_summary || {}).suggested_additions || [];
+    const clusters = s.clusters || [];
     if(clusters.length){
-      const top = clusters.slice(0, 2).map(c => {
-        const qg = c.quality_grade || '?';
+      clusEl.innerHTML = clusters.map(c => {
+        const qg = c.quality || '?';
         const qColor = qg === 'A' ? '#10b981' : qg === 'B' ? '#22d3ee' : qg === 'C' ? '#f59e0b' : '#ef4444';
-        const type = (c.cluster_type || '').replace('TEMPORAL_', '').replace('THEMATIC_', '');
+        const type = (c.type || '').replace('TEMPORAL_', '').replace('THEMATIC_', '');
         const members = (c.members || []).slice(0, 4).join(', ');
         return `<div><span style="color:${qColor};font-weight:700">${escHtml(qg)}</span> ${escHtml(type)}: ${escHtml(members)}</div>`;
       }).join('');
-      clusEl.innerHTML = top || '—';
     } else {
       clusEl.textContent = 'No active clusters';
     }
+    const sa = s.suggested_additions || [];
     if(sa.length){
-      clusEl.innerHTML += `<div style="margin-top:3px;color:#a78bfa;font-size:11px">💡 Consider: ${sa.slice(0,3).map(s => escHtml(s.ticker)).join(', ')}</div>`;
+      clusEl.innerHTML += `<div style="margin-top:3px;color:#a78bfa;font-size:11px">💡 Consider: ${sa.slice(0,3).map(x => escHtml(x.ticker || '?')).join(', ')}</div>`;
     }
   }
   const earlyEl = document.getElementById('ppEarly');
-  if(earlyEl){
-    const conf = early.n_confirmed_today || 0;
-    const fresh = early.n_fresh || 0;
-    const aging = early.n_aging || 0;
-    const tickers = (early.actionable_tickers || []).slice(0, 4).join(', ');
-    earlyEl.innerHTML = `<span style="color:#10b981">${conf} confirmed</span> · <span style="color:#22d3ee">${fresh} fresh</span> · <span style="color:#f59e0b">${aging} aging</span>${tickers ? ' · ' + escHtml(tickers) : ''}`;
+  if(earlyEl && s.early){
+    const e = s.early;
+    const tickers = (e.actionable || []).slice(0, 4).join(', ');
+    earlyEl.innerHTML = `<span style="color:#10b981">${e.n_confirmed_today} confirmed</span> · <span style="color:#22d3ee">${e.n_fresh} fresh</span> · <span style="color:#f59e0b">${e.n_aging} aging</span>${tickers ? ' · ' + escHtml(tickers) : ''}`;
   }
 
-  // ── Update subtitle
+  // ── Subtitle from executive_summary
   const subEl = document.getElementById('ppSub');
   if(subEl){
-    const exec = brief.executive_summary || '';
+    const exec = s.executive_summary || '';
     if(exec){
       subEl.textContent = exec.slice(0, 130) + (exec.length > 130 ? '…' : '');
     } else {
-      subEl.textContent = `Catalyst-aware pump-hunter desk · ${positions.length} positions · ${nA} A-grade catalysts`;
+      subEl.textContent = `Catalyst-aware pump-hunter desk · ${nPos} positions · ${nA} A-grade catalysts`;
     }
   }
 }

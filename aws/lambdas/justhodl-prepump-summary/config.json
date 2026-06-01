@@ -1,0 +1,16 @@
+{
+  "runtime": "python3.12",
+  "memory": 256,
+  "timeout": 60,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Slim pump-radar-summary.json (~3 KB raw, ~700B gzipped) for hero card. Recomposes brief + positioning + catalysts + clusters + early into one tiny file. Twice per hour.",
+  "environment": {},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-prepump-summary-30min",
+    "cron": "cron(12,42 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Pre-pump summary builder twice per hour (after positioning at :10)"
+  }
+}
