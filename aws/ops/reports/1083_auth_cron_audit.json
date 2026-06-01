@@ -1,0 +1,131 @@
+{
+  "started": "2026-06-01T00:05:59.218399+00:00",
+  "n_scanned": 448,
+  "auth_lambdas": [
+    {
+      "name": "justhodl-stock-analyzer",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-05-31T13:44:17.000+0000",
+      "schedules": []
+    },
+    {
+      "name": "justhodl-investor-agents",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-05-31T13:29:01.000+0000",
+      "schedules": []
+    },
+    {
+      "name": "justhodl-treasury-proxy",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-05-31T13:46:16.000+0000",
+      "schedules": []
+    },
+    {
+      "name": "justhodl-options-flow",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-06-01T00:02:03.000+0000",
+      "schedules": [
+        {
+          "name": "justhodl-options-flow-30m",
+          "expr": "rate(30 minutes)",
+          "state": "ENABLED"
+        }
+      ]
+    },
+    {
+      "name": "justhodl-edge-engine",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-06-01T00:01:55.000+0000",
+      "schedules": [
+        {
+          "name": "justhodl-edge-6h",
+          "expr": "rate(6 hours)",
+          "state": "ENABLED"
+        }
+      ]
+    },
+    {
+      "name": "justhodl-fred-proxy",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-05-31T13:25:28.000+0000",
+      "schedules": []
+    },
+    {
+      "name": "justhodl-ecb-proxy",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-05-31T13:23:07.000+0000",
+      "schedules": []
+    },
+    {
+      "name": "justhodl-public-api-demo",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-05-31T13:37:49.000+0000",
+      "schedules": []
+    },
+    {
+      "name": "bea-economic-agent",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-05-31T13:06:53.000+0000",
+      "schedules": []
+    },
+    {
+      "name": "justhodl-charts-agent",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-05-31T13:15:33.000+0000",
+      "schedules": []
+    },
+    {
+      "name": "nasdaq-datalink-agent",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-05-31T13:48:39.000+0000",
+      "schedules": []
+    }
+  ],
+  "summary": {
+    "total_auth_lambdas": 11,
+    "silently_broken": 2,
+    "fixed_already": 0,
+    "no_schedule": 9
+  },
+  "affected": [
+    {
+      "name": "justhodl-options-flow",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-06-01T00:02:03.000+0000",
+      "schedules": [
+        {
+          "name": "justhodl-options-flow-30m",
+          "expr": "rate(30 minutes)",
+          "state": "ENABLED"
+        }
+      ]
+    },
+    {
+      "name": "justhodl-edge-engine",
+      "file": "api_auth.py",
+      "has_bypass": false,
+      "last_modified": "2026-06-01T00:01:55.000+0000",
+      "schedules": [
+        {
+          "name": "justhodl-edge-6h",
+          "expr": "rate(6 hours)",
+          "state": "ENABLED"
+        }
+      ]
+    }
+  ],
+  "fixed": [],
+  "finished": "2026-06-01T00:09:25.722619+00:00"
+}
