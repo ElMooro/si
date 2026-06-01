@@ -1,0 +1,59 @@
+{
+  "started": "2026-06-01T02:04:41.102985+00:00",
+  "lambda_meta": {
+    "last_modified": "2026-06-01T02:04:16.000+0000",
+    "lines": 717,
+    "has_send_telegram": true,
+    "has_compute_alert": true,
+    "has_detect_trans": true,
+    "has_maybe_send": true,
+    "has_format_msg": true
+  },
+  "alert_state_cleared": true,
+  "invoke1_elapsed_s": 34.1,
+  "invoke1_summary": {
+    "status": "ok",
+    "elapsed_sec": 32.75,
+    "claude_elapsed": 32.54,
+    "regime": "CALM",
+    "composite": 9.3,
+    "executive_summary_chars": 444,
+    "forward_predictions_count": 5,
+    "alerts_sent": 1,
+    "alert_types": [
+      "SYSTEM_INITIALIZED"
+    ]
+  },
+  "alert_state": {
+    "regime": "CALM",
+    "composite": 9.3,
+    "indicator_max": {
+      "btc_extreme": 70,
+      "tail_stress": 70
+    },
+    "tail_p": {
+      "p_failed_auction_30d": 8.0,
+      "p_regime_escalation_14d": 13.0,
+      "p_supply_volatility_30d": 11.9
+    },
+    "snapshot_at": "2026-06-01T02:05:15.728329+00:00"
+  },
+  "alert_state_size_bytes": 291,
+  "alert_state_last_modified": "2026-06-01T02:05:17+00:00",
+  "ai_output_alerts_sent": [],
+  "ai_output_alerts_error": null,
+  "decisive_call": "Stay long Treasuries but hedge 5y\u201310y with TLT puts (2\u20133% OTM, 30-day tenor) at 0.5% of AUM; auction demand remains healthy, but tail_stress on bills + flat curve creates 13% regime-escalation risk over next 14d that warrants asymmetric downside protection.",
+  "invoke2_elapsed_s": 34.6,
+  "invoke2_summary": {
+    "status": "ok",
+    "elapsed_sec": 34.26,
+    "claude_elapsed": 34.23,
+    "regime": "CALM",
+    "composite": 9.3,
+    "executive_summary_chars": 466,
+    "forward_predictions_count": 5,
+    "alerts_sent": 0,
+    "alert_types": []
+  },
+  "finished": "2026-06-01T02:05:55.948562+00:00"
+}
