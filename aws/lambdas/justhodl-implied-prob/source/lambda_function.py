@@ -71,6 +71,7 @@ import urllib.request
 from datetime import date, datetime, timedelta, timezone
 
 import boto3
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1073)
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")

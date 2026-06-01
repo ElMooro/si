@@ -56,6 +56,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1073)
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/liquidity-flow.json")

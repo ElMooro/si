@@ -1,5 +1,6 @@
 import json, boto3, urllib.request, time, concurrent.futures
 from datetime import datetime, timezone
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 FRED_KEY    = "2f057499936072679d8843d7fce99989"
 POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"

@@ -4,6 +4,7 @@ import urllib.request
 import urllib.parse
 from datetime import datetime
 from decimal import Decimal
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 def lambda_handler(event, context):
     """Manufacturing Agent - Global Manufacturing Intelligence"""

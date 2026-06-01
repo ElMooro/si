@@ -1,5 +1,6 @@
 import json,os,boto3,urllib3,statistics
 from datetime import datetime,timezone,timedelta
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 s3=boto3.client('s3');http=urllib3.PoolManager()
 S3_BUCKET=os.environ.get('S3_BUCKET');FRED_KEY=os.environ.get('FRED_API_KEY')
 def sf(v,d=0.0):

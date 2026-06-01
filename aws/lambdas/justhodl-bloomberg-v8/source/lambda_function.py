@@ -10,6 +10,7 @@ Real-time data aggregation from 10+ sources
 Author: JustHodl.AI
 """
 
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 # Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
 try:
     from ka_aliases import add_ka_aliases

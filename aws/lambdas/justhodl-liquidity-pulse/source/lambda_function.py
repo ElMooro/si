@@ -53,6 +53,7 @@ from statistics import mean, pstdev
 
 import boto3
 from botocore.exceptions import ClientError
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1073)
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")

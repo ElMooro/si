@@ -1,6 +1,7 @@
 import json, re, math
 from datetime import datetime, timedelta
 import boto3, urllib3
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 http = urllib3.PoolManager()
 ses  = boto3.client("ses")

@@ -1,5 +1,6 @@
 import json, os, sys, boto3, urllib.request, time, concurrent.futures
 from datetime import datetime, timezone
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1084)
 
 # Bundle api_auth.py alongside lambda_function.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -174,9 +175,18 @@ def lambda_handler(event, context):
         return {'statusCode': 200, 'headers': cors, 'body': ''}
 
     # Auth gate — Origin-bypass mode for justhodl.ai frontend
-    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
-    if err:
-        return err
+    # Internal invocation bypass (ops/1082) — EventBridge cron and
+    # boto3 direct invokes lack requestContext.http. Skip auth.
+    if not event.get("requestContext", {}).get("http"):
+        key_meta = {"auth_mode": "internal", "tier": "ENTERPRISE",
+                    "tier_label": "Internal cron/direct",
+                    "owner_email": "", "label": "internal-bypass",
+                    "created_at": ""}
+        err = None
+    else:
+        key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
+        if err:
+            return err
 
     try:
         t0 = time.time()

@@ -2,6 +2,7 @@ import json,boto3,os,ssl,traceback
 from datetime import datetime,timezone,timedelta
 from urllib import request as urllib_request
 from _sentry_lite import track_errors
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 s3=boto3.client('s3')
 FRED_API_KEY=os.environ.get('FRED_API_KEY','2f057499936072679d8843d7fce99989')

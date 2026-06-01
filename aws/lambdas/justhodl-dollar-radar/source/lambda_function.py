@@ -40,6 +40,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 SCHEMA = "1.0"
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"

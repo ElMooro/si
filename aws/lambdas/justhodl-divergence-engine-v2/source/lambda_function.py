@@ -65,6 +65,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone, timedelta
 
 import boto3
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1073)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIGURATION

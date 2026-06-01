@@ -38,6 +38,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 SCHEMA = "1.1"
 BASE = "https://financialmodelingprep.com/stable"

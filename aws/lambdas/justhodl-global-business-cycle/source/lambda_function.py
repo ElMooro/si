@@ -39,6 +39,7 @@ import urllib.parse
 from datetime import datetime, timezone
 from collections import defaultdict
 import boto3
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")

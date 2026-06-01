@@ -4,6 +4,7 @@ import urllib.error
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 # Cache configuration - 7 DAYS instead of 5 minutes
 CACHE_DURATION = 604800  # 7 days in seconds (7 * 24 * 60 * 60)

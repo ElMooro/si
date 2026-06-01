@@ -1,5 +1,6 @@
 import json,os,urllib.request,urllib.error,boto3,traceback,time
 from datetime import datetime,timedelta,timezone
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 S3_BUCKET=os.environ.get('S3_BUCKET','justhodl-dashboard-live')
 FRED_KEY=os.environ.get('FRED_API_KEY','2f057499936072679d8843d7fce99989')

@@ -36,6 +36,7 @@ import json, os, time
 from datetime import datetime, timezone
 from urllib import request, error
 import boto3
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1073)
 
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "data/global-liquidity.json"

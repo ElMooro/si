@@ -35,6 +35,7 @@ from datetime import datetime, timezone, timedelta
 from statistics import mean, stdev
 
 import boto3
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 S3 = boto3.client("s3", region_name="us-east-1")
 SSM = boto3.client("ssm", region_name="us-east-1")

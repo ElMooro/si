@@ -55,6 +55,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from statistics import mean, stdev
 
 import boto3
+import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 
 VERSION = "1.0.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
