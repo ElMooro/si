@@ -569,6 +569,117 @@ def compute_financial_health(scores: list, ratios_ttm: dict, key_ttm: dict,
     }
 
 
+def compute_earnings_track_record(earnings_rows: list) -> dict:
+    """Institutional-style earnings beat/miss analysis.
+
+    Hedge fund framing: a stock that beats consensus 7 of 8 quarters is a
+    'high-quality compounder'; one that beats by SHRINKING magnitude is
+    showing deteriorating fundamentals even if the beats continue.
+
+    Returns:
+      - eps_beats / eps_misses / eps_inline counts
+      - eps_beat_rate (% of quarters with epsActual >= epsEstimated)
+      - eps_avg_beat_pct (mean (actual-est)/est across beat quarters)
+      - eps_avg_miss_pct (mean across miss quarters, negative number)
+      - eps_current_streak  (consecutive beats, negative = miss streak)
+      - eps_magnitude_trend ('expanding' | 'stable' | 'shrinking' | None)
+      - revenue_beat_rate, revenue_avg_surprise_pct (same for revenue)
+      - quarters: detailed list of past quarters
+    """
+    if not isinstance(earnings_rows, list):
+        return {}
+    # Filter to past quarters only (actual numbers reported, not forward)
+    past = [r for r in earnings_rows
+              if isinstance(r, dict)
+              and r.get("epsActual") is not None
+              and r.get("epsEstimated") is not None]
+    if not past:
+        return {}
+    # Newest first (FMP default), confirm by sorting
+    past = sorted(past, key=lambda r: r.get("date") or "", reverse=True)[:12]
+
+    def surprise_pct(actual, est):
+        try:
+            if est is None or est == 0: return None
+            return round((float(actual) - float(est)) / abs(float(est)) * 100, 2)
+        except (TypeError, ValueError):
+            return None
+
+    # Detailed quarter list
+    quarters = []
+    for r in past:
+        eps_act, eps_est = r.get("epsActual"), r.get("epsEstimated")
+        rev_act, rev_est = r.get("revenueActual"), r.get("revenueEstimated")
+        quarters.append({
+            "date":              r.get("date"),
+            "eps_estimated":     eps_est,
+            "eps_actual":        eps_act,
+            "eps_surprise_pct":  surprise_pct(eps_act, eps_est),
+            "revenue_estimated": rev_est,
+            "revenue_actual":    rev_act,
+            "revenue_surprise_pct": surprise_pct(rev_act, rev_est),
+        })
+
+    # EPS beat/miss aggregates
+    eps_surprises = [q["eps_surprise_pct"] for q in quarters if q["eps_surprise_pct"] is not None]
+    eps_beats = [s for s in eps_surprises if s > 0.5]   # >0.5% counts as a beat
+    eps_misses = [s for s in eps_surprises if s < -0.5]
+    eps_inline = [s for s in eps_surprises if -0.5 <= s <= 0.5]
+
+    # Current streak: count from most recent quarter, sign = direction
+    streak = 0
+    if quarters and quarters[0]["eps_surprise_pct"] is not None:
+        direction = 1 if quarters[0]["eps_surprise_pct"] > 0.5 else (-1 if quarters[0]["eps_surprise_pct"] < -0.5 else 0)
+        if direction != 0:
+            for q in quarters:
+                s = q["eps_surprise_pct"]
+                if s is None: break
+                if direction > 0 and s > 0.5: streak += 1
+                elif direction < 0 and s < -0.5: streak += 1
+                else: break
+            streak *= direction
+
+    # Magnitude trend: compare first half avg beat vs second half
+    magnitude_trend = None
+    if len(eps_beats) >= 4 and len(quarters) >= 6:
+        recent_beats = [q["eps_surprise_pct"] for q in quarters[:4]
+                         if q["eps_surprise_pct"] is not None and q["eps_surprise_pct"] > 0.5]
+        older_beats = [q["eps_surprise_pct"] for q in quarters[4:8]
+                        if q["eps_surprise_pct"] is not None and q["eps_surprise_pct"] > 0.5]
+        if recent_beats and older_beats:
+            recent_avg = sum(recent_beats) / len(recent_beats)
+            older_avg = sum(older_beats) / len(older_beats)
+            if recent_avg > older_avg * 1.2:   magnitude_trend = "expanding"
+            elif recent_avg < older_avg * 0.7: magnitude_trend = "shrinking"
+            else: magnitude_trend = "stable"
+
+    # Revenue surprise aggregates
+    rev_surprises = [q["revenue_surprise_pct"] for q in quarters
+                       if q["revenue_surprise_pct"] is not None]
+    rev_beats = [s for s in rev_surprises if s > 0.5]
+    rev_misses = [s for s in rev_surprises if s < -0.5]
+
+    def avg(lst): return round(sum(lst) / len(lst), 2) if lst else None
+
+    return {
+        "n_quarters":              len(quarters),
+        "eps_beats":               len(eps_beats),
+        "eps_misses":              len(eps_misses),
+        "eps_inline":              len(eps_inline),
+        "eps_beat_rate_pct":       round(len(eps_beats) / max(1, len(eps_surprises)) * 100, 1),
+        "eps_avg_beat_pct":        avg(eps_beats),
+        "eps_avg_miss_pct":        avg(eps_misses),
+        "eps_current_streak":      streak,
+        "eps_magnitude_trend":     magnitude_trend,
+        "revenue_beats":           len(rev_beats),
+        "revenue_misses":          len(rev_misses),
+        "revenue_beat_rate_pct":   round(len(rev_beats) / max(1, len(rev_surprises)) * 100, 1)
+                                       if rev_surprises else None,
+        "revenue_avg_surprise_pct": avg(rev_surprises),
+        "quarters":                quarters,
+    }
+
+
 def build_peer_comparison(subject_ticker: str, subject_ratios_ttm: dict,
                             subject_key_ttm: dict, subject_quote: dict,
                             subject_company: dict, peers_list: list,
@@ -684,6 +795,7 @@ Schema:
   },
   "valuation_assessment": "150 words on whether the stock is cheap/fair/expensive given P/E vs 5yr avg, DCF gap, peer multiples, and FCF yield. Be specific.",
   "peer_comparison_assessment": "100 words on how the subject's valuation multiples compare to the peer-median (which functions as the industry P/E benchmark). Reference SPECIFIC peer ticker(s) where helpful. Frame as: 'trading at X% premium/discount to peer median P/E of Y'.",
+  "earnings_track_record_assessment": "80 words on the company's earnings consistency. Cite the EPS beat rate, current streak, magnitude trend, and revenue surprise. Hedge fund framing: 'beats 7 of 8 quarters but with shrinking magnitude = deteriorating quality' is more useful than just 'beats consensus regularly'.",
   "financial_health_summary": "100 words on the 5-pillar score, calling out the strongest and weakest pillars with the actual numbers.",
   "competitive_position": "100 words on the company's moat and industry position based on margins, growth durability, and ROIC vs peers.",
   "catalysts_12m": [
@@ -867,6 +979,9 @@ def lambda_handler(event, context):
         _company_block_for_peers, peers_list, peer_details,
     )
 
+    # ── Earnings beat/miss track record
+    earnings_track_record = compute_earnings_track_record(earnings)
+
     # ── Compact statements (every year, just essential fields)
     def compact_income(rows):
         keys = ("date","revenue","grossProfit","operatingIncome","netIncome",
@@ -940,6 +1055,7 @@ def lambda_handler(event, context):
         "returns":         returns,
         "analyst_estimates": est_block,
         "peer_comparison": peer_comparison,
+        "earnings_track_record": earnings_track_record,
         "statements_preview": {
             "income_top_5y":      compact_income(income_annual[:5]),
             "balance_top_5y":     compact_balance(balance_annual[:5]),
@@ -979,6 +1095,7 @@ def lambda_handler(event, context):
         "risk_factors":        claude_synthesis.get("risk_factors"),
         "valuation_assessment":claude_synthesis.get("valuation_assessment"),
         "peer_comparison_assessment": claude_synthesis.get("peer_comparison_assessment"),
+        "earnings_track_record_assessment": claude_synthesis.get("earnings_track_record_assessment"),
         "financial_health_summary": claude_synthesis.get("financial_health_summary"),
         "competitive_position":claude_synthesis.get("competitive_position"),
         "catalysts_12m":       claude_synthesis.get("catalysts_12m") or [],
@@ -992,6 +1109,7 @@ def lambda_handler(event, context):
         "returns":             returns,
         "analyst_estimates":   est_block,
         "peer_comparison":     peer_comparison,
+        "earnings_track_record": earnings_track_record,
         "statements": {
             "income_annual":     compact_income(income_annual),
             "balance_annual":    compact_balance(balance_annual),

@@ -421,6 +421,7 @@ function renderReport(d){
   html += renderPeerComparison(d);
   html += renderFinancialHealth(d);
   html += renderGrowth(d);
+  html += renderEarningsTrack(d);
   html += renderReturns(d);
   html += renderMargins(d);
   html += renderStatements(d);
@@ -741,6 +742,98 @@ function renderGrowth(d){
         ${g.consecutive_yoy_growth != null ? `<div class="metric"><div class="lbl">Consec. growth Qs</div><div class="val">${g.consecutive_yoy_growth}</div></div>` : ''}
       </div>
       ${qHtml}
+    </section>`;
+}
+
+function renderEarningsTrack(d){
+  const e = d.earnings_track_record || {};
+  if(!e.n_quarters || e.n_quarters === 0) return "";
+
+  // Streak badge: positive = beat streak, negative = miss streak
+  const streak = e.eps_current_streak || 0;
+  const streakStr = streak === 0 ? "no streak" :
+                     streak > 0 ? `${streak}Q beat streak` : `${Math.abs(streak)}Q miss streak`;
+  const streakCls = streak > 0 ? "up" : streak < 0 ? "down" : "";
+
+  // Magnitude trend: shrinking = bad (deteriorating quality)
+  const mag = e.eps_magnitude_trend;
+  const magCls = mag === "expanding" ? "up" : mag === "shrinking" ? "down" : "warn";
+  const magLabel = mag ? mag : "—";
+
+  // Quarter table
+  const rows = (e.quarters || []).slice(0, 8).map(q => {
+    const epsS = q.eps_surprise_pct;
+    const revS = q.revenue_surprise_pct;
+    const epsCls = (epsS == null) ? "" : (epsS > 0.5 ? "pos" : epsS < -0.5 ? "neg" : "");
+    const revCls = (revS == null) ? "" : (revS > 0.5 ? "pos" : revS < -0.5 ? "neg" : "");
+    const epsActFmt = (q.eps_actual == null) ? '—' :
+      (Math.abs(q.eps_actual) < 100 ? '$' + q.eps_actual.toFixed(2) : fmt$(q.eps_actual));
+    const epsEstFmt = (q.eps_estimated == null) ? '—' :
+      (Math.abs(q.eps_estimated) < 100 ? '$' + q.eps_estimated.toFixed(2) : fmt$(q.eps_estimated));
+    return `<tr>
+      <td>${esc(q.date || '—')}</td>
+      <td>${epsEstFmt}</td>
+      <td>${epsActFmt}</td>
+      <td class="${epsCls}">${epsS != null ? fmtPct(epsS, 1) : '—'}</td>
+      <td>${q.revenue_estimated != null ? fmt$(q.revenue_estimated) : '—'}</td>
+      <td>${q.revenue_actual != null ? fmt$(q.revenue_actual) : '—'}</td>
+      <td class="${revCls}">${revS != null ? fmtPct(revS, 1) : '—'}</td>
+    </tr>`;
+  }).join("");
+
+  return `
+    <section class="block">
+      <h3><span class="ico">🎯</span> Earnings Track Record
+        <span class="pill">last ${e.n_quarters} quarters</span>
+      </h3>
+      ${d.earnings_track_record_assessment ? `<p>${esc(d.earnings_track_record_assessment)}</p>` : ""}
+      <div class="grid" style="margin-top:14px">
+        <div class="metric">
+          <div class="lbl">EPS Beat Rate</div>
+          <div class="val ${e.eps_beat_rate_pct >= 75 ? 'up' : e.eps_beat_rate_pct >= 50 ? 'warn' : 'down'}">${e.eps_beat_rate_pct}%</div>
+          <div class="sub">${e.eps_beats || 0} beats · ${e.eps_misses || 0} misses · ${e.eps_inline || 0} inline</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Avg Beat Magnitude</div>
+          <div class="val up">${e.eps_avg_beat_pct != null ? '+' + e.eps_avg_beat_pct + '%' : '—'}</div>
+          <div class="sub">${e.eps_avg_miss_pct != null ? 'miss avg ' + e.eps_avg_miss_pct + '%' : ''}</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Current Streak</div>
+          <div class="val ${streakCls}">${streakStr}</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Beat Magnitude Trend</div>
+          <div class="val ${magCls}" style="font-size:14px; padding-top:6px">${magLabel.toUpperCase()}</div>
+          <div class="sub">quality signal</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Revenue Beat Rate</div>
+          <div class="val ${e.revenue_beat_rate_pct >= 75 ? 'up' : e.revenue_beat_rate_pct >= 50 ? 'warn' : 'down'}">${e.revenue_beat_rate_pct != null ? e.revenue_beat_rate_pct + '%' : '—'}</div>
+          <div class="sub">${e.revenue_beats || 0} beats · ${e.revenue_misses || 0} misses</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Avg Rev Surprise</div>
+          <div class="val ${(e.revenue_avg_surprise_pct || 0) > 0 ? 'up' : 'down'}">${e.revenue_avg_surprise_pct != null ? fmtPct(e.revenue_avg_surprise_pct, 1) : '—'}</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="margin-top:14px">
+        <div class="chart-title">Quarter-by-quarter beat/miss detail</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Report Date</th>
+              <th>EPS Est</th>
+              <th>EPS Actual</th>
+              <th>EPS Surprise</th>
+              <th>Rev Est</th>
+              <th>Rev Actual</th>
+              <th>Rev Surprise</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
     </section>`;
 }
 
