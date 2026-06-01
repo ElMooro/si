@@ -272,6 +272,44 @@ def compact_earnings_cal(d: dict) -> dict:
     }
 
 
+def _compact_research(research_doc) -> list:
+    """Ticker-research-bundle.json may store 'research' as either a list of
+    dossiers OR a dict keyed by ticker. Normalize to a list of compacted
+    summaries."""
+    if not isinstance(research_doc, dict):
+        return []
+    inner = research_doc.get("research")
+    # Case 1: array of dossiers
+    if isinstance(inner, list):
+        items = inner[:8]
+    # Case 2: dict keyed by ticker
+    elif isinstance(inner, dict):
+        items = []
+        for t, r in list(inner.items())[:8]:
+            if isinstance(r, dict):
+                if "ticker" not in r:
+                    r = {**r, "ticker": t}
+                items.append(r)
+    else:
+        return []
+    out = []
+    for r in items:
+        if not isinstance(r, dict):
+            continue
+        tf  = r.get("trade_framework") or {}
+        bt  = r.get("bull_thesis") or {}
+        rsk = r.get("risk_assessment") or {}
+        out.append({
+            "ticker":        r.get("ticker"),
+            "conviction":    tf.get("conviction") if isinstance(tf, dict) else None,
+            "time_horizon":  tf.get("time_horizon") if isinstance(tf, dict) else None,
+            "bull_headline": bt.get("headline") if isinstance(bt, dict) else None,
+            "risk_headline": rsk.get("headline") if isinstance(rsk, dict) else None,
+            "ai_one_liner":  r.get("ai_one_liner"),
+        })
+    return out
+
+
 # ═════════════════════════════════════════════════════════════════════
 # Compute market temperature (lightweight composite)
 # ═════════════════════════════════════════════════════════════════════
@@ -524,17 +562,7 @@ def lambda_handler(event, context):
         "pairs":        compact_pairs(raw.get("pairs", {})),
         "nlp":          compact_nlp(raw.get("nlp", {})),
         "research":     {  # ticker-research is large; only summaries
-            "research": [
-                {
-                    "ticker":         r.get("ticker"),
-                    "conviction":     (r.get("trade_framework") or {}).get("conviction"),
-                    "time_horizon":   (r.get("trade_framework") or {}).get("time_horizon"),
-                    "bull_headline":  (r.get("bull_thesis") or {}).get("headline"),
-                    "risk_headline":  (r.get("risk_assessment") or {}).get("headline"),
-                    "ai_one_liner":   r.get("ai_one_liner"),
-                }
-                for r in ((raw.get("research") or {}).get("research") or [])[:8]
-            ],
+            "research": _compact_research(raw.get("research")),
         },
         "macro":        compact_synthesis(raw.get("synthesis", {})),
         "earnings_cal": compact_earnings_cal(raw.get("earnings_cal", {})),
