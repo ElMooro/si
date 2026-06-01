@@ -1,0 +1,41 @@
+{
+  "started": "2026-06-01T00:36:24.296571+00:00",
+  "zip_inspection": {
+    "last_modified": "2026-06-01T00:34:12.000+0000",
+    "zip_size": 26106,
+    "files": [
+      "finra_si.py",
+      "_fred_shim.py",
+      "ka_aliases.py",
+      "api_auth.py",
+      "calibration.py",
+      "system_events.py",
+      "_sentry_lite.py",
+      "lambda_function.py"
+    ],
+    "has_shim_file": true,
+    "has_shim_import": true,
+    "auto_bundled_shared_files": [
+      "finra_si.py",
+      "ka_aliases.py",
+      "api_auth.py",
+      "calibration.py",
+      "system_events.py",
+      "_sentry_lite.py"
+    ]
+  },
+  "invoke": {
+    "elapsed_s": 48.1,
+    "status": 200,
+    "raw": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"composite\\\": 0, \\\"regime\\\": \\\"CALM\\\"}\"}",
+    "body_status": 200,
+    "composite": 0,
+    "regime": "CALM",
+    "inner_keys": [
+      "ok",
+      "composite",
+      "regime"
+    ]
+  },
+  "finished": "2026-06-01T00:37:13.008938+00:00"
+}
