@@ -1,0 +1,12 @@
+{
+  "started": "2026-06-01T23:07:19.955767+00:00",
+  "phases": [
+    {
+      "name": "function_url",
+      "status": "ERROR",
+      "error": "An error occurred (ResourceNotFoundException) when calling the GetFunctionUrlConfig operation: The resource you requested does not exist.",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/1133_equity_research_v2.py\", line 13, in phase\n    r = fn()\n        ^^^^\n  File \"/home/runner/work/si/si/aws/ops/pending/1133_equity_research_v2.py\", line 23, in get_url\n    r = lam.get_function_url_config(FunctionName=\"justhodl-equity-research\")\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceNotFoundException: An error occurred (ResourceNotFoundException) when calling the GetFunctionUrlConfig operation: The resource you requested does not exist.\n"
+    }
+  ],
+  "finished": "2026-06-01T23:07:20.311078+00:00"
+}
