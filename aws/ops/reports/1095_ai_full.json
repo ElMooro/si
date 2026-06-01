@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-01T01:37:53.234395+00:00",
+  "data_generated_at": "2026-06-01T01:06:55.147075+00:00",
+  "data_last_modified": "2026-06-01T01:06:56+00:00",
+  "data_age_minutes": 30.3,
+  "model": "claude-haiku-4-5-20251001",
+  "regime": "CALM",
+  "composite": 9.3,
+  "elapsed_sec": 42.24,
+  "claude_elapsed_sec": 42.13,
+  "ai_commentary": {
+    "executive_summary": "Auctions are clearing normally across all tenors with healthy demand\u2014composite stress at 9.3/100 signals a genuinely calm regime, not complacency. The 2021-10-21 analog (late-cycle complacency preceding a 25% drawdown) is a structural warning, not an immediate tactical signal. The next 30 days present low near-term auction risk but widening tail exposure if the Fed pauses rate cuts or inflation re-accelerates.",
+    "what_changed": "Nothing material broke in the past 72 hours. The 13w and 26w bills due today (Jun 1) are carrying a 17% supply shock (+$13B vs baseline), but the system forecasts both clearing at stress scores <17/100. The btc_extreme and tail_stress signals firing in recent auctions are isolated (1 and 4 hits respectively over 14 days) and below the cascade threshold. No regime escalation detected.",
+    "indicator_interpretation": [
+      {
+        "signal": "btc_extreme: 1 hit in T-Bills <90d (max score 70)",
+        "narrative": "A single bill auction in the past 14 days showed tail bid concentration (one bidder >2.5% of issue), typical of month-end/quarter-end rebalancing or technical positioning. Not systemic.",
+        "implication": "Monitor for repeat in next bill cycle (Jun 8) but no action warranted yet. If btc_extreme fires on >2 consecutive bill auctions, escalate to tail_risk hedging."
+      },
+      {
+        "signal": "tail_stress: 4 hits across 13w-52w bills and 5y-30y bonds (max score 70)",
+        "narrative": "Tail stress (dispersion in bids, edge-case yield moves) clustered in bills and long paper. This is a classic pattern when dealers are managing curve risk asymmetrically\u2014they're bidding aggressively short, cautiously long. Indicative of uncertainty about the Fed's next move, not demand collapse.",
+        "implication": "Long-end auctions (5y, 10y, 30y) carry higher execution risk than expected. The 3-Year Note (Jun 9) forecast is benign (5.0/100), but prepare for higher volatility post-settlement. Dealers are short duration beta\u2014any Fed hawkish signal will whipsaw long coupons."
+      },
+      {
+        "signal": "Issuance +7.1% above baseline, score 0",
+        "narrative": "Treasury is issuing 7% more than the historical seasonal average. This is well within normal variance (baseline ~$2.5\u20133B/day, current ~$2.7B/day). No supply panic or front-loading detected.",
+        "implication": "Non-issue. Carry rate differential is absorbing the incremental supply. No portfolio action needed on this metric."
+      },
+      {
+        "signal": "Repo (SOFR-IORB) at -3bp, USD +0.5% / 30d, 5y5y BE at 2.24%",
+        "narrative": "All three cross-signals scream stability. Repo is trading inside the Fed's corridor (normal), the dollar is gently firm but not breaking out (no systemic stress flight-to-quality), and inflation expectations are dead-anchored. This is NOT an environment where Treasury demand is being forced by fear.",
+        "implication": "Demand at auctions is real (not fear-driven). This makes the high demand more fragile if sentiment reverses. Position accordingly: hold UST duration, but don't add aggressively. Demand could evaporate fast if inflation data surprise to the upside or Fed signals a pause in cuts."
+      }
+    ],
+    "historical_analog_discussion": "The top analog is 2021-10-21 (COMPLACENCY: 73% similar). At that date, the system was calm, BTC was modestly elevated, and the Fed was in its late taper phase. What followed: Bitcoin peaked 17 days later (Nov 8), equities peaked Jan 2022, and a 25% drawdown unfolded into Oct 2022. The lesson: ultra-low auction stress scores *in late-cycle environments* are dangerous precisely because they signal confidence is overextended. We are in a similar late-cycle posture now\u2014Fed funds at 3.62%, curve flat at 46bp, 5y5y inflation at 2.24% (borderline low). The second analog (2024-10-09, NORMAL, 64% similar) suggests auctions can stay calm through a normalization phase, but that was 8 months into a stable rate regime post-cuts. We are only 9 months from peak rates (Jun 2025 inversion); the regime is still shifting. The third analog (2020-03-26, COVID_BAZOOKA) is least relevant but instructive: demand was manic because rates were zero and stocks were collapsing. We don't have manic demand here\u2014we have rational demand in a stable macro. The analog pattern signals: *current calm is real, but regime is fragile, and the next shock will likely originate outside auctions (inflation surprise, Fed pivot, geopolitical).*",
+    "forward_predictions": [
+      {
+        "auction_date": "2026-06-01",
+        "tenor": "13-Week Bill",
+        "term": "13w",
+        "predicted_score": 16.7,
+        "expected_outcome": "Normal clearing. BTC 2.5\u20132.9, AAH 30\u201345%. +17% supply shock absorbed without concession. High-quality collateral in thin market absorbs the marginal $13B without stress.",
+        "what_to_watch": "If BTC <2.3 or AAH >50%, dealers are straining to absorb. Watch for follow-on stress in the Jun 8 13w roll. SOFR fixing 2\u20133pm ET: if it pops >3.65%, repo is tightening and next auction faces headwinds."
+      },
+      {
+        "auction_date": "2026-06-01",
+        "tenor": "26-Week Bill",
+        "term": "26w",
+        "predicted_score": 13.0,
+        "expected_outcome": "Normal clearing. BTC 2.4\u20132.8, AAH 25\u201340%. Indirect demand (foreign, non-dealer) expected to remain solid (50%+ of issue). No stress.",
+        "what_to_watch": "Indirect share collapse <40% = foreign demand faltering, early warning of USD strength shock or emerging market pressure. Monitor EM FX (JPY, INR, BRL) in real-time\u2014if EM weakness accelerates, foreigners will rotate out of mid-curve bills."
+      },
+      {
+        "auction_date": "2026-06-09",
+        "tenor": "3-Year Note",
+        "term": "3y",
+        "predicted_score": 5.0,
+        "expected_outcome": "Very clean clearing. BTC 2.7\u20133.1, AAH 20\u201335%, PD absorption <30%. The 2y-3y segment (composite 24.2/100 over 14d) is the most stressed tenor, but absolute stress is still benign. Demand should be healthy because 3y is the sweet spot for real-money buyers (pension funds, banks) facing a flat curve.",
+        "what_to_watch": "BTC >3.3 = demand overheated (red flag for 5y\u201310y stress cascade). AAH >45% = dealers struggling (next coupons will be tight). Tail stress signal firing on this auction (currently at 0) = Fed guidance uncertainty spiking. If it fires here, 5y\u201310y coupons will face concession demands within 3 days."
+      },
+      {
+        "auction_date": "2026-06-10",
+        "tenor": "9-Year 11-Month Note",
+        "term": "9y11m",
+        "predicted_score": 5.0,
+        "expected_outcome": "Normal clearing, likely strong demand. Long coupons are under-owned by real money (barbell behavior on flat curve: they're buying 2y and 30y, skipping 5y\u201310y). The 9y11m is a proxy for 10y supply\u2014expect robust dealer and foreign demand. BTC 2.6\u20133.0, AAH 15\u201330%.",
+        "what_to_watch": "Tail stress fires here = curve steepening suddenly demands, pulling long real yields up. If tail_stress score >50 on this auction, the Fed is expected to pause or pivot (market is rejecting long-end supply). This is the key diagnostic for the next 14 days. A clean 9y11m close + low tail_stress = no Fed pause priced in, auction calendar is clear through June."
+      },
+      {
+        "auction_date": "2026-06-08",
+        "tenor": "52-Week Bill",
+        "term": "52w",
+        "predicted_score": 8.9,
+        "expected_outcome": "Normal clearing. BTC 2.4\u20132.8, AAH 30\u201345%. 52w bills are a barometer for year-ahead rate expectations. If this clears with enthusiasm (BTC >2.7, AAH <35%), market is pricing continued Fed cuts through 2026. If weak (BTC <2.4, AAH >50%), market is defending against a Fed hold or hike.",
+        "what_to_watch": "Compare the Jun 8 52w BTC to the Jun 1 26w BTC. If 52w is >20bp cheaper in bid depth than 26w, carry compression is imminent (expect 3m-12m curve to flatten further). This is a signal dealers are not committing to long-duration bill risk. If true, expect 5y\u201310y note demand to soften within 5 days."
+      }
+    ],
+    "tail_risk_assessment": "Failed auction risk (8% in 30d) is genuinely low: demand is healthy, dealers are bidding, and cross-collateral is abundant (repo calm, USD stable). The real tail is *regime escalation* (13% probability in 14 days), which would originate from macro surprises, not auction mechanics. Specifically: (1) CPI surprise >0.4% MoM in core (next print Jun 12) would spike 5y\u201310y tail_stress immediately and force dealers to mark down long coupons. (2) Fed speaker signaling a pause in cuts (50bp+ odds priced in for Jun FOMC decision) would flatten the curve further and create concession demands. (3) EM weakness / CNY weakness / carry unwind would crater foreign demand (currently 54% of bills) within 48 hours. If *any* of these fire, composite goes from 9.3 to 35\u201350 within 1 week, and auction stress becomes operational. The 2021 analog (complacency before -25% drawdown) suggests the tail is *structural*, not immediate: the regime shift will likely take 4\u20138 weeks to materialize, not 4\u20138 days.",
+    "actionable_triggers": "**Immediate (today, Jun 1):** Monitor the 13w and 26w bill results at ~11:30am ET. If either BTC <2.3 or indirect share drops <45%, reduce long-duration concentration and tighten stops on TLT (20+ year Treasuries) to 2% of portfolio heat. Prepare a 5y\u201310y payer swaption (bet on yields falling) as a tail hedge. **Within 72 hours (Jun 1\u20133):** Watch for Fed speakers (Barr, Powell, etc.). Any language suggesting 'higher for longer' or 'fewer cuts ahead' = buy DXY, sell long Treasuries, add vol. **Within 5 days (Jun 1\u20135):** Monitor CPI expectations (market is pricing <0.3% MoM core). If breakeven inflation (5y5y) rises >10bp intra-day, auction risk escalates to WATCH regime. **Within 9 days (Jun 1\u20139):** The 3y and 9y11m note auctions (Jun 9\u201310) are the regime-diagnostic. If either fires tail_stress >50, execute full duration hedge (buy TLT puts, sell 5y notes, go long 2y10y steepener). **Crossing into WATCH (composite >25):** Tighten stops on long duration to 1%, prepare to sell TLT on a 2\u20133bp move up, pivot portfolio to 2y/30y barbell (exit 5y\u201310y midcurve). **Crossing into ELEVATED (composite >50):** Reduce duration to 3\u20134y, add USD longs, hedge equity beta with ES puts. **Standing triggers:** If Pd Absorption or Indirect Collapse fire (currently at 0), escalate immediately to ELEVATED posture because either signals a structural bid shortage.",
+    "decisive_call": "Hold 5y\u201310y duration through the Jun 9 coupon auctions\u2014demand is real and regime is stable\u2014but sell rallies >75bp on the 10y (lock in 4.20%+ yields if we get there), buy dips <50bp, and execute a Jun 15 1-month strangle on TLT (long both calls and puts, expecting a 3\u20135% move off auctions + macro catalyst by mid-June)."
+  },
+  "data_echo": {
+    "n_recent_auctions_14d": 19,
+    "fed_funds_rate": 3.62,
+    "latest_auction_date": "2026-05-28",
+    "n_upcoming_30d": 13,
+    "top_analog_date": "2021-10-21",
+    "top_analog_regime": "COMPLACENCY",
+    "top_analog_similarity": 0.7304
+  }
+}
