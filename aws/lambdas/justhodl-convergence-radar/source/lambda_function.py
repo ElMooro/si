@@ -408,6 +408,404 @@ def compute_convergence(ticker: str, engines: Dict[str, dict]) -> dict:
     }
 
 
+# ═════════════════════════════════════════════════════════════════════
+# DIRECTIONAL CLASSIFIER
+# ═════════════════════════════════════════════════════════════════════
+# For each engine's signal, derive a directional vote: +1 (bullish),
+# -1 (bearish), or 0 (neutral) with a magnitude 0-1. The aggregate
+# directional_score is in [-100, +100].
+#
+# Designed AFTER auditing each engine's actual output fields (ops/1112).
+# Without this, convergence-radar surfaces "high attention" — not "going up".
+
+def _direction_buzz_velocity(sig: dict) -> tuple:
+    """buzz-velocity has sentiment={n_bullish, n_bearish}. Direction from ratio."""
+    s = sig.get("sentiment") or {}
+    nb = s.get("n_bullish", 0)
+    nx = s.get("n_bearish", 0)
+    nt = (nb + nx)
+    if nt < 5:
+        # Not enough sentiment data — attention surge alone is mildly bullish
+        # (retail piling into a name typically lifts price short-term)
+        return (+0.3, "buzz building, sentiment thin")
+    ratio = nb / nt  # 0 to 1
+    if ratio >= 0.65:
+        return (+0.9, f"{nb}/{nt} bullish posts ({ratio:.0%})")
+    if ratio >= 0.55:
+        return (+0.5, f"{nb}/{nt} bullish posts ({ratio:.0%})")
+    if ratio <= 0.35:
+        return (-0.7, f"only {nb}/{nt} bullish ({ratio:.0%}) — bearish lean")
+    return (+0.1, f"{nb}/{nt} bullish ({ratio:.0%}) — mixed")
+
+
+def _direction_momentum_breakout(sig: dict) -> tuple:
+    """momentum-breakout fires on UPSIDE breakouts only — always bullish.
+    Tier S/A = strongest, B = moderate, C = weakest. is_parabolic = caution late."""
+    tier = sig.get("tier") or ""
+    flags = sig.get("flags") or []
+    is_para = sig.get("is_parabolic")
+    if "TIER_S" in tier:
+        mag = 1.0
+    elif "TIER_A" in tier:
+        mag = 0.85
+    elif "TIER_B" in tier:
+        mag = 0.65
+    else:
+        mag = 0.45
+    # Parabolic late-stage = caution (already pumped)
+    if is_para:
+        mag *= 0.4
+        note = f"{tier} but PARABOLIC (late stage)"
+    else:
+        note = f"{tier} ({'+'.join(flags[:3])})"
+    return (mag, note)
+
+
+def _direction_options_flow(sig: dict) -> tuple:
+    """options-flow tier contains BULLISH/BEARISH explicitly."""
+    tier = sig.get("tier") or ""
+    flags = sig.get("flags") or []
+    if "BULLISH" in tier:
+        mag = 1.0 if "TIER_A" in tier or "TIER_S" in tier else 0.75
+        return (mag, f"{tier} ({'+'.join(flags[:2])})")
+    if "BEARISH" in tier:
+        mag = -1.0 if "TIER_A" in tier or "TIER_S" in tier else -0.75
+        return (mag, f"{tier} ({'+'.join(flags[:2])})")
+    # Mixed / unusual flow — treat as positive attention only
+    return (+0.2, f"{tier}")
+
+
+def _direction_eps_revision(sig: dict) -> tuple:
+    """eps-revision-velocity: HIGH_VELOCITY_TIER_X = analyst revising UP usually.
+    Look at ratings_breadth for upgrades vs downgrades."""
+    flag = sig.get("flag") or ""
+    breadth = sig.get("ratings_breadth") or {}
+    nu = breadth.get("n_upgrades", 0)
+    nd = breadth.get("n_downgrades", 0)
+    nt = nu + nd
+    if nt >= 3:
+        if nu > nd * 2:
+            return (+0.85, f"{nu} upgrades vs {nd} downgrades")
+        if nd > nu * 2:
+            return (-0.85, f"{nd} downgrades vs {nu} upgrades — bearish revisions")
+        if nu > nd:
+            return (+0.45, f"{nu}/{nd} upgrade tilt")
+        if nd > nu:
+            return (-0.45, f"{nd}/{nu} downgrade tilt")
+    # Tier-based bullish bias (this engine surfaces stocks with rising revisions)
+    if "TIER_A" in flag or "HIGH_VELOCITY" in flag:
+        return (+0.7, f"{flag}")
+    if "TIER_B" in flag:
+        return (+0.5, f"{flag}")
+    return (+0.3, f"{flag}")
+
+
+def _direction_earnings_pead(sig: dict) -> tuple:
+    """earnings-pead surfaces post-earnings drift — usually bullish if drift_active.
+    Beat streak high = bullish. flags can include BIG_BEAT_30%+ etc."""
+    tier = sig.get("tier") or ""
+    flags = sig.get("flags") or []
+    beat_streak = sig.get("beat_streak") or 0
+    # If any flag mentions "MISS" or "BELOW" that's bearish
+    flags_lower = " ".join(str(f).lower() for f in flags)
+    if "miss" in flags_lower or "below" in flags_lower or "negative" in flags_lower:
+        return (-0.65, f"{tier} — misses in record")
+    mag = 0.5
+    if "TIER_S" in tier:
+        mag = 1.0
+    elif "TIER_A" in tier:
+        mag = 0.85
+    elif "TIER_B" in tier:
+        mag = 0.65
+    if beat_streak >= 4:
+        mag = min(1.0, mag + 0.15)
+    return (mag, f"{tier} · streak {beat_streak}Q ({'+'.join(str(f) for f in flags[:2])})")
+
+
+def _direction_sec_filings(sig: dict) -> tuple:
+    """sec-filings-intel has EXPLICIT bullish_signals / bearish_signals counts."""
+    b = sig.get("bullish_signals", 0)
+    x = sig.get("bearish_signals", 0)
+    sev = sig.get("highest_severity") or ""
+    nt = b + x
+    if nt == 0:
+        return (0.0, "no clear filing signal")
+    ratio = (b - x) / nt   # -1 to +1
+    sev_mult = 1.0
+    if sev == "high":   sev_mult = 1.3
+    elif sev == "med":  sev_mult = 1.0
+    elif sev == "low":  sev_mult = 0.6
+    mag = max(-1.0, min(1.0, ratio * sev_mult))
+    note = f"{b} bull / {x} bear filings (sev={sev})"
+    return (mag, note)
+
+
+def _direction_political(sig: dict) -> tuple:
+    """political-trades: transaction_type purchase vs sale."""
+    tt = (sig.get("transaction_type") or "").lower()
+    if "purchase" in tt or "buy" in tt:
+        return (+0.65, "politician PURCHASE")
+    if "sale" in tt or "sell" in tt:
+        return (-0.45, "politician SALE")
+    return (0.0, f"trade type: {tt}")
+
+
+def _direction_fundamentals(sig: dict) -> tuple:
+    """fundamentals valuation_label."""
+    v = (sig.get("valuation_label") or "").upper()
+    dcf_gap = sig.get("dcf_gap_pct")
+    if v == "UNDERVALUED":
+        # Bigger DCF gap = stronger signal
+        if isinstance(dcf_gap, (int, float)):
+            mag = min(1.0, abs(dcf_gap) / 40)
+        else:
+            mag = 0.6
+        return (+mag, f"UNDERVALUED, DCF gap {dcf_gap}%")
+    if v == "OVERVALUED":
+        if isinstance(dcf_gap, (int, float)):
+            mag = min(1.0, abs(dcf_gap) / 40)
+        else:
+            mag = 0.5
+        return (-mag, f"OVERVALUED, DCF gap {dcf_gap}%")
+    return (0.0, f"fair value")
+
+
+def _direction_capital_return(sig: dict) -> tuple:
+    """capital-return cannibals = buyback compounders. Always bullish."""
+    upside = sig.get("upside_pct")
+    if isinstance(upside, (int, float)) and upside > 0:
+        return (min(1.0, upside / 50), f"cannibal, +{upside:.1f}% upside")
+    return (+0.4, "cannibal buyback")
+
+
+def _direction_default_attention(sig: dict, name: str) -> tuple:
+    """For engines where direction isn't clear, treat as mild positive attention.
+    Retail attention surges typically precede short-term UPSIDE."""
+    score = sig.get("score")
+    if isinstance(score, (int, float)) and score >= 80:
+        return (+0.45, f"{name} score {score:.0f}")
+    if isinstance(score, (int, float)) and score >= 60:
+        return (+0.35, f"{name} score {score:.0f}")
+    return (+0.2, f"{name} present")
+
+
+def _direction_hiring_velocity(sig: dict) -> tuple:
+    """hiring acceleration is bullish — companies hire when ahead of expectations."""
+    return (+0.7, "hiring expansion confirmed")
+
+
+def _direction_ark_holdings(sig: dict) -> tuple:
+    """ARK holding across multiple funds = institutional vote, mildly bullish."""
+    n_funds = sig.get("n_funds") or 0
+    if n_funds >= 3:
+        return (+0.55, f"held by {n_funds} ARK funds")
+    return (+0.35, f"in {n_funds} ARK fund")
+
+
+def _direction_earnings_cascade(sig: dict) -> tuple:
+    """earnings-cascade strong_cascades = bullish setup."""
+    band = sig.get("band") or ""
+    if "STRONG" in band.upper() or "TITAN" in band.upper():
+        return (+0.85, f"{band}")
+    return (+0.55, f"{band}")
+
+
+def _direction_dividend_growth(sig: dict) -> tuple:
+    """Dividend compounders aren't pump candidates — neutral with positive bias."""
+    return (+0.25, "dividend compounder (slow burn, not pump)")
+
+
+# Dispatch map per engine name
+DIRECTION_FN = {
+    "buzz-velocity":         _direction_buzz_velocity,
+    "momentum-breakout":     _direction_momentum_breakout,
+    "options-flow":          _direction_options_flow,
+    "eps-revision-velocity": _direction_eps_revision,
+    "earnings-pead":         _direction_earnings_pead,
+    "sec-filings-intel":     _direction_sec_filings,
+    "political-trades":      _direction_political,
+    "fundamentals-quality":  _direction_fundamentals,
+    "capital-return":        _direction_capital_return,
+    "hiring-velocity":       _direction_hiring_velocity,
+    "ark-holdings":          _direction_ark_holdings,
+    "earnings-cascade":      _direction_earnings_cascade,
+    "dividend-growth":       _direction_dividend_growth,
+}
+
+
+def compute_directional_score(engines: Dict[str, dict]) -> dict:
+    """For each engine signal, derive a directional vote in [-1, +1].
+    Aggregate into directional_score in [-100, +100] using engine weights.
+
+    ENGINE WEIGHTS (sum to ~10, normalized):
+      options-flow         1.5  (clearest leading directional signal)
+      momentum-breakout    1.4  (price-confirmed)
+      sec-filings-intel    1.3  (insider activity is high-conviction)
+      earnings-pead        1.2  (post-earnings drift is forecastable)
+      eps-revision-velocity 1.1 (analyst revisions lead price)
+      political-trades     0.8  (sometimes informed)
+      buzz-velocity        0.7  (lagging-ish)
+      retail-sentiment     0.6  (lagging)
+      stocktwits-trending  0.5  (lagging)
+      ark-holdings         0.5  (slow signal)
+      fundamentals-quality 0.4  (valuation is long-horizon)
+      hiring-velocity      0.4  (long-horizon)
+      earnings-cascade     0.8
+      capital-return       0.6
+      dividend-growth      0.2  (slow burn)
+      ticker-trends        0.4  (attention only)
+      lobbying-intel       0.3
+      news-velocity        0.4
+      sympathetic-momentum 0.6
+      earnings-tracker-upcoming 0.4 (catalyst proximity matters)
+      earnings-whisper     0.6
+    """
+    weights = {
+        "options-flow":         1.5,
+        "momentum-breakout":    1.4,
+        "sec-filings-intel":    1.3,
+        "earnings-pead":        1.2,
+        "eps-revision-velocity": 1.1,
+        "earnings-cascade":     0.8,
+        "political-trades":     0.8,
+        "buzz-velocity":        0.7,
+        "earnings-whisper":     0.6,
+        "retail-sentiment":     0.6,
+        "sympathetic-momentum": 0.6,
+        "capital-return":       0.6,
+        "stocktwits-trending":  0.5,
+        "ark-holdings":         0.5,
+        "fundamentals-quality": 0.4,
+        "hiring-velocity":      0.4,
+        "ticker-trends":        0.4,
+        "news-velocity":        0.4,
+        "earnings-tracker-upcoming": 0.4,
+        "lobbying-intel":       0.3,
+        "dividend-growth":      0.2,
+    }
+
+    contributions = []
+    weighted_sum = 0.0
+    weight_total = 0.0
+
+    for engine_name, sig in engines.items():
+        if not isinstance(sig, dict):
+            continue
+        fn = DIRECTION_FN.get(engine_name)
+        if fn:
+            mag, note = fn(sig)
+        else:
+            mag, note = _direction_default_attention(sig, engine_name)
+        w = weights.get(engine_name, 0.3)
+        contribution_pts = mag * w
+        weighted_sum += contribution_pts
+        weight_total  += w
+        contributions.append({
+            "engine":     engine_name,
+            "mag":        round(mag, 2),
+            "weight":     w,
+            "weighted":   round(contribution_pts, 2),
+            "note":       note,
+        })
+
+    # Normalize to -100 to +100
+    if weight_total > 0:
+        directional_raw = (weighted_sum / weight_total) * 100
+    else:
+        directional_raw = 0
+
+    # Sort contributions by absolute weighted impact (most influential first)
+    contributions.sort(key=lambda c: abs(c["weighted"]), reverse=True)
+
+    return {
+        "directional_score":   round(directional_raw, 1),
+        "bullish_engines":     [c for c in contributions if c["mag"] > 0.3][:8],
+        "bearish_engines":     [c for c in contributions if c["mag"] < -0.3][:5],
+        "contributions":       contributions[:12],
+        "n_bullish_eng":       sum(1 for c in contributions if c["mag"] >= 0.5),
+        "n_bearish_eng":       sum(1 for c in contributions if c["mag"] <= -0.5),
+        "n_neutral_eng":       sum(1 for c in contributions if -0.5 < c["mag"] < 0.5),
+    }
+
+
+def compute_pump_likelihood(rec: dict, dir_score: dict, acceleration: int) -> dict:
+    """Combine convergence + direction + acceleration into a single pump-likelihood score (0-100).
+
+    PUMP_LIKELIHOOD = (
+        directional_strength * 0.50    # half the weight = direction matters most
+      + convergence_norm    * 0.25    # quarter from convergence (attention)
+      + acceleration_norm   * 0.20    # acceleration is the timing edge
+      + earnings_catalyst   * 0.05    # nearby earnings boosts pump probability
+    )
+
+    NEUTRAL DAMPENING:
+      If directional_score is between -10 and +10 (genuinely mixed), zero out
+      the pump_likelihood — these are not pump candidates, just high-attention.
+
+    BEARISH PENALTY:
+      If directional_score < -20, set pump_likelihood to 0 (these are short
+      candidates if anything, not longs).
+    """
+    d = dir_score["directional_score"]
+    if d < -20:
+        return {
+            "pump_likelihood":     0.0,
+            "category":            "BEARISH",
+            "exclude_from_longs":  True,
+        }
+    if abs(d) < 10:
+        return {
+            "pump_likelihood":     0.0,
+            "category":            "NEUTRAL_NOISE",
+            "exclude_from_longs":  True,
+        }
+
+    # Positive bias only past here
+    directional_strength = max(0, d)  # only positive counts for pump
+    convergence_norm = rec["convergence_score"]  # already 0-100
+    acceleration_norm = min(100, max(0, acceleration * 25))  # +3 engines = 75pts, +4 = full
+
+    # Earnings catalyst: is "earnings-tracker-upcoming" or "earnings-whisper" present?
+    earnings_catalyst = 0
+    if "earnings-tracker-upcoming" in rec["engines"]:
+        earnings_catalyst = 100
+    elif "earnings-whisper" in rec["engines"]:
+        earnings_catalyst = 80
+
+    pump = (
+        directional_strength * 0.50
+      + convergence_norm     * 0.25
+      + acceleration_norm    * 0.20
+      + earnings_catalyst    * 0.05
+    )
+
+    if pump >= 75:
+        category = "PUMP_PRIMED"
+    elif pump >= 60:
+        category = "PUMP_LIKELY"
+    elif pump >= 45:
+        category = "PUMP_POSSIBLE"
+    elif pump >= 30:
+        category = "WATCHLIST"
+    else:
+        category = "LOW"
+
+    return {
+        "pump_likelihood":    round(pump, 1),
+        "category":           category,
+        "exclude_from_longs": False,
+        "components": {
+            "directional":  round(directional_strength * 0.50, 1),
+            "convergence":  round(convergence_norm * 0.25, 1),
+            "acceleration": round(acceleration_norm * 0.20, 1),
+            "earnings_cat": round(earnings_catalyst * 0.05, 1),
+        },
+    }
+
+
+
+
+
 def classify_tier(score: float, n_engines: int) -> str:
     """Tier the convergence:
       ULTRA = 8+ engines OR score >= 85
@@ -660,6 +1058,16 @@ def lambda_handler(event, context):
     for t, engines in multi_engine.items():
         rec = compute_convergence(t, engines)
         rec["tier"] = classify_tier(rec["convergence_score"], rec["n_engines"])
+
+        # 3b. NEW: directional classifier — which way is each engine voting?
+        dir_score = compute_directional_score(engines)
+        rec["directional_score"] = dir_score["directional_score"]
+        rec["n_bullish_eng"]     = dir_score["n_bullish_eng"]
+        rec["n_bearish_eng"]     = dir_score["n_bearish_eng"]
+        rec["n_neutral_eng"]     = dir_score["n_neutral_eng"]
+        rec["bullish_engines"]   = dir_score["bullish_engines"][:6]  # for UI
+        rec["bearish_engines"]   = dir_score["bearish_engines"][:4]
+
         records.append(rec)
 
     # 4. Sort by convergence_score desc, then n_engines desc
@@ -669,6 +1077,26 @@ def lambda_handler(event, context):
     prior_state   = load_prior_state()
     recent_alerts = load_recent_alerts()
     alert_info    = maybe_alert(records, prior_state, recent_alerts)
+
+    # 5b. NEW: now that alert_info has set prior_n_engines on each record,
+    # compute the pump-likelihood (depends on acceleration which depends on prior state)
+    pump_candidates = []
+    for rec in records:
+        acceleration = rec["n_engines"] - rec.get("prior_n_engines", 0)
+        # Need to re-fetch directional data — we stored it in the rec
+        dir_score_dict = {
+            "directional_score": rec["directional_score"],
+        }
+        pump = compute_pump_likelihood(rec, dir_score_dict, acceleration)
+        rec["pump_likelihood"] = pump["pump_likelihood"]
+        rec["pump_category"]   = pump["category"]
+        rec["exclude_from_longs"] = pump["exclude_from_longs"]
+        rec["pump_components"] = pump.get("components", {})
+        if not pump["exclude_from_longs"] and pump["pump_likelihood"] >= 45:
+            pump_candidates.append(rec)
+
+    # 5c. Sort pump candidates by pump_likelihood desc (THIS is the actionable list)
+    pump_candidates.sort(key=lambda r: -r["pump_likelihood"])
 
     # 6. Save current state for next run's acceleration detection
     save_state(records[:100])  # top 100 to keep state small
@@ -685,14 +1113,21 @@ def lambda_handler(event, context):
         "top_10":                 [r["ticker"] for r in records[:10]],
         "engines_loaded":         len(engine_ages),
         "engines_stale":          sum(1 for a in engine_ages.values() if a is not None and a > 24),
+
+        # NEW pump-likelihood summary
+        "n_pump_primed":          sum(1 for r in records if r.get("pump_category") == "PUMP_PRIMED"),
+        "n_pump_likely":          sum(1 for r in records if r.get("pump_category") == "PUMP_LIKELY"),
+        "n_pump_possible":        sum(1 for r in records if r.get("pump_category") == "PUMP_POSSIBLE"),
+        "top_pump_candidates":    [r["ticker"] for r in pump_candidates[:10]],
     }
 
     output = {
-        "schema_version":  "1.0",
+        "schema_version":  "2.0",  # bumped — directional + pump-likelihood added
         "generated_at":    datetime.now(timezone.utc).isoformat(),
         "elapsed_sec":     round(time.time() - t0, 2),
         "summary":         summary,
-        "tickers":         records[:200],  # cap to top 200
+        "pump_candidates": pump_candidates[:50],   # ranked top 50 actionable longs
+        "tickers":         records[:200],          # full leaderboard (capped)
         "engine_ages_h":   {k: round(v, 1) if v is not None else None for k, v in engine_ages.items()},
         "alert_info":      alert_info,
     }

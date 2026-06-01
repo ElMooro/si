@@ -6,7 +6,8 @@
 <title>Pre-Pump Radar · Convergence Detector · JustHodl.AI</title>
 <meta name="description" content="Cross-engine convergence detector. Surfaces tickers being flagged simultaneously by 20+ engines before they pump.">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="/jh-ai-insights.js?t=20260601a" defer></script>
+<script src="/jh-ai-insights.js?t=20260601a"></script>
+<meta name="cache-bump" content="pump-directional-v1"" defer></script>
 <style>
 :root{
   --bg:#07090f;--bg-sunken:#0a0e17;--bg-raised:#11161f;--bg-elevated:#1a212f;
@@ -49,6 +50,28 @@ a:hover{color:var(--violet)}
 .tier.LOW{background:rgba(167,139,250,.10);color:var(--violet);border:1px solid var(--violet-dim)}
 .tier.NOISE{background:var(--bg-sunken);color:var(--fg-3);border:1px solid var(--border)}
 @keyframes pulse-ultra{0%,100%{box-shadow:0 0 0 0 rgba(255,92,122,.0)}50%{box-shadow:0 0 14px 1px rgba(255,92,122,.35)}}
+
+/* Pump category badges */
+.pcat{font-family:var(--font-mono);font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:3px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+.pcat.PUMP_PRIMED{background:rgba(255,92,122,.18);color:var(--red);border:1px solid var(--red-dim);animation:pulse-ultra 2.4s ease-in-out infinite}
+.pcat.PUMP_LIKELY{background:rgba(255,177,61,.16);color:var(--amber);border:1px solid var(--amber-dim)}
+.pcat.PUMP_POSSIBLE{background:rgba(0,212,255,.12);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.pcat.WATCHLIST{background:rgba(167,139,250,.10);color:var(--violet);border:1px solid var(--violet-dim)}
+
+.pump-score{font-family:var(--font-mono);font-size:13px;font-weight:700}
+.pump-score.PUMP_PRIMED{color:var(--red)}
+.pump-score.PUMP_LIKELY{color:var(--amber)}
+.pump-score.PUMP_POSSIBLE{color:var(--cyan)}
+
+.dir-score{font-family:var(--font-mono);font-size:12px;font-weight:600}
+.dir-score.pos{color:var(--green)}
+.dir-score.neg{color:var(--red)}
+.dir-score.neutral{color:var(--fg-3)}
+
+.driver-list{font-size:10px;color:var(--fg-2);line-height:1.4;max-width:280px}
+.driver-list .d{display:block;padding:1px 0}
+.driver-list .d b{color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:9.5px;margin-right:5px}
+.driver-list .d.bear b{color:var(--red)}
 
 /* Summary grid */
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:28px}
@@ -135,18 +158,45 @@ a:hover{color:var(--violet)}
 
   <!-- Summary tiles -->
   <div class="summary-grid" id="summary-grid">
-    <div class="summary-tile"><div class="lbl">ULTRA</div><div class="val ULTRA" id="sum-ultra">—</div><div class="sub">8+ engines</div></div>
-    <div class="summary-tile"><div class="lbl">HIGH</div><div class="val HIGH" id="sum-high">—</div><div class="sub">5–7 engines</div></div>
-    <div class="summary-tile"><div class="lbl">MED</div><div class="val" id="sum-med">—</div><div class="sub">3–4 engines</div></div>
+    <div class="summary-tile" style="border-left:3px solid var(--red)"><div class="lbl">🚨 Pump Primed</div><div class="val ULTRA" id="sum-primed">—</div><div class="sub">score ≥75 · highest</div></div>
+    <div class="summary-tile" style="border-left:3px solid var(--amber)"><div class="lbl">⚡ Pump Likely</div><div class="val HIGH" id="sum-likely">—</div><div class="sub">score 60–75</div></div>
+    <div class="summary-tile" style="border-left:3px solid var(--cyan)"><div class="lbl">📈 Pump Possible</div><div class="val" id="sum-possible">—</div><div class="sub">score 45–60</div></div>
+    <div class="summary-tile"><div class="lbl">ULTRA convergence</div><div class="val" id="sum-ultra">—</div><div class="sub">8+ engines (all)</div></div>
     <div class="summary-tile"><div class="lbl">New convergence</div><div class="val" id="sum-newhigh">—</div><div class="sub">crossed 4 this cycle</div></div>
-    <div class="summary-tile"><div class="lbl">Accelerating</div><div class="val" id="sum-accel">—</div><div class="sub">+3 engines in 30min</div></div>
     <div class="summary-tile"><div class="lbl">Total tracked</div><div class="val" id="sum-total">—</div><div class="sub">multi-engine tickers</div></div>
   </div>
 
-  <!-- Leaderboard -->
+  <!-- Pump Candidates (the actionable list) -->
   <div class="section-hdr">
-    <h3>Convergence Leaderboard</h3>
-    <div class="sub">tier order then convergence_score desc</div>
+    <h3>🎯 Pump Candidates — directionally bullish only</h3>
+    <div class="sub">filtered for directional_score ≥ 10 + bearish exclusion + acceleration weighted</div>
+  </div>
+  <div class="filters" style="margin-bottom:8px">
+    <button class="btn active" data-pump="ALL">All categories</button>
+    <button class="btn" data-pump="PUMP_PRIMED">Primed (≥75)</button>
+    <button class="btn" data-pump="PUMP_LIKELY">Likely (60–75)</button>
+    <button class="btn" data-pump="PUMP_POSSIBLE">Possible (45–60)</button>
+  </div>
+  <table class="lead-table" style="margin-bottom:32px">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Ticker</th>
+        <th>Category</th>
+        <th class="num">Pump Score</th>
+        <th class="num">Direction</th>
+        <th class="num">N Eng</th>
+        <th>Bullish Drivers</th>
+        <th>Bearish Drag</th>
+      </tr>
+    </thead>
+    <tbody id="pump-tbody"><tr><td colspan="8" class="loading">loading pump candidates…</td></tr></tbody>
+  </table>
+
+  <!-- Full convergence leaderboard -->
+  <div class="section-hdr">
+    <h3>Full Convergence Leaderboard</h3>
+    <div class="sub">all multi-engine tickers regardless of direction (includes bearish / neutral)</div>
   </div>
 
   <div class="filters">
@@ -212,14 +262,59 @@ function render(){
 
   // Summary tiles
   const s = DATA.summary || {};
-  document.getElementById('sum-ultra').textContent = s.n_ultra || 0;
-  document.getElementById('sum-high').textContent  = s.n_high  || 0;
-  document.getElementById('sum-med').textContent   = s.n_med   || 0;
-  document.getElementById('sum-newhigh').textContent = s.n_new_high_convergence || 0;
-  document.getElementById('sum-accel').textContent = s.n_accelerating || 0;
-  document.getElementById('sum-total').textContent = s.n_tickers_multi_engine || 0;
+  document.getElementById('sum-primed').textContent   = s.n_pump_primed   || 0;
+  document.getElementById('sum-likely').textContent   = s.n_pump_likely   || 0;
+  document.getElementById('sum-possible').textContent = s.n_pump_possible || 0;
+  document.getElementById('sum-ultra').textContent    = s.n_ultra         || 0;
+  document.getElementById('sum-newhigh').textContent  = s.n_new_high_convergence || 0;
+  document.getElementById('sum-total').textContent    = s.n_tickers_multi_engine || 0;
 
+  renderPumpCandidates();
   renderLeaderboard();
+}
+
+let activePumpCat = "ALL";
+
+function renderPumpCandidates(){
+  const cands = DATA.pump_candidates || [];
+  const filtered = cands.filter(c => activePumpCat === "ALL" || c.pump_category === activePumpCat);
+  const tbody = document.getElementById('pump-tbody');
+  if (!tbody) return;
+  if (!filtered.length){
+    tbody.innerHTML = '<tr><td colspan="8" class="loading">no candidates in this category — try All</td></tr>';
+    return;
+  }
+  let html = '';
+  filtered.forEach((c, i) => {
+    const cat = c.pump_category || 'WATCHLIST';
+    const dirScore = (c.directional_score || 0);
+    const dirClass = dirScore > 10 ? 'pos' : dirScore < -10 ? 'neg' : 'neutral';
+    const dirSign = dirScore > 0 ? '+' : '';
+    // Bullish drivers
+    let bullHtml = '';
+    (c.bullish_engines || []).slice(0,4).forEach(b => {
+      bullHtml += '<span class="d"><b>' + esc(b.engine) + '</b>' + esc(b.note) + '</span>';
+    });
+    if (!bullHtml) bullHtml = '<span class="d" style="color:var(--fg-3)">—</span>';
+    // Bearish engines
+    let bearHtml = '';
+    (c.bearish_engines || []).slice(0,3).forEach(b => {
+      bearHtml += '<span class="d bear"><b>' + esc(b.engine) + '</b>' + esc(b.note) + '</span>';
+    });
+    if (!bearHtml) bearHtml = '<span class="d" style="color:var(--fg-3)">none</span>';
+
+    html += '<tr>' +
+      '<td class="num">' + (i+1) + '</td>' +
+      '<td class="ticker">' + esc(c.ticker) + '</td>' +
+      '<td><span class="pcat ' + esc(cat) + '">' + esc(cat.replace('PUMP_','')) + '</span></td>' +
+      '<td class="num pump-score ' + esc(cat) + '">' + (c.pump_likelihood || 0).toFixed(1) + '</td>' +
+      '<td class="num dir-score ' + dirClass + '">' + dirSign + dirScore.toFixed(0) + '</td>' +
+      '<td class="num">' + (c.n_engines || 0) + '</td>' +
+      '<td><div class="driver-list">' + bullHtml + '</div></td>' +
+      '<td><div class="driver-list">' + bearHtml + '</div></td>' +
+      '</tr>';
+  });
+  tbody.innerHTML = html;
 }
 
 function renderLeaderboard(){
@@ -259,13 +354,23 @@ function renderLeaderboard(){
   document.getElementById('leaderboard-tbody').innerHTML = html;
 }
 
-// Filter buttons
+// Filter buttons (existing tier filter)
 document.querySelectorAll('.filters .btn[data-tier]').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.filters .btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.filters .btn[data-tier]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeTier = btn.dataset.tier;
     renderLeaderboard();
+  });
+});
+
+// Pump category filter buttons (new)
+document.querySelectorAll('.filters .btn[data-pump]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filters .btn[data-pump]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activePumpCat = btn.dataset.pump;
+    renderPumpCandidates();
   });
 });
 
