@@ -1,0 +1,102 @@
+{
+  "started": "2026-06-01T23:22:31.682603+00:00",
+  "phases": [
+    {
+      "name": "smoke_brkb",
+      "status": "ok",
+      "result": {
+        "ok": true,
+        "elapsed_s": 36.3,
+        "ticker": "BRK-B",
+        "company": "Berkshire Hathaway Inc.",
+        "rating": "HOLD",
+        "conviction": "B+",
+        "income_yrs": 20
+      }
+    },
+    {
+      "name": "probe_endpoints",
+      "status": "ok",
+      "result": {
+        "sector_pe_snapshot": {
+          "size": 2,
+          "sample": []
+        },
+        "industry_pe_snapshot": {
+          "size": 2,
+          "sample": []
+        },
+        "batched_quote": {
+          "size": 2,
+          "n_returned": 0,
+          "tickers_returned": []
+        },
+        "batched_ratios": {
+          "size": 2,
+          "n_returned": 0,
+          "tickers_returned": []
+        },
+        "peers_for_aapl": {
+          "size": 1119,
+          "sample": [
+            {
+              "symbol": "GOOGL",
+              "companyName": "Alphabet Inc.",
+              "price": 376.37,
+              "mktCap": 4552146332176
+            },
+            {
+              "symbol": "META",
+              "companyName": "Meta Platforms, Inc.",
+              "price": 600.47,
+              "mktCap": 1524247046157
+            },
+            {
+              "symbol": "MSFT",
+              "companyName": "Microsoft Corporation",
+              "price": 460.52,
+              "mktCap": 3420940583600
+            },
+            {
+              "symbol": "NVDA",
+              "companyName": "NVIDIA Corporation",
+              "price": 224.36,
+              "mktCap": 5434223560000
+            },
+            {
+              "symbol": "NXT",
+              "companyName": "Nextpower Inc.",
+              "price": 145.02,
+              "mktCap": 21792803929
+            },
+            {
+              "symbol": "RIME",
+              "companyName": "Algorhythm Holdings, Inc.",
+              "price": 0.819,
+              "mktCap": 2027186
+            },
+            {
+              "symbol": "SONY",
+              "companyName": "Sony Group Corporation",
+              "price": 22.57,
+              "mktCap": 133344943202
+            },
+            {
+              "symbol": "TBCH",
+              "companyName": "Turtle Beach Corporation",
+              "price": 13.14,
+              "mktCap": 260794836
+            },
+            {
+              "symbol": "TSM",
+              "companyName": "Taiwan Semiconductor Manufacturing Company Limited",
+              "price": 435.63,
+              "mktCap": 2259386282400
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "finished": "2026-06-01T23:23:09.620726+00:00"
+}
