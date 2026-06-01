@@ -186,6 +186,58 @@ a:hover{color:var(--violet)}
 .loading{padding:60px 20px;text-align:center;color:var(--fg-3);font-family:var(--font-mono);font-size:13px}
 .error{padding:20px;background:rgba(255,92,122,.06);border:1px solid var(--red-dim);border-radius:6px;color:var(--red);font-size:12.5px;font-family:var(--font-mono)}
 
+/* ─── Hedge-fund / institutional sections ─── */
+.regime-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;padding:3px 9px;border-radius:3px;font-weight:700;margin-left:10px}
+.regime-badge.RISK_ON{background:rgba(56,255,168,.12);color:var(--green);border:1px solid var(--green-dim)}
+.regime-badge.NEUTRAL{background:rgba(0,212,255,.10);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.regime-badge.DEFENSIVE{background:rgba(255,177,61,.12);color:var(--amber);border:1px solid var(--amber-dim)}
+.regime-badge.EXTREME,.regime-badge.RISK_OFF{background:rgba(255,92,122,.14);color:var(--red);border:1px solid var(--red-dim);animation:pulse-ultra 2.4s ease-in-out infinite}
+
+/* Edge validation panel */
+.edge-panel{background:linear-gradient(135deg,rgba(56,255,168,.04),rgba(0,212,255,.02),transparent);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:24px}
+.edge-panel .panel-hdr{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.edge-panel .panel-hdr h3{margin:0;font-family:var(--font-mono);font-size:11px;letter-spacing:1.6px;color:var(--green);font-weight:700;text-transform:uppercase}
+.edge-panel .panel-hdr .sub{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-left:auto}
+.edge-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.edge-stat{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:10px 13px}
+.edge-stat .lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:1.3px;color:var(--fg-3);text-transform:uppercase;margin-bottom:3px}
+.edge-stat .v{font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--fg-1)}
+.edge-stat .v.pos{color:var(--green)}
+.edge-stat .v.neg{color:var(--red)}
+.edge-stat .sub{font-family:var(--font-mono);font-size:9.5px;color:var(--fg-3);margin-top:2px}
+.edge-tier-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px;margin-top:8px}
+.edge-tier-table th{font-size:9px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--border);text-align:right}
+.edge-tier-table th:first-child{text-align:left}
+.edge-tier-table td{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;font-size:11px}
+.edge-tier-table td:first-child{text-align:left;font-weight:600;color:var(--fg-1)}
+.edge-tier-table td.pos{color:var(--green)}
+.edge-tier-table td.neg{color:var(--red)}
+.edge-empty{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);padding:14px;background:var(--bg-raised);border-radius:5px;border:1px dashed var(--border);line-height:1.6}
+
+/* Portfolio basket panel */
+.basket-panel{background:linear-gradient(135deg,rgba(0,212,255,.04),rgba(167,139,250,.02),transparent);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:28px}
+.basket-panel .panel-hdr h3{color:var(--cyan)}
+.basket-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:14px;font-family:var(--font-mono);font-size:11px}
+.basket-meta .cell{background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;padding:8px 11px}
+.basket-meta .cell .lbl{font-size:9px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:2px}
+.basket-meta .cell .v{font-size:14px;font-weight:700;color:var(--fg-1)}
+.basket-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11.5px;background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;overflow:hidden}
+.basket-table th{font-size:9px;letter-spacing:1.3px;color:var(--fg-3);text-transform:uppercase;padding:8px 10px;text-align:right;border-bottom:1px solid var(--border);background:var(--bg-sunken)}
+.basket-table th:first-child{text-align:left}
+.basket-table th.lt{text-align:left}
+.basket-table td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--border);font-size:11px}
+.basket-table td.lt{text-align:left}
+.basket-table tr:last-child td{border-bottom:none}
+.basket-table .pos-pct{font-weight:700;color:var(--cyan)}
+.basket-table .tkr{font-weight:700;color:var(--fg-1)}
+.basket-table .stop{color:var(--red)}
+.basket-table .tp{color:var(--green)}
+.basket-bar{position:relative;width:60px;height:5px;background:var(--bg-sunken);border-radius:2px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
+.basket-bar .fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+.sector-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.sector-tags .tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.6px;background:var(--bg-raised);color:var(--fg-2);border:1px solid var(--border);padding:3px 8px;border-radius:3px}
+.sector-tags .tag b{color:var(--fg-1);margin-right:4px}
+
 /* Mobile */
 @media (max-width:768px){
   .wrap{padding:20px 14px 80px}
@@ -193,6 +245,7 @@ a:hover{color:var(--violet)}
   .lead-table .engines-list{display:none}
   .lead-table th,.lead-table td{padding:8px 10px;font-size:11px}
   .summary-grid{grid-template-columns:repeat(2,1fr)}
+  .basket-table th,.basket-table td{padding:6px 7px;font-size:10px}
 }
 </style>
 </head>
@@ -202,7 +255,7 @@ a:hover{color:var(--violet)}
   <div class="page-hdr" style="margin-top:8px">
     <div>
       <div class="title">CROSS-ENGINE CONVERGENCE</div>
-      <h1>Pre-Pump Radar</h1>
+      <h1>Pre-Pump Radar <span class="regime-badge NEUTRAL" id="regime-badge">— regime</span></h1>
     </div>
     <div class="meta">
       data updated <b id="data-age">—</b>
@@ -213,7 +266,25 @@ a:hover{color:var(--violet)}
   <div class="hero">
     <h2>Why this exists</h2>
     <p>Today's <code>velocity surge &gt;200%</code> alert on SAP, CXAI, NBIS, ARM, RDDT fired <em>after</em> they pumped. But ARM was already showing in <b>10 separate engines</b> before the move. The signal was there — just not unified.</p>
-    <p>This page surfaces every ticker simultaneously flagged by multiple independent engines across 8 domains: sentiment · momentum · options · earnings · valuation · insider · institutional · fundamentals. Tier <code>ULTRA</code> means 8+ engines agree. Click a ticker to see which.</p>
+    <p>This page surfaces every ticker simultaneously flagged by multiple independent engines across 8 domains: sentiment · momentum · options · earnings · valuation · insider · institutional · fundamentals. The hedge-fund layer adds ATR-based stops, TP ladders, vol-targeted sizing, sector context, catalyst proximity, and a sector-neutral portfolio basket. Click any ticker for AI research.</p>
+  </div>
+
+  <!-- Edge Validation Panel -->
+  <div class="edge-panel" id="edge-panel">
+    <div class="panel-hdr">
+      <h3>📊 Edge Validation</h3>
+      <div class="sub">historical hit rate · daily backtest from 30-day archive</div>
+    </div>
+    <div id="edge-content"><div class="edge-empty">loading backtest…</div></div>
+  </div>
+
+  <!-- Portfolio Basket Panel -->
+  <div class="basket-panel" id="basket-panel">
+    <div class="panel-hdr">
+      <h3>🎒 Portfolio Basket</h3>
+      <div class="sub">sector-neutralized sizing · max 5%/name · max 30%/sector</div>
+    </div>
+    <div id="basket-content"><div class="edge-empty">loading positioning…</div></div>
   </div>
 
   <!-- Summary tiles -->
@@ -306,8 +377,12 @@ a:hover{color:var(--violet)}
 <script>
 const S3_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/convergence-radar.json";
 const RESEARCH_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/ticker-research-bundle.json";
+const POSITIONING_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump-positioning.json";
+const BACKTEST_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/radar-backtest.json";
 let DATA = null;
 let RESEARCH = null;
+let POSITIONING = null;
+let BACKTEST = null;
 let activeTier = "ALL";
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -322,14 +397,162 @@ function ageStr(iso){
 
 async function load(){
   try {
-    const r = await fetch(S3_URL + "?t=" + Date.now());
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    DATA = await r.json();
+    // Fetch convergence-radar (primary), positioning, backtest in parallel
+    const [radarR, posR, btR] = await Promise.all([
+      fetch(S3_URL + "?t=" + Date.now()),
+      fetch(POSITIONING_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(BACKTEST_URL + "?t=" + Date.now()).catch(() => null),
+    ]);
+    if (!radarR.ok) throw new Error("HTTP " + radarR.status);
+    DATA = await radarR.json();
+    if (posR && posR.ok) {
+      try { POSITIONING = await posR.json(); } catch(_) {}
+    }
+    if (btR && btR.ok) {
+      try { BACKTEST = await btR.json(); } catch(_) {}
+    }
     render();
+    renderEdgePanel();
+    renderBasketPanel();
   } catch(e) {
     document.getElementById('leaderboard-tbody').innerHTML =
       '<tr><td colspan="7"><div class="error">Failed to load: ' + esc(e.message) + '</div></td></tr>';
   }
+}
+
+// ─── Edge Validation Panel ───────────────────────────────────────────
+function renderEdgePanel(){
+  const el = document.getElementById('edge-content');
+  if (!BACKTEST || BACKTEST.status === "error") {
+    el.innerHTML = '<div class="edge-empty">⏳ Backtest archive is still warming up — radar started running recently and needs ' +
+                    '30 days of snapshots + forward-return windows before stats are meaningful. The daily backtest will populate ' +
+                    'this panel automatically as snapshots accumulate.</div>';
+    return;
+  }
+  const overall = BACKTEST.overall_5d || {};
+  const tiers = BACKTEST.per_tier_5d || {};
+  const trans = BACKTEST.transitions || {};
+  const cats = BACKTEST.pump_categories || {};
+  const haveStats = Object.keys(tiers).length > 0;
+
+  let html = '';
+  // Top-level stat tiles
+  html += '<div class="edge-stats-grid">';
+  html += '<div class="edge-stat"><div class="lbl">Snapshots</div><div class="v">' + (BACKTEST.n_snapshots || 0) + '</div><div class="sub">last ' + (BACKTEST.lookback_days || 30) + 'd</div></div>';
+  html += '<div class="edge-stat"><div class="lbl">Signals tested</div><div class="v">' + (BACKTEST.n_with_returns || 0) + '</div><div class="sub">' + (BACKTEST.n_unique_tickers || 0) + ' unique tickers</div></div>';
+  if (overall.hit_rate !== undefined) {
+    const hpct = (overall.hit_rate * 100).toFixed(1);
+    html += '<div class="edge-stat"><div class="lbl">Overall hit % (5d)</div><div class="v ' + (overall.hit_rate >= 0.55 ? 'pos' : overall.hit_rate < 0.45 ? 'neg' : '') + '">' + hpct + '%</div><div class="sub">forward 5-day positive return</div></div>';
+  }
+  if (overall.avg_return !== undefined) {
+    html += '<div class="edge-stat"><div class="lbl">Avg return (5d)</div><div class="v ' + (overall.avg_return > 0 ? 'pos' : 'neg') + '">' + (overall.avg_return > 0 ? '+' : '') + overall.avg_return.toFixed(2) + '%</div><div class="sub">across all signals</div></div>';
+  }
+  html += '</div>';
+
+  // Per-tier table
+  if (haveStats) {
+    html += '<table class="edge-tier-table"><thead><tr>' +
+            '<th>Tier</th><th>N</th><th>Hit %</th><th>Avg %</th><th>Median %</th><th>Sharpe</th><th>Best %</th><th>Worst %</th>' +
+            '</tr></thead><tbody>';
+    ['ULTRA','HIGH','MED','LOW'].forEach(t => {
+      const s = tiers[t]; if (!s) return;
+      html += '<tr>' +
+        '<td>' + t + '</td>' +
+        '<td>' + s.n + '</td>' +
+        '<td class="' + (s.hit_rate >= 0.55 ? 'pos' : s.hit_rate < 0.45 ? 'neg' : '') + '">' + (s.hit_rate * 100).toFixed(1) + '%</td>' +
+        '<td class="' + (s.avg_return > 0 ? 'pos' : 'neg') + '">' + (s.avg_return > 0 ? '+' : '') + s.avg_return.toFixed(2) + '</td>' +
+        '<td class="' + (s.median > 0 ? 'pos' : 'neg') + '">' + (s.median > 0 ? '+' : '') + s.median.toFixed(2) + '</td>' +
+        '<td class="' + (s.sharpe > 0 ? 'pos' : 'neg') + '">' + s.sharpe.toFixed(2) + '</td>' +
+        '<td class="pos">' + s.best.toFixed(2) + '</td>' +
+        '<td class="neg">' + s.worst.toFixed(2) + '</td>' +
+        '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div class="edge-empty">⏳ The radar is still building its 30-day archive. Tier-level statistics will appear here ' +
+              'within a few days as snapshots + forward-return windows accumulate. ' + (BACKTEST.n_unique_signals || 0) + ' signal observations recorded so far.</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// ─── Portfolio Basket Panel ──────────────────────────────────────────
+function renderBasketPanel(){
+  const el = document.getElementById('basket-content');
+  if (!POSITIONING || POSITIONING.status === "error") {
+    el.innerHTML = '<div class="edge-empty">⏳ Positioning Lambda hasn\'t produced data yet — runs hourly at :10 UTC. Try again in a few minutes.</div>';
+    return;
+  }
+
+  // Macro regime
+  const regime = POSITIONING.macro_regime || 'NEUTRAL';
+  const badge = document.getElementById('regime-badge');
+  if (badge) {
+    badge.className = 'regime-badge ' + regime;
+    badge.textContent = regime + ' regime';
+  }
+
+  const basket = POSITIONING.portfolio_basket || {};
+  const positions = basket.positions || [];
+  if (!positions.length) {
+    el.innerHTML = '<div class="edge-empty">No positions in basket — macro regime may be defensive or pump candidates below threshold.</div>';
+    return;
+  }
+
+  let html = '';
+  // Meta cells
+  html += '<div class="basket-meta">';
+  html += '<div class="cell"><div class="lbl">Positions</div><div class="v">' + basket.n_positions + '</div></div>';
+  html += '<div class="cell"><div class="lbl">Total exposure</div><div class="v">' + basket.total_exposure.toFixed(1) + '%</div></div>';
+  html += '<div class="cell"><div class="lbl">Cash buffer</div><div class="v">' + basket.cash_pct.toFixed(1) + '%</div></div>';
+  html += '<div class="cell"><div class="lbl">Max risk @ stops</div><div class="v">' + (basket.max_risk_at_stops_pct || 0).toFixed(2) + '%</div></div>';
+  html += '<div class="cell"><div class="lbl">Macro regime</div><div class="v">' + regime + '</div></div>';
+  html += '</div>';
+
+  // Sector breakdown tags
+  if (basket.sector_breakdown) {
+    html += '<div class="sector-tags">';
+    Object.entries(basket.sector_breakdown)
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([s, pct]) => {
+        html += '<span class="tag"><b>' + esc(s) + '</b>' + pct.toFixed(1) + '%</span>';
+      });
+    html += '</div>';
+  }
+
+  // Position table
+  const maxPos = Math.max(...positions.map(p => p.position_pct || 0));
+  html += '<table class="basket-table" style="margin-top:14px"><thead><tr>' +
+            '<th class="lt">Ticker</th>' +
+            '<th>Pos %</th>' +
+            '<th>Pump</th>' +
+            '<th class="lt">Sector</th>' +
+            '<th>Entry</th>' +
+            '<th>Stop</th>' +
+            '<th>TP1</th>' +
+            '<th>TP2</th>' +
+            '<th>TP3</th>' +
+            '<th>R:R</th>' +
+            '</tr></thead><tbody>';
+  positions.forEach(p => {
+    const barWidth = ((p.position_pct || 0) / maxPos * 100).toFixed(0);
+    html += '<tr>' +
+      '<td class="lt"><span class="tkr ticker clickable" data-ticker="' + esc(p.ticker) + '">' + esc(p.ticker) + '</span></td>' +
+      '<td class="pos-pct">' + (p.position_pct || 0).toFixed(2) + '%<span class="basket-bar"><span class="fill" style="width:' + barWidth + '%"></span></span></td>' +
+      '<td>' + (p.pump_score || 0).toFixed(1) + '</td>' +
+      '<td class="lt" style="font-size:10.5px;color:var(--fg-2)">' + esc((p.sector || '').slice(0,16)) + '</td>' +
+      '<td>$' + (p.entry || '?') + '</td>' +
+      '<td class="stop">$' + (p.stop || '?') + '</td>' +
+      '<td class="tp">$' + (p.tp1 || '?') + '</td>' +
+      '<td class="tp">$' + (p.tp2 || '?') + '</td>' +
+      '<td class="tp">$' + (p.tp3 || '?') + '</td>' +
+      '<td>' + esc(p.rr_ratio || '?') + '</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+
+  el.innerHTML = html;
+  wireTickerClicks();
 }
 
 function render(){
@@ -582,6 +805,59 @@ function renderResearch(r){
   html += '<div class="cell"><div class="lbl">B/X Engines</div><div class="v">' + (cs.n_bullish_eng||0) + '/' + (cs.n_bearish_eng||0) + '</div></div>';
   html += '</div>';
 
+  // ─── POSITIONING SECTION (NEW — hedge-fund trade framework) ───
+  const pos = POSITIONING && POSITIONING.candidates && POSITIONING.candidates.find(c => c.ticker === r.ticker);
+  if (pos && pos.trade_framework && !pos.trade_framework.err) {
+    const pd = pos.price_data || {};
+    const tf = pos.trade_framework;
+    const ctx = pos.context || {};
+    html += '<div class="r-sec frame"><div class="sec-hdr"><h4>💰 Position Sizing & Trade Framework</h4></div>';
+    // Price metrics row
+    html += '<div class="r-meta" style="margin-bottom:12px">';
+    html += '<div class="cell"><div class="lbl">Price</div><div class="v">$' + (pd.current || '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">ATR(14)</div><div class="v">$' + (pd.atr_14 || '?') + (pd.atr_pct ? ' (' + pd.atr_pct + '%)' : '') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">HV(30)</div><div class="v">' + (pd.hv_30 || '?') + '%</div></div>';
+    html += '<div class="cell"><div class="lbl">Beta SPY</div><div class="v">' + (pd.beta_spy || '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">5d / 20d perf</div><div class="v">' + (pd.perf_5d_pct !== null ? (pd.perf_5d_pct > 0 ? '+' : '') + pd.perf_5d_pct + '% / ' + (pd.perf_20d_pct > 0 ? '+' : '') + pd.perf_20d_pct + '%' : '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Liquidity</div><div class="v">' + esc(ctx.liquidity_tier || '?') + (ctx.adv_dollars ? ' · $' + (ctx.adv_dollars/1e9).toFixed(1) + 'B' : '') + '</div></div>';
+    html += '</div>';
+    // Framework grid
+    html += '<div class="r-meta" style="margin-bottom:12px">';
+    html += '<div class="cell"><div class="lbl">Entry zone</div><div class="v">$' + (tf.entry_zone?.low || '?') + ' – $' + (tf.entry_zone?.high || '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Stop loss</div><div class="v" style="color:var(--red)">$' + (tf.stop_loss || '?') + ' (' + (tf.stop_loss_pct || '?') + '%)</div></div>';
+    html += '<div class="cell"><div class="lbl">Position size</div><div class="v">' + (tf.position_size_pct || '?') + '%</div></div>';
+    html += '<div class="cell"><div class="lbl">Kelly</div><div class="v">' + ((tf.kelly_fraction || 0) * 100).toFixed(1) + '%</div></div>';
+    html += '<div class="cell"><div class="lbl">R:R</div><div class="v">' + esc(tf.rr_ratio || '?') + '</div></div>';
+    html += '<div class="cell"><div class="lbl">Max risk</div><div class="v">' + (tf.max_dollar_risk_pct || '?') + '%</div></div>';
+    html += '</div>';
+    // TP ladder
+    if (tf.tp_ladder && tf.tp_ladder.length) {
+      html += '<div class="sub-lbl">Take-profit ladder (ATR-based)</div>';
+      html += '<table class="basket-table"><thead><tr><th class="lt">Level</th><th>Price</th><th>Gain %</th><th>R</th><th>Size %</th></tr></thead><tbody>';
+      tf.tp_ladder.forEach(t => {
+        html += '<tr><td class="lt tp">' + esc(t.level) + '</td><td>$' + t.price + '</td><td class="tp">+' + t.gain_pct + '%</td><td>' + t.rr + 'R</td><td>' + t.size_pct + '%</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    // Context: sector + catalyst
+    html += '<div class="r-meta" style="margin-top:12px">';
+    html += '<div class="cell"><div class="lbl">Sector</div><div class="v" style="font-size:11.5px">' + esc(ctx.sector || '?') + '</div></div>';
+    if (ctx.industry) html += '<div class="cell"><div class="lbl">Industry</div><div class="v" style="font-size:11.5px">' + esc(ctx.industry) + '</div></div>';
+    if (ctx.days_to_earnings !== null && ctx.days_to_earnings !== undefined) {
+      const dColor = ctx.days_to_earnings <= 3 ? 'var(--red)' : ctx.days_to_earnings <= 7 ? 'var(--amber)' : 'var(--cyan)';
+      html += '<div class="cell"><div class="lbl">Earnings in</div><div class="v" style="color:' + dColor + '">' + ctx.days_to_earnings + 'd</div></div>';
+    }
+    html += '<div class="cell"><div class="lbl">Macro regime</div><div class="v">' + esc(ctx.macro_regime || '?') + '</div></div>';
+    html += '</div>';
+    // Warnings
+    if (pos.warnings && pos.warnings.length) {
+      html += '<div class="sub-lbl" style="margin-top:14px">Warnings</div><ul>';
+      pos.warnings.forEach(w => html += '<li>' + esc(w) + '</li>');
+      html += '</ul>';
+    }
+    html += '</div>';
+  }
+
   // Bull thesis
   html += '<div class="r-sec bull">';
   html += '<div class="sec-hdr"><h4>🟢 Bull Thesis</h4></div>';
@@ -618,9 +894,9 @@ function renderResearch(r){
   }
   html += '</div>';
 
-  // Trade framework
+  // Trade framework (Claude's narrative version)
   html += '<div class="r-sec frame">';
-  html += '<div class="sec-hdr"><h4>🎯 Trade Framework</h4></div>';
+  html += '<div class="sec-hdr"><h4>🎯 Trade Framework (AI synthesis)</h4></div>';
   html += '<div class="r-meta" style="margin-bottom:14px">';
   html += '<div class="cell"><div class="lbl">Conviction</div><div class="v">' + esc(frame.conviction || '?') + '</div></div>';
   html += '<div class="cell"><div class="lbl">Horizon</div><div class="v">' + esc(frame.time_horizon || '?') + '</div></div>';
@@ -640,7 +916,7 @@ function renderResearch(r){
 
   // Disclaimer
   html += '<div class="disclaimer">⚠ Analytical synthesis of engine signals. Not financial advice. ' +
-          'Engine readings change continuously — verify before acting. ' +
+          'Position framework is parametric (vol-targeted, ATR-derived) — verify before acting. ' +
           'Research age: ' + ageStr(RESEARCH?.generated_at) + '</div>';
 
   return html;
