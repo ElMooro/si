@@ -1,0 +1,191 @@
+{
+  "started": "2026-06-01T16:50:25.806526+00:00",
+  "phases": [
+    {
+      "name": "clear_state",
+      "status": "ok",
+      "result": {
+        "data/_alerts/convergence-radar-state.json": "deleted",
+        "data/_alerts/convergence-radar-alerted.json": "deleted"
+      }
+    },
+    {
+      "name": "invoke",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 2.6,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 1.62,
+          "n_tickers": 130,
+          "n_ultra": 18,
+          "n_high": 24,
+          "alert_sent": true,
+          "top_3": [
+            "AVGO",
+            "PLTR",
+            "AMD"
+          ]
+        }
+      }
+    },
+    {
+      "name": "read_output",
+      "status": "ok",
+      "result": {
+        "size_kb": 173.2,
+        "last_modified": "2026-06-01T16:50:29+00:00",
+        "summary": {
+          "n_tickers_total": 588,
+          "n_tickers_multi_engine": 130,
+          "n_ultra": 18,
+          "n_high": 24,
+          "n_med": 53,
+          "n_new_high_convergence": 0,
+          "n_accelerating": 0,
+          "top_10": [
+            "AVGO",
+            "PLTR",
+            "AMD",
+            "TSLA",
+            "AMZN",
+            "NVDA",
+            "MU",
+            "GOOG",
+            "META",
+            "GE"
+          ],
+          "engines_loaded": 20,
+          "engines_stale": 1
+        },
+        "alert_info": {
+          "sent": true,
+          "is_first_run": true,
+          "n_ultra_new": 0,
+          "n_new_high": 0,
+          "n_accelerating": 0,
+          "ultra_new_tickers": [],
+          "new_high_tickers": [],
+          "accelerating_tickers": []
+        },
+        "top_8": [
+          {
+            "ticker": "AVGO",
+            "tier": "ULTRA",
+            "n_engines": 12,
+            "score": 100,
+            "domains": [
+              "earnings",
+              "insider",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ]
+          },
+          {
+            "ticker": "PLTR",
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "score": 100,
+            "domains": [
+              "earnings",
+              "insider",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ]
+          },
+          {
+            "ticker": "AMD",
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "score": 97.8,
+            "domains": [
+              "earnings",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ]
+          },
+          {
+            "ticker": "TSLA",
+            "tier": "ULTRA",
+            "n_engines": 9,
+            "score": 95.5,
+            "domains": [
+              "earnings",
+              "insider",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment"
+            ]
+          },
+          {
+            "ticker": "AMZN",
+            "tier": "ULTRA",
+            "n_engines": 8,
+            "score": 95.4,
+            "domains": [
+              "earnings",
+              "insider",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment"
+            ]
+          },
+          {
+            "ticker": "NVDA",
+            "tier": "ULTRA",
+            "n_engines": 9,
+            "score": 93.9,
+            "domains": [
+              "earnings",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ]
+          },
+          {
+            "ticker": "MU",
+            "tier": "ULTRA",
+            "n_engines": 9,
+            "score": 93.5,
+            "domains": [
+              "earnings",
+              "insider",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ]
+          },
+          {
+            "ticker": "GOOG",
+            "tier": "ULTRA",
+            "n_engines": 6,
+            "score": 92.5,
+            "domains": [
+              "earnings",
+              "institutional",
+              "momentum",
+              "options",
+              "sentiment",
+              "valuation"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "finished": "2026-06-01T16:50:30.729492+00:00"
+}
