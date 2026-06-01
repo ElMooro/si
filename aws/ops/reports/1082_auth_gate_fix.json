@@ -1,0 +1,78 @@
+{
+  "started": "2026-06-01T00:01:54.596097+00:00",
+  "patches": [
+    {
+      "name": "justhodl-edge-engine",
+      "patch_status": "patched",
+      "had_shim": false,
+      "deploy": {
+        "ok": true,
+        "zip_size": 13078
+      }
+    },
+    {
+      "name": "justhodl-options-flow",
+      "patch_status": "patched",
+      "had_shim": true,
+      "deploy": {
+        "ok": true,
+        "zip_size": 18368
+      }
+    }
+  ],
+  "schedule": {
+    "name": "justhodl-options-flow",
+    "rule_name": "justhodl-options-flow-30m",
+    "permission": "added",
+    "status": "ok"
+  },
+  "verifications": [
+    {
+      "name": "justhodl-edge-engine",
+      "elapsed_s": 2.8,
+      "status": 200,
+      "body_status": 200,
+      "inner_keys": [
+        "generated_at",
+        "composite_score",
+        "calibrated_composite",
+        "raw_composite",
+        "calibration",
+        "regime",
+        "engine_scores",
+        "options_flow"
+      ],
+      "composite_score": 50
+    },
+    {
+      "name": "justhodl-options-flow",
+      "elapsed_s": 22.5,
+      "status": 200,
+      "body_status": 200,
+      "inner_keys": [
+        "success",
+        "timestamp",
+        "engine",
+        "data",
+        "meta"
+      ],
+      "composite_score": {
+        "score": 72.4,
+        "label": "GREED",
+        "color": "#22c55e",
+        "components": 7
+      }
+    }
+  ],
+  "s3_after": {
+    "edge-data.json": {
+      "last_modified": "2026-06-01T00:02:16+00:00",
+      "size": 1877
+    },
+    "flow-data.json": {
+      "last_modified": "2026-06-01T00:02:41+00:00",
+      "size": 29888
+    }
+  },
+  "finished": "2026-06-01T00:02:44.037209+00:00"
+}
