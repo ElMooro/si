@@ -73,6 +73,66 @@ a:hover{color:var(--violet)}
 .driver-list .d b{color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:9.5px;margin-right:5px}
 .driver-list .d.bear b{color:var(--red)}
 
+/* ─── Ticker click + research modal ─── */
+.ticker.clickable{cursor:pointer;text-decoration:underline;text-decoration-color:rgba(0,212,255,.4);text-underline-offset:3px;transition:all .15s}
+.ticker.clickable:hover{color:var(--cyan);text-decoration-color:var(--cyan)}
+.ticker.clickable::after{content:" 🔍";font-size:9px;opacity:.45;letter-spacing:.5px}
+
+.research-overlay{position:fixed;inset:0;z-index:99990;background:rgba(7,9,15,.78);backdrop-filter:blur(4px);
+  display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.research-overlay.open{display:flex}
+.research-modal{background:#0e1320;border:1px solid var(--border);border-radius:12px;
+  max-width:920px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;
+  box-shadow:0 20px 80px rgba(0,0,0,.7),0 0 100px rgba(167,139,250,.08);
+  position:relative;animation:r-slide .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes r-slide{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.research-modal .r-hdr{display:flex;align-items:center;gap:14px;padding:20px 24px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(167,139,250,.04),rgba(0,212,255,.02));position:sticky;top:0;z-index:5;backdrop-filter:blur(8px)}
+.research-modal .r-hdr .ticker-big{font-family:var(--font-mono);font-size:30px;font-weight:700;color:var(--fg-1);letter-spacing:.5px}
+.research-modal .r-hdr .pcat{font-size:11px;padding:4px 11px}
+.research-modal .r-hdr .pump-num{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--cyan);background:var(--bg-sunken);padding:5px 12px;border-radius:5px}
+.research-modal .r-hdr .one-liner{font-size:13.5px;color:var(--fg-2);font-style:italic;line-height:1.45;flex:1;min-width:200px}
+.research-modal .r-hdr .close-btn{background:transparent;border:1px solid var(--border);color:var(--fg-2);font-size:20px;padding:0;width:32px;height:32px;border-radius:50%;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;margin-left:auto}
+.research-modal .r-hdr .close-btn:hover{border-color:var(--red);color:var(--red)}
+
+.research-modal .r-body{padding:22px 24px}
+.research-modal .r-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:22px;font-family:var(--font-mono);font-size:11px}
+.research-modal .r-meta .cell{background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;padding:8px 10px}
+.research-modal .r-meta .cell .lbl{color:var(--fg-3);font-size:9.5px;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.research-modal .r-meta .cell .v{color:var(--fg-1);font-weight:600;font-size:13px}
+
+.research-modal .r-sec{margin-bottom:24px}
+.research-modal .r-sec .sec-hdr{display:flex;align-items:baseline;gap:9px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.research-modal .r-sec .sec-hdr h4{margin:0;font-family:var(--font-mono);font-size:11px;letter-spacing:1.6px;font-weight:600;text-transform:uppercase}
+.research-modal .r-sec.bull .sec-hdr h4{color:var(--green)}
+.research-modal .r-sec.risk .sec-hdr h4{color:var(--red)}
+.research-modal .r-sec.frame .sec-hdr h4{color:var(--cyan)}
+.research-modal .r-sec .headline{font-size:15px;font-weight:600;color:var(--fg-1);margin-bottom:8px;line-height:1.45}
+.research-modal .r-sec .thesis{font-size:13px;color:var(--fg-2);line-height:1.65;margin-bottom:14px}
+.research-modal .r-sec .sub-lbl{font-family:var(--font-mono);font-size:9.5px;letter-spacing:1.3px;color:var(--fg-3);text-transform:uppercase;margin:10px 0 6px;font-weight:600}
+.research-modal .r-sec ul{margin:0;padding-left:18px;color:var(--fg-2);font-size:12.5px;line-height:1.6}
+.research-modal .r-sec ul li{margin-bottom:4px}
+.research-modal .r-sec.bull ul li{color:var(--fg-2)}
+.research-modal .r-sec.bull ul li::marker{color:var(--green)}
+.research-modal .r-sec.risk ul li::marker{color:var(--red)}
+.research-modal .r-sec.frame ul li::marker{color:var(--cyan)}
+.research-modal .r-sec .val-line{background:rgba(255,177,61,.05);border-left:3px solid var(--amber);padding:9px 12px;border-radius:0 4px 4px 0;margin:8px 0;font-size:12.5px;color:var(--fg-1);line-height:1.5}
+.research-modal .r-sec .val-line b{color:var(--amber);font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-right:6px}
+.research-modal .r-sec .invalidation{background:rgba(255,92,122,.05);border-left:3px solid var(--red);padding:9px 12px;border-radius:0 4px 4px 0;margin:8px 0;font-size:12.5px;color:var(--fg-1);line-height:1.5}
+.research-modal .r-sec .invalidation b{color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-right:6px}
+.research-modal .r-sec .analog{background:rgba(167,139,250,.04);border-left:3px solid var(--violet);padding:9px 12px;border-radius:0 4px 4px 0;margin:8px 0;font-size:12px;color:var(--fg-2);font-style:italic;line-height:1.5}
+.research-modal .r-sec .analog b{color:var(--violet);font-family:var(--font-mono);font-size:10px;font-style:normal;letter-spacing:1px;text-transform:uppercase;margin-right:6px}
+
+.research-modal .conv-pill{display:inline-block;padding:2px 9px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1px;margin-left:8px}
+.research-modal .conv-pill.HIGH{background:rgba(56,255,168,.16);color:var(--green);border:1px solid var(--green-dim)}
+.research-modal .conv-pill.MED{background:rgba(255,177,61,.14);color:var(--amber);border:1px solid var(--amber-dim)}
+.research-modal .conv-pill.LOW{background:rgba(107,122,146,.10);color:var(--fg-3);border:1px solid var(--border)}
+
+.research-modal .disclaimer{margin-top:8px;padding:11px 14px;background:var(--bg-sunken);border:1px dashed var(--border);border-radius:5px;font-size:11px;color:var(--fg-3);line-height:1.5;font-family:var(--font-mono)}
+
+.research-modal .r-loading{padding:50px;text-align:center;color:var(--fg-3);font-family:var(--font-mono);font-size:12px}
+.research-modal .r-err{padding:18px;background:rgba(255,92,122,.06);border:1px solid var(--red-dim);border-radius:5px;color:var(--red);font-size:12px;font-family:var(--font-mono);line-height:1.5}
+
 /* Summary grid */
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:28px}
 .summary-tile{background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
@@ -227,9 +287,27 @@ a:hover{color:var(--violet)}
   </table>
 </div>
 
+<!-- Research modal (hidden until ticker clicked) -->
+<div class="research-overlay" id="research-overlay">
+  <div class="research-modal" id="research-modal">
+    <div class="r-hdr">
+      <div class="ticker-big" id="r-ticker">—</div>
+      <span class="pcat" id="r-cat">—</span>
+      <span class="pump-num" id="r-pump">—</span>
+      <div class="one-liner" id="r-one-liner"></div>
+      <button class="close-btn" id="r-close" aria-label="close">×</button>
+    </div>
+    <div class="r-body" id="r-body">
+      <div class="r-loading">loading research…</div>
+    </div>
+  </div>
+</div>
+
 <script>
 const S3_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/convergence-radar.json";
+const RESEARCH_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/ticker-research-bundle.json";
 let DATA = null;
+let RESEARCH = null;
 let activeTier = "ALL";
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -305,7 +383,7 @@ function renderPumpCandidates(){
 
     html += '<tr>' +
       '<td class="num">' + (i+1) + '</td>' +
-      '<td class="ticker">' + esc(c.ticker) + '</td>' +
+      '<td class="ticker clickable" data-ticker="' + esc(c.ticker) + '">' + esc(c.ticker) + '</td>' +
       '<td><span class="pcat ' + esc(cat) + '">' + esc(cat.replace('PUMP_','')) + '</span></td>' +
       '<td class="num pump-score ' + esc(cat) + '">' + (c.pump_likelihood || 0).toFixed(1) + '</td>' +
       '<td class="num dir-score ' + dirClass + '">' + dirSign + dirScore.toFixed(0) + '</td>' +
@@ -315,6 +393,7 @@ function renderPumpCandidates(){
       '</tr>';
   });
   tbody.innerHTML = html;
+  wireTickerClicks();
 }
 
 function renderLeaderboard(){
@@ -343,7 +422,7 @@ function renderLeaderboard(){
     ).join('');
     html += '<tr>' +
       '<td class="num">' + (i+1) + '</td>' +
-      '<td class="ticker">' + esc(t.ticker) + '</td>' +
+      '<td class="ticker clickable" data-ticker="' + esc(t.ticker) + '">' + esc(t.ticker) + '</td>' +
       '<td><span class="tier ' + esc(t.tier) + '">' + esc(t.tier) + '</span></td>' +
       '<td class="num n-engines ' + nEngClass + '">' + engineCount + '</td>' +
       '<td class="num score-cell ' + esc(t.tier) + '">' + (t.convergence_score || 0).toFixed(1) + '</td>' +
@@ -352,6 +431,7 @@ function renderLeaderboard(){
       '</tr>';
   });
   document.getElementById('leaderboard-tbody').innerHTML = html;
+  wireTickerClicks();
 }
 
 // Filter buttons (existing tier filter)
@@ -373,6 +453,212 @@ document.querySelectorAll('.filters .btn[data-pump]').forEach(btn => {
     renderPumpCandidates();
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// Click-to-research modal
+// ═══════════════════════════════════════════════════════════════════
+
+async function loadResearchBundle(){
+  if (RESEARCH) return RESEARCH;
+  try {
+    const r = await fetch(RESEARCH_URL + "?t=" + Date.now());
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    RESEARCH = await r.json();
+    return RESEARCH;
+  } catch(e) {
+    return null;
+  }
+}
+
+function wireTickerClicks(){
+  document.querySelectorAll('.ticker.clickable').forEach(el => {
+    if (el._wired) return;
+    el._wired = true;
+    el.addEventListener('click', () => openResearch(el.dataset.ticker));
+  });
+}
+
+async function openResearch(ticker){
+  const overlay = document.getElementById('research-overlay');
+  const tBig    = document.getElementById('r-ticker');
+  const catEl   = document.getElementById('r-cat');
+  const pumpEl  = document.getElementById('r-pump');
+  const oneLine = document.getElementById('r-one-liner');
+  const body    = document.getElementById('r-body');
+
+  // Show modal with loading state first
+  tBig.textContent = ticker;
+  catEl.textContent = '...';
+  catEl.className = 'pcat';
+  pumpEl.textContent = '...';
+  oneLine.textContent = '';
+  body.innerHTML = '<div class="r-loading">⏳ loading AI research for ' + ticker + '…</div>';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Look up convergence-radar record first (always available)
+  const cands = (DATA?.pump_candidates || []).concat(DATA?.tickers || []);
+  const cand = cands.find(c => c.ticker === ticker);
+
+  // Try to load research bundle
+  const bundle = await loadResearchBundle();
+  const research = bundle?.research?.[ticker];
+
+  // Always populate header from convergence-radar data
+  if (cand) {
+    catEl.textContent = (cand.pump_category || 'NEUTRAL').replace('PUMP_', '');
+    catEl.className = 'pcat ' + (cand.pump_category || '');
+    pumpEl.textContent = 'pump ' + (cand.pump_likelihood || 0).toFixed(0) + '/100';
+  }
+
+  // If no AI research found, show a sensible fallback
+  if (!research) {
+    body.innerHTML = renderFallback(ticker, cand, bundle);
+    return;
+  }
+
+  // Render full research
+  if (research.ai_one_liner) {
+    oneLine.textContent = '"' + research.ai_one_liner + '"';
+  }
+  body.innerHTML = renderResearch(research);
+}
+
+function renderFallback(ticker, cand, bundle){
+  let html = '';
+  if (!cand) {
+    return '<div class="r-err">Ticker not currently in the convergence radar. ' +
+           'It needs to be flagged by at least 2 engines to appear.</div>';
+  }
+  html += '<div class="r-err" style="margin-bottom:18px">AI research dossier for ' + esc(ticker) +
+          ' not yet generated. The deep-research Lambda runs hourly at :05 UTC and covers the top 15 pump candidates. ' +
+          'This ticker is ranked #' + ((DATA?.pump_candidates || []).findIndex(c => c.ticker === ticker) + 1 || '?') +
+          '. Showing engine-level data instead.</div>';
+  html += renderEngineSummary(cand);
+  return html;
+}
+
+function renderEngineSummary(c){
+  let html = '<div class="r-meta">';
+  html += '<div class="cell"><div class="lbl">N Engines</div><div class="v">' + (c.n_engines||0) + '</div></div>';
+  html += '<div class="cell"><div class="lbl">Pump Score</div><div class="v">' + (c.pump_likelihood||0).toFixed(0) + '/100</div></div>';
+  html += '<div class="cell"><div class="lbl">Direction</div><div class="v">' + (c.directional_score>0?'+':'') + (c.directional_score||0).toFixed(0) + '</div></div>';
+  html += '<div class="cell"><div class="lbl">Convergence</div><div class="v">' + (c.convergence_score||0).toFixed(0) + '/100</div></div>';
+  html += '<div class="cell"><div class="lbl">Tier</div><div class="v">' + esc(c.tier||'?') + '</div></div>';
+  html += '<div class="cell"><div class="lbl">Bull/Bear/Neutral</div><div class="v">' + (c.n_bullish_eng||0) + '/' + (c.n_bearish_eng||0) + '/' + (c.n_neutral_eng||0) + '</div></div>';
+  html += '</div>';
+
+  html += '<div class="r-sec bull"><div class="sec-hdr"><h4>🟢 Bullish Drivers</h4></div><ul>';
+  (c.bullish_engines || []).forEach(b => {
+    html += '<li><b style="color:var(--green)">' + esc(b.engine) + '</b>: ' + esc(b.note) + ' (weight ' + b.weighted.toFixed(2) + ')</li>';
+  });
+  html += '</ul></div>';
+
+  if ((c.bearish_engines || []).length) {
+    html += '<div class="r-sec risk"><div class="sec-hdr"><h4>🔴 Bearish Drag</h4></div><ul>';
+    (c.bearish_engines || []).forEach(b => {
+      html += '<li><b style="color:var(--red)">' + esc(b.engine) + '</b>: ' + esc(b.note) + ' (weight ' + b.weighted.toFixed(2) + ')</li>';
+    });
+    html += '</ul></div>';
+  }
+  return html;
+}
+
+function renderResearch(r){
+  const cs = r.convergence_summary || {};
+  const bull = r.bull_thesis || {};
+  const risk = r.risk_assessment || {};
+  const frame = r.trade_framework || {};
+
+  let html = '';
+
+  // Meta grid
+  html += '<div class="r-meta">';
+  html += '<div class="cell"><div class="lbl">N Engines</div><div class="v">' + (cs.n_engines||0) + '</div></div>';
+  html += '<div class="cell"><div class="lbl">Pump Score</div><div class="v">' + (cs.pump_likelihood||0).toFixed(0) + '/100</div></div>';
+  html += '<div class="cell"><div class="lbl">Direction</div><div class="v">' + (cs.directional_score>0?'+':'') + (cs.directional_score||0).toFixed(0) + '</div></div>';
+  html += '<div class="cell"><div class="lbl">Convergence</div><div class="v">' + (cs.convergence_score||0).toFixed(0) + '/100</div></div>';
+  html += '<div class="cell"><div class="lbl">Tier</div><div class="v">' + esc(cs.tier||'?') + '</div></div>';
+  html += '<div class="cell"><div class="lbl">B/X Engines</div><div class="v">' + (cs.n_bullish_eng||0) + '/' + (cs.n_bearish_eng||0) + '</div></div>';
+  html += '</div>';
+
+  // Bull thesis
+  html += '<div class="r-sec bull">';
+  html += '<div class="sec-hdr"><h4>🟢 Bull Thesis</h4></div>';
+  if (bull.headline) html += '<div class="headline">' + esc(bull.headline) + '</div>';
+  if (bull.thesis)   html += '<div class="thesis">' + esc(bull.thesis) + '</div>';
+  if (bull.key_catalysts?.length) {
+    html += '<div class="sub-lbl">Key catalysts</div><ul>';
+    bull.key_catalysts.forEach(c => html += '<li>' + esc(c) + '</li>');
+    html += '</ul>';
+  }
+  if (bull.leading_signals?.length) {
+    html += '<div class="sub-lbl">Leading signals (which engines, what they show)</div><ul>';
+    bull.leading_signals.forEach(s => html += '<li>' + esc(s) + '</li>');
+    html += '</ul>';
+  }
+  html += '</div>';
+
+  // Risk assessment
+  html += '<div class="r-sec risk">';
+  html += '<div class="sec-hdr"><h4>🔴 Risk Assessment</h4></div>';
+  if (risk.headline) html += '<div class="headline">' + esc(risk.headline) + '</div>';
+  if (risk.primary_risks?.length) {
+    html += '<div class="sub-lbl">Primary risks</div><ul>';
+    risk.primary_risks.forEach(r => html += '<li>' + esc(r) + '</li>');
+    html += '</ul>';
+  }
+  if (risk.valuation_concern) {
+    html += '<div class="val-line"><b>Valuation</b>' + esc(risk.valuation_concern) + '</div>';
+  }
+  if (risk.what_breaks_thesis?.length) {
+    html += '<div class="sub-lbl">What breaks the bull thesis</div><ul>';
+    risk.what_breaks_thesis.forEach(w => html += '<li>' + esc(w) + '</li>');
+    html += '</ul>';
+  }
+  html += '</div>';
+
+  // Trade framework
+  html += '<div class="r-sec frame">';
+  html += '<div class="sec-hdr"><h4>🎯 Trade Framework</h4></div>';
+  html += '<div class="r-meta" style="margin-bottom:14px">';
+  html += '<div class="cell"><div class="lbl">Conviction</div><div class="v">' + esc(frame.conviction || '?') + '</div></div>';
+  html += '<div class="cell"><div class="lbl">Horizon</div><div class="v">' + esc(frame.time_horizon || '?') + '</div></div>';
+  html += '</div>';
+  if (frame.what_to_watch?.length) {
+    html += '<div class="sub-lbl">What to watch (confirmation / denial signals)</div><ul>';
+    frame.what_to_watch.forEach(w => html += '<li>' + esc(w) + '</li>');
+    html += '</ul>';
+  }
+  if (frame.invalidation_signal) {
+    html += '<div class="invalidation"><b>Invalidation</b>' + esc(frame.invalidation_signal) + '</div>';
+  }
+  if (frame.historical_analog) {
+    html += '<div class="analog"><b>Analog</b>' + esc(frame.historical_analog) + '</div>';
+  }
+  html += '</div>';
+
+  // Disclaimer
+  html += '<div class="disclaimer">⚠ Analytical synthesis of engine signals. Not financial advice. ' +
+          'Engine readings change continuously — verify before acting. ' +
+          'Research age: ' + ageStr(RESEARCH?.generated_at) + '</div>';
+
+  return html;
+}
+
+// Close modal handlers
+document.getElementById('r-close').addEventListener('click', closeResearch);
+document.getElementById('research-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeResearch();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeResearch();
+});
+
+function closeResearch(){
+  document.getElementById('research-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
 
 // Search
 document.getElementById('search').addEventListener('input', renderLeaderboard);
