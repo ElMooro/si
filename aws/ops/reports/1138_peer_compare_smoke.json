@@ -1,0 +1,172 @@
+{
+  "started": "2026-06-01T23:39:43.122566+00:00",
+  "phases": [
+    {
+      "name": "uber_fresh",
+      "status": "ok",
+      "result": {
+        "ticker": "UBER",
+        "elapsed_s": 40.3,
+        "size_kb": 28.7,
+        "from_cache": false,
+        "company": "Uber Technologies, Inc.",
+        "sector": "Technology",
+        "industry": "Software - Application",
+        "rating": "BUY",
+        "conviction": "A-",
+        "ai_peer_assessment": "UBER is trading at a significant valuation discount to its Software peer set, reflecting its lower profitability profile. At 6.12x P/B vs. peer median 15.22x (60% discount) and 2.80x P/S vs. median 12.53x (78% discount), UBER is the cheapest multiple-wise. On EV/EBITDA (26.25x vs. 34.05x median), the gap narrows to 23% discount, suggesting the market is pricing in meaningful EBITDA conversion but ",
+        "pc_sector": "Technology",
+        "pc_industry": "Software - Application",
+        "n_rows": 6,
+        "subject_row": {
+          "symbol": "UBER",
+          "name": "Uber Technologies, Inc.",
+          "price": 73.77,
+          "market_cap": 150166212000.0,
+          "pe": null,
+          "pb": 6.1165138778231185,
+          "ps": 2.7970684150725504,
+          "ev_ebitda": 26.250280013084726,
+          "roe_pct": null,
+          "op_margin_pct": 11.66,
+          "is_subject": true
+        },
+        "peer_rows_summary": [
+          {
+            "sym": "AMAT",
+            "name": "Applied Materials, Inc.",
+            "pe": null,
+            "ps": 12.533358428541897,
+            "roe": null
+          },
+          {
+            "sym": "ANET",
+            "name": "Arista Networks, Inc.",
+            "pe": null,
+            "ps": 22.133599694950515,
+            "roe": null
+          },
+          {
+            "sym": "APP",
+            "name": "AppLovin Corporation",
+            "pe": null,
+            "ps": 33.445760541040904,
+            "roe": null
+          },
+          {
+            "sym": "CRM",
+            "name": "Salesforce, Inc.",
+            "pe": null,
+            "ps": 4.00808797777207,
+            "roe": null
+          },
+          {
+            "sym": "INTU",
+            "name": "Intuit Inc.",
+            "pe": null,
+            "ps": 4.624442012903225,
+            "roe": null
+          }
+        ],
+        "summary": {
+          "n_peers": 5,
+          "median_pe": null,
+          "median_pb": 15.22,
+          "median_ps": 12.53,
+          "median_ev_ebitda": 34.05,
+          "median_roe_pct": null,
+          "median_op_margin_pct": 29.51
+        },
+        "relative": {
+          "premium_pct_pb": -59.8,
+          "premium_pct_ps": -77.7,
+          "premium_pct_ev_ebitda": -22.9
+        }
+      }
+    },
+    {
+      "name": "aapl_refresh",
+      "status": "ok",
+      "result": {
+        "ticker": "AAPL",
+        "elapsed_s": 45.6,
+        "size_kb": 39.4,
+        "from_cache": false,
+        "company": "Apple Inc.",
+        "sector": "Technology",
+        "industry": "Consumer Electronics",
+        "rating": "SELL",
+        "conviction": "A-",
+        "ai_peer_assessment": "Apple trades at a significant premium to consumer electronics and internet peers. On P/B, AAPL's 42.3x is 358% above the peer median of 9.2x (vs GOOGL 9.5x, META 6.2x, MSFT 8.3x, NVDA 27.9x)\u2014only NVIDIA approaches Apple's premium, though NVDA is justified by 64% operating margins and AI demand tailwinds. On EV/EBITDA, Apple's 28.4x is 35% above peer median of 21.0x; MSFT (17.1x), META (14.0x), and",
+        "pc_sector": "Technology",
+        "pc_industry": "Consumer Electronics",
+        "n_rows": 6,
+        "subject_row": {
+          "symbol": "AAPL",
+          "name": "Apple Inc.",
+          "price": 306.31,
+          "market_cap": 4498884016360.0,
+          "pe": null,
+          "pb": 42.31381084392109,
+          "ps": 9.965585870078549,
+          "ev_ebitda": 28.361568597410372,
+          "roe_pct": null,
+          "op_margin_pct": 32.64,
+          "is_subject": true
+        },
+        "peer_rows_summary": [
+          {
+            "sym": "GOOGL",
+            "name": "Alphabet Inc.",
+            "pe": null,
+            "ps": 10.77262802065476,
+            "roe": null
+          },
+          {
+            "sym": "META",
+            "name": "Meta Platforms, Inc.",
+            "pe": null,
+            "ps": 7.090741412043003,
+            "roe": null
+          },
+          {
+            "sym": "MSFT",
+            "name": "Microsoft Corporation",
+            "pe": null,
+            "ps": 10.748447350544971,
+            "roe": null
+          },
+          {
+            "sym": "NVDA",
+            "name": "NVIDIA Corporation",
+            "pe": null,
+            "ps": 21.437540425498344,
+            "roe": null
+          },
+          {
+            "sym": "NXT",
+            "name": "Nextpower Inc.",
+            "pe": null,
+            "ps": 6.122623238532445,
+            "roe": null
+          }
+        ],
+        "summary": {
+          "n_peers": 5,
+          "median_pe": null,
+          "median_pb": 9.23,
+          "median_ps": 10.75,
+          "median_ev_ebitda": 21.04,
+          "median_roe_pct": null,
+          "median_op_margin_pct": 41.21
+        },
+        "relative": {
+          "premium_pct_pb": 358.4,
+          "premium_pct_ps": -7.3,
+          "premium_pct_ev_ebitda": 34.8
+        }
+      }
+    }
+  ],
+  "finished": "2026-06-01T23:41:09.111815+00:00"
+}
