@@ -1963,11 +1963,16 @@ const SOURCES = {
   setups:   `${S3}/opportunities/asymmetric-equity.json`,
   pnl:      `${S3}/portfolio/pnl-daily.json`,
   signalBoard: `${S3}/data/signal-board.json`,
-  ppBrief:     `${S3}/data/pump-radar-brief.json`,
-  ppPositioning: `${S3}/data/pump-positioning.json`,
-  ppCatalysts:   `${S3}/data/catalysts.json`,
-  ppClusters:    `${S3}/data/catalyst-clusters.json`,
-  ppEarly:       `${S3}/data/velocity-acceleration.json`,
+};
+
+// Pre-pump radar fetches — SEPARATE from main SOURCES so they don't
+// block the dashboard. Loaded lazily after the page is interactive.
+const PP_SOURCES = {
+  ppBrief:        `${S3}/data/pump-radar-brief.json`,
+  ppPositioning:  `${S3}/data/pump-positioning.json`,
+  ppCatalysts:    `${S3}/data/catalysts.json`,
+  ppClusters:     `${S3}/data/catalyst-clusters.json`,
+  ppEarly:        `${S3}/data/velocity-acceleration.json`,
 };
 
 const STATE = {data: {}, errors: {}, lastUpdate: null};
@@ -2546,6 +2551,23 @@ function renderSignalBoard(){
 }
 
 // ── PRE-PUMP RADAR hero card (catalyst-aware pump-hunter desk) ───────
+// Loaded LAZILY — after main dashboard renders. Doesn't block initial paint.
+async function loadPrePumpRadar(){
+  // Fire all 5 fetches in parallel. They don't block the dashboard because
+  // this runs AFTER the main loadAll() completes.
+  const entries = Object.entries(PP_SOURCES);
+  const tasks = entries.map(async ([key, url]) => {
+    try {
+      const data = await fetchJson(url);
+      STATE.data[key] = data;
+    } catch(e) {
+      STATE.errors[key] = e.message;
+    }
+  });
+  await Promise.allSettled(tasks);
+  renderPrePumpRadar();
+}
+
 function renderPrePumpRadar(){
   const brief = STATE.data.ppBrief || {};
   const pos   = STATE.data.ppPositioning || {};
@@ -2686,8 +2708,9 @@ async function loadAll(){
     if(sb) sb.innerHTML = `<div class="err" style="grid-column:1/-1">⚠ Signal-board feed unavailable</div>`;
   }
 
-  // PRE-PUMP RADAR hero card (right after signal board)
-  renderPrePumpRadar();
+  // PRE-PUMP RADAR — fire-and-forget, doesn't block other renders.
+  // Page becomes interactive immediately; card fills in when its 5 fetches return.
+  loadPrePumpRadar();
 
   // Render each card, even if some failed
   if(STATE.data.setups) renderSetups();
