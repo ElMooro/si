@@ -1,0 +1,1486 @@
+{
+  "started": "2026-06-01T16:30:43.320493+00:00",
+  "engines": {
+    "data/buzz-velocity.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "n_universe",
+        "n_results",
+        "weights",
+        "top_30",
+        "stealth_picks",
+        "all_results",
+        "notes"
+      ],
+      "ticker_paths": [
+        {
+          "path": "top_30",
+          "type": "list",
+          "len": 30,
+          "item_keys": [
+            "ticker",
+            "name",
+            "score",
+            "composite_velocity",
+            "reddit_velocity",
+            "news_velocity",
+            "sentiment",
+            "price_perf_7d_pct",
+            "stealth_signal",
+            "divergence",
+            "reddit_breakdown_7d",
+            "news_7d_count",
+            "news_30d_count",
+            "sample_headlines"
+          ],
+          "sample": {
+            "ticker": "NVDA",
+            "name": "NVIDIA Corporation",
+            "score": "25.0",
+            "composite_velocity": "1.0",
+            "reddit_velocity": "{'velocity': 1.0, 'interpretation': 'NO_DATA', 'n_short': 0}",
+            "news_velocity": "{'velocity': 1.0, 'interpretation': 'NO_DATA', 'n_short': 0}",
+            "sentiment": "{'score': 0, 'n_bullish': 0, 'n_bearish': 0, 'n_neutral': 0, 'n_total': 0}",
+            "price_perf_7d_pct": "-1.51",
+            "stealth_signal": "False",
+            "divergence": "None"
+          }
+        },
+        {
+          "path": "all_results",
+          "type": "list",
+          "len": 185,
+          "item_keys": [
+            "ticker",
+            "name",
+            "score",
+            "composite_velocity",
+            "reddit_velocity",
+            "news_velocity",
+            "sentiment",
+            "price_perf_7d_pct",
+            "stealth_signal",
+            "divergence",
+            "reddit_breakdown_7d",
+            "news_7d_count",
+            "news_30d_count",
+            "sample_headlines"
+          ],
+          "sample": {
+            "ticker": "NVDA",
+            "name": "NVIDIA Corporation",
+            "score": "25.0",
+            "composite_velocity": "1.0",
+            "reddit_velocity": "{'velocity': 1.0, 'interpretation': 'NO_DATA', 'n_short': 0}",
+            "news_velocity": "{'velocity': 1.0, 'interpretation': 'NO_DATA', 'n_short': 0}",
+            "sentiment": "{'score': 0, 'n_bullish': 0, 'n_bearish': 0, 'n_neutral': 0, 'n_total': 0}",
+            "price_perf_7d_pct": "-1.51",
+            "stealth_signal": "False",
+            "divergence": "None"
+          }
+        }
+      ]
+    },
+    "data/momentum-breakout.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "spy_returns",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "ticker_paths": [
+        {
+          "path": "all_qualifying",
+          "type": "list",
+          "len": 84,
+          "item_keys": [
+            "symbol",
+            "score",
+            "tier",
+            "flags",
+            "is_parabolic",
+            "metrics"
+          ],
+          "sample": {
+            "symbol": "ORCL",
+            "score": "75",
+            "tier": "TIER_A_BREAKOUT",
+            "flags": "['RISING_20D', 'AT_60D_HIGH', 'VOL_SURGE_1.8X', 'RS_20D_+35', 'RS_60D_+38']",
+            "is_parabolic": "False",
+            "metrics": "{'today_close': 225.78, 'ret_5d_pct': 19.0, 'ret_10d_pct': 15.4, 'ret_20d_pct': "
+          }
+        }
+      ]
+    },
+    "data/options-flow.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "ticker_paths": [
+        {
+          "path": "all_qualifying",
+          "type": "list",
+          "len": 37,
+          "item_keys": [
+            "symbol",
+            "score",
+            "tier",
+            "flags",
+            "metrics"
+          ],
+          "sample": {
+            "symbol": "AMZN",
+            "score": "85.0",
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": "['CPR_SURGING', 'CALL_VOL_3X', 'ABS_CPR_3X', 'SHORTS_COVERING']",
+            "metrics": "{'spot': 270.64, 'n_call_contracts': 10, 'n_put_contracts': 10, 'avg_cpr_recent_"
+          }
+        }
+      ]
+    },
+    "data/eps-revision-velocity.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "ticker_paths": [
+        {
+          "path": "all_qualifying",
+          "type": "list",
+          "len": 61,
+          "item_keys": [
+            "symbol",
+            "company",
+            "score",
+            "flag",
+            "status",
+            "fundamentals",
+            "estimates",
+            "ratings_breadth",
+            "rationale"
+          ],
+          "sample": {
+            "symbol": "AMD",
+            "company": "Advanced Micro Devices, Inc.",
+            "score": "86.5",
+            "flag": "HIGH_VELOCITY_TIER_B",
+            "status": "ok",
+            "fundamentals": "{'price': 516.1, 'market_cap': 841552660000, 'sector': '', 'industry': '', 'pct_",
+            "estimates": "{'fy1_year': '2026', 'fy1_eps_avg': 7.44303, 'fy1_rev_avg': 49865887475, 'fy1_n_",
+            "ratings_breadth": "{'n_recent_90d': 30, 'n_upgrades': 3, 'n_downgrades': 0, 'upgrade_pct': 0.1}",
+            "rationale": "AMD (): EPS estimate FY27 vs FY26 = +76% forward revenue growth +53%."
+          }
+        }
+      ]
+    },
+    "data/earnings-tracker.json": {
+      "top_keys": [
+        "version",
+        "generated_at",
+        "watchlist_size",
+        "upcoming_14d",
+        "n_upcoming",
+        "recent_results_30d",
+        "n_recent",
+        "pead_signals",
+        "n_pead",
+        "aggregate_stats",
+        "duration_s",
+        "data_sources"
+      ],
+      "ticker_paths": [
+        {
+          "path": "upcoming_14d",
+          "type": "list",
+          "len": 8,
+          "item_keys": [
+            "ticker",
+            "name",
+            "earnings_date",
+            "time",
+            "eps_consensus",
+            "n_estimates",
+            "fiscal_quarter_ending",
+            "last_year_eps",
+            "market_cap"
+          ],
+          "sample": {
+            "ticker": "PANW",
+            "name": "Palo Alto Networks, Inc.",
+            "earnings_date": "2026-06-02",
+            "time": "AMC",
+            "eps_consensus": "0.43",
+            "n_estimates": "15",
+            "fiscal_quarter_ending": "Apr/2026",
+            "last_year_eps": "$0.43",
+            "market_cap": "$210,340,320,000"
+          }
+        },
+        {
+          "path": "recent_results_30d",
+          "type": "list",
+          "len": 94,
+          "item_keys": [
+            "ticker",
+            "filing_date",
+            "period_end",
+            "eps_actual",
+            "eps_prior_quarter",
+            "revenue_actual",
+            "eps_yoy_pct",
+            "returns",
+            "pead_label",
+            "pead_score"
+          ],
+          "sample": {
+            "ticker": "WMT",
+            "filing_date": "2026-05-29",
+            "period_end": "2026-04-30",
+            "eps_actual": "0.67",
+            "eps_prior_quarter": "0.5300000000000002",
+            "revenue_actual": "177751000000.0",
+            "eps_yoy_pct": "26.42",
+            "returns": "{'1d': None, '5d': None, '20d': None}",
+            "pead_label": "MIXED",
+            "pead_score": "50"
+          }
+        },
+        {
+          "path": "pead_signals",
+          "type": "list",
+          "len": 10,
+          "item_keys": [
+            "ticker",
+            "filing_date",
+            "period_end",
+            "eps_actual",
+            "eps_prior_quarter",
+            "revenue_actual",
+            "eps_yoy_pct",
+            "returns",
+            "pead_label",
+            "pead_score"
+          ],
+          "sample": {
+            "ticker": "DLTR",
+            "filing_date": "2026-05-28",
+            "period_end": "2026-05-02",
+            "eps_actual": "1.76",
+            "eps_prior_quarter": "1.2",
+            "revenue_actual": "4975800000.0",
+            "eps_yoy_pct": "46.67",
+            "returns": "{'1d': 3.04, '5d': None, '20d': None}",
+            "pead_label": "STRONG_POSITIVE_DRIFT",
+            "pead_score": "80"
+          }
+        }
+      ]
+    },
+    "data/political-trades.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "endpoints",
+        "stats",
+        "trades_recent_50",
+        "clusters_top_10",
+        "large_trades_top_15",
+        "high_watch_recent_15",
+        "duration_s"
+      ],
+      "ticker_paths": [
+        {
+          "path": "trades_recent_50",
+          "type": "list",
+          "len": 50,
+          "item_keys": [
+            "chamber",
+            "member",
+            "office",
+            "ticker",
+            "asset_description",
+            "asset_type",
+            "transaction_type",
+            "amount_range",
+            "amount_max_usd",
+            "transaction_date",
+            "disclosure_date",
+            "link",
+            "reporting_lag_days"
+          ],
+          "sample": {
+            "chamber": "HOUSE",
+            "member": "Jake Auchincloss",
+            "office": "Jake Auchincloss",
+            "ticker": "STT",
+            "asset_description": "State Street Corporation (2)",
+            "asset_type": "Sale",
+            "transaction_type": "sale",
+            "amount_range": "$15,001 - $50,000",
+            "amount_max_usd": "50000",
+            "transaction_date": "2026-05-18"
+          }
+        },
+        {
+          "path": "large_trades_top_15",
+          "type": "list",
+          "len": 5,
+          "item_keys": [
+            "chamber",
+            "member",
+            "office",
+            "ticker",
+            "asset_description",
+            "asset_type",
+            "transaction_type",
+            "amount_range",
+            "amount_max_usd",
+            "transaction_date",
+            "disclosure_date",
+            "link",
+            "reporting_lag_days"
+          ],
+          "sample": {
+            "chamber": "HOUSE",
+            "member": "Sara Jacobs",
+            "office": "Sara Jacobs",
+            "ticker": "QCOM",
+            "asset_description": "QUALCOMM Inc",
+            "asset_type": "Sale",
+            "transaction_type": "sale",
+            "amount_range": "$500,001 - $1,000,000",
+            "amount_max_usd": "1000000",
+            "transaction_date": "2026-05-07"
+          }
+        },
+        {
+          "path": "high_watch_recent_15",
+          "type": "list",
+          "len": 15,
+          "item_keys": [
+            "chamber",
+            "member",
+            "office",
+            "ticker",
+            "asset_description",
+            "asset_type",
+            "transaction_type",
+            "amount_range",
+            "amount_max_usd",
+            "transaction_date",
+            "disclosure_date",
+            "link",
+            "reporting_lag_days"
+          ],
+          "sample": {
+            "chamber": "HOUSE",
+            "member": "Ro Khanna",
+            "office": "Ro Khanna",
+            "ticker": "MU",
+            "asset_description": "Micron Technology Inc",
+            "asset_type": "Sale",
+            "transaction_type": "sale",
+            "amount_range": "$1,001 - $15,000",
+            "amount_max_usd": "15000",
+            "transaction_date": "2026-04-27"
+          }
+        }
+      ]
+    },
+    "data/sec-filings-intel.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "lookback_days",
+        "n_signal_queries",
+        "n_events_total",
+        "n_tickers_with_signals",
+        "events_by_signal",
+        "signal_definitions",
+        "highlights",
+        "all_tickers",
+        "notes"
+      ],
+      "ticker_paths": [
+        {
+          "path": "all_tickers",
+          "type": "list",
+          "len": 200,
+          "item_keys": [
+            "ticker",
+            "name",
+            "cik",
+            "events",
+            "score",
+            "bearish_signals",
+            "bullish_signals",
+            "highest_severity",
+            "latest_filing",
+            "n_events",
+            "raw_score",
+            "verdict"
+          ],
+          "sample": {
+            "ticker": "VERI",
+            "name": "Veritone, Inc.",
+            "cik": "0001615165",
+            "events": "[{'ticker': 'VERI', 'name': 'Veritone, Inc.', 'cik': '0001615165', 'form': '10-Q",
+            "score": "-100",
+            "bearish_signals": "4",
+            "bullish_signals": "0",
+            "highest_severity": "high",
+            "latest_filing": "2026-05-14",
+            "n_events": "4"
+          }
+        }
+      ]
+    },
+    "data/ark-holdings.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "data_source",
+        "prev_snapshot_at",
+        "funds_tracked",
+        "fund_descriptions",
+        "n_funds_fetched",
+        "n_positions_total",
+        "n_unique_tickers",
+        "diff_vs_prev",
+        "cross_fund_top",
+        "holdings_by_fund",
+        "notes"
+      ],
+      "ticker_paths": [
+        {
+          "path": "cross_fund_top",
+          "type": "list",
+          "len": 30,
+          "item_keys": [
+            "ticker",
+            "company",
+            "total_shares",
+            "total_value",
+            "funds",
+            "max_weight",
+            "n_funds"
+          ],
+          "sample": {
+            "ticker": "TSLA",
+            "company": "TESLA INC",
+            "total_shares": "2706513",
+            "total_value": "1196549397.3000002",
+            "funds": "[{'fund': 'ARKK', 'shares': 1711759, 'value': 756768653.9, 'weight': 10.55}, {'f",
+            "max_weight": "10.55",
+            "n_funds": "4"
+          }
+        }
+      ]
+    },
+    "data/lobbying-intel.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "data_source",
+        "lobbying_source",
+        "windows",
+        "n_records_total",
+        "n_tickers",
+        "n_clusters",
+        "n_spike_alerts",
+        "n_new_lobbyists",
+        "n_bills_tracked",
+        "highlights",
+        "all_tickers"
+      ],
+      "ticker_paths": [
+        {
+          "path": "all_tickers",
+          "type": "list",
+          "len": 200,
+          "item_keys": [
+            "ticker",
+            "client",
+            "score",
+            "recent_amount_usd",
+            "baseline_amount_usd",
+            "acceleration_ratio",
+            "n_recent_issues",
+            "n_baseline_issues",
+            "new_issues",
+            "disappeared_issues",
+            "is_new_entrant",
+            "registrants",
+            "bills_mentioned",
+            "n_records"
+          ],
+          "sample": {
+            "ticker": "BTSG",
+            "client": "RESCARE INC (DBA BRIGHTSPRING HEALTH SERVICES)",
+            "score": "90",
+            "recent_amount_usd": "1250000.0",
+            "baseline_amount_usd": "420000.0",
+            "acceleration_ratio": "9.09",
+            "n_recent_issues": "3",
+            "n_baseline_issues": "5",
+            "new_issues": "['Health Issues']",
+            "disappeared_issues": "['Health Issues \\n Labor Issues/Antitrust/Workplace \\n Medicare/', 'Health Issue"
+          }
+        }
+      ]
+    },
+    "data/sector-earnings-diffusion.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_sectors",
+        "all_industries"
+      ],
+      "ticker_paths": []
+    },
+    "data/fundamentals.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "elapsed_s",
+        "universe_source",
+        "n_covered",
+        "n_failed",
+        "failed_tickers",
+        "summary",
+        "companies",
+        "note"
+      ],
+      "ticker_paths": [
+        {
+          "path": "companies",
+          "type": "list",
+          "len": 25,
+          "item_keys": [
+            "ticker",
+            "price",
+            "dcf",
+            "dcf_gap_pct",
+            "valuation_label",
+            "altman_z",
+            "piotroski",
+            "quality_label",
+            "top_region",
+            "top_region_pct",
+            "n_regions",
+            "geo_mix",
+            "top_product",
+            "top_product_pct"
+          ],
+          "sample": {
+            "ticker": "HMC",
+            "price": "26.99",
+            "dcf": "352.42",
+            "dcf_gap_pct": "1205.7",
+            "valuation_label": "UNDERVALUED",
+            "altman_z": "1.27",
+            "piotroski": "3",
+            "quality_label": "DISTRESS RISK",
+            "top_region": "U S",
+            "top_region_pct": "51.3"
+          }
+        }
+      ]
+    },
+    "data/ticker-trends.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "n_processed",
+        "n_ok",
+        "errors",
+        "sources_used_count",
+        "config",
+        "top_20",
+        "stealth_picks",
+        "all_results",
+        "notes"
+      ],
+      "ticker_paths": [
+        {
+          "path": "top_20",
+          "type": "list",
+          "len": 20,
+          "item_keys": [
+            "ticker",
+            "score",
+            "velocity",
+            "current_level",
+            "prior_level",
+            "max_in_range",
+            "interp",
+            "price_7d_pct",
+            "stealth",
+            "sources_used",
+            "wiki_article",
+            "series",
+            "thesis"
+          ],
+          "sample": {
+            "ticker": "MU",
+            "score": "71.8",
+            "velocity": "2.67",
+            "current_level": "5586.6",
+            "prior_level": "2092.1",
+            "max_in_range": "13569",
+            "interp": "SPIKE",
+            "price_7d_pct": "38.96",
+            "stealth": "False",
+            "sources_used": "['wiki']"
+          }
+        },
+        {
+          "path": "all_results",
+          "type": "list",
+          "len": 71,
+          "item_keys": [
+            "ticker",
+            "score",
+            "velocity",
+            "current_level",
+            "prior_level",
+            "max_in_range",
+            "interp",
+            "price_7d_pct",
+            "stealth",
+            "sources_used",
+            "wiki_article",
+            "series",
+            "thesis"
+          ],
+          "sample": {
+            "ticker": "MU",
+            "score": "71.8",
+            "velocity": "2.67",
+            "current_level": "5586.6",
+            "prior_level": "2092.1",
+            "max_in_range": "13569",
+            "interp": "SPIKE",
+            "price_7d_pct": "38.96",
+            "stealth": "False",
+            "sources_used": "['wiki']"
+          }
+        }
+      ]
+    },
+    "data/retail-sentiment.json": {
+      "top_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "sources",
+        "elapsed_seconds",
+        "n_all_stocks",
+        "n_wsb",
+        "n_stocks",
+        "n_investing",
+        "n_with_stwt_data",
+        "market_regime",
+        "market_regime_signal",
+        "market_regime_data",
+        "regime_changed_from_prior",
+        "top_30_by_mentions"
+      ],
+      "ticker_paths": [
+        {
+          "path": "top_30_by_mentions",
+          "type": "list",
+          "len": 30,
+          "item_keys": [
+            "rank",
+            "ticker",
+            "name",
+            "mentions",
+            "mentions_24h_ago",
+            "rank_24h_ago",
+            "upvotes",
+            "velocity_pct",
+            "rank_climb",
+            "stwt_bull_pct",
+            "stwt_bear_pct",
+            "stwt_bull_bear_ratio",
+            "stwt_n_messages",
+            "stwt_total_likes"
+          ],
+          "sample": {
+            "rank": "1",
+            "ticker": "SPCE",
+            "name": "Virgin Galactic",
+            "mentions": "2369",
+            "mentions_24h_ago": "1010",
+            "rank_24h_ago": "1",
+            "upvotes": "26983",
+            "velocity_pct": "134.6",
+            "rank_climb": "0",
+            "stwt_bull_pct": "94.1"
+          }
+        },
+        {
+          "path": "stocktwits_trending",
+          "type": "list",
+          "len": 20,
+          "item_keys": [
+            "symbol",
+            "title",
+            "trending_score",
+            "watchlist_count",
+            "sector",
+            "industry"
+          ],
+          "sample": {
+            "symbol": "SPCE",
+            "title": "Virgin Galactic Holdings Inc",
+            "trending_score": "23.01",
+            "watchlist_count": "147519",
+            "sector": "ElectronicTechnology",
+            "industry": "AerospaceAndDefense"
+          }
+        }
+      ]
+    },
+    "data/news-velocity.json": {
+      "top_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "source",
+        "elapsed_seconds",
+        "universe",
+        "n_tickers",
+        "n_with_data",
+        "n_with_err",
+        "n_surge",
+        "n_elevated",
+        "n_subdued",
+        "by_ticker",
+        "ranked",
+        "composite_regime"
+      ],
+      "ticker_paths": [
+        {
+          "path": "by_ticker",
+          "type": "dict",
+          "len": 15,
+          "item_keys": [
+            "ticker",
+            "err"
+          ],
+          "sample_key": "AAPL"
+        }
+      ]
+    },
+    "data/hiring-velocity.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "elapsed_s",
+        "n_scanned",
+        "n_scored",
+        "n_errors",
+        "counts",
+        "top_50",
+        "expansion_inflections",
+        "double_confirmed",
+        "methodology"
+      ],
+      "ticker_paths": [
+        {
+          "path": "top_50",
+          "type": "list",
+          "len": 50,
+          "item_keys": [
+            "symbol",
+            "name",
+            "sector",
+            "cap_bucket",
+            "market_cap",
+            "expansion_score",
+            "state",
+            "headcount_latest",
+            "headcount_yoy_pct",
+            "headcount_accel_pp",
+            "headcount_multiyr_cagr_pct",
+            "revenue_per_employee",
+            "revenue_per_employee_trend_pct",
+            "inflection"
+          ],
+          "sample": {
+            "symbol": "UMBF",
+            "name": "UMB Financial Corporation",
+            "sector": "Financial Services",
+            "cap_bucket": "mid",
+            "market_cap": "9972967706",
+            "expansion_score": "100.0",
+            "state": "EXPANSION_INFLECTION",
+            "headcount_latest": "5222",
+            "headcount_yoy_pct": "41.2",
+            "headcount_accel_pp": "38.5"
+          }
+        },
+        {
+          "path": "expansion_inflections",
+          "type": "list",
+          "len": 30,
+          "item_keys": [
+            "symbol",
+            "name",
+            "sector",
+            "cap_bucket",
+            "market_cap",
+            "expansion_score",
+            "state",
+            "headcount_latest",
+            "headcount_yoy_pct",
+            "headcount_accel_pp",
+            "headcount_multiyr_cagr_pct",
+            "revenue_per_employee",
+            "revenue_per_employee_trend_pct",
+            "inflection"
+          ],
+          "sample": {
+            "symbol": "UMBF",
+            "name": "UMB Financial Corporation",
+            "sector": "Financial Services",
+            "cap_bucket": "mid",
+            "market_cap": "9972967706",
+            "expansion_score": "100.0",
+            "state": "EXPANSION_INFLECTION",
+            "headcount_latest": "5222",
+            "headcount_yoy_pct": "41.2",
+            "headcount_accel_pp": "38.5"
+          }
+        },
+        {
+          "path": "double_confirmed",
+          "type": "list",
+          "len": 22,
+          "item_keys": [
+            "symbol",
+            "name",
+            "sector",
+            "cap_bucket",
+            "market_cap",
+            "expansion_score",
+            "state",
+            "headcount_latest",
+            "headcount_yoy_pct",
+            "headcount_accel_pp",
+            "headcount_multiyr_cagr_pct",
+            "revenue_per_employee",
+            "revenue_per_employee_trend_pct",
+            "inflection"
+          ],
+          "sample": {
+            "symbol": "PPIH",
+            "name": "Perma-Pipe International Holdings, Inc.",
+            "sector": "Industrials",
+            "cap_bucket": "micro",
+            "market_cap": "249303248",
+            "expansion_score": "86.0",
+            "state": "EXPANSION_INFLECTION",
+            "headcount_latest": "909",
+            "headcount_yoy_pct": "419.4",
+            "headcount_accel_pp": "421.7"
+          }
+        }
+      ]
+    },
+    "data/earnings-pead.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "ticker_paths": [
+        {
+          "path": "all_qualifying",
+          "type": "list",
+          "len": 121,
+          "item_keys": [
+            "symbol",
+            "score",
+            "tier",
+            "flags",
+            "beat_streak",
+            "metrics",
+            "surprise_history"
+          ],
+          "sample": {
+            "symbol": "GOOG",
+            "score": "90.0",
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": "['BEAT_STREAK_4Q+', 'BIG_BEAT_30%+', 'AVG_SURPRISE_20%+', 'DRIFT_ACTIVE', 'DRIFT",
+            "beat_streak": "8",
+            "metrics": "{'latest_earnings_date': '2026-04-29', 'days_since_earnings': 33.0, 'drift_activ",
+            "surprise_history": "[{'date': '2026-04-29', 'actual': 5.11, 'estimate': 2.68, 'surprise_pct': 90.671"
+          }
+        }
+      ]
+    },
+    "data/earnings-cascade.json": {
+      "top_keys": [
+        "engine",
+        "version",
+        "generated_at",
+        "state",
+        "state_description",
+        "n_titans",
+        "n_strong",
+        "n_emerging",
+        "titans",
+        "strong_cascades",
+        "emerging_cascades",
+        "all_evaluated_with_cascade",
+        "feeds_available",
+        "thresholds",
+        "methodology"
+      ],
+      "ticker_paths": [
+        {
+          "path": "titans",
+          "type": "list",
+          "len": 2,
+          "item_keys": [
+            "ticker",
+            "company",
+            "sector",
+            "market_cap_usd",
+            "cascade_score",
+            "band",
+            "breakdown",
+            "pead_detail",
+            "predictability_detail",
+            "tone_detail",
+            "trade_label",
+            "trade_note",
+            "thesis"
+          ],
+          "sample": {
+            "ticker": "GOOGL",
+            "company": "None",
+            "sector": "Communication Services",
+            "market_cap_usd": "4600162967240",
+            "cascade_score": "90",
+            "band": "TITAN_CASCADE",
+            "breakdown": "{'l1_quality': True, 'l2_pead_streak': True, 'l3_acceleration': True, 'l4_tone_c",
+            "pead_detail": "{'tier': 'TIER_S_DRIFTING', 'score': 90.0, 'streak': 8, 'avg_beat_pct': 33.88, '",
+            "predictability_detail": "{'stars': 5, 'rev_r2': 0.9813, 'eps_r2': 0.8827, 'valuation': 'FAIR'}",
+            "tone_detail": "{'tone_delta_qoq': None, 'current_tone': None}"
+          }
+        },
+        {
+          "path": "strong_cascades",
+          "type": "list",
+          "len": 3,
+          "item_keys": [
+            "ticker",
+            "company",
+            "sector",
+            "market_cap_usd",
+            "cascade_score",
+            "band",
+            "breakdown",
+            "pead_detail",
+            "predictability_detail",
+            "tone_detail",
+            "trade_label",
+            "trade_note",
+            "thesis"
+          ],
+          "sample": {
+            "ticker": "MA",
+            "company": "None",
+            "sector": "Financial Services",
+            "market_cap_usd": "436472774428",
+            "cascade_score": "75",
+            "band": "STRONG_CASCADE",
+            "breakdown": "{'l1_quality': True, 'l2_pead_streak': True, 'l3_acceleration': True, 'l4_tone_c",
+            "pead_detail": "{'tier': 'TIER_A_BEATING', 'score': 56.0, 'streak': 8, 'avg_beat_pct': 5.23, 'be",
+            "predictability_detail": "{'stars': 4, 'rev_r2': 0.941, 'eps_r2': 0.944, 'valuation': 'FAIR'}",
+            "tone_detail": "{'tone_delta_qoq': None, 'current_tone': None}"
+          }
+        },
+        {
+          "path": "all_evaluated_with_cascade",
+          "type": "list",
+          "len": 5,
+          "item_keys": [
+            "ticker",
+            "company",
+            "sector",
+            "market_cap_usd",
+            "cascade_score",
+            "band",
+            "breakdown",
+            "pead_detail",
+            "predictability_detail",
+            "tone_detail",
+            "trade_label",
+            "trade_note",
+            "thesis"
+          ],
+          "sample": {
+            "ticker": "GOOGL",
+            "company": "None",
+            "sector": "Communication Services",
+            "market_cap_usd": "4600162967240",
+            "cascade_score": "90",
+            "band": "TITAN_CASCADE",
+            "breakdown": "{'l1_quality': True, 'l2_pead_streak': True, 'l3_acceleration': True, 'l4_tone_c",
+            "pead_detail": "{'tier': 'TIER_S_DRIFTING', 'score': 90.0, 'streak': 8, 'avg_beat_pct': 33.88, '",
+            "predictability_detail": "{'stars': 5, 'rev_r2': 0.9813, 'eps_r2': 0.8827, 'valuation': 'FAIR'}",
+            "tone_detail": "{'tone_delta_qoq': None, 'current_tone': None}"
+          }
+        }
+      ]
+    },
+    "data/dividend-growth.json": {
+      "top_keys": [
+        "ok",
+        "schema_version",
+        "generated_at",
+        "elapsed_s",
+        "source",
+        "headline",
+        "how_to_read",
+        "n_evaluated",
+        "n_with_history",
+        "n_compounders",
+        "summary",
+        "compounders",
+        "yield_traps"
+      ],
+      "ticker_paths": [
+        {
+          "path": "compounders",
+          "type": "list",
+          "len": 104,
+          "item_keys": [
+            "symbol",
+            "name",
+            "sector",
+            "industry",
+            "price",
+            "market_cap",
+            "dividend_yield_pct",
+            "div_cagr_5y_pct",
+            "div_cagr_3y_pct",
+            "growth_streak_years",
+            "had_cut",
+            "years_history",
+            "fcf_coverage",
+            "earnings_payout_pct"
+          ],
+          "sample": {
+            "symbol": "WSM",
+            "name": "Williams-Sonoma, Inc.",
+            "sector": "Consumer Cyclical",
+            "industry": "Specialty Retail",
+            "price": "203.57",
+            "market_cap": "23969677601.0",
+            "dividend_yield_pct": "1.35",
+            "div_cagr_5y_pct": "21.0",
+            "div_cagr_3y_pct": "18.7",
+            "growth_streak_years": "19"
+          }
+        },
+        {
+          "path": "yield_traps",
+          "type": "list",
+          "len": 15,
+          "item_keys": [
+            "symbol",
+            "name",
+            "sector",
+            "industry",
+            "price",
+            "market_cap",
+            "dividend_yield_pct",
+            "div_cagr_5y_pct",
+            "div_cagr_3y_pct",
+            "growth_streak_years",
+            "had_cut",
+            "years_history",
+            "fcf_coverage",
+            "earnings_payout_pct"
+          ],
+          "sample": {
+            "symbol": "ARE",
+            "name": "Alexandria Real Estate Equities, Inc.",
+            "sector": "Real Estate",
+            "industry": "REIT - Office",
+            "price": "49.68",
+            "market_cap": "8657683920.0",
+            "dividend_yield_pct": "8.21",
+            "div_cagr_5y_pct": "2.0",
+            "div_cagr_3y_pct": "-0.3",
+            "growth_streak_years": "0"
+          }
+        }
+      ]
+    },
+    "data/capital-return.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "elapsed_s",
+        "ok",
+        "headline",
+        "how_to_read",
+        "n_evaluated",
+        "n_cannibals",
+        "cannibals",
+        "source"
+      ],
+      "ticker_paths": [
+        {
+          "path": "cannibals",
+          "type": "list",
+          "len": 60,
+          "item_keys": [
+            "symbol",
+            "name",
+            "sector",
+            "market_cap",
+            "price",
+            "cannibal_score",
+            "buyback_yield_pct",
+            "dividend_yield_pct",
+            "shareholder_yield_pct",
+            "fcf_yield_pct",
+            "pe_ratio",
+            "debt_to_equity",
+            "revenue_growth_pct",
+            "price_target"
+          ],
+          "sample": {
+            "symbol": "UHS",
+            "name": "Universal Health Services, Inc.",
+            "sector": "Healthcare",
+            "market_cap": "9147411753.0",
+            "price": "146.11",
+            "cannibal_score": "74.3",
+            "buyback_yield_pct": "10.58",
+            "dividend_yield_pct": "0.55",
+            "shareholder_yield_pct": "11.13",
+            "fcf_yield_pct": "9.28"
+          }
+        }
+      ]
+    },
+    "data/etf-flows.json": {
+      "top_keys": [
+        "version",
+        "generated_at",
+        "n_etfs_analyzed",
+        "by_etf",
+        "by_category",
+        "heavy_inflow",
+        "heavy_outflow",
+        "unusual_vol",
+        "rotation_in",
+        "rotation_out",
+        "duration_s",
+        "data_sources",
+        "signal_definitions"
+      ],
+      "ticker_paths": [
+        {
+          "path": "by_etf",
+          "type": "dict",
+          "len": 60,
+          "item_keys": [
+            "ticker",
+            "category",
+            "name",
+            "latest_close",
+            "aum_b",
+            "return_1d_pct",
+            "return_5d_pct",
+            "return_20d_pct",
+            "today_dollar_vol_b",
+            "avg_5d_dollar_vol_b",
+            "avg_20d_dollar_vol_b",
+            "avg_60d_dollar_vol_b",
+            "dvol_z_score",
+            "dvol_5d_vs_20d_pct"
+          ],
+          "sample_key": "SPY"
+        },
+        {
+          "path": "by_category",
+          "type": "dict",
+          "len": 9,
+          "item_keys": [
+            "category",
+            "n_etfs",
+            "total_aum_b",
+            "total_today_dollar_vol_b",
+            "avg_dvol_z",
+            "avg_return_1d_pct",
+            "category_signal"
+          ],
+          "sample_key": "BROAD_EQUITY_US"
+        },
+        {
+          "path": "rotation_in",
+          "type": "list",
+          "len": 2,
+          "item_keys": [
+            "ticker",
+            "category",
+            "name",
+            "latest_close",
+            "aum_b",
+            "return_1d_pct",
+            "return_5d_pct",
+            "return_20d_pct",
+            "today_dollar_vol_b",
+            "avg_5d_dollar_vol_b",
+            "avg_20d_dollar_vol_b",
+            "avg_60d_dollar_vol_b",
+            "dvol_z_score",
+            "dvol_5d_vs_20d_pct"
+          ],
+          "sample": {
+            "ticker": "MTUM",
+            "category": "ALTERNATIVES",
+            "name": "iShares MSCI USA Momentum Factor ETF",
+            "latest_close": "315.81",
+            "aum_b": "27.63",
+            "return_1d_pct": "0.37",
+            "return_5d_pct": "4.52",
+            "return_20d_pct": "11.21",
+            "today_dollar_vol_b": "0.533",
+            "avg_5d_dollar_vol_b": "0.698"
+          }
+        },
+        {
+          "path": "rotation_out",
+          "type": "list",
+          "len": 2,
+          "item_keys": [
+            "ticker",
+            "category",
+            "name",
+            "latest_close",
+            "aum_b",
+            "return_1d_pct",
+            "return_5d_pct",
+            "return_20d_pct",
+            "today_dollar_vol_b",
+            "avg_5d_dollar_vol_b",
+            "avg_20d_dollar_vol_b",
+            "avg_60d_dollar_vol_b",
+            "dvol_z_score",
+            "dvol_5d_vs_20d_pct"
+          ],
+          "sample": {
+            "ticker": "QUAL",
+            "category": "ALTERNATIVES",
+            "name": "iShares MSCI USA Quality Factor ETF",
+            "latest_close": "215.49",
+            "aum_b": "52.05",
+            "return_1d_pct": "-0.18",
+            "return_5d_pct": "1.29",
+            "return_20d_pct": "3.98",
+            "today_dollar_vol_b": "1.141",
+            "avg_5d_dollar_vol_b": "1.619"
+          }
+        }
+      ]
+    },
+    "data/sympathetic-momentum.json": {
+      "top_keys": [
+        "engine",
+        "version",
+        "as_of",
+        "state",
+        "signal_strength",
+        "n_setups",
+        "n_peer_groups_scanned",
+        "n_tickers_in_universe",
+        "top_setups",
+        "all_setups",
+        "methodology",
+        "sources",
+        "why_now",
+        "run_seconds"
+      ],
+      "ticker_paths": []
+    },
+    "data/political-stocks.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "lookback_days",
+        "data_source",
+        "party_source",
+        "quiver_source",
+        "trump_holdings",
+        "congress",
+        "notes"
+      ],
+      "ticker_paths": []
+    },
+    "data/earnings-tone-velocity.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "as_of",
+        "summary",
+        "top_positive_velocity",
+        "top_negative_velocity",
+        "guidance_red_alerts",
+        "guidance_green_alerts",
+        "per_ticker_velocity_full",
+        "upstream_as_of",
+        "upstream_n_candidates",
+        "duration_s"
+      ],
+      "ticker_paths": []
+    },
+    "data/patent-velocity.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "data_source",
+        "windows",
+        "universe_size",
+        "n_results",
+        "n_velocity_spikes",
+        "n_new_tech_focus",
+        "highlights",
+        "all_results",
+        "notes"
+      ],
+      "ticker_paths": []
+    },
+    "data/earnings-whisper.json": {
+      "top_keys": [
+        "schema_version",
+        "method",
+        "as_of",
+        "n_upcoming",
+        "tier_counts",
+        "feed_health",
+        "top_setups",
+        "all_setups",
+        "duration_s"
+      ],
+      "ticker_paths": [
+        {
+          "path": "top_setups",
+          "type": "list",
+          "len": 8,
+          "item_keys": [
+            "ticker",
+            "name",
+            "earnings_date",
+            "time",
+            "days_to_earnings",
+            "eps_consensus",
+            "n_estimates",
+            "market_cap",
+            "whisper_score",
+            "tier",
+            "components",
+            "flags",
+            "rationale"
+          ],
+          "sample": {
+            "ticker": "AVGO",
+            "name": "Broadcom Inc.",
+            "earnings_date": "2026-06-03",
+            "time": "AMC",
+            "days_to_earnings": "2",
+            "eps_consensus": "2.02",
+            "n_estimates": "10",
+            "market_cap": "$2,019,714,753,931",
+            "whisper_score": "30",
+            "tier": "B"
+          }
+        },
+        {
+          "path": "all_setups",
+          "type": "list",
+          "len": 8,
+          "item_keys": [
+            "ticker",
+            "name",
+            "earnings_date",
+            "time",
+            "days_to_earnings",
+            "eps_consensus",
+            "n_estimates",
+            "market_cap",
+            "whisper_score",
+            "tier",
+            "components",
+            "flags",
+            "rationale"
+          ],
+          "sample": {
+            "ticker": "AVGO",
+            "name": "Broadcom Inc.",
+            "earnings_date": "2026-06-03",
+            "time": "AMC",
+            "days_to_earnings": "2",
+            "eps_consensus": "2.02",
+            "n_estimates": "10",
+            "market_cap": "$2,019,714,753,931",
+            "whisper_score": "30",
+            "tier": "B"
+          }
+        }
+      ]
+    }
+  }
+}
