@@ -1,0 +1,27 @@
+{
+  "function_name": "justhodl-equity-research",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 180,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Institutional equity research desk. On-demand: GET ?ticker=XYZ returns full research paper. Fetches 20yr FMP fundamentals in parallel + Claude synthesis. 24h S3 cache.",
+  "environment_keys": ["ANTHROPIC_API_KEY", "FMP_KEY"],
+  "inherit_env": {
+    "from_function": "justhodl-ai-chat",
+    "keys": ["ANTHROPIC_API_KEY"]
+  },
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowCredentials": false,
+      "AllowHeaders": ["*"],
+      "AllowMethods": ["GET", "POST", "OPTIONS"],
+      "AllowOrigins": ["*"],
+      "ExposeHeaders": ["*"],
+      "MaxAge": 86400
+    }
+  }
+}
