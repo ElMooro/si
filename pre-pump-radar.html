@@ -374,6 +374,69 @@ a:hover{color:var(--violet)}
 .agg-meta .cell .v.warning{color:var(--amber)}
 .agg-philosophy{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);font-style:italic;padding:8px 12px;background:var(--bg-sunken);border-radius:4px;margin-bottom:12px;border-left:2px solid var(--red);line-height:1.5}
 
+/* ─── Early Detection Panel (THE EARLINESS LAYER) ─── */
+.early-panel{background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(56,255,168,.04),rgba(255,177,61,.02));border:2px solid var(--cyan);border-radius:12px;padding:20px 24px;margin-bottom:24px;position:relative;overflow:hidden}
+.early-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--green),var(--amber));animation:gradient-shift 4s linear infinite}
+@keyframes gradient-shift{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.early-panel .panel-hdr h3{color:var(--cyan);font-size:14px}
+.early-panel .panel-hdr h3 .pre-pump-tag{display:inline-block;background:var(--cyan);color:var(--bg);font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;padding:3px 9px;border-radius:3px;margin-left:8px;font-weight:700;vertical-align:middle}
+.early-panel .panel-hdr .sub{color:var(--fg-2);font-size:11px}
+.early-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-family:var(--font-mono)}
+.early-meta .stat{background:var(--bg-raised);border:1px solid var(--border);border-radius:5px;padding:7px 12px;font-size:11px;flex:1;min-width:120px}
+.early-meta .stat .lbl{font-size:9px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase}
+.early-meta .stat .v{font-size:16px;font-weight:700;color:var(--fg-1);margin-top:2px}
+.early-meta .stat .v.confirmed{color:var(--green)}
+.early-meta .stat .v.fresh{color:var(--cyan)}
+.early-meta .stat .v.aging{color:var(--amber)}
+
+.early-grid{display:grid;grid-template-columns:1.2fr 1fr 0.8fr;gap:14px;margin-bottom:14px}
+@media (max-width:1100px){.early-grid{grid-template-columns:1fr}}
+.early-col{background:var(--bg-raised);border-radius:6px;padding:12px 14px;border:1px solid var(--border)}
+.early-col.confirmed{border-left:3px solid var(--green);background:linear-gradient(180deg,rgba(56,255,168,.04),var(--bg-raised) 30%)}
+.early-col.fresh{border-left:3px solid var(--cyan);background:linear-gradient(180deg,rgba(0,212,255,.04),var(--bg-raised) 30%)}
+.early-col.aging{border-left:3px solid var(--amber);background:linear-gradient(180deg,rgba(255,177,61,.04),var(--bg-raised) 30%)}
+.early-col .col-hdr{font-family:var(--font-mono);font-size:10px;letter-spacing:1.4px;color:var(--fg-2);text-transform:uppercase;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.early-col .col-hdr .count{background:var(--bg-sunken);color:var(--fg-1);padding:2px 8px;border-radius:3px;font-size:10px}
+.early-col.confirmed .col-hdr{color:var(--green)}
+.early-col.fresh .col-hdr{color:var(--cyan)}
+.early-col.aging .col-hdr{color:var(--amber)}
+.early-empty{font-family:var(--font-sans);font-size:11px;color:var(--fg-3);font-style:italic;padding:20px 0;text-align:center}
+
+.early-item{background:var(--bg-sunken);border-radius:5px;padding:9px 11px;margin-bottom:7px;border-left:2px solid var(--border)}
+.early-item.tier-1{border-left-color:var(--green)}
+.early-item.tier-2{border-left-color:var(--cyan)}
+.early-item.tier-3{border-left-color:var(--amber)}
+.early-item .ih{display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.early-item .ih .tkr{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--fg-1);cursor:pointer;letter-spacing:.3px}
+.early-item .ih .tkr:hover{color:var(--cyan)}
+.early-item .ih .score{font-family:var(--font-mono);font-size:13px;font-weight:700;margin-left:auto}
+.early-item .ih .score.elite{color:var(--red)}
+.early-item .ih .score.high{color:var(--amber)}
+.early-item .ih .score.med{color:var(--cyan)}
+.early-item .ih .tier-pill{font-family:var(--font-mono);font-size:8.5px;letter-spacing:1px;padding:1px 5px;border-radius:2px;font-weight:700;text-transform:uppercase}
+.early-item .ih .tier-pill.tier-1{background:rgba(56,255,168,.16);color:var(--green)}
+.early-item .ih .tier-pill.tier-2{background:rgba(0,212,255,.16);color:var(--cyan)}
+.early-item .ih .tier-pill.tier-3{background:rgba(255,177,61,.14);color:var(--amber)}
+.early-item .theme-tag{font-family:var(--font-mono);font-size:9.5px;color:var(--violet);background:rgba(167,139,250,.08);padding:1px 5px;border-radius:2px}
+.early-item .components{display:flex;gap:8px;font-family:var(--font-mono);font-size:9.5px;color:var(--fg-3);margin-top:3px;flex-wrap:wrap}
+.early-item .components span{display:inline-flex;gap:3px;align-items:baseline}
+.early-item .components span b{color:var(--fg-2)}
+.early-item .components .strong{color:var(--green);font-weight:700}
+.early-item .confirmed-by{margin-top:4px;font-family:var(--font-mono);font-size:9.5px;color:var(--green)}
+.early-item .confirmed-by b{color:var(--fg-2);margin-right:4px}
+.early-item .sessions-info{margin-top:4px;font-family:var(--font-mono);font-size:9.5px;color:var(--amber)}
+.early-item.sessions-2 .sessions-info{color:var(--red);font-weight:700}
+.early-item .what-needs{margin-top:4px;font-family:var(--font-mono);font-size:9px;color:var(--fg-3);font-style:italic;line-height:1.4}
+
+.theme-strip{margin-top:14px;padding:12px;background:var(--bg-raised);border:1px solid var(--border);border-radius:5px}
+.theme-strip .ts-hdr{font-family:var(--font-mono);font-size:10px;letter-spacing:1.4px;color:var(--fg-3);text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.theme-strip .ts-row{display:flex;flex-wrap:wrap;gap:8px;font-family:var(--font-mono);font-size:11px}
+.theme-strip .ts-row .theme-pill{background:var(--bg-sunken);border:1px solid var(--border);border-radius:4px;padding:5px 9px;display:inline-flex;align-items:baseline;gap:6px}
+.theme-strip .ts-row .theme-pill b{color:var(--violet);font-size:11.5px}
+.theme-strip .ts-row .theme-pill .tcount{color:var(--fg-3);font-size:9.5px}
+.theme-strip .ts-row .theme-pill .top{color:var(--amber);font-size:10px;font-weight:700}
+.theme-strip .methodology{margin-top:10px;font-family:var(--font-mono);font-size:9px;color:var(--fg-3);line-height:1.6;font-style:italic}
+
 /* ─── Hedge-fund v2 panels: mechanics, correlations, pairs, NLP ─── */
 .hf-panel{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:24px}
 .hf-panel.violet{background:linear-gradient(135deg,rgba(167,139,250,.04),rgba(0,212,255,.02),transparent)}
@@ -508,6 +571,15 @@ a:hover{color:var(--violet)}
       <div class="age" id="brief-age">—</div>
     </div>
     <div id="brief-content"></div>
+  </div>
+
+  <!-- Early Detection — the earliness layer (THE one we built last) -->
+  <div class="early-panel" id="early-panel" style="display:none">
+    <div class="panel-hdr">
+      <h3>🎯 Early Detection <span class="pre-pump-tag">PRE-PUMP</span></h3>
+      <div class="sub">volume acceleration on names already in active themes — 1-3 days before velocity-surge would fire</div>
+    </div>
+    <div id="early-content"></div>
   </div>
 
   <div class="hero">
@@ -695,6 +767,8 @@ const PAIRS_URL    = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pair
 const NLP_URL      = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump-earnings-nlp.json";
 const BRIEF_URL    = "https://justhodl-dashboard-live.s3.amazonaws.com/data/pump-radar-brief.json";
 const MOMENTUM_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/momentum-leaders.json";
+const EARLY_URL    = "https://justhodl-dashboard-live.s3.amazonaws.com/data/velocity-acceleration.json";
+const THEMES_URL   = "https://justhodl-dashboard-live.s3.amazonaws.com/data/themes.json";
 let DATA = null;
 let RESEARCH = null;
 let POSITIONING = null;
@@ -705,6 +779,8 @@ let PAIRS = null;
 let NLP = null;
 let BRIEF = null;
 let MOMENTUM = null;
+let EARLY = null;
+let THEMES = null;
 let activeTier = "ALL";
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -720,7 +796,7 @@ function ageStr(iso){
 async function load(){
   try {
     // Fetch convergence-radar (primary) + all hedge-fund layers in parallel
-    const [radarR, posR, btR, mechR, anR, prR, nlpR, brR, momR] = await Promise.all([
+    const [radarR, posR, btR, mechR, anR, prR, nlpR, brR, momR, earlyR, themesR] = await Promise.all([
       fetch(S3_URL + "?t=" + Date.now()),
       fetch(POSITIONING_URL + "?t=" + Date.now()).catch(() => null),
       fetch(BACKTEST_URL + "?t=" + Date.now()).catch(() => null),
@@ -730,19 +806,24 @@ async function load(){
       fetch(NLP_URL + "?t=" + Date.now()).catch(() => null),
       fetch(BRIEF_URL + "?t=" + Date.now()).catch(() => null),
       fetch(MOMENTUM_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(EARLY_URL + "?t=" + Date.now()).catch(() => null),
+      fetch(THEMES_URL + "?t=" + Date.now()).catch(() => null),
     ]);
     if (!radarR.ok) throw new Error("HTTP " + radarR.status);
     DATA = await radarR.json();
-    if (posR && posR.ok)  { try { POSITIONING = await posR.json(); } catch(_) {} }
-    if (btR && btR.ok)    { try { BACKTEST    = await btR.json(); } catch(_) {} }
-    if (mechR && mechR.ok){ try { MECHANICS   = await mechR.json(); } catch(_) {} }
-    if (anR && anR.ok)    { try { ANALYTICS   = await anR.json(); } catch(_) {} }
-    if (prR && prR.ok)    { try { PAIRS       = await prR.json(); } catch(_) {} }
-    if (nlpR && nlpR.ok)  { try { NLP         = await nlpR.json(); } catch(_) {} }
-    if (brR && brR.ok)    { try { BRIEF       = await brR.json(); } catch(_) {} }
-    if (momR && momR.ok)  { try { MOMENTUM    = await momR.json(); } catch(_) {} }
+    if (posR && posR.ok)    { try { POSITIONING = await posR.json(); } catch(_) {} }
+    if (btR && btR.ok)      { try { BACKTEST    = await btR.json(); } catch(_) {} }
+    if (mechR && mechR.ok)  { try { MECHANICS   = await mechR.json(); } catch(_) {} }
+    if (anR && anR.ok)      { try { ANALYTICS   = await anR.json(); } catch(_) {} }
+    if (prR && prR.ok)      { try { PAIRS       = await prR.json(); } catch(_) {} }
+    if (nlpR && nlpR.ok)    { try { NLP         = await nlpR.json(); } catch(_) {} }
+    if (brR && brR.ok)      { try { BRIEF       = await brR.json(); } catch(_) {} }
+    if (momR && momR.ok)    { try { MOMENTUM    = await momR.json(); } catch(_) {} }
+    if (earlyR && earlyR.ok){ try { EARLY       = await earlyR.json(); } catch(_) {} }
+    if (themesR && themesR.ok){ try { THEMES    = await themesR.json(); } catch(_) {} }
     render();
     renderBriefHero();
+    renderEarlyDetection();
     renderEdgePanel();
     renderBasketPanel();
     renderAggressivePanel();
@@ -756,6 +837,150 @@ async function load(){
     document.getElementById('leaderboard-tbody').innerHTML =
       '<tr><td colspan="7"><div class="error">Failed to load: ' + esc(e.message) + '</div></td></tr>';
   }
+}
+
+// ─── EARLY DETECTION — the earliness panel ──────────────────────────
+function renderEarlyDetection(){
+  const wrapEl = document.getElementById('early-panel');
+  const el = document.getElementById('early-content');
+  if (!EARLY || EARLY.status === "error" ||
+      (!EARLY.fresh_fires && !EARLY.confirmed_today && !EARLY.aging)) {
+    wrapEl.style.display = 'none';
+    return;
+  }
+  wrapEl.style.display = 'block';
+
+  const fresh = EARLY.fresh_fires || [];
+  const confirmed = EARLY.confirmed_today || [];
+  const aging = EARLY.aging || [];
+
+  // Deduplicate ticker overlap: if a fresh fire was confirmed same day,
+  // it's in BOTH lists. Move it to confirmed only.
+  const confirmedSet = new Set(confirmed.map(c => c.ticker));
+  const freshOnly = fresh.filter(f => !confirmedSet.has(f.ticker));
+
+  let html = '';
+
+  // Top meta row
+  html += '<div class="early-meta">';
+  html += '<div class="stat"><div class="lbl">Trading Date</div><div class="v">' + esc(EARLY.trading_date || '—') + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Universe Scanned</div><div class="v">' + (EARLY.universe_size || 0) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Fired Today</div><div class="v fresh">' + (EARLY.n_fired || 0) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Confirmed Today</div><div class="v confirmed">' + confirmed.length + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Aging</div><div class="v aging">' + aging.length + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Actionable Now</div><div class="v confirmed">' + (EARLY.n_actionable || 0) + '</div></div>';
+  html += '</div>';
+
+  // 3-column grid: confirmed | fresh | aging
+  html += '<div class="early-grid">';
+
+  // Column 1: CONFIRMED TODAY (actionable)
+  html += '<div class="early-col confirmed">';
+  html += '<div class="col-hdr">✅ Confirmed Today <span class="count">' + confirmed.length + '</span></div>';
+  if (confirmed.length === 0) {
+    html += '<div class="early-empty">No new confirmations this session.<br>Aging signals will appear here when a fast confirmer fires.</div>';
+  } else {
+    confirmed.forEach(c => html += renderEarlyItem(c, 'confirmed'));
+  }
+  html += '</div>';
+
+  // Column 2: FRESH FIRES
+  html += '<div class="early-col fresh">';
+  html += '<div class="col-hdr">🆕 Fresh Fires <span class="count">' + freshOnly.length + '</span></div>';
+  if (freshOnly.length === 0) {
+    html += '<div class="early-empty">No new acceleration signals today. Watch this space for tomorrow.</div>';
+  } else {
+    freshOnly.forEach(f => html += renderEarlyItem(f, 'fresh'));
+  }
+  html += '</div>';
+
+  // Column 3: AGING
+  html += '<div class="early-col aging">';
+  html += '<div class="col-hdr">⏳ Aging <span class="count">' + aging.length + '</span></div>';
+  if (aging.length === 0) {
+    html += '<div class="early-empty">No pending signals carrying over.</div>';
+  } else {
+    aging.forEach(a => html += renderEarlyItem(a, 'aging'));
+  }
+  html += '</div>';
+
+  html += '</div>'; // .early-grid
+
+  // Theme strip — show what themes are active right now
+  if (THEMES && THEMES.themes && Object.keys(THEMES.themes).length > 0) {
+    html += '<div class="theme-strip">';
+    html += '<div class="ts-hdr">🌐 Active themes driving the universe — ' + (THEMES.n_active_themes || 0) + ' themes from ' + (THEMES.n_momentum_leaders || 0) + ' momentum leaders</div>';
+    html += '<div class="ts-row">';
+    Object.entries(THEMES.themes).slice(0, 8).forEach(([k, t]) => {
+      html += '<span class="theme-pill"><b>' + esc(t.label || k) + '</b>';
+      html += '<span class="tcount">' + (t.n_leaders || 0) + ' names</span>';
+      if (t.top_ticker) html += '<span class="top">top: ' + esc(t.top_ticker) + '</span>';
+      html += '</span>';
+    });
+    html += '</div>';
+    html += '<div class="methodology">Themes auto-discover from FMP industry classification of momentum leaders ≥3 names per theme. ';
+    html += 'Universe restricted to momentum + theme members → false-positive rate drops from ~60% to ~15%. ';
+    html += 'Fire threshold: composite score ≥' + (EARLY.config?.fire_threshold || 60) + ' (slope+accumulation+floor-lift). ';
+    html += 'Confirmation = momentum-breakout, options-flow, or buzz-velocity within ' + (EARLY.config?.pending_max_sessions || 3) + ' sessions.</div>';
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+  wireTickerClicks();
+}
+
+function renderEarlyItem(item, kind){
+  const tier = item.tier || 0;
+  const sessionsClass = item.sessions_pending >= 2 ? 'sessions-2' : '';
+  const scoreVal = item.current_score || item.first_score || 0;
+  const scoreClass = scoreVal >= 85 ? 'elite' : scoreVal >= 70 ? 'high' : 'med';
+  let html = '<div class="early-item tier-' + tier + ' ' + sessionsClass + '">';
+  html += '<div class="ih">';
+  html += '<span class="tkr ticker clickable" data-ticker="' + esc(item.ticker) + '">' + esc(item.ticker) + '</span>';
+  html += '<span class="tier-pill tier-' + tier + '">' + (tier === 1 ? 'HIGH' : tier === 2 ? 'MED' : tier === 3 ? 'LOW' : '?') + '</span>';
+  if (item.theme_label) {
+    html += '<span class="theme-tag">' + esc(item.theme_label) + '</span>';
+  }
+  html += '<span class="score ' + scoreClass + '">' + scoreVal.toFixed(1) + '</span>';
+  html += '</div>';
+
+  // Components row for fresh + confirmed (compact for aging)
+  if (kind !== 'aging' && item.accel_components) {
+    const ac = item.accel_components;
+    html += '<div class="components">';
+    if (ac.slope_score != null) {
+      const cls = ac.slope_score >= 80 ? 'strong' : '';
+      html += '<span class="' + cls + '">slope <b>' + ac.slope_score.toFixed(0) + '</b></span>';
+    }
+    if (ac.accum_score != null) {
+      const cls = ac.accum_score >= 80 ? 'strong' : '';
+      html += '<span class="' + cls + '">accum <b>' + ac.accum_score.toFixed(0) + '</b></span>';
+    }
+    if (ac.floor_score != null) {
+      const cls = ac.floor_score >= 60 ? 'strong' : '';
+      html += '<span class="' + cls + '">floor <b>' + ac.floor_score.toFixed(0) + '</b></span>';
+    }
+    if (ac.current_ratio != null) {
+      html += '<span>vol/base <b>' + ac.current_ratio.toFixed(2) + 'x</b></span>';
+    }
+    if (item.momentum_score != null) {
+      html += '<span>mom <b>' + item.momentum_score.toFixed(0) + '</b></span>';
+    }
+    html += '</div>';
+  }
+
+  // Per-kind footer
+  if (kind === 'confirmed' && item.confirmations) {
+    html += '<div class="confirmed-by"><b>confirmed by:</b> ' + (item.confirmations || []).join(' + ') + '</div>';
+  } else if (kind === 'fresh') {
+    html += '<div class="what-needs">awaiting confirmation from momentum-breakout, options-flow, or buzz-velocity</div>';
+  } else if (kind === 'aging') {
+    const expireIn = 3 - (item.sessions_pending || 0);
+    html += '<div class="sessions-info">' + (item.sessions_pending || 0) + ' sessions pending · expires in ' + expireIn + (expireIn === 1 ? ' session' : ' sessions') + '</div>';
+  }
+
+  html += '</div>';
+  return html;
 }
 
 // ─── Aggressive Pump-Hunter Basket ──────────────────────────────────
