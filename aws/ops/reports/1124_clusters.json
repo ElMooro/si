@@ -1,0 +1,80 @@
+{
+  "started": "2026-06-01T21:32:32.624809+00:00",
+  "phases": [
+    {
+      "name": "schedule",
+      "status": "ok",
+      "result": {
+        "schedule": "justhodl-catalyst-clusters-daily",
+        "cron": "cron(15 14 * * ? *)"
+      }
+    },
+    {
+      "name": "invoke",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 1.2,
+        "summary": {
+          "status": "ok",
+          "elapsed_sec": 0.33,
+          "n_clusters": 0,
+          "n_temporal": 0,
+          "n_thematic": 0,
+          "boost": [],
+          "trim": [],
+          "exclude": [],
+          "cluster_grades": []
+        }
+      }
+    },
+    {
+      "name": "read_clusters",
+      "status": "ok",
+      "result": {
+        "size_kb": 1.0,
+        "macro_regime": "NEUTRAL",
+        "n_clusters": 0,
+        "n_temporal": 0,
+        "n_thematic": 0,
+        "clusters": [],
+        "basket_action_summary": {
+          "boost": [],
+          "trim": [],
+          "exclude": [],
+          "hedges": []
+        },
+        "current_sizes": {
+          "ORCL": 15.0,
+          "WDC": 12.0,
+          "DELL": 10.0,
+          "CRM": 8.0,
+          "FCX": 6.0,
+          "MSFT": 6.0,
+          "AVGO": 5.0,
+          "LLY": 5.0
+        },
+        "proposed_new_sizes": {
+          "ORCL": 15.0,
+          "WDC": 12.0,
+          "DELL": 10.0,
+          "CRM": 8.0,
+          "FCX": 6.0,
+          "MSFT": 6.0,
+          "AVGO": 5.0,
+          "LLY": 5.0
+        },
+        "size_deltas": {
+          "ORCL": 0.0,
+          "WDC": 0.0,
+          "DELL": 0.0,
+          "CRM": 0.0,
+          "FCX": 0.0,
+          "MSFT": 0.0,
+          "AVGO": 0.0,
+          "LLY": 0.0
+        }
+      }
+    }
+  ],
+  "finished": "2026-06-01T21:32:37.332152+00:00"
+}
