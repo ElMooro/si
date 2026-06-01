@@ -1,0 +1,720 @@
+{
+  "started": "2026-06-01T17:19:32.705416+00:00",
+  "elapsed_s": 2.4,
+  "status_code": 200,
+  "summary": {
+    "status": "ok",
+    "elapsed_sec": 1.25,
+    "n_tickers": 130,
+    "n_ultra": 18,
+    "n_high": 24,
+    "alert_sent": false,
+    "top_3": [
+      "AVGO",
+      "PLTR",
+      "AMD"
+    ]
+  },
+  "meta": {
+    "size_kb": 346.4,
+    "last_modified": "2026-06-01T17:19:35+00:00",
+    "schema": "2.0"
+  },
+  "summary_full": {
+    "n_tickers_total": 587,
+    "n_tickers_multi_engine": 130,
+    "n_ultra": 18,
+    "n_high": 24,
+    "n_med": 53,
+    "n_new_high_convergence": 0,
+    "n_accelerating": 0,
+    "top_10": [
+      "AVGO",
+      "PLTR",
+      "AMD",
+      "TSLA",
+      "AMZN",
+      "NVDA",
+      "MU",
+      "GOOG",
+      "META",
+      "GE"
+    ],
+    "engines_loaded": 20,
+    "engines_stale": 1,
+    "n_pump_primed": 0,
+    "n_pump_likely": 0,
+    "n_pump_possible": 27,
+    "top_pump_candidates": [
+      "NEM",
+      "APH",
+      "PLTR",
+      "LLY",
+      "MSFT",
+      "WDC",
+      "FCX",
+      "ORCL",
+      "CRM",
+      "AMZN"
+    ]
+  },
+  "pump_candidates_top_15": [
+    {
+      "ticker": "NEM",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 57.3,
+      "directional": 83.6,
+      "n_engines": 3,
+      "n_bullish_eng": 2,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "fundamentals",
+        "valuation"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "earnings-pead",
+          "note": "TIER_S_PEAD_DRIFT \u00b7 streak 6Q ()"
+        },
+        {
+          "e": "fundamentals-quality",
+          "note": "UNDERVALUED, DCF gap 122.7%"
+        },
+        {
+          "e": "capital-return",
+          "note": "cannibal buyback"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 41.8,
+        "convergence": 15.5,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "APH",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 54.7,
+      "directional": 70.4,
+      "n_engines": 2,
+      "n_bullish_eng": 1,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "momentum"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "earnings-pead",
+          "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 8Q ()"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "MARGINAL (AT_20D_HIGH)"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 35.2,
+        "convergence": 9.5,
+        "acceleration": 10.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "PLTR",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 54.5,
+      "directional": 59.0,
+      "n_engines": 8,
+      "n_bullish_eng": 3,
+      "n_bearish_eng": 1,
+      "domains": [
+        "earnings",
+        "insider",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment",
+        "valuation"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "options-flow",
+          "note": "TIER_A_BULLISH_FLOW (CPR_SURGING+CALL_VOL_3X)"
+        },
+        {
+          "e": "earnings-pead",
+          "note": "TIER_S_PEAD_DRIFT \u00b7 streak 8Q ()"
+        },
+        {
+          "e": "eps-revision-velocity",
+          "note": "HIGH_VELOCITY_TIER_B"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "MARGINAL (RISING_20D+AT_20D_HIGH+VOL_SURGE_1.8X)"
+        },
+        {
+          "e": "ark-holdings",
+          "note": "in 0 ARK fund"
+        }
+      ],
+      "bearish_drag": [
+        {
+          "e": "fundamentals-quality",
+          "note": "OVERVALUED, DCF gap -93.2%"
+        }
+      ],
+      "components": {
+        "directional": 29.5,
+        "convergence": 25.0,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "LLY",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 54.2,
+      "directional": 66.7,
+      "n_engines": 7,
+      "n_bullish_eng": 3,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "options-flow",
+          "note": "TIER_A_BULLISH_FLOW (CPR_SURGING+CALL_VOL_3X)"
+        },
+        {
+          "e": "earnings-pead",
+          "note": "TIER_S_PEAD_DRIFT \u00b7 streak 6Q ()"
+        },
+        {
+          "e": "eps-revision-velocity",
+          "note": "HIGH_VELOCITY_TIER_B"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "MARGINAL (RISING_20D+NEAR_60D_HIGH+RS_20D_+13)"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 33.4,
+        "convergence": 20.9,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "MSFT",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 53.9,
+      "directional": 63.5,
+      "n_engines": 8,
+      "n_bullish_eng": 3,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "options-flow",
+          "note": "TIER_A_BULLISH_FLOW (CPR_RISING+CALL_VOL_3X)"
+        },
+        {
+          "e": "earnings-pead",
+          "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 8Q ()"
+        },
+        {
+          "e": "eps-revision-velocity",
+          "note": "HIGH_VELOCITY_TIER_B"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "WATCH (RISING_20D+AT_60D_HIGH+VOL_SURGE_1.8X)"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 31.8,
+        "convergence": 22.2,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "WDC",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 53.6,
+      "directional": 73.5,
+      "n_engines": 4,
+      "n_bullish_eng": 3,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "insider",
+        "momentum"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "earnings-pead",
+          "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 8Q ()"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "TIER_B_MOMENTUM (RISING_20D+AT_60D_HIGH+RS_20D_+17)"
+        },
+        {
+          "e": "eps-revision-velocity",
+          "note": "HIGH_VELOCITY_TIER_B"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 36.8,
+        "convergence": 16.9,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "FCX",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 53.3,
+      "directional": 84.0,
+      "n_engines": 2,
+      "n_bullish_eng": 1,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "insider"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "earnings-pead",
+          "note": "TIER_S_PEAD_DRIFT \u00b7 streak 5Q ()"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 42.0,
+        "convergence": 11.3,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "ORCL",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 51.5,
+      "directional": 38.6,
+      "n_engines": 9,
+      "n_bullish_eng": 2,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "insider",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "momentum-breakout",
+          "note": "TIER_A_BREAKOUT (RISING_20D+AT_60D_HIGH+VOL_SURGE_1.8X)"
+        },
+        {
+          "e": "earnings-pead",
+          "note": "WATCH \u00b7 streak 2Q ()"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 19.3,
+        "convergence": 22.1,
+        "acceleration": 5.0,
+        "earnings_cat": 5.0
+      }
+    },
+    {
+      "ticker": "CRM",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 51.5,
+      "directional": 68.6,
+      "n_engines": 4,
+      "n_bullish_eng": 2,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "fundamentals",
+        "momentum",
+        "valuation"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "earnings-pead",
+          "note": "TIER_S_PEAD_DRIFT \u00b7 streak 6Q ()"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "MARGINAL (RISING_20D+AT_20D_HIGH+VOL_SURGE_1.8X)"
+        },
+        {
+          "e": "fundamentals-quality",
+          "note": "UNDERVALUED, DCF gap 41.1%"
+        },
+        {
+          "e": "capital-return",
+          "note": "cannibal buyback"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 34.3,
+        "convergence": 17.2,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "AMZN",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 50.4,
+      "directional": 53.0,
+      "n_engines": 8,
+      "n_bullish_eng": 2,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "insider",
+        "institutional",
+        "momentum",
+        "options",
+        "sentiment"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "options-flow",
+          "note": "TIER_A_BULLISH_FLOW (CPR_SURGING+CALL_VOL_3X)"
+        },
+        {
+          "e": "earnings-pead",
+          "note": "TIER_B_BUILDING \u00b7 streak 1Q ()"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "MARGINAL (NEAR_60D_HIGH+RS_60D_+14)"
+        },
+        {
+          "e": "ark-holdings",
+          "note": "in 0 ARK fund"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 26.5,
+        "convergence": 23.9,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "GLW",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 50.0,
+      "directional": 61.2,
+      "n_engines": 2,
+      "n_bullish_eng": 1,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "momentum"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "earnings-pead",
+          "note": "TIER_B_BUILDING \u00b7 streak 8Q ()"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "MARGINAL (RISING_20D+RS_20D_+5+RS_60D_+15)"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 30.6,
+        "convergence": 9.4,
+        "acceleration": 10.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "SCCO",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 50.0,
+      "directional": 61.2,
+      "n_engines": 2,
+      "n_bullish_eng": 1,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "momentum"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "earnings-pead",
+          "note": "TIER_B_BUILDING \u00b7 streak 5Q ()"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "MARGINAL (RISING_20D+NEAR_60D_HIGH+RS_20D_+7)"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 30.6,
+        "convergence": 9.4,
+        "acceleration": 10.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "GILD",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 49.7,
+      "directional": 61.2,
+      "n_engines": 2,
+      "n_bullish_eng": 1,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "momentum"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "earnings-pead",
+          "note": "TIER_B_BUILDING \u00b7 streak 8Q ()"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "MARGINAL (VOL_SURGE_2.5X)"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 30.6,
+        "convergence": 9.1,
+        "acceleration": 10.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "ISRG",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 49.3,
+      "directional": 61.2,
+      "n_engines": 2,
+      "n_bullish_eng": 1,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "momentum"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "earnings-pead",
+          "note": "TIER_B_BUILDING \u00b7 streak 8Q ()"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "MARGINAL ()"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 30.6,
+        "convergence": 8.7,
+        "acceleration": 10.0,
+        "earnings_cat": 0.0
+      }
+    },
+    {
+      "ticker": "APP",
+      "category": "PUMP_POSSIBLE",
+      "pump_likelihood": 49.2,
+      "directional": 71.4,
+      "n_engines": 3,
+      "n_bullish_eng": 3,
+      "n_bearish_eng": 0,
+      "domains": [
+        "earnings",
+        "momentum"
+      ],
+      "bullish_drivers": [
+        {
+          "e": "earnings-pead",
+          "note": "TIER_B_BUILDING \u00b7 streak 8Q ()"
+        },
+        {
+          "e": "momentum-breakout",
+          "note": "TIER_B_MOMENTUM (RISING_20D+AT_60D_HIGH+RS_20D_+32)"
+        },
+        {
+          "e": "eps-revision-velocity",
+          "note": "HIGH_VELOCITY_TIER_B"
+        }
+      ],
+      "bearish_drag": [],
+      "components": {
+        "directional": 35.7,
+        "convergence": 13.5,
+        "acceleration": 0.0,
+        "earnings_cat": 0.0
+      }
+    }
+  ],
+  "AVGO_detail": {
+    "n_engines": 12,
+    "convergence_score": 100,
+    "directional_score": 27.7,
+    "pump_likelihood": 43.9,
+    "pump_category": "WATCHLIST",
+    "exclude_from_longs": false,
+    "bullish_drivers": [
+      {
+        "e": "earnings-pead",
+        "note": "WATCH \u00b7 streak 8Q ()",
+        "weighted": 0.78
+      },
+      {
+        "e": "eps-revision-velocity",
+        "note": "HIGH_VELOCITY_TIER_B",
+        "weighted": 0.77
+      },
+      {
+        "e": "momentum-breakout",
+        "note": "WATCH (RISING_20D+AT_60D_HIGH+VOL_SURGE_1.8X)",
+        "weighted": 0.63
+      },
+      {
+        "e": "retail-sentiment",
+        "note": "retail-sentiment score 100",
+        "weighted": 0.27
+      },
+      {
+        "e": "ark-holdings",
+        "note": "in 0 ARK fund",
+        "weighted": 0.17
+      }
+    ],
+    "bearish_drag": [
+      {
+        "e": "fundamentals-quality",
+        "note": "OVERVALUED, DCF gap -55.0%",
+        "weighted": -0.4
+      },
+      {
+        "e": "political-trades",
+        "note": "politician SALE",
+        "weighted": -0.36
+      }
+    ],
+    "pump_components": {
+      "directional": 13.8,
+      "convergence": 25.0,
+      "acceleration": 0.0,
+      "earnings_cat": 5.0
+    }
+  },
+  "ARM_detail": {
+    "directional_score": 27.8,
+    "pump_likelihood": 36.2,
+    "pump_category": "WATCHLIST",
+    "n_bullish_eng": 2,
+    "n_bearish_eng": 1,
+    "top_bullish": [
+      "eps-revision-velocity",
+      "earnings-pead",
+      "retail-sentiment"
+    ],
+    "top_bearish": [
+      "fundamentals-quality"
+    ]
+  },
+  "PLTR_detail": {
+    "directional_score": 59.0,
+    "pump_likelihood": 54.5,
+    "pump_category": "PUMP_POSSIBLE",
+    "n_bullish_eng": 3,
+    "n_bearish_eng": 1,
+    "top_bullish": [
+      "options-flow",
+      "earnings-pead",
+      "eps-revision-velocity",
+      "momentum-breakout"
+    ],
+    "top_bearish": [
+      "fundamentals-quality"
+    ]
+  },
+  "AMD_detail": {
+    "directional_score": 44.4,
+    "pump_likelihood": 46.7,
+    "pump_category": "PUMP_POSSIBLE",
+    "n_bullish_eng": 3,
+    "n_bearish_eng": 1,
+    "top_bullish": [
+      "earnings-pead",
+      "momentum-breakout",
+      "eps-revision-velocity",
+      "ark-holdings"
+    ],
+    "top_bearish": [
+      "fundamentals-quality"
+    ]
+  },
+  "TSLA_detail": {
+    "directional_score": 42.5,
+    "pump_likelihood": 45.2,
+    "pump_category": "PUMP_POSSIBLE",
+    "n_bullish_eng": 2,
+    "n_bearish_eng": 0,
+    "top_bullish": [
+      "earnings-pead",
+      "eps-revision-velocity",
+      "momentum-breakout",
+      "retail-sentiment"
+    ],
+    "top_bearish": []
+  },
+  "NVDA_detail": {
+    "directional_score": 39.3,
+    "pump_likelihood": 43.1,
+    "pump_category": "WATCHLIST",
+    "n_bullish_eng": 2,
+    "n_bearish_eng": 0,
+    "top_bullish": [
+      "earnings-pead",
+      "eps-revision-velocity",
+      "momentum-breakout",
+      "ark-holdings"
+    ],
+    "top_bearish": []
+  },
+  "finished": "2026-06-01T17:19:37.647974+00:00"
+}
