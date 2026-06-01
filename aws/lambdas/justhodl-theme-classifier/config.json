@@ -1,0 +1,16 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 180,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Auto-discovers active themes from momentum-leaders top 30 by clustering on FMP industry. Theme = ≥3 momentum leaders share an industry. Cache TTL 7d. Every 6h.",
+  "environment": {"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-theme-classifier-6h",
+    "cron": "cron(0 */6 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Theme classifier every 6 hours"
+  }
+}

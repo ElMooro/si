@@ -133,6 +133,19 @@ ENGINE_EXTRACTORS = {
         "domain": "momentum",
         "extra":  ["tier", "flags", "is_parabolic"],
     },
+    "velocity-acceleration": {
+        # EARLINESS DETECTOR — fires 1-3 days BEFORE velocity-surge would.
+        # Reads pre-graduated state too: actionable = either confirmed OR currently aging
+        # but we only include CONFIRMED+FRESH in the radar so far (aging is too noisy
+        # to vote with). Fresh fires get a moderate score; confirmed gets full weight.
+        "key":    "data/velocity-acceleration.json",
+        "path":   "actionable_tickers",  # confirmed only — fresh fires excluded until confirmed
+        "ticker": None,            # this path is a list of ticker strings
+        "score":  None,
+        "domain": "momentum",
+        "is_string_list": True,    # treat each item as a ticker name (no dict)
+        "default_score": 70,       # post-confirmation = strong signal
+    },
     "options-flow": {
         "key":    "data/options-flow.json",
         "path":   "all_qualifying",
@@ -316,6 +329,22 @@ def normalize_score(raw, score_scale=None) -> Optional[float]:
 def extract_ticker_signals_from_engine(spec_name: str, spec: dict, items: list) -> dict:
     """Returns {ticker: signal_dict} for this engine's items."""
     out = {}
+    # Handle string-list format (items are just ticker strings, no dict)
+    if spec.get("is_string_list"):
+        default_score = spec.get("default_score", 50)
+        for item in items:
+            if not isinstance(item, str):
+                continue
+            t = normalize_ticker(item)
+            if not t or len(t) > 6 or not t.isalnum():
+                continue
+            out[t] = {
+                "domain":    spec["domain"],
+                "score":     default_score,
+                "raw_score": default_score,
+            }
+        return out
+
     if spec.get("is_dict"):
         ticker_field = "_ticker_from_dict_key"
     else:
@@ -459,6 +488,14 @@ def _direction_momentum_breakout(sig: dict) -> tuple:
     else:
         note = f"{tier} ({'+'.join(flags[:3])})"
     return (mag, note)
+
+
+def _direction_velocity_acceleration(sig: dict) -> tuple:
+    """velocity-acceleration fires only on UP accumulation patterns (slope rising
+    AND price-confirmed direction). Always bullish. Score reflects post-confirmation
+    state — this engine only contributes to convergence after another engine has
+    independently confirmed."""
+    return (+0.9, "ACCELERATION_CONFIRMED (earliness signal)")
 
 
 def _direction_options_flow(sig: dict) -> tuple:
@@ -619,6 +656,7 @@ def _direction_dividend_growth(sig: dict) -> tuple:
 DIRECTION_FN = {
     "buzz-velocity":         _direction_buzz_velocity,
     "momentum-breakout":     _direction_momentum_breakout,
+    "velocity-acceleration": _direction_velocity_acceleration,
     "options-flow":          _direction_options_flow,
     "eps-revision-velocity": _direction_eps_revision,
     "earnings-pead":         _direction_earnings_pead,
@@ -662,6 +700,7 @@ def compute_directional_score(engines: Dict[str, dict]) -> dict:
     """
     weights = {
         "options-flow":         1.5,
+        "velocity-acceleration": 1.5,  # earliness — high weight, post-confirmation
         "momentum-breakout":    1.4,
         "sec-filings-intel":    1.3,
         "earnings-pead":        1.2,

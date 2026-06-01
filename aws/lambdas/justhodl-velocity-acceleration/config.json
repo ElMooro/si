@@ -1,0 +1,16 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Earliness detector. Scans momentum+theme universe for volume acceleration (slope + accumulation + floor lift). State: pending→confirmed via momentum-breakout/options-flow/buzz-velocity. Hourly :30.",
+  "environment": {"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-velocity-acceleration-hourly",
+    "cron": "cron(30 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Velocity acceleration detector hourly at :30"
+  }
+}
