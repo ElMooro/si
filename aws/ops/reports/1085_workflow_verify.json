@@ -1,0 +1,50 @@
+{
+  "started": "2026-06-01T00:24:10.428738+00:00",
+  "canary": {
+    "last_modified": "2026-06-01T00:22:16.000+0000",
+    "zip_size": 26782,
+    "files": [
+      "finra_si.py",
+      "_fred_shim.py",
+      "ka_aliases.py",
+      "api_auth.py",
+      "calibration.py",
+      "system_events.py",
+      "_sentry_lite.py",
+      "lambda_function.py"
+    ],
+    "has_fred_shim_file": true,
+    "shim_first_line": "\"\"\"_fred_shim.py \u2014 Monkey-patch urllib for cache-first FRED + 429 backoff.",
+    "lambda_imports_shim": false
+  },
+  "canary_invoke": {
+    "elapsed_s": 2.0,
+    "status": 200,
+    "raw": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"UNKNOWN\\\", \\\"twos_tens_bps\\\": null, \\\"butterfly_bps\\\": null, \\\"n_signals\\\": 0, \\\"duration_s\\\": 1.11}\"}",
+    "regime": "UNKNOWN",
+    "n_signals": 0,
+    "twos_tens_bps": null
+  },
+  "other_lambdas": {
+    "justhodl-divergence-engine-v2": {
+      "has_fred_shim_file": true,
+      "lambda_imports_shim": true,
+      "last_modified": "2026-05-31T22:58:17.000+0000",
+      "zip_size": 15392
+    },
+    "justhodl-cds-proxy": {
+      "has_fred_shim_file": true,
+      "lambda_imports_shim": true,
+      "last_modified": "2026-05-31T22:59:11.000+0000",
+      "zip_size": 7365
+    },
+    "justhodl-daily-report-v3": {
+      "has_fred_shim_file": true,
+      "lambda_imports_shim": true,
+      "last_modified": "2026-05-31T23:05:59.000+0000",
+      "zip_size": 42629
+    }
+  },
+  "canary_lambda_function_still_imports_shim": false,
+  "finished": "2026-06-01T00:24:13.552794+00:00"
+}
