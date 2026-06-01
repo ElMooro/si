@@ -85,8 +85,11 @@ OUTPUT_KEY   = "data/ticker-research-bundle.json"
 MODEL        = "claude-haiku-4-5-20251001"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
-# Number of top pump candidates to research
-TOP_N_TICKERS = 15
+# Number of top pump candidates to research per Lambda invocation
+# Lower number = more depth per ticker, less risk of token overflow.
+# Each dossier needs ~1500-2000 tokens (bull + risk + framework). 10 tickers
+# × 1500 = 15K tokens for response → max_tokens=16000 gives headroom.
+TOP_N_TICKERS = 10
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -254,6 +257,75 @@ def extract_json(text: str) -> dict:
     return json.loads(text)
 
 
+def _try_partial_recovery(text: str) -> dict:
+    """If Claude's response is truncated mid-JSON, try to recover the complete
+    dossier entries that were already produced.
+
+    Strategy: find the {"research": [ opener, then walk through dossier objects,
+    keeping the ones that close balanced. Stop at the first unbalanced/truncated one.
+    """
+    text = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
+    # Find research array opener
+    m = re.search(r'"research"\s*:\s*\[', text)
+    if not m:
+        return None
+    array_start = m.end()
+
+    # Walk through the array, finding balanced top-level objects
+    dossiers = []
+    i = array_start
+    n = len(text)
+    while i < n:
+        # Skip whitespace + commas
+        while i < n and text[i] in " \t\n\r,":
+            i += 1
+        if i >= n:
+            break
+        if text[i] == "]":
+            break
+        if text[i] != "{":
+            # Unexpected — likely truncated mid-object
+            break
+        # Walk balanced braces, tracking string state
+        depth = 0
+        start = i
+        in_str = False
+        esc = False
+        valid = False
+        while i < n:
+            ch = text[i]
+            if in_str:
+                if esc:
+                    esc = False
+                elif ch == "\\":
+                    esc = True
+                elif ch == '"':
+                    in_str = False
+            else:
+                if ch == '"':
+                    in_str = True
+                elif ch == "{":
+                    depth += 1
+                elif ch == "}":
+                    depth -= 1
+                    if depth == 0:
+                        valid = True
+                        i += 1
+                        break
+            i += 1
+        if not valid:
+            # truncated mid-object — stop, return what we have
+            break
+        candidate = text[start:i]
+        try:
+            dossiers.append(json.loads(candidate))
+        except json.JSONDecodeError:
+            break
+    if not dossiers:
+        return None
+    return {"research": dossiers}
+
+
 # ═════════════════════════════════════════════════════════════════════
 # Lambda handler
 # ═════════════════════════════════════════════════════════════════════
@@ -291,18 +363,25 @@ def lambda_handler(event, context):
 
     try:
         t_claude = time.time()
-        response_text = call_anthropic(SYSTEM_PROMPT, user_prompt, max_tokens=8000)
+        response_text = call_anthropic(SYSTEM_PROMPT, user_prompt, max_tokens=16000)
         claude_elapsed = round(time.time() - t_claude, 2)
         print(f"[dr] Claude response in {claude_elapsed}s, {len(response_text)} chars")
     except Exception as e:
         return _write_error(f"Claude error: {e}")
 
-    # 4. Parse JSON
+    # 4. Parse JSON — with partial-recovery fallback for truncated responses
+    parsed = None
     try:
         parsed = extract_json(response_text)
     except Exception as e:
-        return _write_error(f"JSON parse error: {e}",
-                              raw_preview=response_text[:600])
+        print(f"[dr] full JSON parse failed: {e}; trying partial recovery…")
+        # Try to recover: find the last complete dossier object before the truncation
+        parsed = _try_partial_recovery(response_text)
+        if not parsed:
+            return _write_error(f"JSON parse error: {e}",
+                                  raw_preview=response_text[:600])
+        else:
+            print(f"[dr] recovered partial JSON with {len(parsed.get('research', []))} complete dossiers")
 
     research_array = parsed.get("research") or []
     if not isinstance(research_array, list):
