@@ -1,0 +1,53 @@
+{
+  "started": "2026-06-01T17:35:46.664343+00:00",
+  "phases": [
+    {
+      "name": "check",
+      "status": "ok",
+      "result": {
+        "state": "Active",
+        "last_modified": "2026-06-01T17:31:42.000+0000",
+        "code_size_kb": 27.5,
+        "memory": 512,
+        "timeout": 180,
+        "has_api_key": true
+      }
+    },
+    {
+      "name": "setup_schedule",
+      "status": "ok",
+      "result": {
+        "schedule": "justhodl-ticker-deep-research-hourly",
+        "cron": "cron(5 * * * ? *)"
+      }
+    },
+    {
+      "name": "invoke",
+      "status": "ok",
+      "result": {
+        "elapsed_s": 75.0,
+        "summary": {
+          "status": "error",
+          "error": "JSON parse error: Unterminated string starting at: line 430 column 11 (char 29070)"
+        }
+      }
+    },
+    {
+      "name": "read_bundle",
+      "status": "ok",
+      "result": {
+        "size_kb": 0.8,
+        "last_modified": "2026-06-01T17:37:04+00:00",
+        "schema": "1.0",
+        "elapsed_sec": null,
+        "claude_elapsed": null,
+        "n_tickers": null,
+        "tickers": null,
+        "status": "error",
+        "error": "JSON parse error: Unterminated string starting at: line 430 column 11 (char 29070)",
+        "raw_preview": "```json\n{\n  \"research\": [\n    {\n      \"ticker\": \"NEM\",\n      \"bull_thesis\": {\n        \"headline\": \"Six-quarter earnings beat streak with 122.7% DCF upside signals sustained positive surprises.\",\n        \"thesis\": \"NEM converges on earnings-pead (TIER_S_PEAD_DRIFT, 6Q streak) paired with fundamental "
+      }
+    }
+  ],
+  "finished": "2026-06-01T17:37:05.796145+00:00"
+}
