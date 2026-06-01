@@ -1,0 +1,16 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "60d correlation matrix between top 20 pump candidates + factor exposure (beta SPY/QQQ/sector + alpha + R2). Daily 04:00 UTC.",
+  "environment": {"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-portfolio-analytics-daily",
+    "cron": "cron(0 4 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Cross-candidate correlations + factor exposure daily 04:00 UTC"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "runtime": "python3.12",
+  "memory": 768,
+  "timeout": 240,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Squeeze proxy + options skew + float rotation per pump candidate. SI is proxy (FINRA Reg SHO needed). IV rank computed from ATR range. Hourly :15.",
+  "environment": {"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-pump-mechanics-hourly",
+    "cron": "cron(15 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Pump mechanics (squeeze + options skew) hourly at :15"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "runtime": "python3.12",
+  "memory": 768,
+  "timeout": 180,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Claude haiku-4-5 NLP on last 2 quarters of earnings transcripts for top 8 pump candidates. Tone shift + emerging themes + Q&A pressure. Daily 03:00 UTC.",
+  "inherit_env": {"from_function": "justhodl-ai-chat", "keys": ["ANTHROPIC_API_KEY"]},
+  "environment": {"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-pump-earnings-nlp-daily",
+    "cron": "cron(0 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Pump-candidate earnings NLP daily 03:00 UTC"
+  }
+}
