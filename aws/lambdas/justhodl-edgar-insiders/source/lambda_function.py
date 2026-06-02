@@ -460,7 +460,15 @@ def aggregate_signal(filings_parsed: list) -> dict:
                 }
                 break
 
-    # ── Signal labelling (v2)
+    # ── Signal labelling (v2.1 — guards against insufficient baseline)
+    # Many megacaps return only ~30 most-recent filings in SEC submissions.json,
+    # which doesn't span 180 days. When prior_90d has < $1M of sells, we don't
+    # have enough baseline to call something "accelerating" — we'd be dividing
+    # by ~0 and getting absurd 200× ratios. So we require both:
+    #   sell_acceleration ≥ 2.0
+    #   prior_dollars_sell ≥ $1M (real baseline)
+    HAS_BASELINE = prior_sell_dollars >= 1_000_000
+
     if cluster_detected and recent_buy_dollars > 0:
         signal_label = "STRONG_CLUSTER_BUY"
         signal_score = min(100, 75 + len(recent_buys) * 5)
@@ -470,16 +478,29 @@ def aggregate_signal(filings_parsed: list) -> dict:
         signal_label = "INSIDER_BUYING"
         signal_score = min(85, 60 + min(25, recent_buy_dollars / 1_000_000 * 5))
         signal_note = f"${recent_buy_dollars:,.0f} in open-market buys (90d)"
-    elif sell_acceleration >= 2.0 and recent_sell_dollars >= 5_000_000 and n_csuite_sellers >= 1:
+    elif HAS_BASELINE and sell_acceleration >= 2.0 and recent_sell_dollars >= 5_000_000 and n_csuite_sellers >= 1:
         signal_label = "ACCELERATING_SELL"
         signal_score = max(15, 40 - min(25, (sell_acceleration - 2) * 5))
         signal_note = (f"sells are {sell_acceleration:.1f}× the prior 90d baseline; "
                         f"{n_csuite_sellers} C-suite officer{'s' if n_csuite_sellers>1 else ''} selling")
+    elif recent_sell_dollars >= 50_000_000 and n_csuite_sellers >= 1 and not HAS_BASELINE:
+        # Large absolute selling with no comparable baseline — note it without alarming
+        signal_label = "LARGE_SELLING"
+        signal_score = 40
+        signal_note = (f"${recent_sell_dollars:,.0f} sold (90d), "
+                        f"{n_csuite_sellers} C-suite officer{'s' if n_csuite_sellers>1 else ''} selling "
+                        f"· limited prior-period baseline (only most-recent ~30 filings available)")
     elif recent_sell_dollars > 0 and recent_buy_dollars == 0:
-        signal_label = "ROUTINE_SELLING"
-        signal_score = 45  # slight tilt — no buying is mildly bearish but not actionable
-        signal_note = (f"${recent_sell_dollars:,.0f} sold (90d), within normal range "
-                        f"({sell_acceleration:.1f}× prior baseline)")
+        if HAS_BASELINE:
+            signal_label = "ROUTINE_SELLING"
+            signal_score = 45  # slight tilt — no buying is mildly bearish but not actionable
+            signal_note = (f"${recent_sell_dollars:,.0f} sold (90d), within normal range "
+                            f"({sell_acceleration:.1f}× prior baseline)")
+        else:
+            signal_label = "ROUTINE_SELLING"
+            signal_score = 45
+            signal_note = (f"${recent_sell_dollars:,.0f} sold (90d) "
+                            f"· limited historical data — comparison to prior baseline not available")
     elif len(all_txns) == 0:
         signal_label = "QUIET"
         signal_score = 50
