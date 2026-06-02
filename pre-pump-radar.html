@@ -886,6 +886,76 @@ const CATALYSTS_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/cat
 const CLUSTERS_URL  = "https://justhodl-data-proxy.raafouis.workers.dev/data/catalyst-clusters.json";
 const EARLY_MOVERS_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/early-movers.json";
 const THEME_CASCADE_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/theme-cascade.json";
+const VALIDATION_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/cascade-validation-log.json";
+
+// Fetch + render Validation Track Record — proof of predictive accuracy
+async function fetchValidation() {
+  try {
+    const r = await fetch(VALIDATION_URL + "?t=" + Date.now());
+    if(!r.ok) return;
+    const doc = await r.json();
+    renderValidation(doc);
+  } catch(e) {
+    console.log("validation fetch:", e.message);
+  }
+}
+
+function renderValidation(doc) {
+  const byTier = doc.by_tier_stats || {};
+  const totalValidated = doc.n_predictions_validated || 0;
+  if(totalValidated === 0) return;
+
+  let html = '<div style="margin-bottom:14px"><div style="font-size:12.5px; color:var(--fg-1); margin-bottom:8px"><b>📊 Track Record</b> · <span style="color:var(--fg-3); font-size:11px">forward-looking validation of cascade predictions over last ' + (doc.lookback_days || 7) + ' days · ' + totalValidated + ' predictions scored</span></div>';
+  html += '<table style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px"><thead><tr style="border-bottom:1px solid var(--border)">';
+  ['TIER','N','HIT RATE','BIG HITS','MEAN MAX RET','BEST','WORST'].forEach(h => {
+    html += '<th style="text-align:left; padding:6px 8px; color:var(--green); font-size:10px; letter-spacing:1px; text-transform:uppercase">' + h + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  ['ALERT_TIER','LAGGARD','MEDIUM_TIER'].forEach(tier => {
+    const s = byTier[tier];
+    if(!s || s.n === 0) return;
+    const hitColor = (s.hit_rate_pct >= 50) ? 'var(--green)' : (s.hit_rate_pct >= 30) ? 'var(--amber)' : 'var(--red)';
+    html += '<tr style="border-bottom:1px solid var(--border)">';
+    html += '<td style="padding:6px 8px; font-weight:700">' + tier + '</td>';
+    html += '<td style="padding:6px 8px; color:var(--fg-2)">' + s.n + '</td>';
+    html += '<td style="padding:6px 8px"><b style="color:' + hitColor + '">' + (s.hit_rate_pct || 0).toFixed(1) + '%</b></td>';
+    html += '<td style="padding:6px 8px; color:var(--green)">' + (s.n_hit_big || 0) + '</td>';
+    html += '<td style="padding:6px 8px; color:var(--fg-2)">' + (s.mean_max_return_pct != null ? (s.mean_max_return_pct > 0 ? '+' : '') + s.mean_max_return_pct.toFixed(2) + '%' : '—') + '</td>';
+    html += '<td style="padding:6px 8px; color:var(--green)">' + (s.best_return != null ? '+' + s.best_return.toFixed(1) + '%' : '—') + '</td>';
+    html += '<td style="padding:6px 8px; color:var(--red)">' + (s.worst_return != null ? s.worst_return.toFixed(1) + '%' : '—') + '</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+
+  // Top 5 best calls
+  const best = (doc.best_calls || []).slice(0, 5);
+  if(best.length) {
+    html += '<div style="font-size:11px; color:var(--fg-3); margin-top:10px; margin-bottom:4px">Best calls last 7 days:</div>';
+    html += '<div style="display:flex; flex-wrap:wrap; gap:6px">';
+    best.forEach(c => {
+      const ret = c.max_return_pct || 0;
+      const outcome = c.outcome || '?';
+      const color = outcome === 'HIT_BIG' ? 'var(--green)' : outcome === 'HIT' ? 'var(--amber)' : 'var(--cyan)';
+      html += '<span style="background:var(--bg-sunken); border:1px solid ' + color + '; padding:3px 8px; border-radius:4px; font-family:var(--font-mono); font-size:10.5px"><a href="/why.html?ticker=' + c.ticker + '" style="color:' + color + '; text-decoration:none; font-weight:700">' + esc(c.ticker) + '</a> <span style="color:var(--green)">+' + ret.toFixed(1) + '%</span> <span style="color:var(--fg-3); font-size:9.5px">' + c.tier + '</span></span>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // Inject INTO the cascade hero panel header area (above content)
+  const cascadeHero = document.getElementById('theme-cascade-hero');
+  if(cascadeHero) {
+    const trackPanel = document.createElement('div');
+    trackPanel.id = 'cascade-track-record';
+    trackPanel.style.cssText = 'background:rgba(0,212,255,.04); border:1px solid var(--border); border-radius:8px; padding:14px 18px; margin-bottom:16px';
+    trackPanel.innerHTML = html;
+    // Insert before theme-cascade-content
+    const content = document.getElementById('theme-cascade-content');
+    if(content && !document.getElementById('cascade-track-record')) {
+      cascadeHero.insertBefore(trackPanel, content);
+    }
+  }
+}
 
 // Fetch + render Theme Cascade (theme rotation thesis)
 async function fetchThemeCascade() {
@@ -1105,6 +1175,7 @@ if(typeof window !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
     fetchEarlyMovers();
     fetchThemeCascade();
+    fetchValidation();
   });
 }
 let DATA = null;

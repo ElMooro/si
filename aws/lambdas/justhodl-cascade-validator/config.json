@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-cascade-validator",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 600,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Forward-looking validation tracker for theme-cascade predictions. Measures hit rate at 1d/3d/5d/7d horizons.",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(0 21 * * MON-FRI *)",
+    "name": "justhodl-cascade-validator-eod",
+    "description": "Weekdays 16:00 ET (after market close) — score yesterday's predictions"
+  }
+}
