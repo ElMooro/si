@@ -319,6 +319,11 @@ let RESEARCH_URL = "/api/equity-research"; // placeholder; overridden below
 // Lambda URL — populated dynamically from a config or hardcoded after deploy
 RESEARCH_URL = "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/";
 
+// CDN proxy URL for cached research files (cached responses return in ~200ms vs
+// 90-100s for fresh Lambda generation). Most popular tickers are pre-warmed
+// nightly, so this is a hit for any S&P 500 name.
+const CDN_RESEARCH_BASE = "https://justhodl-data-proxy.raafouis.workers.dev/equity-research";
+
 // ─── helpers
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "—").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -367,29 +372,39 @@ async function fetchAndRender(ticker){
   $("content").innerHTML = `
     <div class="loading-state">
       <div class="spinner"></div>
-      <div class="msg">Compiling research for <b style="color:var(--accent)">${esc(ticker)}</b>…</div>
-      <div class="step" id="loadStep">fetching 20-year fundamentals from Financial Modeling Prep</div>
+      <div class="msg">Loading research for <b style="color:var(--accent)">${esc(ticker)}</b>…</div>
+      <div class="step" id="loadStep">checking cached research…</div>
     </div>`;
-  // Step animation
-  const steps = [
-    "fetching 20-year fundamentals from Financial Modeling Prep",
-    "loading income / balance / cash-flow statements",
-    "computing growth, margins, balance-sheet quality",
-    "running DCF + valuation multiples vs peers",
-    "synthesizing institutional research memo (Claude)",
-    "almost there — formatting final document",
-  ];
-  let stepIdx = 0;
-  const stepTimer = setInterval(() => {
-    stepIdx = (stepIdx + 1) % steps.length;
-    const el = $("loadStep");
-    if(el) el.textContent = steps[stepIdx];
-  }, 5000);
 
   try {
-    const url = `${RESEARCH_URL}?ticker=${encodeURIComponent(ticker)}`;
-    const r = await fetch(url);
-    clearInterval(stepTimer);
+    // ─── Phase 1: Try CDN (cached). Returns in ~200ms if hit.
+    setStep("checking cached research…");
+    const cdnUrl = `${CDN_RESEARCH_BASE}/${encodeURIComponent(ticker)}.json?v=${Date.now()}`;
+    try {
+      const cdnResp = await fetchWithTimeout(cdnUrl, 8000);
+      if(cdnResp && cdnResp.ok){
+        const doc = await cdnResp.json();
+        // Validate the cache isn't ancient (>48h = stale, regenerate)
+        const ageMs = doc.generated_at ? (Date.now() - new Date(doc.generated_at).getTime()) : 0;
+        if(ageMs < 48 * 3600 * 1000){
+          renderReport(doc);
+          return;
+        }
+        // else fall through to fresh fetch
+        setStep("cached data stale — generating fresh report (this takes ~90s)…");
+      } else if(cdnResp && cdnResp.status === 404){
+        setStep("no cached report — generating fresh (this takes ~90s)…");
+      }
+    } catch(e){
+      // CDN failed entirely — try Lambda anyway
+      setStep("CDN unreachable — calling Lambda directly…");
+    }
+
+    // ─── Phase 2: Lambda fetch with 150s timeout
+    startStepAnimation();
+    const lambdaUrl = `${RESEARCH_URL}?ticker=${encodeURIComponent(ticker)}`;
+    const r = await fetchWithTimeout(lambdaUrl, 150000);
+    stopStepAnimation();
     if(!r.ok){
       const txt = await r.text();
       throw new Error(`HTTP ${r.status}: ${txt.slice(0,200)}`);
@@ -397,14 +412,60 @@ async function fetchAndRender(ticker){
     const doc = await r.json();
     renderReport(doc);
   } catch(e){
-    clearInterval(stepTimer);
+    stopStepAnimation();
+    const msg = String(e.message || e);
+    const friendlyMsg = msg.includes("timeout") || msg.includes("Aborted")
+      ? "The research generation took too long. This usually happens for newly-requested tickers. Try refreshing the page in 30 seconds — the report will likely be cached by then."
+      : msg.includes("404") || msg.includes("invalid")
+        ? `Ticker "${esc(ticker)}" not recognized by Financial Modeling Prep. Check spelling (use AAPL not 'apple') or try the symbol from a different exchange (e.g. BRK-B vs BRK.B).`
+        : `Network error: ${esc(msg)}`;
     $("content").innerHTML = `<div class="err">
-      <b>Could not load research:</b> ${esc(e.message)}<br>
-      <span style="opacity:.7">Check that the ticker is valid + the research Lambda URL is configured.</span>
+      <b>Could not load research for ${esc(ticker)}</b><br>
+      ${friendlyMsg}<br>
+      <span style="opacity:.7">Or try a different ticker. Popular pre-cached names: AAPL, MSFT, NVDA, GOOGL, JPM, KO, NVDA, TSLA, AVGO.</span>
     </div>`;
   } finally {
     btn.disabled = false;
   }
+}
+
+// ─── helpers for fetchAndRender
+async function fetchWithTimeout(url, ms){
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+let _stepTimer = null;
+function setStep(msg){
+  const el = $("loadStep");
+  if(el) el.textContent = msg;
+}
+function startStepAnimation(){
+  const steps = [
+    "fetching 21 financial data sources in parallel…",
+    "loading 20-year income / balance / cash-flow statements…",
+    "computing growth, margins, balance-sheet quality, FCF trends…",
+    "running DCF + valuation multiples vs peer median…",
+    "fetching peer detail for industry P/E comparison…",
+    "loading earnings call transcript (50-150KB)…",
+    "synthesizing institutional research memo (Claude AI)…",
+    "Claude generating scenarios (bull / base / bear)…",
+    "wrapping up — formatting final document…",
+  ];
+  let idx = 0;
+  setStep(steps[0]);
+  _stepTimer = setInterval(() => {
+    idx = (idx + 1) % steps.length;
+    setStep(steps[idx]);
+  }, 8000);
+}
+function stopStepAnimation(){
+  if(_stepTimer){ clearInterval(_stepTimer); _stepTimer = null; }
 }
 
 // ─── render
