@@ -1,0 +1,361 @@
+{
+  "started": "2026-06-02T14:28:43.728302+00:00",
+  "steps": {
+    "env_check": {
+      "has_polygon_key": true,
+      "key_len": 32,
+      "all_keys": [
+        "POLYGON_KEY"
+      ]
+    },
+    "sync_invoke": {
+      "elapsed_s": 2.7,
+      "status_code": 200,
+      "function_error": null,
+      "body_preview": {
+        "statusCode": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": "{\"ok\": true, \"elapsed_s\": 1.7, \"n_etfs_ok\": 84, \"regime\": \"NEUTRAL\", \"composite_summary\": {\"defensive_rotation\": \"MIXED\", \"smart_vs_dumb\": \"MIXED\", \"risk_on_off\": \"MIXED\", \"domestic_vs_intl\": \"MIXED\", \"growth_vs_value\": \"MIXED\", \"credit_stress\": \"MIXED\"}, \"top_5_inflows\": [{\"ticker\": \"EWU\", \"z\": 5.13, \"label\": \"STRONG_INFLOW\"}, {\"ticker\": \"EWC\", \"z\": 3.18, \"label\": \"STRONG_INFLOW\"}, {\"ticker\": \"ICLN\", \"z\": 2.77, \"label\": \"STRONG_INFLOW\"}, {\"ticker\": \"XLB\", \"z\": 2.7, \"label\": \"STRONG_INFLOW\"}, {\"ticker\": \"MTUM\", \"z\": 2.12, \"label\": \"STRONG_INFLOW\"}], \"top_5_outflows\": [{\"ticker\": \"UNG\", \"z\": -3.97, \"label\": \"STRONG_OUTFLOW\"}, {\"ticker\": \"IBIT\", \"z\": -2.54, \"label\": \"STRONG_OUTFLOW\"}, {\"ticker\": \"IBB\", \"z\": -2.2, \"label\": \"STRONG_OUTFLOW\"}, {\"ticker\": \"QQQ\", \"z\": -1.89, \"label\": \"OUTFLOW\"}, {\"ticker\": \"XLY\", \"z\": -1.81, \"label\": \"OUTFLOW\"}], \"outputs_written\": [\"etf-flows/daily.json\", \"etf-flows/composite.json\", \"etf-flows/rotation.json\", \"etf-flows/per-ticker-context.json\", \"etf-flows/history/2026-06-02.json\"]}"
+      }
+    },
+    "results": {
+      "generated_at": "2026-06-02T14:28:46.501812+00:00",
+      "lambda_elapsed_s": 1.7,
+      "universe_size": 84,
+      "n_ok": 84,
+      "n_failed": 0,
+      "sample_with_data": {
+        "ticker": "SPY",
+        "processed_date": "2026-06-01",
+        "category": "broad",
+        "subcategory": "us_large_cap",
+        "smart_money": true,
+        "region": "US",
+        "ref_sector": null,
+        "daily_flow_usd": -2117587620.4,
+        "flow_5d_usd": 2081963623.6,
+        "flow_21d_usd": 5257618118.150001,
+        "pct_aum_daily": -0.27,
+        "pct_aum_5d": 0.27,
+        "pct_aum_21d": 0.67,
+        "aum_usd": 784620191869.8616,
+        "flow_zscore_90d": -0.61,
+        "persistence_days": 1,
+        "signal_label": "NEUTRAL",
+        "n_history_points": 75
+      },
+      "n_errors": 0,
+      "sample_errors": [],
+      "top_inflows": [
+        {
+          "t": "EWU",
+          "z": 5.13,
+          "5d_usd": 121605809.0,
+          "21d_usd": 121605809.0,
+          "5d_pct_aum": 3.42,
+          "21d_pct_aum": 3.42,
+          "label": "STRONG_INFLOW",
+          "sub": "uk",
+          "persist": 1,
+          "n_history": 75
+        },
+        {
+          "t": "EWC",
+          "z": 3.18,
+          "5d_usd": 293228365.8,
+          "21d_usd": 335220141.4,
+          "5d_pct_aum": 5.17,
+          "21d_pct_aum": 5.91,
+          "label": "STRONG_INFLOW",
+          "sub": "canada",
+          "persist": 3,
+          "n_history": 75
+        },
+        {
+          "t": "ICLN",
+          "z": 2.77,
+          "5d_usd": 122786282.5,
+          "21d_usd": 402317877.8,
+          "5d_pct_aum": 3.81,
+          "21d_pct_aum": 12.47,
+          "label": "STRONG_INFLOW",
+          "sub": "clean_energy",
+          "persist": 2,
+          "n_history": 75
+        },
+        {
+          "t": "XLB",
+          "z": 2.7,
+          "5d_usd": 94427662.65,
+          "21d_usd": 98633048.54999998,
+          "5d_pct_aum": 1.27,
+          "21d_pct_aum": 1.33,
+          "label": "STRONG_INFLOW",
+          "sub": "materials",
+          "persist": 1,
+          "n_history": 75
+        },
+        {
+          "t": "MTUM",
+          "z": 2.12,
+          "5d_usd": -1204774196.35,
+          "21d_usd": -488956763.15,
+          "5d_pct_aum": -4.54,
+          "21d_pct_aum": -1.84,
+          "label": "STRONG_INFLOW",
+          "sub": "momentum",
+          "persist": 1,
+          "n_history": 75
+        },
+        {
+          "t": "SMH",
+          "z": 1.69,
+          "5d_usd": 601640077.0,
+          "21d_usd": 30759974.5,
+          "5d_pct_aum": 0.85,
+          "21d_pct_aum": 0.04,
+          "label": "INFLOW",
+          "sub": "semiconductors",
+          "persist": 3,
+          "n_history": 75
+        },
+        {
+          "t": "EWG",
+          "z": 1.28,
+          "5d_usd": 26061846.6,
+          "21d_usd": 94204542.0,
+          "5d_pct_aum": 1.74,
+          "21d_pct_aum": 6.28,
+          "label": "INFLOW",
+          "sub": "germany",
+          "persist": 1,
+          "n_history": 75
+        },
+        {
+          "t": "CPER",
+          "z": 1.26,
+          "5d_usd": 11656800.0,
+          "21d_usd": 63169750.0,
+          "5d_pct_aum": 1.4,
+          "21d_pct_aum": 7.59,
+          "label": "INFLOW",
+          "sub": "copper",
+          "persist": 1,
+          "n_history": 75
+        },
+        {
+          "t": "TAN",
+          "z": 1.2,
+          "5d_usd": 39649366.4,
+          "21d_usd": 216353238.4,
+          "5d_pct_aum": 1.78,
+          "21d_pct_aum": 9.71,
+          "label": "INFLOW",
+          "sub": "solar",
+          "persist": 1,
+          "n_history": 73
+        },
+        {
+          "t": "BIL",
+          "z": 0.78,
+          "5d_usd": -96966127.27999997,
+          "21d_usd": 386731898.83,
+          "5d_pct_aum": -0.21,
+          "21d_pct_aum": 0.84,
+          "label": "NEUTRAL",
+          "sub": "tbill",
+          "persist": 1,
+          "n_history": 75
+        }
+      ],
+      "top_outflows": [
+        {
+          "t": "UNG",
+          "z": -3.97,
+          "5d_usd": -60887200.0,
+          "21d_usd": -120985400.0,
+          "5d_pct_aum": -13.29,
+          "21d_pct_aum": -26.41,
+          "label": "STRONG_OUTFLOW",
+          "sub": "nat_gas",
+          "persist": 2,
+          "n_history": 75
+        },
+        {
+          "t": "IBIT",
+          "z": -2.54,
+          "5d_usd": -1429496446.2,
+          "21d_usd": -1920796777.56,
+          "5d_pct_aum": -2.55,
+          "21d_pct_aum": -3.43,
+          "label": "STRONG_OUTFLOW",
+          "sub": "bitcoin",
+          "persist": 11,
+          "n_history": 75
+        },
+        {
+          "t": "IBB",
+          "z": -2.2,
+          "5d_usd": -119610636.15,
+          "21d_usd": -270587754.75,
+          "5d_pct_aum": -1.54,
+          "21d_pct_aum": -3.49,
+          "label": "STRONG_OUTFLOW",
+          "sub": "biotech",
+          "persist": 1,
+          "n_history": 75
+        },
+        {
+          "t": "QQQ",
+          "z": -1.89,
+          "5d_usd": 171551209.5,
+          "21d_usd": 2852946172.5,
+          "5d_pct_aum": 0.03,
+          "21d_pct_aum": 0.58,
+          "label": "OUTFLOW",
+          "sub": "us_megacap_tech",
+          "persist": 2,
+          "n_history": 73
+        },
+        {
+          "t": "XLY",
+          "z": -1.81,
+          "5d_usd": 343912628.2,
+          "21d_usd": -143762635.74999994,
+          "5d_pct_aum": 1.5,
+          "21d_pct_aum": -0.63,
+          "label": "OUTFLOW",
+          "sub": "discretionary",
+          "persist": 2,
+          "n_history": 75
+        },
+        {
+          "t": "XLK",
+          "z": -1.68,
+          "5d_usd": 91545948.10000002,
+          "21d_usd": 589328782.2,
+          "5d_pct_aum": 0.07,
+          "21d_pct_aum": 0.46,
+          "label": "OUTFLOW",
+          "sub": "technology",
+          "persist": 1,
+          "n_history": 75
+        },
+        {
+          "t": "XLP",
+          "z": -1.67,
+          "5d_usd": -139313487.74999997,
+          "21d_usd": 81463742.9,
+          "5d_pct_aum": -0.97,
+          "21d_pct_aum": 0.57,
+          "label": "OUTFLOW",
+          "sub": "staples",
+          "persist": 2,
+          "n_history": 75
+        },
+        {
+          "t": "IEF",
+          "z": -1.25,
+          "5d_usd": -104509214.2,
+          "21d_usd": 129540856.5,
+          "5d_pct_aum": -0.22,
+          "21d_pct_aum": 0.27,
+          "label": "OUTFLOW",
+          "sub": "7_10yr",
+          "persist": 2,
+          "n_history": 75
+        },
+        {
+          "t": "TLT",
+          "z": -1.17,
+          "5d_usd": -1479434771.2,
+          "21d_usd": -562297078.9,
+          "5d_pct_aum": -3.53,
+          "21d_pct_aum": -1.34,
+          "label": "OUTFLOW",
+          "sub": "long_20plus",
+          "persist": 4,
+          "n_history": 75
+        },
+        {
+          "t": "XLF",
+          "z": -1.11,
+          "5d_usd": -932585905.9,
+          "21d_usd": -2571920887.35,
+          "5d_pct_aum": -1.91,
+          "21d_pct_aum": -5.27,
+          "label": "OUTFLOW",
+          "sub": "financials",
+          "persist": 4,
+          "n_history": 75
+        }
+      ],
+      "composite": {
+        "regime": "NEUTRAL",
+        "defensive_rotation": {
+          "score": 9.8,
+          "label": "MIXED",
+          "components": {
+            "defensive_avg_z": -0.6074999999999999,
+            "cyclical_avg_z": -0.9975
+          }
+        },
+        "smart_vs_dumb": {
+          "score": -13.5,
+          "label": "MIXED",
+          "components": {
+            "smart_avg_z": -0.6842857142857143,
+            "dumb_avg_z": -0.146
+          }
+        },
+        "risk_on_off": {
+          "score": 8.6,
+          "label": "MIXED",
+          "components": {
+            "equity_avg_z": -0.45749999999999996,
+            "treasury_avg_z": -0.7999999999999999
+          }
+        },
+        "domestic_vs_intl": {
+          "score": -21.2,
+          "label": "MIXED"
+        },
+        "growth_vs_value": {
+          "score": -1.1,
+          "label": "MIXED"
+        },
+        "credit_stress": {
+          "score": -4.4,
+          "label": "MIXED"
+        }
+      }
+    },
+    "snapshot": {
+      "n_rows": 84,
+      "schema_cols": [
+        "ticker",
+        "processed_date",
+        "category",
+        "subcategory",
+        "smart_money",
+        "region",
+        "ref_sector",
+        "daily_flow_usd",
+        "flow_5d_usd",
+        "flow_21d_usd",
+        "pct_aum_daily",
+        "pct_aum_5d",
+        "pct_aum_21d",
+        "aum_usd",
+        "flow_zscore_90d",
+        "persistence_days",
+        "signal_label",
+        "n_history_points"
+      ]
+    }
+  },
+  "finished": "2026-06-02T14:28:59.932797+00:00"
+}
