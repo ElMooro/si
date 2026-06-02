@@ -1373,40 +1373,40 @@ def fetch_etf_flow_context(payload: dict) -> str:
                 pass
 
         # ── Constituent pull-through pressure (institutional alpha edge) ─
-        # If THIS stock appears in high-z ETFs, surface the cross-ETF pressure.
+        # NEW: comprehensive per-stock ETF exposure across ALL 84 tracked ETFs,
+        # not just high-z ETFs. So even tickers without extreme sector flow
+        # get the cross-ETF positioning context.
         ticker = payload.get("ticker")
         if ticker:
             try:
-                obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/constituent-pressure.json")
-                press_doc = json.loads(obj["Body"].read())
-                stock_pressure = next(
-                    (p for p in (press_doc.get("all_constituents") or [])
-                     if p.get("stock") == ticker),
-                    None,
-                )
-                if stock_pressure:
-                    p5 = stock_pressure.get("total_pressure_5d_usd") or 0
-                    p21 = stock_pressure.get("total_pressure_21d_usd") or 0
-                    n_etfs = stock_pressure.get("n_etfs_pressuring", 0)
-                    direction = stock_pressure.get("dominant_direction", "MIXED")
-                    cum_weight = stock_pressure.get("cumulative_etf_weight_pct", 0)
-                    # Top contributing ETFs (max 3)
-                    top_etfs = (stock_pressure.get("contributing_etfs") or [])[:3]
+                obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/stock-exposure-lookup.json")
+                lookup = json.loads(obj["Body"].read())
+                exposure = lookup.get(ticker)
+                if exposure:
+                    n_etfs = exposure.get("n_etfs_holding", 0)
+                    cum_wt = exposure.get("cumulative_weight_pct", 0)
+                    agg_5d = exposure.get("total_aggregate_flow_5d_usd") or 0
+                    agg_21d = exposure.get("total_aggregate_flow_21d_usd") or 0
+                    top_etfs = (exposure.get("top_etfs") or [])[:5]
+                    direction = ("BUYING" if agg_5d > 1e6 else "SELLING" if agg_5d < -1e6 else "NEUTRAL")
                     etf_breakdown = "; ".join(
-                        f"{e['etf']} (weight {e.get('weight_pct', 0):.1f}%, ETF z={e.get('etf_zscore')})"
+                        f"{e['etf']} (wt {e.get('weight_pct', 0):.1f}%, z={e.get('etf_zscore'):.2f}σ, "
+                        f"flow ${(e.get('etf_flow_5d_usd') or 0)/1e6:+.0f}M)"
                         for e in top_etfs
                     )
                     snippets.append(
-                        f"[ETF-IMPLIED FLOW PRESSURE on {ticker}] {direction} — "
-                        f"cross-ETF aggregated 5d implied flow: ${p5/1e6:+,.1f}M "
-                        f"(21d: ${p21/1e6:+,.1f}M) from {n_etfs} high-z ETFs, "
-                        f"cumulative weight exposure: {cum_weight:.1f}%. "
+                        f"[CROSS-ETF FLOW EXPOSURE on {ticker}] {direction} bias — "
+                        f"this stock is held by {n_etfs} of the tracked ETFs "
+                        f"(cumulative weight exposure {cum_wt:.1f}%). "
+                        f"Aggregated implied flow: 5d=${agg_5d/1e6:+,.1f}M, "
+                        f"21d=${agg_21d/1e6:+,.1f}M across all holding ETFs. "
                         f"Top contributing ETFs: {etf_breakdown}. "
-                        f"This is real institutional positioning data via index/ETF channels — "
-                        f"if it disagrees with your fundamental thesis, address why."
+                        f"This is real institutional positioning via index/ETF channels — "
+                        f"reconcile your fundamental thesis with how money is actually flowing "
+                        f"through these vehicles."
                     )
             except Exception as e:
-                print(f"[constituent-pressure] unavailable for {ticker}: {e}")
+                print(f"[exposure-lookup] unavailable for {ticker}: {e}")
 
         if not snippets:
             return ""

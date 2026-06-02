@@ -111,20 +111,100 @@ def fetch_constituents(etf_ticker: str) -> dict:
         return {"etf": etf_ticker, "error": str(e)[:200]}
 
 
-def select_high_z_etfs(daily_metrics: list) -> list:
-    """Pick ETFs with |flow_zscore_90d| >= threshold. Skip leveraged ETFs."""
-    LEVERAGED_BLOCKLIST = {"TQQQ", "SQQQ", "SOXL", "SOXS", "UVXY", "SVIX", "UPRO", "TMF"}
+def select_etfs_for_constituents(daily_metrics: list, mode: str = "all") -> list:
+    """Pick which ETFs to fetch constituents for.
+
+    mode='all': fetch all ETFs with flow data (gives complete coverage)
+    mode='high_z': only |z|>=1.5σ (legacy mode, narrower)
+
+    Even in 'all' mode we still skip leveraged ETFs (TQQQ, SOXL, UVXY,
+    etc.) because their flows reflect retail speculation, not institutional
+    positioning. Their holdings are derivative-based anyway, not actual
+    stocks.
+    """
+    LEVERAGED_BLOCKLIST = {"TQQQ", "SQQQ", "SOXL", "SOXS", "UVXY", "SVIX",
+                           "UPRO", "TMF", "BITX", "BITI", "LABU", "LABD"}
     out = []
     for m in daily_metrics:
         if m.get("error"):
             continue
-        z = m.get("flow_zscore_90d")
-        if z is None or abs(z) < INSTITUTIONAL_FLOW_THRESHOLD:
-            continue
         if m.get("ticker") in LEVERAGED_BLOCKLIST:
             continue
+        if mode == "high_z":
+            z = m.get("flow_zscore_90d")
+            if z is None or abs(z) < INSTITUTIONAL_FLOW_THRESHOLD:
+                continue
         out.append(m)
     return out
+
+
+def select_high_z_etfs(daily_metrics: list) -> list:
+    """Legacy alias — narrow to high-z only for the 'pressure' aggregation."""
+    return select_etfs_for_constituents(daily_metrics, mode="high_z")
+
+
+def compute_per_stock_etf_exposure(all_etfs: list, constituents_map: dict) -> dict:
+    """Build complete per-stock ETF exposure map across ALL tracked ETFs.
+
+    Output: {stock_ticker: {
+      n_etfs_holding, cumulative_weight_pct,
+      total_aggregate_flow_5d_usd, total_aggregate_flow_21d_usd,
+      holding_etfs: [{etf, weight_pct, etf_flow_5d, etf_zscore, etf_label}],
+    }}
+
+    This is the institutional view: for ANY stock in research, instantly
+    show which of the 84 ETFs hold it and what each ETF's flow signal is.
+    Unlike top_constituents_by_pressure (which only covers high-z ETFs),
+    this is comprehensive across the entire flow universe.
+    """
+    exposure = {}
+    for etf in all_etfs:
+        etf_ticker = etf["ticker"]
+        etf_flow_5d = etf.get("flow_5d_usd") or 0
+        etf_flow_21d = etf.get("flow_21d_usd") or 0
+        etf_z = etf.get("flow_zscore_90d")
+        etf_label = etf.get("signal_label")
+        constituents = constituents_map.get(etf_ticker)
+        if not constituents or constituents.get("error"):
+            continue
+        for c in constituents.get("top_constituents", []):
+            stock = c.get("stock")
+            if not stock:
+                continue
+            weight_decimal = (c.get("weight_pct") or 0) / 100.0
+            rec = exposure.setdefault(stock, {
+                "stock": stock,
+                "name": c.get("name"),
+                "n_etfs_holding": 0,
+                "cumulative_weight_pct": 0,
+                "total_aggregate_flow_5d_usd": 0,
+                "total_aggregate_flow_21d_usd": 0,
+                "holding_etfs": [],
+            })
+            rec["n_etfs_holding"] += 1
+            rec["cumulative_weight_pct"] += c.get("weight_pct") or 0
+            rec["total_aggregate_flow_5d_usd"] += etf_flow_5d * weight_decimal
+            rec["total_aggregate_flow_21d_usd"] += etf_flow_21d * weight_decimal
+            rec["holding_etfs"].append({
+                "etf": etf_ticker,
+                "weight_pct": c.get("weight_pct"),
+                "etf_zscore": etf_z,
+                "etf_label": etf_label,
+                "etf_flow_5d_usd": etf_flow_5d,
+                "etf_flow_21d_usd": etf_flow_21d,
+                "implied_pressure_5d_usd": etf_flow_5d * weight_decimal,
+                "implied_pressure_21d_usd": etf_flow_21d * weight_decimal,
+            })
+
+    # Finalize: round + sort each stock's holding_etfs by absolute pressure
+    for stock, rec in exposure.items():
+        rec["cumulative_weight_pct"] = round(rec["cumulative_weight_pct"], 2)
+        rec["total_aggregate_flow_5d_usd"] = round(rec["total_aggregate_flow_5d_usd"], 2)
+        rec["total_aggregate_flow_21d_usd"] = round(rec["total_aggregate_flow_21d_usd"], 2)
+        rec["holding_etfs"].sort(
+            key=lambda x: abs(x["implied_pressure_5d_usd"]), reverse=True,
+        )
+    return exposure
 
 
 def compute_implied_pressure(high_z_etfs: list, constituents_map: dict) -> list:
@@ -217,38 +297,18 @@ def lambda_handler(event, context):
                 "body": json.dumps({"error": f"Could not read flow data: {str(e)[:200]}"})}
 
     metrics = daily.get("metrics", [])
-    high_z = select_high_z_etfs(metrics)
-    print(f"[constituents] {len(high_z)} ETFs above |z|>={INSTITUTIONAL_FLOW_THRESHOLD}σ "
-          f"(out of {len(metrics)} total)")
+    all_etfs = select_etfs_for_constituents(metrics, mode="all")
+    high_z = select_etfs_for_constituents(metrics, mode="high_z")
+    print(f"[constituents] ALL mode: {len(all_etfs)} ETFs · "
+          f"high-z subset: {len(high_z)} ETFs (|z|>={INSTITUTIONAL_FLOW_THRESHOLD}σ)")
 
-    if not high_z:
-        # No high-z ETFs today — write empty + bail
-        out = {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "as_of_etf_flows_date": daily.get("generated_at"),
-            "n_high_z_etfs": 0,
-            "high_z_etfs": [],
-            "top_constituents_by_pressure": [],
-            "threshold_z": INSTITUTIONAL_FLOW_THRESHOLD,
-            "message": "No ETFs cleared institutional flow threshold today.",
-        }
-        s3.put_object(
-            Bucket=S3_BUCKET, Key="etf-flows/constituent-pressure.json",
-            Body=json.dumps(out, default=str).encode(),
-            ContentType="application/json", CacheControl="public, max-age=600",
-        )
-        return {
-            "statusCode": 200,
-            "body": json.dumps({"ok": True, "n_high_z_etfs": 0}),
-        }
-
-    # 2. Parallel fetch constituents
-    print(f"[constituents] fetching top {TOP_N_CONSTITUENTS} constituents per ETF...")
+    # 2. Parallel fetch constituents for ALL ETFs (comprehensive coverage)
+    print(f"[constituents] fetching top {TOP_N_CONSTITUENTS} per ETF, parallel x{MAX_WORKERS}...")
     constituents_map = {}
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
         future_to_etf = {
             ex.submit(fetch_constituents, m["ticker"]): m["ticker"]
-            for m in high_z
+            for m in all_etfs
         }
         for fut in as_completed(future_to_etf):
             t = future_to_etf[fut]
@@ -257,15 +317,25 @@ def lambda_handler(event, context):
             except Exception as e:
                 constituents_map[t] = {"etf": t, "error": str(e)[:200]}
 
-    n_ok_constituents = sum(1 for c in constituents_map.values() if not c.get("error"))
-    print(f"[constituents] got constituents for {n_ok_constituents}/{len(high_z)} ETFs")
+    n_ok = sum(1 for c in constituents_map.values() if not c.get("error"))
+    print(f"[constituents] got constituents for {n_ok}/{len(all_etfs)} ETFs")
 
-    # 3. Compute aggregated stock-level pressure
-    print(f"[constituents] computing implied pressure aggregation...")
+    # 3. Compute high-z pressure (focused: high signal only)
     pressure = compute_implied_pressure(high_z, constituents_map)
-    print(f"[constituents] {len(pressure)} unique stocks under pressure across high-z ETFs")
+    print(f"[constituents] high-z pressure: {len(pressure)} unique stocks")
 
-    # 4. Write per-ETF archive (top constituents)
+    # 4. Compute complete per-stock ETF exposure map (all-ETF coverage)
+    per_stock_exposure = compute_per_stock_etf_exposure(all_etfs, constituents_map)
+    print(f"[constituents] per-stock exposure: {len(per_stock_exposure)} stocks with ETF holdings")
+
+    # 5. Sort per-stock exposure by abs aggregate flow (top movers across the whole universe)
+    top_aggregate = sorted(
+        per_stock_exposure.values(),
+        key=lambda x: abs(x.get("total_aggregate_flow_5d_usd", 0)),
+        reverse=True,
+    )
+
+    # 6. Write per-ETF archive (top constituents for each fetched ETF)
     for etf_t, c in constituents_map.items():
         if c.get("error"):
             continue
@@ -275,20 +345,23 @@ def lambda_handler(event, context):
                 Key=f"etf-flows/constituents/{etf_t}.json",
                 Body=json.dumps(c, default=str).encode(),
                 ContentType="application/json",
-                CacheControl="public, max-age=3600",  # constituents change slowly
+                CacheControl="public, max-age=3600",
             )
         except Exception as e:
             print(f"[write] {etf_t}: {e}")
 
-    # 5. Write main aggregated output
+    # 7. Write main outputs
     elapsed = round(time.time() - t0, 1)
     output = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "as_of_etf_flows_date": daily.get("generated_at"),
         "threshold_z": INSTITUTIONAL_FLOW_THRESHOLD,
         "elapsed_s": elapsed,
-        "n_high_z_etfs": len(high_z),
-        "n_etfs_with_constituents": n_ok_constituents,
+        "mode": "all_etfs",
+        "n_etfs_total": len(all_etfs),
+        "n_etfs_high_z": len(high_z),
+        "n_etfs_fetched": n_ok,
+        "n_stocks_with_exposure": len(per_stock_exposure),
         "high_z_etfs": [
             {
                 "ticker": e["ticker"],
@@ -296,16 +369,26 @@ def lambda_handler(event, context):
                 "flow_5d_usd": e.get("flow_5d_usd"),
                 "flow_21d_usd": e.get("flow_21d_usd"),
                 "signal_label": e.get("signal_label"),
-                "subcategory": e.get("subcategory"),
-                "persistence_days": e.get("persistence_days"),
                 "n_constituents_fetched": len(
                     (constituents_map.get(e["ticker"], {}) or {}).get("top_constituents") or []
                 ),
             }
             for e in high_z
         ],
-        "top_constituents_by_pressure": pressure[:50],  # top 50 stocks
-        "all_constituents": pressure,  # full list for analytics
+        "top_constituents_by_pressure": pressure[:50],
+        "top_aggregate_exposure": [
+            {
+                "stock": s.get("stock"),
+                "name": s.get("name"),
+                "n_etfs_holding": s.get("n_etfs_holding"),
+                "cumulative_weight_pct": s.get("cumulative_weight_pct"),
+                "total_aggregate_flow_5d_usd": s.get("total_aggregate_flow_5d_usd"),
+                "total_aggregate_flow_21d_usd": s.get("total_aggregate_flow_21d_usd"),
+                "top_holding_etfs": s.get("holding_etfs", [])[:5],
+            }
+            for s in top_aggregate[:100]
+        ],
+        "per_stock_exposure": per_stock_exposure,  # full map (large)
     }
     s3.put_object(
         Bucket=S3_BUCKET, Key="etf-flows/constituent-pressure.json",
@@ -319,9 +402,27 @@ def lambda_handler(event, context):
         Body=json.dumps(output, default=str).encode(),
         ContentType="application/json", CacheControl="public, max-age=86400",
     )
+    # Slim "per-stock lookup" file for fast per-ticker access
+    slim_lookup = {
+        stock: {
+            "n_etfs_holding": r.get("n_etfs_holding"),
+            "cumulative_weight_pct": r.get("cumulative_weight_pct"),
+            "total_aggregate_flow_5d_usd": r.get("total_aggregate_flow_5d_usd"),
+            "total_aggregate_flow_21d_usd": r.get("total_aggregate_flow_21d_usd"),
+            "top_etfs": r.get("holding_etfs", [])[:5],
+        }
+        for stock, r in per_stock_exposure.items()
+    }
+    s3.put_object(
+        Bucket=S3_BUCKET, Key="etf-flows/stock-exposure-lookup.json",
+        Body=json.dumps(slim_lookup, default=str).encode(),
+        ContentType="application/json", CacheControl="public, max-age=600",
+    )
 
-    print(f"[constituents] DONE — {len(pressure)} stocks, top pressure: "
-          f"{pressure[0]['stock'] if pressure else '—'} ({pressure[0]['total_pressure_5d_usd']/1e6:.0f}M)" if pressure else "")
+    print(f"[constituents] DONE — {n_ok}/{len(all_etfs)} ETFs, "
+          f"{len(per_stock_exposure)} stocks, "
+          f"top mover: {top_aggregate[0]['stock'] if top_aggregate else '—'} "
+          f"(${(top_aggregate[0]['total_aggregate_flow_5d_usd'] if top_aggregate else 0)/1e6:+.0f}M)")
 
     return {
         "statusCode": 200,
@@ -330,14 +431,22 @@ def lambda_handler(event, context):
         "body": json.dumps({
             "ok": True,
             "elapsed_s": elapsed,
-            "n_high_z_etfs": len(high_z),
+            "n_etfs_total": len(all_etfs),
+            "n_etfs_high_z": len(high_z),
             "n_stocks_pressured": len(pressure),
-            "top_5_pressure": [
+            "n_stocks_with_exposure": len(per_stock_exposure),
+            "top_5_high_z_pressure": [
                 {"stock": p["stock"],
                  "pressure_5d_usd": p["total_pressure_5d_usd"],
                  "direction": p["dominant_direction"],
                  "n_etfs": p["n_etfs_pressuring"]}
                 for p in pressure[:5]
+            ],
+            "top_5_aggregate_exposure": [
+                {"stock": s["stock"],
+                 "aggregate_flow_5d_usd": s["total_aggregate_flow_5d_usd"],
+                 "n_etfs_holding": s["n_etfs_holding"]}
+                for s in top_aggregate[:5]
             ],
         }),
     }
