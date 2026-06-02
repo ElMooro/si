@@ -887,6 +887,71 @@ const CLUSTERS_URL  = "https://justhodl-data-proxy.raafouis.workers.dev/data/cat
 const EARLY_MOVERS_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/early-movers.json";
 const THEME_CASCADE_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/theme-cascade.json";
 const VALIDATION_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/cascade-validation-log.json";
+const TRADE_TICKETS_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/trade-tickets.json";
+
+// Fetch + render Trade Tickets — complete entry/stop/TP per cascade alert
+async function fetchTradeTickets() {
+  try {
+    const r = await fetch(TRADE_TICKETS_URL + "?t=" + Date.now());
+    if(!r.ok) return;
+    const doc = await r.json();
+    renderTradeTickets(doc);
+  } catch(e) {
+    console.log("trade-tickets fetch:", e.message);
+  }
+}
+
+function renderTradeTickets(doc) {
+  const tickets = doc.tickets || [];
+  if(!tickets.length) return;
+
+  let html = '<div style="margin-bottom:14px"><div style="font-size:12.5px; color:var(--fg-1); margin-bottom:8px"><b>🎫 Complete Trade Tickets</b> · <span style="color:var(--fg-3); font-size:11px">ATR-based stops · R-multiple TPs · portfolio $' + (doc.portfolio_usd || 100000).toLocaleString() + ' assumed</span></div>';
+
+  html += '<table style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px"><thead><tr style="border-bottom:1px solid var(--border)">';
+  ['TICKER','TIER','ENTRY','STOP','RISK %','TP1','TP2','TP3','R:R','SHARES','MAX $ LOSS','ATR %'].forEach(h => {
+    html += '<th style="text-align:left; padding:6px 8px; color:var(--cyan); font-size:10px; letter-spacing:1px; text-transform:uppercase">' + h + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  tickets.slice(0, 15).forEach(t => {
+    const tierColor = t.tier === 'ALERT_TIER' ? 'var(--red)' : 
+                       (t.is_laggard || t.tier === 'LAGGARD') ? 'var(--violet)' : 
+                       'var(--amber)';
+    const rrColor = (t.rr_tp3 >= 3) ? 'var(--green)' : (t.rr_tp3 >= 2) ? 'var(--amber)' : 'var(--red)';
+    html += '<tr style="border-bottom:1px solid var(--border)">';
+    html += '<td style="padding:6px 8px"><a href="/why.html?ticker=' + t.ticker + '" style="color:var(--cyan); text-decoration:none; font-weight:700; font-size:12.5px">' + esc(t.ticker) + '</a></td>';
+    html += '<td style="padding:6px 8px"><span style="color:' + tierColor + '; font-size:10px; font-weight:700">' + (t.is_laggard ? 'LAGGARD' : t.tier) + '</span></td>';
+    html += '<td style="padding:6px 8px; color:var(--fg-1)">$' + (t.entry || 0).toFixed(2) + '</td>';
+    html += '<td style="padding:6px 8px; color:var(--red)">$' + (t.stop_loss || 0).toFixed(2) + '</td>';
+    html += '<td style="padding:6px 8px; color:var(--amber)">' + (t.risk_pct || 0).toFixed(1) + '%</td>';
+    html += '<td style="padding:6px 8px; color:var(--green); font-size:10.5px">$' + (t.tp1 || 0).toFixed(2) + ' <span style="color:var(--fg-3); font-size:9.5px">+' + (t.tp1_pct || 0).toFixed(1) + '%</span></td>';
+    html += '<td style="padding:6px 8px; color:var(--green); font-size:10.5px">$' + (t.tp2 || 0).toFixed(2) + ' <span style="color:var(--fg-3); font-size:9.5px">+' + (t.tp2_pct || 0).toFixed(1) + '%</span></td>';
+    html += '<td style="padding:6px 8px; color:var(--green); font-size:10.5px">$' + (t.tp3 || 0).toFixed(2) + ' <span style="color:var(--fg-3); font-size:9.5px">+' + (t.tp3_pct || 0).toFixed(1) + '%</span></td>';
+    html += '<td style="padding:6px 8px"><b style="color:' + rrColor + '">' + (t.rr_tp3 || 0).toFixed(1) + ':1</b></td>';
+    html += '<td style="padding:6px 8px; color:var(--fg-2)">' + (t.shares || 0).toLocaleString() + '</td>';
+    html += '<td style="padding:6px 8px; color:var(--red)">$' + (t.max_loss_usd || 0).toLocaleString() + ' <span style="color:var(--fg-3); font-size:9.5px">' + (t.max_loss_pct_of_portfolio || 0).toFixed(2) + '%</span></td>';
+    html += '<td style="padding:6px 8px; color:var(--fg-3); font-size:10.5px">' + (t.atr_pct || 0).toFixed(2) + '%</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+
+  html += '<div style="font-size:10px; color:var(--fg-3); margin-top:8px; line-height:1.6">';
+  html += '<b>Stop sizing:</b> Alert=1.5×ATR · Laggards=2.0×ATR · Watch=2.5×ATR &nbsp;&nbsp;&nbsp; ';
+  html += '<b>TP multiples:</b> Hot theme (rs_accel ≥100) = 1R/2R/<b>5R</b> · Strong = 1R/2R/3R · Mild = 1R/1.5R/2R';
+  html += '</div></div>';
+
+  // Inject below the cascade content, inside the cascade hero
+  const cascadeHero = document.getElementById('theme-cascade-hero');
+  if(cascadeHero && !document.getElementById('trade-tickets-panel')) {
+    const panel = document.createElement('div');
+    panel.id = 'trade-tickets-panel';
+    panel.style.cssText = 'background:rgba(56,255,168,.04); border:1px solid var(--border); border-radius:8px; padding:14px 18px; margin-top:18px';
+    panel.innerHTML = html;
+    cascadeHero.appendChild(panel);
+  } else if(document.getElementById('trade-tickets-panel')) {
+    document.getElementById('trade-tickets-panel').innerHTML = html;
+  }
+}
 
 // Fetch + render Validation Track Record — proof of predictive accuracy
 async function fetchValidation() {
@@ -1176,6 +1241,7 @@ if(typeof window !== 'undefined') {
     fetchEarlyMovers();
     fetchThemeCascade();
     fetchValidation();
+    fetchTradeTickets();
   });
 }
 let DATA = null;

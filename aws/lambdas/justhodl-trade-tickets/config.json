@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-trade-tickets",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 180,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Converts cascade alerts into complete trade tickets: ATR-based stop + R-multiple TPs + position sizing",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(25 14,15,16,17,18,19 * * MON-FRI *)",
+    "name": "justhodl-trade-tickets-hourly",
+    "description": "Hourly during trading hours — regenerate tickets with latest prices"
+  }
+}
