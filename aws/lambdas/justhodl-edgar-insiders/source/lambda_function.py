@@ -264,21 +264,40 @@ def parse_form4_xml(cik: str, accession: str, primary: str) -> dict:
     for txn in root.findall(".//nonDerivativeTransaction"):
         try:
             t_date  = f(txn, "transactionDate/value")
-            code    = f(txn, "transactionCoding/transactionCode")  # A=accepted (grant), D=disposed, P=purchase, S=sale, M=option exercise
+            code    = f(txn, "transactionCoding/transactionCode")  # P/S/A/M/D/F/G/W/I/V
             shares  = f(txn, "transactionAmounts/transactionShares/value")
             price   = f(txn, "transactionAmounts/transactionPricePerShare/value")
-            ad      = f(txn, "transactionAmounts/transactionAcquiredDisposedCode/value")  # A or D
+            ad      = f(txn, "transactionAmounts/transactionAcquiredDisposedCode/value")  # A=acquired or D=disposed
             if not (t_date and code and shares):
                 continue
             shares_f = float(shares)
             price_f  = float(price) if price else 0.0
-            # Only count P (open-market buys), S (sales), F (tax withholding sells), and skip A (grants/awards), M (options)
-            if code not in ("P", "S", "F"):
+
+            # Filter out non-market-signal transactions
+            #   A = grant/award (RSU vesting etc) — not a conviction signal
+            #   M = exercise of derivative security (options) — not a market signal
+            #   G = bona fide gift
+            #   W = transfer by will or laws of descent
+            #   I = discretionary transaction by employee benefit plan
+            #   V = voluntary disclosure (often a re-filing)
+            if code in ("A", "M", "G", "W", "I", "V"):
                 continue
-            direction = "BUY" if (ad == "A" and code == "P") else "SELL"
-            # F is forced sell-for-tax; treat as soft sell
-            if code == "F":
-                direction = "TAX_SELL"
+
+            # Direction from acquired/disposed code — more reliable than guessing
+            # from transactionCode alone (P/S aren't the only codes for buys/sells).
+            # Common remaining codes:
+            #   P = open-market purchase (BUY)
+            #   S = open-market sale (SELL)
+            #   D = sale or disposition back to issuer (SELL)
+            #   F = payment of exercise price or tax via withholding (TAX_SELL)
+            if ad == "A":
+                direction = "BUY"
+            elif ad == "D":
+                direction = "TAX_SELL" if code == "F" else "SELL"
+            else:
+                # Skip transactions without a clear direction
+                continue
+
             out["transactions"].append({
                 "date": t_date, "code": code, "direction": direction,
                 "shares": shares_f, "price": price_f,
