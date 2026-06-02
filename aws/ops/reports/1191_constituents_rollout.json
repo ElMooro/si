@@ -1,0 +1,135 @@
+{
+  "started": "2026-06-02T15:48:57.473655+00:00",
+  "steps": {
+    "create": {
+      "created": true,
+      "polygon_set": true
+    },
+    "url": {
+      "url": "https://2rdi6wexso672egmer4upmol5e0azxlm.lambda-url.us-east-1.on.aws/"
+    },
+    "schedule": {
+      "created": true,
+      "expression": "cron(45 22 * * ? *)"
+    },
+    "invoke": {
+      "elapsed_s": 1.3,
+      "status": 200,
+      "function_error": null,
+      "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.4, \\\"n_high_z_etfs\\\": 13, \\\"n_stocks_pressured\\\": 0, \\\"top_5_pressure\\\": []}\"}"
+    },
+    "constituent_output": {
+      "generated_at": "2026-06-02T15:49:03.582242+00:00",
+      "n_high_z_etfs": 13,
+      "n_etfs_with_constituents": 0,
+      "threshold_z": 1.5,
+      "high_z_etfs": [
+        {
+          "ticker": "QQQ",
+          "zscore_90d": -1.89,
+          "flow_5d_usd": 171551209.5,
+          "flow_21d_usd": 2852946172.5,
+          "signal_label": "OUTFLOW",
+          "subcategory": "us_megacap_tech",
+          "persistence_days": 2,
+          "n_constituents_fetched": 0
+        },
+        {
+          "ticker": "XLK",
+          "zscore_90d": -1.68,
+          "flow_5d_usd": 91545948.10000002,
+          "flow_21d_usd": 589328782.2,
+          "signal_label": "OUTFLOW",
+          "subcategory": "technology",
+          "persistence_days": 1,
+          "n_constituents_fetched": 0
+        },
+        {
+          "ticker": "XLP",
+          "zscore_90d": -1.67,
+          "flow_5d_usd": -139313487.74999997,
+          "flow_21d_usd": 81463742.9,
+          "signal_label": "OUTFLOW",
+          "subcategory": "staples",
+          "persistence_days": 2,
+          "n_constituents_fetched": 0
+        },
+        {
+          "ticker": "XLY",
+          "zscore_90d": -1.81,
+          "flow_5d_usd": 343912628.2,
+          "flow_21d_usd": -143762635.74999994,
+          "signal_label": "OUTFLOW",
+          "subcategory": "discretionary",
+          "persistence_days": 2,
+          "n_constituents_fetched": 0
+        },
+        {
+          "ticker": "XLB",
+          "zscore_90d": 2.7,
+          "flow_5d_usd": 94427662.65,
+          "flow_21d_usd": 98633048.54999998,
+          "signal_label": "STRONG_INFLOW",
+          "subcategory": "materials",
+          "persistence_days": 1,
+          "n_constituents_fetched": 0
+        },
+        {
+          "ticker": "MTUM",
+          "zscore_90d": 2.12,
+          "flow_5d_usd": -1204774196.35,
+          "flow_21d_usd": -488956763.15,
+          "signal_label": "STRONG_INFLOW",
+          "subcategory": "momentum",
+          "persistence_days": 1,
+          "n_constituents_fetched": 0
+        },
+        {
+          "ticker": "EWU",
+          "zscore_90d": 5.13,
+          "flow_5d_usd": 121605809.0,
+          "flow_21d_usd": 121605809.0,
+          "signal_label": "STRONG_INFLOW",
+          "subcategory": "uk",
+          "persistence_days": 1,
+          "n_constituents_fetched": 0
+        },
+        {
+          "ticker": "EWC",
+          "zscore_90d": 3.18,
+          "flow_5d_usd": 293228365.8,
+          "flow_21d_usd": 335220141.4,
+          "signal_label": "STRONG_INFLOW",
+          "subcategory": "canada",
+          "persistence_days": 3,
+          "n_constituents_fetched": 0
+        },
+        {
+          "ticker": "UNG",
+          "zscore_90d": -3.97,
+          "flow_5d_usd": -60887200.0,
+          "flow_21d_usd": -120985400.0,
+          "signal_label": "STRONG_OUTFLOW",
+          "subcategory": "nat_gas",
+          "persistence_days": 2,
+          "n_constituents_fetched": 0
+        },
+        {
+          "ticker": "SMH",
+          "zscore_90d": 1.69,
+          "flow_5d_usd": 601640077.0,
+          "flow_21d_usd": 30759974.5,
+          "signal_label": "INFLOW",
+          "subcategory": "semiconductors",
+          "persistence_days": 3,
+          "n_constituents_fetched": 0
+        }
+      ],
+      "top_20_pressure": []
+    },
+    "backtest_regime_status": {
+      "error": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    }
+  },
+  "finished": "2026-06-02T15:49:04.043887+00:00"
+}
