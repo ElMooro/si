@@ -184,7 +184,127 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
 
   <section class="hero">
     <div class="hero-eyebrow">14 free + cheap data sources · live</div>
-    <h1 class="hero-title">The data <em>hedge funds pay $50k+/year</em> for. Free, here, explained.</h1>
+    <h1 class="hero-title">The data <em>hedge funds pay
+<script>window.__AI_BRIEF_PAGE__ = "signals";</script>
+<!-- ═════ AI INTELLIGENCE BRIEF — auto-generated daily by Claude ═════ -->
+<style>
+.ai-brief{background:linear-gradient(180deg,#0f131a 0%,#0a0e14 100%);border:1px solid #1c2433;border-radius:10px;padding:18px 22px;margin:16px 0 24px;position:relative;overflow:hidden}
+.ai-brief::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#7c3aed,transparent)}
+.ai-brief-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.ai-brief-badge{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;letter-spacing:1px;color:#a78bfa;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.35);padding:4px 9px;border-radius:99px;text-transform:uppercase;font-weight:700}
+.ai-brief-badge .pulse{width:6px;height:6px;background:#a78bfa;border-radius:50%;animation:aiPulse 2s ease-in-out infinite}
+@keyframes aiPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(124,58,237,0.6)}50%{opacity:0.6;box-shadow:0 0 0 6px rgba(124,58,237,0)}}
+.ai-brief-meta{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;color:#6f7b91;letter-spacing:0.5px;margin-left:auto}
+.ai-brief-headline{font-size:15.5px;font-weight:600;color:#e6eaf2;line-height:1.45;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1c2433}
+.ai-brief-grid{display:grid;grid-template-columns:repeat(3,1fr) 140px;gap:16px}
+@media(max-width:900px){.ai-brief-grid{grid-template-columns:1fr}}
+.ai-brief-card{padding:0}
+.ai-brief-label{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:1.2px;color:#6f7b91;text-transform:uppercase;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.ai-brief-body{color:#cbd2dc;font-size:12.5px;line-height:1.6}
+.ai-brief-score{display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);border-radius:8px;padding:14px}
+.ai-brief-score .val{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:42px;font-weight:800;line-height:1;color:#a78bfa}
+.ai-brief-score .lbl{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9px;letter-spacing:1px;color:#6f7b91;text-transform:uppercase;margin-top:6px}
+.ai-brief-loading{color:#6f7b91;font-size:12.5px;font-style:italic;padding:8px 0}
+</style>
+<div id="ai-brief-panel" class="ai-brief">
+  <div class="ai-brief-hdr">
+    <div class="ai-brief-badge"><span class="pulse"></span>AI Intelligence Brief</div>
+    <div class="ai-brief-meta" id="ai-brief-meta">loading…</div>
+  </div>
+  <div class="ai-brief-headline" id="ai-brief-headline">
+    <span class="ai-brief-loading">AI commentary loading… first run after deployment populates within 2 minutes.</span>
+  </div>
+  <div class="ai-brief-grid" id="ai-brief-grid"></div>
+</div>
+<script>
+(function() {
+  const PAGE = window.__AI_BRIEF_PAGE__ || "default";
+  const PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+  const ICONS = {
+    "pre-pump-radar": {a:"🎯", b:"📊", c:"⚠️", scoreLbl:"Conviction"},
+    "signal-board":   {a:"📡", b:"🔀", c:"🎚️", scoreLbl:"Regime"},
+    "risk-desk":      {a:"⚠️", b:"🛡️", c:"🔮", scoreLbl:"Risk Lvl"},
+    "liquidity":      {a:"💧", b:"📈", c:"🏛️", scoreLbl:"Liquidity"},
+    "fundamentals":   {a:"💎", b:"🚩", c:"👁️", scoreLbl:"Value"},
+    "crisis":         {a:"🚨", b:"🔗", c:"🛡️", scoreLbl:"Crisis"},
+    "signals":        {a:"📡", b:"📈", c:"🎯", scoreLbl:"Signal"},
+    "portfolio":      {a:"📋", b:"⚖️", c:"🔄", scoreLbl:"Book"},
+    "13f":            {a:"🐋", b:"💼", c:"🔍", scoreLbl:"Conviction"},
+    "screener":       {a:"🎯", b:"💎", c:"⚡", scoreLbl:"Opp Set"}
+  };
+  const SCHEMA = {
+    "pre-pump-radar": {a:"top_pick_analysis", b:"regime_context", c:"what_to_watch", score:"confidence_score"},
+    "signal-board":   {a:"regime_analysis", b:"key_divergences", c:"positioning_view", score:"regime_score"},
+    "risk-desk":      {a:"primary_risks", b:"hedge_recommendation", c:"leading_indicators", score:"risk_score"},
+    "liquidity":      {a:"liquidity_flow", b:"implications", c:"policy_outlook", score:"liquidity_score"},
+    "fundamentals":   {a:"best_value", b:"warning_flags", c:"watch_list", score:"value_score"},
+    "crisis":         {a:"crisis_assessment", b:"contagion_risks", c:"hedge_actions", score:"crisis_score"},
+    "signals":        {a:"signal_quality", b:"hit_rate_trends", c:"top_signals", score:"signal_score"},
+    "portfolio":      {a:"position_review", b:"risk_concentration", c:"rebalance_suggestion", score:"portfolio_score"},
+    "13f":            {a:"smart_money_moves", b:"top_buys_sells", c:"divergence_signals", score:"conviction_score"},
+    "screener":       {a:"top_picks", b:"fundamental_strength", c:"momentum_picks", score:"screener_score"}
+  };
+  const LABELS = {
+    "pre-pump-radar": {a:"TOP PICK", b:"REGIME", c:"WATCH"},
+    "signal-board":   {a:"REGIME", b:"DIVERGENCES", c:"POSITIONING"},
+    "risk-desk":      {a:"TOP RISKS", b:"HEDGES", c:"WATCH"},
+    "liquidity":      {a:"FLOWS", b:"IMPLICATIONS", c:"POLICY"},
+    "fundamentals":   {a:"BEST VALUE", b:"WARNINGS", c:"WATCH LIST"},
+    "crisis":         {a:"ASSESSMENT", b:"CONTAGION", c:"HEDGES"},
+    "signals":        {a:"QUALITY", b:"HIT RATE", c:"TOP CALLS"},
+    "portfolio":      {a:"POSITIONS", b:"RISK", c:"REBALANCE"},
+    "13f":            {a:"SMART MONEY", b:"TOP MOVES", c:"DIVERGENCES"},
+    "screener":       {a:"TOP PICKS", b:"FUNDAMENTALS", c:"MOMENTUM"}
+  };
+
+  async function load() {
+    try {
+      const r = await fetch(`${PROXY}/data/ai-commentary/${PAGE}.json?t=${Date.now()}`);
+      if (!r.ok) return;
+      const doc = await r.json();
+      render(doc);
+    } catch (e) { console.warn("ai-brief", e); }
+  }
+
+  function render(doc) {
+    const c = (doc && doc.commentary) || {};
+    if (!c || c.error || c.fallback || c.parse_error) {
+      document.getElementById("ai-brief-meta").textContent = "awaiting next run";
+      return;
+    }
+    const meta = `Generated ${(doc.generated_at || "").slice(0,16).replace("T"," ")} · ${doc.model || ""}`;
+    document.getElementById("ai-brief-meta").textContent = meta;
+    document.getElementById("ai-brief-headline").innerHTML = c.headline || "<i>—</i>";
+
+    const sch = SCHEMA[PAGE] || {};
+    const lbls = LABELS[PAGE] || {a:"INSIGHT", b:"DETAIL", c:"WATCH"};
+    const ics = ICONS[PAGE] || {a:"💡", b:"📍", c:"👁️", scoreLbl:"SCORE"};
+    const score = c[sch.score];
+
+    document.getElementById("ai-brief-grid").innerHTML = `
+      <div class="ai-brief-card">
+        <div class="ai-brief-label">${ics.a} ${lbls.a}</div>
+        <div class="ai-brief-body">${c[sch.a] || "<i>—</i>"}</div>
+      </div>
+      <div class="ai-brief-card">
+        <div class="ai-brief-label">${ics.b} ${lbls.b}</div>
+        <div class="ai-brief-body">${c[sch.b] || "<i>—</i>"}</div>
+      </div>
+      <div class="ai-brief-card">
+        <div class="ai-brief-label">${ics.c} ${lbls.c}</div>
+        <div class="ai-brief-body">${c[sch.c] || "<i>—</i>"}</div>
+      </div>
+      ${score != null ? `<div class="ai-brief-score">
+        <div class="val">${score}</div>
+        <div class="lbl">${ics.scoreLbl}</div>
+      </div>` : ""}`;
+  }
+  load();
+  setInterval(load, 5 * 60 * 1000);
+})();
+</script>
+<!-- ═════ END AI INTELLIGENCE BRIEF ═════ -->
+ $50k+/year</em> for. Free, here, explained.</h1>
     <p class="hero-blurb">Each card below is an independent data integration that runs on its own AWS Lambda, writes to S3 every interval, and is monitored by the platform's health system. <strong>Combined, they multiply the signal of any single source.</strong> Numbers tap to the underlying full-detail pages where available.</p>
     <div class="kpi-strip" id="kpi-strip">
       <div class="kpi"><span class="kpi-label">Sources Tracked</span><span class="kpi-val">14</span><span class="kpi-sub">Tier S + A + 3 complete</span></div>
