@@ -1,0 +1,74 @@
+{
+  "tests": {
+    "1_no_params": {
+      "name": "1_no_params",
+      "url": "https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&apiKey=<KEY>",
+      "ok": false,
+      "http_status": 403,
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"fd4b701bafe7f7ebb97558897fbf5f94\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    "2_limit_50": {
+      "name": "2_limit_50",
+      "url": "https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&limit=50&apiKey=<KEY>",
+      "ok": false,
+      "http_status": 403,
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"a3af37fd85739606898e0b1cb1e3a220\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    "3_limit_500": {
+      "name": "3_limit_500",
+      "url": "https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&limit=500&apiKey=<KEY>",
+      "ok": false,
+      "http_status": 403,
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"7c24bf8a1ef9ce6a47d68eab33e59a43\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    "4_order_desc": {
+      "name": "4_order_desc",
+      "url": "https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&order=desc&limit=100&apiKey=<KEY>",
+      "ok": false,
+      "http_status": 403,
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"302c5e4b877cf4d327fa501c7e742517\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    "5_sort_processed": {
+      "name": "5_sort_processed",
+      "url": "https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&sort=processed_date&order=desc&limit=100&apiKey=<KEY>",
+      "ok": false,
+      "http_status": 403,
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"9aecc80a11cbef1c1d8b397fbe2f5f84\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    "6_sort_weight": {
+      "name": "6_sort_weight",
+      "url": "https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&sort=weight&order=desc&limit=100&apiKey=<KEY>",
+      "ok": false,
+      "http_status": 403,
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"78919b5fb77b2af1e1fd5dc755ddcce7\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    "7_sort_effective": {
+      "name": "7_sort_effective",
+      "url": "https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&sort=effective_date&order=desc&limit=100&apiKey=<KEY>",
+      "ok": false,
+      "http_status": 403,
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"4352ab5a85bad6ca6566c75ec1f90697\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    "8_qqq": {
+      "name": "8_qqq",
+      "url": "https://api.polygon.io/etf-global/v1/constituents?composite_ticker=QQQ&limit=100&apiKey=<KEY>",
+      "ok": false,
+      "http_status": 403,
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"97306f3e3affa845014fd4b62136d19f\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    "9_xlk": {
+      "name": "9_xlk",
+      "url": "https://api.polygon.io/etf-global/v1/constituents?composite_ticker=XLK&limit=100&apiKey=<KEY>",
+      "ok": false,
+      "http_status": 403,
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"e897782eb5e870de9cd18e2b8606a5b7\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    "10_date_range": {
+      "name": "10_date_range",
+      "url": "https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&processed_date.gte=2026-05-25&limit=500&apiKey=<KEY>",
+      "ok": false,
+      "http_status": 403,
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"5e9600f50eedc3d42d6677a9ccac1a78\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    }
+  }
+}
