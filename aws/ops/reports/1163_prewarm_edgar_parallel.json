@@ -1,0 +1,99 @@
+{
+  "started": "2026-06-02T02:35:22.196696+00:00",
+  "test_tickers": [
+    "NET",
+    "DDOG",
+    "TEAM"
+  ],
+  "invoke": {
+    "status_code": 202,
+    "ok": true
+  },
+  "log": {
+    "wall_seconds": 85.3,
+    "n_succeeded": 3,
+    "n_failed": 0,
+    "tickers": [
+      "NET",
+      "DDOG",
+      "TEAM"
+    ],
+    "results": [
+      {
+        "ticker": "NET",
+        "status": "ok",
+        "elapsed_s": 75.3,
+        "rating": "BUY",
+        "edgar": {
+          "status": "ok",
+          "elapsed_s": 5.7,
+          "n_filings_90d": 30,
+          "n_buys": 19,
+          "n_sells": 168,
+          "signal_label": "ACCELERATING_SELL",
+          "signal_score": 15,
+          "sell_acceleration": 16.8,
+          "cluster_detected": true
+        }
+      },
+      {
+        "ticker": "DDOG",
+        "status": "ok",
+        "elapsed_s": 80.3,
+        "rating": "HOLD",
+        "edgar": {
+          "status": "ok",
+          "elapsed_s": 4.8,
+          "n_filings_90d": 30,
+          "n_buys": 17,
+          "n_sells": 91,
+          "signal_label": "LARGE_SELLING",
+          "signal_score": 40,
+          "sell_acceleration": 228.42,
+          "cluster_detected": true
+        }
+      },
+      {
+        "ticker": "TEAM",
+        "status": "ok",
+        "elapsed_s": 85.3,
+        "rating": "BUY",
+        "edgar": {
+          "status": "ok",
+          "elapsed_s": 5.8,
+          "n_filings_90d": 30,
+          "n_buys": 0,
+          "n_sells": 36,
+          "signal_label": "ROUTINE_SELLING",
+          "signal_score": 45,
+          "sell_acceleration": 0.12,
+          "cluster_detected": false
+        }
+      }
+    ]
+  },
+  "edgar_in_s3": {
+    "NET": {
+      "ok": true,
+      "size_kb": 17.5,
+      "n_filings_90d": 30,
+      "signal_label": "ACCELERATING_SELL",
+      "signal_score": 15
+    },
+    "DDOG": {
+      "ok": true,
+      "size_kb": 16.5,
+      "n_filings_90d": 30,
+      "signal_label": "LARGE_SELLING",
+      "signal_score": 40
+    },
+    "TEAM": {
+      "ok": true,
+      "size_kb": 11.6,
+      "n_filings_90d": 30,
+      "signal_label": "ROUTINE_SELLING",
+      "signal_score": 45
+    }
+  },
+  "finished": "2026-06-02T02:38:22.660128+00:00"
+}
