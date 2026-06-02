@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>Analytics Workbench · JustHodl.AI</title>
+<meta name="description" content="SQL workbench for JustHodl.AI data lake. Query equity research, EDGAR insider transactions, and signal data with DuckDB.">
+<link rel="preconnect" href="https://justhodl-data-proxy.raafouis.workers.dev">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+<style>
+:root {
+  --bg-base:        #0a0a0a;
+  --bg-card:        #141414;
+  --bg-elev:        #1a1a1a;
+  --bg-sunken:      #050505;
+  --bg-code:        #0d0d0d;
+  --border:         rgba(255,255,255,.08);
+  --border-light:   rgba(255,255,255,.05);
+  --border-strong:  rgba(255,255,255,.15);
+  --text:           #eef2f7;
+  --text-dim:       #aab4c0;
+  --text-muted:     #6b7785;
+  --accent:         #facc15;
+  --cyan:           #22d3ee;
+  --pos:            #26ffaf;
+  --neg:            #ef4444;
+  --warn:           #f59e0b;
+  --font-mono:      'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --font-sans:      'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 0;
+  background: var(--bg-base);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 22px; border-bottom: 1px solid var(--border);
+  background: rgba(10,10,10,.95); backdrop-filter: blur(8px);
+  position: sticky; top: 0; z-index: 50;
+}
+.logo { font-family: var(--font-mono); font-weight: 700; font-size: 14px; color: var(--accent); }
+.logo a { color: inherit; text-decoration: none; }
+.nav-links { display:flex; gap:18px; }
+.nav-links a { color: var(--text-dim); text-decoration: none; font-size: 12px; letter-spacing: .04em; }
+.nav-links a:hover { color: var(--accent); }
+.status-pill {
+  font-family: var(--font-mono); font-size: 11px;
+  padding: 3px 9px; border-radius: 4px;
+  background: rgba(170,180,192,.08);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.status-pill.ready { color: var(--pos); border-color: rgba(38,255,175,.4); }
+.status-pill.loading { color: var(--warn); border-color: rgba(245,158,11,.4); }
+.status-pill.error { color: var(--neg); border-color: rgba(239,68,68,.4); }
+
+.page { max-width: 1600px; margin: 0 auto; padding: 18px 22px; }
+
+.intro {
+  background: linear-gradient(135deg, rgba(250,204,21,.05) 0%, rgba(34,211,238,.03) 100%);
+  border: 1px solid rgba(250,204,21,.25); border-radius: 10px;
+  padding: 16px 20px; margin-bottom: 18px;
+}
+.intro h1 {
+  margin: 0 0 6px; font-size: 18px; color: var(--accent);
+}
+.intro p { margin: 0; font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+.intro .meta {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted);
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-light);
+}
+
+.workbench {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 14px;
+}
+@media (max-width: 1100px) {
+  .workbench { grid-template-columns: 1fr; }
+}
+
+.sql-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+.sql-card .head {
+  padding: 12px 16px; background: var(--bg-elev);
+  border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sql-card .head h3 {
+  margin: 0; font-size: 13px; color: var(--accent);
+  font-family: var(--font-mono); letter-spacing: .04em;
+}
+.sql-card .head .controls { display: flex; gap: 8px; align-items: center; }
+.sql-card .head button {
+  background: var(--accent); color: #000; border: none;
+  padding: 6px 16px; border-radius: 5px; font-weight: 700;
+  font-size: 12px; cursor: pointer; letter-spacing: .04em;
+}
+.sql-card .head button:hover { background: #fde047; }
+.sql-card .head button:disabled { background: var(--text-muted); cursor: not-allowed; }
+.sql-card .head button.secondary {
+  background: transparent; border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+}
+.sql-card .head button.secondary:hover { color: var(--accent); border-color: var(--accent); }
+
+#sql-editor {
+  width: 100%; min-height: 180px; max-height: 400px;
+  background: var(--bg-code); color: var(--text);
+  border: none; outline: none; resize: vertical;
+  padding: 12px 16px; font-family: var(--font-mono); font-size: 13px;
+  line-height: 1.55; tab-size: 2;
+}
+
+.results-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  margin-top: 14px;
+}
+.results-card .head {
+  padding: 10px 16px; background: var(--bg-elev);
+  border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; color: var(--text-muted);
+  font-family: var(--font-mono); letter-spacing: .04em;
+}
+.results-card .head .stats { color: var(--cyan); }
+.results-card .body { overflow-x: auto; max-height: 60vh; overflow-y: auto; }
+.results-card table {
+  width: 100%; border-collapse: collapse; font-family: var(--font-mono);
+  font-size: 12px;
+}
+.results-card th, .results-card td {
+  padding: 6px 12px; text-align: left;
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+}
+.results-card th {
+  background: var(--bg-elev); color: var(--accent);
+  font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: .04em; font-weight: 700;
+  position: sticky; top: 0;
+  border-bottom: 1px solid var(--border-strong);
+}
+.results-card td { color: var(--text-dim); }
+.results-card td.num { text-align: right; color: var(--text); }
+.results-card td.pos { color: var(--pos); }
+.results-card td.neg { color: var(--neg); }
+.results-card td.warn { color: var(--warn); }
+.results-card tr:hover td { background: var(--bg-elev); }
+.results-card .empty {
+  padding: 40px; text-align: center; color: var(--text-muted);
+  font-size: 12px;
+}
+.results-card .error {
+  padding: 16px 20px; color: var(--neg);
+  background: rgba(239,68,68,.06); font-family: var(--font-mono);
+  font-size: 12px; white-space: pre-wrap;
+}
+
+.sidebar {
+  display: flex; flex-direction: column; gap: 12px;
+}
+.side-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+}
+.side-card h4 {
+  margin: 0 0 8px; font-size: 11px; color: var(--accent);
+  font-family: var(--font-mono); letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.example-list { display: flex; flex-direction: column; gap: 4px; }
+.example-btn {
+  background: transparent; border: 1px solid var(--border-light);
+  color: var(--text-dim); padding: 7px 10px; border-radius: 5px;
+  font-size: 11.5px; text-align: left; cursor: pointer; line-height: 1.4;
+  font-family: var(--font-sans);
+  transition: all .15s;
+}
+.example-btn:hover {
+  border-color: var(--accent); color: var(--accent);
+  background: rgba(250,204,21,.04);
+}
+.schema-table {
+  font-family: var(--font-mono); font-size: 10.5px;
+  margin-bottom: 8px;
+}
+.schema-table .tbl-name {
+  color: var(--accent); font-weight: 700; margin-bottom: 3px;
+}
+.schema-table .col-list {
+  color: var(--text-muted); line-height: 1.6;
+  white-space: normal; word-break: break-word;
+}
+
+.spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="logo"><a href="/">JustHodl.AI</a> · ANALYTICS</div>
+  <nav class="nav-links">
+    <a href="/">Home</a>
+    <a href="/why.html">Research</a>
+    <a href="/compare.html">Compare</a>
+  </nav>
+</header>
+
+<main class="page">
+
+  <div class="intro">
+    <h1>🔬 Analytics Workbench</h1>
+    <p>SQL queries over your equity research + EDGAR insider data. Runs DuckDB <em>in your browser</em> — no Lambda costs, no server round-trips. Cross-reference verdicts with insider signals, filter by valuation × growth × scenarios, build any view your data supports.</p>
+    <div class="meta" id="status-meta">⏳ Initializing DuckDB-WASM…</div>
+  </div>
+
+  <div class="workbench">
+    <div>
+      <div class="sql-card">
+        <div class="head">
+          <h3>SQL editor</h3>
+          <div class="controls">
+            <span id="duck-status" class="status-pill loading">loading…</span>
+            <button id="run-btn" onclick="runQuery()" disabled>RUN ▶</button>
+          </div>
+        </div>
+        <textarea id="sql-editor" placeholder="-- Loading…"></textarea>
+      </div>
+
+      <div class="results-card">
+        <div class="head">
+          <span id="results-label">Results</span>
+          <span class="stats" id="results-stats"></span>
+        </div>
+        <div class="body" id="results-body">
+          <div class="empty">Run a query to see results. Click any example on the right to load it.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="side-card">
+        <h4>📚 Example Queries</h4>
+        <div class="example-list">
+          <button class="example-btn" data-example="all_buys">
+            <b>All BUY-rated tickers</b><br>
+            <span style="opacity:.7">verdict.rating IN ('BUY','STRONG_BUY')</span>
+          </button>
+          <button class="example-btn" data-example="bullish_no_insider_sell">
+            <b>Bullish thesis × insider not selling</b><br>
+            <span style="opacity:.7">research BUY + EDGAR sell_acceleration &lt; 1</span>
+          </button>
+          <button class="example-btn" data-example="highest_ev">
+            <b>Highest expected-value upside</b><br>
+            <span style="opacity:.7">order by scenarios.ev_upside_pct DESC</span>
+          </button>
+          <button class="example-btn" data-example="value_growth">
+            <b>Cheap + growing (P/E &lt; 25, rev CAGR &gt; 10%)</b><br>
+            <span style="opacity:.7">classic value-with-growth screen</span>
+          </button>
+          <button class="example-btn" data-example="hidden_quality">
+            <b>Hidden quality (high ROIC, low P/E)</b><br>
+            <span style="opacity:.7">ROIC &gt; 15% AND P/E &lt; sector median</span>
+          </button>
+          <button class="example-btn" data-example="insider_red_flags">
+            <b>Insider selling red flags</b><br>
+            <span style="opacity:.7">accelerating sells + C-suite involvement</span>
+          </button>
+          <button class="example-btn" data-example="best_risk_reward">
+            <b>Best risk/reward asymmetry</b><br>
+            <span style="opacity:.7">scenarios.risk_reward_ratio &gt; 2</span>
+          </button>
+          <button class="example-btn" data-example="sector_table">
+            <b>Verdict distribution by sector</b><br>
+            <span style="opacity:.7">aggregate ratings by sector</span>
+          </button>
+          <button class="example-btn" data-example="full_picture">
+            <b>Full picture — research × EDGAR JOIN</b><br>
+            <span style="opacity:.7">side-by-side ranking</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>🗂 Schema</h4>
+        <div id="schema-display" style="font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted);">
+          loading…
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>💡 Tips</h4>
+        <div style="font-size: 11px; color: var(--text-dim); line-height: 1.6;">
+          • Use <code style="color:var(--cyan);font-family:var(--font-mono)">LEFT JOIN</code> on <code style="color:var(--cyan);font-family:var(--font-mono)">USING(ticker)</code> to combine tables<br>
+          • DuckDB supports <code style="color:var(--cyan);font-family:var(--font-mono)">PIVOT</code>, window functions, regex, CTEs<br>
+          • Use <code style="color:var(--cyan);font-family:var(--font-mono)">Ctrl+Enter</code> in the editor to run<br>
+          • Results limit 5000 rows for browser performance
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+import * as duckdb from 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm';
+
+// ─── Config
+const CDN_BASE = "https://justhodl-data-proxy.raafouis.workers.dev";
+const RESEARCH_URL = `${CDN_BASE}/analytics/equity_research_flat.json`;
+const EDGAR_URL    = `${CDN_BASE}/analytics/edgar_insiders_flat.json`;
+const MANIFEST_URL = `${CDN_BASE}/analytics/manifest.json`;
+
+// ─── DOM
+const $ = (id) => document.getElementById(id);
+const setStatus = (msg, cls) => {
+  $("duck-status").textContent = msg;
+  $("duck-status").className = `status-pill ${cls || ''}`;
+};
+const setMeta = (msg) => { $("status-meta").textContent = msg; };
+
+// ─── DuckDB instance
+let db = null, conn = null;
+
+async function init() {
+  setStatus("loading wasm…", "loading");
+  setMeta("⏳ Loading DuckDB-WASM bundle from CDN…");
+
+  // Pick best bundle
+  const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+  const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+  const worker_url = URL.createObjectURL(
+    new Blob([`importScripts("${bundle.mainWorker}");`], {type: 'text/javascript'})
+  );
+  const worker = new Worker(worker_url);
+  const logger = new duckdb.ConsoleLogger();
+  db = new duckdb.AsyncDuckDB(logger, worker);
+  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+  URL.revokeObjectURL(worker_url);
+  conn = await db.connect();
+
+  setStatus("fetching data…", "loading");
+  setMeta("⏳ Fetching equity_research_flat.json + edgar_insiders_flat.json from CDN…");
+
+  // Fetch both tables in parallel
+  const [research, edgar] = await Promise.all([
+    fetch(`${RESEARCH_URL}?v=${Date.now()}`).then(r => {
+      if(!r.ok) throw new Error(`equity_research fetch HTTP ${r.status}`);
+      return r.json();
+    }),
+    fetch(`${EDGAR_URL}?v=${Date.now()}`).then(r => {
+      if(!r.ok) throw new Error(`edgar_insiders fetch HTTP ${r.status}`);
+      return r.json();
+    })
+  ]);
+
+  // Register the JSON data with DuckDB
+  setStatus("loading tables…", "loading");
+  await db.registerFileText('equity_research.json',
+    JSON.stringify(research.rows || []));
+  await db.registerFileText('edgar_insiders.json',
+    JSON.stringify(edgar.rows || []));
+
+  // Create tables (DuckDB infers types from the JSON)
+  await conn.query(`CREATE TABLE equity_research AS SELECT * FROM read_json_auto('equity_research.json')`);
+  await conn.query(`CREATE TABLE edgar_insiders  AS SELECT * FROM read_json_auto('edgar_insiders.json')`);
+
+  // Inspect schemas for the sidebar
+  const researchCols = await conn.query(`SELECT column_name FROM information_schema.columns WHERE table_name='equity_research' ORDER BY ordinal_position`);
+  const edgarCols    = await conn.query(`SELECT column_name FROM information_schema.columns WHERE table_name='edgar_insiders'  ORDER BY ordinal_position`);
+  renderSchema(
+    researchCols.toArray().map(r => r.toJSON().column_name),
+    edgarCols.toArray().map(r => r.toJSON().column_name)
+  );
+
+  setStatus("ready ✓", "ready");
+  setMeta(`✓ Loaded ${research.rows?.length || 0} research rows · ${edgar.rows?.length || 0} EDGAR rows · snapshot ${research.generated_at || '?'}`);
+  $("run-btn").disabled = false;
+
+  // Load default example
+  loadExample('full_picture');
+}
+
+function renderSchema(researchCols, edgarCols) {
+  const html = `
+    <div class="schema-table">
+      <div class="tbl-name">equity_research <span style="color:var(--text-muted)">(${researchCols.length} cols)</span></div>
+      <div class="col-list">${researchCols.join(", ")}</div>
+    </div>
+    <div class="schema-table">
+      <div class="tbl-name">edgar_insiders <span style="color:var(--text-muted)">(${edgarCols.length} cols)</span></div>
+      <div class="col-list">${edgarCols.join(", ")}</div>
+    </div>`;
+  $("schema-display").innerHTML = html;
+}
+
+// ─── Query runner
+async function runQueryImpl(sql) {
+  const t0 = performance.now();
+  let result;
+  try {
+    result = await conn.query(sql);
+  } catch (e) {
+    return { error: String(e.message || e) };
+  }
+  const elapsed = Math.round(performance.now() - t0);
+
+  const rows = result.toArray().map(r => r.toJSON());
+  const cols = result.schema.fields.map(f => ({ name: f.name, type: String(f.type) }));
+  return { rows, cols, elapsed };
+}
+
+window.runQuery = async function() {
+  const sql = $("sql-editor").value.trim();
+  if(!sql) return;
+  $("run-btn").disabled = true;
+  $("run-btn").innerHTML = '<span class="spinner"></span> running…';
+  $("results-body").innerHTML = '<div class="empty"><span class="spinner"></span> Executing query…</div>';
+
+  const r = await runQueryImpl(sql);
+
+  $("run-btn").disabled = false;
+  $("run-btn").innerHTML = 'RUN ▶';
+
+  if(r.error) {
+    $("results-stats").textContent = '';
+    $("results-body").innerHTML = `<div class="error">${escapeHtml(r.error)}</div>`;
+    return;
+  }
+
+  const nRows = r.rows.length;
+  $("results-stats").textContent = `${nRows.toLocaleString()} rows · ${r.elapsed}ms`;
+
+  if(nRows === 0) {
+    $("results-body").innerHTML = '<div class="empty">Query returned 0 rows.</div>';
+    return;
+  }
+
+  // Cap render to 5000 rows for browser perf
+  const MAX_RENDER = 5000;
+  const renderRows = r.rows.slice(0, MAX_RENDER);
+  const truncated = nRows > MAX_RENDER;
+
+  // Render table
+  let html = '<table><thead><tr>';
+  for(const c of r.cols) html += `<th title="${escapeHtml(c.type)}">${escapeHtml(c.name)}</th>`;
+  html += '</tr></thead><tbody>';
+  for(const row of renderRows) {
+    html += '<tr>';
+    for(const c of r.cols) {
+      const v = row[c.name];
+      html += `<td${formatCellClass(v, c.name)}>${formatCell(v)}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  if(truncated) {
+    html += `<div class="empty" style="padding:14px">… showing first ${MAX_RENDER.toLocaleString()} of ${nRows.toLocaleString()} rows.</div>`;
+  }
+  $("results-body").innerHTML = html;
+};
+
+function formatCell(v) {
+  if(v === null || v === undefined) return '<span style="color:var(--text-muted)">null</span>';
+  if(typeof v === 'number') {
+    if(Number.isInteger(v)) return v.toLocaleString();
+    return v.toFixed(2);
+  }
+  if(typeof v === 'bigint') return v.toString();
+  if(typeof v === 'boolean') return v ? 'true' : 'false';
+  return escapeHtml(String(v));
+}
+function formatCellClass(v, colName) {
+  const lname = (colName || '').toLowerCase();
+  if(typeof v === 'number') {
+    if(lname.includes('upside') || lname.includes('change_pct') || lname.includes('return_')) {
+      return v > 0 ? ' class="num pos"' : v < 0 ? ' class="num neg"' : ' class="num"';
+    }
+    return ' class="num"';
+  }
+  if(v === 'STRONG_BUY' || v === 'BUY' || v === 'INSIDER_BUYING' || v === 'STRONG_CLUSTER_BUY') return ' class="pos"';
+  if(v === 'STRONG_SELL' || v === 'SELL' || v === 'ACCELERATING_SELL') return ' class="neg"';
+  if(v === 'HOLD' || v === 'LARGE_SELLING' || v === 'ROUTINE_SELLING') return ' class="warn"';
+  return '';
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+// ─── Example queries
+const EXAMPLES = {
+  all_buys: `-- All tickers with a positive verdict, sorted by conviction
+SELECT
+  ticker,
+  rating,
+  conviction_grade,
+  price_target_12m,
+  upside_pct,
+  position_size_pct,
+  confidence_pct
+FROM equity_research
+WHERE rating IN ('STRONG_BUY', 'BUY')
+ORDER BY
+  CASE rating WHEN 'STRONG_BUY' THEN 0 WHEN 'BUY' THEN 1 ELSE 2 END,
+  upside_pct DESC`,
+
+  bullish_no_insider_sell: `-- Bullish research thesis + insiders NOT accelerating sells = highest-confidence ideas
+-- Best setup: PM and insiders agree
+SELECT
+  r.ticker,
+  r.rating,
+  r.upside_pct,
+  r.pe_ttm,
+  e.signal_label,
+  e.sell_acceleration,
+  e.n_buys,
+  e.n_sells
+FROM equity_research r
+LEFT JOIN edgar_insiders e USING (ticker)
+WHERE r.rating IN ('STRONG_BUY', 'BUY')
+  AND (e.sell_acceleration IS NULL OR e.sell_acceleration < 1.5)
+  AND (e.signal_label IS NULL OR e.signal_label NOT IN ('ACCELERATING_SELL', 'LARGE_SELLING'))
+ORDER BY r.upside_pct DESC`,
+
+  highest_ev: `-- Probability-weighted expected value — best risk-adjusted picks
+SELECT
+  ticker,
+  rating,
+  ev_upside_pct AS expected_upside_pct,
+  bull_target,
+  bull_prob,
+  base_target,
+  base_prob,
+  bear_target,
+  bear_prob,
+  risk_reward_ratio
+FROM equity_research
+WHERE ev_upside_pct IS NOT NULL
+ORDER BY ev_upside_pct DESC
+LIMIT 25`,
+
+  value_growth: `-- Classic value+growth screen: cheap multiples + accelerating top line
+SELECT
+  ticker,
+  sector,
+  rating,
+  pe_ttm,
+  pe_5yr_avg,
+  rev_5y_cagr_pct,
+  rev_3y_cagr_pct,
+  fcf_yield_pct,
+  roic_ttm_pct,
+  upside_pct
+FROM equity_research
+WHERE pe_ttm > 0 AND pe_ttm < 25
+  AND rev_5y_cagr_pct > 10
+ORDER BY rev_5y_cagr_pct DESC`,
+
+  hidden_quality: `-- High ROIC + reasonable valuation = compounder hiding in plain sight
+SELECT
+  ticker,
+  sector,
+  rating,
+  roic_ttm_pct,
+  roe_ttm_pct,
+  pe_ttm,
+  health_score,
+  rev_5y_cagr_pct,
+  fcf_yield_pct,
+  shareholder_yield_pct,
+  upside_pct
+FROM equity_research
+WHERE roic_ttm_pct > 15
+  AND pe_ttm > 0 AND pe_ttm < 30
+ORDER BY roic_ttm_pct DESC`,
+
+  insider_red_flags: `-- Tickers where insiders are signalling caution
+-- Cross-reference with research verdict to find divergences
+SELECT
+  e.ticker,
+  e.signal_label,
+  e.signal_score,
+  e.sell_acceleration,
+  e.n_csuite_sellers,
+  e.net_dollars_90d,
+  r.rating AS research_rating,
+  r.upside_pct,
+  -- divergence flag: bullish research + bearish insiders
+  CASE WHEN r.rating IN ('STRONG_BUY','BUY') AND e.signal_label = 'ACCELERATING_SELL'
+       THEN '⚠ DIVERGENCE' ELSE '' END AS divergence
+FROM edgar_insiders e
+LEFT JOIN equity_research r USING (ticker)
+WHERE e.signal_label IN ('ACCELERATING_SELL', 'LARGE_SELLING')
+ORDER BY e.sell_acceleration DESC NULLS LAST`,
+
+  best_risk_reward: `-- Strongest asymmetry — bull case dwarfs bear case loss
+-- A textbook hedge fund position-sizing input
+SELECT
+  ticker,
+  rating,
+  bull_target,
+  bull_prob,
+  base_target,
+  bear_target,
+  bear_prob,
+  risk_reward_ratio,
+  ev_upside_pct,
+  position_size_pct
+FROM equity_research
+WHERE risk_reward_ratio IS NOT NULL
+ORDER BY risk_reward_ratio DESC
+LIMIT 20`,
+
+  sector_table: `-- Verdict distribution by sector — where is your book skewed?
+SELECT
+  sector,
+  COUNT(*) AS n,
+  SUM(CASE WHEN rating IN ('STRONG_BUY','BUY') THEN 1 ELSE 0 END) AS bulls,
+  SUM(CASE WHEN rating = 'HOLD' THEN 1 ELSE 0 END) AS holds,
+  SUM(CASE WHEN rating IN ('SELL','STRONG_SELL') THEN 1 ELSE 0 END) AS bears,
+  ROUND(AVG(upside_pct), 1) AS avg_upside_pct,
+  ROUND(AVG(pe_ttm), 1) AS avg_pe,
+  ROUND(AVG(roic_ttm_pct), 1) AS avg_roic
+FROM equity_research
+WHERE sector IS NOT NULL
+GROUP BY sector
+ORDER BY avg_upside_pct DESC`,
+
+  full_picture: `-- The flagship join: every ticker × research verdict × insider signal
+SELECT
+  r.ticker,
+  r.sector,
+  r.rating,
+  r.conviction_grade,
+  r.upside_pct,
+  r.ev_upside_pct AS ev_upside,
+  r.pe_ttm,
+  r.roic_ttm_pct AS roic,
+  r.rev_5y_cagr_pct AS rev_cagr,
+  e.signal_label AS insider_signal,
+  e.signal_score AS insider_score,
+  e.n_csuite_sellers AS csuite_sells
+FROM equity_research r
+LEFT JOIN edgar_insiders e USING (ticker)
+ORDER BY
+  CASE r.rating
+    WHEN 'STRONG_BUY' THEN 1
+    WHEN 'BUY' THEN 2
+    WHEN 'HOLD' THEN 3
+    WHEN 'SELL' THEN 4
+    WHEN 'STRONG_SELL' THEN 5
+    ELSE 6
+  END,
+  r.upside_pct DESC NULLS LAST`,
+};
+
+window.loadExample = function(name) {
+  const sql = EXAMPLES[name];
+  if(!sql) return;
+  $("sql-editor").value = sql;
+};
+
+// Wire up example buttons
+document.querySelectorAll('.example-btn').forEach(btn => {
+  btn.addEventListener('click', () => loadExample(btn.dataset.example));
+});
+
+// Ctrl+Enter in editor → run
+$("sql-editor").addEventListener('keydown', (e) => {
+  if((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    if(!$("run-btn").disabled) runQuery();
+  }
+});
+
+// Boot
+init().catch(e => {
+  console.error(e);
+  setStatus("init failed", "error");
+  setMeta(`❌ Init failed: ${e.message}`);
+  $("results-body").innerHTML = `<div class="error">Failed to initialize: ${escapeHtml(String(e.message || e))}\n\nMake sure /analytics/equity_research_flat.json exists in S3. Run the snapshot Lambda first.</div>`;
+});
+
+</script>
+
+</body>
+</html>

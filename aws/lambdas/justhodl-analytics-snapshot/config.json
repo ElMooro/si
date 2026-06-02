@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-analytics-snapshot",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 120,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Reads all equity-research/*.json + edgar-insiders/*.json, flattens to analytics/equity_research_flat.json + edgar_insiders_flat.json. Consumed by /analytics.html (DuckDB-WASM SQL workbench).",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(0 9 * * ? *)",
+    "name": "justhodl-analytics-snapshot-nightly",
+    "description": "04:00 ET — rebuild analytics flat files (1h after prewarm finishes)"
+  }
+}
