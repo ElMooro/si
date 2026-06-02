@@ -706,7 +706,14 @@ def compute_capital_allocation(cf_annual: list, income_annual: list,
 
         # FMP stores dividendsPaid and commonStockRepurchased as NEGATIVE
         # (cash outflows). Convert to positive for reader clarity.
-        divs_raw = _safe_num(cf, "dividendsPaid")
+        # FMP /stable/cash-flow-statement field naming (verified ops 1143):
+        #   commonDividendsPaid   ← real dividend cash outflow (preferred)
+        #   netDividendsPaid      ← same value, alternate field
+        #   dividendsPaid         ← LEGACY name, not in current /stable/ response
+        # Try them in order; legacy as final fallback if FMP ever flips back.
+        divs_raw = (_safe_num(cf, "commonDividendsPaid")
+                    or _safe_num(cf, "netDividendsPaid")
+                    or _safe_num(cf, "dividendsPaid"))
         bb_raw   = _safe_num(cf, "commonStockRepurchased")
         capex_raw = _safe_num(cf, "capitalExpenditure")
 
@@ -1251,11 +1258,33 @@ def lambda_handler(event, context):
         return [{k: r.get(k) for k in keys if k in r} for r in rows]
 
     def compact_cf(rows):
+        # FMP /stable/cash-flow-statement uses (verified ops 1143):
+        #   commonDividendsPaid (real)        — replaces legacy 'dividendsPaid'
+        #   netCashProvidedByInvestingActivities — replaces legacy 'netCashUsedForInvestingActivities'
+        #   netCashProvidedByFinancingActivities — replaces legacy 'netCashUsedProvidedByFinancingActivities'
+        # We emit both the new and legacy field names so older frontends
+        # and downstream consumers continue working.
         keys = ("date","operatingCashFlow","netCashProvidedByOperatingActivities",
-                "capitalExpenditure","freeCashFlow","dividendsPaid",
-                "commonStockRepurchased","netCashUsedForInvestingActivities",
-                "netCashUsedProvidedByFinancingActivities","netIncome")
-        return [{k: r.get(k) for k in keys if k in r} for r in rows]
+                "capitalExpenditure","freeCashFlow",
+                "commonDividendsPaid","netDividendsPaid","dividendsPaid",
+                "commonStockRepurchased",
+                "netCashProvidedByInvestingActivities", "netCashUsedForInvestingActivities",
+                "netCashProvidedByFinancingActivities", "netCashUsedProvidedByFinancingActivities",
+                "netIncome")
+        out_rows = []
+        for r in rows:
+            row = {k: r.get(k) for k in keys if k in r}
+            # Forward-fill legacy field names from new ones so older
+            # consumers keep working without code changes
+            if row.get("dividendsPaid") is None:
+                row["dividendsPaid"] = (row.get("commonDividendsPaid")
+                                          or row.get("netDividendsPaid"))
+            if row.get("netCashUsedForInvestingActivities") is None:
+                row["netCashUsedForInvestingActivities"] = row.get("netCashProvidedByInvestingActivities")
+            if row.get("netCashUsedProvidedByFinancingActivities") is None:
+                row["netCashUsedProvidedByFinancingActivities"] = row.get("netCashProvidedByFinancingActivities")
+            out_rows.append(row)
+        return out_rows
 
     # ── Build payload for Claude
     company_block = {
