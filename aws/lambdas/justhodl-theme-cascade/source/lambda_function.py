@@ -448,10 +448,13 @@ def scan_laggards_in_hot_themes(momentum: dict, theme_index: dict,
 
     These are the SECOND-WAVE candidates — laggards waiting to catch up.
 
-    Criteria:
+    Note: theme_index entries use key "etf" not "ticker" — these are the heat
+    dicts built by build_theme_heat_index(), not raw all_themes entries.
+
+    Criteria (loosened in v3.1 — accept underperformers vs theme too):
       - In momentum-leaders universe
-      - NOT already in velocity tiers (not currently in WATCH/EMERGING/FIRED)
-      - perf_5d <= 0 (laggard — pulled back or flat while others pumped)
+      - NOT already in velocity tiers
+      - perf_5d < +3% (laggard — flat, down, or rising slowly)
       - ANY of its ETFs is in top-10 RS rank (in a hot theme)
     """
     laggards = []
@@ -462,7 +465,7 @@ def scan_laggards_in_hot_themes(momentum: dict, theme_index: dict,
         if not t or t in already_in_velocity:
             continue
         perf_5d = stock.get("perf_5d_pct")
-        if perf_5d is None or perf_5d > 0:
+        if perf_5d is None or perf_5d >= 3:  # loosened from <=0
             continue
 
         etfs = ticker_to_etfs.get(t, [])
@@ -470,8 +473,9 @@ def scan_laggards_in_hot_themes(momentum: dict, theme_index: dict,
         if not candidates_theme:
             continue
 
-        n_top_10 = sum(1 for c in candidates_theme if c.get("ticker") in top_10_etfs)
-        n_top_20 = sum(1 for c in candidates_theme if c.get("ticker") in top_20_etfs)
+        # theme_index entries use "etf" field (built by build_theme_heat_index)
+        n_top_10 = sum(1 for c in candidates_theme if c.get("etf") in top_10_etfs)
+        n_top_20 = sum(1 for c in candidates_theme if c.get("etf") in top_20_etfs)
         if n_top_10 == 0:
             continue
 
@@ -492,7 +496,7 @@ def scan_laggards_in_hot_themes(momentum: dict, theme_index: dict,
             "perf_20d_pct": stock.get("perf_20d_pct"),
             "perf_60d_pct": stock.get("perf_60d_pct"),
             "industry_label": stock.get("industry") or stock.get("sector") or "?",
-            "hot_etf": hottest.get("ticker"),
+            "hot_etf": hottest.get("etf"),       # FIX: use "etf" not "ticker"
             "hot_etf_name": hottest.get("name"),
             "hot_etf_category": hottest.get("category"),
             "theme_rs_rank": hottest.get("rs_rank_20d"),
@@ -504,13 +508,13 @@ def scan_laggards_in_hot_themes(momentum: dict, theme_index: dict,
             "n_etfs_holding": len(etfs),
             "aggregate_flow_5d_usd": flow_info["aggregate_flow_5d_usd"],
             "aggregate_flow_21d_usd": flow_info["aggregate_flow_21d_usd"],
-            # Synthetic score so they sort nicely (deeper pullback in hotter theme = higher)
+            # Synthetic score: deeper pullback in hotter theme = higher candidate
             "combined_score": round(
-                max(0, -perf_5d) * 5  # pullback magnitude
-                + n_top_10 * 10        # hot theme strength
-                + max_accel / 5        # acceleration
-                + (10 if (stock.get("perf_20d_pct") or 0) > 10 else 0)  # strong context
-                , 1),
+                max(0, -perf_5d) * 5
+                + n_top_10 * 10
+                + max_accel / 5
+                + (10 if (stock.get("perf_20d_pct") or 0) > 10 else 0),
+                1),
         })
 
     laggards.sort(key=lambda x: -x["combined_score"])
