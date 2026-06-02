@@ -1,0 +1,196 @@
+{
+  "started": "2026-06-02T23:41:42.150288+00:00",
+  "function_state": {
+    "state": "Active",
+    "last_update_status": "Successful",
+    "code_sha": "6LgJ+tt+aJbFzJmg4IYqLAbIo7vCE4hj8Kqy3O7wUx4=",
+    "modified": "2026-06-02T23:36:46.000+0000",
+    "timeout": 60,
+    "memory": 512
+  },
+  "invoke": {
+    "elapsed_s": 1.1,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.3, \\\"n_total_candidates\\\": 14, \\\"n_weights_applied\\\": 0, \\\"blend\\\": {\\\"original\\\": 1.0, \\\"calibrated\\\": 0.0, \\\"confidence\\\": \\\"NONE\\\", \\\"rationale\\\": \\\"<5 scored predictions \\\\u2014 using base scoring only\\\"}, \\\"rank_audit\\\": {\\\"alert_tier\\\": {\\\"n_compared\\\": 8, \\\"top_10_retention_pct\\\": 100.0, \\\"avg_rank_delta\\\": 0.0, \\\"max_rank_delta\\\": 0, \\\"biggest_movers\\\": [{\\\"ticker\\\": \\\"MU\\\", \\\"original_rank\\\": 1, \\\"calibrated_rank\\\": 1, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"PANW\\\", \\\"original_rank\\\": 2, \\\"calibrated_rank\\\": 2, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"CRWD\\\", \\\"original_rank\\\": 3, \\\"calibrated_rank\\\": 3, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"CDNS\\\", \\\"original_rank\\\": 4, \\\"calibrated_rank\\\": 4, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"FTNT\\\", \\\"original_rank\\\": 5, \\\"calibrated_rank\\\": 5, \\\"delta\\\": 0}]}, \\\"laggards_hot_themes\\\": {\\\"n_compared\\\": 6, \\\"top_10_retention_pct\\\": 100.0, \\\"avg_rank_delta\\\": 0.0, \\\"max_rank_delta\\\": 0, \\\"biggest_movers\\\": [{\\\"ticker\\\": \\\"INTC\\\", \\\"original_rank\\\": 1, \\\"calibrated_rank\\\": 1, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"QCOM\\\", \\\"original_rank\\\": 2, \\\"calibrated_rank\\\": 2, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"TXN\\\", \\\"original_rank\\\": 3, \\\"calibrated_rank\\\": 3, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"AAPL\\\", \\\"original_rank\\\": 4, \\\"calibrated_rank\\\": 4, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"GLW\\\", \\\"original_rank\\\": 5, \\\"calibrated_rank\\\": 5, \\\"delta\\\": 0}]}}, \\\"calibration_confidence\\\": \\\"NONE\\\"}\"}"
+  },
+  "s3_theme-cascade-calibrated.json": {
+    "size": 18589,
+    "modified": "2026-06-02T23:41:44"
+  },
+  "s3_cascade-recalibration-audit.json": {
+    "size": 1574,
+    "modified": "2026-06-02T23:41:44"
+  },
+  "content": {
+    "blend": {
+      "original": 1.0,
+      "calibrated": 0.0,
+      "confidence": "NONE",
+      "rationale": "<5 scored predictions \u2014 using base scoring only"
+    },
+    "n_predictions": 0,
+    "alert_tier_count": 8,
+    "laggards_count": 6,
+    "audit_blend": {
+      "original": 1.0,
+      "calibrated": 0.0,
+      "confidence": "NONE",
+      "rationale": "<5 scored predictions \u2014 using base scoring only"
+    },
+    "audit_rank_changes": {
+      "alert_tier": {
+        "n_compared": 8,
+        "top_10_retention_pct": 100.0,
+        "avg_rank_delta": 0.0,
+        "max_rank_delta": 0,
+        "biggest_movers": [
+          {
+            "ticker": "MU",
+            "original_rank": 1,
+            "calibrated_rank": 1,
+            "delta": 0
+          },
+          {
+            "ticker": "PANW",
+            "original_rank": 2,
+            "calibrated_rank": 2,
+            "delta": 0
+          },
+          {
+            "ticker": "CRWD",
+            "original_rank": 3,
+            "calibrated_rank": 3,
+            "delta": 0
+          },
+          {
+            "ticker": "CDNS",
+            "original_rank": 4,
+            "calibrated_rank": 4,
+            "delta": 0
+          },
+          {
+            "ticker": "FTNT",
+            "original_rank": 5,
+            "calibrated_rank": 5,
+            "delta": 0
+          }
+        ]
+      },
+      "laggards_hot_themes": {
+        "n_compared": 6,
+        "top_10_retention_pct": 100.0,
+        "avg_rank_delta": 0.0,
+        "max_rank_delta": 0,
+        "biggest_movers": [
+          {
+            "ticker": "INTC",
+            "original_rank": 1,
+            "calibrated_rank": 1,
+            "delta": 0
+          },
+          {
+            "ticker": "QCOM",
+            "original_rank": 2,
+            "calibrated_rank": 2,
+            "delta": 0
+          },
+          {
+            "ticker": "TXN",
+            "original_rank": 3,
+            "calibrated_rank": 3,
+            "delta": 0
+          },
+          {
+            "ticker": "AAPL",
+            "original_rank": 4,
+            "calibrated_rank": 4,
+            "delta": 0
+          },
+          {
+            "ticker": "GLW",
+            "original_rank": 5,
+            "calibrated_rank": 5,
+            "delta": 0
+          }
+        ]
+      }
+    },
+    "top_weights": [],
+    "alert_tier_top5": [
+      {
+        "ticker": "MU",
+        "combined": 167.7,
+        "original": 167.7,
+        "calibrated": 167.7,
+        "adj": 1.0
+      },
+      {
+        "ticker": "PANW",
+        "combined": 161.7,
+        "original": 161.7,
+        "calibrated": 161.7,
+        "adj": 1.0
+      },
+      {
+        "ticker": "CRWD",
+        "combined": 137.3,
+        "original": 137.3,
+        "calibrated": 137.3,
+        "adj": 1.0
+      },
+      {
+        "ticker": "CDNS",
+        "combined": 120.3,
+        "original": 120.3,
+        "calibrated": 120.3,
+        "adj": 1.0
+      },
+      {
+        "ticker": "FTNT",
+        "combined": 102.8,
+        "original": 102.8,
+        "calibrated": 102.8,
+        "adj": 1.0
+      }
+    ],
+    "laggards_top5": [
+      {
+        "ticker": "INTC",
+        "combined": 118.6,
+        "original": 118.6,
+        "calibrated": 118.6,
+        "adj": 1.0
+      },
+      {
+        "ticker": "QCOM",
+        "combined": 56.7,
+        "original": 56.7,
+        "calibrated": 56.7,
+        "adj": 1.0
+      },
+      {
+        "ticker": "TXN",
+        "combined": 56.4,
+        "original": 56.4,
+        "calibrated": 56.4,
+        "adj": 1.0
+      },
+      {
+        "ticker": "AAPL",
+        "combined": 45.5,
+        "original": 45.5,
+        "calibrated": 45.5,
+        "adj": 1.0
+      },
+      {
+        "ticker": "GLW",
+        "combined": 30.6,
+        "original": 30.6,
+        "calibrated": 30.6,
+        "adj": 1.0
+      }
+    ]
+  },
+  "finished": "2026-06-02T23:41:43.661139+00:00"
+}
