@@ -5,7 +5,9 @@
   "handler": "lambda_function.lambda_handler",
   "timeout": 240,
   "memory": 512,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Honest track record + ensemble attribution. Reads every research file, computes ticker return + SPY-relative alpha vs entry price, aggregates by rating + critic_rating, AND tests whether ensemble disagreement signal predicts anything (consensus vs contested calls). Writes analytics/backtest_results.json.",
   "environment_keys": [
@@ -14,6 +16,7 @@
   "schedule": {
     "expression": "cron(0 11 * * ? *)",
     "name": "justhodl-research-backtest-daily",
-    "description": "11:00 UTC = 06:00 ET — rebuild track record after market overnight stabilization"
-  }
+    "description": "11:00 UTC = 06:00 ET \u2014 rebuild track record after market overnight stabilization"
+  },
+  "inherit_env": true
 }

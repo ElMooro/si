@@ -5,7 +5,9 @@
   "handler": "lambda_function.lambda_handler",
   "timeout": 180,
   "memory": 512,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Devil's Advocate critique of equity-research verdicts. Reads research from S3, runs adversarial review via Sonnet 4.6 (default) or OpenAI o3-mini (if OPENAI_API_KEY in env). Writes to equity-critique/{ticker}.json.",
   "environment_keys": [
@@ -15,9 +17,17 @@
   "function_url": {
     "auth_type": "NONE",
     "cors": {
-      "AllowOrigins": ["*"],
-      "AllowMethods": ["GET", "POST"],
-      "AllowHeaders": ["Content-Type"]
+      "AllowOrigins": [
+        "*"
+      ],
+      "AllowMethods": [
+        "GET",
+        "POST"
+      ],
+      "AllowHeaders": [
+        "Content-Type"
+      ]
     }
-  }
+  },
+  "inherit_env": true
 }
