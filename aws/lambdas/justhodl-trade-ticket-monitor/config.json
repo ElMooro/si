@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-trade-ticket-monitor",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 60,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Real-time trade ticket monitor: alerts on stop breach / TP hits / big gains during trading hours",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(0/10 14-20 * * MON-FRI *)",
+    "name": "justhodl-trade-ticket-monitor-10min",
+    "description": "Every 10 min during US trading hours (14-20 UTC = 9am-3:59pm ET)"
+  }
+}
