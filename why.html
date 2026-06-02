@@ -422,6 +422,7 @@ function renderReport(d){
   html += renderFinancialHealth(d);
   html += renderGrowth(d);
   html += renderEarningsTrack(d);
+  html += renderCapitalAllocation(d);
   html += renderReturns(d);
   html += renderMargins(d);
   html += renderStatements(d);
@@ -829,6 +830,111 @@ function renderEarningsTrack(d){
               <th>Rev Est</th>
               <th>Rev Actual</th>
               <th>Rev Surprise</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </section>`;
+}
+
+function renderCapitalAllocation(d){
+  const c = d.capital_allocation || {};
+  if(!c.timeline || c.timeline.length === 0) return "";
+
+  const timeline = c.timeline || [];
+
+  // Capex intensity badge
+  const ct = c.capex_intensity_trend;
+  const ctCls = ct === "falling" ? "up" : ct === "rising" ? "down" : "warn";
+
+  // Stacked bar viz: divs + buybacks per year (last 10y)
+  const yearsForViz = timeline.slice().reverse(); // oldest to newest
+  const maxYearTotal = Math.max(...yearsForViz.map(t => (t.capital_returned || 0)), 1);
+  const w = 600, h = 110, barW = w / Math.max(yearsForViz.length, 1);
+  const stackedBars = yearsForViz.map((t, i) => {
+    const totalRet = t.capital_returned || 0;
+    const totalRetH = (totalRet / maxYearTotal) * (h - 30);
+    const divs = t.dividends_paid || 0;
+    const bb   = t.buybacks || 0;
+    const divsH = (divs / maxYearTotal) * (h - 30);
+    const bbH   = (bb / maxYearTotal) * (h - 30);
+    const x = i * barW + 4;
+    return `
+      <rect x="${x}" y="${h - 20 - divsH}" width="${barW - 8}" height="${divsH}" fill="#3b82f6" />
+      <rect x="${x}" y="${h - 20 - divsH - bbH}" width="${barW - 8}" height="${bbH}" fill="#a78bfa" />
+      <text x="${x + barW/2 - 4}" y="${h - 5}" fill="#888" font-size="9" text-anchor="middle">${esc(t.year || '')}</text>`;
+  }).join("");
+
+  // Per-year detail table
+  const rows = timeline.map(t => `<tr>
+    <td>${esc(t.year || '—')}</td>
+    <td>${fmt$(t.net_income)}</td>
+    <td>${fmt$(t.free_cash_flow)}</td>
+    <td>${fmt$(t.dividends_paid)}</td>
+    <td>${fmt$(t.buybacks)}</td>
+    <td>${fmt$(t.capex)}</td>
+    <td>${t.payout_ratio_pct != null ? t.payout_ratio_pct.toFixed(0) + '%' : '—'}</td>
+    <td>${t.capex_to_revenue_pct != null ? t.capex_to_revenue_pct.toFixed(1) + '%' : '—'}</td>
+  </tr>`).join("");
+
+  return `
+    <section class="block">
+      <h3><span class="ico">💼</span> Capital Allocation
+        <span class="pill">${timeline.length}-year history</span>
+      </h3>
+      ${d.capital_allocation_assessment ? `<p>${esc(d.capital_allocation_assessment)}</p>` : ""}
+      <div class="grid" style="margin-top:14px">
+        <div class="metric">
+          <div class="lbl">Total Returned 10y</div>
+          <div class="val">${fmt$(c.total_returned_10y, 1)}</div>
+          <div class="sub">divs + buybacks combined</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Shareholder Yield</div>
+          <div class="val ${(c.shareholder_yield_pct || 0) > 5 ? 'up' : 'warn'}">${c.shareholder_yield_pct != null ? c.shareholder_yield_pct.toFixed(2) + '%' : '—'}</div>
+          <div class="sub">capital return / mkt cap</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Buyback Share</div>
+          <div class="val">${c.buyback_share_of_return_pct != null ? c.buyback_share_of_return_pct.toFixed(0) + '%' : '—'}</div>
+          <div class="sub">of latest year return</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Payout Ratio (NI)</div>
+          <div class="val ${(c.latest_payout_ratio_pct || 0) > 100 ? 'down' : (c.latest_payout_ratio_pct || 0) > 70 ? 'warn' : 'up'}">${c.latest_payout_ratio_pct != null ? c.latest_payout_ratio_pct.toFixed(0) + '%' : '—'}</div>
+          <div class="sub">${c.latest_fcf_payout_pct != null ? 'FCF payout ' + c.latest_fcf_payout_pct.toFixed(0) + '%' : ''}</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Capex / Revenue</div>
+          <div class="val">${c.capex_to_revenue_recent_avg != null ? c.capex_to_revenue_recent_avg.toFixed(1) + '%' : '—'}</div>
+          <div class="sub">${c.capex_to_revenue_older_avg != null ? 'was ' + c.capex_to_revenue_older_avg.toFixed(1) + '% (5y prior)' : ''}</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Capex Intensity</div>
+          <div class="val ${ctCls}" style="font-size:14px; padding-top:6px">${(ct || '—').toUpperCase()}</div>
+          <div class="sub">trend over 5y</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="margin-top:14px">
+        <div class="chart-title">Capital return by year (purple = buybacks, blue = dividends)</div>
+        <svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+          ${stackedBars}
+        </svg>
+      </div>
+      <div class="chart-wrap" style="margin-top:14px">
+        <div class="chart-title">Per-year detail</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Year</th>
+              <th>Net Income</th>
+              <th>Free Cash Flow</th>
+              <th>Dividends</th>
+              <th>Buybacks</th>
+              <th>CapEx</th>
+              <th>Payout (NI)</th>
+              <th>CapEx/Rev</th>
             </tr></thead>
             <tbody>${rows}</tbody>
           </table>

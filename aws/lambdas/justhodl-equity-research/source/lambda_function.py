@@ -569,6 +569,125 @@ def compute_financial_health(scores: list, ratios_ttm: dict, key_ttm: dict,
     }
 
 
+def compute_capital_allocation(cf_annual: list, income_annual: list,
+                                 quote: dict) -> dict:
+    """Institutional capital allocation analysis.
+
+    Hedge funds care about:
+      - Total capital returned to shareholders (divs + buybacks) over time
+      - Payout ratio (capital returned / net income) — sustainability check
+      - Shareholder yield (capital returned / market cap) — total return floor
+      - Buyback yield vs dividend yield (cash distribution mix)
+      - Capex / revenue trend (capital intensity, business model signal)
+      - 'Cash-cow vs capex-heavy' framing
+    """
+    if not (isinstance(cf_annual, list) and isinstance(income_annual, list)
+            and cf_annual and income_annual):
+        return {}
+    market_cap = _safe_num(quote, "marketCap") or 0
+
+    # Per-year detail (last 10y)
+    timeline = []
+    for i, cf in enumerate(cf_annual[:10]):
+        date = cf.get("date") or ""
+        ni_row = None
+        # Match income statement by date
+        for inc in income_annual:
+            if inc.get("date") == date:
+                ni_row = inc
+                break
+        net_income = _safe_num(ni_row, "netIncome") if ni_row else None
+
+        # FMP stores dividendsPaid and commonStockRepurchased as NEGATIVE
+        # (cash outflows). Convert to positive for reader clarity.
+        divs_raw = _safe_num(cf, "dividendsPaid")
+        bb_raw   = _safe_num(cf, "commonStockRepurchased")
+        capex_raw = _safe_num(cf, "capitalExpenditure")
+
+        divs_paid    = abs(divs_raw) if divs_raw is not None else None
+        buybacks     = abs(bb_raw)   if bb_raw is not None else None
+        capex        = abs(capex_raw) if capex_raw is not None else None
+        capital_returned = (divs_paid or 0) + (buybacks or 0)
+
+        payout_ratio = None
+        if net_income and net_income > 0 and capital_returned > 0:
+            payout_ratio = round(capital_returned / net_income * 100, 1)
+
+        fcf = _safe_num(cf, "freeCashFlow")
+        fcf_payout = None
+        if fcf and fcf > 0 and capital_returned > 0:
+            fcf_payout = round(capital_returned / fcf * 100, 1)
+
+        # Get revenue for capex/revenue trend
+        revenue = _safe_num(ni_row, "revenue") if ni_row else None
+        capex_to_rev = round(capex / revenue * 100, 2) if (capex and revenue and revenue > 0) else None
+
+        timeline.append({
+            "year":              date[:4] if date else None,
+            "net_income":        net_income,
+            "free_cash_flow":    fcf,
+            "dividends_paid":    divs_paid,
+            "buybacks":          buybacks,
+            "capex":             capex,
+            "revenue":           revenue,
+            "capital_returned":  capital_returned if capital_returned > 0 else None,
+            "payout_ratio_pct":  payout_ratio,
+            "fcf_payout_pct":    fcf_payout,
+            "capex_to_revenue_pct": capex_to_rev,
+        })
+
+    # ── Aggregates (rolling 10y where available)
+    def sum_field(name, n=10):
+        vals = [t.get(name) for t in timeline[:n]]
+        clean = [v for v in vals if isinstance(v, (int, float))]
+        return sum(clean) if clean else None
+
+    total_divs_10y     = sum_field("dividends_paid")
+    total_buybacks_10y = sum_field("buybacks")
+    total_capex_10y    = sum_field("capex")
+    total_returned_10y = (total_divs_10y or 0) + (total_buybacks_10y or 0)
+
+    # ── Shareholder yield = recent annualized capital return / mkt cap
+    latest_return = timeline[0].get("capital_returned") if timeline else None
+    shareholder_yield_pct = None
+    if latest_return and market_cap > 0:
+        shareholder_yield_pct = round(latest_return / market_cap * 100, 2)
+
+    # Distribution mix (latest year): what fraction is buybacks vs divs
+    buyback_share_pct = None
+    if timeline and timeline[0].get("capital_returned"):
+        latest = timeline[0]
+        if latest.get("buybacks") is not None:
+            buyback_share_pct = round((latest["buybacks"] or 0) / latest["capital_returned"] * 100, 1)
+
+    # Capital intensity trend (capex/rev)
+    capex_trend = [t.get("capex_to_revenue_pct") for t in timeline if t.get("capex_to_revenue_pct") is not None]
+    capex_recent_avg = round(sum(capex_trend[:3]) / len(capex_trend[:3]), 2) if capex_trend[:3] else None
+    capex_older_avg  = round(sum(capex_trend[5:8]) / len(capex_trend[5:8]), 2) if len(capex_trend) >= 8 else None
+
+    capex_intensity_trend = None
+    if capex_recent_avg is not None and capex_older_avg is not None and capex_older_avg > 0:
+        change = (capex_recent_avg - capex_older_avg) / capex_older_avg
+        if change > 0.2:    capex_intensity_trend = "rising"
+        elif change < -0.2: capex_intensity_trend = "falling"
+        else:               capex_intensity_trend = "stable"
+
+    return {
+        "timeline":               timeline,
+        "total_dividends_10y":    total_divs_10y,
+        "total_buybacks_10y":     total_buybacks_10y,
+        "total_capex_10y":        total_capex_10y,
+        "total_returned_10y":     total_returned_10y if total_returned_10y > 0 else None,
+        "shareholder_yield_pct":  shareholder_yield_pct,
+        "buyback_share_of_return_pct": buyback_share_pct,
+        "latest_payout_ratio_pct": timeline[0].get("payout_ratio_pct") if timeline else None,
+        "latest_fcf_payout_pct":  timeline[0].get("fcf_payout_pct") if timeline else None,
+        "capex_to_revenue_recent_avg": capex_recent_avg,
+        "capex_to_revenue_older_avg":  capex_older_avg,
+        "capex_intensity_trend":  capex_intensity_trend,
+    }
+
+
 def compute_earnings_track_record(earnings_rows: list) -> dict:
     """Institutional-style earnings beat/miss analysis.
 
@@ -796,6 +915,7 @@ Schema:
   "valuation_assessment": "150 words on whether the stock is cheap/fair/expensive given P/E vs 5yr avg, DCF gap, peer multiples, and FCF yield. Be specific.",
   "peer_comparison_assessment": "100 words on how the subject's valuation multiples compare to the peer-median (which functions as the industry P/E benchmark). Reference SPECIFIC peer ticker(s) where helpful. Frame as: 'trading at X% premium/discount to peer median P/E of Y'.",
   "earnings_track_record_assessment": "80 words on the company's earnings consistency. Cite the EPS beat rate, current streak, magnitude trend, and revenue surprise. Hedge fund framing: 'beats 7 of 8 quarters but with shrinking magnitude = deteriorating quality' is more useful than just 'beats consensus regularly'.",
+  "capital_allocation_assessment": "80 words on management's capital allocation. Cite total capital returned 10y, shareholder yield, dividend vs buyback mix, payout ratio sustainability, and capex intensity trend. Frame as 'cash-cow returning $X to shareholders' vs 'reinvesting heavily into capex' — both can be good, depends on ROIC.",
   "financial_health_summary": "100 words on the 5-pillar score, calling out the strongest and weakest pillars with the actual numbers.",
   "competitive_position": "100 words on the company's moat and industry position based on margins, growth durability, and ROIC vs peers.",
   "catalysts_12m": [
@@ -982,6 +1102,9 @@ def lambda_handler(event, context):
     # ── Earnings beat/miss track record
     earnings_track_record = compute_earnings_track_record(earnings)
 
+    # ── Capital allocation timeline
+    capital_allocation = compute_capital_allocation(cashflow_annual, income_annual, quote_obj)
+
     # ── Compact statements (every year, just essential fields)
     def compact_income(rows):
         keys = ("date","revenue","grossProfit","operatingIncome","netIncome",
@@ -1056,6 +1179,7 @@ def lambda_handler(event, context):
         "analyst_estimates": est_block,
         "peer_comparison": peer_comparison,
         "earnings_track_record": earnings_track_record,
+        "capital_allocation": capital_allocation,
         "statements_preview": {
             "income_top_5y":      compact_income(income_annual[:5]),
             "balance_top_5y":     compact_balance(balance_annual[:5]),
@@ -1096,6 +1220,7 @@ def lambda_handler(event, context):
         "valuation_assessment":claude_synthesis.get("valuation_assessment"),
         "peer_comparison_assessment": claude_synthesis.get("peer_comparison_assessment"),
         "earnings_track_record_assessment": claude_synthesis.get("earnings_track_record_assessment"),
+        "capital_allocation_assessment": claude_synthesis.get("capital_allocation_assessment"),
         "financial_health_summary": claude_synthesis.get("financial_health_summary"),
         "competitive_position":claude_synthesis.get("competitive_position"),
         "catalysts_12m":       claude_synthesis.get("catalysts_12m") or [],
@@ -1110,6 +1235,7 @@ def lambda_handler(event, context):
         "analyst_estimates":   est_block,
         "peer_comparison":     peer_comparison,
         "earnings_track_record": earnings_track_record,
+        "capital_allocation":  capital_allocation,
         "statements": {
             "income_annual":     compact_income(income_annual),
             "balance_annual":    compact_balance(balance_annual),
