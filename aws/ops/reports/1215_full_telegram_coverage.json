@@ -1,0 +1,166 @@
+{
+  "started": "2026-06-02T20:16:03.835627+00:00",
+  "data_file_status": {
+    "activist_filings": {
+      "exists": true,
+      "key": "data/activist-13d.json",
+      "last_modified": "2026-06-02T11:00:14",
+      "size_kb": 3.7
+    },
+    "insider_clusters": {
+      "exists": true,
+      "key": "data/insider-clusters.json",
+      "last_modified": "2026-06-02T11:10:47",
+      "size_kb": 51.5
+    },
+    "squeeze_pretrigger": {
+      "exists": true,
+      "key": "data/squeeze-pretrigger.json",
+      "last_modified": "2026-06-01T23:30:31",
+      "size_kb": 2.7
+    },
+    "dealer_gex": {
+      "exists": true,
+      "key": "data/dealer-gex.json",
+      "last_modified": "2026-06-02T20:07:26",
+      "size_kb": 33.4
+    },
+    "redflag_alerter": {
+      "exists": false,
+      "key": "data/redflag-alerter.json",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "divcut_warning": {
+      "exists": true,
+      "key": "data/divcut-warning.json",
+      "last_modified": "2026-05-31T22:00:36",
+      "size_kb": 1.3
+    },
+    "breadth_thrust": {
+      "exists": true,
+      "key": "data/breadth-thrust.json",
+      "last_modified": "2026-05-20T15:31:13",
+      "size_kb": 4.3
+    },
+    "capitulation": {
+      "exists": true,
+      "key": "data/capitulation.json",
+      "last_modified": "2026-06-02T18:45:07",
+      "size_kb": 1.1
+    },
+    "52wk_breakout": {
+      "exists": true,
+      "key": "data/52wk-quality-breakout.json",
+      "last_modified": "2026-06-01T22:00:40",
+      "size_kb": 1.2
+    },
+    "crisis_composite": {
+      "exists": true,
+      "key": "data/crisis-composite.json",
+      "last_modified": "2026-06-02T20:15:33",
+      "size_kb": 2.6
+    }
+  },
+  "router_invoke": {
+    "elapsed_s": 3.8,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 2.9, \\\"n_messages_sent\\\": 1, \\\"counts\\\": {\\\"early_movers\\\": 2, \\\"insider_clusters\\\": 7}, \\\"first_result_status\\\": 200}\"}"
+  },
+  "state": {
+    "date": "2026-06-02",
+    "alerted_by_signal": {
+      "cascade_laggard": [
+        "INTC",
+        "AMD",
+        "TXN",
+        "QCOM",
+        "LRCX",
+        "GLW",
+        "KLAC",
+        "AAPL"
+      ],
+      "velocity": [
+        "velocity_WATCH_CRWD",
+        "velocity_WATCH_PANW",
+        "velocity_WATCH_MS",
+        "velocity_WATCH_ARM"
+      ],
+      "flow_anomaly": [
+        "EXTREME_FLOW_",
+        "PERSISTENT_FLOW_",
+        "CROSS_TIMEFRAME_DIVERGENCE_",
+        "CONSTITUENT_DIVERGENCE_"
+      ],
+      "options_flow": [
+        "AMD",
+        "JNJ",
+        "APP",
+        "CVX",
+        "ASML",
+        "IBM",
+        "CSCO",
+        "LLY",
+        "KLAC",
+        "ACN",
+        "GOOGL",
+        "GS",
+        "AMZN",
+        "CRM",
+        "CDNS",
+        "JPM",
+        "AAPL",
+        "GOOG"
+      ],
+      "fx_regime": [
+        "CARRY_TRADE_FAVORABLE"
+      ],
+      "futures_curves": [
+        "SILVER_BREAKOUT"
+      ],
+      "convergence_ultra_new": [
+        "GOOGL"
+      ],
+      "early_mover_alert": [
+        "GOOGL"
+      ],
+      "insider_cluster": [
+        "SLMT",
+        "BZUN",
+        "GSHD",
+        "SWZ",
+        "QTTB",
+        "NONE",
+        "RLI"
+      ]
+    },
+    "last_macro_regime": "REFLATION",
+    "last_send": "2026-06-02T20:17:37.789553+00:00",
+    "last_send_results": [
+      {
+        "status": 200,
+        "body": "{\"ok\":true,\"result\":{\"message_id\":8370,\"from\":{\"id\":8679881066,\"is_bot\":true,\"first_name\":\"#FREEVPN VPN \\u0411\\u042b\\u0421\\u0422\\u0420\\u042b\\u0419 \\u0411\\u0415\\u041b\\u042b\\u0415 \\u0421\\u041f\\u0418\\u04"
+      }
+    ],
+    "last_gex_regime": "",
+    "last_crisis_regime": "CALM"
+  },
+  "audit": {
+    "n_justhodl_lambdas": 438,
+    "telegram_routers": [
+      "justhodl-ai-brief-router",
+      "justhodl-alert-router",
+      "justhodl-alpha-alerts",
+      "justhodl-correlation-break-trade-router",
+      "justhodl-cro-digest",
+      "justhodl-cro-escalation",
+      "justhodl-fed-pivot-factor-router",
+      "justhodl-morning-brief-tg",
+      "justhodl-prepump-alerts-router",
+      "justhodl-redflag-alerter",
+      "justhodl-regime-conditional-router",
+      "justhodl-screener-alerts"
+    ]
+  },
+  "finished": "2026-06-02T20:17:41.872068+00:00"
+}
