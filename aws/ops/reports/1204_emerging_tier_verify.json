@@ -1,0 +1,76 @@
+{
+  "started": "2026-06-02T17:44:03.697194+00:00",
+  "invoke": {
+    "elapsed_s": 1.8,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"status\\\": \\\"ok\\\", \\\"elapsed_sec\\\": 0.79, \\\"trading_date\\\": \\\"2026-06-02\\\", \\\"n_fired\\\": 6, \\\"n_fresh\\\": 0, \\\"n_confirmed_today\\\": 0, \\\"n_aging\\\": 0, \\\"n_expired_today\\\": 0, \\\"n_actionable\\\": 8, \\\"top_fresh\\\": [], \\\"top_confirmed\\\": []}\"}"
+  },
+  "doc_summary": {
+    "schema_version": "1.1",
+    "generated_at": "2026-06-02T17:44:05.414065+00:00",
+    "trading_date": "2026-06-02",
+    "universe_size": 32,
+    "n_fired": 6,
+    "n_emerging": 0,
+    "n_watch": 3,
+    "n_confirmed_today": 0,
+    "n_fresh": 0,
+    "config": {
+      "lookback_days": 7,
+      "baseline_days": 20,
+      "fire_threshold": 60,
+      "emerging_min": 45,
+      "watch_min": 30,
+      "max_universe": 80,
+      "pending_max_sessions": 3,
+      "confirmer_engines": [
+        "momentum-breakout",
+        "options-flow",
+        "buzz-velocity"
+      ]
+    }
+  },
+  "confirmed_today": [],
+  "fresh_fires": [],
+  "emerging": [],
+  "watch": [
+    {
+      "ticker": "CRWD",
+      "tier_label": "WATCH",
+      "composite_score": 34.4,
+      "slope_score": 27.6,
+      "accum_score": 50.5,
+      "floor_score": 27.5,
+      "current_vol_ratio": 0.84,
+      "theme": "Software - Infrastructure",
+      "theme_label": "Software - Infrastructure",
+      "momentum_score": 82.4
+    },
+    {
+      "ticker": "ARM",
+      "tier_label": "WATCH",
+      "composite_score": 32.7,
+      "slope_score": 15.3,
+      "accum_score": 67.8,
+      "floor_score": 23.3,
+      "current_vol_ratio": 0.93,
+      "theme": "Semiconductors",
+      "theme_label": "AI semis",
+      "momentum_score": 88.9
+    },
+    {
+      "ticker": "PANW",
+      "tier_label": "WATCH",
+      "composite_score": 30.0,
+      "slope_score": 42.0,
+      "accum_score": 30.1,
+      "floor_score": 0,
+      "current_vol_ratio": 0.98,
+      "theme": "Software - Infrastructure",
+      "theme_label": "Software - Infrastructure",
+      "momentum_score": 82.4
+    }
+  ],
+  "finished": "2026-06-02T17:44:05.848153+00:00"
+}
