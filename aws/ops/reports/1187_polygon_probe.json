@@ -1,0 +1,699 @@
+{
+  "started": "2026-06-02T15:02:37.276849+00:00",
+  "tests": {
+    "indices": {
+      "I:VIX": {
+        "name": "I:VIX",
+        "url": "https://api.polygon.io/v2/aggs/ticker/I:VIX/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 403,
+        "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"1bde9606bb9e6bb85343e984654d89d0\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+      },
+      "I:SPX": {
+        "name": "I:SPX",
+        "url": "https://api.polygon.io/v2/aggs/ticker/I:SPX/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 403,
+        "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"4a3b33cc846932d99bc5c0aa732b0cf0\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+      },
+      "I:NDX": {
+        "name": "I:NDX",
+        "url": "https://api.polygon.io/v2/aggs/ticker/I:NDX/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 6,
+        "sample": {
+          "o": 30295.24691324304,
+          "c": 30513.86160102124,
+          "h": 30633.54751493478,
+          "l": 30241.19513617405,
+          "t": 1780290000000
+        }
+      },
+      "I:RUT": {
+        "name": "I:RUT",
+        "url": "https://api.polygon.io/v2/aggs/ticker/I:RUT/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 403,
+        "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"6da58258f3ec0bd12ba572b097dc2918\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+      },
+      "I:VVIX": {
+        "name": "I:VVIX",
+        "url": "https://api.polygon.io/v2/aggs/ticker/I:VVIX/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 403,
+        "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"011ec19aacc32ed9f786f4d99a7f4c2f\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+      },
+      "I:VIX9D": {
+        "name": "I:VIX9D",
+        "url": "https://api.polygon.io/v2/aggs/ticker/I:VIX9D/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 403,
+        "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"4dd14d7028e9ceefc8d2015bca9322c7\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+      },
+      "VIX": {
+        "name": "VIX",
+        "url": "https://api.polygon.io/v2/aggs/ticker/VIX/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "VIX",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "ba7081f79bf5efbbe43dff7781d7a45e"
+        }
+      },
+      "SPX": {
+        "name": "SPX",
+        "url": "https://api.polygon.io/v2/aggs/ticker/SPX/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "SPX",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "1f30bbd494cd9ccc40082247a7c23dd4"
+        }
+      },
+      "NDX": {
+        "name": "NDX",
+        "url": "https://api.polygon.io/v2/aggs/ticker/NDX/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "NDX",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "cfce445e56b0e620b51a847433861a54"
+        }
+      },
+      "VIXY": {
+        "name": "VIXY",
+        "url": "https://api.polygon.io/v2/aggs/ticker/VIXY/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 7,
+        "sample": {
+          "v": 525470.100357,
+          "vw": 23.588,
+          "o": 23.57,
+          "c": 23.8,
+          "h": 23.81,
+          "l": 23.485,
+          "t": 1780372800000,
+          "n": 6716
+        }
+      },
+      "VXX": {
+        "name": "VXX",
+        "url": "https://api.polygon.io/v2/aggs/ticker/VXX/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 7,
+        "sample": {
+          "v": 2268491.139281,
+          "vw": 24.4678,
+          "o": 24.43,
+          "c": 24.685,
+          "h": 24.695,
+          "l": 24.35,
+          "t": 1780372800000,
+          "n": 19701
+        }
+      }
+    },
+    "futures_reference": {
+      "ES": {
+        "name": "contracts_ES",
+        "url": "https://api.polygon.io/futures/v1/contracts?product_code=ES&active=true&order=asc&sort=last_trade_date&limit=3&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 400,
+        "body": "{\"status\":\"ERROR\",\"request_id\":\"2a23ed9ac66e415abc4b2889a4e36a59\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [date, product_code, ticker], but found: 'last_trade_date'.\"}"
+      },
+      "NQ": {
+        "name": "contracts_NQ",
+        "url": "https://api.polygon.io/futures/v1/contracts?product_code=NQ&active=true&order=asc&sort=last_trade_date&limit=3&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 400,
+        "body": "{\"status\":\"ERROR\",\"request_id\":\"e8d67c5e69494d469077e0080fec0119\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [date, product_code, ticker], but found: 'last_trade_date'.\"}"
+      },
+      "VX": {
+        "name": "contracts_VX",
+        "url": "https://api.polygon.io/futures/v1/contracts?product_code=VX&active=true&order=asc&sort=last_trade_date&limit=3&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 400,
+        "body": "{\"status\":\"ERROR\",\"request_id\":\"7b7f5999bc9b475e92f5950a65517a71\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [date, product_code, ticker], but found: 'last_trade_date'.\"}"
+      },
+      "ZN": {
+        "name": "contracts_ZN",
+        "url": "https://api.polygon.io/futures/v1/contracts?product_code=ZN&active=true&order=asc&sort=last_trade_date&limit=3&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 400,
+        "body": "{\"status\":\"ERROR\",\"request_id\":\"e7659677e87b48ccae3400bd5af8cd5e\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [date, product_code, ticker], but found: 'last_trade_date'.\"}"
+      },
+      "ZB": {
+        "name": "contracts_ZB",
+        "url": "https://api.polygon.io/futures/v1/contracts?product_code=ZB&active=true&order=asc&sort=last_trade_date&limit=3&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 400,
+        "body": "{\"status\":\"ERROR\",\"request_id\":\"5cd7019655274b139c74574880e4a13d\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [date, product_code, ticker], but found: 'last_trade_date'.\"}"
+      },
+      "ZT": {
+        "name": "contracts_ZT",
+        "url": "https://api.polygon.io/futures/v1/contracts?product_code=ZT&active=true&order=asc&sort=last_trade_date&limit=3&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 400,
+        "body": "{\"status\":\"ERROR\",\"request_id\":\"c1ce7010ae154b42bf8460aff57abb55\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [date, product_code, ticker], but found: 'last_trade_date'.\"}"
+      },
+      "CL": {
+        "name": "contracts_CL",
+        "url": "https://api.polygon.io/futures/v1/contracts?product_code=CL&active=true&order=asc&sort=last_trade_date&limit=3&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 400,
+        "body": "{\"status\":\"ERROR\",\"request_id\":\"7f2241b2454648669d683f520f8ec243\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [date, product_code, ticker], but found: 'last_trade_date'.\"}"
+      },
+      "GC": {
+        "name": "contracts_GC",
+        "url": "https://api.polygon.io/futures/v1/contracts?product_code=GC&active=true&order=asc&sort=last_trade_date&limit=3&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 400,
+        "body": "{\"status\":\"ERROR\",\"request_id\":\"7a81c83dd6334db19542647c2847afec\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [date, product_code, ticker], but found: 'last_trade_date'.\"}"
+      },
+      "HG": {
+        "name": "contracts_HG",
+        "url": "https://api.polygon.io/futures/v1/contracts?product_code=HG&active=true&order=asc&sort=last_trade_date&limit=3&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 400,
+        "body": "{\"status\":\"ERROR\",\"request_id\":\"0ad95abe391848918c4e5ab5d44a9e67\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [date, product_code, ticker], but found: 'last_trade_date'.\"}"
+      }
+    },
+    "futures_aggs": {
+      "ESM6": {
+        "name": "aggs_ESM6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/ESM6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "ESM6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "2e21b4069e710f52a4f0c66fa8f55cec"
+        }
+      },
+      "ESU6": {
+        "name": "aggs_ESU6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/ESU6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "ESU6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "2b44a17ab524882fc70efbef966f761a"
+        }
+      },
+      "ESZ6": {
+        "name": "aggs_ESZ6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/ESZ6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "ESZ6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "5497810270b61947609d4d7cd37a67d5"
+        }
+      },
+      "NQM6": {
+        "name": "aggs_NQM6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/NQM6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "NQM6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "8747bf5a54697801dba768a622f6871c"
+        }
+      },
+      "NQU6": {
+        "name": "aggs_NQU6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/NQU6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "NQU6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "b3088e43f6c52ee57ef70fe1a88a5b64"
+        }
+      },
+      "VXM6": {
+        "name": "aggs_VXM6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/VXM6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "VXM6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "0d59df68168da994d89ad77491eafcfc"
+        }
+      },
+      "VXN6": {
+        "name": "aggs_VXN6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/VXN6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "VXN6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "505f50ff68ffc58393934ddc23c2505e"
+        }
+      },
+      "VXQ6": {
+        "name": "aggs_VXQ6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/VXQ6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "VXQ6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "3e8286d2042216b4778fd6e7b4a9a401"
+        }
+      },
+      "ZNM6": {
+        "name": "aggs_ZNM6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/ZNM6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "ZNM6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "77daa293d52486df7ee5d5a18761d48a"
+        }
+      },
+      "ZNU6": {
+        "name": "aggs_ZNU6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/ZNU6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "ZNU6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "ac1b24232a12e4cffe188efefc21d9c7"
+        }
+      },
+      "ZBM6": {
+        "name": "aggs_ZBM6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/ZBM6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "ZBM6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "ba6b145f2a84d074293ead5d8baa847d"
+        }
+      },
+      "ZBU6": {
+        "name": "aggs_ZBU6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/ZBU6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "ZBU6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "374c6eaa70b19d085bb52d67bec6d0f8"
+        }
+      },
+      "ZTM6": {
+        "name": "aggs_ZTM6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/ZTM6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "ZTM6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "7512a3b97a89b568739d8455814fbd47"
+        }
+      },
+      "ZTU6": {
+        "name": "aggs_ZTU6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/ZTU6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "ZTU6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "f5f15255bb185f59c30786f9cd42f53b"
+        }
+      },
+      "CLN6": {
+        "name": "aggs_CLN6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/CLN6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "CLN6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "24566abc96aafd2736dfbabbed38480a"
+        }
+      },
+      "CLQ6": {
+        "name": "aggs_CLQ6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/CLQ6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "CLQ6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "36c0faf433b6484a239c6e2c44c605f9"
+        }
+      },
+      "CLM6": {
+        "name": "aggs_CLM6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/CLM6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "CLM6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "5626072c92a7ff052d878111e2e57393"
+        }
+      },
+      "GCM6": {
+        "name": "aggs_GCM6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/GCM6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "GCM6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "e0ce4f51e2cc1cd39f641beb8003bec1"
+        }
+      },
+      "GCQ6": {
+        "name": "aggs_GCQ6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/GCQ6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "GCQ6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "aea3a47b2800468425fa7be3a779a7b4"
+        }
+      },
+      "GCV6": {
+        "name": "aggs_GCV6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/GCV6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "GCV6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "248ada27d4cac39d1dd9700096392002"
+        }
+      },
+      "HGN6": {
+        "name": "aggs_HGN6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/HGN6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "HGN6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "8b2365c0362963a443622e39e915df32"
+        }
+      },
+      "HGU6": {
+        "name": "aggs_HGU6",
+        "url": "https://api.polygon.io/v2/aggs/ticker/HGU6/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "DELAYED",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "HGU6",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "DELAYED",
+          "request_id": "39499c520dd1588b12f953fba78a47bb"
+        }
+      }
+    },
+    "futures_v1_aggs": {
+      "ESM6": {
+        "name": "futures_v1_ESM6",
+        "url": "https://api.polygon.io/futures/v1/aggs/ESM6/range/1/day/2026-05-03/2026-06-02?limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 404,
+        "body": "404 page not found"
+      },
+      "ESU6": {
+        "name": "futures_v1_ESU6",
+        "url": "https://api.polygon.io/futures/v1/aggs/ESU6/range/1/day/2026-05-03/2026-06-02?limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 404,
+        "body": "404 page not found"
+      },
+      "VXM6": {
+        "name": "futures_v1_VXM6",
+        "url": "https://api.polygon.io/futures/v1/aggs/VXM6/range/1/day/2026-05-03/2026-06-02?limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 404,
+        "body": "404 page not found"
+      },
+      "ZNM6": {
+        "name": "futures_v1_ZNM6",
+        "url": "https://api.polygon.io/futures/v1/aggs/ZNM6/range/1/day/2026-05-03/2026-06-02?limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 404,
+        "body": "404 page not found"
+      },
+      "CLN6": {
+        "name": "futures_v1_CLN6",
+        "url": "https://api.polygon.io/futures/v1/aggs/CLN6/range/1/day/2026-05-03/2026-06-02?limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 404,
+        "body": "404 page not found"
+      },
+      "GCQ6": {
+        "name": "futures_v1_GCQ6",
+        "url": "https://api.polygon.io/futures/v1/aggs/GCQ6/range/1/day/2026-05-03/2026-06-02?limit=5&apiKey=<KEY>",
+        "ok": false,
+        "http_status": 404,
+        "body": "404 page not found"
+      }
+    },
+    "fx_sanity": {
+      "C:EURUSD": {
+        "name": "C:EURUSD",
+        "url": "https://api.polygon.io/v2/aggs/ticker/C:EURUSD/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "OK",
+        "n_results": 8,
+        "sample": {
+          "v": 116884,
+          "vw": 1.1642,
+          "o": 1.16352,
+          "c": 1.16436,
+          "h": 1.1656,
+          "l": 1.1627,
+          "t": 1780358400000,
+          "n": 116884
+        }
+      },
+      "C:USDJPY": {
+        "name": "C:USDJPY",
+        "url": "https://api.polygon.io/v2/aggs/ticker/C:USDJPY/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "OK",
+        "n_results": 8,
+        "sample": {
+          "v": 114907,
+          "vw": 159.7276,
+          "o": 159.64,
+          "c": 159.868,
+          "h": 159.873,
+          "l": 159.63,
+          "t": 1780358400000,
+          "n": 114907
+        }
+      },
+      "C:DXY": {
+        "name": "C:DXY",
+        "url": "https://api.polygon.io/v2/aggs/ticker/C:DXY/range/1/day/2026-05-03/2026-06-02?adjusted=true&sort=desc&limit=5&apiKey=<KEY>",
+        "ok": true,
+        "http_status": 200,
+        "polygon_status": "OK",
+        "n_results": 0,
+        "sample": null,
+        "full_resp": {
+          "ticker": "C:DXY",
+          "queryCount": 0,
+          "resultsCount": 0,
+          "adjusted": true,
+          "status": "OK",
+          "request_id": "5b9b5485c75916ddd0a1ded8f91e5bae"
+        }
+      }
+    }
+  },
+  "working_summary": {
+    "indices": [
+      "I:NDX",
+      "VIXY",
+      "VXX"
+    ],
+    "futures_aggs": [],
+    "futures_v1": [],
+    "futures_ref": [],
+    "fx": [
+      "C:EURUSD",
+      "C:USDJPY"
+    ]
+  },
+  "finished": "2026-06-02T15:02:41.847391+00:00"
+}
