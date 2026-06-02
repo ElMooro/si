@@ -1,0 +1,434 @@
+{
+  "started": "2026-06-02T15:13:26.285963+00:00",
+  "steps": {
+    "macro_invoke": {
+      "elapsed_s": 2.8,
+      "status": 200,
+      "function_error": null,
+      "body_preview": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 1.7, \\\"n_ok\\\": 29, \\\"regime\\\": \\\"REFLATION\\\", \\\"confidence\\\": \\\"HIGH\\\", \\\"sub_regime_summary\\\": {\\\"vix_regime\\\": \\\"VOL_STEEP_CONTANGO\\\", \\\"curve_regime\\\": \\\"CURVE_NEUTRAL\\\", \\\"dollar_regime\\\": \\\"USD_STRONG\\\", \\\"carry_regime\\\": \\\"CARRY_ON\\\", \\\"commodity_regime\\\": \\\"REFLATION\\\", \\\"em_regime\\\": \\\"EM_NEUTRAL\\\", \\\"credit_regime\\\": \\\"CREDIT_DETERIORATING\\\"}}\"}"
+    },
+    "macro_output": {
+      "top_level": {
+        "regime": "REFLATION",
+        "confidence": "HIGH",
+        "reasoning": "Commodities strong + carry on + EM not stressed"
+      },
+      "sub_regimes": {
+        "vix_regime": {
+          "label": "VOL_STEEP_CONTANGO",
+          "score": 40
+        },
+        "curve_regime": {
+          "label": "CURVE_NEUTRAL",
+          "score": 0
+        },
+        "dollar_regime": {
+          "label": "USD_STRONG",
+          "score": 30
+        },
+        "carry_regime": {
+          "label": "CARRY_ON",
+          "score": 30
+        },
+        "commodity_regime": {
+          "label": "REFLATION",
+          "score": 30
+        },
+        "em_regime": {
+          "label": "EM_NEUTRAL",
+          "score": 0
+        },
+        "credit_regime": {
+          "label": "CREDIT_DETERIORATING",
+          "score": -25
+        }
+      },
+      "n_ok": 29,
+      "universe_size": 29,
+      "best_5_by_zscore": [
+        {
+          "ticker": "CPER",
+          "name": "Copper",
+          "role": "growth",
+          "feed": "etf",
+          "latest_close": 40.5801,
+          "ret_5d_pct": 3.97,
+          "ret_21d_pct": 12.01,
+          "zscore_90d": 2.36
+        },
+        {
+          "ticker": "I:NDX",
+          "name": "NDX",
+          "role": "equity_tech",
+          "feed": "indices",
+          "latest_close": 30513.86160102124,
+          "ret_5d_pct": 3.5,
+          "ret_21d_pct": 11.15,
+          "zscore_90d": 2.25
+        },
+        {
+          "ticker": "QQQ",
+          "name": "Nasdaq 100",
+          "role": "equity_tech_etf",
+          "feed": "etf",
+          "latest_close": 744.34,
+          "ret_5d_pct": 1.93,
+          "ret_21d_pct": 10.41,
+          "zscore_90d": 2.19
+        },
+        {
+          "ticker": "SPY",
+          "name": "S&P 500",
+          "role": "equity_us",
+          "feed": "etf",
+          "latest_close": 759.62,
+          "ret_5d_pct": 1.2,
+          "ret_21d_pct": 5.41,
+          "zscore_90d": 2.02
+        },
+        {
+          "ticker": "IWM",
+          "name": "Russell 2k",
+          "role": "equity_small",
+          "feed": "etf",
+          "latest_close": 291.56,
+          "ret_5d_pct": 0.36,
+          "ret_21d_pct": 4.4,
+          "zscore_90d": 1.89
+        }
+      ],
+      "worst_5_by_zscore": [
+        {
+          "ticker": "C:USDCNH",
+          "name": "USD/CNH",
+          "role": "china_stress",
+          "feed": "fx",
+          "latest_close": 6.76175,
+          "ret_5d_pct": -0.25,
+          "ret_21d_pct": -0.52,
+          "zscore_90d": -1.85
+        },
+        {
+          "ticker": "SHY",
+          "name": "1-3Y Tsy",
+          "role": "rates_short",
+          "feed": "etf",
+          "latest_close": 82.025,
+          "ret_5d_pct": -0.23,
+          "ret_21d_pct": -0.27,
+          "zscore_90d": -1.72
+        },
+        {
+          "ticker": "TIP",
+          "name": "TIPS",
+          "role": "inflation_break",
+          "feed": "etf",
+          "latest_close": 110.049,
+          "ret_5d_pct": -0.7,
+          "ret_21d_pct": -1.17,
+          "zscore_90d": -1.71
+        },
+        {
+          "ticker": "UVXY",
+          "name": "VIX 1.5x",
+          "role": "vol_levered",
+          "feed": "etf",
+          "latest_close": 29.625,
+          "ret_5d_pct": -5.68,
+          "ret_21d_pct": -19.69,
+          "zscore_90d": -1.57
+        },
+        {
+          "ticker": "VIXY",
+          "name": "VIX 1M",
+          "role": "vol_short",
+          "feed": "etf",
+          "latest_close": 23.755,
+          "ret_5d_pct": -3.59,
+          "ret_21d_pct": -13.4,
+          "zscore_90d": -1.53
+        }
+      ],
+      "errors": []
+    },
+    "ai_invoke": {
+      "elapsed_s": 111.1,
+      "status": 200,
+      "function_error": null,
+      "body_preview": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 110.1, \\\"regime\\\": \\\"REFLATION\\\", \\\"n_calls\\\": 15, \\\"macro_narrative_preview\\\": \\\"Today's dominant signal is the extreme UK flow spike (EWU +5.13\\\\u03c3, 3.4% AUM inflow) alongside Canada +3.18\\\\u03c3 and Germany +1.28\\\\u03c3, marking the sharpest international rotation in 90 days. This is NOT a def\\\", \\\"key\\\": \\\"etf-flows/ai-analysis.json\\\"}\"}"
+    },
+    "ai_output": {
+      "generated_at": "2026-06-02T15:15:20.097097+00:00",
+      "claude_elapsed_s": 104.4,
+      "usage": {
+        "input_tokens": 20612,
+        "cache_creation_input_tokens": 2017,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2017
+        },
+        "output_tokens": 6070,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "input_summary": {
+        "n_etfs_with_data": 84,
+        "n_research": 59,
+        "n_critiques": 5,
+        "n_edgar": 0,
+        "prompt_kb": 47.0
+      },
+      "regime_call": {
+        "regime": "REFLATION",
+        "confidence": "HIGH",
+        "reasoning": "Multi-asset regime (commodities +30, carry +30, EM neutral, credit deteriorating but not crisis) overrides flow composite's NEUTRAL rating. International inflows at 5\u03c3+ with commodity strength and treasury outflows confirm reflationary bid.",
+        "expected_duration_days": 14,
+        "what_would_invalidate": "Credit z-score dropping below -50 (CREDIT_STRESS regime shift) or VIX backwardation (vol regime flip) or copper/oil reversing to outflow would force re-rate to TRANSITION."
+      },
+      "macro_narrative_preview": "Today's dominant signal is the extreme UK flow spike (EWU +5.13\u03c3, 3.4% AUM inflow) alongside Canada +3.18\u03c3 and Germany +1.28\u03c3, marking the sharpest international rotation in 90 days. This is NOT a defensive move\u2014treasuries are outflowing (TLT -1.17\u03c3, IEF -1.25\u03c3) and commodities show REFLATION undercurrents (copper +1.26\u03c3, oil +0.21\u03c3, clean energy +2.77\u03c3). The macro regime engine confirms REFLATION (HIGH confidence) with carry-on, commodities strong, and EM neutral, though USD strength and credit deterioration create cross-currents. Domestically, tech is hemorrhaging capital (QQQ -1.89\u03c3, XLK -1",
+      "n_divergences": 5,
+      "first_divergence": {
+        "subject": "US Tech (QQQ/XLK) vs Semiconductors (SMH/SOXX)",
+        "type": "FLOW_VS_RESEARCH",
+        "description": "Broad tech ETFs in sharp outflow (QQQ -1.89\u03c3, XLK -1.68\u03c3) while semiconductor ETF SMH shows +1.69\u03c3 inflow with 3-day persistence. This is sector-internal rotation, not wholesale tech rejection\u2014AI infrastructure bid (semis) vs. megacap profit-taking (AAPL, MSFT, GOOGL all in XLK).",
+        "implication": "Tactical short QQQ / long SMH spread captures this divergence; avoid broad tech sells, favor semis with flow momentum.",
+        "tradable": true
+      },
+      "n_ticker_calls": 15,
+      "ticker_calls": [
+        {
+          "t": "EWU",
+          "call": "STRONG_BUY",
+          "conv": "HIGH",
+          "tf": 21,
+          "size": 2.5,
+          "stop": -4.0,
+          "target": 8.0,
+          "n_aligned": 1,
+          "thesis": "UK ETF at +5.13\u03c3 inflow (highest in dataset), 1-day $122M flow = 3.4% AUM; international rotation + REFLATION regime = sustained bid."
+        },
+        {
+          "t": "EWC",
+          "call": "BUY",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "size": 2.0,
+          "stop": -4.5,
+          "target": 7.0,
+          "n_aligned": 1,
+          "thesis": "Canada +3.18\u03c3 flow with 3-day persistence, 5.9% AUM/21d; commodity-heavy economy aligns with copper/oil strength in REFLATION regime."
+        },
+        {
+          "t": "XLB",
+          "call": "BUY",
+          "conv": "HIGH",
+          "tf": 21,
+          "size": 2.5,
+          "stop": -3.5,
+          "target": 6.5,
+          "n_aligned": 1,
+          "thesis": "Materials +2.7\u03c3 inflow, $238M single-day flow = 3.2% AUM; REFLATION regime + copper/commodity strength = structural tailwind for basic mater"
+        },
+        {
+          "t": "ICLN",
+          "call": "BUY",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "size": 1.5,
+          "stop": -5.0,
+          "target": 9.0,
+          "n_aligned": 1,
+          "thesis": "Clean energy +2.77\u03c3 flow, 12.5% AUM/21d inflow; REFLATION + commodity bid + 2-day persistence = thematic momentum aligned with regime."
+        },
+        {
+          "t": "SMH",
+          "call": "ADD",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "size": 1.5,
+          "stop": -4.0,
+          "target": 5.0,
+          "n_aligned": 1,
+          "thesis": "Semiconductor ETF +1.69\u03c3 flow with 3-day persistence; tech sector bleeding but semis holding bid = AI infrastructure theme intact despite me"
+        },
+        {
+          "t": "CPER",
+          "call": "ADD",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "size": 1.0,
+          "stop": -5.5,
+          "target": 8.0,
+          "n_aligned": 1,
+          "thesis": "Copper ETF +1.26\u03c3 flow, 7.6% AUM/21d; REFLATION regime + industrial metal strength = continuation play on commodity bid."
+        },
+        {
+          "t": "AAPL",
+          "call": "REDUCE",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "size": 1.0,
+          "stop": -3.5,
+          "target": -2.0,
+          "n_aligned": 3,
+          "thesis": "Research HOLD +4.5% vs critic SELL (FY26 supply anomaly, brutal FY27 comps) vs XLK outflow -1.68\u03c3; three-signal convergence on caution justi"
+        },
+        {
+          "t": "QQQ",
+          "call": "REDUCE",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "size": 1.5,
+          "stop": -3.0,
+          "target": -3.0,
+          "n_aligned": 2,
+          "thesis": "Megacap tech ETF -1.89\u03c3 outflow with 2-day persistence; REFLATION regime favors commodities/internationals over US large-cap tech; trim over"
+        },
+        {
+          "t": "XLP",
+          "call": "SELL",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "size": 1.5,
+          "stop": -3.5,
+          "target": -4.0,
+          "n_aligned": 1,
+          "thesis": "Staples -1.67\u03c3 outflow, -2.2% AUM; classic late-cycle rotation OUT of defensives in REFLATION regime; pair-trade short vs XLB long."
+        },
+        {
+          "t": "XLF",
+          "call": "AVOID",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "size": 0.0,
+          "stop": -4.0,
+          "target": -3.0,
+          "n_aligned": 1,
+          "thesis": "Financials -1.11\u03c3 outflow with 4-day persistence, -5.3% AUM/21d; credit deteriorating (-25 score) contradicts REFLATION thesis for banks."
+        },
+        {
+          "t": "IBB",
+          "call": "AVOID",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "size": 0.0,
+          "stop": -5.0,
+          "target": -4.0,
+          "n_aligned": 1,
+          "thesis": "Biotech -2.2\u03c3 outflow, -2.6% AUM daily; sector-specific weakness (XLV only +0.44\u03c3, so IBB underperforming healthcare) = avoid until stabiliz"
+        },
+        {
+          "t": "IBIT",
+          "call": "AVOID",
+          "conv": "LOW",
+          "tf": 21,
+          "size": 0.0,
+          "stop": -6.0,
+          "target": -5.0,
+          "n_aligned": 1,
+          "thesis": "Bitcoin ETF -2.54\u03c3 outflow with 11-day persistence, -3.4% AUM/21d; sustained crypto liquidation in REFLATION regime = stay sidelined."
+        },
+        {
+          "t": "MSFT",
+          "call": "HOLD",
+          "conv": "MEDIUM",
+          "tf": 63,
+          "size": 1.0,
+          "stop": -4.0,
+          "target": 0.0,
+          "n_aligned": 3,
+          "thesis": "Research BUY +8.6% vs critic HOLD (FCF 3.2% CAGR vs revenue 12.4% = valuation problem) vs XLK outflow -1.68\u03c3; signals conflict but 12-month "
+        },
+        {
+          "t": "JPM",
+          "call": "HOLD",
+          "conv": "MEDIUM",
+          "tf": 63,
+          "size": 1.0,
+          "stop": -4.0,
+          "target": 1.0,
+          "n_aligned": 2,
+          "thesis": "Research BUY +11.9% upside but XLF -1.11\u03c3 outflow + credit deteriorating (-25 score) = 12-month thesis intact, tactical wait for sector stab"
+        },
+        {
+          "t": "CRM",
+          "call": "BUY",
+          "conv": "MEDIUM",
+          "tf": 63,
+          "size": 1.5,
+          "stop": -5.0,
+          "target": 3.0,
+          "n_aligned": 1,
+          "thesis": "Research BUY +26.4% upside (A- conviction); XLK outflow -1.68\u03c3 is sector-wide not CRM-specific; 12-month AI/enterprise SaaS thesis overrides"
+        }
+      ],
+      "n_pair_trades": 3,
+      "pair_trades_summary": [
+        {
+          "long": "XLB",
+          "short": "XLP",
+          "conv": "HIGH",
+          "tf": 21,
+          "thesis": "Materials +2.7\u03c3 inflow vs staples -1.67\u03c3 outflow = 4.4\u03c3 spread; REFLATION regime rotates out of defensives into commodity leverage; textbook late-cycle trade."
+        },
+        {
+          "long": "SMH",
+          "short": "QQQ",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "thesis": "Semiconductors +1.69\u03c3 inflow (AI infra theme intact) vs megacap tech -1.89\u03c3 outflow; sector-internal rotation favors semis over FAANG."
+        },
+        {
+          "long": "EWU",
+          "short": "SPY",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "thesis": "UK +5.13\u03c3 extreme inflow vs SPY -0.61\u03c3 neutral; international-over-domestic rotation in REFLATION regime; 5\u03c3 UK spike = momentum continuation."
+        }
+      ],
+      "watchlist": {
+        "add": [
+          {
+            "ticker": "CPER",
+            "reason": "Copper +1.26\u03c3 inflow; if crosses +2.0\u03c3 with REFLATION persistence, initiate long"
+          },
+          {
+            "ticker": "EWG",
+            "reason": "Germany +1.28\u03c3 inflow; monitor for 3-day persistence to confirm Europe rotation"
+          },
+          {
+            "ticker": "HYG",
+            "reason": "High yield credit -0.19\u03c3; if drops below -1.0\u03c3 sustained, credit regime flips to STRESS"
+          }
+        ],
+        "remove": [
+          {
+            "ticker": "IBIT",
+            "reason": "11-day outflow persistence at -2.54\u03c3; no catalyst for reversal in REFLATION regime"
+          },
+          {
+            "ticker": "UNG",
+            "reason": "Nat gas -3.97\u03c3 collapse; sector-specific implosion, not macro-driven"
+          }
+        ],
+        "monitor_for_entry": [
+          {
+            "ticker": "XLK",
+            "trigger": "If z-score crosses above -1.0\u03c3 AND SMH maintains inflow, re-rate sector to BUY"
+          },
+          {
+            "ticker": "TLT",
+            "trigger": "If REFLATION regime shifts to CREDIT_STRESS and TLT crosses +1.5\u03c3 inflow, initiate long duration"
+          },
+          {
+            "ticker": "LQD",
+            "trigger": "If investment-grade credit z-score crosses +1.0\u03c3, credit regime confirming REFLATION = add"
+          }
+        ]
+      },
+      "regime_alpha_note": "REFLATION regime downgrades all defensive HOLDs (XLP, utilities) to REDUCE; upgrades commodity/cyclical BUYs (XLB, energy, international) to HIGH conviction. Tech BUYs (CRM, ORCL, INTU) deserve MEDIUM conviction hold (12-month thesis intact) but avoid adding until XLK flow stabilizes above -1.0\u03c3. Credit deterioration (-25 score) caps ALL financial BUYs (JPM, MA, V) at MEDIUM conviction despite research verdicts\u2014wait for HYG to confirm reflation before upgrading."
+    }
+  },
+  "finished": "2026-06-02T15:15:20.526390+00:00"
+}
