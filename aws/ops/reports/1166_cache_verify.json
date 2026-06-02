@@ -1,0 +1,41 @@
+{
+  "started": "2026-06-02T03:02:42.731237+00:00",
+  "call_1": {
+    "call": "call_1_cache_write",
+    "ticker": "AAPL",
+    "http": 200,
+    "elapsed_s": 101.19,
+    "size_kb": 68.6
+  },
+  "call_1_logs": [
+    {
+      "error": "An error occurred (InvalidParameterException) when calling the FilterLogEvents operation: Invalid character(s) in term ':'"
+    }
+  ],
+  "call_2": {
+    "call": "call_2_cache_read",
+    "ticker": "AAPL",
+    "http": 200,
+    "elapsed_s": 113.01,
+    "size_kb": 73.5
+  },
+  "call_2_logs": [
+    {
+      "error": "An error occurred (InvalidParameterException) when calling the FilterLogEvents operation: Invalid character(s) in term ':'"
+    }
+  ],
+  "call_1_usage_parsed": null,
+  "call_2_usage_parsed": null,
+  "cost_analysis": {
+    "call_1_cost_usd": null,
+    "call_2_cost_usd": null,
+    "savings_pct_call_2_vs_1": null,
+    "monthly_proj_no_cache": null,
+    "monthly_proj_with_cache": null
+  },
+  "verdict": {
+    "cache_works": false,
+    "expected_pattern_match": null
+  },
+  "finished": "2026-06-02T03:06:33.602944+00:00"
+}
