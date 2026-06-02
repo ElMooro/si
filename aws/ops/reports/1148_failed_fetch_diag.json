@@ -1,0 +1,332 @@
+{
+  "started": "2026-06-02T01:14:57.669204+00:00",
+  "phases": [
+    {
+      "name": "s3_equity_research_files",
+      "status": "ok",
+      "result": {
+        "n_files": 11,
+        "files": [
+          {
+            "Key": "equity-research/AAPL.json",
+            "Size": 69303,
+            "Modified": "2026-06-02T00:43:24+00:00"
+          },
+          {
+            "Key": "equity-research/AVGO.json",
+            "Size": 33758,
+            "Modified": "2026-06-01T23:21:17+00:00"
+          },
+          {
+            "Key": "equity-research/BRK-B.json",
+            "Size": 35370,
+            "Modified": "2026-06-01T23:23:08+00:00"
+          },
+          {
+            "Key": "equity-research/GOOGL.json",
+            "Size": 35734,
+            "Modified": "2026-06-01T23:16:10+00:00"
+          },
+          {
+            "Key": "equity-research/JPM.json",
+            "Size": 67351,
+            "Modified": "2026-06-02T00:38:41+00:00"
+          },
+          {
+            "Key": "equity-research/KO.json",
+            "Size": 61251,
+            "Modified": "2026-06-02T00:22:44+00:00"
+          },
+          {
+            "Key": "equity-research/MSFT.json",
+            "Size": 38843,
+            "Modified": "2026-06-01T23:48:06+00:00"
+          },
+          {
+            "Key": "equity-research/NVDA.json",
+            "Size": 63964,
+            "Modified": "2026-06-02T00:37:16+00:00"
+          },
+          {
+            "Key": "equity-research/TSLA.json",
+            "Size": 33888,
+            "Modified": "2026-06-01T23:16:45+00:00"
+          },
+          {
+            "Key": "equity-research/TSM.json",
+            "Size": 33929,
+            "Modified": "2026-06-01T23:22:05+00:00"
+          },
+          {
+            "Key": "equity-research/UBER.json",
+            "Size": 29375,
+            "Modified": "2026-06-01T23:40:24+00:00"
+          }
+        ],
+        "sample_acl": {
+          "Owner": null,
+          "Grants": [
+            {
+              "Type": "CanonicalUser",
+              "URI": null,
+              "Permission": "FULL_CONTROL"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "bucket_policy",
+      "status": "ok",
+      "result": {
+        "policy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "PublicReadDataDir",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/data/*"
+            },
+            {
+              "Sid": "PublicReadScreener",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/screener/*"
+            },
+            {
+              "Sid": "PublicReadSentiment",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/sentiment/*"
+            },
+            {
+              "Sid": "PublicReadRootDashboardFiles",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": [
+                "arn:aws:s3:::justhodl-dashboard-live/flow-data.json",
+                "arn:aws:s3:::justhodl-dashboard-live/crypto-intel.json",
+                "arn:aws:s3:::justhodl-dashboard-live/health.html",
+                "arn:aws:s3:::justhodl-dashboard-live/_health/*",
+                "arn:aws:s3:::justhodl-dashboard-live/intelligence-report.json",
+                "arn:aws:s3:::justhodl-dashboard-live/edge-data.json",
+                "arn:aws:s3:::justhodl-dashboard-live/repo-data.json",
+                "arn:aws:s3:::justhodl-dashboard-live/ai-prediction.json",
+                "arn:aws:s3:::justhodl-dashboard-live/options-flow.json",
+                "arn:aws:s3:::justhodl-dashboard-live/valuations.json",
+                "arn:aws:s3:::justhodl-dashboard-live/morning-brief.json"
+              ]
+            },
+            {
+              "Sid": "PublicReadRegime",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/regime/*"
+            },
+            {
+              "Sid": "PublicReadDivergence",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/divergence/*"
+            },
+            {
+              "Sid": "PublicReadCOT",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/cot/*"
+            },
+            {
+              "Sid": "PublicReadRisk",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/risk/*"
+            },
+            {
+              "Sid": "PublicReadOpportunities",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/opportunities/*"
+            },
+            {
+              "Sid": "PublicReadPortfolio",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/portfolio/*"
+            },
+            {
+              "Sid": "PublicReadInvestorDebate",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/investor-debate/*"
+            },
+            {
+              "Sid": "PublicReadReports",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/reports/*"
+            },
+            {
+              "Sid": "PublicReadArchive",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/archive/*"
+            },
+            {
+              "Sid": "PublicReadLearning",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/learning/*"
+            },
+            {
+              "Sid": "PublicReadAllRootJSON",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/*.json"
+            },
+            {
+              "Sid": "PublicReadHtmlPages",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": [
+                "arn:aws:s3:::justhodl-dashboard-live/*.html",
+                "arn:aws:s3:::justhodl-dashboard-live/intel/*",
+                "arn:aws:s3:::justhodl-dashboard-live/khalid/*",
+                "arn:aws:s3:::justhodl-dashboard-live/stock/*",
+                "arn:aws:s3:::justhodl-dashboard-live/bot/*",
+                "arn:aws:s3:::justhodl-dashboard-live/secretary/*",
+                "arn:aws:s3:::justhodl-dashboard-live/archive/*"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "public_access_block",
+      "status": "ok",
+      "result": {
+        "BlockPublicAcls": false,
+        "IgnorePublicAcls": false,
+        "BlockPublicPolicy": false,
+        "RestrictPublicBuckets": false
+      }
+    },
+    {
+      "name": "lambda_url_config",
+      "status": "ok",
+      "result": {
+        "AuthType": "NONE",
+        "InvokeMode": "BUFFERED",
+        "Cors": {
+          "AllowCredentials": false,
+          "AllowHeaders": [
+            "*"
+          ],
+          "AllowMethods": [
+            "*"
+          ],
+          "AllowOrigins": [
+            "*"
+          ],
+          "ExposeHeaders": [
+            "*"
+          ],
+          "MaxAge": 86400
+        },
+        "FunctionUrl": "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/"
+      }
+    },
+    {
+      "name": "lambda_basic_call",
+      "status": "ok",
+      "result": {
+        "url": "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/?ticker=AAPL",
+        "http": 200,
+        "elapsed_s": 1.04,
+        "size": 69329,
+        "head": "{\"schema_version\": \"1.0\", \"ticker\": \"AAPL\", \"generated_at\": \"2026-06-02T00:43:23.551744+00:00\", \"from_cache\": true, \"company\": {\"name\": \"Apple Inc.\", \"sector\": \"Technology\", \"industry\": \"Consumer Elec",
+        "headers": {
+          "Date": "Tue, 02 Jun 2026 01:14:59 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "69329",
+          "Connection": "close",
+          "x-amzn-RequestId": "218e398d-7663-4660-a371-ba4bf65fd205",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=3600",
+          "X-Amzn-Trace-Id": "Root=1-6a1e2e92-5345752c162cbdc32982fcef;Sampled=1;Lineage=1:f8e18f9c:0"
+        }
+      }
+    },
+    {
+      "name": "cf_proxy_research_file",
+      "status": "ok",
+      "result": {
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/equity-research/AAPL.json",
+        "http": 200,
+        "elapsed_s": 0.2,
+        "size": 69303,
+        "head": "{\"schema_version\": \"1.0\", \"ticker\": \"AAPL\", \"generated_at\": \"2026-06-02T00:43:23.551744+00:00\", \"from_cache\": false, \"company\": {\"name\": \"Apple Inc.\", \"sector\": \"Technology\", \"industry\": \"Consumer Ele",
+        "headers": {
+          "Date": "Tue, 02 Jun 2026 01:14:59 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "69303",
+          "Connection": "close",
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "public, max-age=60, s-maxage=300",
+          "ETag": "\"1feca4c85f3dec65f0df0298882ab89d\"",
+          "Last-Modified": "Tue, 02 Jun 2026 00:43:24 GMT",
+          "Vary": "Accept-Encoding",
+          "Access-Control-Allow-Headers": "Content-Type, If-None-Match, If-Modified-Since",
+          "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+          "Access-Control-Max-Age": "86400",
+          "X-Edge-Cache": "MISS",
+          "X-Edge-TTL": "300",
+          "X-Upstream": "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/equity-research/AAPL.json",
+          "Report-To": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=lwsZKnj02d0AsUWNlEW4lZq4xo4pFCW8anpGHmxId%2F2%2FSHtBDn3k2oijuDnRk2Zy0XwxFIdmvsGDGmlDMcLyO9yQKfCdmxeLasgGORFQm2J7Ry46%2F95vLNAPK6LAowmW0kItNC5GllrmcOQ5tqXnO4jFUcCf%2Fjo6U%2Fqv\"}]}",
+          "Nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+          "Server": "cloudflare",
+          "CF-RAY": "a0529ab80da7f268-IAD",
+          "alt-svc": "h3=\":443\"; ma=86400"
+        }
+      }
+    },
+    {
+      "name": "cf_proxy_random_data_file",
+      "status": "ok",
+      "result": {
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/dashboard-state.json",
+        "http_error": 403,
+        "msg": "Forbidden",
+        "elapsed_s": 0.11
+      }
+    },
+    {
+      "name": "lambda_with_options",
+      "status": "ok",
+      "result": {
+        "url": "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/",
+        "http_error": 400,
+        "msg": "Bad Request",
+        "elapsed_s": 0.05
+      }
+    }
+  ],
+  "finished": "2026-06-02T01:14:59.513093+00:00"
+}
