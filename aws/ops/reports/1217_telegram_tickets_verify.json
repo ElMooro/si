@@ -1,0 +1,111 @@
+{
+  "started": "2026-06-02T20:50:20.656691+00:00",
+  "state_reset": {
+    "before": {
+      "cascade_laggard": 8,
+      "velocity": 12,
+      "flow_anomaly": 4,
+      "options_flow": 18,
+      "fx_regime": 1,
+      "futures_curves": 1,
+      "convergence_ultra_new": 1,
+      "early_mover_alert": 1,
+      "insider_cluster": 7
+    },
+    "after": {
+      "flow_anomaly": 4,
+      "fx_regime": 1,
+      "futures_curves": 1,
+      "insider_cluster": 7
+    }
+  },
+  "tickets_refresh": {
+    "status": 200,
+    "elapsed_s": 1.6,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.6, \\\"n_tickets\\\": 15, \\\"top_3_tickets\\\": [{\\\"ticker\\\": \\\"CDNS\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 416.39, \\\"stop\\\": 384.73, \\\"tp3\\\": 574.7, \\\"rr\\\": 5.0, \\\"shares\\\": 18, \\\"max_loss_usd\\\": 570.0}, {\\\"ticker\\\": \\\"MU\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 1064.1, \\\"stop\\\": 900.65, \\\"tp3\\\": 1554.46, \\\"rr\\\": 3.0, \\\"shares\\\": 8, \\\"max_loss_usd\\\": 1308.0}, {\\\"ticker\\\": \\\"PANW\\\", \\\"tier\\\": \\\"EMERGING\\\", \\\"entry\\\": 297.18, \\\"stop\\\": 273.78, \\\"tp3\\\": 367.38, \\\"rr\\\": 3.0, \\\"shares\\\": 21, \\\"max_loss_usd\\\": 491.0}]}\"}"
+  },
+  "router_invoke": {
+    "status": 200,
+    "elapsed_s": 5.8,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 4.6, \\\"n_messages_sent\\\": 4, \\\"counts\\\": {\\\"cascade_laggards\\\": 6, \\\"velocity_transitions\\\": 13, \\\"polygon_options_flow\\\": 7}, \\\"first_result_status\\\": 200}\"}"
+  },
+  "new_state": {
+    "flow_anomaly": 4,
+    "fx_regime": 1,
+    "futures_curves": 1,
+    "insider_cluster": 7,
+    "cascade_laggard": 6,
+    "velocity": 10,
+    "options_flow": 18
+  },
+  "new_alerts_detail": {
+    "cascade_laggard": [
+      "INTC",
+      "QCOM",
+      "TXN",
+      "AAPL",
+      "GLW",
+      "KLAC"
+    ],
+    "velocity": [
+      "velocity_FIRED_CONFIRMED_MS",
+      "velocity_FIRED_FRESH_MS",
+      "velocity_EMERGING_PANW",
+      "velocity_WATCH_CRWD",
+      "velocity_WATCH_FTNT",
+      "velocity_WATCH_CDNS"
+    ],
+    "options_flow": [
+      "AMD",
+      "JNJ",
+      "APP",
+      "CVX",
+      "ASML",
+      "IBM"
+    ]
+  },
+  "tickets_summary": {
+    "n_tickets": 15,
+    "generated_at": "2026-06-02T20:51:37.716677+00:00",
+    "sample": [
+      {
+        "ticker": "CDNS",
+        "entry": 416.39,
+        "stop": 384.73,
+        "tp3": 574.7,
+        "rr": 5.0
+      },
+      {
+        "ticker": "MU",
+        "entry": 1064.1,
+        "stop": 900.65,
+        "tp3": 1554.46,
+        "rr": 3.0
+      },
+      {
+        "ticker": "PANW",
+        "entry": 297.18,
+        "stop": 273.78,
+        "tp3": 367.38,
+        "rr": 3.0
+      },
+      {
+        "ticker": "CRWD",
+        "entry": 768.95,
+        "stop": 689.32,
+        "tp3": 1007.84,
+        "rr": 3.0
+      },
+      {
+        "ticker": "INTC",
+        "entry": 107.93,
+        "stop": 88.71,
+        "tp3": 165.58,
+        "rr": 3.0
+      }
+    ]
+  },
+  "finished": "2026-06-02T20:51:43.949819+00:00"
+}
