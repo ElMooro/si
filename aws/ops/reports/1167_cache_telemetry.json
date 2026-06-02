@@ -1,0 +1,51 @@
+{
+  "started": "2026-06-02T03:08:32.787261+00:00",
+  "n_usage_events": 2,
+  "usage_events": [
+    {
+      "input": 14014,
+      "cache_create": 4662,
+      "cache_read": 0,
+      "output": 8354,
+      "ts": 1780369463589,
+      "ts_iso": "2026-06-02T03:04:23.589000+00:00",
+      "cost_usd": 0.065108
+    },
+    {
+      "input": 14014,
+      "cache_create": 0,
+      "cache_read": 4662,
+      "output": 9261,
+      "ts": 1780369584955,
+      "ts_iso": "2026-06-02T03:06:24.955000+00:00",
+      "cost_usd": 0.060785
+    }
+  ],
+  "analysis": {
+    "found_cache_write": true,
+    "found_cache_read": true,
+    "first_cache_write": {
+      "input": 14014,
+      "cache_create": 4662,
+      "cache_read": 0,
+      "output": 8354,
+      "ts": 1780369463589,
+      "ts_iso": "2026-06-02T03:04:23.589000+00:00",
+      "cost_usd": 0.065108
+    },
+    "first_cache_read": {
+      "input": 14014,
+      "cache_create": 0,
+      "cache_read": 4662,
+      "output": 9261,
+      "ts": 1780369584955,
+      "ts_iso": "2026-06-02T03:06:24.955000+00:00",
+      "cost_usd": 0.060785
+    },
+    "per_call_savings_pct": 6.6,
+    "monthly_no_cache_usd": 101.57,
+    "monthly_with_cache_usd": 94.95,
+    "monthly_savings_usd": 6.61
+  },
+  "finished": "2026-06-02T03:08:32.787284+00:00"
+}
