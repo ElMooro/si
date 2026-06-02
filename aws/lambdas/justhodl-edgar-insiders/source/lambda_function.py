@@ -62,12 +62,13 @@ CACHE_TTL = 86400  # 24h
 # SEC EDGAR requires a proper User-Agent identifying the consumer.
 # Format per their fair-access policy: "Company Name contact@email.com"
 # Without this, you get 403s.
+# Note: we do NOT set Host header explicitly — urllib auto-sets it from the
+# URL, and explicit Host can cause conflicts in certain Python versions.
 SEC_HEADERS = {
     "User-Agent": "JustHodl.AI Khalid raafouis@gmail.com",
     "Accept-Encoding": "gzip, deflate",
-    "Host": "www.sec.gov",
 }
-SEC_DATA_HEADERS = {**SEC_HEADERS, "Host": "data.sec.gov"}
+SEC_DATA_HEADERS = SEC_HEADERS  # same headers for both www.sec.gov and data.sec.gov
 
 SEC_TICKER_INDEX_URL = "https://www.sec.gov/files/company_tickers.json"
 SEC_SUBMISSIONS_URL  = "https://data.sec.gov/submissions/CIK{cik}.json"
@@ -500,22 +501,24 @@ def lambda_handler(event, context):
                        CacheControl=f"public, max-age={CACHE_TTL}")
         return _http_ok(result)
 
-    # 3. Parse each filing in parallel (cap to 30 most recent)
+    # 3. Parse each filing SERIALLY (cap to 30 most recent)
+    # Serial because: (a) SEC's 10 req/sec ceiling, (b) our _last_sec_request
+    # throttle isn't thread-safe, (c) each XML fetch is 0.2-0.5s so 30 × 0.4s
+    # = 12s total, comfortably within Lambda's 120s timeout.
     filings = filings[:30]
     parsed = []
-    with ThreadPoolExecutor(max_workers=5) as ex:
-        futs = {ex.submit(parse_form4_xml, cik, f["accession"], f["primary"]): f
-                for f in filings}
-        for fut in as_completed(futs):
-            f = futs[fut]
-            try:
-                p = fut.result()
-                p["accession"] = f["accession"]
-                p["date"] = f["date"]
-                p["form"] = f["form"]
-                parsed.append(p)
-            except Exception as e:
-                parsed.append({"error": str(e), "accession": f["accession"]})
+    for f in filings:
+        try:
+            p = parse_form4_xml(cik, f["accession"], f["primary"])
+            p["accession"] = f["accession"]
+            p["date"] = f["date"]
+            p["form"] = f["form"]
+            parsed.append(p)
+        except Exception as e:
+            parsed.append({"error": str(e)[:200], "accession": f["accession"]})
+
+    # Track first parse error for debugging
+    parse_errors = [p.get("error") for p in parsed if "error" in p][:3]
 
     n_parsed_ok = sum(1 for p in parsed if "error" not in p)
     print(f"[edgar] {ticker} parsed {n_parsed_ok}/{len(parsed)} XML docs successfully")
@@ -531,6 +534,7 @@ def lambda_handler(event, context):
         "n_filings_90d": len(filings),
         "n_filings_parsed_ok": n_parsed_ok,
         "n_filings_parsed_fail": len(parsed) - n_parsed_ok,
+        "parse_errors_sample": parse_errors,  # first 3 errors for debugging
         **agg,
         "elapsed_s": round(time.time() - t0, 2),
     }
