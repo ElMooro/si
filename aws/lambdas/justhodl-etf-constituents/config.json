@@ -7,11 +7,11 @@
   "memory": 1024,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "ETF Constituent Pull-Through. For each ETF with |z|>=1.5σ, pulls top 50 holdings from Polygon ETF Global Constituents endpoint, computes per-stock implied flow pressure aggregated across all high-z ETFs. Writes etf-flows/constituent-pressure.json + per-ETF archives.",
-  "environment_keys": ["POLYGON_KEY"],
+  "description": "ETF Constituent Pull-Through (FMP-powered). For each ETF with |z|>=1.5σ, pulls top 50 holdings from FMP /stable/etf/holdings, computes per-stock implied flow pressure aggregated across all high-z ETFs.",
+  "environment_keys": ["FMP_KEY"],
   "inherit_env": {
-    "from_function": "justhodl-etf-fund-flows",
-    "keys": ["POLYGON_KEY"]
+    "from_function": "justhodl-equity-research",
+    "keys": ["FMP_KEY"]
   },
   "schedule": {
     "expression": "cron(45 22 * * ? *)",

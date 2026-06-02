@@ -1,16 +1,23 @@
-"""justhodl-etf-constituents — Constituent Pull-Through
+"""justhodl-etf-constituents — Constituent Pull-Through (FMP-powered)
 
-The institutional alpha edge from the Polygon ETF Global subscription.
+The institutional alpha edge from your FMP subscription.
 
 For each ETF with |z-score| >= INSTITUTIONAL_FLOW_THRESHOLD (default 1.5σ),
-we pull its top 50 constituents by weight. We then compute "implied flow
-pressure" per stock = (ETF flow $) × (constituent weight). When the SAME
-STOCK appears in MULTIPLE high-z ETFs, we sum the pressure — that's the
-true cross-ETF institutional positioning signal.
+we pull its top 50 constituents by weight from FMP's /stable/etf/holdings
+endpoint. We then compute "implied flow pressure" per stock = (ETF flow $)
+× (constituent weight). When the SAME STOCK appears in MULTIPLE high-z ETFs,
+we sum the pressure — that's the true cross-ETF institutional positioning
+signal.
 
-Example: AAPL is in XLK (-$458M flow, 14% weight), QQQ (-$1500M, 12%), and
-VTI (-$80M, 6%). Total implied pressure = -$458×.14 + -$1500×.12 + -$80×.06
-= -$246M of institutional selling pressure on AAPL via ETF channels.
+Example: AAPL is in XLK (-$458M flow, 11% weight), QQQ (-$1500M, 7%), and
+SPY (-$80M, 7%). Total implied pressure = -$458×.11 + -$1500×.07 + -$80×.07
+= -$161M of institutional selling pressure on AAPL via ETF channels.
+
+WHY FMP NOT POLYGON:
+The user's Polygon ETF Global subscription covers Fund Flows but NOT
+Constituents (separate $99/mo product on Polygon). FMP $99/mo includes
+ETF Holdings as part of the existing plan — same data, zero incremental cost.
+Verified ops 1192 (Polygon 403) + 1193 (FMP 200/505 rows).
 
 OUTPUTS:
   etf-flows/constituent-pressure.json  — aggregated by stock
@@ -28,15 +35,13 @@ from typing import Optional
 import boto3
 
 S3_BUCKET = "justhodl-dashboard-live"
-POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
-POLYGON_BASE = "https://api.polygon.io"
-CONSTITUENTS_ENDPOINT = f"{POLYGON_BASE}/etf-global/v1/constituents"
+FMP_KEY = os.environ.get("FMP_KEY", "")
+FMP_BASE = "https://financialmodelingprep.com"
+HOLDINGS_ENDPOINT = f"{FMP_BASE}/stable/etf/holdings"
 FETCH_TIMEOUT = 15
 MAX_WORKERS = 6
 
 # Only pull constituents for ETFs with this z-score magnitude or higher.
-# Lower threshold = more API calls = more compute. 1.5σ is roughly the
-# 7th/93rd percentile — already an institutional signal.
 INSTITUTIONAL_FLOW_THRESHOLD = 1.5
 
 # How many top-weight constituents to pull per ETF.
@@ -46,49 +51,53 @@ s3 = boto3.client("s3", region_name="us-east-1")
 
 
 def fetch_constituents(etf_ticker: str) -> dict:
-    """Fetch top-weight constituents for one ETF.
+    """Fetch top-weight constituents for one ETF from FMP.
 
-    Polygon's /etf-global/v1/constituents endpoint defaults to ASC sort
-    with limit=1. We explicitly pass order=desc + sort=weight + limit=100
-    to get the top-weight constituents.
+    FMP response is a JSON array. Each row has:
+      symbol (ETF ticker), asset (stock ticker), name (stock name),
+      isin, securityCusip, sharesNumber, weightPercentage, marketValue,
+      updatedAt.
+
+    FMP returns ALL holdings (no pagination needed). We sort by weight
+    desc and take top N.
     """
-    if not POLYGON_KEY:
-        return {"etf": etf_ticker, "error": "POLYGON_KEY not set"}
-    url = (
-        f"{CONSTITUENTS_ENDPOINT}"
-        f"?composite_ticker={etf_ticker}"
-        f"&order=desc"
-        f"&sort=weight"
-        f"&limit=100"
-        f"&apiKey={POLYGON_KEY}"
-    )
+    if not FMP_KEY:
+        return {"etf": etf_ticker, "error": "FMP_KEY not set"}
+    url = f"{HOLDINGS_ENDPOINT}?symbol={etf_ticker}&apikey={FMP_KEY}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-Constituents/1.0"})
         with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as r:
             data = json.loads(r.read())
-            results = data.get("results") or []
-            if not results:
-                return {"etf": etf_ticker, "error": "no_results",
-                        "raw_status": data.get("status")}
-            # Already sorted desc by API, but be defensive — keep top N
-            results = sorted(
-                results, key=lambda x: x.get("weight") or 0, reverse=True,
+            if isinstance(data, dict) and ("error" in data or "Error Message" in data):
+                return {"etf": etf_ticker, "error": "api_error",
+                        "body": json.dumps(data)[:300]}
+            if not isinstance(data, list):
+                return {"etf": etf_ticker, "error": "unexpected_format",
+                        "body": str(data)[:200]}
+            if not data:
+                return {"etf": etf_ticker, "error": "no_results"}
+            # Sort by weight desc and clamp to top N
+            sorted_holdings = sorted(
+                [d for d in data if d.get("weightPercentage") is not None],
+                key=lambda x: float(x.get("weightPercentage") or 0),
+                reverse=True,
             )[:TOP_N_CONSTITUENTS]
-            processed_date = results[0].get("processed_date")
+            updated_at = sorted_holdings[0].get("updatedAt") if sorted_holdings else None
             return {
                 "etf": etf_ticker,
-                "processed_date": processed_date,
-                "n_constituents": len(results),
+                "processed_date": (updated_at or "")[:10],  # date portion
+                "n_constituents": len(sorted_holdings),
+                "n_total_holdings": len(data),
                 "top_constituents": [
                     {
-                        "stock": r.get("constituent_ticker"),
-                        "name": r.get("constituent_name"),
-                        "weight_pct": (r.get("weight") or 0) * 100,  # to %
-                        "market_value": r.get("market_value"),
-                        "shares_held": r.get("shares_held"),
-                        "asset_class": r.get("asset_class"),
+                        "stock": d.get("asset"),
+                        "name": d.get("name"),
+                        "weight_pct": float(d.get("weightPercentage") or 0),
+                        "market_value": float(d.get("marketValue") or 0),
+                        "shares_held": float(d.get("sharesNumber") or 0),
+                        "isin": d.get("isin"),
                     }
-                    for r in results if r.get("constituent_ticker")
+                    for d in sorted_holdings if d.get("asset")
                 ],
             }
     except urllib.error.HTTPError as e:
