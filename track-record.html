@@ -110,6 +110,13 @@ tr:hover td{ background:var(--bg-elev) }
   </div>
 
   <div class="section">
+    <h3>🌐 Performance by Macro Regime <span style="opacity:.6; font-size:11px; font-weight:400">— PM-grade attribution: which regime is each rating tier strongest in?</span></h3>
+    <div class="body" id="regime-body">
+      <div class="empty"><span class="spinner"></span> Computing regime attribution…</div>
+    </div>
+  </div>
+
+  <div class="section">
     <h3>📋 Every Call · Detailed Attribution</h3>
     <div class="body" id="calls-body" style="max-height:60vh; overflow-y:auto; padding:0">
       <div class="empty"><span class="spinner"></span> Loading per-call data…</div>
@@ -199,7 +206,96 @@ async function load() {
   renderEnsemble(data.ensemble_attribution || {});
   renderRatingTable("rating-body", data.rating_summary || [], "rating");
   renderRatingTable("critic-body", data.critique_summary || [], "critic_rating");
+  renderRegimeAttribution(data.regime_attribution || {});
   renderCalls(calls);
+}
+
+function renderRegimeAttribution(r) {
+  const body = $("regime-body");
+  const coverage = r.regime_coverage || {};
+  if(!r.by_regime?.length) {
+    body.innerHTML = `<div class="empty">
+      No regime-tagged calls yet. The Phase 2 macro regime engine started stamping calls on ${new Date().toISOString().slice(0,10)}.
+      As history accumulates, alpha-by-regime breakdown will populate here.
+      ${coverage.n_calls_with_alpha != null ? `<br><span style="opacity:.6">Currently: ${coverage.n_calls_with_alpha} calls scored, ${coverage.n_calls_with_regime_tag} regime-tagged.</span>` : ''}
+    </div>`;
+    return;
+  }
+
+  const fmtPct = v => v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+
+  let html = `
+    <div style="margin-bottom:12px; font-size:11.5px; color:var(--text-muted)">
+      Coverage: <b style="color:var(--text)">${coverage.pct_coverage || 0}%</b> of scored calls have a regime tag
+      (${coverage.n_calls_with_regime_tag}/${coverage.n_calls_with_alpha}).
+      Distinct regimes observed: <b style="color:var(--text)">${coverage.n_distinct_regimes}</b>.
+    </div>
+    <table style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:12px">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding:8px 10px; color:var(--accent); border-bottom:1px solid var(--border-light); background:var(--bg-elev); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em">Regime</th>
+          <th style="text-align:right; padding:8px 10px; color:var(--accent); border-bottom:1px solid var(--border-light); background:var(--bg-elev); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em">N</th>
+          <th style="text-align:right; padding:8px 10px; color:var(--accent); border-bottom:1px solid var(--border-light); background:var(--bg-elev); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em">Avg α</th>
+          <th style="text-align:right; padding:8px 10px; color:var(--accent); border-bottom:1px solid var(--border-light); background:var(--bg-elev); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em">Median α</th>
+          <th style="text-align:right; padding:8px 10px; color:var(--accent); border-bottom:1px solid var(--border-light); background:var(--bg-elev); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em">Max α</th>
+          <th style="text-align:right; padding:8px 10px; color:var(--accent); border-bottom:1px solid var(--border-light); background:var(--bg-elev); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em">Min α</th>
+          <th style="text-align:right; padding:8px 10px; color:var(--accent); border-bottom:1px solid var(--border-light); background:var(--bg-elev); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em">Win Rate</th>
+          <th style="text-align:left; padding:8px 10px; color:var(--accent); border-bottom:1px solid var(--border-light); background:var(--bg-elev); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em">By Rating</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  for(const row of r.by_regime) {
+    const avgC = row.avg_alpha_pct > 0 ? 'color:var(--pos)' : 'color:var(--neg)';
+    const ratingsStr = Object.entries(row.by_rating || {})
+      .sort(([,a],[,b]) => b.avg_alpha - a.avg_alpha)
+      .map(([rt, v]) => `<span style="margin-right:8px; font-size:10.5px"><b style="color:var(--text)">${rt}</b> ${fmtPct(v.avg_alpha)} <span style="color:var(--text-muted)">(n=${v.n})</span></span>`)
+      .join('');
+    html += `
+      <tr style="border-bottom:1px solid var(--border-light)">
+        <td style="padding:8px 10px"><b style="color:var(--accent)">${row.regime}</b></td>
+        <td style="text-align:right; padding:8px 10px; color:var(--text)">${row.n}</td>
+        <td style="text-align:right; padding:8px 10px; ${avgC}; font-weight:700">${fmtPct(row.avg_alpha_pct)}</td>
+        <td style="text-align:right; padding:8px 10px; color:var(--text-dim)">${fmtPct(row.median_alpha_pct)}</td>
+        <td style="text-align:right; padding:8px 10px; color:var(--pos)">${fmtPct(row.max_alpha_pct)}</td>
+        <td style="text-align:right; padding:8px 10px; color:var(--neg)">${fmtPct(row.min_alpha_pct)}</td>
+        <td style="text-align:right; padding:8px 10px; color:var(--text)">${row.win_rate_pct.toFixed(0)}%</td>
+        <td style="padding:8px 10px">${ratingsStr || '<span style="opacity:.5">—</span>'}</td>
+      </tr>`;
+  }
+  html += `</tbody></table>`;
+
+  // Cross-tab: rating × regime heat
+  if(r.by_rating_regime?.length) {
+    // Build pivot: rows = ratings, cols = regimes
+    const ratings = [...new Set(r.by_rating_regime.map(c => c.rating))];
+    const regimes = [...new Set(r.by_rating_regime.map(c => c.regime))];
+    const cells = {};
+    for(const c of r.by_rating_regime) cells[`${c.rating}|${c.regime}`] = c;
+    html += `
+      <h4 style="margin:20px 0 8px; font-size:11.5px; color:var(--accent); text-transform:uppercase; letter-spacing:.06em">Cross-Tab: Rating × Regime (avg α / n)</h4>
+      <table style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11px">
+        <thead><tr>
+          <th style="text-align:left; padding:6px 10px; color:var(--accent); border-bottom:1px solid var(--border-light); background:var(--bg-elev)">Rating</th>
+          ${regimes.map(r => `<th style="text-align:right; padding:6px 10px; color:var(--accent); border-bottom:1px solid var(--border-light); background:var(--bg-elev)">${r}</th>`).join('')}
+        </tr></thead>
+        <tbody>`;
+    for(const rating of ratings) {
+      html += `<tr><td style="padding:6px 10px; color:var(--text); border-bottom:1px solid var(--border-light)"><b>${rating}</b></td>`;
+      for(const reg of regimes) {
+        const c = cells[`${rating}|${reg}`];
+        if(c) {
+          const col = c.avg_alpha_pct > 0 ? 'var(--pos)' : 'var(--neg)';
+          html += `<td style="text-align:right; padding:6px 10px; border-bottom:1px solid var(--border-light); color:${col}">${fmtPct(c.avg_alpha_pct)}<br><span style="font-size:9.5px; color:var(--text-muted)">n=${c.n} · win ${c.win_rate_pct.toFixed(0)}%</span></td>`;
+        } else {
+          html += `<td style="text-align:right; padding:6px 10px; border-bottom:1px solid var(--border-light); color:var(--text-muted)">—</td>`;
+        }
+      }
+      html += `</tr>`;
+    }
+    html += `</tbody></table>`;
+  }
+
+  body.innerHTML = html;
 }
 
 function renderEnsemble(e) {
@@ -293,7 +389,7 @@ function renderCalls(calls) {
   }
   const html = `<table>
     <thead><tr>
-      <th>Ticker</th><th>As-of</th><th>Days</th><th>Rating</th><th>Critic</th>
+      <th>Ticker</th><th>As-of</th><th>Regime</th><th>Days</th><th>Rating</th><th>Critic</th>
       <th>Entry</th><th>Spot</th><th>Return</th><th>SPY ret</th><th>Alpha</th>
       <th>PT</th><th>PT-cap</th><th>Diverges</th>
     </tr></thead>
@@ -301,6 +397,7 @@ function renderCalls(calls) {
       ${calls.map(c => `<tr>
         <td><a href="/why.html?ticker=${encodeURIComponent(c.ticker)}" style="color:var(--accent); text-decoration:none; font-weight:600">${esc(c.ticker)}</a></td>
         <td>${esc(c.generated_at?.slice(0,10) || '—')}</td>
+        <td style="font-size:10px; color:var(--text-muted)">${esc(c.regime_at_generation || '—')}</td>
         <td class="num">${c.days_held ?? '—'}</td>
         <td>${ratingHtml(c.rating)}</td>
         <td>${ratingHtml(c.critic_rating)}</td>

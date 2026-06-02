@@ -280,6 +280,29 @@ def parse_critique_json(text: str) -> dict:
     return json.loads(text)
 
 
+def load_macro_regime_snapshot() -> dict:
+    """Stamp current macro regime on every critique for regime-attributed
+    backtesting. Same shape as in equity-research."""
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="macro/regime.json")
+        doc = json.loads(obj["Body"].read())
+        tl = doc.get("top_level_regime", {}) or {}
+        subs = doc.get("sub_regimes", {}) or {}
+        return {
+            "regime":      tl.get("regime"),
+            "confidence":  tl.get("confidence"),
+            "reasoning":   tl.get("reasoning"),
+            "sub_regimes": {
+                k: {"label": v.get("label"), "score": v.get("score")}
+                for k, v in subs.items()
+            },
+            "macro_generated_at": doc.get("generated_at"),
+        }
+    except Exception as e:
+        print(f"[regime-stamp] unavailable: {e}")
+        return {}
+
+
 def fetch_research(ticker: str) -> Optional[dict]:
     """Read cached research from S3."""
     key = f"{RESEARCH_PREFIX}{ticker}.json"
@@ -433,6 +456,7 @@ def lambda_handler(event, context):
     out = {
         "ticker": ticker,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "regime_at_generation": load_macro_regime_snapshot(),  # Phase 2 attribution stamp
         "analyst_verdict": {
             "rating": (research.get("verdict") or {}).get("rating"),
             "conviction_grade": (research.get("verdict") or {}).get("conviction_grade"),

@@ -1421,6 +1421,36 @@ def parse_claude(text: str) -> dict:
 # Main handler
 # ═════════════════════════════════════════════════════════════════════
 
+def load_macro_regime_snapshot() -> dict:
+    """Read macro/regime.json and return a compact snapshot to STAMP on every
+    research output as regime_at_generation. The point: when track-record
+    backtests this call later, it knows EXACTLY which regime was active at
+    generation time without needing historical lookups. Institutional
+    attribution by regime hinges on this stamp.
+
+    Returns dict with: regime, confidence, reasoning, sub_regimes_summary,
+    generated_at — or empty dict if macro engine output unavailable.
+    """
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="macro/regime.json")
+        doc = json.loads(obj["Body"].read())
+        tl = doc.get("top_level_regime", {}) or {}
+        subs = doc.get("sub_regimes", {}) or {}
+        return {
+            "regime":         tl.get("regime"),
+            "confidence":     tl.get("confidence"),
+            "reasoning":      tl.get("reasoning"),
+            "sub_regimes":    {
+                k: {"label": v.get("label"), "score": v.get("score")}
+                for k, v in subs.items()
+            },
+            "macro_generated_at": doc.get("generated_at"),
+        }
+    except Exception as e:
+        print(f"[regime-stamp] unavailable: {e}")
+        return {}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
 
@@ -1759,10 +1789,11 @@ def lambda_handler(event, context):
 
     # ── Assemble final document
     document = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",  # bumped for regime_at_generation field
         "ticker":         ticker,
         "generated_at":   datetime.now(timezone.utc).isoformat(),
         "from_cache":     False,
+        "regime_at_generation": load_macro_regime_snapshot(),  # Phase 2 attribution stamp
         "company":        company_block,
         "quote":          quote_block,
         "verdict":        claude_synthesis.get("verdict") or {},

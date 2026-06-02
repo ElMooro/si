@@ -518,6 +518,12 @@ def lambda_handler(event, context):
     # 4. Wrap with metadata + write to S3
     output = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "regime_at_generation": {
+            "regime":      (macro or {}).get("top_level", {}).get("regime"),
+            "confidence":  (macro or {}).get("top_level", {}).get("confidence"),
+            "reasoning":   (macro or {}).get("top_level", {}).get("reasoning"),
+            "sub_regimes": (macro or {}).get("sub_regimes_summary"),
+        },  # Phase 2 attribution stamp
         "model": result["model"],
         "elapsed_s": round(time.time() - t0, 1),
         "claude_elapsed_s": result["elapsed_s"],

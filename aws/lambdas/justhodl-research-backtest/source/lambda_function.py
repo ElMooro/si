@@ -213,6 +213,15 @@ def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
         spy_ret = pct_change(spy_then, spy_now) if (spy_then and spy_now) else None
         alpha = round(ticker_ret - spy_ret, 2) if (ticker_ret is not None and spy_ret is not None) else None
 
+        # Capture regime stamp from entry snapshot (the regime active when
+        # the call was made). Falls back to latest if no entry doc.
+        regime_stamp = None
+        if history:
+            regime_stamp = (entry_doc or {}).get("regime_at_generation") if 'entry_doc' in dir() else None
+        if not regime_stamp:
+            regime_stamp = latest_doc.get("regime_at_generation") or {}
+        regime_at_gen = (regime_stamp or {}).get("regime")
+
         critique = critique_lookup.get(ticker, {})
         c_obj = critique.get("critique", {})
         per_call.append({
@@ -236,6 +245,7 @@ def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
             "disagreement_score":  c_obj.get("disagreement_score"),
             "rating_diverges":     bool(c_obj.get("alternative_rating") and rating
                                          and c_obj.get("alternative_rating") != rating),
+            "regime_at_generation": regime_at_gen,
             "n_history_snapshots": len(history),
         })
 
@@ -375,6 +385,95 @@ def get_spy_then(spy_history: dict, target_date: str) -> Optional[float]:
 # ═════════════════════════════════════════════════════════════════════
 # Handler
 # ═════════════════════════════════════════════════════════════════════
+def build_regime_attribution(calls: list) -> dict:
+    """Aggregate alpha BY regime AND BY rating × regime — the institutional
+    attribution table.
+
+    Returns:
+      {
+        by_regime: [{regime, n, avg_alpha, win_rate, n_strong_buy, n_buy, ...}],
+        by_rating_regime: [{rating, regime, n, avg_alpha, win_rate}],
+        regime_coverage: {n_tagged, n_total, pct_coverage},
+      }
+
+    A call qualifies as a 'win' if alpha_pct > 0. STRONG_BUY in REFLATION
+    regime delivering +X% alpha vs same rating in CREDIT_STRESS regime
+    delivering -Y% is the kind of read every PM wants.
+    """
+    tagged = [c for c in calls if c.get("regime_at_generation") and c.get("alpha_pct") is not None]
+    total_with_alpha = sum(1 for c in calls if c.get("alpha_pct") is not None)
+
+    # by regime (collapsed across all ratings)
+    by_regime_groups = {}
+    for c in tagged:
+        r = c["regime_at_generation"]
+        by_regime_groups.setdefault(r, []).append(c)
+
+    by_regime = []
+    for regime, group in sorted(by_regime_groups.items(), key=lambda x: -len(x[1])):
+        alphas = [c["alpha_pct"] for c in group if c.get("alpha_pct") is not None]
+        if not alphas:
+            continue
+        n = len(alphas)
+        avg = round(sum(alphas) / n, 2)
+        wins = sum(1 for a in alphas if a > 0)
+        # Median + dispersion
+        sorted_a = sorted(alphas)
+        med = round(sorted_a[n // 2], 2)
+        max_a = round(max(alphas), 2)
+        min_a = round(min(alphas), 2)
+        # Best rating in this regime
+        by_rating_in_regime = {}
+        for c in group:
+            rt = c.get("rating") or "UNKNOWN"
+            by_rating_in_regime.setdefault(rt, []).append(c.get("alpha_pct") or 0)
+        rating_breakdown = {
+            rt: {"n": len(vals), "avg_alpha": round(sum(vals) / len(vals), 2)}
+            for rt, vals in by_rating_in_regime.items() if vals
+        }
+        by_regime.append({
+            "regime": regime,
+            "n": n,
+            "avg_alpha_pct": avg,
+            "median_alpha_pct": med,
+            "max_alpha_pct": max_a,
+            "min_alpha_pct": min_a,
+            "win_rate_pct": round(100 * wins / n, 1),
+            "by_rating": rating_breakdown,
+        })
+
+    # cross-tab: rating × regime
+    by_rating_regime = []
+    cells = {}
+    for c in tagged:
+        key = (c.get("rating") or "UNKNOWN", c["regime_at_generation"])
+        cells.setdefault(key, []).append(c)
+    for (rating, regime), group in sorted(cells.items()):
+        alphas = [c["alpha_pct"] for c in group if c.get("alpha_pct") is not None]
+        if not alphas:
+            continue
+        n = len(alphas)
+        by_rating_regime.append({
+            "rating": rating,
+            "regime": regime,
+            "n": n,
+            "avg_alpha_pct": round(sum(alphas) / n, 2),
+            "win_rate_pct": round(100 * sum(1 for a in alphas if a > 0) / n, 1),
+        })
+
+    return {
+        "by_regime": by_regime,
+        "by_rating_regime": by_rating_regime,
+        "regime_coverage": {
+            "n_calls_with_regime_tag": len(tagged),
+            "n_calls_with_alpha": total_with_alpha,
+            "pct_coverage": round(100 * len(tagged) / max(total_with_alpha, 1), 1),
+            "n_distinct_regimes": len(by_regime_groups),
+            "regimes_observed": list(by_regime_groups.keys()),
+        },
+    }
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print(f"[backtest] starting at {datetime.now(timezone.utc).isoformat()}")
@@ -426,6 +525,7 @@ def lambda_handler(event, context):
     rating_summary = aggregate_by_field(per_call, "rating", "rating")
     critique_summary = aggregate_by_field(per_call, "critic_rating", "critic_rating")
     ensemble_attr = build_ensemble_attribution(per_call)
+    regime_attr = build_regime_attribution(per_call)
 
     # 6. Sample size honesty
     n_with_returns = sum(1 for c in per_call if c.get("ticker_return_pct") is not None)
@@ -460,6 +560,7 @@ def lambda_handler(event, context):
         "rating_summary": rating_summary,
         "critique_summary": critique_summary,
         "ensemble_attribution": ensemble_attr,
+        "regime_attribution":   regime_attr,
     }
 
     # Write to S3
