@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-pnl-tracker",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 60,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Simulated portfolio P&L tracker — measures realized returns if every alert was taken",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(30 21 * * MON-FRI *)",
+    "name": "justhodl-pnl-tracker-daily",
+    "description": "Daily 16:30 ET (after market close) — open new, execute exits, send digest"
+  }
+}

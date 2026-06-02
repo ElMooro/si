@@ -1,265 +1,441 @@
-"""
-justhodl-pnl-tracker — Loop 2 hypothetical PnL tracker.
+"""justhodl-pnl-tracker
 
-Runs daily at 22:00 UTC. Computes:
-  - buy_and_hold portfolio value (starting allocation, drift-only)
-  - khalid_strategy value (regime-adjusted allocation since inception)
-  - delta_pct (system's value-add vs B&H)
+Simulated portfolio P&L tracker.
 
-Writes:
-  - portfolio/pnl-daily.json   (today snapshot, full detail)
-  - portfolio/pnl-history.json (rolling 365-day history)
+PHILOSOPHY: If you had taken EVERY cascade alert exactly as the system
+recommended (entry at trade-ticket price, shares from sizing, exits at
+TP1/TP2/TP3 or stop loss), what would your realized P&L be?
+
+This measures pure SYSTEM performance — no slippage, no missed entries,
+no emotional overrides. It's the empirical benchmark.
+
+AUTO-ENTRY RULES (simulated):
+  Open a position when ticker is FIRST alerted in either:
+    - cascade alert_tier (combined ≥ 80)
+    - cascade laggards
+    - velocity FIRED_CONFIRMED or FIRED_FRESH
+  Use trade-ticket entry/shares for sizing.
+
+EXIT RULES:
+  TP1_HIT → sell 33% at TP1
+  TP2_HIT → sell another 33% at TP2
+  TP3_HIT → sell final 34% at TP3
+  STOP_BREACHED → exit 100% at stop price
+  Manual override (via state file) supported
+
+OUTPUT:
+  data/simulated-portfolio.json — open + closed positions, daily P&L
+  data/pnl-stats.json — running win rate, expectancy, etc.
+  Daily Telegram digest after market close
+
+Schedule: weekdays 16:30 ET (cron 30 21 * * MON-FRI *)
 """
 import json
 import os
 import time
 import urllib.request
-import ssl
-from datetime import datetime, timezone, timedelta
+import urllib.parse
+from datetime import datetime, timezone, date
+from typing import Optional, List, Dict
+
 import boto3
 
-# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
-try:
-    from ka_aliases import add_ka_aliases
-except Exception as _e:
-    print(f"WARN: ka_aliases unavailable: {_e}")
-    def add_ka_aliases(obj, **_kwargs):
-        return obj
+S3_BUCKET = "justhodl-dashboard-live"
+PORTFOLIO_KEY = "data/simulated-portfolio.json"
+STATS_KEY = "data/pnl-stats.json"
+TG_BOT_TOKEN = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TG_CHAT_ID = "8678089260"
 
-REGION = "us-east-1"
-BUCKET = "justhodl-dashboard-live"
-POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-
-s3 = boto3.client("s3", region_name=REGION)
-ctx = ssl.create_default_context()
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
+s3 = boto3.client("s3", region_name="us-east-1")
+ssm = boto3.client("ssm", region_name="us-east-1")
 
 
-def fetch_json(url, timeout=15):
+def _read_json(key: str) -> Optional[dict]:
     try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=timeout, context=ctx) as r:
-            return json.loads(r.read().decode("utf-8"))
-    except Exception as e:
-        print(f"[FETCH] {url[:80]}: {e}")
+        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+    except Exception:
         return None
 
 
-def get_spot_price(ticker):
-    """Get latest closing price from Polygon."""
-    url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev?adjusted=true&apiKey={POLYGON_KEY}"
-    data = fetch_json(url)
-    if data and isinstance(data.get("results"), list) and data["results"]:
-        return float(data["results"][0].get("c", 0))
-    return None
-
-
-def get_s3_json(key):
-    try:
-        obj = s3.get_object(Bucket=BUCKET, Key=key)
-        return json.loads(obj["Body"].read().decode("utf-8"))
-    except Exception as e:
-        print(f"[S3] {key}: {e}")
-        return None
-
-
-def put_s3_json(key, body, cache="public, max-age=300"):
-    # Phase 2 dual-write — duplicate khalid_* keys as ka_* in payload
-    body = add_ka_aliases(body)
+def _write_json(key: str, data: dict, ttl: int = 3600):
     s3.put_object(
-        Bucket=BUCKET, Key=key,
-        Body=json.dumps(body, default=str).encode("utf-8"),
-        ContentType="application/json", CacheControl=cache,
+        Bucket=S3_BUCKET, Key=key,
+        Body=json.dumps(data, default=str).encode(),
+        ContentType="application/json",
+        CacheControl=f"public, max-age={ttl}",
     )
 
 
-def regime_to_allocation(regime, action_required):
-    """Map JustHodl regime + action to a target allocation."""
-    r = (regime or "").upper()
-    a = (action_required or "").upper()
-
-    # CRISIS / strong bearish action → defensive
-    if "CRISIS" in r or "REDUCE ALL RISK" in a or "RAISE CASH" in a:
-        return {"SPY": 0.30, "TLT": 0.20, "GLD": 0.10, "CASH": 0.40}
-
-    # BEAR / cautious
-    if "BEAR" in r or "PRE-CRISIS" in r or "REDUCE" in a or "DEFENSIVE" in a:
-        return {"SPY": 0.40, "TLT": 0.20, "GLD": 0.15, "CASH": 0.25}
-
-    # NEUTRAL — match starting baseline
-    if "NEUTRAL" in r or not r:
-        return {"SPY": 0.60, "TLT": 0.20, "GLD": 0.10, "CASH": 0.10}
-
-    # BULL / risk-on
-    if "BULL" in r or "OPTIMISTIC" in r or "RISK_ON" in r:
-        return {"SPY": 0.75, "TLT": 0.10, "GLD": 0.05, "CASH": 0.10}
-
-    # EUPHORIA — still some restraint (don't chase)
-    if "EUPHORIA" in r:
-        return {"SPY": 0.80, "TLT": 0.05, "GLD": 0.05, "CASH": 0.10}
-
-    # Unknown → fall back to baseline
-    return {"SPY": 0.60, "TLT": 0.20, "GLD": 0.10, "CASH": 0.10}
+def _get_tg_config():
+    try:
+        token = ssm.get_parameter(Name="/justhodl/telegram/bot-token",
+                                    WithDecryption=True)["Parameter"]["Value"]
+        chat_id = ssm.get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
+        return token, chat_id
+    except Exception:
+        return TG_BOT_TOKEN, TG_CHAT_ID
 
 
-def compute_portfolio_value(allocations, starting_value, current_prices, baseline_prices):
-    """Given current allocation + price ratios from baseline, compute today's value."""
-    total = 0.0
-    breakdown = {}
-    for ticker, weight in allocations.items():
-        if ticker == "CASH":
-            # Cash earns ~0% (could add a tiny SOFR yield in v2)
-            value = starting_value * weight
-        else:
-            cur = current_prices.get(ticker)
-            base = baseline_prices.get(ticker)
-            if not cur or not base or base == 0:
-                value = starting_value * weight  # treat unknown as flat
+def _send_telegram(text: str) -> dict:
+    token, chat_id = _get_tg_config()
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    data = urllib.parse.urlencode({
+        "chat_id": chat_id, "text": text, "parse_mode": "HTML",
+        "disable_web_page_preview": "true",
+    }).encode()
+    try:
+        req = urllib.request.Request(url, data=data, method="POST")
+        with urllib.request.urlopen(req, timeout=12) as r:
+            return {"status": r.status, "body": r.read().decode()[:200]}
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
+
+def get_alerted_tickets_today() -> Dict[str, str]:
+    """Return {ticker: tier} of all tickets alerted today via cascade/velocity."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    alerted = {}
+
+    # Cascade alert tier
+    cascade_state = _read_json("data/_alerts/theme-cascade-alerted.json") or {}
+    if cascade_state.get("date") == today:
+        for t in (cascade_state.get("alerted_tickers") or []):
+            alerted[t] = "ALERT_TIER"
+
+    # Prepump router state — has cascade_laggard, velocity, etc.
+    router_state = _read_json("data/_alerts/prepump-router-state.json") or {}
+    if router_state.get("date") == today:
+        by_signal = router_state.get("alerted_by_signal", {})
+
+        for t in (by_signal.get("cascade_laggard") or []):
+            if t not in alerted:
+                alerted[t] = "LAGGARD"
+
+        # Velocity signals: "velocity_FIRED_CONFIRMED_TICKER"
+        for sig in (by_signal.get("velocity") or []):
+            parts = sig.split("_", 2)
+            if len(parts) >= 3 and parts[0] == "velocity":
+                tier = parts[1]
+                # Velocity sigs are formatted like "velocity_FIRED_CONFIRMED_MS" or "velocity_FIRED_FRESH_X"
+                # Extract: skip first 2 (velocity_FIRED) and rest is CONFIRMED_TICKER or FRESH_TICKER
+                rest = sig[len("velocity_"):]
+                # rest = "FIRED_CONFIRMED_MS" or "WATCH_CRWD"
+                if rest.startswith("FIRED_CONFIRMED_"):
+                    t = rest[len("FIRED_CONFIRMED_"):]
+                    if t and t not in alerted:
+                        alerted[t] = "FIRED_CONFIRMED"
+                elif rest.startswith("FIRED_FRESH_"):
+                    t = rest[len("FIRED_FRESH_"):]
+                    if t and t not in alerted:
+                        alerted[t] = "FIRED_FRESH"
+                elif rest.startswith("EMERGING_"):
+                    t = rest[len("EMERGING_"):]
+                    if t and t not in alerted:
+                        alerted[t] = "EMERGING"
+                # Skip WATCH tier — too early for auto-entry
+
+    return alerted
+
+
+def get_executed_levels_today() -> Dict[str, List[str]]:
+    """Return {ticker: [level1, level2,...]} of levels hit today."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    state = _read_json("data/_alerts/trade-monitor-state.json") or {}
+    if state.get("date") != today:
+        return {}
+    return state.get("alerted_by_ticker") or {}
+
+
+def load_or_init_portfolio() -> dict:
+    """Load simulated portfolio or initialize empty."""
+    p = _read_json(PORTFOLIO_KEY)
+    if not p:
+        p = {
+            "schema_version": "1.0",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "open_positions": [],
+            "closed_positions": [],
+            "realized_pnl_total_usd": 0,
+            "stats": {},
+        }
+    return p
+
+
+def open_new_positions(portfolio: dict, alerted_today: Dict[str, str],
+                        tickets: List[dict]) -> List[str]:
+    """For each newly-alerted ticker not in portfolio, open a simulated position."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    open_tickers = {p["ticker"] for p in portfolio.get("open_positions", [])}
+    closed_today_tickers = {p["ticker"] for p in portfolio.get("closed_positions", [])
+                              if p.get("close_date") == today}
+    tickets_by_ticker = {t["ticker"]: t for t in tickets}
+
+    newly_opened = []
+    for ticker, tier in alerted_today.items():
+        if ticker in open_tickers or ticker in closed_today_tickers:
+            continue
+        ticket = tickets_by_ticker.get(ticker)
+        if not ticket or ticket.get("error"):
+            continue
+        position = {
+            "ticker": ticker,
+            "entry_date": today,
+            "entry_price": ticket.get("entry"),
+            "shares_total": ticket.get("shares"),
+            "shares_remaining": ticket.get("shares"),
+            "stop_loss": ticket.get("stop_loss"),
+            "tp1": ticket.get("tp1"),
+            "tp2": ticket.get("tp2"),
+            "tp3": ticket.get("tp3"),
+            "tier": tier,
+            "entry_tier": tier,
+            "exits": [],
+            "realized_pnl_usd": 0,
+            "status": "OPEN",
+        }
+        portfolio["open_positions"].append(position)
+        newly_opened.append(ticker)
+    return newly_opened
+
+
+def execute_exits(portfolio: dict, executed_today: Dict[str, List[str]],
+                  snapshots: Dict[str, float]) -> List[dict]:
+    """Process TP/stop hits → apply partial/full exits, realize P&L."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    exit_events = []
+    new_open = []
+    new_closed = list(portfolio.get("closed_positions", []))
+
+    for pos in portfolio.get("open_positions", []):
+        ticker = pos["ticker"]
+        levels_hit = executed_today.get(ticker, [])
+        entry = pos.get("entry_price") or 0
+        shares_remaining = pos.get("shares_remaining") or 0
+        total_shares = pos.get("shares_total") or shares_remaining or 1
+
+        # Process each level hit (in order if both TP1 + TP2 hit, sells each portion)
+        # We only process levels NOT already in pos.exits
+        prior_exit_types = {e["type"] for e in (pos.get("exits") or [])}
+
+        for level in levels_hit:
+            if level in prior_exit_types:
+                continue
+
+            if level == "TP1_HIT":
+                shares_to_sell = int(total_shares * 0.33)
+                exit_price = pos.get("tp1") or 0
+            elif level == "TP2_HIT":
+                shares_to_sell = int(total_shares * 0.33)
+                exit_price = pos.get("tp2") or 0
+            elif level == "TP3_HIT":
+                shares_to_sell = shares_remaining
+                exit_price = pos.get("tp3") or 0
+            elif level == "STOP_BREACHED":
+                shares_to_sell = shares_remaining
+                exit_price = pos.get("stop_loss") or 0
             else:
-                ratio = cur / base
-                value = starting_value * weight * ratio
-        breakdown[ticker] = round(value, 2)
-        total += value
-    return total, breakdown
+                continue  # APPROACHING_STOP, BIG_GAIN_EARLY are not exits
+
+            shares_to_sell = min(shares_to_sell, shares_remaining)
+            if shares_to_sell <= 0 or exit_price <= 0:
+                continue
+
+            pnl_per_share = exit_price - entry
+            pnl = pnl_per_share * shares_to_sell
+
+            exit_record = {
+                "type": level,
+                "date": today,
+                "shares_sold": shares_to_sell,
+                "exit_price": exit_price,
+                "pnl_usd": round(pnl, 2),
+                "pnl_pct": round((exit_price - entry) / entry * 100, 2) if entry > 0 else 0,
+            }
+            pos.setdefault("exits", []).append(exit_record)
+            pos["shares_remaining"] = shares_remaining - shares_to_sell
+            pos["realized_pnl_usd"] = round(
+                (pos.get("realized_pnl_usd") or 0) + pnl, 2)
+            shares_remaining -= shares_to_sell
+            exit_events.append({"ticker": ticker, "exit": exit_record})
+
+        # If position fully closed, move to closed
+        if pos.get("shares_remaining") and pos["shares_remaining"] <= 0:
+            pos["status"] = "CLOSED"
+            pos["close_date"] = today
+            new_closed.append(pos)
+        else:
+            new_open.append(pos)
+
+    portfolio["open_positions"] = new_open
+    portfolio["closed_positions"] = new_closed
+    return exit_events
+
+
+def compute_stats(portfolio: dict) -> dict:
+    """Compute aggregate P&L stats from closed positions."""
+    closed = portfolio.get("closed_positions") or []
+    open_pos = portfolio.get("open_positions") or []
+    n_closed = len(closed)
+    n_open = len(open_pos)
+
+    realized_total = sum(p.get("realized_pnl_usd") or 0 for p in closed) + \
+                     sum(p.get("realized_pnl_usd") or 0 for p in open_pos)
+
+    if not closed:
+        return {
+            "n_total_trades": n_open,
+            "n_open": n_open, "n_closed": 0,
+            "n_winners": 0, "n_losers": 0,
+            "win_rate_pct": 0,
+            "total_realized_usd": round(realized_total, 2),
+        }
+
+    winners = [p for p in closed if (p.get("realized_pnl_usd") or 0) > 0]
+    losers = [p for p in closed if (p.get("realized_pnl_usd") or 0) < 0]
+
+    avg_winner = (sum((p["realized_pnl_usd"] or 0) for p in winners) / len(winners)) if winners else 0
+    avg_loser = (sum((p["realized_pnl_usd"] or 0) for p in losers) / len(losers)) if losers else 0
+
+    win_rate = (len(winners) / n_closed * 100) if n_closed > 0 else 0
+    # Expectancy = (win_rate * avg_winner) - (loss_rate * |avg_loser|)
+    if n_closed > 0:
+        expectancy = (win_rate / 100 * avg_winner) + ((1 - win_rate / 100) * avg_loser)
+    else:
+        expectancy = 0
+
+    return {
+        "n_total_trades": n_closed + n_open,
+        "n_open": n_open,
+        "n_closed": n_closed,
+        "n_winners": len(winners),
+        "n_losers": len(losers),
+        "win_rate_pct": round(win_rate, 1),
+        "avg_winner_usd": round(avg_winner, 2),
+        "avg_loser_usd": round(avg_loser, 2),
+        "expectancy_per_trade_usd": round(expectancy, 2),
+        "total_realized_usd": round(realized_total, 2),
+        "best_winner": max(winners, key=lambda p: p.get("realized_pnl_usd") or 0,
+                            default={"ticker": None}).get("ticker") if winners else None,
+        "worst_loser": min(losers, key=lambda p: p.get("realized_pnl_usd") or 0,
+                            default={"ticker": None}).get("ticker") if losers else None,
+    }
+
+
+def build_daily_digest(portfolio: dict, stats: dict,
+                       new_opens: List[str], exit_events: List[dict]) -> str:
+    """Build Telegram digest message."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    n_open = stats.get("n_open", 0)
+    realized = stats.get("total_realized_usd", 0)
+
+    lines = [
+        f"<b>💼 DAILY P&L DIGEST · {today}</b>",
+        f"<i>Simulated portfolio — if every alert was taken exactly</i>",
+        "",
+    ]
+
+    # New opens today
+    if new_opens:
+        lines.append(f"<b>📥 NEW POSITIONS TODAY ({len(new_opens)})</b>")
+        for t in new_opens[:8]:
+            pos = next((p for p in portfolio.get("open_positions", [])
+                        if p["ticker"] == t), None)
+            if pos:
+                lines.append(f"  • <b>{t}</b> · entry ${pos.get('entry_price'):.2f} · "
+                             f"{pos.get('shares_total')} sh · {pos.get('tier')}")
+        lines.append("")
+
+    # Exit events today
+    if exit_events:
+        lines.append(f"<b>📤 EXITS TODAY ({len(exit_events)})</b>")
+        for e in exit_events[:8]:
+            exit_info = e.get("exit", {})
+            t = e.get("ticker", "?")
+            etype = exit_info.get("type", "?")
+            pnl_usd = exit_info.get("pnl_usd", 0)
+            pnl_pct = exit_info.get("pnl_pct", 0)
+            emoji = "🎯" if etype == "TP3_HIT" else "✅" if etype.startswith("TP") else "🚨"
+            lines.append(f"  {emoji} <b>{t}</b> · {etype} · "
+                         f"<code>{pnl_usd:+,.0f}</code> ({pnl_pct:+.1f}%)")
+        lines.append("")
+
+    # Aggregate stats
+    lines.append(f"<b>📊 PORTFOLIO STATS</b>")
+    lines.append(f"  Open positions: <b>{n_open}</b>")
+    lines.append(f"  Total realized P&L: <b>${realized:,.0f}</b>")
+    if stats.get("n_closed", 0) > 0:
+        lines.append(f"  Win rate: <b>{stats.get('win_rate_pct', 0):.1f}%</b> "
+                     f"({stats.get('n_winners')}W / {stats.get('n_losers')}L)")
+        lines.append(f"  Avg winner: <code>${stats.get('avg_winner_usd', 0):+,.0f}</code> · "
+                     f"Avg loser: <code>${stats.get('avg_loser_usd', 0):+,.0f}</code>")
+        lines.append(f"  Expectancy/trade: <b>${stats.get('expectancy_per_trade_usd', 0):+,.0f}</b>")
+        if stats.get("best_winner"):
+            lines.append(f"  🏆 Best: <b>{stats['best_winner']}</b>")
+        if stats.get("worst_loser"):
+            lines.append(f"  ⚠ Worst: <b>{stats['worst_loser']}</b>")
+    else:
+        lines.append(f"  <i>No closed positions yet — will populate as TP/stops fire</i>")
+    lines.append("")
+    lines.append(f"<i>Open positions tracked in pre-pump-radar.html</i>")
+
+    return "\n".join(lines).strip()
 
 
 def lambda_handler(event, context):
-    print("=== JUSTHODL PNL TRACKER v1 ===")
-    now = datetime.now(timezone.utc)
-    today_str = now.strftime("%Y-%m-%d")
+    t0 = time.time()
+    print(f"[pnl] starting at {datetime.now(timezone.utc).isoformat()}")
 
-    # 1. Read portfolio state (starting allocation + history)
-    state = get_s3_json("portfolio/state.json")
-    if not state:
-        return {"statusCode": 500, "body": json.dumps({"error": "portfolio/state.json missing"})}
+    # Load inputs
+    tickets_doc = _read_json("data/trade-tickets.json") or {}
+    tickets = tickets_doc.get("tickets") or []
+    snapshots_doc = _read_json("data/trade-monitor-snapshots.json") or {}
+    snapshots = {s["ticker"]: s.get("current_price")
+                 for s in (snapshots_doc.get("snapshots") or [])}
 
-    starting = state.get("starting_value_usd", 100000)
-    inception = state.get("as_of", today_str)
-    baseline_alloc = state.get("allocations", {"SPY": 0.60, "TLT": 0.20, "GLD": 0.10, "CASH": 0.10})
+    # Find alerted tickers + executed levels for today
+    alerted_today = get_alerted_tickets_today()
+    executed_today = get_executed_levels_today()
+    print(f"[pnl] alerted_today: {len(alerted_today)} tickers")
+    print(f"[pnl] executed_today: {len(executed_today)} tickers with level hits")
 
-    # 2. Read intelligence report → current regime
-    intel = get_s3_json("intelligence-report.json") or {}
-    phase = intel.get("phase", "UNKNOWN")
-    regime = intel.get("regime", {}).get("khalid", "UNKNOWN") if isinstance(intel.get("regime"), dict) else "UNKNOWN"
-    action = intel.get("action_required", "")
-    print(f"  Current phase={phase}, khalid_regime={regime}, action={action[:80]}")
+    # Load portfolio
+    portfolio = load_or_init_portfolio()
 
-    # 3. Get baseline prices (what we paid at inception)
-    # If state.json has baseline_prices, use them; else fetch + persist
-    baseline_prices = state.get("baseline_prices", {})
-    if not baseline_prices:
-        print("  Baseline prices not set — capturing today's prices as baseline")
-        for tk in ("SPY", "TLT", "GLD"):
-            p = get_spot_price(tk)
-            if p:
-                baseline_prices[tk] = p
-        # Persist the baseline back to state.json
-        state["baseline_prices"] = baseline_prices
-        state["as_of"] = today_str
-        put_s3_json("portfolio/state.json", state, cache="no-cache")
-        print(f"  Baseline captured: {baseline_prices}")
+    # Open new positions
+    newly_opened = open_new_positions(portfolio, alerted_today, tickets)
+    print(f"[pnl] newly opened: {newly_opened}")
 
-    # 4. Get current prices
-    current_prices = {}
-    for tk in ("SPY", "TLT", "GLD"):
-        p = get_spot_price(tk)
-        if p:
-            current_prices[tk] = p
-    print(f"  Current prices: {current_prices}")
+    # Execute exits from monitor
+    exit_events = execute_exits(portfolio, executed_today, snapshots)
+    print(f"[pnl] exit events: {len(exit_events)}")
 
-    if not current_prices:
-        return {"statusCode": 500, "body": json.dumps({"error": "could not fetch any current prices"})}
+    # Compute stats
+    stats = compute_stats(portfolio)
+    portfolio["stats"] = stats
+    portfolio["last_updated"] = datetime.now(timezone.utc).isoformat()
+    portfolio["realized_pnl_total_usd"] = stats.get("total_realized_usd", 0)
 
-    # 5. Compute buy-and-hold value
-    bh_value, bh_breakdown = compute_portfolio_value(
-        baseline_alloc, starting, current_prices, baseline_prices,
-    )
+    # Save
+    _write_json(PORTFOLIO_KEY, portfolio)
+    _write_json(STATS_KEY, stats)
 
-    # 6. Compute khalid_strategy current value
-    # For v1 simplicity: apply CURRENT regime's allocation to TODAY's
-    # price ratios from baseline. This is approximate (it doesn't model
-    # historical regime changes mid-period — that requires regime history
-    # which we'll add in v2). Conservative, but easy to reason about.
-    khalid_alloc = regime_to_allocation(regime, action)
-    ks_value, ks_breakdown = compute_portfolio_value(
-        khalid_alloc, starting, current_prices, baseline_prices,
-    )
+    # Send daily digest
+    msg = build_daily_digest(portfolio, stats, newly_opened, exit_events)
+    tg = _send_telegram(msg)
+    print(f"[pnl] telegram: {tg}")
 
-    # 7. Compute deltas
-    bh_return_pct = ((bh_value - starting) / starting) * 100
-    ks_return_pct = ((ks_value - starting) / starting) * 100
-    delta_pct = ks_return_pct - bh_return_pct
-
-    snapshot = {
-        "as_of": today_str,
-        "generated_at": now.isoformat(),
-        "inception": inception,
-        "days_since_inception": max(0, (now.date() - datetime.fromisoformat(inception).date()).days)
-                                if inception else 0,
-        "starting_value_usd": starting,
-        "current_phase": phase,
-        "current_regime": regime,
-        "current_action_required": action[:200],
-        "buy_and_hold": {
-            "allocation": baseline_alloc,
-            "current_value_usd": round(bh_value, 2),
-            "return_pct": round(bh_return_pct, 2),
-            "breakdown": bh_breakdown,
-        },
-        "khalid_strategy": {
-            "allocation": khalid_alloc,
-            "current_value_usd": round(ks_value, 2),
-            "return_pct": round(ks_return_pct, 2),
-            "breakdown": ks_breakdown,
-            "_note": "v1 approximation: current regime applied to current prices; doesn't model historical rebalances",
-        },
-        "delta_pct": round(delta_pct, 2),
-        "system_alpha": round(delta_pct, 2),
-        "prices": {
-            "current": current_prices,
-            "baseline": baseline_prices,
-        },
-        "v": "1.0",
-        "DISCLAIMER": "HYPOTHETICAL — for tracking only. Not investment advice. Past hypothetical performance does not predict future returns.",
-    }
-
-    # 8. Write today's snapshot
-    put_s3_json("portfolio/pnl-daily.json", snapshot, cache="public, max-age=300")
-    print(f"  Wrote portfolio/pnl-daily.json ({bh_return_pct:+.2f}% B&H, {ks_return_pct:+.2f}% Khalid, Δ {delta_pct:+.2f}%)")
-
-    # 9. Append to history (rolling 365 days)
-    history = get_s3_json("portfolio/pnl-history.json") or {"v": "1.0", "snapshots": []}
-    snapshots = history.get("snapshots", [])
-    # Keep one snapshot per day — replace today's if it already exists
-    snapshots = [s for s in snapshots if s.get("as_of") != today_str]
-    snapshots.append({
-        "as_of": today_str,
-        "buy_and_hold_value_usd": round(bh_value, 2),
-        "khalid_strategy_value_usd": round(ks_value, 2),
-        "buy_and_hold_return_pct": round(bh_return_pct, 2),
-        "khalid_return_pct": round(ks_return_pct, 2),
-        "delta_pct": round(delta_pct, 2),
-        "regime": regime,
-        "phase": phase,
-    })
-    # Trim to last 365 days
-    cutoff = (now - timedelta(days=365)).strftime("%Y-%m-%d")
-    snapshots = [s for s in snapshots if s.get("as_of", "") >= cutoff]
-    history["snapshots"] = sorted(snapshots, key=lambda s: s.get("as_of", ""))
-    history["last_updated"] = now.isoformat()
-    put_s3_json("portfolio/pnl-history.json", history, cache="public, max-age=600")
-    print(f"  History updated: {len(snapshots)} daily snapshots in last 365 days")
+    elapsed = round(time.time() - t0, 1)
+    print(f"[pnl] DONE — opened={len(newly_opened)} exits={len(exit_events)} "
+          f"realized=${stats.get('total_realized_usd', 0):.0f} in {elapsed}s")
 
     return {
         "statusCode": 200,
         "headers": {"Content-Type": "application/json"},
         "body": json.dumps({
-            "as_of": today_str,
-            "buy_and_hold_return_pct": round(bh_return_pct, 2),
-            "khalid_return_pct": round(ks_return_pct, 2),
-            "delta_pct": round(delta_pct, 2),
-            "phase": phase,
-            "regime": regime,
+            "ok": True, "elapsed_s": elapsed,
+            "newly_opened": newly_opened,
+            "n_exits": len(exit_events),
+            "stats": stats,
+            "telegram_status": tg.get("status") if tg else None,
         }),
     }
