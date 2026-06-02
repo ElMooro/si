@@ -1,0 +1,87 @@
+{
+  "started": "2026-06-02T02:00:21.014563+00:00",
+  "prewarm_schedule": {
+    "rule_arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-equity-prewarm-nightly",
+    "target_added": true,
+    "permission_added": true,
+    "status": "ok"
+  },
+  "edgar_function_url": {
+    "function_url": "https://ru3djltl3oucvsocjrih37sowu0fxgkm.lambda-url.us-east-1.on.aws/",
+    "status": "created",
+    "public_permission": "already exists"
+  },
+  "edgar_smokes": {
+    "AAPL": {
+      "http": 200,
+      "elapsed_s": 1.6,
+      "size_kb": 0.6,
+      "cik": "0000320193",
+      "n_filings_90d": 10,
+      "n_buys": 0,
+      "n_sells": 0,
+      "signal_label": "NEUTRAL",
+      "signal_score": 50,
+      "net_dollars_90d": 0,
+      "cluster_detected": false
+    },
+    "TSLA": {
+      "http": 200,
+      "elapsed_s": 0.47,
+      "size_kb": 0.6,
+      "cik": "0001318605",
+      "n_filings_90d": 6,
+      "n_buys": 0,
+      "n_sells": 0,
+      "signal_label": "NEUTRAL",
+      "signal_score": 50,
+      "net_dollars_90d": 0,
+      "cluster_detected": false
+    },
+    "NVDA": {
+      "http": 200,
+      "elapsed_s": 0.66,
+      "size_kb": 0.6,
+      "cik": "0001045810",
+      "n_filings_90d": 15,
+      "n_buys": 0,
+      "n_sells": 0,
+      "signal_label": "NEUTRAL",
+      "signal_score": 50,
+      "net_dollars_90d": 0,
+      "cluster_detected": false
+    }
+  },
+  "gh_pages_source": {
+    "index.html": {
+      "error": "Too Many Requests"
+    },
+    "compare.html": {
+      "size_kb": 24.1,
+      "markers": {
+        "has_renderTickerCard": true,
+        "has_renderWinnersTable": true,
+        "has_fetchOneTicker": true
+      }
+    },
+    "why.html": {
+      "size_kb": 79.5,
+      "markers": {
+        "has_wlToggleCurrent": true,
+        "has_renderInsiderActivity": true,
+        "has_EDGAR_CDN_BASE": true,
+        "has_compare_in_nav": true,
+        "why_version": "2026-06-02-cdn-first-v2",
+        "has_new_cache_headers": true
+      }
+    }
+  },
+  "why_html_patched": "ok",
+  "summary": {
+    "prewarm_schedule_ok": true,
+    "edgar_url_ok": true,
+    "edgar_smokes_ok": 3,
+    "edgar_url": "https://ru3djltl3oucvsocjrih37sowu0fxgkm.lambda-url.us-east-1.on.aws/"
+  },
+  "finished": "2026-06-02T02:00:28.027978+00:00"
+}

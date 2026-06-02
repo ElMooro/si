@@ -1218,7 +1218,7 @@ function renderInstitutionalActivity(d){
 // Pattern: CDN first (fast, S3-backed), then Lambda fallback for cache miss.
 // Lambda URL is populated dynamically after deploy by ops 1156.
 const EDGAR_CDN_BASE = "https://justhodl-data-proxy.raafouis.workers.dev/edgar-insiders";
-let EDGAR_LAMBDA_URL = ""; // set after deploy — empty means CDN-only
+let EDGAR_LAMBDA_URL = "https://ru3djltl3oucvsocjrih37sowu0fxgkm.lambda-url.us-east-1.on.aws/"; // patched by ops 1157
 
 function renderInsiderActivity(d){
   // Placeholder block; populated by fetchInsiderData() after main render.
