@@ -204,39 +204,96 @@ ETF_UNIVERSE = {
 # ═════════════════════════════════════════════════════════════════════
 # Polygon API client
 # ═════════════════════════════════════════════════════════════════════
-def fetch_etf_flow(ticker: str) -> dict:
-    """Fetch fund flow data for one ETF.
+def fetch_etf_flow_window(ticker: str, days: int = 100) -> dict:
+    """Fetch last ~`days` of fund flow data for one ETF in a single call.
 
-    Returns dict with normalized fields:
-      - ticker, processed_date, daily_flow_usd, fund_flow_5d, fund_flow_21d,
-        aum, shares_outstanding, raw (full Polygon response for diagnostics)
-    Returns {} on failure.
+    Polygon's /etf-global/v1/fund-flows returns:
+        results: [{ processed_date, effective_date, composite_ticker,
+                    shares_outstanding, nav, fund_flow }, ...]
+    Defaults to ASC order with limit=1 (giving us the OLDEST record).
+    We pass order=desc + sort=processed_date + a date range to get the
+    most recent ~90 trading days. From those we compute everything:
+    latest snapshot, 5d/21d cumulative, AUM (shares*nav), z-score,
+    persistence.
+
+    Returns dict with:
+      ticker, processed_date (latest), nav, shares_outstanding, aum_usd,
+      daily_flow_usd, fund_flow_5d_usd, fund_flow_21d_usd, history (list)
     """
     if not POLYGON_KEY:
-        return {"error": "POLYGON_KEY not set"}
-    url = f"{ETF_FLOWS_ENDPOINT}?composite_ticker={ticker}&apiKey={POLYGON_KEY}"
+        return {"ticker": ticker, "error": "POLYGON_KEY not set"}
+    from datetime import timedelta
+    end_date = datetime.now(timezone.utc).date()
+    start_date = end_date - timedelta(days=days + 10)
+    url = (
+        f"{ETF_FLOWS_ENDPOINT}"
+        f"?composite_ticker={ticker}"
+        f"&processed_date.gte={start_date.isoformat()}"
+        f"&processed_date.lte={end_date.isoformat()}"
+        f"&order=desc"
+        f"&sort=processed_date"
+        f"&limit=120"
+        f"&apiKey={POLYGON_KEY}"
+    )
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-ETFFlows/1.0"})
         with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as r:
             data = json.loads(r.read())
             results = data.get("results") or []
             if not results:
-                return {"ticker": ticker, "error": "no_results", "raw_status": data.get("status")}
-            # Use the most recent processed_date result
-            latest = sorted(results, key=lambda x: x.get("processed_date") or "", reverse=True)[0]
+                return {"ticker": ticker, "error": "no_results",
+                        "raw_status": data.get("status"),
+                        "request_id": data.get("request_id")}
+            # Already sorted desc by API, but be defensive
+            results = sorted(
+                results, key=lambda x: x.get("processed_date") or "",
+                reverse=True,
+            )
+            latest = results[0]
+            nav = _num(latest.get("nav"))
+            shares = _num(latest.get("shares_outstanding"))
+            aum = (nav * shares) if (nav is not None and shares is not None) else None
+
+            # Cumulatives
+            flows = [
+                _num(r.get("fund_flow")) for r in results
+                if r.get("fund_flow") is not None
+            ]
+            flow_daily = flows[0] if flows else None
+            flow_5d = sum(flows[:5]) if len(flows) >= 5 else (
+                sum(flows) if flows else None
+            )
+            flow_21d = sum(flows[:21]) if len(flows) >= 21 else (
+                sum(flows) if flows else None
+            )
+            # Capture sample row for schema diagnostics
+            sample_row = {k: v for k, v in latest.items()}
             return {
                 "ticker": ticker,
                 "processed_date": latest.get("processed_date"),
-                "daily_flow_usd": _num(latest.get("fund_flow") or latest.get("fund_flow_daily") or latest.get("net_flow")),
-                "fund_flow_5d_usd": _num(latest.get("fund_flow_5d")),
-                "fund_flow_21d_usd": _num(latest.get("fund_flow_21d") or latest.get("fund_flow_1m")),
-                "fund_flow_ytd_usd": _num(latest.get("fund_flow_ytd")),
-                "aum_usd": _num(latest.get("aum") or latest.get("net_assets")),
-                "shares_outstanding": _num(latest.get("shares_outstanding")),
-                "raw_sample": {k: v for k, v in latest.items() if k != "raw"},  # keep one sample for schema discovery
+                "effective_date": latest.get("effective_date"),
+                "nav": nav,
+                "shares_outstanding": shares,
+                "aum_usd": aum,
+                "daily_flow_usd": flow_daily,
+                "fund_flow_5d_usd": flow_5d,
+                "fund_flow_21d_usd": flow_21d,
+                "history": [
+                    {"processed_date": r.get("processed_date"),
+                     "flow": _num(r.get("fund_flow")),
+                     "nav": _num(r.get("nav")),
+                     "shares_outstanding": _num(r.get("shares_outstanding"))}
+                    for r in results
+                ],
+                "raw_sample": sample_row,
+                "n_history": len(results),
             }
     except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="ignore")[:200] if hasattr(e, 'read') else ""
+        body = ""
+        try:
+            body = e.read().decode("utf-8", errors="ignore")[:300]
+        except Exception:
+            pass
         return {"ticker": ticker, "error": f"http_{e.code}", "body": body}
     except Exception as e:
         return {"ticker": ticker, "error": str(e)[:200]}
@@ -250,10 +307,13 @@ def _num(v) -> Optional[float]:
 
 
 def fetch_universe_parallel() -> dict:
-    """Fetch all ETFs in parallel. Returns {ticker: flow_dict}."""
+    """Fetch all ETFs in parallel — one call each gets snapshot + history."""
     results = {}
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
-        future_to_ticker = {ex.submit(fetch_etf_flow, t): t for t in ETF_UNIVERSE.keys()}
+        future_to_ticker = {
+            ex.submit(fetch_etf_flow_window, t, 100): t
+            for t in ETF_UNIVERSE.keys()
+        }
         for fut in as_completed(future_to_ticker):
             t = future_to_ticker[fut]
             try:
@@ -261,58 +321,6 @@ def fetch_universe_parallel() -> dict:
             except Exception as e:
                 results[t] = {"ticker": t, "error": str(e)[:200]}
     return results
-
-
-# ═════════════════════════════════════════════════════════════════════
-# Historical depth — pull last 90 days of flow data per ETF for z-score
-# ═════════════════════════════════════════════════════════════════════
-def fetch_etf_flow_history(ticker: str, days: int = 90) -> list:
-    """Fetch historical fund-flow data for z-score computation.
-
-    Polygon's fund-flows endpoint supports date filtering. We pull the
-    last `days` of processed dates so we can compute persistence and
-    z-score for today's flow.
-    """
-    if not POLYGON_KEY:
-        return []
-    # Use date range parameter — Polygon usually supports .gte/.lte modifiers
-    from datetime import timedelta
-    end_date = datetime.now(timezone.utc).date()
-    start_date = end_date - timedelta(days=days + 5)
-    url = (f"{ETF_FLOWS_ENDPOINT}?composite_ticker={ticker}"
-           f"&processed_date.gte={start_date.isoformat()}"
-           f"&processed_date.lte={end_date.isoformat()}"
-           f"&limit=120"
-           f"&apiKey={POLYGON_KEY}")
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-ETFFlows/1.0"})
-        with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as r:
-            data = json.loads(r.read())
-            results = data.get("results") or []
-            return [
-                {
-                    "processed_date": x.get("processed_date"),
-                    "flow": _num(x.get("fund_flow") or x.get("fund_flow_daily") or x.get("net_flow")),
-                    "aum": _num(x.get("aum") or x.get("net_assets")),
-                }
-                for x in results if x.get("processed_date")
-            ]
-    except Exception:
-        return []
-
-
-def fetch_history_parallel(days: int = 90) -> dict:
-    """Returns {ticker: [history_rows]}."""
-    out = {}
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
-        future_to_ticker = {ex.submit(fetch_etf_flow_history, t, days): t for t in ETF_UNIVERSE.keys()}
-        for fut in as_completed(future_to_ticker):
-            t = future_to_ticker[fut]
-            try:
-                out[t] = fut.result()
-            except Exception:
-                out[t] = []
-    return out
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -681,40 +689,36 @@ def lambda_handler(event, context):
     print(f"[etf-flows] starting at {datetime.now(timezone.utc).isoformat()}")
     print(f"[etf-flows] universe: {len(ETF_UNIVERSE)} ETFs")
 
-    # 1. Parallel fetch latest snapshot for all ETFs
-    print("[etf-flows] phase 1: fetching latest snapshots...")
+    # 1. Parallel fetch: one call per ETF returns latest snapshot + 100d history
+    print("[etf-flows] phase 1: fetching 100-day windows for all ETFs...")
     snapshots = fetch_universe_parallel()
     n_ok = sum(1 for s in snapshots.values() if not s.get("error"))
-    print(f"[etf-flows] got snapshots for {n_ok}/{len(ETF_UNIVERSE)} ETFs")
+    print(f"[etf-flows] got data for {n_ok}/{len(ETF_UNIVERSE)} ETFs")
 
-    # 2. Parallel fetch 90-day history for z-score
-    print("[etf-flows] phase 2: fetching 90d history for z-scores...")
-    history = fetch_history_parallel(days=90)
-
-    # 3. Compute per-ETF metrics
-    print("[etf-flows] phase 3: computing per-ETF analytics...")
+    # 2. Compute per-ETF metrics (history is already inside each snapshot)
+    print("[etf-flows] phase 2: computing per-ETF analytics...")
     metrics = [
-        compute_per_etf_metrics(snapshots[t], history.get(t, []))
+        compute_per_etf_metrics(snapshots[t], snapshots[t].get("history", []) or [])
         for t in ETF_UNIVERSE.keys()
     ]
 
     # 4. Category aggregations
-    print("[etf-flows] phase 4: category aggregations...")
+    print("[etf-flows] phase 3: category aggregations...")
     category_aggs = aggregate_by_category(metrics)
 
     # 5. Composite signals (the alpha)
-    print("[etf-flows] phase 5: computing composite signals...")
+    print("[etf-flows] phase 4: computing composite signals...")
     composite = compute_composite_signals(metrics, category_aggs)
     print(f"[etf-flows] regime: {composite.get('regime')}")
 
     # 6. Per-ticker context (for prompt injection)
-    print("[etf-flows] phase 6: building per-ticker context...")
+    print("[etf-flows] phase 5: building per-ticker context...")
     per_ticker = build_per_ticker_context(metrics, composite)
 
     elapsed = round(time.time() - t0, 1)
 
     # 7. Write outputs to S3
-    print("[etf-flows] phase 7: writing 5 S3 outputs...")
+    print("[etf-flows] phase 6: writing 5 S3 outputs...")
     today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     meta = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
