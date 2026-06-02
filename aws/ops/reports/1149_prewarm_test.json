@@ -1,0 +1,52 @@
+{
+  "started": "2026-06-02T01:22:02.695981+00:00",
+  "lambda_invocation": {
+    "error": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-equity-prewarm/invocations\"",
+    "elapsed_s": 306.7
+  },
+  "s3_log_latest": {
+    "wall_seconds": 87.3,
+    "n_succeeded": 3,
+    "n_failed": 0,
+    "tickers": [
+      "UBER",
+      "CRWD",
+      "ZM"
+    ],
+    "result_summaries": [
+      {
+        "ticker": "ZM",
+        "status": "ok",
+        "elapsed_s": 71.9,
+        "size_kb": 47.6,
+        "rating": "HOLD"
+      },
+      {
+        "ticker": "CRWD",
+        "status": "ok",
+        "elapsed_s": 81.2,
+        "size_kb": 49.4,
+        "rating": "SELL"
+      },
+      {
+        "ticker": "UBER",
+        "status": "ok",
+        "elapsed_s": 87.3,
+        "size_kb": 53.2,
+        "rating": "BUY"
+      }
+    ]
+  },
+  "cf_proxy_check": {
+    "UBER": {
+      "http_error": 403
+    },
+    "CRWD": {
+      "http_error": 403
+    },
+    "ZM": {
+      "http_error": 403
+    }
+  },
+  "finished": "2026-06-02T01:27:09.904125+00:00"
+}
