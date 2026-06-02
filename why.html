@@ -415,6 +415,7 @@ function renderReport(d){
   }
   let html = "";
   html += renderHero(d);
+  html += renderScenarios(d);
   html += renderExecSummary(d);
   html += renderBullBear(d);
   html += renderValuation(d);
@@ -433,6 +434,89 @@ function renderReport(d){
   html += renderTriggers(d);
   html += renderMeta(d);
   $("content").innerHTML = html;
+}
+
+function renderScenarios(d){
+  const s = d.scenarios;
+  if(!s) return "";
+  const bull = s.bull_case || {};
+  const base = s.base_case || {};
+  const bear = s.bear_case || {};
+  if(bull.price_target_12m == null && base.price_target_12m == null) return "";
+
+  const renderCase = (c, label, color, ico) => {
+    if(c.price_target_12m == null) return "";
+    const up = c.upside_pct;
+    const upStr = up != null ? (up >= 0 ? '+' : '') + up.toFixed(1) + '%' : '—';
+    const upCls = up >= 0 ? 'up' : 'down';
+    return `
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:8px;
+                  padding:18px; border-top:3px solid ${color}">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+          <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase;
+                       letter-spacing:.1em; font-weight:700">${ico} ${label}</div>
+          <div style="background:${color}; color:#000; font-weight:700; padding:3px 10px;
+                       border-radius:4px; font-size:11px; font-family:var(--font-mono)">
+            ${c.probability_pct != null ? c.probability_pct + '%' : '—'} prob
+          </div>
+        </div>
+        <div style="font-family:var(--font-mono); font-size:28px; font-weight:700;
+                     letter-spacing:-0.02em; line-height:1">
+          ${fmtPrice(c.price_target_12m)}
+        </div>
+        <div class="${upCls}" style="font-family:var(--font-mono); font-size:14px;
+                                      font-weight:700; margin-top:4px">${upStr}</div>
+        ${c.thesis_1liner ? `<div style="margin-top:10px; color:var(--text); font-size:12px;
+                                          font-style:italic; line-height:1.5">"${esc(c.thesis_1liner)}"</div>` : ""}
+        ${(c.drivers || []).length ? `
+          <ul style="margin-top:10px; padding-left:18px; color:var(--text-dim); font-size:11.5px;
+                      line-height:1.55">
+            ${c.drivers.map(dv => `<li style="margin-bottom:3px">${esc(dv)}</li>`).join("")}
+          </ul>` : ""}
+      </div>`;
+  };
+
+  // EV + R/R footer
+  const ev = s.expected_value_12m;
+  const evUp = s.expected_value_upside_pct;
+  const rr = s.risk_reward_ratio;
+  const probSum = s.probability_sum;
+
+  const evCls = evUp != null ? (evUp >= 0 ? 'up' : 'down') : '';
+  const rrCls = rr != null ? (rr >= 2 ? 'up' : rr >= 1 ? 'warn' : 'down') : '';
+
+  return `
+    <section class="block" style="margin-bottom:18px">
+      <h3><span class="ico">🎯</span> Scenario Analysis
+        <span class="pill">probability-weighted · 12mo horizon</span>
+      </h3>
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:10px">
+        ${renderCase(bull, "Bull Case", "#26ffaf", "↗")}
+        ${renderCase(base, "Base Case", "#22d3ee", "→")}
+        ${renderCase(bear, "Bear Case", "#ef4444", "↘")}
+      </div>
+      <div class="grid" style="margin-top:14px">
+        ${ev ? `<div class="metric">
+          <div class="lbl">Probability-Weighted Target</div>
+          <div class="val ${evCls}">${fmtPrice(ev)}</div>
+          <div class="sub">${evUp != null ? fmtPct(evUp, 1) + ' expected upside' : ''}${probSum != null && Math.abs(probSum - 100) > 1 ? ' · ⚠ probs sum to ' + probSum + '%' : ''}</div>
+        </div>` : ""}
+        ${rr != null ? `<div class="metric">
+          <div class="lbl">Risk / Reward</div>
+          <div class="val ${rrCls}">${rr.toFixed(2)}x</div>
+          <div class="sub">${rr >= 2 ? 'attractive asymmetry' : rr >= 1 ? 'balanced' : 'unfavorable'}</div>
+        </div>` : ""}
+        <div class="metric" style="grid-column:span 2">
+          <div class="lbl">PM Note</div>
+          <div style="font-family:var(--font-sans); font-size:12px; color:var(--text-dim);
+                       line-height:1.6; padding-top:4px">
+            Probability-weighted EV is the apples-to-apples comparison for sizing positions.
+            R/R &gt;= 2 means the bull case rewards 2x what the bear case costs — the asymmetry
+            a PM needs to commit capital.
+          </div>
+        </div>
+      </div>
+    </section>`;
 }
 
 function renderHero(d){

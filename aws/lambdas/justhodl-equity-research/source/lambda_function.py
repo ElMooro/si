@@ -1006,6 +1006,17 @@ Be DIRECTIONAL — equivocation is for losers. Tell the PM whether to buy, hold,
 
 OUTPUT JSON ONLY, no markdown, no preamble.
 
+The 'scenarios' block is critical — it's what PMs actually use to size positions.
+Probabilities MUST sum to 100. Be honest about the ranges:
+  - Bull case = optimistic path (multiple expansion, growth acceleration,
+    catalysts hit). Typically 20-35% probability.
+  - Base case = current trajectory continues, no surprises. Typically 40-60%
+    probability — the highest weight.
+  - Bear case = thesis breaks (multiple compression, growth deceleration,
+    catalyst misses). Typically 15-30% probability.
+The price targets between the three should span a meaningful range — if your
+bull and bear are within 10% of base, the scenarios aren't doing real work.
+
 Schema:
 {
   "executive_summary": "3-4 sentence top-line. Lead with the recommendation and key thesis.",
@@ -1052,6 +1063,26 @@ Schema:
     {"trigger": "what would change the thesis", "monitor": "what to watch"},
     ... (3-5 triggers)
   ],
+  "scenarios": {
+    "bull_case": {
+      "price_target_12m":  <number, USD>,
+      "probability_pct":   <0-100, your subjective probability this scenario plays out>,
+      "thesis_1liner":     "10-15 word summary of what has to be true",
+      "drivers":           ["3-4 concrete things that get us here, e.g. 'revenue accelerates to 18%', 'multiple re-rates to 30x as AI moat clarifies'"]
+    },
+    "base_case": {
+      "price_target_12m":  <number, USD>,
+      "probability_pct":   <0-100, typically the highest weight 40-60%>,
+      "thesis_1liner":     "current trajectory, no surprises",
+      "drivers":           ["..."]
+    },
+    "bear_case": {
+      "price_target_12m":  <number, USD>,
+      "probability_pct":   <0-100>,
+      "thesis_1liner":     "...",
+      "drivers":           ["..."]
+    }
+  },
   "verdict": {
     "rating":              "STRONG_BUY | BUY | HOLD | SELL | STRONG_SELL",
     "conviction_grade":    "A+ | A | A- | B+ | B | B- | C+ | C | C- | D",
@@ -1389,6 +1420,9 @@ def lambda_handler(event, context):
         "competitive_position":claude_synthesis.get("competitive_position"),
         "catalysts_12m":       claude_synthesis.get("catalysts_12m") or [],
         "invalidation_triggers": claude_synthesis.get("invalidation_triggers") or [],
+        "scenarios":           _enrich_scenarios(
+            claude_synthesis.get("scenarios"), current_price
+        ),
         "valuation":           valuation,
         "growth":              {**growth_metrics, **fcf_metrics, **qty_consistency},
         "margins":             margin_trend,
@@ -1450,6 +1484,79 @@ def lambda_handler(event, context):
         print(f"[cache] write failed: {e}")
 
     return _http_ok(document)
+
+
+def _enrich_scenarios(scenarios: Optional[dict], current_price: Optional[float]) -> Optional[dict]:
+    """Augment Claude's scenarios block with derived metrics.
+
+    Adds per-scenario upside_pct and a probability-weighted expected value
+    + risk/reward ratio.
+
+    Probability-weighted expected value (EV) is the formula a hedge fund
+    PM uses to compare positions: a 35% bull case at +40% beats a 20% bull
+    case at +60% even though the bull number looks lower. EV makes the
+    comparison apples-to-apples.
+
+    Risk/reward = (bull target - current) / (current - bear target). A
+    well-structured trade has R/R >= 2 (you make 2x your worst-case loss
+    if the bull plays out).
+    """
+    if not scenarios or not isinstance(scenarios, dict):
+        return None
+    if not current_price or current_price <= 0:
+        return scenarios
+
+    enriched = dict(scenarios)
+
+    # Compute per-scenario upside %
+    for key in ("bull_case", "base_case", "bear_case"):
+        case = enriched.get(key)
+        if not isinstance(case, dict):
+            continue
+        target = case.get("price_target_12m")
+        try:
+            if target is not None:
+                target_f = float(target)
+                case["upside_pct"] = round((target_f / current_price - 1) * 100, 1)
+        except (TypeError, ValueError):
+            pass
+
+    # Probability-weighted expected value
+    try:
+        ev = 0.0
+        total_prob = 0.0
+        for key in ("bull_case", "base_case", "bear_case"):
+            case = enriched.get(key) or {}
+            target = case.get("price_target_12m")
+            prob = case.get("probability_pct")
+            if target is not None and prob is not None:
+                ev += float(target) * (float(prob) / 100.0)
+                total_prob += float(prob)
+        # If probabilities don't sum cleanly to 100, normalize
+        if total_prob > 0 and abs(total_prob - 100) > 1:
+            ev = ev * (100.0 / total_prob)
+        enriched["expected_value_12m"] = round(ev, 2) if ev > 0 else None
+        if enriched.get("expected_value_12m"):
+            enriched["expected_value_upside_pct"] = round(
+                (enriched["expected_value_12m"] / current_price - 1) * 100, 1
+            )
+        enriched["probability_sum"] = round(total_prob, 1)
+    except Exception:
+        pass
+
+    # Risk/reward — purely a function of bull and bear targets
+    try:
+        bull = (enriched.get("bull_case") or {}).get("price_target_12m")
+        bear = (enriched.get("bear_case") or {}).get("price_target_12m")
+        if bull and bear and bear < current_price < bull:
+            reward = float(bull) - current_price
+            risk = current_price - float(bear)
+            if risk > 0:
+                enriched["risk_reward_ratio"] = round(reward / risk, 2)
+    except Exception:
+        pass
+
+    return enriched
 
 
 def _iso_to_epoch(iso_str: Optional[str]) -> float:
