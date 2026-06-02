@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
 <title>ETF Capital Flow Intelligence · JustHodl.AI</title>
-<meta name="description" content="Institutional ETF Global Fund Flows engine — daily creation/redemption tracking for 80+ ETFs, sector rotation signals, smart-vs-dumb money composite, regime classification.">
+<meta name="description" content="Institutional ETF capital flow engine with AI-generated decisive trade calls. Cross-feed analysis: ETF flows + equity research + EDGAR insiders + crisis KB regime.">
 <link rel="preconnect" href="https://justhodl-data-proxy.raafouis.workers.dev">
 
 <style>
@@ -21,6 +21,7 @@
   --text-muted:    #6b7785;
   --accent:        #facc15;
   --cyan:          #22d3ee;
+  --magenta:       #d946ef;
   --pos:           #26ffaf;
   --pos-bg:        rgba(38,255,175,.08);
   --neg:           #ef4444;
@@ -43,30 +44,89 @@ h1{ margin:0 0 6px; font-size:20px; color:var(--accent) }
 .subtitle{ color:var(--text-dim); font-size:12.5px; margin-bottom:14px; max-width:900px }
 .meta-bar{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted); padding:6px 12px; background:var(--bg-elev); border-radius:6px; margin-bottom:14px }
 
-.regime-banner{
-  background:linear-gradient(135deg, rgba(250,204,21,.06) 0%, rgba(34,211,238,.04) 100%);
-  border:1px solid rgba(250,204,21,.3); border-radius:10px;
-  padding:16px 20px; margin-bottom:16px;
-  display:flex; align-items:center; justify-content:space-between; gap:24px;
+/* AI Analyst Note - the hero */
+.ai-note{
+  background:linear-gradient(135deg, rgba(217,70,239,.05) 0%, rgba(250,204,21,.04) 50%, rgba(34,211,238,.04) 100%);
+  border:1px solid rgba(217,70,239,.3); border-radius:12px;
+  padding:0; margin-bottom:18px; overflow:hidden;
 }
-.regime-banner .left{ flex:1 }
-.regime-banner .label{ font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px }
-.regime-banner .regime{ font-family:var(--font-mono); font-size:24px; font-weight:700; color:var(--accent); letter-spacing:.04em }
-.regime-banner .regime.defensive{ color:#f59e0b }
-.regime-banner .regime.risk_on{ color:var(--pos) }
-.regime-banner .regime.credit_stress{ color:var(--neg) }
-.regime-banner .regime.transition{ color:var(--cyan) }
-.regime-banner .interp{ font-size:11.5px; color:var(--text-dim); margin-top:6px; max-width:700px }
-.regime-banner .right{ text-align:right; min-width:200px }
+.ai-note .header{
+  background:rgba(217,70,239,.06); border-bottom:1px solid rgba(217,70,239,.15);
+  padding:10px 18px; display:flex; align-items:center; justify-content:space-between;
+}
+.ai-note .header h2{ margin:0; font-size:13px; color:var(--magenta); font-family:var(--font-mono); letter-spacing:.04em }
+.ai-note .header .meta{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted) }
+.ai-note .body{ padding:18px 22px }
 
+.regime-strip{
+  display:flex; align-items:stretch; gap:14px; margin-bottom:14px;
+  padding:14px 18px; border-radius:8px; background:var(--bg-elev);
+  border:1px solid var(--border-light);
+}
+.regime-strip .pill{
+  padding:4px 12px; border-radius:6px; font-family:var(--font-mono); font-size:11px; font-weight:700;
+  letter-spacing:.06em; align-self:flex-start;
+}
+.regime-strip .regime-text{
+  font-family:var(--font-mono); font-size:20px; font-weight:700; color:var(--accent); margin-right:18px;
+}
+.regime-strip .invalidation{
+  font-size:11px; color:var(--text-muted); padding-top:4px; max-width:700px;
+}
+
+.narrative{ font-size:13.5px; line-height:1.75; color:var(--text); margin-bottom:14px; padding-left:14px; border-left:2px solid var(--magenta); }
+.narrative p{ margin:0 0 10px }
+
+.divergences{ margin-bottom:14px }
+.divergence{
+  display:flex; gap:10px; padding:10px 14px; margin-bottom:6px;
+  background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.2); border-radius:6px; font-size:12px;
+}
+.divergence .badge{ font-family:var(--font-mono); font-size:9.5px; font-weight:700; color:var(--warn); padding:2px 6px; background:rgba(245,158,11,.12); border-radius:4px; align-self:flex-start; white-space:nowrap }
+.divergence .text{ flex:1 }
+.divergence .text b{ color:var(--accent) }
+
+.calls-table{ width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px; margin-bottom:8px }
+.calls-table thead th{ background:var(--bg-elev); color:var(--accent); font-size:10px; text-transform:uppercase; letter-spacing:.06em; padding:9px 10px; text-align:left; border-bottom:1px solid var(--border) }
+.calls-table tbody td{ padding:8px 10px; border-bottom:1px solid var(--border-light); color:var(--text-dim) }
+.calls-table tbody tr:hover td{ background:var(--bg-elev) }
+.calls-table .num{ text-align:right; color:var(--text); font-variant-numeric:tabular-nums }
+.calls-table .ticker-cell a{ color:var(--accent); text-decoration:none; font-weight:700 }
+.calls-table .ticker-cell a:hover{ text-decoration:underline }
+
+.call-pill{ display:inline-block; padding:3px 8px; border-radius:4px; font-weight:700; font-size:10.5px; letter-spacing:.02em }
+.call-pill.STRONG_BUY, .call-pill.BUY, .call-pill.ADD, .call-pill.INITIATE_LONG{ background:rgba(38,255,175,.15); color:var(--pos); border:1px solid rgba(38,255,175,.3) }
+.call-pill.STRONG_SELL, .call-pill.SELL, .call-pill.REDUCE, .call-pill.INITIATE_SHORT, .call-pill.AVOID, .call-pill.EXIT{ background:rgba(239,68,68,.15); color:var(--neg); border:1px solid rgba(239,68,68,.3) }
+.call-pill.HOLD, .call-pill.COVER{ background:rgba(245,158,11,.12); color:var(--warn); border:1px solid rgba(245,158,11,.25) }
+
+.conviction-pill{ padding:1px 6px; border-radius:3px; font-size:9.5px; font-weight:700; letter-spacing:.04em }
+.conviction-pill.HIGH{ background:rgba(217,70,239,.15); color:var(--magenta) }
+.conviction-pill.MEDIUM-HIGH, .conviction-pill.MEDIUM_HIGH{ background:rgba(34,211,238,.15); color:var(--cyan) }
+.conviction-pill.MEDIUM{ background:rgba(250,204,21,.12); color:var(--accent) }
+.conviction-pill.LOW{ background:rgba(170,180,192,.1); color:var(--text-muted) }
+
+.signal-cell{ font-family:var(--font-mono); font-size:10px }
+.signal-cell .s{ display:inline-block; margin:0 2px; padding:1px 4px; border-radius:3px; }
+.signal-cell .s.BUY,.signal-cell .s.STRONG_BUY,.signal-cell .s.INSIDER_BUYING,.signal-cell .s.STRONG_CLUSTER_BUY,.signal-cell .s.INFLOW,.signal-cell .s.STRONG_INFLOW{ color:var(--pos) }
+.signal-cell .s.SELL,.signal-cell .s.STRONG_SELL,.signal-cell .s.LARGE_SELLING,.signal-cell .s.ACCELERATING_SELL,.signal-cell .s.OUTFLOW,.signal-cell .s.STRONG_OUTFLOW{ color:var(--neg) }
+.signal-cell .s.HOLD,.signal-cell .s.QUIET,.signal-cell .s.ROUTINE_SELLING,.signal-cell .s.NEUTRAL{ color:var(--warn); opacity:0.8 }
+.signal-cell .s.null,.signal-cell .s.empty{ color:var(--text-muted); opacity:0.5 }
+
+.pair-trade{
+  background:linear-gradient(90deg, rgba(38,255,175,.04), rgba(239,68,68,.04));
+  border:1px solid var(--border); border-radius:6px; padding:10px 14px; margin-bottom:6px;
+  font-size:12px; line-height:1.65;
+}
+.pair-trade .long{ color:var(--pos); font-weight:700 }
+.pair-trade .short{ color:var(--neg); font-weight:700 }
+
+/* Existing composite gauges */
 .composite-grid{
   display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
   gap:10px; margin-bottom:16px;
 }
-.gauge{
-  background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:13px 16px;
-}
-.gauge .header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px }
+.gauge{ background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:13px 16px; }
+.gauge .header-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px }
 .gauge h4{ margin:0; font-size:10.5px; color:var(--accent); text-transform:uppercase; letter-spacing:.06em; font-family:var(--font-mono) }
 .gauge .label{ font-size:11px; font-weight:600 }
 .gauge .label.pos{ color:var(--pos) }
@@ -82,7 +142,8 @@ h1{ margin:0 0 6px; font-size:20px; color:var(--accent) }
 .gauge .components{ font-family:var(--font-mono); font-size:10px; color:var(--text-muted); margin-top:6px }
 
 .section{ background:var(--bg-card); border:1px solid var(--border); border-radius:10px; margin-bottom:14px; overflow:hidden }
-.section h3{ margin:0; padding:11px 18px; font-size:12.5px; color:var(--accent); border-bottom:1px solid var(--border-light); font-family:var(--font-mono); letter-spacing:.04em; background:var(--bg-elev); display:flex; align-items:center; gap:8px }
+.section h3{ margin:0; padding:11px 18px; font-size:12.5px; color:var(--accent); border-bottom:1px solid var(--border-light); font-family:var(--font-mono); letter-spacing:.04em; background:var(--bg-elev); display:flex; align-items:center; justify-content:space-between }
+.section h3 .sub{ opacity:.6; font-size:10.5px; font-weight:400; text-transform:none; color:var(--text-muted) }
 .section .body{ padding:14px 18px }
 
 .heatmap{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px }
@@ -91,20 +152,19 @@ h1{ margin:0 0 6px; font-size:20px; color:var(--accent) }
 .heat-cell .sub{ font-size:10px; color:var(--text-muted); margin-bottom:4px }
 .heat-cell .z{ font-size:13px; font-weight:700 }
 
-table{ width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px }
-th{ background:var(--bg-elev); color:var(--accent); font-size:10px; text-transform:uppercase; letter-spacing:.06em; padding:8px 10px; text-align:left; border-bottom:1px solid var(--border-light); position:sticky; top:0 }
-td{ padding:6px 10px; border-bottom:1px solid var(--border-light); color:var(--text-dim) }
-td.num{ text-align:right; color:var(--text); font-variant-numeric:tabular-nums }
-td.pos{ color:var(--pos) }
-td.neg{ color:var(--neg) }
-tr:hover td{ background:var(--bg-elev) }
-
-.empty{ padding:40px; text-align:center; color:var(--text-muted); font-size:12px }
-.spinner{ display:inline-block; width:12px; height:12px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle }
-@keyframes spin{ to{ transform:rotate(360deg) } }
+table.flow-table{ width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px }
+table.flow-table th{ background:var(--bg-elev); color:var(--accent); font-size:10px; text-transform:uppercase; letter-spacing:.06em; padding:8px 10px; text-align:left; border-bottom:1px solid var(--border-light); position:sticky; top:0 }
+table.flow-table td{ padding:6px 10px; border-bottom:1px solid var(--border-light); color:var(--text-dim) }
+table.flow-table td.num{ text-align:right; color:var(--text); font-variant-numeric:tabular-nums }
+table.flow-table td.pos{ color:var(--pos) }
+table.flow-table td.neg{ color:var(--neg) }
+table.flow-table tr:hover td{ background:var(--bg-elev) }
 
 .col-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px }
 @media (max-width:900px){ .col-2{ grid-template-columns:1fr } }
+.empty{ padding:40px; text-align:center; color:var(--text-muted); font-size:12px }
+.spinner{ display:inline-block; width:12px; height:12px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle }
+@keyframes spin{ to{ transform:rotate(360deg) } }
 
 .tag{ display:inline-block; padding:2px 7px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; font-family:var(--font-mono) }
 .tag.smart{ background:rgba(250,204,21,.12); color:var(--accent) }
@@ -121,7 +181,7 @@ tr:hover td{ background:var(--bg-elev) }
 <body>
 
 <header class="topbar">
-  <div class="logo"><a href="/">JustHodl.AI</a> · CAPITAL FLOWS</div>
+  <div class="logo"><a href="/">JustHodl.AI</a> · CAPITAL FLOWS + AI</div>
   <nav class="nav-links">
     <a href="/">Home</a>
     <a href="/why.html">Research</a>
@@ -133,20 +193,19 @@ tr:hover td{ background:var(--bg-elev) }
 <main class="page">
 
   <h1>💰 ETF Capital Flow Intelligence</h1>
-  <p class="subtitle">Daily creation/redemption flows for institutionally-tagged ETFs. Six composite signals derived from underlying flows: defensive rotation, smart-vs-dumb money, risk-on/off, domestic-vs-international, growth-vs-value, credit stress. Data source: Polygon ETF Global ($99/mo institutional feed).</p>
-  <div class="meta-bar" id="meta-bar">⏳ Loading flow data…</div>
+  <p class="subtitle">Daily institutional fund-flow tracking on 84 tagged ETFs. AI Flow Strategist synthesizes flows × equity research × EDGAR insiders × crisis KB regime into decisive trade calls with conviction grades, signal alignment, and risk parameters. Data: Polygon ETF Global ($99/mo) + Claude Sonnet 4.6.</p>
+  <div class="meta-bar" id="meta-bar">⏳ Loading…</div>
 
-  <!-- Regime banner -->
-  <div class="regime-banner" id="regime-banner" style="display:none">
-    <div class="left">
-      <div class="label">Current Market Regime</div>
-      <div class="regime" id="regime-text">—</div>
-      <div class="interp" id="regime-interp"></div>
+  <!-- ═══════════════════════════════════════════════════════════════
+       AI ANALYST NOTE — THE HERO
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="ai-note" id="ai-note" style="display:none">
+    <div class="header">
+      <h2>🧠 AI FLOW STRATEGIST · DAILY INTELLIGENCE NOTE</h2>
+      <div class="meta" id="ai-meta">—</div>
     </div>
-    <div class="right">
-      <div class="label">Data Quality</div>
-      <div id="data-quality" style="font-family:var(--font-mono); font-size:18px; font-weight:700; color:var(--text)">—</div>
-      <div style="font-size:10.5px; color:var(--text-muted); margin-top:4px" id="data-quality-detail"></div>
+    <div class="body" id="ai-body">
+      <div class="empty"><span class="spinner"></span> Generating institutional note…</div>
     </div>
   </div>
 
@@ -155,10 +214,8 @@ tr:hover td{ background:var(--bg-elev) }
 
   <!-- Sector Heatmap -->
   <div class="section">
-    <h3>🔥 Sector Rotation Heatmap <span style="opacity:.6; font-size:10.5px; font-weight:400; text-transform:none">— 90-day z-scored flows</span></h3>
-    <div class="body">
-      <div class="heatmap" id="sector-heatmap"></div>
-    </div>
+    <h3>🔥 Sector Rotation Heatmap <span class="sub">90-day z-scored flows</span></h3>
+    <div class="body"><div class="heatmap" id="sector-heatmap"></div></div>
   </div>
 
   <!-- Top Inflows + Outflows -->
@@ -166,42 +223,39 @@ tr:hover td{ background:var(--bg-elev) }
     <div class="section">
       <h3>📈 Top 10 Strongest Inflows</h3>
       <div class="body" id="top-inflows" style="padding:0">
-        <div class="empty"><span class="spinner"></span> Loading…</div>
+        <div class="empty"><span class="spinner"></span></div>
       </div>
     </div>
     <div class="section">
       <h3>📉 Top 10 Strongest Outflows</h3>
       <div class="body" id="top-outflows" style="padding:0">
-        <div class="empty"><span class="spinner"></span> Loading…</div>
+        <div class="empty"><span class="spinner"></span></div>
       </div>
-    </div>
-  </div>
-
-  <!-- Category Aggregates -->
-  <div class="section">
-    <h3>🌐 Category Positioning Matrix <span style="opacity:.6; font-size:10.5px; font-weight:400; text-transform:none">— net 5-day flow by category</span></h3>
-    <div class="body" id="category-body" style="padding:0">
-      <div class="empty"><span class="spinner"></span> Loading…</div>
     </div>
   </div>
 
   <!-- Full ETF Table -->
   <div class="section">
-    <h3>📊 Full Universe · 80+ ETFs by 90d Z-Score</h3>
+    <h3>📊 Full Universe · 84 ETFs by 90d Z-Score</h3>
     <div class="body" id="full-table" style="padding:0; max-height:60vh; overflow-y:auto">
-      <div class="empty"><span class="spinner"></span> Loading…</div>
+      <div class="empty"><span class="spinner"></span></div>
     </div>
   </div>
 
   <div class="methodology">
-    <b style="color:var(--accent)">Methodology:</b>
-    Daily flows = sum of share creations × NAV − sum of share redemptions × NAV (sourced from Polygon ETF Global).
-    Z-score: today's daily flow vs trailing 90-day distribution. Labels: |z|≥2.0 → STRONG_INFLOW/OUTFLOW, |z|≥1.0 → INFLOW/OUTFLOW, else NEUTRAL.
-    Smart money = institutional-favored ETFs (SPY/QQQ/sector SPDRs). Dumb money = retail-favored (ARKK/SOXL/leveraged/single-theme).
-    Composite scores normalize to ±100 by mapping the smart−dumb (or defensive−cyclical) z-score spread through a ±4σ clamp.
-    Regime classifier: DEFENSIVE if defensive_rotation≥+30 AND risk_on_off≤−30; RISK_ON if both ≥+30; CREDIT_STRESS if credit_stress≥+40; else TRANSITION/NEUTRAL.
-    Refreshes daily 17:00 ET (after Polygon EOD processing). Source: <code>etf-flows/daily.json</code>, <code>etf-flows/composite.json</code>.
-    Academic backing: Ben-David 2017, BIS 2018, Israeli 2017 — ETF flows are a leading indicator of underlying price action.
+    <b style="color:var(--accent)">AI Methodology:</b>
+    The AI Flow Strategist runs daily after the flow engine. It ingests today's 84-ETF flow data,
+    all current equity research verdicts, EDGAR insider signals, crisis-KB regime tag, and 30-day flow history,
+    then generates structured output via Claude Sonnet 4.6 (1h cached system prompt).
+    Each ticker call cites <code>signal_alignment</code> — exactly which feeds support it. 4+ aligned = HIGH conviction; 1 isolated signal = LOW.
+    The model is instructed to use only data in the input (no hallucination) and to assign explicit position sizes + stop levels on every call.
+    <br><br>
+    <b style="color:var(--accent)">Flow Methodology:</b>
+    Daily flows = share creations × NAV − share redemptions × NAV (sourced from Polygon ETF Global, <code>processed_date</code> = previous trading day).
+    Z-score: today's daily flow vs trailing 90-day distribution.
+    Composite signals normalize the spread between bucket averages (e.g., defensive minus cyclical avg z-scores) through a ±4σ clamp.
+    Refreshes daily 17:00 ET (flows) and 17:30 ET (AI note). Sources: <code>etf-flows/daily.json</code>, <code>etf-flows/ai-analysis.json</code>.
+    Academic backing: Ben-David 2017, BIS 2018 — ETF flows are a leading indicator of underlying price action.
   </div>
 
 </main>
@@ -226,22 +280,175 @@ const fmtUSD = v => {
 
 function heatColor(z) {
   if(z == null) return '#1a1a1a';
-  // Map z-score to a green/red gradient. |z|=2 is full intensity.
   const intensity = Math.min(Math.abs(z) / 2, 1);
-  if(z >= 0) {
-    return `rgba(38,255,175,${0.10 + intensity * 0.35})`;
-  } else {
-    return `rgba(239,68,68,${0.10 + intensity * 0.35})`;
-  }
+  return z >= 0
+    ? `rgba(38,255,175,${0.10 + intensity * 0.35})`
+    : `rgba(239,68,68,${0.10 + intensity * 0.35})`;
 }
 
 function labelClass(label) {
-  if(label === 'STRONG_INFLOW' || label === 'INFLOW' || label === 'SMART MONEY BUYING' || label === 'RISK-ON' || label === 'GROWTH BID' || label === 'US PREFERRED' || label === 'RISK APPETITE HEALTHY' || label === 'CYCLICAL INFLOWS') return 'pos';
-  if(label === 'STRONG_OUTFLOW' || label === 'OUTFLOW' || label === 'RETAIL EUPHORIA' || label === 'DE-RISKING' || label === 'VALUE ROTATION' || label === 'INTL ROTATION' || label === 'FLIGHT TO QUALITY' || label === 'DEFENSIVE INFLOWS') return 'neg';
+  if(['STRONG_INFLOW','INFLOW','SMART MONEY BUYING','RISK-ON','GROWTH BID','US PREFERRED','RISK APPETITE HEALTHY','CYCLICAL INFLOWS'].includes(label)) return 'pos';
+  if(['STRONG_OUTFLOW','OUTFLOW','RETAIL EUPHORIA','DE-RISKING','VALUE ROTATION','INTL ROTATION','FLIGHT TO QUALITY','DEFENSIVE INFLOWS'].includes(label)) return 'neg';
   return 'mixed';
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// AI Analyst Note rendering
+// ═══════════════════════════════════════════════════════════════════
+function renderAINote(doc){
+  const a = doc.analysis || {};
+  const inSummary = doc.input_summary || {};
+  $("ai-meta").innerHTML = `${esc(doc.model || 'Sonnet 4.6')} · generated ${esc(doc.generated_at?.slice(0,16).replace('T',' '))} UTC · ${doc.elapsed_s}s · cross-feed: ${inSummary.n_research || 0}R × ${inSummary.n_critiques || 0}C × ${inSummary.n_edgar || 0}E × ${inSummary.n_etfs_with_data || 0}ETF`;
+
+  let body = '';
+
+  // Regime strip
+  const rc = a.regime_call || {};
+  if(rc.regime) {
+    const regClass = ['DEFENSIVE','CREDIT_STRESS'].includes(rc.regime) ? 'neg'
+                    : ['RISK_ON'].includes(rc.regime) ? 'pos' : 'mixed';
+    body += `
+      <div class="regime-strip">
+        <div>
+          <span class="pill ${regClass === 'pos' ? 'label pos' : regClass === 'neg' ? 'label neg' : 'label mixed'}"
+                style="background:${regClass === 'pos' ? 'rgba(38,255,175,.15)' : regClass === 'neg' ? 'rgba(239,68,68,.15)' : 'rgba(245,158,11,.12)'};
+                       color:${regClass === 'pos' ? 'var(--pos)' : regClass === 'neg' ? 'var(--neg)' : 'var(--warn)'};">
+            REGIME · ${esc(rc.regime)} · conf: ${esc(rc.confidence || '—')}
+          </span>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12.5px; color:var(--text); margin-bottom:4px"><b>Reasoning:</b> ${esc(rc.reasoning || '—')}</div>
+          ${rc.what_would_invalidate ? `<div class="invalidation"><b>Invalidator:</b> ${esc(rc.what_would_invalidate)}</div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  // Macro narrative
+  if(a.macro_narrative) {
+    const paras = a.macro_narrative.split('\n\n').filter(p => p.trim());
+    body += `<div class="narrative">${paras.map(p => `<p>${esc(p)}</p>`).join('')}</div>`;
+  }
+
+  // Key divergences
+  if(a.key_divergences?.length) {
+    body += `<div class="divergences"><h4 style="margin:6px 0 8px; font-size:11px; color:var(--warn); text-transform:uppercase; letter-spacing:.06em">⚠ Key Divergences</h4>`;
+    for(const d of a.key_divergences) {
+      body += `
+        <div class="divergence">
+          <span class="badge">${esc(d.type || '—')}</span>
+          <div class="text">
+            <b>${esc(d.subject)}:</b> ${esc(d.description)}
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px"><b>Implication:</b> ${esc(d.implication)}${d.tradable ? ' · <span style="color:var(--pos)">tradable</span>' : ''}</div>
+          </div>
+        </div>`;
+    }
+    body += `</div>`;
+  }
+
+  // Decisive ticker calls
+  if(a.ticker_calls?.length) {
+    body += `
+      <h4 style="margin:14px 0 8px; font-size:11px; color:var(--magenta); text-transform:uppercase; letter-spacing:.06em">🎯 Decisive Ticker Calls (${a.ticker_calls.length})</h4>
+      <table class="calls-table">
+        <thead><tr>
+          <th>Ticker</th><th>Call</th><th>Conv</th><th>TF</th><th>Size</th><th>Stop</th><th>21d Tgt</th>
+          <th>R</th><th>C</th><th>I</th><th>Flow</th><th>Aligned</th><th style="min-width:300px">Thesis</th>
+        </tr></thead>
+        <tbody>`;
+    for(const c of a.ticker_calls) {
+      const sa = c.signal_alignment || {};
+      body += `
+        <tr>
+          <td class="ticker-cell"><a href="/why.html?ticker=${encodeURIComponent(c.ticker)}">${esc(c.ticker)}</a></td>
+          <td><span class="call-pill ${esc(c.call || '').replace(/\s+/g, '_')}">${esc(c.call || '—')}</span></td>
+          <td><span class="conviction-pill ${esc((c.conviction || '').replace('-','_'))}">${esc(c.conviction || '—')}</span></td>
+          <td class="num">${c.timeframe_days || '—'}d</td>
+          <td class="num">${c.position_size_pct == null ? '—' : c.position_size_pct.toFixed(1) + '%'}</td>
+          <td class="num neg">${c.stop_loss_pct == null ? '—' : c.stop_loss_pct.toFixed(0) + '%'}</td>
+          <td class="num pos">${c.target_21d_pct == null ? '—' : '+' + c.target_21d_pct.toFixed(0) + '%'}</td>
+          <td class="signal-cell"><span class="s ${esc(sa.research_verdict || 'null')}">${esc(sa.research_verdict || '—')}</span></td>
+          <td class="signal-cell"><span class="s ${esc(sa.critic_rating || 'null')}">${esc(sa.critic_rating || '—')}</span></td>
+          <td class="signal-cell"><span class="s ${esc(sa.insider_signal || 'null')}">${esc((sa.insider_signal || '—').replace(/_/g, ' '))}</span></td>
+          <td class="signal-cell"><span class="s ${esc(sa.sector_flow_label || 'null')}">${esc((sa.sector_flow_label || '—').replace(/_/g, ' '))} ${sa.sector_flow_zscore != null ? '(' + sa.sector_flow_zscore.toFixed(1) + 'σ)' : ''}</span></td>
+          <td class="num">${sa.n_signals_aligned || 0}/4</td>
+          <td style="font-size:11.5px; color:var(--text); line-height:1.55">${esc(c.thesis_1liner || '')}</td>
+        </tr>`;
+    }
+    body += `</tbody></table>`;
+  }
+
+  // Pair trades
+  if(a.pair_trades?.length) {
+    body += `<h4 style="margin:14px 0 8px; font-size:11px; color:var(--cyan); text-transform:uppercase; letter-spacing:.06em">🔀 Pair Trade Ideas</h4>`;
+    for(const p of a.pair_trades) {
+      body += `
+        <div class="pair-trade">
+          <span class="long">LONG ${esc(p.long)}</span> / <span class="short">SHORT ${esc(p.short)}</span>
+          <span class="conviction-pill ${esc((p.conviction || '').replace('-','_'))}" style="margin-left:8px">${esc(p.conviction || '')}</span>
+          ${p.ratio ? `<span style="color:var(--text-muted); margin-left:8px; font-size:10.5px">${esc(p.ratio)}</span>` : ''}
+          <span style="color:var(--text-muted); margin-left:8px; font-size:10.5px">${p.timeframe_days || '—'}d</span>
+          <div style="margin-top:4px; color:var(--text-dim)">${esc(p.thesis)}</div>
+        </div>`;
+    }
+  }
+
+  // Watchlist
+  if(a.watchlist && (a.watchlist.add?.length || a.watchlist.remove?.length || a.watchlist.monitor_for_entry?.length)) {
+    body += `<h4 style="margin:14px 0 8px; font-size:11px; color:var(--accent); text-transform:uppercase; letter-spacing:.06em">📋 Watchlist Updates</h4>`;
+    body += `<div style="font-size:11.5px; line-height:1.7">`;
+    if(a.watchlist.add?.length) {
+      body += `<div><b style="color:var(--pos)">ADD:</b> ${a.watchlist.add.map(w => `<b>${esc(w.ticker)}</b> <span style="color:var(--text-muted)">— ${esc(w.reason)}</span>`).join('; ')}</div>`;
+    }
+    if(a.watchlist.remove?.length) {
+      body += `<div><b style="color:var(--neg)">REMOVE:</b> ${a.watchlist.remove.map(w => `<b>${esc(w.ticker)}</b> <span style="color:var(--text-muted)">— ${esc(w.reason)}</span>`).join('; ')}</div>`;
+    }
+    if(a.watchlist.monitor_for_entry?.length) {
+      body += `<div><b style="color:var(--cyan)">MONITOR:</b> ${a.watchlist.monitor_for_entry.map(w => `<b>${esc(w.ticker)}</b> <span style="color:var(--text-muted)">— trigger: ${esc(w.trigger)}</span>`).join('; ')}</div>`;
+    }
+    body += `</div>`;
+  }
+
+  // Regime alpha note
+  if(a.regime_alpha_note) {
+    body += `<div style="margin-top:14px; padding:10px 14px; background:rgba(34,211,238,.05); border-left:2px solid var(--cyan); border-radius:0 6px 6px 0; font-size:12px; color:var(--text-dim); line-height:1.65"><b style="color:var(--cyan)">Regime alpha note:</b> ${esc(a.regime_alpha_note)}</div>`;
+  }
+
+  // Self assessment footer
+  if(a.self_assessment) {
+    body += `<div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-light); font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono)">
+      data_completeness: <b>${esc(a.self_assessment.data_completeness)}</b> ·
+      full_signal_alignment: <b>${a.self_assessment.n_tickers_with_full_signal_alignment || 0}</b> tickers ·
+      biggest_unknown: ${esc(a.self_assessment.biggest_unknown || '—')}
+    </div>`;
+  }
+
+  $("ai-body").innerHTML = body || '<div class="empty">AI analysis empty.</div>';
+  $("ai-note").style.display = 'block';
+}
+
+async function fetchAI(){
+  try {
+    const r = await fetch(`${CDN}/etf-flows/ai-analysis.json?v=${Date.now()}`);
+    if(!r.ok) {
+      $("ai-body").innerHTML = `<div class="empty">AI analysis pending (HTTP ${r.status}). Run flows-ai-analysis Lambda first.</div>`;
+      $("ai-note").style.display = 'block';
+      return;
+    }
+    const doc = await r.json();
+    renderAINote(doc);
+  } catch(e) {
+    $("ai-body").innerHTML = `<div class="empty" style="color:var(--neg)">AI fetch error: ${esc(e.message)}</div>`;
+    $("ai-note").style.display = 'block';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Existing flow data load
+// ═══════════════════════════════════════════════════════════════════
 async function load() {
+  // Fire AI in parallel
+  fetchAI();
+
   let daily, composite;
   try {
     [daily, composite] = await Promise.all([
@@ -253,34 +460,14 @@ async function load() {
       }),
     ]);
   } catch(e) {
-    $("meta-bar").innerHTML = `<span style="color:var(--neg)">❌ ${esc(e.message)} — has the ETF flow Lambda run yet?</span>`;
+    $("meta-bar").innerHTML = `<span style="color:var(--neg)">❌ ${esc(e.message)}</span>`;
     document.querySelectorAll('.empty').forEach(el => {
-      el.innerHTML = '<span style="color:var(--text-muted)">No flow data yet — Lambda hasn\'t run, or files not yet served by CDN.</span>';
+      el.innerHTML = '<span style="color:var(--text-muted)">No flow data yet</span>';
     });
     return;
   }
 
-  // Meta bar
-  $("meta-bar").innerHTML = `Generated ${esc(daily.generated_at?.slice(0,16).replace('T',' '))} UTC ·
-    ${daily.n_ok}/${daily.universe_size} ETFs · elapsed ${daily.elapsed_s}s · schema v${daily.schema_version}`;
-
-  // Regime banner
-  const regime = composite.composite?.regime || 'UNKNOWN';
-  $("regime-banner").style.display = 'flex';
-  $("regime-text").className = 'regime ' + regime.toLowerCase();
-  $("regime-text").textContent = regime;
-  const interp = {
-    'DEFENSIVE':     'Defensive sector inflows + Treasury inflows. Smart money de-risking — be cautious with cyclical longs and growth bets.',
-    'RISK_ON':       'Cyclical sectors + equity broad-market seeing strong inflows + Treasury outflows. Risk appetite healthy; growth & beta likely to outperform.',
-    'CREDIT_STRESS': 'IG bond inflows + HY outflows = flight to quality. Watch for equity volatility spike; reduce credit risk in portfolio.',
-    'TRANSITION':    'Mixed signals across composites. Regime is shifting — wait for confirmation before adding conviction.',
-    'NEUTRAL':       'No dominant flow signal. Markets in equilibrium; idiosyncratic opportunities matter more than macro positioning.',
-    'UNKNOWN':       'Insufficient data to classify regime.',
-  };
-  $("regime-interp").textContent = interp[regime] || '';
-
-  $("data-quality").textContent = `${daily.n_ok}/${daily.universe_size}`;
-  $("data-quality-detail").textContent = `ETFs with valid flow data`;
+  $("meta-bar").innerHTML = `Generated ${esc(daily.generated_at?.slice(0,16).replace('T',' '))} UTC · ${daily.n_ok}/${daily.universe_size} ETFs · elapsed ${daily.elapsed_s}s · schema v${daily.schema_version || '1.0'}`;
 
   // 6 Composite gauges
   const composites = ['defensive_rotation','smart_vs_dumb','risk_on_off','domestic_vs_intl','growth_vs_value','credit_stress'];
@@ -301,7 +488,7 @@ async function load() {
     const barFill = score == null ? 0 : Math.min(Math.abs(score), 100);
     gaugesHtml += `
       <div class="gauge">
-        <div class="header">
+        <div class="header-row">
           <h4>${esc(cNames[k])}</h4>
           <span class="label ${lcl}">${esc(c.label || '—')}</span>
         </div>
@@ -314,7 +501,7 @@ async function load() {
   }
   $("composite-grid").innerHTML = gaugesHtml;
 
-  // Sector heatmap — sector SPDRs only
+  // Sector heatmap
   const sectorTickers = ['XLK','XLF','XLE','XLV','XLP','XLY','XLI','XLB','XLU','XLRE','XLC'];
   const sectorMetrics = (daily.metrics || []).filter(m => sectorTickers.includes(m.ticker));
   sectorMetrics.sort((a,b) => (b.flow_zscore_90d || -999) - (a.flow_zscore_90d || -999));
@@ -333,7 +520,7 @@ async function load() {
   const bot = [...allMetrics].sort((a,b) => (a.flow_zscore_90d || 0) - (b.flow_zscore_90d || 0)).slice(0,10);
 
   function flowTable(rows) {
-    return `<table><thead><tr>
+    return `<table class="flow-table"><thead><tr>
       <th>ETF</th><th>Category</th><th>Tag</th><th>z-90d</th><th>5d $</th><th>5d %AUM</th><th>Persist</th>
     </tr></thead><tbody>
       ${rows.map(m => `<tr>
@@ -347,13 +534,13 @@ async function load() {
       </tr>`).join('')}
     </tbody></table>`;
   }
-  $("top-inflows").innerHTML = top.length ? flowTable(top) : `<div class="empty">No inflow data yet</div>`;
-  $("top-outflows").innerHTML = bot.length ? flowTable(bot) : `<div class="empty">No outflow data yet</div>`;
+  $("top-inflows").innerHTML = top.length ? flowTable(top) : `<div class="empty">No data</div>`;
+  $("top-outflows").innerHTML = bot.length ? flowTable(bot) : `<div class="empty">No data</div>`;
 
-  // Full universe table
+  // Full universe
   const allSorted = [...allMetrics].sort((a,b) => (b.flow_zscore_90d || -999) - (a.flow_zscore_90d || -999));
-  $("full-table").innerHTML = `<table><thead><tr>
-    <th>ETF</th><th>Category</th><th>Subcategory</th><th>Smart?</th>
+  $("full-table").innerHTML = `<table class="flow-table"><thead><tr>
+    <th>ETF</th><th>Cat</th><th>Sub</th><th>Inst?</th>
     <th>Label</th><th>z-90d</th><th>Daily $</th><th>5d $</th><th>21d $</th>
     <th>%AUM 5d</th><th>Persist</th>
   </tr></thead><tbody>

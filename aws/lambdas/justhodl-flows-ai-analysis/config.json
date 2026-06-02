@@ -1,0 +1,23 @@
+{
+  "function_name": "justhodl-flows-ai-analysis",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "AI Flow Strategist. Reads ETF flows + research + critique + EDGAR + crisis KB, calls Claude Sonnet 4.6 with 1h cached system prompt, generates decisive cross-feed ticker calls with conviction grades, position sizes, stop levels, signal alignment. Writes etf-flows/ai-analysis.json.",
+  "environment_keys": [
+    "ANTHROPIC_API_KEY"
+  ],
+  "inherit_env": {
+    "from_function": "justhodl-equity-research",
+    "keys": ["ANTHROPIC_API_KEY"]
+  },
+  "schedule": {
+    "expression": "cron(30 22 * * ? *)",
+    "name": "justhodl-flows-ai-analysis-daily",
+    "description": "17:30 ET daily — 30min after etf-fund-flows so all inputs are fresh"
+  }
+}
