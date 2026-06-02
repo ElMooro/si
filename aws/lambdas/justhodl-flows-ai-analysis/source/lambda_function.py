@@ -28,6 +28,7 @@ DESIGN PRINCIPLES (from system prompt):
 import json
 import os
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -519,15 +520,20 @@ def _get_telegram_chat_id() -> Optional[str]:
         return None
 
 
-def _send_telegram(text: str, chat_id: str) -> bool:
-    """Send a Markdown-formatted message via Telegram bot API."""
+def _send_telegram(text: str, chat_id: str) -> dict:
+    """Send a HTML-formatted message via Telegram bot API.
+
+    Returns dict with {ok, http_status, response_body} for debugging.
+    HTML parse mode is more forgiving than Markdown (no special handling
+    for underscores in symbols like STRONG_BUY).
+    """
     if not TELEGRAM_TOKEN or not chat_id:
-        return False
+        return {"ok": False, "reason": "missing_creds"}
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     body = urllib.parse.urlencode({
         "chat_id": chat_id,
-        "text": text[:4000],  # Telegram hard limit is 4096
-        "parse_mode": "Markdown",
+        "text": text[:4000],
+        "parse_mode": "HTML",
         "disable_web_page_preview": "true",
     }).encode("utf-8")
     try:
@@ -536,22 +542,32 @@ def _send_telegram(text: str, chat_id: str) -> bool:
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         with urllib.request.urlopen(req, timeout=10) as r:
-            return json.loads(r.read()).get("ok", False)
+            resp = json.loads(r.read().decode("utf-8"))
+            return {"ok": resp.get("ok", False), "http_status": r.status,
+                    "response": resp}
+    except urllib.error.HTTPError as e:
+        body_str = ""
+        try:
+            body_str = e.read().decode("utf-8", errors="ignore")[:300]
+        except Exception:
+            pass
+        return {"ok": False, "http_status": e.code, "body": body_str}
     except Exception as e:
-        print(f"[telegram] send err: {str(e)[:200]}")
-        return False
+        return {"ok": False, "error": str(e)[:200]}
+
+
+def _html_escape(s: str) -> str:
+    """Escape HTML special chars for Telegram parse_mode=HTML."""
+    return (s.replace("&", "&amp;")
+             .replace("<", "&lt;")
+             .replace(">", "&gt;"))
 
 
 def format_digest(analysis: dict, macro: dict) -> str:
-    """Format the AI analyst note as a compact Telegram message.
+    """Format the AI analyst note as a HTML-formatted Telegram message.
 
-    Markdown safe. Total under 4000 chars. Sections:
-      Header
-      Regime call
-      Top 8 ticker calls (by conviction)
-      Top 3 pair trades
-      Regime alpha note (truncated)
-      Footer with link
+    Telegram HTML supports: <b>, <i>, <u>, <s>, <code>, <pre>, <a href>.
+    No Markdown ambiguity around underscores in tickers/call names.
     """
     today = datetime.now(timezone.utc).strftime("%a, %b %d %Y")
     rc = analysis.get("regime_call", {}) or {}
@@ -559,19 +575,17 @@ def format_digest(analysis: dict, macro: dict) -> str:
     confidence = rc.get("confidence") or "—"
     reasoning = (rc.get("reasoning") or "")[:200]
 
-    # Macro context one-liner
     macro_top = (macro or {}).get("top_level", {}) or {}
     macro_regime = macro_top.get("regime")
-    macro_line = f"\n_Macro engine: {macro_regime}_" if macro_regime else ""
+    macro_line = f"\n<i>Macro engine: {_html_escape(macro_regime)}</i>" if macro_regime else ""
 
     lines = [
-        f"🧠 *JustHodl.AI Morning Digest*",
-        f"_{today}_\n",
-        f"*REGIME:* `{regime}` ({confidence})",
-        f"_{reasoning}_{macro_line}\n",
+        f"🧠 <b>JustHodl.AI Morning Digest</b>",
+        f"<i>{_html_escape(today)}</i>\n",
+        f"<b>REGIME:</b> <code>{_html_escape(regime)}</code> ({_html_escape(confidence)})",
+        f"<i>{_html_escape(reasoning)}</i>{macro_line}\n",
     ]
 
-    # Sort calls by conviction tier
     conv_order = {"HIGH": 0, "MEDIUM-HIGH": 1, "MEDIUM_HIGH": 1,
                   "MEDIUM": 2, "MEDIUM-LOW": 3, "LOW": 4}
     calls = sorted(
@@ -581,70 +595,78 @@ def format_digest(analysis: dict, macro: dict) -> str:
     )
 
     if calls:
-        lines.append(f"*🎯 TOP CALLS:*")
+        lines.append(f"<b>🎯 TOP CALLS:</b>")
         for c in calls[:10]:
-            call = c.get("call", "—")
-            conv = c.get("conviction", "—")
+            call = (c.get("call") or "—")
+            conv = (c.get("conviction") or "—")
             tf = c.get("timeframe_days", "?")
             aligned = (c.get("signal_alignment") or {}).get("n_signals_aligned") or 0
             ticker = c.get("ticker", "?")
-            # Icon by call direction
             icon = "🟢" if call in ("STRONG_BUY","BUY","ADD","INITIATE_LONG") else \
                    "🔴" if call in ("STRONG_SELL","SELL","REDUCE","AVOID","INITIATE_SHORT") else "🟡"
-            lines.append(f"{icon} `{ticker:5s}` *{call}* {conv} {tf}d ({aligned}/4)")
+            # Underscores in call/conv are fine in HTML
+            lines.append(f"{icon} <code>{_html_escape(ticker)}</code> <b>{_html_escape(call)}</b> "
+                         f"{_html_escape(conv)} {tf}d ({aligned}/4)")
         lines.append("")
 
-    # Pair trades
     pairs = analysis.get("pair_trades", []) or []
     if pairs:
-        lines.append(f"*🔀 PAIR TRADES:*")
+        lines.append(f"<b>🔀 PAIR TRADES:</b>")
         for p in pairs[:3]:
-            long_t = p.get("long", "?")
-            short_t = p.get("short", "?")
-            conv = p.get("conviction", "—")
+            long_t = _html_escape(p.get("long") or "?")
+            short_t = _html_escape(p.get("short") or "?")
+            conv = _html_escape(p.get("conviction") or "—")
             tf = p.get("timeframe_days", "?")
-            lines.append(f"📈 `{long_t}` / 📉 `{short_t}` ({conv}, {tf}d)")
+            lines.append(f"📈 <code>{long_t}</code> / 📉 <code>{short_t}</code> ({conv}, {tf}d)")
         lines.append("")
 
-    # Regime alpha note — truncated
     alpha_note = analysis.get("regime_alpha_note") or ""
     if alpha_note:
-        # First sentence-ish, max 320 chars
         truncated = alpha_note[:320]
         last_dot = truncated.rfind(".")
         if last_dot > 200:
             truncated = truncated[:last_dot + 1]
-        lines.append(f"*💡 REGIME ALPHA:*\n_{truncated}_\n")
+        lines.append(f"<b>💡 REGIME ALPHA:</b>\n<i>{_html_escape(truncated)}</i>\n")
 
-    # Watchlist
     wl = (analysis.get("watchlist") or {})
     add = wl.get("add") or []
     rem = wl.get("remove") or []
     if add or rem:
         wl_parts = []
         if add:
-            wl_parts.append(f"➕ {', '.join(w.get('ticker', '?') for w in add[:5])}")
+            wl_parts.append("➕ " + ", ".join(_html_escape(w.get("ticker", "?")) for w in add[:5]))
         if rem:
-            wl_parts.append(f"➖ {', '.join(w.get('ticker', '?') for w in rem[:5])}")
-        lines.append(f"*📋 WATCHLIST:* " + " · ".join(wl_parts) + "\n")
+            wl_parts.append("➖ " + ", ".join(_html_escape(w.get("ticker", "?")) for w in rem[:5]))
+        lines.append(f"<b>📋 WATCHLIST:</b> " + " · ".join(wl_parts) + "\n")
 
-    # Footer
-    lines.append("[📊 Full report](https://justhodl.ai/flows.html) · "
-                 "[Track Record](https://justhodl.ai/track-record.html)")
+    lines.append('<a href="https://justhodl.ai/flows.html">📊 Full report</a> · '
+                 '<a href="https://justhodl.ai/track-record.html">Track Record</a>')
 
     return "\n".join(lines)
 
 
 def deliver_telegram_digest(analysis: dict, macro: dict) -> dict:
-    """Format + send the AI strategist note to Telegram. Returns status."""
+    """Format + send AI strategist note to Telegram. Returns full status."""
     chat_id = _get_telegram_chat_id()
     if not chat_id:
         return {"sent": False, "reason": "no_chat_id"}
     if not TELEGRAM_TOKEN:
         return {"sent": False, "reason": "no_token"}
     text = format_digest(analysis, macro)
-    ok = _send_telegram(text, chat_id)
-    return {"sent": ok, "chars": len(text), "chat_id_len": len(chat_id)}
+    result = _send_telegram(text, chat_id)
+    return {
+        "sent": result.get("ok", False),
+        "chars": len(text),
+        "chat_id_len": len(chat_id),
+        "http_status": result.get("http_status"),
+        "telegram_response_summary": (
+            "ok" if result.get("ok") else
+            f"err code={(result.get('response') or {}).get('error_code')} "
+            f"desc={(result.get('response') or {}).get('description', '')[:150]}"
+            if result.get("response") else
+            f"http={result.get('http_status')} body={(result.get('body') or '')[:150]}"
+        ),
+    }
 
 
 def lambda_handler(event, context):
