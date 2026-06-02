@@ -1,0 +1,149 @@
+{
+  "started": "2026-06-02T12:54:09.041394+00:00",
+  "steps": {
+    "lambda_check": {
+      "exists": false
+    },
+    "lambda_create": {
+      "created": true,
+      "function_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-research-backtest",
+      "env_keys_set": [
+        "CMC_KEY"
+      ]
+    },
+    "env_patch": {
+      "patched": false,
+      "note": "no changes"
+    },
+    "function_url": {
+      "created": true,
+      "url": "https://scbr2g72vnrg2p3etx56ajpkye0duraj.lambda-url.us-east-1.on.aws/"
+    },
+    "schedule": {
+      "created": true
+    },
+    "backtest_run": {
+      "elapsed_s": 12.2,
+      "n_research_files": 59,
+      "n_calls_with_returns": 0,
+      "n_calls_with_alpha": 0,
+      "universe_size": 59,
+      "avg_days_held": 0.0,
+      "spy_current_price": null,
+      "caveats": [
+        "SMALL SAMPLE: only 0 calls with return data \u2014 not statistically significant",
+        "SHORT TIMEFRAME: avg holding period only 0.0 days \u2014 ratings target 12 months",
+        "SPY benchmark unavailable \u2014 alpha calculations missing",
+        "PRICE MISSING: 59 tickers couldn't be priced"
+      ],
+      "rating_summary": [],
+      "critique_summary": [],
+      "ensemble_attribution": {
+        "n_with_critique": 0,
+        "consensus": {
+          "n": 0
+        },
+        "contested": {
+          "n": 0
+        },
+        "alpha_spread_pct": null,
+        "interpretation": "Sample too small for meaningful inference"
+      },
+      "top5_alpha_calls": [
+        {
+          "ticker": "AAPL",
+          "rating": "HOLD",
+          "ticker_return_pct": null,
+          "spy_return_pct": null,
+          "alpha_pct": null,
+          "days_held": 0
+        },
+        {
+          "ticker": "ABBV",
+          "rating": "HOLD",
+          "ticker_return_pct": null,
+          "spy_return_pct": null,
+          "alpha_pct": null,
+          "days_held": 0
+        },
+        {
+          "ticker": "ABT",
+          "rating": "HOLD",
+          "ticker_return_pct": null,
+          "spy_return_pct": null,
+          "alpha_pct": null,
+          "days_held": 0
+        },
+        {
+          "ticker": "ADBE",
+          "rating": "BUY",
+          "ticker_return_pct": null,
+          "spy_return_pct": null,
+          "alpha_pct": null,
+          "days_held": 0
+        },
+        {
+          "ticker": "AMD",
+          "rating": "HOLD",
+          "ticker_return_pct": null,
+          "spy_return_pct": null,
+          "alpha_pct": null,
+          "days_held": 0
+        }
+      ],
+      "bottom5_alpha_calls": [
+        {
+          "ticker": "VZ",
+          "rating": "HOLD",
+          "ticker_return_pct": null,
+          "spy_return_pct": null,
+          "alpha_pct": null,
+          "days_held": 0
+        },
+        {
+          "ticker": "WFC",
+          "rating": "HOLD",
+          "ticker_return_pct": null,
+          "spy_return_pct": null,
+          "alpha_pct": null,
+          "days_held": 0
+        },
+        {
+          "ticker": "WMT",
+          "rating": null,
+          "ticker_return_pct": null,
+          "spy_return_pct": null,
+          "alpha_pct": null,
+          "days_held": 0
+        },
+        {
+          "ticker": "XOM",
+          "rating": "HOLD",
+          "ticker_return_pct": null,
+          "spy_return_pct": null,
+          "alpha_pct": null,
+          "days_held": 0
+        },
+        {
+          "ticker": "ZM",
+          "rating": "BUY",
+          "ticker_return_pct": null,
+          "spy_return_pct": null,
+          "alpha_pct": null,
+          "days_held": 0
+        }
+      ]
+    },
+    "ttl_verify": {
+      "elapsed_s": 78.7,
+      "ticker": "AMZN",
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 1260,
+      "ttl_1h_works": null,
+      "interpretation": "All cache_read (1260 tokens) \u2014 no new write. Can't directly observe TTL from this run."
+    }
+  },
+  "finished": "2026-06-02T12:55:44.484553+00:00"
+}
