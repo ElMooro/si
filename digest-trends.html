@@ -3,119 +3,322 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Digest Trends · 60-Day Analytics · JustHodl.AI</title>
-<meta name="description" content="Longitudinal analytics turning the daily digest archive into a 60-day dataset. Summary KPIs (quiet/active/extreme percentages, total alerts, longest quiet streak, score means). 60-day score trajectory chart overlaying both sniffers. Daily activity strip color-coded by activity level. Top-10 noisiest days leaderboard ranked by composite badness.">
+<title>Digest Trends · AI Intelligence · JustHodl.AI</title>
+<meta name="description" content="AI-narrated daily digest with live system performance, calibration trends, top opportunities, and retail sentiment surges.">
 <style>
 :root{
-  --bg:#070a10; --bg-raised:#0a0f17; --panel:#11161f; --border:#1c2433; --border-strong:#2a3548;
+  --bg:#070a10; --bg-raised:#0a0f17; --panel:#11161f; --panel-2:#141a26;
+  --border:#1c2433; --border-strong:#2a3548;
   --fg:#e6eaf2; --fg-2:#cbd2dc; --fg-3:#a8b3c7; --fg-4:#6f7b91;
-  --cyan:#22d3ee; --green:#26ffaf; --gold:#fbbf24; --red:#ff5577; --purple:#a78bfa;
-  --orange:#ff7a18;
+  --cyan:#22d3ee; --green:#26ffaf; --gold:#fbbf24; --red:#ff5577; --purple:#a78bfa; --violet:#7c3aed;
   --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.55;font-size:14px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.55;font-size:14px;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}
+a:hover{color:var(--green)}
 .topbar{position:sticky;top:0;z-index:50;background:rgba(7,10,16,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;gap:14px}
-.brand{font-family:var(--mono);font-size:13px;font-weight:800;letter-spacing:1px;color:var(--fg);text-decoration:none}
+.brand{font-family:var(--mono);font-size:13px;font-weight:800;letter-spacing:1px;color:var(--fg)}
 .brand span{color:var(--purple)}
 .brand .dot{display:inline-block;width:8px;height:8px;background:var(--purple);border-radius:50%;box-shadow:0 0 8px var(--purple);margin-right:6px}
-.nav-links{display:flex;gap:14px;align-items:center;font-size:11px;font-family:var(--mono);letter-spacing:0.5px;flex-wrap:wrap}
-.nav-links a{color:var(--fg-3);text-decoration:none;transition:color 0.15s}
+.nav-links{display:flex;gap:14px;align-items:center;font-size:11px;font-family:var(--mono);letter-spacing:0.5px;flex-wrap:wrap;margin-left:auto}
+.nav-links a{color:var(--fg-3);transition:color 0.15s}
 .nav-links a:hover{color:var(--cyan)}
 .nav-links a.active{color:var(--purple);font-weight:700}
-.shell{max-width:1280px;margin:0 auto;padding:24px 22px 60px}
-.hero{padding:28px 0 18px;border-bottom:1px solid var(--border);margin-bottom:24px}
-.hero h1{font-size:30px;margin:0 0 10px;letter-spacing:-0.015em;font-weight:700;line-height:1.1}
+.shell{max-width:1400px;margin:0 auto;padding:24px 22px 60px}
+.hero{padding:24px 0 14px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.hero-row{display:flex;gap:20px;align-items:start;flex-wrap:wrap}
+.hero-left{flex:2;min-width:380px}
+.hero h1{font-size:32px;margin:0 0 8px;letter-spacing:-0.015em;font-weight:700;line-height:1.05}
 .hero h1 em{font-style:italic;color:var(--purple);font-weight:500}
-.hero .sub{color:var(--fg-3);font-size:13.5px;line-height:1.6;max-width:780px}
-.hero .sub b{color:var(--fg-2);font-weight:600}
-.hero-pills{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
-.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:0.5px;color:var(--fg-3);padding:3px 9px;background:var(--panel);border:1px solid var(--border);border-radius:3px}
-.pill b{color:var(--cyan)}
-
-.method{margin-top:24px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:13px 16px;font-size:12px;color:var(--fg-3);line-height:1.65}
-.method b{color:var(--fg-2)}
-.method code{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--panel);padding:1px 6px;border-radius:3px}
-
+.hero .sub{color:var(--fg-3);font-size:13.5px;line-height:1.6;max-width:680px}
+.ai-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--violet);background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.35);padding:4px 9px;border-radius:99px;margin-bottom:10px;text-transform:uppercase;font-weight:700}
+.ai-badge .pulse{width:6px;height:6px;background:var(--violet);border-radius:50%;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(124,58,237,0.6)}50%{opacity:0.6;box-shadow:0 0 0 6px rgba(124,58,237,0)}}
+.hero-right{flex:1;min-width:280px}
+.kpi-strip{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:11px 13px}
+.kpi .lbl{font-family:var(--mono);font-size:9.5px;color:var(--fg-4);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:3px}
+.kpi .val{font-size:20px;font-weight:700;line-height:1.1}
+.kpi .val.cyan{color:var(--cyan)}.kpi .val.green{color:var(--green)}.kpi .val.gold{color:var(--gold)}.kpi .val.red{color:var(--red)}.kpi .val.violet{color:var(--violet)}
+.ai-narrative-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:30px}
+@media(max-width:900px){.ai-narrative-grid{grid-template-columns:1fr}}
+.ai-card{background:linear-gradient(180deg,var(--bg-raised) 0%,var(--panel) 100%);border:1px solid var(--border);border-radius:8px;padding:18px 20px;position:relative;overflow:hidden}
+.ai-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--violet),transparent)}
+.ai-card-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ai-card-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:14px}
+.ai-card-icon.overview{background:rgba(124,58,237,0.15);color:var(--violet)}
+.ai-card-icon.performance{background:rgba(38,255,175,0.12);color:var(--green)}
+.ai-card-icon.opportunity{background:rgba(34,211,238,0.12);color:var(--cyan)}
+.ai-card-icon.risk{background:rgba(255,85,119,0.12);color:var(--red)}
+.ai-card-title{font-family:var(--mono);font-size:11px;letter-spacing:1.2px;color:var(--fg-2);text-transform:uppercase;font-weight:700}
+.ai-card-body{color:var(--fg-2);font-size:13.5px;line-height:1.65}
+.ai-card-body b{color:var(--fg);font-weight:600}
+.section{margin-bottom:36px}
+.section-hdr{display:flex;align-items:end;gap:16px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.section-hdr h2{font-size:18px;margin:0;letter-spacing:-0.01em;font-weight:700}
+.section-hdr .badge{font-family:var(--mono);font-size:10px;color:var(--fg-4);letter-spacing:1px}
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th{text-align:left;padding:10px 12px;font-family:var(--mono);font-size:10.5px;color:var(--fg-4);letter-spacing:1px;text-transform:uppercase;background:var(--bg-raised);border-bottom:1px solid var(--border-strong);font-weight:700}
+table.data td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--fg-2)}
+table.data tr:hover td{background:var(--bg-raised)}
+table.data .ticker{font-family:var(--mono);font-weight:800;color:var(--cyan);font-size:13.5px}
+table.data .num{font-family:var(--mono);text-align:right}
+table.data .pos{color:var(--green);font-family:var(--mono)}
+table.data .neg{color:var(--red);font-family:var(--mono)}
+table.data .tier-alert{color:var(--red);font-family:var(--mono);font-size:10.5px;font-weight:700}
+table.data .tier-laggard{color:var(--purple);font-family:var(--mono);font-size:10.5px;font-weight:700}
+table.data .tier-watch{color:var(--gold);font-family:var(--mono);font-size:10.5px;font-weight:700}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+.cal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.cal-item{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center}
+.cal-item .nm{font-family:var(--mono);font-size:11px;color:var(--fg-3);letter-spacing:0.5px}
+.cal-item .wt{font-family:var(--mono);font-size:14px;font-weight:700}
+.cal-item .wt.up{color:var(--green)}.cal-item .wt.down{color:var(--red)}.cal-item .wt.neutral{color:var(--fg-3)}
+.retail-row{display:flex;align-items:center;gap:14px;padding:9px 14px;background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;margin-bottom:6px}
+.retail-row .tk{font-family:var(--mono);font-weight:800;color:var(--gold);font-size:14px;min-width:70px}
+.retail-row .pct{font-family:var(--mono);color:var(--red);font-weight:700;font-size:13.5px}
+.retail-row .mentions{color:var(--fg-3);font-size:12px}
+.retail-row .bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;position:relative}
+.retail-row .bar-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--gold),var(--red));border-radius:3px}
+.loading{color:var(--fg-4);font-style:italic;font-size:13px;padding:20px;text-align:center}
+.empty{color:var(--fg-4);font-size:13px;padding:30px;text-align:center;background:var(--bg-raised);border:1px dashed var(--border);border-radius:8px}
 footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);color:var(--fg-4);font-size:11.5px;font-family:var(--mono);text-align:center}
 </style>
-<script src="/ai-digest-trends-kit.js"></script>
 </head>
 <body>
 
-<header class="topbar">
-  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
-  <nav class="nav-links">
-    <a href="/">DESK</a>
-    <a href="/today.html">TODAY</a>
-    <a href="/frontrun.html" style="color:#ff7a18">🎯 FRONT-RUN</a>
-    <a href="/macro-frontrun.html" style="color:#22d3ee">🏛 MACRO FRONT-RUN</a>
-    <a href="/alerts.html" style="color:#a78bfa">📡 ALERTS</a>
-    <a href="/digest-archive.html" style="color:#a78bfa">📂 ARCHIVE</a>
-    <a href="/digest-trends.html" class="active">📊 TRENDS</a>
-    <a href="/targets.html" style="color:#ff7a18">🎯 TARGETS</a>
-    <a href="/uptime.html" style="color:#26ffaf">🟢 UPTIME</a>
-    <a href="/skill.html" style="color:#a78bfa">🧠 SKILL</a>
-    <a href="/defcon.html">DEFCON</a>
-  </nav>
-</header>
+<div class="topbar">
+  <a href="/" class="brand"><span class="dot"></span>JustHodl<span>.AI</span></a>
+  <span style="font-family:var(--mono);font-size:10.5px;color:var(--fg-4);letter-spacing:1px;text-transform:uppercase">Digest Trends · AI Intelligence</span>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/pre-pump-radar.html">Pre-Pump</a>
+    <a href="/signal-board.html">Signals</a>
+    <a href="/risk-desk.html">Risk Desk</a>
+    <a href="/digest-trends.html" class="active">Digest</a>
+  </div>
+</div>
 
 <main class="shell">
 
   <section class="hero">
-    <h1>📊 Digest <em>Trends</em> · 60-Day Analytics</h1>
-    <p class="sub">
-      Every daily digest writes a compact entry to the rolling index. This
-      page reads that index and turns it into longitudinal analytics:
-      <b>summary KPIs</b> (quiet/active/extreme breakdown, total alerts,
-      longest quiet streak, score means + maxes per sniffer),
-      <b>60-day score trajectory</b> (both sniffers overlaid on one chart
-      with regime bands), <b>daily activity strip</b> (one cell per day,
-      color-coded by activity level, hover for details), and a
-      <b>noisiest-days leaderboard</b> (top 10 ranked by composite
-      badness: alerts × 10 + average score + extreme bonus).
-    </p>
-    <div class="hero-pills">
-      <span class="pill">⏱ updated daily 09:00 UTC</span>
-      <span class="pill">📂 source: <b>digests-index.json</b></span>
-      <span class="pill">📐 rolling cap: <b>60 days</b></span>
-      <span class="pill">🆓 cost: <b>no Claude calls</b></span>
+    <div class="hero-row">
+      <div class="hero-left">
+        <div class="ai-badge"><span class="pulse"></span>AI-Narrated Intelligence</div>
+        <h1>Digest <em>Trends</em></h1>
+        <p class="sub" id="hero-sub">Daily AI synthesis of system state — calibration progress, live portfolio P&amp;L, top actionable opportunities, retail sentiment surges, and risks worth watching. Powered by the self-improvement loop that scores yesterday's predictions and tunes cascade weights based on actual outcomes.</p>
+      </div>
+      <div class="hero-right">
+        <div class="kpi-strip">
+          <div class="kpi"><div class="lbl">Open Positions</div><div class="val cyan" id="kpi-open">—</div></div>
+          <div class="kpi"><div class="lbl">Realized P&amp;L</div><div class="val green" id="kpi-pnl">—</div></div>
+          <div class="kpi"><div class="lbl">Predictions Today</div><div class="val violet" id="kpi-preds">—</div></div>
+          <div class="kpi"><div class="lbl">Calibration Data</div><div class="val gold" id="kpi-cal">—</div></div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <div id="ai-digest-trends"></div>
-  <script>if(window.JHAITrends)JHAITrends.mount("ai-digest-trends");</script>
+  <section class="section">
+    <div class="section-hdr">
+      <h2>🧠 Today's Intelligence Brief</h2>
+      <span class="badge" id="ai-updated">—</span>
+    </div>
+    <div class="ai-narrative-grid">
+      <div class="ai-card"><div class="ai-card-hdr"><div class="ai-card-icon overview">📊</div><div class="ai-card-title">System Overview</div></div><div class="ai-card-body" id="ai-overview">Loading AI narrative…</div></div>
+      <div class="ai-card"><div class="ai-card-hdr"><div class="ai-card-icon performance">📈</div><div class="ai-card-title">Performance &amp; Calibration</div></div><div class="ai-card-body" id="ai-performance">Loading…</div></div>
+      <div class="ai-card"><div class="ai-card-hdr"><div class="ai-card-icon opportunity">🎯</div><div class="ai-card-title">Top Actionable Opportunities</div></div><div class="ai-card-body" id="ai-opportunity">Loading…</div></div>
+      <div class="ai-card"><div class="ai-card-hdr"><div class="ai-card-icon risk">⚠️</div><div class="ai-card-title">Risks &amp; Watch List</div></div><div class="ai-card-body" id="ai-risks">Loading…</div></div>
+    </div>
+  </section>
 
-  <section class="method">
-    <b>How the metrics are computed:</b>
-    <br><br>
-    <b>Activity level</b> is set by the router at digest-write time:
-    <code>EXTREME</code> = regime EXTREME on either sniffer OR score ≥ 70 ·
-    <code>ACTIVE</code> = alerts fired OR score ≥ 45 ·
-    <code>QUIET</code> = nothing fired, scores below 45.
-    <br><br>
-    <b>Quiet streak</b> walks the chronologically-sorted entries from
-    newest backward and counts consecutive QUIET days. The "longest"
-    is the max streak ever recorded in the 60-day window.
-    <br><br>
-    <b>Noisiest-days badness</b> = (alerts × 10) + ((equity_score + macro_score) / 2) + 30
-    if either sniffer hit EXTREME. Composite designed to surface days when
-    multiple alerts AND elevated scores AND regime breaks all coincided.
-    <br><br>
-    <b>Score trajectory chart</b> shows one datapoint per daily digest
-    (so cadence is 1 point per day, vs the 4h-cadence 7d charts on the
-    per-sniffer cockpits). Designed for spotting weekly cyclicality and
-    monthly regime drift, not intraday moves — use <a href="/frontrun.html" style="color:var(--orange);text-decoration:none">/frontrun.html</a>
-    or <a href="/macro-frontrun.html" style="color:var(--cyan);text-decoration:none">/macro-frontrun.html</a>
-    for the higher-resolution view.
+  <section class="section">
+    <div class="section-hdr"><h2>⚖️ Self-Improvement: Calibrated Feature Weights</h2><span class="badge" id="cal-meta">—</span></div>
+    <p style="color:var(--fg-3);font-size:13px;max-width:880px;margin:0 0 14px">Each day, the system scores yesterday's predictions and computes which features (theme acceleration, options C/P ratio, insider buying, etc.) actually predicted price moves. Features with high <span style="color:var(--green)">hit-rate lift</span> get up-weighted; <span style="color:var(--red)">losers</span> get down-weighted. After 30 days of data the system knows which signals to trust.</p>
+    <div class="cal-grid" id="cal-grid"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-hdr"><h2>💼 Live Simulated Portfolio</h2><span class="badge" id="portfolio-meta">—</span></div>
+    <div class="tbl-wrap">
+      <table class="data" id="positions-tbl">
+        <thead><tr><th>TICKER</th><th>TIER</th><th class="num">PRICE</th><th class="num">ENTRY</th><th class="num">STOP</th><th class="num">TP3</th><th class="num">P&amp;L %</th><th class="num">P&amp;L $</th><th>STATUS</th></tr></thead>
+        <tbody><tr><td colspan="9" class="loading">Loading positions…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="split">
+    <section class="section" style="margin-bottom:0">
+      <div class="section-hdr"><h2>🎫 Trade Tickets</h2><span class="badge">Entry / Stop / TP3</span></div>
+      <div class="tbl-wrap"><table class="data" id="tickets-tbl"><thead><tr><th>TICKER</th><th class="num">ENTRY</th><th class="num">STOP</th><th class="num">TP3</th><th class="num">R:R</th></tr></thead><tbody><tr><td colspan="5" class="loading">Loading…</td></tr></tbody></table></div>
+    </section>
+    <section class="section" style="margin-bottom:0">
+      <div class="section-hdr"><h2>📱 Retail Sentiment Surges</h2><span class="badge">Velocity %</span></div>
+      <div id="retail-list"><div class="loading">Loading retail data…</div></div>
+    </section>
+  </div>
+
+  <section class="section">
+    <div class="section-hdr"><h2>📡 Today's Alert Distribution</h2><span class="badge" id="alerts-meta">—</span></div>
+    <div id="alert-dist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-hdr"><h2>📐 How the System Improves Itself</h2></div>
+    <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:18px 22px;color:var(--fg-3);font-size:13px;line-height:1.75">
+      <b style="color:var(--fg)">1. Snapshot</b> — every day at 16:00 ET, the prediction-snapshotter captures <b style="color:var(--cyan)">every alerted ticker</b> with its complete feature vector (combined score, theme acceleration, options C/P ratio, insider buying, ATR, etc.). This builds the dataset.<br><br>
+      <b style="color:var(--fg)">2. Score</b> — every morning at 8:30 ET, the self-improvement Lambda reads yesterday's snapshot, fetches actual prices, and classifies each prediction: <code style="color:var(--green)">HIT_BIG</code> (+10%), <code style="color:var(--green)">HIT</code> (+5%), <code style="color:var(--gold)">SLOW</code> (1-5%), <code style="color:var(--fg-3)">FLAT</code>, <code style="color:var(--red)">MISS</code>.<br><br>
+      <b style="color:var(--fg)">3. Attribute</b> — for each feature, the system splits predictions into top-quartile vs bottom-quartile by feature value, then compares hit rates. The <span style="color:var(--green)">lift</span> tells us which features actually predict moves.<br><br>
+      <b style="color:var(--fg)">4. Calibrate</b> — features that predict well get up-weighted in cascade scoring. Features with no signal get down-weighted. After 30 days of data, the weights converge to the <b style="color:var(--purple)">true predictive power</b> of each feature.<br><br>
+      <b style="color:var(--fg)">5. Improve</b> — cascade scoring uses calibrated weights → better rankings → better Telegram alerts → higher hit rate → tighter stops → more profits. <b style="color:var(--green)">Compounds over time.</b>
+    </div>
   </section>
 
 </main>
 
-<footer>
-  Trends from rolling 60-day digest index · Updated 09:00 UTC by EventBridge ·
-  <a href="https://justhodl.ai" style="color:var(--fg-4)">JustHodl.AI</a>
-</footer>
+<footer>AI digest generated daily 9:00 ET · Self-improvement loop runs 8:30 ET · <a href="https://justhodl.ai" style="color:var(--fg-4)">JustHodl.AI</a></footer>
+
+<script>
+const PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+const fmt = (v, dp=2) => v != null ? Number(v).toFixed(dp) : '—';
+const fmtUsd = v => v != null ? '$' + Number(v).toLocaleString('en-US',{maximumFractionDigits:0}) : '—';
+const fmtPct = v => v != null ? (Number(v) >= 0 ? '+' : '') + Number(v).toFixed(2) + '%' : '—';
+
+async function fetchJson(path) {
+  try { const r = await fetch(`${PROXY}${path}?t=${Date.now()}`); if (!r.ok) return null; return await r.json(); }
+  catch (e) { console.warn(`fetch ${path}:`, e); return null; }
+}
+
+function renderKpi(state) {
+  const stats = (state.portfolio || {}).stats || {};
+  document.getElementById('kpi-open').textContent = stats.n_open || 0;
+  document.getElementById('kpi-pnl').textContent = fmtUsd(stats.total_realized_usd || 0);
+  document.getElementById('kpi-preds').textContent = (state.snapshot || {}).n_tickers || 0;
+  const calDP = ((state.calibration || {}).feature_attribution || {}).n_predictions_analyzed;
+  document.getElementById('kpi-cal').textContent = calDP > 0 ? `${calDP} pts` : 'building…';
+}
+
+function renderAiNarrative(aiDoc) {
+  if (!aiDoc || !aiDoc.narrative || aiDoc.narrative.fallback || aiDoc.narrative.parse_error) {
+    const msg = '<i style="color:var(--fg-4)">AI narrative will populate after tomorrow\'s 9:00 ET run. The Lambda has been deployed and will generate insights once it runs on schedule.</i>';
+    ['ai-overview','ai-performance','ai-opportunity','ai-risks'].forEach(id => document.getElementById(id).innerHTML = msg);
+    document.getElementById('ai-updated').textContent = 'awaiting first run';
+    return;
+  }
+  const n = aiDoc.narrative;
+  document.getElementById('ai-overview').innerHTML = n.overview || '<i>—</i>';
+  document.getElementById('ai-performance').innerHTML = n.system_performance || '<i>—</i>';
+  document.getElementById('ai-opportunity').innerHTML = n.top_actionable || '<i>—</i>';
+  document.getElementById('ai-risks').innerHTML = n.risks_watching || '<i>—</i>';
+  document.getElementById('ai-updated').textContent = 'Generated ' + (aiDoc.generated_at || '').slice(0,16).replace('T',' ');
+  if (n.key_metrics && n.key_metrics.headline_metric) {
+    document.getElementById('hero-sub').innerHTML = n.key_metrics.headline_metric +
+      (n.key_metrics.best_opportunity ? ' · <b style="color:var(--green)">' + n.key_metrics.best_opportunity + '</b>' : '') +
+      (n.key_metrics.retail_signal ? '<br><span style="color:var(--gold)">📱 ' + n.key_metrics.retail_signal + '</span>' : '');
+  }
+}
+
+function renderCalibration(cal) {
+  const wrap = document.getElementById('cal-grid');
+  const weights = (cal && cal.current_weights) || {};
+  const attrib = (cal && cal.feature_attribution) || {};
+  const nDP = attrib.n_predictions_analyzed || 0;
+  document.getElementById('cal-meta').textContent = nDP > 0 ? `${nDP} predictions analyzed · ${Object.keys(weights).length} features tracked` : 'Building dataset — first calibration after tomorrow morning';
+  if (!Object.keys(weights).length) {
+    wrap.innerHTML = '<div class="empty">No calibrated weights yet. The system needs 5+ scored predictions before calibration kicks in. Yesterday\'s 158 snapshot predictions will produce the first calibrated weights tomorrow at 8:30 ET.</div>';
+    return;
+  }
+  const sorted = Object.entries(weights).sort((a,b) => b[1] - a[1]);
+  wrap.innerHTML = sorted.map(([feat, wt]) => {
+    const cls = wt > 1.1 ? 'up' : wt < 0.9 ? 'down' : 'neutral';
+    return `<div class="cal-item"><div class="nm">${feat}</div><div class="wt ${cls}">${wt.toFixed(2)}×</div></div>`;
+  }).join('');
+}
+
+function renderPositions(portfolio, monitor) {
+  const tbody = document.querySelector('#positions-tbl tbody');
+  const positions = (portfolio || {}).open_positions || [];
+  const snapshots = ((monitor || {}).snapshots || []).reduce((acc,s) => {acc[s.ticker]=s; return acc;}, {});
+  document.getElementById('portfolio-meta').textContent = `${positions.length} open · last update ${(portfolio.last_updated || '').slice(11,16) || '—'}`;
+  if (!positions.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">No open positions yet.</td></tr>'; return; }
+  tbody.innerHTML = positions.map(p => {
+    const snap = snapshots[p.ticker] || {};
+    const price = snap.current_price;
+    const pnlPct = snap.pnl_pct;
+    const pnlUsd = snap.pnl_usd;
+    let status = '↑ green';
+    if (price && p.stop_loss && price <= p.stop_loss) status = '⚠ STOP HIT';
+    else if (price && p.tp3 && price >= p.tp3) status = '🎯 TP3 HIT';
+    else if (price && p.tp2 && price >= p.tp2) status = '✅ TP2 HIT';
+    else if (price && p.tp1 && price >= p.tp1) status = '✅ TP1 HIT';
+    else if (price && p.stop_loss && price <= p.stop_loss * 1.015) status = '⚠ NEAR STOP';
+    else if (pnlPct && pnlPct < 0) status = '↓ red';
+    const tierCls = p.tier === 'ALERT_TIER' ? 'tier-alert' : (p.tier === 'LAGGARD' || p.entry_tier === 'LAGGARD') ? 'tier-laggard' : 'tier-watch';
+    return `<tr><td><span class="ticker">${p.ticker}</span></td><td><span class="${tierCls}">${p.entry_tier || p.tier || '—'}</span></td><td class="num">${price ? '$'+fmt(price) : '—'}</td><td class="num">$${fmt(p.entry_price)}</td><td class="num" style="color:var(--red)">$${fmt(p.stop_loss)}</td><td class="num" style="color:var(--green)">$${fmt(p.tp3)}</td><td class="num"><span class="${(pnlPct||0)>=0?'pos':'neg'}">${fmtPct(pnlPct)}</span></td><td class="num"><span class="${(pnlUsd||0)>=0?'pos':'neg'}">${fmtUsd(pnlUsd)}</span></td><td>${status}</td></tr>`;
+  }).join('');
+}
+
+function renderTickets(tickets) {
+  const tbody = document.querySelector('#tickets-tbl tbody');
+  const items = (tickets || {}).tickets || [];
+  if (!items.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No active tickets.</td></tr>'; return; }
+  tbody.innerHTML = items.slice(0,8).map(t => `<tr><td><span class="ticker">${t.ticker}</span></td><td class="num">$${fmt(t.entry)}</td><td class="num" style="color:var(--red)">$${fmt(t.stop_loss)}</td><td class="num" style="color:var(--green)">$${fmt(t.tp3)}</td><td class="num" style="color:var(--gold)">${fmt(t.rr_tp3,1)}:1</td></tr>`).join('');
+}
+
+function renderRetail(retail) {
+  const wrap = document.getElementById('retail-list');
+  const surges = (retail || {}).velocity_surges || (retail || {}).surges || [];
+  if (!surges.length) { wrap.innerHTML = '<div class="empty">No retail data available. The retail-sentiment Lambda surfaces Reddit/social mention velocity surges.</div>'; return; }
+  const max = Math.max(...surges.map(s => Math.abs(s.velocity_pct || s.change_pct || 0)));
+  wrap.innerHTML = surges.slice(0,8).map(s => {
+    const pct = s.velocity_pct || s.change_pct || 0;
+    const w = max > 0 ? Math.min(100, (pct/max)*100) : 0;
+    return `<div class="retail-row"><div class="tk">${s.ticker || '—'}</div><div class="bar"><div class="bar-fill" style="width:${w}%"></div></div><div class="pct">+${(pct||0).toLocaleString('en-US',{maximumFractionDigits:0})}%</div><div class="mentions">${s.mentions || '—'} mentions</div></div>`;
+  }).join('');
+}
+
+function renderAlertDist(snapshot) {
+  const wrap = document.getElementById('alert-dist');
+  const dist = (snapshot || {}).alert_distribution || {};
+  const total = Object.values(dist).reduce((a,b) => a+b, 0);
+  document.getElementById('alerts-meta').textContent = `${total} alerts across ${Object.keys(dist).length} types`;
+  if (!Object.keys(dist).length) { wrap.innerHTML = '<div class="empty">No alerts captured today.</div>'; return; }
+  const sorted = Object.entries(dist).sort((a,b) => b[1] - a[1]);
+  wrap.innerHTML = sorted.map(([k, v]) => {
+    let color = 'var(--cyan)';
+    if (k.includes('ALERT')) color = 'var(--red)';
+    else if (k.includes('LAGGARD')) color = 'var(--purple)';
+    else if (k.includes('OPTIONS') || k.includes('EXTREME')) color = 'var(--gold)';
+    else if (k.includes('INSIDER')) color = 'var(--green)';
+    return `<div class="kpi"><div class="lbl">${k.replace(/_/g,' ')}</div><div class="val" style="color:${color};font-size:18px">${v}</div></div>`;
+  }).join('');
+}
+
+async function loadAll() {
+  const [aiDoc, calibration, snapshot, portfolio, monitor, tickets, retail] = await Promise.all([
+    fetchJson('/data/digest-trends-ai.json'),
+    fetchJson('/data/cascade-calibration.json'),
+    fetchJson('/data/predictions-snapshots/latest.json'),
+    fetchJson('/data/simulated-portfolio.json'),
+    fetchJson('/data/trade-monitor-snapshots.json'),
+    fetchJson('/data/trade-tickets.json'),
+    fetchJson('/data/retail-sentiment.json'),
+  ]);
+  renderKpi({portfolio, snapshot, calibration});
+  renderAiNarrative(aiDoc);
+  renderCalibration(calibration);
+  renderPositions(portfolio, monitor);
+  renderTickets(tickets);
+  renderRetail(retail);
+  renderAlertDist(snapshot);
+}
+loadAll();
+setInterval(loadAll, 60000);
+</script>
 
 </body>
 </html>
