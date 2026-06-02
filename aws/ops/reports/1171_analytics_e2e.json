@@ -1,0 +1,238 @@
+{
+  "started": "2026-06-02T03:42:08.723149+00:00",
+  "checks": {
+    "page_accessible": {
+      "size_kb": 23.8,
+      "has_duckdb_import": true,
+      "has_sql_editor": true,
+      "has_run_btn": true,
+      "has_results": true,
+      "has_examples": true,
+      "n_example_queries": 9,
+      "has_research_url": true,
+      "status": "\u2705"
+    },
+    "cdn_research": {
+      "http": 200,
+      "elapsed_s": 0.48,
+      "size_kb": 26.4,
+      "n_rows": 17,
+      "status": "\u2705"
+    },
+    "cdn_edgar": {
+      "http": 200,
+      "elapsed_s": 0.32,
+      "size_kb": 5.2,
+      "n_rows": 8,
+      "status": "\u2705"
+    },
+    "cdn_manifest": {
+      "http": 200,
+      "elapsed_s": 0.34,
+      "size_kb": 2.0,
+      "n_rows": null,
+      "status": "\u2705"
+    }
+  },
+  "query_results": {
+    "all_buys": {
+      "ok": true,
+      "n_rows": 7,
+      "elapsed_ms": 0.0,
+      "sample": [
+        {
+          "ticker": "NVDA",
+          "rating": "STRONG_BUY",
+          "conviction_grade": "A",
+          "upside_pct": 47
+        },
+        {
+          "ticker": "UBER",
+          "rating": "BUY",
+          "conviction_grade": "A-",
+          "upside_pct": 42.3
+        },
+        {
+          "ticker": "TEAM",
+          "rating": "BUY",
+          "conviction_grade": "B+",
+          "upside_pct": 33.8
+        }
+      ]
+    },
+    "bullish_no_insider_sell": {
+      "ok": true,
+      "n_rows": 6,
+      "elapsed_ms": 0.1,
+      "sample": [
+        {
+          "ticker": "GOOGL",
+          "rating": "STRONG_BUY",
+          "upside_pct": 20.9,
+          "signal_label": null,
+          "sell_acceleration": null
+        },
+        {
+          "ticker": "JPM",
+          "rating": "BUY",
+          "upside_pct": 11.9,
+          "signal_label": null,
+          "sell_acceleration": null
+        },
+        {
+          "ticker": "NVDA",
+          "rating": "STRONG_BUY",
+          "upside_pct": 47,
+          "signal_label": "ROUTINE_SELLING",
+          "sell_acceleration": 1.09
+        }
+      ]
+    },
+    "value_growth": {
+      "ok": true,
+      "n_rows": 3,
+      "elapsed_ms": 0.0,
+      "sample": [
+        {
+          "ticker": "UBER",
+          "sector": "Technology",
+          "rating": "BUY",
+          "pe_ttm": 17.73,
+          "revenue_5yr_cagr": 36.10053095492587,
+          "fcf_yield_pct": 6.53,
+          "upside_pct": 42.3
+        },
+        {
+          "ticker": "JPM",
+          "sector": "Financial Services",
+          "rating": "BUY",
+          "pe_ttm": 14.04,
+          "revenue_5yr_cagr": 16.592001654027676,
+          "fcf_yield_pct": 17.74,
+          "upside_pct": 11.9
+        },
+        {
+          "ticker": "ZM",
+          "sector": "Technology",
+          "rating": "BUY",
+          "pe_ttm": 15.87,
+          "revenue_5yr_cagr": 12.92493048545207,
+          "fcf_yield_pct": 5.99,
+          "upside_pct": 18.2
+        }
+      ]
+    },
+    "hidden_quality": {
+      "ok": true,
+      "n_rows": 1,
+      "elapsed_ms": 0.0,
+      "sample": [
+        {
+          "ticker": "MSFT",
+          "sector": "Technology",
+          "roic_ttm_pct": 21.31,
+          "pe_ttm": 27.31,
+          "fcf_yield_pct": 2.13
+        }
+      ]
+    },
+    "insider_red_flags": {
+      "ok": true,
+      "n_rows": 3,
+      "elapsed_ms": 0.0,
+      "sample": [
+        {
+          "ticker": "AAPL",
+          "signal_label": "LARGE_SELLING",
+          "sell_acceleration": 223.41,
+          "n_csuite_sellers": 3,
+          "research_rating": "HOLD"
+        },
+        {
+          "ticker": "DDOG",
+          "signal_label": "LARGE_SELLING",
+          "sell_acceleration": 228.42,
+          "n_csuite_sellers": 4,
+          "research_rating": "HOLD"
+        },
+        {
+          "ticker": "NET",
+          "signal_label": "ACCELERATING_SELL",
+          "sell_acceleration": 16.8,
+          "n_csuite_sellers": 5,
+          "research_rating": "BUY"
+        }
+      ]
+    },
+    "full_picture": {
+      "ok": true,
+      "n_rows": 5,
+      "elapsed_ms": 0.1,
+      "sample": [
+        {
+          "ticker": "NVDA",
+          "sector": "Technology",
+          "rating": "STRONG_BUY",
+          "conviction_grade": "A",
+          "upside_pct": 47,
+          "pe_ttm": 34.14,
+          "roic_ttm_pct": 62.99,
+          "revenue_5yr_cagr": 66.89858183148777,
+          "insider_signal": "ROUTINE_SELLING",
+          "n_csuite_sellers": 1
+        },
+        {
+          "ticker": "UBER",
+          "sector": "Technology",
+          "rating": "BUY",
+          "conviction_grade": "A-",
+          "upside_pct": 42.3,
+          "pe_ttm": 17.73,
+          "roic_ttm_pct": 12.14,
+          "revenue_5yr_cagr": 36.10053095492587,
+          "insider_signal": null,
+          "n_csuite_sellers": null
+        },
+        {
+          "ticker": "TEAM",
+          "sector": "Technology",
+          "rating": "BUY",
+          "conviction_grade": "B+",
+          "upside_pct": 33.8,
+          "pe_ttm": -139.57,
+          "roic_ttm_pct": -9.67,
+          "revenue_5yr_cagr": 26.434591571976938,
+          "insider_signal": "ROUTINE_SELLING",
+          "n_csuite_sellers": 3
+        }
+      ]
+    },
+    "sector_table": {
+      "ok": true,
+      "n_rows": 5,
+      "elapsed_ms": 0.1,
+      "sample": [
+        {
+          "sector": "Communication Services",
+          "n": 1,
+          "avg_upside": 20.9,
+          "avg_roic": 19.2
+        },
+        {
+          "sector": "Consumer Defensive",
+          "n": 1,
+          "avg_upside": 10.6,
+          "avg_roic": 13.9
+        },
+        {
+          "sector": "Financial Services",
+          "n": 2,
+          "avg_upside": 8.3,
+          "avg_roic": 3.6
+        }
+      ]
+    }
+  },
+  "all_ok": true,
+  "finished": "2026-06-02T03:42:10.572560+00:00"
+}
