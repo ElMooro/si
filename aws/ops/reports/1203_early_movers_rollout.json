@@ -1,0 +1,532 @@
+{
+  "started": "2026-06-02T17:28:55.112121+00:00",
+  "create": {
+    "created": true
+  },
+  "url": "https://yillkwjqaun5h37nukttsuwuie0hedyt.lambda-url.us-east-1.on.aws/",
+  "schedule": {
+    "expr": "cron(15,45 * * * ? *)"
+  },
+  "invoke": {
+    "elapsed_s": 1.1,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.1, \\\"n_early_movers\\\": 64, \\\"alert_tier\\\": [{\\\"ticker\\\": \\\"GOOG\\\", \\\"score\\\": 43, \\\"factors\\\": [\\\"ultra_new\\\", \\\"engine_growth_1\\\", \\\"ultra_tier\\\"], \\\"tier\\\": \\\"ULTRA\\\"}], \\\"top_5\\\": [{\\\"ticker\\\": \\\"GOOG\\\", \\\"score\\\": 43, \\\"convergence\\\": 93.0, \\\"n_engines\\\": 8, \\\"prior_n_engines\\\": 7, \\\"factors\\\": [\\\"ultra_new\\\", \\\"engine_growth_1\\\", \\\"ultra_tier\\\"]}, {\\\"ticker\\\": \\\"NVDA\\\", \\\"score\\\": 31, \\\"convergence\\\": 95.2, \\\"n_engines\\\": 10, \\\"prior_n_engines\\\": 9, \\\"factors\\\": [\\\"engine_growth_1\\\", \\\"earliness_signals_3\\\", \\\"ultra_tier\\\"]}, {\\\"ticker\\\": \\\"MRVL\\\", \\\"score\\\": 31, \\\"convergence\\\": 88.3, \\\"n_engines\\\": 6, \\\"prior_n_engines\\\": 5, \\\"factors\\\": [\\\"engine_growth_1\\\", \\\"earliness_signals_3\\\", \\\"ultra_tier\\\"]}, {\\\"ticker\\\": \\\"AVGO\\\", \\\"score\\\": 25, \\\"convergence\\\": 100, \\\"n_engines\\\": 13, \\\"prior_n_engines\\\": 13, \\\"factors\\\": [\\\"earliness_signals_4\\\", \\\"ultra_tier\\\"]}, {\\\"ticker\\\": \\\"MSFT\\\", \\\"score\\\": 25, \\\"convergence\\\": 89.7, \\\"n_engines\\\": 9, \\\"prior_n_engines\\\": 9, \\\"factors\\\": [\\\"earliness_signals_5\\\", \\\"ultra_tier\\\"]}]}\"}"
+  },
+  "early_movers_doc": {
+    "generated_at": "2026-06-02T17:29:00.181934+00:00",
+    "n_radar_items": 129,
+    "n_early_movers": 64,
+    "categories": {
+      "ultra_new_today": [
+        "GOOG"
+      ],
+      "engine_count_accelerating": [
+        "GOOG",
+        "NVDA",
+        "MRVL",
+        "ADI",
+        "APH",
+        "HON",
+        "ETN",
+        "TMO",
+        "RTX",
+        "MCD",
+        "TSM",
+        "SEM",
+        "DHR",
+        "ILMN",
+        "DOCU",
+        "BMNR",
+        "LOW",
+        "NBIS",
+        "RBLX",
+        "HOOD",
+        "C",
+        "SLNO",
+        "AXP",
+        "SOFI",
+        "MO",
+        "PG",
+        "PLD",
+        "AAOI",
+        "LFVN",
+        "HPE",
+        "SMCI",
+        "QQQ",
+        "ARM"
+      ],
+      "with_earliness_signatures": [
+        "NVDA",
+        "MRVL",
+        "AVGO",
+        "MSFT",
+        "AMD",
+        "MU",
+        "ORCL",
+        "TSLA",
+        "ADI",
+        "APH",
+        "HON",
+        "ETN",
+        "TMO",
+        "CRM",
+        "LRCX",
+        "AMAT",
+        "PLTR",
+        "DELL",
+        "AAPL",
+        "ARM",
+        "SNDK",
+        "IBM",
+        "LLY",
+        "INTC",
+        "WDC",
+        "CSCO",
+        "ASML",
+        "CAT",
+        "NOW",
+        "STX",
+        "APP",
+        "GS",
+        "MS",
+        "CDNS",
+        "KLAC",
+        "GLW",
+        "AMZN",
+        "META",
+        "WMT"
+      ],
+      "in_pump_primed_or_likely": [
+        "ORCL"
+      ]
+    },
+    "alert_tier_count": 1,
+    "top_15": [
+      {
+        "ticker": "GOOG",
+        "early_score": 43,
+        "pump_category": "PUMP_POSSIBLE",
+        "convergence_score": 93.0,
+        "n_engines": 8,
+        "prior_n_engines": 7,
+        "factors": [
+          "ultra_new",
+          "engine_growth_1",
+          "ultra_tier"
+        ],
+        "earliness_signatures": []
+      },
+      {
+        "ticker": "NVDA",
+        "early_score": 31,
+        "pump_category": "PUMP_POSSIBLE",
+        "convergence_score": 95.2,
+        "n_engines": 10,
+        "prior_n_engines": 9,
+        "factors": [
+          "engine_growth_1",
+          "earliness_signals_3",
+          "ultra_tier"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "earnings-pead",
+            "weighted": 0.96,
+            "note": "TIER_B_BUILDING \u00b7 streak 8Q ()",
+            "keyword": "TIER_B"
+          },
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          },
+          {
+            "engine": "momentum-breakout",
+            "weighted": 0.63,
+            "note": "MARGINAL (RISING_20D+NEAR_60D_HIGH+RS_20D_+8)",
+            "keyword": "RISING_20D"
+          }
+        ]
+      },
+      {
+        "ticker": "MRVL",
+        "early_score": 31,
+        "pump_category": "PUMP_POSSIBLE",
+        "convergence_score": 88.3,
+        "n_engines": 6,
+        "prior_n_engines": 5,
+        "factors": [
+          "engine_growth_1",
+          "earliness_signals_3",
+          "ultra_tier"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "velocity-acceleration",
+            "weighted": 1.35,
+            "note": "ACCELERATION_CONFIRMED (earliness signal)",
+            "keyword": "ACCELERATION_CONFIRMED"
+          },
+          {
+            "engine": "momentum-breakout",
+            "weighted": 0.91,
+            "note": "TIER_B_MOMENTUM (RISING_20D+AT_60D_HIGH+RS_20D_+28)",
+            "keyword": "TIER_B"
+          },
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          }
+        ]
+      },
+      {
+        "ticker": "AVGO",
+        "early_score": 25,
+        "pump_category": "PUMP_POSSIBLE",
+        "convergence_score": 100,
+        "n_engines": 13,
+        "prior_n_engines": 13,
+        "factors": [
+          "earliness_signals_4",
+          "ultra_tier"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "options-flow",
+            "weighted": 1.5,
+            "note": "TIER_A_BULLISH_FLOW (CPR_SURGING+CALL_VOL_3X)",
+            "keyword": "TIER_A"
+          },
+          {
+            "engine": "velocity-acceleration",
+            "weighted": 1.35,
+            "note": "ACCELERATION_CONFIRMED (earliness signal)",
+            "keyword": "ACCELERATION_CONFIRMED"
+          },
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          },
+          {
+            "engine": "momentum-breakout",
+            "weighted": 0.63,
+            "note": "WATCH (RISING_20D+AT_60D_HIGH+RS_60D_+27)",
+            "keyword": "RISING_20D"
+          }
+        ]
+      },
+      {
+        "ticker": "MSFT",
+        "early_score": 25,
+        "pump_category": "PUMP_POSSIBLE",
+        "convergence_score": 89.7,
+        "n_engines": 9,
+        "prior_n_engines": 9,
+        "factors": [
+          "earliness_signals_5",
+          "ultra_tier"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "options-flow",
+            "weighted": 1.5,
+            "note": "TIER_A_BULLISH_FLOW (CPR_SURGING+CALL_VOL_3X)",
+            "keyword": "TIER_A"
+          },
+          {
+            "engine": "velocity-acceleration",
+            "weighted": 1.35,
+            "note": "ACCELERATION_CONFIRMED (earliness signal)",
+            "keyword": "ACCELERATION_CONFIRMED"
+          },
+          {
+            "engine": "earnings-pead",
+            "weighted": 1.2,
+            "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 8Q ()",
+            "keyword": "TIER_A"
+          },
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          },
+          {
+            "engine": "momentum-breakout",
+            "weighted": 0.63,
+            "note": "MARGINAL (RISING_20D+AT_60D_HIGH+RS_20D_+6)",
+            "keyword": "RISING_20D"
+          }
+        ]
+      },
+      {
+        "ticker": "AMD",
+        "early_score": 23,
+        "pump_category": "WATCHLIST",
+        "convergence_score": 97.1,
+        "n_engines": 8,
+        "prior_n_engines": 8,
+        "factors": [
+          "earliness_signals_3",
+          "ultra_tier"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "earnings-pead",
+            "weighted": 1.2,
+            "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 6Q ()",
+            "keyword": "TIER_A"
+          },
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          },
+          {
+            "engine": "momentum-breakout",
+            "weighted": 0.63,
+            "note": "WATCH (RISING_20D+NEAR_60D_HIGH+RS_20D_+36)",
+            "keyword": "RISING_20D"
+          }
+        ]
+      },
+      {
+        "ticker": "MU",
+        "early_score": 23,
+        "pump_category": "WATCHLIST",
+        "convergence_score": 93.3,
+        "n_engines": 9,
+        "prior_n_engines": 9,
+        "factors": [
+          "earliness_signals_3",
+          "ultra_tier"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "options-flow",
+            "weighted": 1.5,
+            "note": "TIER_A_BULLISH_FLOW (CPR_SURGING+CALL_VOL_3X)",
+            "keyword": "TIER_A"
+          },
+          {
+            "engine": "earnings-pead",
+            "weighted": 1.2,
+            "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 8Q ()",
+            "keyword": "TIER_A"
+          },
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          }
+        ]
+      },
+      {
+        "ticker": "ORCL",
+        "early_score": 23,
+        "pump_category": "PUMP_LIKELY",
+        "convergence_score": 92.8,
+        "n_engines": 9,
+        "prior_n_engines": 9,
+        "factors": [
+          "earliness_signals_3",
+          "ultra_tier"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "options-flow",
+            "weighted": 1.5,
+            "note": "TIER_A_BULLISH_FLOW (CPR_SURGING+CALL_VOL_3X)",
+            "keyword": "TIER_A"
+          },
+          {
+            "engine": "velocity-acceleration",
+            "weighted": 1.35,
+            "note": "ACCELERATION_CONFIRMED (earliness signal)",
+            "keyword": "ACCELERATION_CONFIRMED"
+          },
+          {
+            "engine": "momentum-breakout",
+            "weighted": 1.19,
+            "note": "TIER_A_BREAKOUT (RISING_20D+AT_60D_HIGH+VOL_SURGE_1.8X)",
+            "keyword": "BREAKOUT"
+          }
+        ]
+      },
+      {
+        "ticker": "TSLA",
+        "early_score": 23,
+        "pump_category": "WATCHLIST",
+        "convergence_score": 92.4,
+        "n_engines": 9,
+        "prior_n_engines": 9,
+        "factors": [
+          "earliness_signals_3",
+          "ultra_tier"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "earnings-pead",
+            "weighted": 0.78,
+            "note": "TIER_B_BUILDING \u00b7 streak 2Q ()",
+            "keyword": "TIER_B"
+          },
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          },
+          {
+            "engine": "momentum-breakout",
+            "weighted": 0.63,
+            "note": "MARGINAL (RISING_20D)",
+            "keyword": "RISING_20D"
+          }
+        ]
+      },
+      {
+        "ticker": "ADI",
+        "early_score": 22,
+        "pump_category": "PUMP_POSSIBLE",
+        "convergence_score": 36.4,
+        "n_engines": 2,
+        "prior_n_engines": 0,
+        "factors": [
+          "engine_growth_2",
+          "earliness_signals_1"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          }
+        ]
+      },
+      {
+        "ticker": "APH",
+        "early_score": 22,
+        "pump_category": "PUMP_POSSIBLE",
+        "convergence_score": 35.4,
+        "n_engines": 2,
+        "prior_n_engines": 0,
+        "factors": [
+          "engine_growth_2",
+          "earliness_signals_1"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          }
+        ]
+      },
+      {
+        "ticker": "HON",
+        "early_score": 22,
+        "pump_category": "WATCHLIST",
+        "convergence_score": 34.0,
+        "n_engines": 2,
+        "prior_n_engines": 0,
+        "factors": [
+          "engine_growth_2",
+          "earliness_signals_1"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "momentum-breakout",
+            "weighted": 0.63,
+            "note": "MARGINAL (RISING_20D+NEAR_60D_HIGH+RS_20D_+6)",
+            "keyword": "RISING_20D"
+          }
+        ]
+      },
+      {
+        "ticker": "ETN",
+        "early_score": 22,
+        "pump_category": "PUMP_POSSIBLE",
+        "convergence_score": 33.9,
+        "n_engines": 2,
+        "prior_n_engines": 0,
+        "factors": [
+          "engine_growth_2",
+          "earliness_signals_1"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          }
+        ]
+      },
+      {
+        "ticker": "TMO",
+        "early_score": 22,
+        "pump_category": "WATCHLIST",
+        "convergence_score": 33.2,
+        "n_engines": 2,
+        "prior_n_engines": 0,
+        "factors": [
+          "engine_growth_2",
+          "earliness_signals_1"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "momentum-breakout",
+            "weighted": 0.63,
+            "note": "MARGINAL (RISING_20D+AT_20D_HIGH)",
+            "keyword": "RISING_20D"
+          }
+        ]
+      },
+      {
+        "ticker": "CRM",
+        "early_score": 18,
+        "pump_category": "PUMP_POSSIBLE",
+        "convergence_score": 77.2,
+        "n_engines": 5,
+        "prior_n_engines": 5,
+        "factors": [
+          "earliness_signals_3"
+        ],
+        "earliness_signatures": [
+          {
+            "engine": "velocity-acceleration",
+            "weighted": 1.35,
+            "note": "ACCELERATION_CONFIRMED (earliness signal)",
+            "keyword": "ACCELERATION_CONFIRMED"
+          },
+          {
+            "engine": "eps-revision-velocity",
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B",
+            "keyword": "TIER_B"
+          },
+          {
+            "engine": "momentum-breakout",
+            "weighted": 0.63,
+            "note": "WATCH (RISING_20D+AT_60D_HIGH+VOL_SURGE_1.8X)",
+            "keyword": "RISING_20D"
+          }
+        ]
+      }
+    ],
+    "would_mrvl_have_been_visible": true,
+    "mrvl_rank_in_early_movers": 3
+  },
+  "finished": "2026-06-02T17:29:00.706615+00:00"
+}
