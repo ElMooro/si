@@ -1,0 +1,84 @@
+{
+  "started": "2026-06-02T21:56:32.609950+00:00",
+  "lambdas": {
+    "justhodl-prediction-snapshotter": {
+      "create": "created",
+      "schedule_err": "An error occurred (ValidationException) when calling the PutRule operation: Parameter ScheduleExpression is not valid."
+    },
+    "justhodl-self-improvement": {
+      "create": "created",
+      "schedule_err": "An error occurred (ValidationException) when calling the PutRule operation: Parameter ScheduleExpression is not valid."
+    }
+  },
+  "snapshot_invoke": {
+    "elapsed_s": 1.5,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.6, \\\"n_tickers\\\": 158, \\\"alert_distribution\\\": {\\\"CASCADE_ALERT\\\": 8, \\\"VELOCITY_WATCH\\\": 7, \\\"CONVERGENCE_ULTRA\\\": 16, \\\"VELOCITY_EMERGING\\\": 1, \\\"CONVERGENCE_HIGH\\\": 19, \\\"CONVERGENCE_MED\\\": 57, \\\"OPTIONS_BULLISH_CALL\\\": 9, \\\"CASCADE_LAGGARD\\\": 6, \\\"OPTIONS_EXTREME_CALL\\\": 9, \\\"CONVERGENCE_LOW\\\": 35, \\\"INSIDER_CLUSTER\\\": 30}, \\\"snapshot_date\\\": \\\"2026-06-02\\\"}\"}"
+  },
+  "si_invoke": {
+    "elapsed_s": 2.7,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 1.9, \\\"n_predictions_scored\\\": 158, \\\"n_valid_outcomes\\\": 0, \\\"n_features_attributed\\\": 0, \\\"calibrated\\\": false, \\\"telegram_status\\\": null}\"}"
+  },
+  "dlq_purge": [
+    {
+      "name": "justhodl-dlq-default",
+      "before": 81,
+      "after": 0,
+      "purged": true
+    }
+  ],
+  "calibration": {
+    "last_updated": "2026-06-02T21:56:44.381634+00:00",
+    "current_weights": {},
+    "n_data_points": 0,
+    "history_entries": 1
+  },
+  "snapshot": {
+    "snapshot_date": "2026-06-02",
+    "n_tickers": 158,
+    "alert_distribution": {
+      "CASCADE_ALERT": 8,
+      "VELOCITY_WATCH": 7,
+      "CONVERGENCE_ULTRA": 16,
+      "VELOCITY_EMERGING": 1,
+      "CONVERGENCE_HIGH": 19,
+      "CONVERGENCE_MED": 57,
+      "OPTIONS_BULLISH_CALL": 9,
+      "CASCADE_LAGGARD": 6,
+      "OPTIONS_EXTREME_CALL": 9,
+      "CONVERGENCE_LOW": 35,
+      "INSIDER_CLUSTER": 30
+    },
+    "sample_predictions": [
+      {
+        "ticker": "MU",
+        "n_alerts": 3,
+        "n_features": 36
+      },
+      {
+        "ticker": "PANW",
+        "n_alerts": 3,
+        "n_features": 36
+      },
+      {
+        "ticker": "CRWD",
+        "n_alerts": 3,
+        "n_features": 36
+      },
+      {
+        "ticker": "CDNS",
+        "n_alerts": 4,
+        "n_features": 45
+      },
+      {
+        "ticker": "FTNT",
+        "n_alerts": 2,
+        "n_features": 32
+      }
+    ]
+  },
+  "finished": "2026-06-02T21:56:46.755399+00:00"
+}
