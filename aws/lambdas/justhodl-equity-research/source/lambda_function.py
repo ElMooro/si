@@ -1545,19 +1545,18 @@ def lambda_handler(event, context):
         },
     }
 
-    # ── Cache to S3 — this is what async pollers wait for
-    # ACL=public-read so the Cloudflare proxy + browsers can fetch directly
-    # from the bucket via the CDN without hitting this Lambda. That's how
-    # cached tickers serve in 0.2s instead of 90-100s.
+    # ── Cache to S3 — this is what async pollers wait for.
+    # The bucket has ACLs disabled (BucketOwnerEnforced). Public access for
+    # the equity-research/* prefix is granted via bucket policy
+    # (PublicReadEquityResearch statement, see ops 1151), not per-object ACL.
     try:
         s3.put_object(
             Bucket=S3_BUCKET, Key=cache_key,
             Body=json.dumps(document, default=str).encode("utf-8"),
             ContentType="application/json",
             CacheControl=f"public, max-age={CACHE_TTL}",
-            ACL="public-read",
         )
-        print(f"[cache] WROTE {cache_key} (public-read)")
+        print(f"[cache] WROTE {cache_key}")
     except Exception as e:
         print(f"[cache] write failed: {e}")
 
