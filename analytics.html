@@ -565,15 +565,15 @@ SELECT
   rating,
   pe_ttm,
   pe_5yr_avg,
-  rev_5y_cagr_pct,
-  rev_3y_cagr_pct,
+  revenue_5yr_cagr,
+  revenue_3yr_cagr,
   fcf_yield_pct,
   roic_ttm_pct,
   upside_pct
 FROM equity_research
 WHERE pe_ttm > 0 AND pe_ttm < 25
-  AND rev_5y_cagr_pct > 10
-ORDER BY rev_5y_cagr_pct DESC`,
+  AND revenue_5yr_cagr > 10
+ORDER BY revenue_5yr_cagr DESC`,
 
   hidden_quality: `-- High ROIC + reasonable valuation = compounder hiding in plain sight
 SELECT
@@ -584,7 +584,7 @@ SELECT
   roe_ttm_pct,
   pe_ttm,
   health_score,
-  rev_5y_cagr_pct,
+  revenue_5yr_cagr,
   fcf_yield_pct,
   shareholder_yield_pct,
   upside_pct
@@ -655,7 +655,7 @@ SELECT
   r.ev_upside_pct AS ev_upside,
   r.pe_ttm,
   r.roic_ttm_pct AS roic,
-  r.rev_5y_cagr_pct AS rev_cagr,
+  r.revenue_5yr_cagr AS rev_cagr,
   e.signal_label AS insider_signal,
   e.signal_score AS insider_score,
   e.n_csuite_sellers AS csuite_sells

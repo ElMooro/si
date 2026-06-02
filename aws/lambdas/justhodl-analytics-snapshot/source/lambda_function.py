@@ -53,6 +53,9 @@ def flatten_research(doc: dict) -> dict:
     Excludes long-text fields (executive_summary, thesis_paragraph, etc.) —
     those aren't useful for analytical filtering. We keep all the
     quantitative fields a PM would slice by.
+
+    Field names match the actual research Lambda output (see compute_growth,
+    compute_returns, build_valuation in the research Lambda source).
     """
     return {
         "ticker":              doc.get("ticker"),
@@ -81,29 +84,39 @@ def flatten_research(doc: dict) -> dict:
         "ev_upside_pct":       _get(doc, "scenarios", "expected_value_upside_pct"),
         "ev_12m":              _get(doc, "scenarios", "expected_value_12m"),
         "risk_reward_ratio":   _get(doc, "scenarios", "risk_reward_ratio"),
-        # Valuation
+        # Valuation (correct keys per build_valuation)
         "pe_ttm":              _get(doc, "valuation", "pe_ttm"),
         "pe_5yr_avg":          _get(doc, "valuation", "pe_5yr_avg"),
-        "ev_ebitda":           _get(doc, "valuation", "ev_ebitda"),
         "pb_ttm":              _get(doc, "valuation", "pb_ttm"),
+        "ps_ttm":              _get(doc, "valuation", "ps_ttm"),
+        "pfcf_ttm":            _get(doc, "valuation", "pfcf_ttm"),
+        "ev_ebitda":           _get(doc, "valuation", "ev_ebitda"),
+        "peg_ratio":           _get(doc, "valuation", "peg_ratio"),
         "fcf_yield_pct":       _get(doc, "valuation", "fcf_yield_pct"),
         "div_yield_pct":       _get(doc, "valuation", "div_yield_pct"),
         "roe_ttm_pct":         _get(doc, "valuation", "roe_ttm_pct"),
         "roic_ttm_pct":        _get(doc, "valuation", "roic_ttm_pct"),
-        "dcf_value":           _get(doc, "valuation", "dcf_value"),
+        "dcf_estimate":        _get(doc, "valuation", "dcf_estimate"),
         "dcf_upside_pct":      _get(doc, "valuation", "dcf_upside_pct"),
-        # Growth
-        "rev_5y_cagr_pct":     _get(doc, "growth", "rev_5y_cagr_pct"),
-        "rev_3y_cagr_pct":     _get(doc, "growth", "rev_3y_cagr_pct"),
-        "eps_5y_cagr_pct":     _get(doc, "growth", "eps_5y_cagr_pct"),
-        "fcf_5y_cagr_pct":     _get(doc, "growth", "fcf_5y_cagr_pct"),
+        "analyst_pt_median":   _get(doc, "valuation", "analyst_pt_median"),
+        "analyst_pt_upside_pct": _get(doc, "valuation", "analyst_pt_upside_pct"),
+        # Growth (correct keys — revenue_NYR_cagr, eps_NYR_cagr, fcf_NYR_cagr)
+        "revenue_3yr_cagr":    _get(doc, "growth", "revenue_3yr_cagr"),
+        "revenue_5yr_cagr":    _get(doc, "growth", "revenue_5yr_cagr"),
+        "revenue_10yr_cagr":   _get(doc, "growth", "revenue_10yr_cagr"),
+        "eps_3yr_cagr":        _get(doc, "growth", "eps_3yr_cagr"),
+        "eps_5yr_cagr":        _get(doc, "growth", "eps_5yr_cagr"),
+        "eps_10yr_cagr":       _get(doc, "growth", "eps_10yr_cagr"),
+        "fcf_5yr_cagr":        _get(doc, "growth", "fcf_5yr_cagr"),
+        "ni_5yr_cagr":         _get(doc, "growth", "ni_5yr_cagr"),
         # Health
         "health_score":        _get(doc, "financial_health", "overall_score"),
-        # Returns
-        "return_1y_pct":       _get(doc, "returns", "return_1y_pct"),
-        "return_3y_pct":       _get(doc, "returns", "return_3y_pct"),
-        "return_5y_pct":       _get(doc, "returns", "return_5y_pct"),
-        "cagr_5y_pct":         _get(doc, "returns", "cagr_5y_pct"),
+        # Returns (correct keys per compute_returns)
+        "ytd_pct":             _get(doc, "returns", "ytd_pct"),
+        "return_1yr_pct":      _get(doc, "returns", "1yr_pct"),
+        "cagr_3yr_pct":        _get(doc, "returns", "3yr_cagr_pct"),
+        "cagr_5yr_pct":        _get(doc, "returns", "5yr_cagr_pct"),
+        "cagr_10yr_pct":       _get(doc, "returns", "10yr_cagr_pct"),
         "max_drawdown_pct":    _get(doc, "returns", "max_drawdown_pct"),
         # Earnings track record
         "eps_beat_rate_pct":   _get(doc, "earnings_track_record", "eps_beat_rate_pct"),
