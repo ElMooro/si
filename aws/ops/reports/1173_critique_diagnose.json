@@ -1,0 +1,52 @@
+{
+  "started": "2026-06-02T11:53:59.675984+00:00",
+  "lambda_config": {
+    "memory_mb": 512,
+    "timeout_s": 180,
+    "runtime": "python3.12",
+    "env_keys": [],
+    "has_anthropic_key": false,
+    "anthropic_key_len": 0,
+    "has_openai_key": false,
+    "last_modified": "2026-06-02T11:47:57.000+0000"
+  },
+  "recent_log_events": [
+    {
+      "ts": "2026-06-02T11:49:26.828000+00:00",
+      "msg": "INIT_START Runtime Version: python:3.12.mainlinev2.v7\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244"
+    },
+    {
+      "ts": "2026-06-02T11:49:27.382000+00:00",
+      "msg": "[critique] AAPL starting"
+    },
+    {
+      "ts": "2026-06-02T11:49:27.511000+00:00",
+      "msg": "[critique] model call failed: ANTHROPIC_API_KEY not set"
+    },
+    {
+      "ts": "2026-06-02T11:49:27.514000+00:00",
+      "msg": "END RequestId: 8297f2f4-ec16-4089-903b-444a8ab4ac77"
+    },
+    {
+      "ts": "2026-06-02T11:49:27.554000+00:00",
+      "msg": "[critique] NVDA starting"
+    },
+    {
+      "ts": "2026-06-02T11:49:27.637000+00:00",
+      "msg": "[critique] model call failed: ANTHROPIC_API_KEY not set"
+    },
+    {
+      "ts": "2026-06-02T11:49:27.639000+00:00",
+      "msg": "END RequestId: 67b9b648-af03-4add-b340-132ce8d2d370"
+    }
+  ],
+  "ssm_key": {
+    "found": true,
+    "key_len": 108
+  },
+  "env_patched": true,
+  "smoke_retry": {
+    "error": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-research-critique/invocations\""
+  },
+  "finished": "2026-06-02T11:59:17.455731+00:00"
+}
