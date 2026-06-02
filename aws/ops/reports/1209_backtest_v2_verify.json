@@ -1,0 +1,845 @@
+{
+  "started": "2026-06-02T18:31:12.934896+00:00",
+  "invoke": {
+    "elapsed_s": 1.5,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.5, \\\"n_big_pumpers\\\": 11, \\\"n_pumpers\\\": 22, \\\"n_control\\\": 3, \\\"pumper_pct_in_top_10\\\": 77.3, \\\"control_pct_in_top_10\\\": 100.0, \\\"lift_top_10_pp\\\": -22.700000000000003, \\\"interpretation\\\": \\\"Weak / no validation: lift < 5pp\\\", \\\"n_laggards_hot\\\": 3, \\\"top_5_big_pumpers\\\": [{\\\"ticker\\\": \\\"DELL\\\", \\\"perf_5d_pct\\\": 43.34, \\\"hot_etf\\\": \\\"XLK\\\", \\\"theme_rs_rank\\\": 9, \\\"theme_momentum\\\": 93}, {\\\"ticker\\\": \\\"MRVL\\\", \\\"perf_5d_pct\\\": 36.5, \\\"hot_etf\\\": \\\"SOXX\\\", \\\"theme_rs_rank\\\": 7, \\\"theme_momentum\\\": 78}, {\\\"ticker\\\": \\\"IBM\\\", \\\"perf_5d_pct\\\": 29.97, \\\"hot_etf\\\": \\\"VGT\\\", \\\"theme_rs_rank\\\": 14, \\\"theme_momentum\\\": 93}, {\\\"ticker\\\": \\\"ARM\\\", \\\"perf_5d_pct\\\": 26.26, \\\"hot_etf\\\": \\\"CHAT\\\", \\\"theme_rs_rank\\\": 4, \\\"theme_momentum\\\": 100}, {\\\"ticker\\\": \\\"NOW\\\", \\\"perf_5d_pct\\\": 26.16, \\\"hot_etf\\\": \\\"IGV\\\", \\\"theme_rs_rank\\\": 6, \\\"theme_momentum\\\": 93}], \\\"top_5_laggards_hot\\\": [{\\\"ticker\\\": \\\"QCOM\\\", \\\"perf_5d_pct\\\": -2.92, \\\"hot_etf\\\": \\\"SOXX\\\", \\\"theme_momentum\\\": 78}, {\\\"ticker\\\": \\\"INTC\\\", \\\"perf_5d_pct\\\": -13.32, \\\"hot_etf\\\": \\\"SOXX\\\", \\\"theme_momentum\\\": 78}, {\\\"ticker\\\": \\\"TXN\\\", \\\"perf_5d_pct\\\": -6.46, \\\"hot_etf\\\": \\\"SOXX\\\", \\\"theme_momentum\\\": 78}]}\"}"
+  },
+  "doc": {
+    "schema_version": "1.0",
+    "big_pumpers_5d_stats": {
+      "n": 11,
+      "n_with_theme": 11,
+      "pct_in_top_10": 90.9,
+      "pct_in_top_20": 100.0,
+      "pct_in_top_30": 100.0,
+      "mean_theme_momentum": 92.9,
+      "median_theme_momentum": 93,
+      "mean_theme_rs_rank": 5.6,
+      "median_theme_rs_rank": 6,
+      "mean_theme_acceleration": 87.6,
+      "label": "Big pumpers 5d >=+10%"
+    },
+    "pumpers_5d_stats": {
+      "n": 22,
+      "n_with_theme": 22,
+      "pct_in_top_10": 77.3,
+      "pct_in_top_20": 81.8,
+      "pct_in_top_30": 95.5,
+      "mean_theme_momentum": 89.8,
+      "median_theme_momentum": 93,
+      "mean_theme_rs_rank": 11.2,
+      "median_theme_rs_rank": 7,
+      "mean_theme_acceleration": 67.7,
+      "label": "Pumpers 5d >=+5%"
+    },
+    "control_stats": {
+      "n": 3,
+      "n_with_theme": 3,
+      "pct_in_top_10": 100.0,
+      "pct_in_top_20": 100.0,
+      "pct_in_top_30": 100.0,
+      "mean_theme_momentum": 78.0,
+      "median_theme_momentum": 78,
+      "mean_theme_rs_rank": 7.0,
+      "median_theme_rs_rank": 7,
+      "mean_theme_acceleration": -1.5,
+      "label": "Flat/down 5d <=0% (control)"
+    },
+    "laggards_hot_stats": {
+      "n": 3,
+      "n_with_theme": 3,
+      "pct_in_top_10": 100.0,
+      "pct_in_top_20": 100.0,
+      "pct_in_top_30": 100.0,
+      "mean_theme_momentum": 78.0,
+      "median_theme_momentum": 78,
+      "mean_theme_rs_rank": 7.0,
+      "median_theme_rs_rank": 7,
+      "mean_theme_acceleration": -1.5,
+      "label": "Laggards in hot themes"
+    },
+    "lift_metrics": {
+      "pct_in_top_10_lift_pp": -22.700000000000003,
+      "pct_in_top_20_lift_pp": -18.200000000000003,
+      "mean_theme_momentum_lift": 11.799999999999997,
+      "interpretation": "Weak / no validation: lift < 5pp"
+    },
+    "big_pumpers_detail": [
+      {
+        "ticker": "DELL",
+        "perf_5d_pct": 43.34,
+        "perf_20d_pct": 106.62,
+        "n_etfs_holding": 3,
+        "hot_etf": "XLK",
+        "hot_etf_name": "Tech Select Sector",
+        "theme_category": "TECH_BROAD",
+        "theme_momentum": 93,
+        "theme_rs_rank": 9,
+        "theme_rs_accel": 53.17,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 1,
+        "n_etfs_in_top_20": 2,
+        "max_rs_acceleration": 55.11,
+        "min_rs_rank": 9,
+        "max_momentum": 100,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          },
+          {
+            "etf": "BLOK",
+            "category": "BLOCKCHAIN",
+            "momentum": 100,
+            "rs_rank": 18,
+            "rs_accel": 55.11
+          }
+        ]
+      },
+      {
+        "ticker": "MRVL",
+        "perf_5d_pct": 36.5,
+        "perf_20d_pct": 73.7,
+        "n_etfs_holding": 5,
+        "hot_etf": "SOXX",
+        "hot_etf_name": "iShares Semiconductor",
+        "theme_category": "AI_SEMI",
+        "theme_momentum": 78,
+        "theme_rs_rank": 7,
+        "theme_rs_accel": -1.48,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 1,
+        "n_etfs_in_top_20": 2,
+        "max_rs_acceleration": 11.59,
+        "min_rs_rank": 7,
+        "max_momentum": 93,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "SOXX",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 7,
+            "rs_accel": -1.48
+          },
+          {
+            "etf": "SMH",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 12,
+            "rs_accel": 2.4
+          },
+          {
+            "etf": "VUG",
+            "category": "GROWTH_LARGE",
+            "momentum": 93,
+            "rs_rank": 34,
+            "rs_accel": 11.59
+          }
+        ]
+      },
+      {
+        "ticker": "IBM",
+        "perf_5d_pct": 29.97,
+        "perf_20d_pct": 41.98,
+        "n_etfs_holding": 7,
+        "hot_etf": "VGT",
+        "hot_etf_name": "Vanguard Info Tech",
+        "theme_category": "TECH_BROAD",
+        "theme_momentum": 93,
+        "theme_rs_rank": 14,
+        "theme_rs_accel": 42.58,
+        "in_top_10": false,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 0,
+        "n_etfs_in_top_20": 2,
+        "max_rs_acceleration": 55.11,
+        "min_rs_rank": 14,
+        "max_momentum": 100,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "MTUM",
+            "category": "MOMENTUM_FACTOR",
+            "momentum": 100,
+            "rs_rank": 22,
+            "rs_accel": 14.97
+          },
+          {
+            "etf": "BLOK",
+            "category": "BLOCKCHAIN",
+            "momentum": 100,
+            "rs_rank": 18,
+            "rs_accel": 55.11
+          },
+          {
+            "etf": "VGT",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 14,
+            "rs_accel": 42.58
+          }
+        ]
+      },
+      {
+        "ticker": "ARM",
+        "perf_5d_pct": 26.26,
+        "perf_20d_pct": 99.54,
+        "n_etfs_holding": 3,
+        "hot_etf": "CHAT",
+        "hot_etf_name": "Roundhill Generative AI",
+        "theme_category": "AI_BROAD",
+        "theme_momentum": 100,
+        "theme_rs_rank": 4,
+        "theme_rs_accel": 89.05,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 2,
+        "n_etfs_in_top_20": 3,
+        "max_rs_acceleration": 89.05,
+        "min_rs_rank": 4,
+        "max_momentum": 100,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "SMH",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 12,
+            "rs_accel": 2.4
+          },
+          {
+            "etf": "SOXX",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 7,
+            "rs_accel": -1.48
+          },
+          {
+            "etf": "CHAT",
+            "category": "AI_BROAD",
+            "momentum": 100,
+            "rs_rank": 4,
+            "rs_accel": 89.05
+          }
+        ]
+      },
+      {
+        "ticker": "NOW",
+        "perf_5d_pct": 26.16,
+        "perf_20d_pct": 37.06,
+        "n_etfs_holding": 4,
+        "hot_etf": "IGV",
+        "hot_etf_name": "iShares Software",
+        "theme_category": "SOFTWARE",
+        "theme_momentum": 93,
+        "theme_rs_rank": 6,
+        "theme_rs_accel": 142.41,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 2,
+        "n_etfs_in_top_20": 2,
+        "max_rs_acceleration": 142.41,
+        "min_rs_rank": 6,
+        "max_momentum": 93,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "VUG",
+            "category": "GROWTH_LARGE",
+            "momentum": 93,
+            "rs_rank": 34,
+            "rs_accel": 11.59
+          },
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          },
+          {
+            "etf": "IGV",
+            "category": "SOFTWARE",
+            "momentum": 93,
+            "rs_rank": 6,
+            "rs_accel": 142.41
+          }
+        ]
+      },
+      {
+        "ticker": "ORCL",
+        "perf_5d_pct": 26.13,
+        "perf_20d_pct": 35.06,
+        "n_etfs_holding": 9,
+        "hot_etf": "IGV",
+        "hot_etf_name": "iShares Software",
+        "theme_category": "SOFTWARE",
+        "theme_momentum": 93,
+        "theme_rs_rank": 6,
+        "theme_rs_accel": 142.41,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 3,
+        "n_etfs_in_top_20": 4,
+        "max_rs_acceleration": 142.41,
+        "min_rs_rank": 6,
+        "max_momentum": 100,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "VUG",
+            "category": "GROWTH_LARGE",
+            "momentum": 93,
+            "rs_rank": 34,
+            "rs_accel": 11.59
+          },
+          {
+            "etf": "AIQ",
+            "category": "AI_BROAD",
+            "momentum": 100,
+            "rs_rank": 8,
+            "rs_accel": 77.38
+          },
+          {
+            "etf": "IGV",
+            "category": "SOFTWARE",
+            "momentum": 93,
+            "rs_rank": 6,
+            "rs_accel": 142.41
+          },
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          },
+          {
+            "etf": "VGT",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 14,
+            "rs_accel": 42.58
+          }
+        ]
+      },
+      {
+        "ticker": "MU",
+        "perf_5d_pct": 17.38,
+        "perf_20d_pct": 82.43,
+        "n_etfs_holding": 9,
+        "hot_etf": "CHAT",
+        "hot_etf_name": "Roundhill Generative AI",
+        "theme_category": "AI_BROAD",
+        "theme_momentum": 100,
+        "theme_rs_rank": 4,
+        "theme_rs_accel": 89.05,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 4,
+        "n_etfs_in_top_20": 6,
+        "max_rs_acceleration": 89.05,
+        "min_rs_rank": 4,
+        "max_momentum": 100,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "MTUM",
+            "category": "MOMENTUM_FACTOR",
+            "momentum": 100,
+            "rs_rank": 22,
+            "rs_accel": 14.97
+          },
+          {
+            "etf": "SOXX",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 7,
+            "rs_accel": -1.48
+          },
+          {
+            "etf": "SMH",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 12,
+            "rs_accel": 2.4
+          },
+          {
+            "etf": "CHAT",
+            "category": "AI_BROAD",
+            "momentum": 100,
+            "rs_rank": 4,
+            "rs_accel": 89.05
+          },
+          {
+            "etf": "AIQ",
+            "category": "AI_BROAD",
+            "momentum": 100,
+            "rs_rank": 8,
+            "rs_accel": 77.38
+          },
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          },
+          {
+            "etf": "VGT",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 14,
+            "rs_accel": 42.58
+          }
+        ]
+      },
+      {
+        "ticker": "APP",
+        "perf_5d_pct": 16.73,
+        "perf_20d_pct": 26.38,
+        "n_etfs_holding": 6,
+        "hot_etf": "IGV",
+        "hot_etf_name": "iShares Software",
+        "theme_category": "SOFTWARE",
+        "theme_momentum": 93,
+        "theme_rs_rank": 6,
+        "theme_rs_accel": 142.41,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 2,
+        "n_etfs_in_top_20": 2,
+        "max_rs_acceleration": 142.41,
+        "min_rs_rank": 6,
+        "max_momentum": 100,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "QUAL",
+            "category": "QUALITY_FACTOR",
+            "momentum": 40,
+            "rs_rank": 44,
+            "rs_accel": -7.61
+          },
+          {
+            "etf": "MTUM",
+            "category": "MOMENTUM_FACTOR",
+            "momentum": 100,
+            "rs_rank": 22,
+            "rs_accel": 14.97
+          },
+          {
+            "etf": "VUG",
+            "category": "GROWTH_LARGE",
+            "momentum": 93,
+            "rs_rank": 34,
+            "rs_accel": 11.59
+          },
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          },
+          {
+            "etf": "IGV",
+            "category": "SOFTWARE",
+            "momentum": 93,
+            "rs_rank": 6,
+            "rs_accel": 142.41
+          }
+        ]
+      },
+      {
+        "ticker": "PANW",
+        "perf_5d_pct": 14.7,
+        "perf_20d_pct": 59.57,
+        "n_etfs_holding": 9,
+        "hot_etf": "CIBR",
+        "hot_etf_name": "Cybersecurity",
+        "theme_category": "CYBERSEC",
+        "theme_momentum": 93,
+        "theme_rs_rank": 2,
+        "theme_rs_accel": 88.0,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 5,
+        "n_etfs_in_top_20": 5,
+        "max_rs_acceleration": 196.71,
+        "min_rs_rank": 2,
+        "max_momentum": 93,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "VUG",
+            "category": "GROWTH_LARGE",
+            "momentum": 93,
+            "rs_rank": 34,
+            "rs_accel": 11.59
+          },
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          },
+          {
+            "etf": "CIBR",
+            "category": "CYBERSEC",
+            "momentum": 93,
+            "rs_rank": 2,
+            "rs_accel": 88.0
+          },
+          {
+            "etf": "WCLD",
+            "category": "AI_SOFTWARE",
+            "momentum": 93,
+            "rs_rank": 5,
+            "rs_accel": 196.71
+          },
+          {
+            "etf": "HACK",
+            "category": "CYBERSEC",
+            "momentum": 93,
+            "rs_rank": 3,
+            "rs_accel": 83.43
+          },
+          {
+            "etf": "IGV",
+            "category": "SOFTWARE",
+            "momentum": 93,
+            "rs_rank": 6,
+            "rs_accel": 142.41
+          }
+        ]
+      },
+      {
+        "ticker": "CRWD",
+        "perf_5d_pct": 12.83,
+        "perf_20d_pct": 61.48,
+        "n_etfs_holding": 9,
+        "hot_etf": "CIBR",
+        "hot_etf_name": "Cybersecurity",
+        "theme_category": "CYBERSEC",
+        "theme_momentum": 93,
+        "theme_rs_rank": 2,
+        "theme_rs_accel": 88.0,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 5,
+        "n_etfs_in_top_20": 5,
+        "max_rs_acceleration": 196.71,
+        "min_rs_rank": 2,
+        "max_momentum": 93,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "VUG",
+            "category": "GROWTH_LARGE",
+            "momentum": 93,
+            "rs_rank": 34,
+            "rs_accel": 11.59
+          },
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          },
+          {
+            "etf": "ARKW",
+            "category": "NEXT_GEN",
+            "momentum": 93,
+            "rs_rank": 24,
+            "rs_accel": 46.11
+          },
+          {
+            "etf": "CIBR",
+            "category": "CYBERSEC",
+            "momentum": 93,
+            "rs_rank": 2,
+            "rs_accel": 88.0
+          },
+          {
+            "etf": "WCLD",
+            "category": "AI_SOFTWARE",
+            "momentum": 93,
+            "rs_rank": 5,
+            "rs_accel": 196.71
+          },
+          {
+            "etf": "HACK",
+            "category": "CYBERSEC",
+            "momentum": 93,
+            "rs_rank": 3,
+            "rs_accel": 83.43
+          },
+          {
+            "etf": "IGV",
+            "category": "SOFTWARE",
+            "momentum": 93,
+            "rs_rank": 6,
+            "rs_accel": 142.41
+          }
+        ]
+      },
+      {
+        "ticker": "AVGO",
+        "perf_5d_pct": 12.0,
+        "perf_20d_pct": 13.48,
+        "n_etfs_holding": 11,
+        "hot_etf": "CIBR",
+        "hot_etf_name": "Cybersecurity",
+        "theme_category": "CYBERSEC",
+        "theme_momentum": 93,
+        "theme_rs_rank": 2,
+        "theme_rs_accel": 88.0,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 6,
+        "n_etfs_in_top_20": 7,
+        "max_rs_acceleration": 89.05,
+        "min_rs_rank": 2,
+        "max_momentum": 100,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "MTUM",
+            "category": "MOMENTUM_FACTOR",
+            "momentum": 100,
+            "rs_rank": 22,
+            "rs_accel": 14.97
+          },
+          {
+            "etf": "SOXX",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 7,
+            "rs_accel": -1.48
+          },
+          {
+            "etf": "CHAT",
+            "category": "AI_BROAD",
+            "momentum": 100,
+            "rs_rank": 4,
+            "rs_accel": 89.05
+          },
+          {
+            "etf": "CIBR",
+            "category": "CYBERSEC",
+            "momentum": 93,
+            "rs_rank": 2,
+            "rs_accel": 88.0
+          },
+          {
+            "etf": "AIQ",
+            "category": "AI_BROAD",
+            "momentum": 100,
+            "rs_rank": 8,
+            "rs_accel": 77.38
+          },
+          {
+            "etf": "HACK",
+            "category": "CYBERSEC",
+            "momentum": 93,
+            "rs_rank": 3,
+            "rs_accel": 83.43
+          },
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          },
+          {
+            "etf": "VGT",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 14,
+            "rs_accel": 42.58
+          }
+        ]
+      }
+    ],
+    "laggards_hot_detail": [
+      {
+        "ticker": "QCOM",
+        "perf_5d_pct": -2.92,
+        "perf_20d_pct": 43.46,
+        "n_etfs_holding": 6,
+        "hot_etf": "SOXX",
+        "hot_etf_name": "iShares Semiconductor",
+        "theme_category": "AI_SEMI",
+        "theme_momentum": 78,
+        "theme_rs_rank": 7,
+        "theme_rs_accel": -1.48,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 2,
+        "n_etfs_in_top_20": 3,
+        "max_rs_acceleration": 53.17,
+        "min_rs_rank": 7,
+        "max_momentum": 93,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "QUAL",
+            "category": "QUALITY_FACTOR",
+            "momentum": 40,
+            "rs_rank": 44,
+            "rs_accel": -7.61
+          },
+          {
+            "etf": "SMH",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 12,
+            "rs_accel": 2.4
+          },
+          {
+            "etf": "SOXX",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 7,
+            "rs_accel": -1.48
+          },
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          }
+        ]
+      },
+      {
+        "ticker": "INTC",
+        "perf_5d_pct": -13.32,
+        "perf_20d_pct": 11.79,
+        "n_etfs_holding": 8,
+        "hot_etf": "SOXX",
+        "hot_etf_name": "iShares Semiconductor",
+        "theme_category": "AI_SEMI",
+        "theme_momentum": 78,
+        "theme_rs_rank": 7,
+        "theme_rs_accel": -1.48,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 3,
+        "n_etfs_in_top_20": 5,
+        "max_rs_acceleration": 77.38,
+        "min_rs_rank": 7,
+        "max_momentum": 100,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "MTUM",
+            "category": "MOMENTUM_FACTOR",
+            "momentum": 100,
+            "rs_rank": 22,
+            "rs_accel": 14.97
+          },
+          {
+            "etf": "SMH",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 12,
+            "rs_accel": 2.4
+          },
+          {
+            "etf": "SOXX",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 7,
+            "rs_accel": -1.48
+          },
+          {
+            "etf": "AIQ",
+            "category": "AI_BROAD",
+            "momentum": 100,
+            "rs_rank": 8,
+            "rs_accel": 77.38
+          },
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          },
+          {
+            "etf": "VGT",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 14,
+            "rs_accel": 42.58
+          }
+        ]
+      },
+      {
+        "ticker": "TXN",
+        "perf_5d_pct": -6.46,
+        "perf_20d_pct": 8.19,
+        "n_etfs_holding": 7,
+        "hot_etf": "SOXX",
+        "hot_etf_name": "iShares Semiconductor",
+        "theme_category": "AI_SEMI",
+        "theme_momentum": 78,
+        "theme_rs_rank": 7,
+        "theme_rs_accel": -1.48,
+        "in_top_10": true,
+        "in_top_20": true,
+        "in_top_30": true,
+        "n_etfs_in_top_10": 2,
+        "n_etfs_in_top_20": 4,
+        "max_rs_acceleration": 53.17,
+        "min_rs_rank": 7,
+        "max_momentum": 93,
+        "all_etfs_with_ranks": [
+          {
+            "etf": "SMH",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 12,
+            "rs_accel": 2.4
+          },
+          {
+            "etf": "SOXX",
+            "category": "AI_SEMI",
+            "momentum": 78,
+            "rs_rank": 7,
+            "rs_accel": -1.48
+          },
+          {
+            "etf": "XLK",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 9,
+            "rs_accel": 53.17
+          },
+          {
+            "etf": "VGT",
+            "category": "TECH_BROAD",
+            "momentum": 93,
+            "rs_rank": 14,
+            "rs_accel": 42.58
+          }
+        ]
+      }
+    ]
+  },
+  "finished": "2026-06-02T18:32:44.658116+00:00"
+}
