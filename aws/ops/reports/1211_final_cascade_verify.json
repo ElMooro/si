@@ -1,0 +1,433 @@
+{
+  "started": "2026-06-02T18:48:36.609738+00:00",
+  "invoke": {
+    "elapsed_s": 1.8,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.6, \\\"n_total\\\": 2, \\\"n_alert_tier\\\": 2, \\\"n_medium_tier\\\": 0, \\\"n_themes_tracked\\\": 113, \\\"top_5_hot_themes\\\": [{\\\"etf\\\": \\\"CHAT\\\", \\\"name\\\": \\\"Roundhill Generative AI\\\", \\\"category\\\": \\\"AI_BROAD\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 4, \\\"rs_accel\\\": 89.05}, {\\\"etf\\\": \\\"AIQ\\\", \\\"name\\\": \\\"Global X AI & Tech\\\", \\\"category\\\": \\\"AI_BROAD\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 8, \\\"rs_accel\\\": 77.38}, {\\\"etf\\\": \\\"TAN\\\", \\\"name\\\": \\\"Invesco Solar\\\", \\\"category\\\": \\\"SOLAR\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 11, \\\"rs_accel\\\": 53.32}, {\\\"etf\\\": \\\"BLOK\\\", \\\"name\\\": \\\"Amplify Transformational Data\\\", \\\"category\\\": \\\"BLOCKCHAIN\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 18, \\\"rs_accel\\\": 55.11}, {\\\"etf\\\": \\\"CIBR\\\", \\\"name\\\": \\\"Cybersecurity\\\", \\\"category\\\": \\\"CYBERSEC\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 93, \\\"rs_rank\\\": 2, \\\"rs_accel\\\": 88.0}], \\\"top_10_combined\\\": [{\\\"ticker\\\": \\\"CRWD\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"combined_score\\\": 117.2, \\\"base\\\": 35.5, \\\"theme_mult\\\": 3.0, \\\"flow_mult\\\": 1.1, \\\"hot_etf\\\": \\\"CIBR\\\", \\\"industry\\\": \\\"Software - Infrastructure\\\"}, {\\\"ticker\\\": \\\"PANW\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"combined_score\\\": 105.9, \\\"base\\\": 32.1, \\\"theme_mult\\\": 3.0, \\\"flow_mult\\\": 1.1, \\\"hot_etf\\\": \\\"CIBR\\\", \\\"industry\\\": \\\"Software - Infrastructure\\\"}]}\"}"
+  },
+  "doc": {
+    "generated_at": "2026-06-02T18:49:53.231886+00:00",
+    "n_alert_tier": 2,
+    "n_medium_tier": 0,
+    "n_laggards_hot_themes": 7,
+    "earnings_within_3d": [],
+    "alert_tier": [
+      {
+        "ticker": "CRWD",
+        "tier": "WATCH",
+        "base_score": 35.5,
+        "theme_multiplier": 3.0,
+        "flow_multiplier": 1.1,
+        "combined_score": 117.2,
+        "industry": "Software - Infrastructure",
+        "industry_label": "Software - Infrastructure",
+        "hot_etf": "CIBR",
+        "hot_etf_name": "Cybersecurity",
+        "hot_etf_category": "CYBERSEC",
+        "n_etfs_in_heat_index": 7,
+        "theme_factors": [
+          "top_momentum (m=93)",
+          "top_5_rs (#2)",
+          "strong_accel (a=88.0)",
+          "high_breadth (100%)",
+          "top_10_momentum",
+          "strong_money_flow (3.7)"
+        ],
+        "theme_momentum": 93,
+        "theme_rs_rank": 2,
+        "theme_acceleration": 88.0,
+        "flow_factors": [
+          "broad_exposure_5_etfs"
+        ],
+        "n_etfs_holding": 5,
+        "aggregate_flow_5d_usd": 4128406.93,
+        "aggregate_flow_21d_usd": 27318465.6,
+        "slope_score": 30.5,
+        "accum_score": 49.2,
+        "floor_score": 27.5,
+        "current_vol_ratio": 0.91,
+        "momentum_score": 82.4,
+        "position_sizing": {
+          "base_pct": 5.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 88"
+            }
+          ],
+          "cumulative_multiplier": 1.3,
+          "uncapped_pct": 6.5,
+          "final_pct": 6.5,
+          "tier_cap_pct": 18.0,
+          "rationale": "Moderate conviction \u2014 1 multiplier(s) active"
+        }
+      },
+      {
+        "ticker": "PANW",
+        "tier": "WATCH",
+        "base_score": 32.1,
+        "theme_multiplier": 3.0,
+        "flow_multiplier": 1.1,
+        "combined_score": 105.9,
+        "industry": "Software - Infrastructure",
+        "industry_label": "Software - Infrastructure",
+        "hot_etf": "CIBR",
+        "hot_etf_name": "Cybersecurity",
+        "hot_etf_category": "CYBERSEC",
+        "n_etfs_in_heat_index": 6,
+        "theme_factors": [
+          "top_momentum (m=93)",
+          "top_5_rs (#2)",
+          "strong_accel (a=88.0)",
+          "high_breadth (100%)",
+          "top_10_momentum",
+          "strong_money_flow (3.7)"
+        ],
+        "theme_momentum": 93,
+        "theme_rs_rank": 2,
+        "theme_acceleration": 88.0,
+        "flow_factors": [
+          "broad_exposure_6_etfs"
+        ],
+        "n_etfs_holding": 6,
+        "aggregate_flow_5d_usd": 63037403.58,
+        "aggregate_flow_21d_usd": 107900319.96,
+        "slope_score": 47.2,
+        "accum_score": 28.3,
+        "floor_score": 0,
+        "current_vol_ratio": 1.11,
+        "momentum_score": 82.8,
+        "position_sizing": {
+          "base_pct": 5.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 88"
+            }
+          ],
+          "cumulative_multiplier": 1.3,
+          "uncapped_pct": 6.5,
+          "final_pct": 6.5,
+          "tier_cap_pct": 18.0,
+          "rationale": "Moderate conviction \u2014 1 multiplier(s) active"
+        }
+      }
+    ],
+    "medium_tier": [],
+    "laggards_hot_themes": [
+      {
+        "ticker": "INTC",
+        "tier": "LAGGARD",
+        "is_laggard": true,
+        "perf_5d_pct": -13.32,
+        "perf_20d_pct": 11.79,
+        "perf_60d_pct": 146.59,
+        "industry_label": "?",
+        "hot_etf": "SOXX",
+        "hot_etf_name": "iShares Semiconductor",
+        "hot_etf_category": "AI_SEMI",
+        "theme_rs_rank": 7,
+        "theme_momentum": 78,
+        "theme_acceleration": 77.38,
+        "max_rs_acceleration": 77.38,
+        "n_etfs_in_top_10": 3,
+        "n_etfs_in_top_20": 5,
+        "n_etfs_holding": 8,
+        "aggregate_flow_5d_usd": 171308943.44,
+        "aggregate_flow_21d_usd": 449991385.9,
+        "combined_score": 122.1,
+        "position_sizing": {
+          "base_pct": 3.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 77"
+            },
+            {
+              "factor": "multi_top_10_etfs",
+              "value": 1.3,
+              "detail": "3 top-10 ETFs hold this"
+            },
+            {
+              "factor": "strong_etf_inflow",
+              "value": 1.2,
+              "detail": "+$171M 5d ETF inflow"
+            },
+            {
+              "factor": "sustained_21d_inflow",
+              "value": 1.15,
+              "detail": "+$450M 21d ETF inflow"
+            }
+          ],
+          "cumulative_multiplier": 2.33,
+          "uncapped_pct": 7.0,
+          "final_pct": 7.0,
+          "tier_cap_pct": 12.0,
+          "rationale": "Heavy conviction \u2014 4 multipliers active"
+        }
+      },
+      {
+        "ticker": "AMD",
+        "tier": "LAGGARD",
+        "is_laggard": true,
+        "perf_5d_pct": 2.16,
+        "perf_20d_pct": 50.72,
+        "perf_60d_pct": 167.51,
+        "industry_label": "?",
+        "hot_etf": "CHAT",
+        "hot_etf_name": "Roundhill Generative AI",
+        "hot_etf_category": "AI_BROAD",
+        "theme_rs_rank": 4,
+        "theme_momentum": 100,
+        "theme_acceleration": 89.05,
+        "max_rs_acceleration": 89.05,
+        "n_etfs_in_top_10": 4,
+        "n_etfs_in_top_20": 7,
+        "n_etfs_holding": 12,
+        "aggregate_flow_5d_usd": 261262541.85,
+        "aggregate_flow_21d_usd": 652597972.63,
+        "combined_score": 67.8,
+        "position_sizing": {
+          "base_pct": 3.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 89"
+            },
+            {
+              "factor": "multi_top_10_etfs",
+              "value": 1.3,
+              "detail": "4 top-10 ETFs hold this"
+            },
+            {
+              "factor": "strong_etf_inflow",
+              "value": 1.2,
+              "detail": "+$261M 5d ETF inflow"
+            },
+            {
+              "factor": "sustained_21d_inflow",
+              "value": 1.15,
+              "detail": "+$653M 21d ETF inflow"
+            }
+          ],
+          "cumulative_multiplier": 2.33,
+          "uncapped_pct": 7.0,
+          "final_pct": 7.0,
+          "tier_cap_pct": 12.0,
+          "rationale": "Heavy conviction \u2014 4 multipliers active"
+        }
+      },
+      {
+        "ticker": "TXN",
+        "tier": "LAGGARD",
+        "is_laggard": true,
+        "perf_5d_pct": -6.46,
+        "perf_20d_pct": 8.19,
+        "perf_60d_pct": 57.27,
+        "industry_label": "?",
+        "hot_etf": "SOXX",
+        "hot_etf_name": "iShares Semiconductor",
+        "hot_etf_category": "AI_SEMI",
+        "theme_rs_rank": 7,
+        "theme_momentum": 78,
+        "theme_acceleration": 53.17,
+        "max_rs_acceleration": 53.17,
+        "n_etfs_in_top_10": 2,
+        "n_etfs_in_top_20": 4,
+        "n_etfs_holding": 7,
+        "aggregate_flow_5d_usd": 117064005.07,
+        "aggregate_flow_21d_usd": 241500286.79,
+        "combined_score": 62.9,
+        "position_sizing": {
+          "base_pct": 3.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 53"
+            },
+            {
+              "factor": "dual_top_10_etfs",
+              "value": 1.15,
+              "detail": "2 top-10 ETFs hold this"
+            },
+            {
+              "factor": "strong_etf_inflow",
+              "value": 1.2,
+              "detail": "+$117M 5d ETF inflow"
+            },
+            {
+              "factor": "sustained_21d_inflow",
+              "value": 1.15,
+              "detail": "+$242M 21d ETF inflow"
+            }
+          ],
+          "cumulative_multiplier": 2.06,
+          "uncapped_pct": 6.19,
+          "final_pct": 6.2,
+          "tier_cap_pct": 12.0,
+          "rationale": "Heavy conviction \u2014 4 multipliers active"
+        }
+      },
+      {
+        "ticker": "QCOM",
+        "tier": "LAGGARD",
+        "is_laggard": true,
+        "perf_5d_pct": -2.92,
+        "perf_20d_pct": 43.46,
+        "perf_60d_pct": 78.02,
+        "industry_label": "?",
+        "hot_etf": "SOXX",
+        "hot_etf_name": "iShares Semiconductor",
+        "hot_etf_category": "AI_SEMI",
+        "theme_rs_rank": 7,
+        "theme_momentum": 78,
+        "theme_acceleration": 53.17,
+        "max_rs_acceleration": 53.17,
+        "n_etfs_in_top_10": 2,
+        "n_etfs_in_top_20": 3,
+        "n_etfs_holding": 6,
+        "aggregate_flow_5d_usd": -14899608.08,
+        "aggregate_flow_21d_usd": 62187954.41,
+        "combined_score": 55.2,
+        "position_sizing": {
+          "base_pct": 3.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 53"
+            },
+            {
+              "factor": "dual_top_10_etfs",
+              "value": 1.15,
+              "detail": "2 top-10 ETFs hold this"
+            }
+          ],
+          "cumulative_multiplier": 1.49,
+          "uncapped_pct": 4.48,
+          "final_pct": 4.5,
+          "tier_cap_pct": 12.0,
+          "rationale": "Moderate conviction \u2014 2 multiplier(s) active"
+        }
+      },
+      {
+        "ticker": "LRCX",
+        "tier": "LAGGARD",
+        "is_laggard": true,
+        "perf_5d_pct": 2.83,
+        "perf_20d_pct": 28.32,
+        "perf_60d_pct": 66.46,
+        "industry_label": "?",
+        "hot_etf": "XLK",
+        "hot_etf_name": "Tech Select Sector",
+        "hot_etf_category": "TECH_BROAD",
+        "theme_rs_rank": 9,
+        "theme_momentum": 93,
+        "theme_acceleration": 53.17,
+        "max_rs_acceleration": 53.17,
+        "n_etfs_in_top_10": 1,
+        "n_etfs_in_top_20": 3,
+        "n_etfs_holding": 7,
+        "aggregate_flow_5d_usd": -100144135.93,
+        "aggregate_flow_21d_usd": 91307879.63,
+        "combined_score": 30.6,
+        "position_sizing": {
+          "base_pct": 3.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 53"
+            }
+          ],
+          "cumulative_multiplier": 1.3,
+          "uncapped_pct": 3.9,
+          "final_pct": 3.9,
+          "tier_cap_pct": 12.0,
+          "rationale": "Moderate conviction \u2014 1 multiplier(s) active"
+        }
+      },
+      {
+        "ticker": "GLW",
+        "tier": "LAGGARD",
+        "is_laggard": true,
+        "perf_5d_pct": 1.85,
+        "perf_20d_pct": 24.91,
+        "perf_60d_pct": 62.06,
+        "industry_label": "?",
+        "hot_etf": "XLK",
+        "hot_etf_name": "Tech Select Sector",
+        "hot_etf_category": "TECH_BROAD",
+        "theme_rs_rank": 9,
+        "theme_momentum": 93,
+        "theme_acceleration": 53.17,
+        "max_rs_acceleration": 53.17,
+        "n_etfs_in_top_10": 1,
+        "n_etfs_in_top_20": 1,
+        "n_etfs_holding": 3,
+        "aggregate_flow_5d_usd": -17304708.95,
+        "aggregate_flow_21d_usd": -3952525.08,
+        "combined_score": 30.6,
+        "position_sizing": {
+          "base_pct": 3.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 53"
+            }
+          ],
+          "cumulative_multiplier": 1.3,
+          "uncapped_pct": 3.9,
+          "final_pct": 3.9,
+          "tier_cap_pct": 12.0,
+          "rationale": "Moderate conviction \u2014 1 multiplier(s) active"
+        }
+      },
+      {
+        "ticker": "KLAC",
+        "tier": "LAGGARD",
+        "is_laggard": true,
+        "perf_5d_pct": 0.33,
+        "perf_20d_pct": 17.78,
+        "perf_60d_pct": 50.08,
+        "industry_label": "?",
+        "hot_etf": "XLK",
+        "hot_etf_name": "Tech Select Sector",
+        "hot_etf_category": "TECH_BROAD",
+        "theme_rs_rank": 9,
+        "theme_momentum": 93,
+        "theme_acceleration": 53.17,
+        "max_rs_acceleration": 53.17,
+        "n_etfs_in_top_10": 1,
+        "n_etfs_in_top_20": 3,
+        "n_etfs_holding": 7,
+        "aggregate_flow_5d_usd": -84837090.82,
+        "aggregate_flow_21d_usd": 42067497.56,
+        "combined_score": 30.6,
+        "position_sizing": {
+          "base_pct": 3.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 53"
+            }
+          ],
+          "cumulative_multiplier": 1.3,
+          "uncapped_pct": 3.9,
+          "final_pct": 3.9,
+          "tier_cap_pct": 12.0,
+          "rationale": "Moderate conviction \u2014 1 multiplier(s) active"
+        }
+      }
+    ]
+  },
+  "finished": "2026-06-02T18:49:53.527745+00:00"
+}
