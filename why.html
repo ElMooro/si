@@ -423,6 +423,7 @@ function renderReport(d){
   html += renderGrowth(d);
   html += renderEarningsTrack(d);
   html += renderCapitalAllocation(d);
+  html += renderInstitutionalActivity(d);
   html += renderReturns(d);
   html += renderMargins(d);
   html += renderStatements(d);
@@ -939,6 +940,64 @@ function renderCapitalAllocation(d){
             <tbody>${rows}</tbody>
           </table>
         </div>
+      </div>
+    </section>`;
+}
+
+function renderInstitutionalActivity(d){
+  const ia = d.institutional_activity || {};
+  const filings = ia.filings_display || [];
+
+  // Don't render if zero data — but still show stub with note if 0 recent
+  if(!ia.n_filings_total && filings.length === 0) {
+    return "";
+  }
+
+  const rows = filings.map(f => {
+    const dateStr = (f.filing_date || '').slice(0, 10);
+    const filerName = f.filer || '—';
+    // Highlight famous institutions
+    const famous = /berkshire|blackrock|vanguard|wellington|fidelity|state street|capital group|t\.?\s?rowe|jpmorgan|morgan stanley|ubs|invesco|geode/i.test(filerName);
+    const filerClass = famous ? 'style="color:var(--accent); font-weight:700"' : '';
+    const url = f.url ? `<a href="${esc(f.url)}" target="_blank" style="color:var(--text-muted); font-family:var(--font-mono); font-size:10px">SEC ↗</a>` : '';
+    return `<tr>
+      <td>${esc(dateStr)}</td>
+      <td style="text-align:left; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap"><span ${filerClass}>${esc(filerName)}</span></td>
+      <td>${f.shares_owned != null ? Number(f.shares_owned).toLocaleString() : '—'}</td>
+      <td>${f.pct_of_class != null ? f.pct_of_class.toFixed(2) + '%' : '—'}</td>
+      <td>${esc((f.filer_type || '').slice(0, 12))}</td>
+      <td>${url}</td>
+    </tr>`;
+  }).join("");
+
+  const noRecent = (filings.length === 0)
+    ? `<div style="padding:14px; color:var(--text-muted); font-style:italic; text-align:center; font-size:12px">
+         No 13D/13G filings in the last 24 months (${ia.n_filings_total || 0} total in history).
+       </div>`
+    : "";
+
+  return `
+    <section class="block">
+      <h3><span class="ico">🏛</span> Institutional Activity
+        <span class="pill">13D/13G · ${ia.n_filings_recent_24m || 0} recent · ${ia.n_unique_filers_24m || 0} unique filers</span>
+      </h3>
+      ${d.institutional_activity_assessment ? `<p>${esc(d.institutional_activity_assessment)}</p>` : ""}
+      ${rows ? `<div class="table-wrap" style="margin-top:14px">
+        <table>
+          <thead><tr>
+            <th>Filed</th>
+            <th style="text-align:left">Filer</th>
+            <th>Shares Owned</th>
+            <th>% of Class</th>
+            <th>Type</th>
+            <th>Doc</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>` : noRecent}
+      <div style="margin-top:10px; font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono); line-height:1.5">
+        13D = activist filing (intent to influence) · 13G = passive holder &gt;5% ·
+        Bold rows = blue-chip institutions
       </div>
     </section>`;
 }

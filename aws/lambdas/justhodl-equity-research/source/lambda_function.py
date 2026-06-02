@@ -184,6 +184,7 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
         "scores":           ("financial-scores", {"symbol": ticker}),
         "peers":            ("stock-peers", {"symbol": ticker}),
         "earnings":         ("earnings", {"symbol": ticker, "limit": 12}),
+        "ownership":        ("acquisition-of-beneficial-ownership", {"symbol": ticker}),
         "prices_eod":       ("historical-price-eod/light",
                               {"symbol": ticker, "from": _date_n_years_ago(10)}),
         "dividends":        ("dividends", {"symbol": ticker, "limit": 20}),
@@ -569,6 +570,55 @@ def compute_financial_health(scores: list, ratios_ttm: dict, key_ttm: dict,
     }
 
 
+def compute_institutional_activity(ownership_filings: list) -> dict:
+    """SEC 13D/13G beneficial ownership filings analysis.
+
+    13D = activist filing (intent to influence). 13G = passive >5% holder.
+    The pattern matters more than the count: a cluster of recent filings
+    from blue-chip institutions (Vanguard, Blackrock, Berkshire,
+    Wellington) suggests crossing-the-threshold accumulation.
+
+    NB: This is NOT insider trading (Form 4) — FMP doesn't expose Form 4
+    on the current plan. 13D/13G data is the closest proxy: institutional
+    'smart money' position changes that cross 5% reporting threshold.
+    """
+    if not isinstance(ownership_filings, list) or not ownership_filings:
+        return {}
+
+    # FMP returns recent filings; some may be 5+ years old. Filter to last 24 months.
+    from datetime import timedelta
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=730)).strftime("%Y-%m-%d")
+    recent = [f for f in ownership_filings if (f.get("filingDate") or "") >= cutoff]
+    # Sort newest first
+    recent.sort(key=lambda f: f.get("filingDate") or "", reverse=True)
+
+    # Top 8 most-recent filings for display
+    recent_top = recent[:8]
+    filings_display = []
+    for f in recent_top:
+        filings_display.append({
+            "filing_date":          f.get("filingDate"),
+            "filer":                f.get("nameOfReportingPerson"),
+            "shares_owned":         _safe_num(f, "amountBeneficiallyOwned"),
+            "pct_of_class":         _safe_num(f, "percentOfClass"),
+            "filer_jurisdiction":   f.get("citizenshipOrPlaceOfOrganization"),
+            "filer_type":           f.get("typeOfReportingPerson"),
+            "url":                  f.get("url"),
+        })
+
+    # Aggregate
+    unique_filers = set(f.get("nameOfReportingPerson") for f in recent if f.get("nameOfReportingPerson"))
+    total_pct = sum(_safe_num(f, "percentOfClass") or 0 for f in recent)
+
+    return {
+        "n_filings_total":      len(ownership_filings),
+        "n_filings_recent_24m": len(recent),
+        "n_unique_filers_24m":  len(unique_filers),
+        "filings_display":      filings_display,
+        "summary_note":         "13D/13G filings show institutional positions crossing the 5% reporting threshold. Not insider Form 4 (which FMP doesn't expose on current plan). This is institutional 'smart money' accumulation/divestment.",
+    }
+
+
 def compute_capital_allocation(cf_annual: list, income_annual: list,
                                  quote: dict) -> dict:
     """Institutional capital allocation analysis.
@@ -916,6 +966,7 @@ Schema:
   "peer_comparison_assessment": "100 words on how the subject's valuation multiples compare to the peer-median (which functions as the industry P/E benchmark). Reference SPECIFIC peer ticker(s) where helpful. Frame as: 'trading at X% premium/discount to peer median P/E of Y'.",
   "earnings_track_record_assessment": "80 words on the company's earnings consistency. Cite the EPS beat rate, current streak, magnitude trend, and revenue surprise. Hedge fund framing: 'beats 7 of 8 quarters but with shrinking magnitude = deteriorating quality' is more useful than just 'beats consensus regularly'.",
   "capital_allocation_assessment": "80 words on management's capital allocation. Cite total capital returned 10y, shareholder yield, dividend vs buyback mix, payout ratio sustainability, and capex intensity trend. Frame as 'cash-cow returning $X to shareholders' vs 'reinvesting heavily into capex' — both can be good, depends on ROIC.",
+  "institutional_activity_assessment": "60 words on recent SEC 13D/13G beneficial-ownership filings (institutional positions crossing 5% threshold). If filings are stale (>24mo old) or absent, say so plainly. If recent clustering by notable institutions (Berkshire, Vanguard, Blackrock, Wellington), call it out as 'smart money accumulation'.",
   "financial_health_summary": "100 words on the 5-pillar score, calling out the strongest and weakest pillars with the actual numbers.",
   "competitive_position": "100 words on the company's moat and industry position based on margins, growth durability, and ROIC vs peers.",
   "catalysts_12m": [
@@ -1050,6 +1101,7 @@ def lambda_handler(event, context):
     prices_eod       = raw.get("prices_eod") if isinstance(raw.get("prices_eod"), list) else []
     dividends        = raw.get("dividends") if isinstance(raw.get("dividends"), list) else []
     earnings         = raw.get("earnings") if isinstance(raw.get("earnings"), list) else []
+    ownership_data   = raw.get("ownership") if isinstance(raw.get("ownership"), list) else []
 
     # The peers endpoint returns a LIST of peer objects directly (not wrapped).
     # Each has symbol, companyName, price, mktCap.
@@ -1104,6 +1156,9 @@ def lambda_handler(event, context):
 
     # ── Capital allocation timeline
     capital_allocation = compute_capital_allocation(cashflow_annual, income_annual, quote_obj)
+
+    # ── Institutional activity (13D/13G filings — smart money tracking)
+    institutional_activity = compute_institutional_activity(ownership_data)
 
     # ── Compact statements (every year, just essential fields)
     def compact_income(rows):
@@ -1180,6 +1235,7 @@ def lambda_handler(event, context):
         "peer_comparison": peer_comparison,
         "earnings_track_record": earnings_track_record,
         "capital_allocation": capital_allocation,
+        "institutional_activity": institutional_activity,
         "statements_preview": {
             "income_top_5y":      compact_income(income_annual[:5]),
             "balance_top_5y":     compact_balance(balance_annual[:5]),
@@ -1221,6 +1277,7 @@ def lambda_handler(event, context):
         "peer_comparison_assessment": claude_synthesis.get("peer_comparison_assessment"),
         "earnings_track_record_assessment": claude_synthesis.get("earnings_track_record_assessment"),
         "capital_allocation_assessment": claude_synthesis.get("capital_allocation_assessment"),
+        "institutional_activity_assessment": claude_synthesis.get("institutional_activity_assessment"),
         "financial_health_summary": claude_synthesis.get("financial_health_summary"),
         "competitive_position":claude_synthesis.get("competitive_position"),
         "catalysts_12m":       claude_synthesis.get("catalysts_12m") or [],
@@ -1236,6 +1293,7 @@ def lambda_handler(event, context):
         "peer_comparison":     peer_comparison,
         "earnings_track_record": earnings_track_record,
         "capital_allocation":  capital_allocation,
+        "institutional_activity": institutional_activity,
         "statements": {
             "income_annual":     compact_income(income_annual),
             "balance_annual":    compact_balance(balance_annual),
