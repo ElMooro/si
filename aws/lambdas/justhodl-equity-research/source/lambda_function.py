@@ -105,7 +105,7 @@ S3_BUCKET    = "justhodl-dashboard-live"
 CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
 FETCH_TIMEOUT = 20         # FMP per-call timeout
-CLAUDE_TIMEOUT = 90
+CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
