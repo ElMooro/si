@@ -72,6 +72,12 @@ SYSTEM_PROMPT = """You are the Chief Institutional Flow Strategist at a top-tier
    - `macro_regime_multi_asset.top_level.regime` — multi-asset (vol+curve+dollar+carry+commodities+EM+credit from Phase 2 engine)
    When these AGREE, conviction multiplier on calls. When they DISAGREE, that's itself a key divergence to flag in `key_divergences`. The multi-asset regime takes precedence when in conflict — it's broader and more leading. If macro regime is `CREDIT_STRESS` or `FLIGHT_TO_QUALITY`, cap ALL long conviction at MEDIUM regardless of flow signal. If `REFLATION` or `GLOBAL_RISK_ON`, allow HIGH conviction on cyclicals/EM.
 
+9. **NAME-LEVEL VS SECTOR-LEVEL FLOW DIVERGENCE.** The `constituent_pressure` input shows per-stock implied flow pressure aggregated across high-z ETFs. A stock can have BUYING_PRESSURE even when its sector ETF has outflow (e.g., AAPL bid via QQQ/XLK overlap even with XLK outflow). When you see this name-vs-sector divergence:
+   - DON'T short a name with BUYING_PRESSURE even if sector flow is negative — the constituent data shows where institutional money actually lands
+   - DON'T add to a name with SELLING_PRESSURE even if sector flow is positive
+   - SURFACE these as `key_divergences` with type "FLOW_LEVEL_DIVERGENCE"
+   - If a ticker is in your call list, check if it appears in constituent_pressure.top_30 and adjust conviction accordingly
+
 ## OUTPUT SCHEMA (JSON only, no prose outside JSON, no markdown fences)
 
 ```
@@ -279,6 +285,42 @@ def load_macro_regime() -> dict:
     }
 
 
+def load_constituent_pressure() -> dict:
+    """Phase 1.7 cross-ETF constituent pressure: per-stock implied flow
+    pressure aggregated across high-z ETFs.
+
+    The AI strategist uses this to surface name-level disagreements with
+    sector-level flow signals. Example: sector outflow but specific name
+    bid via cross-ETF positioning → flag as divergence; consider not
+    shorting the name even if the sector flows are negative.
+    """
+    doc = _read_json("etf-flows/constituent-pressure.json")
+    if not doc:
+        return {}
+    return {
+        "generated_at": doc.get("generated_at"),
+        "n_high_z_etfs": doc.get("n_high_z_etfs"),
+        "n_stocks_pressured": len(doc.get("top_constituents_by_pressure") or []),
+        "top_30": [
+            {
+                "stock": p.get("stock"),
+                "direction": p.get("dominant_direction"),
+                "pressure_5d_usd": p.get("total_pressure_5d_usd"),
+                "pressure_21d_usd": p.get("total_pressure_21d_usd"),
+                "n_etfs_pressuring": p.get("n_etfs_pressuring"),
+                "cumulative_weight_pct": p.get("cumulative_etf_weight_pct"),
+                "top_contributing_etfs": [
+                    {"etf": e.get("etf"),
+                     "weight_pct": e.get("weight_pct"),
+                     "etf_zscore": e.get("etf_zscore")}
+                    for e in (p.get("contributing_etfs") or [])[:3]
+                ],
+            }
+            for p in (doc.get("top_constituents_by_pressure") or [])[:30]
+        ],
+    }
+
+
 def load_flow_history() -> list:
     """Last 30 days of flow archive files for trend context."""
     keys = sorted(_list_keys("etf-flows/history/"), reverse=True)[:30]
@@ -363,7 +405,7 @@ def claude_call(user_prompt: str) -> dict:
 # ═════════════════════════════════════════════════════════════════════
 # User prompt builder — compact cross-feed payload
 # ═════════════════════════════════════════════════════════════════════
-def build_user_prompt(flow_data, research, critiques, edgar, crisis, history, macro) -> str:
+def build_user_prompt(flow_data, research, critiques, edgar, crisis, history, macro, constituent_pressure) -> str:
     """Compact the input data into a single user-prompt JSON block."""
     # Build per-ticker signal-aligned table (the most important view)
     research_by_t = {r["ticker"]: r for r in research}
@@ -419,7 +461,8 @@ def build_user_prompt(flow_data, research, critiques, edgar, crisis, history, ma
     # Build payload
     payload = {
         "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        "macro_regime_multi_asset": macro,  # Phase 2: 7 sub-regimes (vol/curve/USD/carry/commod/EM/credit) + top-level
+        "macro_regime_multi_asset": macro,  # Phase 2: 7 sub-regimes + top-level
+        "constituent_pressure": constituent_pressure,  # Phase 1.7: cross-ETF stock-level pressure
         "todays_flow_composite": flow_data.get("composite", {}),
         "todays_top_inflow_etfs": sorted(
             [m for m in flow_data.get("metrics", []) if m.get("flow_zscore_90d") is not None],
@@ -485,13 +528,17 @@ def lambda_handler(event, context):
     macro = load_macro_regime()
     print(f"[flows-ai] macro: {macro.get('top_level', {}).get('regime')}")
 
+    print("[flows-ai] loading constituent pressure (Phase 1.7)...")
+    constituent_pressure = load_constituent_pressure()
+    print(f"[flows-ai] constituent: {constituent_pressure.get('n_stocks_pressured', 0)} stocks pressured")
+
     print("[flows-ai] loading flow history...")
     history = load_flow_history()
     print(f"[flows-ai] history: {len(history)} archive days")
 
     # 2. Build user prompt
     print("[flows-ai] building user prompt...")
-    user_prompt = build_user_prompt(flow_data, research, critiques, edgar, crisis, history, macro)
+    user_prompt = build_user_prompt(flow_data, research, critiques, edgar, crisis, history, macro, constituent_pressure)
     prompt_kb = round(len(user_prompt) / 1024, 1)
     print(f"[flows-ai] user prompt size: {prompt_kb} KB ({len(user_prompt)} chars)")
 
