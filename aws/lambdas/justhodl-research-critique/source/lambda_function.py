@@ -402,6 +402,29 @@ def lambda_handler(event, context):
             sector_ctx = by_sector.get(sector)
             if sector_ctx and sector_ctx.get("prompt_snippet"):
                 regime_snippets.append(f"[SECTOR FLOWS] {sector_ctx['prompt_snippet']}")
+        # ── Constituent pressure on THIS specific ticker ─────────────────
+        try:
+            obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/constituent-pressure.json")
+            press_doc = json.loads(obj["Body"].read())
+            stock_pressure = next(
+                (p for p in (press_doc.get("all_constituents") or [])
+                 if p.get("stock") == ticker),
+                None,
+            )
+            if stock_pressure:
+                p5 = stock_pressure.get("total_pressure_5d_usd") or 0
+                n_etfs = stock_pressure.get("n_etfs_pressuring", 0)
+                direction = stock_pressure.get("dominant_direction", "MIXED")
+                cum_weight = stock_pressure.get("cumulative_etf_weight_pct", 0)
+                regime_snippets.append(
+                    f"[ETF-IMPLIED PRESSURE on {ticker}] {direction} via {n_etfs} "
+                    f"high-z ETFs ({cum_weight:.1f}% cumulative weight) = "
+                    f"${p5/1e6:+,.1f}M 5d institutional flow pressure through index channels. "
+                    f"If the analyst's thesis ignores or contradicts this institutional "
+                    f"positioning, raise it as underweighted_risks."
+                )
+        except Exception:
+            pass
         if regime_snippets:
             flow_context_str = (
                 "\n\n[CROSS-FEED PRESSURE-TEST AMMUNITION]\n"

@@ -1372,6 +1372,42 @@ def fetch_etf_flow_context(payload: dict) -> str:
             except Exception:
                 pass
 
+        # ── Constituent pull-through pressure (institutional alpha edge) ─
+        # If THIS stock appears in high-z ETFs, surface the cross-ETF pressure.
+        ticker = payload.get("ticker")
+        if ticker:
+            try:
+                obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/constituent-pressure.json")
+                press_doc = json.loads(obj["Body"].read())
+                stock_pressure = next(
+                    (p for p in (press_doc.get("all_constituents") or [])
+                     if p.get("stock") == ticker),
+                    None,
+                )
+                if stock_pressure:
+                    p5 = stock_pressure.get("total_pressure_5d_usd") or 0
+                    p21 = stock_pressure.get("total_pressure_21d_usd") or 0
+                    n_etfs = stock_pressure.get("n_etfs_pressuring", 0)
+                    direction = stock_pressure.get("dominant_direction", "MIXED")
+                    cum_weight = stock_pressure.get("cumulative_etf_weight_pct", 0)
+                    # Top contributing ETFs (max 3)
+                    top_etfs = (stock_pressure.get("contributing_etfs") or [])[:3]
+                    etf_breakdown = "; ".join(
+                        f"{e['etf']} (weight {e.get('weight_pct', 0):.1f}%, ETF z={e.get('etf_zscore')})"
+                        for e in top_etfs
+                    )
+                    snippets.append(
+                        f"[ETF-IMPLIED FLOW PRESSURE on {ticker}] {direction} — "
+                        f"cross-ETF aggregated 5d implied flow: ${p5/1e6:+,.1f}M "
+                        f"(21d: ${p21/1e6:+,.1f}M) from {n_etfs} high-z ETFs, "
+                        f"cumulative weight exposure: {cum_weight:.1f}%. "
+                        f"Top contributing ETFs: {etf_breakdown}. "
+                        f"This is real institutional positioning data via index/ETF channels — "
+                        f"if it disagrees with your fundamental thesis, address why."
+                    )
+            except Exception as e:
+                print(f"[constituent-pressure] unavailable for {ticker}: {e}")
+
         if not snippets:
             return ""
         return "\n\n" + "\n".join(snippets) + "\n"

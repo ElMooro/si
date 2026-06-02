@@ -209,8 +209,20 @@ table.flow-table tr:hover td{ background:var(--bg-elev) }
     </div>
   </div>
 
-  <!-- 6 Composite Gauges -->
+  <!-- Composite Gauges (existing) -->
   <div class="composite-grid" id="composite-grid"></div>
+
+  <!-- Phase 2: Multi-Asset Macro Regime panel -->
+  <div class="section" id="macro-regime-section" style="display:none">
+    <h3>🌐 Multi-Asset Macro Regime <span class="sub">7 sub-regimes from VIX/curve/dollar/carry/commodity/EM/credit ETF proxies</span></h3>
+    <div class="body" id="macro-regime-body"></div>
+  </div>
+
+  <!-- Phase 1.7: Constituent Pull-Through (institutional alpha edge) -->
+  <div class="section" id="constituent-pressure-section" style="display:none">
+    <h3>🔬 Cross-ETF Constituent Pressure <span class="sub">Stocks under aggregated institutional ETF flow pressure</span></h3>
+    <div class="body" id="constituent-pressure-body" style="padding:0; max-height:50vh; overflow-y:auto"></div>
+  </div>
 
   <!-- Sector Heatmap -->
   <div class="section">
@@ -443,11 +455,133 @@ async function fetchAI(){
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// Phase 2: Multi-Asset Macro Regime panel
+// ═══════════════════════════════════════════════════════════════════
+async function fetchMacroRegime(){
+  try {
+    const r = await fetch(`${CDN}/macro/regime.json?v=${Date.now()}`);
+    if(!r.ok) return;
+    const doc = await r.json();
+    renderMacroRegime(doc);
+  } catch(e) {
+    console.log("macro fetch error:", e.message);
+  }
+}
+
+function renderMacroRegime(doc){
+  const tl = doc.top_level_regime || {};
+  const subs = doc.sub_regimes || {};
+  if(!tl.regime) return;
+
+  const regimeClass = ['CREDIT_STRESS','FLIGHT_TO_QUALITY','GLOBAL_RISK_OFF','DEFLATION'].includes(tl.regime) ? 'neg'
+                    : ['REFLATION','GLOBAL_RISK_ON'].includes(tl.regime) ? 'pos' : 'mixed';
+
+  let html = `
+    <div style="display:flex; align-items:center; gap:18px; margin-bottom:14px; padding:14px 18px; background:var(--bg-elev); border-radius:8px; border-left:3px solid ${regimeClass === 'pos' ? 'var(--pos)' : regimeClass === 'neg' ? 'var(--neg)' : 'var(--warn)'}">
+      <div>
+        <div style="font-family:var(--font-mono); font-size:22px; font-weight:700; color:${regimeClass === 'pos' ? 'var(--pos)' : regimeClass === 'neg' ? 'var(--neg)' : 'var(--warn)'}">${esc(tl.regime)}</div>
+        <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px">${esc(tl.confidence || '—')} confidence</div>
+      </div>
+      <div style="flex:1; color:var(--text-dim); font-size:12.5px; line-height:1.6">
+        ${esc(tl.reasoning || '—')}
+      </div>
+    </div>
+    <div class="composite-grid">`;
+
+  const subOrder = ['vix_regime','curve_regime','dollar_regime','carry_regime','commodity_regime','em_regime','credit_regime'];
+  const subNames = {
+    vix_regime: 'Volatility', curve_regime: 'Yield Curve', dollar_regime: 'Dollar',
+    carry_regime: 'Carry (JPY/AUD)', commodity_regime: 'Commodities',
+    em_regime: 'Emerging Markets', credit_regime: 'Credit (HY/IG)'
+  };
+
+  for(const k of subOrder) {
+    const s = subs[k];
+    if(!s) continue;
+    const sc = s.score;
+    const label = s.label || '—';
+    const cls = sc == null ? 'mixed' : (sc > 10 ? 'pos' : sc < -10 ? 'neg' : 'mixed');
+    const barFill = sc == null ? 0 : Math.min(Math.abs(sc), 100);
+    html += `
+      <div class="gauge">
+        <div class="header-row">
+          <h4>${esc(subNames[k] || k)}</h4>
+          <span class="label ${cls}">${esc(label.replace(/_/g, ' '))}</span>
+        </div>
+        <div class="score ${cls === 'pos' ? 'pos' : cls === 'neg' ? 'neg' : ''}">${sc == null ? '—' : (sc > 0 ? '+' : '') + sc}</div>
+        <div class="bar"><div class="fill ${sc > 0 ? 'pos' : 'neg'}" style="width:${barFill/2}%"></div></div>
+      </div>`;
+  }
+  html += `</div>
+    <div style="margin-top:12px; padding:8px 14px; font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono); border-top:1px solid var(--border-light)">
+      Generated ${esc(doc.generated_at?.slice(0,16).replace('T',' '))} UTC · ${doc.n_ok}/${doc.universe_size} assets · sub-regime scores in [-100..+100], top-level priority rules
+    </div>`;
+
+  $("macro-regime-body").innerHTML = html;
+  $("macro-regime-section").style.display = 'block';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Phase 1.7: Constituent Pull-Through panel
+// ═══════════════════════════════════════════════════════════════════
+async function fetchConstituentPressure(){
+  try {
+    const r = await fetch(`${CDN}/etf-flows/constituent-pressure.json?v=${Date.now()}`);
+    if(!r.ok) return;
+    const doc = await r.json();
+    renderConstituentPressure(doc);
+  } catch(e) {
+    console.log("constituent fetch error:", e.message);
+  }
+}
+
+function renderConstituentPressure(doc){
+  const top = doc.top_constituents_by_pressure || [];
+  if(!top.length) return;
+
+  let html = `
+    <div style="padding:14px 18px; background:var(--bg-elev); border-bottom:1px solid var(--border-light); font-size:11.5px; color:var(--text-muted); line-height:1.7">
+      <b style="color:var(--accent)">What this shows:</b> When a stock appears in multiple high-z ETFs, we sum the implied flow pressure (ETF flow × constituent weight) to estimate institutional positioning via index channels.
+      <br><b style="color:var(--accent)">Today:</b> ${doc.n_high_z_etfs} ETFs cleared the |z|≥${doc.threshold_z}σ threshold, exposing ${(doc.all_constituents || []).length} unique stocks.
+    </div>
+    <table class="flow-table">
+      <thead><tr>
+        <th>Stock</th><th>Direction</th><th>5d Pressure</th><th>21d Pressure</th><th>N ETFs</th><th>Cum Wt</th><th style="min-width:260px">Top Contributing ETFs</th>
+      </tr></thead>
+      <tbody>`;
+
+  for(const p of top.slice(0, 30)) {
+    const p5 = p.total_pressure_5d_usd || 0;
+    const p21 = p.total_pressure_21d_usd || 0;
+    const dirColor = p.dominant_direction === 'BUYING_PRESSURE' ? 'pos' :
+                     p.dominant_direction === 'SELLING_PRESSURE' ? 'neg' : 'mixed';
+    const etfs = (p.contributing_etfs || []).slice(0, 3).map(e =>
+      `<span style="font-size:10px"><b>${esc(e.etf)}</b> <span style="color:var(--text-muted)">(${(e.weight_pct || 0).toFixed(1)}%, z=${e.etf_zscore?.toFixed(2)})</span></span>`
+    ).join(' · ');
+    html += `
+      <tr>
+        <td><a href="/why.html?ticker=${encodeURIComponent(p.stock)}" style="color:var(--accent); text-decoration:none; font-weight:700">${esc(p.stock)}</a></td>
+        <td><span class="${dirColor}" style="font-size:10.5px; font-weight:700">${esc((p.dominant_direction || '—').replace(/_/g, ' '))}</span></td>
+        <td class="num ${p5 > 0 ? 'pos' : 'neg'}"><b>${fmtUSD(p5)}</b></td>
+        <td class="num ${p21 > 0 ? 'pos' : 'neg'}">${fmtUSD(p21)}</td>
+        <td class="num">${p.n_etfs_pressuring || 0}</td>
+        <td class="num">${(p.cumulative_etf_weight_pct || 0).toFixed(1)}%</td>
+        <td>${etfs}</td>
+      </tr>`;
+  }
+  html += `</tbody></table>`;
+  $("constituent-pressure-body").innerHTML = html;
+  $("constituent-pressure-section").style.display = 'block';
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // Existing flow data load
 // ═══════════════════════════════════════════════════════════════════
 async function load() {
-  // Fire AI in parallel
+  // Fire AI + macro + constituent pressure in parallel
   fetchAI();
+  fetchMacroRegime();
+  fetchConstituentPressure();
 
   let daily, composite;
   try {
