@@ -57,9 +57,74 @@ def get_etfs_for_ticker(ticker: str, exposure_lookup: dict,
     return etfs
 
 
+def analyze_ticker_themes(ticker: str, etfs_for_ticker: list,
+                          theme_index: dict, top_10_etfs: set, top_20_etfs: set,
+                          top_30_etfs: set) -> dict:
+    """Comprehensive theme analysis: check ALL ETFs holding this stock.
+
+    Returns dict with:
+      best_theme (highest momentum_score),
+      hottest_theme_by_rank (lowest RS rank = best),
+      any_etf_in_top_10/20/30 (the KEY validation question),
+      n_etfs_in_top_10/20/30 (signal strength),
+      max_rs_acceleration (how hard is rotation happening?),
+      all_etfs_with_ranks (full transparency).
+    """
+    candidates = [theme_index[e] for e in etfs_for_ticker if e in theme_index]
+    if not candidates:
+        return {
+            "best_theme": None, "hottest_theme_by_rank": None,
+            "any_etf_in_top_10": False, "any_etf_in_top_20": False,
+            "any_etf_in_top_30": False,
+            "n_etfs_in_top_10": 0, "n_etfs_in_top_20": 0,
+            "n_etfs_in_top_30": 0,
+            "max_rs_acceleration": None,
+            "min_rs_rank": None, "max_momentum": None,
+            "all_etfs_with_ranks": [],
+        }
+
+    # Pick BOTH metrics — momentum and rank
+    best_by_momentum = max(candidates, key=lambda x: x.get("momentum_score") or 0)
+    best_by_rank = min(candidates, key=lambda x: x.get("rs_rank_20d") or 999)
+
+    n_top_10 = sum(1 for c in candidates if c.get("ticker") in top_10_etfs)
+    n_top_20 = sum(1 for c in candidates if c.get("ticker") in top_20_etfs)
+    n_top_30 = sum(1 for c in candidates if c.get("ticker") in top_30_etfs)
+
+    accels = [c.get("rs_acceleration") for c in candidates
+              if c.get("rs_acceleration") is not None]
+    max_accel = max(accels) if accels else None
+
+    moms = [c.get("momentum_score") for c in candidates if c.get("momentum_score") is not None]
+    max_mom = max(moms) if moms else None
+
+    ranks = [c.get("rs_rank_20d") for c in candidates if c.get("rs_rank_20d") is not None]
+    min_rank = min(ranks) if ranks else None
+
+    return {
+        "best_theme": best_by_momentum,
+        "hottest_theme_by_rank": best_by_rank,
+        "any_etf_in_top_10": n_top_10 > 0,
+        "any_etf_in_top_20": n_top_20 > 0,
+        "any_etf_in_top_30": n_top_30 > 0,
+        "n_etfs_in_top_10": n_top_10,
+        "n_etfs_in_top_20": n_top_20,
+        "n_etfs_in_top_30": n_top_30,
+        "max_rs_acceleration": max_accel,
+        "min_rs_rank": min_rank,
+        "max_momentum": max_mom,
+        "all_etfs_with_ranks": [
+            {"etf": c.get("ticker"), "category": c.get("category"),
+             "momentum": c.get("momentum_score"), "rs_rank": c.get("rs_rank_20d"),
+             "rs_accel": c.get("rs_acceleration")}
+            for c in candidates
+        ][:8],
+    }
+
+
 def get_best_theme_for_ticker(ticker: str, etfs_for_ticker: list,
                                theme_index: dict) -> Optional[dict]:
-    """Return the theme entry with HIGHEST momentum_score that holds this ticker."""
+    """Legacy single-pick. Kept for backward compat. Use analyze_ticker_themes."""
     candidates = [theme_index[e] for e in etfs_for_ticker if e in theme_index]
     if not candidates:
         return None
@@ -110,9 +175,13 @@ def lambda_handler(event, context):
         if perf_5d is None:
             continue
 
-        # Find this stock's hottest theme
         etfs = get_etfs_for_ticker(t, exposure_lookup, breadth_details)
-        best_theme = get_best_theme_for_ticker(t, etfs, theme_index)
+        analysis_res = analyze_ticker_themes(
+            t, etfs, theme_index, top_10_etfs, top_20_etfs, top_30_etfs,
+        )
+
+        # Show BOTH the "best by momentum" (old behavior) and "hottest by rank" (new)
+        best_theme = analysis_res.get("hottest_theme_by_rank") or analysis_res.get("best_theme")
 
         analysis = {
             "ticker": t,
@@ -125,9 +194,16 @@ def lambda_handler(event, context):
             "theme_momentum": best_theme.get("momentum_score") if best_theme else None,
             "theme_rs_rank": best_theme.get("rs_rank_20d") if best_theme else None,
             "theme_rs_accel": best_theme.get("rs_acceleration") if best_theme else None,
-            "in_top_10": best_theme and best_theme.get("ticker") in top_10_etfs,
-            "in_top_20": best_theme and best_theme.get("ticker") in top_20_etfs,
-            "in_top_30": best_theme and best_theme.get("ticker") in top_30_etfs,
+            # NEW — use "ANY ETF in top-N" not "best ETF"
+            "in_top_10": analysis_res["any_etf_in_top_10"],
+            "in_top_20": analysis_res["any_etf_in_top_20"],
+            "in_top_30": analysis_res["any_etf_in_top_30"],
+            "n_etfs_in_top_10": analysis_res["n_etfs_in_top_10"],
+            "n_etfs_in_top_20": analysis_res["n_etfs_in_top_20"],
+            "max_rs_acceleration": analysis_res["max_rs_acceleration"],
+            "min_rs_rank": analysis_res["min_rs_rank"],
+            "max_momentum": analysis_res["max_momentum"],
+            "all_etfs_with_ranks": analysis_res["all_etfs_with_ranks"],
         }
 
         if perf_5d >= 10:
