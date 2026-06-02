@@ -1,0 +1,430 @@
+{
+  "started": "2026-06-02T18:02:32.576485+00:00",
+  "theme_rotation": {
+    "top_keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "duration_s",
+      "spy_ret_20d",
+      "stats",
+      "summary",
+      "all_themes",
+      "breadth_details"
+    ]
+  },
+  "theme_rotation_details": {
+    "schema_version": {
+      "type": "int",
+      "value": "1"
+    },
+    "method": {
+      "type": "str",
+      "value": "theme_rotation_engine_v1"
+    },
+    "generated_at": {
+      "type": "str",
+      "value": "2026-06-02T11:01:21+00:00"
+    },
+    "duration_s": {
+      "type": "float",
+      "value": "6.4"
+    },
+    "spy_ret_20d": {
+      "type": "float",
+      "value": "5.26"
+    },
+    "stats": {
+      "type": "dict",
+      "keys": [
+        "n_themes_evaluated",
+        "n_with_breadth",
+        "n_alerts",
+        "n_rotation_deltas"
+      ],
+      "sample": 118
+    },
+    "summary": {
+      "type": "dict",
+      "keys": [
+        "top_10_momentum",
+        "bottom_10_momentum",
+        "category_summary",
+        "rotators_in",
+        "rotators_out",
+        "convergent_breadth",
+        "alerts"
+      ],
+      "sample": [
+        {
+          "ticker": "CHAT",
+          "name": "Roundhill Generative AI",
+          "category": "AI_BROAD",
+          "momentum_score": 100,
+          "rs_5d": 11.84,
+          "rs_20d": 23.41,
+          "rs_60d": 53.02,
+          "rs_acceleration": 89.05,
+          "vol_ratio": 1.5,
+          "rank_delta": 0,
+          "breadth_pct": 66.7
+        },
+        {
+          "ticker": "AIQ",
+          "name": "Global X AI & Tech",
+          "category": "AI_BROAD",
+          "momentum_score": 100,
+          "rs_5d": 8.83,
+          "rs_20d": 16.95,
+          "rs_60d": 28.52,
+          "rs_acceleration": 77.38,
+          "vol_ratio": 1.16,
+          "rank_delta": 2,
+          "breadth_pct": 73.3
+        },
+        {
+          "ticker": "TAN",
+          "name": "Invesco Solar",
+          "category": "SOLAR",
+          "momentum_score": 100,
+          "rs_5d": 6.12,
+          "rs_20d": 14.75,
+          "rs_60d": 20.17,
+          "rs_acceleration": 53.32,
+          "vol_ratio": 1.27,
+          "rank_delta": -8,
+          "breadth_pct": 73.3
+        },
+        {
+          "ticker": "PBW",
+          "name": "Invesco Wilderhill Clean",
+          "category": "CLEAN_ENERGY",
+          "momentum_score": 100,
+          "rs_5d": 3.69,
+          "rs_20d": 11.9,
+          "rs_60d": 32.15,
+          "rs_acceleration": 12.1,
+          "vol_ratio": 1.31,
+          "rank_delta": -1,
+          "breadth_pct": 73.3
+        },
+        {
+          "ticker": "BLOK",
+          "name": "Amplify Transformational Data",
+          "category": "BLOCKCHAIN",
+          "momentum_score": 100,
+          "rs_5d": 5.79,
+          "rs_20d": 9.1,
+          "rs_60d": 14.43,
+          "rs_acceleration": 55.11,
+          "vol_ratio": 1.17,
+          "rank_delta": 3,
+          "breadth_pct": 73.3
+        },
+        {
+          "ticker": "KOMP",
+          "name": "SPDR Innovative Tech",
+          "category": "INNOV_TECH",
+          "momentum_score": 100,
+          "rs_5d": 3.43,
+          "rs_20d": 6.64,
+          "rs_60d": 9.07,
+          "rs_acceleration": 32.09,
+          "vol_ratio": 1.43,
+          "rank_delta": 2,
+          "breadth_pct": 80.0
+        },
+        {
+          "ticker": "MTUM",
+          "name": "iShares MSCI Momentum",
+          "category": "MOMENTUM_FACTOR",
+          "momentum_score": 100,
+          "rs_5d": 2.66,
+          "rs_20d": 5.91,
+          "rs_60d": 16.96,
+          "rs_acceleration": 14.97,
+          "vol_ratio": 1.39,
+          "rank_delta": 3,
+          "breadth_pct": 46.7
+        },
+        {
+          "ticker": "PICK",
+          "name": "iShares Metals & Mining",
+          "category": "METALS",
+          "momentum_score": 100,
+          "rs_5d": 3.62,
+          "rs_20d": 3.81,
+          "rs_60d": 2.58,
+          "rs_acceleration": 40.84,
+          "vol_ratio": 1.21,
+          "rank_delta": 5,
+          "breadth_pct": 83.3
+        },
+        {
+          "ticker": "ARKQ",
+          "name": "ARK Autonomous Tech",
+          "category": "AUTONOMY",
+          "momentum_score": 100,
+          "rs_5d": 0.94,
+          "rs_20d": 3.36,
+          "rs_60d": 4.38,
+          "rs_acceleration": 6.92,
+          "vol_ratio": 1.27,
+          "rank_delta": -4,
+          "breadth_pct": 66.7
+        },
+        {
+          "ticker": "CIBR",
+          "name": "Cybersecurity",
+          "category": "CYBERSEC",
+          "momentum_score": 93,
+          "rs_5d": 9.98,
+          "rs_20d": 31.67,
+          "rs_60d": 31.77,
+          "rs_acceleration": 88.0,
+          "vol_ratio": 1.07,
+          "rank_delta": 0,
+          "breadth_pct": 100.0
+        }
+      ]
+    },
+    "all_themes": {
+      "type": "list",
+      "n_items": 114,
+      "sample": {
+        "ticker": "CHAT",
+        "name": "Roundhill Generative AI",
+        "category": "AI_BROAD",
+        "today_close": 102.03,
+        "ret_3d": 8.77,
+        "ret_5d": 13.57,
+        "ret_20d": 28.66,
+        "ret_60d": 64.35,
+        "rs_5d": 11.84,
+        "rs_20d": 23.41,
+        "rs_60d": 53.02,
+        "rs_acceleration": 89.05,
+        "vol_ratio_20v60": 1.5,
+        "money_flow_ratio": 2.76,
+        "range_pos_60d": 100.0,
+        "above_ma20": true,
+        "above_ma50": true,
+        "above_ma100": true,
+        "momentum_score": 100,
+        "rs_rank_20d": 4,
+        "rs_rank_delta": 0
+      }
+    },
+    "breadth_details": {
+      "type": "dict",
+      "keys": [
+        "PICK",
+        "BLOK",
+        "CHAT",
+        "ARKQ",
+        "MTUM",
+        "CIBR",
+        "TAN",
+        "AIQ",
+        "KOMP",
+        "WCLD"
+      ],
+      "sample": {
+        "breadth": {
+          "n_constituents_checked": 6,
+          "outperforming_spy_20d": 5,
+          "breadth_outperform_pct": 83.3,
+          "n_above_ma50": 6,
+          "breadth_above_ma50_pct": 100.0
+        },
+        "constituents_perf": [
+          {
+            "symbol": "FCX",
+            "ret_20d": 18.549955791335115,
+            "above_ma50": true,
+            "weight": 5.40193384
+          },
+          {
+            "symbol": "NUE",
+            "ret_20d": 11.25906919129358,
+            "above_ma50": true,
+            "weight": 3.03104086
+          },
+          {
+            "symbol": "STLD",
+            "ret_20d": 14.096916299559448,
+            "above_ma50": true,
+            "weight": 1.85214512
+          },
+          {
+            "symbol": "RS",
+            "ret_20d": 4.638513051797166,
+            "above_ma50": true,
+            "weight": 1.09389174
+          },
+          {
+            "symbol": "SCCO",
+            "ret_20d": 14.826833441500975,
+            "above_ma50": true,
+            "weight": 0.98181071
+          },
+          {
+            "symbol": "AA",
+            "ret_20d": 24.15775187609772,
+            "above_ma50": true,
+            "weight": 0.97100642
+          }
+        ]
+      }
+    }
+  },
+  "themes_doc": {
+    "top_keys": [
+      "schema_version",
+      "generated_at",
+      "elapsed_sec",
+      "n_momentum_leaders",
+      "n_active_themes",
+      "n_classified",
+      "n_unknown",
+      "min_tickers_for_theme",
+      "themes",
+      "ticker_to_theme",
+      "unclassified",
+      "all_industries_seen",
+      "metadata"
+    ]
+  },
+  "themes_sample": {
+    "Semiconductors": {
+      "tickers": [
+        "MRVL",
+        "ARM",
+        "MU",
+        "AMD",
+        "QCOM",
+        "LRCX",
+        "AMAT",
+        "KLAC",
+        "ASML",
+        "AVGO",
+        "INTC",
+        "NVDA"
+      ],
+      "n_leaders": 12,
+      "avg_momentum": 72.03,
+      "label": "AI semis",
+      "is_active": true,
+      "top_ticker": "MRVL",
+      "top_score": 91.4
+    },
+    "Software - Infrastructure": {
+      "tickers": [
+        "FTNT",
+        "PANW",
+        "CRWD",
+        "ORCL"
+      ],
+      "n_leaders": 4,
+      "avg_momentum": 79.95,
+      "label": "Software - Infrastructure",
+      "is_active": true,
+      "top_ticker": "FTNT",
+      "top_score": 82.9
+    },
+    "Computer Hardware": {
+      "tickers": [
+        "DELL",
+        "WDC",
+        "STX"
+      ],
+      "n_leaders": 3,
+      "avg_momentum": 79.07,
+      "label": "Compute hardware",
+      "is_active": true,
+      "top_ticker": "DELL",
+      "top_score": 87.8
+    }
+  },
+  "velocity_theme_fields": {
+    "watch": {
+      "theme_fields": {
+        "theme": "Software - Infrastructure",
+        "theme_label": "Software - Infrastructure"
+      },
+      "all_keys": [
+        "ticker",
+        "tier_label",
+        "composite_score",
+        "slope_score",
+        "accum_score",
+        "floor_score",
+        "current_vol_ratio",
+        "theme",
+        "theme_label",
+        "momentum_score"
+      ]
+    }
+  },
+  "exposure_sample": {
+    "MRVL": {
+      "n_etfs_holding": 5,
+      "cumulative_weight_pct": 11.06,
+      "total_aggregate_flow_5d_usd": -16896434.75,
+      "total_aggregate_flow_21d_usd": 58329429.97,
+      "top_etfs": [
+        {
+          "etf": "SOXX",
+          "weight_pct": 6.1909331,
+          "etf_zscore": 0.48,
+          "etf_label": "NEUTRAL",
+          "etf_flow_5d_usd": -616766969.95,
+          "etf_flow_21d_usd": 503724786.75,
+          "implied_pressure_5d_usd": -38183630.4925016,
+          "implied_pressure_21d_usd": 31185264.555810165
+        },
+        {
+          "etf": "SMH",
+          "weight_pct": 3.11003294,
+          "etf_zscore": 1.69,
+          "etf_label": "INFLOW",
+          "etf_flow_5d_usd": 601640077.0,
+          "etf_flow_21d_usd": 30759974.5,
+          "implied_pressure_5d_usd": 18711204.574941363,
+          "implied_pressure_21d_usd": 956645.3392856003
+        },
+        {
+          "etf": "VUG",
+          "weight_pct": 0.44472572,
+          "etf_zscore": -0.12,
+          "etf_label": "NEUTRAL",
+          "etf_flow_5d_usd": 398036410.38,
+          "etf_flow_21d_usd": 1287420639.79,
+          "implied_pressure_5d_usd": 1770170.2919246096,
+          "implied_pressure_21d_usd": 5725490.709734683
+        },
+        {
+          "etf": "QQQ",
+          "weight_pct": 0.83373522,
+          "etf_zscore": -1.89,
+          "etf_label": "OUTFLOW",
+          "etf_flow_5d_usd": 171551209.5,
+          "etf_flow_21d_usd": 2852946172.5,
+          "implied_pressure_5d_usd": 1430282.853937486,
+          "implied_pressure_21d_usd": 23786017.047774456
+        },
+        {
+          "etf": "IWD",
+          "weight_pct": 0.47848466,
+          "etf_zscore": -0.69,
+          "etf_label": "NEUTRAL",
+          "etf_flow_5d_usd": -130508255.10000001,
+          "etf_flow_21d_usd": -694690541.95,
+          "implied_pressure_5d_usd": -624461.9806871677,
+          "implied_pressure_21d_usd": -3323987.6777016153
+        }
+      ]
+    }
+  },
+  "finished": "2026-06-02T18:02:32.873660+00:00"
+}
