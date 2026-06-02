@@ -1,0 +1,41 @@
+{
+  "started": "2026-06-02T02:40:20.392547+00:00",
+  "audit": {
+    "feature_1_prewarm": {
+      "function_exists": true,
+      "last_modified": "2026-06-02T02:26:55.000+0000",
+      "schedule": "cron(0 8 * * ? *)",
+      "schedule_state": "ENABLED",
+      "status": "\u2705"
+    },
+    "feature_2_search": {
+      "has_research_search": false,
+      "has_goResearch": false,
+      "has_compare_link": false,
+      "status": "\u274c"
+    },
+    "feature_3_compare": {
+      "http": 403,
+      "error": "Forbidden",
+      "status": "\u274c"
+    },
+    "feature_4_edgar": {
+      "lambda_url_works": true,
+      "cdn_serves": true,
+      "cdn_elapsed_s": 0.31,
+      "edgar_signal_label": "ROUTINE_SELLING",
+      "signal_v2_fields_present": true,
+      "status": "\u2705"
+    },
+    "feature_5_watchlist": {
+      "has_watchlist_card": false,
+      "has_wlRender": false,
+      "has_wlAdd": false,
+      "status": "\u274c"
+    }
+  },
+  "edgar_cache_count": 8,
+  "research_cache_count": 17,
+  "summary": "2/5 checks passing",
+  "finished": "2026-06-02T02:40:23.235923+00:00"
+}
