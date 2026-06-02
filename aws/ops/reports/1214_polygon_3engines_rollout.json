@@ -1,0 +1,224 @@
+{
+  "started": "2026-06-02T19:56:07.367998+00:00",
+  "lambdas": {
+    "justhodl-polygon-options-flow": {
+      "create": "exists",
+      "schedule_error": "An error occurred (ValidationException) when calling the PutRule operation: Parameter ScheduleExpression is not valid.",
+      "invoke": {
+        "elapsed_s": 14.3,
+        "status": 200,
+        "function_error": null,
+        "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 13.5, \\\"n_scanned\\\": 30, \\\"n_extreme\\\": 9, \\\"n_bullish\\\": 9, \\\"top_5_alerts\\\": [{\\\"ticker\\\": \\\"AMD\\\", \\\"cv_pv\\\": 247.72, \\\"vol\\\": 57952, \\\"signals\\\": [\\\"EXTREME_CALL_SKEW (C/P=247.72)\\\", \\\"HIGH_VOL_VS_OI (0.56)\\\", \\\"SMART_MONEY_BLOCKS (23 >500 vol)\\\"]}, {\\\"ticker\\\": \\\"JNJ\\\", \\\"cv_pv\\\": 20.78, \\\"vol\\\": 20581, \\\"signals\\\": [\\\"EXTREME_CALL_SKEW (C/P=20.78)\\\", \\\"HIGH_VOL_VS_OI (0.492)\\\", \\\"ELEVATED_IV (mean=0.732)\\\"]}, {\\\"ticker\\\": \\\"APP\\\", \\\"cv_pv\\\": 18.64, \\\"vol\\\": 5972, \\\"signals\\\": [\\\"EXTREME_CALL_SKEW (C/P=18.64)\\\", \\\"HIGH_VOL_VS_OI (0.335)\\\", \\\"ELEVATED_IV (mean=1.44)\\\"]}, {\\\"ticker\\\": \\\"CVX\\\", \\\"cv_pv\\\": 7.2, \\\"vol\\\": 20695, \\\"signals\\\": [\\\"EXTREME_CALL_SKEW (C/P=7.2)\\\", \\\"SMART_MONEY_BLOCKS (6 >500 vol)\\\", \\\"ELEVATED_IV (mean=0.734)\\\"]}, {\\\"ticker\\\": \\\"ASML\\\", \\\"cv_pv\\\": 6.33, \\\"vol\\\": 5655, \\\"signals\\\": [\\\"EXTREME_CALL_SKEW (C/P=6.33)\\\", \\\"HIGH_VOL_VS_OI (0.588)\\\", \\\"ELEVATED_IV (mean=1.427)\\\"]}]}\"}"
+      },
+      "output": {
+        "key": "data/polygon-options-flow.json",
+        "size_kb": 39.2,
+        "generated_at": "2026-06-02T19:56:21.865234+00:00",
+        "elapsed_s": 13.5,
+        "n_scanned": 30,
+        "n_extreme": 9,
+        "n_bullish": 9,
+        "n_pairs": null,
+        "n_products_with_data": null,
+        "regime_signals": [],
+        "signals": [],
+        "extreme_call_flow_top5": [
+          {
+            "ticker": "AMD",
+            "cv_pv": 247.72,
+            "vol": 57952,
+            "signals": [
+              "EXTREME_CALL_SKEW (C/P=247.72)",
+              "HIGH_VOL_VS_OI (0.56)"
+            ]
+          },
+          {
+            "ticker": "JNJ",
+            "cv_pv": 20.78,
+            "vol": 20581,
+            "signals": [
+              "EXTREME_CALL_SKEW (C/P=20.78)",
+              "HIGH_VOL_VS_OI (0.492)"
+            ]
+          },
+          {
+            "ticker": "APP",
+            "cv_pv": 18.64,
+            "vol": 5972,
+            "signals": [
+              "EXTREME_CALL_SKEW (C/P=18.64)",
+              "HIGH_VOL_VS_OI (0.335)"
+            ]
+          },
+          {
+            "ticker": "CVX",
+            "cv_pv": 7.2,
+            "vol": 20695,
+            "signals": [
+              "EXTREME_CALL_SKEW (C/P=7.2)",
+              "SMART_MONEY_BLOCKS (6 >500 vol)"
+            ]
+          },
+          {
+            "ticker": "ASML",
+            "cv_pv": 6.33,
+            "vol": 5655,
+            "signals": [
+              "EXTREME_CALL_SKEW (C/P=6.33)",
+              "HIGH_VOL_VS_OI (0.588)"
+            ]
+          }
+        ],
+        "bullish_call_flow_top5": [
+          {
+            "ticker": "ACN",
+            "cv_pv": 2.84,
+            "vol": 4851,
+            "signals": [
+              "BULLISH_CALL_FLOW (C/P=2.84)",
+              "ELEVATED_IV (mean=0.892)"
+            ]
+          },
+          {
+            "ticker": "GOOGL",
+            "cv_pv": 2.76,
+            "vol": 299595,
+            "signals": [
+              "BULLISH_CALL_FLOW (C/P=2.76)",
+              "HIGH_VOL_VS_OI (3.011)"
+            ]
+          },
+          {
+            "ticker": "GS",
+            "cv_pv": 2.73,
+            "vol": 6490,
+            "signals": [
+              "BULLISH_CALL_FLOW (C/P=2.73)",
+              "HIGH_VOL_VS_OI (0.473)"
+            ]
+          },
+          {
+            "ticker": "AMZN",
+            "cv_pv": 2.61,
+            "vol": 292258,
+            "signals": [
+              "BULLISH_CALL_FLOW (C/P=2.61)",
+              "HIGH_VOL_VS_OI (1.194)"
+            ]
+          },
+          {
+            "ticker": "CRM",
+            "cv_pv": 2.55,
+            "vol": 42323,
+            "signals": [
+              "BULLISH_CALL_FLOW (C/P=2.55)",
+              "HIGH_VOL_VS_OI (0.469)"
+            ]
+          }
+        ],
+        "regime_metrics": null,
+        "pair_data_keys": [],
+        "product_data_summary": null
+      }
+    },
+    "justhodl-polygon-fx-regime": {
+      "create": "exists",
+      "schedule_error": "An error occurred (ValidationException) when calling the PutRule operation: Parameter ScheduleExpression is not valid.",
+      "invoke": {
+        "elapsed_s": 2.1,
+        "status": 200,
+        "function_error": null,
+        "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 1.2, \\\"n_signals\\\": 1, \\\"signals\\\": [\\\"CARRY_TRADE_FAVORABLE (USDJPY +2.0%)\\\"], \\\"usd_synth_20d\\\": 1.131}\"}"
+      },
+      "output": {
+        "key": "data/polygon-fx-regime.json",
+        "size_kb": 1.5,
+        "generated_at": "2026-06-02T19:56:24.244194+00:00",
+        "elapsed_s": 1.2,
+        "n_scanned": null,
+        "n_extreme": null,
+        "n_bullish": null,
+        "n_pairs": 9,
+        "n_products_with_data": null,
+        "regime_signals": [
+          "CARRY_TRADE_FAVORABLE (USDJPY +2.0%)"
+        ],
+        "signals": [],
+        "extreme_call_flow_top5": [],
+        "bullish_call_flow_top5": [],
+        "regime_metrics": {
+          "usd_synthetic_20d_pct": 1.131,
+          "em_fx_mean_20d_pct": 0.754
+        },
+        "pair_data_keys": [
+          "EUR_USD",
+          "USD_JPY",
+          "GBP_USD",
+          "USD_CNH",
+          "USD_BRL",
+          "AUD_USD",
+          "NZD_USD",
+          "USD_CAD",
+          "USD_MXN"
+        ],
+        "product_data_summary": null
+      }
+    },
+    "justhodl-polygon-futures-curves": {
+      "create": "exists",
+      "schedule_error": "An error occurred (ValidationException) when calling the PutRule operation: Parameter ScheduleExpression is not valid.",
+      "invoke": {
+        "elapsed_s": 4.4,
+        "status": 200,
+        "function_error": null,
+        "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 3.5, \\\"n_products_with_data\\\": 5, \\\"n_signals\\\": 1, \\\"signals\\\": [\\\"SILVER_BREAKOUT (+5.4% 20d)\\\"]}\"}"
+      },
+      "output": {
+        "key": "data/polygon-futures-curves.json",
+        "size_kb": 0.9,
+        "generated_at": "2026-06-02T19:56:28.935574+00:00",
+        "elapsed_s": 3.5,
+        "n_scanned": null,
+        "n_extreme": null,
+        "n_bullish": null,
+        "n_pairs": null,
+        "n_products_with_data": 5,
+        "regime_signals": [],
+        "signals": [
+          "SILVER_BREAKOUT (+5.4% 20d)"
+        ],
+        "extreme_call_flow_top5": [],
+        "bullish_call_flow_top5": [],
+        "regime_metrics": null,
+        "pair_data_keys": [],
+        "product_data_summary": {
+          "VIX": [],
+          "CRUDE": [
+            "CL"
+          ],
+          "GOLD": [],
+          "SILVER": [
+            "SI"
+          ],
+          "COPPER": [
+            "HG"
+          ],
+          "NATGAS": [
+            "NG"
+          ],
+          "S&P": [
+            "ES"
+          ],
+          "NDX": []
+        }
+      }
+    }
+  },
+  "router_reinvoke": {
+    "elapsed_s": 1.9,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 1.1, \\\"n_messages_sent\\\": 1, \\\"counts\\\": {\\\"cascade_laggards\\\": 2, \\\"polygon_options_flow\\\": 7, \\\"polygon_fx_regime\\\": 1, \\\"polygon_futures_curves\\\": 1}, \\\"first_result_status\\\": 200}\"}"
+  },
+  "finished": "2026-06-02T19:56:30.987271+00:00"
+}
