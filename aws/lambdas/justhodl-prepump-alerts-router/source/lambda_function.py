@@ -469,6 +469,312 @@ def check_futures_curves(state: dict) -> List[str]:
 
 
 # ═════════════════════════════════════════════════════════════════════
+# ALPHA SIGNALS — activist, insider, squeeze, GEX, breadth, warnings
+# ═════════════════════════════════════════════════════════════════════
+
+def check_activist_filings(state: dict) -> List[str]:
+    """New 13D filings — activist took meaningful position (>5% stake)."""
+    doc = _read_json("data/activist-13d.json")
+    if not doc:
+        return []
+    items = (doc.get("filings") or doc.get("items") or doc.get("results")
+              or doc.get("recent_filings") or [])
+    new_alerts = []
+    for f in items[:15]:
+        if not isinstance(f, dict): continue
+        t = f.get("ticker") or f.get("symbol") or f.get("issuer_ticker")
+        filer = f.get("filer") or f.get("activist") or f.get("filer_name") or ""
+        if not t: continue
+        dkey = f"{t}_{filer[:20]}"
+        if not _is_new(state, "activist_13d", dkey): continue
+        new_alerts.append(f)
+        _mark_alerted(state, "activist_13d", dkey)
+    if not new_alerts: return []
+    lines = [f"<b>🎯 NEW ACTIVIST 13D FILINGS</b>",
+              f"<i>{len(new_alerts)} new activist positions</i>", ""]
+    for f in new_alerts[:5]:
+        t = _html_escape(f.get("ticker") or f.get("symbol") or "?")
+        filer = _html_escape((f.get("filer") or f.get("activist") or "Unknown")[:40])
+        pct = f.get("ownership_pct") or f.get("stake_pct") or f.get("percent_class")
+        lines.append(f"<b>{t}</b> · {filer}" + (f" · <b>{pct}%</b> stake" if pct else ""))
+    lines.append("")
+    return lines
+
+
+def check_insider_clusters(state: dict) -> List[str]:
+    """Multiple insiders buying same ticker — high-conviction signal."""
+    doc = _read_json("data/insider-clusters.json")
+    if not doc:
+        return []
+    items = (doc.get("clusters") or doc.get("items") or doc.get("results") or [])
+    new_alerts = []
+    for c in items[:15]:
+        if not isinstance(c, dict): continue
+        t = c.get("ticker") or c.get("symbol")
+        n_buyers = c.get("n_insiders") or c.get("cluster_size") or c.get("n_buyers") or 0
+        if not t or n_buyers < 2: continue
+        if not _is_new(state, "insider_cluster", t): continue
+        new_alerts.append(c)
+        _mark_alerted(state, "insider_cluster", t)
+    if not new_alerts: return []
+    lines = [f"<b>💼 INSIDER BUYING CLUSTERS</b>",
+              f"<i>{len(new_alerts)} stocks with multiple insiders buying</i>", ""]
+    for c in new_alerts[:6]:
+        t = _html_escape(c.get("ticker") or c.get("symbol"))
+        n = c.get("n_insiders") or c.get("cluster_size") or c.get("n_buyers") or 0
+        amount = c.get("total_value_usd") or c.get("dollar_volume") or 0
+        lines.append(f"<b>{t}</b> · <b>{n}</b> insiders buying" + 
+                     (f" · ${amount/1e6:.1f}M total" if amount > 1e5 else ""))
+    lines.append("")
+    return lines
+
+
+def check_squeeze_pretrigger(state: dict) -> List[str]:
+    """Pre-squeeze setups — high short interest + technical setup."""
+    doc = _read_json("data/squeeze-pretrigger.json")
+    if not doc:
+        return []
+    items = (doc.get("candidates") or doc.get("setups") or doc.get("items")
+              or doc.get("results") or [])
+    new_alerts = []
+    for s in items[:15]:
+        if not isinstance(s, dict): continue
+        t = s.get("ticker") or s.get("symbol")
+        score = s.get("score") or s.get("composite_score") or s.get("setup_score") or 0
+        if not t or score < 60: continue  # only high-quality setups
+        if not _is_new(state, "squeeze_pretrigger", t): continue
+        new_alerts.append(s)
+        _mark_alerted(state, "squeeze_pretrigger", t)
+    if not new_alerts: return []
+    lines = [f"<b>🌀 PRE-SQUEEZE SETUPS</b>",
+              f"<i>{len(new_alerts)} new pre-squeeze candidates (score ≥ 60)</i>", ""]
+    for s in new_alerts[:5]:
+        t = _html_escape(s.get("ticker") or s.get("symbol"))
+        score = s.get("score") or s.get("composite_score") or s.get("setup_score") or 0
+        si_pct = s.get("short_interest_pct") or s.get("short_pct") or s.get("si_pct")
+        days_cover = s.get("days_to_cover") or s.get("days_cover")
+        extras = []
+        if si_pct: extras.append(f"SI {si_pct:.1f}%")
+        if days_cover: extras.append(f"{days_cover:.1f}d cover")
+        lines.append(f"<b>{t}</b> · score <code>{score:.0f}</code>" + 
+                     (" · " + " · ".join(extras) if extras else ""))
+    lines.append("")
+    return lines
+
+
+def check_dealer_gex(state: dict) -> List[str]:
+    """Dealer gamma exposure regime changes — major market mover."""
+    doc = _read_json("data/dealer-gex.json")
+    if not doc:
+        return []
+    regime = (doc.get("regime") or doc.get("current_regime") or 
+              doc.get("gex_state") or "")
+    gex_value = doc.get("total_gex") or doc.get("aggregate_gex") or doc.get("gex_$")
+    flip_point = doc.get("zero_gamma_level") or doc.get("flip_point")
+    
+    yesterday_regime = state.get("last_gex_regime")
+    state["last_gex_regime"] = regime
+    if regime and yesterday_regime and yesterday_regime != regime:
+        dkey = f"{yesterday_regime}_to_{regime}"
+        if not _is_new(state, "dealer_gex", dkey):
+            return []
+        _mark_alerted(state, "dealer_gex", dkey)
+        lines = [f"<b>📐 DEALER GAMMA REGIME CHANGE</b>",
+                  f"<i>{yesterday_regime} → <b>{regime}</b></i>", ""]
+        if gex_value:
+            lines.append(f"  GEX: ${gex_value/1e9:.2f}B")
+        if flip_point:
+            lines.append(f"  Zero gamma level: {flip_point}")
+        regime_meaning = {
+            "POSITIVE_GAMMA": "dealers buy dips, sell rips — volatility suppressed",
+            "NEGATIVE_GAMMA": "dealers sell dips, buy rips — volatility amplified",
+            "EXTREME_POSITIVE": "extreme pinning, low vol",
+            "EXTREME_NEGATIVE": "fragile, large moves likely",
+        }
+        meaning = regime_meaning.get(regime.upper(), "")
+        if meaning:
+            lines.append(f"  <i>{meaning}</i>")
+        lines.append("")
+        return lines
+    return []
+
+
+def check_redflag_alerter(state: dict) -> List[str]:
+    """Accounting fraud / red-flag alerts from 8K filings + Beneish."""
+    doc = _read_json("data/redflag-alerter.json") or _read_json("data/redflags.json")
+    if not doc:
+        return []
+    items = doc.get("alerts") or doc.get("flags") or doc.get("items") or []
+    new_alerts = []
+    for f in items[:15]:
+        if not isinstance(f, dict): continue
+        t = f.get("ticker") or f.get("symbol")
+        sev = f.get("severity") or f.get("score") or 0
+        if not t or sev < 5: continue
+        if not _is_new(state, "redflag", t): continue
+        new_alerts.append(f)
+        _mark_alerted(state, "redflag", t)
+    if not new_alerts: return []
+    lines = [f"<b>🚩 RED-FLAG / ACCOUNTING ALERTS</b>",
+              f"<i>{len(new_alerts)} new warnings (avoid blowups)</i>", ""]
+    for f in new_alerts[:5]:
+        t = _html_escape(f.get("ticker") or f.get("symbol"))
+        sev = f.get("severity") or f.get("score") or 0
+        reason = _html_escape((f.get("reason") or f.get("flag_type") or "")[:80])
+        lines.append(f"<b>{t}</b> · sev <code>{sev}</code>" + (f" · {reason}" if reason else ""))
+    lines.append("")
+    return lines
+
+
+def check_divcut_warning(state: dict) -> List[str]:
+    """Dividend cut warnings — avoid blowups."""
+    doc = _read_json("data/divcut-warning.json")
+    if not doc:
+        return []
+    items = doc.get("warnings") or doc.get("at_risk") or doc.get("items") or []
+    new_alerts = []
+    for d in items[:15]:
+        if not isinstance(d, dict): continue
+        t = d.get("ticker") or d.get("symbol")
+        risk_score = d.get("risk_score") or d.get("score") or 0
+        if not t or risk_score < 60: continue
+        if not _is_new(state, "divcut", t): continue
+        new_alerts.append(d)
+        _mark_alerted(state, "divcut", t)
+    if not new_alerts: return []
+    lines = [f"<b>✂️ DIVIDEND CUT WARNINGS</b>",
+              f"<i>{len(new_alerts)} dividends at risk (score ≥ 60)</i>", ""]
+    for d in new_alerts[:5]:
+        t = _html_escape(d.get("ticker") or d.get("symbol"))
+        score = d.get("risk_score") or d.get("score") or 0
+        yield_pct = d.get("yield_pct") or d.get("dividend_yield")
+        lines.append(f"<b>{t}</b> · risk <code>{score:.0f}</code>" + 
+                     (f" · yield {yield_pct:.1f}%" if yield_pct else ""))
+    lines.append("")
+    return lines
+
+
+def check_breadth_thrust(state: dict) -> List[str]:
+    """Zweig breadth thrust — rare bullish signal."""
+    doc = _read_json("data/breadth-thrust.json")
+    if not doc:
+        return []
+    triggered = doc.get("triggered") or doc.get("thrust_triggered") or False
+    score = doc.get("thrust_score") or doc.get("composite") or 0
+    if not triggered and score < 80:
+        return []
+    today_key = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if not _is_new(state, "breadth_thrust", today_key):
+        return []
+    _mark_alerted(state, "breadth_thrust", today_key)
+    lines = [f"<b>🚀 BREADTH THRUST FIRED</b>",
+              f"<i>Zweig-style breadth thrust — rare bullish signal</i>", ""]
+    advances = doc.get("advances_decline_ratio") or doc.get("a_d_ratio")
+    sessions = doc.get("trigger_sessions") or doc.get("days_to_fire")
+    if advances:
+        lines.append(f"  Advances/Decline: {advances:.2f}")
+    if sessions:
+        lines.append(f"  Fired in {sessions} sessions")
+    lines.append(f"  <i>Historical: 90%+ probability of higher prices 6m+ out</i>")
+    lines.append("")
+    return lines
+
+
+def check_capitulation(state: dict) -> List[str]:
+    """Capitulation buys — extreme washout, mean-reversion opportunity."""
+    doc = _read_json("data/capitulation.json")
+    if not doc:
+        return []
+    items = doc.get("candidates") or doc.get("signals") or doc.get("items") or []
+    new_alerts = []
+    for c in items[:15]:
+        if not isinstance(c, dict): continue
+        t = c.get("ticker") or c.get("symbol")
+        score = c.get("score") or c.get("capitulation_score") or 0
+        if not t or score < 70: continue
+        if not _is_new(state, "capitulation", t): continue
+        new_alerts.append(c)
+        _mark_alerted(state, "capitulation", t)
+    if not new_alerts: return []
+    lines = [f"<b>💥 CAPITULATION BUYS</b>",
+              f"<i>{len(new_alerts)} extreme washout candidates (mean-rev opp)</i>", ""]
+    for c in new_alerts[:5]:
+        t = _html_escape(c.get("ticker") or c.get("symbol"))
+        score = c.get("score") or c.get("capitulation_score") or 0
+        dd = c.get("drawdown_pct") or c.get("max_drawdown")
+        lines.append(f"<b>{t}</b> · score <code>{score:.0f}</code>" + 
+                     (f" · DD {dd:.1f}%" if dd else ""))
+    lines.append("")
+    return lines
+
+
+def check_52wk_breakout(state: dict) -> List[str]:
+    """52-week quality breakouts (fundamentals + 52wk high)."""
+    doc = _read_json("data/52wk-quality-breakout.json")
+    if not doc:
+        return []
+    items = doc.get("breakouts") or doc.get("candidates") or doc.get("items") or []
+    new_alerts = []
+    for b in items[:15]:
+        if not isinstance(b, dict): continue
+        t = b.get("ticker") or b.get("symbol")
+        score = b.get("quality_score") or b.get("score") or 0
+        if not t or score < 70: continue
+        if not _is_new(state, "52wk_breakout", t): continue
+        new_alerts.append(b)
+        _mark_alerted(state, "52wk_breakout", t)
+    if not new_alerts: return []
+    lines = [f"<b>📈 52WK QUALITY BREAKOUTS</b>",
+              f"<i>{len(new_alerts)} new highs with strong fundamentals</i>", ""]
+    for b in new_alerts[:6]:
+        t = _html_escape(b.get("ticker") or b.get("symbol"))
+        score = b.get("quality_score") or b.get("score") or 0
+        lines.append(f"<b>{t}</b> · quality <code>{score:.0f}</code>")
+    lines.append("")
+    return lines
+
+
+def check_crisis_composite(state: dict) -> List[str]:
+    """Composite crisis score level changes."""
+    doc = _read_json("data/crisis-composite.json")
+    if not doc:
+        return []
+    score = doc.get("composite_score") or doc.get("score") or 0
+    regime = (doc.get("regime") or doc.get("crisis_state") or 
+              doc.get("level") or "")
+    if not regime:
+        # Compute regime from score
+        if score >= 80: regime = "ACUTE_CRISIS"
+        elif score >= 60: regime = "ELEVATED_STRESS"
+        elif score >= 40: regime = "WATCH"
+        else: regime = "CALM"
+    yesterday_regime = state.get("last_crisis_regime")
+    state["last_crisis_regime"] = regime
+    if yesterday_regime and yesterday_regime != regime:
+        dkey = f"{yesterday_regime}_to_{regime}"
+        if not _is_new(state, "crisis_composite", dkey): return []
+        _mark_alerted(state, "crisis_composite", dkey)
+        lines = [f"<b>🌐 CRISIS COMPOSITE REGIME CHANGE</b>",
+                  f"<i>{yesterday_regime} → <b>{regime}</b> (score {score:.0f})</i>", ""]
+        components = doc.get("components") or doc.get("sub_scores") or {}
+        for k, v in list(components.items())[:6]:
+            if isinstance(v, (int, float)):
+                lines.append(f"  • {_html_escape(k)}: {v:.1f}")
+        lines.append("")
+        return lines
+    # Also alert if score crosses 70+ for first time today
+    if score >= 70:
+        dkey = f"high_score_{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+        if _is_new(state, "crisis_composite", dkey):
+            _mark_alerted(state, "crisis_composite", dkey)
+            return [
+                f"<b>⚠️ CRISIS COMPOSITE ELEVATED</b>",
+                f"<i>Score {score:.0f} ({regime})</i>", "",
+            ]
+    return []
+
+
+# ═════════════════════════════════════════════════════════════════════
 # MAIN HANDLER
 # ═════════════════════════════════════════════════════════════════════
 
@@ -493,6 +799,17 @@ def lambda_handler(event, context):
         ("polygon_options_flow", check_options_flow),
         ("polygon_fx_regime", check_fx_regime),
         ("polygon_futures_curves", check_futures_curves),
+        # Alpha signals (Tier 1) — institutional positioning + warnings
+        ("activist_filings", check_activist_filings),
+        ("insider_clusters", check_insider_clusters),
+        ("squeeze_pretrigger", check_squeeze_pretrigger),
+        ("dealer_gex", check_dealer_gex),
+        ("redflag_alerter", check_redflag_alerter),
+        ("divcut_warning", check_divcut_warning),
+        ("breadth_thrust", check_breadth_thrust),
+        ("capitulation", check_capitulation),
+        ("52wk_breakout", check_52wk_breakout),
+        ("crisis_composite", check_crisis_composite),
     ]:
         try:
             lines = checker(state)
