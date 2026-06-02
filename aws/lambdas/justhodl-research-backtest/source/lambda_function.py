@@ -37,6 +37,7 @@ import boto3
 
 S3_BUCKET = "justhodl-dashboard-live"
 RESEARCH_PREFIX = "equity-research/"
+HISTORY_PREFIX = "equity-research-history/"
 CRITIQUE_PREFIX = "equity-critique/"
 OUTPUT_KEY = "analytics/backtest_results.json"
 
@@ -113,15 +114,39 @@ def read_s3_json(key: str) -> Optional[dict]:
 # ═════════════════════════════════════════════════════════════════════
 # Core backtest
 # ═════════════════════════════════════════════════════════════════════
+def list_history_for_ticker(ticker: str) -> list:
+    """List all historical snapshots for a ticker, sorted by date ascending.
+
+    Returns: [(date_str, key), ...] from oldest to newest. Empty if no history.
+    """
+    snapshots = []
+    pag = s3.get_paginator("list_objects_v2")
+    # equity-research-history/YYYY-MM-DD/{TICKER}.json
+    for page in pag.paginate(Bucket=S3_BUCKET, Prefix=HISTORY_PREFIX):
+        for obj in (page.get("Contents") or []):
+            key = obj["Key"]
+            # Parse date and ticker from path
+            parts = key[len(HISTORY_PREFIX):].split("/")
+            if len(parts) == 2 and parts[1] == f"{ticker}.json":
+                snapshots.append((parts[0], key))
+    snapshots.sort(key=lambda x: x[0])
+    return snapshots
+
+
 def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
                                 spy_then_cache: dict) -> list:
     """For each research file, compute return + alpha attribution.
 
     Returns list of dicts, one per (ticker, generated_at) pair.
+
+    Strategy: use the OLDEST historical snapshot as the "entry" point so
+    days_held > 0 and we can measure real performance. If no history exists,
+    fall back to the latest research (days_held=0, return=0 — sample
+    needs to mature).
     """
     per_call = []
     research_keys = list_keys_under(RESEARCH_PREFIX)
-    print(f"[backtest] found {len(research_keys)} research files")
+    print(f"[backtest] found {len(research_keys)} current research files")
 
     # Build critique lookup
     critique_lookup = {}
@@ -131,26 +156,41 @@ def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
             critique_lookup[cd["ticker"]] = cd
 
     for key in research_keys:
-        doc = read_s3_json(key)
-        if not doc:
+        latest_doc = read_s3_json(key)
+        if not latest_doc:
             continue
-        ticker = doc.get("ticker")
-        gen_at = doc.get("generated_at")
-        if not ticker or not gen_at:
+        ticker = latest_doc.get("ticker")
+        if not ticker:
             continue
 
-        verdict = doc.get("verdict") or {}
-        quote = doc.get("quote") or {}
-        entry_price = quote.get("price")
+        # Try to find oldest historical snapshot (true entry point)
+        history = list_history_for_ticker(ticker)
+        if history:
+            oldest_date, oldest_key = history[0]
+            entry_doc = read_s3_json(oldest_key)
+            if entry_doc:
+                gen_at = entry_doc.get("generated_at") or f"{oldest_date}T00:00:00+00:00"
+                entry_price = (entry_doc.get("quote") or {}).get("price")
+                # Verdict from oldest (the original call to evaluate)
+                verdict = entry_doc.get("verdict") or {}
+            else:
+                gen_at = latest_doc.get("generated_at")
+                entry_price = (latest_doc.get("quote") or {}).get("price")
+                verdict = latest_doc.get("verdict") or {}
+        else:
+            # No history — use latest (will show 0% return)
+            gen_at = latest_doc.get("generated_at")
+            entry_price = (latest_doc.get("quote") or {}).get("price")
+            verdict = latest_doc.get("verdict") or {}
+
+        if not entry_price or not gen_at:
+            continue
+
         rating = verdict.get("rating")
         pt = verdict.get("price_target_12m")
 
-        if not entry_price:
-            continue
-
         current_price = now_prices.get(ticker)
         if not current_price:
-            # Still log the call but no return
             per_call.append({
                 "ticker": ticker,
                 "generated_at": gen_at,
@@ -162,18 +202,17 @@ def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
                 "alpha_pct": None,
                 "days_held": days_between(gen_at, datetime.now(timezone.utc).isoformat()),
                 "status": "no_current_price",
+                "n_history_snapshots": len(history),
             })
             continue
 
         ticker_ret = pct_change(entry_price, current_price)
         days = days_between(gen_at, datetime.now(timezone.utc).isoformat())
 
-        # SPY benchmark over same window — need SPY price as-of gen_at
-        spy_then = spy_then_cache.get(gen_at[:10])  # cache key = date string
+        spy_then = spy_then_cache.get(gen_at[:10])
         spy_ret = pct_change(spy_then, spy_now) if (spy_then and spy_now) else None
         alpha = round(ticker_ret - spy_ret, 2) if (ticker_ret is not None and spy_ret is not None) else None
 
-        # Critique data for this ticker
         critique = critique_lookup.get(ticker, {})
         c_obj = critique.get("critique", {})
         per_call.append({
@@ -193,11 +232,11 @@ def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
                 round(((current_price - entry_price) / (pt - entry_price)) * 100, 1)
                 if pt and pt != entry_price else None
             ),
-            # Critique signals
             "critic_rating":       c_obj.get("alternative_rating"),
             "disagreement_score":  c_obj.get("disagreement_score"),
             "rating_diverges":     bool(c_obj.get("alternative_rating") and rating
                                          and c_obj.get("alternative_rating") != rating),
+            "n_history_snapshots": len(history),
         })
 
     return per_call

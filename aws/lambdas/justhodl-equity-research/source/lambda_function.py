@@ -1769,13 +1769,32 @@ def lambda_handler(event, context):
     # the equity-research/* prefix is granted via bucket policy
     # (PublicReadEquityResearch statement, see ops 1151), not per-object ACL.
     try:
+        body_bytes = json.dumps(document, default=str).encode("utf-8")
         s3.put_object(
             Bucket=S3_BUCKET, Key=cache_key,
-            Body=json.dumps(document, default=str).encode("utf-8"),
+            Body=body_bytes,
             ContentType="application/json",
             CacheControl=f"public, max-age={CACHE_TTL}",
         )
         print(f"[cache] WROTE {cache_key}")
+        # ── History snapshot: also write a date-stamped copy.
+        # Lets the research-backtest Lambda see meaningful day-over-day
+        # returns instead of always 0% (the latest snapshot is always
+        # "current" so entry == current price). New file per day; same-day
+        # re-runs overwrite. Path: equity-research-history/YYYY-MM-DD/{TICKER}.json
+        try:
+            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            history_key = f"equity-research-history/{today}/{ticker.upper()}.json"
+            s3.put_object(
+                Bucket=S3_BUCKET, Key=history_key,
+                Body=body_bytes,
+                ContentType="application/json",
+                CacheControl="public, max-age=86400",
+            )
+            print(f"[history] WROTE {history_key}")
+        except Exception as e:
+            # Don't fail the whole call if history write fails
+            print(f"[history] write failed: {e}")
     except Exception as e:
         print(f"[cache] write failed: {e}")
 
