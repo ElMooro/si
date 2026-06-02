@@ -1,0 +1,96 @@
+{
+  "started": "2026-06-02T22:46:03.591637+00:00",
+  "deploy": "created",
+  "schedule_err": "An error occurred (ValidationException) when calling the PutRule operation: Parameter ScheduleExpression is not valid.",
+  "invoke": {
+    "elapsed_s": 33.2,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 32.4, \\\"pages_generated\\\": [\\\"pre-pump-radar\\\", \\\"signal-board\\\", \\\"risk-desk\\\", \\\"liquidity\\\", \\\"fundamentals\\\"], \\\"results\\\": {\\\"pre-pump-radar\\\": {\\\"has_content\\\": true, \\\"keys\\\": [\\\"headline\\\", \\\"top_pick_analysis\\\", \\\"regime_context\\\", \\\"what_to_watch\\\", \\\"confidence_score\\\"]}, \\\"signal-board\\\": {\\\"has_content\\\": true, \\\"keys\\\": [\\\"headline\\\", \\\"regime_analysis\\\", \\\"key_divergences\\\", \\\"positioning_view\\\", \\\"regime_score\\\"]}, \\\"risk-desk\\\": {\\\"has_content\\\": true, \\\"keys\\\": [\\\"headline\\\", \\\"primary_risks\\\", \\\"hedge_recommendation\\\", \\\"leading_indicators\\\", \\\"risk_score\\\"]}, \\\"liquidity\\\": {\\\"has_content\\\": true, \\\"keys\\\": [\\\"headline\\\", \\\"liquidity_flow\\\", \\\"implications\\\", \\\"policy_outlook\\\", \\\"liquidity_score\\\"]}, \\\"fundamentals\\\": {\\\"has_content\\\": true, \\\"keys\\\": [\\\"headline\\\", \\\"best_value\\\", \\\"warning_flags\\\", \\\"watch_list\\\", \\\"value_score\\\"]}}}\"}"
+  },
+  "page_commentaries": {
+    "pre-pump-radar": {
+      "generated_at": "2026-06-02T22:46:16.711960+00:00",
+      "has_content": true,
+      "keys": [
+        "headline",
+        "top_pick_analysis",
+        "regime_context",
+        "what_to_watch",
+        "confidence_score"
+      ],
+      "headline_preview": "AI semiconductor dominance (MU) paired with cybersecurity acceleration (PANW, CRWD) in reflation regime; CDNS software breakout offers asymmetric 5x upside on conviction breadth expansion.",
+      "score": 78
+    },
+    "signal-board": {
+      "generated_at": "2026-06-02T22:46:22.361163+00:00",
+      "has_content": true,
+      "keys": [
+        "headline",
+        "regime_analysis",
+        "key_divergences",
+        "positioning_view",
+        "regime_score"
+      ],
+      "headline_preview": "Neutral terrain with equity headwinds: valuation concerns and housing weakness offset modest smart-money accumulation and RV support.",
+      "score": 45
+    },
+    "risk-desk": {
+      "generated_at": "2026-06-02T22:46:30.775427+00:00",
+      "has_content": true,
+      "keys": [
+        "headline",
+        "primary_risks",
+        "hedge_recommendation",
+        "leading_indicators",
+        "risk_score"
+      ],
+      "headline_preview": "Calm regime with modest liquidity headwind: master crisis score 33.4 (DEFCON 4), firm posture GREEN, single-name concentration binding constraint at 27.3% of gross.",
+      "score": 33
+    },
+    "liquidity": {
+      "generated_at": "2026-06-02T22:46:36.298612+00:00",
+      "has_content": true,
+      "keys": [
+        "headline",
+        "liquidity_flow",
+        "implications",
+        "policy_outlook",
+        "liquidity_score"
+      ],
+      "headline_preview": "Abundant liquidity regime: Strong dollar (119.29 index) strains offshore funding despite benign domestic stress indicators",
+      "score": 78
+    },
+    "fundamentals": {
+      "generated_at": "2026-06-02T22:46:41.670762+00:00",
+      "has_content": true,
+      "keys": [
+        "headline",
+        "best_value",
+        "warning_flags",
+        "watch_list",
+        "value_score"
+      ],
+      "headline_preview": "AI and semiconductor themes dominate momentum with CHAT/AIQ leading, but fundamental data is insufficient for deep valuation analysis\u2014MU appears positioned in hot ETF flows yet requires comprehensive DCF/quality metrics.",
+      "score": 32
+    }
+  },
+  "page_deployments": {
+    "pre-pump-radar": {
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "signal-board": {
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "risk-desk": {
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "liquidity": {
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "fundamentals": {
+      "error": "HTTP Error 403: Forbidden"
+    }
+  },
+  "finished": "2026-06-02T22:46:42.301793+00:00"
+}
