@@ -74,7 +74,9 @@ SEC_TICKER_INDEX_URL = "https://www.sec.gov/files/company_tickers.json"
 SEC_SUBMISSIONS_URL  = "https://data.sec.gov/submissions/CIK{cik}.json"
 SEC_ARCHIVE_BASE     = "https://www.sec.gov/Archives/edgar/data"
 
-LOOKBACK_DAYS = 90  # 90-day window for "recent" insider activity
+LOOKBACK_DAYS = 180  # 180-day window so we can split into recent 90 vs prior 90
+                      # The signal compares recent activity to the prior baseline.
+RECENT_WINDOW_DAYS = 90
 
 s3 = boto3.client("s3")
 
@@ -339,7 +341,34 @@ def parse_form4_xml(cik: str, accession: str, primary: str) -> dict:
 # Step 4: Aggregate signal
 # ═══════════════════════════════════════════════════════════════════
 def aggregate_signal(filings_parsed: list) -> dict:
-    """Build the aggregate signal block from parsed filings."""
+    """Build the aggregate signal block from parsed filings.
+
+    Signal v2 (post-2026-06-02): baseline-relative, not absolute-flow.
+
+    Megacaps have routine RSU vesting and 10b5-1 plan selling. The original
+    absolute-flow logic flagged every major company as BEARISH because any
+    $10M+ net sell tripped it. A PM doesn't care about routine selling — they
+    care about *acceleration* or *unusual concentration*.
+
+    NEW LOGIC
+    ─────────
+    Split the 180-day window into:
+      recent_90d : last 90 days of activity
+      prior_90d  : the 90 days before that (the baseline)
+
+    Compute acceleration = recent_sells / max(prior_sells, threshold)
+
+    Labels:
+      STRONG_CLUSTER_BUY   — 3+ buys in 14d by 2+ filers (rare, valuable, unchanged)
+      INSIDER_BUYING       — any meaningful open-market buys (also rare + bullish)
+      ACCELERATING_SELL    — recent sells >= 2x prior baseline AND >= 1 C-suite seller
+      ROUTINE_SELLING      — sells present but within normal baseline range
+      QUIET                — minimal or no material activity
+    """
+    # Bucket transactions by recency
+    now = datetime.now(timezone.utc)
+    recent_cutoff = now - timedelta(days=RECENT_WINDOW_DAYS)
+
     all_txns = []
     by_filer = {}
     ranks = {"ceo_cfo": 0, "vp": 0, "other": 0}
@@ -352,6 +381,7 @@ def aggregate_signal(filings_parsed: list) -> dict:
         if filer not in by_filer:
             by_filer[filer] = {
                 "role": f.get("role"), "weight": f.get("weight", 1.0),
+                "bucket": f.get("bucket", "other"),
                 "n_filings": 0, "total_shares_buy": 0, "total_shares_sell": 0,
                 "total_dollars_buy": 0, "total_dollars_sell": 0,
             }
@@ -360,6 +390,12 @@ def aggregate_signal(filings_parsed: list) -> dict:
             txn["filer"] = filer
             txn["role"] = f.get("role")
             txn["weight"] = f.get("weight", 1.0)
+            txn["bucket"] = f.get("bucket", "other")
+            try:
+                txn_date = datetime.fromisoformat(txn["date"]).replace(tzinfo=timezone.utc)
+                txn["is_recent"] = (txn_date >= recent_cutoff)
+            except Exception:
+                txn["is_recent"] = True  # treat undated as recent (be conservative)
             all_txns.append(txn)
             if txn["direction"] == "BUY":
                 by_filer[filer]["total_shares_buy"] += txn["shares"]
@@ -368,28 +404,48 @@ def aggregate_signal(filings_parsed: list) -> dict:
                 by_filer[filer]["total_shares_sell"] += txn["shares"]
                 by_filer[filer]["total_dollars_sell"] += txn["dollars"]
 
-    buys  = [t for t in all_txns if t["direction"] == "BUY"]
-    sells = [t for t in all_txns if t["direction"] == "SELL"]
+    # Split into recent vs prior
+    buys_all  = [t for t in all_txns if t["direction"] == "BUY"]
+    sells_all = [t for t in all_txns if t["direction"] == "SELL"]
 
-    total_buy_dollars  = sum(t["dollars"] for t in buys)
-    total_sell_dollars = sum(t["dollars"] for t in sells)
-    net_dollars        = total_buy_dollars - total_sell_dollars
+    recent_buys  = [t for t in buys_all  if t["is_recent"]]
+    recent_sells = [t for t in sells_all if t["is_recent"]]
+    prior_buys   = [t for t in buys_all  if not t["is_recent"]]
+    prior_sells  = [t for t in sells_all if not t["is_recent"]]
 
-    total_buy_shares  = sum(t["shares"] for t in buys)
-    total_sell_shares = sum(t["shares"] for t in sells)
-    net_shares        = total_buy_shares - total_sell_shares
+    def sum_dollars(txns):
+        return sum(t["dollars"] for t in txns)
 
-    # Weighted score: each transaction contributes weight × dollars
-    weighted_buy  = sum(t["dollars"] * t["weight"] for t in buys)
-    weighted_sell = sum(t["dollars"] * t["weight"] for t in sells)
-    weighted_net  = weighted_buy - weighted_sell
+    recent_buy_dollars  = sum_dollars(recent_buys)
+    recent_sell_dollars = sum_dollars(recent_sells)
+    prior_sell_dollars  = sum_dollars(prior_sells)
+    prior_buy_dollars   = sum_dollars(prior_buys)
 
-    # Cluster detection: 3+ buys in any 14-day window by 2+ unique filers
+    net_dollars_90d = recent_buy_dollars - recent_sell_dollars
+    net_shares_90d  = (sum(t["shares"] for t in recent_buys)
+                        - sum(t["shares"] for t in recent_sells))
+
+    # Acceleration ratio. If prior period was quiet (< $500K), we set
+    # prior to $500K to avoid division-by-zero amplification. Any
+    # recent-90d $1M+ sell against a quiet prior is interesting; the
+    # ratio captures that without being silly when prior is literally 0.
+    BASELINE_FLOOR = 500_000
+    sell_acceleration = recent_sell_dollars / max(prior_sell_dollars, BASELINE_FLOOR)
+    buy_acceleration  = recent_buy_dollars  / max(prior_buy_dollars,  BASELINE_FLOOR)
+
+    # C-suite involvement in recent sells (CEO/CFO selling matters more)
+    recent_csuite_sellers = set(t["filer"] for t in recent_sells if t["bucket"] == "ceo_cfo")
+    n_csuite_sellers      = len(recent_csuite_sellers)
+
+    # Weighted scores (role-weighted)
+    weighted_recent_buy  = sum(t["dollars"] * t["weight"] for t in recent_buys)
+    weighted_recent_sell = sum(t["dollars"] * t["weight"] for t in recent_sells)
+
+    # Cluster detection (unchanged): 3+ buys in 14d window by 2+ filers
     cluster_detected = False
     cluster_window = None
-    if len(buys) >= 3:
-        buys_by_date = sorted(buys, key=lambda t: t["date"])
-        unique_filers = set()
+    if len(buys_all) >= 3:
+        buys_by_date = sorted(buys_all, key=lambda t: t["date"])
         for i, t in enumerate(buys_by_date):
             window_buys = [b for b in buys_by_date[i:]
                             if (datetime.fromisoformat(b["date"]) - datetime.fromisoformat(t["date"])).days <= 14]
@@ -397,47 +453,109 @@ def aggregate_signal(filings_parsed: list) -> dict:
             if len(window_buys) >= 3 and len(window_filers) >= 2:
                 cluster_detected = True
                 cluster_window = {
-                    "start": t["date"],
-                    "n_buys": len(window_buys),
+                    "start":           t["date"],
+                    "n_buys":          len(window_buys),
                     "n_unique_filers": len(window_filers),
-                    "dollars": round(sum(b["dollars"] for b in window_buys), 2),
+                    "dollars":         round(sum(b["dollars"] for b in window_buys), 2),
                 }
                 break
 
-    # Signal label
-    # We weight buys higher than sells (sells often planned, taxes, etc.)
-    if cluster_detected and weighted_buy > 0:
+    # ── Signal labelling (v2)
+    if cluster_detected and recent_buy_dollars > 0:
         signal_label = "STRONG_CLUSTER_BUY"
-        signal_score = min(100, 70 + len(buys) * 5)
-    elif weighted_net > 1_000_000 and len(buys) >= 2:
-        signal_label = "BULLISH_INSIDER_BUY"
-        signal_score = min(90, 50 + (weighted_buy / max(1, weighted_buy + weighted_sell)) * 50)
-    elif weighted_net < -10_000_000 and len(sells) >= 3:
-        signal_label = "BEARISH_INSIDER_SELL"
-        signal_score = max(10, 50 - (weighted_sell / max(1, weighted_buy + weighted_sell)) * 50)
+        signal_score = min(100, 75 + len(recent_buys) * 5)
+        signal_note = f"⚡ {cluster_window['n_buys']} buys by {cluster_window['n_unique_filers']} insiders in 14d (${cluster_window['dollars']:,.0f})"
+    elif recent_buy_dollars >= 100_000 and len(recent_buys) >= 1:
+        # Even a single meaningful open-market buy at a megacap is notable
+        signal_label = "INSIDER_BUYING"
+        signal_score = min(85, 60 + min(25, recent_buy_dollars / 1_000_000 * 5))
+        signal_note = f"${recent_buy_dollars:,.0f} in open-market buys (90d)"
+    elif sell_acceleration >= 2.0 and recent_sell_dollars >= 5_000_000 and n_csuite_sellers >= 1:
+        signal_label = "ACCELERATING_SELL"
+        signal_score = max(15, 40 - min(25, (sell_acceleration - 2) * 5))
+        signal_note = (f"sells are {sell_acceleration:.1f}× the prior 90d baseline; "
+                        f"{n_csuite_sellers} C-suite officer{'s' if n_csuite_sellers>1 else ''} selling")
+    elif recent_sell_dollars > 0 and recent_buy_dollars == 0:
+        signal_label = "ROUTINE_SELLING"
+        signal_score = 45  # slight tilt — no buying is mildly bearish but not actionable
+        signal_note = (f"${recent_sell_dollars:,.0f} sold (90d), within normal range "
+                        f"({sell_acceleration:.1f}× prior baseline)")
+    elif len(all_txns) == 0:
+        signal_label = "QUIET"
+        signal_score = 50
+        signal_note = "No reportable insider activity in 180 days"
     else:
         signal_label = "NEUTRAL"
         signal_score = 50
+        signal_note = "Mixed or low-volume activity"
+
+    # ── Top sellers (top 5 by dollar amount in recent 90d)
+    sellers_summary = {}
+    for t in recent_sells:
+        f = t["filer"]
+        if f not in sellers_summary:
+            sellers_summary[f] = {"filer": f, "role": t["role"], "bucket": t["bucket"],
+                                    "shares": 0, "dollars": 0, "n_txns": 0}
+        sellers_summary[f]["shares"]  += t["shares"]
+        sellers_summary[f]["dollars"] += t["dollars"]
+        sellers_summary[f]["n_txns"]  += 1
+    top_sellers = sorted(sellers_summary.values(), key=lambda s: -s["dollars"])[:5]
+    for s in top_sellers:
+        s["shares"] = int(round(s["shares"]))
+        s["dollars"] = round(s["dollars"], 0)
+
+    # ── Top buyers (rarer; named individuals matter)
+    buyers_summary = {}
+    for t in recent_buys:
+        f = t["filer"]
+        if f not in buyers_summary:
+            buyers_summary[f] = {"filer": f, "role": t["role"], "bucket": t["bucket"],
+                                   "shares": 0, "dollars": 0, "n_txns": 0}
+        buyers_summary[f]["shares"]  += t["shares"]
+        buyers_summary[f]["dollars"] += t["dollars"]
+        buyers_summary[f]["n_txns"]  += 1
+    top_buyers = sorted(buyers_summary.values(), key=lambda s: -s["dollars"])[:5]
+    for s in top_buyers:
+        s["shares"] = int(round(s["shares"]))
+        s["dollars"] = round(s["dollars"], 0)
 
     return {
-        "n_buys":              len(buys),
-        "n_sells":             len(sells),
-        "total_shares_buy":    round(total_buy_shares, 0),
-        "total_shares_sell":   round(total_sell_shares, 0),
-        "total_dollars_buy":   round(total_buy_dollars, 0),
-        "total_dollars_sell":  round(total_sell_dollars, 0),
-        "net_shares_90d":      round(net_shares, 0),
-        "net_dollars_90d":     round(net_dollars, 0),
-        "weighted_buy_score":  round(weighted_buy, 0),
-        "weighted_sell_score": round(weighted_sell, 0),
-        "weighted_net_score":  round(weighted_net, 0),
+        # Recent window (last 90d) — main signal window
+        "n_buys":              len(recent_buys),
+        "n_sells":             len(recent_sells),
+        "total_shares_buy":    round(sum(t["shares"] for t in recent_buys), 0),
+        "total_shares_sell":   round(sum(t["shares"] for t in recent_sells), 0),
+        "total_dollars_buy":   round(recent_buy_dollars, 0),
+        "total_dollars_sell":  round(recent_sell_dollars, 0),
+        "net_shares_90d":      round(net_shares_90d, 0),
+        "net_dollars_90d":     round(net_dollars_90d, 0),
+        # Prior 90d (baseline window)
+        "prior_n_buys":         len(prior_buys),
+        "prior_n_sells":        len(prior_sells),
+        "prior_dollars_buy":    round(prior_buy_dollars, 0),
+        "prior_dollars_sell":   round(prior_sell_dollars, 0),
+        # Acceleration ratios — the heart of the v2 signal
+        "sell_acceleration":   round(sell_acceleration, 2),
+        "buy_acceleration":    round(buy_acceleration, 2),
+        "n_csuite_sellers":    n_csuite_sellers,
+        # Weighted (kept for backward compat / future tuning)
+        "weighted_buy_score":  round(weighted_recent_buy, 0),
+        "weighted_sell_score": round(weighted_recent_sell, 0),
+        "weighted_net_score":  round(weighted_recent_buy - weighted_recent_sell, 0),
+        # Final signal
         "signal_score":        round(signal_score, 0),
         "signal_label":        signal_label,
+        "signal_note":         signal_note,
+        # Cluster detail
         "cluster_detected":    cluster_detected,
         "cluster_window":      cluster_window,
+        # Rollups
         "ranks":               ranks,
         "by_filer":            by_filer,
-        "transactions":        sorted(all_txns, key=lambda t: t["date"], reverse=True)[:50],
+        "top_sellers":         top_sellers,
+        "top_buyers":          top_buyers,
+        # Transactions — newest first, recent-period only (top 50 = ample for UI)
+        "transactions":        sorted(recent_buys + recent_sells, key=lambda t: t["date"], reverse=True)[:50],
     }
 
 

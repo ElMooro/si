@@ -37,11 +37,13 @@ import boto3
 S3_BUCKET = "justhodl-dashboard-live"
 S3_LOG_PREFIX = "equity-prewarm/runs"
 RESEARCH_LAMBDA_URL = "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/"
-PARALLEL_WORKERS = 6        # 6 concurrent calls → ~95s/wave × ~8.5 waves = 12 min for 50
-                            # Stays well within Lambda's 900s ceiling.
-                            # FMP rate: 6 workers × ~25 calls each = 150 burst then 85s gap
-                            # = ~1.8 calls/sec average. Within FMP plan limits.
+EDGAR_LAMBDA_URL = "https://ru3djltl3oucvsocjrih37sowu0fxgkm.lambda-url.us-east-1.on.aws/"
+PARALLEL_WORKERS = 6        # 6 concurrent research-Lambda invocations
+                            # Each ticker also kicks off an EDGAR pre-warm in
+                            # PARALLEL inside the worker, so total wall time
+                            # is dominated by research (~95s), not the sum.
 PER_TICKER_TIMEOUT = 180    # seconds — matches research Lambda's own timeout
+EDGAR_TIMEOUT = 120         # seconds — matches edgar-insiders Lambda
 HTTP_HEADERS = {"User-Agent": "justhodl-equity-prewarm/1.0"}
 
 # ═══════════════════════════════════════════════════════════════════
@@ -83,7 +85,7 @@ TICKER_UNIVERSE = [
 # ═══════════════════════════════════════════════════════════════════
 # Worker
 # ═══════════════════════════════════════════════════════════════════
-def prewarm_ticker(ticker: str) -> dict:
+def _call_research(ticker: str) -> dict:
     """Call the research Lambda for one ticker. Returns success / timing dict."""
     url = f"{RESEARCH_LAMBDA_URL}?ticker={ticker}&refresh=1"
     req = urllib.request.Request(url, headers=HTTP_HEADERS)
@@ -97,7 +99,6 @@ def prewarm_ticker(ticker: str) -> dict:
             rating = (doc.get("verdict") or {}).get("rating")
             ev = (doc.get("scenarios") or {}).get("expected_value_12m")
             return {
-                "ticker":    ticker,
                 "status":    "ok",
                 "http":      r.status,
                 "elapsed_s": elapsed,
@@ -106,16 +107,77 @@ def prewarm_ticker(ticker: str) -> dict:
                 "ev_12m":    ev,
             }
         except Exception:
-            return {"ticker": ticker, "status": "ok_unparseable",
+            return {"status": "ok_unparseable",
                     "http": r.status, "elapsed_s": elapsed, "size_bytes": len(body)}
     except urllib.error.HTTPError as e:
-        return {"ticker": ticker, "status": "http_error",
-                "code": e.code, "msg": e.reason,
+        return {"status": "http_error", "code": e.code, "msg": e.reason,
                 "elapsed_s": round(time.time() - t0, 1)}
     except Exception as e:
-        return {"ticker": ticker, "status": "error",
-                "error": str(e)[:300],
+        return {"status": "error", "error": str(e)[:300],
                 "elapsed_s": round(time.time() - t0, 1)}
+
+
+def _call_edgar(ticker: str) -> dict:
+    """Call the EDGAR insiders Lambda. Returns signal summary or error."""
+    url = f"{EDGAR_LAMBDA_URL}?ticker={ticker}&refresh=1"
+    req = urllib.request.Request(url, headers=HTTP_HEADERS)
+    t0 = time.time()
+    try:
+        with urllib.request.urlopen(req, timeout=EDGAR_TIMEOUT) as r:
+            body = r.read()
+            elapsed = round(time.time() - t0, 1)
+        try:
+            doc = json.loads(body)
+            return {
+                "status":            "ok",
+                "elapsed_s":         elapsed,
+                "n_filings_90d":     doc.get("n_filings_90d"),
+                "n_buys":            doc.get("n_buys"),
+                "n_sells":           doc.get("n_sells"),
+                "signal_label":      doc.get("signal_label"),
+                "signal_score":      doc.get("signal_score"),
+                "sell_acceleration": doc.get("sell_acceleration"),
+                "cluster_detected":  doc.get("cluster_detected"),
+            }
+        except Exception:
+            return {"status": "ok_unparseable", "elapsed_s": elapsed}
+    except urllib.error.HTTPError as e:
+        return {"status": "http_error", "code": e.code,
+                "elapsed_s": round(time.time() - t0, 1)}
+    except Exception as e:
+        return {"status": "error", "error": str(e)[:200],
+                "elapsed_s": round(time.time() - t0, 1)}
+
+
+def prewarm_ticker(ticker: str) -> dict:
+    """Pre-warm BOTH research and EDGAR data for one ticker, in parallel.
+
+    Research Lambda takes ~90-100s (Claude synthesis dominates).
+    EDGAR Lambda takes ~10-15s (SEC EDGAR fetches dominate).
+
+    Running them in parallel inside one worker means total wall time per
+    ticker is max(research, edgar) ≈ research time. EDGAR pre-warm is
+    essentially free within the same time slot.
+    """
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=2) as ex:
+        f_research = ex.submit(_call_research, ticker)
+        f_edgar    = ex.submit(_call_edgar, ticker)
+        research = f_research.result()
+        edgar    = f_edgar.result()
+
+    # Top-level shape mirrors the original prewarm format (status + rating)
+    # but adds an edgar sub-dict
+    return {
+        "ticker":    ticker,
+        "status":    research.get("status", "?"),
+        "http":      research.get("http"),
+        "elapsed_s": round(time.time() - t0, 1),
+        "size_kb":   research.get("size_kb"),
+        "rating":    research.get("rating"),
+        "ev_12m":    research.get("ev_12m"),
+        "edgar":     edgar,
+    }
 
 
 def lambda_handler(event, context):
@@ -146,9 +208,16 @@ def lambda_handler(event, context):
         for i, fut in enumerate(as_completed(futures), 1):
             res = fut.result()
             results.append(res)
+            edgar_summary = res.get("edgar", {}) or {}
+            edgar_str = ""
+            if edgar_summary.get("status") == "ok":
+                edgar_str = (f"| EDGAR {edgar_summary.get('signal_label','?')} "
+                              f"(B{edgar_summary.get('n_buys',0)}/S{edgar_summary.get('n_sells',0)})")
+            elif edgar_summary.get("status"):
+                edgar_str = f"| EDGAR {edgar_summary['status']}"
             print(f"[prewarm] {i:>3}/{len(universe)} {res['ticker']:6s} "
                     f"{res.get('status','?'):6s} {res.get('elapsed_s','?')}s "
-                    f"{res.get('rating','—')}")
+                    f"{res.get('rating','—')} {edgar_str}")
 
     finished = datetime.now(timezone.utc)
     n_ok = sum(1 for r in results if r["status"] == "ok")

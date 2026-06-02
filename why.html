@@ -1280,53 +1280,129 @@ function paintInsiderBlock(d){
   const pill = document.getElementById('insider-pill');
   if(!body || !d) return;
 
-  if(d.signal_label === 'NO_DATA' || !d.n_filings_90d){
-    pill.textContent = 'no recent filings';
+  // Common formatter
+  const fmtUsd = (v) => {
+    if(v == null) return '—';
+    const a = Math.abs(v);
+    const sign = v < 0 ? '-' : '';
+    if(a >= 1e9) return sign + '$' + (a/1e9).toFixed(2) + 'B';
+    if(a >= 1e6) return sign + '$' + (a/1e6).toFixed(2) + 'M';
+    if(a >= 1e3) return sign + '$' + (a/1e3).toFixed(0) + 'K';
+    return sign + '$' + a.toFixed(0);
+  };
+
+  if(d.signal_label === 'NO_DATA' || d.signal_label === 'QUIET' || !d.n_filings_90d){
+    pill.innerHTML = `<span style="background:rgba(170,180,192,.10); border:1px solid var(--border-strong); color:var(--text-dim); padding:2px 8px; border-radius:4px; font-weight:700">– QUIET</span>`;
     body.innerHTML = `<div style="padding:14px; color:var(--text-muted); font-style:italic; text-align:center; font-size:12px">
-      No Form 4 insider filings in last ${d.lookback_days || 90} days for ${esc(d.ticker)}.
-      <br><span style="font-size:10.5px">This is normal for many large-caps in quiet windows.</span>
+      No material Form 4 insider activity for ${esc(d.ticker)} in last ${d.lookback_days || 180} days.
+      <br><span style="font-size:10.5px">Common for many large-caps in quiet windows — absence of selling is also a data point.</span>
     </div>`;
     return;
   }
 
-  // Pill: signal label + score
+  // ── Pill: signal label + score + note (v2 labels)
   const labelColors = {
-    'STRONG_CLUSTER_BUY':   {bg: 'rgba(38,255,175,.18)', border: '#26ffaf', color: '#26ffaf', icon: '⚡'},
-    'BULLISH_INSIDER_BUY':  {bg: 'rgba(38,255,175,.12)', border: '#22c55e', color: '#26ffaf', icon: '↑'},
-    'NEUTRAL':              {bg: 'rgba(245,158,11,.12)', border: '#f59e0b', color: '#f59e0b', icon: '–'},
-    'BEARISH_INSIDER_SELL': {bg: 'rgba(239,68,68,.15)',  border: '#ef4444', color: '#ef4444', icon: '↓'},
+    'STRONG_CLUSTER_BUY': {bg: 'rgba(38,255,175,.18)', border: '#26ffaf', color: '#26ffaf', icon: '⚡'},
+    'INSIDER_BUYING':     {bg: 'rgba(38,255,175,.12)', border: '#22c55e', color: '#26ffaf', icon: '↑'},
+    'ACCELERATING_SELL':  {bg: 'rgba(239,68,68,.15)',  border: '#ef4444', color: '#ef4444', icon: '⚠'},
+    'ROUTINE_SELLING':    {bg: 'rgba(245,158,11,.10)', border: 'rgba(245,158,11,.5)', color: '#f59e0b', icon: '–'},
+    'NEUTRAL':            {bg: 'rgba(170,180,192,.10)', border: 'var(--border-strong)', color: 'var(--text-dim)', icon: '–'},
   };
   const lc = labelColors[d.signal_label] || labelColors.NEUTRAL;
-  pill.innerHTML = `<span style="background:${lc.bg}; border:1px solid ${lc.border}; color:${lc.color}; padding:2px 8px; border-radius:4px; font-weight:700">${lc.icon} ${esc(d.signal_label.replace(/_/g,' '))}</span> · ${d.signal_score}/100`;
+  const labelDisplay = (d.signal_label || 'NEUTRAL').replace(/_/g,' ');
+  pill.innerHTML = `<span style="background:${lc.bg}; border:1px solid ${lc.border}; color:${lc.color}; padding:2px 8px; border-radius:4px; font-weight:700">${lc.icon} ${esc(labelDisplay)}</span> · ${d.signal_score}/100`;
 
-  // Aggregate row
-  const netDollars = d.net_dollars_90d || 0;
-  const netSign = netDollars >= 0 ? '+' : '';
-  const netColor = netDollars >= 0 ? '#26ffaf' : '#ef4444';
-  const fmtUsd = (v) => {
-    if(v == null) return '—';
-    const a = Math.abs(v);
-    if(a >= 1e9) return '$' + (v/1e9).toFixed(2) + 'B';
-    if(a >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
-    if(a >= 1e3) return '$' + (v/1e3).toFixed(0) + 'K';
-    return '$' + v.toFixed(0);
-  };
-
+  // ── Cluster callout (when present — strongest signal)
   let clusterHtml = '';
   if(d.cluster_detected && d.cluster_window){
     const cw = d.cluster_window;
     clusterHtml = `<div style="background:rgba(38,255,175,.06); border:1px solid rgba(38,255,175,.3); border-radius:6px; padding:10px 14px; margin-top:12px; font-size:11.5px">
-      ⚡ <b style="color:#26ffaf">Cluster Buy detected</b>: ${cw.n_buys} insider buys by ${cw.n_unique_filers} unique filers within 14 days starting ${esc(cw.start)}, totaling ${fmtUsd(cw.dollars)}.
-      <span style="color:var(--text-muted)">Cluster buys are historically the strongest insider signal — multiple officers agreeing with their wallets.</span>
+      ⚡ <b style="color:#26ffaf">Cluster Buy detected</b>: ${cw.n_buys} insider buys by ${cw.n_unique_filers} unique filers in 14d starting ${esc(cw.start)}, totaling ${fmtUsd(cw.dollars)}.
+      <span style="color:var(--text-muted)">Cluster buys = strongest insider signal (multiple officers committing personal capital).</span>
     </div>`;
   }
 
-  // Transaction table (top 15 most recent)
+  // ── Signal note (one-line explanation)
+  let signalNoteHtml = '';
+  if(d.signal_note){
+    signalNoteHtml = `<div style="font-size:11.5px; color:${lc.color}; padding:8px 12px; background:${lc.bg}; border-left:3px solid ${lc.border}; border-radius:4px; margin-bottom:12px">
+      ${esc(d.signal_note)}
+    </div>`;
+  }
+
+  // ── Acceleration mini-block (the new headline metric)
+  const sellAccel = d.sell_acceleration;
+  const buyAccel  = d.buy_acceleration;
+  let accelText = '';
+  if(sellAccel != null){
+    const ratioColor = sellAccel >= 2 ? '#ef4444' : sellAccel >= 1.3 ? '#f59e0b' : 'var(--text-dim)';
+    const ratioLabel = sellAccel >= 2 ? 'accelerating' : sellAccel >= 1.3 ? 'modest uptick' : 'normal';
+    accelText = `<span style="color:${ratioColor}; font-weight:700">${sellAccel.toFixed(1)}×</span> <span style="color:var(--text-muted); font-size:10.5px">prior 90d (${ratioLabel})</span>`;
+  }
+
+  // ── 4-tile aggregate
+  const netDollars = d.net_dollars_90d || 0;
+  const netSign = netDollars >= 0 ? '+' : '';
+  const netColor = netDollars >= 0 ? '#26ffaf' : '#ef4444';
+
+  const zeroBuysCallout = (d.n_buys === 0 && d.n_sells > 0)
+    ? '<span style="color:var(--text-muted); font-size:10px; font-style:italic">no open-market buying</span>'
+    : '';
+
+  // ── Top sellers table (named, ranked by dollar)
+  const tops = (d.top_sellers || []).filter(s => s.dollars > 0);
+  let topSellersHtml = '';
+  if(tops.length){
+    const rows = tops.map(s => {
+      const isExec = /CEO|CFO|COO|President|Chairman|Chief/i.test(s.role || '');
+      const filerStyle = isExec ? 'color:var(--accent); font-weight:700' : 'color:var(--text)';
+      return `<tr>
+        <td style="text-align:left"><span style="${filerStyle}">${esc(s.filer)}</span></td>
+        <td style="text-align:left; font-size:10.5px; color:var(--text-dim); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc((s.role||'').slice(0,40))}</td>
+        <td>${Number(s.shares||0).toLocaleString()}</td>
+        <td>${s.n_txns}×</td>
+        <td style="font-weight:700">${fmtUsd(s.dollars)}</td>
+      </tr>`;
+    }).join('');
+    topSellersHtml = `<div style="margin-top:14px">
+      <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px">Top sellers (recent 90d)</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th style="text-align:left">Filer</th><th style="text-align:left">Role</th><th>Shares</th><th>#</th><th>Total</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>`;
+  }
+
+  // ── Top buyers (rare; high-value when present)
+  const topB = (d.top_buyers || []).filter(b => b.dollars > 0);
+  let topBuyersHtml = '';
+  if(topB.length){
+    const rows = topB.map(s => {
+      const isExec = /CEO|CFO|COO|President|Chairman|Chief/i.test(s.role || '');
+      const filerStyle = isExec ? 'color:#26ffaf; font-weight:700' : 'color:var(--text)';
+      return `<tr>
+        <td style="text-align:left"><span style="${filerStyle}">${esc(s.filer)}</span></td>
+        <td style="text-align:left; font-size:10.5px; color:var(--text-dim); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc((s.role||'').slice(0,40))}</td>
+        <td>${Number(s.shares||0).toLocaleString()}</td>
+        <td>${s.n_txns}×</td>
+        <td style="color:#26ffaf; font-weight:700">${fmtUsd(s.dollars)}</td>
+      </tr>`;
+    }).join('');
+    topBuyersHtml = `<div style="margin-top:14px">
+      <div style="font-size:11px; color:#26ffaf; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px">⚡ Top buyers (recent 90d) — open-market conviction</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th style="text-align:left">Filer</th><th style="text-align:left">Role</th><th>Shares</th><th>#</th><th>Total</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>`;
+  }
+
+  // ── Transaction detail (top 15)
   const txns = (d.transactions || []).slice(0, 15);
   const txnRows = txns.map(t => {
     const dir = t.direction;
     const dirColor = dir === 'BUY' ? '#26ffaf' : dir === 'SELL' ? '#ef4444' : '#f59e0b';
-    const dirBg = dir === 'BUY' ? 'rgba(38,255,175,.12)' : dir === 'SELL' ? 'rgba(239,68,68,.12)' : 'rgba(245,158,11,.10)';
+    const dirBg    = dir === 'BUY' ? 'rgba(38,255,175,.12)' : dir === 'SELL' ? 'rgba(239,68,68,.12)' : 'rgba(245,158,11,.10)';
     const role = (t.role || '').slice(0, 40);
     const isExec = /CEO|CFO|COO|President|Chairman|Chief/i.test(role);
     const filerStyle = isExec ? 'color:var(--accent); font-weight:700' : 'color:var(--text)';
@@ -1342,11 +1418,12 @@ function paintInsiderBlock(d){
   }).join('');
 
   body.innerHTML = `
+    ${signalNoteHtml}
     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:12px">
       <div style="background:var(--bg-elev); padding:10px; border-radius:6px">
         <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em">Buys 90d</div>
-        <div style="font-family:var(--font-mono); font-size:16px; font-weight:700; color:#26ffaf">${d.n_buys}</div>
-        <div style="font-size:10.5px; color:var(--text-dim); font-family:var(--font-mono)">${fmtUsd(d.total_dollars_buy)}</div>
+        <div style="font-family:var(--font-mono); font-size:16px; font-weight:700; color:${d.n_buys > 0 ? '#26ffaf' : 'var(--text-dim)'}">${d.n_buys}</div>
+        <div style="font-size:10.5px; color:var(--text-dim); font-family:var(--font-mono)">${d.n_buys > 0 ? fmtUsd(d.total_dollars_buy) : zeroBuysCallout}</div>
       </div>
       <div style="background:var(--bg-elev); padding:10px; border-radius:6px">
         <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em">Sells 90d</div>
@@ -1354,32 +1431,37 @@ function paintInsiderBlock(d){
         <div style="font-size:10.5px; color:var(--text-dim); font-family:var(--font-mono)">${fmtUsd(d.total_dollars_sell)}</div>
       </div>
       <div style="background:var(--bg-elev); padding:10px; border-radius:6px">
-        <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em">Net Flow 90d</div>
-        <div style="font-family:var(--font-mono); font-size:16px; font-weight:700; color:${netColor}">${netSign}${fmtUsd(netDollars)}</div>
-        <div style="font-size:10.5px; color:var(--text-dim); font-family:var(--font-mono)">${netSign}${Number(d.net_shares_90d||0).toLocaleString()} sh</div>
+        <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em">Sell Acceleration</div>
+        <div style="font-family:var(--font-mono); font-size:16px; font-weight:700;">${accelText || '—'}</div>
+        <div style="font-size:10.5px; color:var(--text-dim); font-family:var(--font-mono)">vs prior: ${fmtUsd(d.prior_dollars_sell || 0)}</div>
       </div>
       <div style="background:var(--bg-elev); padding:10px; border-radius:6px">
-        <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em">CEO/CFO Filings</div>
-        <div style="font-family:var(--font-mono); font-size:16px; font-weight:700; color:var(--accent)">${(d.ranks&&d.ranks.ceo_cfo)||0}</div>
-        <div style="font-size:10.5px; color:var(--text-dim); font-family:var(--font-mono)">vs ${(d.ranks&&d.ranks.vp)||0} VP, ${(d.ranks&&d.ranks.other)||0} other</div>
+        <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em">C-Suite Sellers</div>
+        <div style="font-family:var(--font-mono); font-size:16px; font-weight:700; color:${d.n_csuite_sellers > 0 ? 'var(--accent)' : 'var(--text-dim)'}">${d.n_csuite_sellers || 0}</div>
+        <div style="font-size:10.5px; color:var(--text-dim); font-family:var(--font-mono)">CEO/CFO/COO/Pres</div>
       </div>
     </div>
     ${clusterHtml}
-    ${txnRows ? `<div class="table-wrap" style="margin-top:14px"><table>
-      <thead><tr>
-        <th>Date</th>
-        <th style="text-align:left">Filer</th>
-        <th style="text-align:left">Role</th>
-        <th>Dir</th>
-        <th>Shares</th>
-        <th>Price</th>
-        <th>Value</th>
-      </tr></thead>
-      <tbody>${txnRows}</tbody>
-    </table></div>` : ''}
+    ${topBuyersHtml}
+    ${topSellersHtml}
+    ${txnRows ? `<div style="margin-top:14px">
+      <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px">All transactions (90d, latest first)</div>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>Date</th>
+          <th style="text-align:left">Filer</th>
+          <th style="text-align:left">Role</th>
+          <th>Dir</th>
+          <th>Shares</th>
+          <th>Price</th>
+          <th>Value</th>
+        </tr></thead>
+        <tbody>${txnRows}</tbody>
+      </table></div>
+    </div>` : ''}
     <div style="margin-top:10px; font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono); line-height:1.5">
-      Source: SEC EDGAR Form 4 · Codes: P=open-market buy, S=sale, F=tax sell ·
-      Bold filer = C-suite (CEO/CFO/COO) · CEO/CFO trades carry 3x signal weight ·
+      Source: SEC EDGAR Form 4 · Codes: P=open-market buy, S=sale, F=tax sell, D=disposition ·
+      Bold filer = C-suite · Signal compares recent 90d to prior 90d (180d total window) ·
       Updates every 24h
     </div>`;
 }
