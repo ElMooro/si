@@ -149,15 +149,38 @@ def _call_edgar(ticker: str) -> dict:
                 "elapsed_s": round(time.time() - t0, 1)}
 
 
+def _fire_critique_async(ticker: str) -> dict:
+    """Async-invoke the critique Lambda so the prewarm doesn't wait on it.
+
+    The critique itself takes ~30-60s. By firing it async (InvocationType=Event)
+    the prewarm wall time isn't affected. The critique writes its output to
+    equity-critique/{ticker}.json independently.
+
+    Errors are swallowed and returned in the status — we don't want a critique
+    failure to fail the prewarm.
+    """
+    try:
+        import boto3
+        lam = boto3.client("lambda", region_name="us-east-1")
+        lam.invoke(
+            FunctionName="justhodl-research-critique",
+            InvocationType="Event",
+            Payload=json.dumps({"ticker": ticker}).encode(),
+        )
+        return {"status": "fired", "ticker": ticker}
+    except Exception as e:
+        return {"status": "error", "error": str(e)[:200]}
+
+
 def prewarm_ticker(ticker: str) -> dict:
     """Pre-warm BOTH research and EDGAR data for one ticker, in parallel.
 
     Research Lambda takes ~90-100s (Claude synthesis dominates).
     EDGAR Lambda takes ~10-15s (SEC EDGAR fetches dominate).
+    Critique Lambda takes ~30-60s but fires async — doesn't block.
 
     Running them in parallel inside one worker means total wall time per
-    ticker is max(research, edgar) ≈ research time. EDGAR pre-warm is
-    essentially free within the same time slot.
+    ticker is max(research, edgar) ≈ research time.
     """
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=2) as ex:
@@ -166,8 +189,14 @@ def prewarm_ticker(ticker: str) -> dict:
         research = f_research.result()
         edgar    = f_edgar.result()
 
+    # If research succeeded, fire the critique async (Devil's Advocate review).
+    # This is fire-and-forget — the critique writes to S3 independently.
+    critique = None
+    if research.get("status") == "ok":
+        critique = _fire_critique_async(ticker)
+
     # Top-level shape mirrors the original prewarm format (status + rating)
-    # but adds an edgar sub-dict
+    # but adds edgar + critique sub-dicts
     return {
         "ticker":    ticker,
         "status":    research.get("status", "?"),
@@ -177,6 +206,7 @@ def prewarm_ticker(ticker: str) -> dict:
         "rating":    research.get("rating"),
         "ev_12m":    research.get("ev_12m"),
         "edgar":     edgar,
+        "critique":  critique,
     }
 
 

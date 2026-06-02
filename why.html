@@ -545,6 +545,7 @@ function renderReport(d){
   html += renderCapitalAllocation(d);
   html += renderInstitutionalActivity(d);
   html += renderInsiderActivity(d);  // SEC EDGAR Form 4 — async-fetched
+  html += renderCritique(d);          // Devil's Advocate review — async-fetched
   html += renderEarningsCall(d);
   html += renderShortInterest(d);
   html += renderReturns(d);
@@ -558,6 +559,7 @@ function renderReport(d){
   // Kick off async insider data fetch (non-blocking — paints when ready)
   if(d.ticker){
     fetchInsiderData(d.ticker);
+    fetchCritique(d.ticker);
   }
 }
 
@@ -1220,6 +1222,12 @@ function renderInstitutionalActivity(d){
 const EDGAR_CDN_BASE = "https://justhodl-data-proxy.raafouis.workers.dev/edgar-insiders";
 let EDGAR_LAMBDA_URL = "https://ru3djltl3oucvsocjrih37sowu0fxgkm.lambda-url.us-east-1.on.aws/"; // patched by ops 1157
 
+// Critique Lambda — Devil's Advocate review (Sonnet 4.6 critic by default,
+// optionally OpenAI o3-mini when OPENAI_API_KEY is provisioned in SSM).
+// CDN serves cached critiques (10 min TTL); Lambda fallback for fresh.
+const CRITIQUE_CDN_BASE = "https://justhodl-data-proxy.raafouis.workers.dev/equity-critique";
+let CRITIQUE_LAMBDA_URL = ""; // patched by ops once Lambda URL is created
+
 function renderInsiderActivity(d){
   // Placeholder block; populated by fetchInsiderData() after main render.
   const ticker = d.ticker;
@@ -1466,6 +1474,193 @@ function paintInsiderBlock(d){
       Updates every 24h
     </div>`;
 }
+
+
+// ═════════════════════════════════════════════════════════════════════
+// Devil's Advocate Critique — second-opinion adversarial review
+// A different model (Sonnet 4.6 by default, OpenAI o3-mini when provisioned)
+// reviews the equity-research verdict and produces structured pushback.
+// ═════════════════════════════════════════════════════════════════════
+function renderCritique(d){
+  const ticker = d.ticker;
+  return `
+    <section class="block" id="critique-section" data-ticker="${esc(ticker)}">
+      <h3><span class="ico">🎭</span> Devil's Advocate Review
+        <span class="pill" id="critique-pill">loading second opinion…</span>
+      </h3>
+      <div id="critique-body" style="padding:14px 0; color:var(--text-muted); font-size:12px">
+        <span style="opacity:0.6">Fetching adversarial critique from second model — pressure-testing the analyst's verdict…</span>
+      </div>
+    </section>`;
+}
+
+async function fetchCritique(ticker){
+  const section = document.getElementById('critique-section');
+  if(!section) return;
+  const pill = document.getElementById('critique-pill');
+  const body = document.getElementById('critique-body');
+
+  // Try CDN first (cached 10min critique)
+  try {
+    const cdnUrl = `${CRITIQUE_CDN_BASE}/${encodeURIComponent(ticker)}.json?v=${Date.now()}`;
+    const r = await fetchWithTimeout(cdnUrl, 6000);
+    if(r && r.ok){
+      const data = await r.json();
+      paintCritiqueBlock(data);
+      return;
+    }
+  } catch(e){ /* fall through */ }
+
+  // Fall back to Lambda (URL patched post-deploy)
+  if(!CRITIQUE_LAMBDA_URL){
+    body.innerHTML = `<span style="color:var(--text-muted); font-size:11.5px">
+      No cached critique for ${esc(ticker)} yet. Critique runs in background after research
+      pre-warm completes (~30-60s). Refresh the page in a moment.
+    </span>`;
+    pill.textContent = 'pending';
+    return;
+  }
+
+  try {
+    const r = await fetchWithTimeout(`${CRITIQUE_LAMBDA_URL}?ticker=${encodeURIComponent(ticker)}`, 120000);
+    if(!r.ok){
+      body.innerHTML = `<span style="color:var(--text-muted); font-size:11.5px">Critique unavailable (HTTP ${r.status}).</span>`;
+      pill.textContent = 'unavailable';
+      return;
+    }
+    const data = await r.json();
+    paintCritiqueBlock(data);
+  } catch(e){
+    body.innerHTML = `<span style="color:var(--text-muted); font-size:11.5px">Critique fetch failed: ${esc(e.message || 'unknown')}.</span>`;
+    pill.textContent = 'error';
+  }
+}
+
+function paintCritiqueBlock(d){
+  const body = document.getElementById('critique-body');
+  const pill = document.getElementById('critique-pill');
+  if(!body || !d || !d.critique) {
+    if(pill) pill.textContent = 'no data';
+    if(body) body.innerHTML = `<span style="color:var(--text-muted)">Critique data not available.</span>`;
+    return;
+  }
+
+  const c = d.critique;
+  const a = d.analyst_verdict || {};
+  const score = c.disagreement_score;
+
+  // Disagreement pill color
+  let pillStyle, pillIcon, pillLabel;
+  if(score >= 60) {
+    pillStyle = 'background:rgba(239,68,68,.15); border:1px solid #ef4444; color:#ef4444';
+    pillIcon = '⚠'; pillLabel = 'CONTESTED';
+  } else if(score >= 35) {
+    pillStyle = 'background:rgba(245,158,11,.12); border:1px solid #f59e0b; color:#f59e0b';
+    pillIcon = '⚠'; pillLabel = 'MEANINGFUL PUSHBACK';
+  } else if(score >= 15) {
+    pillStyle = 'background:rgba(34,211,238,.10); border:1px solid rgba(34,211,238,.5); color:var(--cyan)';
+    pillIcon = '◆'; pillLabel = 'MILD PUSHBACK';
+  } else {
+    pillStyle = 'background:rgba(38,255,175,.10); border:1px solid rgba(38,255,175,.5); color:#26ffaf';
+    pillIcon = '✓'; pillLabel = 'CONCUR';
+  }
+  pill.innerHTML = `<span style="padding:2px 8px; border-radius:4px; font-weight:700; ${pillStyle}">${pillIcon} ${pillLabel}</span> · ${score}/100`;
+
+  // Headline disagreement
+  const headline = c.key_disagreement_1liner || c.summary_1liner || '';
+
+  // Rating divergence flag
+  const altRating = c.alternative_rating;
+  const analystRating = a.rating;
+  const ratingDiverges = altRating && analystRating && altRating !== analystRating;
+  let ratingCompareHtml = '';
+  if(ratingDiverges) {
+    ratingCompareHtml = `<div style="background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.3); border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:12px">
+      <span style="color:var(--text-muted)">Analyst says</span>
+      <b style="color:var(--accent); margin:0 6px">${esc(analystRating)}</b>
+      <span style="color:var(--text-muted)">→</span>
+      <span style="color:var(--text-muted); margin:0 6px">Critic says</span>
+      <b style="color:#f59e0b">${esc(altRating)}</b>
+      ${c.alternative_pt != null ? `<span style="color:var(--text-muted); margin-left:8px">(alt PT $${Number(c.alternative_pt).toFixed(2)} vs analyst $${Number(a.price_target_12m||0).toFixed(2)})</span>` : ''}
+    </div>`;
+  } else if(altRating === analystRating) {
+    ratingCompareHtml = `<div style="background:rgba(38,255,175,.05); border:1px solid rgba(38,255,175,.2); border-radius:6px; padding:8px 14px; margin-bottom:12px; font-size:11.5px; color:var(--text-dim)">
+      ✓ Critic concurs with rating <b style="color:#26ffaf">${esc(analystRating)}</b>
+      ${c.alternative_pt != null && a.price_target_12m ? `· alt PT $${Number(c.alternative_pt).toFixed(2)} vs analyst $${Number(a.price_target_12m).toFixed(2)} (${Math.abs(((c.alternative_pt/a.price_target_12m)-1)*100).toFixed(1)}% spread)` : ''}
+    </div>`;
+  }
+
+  // Anti-thesis
+  const antiThesisHtml = c.anti_thesis ? `
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px">Anti-Thesis (case AGAINST)</div>
+      <div style="font-size:12.5px; color:var(--text); line-height:1.65">${esc(c.anti_thesis)}</div>
+    </div>` : '';
+
+  // Data reinterpretations
+  let reinterpHtml = '';
+  const reinterps = c.data_reinterpretations || [];
+  if(reinterps.length) {
+    const rows = reinterps.map(r => `
+      <div style="background:var(--bg-elev); border-left:3px solid var(--accent); padding:10px 14px; margin-bottom:6px; border-radius:0 4px 4px 0">
+        <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent); margin-bottom:4px">${esc(r.metric || '')}</div>
+        <div style="font-size:11.5px; color:var(--text-dim); line-height:1.5">
+          <b style="color:var(--text)">Analyst:</b> ${esc(r.analyst_view || '')}<br>
+          <b style="color:#f59e0b">Skeptic:</b> ${esc(r.skeptical_view || '')}
+        </div>
+      </div>`).join('');
+    reinterpHtml = `<div style="margin-bottom:14px">
+      <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px">Data Reinterpretations (where analyst was too charitable)</div>
+      ${rows}
+    </div>`;
+  }
+
+  // Underweighted risks
+  let risksHtml = '';
+  const risks = c.underweighted_risks || [];
+  if(risks.length) {
+    const rows = risks.map(r => `
+      <div style="background:rgba(239,68,68,.05); border-left:3px solid #ef4444; padding:10px 14px; margin-bottom:6px; border-radius:0 4px 4px 0">
+        <div style="font-size:12px; color:#ef4444; font-weight:600; margin-bottom:4px">${esc(r.risk || '')}</div>
+        <div style="font-size:11px; color:var(--text-dim)">${esc(r.evidence || '')}</div>
+      </div>`).join('');
+    risksHtml = `<div style="margin-bottom:14px">
+      <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px">Underweighted Risks</div>
+      ${rows}
+    </div>`;
+  }
+
+  // Bear case strengtheners
+  let bearHtml = '';
+  const bears = c.bear_case_strengtheners || [];
+  if(bears.length) {
+    const items = bears.map(b => `<li style="margin-bottom:4px">${esc(b)}</li>`).join('');
+    bearHtml = `<div style="margin-bottom:14px">
+      <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px">Bear Case Strengtheners (beyond analyst's list)</div>
+      <ul style="font-size:11.5px; color:var(--text-dim); line-height:1.6; margin:0; padding-left:20px">${items}</ul>
+    </div>`;
+  }
+
+  // Critic provenance
+  const critic = d.critic || {};
+  const criticBadge = critic.provider === 'openai'
+    ? `<span style="background:rgba(34,211,238,.10); color:var(--cyan); padding:2px 7px; border-radius:3px; font-size:10px">OpenAI ${esc(critic.model||'')}</span>`
+    : `<span style="background:rgba(250,204,21,.08); color:var(--accent); padding:2px 7px; border-radius:3px; font-size:10px">${esc(critic.model||'sonnet-4-6')}</span>`;
+
+  body.innerHTML = `
+    ${headline ? `<div style="background:linear-gradient(135deg, rgba(245,158,11,.05) 0%, rgba(239,68,68,.03) 100%); border:1px solid rgba(245,158,11,.25); padding:10px 14px; border-radius:6px; margin-bottom:14px; font-size:13px; color:var(--text); font-style:italic">"${esc(headline)}"</div>` : ''}
+    ${ratingCompareHtml}
+    ${antiThesisHtml}
+    ${reinterpHtml}
+    ${risksHtml}
+    ${bearHtml}
+    <div style="margin-top:14px; font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono); line-height:1.5; padding-top:10px; border-top:1px solid var(--border-light)">
+      Critic: ${criticBadge} · cost \$${(critic.cost_usd || 0).toFixed(4)} · ${critic.elapsed_s || '?'}s ·
+      Generated ${d.generated_at ? esc(d.generated_at.slice(0,16).replace('T',' ')) : '?'} UTC ·
+      ${ratingDiverges ? '<span style="color:#f59e0b">⚠ Rating divergence — contested ticker, edge potential</span>' : 'Both models agree on direction'}
+    </div>`;
+}
+
 
 function renderEarningsCall(d){
   const ec = d.earnings_call;

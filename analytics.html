@@ -296,6 +296,10 @@ body {
             <b>Full picture — research × EDGAR JOIN</b><br>
             <span style="opacity:.7">side-by-side ranking</span>
           </button>
+          <button class="example-btn" data-example="contested_tickers">
+            <b>🎭 Contested tickers (where AIs disagree)</b><br>
+            <span style="opacity:.7">research × critique — disagreement score</span>
+          </button>
         </div>
       </div>
 
@@ -324,9 +328,10 @@ import * as duckdb from 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0
 
 // ─── Config
 const CDN_BASE = "https://justhodl-data-proxy.raafouis.workers.dev";
-const RESEARCH_URL = `${CDN_BASE}/analytics/equity_research_flat.json`;
-const EDGAR_URL    = `${CDN_BASE}/analytics/edgar_insiders_flat.json`;
-const MANIFEST_URL = `${CDN_BASE}/analytics/manifest.json`;
+const RESEARCH_URL  = `${CDN_BASE}/analytics/equity_research_flat.json`;
+const EDGAR_URL     = `${CDN_BASE}/analytics/edgar_insiders_flat.json`;
+const CRITIQUE_URL  = `${CDN_BASE}/analytics/research_critique_flat.json`;
+const MANIFEST_URL  = `${CDN_BASE}/analytics/manifest.json`;
 
 // ─── DOM
 const $ = (id) => document.getElementById(id);
@@ -359,8 +364,8 @@ async function init() {
   setStatus("fetching data…", "loading");
   setMeta("⏳ Fetching equity_research_flat.json + edgar_insiders_flat.json from CDN…");
 
-  // Fetch both tables in parallel
-  const [research, edgar] = await Promise.all([
+  // Fetch all 3 tables in parallel (critique optional — may not yet exist)
+  const [research, edgar, critique] = await Promise.all([
     fetch(`${RESEARCH_URL}?v=${Date.now()}`).then(r => {
       if(!r.ok) throw new Error(`equity_research fetch HTTP ${r.status}`);
       return r.json();
@@ -368,7 +373,9 @@ async function init() {
     fetch(`${EDGAR_URL}?v=${Date.now()}`).then(r => {
       if(!r.ok) throw new Error(`edgar_insiders fetch HTTP ${r.status}`);
       return r.json();
-    })
+    }),
+    // Critique is optional — graceful fallback if not yet populated
+    fetch(`${CRITIQUE_URL}?v=${Date.now()}`).then(r => r.ok ? r.json() : {rows: []}).catch(() => ({rows: []}))
   ]);
 
   // Register the JSON data with DuckDB
@@ -377,28 +384,39 @@ async function init() {
     JSON.stringify(research.rows || []));
   await db.registerFileText('edgar_insiders.json',
     JSON.stringify(edgar.rows || []));
+  await db.registerFileText('research_critique.json',
+    JSON.stringify(critique.rows || []));
 
   // Create tables (DuckDB infers types from the JSON)
-  await conn.query(`CREATE TABLE equity_research AS SELECT * FROM read_json_auto('equity_research.json')`);
-  await conn.query(`CREATE TABLE edgar_insiders  AS SELECT * FROM read_json_auto('edgar_insiders.json')`);
+  await conn.query(`CREATE TABLE equity_research   AS SELECT * FROM read_json_auto('equity_research.json')`);
+  await conn.query(`CREATE TABLE edgar_insiders    AS SELECT * FROM read_json_auto('edgar_insiders.json')`);
+  // Critique table may be empty initially; create from non-empty list or use IF NOT NULL
+  if(critique.rows && critique.rows.length > 0) {
+    await conn.query(`CREATE TABLE research_critique AS SELECT * FROM read_json_auto('research_critique.json')`);
+  } else {
+    // Create an empty placeholder so example queries don't break
+    await conn.query(`CREATE TABLE research_critique (ticker VARCHAR, disagreement_score INTEGER, alternative_rating VARCHAR, rating_diverges BOOLEAN, key_disagreement VARCHAR)`);
+  }
 
   // Inspect schemas for the sidebar
   const researchCols = await conn.query(`SELECT column_name FROM information_schema.columns WHERE table_name='equity_research' ORDER BY ordinal_position`);
   const edgarCols    = await conn.query(`SELECT column_name FROM information_schema.columns WHERE table_name='edgar_insiders'  ORDER BY ordinal_position`);
+  const critiqueCols = await conn.query(`SELECT column_name FROM information_schema.columns WHERE table_name='research_critique' ORDER BY ordinal_position`);
   renderSchema(
     researchCols.toArray().map(r => r.toJSON().column_name),
-    edgarCols.toArray().map(r => r.toJSON().column_name)
+    edgarCols.toArray().map(r => r.toJSON().column_name),
+    critiqueCols.toArray().map(r => r.toJSON().column_name)
   );
 
   setStatus("ready ✓", "ready");
-  setMeta(`✓ Loaded ${research.rows?.length || 0} research rows · ${edgar.rows?.length || 0} EDGAR rows · snapshot ${research.generated_at || '?'}`);
+  setMeta(`✓ Loaded ${research.rows?.length || 0} research · ${edgar.rows?.length || 0} EDGAR · ${critique.rows?.length || 0} critique rows · snapshot ${research.generated_at || '?'}`);
   $("run-btn").disabled = false;
 
   // Load default example
   loadExample('full_picture');
 }
 
-function renderSchema(researchCols, edgarCols) {
+function renderSchema(researchCols, edgarCols, critiqueCols) {
   const html = `
     <div class="schema-table">
       <div class="tbl-name">equity_research <span style="color:var(--text-muted)">(${researchCols.length} cols)</span></div>
@@ -407,6 +425,10 @@ function renderSchema(researchCols, edgarCols) {
     <div class="schema-table">
       <div class="tbl-name">edgar_insiders <span style="color:var(--text-muted)">(${edgarCols.length} cols)</span></div>
       <div class="col-list">${edgarCols.join(", ")}</div>
+    </div>
+    <div class="schema-table">
+      <div class="tbl-name">research_critique <span style="color:var(--text-muted)">(${critiqueCols.length} cols)</span></div>
+      <div class="col-list">${critiqueCols.join(", ")}</div>
     </div>`;
   $("schema-display").innerHTML = html;
 }
@@ -671,6 +693,31 @@ ORDER BY
     ELSE 6
   END,
   r.upside_pct DESC NULLS LAST`,
+
+  contested_tickers: `-- Where the AI ensemble disagrees most. These are where you have edge.
+-- High disagreement_score + rating_diverges = contested ticker. Consensus stocks
+-- are efficiently priced; contested ones are where your conviction differs from
+-- the noise. A PM watches these closely.
+SELECT
+  r.ticker,
+  r.sector,
+  r.rating         AS analyst_rating,
+  c.alternative_rating AS critic_rating,
+  r.upside_pct,
+  c.disagreement_score,
+  c.rating_diverges,
+  c.pt_spread_pct,
+  c.key_disagreement,
+  -- High-confidence setups: analyst BUY + critic concurs
+  CASE WHEN r.rating IN ('STRONG_BUY','BUY') AND c.disagreement_score < 25
+       THEN '⭐ HIGH-CONFIDENCE' ELSE '' END AS conviction_tag,
+  -- Edge cases: meaningful divergence
+  CASE WHEN c.rating_diverges = TRUE
+       THEN '🎭 CONTESTED' ELSE '' END AS edge_tag
+FROM equity_research r
+LEFT JOIN research_critique c USING (ticker)
+WHERE c.disagreement_score IS NOT NULL
+ORDER BY c.disagreement_score DESC NULLS LAST`,
 };
 
 window.loadExample = function(name) {

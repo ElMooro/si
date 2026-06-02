@@ -27,6 +27,7 @@ import boto3
 S3_BUCKET = "justhodl-dashboard-live"
 RESEARCH_PREFIX = "equity-research/"
 EDGAR_PREFIX = "edgar-insiders/"
+CRITIQUE_PREFIX = "equity-critique/"
 OUTPUT_PREFIX = "analytics/"
 
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -162,6 +163,42 @@ def flatten_edgar(doc: dict) -> dict:
     }
 
 
+def flatten_critique(doc: dict) -> dict:
+    """Flatten equity-critique JSON to a SQL-friendly row.
+
+    The critique structure is {ticker, analyst_verdict, critique, critic, generated_at}.
+    We extract the headline fields for analytical filtering — finding tickers where
+    the critic disagrees most with the analyst.
+    """
+    c = doc.get("critique") or {}
+    a = doc.get("analyst_verdict") or {}
+    critic = doc.get("critic") or {}
+    return {
+        "ticker":                 doc.get("ticker"),
+        "analyst_rating":         a.get("rating"),
+        "analyst_pt":             a.get("price_target_12m"),
+        "analyst_conviction":     a.get("conviction_grade"),
+        "alternative_rating":     c.get("alternative_rating"),
+        "alternative_pt":         c.get("alternative_pt"),
+        "disagreement_score":     c.get("disagreement_score"),
+        "rating_diverges":        bool(c.get("alternative_rating") and a.get("rating") and c.get("alternative_rating") != a.get("rating")),
+        "pt_spread_pct":          (
+            round(abs((c.get("alternative_pt") / a.get("price_target_12m")) - 1) * 100, 1)
+            if (c.get("alternative_pt") and a.get("price_target_12m") and a.get("price_target_12m") > 0)
+            else None
+        ),
+        "key_disagreement":       c.get("key_disagreement_1liner"),
+        "anti_thesis_summary":    (c.get("anti_thesis") or "")[:300],
+        "n_data_reinterpretations": len(c.get("data_reinterpretations") or []),
+        "n_underweighted_risks":  len(c.get("underweighted_risks") or []),
+        "n_bear_strengtheners":   len(c.get("bear_case_strengtheners") or []),
+        "critic_model":           critic.get("model"),
+        "critic_provider":        critic.get("provider"),
+        "critic_cost_usd":        critic.get("cost_usd"),
+        "generated_at":           doc.get("generated_at"),
+    }
+
+
 # ═══════════════════════════════════════════════════════════════════
 # S3 readers
 # ═══════════════════════════════════════════════════════════════════
@@ -200,17 +237,20 @@ def lambda_handler(event, context):
     # Read + flatten
     research_rows, research_skipped = read_all_under_prefix(RESEARCH_PREFIX, flatten_research)
     edgar_rows,    edgar_skipped    = read_all_under_prefix(EDGAR_PREFIX,    flatten_edgar)
+    critique_rows, critique_skipped = read_all_under_prefix(CRITIQUE_PREFIX, flatten_critique)
     print(f"[snapshot] research: {len(research_rows)} rows ({research_skipped} skipped)")
     print(f"[snapshot] edgar:    {len(edgar_rows)} rows ({edgar_skipped} skipped)")
+    print(f"[snapshot] critique: {len(critique_rows)} rows ({critique_skipped} skipped)")
 
     # Sort by ticker for deterministic output
     research_rows.sort(key=lambda r: r.get("ticker") or "")
     edgar_rows.sort(key=lambda r: r.get("ticker") or "")
+    critique_rows.sort(key=lambda r: r.get("ticker") or "")
 
     meta = {
         "generated_at":     datetime.now(timezone.utc).isoformat(),
-        "schema_version":   "1.0",
-        "n_rows":           None,  # filled per-file
+        "schema_version":   "1.1",  # bumped to add critique table
+        "n_rows":           None,
         "generation_elapsed_s": None,
     }
 
@@ -219,6 +259,7 @@ def lambda_handler(event, context):
     for name, rows, public_key in [
         ("equity_research", research_rows, "analytics/equity_research_flat.json"),
         ("edgar_insiders",  edgar_rows,    "analytics/edgar_insiders_flat.json"),
+        ("research_critique", critique_rows, "analytics/research_critique_flat.json"),
     ]:
         out = {
             **meta,
@@ -243,11 +284,13 @@ def lambda_handler(event, context):
     manifest = {
         "snapshot_generated_at": meta["generated_at"],
         "tables": [
-            {"name": "equity_research", "key": "analytics/equity_research_flat.json"},
-            {"name": "edgar_insiders",  "key": "analytics/edgar_insiders_flat.json"},
+            {"name": "equity_research",   "key": "analytics/equity_research_flat.json"},
+            {"name": "edgar_insiders",    "key": "analytics/edgar_insiders_flat.json"},
+            {"name": "research_critique", "key": "analytics/research_critique_flat.json"},
         ],
         "schema_research_columns": list(flatten_research({}).keys()),
         "schema_edgar_columns":    list(flatten_edgar({}).keys()),
+        "schema_critique_columns": list(flatten_critique({}).keys()),
     }
     s3.put_object(
         Bucket=S3_BUCKET,
@@ -265,8 +308,10 @@ def lambda_handler(event, context):
         "body": json.dumps({
             "n_research_rows": len(research_rows),
             "n_edgar_rows":    len(edgar_rows),
+            "n_critique_rows": len(critique_rows),
             "research_skipped": research_skipped,
             "edgar_skipped":    edgar_skipped,
+            "critique_skipped": critique_skipped,
             "written":         written,
             "elapsed_s":       elapsed,
         }),
