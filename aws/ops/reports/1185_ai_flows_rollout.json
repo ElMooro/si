@@ -1,0 +1,244 @@
+{
+  "started": "2026-06-02T14:49:17.660032+00:00",
+  "steps": {
+    "create": {
+      "created": true,
+      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-flows-ai-analysis",
+      "anthropic_set": true
+    },
+    "url": {
+      "url": "https://tylaybjx6h7vblkxpozcrgsq5a0svfsy.lambda-url.us-east-1.on.aws/"
+    },
+    "schedule": {
+      "created": true
+    },
+    "invoke_raw": {
+      "elapsed_s": 114.8,
+      "status_code": 200,
+      "function_error": null,
+      "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 114.0, \\\"regime\\\": \\\"NEUTRAL\\\", \\\"n_calls\\\": 13, \\\"macro_narrative_preview\\\": \\\"Today's dominant signal is the violent international rotation: EWU +5.13\\\\u03c3 (UK), EWC +3.18\\\\u03c3 (Canada), and EWG +1.28\\\\u03c3 (Germany) represent extreme smart-money flight from US exposure. Domestic large-cap \\\", \\\"key\\\": \\\"etf-flows/ai-analysis.json\\\"}\"}"
+    },
+    "ai_output": {
+      "model": "claude-sonnet-4-5-20250929",
+      "claude_elapsed_s": 109.1,
+      "usage": {
+        "input_tokens": 20377,
+        "cache_creation_input_tokens": 1845,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1845
+        },
+        "output_tokens": 5997,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "input_summary": {
+        "n_etfs_with_data": 84,
+        "n_research": 59,
+        "n_critiques": 5,
+        "n_edgar": 0,
+        "prompt_kb": 46.3
+      },
+      "regime_call": {
+        "regime": "NEUTRAL",
+        "confidence": "MEDIUM",
+        "reasoning": "Composite scores oscillate near zero (defensive_rotation +9.8, risk_on_off +8.6 both MIXED) but internals show clear domestic-to-international capital rotation with sector bifurcation (materials IN, tech/financials OUT). No single composite exceeds |20|, but flow extremes (EWU +5.13\u03c3, UNG -3.97\u03c3, IBIT -2.54\u03c3) suggest transition underway.",
+        "expected_duration_days": 7,
+        "what_would_invalidate": "Reversal in country ETF flows (EWU/EWC turning negative) or QQQ 5-day flow flipping positive with >+1\u03c3 would signal domestic re-risk"
+      },
+      "macro_narrative_chars": 1579,
+      "n_divergences": 5,
+      "n_ticker_calls": 13,
+      "n_pair_trades": 4,
+      "ticker_calls_summary": [
+        {
+          "t": "EWU",
+          "call": "STRONG_BUY",
+          "conv": "HIGH",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "UK ETF at +5.13\u03c3 flow (highest in dataset), 3.4% of AUM in 1 day, smart money reallocation from US mega-cap \u2014 ride the i"
+        },
+        {
+          "t": "EWC",
+          "call": "BUY",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Canada +3.18\u03c3 flow with 3-day persistence, smart money rotation into commodity-levered developed market as materials (XL"
+        },
+        {
+          "t": "XLB",
+          "call": "BUY",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Materials +2.7\u03c3 (3.2% of AUM inflow) signals reflation trade; copper +1.26\u03c3 and clean energy inflows (ICLN +2.77\u03c3) suppo"
+        },
+        {
+          "t": "ICLN",
+          "call": "ADD",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Clean energy +2.77\u03c3 (12.5% of AUM over 21d), dumb money but aligned with materials reflation + policy tailwinds; ride mo"
+        },
+        {
+          "t": "SMH",
+          "call": "ADD",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Semiconductor +1.69\u03c3 with 3-day persistence despite QQQ weakness \u2014 AI infra capex bet decoupled from megacap risk-off; p"
+        },
+        {
+          "t": "AAPL",
+          "call": "REDUCE",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 3,
+          "thesis": "Analyst HOLD vs critic SELL (disagreement 62) + XLK -1.68\u03c3 outflow = conviction on caution; H1 FY26 strength is supply a"
+        },
+        {
+          "t": "QQQ",
+          "call": "REDUCE",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "n_aligned": 2,
+          "thesis": "Megacap tech -1.89\u03c3 outflow (2-day persistence) with -$3.2B daily bleed; international rotation + sector weakness (XLK -"
+        },
+        {
+          "t": "XLK",
+          "call": "REDUCE",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Tech sector -1.68\u03c3 outflow with -$458M daily despite 5d/21d cumulative positive \u2014 flow inflection signals rotation away "
+        },
+        {
+          "t": "XLF",
+          "call": "REDUCE",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Financials -1.11\u03c3 (4-day persistence, -$477M daily, -5.3% over 21d) with broad research HOLD/BUY but no offsetting signa"
+        },
+        {
+          "t": "XLP",
+          "call": "AVOID",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Staples -1.67\u03c3 outflow (-2.2% daily) during defensive rotation (+9.8 composite) = demand destruction signal not defensiv"
+        },
+        {
+          "t": "IBB",
+          "call": "AVOID",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Biotech -2.2\u03c3 (smart money selling -$198M in 1 day, -2.6% of AUM) with sector aggregate -1.1\u03c3 \u2014 no research coverage to "
+        },
+        {
+          "t": "UNG",
+          "call": "AVOID",
+          "conv": "LOW",
+          "tf": 5,
+          "n_aligned": 1,
+          "thesis": "Nat gas -3.97\u03c3 (dumb money, -9.4% of AUM daily, 2-day persistence) = structural oversupply narrative; too volatile for i"
+        },
+        {
+          "t": "IBIT",
+          "call": "AVOID",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Bitcoin -2.54\u03c3 with 11-day outflow persistence (longest streak in data) = capitulation ongoing but no reversal catalyst;"
+        }
+      ],
+      "pair_trades": [
+        {
+          "long": "EWU",
+          "short": "QQQ",
+          "thesis": "International rotation at extremes: UK +5.13\u03c3 vs US megacap tech -1.89\u03c3; 21-day mean reversion + domestic de-risking = high-conviction relative value",
+          "conviction": "HIGH",
+          "ratio": "$1 long : $1 short",
+          "timeframe_days": 21
+        },
+        {
+          "long": "XLB",
+          "short": "XLP",
+          "thesis": "Materials reflation (+2.7\u03c3) vs staples weakness (-1.67\u03c3) during failed defensive rotation = play commodity/industrial capex vs consumer demand destruction",
+          "conviction": "MEDIUM-HIGH",
+          "ratio": "$1 long : $1 short",
+          "timeframe_days": 21
+        },
+        {
+          "long": "EWC",
+          "short": "XLF",
+          "thesis": "Canada +3.18\u03c3 (commodity proxy) vs US financials -1.11\u03c3 (4-day bleed) = geographic + sector rotation combo with materials tailwind",
+          "conviction": "MEDIUM",
+          "ratio": "$1 long : $1 short",
+          "timeframe_days": 21
+        },
+        {
+          "long": "SMH",
+          "short": "XLK",
+          "thesis": "Semis +1.69\u03c3 (AI infra capex) vs broad tech -1.68\u03c3 = intra-sector bet on supply chain/capital goods decoupled from consumer-facing megacaps",
+          "conviction": "MEDIUM",
+          "ratio": "$1 long : $0.8 short",
+          "timeframe_days": 21
+        }
+      ],
+      "watchlist": {
+        "add": [
+          {
+            "ticker": "VEA",
+            "reason": "Developed international +0.11% 5d flow with country rotation accelerating; smart money ETF deserves monitoring as EWU/EWC flows broaden"
+          },
+          {
+            "ticker": "CPER",
+            "reason": "Copper +1.26\u03c3 with 7.6% 21d AUM inflow supports materials reflation thesis; add if XLB momentum continues"
+          },
+          {
+            "ticker": "TAN",
+            "reason": "Solar +1.2\u03c3 riding clean energy wave (ICLN +2.77\u03c3); dumb money but policy tailwinds + persistence warrant watch"
+          }
+        ],
+        "remove": [
+          {
+            "ticker": "TQQQ",
+            "reason": "3x QQQ bull at -0.063% daily flow with underlying QQQ -1.89\u03c3; leveraged products excluded per rules but was flagged previously"
+          },
+          {
+            "ticker": "SOXL",
+            "reason": "3x semi bull -1.42% daily (-10.35% 5d) despite SMH strength = basis risk too high; prefer unleveraged SMH/SOXX"
+          }
+        ],
+        "monitor_for_entry": [
+          {
+            "ticker": "IBIT",
+            "trigger": "5-day flow turns positive (currently -2.55% 5d) \u2014 would signal capitulation exhaustion after 11-day bleed"
+          },
+          {
+            "ticker": "TLT",
+            "trigger": "z-score crosses above -0.5 from current -1.17\u03c3 \u2014 treasury reversal would confirm risk-off rotation ending"
+          },
+          {
+            "ticker": "XLY",
+            "trigger": "Sector flow stabilizes above -1.0\u03c3 (currently -1.81\u03c3 with 2-day bleed) \u2014 discretionary weakness overdone if consumer data firms"
+          }
+        ]
+      },
+      "regime_alpha_note": "Current NEUTRAL regime with DOMESTIC_OUTFLOW internals argues for de-rating all research STRONG_BUY calls on US mega-cap growth (MSFT, GOOGL, CRM, ORCL) from HIGH to MEDIUM conviction until international rotation exhausts (EWU/EWC z-scores normalize below +2.0). Conversely, any HOLD verdicts on international equities or commodity plays (LIN, materials names) deserve upgrade to BUY given flow alignment. Research coverage bias (100% US, 0% international) creates structural alpha opportunity in EWU/EWC/VEA until analyst community catches up to capital flows.",
+      "self_assessment": {
+        "data_completeness": "MEDIUM",
+        "n_tickers_with_full_signal_alignment": 3,
+        "biggest_unknown": "Insider transaction data completely absent (all null) \u2014 cluster buying/selling at sector level (XLK, XLF, XLB) would significantly refine conviction on AAPL/QQQ/XLB calls and validate or contradict flow signals"
+      },
+      "narrative_preview": "Today's dominant signal is the violent international rotation: EWU +5.13\u03c3 (UK), EWC +3.18\u03c3 (Canada), and EWG +1.28\u03c3 (Germany) represent extreme smart-money flight from US exposure. Domestic large-cap indices (SPY, QQQ, VTI) bleed -$5.4B while international country ETFs absorb +$316M with 1-day persistence across developed markets. This is paired with aggressive sector divergence \u2014 XLB (materials) surging +2.7\u03c3 while XLK (tech) bleeds -1.68\u03c3 and XLF (financials) -1.11\u03c3. The cross-asset story: ris"
+    }
+  },
+  "finished": "2026-06-02T14:51:18.838688+00:00"
+}
