@@ -1,0 +1,40 @@
+{
+  "started": "2026-06-02T22:09:30.215426+00:00",
+  "create": "updated",
+  "schedule_err": "An error occurred (ValidationException) when calling the PutRule operation: Parameter ScheduleExpression is not valid.",
+  "invoke": {
+    "elapsed_s": 10.9,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 10.0, \\\"n_predictions\\\": 158, \\\"narrative_keys\\\": [\\\"overview\\\", \\\"system_performance\\\", \\\"top_actionable\\\", \\\"risks_watching\\\", \\\"key_metrics\\\"], \\\"has_overview\\\": true}\"}"
+  },
+  "digest_doc": {
+    "generated_at": "2026-06-02T22:09:44.619861+00:00",
+    "date": "2026-06-02",
+    "narrative_keys": [
+      "overview",
+      "system_performance",
+      "top_actionable",
+      "risks_watching",
+      "key_metrics"
+    ],
+    "has_overview": true,
+    "has_fallback": null,
+    "narrative_preview": {
+      "overview": "System captured 158 ticker predictions today across 11 signal categories, with CASCADE alerts dominated by AI semis (MU +167.7) and infrastructure software (PANW, CRWD, FTNT). Portfolio holds 15 open ",
+      "system_performance": "Calibration engine idle\u2014zero data points scored and no predictive feature ranking active yet, indicating initialization phase. Live portfolio shows 8 of 15 positions underwater; largest drags are AMAT",
+      "top_actionable": "MU (entry 1064.1, stop 900.65, TP3 1554.46, 3:1 R:R) is highest-conviction CASCADE alert (167.7 score) in AI semis but currently -2.7% underwater\u2014hold through stop or add on 5% pullback. CDNS (entry 4",
+      "risks_watching": "AMAT's -6.5% drawdown ($414 loss) has triggered tactical stop consideration; monitor break below $437.59 hard stop. INTC showing contrarian strength (+1.3%) despite -12.6% 5-day lag signal\u2014conflicting",
+      "key_metrics": {
+        "headline_metric": "15 open positions, 8 underwater, $0 realized | 158 predictions captured",
+        "calibration_status": "Feature extraction inactive\u2014awaiting training dataset build; zero predictive rankings live",
+        "best_opportunity": "CDNS: +37.8% to TP3, 5:1 R:R, 8.2% risk-on-entry | MU: +46% to TP3, 3:1 R:R, 15.3% risk",
+        "retail_signal": "No viral momentum detected today\u2014system focused on institutional cascade clustering in AI semis + infra software"
+      }
+    }
+  },
+  "html_check": {
+    "error": "HTTP Error 403: Forbidden"
+  },
+  "finished": "2026-06-02T22:09:45.247501+00:00"
+}
