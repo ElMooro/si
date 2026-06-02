@@ -1,0 +1,75 @@
+{
+  "started": "2026-06-02T13:58:18.358873+00:00",
+  "steps": {
+    "check": {
+      "exists": false
+    },
+    "create": {
+      "created": true,
+      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-fund-flows",
+      "polygon_key_set": false
+    },
+    "env_patch": {
+      "error": "POLYGON_KEY not findable"
+    },
+    "bucket_policy": {
+      "added": false,
+      "note": "already present"
+    },
+    "function_url": {
+      "created": true,
+      "url": "https://thiy4qj7mo3jccymvg2d2xj2wm0xfcza.lambda-url.us-east-1.on.aws/"
+    },
+    "schedule": {
+      "created": true,
+      "expression": "cron(0 22 * * ? *)"
+    },
+    "invoke": {
+      "elapsed_s": 3.3,
+      "outputs_seen": [
+        "etf-flows/composite.json",
+        "etf-flows/per-ticker-context.json",
+        "etf-flows/daily.json",
+        "etf-flows/rotation.json"
+      ],
+      "daily_summary": {
+        "universe_size": 84,
+        "n_ok": 0,
+        "n_failed": 84,
+        "elapsed_s": 0.0,
+        "sample_top_inflows": [],
+        "sample_top_outflows": [],
+        "errors_sample": [
+          {
+            "error": "POLYGON_KEY not set",
+            "signal_label": "DATA_MISSING"
+          },
+          {
+            "error": "POLYGON_KEY not set",
+            "signal_label": "DATA_MISSING"
+          },
+          {
+            "error": "POLYGON_KEY not set",
+            "signal_label": "DATA_MISSING"
+          }
+        ]
+      },
+      "composite_summary": {
+        "regime": "NEUTRAL",
+        "defensive_rotation": null,
+        "smart_vs_dumb": null,
+        "risk_on_off": null,
+        "domestic_vs_intl": null,
+        "growth_vs_value": null,
+        "credit_stress": null
+      }
+    },
+    "snapshot_rerun": {
+      "elapsed_s": 9.4,
+      "n_rows": 0,
+      "schema_version": "1.1",
+      "sample_rows": []
+    }
+  },
+  "finished": "2026-06-02T13:58:38.635822+00:00"
+}
