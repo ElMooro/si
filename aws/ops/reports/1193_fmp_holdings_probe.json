@@ -1,0 +1,490 @@
+{
+  "tests": {
+    "1_stable_holdings_SPY": {
+      "name": "1_stable_holdings_SPY",
+      "url": "https://financialmodelingprep.com/stable/etf/holdings?symbol=SPY&apikey=<KEY>",
+      "ok": true,
+      "http_status": 200,
+      "n_results": 505,
+      "sample_keys": [
+        "symbol",
+        "asset",
+        "name",
+        "isin",
+        "securityCusip",
+        "sharesNumber",
+        "weightPercentage",
+        "marketValue",
+        "updatedAt"
+      ],
+      "sample_first_3": [
+        {
+          "symbol": "SPY",
+          "asset": "NVDA",
+          "name": "NVIDIA CORP",
+          "isin": "US67066G1040",
+          "securityCusip": "67066G104",
+          "sharesNumber": 292323382,
+          "weightPercentage": 8.36398938,
+          "marketValue": 65763337608,
+          "updatedAt": "2026-06-02 03:06:21"
+        },
+        {
+          "symbol": "SPY",
+          "asset": "AAPL",
+          "name": "APPLE INC",
+          "isin": "US0378331005",
+          "securityCusip": "037833100",
+          "sharesNumber": 176611230,
+          "weightPercentage": 6.89896519,
+          "marketValue": 54244327209,
+          "updatedAt": "2026-06-02 03:06:21"
+        },
+        {
+          "symbol": "SPY",
+          "asset": "MSFT",
+          "name": "MICROSOFT CORP",
+          "isin": "US5949181045",
+          "securityCusip": "594918104",
+          "sharesNumber": 89329837,
+          "weightPercentage": 5.24625646,
+          "marketValue": 41249614177,
+          "updatedAt": "2026-06-02 03:06:21"
+        }
+      ]
+    },
+    "2_stable_holdings_QQQ": {
+      "name": "2_stable_holdings_QQQ",
+      "url": "https://financialmodelingprep.com/stable/etf/holdings?symbol=QQQ&apikey=<KEY>",
+      "ok": true,
+      "http_status": 200,
+      "n_results": 104,
+      "sample_keys": [
+        "symbol",
+        "asset",
+        "name",
+        "isin",
+        "securityCusip",
+        "sharesNumber",
+        "weightPercentage",
+        "marketValue",
+        "updatedAt"
+      ],
+      "sample_first_3": [
+        {
+          "symbol": "QQQ",
+          "asset": "NVDA",
+          "name": "NVIDIA Corp",
+          "isin": "US67066G1040",
+          "securityCusip": "67066G104",
+          "sharesNumber": 190159546,
+          "weightPercentage": 8.61725434,
+          "marketValue": 42664195740.56,
+          "updatedAt": "2026-06-02 01:06:01"
+        },
+        {
+          "symbol": "QQQ",
+          "asset": "AAPL",
+          "name": "Apple Inc",
+          "isin": "US0378331005",
+          "securityCusip": "037833100",
+          "sharesNumber": 114886897,
+          "weightPercentage": 7.10782985,
+          "marketValue": 35191005420.07,
+          "updatedAt": "2026-06-02 01:06:01"
+        },
+        {
+          "symbol": "QQQ",
+          "asset": "MSFT",
+          "name": "Microsoft Corp",
+          "isin": "US5949181045",
+          "securityCusip": "594918104",
+          "sharesNumber": 58104878,
+          "weightPercentage": 5.40463585,
+          "marketValue": 26758458416.56,
+          "updatedAt": "2026-06-02 01:06:01"
+        }
+      ]
+    },
+    "3_stable_holdings_XLK": {
+      "name": "3_stable_holdings_XLK",
+      "url": "https://financialmodelingprep.com/stable/etf/holdings?symbol=XLK&apikey=<KEY>",
+      "ok": true,
+      "http_status": 200,
+      "n_results": 75,
+      "sample_keys": [
+        "symbol",
+        "asset",
+        "name",
+        "isin",
+        "securityCusip",
+        "sharesNumber",
+        "weightPercentage",
+        "marketValue",
+        "updatedAt"
+      ],
+      "sample_first_3": [
+        {
+          "symbol": "XLK",
+          "asset": "NVDA",
+          "name": "NVIDIA CORP",
+          "isin": "US67066G1040",
+          "securityCusip": "67066G104",
+          "sharesNumber": 77076255,
+          "weightPercentage": 13.55914119,
+          "marketValue": 17356536561,
+          "updatedAt": "2026-06-02 03:06:00"
+        },
+        {
+          "symbol": "XLK",
+          "asset": "AAPL",
+          "name": "APPLE INC",
+          "isin": "US0378331005",
+          "securityCusip": "037833100",
+          "sharesNumber": 46566561,
+          "weightPercentage": 11.18411118,
+          "marketValue": 14316351733,
+          "updatedAt": "2026-06-02 03:06:00"
+        },
+        {
+          "symbol": "XLK",
+          "asset": "MSFT",
+          "name": "MICROSOFT CORP",
+          "isin": "US5949181045",
+          "securityCusip": "594918104",
+          "sharesNumber": 23553065,
+          "weightPercentage": 8.50475992,
+          "marketValue": 10886616964,
+          "updatedAt": "2026-06-02 03:06:00"
+        }
+      ]
+    },
+    "4_stable_holdings_EWU": {
+      "name": "4_stable_holdings_EWU",
+      "url": "https://financialmodelingprep.com/stable/etf/holdings?symbol=EWU&apikey=<KEY>",
+      "ok": true,
+      "http_status": 200,
+      "n_results": 75,
+      "sample_keys": [
+        "symbol",
+        "asset",
+        "name",
+        "isin",
+        "securityCusip",
+        "sharesNumber",
+        "weightPercentage",
+        "marketValue",
+        "updatedAt"
+      ],
+      "sample_first_3": [
+        {
+          "symbol": "EWU",
+          "asset": "HSBA.L",
+          "name": "HSBC HOLDINGS PLC",
+          "isin": "GB0005405286",
+          "securityCusip": "S05405287",
+          "sharesNumber": 18993060,
+          "weightPercentage": 10.31854521,
+          "marketValue": 356785224.68,
+          "updatedAt": "2026-06-02 10:06:20"
+        },
+        {
+          "symbol": "EWU",
+          "asset": "AZN.L",
+          "name": "ASTRAZENECA PLC",
+          "isin": "GB0009895292",
+          "securityCusip": "S09895293",
+          "sharesNumber": 1671449,
+          "weightPercentage": 8.99333034,
+          "marketValue": 310963156.37,
+          "updatedAt": "2026-06-02 10:06:20"
+        },
+        {
+          "symbol": "EWU",
+          "asset": "SHEL.L",
+          "name": "SHELL PLC",
+          "isin": "GB00BP6MXD84",
+          "securityCusip": "",
+          "sharesNumber": 6207201,
+          "weightPercentage": 7.54496645,
+          "marketValue": 260882953.61,
+          "updatedAt": "2026-06-02 10:06:20"
+        }
+      ]
+    },
+    "5_stable_holdings_IBIT": {
+      "name": "5_stable_holdings_IBIT",
+      "url": "https://financialmodelingprep.com/stable/etf/holdings?symbol=IBIT&apikey=<KEY>",
+      "ok": true,
+      "http_status": 200,
+      "n_results": 2,
+      "sample_keys": [
+        "symbol",
+        "asset",
+        "name",
+        "isin",
+        "securityCusip",
+        "sharesNumber",
+        "weightPercentage",
+        "marketValue",
+        "updatedAt"
+      ],
+      "sample_first_3": [
+        {
+          "symbol": "IBIT",
+          "asset": "",
+          "name": "BITCOIN",
+          "isin": "",
+          "securityCusip": "",
+          "sharesNumber": 791074.7051,
+          "weightPercentage": 99.99995474,
+          "marketValue": 58313565600.06,
+          "updatedAt": "2026-06-02 11:06:20"
+        },
+        {
+          "symbol": "IBIT",
+          "asset": "",
+          "name": "USD CASH",
+          "isin": "",
+          "securityCusip": "",
+          "sharesNumber": 26390.55,
+          "weightPercentage": 4.526e-05,
+          "marketValue": 26390.55,
+          "updatedAt": "2026-06-02 11:06:20"
+        }
+      ]
+    },
+    "6_holding_dates_SPY": {
+      "name": "6_holding_dates_SPY",
+      "url": "https://financialmodelingprep.com/stable/etf/holding-dates?symbol=SPY&apikey=<KEY>",
+      "ok": false,
+      "http_status": 404,
+      "body": "[]"
+    },
+    "7_asset_exposure_AAPL": {
+      "name": "7_asset_exposure_AAPL",
+      "url": "https://financialmodelingprep.com/stable/etf/asset-exposure?symbol=AAPL&apikey=<KEY>",
+      "ok": true,
+      "http_status": 200,
+      "n_results": 2994,
+      "sample_keys": [
+        "symbol",
+        "asset",
+        "sharesNumber",
+        "weightPercentage",
+        "marketValue"
+      ],
+      "sample_first_3": [
+        {
+          "symbol": "ZPDT.DE",
+          "asset": "AAPL",
+          "sharesNumber": 1159483,
+          "weightPercentage": 18.033434,
+          "marketValue": 310773143.883
+        },
+        {
+          "symbol": "ZPA7.DE",
+          "asset": "AAPL",
+          "sharesNumber": 1004414,
+          "weightPercentage": 6.992221625563154,
+          "marketValue": 230352616.33795634
+        },
+        {
+          "symbol": "ZPA6N.MX",
+          "asset": "AAPL",
+          "sharesNumber": 1517274,
+          "weightPercentage": 7.139055839889881,
+          "marketValue": 7414102519.22975
+        }
+      ]
+    },
+    "8_sector_weighting_SPY": {
+      "name": "8_sector_weighting_SPY",
+      "url": "https://financialmodelingprep.com/stable/etf/sector-weightings?symbol=SPY&apikey=<KEY>",
+      "ok": true,
+      "http_status": 200,
+      "n_results": 11,
+      "sample_keys": [
+        "symbol",
+        "sector",
+        "weightPercentage"
+      ],
+      "sample_first_3": [
+        {
+          "symbol": "SPY",
+          "sector": "Basic Materials",
+          "weightPercentage": 1.8
+        },
+        {
+          "symbol": "SPY",
+          "sector": "Communication Services",
+          "weightPercentage": 11.35
+        },
+        {
+          "symbol": "SPY",
+          "sector": "Consumer Cyclical",
+          "weightPercentage": 10.25
+        }
+      ]
+    },
+    "9_country_weighting_SPY": {
+      "name": "9_country_weighting_SPY",
+      "url": "https://financialmodelingprep.com/stable/etf/country-weightings?symbol=SPY&apikey=<KEY>",
+      "ok": true,
+      "http_status": 200,
+      "n_results": 8,
+      "sample_keys": [
+        "country",
+        "weightPercentage"
+      ],
+      "sample_first_3": [
+        {
+          "country": "United States",
+          "weightPercentage": "97.82%"
+        },
+        {
+          "country": "Ireland",
+          "weightPercentage": "1.13%"
+        },
+        {
+          "country": "United Kingdom",
+          "weightPercentage": "0.44%"
+        }
+      ]
+    },
+    "10_info_SPY": {
+      "name": "10_info_SPY",
+      "url": "https://financialmodelingprep.com/stable/etf/info?symbol=SPY&apikey=<KEY>",
+      "ok": true,
+      "http_status": 200,
+      "n_results": 1,
+      "sample_keys": [
+        "symbol",
+        "name",
+        "description",
+        "isin",
+        "assetClass",
+        "securityCusip",
+        "domicile",
+        "website",
+        "etfCompany",
+        "expenseRatio",
+        "assetsUnderManagement",
+        "avgVolume",
+        "inceptionDate",
+        "nav",
+        "navCurrency",
+        "holdingsCount",
+        "isActivelyTrading",
+        "updatedAt",
+        "sectorsList"
+      ],
+      "sample_first_3": [
+        {
+          "symbol": "SPY",
+          "name": "State Street SPDR S&P 500 ETF Trust",
+          "description": "The State Street SPDR S&P 500 ETF Trust seeks to provide investment results that, before expenses, correspond generally to the price and yield performance of the S&P 500 Index (the \u201cIndex\u201d)The S&P 500 Index is a diversified large cap U.S. index that holds companies across all eleven GICS sectorsLaunched in January 1993, SPY was the very first exchange traded fund listed in the United States",
+          "isin": "US78462F1030",
+          "assetClass": "Equity",
+          "securityCusip": "78462F103",
+          "domicile": "US",
+          "website": "https://www.ssga.com/us/en/institutional/etfs/state-street-spdr-sp-500-etf-trust-spy",
+          "etfCompany": "SPDR",
+          "expenseRatio": 0.09,
+          "assetsUnderManagement": 786743490000,
+          "avgVolume": 73651172,
+          "inceptionDate": "1993-01-22",
+          "nav": 758.32,
+          "navCurrency": "USD",
+          "holdingsCount": 504,
+          "isActivelyTrading": true,
+          "updatedAt": "2026-06-02T10:20:00.048Z",
+          "sectorsList": [
+            {
+              "industry": "Basic Materials",
+              "exposure": 1.8
+            },
+            {
+              "industry": "Communication Services",
+              "exposure": 11.35
+            },
+            {
+              "industry": "Consumer Cyclical",
+              "exposure": 10.25
+            },
+            {
+              "industry": "Consumer Defensive",
+              "exposure": 4.85
+            },
+            {
+              "industry": "Energy",
+              "exposure": 3.55
+            },
+            {
+              "industry": "Financial Services",
+              "exposure": 11.79
+            },
+            {
+              "industry": "Healthcare",
+              "exposure": 8.41
+            },
+            {
+              "industry": "Industrials",
+              "exposure": 7.83
+            },
+            {
+              "industry": "Real Estate",
+              "exposure": 1.94
+            },
+            {
+              "industry": "Technology",
+              "exposure": 35.86
+            },
+            {
+              "industry": "Utilities",
+              "exposure": 2.37
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "working": [
+    {
+      "endpoint": "1_stable_holdings_SPY",
+      "n": 505
+    },
+    {
+      "endpoint": "2_stable_holdings_QQQ",
+      "n": 104
+    },
+    {
+      "endpoint": "3_stable_holdings_XLK",
+      "n": 75
+    },
+    {
+      "endpoint": "4_stable_holdings_EWU",
+      "n": 75
+    },
+    {
+      "endpoint": "5_stable_holdings_IBIT",
+      "n": 2
+    },
+    {
+      "endpoint": "7_asset_exposure_AAPL",
+      "n": 2994
+    },
+    {
+      "endpoint": "8_sector_weighting_SPY",
+      "n": 11
+    },
+    {
+      "endpoint": "9_country_weighting_SPY",
+      "n": 8
+    },
+    {
+      "endpoint": "10_info_SPY",
+      "n": 1
+    }
+  ]
+}
