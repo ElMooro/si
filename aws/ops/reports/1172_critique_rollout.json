@@ -1,0 +1,64 @@
+{
+  "started": "2026-06-02T11:49:25.542662+00:00",
+  "steps": {
+    "bucket_policy": {
+      "added": true
+    },
+    "function_url": {
+      "created": true,
+      "url": "https://k6tl5hqdw6ajgw4kiwcnxhe4jm0ovcul.lambda-url.us-east-1.on.aws/"
+    },
+    "patch_html": {
+      "patched": true,
+      "url": "https://k6tl5hqdw6ajgw4kiwcnxhe4jm0ovcul.lambda-url.us-east-1.on.aws/"
+    },
+    "smokes": {
+      "AAPL": {
+        "elapsed_s": 0.9,
+        "status_code": 502,
+        "model_used": null,
+        "provider": null,
+        "cost_usd": null,
+        "analyst_rating": null,
+        "alternative_rating": null,
+        "disagreement_score": null,
+        "key_disagreement": null,
+        "n_reinterps": 0,
+        "n_risks": 0
+      },
+      "NVDA": {
+        "elapsed_s": 0.1,
+        "status_code": 502,
+        "model_used": null,
+        "provider": null,
+        "cost_usd": null,
+        "analyst_rating": null,
+        "alternative_rating": null,
+        "disagreement_score": null,
+        "key_disagreement": null,
+        "n_reinterps": 0,
+        "n_risks": 0
+      }
+    },
+    "s3_verify": {
+      "equity-critique/AAPL.json": {
+        "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+      },
+      "equity-critique/NVDA.json": {
+        "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+      }
+    },
+    "snapshot_rerun": {
+      "elapsed_s": 12.2,
+      "ok": true
+    },
+    "flat_verify": {
+      "exists": true,
+      "n_rows": 0,
+      "schema_version": "1.1",
+      "generated_at": "2026-06-02T11:49:36.549821+00:00",
+      "sample_rows": []
+    }
+  },
+  "finished": "2026-06-02T11:49:39.899059+00:00"
+}

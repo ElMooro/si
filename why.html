@@ -1226,7 +1226,7 @@ let EDGAR_LAMBDA_URL = "https://ru3djltl3oucvsocjrih37sowu0fxgkm.lambda-url.us-e
 // optionally OpenAI o3-mini when OPENAI_API_KEY is provisioned in SSM).
 // CDN serves cached critiques (10 min TTL); Lambda fallback for fresh.
 const CRITIQUE_CDN_BASE = "https://justhodl-data-proxy.raafouis.workers.dev/equity-critique";
-let CRITIQUE_LAMBDA_URL = ""; // patched by ops once Lambda URL is created
+let CRITIQUE_LAMBDA_URL = "https://k6tl5hqdw6ajgw4kiwcnxhe4jm0ovcul.lambda-url.us-east-1.on.aws/"; // patched by ops 1172
 
 function renderInsiderActivity(d){
   // Placeholder block; populated by fetchInsiderData() after main render.
