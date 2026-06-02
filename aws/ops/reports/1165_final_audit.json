@@ -1,0 +1,69 @@
+{
+  "started": "2026-06-02T02:42:46.706151+00:00",
+  "audit": {
+    "feature_1_prewarm": {
+      "function_exists": true,
+      "memory_mb": 512,
+      "timeout_s": 900,
+      "schedule": "cron(0 8 * * ? *)",
+      "schedule_state": "ENABLED",
+      "status": "\u2705"
+    },
+    "feature_2_search": {
+      "size_kb": 144.3,
+      "has_research_search_input": true,
+      "has_goResearch_function": true,
+      "has_quick_picks": true,
+      "has_compare_link": true,
+      "status": "\u2705"
+    },
+    "feature_3_compare": {
+      "size_kb": 24.1,
+      "has_renderTickerCard": true,
+      "has_renderWinnersTable": true,
+      "has_fetchOneTicker": true,
+      "has_promise_allSettled": true,
+      "status": "\u2705"
+    },
+    "feature_4_edgar": {
+      "lambda_url_works": true,
+      "lambda_elapsed_s": 0.37,
+      "cdn_serves": true,
+      "cdn_elapsed_s": 0.24,
+      "signal_v2_fields": true,
+      "signal_label": "ROUTINE_SELLING",
+      "signal_score": 45,
+      "n_filings_90d": 30,
+      "status": "\u2705"
+    },
+    "feature_5_watchlist": {
+      "index_has_watchlist_card": true,
+      "index_has_wlRender": true,
+      "index_has_wlAdd": true,
+      "index_has_wlSeed": true,
+      "why_has_wlToggleCurrent": true,
+      "why_has_wlStarBtn": true,
+      "shared_localStorage_key": true,
+      "status": "\u2705"
+    },
+    "why_html_edgar_v2": {
+      "size_kb": 84.2,
+      "has_ACCELERATING_SELL": true,
+      "has_LARGE_SELLING": true,
+      "has_ROUTINE_SELLING": true,
+      "has_INSIDER_BUYING": true,
+      "has_top_sellers_html": true,
+      "has_top_buyers_html": true,
+      "has_sell_acceleration": true,
+      "has_renderInsiderActivity": true,
+      "has_compare_nav": true,
+      "has_cache_headers": true,
+      "status": "\u2705"
+    }
+  },
+  "research_cache_count": 17,
+  "edgar_cache_count": 8,
+  "prewarm_runs_count": 7,
+  "summary": "6/6 checks passing",
+  "finished": "2026-06-02T02:42:48.295999+00:00"
+}
