@@ -1,0 +1,23 @@
+{
+  "function_name": "justhodl-macro-regime",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Multi-asset Macro Regime Engine. Pulls VIX, futures (rates/oil/gold/copper), FX (DXY/JPY/CNH/MXN), classifies 6 sub-regimes + top-level GLOBAL_RISK_ON/OFF/REFLATION/etc. Foundational regime tag for research/critique/backtest.",
+  "environment_keys": [
+    "POLYGON_KEY"
+  ],
+  "inherit_env": {
+    "from_function": "justhodl-etf-fund-flows",
+    "keys": ["POLYGON_KEY"]
+  },
+  "schedule": {
+    "expression": "cron(15 22 * * ? *)",
+    "name": "justhodl-macro-regime-daily",
+    "description": "17:15 ET daily — between flow engine (17:00) and AI strategist (17:30)"
+  }
+}
