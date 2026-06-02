@@ -1,0 +1,124 @@
+{
+  "started": "2026-06-02T18:42:07.375841+00:00",
+  "invoke": {
+    "elapsed_s": 2.6,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.6, \\\"n_total\\\": 2, \\\"n_alert_tier\\\": 2, \\\"n_medium_tier\\\": 0, \\\"n_themes_tracked\\\": 113, \\\"top_5_hot_themes\\\": [{\\\"etf\\\": \\\"CHAT\\\", \\\"name\\\": \\\"Roundhill Generative AI\\\", \\\"category\\\": \\\"AI_BROAD\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 4, \\\"rs_accel\\\": 89.05}, {\\\"etf\\\": \\\"AIQ\\\", \\\"name\\\": \\\"Global X AI & Tech\\\", \\\"category\\\": \\\"AI_BROAD\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 8, \\\"rs_accel\\\": 77.38}, {\\\"etf\\\": \\\"TAN\\\", \\\"name\\\": \\\"Invesco Solar\\\", \\\"category\\\": \\\"SOLAR\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 11, \\\"rs_accel\\\": 53.32}, {\\\"etf\\\": \\\"BLOK\\\", \\\"name\\\": \\\"Amplify Transformational Data\\\", \\\"category\\\": \\\"BLOCKCHAIN\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 18, \\\"rs_accel\\\": 55.11}, {\\\"etf\\\": \\\"CIBR\\\", \\\"name\\\": \\\"Cybersecurity\\\", \\\"category\\\": \\\"CYBERSEC\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 93, \\\"rs_rank\\\": 2, \\\"rs_accel\\\": 88.0}], \\\"top_10_combined\\\": [{\\\"ticker\\\": \\\"CRWD\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"combined_score\\\": 117.2, \\\"base\\\": 35.5, \\\"theme_mult\\\": 3.0, \\\"flow_mult\\\": 1.1, \\\"hot_etf\\\": \\\"CIBR\\\", \\\"industry\\\": \\\"Software - Infrastructure\\\"}, {\\\"ticker\\\": \\\"PANW\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"combined_score\\\": 105.9, \\\"base\\\": 32.1, \\\"theme_mult\\\": 3.0, \\\"flow_mult\\\": 1.1, \\\"hot_etf\\\": \\\"CIBR\\\", \\\"industry\\\": \\\"Software - Infrastructure\\\"}]}\"}"
+  },
+  "doc": {
+    "schema_version": "2.0",
+    "generated_at": "2026-06-02T18:43:24.750236+00:00",
+    "n_alert_tier": 2,
+    "n_medium_tier": 0,
+    "n_laggards_hot_themes": 0,
+    "earnings_within_3d": [],
+    "alert_tier": [
+      {
+        "ticker": "CRWD",
+        "tier": "WATCH",
+        "base_score": 35.5,
+        "theme_multiplier": 3.0,
+        "flow_multiplier": 1.1,
+        "combined_score": 117.2,
+        "industry": "Software - Infrastructure",
+        "industry_label": "Software - Infrastructure",
+        "hot_etf": "CIBR",
+        "hot_etf_name": "Cybersecurity",
+        "hot_etf_category": "CYBERSEC",
+        "n_etfs_in_heat_index": 7,
+        "theme_factors": [
+          "top_momentum (m=93)",
+          "top_5_rs (#2)",
+          "strong_accel (a=88.0)",
+          "high_breadth (100%)",
+          "top_10_momentum",
+          "strong_money_flow (3.7)"
+        ],
+        "theme_momentum": 93,
+        "theme_rs_rank": 2,
+        "theme_acceleration": 88.0,
+        "flow_factors": [
+          "broad_exposure_5_etfs"
+        ],
+        "n_etfs_holding": 5,
+        "aggregate_flow_5d_usd": 4128406.93,
+        "aggregate_flow_21d_usd": 27318465.6,
+        "slope_score": 30.5,
+        "accum_score": 49.2,
+        "floor_score": 27.5,
+        "current_vol_ratio": 0.91,
+        "momentum_score": 82.4,
+        "position_sizing": {
+          "base_pct": 5.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 88"
+            }
+          ],
+          "cumulative_multiplier": 1.3,
+          "uncapped_pct": 6.5,
+          "final_pct": 6.5,
+          "tier_cap_pct": 18.0,
+          "rationale": "Moderate conviction \u2014 1 multiplier(s) active"
+        }
+      },
+      {
+        "ticker": "PANW",
+        "tier": "WATCH",
+        "base_score": 32.1,
+        "theme_multiplier": 3.0,
+        "flow_multiplier": 1.1,
+        "combined_score": 105.9,
+        "industry": "Software - Infrastructure",
+        "industry_label": "Software - Infrastructure",
+        "hot_etf": "CIBR",
+        "hot_etf_name": "Cybersecurity",
+        "hot_etf_category": "CYBERSEC",
+        "n_etfs_in_heat_index": 6,
+        "theme_factors": [
+          "top_momentum (m=93)",
+          "top_5_rs (#2)",
+          "strong_accel (a=88.0)",
+          "high_breadth (100%)",
+          "top_10_momentum",
+          "strong_money_flow (3.7)"
+        ],
+        "theme_momentum": 93,
+        "theme_rs_rank": 2,
+        "theme_acceleration": 88.0,
+        "flow_factors": [
+          "broad_exposure_6_etfs"
+        ],
+        "n_etfs_holding": 6,
+        "aggregate_flow_5d_usd": 63037403.58,
+        "aggregate_flow_21d_usd": 107900319.96,
+        "slope_score": 47.2,
+        "accum_score": 28.3,
+        "floor_score": 0,
+        "current_vol_ratio": 1.11,
+        "momentum_score": 82.8,
+        "position_sizing": {
+          "base_pct": 5.0,
+          "multipliers": [
+            {
+              "factor": "strong_acceleration",
+              "value": 1.3,
+              "detail": "theme_rs_accel 88"
+            }
+          ],
+          "cumulative_multiplier": 1.3,
+          "uncapped_pct": 6.5,
+          "final_pct": 6.5,
+          "tier_cap_pct": 18.0,
+          "rationale": "Moderate conviction \u2014 1 multiplier(s) active"
+        }
+      }
+    ],
+    "medium_tier": [],
+    "laggards_hot_themes": []
+  },
+  "finished": "2026-06-02T18:43:25.271972+00:00"
+}
