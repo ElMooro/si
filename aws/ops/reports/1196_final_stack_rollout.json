@@ -1,0 +1,124 @@
+{
+  "started": "2026-06-02T16:39:13.574647+00:00",
+  "steps": {
+    "pull_token": {
+      "ok": true,
+      "len": 46
+    },
+    "set_token_on_ai": {
+      "ok": true,
+      "env_keys_now": [
+        "ANTHROPIC_API_KEY",
+        "TELEGRAM_TOKEN"
+      ]
+    },
+    "create_anomaly": {
+      "exists": true
+    },
+    "anomaly_url": {
+      "url": "https://a72e35d2asr4jan72dzyywpb5u0glpmh.lambda-url.us-east-1.on.aws/"
+    },
+    "anomaly_schedule": {
+      "created": true,
+      "expression": "cron(0 23 * * ? *)"
+    },
+    "anomaly_invoke": {
+      "elapsed_s": 2.1,
+      "status": 200,
+      "function_error": null,
+      "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.5, \\\"n_total\\\": 17, \\\"n_alerts\\\": 8, \\\"by_type\\\": {\\\"EXTREME_FLOW\\\": 6, \\\"PERSISTENT_FLOW\\\": 3, \\\"CROSS_TIMEFRAME_DIVERGENCE\\\": 6, \\\"CONSTITUENT_DIVERGENCE\\\": 2}, \\\"top_5_alerts\\\": [{\\\"type\\\": \\\"EXTREME_FLOW\\\", \\\"severity\\\": 10, \\\"subject\\\": \\\"EWU\\\", \\\"description\\\": \\\"EWU at z=+5.13\\\\u03c3 (INFLOW); 5d $+122M, %AUM 5d 3.42%. Top decile move \\\\u2014 institutional rarity.\\\"}, {\\\"type\\\": \\\"PERSISTENT_FLOW\\\", \\\"severity\\\": 10, \\\"subject\\\": \\\"IBIT\\\", \\\"description\\\": \\\"IBIT sustained OUTFLOW for 11 days (z=-2.54\\\\u03c3 today). Persistent flows historically precede 5-21 day price continuation.\\\"}, {\\\"type\\\": \\\"CROSS_TIMEFRAME_DIVERGENCE\\\", \\\"severity\\\": 8, \\\"subject\\\": \\\"KWEB\\\", \\\"description\\\": \\\"KWEB 5d ACCELERATING_OUTFLOW ($-419M) reverses 21d trend ($+263M). Inflection point.\\\"}, {\\\"type\\\": \\\"CROSS_TIMEFRAME_DIVERGENCE\\\", \\\"severity\\\": 8, \\\"subject\\\": \\\"SOXX\\\", \\\"description\\\": \\\"SOXX 5d ACCELERATING_OUTFLOW ($-617M) reverses 21d trend ($+504M). Inflection point.\\\"}, {\\\"type\\\": \\\"EXTREME_FLOW\\\", \\\"severity\\\": 8, \\\"subject\\\": \\\"UNG\\\", \\\"description\\\": \\\"UNG at z=-3.97\\\\u03c3 (OUTFLOW); 5d $-61M, %AUM 5d -13.29%. Top decile move \\\\u2014 institutional rarity.\\\"}]}\"}"
+    },
+    "anomaly_output": {
+      "generated_at": "2026-06-02T16:39:19.988360+00:00",
+      "n_total": 17,
+      "n_alerts_high_sev": 8,
+      "by_type_count": {
+        "EXTREME_FLOW": 6,
+        "PERSISTENT_FLOW": 3,
+        "CROSS_TIMEFRAME_DIVERGENCE": 6,
+        "CONSTITUENT_DIVERGENCE": 2
+      },
+      "top_10_anomalies": [
+        {
+          "type": "EXTREME_FLOW",
+          "severity": 10,
+          "subject": "EWU",
+          "description": "EWU at z=+5.13\u03c3 (INFLOW); 5d $+122M, %AUM 5d 3.42%. Top decile move \u2014 institutional rarity."
+        },
+        {
+          "type": "PERSISTENT_FLOW",
+          "severity": 10,
+          "subject": "IBIT",
+          "description": "IBIT sustained OUTFLOW for 11 days (z=-2.54\u03c3 today). Persistent flows historically precede 5-21 day price continuation."
+        },
+        {
+          "type": "CROSS_TIMEFRAME_DIVERGENCE",
+          "severity": 8,
+          "subject": "KWEB",
+          "description": "KWEB 5d ACCELERATING_OUTFLOW ($-419M) reverses 21d trend ($+263M). Inflection point."
+        },
+        {
+          "type": "CROSS_TIMEFRAME_DIVERGENCE",
+          "severity": 8,
+          "subject": "SOXX",
+          "description": "SOXX 5d ACCELERATING_OUTFLOW ($-617M) reverses 21d trend ($+504M). Inflection point."
+        },
+        {
+          "type": "EXTREME_FLOW",
+          "severity": 8,
+          "subject": "UNG",
+          "description": "UNG at z=-3.97\u03c3 (OUTFLOW); 5d $-61M, %AUM 5d -13.29%. Top decile move \u2014 institutional rarity."
+        },
+        {
+          "type": "CONSTITUENT_DIVERGENCE",
+          "severity": 7,
+          "subject": "XLK",
+          "description": "XLK sector OUTFLOW (z=-1.68\u03c3) but 6 top constituents show OPPOSITE pressure: QCOM $+33M, TXN $+32M, AAPL $+22M, MSFT $+17M, CDNS $+14M. Institutional rotation WITHIN sector."
+        },
+        {
+          "type": "CONSTITUENT_DIVERGENCE",
+          "severity": 7,
+          "subject": "XLY",
+          "description": "XLY sector OUTFLOW (z=-1.81\u03c3) but 5 top constituents show OPPOSITE pressure: AMZN $+101M, TSLA $+73M, HD $+18M, MCD $+13M, BKNG $+12M. Institutional rotation WITHIN sector."
+        },
+        {
+          "type": "PERSISTENT_FLOW",
+          "severity": 7,
+          "subject": "EWC",
+          "description": "EWC sustained INFLOW for 3 days (z=+3.18\u03c3 today). Persistent flows historically precede 5-21 day price continuation."
+        },
+        {
+          "type": "EXTREME_FLOW",
+          "severity": 6,
+          "subject": "EWC",
+          "description": "EWC at z=+3.18\u03c3 (INFLOW); 5d $+293M, %AUM 5d 5.17%. Top decile move \u2014 institutional rarity."
+        },
+        {
+          "type": "EXTREME_FLOW",
+          "severity": 6,
+          "subject": "ICLN",
+          "description": "ICLN at z=+2.77\u03c3 (INFLOW); 5d $+123M, %AUM 5d 3.81%. Top decile move \u2014 institutional rarity."
+        }
+      ]
+    },
+    "ai_invoke": {
+      "elapsed_s": 116.3,
+      "status": 200,
+      "function_error": null,
+      "body": {
+        "ok": true,
+        "elapsed_s": 115.0,
+        "regime": "REFLATION",
+        "n_calls": 15,
+        "macro_narrative_preview": "The dominant signal today is EWU's +5.13\u03c3 inflow (+$122M, 3.4% AUM) and EWC's +3.18\u03c3 (+$136M), signaling the most extreme international rotation we've seen in 90 days \u2014 REFLATION regime with commoditi",
+        "key": "etf-flows/ai-analysis.json",
+        "telegram": {
+          "sent": false,
+          "chars": 1275,
+          "chat_id_len": 10
+        }
+      }
+    }
+  },
+  "finished": "2026-06-02T16:41:16.781914+00:00"
+}
