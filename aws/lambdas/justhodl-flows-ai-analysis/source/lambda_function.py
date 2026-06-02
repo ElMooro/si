@@ -28,6 +28,7 @@ DESIGN PRINCIPLES (from system prompt):
 import json
 import os
 import time
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from typing import Optional
@@ -36,10 +37,12 @@ import boto3
 
 S3_BUCKET = "justhodl-dashboard-live"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 MODEL = "claude-sonnet-4-5-20250929"  # Sonnet 4.6 for institutional-grade analysis
 MAX_TOKENS = 12000
 
 s3 = boto3.client("s3", region_name="us-east-1")
+ssm = boto3.client("ssm", region_name="us-east-1")
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -500,6 +503,150 @@ def build_user_prompt(flow_data, research, critiques, edgar, crisis, history, ma
 # ═════════════════════════════════════════════════════════════════════
 # Handler
 # ═════════════════════════════════════════════════════════════════════
+# ═════════════════════════════════════════════════════════════════════
+# Telegram delivery — morning institutional digest
+# ═════════════════════════════════════════════════════════════════════
+def _get_telegram_chat_id() -> Optional[str]:
+    """Get chat_id from env or SSM."""
+    env_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if env_id:
+        return env_id
+    try:
+        r = ssm.get_parameter(Name="/justhodl/telegram/chat_id", WithDecryption=True)
+        return r["Parameter"]["Value"]
+    except Exception as e:
+        print(f"[telegram] chat_id unavailable: {e}")
+        return None
+
+
+def _send_telegram(text: str, chat_id: str) -> bool:
+    """Send a Markdown-formatted message via Telegram bot API."""
+    if not TELEGRAM_TOKEN or not chat_id:
+        return False
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    body = urllib.parse.urlencode({
+        "chat_id": chat_id,
+        "text": text[:4000],  # Telegram hard limit is 4096
+        "parse_mode": "Markdown",
+        "disable_web_page_preview": "true",
+    }).encode("utf-8")
+    try:
+        req = urllib.request.Request(
+            url, data=body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read()).get("ok", False)
+    except Exception as e:
+        print(f"[telegram] send err: {str(e)[:200]}")
+        return False
+
+
+def format_digest(analysis: dict, macro: dict) -> str:
+    """Format the AI analyst note as a compact Telegram message.
+
+    Markdown safe. Total under 4000 chars. Sections:
+      Header
+      Regime call
+      Top 8 ticker calls (by conviction)
+      Top 3 pair trades
+      Regime alpha note (truncated)
+      Footer with link
+    """
+    today = datetime.now(timezone.utc).strftime("%a, %b %d %Y")
+    rc = analysis.get("regime_call", {}) or {}
+    regime = rc.get("regime") or "—"
+    confidence = rc.get("confidence") or "—"
+    reasoning = (rc.get("reasoning") or "")[:200]
+
+    # Macro context one-liner
+    macro_top = (macro or {}).get("top_level", {}) or {}
+    macro_regime = macro_top.get("regime")
+    macro_line = f"\n_Macro engine: {macro_regime}_" if macro_regime else ""
+
+    lines = [
+        f"🧠 *JustHodl.AI Morning Digest*",
+        f"_{today}_\n",
+        f"*REGIME:* `{regime}` ({confidence})",
+        f"_{reasoning}_{macro_line}\n",
+    ]
+
+    # Sort calls by conviction tier
+    conv_order = {"HIGH": 0, "MEDIUM-HIGH": 1, "MEDIUM_HIGH": 1,
+                  "MEDIUM": 2, "MEDIUM-LOW": 3, "LOW": 4}
+    calls = sorted(
+        analysis.get("ticker_calls", []) or [],
+        key=lambda c: (conv_order.get((c.get("conviction") or "").upper(), 5),
+                       -((c.get("signal_alignment") or {}).get("n_signals_aligned") or 0)),
+    )
+
+    if calls:
+        lines.append(f"*🎯 TOP CALLS:*")
+        for c in calls[:10]:
+            call = c.get("call", "—")
+            conv = c.get("conviction", "—")
+            tf = c.get("timeframe_days", "?")
+            aligned = (c.get("signal_alignment") or {}).get("n_signals_aligned") or 0
+            ticker = c.get("ticker", "?")
+            # Icon by call direction
+            icon = "🟢" if call in ("STRONG_BUY","BUY","ADD","INITIATE_LONG") else \
+                   "🔴" if call in ("STRONG_SELL","SELL","REDUCE","AVOID","INITIATE_SHORT") else "🟡"
+            lines.append(f"{icon} `{ticker:5s}` *{call}* {conv} {tf}d ({aligned}/4)")
+        lines.append("")
+
+    # Pair trades
+    pairs = analysis.get("pair_trades", []) or []
+    if pairs:
+        lines.append(f"*🔀 PAIR TRADES:*")
+        for p in pairs[:3]:
+            long_t = p.get("long", "?")
+            short_t = p.get("short", "?")
+            conv = p.get("conviction", "—")
+            tf = p.get("timeframe_days", "?")
+            lines.append(f"📈 `{long_t}` / 📉 `{short_t}` ({conv}, {tf}d)")
+        lines.append("")
+
+    # Regime alpha note — truncated
+    alpha_note = analysis.get("regime_alpha_note") or ""
+    if alpha_note:
+        # First sentence-ish, max 320 chars
+        truncated = alpha_note[:320]
+        last_dot = truncated.rfind(".")
+        if last_dot > 200:
+            truncated = truncated[:last_dot + 1]
+        lines.append(f"*💡 REGIME ALPHA:*\n_{truncated}_\n")
+
+    # Watchlist
+    wl = (analysis.get("watchlist") or {})
+    add = wl.get("add") or []
+    rem = wl.get("remove") or []
+    if add or rem:
+        wl_parts = []
+        if add:
+            wl_parts.append(f"➕ {', '.join(w.get('ticker', '?') for w in add[:5])}")
+        if rem:
+            wl_parts.append(f"➖ {', '.join(w.get('ticker', '?') for w in rem[:5])}")
+        lines.append(f"*📋 WATCHLIST:* " + " · ".join(wl_parts) + "\n")
+
+    # Footer
+    lines.append("[📊 Full report](https://justhodl.ai/flows.html) · "
+                 "[Track Record](https://justhodl.ai/track-record.html)")
+
+    return "\n".join(lines)
+
+
+def deliver_telegram_digest(analysis: dict, macro: dict) -> dict:
+    """Format + send the AI strategist note to Telegram. Returns status."""
+    chat_id = _get_telegram_chat_id()
+    if not chat_id:
+        return {"sent": False, "reason": "no_chat_id"}
+    if not TELEGRAM_TOKEN:
+        return {"sent": False, "reason": "no_token"}
+    text = format_digest(analysis, macro)
+    ok = _send_telegram(text, chat_id)
+    return {"sent": ok, "chars": len(text), "chat_id_len": len(chat_id)}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print(f"[flows-ai] starting at {datetime.now(timezone.utc).isoformat()}")
@@ -609,6 +756,15 @@ def lambda_handler(event, context):
     regime = parsed.get("regime_call", {}).get("regime")
     print(f"[flows-ai] DONE — regime={regime}, {n_calls} ticker calls")
 
+    # 5. Push institutional digest to Telegram (best effort)
+    telegram_result = {}
+    try:
+        telegram_result = deliver_telegram_digest(parsed, macro)
+        print(f"[telegram] {telegram_result}")
+    except Exception as e:
+        print(f"[telegram] delivery failed: {e}")
+        telegram_result = {"sent": False, "error": str(e)[:200]}
+
     return {
         "statusCode": 200,
         "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
@@ -619,5 +775,6 @@ def lambda_handler(event, context):
             "n_calls": n_calls,
             "macro_narrative_preview": (parsed.get("macro_narrative") or "")[:200],
             "key": out_key,
+            "telegram": telegram_result,
         }),
     }

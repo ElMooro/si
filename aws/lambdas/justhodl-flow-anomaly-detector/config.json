@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-flow-anomaly-detector",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 120,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ETF flow-specific anomaly detector. Detects extreme flow z-scores, multi-day persistence, sector vs constituent divergence, flow regime velocity, 5d vs 21d timeframe divergence. Complement to v2 macro anomaly detector.",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(0 23 * * ? *)",
+    "name": "justhodl-flow-anomaly-detector-daily",
+    "description": "18:00 ET daily — after constituents 17:45, captures latest flow + macro + constituent state"
+  }
+}
