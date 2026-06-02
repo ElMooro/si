@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-prediction-snapshotter",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 60,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Daily prediction snapshot — captures FULL feature vector per alerted ticker for self-improvement",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(0 21 * * MON-FRI *)",
+    "name": "justhodl-prediction-snapshotter-daily",
+    "description": "Daily 16:00 ET after market close — capture day's predictions with features"
+  }
+}

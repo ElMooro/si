@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-self-improvement",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 180,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Self-improvement loop: scores yesterday's predictions, attributes outcomes to features, calibrates cascade weights",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(30 12 * * MON-FRI *)",
+    "name": "justhodl-self-improvement-daily",
+    "description": "Daily 8:30am ET — score yesterday + calibrate before market open"
+  }
+}
