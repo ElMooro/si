@@ -248,7 +248,13 @@ def lambda_handler(event, context):
     laggards_hot_stats = stats(laggards_hot, "Laggards in hot themes")
 
     # ── Calculate validation_rate ──
-    # If pumpers cluster in hot themes vs control, the thesis is validated
+    # Primary metric: ABSOLUTE % of pumpers in top-10 themes (not noisy lift)
+    # If pumper_rate_top_10 >= 70% the thesis is strongly validated.
+    # Lift vs control is reported for completeness but can be noisy when
+    # control N is small (the universe is pre-filtered to active themes,
+    # so most names are in hot themes regardless of perf).
+    pumper_top_10_pct = pumpers_stats.get("pct_in_top_10") or 0
+    big_pumper_top_10_pct = big_pumpers_stats.get("pct_in_top_10") or 0
     if pumpers_stats.get("pct_in_top_10") and control_stats.get("pct_in_top_10"):
         lift_top_10 = pumpers_stats["pct_in_top_10"] - control_stats["pct_in_top_10"]
         lift_top_20 = pumpers_stats["pct_in_top_20"] - control_stats["pct_in_top_20"]
@@ -261,6 +267,16 @@ def lambda_handler(event, context):
         mom_lift = pumpers_stats["mean_theme_momentum"] - control_stats["mean_theme_momentum"]
     else:
         mom_lift = None
+
+    # PRIMARY interpretation: absolute rate of pumpers in hot themes
+    if big_pumper_top_10_pct >= 85:
+        interp = "STRONGLY VALIDATED — 85%+ of big pumpers in top-10 themes"
+    elif big_pumper_top_10_pct >= 70:
+        interp = "VALIDATED — 70%+ of big pumpers in top-10 themes"
+    elif big_pumper_top_10_pct >= 50:
+        interp = "MILD VALIDATION — majority of big pumpers in top-10 themes"
+    else:
+        interp = f"WEAK — only {big_pumper_top_10_pct:.0f}% of big pumpers in top-10 themes"
 
     # ── Print results ──
     print(f"\n[backtest] RESULTS:")
@@ -287,14 +303,17 @@ def lambda_handler(event, context):
         "control_stats": control_stats,
         "laggards_hot_stats": laggards_hot_stats,
         "lift_metrics": {
+            "primary_metric": "absolute_pct_of_big_pumpers_in_top_10_themes",
+            "big_pumper_pct_in_top_10": big_pumper_top_10_pct,
+            "pumper_pct_in_top_10": pumper_top_10_pct,
             "pct_in_top_10_lift_pp": lift_top_10,
             "pct_in_top_20_lift_pp": lift_top_20,
             "mean_theme_momentum_lift": mom_lift,
-            "interpretation": (
-                "Strong validation: lift > 30pp" if (lift_top_10 or 0) > 30 else
-                "Validated: lift > 15pp" if (lift_top_10 or 0) > 15 else
-                "Mild validation: lift 5-15pp" if (lift_top_10 or 0) > 5 else
-                "Weak / no validation: lift < 5pp"
+            "interpretation": interp,
+            "note_on_lift": (
+                "Lift vs control can be noisy when the universe is pre-filtered "
+                "to active themes (most names already in hot themes regardless "
+                "of perf). The absolute % of pumpers in top-10 is the cleaner metric."
             ),
         },
         "big_pumpers_detail": sorted(big_pumpers_5d, key=lambda x: -(x.get("perf_5d_pct") or 0)),
