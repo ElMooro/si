@@ -54,50 +54,62 @@ s3 = boto3.client("s3", region_name="us-east-1")
 
 
 # ═════════════════════════════════════════════════════════════════════
-# UNIVERSE — careful tagging by macro role
+# UNIVERSE — ETF + FX proxies (Polygon entitlements verified)
 # ═════════════════════════════════════════════════════════════════════
-# Each asset is tagged with what it tells us about the macro regime.
+# After probe 1187: Polygon's futures API + most I: indices aren't entitled
+# on the user's keys. The pivot: ETF proxies cover all the macro signals
+# we need and work under Stocks Starter entitlement. Bonus: these are the
+# same ETFs in the fund-flows universe so we can correlate price moves
+# with capital flow signals later.
 
 INDICES_UNIVERSE = {
-    # Polygon prefix I: for indices
-    "I:VIX":   {"name": "VIX",   "role": "vol_spot",  "feed": "indices"},
-    "I:VIX9D": {"name": "VIX9D", "role": "vol_9d",    "feed": "indices"},
-    "I:VVIX":  {"name": "VVIX",  "role": "vol_of_vol","feed": "indices"},
-    "I:SPX":   {"name": "SPX",   "role": "equity_us", "feed": "indices"},
-    "I:NDX":   {"name": "NDX",   "role": "equity_tech","feed": "indices"},
-    "I:RUT":   {"name": "RUT",   "role": "equity_small","feed": "indices"},
+    # Only I:NDX is entitled — keep it as direct index reading
+    "I:NDX":  {"name": "NDX",   "role": "equity_tech",   "feed": "indices"},
 }
 
-# Futures use C: prefix for continuous contracts on Polygon
-FUTURES_UNIVERSE = {
-    # Vol term structure (futures)
-    "VX1!":    {"name": "VIX 1M",    "role": "vol_1m",     "feed": "futures"},
-    "VX3!":    {"name": "VIX 3M",    "role": "vol_3m",     "feed": "futures"},
-    # Treasury futures (curve shape)
-    "ZN1!":    {"name": "10Y T-Note",  "role": "rates_10y",  "feed": "futures"},
-    "ZB1!":    {"name": "30Y T-Bond",  "role": "rates_30y",  "feed": "futures"},
-    "ZT1!":    {"name": "2Y T-Note",   "role": "rates_2y",   "feed": "futures"},
-    # Equity futures (sentiment / basis)
-    "ES1!":    {"name": "E-Mini S&P", "role": "equity_fut", "feed": "futures"},
-    "NQ1!":    {"name": "E-Mini NAS", "role": "tech_fut",   "feed": "futures"},
-    # Commodities
-    "CL1!":    {"name": "Crude Oil",  "role": "energy",     "feed": "futures"},
-    "GC1!":    {"name": "Gold",       "role": "safe_haven", "feed": "futures"},
-    "HG1!":    {"name": "Copper",     "role": "growth",     "feed": "futures"},
+# Equity / vol / curve / commodity ETF proxies (all stocks, all entitled)
+ETF_PROXY_UNIVERSE = {
+    # Equity indices
+    "SPY":  {"name": "S&P 500",    "role": "equity_us",       "feed": "etf"},
+    "QQQ":  {"name": "Nasdaq 100", "role": "equity_tech_etf", "feed": "etf"},
+    "IWM":  {"name": "Russell 2k", "role": "equity_small",    "feed": "etf"},
+    "DIA":  {"name": "Dow",        "role": "equity_value",    "feed": "etf"},
+    # Vol proxies — the VIX term structure replacement
+    "VIXY": {"name": "VIX 1M",     "role": "vol_short",       "feed": "etf"},
+    "VXX":  {"name": "VIX Short",  "role": "vol_short_alt",   "feed": "etf"},
+    "VIXM": {"name": "VIX Mid",    "role": "vol_mid",         "feed": "etf"},
+    "UVXY": {"name": "VIX 1.5x",   "role": "vol_levered",     "feed": "etf"},
+    # Treasury proxies — curve via SHY (2Y) / IEF (7-10Y) / TLT (20+Y)
+    "SHY":  {"name": "1-3Y Tsy",   "role": "rates_short",     "feed": "etf"},
+    "IEF":  {"name": "7-10Y Tsy",  "role": "rates_10y",       "feed": "etf"},
+    "TLT":  {"name": "20+Y Tsy",   "role": "rates_long",      "feed": "etf"},
+    "AGG":  {"name": "Agg Bond",   "role": "rates_agg",       "feed": "etf"},
+    "TIP":  {"name": "TIPS",       "role": "inflation_break", "feed": "etf"},
+    # Credit
+    "HYG":  {"name": "High Yield", "role": "credit_hy",       "feed": "etf"},
+    "LQD":  {"name": "IG Credit",  "role": "credit_ig",       "feed": "etf"},
+    # Commodities — single-asset ETFs
+    "GLD":  {"name": "Gold",       "role": "safe_haven",      "feed": "etf"},
+    "SLV":  {"name": "Silver",     "role": "industrial_pm",   "feed": "etf"},
+    "USO":  {"name": "Oil",        "role": "energy",          "feed": "etf"},
+    "DBC":  {"name": "Broad Cmdy", "role": "commodity_broad", "feed": "etf"},
+    "CPER": {"name": "Copper",     "role": "growth",          "feed": "etf"},
+    # Dollar proxy (UUP tracks DXY)
+    "UUP":  {"name": "Bullish USD","role": "dxy_proxy",       "feed": "etf"},
 }
 
-# FX pairs use C: prefix on Polygon (e.g., C:EURUSD)
+# FX direct (proven to work)
 FX_UNIVERSE = {
-    "C:EURUSD": {"name": "EUR/USD",  "role": "eur",        "feed": "fx"},
-    "C:USDJPY": {"name": "USD/JPY",  "role": "jpy_carry",  "feed": "fx"},
-    "C:USDCNH": {"name": "USD/CNH",  "role": "china_stress","feed": "fx"},
-    "C:USDMXN": {"name": "USD/MXN",  "role": "em_risk",    "feed": "fx"},
-    "C:AUDUSD": {"name": "AUD/USD",  "role": "commodity_fx","feed": "fx"},
-    "C:GBPUSD": {"name": "GBP/USD",  "role": "gbp",        "feed": "fx"},
-    "C:USDCHF": {"name": "USD/CHF",  "role": "chf_safe",   "feed": "fx"},
+    "C:EURUSD": {"name": "EUR/USD",  "role": "eur",            "feed": "fx"},
+    "C:USDJPY": {"name": "USD/JPY",  "role": "jpy_carry",      "feed": "fx"},
+    "C:USDCNH": {"name": "USD/CNH",  "role": "china_stress",   "feed": "fx"},
+    "C:USDMXN": {"name": "USD/MXN",  "role": "em_risk",        "feed": "fx"},
+    "C:AUDUSD": {"name": "AUD/USD",  "role": "commodity_fx",   "feed": "fx"},
+    "C:GBPUSD": {"name": "GBP/USD",  "role": "gbp",            "feed": "fx"},
+    "C:USDCHF": {"name": "USD/CHF",  "role": "chf_safe",       "feed": "fx"},
 }
 
-ALL_UNIVERSE = {**INDICES_UNIVERSE, **FUTURES_UNIVERSE, **FX_UNIVERSE}
+ALL_UNIVERSE = {**INDICES_UNIVERSE, **ETF_PROXY_UNIVERSE, **FX_UNIVERSE}
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -233,97 +245,115 @@ def by_role(metrics: list) -> dict:
 # SUB-REGIME CLASSIFIERS
 # ═════════════════════════════════════════════════════════════════════
 def classify_vix_regime(b: dict) -> dict:
-    """VIX term structure: backwardation = stress, contango = calm."""
-    vix = b.get("vol_spot")
-    vix1m = b.get("vol_1m")
-    vix3m = b.get("vol_3m")
-    if not vix or not vix1m or not vix3m:
-        return {"label": "INSUFFICIENT_DATA", "score": None, "vix_spot": vix and vix.get("latest_close")}
-    spot = vix.get("latest_close")
-    front = vix1m.get("latest_close")
-    back = vix3m.get("latest_close")
-    # Front-back ratio. >1 = backwardation (stress); <0.95 = strong contango (calm)
-    ratio_1m_3m = front / back if back else None
-    if spot >= 30 and ratio_1m_3m and ratio_1m_3m > 1.02:
+    """VIX term structure via ETF proxies.
+
+    With ETF proxies we use:
+      - VIXY/VXX (front-month VIX exposure)
+      - VIXM (mid-curve VIX exposure ~5 months)
+      - UVXY for cross-check (1.5x levered short-term)
+    The price RATIO of front-month (VIXY) to mid-curve (VIXM) is a direct
+    proxy for the futures term structure. When front > mid (price ratio
+    rises) = backwardation = stress.
+    """
+    short = b.get("vol_short")
+    short_alt = b.get("vol_short_alt")  # VXX
+    mid = b.get("vol_mid")              # VIXM
+    if not short or not mid:
+        return {"label": "INSUFFICIENT_DATA", "score": None}
+    # Use 21d return spread as direction proxy
+    short_ret = short.get("ret_21d_pct")
+    mid_ret = mid.get("ret_21d_pct")
+    if short_ret is None or mid_ret is None:
+        return {"label": "INSUFFICIENT_DATA", "score": None}
+    # When short_ret > mid_ret strongly = front-month vol bid harder = backwardation
+    spread_21d = short_ret - mid_ret
+    # 1d return for spot stress signal
+    short_1d = short.get("ret_1d_pct") or 0
+    if spread_21d > 8 or short_1d > 5:
         label, score = "VOL_BACKWARDATION_HIGH", -80
-    elif ratio_1m_3m and ratio_1m_3m > 1.0:
+    elif spread_21d > 3:
         label, score = "VOL_BACKWARDATION", -40
-    elif ratio_1m_3m and ratio_1m_3m < 0.92:
+    elif spread_21d < -8:
         label, score = "VOL_STEEP_CONTANGO", 40
-    elif ratio_1m_3m and ratio_1m_3m < 0.97:
+    elif spread_21d < -3:
         label, score = "VOL_CONTANGO", 20
     else:
         label, score = "VOL_NEUTRAL", 0
-    return {"label": label, "score": score, "vix_spot": spot, "ratio_1m_3m": round(ratio_1m_3m, 3) if ratio_1m_3m else None}
+    return {"label": label, "score": score,
+            "short_21d_pct": short_ret, "mid_21d_pct": mid_ret,
+            "spread_pct": round(spread_21d, 2), "short_1d_pct": short_1d}
 
 
 def classify_curve_regime(b: dict) -> dict:
-    """Treasury curve shape via futures prices.
+    """Treasury curve shape via SHY (2Y) / IEF (7-10Y) / TLT (20+Y) ETF prices.
 
-    Note: Treasury futures prices move INVERSELY to yield. Spreads here are
-    price spreads, not yield spreads. We use 21d returns as a proxy for
-    rate direction (rising prices = falling yields).
+    Bond ETF prices move INVERSELY to yields. When long-end ETFs rally
+    harder than short-end, that means long yields are falling faster
+    than short yields = curve flattening / bull flattening (recession signal).
+    Conversely, short-end rallies while long sells off = bear steepening.
     """
-    ten = b.get("rates_10y")
-    thirty = b.get("rates_30y")
-    two = b.get("rates_2y")
-    if not all([ten, thirty]):
+    short = b.get("rates_short")  # SHY
+    long = b.get("rates_long")    # TLT
+    mid = b.get("rates_10y")      # IEF
+    if not short or not long:
         return {"label": "INSUFFICIENT_DATA", "score": None}
-    # When long bonds outperform short bonds, curve is flattening / inverting
-    # (yields falling more at long end)
-    long_perf = thirty.get("ret_21d_pct")
-    short_perf = two.get("ret_21d_pct") if two else None
+    long_perf = long.get("ret_21d_pct")
+    short_perf = short.get("ret_21d_pct")
     if long_perf is None or short_perf is None:
         return {"label": "INSUFFICIENT_DATA", "score": None}
-    spread = long_perf - short_perf
-    if spread > 2.0:
-        label, score = "CURVE_BULL_FLATTENER", -30  # recessionary
-    elif spread > 0.5:
-        label, score = "CURVE_FLATTENING", -10
-    elif spread < -2.0:
-        label, score = "CURVE_BULL_STEEPENER", 30   # expansionary
-    elif spread < -0.5:
-        label, score = "CURVE_STEEPENING", 10
+    spread = long_perf - short_perf  # >0 = long outperforming = curve flattening
+    if spread > 3.0:
+        label, score = "CURVE_BULL_FLATTENER", -40   # recessionary signal
+    elif spread > 1.0:
+        label, score = "CURVE_FLATTENING", -15
+    elif spread < -3.0:
+        label, score = "CURVE_BEAR_STEEPENER", 40    # rates rising at long end
+    elif spread < -1.0:
+        label, score = "CURVE_STEEPENING", 15
     else:
         label, score = "CURVE_NEUTRAL", 0
-    return {"label": label, "score": score, "long_minus_short_21d_pct": round(spread, 2)}
+    return {"label": label, "score": score,
+            "long_21d_pct": long_perf, "short_21d_pct": short_perf,
+            "long_minus_short_21d": round(spread, 2)}
 
 
 def classify_dollar_regime(b: dict) -> dict:
-    """Dollar strength via EURUSD + DXY proxies."""
+    """Dollar via UUP ETF + EURUSD/USDJPY direct cross-check."""
+    uup = b.get("dxy_proxy")
     eur = b.get("eur")
     jpy = b.get("jpy_carry")
-    if not eur:
+    score_components = []
+    if uup and uup.get("ret_21d_pct") is not None:
+        score_components.append(uup["ret_21d_pct"])
+    if eur and eur.get("ret_21d_pct") is not None:
+        score_components.append(-eur["ret_21d_pct"])  # EURUSD inverse
+    if jpy and jpy.get("ret_21d_pct") is not None:
+        score_components.append(jpy["ret_21d_pct"])
+    if not score_components:
         return {"label": "INSUFFICIENT_DATA", "score": None}
-    # EURUSD falling = USD strong; USDJPY rising = USD strong
-    eur_21d = eur.get("ret_21d_pct")
-    jpy_21d = jpy.get("ret_21d_pct") if jpy else None
-    if eur_21d is None:
-        return {"label": "INSUFFICIENT_DATA", "score": None}
-    # Composite USD score: negative EUR + positive JPY = strong USD
-    usd_proxy = -eur_21d + (jpy_21d if jpy_21d else 0)
-    if usd_proxy > 3:
+    usd_proxy = sum(score_components) / len(score_components)
+    if usd_proxy > 2:
         label, score = "USD_STRONG_RISING", 60
-    elif usd_proxy > 1:
+    elif usd_proxy > 0.5:
         label, score = "USD_STRONG", 30
-    elif usd_proxy < -3:
+    elif usd_proxy < -2:
         label, score = "USD_WEAK_FALLING", -60
-    elif usd_proxy < -1:
+    elif usd_proxy < -0.5:
         label, score = "USD_WEAK", -30
     else:
         label, score = "USD_NEUTRAL", 0
-    return {"label": label, "score": score, "usd_proxy_21d": round(usd_proxy, 2),
-            "eurusd_21d_pct": eur_21d, "usdjpy_21d_pct": jpy_21d}
+    return {"label": label, "score": score, "usd_proxy_21d_avg": round(usd_proxy, 2),
+            "uup_21d_pct": uup and uup.get("ret_21d_pct"),
+            "eurusd_21d_pct": eur and eur.get("ret_21d_pct"),
+            "usdjpy_21d_pct": jpy and jpy.get("ret_21d_pct")}
 
 
 def classify_carry_regime(b: dict) -> dict:
-    """Carry trade direction via JPY + AUD."""
+    """Carry trade via JPY + AUD."""
     jpy = b.get("jpy_carry")
     aud = b.get("commodity_fx")
     if not jpy:
         return {"label": "INSUFFICIENT_DATA", "score": None}
-    # USDJPY rising = JPY weakening = carry on
-    # AUDUSD rising = AUD strong = carry on
     jpy_21d = jpy.get("ret_21d_pct")
     aud_21d = aud.get("ret_21d_pct") if aud else None
     if jpy_21d is None:
@@ -343,40 +373,42 @@ def classify_carry_regime(b: dict) -> dict:
 
 
 def classify_commodity_regime(b: dict) -> dict:
-    """Reflation: oil up + copper up + gold up = inflationary growth."""
+    """Reflation via USO (oil) + CPER (copper) + GLD (gold)."""
     oil = b.get("energy")
     copper = b.get("growth")
     gold = b.get("safe_haven")
+    silver = b.get("industrial_pm")
     if not all([oil, copper]):
         return {"label": "INSUFFICIENT_DATA", "score": None}
     oil_21d = oil.get("ret_21d_pct")
     cop_21d = copper.get("ret_21d_pct")
     gold_21d = gold.get("ret_21d_pct") if gold else 0
+    silver_21d = silver.get("ret_21d_pct") if silver else None
     if oil_21d is None or cop_21d is None:
         return {"label": "INSUFFICIENT_DATA", "score": None}
-    industrial = oil_21d + cop_21d  # both up = reflation
+    industrial = oil_21d + cop_21d
     safe = gold_21d or 0
     if industrial > 8 and safe < industrial / 2:
         label, score = "REFLATION_STRONG", 70
     elif industrial > 3:
         label, score = "REFLATION", 30
     elif industrial < -8 and safe > 3:
-        label, score = "DEFLATION_STAGFLATION", -70  # commodities down, gold up = stagflation/recession hedging
+        label, score = "STAGFLATION_HEDGE", -70
     elif industrial < -3:
         label, score = "DEFLATIONARY", -30
     else:
         label, score = "COMMODITIES_NEUTRAL", 0
-    return {"label": label, "score": score, "oil_21d_pct": oil_21d,
-            "copper_21d_pct": cop_21d, "gold_21d_pct": gold_21d}
+    return {"label": label, "score": score,
+            "oil_21d_pct": oil_21d, "copper_21d_pct": cop_21d,
+            "gold_21d_pct": gold_21d, "silver_21d_pct": silver_21d}
 
 
 def classify_em_regime(b: dict) -> dict:
-    """EM stress via USD vs MXN, CNH."""
+    """EM stress via USDMXN + USDCNH FX."""
     mxn = b.get("em_risk")
     cnh = b.get("china_stress")
     if not mxn and not cnh:
         return {"label": "INSUFFICIENT_DATA", "score": None}
-    # USDMXN rising = MXN weakening = EM stress
     mxn_21d = mxn.get("ret_21d_pct") if mxn else None
     cnh_21d = cnh.get("ret_21d_pct") if cnh else None
     em_stress = (mxn_21d or 0) + (cnh_21d or 0)
@@ -390,7 +422,33 @@ def classify_em_regime(b: dict) -> dict:
         label, score = "EM_BID", 30
     else:
         label, score = "EM_NEUTRAL", 0
-    return {"label": label, "score": score, "em_stress_score": round(em_stress, 2)}
+    return {"label": label, "score": score, "em_stress_21d": round(em_stress, 2)}
+
+
+def classify_credit_regime(b: dict) -> dict:
+    """Credit appetite via HYG/LQD ratio (HY vs IG performance)."""
+    hy = b.get("credit_hy")
+    ig = b.get("credit_ig")
+    if not hy or not ig:
+        return {"label": "INSUFFICIENT_DATA", "score": None}
+    hy_21d = hy.get("ret_21d_pct")
+    ig_21d = ig.get("ret_21d_pct")
+    if hy_21d is None or ig_21d is None:
+        return {"label": "INSUFFICIENT_DATA", "score": None}
+    spread = hy_21d - ig_21d  # HY outperforming IG = risk appetite
+    if spread > 1.5:
+        label, score = "CREDIT_RISK_ON", 40
+    elif spread > 0.3:
+        label, score = "CREDIT_HEALTHY", 15
+    elif spread < -1.5:
+        label, score = "CREDIT_STRESS", -60
+    elif spread < -0.3:
+        label, score = "CREDIT_DETERIORATING", -25
+    else:
+        label, score = "CREDIT_NEUTRAL", 0
+    return {"label": label, "score": score,
+            "hy_21d_pct": hy_21d, "ig_21d_pct": ig_21d,
+            "hy_minus_ig_21d": round(spread, 2)}
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -409,8 +467,12 @@ def classify_top_level(subs: dict) -> dict:
     carry = scores.get("carry_regime", 0)
     commod = scores.get("commodity_regime", 0)
     em = scores.get("em_regime", 0)
+    credit = scores.get("credit_regime", 0)
 
     # Heuristic top-level rules (priority order — first match wins)
+    if credit <= -40 and vol <= -20:
+        return {"regime": "CREDIT_STRESS", "confidence": "HIGH",
+                "reasoning": "HY underperforming IG + vol bid = credit-led de-risking"}
     if vol <= -40 and (carry <= -30 or em <= -30):
         return {"regime": "FLIGHT_TO_QUALITY", "confidence": "HIGH",
                 "reasoning": "Vol backwardation + carry unwind/EM stress"}
@@ -429,9 +491,9 @@ def classify_top_level(subs: dict) -> dict:
     if dollar >= 30 and em <= -30:
         return {"regime": "USD_STRENGTH_EM_STRESS", "confidence": "MEDIUM",
                 "reasoning": "Strong USD pressuring EM"}
-    if vol >= 20 and carry >= 20 and commod >= 0:
+    if vol >= 20 and carry >= 20 and commod >= 0 and credit >= 0:
         return {"regime": "GLOBAL_RISK_ON", "confidence": "MEDIUM",
-                "reasoning": "Vol contango + carry on + commodities neutral+"}
+                "reasoning": "Vol contango + carry on + credit healthy"}
     if abs(vol) < 20 and abs(curve) < 20 and abs(dollar) < 20:
         return {"regime": "NEUTRAL", "confidence": "MEDIUM",
                 "reasoning": "All major sub-regimes near neutral"}
@@ -465,6 +527,7 @@ def lambda_handler(event, context):
         "carry_regime":     classify_carry_regime(by_role_map),
         "commodity_regime": classify_commodity_regime(by_role_map),
         "em_regime":        classify_em_regime(by_role_map),
+        "credit_regime":    classify_credit_regime(by_role_map),
     }
 
     # 4. Top-level regime

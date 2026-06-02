@@ -348,22 +348,45 @@ def lambda_handler(event, context):
     # ETF flow context — the critic's most powerful new attack vector.
     # If the analyst is bullish a sector but sector ETF flows are negative,
     # that's structured pushback supported by institutional positioning data.
+    # PLUS: Phase 2 multi-asset macro regime context for top-down pressure-testing.
     flow_context_str = ""
     try:
         sector = (research.get("company") or {}).get("sector")
+        regime_snippets = []
+        # ── Phase 2 macro regime ─────────────────────────────────────────
+        try:
+            macro_obj = s3.get_object(Bucket=S3_BUCKET, Key="macro/regime.json")
+            macro = json.loads(macro_obj["Body"].read())
+            tl = macro.get("top_level_regime", {}) or {}
+            subs = macro.get("sub_regimes", {}) or {}
+            if tl.get("regime"):
+                sub_summary = ", ".join(
+                    f"{k.replace('_regime','')}={v.get('label', '—')}"
+                    for k, v in subs.items() if v.get("label") and v.get("label") != "INSUFFICIENT_DATA"
+                )
+                regime_snippets.append(
+                    f"[MULTI-ASSET MACRO REGIME] {tl['regime']} ({tl.get('confidence','—')}). "
+                    f"{tl.get('reasoning','')} Sub-regimes: {sub_summary}. "
+                    f"If analyst's thesis ignores or contradicts macro regime, that's structured pushback."
+                )
+        except Exception:
+            pass
+        # ── Sector flow context ──────────────────────────────────────────
         if sector:
             obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/per-ticker-context.json")
             ctx = json.loads(obj["Body"].read())
             by_sector = (ctx.get("context") or {}).get("by_sector") or {}
             sector_ctx = by_sector.get(sector)
             if sector_ctx and sector_ctx.get("prompt_snippet"):
-                flow_context_str = (
-                    "\n\n[ETF FLOW CONTEXT — use this as ammunition for pressure-testing]\n"
-                    + sector_ctx["prompt_snippet"]
-                    + "\nIf the analyst is bullish but the sector has heavy outflow, "
-                    "or vice versa, this is a powerful contradicting signal worth "
-                    "raising in your underweighted_risks or data_reinterpretations.\n"
-                )
+                regime_snippets.append(f"[SECTOR FLOWS] {sector_ctx['prompt_snippet']}")
+        if regime_snippets:
+            flow_context_str = (
+                "\n\n[CROSS-FEED PRESSURE-TEST AMMUNITION]\n"
+                + "\n".join(regime_snippets)
+                + "\nIf the analyst is bullish but the macro regime is CREDIT_STRESS/FLIGHT_TO_QUALITY, "
+                "or sector has heavy outflow, raise these as underweighted_risks or "
+                "data_reinterpretations. Macro regime takes precedence over single-name optimism.\n"
+            )
     except Exception as e:
         print(f"[critique] flow context unavailable: {e}")
 

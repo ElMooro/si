@@ -67,7 +67,10 @@ SYSTEM_PROMPT = """You are the Chief Institutional Flow Strategist at a top-tier
 
 7. **PAIR TRADES.** When sectors diverge (e.g., XLE inflow + XLU outflow), surface relative-value pair trade ideas separately from outright calls.
 
-8. **REGIME CONTEXT.** Open with the regime call. If DEFENSIVE, cap long conviction. If RISK_ON, allow higher conviction on cyclicals. If TRANSITION, reduce overall position sizing.
+8. **REGIME CONTEXT — TWO LAYERS.** The input has TWO regime classifications:
+   - `todays_flow_composite.regime` — flow-based (DEFENSIVE/RISK_ON/etc. derived from ETF flow z-scores)
+   - `macro_regime_multi_asset.top_level.regime` — multi-asset (vol+curve+dollar+carry+commodities+EM+credit from Phase 2 engine)
+   When these AGREE, conviction multiplier on calls. When they DISAGREE, that's itself a key divergence to flag in `key_divergences`. The multi-asset regime takes precedence when in conflict — it's broader and more leading. If macro regime is `CREDIT_STRESS` or `FLIGHT_TO_QUALITY`, cap ALL long conviction at MEDIUM regardless of flow signal. If `REFLATION` or `GLOBAL_RISK_ON`, allow HIGH conviction on cyclicals/EM.
 
 ## OUTPUT SCHEMA (JSON only, no prose outside JSON, no markdown fences)
 
@@ -244,11 +247,35 @@ def load_crisis_kb() -> dict:
     doc = _read_json("data/crisis-knowledge-base.json")
     if not doc:
         return {}
-    # Return only top-level signal (the regime classification) — KB is large
     return {
         "regime": doc.get("current_regime") or doc.get("regime"),
         "regime_score": doc.get("regime_score"),
         "key_signals": doc.get("active_signals", [])[:5],
+    }
+
+
+def load_macro_regime() -> dict:
+    """Phase 2 macro regime: 7 sub-regimes + top-level classification.
+
+    The AI strategist uses this to ADJUDICATE conflicts between
+    flow signal and research verdict — e.g., if regime is CREDIT_STRESS
+    and analyst is bullish a high-beta name, the AI should down-rate the call.
+    """
+    doc = _read_json("macro/regime.json")
+    if not doc:
+        return {}
+    tl = doc.get("top_level_regime", {}) or {}
+    subs = doc.get("sub_regimes", {}) or {}
+    return {
+        "top_level": {
+            "regime": tl.get("regime"),
+            "confidence": tl.get("confidence"),
+            "reasoning": tl.get("reasoning"),
+        },
+        "sub_regimes_summary": {
+            k: {"label": v.get("label"), "score": v.get("score")}
+            for k, v in subs.items()
+        },
     }
 
 
@@ -336,7 +363,7 @@ def claude_call(user_prompt: str) -> dict:
 # ═════════════════════════════════════════════════════════════════════
 # User prompt builder — compact cross-feed payload
 # ═════════════════════════════════════════════════════════════════════
-def build_user_prompt(flow_data, research, critiques, edgar, crisis, history) -> str:
+def build_user_prompt(flow_data, research, critiques, edgar, crisis, history, macro) -> str:
     """Compact the input data into a single user-prompt JSON block."""
     # Build per-ticker signal-aligned table (the most important view)
     research_by_t = {r["ticker"]: r for r in research}
@@ -392,6 +419,7 @@ def build_user_prompt(flow_data, research, critiques, edgar, crisis, history) ->
     # Build payload
     payload = {
         "as_of": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "macro_regime_multi_asset": macro,  # Phase 2: 7 sub-regimes (vol/curve/USD/carry/commod/EM/credit) + top-level
         "todays_flow_composite": flow_data.get("composite", {}),
         "todays_top_inflow_etfs": sorted(
             [m for m in flow_data.get("metrics", []) if m.get("flow_zscore_90d") is not None],
@@ -410,13 +438,17 @@ def build_user_prompt(flow_data, research, critiques, edgar, crisis, history) ->
             "n_critique_tickers": len(critiques),
             "n_edgar_tickers": len(edgar),
             "n_flow_etfs_ok": flow_data.get("n_ok"),
+            "macro_regime_available": bool(macro and macro.get("top_level", {}).get("regime")),
         },
     }
 
     user_text = (
         "Generate today's institutional flow intelligence note per the schema in the "
-        "system prompt. The data follows. Cite specific tickers, ETFs, and signals "
-        "from this payload. Be decisive — PMs need actionable calls, not commentary.\n\n"
+        "system prompt. The data follows. The TOP-LEVEL macro_regime_multi_asset "
+        "tag and sub-regimes (vix, curve, dollar, carry, commodity, EM, credit) "
+        "are the foundation — every ticker call should be consistent with the regime. "
+        "Cite specific tickers, ETFs, and signals from this payload. Be decisive — "
+        "PMs need actionable calls, not commentary.\n\n"
         "```json\n" + json.dumps(payload, default=str, separators=(",", ":")) + "\n```"
     )
     return user_text
@@ -449,13 +481,17 @@ def lambda_handler(event, context):
     print("[flows-ai] loading crisis KB...")
     crisis = load_crisis_kb()
 
+    print("[flows-ai] loading macro regime (Phase 2)...")
+    macro = load_macro_regime()
+    print(f"[flows-ai] macro: {macro.get('top_level', {}).get('regime')}")
+
     print("[flows-ai] loading flow history...")
     history = load_flow_history()
     print(f"[flows-ai] history: {len(history)} archive days")
 
     # 2. Build user prompt
     print("[flows-ai] building user prompt...")
-    user_prompt = build_user_prompt(flow_data, research, critiques, edgar, crisis, history)
+    user_prompt = build_user_prompt(flow_data, research, critiques, edgar, crisis, history, macro)
     prompt_kb = round(len(user_prompt) / 1024, 1)
     print(f"[flows-ai] user prompt size: {prompt_kb} KB ({len(user_prompt)} chars)")
 

@@ -1316,38 +1316,65 @@ Schema:
 
 
 def fetch_etf_flow_context(payload: dict) -> str:
-    """Fetch sector ETF flow context for this ticker from etf-flows/per-ticker-context.json.
+    """Fetch sector ETF flow context for this ticker from etf-flows/per-ticker-context.json
+    PLUS Phase 2 multi-asset macro regime tag.
 
     Returns a 2-3 sentence snippet ready for prompt injection — or empty
     string if data unavailable. We use the ticker's GICS sector to look up
     its sector SPDR ETF (XLK for Technology, XLF for Financials, etc.) and
-    fetch that ETF's flow signal + the broader market regime.
+    fetch that ETF's flow signal + the broader market regime + the macro
+    multi-asset regime tag (the foundational signal).
 
-    Pattern: research-aware analyst writes flow-conscious theses. If the
-    sector is in heavy outflow, the analyst should mention or justify it.
+    Pattern: research-aware analyst writes flow-conscious + regime-conscious
+    theses. If the macro regime is CREDIT_STRESS or FLIGHT_TO_QUALITY,
+    the analyst should temper bullish theses; if REFLATION/RISK_ON, allow
+    full conviction on appropriate sector exposures.
     """
     try:
         sector = (payload.get("company") or {}).get("sector")
-        if not sector:
+        snippets = []
+
+        # ── Phase 2 multi-asset macro regime ──────────────────────────────
+        try:
+            macro_obj = s3.get_object(Bucket=S3_BUCKET, Key="macro/regime.json")
+            macro = json.loads(macro_obj["Body"].read())
+            tl = macro.get("top_level_regime", {}) or {}
+            subs = macro.get("sub_regimes", {}) or {}
+            if tl.get("regime"):
+                sub_summary = ", ".join(
+                    f"{k.replace('_regime','')}={v.get('label', '—')}"
+                    for k, v in subs.items() if v.get("label") and v.get("label") != "INSUFFICIENT_DATA"
+                )
+                snippets.append(
+                    f"[MULTI-ASSET MACRO REGIME] Top-level: {tl['regime']} ({tl.get('confidence','—')} confidence). "
+                    f"Reasoning: {tl.get('reasoning', '—')}. Sub-regimes: {sub_summary}."
+                )
+        except Exception:
+            pass
+
+        # ── Per-sector ETF flow context ──────────────────────────────────
+        if sector:
+            try:
+                obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/per-ticker-context.json")
+                ctx = json.loads(obj["Body"].read())
+                by_sector = (ctx.get("context") or {}).get("by_sector") or {}
+                sector_ctx = by_sector.get(sector)
+                if sector_ctx and sector_ctx.get("prompt_snippet"):
+                    snippets.append(f"[SECTOR ETF FLOWS] {sector_ctx['prompt_snippet']}")
+                else:
+                    global_regime = (ctx.get("context") or {}).get("global_regime", "UNKNOWN")
+                    smart_dumb = (ctx.get("context") or {}).get("smart_vs_dumb_label", "MIXED")
+                    risk_label = (ctx.get("context") or {}).get("risk_on_off_label", "MIXED")
+                    snippets.append(
+                        f"[FLOW REGIME] Market regime: {global_regime}. "
+                        f"Smart money: {smart_dumb}. Risk posture: {risk_label}."
+                    )
+            except Exception:
+                pass
+
+        if not snippets:
             return ""
-        # Fetch the per-ticker-context file (1 S3 GET, ~10ms)
-        obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/per-ticker-context.json")
-        ctx = json.loads(obj["Body"].read())
-        by_sector = (ctx.get("context") or {}).get("by_sector") or {}
-        sector_ctx = by_sector.get(sector)
-        if not sector_ctx:
-            # Fallback: just inject regime + smart/dumb labels
-            global_regime = (ctx.get("context") or {}).get("global_regime", "UNKNOWN")
-            smart_dumb = (ctx.get("context") or {}).get("smart_vs_dumb_label", "MIXED")
-            risk_label = (ctx.get("context") or {}).get("risk_on_off_label", "MIXED")
-            return (
-                f"\n\n[ETF FLOW CONTEXT]\nMarket regime: {global_regime}. "
-                f"Smart money: {smart_dumb}. Risk posture: {risk_label}.\n"
-            )
-        snippet = sector_ctx.get("prompt_snippet", "")
-        if not snippet:
-            return ""
-        return f"\n\n[ETF FLOW CONTEXT — institutional positioning data]\n{snippet}\n"
+        return "\n\n" + "\n".join(snippets) + "\n"
     except Exception as e:
         print(f"[etf-flow-context] unavailable: {e}")
         return ""
