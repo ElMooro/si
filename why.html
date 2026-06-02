@@ -284,6 +284,8 @@
   <span class="label">Ticker</span>
   <input id="tickerInput" type="text" placeholder="AAPL" autocomplete="off" maxlength="8">
   <button id="researchBtn" onclick="runResearch()">Research →</button>
+  <button id="wlStarBtn" onclick="wlToggleCurrent()" title="Add current ticker to watchlist"
+          style="margin-left:6px; background:transparent; border:1px solid var(--border); color:var(--text-dim); padding:6px 10px; border-radius:5px; cursor:pointer; font-size:13px">☆</button>
   <span class="label" style="margin-left:8px">Quick</span>
   <div class="quick" id="quickRow">
     <button class="quick-btn" onclick="runWith('AAPL')">AAPL</button>
@@ -369,7 +371,58 @@ function runResearch(){
   url.searchParams.set("ticker", ticker);
   window.history.replaceState({}, "", url);
   fetchAndRender(ticker);
+  // Sync watchlist star state with new ticker
+  setTimeout(updateStar, 50);
 }
+
+// ─── Watchlist integration (localStorage shared with homepage)
+const WL_KEY = 'justhodl_watchlist_v1';
+function wlReadList(){
+  try { return JSON.parse(localStorage.getItem(WL_KEY) || '[]'); }
+  catch(e){ return []; }
+}
+function wlWriteList(arr){
+  try { localStorage.setItem(WL_KEY, JSON.stringify(arr.slice(0, 20))); }
+  catch(e){}
+}
+function currentTicker(){
+  const v = $("tickerInput").value || "";
+  return v.trim().toUpperCase();
+}
+function updateStar(){
+  const t = currentTicker();
+  const btn = $("wlStarBtn");
+  if(!btn) return;
+  if(!t){ btn.textContent = "☆"; btn.style.color = "var(--text-dim)"; return; }
+  const list = wlReadList();
+  if(list.includes(t)){
+    btn.textContent = "★";
+    btn.style.color = "var(--accent)";
+    btn.style.borderColor = "var(--accent)";
+    btn.title = `${t} is in your watchlist (click to remove)`;
+  } else {
+    btn.textContent = "☆";
+    btn.style.color = "var(--text-dim)";
+    btn.style.borderColor = "var(--border)";
+    btn.title = `Add ${t} to your watchlist`;
+  }
+}
+function wlToggleCurrent(){
+  const t = currentTicker();
+  if(!t) return;
+  if(!/^[A-Z0-9.\-]{1,8}$/.test(t)) return;
+  let list = wlReadList();
+  if(list.includes(t)){
+    list = list.filter(x => x !== t);
+  } else {
+    list.push(t);
+  }
+  wlWriteList(list);
+  updateStar();
+}
+document.addEventListener('DOMContentLoaded', () => setTimeout(updateStar, 100));
+$("tickerInput").addEventListener('input', updateStar);
+
 
 async function fetchAndRender(ticker){
   const btn = $("researchBtn");

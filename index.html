@@ -805,6 +805,195 @@ table.tbl tr:last-child td{border-bottom: none}
   }
   </script>
 
+  <!-- ────────── WATCHLIST (localStorage-backed, auto-refresh stale entries) ────────── -->
+  <div id="watchlist-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin-bottom:18px">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
+      <div style="display:flex; align-items:center; gap:8px">
+        <span style="font-size:16px">⭐</span>
+        <span style="font-size:13px; font-weight:700; color:var(--accent); letter-spacing:.02em">My Watchlist</span>
+        <span id="wl-count" style="font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono)"></span>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center">
+        <input id="wl-add-input" type="text" placeholder="add ticker"
+               style="background:var(--bg-base); border:1px solid var(--border); color:var(--text); padding:5px 9px; border-radius:5px; font-family:var(--font-mono); font-size:11.5px; width:90px; outline:none; text-transform:uppercase"
+               autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="8"
+               onkeydown="if(event.key==='Enter'){wlAddFromInput();event.preventDefault();}">
+        <button onclick="wlAddFromInput()" style="background:rgba(250,204,21,.15); color:var(--accent); border:1px solid var(--accent); padding:5px 11px; border-radius:5px; font-size:11px; cursor:pointer; font-weight:700">+ ADD</button>
+        <button onclick="wlRefreshAll()" title="Refresh all (force CDN re-fetch)" style="background:transparent; color:var(--text-dim); border:1px solid var(--border); padding:5px 9px; border-radius:5px; font-size:11px; cursor:pointer">↻</button>
+      </div>
+    </div>
+    <div id="wl-rows" style="display:flex; flex-direction:column; gap:5px"></div>
+    <div id="wl-empty" style="display:none; padding:18px; text-align:center; color:var(--text-muted); font-size:11.5px; line-height:1.6">
+      No tickers in your watchlist yet. Add one above, or
+      <a href="javascript:wlSeed()" style="color:var(--cyan)">load 5 sample stocks</a>.
+      <br><span style="font-size:10.5px">Tip: ratings + prices auto-refresh in the background (24h stale check).</span>
+    </div>
+  </div>
+  <style>
+  .wl-row {
+    display:grid; grid-template-columns: 64px 1fr 80px 60px 80px 24px;
+    gap:10px; align-items:center; padding:7px 10px;
+    background:var(--bg-base); border:1px solid var(--border-light);
+    border-radius:6px; font-size:12px; transition: background 0.15s;
+  }
+  .wl-row:hover { background:var(--bg-elev); }
+  .wl-row .tkr { font-family:var(--font-mono); font-weight:700; color:var(--accent); }
+  .wl-row .co  { color:var(--text-dim); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .wl-row .px  { font-family:var(--font-mono); font-size:12px; text-align:right; color:var(--text); }
+  .wl-row .chg { font-family:var(--font-mono); font-size:11px; text-align:right; }
+  .wl-row .chg.up   { color:#26ffaf; }
+  .wl-row .chg.down { color:#ef4444; }
+  .wl-row .verdict-pill {
+    font-family:var(--font-mono); font-size:10px; font-weight:700;
+    padding:3px 7px; border-radius:4px; text-align:center; letter-spacing:.04em;
+  }
+  .wl-row .verdict-pill.STRONG_BUY  { background:#26ffaf; color:#000; }
+  .wl-row .verdict-pill.BUY         { background:rgba(38,255,175,.18); color:#26ffaf; border:1px solid #26ffaf; }
+  .wl-row .verdict-pill.HOLD        { background:rgba(245,158,11,.15); color:#f59e0b; border:1px solid #f59e0b; }
+  .wl-row .verdict-pill.SELL        { background:rgba(239,68,68,.18); color:#ef4444; border:1px solid #ef4444; }
+  .wl-row .verdict-pill.STRONG_SELL { background:#ef4444; color:#000; }
+  .wl-row .verdict-pill.LOADING     { background:transparent; color:var(--text-muted); border:1px dashed var(--border-strong); }
+  .wl-row .verdict-pill.NA          { background:transparent; color:var(--text-muted); border:1px dashed var(--border-strong); }
+  .wl-row .wl-x {
+    cursor:pointer; color:var(--text-muted); text-align:center; font-size:14px;
+    opacity:0.5; transition: opacity 0.15s, color 0.15s;
+  }
+  .wl-row .wl-x:hover { opacity:1; color:#ef4444; }
+  .wl-row a { color:inherit; text-decoration:none; }
+  </style>
+  <script>
+  // ═══ Watchlist ═══════════════════════════════════════════════════
+  // localStorage-backed list. Each ticker's research is pulled from the
+  // CDN (no Lambda hit unless stale > 24h). Renders rating pill + price
+  // + change. Auto-refreshes stale entries on page load.
+  (function(){
+    const LS_KEY = 'justhodl_watchlist_v1';
+    const CDN = 'https://justhodl-data-proxy.raafouis.workers.dev/equity-research';
+    const STALE_MS = 24 * 3600 * 1000;
+
+    function wlGet(){
+      try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+      catch(e){ return []; }
+    }
+    function wlSet(arr){
+      try { localStorage.setItem(LS_KEY, JSON.stringify(arr.slice(0, 20))); }
+      catch(e){}
+    }
+
+    window.wlAdd = function(t){
+      t = (t||'').trim().toUpperCase();
+      if(!t) return;
+      if(!/^[A-Z0-9.\-]{1,8}$/.test(t)) return;
+      const list = wlGet();
+      if(list.includes(t)) return;
+      list.push(t);
+      wlSet(list);
+      wlRender();
+    };
+    window.wlRemove = function(t){
+      const list = wlGet().filter(x => x !== t);
+      wlSet(list);
+      wlRender();
+    };
+    window.wlAddFromInput = function(){
+      const inp = document.getElementById('wl-add-input');
+      if(!inp) return;
+      window.wlAdd(inp.value);
+      inp.value = '';
+      inp.focus();
+    };
+    window.wlSeed = function(){
+      ['AAPL','MSFT','NVDA','JPM','AMZN'].forEach(t => window.wlAdd(t));
+    };
+    window.wlRefreshAll = function(){
+      const list = wlGet();
+      list.forEach(t => fetchAndPaint(t, true));
+    };
+
+    async function fetchAndPaint(ticker, forceFresh){
+      const row = document.getElementById('wl-row-' + ticker);
+      if(!row) return;
+      const url = CDN + '/' + encodeURIComponent(ticker) + '.json?v=' + Date.now();
+      try {
+        const r = await fetch(url, { cache: forceFresh ? 'no-cache' : 'default' });
+        if(!r.ok){
+          paintError(ticker, r.status === 404 ? 'no data' : 'fetch err');
+          return;
+        }
+        const doc = await r.json();
+        paintRow(ticker, doc);
+      } catch(e){
+        paintError(ticker, 'offline');
+      }
+    }
+
+    function paintError(ticker, msg){
+      const row = document.getElementById('wl-row-' + ticker);
+      if(!row) return;
+      row.innerHTML = `
+        <a href="/why.html?ticker=${ticker}" class="tkr">${ticker}</a>
+        <a href="/why.html?ticker=${ticker}" class="co">— ${msg} —</a>
+        <span class="px">—</span>
+        <span class="chg">—</span>
+        <span class="verdict-pill NA">N/A</span>
+        <span class="wl-x" onclick="wlRemove('${ticker}')">×</span>`;
+    }
+
+    function paintRow(ticker, d){
+      const row = document.getElementById('wl-row-' + ticker);
+      if(!row) return;
+      const co = (d.company && d.company.name) || ticker;
+      const q  = d.quote || {};
+      const v  = d.verdict || {};
+      const rating = (v.rating || 'HOLD').replace(/\s+/g,'_');
+      const ratingDisplay = (v.rating || 'HOLD').replace(/_/g, ' ');
+      const px = q.price != null ? '$' + Number(q.price).toFixed(2) : '—';
+      const chg = q.change_pct;
+      let chgHtml = '—';
+      if(chg != null && !isNaN(chg)){
+        const cls = chg >= 0 ? 'up' : 'down';
+        const sign = chg >= 0 ? '+' : '';
+        chgHtml = `<span class="chg ${cls}">${sign}${Number(chg).toFixed(2)}%</span>`;
+      }
+      row.innerHTML = `
+        <a href="/why.html?ticker=${ticker}" class="tkr">${ticker}</a>
+        <a href="/why.html?ticker=${ticker}" class="co" title="${co}">${co}</a>
+        <span class="px">${px}</span>
+        ${chgHtml}
+        <a href="/why.html?ticker=${ticker}" class="verdict-pill ${rating}" title="${v.verdict_rationale ? v.verdict_rationale.slice(0,200) : ''}">${ratingDisplay}</a>
+        <span class="wl-x" onclick="wlRemove('${ticker}')" title="Remove">×</span>`;
+    }
+
+    window.wlRender = function(){
+      const list = wlGet();
+      const wrap = document.getElementById('wl-rows');
+      const empty = document.getElementById('wl-empty');
+      const count = document.getElementById('wl-count');
+      if(!wrap) return;
+      count.textContent = list.length ? `(${list.length})` : '';
+      if(list.length === 0){
+        wrap.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      wrap.innerHTML = list.map(t => `
+        <div class="wl-row" id="wl-row-${t}">
+          <a href="/why.html?ticker=${t}" class="tkr">${t}</a>
+          <span class="co">loading…</span>
+          <span class="px">—</span>
+          <span class="chg">—</span>
+          <span class="verdict-pill LOADING">…</span>
+          <span class="wl-x" onclick="wlRemove('${t}')">×</span>
+        </div>`).join('');
+      // Fetch all in parallel
+      list.forEach(t => fetchAndPaint(t, false));
+    };
+
+    document.addEventListener('DOMContentLoaded', window.wlRender);
+  })();
+  </script>
+
   <!-- AI Master Synthesis (CIO desk consensus from all 30 desks) -->
   <div id="ai-synthesis" style="margin-bottom:18px"></div>
   <script>if(window.JHAISynth)JHAISynth.mount("ai-synthesis","desk-consensus");</script>
