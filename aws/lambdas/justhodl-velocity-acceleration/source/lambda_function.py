@@ -116,6 +116,11 @@ FMP_KEY      = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 LOOKBACK_DAYS         = 7    # sessions for slope-fitting
 BASELINE_DAYS         = 20   # baseline window for vol ratio
 ACCEL_FIRE_THRESHOLD  = 60   # composite score to fire (lower = more sensitive)
+# NEW (2026-06-02, response to MRVL +29% case study where MRVL only crossed
+# 60 ON the pump day, too late to act). EARLIER tiers detect signals 1-3 days
+# before fire threshold:
+ACCEL_EMERGING_MIN    = 45   # composite 45-59 = EMERGING (early accumulation)
+ACCEL_WATCH_MIN       = 30   # composite 30-44 = WATCH (very early, building)
 MAX_UNIVERSE          = 80   # cap universe size
 PENDING_MAX_SESSIONS  = 3    # expire after 3 sessions w/o confirmation
 CACHE_PRICE_PER_RUN   = True # in-memory price cache across one Lambda invocation
@@ -431,14 +436,23 @@ def lambda_handler(event, context):
 
     # Compute acceleration for each ticker
     detections = {}
+    emerging_candidates = {}   # NEW: composite 45-59 (early accumulation)
+    watch_candidates = {}      # NEW: composite 30-44 (very early)
     for t in tickers:
         rows = PRICE_CACHE.get(t, [])
         if not rows: continue
         accel = compute_acceleration(rows)
         if not accel: continue
-        if accel["composite_score"] >= ACCEL_FIRE_THRESHOLD:
+        score = accel["composite_score"]
+        if score >= ACCEL_FIRE_THRESHOLD:
             detections[t] = accel
-    print(f"[accel] {len(detections)} tickers fired (threshold={ACCEL_FIRE_THRESHOLD})")
+        elif score >= ACCEL_EMERGING_MIN:
+            emerging_candidates[t] = accel
+        elif score >= ACCEL_WATCH_MIN:
+            watch_candidates[t] = accel
+    print(f"[accel] {len(detections)} fired (>={ACCEL_FIRE_THRESHOLD}), "
+          f"{len(emerging_candidates)} emerging (45-59), "
+          f"{len(watch_candidates)} watch (30-44)")
 
     # ── State management: age existing pending entries ──
     if new_session:
@@ -589,14 +603,43 @@ def lambda_handler(event, context):
                 "n_leaders": v.get("n_leaders"),
             })
 
+    # NEW: Build emerging + watch records (below fire threshold but worth watching)
+    def build_early_record(t, accel, tier_label):
+        uni = universe.get(t, {})
+        return {
+            "ticker": t,
+            "tier_label": tier_label,
+            "composite_score": accel.get("composite_score"),
+            "slope_score": accel.get("slope_score"),
+            "accum_score": accel.get("accum_score"),
+            "floor_score": accel.get("floor_score"),
+            "current_vol_ratio": accel.get("current_ratio"),
+            "theme": uni.get("theme"),
+            "theme_label": uni.get("theme_label"),
+            "momentum_score": uni.get("momentum_score"),
+        }
+
+    emerging_records = [
+        build_early_record(t, a, "EMERGING")
+        for t, a in sorted(emerging_candidates.items(),
+                            key=lambda x: -x[1]["composite_score"])
+    ]
+    watch_records = [
+        build_early_record(t, a, "WATCH")
+        for t, a in sorted(watch_candidates.items(),
+                            key=lambda x: -x[1]["composite_score"])
+    ]
+
     output = {
-        "schema_version":   "1.0",
+        "schema_version":   "1.1",  # bumped for emerging/watch tiers
         "generated_at":     datetime.now(timezone.utc).isoformat(),
         "elapsed_sec":      round(time.time() - t0, 2),
         "trading_date":     cur_trading_date,
         "new_session":      new_session,
         "universe_size":    len(universe),
         "n_fired":          len(detections),
+        "n_emerging":       len(emerging_candidates),
+        "n_watch":          len(watch_candidates),
         "n_fresh":          len(fresh_records),
         "n_confirmed_today": len(confirmed_records),
         "n_aging":          len(aging_records),
@@ -609,6 +652,10 @@ def lambda_handler(event, context):
         "expired_today":    expired_records,
         "actionable_tickers": sorted(actionable),
 
+        # NEW EARLIER TIERS — visible 1-3 days before fire threshold
+        "emerging":         emerging_records,
+        "watch":            watch_records,
+
         "by_tier":          {str(k): v for k, v in by_tier.items()},
         "themes":           themes_summary[:8],
 
@@ -616,6 +663,8 @@ def lambda_handler(event, context):
             "lookback_days":         LOOKBACK_DAYS,
             "baseline_days":         BASELINE_DAYS,
             "fire_threshold":        ACCEL_FIRE_THRESHOLD,
+            "emerging_min":          ACCEL_EMERGING_MIN,
+            "watch_min":             ACCEL_WATCH_MIN,
             "max_universe":          MAX_UNIVERSE,
             "pending_max_sessions":  PENDING_MAX_SESSIONS,
             "confirmer_engines":     list(CONFIRMERS.keys()),

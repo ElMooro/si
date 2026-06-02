@@ -1044,11 +1044,56 @@ function renderEarlyDetection(){
   html += '<div class="early-meta">';
   html += '<div class="stat"><div class="lbl">Trading Date</div><div class="v">' + esc(EARLY.trading_date || '—') + '</div></div>';
   html += '<div class="stat"><div class="lbl">Universe Scanned</div><div class="v">' + (EARLY.universe_size || 0) + '</div></div>';
-  html += '<div class="stat"><div class="lbl">Fired Today</div><div class="v fresh">' + (EARLY.n_fired || 0) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Fired (≥60)</div><div class="v fresh">' + (EARLY.n_fired || 0) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Emerging (45-59)</div><div class="v" style="color:var(--amber)">' + (EARLY.n_emerging || 0) + '</div></div>';
+  html += '<div class="stat"><div class="lbl">Watch (30-44)</div><div class="v" style="color:var(--cyan)">' + (EARLY.n_watch || 0) + '</div></div>';
   html += '<div class="stat"><div class="lbl">Confirmed Today</div><div class="v confirmed">' + confirmed.length + '</div></div>';
-  html += '<div class="stat"><div class="lbl">Aging</div><div class="v aging">' + aging.length + '</div></div>';
   html += '<div class="stat"><div class="lbl">Actionable Now</div><div class="v confirmed">' + (EARLY.n_actionable || 0) + '</div></div>';
   html += '</div>';
+
+  // NEW EARLY-WARNING SECTION (above the existing 3-column grid).
+  // These are CANDIDATES below the fire threshold — visible 1-3 days
+  // before a name would currently fire. Built in response to MRVL +29%
+  // pump on 2026-06-02 where MRVL hit threshold ON the pump day.
+  const emerging = EARLY.emerging || [];
+  const watch = EARLY.watch || [];
+  if (emerging.length > 0 || watch.length > 0) {
+    html += '<div style="background:linear-gradient(135deg, rgba(255,177,61,.06), rgba(0,212,255,.04), transparent); border:1px solid var(--border); border-left:3px solid var(--amber); border-radius:8px; padding:14px 18px; margin:14px 0">';
+    html += '<div style="font-size:12.5px; color:var(--amber); font-family:var(--font-mono); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px"><b>🔭 EARLY WARNING — Sub-Fire Composite Scores</b></div>';
+    html += '<div style="font-size:11.5px; color:var(--fg-2); margin-bottom:12px">Names accumulating but not yet at fire threshold. Historical case: <b style="color:var(--fg-1)">MRVL</b> hit composite 67.7 on its +29% pump day — meaning yesterday it was likely ~45-55 (EMERGING tier) and would have shown HERE 1-3 days earlier.</div>';
+
+    if (emerging.length > 0) {
+      html += '<div style="margin-bottom:10px"><b style="color:var(--amber); font-size:11.5px; font-family:var(--font-mono); letter-spacing:1px">⚡ EMERGING (composite 45-59) — building accumulation</b></div>';
+      html += '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px">';
+      emerging.slice(0, 20).forEach(e => {
+        const cs = e.composite_score || 0;
+        html += '<div style="background:var(--bg-elevated); border:1px solid rgba(255,177,61,.3); border-radius:6px; padding:8px 12px; font-family:var(--font-mono); font-size:11.5px">';
+        html += '<a href="/why.html?ticker=' + encodeURIComponent(e.ticker) + '" style="color:var(--amber); font-weight:700; text-decoration:none; font-size:13px">' + esc(e.ticker) + '</a> ';
+        html += '<span style="color:var(--fg-2)">cs=' + cs.toFixed(1) + '</span>';
+        if (e.theme_label) html += ' <span style="color:var(--fg-3); font-size:10px">· ' + esc(e.theme_label) + '</span>';
+        html += '<div style="font-size:9.5px; color:var(--fg-3); margin-top:2px">slope ' + (e.slope_score?.toFixed(0) || '?') + ' · accum ' + (e.accum_score?.toFixed(0) || '?') + ' · floor ' + (e.floor_score?.toFixed(0) || '?');
+        if (e.current_vol_ratio) html += ' · vol ' + e.current_vol_ratio.toFixed(2) + 'x';
+        html += '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    if (watch.length > 0) {
+      html += '<div style="margin-bottom:10px"><b style="color:var(--cyan); font-size:11.5px; font-family:var(--font-mono); letter-spacing:1px">👁️ WATCH (composite 30-44) — very early</b></div>';
+      html += '<div style="display:flex; flex-wrap:wrap; gap:6px">';
+      watch.slice(0, 15).forEach(w => {
+        const cs = w.composite_score || 0;
+        html += '<div style="background:var(--bg-sunken); border:1px solid rgba(0,212,255,.18); border-radius:5px; padding:4px 9px; font-family:var(--font-mono); font-size:10.5px">';
+        html += '<a href="/why.html?ticker=' + encodeURIComponent(w.ticker) + '" style="color:var(--cyan); font-weight:600; text-decoration:none">' + esc(w.ticker) + '</a>';
+        html += ' <span style="color:var(--fg-3)">' + cs.toFixed(0) + '</span>';
+        if (w.theme_label) html += ' <span style="color:var(--fg-3); font-size:9px">· ' + esc(w.theme_label) + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  }
 
   // 3-column grid: confirmed | fresh | aging
   html += '<div class="early-grid">';
