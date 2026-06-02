@@ -1,0 +1,315 @@
+{
+  "started": "2026-06-02T03:37:28.564482+00:00",
+  "sample_rows": [
+    {
+      "ticker": "AAPL",
+      "rating": "HOLD",
+      "upside_pct": -0.4,
+      "pe_ttm": 36.76,
+      "roic_ttm_pct": 49.57,
+      "revenue_5yr_cagr": 8.677354924090741,
+      "eps_5yr_cagr": 17.86178028193879,
+      "return_1yr_pct": 53.19,
+      "cagr_5yr_pct": 19.23,
+      "dcf_estimate": 159.31,
+      "fcf_yield_pct": 2.87
+    },
+    {
+      "ticker": "AVGO",
+      "rating": "HOLD",
+      "upside_pct": -16.3,
+      "pe_ttm": null,
+      "roic_ttm_pct": 17.64,
+      "revenue_5yr_cagr": 21.743712435641925,
+      "eps_5yr_cagr": 49.911712711030496,
+      "return_1yr_pct": 90.09,
+      "cagr_5yr_pct": 58.54,
+      "dcf_estimate": 200.92,
+      "fcf_yield_pct": 1.33
+    },
+    {
+      "ticker": "BRK-B",
+      "rating": "HOLD",
+      "upside_pct": 4.6,
+      "pe_ttm": null,
+      "roic_ttm_pct": 4.25,
+      "revenue_5yr_cagr": 8.633765195448584,
+      "eps_5yr_cagr": 11.78872199626877,
+      "return_1yr_pct": -7.09,
+      "cagr_5yr_pct": 10.17,
+      "dcf_estimate": 442.43,
+      "fcf_yield_pct": 2.35
+    }
+  ],
+  "n_rows": 17,
+  "schema_n_cols": 62,
+  "completeness_summary": {
+    "fields_100pct": 33,
+    "fields_75plus": 35,
+    "fields_under50": 3,
+    "fields_zero": 0
+  },
+  "field_completeness": {
+    "ticker": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "company_name": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "sector": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "industry": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "market_cap": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "price": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "change_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "rating": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "conviction_grade": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "price_target_12m": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "upside_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "confidence_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "position_size_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "time_horizon_months": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "bull_target": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "bull_prob": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "base_target": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "base_prob": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "bear_target": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "bear_prob": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "ev_upside_pct": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "ev_12m": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "risk_reward_ratio": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "pe_ttm": {
+      "non_null": 12,
+      "pct": 70.6
+    },
+    "pe_5yr_avg": {
+      "non_null": 12,
+      "pct": 70.6
+    },
+    "pb_ttm": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "ps_ttm": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "pfcf_ttm": {
+      "non_null": 12,
+      "pct": 70.6
+    },
+    "ev_ebitda": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "peg_ratio": {
+      "non_null": 12,
+      "pct": 70.6
+    },
+    "fcf_yield_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "div_yield_pct": {
+      "non_null": 8,
+      "pct": 47.1
+    },
+    "roe_ttm_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "roic_ttm_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "dcf_estimate": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "dcf_upside_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "analyst_pt_median": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "analyst_pt_upside_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "revenue_3yr_cagr": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "revenue_5yr_cagr": {
+      "non_null": 16,
+      "pct": 94.1
+    },
+    "revenue_10yr_cagr": {
+      "non_null": 11,
+      "pct": 64.7
+    },
+    "eps_3yr_cagr": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "eps_5yr_cagr": {
+      "non_null": 11,
+      "pct": 64.7
+    },
+    "eps_10yr_cagr": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "fcf_5yr_cagr": {
+      "non_null": 13,
+      "pct": 76.5
+    },
+    "ni_5yr_cagr": {
+      "non_null": 11,
+      "pct": 64.7
+    },
+    "health_score": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "ytd_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "return_1yr_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "cagr_3yr_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "cagr_5yr_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "cagr_10yr_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "max_drawdown_pct": {
+      "non_null": 17,
+      "pct": 100.0
+    },
+    "eps_beat_rate_pct": {
+      "non_null": 11,
+      "pct": 64.7
+    },
+    "eps_current_streak": {
+      "non_null": 11,
+      "pct": 64.7
+    },
+    "eps_magnitude_trend": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "shareholder_yield_pct": {
+      "non_null": 8,
+      "pct": 47.1
+    },
+    "total_returned_10y": {
+      "non_null": 10,
+      "pct": 58.8
+    },
+    "buyback_share_pct": {
+      "non_null": 8,
+      "pct": 47.1
+    },
+    "ec_tone": {
+      "non_null": 11,
+      "pct": 64.7
+    },
+    "ec_guidance_change": {
+      "non_null": 11,
+      "pct": 64.7
+    },
+    "generated_at": {
+      "non_null": 17,
+      "pct": 100.0
+    }
+  },
+  "key_fields_check": {
+    "rating": 100.0,
+    "upside_pct": 100.0,
+    "pe_ttm": 70.6,
+    "roic_ttm_pct": 100.0,
+    "revenue_5yr_cagr": 94.1,
+    "eps_5yr_cagr": 64.7,
+    "return_1yr_pct": 100.0,
+    "cagr_5yr_pct": 100.0,
+    "fcf_yield_pct": 100.0,
+    "ev_upside_pct": 58.8
+  },
+  "finished": "2026-06-02T03:37:32.234381+00:00"
+}
