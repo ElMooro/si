@@ -1,0 +1,21 @@
+{
+  "started": "2026-06-02T13:51:27.527120+00:00",
+  "steps": {
+    "check": {
+      "exists": false
+    },
+    "create": {
+      "error": "An error occurred (ValidationException) when calling the CreateFunction operation: 1 validation error detected: Value 'ETF Capital Flow Intelligence \u2014 Polygon ETF Global Fund Flows ($99/mo). Daily 80+ ETF flows, z-scores, persistence, 6 institutional composite signals (defensive_rotation, smart_vs_dumb, risk_on_off, domestic_vs_intl, growth_vs_value, credit_stress), regime classifier.' at 'descrip"
+    },
+    "bucket_policy": {
+      "added": true
+    },
+    "snapshot_rerun": {
+      "elapsed_s": 12.1,
+      "n_rows": 0,
+      "schema_version": "1.1",
+      "sample_rows": []
+    }
+  },
+  "finished": "2026-06-02T13:51:40.889157+00:00"
+}
