@@ -198,36 +198,61 @@ def classify_role(title: str) -> tuple:
 
 
 def parse_form4_xml(cik: str, accession: str, primary: str) -> dict:
-    """Parse a Form 4 XML document. Returns {filer, role, transactions}."""
+    """Parse a Form 4 XML document. Returns {filer, role, transactions}.
+
+    SEC EDGAR returns 'primary' from submissions.json with an XSL-transform
+    subdirectory prefix like 'xslF345X05/wf-form4_xxx.xml' — that URL serves
+    the human-readable HTML rendering, NOT the raw XML. We strip the xsl*
+    prefix to get the actual XML document.
+    """
     # Construct archive URL: accession e.g. "0001234567-23-000001" → "000123456723000001"
     acc_clean = accession.replace("-", "")
-    # primary may be an .xml or .html; we need the XML version
+
+    # Resolve the actual XML document path
+    doc = None
     if primary and primary.endswith(".xml"):
-        doc = primary
+        # Strip XSL transform prefix if present (e.g. 'xslF345X05/foo.xml' → 'foo.xml')
+        # XSL directories on EDGAR start with 'xsl' and contain a transformation
+        # stylesheet. The raw XML lives at the same accession root without the prefix.
+        if "/" in primary:
+            parts = primary.split("/")
+            if parts[0].lower().startswith("xsl"):
+                doc = "/".join(parts[1:])
+            else:
+                doc = primary  # might be a real subdirectory, keep it
+        else:
+            doc = primary
     else:
-        # Try the common pattern: form4.xml or wf-form4_*.xml
-        # We'll fetch the filing index first to find the XML doc.
+        # Fallback: fetch filing index, find a Form 4 XML link.
+        # Prefer paths NOT under xsl* directories.
         idx_url = f"{SEC_ARCHIVE_BASE}/{int(cik)}/{acc_clean}/"
         try:
             idx_html = _sec_get(idx_url).decode("utf-8", errors="ignore")
         except Exception as e:
             return {"error": f"index fetch: {e}"}
-        # Find any *.xml link
-        m = re.search(r'href="([^"]+\.xml)"', idx_html, re.IGNORECASE)
-        if not m:
+        # Find all .xml hrefs
+        xml_candidates = re.findall(r'href="([^"]+\.xml)"', idx_html, re.IGNORECASE)
+        # Pick the first one NOT under an xsl* directory
+        for c in xml_candidates:
+            if "/xsl" not in c.lower():
+                # could be absolute or relative; take just the filename
+                doc = c.split("/")[-1]
+                break
+        if not doc and xml_candidates:
+            doc = xml_candidates[0].split("/")[-1]
+        if not doc:
             return {"error": "no XML doc found"}
-        doc = m.group(1).split("/")[-1]
 
     xml_url = f"{SEC_ARCHIVE_BASE}/{int(cik)}/{acc_clean}/{doc}"
     try:
         xml_bytes = _sec_get(xml_url)
     except Exception as e:
-        return {"error": f"xml fetch: {e}"}
+        return {"error": f"xml fetch ({doc}): {e}"}
 
     try:
         root = ET.fromstring(xml_bytes)
     except ET.ParseError as e:
-        return {"error": f"xml parse: {e}"}
+        return {"error": f"xml parse ({doc}): {e}"}
 
     def f(elem, path):
         """Find element text by path, return None if missing."""
