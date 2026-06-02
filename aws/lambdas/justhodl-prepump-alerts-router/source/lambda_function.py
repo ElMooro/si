@@ -46,6 +46,51 @@ def _read_json(key: str) -> Optional[dict]:
         return None
 
 
+# ═════════════════════════════════════════════════════════════════════
+# TRADE TICKET INTEGRATION — embed entry/stop/TP1/TP2/TP3 into alerts
+# ═════════════════════════════════════════════════════════════════════
+_TRADE_TICKETS_CACHE = {"loaded": False, "by_ticker": {}}
+
+
+def _load_trade_tickets() -> dict:
+    """Load tickets keyed by ticker. Cached for the Lambda invocation."""
+    if _TRADE_TICKETS_CACHE["loaded"]:
+        return _TRADE_TICKETS_CACHE["by_ticker"]
+    doc = _read_json("data/trade-tickets.json")
+    by_ticker = {}
+    if doc:
+        for t in (doc.get("tickets") or []):
+            tk = t.get("ticker")
+            if tk:
+                by_ticker[tk] = t
+    _TRADE_TICKETS_CACHE["loaded"] = True
+    _TRADE_TICKETS_CACHE["by_ticker"] = by_ticker
+    return by_ticker
+
+
+def _format_trade_ticket(ticker: str) -> List[str]:
+    """Return Telegram lines for a ticker's trade ticket. Empty if not found."""
+    tickets = _load_trade_tickets()
+    t = tickets.get(ticker)
+    if not t or t.get("error"):
+        return []
+    entry = t.get("entry") or 0
+    stop = t.get("stop_loss") or 0
+    risk_pct = t.get("risk_pct") or 0
+    tp1 = t.get("tp1") or 0
+    tp2 = t.get("tp2") or 0
+    tp3 = t.get("tp3") or 0
+    tp3_pct = t.get("tp3_pct") or 0
+    rr = t.get("rr_tp3") or 0
+    shares = t.get("shares") or 0
+    maxloss = t.get("max_loss_usd") or 0
+    return [
+        f"  📍 Entry <b>${entry:.2f}</b> · 🛑 Stop <b>${stop:.2f}</b> ({-risk_pct:.1f}%)",
+        f"  🎯 TP1 <code>${tp1:.0f}</code> · TP2 <code>${tp2:.0f}</code> · TP3 <code>${tp3:.0f}</code> (+{tp3_pct:.1f}%)",
+        f"  R:R <b>{rr:.1f}:1</b> · {shares} sh · max loss <b>${maxloss:,.0f}</b>",
+    ]
+
+
 def _get_telegram_config():
     try:
         token = ssm.get_parameter(Name="/justhodl/telegram/bot-token",
@@ -143,6 +188,10 @@ def check_cascade_laggards(state: dict) -> List[str]:
         lines.append(f"<b>{ticker}</b> · 5d <code>{perf5:+.1f}%</code> · 20d <code>{perf20:+.1f}%</code>")
         lines.append(f"  Hot ETF: <b>{hot_etf}</b> · {n_top10} top-10 ETFs · accel {accel:.0f}")
         lines.append(f"  💰 Size: <b>{sizing:.1f}%</b>")
+        # Append trade ticket if available
+        ticket_lines = _format_trade_ticket(l.get("ticker"))
+        if ticket_lines:
+            lines.extend(ticket_lines)
         lines.append("")
     return lines
 
@@ -205,10 +254,16 @@ def check_velocity_transitions(state: dict) -> List[str]:
         emoji = severity_emoji.get(tier_name, "•")
         lines.append(f"<b>{emoji} {tier_name}</b> ({len(items)} new)")
         for item in items[:5]:
-            ticker = _html_escape(item.get("ticker"))
+            ticker_raw = item.get("ticker")
+            ticker = _html_escape(ticker_raw)
             score = (item.get("composite_score") or item.get("current_score") or 0)
             theme = _html_escape(item.get("theme_label") or item.get("theme") or "?")
             lines.append(f"  <b>{ticker}</b> · composite <code>{score:.1f}</code> · {theme}")
+            # Embed trade ticket for FIRED tier (high conviction) and EMERGING (worth tracking)
+            if tier_name in ("FIRED_CONFIRMED", "FIRED_FRESH", "EMERGING"):
+                ticket_lines = _format_trade_ticket(ticker_raw)
+                if ticket_lines:
+                    lines.extend(ticket_lines)
         lines.append("")
     return lines
 
@@ -238,13 +293,18 @@ def check_convergence_radar(state: dict) -> List[str]:
     lines = [f"<b>🔥 NEW ULTRA-TIER CONVERGENCE</b>",
               f"<i>{len(new_ultras)} ticker(s) just upgraded to ULTRA tier</i>", ""]
     for r in new_ultras[:5]:
-        ticker = _html_escape(r.get("ticker"))
+        ticker_raw = r.get("ticker")
+        ticker = _html_escape(ticker_raw)
         conv = r.get("convergence_score") or 0
         n_eng = r.get("n_engines") or 0
         prior = r.get("prior_n_engines") or 0
         cat = _html_escape(r.get("pump_category") or "?")
         lines.append(f"<b>{ticker}</b> · convergence <code>{conv:.1f}</code> · "
                      f"engines <code>{prior}→{n_eng}</code> · {cat}")
+        # ULTRA upgrades get full trade ticket
+        ticket_lines = _format_trade_ticket(ticker_raw)
+        if ticket_lines:
+            lines.extend(ticket_lines)
     lines.append("")
     return lines
 
@@ -270,11 +330,15 @@ def check_early_movers(state: dict) -> List[str]:
     lines = [f"<b>🎯 EARLY-MOVERS ALERT TIER</b>",
               f"<i>{len(new_alerts)} new acceleration-scored candidates</i>", ""]
     for c in new_alerts[:5]:
-        ticker = _html_escape(c.get("ticker"))
+        ticker_raw = c.get("ticker")
+        ticker = _html_escape(ticker_raw)
         score = c.get("early_score") or 0
         factors = (c.get("factors") or [])[:3]
         lines.append(f"<b>{ticker}</b> · score <code>{score}</code> · "
                      f"{_html_escape(', '.join(factors))}")
+        ticket_lines = _format_trade_ticket(ticker_raw)
+        if ticket_lines:
+            lines.extend(ticket_lines)
     lines.append("")
     return lines
 
@@ -408,13 +472,18 @@ def check_options_flow(state: dict) -> List[str]:
     lines = [f"<b>📊 UNUSUAL OPTIONS ACTIVITY</b>",
               f"<i>{len(new_alerts)} ticker(s) with bullish call flow detected</i>", ""]
     for c in new_alerts[:6]:
-        ticker = _html_escape(c.get("ticker"))
+        ticker_raw = c.get("ticker")
+        ticker = _html_escape(ticker_raw)
         cv = c.get("call_vol") or 0
         cv_pv = c.get("cv_pv_ratio") or 0
         sigs = (c.get("signals") or [])[:2]
         lines.append(f"<b>{ticker}</b> · call_vol <code>{cv:,}</code> · C/P <code>{cv_pv}</code>")
         if sigs:
             lines.append(f"  {_html_escape(' · '.join(sigs))}")
+        # Options flow is THE pre-pump signal — always include ticket
+        ticket_lines = _format_trade_ticket(ticker_raw)
+        if ticket_lines:
+            lines.extend(ticket_lines)
     lines.append("")
     return lines
 
