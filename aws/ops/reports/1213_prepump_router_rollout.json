@@ -1,0 +1,47 @@
+{
+  "started": "2026-06-02T19:29:47.761068+00:00",
+  "create": {
+    "exists": true
+  },
+  "invoke": {
+    "elapsed_s": 2.1,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 1.2, \\\"n_messages_sent\\\": 1, \\\"counts\\\": {\\\"cascade_laggards\\\": 6, \\\"velocity_transitions\\\": 4, \\\"flow_anomalies\\\": 5}, \\\"first_result_status\\\": 200}\"}"
+  },
+  "state": {
+    "date": "2026-06-02",
+    "alerted_by_signal": {
+      "cascade_laggard": [
+        "INTC",
+        "AMD",
+        "TXN",
+        "QCOM",
+        "LRCX",
+        "GLW",
+        "KLAC"
+      ],
+      "velocity": [
+        "velocity_WATCH_CRWD",
+        "velocity_WATCH_PANW"
+      ],
+      "flow_anomaly": [
+        "EXTREME_FLOW_",
+        "PERSISTENT_FLOW_",
+        "CROSS_TIMEFRAME_DIVERGENCE_",
+        "CONSTITUENT_DIVERGENCE_"
+      ]
+    },
+    "last_macro_regime": "REFLATION",
+    "last_send": "2026-06-02T19:29:50.817235+00:00",
+    "last_send_results": [
+      {
+        "status": 200,
+        "body": "{\"ok\":true,\"result\":{\"message_id\":8340,\"from\":{\"id\":8679881066,\"is_bot\":true,\"first_name\":\"#FREEVPN VPN \\u0411\\u042b\\u0421\\u0422\\u0420\\u042b\\u0419 \\u0411\\u0415\\u041b\\u042b\\u0415 \\u0421\\u041f\\u0418\\u04"
+      }
+    ]
+  },
+  "all_lambdas_count": 435,
+  "n_scheduled_lambdas": 38,
+  "finished": "2026-06-02T19:29:59.854593+00:00"
+}
