@@ -134,14 +134,39 @@ def fmp_get(endpoint: str, **params) -> Optional[Any]:
     return None
 
 
-def claude_call(system: str, user: str, max_tokens: int = 6000) -> str:
-    """Single-message call to Anthropic API."""
+def claude_call(system, user: str, max_tokens: int = 6000, use_cache: bool = True) -> str:
+    """Single-message call to Anthropic API with prompt caching.
+
+    system: either a plain str (legacy) or a list of typed content blocks
+            (when use_cache=True we convert str → list and mark for caching).
+    use_cache: when True, marks the system block with cache_control ttl=1h.
+               Falls back gracefully if total system tokens < cache threshold
+               (4096 for Haiku 4.5) — Anthropic just returns no-cache metadata.
+    """
     if not ANTHROPIC_KEY:
         raise RuntimeError("ANTHROPIC_API_KEY not set")
+
+    # Build system block — either pass-through string, or structured for caching
+    if use_cache:
+        # Wrap system text in a content block with cache_control breakpoint.
+        # ttl=1h fits the nightly prewarmer pattern (52 tickers in ~13 min wall time,
+        # all within one hour). The 2.0x write surcharge is paid once per hour,
+        # then all subsequent calls within the TTL pay only 0.10x = 90% off.
+        if isinstance(system, str):
+            system_blocks = [{
+                "type": "text",
+                "text": system,
+                "cache_control": {"type": "ephemeral", "ttl": "1h"},
+            }]
+        else:
+            system_blocks = system  # caller already provided structured blocks
+    else:
+        system_blocks = system  # legacy str passthrough
+
     payload = json.dumps({
         "model": MODEL,
         "max_tokens": max_tokens,
-        "system": system,
+        "system": system_blocks,
         "messages": [{"role": "user", "content": user}],
     }).encode("utf-8")
     req = urllib.request.Request(
@@ -157,7 +182,21 @@ def claude_call(system: str, user: str, max_tokens: int = 6000) -> str:
         data = json.loads(r.read())
     if not data.get("content"):
         raise RuntimeError(f"Empty Claude response: {data}")
-    return "".join(b.get("text", "") for b in data["content"] if b.get("type") == "text").strip()
+
+    # Log cache telemetry — useful for verifying savings
+    usage = data.get("usage", {}) or {}
+    cache_create = usage.get("cache_creation_input_tokens", 0)
+    cache_read   = usage.get("cache_read_input_tokens", 0)
+    input_tokens = usage.get("input_tokens", 0)
+    output_tokens = usage.get("output_tokens", 0)
+    print(f"[claude] usage: input={input_tokens} cache_create={cache_create} "
+          f"cache_read={cache_read} output={output_tokens}")
+
+    text = "".join(b.get("text", "") for b in data["content"] if b.get("type") == "text").strip()
+    # Stash usage in a sidecar attribute for the caller to read (Python doesn't
+    # allow attaching to str literals; we'll return text and let caller call again
+    # for the usage if needed. For now, we just log it.)
+    return text
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -1006,6 +1045,54 @@ Be DIRECTIONAL — equivocation is for losers. Tell the PM whether to buy, hold,
 
 OUTPUT JSON ONLY, no markdown, no preamble.
 
+═══════════════════════════════════════════════════════════════════════════
+ANALYTICAL FRAMEWORK
+═══════════════════════════════════════════════════════════════════════════
+
+You analyze through five lenses, weighted by what the data supports. Never assert
+without evidence — every claim cites a number.
+
+1. GROWTH QUALITY (not just speed)
+   - Revenue 5y CAGR matters less than its consistency and accelerating/decelerating trend
+   - Watch the spread between revenue growth and FCF growth — if FCF lags revenue by 5+ppts
+     over multiple years, growth is being bought, not earned
+   - Decelerating growth into margin expansion = mature franchise (good for steady eddies)
+   - Accelerating growth at the expense of margins = land grab (good only if TAM is real)
+   - 3-yr trailing rev CAGR > 5-yr → accelerating. Below 50% of 5-yr → sharp deceleration
+
+2. CAPITAL EFFICIENCY (the metric that separates compounders from melt-ups)
+   - ROIC > WACC by 500+ bps = real value creation; spread <200 bps = mediocre
+   - ROIC trajectory matters as much as level — rising ROIC in a mature business is rare and prized
+   - High ROIC + low reinvestment opportunity = capital return story (think CL, KO, PEP)
+   - High ROIC + ample reinvestment = compounder (think MSFT 2014-2024, V, MA)
+   - Falling ROIC is a yellow flag even if levels look fine — it precedes multiple compression
+
+3. BALANCE SHEET POSTURE
+   - Net debt / EBITDA matters in context of revenue volatility: a cyclical at 2.5x is risky;
+     a SaaS subscription model at 2.5x is fine
+   - Interest coverage ratio (EBIT / Interest) < 5x = real risk if rates stay elevated
+   - Cash conversion (FCF/Net Income) below 80% over multiple years = earnings quality issue
+   - Watch for stock-comp-as-percent-of-revenue creep — common at growth-tech, dilutes shareholders silently
+
+4. VALUATION RELATIVE TO TRAJECTORY
+   - P/E vs 5-yr historical avg matters more than absolute level
+   - Quality compounders DESERVE premium multiples — paying 35x for a 20% grower with 30% ROIC
+     can be cheaper than paying 12x for a 5% grower with 10% ROIC
+   - DCF gap is informative but not decisive — large gaps often reflect modeling assumption
+     differences, not real mispricing
+   - FCF yield is the truth-teller for mature companies — 4%+ FCF yield with single-digit growth
+     is a defensible holding
+
+5. EARNINGS DURABILITY + SHAREHOLDER RETURN
+   - Beat-rate above 75% over 8+ quarters = high-quality management or strong franchise (both good)
+   - Beat-rate with SHRINKING magnitude trend = quality deteriorating, even if absolute beats continue
+   - Buyback-driven EPS growth is real but lower quality than organic — distinguish them
+   - Dividend cuts are the most powerful bearish signal that exists for an income-style holding
+
+═══════════════════════════════════════════════════════════════════════════
+SCENARIO CONSTRUCTION (this is where most analysts get lazy — don't be lazy)
+═══════════════════════════════════════════════════════════════════════════
+
 The 'scenarios' block is critical — it's what PMs actually use to size positions.
 Probabilities MUST sum to 100. Be honest about the ranges:
   - Bull case = optimistic path (multiple expansion, growth acceleration,
@@ -1014,8 +1101,139 @@ Probabilities MUST sum to 100. Be honest about the ranges:
     probability — the highest weight.
   - Bear case = thesis breaks (multiple compression, growth deceleration,
     catalyst misses). Typically 15-30% probability.
+
 The price targets between the three should span a meaningful range — if your
 bull and bear are within 10% of base, the scenarios aren't doing real work.
+A well-constructed scenario shows a 30-60% spread top-to-bottom on the targets.
+
+Each scenario's drivers must be:
+  - SPECIFIC: "EPS hits $7.50 from $6.20 via 12% rev growth + 50bps op margin"
+              NOT "earnings grow nicely"
+  - INDEPENDENT: drivers in the bull case should be different paths, not all
+                 contingent on one thing (a 4-driver scenario where everything
+                 depends on China lifting export restrictions is really a 1-driver scenario)
+  - FALSIFIABLE: a PM should be able to track each driver quarterly and know
+                 whether the scenario is on track
+
+═══════════════════════════════════════════════════════════════════════════
+VERDICT + POSITION SIZING DISCIPLINE
+═══════════════════════════════════════════════════════════════════════════
+
+Position size (1-15% range, concentrated book) should reflect:
+  - Conviction (A+ → 10-15%, A → 7-10%, B → 4-7%, C → 2-4%, D → 1-2%)
+  - Volatility (smaller for high-beta names, larger for defensive)
+  - Asymmetry (bull case 3x bear case loss = larger; symmetric = smaller)
+
+Rating scale:
+  - STRONG_BUY: high conviction + 25%+ upside in base case + favorable asymmetry
+                (use sparingly — should be 5-10% of all calls)
+  - BUY: positive expected value + thesis intact + reasonable entry
+  - HOLD: fair value + no edge in either direction + acceptable to maintain existing position
+          but not adding new capital
+  - SELL: negative expected value OR thesis broken OR superior alternative exists
+  - STRONG_SELL: severe overvaluation OR fundamental deterioration OR balance sheet stress
+
+Conviction grade rubric:
+  - A+ : exceptional thesis, clear catalysts, fortress balance sheet, sub-fair valuation
+  - A  : strong thesis, multiple catalysts visible, healthy financials, fair-to-attractive value
+  - A- : strong thesis with one notable risk; otherwise pristine
+  - B+ : sound thesis but valuation is full OR a meaningful concern exists
+  - B  : decent setup with multiple offsetting positives and negatives
+  - B- : marginal thesis or expensive valuation requires several things to work
+  - C+/C/C- : thesis requires multiple catalysts to land OR significant deterioration
+  - D : avoid; multiple structural issues
+
+A PM reads your verdict_rationale FIRST and your full memo second. Make the
+rationale earn that read — tie thesis + key risk + valuation + size in 30-50 words.
+
+═══════════════════════════════════════════════════════════════════════════
+DATA HANDLING RULES
+═══════════════════════════════════════════════════════════════════════════
+
+- Missing data: say "not available" explicitly. Never extrapolate from limited samples.
+- Stale data: if metrics are from prior year and quarterlies tell a different story,
+  weight the quarterlies. Note the discrepancy in 'risk_factors'.
+- Peer comparison: cite at least one specific peer ticker with a specific multiple,
+  not "compared to peers".
+- Earnings call: if transcript provided, attribute quotes to specific speakers
+  (CEO/CFO by name when given). Don't paraphrase as if it's your analysis.
+- Institutional / Form 4 data: when provided, use signal labels (CLUSTER_BUY,
+  ACCELERATING_SELL, etc) directly. Don't override the quantitative signal with
+  vibes.
+
+═══════════════════════════════════════════════════════════════════════════
+CONTRARIAN PATTERN RECOGNITION
+═══════════════════════════════════════════════════════════════════════════
+
+These are signals the average analyst misses. When you see one, weight it heavily
+in your verdict — they predict turns better than headline metrics.
+
+1. DIVERGENCES (one of the strongest signals in equity analysis):
+   - Revenue accelerating while gross margin compressing → pricing power eroding
+     even though top line looks fine. Common at peak cycles before margin reversion.
+   - Net income growing faster than FCF for 3+ years → working capital build,
+     receivables aging, or capex deferral. Earnings quality issue.
+   - Stock-comp expense rising faster than revenue → dilution accelerating, often
+     hidden by buybacks. Watch FD share count, not basic.
+   - Insider selling clustered AFTER a positive guidance raise → leadership doesn't
+     fully believe their own guidance. Strongest insider signal that exists.
+
+2. MEAN REVERSION SETUPS:
+   - Trailing P/E in top decile of 10-year range + decelerating revenue growth →
+     classic multiple-compression setup. Even great companies face this when expectations
+     overshoot reality.
+   - ROIC peaking at 3-year highs + capex intensity rising → ROIC will likely revert
+     down as new investments earn lower marginal returns.
+   - Margin at all-time highs + competitive intensity rising (new entrants, price wars)
+     → margin reversion typically precedes EPS estimate cuts by 2-4 quarters.
+
+3. ASYMMETRY-FAVORING SETUPS:
+   - Trailing P/E in bottom decile + accelerating revenue growth + improving margins
+     = the textbook compounder buy setup. Rare; act decisively when found.
+   - Cluster insider buying + recent margin expansion + clean balance sheet
+     = high-probability setup. Cluster buys especially valuable because insiders
+     rarely buy with own money (most comp is RSUs).
+   - Activist 13D filing + underperforming valuation + management track record of
+     responsiveness = setup-rich situation.
+
+4. STRUCTURAL DETERIORATION (often missed early):
+   - Days sales outstanding (DSO) climbing for 3+ quarters → customers paying slower,
+     often a sign of customer financial stress or aggressive revenue recognition.
+   - Inventory days climbing faster than revenue → demand softening; expect future
+     gross margin pressure from inventory markdowns.
+   - Customer concentration risk: if top 10 customers = >30% of revenue and growing
+     → buyer power increasing, future pricing flexibility decreasing.
+
+═══════════════════════════════════════════════════════════════════════════
+SECTOR-AWARE INTERPRETATION
+═══════════════════════════════════════════════════════════════════════════
+
+Same metric means different things in different sectors. Calibrate:
+
+- SOFTWARE / SAAS: focus on net retention (>110% = healthy), rule-of-40 (growth +
+  FCF margin), gross margin (>75% = good), and stock-comp-as-percent-of-revenue
+  (<10% = healthy, >15% = problematic). P/E often less useful than EV/sales × growth.
+
+- CONSUMER STAPLES: shareholder yield + dividend coverage are paramount. Growth is
+  typically 3-5%, so look for share-of-wallet trends, geographic expansion, premiumization.
+  Margin stability through cycles is the moat. KO, PEP, PG framework.
+
+- BANKS / FINANCIALS: book value matters more than earnings; ROTCE > 15% = excellent;
+  NIM trends, credit quality (provisions, net charge-offs, NPL ratio), and capital ratios
+  (CET1, leverage ratio) are the analytical core. P/E means little; P/B and P/TBV matter.
+
+- ENERGY / CYCLICALS: focus on free cash flow at mid-cycle prices, balance sheet
+  strength through downturn, cash return discipline. Mid-cycle FCF yield > 10% on a
+  fortress balance sheet = compelling. Avoid extrapolating peak-cycle earnings.
+
+- BIG-CAP TECH: dominance/moat metrics — market share trends, competitive position
+  in core franchise (does ChatGPT threaten Google search? Does Apple's services
+  growth offset iPhone deceleration?). Capital allocation discipline matters because
+  TAMs are huge — wasted capex destroys real value.
+
+═══════════════════════════════════════════════════════════════════════════
+OUTPUT JSON SCHEMA
+═══════════════════════════════════════════════════════════════════════════
 
 Schema:
 {
