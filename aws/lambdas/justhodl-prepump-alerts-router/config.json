@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-prepump-alerts-router",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 60,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Pre-pump signals Telegram router — fans out alerts from theme-cascade laggards, velocity-acceleration transitions, convergence-radar ULTRA upgrades, early-movers, flow anomalies, regime changes, imminent earnings.",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(0,30 * * * ? *)",
+    "name": "justhodl-prepump-alerts-router-30min",
+    "description": "Every 30 minutes, 24/7"
+  }
+}
