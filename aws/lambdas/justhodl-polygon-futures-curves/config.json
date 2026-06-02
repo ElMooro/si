@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-polygon-futures-curves",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 90,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Polygon Futures Starter ($29/m) — VIX/oil/gold/copper curves for macro regime",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(0 13 * * MON-FRI *)",
+    "name": "justhodl-polygon-futures-curves-daily",
+    "description": "Daily 9am ET — futures curve regime"
+  }
+}

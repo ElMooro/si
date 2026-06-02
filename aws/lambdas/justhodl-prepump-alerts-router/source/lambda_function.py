@@ -386,6 +386,88 @@ def check_earnings_imminent(state: dict) -> List[str]:
     return lines
 
 
+def check_options_flow(state: dict) -> List[str]:
+    """Polygon options-flow extreme + bullish call activity."""
+    doc = _read_json("data/polygon-options-flow.json")
+    if not doc:
+        return []
+    extreme = doc.get("extreme_call_flow") or []
+    bullish = doc.get("bullish_call_flow") or []
+    new_alerts = []
+    for c in (extreme + bullish):
+        t = c.get("ticker")
+        if not t:
+            continue
+        if not _is_new(state, "options_flow", t):
+            continue
+        new_alerts.append(c)
+        _mark_alerted(state, "options_flow", t)
+
+    if not new_alerts:
+        return []
+    lines = [f"<b>📊 UNUSUAL OPTIONS ACTIVITY</b>",
+              f"<i>{len(new_alerts)} ticker(s) with bullish call flow detected</i>", ""]
+    for c in new_alerts[:6]:
+        ticker = _html_escape(c.get("ticker"))
+        cv = c.get("call_vol") or 0
+        cv_pv = c.get("cv_pv_ratio") or 0
+        sigs = (c.get("signals") or [])[:2]
+        lines.append(f"<b>{ticker}</b> · call_vol <code>{cv:,}</code> · C/P <code>{cv_pv}</code>")
+        if sigs:
+            lines.append(f"  {_html_escape(' · '.join(sigs))}")
+    lines.append("")
+    return lines
+
+
+def check_fx_regime(state: dict) -> List[str]:
+    """Polygon FX regime — alert on new signals only."""
+    doc = _read_json("data/polygon-fx-regime.json")
+    if not doc:
+        return []
+    signals = doc.get("regime_signals") or []
+    new_alerts = []
+    for s in signals:
+        # Strip values to dedup on signal type
+        sig_type = s.split(" ")[0]
+        if not _is_new(state, "fx_regime", sig_type):
+            continue
+        new_alerts.append(s)
+        _mark_alerted(state, "fx_regime", sig_type)
+
+    if not new_alerts:
+        return []
+    lines = [f"<b>💱 FX REGIME SHIFT</b>",
+              f"<i>{len(new_alerts)} new currency signals</i>", ""]
+    for s in new_alerts[:5]:
+        lines.append(f"  • {_html_escape(s)}")
+    lines.append("")
+    return lines
+
+
+def check_futures_curves(state: dict) -> List[str]:
+    """Polygon futures curves — VIX backwardation, oil, metals breakouts."""
+    doc = _read_json("data/polygon-futures-curves.json")
+    if not doc:
+        return []
+    signals = doc.get("signals") or []
+    new_alerts = []
+    for s in signals:
+        sig_type = s.split(" ")[0]
+        if not _is_new(state, "futures_curves", sig_type):
+            continue
+        new_alerts.append(s)
+        _mark_alerted(state, "futures_curves", sig_type)
+
+    if not new_alerts:
+        return []
+    lines = [f"<b>⏩ FUTURES CURVE SIGNALS</b>",
+              f"<i>{len(new_alerts)} new term-structure signals</i>", ""]
+    for s in new_alerts[:5]:
+        lines.append(f"  • {_html_escape(s)}")
+    lines.append("")
+    return lines
+
+
 # ═════════════════════════════════════════════════════════════════════
 # MAIN HANDLER
 # ═════════════════════════════════════════════════════════════════════
@@ -408,6 +490,9 @@ def lambda_handler(event, context):
         ("flow_anomalies", check_flow_anomalies),
         ("macro_regime", check_macro_regime),
         ("earnings_imminent", check_earnings_imminent),
+        ("polygon_options_flow", check_options_flow),
+        ("polygon_fx_regime", check_fx_regime),
+        ("polygon_futures_curves", check_futures_curves),
     ]:
         try:
             lines = checker(state)

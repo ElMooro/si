@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-polygon-options-flow",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Polygon Options Starter ($29/m) — unusual options activity scanner for pre-pump signals",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(15 14,15,16,17,18,19 * * MON-FRI *)",
+    "name": "justhodl-polygon-options-flow-hourly",
+    "description": "Hourly during US trading hours weekdays (14:00-19:59 UTC = 10am-3:59pm ET)"
+  }
+}
