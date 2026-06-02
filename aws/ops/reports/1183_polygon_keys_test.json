@@ -1,0 +1,75 @@
+{
+  "started": "2026-06-02T14:16:45.089250+00:00",
+  "steps": {
+    "key_default": {
+      "name": "default",
+      "key_prefix": "zvEY_KYYMH...",
+      "key_len": 32,
+      "status": 200,
+      "polygon_status": "OK",
+      "count": null,
+      "has_results": true,
+      "sample_keys": [
+        "processed_date",
+        "effective_date",
+        "composite_ticker",
+        "shares_outstanding",
+        "nav",
+        "fund_flow"
+      ],
+      "sample_row": {
+        "processed_date": "2017-04-03",
+        "effective_date": "2017-04-03",
+        "composite_ticker": "SPY",
+        "shares_outstanding": 999182000.0,
+        "nav": 235.353,
+        "fund_flow": -4490656500.0
+      },
+      "entitled": true
+    },
+    "key_desperate_lamarr": {
+      "name": "desperate_lamarr",
+      "key_prefix": "Out4PAHPLW...",
+      "key_len": 32,
+      "status": 200,
+      "polygon_status": "OK",
+      "count": null,
+      "has_results": true,
+      "sample_keys": [
+        "processed_date",
+        "effective_date",
+        "composite_ticker",
+        "shares_outstanding",
+        "nav",
+        "fund_flow"
+      ],
+      "sample_row": {
+        "processed_date": "2017-04-03",
+        "effective_date": "2017-04-03",
+        "composite_ticker": "SPY",
+        "shares_outstanding": 999182000.0,
+        "nav": 235.353,
+        "fund_flow": -4490656500.0
+      },
+      "entitled": true
+    },
+    "resolution": {
+      "winner": "desperate_lamarr",
+      "key_len": 32
+    },
+    "patch": {
+      "ok": true,
+      "env_keys": [
+        "POLYGON_KEY"
+      ]
+    },
+    "invoke": {
+      "error": "poll timeout"
+    },
+    "snapshot": {
+      "n_rows": 0,
+      "sample_cols": []
+    }
+  },
+  "finished": "2026-06-02T14:22:09.812015+00:00"
+}
