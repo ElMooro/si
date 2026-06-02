@@ -425,6 +425,7 @@ function renderReport(d){
   html += renderCapitalAllocation(d);
   html += renderInstitutionalActivity(d);
   html += renderEarningsCall(d);
+  html += renderShortInterest(d);
   html += renderReturns(d);
   html += renderMargins(d);
   html += renderStatements(d);
@@ -1073,6 +1074,57 @@ function renderEarningsCall(d){
           <div style="font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; font-weight:600">Notable Quotes</div>
           ${quotesHtml}
         </div>` : ""}
+    </section>`;
+}
+
+function renderShortInterest(d){
+  const si = d.short_interest;
+  if(!si) return "";
+  // Available case
+  if(si.available){
+    return `
+      <section class="block">
+        <h3><span class="ico">📉</span> Short Interest
+          <span class="pill">FINRA / real-time</span>
+        </h3>
+        <div class="grid">
+          <div class="metric">
+            <div class="lbl">Short Interest</div>
+            <div class="val ${(si.short_pct_of_float || 0) > 10 ? 'warn' : ''}">${si.short_pct_of_float != null ? si.short_pct_of_float.toFixed(2) + '% of float' : '—'}</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Days to Cover</div>
+            <div class="val ${(si.days_to_cover || 0) > 5 ? 'warn' : ''}">${si.days_to_cover != null ? si.days_to_cover.toFixed(1) : '—'}</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">30-Day Trend</div>
+            <div class="val ${si.trend_30d === 'falling' ? 'up' : si.trend_30d === 'rising' ? 'down' : ''}">${esc((si.trend_30d || '—').toUpperCase())}</div>
+          </div>
+        </div>
+      </section>`;
+  }
+  // Unavailable case — transparent disclosure
+  return `
+    <section class="block" style="border-left:3px solid var(--text-muted)">
+      <h3><span class="ico">📉</span> Short Interest
+        <span class="pill" style="background:rgba(245,158,11,.15); color:var(--amber)">data gap — see below</span>
+      </h3>
+      <div style="background:var(--bg-elev); border-radius:6px; padding:14px 18px; line-height:1.65">
+        <div style="color:var(--text); font-size:13px; font-weight:600; margin-bottom:6px">
+          Short interest data not yet integrated for this Lambda.
+        </div>
+        <div style="color:var(--text-dim); font-size:12px; line-height:1.7">
+          ${esc(si.reason || '')}
+        </div>
+        ${(si.alternate_sources || []).length > 0 ? `
+          <div style="margin-top:10px; font-size:11px; color:var(--text-muted); font-family:var(--font-mono)">
+            Alternate institutional sources: ${si.alternate_sources.map(s => esc(s)).join(' · ')}
+          </div>` : ""}
+      </div>
+      <div style="margin-top:10px; font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono); line-height:1.6">
+        Once enabled, this section surfaces % of float short, days-to-cover (short interest / avg daily volume), and trend direction — the
+        three numbers a PM needs to size around squeeze risk vs short-thesis crowding.
+      </div>
     </section>`;
 }
 

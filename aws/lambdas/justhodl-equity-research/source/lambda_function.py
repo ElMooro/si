@@ -1378,6 +1378,19 @@ def lambda_handler(event, context):
             "quarter":           earnings_call.get("quarter") if earnings_call else None,
             "full_chars":        earnings_call.get("full_chars") if earnings_call else None,
         } if earnings_call else None,
+        "short_interest": {
+            # FMP /stable/ doesn't expose short interest on the current plan
+            # (verified ops 1141). Real data requires either:
+            #   1. FINRA Gateway registration (in KHALID_ACTIONS.md pending list)
+            #   2. FMP plan upgrade
+            #   3. NYSE/Nasdaq direct feed
+            # Until one of those, this field is a placeholder so the
+            # frontend can render a transparent 'data gap' card rather
+            # than silently omitting an important institutional signal.
+            "available":          False,
+            "reason":             "FMP /stable/short-interest is not exposed on the current plan tier. FINRA Gateway registration is the standard institutional source for short interest (% of float, days to cover, trend) — registration is pending in the operator's action backlog. Once enabled, this section will surface short interest % of float, days-to-cover, and historical trend.",
+            "alternate_sources":  ["FINRA Gateway", "NYSE Short Interest XML feed", "Nasdaq Short Interest Reports"],
+        },
         "statements": {
             "income_annual":     compact_income(income_annual),
             "balance_annual":    compact_balance(balance_annual),
