@@ -1,0 +1,125 @@
+{
+  "started": "2026-06-02T14:52:10.232090+00:00",
+  "steps": {
+    "check": {
+      "exists": true
+    },
+    "bucket_policy": {
+      "added": true
+    },
+    "url": {
+      "url": "https://mjoiysdocw5cqcxo2rx3we7t640heoow.lambda-url.us-east-1.on.aws/"
+    },
+    "schedule": {
+      "created": true
+    },
+    "invoke": {
+      "elapsed_s": 4.0,
+      "status_code": 200,
+      "function_error": null,
+      "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 3.0, \\\"n_ok\\\": 8, \\\"regime\\\": \\\"INSUFFICIENT_DATA\\\", \\\"confidence\\\": \\\"LOW\\\", \\\"sub_regime_summary\\\": {\\\"vix_regime\\\": \\\"INSUFFICIENT_DATA\\\", \\\"curve_regime\\\": \\\"INSUFFICIENT_DATA\\\", \\\"dollar_regime\\\": \\\"USD_STRONG\\\", \\\"carry_regime\\\": \\\"CARRY_ON\\\", \\\"commodity_regime\\\": \\\"INSUFFICIENT_DATA\\\", \\\"em_regime\\\": \\\"EM_NEUTRAL\\\"}}\"}"
+    },
+    "macro_regime_output": {
+      "top_level_regime": {
+        "regime": "INSUFFICIENT_DATA",
+        "confidence": "LOW",
+        "n_components_available": 3
+      },
+      "sub_regimes": {
+        "vix_regime": {
+          "label": "INSUFFICIENT_DATA",
+          "score": null
+        },
+        "curve_regime": {
+          "label": "INSUFFICIENT_DATA",
+          "score": null
+        },
+        "dollar_regime": {
+          "label": "USD_STRONG",
+          "score": 30
+        },
+        "carry_regime": {
+          "label": "CARRY_ON",
+          "score": 30
+        },
+        "commodity_regime": {
+          "label": "INSUFFICIENT_DATA",
+          "score": null
+        },
+        "em_regime": {
+          "label": "EM_NEUTRAL",
+          "score": 0
+        }
+      },
+      "n_ok": 8,
+      "universe_size": 23,
+      "sample_metrics": [
+        {
+          "ticker": "I:VIX"
+        },
+        {
+          "ticker": "I:VIX9D"
+        },
+        {
+          "ticker": "I:VVIX"
+        },
+        {
+          "ticker": "I:SPX"
+        },
+        {
+          "ticker": "I:NDX",
+          "name": "NDX",
+          "role": "equity_tech",
+          "feed": "indices",
+          "latest_close": 30513.86160102124,
+          "ret_1d_pct": 0.6,
+          "ret_5d_pct": 3.5,
+          "ret_21d_pct": 11.15,
+          "zscore_90d": 2.25
+        },
+        {
+          "ticker": "I:RUT"
+        },
+        {
+          "ticker": "VX1!"
+        },
+        {
+          "ticker": "VX3!"
+        }
+      ],
+      "errors": [
+        {
+          "ticker": "I:VIX",
+          "error": "http_403",
+          "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"097452051df4fdc916b180de95137c38\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}",
+          "metric_status": "missing"
+        },
+        {
+          "ticker": "I:VIX9D",
+          "error": "http_403",
+          "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"e62a2176b4f5abbfa3b0d615d6fb8233\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}",
+          "metric_status": "missing"
+        },
+        {
+          "ticker": "I:VVIX",
+          "error": "http_403",
+          "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"a3c1c21d710d2304e20d51de3821fd0e\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}",
+          "metric_status": "missing"
+        },
+        {
+          "ticker": "I:SPX",
+          "error": "http_403",
+          "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"f302f3d58d556f18ba2209ddebd3be88\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}",
+          "metric_status": "missing"
+        },
+        {
+          "ticker": "I:RUT",
+          "error": "http_403",
+          "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"b02e7f0dae2fcf4955597518c461e99b\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}",
+          "metric_status": "missing"
+        }
+      ]
+    }
+  },
+  "finished": "2026-06-02T14:52:16.608209+00:00"
+}
