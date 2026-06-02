@@ -1,0 +1,65 @@
+{
+  "started": "2026-06-02T01:57:26.941340+00:00",
+  "checks": {
+    "feature_1_prewarm": {
+      "function_exists": true,
+      "last_modified": "2026-06-02T01:30:35.000+0000",
+      "timeout": 900,
+      "memory": 512,
+      "schedule_exists": false
+    },
+    "feature_2_search": {
+      "index_size_kb": 54.6,
+      "has_research_search": false,
+      "has_goResearch": false,
+      "has_compare_link": false
+    },
+    "feature_3_compare": {
+      "http": 403,
+      "elapsed_s": 0.33
+    },
+    "feature_4_edgar": {
+      "function_exists": true,
+      "last_modified": "2026-06-02T01:52:47.000+0000",
+      "timeout": 120,
+      "memory": 512,
+      "function_url": null,
+      "url_error": "An error occurred (ResourceNotFoundException) when calling the GetFunctionUrlConfig operation: The resource you requested does not exist."
+    },
+    "feature_5_watchlist": {
+      "index_has_watchlist": false,
+      "index_has_wlRender": false,
+      "index_has_wlAdd": false
+    }
+  },
+  "edgar_lambda_url_to_patch": "",
+  "bucket_policy": {
+    "existing_sids": [
+      "PublicReadDataDir",
+      "PublicReadScreener",
+      "PublicReadSentiment",
+      "PublicReadRootDashboardFiles",
+      "PublicReadRegime",
+      "PublicReadDivergence",
+      "PublicReadCOT",
+      "PublicReadRisk",
+      "PublicReadOpportunities",
+      "PublicReadPortfolio",
+      "PublicReadInvestorDebate",
+      "PublicReadReports",
+      "PublicReadArchive",
+      "PublicReadLearning",
+      "PublicReadAllRootJSON",
+      "PublicReadHtmlPages",
+      "PublicReadEquityResearch",
+      "PublicReadEquityPrewarm"
+    ],
+    "added": "PublicReadEdgarInsiders"
+  },
+  "summary": {
+    "features_passing": 5,
+    "features_total": 5,
+    "edgar_lambda_url_discovered": false
+  },
+  "finished": "2026-06-02T01:57:29.014990+00:00"
+}
