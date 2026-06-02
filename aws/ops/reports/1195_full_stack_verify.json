@@ -1,0 +1,1075 @@
+{
+  "started": "2026-06-02T16:22:02.098538+00:00",
+  "steps": {
+    "constituents_invoke": {
+      "elapsed_s": 8.9,
+      "status": 200,
+      "function_error": null,
+      "body_preview": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 7.2, \\\"n_etfs_total\\\": 78, \\\"n_etfs_high_z\\\": 13, \\\"n_stocks_pressured\\\": 401, \\\"n_stocks_with_exposure\\\": 1296, \\\"top_5_high_z_pressure\\\": [{\\\"stock\\\": \\\"AMZN\\\", \\\"pressure_5d_usd\\\": 101292851.8, \\\"direction\\\": \\\"BUYING_PRESSURE\\\", \\\"n_etfs\\\": 2}, {\\\"stock\\\": \\\"TSLA\\\", \\\"pressure_5d_usd\\\": 72985903.25, \\\"direction\\\": \\\"BUYING_PRESSURE\\\", \\\"n_etfs\\\": 2}, {\\\"stock\\\": \\\"NVDA\\\", \\\"pressure_5d_usd\\\": 58889613.93, \\\"direction\\\": \\\"BUYING_PRESSURE\\\", \\\"n_etfs\\\": 4}, {\\\"stock\\\": \\\"TSM\\\", \\\"pressure_5d_usd\\\": 57176183.24, \\\"direction\\\": \\\"BUYING_PRESSURE\\\", \\\"n_etfs\\\": 1}, {\\\"stock\\\": \\\"JNJ\\\", \\\"pressure_5d_usd\\\": -42014081.03, \\\"direction\\\": \\\"SELLING_PRE"
+    },
+    "constituent_doc": {
+      "generated_at": "2026-06-02T16:22:10.317594+00:00",
+      "mode": "all_etfs",
+      "n_etfs_total": 78,
+      "n_etfs_high_z": 13,
+      "n_etfs_fetched": 75,
+      "n_stocks_with_exposure": 1296,
+      "n_top_constituents_by_pressure": 50,
+      "n_top_aggregate_exposure": 100,
+      "top_25_aggregate_exposure": [
+        {
+          "stock": "NVDA",
+          "name": "NVIDIA CORP",
+          "n_etfs_holding": 16,
+          "cumulative_weight_pct": 120.04,
+          "agg_5d_usd": 1644340809.99,
+          "agg_21d_usd": 3389623124.69,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 7.88283798,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 7.85370493,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "QUAL",
+              "wt": 7.49873655,
+              "z": -0.13,
+              "flow_5d": -5897740323.05
+            }
+          ]
+        },
+        {
+          "stock": "AAPL",
+          "name": "APPLE INC",
+          "n_etfs_holding": 11,
+          "cumulative_weight_pct": 79.2,
+          "agg_5d_usd": 1406674474.75,
+          "agg_21d_usd": 2843735796.14,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 7.03889181,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 6.45143902,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "QUAL",
+              "wt": 6.72234942,
+              "z": -0.13,
+              "flow_5d": -5897740323.05
+            }
+          ]
+        },
+        {
+          "stock": "AMZN",
+          "name": "AMAZON.COM INC",
+          "n_etfs_holding": 12,
+          "cumulative_weight_pct": 69.62,
+          "agg_5d_usd": 1169385179.65,
+          "agg_21d_usd": 1914312837.32,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 4.06198132,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 4.19341156,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "XLY",
+              "wt": 27.24189185,
+              "z": -1.81,
+              "flow_5d": 343912628.2
+            }
+          ]
+        },
+        {
+          "stock": "MSFT",
+          "name": "MICROSOFT CORP",
+          "n_etfs_holding": 11,
+          "cumulative_weight_pct": 63.33,
+          "agg_5d_usd": 1049353437.53,
+          "agg_21d_usd": 2157868299.02,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 5.13667827,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 4.9037787,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "QUAL",
+              "wt": 4.93797018,
+              "z": -0.13,
+              "flow_5d": -5897740323.05
+            }
+          ]
+        },
+        {
+          "stock": "AVGO",
+          "name": "BROADCOM INC",
+          "n_etfs_holding": 13,
+          "cumulative_weight_pct": 54.81,
+          "agg_5d_usd": 795539949.84,
+          "agg_21d_usd": 1563527732.62,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 3.25451705,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 3.20519011,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "SPY",
+              "wt": 3.34581589,
+              "z": -0.61,
+              "flow_5d": 2081963623.6
+            }
+          ]
+        },
+        {
+          "stock": "GOOGL",
+          "name": "ALPHABET INC CL A",
+          "n_etfs_holding": 11,
+          "cumulative_weight_pct": 44.96,
+          "agg_5d_usd": 700997938.0,
+          "agg_21d_usd": 1464141220.48,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 3.4021163,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 3.62804188,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "QUAL",
+              "wt": 2.57687836,
+              "z": -0.13,
+              "flow_5d": -5897740323.05
+            }
+          ]
+        },
+        {
+          "stock": "TSLA",
+          "name": "TESLA INC",
+          "n_etfs_holding": 11,
+          "cumulative_weight_pct": 60.33,
+          "agg_5d_usd": 584616795.48,
+          "agg_21d_usd": 881654855.17,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 1.88307748,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 1.73821905,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "XLY",
+              "wt": 19.585833,
+              "z": -1.81,
+              "flow_5d": 343912628.2
+            }
+          ]
+        },
+        {
+          "stock": "GOOG",
+          "name": "ALPHABET INC CL C",
+          "n_etfs_holding": 13,
+          "cumulative_weight_pct": 41.37,
+          "agg_5d_usd": 556871081.95,
+          "agg_21d_usd": 1172904732.15,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 2.70475783,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 2.89266685,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "QUAL",
+              "wt": 2.14384487,
+              "z": -0.13,
+              "flow_5d": -5897740323.05
+            }
+          ]
+        },
+        {
+          "stock": "META",
+          "name": "META PLATFORMS INC CLASS A",
+          "n_etfs_holding": 12,
+          "cumulative_weight_pct": 38.28,
+          "agg_5d_usd": 325502376.81,
+          "agg_21d_usd": 769541789.44,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 2.12549311,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "QUAL",
+              "wt": 3.44609738,
+              "z": -0.13,
+              "flow_5d": -5897740323.05
+            },
+            {
+              "etf": "VOO",
+              "wt": 2.16754641,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            }
+          ]
+        },
+        {
+          "stock": "MU",
+          "name": "MICRON TECHNOLOGY INC",
+          "n_etfs_holding": 12,
+          "cumulative_weight_pct": 64.03,
+          "agg_5d_usd": 272625597.54,
+          "agg_21d_usd": 803360639.31,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 1.67909188,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "MTUM",
+              "wt": 7.71823113,
+              "z": 2.12,
+              "flow_5d": -1204774196.35
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.94266141,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            }
+          ]
+        },
+        {
+          "stock": "AMD",
+          "name": "ADVANCED MICRO DEVICES",
+          "n_etfs_holding": 14,
+          "cumulative_weight_pct": 54.29,
+          "agg_5d_usd": 261262541.85,
+          "agg_21d_usd": 652597972.63,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 1.29282557,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.93599962,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "SOXX",
+              "wt": 9.4858138,
+              "z": 0.48,
+              "flow_5d": -616766969.95
+            }
+          ]
+        },
+        {
+          "stock": "JPM",
+          "name": "JPMORGAN CHASE + CO",
+          "n_etfs_holding": 9,
+          "cumulative_weight_pct": 27.43,
+          "agg_5d_usd": 191273601.04,
+          "agg_21d_usd": 319835205.89,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 1.23988213,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 1.27715347,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "XLF",
+              "wt": 10.91700358,
+              "z": -1.11,
+              "flow_5d": -932585905.9
+            }
+          ]
+        },
+        {
+          "stock": "CSCO",
+          "name": "CISCO SYSTEMS INC",
+          "n_etfs_holding": 11,
+          "cumulative_weight_pct": 18.82,
+          "agg_5d_usd": 182725179.3,
+          "agg_21d_usd": 380773011.95,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.73100584,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.58548485,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "SPY",
+              "wt": 0.73511467,
+              "z": -0.61,
+              "flow_5d": 2081963623.6
+            }
+          ]
+        },
+        {
+          "stock": "INTC",
+          "name": "INTEL CORP",
+          "n_etfs_holding": 12,
+          "cumulative_weight_pct": 39.03,
+          "agg_5d_usd": 171308943.44,
+          "agg_21d_usd": 449991385.9,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.8272904,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.71868911,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "MTUM",
+              "wt": 4.34540548,
+              "z": 2.12,
+              "flow_5d": -1204774196.35
+            }
+          ]
+        },
+        {
+          "stock": "TJX",
+          "name": "TJX COMPANIES INC",
+          "n_etfs_holding": 7,
+          "cumulative_weight_pct": 10.59,
+          "agg_5d_usd": -167944196.26,
+          "agg_21d_usd": -183248087.12,
+          "top_3_etfs": [
+            {
+              "etf": "QUAL",
+              "wt": 2.92532842,
+              "z": -0.13,
+              "flow_5d": -5897740323.05
+            },
+            {
+              "etf": "XLY",
+              "wt": 3.89636327,
+              "z": -1.81,
+              "flow_5d": 343912628.2
+            },
+            {
+              "etf": "MTUM",
+              "wt": 0.78275058,
+              "z": 2.12,
+              "flow_5d": -1204774196.35
+            }
+          ]
+        },
+        {
+          "stock": "000660.KS",
+          "name": "SK hynix Inc",
+          "n_etfs_holding": 3,
+          "cumulative_weight_pct": 31.56,
+          "agg_5d_usd": -157864743.2,
+          "agg_21d_usd": -616745118.69,
+          "top_3_etfs": [
+            {
+              "etf": "EWY",
+              "wt": 23.35689942,
+              "z": -0.09,
+              "flow_5d": -693197701.45
+            },
+            {
+              "etf": "VEA",
+              "wt": 1.53625817,
+              "z": -0.29,
+              "flow_5d": 263285611.29000002
+            },
+            {
+              "etf": "EEM",
+              "wt": 6.66981654,
+              "z": 0.06,
+              "flow_5d": 0
+            }
+          ]
+        },
+        {
+          "stock": "HD",
+          "name": "HOME DEPOT INC",
+          "n_etfs_holding": 8,
+          "cumulative_weight_pct": 12.88,
+          "agg_5d_usd": 149989655.88,
+          "agg_21d_usd": 252653030.36,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.48506667,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.53006795,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "XLY",
+              "wt": 5.17924289,
+              "z": -1.81,
+              "flow_5d": 343912628.2
+            }
+          ]
+        },
+        {
+          "stock": "ORCL",
+          "name": "ORACLE CORP",
+          "n_etfs_holding": 7,
+          "cumulative_weight_pct": 6.59,
+          "agg_5d_usd": 143483222.35,
+          "agg_21d_usd": 238680632.42,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.58822808,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.44323247,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "SPY",
+              "wt": 0.6457216,
+              "z": -0.61,
+              "flow_5d": 2081963623.6
+            }
+          ]
+        },
+        {
+          "stock": "005930.KS",
+          "name": "Samsung Electronics Co Ltd",
+          "n_etfs_holding": 3,
+          "cumulative_weight_pct": 31.43,
+          "agg_5d_usd": -143027697.36,
+          "agg_21d_usd": -565081716.66,
+          "top_3_etfs": [
+            {
+              "etf": "EWY",
+              "wt": 21.49137732,
+              "z": -0.09,
+              "flow_5d": -693197701.45
+            },
+            {
+              "etf": "VEA",
+              "wt": 2.25991698,
+              "z": -0.29,
+              "flow_5d": 263285611.29000002
+            },
+            {
+              "etf": "EEM",
+              "wt": 7.6749827,
+              "z": 0.06,
+              "flow_5d": 0
+            }
+          ]
+        },
+        {
+          "stock": "XOM",
+          "name": "EXXON MOBIL CORP",
+          "n_etfs_holding": 9,
+          "cumulative_weight_pct": 35.38,
+          "agg_5d_usd": 138904516.67,
+          "agg_21d_usd": 285102108.42,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.93265951,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 1.04437265,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "XLE",
+              "wt": 22.46629192,
+              "z": 0.52,
+              "flow_5d": -322388735.29999995
+            }
+          ]
+        },
+        {
+          "stock": "PLTR",
+          "name": "PALANTIR TECHNOLOGIES INC A",
+          "n_etfs_holding": 11,
+          "cumulative_weight_pct": 14.84,
+          "agg_5d_usd": 138753329.1,
+          "agg_21d_usd": 291413448.99,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.54939939,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.51461261,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "MTUM",
+              "wt": 1.35247633,
+              "z": 2.12,
+              "flow_5d": -1204774196.35
+            }
+          ]
+        },
+        {
+          "stock": "TXN",
+          "name": "TEXAS INSTRUMENTS INC",
+          "n_etfs_holding": 12,
+          "cumulative_weight_pct": 14.8,
+          "agg_5d_usd": 117064005.07,
+          "agg_21d_usd": 241500286.79,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.42623421,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.41310887,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "SMH",
+              "wt": 4.78955774,
+              "z": 1.69,
+              "flow_5d": 601640077.0
+            }
+          ]
+        },
+        {
+          "stock": "GE",
+          "name": "GENERAL ELECTRIC",
+          "n_etfs_holding": 9,
+          "cumulative_weight_pct": 12.07,
+          "agg_5d_usd": 113150929.04,
+          "agg_21d_usd": 217682116.14,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.52170459,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.49244056,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "MTUM",
+              "wt": 1.76660883,
+              "z": 2.12,
+              "flow_5d": -1204774196.35
+            }
+          ]
+        },
+        {
+          "stock": "BRK-B",
+          "name": "BERKSHIRE HATHAWAY INC CL B",
+          "n_etfs_holding": 10,
+          "cumulative_weight_pct": 27.36,
+          "agg_5d_usd": 112097749.12,
+          "agg_21d_usd": 200838256.11,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 1.33677135,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "QUAL",
+              "wt": 2.1068486,
+              "z": -0.13,
+              "flow_5d": -5897740323.05
+            },
+            {
+              "etf": "VOO",
+              "wt": 1.40642765,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            }
+          ]
+        },
+        {
+          "stock": "WMT",
+          "name": "WALMART INC",
+          "n_etfs_holding": 12,
+          "cumulative_weight_pct": 26.26,
+          "agg_5d_usd": 102265888.25,
+          "agg_21d_usd": 410308758.35,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.77957505,
+              "z": -0.14,
+              "flow_5d": 14300890844.1
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.93656822,
+              "z": 0.2,
+              "flow_5d": 8013673450.0
+            },
+            {
+              "etf": "QUAL",
+              "wt": 1.20616651,
+              "z": -0.13,
+              "flow_5d": -5897740323.05
+            }
+          ]
+        }
+      ]
+    },
+    "lookup_sample": {
+      "total_stocks_in_lookup": 1296,
+      "samples": {
+        "AAPL": {
+          "n_etfs_holding": 11,
+          "cum_wt": 79.2,
+          "agg_5d_M": 1406.7,
+          "agg_21d_M": 2843.7,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 7.03889181,
+              "z": -0.14
+            },
+            {
+              "etf": "VOO",
+              "wt": 6.45143902,
+              "z": 0.2
+            },
+            {
+              "etf": "QUAL",
+              "wt": 6.72234942,
+              "z": -0.13
+            }
+          ]
+        },
+        "MSFT": {
+          "n_etfs_holding": 11,
+          "cum_wt": 63.33,
+          "agg_5d_M": 1049.4,
+          "agg_21d_M": 2157.9,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 5.13667827,
+              "z": -0.14
+            },
+            {
+              "etf": "VOO",
+              "wt": 4.9037787,
+              "z": 0.2
+            },
+            {
+              "etf": "QUAL",
+              "wt": 4.93797018,
+              "z": -0.13
+            }
+          ]
+        },
+        "NVDA": {
+          "n_etfs_holding": 16,
+          "cum_wt": 120.04,
+          "agg_5d_M": 1644.3,
+          "agg_21d_M": 3389.6,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 7.88283798,
+              "z": -0.14
+            },
+            {
+              "etf": "VOO",
+              "wt": 7.85370493,
+              "z": 0.2
+            },
+            {
+              "etf": "QUAL",
+              "wt": 7.49873655,
+              "z": -0.13
+            }
+          ]
+        },
+        "AMZN": {
+          "n_etfs_holding": 12,
+          "cum_wt": 69.62,
+          "agg_5d_M": 1169.4,
+          "agg_21d_M": 1914.3,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 4.06198132,
+              "z": -0.14
+            },
+            {
+              "etf": "VOO",
+              "wt": 4.19341156,
+              "z": 0.2
+            },
+            {
+              "etf": "XLY",
+              "wt": 27.24189185,
+              "z": -1.81
+            }
+          ]
+        },
+        "GOOGL": {
+          "n_etfs_holding": 11,
+          "cum_wt": 44.96,
+          "agg_5d_M": 701.0,
+          "agg_21d_M": 1464.1,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 3.4021163,
+              "z": -0.14
+            },
+            {
+              "etf": "VOO",
+              "wt": 3.62804188,
+              "z": 0.2
+            },
+            {
+              "etf": "QUAL",
+              "wt": 2.57687836,
+              "z": -0.13
+            }
+          ]
+        },
+        "JPM": {
+          "n_etfs_holding": 9,
+          "cum_wt": 27.43,
+          "agg_5d_M": 191.3,
+          "agg_21d_M": 319.8,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 1.23988213,
+              "z": -0.14
+            },
+            {
+              "etf": "VOO",
+              "wt": 1.27715347,
+              "z": 0.2
+            },
+            {
+              "etf": "XLF",
+              "wt": 10.91700358,
+              "z": -1.11
+            }
+          ]
+        },
+        "XOM": {
+          "n_etfs_holding": 9,
+          "cum_wt": 35.38,
+          "agg_5d_M": 138.9,
+          "agg_21d_M": 285.1,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.93265951,
+              "z": -0.14
+            },
+            {
+              "etf": "VOO",
+              "wt": 1.04437265,
+              "z": 0.2
+            },
+            {
+              "etf": "XLE",
+              "wt": 22.46629192,
+              "z": 0.52
+            }
+          ]
+        },
+        "WMT": {
+          "n_etfs_holding": 12,
+          "cum_wt": 26.26,
+          "agg_5d_M": 102.3,
+          "agg_21d_M": 410.3,
+          "top_3_etfs": [
+            {
+              "etf": "IVV",
+              "wt": 0.77957505,
+              "z": -0.14
+            },
+            {
+              "etf": "VOO",
+              "wt": 0.93656822,
+              "z": 0.2
+            },
+            {
+              "etf": "QUAL",
+              "wt": 1.20616651,
+              "z": -0.13
+            }
+          ]
+        }
+      }
+    },
+    "ai_invoke": {
+      "elapsed_s": 121.5,
+      "status": 200,
+      "function_error": null,
+      "body_preview": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 120.3, \\\"regime\\\": \\\"REFLATION\\\", \\\"n_calls\\\": 15, \\\"macro_narrative_preview\\\": \\\"The dominant signal today is explosive international rotation\\\\u2014EWU z=5.13 (STRONG_INFLOW) and EWC z=3.18 driving $257M in combined daily inflow\\\\u2014against broad US eq"
+    },
+    "ai_output": {
+      "generated_at": "2026-06-02T16:24:13.326270+00:00",
+      "claude_elapsed_s": 114.4,
+      "usage": {
+        "input_tokens": 24600,
+        "cache_creation_input_tokens": 2228,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2228
+        },
+        "output_tokens": 6574,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "regime_call": {
+        "regime": "REFLATION",
+        "confidence": "HIGH",
+        "reasoning": "Multi-asset regime confirms REFLATION (commodities strong + carry on + EM not stressed), but CREDIT_DETERIORATING sub-regime caps enthusiasm on cyclicals with credit sensitivity. Flow composite shows NEUTRAL because domestic equity outflows offset international inflows, but the international rotation is the leading indicator.",
+        "expected_duration_days": 14,
+        "what_would_invalidate": "Credit_regime deteriorating to CREDIT_STRESS (score<-50) or commodity_regime flipping to negative score, or EWU/EWC flows reversing to OUTFLOW z<-1"
+      },
+      "macro_narrative_preview": "The dominant signal today is explosive international rotation\u2014EWU z=5.13 (STRONG_INFLOW) and EWC z=3.18 driving $257M in combined daily inflow\u2014against broad US equity outflows (QQQ -$3.2B, XLY/XLK/XLP all OUTFLOW z<-1.6). The cross-asset story is REFLATION at HIGH confidence: commodities strong (XLB z=2.7, CPER z=1.26), carry-on (commodities + EM neutral + vol contango), but with a critical divergence\u2014credit is DETERIORATING (credit_regime score=-25) even as reflation indicators flash green. This is not 2021 risk-on; it's a commodity-led reflation with domestic equity exhaustion and latent cre",
+      "n_divergences": 5,
+      "first_divergence": {
+        "subject": "NVDA / XLK sector",
+        "type": "FLOW_LEVEL_DIVERGENCE",
+        "description": "NVDA shows BUYING_PRESSURE ($58.9M 5d via SMH z=1.69 + MTUM z=2.12) despite XLK sector OUTFLOW z=-1.68. Constituent-level data reveals institutional money landing in select semis (NVDA, TSM, QCOM, TXN) via thematic overlap, not broad tech.",
+        "implication": "Do NOT short NVDA/TSM/QCOM even though XLK is bleeding\u2014the constituent pressure overrides sector signal.",
+        "tradable": true
+      },
+      "n_ticker_calls": 15,
+      "ticker_calls": [
+        {
+          "t": "EWU",
+          "call": "STRONG_BUY",
+          "conv": "HIGH",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "UK inflow z=5.13 (extreme) into REFLATION regime with carry-on and commodity strength; international rotation trade with"
+        },
+        {
+          "t": "EWC",
+          "call": "STRONG_BUY",
+          "conv": "HIGH",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Canada z=3.18 with 3-day persistence and $293M 5d inflow; commodity-proxy in REFLATION regime (CPER z=1.26, XLB z=2.7 co"
+        },
+        {
+          "t": "XLB",
+          "call": "BUY",
+          "conv": "HIGH",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Materials z=2.7 (STRONG_INFLOW) aligns with REFLATION regime (commodity_regime score=30); hardest-asset play in reflatio"
+        },
+        {
+          "t": "NVDA",
+          "call": "BUY",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "n_aligned": 2,
+          "thesis": "Research BUY (A grade, 34.6% upside) + BUYING_PRESSURE ($58.9M 5d via SMH z=1.69) despite XLK outflow; constituent data "
+        },
+        {
+          "t": "TSM",
+          "call": "ADD",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Research HOLD (A- grade, -11.6% downside cited) but BUYING_PRESSURE ($57.2M 5d via SMH z=1.69) and semi thematic strengt"
+        },
+        {
+          "t": "QCOM",
+          "call": "ADD",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "BUYING_PRESSURE ($32.9M 5d via SMH z=1.69) with no research file; semi thematic strength alone warrants ADD but lack of "
+        },
+        {
+          "t": "AMZN",
+          "call": "HOLD",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 2,
+          "thesis": "Research HOLD + critic HOLD (FCF concern) but BUYING_PRESSURE ($101.3M 5d) creates standoff; XLY outflow z=-1.81 limits "
+        },
+        {
+          "t": "AAPL",
+          "call": "REDUCE",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 2,
+          "thesis": "Research HOLD (A-, 7.1% upside) vs critic SELL (FCF contraction, China risk, 36.8x too rich) vs BUYING_PRESSURE ($22.4M "
+        },
+        {
+          "t": "MSFT",
+          "call": "REDUCE",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "No research file but critic HOLD flags FCF CAGR 3.2% vs revenue 12.4% as valuation problem; BUYING_PRESSURE ($17.1M dail"
+        },
+        {
+          "t": "WMT",
+          "call": "AVOID",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 2,
+          "thesis": "Research HOLD (B+, 13.3% upside) but SELLING_PRESSURE (-$41.8M 5d via MTUM z=2.12 dumping defensives) + XLP outflow z=-1"
+        },
+        {
+          "t": "XOM",
+          "call": "HOLD",
+          "conv": "LOW",
+          "tf": 21,
+          "n_aligned": 2,
+          "thesis": "Research HOLD (B, -11.5% downside) + SELLING_PRESSURE (-$37.9M 5d via MTUM rotation) but XLE flow neutral z=0.52; energy"
+        },
+        {
+          "t": "JNJ",
+          "call": "REDUCE",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 2,
+          "thesis": "Research BUY (A-, 20.8% upside) but SELLING_PRESSURE (-$42.0M 5d via MTUM z=2.12) + XLV flow neutral z=0.44; momentum fu"
+        },
+        {
+          "t": "GOOGL",
+          "call": "HOLD",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 2,
+          "thesis": "Research BUY (A-, 14.2% upside) but SELLING_PRESSURE (-$28.2M 5d via MTUM rotation) + XLC neutral z=-0.48; 12-month thes"
+        },
+        {
+          "t": "TSLA",
+          "call": "AVOID",
+          "conv": "MEDIUM-HIGH",
+          "tf": 21,
+          "n_aligned": 2,
+          "thesis": "Research SELL (B+, -18.2% downside) + critic HOLD (scenario EV $393 vs PT $340 contradiction) but BUYING_PRESSURE ($73.0"
+        },
+        {
+          "t": "CRM",
+          "call": "BUY",
+          "conv": "MEDIUM",
+          "tf": 21,
+          "n_aligned": 1,
+          "thesis": "Research BUY (A-, 26.4% upside) but XLK outflow z=-1.68 and no flow/insider data; 12-month thesis strong but sector head"
+        }
+      ],
+      "regime_alpha_note": "In REFLATION with CREDIT_DETERIORATING, prior research STRONG_BUYs on cyclicals (NVDA, CRM, ORCL) deserve a conviction tilt DOWN from HIGH to MEDIUM-HIGH\u2014credit stress caps beta. Conversely, HOLD ratings on international value (if coverage existed for EWU/EWC) deserve an UPGRADE to BUY in this regime. Defensive HOLDs (JNJ, WMT, staples) deserve a DOWNGRADE to REDUCE given MTUM z=2.12 rotating OUT "
+    }
+  },
+  "finished": "2026-06-02T16:24:13.892234+00:00"
+}
