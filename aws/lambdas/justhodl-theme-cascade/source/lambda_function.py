@@ -332,6 +332,191 @@ def deliver_telegram_alerts(alert_tier: list) -> dict:
             "result": result}
 
 
+def compute_position_sizing(c: dict, earnings_set: Optional[set] = None) -> dict:
+    """Position sizing for theme-cascade candidates.
+
+    Base sizing depends on tier:
+      Alert tier (combined >=80):    5% base, cap 18%
+      Medium tier (50-79):           3% base, cap 10%
+      Laggards in hot themes:        3% base, cap 12% (higher risk - not moving yet)
+      Watch tier (<50):              2% base, cap 6%
+
+    Multipliers stacked (max product 3.0x):
+      Theme acceleration: rs_accel >= 100 x1.5, >=50 x1.3, >=20 x1.1
+      Multiple top-10 ETFs holding: 3+ x1.3, 2 x1.15
+      Earnings within 3 days: x1.3 (if earnings_set provided)
+      Strong ETF inflow (>$100M 5d): x1.2
+      Sustained 21d inflow (>$200M): x1.15
+
+    Returns: {base_pct, multipliers[], final_pct, rationale}
+    """
+    tier = c.get("tier", "")
+    combined = c.get("combined_score", 0)
+    is_laggard = c.get("is_laggard", False)
+
+    # Base by tier
+    if is_laggard:
+        base, cap = 3.0, 12.0
+    elif combined >= 80:
+        base, cap = 5.0, 18.0
+    elif combined >= 50:
+        base, cap = 3.0, 10.0
+    else:
+        base, cap = 2.0, 6.0
+
+    multipliers = []
+    cumulative = 1.0
+
+    # Theme acceleration
+    accel = c.get("theme_acceleration") or c.get("max_rs_acceleration") or 0
+    if accel >= 100:
+        multipliers.append({"factor": "extreme_acceleration", "value": 1.5,
+                            "detail": f"theme_rs_accel {accel:.0f}"})
+        cumulative *= 1.5
+    elif accel >= 50:
+        multipliers.append({"factor": "strong_acceleration", "value": 1.3,
+                            "detail": f"theme_rs_accel {accel:.0f}"})
+        cumulative *= 1.3
+    elif accel >= 20:
+        multipliers.append({"factor": "positive_acceleration", "value": 1.1,
+                            "detail": f"theme_rs_accel {accel:.0f}"})
+        cumulative *= 1.1
+
+    # Multiple top-10 ETFs (signal strength)
+    n_top_10 = c.get("n_etfs_in_top_10", 0) or 0
+    if n_top_10 >= 3:
+        multipliers.append({"factor": "multi_top_10_etfs", "value": 1.3,
+                            "detail": f"{n_top_10} top-10 ETFs hold this"})
+        cumulative *= 1.3
+    elif n_top_10 == 2:
+        multipliers.append({"factor": "dual_top_10_etfs", "value": 1.15,
+                            "detail": "2 top-10 ETFs hold this"})
+        cumulative *= 1.15
+
+    # Earnings proximity (if catalysts data available)
+    ticker = c.get("ticker")
+    if earnings_set and ticker in earnings_set:
+        multipliers.append({"factor": "earnings_3d", "value": 1.3,
+                            "detail": "earnings within 3 days"})
+        cumulative *= 1.3
+
+    # Strong ETF inflow
+    flow_5d = c.get("aggregate_flow_5d_usd") or 0
+    if flow_5d > 100e6:
+        multipliers.append({"factor": "strong_etf_inflow",
+                            "value": 1.2,
+                            "detail": f"+${flow_5d/1e6:.0f}M 5d ETF inflow"})
+        cumulative *= 1.2
+
+    flow_21d = c.get("aggregate_flow_21d_usd") or 0
+    if flow_21d > 200e6:
+        multipliers.append({"factor": "sustained_21d_inflow",
+                            "value": 1.15,
+                            "detail": f"+${flow_21d/1e6:.0f}M 21d ETF inflow"})
+        cumulative *= 1.15
+
+    final_uncapped = base * cumulative
+    final_pct = min(final_uncapped, cap)
+    final_pct = round(final_pct, 1)
+
+    # Rationale
+    if final_pct >= cap - 0.5:
+        rationale = f"MAX SIZE ({cap}%) — all multipliers stacked, hit tier ceiling"
+    elif len(multipliers) >= 3:
+        rationale = f"Heavy conviction — {len(multipliers)} multipliers active"
+    elif len(multipliers) >= 1:
+        rationale = f"Moderate conviction — {len(multipliers)} multiplier(s) active"
+    else:
+        rationale = "Base sizing — no extra multipliers"
+
+    return {
+        "base_pct": base,
+        "multipliers": multipliers,
+        "cumulative_multiplier": round(cumulative, 2),
+        "uncapped_pct": round(final_uncapped, 2),
+        "final_pct": final_pct,
+        "tier_cap_pct": cap,
+        "rationale": rationale,
+    }
+
+
+def scan_laggards_in_hot_themes(momentum: dict, theme_index: dict,
+                                  ticker_to_etfs: dict, top_10_etfs: set,
+                                  top_20_etfs: set, exposure_lookup: dict,
+                                  already_in_velocity: set) -> list:
+    """Identify stocks NOT in velocity tiers (not yet pumping) but in hot themes.
+
+    These are the SECOND-WAVE candidates — laggards waiting to catch up.
+
+    Criteria:
+      - In momentum-leaders universe
+      - NOT already in velocity tiers (not currently in WATCH/EMERGING/FIRED)
+      - perf_5d <= 0 (laggard — pulled back or flat while others pumped)
+      - ANY of its ETFs is in top-10 RS rank (in a hot theme)
+    """
+    laggards = []
+    leaders = (momentum.get("leaders") or [])
+
+    for stock in leaders:
+        t = stock.get("ticker")
+        if not t or t in already_in_velocity:
+            continue
+        perf_5d = stock.get("perf_5d_pct")
+        if perf_5d is None or perf_5d > 0:
+            continue
+
+        etfs = ticker_to_etfs.get(t, [])
+        candidates_theme = [theme_index[e] for e in etfs if e in theme_index]
+        if not candidates_theme:
+            continue
+
+        n_top_10 = sum(1 for c in candidates_theme if c.get("ticker") in top_10_etfs)
+        n_top_20 = sum(1 for c in candidates_theme if c.get("ticker") in top_20_etfs)
+        if n_top_10 == 0:
+            continue
+
+        # Hottest theme (lowest RS rank)
+        hottest = min(candidates_theme, key=lambda x: x.get("rs_rank_20d") or 999)
+        max_accel = max(
+            (c.get("rs_acceleration") or 0) for c in candidates_theme
+        ) if candidates_theme else 0
+
+        # Compute flow stats
+        flow_info = compute_flow_multiplier(t, exposure_lookup)
+
+        laggards.append({
+            "ticker": t,
+            "tier": "LAGGARD",
+            "is_laggard": True,
+            "perf_5d_pct": perf_5d,
+            "perf_20d_pct": stock.get("perf_20d_pct"),
+            "perf_60d_pct": stock.get("perf_60d_pct"),
+            "industry_label": stock.get("industry") or stock.get("sector") or "?",
+            "hot_etf": hottest.get("ticker"),
+            "hot_etf_name": hottest.get("name"),
+            "hot_etf_category": hottest.get("category"),
+            "theme_rs_rank": hottest.get("rs_rank_20d"),
+            "theme_momentum": hottest.get("momentum_score"),
+            "theme_acceleration": max_accel,
+            "max_rs_acceleration": max_accel,
+            "n_etfs_in_top_10": n_top_10,
+            "n_etfs_in_top_20": n_top_20,
+            "n_etfs_holding": len(etfs),
+            "aggregate_flow_5d_usd": flow_info["aggregate_flow_5d_usd"],
+            "aggregate_flow_21d_usd": flow_info["aggregate_flow_21d_usd"],
+            # Synthetic score so they sort nicely (deeper pullback in hotter theme = higher)
+            "combined_score": round(
+                max(0, -perf_5d) * 5  # pullback magnitude
+                + n_top_10 * 10        # hot theme strength
+                + max_accel / 5        # acceleration
+                + (10 if (stock.get("perf_20d_pct") or 0) > 10 else 0)  # strong context
+                , 1),
+        })
+
+    laggards.sort(key=lambda x: -x["combined_score"])
+    return laggards
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print(f"[theme-cascade] starting at {datetime.now(timezone.utc).isoformat()}")
@@ -440,9 +625,48 @@ def lambda_handler(event, context):
     medium_tier = [c for c in combined if 50 <= c["combined_score"] < 80]
     watch_tier = [c for c in combined if c["combined_score"] < 50]
 
+    # NEW: Detect laggards — stocks in hot themes not yet pumping
+    momentum_doc = _read_json("data/momentum-leaders.json") or {}
+    # Build top_10 / top_20 from theme_heat (sorted by rs_rank_20d)
+    sorted_by_rank = sorted(
+        [(etf, h) for etf, h in theme_heat.items() if h.get("rs_rank_20d") is not None],
+        key=lambda x: x[1]["rs_rank_20d"],
+    )
+    top_10_etfs_set = {etf for etf, _ in sorted_by_rank[:10]}
+    top_20_etfs_set = {etf for etf, _ in sorted_by_rank[:20]}
+    already_in_velocity = seen_tickers
+
+    laggards = scan_laggards_in_hot_themes(
+        momentum_doc, theme_heat, ticker_to_etfs,
+        top_10_etfs_set, top_20_etfs_set, exposure_lookup, already_in_velocity,
+    )
+    print(f"[theme-cascade] laggards: {len(laggards)} stocks not pumping yet in hot themes")
+
+    # Get earnings within 3 days set (if available)
+    earnings_set = set()
+    try:
+        cats = _read_json("data/catalysts.json") or {}
+        for item in (cats.get("calendar") or cats.get("items") or [])[:200]:
+            if isinstance(item, dict):
+                t = item.get("ticker") or item.get("symbol")
+                days_out = item.get("days_out") or item.get("days_until")
+                if t and days_out is not None and days_out <= 3:
+                    earnings_set.add(t)
+    except Exception as e:
+        print(f"[earnings] couldn't load catalysts: {e}")
+
+    # NEW: Add position sizing to ALL candidates
+    for c in alert_tier:
+        c["position_sizing"] = compute_position_sizing(c, earnings_set)
+    for c in medium_tier:
+        c["position_sizing"] = compute_position_sizing(c, earnings_set)
+    for c in laggards:
+        c["position_sizing"] = compute_position_sizing(c, earnings_set)
+
     elapsed = round(time.time() - t0, 1)
     print(f"[theme-cascade] DONE — {len(combined)} ranked, "
           f"alert={len(alert_tier)} medium={len(medium_tier)} watch={len(watch_tier)} "
+          f"laggards={len(laggards)} earnings_set={len(earnings_set)} "
           f"in {elapsed}s")
 
     top_hot_themes_out = [
@@ -473,6 +697,9 @@ def lambda_handler(event, context):
         "alert_tier": alert_tier[:25],
         "medium_tier": medium_tier[:30],
         "watch_tier": watch_tier[:30],
+        "laggards_hot_themes": laggards[:25],
+        "n_laggards_hot_themes": len(laggards),
+        "earnings_within_3d": sorted(list(earnings_set)),
         "all_ranked": combined[:80],
     }
 

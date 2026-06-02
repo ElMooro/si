@@ -946,13 +946,52 @@ function renderThemeCascade(doc) {
     html += '</div>';
   }
 
+  // NEW: Laggards in hot themes — second-wave candidates
+  const laggards = doc.laggards_hot_themes || [];
+  if(laggards.length) {
+    html += '<div style="margin-top:18px; margin-bottom:6px"><div style="font-size:11.5px; color:var(--violet); font-family:var(--font-mono); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px">🎯 LAGGARDS IN HOT THEMES — SECOND-WAVE PUMP CANDIDATES</div>';
+    html += '<div style="font-size:11px; color:var(--fg-3); margin-bottom:10px">Stocks NOT pumping yet (perf_5d ≤ 0) but in same hot themes as recent pumpers. The catch-up trade.</div>';
+    html += buildLaggardsTable(laggards.slice(0, 12));
+    html += '</div>';
+  }
+
   document.getElementById('theme-cascade-content').innerHTML = html;
   document.getElementById('theme-cascade-hero').style.display = 'block';
 }
 
+function buildLaggardsTable(rows) {
+  let html = '<table style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px"><thead><tr style="border-bottom:1px solid var(--border)">';
+  ['SCORE','TICKER','PERF_5D','PERF_20D','#TOP10','MIN_RANK','MAX_ACCEL','HOT_ETF','SIZE %'].forEach(h => {
+    html += '<th style="text-align:left; padding:7px 9px; color:var(--violet); font-size:10px; letter-spacing:1px; text-transform:uppercase">' + h + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  for(const l of rows) {
+    const perf5 = l.perf_5d_pct || 0;
+    const perf20 = l.perf_20d_pct || 0;
+    const accel = l.max_rs_acceleration || l.theme_acceleration || 0;
+    const minRank = l.theme_rs_rank || 999;
+    const sizing = l.position_sizing || {};
+    const sizingPct = sizing.final_pct || 0;
+    const sizeColor = sizingPct >= 10 ? 'var(--red)' : sizingPct >= 6 ? 'var(--amber)' : 'var(--cyan)';
+    html += '<tr style="border-bottom:1px solid var(--border)">';
+    html += '<td style="padding:7px 9px"><b style="color:var(--violet); font-size:13px">' + (l.combined_score || 0).toFixed(0) + '</b></td>';
+    html += '<td style="padding:7px 9px"><a href="/why.html?ticker=' + l.ticker + '" style="color:var(--cyan); text-decoration:none; font-weight:700; font-size:12.5px">' + esc(l.ticker) + '</a></td>';
+    html += '<td style="padding:7px 9px; color:' + (perf5 < 0 ? 'var(--red)' : 'var(--fg-2)') + '">' + (perf5 >= 0 ? '+' : '') + perf5.toFixed(1) + '%</td>';
+    html += '<td style="padding:7px 9px; color:' + (perf20 > 0 ? 'var(--green)' : 'var(--fg-2)') + '">' + (perf20 >= 0 ? '+' : '') + perf20.toFixed(1) + '%</td>';
+    html += '<td style="padding:7px 9px; color:var(--fg-1)">' + (l.n_etfs_in_top_10 || 0) + '</td>';
+    html += '<td style="padding:7px 9px; color:var(--fg-2)">#' + minRank + '</td>';
+    html += '<td style="padding:7px 9px; color:' + (accel >= 50 ? 'var(--green)' : 'var(--fg-3)') + '">' + accel.toFixed(0) + '</td>';
+    html += '<td style="padding:7px 9px; color:var(--fg-2); font-size:10.5px">' + esc(l.hot_etf || '—') + '</td>';
+    html += '<td style="padding:7px 9px"><b style="color:' + sizeColor + '">' + sizingPct.toFixed(1) + '%</b></td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
 function buildCascadeTable(rows, isHigh) {
   let html = '<table style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px"><thead><tr style="border-bottom:1px solid var(--border)">';
-  ['SCORE','TICKER','TIER','BASE','THEME×','FLOW×','THEME','ACC SIGNALS','FLOW $'].forEach(h => {
+  ['SCORE','TICKER','TIER','BASE','THEME×','FLOW×','THEME','ACC SIGNALS','FLOW $','SIZE %'].forEach(h => {
     html += '<th style="text-align:left; padding:7px 9px; color:var(--' + (isHigh ? 'red' : 'amber') + '); font-size:10px; letter-spacing:1px; text-transform:uppercase">' + h + '</th>';
   });
   html += '</tr></thead><tbody>';
@@ -972,6 +1011,10 @@ function buildCascadeTable(rows, isHigh) {
     const flowStr = Math.abs(flow5d) > 1e6 ?
       (flow5d >= 0 ? '+$' : '-$') + Math.abs(flow5d/1e6).toFixed(0) + 'M' : '—';
     const flowColor = flow5d > 0 ? 'var(--green)' : flow5d < 0 ? 'var(--red)' : 'var(--fg-3)';
+    const sizing = c.position_sizing || {};
+    const sizingPct = sizing.final_pct || 0;
+    const sizeColor = sizingPct >= 12 ? 'var(--red)' : sizingPct >= 7 ? 'var(--amber)' : 'var(--cyan)';
+    const sizeTooltip = sizing.rationale || 'Base sizing';
     html += '<tr style="border-bottom:1px solid var(--border)">';
     html += '<td style="padding:7px 9px"><b style="color:' + scoreColor + '; font-size:13px">' + score.toFixed(0) + '</b></td>';
     html += '<td style="padding:7px 9px"><a href="/why.html?ticker=' + c.ticker + '" style="color:var(--cyan); text-decoration:none; font-weight:700; font-size:12.5px">' + esc(c.ticker) + '</a></td>';
@@ -979,9 +1022,10 @@ function buildCascadeTable(rows, isHigh) {
     html += '<td style="padding:7px 9px; color:var(--fg-2)">' + (c.base_score || 0).toFixed(0) + '</td>';
     html += '<td style="padding:7px 9px; color:' + (c.theme_multiplier > 1 ? 'var(--green)' : 'var(--fg-3)') + '">×' + (c.theme_multiplier || 1).toFixed(2) + '</td>';
     html += '<td style="padding:7px 9px; color:' + (c.flow_multiplier > 1 ? 'var(--green)' : c.flow_multiplier < 1 ? 'var(--red)' : 'var(--fg-3)') + '">×' + (c.flow_multiplier || 1).toFixed(2) + '</td>';
-    html += '<td style="padding:7px 9px; color:var(--fg-2); font-size:10.5px">' + esc(c.theme_label || c.theme || '—') + '</td>';
+    html += '<td style="padding:7px 9px; color:var(--fg-2); font-size:10.5px">' + esc(c.industry_label || c.industry || '—') + '</td>';
     html += '<td style="padding:7px 9px; color:var(--fg-3); font-size:10px">' + accSignals.join(' · ') + '</td>';
     html += '<td style="padding:7px 9px; color:' + flowColor + '; font-size:10.5px">' + flowStr + '</td>';
+    html += '<td style="padding:7px 9px" title="' + esc(sizeTooltip) + '"><b style="color:' + sizeColor + '">' + sizingPct.toFixed(1) + '%</b></td>';
     html += '</tr>';
   }
   html += '</tbody></table>';
