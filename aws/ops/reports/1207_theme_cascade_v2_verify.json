@@ -1,0 +1,393 @@
+{
+  "started": "2026-06-02T18:09:30.504707+00:00",
+  "invoke": {
+    "elapsed_s": 1.5,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.5, \\\"n_total\\\": 3, \\\"n_alert_tier\\\": 3, \\\"n_medium_tier\\\": 0, \\\"n_themes_tracked\\\": 113, \\\"top_5_hot_themes\\\": [{\\\"etf\\\": \\\"CHAT\\\", \\\"name\\\": \\\"Roundhill Generative AI\\\", \\\"category\\\": \\\"AI_BROAD\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 4, \\\"rs_accel\\\": 89.05}, {\\\"etf\\\": \\\"AIQ\\\", \\\"name\\\": \\\"Global X AI & Tech\\\", \\\"category\\\": \\\"AI_BROAD\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 8, \\\"rs_accel\\\": 77.38}, {\\\"etf\\\": \\\"TAN\\\", \\\"name\\\": \\\"Invesco Solar\\\", \\\"category\\\": \\\"SOLAR\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 11, \\\"rs_accel\\\": 53.32}, {\\\"etf\\\": \\\"BLOK\\\", \\\"name\\\": \\\"Amplify Transformational Data\\\", \\\"category\\\": \\\"BLOCKCHAIN\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 100, \\\"rs_rank\\\": 18, \\\"rs_accel\\\": 55.11}, {\\\"etf\\\": \\\"CIBR\\\", \\\"name\\\": \\\"Cybersecurity\\\", \\\"category\\\": \\\"CYBERSEC\\\", \\\"mult\\\": 3.0, \\\"momentum\\\": 93, \\\"rs_rank\\\": 2, \\\"rs_accel\\\": 88.0}], \\\"top_10_combined\\\": [{\\\"ticker\\\": \\\"CRWD\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"combined_score\\\": 113.5, \\\"base\\\": 34.4, \\\"theme_mult\\\": 3.0, \\\"flow_mult\\\": 1.1, \\\"hot_etf\\\": \\\"CIBR\\\", \\\"industry\\\": \\\"Software - Infrastructure\\\"}, {\\\"ticker\\\": \\\"PANW\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"combined_score\\\": 99.0, \\\"base\\\": 30.0, \\\"theme_mult\\\": 3.0, \\\"flow_mult\\\": 1.1, \\\"hot_etf\\\": \\\"CIBR\\\", \\\"industry\\\": \\\"Software - Infrastructure\\\"}, {\\\"ticker\\\": \\\"ARM\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"combined_score\\\": 98.1, \\\"base\\\": 32.7, \\\"theme_mult\\\": 3.0, \\\"flow_mult\\\": 1.0, \\\"hot_etf\\\": \\\"CHAT\\\", \\\"industry\\\": \\\"Semiconductors\\\"}]}\"}"
+  },
+  "doc": {
+    "schema_version": "2.0",
+    "macro_regime": "REFLATION",
+    "n_themes_tracked": 113,
+    "n_tickers_mapped": 1349,
+    "n_total_ranked": 3,
+    "n_alert_tier": 3,
+    "n_medium_tier": 0,
+    "n_watch_tier": 0,
+    "top_hot_themes": [
+      {
+        "etf": "CHAT",
+        "name": "Roundhill Generative AI",
+        "category": "AI_BROAD",
+        "multiplier": 3.0,
+        "factors": [
+          "top_momentum (m=100)",
+          "top_5_rs (#4)",
+          "strong_accel (a=89.0)",
+          "good_breadth (67%)",
+          "top_10_momentum",
+          "convergent_breadth",
+          "strong_money_flow (2.8)"
+        ],
+        "momentum_score": 100,
+        "rs_rank_20d": 4,
+        "rs_acceleration": 89.05,
+        "breadth_outperform_pct": 66.7
+      },
+      {
+        "etf": "AIQ",
+        "name": "Global X AI & Tech",
+        "category": "AI_BROAD",
+        "multiplier": 3.0,
+        "factors": [
+          "top_momentum (m=100)",
+          "top_10_rs (#8)",
+          "positive_accel (a=77.4)",
+          "good_breadth (73%)",
+          "top_10_momentum",
+          "convergent_breadth",
+          "strong_money_flow (2.1)"
+        ],
+        "momentum_score": 100,
+        "rs_rank_20d": 8,
+        "rs_acceleration": 77.38,
+        "breadth_outperform_pct": 73.3
+      },
+      {
+        "etf": "TAN",
+        "name": "Invesco Solar",
+        "category": "SOLAR",
+        "multiplier": 3.0,
+        "factors": [
+          "top_momentum (m=100)",
+          "top_20_rs (#11)",
+          "positive_accel (a=53.3)",
+          "good_breadth (73%)",
+          "top_10_momentum",
+          "convergent_breadth",
+          "strong_money_flow (2.2)"
+        ],
+        "momentum_score": 100,
+        "rs_rank_20d": 11,
+        "rs_acceleration": 53.32,
+        "breadth_outperform_pct": 73.3
+      },
+      {
+        "etf": "BLOK",
+        "name": "Amplify Transformational Data",
+        "category": "BLOCKCHAIN",
+        "multiplier": 3.0,
+        "factors": [
+          "top_momentum (m=100)",
+          "top_20_rs (#18)",
+          "positive_accel (a=55.1)",
+          "good_breadth (73%)",
+          "top_10_momentum",
+          "convergent_breadth",
+          "strong_money_flow (2.2)"
+        ],
+        "momentum_score": 100,
+        "rs_rank_20d": 18,
+        "rs_acceleration": 55.11,
+        "breadth_outperform_pct": 73.3
+      },
+      {
+        "etf": "CIBR",
+        "name": "Cybersecurity",
+        "category": "CYBERSEC",
+        "multiplier": 3.0,
+        "factors": [
+          "top_momentum (m=93)",
+          "top_5_rs (#2)",
+          "strong_accel (a=88.0)",
+          "high_breadth (100%)",
+          "top_10_momentum",
+          "strong_money_flow (3.7)"
+        ],
+        "momentum_score": 93,
+        "rs_rank_20d": 2,
+        "rs_acceleration": 88.0,
+        "breadth_outperform_pct": 100.0
+      },
+      {
+        "etf": "HACK",
+        "name": "ETFMG Cyber Security",
+        "category": "CYBERSEC",
+        "multiplier": 3.0,
+        "factors": [
+          "top_momentum (m=93)",
+          "top_5_rs (#3)",
+          "strong_accel (a=83.4)",
+          "high_breadth (93%)",
+          "strong_money_flow (3.4)"
+        ],
+        "momentum_score": 93,
+        "rs_rank_20d": 3,
+        "rs_acceleration": 83.43,
+        "breadth_outperform_pct": 93.3
+      },
+      {
+        "etf": "WCLD",
+        "name": "WisdomTree Cloud Computing",
+        "category": "AI_SOFTWARE",
+        "multiplier": 3.0,
+        "factors": [
+          "top_momentum (m=93)",
+          "top_5_rs (#5)",
+          "strong_accel (a=196.7)",
+          "high_breadth (100%)",
+          "strong_money_flow (2.5)"
+        ],
+        "momentum_score": 93,
+        "rs_rank_20d": 5,
+        "rs_acceleration": 196.71,
+        "breadth_outperform_pct": 100.0
+      },
+      {
+        "etf": "IGV",
+        "name": "iShares Software",
+        "category": "SOFTWARE",
+        "multiplier": 3.0,
+        "factors": [
+          "top_momentum (m=93)",
+          "top_10_rs (#6)",
+          "strong_accel (a=142.4)",
+          "high_breadth (80%)"
+        ],
+        "momentum_score": 93,
+        "rs_rank_20d": 6,
+        "rs_acceleration": 142.41,
+        "breadth_outperform_pct": 80.0
+      },
+      {
+        "etf": "KOMP",
+        "name": "SPDR Innovative Tech",
+        "category": "INNOV_TECH",
+        "multiplier": 2.862,
+        "factors": [
+          "top_momentum (m=100)",
+          "mild_accel (a=32.1)",
+          "high_breadth (80%)",
+          "top_10_momentum",
+          "convergent_breadth"
+        ],
+        "momentum_score": 100,
+        "rs_rank_20d": 21,
+        "rs_acceleration": 32.09,
+        "breadth_outperform_pct": 80.0
+      },
+      {
+        "etf": "PICK",
+        "name": "iShares Metals & Mining",
+        "category": "METALS",
+        "multiplier": 2.862,
+        "factors": [
+          "top_momentum (m=100)",
+          "mild_accel (a=40.8)",
+          "high_breadth (83%)",
+          "top_10_momentum",
+          "convergent_breadth"
+        ],
+        "momentum_score": 100,
+        "rs_rank_20d": 30,
+        "rs_acceleration": 40.84,
+        "breadth_outperform_pct": 83.3
+      },
+      {
+        "etf": "XLK",
+        "name": "Tech Select Sector",
+        "category": "TECH_BROAD",
+        "multiplier": 2.765,
+        "factors": [
+          "top_momentum (m=93)",
+          "top_10_rs (#9)",
+          "positive_accel (a=53.2)",
+          "high_breadth (93%)"
+        ],
+        "momentum_score": 93,
+        "rs_rank_20d": 9,
+        "rs_acceleration": 53.17,
+        "breadth_outperform_pct": 93.3
+      },
+      {
+        "etf": "PBW",
+        "name": "Invesco Wilderhill Clean",
+        "category": "CLEAN_ENERGY",
+        "multiplier": 2.672,
+        "factors": [
+          "top_momentum (m=100)",
+          "top_20_rs (#15)",
+          "good_breadth (73%)",
+          "top_10_momentum",
+          "convergent_breadth"
+        ],
+        "momentum_score": 100,
+        "rs_rank_20d": 15,
+        "rs_acceleration": 12.1,
+        "breadth_outperform_pct": 73.3
+      },
+      {
+        "etf": "CPER",
+        "name": "United States Copper Fund",
+        "category": "COPPER_FUT",
+        "multiplier": 2.65,
+        "factors": [
+          "top_momentum (m=93)",
+          "rank_jumping (+14)",
+          "high_breadth (100%)",
+          "rotator_in"
+        ],
+        "momentum_score": 93,
+        "rs_rank_20d": 23,
+        "rs_acceleration": 10.33,
+        "breadth_outperform_pct": 100.0
+      },
+      {
+        "etf": "ARKG",
+        "name": "ARK Genomic Revolution",
+        "category": "GENOMICS",
+        "multiplier": 2.614,
+        "factors": [
+          "top_momentum (m=93)",
+          "top_20_rs (#17)",
+          "strong_accel (a=129.5)",
+          "good_breadth (73%)"
+        ],
+        "momentum_score": 93,
+        "rs_rank_20d": 17,
+        "rs_acceleration": 129.47,
+        "breadth_outperform_pct": 73.3
+      },
+      {
+        "etf": "VGT",
+        "name": "Vanguard Info Tech",
+        "category": "TECH_BROAD",
+        "multiplier": 2.509,
+        "factors": [
+          "top_momentum (m=93)",
+          "top_20_rs (#14)",
+          "mild_accel (a=42.6)",
+          "high_breadth (93%)",
+          "strong_money_flow (2.1)"
+        ],
+        "momentum_score": 93,
+        "rs_rank_20d": 14,
+        "rs_acceleration": 42.58,
+        "breadth_outperform_pct": 93.3
+      }
+    ],
+    "alert_tier": [
+      {
+        "ticker": "CRWD",
+        "tier": "WATCH",
+        "base_score": 34.4,
+        "theme_multiplier": 3.0,
+        "flow_multiplier": 1.1,
+        "combined_score": 113.5,
+        "industry": "Software - Infrastructure",
+        "industry_label": "Software - Infrastructure",
+        "hot_etf": "CIBR",
+        "hot_etf_name": "Cybersecurity",
+        "hot_etf_category": "CYBERSEC",
+        "n_etfs_in_heat_index": 7,
+        "theme_factors": [
+          "top_momentum (m=93)",
+          "top_5_rs (#2)",
+          "strong_accel (a=88.0)",
+          "high_breadth (100%)",
+          "top_10_momentum",
+          "strong_money_flow (3.7)"
+        ],
+        "theme_momentum": 93,
+        "theme_rs_rank": 2,
+        "theme_acceleration": 88.0,
+        "flow_factors": [
+          "broad_exposure_5_etfs"
+        ],
+        "n_etfs_holding": 5,
+        "aggregate_flow_5d_usd": 4128406.93,
+        "aggregate_flow_21d_usd": 27318465.6,
+        "slope_score": 27.6,
+        "accum_score": 50.5,
+        "floor_score": 27.5,
+        "current_vol_ratio": 0.84,
+        "momentum_score": 82.4
+      },
+      {
+        "ticker": "PANW",
+        "tier": "WATCH",
+        "base_score": 30.0,
+        "theme_multiplier": 3.0,
+        "flow_multiplier": 1.1,
+        "combined_score": 99.0,
+        "industry": "Software - Infrastructure",
+        "industry_label": "Software - Infrastructure",
+        "hot_etf": "CIBR",
+        "hot_etf_name": "Cybersecurity",
+        "hot_etf_category": "CYBERSEC",
+        "n_etfs_in_heat_index": 6,
+        "theme_factors": [
+          "top_momentum (m=93)",
+          "top_5_rs (#2)",
+          "strong_accel (a=88.0)",
+          "high_breadth (100%)",
+          "top_10_momentum",
+          "strong_money_flow (3.7)"
+        ],
+        "theme_momentum": 93,
+        "theme_rs_rank": 2,
+        "theme_acceleration": 88.0,
+        "flow_factors": [
+          "broad_exposure_6_etfs"
+        ],
+        "n_etfs_holding": 6,
+        "aggregate_flow_5d_usd": 63037403.58,
+        "aggregate_flow_21d_usd": 107900319.96,
+        "slope_score": 42.0,
+        "accum_score": 30.1,
+        "floor_score": 0,
+        "current_vol_ratio": 0.98,
+        "momentum_score": 82.4
+      },
+      {
+        "ticker": "ARM",
+        "tier": "WATCH",
+        "base_score": 32.7,
+        "theme_multiplier": 3.0,
+        "flow_multiplier": 1.0,
+        "combined_score": 98.1,
+        "industry": "Semiconductors",
+        "industry_label": "AI semis",
+        "hot_etf": "CHAT",
+        "hot_etf_name": "Roundhill Generative AI",
+        "hot_etf_category": "AI_BROAD",
+        "n_etfs_in_heat_index": 3,
+        "theme_factors": [
+          "top_momentum (m=100)",
+          "top_5_rs (#4)",
+          "strong_accel (a=89.0)",
+          "good_breadth (67%)",
+          "top_10_momentum",
+          "convergent_breadth",
+          "strong_money_flow (2.8)"
+        ],
+        "theme_momentum": 100,
+        "theme_rs_rank": 4,
+        "theme_acceleration": 89.05,
+        "flow_factors": [],
+        "n_etfs_holding": 2,
+        "aggregate_flow_5d_usd": 1784010.52,
+        "aggregate_flow_21d_usd": 4193746.55,
+        "slope_score": 15.3,
+        "accum_score": 67.8,
+        "floor_score": 23.3,
+        "current_vol_ratio": 0.93,
+        "momentum_score": 88.9
+      }
+    ],
+    "medium_tier": [],
+    "watch_tier_top10": []
+  },
+  "finished": "2026-06-02T18:09:32.108676+00:00"
+}
