@@ -1,0 +1,814 @@
+{
+  "started": "2026-06-02T16:04:51.689869+00:00",
+  "steps": {
+    "pull_fmp": {
+      "ok": true,
+      "len": 32
+    },
+    "env_swap": {
+      "ok": true,
+      "removed": [
+        "POLYGON_KEY"
+      ],
+      "added": [
+        "FMP_KEY"
+      ],
+      "current_env_keys": [
+        "FMP_KEY"
+      ]
+    },
+    "invoke": {
+      "elapsed_s": 2.2,
+      "status": 200,
+      "function_error": null,
+      "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 1.2, \\\"n_high_z_etfs\\\": 13, \\\"n_stocks_pressured\\\": 401, \\\"top_5_pressure\\\": [{\\\"stock\\\": \\\"AMZN\\\", \\\"pressure_5d_usd\\\": 101292851.8, \\\"direction\\\": \\\"BUYING_PRESSURE\\\", \\\"n_etfs\\\": 2}, {\\\"stock\\\": \\\"TSLA\\\", \\\"pressure_5d_usd\\\": 72985903.25, \\\"direction\\\": \\\"BUYING_PRESSURE\\\", \\\"n_etfs\\\": 2}, {\\\"stock\\\": \\\"NVDA\\\", \\\"pressure_5d_usd\\\": 58889613.93, \\\"direction\\\": \\\"BUYING_PRESSURE\\\", \\\"n_etfs\\\": 4}, {\\\"stock\\\": \\\"TSM\\\", \\\"pressure_5d_usd\\\": 57176183.24, \\\"direction\\\": \\\"BUYING_PRESSURE\\\", \\\"n_etfs\\\": 1}, {\\\"stock\\\": \\\"JNJ\\\", \\\"pressure_5d_usd\\\": -42014081.03, \\\"direction\\\": \\\"SELLING_PRESSURE\\\", \\\"n_etfs\\\": 1}]}\"}"
+    },
+    "constituent_output": {
+      "generated_at": "2026-06-02T16:04:56.765666+00:00",
+      "n_high_z_etfs": 13,
+      "n_etfs_with_constituents": 13,
+      "threshold_z": 1.5,
+      "high_z_etfs": [
+        {
+          "ticker": "QQQ",
+          "zscore_90d": -1.89,
+          "flow_5d_usd": 171551209.5,
+          "flow_21d_usd": 2852946172.5,
+          "signal_label": "OUTFLOW",
+          "n_constituents_fetched": 50
+        },
+        {
+          "ticker": "XLK",
+          "zscore_90d": -1.68,
+          "flow_5d_usd": 91545948.10000002,
+          "flow_21d_usd": 589328782.2,
+          "signal_label": "OUTFLOW",
+          "n_constituents_fetched": 50
+        },
+        {
+          "ticker": "XLP",
+          "zscore_90d": -1.67,
+          "flow_5d_usd": -139313487.74999997,
+          "flow_21d_usd": 81463742.9,
+          "signal_label": "OUTFLOW",
+          "n_constituents_fetched": 37
+        },
+        {
+          "ticker": "XLY",
+          "zscore_90d": -1.81,
+          "flow_5d_usd": 343912628.2,
+          "flow_21d_usd": -143762635.74999994,
+          "signal_label": "OUTFLOW",
+          "n_constituents_fetched": 49
+        },
+        {
+          "ticker": "XLB",
+          "zscore_90d": 2.7,
+          "flow_5d_usd": 94427662.65,
+          "flow_21d_usd": 98633048.54999998,
+          "signal_label": "STRONG_INFLOW",
+          "n_constituents_fetched": 27
+        },
+        {
+          "ticker": "MTUM",
+          "zscore_90d": 2.12,
+          "flow_5d_usd": -1204774196.35,
+          "flow_21d_usd": -488956763.15,
+          "signal_label": "STRONG_INFLOW",
+          "n_constituents_fetched": 50
+        },
+        {
+          "ticker": "EWU",
+          "zscore_90d": 5.13,
+          "flow_5d_usd": 121605809.0,
+          "flow_21d_usd": 121605809.0,
+          "signal_label": "STRONG_INFLOW",
+          "n_constituents_fetched": 49
+        },
+        {
+          "ticker": "EWC",
+          "zscore_90d": 3.18,
+          "flow_5d_usd": 293228365.8,
+          "flow_21d_usd": 335220141.4,
+          "signal_label": "STRONG_INFLOW",
+          "n_constituents_fetched": 50
+        },
+        {
+          "ticker": "UNG",
+          "zscore_90d": -3.97,
+          "flow_5d_usd": -60887200.0,
+          "flow_21d_usd": -120985400.0,
+          "signal_label": "STRONG_OUTFLOW",
+          "n_constituents_fetched": 0
+        },
+        {
+          "ticker": "SMH",
+          "zscore_90d": 1.69,
+          "flow_5d_usd": 601640077.0,
+          "flow_21d_usd": 30759974.5,
+          "signal_label": "INFLOW",
+          "n_constituents_fetched": 25
+        },
+        {
+          "ticker": "ICLN",
+          "zscore_90d": 2.77,
+          "flow_5d_usd": 122786282.5,
+          "flow_21d_usd": 402317877.8,
+          "signal_label": "STRONG_INFLOW",
+          "n_constituents_fetched": 50
+        },
+        {
+          "ticker": "IBB",
+          "zscore_90d": -2.2,
+          "flow_5d_usd": -119610636.15,
+          "flow_21d_usd": -270587754.75,
+          "signal_label": "STRONG_OUTFLOW",
+          "n_constituents_fetched": 50
+        },
+        {
+          "ticker": "IBIT",
+          "zscore_90d": -2.54,
+          "flow_5d_usd": -1429496446.2,
+          "flow_21d_usd": -1920796777.56,
+          "signal_label": "STRONG_OUTFLOW",
+          "n_constituents_fetched": 0
+        }
+      ],
+      "top_30_pressure": [
+        {
+          "stock": "AMZN",
+          "name": "Amazon.com Inc",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 101292851.8,
+          "total_pressure_21d_usd": 87302127.89,
+          "n_etfs_pressuring": 2,
+          "cumulative_etf_weight_pct": 31.67,
+          "contributing_etfs_top3": [
+            {
+              "etf": "XLY",
+              "weight_pct": 27.24189185,
+              "etf_zscore": -1.81,
+              "implied_pressure_5d": 93688306.2327366
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 4.43281373,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 7604545.568697064
+            }
+          ]
+        },
+        {
+          "stock": "TSLA",
+          "name": "Tesla Inc",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 72985903.25,
+          "total_pressure_21d_usd": 65434002.26,
+          "n_etfs_pressuring": 2,
+          "cumulative_etf_weight_pct": 22.87,
+          "contributing_etfs_top3": [
+            {
+              "etf": "XLY",
+              "weight_pct": 19.585833,
+              "etf_zscore": -1.81,
+              "implied_pressure_5d": 67358153.0251629
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 3.28050746,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 5627750.225367729
+            }
+          ]
+        },
+        {
+          "stock": "NVDA",
+          "name": "NVIDIA Corp",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 58889613.93,
+          "total_pressure_21d_usd": 305716932.72,
+          "n_etfs_pressuring": 4,
+          "cumulative_etf_weight_pct": 42.66,
+          "contributing_etfs_top3": [
+            {
+              "etf": "SMH",
+              "weight_pct": 15.41572711,
+              "etf_zscore": 1.69,
+              "implied_pressure_5d": 92747192.45471387
+            },
+            {
+              "etf": "MTUM",
+              "weight_pct": 5.06762405,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -61053426.92242681
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 8.61725434,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 14783004.045961244
+            }
+          ]
+        },
+        {
+          "stock": "TSM",
+          "name": "Taiwan Semiconductor Manufacturing Co L",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 57176183.24,
+          "total_pressure_21d_usd": 2923239.33,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 9.5,
+          "contributing_etfs_top3": [
+            {
+              "etf": "SMH",
+              "weight_pct": 9.50338673,
+              "etf_zscore": 1.69,
+              "implied_pressure_5d": 57176183.23997979
+            }
+          ]
+        },
+        {
+          "stock": "JNJ",
+          "name": "JOHNSON & JOHNSON",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -42014081.03,
+          "total_pressure_21d_usd": -17051385.34,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 3.49,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 3.48729921,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -42014081.0315974
+            }
+          ]
+        },
+        {
+          "stock": "WMT",
+          "name": "Walmart Inc",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -41753212.73,
+          "total_pressure_21d_usd": 66078584.52,
+          "n_etfs_pressuring": 3,
+          "cumulative_etf_weight_pct": 15.88,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 2.55584786,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -30792195.51524367
+            },
+            {
+              "etf": "XLP",
+              "weight_pct": 10.87694787,
+              "etf_zscore": -1.67,
+              "implied_pressure_5d": -15153055.438446334
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 2.4436075,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 4192038.221682713
+            }
+          ]
+        },
+        {
+          "stock": "XOM",
+          "name": "EXXON MOBIL CORP",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -37862017.6,
+          "total_pressure_21d_usd": -15366273.31,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 3.14,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 3.14266505,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -37862017.60010982
+            }
+          ]
+        },
+        {
+          "stock": "CAT",
+          "name": "CATERPILLAR INC",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -36935016.26,
+          "total_pressure_21d_usd": -14990050.46,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 3.07,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 3.06572106,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -36935016.26294769
+            }
+          ]
+        },
+        {
+          "stock": "MU",
+          "name": "Micron Technology Inc",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -33393732.58,
+          "total_pressure_21d_usd": 151203244.31,
+          "n_etfs_pressuring": 4,
+          "cumulative_etf_weight_pct": 27.24,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 7.71823113,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -92987257.06889302
+            },
+            {
+              "etf": "SMH",
+              "weight_pct": 7.3810917,
+              "etf_zscore": 1.69,
+              "implied_pressure_5d": 44407605.787320614
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 5.08480558,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 8723045.47321349
+            }
+          ]
+        },
+        {
+          "stock": "QCOM",
+          "name": "QUALCOMM Inc",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 32852575.43,
+          "total_pressure_21d_usd": 40640687.82,
+          "n_etfs_pressuring": 3,
+          "cumulative_etf_weight_pct": 7.48,
+          "contributing_etfs_top3": [
+            {
+              "etf": "SMH",
+              "weight_pct": 4.93145059,
+              "etf_zscore": 1.69,
+              "implied_pressure_5d": 29669583.126892954
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 1.06561782,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 1828080.2588575329
+            },
+            {
+              "etf": "XLK",
+              "weight_pct": 1.48003497,
+              "etf_zscore": -1.68,
+              "implied_pressure_5d": 1354912.045498051
+            }
+          ]
+        },
+        {
+          "stock": "TXN",
+          "name": "Texas Instruments Inc",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 32282394.61,
+          "total_pressure_21d_usd": 44081740.9,
+          "n_etfs_pressuring": 3,
+          "cumulative_etf_weight_pct": 7.56,
+          "contributing_etfs_top3": [
+            {
+              "etf": "SMH",
+              "weight_pct": 4.78955774,
+              "etf_zscore": 1.69,
+              "implied_pressure_5d": 28815898.87489546
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 1.16053133,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 1990905.5332414364
+            },
+            {
+              "etf": "XLK",
+              "weight_pct": 1.61185747,
+              "etf_zscore": -1.68,
+              "implied_pressure_5d": 1475590.2029321734
+            }
+          ]
+        },
+        {
+          "stock": "JPM",
+          "name": "JPMORGAN CHASE & CO",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -30598668.3,
+          "total_pressure_21d_usd": -12418448.08,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 2.54,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 2.5397845,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -30598668.298896868
+            }
+          ]
+        },
+        {
+          "stock": "GEV",
+          "name": "GE VERNOVA INC",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -28388667.38,
+          "total_pressure_21d_usd": -11521520.76,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 2.36,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 2.35634756,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -28388667.379202835
+            }
+          ]
+        },
+        {
+          "stock": "GOOGL",
+          "name": "Alphabet Inc",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -28227381.81,
+          "total_pressure_21d_usd": 84926047.77,
+          "n_etfs_pressuring": 2,
+          "cumulative_etf_weight_pct": 6.3,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 2.83604454,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -34167932.81491305
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 3.46284414,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 5940551.005269874
+            }
+          ]
+        },
+        {
+          "stock": "RY.TO",
+          "name": "ROYAL BANK OF CANADA",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 25848927.79,
+          "total_pressure_21d_usd": 29550624.15,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 8.82,
+          "contributing_etfs_top3": [
+            {
+              "etf": "EWC",
+              "weight_pct": 8.81528897,
+              "etf_zscore": 3.18,
+              "implied_pressure_5d": 25848927.78727865
+            }
+          ]
+        },
+        {
+          "stock": "ASML",
+          "name": "ASML Holding NV",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 24384759.6,
+          "total_pressure_21d_usd": 19004268.88,
+          "n_etfs_pressuring": 2,
+          "cumulative_etf_weight_pct": 4.5,
+          "contributing_etfs_top3": [
+            {
+              "etf": "SMH",
+              "weight_pct": 3.87502161,
+              "etf_zscore": 1.69,
+              "implied_pressure_5d": 23313682.99817064
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 0.62434803,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 1071076.596954423
+            }
+          ]
+        },
+        {
+          "stock": "AAPL",
+          "name": "Apple Inc",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 22432168.69,
+          "total_pressure_21d_usd": 268693745.87,
+          "n_etfs_pressuring": 2,
+          "cumulative_etf_weight_pct": 18.29,
+          "contributing_etfs_top3": [
+            {
+              "etf": "QQQ",
+              "weight_pct": 7.10782985,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 12193568.076877035
+            },
+            {
+              "etf": "XLK",
+              "weight_pct": 11.18411118,
+              "etf_zscore": -1.68,
+              "implied_pressure_5d": 10238600.6162891
+            }
+          ]
+        },
+        {
+          "stock": "GOOG",
+          "name": "Alphabet Inc",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -22173297.08,
+          "total_pressure_21d_usd": 80140031.26,
+          "n_etfs_pressuring": 2,
+          "cumulative_etf_weight_pct": 5.5,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 2.2964817,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -27667418.94549982
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 3.20261331,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 5494121.868912985
+            }
+          ]
+        },
+        {
+          "stock": "GE",
+          "name": "GE AEROSPACE",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -21283647.33,
+          "total_pressure_21d_usd": -8637953.35,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 1.77,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 1.76660883,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -21283647.334280636
+            }
+          ]
+        },
+        {
+          "stock": "MRVL",
+          "name": "Marvell Technology Inc",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 20141487.43,
+          "total_pressure_21d_usd": 24742662.39,
+          "n_etfs_pressuring": 2,
+          "cumulative_etf_weight_pct": 3.94,
+          "contributing_etfs_top3": [
+            {
+              "etf": "SMH",
+              "weight_pct": 3.11003294,
+              "etf_zscore": 1.69,
+              "implied_pressure_5d": 18711204.574941363
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 0.83373522,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 1430282.853937486
+            }
+          ]
+        },
+        {
+          "stock": "GS",
+          "name": "GOLDMAN SACHS GROUP INC",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -19743929.29,
+          "total_pressure_21d_usd": -8013059.86,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 1.64,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 1.63880745,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -19743929.28546143
+            }
+          ]
+        },
+        {
+          "stock": "GILD",
+          "name": "Gilead Sciences Inc",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -19280023.35,
+          "total_pressure_21d_usd": -4539168.19,
+          "n_etfs_pressuring": 3,
+          "cumulative_etf_weight_pct": 9.09,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 0.96493571,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -11625296.445446666
+            },
+            {
+              "etf": "IBB",
+              "weight_pct": 7.41774531,
+              "etf_zscore": -2.2,
+              "implied_pressure_5d": -8872412.35327779
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 0.70980872,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 1217685.4442964683
+            }
+          ]
+        },
+        {
+          "stock": "TD.TO",
+          "name": "TORONTO DOMINION",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 18278238.0,
+          "total_pressure_21d_usd": 20895773.53,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 6.23,
+          "contributing_etfs_top3": [
+            {
+              "etf": "EWC",
+              "weight_pct": 6.2334481,
+              "etf_zscore": 3.18,
+              "implied_pressure_5d": 18278237.99662115
+            }
+          ]
+        },
+        {
+          "stock": "HD",
+          "name": "HOME DEPOT INC",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 17812070.34,
+          "total_pressure_21d_usd": -7445816.09,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 5.18,
+          "contributing_etfs_top3": [
+            {
+              "etf": "XLY",
+              "weight_pct": 5.17924289,
+              "etf_zscore": -1.81,
+              "implied_pressure_5d": 17812070.343860634
+            }
+          ]
+        },
+        {
+          "stock": "STX",
+          "name": "Seagate Technology Holdings PLC",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -17414468.6,
+          "total_pressure_21d_usd": 24039541.33,
+          "n_etfs_pressuring": 3,
+          "cumulative_etf_weight_pct": 3.76,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 1.66269134,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -20031676.229266047
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 0.87619907,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 1503130.1022127515
+            },
+            {
+              "etf": "XLK",
+              "weight_pct": 1.21695995,
+              "etf_zscore": -1.68,
+              "implied_pressure_5d": 1114077.524224786
+            }
+          ]
+        },
+        {
+          "stock": "MSFT",
+          "name": "Microsoft Corp",
+          "dominant_direction": "BUYING_PRESSURE",
+          "total_pressure_5d_usd": 17057481.27,
+          "total_pressure_21d_usd": 204312349.69,
+          "n_etfs_pressuring": 2,
+          "cumulative_etf_weight_pct": 13.91,
+          "contributing_etfs_top3": [
+            {
+              "etf": "QQQ",
+              "weight_pct": 5.40463585,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 9271718.169745605
+            },
+            {
+              "etf": "XLK",
+              "weight_pct": 8.50475992,
+              "etf_zscore": -1.68,
+              "implied_pressure_5d": 7785763.102392803
+            }
+          ]
+        },
+        {
+          "stock": "WDC",
+          "name": "Western Digital Corp",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -16856105.45,
+          "total_pressure_21d_usd": 21832206.51,
+          "n_etfs_pressuring": 3,
+          "cumulative_etf_weight_pct": 3.53,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 1.5993476,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -19268527.19474301
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 0.80764379,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 1385522.69019664
+            },
+            {
+              "etf": "XLK",
+              "weight_pct": 1.12173075,
+              "etf_zscore": -1.68,
+              "implied_pressure_5d": 1026899.050216741
+            }
+          ]
+        },
+        {
+          "stock": "GLW",
+          "name": "CORNING INC",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -16474860.97,
+          "total_pressure_21d_usd": -2072054.57,
+          "n_etfs_pressuring": 2,
+          "cumulative_etf_weight_pct": 2.27,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 1.4309624,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -17239865.754670672
+            },
+            {
+              "etf": "XLK",
+              "weight_pct": 0.83565117,
+              "etf_zscore": -1.68,
+              "implied_pressure_5d": 765004.786385243
+            }
+          ]
+        },
+        {
+          "stock": "RTX",
+          "name": "RTX CORP",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -16252000.79,
+          "total_pressure_21d_usd": -6595863.13,
+          "n_etfs_pressuring": 1,
+          "cumulative_etf_weight_pct": 1.35,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 1.34896654,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -16252000.7913154
+            }
+          ]
+        },
+        {
+          "stock": "LRCX",
+          "name": "Lam Research Corp",
+          "dominant_direction": "SELLING_PRESSURE",
+          "total_pressure_5d_usd": -15209780.88,
+          "total_pressure_21d_usd": 45806105.41,
+          "n_etfs_pressuring": 4,
+          "cumulative_etf_weight_pct": 12.38,
+          "contributing_etfs_top3": [
+            {
+              "etf": "MTUM",
+              "weight_pct": 3.87580045,
+              "etf_zscore": 2.12,
+              "implied_pressure_5d": -46694643.72361718
+            },
+            {
+              "etf": "SMH",
+              "weight_pct": 4.3756935,
+              "etf_zscore": 1.69,
+              "implied_pressure_5d": 26325925.74268399
+            },
+            {
+              "etf": "QQQ",
+              "weight_pct": 1.72713524,
+              "etf_zscore": -1.89,
+              "implied_pressure_5d": 2962921.3939207275
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "finished": "2026-06-02T16:04:57.448391+00:00"
+}
