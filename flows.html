@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>ETF Capital Flow Intelligence · JustHodl.AI</title>
+<meta name="description" content="Institutional ETF Global Fund Flows engine — daily creation/redemption tracking for 80+ ETFs, sector rotation signals, smart-vs-dumb money composite, regime classification.">
+<link rel="preconnect" href="https://justhodl-data-proxy.raafouis.workers.dev">
+
+<style>
+:root {
+  --bg-base:       #0a0a0a;
+  --bg-card:       #141414;
+  --bg-elev:       #1a1a1a;
+  --bg-sunken:     #050505;
+  --border:        rgba(255,255,255,.08);
+  --border-light:  rgba(255,255,255,.05);
+  --border-strong: rgba(255,255,255,.15);
+  --text:          #eef2f7;
+  --text-dim:      #aab4c0;
+  --text-muted:    #6b7785;
+  --accent:        #facc15;
+  --cyan:          #22d3ee;
+  --pos:           #26ffaf;
+  --pos-bg:        rgba(38,255,175,.08);
+  --neg:           #ef4444;
+  --neg-bg:        rgba(239,68,68,.08);
+  --warn:          #f59e0b;
+  --font-mono:     'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --font-sans:     'Inter', system-ui, -apple-system, sans-serif;
+}
+*{ box-sizing:border-box }
+body{ margin:0; padding:0; background:var(--bg-base); color:var(--text); font-family:var(--font-sans); font-size:13px; line-height:1.6; -webkit-font-smoothing:antialiased }
+.topbar{ display:flex; align-items:center; justify-content:space-between; padding:12px 22px; border-bottom:1px solid var(--border); background:rgba(10,10,10,.95); backdrop-filter:blur(8px); position:sticky; top:0; z-index:50 }
+.logo{ font-family:var(--font-mono); font-weight:700; font-size:14px; color:var(--accent) }
+.logo a{ color:inherit; text-decoration:none }
+.nav-links{ display:flex; gap:18px }
+.nav-links a{ color:var(--text-dim); text-decoration:none; font-size:12px; letter-spacing:.04em }
+.nav-links a:hover{ color:var(--accent) }
+.page{ max-width:1500px; margin:0 auto; padding:18px 22px }
+
+h1{ margin:0 0 6px; font-size:20px; color:var(--accent) }
+.subtitle{ color:var(--text-dim); font-size:12.5px; margin-bottom:14px; max-width:900px }
+.meta-bar{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted); padding:6px 12px; background:var(--bg-elev); border-radius:6px; margin-bottom:14px }
+
+.regime-banner{
+  background:linear-gradient(135deg, rgba(250,204,21,.06) 0%, rgba(34,211,238,.04) 100%);
+  border:1px solid rgba(250,204,21,.3); border-radius:10px;
+  padding:16px 20px; margin-bottom:16px;
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+}
+.regime-banner .left{ flex:1 }
+.regime-banner .label{ font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px }
+.regime-banner .regime{ font-family:var(--font-mono); font-size:24px; font-weight:700; color:var(--accent); letter-spacing:.04em }
+.regime-banner .regime.defensive{ color:#f59e0b }
+.regime-banner .regime.risk_on{ color:var(--pos) }
+.regime-banner .regime.credit_stress{ color:var(--neg) }
+.regime-banner .regime.transition{ color:var(--cyan) }
+.regime-banner .interp{ font-size:11.5px; color:var(--text-dim); margin-top:6px; max-width:700px }
+.regime-banner .right{ text-align:right; min-width:200px }
+
+.composite-grid{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+  gap:10px; margin-bottom:16px;
+}
+.gauge{
+  background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:13px 16px;
+}
+.gauge .header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px }
+.gauge h4{ margin:0; font-size:10.5px; color:var(--accent); text-transform:uppercase; letter-spacing:.06em; font-family:var(--font-mono) }
+.gauge .label{ font-size:11px; font-weight:600 }
+.gauge .label.pos{ color:var(--pos) }
+.gauge .label.neg{ color:var(--neg) }
+.gauge .label.mixed{ color:var(--text-muted) }
+.gauge .score{ font-family:var(--font-mono); font-size:22px; font-weight:700; line-height:1 }
+.gauge .score.pos{ color:var(--pos) }
+.gauge .score.neg{ color:var(--neg) }
+.gauge .bar{ height:4px; background:var(--bg-elev); border-radius:2px; margin-top:8px; position:relative; overflow:hidden }
+.gauge .bar .fill{ position:absolute; top:0; bottom:0; left:50%; width:0; }
+.gauge .bar .fill.pos{ background:linear-gradient(90deg, var(--pos), rgba(38,255,175,.5)); }
+.gauge .bar .fill.neg{ background:linear-gradient(270deg, var(--neg), rgba(239,68,68,.5)); right:50%; left:auto; }
+.gauge .components{ font-family:var(--font-mono); font-size:10px; color:var(--text-muted); margin-top:6px }
+
+.section{ background:var(--bg-card); border:1px solid var(--border); border-radius:10px; margin-bottom:14px; overflow:hidden }
+.section h3{ margin:0; padding:11px 18px; font-size:12.5px; color:var(--accent); border-bottom:1px solid var(--border-light); font-family:var(--font-mono); letter-spacing:.04em; background:var(--bg-elev); display:flex; align-items:center; gap:8px }
+.section .body{ padding:14px 18px }
+
+.heatmap{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px }
+.heat-cell{ padding:9px 11px; border-radius:6px; font-family:var(--font-mono); font-size:11px; cursor:default }
+.heat-cell .ticker{ font-weight:700; font-size:13px; color:var(--text); margin-bottom:2px }
+.heat-cell .sub{ font-size:10px; color:var(--text-muted); margin-bottom:4px }
+.heat-cell .z{ font-size:13px; font-weight:700 }
+
+table{ width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px }
+th{ background:var(--bg-elev); color:var(--accent); font-size:10px; text-transform:uppercase; letter-spacing:.06em; padding:8px 10px; text-align:left; border-bottom:1px solid var(--border-light); position:sticky; top:0 }
+td{ padding:6px 10px; border-bottom:1px solid var(--border-light); color:var(--text-dim) }
+td.num{ text-align:right; color:var(--text); font-variant-numeric:tabular-nums }
+td.pos{ color:var(--pos) }
+td.neg{ color:var(--neg) }
+tr:hover td{ background:var(--bg-elev) }
+
+.empty{ padding:40px; text-align:center; color:var(--text-muted); font-size:12px }
+.spinner{ display:inline-block; width:12px; height:12px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle }
+@keyframes spin{ to{ transform:rotate(360deg) } }
+
+.col-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px }
+@media (max-width:900px){ .col-2{ grid-template-columns:1fr } }
+
+.tag{ display:inline-block; padding:2px 7px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; font-family:var(--font-mono) }
+.tag.smart{ background:rgba(250,204,21,.12); color:var(--accent) }
+.tag.dumb{ background:rgba(245,158,11,.12); color:var(--warn) }
+
+.methodology{
+  margin-top:24px; padding:14px 18px;
+  background:var(--bg-card); border:1px solid var(--border); border-radius:8px;
+  font-size:11px; color:var(--text-muted); line-height:1.7;
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="logo"><a href="/">JustHodl.AI</a> · CAPITAL FLOWS</div>
+  <nav class="nav-links">
+    <a href="/">Home</a>
+    <a href="/why.html">Research</a>
+    <a href="/track-record.html">Track Record</a>
+    <a href="/analytics.html">Analytics</a>
+  </nav>
+</header>
+
+<main class="page">
+
+  <h1>💰 ETF Capital Flow Intelligence</h1>
+  <p class="subtitle">Daily creation/redemption flows for institutionally-tagged ETFs. Six composite signals derived from underlying flows: defensive rotation, smart-vs-dumb money, risk-on/off, domestic-vs-international, growth-vs-value, credit stress. Data source: Polygon ETF Global ($99/mo institutional feed).</p>
+  <div class="meta-bar" id="meta-bar">⏳ Loading flow data…</div>
+
+  <!-- Regime banner -->
+  <div class="regime-banner" id="regime-banner" style="display:none">
+    <div class="left">
+      <div class="label">Current Market Regime</div>
+      <div class="regime" id="regime-text">—</div>
+      <div class="interp" id="regime-interp"></div>
+    </div>
+    <div class="right">
+      <div class="label">Data Quality</div>
+      <div id="data-quality" style="font-family:var(--font-mono); font-size:18px; font-weight:700; color:var(--text)">—</div>
+      <div style="font-size:10.5px; color:var(--text-muted); margin-top:4px" id="data-quality-detail"></div>
+    </div>
+  </div>
+
+  <!-- 6 Composite Gauges -->
+  <div class="composite-grid" id="composite-grid"></div>
+
+  <!-- Sector Heatmap -->
+  <div class="section">
+    <h3>🔥 Sector Rotation Heatmap <span style="opacity:.6; font-size:10.5px; font-weight:400; text-transform:none">— 90-day z-scored flows</span></h3>
+    <div class="body">
+      <div class="heatmap" id="sector-heatmap"></div>
+    </div>
+  </div>
+
+  <!-- Top Inflows + Outflows -->
+  <div class="col-2">
+    <div class="section">
+      <h3>📈 Top 10 Strongest Inflows</h3>
+      <div class="body" id="top-inflows" style="padding:0">
+        <div class="empty"><span class="spinner"></span> Loading…</div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>📉 Top 10 Strongest Outflows</h3>
+      <div class="body" id="top-outflows" style="padding:0">
+        <div class="empty"><span class="spinner"></span> Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Aggregates -->
+  <div class="section">
+    <h3>🌐 Category Positioning Matrix <span style="opacity:.6; font-size:10.5px; font-weight:400; text-transform:none">— net 5-day flow by category</span></h3>
+    <div class="body" id="category-body" style="padding:0">
+      <div class="empty"><span class="spinner"></span> Loading…</div>
+    </div>
+  </div>
+
+  <!-- Full ETF Table -->
+  <div class="section">
+    <h3>📊 Full Universe · 80+ ETFs by 90d Z-Score</h3>
+    <div class="body" id="full-table" style="padding:0; max-height:60vh; overflow-y:auto">
+      <div class="empty"><span class="spinner"></span> Loading…</div>
+    </div>
+  </div>
+
+  <div class="methodology">
+    <b style="color:var(--accent)">Methodology:</b>
+    Daily flows = sum of share creations × NAV − sum of share redemptions × NAV (sourced from Polygon ETF Global).
+    Z-score: today's daily flow vs trailing 90-day distribution. Labels: |z|≥2.0 → STRONG_INFLOW/OUTFLOW, |z|≥1.0 → INFLOW/OUTFLOW, else NEUTRAL.
+    Smart money = institutional-favored ETFs (SPY/QQQ/sector SPDRs). Dumb money = retail-favored (ARKK/SOXL/leveraged/single-theme).
+    Composite scores normalize to ±100 by mapping the smart−dumb (or defensive−cyclical) z-score spread through a ±4σ clamp.
+    Regime classifier: DEFENSIVE if defensive_rotation≥+30 AND risk_on_off≤−30; RISK_ON if both ≥+30; CREDIT_STRESS if credit_stress≥+40; else TRANSITION/NEUTRAL.
+    Refreshes daily 17:00 ET (after Polygon EOD processing). Source: <code>etf-flows/daily.json</code>, <code>etf-flows/composite.json</code>.
+    Academic backing: Ben-David 2017, BIS 2018, Israeli 2017 — ETF flows are a leading indicator of underlying price action.
+  </div>
+
+</main>
+
+<script>
+const CDN = "https://justhodl-data-proxy.raafouis.workers.dev";
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtNum = v => v == null ? '—' : v.toFixed(2);
+const fmtZ = v => v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2) + 'σ';
+const fmtPct = v => v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+const fmtUSD = v => {
+  if(v == null) return '—';
+  const abs = Math.abs(v);
+  const sign = v >= 0 ? '+' : '−';
+  if(abs >= 1e9) return `${sign}$${(abs/1e9).toFixed(2)}B`;
+  if(abs >= 1e6) return `${sign}$${(abs/1e6).toFixed(1)}M`;
+  if(abs >= 1e3) return `${sign}$${(abs/1e3).toFixed(0)}K`;
+  return `${sign}$${abs.toFixed(0)}`;
+};
+
+function heatColor(z) {
+  if(z == null) return '#1a1a1a';
+  // Map z-score to a green/red gradient. |z|=2 is full intensity.
+  const intensity = Math.min(Math.abs(z) / 2, 1);
+  if(z >= 0) {
+    return `rgba(38,255,175,${0.10 + intensity * 0.35})`;
+  } else {
+    return `rgba(239,68,68,${0.10 + intensity * 0.35})`;
+  }
+}
+
+function labelClass(label) {
+  if(label === 'STRONG_INFLOW' || label === 'INFLOW' || label === 'SMART MONEY BUYING' || label === 'RISK-ON' || label === 'GROWTH BID' || label === 'US PREFERRED' || label === 'RISK APPETITE HEALTHY' || label === 'CYCLICAL INFLOWS') return 'pos';
+  if(label === 'STRONG_OUTFLOW' || label === 'OUTFLOW' || label === 'RETAIL EUPHORIA' || label === 'DE-RISKING' || label === 'VALUE ROTATION' || label === 'INTL ROTATION' || label === 'FLIGHT TO QUALITY' || label === 'DEFENSIVE INFLOWS') return 'neg';
+  return 'mixed';
+}
+
+async function load() {
+  let daily, composite;
+  try {
+    [daily, composite] = await Promise.all([
+      fetch(`${CDN}/etf-flows/daily.json?v=${Date.now()}`).then(r => {
+        if(!r.ok) throw new Error(`daily.json HTTP ${r.status}`); return r.json();
+      }),
+      fetch(`${CDN}/etf-flows/composite.json?v=${Date.now()}`).then(r => {
+        if(!r.ok) throw new Error(`composite.json HTTP ${r.status}`); return r.json();
+      }),
+    ]);
+  } catch(e) {
+    $("meta-bar").innerHTML = `<span style="color:var(--neg)">❌ ${esc(e.message)} — has the ETF flow Lambda run yet?</span>`;
+    document.querySelectorAll('.empty').forEach(el => {
+      el.innerHTML = '<span style="color:var(--text-muted)">No flow data yet — Lambda hasn\'t run, or files not yet served by CDN.</span>';
+    });
+    return;
+  }
+
+  // Meta bar
+  $("meta-bar").innerHTML = `Generated ${esc(daily.generated_at?.slice(0,16).replace('T',' '))} UTC ·
+    ${daily.n_ok}/${daily.universe_size} ETFs · elapsed ${daily.elapsed_s}s · schema v${daily.schema_version}`;
+
+  // Regime banner
+  const regime = composite.composite?.regime || 'UNKNOWN';
+  $("regime-banner").style.display = 'flex';
+  $("regime-text").className = 'regime ' + regime.toLowerCase();
+  $("regime-text").textContent = regime;
+  const interp = {
+    'DEFENSIVE':     'Defensive sector inflows + Treasury inflows. Smart money de-risking — be cautious with cyclical longs and growth bets.',
+    'RISK_ON':       'Cyclical sectors + equity broad-market seeing strong inflows + Treasury outflows. Risk appetite healthy; growth & beta likely to outperform.',
+    'CREDIT_STRESS': 'IG bond inflows + HY outflows = flight to quality. Watch for equity volatility spike; reduce credit risk in portfolio.',
+    'TRANSITION':    'Mixed signals across composites. Regime is shifting — wait for confirmation before adding conviction.',
+    'NEUTRAL':       'No dominant flow signal. Markets in equilibrium; idiosyncratic opportunities matter more than macro positioning.',
+    'UNKNOWN':       'Insufficient data to classify regime.',
+  };
+  $("regime-interp").textContent = interp[regime] || '';
+
+  $("data-quality").textContent = `${daily.n_ok}/${daily.universe_size}`;
+  $("data-quality-detail").textContent = `ETFs with valid flow data`;
+
+  // 6 Composite gauges
+  const composites = ['defensive_rotation','smart_vs_dumb','risk_on_off','domestic_vs_intl','growth_vs_value','credit_stress'];
+  const cNames = {
+    defensive_rotation: 'Defensive Rotation',
+    smart_vs_dumb:      'Smart vs Dumb Money',
+    risk_on_off:        'Risk-On / Off',
+    domestic_vs_intl:   'Domestic vs International',
+    growth_vs_value:    'Growth vs Value',
+    credit_stress:      'Credit Stress',
+  };
+  let gaugesHtml = '';
+  for(const k of composites) {
+    const c = composite.composite?.[k];
+    if(!c) continue;
+    const score = c.score;
+    const lcl = labelClass(c.label);
+    const barFill = score == null ? 0 : Math.min(Math.abs(score), 100);
+    gaugesHtml += `
+      <div class="gauge">
+        <div class="header">
+          <h4>${esc(cNames[k])}</h4>
+          <span class="label ${lcl}">${esc(c.label || '—')}</span>
+        </div>
+        <div class="score ${score == null ? '' : (score > 0 ? 'pos' : 'neg')}">${score == null ? '—' : (score > 0 ? '+' : '') + score.toFixed(0)}</div>
+        <div class="bar"><div class="fill ${score > 0 ? 'pos' : 'neg'}" style="width:${barFill/2}%"></div></div>
+        <div class="components">
+          ${c.components ? Object.entries(c.components).map(([k,v]) => `${k}=${fmtZ(v)}`).join(' · ') : ''}
+        </div>
+      </div>`;
+  }
+  $("composite-grid").innerHTML = gaugesHtml;
+
+  // Sector heatmap — sector SPDRs only
+  const sectorTickers = ['XLK','XLF','XLE','XLV','XLP','XLY','XLI','XLB','XLU','XLRE','XLC'];
+  const sectorMetrics = (daily.metrics || []).filter(m => sectorTickers.includes(m.ticker));
+  sectorMetrics.sort((a,b) => (b.flow_zscore_90d || -999) - (a.flow_zscore_90d || -999));
+  $("sector-heatmap").innerHTML = sectorMetrics.map(m => `
+    <div class="heat-cell" style="background:${heatColor(m.flow_zscore_90d)}; border:1px solid ${heatColor(m.flow_zscore_90d).replace(/[\d.]+\)/,'0.4)')}" title="${esc(m.ref_sector || m.subcategory)}">
+      <div class="ticker">${esc(m.ticker)}</div>
+      <div class="sub">${esc(m.ref_sector || m.subcategory)}</div>
+      <div class="z" style="color:${m.flow_zscore_90d >= 0 ? 'var(--pos)' : 'var(--neg)'}">${fmtZ(m.flow_zscore_90d)}</div>
+      <div style="font-size:10px; color:var(--text-muted); margin-top:2px">5d ${fmtUSD(m.flow_5d_usd)}</div>
+    </div>
+  `).join('');
+
+  // Top inflows + outflows
+  const allMetrics = (daily.metrics || []).filter(m => m.flow_zscore_90d != null);
+  const top = [...allMetrics].sort((a,b) => (b.flow_zscore_90d || 0) - (a.flow_zscore_90d || 0)).slice(0,10);
+  const bot = [...allMetrics].sort((a,b) => (a.flow_zscore_90d || 0) - (b.flow_zscore_90d || 0)).slice(0,10);
+
+  function flowTable(rows) {
+    return `<table><thead><tr>
+      <th>ETF</th><th>Category</th><th>Tag</th><th>z-90d</th><th>5d $</th><th>5d %AUM</th><th>Persist</th>
+    </tr></thead><tbody>
+      ${rows.map(m => `<tr>
+        <td><b style="color:var(--accent)">${esc(m.ticker)}</b></td>
+        <td>${esc(m.subcategory)}</td>
+        <td><span class="tag ${m.smart_money ? 'smart' : 'dumb'}">${m.smart_money ? 'INST' : 'RETAIL'}</span></td>
+        <td class="num ${m.flow_zscore_90d > 0 ? 'pos' : 'neg'}"><b>${fmtZ(m.flow_zscore_90d)}</b></td>
+        <td class="num ${(m.flow_5d_usd||0) > 0 ? 'pos' : 'neg'}">${fmtUSD(m.flow_5d_usd)}</td>
+        <td class="num ${(m.pct_aum_5d||0) > 0 ? 'pos' : 'neg'}">${fmtPct(m.pct_aum_5d)}</td>
+        <td class="num">${m.persistence_days || 0}d</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  }
+  $("top-inflows").innerHTML = top.length ? flowTable(top) : `<div class="empty">No inflow data yet</div>`;
+  $("top-outflows").innerHTML = bot.length ? flowTable(bot) : `<div class="empty">No outflow data yet</div>`;
+
+  // Full universe table
+  const allSorted = [...allMetrics].sort((a,b) => (b.flow_zscore_90d || -999) - (a.flow_zscore_90d || -999));
+  $("full-table").innerHTML = `<table><thead><tr>
+    <th>ETF</th><th>Category</th><th>Subcategory</th><th>Smart?</th>
+    <th>Label</th><th>z-90d</th><th>Daily $</th><th>5d $</th><th>21d $</th>
+    <th>%AUM 5d</th><th>Persist</th>
+  </tr></thead><tbody>
+    ${allSorted.map(m => `<tr>
+      <td><b>${esc(m.ticker)}</b></td>
+      <td>${esc(m.category)}</td>
+      <td>${esc(m.subcategory)}</td>
+      <td>${m.smart_money ? '✓' : ''}</td>
+      <td class="${labelClass(m.signal_label)}">${esc(m.signal_label || '—')}</td>
+      <td class="num ${m.flow_zscore_90d > 0 ? 'pos' : 'neg'}">${fmtZ(m.flow_zscore_90d)}</td>
+      <td class="num ${(m.daily_flow_usd||0) > 0 ? 'pos' : 'neg'}">${fmtUSD(m.daily_flow_usd)}</td>
+      <td class="num ${(m.flow_5d_usd||0) > 0 ? 'pos' : 'neg'}">${fmtUSD(m.flow_5d_usd)}</td>
+      <td class="num ${(m.flow_21d_usd||0) > 0 ? 'pos' : 'neg'}">${fmtUSD(m.flow_21d_usd)}</td>
+      <td class="num ${(m.pct_aum_5d||0) > 0 ? 'pos' : 'neg'}">${fmtPct(m.pct_aum_5d)}</td>
+      <td class="num">${m.persistence_days || 0}d</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+load();
+</script>
+
+</body>
+</html>

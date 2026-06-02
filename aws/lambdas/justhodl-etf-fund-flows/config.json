@@ -1,0 +1,23 @@
+{
+  "function_name": "justhodl-etf-fund-flows",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ETF Capital Flow Intelligence — daily fetch of ~100 tagged ETFs via Polygon ETF Global Fund Flows ($99/mo subscription). Computes per-ETF z-scores + persistence, category aggregations, and 6 institutional composite signals (defensive_rotation, smart_vs_dumb, risk_on_off, domestic_vs_intl, growth_vs_value, credit_stress). Writes to etf-flows/* prefix.",
+  "environment_keys": [
+    "POLYGON_KEY"
+  ],
+  "inherit_env": {
+    "from_function": "justhodl-equity-research",
+    "keys": ["POLYGON_KEY"]
+  },
+  "schedule": {
+    "expression": "cron(0 22 * * ? *)",
+    "name": "justhodl-etf-fund-flows-daily",
+    "description": "17:00 ET — daily ETF flow refresh (after Polygon EOD processing window)"
+  }
+}

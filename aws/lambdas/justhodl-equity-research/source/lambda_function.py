@@ -1315,13 +1315,57 @@ Schema:
 }"""
 
 
+def fetch_etf_flow_context(payload: dict) -> str:
+    """Fetch sector ETF flow context for this ticker from etf-flows/per-ticker-context.json.
+
+    Returns a 2-3 sentence snippet ready for prompt injection — or empty
+    string if data unavailable. We use the ticker's GICS sector to look up
+    its sector SPDR ETF (XLK for Technology, XLF for Financials, etc.) and
+    fetch that ETF's flow signal + the broader market regime.
+
+    Pattern: research-aware analyst writes flow-conscious theses. If the
+    sector is in heavy outflow, the analyst should mention or justify it.
+    """
+    try:
+        sector = (payload.get("company") or {}).get("sector")
+        if not sector:
+            return ""
+        # Fetch the per-ticker-context file (1 S3 GET, ~10ms)
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/per-ticker-context.json")
+        ctx = json.loads(obj["Body"].read())
+        by_sector = (ctx.get("context") or {}).get("by_sector") or {}
+        sector_ctx = by_sector.get(sector)
+        if not sector_ctx:
+            # Fallback: just inject regime + smart/dumb labels
+            global_regime = (ctx.get("context") or {}).get("global_regime", "UNKNOWN")
+            smart_dumb = (ctx.get("context") or {}).get("smart_vs_dumb_label", "MIXED")
+            risk_label = (ctx.get("context") or {}).get("risk_on_off_label", "MIXED")
+            return (
+                f"\n\n[ETF FLOW CONTEXT]\nMarket regime: {global_regime}. "
+                f"Smart money: {smart_dumb}. Risk posture: {risk_label}.\n"
+            )
+        snippet = sector_ctx.get("prompt_snippet", "")
+        if not snippet:
+            return ""
+        return f"\n\n[ETF FLOW CONTEXT — institutional positioning data]\n{snippet}\n"
+    except Exception as e:
+        print(f"[etf-flow-context] unavailable: {e}")
+        return ""
+
+
 def build_claude_prompt(payload: dict) -> str:
-    """Compose user prompt — JSON dump of every meaningful field."""
+    """Compose user prompt — JSON dump of every meaningful field, plus
+    sector ETF flow context if available (institutional positioning signal)."""
+    flow_context = fetch_etf_flow_context(payload)
     return (
         f"Produce institutional equity research for "
         f"{payload['company'].get('name','?')} ({payload['ticker']}).\n\n"
-        "All data follows. Synthesize per the schema in the system prompt.\n\n"
-        "```json\n" + json.dumps(payload, indent=2, default=str)[:60000] + "\n```\n"
+        "All data follows. Synthesize per the schema in the system prompt. "
+        "When you see [ETF FLOW CONTEXT] at the bottom, factor it into your "
+        "conviction grade and thesis — institutional sector positioning often "
+        "leads price action by days to weeks (Ben-David 2017, BIS 2018).\n\n"
+        "```json\n" + json.dumps(payload, indent=2, default=str)[:60000] + "\n```"
+        + flow_context
     )
 
 

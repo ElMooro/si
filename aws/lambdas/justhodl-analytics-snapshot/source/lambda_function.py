@@ -28,6 +28,7 @@ S3_BUCKET = "justhodl-dashboard-live"
 RESEARCH_PREFIX = "equity-research/"
 EDGAR_PREFIX = "edgar-insiders/"
 CRITIQUE_PREFIX = "equity-critique/"
+ETF_FLOWS_KEY = "etf-flows/daily.json"
 OUTPUT_PREFIX = "analytics/"
 
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -242,10 +243,24 @@ def lambda_handler(event, context):
     print(f"[snapshot] edgar:    {len(edgar_rows)} rows ({edgar_skipped} skipped)")
     print(f"[snapshot] critique: {len(critique_rows)} rows ({critique_skipped} skipped)")
 
+    # ETF flows — read the single daily snapshot (already flattened per-ETF inside)
+    etf_flow_rows = []
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key=ETF_FLOWS_KEY)
+        flow_doc = json.loads(obj["Body"].read())
+        for m in (flow_doc.get("metrics") or []):
+            if m.get("error"):
+                continue
+            etf_flow_rows.append(m)
+        print(f"[snapshot] etf_flows: {len(etf_flow_rows)} rows")
+    except Exception as e:
+        print(f"[snapshot] etf_flows unavailable: {e}")
+
     # Sort by ticker for deterministic output
     research_rows.sort(key=lambda r: r.get("ticker") or "")
     edgar_rows.sort(key=lambda r: r.get("ticker") or "")
     critique_rows.sort(key=lambda r: r.get("ticker") or "")
+    etf_flow_rows.sort(key=lambda r: r.get("ticker") or "")
 
     meta = {
         "generated_at":     datetime.now(timezone.utc).isoformat(),
@@ -260,6 +275,7 @@ def lambda_handler(event, context):
         ("equity_research", research_rows, "analytics/equity_research_flat.json"),
         ("edgar_insiders",  edgar_rows,    "analytics/edgar_insiders_flat.json"),
         ("research_critique", critique_rows, "analytics/research_critique_flat.json"),
+        ("etf_flows",       etf_flow_rows, "analytics/etf_flows_flat.json"),
     ]:
         out = {
             **meta,
@@ -287,10 +303,12 @@ def lambda_handler(event, context):
             {"name": "equity_research",   "key": "analytics/equity_research_flat.json"},
             {"name": "edgar_insiders",    "key": "analytics/edgar_insiders_flat.json"},
             {"name": "research_critique", "key": "analytics/research_critique_flat.json"},
+            {"name": "etf_flows",         "key": "analytics/etf_flows_flat.json"},
         ],
         "schema_research_columns": list(flatten_research({}).keys()),
         "schema_edgar_columns":    list(flatten_edgar({}).keys()),
         "schema_critique_columns": list(flatten_critique({}).keys()),
+        "schema_etf_flows_columns": (etf_flow_rows[0].keys() if etf_flow_rows else []),
     }
     s3.put_object(
         Bucket=S3_BUCKET,
@@ -309,6 +327,7 @@ def lambda_handler(event, context):
             "n_research_rows": len(research_rows),
             "n_edgar_rows":    len(edgar_rows),
             "n_critique_rows": len(critique_rows),
+            "n_etf_flow_rows": len(etf_flow_rows),
             "research_skipped": research_skipped,
             "edgar_skipped":    edgar_skipped,
             "critique_skipped": critique_skipped,

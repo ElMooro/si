@@ -545,6 +545,7 @@ function renderReport(d){
   html += renderCapitalAllocation(d);
   html += renderInstitutionalActivity(d);
   html += renderInsiderActivity(d);  // SEC EDGAR Form 4 — async-fetched
+  html += renderSectorFlow(d);        // ETF Capital Flows — async-fetched
   html += renderCritique(d);          // Devil's Advocate review — async-fetched
   html += renderEarningsCall(d);
   html += renderShortInterest(d);
@@ -559,6 +560,7 @@ function renderReport(d){
   // Kick off async insider data fetch (non-blocking — paints when ready)
   if(d.ticker){
     fetchInsiderData(d.ticker);
+    fetchSectorFlow(d);
     fetchCritique(d.ticker);
   }
 }
@@ -1481,6 +1483,182 @@ function paintInsiderBlock(d){
 // A different model (Sonnet 4.6 by default, OpenAI o3-mini when provisioned)
 // reviews the equity-research verdict and produces structured pushback.
 // ═════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════
+// ETF Capital Flow context — sector ETF flow for this ticker
+// Shows whether smart money is buying or selling the ticker's sector
+// alongside the analyst's verdict. Divergence (analyst BUY, sector OUTFLOW)
+// is a powerful contradicting signal.
+// ═════════════════════════════════════════════════════════════════════
+const FLOWS_CDN_BASE = "https://justhodl-data-proxy.raafouis.workers.dev/etf-flows";
+
+function renderSectorFlow(d){
+  const ticker = d.ticker;
+  return `
+    <section class="block" id="flow-section" data-ticker="${esc(ticker)}">
+      <h3><span class="ico">💰</span> Sector Capital Flow Context
+        <span class="pill" id="flow-pill">loading ETF flows…</span>
+      </h3>
+      <div id="flow-body" style="padding:14px 0; color:var(--text-muted); font-size:12px">
+        <span style="opacity:0.6">Fetching sector ETF flow context from Polygon ETF Global ($99/mo institutional feed)…</span>
+      </div>
+    </section>`;
+}
+
+async function fetchSectorFlow(d){
+  const section = document.getElementById('flow-section');
+  if(!section) return;
+  const pill = document.getElementById('flow-pill');
+  const body = document.getElementById('flow-body');
+
+  try {
+    const [ctxR, compR] = await Promise.all([
+      fetchWithTimeout(`${FLOWS_CDN_BASE}/per-ticker-context.json?v=${Date.now()}`, 6000),
+      fetchWithTimeout(`${FLOWS_CDN_BASE}/composite.json?v=${Date.now()}`, 6000),
+    ]);
+    if(!ctxR || !ctxR.ok) {
+      body.innerHTML = `<span style="color:var(--text-muted)">ETF flow data not yet available. Run will populate on next 17:00 ET schedule.</span>`;
+      pill.textContent = 'pending';
+      return;
+    }
+    const ctx = await ctxR.json();
+    const comp = compR?.ok ? await compR.json() : null;
+    paintSectorFlow(d, ctx, comp);
+  } catch(e) {
+    body.innerHTML = `<span style="color:var(--text-muted)">Sector flow fetch failed: ${esc(e.message || 'unknown')}.</span>`;
+    pill.textContent = 'error';
+  }
+}
+
+function paintSectorFlow(d, ctx, comp){
+  const body = document.getElementById('flow-body');
+  const pill = document.getElementById('flow-pill');
+  const sector = (d.company || {}).sector;
+  const verdict = (d.verdict || {}).rating;
+
+  const ctxData = (ctx.context || {});
+  const bySector = ctxData.by_sector || {};
+  const sectorCtx = sector ? bySector[sector] : null;
+  const regime = ctxData.global_regime || 'UNKNOWN';
+
+  if(!sectorCtx) {
+    pill.textContent = `regime: ${regime}`;
+    body.innerHTML = `
+      <div style="background:rgba(170,180,192,.04); border-radius:6px; padding:10px 14px; font-size:12px; color:var(--text-dim)">
+        No sector-ETF mapping for "${esc(sector || 'unknown sector')}". Market regime is <b style="color:var(--accent)">${esc(regime)}</b>.
+      </div>`;
+    return;
+  }
+
+  const z = sectorCtx.flow_zscore_90d;
+  const label = sectorCtx.flow_label || 'NEUTRAL';
+  const etf = sectorCtx.sector_etf;
+  const persist = sectorCtx.persistence_days || 0;
+  const pct5d = sectorCtx.pct_aum_5d;
+  const flow5d = sectorCtx.flow_5d_usd;
+
+  // Pill color
+  let pillStyle, pillIcon;
+  if(label === 'STRONG_INFLOW') {
+    pillStyle = 'background:rgba(38,255,175,.15); border:1px solid #26ffaf; color:#26ffaf';
+    pillIcon = '⚡';
+  } else if(label === 'INFLOW') {
+    pillStyle = 'background:rgba(38,255,175,.08); border:1px solid rgba(38,255,175,.5); color:#26ffaf';
+    pillIcon = '↑';
+  } else if(label === 'STRONG_OUTFLOW') {
+    pillStyle = 'background:rgba(239,68,68,.15); border:1px solid #ef4444; color:#ef4444';
+    pillIcon = '⚠';
+  } else if(label === 'OUTFLOW') {
+    pillStyle = 'background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.5); color:#ef4444';
+    pillIcon = '↓';
+  } else {
+    pillStyle = 'background:rgba(170,180,192,.06); border:1px solid rgba(255,255,255,.1); color:var(--text-muted)';
+    pillIcon = '◯';
+  }
+  pill.innerHTML = `<span style="padding:2px 8px; border-radius:4px; font-weight:700; ${pillStyle}">${pillIcon} ${label.replace(/_/g, ' ')}</span>`;
+
+  // Divergence detector — the alpha signal
+  const isBullish = verdict === 'STRONG_BUY' || verdict === 'BUY';
+  const isBearish = verdict === 'STRONG_SELL' || verdict === 'SELL';
+  const flowBullish = label === 'STRONG_INFLOW' || label === 'INFLOW';
+  const flowBearish = label === 'STRONG_OUTFLOW' || label === 'LARGE_OUTFLOW' || label === 'OUTFLOW';
+
+  let divergenceHtml = '';
+  if(isBullish && flowBearish) {
+    divergenceHtml = `
+      <div style="background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.4); border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:12.5px">
+        <b style="color:var(--warn)">⚠ DIVERGENCE</b>
+        Analyst is bullish (<b>${esc(verdict)}</b>) but institutional capital is flowing OUT of the sector
+        (<b>${esc(etf)}</b> ${fmtZ(z)}). Smart money positioning contradicts the thesis — pressure-test the call.
+      </div>`;
+  } else if(isBearish && flowBullish) {
+    divergenceHtml = `
+      <div style="background:rgba(34,211,238,.08); border:1px solid rgba(34,211,238,.4); border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:12.5px">
+        <b style="color:var(--cyan)">⚠ DIVERGENCE</b>
+        Analyst is bearish (<b>${esc(verdict)}</b>) but institutional capital is flowing INTO the sector
+        (<b>${esc(etf)}</b> ${fmtZ(z)}). Smart money disagrees with the bearish view.
+      </div>`;
+  } else if((isBullish && flowBullish) || (isBearish && flowBearish)) {
+    divergenceHtml = `
+      <div style="background:rgba(38,255,175,.05); border:1px solid rgba(38,255,175,.3); border-radius:6px; padding:8px 14px; margin-bottom:12px; font-size:11.5px; color:var(--text-dim)">
+        ✓ <b style="color:#26ffaf">CONSENSUS</b> — analyst's <b>${esc(verdict)}</b> rating is supported by sector capital flows (<b>${esc(etf)}</b> ${esc(label.replace(/_/g, ' ').toLowerCase())}).
+      </div>`;
+  }
+
+  // Composite regime info
+  const compData = (comp || {}).composite || {};
+  const cells = [];
+  for(const [k, name] of [
+    ['defensive_rotation','Defensive Rotation'],
+    ['smart_vs_dumb','Smart vs Dumb'],
+    ['risk_on_off','Risk-On/Off'],
+    ['credit_stress','Credit Stress'],
+  ]) {
+    const c = compData[k];
+    if(!c) continue;
+    const sc = c.score;
+    const scClass = sc == null ? '' : (sc > 0 ? 'pos' : 'neg');
+    cells.push(`
+      <div style="background:var(--bg-elev); border-radius:5px; padding:7px 10px; font-size:10.5px">
+        <div style="color:var(--text-muted); font-family:var(--font-mono); margin-bottom:2px">${esc(name)}</div>
+        <div style="font-family:var(--font-mono); font-size:13px; font-weight:700">
+          <span class="${scClass}">${sc == null ? '—' : (sc > 0 ? '+' : '') + sc.toFixed(0)}</span>
+          <span style="font-size:9.5px; color:var(--text-muted); margin-left:6px">${esc(c.label || '')}</span>
+        </div>
+      </div>`);
+  }
+
+  body.innerHTML = `
+    ${divergenceHtml}
+    <div style="background:var(--bg-elev); border-left:3px solid var(--accent); padding:12px 16px; margin-bottom:12px; border-radius:0 6px 6px 0">
+      <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px">
+        Sector ETF · ${esc(etf)} (${esc(sector)})
+      </div>
+      <div style="font-size:13px; color:var(--text); line-height:1.65">
+        90-day z-score: <b class="${z > 0 ? 'up' : 'down'}">${fmtZ(z)}</b> ·
+        5-day cumulative: <b class="${flow5d > 0 ? 'up' : 'down'}">${fmtUSD(flow5d)}</b> ·
+        5d/AUM: <b>${pct5d == null ? '—' : (pct5d >= 0 ? '+' : '') + pct5d.toFixed(2) + '%'}</b> ·
+        Persistence: <b>${persist}</b> consecutive ${z > 0 ? 'inflow' : 'outflow'} days
+      </div>
+    </div>
+    ${cells.length ? `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin-bottom:10px">${cells.join('')}</div>` : ''}
+    <div style="font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono); padding-top:8px; border-top:1px solid var(--border-light); line-height:1.5">
+      Source: Polygon ETF Global Fund Flows · regime: <b style="color:var(--accent)">${esc(regime)}</b> · refresh 17:00 ET ·
+      <a href="/flows.html" style="color:var(--cyan); text-decoration:none">view full flow dashboard →</a>
+    </div>`;
+}
+
+function fmtZ(v){ return v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2) + 'σ'; }
+function fmtUSD(v){
+  if(v == null) return '—';
+  const abs = Math.abs(v);
+  const sign = v >= 0 ? '+' : '−';
+  if(abs >= 1e9) return `${sign}$${(abs/1e9).toFixed(2)}B`;
+  if(abs >= 1e6) return `${sign}$${(abs/1e6).toFixed(1)}M`;
+  if(abs >= 1e3) return `${sign}$${(abs/1e3).toFixed(0)}K`;
+  return `${sign}$${abs.toFixed(0)}`;
+}
+
+
 function renderCritique(d){
   const ticker = d.ticker;
   return `

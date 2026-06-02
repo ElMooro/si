@@ -345,6 +345,28 @@ def lambda_handler(event, context):
     # raw transcript text.
     research_compact = {k: v for k, v in research.items() if k != "transcript"}
 
+    # ETF flow context — the critic's most powerful new attack vector.
+    # If the analyst is bullish a sector but sector ETF flows are negative,
+    # that's structured pushback supported by institutional positioning data.
+    flow_context_str = ""
+    try:
+        sector = (research.get("company") or {}).get("sector")
+        if sector:
+            obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/per-ticker-context.json")
+            ctx = json.loads(obj["Body"].read())
+            by_sector = (ctx.get("context") or {}).get("by_sector") or {}
+            sector_ctx = by_sector.get(sector)
+            if sector_ctx and sector_ctx.get("prompt_snippet"):
+                flow_context_str = (
+                    "\n\n[ETF FLOW CONTEXT — use this as ammunition for pressure-testing]\n"
+                    + sector_ctx["prompt_snippet"]
+                    + "\nIf the analyst is bullish but the sector has heavy outflow, "
+                    "or vice versa, this is a powerful contradicting signal worth "
+                    "raising in your underweighted_risks or data_reinterpretations.\n"
+                )
+    except Exception as e:
+        print(f"[critique] flow context unavailable: {e}")
+
     # Build user prompt
     user_prompt = (
         f"Pressure-test the analyst's research on "
@@ -352,7 +374,8 @@ def lambda_handler(event, context):
         "Full research payload follows. The analyst's verdict is in the "
         "'verdict' field. Their thesis/risks/scenarios are in 'investment_thesis', "
         "'risk_factors', 'scenarios'.\n\n"
-        "```json\n" + json.dumps(research_compact, indent=2, default=str)[:55000] + "\n```\n"
+        "```json\n" + json.dumps(research_compact, indent=2, default=str)[:55000] + "\n```"
+        + flow_context_str
     )
 
     # Call the chosen model
