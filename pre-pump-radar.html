@@ -643,6 +643,23 @@ a:hover{color:var(--violet)}
     <div id="brief-content"></div>
   </div>
 
+  <!-- NEW (2026-06-02): THEME CASCADE — synthesis of theme heat × accumulation × ETF flow.
+       Built in response to user's insight that stocks in already-pumping themes are
+       highest-probability next-pump candidates. -->
+  <div class="theme-cascade-hero" id="theme-cascade-hero" style="display:none; background:linear-gradient(135deg, rgba(56,255,168,.08), rgba(255,177,61,.06), rgba(0,212,255,.04), transparent); border:1px solid var(--border); border-left:4px solid var(--green); border-radius:10px; padding:18px 22px; margin-bottom:24px">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px">
+      <h2 style="margin:0; font-size:17px; color:var(--fg-1)">🌊 Theme Cascade · Hot Themes × Accumulation × ETF Flow
+        <span style="font-family:var(--font-mono); font-size:10px; color:var(--green); background:rgba(56,255,168,.18); padding:2px 8px; border-radius:3px; margin-left:8px; letter-spacing:1.5px">SYNTHESIS</span>
+      </h2>
+      <span id="theme-cascade-age" style="font-family:var(--font-mono); font-size:10.5px; color:var(--fg-3)">—</span>
+    </div>
+    <div style="color:var(--fg-2); font-size:12.5px; line-height:1.55; margin-bottom:14px">
+      <b style="color:var(--green)">Theme rotation thesis</b>: when capital flows into a theme (AI semis), leaders pump first (NVDA/AVGO), then <b>laggards pump in sympathy</b>. This score combines theme heat × ticker accumulation × cross-ETF $$ flow.
+      Formula: <code style="color:var(--cyan); background:var(--bg-sunken); padding:1px 4px; border-radius:2px">combined = base × theme_mult × flow_mult</code>
+    </div>
+    <div id="theme-cascade-content"></div>
+  </div>
+
   <!-- NEW (2026-06-02): Early Movers — acceleration-based, NOT convergence-based.
        Built in response to MRVL +29% case study where MRVL was at rank #13 by
        convergence score and got buried, despite having ACCELERATION_CONFIRMED
@@ -868,6 +885,108 @@ const THEMES_URL   = "https://justhodl-data-proxy.raafouis.workers.dev/data/them
 const CATALYSTS_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/catalysts.json";
 const CLUSTERS_URL  = "https://justhodl-data-proxy.raafouis.workers.dev/data/catalyst-clusters.json";
 const EARLY_MOVERS_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/early-movers.json";
+const THEME_CASCADE_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/theme-cascade.json";
+
+// Fetch + render Theme Cascade (theme rotation thesis)
+async function fetchThemeCascade() {
+  try {
+    const r = await fetch(THEME_CASCADE_URL + "?t=" + Date.now());
+    if(!r.ok) return;
+    const doc = await r.json();
+    renderThemeCascade(doc);
+  } catch(e) {
+    console.log("theme-cascade fetch:", e.message);
+  }
+}
+
+function renderThemeCascade(doc) {
+  const alertTier = doc.alert_tier || [];
+  const mediumTier = doc.medium_tier || [];
+  const topThemes = (doc.top_hot_themes || []).slice(0, 8);
+  if(!alertTier.length && !mediumTier.length) return;
+
+  const generatedAt = doc.generated_at ? new Date(doc.generated_at) : null;
+  if(generatedAt) {
+    const mins = Math.round((Date.now() - generatedAt.getTime()) / 60000);
+    const ageStr = mins < 60 ? `${mins}m ago` : `${Math.round(mins/60)}h ago`;
+    const ageEl = document.getElementById('theme-cascade-age');
+    if(ageEl) ageEl.textContent = `updated ${ageStr} · ${doc.n_themes_tracked || 0} themes tracked`;
+  }
+
+  let html = '';
+
+  // Top hot themes strip
+  if(topThemes.length) {
+    html += '<div style="margin-bottom:16px"><div style="font-size:11.5px; color:var(--green); font-family:var(--font-mono); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px">🔥 HOTTEST THEMES (institutional rotation)</div>';
+    html += '<div style="display:flex; flex-wrap:wrap; gap:8px">';
+    topThemes.forEach(t => {
+      const multColor = t.multiplier >= 1.5 ? 'var(--red)' :
+                         t.multiplier >= 1.25 ? 'var(--amber)' : 'var(--green)';
+      html += '<div style="background:var(--bg-elevated); border:1px solid rgba(56,255,168,.25); border-radius:6px; padding:8px 12px; font-family:var(--font-mono); font-size:11px; min-width:140px">';
+      html += '<div style="font-weight:700; color:var(--fg-1); font-size:12px; margin-bottom:3px">' + esc(t.label || t.theme || '?') + '</div>';
+      html += '<div style="color:' + multColor + '; font-weight:700">×' + t.multiplier.toFixed(2) + ' boost</div>';
+      if(t.rs_rank != null) html += '<div style="color:var(--fg-3); font-size:10px; margin-top:2px">RS rank #' + t.rs_rank + '</div>';
+      if(t.regime) html += '<div style="color:var(--fg-3); font-size:9.5px">' + esc(t.regime) + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // High-conviction tier (combined >= 80)
+  if(alertTier.length) {
+    html += '<div style="margin-bottom:14px"><div style="font-size:11.5px; color:var(--red); font-family:var(--font-mono); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px">🎯 HIGH-CONVICTION PRE-PUMP (combined ≥ 80)</div>';
+    html += buildCascadeTable(alertTier, true);
+    html += '</div>';
+  }
+
+  // Medium tier (50-79)
+  if(mediumTier.length) {
+    html += '<div style="margin-bottom:6px"><div style="font-size:11.5px; color:var(--amber); font-family:var(--font-mono); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px">⚡ MEDIUM CONVICTION (combined 50-79)</div>';
+    html += buildCascadeTable(mediumTier.slice(0, 15), false);
+    html += '</div>';
+  }
+
+  document.getElementById('theme-cascade-content').innerHTML = html;
+  document.getElementById('theme-cascade-hero').style.display = 'block';
+}
+
+function buildCascadeTable(rows, isHigh) {
+  let html = '<table style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px"><thead><tr style="border-bottom:1px solid var(--border)">';
+  ['SCORE','TICKER','TIER','BASE','THEME×','FLOW×','THEME','ACC SIGNALS','FLOW $'].forEach(h => {
+    html += '<th style="text-align:left; padding:7px 9px; color:var(--' + (isHigh ? 'red' : 'amber') + '); font-size:10px; letter-spacing:1px; text-transform:uppercase">' + h + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  for(const c of rows) {
+    const score = c.combined_score || 0;
+    const scoreColor = score >= 80 ? 'var(--red)' : score >= 60 ? 'var(--amber)' : 'var(--cyan)';
+    const tierColor = c.tier === 'FIRED_CONFIRMED' ? 'var(--green)' :
+                       c.tier === 'FIRED_FRESH' ? 'var(--amber)' :
+                       c.tier === 'EMERGING' ? 'var(--cyan)' :
+                       c.tier === 'WATCH' ? 'var(--violet)' : 'var(--fg-3)';
+    const accSignals = [];
+    if(c.slope_score != null) accSignals.push(`s${c.slope_score.toFixed(0)}`);
+    if(c.accum_score != null) accSignals.push(`a${c.accum_score.toFixed(0)}`);
+    if(c.floor_score != null) accSignals.push(`f${c.floor_score.toFixed(0)}`);
+    if(c.current_vol_ratio != null) accSignals.push(c.current_vol_ratio.toFixed(2) + 'x');
+    const flow5d = c.aggregate_flow_5d_usd || 0;
+    const flowStr = Math.abs(flow5d) > 1e6 ?
+      (flow5d >= 0 ? '+$' : '-$') + Math.abs(flow5d/1e6).toFixed(0) + 'M' : '—';
+    const flowColor = flow5d > 0 ? 'var(--green)' : flow5d < 0 ? 'var(--red)' : 'var(--fg-3)';
+    html += '<tr style="border-bottom:1px solid var(--border)">';
+    html += '<td style="padding:7px 9px"><b style="color:' + scoreColor + '; font-size:13px">' + score.toFixed(0) + '</b></td>';
+    html += '<td style="padding:7px 9px"><a href="/why.html?ticker=' + c.ticker + '" style="color:var(--cyan); text-decoration:none; font-weight:700; font-size:12.5px">' + esc(c.ticker) + '</a></td>';
+    html += '<td style="padding:7px 9px"><span style="color:' + tierColor + '; font-size:10px; font-weight:700">' + c.tier + '</span></td>';
+    html += '<td style="padding:7px 9px; color:var(--fg-2)">' + (c.base_score || 0).toFixed(0) + '</td>';
+    html += '<td style="padding:7px 9px; color:' + (c.theme_multiplier > 1 ? 'var(--green)' : 'var(--fg-3)') + '">×' + (c.theme_multiplier || 1).toFixed(2) + '</td>';
+    html += '<td style="padding:7px 9px; color:' + (c.flow_multiplier > 1 ? 'var(--green)' : c.flow_multiplier < 1 ? 'var(--red)' : 'var(--fg-3)') + '">×' + (c.flow_multiplier || 1).toFixed(2) + '</td>';
+    html += '<td style="padding:7px 9px; color:var(--fg-2); font-size:10.5px">' + esc(c.theme_label || c.theme || '—') + '</td>';
+    html += '<td style="padding:7px 9px; color:var(--fg-3); font-size:10px">' + accSignals.join(' · ') + '</td>';
+    html += '<td style="padding:7px 9px; color:' + flowColor + '; font-size:10.5px">' + flowStr + '</td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
 
 // Fetch + render Early Movers (acceleration-based) — fired separately
 async function fetchEarlyMovers() {
@@ -939,7 +1058,10 @@ function renderEarlyMovers(doc) {
 
 // Hook into existing init
 if(typeof window !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', fetchEarlyMovers);
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchEarlyMovers();
+    fetchThemeCascade();
+  });
 }
 let DATA = null;
 let RESEARCH = null;
