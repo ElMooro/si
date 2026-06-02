@@ -1,0 +1,62 @@
+{
+  "started": "2026-06-02T01:29:02.396141+00:00",
+  "prefix_results": {
+    "equity-research/": {
+      "n_fixed": 0,
+      "n_already_public": 0,
+      "n_failed": 14,
+      "fixed_keys": [],
+      "failed": [
+        {
+          "key": "equity-research/AAPL.json",
+          "error": "An error occurred (AccessControlListNotSupported) when calling the PutObjectAcl operation: The bucket does not allow ACLs"
+        },
+        {
+          "key": "equity-research/AVGO.json",
+          "error": "An error occurred (AccessControlListNotSupported) when calling the PutObjectAcl operation: The bucket does not allow ACLs"
+        },
+        {
+          "key": "equity-research/BRK-B.json",
+          "error": "An error occurred (AccessControlListNotSupported) when calling the PutObjectAcl operation: The bucket does not allow ACLs"
+        },
+        {
+          "key": "equity-research/CRWD.json",
+          "error": "An error occurred (AccessControlListNotSupported) when calling the PutObjectAcl operation: The bucket does not allow ACLs"
+        },
+        {
+          "key": "equity-research/CRWV.json",
+          "error": "An error occurred (AccessControlListNotSupported) when calling the PutObjectAcl operation: The bucket does not allow ACLs"
+        }
+      ]
+    },
+    "equity-prewarm/runs/": {
+      "n_fixed": 0,
+      "n_already_public": 0,
+      "n_failed": 6,
+      "fixed_keys": [],
+      "failed": [
+        {
+          "key": "equity-prewarm/runs/2026-06-02_012203.json",
+          "error": "An error occurred (AccessControlListNotSupported) when calling the PutObjectAcl operation: The bucket does not allow ACLs"
+        },
+        {
+          "key": "equity-prewarm/runs/2026-06-02_012304.json",
+          "error": "An error occurred (AccessControlListNotSupported) when calling the PutObjectAcl operation: The bucket does not allow ACLs"
+        },
+        {
+          "key": "equity-prewarm/runs/2026-06-02_012404.json",
+          "error": "An error occurred (AccessControlListNotSupported) when calling the PutObjectAcl operation: The bucket does not allow ACLs"
+        },
+        {
+          "key": "equity-prewarm/runs/2026-06-02_012507.json",
+          "error": "An error occurred (AccessControlListNotSupported) when calling the PutObjectAcl operation: The bucket does not allow ACLs"
+        },
+        {
+          "key": "equity-prewarm/runs/2026-06-02_012609.json",
+          "error": "An error occurred (AccessControlListNotSupported) when calling the PutObjectAcl operation: The bucket does not allow ACLs"
+        }
+      ]
+    }
+  },
+  "finished": "2026-06-02T01:29:08.153200+00:00"
+}
