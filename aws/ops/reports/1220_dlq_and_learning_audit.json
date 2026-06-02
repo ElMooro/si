@@ -1,0 +1,208 @@
+{
+  "started": "2026-06-02T21:49:28.146346+00:00",
+  "dlqs": [
+    {
+      "url": "https://sqs.us-east-1.amazonaws.com/857687956942/justhodl-dlq-default",
+      "name": "justhodl-dlq-default",
+      "approx_messages": 81,
+      "approx_messages_not_visible": 0,
+      "approx_messages_delayed": 0,
+      "created": "1779447312"
+    }
+  ],
+  "dlq_samples": [
+    {
+      "body_preview": "{}",
+      "attributes": {
+        "SenderId": "AROA4PMRPTXHEDIOEOAIH:awslambda_748_20260522230316294",
+        "ApproximateFirstReceiveTimestamp": "1780436968508",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1779490996326",
+        "AWSTraceHeader": "Root=1-6a10e004-2c0c62dd006f3d110600e681;Parent=39cf6ed8656cb0f1;Sampled=1;Lineage=1:66a32267:0"
+      },
+      "msg_attrs": {
+        "ErrorCode": "200",
+        "ErrorMessage": "can't subtract offset-naive and offset-aware datetimes",
+        "RequestID": "5c6a10df-f0b2-4f09-8e53-2c6802da5c38"
+      }
+    },
+    {
+      "body_preview": "{}",
+      "attributes": {
+        "SenderId": "AROA4PMRPTXHEDIOEOAIH:awslambda_10_20260529000352216",
+        "ApproximateFirstReceiveTimestamp": "1780436968603",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1780013032252",
+        "AWSTraceHeader": "Root=1-6a18d706-6c339195220502ac0384d1c5;Parent=1b8367b4ed783d07;Sampled=1;Lineage=2:a1a66a1b:0"
+      },
+      "msg_attrs": {
+        "ErrorCode": "200",
+        "ErrorMessage": "unsupported format string passed to NoneType.__format__",
+        "RequestID": "1bc8a917-94ca-47aa-a911-d495e9bed9f7"
+      }
+    },
+    {
+      "body_preview": "{\"version\":\"0\",\"id\":\"cfb58071-3075-1a38-4635-9e1078be2ab9\",\"detail-type\":\"Scheduled Event\",\"source\":\"aws.events\",\"account\":\"857687956942\",\"time\":\"2026-05-31T09:03:20Z\",\"region\":\"us-east-1\",\"resources\":[\"arn:aws:events:us-east-1:857687956942:rule/justhodl-crisis-plumbing-refresh\"],\"detail\":{}}",
+      "attributes": {
+        "SenderId": "AROA4PMRPTXHEDIOEOAIH:awslambda_333_20260531091255824",
+        "ApproximateFirstReceiveTimestamp": "1780436968604",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1780218775852",
+        "AWSTraceHeader": "Root=1-6a1bf974-34028cb23850ca4d3a8ca6be;Parent=000be981242b58e6;Sampled=1;Lineage=1:01810a81:0"
+      },
+      "msg_attrs": {
+        "ErrorCode": "200",
+        "ErrorMessage": "RequestId: 4d5c34f1-4160-4949-a4a7-d4fa7fa7122b Error: Task timed out after 120.00 seconds",
+        "RequestID": "4d5c34f1-4160-4949-a4a7-d4fa7fa7122b"
+      }
+    },
+    {
+      "body_preview": "{}",
+      "attributes": {
+        "SenderId": "AROA4PMRPTXHEDIOEOAIH:awslambda_380_20260531110346444",
+        "ApproximateFirstReceiveTimestamp": "1780436968604",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1780225426475",
+        "AWSTraceHeader": "Root=1-6a1c14ba-2e7737634e71865c680da831;Parent=0f1d72112735eec1;Sampled=1;Lineage=2:8219aec6:0"
+      },
+      "msg_attrs": {
+        "ErrorCode": "200",
+        "ErrorMessage": "HTTP Error 429: Too Many Requests",
+        "RequestID": "ce1e2269-69fc-4e59-ab52-e027e0a97f1e"
+      }
+    },
+    {
+      "body_preview": "{\"version\":\"0\",\"id\":\"5808544c-fcf6-afed-7d9a-aad5ac55680a\",\"detail-type\":\"Scheduled Event\",\"source\":\"aws.events\",\"account\":\"857687956942\",\"time\":\"2026-05-22T13:12:03Z\",\"region\":\"us-east-1\",\"resources\":[\"arn:aws:events:us-east-1:857687956942:rule/fleet-freshness-monitor-30min\"],\"detail\":{}}",
+      "attributes": {
+        "SenderId": "AROA4PMRPTXHEDIOEOAIH:awslambda_17_20260522131540274",
+        "ApproximateFirstReceiveTimestamp": "1780436968660",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1779455740297",
+        "AWSTraceHeader": "Root=1-6a105646-57b68d9250ea837e57dd9f91;Parent=2f64917549946688;Sampled=1;Lineage=1:be9437d0:0"
+      },
+      "msg_attrs": {
+        "ErrorCode": "200",
+        "ErrorMessage": "'list' object has no attribute 'get'",
+        "RequestID": "62a6a8bb-cccc-4a77-8998-8782d35f7229"
+      }
+    },
+    {
+      "body_preview": "{}",
+      "attributes": {
+        "SenderId": "AROA4PMRPTXHEDIOEOAIH:awslambda_807_20260531111523430",
+        "ApproximateFirstReceiveTimestamp": "1780436968748",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1780226123464",
+        "AWSTraceHeader": "Root=1-6a1c14ba-2e7737634e71865c680da831;Parent=4e53cf632dec6044;Sampled=1;Lineage=2:cb76f20d:0"
+      },
+      "msg_attrs": {
+        "ErrorCode": "200",
+        "ErrorMessage": "RequestId: a570511f-eabb-48f7-baa4-3008a7e12026 Error: Task timed out after 240.00 seconds",
+        "RequestID": "a570511f-eabb-48f7-baa4-3008a7e12026"
+      }
+    },
+    {
+      "body_preview": "{}",
+      "attributes": {
+        "SenderId": "AROA4PMRPTXHEDIOEOAIH:awslambda_922_20260531160313274",
+        "ApproximateFirstReceiveTimestamp": "1780436968749",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1780243393302",
+        "AWSTraceHeader": "Root=1-6a1c5b06-6b7636d961c170335b3baf34;Parent=369f92ccfb10128a;Sampled=1;Lineage=2:a1a66a1b:0"
+      },
+      "msg_attrs": {
+        "ErrorCode": "200",
+        "ErrorMessage": "unsupported format string passed to NoneType.__format__",
+        "RequestID": "e55fba58-c862-4993-bb72-f3fe924bcfc1"
+      }
+    },
+    {
+      "body_preview": "{}",
+      "attributes": {
+        "SenderId": "AROA4PMRPTXHEDIOEOAIH:awslambda_363_20260531200308969",
+        "ApproximateFirstReceiveTimestamp": "1780436968749",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1780257789002",
+        "AWSTraceHeader": "Root=1-6a1c9346-0a196b607d50b52e6d1c673a;Parent=4b8db896a034bd70;Sampled=1;Lineage=2:a1a66a1b:0"
+      },
+      "msg_attrs": {
+        "ErrorCode": "200",
+        "ErrorMessage": "unsupported format string passed to NoneType.__format__",
+        "RequestID": "65bde7cf-1838-4231-bfde-7329192cade7"
+      }
+    },
+    {
+      "body_preview": "{\"version\":\"0\",\"id\":\"149243fd-840b-57a8-387f-75bb618be8bb\",\"detail-type\":\"Scheduled Event\",\"source\":\"aws.events\",\"account\":\"857687956942\",\"time\":\"2026-05-28T23:12:21Z\",\"region\":\"us-east-1\",\"resources\":[\"arn:aws:events:us-east-1:857687956942:rule/liquidity-pulse-6h\"],\"detail\":{}}",
+      "attributes": {
+        "SenderId": "AROA4PMRPTXHEDIOEOAIH:awslambda_482_20260528233034091",
+        "ApproximateFirstReceiveTimestamp": "1780436968811",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1780011034121",
+        "AWSTraceHeader": "Root=1-6a18cbda-25c694e00517b12a4af27914;Parent=10e99eccdc6cb621;Sampled=1;Lineage=1:dbc67e1d:0"
+      },
+      "msg_attrs": {
+        "ErrorCode": "200",
+        "ErrorMessage": "RequestId: fff22ec8-934f-448a-af93-f909e6d6b2e5 Error: Task timed out after 300.00 seconds",
+        "RequestID": "fff22ec8-934f-448a-af93-f909e6d6b2e5"
+      }
+    },
+    {
+      "body_preview": "{\"version\":\"0\",\"id\":\"59392093-4418-6961-d33b-cf8e61f3ecaf\",\"detail-type\":\"Scheduled Event\",\"source\":\"aws.events\",\"account\":\"857687956942\",\"time\":\"2026-05-28T23:12:12Z\",\"region\":\"us-east-1\",\"resources\":[\"arn:aws:events:us-east-1:857687956942:rule/lce-every-6h\"],\"detail\":{}}",
+      "attributes": {
+        "SenderId": "AROA4PMRPTXHEDIOEOAIH:awslambda_567_20260528233058390",
+        "ApproximateFirstReceiveTimestamp": "1780436968814",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1780011058414",
+        "AWSTraceHeader": "Root=1-6a18cbf7-00d6d9562c4a66b24d475242;Parent=3d46fba5cbf1e2a0;Sampled=1;Lineage=1:aa374f36:0"
+      },
+      "msg_attrs": {
+        "ErrorCode": "200",
+        "ErrorMessage": "RequestId: ed16bb6d-d366-4fa2-9bff-48cfd0981469 Error: Task timed out after 300.00 seconds",
+        "RequestID": "ed16bb6d-d366-4fa2-9bff-48cfd0981469"
+      }
+    }
+  ],
+  "learning_tables": [
+    "justhodl-outcomes",
+    "justhodl-signal-registry",
+    "justhodl-signals",
+    "openbb-trading-signals"
+  ],
+  "signal_logger": {
+    "last_modified": "2026-05-31T13:43:05",
+    "timeout": 120
+  },
+  "cascade_validator": {
+    "n_validated": 9,
+    "by_tier_stats": {
+      "ALERT_TIER": {
+        "n": 2,
+        "n_hit": 0,
+        "n_hit_big": 0,
+        "n_slow": 0,
+        "n_flat": 2,
+        "n_miss": 0,
+        "hit_rate_pct": 0.0,
+        "big_hit_rate_pct": 0.0,
+        "mean_max_return_pct": 0.0,
+        "best_return": 0.0,
+        "worst_return": 0.0
+      },
+      "LAGGARD": {
+        "n": 7,
+        "n_hit": 0,
+        "n_hit_big": 0,
+        "n_slow": 0,
+        "n_flat": 7,
+        "n_miss": 0,
+        "hit_rate_pct": 0.0,
+        "big_hit_rate_pct": 0.0,
+        "mean_max_return_pct": 0.0,
+        "best_return": 0.0,
+        "worst_return": 0.0
+      }
+    },
+    "lookback_days": 7
+  },
+  "finished": "2026-06-02T21:49:29.923209+00:00"
+}
