@@ -1383,13 +1383,25 @@ def lambda_handler(event, context):
     # ── Call Claude for synthesis
     claude_synthesis = {}
     claude_elapsed = None
+    claude_diag = {"raw_chars": 0, "parsed_keys": [], "parse_error": None,
+                    "raw_head": "", "raw_tail": ""}
     try:
         t_claude = time.time()
         user_prompt = build_claude_prompt(payload)
-        response_text = claude_call(CLAUDE_SYSTEM, user_prompt, max_tokens=6000)
+        response_text = claude_call(CLAUDE_SYSTEM, user_prompt, max_tokens=10000)
         claude_elapsed = round(time.time() - t_claude, 2)
-        claude_synthesis = parse_claude(response_text)
-        print(f"[claude] {len(response_text)} chars in {claude_elapsed}s")
+        claude_diag["raw_chars"] = len(response_text)
+        claude_diag["raw_head"] = response_text[:400]
+        claude_diag["raw_tail"] = response_text[-400:] if len(response_text) > 800 else ""
+        try:
+            claude_synthesis = parse_claude(response_text)
+            claude_diag["parsed_keys"] = sorted((claude_synthesis or {}).keys())
+        except Exception as parse_e:
+            claude_diag["parse_error"] = str(parse_e)[:200]
+            print(f"[claude] PARSE ERROR: {parse_e}")
+            # Fall through with empty synthesis — page still renders the data
+        print(f"[claude] {len(response_text)} chars in {claude_elapsed}s · "
+              f"parsed {len(claude_diag['parsed_keys'])} top-level keys")
     except Exception as e:
         print(f"[claude] ERROR: {e}\n{traceback.format_exc()[:600]}")
         claude_synthesis = {
@@ -1467,6 +1479,11 @@ def lambda_handler(event, context):
             "fmp_endpoints_failed": [k for k, v in raw.items() if not v],
             "claude_model":         MODEL,
             "claude_elapsed_sec":   claude_elapsed,
+            "claude_raw_chars":     claude_diag.get("raw_chars"),
+            "claude_parsed_keys":   claude_diag.get("parsed_keys"),
+            "claude_parse_error":   claude_diag.get("parse_error"),
+            "claude_raw_head":      claude_diag.get("raw_head"),
+            "claude_raw_tail":      claude_diag.get("raw_tail"),
             "total_elapsed_sec":    round(time.time() - t0, 2),
         },
     }
