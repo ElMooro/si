@@ -1,0 +1,133 @@
+{
+  "started": "2026-06-02T15:29:49.457403+00:00",
+  "steps": {
+    "research_invoke": {
+      "elapsed_s": 1.1,
+      "status": 200,
+      "function_error": null,
+      "body_size": 76711
+    },
+    "research_stamp": {
+      "schema_version": "1.0",
+      "generated_at": "2026-06-02T08:02:17.819030+00:00",
+      "regime": null,
+      "confidence": null,
+      "reasoning": null,
+      "sub_regimes": null,
+      "macro_generated_at": null
+    },
+    "critique_invoke": {
+      "elapsed_s": 78.2,
+      "status": 200,
+      "function_error": null,
+      "body_preview": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\", \"Cache-Control\": \"public, max-age=600\"}, \"body\": \"{\\\"ticker\\\": \\\"AAPL\\\", \\\"generated_at\\\": \\\"2026-06-02T15:31:08.613904+00:00\\\", \\\"regime_at_generation\\\": {\\\"regime\\\": \\\"REFLATION\\\", \\\"confidence\\\": \\\"HIGH\\\", \\\"reasoning\\\": \\\"Commodities strong + carry on + EM not stressed\\\", \\\"sub_regimes\\\": {\\"
+    },
+    "critique_stamp": {
+      "generated_at": "2026-06-02T15:31:08.613904+00:00",
+      "regime": "REFLATION",
+      "confidence": "HIGH",
+      "sub_regimes_count": 7
+    },
+    "backtest_invoke": {
+      "error": "poll timeout"
+    },
+    "stamp_coverage": {
+      "n_inspected": 59,
+      "n_stamped": 0,
+      "pct_stamped": 0.0,
+      "sample": [
+        {
+          "ticker": "AAPL",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "ABBV",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "ABT",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "ADBE",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "AMD",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "AMZN",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "AVGO",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "AXP",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "BA",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "BRK-B",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "CAT",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "COST",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "CRM",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "CRWD",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        },
+        {
+          "ticker": "CRWV",
+          "has_stamp": false,
+          "stamp_regime": null,
+          "schema": "1.0"
+        }
+      ]
+    }
+  },
+  "finished": "2026-06-02T15:36:13.722570+00:00"
+}
