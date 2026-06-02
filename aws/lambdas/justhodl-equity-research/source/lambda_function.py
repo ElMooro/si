@@ -185,6 +185,7 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
         "peers":            ("stock-peers", {"symbol": ticker}),
         "earnings":         ("earnings", {"symbol": ticker, "limit": 12}),
         "ownership":        ("acquisition-of-beneficial-ownership", {"symbol": ticker}),
+        "transcript_dates": ("earning-call-transcript-dates", {"symbol": ticker}),
         "prices_eod":       ("historical-price-eod/light",
                               {"symbol": ticker, "from": _date_n_years_ago(10)}),
         "dividends":        ("dividends", {"symbol": ticker, "limit": 20}),
@@ -567,6 +568,61 @@ def compute_financial_health(scores: list, ratios_ttm: dict, key_ttm: dict,
         "overall_score": round(overall, 0),
         "altman_z":    altman_z,
         "piotroski":   piotroski,
+    }
+
+
+def fetch_latest_transcript(ticker: str, transcript_dates: list) -> Optional[dict]:
+    """Fetch the most recent earnings call transcript.
+
+    /stable/earning-call-transcript-dates gives us a list of (date,
+    fiscalYear, quarter) tuples. We pick the most recent and fetch
+    /stable/earning-call-transcript?symbol=X&year=Y&quarter=Q to get
+    the actual call content.
+
+    Returns: {date, year, quarter, content_truncated, content_full_chars}
+             or None if no transcripts.
+    """
+    if not isinstance(transcript_dates, list) or not transcript_dates:
+        return None
+    # Most-recent first by date string
+    sorted_dates = sorted(transcript_dates,
+                            key=lambda d: d.get("date") or "",
+                            reverse=True)
+    latest_meta = sorted_dates[0]
+    year = latest_meta.get("fiscalYear")
+    quarter = latest_meta.get("quarter")
+    if not year or not quarter:
+        return None
+
+    # Fetch the actual call
+    r = fmp_get("earning-call-transcript", symbol=ticker,
+                  year=year, quarter=quarter)
+    transcript = _first(r) or {}
+    content = transcript.get("content") or ""
+    if not content:
+        return None
+
+    # Transcripts can be 50K-150K chars. We need to truncate intelligently
+    # for the Claude payload. Hedge fund analysts care most about:
+    #   - The intro / prepared remarks (CEO + CFO outlook)
+    #   - The Q&A (where analysts probe weaknesses)
+    # Strategy: take the first 8000 chars (prepared remarks) + last
+    # 8000 chars (final Q&A often has the most pointed exchanges).
+    full_len = len(content)
+    if full_len <= 16000:
+        truncated = content
+    else:
+        truncated = (content[:8000] +
+                       "\n\n…[middle of call omitted for brevity]…\n\n" +
+                       content[-8000:])
+
+    return {
+        "date":               latest_meta.get("date"),
+        "fiscal_year":        year,
+        "quarter":            quarter,
+        "full_chars":         full_len,
+        "truncated_chars":    len(truncated),
+        "content_truncated":  truncated,
     }
 
 
@@ -967,6 +1023,18 @@ Schema:
   "earnings_track_record_assessment": "80 words on the company's earnings consistency. Cite the EPS beat rate, current streak, magnitude trend, and revenue surprise. Hedge fund framing: 'beats 7 of 8 quarters but with shrinking magnitude = deteriorating quality' is more useful than just 'beats consensus regularly'.",
   "capital_allocation_assessment": "80 words on management's capital allocation. Cite total capital returned 10y, shareholder yield, dividend vs buyback mix, payout ratio sustainability, and capex intensity trend. Frame as 'cash-cow returning $X to shareholders' vs 'reinvesting heavily into capex' — both can be good, depends on ROIC.",
   "institutional_activity_assessment": "60 words on recent SEC 13D/13G beneficial-ownership filings (institutional positions crossing 5% threshold). If filings are stale (>24mo old) or absent, say so plainly. If recent clustering by notable institutions (Berkshire, Vanguard, Blackrock, Wellington), call it out as 'smart money accumulation'.",
+  "earnings_call_sentiment": {
+    "available": true|false (set to false if no transcript was provided),
+    "overall_tone": "BULLISH | CONFIDENT | NEUTRAL | CAUTIOUS | DEFENSIVE",
+    "tone_summary": "100 words describing the management's tone across the prepared remarks and Q&A. Cite specific phrases ('several large customers paused projects', 'we expect double-digit growth to accelerate') — direct attribution to CEO or CFO when possible. Distinguish the prepared-remarks tone from the Q&A tone — Q&A often reveals more.",
+    "key_topics": ["3-5 topic clusters management spent the most time on, e.g. 'AI infrastructure capex', 'China demand softness', 'pricing power in enterprise'"],
+    "guidance_change": "RAISED | MAINTAINED | LOWERED | NOT_PROVIDED",
+    "guidance_summary": "50 words on what management said about forward guidance and how it changed from prior quarter (if mentioned).",
+    "notable_quotes": [
+      {"speaker": "name + title", "quote": "verbatim short quote", "significance": "why this matters to a PM"},
+      ... (2-3 quotes that contain the most information)
+    ]
+  },
   "financial_health_summary": "100 words on the 5-pillar score, calling out the strongest and weakest pillars with the actual numbers.",
   "competitive_position": "100 words on the company's moat and industry position based on margins, growth durability, and ROIC vs peers.",
   "catalysts_12m": [
@@ -1102,6 +1170,7 @@ def lambda_handler(event, context):
     dividends        = raw.get("dividends") if isinstance(raw.get("dividends"), list) else []
     earnings         = raw.get("earnings") if isinstance(raw.get("earnings"), list) else []
     ownership_data   = raw.get("ownership") if isinstance(raw.get("ownership"), list) else []
+    transcript_dates_data = raw.get("transcript_dates") if isinstance(raw.get("transcript_dates"), list) else []
 
     # The peers endpoint returns a LIST of peer objects directly (not wrapped).
     # Each has symbol, companyName, price, mktCap.
@@ -1159,6 +1228,13 @@ def lambda_handler(event, context):
 
     # ── Institutional activity (13D/13G filings — smart money tracking)
     institutional_activity = compute_institutional_activity(ownership_data)
+
+    # ── Earnings call transcript (most recent quarter)
+    earnings_call = fetch_latest_transcript(ticker, transcript_dates_data)
+    if earnings_call:
+        print(f"[transcript] {ticker} Q{earnings_call['quarter']} {earnings_call['fiscal_year']} "
+              f"({earnings_call['date']}) — {earnings_call['full_chars']} chars full, "
+              f"{earnings_call['truncated_chars']} sent to Claude")
 
     # ── Compact statements (every year, just essential fields)
     def compact_income(rows):
@@ -1236,6 +1312,7 @@ def lambda_handler(event, context):
         "earnings_track_record": earnings_track_record,
         "capital_allocation": capital_allocation,
         "institutional_activity": institutional_activity,
+        "earnings_call_excerpt": earnings_call,
         "statements_preview": {
             "income_top_5y":      compact_income(income_annual[:5]),
             "balance_top_5y":     compact_balance(balance_annual[:5]),
@@ -1278,6 +1355,7 @@ def lambda_handler(event, context):
         "earnings_track_record_assessment": claude_synthesis.get("earnings_track_record_assessment"),
         "capital_allocation_assessment": claude_synthesis.get("capital_allocation_assessment"),
         "institutional_activity_assessment": claude_synthesis.get("institutional_activity_assessment"),
+        "earnings_call_sentiment": claude_synthesis.get("earnings_call_sentiment"),
         "financial_health_summary": claude_synthesis.get("financial_health_summary"),
         "competitive_position":claude_synthesis.get("competitive_position"),
         "catalysts_12m":       claude_synthesis.get("catalysts_12m") or [],
@@ -1294,6 +1372,12 @@ def lambda_handler(event, context):
         "earnings_track_record": earnings_track_record,
         "capital_allocation":  capital_allocation,
         "institutional_activity": institutional_activity,
+        "earnings_call": {
+            "date":              earnings_call.get("date") if earnings_call else None,
+            "fiscal_year":       earnings_call.get("fiscal_year") if earnings_call else None,
+            "quarter":           earnings_call.get("quarter") if earnings_call else None,
+            "full_chars":        earnings_call.get("full_chars") if earnings_call else None,
+        } if earnings_call else None,
         "statements": {
             "income_annual":     compact_income(income_annual),
             "balance_annual":    compact_balance(balance_annual),

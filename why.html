@@ -424,6 +424,7 @@ function renderReport(d){
   html += renderEarningsTrack(d);
   html += renderCapitalAllocation(d);
   html += renderInstitutionalActivity(d);
+  html += renderEarningsCall(d);
   html += renderReturns(d);
   html += renderMargins(d);
   html += renderStatements(d);
@@ -999,6 +1000,79 @@ function renderInstitutionalActivity(d){
         13D = activist filing (intent to influence) · 13G = passive holder &gt;5% ·
         Bold rows = blue-chip institutions
       </div>
+    </section>`;
+}
+
+function renderEarningsCall(d){
+  const ec = d.earnings_call;
+  const sent = d.earnings_call_sentiment || {};
+  if(!ec || sent.available === false) return "";
+
+  // Tone color
+  const toneCls = {
+    'BULLISH':   'up',
+    'CONFIDENT': 'up',
+    'NEUTRAL':   '',
+    'CAUTIOUS':  'warn',
+    'DEFENSIVE': 'down',
+  };
+  const tone = (sent.overall_tone || '').toUpperCase();
+  const tCls = toneCls[tone] || '';
+
+  // Guidance change color
+  const gc = (sent.guidance_change || '').toUpperCase();
+  const gcCls = gc === 'RAISED' ? 'up' : gc === 'LOWERED' ? 'down' : gc === 'MAINTAINED' ? '' : 'warn';
+
+  // Key topics as pills
+  const topics = sent.key_topics || [];
+  const topicsHtml = topics.length === 0 ? '' : `
+    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:10px">
+      ${topics.map(t => `<span style="background:var(--bg-elev); border:1px solid var(--border-light); border-radius:4px; padding:5px 10px; font-size:11px; color:var(--text-dim)">${esc(t)}</span>`).join("")}
+    </div>`;
+
+  // Notable quotes
+  const quotes = sent.notable_quotes || [];
+  const quotesHtml = quotes.length === 0 ? '' : `
+    <div style="margin-top:14px; display:flex; flex-direction:column; gap:10px">
+      ${quotes.map(q => `
+        <div style="background:var(--bg-elev); border-left:3px solid var(--cyan); border-radius:5px; padding:10px 14px">
+          <div style="color:var(--text); font-style:italic; font-size:12.5px; line-height:1.55">"${esc(q.quote || '')}"</div>
+          <div style="color:var(--text-dim); font-size:11px; margin-top:5px; font-family:var(--font-mono)">— ${esc(q.speaker || '—')}</div>
+          ${q.significance ? `<div style="color:var(--text-muted); font-size:11px; margin-top:6px; line-height:1.5">${esc(q.significance)}</div>` : ""}
+        </div>`).join("")}
+    </div>`;
+
+  return `
+    <section class="block">
+      <h3><span class="ico">🎙</span> Earnings Call Sentiment
+        <span class="pill">${esc(ec.date || '')} · Q${ec.quarter} FY${ec.fiscal_year}${ec.full_chars ? ' · ' + Math.round(ec.full_chars/1000) + 'K chars' : ''}</span>
+      </h3>
+      <div class="grid" style="margin-top:6px">
+        <div class="metric">
+          <div class="lbl">Overall Tone</div>
+          <div class="val ${tCls}" style="font-size:18px; padding-top:6px">${esc(tone || '—')}</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">Guidance Change</div>
+          <div class="val ${gcCls}" style="font-size:14px; padding-top:8px">${esc(gc || '—').replace(/_/g, ' ')}</div>
+        </div>
+      </div>
+      ${sent.tone_summary ? `<p style="margin-top:14px">${esc(sent.tone_summary)}</p>` : ""}
+      ${sent.guidance_summary ? `
+        <div style="background:var(--bg-elev); border-radius:6px; padding:12px 16px; margin-top:10px">
+          <div style="font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; font-weight:600">Forward Guidance</div>
+          <div style="font-size:12.5px; color:var(--text); line-height:1.6">${esc(sent.guidance_summary)}</div>
+        </div>` : ""}
+      ${topics.length > 0 ? `
+        <div style="margin-top:14px">
+          <div style="font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; font-weight:600">Key Topics Discussed</div>
+          ${topicsHtml}
+        </div>` : ""}
+      ${quotes.length > 0 ? `
+        <div style="margin-top:14px">
+          <div style="font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; font-weight:600">Notable Quotes</div>
+          ${quotesHtml}
+        </div>` : ""}
     </section>`;
 }
 
