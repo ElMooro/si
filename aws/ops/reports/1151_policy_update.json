@@ -1,0 +1,98 @@
+{
+  "started": "2026-06-02T01:30:24.947312+00:00",
+  "existing_policy_sids": [
+    "PublicReadDataDir",
+    "PublicReadScreener",
+    "PublicReadSentiment",
+    "PublicReadRootDashboardFiles",
+    "PublicReadRegime",
+    "PublicReadDivergence",
+    "PublicReadCOT",
+    "PublicReadRisk",
+    "PublicReadOpportunities",
+    "PublicReadPortfolio",
+    "PublicReadInvestorDebate",
+    "PublicReadReports",
+    "PublicReadArchive",
+    "PublicReadLearning",
+    "PublicReadAllRootJSON",
+    "PublicReadHtmlPages"
+  ],
+  "actions": {
+    "PublicReadEquityResearch": "added",
+    "PublicReadEquityPrewarm": "added"
+  },
+  "new_policy_sids": [
+    "PublicReadDataDir",
+    "PublicReadScreener",
+    "PublicReadSentiment",
+    "PublicReadRootDashboardFiles",
+    "PublicReadRegime",
+    "PublicReadDivergence",
+    "PublicReadCOT",
+    "PublicReadRisk",
+    "PublicReadOpportunities",
+    "PublicReadPortfolio",
+    "PublicReadInvestorDebate",
+    "PublicReadReports",
+    "PublicReadArchive",
+    "PublicReadLearning",
+    "PublicReadAllRootJSON",
+    "PublicReadHtmlPages",
+    "PublicReadEquityResearch",
+    "PublicReadEquityPrewarm"
+  ],
+  "new_policy_size": 3764,
+  "put_policy_result": "ok",
+  "verified_sids": [
+    "PublicReadDataDir",
+    "PublicReadScreener",
+    "PublicReadSentiment",
+    "PublicReadRootDashboardFiles",
+    "PublicReadRegime",
+    "PublicReadDivergence",
+    "PublicReadCOT",
+    "PublicReadRisk",
+    "PublicReadOpportunities",
+    "PublicReadPortfolio",
+    "PublicReadInvestorDebate",
+    "PublicReadReports",
+    "PublicReadArchive",
+    "PublicReadLearning",
+    "PublicReadAllRootJSON",
+    "PublicReadHtmlPages",
+    "PublicReadEquityResearch",
+    "PublicReadEquityPrewarm"
+  ],
+  "new_statements_text": [
+    {
+      "Sid": "PublicReadEquityResearch",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::justhodl-dashboard-live/equity-research/*"
+    },
+    {
+      "Sid": "PublicReadEquityPrewarm",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::justhodl-dashboard-live/equity-prewarm/*"
+    }
+  ],
+  "cf_proxy_post_fix": {
+    "UBER": {
+      "http_error": 403,
+      "msg": "Forbidden"
+    },
+    "CRWD": {
+      "http_error": 403,
+      "msg": "Forbidden"
+    },
+    "ZM": {
+      "http_error": 403,
+      "msg": "Forbidden"
+    }
+  },
+  "finished": "2026-06-02T01:30:26.229979+00:00"
+}
