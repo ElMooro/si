@@ -1,0 +1,125 @@
+{
+  "started": "2026-06-02T03:31:34.192234+00:00",
+  "steps": {
+    "bucket_policy": {
+      "prior_sids": [
+        "PublicReadDataDir",
+        "PublicReadScreener",
+        "PublicReadSentiment",
+        "PublicReadRootDashboardFiles",
+        "PublicReadRegime",
+        "PublicReadDivergence",
+        "PublicReadCOT",
+        "PublicReadRisk",
+        "PublicReadOpportunities",
+        "PublicReadPortfolio",
+        "PublicReadInvestorDebate",
+        "PublicReadReports",
+        "PublicReadArchive",
+        "PublicReadLearning",
+        "PublicReadAllRootJSON",
+        "PublicReadHtmlPages",
+        "PublicReadEquityResearch",
+        "PublicReadEquityPrewarm",
+        "PublicReadEdgarInsiders",
+        "PublicReadAnalytics"
+      ],
+      "added": false
+    },
+    "schedule": {
+      "created": true,
+      "permission_added": true
+    },
+    "invoke": {
+      "invoke_status": 202,
+      "poll_elapsed_s": 3.1,
+      "research_updated": true,
+      "edgar_updated": true,
+      "research_lm": "2026-06-02 03:31:38+00:00",
+      "edgar_lm": "2026-06-02 03:31:38+00:00"
+    },
+    "s3_verify": {
+      "analytics/equity_research_flat.json": {
+        "exists": true,
+        "size_kb": 21.2,
+        "n_rows": 17,
+        "generated_at": "2026-06-02T03:31:37.890103+00:00",
+        "schema_version": "1.0"
+      },
+      "analytics/edgar_insiders_flat.json": {
+        "exists": true,
+        "size_kb": 5.2,
+        "n_rows": 8,
+        "generated_at": "2026-06-02T03:31:37.890103+00:00",
+        "schema_version": "1.0"
+      },
+      "analytics/manifest.json": {
+        "exists": true,
+        "size_kb": 1.8,
+        "n_rows": null,
+        "generated_at": null,
+        "schema_version": null,
+        "tables": [
+          {
+            "name": "equity_research",
+            "key": "analytics/equity_research_flat.json"
+          },
+          {
+            "name": "edgar_insiders",
+            "key": "analytics/edgar_insiders_flat.json"
+          }
+        ],
+        "n_research_cols": 52,
+        "n_edgar_cols": 22
+      }
+    },
+    "cdn_smoke": {
+      "analytics/equity_research_flat.json": {
+        "http": 200,
+        "elapsed_s": 0.26,
+        "size_kb": 21.2,
+        "n_rows": 17
+      },
+      "analytics/edgar_insiders_flat.json": {
+        "http": 200,
+        "elapsed_s": 0.21,
+        "size_kb": 5.2,
+        "n_rows": 8
+      },
+      "analytics/manifest.json": {
+        "http": 200,
+        "elapsed_s": 0.25,
+        "size_kb": 1.8,
+        "n_rows": null
+      }
+    }
+  },
+  "sample_research_rows": [
+    {
+      "ticker": "AAPL",
+      "rating": "HOLD",
+      "upside_pct": -0.4,
+      "pe_ttm": 36.76,
+      "roic_ttm_pct": 49.57,
+      "rev_5y_cagr_pct": null
+    },
+    {
+      "ticker": "AVGO",
+      "rating": "HOLD",
+      "upside_pct": -16.3,
+      "pe_ttm": null,
+      "roic_ttm_pct": 17.64,
+      "rev_5y_cagr_pct": null
+    },
+    {
+      "ticker": "BRK-B",
+      "rating": "HOLD",
+      "upside_pct": 4.6,
+      "pe_ttm": null,
+      "roic_ttm_pct": 4.25,
+      "rev_5y_cagr_pct": null
+    }
+  ],
+  "finished": "2026-06-02T03:31:39.205138+00:00",
+  "all_ok": true
+}
