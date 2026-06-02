@@ -756,6 +756,55 @@ table.tbl tr:last-child td{border-bottom: none}
 
 <main class="page">
 
+  <!-- ────────── RESEARCH SEARCH (any ticker → institutional 19-section memo) ────────── -->
+  <div class="research-search" style="background:linear-gradient(135deg, rgba(250,204,21,.05) 0%, rgba(34,211,238,.03) 100%); border:1px solid rgba(250,204,21,.25); border-radius:10px; padding:18px 22px; margin-bottom:18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+    <div style="flex:0 0 auto; font-size:24px">🔬</div>
+    <div style="flex:1 1 240px; min-width:240px">
+      <div style="font-size:14px; font-weight:700; color:var(--accent); margin-bottom:3px; letter-spacing:.02em">Institutional Research Desk</div>
+      <div style="font-size:11.5px; color:var(--text-dim); line-height:1.5">19-section hedge-fund-grade research on any stock · bull/base/bear scenarios · peer comparison · earnings call sentiment · 20-year financials</div>
+    </div>
+    <form id="research-search-form" onsubmit="goResearch(event)" style="display:flex; gap:8px; flex:0 0 auto; align-items:center" autocomplete="off">
+      <input id="research-search-input" type="text" placeholder="AAPL, NVDA, JPM…"
+             style="background:var(--bg-base); border:1px solid var(--border); color:var(--text); padding:9px 14px; border-radius:6px; font-family:var(--font-mono); font-size:13px; width:170px; outline:none; text-transform:uppercase"
+             autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="8">
+      <button type="submit"
+              style="background:var(--accent); color:#000; border:none; padding:9px 18px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; letter-spacing:.04em; transition:background 0.15s">
+        RESEARCH ↗
+      </button>
+    </form>
+    <div style="flex:1 0 100%; font-size:10.5px; color:var(--text-muted); padding-top:4px">
+      Quick picks (pre-cached, instant):
+      <a href="/why.html?ticker=AAPL" style="color:var(--cyan); margin-left:6px; text-decoration:none">AAPL</a>
+      <a href="/why.html?ticker=MSFT" style="color:var(--cyan); margin-left:8px; text-decoration:none">MSFT</a>
+      <a href="/why.html?ticker=NVDA" style="color:var(--cyan); margin-left:8px; text-decoration:none">NVDA</a>
+      <a href="/why.html?ticker=GOOGL" style="color:var(--cyan); margin-left:8px; text-decoration:none">GOOGL</a>
+      <a href="/why.html?ticker=JPM" style="color:var(--cyan); margin-left:8px; text-decoration:none">JPM</a>
+      <a href="/why.html?ticker=KO" style="color:var(--cyan); margin-left:8px; text-decoration:none">KO</a>
+      <a href="/why.html?ticker=TSLA" style="color:var(--cyan); margin-left:8px; text-decoration:none">TSLA</a>
+      <a href="/why.html?ticker=UBER" style="color:var(--cyan); margin-left:8px; text-decoration:none">UBER</a>
+      <a href="/why.html?ticker=AVGO" style="color:var(--cyan); margin-left:8px; text-decoration:none">AVGO</a>
+      <span style="margin-left:10px; color:var(--text-muted)">·</span>
+      <a href="/compare.html?tickers=AAPL,MSFT,GOOGL" style="color:var(--accent); margin-left:8px; text-decoration:none; font-weight:600">compare 2-3 tickers →</a>
+    </div>
+  </div>
+  <script>
+  function goResearch(ev){
+    if(ev) ev.preventDefault();
+    var inp = document.getElementById('research-search-input');
+    if(!inp) return false;
+    var t = (inp.value || '').trim().toUpperCase();
+    if(!t) return false;
+    if(!/^[A-Z0-9.\-]{1,8}$/.test(t)) {
+      inp.style.borderColor = '#ef4444';
+      inp.focus();
+      setTimeout(function(){ inp.style.borderColor = ''; }, 1500);
+      return false;
+    }
+    window.location.href = '/why.html?ticker=' + encodeURIComponent(t);
+    return false;
+  }
+  </script>
+
   <!-- AI Master Synthesis (CIO desk consensus from all 30 desks) -->
   <div id="ai-synthesis" style="margin-bottom:18px"></div>
   <script>if(window.JHAISynth)JHAISynth.mount("ai-synthesis","desk-consensus");</script>
