@@ -186,6 +186,7 @@ def call_anthropic(system: str, user: str, max_tokens: int = 4000) -> tuple:
         "Content-Type": "application/json",
         "x-api-key": ANTHROPIC_KEY,
         "anthropic-version": "2023-06-01",
+        "anthropic-beta": "extended-cache-ttl-2025-04-11",
     }
     data = _post_json("https://api.anthropic.com/v1/messages",
                        headers, payload, CRITIQUE_TIMEOUT)

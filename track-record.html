@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>Research Track Record · JustHodl.AI</title>
+<meta name="description" content="Honest performance attribution for every equity research call. SPY-relative alpha, win rates by rating, ensemble signal validation.">
+<link rel="preconnect" href="https://justhodl-data-proxy.raafouis.workers.dev">
+
+<style>
+:root {
+  --bg-base:       #0a0a0a;
+  --bg-card:       #141414;
+  --bg-elev:       #1a1a1a;
+  --border:        rgba(255,255,255,.08);
+  --border-light:  rgba(255,255,255,.05);
+  --text:          #eef2f7;
+  --text-dim:      #aab4c0;
+  --text-muted:    #6b7785;
+  --accent:        #facc15;
+  --cyan:          #22d3ee;
+  --pos:           #26ffaf;
+  --neg:           #ef4444;
+  --warn:          #f59e0b;
+  --font-mono:     'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --font-sans:     'Inter', system-ui, -apple-system, sans-serif;
+}
+*{ box-sizing:border-box }
+body{ margin:0; padding:0; background:var(--bg-base); color:var(--text); font-family:var(--font-sans); font-size:13px; line-height:1.6; -webkit-font-smoothing:antialiased }
+.topbar{ display:flex; align-items:center; justify-content:space-between; padding:12px 22px; border-bottom:1px solid var(--border); background:rgba(10,10,10,.95); backdrop-filter:blur(8px); position:sticky; top:0; z-index:50 }
+.logo{ font-family:var(--font-mono); font-weight:700; font-size:14px; color:var(--accent) }
+.logo a{ color:inherit; text-decoration:none }
+.nav-links{ display:flex; gap:18px }
+.nav-links a{ color:var(--text-dim); text-decoration:none; font-size:12px; letter-spacing:.04em }
+.nav-links a:hover{ color:var(--accent) }
+.page{ max-width:1400px; margin:0 auto; padding:18px 22px }
+h1{ margin:0 0 4px; font-size:20px; color:var(--accent) }
+.subtitle{ color:var(--text-dim); font-size:12.5px; margin-bottom:18px }
+.meta-bar{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted); padding:6px 12px; background:var(--bg-elev); border-radius:6px; margin-bottom:14px }
+.caveats{ background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.3); border-radius:8px; padding:12px 16px; margin-bottom:18px }
+.caveats h4{ margin:0 0 6px; font-size:11px; color:var(--warn); text-transform:uppercase; letter-spacing:.06em }
+.caveats ul{ margin:0; padding-left:18px; font-size:11.5px; color:var(--text-dim); line-height:1.7 }
+.summary-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-bottom:18px }
+.stat-card{ background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:12px 14px }
+.stat-card .label{ font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px }
+.stat-card .value{ font-family:var(--font-mono); font-size:18px; font-weight:700; color:var(--accent) }
+.stat-card.pos .value{ color:var(--pos) }
+.stat-card.neg .value{ color:var(--neg) }
+.section{ background:var(--bg-card); border:1px solid var(--border); border-radius:10px; margin-bottom:16px; overflow:hidden }
+.section h3{ margin:0; padding:12px 18px; font-size:13px; color:var(--accent); border-bottom:1px solid var(--border-light); font-family:var(--font-mono); letter-spacing:.04em; background:var(--bg-elev); display:flex; align-items:center; gap:8px }
+.section .body{ padding:14px 18px }
+table{ width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px }
+th{ background:var(--bg-elev); color:var(--accent); font-size:10px; text-transform:uppercase; letter-spacing:.06em; padding:8px 10px; text-align:left; border-bottom:1px solid var(--border-light); position:sticky; top:0 }
+td{ padding:6px 10px; border-bottom:1px solid var(--border-light); color:var(--text-dim) }
+td.num{ text-align:right; color:var(--text); font-variant-numeric:tabular-nums }
+td.pos{ color:var(--pos) }
+td.neg{ color:var(--neg) }
+tr:hover td{ background:var(--bg-elev) }
+.ensemble-result{ background:linear-gradient(135deg, rgba(34,211,238,.05) 0%, rgba(250,204,21,.03) 100%); border:1px solid rgba(34,211,238,.3); border-radius:8px; padding:14px 18px }
+.ensemble-result .headline{ font-size:14px; color:var(--text); font-weight:600; margin-bottom:8px }
+.ensemble-result .spread{ font-family:var(--font-mono); font-size:22px; font-weight:700 }
+.ensemble-result .interp{ font-size:11.5px; color:var(--text-dim); margin-top:6px; font-style:italic }
+.empty{ padding:40px; text-align:center; color:var(--text-muted); font-size:12px }
+.spinner{ display:inline-block; width:12px; height:12px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle }
+@keyframes spin{ to{ transform:rotate(360deg) } }
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="logo"><a href="/">JustHodl.AI</a> · RESEARCH TRACK RECORD</div>
+  <nav class="nav-links">
+    <a href="/">Home</a>
+    <a href="/why.html">Research</a>
+    <a href="/compare.html">Compare</a>
+    <a href="/analytics.html">Analytics</a>
+  </nav>
+</header>
+
+<main class="page">
+
+  <h1>📊 Research Track Record</h1>
+  <p class="subtitle">Honest performance attribution for every equity research call. SPY-relative alpha, win rates by rating, and the critical ensemble-signal validation: <i>does the Devil's Advocate disagreement actually predict anything?</i></p>
+  <div class="meta-bar" id="meta-bar">⏳ Loading backtest data…</div>
+
+  <div id="caveats-wrap"></div>
+
+  <div class="summary-row" id="summary-row"></div>
+
+  <div class="section">
+    <h3>🎭 Ensemble Signal Validation <span style="opacity:.6; font-size:11px; font-weight:400">— Does the AI disagreement signal predict anything?</span></h3>
+    <div class="body" id="ensemble-body">
+      <div class="empty"><span class="spinner"></span> Computing…</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>📈 Performance by Analyst Rating</h3>
+    <div class="body" id="rating-body">
+      <div class="empty"><span class="spinner"></span> Computing…</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>🎯 Performance by Critic Rating</h3>
+    <div class="body" id="critic-body">
+      <div class="empty"><span class="spinner"></span> Computing…</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>📋 Every Call · Detailed Attribution</h3>
+    <div class="body" id="calls-body" style="max-height:60vh; overflow-y:auto; padding:0">
+      <div class="empty"><span class="spinner"></span> Loading per-call data…</div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px; padding:14px 18px; background:var(--bg-card); border:1px solid var(--border); border-radius:8px; font-size:11px; color:var(--text-muted); line-height:1.7">
+    <b style="color:var(--accent)">Methodology:</b> entry price = quote.price embedded in research at <code>generated_at</code> (no look-ahead — only data the analyst saw).
+    Current price via FMP /stable/quote. Alpha = ticker return − SPY return over the same window.
+    SPY price as-of generated_at uses the closest preceding trading day's close.
+    "Win" = positive return (not alpha). PT Capture % = (current − entry) / (price_target_12m − entry) × 100.
+    Refreshes daily at 06:00 ET. Source: <code>analytics/backtest_results.json</code>.
+  </div>
+
+</main>
+
+<script>
+const CDN = "https://justhodl-data-proxy.raafouis.workers.dev";
+const BACKTEST_URL = `${CDN}/analytics/backtest_results.json`;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtPct = v => v == null ? '<span style="opacity:.3">—</span>' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+const fmtNum = v => v == null ? '<span style="opacity:.3">—</span>' : v.toFixed(2);
+const cls = v => v == null ? '' : (v > 0 ? ' pos' : v < 0 ? ' neg' : '');
+
+async function load() {
+  let data;
+  try {
+    const r = await fetch(`${BACKTEST_URL}?v=${Date.now()}`);
+    if(!r.ok) throw new Error(`HTTP ${r.status} — backtest hasn't run yet?`);
+    data = await r.json();
+  } catch(e) {
+    $("meta-bar").innerHTML = `<span style="color:var(--neg)">❌ ${esc(e.message)}</span>`;
+    document.querySelectorAll('.empty').forEach(el => {
+      el.innerHTML = '<span style="color:var(--text-muted)">No backtest data yet. Lambda needs to run first.</span>';
+    });
+    return;
+  }
+
+  $("meta-bar").innerHTML = `Generated ${esc(data.generated_at?.slice(0,16).replace('T',' '))} UTC ·
+    Universe ${data.universe_size} tickers · ${data.n_calls_with_returns}/${data.n_research_files} calls priced ·
+    avg holding ${data.avg_days_held} days · SPY @ \$${fmtNum(data.spy_current_price)} ·
+    Earliest research ${esc(data.earliest_research?.slice(0,10))}`;
+
+  if(data.caveats?.length) {
+    $("caveats-wrap").innerHTML = `
+      <div class="caveats">
+        <h4>⚠ Honest Caveats</h4>
+        <ul>${data.caveats.map(c => `<li>${esc(c)}</li>`).join('')}</ul>
+      </div>`;
+  }
+
+  const calls = data.per_call || [];
+  const withRet = calls.filter(c => c.ticker_return_pct != null);
+  const withAlpha = calls.filter(c => c.alpha_pct != null);
+  const meanRet = withRet.length ? withRet.reduce((s,c) => s + c.ticker_return_pct, 0) / withRet.length : null;
+  const meanAlpha = withAlpha.length ? withAlpha.reduce((s,c) => s + c.alpha_pct, 0) / withAlpha.length : null;
+  const wins = withRet.filter(c => c.ticker_return_pct > 0).length;
+  const winRate = withRet.length ? 100 * wins / withRet.length : null;
+  const alphaWins = withAlpha.filter(c => c.alpha_pct > 0).length;
+  const alphaWinRate = withAlpha.length ? 100 * alphaWins / withAlpha.length : null;
+
+  $("summary-row").innerHTML = `
+    <div class="stat-card ${meanRet > 0 ? 'pos' : meanRet < 0 ? 'neg' : ''}">
+      <div class="label">Mean return</div>
+      <div class="value">${fmtPct(meanRet)}</div>
+    </div>
+    <div class="stat-card ${meanAlpha > 0 ? 'pos' : meanAlpha < 0 ? 'neg' : ''}">
+      <div class="label">Mean alpha vs SPY</div>
+      <div class="value">${fmtPct(meanAlpha)}</div>
+    </div>
+    <div class="stat-card ${winRate >= 50 ? 'pos' : 'neg'}">
+      <div class="label">Win rate</div>
+      <div class="value">${winRate == null ? '—' : winRate.toFixed(0) + '%'}</div>
+    </div>
+    <div class="stat-card ${alphaWinRate >= 50 ? 'pos' : 'neg'}">
+      <div class="label">Alpha-win rate</div>
+      <div class="value">${alphaWinRate == null ? '—' : alphaWinRate.toFixed(0) + '%'}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Calls scored</div>
+      <div class="value">${withRet.length}</div>
+    </div>
+  `;
+
+  renderEnsemble(data.ensemble_attribution || {});
+  renderRatingTable("rating-body", data.rating_summary || [], "rating");
+  renderRatingTable("critic-body", data.critique_summary || [], "critic_rating");
+  renderCalls(calls);
+}
+
+function renderEnsemble(e) {
+  const body = $("ensemble-body");
+  if(!e.n_with_critique) {
+    body.innerHTML = `<div class="empty">No critique data yet — need more research × critique pairs.</div>`;
+    return;
+  }
+  const spread = e.alpha_spread_pct;
+  const spreadClass = spread > 0 ? 'pos' : spread < 0 ? 'neg' : '';
+  const headline = spread > 0
+    ? "✓ Consensus picks outperformed contested ones"
+    : spread < 0
+      ? "✗ Contested picks outperformed consensus (counterintuitive)"
+      : "= No measurable difference";
+
+  body.innerHTML = `
+    <div class="ensemble-result">
+      <div class="headline">${esc(headline)}</div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:14px 0">
+        <div>
+          <div style="font-size:10.5px; color:var(--text-muted); text-transform:uppercase">Consensus (rating concur)</div>
+          <div style="font-family:var(--font-mono); font-size:13px; margin-top:4px">
+            N=${e.consensus.n || 0} · win ${e.consensus.win_rate_pct ?? '—'}%<br>
+            ret <span class="${e.consensus.mean_return_pct > 0 ? 'pos' : 'neg'}">${fmtPct(e.consensus.mean_return_pct)}</span> ·
+            alpha <span class="${e.consensus.mean_alpha_pct > 0 ? 'pos' : 'neg'}">${fmtPct(e.consensus.mean_alpha_pct)}</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10.5px; color:var(--text-muted); text-transform:uppercase">Contested (rating diverges)</div>
+          <div style="font-family:var(--font-mono); font-size:13px; margin-top:4px">
+            N=${e.contested.n || 0} · win ${e.contested.win_rate_pct ?? '—'}%<br>
+            ret <span class="${e.contested.mean_return_pct > 0 ? 'pos' : 'neg'}">${fmtPct(e.contested.mean_return_pct)}</span> ·
+            alpha <span class="${e.contested.mean_alpha_pct > 0 ? 'pos' : 'neg'}">${fmtPct(e.contested.mean_alpha_pct)}</span>
+          </div>
+        </div>
+        <div style="text-align:center; border-left:1px solid var(--border-light); padding-left:14px">
+          <div style="font-size:10.5px; color:var(--text-muted); text-transform:uppercase">Alpha spread</div>
+          <div class="spread ${spreadClass}" style="margin-top:6px">${fmtPct(spread)}</div>
+          <div style="font-size:10px; color:var(--text-muted); margin-top:2px">consensus − contested</div>
+        </div>
+      </div>
+      <div class="interp">"${esc(e.interpretation || '')}"</div>
+    </div>
+  `;
+}
+
+function renderRatingTable(elId, rows, labelKey) {
+  if(!rows.length) {
+    $(elId).innerHTML = `<div class="empty">No data yet.</div>`;
+    return;
+  }
+  const colorPill = (v) => {
+    if(v === 'STRONG_BUY' || v === 'BUY') return `<span style="color:var(--pos); font-weight:600">${esc(v)}</span>`;
+    if(v === 'STRONG_SELL' || v === 'SELL') return `<span style="color:var(--neg); font-weight:600">${esc(v)}</span>`;
+    if(v === 'HOLD') return `<span style="color:var(--warn); font-weight:600">${esc(v)}</span>`;
+    return esc(v);
+  };
+  const html = `<table>
+    <thead><tr>
+      <th>Rating</th><th>N</th><th>Mean Return</th><th>Median Return</th><th>Mean Alpha</th>
+      <th>Win Rate</th><th>Alpha-Win Rate</th><th>Best Call</th><th>Worst Call</th>
+    </tr></thead>
+    <tbody>
+      ${rows.map(r => `<tr>
+        <td>${colorPill(r[labelKey])}</td>
+        <td class="num">${r.n}</td>
+        <td class="num${cls(r.mean_return_pct)}">${fmtPct(r.mean_return_pct)}</td>
+        <td class="num${cls(r.median_return_pct)}">${fmtPct(r.median_return_pct)}</td>
+        <td class="num${cls(r.mean_alpha_pct)}">${fmtPct(r.mean_alpha_pct)}</td>
+        <td class="num">${r.win_rate_pct ?? '—'}%</td>
+        <td class="num">${r.alpha_win_rate_pct ?? '—'}%</td>
+        <td>${esc(r.best_call)}</td>
+        <td>${esc(r.worst_call)}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  $(elId).innerHTML = html;
+}
+
+function renderCalls(calls) {
+  const ratingColor = r => {
+    if(r === 'STRONG_BUY' || r === 'BUY') return 'pos';
+    if(r === 'STRONG_SELL' || r === 'SELL') return 'neg';
+    if(r === 'HOLD') return 'warn';
+    return '';
+  };
+  const ratingHtml = r => r ? `<span class="${ratingColor(r)}" style="font-weight:600">${esc(r)}</span>` : '—';
+  if(!calls.length) {
+    $("calls-body").innerHTML = `<div class="empty">No calls yet.</div>`;
+    return;
+  }
+  const html = `<table>
+    <thead><tr>
+      <th>Ticker</th><th>As-of</th><th>Days</th><th>Rating</th><th>Critic</th>
+      <th>Entry</th><th>Spot</th><th>Return</th><th>SPY ret</th><th>Alpha</th>
+      <th>PT</th><th>PT-cap</th><th>Diverges</th>
+    </tr></thead>
+    <tbody>
+      ${calls.map(c => `<tr>
+        <td><a href="/why.html?ticker=${encodeURIComponent(c.ticker)}" style="color:var(--accent); text-decoration:none; font-weight:600">${esc(c.ticker)}</a></td>
+        <td>${esc(c.generated_at?.slice(0,10) || '—')}</td>
+        <td class="num">${c.days_held ?? '—'}</td>
+        <td>${ratingHtml(c.rating)}</td>
+        <td>${ratingHtml(c.critic_rating)}</td>
+        <td class="num">${fmtNum(c.entry_price)}</td>
+        <td class="num">${fmtNum(c.current_price)}</td>
+        <td class="num${cls(c.ticker_return_pct)}">${fmtPct(c.ticker_return_pct)}</td>
+        <td class="num${cls(c.spy_return_pct)}">${fmtPct(c.spy_return_pct)}</td>
+        <td class="num${cls(c.alpha_pct)}"><b>${fmtPct(c.alpha_pct)}</b></td>
+        <td class="num">${fmtNum(c.price_target_12m)}</td>
+        <td class="num${cls(c.pt_capture_pct)}">${c.pt_capture_pct == null ? '—' : c.pt_capture_pct.toFixed(0)+'%'}</td>
+        <td>${c.rating_diverges ? '<span style="color:var(--warn)">⚠ yes</span>' : ''}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  $("calls-body").innerHTML = html;
+}
+
+load();
+</script>
+
+</body>
+</html>

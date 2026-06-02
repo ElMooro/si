@@ -175,6 +175,7 @@ def claude_call(system, user: str, max_tokens: int = 6000, use_cache: bool = Tru
             "Content-Type": "application/json",
             "x-api-key": ANTHROPIC_KEY,
             "anthropic-version": "2023-06-01",
+            "anthropic-beta": "extended-cache-ttl-2025-04-11",
         },
         method="POST",
     )
