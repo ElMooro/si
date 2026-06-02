@@ -643,7 +643,24 @@ a:hover{color:var(--violet)}
     <div id="brief-content"></div>
   </div>
 
-  <!-- Early Detection — the earliness layer (THE one we built last) -->
+  <!-- NEW (2026-06-02): Early Movers — acceleration-based, NOT convergence-based.
+       Built in response to MRVL +29% case study where MRVL was at rank #13 by
+       convergence score and got buried, despite having ACCELERATION_CONFIRMED
+       (earliness signal) from velocity-acceleration engine 21h before pump. -->
+  <div class="early-movers-hero" id="early-movers-hero" style="display:none; background:linear-gradient(135deg, rgba(255,92,122,.08), rgba(255,177,61,.06), transparent); border:1px solid var(--border); border-left:4px solid var(--red); border-radius:10px; padding:18px 22px; margin-bottom:24px">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px">
+      <h2 style="margin:0; font-size:17px; color:var(--fg-1)">🎯 Early Movers · Acceleration Signature
+        <span style="font-family:var(--font-mono); font-size:10px; color:var(--red); background:rgba(255,92,122,.18); padding:2px 8px; border-radius:3px; margin-left:8px; letter-spacing:1.5px">PRE-PUMP</span>
+      </h2>
+      <span id="early-movers-age" style="font-family:var(--font-mono); font-size:10.5px; color:var(--fg-3)">—</span>
+    </div>
+    <div style="color:var(--fg-2); font-size:12.5px; line-height:1.55; margin-bottom:14px">
+      Surfaced by <b style="color:var(--green)">acceleration</b> — not raw convergence score. Catches tickers whose signal mass is GROWING (engines firing, domain coverage expanding, earliness signatures present) <i>before</i> they appear in the convergence-sorted list.
+    </div>
+    <div id="early-movers-content"></div>
+  </div>
+
+  <!-- Early Detection — the earliness layer (existing velocity-acceleration feed) -->
   <div class="early-panel" id="early-panel" style="display:none">
     <div class="panel-hdr">
       <h3>🎯 Early Detection <span class="pre-pump-tag">PRE-PUMP</span></h3>
@@ -850,6 +867,80 @@ const EARLY_URL    = "https://justhodl-data-proxy.raafouis.workers.dev/data/velo
 const THEMES_URL   = "https://justhodl-data-proxy.raafouis.workers.dev/data/themes.json";
 const CATALYSTS_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/catalysts.json";
 const CLUSTERS_URL  = "https://justhodl-data-proxy.raafouis.workers.dev/data/catalyst-clusters.json";
+const EARLY_MOVERS_URL = "https://justhodl-data-proxy.raafouis.workers.dev/data/early-movers.json";
+
+// Fetch + render Early Movers (acceleration-based) — fired separately
+async function fetchEarlyMovers() {
+  try {
+    const r = await fetch(EARLY_MOVERS_URL + "?t=" + Date.now());
+    if(!r.ok) return;
+    const doc = await r.json();
+    renderEarlyMovers(doc);
+  } catch(e) {
+    console.log("early-movers fetch:", e.message);
+  }
+}
+
+function renderEarlyMovers(doc) {
+  const movers = (doc.top_early_movers || []).filter(m => m.early_score >= 15);
+  if(!movers.length) return;
+
+  // Format age
+  const generatedAt = doc.generated_at ? new Date(doc.generated_at) : null;
+  if(generatedAt) {
+    const mins = Math.round((Date.now() - generatedAt.getTime()) / 60000);
+    const ageStr = mins < 60 ? `${mins}m ago` : `${Math.round(mins/60)}h ago`;
+    const ageEl = document.getElementById('early-movers-age');
+    if(ageEl) ageEl.textContent = `updated ${ageStr}`;
+  }
+
+  // Build the panel
+  let html = `<table style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:12px">
+    <thead><tr style="border-bottom:1px solid var(--border)">
+      <th style="text-align:left; padding:8px 10px; color:var(--red); font-size:10.5px; letter-spacing:1px; text-transform:uppercase">SCORE</th>
+      <th style="text-align:left; padding:8px 10px; color:var(--red); font-size:10.5px; letter-spacing:1px; text-transform:uppercase">TICKER</th>
+      <th style="text-align:left; padding:8px 10px; color:var(--red); font-size:10.5px; letter-spacing:1px; text-transform:uppercase">CAT</th>
+      <th style="text-align:right; padding:8px 10px; color:var(--red); font-size:10.5px; letter-spacing:1px; text-transform:uppercase">CONV</th>
+      <th style="text-align:right; padding:8px 10px; color:var(--red); font-size:10.5px; letter-spacing:1px; text-transform:uppercase">N→</th>
+      <th style="text-align:left; padding:8px 10px; color:var(--red); font-size:10.5px; letter-spacing:1px; text-transform:uppercase">EARLINESS FACTORS</th>
+      <th style="text-align:left; padding:8px 10px; color:var(--red); font-size:10.5px; letter-spacing:1px; text-transform:uppercase">ENGINE SIGNATURES</th>
+    </tr></thead>
+    <tbody>`;
+
+  for(const m of movers.slice(0, 15)) {
+    const scoreColor = m.early_score >= 35 ? 'var(--red)' :
+                       m.early_score >= 25 ? 'var(--amber)' : 'var(--cyan)';
+    const engineSigs = (m.earliness_signatures || []).slice(0, 3).map(s =>
+      `<span style="background:var(--bg-sunken); padding:1px 6px; border-radius:3px; margin-right:4px; font-size:10.5px; color:var(--green)" title="${(s.note||'').replace(/"/g,'&quot;')}">${s.keyword}</span>`
+    ).join('');
+    const factors = (m.factors || []).slice(0, 4).map(f =>
+      `<span style="background:rgba(167,139,250,.08); color:var(--violet); padding:1px 6px; border-radius:3px; margin-right:4px; font-size:10.5px">${f.replace(/_/g, ' ')}</span>`
+    ).join('');
+    const engineDelta = m.prior_n_engines != null ? `${m.prior_n_engines}→${m.n_engines}` : `${m.n_engines}`;
+    html += `
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px 10px"><b style="color:${scoreColor}; font-size:13px">${m.early_score}</b></td>
+        <td style="padding:8px 10px"><a href="/why.html?ticker=${m.ticker}" style="color:var(--cyan); text-decoration:none; font-weight:700; font-size:13px">${m.ticker}</a></td>
+        <td style="padding:8px 10px"><span class="pcat ${m.pump_category||''}">${m.pump_category || '—'}</span></td>
+        <td style="text-align:right; padding:8px 10px; color:var(--fg-2)">${m.convergence_score?.toFixed(1) || '—'}</td>
+        <td style="text-align:right; padding:8px 10px; color:var(--green); font-weight:600">${engineDelta}</td>
+        <td style="padding:8px 10px">${factors || '<span style="color:var(--fg-3)">—</span>'}</td>
+        <td style="padding:8px 10px">${engineSigs || '<span style="color:var(--fg-3)">—</span>'}</td>
+      </tr>`;
+  }
+  html += `</tbody></table>
+    <div style="font-size:10.5px; color:var(--fg-3); margin-top:10px; padding-top:10px; border-top:1px solid var(--border)">
+      Score weights: <b style="color:var(--fg-2)">ultra_new</b>+30 · <b style="color:var(--fg-2)">accelerating</b>+20 · <b style="color:var(--fg-2)">new_high</b>+20 · <b style="color:var(--fg-2)">engine_growth</b>+8/eng · <b style="color:var(--fg-2)">earliness_signals</b>+6/sig · <b style="color:var(--fg-2)">category_promotion</b>+15 · <b style="color:var(--fg-2)">ultra_tier</b>+5
+    </div>`;
+
+  document.getElementById('early-movers-content').innerHTML = html;
+  document.getElementById('early-movers-hero').style.display = 'block';
+}
+
+// Hook into existing init
+if(typeof window !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', fetchEarlyMovers);
+}
 let DATA = null;
 let RESEARCH = null;
 let POSITIONING = null;

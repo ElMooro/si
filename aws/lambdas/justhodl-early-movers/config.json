@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-early-movers",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 60,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Early Movers extractor — scores convergence-radar tickers by acceleration / earliness signatures BEFORE pumps occur. Built in response to MRVL +29% 2026-06-02 case study where signals existed but were buried at rank #13. Also writes convergence-radar daily snapshot archive.",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(15,45 * * * ? *)",
+    "name": "justhodl-early-movers-twice-per-hour",
+    "description": "Runs every 30 minutes — pre-pump signals are time-sensitive"
+  }
+}
