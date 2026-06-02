@@ -1134,18 +1134,32 @@ def parse_claude(text: str) -> dict:
 def lambda_handler(event, context):
     t0 = time.time()
 
-    # ── Extract ticker from query string OR POST body
+    # ── Async-invocation mode
+    # When invoked via boto3 .invoke(InvocationType='Event'), the event is a
+    # plain dict (no API Gateway wrapping). We look for _internal=1 to
+    # distinguish background work from a user-facing HTTP request.
+    # The async path returns nothing meaningful (Lambda 'Event' invocations
+    # discard the return value); it just runs the work + writes to S3.
+    is_internal_async = (isinstance(event, dict)
+                          and event.get("_internal") == "1"
+                          and not event.get("queryStringParameters"))
+
+    # ── Extract ticker from query string OR POST body OR direct async event
     ticker = None
+    qs = {}
     try:
         if isinstance(event, dict):
-            qs = event.get("queryStringParameters") or {}
-            ticker = qs.get("ticker")
-            if not ticker and event.get("body"):
-                body = event["body"]
-                if isinstance(body, str):
-                    try: body = json.loads(body)
-                    except Exception: body = {}
-                if isinstance(body, dict): ticker = body.get("ticker")
+            if is_internal_async:
+                ticker = event.get("ticker")
+            else:
+                qs = event.get("queryStringParameters") or {}
+                ticker = qs.get("ticker")
+                if not ticker and event.get("body"):
+                    body = event["body"]
+                    if isinstance(body, str):
+                        try: body = json.loads(body)
+                        except Exception: body = {}
+                    if isinstance(body, dict): ticker = body.get("ticker")
     except Exception as e:
         return _http_error(400, f"Could not parse request: {e}")
 
@@ -1158,12 +1172,12 @@ def lambda_handler(event, context):
     if not _re.fullmatch(r"[A-Z0-9.\-]{1,10}", ticker):
         return _http_error(400, f"Invalid ticker: {ticker}")
 
-    # ── Check cache
-    force_refresh = False
-    if isinstance(event, dict):
-        qs = event.get("queryStringParameters") or {}
-        force_refresh = qs.get("refresh") in ("1", "true", "yes")
+    # ── Flags
+    force_refresh = qs.get("refresh") in ("1", "true", "yes") if not is_internal_async else event.get("force_refresh", False)
+    kickoff_mode  = qs.get("kickoff") in ("1", "true", "yes") and not is_internal_async
     cache_key = f"{CACHE_PREFIX}{ticker}.json"
+
+    # ── Cache check (skipped if force_refresh)
     if not force_refresh:
         try:
             obj = s3.get_object(Bucket=S3_BUCKET, Key=cache_key)
@@ -1172,11 +1186,54 @@ def lambda_handler(event, context):
             cached["cache_age_seconds"] = int(time.time() - _iso_to_epoch(cached.get("generated_at")))
             if cached["cache_age_seconds"] < CACHE_TTL:
                 print(f"[cache] HIT {ticker} age={cached['cache_age_seconds']}s")
+                if is_internal_async:
+                    return {"ok": True, "from_cache": True, "ticker": ticker}
                 return _http_ok(cached)
         except s3.exceptions.NoSuchKey:
             pass
         except Exception as e:
             print(f"[cache] read error: {e}")
+
+    # ── KICKOFF MODE — fire async self-invoke + return immediately
+    # This is the fix for 'Failed to fetch'. Generating a fresh report takes
+    # 90-120s (Claude synthesis + 19 FMP fetches). Browsers / proxies kill
+    # long fetches around 30-60s. Instead of holding the HTTP connection
+    # open, we kick off async work and let the frontend poll S3 via the
+    # CDN edge cache for the result.
+    if kickoff_mode:
+        try:
+            _lam = boto3.client("lambda", region_name="us-east-1")
+            _lam.invoke(
+                FunctionName=context.function_name if context else "justhodl-equity-research",
+                InvocationType="Event",
+                Payload=json.dumps({
+                    "_internal":     "1",
+                    "ticker":        ticker,
+                    "force_refresh": True,
+                }).encode("utf-8"),
+            )
+            print(f"[kickoff] queued async generation for {ticker}")
+        except Exception as e:
+            print(f"[kickoff] failed to invoke async: {e}")
+            return _http_error(500, f"Could not queue research: {e}")
+        # Return a 202 Accepted with poll info
+        return {
+            "statusCode": 202,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "no-store",
+            },
+            "body": json.dumps({
+                "status":         "processing",
+                "ticker":         ticker,
+                "eta_seconds":    100,
+                "message":        f"Research for {ticker} is being generated in the background.",
+                # Frontend polls this URL via CDN — files appear here when done.
+                "poll_s3_url":    f"https://justhodl-data-proxy.raafouis.workers.dev/{cache_key}",
+                "poll_direct_url":f"https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/{cache_key}",
+            }),
+        }
 
     # ── Fetch all FMP endpoints in parallel
     print(f"[research] fetching {ticker}")
@@ -1488,18 +1545,31 @@ def lambda_handler(event, context):
         },
     }
 
-    # ── Cache to S3
+    # ── Cache to S3 — this is what async pollers wait for
+    # ACL=public-read so the Cloudflare proxy + browsers can fetch directly
+    # from the bucket via the CDN without hitting this Lambda. That's how
+    # cached tickers serve in 0.2s instead of 90-100s.
     try:
         s3.put_object(
             Bucket=S3_BUCKET, Key=cache_key,
             Body=json.dumps(document, default=str).encode("utf-8"),
             ContentType="application/json",
             CacheControl=f"public, max-age={CACHE_TTL}",
+            ACL="public-read",
         )
-        print(f"[cache] WROTE {cache_key}")
+        print(f"[cache] WROTE {cache_key} (public-read)")
     except Exception as e:
         print(f"[cache] write failed: {e}")
 
+    # Async internal invocations just confirm completion; the real payload
+    # lives in S3 where the polling client will pick it up.
+    if is_internal_async:
+        return {
+            "ok":      True,
+            "ticker":  ticker,
+            "wrote":   cache_key,
+            "elapsed": round(time.time() - t0, 1),
+        }
     return _http_ok(document)
 
 

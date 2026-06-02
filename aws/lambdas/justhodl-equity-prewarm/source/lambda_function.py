@@ -175,6 +175,7 @@ def lambda_handler(event, context):
         Body=json.dumps(summary, indent=2, default=str).encode(),
         ContentType="application/json",
         CacheControl="public, max-age=300",
+        ACL="public-read",
     )
     # "latest" pointer for easy debugging from a dashboard
     s3.put_object(
@@ -183,6 +184,7 @@ def lambda_handler(event, context):
         Body=json.dumps(summary, indent=2, default=str).encode(),
         ContentType="application/json",
         CacheControl="public, max-age=300",
+        ACL="public-read",
     )
 
     print(f"[prewarm] DONE · {n_ok}/{len(universe)} succeeded · "
