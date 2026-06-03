@@ -132,9 +132,187 @@ def determine_tp_multiples(theme_accel: float) -> List[float]:
     return [0.5, 1.0, 1.5]
 
 
+# ═══ HORIZON-AWARE TICKET LOGIC ════════════════════════════════════════════════
+
+# Default holding period per cascade tier (used until calibration matures)
+# These get OVERRIDDEN by empirical best_horizon_per_feature once data accumulates
+DEFAULT_TIER_HORIZON = {
+    "ALERT_TIER":       {"days": 10, "regime": "swing", "atr_mult_adj": 1.0},
+    "FIRED_CONFIRMED":  {"days":  5, "regime": "fast_swing", "atr_mult_adj": 0.85},
+    "FIRED_FRESH":      {"days":  5, "regime": "fast_swing", "atr_mult_adj": 0.85},
+    "OPTIONS_EXTREME":  {"days":  2, "regime": "intraday_to_2d", "atr_mult_adj": 0.7},
+    "OPTIONS_BULLISH":  {"days":  4, "regime": "fast_swing", "atr_mult_adj": 0.85},
+    "VELOCITY_FIRED":   {"days":  5, "regime": "fast_swing", "atr_mult_adj": 0.9},
+    "INSIDER_CLUSTER":  {"days": 25, "regime": "position", "atr_mult_adj": 1.5},
+    "ACTIVIST":         {"days": 45, "regime": "investment", "atr_mult_adj": 2.0},
+    "CONVERGENCE":      {"days": 12, "regime": "swing", "atr_mult_adj": 1.0},
+    "EARLY_MOVER":      {"days":  8, "regime": "swing", "atr_mult_adj": 0.95},
+    "MEDIUM":           {"days": 10, "regime": "swing", "atr_mult_adj": 1.0},
+    "LAGGARD":          {"days": 18, "regime": "position", "atr_mult_adj": 1.3},
+    "WATCH":            {"days": 15, "regime": "swing", "atr_mult_adj": 1.1},
+}
+
+
+def classify_candidate_setup(candidate: dict) -> str:
+    """Classify a candidate into its primary setup type for horizon assignment.
+    
+    Reads the alerts array if present. Falls back to tier field.
+    """
+    alerts = candidate.get("alerts") or []
+    alerts_set = set(alerts)
+
+    # Priority order: most specific signal wins
+    if "OPTIONS_EXTREME_CALL" in alerts_set:
+        return "OPTIONS_EXTREME"
+    if "OPTIONS_BULLISH_CALL" in alerts_set:
+        return "OPTIONS_BULLISH"
+    if any(a.startswith("VELOCITY_FIRED") for a in alerts_set):
+        return "VELOCITY_FIRED"
+    if "INSIDER_CLUSTER" in alerts_set:
+        return "INSIDER_CLUSTER"
+    if "ACTIVIST_13D" in alerts_set:
+        return "ACTIVIST"
+    if any(a.startswith("CONVERGENCE_") for a in alerts_set):
+        return "CONVERGENCE"
+    if "EARLY_MOVER_ALERT" in alerts_set:
+        return "EARLY_MOVER"
+    if candidate.get("is_laggard") or candidate.get("tier") == "LAGGARD":
+        return "LAGGARD"
+
+    # Fall back to tier field
+    tier = candidate.get("tier") or candidate.get("entry_tier") or "ALERT_TIER"
+    return tier.upper()
+
+
+def get_horizon_attribution() -> dict:
+    """Read multi-horizon calibration data — best_horizon_per_feature lookup."""
+    try:
+        cal = _read_json("data/cascade-calibration.json") or {}
+        ha = cal.get("horizon_attribution") or {}
+        if ha.get("insufficient_data"):
+            return {}
+        return ha.get("best_horizon_per_feature") or {}
+    except Exception:
+        return {}
+
+
+def determine_horizon(candidate: dict, setup_type: str,
+                       best_horizons: dict) -> dict:
+    """Determine the optimal holding period for this candidate.
+
+    Priority 1 (when calibration mature):
+      Look at the candidate's strongest feature, use its empirical best_horizon
+    
+    Priority 2 (default):
+      Use setup_type → DEFAULT_TIER_HORIZON mapping
+    
+    Returns dict with: days, regime, atr_mult_adj, source (default vs learned)
+    """
+    default = DEFAULT_TIER_HORIZON.get(setup_type) or DEFAULT_TIER_HORIZON.get("ALERT_TIER")
+    
+    # Try to find empirical best horizon if calibration has matured
+    if best_horizons:
+        # Look at this candidate's top features
+        candidate_features = {
+            "options_cv_pv_ratio": candidate.get("options_cv_pv_ratio") or 
+                                    candidate.get("cv_pv_ratio"),
+            "options_smart_money_blocks": candidate.get("options_smart_money_blocks") or
+                                            candidate.get("n_smart_money_blocks"),
+            "velocity_composite": candidate.get("velocity_composite") or
+                                   candidate.get("composite_score"),
+            "theme_acceleration": candidate.get("theme_acceleration") or
+                                   candidate.get("max_rs_acceleration"),
+            "insider_n_buyers": candidate.get("insider_n_buyers"),
+            "aggregate_flow_5d_usd": candidate.get("aggregate_flow_5d_usd"),
+            "n_etfs_in_top_10": candidate.get("n_etfs_in_top_10"),
+            "convergence_score": candidate.get("convergence_score"),
+        }
+        # Find the feature with highest value AND known best_horizon
+        active_feats = [(f, v) for f, v in candidate_features.items()
+                        if v is not None and v > 0 and f in best_horizons]
+        if active_feats:
+            # Use the feature with strongest signal (highest value relative)
+            # Take the best_horizon of the top-3 active features (weighted)
+            horizons_seen = [best_horizons[f].get("best_horizon", "7d")
+                              for f, v in active_feats[:3]]
+            # Convert "1d" → 1, "30d" → 30
+            day_vals = [int(h.replace("d", "")) for h in horizons_seen if h]
+            if day_vals:
+                avg_days = sum(day_vals) // len(day_vals)
+                # Determine regime based on horizon
+                if avg_days <= 2:
+                    regime = "intraday_to_2d"
+                elif avg_days <= 5:
+                    regime = "fast_swing"
+                elif avg_days <= 14:
+                    regime = "swing"
+                elif avg_days <= 30:
+                    regime = "position"
+                else:
+                    regime = "investment"
+                return {
+                    "days": avg_days,
+                    "regime": regime,
+                    "atr_mult_adj": _atr_mult_for_horizon(avg_days),
+                    "source": "learned",
+                    "best_horizons_features": horizons_seen,
+                }
+
+    return {
+        "days": default["days"],
+        "regime": default["regime"],
+        "atr_mult_adj": default["atr_mult_adj"],
+        "source": "default",
+    }
+
+
+def _atr_mult_for_horizon(days: int) -> float:
+    """Map holding period to ATR multiplier adjustment.
+    
+    Shorter horizons need tighter stops; longer horizons need wider stops.
+    """
+    if days <= 2:
+        return 0.7
+    if days <= 5:
+        return 0.85
+    if days <= 10:
+        return 1.0
+    if days <= 21:
+        return 1.3
+    return 1.6
+
+
+def adjust_tp_for_horizon(base_multiples: List[float], horizon_days: int) -> List[float]:
+    """Adjust TP multiples based on expected horizon.
+    
+    Shorter horizons → smaller R-multiples (tight, quick profits).
+    Longer horizons → larger R-multiples (let it ride).
+    """
+    if horizon_days <= 2:
+        # Intraday → 2d: smaller TPs, quick exits
+        return [max(0.5, m * 0.7) for m in base_multiples]
+    if horizon_days <= 5:
+        # Fast swing: slightly smaller TPs
+        return [m * 0.85 for m in base_multiples]
+    if horizon_days <= 14:
+        # Standard swing: use as-is
+        return base_multiples
+    if horizon_days <= 30:
+        # Position: larger TPs
+        return [m * 1.3 for m in base_multiples]
+    # Investment: largest TPs
+    return [m * 1.6 for m in base_multiples]
+
+
 def build_ticket(candidate: dict, bars: List[dict],
-                 portfolio_usd: float) -> dict:
-    """Build a complete trade ticket from cascade candidate + price bars."""
+                 portfolio_usd: float, best_horizons: dict = None) -> dict:
+    """Build a complete trade ticket from cascade candidate + price bars.
+    
+    Now horizon-aware: uses learned best_horizon_per_feature (when calibration
+    matures) to size stops/TPs to the expected holding period.
+    """
+    if best_horizons is None:
+        best_horizons = {}
     ticker = candidate.get("ticker")
     if not bars:
         return {"ticker": ticker, "error": "no_polygon_data"}
@@ -149,20 +327,28 @@ def build_ticket(candidate: dict, bars: List[dict],
     if not atr or atr <= 0:
         return {"ticker": ticker, "error": "no_atr"}
 
-    # Determine tier & multipliers
+    # Determine setup type for horizon classification
+    setup_type = classify_candidate_setup(candidate)
+    horizon = determine_horizon(candidate, setup_type, best_horizons)
+
+    # Determine tier & base multipliers (existing logic)
     tier = candidate.get("tier") or "UNKNOWN"
     is_laggard = candidate.get("is_laggard") or tier == "LAGGARD"
-    atr_mult = determine_atr_multiplier(tier, is_laggard)
+    base_atr_mult = determine_atr_multiplier(tier, is_laggard)
     theme_accel = (candidate.get("theme_acceleration") or
                    candidate.get("max_rs_acceleration") or 0)
-    tp_multiples = determine_tp_multiples(theme_accel)
+    base_tp_multiples = determine_tp_multiples(theme_accel)
 
-    # Stop loss
+    # Apply horizon adjustment
+    atr_mult = base_atr_mult * horizon["atr_mult_adj"]
+    tp_multiples = adjust_tp_for_horizon(base_tp_multiples, horizon["days"])
+
+    # Stop loss (horizon-adjusted)
     stop_loss = entry - (atr_mult * atr)
     risk_per_share = entry - stop_loss
     risk_pct = (risk_per_share / entry) * 100
 
-    # Take profits (R-multiple)
+    # Take profits (R-multiple, horizon-adjusted)
     tp1 = entry + (tp_multiples[0] * risk_per_share)
     tp2 = entry + (tp_multiples[1] * risk_per_share)
     tp3 = entry + (tp_multiples[2] * risk_per_share)
@@ -194,6 +380,13 @@ def build_ticket(candidate: dict, bars: List[dict],
         "hot_etf": candidate.get("hot_etf"),
         "theme_acceleration": theme_accel,
         "combined_score": combined_score,
+
+        # Horizon awareness (NEW)
+        "setup_type": setup_type,
+        "expected_horizon_days": horizon["days"],
+        "horizon_regime": horizon["regime"],
+        "horizon_source": horizon["source"],
+        "atr_mult_horizon_adj": horizon["atr_mult_adj"],
 
         # Price + risk
         "entry": round(entry, 2),
@@ -254,10 +447,17 @@ def lambda_handler(event, context):
     print(f"[trade-tickets] generating tickets for {len(candidates)} candidates "
           f"(portfolio_usd=${portfolio_usd:,.0f})")
 
+    # Load horizon attribution once (used by all tickets for setup-aware sizing)
+    best_horizons = get_horizon_attribution()
+    if best_horizons:
+        print(f"[trade-tickets] horizon-aware mode: {len(best_horizons)} features have learned horizons")
+    else:
+        print(f"[trade-tickets] horizon-aware mode: using DEFAULT tier-based horizons (calibration not mature yet)")
+
     # Parallel fetch + ticket build
     def _build(c):
         bars = fetch_polygon_ohlc(c["ticker"], days=25)
-        return build_ticket(c, bars, portfolio_usd)
+        return build_ticket(c, bars, portfolio_usd, best_horizons)
 
     tickets = []
     with ThreadPoolExecutor(max_workers=N_WORKERS) as ex:
