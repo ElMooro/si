@@ -69,14 +69,14 @@ def _send_telegram(text: str) -> dict:
 
 
 def fetch_fmp_history(ticker: str) -> List[dict]:
-    """Fetch last 14 days of EOD prices via FMP."""
+    """Fetch last 40 days of EOD prices via FMP (covers 30d horizon + buffer)."""
     url = (f"https://financialmodelingprep.com/stable/historical-price-eod/light"
            f"?symbol={ticker}&apikey={FMP_KEY}")
     try:
         with urllib.request.urlopen(url, timeout=10) as r:
             data = json.loads(r.read().decode())
         if isinstance(data, list):
-            return sorted(data, key=lambda x: x.get("date", ""))[-14:]
+            return sorted(data, key=lambda x: x.get("date", ""))[-40:]
         return []
     except Exception:
         return []
@@ -91,7 +91,14 @@ def get_price_on_or_after(rows: List[dict], target_date: str) -> Optional[float]
 
 
 def score_prediction(pred: dict, price_rows: List[dict]) -> dict:
-    """Compute returns 1d/3d/5d/7d from prediction date and classify outcome."""
+    """Compute returns at multiple horizons + classify outcome.
+
+    Horizons: 1, 3, 5, 7, 14, 21, 30 days.
+    Different features predict different horizons:
+      - Options gamma squeezes → 1-3 day moves
+      - Theme acceleration → 5-14 day moves
+      - Insider clusters → 14-30 day moves
+    """
     snapshot_date = pred.get("snapshot_date")
     if not snapshot_date or not price_rows:
         return {"error": "insufficient_data"}
@@ -103,7 +110,8 @@ def score_prediction(pred: dict, price_rows: List[dict]) -> dict:
     snapshot_dt = datetime.fromisoformat(snapshot_date)
     out = {"entry_price": round(entry_price, 2)}
 
-    for days in [1, 3, 5, 7]:
+    HORIZONS = [1, 3, 5, 7, 14, 21, 30]
+    for days in HORIZONS:
         target = (snapshot_dt + timedelta(days=days)).strftime("%Y-%m-%d")
         future_price = get_price_on_or_after(price_rows, target)
         if future_price and entry_price > 0:
@@ -111,16 +119,14 @@ def score_prediction(pred: dict, price_rows: List[dict]) -> dict:
             out[f"return_{days}d_pct"] = round(ret, 2)
             out[f"price_{days}d"] = round(future_price, 2)
 
-    # Best return in window
-    returns = [out.get(f"return_{d}d_pct") for d in [1, 3, 5, 7]
+    # Best return across all available horizons (primary outcome metric)
+    returns = [out.get(f"return_{d}d_pct") for d in HORIZONS
                if out.get(f"return_{d}d_pct") is not None]
     if returns:
         out["max_return_pct"] = max(returns)
-        out["return_1d_pct"] = out.get("return_1d_pct")
 
-    # Classify
+    # Classify by max return
     mr = out.get("max_return_pct")
-    r1 = out.get("return_1d_pct")
     if mr is None:
         out["outcome"] = "PENDING"
     elif mr >= 10:
@@ -134,11 +140,18 @@ def score_prediction(pred: dict, price_rows: List[dict]) -> dict:
     else:
         out["outcome"] = "MISS"
 
-    # Did it pump WITHIN 1 DAY? (the user's specific question)
-    if r1 is not None and r1 >= 5:
-        out["pumped_within_1d"] = True
-    else:
-        out["pumped_within_1d"] = False
+    # Did it pump WITHIN 1 DAY?
+    r1 = out.get("return_1d_pct")
+    out["pumped_within_1d"] = bool(r1 is not None and r1 >= 5)
+
+    # Per-horizon hit flags (for horizon-specific attribution)
+    out["hit_by_horizon"] = {}
+    for days in HORIZONS:
+        r = out.get(f"return_{days}d_pct")
+        if r is not None:
+            out["hit_by_horizon"][f"{days}d"] = r >= 5  # ≥+5% is a hit
+        else:
+            out["hit_by_horizon"][f"{days}d"] = None
 
     return out
 
@@ -292,6 +305,87 @@ def compute_per_tier_attribution(scored_preds: List[dict]) -> dict:
     }
 
 
+def compute_multi_horizon_attribution(scored_preds: List[dict]) -> dict:
+    """For each feature, compute predictive lift at EACH horizon separately.
+
+    Reveals WHICH horizon each feature best predicts:
+      - options_cv_pv_ratio might have +35pp lift at 1d, +10pp at 30d → 1d feature
+      - insider_n_buyers might have +5pp at 1d, +28pp at 30d → 30d feature
+      - theme_acceleration might peak at 5-7d → medium horizon
+
+    This data drives horizon-aware position holding periods.
+    """
+    HORIZONS = [1, 3, 5, 7, 14, 21, 30]
+    features_to_test = [
+        "combined_score", "theme_acceleration", "n_etfs_in_top_10",
+        "n_etfs_in_top_20", "aggregate_flow_5d_usd", "perf_20d_pct",
+        "options_cv_pv_ratio", "options_call_vol", "options_mean_iv",
+        "velocity_composite", "convergence_score", "n_engines",
+        "early_score", "insider_n_buyers", "ticket_atr_pct",
+    ]
+
+    valid = [p for p in scored_preds if p.get("outcome") in ("HIT", "HIT_BIG", "SLOW", "FLAT", "MISS")]
+    if len(valid) < 5:
+        return {"insufficient_data": True, "n_valid": len(valid)}
+
+    # For each horizon, compute attribution using horizon-specific hit flags
+    by_horizon = {}
+    for h in HORIZONS:
+        h_key = f"{h}d"
+        # Build a synthetic "outcome" per ticker based on this horizon's return
+        preds_for_horizon = []
+        for p in valid:
+            r = p.get(f"return_{h}d_pct")
+            if r is None:
+                continue
+            # Re-classify based on this horizon's return only
+            if r >= 10:
+                outcome = "HIT_BIG"
+            elif r >= 5:
+                outcome = "HIT"
+            elif r >= 1:
+                outcome = "SLOW"
+            elif r >= -1:
+                outcome = "FLAT"
+            else:
+                outcome = "MISS"
+            p_copy = dict(p)
+            p_copy["outcome"] = outcome
+            p_copy["max_return_pct"] = r  # use horizon-specific return
+            preds_for_horizon.append(p_copy)
+
+        if len(preds_for_horizon) >= 5:
+            attribution = _compute_attribution_for_group(preds_for_horizon, features_to_test)
+            by_horizon[h_key] = attribution
+        else:
+            by_horizon[h_key] = {"insufficient_data": True, "n": len(preds_for_horizon)}
+
+    # For each feature, find its BEST horizon (highest lift_pp)
+    best_horizon_per_feature = {}
+    for feat in features_to_test:
+        best_lift = None
+        best_h = None
+        for h_key, attr in by_horizon.items():
+            if attr.get("insufficient_data"):
+                continue
+            f_attr = (attr.get("by_feature") or {}).get(feat) or {}
+            lift = f_attr.get("hit_rate_lift_pp")
+            if lift is not None and (best_lift is None or lift > best_lift):
+                best_lift = lift
+                best_h = h_key
+        if best_h:
+            best_horizon_per_feature[feat] = {
+                "best_horizon": best_h,
+                "best_lift_pp": best_lift,
+            }
+
+    return {
+        "by_horizon": by_horizon,
+        "best_horizon_per_feature": best_horizon_per_feature,
+        "n_valid_total": len(valid),
+    }
+
+
 def compute_calibrated_weights(attribution: dict) -> dict:
     """Compute calibrated scoring weights from feature attribution.
 
@@ -439,6 +533,9 @@ def lambda_handler(event, context):
     for tier, tier_attr in (per_tier_attribution.get("by_tier") or {}).items():
         per_tier_weights[tier] = compute_calibrated_weights(tier_attr).get("weights") or {}
 
+    # Multi-horizon attribution (which features predict which horizon)
+    horizon_attribution = compute_multi_horizon_attribution(scored)
+
     # Save outputs
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     s3.put_object(
@@ -452,13 +549,14 @@ def lambda_handler(event, context):
         ContentType="application/json", CacheControl="public, max-age=86400",
     )
 
-    # Update cumulative calibration (with per-tier weights)
+    # Update cumulative calibration (with per-tier weights AND multi-horizon)
     cal_doc = _read_json("data/cascade-calibration.json") or {"history": []}
     cal_doc["last_updated"] = datetime.now(timezone.utc).isoformat()
     cal_doc["current_weights"] = weights.get("weights") or {}
     cal_doc["current_weights_by_tier"] = per_tier_weights
     cal_doc["feature_attribution"] = attribution
     cal_doc["feature_attribution_by_tier"] = per_tier_attribution
+    cal_doc["horizon_attribution"] = horizon_attribution
     cal_doc["history"] = (cal_doc.get("history") or [])[-29:]  # keep last 30 entries
     cal_doc["history"].append({
         "date": today,
@@ -466,6 +564,7 @@ def lambda_handler(event, context):
         "weights": weights.get("weights") or {},
         "weights_by_tier": per_tier_weights,
         "tier_distribution": per_tier_attribution.get("tier_distribution") or {},
+        "best_horizon_per_feature": horizon_attribution.get("best_horizon_per_feature") or {},
     })
     s3.put_object(
         Bucket=S3_BUCKET, Key="data/cascade-calibration.json",
