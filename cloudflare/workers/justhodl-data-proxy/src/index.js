@@ -191,6 +191,103 @@ export default {
       }
     }
 
+    if (url.pathname === "/yf-ohlc") {
+      // GET /yf-ohlc?symbol=BTC-USD&range=1y → Yahoo Finance chart (crypto/forex/etc)
+      const symbol = (url.searchParams.get("symbol") || "").trim();
+      const range = (url.searchParams.get("range") || "1y").trim();
+      if (!symbol || !/^[A-Za-z0-9.=^\-]{1,20}$/.test(symbol)) {
+        return new Response(JSON.stringify({ error: "invalid symbol" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const yCacheKey = new Request(`https://yf.cache/${symbol}/${range}`, { method: "GET" });
+      const yc = caches.default;
+      const yhit = await yc.match(yCacheKey);
+      if (yhit) { const b = await yhit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
+      try {
+        const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=${encodeURIComponent(range)}`;
+        const resp = await fetch(yUrl, {
+          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36", "Accept": "application/json" },
+          cf: { cacheTtl: 300, cacheEverything: true },
+        });
+        const data = await resp.json();
+        const res = data.chart && data.chart.result && data.chart.result[0];
+        const ts = (res && res.timestamp) || [];
+        const q = (res && res.indicators && res.indicators.quote && res.indicators.quote[0]) || {};
+        const bars = [];
+        for (let i = 0; i < ts.length; i++) {
+          if (q.close && q.close[i] != null && q.open[i] != null) {
+            bars.push({ time: ts[i], open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], value: (q.volume && q.volume[i]) || 0 });
+          }
+        }
+        const out = JSON.stringify({ symbol, bars, count: bars.length });
+        const finalResp = new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300", "X-Cache": "MISS", ...corsHeaders() } });
+        ctx.waitUntil(yc.put(yCacheKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300" } })));
+        return finalResp;
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "yf fetch failed", detail: String(e) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
+    if (url.pathname === "/dbnomics-search") {
+      // GET /dbnomics-search?q=inflation → search 90+ macro providers
+      const qq = (url.searchParams.get("q") || "").trim();
+      if (!qq) return new Response(JSON.stringify({ series: [] }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      try {
+        const dUrl = `https://api.db.nomics.world/v22/search?q=${encodeURIComponent(qq)}&limit=30`;
+        const resp = await fetch(dUrl, { cf: { cacheTtl: 1800, cacheEverything: true } });
+        const data = await resp.json();
+        const docs = (data.results && data.results.docs) || [];
+        const series = docs.map(d => ({
+          id: `${d.provider_code}/${d.dataset_code}/${d.series_code}`,
+          name: d.series_name || d.name,
+          provider: d.provider_code, dataset: d.dataset_name || d.dataset_code,
+        }));
+        return new Response(JSON.stringify({ series }),
+          { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=1800", ...corsHeaders() } });
+      } catch (e) {
+        return new Response(JSON.stringify({ series: [], error: String(e) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
+    if (url.pathname === "/dbnomics") {
+      // GET /dbnomics?series=PROVIDER/DATASET/CODE → observations
+      const sid = (url.searchParams.get("series") || "").trim();
+      if (!sid || sid.split("/").length !== 3) {
+        return new Response(JSON.stringify({ error: "invalid series id (need PROVIDER/DATASET/CODE)" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const dCacheKey = new Request(`https://dbn.cache/${sid}`, { method: "GET" });
+      const dc = caches.default;
+      const dhit = await dc.match(dCacheKey);
+      if (dhit) { const b = await dhit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
+      try {
+        const [prov, ds, code] = sid.split("/");
+        const dUrl = `https://api.db.nomics.world/v22/series/${prov}/${ds}/${encodeURIComponent(code)}?observations=1`;
+        const resp = await fetch(dUrl, { cf: { cacheTtl: 3600, cacheEverything: true } });
+        const data = await resp.json();
+        const doc = (data.series && data.series.docs && data.series.docs[0]) || {};
+        const periods = doc.period || [];
+        const values = doc.value || [];
+        const bars = [];
+        for (let i = 0; i < periods.length; i++) {
+          const v = values[i];
+          if (v == null || v === "NA") continue;
+          const t = Math.floor(new Date(periods[i].length === 4 ? periods[i] + "-12-31" : periods[i].length === 7 ? periods[i] + "-01" : periods[i]).getTime() / 1000);
+          if (isFinite(t) && isFinite(v)) bars.push({ time: t, value: +v, date: periods[i] });
+        }
+        bars.sort((a, b) => a.time - b.time);
+        const out = JSON.stringify({ series: sid, name: doc.series_name || "", bars, count: bars.length });
+        const finalResp = new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=3600", "X-Cache": "MISS", ...corsHeaders() } });
+        ctx.waitUntil(dc.put(dCacheKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=3600" } })));
+        return finalResp;
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "dbnomics fetch failed", detail: String(e) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
     if (url.pathname === "/fred") {
       // GET /fred?series=DGS10&obs=600 → FRED observations as {bars:[{time,value}]}
       const series = (url.searchParams.get("series") || "").trim().toUpperCase();

@@ -1298,7 +1298,7 @@ a:hover { text-decoration: underline; }
     <div class="heatmap-header">
       <div class="heatmap-title">\ud83d\udcc8 Macro &amp; Economic Data</div>
       <div style="flex:1;display:flex;align-items:center;gap:8px;margin:0 16px">
-        <input type="text" id="macro-search-input" placeholder="Search 800,000+ FRED series \u2014 inflation, GDP, yields, any country..." style="flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-family:var(--font-mono);font-size:12px;color:var(--fg-1);outline:none">
+        <input type="text" id="macro-search-input" placeholder="Search all public macro — FRED + ECB, IMF, World Bank, OECD, BIS, Eurostat (millions of series)" style="flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-family:var(--font-mono);font-size:12px;color:var(--fg-1);outline:none">
       </div>
       <button class="modal-close" id="macro-close">\u00d7</button>
     </div>
@@ -1376,6 +1376,7 @@ const State = {
   favorites: {},         // {ticker: true} — global per-user favorites (★)
   notes: {},             // {ticker: "note text"} — per-user notes per symbol
   symbolResolution: {},  // {ticker: 'EXCHANGE:SYM'} — resolved TV symbols (cache)
+  symbolType: {},        // {ticker: 'stock'|'crypto'|'forex'|'futures'|'index'} — for engine routing
   knownSymbols: {},      // {ticker: {kind, ts}} — per-user searched/opened symbols (grows the index)
   chartTabs: [],         // [{id, symbol}] — multiple charts, click to switch
   activeTabId: null,
@@ -1614,6 +1615,8 @@ class WatchlistManager {
       if (notes) State.notes = JSON.parse(notes);
       const symRes = localStorage.getItem('jh_symbol_resolution');
       if (symRes) State.symbolResolution = JSON.parse(symRes);
+      const symType = localStorage.getItem('jh_symbol_type');
+      if (symType) State.symbolType = JSON.parse(symType);
       const known = localStorage.getItem('jh_known_symbols');
       if (known) State.knownSymbols = JSON.parse(known);
       const lastWl = localStorage.getItem('jh_active_watchlist');
@@ -1645,6 +1648,7 @@ class WatchlistManager {
         if (data.favorites) State.favorites = data.favorites;
         if (data.notes) State.notes = data.notes;
         if (data.symbolResolution) Object.assign(State.symbolResolution, data.symbolResolution);
+        if (data.symbolType) Object.assign(State.symbolType, data.symbolType);
         if (data.knownSymbols) State.knownSymbols = data.knownSymbols;
         if (data.chartTabs && data.chartTabs.length) { State.chartTabs = data.chartTabs; State.activeTabId = data.activeTabId || data.chartTabs[0].id; }
         if (data.chartEngine) State.chartEngine = data.chartEngine;
@@ -1663,6 +1667,7 @@ class WatchlistManager {
       localStorage.setItem('jh_favorites', JSON.stringify(State.favorites));
       localStorage.setItem('jh_notes', JSON.stringify(State.notes));
       localStorage.setItem('jh_symbol_resolution', JSON.stringify(State.symbolResolution));
+      localStorage.setItem('jh_symbol_type', JSON.stringify(State.symbolType || {}));
       localStorage.setItem('jh_known_symbols', JSON.stringify(State.knownSymbols || {}));
       localStorage.setItem('jh_active_watchlist', State.activeWatchlistId);
     } catch (e) {}
@@ -1684,6 +1689,7 @@ class WatchlistManager {
           favorites: State.favorites,
           notes: State.notes,
           symbolResolution: State.symbolResolution,
+          symbolType: State.symbolType,
           knownSymbols: State.knownSymbols,
           chartTabs: State.chartTabs,
           activeTabId: State.activeTabId,
@@ -2722,30 +2728,33 @@ class ChartController {
     });
     
     const isFred = ticker.startsWith('FRED:');
+    const isDbn = ticker.startsWith('DBN:');
     const engine = State.chartEngine;
+    const type = State.symbolType[ticker] || '';
     
-    // FRED → always native line
-    if (isFred) { NativeChart.render(ticker); return; }
+    // Macro series → always native line
+    if (isFred || isDbn) { NativeChart.render(ticker); return; }
     // Forced native
     if (engine === 'native') { NativeChart.render(ticker); return; }
     // Forced TradingView
     if (engine === 'tv') { return this.loadTV(ticker, knownFull); }
     
-    // AUTO mode: probe Polygon — if it has the data, use the reliable native
-    // engine (never hits TV gating). Otherwise (crypto/forex/futures/foreign)
-    // fall back to TradingView which handles those.
+    // AUTO mode
+    // Crypto / forex → native via Yahoo (bypasses TradingView)
+    if (type === 'crypto' || type === 'forex') { NativeChart.render(ticker); return; }
+    
+    // Probe Polygon for equities — if it has data, use reliable native; else TV
     const paneIdx = State.activeChartPane;
     const container = document.getElementById(`tv-container-${paneIdx}`);
     if (container) container.innerHTML = `<div class="tv-placeholder"><span class="ticker">${UI.esc(ticker)}</span><span>Resolving best chart source…</span></div>`;
     
     let hasPolygon = false;
-    if (/^[A-Z][A-Z.\-]{0,6}$/.test(ticker)) {  // US-style ticker
+    if (/^[A-Z][A-Z.\-]{0,6}$/.test(ticker)) {
       try {
         const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&days=5`);
         if (r.ok) { const d = await r.json(); hasPolygon = (d.bars && d.bars.length > 0); }
       } catch (e) { hasPolygon = false; }
     }
-    // Guard: user may have clicked another symbol while probing
     if (State.activeTicker !== ticker) return;
     
     if (hasPolygon) {
@@ -2986,18 +2995,35 @@ class MacroData {
   static async search(text) {
     const body = document.getElementById('macro-body');
     if (!text || text.length < 2) { this.renderCatalog(); return; }
-    body.innerHTML = '<div class="wl-loading">Searching FRED\u2026</div>';
+    body.innerHTML = '<div class="wl-loading">Searching FRED + global providers (DBnomics: ECB, IMF, World Bank, OECD, BIS, Eurostat\u2026)</div>';
     try {
-      const r = await fetch(`${PROXY}/fred-search?text=${encodeURIComponent(text)}`);
-      const data = await r.json();
-      const series = data.series || [];
-      if (!series.length) { body.innerHTML = '<div class="wl-empty">No FRED series found for "' + UI.esc(text) + '"</div>'; return; }
-      body.innerHTML = '<div class="macro-search-results">' + series.map(s => `
-        <div class="macro-sr" data-symbol="FRED:${s.id}">
-          <span class="sr-id">${UI.esc(s.id)}</span>
-          <span class="sr-title">${UI.esc(s.title)}</span>
-          <span class="sr-meta">${UI.esc(s.units||'')} \u00b7 ${UI.esc(s.frequency||'')}</span>
-        </div>`).join('') + '</div>';
+      const [fredR, dbnR] = await Promise.allSettled([
+        fetch(`${PROXY}/fred-search?text=${encodeURIComponent(text)}`).then(r => r.ok ? r.json() : {series:[]}),
+        fetch(`${PROXY}/dbnomics-search?q=${encodeURIComponent(text)}`).then(r => r.ok ? r.json() : {series:[]}),
+      ]);
+      const fred = (fredR.value && fredR.value.series) || [];
+      const dbn = (dbnR.value && dbnR.value.series) || [];
+      if (!fred.length && !dbn.length) { body.innerHTML = '<div class="wl-empty">No series found for "' + UI.esc(text) + '"</div>'; return; }
+      let html = '';
+      if (fred.length) {
+        html += '<div class="macro-cat-name" style="margin-bottom:8px">\ud83c\uddfa\ud83c\uddf8 FRED (St. Louis Fed)</div>';
+        html += '<div class="macro-search-results" style="margin-bottom:18px">' + fred.map(s => `
+          <div class="macro-sr" data-symbol="FRED:${s.id}">
+            <span class="sr-id">${UI.esc(s.id)}</span>
+            <span class="sr-title">${UI.esc(s.title)}</span>
+            <span class="sr-meta">${UI.esc(s.units||'')} \u00b7 ${UI.esc(s.frequency||'')}</span>
+          </div>`).join('') + '</div>';
+      }
+      if (dbn.length) {
+        html += '<div class="macro-cat-name" style="margin-bottom:8px">\ud83c\udf10 Global (DBnomics: ECB \u00b7 IMF \u00b7 World Bank \u00b7 OECD \u00b7 BIS \u00b7 Eurostat \u00b7 national)</div>';
+        html += '<div class="macro-search-results">' + dbn.map(s => `
+          <div class="macro-sr" data-symbol="DBN:${s.id}">
+            <span class="sr-id" style="font-size:9.5px">${UI.esc(s.provider)}</span>
+            <span class="sr-title">${UI.esc(s.name)}</span>
+            <span class="sr-meta">${UI.esc(s.dataset||'')}</span>
+          </div>`).join('') + '</div>';
+      }
+      body.innerHTML = html;
       body.querySelectorAll('.macro-sr').forEach(el => {
         el.addEventListener('click', () => { this.chartSeries(el.dataset.symbol); this.close(); });
       });
@@ -3021,32 +3047,51 @@ class MacroData {
 // TradingView's symbol gating ('only available on TradingView').
 class NativeChart {
   static async render(ticker) {
-    // FRED macro series → line chart; equities → candlesticks
-    if (ticker.startsWith('FRED:')) return this.renderFred(ticker);
+    if (ticker.startsWith('FRED:')) return this.renderLine(ticker, 'FRED');
+    if (ticker.startsWith('DBN:')) return this.renderLine(ticker, 'DBN');
+    const type = State.symbolType[ticker] || '';
+    if (type === 'crypto') return this.renderYahoo(ticker, this.cryptoToYahoo(ticker), 'Crypto');
+    if (type === 'forex') return this.renderYahoo(ticker, this.fxToYahoo(ticker), 'Forex');
     return this.renderEquity(ticker);
   }
   
-  static async renderFred(symbol) {
-    const series = symbol.slice(5);
+  static cryptoToYahoo(ticker) {
+    // BTCUSD/BTCUSDT/BTC-USD → BTC-USD ; XBTUSD → BTC-USD
+    let t = ticker.toUpperCase().replace('-', '');
+    let base = t;
+    for (const q of ['USDT','USDC','USD','EUR','GBP','BTC']) {
+      if (t.endsWith(q) && t.length > q.length) { base = t.slice(0, -q.length); break; }
+    }
+    return `${base}-USD`;
+  }
+  static fxToYahoo(ticker) {
+    // EURUSD → EURUSD=X ; EUR/USD → EURUSD=X
+    const t = ticker.toUpperCase().replace('/', '').replace('=X', '');
+    return `${t}=X`;
+  }
+  
+  static async renderYahoo(ticker, yahooSym, label) {
     const paneIdx = State.activeChartPane;
     const container = document.getElementById(`tv-container-${paneIdx}`);
     if (!container) return;
     container.innerHTML = `
       <div class="native-chart-wrap">
-        <div class="native-chart-head"><div class="nch-sym">${UI.esc(series)}</div><div class="nch-meta" id="nch-meta-${paneIdx}">FRED · loading…</div></div>
-        <div class="native-chart-loading" id="nch-loading-${paneIdx}">Loading ${UI.esc(series)} from FRED…</div>
+        <div class="native-chart-head"><div class="nch-sym">${UI.esc(ticker)}</div><div class="nch-meta" id="nch-meta-${paneIdx}">${label} · loading…</div></div>
+        <div class="native-chart-loading" id="nch-loading-${paneIdx}">Loading ${UI.esc(ticker)}…</div>
         <div id="nch-chart-${paneIdx}" style="width:100%;height:100%"></div>
       </div>`;
     try {
-      const r = await fetch(`${PROXY}/fred?series=${encodeURIComponent(series)}&obs=800`);
+      const r = await fetch(`${PROXY}/yf-ohlc?symbol=${encodeURIComponent(yahooSym)}&range=1y`);
       const data = await r.json();
       const bars = data.bars || [];
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) loadingEl.style.display = 'none';
       if (!bars.length) {
-        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `No FRED data for ${series}`; }
+        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `No data for ${ticker} — switching to TradingView`; }
+        ChartController.loadTV(ticker);
         return;
       }
+      if (State.activeTicker !== ticker) return;
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
       if (!chartEl || typeof LightweightCharts === 'undefined') return;
       const chart = LightweightCharts.createChart(chartEl, {
@@ -3054,27 +3099,67 @@ class NativeChart {
         layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
         rightPriceScale: { borderColor: '#1c2433' },
-        timeScale: { borderColor: '#1c2433', timeVisible: false },
-        crosshair: { mode: 1 },
+        timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
       });
-      const area = chart.addAreaSeries({
-        lineColor: '#22d3ee', topColor: 'rgba(34,211,238,0.25)', bottomColor: 'rgba(34,211,238,0.02)',
-        lineWidth: 2,
+      const cs = chart.addCandlestickSeries({ upColor: '#26ffaf', downColor: '#ff5577', borderUpColor: '#26ffaf', borderDownColor: '#ff5577', wickUpColor: '#26ffaf', wickDownColor: '#ff5577' });
+      cs.setData(bars.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
+      const sma = (p) => { const o=[]; for(let i=p-1;i<bars.length;i++){let s=0;for(let j=i-p+1;j<=i;j++)s+=bars[j].close;o.push({time:bars[i].time,value:s/p});} return o; };
+      if (bars.length >= 20) { const m=chart.addLineSeries({color:'#22d3ee',lineWidth:1,priceLineVisible:false,lastValueVisible:false}); m.setData(sma(20)); }
+      if (bars.length >= 50) { const m=chart.addLineSeries({color:'#fbbf24',lineWidth:1,priceLineVisible:false,lastValueVisible:false}); m.setData(sma(50)); }
+      chart.timeScale().fitContent();
+      State.nativeChart = chart;
+      const last = bars[bars.length-1], prev = bars[bars.length-2]||last;
+      const chg = prev.close ? ((last.close-prev.close)/prev.close*100) : 0;
+      const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
+      if (metaEl) metaEl.innerHTML = `${label} · ${last.close.toLocaleString(undefined,{maximumFractionDigits:6})} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span>`;
+    } catch (e) {
+      ChartController.loadTV(ticker);
+    }
+  }
+  
+  static async renderLine(symbol, source) {
+    const series = symbol.slice(source.length + 1);
+    const paneIdx = State.activeChartPane;
+    const container = document.getElementById(`tv-container-${paneIdx}`);
+    if (!container) return;
+    container.innerHTML = `
+      <div class="native-chart-wrap">
+        <div class="native-chart-head"><div class="nch-sym">${UI.esc(series)}</div><div class="nch-meta" id="nch-meta-${paneIdx}">${source} · loading…</div></div>
+        <div class="native-chart-loading" id="nch-loading-${paneIdx}">Loading ${UI.esc(series)} from ${source}…</div>
+        <div id="nch-chart-${paneIdx}" style="width:100%;height:100%"></div>
+      </div>`;
+    try {
+      const endpoint = source === 'FRED'
+        ? `${PROXY}/fred?series=${encodeURIComponent(series)}&obs=800`
+        : `${PROXY}/dbnomics?series=${encodeURIComponent(series)}`;
+      const r = await fetch(endpoint);
+      const data = await r.json();
+      const bars = data.bars || [];
+      const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (!bars.length) { if (loadingEl) { loadingEl.style.display='flex'; loadingEl.textContent = `No ${source} data for ${series}`; } return; }
+      if (State.activeTicker !== symbol) return;
+      const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
+      if (!chartEl || typeof LightweightCharts === 'undefined') return;
+      const chart = LightweightCharts.createChart(chartEl, {
+        autoSize: true,
+        layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
+        grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
+        rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
       });
-      // De-dupe times (FRED can have dupes); ensure ascending
+      const area = chart.addAreaSeries({ lineColor: '#22d3ee', topColor: 'rgba(34,211,238,0.25)', bottomColor: 'rgba(34,211,238,0.02)', lineWidth: 2 });
       const seen = new Set(); const clean = [];
       for (const b of bars) { if (!seen.has(b.time)) { seen.add(b.time); clean.push({ time: b.time, value: b.value }); } }
       area.setData(clean);
       chart.timeScale().fitContent();
       State.nativeChart = chart;
-      const last = clean[clean.length - 1];
-      const prev = clean[clean.length - 2] || last;
-      const chg = prev.value ? ((last.value - prev.value) / Math.abs(prev.value) * 100) : 0;
+      const last = clean[clean.length-1], prev = clean[clean.length-2]||last;
+      const chg = prev.value ? ((last.value-prev.value)/Math.abs(prev.value)*100) : 0;
       const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
-      if (metaEl) metaEl.innerHTML = `FRED · latest ${last.value.toLocaleString()} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> · ${clean.length} obs`;
+      if (metaEl) metaEl.innerHTML = `${source} · ${last.value.toLocaleString()} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> · ${clean.length} obs`;
     } catch (e) {
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
-      if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `FRED error: ${String(e).slice(0,80)}`; }
+      if (loadingEl) { loadingEl.style.display='flex'; loadingEl.textContent = `${source} error: ${String(e).slice(0,60)}`; }
     }
   }
   
@@ -3318,6 +3403,8 @@ class UniverseSearch {
       const isStockLike = /^[A-Z]{1,5}$/.test(ticker);
       if (!isStockLike) State.symbolResolution[ticker] = full;
     }
+    const match = this.currentResults.find(r => r.ticker === ticker);
+    if (match && match.type) State.symbolType[ticker] = (match.type || '').toLowerCase();
     // Track in personal index so it's instantly searchable next time (enriches DB)
     WatchlistManager.rememberSymbol(ticker, kind);
     ChartController.loadTicker(ticker);
@@ -3439,6 +3526,7 @@ class AddSymbol {
     const result = this.currentResults.find(r => r.symbol === symbol);
     if (result) {
       const type = (result.type || '').toLowerCase();
+      if (type) State.symbolType[symbol] = type;
       if ((type === 'stock' || type === 'fund' || type === 'dr' || type === '')) {
         State.symbolResolution[symbol] = symbol;
       } else if (result.full && result.full.includes(':')) {
