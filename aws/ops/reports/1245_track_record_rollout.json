@@ -1,0 +1,34 @@
+{
+  "started": "2026-06-03T20:37:40.151236+00:00",
+  "deploy": {
+    "action": "updated",
+    "sha": "Puulube/MxMtsnaT"
+  },
+  "schedule": "cron(0 13 * * ? *)",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 1.3,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"n\\\": 0, \\\"hit_rate\\\": null, \\\"tiers\\\": 0, \\\"maturity\\\": \\\"BOOTSTRAPPING\\\"}\"}"
+  },
+  "output": {
+    "maturity": "BOOTSTRAPPING",
+    "overall": {
+      "n_predictions": 0,
+      "hit_rate": null,
+      "big_hit_rate": null,
+      "avg_return": null,
+      "median_return": null,
+      "best": null,
+      "worst": null
+    },
+    "window": {
+      "scored_files": 2,
+      "trading_days": 0
+    },
+    "by_tier": [],
+    "by_horizon": [],
+    "equity_pts": 0
+  },
+  "finished": "2026-06-03T20:37:47.189858+00:00"
+}
