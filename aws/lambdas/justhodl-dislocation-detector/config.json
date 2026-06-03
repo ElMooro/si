@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-dislocation-detector",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Full-universe relative-value Buy-the-Laggard dislocation detector",
+  "environment_keys": ["FMP_KEY"],
+  "schedule": { "expression": "cron(30 14 * * ? *)", "name": "justhodl-dislocation-detector-daily", "description": "Daily 14:30 UTC dislocation screen" }
+}
