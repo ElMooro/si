@@ -680,6 +680,41 @@ a:hover { text-decoration: underline; }
 .chart-tab-add:hover { background: var(--bg-1); border-color: var(--green); }
 
 .chart-engine-toggle { display: flex; gap: 2px; margin-left: auto; }
+.tf-bar { display: flex; gap: 1px; margin-left: 14px; background: var(--bg-2); border-radius: 5px; padding: 2px; }
+.tf-btn { padding: 4px 9px; border-radius: 4px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--fg-3); border: none; background: transparent; cursor: pointer; }
+.tf-btn:hover { color: var(--fg-1); }
+.tf-btn.active { color: var(--bg); background: var(--cyan); }
+.tool-btn { margin-left: 8px; padding: 5px 11px; border-radius: 5px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--fg-2); border: 1px solid var(--border-bright); background: var(--bg-2); cursor: pointer; }
+.tool-btn:hover { color: var(--fg-0); border-color: var(--fg-3); }
+.tool-btn.ai-btn { color: var(--violet); border-color: var(--violet); }
+.tool-btn.ai-btn:hover { background: rgba(167,139,250,0.12); }
+.tool-btn.active { color: var(--cyan); border-color: var(--cyan); }
+
+/* Command palette (Cmd-K) */
+.cmdk-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: flex-start; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
+.cmdk-overlay.open { display: flex; }
+.cmdk { margin-top: 12vh; width: 600px; max-width: 92vw; background: var(--bg-1); border: 1px solid var(--border-bright); border-radius: 12px; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.6); }
+.cmdk-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border); padding: 16px 18px; font-family: var(--font-mono); font-size: 15px; color: var(--fg-0); outline: none; }
+.cmdk-input::placeholder { color: var(--fg-3); }
+.cmdk-list { max-height: 380px; overflow-y: auto; padding: 6px; }
+.cmdk-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--fg-1); }
+.cmdk-item.sel { background: var(--bg-3); }
+.cmdk-item .ci-icon { font-size: 15px; width: 22px; text-align: center; }
+.cmdk-item .ci-label { flex: 1; }
+.cmdk-item .ci-hint { font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); }
+.cmdk-group { font-family: var(--font-mono); font-size: 9px; color: var(--fg-4); text-transform: uppercase; letter-spacing: 0.8px; padding: 8px 12px 4px; font-weight: 700; }
+.cmdk-foot { padding: 8px 14px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); display: flex; gap: 14px; }
+.chart-ai-panel { position: fixed; bottom: 18px; right: 18px; width: 380px; max-width: 90vw; z-index: 600; background: var(--bg-1); border: 1px solid var(--violet); border-radius: 12px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); display: none; }
+.chart-ai-panel.open { display: block; }
+.chart-ai-panel .cap-head { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--violet); }
+.chart-ai-panel .cap-close { cursor: pointer; color: var(--fg-3); font-size: 16px; }
+.chart-ai-panel .cap-close:hover { color: var(--red); }
+.chart-ai-panel .cap-body { padding: 14px; max-height: 50vh; overflow-y: auto; font-size: 12.5px; line-height: 1.6; }
+.news-list { display: flex; flex-direction: column; gap: 8px; }
+.news-item { display: block; padding: 9px 10px; border-radius: 6px; background: var(--bg-2); border: 1px solid var(--border); text-decoration: none; transition: border-color 0.12s; }
+.news-item:hover { border-color: var(--cyan); }
+.news-title { font-size: 12px; color: var(--fg-1); line-height: 1.4; }
+.news-meta { font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); margin-top: 4px; }
 .ceng-btn {
   padding: 4px 10px; border-radius: 4px;
   font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
@@ -1336,6 +1371,15 @@ a:hover { text-decoration: underline; }
         <span class="symbol-price" id="active-price">—</span>
         <span class="symbol-change up" id="active-change">—</span>
       </div>
+      <div class="tf-bar" id="tf-bar">
+        <button class="tf-btn" data-mult="5" data-span="minute" data-days="5">5m</button>
+        <button class="tf-btn" data-mult="1" data-span="hour" data-days="30">1H</button>
+        <button class="tf-btn active" data-mult="1" data-span="day" data-days="250">1D</button>
+        <button class="tf-btn" data-mult="1" data-span="week" data-days="1825">1W</button>
+        <button class="tf-btn" data-mult="1" data-span="month" data-days="3650">1M</button>
+      </div>
+      <button class="tool-btn" id="compare-btn" title="Overlay a benchmark / compare symbol">⚖ Compare</button>
+      <button class="tool-btn ai-btn" id="ai-read-btn" title="AI reads the current chart + all JustHodl signals">🧠 AI Read</button>
       <div class="chart-engine-toggle" id="chart-engine-toggle">
         <button class="ceng-btn active" data-engine="auto" title="Auto — picks the engine that can actually show the symbol (recommended)">Auto</button>
         <button class="ceng-btn" data-engine="tv" title="Force TradingView (full toolkit; some symbols gated)">TradingView</button>
@@ -1360,6 +1404,7 @@ a:hover { text-decoration: underline; }
       <div class="info-tab active" data-info-tab="overview">Overview</div>
       <div class="info-tab" data-info-tab="intel">Intel</div>
       <div class="info-tab" data-info-tab="notes">Notes</div>
+      <div class="info-tab" data-info-tab="news">News</div>
       <div class="info-tab" data-info-tab="ticket">Ticket</div>
     </div>
     
@@ -1522,6 +1567,8 @@ const State = {
   chartTabs: [],         // [{id, symbol}] — multiple charts, click to switch
   activeTabId: null,
   chartEngine: 'auto',   // 'auto' | 'tv' (TradingView) | 'native' (Polygon + Lightweight Charts)
+  tf: { mult: 1, span: 'day', days: 250 },  // active native timeframe
+  compareSymbol: null,   // overlay symbol for relative comparison
   nativeChart: null,     // Lightweight Charts instance
   deviceId: null,        // anonymous per-device UID for cloud sync
   syncStatus: 'idle',    // idle|syncing|saved|error
@@ -2732,24 +2779,15 @@ class UI {
   }
   
   static renderNewsTab(ticker) {
-    // Placeholder - news data integration v1
+    // Async-load real headlines from the /news worker route (FMP)
+    setTimeout(() => NewsService.load(ticker), 0);
     return `
       <div class="info-section">
         <div class="section-title">📰 Recent News · ${this.esc(ticker)}</div>
-        <div style="color:var(--fg-3);font-style:italic;font-size:11.5px;line-height:1.6">
-          News feed integration coming online. Recent headlines from FMP + GDELT will appear here once the data layer is wired.
-          <br><br>
-          Sources already running:
-          <ul style="margin:8px 0;padding-left:20px;color:var(--fg-2)">
-            <li>FMP news sentiment (Claude-scored)</li>
-            <li>Earnings transcripts (Claude-summarized)</li>
-            <li>GDELT geopolitical tone</li>
-          </ul>
-        </div>
-      </div>
-    `;
+        <div id="news-list-${this.esc(ticker)}" class="news-list"><div class="jh-ai-loading">Loading headlines…</div></div>
+      </div>`;
   }
-  
+
   static renderSignalStrip(ticker) {
     const pred = this.findPrediction(ticker);
     const tt = this.findTradeTicket(ticker);
@@ -3355,6 +3393,26 @@ class NativeChart {
     return Object.values(byTime).sort((a, b) => a.time - b.time);
   }
   
+  // Overlay a second symbol's normalized line for relative-performance comparison
+  static async addCompareOverlay(chart, baseTicker, baseBars, cmpTicker) {
+    try {
+      const tf = State.tf || { mult: 1, span: 'day', days: 250 };
+      const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(cmpTicker)}&mult=${tf.mult}&span=${tf.span}&days=${tf.days}`);
+      const d = await r.json();
+      const cb = d.bars || [];
+      if (!cb.length) return;
+      // Normalize both to % change from first common point, plot on a left scale
+      const base0 = baseBars[0].close, cmp0 = cb[0].close;
+      const cmpLine = chart.addLineSeries({ color: '#a78bfa', lineWidth: 2, priceScaleId: 'left', lastValueVisible: true, title: cmpTicker });
+      chart.priceScale('left').applyOptions({ visible: true, borderColor: '#1c2433' });
+      const seen = new Set(); const data = [];
+      for (const b of cb) { if (!seen.has(b.time)) { seen.add(b.time); data.push({ time: b.time, value: (b.close / cmp0 - 1) * 100 }); } }
+      cmpLine.setData(data);
+      const metaEl = document.getElementById(`nch-meta-${State.activeChartPane}`);
+      if (metaEl) metaEl.innerHTML += ` · <span style="color:#a78bfa">vs ${UI.esc(cmpTicker)} (rel %)</span>`;
+    } catch (e) {}
+  }
+  
   static cryptoToYahoo(ticker) {
     // BTCUSD/BTCUSDT/BTC-USD → BTC-USD ; XBTUSD → BTC-USD
     let t = ticker.toUpperCase().replace('-', '');
@@ -3475,7 +3533,8 @@ class NativeChart {
       </div>`;
     
     try {
-      const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&days=250`);
+      const tf = State.tf || { mult: 1, span: 'day', days: 250 };
+      const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&mult=${tf.mult}&span=${tf.span}&days=${tf.days}`);
       const data = await r.json();
       const bars = data.bars || [];
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
@@ -3486,12 +3545,13 @@ class NativeChart {
       }
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
       if (!chartEl || typeof LightweightCharts === 'undefined') return;
+      const intraday = (tf.span === 'minute' || tf.span === 'hour');
       const chart = LightweightCharts.createChart(chartEl, {
         autoSize: true,
         layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
         rightPriceScale: { borderColor: '#1c2433' },
-        timeScale: { borderColor: '#1c2433', timeVisible: false },
+        timeScale: { borderColor: '#1c2433', timeVisible: intraday },
         crosshair: { mode: 1 },
       });
       const candleSeries = chart.addCandlestickSeries({
@@ -3539,6 +3599,11 @@ class NativeChart {
       
       // Signal-event markers — plot the actual buy events on the timeline
       candleSeries.setMarkers(NativeChart.buildMarkers(ticker, bars));
+      
+      // Compare overlay — normalized line of a second symbol (relative performance)
+      if (State.compareSymbol && State.compareSymbol !== ticker) {
+        NativeChart.addCompareOverlay(chart, ticker, bars, State.compareSymbol);
+      }
       
       const last = bars[bars.length - 1];
       const prev = bars[bars.length - 2] || last;
@@ -3947,6 +4012,152 @@ class PersonalAI {
 }
 
 // ─── FLAG PICKER ───────────────────────────────────────────────────
+// ─── NEWS SERVICE (per-ticker headlines via /news) ─────────────────
+class NewsService {
+  static cache = {};
+  static async load(ticker) {
+    const el = document.getElementById(`news-list-${ticker}`);
+    if (!el) return;
+    if (this.cache[ticker]) { el.innerHTML = this.render(this.cache[ticker]); return; }
+    try {
+      const r = await fetch(`${PROXY}/news?ticker=${encodeURIComponent(ticker)}`);
+      const d = await r.json();
+      const news = d.news || [];
+      this.cache[ticker] = news;
+      el.innerHTML = news.length ? this.render(news) : '<div style="color:var(--fg-3);font-style:italic;font-size:11.5px">No recent headlines.</div>';
+    } catch (e) {
+      el.innerHTML = '<div style="color:var(--fg-3);font-style:italic;font-size:11.5px">News unavailable right now.</div>';
+    }
+  }
+  static render(news) {
+    return news.slice(0, 15).map(n => {
+      const d = n.date ? new Date(n.date).toLocaleDateString(undefined,{month:'short',day:'numeric'}) : '';
+      return `<a class="news-item" href="${UI.esc(n.url||'#')}" target="_blank" rel="noopener">
+        <div class="news-title">${UI.esc(n.title||'')}</div>
+        <div class="news-meta">${UI.esc(n.site||'')} · ${d}</div>
+      </a>`;
+    }).join('');
+  }
+}
+
+// ─── CHART AI READ (one-click full-context analysis of current chart) ──
+class ChartAI {
+  static async read() {
+    const ticker = State.activeTicker;
+    if (!ticker) return;
+    // open intel drawer to Notes tab area; reuse PersonalAI output region via a toast panel
+    let panel = document.getElementById('chart-ai-panel');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'chart-ai-panel';
+      panel.className = 'chart-ai-panel';
+      document.body.appendChild(panel);
+    }
+    panel.classList.add('open');
+    panel.innerHTML = `<div class="cap-head"><span>🧠 AI Read · ${UI.esc(ticker)}</span><span class="cap-close" id="cap-close">×</span></div><div class="cap-body"><div class="jh-ai-loading">Claude is reading ${UI.esc(ticker)} — fusing price action, all JustHodl signals, and your notes…</div></div>`;
+    panel.querySelector('#cap-close').addEventListener('click', () => panel.classList.remove('open'));
+    // Reuse PersonalAI's context gatherer + a chart-level prompt
+    const ctx = PersonalAI.gatherContext(ticker);
+    const note = WatchlistManager.getNote(ticker);
+    let q = `Read the chart for ${ticker} as a trading desk analyst. Here is the full JustHodl context:\n\n${ctx}\n\n`;
+    if (note) q += `My personal notes: ${note}\n\n`;
+    q += `Give: (1) what the tape is doing, (2) the strongest 1-2 signals and what they imply, (3) key levels to watch, (4) a decisive read — is this a setup worth acting on now, and on what trigger? Under 180 words, punchy.`;
+    try {
+      const r = await fetch(PersonalAI.AI_PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: q }) });
+      const data = await r.json();
+      const ans = data.response || data.answer || data.message || data.text || 'No response.';
+      panel.querySelector('.cap-body').innerHTML = `<div class="jh-ai-result">${PersonalAI.fmt(ans)}</div>`;
+    } catch (e) {
+      panel.querySelector('.cap-body').innerHTML = `<div class="jh-ai-err">AI read failed. Try again.</div>`;
+    }
+  }
+}
+
+// ─── COMMAND PALETTE (Cmd-K / Ctrl-K) ──────────────────────────────
+class CommandPalette {
+  static commands() {
+    return [
+      { icon: '🔍', label: 'Search any symbol or macro series', hint: '/', group: 'Navigate', run: () => UniverseSearch.open() },
+      { icon: '⚡', label: "Open Today's Setups", hint: '\\', group: 'Navigate', run: () => { UI.renderSetups(); window.__jhDrawers.setSetups(true); } },
+      { icon: '📋', label: 'Toggle Watchlist', hint: '[', group: 'Navigate', run: () => window.__jhDrawers.setLeft(true) },
+      { icon: '🧠', label: 'Toggle Intel panel', hint: ']', group: 'Navigate', run: () => window.__jhDrawers.setRight(true) },
+      { icon: '🧠', label: 'AI Read this chart', hint: '', group: 'Analyze', run: () => ChartAI.read() },
+      { icon: '⚖', label: 'Compare vs SPY', hint: '', group: 'Analyze', run: () => CommandPalette.setCompare('SPY') },
+      { icon: '⚖', label: 'Compare vs QQQ', hint: '', group: 'Analyze', run: () => CommandPalette.setCompare('QQQ') },
+      { icon: '✖', label: 'Clear comparison', hint: '', group: 'Analyze', run: () => CommandPalette.setCompare(null) },
+      { icon: '📈', label: 'Macro data catalog', hint: '', group: 'Navigate', run: () => MacroData.open() },
+      { icon: '🔔', label: 'Custom alerts', hint: '', group: 'Tools', run: () => AlertBuilder.open() },
+      { icon: '🟢', label: 'Timeframe: 5min', hint: '', group: 'Timeframe', run: () => CommandPalette.setTf(5,'minute',5) },
+      { icon: '🟢', label: 'Timeframe: 1 Hour', hint: '', group: 'Timeframe', run: () => CommandPalette.setTf(1,'hour',30) },
+      { icon: '🟢', label: 'Timeframe: Daily', hint: '', group: 'Timeframe', run: () => CommandPalette.setTf(1,'day',250) },
+      { icon: '🟢', label: 'Timeframe: Weekly', hint: '', group: 'Timeframe', run: () => CommandPalette.setTf(1,'week',1825) },
+      { icon: '🖥', label: 'Engine: Auto', hint: '', group: 'Engine', run: () => CommandPalette.setEngine('auto') },
+      { icon: '🖥', label: 'Engine: TradingView', hint: '', group: 'Engine', run: () => CommandPalette.setEngine('tv') },
+      { icon: '🖥', label: 'Engine: JustHodl native', hint: '', group: 'Engine', run: () => CommandPalette.setEngine('native') },
+      { icon: '➕', label: 'New chart tab', hint: '', group: 'Tools', run: () => ChartTabs.addTab() },
+    ];
+  }
+  static setCompare(sym) { State.compareSymbol = sym; ChartController.loadTicker('__reload__'); setTimeout(()=>ChartController.loadTicker(State.activeTicker),10); const b=document.getElementById('compare-btn'); if(b) b.classList.toggle('active', !!sym); }
+  static setTf(mult, span, days) { State.tf = { mult, span, days }; document.querySelectorAll('.tf-btn').forEach(x=>x.classList.toggle('active', x.dataset.span===span && x.dataset.mult==String(mult))); const t=State.activeTicker; State.activeTicker='__r'; ChartController.loadTicker(t); }
+  static setEngine(e) { State.chartEngine=e; document.querySelectorAll('.ceng-btn[data-engine]').forEach(b=>b.classList.toggle('active',b.dataset.engine===e)); const t=State.activeTicker; State.activeTicker='__r'; ChartController.loadTicker(t); }
+  
+  static open() {
+    let ov = document.getElementById('cmdk-overlay');
+    if (!ov) { ov = this.build(); document.body.appendChild(ov); }
+    ov.classList.add('open');
+    const inp = ov.querySelector('.cmdk-input');
+    inp.value = ''; this.sel = 0; this.filter('');
+    setTimeout(() => inp.focus(), 30);
+  }
+  static close() { const ov = document.getElementById('cmdk-overlay'); if (ov) ov.classList.remove('open'); }
+  
+  static build() {
+    const ov = document.createElement('div');
+    ov.id = 'cmdk-overlay'; ov.className = 'cmdk-overlay';
+    ov.innerHTML = `<div class="cmdk"><input class="cmdk-input" placeholder="Type a command or symbol… (↑↓ Enter, Esc)"><div class="cmdk-list" id="cmdk-list"></div><div class="cmdk-foot"><span>↑↓ navigate</span><span>↵ run</span><span>esc close</span><span>type a ticker to load it</span></div></div>`;
+    ov.addEventListener('click', e => { if (e.target === ov) this.close(); });
+    const inp = ov.querySelector('.cmdk-input');
+    inp.addEventListener('input', () => this.filter(inp.value));
+    inp.addEventListener('keydown', e => {
+      const items = this._filtered || [];
+      if (e.key === 'ArrowDown') { e.preventDefault(); this.sel = Math.min(this.sel+1, items.length-1); this.paint(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); this.sel = Math.max(this.sel-1, 0); this.paint(); }
+      else if (e.key === 'Enter') { e.preventDefault(); this.exec(inp.value); }
+      else if (e.key === 'Escape') { this.close(); }
+    });
+    return ov;
+  }
+  static filter(q) {
+    const Q = q.toLowerCase().trim();
+    let items = this.commands();
+    if (Q) items = items.filter(c => c.label.toLowerCase().includes(Q));
+    this._filtered = items; this.sel = 0; this.paint(q);
+  }
+  static paint(q) {
+    const list = document.getElementById('cmdk-list');
+    const items = this._filtered || [];
+    let html = '';
+    if (q && q.trim() && /^[A-Za-z]{1,6}$/.test(q.trim()) && items.length === 0) {
+      html = `<div class="cmdk-item sel"><span class="ci-icon">📈</span><span class="ci-label">Load symbol <b>${q.trim().toUpperCase()}</b></span><span class="ci-hint">enter</span></div>`;
+    } else {
+      let lastGroup = '';
+      items.forEach((c, i) => {
+        if (c.group !== lastGroup) { html += `<div class="cmdk-group">${c.group}</div>`; lastGroup = c.group; }
+        html += `<div class="cmdk-item ${i===this.sel?'sel':''}" data-idx="${i}"><span class="ci-icon">${c.icon}</span><span class="ci-label">${c.label}</span><span class="ci-hint">${c.hint||''}</span></div>`;
+      });
+    }
+    list.innerHTML = html;
+    list.querySelectorAll('.cmdk-item[data-idx]').forEach(el => el.addEventListener('click', () => { this.sel = +el.dataset.idx; this.exec(document.querySelector('.cmdk-input').value); }));
+  }
+  static exec(q) {
+    const items = this._filtered || [];
+    if (items.length && items[this.sel]) { items[this.sel].run(); this.close(); return; }
+    // No command match → treat as symbol
+    const t = (q||'').trim().toUpperCase();
+    if (/^[A-Z0-9.\-:]{1,12}$/.test(t)) { WatchlistManager.rememberSymbol(t,'equity'); ChartController.loadTicker(t); this.close(); }
+  }
+}
+
 // ─── CUSTOM ALERT BUILDER (per-user rules) ─────────────────────────
 class AlertBuilder {
   static open() {
@@ -4306,6 +4517,30 @@ async function init() {
       const cb = lbl.querySelector('input');
       lbl.classList.toggle('active', cb.checked);
     }, 0));
+  });
+  
+  // ── Timeframe bar ──
+  document.querySelectorAll('.tf-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.tf-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    State.tf = { mult: parseInt(b.dataset.mult), span: b.dataset.span, days: parseInt(b.dataset.days) };
+    // Native timeframes only apply to the native engine; nudge engine if on TV
+    const t = State.activeTicker; State.activeTicker = '__r';
+    ChartController.loadTicker(t);
+  }));
+  // ── Compare button ──
+  document.getElementById('compare-btn').addEventListener('click', () => {
+    if (State.compareSymbol) { CommandPalette.setCompare(null); }
+    else {
+      const s = prompt('Compare against symbol (e.g. SPY, QQQ, a peer):', 'SPY');
+      if (s) CommandPalette.setCompare(s.trim().toUpperCase());
+    }
+  });
+  // ── AI Read ──
+  document.getElementById('ai-read-btn').addEventListener('click', () => ChartAI.read());
+  // ── Command palette (Cmd-K / Ctrl-K) ──
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); CommandPalette.open(); }
   });
   
   // ── Macro data catalog ──

@@ -351,18 +351,22 @@ export default {
     }
 
     if (url.pathname === "/ohlc") {
-      // GET /ohlc?ticker=AAPL&days=180 → Polygon daily bars for native chart fallback
+      // GET /ohlc?ticker=AAPL&mult=1&span=day&days=180 → Polygon aggregates (any interval)
       const ticker = (url.searchParams.get("ticker") || "").trim().toUpperCase();
-      const days = Math.min(parseInt(url.searchParams.get("days") || "180", 10) || 180, 730);
-      if (!ticker || !/^[A-Z0-9.\-]{1,12}$/.test(ticker)) {
-        return new Response(JSON.stringify({ error: "invalid ticker" }),
+      const days = Math.min(parseInt(url.searchParams.get("days") || "180", 10) || 180, 3650);
+      const mult = Math.min(parseInt(url.searchParams.get("mult") || "1", 10) || 1, 60);
+      const span = (url.searchParams.get("span") || "day").trim();
+      const validSpans = ["minute", "hour", "day", "week", "month"];
+      if (!ticker || !/^[A-Z0-9.\-]{1,12}$/.test(ticker) || !validSpans.includes(span)) {
+        return new Response(JSON.stringify({ error: "invalid params" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
       const polygonKey = env.POLYGON_KEY || "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d";
       const to = new Date();
       const from = new Date(to.getTime() - days * 86400000);
       const fmt = (d) => d.toISOString().slice(0, 10);
-      const ohlcKey = new Request(`https://ohlc.cache/${ticker}/${days}`, { method: "GET" });
+      const ttl = span === "minute" ? 60 : span === "hour" ? 120 : 300;
+      const ohlcKey = new Request(`https://ohlc.cache/${ticker}/${mult}${span}/${days}`, { method: "GET" });
       const oc = caches.default;
       let cached = await oc.match(ohlcKey);
       if (cached) {
@@ -370,20 +374,51 @@ export default {
         return new Response(body, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } });
       }
       try {
-        const aggUrl = `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/day/${fmt(from)}/${fmt(to)}?adjusted=true&sort=asc&limit=5000&apiKey=${polygonKey}`;
-        const resp = await fetch(aggUrl, { cf: { cacheTtl: 300, cacheEverything: true } });
+        const aggUrl = `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/${mult}/${span}/${fmt(from)}/${fmt(to)}?adjusted=true&sort=asc&limit=50000&apiKey=${polygonKey}`;
+        const resp = await fetch(aggUrl, { cf: { cacheTtl: ttl, cacheEverything: true } });
         const data = await resp.json();
         const bars = (data.results || []).map(b => ({
           time: Math.floor(b.t / 1000), open: b.o, high: b.h, low: b.l, close: b.c, value: b.v,
         }));
-        const out = JSON.stringify({ ticker, bars, count: bars.length });
+        const out = JSON.stringify({ ticker, span, mult, bars, count: bars.length });
         const finalResp = new Response(out, {
-          headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300", "X-Cache": "MISS", ...corsHeaders() },
+          headers: { "Content-Type": "application/json", "Cache-Control": `public, max-age=${ttl}`, "X-Cache": "MISS", ...corsHeaders() },
         });
-        ctx.waitUntil(oc.put(ohlcKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300" } })));
+        ctx.waitUntil(oc.put(ohlcKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": `public, max-age=${ttl}` } })));
         return finalResp;
       } catch (e) {
         return new Response(JSON.stringify({ error: "ohlc fetch failed", detail: String(e) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
+    if (url.pathname === "/news") {
+      // GET /news?ticker=AAPL → recent headlines via FMP (commercial-licensed)
+      const ticker = (url.searchParams.get("ticker") || "").trim().toUpperCase();
+      if (!ticker || !/^[A-Z0-9.\-]{1,12}$/.test(ticker)) {
+        return new Response(JSON.stringify({ news: [] }),
+          { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const fmpKey = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb";
+      const nKey = new Request(`https://news.cache/${ticker}`, { method: "GET" });
+      const nc = caches.default;
+      const hit = await nc.match(nKey);
+      if (hit) { const b = await hit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
+      try {
+        const u = `https://financialmodelingprep.com/stable/news/stock?symbols=${ticker}&limit=20&apikey=${fmpKey}`;
+        const resp = await fetch(u, { cf: { cacheTtl: 600, cacheEverything: true } });
+        let rows = await resp.json();
+        if (!Array.isArray(rows)) rows = [];
+        const news = rows.slice(0, 20).map(n => ({
+          title: n.title, site: n.publisher || n.site, date: n.publishedDate || n.date,
+          url: n.url, text: (n.text || "").slice(0, 200), image: n.image || "",
+        }));
+        const out = JSON.stringify({ ticker, news });
+        const fr = new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=600", "X-Cache": "MISS", ...corsHeaders() } });
+        ctx.waitUntil(nc.put(nKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=600" } })));
+        return fr;
+      } catch (e) {
+        return new Response(JSON.stringify({ news: [], error: String(e) }),
           { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
     }
