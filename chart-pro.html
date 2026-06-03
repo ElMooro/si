@@ -169,6 +169,44 @@ a:hover { text-decoration: underline; }
 .sync-status.syncing { color: var(--amber); }
 .sync-status.saved { color: var(--green); }
 .sync-status.error { color: var(--red); }
+
+/* Auth UI (shared, driven by auth.js) */
+[data-auth-slot] { display: flex; align-items: center; }
+.jh-signin-btn { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; padding: 6px 14px; border-radius: 5px; background: var(--cyan); color: var(--bg); border: none; cursor: pointer; }
+.jh-signin-btn:hover { background: #1bb8d4; }
+.jh-auth-anon { font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); border: 1px solid var(--border); padding: 3px 7px; border-radius: 4px; }
+.jh-user-menu { position: relative; }
+.jh-user-trigger { display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 3px; }
+.jh-avatar { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--violet)); color: var(--bg); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 12px; }
+.jh-tier-badge { font-family: var(--font-mono); font-size: 8.5px; font-weight: 700; padding: 2px 5px; border-radius: 7px; letter-spacing: 0.5px; }
+.jh-tier-badge.pro { color: var(--cyan); background: rgba(34,211,238,0.12); }
+.jh-tier-badge.elite { color: var(--violet); background: rgba(167,139,250,0.12); }
+.jh-caret { color: var(--fg-3); font-size: 8px; }
+.jh-user-dropdown { display: none; position: absolute; top: 120%; right: 0; background: var(--bg-2); border: 1px solid var(--border-bright); border-radius: 8px; padding: 12px; min-width: 190px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 200; }
+.jh-user-menu.open .jh-user-dropdown { display: block; }
+.jh-user-email { font-family: var(--font-mono); font-size: 11px; color: var(--fg-1); margin-bottom: 4px; word-break: break-all; }
+.jh-user-tier { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-3); margin-bottom: 9px; padding-bottom: 9px; border-bottom: 1px solid var(--border); }
+.jh-menu-link { display: block; padding: 6px 0; font-size: 12px; color: var(--fg-2); }
+.jh-menu-link:hover { color: var(--cyan); text-decoration: none; }
+.jh-auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(6px); }
+.jh-auth-modal.open { display: flex; }
+.jh-auth-card { background: var(--bg-1); border: 1px solid var(--border-bright); border-radius: 14px; padding: 32px; width: 380px; max-width: 90vw; position: relative; }
+.jh-auth-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--fg-3); font-size: 22px; cursor: pointer; }
+.jh-auth-close:hover { color: var(--fg-1); }
+.jh-auth-logo { font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: var(--fg-0); text-align: center; margin-bottom: 4px; }
+.jh-auth-logo span { color: var(--cyan); }
+.jh-auth-sub { text-align: center; font-size: 12px; color: var(--fg-3); margin-bottom: 24px; }
+.jh-oauth-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 10px; border: 1px solid var(--border-bright); background: var(--bg-2); color: var(--fg-1); }
+.jh-oauth-btn:hover { background: var(--bg-3); }
+.jh-auth-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0; color: var(--fg-3); font-size: 11px; font-family: var(--font-mono); }
+.jh-auth-divider::before, .jh-auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.jh-auth-input { width: 100%; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; font-size: 13px; color: var(--fg-1); margin-bottom: 10px; outline: none; font-family: var(--font-mono); }
+.jh-auth-input:focus { border-color: var(--cyan); }
+.jh-auth-err { display: none; color: var(--amber); font-size: 11.5px; margin-bottom: 10px; padding: 8px; background: rgba(251,191,36,0.08); border-radius: 6px; }
+.jh-auth-primary { width: 100%; padding: 12px; border-radius: 8px; background: var(--cyan); color: var(--bg); border: none; font-family: var(--font-mono); font-size: 13px; font-weight: 700; cursor: pointer; }
+.jh-auth-primary:hover { background: #1bb8d4; }
+.jh-auth-row { display: flex; justify-content: space-between; margin-top: 14px; font-size: 12px; }
+.jh-auth-legal { text-align: center; font-size: 10.5px; color: var(--fg-3); margin-top: 18px; line-height: 1.5; }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
 .status-dot.closed { background: var(--fg-3); }
 .status-dot.pre { background: var(--amber); }
@@ -938,6 +976,7 @@ a:hover { text-decoration: underline; }
     <a href="/portfolio.html">Portfolio</a>
     <a href="/screener/">Screener</a>
     <a href="/chart-pro.html" class="active">Chart Pro</a>
+    <a href="/pricing.html">Pricing</a>
   </nav>
   
   <div class="spacer"></div>
@@ -974,6 +1013,7 @@ a:hover { text-decoration: underline; }
     <span id="session-text">MARKET</span>
   </div>
   <span class="sync-status" id="sync-status" title="Your watchlists save & sync automatically"></span>
+  <div data-auth-slot style="margin-left:8px"></div>
 </header>
 
 <!-- ═══════════════ MAIN APP LAYOUT ═══════════════ -->
@@ -1147,6 +1187,9 @@ a:hover { text-decoration: underline; }
 </div>
 
 <!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
@@ -1377,7 +1420,7 @@ class WatchlistManager {
   // ── localStorage + cloud persistence ──
   static loadAll() {
     try {
-      // Device ID for cloud sync (anonymous, per-browser)
+      // Device ID for cloud sync (anonymous fallback when not signed in)
       let did = localStorage.getItem('jh_device_id');
       if (!did) {
         did = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
@@ -1396,18 +1439,26 @@ class WatchlistManager {
     } catch (e) { console.warn('Load failed', e); }
   }
   
-  // Load from cloud (overrides local if server has data) — called on init
+  // Resolve the storage key: authenticated user id if signed in, else device id
+  static storageKey() {
+    if (window.JustHodlAuth && JustHodlAuth.isAuthed && JustHodlAuth.isAuthed()) {
+      return JustHodlAuth.userKey();
+    }
+    return State.deviceId;
+  }
+  
+  // Load from cloud (overrides local if server has data) — called on init + on login
   static async loadFromCloud() {
-    if (!State.deviceId) return;
+    const key = this.storageKey();
+    if (!key) return;
     try {
-      const r = await fetch(`${PROXY}/userdata/${State.deviceId}`);
+      const r = await fetch(`${PROXY}/userdata/${key}`);
       if (!r.ok) return;
       const data = await r.json();
       if (data && !data.empty) {
         if (data.customWatchlists) State.customWatchlists = data.customWatchlists;
         if (data.symbolFlags) State.symbolFlags = data.symbolFlags;
         if (data.activeWatchlistId) State.activeWatchlistId = data.activeWatchlistId;
-        // Mirror to localStorage
         this.saveLocal();
         return true;
       }
@@ -1423,10 +1474,11 @@ class WatchlistManager {
     } catch (e) {}
   }
   
-  // Debounced cloud sync — called after every change
+  // Debounced cloud sync — keyed by authenticated user or device
   static syncToCloud() {
-    this.saveLocal();  // always save local immediately
-    if (!State.deviceId) return;
+    this.saveLocal();
+    const key = this.storageKey();
+    if (!key) return;
     clearTimeout(State.syncTimer);
     State.syncStatus = 'syncing';
     UI.renderSyncStatus && UI.renderSyncStatus();
@@ -1438,7 +1490,7 @@ class WatchlistManager {
           activeWatchlistId: State.activeWatchlistId,
           updated_at: Date.now(),
         });
-        const r = await fetch(`${PROXY}/userdata/${State.deviceId}`, {
+        const r = await fetch(`${PROXY}/userdata/${key}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: payload,
@@ -1448,7 +1500,7 @@ class WatchlistManager {
         State.syncStatus = 'error';
       }
       UI.renderSyncStatus && UI.renderSyncStatus();
-    }, 800);  // debounce 800ms
+    }, 800);
   }
   
   static saveCustom() { this.syncToCloud(); }
@@ -2938,6 +2990,16 @@ async function init() {
   });
   
   setInterval(updateSessionStatus, 60 * 1000);
+  
+  // ── Auth: init + reload watchlists when user signs in/out ──
+  if (window.JustHodlAuth) {
+    JustHodlAuth.onChange(async (user) => {
+      // When auth state changes, reload this user's cloud data
+      await WatchlistManager.loadFromCloud();
+      UI.refreshWatchlist();
+    });
+    JustHodlAuth.init();
+  }
 }
 
 function updateSessionStatus() {

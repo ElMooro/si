@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Pricing · JustHodl.AI</title>
+<meta name="description" content="JustHodl.AI subscription plans — institutional-grade market intelligence for every level.">
+<style>
+:root {
+  --bg: #0a0e14; --bg-1: #0c1018; --bg-2: #0f1420; --bg-3: #131929;
+  --border: #1c2433; --border-bright: #2a3550;
+  --fg-0: #ffffff; --fg-1: #e1e8f4; --fg-2: #a8b3c7; --fg-3: #6f7b91;
+  --cyan: #22d3ee; --green: #26ffaf; --red: #ff5577; --amber: #fbbf24; --violet: #a78bfa;
+  --font-mono: 'IBM Plex Mono','SF Mono',ui-monospace,Menlo,monospace;
+  --font-sans: -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg-1); font-family: var(--font-sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+a { color: var(--cyan); text-decoration: none; }
+::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.header { height: 56px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; padding: 0 24px; background: var(--bg-1); }
+.brand { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.5px; }
+.brand-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 8px var(--green); }
+.nav { display: flex; gap: 4px; margin-left: 12px; }
+.nav a { padding: 7px 12px; font-size: 12.5px; color: var(--fg-3); border-radius: 5px; font-family: var(--font-mono); }
+.nav a:hover { color: var(--fg-1); background: var(--bg-2); text-decoration: none; }
+.spacer { flex: 1; }
+
+.hero { text-align: center; padding: 56px 24px 32px; }
+.hero h1 { font-size: 36px; font-weight: 800; color: var(--fg-0); letter-spacing: -0.5px; margin-bottom: 12px; }
+.hero h1 .grad { background: linear-gradient(90deg, var(--cyan), var(--green)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.hero p { font-size: 16px; color: var(--fg-2); max-width: 540px; margin: 0 auto; }
+
+.billing-toggle { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 28px 0 8px; font-family: var(--font-mono); font-size: 13px; }
+.billing-toggle .opt { color: var(--fg-3); cursor: pointer; }
+.billing-toggle .opt.active { color: var(--fg-0); }
+.toggle-switch { width: 44px; height: 24px; background: var(--bg-3); border: 1px solid var(--border-bright); border-radius: 12px; position: relative; cursor: pointer; }
+.toggle-switch .knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: var(--cyan); border-radius: 50%; transition: left 0.2s; }
+.toggle-switch.annual .knob { left: 22px; }
+.save-badge { color: var(--green); font-size: 11px; background: rgba(38,255,175,0.1); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(38,255,175,0.3); }
+
+.plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1080px; margin: 32px auto 64px; padding: 0 24px; }
+@media (max-width: 900px) { .plans { grid-template-columns: 1fr; max-width: 420px; } }
+
+.plan { background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px; padding: 28px 24px; display: flex; flex-direction: column; position: relative; transition: border-color 0.2s, transform 0.2s; }
+.plan:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+.plan.featured { border-color: var(--cyan); box-shadow: 0 0 40px rgba(34,211,238,0.08); }
+.plan.featured::before { content: 'MOST POPULAR'; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--cyan); color: var(--bg); font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 1px; padding: 3px 12px; border-radius: 10px; }
+
+.plan-name { font-family: var(--font-mono); font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.plan-name.free { color: var(--fg-2); }
+.plan-name.pro { color: var(--cyan); }
+.plan-name.elite { color: var(--violet); }
+.plan-tagline { font-size: 12.5px; color: var(--fg-3); margin-bottom: 20px; min-height: 32px; }
+.plan-price { display: flex; align-items: baseline; gap: 4px; margin-bottom: 4px; }
+.plan-price .amount { font-size: 40px; font-weight: 800; color: var(--fg-0); font-family: var(--font-mono); }
+.plan-price .period { font-size: 13px; color: var(--fg-3); }
+.plan-price-note { font-size: 11px; color: var(--fg-3); margin-bottom: 22px; min-height: 16px; }
+
+.plan-cta { padding: 12px; border-radius: 8px; font-family: var(--font-mono); font-size: 13px; font-weight: 700; letter-spacing: 0.3px; text-align: center; cursor: pointer; transition: all 0.15s; margin-bottom: 24px; border: 1px solid; }
+.plan-cta.free { background: var(--bg-2); border-color: var(--border-bright); color: var(--fg-1); }
+.plan-cta.free:hover { border-color: var(--fg-3); }
+.plan-cta.pro { background: var(--cyan); border-color: var(--cyan); color: var(--bg); }
+.plan-cta.pro:hover { background: #1bb8d4; }
+.plan-cta.elite { background: rgba(167,139,250,0.1); border-color: var(--violet); color: var(--violet); }
+.plan-cta.elite:hover { background: rgba(167,139,250,0.2); }
+
+.plan-features { list-style: none; display: flex; flex-direction: column; gap: 11px; flex: 1; }
+.plan-features li { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; color: var(--fg-2); }
+.plan-features li .check { color: var(--green); flex-shrink: 0; margin-top: 1px; font-size: 13px; }
+.plan-features li .x { color: var(--fg-3); flex-shrink: 0; margin-top: 1px; opacity: 0.5; }
+.plan-features li.muted { color: var(--fg-3); }
+.plan-features li b { color: var(--fg-0); font-weight: 600; }
+.plan-features .section-head { font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--border); font-weight: 700; }
+
+.faq { max-width: 720px; margin: 0 auto 80px; padding: 0 24px; }
+.faq h2 { text-align: center; font-size: 24px; color: var(--fg-0); margin-bottom: 28px; }
+.faq-item { border-bottom: 1px solid var(--border); padding: 18px 0; }
+.faq-q { font-weight: 600; color: var(--fg-1); margin-bottom: 6px; font-size: 14px; }
+.faq-a { color: var(--fg-3); font-size: 13px; line-height: 1.6; }
+
+.footer-note { text-align: center; color: var(--fg-3); font-size: 12px; padding: 24px; border-top: 1px solid var(--border); font-family: var(--font-mono); }
+
+/* Auth UI (shared styles, used by auth.js) */
+[data-auth-slot] { display: flex; align-items: center; }
+.jh-signin-btn { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; padding: 7px 16px; border-radius: 6px; background: var(--cyan); color: var(--bg); border: none; cursor: pointer; }
+.jh-signin-btn:hover { background: #1bb8d4; }
+.jh-auth-anon { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; }
+.jh-user-menu { position: relative; }
+.jh-user-trigger { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px; }
+.jh-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--violet)); color: var(--bg); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 13px; }
+.jh-tier-badge { font-family: var(--font-mono); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 8px; letter-spacing: 0.5px; }
+.jh-tier-badge.pro { color: var(--cyan); background: rgba(34,211,238,0.12); }
+.jh-tier-badge.elite { color: var(--violet); background: rgba(167,139,250,0.12); }
+.jh-caret { color: var(--fg-3); font-size: 9px; }
+.jh-user-dropdown { display: none; position: absolute; top: 110%; right: 0; background: var(--bg-2); border: 1px solid var(--border-bright); border-radius: 8px; padding: 12px; min-width: 200px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 100; }
+.jh-user-menu.open .jh-user-dropdown { display: block; }
+.jh-user-email { font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-1); margin-bottom: 4px; word-break: break-all; }
+.jh-user-tier { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.jh-menu-link { display: block; padding: 7px 0; font-size: 12.5px; color: var(--fg-2); }
+.jh-menu-link:hover { color: var(--cyan); text-decoration: none; }
+
+.jh-auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(6px); }
+.jh-auth-modal.open { display: flex; }
+.jh-auth-card { background: var(--bg-1); border: 1px solid var(--border-bright); border-radius: 14px; padding: 32px; width: 380px; max-width: 90vw; position: relative; }
+.jh-auth-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--fg-3); font-size: 22px; cursor: pointer; }
+.jh-auth-close:hover { color: var(--fg-1); }
+.jh-auth-logo { font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: var(--fg-0); text-align: center; margin-bottom: 4px; }
+.jh-auth-logo span { color: var(--cyan); }
+.jh-auth-sub { text-align: center; font-size: 12.5px; color: var(--fg-3); margin-bottom: 24px; }
+.jh-oauth-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 10px; border: 1px solid var(--border-bright); background: var(--bg-2); color: var(--fg-1); }
+.jh-oauth-btn:hover { background: var(--bg-3); }
+.jh-auth-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0; color: var(--fg-3); font-size: 11px; font-family: var(--font-mono); }
+.jh-auth-divider::before, .jh-auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.jh-auth-input { width: 100%; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; font-size: 13px; color: var(--fg-1); margin-bottom: 10px; outline: none; font-family: var(--font-mono); }
+.jh-auth-input:focus { border-color: var(--cyan); }
+.jh-auth-err { display: none; color: var(--amber); font-size: 11.5px; margin-bottom: 10px; padding: 8px; background: rgba(251,191,36,0.08); border-radius: 6px; }
+.jh-auth-primary { width: 100%; padding: 12px; border-radius: 8px; background: var(--cyan); color: var(--bg); border: none; font-family: var(--font-mono); font-size: 13px; font-weight: 700; cursor: pointer; }
+.jh-auth-primary:hover { background: #1bb8d4; }
+.jh-auth-row { display: flex; justify-content: space-between; margin-top: 14px; font-size: 12px; }
+.jh-auth-legal { text-align: center; font-size: 10.5px; color: var(--fg-3); margin-top: 18px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav">
+    <a href="/">Home</a>
+    <a href="/chart-pro.html">Chart Pro</a>
+    <a href="/pre-pump-radar.html">Radar</a>
+    <a href="/screener/">Screener</a>
+    <a href="/pricing.html" style="color:var(--cyan)">Pricing</a>
+  </nav>
+  <div class="spacer"></div>
+  <div data-auth-slot></div>
+</header>
+
+<section class="hero">
+  <h1>Trade with an <span class="grad">institutional edge</span></h1>
+  <p>Real-time signal intelligence, self-improving calibration, and a hedge-fund-grade trading terminal — at a fraction of a Bloomberg seat.</p>
+  <div class="billing-toggle">
+    <span class="opt active" id="bill-monthly">Monthly</span>
+    <div class="toggle-switch" id="bill-toggle"><div class="knob"></div></div>
+    <span class="opt" id="bill-annual">Annual</span>
+    <span class="save-badge">Save 20%</span>
+  </div>
+</section>
+
+<section class="plans" id="plans"></section>
+
+<section class="faq">
+  <h2>Frequently Asked</h2>
+  <div class="faq-item"><div class="faq-q">Can I change plans anytime?</div><div class="faq-a">Yes — upgrade, downgrade, or cancel from your account at any time. Changes prorate automatically.</div></div>
+  <div class="faq-item"><div class="faq-q">What payment methods do you accept?</div><div class="faq-a">All major cards via Stripe. Your payment details are never stored on our servers.</div></div>
+  <div class="faq-item"><div class="faq-q">Is there a free trial?</div><div class="faq-a">The Free plan is permanent — no card required. Pro and Elite include a 7-day money-back guarantee.</div></div>
+  <div class="faq-item"><div class="faq-q">What's the difference between Pro and Elite?</div><div class="faq-a">Pro gives you real-time signals, cascade alerts, trade tickets, and AI thesis. Elite unlocks the full institutional stack — insider clusters, 13F tracking, options flow, risk desk, crisis intelligence, and API access.</div></div>
+</section>
+
+<div class="footer-note">JustHodl.AI is a research & analytics platform, not a registered investment advisor. Nothing here is financial advice.</div>
+
+<!-- Auth -->
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+
+<script>
+const PLANS = [
+  {
+    id: 'free', name: 'Free', cls: 'free',
+    tagline: 'Charts + your own watchlists. Get a feel for the platform.',
+    monthly: 0, annual: 0,
+    cta: 'Current Plan',
+    features: [
+      { t: 'TradingView-grade Chart Pro terminal', ok: true },
+      { t: 'Unlimited personal watchlists', ok: true },
+      { t: 'Color flags + cloud sync across devices', ok: true },
+      { t: 'Stock screener (basic)', ok: true },
+      { t: 'Signals (15-min delayed)', ok: true },
+      { head: 'Not included' },
+      { t: 'Real-time signals', ok: false },
+      { t: 'Trade tickets + AI thesis', ok: false },
+      { t: 'Telegram alerts', ok: false },
+    ],
+  },
+  {
+    id: 'pro', name: 'Pro', cls: 'pro', featured: true,
+    tagline: 'Real-time signals, trade tickets, and AI — for the active trader.',
+    monthly: 49, annual: 470,
+    cta: 'Upgrade to Pro',
+    features: [
+      { t: 'Everything in Free, plus:', ok: true, bold: true },
+      { t: '<b>Real-time</b> pre-pump cascade signals', ok: true },
+      { t: 'Cascade alerts + signal board (live)', ok: true },
+      { t: 'Horizon-aware trade tickets (entry/stop/TP)', ok: true },
+      { t: 'AI thesis per ticker (Claude)', ok: true },
+      { t: 'Telegram alerts (morning digest)', ok: true },
+      { t: 'Multi-chart layouts (2x2, 1+3)', ok: true },
+      { t: 'Options flow scanner', ok: true },
+      { head: 'Not included' },
+      { t: 'Insider clusters, 13F, risk desk', ok: false },
+    ],
+  },
+  {
+    id: 'elite', name: 'Elite', cls: 'elite',
+    tagline: 'The full institutional stack. Everything we build.',
+    monthly: 149, annual: 1430,
+    cta: 'Go Elite',
+    features: [
+      { t: 'Everything in Pro, plus:', ok: true, bold: true },
+      { t: '<b>Insider cluster</b> intelligence', ok: true },
+      { t: '<b>Activist 13D + 13F</b> institutional tracking', ok: true },
+      { t: 'CRO risk desk (14-engine cockpit)', ok: true },
+      { t: 'Crisis knowledge base (16 macro frameworks)', ok: true },
+      { t: 'Eurodollar / liquidity intelligence', ok: true },
+      { t: 'Self-improvement calibration panel', ok: true },
+      { t: 'All horizons (1d → 30d) per signal', ok: true },
+      { t: 'Weekly AI hedge-fund memo', ok: true },
+      { t: '<b>Public API access</b> (5k req/hr)', ok: true },
+      { t: 'Priority support', ok: true },
+    ],
+  },
+];
+
+let isAnnual = false;
+
+function renderPlans() {
+  const el = document.getElementById('plans');
+  el.innerHTML = PLANS.map(p => {
+    const price = isAnnual ? p.annual : p.monthly;
+    const priceStr = price === 0 ? '$0' : '$' + (isAnnual ? Math.round(p.annual/12) : p.monthly);
+    const period = price === 0 ? 'forever' : '/mo';
+    const note = price === 0 ? '' : (isAnnual ? `$${p.annual} billed annually` : 'billed monthly');
+    const features = p.features.map(f => {
+      if (f.head) return `<li class="section-head">${f.head}</li>`;
+      const icon = f.ok ? '<span class="check">✓</span>' : '<span class="x">×</span>';
+      return `<li class="${f.ok ? '' : 'muted'}">${icon}<span>${f.t}</span></li>`;
+    }).join('');
+    return `
+      <div class="plan ${p.featured ? 'featured' : ''} ${p.cls}">
+        <div class="plan-name ${p.cls}">${p.name}</div>
+        <div class="plan-tagline">${p.tagline}</div>
+        <div class="plan-price"><span class="amount">${priceStr}</span><span class="period">${period}</span></div>
+        <div class="plan-price-note">${note}</div>
+        <div class="plan-cta ${p.cls}" data-plan="${p.id}">${p.cta}</div>
+        <ul class="plan-features">${features}</ul>
+      </div>`;
+  }).join('');
+
+  el.querySelectorAll('.plan-cta[data-plan]').forEach(btn => {
+    btn.addEventListener('click', () => onSelectPlan(btn.dataset.plan));
+  });
+}
+
+function onSelectPlan(planId) {
+  if (planId === 'free') {
+    if (window.JustHodlAuth && !JustHodlAuth.isAuthed()) JustHodlAuth.openSignIn();
+    return;
+  }
+  // Requires auth first
+  if (window.JustHodlAuth && !JustHodlAuth.isAuthed()) {
+    JustHodlAuth.openSignIn();
+    return;
+  }
+  // Stripe Checkout — wired once Stripe keys + price IDs are configured
+  const cfg = window.JUSTHODL_AUTH_CONFIG || {};
+  if (!cfg.stripePublishableKey) {
+    alert('Checkout is being set up. Stripe integration goes live once products are configured.');
+    return;
+  }
+  // TODO: redirect to Stripe Checkout session for the selected plan
+  startCheckout(planId);
+}
+
+async function startCheckout(planId) {
+  // Placeholder for Stripe Checkout — creates a session via the worker,
+  // then redirects. Wired in once Stripe account + products exist.
+  alert('Stripe Checkout for ' + planId + ' — wiring pending Stripe setup.');
+}
+
+document.getElementById('bill-toggle').addEventListener('click', () => {
+  isAnnual = !isAnnual;
+  document.getElementById('bill-toggle').classList.toggle('annual', isAnnual);
+  document.getElementById('bill-monthly').classList.toggle('active', !isAnnual);
+  document.getElementById('bill-annual').classList.toggle('active', isAnnual);
+  renderPlans();
+});
+
+renderPlans();
+if (window.JustHodlAuth) JustHodlAuth.init();
+</script>
+
+</body>
+</html>
