@@ -207,6 +207,31 @@ a:hover { text-decoration: underline; }
 .jh-auth-primary:hover { background: #1bb8d4; }
 .jh-auth-row { display: flex; justify-content: space-between; margin-top: 14px; font-size: 12px; }
 .jh-auth-legal { text-align: center; font-size: 10.5px; color: var(--fg-3); margin-top: 18px; line-height: 1.5; }
+
+/* Notes + Personalized AI */
+.jh-note-textarea {
+  width: 100%; min-height: 160px; resize: vertical;
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 12px; color: var(--fg-1); font-family: var(--font-sans);
+  font-size: 12.5px; line-height: 1.5; outline: none;
+}
+.jh-note-textarea:focus { border-color: var(--cyan); }
+.jh-note-textarea::placeholder { color: var(--fg-3); }
+.jh-personal-ai-btn {
+  width: 100%; padding: 10px; border-radius: 8px;
+  background: rgba(167,139,250,0.1); border: 1px solid var(--violet);
+  color: var(--violet); font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+}
+.jh-personal-ai-btn:hover { background: rgba(167,139,250,0.2); }
+.jh-personal-ai-output { margin-top: 12px; }
+.jh-ai-loading { color: var(--violet); font-size: 11.5px; font-style: italic; padding: 8px 0; }
+.jh-ai-err { color: var(--amber); font-size: 11.5px; padding: 8px; background: rgba(251,191,36,0.08); border-radius: 6px; }
+.jh-ai-result { font-size: 12.5px; line-height: 1.6; color: var(--fg-1); }
+.jh-ai-result p { margin-bottom: 8px; }
+.jh-ai-result b { color: var(--fg-0); }
+.jh-ai-foot { margin-top: 10px; font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); padding-top: 8px; border-top: 1px solid var(--border); }
+.wl-note-dot { color: var(--violet); font-size: 9px; }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
 .status-dot.closed { background: var(--fg-3); }
 .status-dot.pre { background: var(--amber); }
@@ -1110,8 +1135,8 @@ a:hover { text-decoration: underline; }
     <div class="info-tabs">
       <div class="info-tab active" data-info-tab="overview">Overview</div>
       <div class="info-tab" data-info-tab="intel">Intel</div>
+      <div class="info-tab" data-info-tab="notes">Notes</div>
       <div class="info-tab" data-info-tab="ticket">Ticket</div>
-      <div class="info-tab" data-info-tab="news">News</div>
     </div>
     
     <div class="info-body" id="info-body">
@@ -1223,6 +1248,8 @@ const State = {
   customWatchlists: {},  // {id: {name, color, tickers: []}}
   symbolFlags: {},       // {ticker: 'red'|'green'|...} — global, TradingView-style
   favorites: {},         // {ticker: true} — global per-user favorites (★)
+  notes: {},             // {ticker: "note text"} — per-user notes per symbol
+  symbolResolution: {},  // {ticker: 'EXCHANGE:SYM'} — resolved TV symbols (cache)
   deviceId: null,        // anonymous per-device UID for cloud sync
   syncStatus: 'idle',    // idle|syncing|saved|error
   syncTimer: null,
@@ -1452,6 +1479,10 @@ class WatchlistManager {
       if (flags) State.symbolFlags = JSON.parse(flags);
       const favs = localStorage.getItem('jh_favorites');
       if (favs) State.favorites = JSON.parse(favs);
+      const notes = localStorage.getItem('jh_notes');
+      if (notes) State.notes = JSON.parse(notes);
+      const symRes = localStorage.getItem('jh_symbol_resolution');
+      if (symRes) State.symbolResolution = JSON.parse(symRes);
       const lastWl = localStorage.getItem('jh_active_watchlist');
       if (lastWl && (lastWl === 'favorites' || WATCHLIST_CONFIGS.some(c=>c.id===lastWl) || lastWl.startsWith('custom_'))) {
         State.activeWatchlistId = lastWl;
@@ -1479,6 +1510,8 @@ class WatchlistManager {
         if (data.customWatchlists) State.customWatchlists = data.customWatchlists;
         if (data.symbolFlags) State.symbolFlags = data.symbolFlags;
         if (data.favorites) State.favorites = data.favorites;
+        if (data.notes) State.notes = data.notes;
+        if (data.symbolResolution) Object.assign(State.symbolResolution, data.symbolResolution);
         if (data.activeWatchlistId) State.activeWatchlistId = data.activeWatchlistId;
         this.saveLocal();
         return true;
@@ -1492,6 +1525,8 @@ class WatchlistManager {
       localStorage.setItem('jh_custom_watchlists', JSON.stringify(State.customWatchlists));
       localStorage.setItem('jh_symbol_flags', JSON.stringify(State.symbolFlags));
       localStorage.setItem('jh_favorites', JSON.stringify(State.favorites));
+      localStorage.setItem('jh_notes', JSON.stringify(State.notes));
+      localStorage.setItem('jh_symbol_resolution', JSON.stringify(State.symbolResolution));
       localStorage.setItem('jh_active_watchlist', State.activeWatchlistId);
     } catch (e) {}
   }
@@ -1510,6 +1545,8 @@ class WatchlistManager {
           customWatchlists: State.customWatchlists,
           symbolFlags: State.symbolFlags,
           favorites: State.favorites,
+          notes: State.notes,
+          symbolResolution: State.symbolResolution,
           activeWatchlistId: State.activeWatchlistId,
           updated_at: Date.now(),
         });
@@ -1596,6 +1633,14 @@ class WatchlistManager {
   static getFavorites() {
     return Object.keys(State.favorites).map(t => ({ ticker: t, name: '', sub: 'favorite' }));
   }
+  
+  static getNote(ticker) { return State.notes[ticker] || ''; }
+  static setNote(ticker, text) {
+    if (text && text.trim()) State.notes[ticker] = text;
+    else delete State.notes[ticker];
+    this.syncToCloud();
+  }
+  static hasNote(ticker) { return !!(State.notes[ticker] && State.notes[ticker].trim()); }
 }
 
 
@@ -1785,6 +1830,8 @@ class UI {
       const lastStr = m.last != null ? '$' + m.last.toFixed(2) : '—';
       const chgStr = m.changePct != null ? (m.changePct >= 0 ? '+' : '') + m.changePct.toFixed(2) + '%' : '—';
       const isFav = WatchlistManager.isFavorite(m.ticker);
+      const hasNote = WatchlistManager.hasNote(m.ticker);
+      const noteDot = hasNote ? '<span class="wl-note-dot" title="Has notes">📝</span>' : '';
       const removeBtn = isCustom ? `<span class="wl-remove" data-remove-ticker="${this.esc(m.ticker)}" title="Remove from list">−</span>` : '';
       return `
         <div class="wl-row ${selected} ${isCustom ? 'custom-row' : ''}" data-ticker="${this.esc(m.ticker)}">
@@ -1794,6 +1841,7 @@ class UI {
             <span class="wl-sym-top">
               <span class="wl-symbol">${this.esc(m.ticker)}</span>
               <span class="wl-sig-dots">${sigDots}</span>
+              ${noteDot}
             </span>
             <span class="wl-sub">${this.esc(m.sub || m.name || '')}</span>
           </span>
@@ -1861,10 +1909,32 @@ class UI {
     
     if (tab === 'overview') html = this.renderOverviewTab(ticker);
     else if (tab === 'intel') html = this.renderIntelTab(ticker);
+    else if (tab === 'notes') html = this.renderNotesTab(ticker);
     else if (tab === 'ticket') html = this.renderTicketTab(ticker);
     else if (tab === 'news') html = this.renderNewsTab(ticker);
     
     document.getElementById('info-body').innerHTML = html;
+    
+    // Wire notes tab editor
+    const noteArea = document.getElementById('jh-note-area');
+    if (noteArea) {
+      let noteTimer = null;
+      noteArea.addEventListener('input', () => {
+        clearTimeout(noteTimer);
+        const status = document.getElementById('jh-note-status');
+        if (status) status.textContent = '⟳ saving…';
+        noteTimer = setTimeout(() => {
+          WatchlistManager.setNote(ticker, noteArea.value);
+          if (status) status.textContent = '✓ saved';
+          // Refresh info-panel note indicators elsewhere
+        }, 600);
+      });
+    }
+    // Wire personalized AI analysis button
+    const aiBtn = document.getElementById('jh-personal-ai-btn');
+    if (aiBtn) {
+      aiBtn.addEventListener('click', () => PersonalAI.analyze(ticker));
+    }
     
     // Wire up "Add to custom watchlist" button if present
     document.querySelectorAll('[data-add-to-custom]').forEach(el => {
@@ -2218,6 +2288,32 @@ class UI {
     return html;
   }
   
+  static renderNotesTab(ticker) {
+    const note = WatchlistManager.getNote(ticker);
+    return `
+      <div class="info-section">
+        <div class="section-title">📝 My Notes · ${this.esc(ticker)}
+          <span class="badge" id="jh-note-status" style="margin-left:auto">${note ? '✓ saved' : ''}</span>
+        </div>
+        <textarea id="jh-note-area" class="jh-note-textarea" placeholder="Your thesis, levels to watch, catalysts, conviction, why you're in/out...">${this.esc(note)}</textarea>
+        <div style="font-size:10px;color:var(--fg-3);margin-top:6px;line-height:1.5">
+          Notes are private to you, saved automatically, and synced across your devices.
+          <b style="color:var(--cyan)">The AI reads these</b> when analyzing ${this.esc(ticker)}.
+        </div>
+      </div>
+      
+      <div class="info-section purple">
+        <div class="section-title">🧠 Personalized AI Analysis</div>
+        <div style="font-size:11.5px;color:var(--fg-2);line-height:1.5;margin-bottom:10px">
+          Generate a fresh thesis that factors in <b>your notes</b> + all JustHodl
+          intelligence for this ticker.
+        </div>
+        <button class="jh-personal-ai-btn" id="jh-personal-ai-btn">⚡ Analyze ${this.esc(ticker)} with my notes</button>
+        <div id="jh-personal-ai-output" class="jh-personal-ai-output"></div>
+      </div>
+    `;
+  }
+  
   static renderNewsTab(ticker) {
     // Placeholder - news data integration v1
     return `
@@ -2411,44 +2507,99 @@ class ChartController {
   }
   
   static formatSymbol(ticker) {
-    // TradingView symbol format: EXCHANGE:TICKER
-    // For US stocks, NASDAQ: is a sensible default, TV will resolve
+    // If we have a resolved full TV symbol (EXCHANGE:SYM), use it.
     if (!ticker) return 'NASDAQ:SPY';
     if (ticker.includes(':')) return ticker;
-    
-    // Common exchange hints
-    const NYSE = ['BAC','JPM','WFC','C','GS','MS','UBS','XOM','CVX','BP','SHEL','UPS','FDX','CAT','BA','RTX','LMT','GD','GE','HON','MMM','PG','KO','PEP','WMT','TGT','COST','HD','LOW','MCD','SBUX','NKE','TJX','DG','DLTR','VZ','T','TMUS','DIS','NFLX','CMCSA','VZ','BKE','SPY','DIA','IWM'];
-    const exchange = NYSE.includes(ticker) ? 'NYSE' : 'NASDAQ';
-    return `${exchange}:${ticker}`;
+    const resolved = State.symbolResolution[ticker];
+    if (resolved) return resolved;
+    // Bare ticker — TradingView's own resolver handles most US equities.
+    return ticker;
   }
   
-  static loadTicker(ticker) {
+  // Resolve a bare ticker → exchange-qualified TV symbol via tv-search.
+  // Caches results so we only resolve once per ticker.
+  static async resolveSymbol(ticker) {
+    if (!ticker) return 'NASDAQ:SPY';
+    if (ticker.includes(':')) return ticker;
+    if (State.symbolResolution[ticker]) return State.symbolResolution[ticker];
+    try {
+      const r = await fetch(`${PROXY}/tv-search?text=${encodeURIComponent(ticker)}`);
+      if (r.ok) {
+        const data = await r.json();
+        const syms = data.symbols || [];
+        // Prefer exact symbol match; among those prefer a US stock, then anything.
+        const exact = syms.filter(s => (s.symbol || '').toUpperCase() === ticker.toUpperCase());
+        const pick = (exact.find(s => (s.type||'') === 'stock' && /NASDAQ|NYSE|AMEX|ARCA|BATS/i.test(s.exchange||''))
+                     || exact[0] || syms[0]);
+        if (pick && pick.full) {
+          State.symbolResolution[ticker] = pick.full;
+          return pick.full;
+        }
+      }
+    } catch (e) { /* fall through */ }
+    // Fallback: bare ticker, let TradingView resolve
+    State.symbolResolution[ticker] = ticker;
+    return ticker;
+  }
+  
+  static async loadTicker(ticker, knownFull) {
     if (!ticker) return;
     ticker = ticker.toUpperCase().trim();
-    if (ticker === State.activeTicker) return;
     
     State.activeTicker = ticker;
     
-    // Update header
+    // Update header immediately (responsive feel)
     document.getElementById('active-ticker').textContent = ticker;
     document.getElementById('active-name').textContent = '';
     
-    // Update active pane's chart
-    const paneIdx = State.activeChartPane;
-    this.createTVWidget(paneIdx, ticker);
-    
-    // Update pane symbol
-    const ps = document.getElementById(`pane-symbol-${paneIdx}`);
-    if (ps) ps.textContent = ticker;
-    
-    // Update info panel
+    // Update watchlist selection + info panel right away
     UI.renderInfoPanel();
     UI.renderSignalStrip(ticker);
-    
-    // Update watchlist selection
-    document.querySelectorAll('.wl-item').forEach(el => {
+    document.querySelectorAll('.wl-row').forEach(el => {
       el.classList.toggle('selected', el.dataset.ticker === ticker);
     });
+    
+    // Resolve the proper exchange-qualified symbol, then load the chart
+    let fullSymbol = knownFull || State.symbolResolution[ticker];
+    if (!fullSymbol) {
+      fullSymbol = await this.resolveSymbol(ticker);
+    } else {
+      State.symbolResolution[ticker] = fullSymbol;
+    }
+    
+    const paneIdx = State.activeChartPane;
+    this.createTVWidgetWithSymbol(paneIdx, fullSymbol, ticker);
+    const ps = document.getElementById(`pane-symbol-${paneIdx}`);
+    if (ps) ps.textContent = ticker;
+  }
+  
+  // Create widget with an already-resolved full symbol
+  static createTVWidgetWithSymbol(paneIdx, fullSymbol, displayTicker) {
+    const containerId = `tv-container-${paneIdx}`;
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = `<div id="tv-widget-${paneIdx}" style="height:100%;width:100%"></div>`;
+    try {
+      const widget = new TradingView.widget({
+        autosize: true,
+        symbol: fullSymbol,
+        interval: 'D',
+        timezone: 'America/New_York',
+        theme: 'dark', style: '1', locale: 'en',
+        toolbar_bg: '#0c1018',
+        enable_publishing: false,
+        allow_symbol_change: true,
+        save_image: false,
+        container_id: `tv-widget-${paneIdx}`,
+        studies: ['MASimple@tv-basicstudies'],
+        backgroundColor: '#0a0e14',
+        gridColor: '#1c2433',
+      });
+      State.tv_widgets[paneIdx] = widget;
+    } catch (e) {
+      console.error('TV widget init failed', e);
+      container.innerHTML = `<div class="tv-placeholder"><span class="ticker">${displayTicker}</span><span>Chart load failed — try refreshing</span></div>`;
+    }
   }
 }
 
@@ -2685,6 +2836,11 @@ class AddSymbol {
   
   static addSymbol(symbol, el) {
     if (!this.targetWatchlistId) return;
+    // Cache the resolved full TV symbol so the chart loads correctly
+    const result = this.currentResults.find(r => r.symbol === symbol);
+    if (result && result.full && result.full.includes(':')) {
+      State.symbolResolution[symbol] = result.full;
+    }
     WatchlistManager.addTicker(this.targetWatchlistId, symbol);
     this.addedThisSession.add(symbol);
     if (el) el.classList.add('added');
@@ -2703,6 +2859,84 @@ class AddSymbol {
     document.querySelectorAll('.asf-btn').forEach(el => el.classList.toggle('active', el.dataset.asf === filter));
     const q = document.getElementById('add-symbol-input').value;
     if (q) this.tvSearch(q);
+  }
+}
+
+// ─── PERSONALIZED AI (reads user notes + JustHodl data, then Claude) ───
+class PersonalAI {
+  static AI_PROXY = "https://justhodl-ai-proxy.raafouis.workers.dev";
+  
+  static async analyze(ticker) {
+    const out = document.getElementById('jh-personal-ai-output');
+    if (!out) return;
+    out.innerHTML = '<div class="jh-ai-loading">Claude is analyzing ' + UI.esc(ticker) + ' with your notes + JustHodl intelligence...</div>';
+    const ctx = this.gatherContext(ticker);
+    const note = WatchlistManager.getNote(ticker);
+    const message = this.buildPrompt(ticker, ctx, note);
+    try {
+      const r = await fetch(this.AI_PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      if (!r.ok) {
+        out.innerHTML = '<div class="jh-ai-err">AI analysis unavailable (status ' + r.status + '). Try again shortly.</div>';
+        return;
+      }
+      const data = await r.json();
+      const answer = data.response || data.answer || data.message || data.text
+        || (data.body ? (typeof data.body === 'string' ? data.body : JSON.stringify(data.body)) : '')
+        || 'No response.';
+      out.innerHTML = '<div class="jh-ai-result">' + this.fmt(answer) +
+        '<div class="jh-ai-foot">Generated by Claude, factored in your notes' +
+        (note ? '' : ' (none yet, add notes above for a sharper read)') + '</div></div>';
+    } catch (e) {
+      out.innerHTML = '<div class="jh-ai-err">AI request failed: ' + UI.esc(String(e)) + '</div>';
+    }
+  }
+  
+  static gatherContext(ticker) {
+    const lines = [];
+    const cascade = UI.findCascadeMatch(ticker);
+    if (cascade) {
+      const c = cascade.entry;
+      lines.push('Cascade tier: ' + cascade.tier + ', combined_score ' + (c.combined_score||0).toFixed(1));
+      if (c.theme_acceleration) lines.push('Theme acceleration: +' + (c.theme_acceleration).toFixed(0) + '% (hot ETF ' + (c.hot_etf||'?') + ')');
+      if (c.aggregate_flow_5d_usd) lines.push('ETF 5d flow: $' + (c.aggregate_flow_5d_usd/1e6).toFixed(0) + 'M');
+      if (c.perf_5d_pct != null) lines.push('5d performance: ' + c.perf_5d_pct.toFixed(1) + '%');
+      if (c.industry_label || c.industry) lines.push('Industry: ' + (c.industry_label||c.industry));
+    }
+    const opt = UI.findOptionsMatch(ticker);
+    if (opt) lines.push('Options flow: C/P ratio ' + (opt.cv_pv_ratio||0).toFixed(1) + ', ' + (opt.n_smart_money_blocks||0) + ' smart-money blocks, alert ' + (opt.alert_level||'BULLISH'));
+    const ins = UI.findInsiderMatch(ticker);
+    if (ins) lines.push('Insider cluster: ' + (ins.n_insiders||ins.cluster_size||'?') + ' buyers, $' + ((ins.total_value_usd||0)/1e6).toFixed(1) + 'M total');
+    const ret = UI.findRetailMatch(ticker);
+    if (ret) lines.push('Retail: +' + Math.round(ret.velocity_pct||0) + '% mention velocity, ' + (ret.mentions||'?') + ' mentions');
+    const tt = UI.findTradeTicket(ticker);
+    if (tt) lines.push('Trade ticket: entry $' + (tt.entry||0).toFixed(2) + ', stop $' + (tt.stop_loss||0).toFixed(2) + ' (-' + (tt.risk_pct||0).toFixed(1) + '%), TP3 $' + (tt.tp3||0).toFixed(2) + ' (R:R ' + (tt.rr_tp3||0).toFixed(1) + '), horizon ' + (tt.expected_horizon_days||'?') + 'd ' + (tt.horizon_regime||''));
+    if (tt && tt.earnings_in_window) lines.push('EARNINGS in ' + tt.earnings_days_until + 'd (' + tt.earnings_date + ')');
+    const q = State.quotes[ticker];
+    if (q && q.price) lines.push('Current price: $' + q.price.toFixed(2) + ' (' + (q.changePct>=0?'+':'') + (q.changePct||0).toFixed(2) + '% today)');
+    return lines.length ? lines.join('\n') : 'No active JustHodl signals for this ticker currently.';
+  }
+  
+  static buildPrompt(ticker, ctx, note) {
+    let p = 'Give me a concise, decisive analysis of ' + ticker + ' as a trade/investment idea.\n\n';
+    p += '=== JustHodl platform intelligence on ' + ticker + ' ===\n' + ctx + '\n\n';
+    if (note && note.trim()) {
+      p += '=== MY PERSONAL NOTES on ' + ticker + ' (weight these heavily) ===\n' + note.trim() + '\n\n';
+      p += 'Factor my notes into your reasoning explicitly: reconcile them with the platform data, flag agreements and conflicts, and tailor your conclusion to my stated thesis/constraints.\n\n';
+    }
+    p += 'Structure: (1) one-line take, (2) what the data says, (3) how it fits or conflicts with my notes, (4) decisive call with key levels/triggers. Under 200 words.';
+    return p;
+  }
+  
+  static fmt(text) {
+    return UI.esc(text)
+      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>')
+      .replace(/^/, '<p>').replace(/$/, '</p>');
   }
 }
 
