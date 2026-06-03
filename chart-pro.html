@@ -3280,6 +3280,49 @@ class NativeChart {
     return this.renderEquity(ticker);
   }
   
+  // Build signal-event markers (politician/executive/insider buys) for the timeline.
+  // Snaps each event date to the nearest available bar so markers always land.
+  static buildMarkers(ticker, bars) {
+    if (!bars || !bars.length) return [];
+    const barTimes = bars.map(b => b.time);
+    const snap = (dateStr) => {
+      const t = Math.floor(new Date(dateStr).getTime() / 1000);
+      if (!isFinite(t)) return null;
+      // nearest bar at or before t (else first bar)
+      let best = barTimes[0];
+      for (const bt of barTimes) { if (bt <= t) best = bt; else break; }
+      return best;
+    };
+    const events = [];
+    // Politician buys
+    const pol = (State.political && State.political.by_ticker && State.political.by_ticker[ticker]) || null;
+    if (pol) (pol.buy_members || []).forEach(m => {
+      const t = snap(m.tx_date);
+      if (t) events.push({ time: t, position: 'belowBar', color: '#e0b341', shape: 'arrowUp',
+        text: '🏛️' + (m.committee_match ? '⚑' : '') });
+    });
+    // Executive buys
+    const ex = (State.executive && State.executive.by_ticker && State.executive.by_ticker[ticker]) || null;
+    if (ex) (ex.transactions || []).filter(x => x.side === 'buy').forEach(x => {
+      const t = snap(x.date);
+      if (t) events.push({ time: t, position: 'belowBar', color: '#e0b341', shape: 'arrowUp', text: '🇺🇸' });
+    });
+    // Insider buys (if dated)
+    const ins = UI.findInsiderMatch(ticker);
+    if (ins && ins.most_recent_date) {
+      const t = snap(ins.most_recent_date);
+      if (t) events.push({ time: t, position: 'belowBar', color: '#fbbf24', shape: 'circle',
+        text: '👥' + (ins.n_insiders || ins.cluster_size || '') });
+    }
+    // Merge markers that snap to the same bar (avoid overlap clutter)
+    const byTime = {};
+    events.forEach(e => {
+      if (!byTime[e.time]) byTime[e.time] = e;
+      else byTime[e.time].text += ' ' + e.text;
+    });
+    return Object.values(byTime).sort((a, b) => a.time - b.time);
+  }
+  
   static cryptoToYahoo(ticker) {
     // BTCUSD/BTCUSDT/BTC-USD → BTC-USD ; XBTUSD → BTC-USD
     let t = ticker.toUpperCase().replace('-', '');
@@ -3461,6 +3504,9 @@ class NativeChart {
         lvl(tt.tp1, '#26ffaf', 'TP1');
         lvl(tt.tp3, '#26ffaf', 'TP3');
       }
+      
+      // Signal-event markers — plot the actual buy events on the timeline
+      candleSeries.setMarkers(NativeChart.buildMarkers(ticker, bars));
       
       const last = bars[bars.length - 1];
       const prev = bars[bars.length - 2] || last;
