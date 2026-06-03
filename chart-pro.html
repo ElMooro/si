@@ -266,8 +266,58 @@ a:hover { text-decoration: underline; }
 .edge-tab:hover { color: var(--cyan); border-color: var(--cyan); background: var(--bg-3); }
 .edge-tab-left { left: 0; border-left: none; border-radius: 0 8px 8px 0; }
 .edge-tab-right { right: 0; border-right: none; border-radius: 8px 0 0 8px; }
+.edge-tab-setups {
+  left: 50%; top: 0; transform: translateX(-50%);
+  writing-mode: horizontal-tb; border-top: none; border-radius: 0 0 8px 8px;
+  padding: 6px 16px; color: var(--amber); border-color: var(--amber);
+}
+.edge-tab-setups:hover { color: var(--amber); border-color: var(--amber); background: rgba(251,191,36,0.1); }
 .edge-tab .et-icon { font-size: 13px; writing-mode: horizontal-tb; }
 .edge-tab.hidden { display: none; }
+
+/* Setups drawer (slides down from top) */
+.setups-drawer {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 46;
+  max-height: 62%;
+  background: var(--bg-1); border-bottom: 1px solid var(--amber);
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: translateY(-100%);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.5);
+}
+.setups-drawer.open { transform: translateY(0); }
+.setups-head {
+  display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+  background: var(--bg-2); border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.setups-title { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--amber); letter-spacing: 0.5px; }
+.setups-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-3); }
+.setups-body { flex: 1; overflow-y: auto; padding: 10px 16px; }
+.setup-card {
+  display: grid; grid-template-columns: 92px 1fr auto; gap: 14px; align-items: center;
+  padding: 10px 12px; margin-bottom: 7px; border-radius: 8px; cursor: pointer;
+  background: var(--bg-2); border: 1px solid var(--border); transition: all 0.12s;
+}
+.setup-card:hover { border-color: var(--cyan); background: var(--bg-3); }
+.setup-verdict { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px; padding: 3px 7px; border-radius: 4px; text-align: center; }
+.setup-verdict.strong { color: var(--bg); background: var(--green); }
+.setup-verdict.buy { color: var(--green); background: rgba(38,255,175,0.12); border: 1px solid var(--green); }
+.setup-verdict.watch { color: var(--fg-3); background: var(--bg-1); border: 1px solid var(--border-bright); }
+.setup-mid { min-width: 0; }
+.setup-tk { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--fg-0); }
+.setup-tk .conv { font-size: 11px; color: var(--amber); margin-left: 8px; }
+.setup-sigs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.setup-sig { font-family: var(--font-mono); font-size: 8.5px; font-weight: 600; letter-spacing: 0.3px; padding: 1px 5px; border-radius: 3px; background: var(--bg-1); border: 1px solid var(--border); color: var(--fg-3); }
+.setup-sig.committee, .setup-sig.executive { color: var(--amber); border-color: var(--amber); }
+.setup-sig.insider { color: var(--tier-insider); border-color: var(--tier-insider); }
+.setup-sig.options { color: var(--tier-options); border-color: var(--tier-options); }
+.setup-sig.cascade { color: var(--tier-alert); border-color: var(--tier-alert); }
+.setup-thesis { font-size: 10.5px; color: var(--fg-2); margin-top: 4px; font-style: italic; line-height: 1.4; max-width: 640px; }
+.setup-levels { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-3); text-align: right; white-space: nowrap; }
+.setup-levels .ll-rr { color: var(--cyan); font-weight: 700; }
+.setups-conf-bar { display: flex; gap: 2px; margin-top: 3px; }
+.setups-conf-pip { width: 14px; height: 3px; border-radius: 2px; background: var(--border); }
+.setups-conf-pip.on { background: var(--amber); }
 
 /* ═══ LEFT SIDEBAR (drawer) ═══ */
 .left-sidebar {
@@ -1202,7 +1252,18 @@ a:hover { text-decoration: underline; }
 
   <!-- Edge tabs to pull out the drawers -->
   <div class="edge-tab edge-tab-left" id="edge-tab-left"><span class="et-icon">\ud83d\udccb</span>WATCHLIST</div>
+  <div class="edge-tab edge-tab-setups" id="edge-tab-setups"><span class="et-icon">\u26a1</span>TODAY'S SETUPS</div>
   <div class="edge-tab edge-tab-right" id="edge-tab-right"><span class="et-icon">\ud83e\udde0</span>INTEL</div>
+
+  <!-- \u2500\u2500\u2500 SETUPS DRAWER (unified conviction board) \u2500\u2500\u2500 -->
+  <aside class="setups-drawer" id="setups-drawer">
+    <div class="setups-head">
+      <span class="setups-title">\u26a1 Today's Highest-Conviction Setups</span>
+      <span class="setups-meta" id="setups-meta"></span>
+      <button class="drawer-close" id="close-setups" style="position:static;margin-left:auto">\u00d7</button>
+    </div>
+    <div class="setups-body" id="setups-body"><div class="wl-loading">Loading fused conviction\u2026</div></div>
+  </aside>
 
   <!-- \u2500\u2500\u2500 LEFT SIDEBAR: Watchlists (TradingView-style) \u2500\u2500\u2500 -->
   <aside class="left-sidebar" id="left-sidebar">
@@ -1447,7 +1508,7 @@ const State = {
   // Cached data
   cascade: null, insider: null, options: null, retail: null,
   trade_tickets: null, ai_rationales: null, predictions: null, calibration: null,
-  political: null, political_ai: null, executive: null,
+  political: null, political_ai: null, executive: null, best_setups: null,
   
   tv_widgets: {},
 };
@@ -1479,7 +1540,7 @@ class DataService {
   }
   
   static async loadAll() {
-    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive] = await Promise.all([
+    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups] = await Promise.all([
       this.fetch('data/theme-cascade.json'),
       this.fetch('data/insider-clusters.json'),
       this.fetch('data/polygon-options-flow.json'),
@@ -1491,6 +1552,7 @@ class DataService {
       this.fetch('data/political-intel.json'),
       this.fetch('data/political-ai-investigation.json'),
       this.fetch('data/executive-intel.json'),
+      this.fetch('data/best-setups.json'),
     ]);
     State.cascade = cascade;
     State.insider = insider;
@@ -1503,6 +1565,7 @@ class DataService {
     State.political = political;
     State.political_ai = polai;
     State.executive = executive;
+    State.best_setups = bestsetups;
   }
 }
 
@@ -1920,6 +1983,49 @@ class UI {
     if (addBtn) {
       addBtn.textContent = isCustom ? `+ Add Symbol to ${meta.name}` : '+ Add Symbol to My List';
     }
+  }
+  
+  static renderSetups() {
+    const doc = State.best_setups || {};
+    const setups = doc.top_setups || [];
+    const meta = document.getElementById('setups-meta');
+    if (meta) {
+      const st = doc.stats || {};
+      meta.textContent = `${st.strong_buy||0} strong · ${st.buy||0} buy · ${st.watch||0} watch · weights: ${doc.weight_source||'prior'}`;
+    }
+    const body = document.getElementById('setups-body');
+    if (!body) return;
+    if (!setups.length) { body.innerHTML = '<div class="wl-empty">No setups yet — refreshes hourly.</div>'; return; }
+    const sigClass = (k) => {
+      if (k.includes('COMMITTEE')) return 'committee';
+      if (k.includes('EXECUTIVE')) return 'executive';
+      if (k.includes('INSIDER')) return 'insider';
+      if (k.includes('OPTIONS')) return 'options';
+      if (k.includes('CASCADE')) return 'cascade';
+      return '';
+    };
+    const vClass = (v) => v === 'STRONG BUY' ? 'strong' : v === 'BUY' ? 'buy' : 'watch';
+    body.innerHTML = setups.slice(0, 40).map(s => {
+      const sigs = (s.signals || []).map(sg =>
+        `<span class="setup-sig ${sigClass(sg.key)}" title="${UI.esc(sg.detail||'')}">${UI.esc(sg.key.replace(/_/g,' '))}</span>`).join('');
+      const pips = Array.from({length:5}, (_,i) => `<span class="setups-conf-pip ${i < Math.round((s.conviction||0)/20) ? 'on' : ''}"></span>`).join('');
+      const levels = s.entry ? `<div>E $${(s.entry||0).toFixed(2)} · S $${(s.stop||0).toFixed(2)}</div><div>TP3 $${(s.tp3||0).toFixed(2)} · <span class="ll-rr">${(s.rr||0).toFixed(1)}R</span></div><div>${s.horizon_days||'?'}d ${s.horizon_regime||''}</div>` : '<div style="color:var(--fg-4)">no ticket yet</div>';
+      return `<div class="setup-card" data-ticker="${UI.esc(s.ticker)}">
+        <div><div class="setup-verdict ${vClass(s.verdict)}">${UI.esc(s.verdict)}</div><div class="setups-conf-bar">${pips}</div></div>
+        <div class="setup-mid">
+          <div class="setup-tk">${UI.esc(s.ticker)} <span class="conv">conviction ${(s.conviction||0).toFixed(0)}</span> <span style="font-size:9.5px;color:var(--fg-3)">${s.n_signals} signals</span></div>
+          <div class="setup-sigs">${sigs}</div>
+          ${s.thesis ? `<div class="setup-thesis">${UI.esc(s.thesis)}</div>` : ''}
+        </div>
+        <div class="setup-levels">${levels}</div>
+      </div>`;
+    }).join('');
+    body.querySelectorAll('.setup-card').forEach(el => {
+      el.addEventListener('click', () => {
+        ChartController.loadTicker(el.dataset.ticker);
+        if (window.__jhDrawers) window.__jhDrawers.setSetups(false);
+      });
+    });
   }
   
   static renderSyncStatus() {
@@ -3949,6 +4055,7 @@ async function init() {
     UI.refreshWatchlist();
     UI.renderInfoPanel();
     UI.renderSignalStrip(State.activeTicker);
+    UI.renderSetups();
   }, REFRESH_INTERVAL_MS);
   
   // Refresh quotes every 60s (faster than full data)
@@ -4139,18 +4246,26 @@ async function init() {
   const edgeRight = document.getElementById('edge-tab-right');
   function setLeft(open) { leftDrawer.classList.toggle('open', open); edgeLeft.classList.toggle('hidden', open); }
   function setRight(open) { rightDrawer.classList.toggle('open', open); edgeRight.classList.toggle('hidden', open); }
-  window.__jhDrawers = { setLeft, setRight };
+  const setupsDrawer = document.getElementById('setups-drawer');
+  const edgeSetups = document.getElementById('edge-tab-setups');
+  function setSetups(open) { setupsDrawer.classList.toggle('open', open); edgeSetups.classList.toggle('hidden', open); }
+  window.__jhDrawers = { setLeft, setRight, setSetups };
   edgeLeft.addEventListener('click', () => setLeft(true));
   edgeRight.addEventListener('click', () => setRight(true));
+  edgeSetups.addEventListener('click', () => { UI.renderSetups(); setSetups(true); });
   document.getElementById('close-left').addEventListener('click', () => setLeft(false));
   document.getElementById('close-right').addEventListener('click', () => setRight(false));
+  document.getElementById('close-setups').addEventListener('click', () => setSetups(false));
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === '[') { e.preventDefault(); setLeft(!leftDrawer.classList.contains('open')); }
     if (e.key === ']') { e.preventDefault(); setRight(!rightDrawer.classList.contains('open')); }
+    if (e.key === '\\\\') { e.preventDefault(); UI.renderSetups(); setSetups(!setupsDrawer.classList.contains('open')); }
   });
-  // Start with watchlist open (chart full-screen behind it); intel hidden
+  // Render the setups board (and surface it on first load — it's the headline)
+  UI.renderSetups();
   setLeft(true);
+  setSetups(true);
   
   // ── Auth: init + reload watchlists when user signs in/out ──
   if (window.JustHodlAuth) {
