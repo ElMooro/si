@@ -684,6 +684,10 @@ a:hover { text-decoration: underline; }
 .tf-btn { padding: 4px 9px; border-radius: 4px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--fg-3); border: none; background: transparent; cursor: pointer; }
 .tf-btn:hover { color: var(--fg-1); }
 .tf-btn.active { color: var(--bg); background: var(--cyan); }
+.chg-bar { margin-left: 8px; }
+.chg-btn { padding: 4px 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--fg-3); border: none; background: transparent; cursor: pointer; }
+.chg-btn:hover { color: var(--fg-1); }
+.chg-btn.active { color: var(--bg); background: var(--violet); }
 .tool-btn { margin-left: 8px; padding: 5px 11px; border-radius: 5px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--fg-2); border: 1px solid var(--border-bright); background: var(--bg-2); cursor: pointer; }
 .tool-btn:hover { color: var(--fg-0); border-color: var(--fg-3); }
 .tool-btn.ai-btn { color: var(--violet); border-color: var(--violet); }
@@ -1390,6 +1394,14 @@ a:hover { text-decoration: underline; }
         <button class="tf-btn" data-mult="1" data-span="week" data-days="1825">1W</button>
         <button class="tf-btn" data-mult="1" data-span="month" data-days="3650">1M</button>
       </div>
+      <div class="tf-bar chg-bar" id="chg-bar" title="FRED-style period-over-period % change">
+        <button class="chg-btn active" data-chg="price">Price</button>
+        <button class="chg-btn" data-chg="dod" title="Day-over-day % change">DoD</button>
+        <button class="chg-btn" data-chg="wow" title="Week-over-week % change">WoW</button>
+        <button class="chg-btn" data-chg="mom" title="Month-over-month % change">MoM</button>
+        <button class="chg-btn" data-chg="qoq" title="Quarter-over-quarter % change">QoQ</button>
+        <button class="chg-btn" data-chg="yoy" title="Year-over-year % change">YoY</button>
+      </div>
       <button class="tool-btn" id="compare-btn" title="Overlay a benchmark / compare symbol">⚖ Compare</button>
       <div class="ind-wrap" style="position:relative;display:inline-block">
         <button class="tool-btn" id="indicators-btn" title="Add indicators (Bollinger, RSI, MACD)">📊 Indicators</button>
@@ -1592,6 +1604,7 @@ const State = {
   tf: { mult: 1, span: 'day', days: 250 },  // active native timeframe
   compareSymbol: null,   // overlay symbol for relative comparison
   indicators: { bollinger: false, rsi: false, macd: false },  // native chart studies
+  changeMode: 'price',   // 'price' | 'dod' | 'wow' | 'mom' | 'qoq' | 'yoy' — FRED-style % change
   priceAlerts: {},       // {ticker: [{price, dir, note}]} — per-user price-level alerts
   drawings: {},          // {ticker: [{type, points}]} — per-user trendline drawings
   nativeChart: null,     // Lightweight Charts instance
@@ -1857,7 +1870,7 @@ class WatchlistManager {
       const ar = localStorage.getItem('jh_alert_rules');
       if (ar) State.alertRules = JSON.parse(ar);
       const ws = localStorage.getItem('jh_workspace');
-      if (ws) { const w = JSON.parse(ws); if(w.indicators)State.indicators=w.indicators; if(w.tf)State.tf=w.tf; if(w.priceAlerts)State.priceAlerts=w.priceAlerts; if(w.drawings)State.drawings=w.drawings; }
+      if (ws) { const w = JSON.parse(ws); if(w.indicators)State.indicators=w.indicators; if(w.tf)State.tf=w.tf; if(w.changeMode)State.changeMode=w.changeMode; if(w.priceAlerts)State.priceAlerts=w.priceAlerts; if(w.drawings)State.drawings=w.drawings; }
       const lastWl = localStorage.getItem('jh_active_watchlist');
       if (lastWl && (lastWl === 'favorites' || WATCHLIST_CONFIGS.some(c=>c.id===lastWl) || lastWl.startsWith('custom_'))) {
         State.activeWatchlistId = lastWl;
@@ -1892,6 +1905,7 @@ class WatchlistManager {
         if (data.alertRules) State.alertRules = data.alertRules;
         if (data.indicators) State.indicators = data.indicators;
         if (data.tf) State.tf = data.tf;
+        if (data.changeMode) State.changeMode = data.changeMode;
         if (data.priceAlerts) State.priceAlerts = data.priceAlerts;
         if (data.drawings) State.drawings = data.drawings;
         if (data.chartTabs && data.chartTabs.length) { State.chartTabs = data.chartTabs; State.activeTabId = data.activeTabId || data.chartTabs[0].id; }
@@ -1914,7 +1928,7 @@ class WatchlistManager {
       localStorage.setItem('jh_symbol_type', JSON.stringify(State.symbolType || {}));
       localStorage.setItem('jh_known_symbols', JSON.stringify(State.knownSymbols || {}));
       localStorage.setItem('jh_alert_rules', JSON.stringify(State.alertRules || []));
-      localStorage.setItem('jh_workspace', JSON.stringify({indicators:State.indicators, tf:State.tf, priceAlerts:State.priceAlerts, drawings:State.drawings}));
+      localStorage.setItem('jh_workspace', JSON.stringify({indicators:State.indicators, tf:State.tf, changeMode:State.changeMode, priceAlerts:State.priceAlerts, drawings:State.drawings}));
       localStorage.setItem('jh_active_watchlist', State.activeWatchlistId);
     } catch (e) {}
   }
@@ -1940,6 +1954,7 @@ class WatchlistManager {
           alertRules: State.alertRules,
           indicators: State.indicators,
           tf: State.tf,
+          changeMode: State.changeMode,
           priceAlerts: State.priceAlerts,
           drawings: State.drawings,
           chartTabs: State.chartTabs,
@@ -3062,9 +3077,12 @@ class ChartController {
     const isDbn = ticker.startsWith('DBN:');
     const engine = State.chartEngine;
     const type = State.symbolType[ticker] || '';
+    const changeActive = State.changeMode && State.changeMode !== 'price';
     
     // Macro series → always native line
     if (isFred || isDbn) { NativeChart.render(ticker); return; }
+    // % change mode requires the native engine (TradingView can't render it)
+    if (changeActive) { NativeChart.render(ticker); return; }
     // Forced native
     if (engine === 'native') { NativeChart.render(ticker); return; }
     // Forced TradingView
@@ -3377,6 +3395,72 @@ class MacroData {
 // Works for any US-listed symbol we can get Polygon data for, bypassing
 // TradingView's symbol gating ('only available on TradingView').
 class NativeChart {
+  // ── FRED-style period-over-period % change ──────────────────────
+  // Periods in calendar days. For each point, find the value ~N days earlier
+  // (nearest at-or-before within tolerance) and compute the % change.
+  static CHANGE_PERIODS = { dod: 1, wow: 7, mom: 30.44, qoq: 91.31, yoy: 365 };
+  static CHANGE_LABELS = { dod: 'Day-over-Day', wow: 'Week-over-Week', mom: 'Month-over-Month', qoq: 'Quarter-over-Quarter', yoy: 'Year-over-Year' };
+  
+  static computeChange(series, mode) {
+    // series: sorted [{time(sec), value}]
+    const periodDays = this.CHANGE_PERIODS[mode];
+    if (!periodDays || series.length < 2) return [];
+    const periodSec = periodDays * 86400;
+    const tol = Math.max(periodSec * 0.5, 4 * 86400);  // tolerance for matching
+    const times = series.map(s => s.time);
+    const out = [];
+    let lo = 0;
+    for (let i = 0; i < series.length; i++) {
+      const target = series[i].time - periodSec;
+      if (target < times[0] - tol) continue;
+      // advance lo to the last index with time <= target
+      while (lo + 1 < series.length && times[lo + 1] <= target) lo++;
+      // pick nearest of lo / lo+1
+      let j = lo;
+      if (j + 1 < series.length && Math.abs(times[j + 1] - target) < Math.abs(times[j] - target)) j = j + 1;
+      if (Math.abs(times[j] - target) > tol) continue;
+      const then = series[j].value, now = series[i].value;
+      if (then === 0 || then == null || now == null) continue;
+      out.push({ time: series[i].time, value: (now / then - 1) * 100 });
+    }
+    return out;
+  }
+  
+  // Render the % change as a FRED-style green/red histogram in the chart pane.
+  static renderChangeHisto(paneIdx, series, mode, label, ticker) {
+    const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
+    if (!chartEl || typeof LightweightCharts === 'undefined') return;
+    chartEl.innerHTML = '';
+    const data = this.computeChange(series, mode);
+    if (!data.length) {
+      const le = document.getElementById(`nch-loading-${paneIdx}`);
+      if (le) { le.style.display = 'flex'; le.textContent = `Not enough history for ${this.CHANGE_LABELS[mode]} on ${ticker}`; }
+      return;
+    }
+    const chart = LightweightCharts.createChart(chartEl, {
+      autoSize: true,
+      layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
+      grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
+      rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
+    });
+    const hist = chart.addHistogramSeries({
+      priceFormat: { type: 'custom', formatter: v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%' },
+      base: 0,
+    });
+    hist.setData(data.map(d => ({ time: d.time, value: +d.value.toFixed(3),
+      color: d.value >= 0 ? 'rgba(38,255,175,0.75)' : 'rgba(255,85,119,0.75)' })));
+    hist.createPriceLine({ price: 0, color: 'rgba(168,179,199,0.4)', lineWidth: 1, lineStyle: 0 });
+    chart.timeScale().fitContent();
+    State.nativeChart = chart;
+    const last = data[data.length - 1];
+    const avg = data.reduce((a, b) => a + b.value, 0) / data.length;
+    const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
+    if (metaEl) metaEl.innerHTML = `${this.CHANGE_LABELS[mode]} · latest <span style="color:${last.value>=0?'#26ffaf':'#ff5577'}">${last.value>=0?'+':''}${last.value.toFixed(2)}%</span> · avg ${avg>=0?'+':''}${avg.toFixed(2)}%`;
+    // Subtitle label on the chart
+    const head = chartEl.parentElement && chartEl.parentElement.querySelector('.nch-sym');
+    if (head) head.textContent = `${ticker} · ${mode.toUpperCase()} % change`;
+  }
+  
   static async render(ticker) {
     if (ticker.startsWith('FRED:')) return this.renderLine(ticker, 'FRED');
     if (ticker.startsWith('DBN:')) return this.renderLine(ticker, 'DBN');
@@ -3554,7 +3638,9 @@ class NativeChart {
         <div id="nch-chart-${paneIdx}" style="width:100%;height:100%"></div>
       </div>`;
     try {
-      const r = await fetch(`${PROXY}/yf-ohlc?symbol=${encodeURIComponent(yahooSym)}&range=1y`);
+      const cmY = State.changeMode;
+      const yRange = (cmY === 'yoy' || cmY === 'qoq') ? '2y' : '1y';
+      const r = await fetch(`${PROXY}/yf-ohlc?symbol=${encodeURIComponent(yahooSym)}&range=${yRange}`);
       const data = await r.json();
       const bars = data.bars || [];
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
@@ -3565,6 +3651,11 @@ class NativeChart {
         return;
       }
       if (State.activeTicker !== ticker) return;
+      // FRED-style % change mode for crypto/forex too
+      if (cmY && cmY !== 'price') {
+        NativeChart.renderChangeHisto(paneIdx, bars.map(b => ({ time: b.time, value: b.close })), cmY, NativeChart.CHANGE_LABELS[cmY], ticker);
+        return;
+      }
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
       if (!chartEl || typeof LightweightCharts === 'undefined') return;
       const chart = LightweightCharts.createChart(chartEl, {
@@ -3612,6 +3703,14 @@ class NativeChart {
       if (loadingEl) loadingEl.style.display = 'none';
       if (!bars.length) { if (loadingEl) { loadingEl.style.display='flex'; loadingEl.textContent = `No ${source} data for ${series}`; } return; }
       if (State.activeTicker !== symbol) return;
+      // FRED-style % change mode (macro series support DoD..YoY too)
+      const cmL = State.changeMode;
+      if (cmL && cmL !== 'price') {
+        const seenC = new Set(); const cleanC = [];
+        for (const b of bars) { if (!seenC.has(b.time)) { seenC.add(b.time); cleanC.push({ time: b.time, value: b.value }); } }
+        NativeChart.renderChangeHisto(paneIdx, cleanC, cmL, NativeChart.CHANGE_LABELS[cmL], series);
+        return;
+      }
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
       if (!chartEl || typeof LightweightCharts === 'undefined') return;
       const chart = LightweightCharts.createChart(chartEl, {
@@ -3654,13 +3753,25 @@ class NativeChart {
     
     try {
       const tf = State.tf || { mult: 1, span: 'day', days: 250 };
-      const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&mult=${tf.mult}&span=${tf.span}&days=${tf.days}`);
+      // When a change mode needs more lookback, widen the window (esp. YoY/QoQ)
+      let days = tf.days;
+      const cm = State.changeMode;
+      if (cm && cm !== 'price') {
+        const need = { dod: 30, wow: 60, mom: 200, qoq: 400, yoy: 800 }[cm] || 0;
+        days = Math.max(days, need);
+      }
+      const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&mult=${tf.mult}&span=${tf.span}&days=${days}`);
       const data = await r.json();
       const bars = data.bars || [];
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) loadingEl.style.display = 'none';
       if (!bars.length) {
         if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `No data for ${ticker} (not on Polygon — try TradingView engine)`; }
+        return;
+      }
+      // FRED-style % change mode → histogram (overrides candle render)
+      if (cm && cm !== 'price') {
+        NativeChart.renderChangeHisto(paneIdx, bars.map(b => ({ time: b.time, value: b.close })), cm, this.CHANGE_LABELS[cm], ticker);
         return;
       }
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
@@ -4306,6 +4417,12 @@ class CommandPalette {
       { icon: '🟢', label: 'Timeframe: 1 Hour', hint: '', group: 'Timeframe', run: () => CommandPalette.setTf(1,'hour',30) },
       { icon: '🟢', label: 'Timeframe: Daily', hint: '', group: 'Timeframe', run: () => CommandPalette.setTf(1,'day',250) },
       { icon: '🟢', label: 'Timeframe: Weekly', hint: '', group: 'Timeframe', run: () => CommandPalette.setTf(1,'week',1825) },
+      { icon: '📉', label: 'Change: Price (off)', hint: '', group: 'Change %', run: () => CommandPalette.setChange('price') },
+      { icon: '📉', label: 'Change: Day-over-Day', hint: '', group: 'Change %', run: () => CommandPalette.setChange('dod') },
+      { icon: '📉', label: 'Change: Week-over-Week', hint: '', group: 'Change %', run: () => CommandPalette.setChange('wow') },
+      { icon: '📉', label: 'Change: Month-over-Month', hint: '', group: 'Change %', run: () => CommandPalette.setChange('mom') },
+      { icon: '📉', label: 'Change: Quarter-over-Quarter', hint: '', group: 'Change %', run: () => CommandPalette.setChange('qoq') },
+      { icon: '📉', label: 'Change: Year-over-Year', hint: '', group: 'Change %', run: () => CommandPalette.setChange('yoy') },
       { icon: '🖥', label: 'Engine: Auto', hint: '', group: 'Engine', run: () => CommandPalette.setEngine('auto') },
       { icon: '🖥', label: 'Engine: TradingView', hint: '', group: 'Engine', run: () => CommandPalette.setEngine('tv') },
       { icon: '🖥', label: 'Engine: JustHodl native', hint: '', group: 'Engine', run: () => CommandPalette.setEngine('native') },
@@ -4314,6 +4431,7 @@ class CommandPalette {
   }
   static setCompare(sym) { State.compareSymbol = sym; ChartController.loadTicker('__reload__'); setTimeout(()=>ChartController.loadTicker(State.activeTicker),10); const b=document.getElementById('compare-btn'); if(b) b.classList.toggle('active', !!sym); }
   static setTf(mult, span, days) { State.tf = { mult, span, days }; document.querySelectorAll('.tf-btn').forEach(x=>x.classList.toggle('active', x.dataset.span===span && x.dataset.mult==String(mult))); const t=State.activeTicker; State.activeTicker='__r'; ChartController.loadTicker(t); }
+  static setChange(mode) { State.changeMode = mode; document.querySelectorAll('.chg-btn').forEach(x=>x.classList.toggle('active', x.dataset.chg===mode)); WatchlistManager.syncToCloud(); const t=State.activeTicker; State.activeTicker='__r'; ChartController.loadTicker(t); }
   static setEngine(e) { State.chartEngine=e; document.querySelectorAll('.ceng-btn[data-engine]').forEach(b=>b.classList.toggle('active',b.dataset.engine===e)); const t=State.activeTicker; State.activeTicker='__r'; ChartController.loadTicker(t); }
   
   static open() {
@@ -4759,6 +4877,17 @@ async function init() {
     const t = State.activeTicker; State.activeTicker = '__r';
     ChartController.loadTicker(t);
   }));
+  // ── Change mode (FRED-style % change: Price/DoD/WoW/MoM/QoQ/YoY) ──
+  document.querySelectorAll('.chg-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.chg-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    State.changeMode = b.dataset.chg;
+    WatchlistManager.syncToCloud();
+    const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t);
+  }));
+  // reflect saved change mode
+  document.querySelectorAll('.chg-btn').forEach(x => x.classList.toggle('active', x.dataset.chg === (State.changeMode || 'price')));
+  
   // ── Compare button ──
   document.getElementById('compare-btn').addEventListener('click', () => {
     if (State.compareSymbol) { CommandPalette.setCompare(null); }
