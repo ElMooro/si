@@ -304,15 +304,127 @@ def adjust_tp_for_horizon(base_multiples: List[float], horizon_days: int) -> Lis
     return [m * 1.6 for m in base_multiples]
 
 
+def get_tier_confidence() -> dict:
+    """Read per-tier hit rates from calibration history.
+    
+    Returns {tier_name: hit_rate_pct} for tiers with enough scored data.
+    
+    Used for confidence-weighted position sizing: tiers with high empirical
+    hit rates get larger position size multipliers.
+    """
+    try:
+        cal = _read_json("data/cascade-calibration.json") or {}
+        attribution_by_tier = cal.get("feature_attribution_by_tier") or {}
+        tier_dist = attribution_by_tier.get("tier_distribution") or {}
+        
+        # We don't store hit rates directly. Use n_predictions_analyzed
+        # per tier and check if any has matured data.
+        confidence_by_tier = {}
+        for tier, n_preds in tier_dist.items():
+            tier_attr = (attribution_by_tier.get("by_tier") or {}).get(tier) or {}
+            if tier_attr.get("insufficient_data"):
+                continue
+            # Use the top feature's avg return as proxy for tier quality
+            ranked = tier_attr.get("ranked_by_hit_rate_lift") or []
+            if ranked and n_preds >= 5:
+                # Estimate baseline hit rate from top quartile
+                top_q_hr = ranked[0].get("top_q_hit_rate", 0)
+                confidence_by_tier[tier] = {
+                    "estimated_hit_rate_pct": top_q_hr,
+                    "n_predictions": n_preds,
+                }
+        return confidence_by_tier
+    except Exception:
+        return {}
+
+
+def compute_position_size_multiplier(setup_type: str,
+                                      tier_confidence: dict) -> dict:
+    """Compute position size multiplier based on per-tier confidence.
+    
+    Tiers with high empirical hit rate (>40%) get LARGER positions.
+    Tiers with low empirical hit rate (<25%) get SMALLER positions.
+    Tiers without enough data → 1.0× (use base sizing).
+    
+    Multiplier range: [0.5, 1.5]
+    
+    Mapping:
+      Tier name (setup_type)  →  Calibration tier name
+      OPTIONS_EXTREME         →  OPTIONS_EXTREME
+      VELOCITY_FIRED          →  VELOCITY_FIRED
+      INSIDER_CLUSTER         →  INSIDER_CLUSTER
+      ALERT_TIER              →  ALERT
+      LAGGARD                 →  LAGGARD
+    """
+    # Map setup_type → calibration tier
+    tier_map = {
+        "OPTIONS_EXTREME": "OPTIONS_EXTREME",
+        "OPTIONS_BULLISH": "OPTIONS_BULLISH",
+        "VELOCITY_FIRED":  "VELOCITY_FIRED",
+        "INSIDER_CLUSTER": "INSIDER_CLUSTER",
+        "ACTIVIST":        "INSIDER_CLUSTER",  # similar profile
+        "CONVERGENCE":     "CONVERGENCE",
+        "EARLY_MOVER":     "EARLY_MOVER",
+        "LAGGARD":         "LAGGARD",
+        "ALERT_TIER":      "ALERT",
+        "MEDIUM":          "MEDIUM",
+        "WATCH":           "ALERT",  # treat watch as alert
+    }
+    cal_tier = tier_map.get(setup_type, "ALERT")
+    
+    info = tier_confidence.get(cal_tier)
+    if not info:
+        return {
+            "multiplier": 1.0,
+            "source": "default",
+            "cal_tier": cal_tier,
+            "reason": "no calibration data yet",
+        }
+    
+    hit_rate = info.get("estimated_hit_rate_pct", 0)
+    n = info.get("n_predictions", 0)
+    
+    # Map hit_rate to multiplier: 25% → 0.7×, 40% → 1.0×, 60% → 1.5×
+    if hit_rate >= 60:
+        mult = 1.5
+    elif hit_rate >= 50:
+        mult = 1.3
+    elif hit_rate >= 40:
+        mult = 1.0
+    elif hit_rate >= 30:
+        mult = 0.85
+    elif hit_rate >= 20:
+        mult = 0.7
+    else:
+        mult = 0.5
+    
+    # Reduce multiplier if data is thin (low n_predictions)
+    if n < 10:
+        mult = (mult + 1.0) / 2  # average with neutral
+    
+    return {
+        "multiplier": round(mult, 2),
+        "source": "learned",
+        "cal_tier": cal_tier,
+        "tier_hit_rate_pct": hit_rate,
+        "n_predictions": n,
+        "reason": f"tier hit_rate={hit_rate}% on {n} preds",
+    }
+
+
 def build_ticket(candidate: dict, bars: List[dict],
-                 portfolio_usd: float, best_horizons: dict = None) -> dict:
+                 portfolio_usd: float, best_horizons: dict = None,
+                 tier_confidence: dict = None) -> dict:
     """Build a complete trade ticket from cascade candidate + price bars.
     
-    Now horizon-aware: uses learned best_horizon_per_feature (when calibration
-    matures) to size stops/TPs to the expected holding period.
+    Now horizon-aware AND confidence-weighted:
+      - Uses learned best_horizon_per_feature for stop/TP sizing
+      - Multiplies position_pct by per-tier confidence (hit rate based)
     """
     if best_horizons is None:
         best_horizons = {}
+    if tier_confidence is None:
+        tier_confidence = {}
     ticker = candidate.get("ticker")
     if not bars:
         return {"ticker": ticker, "error": "no_polygon_data"}
@@ -330,6 +442,10 @@ def build_ticket(candidate: dict, bars: List[dict],
     # Determine setup type for horizon classification
     setup_type = classify_candidate_setup(candidate)
     horizon = determine_horizon(candidate, setup_type, best_horizons)
+    
+    # Compute confidence-weighted position size multiplier
+    conf_info = compute_position_size_multiplier(setup_type, tier_confidence)
+    conf_mult = conf_info["multiplier"]
 
     # Determine tier & base multipliers (existing logic)
     tier = candidate.get("tier") or "UNKNOWN"
@@ -353,8 +469,9 @@ def build_ticket(candidate: dict, bars: List[dict],
     tp2 = entry + (tp_multiples[1] * risk_per_share)
     tp3 = entry + (tp_multiples[2] * risk_per_share)
 
-    # Position sizing (from cascade)
-    position_pct = (candidate.get("position_sizing") or {}).get("final_pct") or 0
+    # Position sizing (from cascade) — with confidence multiplier applied
+    base_position_pct = (candidate.get("position_sizing") or {}).get("final_pct") or 0
+    position_pct = base_position_pct * conf_mult
     position_usd = portfolio_usd * position_pct / 100
     shares = int(position_usd / entry) if entry > 0 else 0
     actual_position_usd = shares * entry
@@ -381,12 +498,19 @@ def build_ticket(candidate: dict, bars: List[dict],
         "theme_acceleration": theme_accel,
         "combined_score": combined_score,
 
-        # Horizon awareness (NEW)
+        # Horizon awareness
         "setup_type": setup_type,
         "expected_horizon_days": horizon["days"],
         "horizon_regime": horizon["regime"],
         "horizon_source": horizon["source"],
         "atr_mult_horizon_adj": horizon["atr_mult_adj"],
+        
+        # Confidence-weighted sizing (NEW)
+        "position_confidence_multiplier": conf_mult,
+        "position_confidence_source": conf_info.get("source"),
+        "position_confidence_reason": conf_info.get("reason"),
+        "base_position_pct": round(base_position_pct, 3),
+        "adjusted_position_pct": round(position_pct, 3),
 
         # Price + risk
         "entry": round(entry, 2),
@@ -447,17 +571,22 @@ def lambda_handler(event, context):
     print(f"[trade-tickets] generating tickets for {len(candidates)} candidates "
           f"(portfolio_usd=${portfolio_usd:,.0f})")
 
-    # Load horizon attribution once (used by all tickets for setup-aware sizing)
+    # Load horizon attribution + tier confidence once (used by all tickets)
     best_horizons = get_horizon_attribution()
+    tier_confidence = get_tier_confidence()
     if best_horizons:
         print(f"[trade-tickets] horizon-aware mode: {len(best_horizons)} features have learned horizons")
     else:
         print(f"[trade-tickets] horizon-aware mode: using DEFAULT tier-based horizons (calibration not mature yet)")
+    if tier_confidence:
+        print(f"[trade-tickets] confidence-weighted sizing: {len(tier_confidence)} tiers with empirical hit rates")
+    else:
+        print(f"[trade-tickets] confidence-weighted sizing: using neutral 1.0× (no empirical data yet)")
 
     # Parallel fetch + ticket build
     def _build(c):
         bars = fetch_polygon_ohlc(c["ticker"], days=25)
-        return build_ticket(c, bars, portfolio_usd, best_horizons)
+        return build_ticket(c, bars, portfolio_usd, best_horizons, tier_confidence)
 
     tickets = []
     with ThreadPoolExecutor(max_workers=N_WORKERS) as ex:

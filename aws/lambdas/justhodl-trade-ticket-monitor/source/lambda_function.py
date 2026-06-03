@@ -300,16 +300,64 @@ def lambda_handler(event, context):
 
     print(f"[monitor] fetched prices for {len(prices)}/{len(tickets)} tickers")
 
-    # Load state, evaluate all tickets
+    # ═══ HORIZON-AWARE URGENCY ═══
+    # Skip tickets that don't need checking based on their expected horizon.
+    # Saves Lambda invocations: 30-day plays don't need 10-min checks.
+    #
+    # Check interval per horizon:
+    #   1-3 day plays   → every 10 min  (every monitor run)
+    #   4-10 day plays  → every 30 min
+    #   11-30 day plays → every 2 hours
+    #   30+ day plays   → every 6 hours
+    now_ts = datetime.now(timezone.utc).timestamp()
+    
+    def should_check(ticket: dict, last_checked_ts: float) -> tuple:
+        """Returns (should_check, interval_min, reason)."""
+        horizon_days = ticket.get("expected_horizon_days") or 10
+        if horizon_days <= 3:
+            interval_min = 10
+        elif horizon_days <= 10:
+            interval_min = 30
+        elif horizon_days <= 30:
+            interval_min = 120  # 2 hours
+        else:
+            interval_min = 360  # 6 hours
+        
+        if last_checked_ts == 0:
+            return True, interval_min, "first_check"
+        
+        elapsed_min = (now_ts - last_checked_ts) / 60
+        if elapsed_min >= interval_min:
+            return True, interval_min, f"due ({elapsed_min:.1f}min elapsed)"
+        return False, interval_min, f"skip ({elapsed_min:.1f}/{interval_min}min)"
+    
+    # Load state, evaluate tickets (with urgency-aware skipping)
     state = _load_state()
     all_alerts = []
     snapshots = []
+    n_checked = 0
+    n_skipped = 0
 
     for t in tickets:
         ticker = t.get("ticker")
         current_price = prices.get(ticker)
         if not current_price:
             continue
+        
+        # Check horizon-aware urgency
+        last_checked = state.get(ticker, {}).get("last_checked_ts", 0)
+        check, interval_min, reason = should_check(t, last_checked)
+        if not check:
+            n_skipped += 1
+            continue
+        n_checked += 1
+        
+        # Record this check
+        state.setdefault(ticker, {})["last_checked_ts"] = now_ts
+        state[ticker]["check_interval_min"] = interval_min
+        state[ticker]["horizon_days"] = t.get("expected_horizon_days") or 10
+        state[ticker]["horizon_regime"] = t.get("horizon_regime") or "swing"
+        
         entry = t.get("entry") or 0
         pnl_pct = ((current_price - entry) / entry * 100) if entry > 0 else 0
 
@@ -355,6 +403,7 @@ def lambda_handler(event, context):
 
     elapsed = round(time.time() - t0, 1)
     print(f"[monitor] DONE — {len(snapshots)} snapshots, {len(all_alerts)} alerts in {elapsed}s")
+    print(f"[monitor] horizon-aware: checked {n_checked}, skipped {n_skipped} (saved Lambda work)")
 
     return {
         "statusCode": 200,
@@ -363,6 +412,8 @@ def lambda_handler(event, context):
             "ok": True, "elapsed_s": elapsed,
             "n_watched": len(tickets),
             "n_priced": len(prices),
+            "n_checked": n_checked,
+            "n_skipped": n_skipped,
             "n_alerts": len(all_alerts),
             "alerts_by_type": {
                 t: sum(1 for a in all_alerts if a["type"] == t)

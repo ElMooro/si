@@ -1198,14 +1198,59 @@ async function fetchTradeTickets() {
   }
 }
 
+function horizonTag(t) {
+  const days = t.expected_horizon_days || 0;
+  if (!days) return '';
+  if (days <= 2)  return '🌅 ' + days + 'd gamma';
+  if (days <= 5)  return '⚡ ' + days + 'd fast';
+  if (days <= 14) return '📈 ' + days + 'd swing';
+  if (days <= 30) return '🐢 ' + days + 'd position';
+  return '🏛️ ' + days + 'd inv';
+}
+
+function horizonColor(t) {
+  const days = t.expected_horizon_days || 0;
+  if (days <= 2)  return 'var(--amber)';
+  if (days <= 5)  return 'var(--cyan)';
+  if (days <= 14) return 'var(--green)';
+  if (days <= 30) return 'var(--violet)';
+  return 'var(--fg-3)';
+}
+
+let _aiRationalesCache = null;
+async function fetchAIRationales() {
+  if (_aiRationalesCache) return _aiRationalesCache;
+  try {
+    const r = await fetch("https://justhodl-data-proxy.raafouis.workers.dev/data/trade-tickets-ai-rationale.json?t=" + Date.now());
+    if (!r.ok) return {};
+    const doc = await r.json();
+    _aiRationalesCache = doc.by_ticker || {};
+    return _aiRationalesCache;
+  } catch (e) { return {}; }
+}
+
 function renderTradeTickets(doc) {
   const tickets = doc.tickets || [];
   if(!tickets.length) return;
 
-  let html = '<div style="margin-bottom:14px"><div style="font-size:12.5px; color:var(--fg-1); margin-bottom:8px"><b>🎫 Complete Trade Tickets</b> · <span style="color:var(--fg-3); font-size:11px">ATR-based stops · R-multiple TPs · portfolio $' + (doc.portfolio_usd || 100000).toLocaleString() + ' assumed</span></div>';
+  // Fetch AI rationales asynchronously, but render immediately + update when ready
+  fetchAIRationales().then(rationales => {
+    tickets.forEach(t => {
+      const r = rationales[t.ticker];
+      if (r && r.rationale) {
+        const el = document.getElementById('rat-' + t.ticker);
+        if (el) {
+          el.textContent = r.rationale;
+          el.style.display = 'block';
+        }
+      }
+    });
+  });
+
+  let html = '<div style="margin-bottom:14px"><div style="font-size:12.5px; color:var(--fg-1); margin-bottom:8px"><b>🎫 Complete Trade Tickets</b> · <span style="color:var(--fg-3); font-size:11px">Horizon-aware sizing · AI rationales · portfolio $' + (doc.portfolio_usd || 100000).toLocaleString() + ' assumed</span></div>';
 
   html += '<table style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11.5px"><thead><tr style="border-bottom:1px solid var(--border)">';
-  ['TICKER','TIER','ENTRY','STOP','RISK %','TP1','TP2','TP3','R:R','SHARES','MAX $ LOSS','ATR %'].forEach(h => {
+  ['TICKER','HORIZON','TIER','ENTRY','STOP','RISK %','TP3','R:R','SHARES','CONF','MAX $ LOSS'].forEach(h => {
     html += '<th style="text-align:left; padding:6px 8px; color:var(--cyan); font-size:10px; letter-spacing:1px; text-transform:uppercase">' + h + '</th>';
   });
   html += '</tr></thead><tbody>';
@@ -1215,26 +1260,32 @@ function renderTradeTickets(doc) {
                        (t.is_laggard || t.tier === 'LAGGARD') ? 'var(--violet)' : 
                        'var(--amber)';
     const rrColor = (t.rr_tp3 >= 3) ? 'var(--green)' : (t.rr_tp3 >= 2) ? 'var(--amber)' : 'var(--red)';
+    const hzColor = horizonColor(t);
+    const hzTag = horizonTag(t);
+    const confMult = t.position_confidence_multiplier || 1.0;
+    const confColor = confMult >= 1.2 ? 'var(--green)' : confMult <= 0.85 ? 'var(--red)' : 'var(--fg-2)';
     html += '<tr style="border-bottom:1px solid var(--border)">';
     html += '<td style="padding:6px 8px"><a href="/why.html?ticker=' + t.ticker + '" style="color:var(--cyan); text-decoration:none; font-weight:700; font-size:12.5px">' + esc(t.ticker) + '</a></td>';
+    html += '<td style="padding:6px 8px"><span style="color:' + hzColor + '; font-size:10.5px; font-weight:600">' + hzTag + '</span></td>';
     html += '<td style="padding:6px 8px"><span style="color:' + tierColor + '; font-size:10px; font-weight:700">' + (t.is_laggard ? 'LAGGARD' : t.tier) + '</span></td>';
     html += '<td style="padding:6px 8px; color:var(--fg-1)">$' + (t.entry || 0).toFixed(2) + '</td>';
     html += '<td style="padding:6px 8px; color:var(--red)">$' + (t.stop_loss || 0).toFixed(2) + '</td>';
     html += '<td style="padding:6px 8px; color:var(--amber)">' + (t.risk_pct || 0).toFixed(1) + '%</td>';
-    html += '<td style="padding:6px 8px; color:var(--green); font-size:10.5px">$' + (t.tp1 || 0).toFixed(2) + ' <span style="color:var(--fg-3); font-size:9.5px">+' + (t.tp1_pct || 0).toFixed(1) + '%</span></td>';
-    html += '<td style="padding:6px 8px; color:var(--green); font-size:10.5px">$' + (t.tp2 || 0).toFixed(2) + ' <span style="color:var(--fg-3); font-size:9.5px">+' + (t.tp2_pct || 0).toFixed(1) + '%</span></td>';
     html += '<td style="padding:6px 8px; color:var(--green); font-size:10.5px">$' + (t.tp3 || 0).toFixed(2) + ' <span style="color:var(--fg-3); font-size:9.5px">+' + (t.tp3_pct || 0).toFixed(1) + '%</span></td>';
     html += '<td style="padding:6px 8px"><b style="color:' + rrColor + '">' + (t.rr_tp3 || 0).toFixed(1) + ':1</b></td>';
     html += '<td style="padding:6px 8px; color:var(--fg-2)">' + (t.shares || 0).toLocaleString() + '</td>';
+    html += '<td style="padding:6px 8px; color:' + confColor + '">' + confMult.toFixed(2) + '×</td>';
     html += '<td style="padding:6px 8px; color:var(--red)">$' + (t.max_loss_usd || 0).toLocaleString() + ' <span style="color:var(--fg-3); font-size:9.5px">' + (t.max_loss_pct_of_portfolio || 0).toFixed(2) + '%</span></td>';
-    html += '<td style="padding:6px 8px; color:var(--fg-3); font-size:10.5px">' + (t.atr_pct || 0).toFixed(2) + '%</td>';
     html += '</tr>';
+    // AI rationale row (initially hidden, populated async)
+    html += '<tr style="border-bottom:1px solid var(--border)"><td colspan="11" style="padding:0 8px 8px 8px; font-size:11px; color:var(--fg-3); font-style:italic" id="rat-' + t.ticker + '"></td></tr>';
   });
   html += '</tbody></table>';
 
   html += '<div style="font-size:10px; color:var(--fg-3); margin-top:8px; line-height:1.6">';
-  html += '<b>Stop sizing:</b> Alert=1.5×ATR · Laggards=2.0×ATR · Watch=2.5×ATR &nbsp;&nbsp;&nbsp; ';
-  html += '<b>TP multiples:</b> Hot theme (rs_accel ≥100) = 1R/2R/<b>5R</b> · Strong = 1R/2R/3R · Mild = 1R/1.5R/2R';
+  html += '<b>Horizon-aware sizing:</b> stops + TPs scale with expected holding period (gamma plays tight, position trades wider). &nbsp;&nbsp; ';
+  html += '<b>Confidence weighting:</b> position size × per-tier hit rate multiplier ([0.5-1.5×]). &nbsp;&nbsp; ';
+  html += '<b>AI rationale:</b> generated hourly by Claude (haiku-4-5).';
   html += '</div></div>';
 
   // Inject below the cascade content, inside the cascade hero

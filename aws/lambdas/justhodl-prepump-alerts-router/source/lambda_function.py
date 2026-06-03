@@ -72,6 +72,7 @@ def get_active_cascade() -> dict:
 # TRADE TICKET INTEGRATION — embed entry/stop/TP1/TP2/TP3 into alerts
 # ═════════════════════════════════════════════════════════════════════
 _TRADE_TICKETS_CACHE = {"loaded": False, "by_ticker": {}}
+_AI_RATIONALE_CACHE = {"loaded": False, "by_ticker": {}}
 
 
 def _load_trade_tickets() -> dict:
@@ -90,9 +91,36 @@ def _load_trade_tickets() -> dict:
     return by_ticker
 
 
+def _load_ai_rationales() -> dict:
+    """Load AI-generated rationales for tickers."""
+    if _AI_RATIONALE_CACHE["loaded"]:
+        return _AI_RATIONALE_CACHE["by_ticker"]
+    doc = _read_json("data/trade-tickets-ai-rationale.json") or {}
+    by_ticker = doc.get("by_ticker") or {}
+    _AI_RATIONALE_CACHE["loaded"] = True
+    _AI_RATIONALE_CACHE["by_ticker"] = by_ticker
+    return by_ticker
+
+
+def _horizon_tag(ticket: dict) -> str:
+    """Build a short horizon tag emoji + label."""
+    days = ticket.get("expected_horizon_days") or 0
+    regime = ticket.get("horizon_regime") or "swing"
+    if days <= 2:
+        return f"🌅 {days}d gamma"
+    if days <= 5:
+        return f"⚡ {days}d fast swing"
+    if days <= 14:
+        return f"📈 {days}d swing"
+    if days <= 30:
+        return f"🐢 {days}d position"
+    return f"🏛️ {days}d investment"
+
+
 def _format_trade_ticket(ticker: str) -> List[str]:
     """Return Telegram lines for a ticker's trade ticket. Empty if not found."""
     tickets = _load_trade_tickets()
+    rationales = _load_ai_rationales()
     t = tickets.get(ticker)
     if not t or t.get("error"):
         return []
@@ -106,11 +134,28 @@ def _format_trade_ticket(ticker: str) -> List[str]:
     rr = t.get("rr_tp3") or 0
     shares = t.get("shares") or 0
     maxloss = t.get("max_loss_usd") or 0
-    return [
+    
+    horizon_tag = _horizon_tag(t)
+    conf_mult = t.get("position_confidence_multiplier") or 1.0
+    
+    lines = [f"  {horizon_tag}"]
+    
+    # AI rationale (if available)
+    rationale_info = rationales.get(ticker) or {}
+    rationale_text = rationale_info.get("rationale")
+    if rationale_text:
+        # Truncate and escape
+        clean = rationale_text.replace("<", "&lt;").replace(">", "&gt;")[:280]
+        lines.append(f"  💭 <i>{clean}</i>")
+    
+    lines.extend([
         f"  📍 Entry <b>${entry:.2f}</b> · 🛑 Stop <b>${stop:.2f}</b> ({-risk_pct:.1f}%)",
         f"  🎯 TP1 <code>${tp1:.0f}</code> · TP2 <code>${tp2:.0f}</code> · TP3 <code>${tp3:.0f}</code> (+{tp3_pct:.1f}%)",
         f"  R:R <b>{rr:.1f}:1</b> · {shares} sh · max loss <b>${maxloss:,.0f}</b>",
-    ]
+    ])
+    if conf_mult != 1.0:
+        lines.append(f"  📊 Conf sizing: <b>{conf_mult:.2f}×</b>")
+    return lines
 
 
 def _get_telegram_config():

@@ -38,7 +38,11 @@ from typing import Optional, List, Dict
 import boto3
 
 S3_BUCKET = "justhodl-dashboard-live"
+TG_BOT_TOKEN = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TG_CHAT_ID = "8678089260"
+
 s3 = boto3.client("s3", region_name="us-east-1")
+ssm = boto3.client("ssm", region_name="us-east-1")
 
 
 def _read_json(key: str) -> Optional[dict]:
@@ -46,6 +50,44 @@ def _read_json(key: str) -> Optional[dict]:
         return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
     except Exception:
         return None
+
+
+def _send_telegram_alert(guardrails: list, blend: dict) -> None:
+    """Send Telegram alert when anti-overfit guardrails fire."""
+    import urllib.request, urllib.parse
+    try:
+        token = ssm.get_parameter(Name="/justhodl/telegram/bot-token",
+                                    WithDecryption=True)["Parameter"]["Value"]
+        chat_id = ssm.get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
+    except Exception:
+        token, chat_id = TG_BOT_TOKEN, TG_CHAT_ID
+    
+    high_count = sum(1 for g in guardrails if g.get("severity") == "HIGH")
+    med_count = sum(1 for g in guardrails if g.get("severity") == "MEDIUM")
+    
+    lines = [
+        f"<b>⚠️ CALIBRATION GUARDRAILS TRIGGERED</b>",
+        f"<i>Self-improvement loop detected suspicious behavior</i>",
+        "",
+        f"Severity: <b>{high_count} HIGH</b> · {med_count} MEDIUM",
+        f"Blend: {blend.get('original',1):.0%} orig / {blend.get('calibrated',0):.0%} cal · {blend.get('confidence','?')}",
+        "",
+        "<b>Issues detected:</b>",
+    ]
+    for g in guardrails[:6]:
+        sev = "🚨" if g.get("severity") == "HIGH" else "⚠️"
+        lines.append(f"{sev} [{g.get('tier','?')}] {g.get('issue','?')}")
+    lines.append("")
+    lines.append("<i>Recommendation: review data/cascade-recalibration-audit.json before trusting calibrated rankings. Consumers will continue using ORIGINAL cascade until cleared.</i>")
+    
+    msg = "\n".join(lines)
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    data = urllib.parse.urlencode({
+        "chat_id": chat_id, "text": msg[:4000], "parse_mode": "HTML",
+        "disable_web_page_preview": "true",
+    }).encode()
+    req = urllib.request.Request(url, data=data, method="POST")
+    urllib.request.urlopen(req, timeout=10)
 
 
 def normalize_feature(feat_name: str, value, all_values: List[float]) -> float:
@@ -324,6 +366,60 @@ def lambda_handler(event, context):
             "clamped to [0.3, 2.5]."
         ),
     }
+
+    # ═══ ANTI-OVERFIT GUARDRAILS ═══
+    # Detect suspicious calibration behavior:
+    #   - top-10 retention below 50% (drastic re-ranking suggests bug or data drift)
+    #   - average rank delta > 5 (most candidates shifting too much)
+    #   - max single rank delta > 15 (one outlier candidate jumping wildly)
+    #   - any individual weight outside [0.3, 2.5] (shouldn't happen, but verify)
+    guardrails = []
+    for tier_key in ["alert_tier", "laggards_hot_themes"]:
+        rc = rank_audit.get(tier_key) or {}
+        retention = rc.get("top_10_retention_pct", 100)
+        avg_delta = rc.get("avg_rank_delta", 0) or 0
+        max_delta = rc.get("max_rank_delta", 0) or 0
+        if retention < 50:
+            guardrails.append({
+                "severity": "HIGH", "tier": tier_key,
+                "issue": f"top-10 retention {retention}% (<50% threshold)",
+                "rationale": "Drastic re-ranking — possible overfit or data anomaly",
+            })
+        if avg_delta > 5:
+            guardrails.append({
+                "severity": "MEDIUM", "tier": tier_key,
+                "issue": f"avg rank delta {avg_delta} (>5 threshold)",
+                "rationale": "Most candidates shifting positions significantly",
+            })
+        if max_delta > 15:
+            guardrails.append({
+                "severity": "MEDIUM", "tier": tier_key,
+                "issue": f"max rank delta {max_delta} (>15 threshold)",
+                "rationale": "Single candidate jumping unusually — verify feature values",
+            })
+    # Check for extreme weights
+    for feat, val in weights_global.items():
+        if val < 0.4 or val > 2.4:
+            guardrails.append({
+                "severity": "MEDIUM", "tier": "global",
+                "issue": f"extreme weight: {feat}={val:.2f}×",
+                "rationale": f"Weight near clamp boundary suggests strong signal or noise",
+            })
+    
+    audit["guardrails"] = guardrails
+    audit["guardrails_status"] = "TRIGGERED" if guardrails else "CLEAN"
+    
+    if guardrails:
+        print(f"[recalibrator] ⚠ ANTI-OVERFIT GUARDRAILS TRIGGERED: {len(guardrails)} issues")
+        for g in guardrails:
+            print(f"  [{g['severity']}] {g['tier']}: {g['issue']}")
+        # Send Telegram alert
+        try:
+            _send_telegram_alert(guardrails, blend)
+        except Exception as e:
+            print(f"[recalibrator] telegram alert err: {e}")
+    else:
+        print(f"[recalibrator] ✓ guardrails CLEAN — calibration behaving normally")
 
     # Write calibrated cascade
     s3.put_object(
