@@ -222,6 +222,20 @@ def _mark_alerted(state: dict, signal_type: str, key: str):
     state.setdefault("alerted_by_signal", {}).setdefault(signal_type, []).append(key)
 
 
+def _ticker_already_alerted_today(state: dict, ticker: str) -> bool:
+    """Has this ticker been alerted today under ANY signal_type? 
+    Global per-ticker dedup to prevent same ticker firing from multiple signals."""
+    if not ticker:
+        return False
+    return ticker in (state.get("tickers_alerted_today") or [])
+
+
+def _mark_ticker_alerted(state: dict, ticker: str):
+    if not ticker:
+        return
+    state.setdefault("tickers_alerted_today", []).append(ticker)
+
+
 # ═════════════════════════════════════════════════════════════════════
 # SIGNAL CHECKERS — each returns list of new-alert message lines
 # ═════════════════════════════════════════════════════════════════════
