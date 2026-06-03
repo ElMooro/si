@@ -1,0 +1,47 @@
+{
+  "started": "2026-06-03T00:59:07.688353+00:00",
+  "lambdas": {
+    "justhodl-trade-tickets": {
+      "state": "Active",
+      "last_modified": "2026-06-03T00:59:01",
+      "code_sha": "codOAskyCFdhuEbU"
+    },
+    "justhodl-prepump-alerts-router": {
+      "state": "Active",
+      "last_modified": "2026-06-03T00:58:43",
+      "code_sha": "nMCYARBq3r6lyZrK"
+    }
+  },
+  "trade_tickets_invoke": {
+    "status": 200,
+    "elapsed_s": 1.5,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.7, \\\"n_tickets\\\": 14, \\\"top_3_tickets\\\": [{\\\"ticker\\\": \\\"CDNS\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 416.39, \\\"stop\\\": 384.73, \\\"tp3\\\": 574.7, \\\"rr\\\": 5.0, \\\"shares\\\": 18, \\\"max_loss_usd\\\": 570.0}, {\\\"ticker\\\": \\\"MU\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 1064.1, \\\"stop\\\": 900.65, \\\"tp3\\\": 1554.46, \\\"rr\\\": 3.0, \\\"shares\\\": 8, \\\"max_loss_usd\\\": 1308.0}, {\\\"ticker\\\": \\\"PANW\\\", \\\"tier\\\": \\\"EMERGING\\\", \\\"entry\\\": 297.18, \\\"stop\\\": 273.78, \\\"tp3\\\": 367.38, \\\"rr\\\": 3.0, \\\"shares\\\": 21, \\\"max_loss_usd\\\": 491.0}]}\"}"
+  },
+  "prepump_router_invoke": {
+    "status": 200,
+    "elapsed_s": 2.2,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"n_alerts\\\": 0, \\\"elapsed_s\\\": 1.4}\"}"
+  },
+  "log_messages": {
+    "justhodl-trade-tickets": {
+      "adaptive_msgs": [],
+      "stream": "2026/06/02/[$LATEST]6cf5be93aa374a859063"
+    },
+    "justhodl-prepump-alerts-router": {
+      "adaptive_msgs": [
+        "[adaptive-cascade] using ORIGINAL cascade (confidence=NONE)\n"
+      ],
+      "stream": "2026/06/03/[$LATEST]29865029e014400c9679"
+    }
+  },
+  "html_check": {
+    "error": "HTTP Error 403: Forbidden"
+  },
+  "recal_refresh": {
+    "status": 200,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.2, \\\"n_total_candidates\\\": 14, \\\"n_weights_applied\\\": 0, \\\"blend\\\": {\\\"original\\\": 1.0, \\\"calibrated\\\": 0.0, \\\"confidence\\\": \\\"NONE\\\", \\\"rationale\\\": \\\"<5 scored predictions \\\\u2014 using base scoring only\\\"}, \\\"rank_audit\\\": {\\\"alert_tier\\\": {\\\"n_compared\\\": 8, \\\"top_10_retention_pct\\\": 100.0, \\\"avg_rank_delta\\\": 0.0, \\\"max_rank_delta\\\": 0, \\\"biggest_movers\\\": [{\\\"ticker\\\": \\\"MU\\\", \\\"or"
+  },
+  "finished": "2026-06-03T00:59:13.166686+00:00"
+}
