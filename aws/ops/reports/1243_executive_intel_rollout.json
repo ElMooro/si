@@ -1,0 +1,150 @@
+{
+  "started": "2026-06-03T19:37:05.639025+00:00",
+  "deploy": {
+    "action": "updated",
+    "sha": "B0ppV6PLtlvfXJwi"
+  },
+  "schedule": "cron(15 11 * * ? *)",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 22.5,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"parsed_ptrs\\\": 36, \\\"transactions\\\": 308, \\\"top_conviction\\\": 8}\"}"
+  },
+  "output": {
+    "schema": "1.0",
+    "stats": {
+      "candidate_pdfs": 77,
+      "parsed_ptrs": 36,
+      "total_transactions": 308,
+      "unique_tickers": 38
+    },
+    "filers": [
+      {
+        "filer": "McMullan, Matthew",
+        "position": "Deputy Director, Office of Legislative Affairs",
+        "n_tx": 1
+      },
+      {
+        "filer": "Scharf, William O",
+        "position": "Secretary, Trump-Vance (2025) - White House",
+        "n_tx": 2
+      },
+      {
+        "filer": "Scharf, William O",
+        "position": "Secretary, Trump-Vance (2025) - White House",
+        "n_tx": 14
+      },
+      {
+        "filer": "Centorino, Scott",
+        "position": "Special Assistant to the President for Domestic Policy, T",
+        "n_tx": 4
+      },
+      {
+        "filer": "Escobedo, Christopher",
+        "position": "Director for Political Affairs, Trump-Vance (202",
+        "n_tx": 48
+      },
+      {
+        "filer": "Lane, Jackson",
+        "position": "Special Assistant to the President for Domestic Policy, T",
+        "n_tx": 57
+      },
+      {
+        "filer": "Zinberg, Joel M",
+        "position": "Special Assistant to the President, Trump-Vance (2025) -",
+        "n_tx": 3
+      },
+      {
+        "filer": "Borg, Jared",
+        "position": "Deputy Director of White House Office of Inter",
+        "n_tx": 5
+      },
+      {
+        "filer": "Miller, Stephen N",
+        "position": "Deputy Chief of Staff for Policy and Homeland",
+        "n_tx": 27
+      },
+      {
+        "filer": "Bresso, Gineen",
+        "position": "Deputy Counsel to the President, Trump-Vance (",
+        "n_tx": 1
+      }
+    ],
+    "top": [
+      {
+        "ticker": "WTV",
+        "conviction": 231.9,
+        "n_buyers": 1,
+        "buyers": [
+          "Zinberg, Joel M"
+        ],
+        "latest": "2026-03-12"
+      },
+      {
+        "ticker": "EPS",
+        "conviction": 60.5,
+        "n_buyers": 1,
+        "buyers": [
+          "Zinberg, Joel M"
+        ],
+        "latest": "2026-01-02"
+      },
+      {
+        "ticker": "ORCL",
+        "conviction": 47.3,
+        "n_buyers": 1,
+        "buyers": [
+          "Lane, Jackson"
+        ],
+        "latest": "2026-02-03"
+      },
+      {
+        "ticker": "VIG",
+        "conviction": 37.6,
+        "n_buyers": 1,
+        "buyers": [
+          "Zinberg, Joel M"
+        ],
+        "latest": "2025-12-15"
+      },
+      {
+        "ticker": "SNWGF",
+        "conviction": 26.1,
+        "n_buyers": 1,
+        "buyers": [
+          "Bresso, Gineen"
+        ],
+        "latest": "2026-02-24"
+      },
+      {
+        "ticker": "ETN",
+        "conviction": 19.2,
+        "n_buyers": 1,
+        "buyers": [
+          "Zinberg, Joel M"
+        ],
+        "latest": "2025-12-17"
+      },
+      {
+        "ticker": "CNSWF",
+        "conviction": 16.0,
+        "n_buyers": 1,
+        "buyers": [
+          "Scharf, William O"
+        ],
+        "latest": "2026-02-03"
+      },
+      {
+        "ticker": "PSQH",
+        "conviction": 9.6,
+        "n_buyers": 1,
+        "buyers": [
+          "Donaldson, David P"
+        ],
+        "latest": "2025-12-16"
+      }
+    ]
+  },
+  "finished": "2026-06-03T19:37:34.703863+00:00"
+}
