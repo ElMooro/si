@@ -49,6 +49,7 @@ def lambda_handler(event, context):
     tickets = _read_json("data/trade-tickets.json") or {}
     retail = _read_json("data/retail-sentiment.json") or {}
     news = _read_json("sentiment/data.json") or {}
+    political = _read_json("data/political-intel.json") or {}
     earnings = _read_json("screener/earnings-sentiment.json") or {}
     gdelt = _read_json("data/gdelt-financial-sentiment.json") or {}
 
@@ -351,6 +352,36 @@ def lambda_handler(event, context):
                     "news_signal": signal,
                 },
             }
+
+    # ═══ POLITICIAN / CONGRESSIONAL TRADE ENRICHMENT ═══
+    # Politician buys (esp. committee-relevant) are a heavily-weighted signal.
+    # We feed conviction + committee-match as features so the self-improvement
+    # loop LEARNS their real predictive weight, and create POLITICIAN_BUY tickets
+    # for high-conviction names not already in the cascade.
+    pol_by_ticker = political.get("by_ticker") or {}
+    for ticker, prec in pol_by_ticker.items():
+        conviction = prec.get("conviction_score") or 0
+        n_buyers = prec.get("n_buyers") or 0
+        committee = bool(prec.get("committee_relevant"))
+        net_buy = (prec.get("n_buys") or 0) > (prec.get("n_sells") or 0)
+        if not net_buy:
+            continue
+        # Standalone POLITICIAN_BUY ticket for strong conviction not in cascade
+        if ticker not in predictions and conviction >= 40:
+            predictions[ticker] = {"ticker": ticker, "snapshot_date": today,
+                                    "alerts": ["POLITICIAN_BUY"], "features": {}}
+        if ticker in predictions:
+            predictions[ticker]["features"].update({
+                "politician_conviction": round(conviction, 1),
+                "politician_n_buyers": n_buyers,
+                "politician_committee_relevant": 1 if committee else 0,
+                "politician_cluster": 1 if prec.get("cluster") else 0,
+            })
+            # Label tiers
+            if committee and "POLITICIAN_COMMITTEE" not in predictions[ticker]["alerts"]:
+                predictions[ticker]["alerts"].append("POLITICIAN_COMMITTEE")
+            elif conviction >= 40 and "POLITICIAN_BUY" not in predictions[ticker]["alerts"]:
+                predictions[ticker]["alerts"].append("POLITICIAN_BUY")
 
     # Macro context (shared across all tickers)
     macro_context = {

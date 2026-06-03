@@ -257,6 +257,7 @@ def compute_per_tier_attribution(scored_preds: List[dict]) -> dict:
         "retail_velocity_pct", "retail_mentions", "retail_rank_climb",
         # News/earnings/GDELT features
         "news_score", "earnings_score", "gdelt_tone", "gdelt_articles",
+        "politician_conviction", "politician_n_buyers", "politician_committee_relevant", "politician_cluster",
         "days_since_earnings",
     ]
 
@@ -265,6 +266,10 @@ def compute_per_tier_attribution(scored_preds: List[dict]) -> dict:
         """Return the primary tier classification for a prediction."""
         alerts_set = set(alerts or [])
         # Priority order: most specific signal wins
+        if "POLITICIAN_COMMITTEE" in alerts_set:
+            return "POLITICIAN_COMMITTEE"
+        if "POLITICIAN_BUY" in alerts_set:
+            return "POLITICIAN_BUY"
         if "RETAIL_HOT" in alerts_set:
             return "RETAIL_HOT"
         if "RETAIL_VELOCITY" in alerts_set:
@@ -339,6 +344,7 @@ def compute_multi_horizon_attribution(scored_preds: List[dict]) -> dict:
         "retail_velocity_pct", "retail_mentions", "retail_rank_climb",
         # NEW: News/earnings/GDELT features
         "news_score", "earnings_score", "gdelt_tone", "gdelt_articles",
+        "politician_conviction", "politician_n_buyers", "politician_committee_relevant", "politician_cluster",
         "days_since_earnings",
     ]
 
