@@ -1,0 +1,258 @@
+{
+  "started": "2026-06-03T18:51:49.302621+00:00",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 2.1,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"top_conviction\\\": 40, \\\"committee_relevant\\\": 8, \\\"clusters\\\": 25, \\\"scored_trades\\\": 764}\"}"
+  },
+  "output": {
+    "schema": "2.0",
+    "sources": [
+      "fmp-senate(800)",
+      "fmp-house(800)"
+    ],
+    "stats": {
+      "raw_trades": 1600,
+      "scored_trades": 764,
+      "unique_tickers": 330,
+      "committee_relevant_names": 8,
+      "cluster_names": 25
+    },
+    "top15": [
+      {
+        "ticker": "MSFT",
+        "conviction": 244.0,
+        "n_buyers": 5,
+        "committee": false,
+        "cluster": true,
+        "asset": "Microsoft Corp",
+        "latest": "2026-04-15"
+      },
+      {
+        "ticker": "HD",
+        "conviction": 182.9,
+        "n_buyers": 5,
+        "committee": false,
+        "cluster": true,
+        "asset": "The Home Depot Inc",
+        "latest": "2026-05-15"
+      },
+      {
+        "ticker": "SPGI",
+        "conviction": 107.4,
+        "n_buyers": 2,
+        "committee": false,
+        "cluster": true,
+        "asset": "S&P Global Inc",
+        "latest": "2026-04-28"
+      },
+      {
+        "ticker": "INTU",
+        "conviction": 85.5,
+        "n_buyers": 2,
+        "committee": false,
+        "cluster": true,
+        "asset": "Intuit Inc",
+        "latest": "2026-04-29"
+      },
+      {
+        "ticker": "GS",
+        "conviction": 83.7,
+        "n_buyers": 3,
+        "committee": false,
+        "cluster": true,
+        "asset": "The Goldman Sachs Group Inc",
+        "latest": "2026-04-29"
+      },
+      {
+        "ticker": "MA",
+        "conviction": 67.5,
+        "n_buyers": 3,
+        "committee": false,
+        "cluster": true,
+        "asset": "Mastercard Inc",
+        "latest": "2026-04-17"
+      },
+      {
+        "ticker": "PH",
+        "conviction": 63.4,
+        "n_buyers": 2,
+        "committee": false,
+        "cluster": true,
+        "asset": "Parker-Hannifin Corp (2)",
+        "latest": "2026-05-15"
+      },
+      {
+        "ticker": "GIL",
+        "conviction": 62.9,
+        "n_buyers": 1,
+        "committee": false,
+        "cluster": false,
+        "asset": "Gildan Activewear Inc",
+        "latest": "2026-04-29"
+      },
+      {
+        "ticker": "NDAQ",
+        "conviction": 52.7,
+        "n_buyers": 2,
+        "committee": false,
+        "cluster": true,
+        "asset": "Nasdaq Inc",
+        "latest": "2026-04-24"
+      },
+      {
+        "ticker": "AESI",
+        "conviction": 52.5,
+        "n_buyers": 1,
+        "committee": false,
+        "cluster": false,
+        "asset": "ATLAS ENERGY SOLUTIONS INC",
+        "latest": "2026-04-30"
+      },
+      {
+        "ticker": "DASH",
+        "conviction": 49.1,
+        "n_buyers": 1,
+        "committee": false,
+        "cluster": false,
+        "asset": "DoorDash Inc",
+        "latest": "2026-05-01"
+      },
+      {
+        "ticker": "ASML",
+        "conviction": 48.4,
+        "n_buyers": 1,
+        "committee": false,
+        "cluster": false,
+        "asset": "ASML Holding NV",
+        "latest": "2026-04-17"
+      },
+      {
+        "ticker": "WFC",
+        "conviction": 45.0,
+        "n_buyers": 2,
+        "committee": false,
+        "cluster": true,
+        "asset": "Wells Fargo & Co",
+        "latest": "2026-04-23"
+      },
+      {
+        "ticker": "GLW",
+        "conviction": 45.0,
+        "n_buyers": 2,
+        "committee": false,
+        "cluster": true,
+        "asset": "Corning Inc",
+        "latest": "2026-03-25"
+      },
+      {
+        "ticker": "IBM",
+        "conviction": 41.9,
+        "n_buyers": 3,
+        "committee": false,
+        "cluster": true,
+        "asset": "International Business Machine",
+        "latest": "2026-04-24"
+      }
+    ],
+    "committee_buys": [
+      {
+        "ticker": "FTSL",
+        "matches": [
+          {
+            "member": "Mark Warner",
+            "committee": "senate committee on finance",
+            "match": "trade"
+          },
+          {
+            "member": "Mark Warner",
+            "committee": "senate committee on finance",
+            "match": "trade"
+          }
+        ]
+      },
+      {
+        "ticker": "MU",
+        "matches": [
+          {
+            "member": "John Fetterman",
+            "committee": "senate committee on commerce, science, and transportation",
+            "match": "tech"
+          },
+          {
+            "member": "John Fetterman",
+            "committee": "senate committee on commerce, science, and transportation",
+            "match": "tech"
+          }
+        ]
+      },
+      {
+        "ticker": "NOC",
+        "matches": [
+          {
+            "member": "William R. Keating",
+            "committee": "house committee on armed services",
+            "match": "northrop"
+          }
+        ]
+      },
+      {
+        "ticker": "XLE",
+        "matches": [
+          {
+            "member": "Charles J. \"Chuck\" Fleischmann",
+            "committee": "house committee on appropriations",
+            "match": "energy"
+          }
+        ]
+      },
+      {
+        "ticker": "SMNEY",
+        "matches": [
+          {
+            "member": "Michael McCaul",
+            "committee": "house committee on foreign affairs",
+            "match": "energy"
+          }
+        ]
+      },
+      {
+        "ticker": "HBAN",
+        "matches": [
+          {
+            "member": "Ro Khanna",
+            "committee": "house committee on armed services",
+            "match": "huntington"
+          }
+        ]
+      },
+      {
+        "ticker": "DVN",
+        "matches": [
+          {
+            "member": "John Boozman",
+            "committee": "senate committee on appropriations",
+            "match": "energy"
+          }
+        ]
+      },
+      {
+        "ticker": "TSCO",
+        "matches": [
+          {
+            "member": "April Delaney",
+            "committee": "house committee on agriculture",
+            "match": "tractor"
+          },
+          {
+            "member": "April Delaney",
+            "committee": "house committee on agriculture",
+            "match": "tractor"
+          }
+        ]
+      }
+    ]
+  },
+  "finished": "2026-06-03T18:52:51.712238+00:00"
+}
