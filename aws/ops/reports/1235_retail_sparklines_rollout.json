@@ -1,0 +1,35 @@
+{
+  "started": "2026-06-03T14:58:04.310096+00:00",
+  "updates": {
+    "justhodl-prediction-snapshotter": {
+      "sha": "3jhSFfo+VCjN78Ul",
+      "state": "Active"
+    },
+    "justhodl-self-improvement": {
+      "sha": "CpuHqjjRMrmvlh4a",
+      "state": "Active"
+    }
+  },
+  "snap_invoke": {
+    "status": 200,
+    "elapsed_s": 1.8,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.6, \\\"n_tickers\\\": 172, \\\"alert_distribution\\\": {\\\"CASCADE_ALERT\\\": 3, \\\"VELOCITY_EMERGING\\\": 2, \\\"CONVERGENCE_HIGH\\\": 27, \\\"OPTIONS_EXTREME_CALL\\\": 9, \\\"VELOCITY_WATCH\\\": 1, \\\"CONVERGENCE_ULTRA\\\": 19, \\\"CASCADE_LAGGARD\\\": 4, \\\"CONVERGENCE_MED\\\": 74, \\\"OPTIONS_BULLISH_CALL\\\": 9, \\\"EARLY_MOVER_ALERT\\\": 5, \\\"CONVERGENCE_LOW\\\": 28, \\\"INSIDER_CLUSTER\\\": 24}, \\\"snapshot_date\\\": \\\"2026-06-03\\\"}\"}"
+  },
+  "retail_check": {
+    "n_total_predictions": 172,
+    "n_retail_velocity_tier": 0,
+    "n_retail_hot_tier": 0,
+    "n_preds_with_retail_features": 0,
+    "retail_velocity_sample": [],
+    "retail_hot_sample": [],
+    "sample_features": []
+  },
+  "calibration_history": {
+    "n_entries": 3,
+    "first_date": "2026-06-02",
+    "latest_date": "2026-06-03",
+    "weights_in_latest": 0
+  },
+  "finished": "2026-06-03T14:58:13.734016+00:00"
+}
