@@ -1,0 +1,133 @@
+{
+  "started": "2026-06-03T23:37:22.032486+00:00",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 17.3,
+    "fe": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"scored\\\": 1771, \\\"laggards\\\": 40, \\\"cohorts\\\": 113, \\\"top5\\\": [{\\\"t\\\": \\\"HLF\\\", \\\"score\\\": 91.0, \\\"vs\\\": \\\"MKC\\\"}, {\\\"t\\\": \\\"SLDE\\\", \\\"score\\\": 83.1, \\\"vs\\\": \\\"KNSL\\\"}, {\\\"t\\\": \\\"EMBC\\\", \\\"score\\\": 79.6, \\\"vs\\\": \\\"TKNO\\\"}, {\\\"t\\\": \\\"EXE\\\", \\\"score\\\": 79.5, \\\"vs\\\": \\\"SJT\\\"}, {\\\"t\\\": \\\"PAYO\\\", \\\"score\\\": 79.2, \\\"vs\\\": \\\"NET\\\"}]}\"}"
+  },
+  "output": {
+    "scored": 1771,
+    "cohorts": 113,
+    "laggards": 40,
+    "cap_distribution": {
+      "small": 32,
+      "micro": 17,
+      "large": 30,
+      "mid": 33,
+      "nano": 5,
+      "mega": 3
+    },
+    "top12": [
+      {
+        "t": "HLF",
+        "score": 91.0,
+        "cap": "small",
+        "r40": null,
+        "evs": 0.17,
+        "vs": "MKC",
+        "prem": 1460
+      },
+      {
+        "t": "SLDE",
+        "score": 83.1,
+        "cap": "small",
+        "r40": null,
+        "evs": 0.54,
+        "vs": "KNSL",
+        "prem": 550
+      },
+      {
+        "t": "EMBC",
+        "score": 79.6,
+        "cap": "micro",
+        "r40": null,
+        "evs": 1.31,
+        "vs": "TKNO",
+        "prem": 420
+      },
+      {
+        "t": "EXE",
+        "score": 79.5,
+        "cap": "large",
+        "r40": 150.0,
+        "evs": 1.51,
+        "vs": "SJT",
+        "prem": 3053575
+      },
+      {
+        "t": "PAYO",
+        "score": 79.2,
+        "cap": "small",
+        "r40": null,
+        "evs": 1.35,
+        "vs": "NET",
+        "prem": 2960
+      },
+      {
+        "t": "DBX",
+        "score": 77.9,
+        "cap": "mid",
+        "r40": null,
+        "evs": 2.87,
+        "vs": "NET",
+        "prem": 1345
+      },
+      {
+        "t": "PRG",
+        "score": 77.1,
+        "cap": "small",
+        "r40": null,
+        "evs": 0.88,
+        "vs": "FTAI",
+        "prem": 1032
+      },
+      {
+        "t": "KINS",
+        "score": 76.8,
+        "cap": "micro",
+        "r40": null,
+        "evs": 1.02,
+        "vs": "KNSL",
+        "prem": 243
+      },
+      {
+        "t": "IIPR",
+        "score": 76.5,
+        "cap": "small",
+        "r40": null,
+        "evs": 7.31,
+        "vs": "SCCF",
+        "prem": 201
+      },
+      {
+        "t": "AYI",
+        "score": 76.3,
+        "cap": "mid",
+        "r40": null,
+        "evs": 2.18,
+        "vs": "ENVX",
+        "prem": 2897
+      },
+      {
+        "t": "NUS",
+        "score": 76.3,
+        "cap": "micro",
+        "r40": null,
+        "evs": 0.23,
+        "vs": "UG",
+        "prem": 1133
+      },
+      {
+        "t": "STLA",
+        "score": 76.2,
+        "cap": "large",
+        "r40": null,
+        "evs": 0.17,
+        "vs": "TSLA",
+        "prem": 11044
+      }
+    ]
+  },
+  "finished": "2026-06-03T23:38:39.532134+00:00"
+}
