@@ -98,11 +98,14 @@ def lambda_handler(event, context):
     # is mirrored to data/user-alert-rules.json for server-side evaluation.
     rules_doc = _read_json("data/user-alert-rules.json") or {}
     alerts_fired = 0
+    price_alerts_fired = 0
     by_ticker = {s["ticker"]: s for s in setups}
+    quotes = _read_json("data/quote-snapshot.json") or {}
+
     for uid, rules in (rules_doc.get("by_user") or {}).items():
         chat = (rules_doc.get("user_chat") or {}).get(uid)
+        # Conviction-rule alerts
         for rule in (rules or []):
-            # rule: {name, min_conviction, require_signals:[...], require_committee}
             matches = []
             for s in setups:
                 if (s.get("conviction") or 0) < (rule.get("min_conviction") or 0):
@@ -116,12 +119,25 @@ def lambda_handler(event, context):
             if matches and chat:
                 m = [f"<b>🔔 Custom alert: {rule.get('name','rule')}</b>"]
                 for s in matches[:5]:
-                    m.append(fmt_setup(s))
-                    m.append("")
+                    m.append(fmt_setup(s)); m.append("")
                 send_telegram("\n".join(m), chat_id=chat)
                 alerts_fired += 1
+        # Price-level alerts (cross detection vs latest quote)
+        price_alerts = (rules_doc.get("price_alerts") or {}).get(uid) or {}
+        for tk, levels in price_alerts.items():
+            px = (quotes.get(tk) or {}).get("price")
+            if px is None:
+                continue
+            for lvl in (levels or []):
+                p = lvl.get("price")
+                d = lvl.get("dir")
+                hit = (d == "above" and px >= p) or (d == "below" and px <= p)
+                if hit and chat:
+                    send_telegram(f"<b>🔔 Price alert</b>\n{tk} crossed {d} ${p:.2f} (now ${px:.2f}) {lvl.get('note','')}", chat_id=chat)
+                    price_alerts_fired += 1
 
     return {"statusCode": 200, "headers": {"Content-Type": "application/json"},
             "body": json.dumps({"ok": True, "setups_pushed": len(headline),
                                  "telegram_status": status, "custom_alerts_fired": alerts_fired,
+                                 "price_alerts_fired": price_alerts_fired,
                                  "elapsed_s": round(time.time() - t0, 1)})}

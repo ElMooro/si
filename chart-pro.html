@@ -689,6 +689,18 @@ a:hover { text-decoration: underline; }
 .tool-btn.ai-btn { color: var(--violet); border-color: var(--violet); }
 .tool-btn.ai-btn:hover { background: rgba(167,139,250,0.12); }
 .tool-btn.active { color: var(--cyan); border-color: var(--cyan); }
+.ind-menu { display: none; position: absolute; top: 110%; left: 0; z-index: 60; background: var(--bg-2); border: 1px solid var(--border-bright); border-radius: 8px; padding: 8px; min-width: 200px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+.ind-menu.open { display: block; }
+.ind-opt { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 5px; font-size: 12px; color: var(--fg-1); cursor: pointer; font-family: var(--font-mono); }
+.ind-opt:hover { background: var(--bg-3); }
+.ind-opt input { accent-color: var(--cyan); }
+.ind-subchart { width: 100%; background: var(--bg); border-top: 1px solid var(--border); position: relative; }
+.ind-sub-label { position: absolute; top: 4px; left: 8px; z-index: 4; font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); pointer-events: none; }
+.jh-toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); z-index: 3000; background: var(--bg-2); border: 1px solid var(--cyan); color: var(--fg-0); font-family: var(--font-mono); font-size: 12px; padding: 10px 18px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
+.jh-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+@keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+.skeleton { background: linear-gradient(90deg, var(--bg-2) 25%, var(--bg-3) 50%, var(--bg-2) 75%); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; border-radius: 5px; }
+.wl-skeleton-row { height: 34px; margin: 5px 8px; }
 
 /* Command palette (Cmd-K) */
 .cmdk-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: flex-start; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
@@ -1379,7 +1391,17 @@ a:hover { text-decoration: underline; }
         <button class="tf-btn" data-mult="1" data-span="month" data-days="3650">1M</button>
       </div>
       <button class="tool-btn" id="compare-btn" title="Overlay a benchmark / compare symbol">⚖ Compare</button>
+      <div class="ind-wrap" style="position:relative;display:inline-block">
+        <button class="tool-btn" id="indicators-btn" title="Add indicators (Bollinger, RSI, MACD)">📊 Indicators</button>
+        <div class="ind-menu" id="ind-menu">
+          <label class="ind-opt"><input type="checkbox" data-ind="bollinger"> Bollinger Bands (20,2)</label>
+          <label class="ind-opt"><input type="checkbox" data-ind="rsi"> RSI (14)</label>
+          <label class="ind-opt"><input type="checkbox" data-ind="macd"> MACD (12,26,9)</label>
+        </div>
+      </div>
       <button class="tool-btn ai-btn" id="ai-read-btn" title="AI reads the current chart + all JustHodl signals">🧠 AI Read</button>
+      <button class="tool-btn" id="price-alert-btn" title="Set a price-level alert (pings you on cross)">🔔+ Price</button>
+      <button class="tool-btn" id="draw-btn" title="Draw a trendline (click two points)">✏ Draw</button>
       <div class="chart-engine-toggle" id="chart-engine-toggle">
         <button class="ceng-btn active" data-engine="auto" title="Auto — picks the engine that can actually show the symbol (recommended)">Auto</button>
         <button class="ceng-btn" data-engine="tv" title="Force TradingView (full toolkit; some symbols gated)">TradingView</button>
@@ -1569,6 +1591,9 @@ const State = {
   chartEngine: 'auto',   // 'auto' | 'tv' (TradingView) | 'native' (Polygon + Lightweight Charts)
   tf: { mult: 1, span: 'day', days: 250 },  // active native timeframe
   compareSymbol: null,   // overlay symbol for relative comparison
+  indicators: { bollinger: false, rsi: false, macd: false },  // native chart studies
+  priceAlerts: {},       // {ticker: [{price, dir, note}]} — per-user price-level alerts
+  drawings: {},          // {ticker: [{type, points}]} — per-user trendline drawings
   nativeChart: null,     // Lightweight Charts instance
   deviceId: null,        // anonymous per-device UID for cloud sync
   syncStatus: 'idle',    // idle|syncing|saved|error
@@ -1831,6 +1856,8 @@ class WatchlistManager {
       if (known) State.knownSymbols = JSON.parse(known);
       const ar = localStorage.getItem('jh_alert_rules');
       if (ar) State.alertRules = JSON.parse(ar);
+      const ws = localStorage.getItem('jh_workspace');
+      if (ws) { const w = JSON.parse(ws); if(w.indicators)State.indicators=w.indicators; if(w.tf)State.tf=w.tf; if(w.priceAlerts)State.priceAlerts=w.priceAlerts; if(w.drawings)State.drawings=w.drawings; }
       const lastWl = localStorage.getItem('jh_active_watchlist');
       if (lastWl && (lastWl === 'favorites' || WATCHLIST_CONFIGS.some(c=>c.id===lastWl) || lastWl.startsWith('custom_'))) {
         State.activeWatchlistId = lastWl;
@@ -1863,6 +1890,10 @@ class WatchlistManager {
         if (data.symbolType) Object.assign(State.symbolType, data.symbolType);
         if (data.knownSymbols) State.knownSymbols = data.knownSymbols;
         if (data.alertRules) State.alertRules = data.alertRules;
+        if (data.indicators) State.indicators = data.indicators;
+        if (data.tf) State.tf = data.tf;
+        if (data.priceAlerts) State.priceAlerts = data.priceAlerts;
+        if (data.drawings) State.drawings = data.drawings;
         if (data.chartTabs && data.chartTabs.length) { State.chartTabs = data.chartTabs; State.activeTabId = data.activeTabId || data.chartTabs[0].id; }
         if (data.chartEngine) State.chartEngine = data.chartEngine;
         if (data.activeWatchlistId) State.activeWatchlistId = data.activeWatchlistId;
@@ -1883,6 +1914,7 @@ class WatchlistManager {
       localStorage.setItem('jh_symbol_type', JSON.stringify(State.symbolType || {}));
       localStorage.setItem('jh_known_symbols', JSON.stringify(State.knownSymbols || {}));
       localStorage.setItem('jh_alert_rules', JSON.stringify(State.alertRules || []));
+      localStorage.setItem('jh_workspace', JSON.stringify({indicators:State.indicators, tf:State.tf, priceAlerts:State.priceAlerts, drawings:State.drawings}));
       localStorage.setItem('jh_active_watchlist', State.activeWatchlistId);
     } catch (e) {}
   }
@@ -1906,6 +1938,10 @@ class WatchlistManager {
           symbolType: State.symbolType,
           knownSymbols: State.knownSymbols,
           alertRules: State.alertRules,
+          indicators: State.indicators,
+          tf: State.tf,
+          priceAlerts: State.priceAlerts,
+          drawings: State.drawings,
           chartTabs: State.chartTabs,
           activeTabId: State.activeTabId,
           chartEngine: State.chartEngine,
@@ -3393,6 +3429,85 @@ class NativeChart {
     return Object.values(byTime).sort((a, b) => a.time - b.time);
   }
   
+  // RSI / MACD subcharts, time-synced to the main chart
+  static renderSubcharts(paneIdx, bars, mainChart) {
+    if (typeof LightweightCharts === 'undefined') return;
+    const closes = bars.map(b => b.close);
+    const baseOpts = (h) => ({ autoSize: true,
+      layout: { background: { color: '#0a0e14' }, textColor: '#6f7b91', fontFamily: "'IBM Plex Mono',monospace", fontSize: 9 },
+      grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
+      rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433', visible: false }, crosshair: { mode: 1 } });
+    const subs = [];
+    // RSI(14)
+    const rsiEl = document.getElementById(`nch-rsi-${paneIdx}`);
+    if (rsiEl) {
+      const period = 14, rsi = [];
+      let gain = 0, loss = 0;
+      for (let i = 1; i <= period && i < closes.length; i++) { const d = closes[i] - closes[i-1]; if (d >= 0) gain += d; else loss -= d; }
+      let ag = gain / period, al = loss / period;
+      for (let i = period + 1; i < closes.length; i++) {
+        const d = closes[i] - closes[i-1];
+        ag = (ag * (period - 1) + (d > 0 ? d : 0)) / period;
+        al = (al * (period - 1) + (d < 0 ? -d : 0)) / period;
+        const rs = al === 0 ? 100 : ag / al;
+        rsi.push({ time: bars[i].time, value: 100 - 100 / (1 + rs) });
+      }
+      const c = LightweightCharts.createChart(rsiEl, baseOpts(110));
+      const s = c.addLineSeries({ color: '#22d3ee', lineWidth: 1, lastValueVisible: true });
+      s.setData(rsi);
+      s.createPriceLine({ price: 70, color: 'rgba(255,85,119,0.4)', lineWidth: 1, lineStyle: 2 });
+      s.createPriceLine({ price: 30, color: 'rgba(38,255,175,0.4)', lineWidth: 1, lineStyle: 2 });
+      c.priceScale('right').applyOptions({ autoScale: false });
+      c.timeScale().fitContent();
+      subs.push(c);
+    }
+    // MACD(12,26,9)
+    const macdEl = document.getElementById(`nch-macd-${paneIdx}`);
+    if (macdEl) {
+      const ema = (arr, p) => { const k = 2/(p+1); let e = arr[0]; const out = [e]; for (let i=1;i<arr.length;i++){ e = arr[i]*k + e*(1-k); out.push(e);} return out; };
+      const e12 = ema(closes, 12), e26 = ema(closes, 26);
+      const macdLine = closes.map((_, i) => e12[i] - e26[i]);
+      const signal = ema(macdLine, 9);
+      const c = LightweightCharts.createChart(macdEl, baseOpts(110));
+      const hist = c.addHistogramSeries({ priceLineVisible: false });
+      const ml = c.addLineSeries({ color: '#22d3ee', lineWidth: 1, lastValueVisible: false });
+      const sl = c.addLineSeries({ color: '#fbbf24', lineWidth: 1, lastValueVisible: false });
+      const hd = [], md = [], sd = [];
+      for (let i = 26; i < closes.length; i++) {
+        const h = macdLine[i] - signal[i];
+        hd.push({ time: bars[i].time, value: h, color: h >= 0 ? 'rgba(38,255,175,0.5)' : 'rgba(255,85,119,0.5)' });
+        md.push({ time: bars[i].time, value: macdLine[i] });
+        sd.push({ time: bars[i].time, value: signal[i] });
+      }
+      hist.setData(hd); ml.setData(md); sl.setData(sd);
+      c.timeScale().fitContent();
+      subs.push(c);
+    }
+    // Sync time scales: when main moves, move subs
+    if (subs.length) {
+      const sync = (src, others) => {
+        src.timeScale().subscribeVisibleLogicalRangeChange(r => {
+          if (!r) return; others.forEach(o => { try { o.timeScale().setVisibleLogicalRange(r); } catch(e){} });
+        });
+      };
+      const all = [mainChart, ...subs];
+      all.forEach((ch, i) => sync(ch, all.filter((_, j) => j !== i)));
+      State.nativeSubcharts = subs;
+    }
+  }
+  
+  // Draw per-user price-level alert lines on the price series
+  static drawPriceAlerts(series, ticker) {
+    const alerts = (State.priceAlerts || {})[ticker] || [];
+    alerts.forEach(a => {
+      try {
+        series.createPriceLine({ price: a.price, color: a.dir === 'below' ? '#ff5577' : '#26ffaf',
+          lineWidth: 1, lineStyle: 0, axisLabelVisible: true,
+          title: `🔔 ${a.dir === 'below' ? '↓' : '↑'} ${a.note || ''}`.trim() });
+      } catch (e) {}
+    });
+  }
+  
   // Overlay a second symbol's normalized line for relative-performance comparison
   static async addCompareOverlay(chart, baseTicker, baseBars, cmpTicker) {
     try {
@@ -3525,11 +3640,16 @@ class NativeChart {
     const paneIdx = State.activeChartPane;
     const container = document.getElementById(`tv-container-${paneIdx}`);
     if (!container) return;
+    const subActive = State.indicators.rsi || State.indicators.macd;
+    const nSub = (State.indicators.rsi ? 1 : 0) + (State.indicators.macd ? 1 : 0);
+    const mainH = subActive ? `calc(100% - ${nSub * 110 + 28}px)` : '100%';
     container.innerHTML = `
-      <div class="native-chart-wrap">
+      <div class="native-chart-wrap" style="display:flex;flex-direction:column">
         <div class="native-chart-head"><div class="nch-sym">${UI.esc(ticker)}</div><div class="nch-meta" id="nch-meta-${paneIdx}">loading…</div></div>
         <div class="native-chart-loading" id="nch-loading-${paneIdx}">Loading ${UI.esc(ticker)} from Polygon…</div>
-        <div id="nch-chart-${paneIdx}" style="width:100%;height:100%"></div>
+        <div id="nch-chart-${paneIdx}" style="width:100%;height:${mainH};flex:none"></div>
+        ${State.indicators.rsi ? `<div class="ind-subchart" id="nch-rsi-${paneIdx}" style="height:110px"><span class="ind-sub-label">RSI (14)</span></div>` : ''}
+        ${State.indicators.macd ? `<div class="ind-subchart" id="nch-macd-${paneIdx}" style="height:110px"><span class="ind-sub-label">MACD (12,26,9)</span></div>` : ''}
       </div>`;
     
     try {
@@ -3578,6 +3698,24 @@ class NativeChart {
         ma50.setData(sma(50));
       }
       
+      // Bollinger Bands (20, 2σ) on the main pane
+      if (State.indicators.bollinger && bars.length >= 20) {
+        const period = 20, k = 2;
+        const upper = [], lower = [], mid = [];
+        for (let i = period - 1; i < bars.length; i++) {
+          const win = bars.slice(i - period + 1, i + 1).map(b => b.close);
+          const m = win.reduce((a, b) => a + b, 0) / period;
+          const sd = Math.sqrt(win.reduce((a, b) => a + (b - m) ** 2, 0) / period);
+          mid.push({ time: bars[i].time, value: m });
+          upper.push({ time: bars[i].time, value: m + k * sd });
+          lower.push({ time: bars[i].time, value: m - k * sd });
+        }
+        const optU = { color: 'rgba(167,139,250,0.7)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false };
+        chart.addLineSeries(optU).setData(upper);
+        chart.addLineSeries({ ...optU, color: 'rgba(167,139,250,0.4)' }).setData(mid);
+        chart.addLineSeries(optU).setData(lower);
+      }
+      
       const volSeries = chart.addHistogramSeries({
         priceFormat: { type: 'volume' }, priceScaleId: '',
         color: 'rgba(34,211,238,0.3)',
@@ -3610,6 +3748,19 @@ class NativeChart {
       const chg = prev.close ? ((last.close - prev.close) / prev.close * 100) : 0;
       const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
       if (metaEl) metaEl.innerHTML = `$${last.close.toFixed(2)} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> · ${bars.length}d`;
+      
+      // Price-level alert lines (per-user)
+      NativeChart.drawPriceAlerts(candleSeries, ticker);
+      // Saved trendline drawings + draw-mode click handler
+      ChartDraw.drawSaved(chart, ticker);
+      chart.subscribeClick(param => {
+        if (!ChartDraw.armed || !param.point || !param.time) return;
+        const price = candleSeries.coordinateToPrice(param.point.y);
+        if (price != null) ChartDraw.onClick({ time: param.time, price }, ticker, chart);
+      });
+      
+      // RSI / MACD subcharts (synced time scale)
+      NativeChart.renderSubcharts(paneIdx, bars, chart);
     } catch (e) {
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `Chart error: ${String(e).slice(0,80)}`; }
@@ -4012,6 +4163,70 @@ class PersonalAI {
 }
 
 // ─── FLAG PICKER ───────────────────────────────────────────────────
+// ─── DRAWING (trendlines on native chart, per-user, persisted) ─────
+class ChartDraw {
+  static armed = false;
+  static pending = null;   // first click point
+  static toggle() {
+    this.armed = !this.armed;
+    document.getElementById('draw-btn').classList.toggle('active', this.armed);
+    if (window.__jhToast) window.__jhToast(this.armed ? '✏ Draw: click two points on the chart' : 'Draw off');
+    this.pending = null;
+  }
+  // Called from a chart click subscription with {time, price}
+  static onClick(pt, ticker, chart) {
+    if (!this.armed || !pt) return;
+    if (!this.pending) { this.pending = pt; if(window.__jhToast) window.__jhToast('✏ now click the second point'); return; }
+    const line = [this.pending, pt].sort((a,b) => a.time - b.time);
+    if (!State.drawings[ticker]) State.drawings[ticker] = [];
+    State.drawings[ticker].push({ type: 'trend', points: line });
+    WatchlistManager.syncToCloud();
+    this.pending = null; this.armed = false;
+    document.getElementById('draw-btn').classList.remove('active');
+    const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t);
+  }
+  static drawSaved(chart, ticker) {
+    const draws = (State.drawings || {})[ticker] || [];
+    draws.forEach(d => {
+      if (d.type === 'trend' && d.points && d.points.length === 2) {
+        const s = chart.addLineSeries({ color: '#e0b341', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+        s.setData(d.points.map(p => ({ time: p.time, value: p.price })));
+      }
+    });
+  }
+  static clear(ticker) {
+    if (State.drawings[ticker]) { delete State.drawings[ticker]; WatchlistManager.syncToCloud();
+      const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t); }
+  }
+}
+
+// ─── PRICE-LEVEL ALERTS (per-user, drawn on chart + evaluated server-side) ──
+class PriceAlert {
+  static add(ticker) {
+    ticker = ticker || State.activeTicker;
+    if (!ticker) return;
+    const q = State.quotes[ticker];
+    const cur = q && q.price ? q.price.toFixed(2) : '';
+    const v = prompt(`Price alert for ${ticker}. Enter a price level:`, cur);
+    if (!v) return;
+    const price = parseFloat(v);
+    if (!isFinite(price)) return;
+    const curPrice = q && q.price ? q.price : price;
+    const dir = price >= curPrice ? 'above' : 'below';
+    const note = prompt('Optional note (e.g. "breakout", "stop"):', '') || '';
+    if (!State.priceAlerts[ticker]) State.priceAlerts[ticker] = [];
+    State.priceAlerts[ticker].push({ price, dir, note, created: Date.now() });
+    WatchlistManager.syncToCloud();
+    // re-render to draw the line
+    const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t);
+    if (window.__jhToast) window.__jhToast(`🔔 Alert set: ${ticker} ${dir} $${price.toFixed(2)}`);
+  }
+  static list(ticker) { return (State.priceAlerts || {})[ticker] || []; }
+  static remove(ticker, idx) {
+    if (State.priceAlerts[ticker]) { State.priceAlerts[ticker].splice(idx, 1); WatchlistManager.syncToCloud(); }
+  }
+}
+
 // ─── NEWS SERVICE (per-ticker headlines via /news) ─────────────────
 class NewsService {
   static cache = {};
@@ -4360,33 +4575,32 @@ class Heatmap {
 
 // ─── INIT ──────────────────────────────────────────────────────────
 async function init() {
-  // Load persisted state (custom watchlists, flags, last active) from localStorage
+  // 1. Instant: load persisted state from localStorage + paint the shell
   WatchlistManager.loadAll();
-  
-  // Load all platform data
-  await DataService.loadAll();
-  
-  // Try to load user data from cloud (syncs across devices); falls back to local
-  await WatchlistManager.loadFromCloud();
-  
-  // Build search index
   UniverseSearch.buildIndex();
-  
-  // Chart tabs (multiple charts) — init before layout
   ChartTabs.init();
-  // Reflect loaded engine preference in the toggle
   document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === State.chartEngine));
-  // Set active ticker from the active tab
   const activeTab = State.chartTabs.find(t => t.id === State.activeTabId);
   if (activeTab) State.activeTicker = activeTab.symbol;
-  
-  // Render watchlist (selector + dropdown + body) + fetch quotes
   UI.refreshWatchlist();
   UI.renderSyncStatus();
   UI.renderInfoPanel();
   UI.renderSignalStrip(State.activeTicker);
-  ChartController.initLayout();
+  ChartController.initLayout();   // chart paints immediately
   updateSessionStatus();
+  
+  // 2. Background: load platform data + cloud state, then re-render the data-driven surfaces
+  Promise.resolve().then(async () => {
+    await DataService.loadAll();
+    await WatchlistManager.loadFromCloud();
+    UniverseSearch.buildIndex();
+    UI.refreshWatchlist();
+    UI.renderInfoPanel();
+    UI.renderSignalStrip(State.activeTicker);
+    UI.renderSetups();
+    // chart tabs may reference signal data now
+    ChartTabs.render && ChartTabs.render();
+  });
   
   // Auto-refresh data every 5 min
   setInterval(async () => {
@@ -4519,6 +4733,23 @@ async function init() {
     }, 0));
   });
   
+  // ── Indicators menu ──
+  const indBtn = document.getElementById('indicators-btn');
+  const indMenu = document.getElementById('ind-menu');
+  indBtn.addEventListener('click', (e) => { e.stopPropagation(); indMenu.classList.toggle('open'); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.ind-wrap')) indMenu.classList.remove('open'); });
+  // reflect saved state
+  document.querySelectorAll('#ind-menu input[data-ind]').forEach(cb => {
+    cb.checked = !!State.indicators[cb.dataset.ind];
+    cb.addEventListener('change', () => {
+      State.indicators[cb.dataset.ind] = cb.checked;
+      indBtn.classList.toggle('active', Object.values(State.indicators).some(Boolean));
+      WatchlistManager.syncToCloud();
+      const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t);
+    });
+  });
+  indBtn.classList.toggle('active', Object.values(State.indicators).some(Boolean));
+  
   // ── Timeframe bar ──
   document.querySelectorAll('.tf-btn').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('.tf-btn').forEach(x => x.classList.remove('active'));
@@ -4538,6 +4769,14 @@ async function init() {
   });
   // ── AI Read ──
   document.getElementById('ai-read-btn').addEventListener('click', () => ChartAI.read());
+  // ── Price alert ──
+  document.getElementById('price-alert-btn').addEventListener('click', () => PriceAlert.add());
+  // ── Draw trendline ──
+  document.getElementById('draw-btn').addEventListener('click', () => ChartDraw.toggle());
+  // Apply saved timeframe to the toolbar
+  document.querySelectorAll('.tf-btn').forEach(x => x.classList.toggle('active', x.dataset.span === State.tf.span && x.dataset.mult == String(State.tf.mult)));
+  // Simple toast
+  window.__jhToast = (msg) => { let t = document.getElementById('jh-toast'); if(!t){t=document.createElement('div');t.id='jh-toast';t.className='jh-toast';document.body.appendChild(t);} t.textContent=msg; t.classList.add('show'); clearTimeout(window.__jhToastT); window.__jhToastT=setTimeout(()=>t.classList.remove('show'),2600); };
   // ── Command palette (Cmd-K / Ctrl-K) ──
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); CommandPalette.open(); }
