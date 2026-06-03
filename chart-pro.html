@@ -123,25 +123,49 @@ a:hover { text-decoration: underline; }
 .universe-search {
   position: relative;
   display: flex; align-items: center;
-  background: var(--bg-2); border: 1px solid var(--border);
-  border-radius: 4px; padding: 5px 8px;
-  width: 240px; transition: border-color 0.15s;
+  background: var(--bg-2); border: 1px solid var(--border-bright);
+  border-radius: 7px; padding: 8px 12px;
+  flex: 1; max-width: 560px; min-width: 220px;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.universe-search:focus-within { border-color: var(--cyan); }
-.universe-search svg { width: 13px; height: 13px; color: var(--fg-3); margin-right: 6px; flex-shrink: 0; }
+.universe-search:focus-within { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(34,211,238,0.12); }
+.universe-search svg { width: 15px; height: 15px; color: var(--cyan); margin-right: 8px; flex-shrink: 0; }
 .universe-search input {
   background: transparent; border: none; outline: none;
-  color: var(--fg-1); font-family: var(--font-mono); font-size: 11.5px;
+  color: var(--fg-1); font-family: var(--font-mono); font-size: 13px;
   flex: 1; min-width: 0;
   text-transform: uppercase;
 }
-.universe-search input::placeholder { color: var(--fg-3); text-transform: none; letter-spacing: 0.3px; }
+.universe-search input::placeholder { color: var(--fg-3); text-transform: none; letter-spacing: 0.2px; font-size: 12px; }
 .universe-search kbd {
   font-family: var(--font-mono); font-size: 9.5px;
   background: var(--bg); border: 1px solid var(--border);
-  padding: 1px 5px; border-radius: 3px; color: var(--fg-3);
-  margin-left: 6px;
+  padding: 2px 6px; border-radius: 3px; color: var(--fg-3);
+  margin-left: 8px; flex-shrink: 0;
 }
+/* Inline results dropdown directly under the header search */
+.hsearch-dropdown {
+  display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: var(--bg-1); border: 1px solid var(--border-bright); border-radius: 10px;
+  max-height: 70vh; overflow-y: auto; z-index: 500;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55); padding: 6px;
+}
+.hsearch-dropdown.open { display: block; }
+.hs-group { font-family: var(--font-mono); font-size: 9px; color: var(--fg-4); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; padding: 9px 12px 4px; }
+.hs-row { display: grid; grid-template-columns: 64px 1fr auto; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 7px; cursor: pointer; }
+.hs-row.sel, .hs-row:hover { background: var(--bg-3); }
+.hs-tk { font-family: var(--font-mono); font-weight: 700; font-size: 12.5px; color: var(--fg-0); }
+.hs-tk.macro { color: var(--violet); font-size: 10.5px; }
+.hs-name { font-size: 12px; color: var(--fg-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-tag { font-family: var(--font-mono); font-size: 8.5px; padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); color: var(--fg-3); white-space: nowrap; }
+.hs-tag.signal { color: var(--green); border-color: var(--green); }
+.hs-tag.macro { color: var(--violet); border-color: var(--violet); }
+.hs-tag.crypto { color: var(--amber); border-color: var(--amber); }
+.hs-tag.forex { color: var(--green); border-color: var(--green); }
+.hs-badges { display: inline-flex; gap: 3px; margin-left: 6px; }
+.hs-badge { font-family: var(--font-mono); font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: 3px; border: 1px solid var(--border); color: var(--fg-3); }
+.hs-empty { padding: 22px; text-align: center; color: var(--fg-3); font-size: 12px; font-style: italic; }
+.hs-foot { padding: 7px 12px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 9px; color: var(--fg-4); display: flex; gap: 14px; }
 
 .layout-switcher { display: flex; gap: 2px; }
 .layout-btn {
@@ -1274,8 +1298,9 @@ a:hover { text-decoration: underline; }
   
   <div class="universe-search" id="universe-search">
     <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
-    <input type="text" id="search-input" placeholder="Search your entire universe..." autocomplete="off" />
+    <input type="text" id="search-input" placeholder="Search any ticker, company, crypto, forex, or macro series…" autocomplete="off" />
     <kbd>/</kbd>
+    <div class="hsearch-dropdown" id="hsearch-dropdown"></div>
   </div>
   
   <div class="layout-switcher" id="layout-switcher">
@@ -4157,6 +4182,98 @@ class UniverseSearch {
   }
 }
 
+// ─── HEADER SEARCH (always-visible, inline dropdown across all data) ──
+class HeaderSearch {
+  static _seq = 0;
+  static sel = 0;
+  static results = [];
+  
+  static init() {
+    const input = document.getElementById('search-input');
+    const dd = document.getElementById('hsearch-dropdown');
+    if (!input || !dd) return;
+    input.addEventListener('input', () => this.onInput(input.value));
+    input.addEventListener('focus', () => { if (input.value.trim()) this.onInput(input.value); });
+    input.addEventListener('keydown', (e) => this.onKey(e, input));
+    document.addEventListener('click', (e) => { if (!e.target.closest('#universe-search')) this.close(); });
+  }
+  static close() { const dd = document.getElementById('hsearch-dropdown'); if (dd) dd.classList.remove('open'); }
+  
+  static onInput(q) {
+    q = (q || '').trim();
+    const dd = document.getElementById('hsearch-dropdown');
+    if (!q) { this.close(); return; }
+    this._seq++; const seq = this._seq;
+    // Instant local JustHodl results
+    const local = UniverseSearch.localSearch(q).map(r => ({ ticker: r.ticker, name: r.name, kind: 'justhodl', sources: r.sources }));
+    this._groups = { justhodl: local, equity: [], macro: [] };
+    this.render(true);
+    // Remote: TradingView universe + FRED, each renders as it returns
+    const enc = encodeURIComponent(q);
+    fetch(`${PROXY}/tv-search?text=${enc}`).then(r => r.ok ? r.json() : {symbols:[]}).then(d => {
+      if (seq !== this._seq) return;
+      const lt = new Set(local.map(l => l.ticker));
+      this._groups.equity = (d.symbols || []).filter(s => !lt.has((s.symbol||'').toUpperCase()))
+        .map(s => ({ ticker: s.symbol, name: s.description, kind: 'equity', type: s.type, exchange: s.exchange, full: s.full }));
+      this.render();
+    }).catch(()=>{});
+    fetch(`${PROXY}/fred-search?text=${enc}`).then(r => r.ok ? r.json() : {series:[]}).then(d => {
+      if (seq !== this._seq) return;
+      this._groups.macro = (d.series || []).map(s => ({ ticker: 'FRED:' + s.id, display: s.id, name: s.title, kind: 'macro', units: s.units, frequency: s.frequency }));
+      this.render();
+    }).catch(()=>{});
+  }
+  
+  static render(partial) {
+    const dd = document.getElementById('hsearch-dropdown');
+    const g = this._groups || { justhodl: [], equity: [], macro: [] };
+    this.results = [...g.justhodl, ...g.equity, ...g.macro];
+    dd.classList.add('open');
+    if (!this.results.length) { dd.innerHTML = `<div class="hs-empty">${partial ? 'Searching…' : 'No matches'}</div>`; return; }
+    let idx = 0; let html = '';
+    const section = (label, items, fn) => { if (!items.length) return ''; let s = `<div class="hs-group">${label}</div>`; items.forEach(it => { s += fn(it, idx); idx++; }); return s; };
+    html += section('★ Your JustHodl signals', g.justhodl, (r, i) => {
+      const badges = (r.sources||[]).slice(0,3).map(x => `<span class="hs-badge">${x}</span>`).join('');
+      return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}"><span class="hs-tk">${UI.esc(r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}<span class="hs-badges">${badges}</span></span><span class="hs-tag signal">signal</span></div>`;
+    });
+    html += section('Equities · ETFs · Crypto · Forex · Futures', g.equity, (r, i) => {
+      const tc = (r.type||'').toLowerCase();
+      return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}" data-full="${UI.esc(r.full||'')}" data-type="${UI.esc(tc)}"><span class="hs-tk">${UI.esc(r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}</span><span class="hs-tag ${tc}">${UI.esc((r.type||'eq'))} ${UI.esc(r.exchange||'')}</span></div>`;
+    });
+    html += section('Macro · FRED economic series', g.macro, (r, i) => {
+      return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}"><span class="hs-tk macro">${UI.esc(r.display||r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}</span><span class="hs-tag macro">${UI.esc(r.frequency||'macro')}</span></div>`;
+    });
+    html += `<div class="hs-foot"><span>↑↓ navigate</span><span>↵ load</span><span>esc close</span><span>${this.results.length} results</span></div>`;
+    dd.innerHTML = html;
+    dd.querySelectorAll('.hs-row').forEach(el => el.addEventListener('click', () => this.pick(+el.dataset.i)));
+  }
+  
+  static pick(i) {
+    const r = this.results[i];
+    if (!r) return;
+    if (r.kind === 'equity' && r.type) State.symbolType[r.ticker] = r.type;
+    if (r.kind === 'equity' && r.full && r.full.includes(':') && !/^[A-Z]{1,5}$/.test(r.ticker)) State.symbolResolution[r.ticker] = r.full;
+    WatchlistManager.rememberSymbol(r.ticker, r.kind);
+    ChartController.loadTicker(r.ticker);
+    this.close();
+    const input = document.getElementById('search-input'); if (input) input.blur();
+  }
+  
+  static onKey(e, input) {
+    const dd = document.getElementById('hsearch-dropdown');
+    const open = dd && dd.classList.contains('open');
+    if (e.key === 'ArrowDown') { e.preventDefault(); this.sel = Math.min(this.sel+1, this.results.length-1); this.render(); this._scroll(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); this.sel = Math.max(this.sel-1, 0); this.render(); this._scroll(); }
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (open && this.results[this.sel]) this.pick(this.sel);
+      else { const q = input.value.trim().toUpperCase(); if (q) { WatchlistManager.rememberSymbol(q, 'equity'); ChartController.loadTicker(q); this.close(); input.blur(); } }
+    }
+    else if (e.key === 'Escape') { this.close(); input.blur(); }
+  }
+  static _scroll() { const el = document.querySelector('#hsearch-dropdown .hs-row.sel'); if (el) el.scrollIntoView({ block: 'nearest' }); }
+}
+
 // ─── ADD SYMBOL (full TradingView universe + JustHodl) ─────────────
 class AddSymbol {
   static targetWatchlistId = null;
@@ -4485,7 +4602,7 @@ class ChartAI {
 class CommandPalette {
   static commands() {
     return [
-      { icon: '🔍', label: 'Search any symbol or macro series', hint: '/', group: 'Navigate', run: () => UniverseSearch.open() },
+      { icon: '🔍', label: 'Search any symbol or macro series', hint: '/', group: 'Navigate', run: () => { const si=document.getElementById('search-input'); if(si){si.focus();si.select();} } },
       { icon: '⚡', label: "Open Today's Setups", hint: '\\', group: 'Navigate', run: () => { UI.renderSetups(); window.__jhDrawers.setSetups(true); } },
       { icon: '📋', label: 'Toggle Watchlist', hint: '[', group: 'Navigate', run: () => window.__jhDrawers.setLeft(true) },
       { icon: '🧠', label: 'Toggle Intel panel', hint: ']', group: 'Navigate', run: () => window.__jhDrawers.setRight(true) },
@@ -5030,10 +5147,9 @@ async function init() {
   
   // ── Universe search ──
   const searchInput = document.getElementById('search-input');
-  searchInput.addEventListener('focus', () => UniverseSearch.open());
-  searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { const q = searchInput.value.trim().toUpperCase(); if (q) ChartController.loadTicker(q); }
-  });
+  HeaderSearch.init();
+  // reset selection when starting a new search
+  searchInput.addEventListener('input', () => { HeaderSearch.sel = 0; });
   document.getElementById('search-modal-input').addEventListener('input', (e) => {
     UniverseSearch.onInput(e.target.value);
   });
@@ -5063,7 +5179,7 @@ async function init() {
   // ── Global keyboard shortcuts ──
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === '/') { e.preventDefault(); UniverseSearch.open(); }
+    if (e.key === '/') { e.preventDefault(); const si = document.getElementById('search-input'); if (si) { si.focus(); si.select(); } }
     if (e.key === 'Escape') {
       UniverseSearch.close(); Heatmap.close(); FlagPicker.close(); AddSymbol.close();
       MacroData.close();
