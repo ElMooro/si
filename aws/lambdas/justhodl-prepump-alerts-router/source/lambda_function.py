@@ -45,6 +45,28 @@ def _read_json(key: str) -> Optional[dict]:
     except Exception:
         return None
 
+def get_active_cascade() -> dict:
+    """Return calibrated cascade if confidence >= MEDIUM, else original.
+
+    Reads cascade-recalibration-audit.json to check calibration confidence.
+    Once self-improvement has scored 20+ predictions, the system blends in
+    learned weights. This consumer auto-switches without code changes.
+    """
+    try:
+        audit = _read_json("data/cascade-recalibration-audit.json") or {}
+        confidence = (audit.get("blend") or {}).get("confidence", "NONE")
+        if confidence in ("MEDIUM", "HIGH"):
+            cal = _read_json("data/theme-cascade-calibrated.json")
+            if cal:
+                print(f"[adaptive-cascade] using CALIBRATED cascade (confidence={confidence})")
+                return cal
+        print(f"[adaptive-cascade] using ORIGINAL cascade (confidence={confidence})")
+    except Exception as e:
+        print(f"[adaptive-cascade] err {e} — falling back to original")
+    return _read_json("data/theme-cascade.json") or {}
+
+
+
 
 # ═════════════════════════════════════════════════════════════════════
 # TRADE TICKET INTEGRATION — embed entry/stop/TP1/TP2/TP3 into alerts
@@ -155,7 +177,7 @@ def _mark_alerted(state: dict, signal_type: str, key: str):
 
 def check_cascade_laggards(state: dict) -> List[str]:
     """New entries in theme-cascade.laggards_hot_themes."""
-    cascade = _read_json("data/theme-cascade.json")
+    cascade = get_active_cascade()
     if not cascade:
         return []
     laggards = cascade.get("laggards_hot_themes") or []
@@ -413,7 +435,7 @@ def check_earnings_imminent(state: dict) -> List[str]:
     if not cats:
         return []
     # Get list of cascade-tracked tickers
-    cascade = _read_json("data/theme-cascade.json") or {}
+    cascade = get_active_cascade()
     tracked = set()
     for tier_key in ["alert_tier", "medium_tier", "watch_tier", "laggards_hot_themes"]:
         for c in (cascade.get(tier_key) or []):

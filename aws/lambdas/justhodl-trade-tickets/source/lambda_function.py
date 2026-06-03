@@ -48,6 +48,28 @@ def _read_json(key: str) -> Optional[dict]:
     except Exception:
         return None
 
+def get_active_cascade() -> dict:
+    """Return calibrated cascade if confidence >= MEDIUM, else original.
+
+    Reads cascade-recalibration-audit.json to check calibration confidence.
+    Once self-improvement has scored 20+ predictions, the system blends in
+    learned weights. This consumer auto-switches without code changes.
+    """
+    try:
+        audit = _read_json("data/cascade-recalibration-audit.json") or {}
+        confidence = (audit.get("blend") or {}).get("confidence", "NONE")
+        if confidence in ("MEDIUM", "HIGH"):
+            cal = _read_json("data/theme-cascade-calibrated.json")
+            if cal:
+                print(f"[adaptive-cascade] using CALIBRATED cascade (confidence={confidence})")
+                return cal
+        print(f"[adaptive-cascade] using ORIGINAL cascade (confidence={confidence})")
+    except Exception as e:
+        print(f"[adaptive-cascade] err {e} — falling back to original")
+    return _read_json("data/theme-cascade.json") or {}
+
+
+
 
 def fetch_polygon_ohlc(ticker: str, days: int = 25) -> List[dict]:
     """Fetch daily OHLC via Polygon Stocks Starter."""
@@ -215,7 +237,7 @@ def lambda_handler(event, context):
     t0 = time.time()
     print("[trade-tickets] starting")
 
-    cascade = _read_json("data/theme-cascade.json") or {}
+    cascade = get_active_cascade()
     portfolio_usd = float(event.get("portfolio_usd")) if event.get("portfolio_usd") else DEFAULT_PORTFOLIO_USD
 
     # Collect all cascade candidates (alert_tier + medium_tier + laggards)
