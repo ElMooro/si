@@ -234,21 +234,33 @@ def lambda_handler(event, context):
     cascade = _read_json("data/theme-cascade.json") or {}
     calibration = _read_json("data/cascade-calibration.json") or {}
 
-    weights = calibration.get("current_weights") or {}
+    weights_global = calibration.get("current_weights") or {}
+    weights_by_tier = calibration.get("current_weights_by_tier") or {}
     n_predictions = (calibration.get("feature_attribution") or {}).get("n_predictions_analyzed", 0)
 
     blend = determine_blend_weights(n_predictions)
     print(f"[recalibrator] n_predictions={n_predictions} confidence={blend['confidence']} "
           f"blend={blend['original']:.0%} orig / {blend['calibrated']:.0%} calibrated")
-    print(f"[recalibrator] {len(weights)} learned weights available")
+    print(f"[recalibrator] {len(weights_global)} global weights · "
+          f"per-tier weights available for: {list(weights_by_tier.keys())}")
 
     # Recalibrate each tier
     output = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",  # bumped for per-tier
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "calibration_n_predictions": n_predictions,
         "blend": blend,
-        "weights_applied": weights,
+        "weights_applied_global": weights_global,
+        "weights_applied_by_tier": weights_by_tier,
+        "per_tier_calibration": bool(weights_by_tier),
+    }
+
+    # Map cascade tier_key → calibration tier name
+    TIER_MAPPING = {
+        "alert_tier": "ALERT",
+        "medium_tier": "MEDIUM",
+        "laggards_hot_themes": "LAGGARD",
+        "watch_tier": "ALERT",  # use alert weights as fallback
     }
 
     rank_audit = {}
@@ -258,13 +270,29 @@ def lambda_handler(event, context):
             output[tier_key] = []
             continue
 
-        calibrated_candidates = recalibrate_candidates(original_candidates, weights, blend)
+        # Pick weights: prefer per-tier if available with enough data, else global
+        cal_tier_name = TIER_MAPPING.get(tier_key, "ALERT")
+        tier_weights = weights_by_tier.get(cal_tier_name)
+        if tier_weights and len(tier_weights) >= 3:
+            active_weights = tier_weights
+            weight_source = f"per-tier ({cal_tier_name})"
+        else:
+            active_weights = weights_global
+            weight_source = "global"
+
+        calibrated_candidates = recalibrate_candidates(original_candidates, active_weights, blend)
+        # Annotate weight source
+        for c in calibrated_candidates:
+            c["calibration_weight_source"] = weight_source
         output[tier_key] = calibrated_candidates
 
-        # Audit rank changes (only meaningful for alert_tier + laggards)
+        # Audit
         if tier_key in ["alert_tier", "laggards_hot_themes"]:
             rank_audit[tier_key] = compute_rank_changes(original_candidates, calibrated_candidates)
-            print(f"[recalibrator] {tier_key}: retention {rank_audit[tier_key].get('top_10_retention_pct')}%, "
+            rank_audit[tier_key]["weight_source"] = weight_source
+            rank_audit[tier_key]["n_weights_applied"] = len(active_weights)
+            print(f"[recalibrator] {tier_key}: weight_source={weight_source}, "
+                  f"retention {rank_audit[tier_key].get('top_10_retention_pct')}%, "
                   f"avg_delta {rank_audit[tier_key].get('avg_rank_delta')}")
 
     # Copy metadata from original cascade
@@ -278,13 +306,22 @@ def lambda_handler(event, context):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "blend": blend,
         "calibration_n_predictions": n_predictions,
-        "n_weights": len(weights),
-        "top_weights": sorted(weights.items(), key=lambda x: -abs(x[1] - 1.0))[:10],
+        "n_weights_global": len(weights_global),
+        "n_weights_by_tier": {tier: len(w) for tier, w in weights_by_tier.items()},
+        "per_tier_calibration_active": bool(weights_by_tier),
+        "top_weights": sorted(weights_global.items(), key=lambda x: -abs(x[1] - 1.0))[:10],
+        "top_weights_by_tier": {
+            tier: sorted(w.items(), key=lambda x: -abs(x[1] - 1.0))[:6]
+            for tier, w in weights_by_tier.items()
+        },
         "rank_changes": rank_audit,
         "methodology": (
-            "For each candidate, calibration_adjustment = exp(Σ(normalized_feature × log(weight)) / n_features) "
-            "clamped to [0.3, 2.5]. Final combined_score = blend.original × original_score + "
-            "blend.calibrated × (original_score × adjustment). Re-ranked by final_score."
+            "Per-tier calibration: each cascade tier (ALERT, LAGGARD, etc.) has "
+            "its own learned weights based on which features predict pumps WITHIN "
+            "that tier. Falls back to global weights when per-tier data <3 features. "
+            "Final score = blend × (original × tier_specific_adjustment) where "
+            "adjustment = exp(Σ(normalized_feature × log(weight)) / n_features) "
+            "clamped to [0.3, 2.5]."
         ),
     }
 

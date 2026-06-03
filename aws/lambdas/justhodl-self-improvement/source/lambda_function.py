@@ -163,11 +163,19 @@ def compute_feature_attribution(scored_preds: List[dict]) -> dict:
         "early_score", "insider_n_buyers", "ticket_atr_pct",
     ]
 
+    attribution = _compute_attribution_for_group(valid, features_to_test)
+    return attribution
+
+
+def _compute_attribution_for_group(preds: List[dict], features_to_test: List[str]) -> dict:
+    """Helper: compute attribution for a specific group of predictions."""
+    if len(preds) < 5:
+        return {"insufficient_data": True, "n_valid": len(preds)}
+
     attribution = {}
     for feat in features_to_test:
-        # Filter to predictions that have this feature
         with_feat = []
-        for p in valid:
+        for p in preds:
             val = (p.get("features") or {}).get(feat)
             if val is not None and isinstance(val, (int, float)):
                 with_feat.append({"val": val, "outcome": p["outcome"],
@@ -175,7 +183,6 @@ def compute_feature_attribution(scored_preds: List[dict]) -> dict:
         if len(with_feat) < 5:
             continue
 
-        # Sort by feature value
         with_feat.sort(key=lambda x: x["val"])
         n = len(with_feat)
         q_size = max(1, n // 4)
@@ -204,12 +211,11 @@ def compute_feature_attribution(scored_preds: List[dict]) -> dict:
             "return_lift_pct": round(top_avg_ret - bot_avg_ret, 2),
         }
 
-    # Rank features by lift
     ranked = sorted(attribution.items(),
                      key=lambda x: -(x[1].get("hit_rate_lift_pp") or 0))
 
     return {
-        "n_predictions_analyzed": len(valid),
+        "n_predictions_analyzed": len(preds),
         "features_analyzed": list(attribution.keys()),
         "by_feature": attribution,
         "ranked_by_hit_rate_lift": [
@@ -218,6 +224,71 @@ def compute_feature_attribution(scored_preds: List[dict]) -> dict:
              "top_q_hit_rate": v.get("top_quartile_hit_rate")}
             for k, v in ranked
         ],
+    }
+
+
+def compute_per_tier_attribution(scored_preds: List[dict]) -> dict:
+    """Compute attribution SEPARATELY for each alert tier.
+
+    Different tiers (ALERT, LAGGARD, FIRED, OPTIONS_EXTREME, INSIDER_CLUSTER,
+    CONVERGENCE_ULTRA) likely have different predictive features. This computes
+    weights per group so the recalibrator can use tier-specific weights.
+    """
+    features_to_test = [
+        "combined_score", "theme_acceleration", "n_etfs_in_top_10",
+        "n_etfs_in_top_20", "aggregate_flow_5d_usd", "perf_20d_pct",
+        "options_cv_pv_ratio", "options_call_vol", "options_mean_iv",
+        "velocity_composite", "convergence_score", "n_engines",
+        "early_score", "insider_n_buyers", "ticket_atr_pct",
+    ]
+
+    # Define tier classifiers
+    def classify(alerts: List[str]) -> str:
+        """Return the primary tier classification for a prediction."""
+        alerts_set = set(alerts or [])
+        # Priority order: most specific first
+        if "CASCADE_ALERT" in alerts_set:
+            return "ALERT"
+        if "CASCADE_LAGGARD" in alerts_set:
+            return "LAGGARD"
+        if any(a.startswith("VELOCITY_FIRED") for a in alerts_set):
+            return "VELOCITY_FIRED"
+        if "OPTIONS_EXTREME_CALL" in alerts_set:
+            return "OPTIONS_EXTREME"
+        if "OPTIONS_BULLISH_CALL" in alerts_set:
+            return "OPTIONS_BULLISH"
+        if "INSIDER_CLUSTER" in alerts_set:
+            return "INSIDER_CLUSTER"
+        if any(a.startswith("CONVERGENCE_") for a in alerts_set):
+            return "CONVERGENCE"
+        if "EARLY_MOVER_ALERT" in alerts_set:
+            return "EARLY_MOVER"
+        if "CASCADE_MEDIUM" in alerts_set:
+            return "MEDIUM"
+        return "OTHER"
+
+    valid = [p for p in scored_preds if p.get("outcome") in ("HIT", "HIT_BIG", "SLOW", "FLAT", "MISS")]
+
+    # Group by tier
+    by_tier = {}
+    for p in valid:
+        tier = classify(p.get("alerts") or [])
+        by_tier.setdefault(tier, []).append(p)
+
+    # Compute attribution per tier
+    per_tier = {}
+    for tier, preds in by_tier.items():
+        attribution = _compute_attribution_for_group(preds, features_to_test)
+        per_tier[tier] = attribution
+
+    # Also compute global
+    global_attribution = _compute_attribution_for_group(valid, features_to_test)
+
+    return {
+        "global": global_attribution,
+        "by_tier": per_tier,
+        "tier_distribution": {tier: len(preds) for tier, preds in by_tier.items()},
+        "n_valid_total": len(valid),
     }
 
 
@@ -358,9 +429,15 @@ def lambda_handler(event, context):
         for r in ex.map(_score, predictions):
             scored.append(r)
 
-    # Compute feature attribution + calibrated weights
+    # Compute feature attribution + calibrated weights (BOTH global AND per-tier)
     attribution = compute_feature_attribution(scored)
     weights = compute_calibrated_weights(attribution)
+    
+    # Per-tier attribution
+    per_tier_attribution = compute_per_tier_attribution(scored)
+    per_tier_weights = {}
+    for tier, tier_attr in (per_tier_attribution.get("by_tier") or {}).items():
+        per_tier_weights[tier] = compute_calibrated_weights(tier_attr).get("weights") or {}
 
     # Save outputs
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -375,16 +452,20 @@ def lambda_handler(event, context):
         ContentType="application/json", CacheControl="public, max-age=86400",
     )
 
-    # Update cumulative calibration
+    # Update cumulative calibration (with per-tier weights)
     cal_doc = _read_json("data/cascade-calibration.json") or {"history": []}
     cal_doc["last_updated"] = datetime.now(timezone.utc).isoformat()
     cal_doc["current_weights"] = weights.get("weights") or {}
+    cal_doc["current_weights_by_tier"] = per_tier_weights
     cal_doc["feature_attribution"] = attribution
+    cal_doc["feature_attribution_by_tier"] = per_tier_attribution
     cal_doc["history"] = (cal_doc.get("history") or [])[-29:]  # keep last 30 entries
     cal_doc["history"].append({
         "date": today,
         "n_predictions_analyzed": weights.get("n_data_points", 0),
         "weights": weights.get("weights") or {},
+        "weights_by_tier": per_tier_weights,
+        "tier_distribution": per_tier_attribution.get("tier_distribution") or {},
     })
     s3.put_object(
         Bucket=S3_BUCKET, Key="data/cascade-calibration.json",
