@@ -797,6 +797,12 @@ a:hover{color:var(--violet)}
       <div class="cal-loading">No re-ranking yet — calibration confidence too low.</div>
     </div>
   </div>
+  <div class="cal-movers-section" id="cal-sparklines-section">
+    <div class="cal-section-lbl">📈 Weight Evolution (last 30 days · top 6 features by volatility)</div>
+    <div id="cal-sparklines">
+      <div class="cal-loading">Sparklines will populate once daily calibration history accumulates…</div>
+    </div>
+  </div>
 </div>
 <script>
 (function() {
@@ -918,6 +924,94 @@ a:hover{color:var(--violet)}
     mEl.innerHTML = tierBlocks.length > 0 ? 
       `<div class="cal-movers-list">${tierBlocks.join('')}</div>` :
       `<div class="cal-loading">No rank changes yet.</div>`;
+    
+    // Render weight evolution sparklines from history
+    renderSparklines(cal);
+  }
+
+  function renderSparklines(cal) {
+    if (!cal) return;
+    const history = cal.history || [];
+    const sEl = document.getElementById("cal-sparklines");
+    if (!sEl) return;
+    
+    if (history.length < 2) {
+      sEl.innerHTML = `<div class="cal-loading">Sparklines need at least 2 days of history (${history.length} so far)…</div>`;
+      return;
+    }
+    
+    // For each feature, collect its weight series across all history entries
+    const featureSeries = {};
+    history.forEach(h => {
+      const weights = h.weights || {};
+      Object.entries(weights).forEach(([feat, val]) => {
+        if (!featureSeries[feat]) featureSeries[feat] = [];
+        featureSeries[feat].push({ date: h.date, val: val });
+      });
+    });
+    
+    // Compute volatility (std dev) for each feature to pick the most interesting ones
+    const featureStats = Object.entries(featureSeries).map(([feat, series]) => {
+      if (series.length < 2) return { feat, std: 0, mean: 1, latest: 1, series };
+      const vals = series.map(s => s.val);
+      const mean = vals.reduce((a,b) => a+b, 0) / vals.length;
+      const variance = vals.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / vals.length;
+      const std = Math.sqrt(variance);
+      return { feat, std, mean, latest: vals[vals.length-1], series };
+    });
+    
+    // Sort by volatility (most active learning) and take top 6
+    featureStats.sort((a, b) => b.std - a.std);
+    const top = featureStats.slice(0, 6);
+    
+    if (top.length === 0 || top.every(f => f.std === 0)) {
+      sEl.innerHTML = `<div class="cal-loading">No meaningful weight evolution yet — weights still at 1.0× baseline.</div>`;
+      return;
+    }
+    
+    // Build sparkline cards
+    sEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px">
+      ${top.map(f => renderSparklineCard(f)).join('')}
+    </div>`;
+  }
+
+  function renderSparklineCard(f) {
+    const W = 200, H = 38, P = 4;
+    const vals = f.series.map(s => s.val);
+    const minV = Math.min(...vals, 0.9);
+    const maxV = Math.max(...vals, 1.1);
+    const range = maxV - minV || 0.2;
+    
+    // Build SVG points
+    const points = vals.map((v, i) => {
+      const x = P + (i / Math.max(1, vals.length - 1)) * (W - 2*P);
+      const y = H - P - ((v - minV) / range) * (H - 2*P);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    
+    // Baseline (1.0×) reference line
+    const baseY = H - P - ((1.0 - minV) / range) * (H - 2*P);
+    
+    const delta = f.latest - 1.0;
+    const cls = f.latest > 1.05 ? 'up' : f.latest < 0.95 ? 'down' : 'neutral';
+    const trendColor = cls === 'up' ? '#26ffaf' : cls === 'down' ? '#ff5577' : '#6f7b91';
+    
+    return `<div style="background:rgba(22,28,40,0.6);border:1px solid #1c2433;border-radius:6px;padding:8px 10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;color:#a8b3c7;font-weight:600;letter-spacing:0.3px">${f.feat.replace(/_/g, ' ').slice(0,22)}</span>
+        <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:700;color:${trendColor}">${f.latest.toFixed(2)}× <span style="font-size:9px;opacity:0.7">(${delta>=0?'+':''}${(delta*100).toFixed(0)}%)</span></span>
+      </div>
+      <svg width="${W}" height="${H}" style="display:block">
+        <line x1="${P}" y1="${baseY}" x2="${W-P}" y2="${baseY}" stroke="#1c2433" stroke-width="0.5" stroke-dasharray="2,2"/>
+        <polyline points="${points}" fill="none" stroke="${trendColor}" stroke-width="1.5" opacity="0.85"/>
+        <circle cx="${points.split(' ').pop().split(',')[0]}" cy="${points.split(' ').pop().split(',')[1]}" r="2.5" fill="${trendColor}"/>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9px;color:#6f7b91;margin-top:2px">
+        <span>min ${minV.toFixed(2)}×</span>
+        <span>${f.series.length}d · σ ${f.std.toFixed(3)}</span>
+        <span>max ${maxV.toFixed(2)}×</span>
+      </div>
+    </div>`;
   }
   loadCalibration();
   setInterval(loadCalibration, 5 * 60 * 1000);

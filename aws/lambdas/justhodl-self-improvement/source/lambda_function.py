@@ -244,8 +244,8 @@ def compute_per_tier_attribution(scored_preds: List[dict]) -> dict:
     """Compute attribution SEPARATELY for each alert tier.
 
     Different tiers (ALERT, LAGGARD, FIRED, OPTIONS_EXTREME, INSIDER_CLUSTER,
-    CONVERGENCE_ULTRA) likely have different predictive features. This computes
-    weights per group so the recalibrator can use tier-specific weights.
+    CONVERGENCE_ULTRA, RETAIL_VELOCITY) likely have different predictive features.
+    This computes weights per group so the recalibrator can use tier-specific weights.
     """
     features_to_test = [
         "combined_score", "theme_acceleration", "n_etfs_in_top_10",
@@ -253,6 +253,8 @@ def compute_per_tier_attribution(scored_preds: List[dict]) -> dict:
         "options_cv_pv_ratio", "options_call_vol", "options_mean_iv",
         "velocity_composite", "convergence_score", "n_engines",
         "early_score", "insider_n_buyers", "ticket_atr_pct",
+        # NEW: retail features
+        "retail_velocity_pct", "retail_mentions", "retail_rank_climb",
     ]
 
     # Define tier classifiers
@@ -260,6 +262,10 @@ def compute_per_tier_attribution(scored_preds: List[dict]) -> dict:
         """Return the primary tier classification for a prediction."""
         alerts_set = set(alerts or [])
         # Priority order: most specific first
+        if "RETAIL_HOT" in alerts_set:
+            return "RETAIL_HOT"
+        if "RETAIL_VELOCITY" in alerts_set:
+            return "RETAIL_VELOCITY"
         if "CASCADE_ALERT" in alerts_set:
             return "ALERT"
         if "CASCADE_LAGGARD" in alerts_set:
@@ -322,6 +328,8 @@ def compute_multi_horizon_attribution(scored_preds: List[dict]) -> dict:
         "options_cv_pv_ratio", "options_call_vol", "options_mean_iv",
         "velocity_composite", "convergence_score", "n_engines",
         "early_score", "insider_n_buyers", "ticket_atr_pct",
+        # NEW: retail sentiment features
+        "retail_velocity_pct", "retail_mentions", "retail_rank_climb",
     ]
 
     valid = [p for p in scored_preds if p.get("outcome") in ("HIT", "HIT_BIG", "SLOW", "FLAT", "MISS")]

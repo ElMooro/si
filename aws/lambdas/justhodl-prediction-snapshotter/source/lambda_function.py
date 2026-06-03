@@ -47,6 +47,7 @@ def lambda_handler(event, context):
     insider = _read_json("data/insider-clusters.json") or {}
     activist = _read_json("data/activist-13d.json") or {}
     tickets = _read_json("data/trade-tickets.json") or {}
+    retail = _read_json("data/retail-sentiment.json") or {}
 
     # Build per-ticker feature vectors
     predictions = {}
@@ -202,6 +203,50 @@ def lambda_handler(event, context):
                 "ticket_atr_pct": tt.get("atr_pct"),
                 "ticket_rr_tp3": tt.get("rr_tp3"),
             })
+
+    # Retail sentiment enrichment — also classify high-velocity tickers as
+    # RETAIL_VELOCITY tier (new). These are the HPQ +4600% style signals.
+    velocity_surges = retail.get("biggest_velocity_surges") or []
+    rank_climbers = retail.get("biggest_rank_climbers") or []
+    
+    # Build retail signal maps
+    retail_signal_map = {}
+    for s in velocity_surges:
+        if isinstance(s, dict):
+            t = s.get("ticker") or s.get("symbol")
+            if t:
+                retail_signal_map.setdefault(t, {})["retail_velocity_pct"] = s.get("velocity_pct")
+                retail_signal_map[t]["retail_mentions"] = s.get("mentions") or s.get("current_count")
+    for s in rank_climbers:
+        if isinstance(s, dict):
+            t = s.get("ticker") or s.get("symbol")
+            if t:
+                retail_signal_map.setdefault(t, {})["retail_rank_climb"] = s.get("rank_climb") or s.get("delta")
+                retail_signal_map[t]["retail_current_rank"] = s.get("rank")
+    
+    # Add retail features to existing predictions + create NEW RETAIL_VELOCITY tickers
+    for ticker, ret_signal in retail_signal_map.items():
+        if ticker not in predictions:
+            # Top retail signals not yet in cascade — track as standalone RETAIL_VELOCITY tickers
+            vel = ret_signal.get("retail_velocity_pct", 0) or 0
+            if vel >= 200:  # only track significant surges
+                predictions[ticker] = {"ticker": ticker, "snapshot_date": today,
+                                        "alerts": ["RETAIL_VELOCITY"], "features": {}}
+        else:
+            # Already tracked - just add retail features
+            pass
+        
+        if ticker in predictions:
+            predictions[ticker]["features"].update({
+                "retail_velocity_pct": ret_signal.get("retail_velocity_pct"),
+                "retail_mentions": ret_signal.get("retail_mentions"),
+                "retail_rank_climb": ret_signal.get("retail_rank_climb"),
+                "retail_current_rank": ret_signal.get("retail_current_rank"),
+            })
+            # Mark high-velocity tickers (>500%) with extra label
+            vel = ret_signal.get("retail_velocity_pct", 0) or 0
+            if vel >= 500 and "RETAIL_HOT" not in predictions[ticker]["alerts"]:
+                predictions[ticker]["alerts"].append("RETAIL_HOT")
 
     # Macro context (shared across all tickers)
     macro_context = {
