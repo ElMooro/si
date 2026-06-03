@@ -261,6 +261,8 @@ a:hover { text-decoration: underline; }
   color: var(--fg-3); border-radius: 3px; font-size: 13px;
 }
 .wl-sel-act:hover { color: var(--fg-1); background: var(--bg-hover); }
+.wl-sel-add { color: var(--green) !important; font-size: 17px !important; font-weight: 700; border: 1px solid var(--green); }
+.wl-sel-add:hover { background: rgba(38,255,175,0.12) !important; }
 
 /* Dropdown menu */
 .wl-dropdown {
@@ -323,8 +325,8 @@ a:hover { text-decoration: underline; }
 /* Column header */
 .wl-col-header {
   display: grid;
-  grid-template-columns: 14px 1fr 64px 56px;
-  align-items: center; gap: 6px;
+  grid-template-columns: 14px 16px 1fr 60px 54px;
+  align-items: center; gap: 5px;
   padding: 6px 10px;
   background: var(--bg-2);
   border-bottom: 1px solid var(--border);
@@ -343,8 +345,8 @@ a:hover { text-decoration: underline; }
 
 .wl-row {
   display: grid;
-  grid-template-columns: 14px 1fr 64px 56px;
-  align-items: center; gap: 6px;
+  grid-template-columns: 14px 16px 1fr 60px 54px;
+  align-items: center; gap: 5px;
   padding: 6px 10px;
   border-bottom: 1px solid var(--border);
   cursor: pointer; transition: background 0.1s; position: relative;
@@ -355,6 +357,13 @@ a:hover { text-decoration: underline; }
   content: ''; position: absolute; left: 0; top: 0; bottom: 0;
   width: 2px; background: var(--cyan);
 }
+.wl-star {
+  cursor: pointer; font-size: 13px; line-height: 1;
+  color: var(--fg-4); text-align: center; transition: transform 0.1s, color 0.1s;
+  user-select: none;
+}
+.wl-star:hover { transform: scale(1.25); color: var(--amber); }
+.wl-star.starred { color: var(--amber); }
 
 .wl-flag {
   width: 9px; height: 9px; border-radius: 2px;
@@ -422,13 +431,13 @@ a:hover { text-decoration: underline; }
 .wl-remove {
   position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
   width: 18px; height: 18px; border-radius: 3px;
-  display: none; align-items: center; justify-content: center;
-  background: var(--bg); border: 1px solid var(--red);
-  color: var(--red); font-size: 13px; line-height: 1;
-  z-index: 3;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); border: 1px solid var(--border-bright);
+  color: var(--fg-3); font-size: 14px; line-height: 1;
+  z-index: 3; opacity: 0.5; transition: opacity 0.1s, color 0.1s, border-color 0.1s;
 }
-.wl-row.custom-row:hover .wl-remove { display: flex; }
-.wl-remove:hover { background: rgba(255,85,119,0.15); }
+.wl-row.custom-row:hover .wl-remove { opacity: 1; }
+.wl-remove:hover { background: rgba(255,85,119,0.15); color: var(--red); border-color: var(--red); }
 
 /* Add-symbol filter pills */
 .add-symbol-filters {
@@ -1030,6 +1039,7 @@ a:hover { text-decoration: underline; }
         <span class="wl-sel-caret">▼</span>
       </div>
       <div class="wl-sel-actions">
+        <button class="wl-sel-act wl-sel-add" id="wl-header-add-btn" title="Add symbol">+</button>
         <button class="wl-sel-act" id="wl-rename-btn" title="Rename (custom only)">✎</button>
         <button class="wl-sel-act" id="wl-refresh-btn" title="Refresh quotes">↻</button>
       </div>
@@ -1046,6 +1056,7 @@ a:hover { text-decoration: underline; }
     <!-- Column header (sortable) -->
     <div class="wl-col-header" id="wl-col-header">
       <span></span>
+      <span title="Favorite">★</span>
       <span data-sort="symbol">Symbol</span>
       <span class="col-num" data-sort="last">Last</span>
       <span class="col-num" data-sort="changePct">Chg%</span>
@@ -1211,6 +1222,7 @@ const State = {
   
   customWatchlists: {},  // {id: {name, color, tickers: []}}
   symbolFlags: {},       // {ticker: 'red'|'green'|...} — global, TradingView-style
+  favorites: {},         // {ticker: true} — global per-user favorites (★)
   deviceId: null,        // anonymous per-device UID for cloud sync
   syncStatus: 'idle',    // idle|syncing|saved|error
   syncTimer: null,
@@ -1299,6 +1311,7 @@ class QuoteService {
 class WatchlistManager {
   // Returns the raw member list (just tickers + base metadata) for a watchlist id
   static getMembers(id) {
+    if (id === 'favorites') return this.getFavorites();
     if (id && id.startsWith('custom_')) {
       const wl = State.customWatchlists[id];
       if (!wl) return [];
@@ -1379,21 +1392,26 @@ class WatchlistManager {
   
   // All watchlists (signal + custom) for the dropdown
   static getAllWatchlists() {
+    const favorites = {
+      id: 'favorites', name: 'Favorites', emoji: '★', color: 'var(--amber)',
+      type: 'favorites', count: Object.keys(State.favorites).length,
+    };
     const signal = WATCHLIST_CONFIGS.map(c => ({
       id: c.id, name: c.label, emoji: c.emoji, color: c.color,
       type: 'signal', count: this.getMembers(c.id).length,
     }));
     const custom = Object.entries(State.customWatchlists).map(([id, wl]) => ({
-      id, name: wl.name, emoji: '★', color: wl.color || 'var(--fg-3)',
+      id, name: wl.name, emoji: '☆', color: wl.color || 'var(--fg-3)',
       type: 'custom', count: wl.tickers.length,
     }));
-    return { signal, custom };
+    return { favorites, signal, custom };
   }
   
   static getWatchlistMeta(id) {
+    if (id === 'favorites') return { name: 'Favorites', color: 'var(--amber)', type: 'favorites', emoji: '★' };
     if (id && id.startsWith('custom_')) {
       const wl = State.customWatchlists[id];
-      return wl ? { name: wl.name, color: wl.color || 'var(--fg-3)', type: 'custom', emoji: '★' } : null;
+      return wl ? { name: wl.name, color: wl.color || 'var(--fg-3)', type: 'custom', emoji: '☆' } : null;
     }
     const c = WATCHLIST_CONFIGS.find(x => x.id === id);
     return c ? { name: c.label, color: c.color, type: 'signal', emoji: c.emoji } : null;
@@ -1432,8 +1450,10 @@ class WatchlistManager {
       if (wl) State.customWatchlists = JSON.parse(wl);
       const flags = localStorage.getItem('jh_symbol_flags');
       if (flags) State.symbolFlags = JSON.parse(flags);
+      const favs = localStorage.getItem('jh_favorites');
+      if (favs) State.favorites = JSON.parse(favs);
       const lastWl = localStorage.getItem('jh_active_watchlist');
-      if (lastWl && (WATCHLIST_CONFIGS.some(c=>c.id===lastWl) || lastWl.startsWith('custom_'))) {
+      if (lastWl && (lastWl === 'favorites' || WATCHLIST_CONFIGS.some(c=>c.id===lastWl) || lastWl.startsWith('custom_'))) {
         State.activeWatchlistId = lastWl;
       }
     } catch (e) { console.warn('Load failed', e); }
@@ -1458,6 +1478,7 @@ class WatchlistManager {
       if (data && !data.empty) {
         if (data.customWatchlists) State.customWatchlists = data.customWatchlists;
         if (data.symbolFlags) State.symbolFlags = data.symbolFlags;
+        if (data.favorites) State.favorites = data.favorites;
         if (data.activeWatchlistId) State.activeWatchlistId = data.activeWatchlistId;
         this.saveLocal();
         return true;
@@ -1470,6 +1491,7 @@ class WatchlistManager {
     try {
       localStorage.setItem('jh_custom_watchlists', JSON.stringify(State.customWatchlists));
       localStorage.setItem('jh_symbol_flags', JSON.stringify(State.symbolFlags));
+      localStorage.setItem('jh_favorites', JSON.stringify(State.favorites));
       localStorage.setItem('jh_active_watchlist', State.activeWatchlistId);
     } catch (e) {}
   }
@@ -1487,6 +1509,7 @@ class WatchlistManager {
         const payload = JSON.stringify({
           customWatchlists: State.customWatchlists,
           symbolFlags: State.symbolFlags,
+          favorites: State.favorites,
           activeWatchlistId: State.activeWatchlistId,
           updated_at: Date.now(),
         });
@@ -1563,6 +1586,16 @@ class WatchlistManager {
     this.saveFlags();
   }
   static getFlag(ticker) { return State.symbolFlags[ticker] || 'none'; }
+  
+  static isFavorite(ticker) { return !!State.favorites[ticker]; }
+  static toggleFavorite(ticker) {
+    if (State.favorites[ticker]) delete State.favorites[ticker];
+    else State.favorites[ticker] = true;
+    this.syncToCloud();
+  }
+  static getFavorites() {
+    return Object.keys(State.favorites).map(t => ({ ticker: t, name: '', sub: 'favorite' }));
+  }
 }
 
 
@@ -1628,8 +1661,15 @@ class UI {
   
   // ── Render dropdown of all watchlists ──
   static renderWatchlistDropdown() {
-    const { signal, custom } = WatchlistManager.getAllWatchlists();
-    let html = '<div class="wl-dd-section-label">JustHodl Signals</div>';
+    const { favorites, signal, custom } = WatchlistManager.getAllWatchlists();
+    let html = '<div class="wl-dd-section-label">Favorites</div>';
+    html += `
+      <div class="wl-dd-item ${State.activeWatchlistId === 'favorites' ? 'active' : ''}" data-wl-id="favorites">
+        <span class="dd-flag" style="background:${favorites.color}"></span>
+        <span class="dd-name">★ ${this.esc(favorites.name)}</span>
+        <span class="dd-count">${favorites.count}</span>
+      </div>`;
+    html += '<div class="wl-dd-divider"></div><div class="wl-dd-section-label">JustHodl Signals</div>';
     signal.forEach(w => {
       html += `
         <div class="wl-dd-item ${State.activeWatchlistId === w.id ? 'active' : ''}" data-wl-id="${w.id}">
@@ -1744,10 +1784,12 @@ class UI {
       const sigDots = m.signals.map(s => `<span class="wl-sig-dot ${s}" title="${s}"></span>`).join('');
       const lastStr = m.last != null ? '$' + m.last.toFixed(2) : '—';
       const chgStr = m.changePct != null ? (m.changePct >= 0 ? '+' : '') + m.changePct.toFixed(2) + '%' : '—';
-      const removeBtn = isCustom ? `<span class="wl-remove" data-remove-ticker="${this.esc(m.ticker)}" title="Remove">−</span>` : '';
+      const isFav = WatchlistManager.isFavorite(m.ticker);
+      const removeBtn = isCustom ? `<span class="wl-remove" data-remove-ticker="${this.esc(m.ticker)}" title="Remove from list">−</span>` : '';
       return `
         <div class="wl-row ${selected} ${isCustom ? 'custom-row' : ''}" data-ticker="${this.esc(m.ticker)}">
-          <span class="wl-flag flag-${m.flag}" data-flag-ticker="${this.esc(m.ticker)}" title="Set flag"></span>
+          <span class="wl-flag flag-${m.flag}" data-flag-ticker="${this.esc(m.ticker)}" title="Set color flag"></span>
+          <span class="wl-star ${isFav ? 'starred' : ''}" data-fav-ticker="${this.esc(m.ticker)}" title="Favorite">${isFav ? '★' : '☆'}</span>
           <span class="wl-sym-cell">
             <span class="wl-sym-top">
               <span class="wl-symbol">${this.esc(m.ticker)}</span>
@@ -1767,6 +1809,7 @@ class UI {
       el.addEventListener('click', (e) => {
         if (e.target.dataset.flagTicker) return;
         if (e.target.dataset.removeTicker) return;
+        if (e.target.dataset.favTicker) return;
         ChartController.loadTicker(el.dataset.ticker);
       });
     });
@@ -1775,6 +1818,14 @@ class UI {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         FlagPicker.open(el, el.dataset.flagTicker);
+      });
+    });
+    // Wire star (favorite) clicks
+    document.querySelectorAll('.wl-star[data-fav-ticker]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        WatchlistManager.toggleFavorite(el.dataset.favTicker);
+        this.refreshWatchlist();
       });
     });
     // Wire remove clicks (custom lists)
@@ -2891,6 +2942,10 @@ async function init() {
   
   // ── Add symbol (always available — targets active or default personal list) ──
   document.getElementById('wl-add-btn').addEventListener('click', () => {
+    const target = WatchlistManager.getAddTarget();
+    AddSymbol.open(target);
+  });
+  document.getElementById('wl-header-add-btn').addEventListener('click', () => {
     const target = WatchlistManager.getAddTarget();
     AddSymbol.open(target);
   });
