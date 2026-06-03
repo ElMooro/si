@@ -4,8 +4,8 @@ Quiver-FREE. Built entirely on public-domain disclosure data, so it is safe to
 surface in a commercial multi-user product.
 
 DATA SOURCES (all free / public domain):
-  • Congress trades — senate-stock-watcher + house-stock-watcher community
-    datasets (scrapes of the official Senate eFD + House Clerk STOCK Act
+  • Congress trades — FMP /stable/ senate-latest + house-latest (licensed,
+    commercial-safe; sources the official Senate eFD + House Clerk STOCK Act
     disclosures). Falls back to S3-cached snapshot.
   • Committee memberships — theunitedstates.io/congress-legislators
     (committee-membership-current + legislators-current).
@@ -165,75 +165,70 @@ def fetch_legislators():
     return out
 
 
-# ── 2. Congress trades (free disclosure scrapers) ────────────────────
+# ── 2. Congress trades (FMP /stable/ — commercial-licensed, reliable) ─
+FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+
+
 def fetch_congress_trades():
-    """Pull Senate + House STOCK Act disclosures from the free community datasets."""
+    """Senate + House STOCK Act disclosures from FMP /stable/ (paid/licensed,
+    commercial-safe). v3/v4 dead since 2025-08-31 — /stable/ only."""
     trades = []
     sources_used = []
-    # Senate
-    sen = _http_get("https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/all_transactions.json", timeout=40)
-    if sen:
-        try:
-            for t in json.loads(sen):
-                trades.append(_norm_senate(t))
-            sources_used.append("senate-stock-watcher")
-        except Exception as e:
-            print(f"[political] senate parse err: {e}")
-    # House
-    house = _http_get("https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/all_transactions.json", timeout=40)
-    if house:
-        try:
-            for t in json.loads(house):
-                trades.append(_norm_house(t))
-            sources_used.append("house-stock-watcher")
-        except Exception as e:
-            print(f"[political] house parse err: {e}")
-    trades = [t for t in trades if t]
+    for chamber, ep in (("senate", "senate-latest"), ("house", "house-latest")):
+        cnt = 0
+        for page in range(0, 8):
+            body = _http_get(f"https://financialmodelingprep.com/stable/{ep}?page={page}&apikey={FMP_KEY}", timeout=25)
+            if not body:
+                break
+            try:
+                rows = json.loads(body)
+            except Exception:
+                break
+            if not isinstance(rows, list) or not rows:
+                break
+            for t in rows:
+                n = _norm_fmp(t, chamber)
+                if n:
+                    trades.append(n); cnt += 1
+            if len(rows) < 50:
+                break
+        if cnt:
+            sources_used.append(f"fmp-{chamber}({cnt})")
     return trades, sources_used
 
 
 def _parse_date(s):
     if not s:
         return None
-    for fmt in ("%m/%d/%Y", "%Y-%m-%d", "%m/%d/%y"):
+    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y"):
         try:
-            return datetime.strptime(s.strip(), fmt).replace(tzinfo=timezone.utc)
+            return datetime.strptime(s.strip()[:10], fmt).replace(tzinfo=timezone.utc)
         except Exception:
             continue
     return None
 
 
-def _norm_senate(t):
+def _norm_fmp(t, chamber):
+    """Normalize an FMP senate/house-latest row (field names vary)."""
     try:
         tx = (t.get("type") or "").lower()
-        side = "buy" if "purchase" in tx or "buy" in tx else ("sell" if "sale" in tx or "sell" in tx else "other")
+        if "purchase" in tx or "buy" in tx:
+            side = "buy"
+        elif "sale" in tx or "sell" in tx:
+            side = "sell"
+        else:
+            side = "other"
+        member = (t.get("senator") or t.get("representative") or t.get("office")
+                  or (f"{t.get('firstName','')} {t.get('lastName','')}").strip() or "")
         return {
-            "chamber": "senate",
-            "member": t.get("senator") or "",
-            "ticker": (t.get("ticker") or "").strip().upper().replace("--", ""),
-            "asset": t.get("asset_description") or "",
+            "chamber": chamber,
+            "member": member,
+            "ticker": (t.get("symbol") or "").strip().upper(),
+            "asset": t.get("assetDescription") or t.get("asset_description") or "",
             "side": side,
             "amount": t.get("amount") or "",
-            "tx_date": t.get("transaction_date") or "",
-            "disc_date": t.get("disclosure_date") or "",
-        }
-    except Exception:
-        return None
-
-
-def _norm_house(t):
-    try:
-        tx = (t.get("type") or "").lower()
-        side = "buy" if "purchase" in tx else ("sell" if "sale" in tx else "other")
-        return {
-            "chamber": "house",
-            "member": t.get("representative") or t.get("member") or "",
-            "ticker": (t.get("ticker") or "").strip().upper().replace("--", ""),
-            "asset": t.get("asset_description") or "",
-            "side": side,
-            "amount": t.get("amount") or "",
-            "tx_date": t.get("transaction_date") or "",
-            "disc_date": t.get("disclosure_date") or "",
+            "tx_date": t.get("transactionDate") or t.get("transaction_date") or "",
+            "disc_date": t.get("disclosureDate") or t.get("disclosure_date") or "",
         }
     except Exception:
         return None
