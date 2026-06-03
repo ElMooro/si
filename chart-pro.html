@@ -1261,7 +1261,8 @@ a:hover { text-decoration: underline; }
     <div class="setups-head">
       <span class="setups-title">\u26a1 Today's Highest-Conviction Setups</span>
       <span class="setups-meta" id="setups-meta"></span>
-      <button class="drawer-close" id="close-setups" style="position:static;margin-left:auto">\u00d7</button>
+      <button class="wl-sel-act" id="alert-builder-btn" title="Custom alerts" style="margin-left:auto;color:var(--amber);border:1px solid var(--amber);width:auto;padding:0 10px;font-size:11px;font-family:var(--font-mono)">\ud83d\udd14 Alerts</button>
+      <button class="drawer-close" id="close-setups" style="position:static;margin-left:8px">\u00d7</button>
     </div>
     <div class="setups-body" id="setups-body"><div class="wl-loading">Loading fused conviction\u2026</div></div>
   </aside>
@@ -1461,6 +1462,31 @@ a:hover { text-decoration: underline; }
   </div>
 </div>
 
+<!-- Custom Alert Builder Modal -->
+<div class="new-wl-modal" id="alert-modal">
+  <div class="new-wl-modal-content" style="width:440px">
+    <div class="modal-title">\ud83d\udd14 Custom Alert</div>
+    <div style="font-size:11.5px;color:var(--fg-3);margin-bottom:12px;line-height:1.5">Get notified when a setup matches your criteria. Rules are saved to your account and evaluated each morning.</div>
+    <input type="text" class="modal-input" id="alert-name" placeholder="Alert name (e.g. 'Committee defense buys')" />
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--fg-3);margin:8px 0 4px">Minimum conviction</div>
+    <input type="range" id="alert-conviction" min="20" max="80" value="40" style="width:100%" oninput="document.getElementById('alert-conv-val').textContent=this.value">
+    <div style="text-align:right;font-family:var(--font-mono);font-size:11px;color:var(--cyan)"><span id="alert-conv-val">40</span></div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--fg-3);margin:8px 0 6px">Require signals (any selected)</div>
+    <div id="alert-signals" style="display:flex;flex-wrap:wrap;gap:5px">
+      <label class="asf-btn" style="cursor:pointer"><input type="checkbox" value="POLITICIAN_COMMITTEE" style="display:none"> committee</label>
+      <label class="asf-btn" style="cursor:pointer"><input type="checkbox" value="INSIDER_CLUSTER" style="display:none"> insider</label>
+      <label class="asf-btn" style="cursor:pointer"><input type="checkbox" value="OPTIONS_EXTREME" style="display:none"> options</label>
+      <label class="asf-btn" style="cursor:pointer"><input type="checkbox" value="EXECUTIVE_BUY" style="display:none"> executive</label>
+      <label class="asf-btn" style="cursor:pointer"><input type="checkbox" value="CASCADE_ALERT" style="display:none"> cascade</label>
+    </div>
+    <div id="alert-existing" style="margin-top:14px"></div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="modal-btn" id="alert-cancel">Close</button>
+      <button class="modal-btn primary" id="alert-save">Save Alert</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ SCRIPTS ═══════════════ -->
 <script src="/auth-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1492,6 +1518,7 @@ const State = {
   symbolResolution: {},  // {ticker: 'EXCHANGE:SYM'} — resolved TV symbols (cache)
   symbolType: {},        // {ticker: 'stock'|'crypto'|'forex'|'futures'|'index'} — for engine routing
   knownSymbols: {},      // {ticker: {kind, ts}} — per-user searched/opened symbols (grows the index)
+  alertRules: [],        // [{name, min_conviction, require_signals, require_committee}] — per-user custom alerts
   chartTabs: [],         // [{id, symbol}] — multiple charts, click to switch
   activeTabId: null,
   chartEngine: 'auto',   // 'auto' | 'tv' (TradingView) | 'native' (Polygon + Lightweight Charts)
@@ -1755,6 +1782,8 @@ class WatchlistManager {
       if (symType) State.symbolType = JSON.parse(symType);
       const known = localStorage.getItem('jh_known_symbols');
       if (known) State.knownSymbols = JSON.parse(known);
+      const ar = localStorage.getItem('jh_alert_rules');
+      if (ar) State.alertRules = JSON.parse(ar);
       const lastWl = localStorage.getItem('jh_active_watchlist');
       if (lastWl && (lastWl === 'favorites' || WATCHLIST_CONFIGS.some(c=>c.id===lastWl) || lastWl.startsWith('custom_'))) {
         State.activeWatchlistId = lastWl;
@@ -1786,6 +1815,7 @@ class WatchlistManager {
         if (data.symbolResolution) Object.assign(State.symbolResolution, data.symbolResolution);
         if (data.symbolType) Object.assign(State.symbolType, data.symbolType);
         if (data.knownSymbols) State.knownSymbols = data.knownSymbols;
+        if (data.alertRules) State.alertRules = data.alertRules;
         if (data.chartTabs && data.chartTabs.length) { State.chartTabs = data.chartTabs; State.activeTabId = data.activeTabId || data.chartTabs[0].id; }
         if (data.chartEngine) State.chartEngine = data.chartEngine;
         if (data.activeWatchlistId) State.activeWatchlistId = data.activeWatchlistId;
@@ -1805,6 +1835,7 @@ class WatchlistManager {
       localStorage.setItem('jh_symbol_resolution', JSON.stringify(State.symbolResolution));
       localStorage.setItem('jh_symbol_type', JSON.stringify(State.symbolType || {}));
       localStorage.setItem('jh_known_symbols', JSON.stringify(State.knownSymbols || {}));
+      localStorage.setItem('jh_alert_rules', JSON.stringify(State.alertRules || []));
       localStorage.setItem('jh_active_watchlist', State.activeWatchlistId);
     } catch (e) {}
   }
@@ -1827,6 +1858,7 @@ class WatchlistManager {
           symbolResolution: State.symbolResolution,
           symbolType: State.symbolType,
           knownSymbols: State.knownSymbols,
+          alertRules: State.alertRules,
           chartTabs: State.chartTabs,
           activeTabId: State.activeTabId,
           chartEngine: State.chartEngine,
@@ -3915,6 +3947,56 @@ class PersonalAI {
 }
 
 // ─── FLAG PICKER ───────────────────────────────────────────────────
+// ─── CUSTOM ALERT BUILDER (per-user rules) ─────────────────────────
+class AlertBuilder {
+  static open() {
+    document.getElementById('alert-modal').classList.add('open');
+    this.renderExisting();
+    document.getElementById('alert-name').value = '';
+    document.getElementById('alert-conviction').value = 40;
+    document.getElementById('alert-conv-val').textContent = '40';
+    document.querySelectorAll('#alert-signals input').forEach(i => { i.checked = false; i.parentElement.classList.remove('active'); });
+  }
+  static close() { document.getElementById('alert-modal').classList.remove('open'); }
+  
+  static save() {
+    const name = (document.getElementById('alert-name').value || '').trim() || 'Untitled alert';
+    const min_conviction = parseInt(document.getElementById('alert-conviction').value) || 40;
+    const sigs = Array.from(document.querySelectorAll('#alert-signals input:checked')).map(i => i.value);
+    const rule = {
+      name, min_conviction,
+      require_signals: sigs,
+      require_committee: sigs.includes('POLITICIAN_COMMITTEE'),
+      created: Date.now(),
+    };
+    if (!State.alertRules) State.alertRules = [];
+    State.alertRules.push(rule);
+    WatchlistManager.syncToCloud();
+    this.renderExisting();
+    document.getElementById('alert-name').value = '';
+  }
+  
+  static remove(idx) {
+    State.alertRules.splice(idx, 1);
+    WatchlistManager.syncToCloud();
+    this.renderExisting();
+  }
+  
+  static renderExisting() {
+    const el = document.getElementById('alert-existing');
+    if (!el) return;
+    const rules = State.alertRules || [];
+    if (!rules.length) { el.innerHTML = '<div style="font-size:11px;color:var(--fg-3);font-style:italic">No alerts yet.</div>'; return; }
+    el.innerHTML = '<div style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px">Your alerts</div>' +
+      rules.map((r, i) => `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;margin-bottom:4px;font-family:var(--font-mono);font-size:10.5px">
+          <span style="flex:1;color:var(--fg-1)">${UI.esc(r.name)} <span style="color:var(--fg-3)">· conv≥${r.min_conviction}${r.require_signals && r.require_signals.length ? ' · '+r.require_signals.map(s=>s.replace(/_/g,' ').toLowerCase()).join('/') : ''}</span></span>
+          <span data-del-rule="${i}" style="color:var(--red);cursor:pointer;font-size:13px">−</span>
+        </div>`).join('');
+    el.querySelectorAll('[data-del-rule]').forEach(x => x.addEventListener('click', () => this.remove(parseInt(x.dataset.delRule))));
+  }
+}
+
 class FlagPicker {
   static currentTicker = null;
   
@@ -4213,6 +4295,17 @@ async function init() {
       State.activeTicker = '__reload__';
       ChartController.loadTicker(t);
     });
+  });
+  
+  // ── Custom alert builder ──
+  document.getElementById('alert-builder-btn').addEventListener('click', () => AlertBuilder.open());
+  document.getElementById('alert-cancel').addEventListener('click', () => AlertBuilder.close());
+  document.getElementById('alert-save').addEventListener('click', () => AlertBuilder.save());
+  document.querySelectorAll('#alert-signals label').forEach(lbl => {
+    lbl.addEventListener('click', () => setTimeout(() => {
+      const cb = lbl.querySelector('input');
+      lbl.classList.toggle('active', cb.checked);
+    }, 0));
   });
   
   // ── Macro data catalog ──
