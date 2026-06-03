@@ -1,0 +1,99 @@
+{
+  "started": "2026-06-03T01:54:54.412123+00:00",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 1.2,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.3, \\\"n_total_candidates\\\": 14, \\\"n_weights_applied\\\": 0, \\\"n_weights_by_tier\\\": {}, \\\"per_tier_calibration_active\\\": false, \\\"blend\\\": {\\\"original\\\": 1.0, \\\"calibrated\\\": 0.0, \\\"confidence\\\": \\\"NONE\\\", \\\"rationale\\\": \\\"<5 scored predictions \\\\u2014 using base scoring only\\\"}, \\\"rank_audit\\\": {\\\"alert_tier\\\": {\\\"n_compared\\\": 8, \\\"top_10_retention_pct\\\": 100.0, \\\"avg_rank_delta\\\": 0.0, \\\"max_rank_delta\\\": 0, \\\"biggest_movers\\\": [{\\\"ticker\\\": \\\"MU\\\", \\\"original_rank\\\": 1, \\\"calibrated_rank\\\": 1, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"PANW\\\", \\\"original_rank\\\": 2, \\\"calibrated_rank\\\": 2, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"CRWD\\\", \\\"original_rank\\\": 3, \\\"calibrated_rank\\\": 3, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"CDNS\\\", \\\"original_rank\\\": 4, \\\"calibrated_rank\\\": 4, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"FTNT\\\", \\\"original_rank\\\": 5, \\\"calibrated_rank\\\": 5, \\\"delta\\\": 0}], \\\"weight_source\\\": \\\"global\\\", \\\"n_weights_applied\\\": 0}, \\\"laggards_hot_themes\\\": {\\\"n_compared\\\": 6, \\\"top_10_retention_pct\\\": 100.0, \\\"avg_rank_delta\\\": 0.0, \\\"max_rank_delta\\\": 0, \\\"biggest_movers\\\": [{\\\"ticker\\\": \\\"INTC\\\", \\\"original_rank\\\": 1, \\\"calibrated_rank\\\": 1, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"QCOM\\\", \\\"original_rank\\\": 2, \\\"calibrated_rank\\\": 2, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"TXN\\\", \\\"original_rank\\\": 3, \\\"calibrated_rank\\\": 3, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"AAPL\\\", \\\"original_rank\\\": 4, \\\"calibrated_rank\\\": 4, \\\"delta\\\": 0},"
+  },
+  "audit": {
+    "schema": "NONE",
+    "per_tier_active": false,
+    "n_global_weights": 0,
+    "n_per_tier": {},
+    "methodology_excerpt": "Per-tier calibration: each cascade tier (ALERT, LAGGARD, etc.) has its own learned weights based on which features predict pumps WITHIN that tier. Falls back to global weights when per-tier data <3 fe",
+    "rank_changes": {
+      "alert_tier": {
+        "n_compared": 8,
+        "top_10_retention_pct": 100.0,
+        "avg_rank_delta": 0.0,
+        "max_rank_delta": 0,
+        "biggest_movers": [
+          {
+            "ticker": "MU",
+            "original_rank": 1,
+            "calibrated_rank": 1,
+            "delta": 0
+          },
+          {
+            "ticker": "PANW",
+            "original_rank": 2,
+            "calibrated_rank": 2,
+            "delta": 0
+          },
+          {
+            "ticker": "CRWD",
+            "original_rank": 3,
+            "calibrated_rank": 3,
+            "delta": 0
+          },
+          {
+            "ticker": "CDNS",
+            "original_rank": 4,
+            "calibrated_rank": 4,
+            "delta": 0
+          },
+          {
+            "ticker": "FTNT",
+            "original_rank": 5,
+            "calibrated_rank": 5,
+            "delta": 0
+          }
+        ],
+        "weight_source": "global",
+        "n_weights_applied": 0
+      },
+      "laggards_hot_themes": {
+        "n_compared": 6,
+        "top_10_retention_pct": 100.0,
+        "avg_rank_delta": 0.0,
+        "max_rank_delta": 0,
+        "biggest_movers": [
+          {
+            "ticker": "INTC",
+            "original_rank": 1,
+            "calibrated_rank": 1,
+            "delta": 0
+          },
+          {
+            "ticker": "QCOM",
+            "original_rank": 2,
+            "calibrated_rank": 2,
+            "delta": 0
+          },
+          {
+            "ticker": "TXN",
+            "original_rank": 3,
+            "calibrated_rank": 3,
+            "delta": 0
+          },
+          {
+            "ticker": "AAPL",
+            "original_rank": 4,
+            "calibrated_rank": 4,
+            "delta": 0
+          },
+          {
+            "ticker": "GLW",
+            "original_rank": 5,
+            "calibrated_rank": 5,
+            "delta": 0
+          }
+        ],
+        "weight_source": "global",
+        "n_weights_applied": 0
+      }
+    }
+  },
+  "finished": "2026-06-03T01:56:26.117043+00:00"
+}
