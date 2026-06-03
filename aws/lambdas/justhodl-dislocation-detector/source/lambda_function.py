@@ -158,7 +158,92 @@ def lambda_handler(event=None, context=None):
             "beat_streak": sf(r.get("beatStreak")),
         }
 
-    print(f"[dislocation] base records: {len(recs)}")
+    print(f"[dislocation] base records from screener: {len(recs)}")
+
+    # ── Supplement with the FULL universe (all caps) via FMP for names not
+    # already covered by the screener. key-metrics-ttm + ratios-ttm per name. ──
+    def cap_from_mcap(m):
+        if not m: return None
+        if m < 300e6: return "micro"
+        if m < 2e9: return "small"
+        if m < 10e9: return "mid"
+        if m < 200e9: return "large"
+        return "mega"
+
+    uni_stocks = universe.get("stocks") or []
+    missing = [s for s in uni_stocks if (s.get("symbol") or "").upper() not in recs
+               and sf(s.get("market_cap")) and sf(s.get("market_cap")) >= 30e6]
+    missing = missing[:1500]  # ceiling per run
+    print(f"[dislocation] deep-fetching {len(missing)} additional universe names")
+
+    def deep_fetch(stock):
+        sym = (stock.get("symbol") or "").upper()
+        try:
+            km = http_json(f"{FMP_BASE}/key-metrics-ttm?symbol={sym}&apikey={FMP_KEY}")
+            rt = http_json(f"{FMP_BASE}/ratios-ttm?symbol={sym}&apikey={FMP_KEY}")
+            km = (km[0] if isinstance(km, list) and km else km) or {}
+            rt = (rt[0] if isinstance(rt, list) and rt else rt) or {}
+            def kp(*keys):
+                for k in keys:
+                    if km.get(k) is not None: return sf(km[k])
+                    if rt.get(k) is not None: return sf(rt[k])
+                return None
+            mcap = sf(stock.get("market_cap"))
+            ev_sales = kp("evToSalesTTM","enterpriseValueOverSalesTTM","evToSales")
+            ev_ebitda = kp("evToEBITDATTM","enterpriseValueOverEBITDATTM","evToOperatingCashFlowTTM")
+            roic = kp("returnOnInvestedCapitalTTM","roicTTM","returnOnCapitalEmployedTTM")
+            gm = kp("grossProfitMarginTTM","grossMarginTTM")
+            om = kp("operatingProfitMarginTTM","operatingMarginTTM")
+            nm = kp("netProfitMarginTTM","netMarginTTM")
+            de = kp("debtToEquityRatioTTM","debtToEquityTTM")
+            ic = kp("interestCoverageRatioTTM","interestCoverageTTM")
+            ps = kp("priceToSalesRatioTTM","priceToSalesTTM")
+            pe = kp("priceToEarningsRatioTTM","peRatioTTM")
+            # growth not in TTM endpoints reliably → leave None (still scored on cheapness/quality available)
+            def aspf(x):
+                if x is None: return None
+                return x*100 if abs(x) < 3 else x
+            gm, om, nm, roic = aspf(gm), aspf(om), aspf(nm), aspf(roic)
+            return sym, {
+                "ticker": sym, "name": stock.get("name") or sym,
+                "sector": stock.get("sector") or "", "industry": stock.get("industry") or "",
+                "cap_bucket": stock.get("cap_bucket") or cap_from_mcap(mcap),
+                "market_cap": mcap, "revenue": None, "rev_growth_pct": None,
+                "eps_growth_pct": None, "gross_margin": gm, "op_margin": om, "net_margin": nm,
+                "ps": ps, "pe": pe, "ev_ebitda": ev_ebitda, "ev_sales": ev_sales,
+                "growth_adj_ev_sales": None, "rule_of_40": None,
+                "roic": roic, "roe": None, "debt_to_equity": de, "interest_coverage": ic,
+                "piotroski": None, "altman_z": None, "inst_own_pct": None,
+                "insider_cluster": False, "beat_streak": None,
+            }
+        except Exception:
+            return sym, None
+
+    if missing:
+        with ThreadPoolExecutor(max_workers=24) as ex:
+            for fut in as_completed([ex.submit(deep_fetch, s) for s in missing]):
+                sym, rc = fut.result()
+                if rc and (rc.get("ev_sales") is not None or rc.get("ps") is not None):
+                    recs[sym] = rc
+
+    # cap-bucket fallback for screener names missing it
+    for rc in recs.values():
+        if not rc.get("cap_bucket"):
+            rc["cap_bucket"] = cap_from_mcap(rc.get("market_cap"))
+        # sanity-cap absurd growth (tiny-base distortions) → keeps Rule-of-40 sane
+        if rc.get("rev_growth_pct") is not None:
+            rc["rev_growth_pct"] = max(-95.0, min(200.0, rc["rev_growth_pct"]))
+        # recompute rule_of_40 cleanly (growth% + op margin%), capped
+        rg, om2 = rc.get("rev_growth_pct"), rc.get("op_margin")
+        if rg is not None and om2 is not None:
+            rc["rule_of_40"] = round(max(-100.0, min(150.0, rg + om2)), 1)
+        # recompute growth-adjusted EV/Sales with sane guard
+        if rc.get("ev_sales") is not None and rg and rg > 8:
+            rc["growth_adj_ev_sales"] = round(rc["ev_sales"]/rg, 3)
+        else:
+            rc["growth_adj_ev_sales"] = None
+
+    print(f"[dislocation] total records after universe supplement: {len(recs)}")
 
     # Cluster by industry (>=5 members); fallback to sector for thin industries
     by_industry = {}
