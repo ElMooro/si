@@ -325,8 +325,23 @@ def lambda_handler(event=None, context=None):
     for s in scored: by_cohort.setdefault(s["cohort"], []).append(s)
     for s in scored[:60]:
         peers = by_cohort.get(s["cohort"], [])
-        rich = [p for p in peers if p["ticker"] != s["ticker"] and p.get("ev_sales") and s.get("ev_sales")
-                and p["ev_sales"] > s["ev_sales"] * 1.3 and (p.get("quality") or 1) <= (s.get("quality") or 0)]
+        cap_order = ["nano","micro","small","mid","large","mega"]
+        sci = cap_order.index(s["cap_bucket"]) if s.get("cap_bucket") in cap_order else -1
+        def comparable(p):
+            if p["ticker"] == s["ticker"]: return False
+            if not (p.get("ev_sales") and s.get("ev_sales")): return False
+            prem = p["ev_sales"]/s["ev_sales"] - 1
+            if prem < 0.3 or prem > 8.0: return False         # 30%–800% premium band
+            if (p.get("quality") or 1) > (s.get("quality") or 0): return False  # peer must be weaker/equal
+            # cap proximity: within one adjacent bucket
+            pci = cap_order.index(p["cap_bucket"]) if p.get("cap_bucket") in cap_order else -1
+            if sci >= 0 and pci >= 0 and abs(sci - pci) > 1: return False
+            # revenue within ~12x when both known
+            if s.get("revenue") and p.get("revenue") and p["revenue"]>0 and s["revenue"]>0:
+                ratio = p["revenue"]/s["revenue"]
+                if ratio > 12 or ratio < 1/12: return False
+            return True
+        rich = [p for p in peers if comparable(p)]
         rich.sort(key=lambda p: -(p.get("ev_sales") or 0))
         if rich:
             rp = rich[0]
@@ -335,6 +350,7 @@ def lambda_handler(event=None, context=None):
                 "ev_sales": round(rp["ev_sales"],2) if rp.get("ev_sales") else None,
                 "ev_sales_premium_pct": round((rp["ev_sales"]/s["ev_sales"]-1)*100) if s.get("ev_sales") else None,
                 "rev_growth_pct": rp.get("rev_growth_pct"), "quality": rp.get("quality"),
+                "cap_bucket": rp.get("cap_bucket"),
             }
 
     top = scored[:120]

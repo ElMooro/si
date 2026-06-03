@@ -1771,7 +1771,7 @@ const State = {
   // Cached data
   cascade: null, insider: null, options: null, retail: null,
   trade_tickets: null, ai_rationales: null, predictions: null, calibration: null,
-  political: null, political_ai: null, executive: null, best_setups: null,
+  political: null, political_ai: null, executive: null, best_setups: null, dislocations: null,
   
   tv_widgets: {},
 };
@@ -1785,6 +1785,7 @@ const WATCHLIST_CONFIGS = [
   { id: 'retail', label: 'RETAIL', emoji: '📱', color: 'var(--tier-retail)', tagClass: 'retail', signal: true },
   { id: 'earnings', label: 'EARNINGS', emoji: '📊', color: 'var(--tier-earnings)', tagClass: 'earnings', signal: true },
   { id: 'politician', label: 'CONGRESS', emoji: '🏛️', color: '#e0b341', tagClass: 'politician', signal: true },
+  { id: 'dislocation', label: 'LAGGARDS', emoji: '⚖️', color: '#26ffaf', tagClass: 'dislocation', signal: true },
 ];
 
 const FLAG_COLORS = ['none','red','orange','yellow','green','blue','purple'];
@@ -1803,7 +1804,7 @@ class DataService {
   }
   
   static async loadAll() {
-    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups] = await Promise.all([
+    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups, dislocations] = await Promise.all([
       this.fetch('data/theme-cascade.json'),
       this.fetch('data/insider-clusters.json'),
       this.fetch('data/polygon-options-flow.json'),
@@ -1816,6 +1817,7 @@ class DataService {
       this.fetch('data/political-ai-investigation.json'),
       this.fetch('data/executive-intel.json'),
       this.fetch('data/best-setups.json'),
+      this.fetch('data/dislocations.json'),
     ]);
     State.cascade = cascade;
     State.insider = insider;
@@ -1829,6 +1831,7 @@ class DataService {
     State.political_ai = polai;
     State.executive = executive;
     State.best_setups = bestsetups;
+    State.dislocations = dislocations;
   }
 }
 
@@ -1979,6 +1982,7 @@ class WatchlistManager {
       case 'retail':   return this.fromRetail();
       case 'earnings': return this.fromEarnings();
       case 'politician': return this.fromPolitician();
+      case 'dislocation': return this.fromDislocation();
       default:         return [];
     }
   }
@@ -2052,6 +2056,18 @@ class WatchlistManager {
       sub: `${r.n_buyers} buyer${r.n_buyers!==1?'s':''}${r.committee_relevant ? ' · COMMITTEE' : ''}${r.cluster ? ' · cluster' : ''}`,
       score: r.conviction_score || 0, fallbackChange: null,
     }));
+  }
+  static fromDislocation() {
+    const d = State.dislocations || {};
+    const lag = d.buy_the_laggard || [];
+    return lag.slice(0, 40).map(r => {
+      const vs = r.dislocated_vs || {};
+      return {
+        ticker: r.ticker, name: r.name || '',
+        sub: `score ${r.dislocation_score} · EV/S ${r.ev_sales!=null?r.ev_sales.toFixed(1):'—'}${vs.ticker?` · vs ${vs.ticker} +${vs.ev_sales_premium_pct}%`:''}`,
+        score: r.dislocation_score || 0, fallbackChange: null,
+      };
+    });
   }
   
   // All watchlists (signal + custom) for the dropdown

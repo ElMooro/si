@@ -46,6 +46,7 @@ def read_json(key, default=None):
 # Each maps to a self-improvement tier so we can swap in the learned hit rate.
 SIGNAL_PRIORS = {
     "POLITICIAN_COMMITTEE": 0.85,   # committee jurisdiction edge — strongest
+    "DISLOCATION":          0.78,   # relative-value buy-the-laggard
     "INSIDER_CLUSTER":      0.80,   # multi-insider buying
     "EXECUTIVE_BUY":        0.72,   # executive-branch proximity
     "OPTIONS_EXTREME":      0.70,   # extreme smart-money call flow
@@ -120,6 +121,7 @@ def lambda_handler(event, context):
     calibration = read_json("data/cascade-calibration.json") or {}
     ai_rationale = read_json("data/trade-tickets-ai-rationale.json") or {}
     pol_ai = read_json("data/political-ai-investigation.json") or {}
+    dislocations = read_json("data/dislocations.json") or {}
 
     weights, weight_src = learned_weights(calibration)
 
@@ -187,6 +189,15 @@ def lambda_handler(event, context):
         vel = s.get("velocity_pct") or 0
         key = "RETAIL_HOT" if vel >= 500 else "RETAIL_VELOCITY"
         add(tk, "", key, normalize(vel, 200, 2000), f"+{round(vel)}% mention velocity")
+
+    # 7b. Dislocation (relative-value buy-the-laggard)
+    for d in (dislocations.get("buy_the_laggard") or [])[:40]:
+        tk = d.get("ticker")
+        vs = (d.get("dislocated_vs") or {}).get("ticker")
+        detail = f"cheap vs cohort, score {d.get('dislocation_score')}"
+        if vs: detail += f" · dislocated vs {vs}"
+        add(tk, d.get("industry"), "DISLOCATION",
+            normalize(d.get("dislocation_score"), 60, 95), detail)
 
     # 7. Earnings / predictions extras
     for p in (preds_doc.get("predictions") or []):
