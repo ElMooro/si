@@ -1,0 +1,19 @@
+{
+  "started": "2026-06-03T15:27:52.057619+00:00",
+  "current": {
+    "name": "justhodl-prepump-alerts-router-30min",
+    "schedule_expression": "cron(0,30 * * * ? *)",
+    "state": "ENABLED"
+  },
+  "updated": "cron(30 12 * * ? *)",
+  "after": {
+    "schedule_expression": "cron(30 12 * * ? *)",
+    "state": "ENABLED"
+  },
+  "lambda": {
+    "code_sha": "yIBV791dSoX6cPD5",
+    "last_modified": "2026-06-03T15:27:50"
+  },
+  "monitor_err": "An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-trade-ticket-monitor-10min does not exist on EventBus default.",
+  "finished": "2026-06-03T15:27:52.748205+00:00"
+}
