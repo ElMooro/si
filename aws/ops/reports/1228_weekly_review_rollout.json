@@ -1,0 +1,23 @@
+{
+  "started": "2026-06-03T01:32:11.842187+00:00",
+  "create": "created",
+  "schedule": "cron(0 14 ? * SUN *)",
+  "invoke": {
+    "elapsed_s": 2.0,
+    "status": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 1.4, \\\"week_ending\\\": \\\"2026-06-03\\\", \\\"n_predictions\\\": 0, \\\"hit_rate_pct\\\": 0.0, \\\"trust_level\\\": 50, \\\"headline\\\": \\\"Self-improvement loop bootstrapping \\\\u2014 0 predictions scored this week (insufficient for full analysis)\\\", \\\"telegram_status\\\": 200}\"}"
+  },
+  "memo": {
+    "week_ending": "2026-06-03",
+    "model": "claude-sonnet-4-5-20250929",
+    "headline": "Self-improvement loop bootstrapping \u2014 0 predictions scored this week (insufficient for full analysis)",
+    "performance_recap": "System captured predictions daily but has 0 scored outcomes (need 5+ for meaningful stats). First substantive weekly review expected next Sunday.",
+    "calibration_progress": "Calibration weights remain at 1.0x baseline \u2014 system needs more data to identify which features predict pumps.",
+    "system_improvements": "All infrastructure live and capturing data. Daily snapshot, scoring, and recalibration pipelines operational.",
+    "next_week_setup": "Cascade currently shows: MU, PANW, CRWD, CDNS, FTNT in alert tier. Laggards: INTC, QCOM, TXN, AAPL, GLW.",
+    "trust_level": 50,
+    "key_metric": "Bootstrapping \u2014 0 preds scored, confidence NONE"
+  },
+  "finished": "2026-06-03T01:32:19.383384+00:00"
+}
