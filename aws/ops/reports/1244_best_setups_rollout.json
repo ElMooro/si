@@ -1,0 +1,153 @@
+{
+  "started": "2026-06-03T20:25:46.417635+00:00",
+  "deploy": {
+    "action": "updated",
+    "sha": "a9WQ7/0yvtxjLqRE"
+  },
+  "schedule": "cron(10 * * * ? *)",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 1.5,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"n_setups\\\": 294, \\\"strong_buy\\\": 0, \\\"buy\\\": 1, \\\"weight_source\\\": \\\"prior-only\\\"}\"}"
+  },
+  "output": {
+    "stats": {
+      "n_setups": 294,
+      "strong_buy": 0,
+      "buy": 1,
+      "watch": 293
+    },
+    "weight_source": "prior-only",
+    "top12": [
+      {
+        "ticker": "ORCL",
+        "conviction": 42.5,
+        "verdict": "BUY",
+        "n": 3,
+        "signals": [
+          "CASCADE_ALERT",
+          "EXECUTIVE_BUY",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "AMD",
+        "conviction": 34.3,
+        "verdict": "WATCH",
+        "n": 2,
+        "signals": [
+          "OPTIONS_EXTREME",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "ASML",
+        "conviction": 32.4,
+        "verdict": "WATCH",
+        "n": 3,
+        "signals": [
+          "OPTIONS_EXTREME",
+          "POLITICIAN_BUY",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "JNJ",
+        "conviction": 31.8,
+        "verdict": "WATCH",
+        "n": 2,
+        "signals": [
+          "OPTIONS_EXTREME",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "MSFT",
+        "conviction": 28.7,
+        "verdict": "WATCH",
+        "n": 2,
+        "signals": [
+          "POLITICIAN_BUY",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "CVX",
+        "conviction": 27.3,
+        "verdict": "WATCH",
+        "n": 2,
+        "signals": [
+          "OPTIONS_EXTREME",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "APP",
+        "conviction": 27.2,
+        "verdict": "WATCH",
+        "n": 2,
+        "signals": [
+          "OPTIONS_EXTREME",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "CRM",
+        "conviction": 25.4,
+        "verdict": "WATCH",
+        "n": 4,
+        "signals": [
+          "OPTIONS_BULLISH",
+          "POLITICIAN_BUY",
+          "EARNINGS_FRESH",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "GOOGL",
+        "conviction": 24.2,
+        "verdict": "WATCH",
+        "n": 3,
+        "signals": [
+          "OPTIONS_BULLISH",
+          "POLITICIAN_BUY",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "DELL",
+        "conviction": 23.4,
+        "verdict": "WATCH",
+        "n": 3,
+        "signals": [
+          "CASCADE_ALERT",
+          "EARNINGS_FRESH",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "IBM",
+        "conviction": 22.9,
+        "verdict": "WATCH",
+        "n": 3,
+        "signals": [
+          "OPTIONS_EXTREME",
+          "POLITICIAN_BUY",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "ticker": "HD",
+        "conviction": 22.8,
+        "verdict": "WATCH",
+        "n": 2,
+        "signals": [
+          "POLITICIAN_BUY",
+          "CONVERGENCE"
+        ]
+      }
+    ]
+  },
+  "finished": "2026-06-03T20:25:53.274917+00:00"
+}
