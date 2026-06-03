@@ -1,0 +1,15 @@
+{
+  "started": "2026-06-03T20:50:09.349910+00:00",
+  "deploy": {
+    "action": "updated",
+    "sha": "I0FroDOflQG92/Zb"
+  },
+  "schedule": "cron(45 12 * * ? *)",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 1.9,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"setups_pushed\\\": 1, \\\"telegram_status\\\": 200, \\\"custom_alerts_fired\\\": 0, \\\"elapsed_s\\\": 0.9}\"}"
+  },
+  "finished": "2026-06-03T20:50:14.615882+00:00"
+}
