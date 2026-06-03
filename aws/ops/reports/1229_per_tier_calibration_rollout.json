@@ -1,0 +1,124 @@
+{
+  "started": "2026-06-03T01:49:46.864560+00:00",
+  "updates": {
+    "justhodl-self-improvement": {
+      "state": "Active",
+      "code_sha": "wxnYWzcZvCQBjwU1",
+      "modified": "2026-06-03T01:49:47"
+    },
+    "justhodl-cascade-recalibrator": {
+      "state": "Active",
+      "code_sha": "/BZxPLtJGNYdjaUX",
+      "modified": "2026-06-03T01:49:51"
+    }
+  },
+  "si_invoke": {
+    "status": 200,
+    "elapsed_s": 2.6,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 1.8, \\\"n_predictions_scored\\\": 158, \\\"n_valid_outcomes\\\": 0, \\\"n_features_attributed\\\": 0, \\\"calibrated\\\": false, \\\"telegram_status\\\": null}\"}"
+  },
+  "recal_invoke": {
+    "status": 200,
+    "elapsed_s": 1.1,
+    "function_error": "Unhandled",
+    "body": "{\"errorMessage\": \"name 'weights' is not defined\", \"errorType\": \"NameError\", \"requestId\": \"531564b5-0ec0-4b38-824a-4847ea89a9ef\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 361, in lambda_handler\\n    \\\"n_weights_applied\\\": len(weights),\\n\"]}"
+  },
+  "calibration": {
+    "last_updated": "2026-06-03T01:49:56.710014+00:00",
+    "n_global_weights": 0,
+    "tiers_with_weights": [],
+    "tier_weight_counts": {},
+    "feature_attribution_by_tier_tiers": [],
+    "tier_distribution": {}
+  },
+  "audit": {
+    "per_tier_calibration_active": false,
+    "n_weights_global": 0,
+    "n_weights_by_tier": {},
+    "rank_changes": {
+      "alert_tier": {
+        "n_compared": 8,
+        "top_10_retention_pct": 100.0,
+        "avg_rank_delta": 0.0,
+        "max_rank_delta": 0,
+        "biggest_movers": [
+          {
+            "ticker": "MU",
+            "original_rank": 1,
+            "calibrated_rank": 1,
+            "delta": 0
+          },
+          {
+            "ticker": "PANW",
+            "original_rank": 2,
+            "calibrated_rank": 2,
+            "delta": 0
+          },
+          {
+            "ticker": "CRWD",
+            "original_rank": 3,
+            "calibrated_rank": 3,
+            "delta": 0
+          },
+          {
+            "ticker": "CDNS",
+            "original_rank": 4,
+            "calibrated_rank": 4,
+            "delta": 0
+          },
+          {
+            "ticker": "FTNT",
+            "original_rank": 5,
+            "calibrated_rank": 5,
+            "delta": 0
+          }
+        ],
+        "weight_source": "global",
+        "n_weights_applied": 0
+      },
+      "laggards_hot_themes": {
+        "n_compared": 6,
+        "top_10_retention_pct": 100.0,
+        "avg_rank_delta": 0.0,
+        "max_rank_delta": 0,
+        "biggest_movers": [
+          {
+            "ticker": "INTC",
+            "original_rank": 1,
+            "calibrated_rank": 1,
+            "delta": 0
+          },
+          {
+            "ticker": "QCOM",
+            "original_rank": 2,
+            "calibrated_rank": 2,
+            "delta": 0
+          },
+          {
+            "ticker": "TXN",
+            "original_rank": 3,
+            "calibrated_rank": 3,
+            "delta": 0
+          },
+          {
+            "ticker": "AAPL",
+            "original_rank": 4,
+            "calibrated_rank": 4,
+            "delta": 0
+          },
+          {
+            "ticker": "GLW",
+            "original_rank": 5,
+            "calibrated_rank": 5,
+            "delta": 0
+          }
+        ],
+        "weight_source": "global",
+        "n_weights_applied": 0
+      }
+    },
+    "methodology": "Per-tier calibration: each cascade tier (ALERT, LAGGARD, etc.) has its own learned weights based on which features predict pumps WITHIN that tier. Falls back to global weights when per-tier data <3 features. Final score = blend \u00d7 (original \u00d7 tier_specific_adjustment) where adjustment = exp(\u03a3(normali"
+  },
+  "finished": "2026-06-03T01:49:58.373008+00:00"
+}
