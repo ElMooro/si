@@ -723,6 +723,17 @@ a:hover { text-decoration: underline; }
 .csb-l { font-family: var(--font-mono); font-size: 9px; color: var(--fg-3); letter-spacing: 0.5px; font-weight: 700; }
 .csb-v { font-family: var(--font-mono); font-size: 13px; font-weight: 700; margin-top: 2px; }
 .csb-v.pos { color: var(--green); } .csb-v.neg { color: var(--red); } .csb-v.muted { color: var(--fg-3); }
+.season-wrap { padding: 18px 24px; height: 100%; display: flex; flex-direction: column; }
+.season-title { font-family: var(--font-mono); font-size: 13px; color: var(--fg-1); font-weight: 700; margin-bottom: 18px; }
+.season-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; flex: 1; align-items: center; }
+.season-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.season-bar-area { position: relative; width: 100%; height: 130px; display: flex; justify-content: center; }
+.season-bar { position: absolute; width: 60%; border-radius: 3px; }
+.season-bar.pos { background: var(--green); } .season-bar.neg { background: var(--red); }
+.season-val { font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+.season-val.pos { color: var(--green); } .season-val.neg { color: var(--red); }
+.season-mo { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); }
+.season-foot { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); margin-top: 14px; text-align: center; }
 .tool-btn { margin-left: 8px; padding: 5px 11px; border-radius: 5px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--fg-2); border: 1px solid var(--border-bright); background: var(--bg-2); cursor: pointer; }
 .tool-btn:hover { color: var(--fg-0); border-color: var(--fg-3); }
 .tool-btn.ai-btn { color: var(--violet); border-color: var(--violet); }
@@ -766,6 +777,10 @@ a:hover { text-decoration: underline; }
 .news-item:hover { border-color: var(--cyan); }
 .news-title { font-size: 12px; color: var(--fg-1); line-height: 1.4; }
 .news-meta { font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); margin-top: 4px; }
+.fund-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.fund-row { display: flex; justify-content: space-between; padding: 7px 10px; background: var(--bg-1); }
+.fund-l { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); }
+.fund-v { font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-1); font-weight: 600; }
 .ceng-btn {
   padding: 4px 10px; border-radius: 4px;
   font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
@@ -1445,6 +1460,8 @@ a:hover { text-decoration: underline; }
       </div>
       <button class="tool-btn" id="statblock-btn" title="Show all period changes at once (DoD/WoW/MoM/QoQ/YoY)">Δ Changes</button>
       <button class="tool-btn" id="compare-btn" title="Overlay a benchmark / compare symbol">⚖ Compare</button>
+      <button class="tool-btn" id="ratio-btn" title="Ratio chart: this symbol ÷ another (e.g. NVDA/SPY)">÷ Ratio</button>
+      <button class="tool-btn" id="season-btn" title="Seasonality: average return by calendar month">📅 Seasonality</button>
       <div class="ind-wrap" style="position:relative;display:inline-block">
         <button class="tool-btn" id="indicators-btn" title="Add indicators (Bollinger, RSI, MACD)">📊 Indicators</button>
         <div class="ind-menu" id="ind-menu">
@@ -1481,6 +1498,7 @@ a:hover { text-decoration: underline; }
       <div class="info-tab" data-info-tab="intel">Intel</div>
       <div class="info-tab" data-info-tab="notes">Notes</div>
       <div class="info-tab" data-info-tab="news">News</div>
+      <div class="info-tab" data-info-tab="fund">Fundamentals</div>
       <div class="info-tab" data-info-tab="ticket">Ticket</div>
     </div>
     
@@ -1645,6 +1663,8 @@ const State = {
   chartEngine: 'auto',   // 'auto' | 'tv' (TradingView) | 'native' (Polygon + Lightweight Charts)
   tf: { mult: 1, span: 'day', days: 250 },  // active native timeframe
   compareSymbol: null,   // overlay symbol for relative comparison
+  ratioSymbol: null,     // denominator for a ratio/spread chart (TICKER ÷ ratioSymbol)
+  seasonality: false,    // show avg monthly seasonality view
   indicators: { bollinger: false, rsi: false, macd: false },  // native chart studies
   changeMode: 'price',   // 'price' | 'dod' | 'wow' | 'mom' | 'qoq' | 'yoy' — FRED-style % change
   changeStyle: 'histogram',  // 'histogram' | 'line' | 'area' — how % change renders
@@ -1952,6 +1972,7 @@ class WatchlistManager {
         if (data.changeMode) State.changeMode = data.changeMode;
         if (data.changeStyle) State.changeStyle = data.changeStyle;
         if (data.statBlock != null) State.statBlock = data.statBlock;
+        if (data.seasonality != null) State.seasonality = data.seasonality;
         if (data.priceAlerts) State.priceAlerts = data.priceAlerts;
         if (data.drawings) State.drawings = data.drawings;
         if (data.chartTabs && data.chartTabs.length) { State.chartTabs = data.chartTabs; State.activeTabId = data.activeTabId || data.chartTabs[0].id; }
@@ -2003,6 +2024,7 @@ class WatchlistManager {
           changeMode: State.changeMode,
           changeStyle: State.changeStyle,
           statBlock: State.statBlock,
+          seasonality: State.seasonality,
           priceAlerts: State.priceAlerts,
           drawings: State.drawings,
           chartTabs: State.chartTabs,
@@ -2429,6 +2451,7 @@ class UI {
     else if (tab === 'notes') html = this.renderNotesTab(ticker);
     else if (tab === 'ticket') html = this.renderTicketTab(ticker);
     else if (tab === 'news') html = this.renderNewsTab(ticker);
+    else if (tab === 'fund') html = this.renderFundTab(ticker);
     
     document.getElementById('info-body').innerHTML = html;
     
@@ -2877,6 +2900,10 @@ class UI {
     `;
   }
   
+  static renderFundTab(ticker) {
+    setTimeout(() => FundamentalsService.load(ticker), 0);
+    return `<div class="info-section"><div class="section-title">📊 Fundamentals · ${this.esc(ticker)}</div><div id="fund-box-${this.esc(ticker)}" class="fund-box"><div class="jh-ai-loading">Loading fundamentals…</div></div></div>`;
+  }
   static renderNewsTab(ticker) {
     // Async-load real headlines from the /news worker route (FMP)
     setTimeout(() => NewsService.load(ticker), 0);
@@ -3129,8 +3156,8 @@ class ChartController {
     
     // Macro series → always native line
     if (isFred || isDbn) { NativeChart.render(ticker); return; }
-    // % change mode requires the native engine (TradingView can't render it)
-    if (changeActive) { NativeChart.render(ticker); return; }
+    // Ratio / seasonality / % change all require native rendering
+    if (State.ratioSymbol || State.seasonality || changeActive) { NativeChart.render(ticker); return; }
     // Forced native
     if (engine === 'native') { NativeChart.render(ticker); return; }
     // Forced TradingView
@@ -3556,6 +3583,15 @@ class NativeChart {
   static renderChangeHisto(paneIdx, series, mode, label, ticker) { return this.renderChange(paneIdx, series, mode, label, ticker); }
   
   static async render(ticker) {
+    const paneIdx = State.activeChartPane;
+    if (State.ratioSymbol && State.ratioSymbol !== ticker) {
+      this._shell(paneIdx, ticker, `${ticker} ÷ ${State.ratioSymbol}`);
+      return this.renderRatio(paneIdx, ticker, State.ratioSymbol);
+    }
+    if (State.seasonality) {
+      this._shell(paneIdx, ticker, `${ticker} · Seasonality`);
+      return this.renderSeasonality(paneIdx, ticker);
+    }
     if (ticker.startsWith('FRED:')) return this.renderLine(ticker, 'FRED');
     if (ticker.startsWith('DBN:')) return this.renderLine(ticker, 'DBN');
     const type = State.symbolType[ticker] || this.guessType(ticker);
@@ -3563,6 +3599,18 @@ class NativeChart {
     if (type === 'crypto') return this.renderYahoo(ticker, this.cryptoToYahoo(ticker), 'Crypto');
     if (type === 'forex') return this.renderYahoo(ticker, this.fxToYahoo(ticker), 'Forex');
     return this.renderEquity(ticker);
+  }
+  
+  // Minimal chart shell (used by ratio/seasonality before async data arrives)
+  static _shell(paneIdx, ticker, label) {
+    const container = document.getElementById(`tv-container-${paneIdx}`);
+    if (!container) return;
+    container.innerHTML = `
+      <div class="native-chart-wrap" style="display:flex;flex-direction:column">
+        <div class="native-chart-head"><div class="nch-sym">${UI.esc(label)}</div><div class="nch-meta" id="nch-meta-${paneIdx}">loading…</div></div>
+        <div class="native-chart-loading" id="nch-loading-${paneIdx}">Loading ${UI.esc(label)}…</div>
+        <div id="nch-chart-${paneIdx}" style="width:100%;height:100%;flex:none"></div>
+      </div>`;
   }
   
   // Detect crypto/forex from the ticker pattern when the type isn't cached.
@@ -3702,6 +3750,87 @@ class NativeChart {
           title: `🔔 ${a.dir === 'below' ? '↓' : '↑'} ${a.note || ''}`.trim() });
       } catch (e) {}
     });
+  }
+  
+  // Ratio / spread chart: base ÷ denominator, time-aligned (e.g. NVDA/SPY)
+  static async renderRatio(paneIdx, baseTicker, denomTicker) {
+    const host = document.getElementById(`nch-chart-${paneIdx}`);
+    if (!host) return;
+    const tf = State.tf || { mult: 1, span: 'day', days: 250 };
+    const fetchBars = async (t) => {
+      const ty = State.symbolType[t] || this.guessType(t);
+      if (ty === 'crypto') { const r = await fetch(`${PROXY}/yf-ohlc?symbol=${encodeURIComponent(this.cryptoToYahoo(t))}&range=1y`); const d = await r.json(); return (d.bars||[]).map(b=>({time:b.time,value:b.close})); }
+      if (ty === 'forex') { const r = await fetch(`${PROXY}/yf-ohlc?symbol=${encodeURIComponent(this.fxToYahoo(t))}&range=1y`); const d = await r.json(); return (d.bars||[]).map(b=>({time:b.time,value:b.close})); }
+      const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(t)}&mult=${tf.mult}&span=${tf.span}&days=${tf.days}`);
+      const d = await r.json(); return (d.bars||[]).map(b=>({time:b.time,value:b.close}));
+    };
+    const [a, b] = await Promise.all([fetchBars(baseTicker), fetchBars(denomTicker)]);
+    if (!a.length || !b.length) { const le=document.getElementById(`nch-loading-${paneIdx}`); if(le){le.style.display='flex';le.textContent=`Ratio needs native data for both ${baseTicker} and ${denomTicker}`;} return; }
+    const bMap = new Map(b.map(x => [x.time, x.value]));
+    const ratio = [];
+    for (const x of a) { const dv = bMap.get(x.time); if (dv && dv !== 0) ratio.push({ time: x.time, value: +(x.value / dv).toFixed(6) }); }
+    if (!ratio.length) { const le=document.getElementById(`nch-loading-${paneIdx}`); if(le){le.style.display='flex';le.textContent=`No overlapping dates for ${baseTicker}/${denomTicker}`;} return; }
+    host.innerHTML = '';
+    if (typeof LightweightCharts === 'undefined') return;
+    const chart = LightweightCharts.createChart(host, {
+      autoSize: true, layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
+      grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
+      rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
+    });
+    const s = chart.addLineSeries({ color: '#22d3ee', lineWidth: 2 });
+    s.setData(ratio);
+    // MA50 of the ratio for trend
+    if (ratio.length >= 50) {
+      const ma = []; for (let i=49;i<ratio.length;i++){let sum=0;for(let j=i-49;j<=i;j++)sum+=ratio[j].value;ma.push({time:ratio[i].time,value:sum/50});}
+      chart.addLineSeries({ color: '#fbbf24', lineWidth: 1, lastValueVisible:false, priceLineVisible:false }).setData(ma);
+    }
+    chart.timeScale().fitContent();
+    State.nativeChart = chart;
+    const last = ratio[ratio.length-1], first = ratio[0];
+    const chg = first.value ? ((last.value-first.value)/first.value*100) : 0;
+    const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
+    if (metaEl) metaEl.innerHTML = `${baseTicker}/${denomTicker} ratio · ${last.value.toFixed(4)} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(1)}% over window</span>`;
+    const head = host.parentElement && host.parentElement.querySelector('.nch-sym');
+    if (head) head.textContent = `${baseTicker} ÷ ${denomTicker}`;
+    const le=document.getElementById(`nch-loading-${paneIdx}`); if(le) le.style.display='none';
+  }
+  
+  // Seasonality: average % return by calendar month (FRED-grade, multi-year)
+  static async renderSeasonality(paneIdx, ticker) {
+    const host = document.getElementById(`nch-chart-${paneIdx}`);
+    if (!host) return;
+    // pull ~6y of daily bars to build monthly returns
+    let bars = [];
+    const ty = State.symbolType[ticker] || this.guessType(ticker);
+    try {
+      if (ty === 'crypto') { const r = await fetch(`${PROXY}/yf-ohlc?symbol=${encodeURIComponent(this.cryptoToYahoo(ticker))}&range=5y`); bars = (await r.json()).bars || []; }
+      else if (ty === 'forex') { const r = await fetch(`${PROXY}/yf-ohlc?symbol=${encodeURIComponent(this.fxToYahoo(ticker))}&range=5y`); bars = (await r.json()).bars || []; }
+      else if (ticker.startsWith('FRED:')) { const r = await fetch(`${PROXY}/fred?series=${encodeURIComponent(ticker.slice(5))}&obs=3000`); bars = ((await r.json()).bars||[]).map(b=>({time:b.time,close:b.value})); }
+      else { const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&mult=1&span=day&days=2200`); bars = (await r.json()).bars || []; }
+    } catch (e) {}
+    const le = document.getElementById(`nch-loading-${paneIdx}`);
+    if (!bars.length) { if(le){le.style.display='flex';le.textContent=`No history for seasonality on ${ticker}`;} return; }
+    // monthly close = last bar of each calendar month
+    const monthEnd = {};
+    for (const b of bars) { const d = new Date(b.time*1000); const key = d.getUTCFullYear()+'-'+d.getUTCMonth(); monthEnd[key] = b.close; }
+    const keys = Object.keys(monthEnd).sort((x,y)=>{const [ay,am]=x.split('-').map(Number);const [by,bm]=y.split('-').map(Number);return ay-by||am-bm;});
+    const monthRet = Array.from({length:12},()=>[]);
+    for (let i=1;i<keys.length;i++){ const prev=monthEnd[keys[i-1]], cur=monthEnd[keys[i]]; if(prev&&prev!==0){ const m=Number(keys[i].split('-')[1]); monthRet[m].push((cur/prev-1)*100); } }
+    const names=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const avg = monthRet.map(arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null);
+    const yrs = Math.max(...monthRet.map(a=>a.length));
+    if(le) le.style.display='none';
+    // Render as an HTML bar grid (clearer than a time chart for seasonality)
+    host.innerHTML = `<div class="season-wrap"><div class="season-title">Average monthly return · ${UI.esc(ticker)} · ~${yrs} yrs</div><div class="season-grid">${
+      avg.map((v,i)=>{
+        const h = v==null?0:Math.min(60, Math.abs(v)*8);
+        const pos = (v||0)>=0;
+        return `<div class="season-col"><div class="season-bar-area">${v==null?'':`<div class="season-bar ${pos?'pos':'neg'}" style="height:${h}px;${pos?'bottom:50%':'top:50%'}"></div>`}</div><div class="season-val ${pos?'pos':'neg'}">${v==null?'—':(pos?'+':'')+v.toFixed(1)}</div><div class="season-mo">${names[i]}</div></div>`;
+      }).join('')
+    }</div><div class="season-foot">Green = avg gain in that month · Red = avg loss · over ~${yrs} years of history</div></div>`;
+    const head = host.parentElement && host.parentElement.querySelector('.nch-sym');
+    if (head) head.textContent = `${ticker} · Seasonality`;
+    const metaEl = document.getElementById(`nch-meta-${paneIdx}`); if(metaEl) metaEl.innerHTML = `Seasonality · ~${yrs}yr avg monthly returns`;
   }
   
   // Overlay a second symbol's normalized line for relative-performance comparison
@@ -4568,6 +4697,45 @@ class PriceAlert {
   }
 }
 
+// ─── FUNDAMENTALS SERVICE (quote + profile + ratios via /fundamentals) ──
+class FundamentalsService {
+  static cache = {};
+  static async load(ticker) {
+    const el = document.getElementById(`fund-box-${ticker}`);
+    if (!el) return;
+    if (this.cache[ticker]) { el.innerHTML = this.render(this.cache[ticker]); return; }
+    try {
+      const r = await fetch(`${PROXY}/fundamentals?ticker=${encodeURIComponent(ticker)}`);
+      const d = await r.json();
+      if (d.error || !d.price) { el.innerHTML = '<div style="color:var(--fg-3);font-style:italic;font-size:11.5px">No fundamentals (non-equity or unlisted symbol).</div>'; return; }
+      this.cache[ticker] = d; el.innerHTML = this.render(d);
+    } catch (e) { el.innerHTML = '<div style="color:var(--fg-3);font-style:italic;font-size:11.5px">Fundamentals unavailable.</div>'; }
+  }
+  static fmtB(v) { if (v==null) return '—'; const a=Math.abs(v); if(a>=1e12)return '$'+(v/1e12).toFixed(2)+'T'; if(a>=1e9)return '$'+(v/1e9).toFixed(2)+'B'; if(a>=1e6)return '$'+(v/1e6).toFixed(1)+'M'; return '$'+v.toLocaleString(); }
+  static pct(v) { return v==null?'—':(v*100).toFixed(1)+'%'; }
+  static num(v,d=2) { return v==null?'—':(+v).toFixed(d); }
+  static render(d) {
+    const row = (l,v) => `<div class="fund-row"><span class="fund-l">${l}</span><span class="fund-v">${v}</span></div>`;
+    return `
+      <div style="font-size:11px;color:var(--fg-3);margin-bottom:8px">${UI.esc(d.name||'')} · ${UI.esc(d.sector||'')} · ${UI.esc(d.exchange||'')}</div>
+      <div class="fund-grid">
+        ${row('Market Cap', this.fmtB(d.marketCap))}
+        ${row('P/E', this.num(d.pe))}
+        ${row('EPS', this.num(d.eps))}
+        ${row('P/B', this.num(d.pb))}
+        ${row('P/S', this.num(d.ps))}
+        ${row('Beta', this.num(d.beta))}
+        ${row('Div Yield', this.pct(d.dividendYield))}
+        ${row('ROE', this.pct(d.roe))}
+        ${row('Net Margin', this.pct(d.netMargin))}
+        ${row('Debt/Equity', this.num(d.debtToEquity))}
+        ${row('52w High', d.yearHigh!=null?'$'+(+d.yearHigh).toFixed(2):'—')}
+        ${row('52w Low', d.yearLow!=null?'$'+(+d.yearLow).toFixed(2):'—')}
+      </div>
+      ${d.description?`<div style="font-size:11px;color:var(--fg-2);line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">${UI.esc(d.description)}…</div>`:''}`;
+  }
+}
+
 // ─── NEWS SERVICE (per-ticker headlines via /news) ─────────────────
 class NewsService {
   static cache = {};
@@ -5143,6 +5311,26 @@ async function init() {
       const s = prompt('Compare against symbol (e.g. SPY, QQQ, a peer):', 'SPY');
       if (s) CommandPalette.setCompare(s.trim().toUpperCase());
     }
+  });
+  // ── Ratio button (TICKER ÷ denominator) ──
+  document.getElementById('ratio-btn').addEventListener('click', () => {
+    const btn = document.getElementById('ratio-btn');
+    if (State.ratioSymbol) { State.ratioSymbol = null; btn.classList.remove('active'); }
+    else {
+      const s = prompt('Ratio chart — divide by which symbol? (e.g. SPY, QQQ, BTCUSD):', 'SPY');
+      if (!s) return;
+      State.ratioSymbol = s.trim().toUpperCase(); btn.classList.add('active');
+      State.seasonality = false; document.getElementById('season-btn').classList.remove('active');
+    }
+    const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t);
+  });
+  // ── Seasonality button ──
+  document.getElementById('season-btn').addEventListener('click', () => {
+    const btn = document.getElementById('season-btn');
+    State.seasonality = !State.seasonality;
+    btn.classList.toggle('active', State.seasonality);
+    if (State.seasonality) { State.ratioSymbol = null; document.getElementById('ratio-btn').classList.remove('active'); }
+    const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t);
   });
   // ── AI Read ──
   document.getElementById('ai-read-btn').addEventListener('click', () => ChartAI.read());

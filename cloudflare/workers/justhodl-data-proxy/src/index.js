@@ -392,6 +392,50 @@ export default {
       }
     }
 
+    if (url.pathname === "/fundamentals") {
+      // GET /fundamentals?ticker=AAPL → key quote + profile + ratios snapshot (FMP)
+      const ticker = (url.searchParams.get("ticker") || "").trim().toUpperCase();
+      if (!ticker || !/^[A-Z0-9.\-]{1,12}$/.test(ticker)) {
+        return new Response(JSON.stringify({ error: "invalid ticker" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const fmpKey = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb";
+      const fKey = new Request(`https://fund.cache/${ticker}`, { method: "GET" });
+      const fc = caches.default;
+      const hit = await fc.match(fKey);
+      if (hit) { const b = await hit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
+      try {
+        const [q, p, rm] = await Promise.all([
+          fetch(`https://financialmodelingprep.com/stable/quote?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 600 } }).then(r => r.ok ? r.json() : []),
+          fetch(`https://financialmodelingprep.com/stable/profile?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 3600 } }).then(r => r.ok ? r.json() : []),
+          fetch(`https://financialmodelingprep.com/stable/ratios-ttm?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 3600 } }).then(r => r.ok ? r.json() : []),
+        ]);
+        const quote = Array.isArray(q) ? (q[0] || {}) : (q || {});
+        const prof = Array.isArray(p) ? (p[0] || {}) : (p || {});
+        const ratios = Array.isArray(rm) ? (rm[0] || {}) : (rm || {});
+        const out = JSON.stringify({
+          ticker,
+          name: prof.companyName, sector: prof.sector, industry: prof.industry,
+          exchange: prof.exchange || quote.exchange, ceo: prof.ceo, country: prof.country,
+          description: (prof.description || "").slice(0, 400),
+          price: quote.price, changesPct: quote.changePercentage || quote.changesPercentage,
+          marketCap: quote.marketCap || prof.marketCap, volume: quote.volume, avgVolume: quote.avgVolume,
+          pe: quote.pe || ratios.priceToEarningsRatioTTM, eps: quote.eps,
+          yearHigh: quote.yearHigh, yearLow: quote.yearLow,
+          beta: prof.beta, dividendYield: ratios.dividendYieldTTM,
+          pb: ratios.priceToBookRatioTTM, ps: ratios.priceToSalesRatioTTM,
+          roe: ratios.returnOnEquityTTM, netMargin: ratios.netProfitMarginTTM,
+          debtToEquity: ratios.debtToEquityRatioTTM,
+        });
+        const fr = new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=600", "X-Cache": "MISS", ...corsHeaders() } });
+        ctx.waitUntil(fc.put(fKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=600" } })));
+        return fr;
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "fundamentals fetch failed", detail: String(e) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
     if (url.pathname === "/news") {
       // GET /news?ticker=AAPL → recent headlines via FMP (commercial-licensed)
       const ticker = (url.searchParams.get("ticker") || "").trim().toUpperCase();
