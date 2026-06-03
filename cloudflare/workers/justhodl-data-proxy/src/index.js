@@ -82,6 +82,74 @@ export default {
       return new Response("method not allowed", { status: 405, headers: corsHeaders() });
     }
 
+    // ─── BATCH QUOTES ROUTE ───
+    // GET /quotes?tickers=AAPL,MSFT,NVDA → live snapshot via Polygon
+    // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
+    // Cached 30s at edge. Polygon key from worker env (server-side, secure).
+    if (url.pathname === "/quotes") {
+      const tickersParam = (url.searchParams.get("tickers") || "").trim();
+      if (!tickersParam) {
+        return new Response(JSON.stringify({ error: "missing tickers param" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const tickers = tickersParam.toUpperCase().split(",")
+        .map(t => t.trim()).filter(Boolean).slice(0, 60);  // cap 60
+      const polygonKey = env.POLYGON_KEY || "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d";
+
+      // Edge cache key per ticker set
+      const qCacheKey = new Request(`https://quotes.cache/${tickers.sort().join(",")}`, { method: "GET" });
+      const qCache = caches.default;
+      let qResp = await qCache.match(qCacheKey);
+      if (qResp) {
+        const cached = await qResp.json();
+        return new Response(JSON.stringify(cached),
+          { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } });
+      }
+
+      try {
+        const snapUrl = `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers=${tickers.join(",")}&apiKey=${polygonKey}`;
+        const snapResp = await fetch(snapUrl, { cf: { cacheTtl: 30, cacheEverything: true } });
+        const snapData = await snapResp.json();
+        const out = { tickers: {}, ts: Date.now() };
+        for (const t of (snapData.tickers || [])) {
+          const day = t.day || {};
+          const prevDay = t.prevDay || {};
+          const lastTrade = t.lastTrade || {};
+          const min = t.min || {};
+          const price = lastTrade.p || min.c || day.c || prevDay.c || 0;
+          const prevClose = prevDay.c || 0;
+          const change = prevClose ? (price - prevClose) : (t.todaysChange || 0);
+          const changePct = prevClose ? (change / prevClose * 100) : (t.todaysChangePerc || 0);
+          out.tickers[t.ticker] = {
+            price: price,
+            change: change,
+            changePct: changePct,
+            volume: day.v || min.v || 0,
+            high: day.h || 0,
+            low: day.l || 0,
+            open: day.o || 0,
+            prevClose: prevClose,
+          };
+        }
+        const respBody = JSON.stringify(out);
+        const finalResp = new Response(respBody, {
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "public, max-age=30, s-maxage=30",
+            "X-Cache": "MISS",
+            ...corsHeaders(),
+          },
+        });
+        ctx.waitUntil(qCache.put(qCacheKey, new Response(respBody, {
+          headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=30" },
+        })));
+        return finalResp;
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "quotes fetch failed", detail: String(e) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
     const safePath = url.pathname.replace(/^\/+/, "");
     if (!/^[a-zA-Z0-9_\-./]+$/.test(safePath) || safePath.includes("..")) {
       return new Response("invalid path", { status: 400, headers: corsHeaders() });

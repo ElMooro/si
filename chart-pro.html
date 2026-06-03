@@ -174,7 +174,7 @@ a:hover { text-decoration: underline; }
   overflow: hidden;
 }
 
-/* ═══ LEFT SIDEBAR (Watchlists) ═══ */
+/* ═══ LEFT SIDEBAR (Watchlists - TradingView style) ═══ */
 .left-sidebar {
   background: var(--bg-1);
   border-right: 1px solid var(--border);
@@ -182,143 +182,226 @@ a:hover { text-decoration: underline; }
   overflow: hidden;
 }
 
-.watchlist-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+/* Watchlist selector header */
+.wl-selector {
   background: var(--bg-2);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  position: relative;
+  display: flex; align-items: center;
 }
-.watchlist-tab {
-  padding: 7px 4px;
-  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.5px;
-  color: var(--fg-3); text-align: center;
-  border-right: 1px solid var(--border);
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  text-transform: uppercase;
-  font-weight: 600;
+.wl-selector-main {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 10px;
+  cursor: pointer; flex: 1; min-width: 0;
 }
-.watchlist-tab:hover { color: var(--fg-1); background: var(--bg-hover); }
-.watchlist-tab.active { color: var(--fg-0); border-bottom-color: var(--cyan); background: var(--bg-hover); }
-.watchlist-tab .wl-count {
-  font-size: 9px; color: var(--fg-3); font-weight: 400;
+.wl-selector-main:hover { background: var(--bg-hover); }
+.wl-sel-flag { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.wl-sel-name {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  color: var(--fg-0); letter-spacing: 0.3px;
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.watchlist-tab.active .wl-count { color: var(--cyan); }
+.wl-sel-count {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--fg-3); background: var(--bg-1);
+  padding: 1px 6px; border-radius: 8px;
+}
+.wl-sel-caret { color: var(--fg-3); font-size: 9px; transition: transform 0.15s; }
+.wl-selector.open .wl-sel-caret { transform: rotate(180deg); }
+.wl-sel-actions { display: flex; align-items: center; gap: 2px; padding: 0 6px; }
+.wl-sel-act {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--fg-3); border-radius: 3px; font-size: 13px;
+}
+.wl-sel-act:hover { color: var(--fg-1); background: var(--bg-hover); }
 
-.watchlist-toolbar {
+/* Dropdown menu */
+.wl-dropdown {
+  display: none;
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: var(--bg-2);
+  border: 1px solid var(--border-bright);
+  border-top: none;
+  z-index: 50;
+  max-height: 420px; overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.wl-selector.open .wl-dropdown { display: block; }
+.wl-dd-section-label {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--fg-4); text-transform: uppercase; letter-spacing: 0.8px;
+  padding: 8px 12px 4px; font-weight: 700;
+}
+.wl-dd-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; cursor: pointer;
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-1);
+}
+.wl-dd-item:hover { background: var(--bg-hover); }
+.wl-dd-item.active { background: var(--bg-active); }
+.wl-dd-item .dd-flag { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.wl-dd-item .dd-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wl-dd-item .dd-count { font-size: 9.5px; color: var(--fg-3); }
+.wl-dd-item .dd-edit { color: var(--fg-3); font-size: 11px; opacity: 0; padding: 0 2px; }
+.wl-dd-item:hover .dd-edit { opacity: 1; }
+.wl-dd-item .dd-edit:hover { color: var(--cyan); }
+.wl-dd-divider { height: 1px; background: var(--border); margin: 2px 0; }
+.wl-dd-new {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; cursor: pointer; color: var(--cyan);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  border-top: 1px solid var(--border);
+}
+.wl-dd-new:hover { background: var(--bg-hover); }
+
+/* Watchlist signal summary bar */
+.wl-signal-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px;
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 10px;
+  flex-shrink: 0;
+}
+.wl-sig-stat { display: flex; align-items: center; gap: 4px; color: var(--fg-3); }
+.wl-sig-stat b { color: var(--cyan); }
+.wl-sig-toggle {
+  margin-left: auto;
+  padding: 2px 8px; border-radius: 3px;
+  border: 1px solid var(--border); color: var(--fg-3);
+  font-size: 9.5px; letter-spacing: 0.3px;
+}
+.wl-sig-toggle.active { color: var(--green); border-color: var(--green); background: rgba(38,255,175,0.06); }
+
+/* Column header */
+.wl-col-header {
+  display: grid;
+  grid-template-columns: 14px 1fr 64px 56px;
+  align-items: center; gap: 6px;
   padding: 6px 10px;
   background: var(--bg-2);
   border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 6px;
   flex-shrink: 0;
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.5px;
+  font-weight: 700;
 }
-.wl-title {
-  font-family: var(--font-mono); font-size: 10.5px;
-  color: var(--fg-1); font-weight: 600; letter-spacing: 0.5px;
-  flex: 1; text-transform: uppercase;
-}
-.wl-action {
-  padding: 3px 7px;
-  font-size: 10px; font-family: var(--font-mono);
-  color: var(--fg-3); border: 1px solid var(--border);
-  border-radius: 3px; transition: all 0.15s;
-}
-.wl-action:hover { color: var(--fg-1); border-color: var(--border-bright); }
+.wl-col-header span { cursor: pointer; user-select: none; }
+.wl-col-header span:hover { color: var(--fg-1); }
+.wl-col-header span.sorted { color: var(--cyan); }
+.wl-col-header .col-num { text-align: right; }
 
-.watchlist-body {
-  flex: 1; overflow-y: auto;
-}
+/* Watchlist body */
+.watchlist-body { flex: 1; overflow-y: auto; }
 
-.wl-item {
-  padding: 7px 10px;
+.wl-row {
+  display: grid;
+  grid-template-columns: 14px 1fr 64px 56px;
+  align-items: center; gap: 6px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  transition: background 0.12s;
-  display: flex; flex-direction: column; gap: 3px;
+  cursor: pointer; transition: background 0.1s; position: relative;
 }
-.wl-item:hover { background: var(--bg-hover); }
-.wl-item.selected {
-  background: var(--bg-active);
-  border-left: 2px solid var(--cyan);
-  padding-left: 8px;
+.wl-row:hover { background: var(--bg-hover); }
+.wl-row.selected { background: var(--bg-active); }
+.wl-row.selected::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px; background: var(--cyan);
 }
 
-.wl-row1 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.wl-ticker {
-  font-family: var(--font-mono); font-weight: 700; font-size: 12.5px;
-  color: var(--fg-0); letter-spacing: 0.3px;
+.wl-flag {
+  width: 9px; height: 9px; border-radius: 2px;
+  border: 1px solid var(--border-bright);
+  cursor: pointer; transition: transform 0.1s;
 }
-.wl-price {
-  font-family: var(--font-mono); font-size: 11.5px;
-  color: var(--fg-1);
-}
-.wl-row2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.wl-change {
-  font-family: var(--font-mono); font-size: 10.5px;
-  padding: 1px 4px; border-radius: 2px;
-}
-.wl-change.up { color: var(--green); }
-.wl-change.dn { color: var(--red); }
-.wl-change.flat { color: var(--fg-3); }
-.wl-tags { display: flex; gap: 3px; flex-wrap: wrap; }
-.wl-tag {
-  font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.3px;
-  padding: 1px 4px; border-radius: 2px;
-  background: var(--bg); border: 1px solid var(--border);
-  color: var(--fg-3); text-transform: uppercase; font-weight: 600;
-}
-.wl-tag.alert { color: var(--tier-alert); border-color: var(--tier-alert); background: rgba(255,85,119,0.05); }
-.wl-tag.laggard { color: var(--tier-laggard); border-color: var(--tier-laggard); background: rgba(167,139,250,0.05); }
-.wl-tag.insider { color: var(--tier-insider); border-color: var(--tier-insider); background: rgba(251,191,36,0.05); }
-.wl-tag.options { color: var(--tier-options); border-color: var(--tier-options); background: rgba(236,72,153,0.05); }
-.wl-tag.retail { color: var(--tier-retail); border-color: var(--tier-retail); background: rgba(34,211,238,0.05); }
-.wl-tag.earnings { color: var(--tier-earnings); border-color: var(--tier-earnings); background: rgba(38,255,175,0.05); }
-.wl-tag.horizon { color: var(--cyan); border-color: var(--border-bright); }
-.wl-score {
-  font-family: var(--font-mono); font-size: 10px;
-  color: var(--cyan); font-weight: 600;
-}
+.wl-flag:hover { transform: scale(1.3); }
+.wl-flag.flag-none { background: transparent; }
+.wl-flag.flag-red { background: #ff5577; border-color: #ff5577; }
+.wl-flag.flag-orange { background: #fb923c; border-color: #fb923c; }
+.wl-flag.flag-yellow { background: #fbbf24; border-color: #fbbf24; }
+.wl-flag.flag-green { background: #26ffaf; border-color: #26ffaf; }
+.wl-flag.flag-blue { background: #3b82f6; border-color: #3b82f6; }
+.wl-flag.flag-purple { background: #a78bfa; border-color: #a78bfa; }
 
-.wl-empty {
-  padding: 24px 16px; text-align: center;
-  color: var(--fg-3); font-size: 11.5px;
-  font-style: italic;
+.wl-sym-cell { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.wl-sym-top { display: flex; align-items: center; gap: 5px; }
+.wl-symbol {
+  font-family: var(--font-mono); font-weight: 700; font-size: 12px;
+  color: var(--fg-0); letter-spacing: 0.2px;
 }
-.wl-loading {
-  padding: 16px; text-align: center;
-  color: var(--fg-3); font-family: var(--font-mono); font-size: 10.5px;
+.wl-sig-dots { display: flex; gap: 2px; }
+.wl-sig-dot { width: 5px; height: 5px; border-radius: 50%; }
+.wl-sig-dot.alert { background: var(--tier-alert); }
+.wl-sig-dot.laggard { background: var(--tier-laggard); }
+.wl-sig-dot.insider { background: var(--tier-insider); }
+.wl-sig-dot.options { background: var(--tier-options); }
+.wl-sig-dot.retail { background: var(--tier-retail); }
+.wl-sig-dot.earnings { background: var(--tier-earnings); }
+.wl-sub {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.wl-last {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--fg-1); text-align: right;
+}
+.wl-chg {
+  font-family: var(--font-mono); font-size: 11px;
+  text-align: right; font-weight: 600;
+}
+.wl-chg.up { color: var(--green); }
+.wl-chg.dn { color: var(--red); }
+.wl-chg.flat { color: var(--fg-3); }
 
-/* Custom watchlist management */
-.custom-watchlist-mgr {
-  border-top: 1px solid var(--border);
-  background: var(--bg-2);
-  padding: 8px 10px;
+.wl-empty { padding: 24px 16px; text-align: center; color: var(--fg-3); font-size: 11.5px; font-style: italic; }
+.wl-loading { padding: 16px; text-align: center; color: var(--fg-3); font-family: var(--font-mono); font-size: 10.5px; }
+
+/* Add symbol input */
+.wl-add-symbol {
+  display: flex; gap: 4px; padding: 7px 10px;
+  background: var(--bg-2); border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
-.custom-wl-list { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
-.custom-wl-chip {
-  font-family: var(--font-mono); font-size: 10px;
-  padding: 3px 7px; border-radius: 3px;
-  background: var(--bg-1); border: 1px solid var(--border);
-  color: var(--fg-2); cursor: pointer;
-  display: flex; align-items: center; gap: 5px;
-  transition: all 0.15s;
+.wl-add-symbol input {
+  flex: 1; background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: 3px; padding: 5px 8px;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--fg-1); outline: none; text-transform: uppercase;
 }
-.custom-wl-chip:hover { border-color: var(--border-bright); color: var(--fg-1); }
-.custom-wl-chip.active { color: var(--cyan); border-color: var(--cyan); background: rgba(34,211,238,0.06); }
-.custom-wl-chip .x { color: var(--fg-3); font-size: 11px; line-height: 1; }
-.custom-wl-chip .x:hover { color: var(--red); }
-.new-wl-btn {
-  font-family: var(--font-mono); font-size: 10px;
-  padding: 4px 10px; border: 1px dashed var(--border-bright);
-  border-radius: 3px; color: var(--fg-3); width: 100%;
-  text-align: center; transition: all 0.15s;
+.wl-add-symbol input:focus { border-color: var(--cyan); }
+.wl-add-symbol input::placeholder { text-transform: none; color: var(--fg-3); }
+.wl-add-symbol button {
+  padding: 5px 12px; border: 1px solid var(--cyan);
+  border-radius: 3px; color: var(--cyan);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  background: rgba(34,211,238,0.06);
 }
-.new-wl-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+.wl-add-symbol button:hover { background: rgba(34,211,238,0.14); }
+
+/* Flag picker popover */
+.flag-picker {
+  position: fixed; display: none;
+  background: var(--bg-2);
+  border: 1px solid var(--border-bright);
+  border-radius: 6px; padding: 8px; gap: 6px;
+  z-index: 90; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.flag-picker.open { display: flex; }
+.flag-opt {
+  width: 18px; height: 18px; border-radius: 4px;
+  cursor: pointer; border: 2px solid transparent; transition: transform 0.1s;
+}
+.flag-opt:hover { transform: scale(1.15); }
+.flag-opt.flag-none { background: transparent; border-color: var(--border-bright); position: relative; }
+.flag-opt.flag-none::after { content: '×'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--fg-3); font-size: 12px; }
+.flag-opt.flag-red { background: #ff5577; }
+.flag-opt.flag-orange { background: #fb923c; }
+.flag-opt.flag-yellow { background: #fbbf24; }
+.flag-opt.flag-green { background: #26ffaf; }
+.flag-opt.flag-blue { background: #3b82f6; }
+.flag-opt.flag-purple { background: #a78bfa; }
 
 /* ═══ MAIN CHART AREA ═══ */
 .main-area {
@@ -833,26 +916,60 @@ a:hover { text-decoration: underline; }
 <!-- ═══════════════ MAIN APP LAYOUT ═══════════════ -->
 <div class="app">
 
-  <!-- ─── LEFT SIDEBAR: Watchlists ─── -->
+  <!-- ─── LEFT SIDEBAR: Watchlists (TradingView-style) ─── -->
   <aside class="left-sidebar">
-    <div class="watchlist-tabs" id="watchlist-tabs">
-      <!-- populated by JS -->
+    <!-- Watchlist selector with dropdown -->
+    <div class="wl-selector" id="wl-selector">
+      <div class="wl-selector-main" id="wl-selector-main">
+        <span class="wl-sel-flag" id="wl-sel-flag" style="background:var(--tier-alert)"></span>
+        <span class="wl-sel-name" id="wl-sel-name">ALERT</span>
+        <span class="wl-sel-count" id="wl-sel-count">0</span>
+        <span class="wl-sel-caret">▼</span>
+      </div>
+      <div class="wl-sel-actions">
+        <button class="wl-sel-act" id="wl-rename-btn" title="Rename (custom only)">✎</button>
+        <button class="wl-sel-act" id="wl-refresh-btn" title="Refresh quotes">↻</button>
+      </div>
+      <div class="wl-dropdown" id="wl-dropdown"><!-- populated by JS --></div>
     </div>
     
-    <div class="watchlist-toolbar">
-      <span class="wl-title" id="wl-active-title">ALERT</span>
-      <button class="wl-action" id="wl-refresh-btn" title="Refresh">↻</button>
+    <!-- Signal summary bar -->
+    <div class="wl-signal-bar" id="wl-signal-bar">
+      <span class="wl-sig-stat"><b id="wl-sig-count">0</b>/<span id="wl-sig-total">0</span> signals</span>
+      <span class="wl-sig-stat" id="wl-sig-detail"></span>
+      <button class="wl-sig-toggle" id="wl-sig-toggle">SIGNALS ONLY</button>
     </div>
     
+    <!-- Column header (sortable) -->
+    <div class="wl-col-header" id="wl-col-header">
+      <span></span>
+      <span data-sort="symbol">Symbol</span>
+      <span class="col-num" data-sort="last">Last</span>
+      <span class="col-num" data-sort="changePct">Chg%</span>
+    </div>
+    
+    <!-- Watchlist rows -->
     <div class="watchlist-body" id="watchlist-body">
       <div class="wl-loading">Loading watchlists...</div>
     </div>
     
-    <div class="custom-watchlist-mgr">
-      <div class="custom-wl-list" id="custom-wl-list"></div>
-      <button class="new-wl-btn" id="new-wl-btn">+ Custom Watchlist</button>
+    <!-- Add symbol (custom watchlists only) -->
+    <div class="wl-add-symbol" id="wl-add-symbol" style="display:none">
+      <input type="text" id="wl-add-input" placeholder="Add symbol..." autocomplete="off" />
+      <button id="wl-add-btn">Add</button>
     </div>
   </aside>
+  
+  <!-- Flag picker popover -->
+  <div class="flag-picker" id="flag-picker">
+    <div class="flag-opt flag-none" data-flag="none" title="No flag"></div>
+    <div class="flag-opt flag-red" data-flag="red"></div>
+    <div class="flag-opt flag-orange" data-flag="orange"></div>
+    <div class="flag-opt flag-yellow" data-flag="yellow"></div>
+    <div class="flag-opt flag-green" data-flag="green"></div>
+    <div class="flag-opt flag-blue" data-flag="blue"></div>
+    <div class="flag-opt flag-purple" data-flag="purple"></div>
+  </div>
   
   <!-- ─── MAIN CHART AREA ─── -->
   <main class="main-area">
@@ -955,36 +1072,38 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 min
 const State = {
   activeTicker: 'NVDA',
   activeExchange: 'NASDAQ',
-  activeWatchlist: 'alert',
+  activeWatchlistId: 'alert',  // 'alert'/'laggard'/... OR 'custom_xxx'
   activeInfoTab: 'overview',
   activeLayout: '1x1',
   activeChartPane: 0,
-  customWatchlists: {},  // {id: {name, tickers: []}}
-  activeCustomWl: null,
+  
+  customWatchlists: {},  // {id: {name, color, tickers: []}}
+  symbolFlags: {},       // {ticker: 'red'|'green'|...} — global, TradingView-style
+  
+  sortBy: null,          // 'symbol'|'last'|'changePct'
+  sortDir: 'desc',
+  signalsOnly: false,    // filter to symbols with active signals
+  
+  quotes: {},            // {ticker: {price, change, changePct, volume}}
   
   // Cached data
-  cascade: null,
-  insider: null,
-  options: null,
-  retail: null,
-  trade_tickets: null,
-  ai_rationales: null,
-  predictions: null,
-  calibration: null,
+  cascade: null, insider: null, options: null, retail: null,
+  trade_tickets: null, ai_rationales: null, predictions: null, calibration: null,
   
-  // TradingView widgets
   tv_widgets: {},
 };
 
-// Watchlist configurations
+// Signal-driven watchlist configs (built-in)
 const WATCHLIST_CONFIGS = [
-  { id: 'alert', label: 'ALERT', emoji: '🚨', color: 'alert', tagClass: 'alert' },
-  { id: 'laggard', label: 'LAGGARD', emoji: '🐢', color: 'laggard', tagClass: 'laggard' },
-  { id: 'insider', label: 'INSIDER', emoji: '👥', color: 'insider', tagClass: 'insider' },
-  { id: 'options', label: 'OPTIONS', emoji: '⚡', color: 'options', tagClass: 'options' },
-  { id: 'retail', label: 'RETAIL', emoji: '📱', color: 'retail', tagClass: 'retail' },
-  { id: 'earnings', label: 'EARNINGS', emoji: '📊', color: 'earnings', tagClass: 'earnings' },
+  { id: 'alert', label: 'ALERT', emoji: '🚨', color: 'var(--tier-alert)', tagClass: 'alert', signal: true },
+  { id: 'laggard', label: 'LAGGARD', emoji: '🐢', color: 'var(--tier-laggard)', tagClass: 'laggard', signal: true },
+  { id: 'insider', label: 'INSIDER', emoji: '👥', color: 'var(--tier-insider)', tagClass: 'insider', signal: true },
+  { id: 'options', label: 'OPTIONS', emoji: '⚡', color: 'var(--tier-options)', tagClass: 'options', signal: true },
+  { id: 'retail', label: 'RETAIL', emoji: '📱', color: 'var(--tier-retail)', tagClass: 'retail', signal: true },
+  { id: 'earnings', label: 'EARNINGS', emoji: '📊', color: 'var(--tier-earnings)', tagClass: 'earnings', signal: true },
 ];
+
+const FLAG_COLORS = ['none','red','orange','yellow','green','blue','purple'];
 
 // ─── DATA SERVICE ──────────────────────────────────────────────────
 class DataService {
@@ -1021,162 +1140,210 @@ class DataService {
   }
 }
 
-// ─── WATCHLIST MANAGER ─────────────────────────────────────────────
+// ─── QUOTE SERVICE (live batch quotes via Polygon snapshot) ────────
+class QuoteService {
+  static async fetchBatch(tickers) {
+    if (!tickers || tickers.length === 0) return {};
+    const equities = tickers.filter(t => /^[A-Z]{1,5}$/.test(t));
+    if (equities.length === 0) return {};
+    try {
+      const r = await fetch(`${PROXY}/quotes?tickers=${equities.join(',')}`);
+      if (!r.ok) return {};
+      const data = await r.json();
+      return data.tickers || {};
+    } catch (e) { console.warn('Quote fetch failed', e); return {}; }
+  }
+  static async refreshFor(tickers) {
+    const quotes = await this.fetchBatch(tickers);
+    Object.assign(State.quotes, quotes);
+    return quotes;
+  }
+}
+
+// ─── WATCHLIST MANAGER (TradingView-style) ─────────────────────────
 class WatchlistManager {
-  static getJustHodlList(id) {
+  // Returns the raw member list (just tickers + base metadata) for a watchlist id
+  static getMembers(id) {
+    if (id && id.startsWith('custom_')) {
+      const wl = State.customWatchlists[id];
+      if (!wl) return [];
+      return wl.tickers.map(t => ({ ticker: t, name: '', sub: '' }));
+    }
     switch(id) {
-      case 'alert':    return this.alertList();
-      case 'laggard':  return this.laggardList();
-      case 'insider':  return this.insiderList();
-      case 'options':  return this.optionsList();
-      case 'retail':   return this.retailList();
-      case 'earnings': return this.earningsList();
+      case 'alert':    return this.fromCascade('alert_tier');
+      case 'laggard':  return this.fromCascade('laggards_hot_themes');
+      case 'insider':  return this.fromInsider();
+      case 'options':  return this.fromOptions();
+      case 'retail':   return this.fromRetail();
+      case 'earnings': return this.fromEarnings();
       default:         return [];
     }
   }
   
-  static alertList() {
+  static fromCascade(tierKey) {
     const cascade = State.cascade || {};
-    return (cascade.alert_tier || []).slice(0, 25).map(c => ({
+    return (cascade[tierKey] || []).slice(0, 30).map(c => ({
       ticker: c.ticker,
       name: c.industry_label || c.industry || '',
+      sub: c.hot_etf ? '→ ' + c.hot_etf : (c.industry_label || ''),
       score: c.combined_score || 0,
-      change: c.perf_1d_pct || c.perf_5d_pct || 0,
-      tags: ['ALERT'],
-      hot_etf: c.hot_etf,
+      fallbackChange: c.perf_1d_pct || c.perf_5d_pct || null,
     }));
   }
-  
-  static laggardList() {
-    const cascade = State.cascade || {};
-    return (cascade.laggards_hot_themes || []).slice(0, 25).map(c => ({
-      ticker: c.ticker,
-      name: c.industry_label || c.industry || '',
-      score: c.combined_score || 0,
-      change: c.perf_5d_pct || 0,
-      tags: ['LAGGARD'],
-      hot_etf: c.hot_etf,
-    }));
-  }
-  
-  static insiderList() {
+  static fromInsider() {
     const insider = State.insider || {};
     const items = insider.clusters || insider.items || insider.top_clusters || [];
-    return items.slice(0, 25).map(c => ({
+    return items.slice(0, 30).map(c => ({
       ticker: c.ticker,
       name: c.company_name || c.industry || '',
+      sub: `${c.n_insiders || c.cluster_size || '?'} insiders`,
       score: (c.n_insiders || c.cluster_size || 0) * 10,
-      change: c.perf_30d_pct || c.recent_perf_pct || 0,
-      tags: ['INSIDER', `${c.n_insiders || c.cluster_size || '?'}x`],
-      total_value: c.total_value_usd,
+      fallbackChange: c.perf_30d_pct || null,
     }));
   }
-  
-  static optionsList() {
+  static fromOptions() {
     const opts = State.options || {};
-    const extreme = opts.extreme_call_flow || [];
-    const bullish = opts.bullish_call_flow || [];
-    return [...extreme, ...bullish].slice(0, 25).map(c => ({
-      ticker: c.ticker,
-      name: c.industry || '',
-      score: (c.cv_pv_ratio || 0) * 50,
-      change: c.perf_1d_pct || 0,
-      tags: extreme.includes(c) ? ['OPTIONS', 'EXTREME'] : ['OPTIONS', 'BULLISH'],
-      cv_pv_ratio: c.cv_pv_ratio,
-    }));
+    const ex = opts.extreme_call_flow || [];
+    const bu = opts.bullish_call_flow || [];
+    const seen = new Set();
+    const out = [];
+    [...ex, ...bu].forEach(c => {
+      if (!c.ticker || seen.has(c.ticker)) return;
+      seen.add(c.ticker);
+      out.push({
+        ticker: c.ticker, name: c.industry || '',
+        sub: `C/P ${(c.cv_pv_ratio || 0).toFixed(1)}`,
+        score: (c.cv_pv_ratio || 0) * 50,
+        fallbackChange: c.perf_1d_pct || null,
+      });
+    });
+    return out.slice(0, 30);
   }
-  
-  static retailList() {
+  static fromRetail() {
     const retail = State.retail || {};
     const surges = retail.biggest_velocity_surges || [];
     const climbers = retail.biggest_rank_climbers || [];
     const map = new Map();
-    surges.forEach(s => {
-      const t = s.ticker || s.symbol;
-      if (t) map.set(t, { ticker: t, velocity: s.velocity_pct, mentions: s.mentions });
-    });
-    climbers.forEach(s => {
-      const t = s.ticker || s.symbol;
-      if (t) map.set(t, { ...map.get(t), ticker: t, rank_climb: s.rank_climb || s.delta });
-    });
-    return Array.from(map.values()).slice(0, 25).map(c => ({
-      ticker: c.ticker,
-      name: '',
-      score: c.velocity || 0,
-      change: 0,
-      tags: c.velocity >= 500 ? ['RETAIL', 'HOT'] : ['RETAIL'],
-      velocity: c.velocity,
-      mentions: c.mentions,
+    surges.forEach(s => { const t = s.ticker || s.symbol; if (t) map.set(t, { ticker: t, velocity: s.velocity_pct, mentions: s.mentions }); });
+    climbers.forEach(s => { const t = s.ticker || s.symbol; if (t) map.set(t, { ...(map.get(t)||{}), ticker: t, rank_climb: s.rank_climb || s.delta }); });
+    return Array.from(map.values()).slice(0, 30).map(c => ({
+      ticker: c.ticker, name: '',
+      sub: c.velocity ? `+${Math.round(c.velocity)}% mentions` : 'rank climber',
+      score: c.velocity || 0, fallbackChange: null,
     }));
   }
-  
-  static earningsList() {
+  static fromEarnings() {
     const preds = (State.predictions && State.predictions.predictions) || [];
     return preds.filter(p => (p.alerts || []).includes('EARNINGS_FRESH'))
-      .slice(0, 25).map(p => ({
-        ticker: p.ticker,
-        name: p.industry || '',
-        score: ((p.features || {}).earnings_score) || 0,
-        change: 0,
-        tags: ['EARNINGS'],
-        days_since: (p.features || {}).days_since_earnings,
+      .slice(0, 30).map(p => ({
+        ticker: p.ticker, name: p.industry || '',
+        sub: (p.features||{}).days_since_earnings != null ? `${(p.features).days_since_earnings}d since ER` : 'fresh transcript',
+        score: ((p.features || {}).earnings_score) || 0, fallbackChange: null,
       }));
   }
   
-  static getCustomList(id) {
-    const wl = State.customWatchlists[id];
-    if (!wl) return [];
-    return wl.tickers.map(t => ({
-      ticker: t,
-      name: '',
-      score: 0,
-      change: 0,
-      tags: ['CUSTOM'],
+  // All watchlists (signal + custom) for the dropdown
+  static getAllWatchlists() {
+    const signal = WATCHLIST_CONFIGS.map(c => ({
+      id: c.id, name: c.label, emoji: c.emoji, color: c.color,
+      type: 'signal', count: this.getMembers(c.id).length,
     }));
+    const custom = Object.entries(State.customWatchlists).map(([id, wl]) => ({
+      id, name: wl.name, emoji: '★', color: wl.color || 'var(--fg-3)',
+      type: 'custom', count: wl.tickers.length,
+    }));
+    return { signal, custom };
   }
   
-  // localStorage persistence
-  static loadCustom() {
+  static getWatchlistMeta(id) {
+    if (id && id.startsWith('custom_')) {
+      const wl = State.customWatchlists[id];
+      return wl ? { name: wl.name, color: wl.color || 'var(--fg-3)', type: 'custom', emoji: '★' } : null;
+    }
+    const c = WATCHLIST_CONFIGS.find(x => x.id === id);
+    return c ? { name: c.label, color: c.color, type: 'signal', emoji: c.emoji } : null;
+  }
+  
+  // ── Symbol signal detection (which JustHodl signals are active) ──
+  static getSymbolSignals(ticker) {
+    const sigs = [];
+    const cascade = State.cascade || {};
+    if ((cascade.alert_tier || []).some(c => c.ticker === ticker)) sigs.push('alert');
+    if ((cascade.laggards_hot_themes || []).some(c => c.ticker === ticker)) sigs.push('laggard');
+    const insider = State.insider || {};
+    if ((insider.clusters || insider.items || insider.top_clusters || []).some(c => c.ticker === ticker)) sigs.push('insider');
+    const opts = State.options || {};
+    if ([...(opts.extreme_call_flow||[]), ...(opts.bullish_call_flow||[])].some(c => c.ticker === ticker)) sigs.push('options');
+    const retail = State.retail || {};
+    if ((retail.biggest_velocity_surges || []).some(c => (c.ticker||c.symbol) === ticker)) sigs.push('retail');
+    const preds = (State.predictions && State.predictions.predictions) || [];
+    const pred = preds.find(p => p.ticker === ticker);
+    if (pred && (pred.alerts || []).includes('EARNINGS_FRESH')) sigs.push('earnings');
+    return sigs;
+  }
+  
+  // ── localStorage persistence ──
+  static loadAll() {
     try {
-      const raw = localStorage.getItem('jh_custom_watchlists');
-      if (raw) State.customWatchlists = JSON.parse(raw);
-    } catch (e) { console.warn('Failed to load custom watchlists', e); }
+      const wl = localStorage.getItem('jh_custom_watchlists');
+      if (wl) State.customWatchlists = JSON.parse(wl);
+      const flags = localStorage.getItem('jh_symbol_flags');
+      if (flags) State.symbolFlags = JSON.parse(flags);
+      const lastWl = localStorage.getItem('jh_active_watchlist');
+      if (lastWl && (WATCHLIST_CONFIGS.some(c=>c.id===lastWl) || lastWl.startsWith('custom_'))) {
+        State.activeWatchlistId = lastWl;
+      }
+    } catch (e) { console.warn('Load failed', e); }
   }
-  
   static saveCustom() {
-    try {
-      localStorage.setItem('jh_custom_watchlists', JSON.stringify(State.customWatchlists));
-    } catch (e) { console.warn('Failed to save custom watchlists', e); }
+    try { localStorage.setItem('jh_custom_watchlists', JSON.stringify(State.customWatchlists)); } catch(e){}
+  }
+  static saveFlags() {
+    try { localStorage.setItem('jh_symbol_flags', JSON.stringify(State.symbolFlags)); } catch(e){}
+  }
+  static saveActiveWl() {
+    try { localStorage.setItem('jh_active_watchlist', State.activeWatchlistId); } catch(e){}
   }
   
   static createCustom(name) {
     const id = 'custom_' + Date.now();
-    State.customWatchlists[id] = { name, tickers: [] };
+    const colors = ['var(--cyan)','var(--green)','var(--amber)','var(--violet)','var(--pink)','var(--blue)'];
+    const used = Object.values(State.customWatchlists).map(w => w.color);
+    const color = colors.find(c => !used.includes(c)) || colors[0];
+    State.customWatchlists[id] = { name, color, tickers: [] };
     this.saveCustom();
     return id;
   }
-  
+  static renameCustom(id, name) {
+    if (State.customWatchlists[id]) { State.customWatchlists[id].name = name; this.saveCustom(); }
+  }
   static deleteCustom(id) {
     delete State.customWatchlists[id];
     this.saveCustom();
-    if (State.activeCustomWl === id) State.activeCustomWl = null;
+    if (State.activeWatchlistId === id) { State.activeWatchlistId = 'alert'; this.saveActiveWl(); }
   }
-  
-  static addTickerToCustom(id, ticker) {
-    if (!State.customWatchlists[id]) return;
-    const wl = State.customWatchlists[id];
-    if (!wl.tickers.includes(ticker)) {
-      wl.tickers.push(ticker);
+  static addTicker(id, ticker) {
+    ticker = (ticker || '').toUpperCase().trim();
+    if (!ticker || !State.customWatchlists[id]) return;
+    if (!State.customWatchlists[id].tickers.includes(ticker)) {
+      State.customWatchlists[id].tickers.push(ticker);
       this.saveCustom();
     }
   }
-  
-  static removeTickerFromCustom(id, ticker) {
+  static removeTicker(id, ticker) {
     if (!State.customWatchlists[id]) return;
     State.customWatchlists[id].tickers = State.customWatchlists[id].tickers.filter(t => t !== ticker);
     this.saveCustom();
   }
+  
+  static setFlag(ticker, flag) {
+    if (flag === 'none') delete State.symbolFlags[ticker];
+    else State.symbolFlags[ticker] = flag;
+    this.saveFlags();
+  }
+  static getFlag(ticker) { return State.symbolFlags[ticker] || 'none'; }
 }
+
 
 // ─── UI RENDERER ───────────────────────────────────────────────────
 class UI {
@@ -1204,112 +1371,184 @@ class UI {
     return '$' + n.toFixed(2);
   }
   
-  static renderWatchlistTabs() {
-    const html = WATCHLIST_CONFIGS.map(w => `
-      <div class="watchlist-tab ${State.activeWatchlist === w.id ? 'active' : ''}" data-wl="${w.id}">
-        <span>${w.emoji} ${w.label}</span>
-        <span class="wl-count" id="wl-count-${w.id}">—</span>
-      </div>
-    `).join('');
-    document.getElementById('watchlist-tabs').innerHTML = html;
-    document.querySelectorAll('.watchlist-tab').forEach(el => {
-      el.addEventListener('click', () => {
-        State.activeWatchlist = el.dataset.wl;
-        State.activeCustomWl = null;
-        this.renderWatchlistTabs();
-        this.renderWatchlistBody();
-        this.renderCustomWatchlistList();
-      });
-    });
+  // ── Render watchlist selector header ──
+  static renderWatchlistSelector() {
+    const meta = WatchlistManager.getWatchlistMeta(State.activeWatchlistId);
+    if (!meta) { State.activeWatchlistId = 'alert'; return this.renderWatchlistSelector(); }
+    const members = WatchlistManager.getMembers(State.activeWatchlistId);
+    document.getElementById('wl-sel-flag').style.background = meta.color;
+    document.getElementById('wl-sel-name').textContent = meta.name;
+    document.getElementById('wl-sel-count').textContent = members.length;
+    // Show rename + add only for custom
+    const isCustom = meta.type === 'custom';
+    document.getElementById('wl-rename-btn').style.display = isCustom ? 'flex' : 'none';
+    document.getElementById('wl-add-symbol').style.display = isCustom ? 'flex' : 'none';
   }
   
-  static renderWatchlistBody() {
-    const wlId = State.activeWatchlist;
-    const config = WATCHLIST_CONFIGS.find(c => c.id === wlId);
-    let items;
-    let activeLabel;
-    
-    if (State.activeCustomWl) {
-      items = WatchlistManager.getCustomList(State.activeCustomWl);
-      const wl = State.customWatchlists[State.activeCustomWl];
-      activeLabel = wl ? wl.name.toUpperCase() : 'CUSTOM';
-    } else {
-      items = WatchlistManager.getJustHodlList(wlId);
-      activeLabel = config ? config.label : '';
-    }
-    
-    document.getElementById('wl-active-title').textContent = activeLabel;
-    
-    // Update counts on tabs
-    WATCHLIST_CONFIGS.forEach(w => {
-      const count = WatchlistManager.getJustHodlList(w.id).length;
-      const el = document.getElementById(`wl-count-${w.id}`);
-      if (el) el.textContent = count > 0 ? count : '0';
+  // ── Render dropdown of all watchlists ──
+  static renderWatchlistDropdown() {
+    const { signal, custom } = WatchlistManager.getAllWatchlists();
+    let html = '<div class="wl-dd-section-label">JustHodl Signals</div>';
+    signal.forEach(w => {
+      html += `
+        <div class="wl-dd-item ${State.activeWatchlistId === w.id ? 'active' : ''}" data-wl-id="${w.id}">
+          <span class="dd-flag" style="background:${w.color}"></span>
+          <span class="dd-name">${w.emoji} ${this.esc(w.name)}</span>
+          <span class="dd-count">${w.count}</span>
+        </div>`;
     });
-    
-    if (items.length === 0) {
-      document.getElementById('watchlist-body').innerHTML = '<div class="wl-empty">No tickers in this list yet.</div>';
-      return;
-    }
-    
-    const html = items.map(item => {
-      const changeClass = item.change > 0 ? 'up' : item.change < 0 ? 'dn' : 'flat';
-      const tags = (item.tags || []).map(t => 
-        `<span class="wl-tag ${config ? config.tagClass : ''}">${this.esc(t)}</span>`
-      ).join('');
-      const selected = item.ticker === State.activeTicker ? 'selected' : '';
-      const score = item.score ? `<span class="wl-score">${item.score.toFixed(0)}</span>` : '';
-      
-      return `
-        <div class="wl-item ${selected}" data-ticker="${this.esc(item.ticker)}">
-          <div class="wl-row1">
-            <span class="wl-ticker">${this.esc(item.ticker)}</span>
-            <span class="wl-price">${this.fmtPrice(item.price)}</span>
-          </div>
-          <div class="wl-row2">
-            <span class="wl-tags">${tags}</span>
-            <span class="wl-change ${changeClass}">${this.fmtPct(item.change, 1)}</span>
-          </div>
-          ${item.hot_etf ? `<div style="font-size:9.5px;color:var(--fg-3);font-family:var(--font-mono);margin-top:1px">→ ${this.esc(item.hot_etf)}</div>` : ''}
-        </div>
-      `;
-    }).join('');
-    
-    document.getElementById('watchlist-body').innerHTML = html;
-    
-    document.querySelectorAll('.wl-item').forEach(el => {
-      el.addEventListener('click', () => {
-        ChartController.loadTicker(el.dataset.ticker);
+    if (custom.length > 0) {
+      html += '<div class="wl-dd-divider"></div><div class="wl-dd-section-label">My Watchlists</div>';
+      custom.forEach(w => {
+        html += `
+          <div class="wl-dd-item ${State.activeWatchlistId === w.id ? 'active' : ''}" data-wl-id="${w.id}">
+            <span class="dd-flag" style="background:${w.color}"></span>
+            <span class="dd-name">${this.esc(w.name)}</span>
+            <span class="dd-count">${w.count}</span>
+            <span class="dd-edit" data-rename-wl="${w.id}" title="Rename">✎</span>
+            <span class="dd-edit" data-delete-wl="${w.id}" title="Delete">🗑</span>
+          </div>`;
       });
-    });
-  }
-  
-  static renderCustomWatchlistList() {
-    const html = Object.entries(State.customWatchlists).map(([id, wl]) => `
-      <div class="custom-wl-chip ${State.activeCustomWl === id ? 'active' : ''}" data-wl-id="${id}">
-        <span>${this.esc(wl.name)} (${wl.tickers.length})</span>
-        <span class="x" data-delete-wl="${id}">×</span>
-      </div>
-    `).join('');
-    document.getElementById('custom-wl-list').innerHTML = html;
+    }
+    html += '<div class="wl-dd-new" id="wl-dd-new">+ Create new watchlist</div>';
+    document.getElementById('wl-dropdown').innerHTML = html;
     
-    document.querySelectorAll('.custom-wl-chip').forEach(el => {
+    // Wire dropdown items
+    document.querySelectorAll('#wl-dropdown .wl-dd-item').forEach(el => {
       el.addEventListener('click', (e) => {
+        if (e.target.dataset.renameWl) {
+          e.stopPropagation();
+          this.promptRename(e.target.dataset.renameWl);
+          return;
+        }
         if (e.target.dataset.deleteWl) {
-          if (confirm(`Delete watchlist "${State.customWatchlists[e.target.dataset.deleteWl].name}"?`)) {
+          e.stopPropagation();
+          const wl = State.customWatchlists[e.target.dataset.deleteWl];
+          if (wl && confirm(`Delete watchlist "${wl.name}"?`)) {
             WatchlistManager.deleteCustom(e.target.dataset.deleteWl);
-            this.renderCustomWatchlistList();
-            this.renderWatchlistBody();
+            this.refreshWatchlist();
           }
           return;
         }
-        State.activeCustomWl = el.dataset.wlId;
-        State.activeWatchlist = null;
-        this.renderWatchlistTabs();
-        this.renderWatchlistBody();
-        this.renderCustomWatchlistList();
+        State.activeWatchlistId = el.dataset.wlId;
+        WatchlistManager.saveActiveWl();
+        document.getElementById('wl-selector').classList.remove('open');
+        this.refreshWatchlist();
       });
     });
+    document.getElementById('wl-dd-new').addEventListener('click', () => {
+      document.getElementById('wl-selector').classList.remove('open');
+      document.getElementById('new-wl-modal').classList.add('open');
+      setTimeout(() => document.getElementById('new-wl-name-input').focus(), 50);
+    });
+  }
+  
+  static promptRename(id) {
+    const wl = State.customWatchlists[id];
+    if (!wl) return;
+    const name = prompt('Rename watchlist:', wl.name);
+    if (name && name.trim()) {
+      WatchlistManager.renameCustom(id, name.trim());
+      this.refreshWatchlist();
+    }
+  }
+  
+  // ── Render the watchlist body (rows with columns) ──
+  static renderWatchlistBody() {
+    let members = WatchlistManager.getMembers(State.activeWatchlistId);
+    
+    // Attach signals + quotes + flags
+    members = members.map(m => {
+      const q = State.quotes[m.ticker] || {};
+      const signals = WatchlistManager.getSymbolSignals(m.ticker);
+      return {
+        ...m,
+        last: q.price != null ? q.price : null,
+        changePct: q.changePct != null ? q.changePct : m.fallbackChange,
+        signals,
+        flag: WatchlistManager.getFlag(m.ticker),
+      };
+    });
+    
+    // Filter signals-only
+    if (State.signalsOnly) members = members.filter(m => m.signals.length > 0);
+    
+    // Sort
+    if (State.sortBy) {
+      members.sort((a, b) => {
+        let av, bv;
+        if (State.sortBy === 'symbol') { av = a.ticker; bv = b.ticker; return State.sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av); }
+        if (State.sortBy === 'last') { av = a.last || 0; bv = b.last || 0; }
+        if (State.sortBy === 'changePct') { av = a.changePct || 0; bv = b.changePct || 0; }
+        return State.sortDir === 'asc' ? av - bv : bv - av;
+      });
+    }
+    
+    // Signal summary bar
+    const withSignals = members.filter(m => m.signals.length > 0).length;
+    document.getElementById('wl-sig-count').textContent = withSignals;
+    document.getElementById('wl-sig-total').textContent = members.length;
+    
+    if (members.length === 0) {
+      document.getElementById('watchlist-body').innerHTML = State.signalsOnly
+        ? '<div class="wl-empty">No symbols with active signals.</div>'
+        : '<div class="wl-empty">Empty watchlist. Add symbols below.</div>';
+      return;
+    }
+    
+    const isCustom = State.activeWatchlistId.startsWith('custom_');
+    const html = members.map(m => {
+      const changeClass = m.changePct > 0 ? 'up' : m.changePct < 0 ? 'dn' : 'flat';
+      const selected = m.ticker === State.activeTicker ? 'selected' : '';
+      const sigDots = m.signals.map(s => `<span class="wl-sig-dot ${s}" title="${s}"></span>`).join('');
+      const lastStr = m.last != null ? '$' + m.last.toFixed(2) : '—';
+      const chgStr = m.changePct != null ? (m.changePct >= 0 ? '+' : '') + m.changePct.toFixed(2) + '%' : '—';
+      return `
+        <div class="wl-row ${selected}" data-ticker="${this.esc(m.ticker)}">
+          <span class="wl-flag flag-${m.flag}" data-flag-ticker="${this.esc(m.ticker)}" title="Set flag"></span>
+          <span class="wl-sym-cell">
+            <span class="wl-sym-top">
+              <span class="wl-symbol">${this.esc(m.ticker)}</span>
+              <span class="wl-sig-dots">${sigDots}</span>
+            </span>
+            <span class="wl-sub">${this.esc(m.sub || m.name || '')}</span>
+          </span>
+          <span class="wl-last">${lastStr}</span>
+          <span class="wl-chg ${changeClass}">${chgStr}</span>
+        </div>`;
+    }).join('');
+    document.getElementById('watchlist-body').innerHTML = html;
+    
+    // Wire row clicks (load chart)
+    document.querySelectorAll('.wl-row').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target.dataset.flagTicker) return; // handled separately
+        ChartController.loadTicker(el.dataset.ticker);
+      });
+    });
+    // Wire flag clicks
+    document.querySelectorAll('.wl-flag[data-flag-ticker]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        FlagPicker.open(el, el.dataset.flagTicker);
+      });
+    });
+    
+    // Update column header sort indicators
+    document.querySelectorAll('#wl-col-header span[data-sort]').forEach(el => {
+      el.classList.toggle('sorted', el.dataset.sort === State.sortBy);
+    });
+  }
+  
+  // Refresh selector + dropdown + body together
+  static refreshWatchlist() {
+    this.renderWatchlistSelector();
+    this.renderWatchlistDropdown();
+    this.renderWatchlistBody();
+    // Fetch live quotes for current members
+    const members = WatchlistManager.getMembers(State.activeWatchlistId);
+    const tickers = members.map(m => m.ticker);
+    QuoteService.refreshFor(tickers).then(() => this.renderWatchlistBody());
   }
   
   static renderInfoPanel() {
@@ -1330,16 +1569,15 @@ class UI {
         const ticker = el.dataset.addToCustom;
         const customIds = Object.keys(State.customWatchlists);
         if (customIds.length === 0) {
-          alert('Create a custom watchlist first.');
+          alert('Create a custom watchlist first (dropdown → + Create new watchlist).');
           return;
         }
-        const choice = prompt('Which watchlist?\n' + customIds.map((id, i) => 
+        const choice = prompt('Add to which watchlist?\n' + customIds.map((id, i) => 
           `${i+1}. ${State.customWatchlists[id].name}`).join('\n'));
         const idx = parseInt(choice) - 1;
         if (isNaN(idx) || idx < 0 || idx >= customIds.length) return;
-        WatchlistManager.addTickerToCustom(customIds[idx], ticker);
-        this.renderCustomWatchlistList();
-        if (State.activeCustomWl === customIds[idx]) this.renderWatchlistBody();
+        WatchlistManager.addTicker(customIds[idx], ticker);
+        UI.refreshWatchlist();
       });
     });
   }
@@ -2057,6 +2295,33 @@ class UniverseSearch {
   }
 }
 
+// ─── FLAG PICKER ───────────────────────────────────────────────────
+class FlagPicker {
+  static currentTicker = null;
+  
+  static open(anchorEl, ticker) {
+    this.currentTicker = ticker;
+    const picker = document.getElementById('flag-picker');
+    const rect = anchorEl.getBoundingClientRect();
+    picker.style.left = (rect.left) + 'px';
+    picker.style.top = (rect.bottom + 4) + 'px';
+    picker.classList.add('open');
+  }
+  
+  static close() {
+    document.getElementById('flag-picker').classList.remove('open');
+    this.currentTicker = null;
+  }
+  
+  static setFlag(flag) {
+    if (this.currentTicker) {
+      WatchlistManager.setFlag(this.currentTicker, flag);
+      UI.renderWatchlistBody();
+    }
+    this.close();
+  }
+}
+
 // ─── HEATMAP ───────────────────────────────────────────────────────
 class Heatmap {
   static activeMode = 'perf';
@@ -2183,8 +2448,8 @@ class Heatmap {
 
 // ─── INIT ──────────────────────────────────────────────────────────
 async function init() {
-  // Load custom watchlists from localStorage
-  WatchlistManager.loadCustom();
+  // Load persisted state (custom watchlists, flags, last active)
+  WatchlistManager.loadAll();
   
   // Load all data
   await DataService.loadAll();
@@ -2192,10 +2457,8 @@ async function init() {
   // Build search index
   UniverseSearch.buildIndex();
   
-  // Render UI
-  UI.renderWatchlistTabs();
-  UI.renderWatchlistBody();
-  UI.renderCustomWatchlistList();
+  // Render watchlist (selector + dropdown + body) + fetch quotes
+  UI.refreshWatchlist();
   UI.renderInfoPanel();
   UI.renderSignalStrip(State.activeTicker);
   ChartController.initLayout();
@@ -2205,12 +2468,82 @@ async function init() {
   setInterval(async () => {
     await DataService.loadAll();
     UniverseSearch.buildIndex();
-    UI.renderWatchlistBody();
+    UI.refreshWatchlist();
     UI.renderInfoPanel();
     UI.renderSignalStrip(State.activeTicker);
   }, REFRESH_INTERVAL_MS);
   
-  // Wire up info tabs
+  // Refresh quotes every 60s (faster than full data)
+  setInterval(async () => {
+    const members = WatchlistManager.getMembers(State.activeWatchlistId);
+    await QuoteService.refreshFor(members.map(m => m.ticker));
+    UI.renderWatchlistBody();
+  }, 60 * 1000);
+  
+  // ── Watchlist selector dropdown toggle ──
+  document.getElementById('wl-selector-main').addEventListener('click', () => {
+    document.getElementById('wl-selector').classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#wl-selector')) {
+      document.getElementById('wl-selector').classList.remove('open');
+    }
+    if (!e.target.closest('#flag-picker') && !e.target.dataset.flagTicker) {
+      FlagPicker.close();
+    }
+  });
+  
+  // ── Rename active watchlist ──
+  document.getElementById('wl-rename-btn').addEventListener('click', () => {
+    if (State.activeWatchlistId.startsWith('custom_')) UI.promptRename(State.activeWatchlistId);
+  });
+  
+  // ── Refresh button ──
+  document.getElementById('wl-refresh-btn').addEventListener('click', async () => {
+    await DataService.loadAll();
+    UI.refreshWatchlist();
+  });
+  
+  // ── Signals-only toggle ──
+  document.getElementById('wl-sig-toggle').addEventListener('click', (e) => {
+    State.signalsOnly = !State.signalsOnly;
+    e.target.classList.toggle('active', State.signalsOnly);
+    UI.renderWatchlistBody();
+  });
+  
+  // ── Column sorting ──
+  document.querySelectorAll('#wl-col-header span[data-sort]').forEach(el => {
+    el.addEventListener('click', () => {
+      const col = el.dataset.sort;
+      if (State.sortBy === col) {
+        State.sortDir = State.sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        State.sortBy = col;
+        State.sortDir = col === 'symbol' ? 'asc' : 'desc';
+      }
+      UI.renderWatchlistBody();
+    });
+  });
+  
+  // ── Add symbol to custom watchlist ──
+  const addInput = document.getElementById('wl-add-input');
+  const doAdd = () => {
+    const t = addInput.value.trim().toUpperCase();
+    if (t && State.activeWatchlistId.startsWith('custom_')) {
+      WatchlistManager.addTicker(State.activeWatchlistId, t);
+      addInput.value = '';
+      UI.refreshWatchlist();
+    }
+  };
+  document.getElementById('wl-add-btn').addEventListener('click', doAdd);
+  addInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doAdd(); });
+  
+  // ── Flag picker options ──
+  document.querySelectorAll('#flag-picker .flag-opt').forEach(el => {
+    el.addEventListener('click', () => FlagPicker.setFlag(el.dataset.flag));
+  });
+  
+  // ── Info tabs ──
   document.querySelectorAll('.info-tab').forEach(el => {
     el.addEventListener('click', () => {
       State.activeInfoTab = el.dataset.infoTab;
@@ -2220,7 +2553,7 @@ async function init() {
     });
   });
   
-  // Wire up layout switcher
+  // ── Layout switcher ──
   document.querySelectorAll('.layout-btn[data-layout]').forEach(el => {
     el.addEventListener('click', () => {
       State.activeLayout = el.dataset.layout;
@@ -2231,23 +2564,19 @@ async function init() {
     });
   });
   
-  // Wire up heatmap
+  // ── Heatmap ──
   document.getElementById('heatmap-btn').addEventListener('click', () => Heatmap.open());
   document.getElementById('heatmap-close').addEventListener('click', () => Heatmap.close());
   document.querySelectorAll('.hm-ctrl[data-hm-mode]').forEach(el => {
     el.addEventListener('click', () => Heatmap.setMode(el.dataset.hmMode));
   });
   
-  // Wire up universe search
+  // ── Universe search ──
   const searchInput = document.getElementById('search-input');
   searchInput.addEventListener('focus', () => UniverseSearch.open());
   searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const q = searchInput.value.trim().toUpperCase();
-      if (q) ChartController.loadTicker(q);
-    }
+    if (e.key === 'Enter') { const q = searchInput.value.trim().toUpperCase(); if (q) ChartController.loadTicker(q); }
   });
-  
   document.getElementById('search-modal-input').addEventListener('input', (e) => {
     UniverseSearch.focusIdx = 0;
     UniverseSearch.renderResults(UniverseSearch.search(e.target.value));
@@ -2255,18 +2584,7 @@ async function init() {
   document.getElementById('search-modal-input').addEventListener('keydown', (e) => UniverseSearch.handleKey(e));
   document.getElementById('search-modal-close').addEventListener('click', () => UniverseSearch.close());
   
-  // Wire up refresh button
-  document.getElementById('wl-refresh-btn').addEventListener('click', async () => {
-    await DataService.loadAll();
-    UI.renderWatchlistBody();
-    UI.renderInfoPanel();
-  });
-  
-  // Wire up new watchlist button
-  document.getElementById('new-wl-btn').addEventListener('click', () => {
-    document.getElementById('new-wl-modal').classList.add('open');
-    setTimeout(() => document.getElementById('new-wl-name-input').focus(), 50);
-  });
+  // ── New watchlist modal ──
   document.getElementById('new-wl-cancel-btn').addEventListener('click', () => {
     document.getElementById('new-wl-modal').classList.remove('open');
     document.getElementById('new-wl-name-input').value = '';
@@ -2274,43 +2592,37 @@ async function init() {
   document.getElementById('new-wl-confirm-btn').addEventListener('click', () => {
     const name = document.getElementById('new-wl-name-input').value.trim();
     if (!name) return;
-    WatchlistManager.createCustom(name);
+    const id = WatchlistManager.createCustom(name);
+    State.activeWatchlistId = id;
+    WatchlistManager.saveActiveWl();
     document.getElementById('new-wl-modal').classList.remove('open');
     document.getElementById('new-wl-name-input').value = '';
-    UI.renderCustomWatchlistList();
+    UI.refreshWatchlist();
   });
   document.getElementById('new-wl-name-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('new-wl-confirm-btn').click();
     if (e.key === 'Escape') document.getElementById('new-wl-cancel-btn').click();
   });
   
-  // Global keyboard shortcuts
+  // ── Global keyboard shortcuts ──
   document.addEventListener('keydown', (e) => {
-    // Skip if typing in input
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    
-    if (e.key === '/') {
-      e.preventDefault();
-      UniverseSearch.open();
-    }
+    if (e.key === '/') { e.preventDefault(); UniverseSearch.open(); }
     if (e.key === 'Escape') {
-      UniverseSearch.close();
-      Heatmap.close();
+      UniverseSearch.close(); Heatmap.close(); FlagPicker.close();
       document.getElementById('new-wl-modal').classList.remove('open');
+      document.getElementById('wl-selector').classList.remove('open');
     }
     if (e.key >= '1' && e.key <= '6') {
       const idx = parseInt(e.key) - 1;
       if (idx < WATCHLIST_CONFIGS.length) {
-        State.activeWatchlist = WATCHLIST_CONFIGS[idx].id;
-        State.activeCustomWl = null;
-        UI.renderWatchlistTabs();
-        UI.renderWatchlistBody();
-        UI.renderCustomWatchlistList();
+        State.activeWatchlistId = WATCHLIST_CONFIGS[idx].id;
+        WatchlistManager.saveActiveWl();
+        UI.refreshWatchlist();
       }
     }
   });
   
-  // Update session status every minute
   setInterval(updateSessionStatus, 60 * 1000);
 }
 
