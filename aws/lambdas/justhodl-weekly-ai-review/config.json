@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-weekly-ai-review",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 180,
+  "memory": 768,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Weekly AI memo synthesizing self-improvement loop progress + cascade calibration learnings",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(0 14 ? * SUN *)",
+    "name": "justhodl-weekly-ai-review-sunday",
+    "description": "Every Sunday 10:00 ET — week-in-review with Claude Sonnet"
+  }
+}
