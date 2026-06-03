@@ -1223,8 +1223,9 @@ a:hover { text-decoration: underline; }
         <span class="symbol-change up" id="active-change">—</span>
       </div>
       <div class="chart-engine-toggle" id="chart-engine-toggle">
-        <button class="ceng-btn active" data-engine="tv" title="TradingView chart">TradingView</button>
-        <button class="ceng-btn" data-engine="native" title="JustHodl native chart (Polygon data) — works for any US symbol">JustHodl</button>
+        <button class="ceng-btn active" data-engine="auto" title="Auto — picks the engine that can actually show the symbol (recommended)">Auto</button>
+        <button class="ceng-btn" data-engine="tv" title="Force TradingView (full toolkit; some symbols gated)">TradingView</button>
+        <button class="ceng-btn" data-engine="native" title="Force JustHodl native chart (Polygon data)">JustHodl</button>
       </div>
     </div>
     
@@ -1378,7 +1379,7 @@ const State = {
   knownSymbols: {},      // {ticker: {kind, ts}} — per-user searched/opened symbols (grows the index)
   chartTabs: [],         // [{id, symbol}] — multiple charts, click to switch
   activeTabId: null,
-  chartEngine: 'tv',     // 'tv' (TradingView) | 'native' (Polygon + Lightweight Charts)
+  chartEngine: 'auto',   // 'auto' | 'tv' (TradingView) | 'native' (Polygon + Lightweight Charts)
   nativeChart: null,     // Lightweight Charts instance
   deviceId: null,        // anonymous per-device UID for cloud sync
   syncStatus: 'idle',    // idle|syncing|saved|error
@@ -1646,6 +1647,7 @@ class WatchlistManager {
         if (data.symbolResolution) Object.assign(State.symbolResolution, data.symbolResolution);
         if (data.knownSymbols) State.knownSymbols = data.knownSymbols;
         if (data.chartTabs && data.chartTabs.length) { State.chartTabs = data.chartTabs; State.activeTabId = data.activeTabId || data.chartTabs[0].id; }
+        if (data.chartEngine) State.chartEngine = data.chartEngine;
         if (data.activeWatchlistId) State.activeWatchlistId = data.activeWatchlistId;
         this.saveLocal();
         return true;
@@ -1685,6 +1687,7 @@ class WatchlistManager {
           knownSymbols: State.knownSymbols,
           chartTabs: State.chartTabs,
           activeTabId: State.activeTabId,
+          chartEngine: State.chartEngine,
           activeWatchlistId: State.activeWatchlistId,
           updated_at: Date.now(),
         });
@@ -2708,41 +2711,55 @@ class ChartController {
     ticker = ticker.toUpperCase().trim();
     
     State.activeTicker = ticker;
-    
-    // Update the active chart tab's symbol
     ChartTabs.setActiveTabSymbol(ticker);
     
-    // Update header immediately (responsive feel)
     document.getElementById('active-ticker').textContent = ticker;
     document.getElementById('active-name').textContent = '';
-    
-    // Update watchlist selection + info panel right away
     UI.renderInfoPanel();
     UI.renderSignalStrip(ticker);
     document.querySelectorAll('.wl-row').forEach(el => {
       el.classList.toggle('selected', el.dataset.ticker === ticker);
     });
     
-    // FRED macro series can only render natively (force engine)
     const isFred = ticker.startsWith('FRED:');
-    if (isFred && State.chartEngine !== 'native') {
-      State.chartEngine = 'native';
-      document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === 'native'));
-    }
+    const engine = State.chartEngine;
     
-    // Render via the active engine
-    if (State.chartEngine === 'native' || isFred) {
+    // FRED → always native line
+    if (isFred) { NativeChart.render(ticker); return; }
+    // Forced native
+    if (engine === 'native') { NativeChart.render(ticker); return; }
+    // Forced TradingView
+    if (engine === 'tv') { return this.loadTV(ticker, knownFull); }
+    
+    // AUTO mode: probe Polygon — if it has the data, use the reliable native
+    // engine (never hits TV gating). Otherwise (crypto/forex/futures/foreign)
+    // fall back to TradingView which handles those.
+    const paneIdx = State.activeChartPane;
+    const container = document.getElementById(`tv-container-${paneIdx}`);
+    if (container) container.innerHTML = `<div class="tv-placeholder"><span class="ticker">${UI.esc(ticker)}</span><span>Resolving best chart source…</span></div>`;
+    
+    let hasPolygon = false;
+    if (/^[A-Z][A-Z.\-]{0,6}$/.test(ticker)) {  // US-style ticker
+      try {
+        const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&days=5`);
+        if (r.ok) { const d = await r.json(); hasPolygon = (d.bars && d.bars.length > 0); }
+      } catch (e) { hasPolygon = false; }
+    }
+    // Guard: user may have clicked another symbol while probing
+    if (State.activeTicker !== ticker) return;
+    
+    if (hasPolygon) {
       NativeChart.render(ticker);
-      return;
-    }
-    
-    // TradingView engine: resolve the proper symbol, then load
-    let fullSymbol = knownFull || State.symbolResolution[ticker];
-    if (!fullSymbol) {
-      fullSymbol = await this.resolveSymbol(ticker);
     } else {
-      State.symbolResolution[ticker] = fullSymbol;
+      this.loadTV(ticker, knownFull);
     }
+  }
+  
+  static async loadTV(ticker, knownFull) {
+    let fullSymbol = knownFull || State.symbolResolution[ticker];
+    if (!fullSymbol) fullSymbol = await this.resolveSymbol(ticker);
+    else State.symbolResolution[ticker] = fullSymbol;
+    if (State.activeTicker !== ticker) return;
     const paneIdx = State.activeChartPane;
     this.createTVWidgetWithSymbol(paneIdx, fullSymbol, ticker);
     const ps = document.getElementById(`pane-symbol-${paneIdx}`);
@@ -3097,6 +3114,25 @@ class NativeChart {
         borderDownColor: '#ff5577', wickUpColor: '#26ffaf', wickDownColor: '#ff5577',
       });
       candleSeries.setData(bars.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
+      
+      // Moving averages (MA20 cyan, MA50 amber)
+      const sma = (period) => {
+        const out = [];
+        for (let i = period - 1; i < bars.length; i++) {
+          let sum = 0; for (let j = i - period + 1; j <= i; j++) sum += bars[j].close;
+          out.push({ time: bars[i].time, value: sum / period });
+        }
+        return out;
+      };
+      if (bars.length >= 20) {
+        const ma20 = chart.addLineSeries({ color: '#22d3ee', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+        ma20.setData(sma(20));
+      }
+      if (bars.length >= 50) {
+        const ma50 = chart.addLineSeries({ color: '#fbbf24', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+        ma50.setData(sma(50));
+      }
+      
       const volSeries = chart.addHistogramSeries({
         priceFormat: { type: 'volume' }, priceScaleId: '',
         color: 'rgba(34,211,238,0.3)',
@@ -3675,6 +3711,8 @@ async function init() {
   
   // Chart tabs (multiple charts) — init before layout
   ChartTabs.init();
+  // Reflect loaded engine preference in the toggle
+  document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === State.chartEngine));
   // Set active ticker from the active tab
   const activeTab = State.chartTabs.find(t => t.id === State.activeTabId);
   if (activeTab) State.activeTicker = activeTab.symbol;
@@ -3793,13 +3831,13 @@ async function init() {
     });
   });
   
-  // ── Chart engine toggle (TradingView / JustHodl native) ──
+  // ── Chart engine toggle (Auto / TradingView / JustHodl native) ──
   document.querySelectorAll('.ceng-btn[data-engine]').forEach(el => {
     el.addEventListener('click', () => {
       State.chartEngine = el.dataset.engine;
       document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.remove('active'));
       el.classList.add('active');
-      // Re-render current ticker in the chosen engine
+      WatchlistManager.syncToCloud();
       const t = State.activeTicker;
       State.activeTicker = '__reload__';
       ChartController.loadTicker(t);
