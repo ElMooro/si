@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Signal Performance · JustHodl.AI</title>
+<meta name="description" content="Live, self-measured performance of JustHodl.AI signals — hit rate by tier, by horizon, and a cumulative signal-following curve.">
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--bg-3:#131929;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--red:#ff5577;--amber:#fbbf24;--violet:#a78bfa;--mono:'IBM Plex Mono','SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700;letter-spacing:.5px}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px}
+.nav a{padding:7px 12px;font-size:12.5px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}
+.nav a:hover{color:var(--fg-1);background:var(--bg-2)}.nav a.active{color:var(--cyan)}
+.spacer{flex:1}
+.hero{text-align:center;padding:48px 24px 24px}
+.hero h1{font-size:32px;font-weight:800;color:var(--fg-0);letter-spacing:-.5px;margin-bottom:10px}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:15px;color:var(--fg-2);max-width:600px;margin:0 auto}
+.maturity-badge{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:99px;border:1px solid var(--border-bright);color:var(--fg-2)}
+.maturity-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.maturity-badge.mature .dot{background:var(--green)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px 64px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0}
+@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:18px}
+.kpi .v{font-family:var(--mono);font-size:30px;font-weight:800;color:var(--fg-0)}
+.kpi .v.green{color:var(--green)}.kpi .v.cyan{color:var(--cyan)}
+.kpi .l{font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-top:4px}
+.kpi .s{font-size:11px;color:var(--fg-3);margin-top:2px}
+.section{margin-top:32px}
+.section h2{font-size:18px;color:var(--fg-0);margin-bottom:6px}
+.section .sub{font-size:12.5px;color:var(--fg-3);margin-bottom:14px}
+#equity-chart{width:100%;height:300px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th{text-align:left;padding:10px 14px;color:var(--fg-3);font-size:10px;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);font-weight:700}
+th.num,td.num{text-align:right}
+td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--fg-1)}
+tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg-2)}
+.tier-name{color:var(--fg-0);font-weight:700}
+.hr-cell{font-weight:700}.hr-cell.good{color:var(--green)}.hr-cell.mid{color:var(--amber)}.hr-cell.low{color:var(--fg-3)}
+.ret.pos{color:var(--green)}.ret.neg{color:var(--red)}
+.bar{display:inline-block;height:6px;border-radius:3px;background:var(--cyan);vertical-align:middle;margin-left:8px}
+.disclaimer{margin-top:28px;font-size:11.5px;color:var(--fg-3);line-height:1.6;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:16px}
+.loading{text-align:center;padding:60px;color:var(--fg-3);font-family:var(--mono)}
+.footer-note{text-align:center;color:var(--fg-3);font-size:12px;padding:24px;border-top:1px solid var(--border);font-family:var(--mono)}
+[data-auth-slot]{display:flex;align-items:center}
+.jh-signin-btn{font-family:var(--mono);font-size:12.5px;font-weight:600;padding:7px 16px;border-radius:6px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav">
+    <a href="/">Home</a>
+    <a href="/chart-pro.html">Chart Pro</a>
+    <a href="/pre-pump-radar.html">Radar</a>
+    <a href="/proof.html" class="active">Signal Performance</a>
+    <a href="/pricing.html">Pricing</a>
+  </nav>
+  <div class="spacer"></div>
+  <div data-auth-slot></div>
+</header>
+<section class="hero">
+  <h1>The signals, <span class="grad">measured</span>.</h1>
+  <p>Every alert JustHodl.AI fires is scored against what actually happened. No cherry-picking — the self-improvement loop tracks every prediction, continuously. Here's the live record.</p>
+  <div class="maturity-badge" id="maturity"><span class="dot"></span><span id="maturity-text">loading…</span></div>
+</section>
+<div class="wrap"><div id="content"><div class="loading">Loading signal performance…</div></div></div>
+<div class="footer-note">JustHodl.AI is a research & analytics platform, not a registered investment advisor. Past signal performance does not guarantee future results.</div>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function hrClass(v){return v>=45?'good':v>=33?'mid':'low';}
+async function load(){
+  let doc=null;
+  try{const r=await fetch(`${PROXY}/data/track-record.json?t=${Date.now()}`);if(r.ok)doc=await r.json();}catch(e){}
+  if(!doc){document.getElementById('content').innerHTML='<div class="loading">Performance data not available yet — the self-improvement loop is still accumulating scored outcomes. Check back soon.</div>';return;}
+  const mb=document.getElementById('maturity'),mt=document.getElementById('maturity-text');
+  const mat=doc.maturity||'BOOTSTRAPPING';
+  mt.textContent=mat==='MATURE'?`Mature · ${doc.overall.n_predictions} scored predictions`:mat==='BUILDING'?`Building · ${doc.overall.n_predictions} scored (sample growing)`:`Bootstrapping · ${doc.overall.n_predictions} scored so far`;
+  if(mat==='MATURE')mb.classList.add('mature');
+  const o=doc.overall||{};let html='';
+  html+=`<div class="kpis">
+    <div class="kpi"><div class="v green">${o.hit_rate!=null?o.hit_rate+'%':'—'}</div><div class="l">Hit Rate</div><div class="s">≥+5% within window</div></div>
+    <div class="kpi"><div class="v cyan">${o.big_hit_rate!=null?o.big_hit_rate+'%':'—'}</div><div class="l">Big-Hit Rate</div><div class="s">≥+10% moves</div></div>
+    <div class="kpi"><div class="v">${o.avg_return!=null?(o.avg_return>=0?'+':'')+o.avg_return+'%':'—'}</div><div class="l">Avg Max Move</div><div class="s">per scored signal</div></div>
+    <div class="kpi"><div class="v">${o.n_predictions||0}</div><div class="l">Scored Signals</div><div class="s">${(doc.window||{}).trading_days||0} trading days</div></div></div>`;
+  html+=`<div class="section"><h2>Following the signals</h2><div class="sub">Cumulative, equal-weight, conservatively-scaled proxy of acting on every scored signal (starts at 100). Not a live traded P&L.</div><div id="equity-chart"></div></div>`;
+  const tiers=doc.by_tier||[];
+  if(tiers.length){
+    html+=`<div class="section"><h2>Hit rate by signal tier</h2><div class="sub">Which signals actually work — this is what the conviction engine weights by.</div><table><thead><tr><th>Signal Tier</th><th class="num">Hit Rate</th><th class="num">Avg Move</th><th class="num">Median</th><th class="num">N</th></tr></thead><tbody>`;
+    const maxN=Math.max(...tiers.map(t=>t.n));
+    tiers.forEach(t=>{html+=`<tr><td class="tier-name">${esc(t.tier.replace(/_/g,' '))}</td><td class="num hr-cell ${hrClass(t.hit_rate||0)}">${t.hit_rate!=null?t.hit_rate+'%':'—'}</td><td class="num ret ${(t.avg_return||0)>=0?'pos':'neg'}">${t.avg_return!=null?(t.avg_return>=0?'+':'')+t.avg_return+'%':'—'}</td><td class="num">${t.median_return!=null?t.median_return+'%':'—'}</td><td class="num">${t.n}<span class="bar" style="width:${Math.round((t.n/maxN)*40)}px"></span></td></tr>`;});
+    html+=`</tbody></table></div>`;
+  }
+  const hz=doc.by_horizon||[];
+  if(hz.length){
+    html+=`<div class="section"><h2>Hit rate by horizon</h2><div class="sub">How long the edge takes to play out.</div><table><thead><tr><th>Horizon</th><th class="num">Hit Rate</th><th class="num">N</th></tr></thead><tbody>`;
+    hz.forEach(h=>{html+=`<tr><td class="tier-name">${esc(h.horizon)}</td><td class="num hr-cell ${hrClass(h.hit_rate||0)}">${h.hit_rate!=null?h.hit_rate+'%':'—'}</td><td class="num">${h.n}</td></tr>`;});
+    html+=`</tbody></table></div>`;
+  }
+  html+=`<div class="disclaimer">${esc(doc.note||'')}<br><br>Calibration confidence: <b style="color:var(--cyan)">${esc(doc.calibration_confidence||'NONE')}</b> · Last updated ${esc((doc.generated_at||'').replace('T',' ').slice(0,16))} UTC</div>`;
+  document.getElementById('content').innerHTML=html;
+  const eq=doc.equity_curve||[];
+  if(eq.length>1&&typeof LightweightCharts!=='undefined'){
+    const el=document.getElementById('equity-chart');
+    const chart=LightweightCharts.createChart(el,{autoSize:true,layout:{background:{color:'#0c1018'},textColor:'#a8b3c7',fontFamily:"'IBM Plex Mono',monospace"},grid:{vertLines:{color:'#1c2433'},horzLines:{color:'#1c2433'}},rightPriceScale:{borderColor:'#1c2433'},timeScale:{borderColor:'#1c2433'},crosshair:{mode:1}});
+    const area=chart.addAreaSeries({lineColor:'#26ffaf',topColor:'rgba(38,255,175,0.25)',bottomColor:'rgba(38,255,175,0.02)',lineWidth:2});
+    const seen=new Set();const data=[];
+    eq.forEach(p=>{const t=Math.floor(new Date(p.date).getTime()/1000);if(!seen.has(t)&&isFinite(t)){seen.add(t);data.push({time:t,value:p.value});}});
+    data.sort((a,b)=>a.time-b.time);area.setData(data);chart.timeScale().fitContent();
+  }
+}
+load();
+if(window.JustHodlAuth)JustHodlAuth.init();
+</script>
+</body>
+</html>
