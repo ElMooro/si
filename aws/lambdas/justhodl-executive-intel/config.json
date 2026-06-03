@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-executive-intel",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Trump + executive-branch trade tracker — parses OGE 278-T PTR PDFs from whitehouse.gov",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(15 11 * * ? *)",
+    "name": "justhodl-executive-intel-daily",
+    "description": "Daily 6:15AM ET — refresh executive-branch (Trump/OGE) trade disclosures"
+  }
+}
