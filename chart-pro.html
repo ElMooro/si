@@ -752,6 +752,15 @@ a:hover { text-decoration: underline; }
 @keyframes flashdn { 0% { background: rgba(255,85,119,0.4); } 100% { background: transparent; } }
 .flash-up { animation: flashup 0.6s ease-out; }
 .flash-dn { animation: flashdn 0.6s ease-out; }
+.ac-section { margin-bottom: 18px; }
+.ac-head { font-family: var(--font-mono); font-size: 11px; color: var(--cyan); font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; }
+.ac-empty { font-size: 11.5px; color: var(--fg-3); font-style: italic; padding: 6px 2px; }
+.ac-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 5px; }
+.ac-tk { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--fg-0); cursor: pointer; min-width: 70px; }
+.ac-tk:hover { color: var(--cyan); }
+.ac-desc { flex: 1; font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); }
+.ac-del { color: var(--fg-3); cursor: pointer; font-size: 13px; }
+.ac-del:hover { color: var(--red); }
 .tool-btn { margin-left: 8px; padding: 5px 11px; border-radius: 5px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--fg-2); border: 1px solid var(--border-bright); background: var(--bg-2); cursor: pointer; }
 .tool-btn:hover { color: var(--fg-0); border-color: var(--fg-3); }
 .tool-btn.ai-btn { color: var(--violet); border-color: var(--violet); }
@@ -1362,6 +1371,12 @@ a:hover { text-decoration: underline; }
     <button class="layout-btn" id="corr-btn" title="Correlation matrix of your watchlist">
       <svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="3.5" height="3.5"/><rect x="6.25" y="2" width="3.5" height="3.5" opacity="0.5"/><rect x="10.5" y="2" width="3.5" height="3.5" opacity="0.25"/><rect x="2" y="6.25" width="3.5" height="3.5" opacity="0.5"/><rect x="6.25" y="6.25" width="3.5" height="3.5"/><rect x="10.5" y="6.25" width="3.5" height="3.5" opacity="0.5"/><rect x="2" y="10.5" width="3.5" height="3.5" opacity="0.25"/><rect x="6.25" y="10.5" width="3.5" height="3.5" opacity="0.5"/><rect x="10.5" y="10.5" width="3.5" height="3.5"/></svg>
     </button>
+    <button class="layout-btn" id="sync-btn" title="Sync native chart panes — pan/zoom together">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 8a3 3 0 0 1 3-3h2M11 8a3 3 0 0 1-3 3H6"/><path d="M9 3l1.5 2L9 7M7 13l-1.5-2L7 9"/></svg>
+    </button>
+    <button class="layout-btn" id="alertcenter-btn" title="Alert Center — all active alerts">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.5a.5.5 0 0 1 .5.5v.6a4 4 0 0 1 3.5 3.97V9l1.3 2.3a.5.5 0 0 1-.43.7H3.13a.5.5 0 0 1-.43-.7L4 9V6.57A4 4 0 0 1 7.5 2.6V2a.5.5 0 0 1 .5-.5z"/></svg>
+    </button>
   </div>
   
   <div class="session-status">
@@ -1570,6 +1585,16 @@ a:hover { text-decoration: underline; }
 </div>
 
 <!-- Macro Data Catalog Modal -->
+<div class="heatmap-modal" id="alertcenter-modal">
+  <div class="heatmap-content" style="width:560px;max-width:92vw">
+    <div class="heatmap-header">
+      <div class="heatmap-title">🔔 Alert Center</div>
+      <button class="modal-close" id="alertcenter-close">×</button>
+    </div>
+    <div style="padding:16px 18px;overflow-y:auto;max-height:60vh" id="alertcenter-body"></div>
+  </div>
+</div>
+
 <div class="heatmap-modal" id="basket-modal">
   <div class="heatmap-content" style="width:560px;max-width:92vw">
     <div class="heatmap-header">
@@ -1808,6 +1833,39 @@ class DataService {
 }
 
 // ─── QUOTE SERVICE (live batch quotes via Polygon snapshot) ────────
+// ─── CHART SYNC (link timescales of native charts across panes) ────
+class ChartSync {
+  static charts = new Map();  // paneIdx -> {chart, unsub}
+  static enabled = false;
+  static register(paneIdx, chart) {
+    this.charts.set(paneIdx, chart);
+    if (this.enabled) this.linkAll();
+  }
+  static unregister(paneIdx) { this.charts.delete(paneIdx); }
+  static linkAll() {
+    const list = [...this.charts.values()];
+    if (list.length < 2) return;
+    let syncing = false;
+    list.forEach((src) => {
+      try {
+        src.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+          if (!range || syncing || !this.enabled) return;
+          syncing = true;
+          list.forEach(o => { if (o !== src) { try { o.timeScale().setVisibleLogicalRange(range); } catch (e) {} } });
+          syncing = false;
+        });
+      } catch (e) {}
+    });
+  }
+  static toggle() {
+    this.enabled = !this.enabled;
+    const b = document.getElementById('sync-btn');
+    if (b) b.classList.toggle('active', this.enabled);
+    if (window.__jhToast) window.__jhToast(this.enabled ? '🔗 Charts synced (native panes pan/zoom together)' : 'Chart sync off');
+    if (this.enabled) this.linkAll();
+  }
+}
+
 // ─── LIVE QUOTES (WebSocket stream from worker, ~3s push) ──────────
 class LiveQuotes {
   static ws = null;
@@ -4065,7 +4123,46 @@ class NativeChart {
     // constituents footer
     let foot = host.parentElement.querySelector('.nch-quickstats');
     if (!foot) { foot = document.createElement('div'); foot.className='nch-quickstats'; host.parentElement.appendChild(foot); }
-    foot.innerHTML = `<span>${UI.esc(holds)}</span>`;
+    foot.innerHTML = `<span>${UI.esc(holds)}</span><span id="basket-risk-${paneIdx}" style="color:var(--fg-3)">computing risk…</span>`;
+    // Risk analytics vs SPY (beta, vol, max drawdown, Sharpe) — async
+    this.computeBasketRisk(idx, paneIdx);
+  }
+  
+  static async computeBasketRisk(idx, paneIdx) {
+    try {
+      // basket daily returns
+      const bRet = []; for (let i=1;i<idx.length;i++) bRet.push({ time: idx[i].time, r: idx[i].value/idx[i-1].value - 1 });
+      // SPY benchmark
+      let spy = [];
+      try { const d = await (await fetch(`${PROXY}/ohlc?ticker=SPY&mult=1&span=day&days=400`)).json(); spy = d.bars || []; } catch(e){}
+      const spyMap = new Map(spy.map(b => [b.time, b.close]));
+      const spyRet = new Map();
+      const st = [...spyMap.keys()].sort((a,b)=>a-b);
+      for (let i=1;i<st.length;i++){ const p=spyMap.get(st[i-1]); if(p) spyRet.set(st[i], spyMap.get(st[i])/p - 1); }
+      // align
+      const pairs = bRet.filter(x => spyRet.has(x.time)).map(x => ({ b: x.r, m: spyRet.get(x.time) }));
+      const n = bRet.length;
+      const mean = a => a.reduce((s,v)=>s+v,0)/(a.length||1);
+      const std = a => { const m=mean(a); return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length||1)); };
+      const bArr = bRet.map(x=>x.r);
+      const vol = std(bArr) * Math.sqrt(252) * 100;
+      const annRet = (Math.pow(idx[idx.length-1].value/idx[0].value, 252/Math.max(1,idx.length)) - 1) * 100;
+      const sharpe = vol ? ((annRet - 4) / vol) : 0;  // 4% rf
+      // beta vs SPY
+      let beta = null;
+      if (pairs.length > 20) {
+        const mb = mean(pairs.map(p=>p.b)), mm = mean(pairs.map(p=>p.m));
+        let cov=0, varm=0; for (const p of pairs){ cov+=(p.b-mb)*(p.m-mm); varm+=(p.m-mm)**2; }
+        beta = varm ? cov/varm : null;
+      }
+      // max drawdown
+      let peak = idx[0].value, mdd = 0;
+      for (const p of idx){ if(p.value>peak) peak=p.value; const dd=(p.value-peak)/peak; if(dd<mdd) mdd=dd; }
+      const el = document.getElementById(`basket-risk-${paneIdx}`);
+      if (el) el.innerHTML = `<span style="color:var(--cyan)">β ${beta!=null?beta.toFixed(2):'—'}</span> · σ ${vol.toFixed(0)}% · Sharpe ${sharpe.toFixed(2)} · MaxDD <span style="color:var(--red)">${(mdd*100).toFixed(0)}%</span> · ann ${annRet>=0?'+':''}${annRet.toFixed(0)}%`;
+    } catch (e) {
+      const el = document.getElementById(`basket-risk-${paneIdx}`); if (el) el.textContent = '';
+    }
   }
   
   // Overlay a second symbol's normalized line for relative-performance comparison
@@ -4161,7 +4258,7 @@ class NativeChart {
       if (bars.length >= 20) { const m=chart.addLineSeries({color:'#22d3ee',lineWidth:1,priceLineVisible:false,lastValueVisible:false}); m.setData(sma(20)); }
       if (bars.length >= 50) { const m=chart.addLineSeries({color:'#fbbf24',lineWidth:1,priceLineVisible:false,lastValueVisible:false}); m.setData(sma(50)); }
       chart.timeScale().fitContent();
-      State.nativeChart = chart;
+      State.nativeChart = chart; ChartSync.register(paneIdx, chart);
       NativeChart.renderStatBlock(paneIdx, bars.map(b => ({ time: b.time, value: b.close })), ticker);
       const last = bars[bars.length-1], prev = bars[bars.length-2]||last;
       const chg = prev.close ? ((last.close-prev.close)/prev.close*100) : 0;
@@ -4217,7 +4314,7 @@ class NativeChart {
       area.setData(clean);
       NativeChart.renderStatBlock(paneIdx, clean, series);
       chart.timeScale().fitContent();
-      State.nativeChart = chart;
+      State.nativeChart = chart; ChartSync.register(paneIdx, chart);
       const last = clean[clean.length-1], prev = clean[clean.length-2]||last;
       const chg = prev.value ? ((last.value-prev.value)/Math.abs(prev.value)*100) : 0;
       const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
@@ -4335,7 +4432,7 @@ class NativeChart {
       volSeries.priceScale().applyOptions({ scaleMargins: { top: 0.85, bottom: 0 } });
       volSeries.setData(bars.map(b => ({ time: b.time, value: b.value, color: b.close >= b.open ? 'rgba(38,255,175,0.25)' : 'rgba(255,85,119,0.25)' })));
       chart.timeScale().fitContent();
-      State.nativeChart = chart;
+      State.nativeChart = chart; ChartSync.register(paneIdx, chart);
       
       // Overlay trade ticket levels if present
       const tt = UI.findTradeTicket(ticker);
@@ -5253,6 +5350,47 @@ class CommandPalette {
   }
 }
 
+// ─── ALERT CENTER (all active price + conviction-rule alerts) ──────
+class AlertCenter {
+  static open() {
+    document.getElementById('alertcenter-modal').classList.add('open');
+    this.render();
+  }
+  static close() { document.getElementById('alertcenter-modal').classList.remove('open'); }
+  static render() {
+    const body = document.getElementById('alertcenter-body');
+    let html = '';
+    // Price alerts
+    const pa = State.priceAlerts || {};
+    const paRows = [];
+    for (const tk in pa) (pa[tk]||[]).forEach((a,i) => paRows.push({tk, i, a}));
+    html += `<div class="ac-section"><div class="ac-head">📈 Price-level alerts (${paRows.length})</div>`;
+    if (!paRows.length) html += '<div class="ac-empty">No price alerts. Set one with the 🔔+ Price button on a chart.</div>';
+    else html += paRows.map(r => `
+      <div class="ac-row">
+        <span class="ac-tk" data-load="${UI.esc(r.tk)}">${UI.esc(r.tk)}</span>
+        <span class="ac-desc">${r.a.dir==='above'?'↑ above':'↓ below'} <b>$${(+r.a.price).toFixed(2)}</b>${r.a.note?` · ${UI.esc(r.a.note)}`:''}</span>
+        <span class="ac-del" data-pa-tk="${UI.esc(r.tk)}" data-pa-i="${r.i}">🗑</span>
+      </div>`).join('');
+    html += '</div>';
+    // Conviction-rule alerts
+    const rules = State.alertRules || [];
+    html += `<div class="ac-section"><div class="ac-head">⚡ Conviction-rule alerts (${rules.length})</div>`;
+    if (!rules.length) html += '<div class="ac-empty">No conviction alerts. Create one with the 🔔 Alerts button on the Setups board.</div>';
+    else html += rules.map((r,i) => `
+      <div class="ac-row">
+        <span class="ac-tk" style="color:var(--amber)">${UI.esc(r.name)}</span>
+        <span class="ac-desc">conv ≥ <b>${r.min_conviction}</b>${(r.require_signals&&r.require_signals.length)?' · '+r.require_signals.map(s=>s.replace(/_/g,' ').toLowerCase()).join('/'):''}</span>
+        <span class="ac-del" data-rule-i="${i}">🗑</span>
+      </div>`).join('');
+    html += '</div>';
+    body.innerHTML = html;
+    body.querySelectorAll('[data-load]').forEach(el => el.addEventListener('click', () => { this.close(); ChartController.loadTicker(el.dataset.load); }));
+    body.querySelectorAll('[data-pa-tk]').forEach(el => el.addEventListener('click', () => { PriceAlert.remove(el.dataset.paTk, +el.dataset.paI); this.render(); }));
+    body.querySelectorAll('[data-rule-i]').forEach(el => el.addEventListener('click', () => { State.alertRules.splice(+el.dataset.ruleI,1); WatchlistManager.syncToCloud(); this.render(); }));
+  }
+}
+
 // ─── CUSTOM ALERT BUILDER (per-user rules) ─────────────────────────
 class AlertBuilder {
   static open() {
@@ -5714,6 +5852,11 @@ async function init() {
   // ── Correlation matrix ──
   document.getElementById('corr-btn').addEventListener('click', () => CorrelationMatrix.open());
   document.getElementById('corr-close').addEventListener('click', () => CorrelationMatrix.close());
+  // ── Chart sync ──
+  document.getElementById('sync-btn').addEventListener('click', () => ChartSync.toggle());
+  // ── Alert center ──
+  document.getElementById('alertcenter-btn').addEventListener('click', () => AlertCenter.open());
+  document.getElementById('alertcenter-close').addEventListener('click', () => AlertCenter.close());
   // ── Basket builder ──
   document.getElementById('basket-btn').addEventListener('click', () => Basket.open());
   document.getElementById('basket-close').addEventListener('click', () => Basket.close());
@@ -5776,7 +5919,7 @@ async function init() {
     if (e.key === '/') { e.preventDefault(); const si = document.getElementById('search-input'); if (si) { si.focus(); si.select(); } }
     if (e.key === 'Escape') {
       UniverseSearch.close(); Heatmap.close(); FlagPicker.close(); AddSymbol.close();
-      MacroData.close(); CorrelationMatrix.close(); Basket.close();
+      MacroData.close(); CorrelationMatrix.close(); Basket.close(); AlertCenter.close();
       document.getElementById('new-wl-modal').classList.remove('open');
       document.getElementById('wl-selector').classList.remove('open');
     }
