@@ -150,6 +150,44 @@ export default {
       }
     }
 
+    if (url.pathname === "/tv-search") {
+      // GET /tv-search?text=AAPL → proxy TradingView symbol search (full universe)
+      const text = (url.searchParams.get("text") || "").trim();
+      const type = (url.searchParams.get("type") || "").trim();
+      const exchange = (url.searchParams.get("exchange") || "").trim();
+      if (!text) {
+        return new Response(JSON.stringify({ symbols: [] }),
+          { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      try {
+        const tvUrl = `https://symbol-search.tradingview.com/symbol_search/?text=${encodeURIComponent(text)}&hl=1&lang=en&type=${encodeURIComponent(type)}&exchange=${encodeURIComponent(exchange)}&domain=production`;
+        const tvResp = await fetch(tvUrl, {
+          headers: {
+            "Origin": "https://www.tradingview.com",
+            "Referer": "https://www.tradingview.com/",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          },
+          cf: { cacheTtl: 300, cacheEverything: true },
+        });
+        const raw = await tvResp.json();
+        const clean = (s) => String(s || "").replace(/<\/?[^>]+>/g, "");
+        const arr = Array.isArray(raw) ? raw : (raw.symbols || []);
+        const symbols = arr.slice(0, 30).map(s => ({
+          symbol: clean(s.symbol),
+          description: clean(s.description),
+          type: s.type || "",
+          exchange: s.exchange || s.exchange_name || "",
+          currency: s.currency_code || "",
+          full: (s.prefix || s.exchange) ? `${(s.prefix || s.exchange)}:${clean(s.symbol)}` : clean(s.symbol),
+        }));
+        return new Response(JSON.stringify({ symbols }),
+          { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300", ...corsHeaders() } });
+      } catch (e) {
+        return new Response(JSON.stringify({ symbols: [], error: String(e) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
     const safePath = url.pathname.replace(/^\/+/, "");
     if (!/^[a-zA-Z0-9_\-./]+$/.test(safePath) || safePath.includes("..")) {
       return new Response("invalid path", { status: 400, headers: corsHeaders() });

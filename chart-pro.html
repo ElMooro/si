@@ -364,21 +364,76 @@ a:hover { text-decoration: underline; }
   background: var(--bg-2); border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
-.wl-add-symbol input {
-  flex: 1; background: var(--bg-1); border: 1px solid var(--border);
-  border-radius: 3px; padding: 5px 8px;
-  font-family: var(--font-mono); font-size: 11px;
-  color: var(--fg-1); outline: none; text-transform: uppercase;
+.wl-add-big {
+  flex: 1; padding: 8px 12px;
+  border: 1px solid var(--green); border-radius: 4px;
+  color: var(--green); background: rgba(38,255,175,0.06);
+  font-family: var(--font-mono); font-size: 11.5px; font-weight: 700;
+  letter-spacing: 0.5px; transition: all 0.15s;
 }
-.wl-add-symbol input:focus { border-color: var(--cyan); }
-.wl-add-symbol input::placeholder { text-transform: none; color: var(--fg-3); }
-.wl-add-symbol button {
-  padding: 5px 12px; border: 1px solid var(--cyan);
-  border-radius: 3px; color: var(--cyan);
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-  background: rgba(34,211,238,0.06);
+.wl-add-big:hover { background: rgba(38,255,175,0.14); }
+
+/* Remove button on custom watchlist rows */
+.wl-remove {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; border-radius: 3px;
+  display: none; align-items: center; justify-content: center;
+  background: var(--bg); border: 1px solid var(--red);
+  color: var(--red); font-size: 13px; line-height: 1;
+  z-index: 3;
 }
-.wl-add-symbol button:hover { background: rgba(34,211,238,0.14); }
+.wl-row.custom-row:hover .wl-remove { display: flex; }
+.wl-remove:hover { background: rgba(255,85,119,0.15); }
+
+/* Add-symbol filter pills */
+.add-symbol-filters {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.asf-btn {
+  padding: 3px 10px; border-radius: 12px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3px;
+  color: var(--fg-3); border: 1px solid var(--border);
+}
+.asf-btn:hover { color: var(--fg-1); border-color: var(--border-bright); }
+.asf-btn.active { color: var(--green); border-color: var(--green); background: rgba(38,255,175,0.06); }
+.asf-target {
+  margin-left: auto; font-family: var(--font-mono); font-size: 10px;
+  color: var(--fg-3);
+}
+.asf-target b { color: var(--cyan); }
+
+/* Add-symbol result rows */
+.add-result {
+  display: grid;
+  grid-template-columns: 90px 1fr 70px 28px;
+  align-items: center; gap: 10px;
+  padding: 9px 16px; cursor: pointer;
+  font-family: var(--font-mono); font-size: 11.5px;
+  border-bottom: 1px solid var(--border);
+}
+.add-result:hover, .add-result.focus { background: var(--bg-hover); }
+.add-result .ar-sym { font-weight: 700; color: var(--fg-0); }
+.add-result .ar-desc { color: var(--fg-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.add-result .ar-exch { color: var(--fg-3); font-size: 9.5px; text-align: right; }
+.add-result .ar-type {
+  font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.3px;
+  padding: 1px 5px; border-radius: 3px; text-align: center;
+  background: var(--bg); border: 1px solid var(--border); color: var(--fg-3);
+}
+.add-result .ar-type.stock { color: var(--cyan); border-color: var(--cyan); }
+.add-result .ar-type.crypto { color: var(--amber); border-color: var(--amber); }
+.add-result .ar-type.forex { color: var(--green); border-color: var(--green); }
+.add-result .ar-type.futures { color: var(--violet); border-color: var(--violet); }
+.add-result .ar-type.index { color: var(--pink); border-color: var(--pink); }
+.add-result .ar-add {
+  width: 22px; height: 22px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--green); border: 1px solid var(--green);
+  font-size: 14px; line-height: 1;
+}
+.add-result.added .ar-add { color: var(--fg-3); border-color: var(--border); }
 
 /* Flag picker popover */
 .flag-picker {
@@ -955,8 +1010,7 @@ a:hover { text-decoration: underline; }
     
     <!-- Add symbol (custom watchlists only) -->
     <div class="wl-add-symbol" id="wl-add-symbol" style="display:none">
-      <input type="text" id="wl-add-input" placeholder="Add symbol..." autocomplete="off" />
-      <button id="wl-add-btn">Add</button>
+      <button id="wl-add-btn" class="wl-add-big">+ Add Symbol</button>
     </div>
   </aside>
   
@@ -1053,6 +1107,33 @@ a:hover { text-decoration: underline; }
     <div class="modal-actions">
       <button class="modal-btn" id="new-wl-cancel-btn">Cancel</button>
       <button class="modal-btn primary" id="new-wl-confirm-btn">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Symbol Modal (full TradingView universe search) -->
+<div class="search-modal" id="add-symbol-modal">
+  <div class="search-modal-content">
+    <div class="search-modal-header">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" style="color:var(--green)"><path d="M8 1a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2H9v5a1 1 0 1 1-2 0V9H2a1 1 0 0 1 0-2h5V2a1 1 0 0 1 1-1z"/></svg>
+      <input type="text" id="add-symbol-input" placeholder="Search any symbol - stocks, crypto, forex, futures, indices..." autocomplete="off" />
+      <button class="modal-close" id="add-symbol-close">&times;</button>
+    </div>
+    <div class="add-symbol-filters" id="add-symbol-filters">
+      <button class="asf-btn active" data-asf="">All</button>
+      <button class="asf-btn" data-asf="stock">Stocks</button>
+      <button class="asf-btn" data-asf="crypto">Crypto</button>
+      <button class="asf-btn" data-asf="forex">Forex</button>
+      <button class="asf-btn" data-asf="futures">Futures</button>
+      <button class="asf-btn" data-asf="index">Indices</button>
+      <span class="asf-target" id="asf-target">adding to: <b id="asf-target-name">-</b></span>
+    </div>
+    <div class="search-modal-body" id="add-symbol-body">
+      <div class="search-empty">Type to search the full TradingView universe + your JustHodl signals...</div>
+    </div>
+    <div class="search-footer">
+      <span><kbd>Enter</kbd> add top result &middot; <kbd>Esc</kbd> close &middot; click result to add</span>
+      <span id="add-symbol-count">0 results</span>
     </div>
   </div>
 </div>
@@ -1503,8 +1584,9 @@ class UI {
       const sigDots = m.signals.map(s => `<span class="wl-sig-dot ${s}" title="${s}"></span>`).join('');
       const lastStr = m.last != null ? '$' + m.last.toFixed(2) : '—';
       const chgStr = m.changePct != null ? (m.changePct >= 0 ? '+' : '') + m.changePct.toFixed(2) + '%' : '—';
+      const removeBtn = isCustom ? `<span class="wl-remove" data-remove-ticker="${this.esc(m.ticker)}" title="Remove">−</span>` : '';
       return `
-        <div class="wl-row ${selected}" data-ticker="${this.esc(m.ticker)}">
+        <div class="wl-row ${selected} ${isCustom ? 'custom-row' : ''}" data-ticker="${this.esc(m.ticker)}">
           <span class="wl-flag flag-${m.flag}" data-flag-ticker="${this.esc(m.ticker)}" title="Set flag"></span>
           <span class="wl-sym-cell">
             <span class="wl-sym-top">
@@ -1515,6 +1597,7 @@ class UI {
           </span>
           <span class="wl-last">${lastStr}</span>
           <span class="wl-chg ${changeClass}">${chgStr}</span>
+          ${removeBtn}
         </div>`;
     }).join('');
     document.getElementById('watchlist-body').innerHTML = html;
@@ -1522,7 +1605,8 @@ class UI {
     // Wire row clicks (load chart)
     document.querySelectorAll('.wl-row').forEach(el => {
       el.addEventListener('click', (e) => {
-        if (e.target.dataset.flagTicker) return; // handled separately
+        if (e.target.dataset.flagTicker) return;
+        if (e.target.dataset.removeTicker) return;
         ChartController.loadTicker(el.dataset.ticker);
       });
     });
@@ -1531,6 +1615,14 @@ class UI {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         FlagPicker.open(el, el.dataset.flagTicker);
+      });
+    });
+    // Wire remove clicks (custom lists)
+    document.querySelectorAll('.wl-remove[data-remove-ticker]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        WatchlistManager.removeTicker(State.activeWatchlistId, el.dataset.removeTicker);
+        this.refreshWatchlist();
       });
     });
     
@@ -2295,6 +2387,114 @@ class UniverseSearch {
   }
 }
 
+// ─── ADD SYMBOL (full TradingView universe + JustHodl) ─────────────
+class AddSymbol {
+  static targetWatchlistId = null;
+  static activeFilter = '';
+  static focusIdx = 0;
+  static currentResults = [];
+  static debounceTimer = null;
+  static addedThisSession = new Set();
+  
+  static open(watchlistId) {
+    this.targetWatchlistId = watchlistId;
+    this.addedThisSession = new Set();
+    const wl = State.customWatchlists[watchlistId];
+    document.getElementById('asf-target-name').textContent = wl ? wl.name : '-';
+    document.getElementById('add-symbol-modal').classList.add('open');
+    const input = document.getElementById('add-symbol-input');
+    input.value = '';
+    setTimeout(() => input.focus(), 50);
+    this.focusIdx = 0;
+    this.renderResults([]);
+  }
+  
+  static close() {
+    document.getElementById('add-symbol-modal').classList.remove('open');
+    this.targetWatchlistId = null;
+  }
+  
+  static onInput(query) {
+    clearTimeout(this.debounceTimer);
+    if (!query || query.length < 1) { this.renderResults([]); return; }
+    const localMatches = this.localSearch(query);
+    this.renderResults(localMatches, true);
+    this.debounceTimer = setTimeout(() => this.tvSearch(query), 250);
+  }
+  
+  static localSearch(query) {
+    const q = query.toUpperCase();
+    return UniverseSearch.allTickers
+      .filter(t => t.ticker.includes(q) || (t.name||'').toUpperCase().includes(q))
+      .slice(0, 8)
+      .map(t => ({ symbol: t.ticker, description: t.name || '', type: 'stock', exchange: 'JustHodl', currency: 'USD', full: t.ticker, local: true }));
+  }
+  
+  static async tvSearch(query) {
+    try {
+      const r = await fetch(`${PROXY}/tv-search?text=${encodeURIComponent(query)}&type=${this.activeFilter}`);
+      if (!r.ok) return;
+      const data = await r.json();
+      let symbols = data.symbols || [];
+      const local = this.localSearch(query);
+      const seen = new Set(local.map(s => s.symbol));
+      const merged = [...local, ...symbols.filter(s => !seen.has(s.symbol))];
+      this.renderResults(merged);
+    } catch (e) { console.warn('TV search failed', e); }
+  }
+  
+  static renderResults(results, partial = false) {
+    this.currentResults = results;
+    const body = document.getElementById('add-symbol-body');
+    if (results.length === 0) {
+      const q = document.getElementById('add-symbol-input').value;
+      body.innerHTML = q
+        ? (partial ? '<div class="search-empty">Searching universe...</div>' : '<div class="search-empty">No matches found</div>')
+        : '<div class="search-empty">Type to search the full TradingView universe + your JustHodl signals...</div>';
+      document.getElementById('add-symbol-count').textContent = '0 results';
+      return;
+    }
+    const html = results.map((r, i) => {
+      const added = this.addedThisSession.has(r.symbol);
+      const typeClass = (r.type || '').toLowerCase();
+      return `
+        <div class="add-result ${i === this.focusIdx ? 'focus' : ''} ${added ? 'added' : ''}" data-symbol="${UI.esc(r.symbol)}">
+          <span class="ar-sym">${UI.esc(r.symbol)}</span>
+          <span class="ar-desc">${UI.esc(r.description || '-')}</span>
+          <span class="ar-exch">${UI.esc(r.local ? 'star signal' : (r.exchange || ''))}</span>
+          <span class="ar-type ${typeClass}" title="${UI.esc(r.type)}">${UI.esc((r.type || 'eq').slice(0,3))}</span>
+        </div>`;
+    }).join('');
+    body.innerHTML = html;
+    document.getElementById('add-symbol-count').textContent = `${results.length} result${results.length !== 1 ? 's' : ''}`;
+    body.querySelectorAll('.add-result').forEach(el => {
+      el.addEventListener('click', () => this.addSymbol(el.dataset.symbol, el));
+    });
+  }
+  
+  static addSymbol(symbol, el) {
+    if (!this.targetWatchlistId) return;
+    WatchlistManager.addTicker(this.targetWatchlistId, symbol);
+    this.addedThisSession.add(symbol);
+    if (el) el.classList.add('added');
+    UI.refreshWatchlist();
+  }
+  
+  static handleKey(e) {
+    if (e.key === 'Escape') { this.close(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); this.focusIdx = Math.min(this.focusIdx + 1, this.currentResults.length - 1); this.renderResults(this.currentResults); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); this.focusIdx = Math.max(this.focusIdx - 1, 0); this.renderResults(this.currentResults); return; }
+    if (e.key === 'Enter') { e.preventDefault(); const t = this.currentResults[this.focusIdx]; if (t) this.addSymbol(t.symbol, document.querySelector('.add-result.focus')); }
+  }
+  
+  static setFilter(filter) {
+    this.activeFilter = filter;
+    document.querySelectorAll('.asf-btn').forEach(el => el.classList.toggle('active', el.dataset.asf === filter));
+    const q = document.getElementById('add-symbol-input').value;
+    if (q) this.tvSearch(q);
+  }
+}
+
 // ─── FLAG PICKER ───────────────────────────────────────────────────
 class FlagPicker {
   static currentTicker = null;
@@ -2525,18 +2725,21 @@ async function init() {
     });
   });
   
-  // ── Add symbol to custom watchlist ──
-  const addInput = document.getElementById('wl-add-input');
-  const doAdd = () => {
-    const t = addInput.value.trim().toUpperCase();
-    if (t && State.activeWatchlistId.startsWith('custom_')) {
-      WatchlistManager.addTicker(State.activeWatchlistId, t);
-      addInput.value = '';
-      UI.refreshWatchlist();
+  // ── Add symbol to custom watchlist (opens full universe search) ──
+  document.getElementById('wl-add-btn').addEventListener('click', () => {
+    if (State.activeWatchlistId.startsWith('custom_')) {
+      AddSymbol.open(State.activeWatchlistId);
     }
-  };
-  document.getElementById('wl-add-btn').addEventListener('click', doAdd);
-  addInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doAdd(); });
+  });
+  document.getElementById('add-symbol-input').addEventListener('input', (e) => {
+    AddSymbol.focusIdx = 0;
+    AddSymbol.onInput(e.target.value);
+  });
+  document.getElementById('add-symbol-input').addEventListener('keydown', (e) => AddSymbol.handleKey(e));
+  document.getElementById('add-symbol-close').addEventListener('click', () => AddSymbol.close());
+  document.querySelectorAll('.asf-btn[data-asf]').forEach(el => {
+    el.addEventListener('click', () => AddSymbol.setFilter(el.dataset.asf));
+  });
   
   // ── Flag picker options ──
   document.querySelectorAll('#flag-picker .flag-opt').forEach(el => {
@@ -2609,7 +2812,7 @@ async function init() {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === '/') { e.preventDefault(); UniverseSearch.open(); }
     if (e.key === 'Escape') {
-      UniverseSearch.close(); Heatmap.close(); FlagPicker.close();
+      UniverseSearch.close(); Heatmap.close(); FlagPicker.close(); AddSymbol.close();
       document.getElementById('new-wl-modal').classList.remove('open');
       document.getElementById('wl-selector').classList.remove('open');
     }
