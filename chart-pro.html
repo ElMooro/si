@@ -3558,10 +3558,28 @@ class NativeChart {
   static async render(ticker) {
     if (ticker.startsWith('FRED:')) return this.renderLine(ticker, 'FRED');
     if (ticker.startsWith('DBN:')) return this.renderLine(ticker, 'DBN');
-    const type = State.symbolType[ticker] || '';
+    const type = State.symbolType[ticker] || this.guessType(ticker);
+    if (type) State.symbolType[ticker] = type;  // cache the guess
     if (type === 'crypto') return this.renderYahoo(ticker, this.cryptoToYahoo(ticker), 'Crypto');
     if (type === 'forex') return this.renderYahoo(ticker, this.fxToYahoo(ticker), 'Forex');
     return this.renderEquity(ticker);
+  }
+  
+  // Detect crypto/forex from the ticker pattern when the type isn't cached.
+  static CRYPTO_BASES = ['BTC','ETH','SOL','XRP','ADA','DOGE','AVAX','DOT','LINK','MATIC','LTC','BCH','UNI','ATOM','XLM','ETC','BNB','SHIB','TRX','NEAR','APT','ARB','OP','SUI','PEPE','XBT','XMR','AAVE','MKR','FIL','ICP','HBAR','VET','ALGO','TON','KAS'];
+  static FIAT = ['USD','EUR','GBP','JPY','CHF','CAD','AUD','NZD','CNY','MXN','BRL','INR','KRW','SGD','HKD','SEK','NOK','ZAR','TRY','PLN'];
+  static guessType(ticker) {
+    if (!ticker || ticker.includes(':')) return '';
+    const t = ticker.toUpperCase();
+    if (t.endsWith('=X')) return 'forex';
+    if (t.includes('-USD')) return 'crypto';
+    // Crypto: <BASE><quote> where BASE is a known crypto
+    for (const base of this.CRYPTO_BASES) {
+      if (t === base + 'USD' || t === base + 'USDT' || t === base + 'USDC' || t === base + 'USDD' || t === base + 'EUR') return 'crypto';
+    }
+    // Forex: 6-char pair of two fiat codes (EURUSD, GBPJPY)
+    if (/^[A-Z]{6}$/.test(t) && this.FIAT.includes(t.slice(0, 3)) && this.FIAT.includes(t.slice(3))) return 'forex';
+    return '';
   }
   
   // Build signal-event markers (politician/executive/insider buys) for the timeline.
@@ -3740,10 +3758,23 @@ class NativeChart {
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) loadingEl.style.display = 'none';
       if (!bars.length) {
-        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `No data for ${ticker} — switching to TradingView`; }
+        // Yahoo had nothing for this symbol format. Try the alternate crypto
+        // format (BASEUSD with no dash) once, then give up gracefully.
+        if (!yahooSym.includes('=X') && !yahooSym.endsWith('-USD') && !this._yahooRetried) {
+          this._yahooRetried = ticker;
+          return this.renderYahoo(ticker, this.cryptoToYahoo(ticker), label);
+        }
+        this._yahooRetried = null;
+        const cmFail = State.changeMode;
+        if (cmFail && cmFail !== 'price') {
+          if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `No price history available for ${ticker} — can't compute % change.`; }
+          return;
+        }
+        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `${ticker} not on native feeds — loading via TradingView…`; }
         ChartController.loadTV(ticker);
         return;
       }
+      this._yahooRetried = null;
       if (State.activeTicker !== ticker) return;
       // FRED-style % change mode for crypto/forex too
       if (cmY && cmY !== 'price') {
