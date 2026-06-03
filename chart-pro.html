@@ -734,6 +734,16 @@ a:hover { text-decoration: underline; }
 .season-val.pos { color: var(--green); } .season-val.neg { color: var(--red); }
 .season-mo { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); }
 .season-foot { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); margin-top: 14px; text-align: center; }
+.corr-body { flex: 1; overflow: auto; padding: 18px; }
+.corr-table { border-collapse: collapse; font-family: var(--font-mono); }
+.corr-table th { font-size: 10px; color: var(--fg-2); padding: 5px 7px; font-weight: 700; }
+.corr-table th.rowh { text-align: right; }
+.corr-cell { width: 46px; height: 30px; text-align: center; font-size: 10.5px; font-weight: 700; color: #06121a; cursor: pointer; border: 1px solid var(--bg); }
+.corr-cell.diag { background: var(--bg-3) !important; color: var(--fg-3); cursor: default; }
+.nch-legend { position: absolute; top: 6px; left: 12px; z-index: 6; font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-2); background: rgba(10,14,20,0.7); padding: 3px 8px; border-radius: 4px; pointer-events: none; white-space: nowrap; }
+.nch-legend b { color: var(--fg-0); } .nch-legend span.up { color: var(--green); } .nch-legend span.dn { color: var(--red); } .nch-legend span { color: var(--fg-1); }
+.nch-quickstats { display: flex; gap: 16px; padding: 5px 14px; background: var(--bg-2); border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); flex-shrink: 0; }
+.nch-quickstats span.dn { color: var(--red); } .nch-quickstats span.up { color: var(--green); }
 .tool-btn { margin-left: 8px; padding: 5px 11px; border-radius: 5px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--fg-2); border: 1px solid var(--border-bright); background: var(--bg-2); cursor: pointer; }
 .tool-btn:hover { color: var(--fg-0); border-color: var(--fg-3); }
 .tool-btn.ai-btn { color: var(--violet); border-color: var(--violet); }
@@ -1340,6 +1350,9 @@ a:hover { text-decoration: underline; }
     <button class="layout-btn" id="macro-btn" title="Macro & economic data (FRED, Europe, EM, frontier)">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13L6 8l3 3 5-7"/><path d="M2 2v12h12"/></svg>
     </button>
+    <button class="layout-btn" id="corr-btn" title="Correlation matrix of your watchlist">
+      <svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="3.5" height="3.5"/><rect x="6.25" y="2" width="3.5" height="3.5" opacity="0.5"/><rect x="10.5" y="2" width="3.5" height="3.5" opacity="0.25"/><rect x="2" y="6.25" width="3.5" height="3.5" opacity="0.5"/><rect x="6.25" y="6.25" width="3.5" height="3.5"/><rect x="10.5" y="6.25" width="3.5" height="3.5" opacity="0.5"/><rect x="2" y="10.5" width="3.5" height="3.5" opacity="0.25"/><rect x="6.25" y="10.5" width="3.5" height="3.5" opacity="0.5"/><rect x="10.5" y="10.5" width="3.5" height="3.5"/></svg>
+    </button>
   </div>
   
   <div class="session-status">
@@ -1547,6 +1560,17 @@ a:hover { text-decoration: underline; }
 </div>
 
 <!-- Macro Data Catalog Modal -->
+<div class="heatmap-modal" id="corr-modal">
+  <div class="heatmap-content" style="width:auto;max-width:90vw">
+    <div class="heatmap-header">
+      <div class="heatmap-title">🔗 Correlation Matrix · <span id="corr-wl-name"></span></div>
+      <div style="flex:1;font-size:11px;color:var(--fg-3);margin:0 16px;font-family:var(--font-mono)">90-day daily-return correlation · click a cell to load the ratio chart</div>
+      <button class="modal-close" id="corr-close">×</button>
+    </div>
+    <div class="corr-body" id="corr-body"><div class="wl-loading">Computing correlations…</div></div>
+  </div>
+</div>
+
 <div class="heatmap-modal" id="macro-modal">
   <div class="heatmap-content" style="width:80vw;max-width:1000px">
     <div class="heatmap-header">
@@ -3613,6 +3637,41 @@ class NativeChart {
       </div>`;
   }
   
+  // Floating OHLC legend that follows the crosshair + quick-stats footer.
+  static attachLegend(paneIdx, chart, series, bars, ticker) {
+    const host = document.getElementById(`nch-chart-${paneIdx}`);
+    if (!host) return;
+    host.style.position = 'relative';
+    let legend = host.querySelector('.nch-legend');
+    if (!legend) { legend = document.createElement('div'); legend.className = 'nch-legend'; host.appendChild(legend); }
+    const last = bars[bars.length-1];
+    const fmt = v => v==null?'—':(+v).toFixed(2);
+    const setLegend = (b) => {
+      if (!b) return;
+      const chg = b.open ? ((b.close-b.open)/b.open*100) : 0;
+      legend.innerHTML = `<b>${UI.esc(ticker)}</b> O <span>${fmt(b.open)}</span> H <span>${fmt(b.high)}</span> L <span>${fmt(b.low)}</span> C <span class="${chg>=0?'up':'dn'}">${fmt(b.close)}</span> <span class="${chg>=0?'up':'dn'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> Vol ${b.value?(b.value/1e6).toFixed(1)+'M':'—'}`;
+    };
+    setLegend(last);
+    const byTime = new Map(bars.map(b=>[b.time,b]));
+    chart.subscribeCrosshairMove(p => {
+      if (!p || !p.time) { setLegend(last); return; }
+      setLegend(byTime.get(p.time) || last);
+    });
+    // Quick-stats footer
+    let foot = host.parentElement.querySelector('.nch-quickstats');
+    if (!foot) { foot = document.createElement('div'); foot.className = 'nch-quickstats'; host.parentElement.appendChild(foot); }
+    const closes = bars.map(b=>b.close);
+    const hi = Math.max(...bars.map(b=>b.high)), lo = Math.min(...bars.map(b=>b.low));
+    const fromHi = ((last.close-hi)/hi*100);
+    // annualized vol from daily returns
+    const rets = []; for (let i=1;i<closes.length;i++) rets.push(closes[i]/closes[i-1]-1);
+    const mean = rets.reduce((a,b)=>a+b,0)/(rets.length||1);
+    const sd = Math.sqrt(rets.reduce((a,b)=>a+(b-mean)**2,0)/(rets.length||1));
+    const vol = sd*Math.sqrt(252)*100;
+    const avgVol = bars.slice(-20).reduce((a,b)=>a+(b.value||0),0)/Math.min(20,bars.length);
+    foot.innerHTML = `<span>Hi ${hi.toFixed(2)}</span><span>Lo ${lo.toFixed(2)}</span><span class="dn">${fromHi.toFixed(1)}% from high</span><span>σ ${vol.toFixed(0)}% ann.</span><span>AvgVol ${(avgVol/1e6).toFixed(1)}M</span>`;
+  }
+  
   // Detect crypto/forex from the ticker pattern when the type isn't cached.
   static CRYPTO_BASES = ['BTC','ETH','SOL','XRP','ADA','DOGE','AVAX','DOT','LINK','MATIC','LTC','BCH','UNI','ATOM','XLM','ETC','BNB','SHIB','TRX','NEAR','APT','ARB','OP','SUI','PEPE','XBT','XMR','AAVE','MKR','FIL','ICP','HBAR','VET','ALGO','TON','KAS'];
   static FIAT = ['USD','EUR','GBP','JPY','CHF','CAD','AUD','NZD','CNY','MXN','BRL','INR','KRW','SGD','HKD','SEK','NOK','ZAR','TRY','PLN'];
@@ -4114,6 +4173,9 @@ class NativeChart {
       
       // Signal-event markers — plot the actual buy events on the timeline
       candleSeries.setMarkers(NativeChart.buildMarkers(ticker, bars));
+      
+      // Crosshair OHLC legend (follows cursor) + quick stats
+      NativeChart.attachLegend(paneIdx, chart, candleSeries, bars, ticker);
       
       // Compare overlay — normalized line of a second symbol (relative performance)
       if (State.compareSymbol && State.compareSymbol !== ticker) {
@@ -4695,6 +4757,78 @@ class PriceAlert {
   static remove(ticker, idx) {
     if (State.priceAlerts[ticker]) { State.priceAlerts[ticker].splice(idx, 1); WatchlistManager.syncToCloud(); }
   }
+}
+
+// ─── CORRELATION MATRIX (pairwise return correlation of the watchlist) ──
+class CorrelationMatrix {
+  static async open() {
+    document.getElementById('corr-modal').classList.add('open');
+    const body = document.getElementById('corr-body');
+    body.innerHTML = '<div class="wl-loading">Computing correlations…</div>';
+    // Use the active watchlist's tickers (cap 14 for a readable grid)
+    const members = WatchlistManager.getMembers(State.activeWatchlistId) || [];
+    let syms = [...new Set(members.map(m => m.ticker).filter(t => t && !t.startsWith('FRED:') && !t.startsWith('DBN:')))].slice(0, 14);
+    document.getElementById('corr-wl-name').textContent = (WatchlistManager.getWatchlistMeta(State.activeWatchlistId)||{}).name || 'watchlist';
+    if (syms.length < 2) { body.innerHTML = '<div class="wl-empty">Need at least 2 symbols in the watchlist.</div>'; return; }
+    // Fetch daily closes for each (native engines)
+    const seriesMap = {};
+    await Promise.all(syms.map(async t => {
+      try {
+        const ty = State.symbolType[t] || NativeChart.guessType(t);
+        let url;
+        if (ty === 'crypto') url = `${PROXY}/yf-ohlc?symbol=${encodeURIComponent(NativeChart.cryptoToYahoo(t))}&range=1y`;
+        else if (ty === 'forex') url = `${PROXY}/yf-ohlc?symbol=${encodeURIComponent(NativeChart.fxToYahoo(t))}&range=1y`;
+        else url = `${PROXY}/ohlc?ticker=${encodeURIComponent(t)}&mult=1&span=day&days=120`;
+        const d = await (await fetch(url)).json();
+        const bars = (d.bars || []).slice(-90);
+        seriesMap[t] = new Map(bars.map(b => [b.time, b.close]));
+      } catch (e) { seriesMap[t] = new Map(); }
+    }));
+    syms = syms.filter(t => seriesMap[t] && seriesMap[t].size > 20);
+    if (syms.length < 2) { body.innerHTML = '<div class="wl-empty">Not enough native price data for these symbols.</div>'; return; }
+    // Build aligned daily returns on common dates
+    const retOf = (m) => {
+      const times = [...m.keys()].sort((a,b)=>a-b);
+      const r = new Map();
+      for (let i=1;i<times.length;i++){ const p=m.get(times[i-1]); if(p) r.set(times[i], m.get(times[i])/p - 1); }
+      return r;
+    };
+    const rets = {}; syms.forEach(t => rets[t] = retOf(seriesMap[t]));
+    const corr = (a, b) => {
+      const common = [...a.keys()].filter(t => b.has(t));
+      if (common.length < 15) return null;
+      const xa = common.map(t=>a.get(t)), xb = common.map(t=>b.get(t));
+      const ma = xa.reduce((s,v)=>s+v,0)/xa.length, mb = xb.reduce((s,v)=>s+v,0)/xb.length;
+      let cov=0, va=0, vb=0;
+      for (let i=0;i<common.length;i++){ const da=xa[i]-ma, db=xb[i]-mb; cov+=da*db; va+=da*da; vb+=db*db; }
+      if (va===0||vb===0) return null;
+      return cov/Math.sqrt(va*vb);
+    };
+    const color = (v) => {
+      if (v==null) return 'var(--bg-2)';
+      // blue (neg) → grey (0) → red (pos correlation)
+      if (v>=0) { const a=Math.min(1,v); return `rgba(255,85,119,${0.15+0.85*a})`; }
+      const a=Math.min(1,-v); return `rgba(34,211,238,${0.15+0.85*a})`;
+    };
+    let html = '<table class="corr-table"><thead><tr><th></th>' + syms.map(t=>`<th>${UI.esc(t)}</th>`).join('') + '</tr></thead><tbody>';
+    for (const r of syms) {
+      html += `<tr><th class="rowh">${UI.esc(r)}</th>`;
+      for (const csym of syms) {
+        if (r === csym) { html += `<td class="corr-cell diag">1.00</td>`; continue; }
+        const v = corr(rets[r], rets[csym]);
+        html += `<td class="corr-cell" style="background:${color(v)}" data-a="${UI.esc(r)}" data-b="${UI.esc(csym)}" title="${UI.esc(r)} vs ${UI.esc(csym)}">${v==null?'—':v.toFixed(2)}</td>`;
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table><div style="margin-top:12px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3)">🔴 high positive correlation · ⬜ uncorrelated · 🔵 negative (diversifying)</div>';
+    body.innerHTML = html;
+    body.querySelectorAll('.corr-cell[data-a]').forEach(el => el.addEventListener('click', () => {
+      State.ratioSymbol = el.dataset.b; document.getElementById('ratio-btn').classList.add('active');
+      State.seasonality = false; document.getElementById('season-btn').classList.remove('active');
+      this.close(); ChartController.loadTicker(el.dataset.a);
+    }));
+  }
+  static close() { document.getElementById('corr-modal').classList.remove('open'); }
 }
 
 // ─── FUNDAMENTALS SERVICE (quote + profile + ratios via /fundamentals) ──
@@ -5347,6 +5481,9 @@ async function init() {
     if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); CommandPalette.open(); }
   });
   
+  // ── Correlation matrix ──
+  document.getElementById('corr-btn').addEventListener('click', () => CorrelationMatrix.open());
+  document.getElementById('corr-close').addEventListener('click', () => CorrelationMatrix.close());
   // ── Macro data catalog ──
   document.getElementById('macro-btn').addEventListener('click', () => MacroData.open());
   document.getElementById('macro-close').addEventListener('click', () => MacroData.close());
@@ -5401,7 +5538,7 @@ async function init() {
     if (e.key === '/') { e.preventDefault(); const si = document.getElementById('search-input'); if (si) { si.focus(); si.select(); } }
     if (e.key === 'Escape') {
       UniverseSearch.close(); Heatmap.close(); FlagPicker.close(); AddSymbol.close();
-      MacroData.close();
+      MacroData.close(); CorrelationMatrix.close();
       document.getElementById('new-wl-modal').classList.remove('open');
       document.getElementById('wl-selector').classList.remove('open');
     }

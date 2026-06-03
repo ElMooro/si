@@ -413,6 +413,7 @@ export default {
         const quote = Array.isArray(q) ? (q[0] || {}) : (q || {});
         const prof = Array.isArray(p) ? (p[0] || {}) : (p || {});
         const ratios = Array.isArray(rm) ? (rm[0] || {}) : (rm || {});
+        const pick = (...keys) => { for (const k of keys) { if (ratios[k] != null) return ratios[k]; } return null; };
         const out = JSON.stringify({
           ticker,
           name: prof.companyName, sector: prof.sector, industry: prof.industry,
@@ -420,12 +421,14 @@ export default {
           description: (prof.description || "").slice(0, 400),
           price: quote.price, changesPct: quote.changePercentage || quote.changesPercentage,
           marketCap: quote.marketCap || prof.marketCap, volume: quote.volume, avgVolume: quote.avgVolume,
-          pe: quote.pe || ratios.priceToEarningsRatioTTM, eps: quote.eps,
+          pe: quote.pe || pick("priceToEarningsRatioTTM", "peRatioTTM"), eps: quote.eps,
           yearHigh: quote.yearHigh, yearLow: quote.yearLow,
-          beta: prof.beta, dividendYield: ratios.dividendYieldTTM,
-          pb: ratios.priceToBookRatioTTM, ps: ratios.priceToSalesRatioTTM,
-          roe: ratios.returnOnEquityTTM, netMargin: ratios.netProfitMarginTTM,
-          debtToEquity: ratios.debtToEquityRatioTTM,
+          beta: prof.beta, dividendYield: pick("dividendYieldTTM", "dividendYielPercentageTTM", "dividendYieldPercentageTTM"),
+          pb: pick("priceToBookRatioTTM", "pbRatioTTM"), ps: pick("priceToSalesRatioTTM", "priceSalesRatioTTM"),
+          roe: pick("returnOnEquityTTM", "roeTTM"), netMargin: pick("netProfitMarginTTM", "netIncomePerShareTTM") && pick("netProfitMarginTTM"),
+          debtToEquity: pick("debtToEquityRatioTTM", "debtEquityRatioTTM"),
+          currentRatio: pick("currentRatioTTM"), grossMargin: pick("grossProfitMarginTTM"),
+          opMargin: pick("operatingProfitMarginTTM"), fcfYield: pick("freeCashFlowYieldTTM"),
         });
         const fr = new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=600", "X-Cache": "MISS", ...corsHeaders() } });
         ctx.waitUntil(fc.put(fKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=600" } })));
