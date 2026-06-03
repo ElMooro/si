@@ -692,6 +692,13 @@ a:hover { text-decoration: underline; }
 .cst-btn { padding: 4px 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--fg-3); border: none; background: transparent; cursor: pointer; }
 .cst-btn:hover { color: var(--fg-1); }
 .cst-btn.active { color: var(--bg); background: var(--fg-2); }
+.chg-statblock { position: absolute; top: 36px; left: 12px; z-index: 6; background: rgba(12,16,24,0.92); border: 1px solid var(--border-bright); border-radius: 8px; padding: 6px; backdrop-filter: blur(4px); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+.csb-row { display: flex; gap: 2px; }
+.csb-cell { padding: 5px 11px; text-align: center; border-right: 1px solid var(--border); }
+.csb-cell:last-child { border-right: none; }
+.csb-l { font-family: var(--font-mono); font-size: 9px; color: var(--fg-3); letter-spacing: 0.5px; font-weight: 700; }
+.csb-v { font-family: var(--font-mono); font-size: 13px; font-weight: 700; margin-top: 2px; }
+.csb-v.pos { color: var(--green); } .csb-v.neg { color: var(--red); } .csb-v.muted { color: var(--fg-3); }
 .tool-btn { margin-left: 8px; padding: 5px 11px; border-radius: 5px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--fg-2); border: 1px solid var(--border-bright); background: var(--bg-2); cursor: pointer; }
 .tool-btn:hover { color: var(--fg-0); border-color: var(--fg-3); }
 .tool-btn.ai-btn { color: var(--violet); border-color: var(--violet); }
@@ -1411,6 +1418,7 @@ a:hover { text-decoration: underline; }
         <button class="cst-btn" data-cst="line" title="Line">╱</button>
         <button class="cst-btn" data-cst="area" title="Area">◢</button>
       </div>
+      <button class="tool-btn" id="statblock-btn" title="Show all period changes at once (DoD/WoW/MoM/QoQ/YoY)">Δ Changes</button>
       <button class="tool-btn" id="compare-btn" title="Overlay a benchmark / compare symbol">⚖ Compare</button>
       <div class="ind-wrap" style="position:relative;display:inline-block">
         <button class="tool-btn" id="indicators-btn" title="Add indicators (Bollinger, RSI, MACD)">📊 Indicators</button>
@@ -1615,6 +1623,7 @@ const State = {
   indicators: { bollinger: false, rsi: false, macd: false },  // native chart studies
   changeMode: 'price',   // 'price' | 'dod' | 'wow' | 'mom' | 'qoq' | 'yoy' — FRED-style % change
   changeStyle: 'histogram',  // 'histogram' | 'line' | 'area' — how % change renders
+  statBlock: false,      // show the all-periods (DoD/WoW/MoM/QoQ/YoY) stat overlay
   priceAlerts: {},       // {ticker: [{price, dir, note}]} — per-user price-level alerts
   drawings: {},          // {ticker: [{type, points}]} — per-user trendline drawings
   nativeChart: null,     // Lightweight Charts instance
@@ -1880,7 +1889,7 @@ class WatchlistManager {
       const ar = localStorage.getItem('jh_alert_rules');
       if (ar) State.alertRules = JSON.parse(ar);
       const ws = localStorage.getItem('jh_workspace');
-      if (ws) { const w = JSON.parse(ws); if(w.indicators)State.indicators=w.indicators; if(w.tf)State.tf=w.tf; if(w.changeMode)State.changeMode=w.changeMode; if(w.changeStyle)State.changeStyle=w.changeStyle; if(w.priceAlerts)State.priceAlerts=w.priceAlerts; if(w.drawings)State.drawings=w.drawings; }
+      if (ws) { const w = JSON.parse(ws); if(w.indicators)State.indicators=w.indicators; if(w.tf)State.tf=w.tf; if(w.changeMode)State.changeMode=w.changeMode; if(w.changeStyle)State.changeStyle=w.changeStyle; if(w.statBlock!=null)State.statBlock=w.statBlock; if(w.priceAlerts)State.priceAlerts=w.priceAlerts; if(w.drawings)State.drawings=w.drawings; }
       const lastWl = localStorage.getItem('jh_active_watchlist');
       if (lastWl && (lastWl === 'favorites' || WATCHLIST_CONFIGS.some(c=>c.id===lastWl) || lastWl.startsWith('custom_'))) {
         State.activeWatchlistId = lastWl;
@@ -1917,6 +1926,7 @@ class WatchlistManager {
         if (data.tf) State.tf = data.tf;
         if (data.changeMode) State.changeMode = data.changeMode;
         if (data.changeStyle) State.changeStyle = data.changeStyle;
+        if (data.statBlock != null) State.statBlock = data.statBlock;
         if (data.priceAlerts) State.priceAlerts = data.priceAlerts;
         if (data.drawings) State.drawings = data.drawings;
         if (data.chartTabs && data.chartTabs.length) { State.chartTabs = data.chartTabs; State.activeTabId = data.activeTabId || data.chartTabs[0].id; }
@@ -1939,7 +1949,7 @@ class WatchlistManager {
       localStorage.setItem('jh_symbol_type', JSON.stringify(State.symbolType || {}));
       localStorage.setItem('jh_known_symbols', JSON.stringify(State.knownSymbols || {}));
       localStorage.setItem('jh_alert_rules', JSON.stringify(State.alertRules || []));
-      localStorage.setItem('jh_workspace', JSON.stringify({indicators:State.indicators, tf:State.tf, changeMode:State.changeMode, changeStyle:State.changeStyle, priceAlerts:State.priceAlerts, drawings:State.drawings}));
+      localStorage.setItem('jh_workspace', JSON.stringify({indicators:State.indicators, tf:State.tf, changeMode:State.changeMode, changeStyle:State.changeStyle, statBlock:State.statBlock, priceAlerts:State.priceAlerts, drawings:State.drawings}));
       localStorage.setItem('jh_active_watchlist', State.activeWatchlistId);
     } catch (e) {}
   }
@@ -1967,6 +1977,7 @@ class WatchlistManager {
           tf: State.tf,
           changeMode: State.changeMode,
           changeStyle: State.changeStyle,
+          statBlock: State.statBlock,
           priceAlerts: State.priceAlerts,
           drawings: State.drawings,
           chartTabs: State.chartTabs,
@@ -3413,6 +3424,43 @@ class NativeChart {
   static CHANGE_PERIODS = { dod: 1, wow: 7, mom: 30.44, qoq: 91.31, yoy: 365 };
   static CHANGE_LABELS = { dod: 'Day-over-Day', wow: 'Week-over-Week', mom: 'Month-over-Month', qoq: 'Quarter-over-Quarter', yoy: 'Year-over-Year' };
   
+  // Latest period-over-period % change for ALL modes from one series.
+  static latestChanges(series) {
+    const out = {};
+    for (const m of ['dod','wow','mom','qoq','yoy']) {
+      const arr = this.computeChange(series, m);
+      out[m] = arr.length ? arr[arr.length - 1].value : null;
+    }
+    return out;
+  }
+  
+  // Render the all-periods stat block as a floating overlay on the chart pane.
+  static renderStatBlock(paneIdx, series, ticker) {
+    const host = document.getElementById(`nch-chart-${paneIdx}`);
+    if (!host) return;
+    const wrap = host.parentElement;
+    if (!wrap) return;
+    let block = wrap.querySelector('.chg-statblock');
+    const ch = this.latestChanges(series);
+    const cell = (label, v) => {
+      if (v == null) return `<div class="csb-cell"><div class="csb-l">${label}</div><div class="csb-v muted">—</div></div>`;
+      const cls = v >= 0 ? 'pos' : 'neg';
+      return `<div class="csb-cell"><div class="csb-l">${label}</div><div class="csb-v ${cls}">${v>=0?'+':''}${v.toFixed(2)}%</div></div>`;
+    };
+    const html = `
+      <div class="csb-row">
+        ${cell('DoD', ch.dod)}${cell('WoW', ch.wow)}${cell('MoM', ch.mom)}${cell('QoQ', ch.qoq)}${cell('YoY', ch.yoy)}
+      </div>`;
+    if (!block) {
+      block = document.createElement('div');
+      block.className = 'chg-statblock';
+      wrap.style.position = 'relative';
+      wrap.appendChild(block);
+    }
+    block.innerHTML = html;
+    block.style.display = State.statBlock ? 'block' : 'none';
+  }
+  
   static computeChange(series, mode) {
     // series: sorted [{time(sec), value}]
     const periodDays = this.CHANGE_PERIODS[mode];
@@ -3675,6 +3723,7 @@ class NativeChart {
       // FRED-style % change mode for crypto/forex too
       if (cmY && cmY !== 'price') {
         NativeChart.renderChangeHisto(paneIdx, bars.map(b => ({ time: b.time, value: b.close })), cmY, NativeChart.CHANGE_LABELS[cmY], ticker);
+        NativeChart.renderStatBlock(paneIdx, bars.map(b => ({ time: b.time, value: b.close })), ticker);
         return;
       }
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
@@ -3693,6 +3742,7 @@ class NativeChart {
       if (bars.length >= 50) { const m=chart.addLineSeries({color:'#fbbf24',lineWidth:1,priceLineVisible:false,lastValueVisible:false}); m.setData(sma(50)); }
       chart.timeScale().fitContent();
       State.nativeChart = chart;
+      NativeChart.renderStatBlock(paneIdx, bars.map(b => ({ time: b.time, value: b.close })), ticker);
       const last = bars[bars.length-1], prev = bars[bars.length-2]||last;
       const chg = prev.close ? ((last.close-prev.close)/prev.close*100) : 0;
       const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
@@ -3730,6 +3780,7 @@ class NativeChart {
         const seenC = new Set(); const cleanC = [];
         for (const b of bars) { if (!seenC.has(b.time)) { seenC.add(b.time); cleanC.push({ time: b.time, value: b.value }); } }
         NativeChart.renderChangeHisto(paneIdx, cleanC, cmL, NativeChart.CHANGE_LABELS[cmL], series);
+        NativeChart.renderStatBlock(paneIdx, cleanC, series);
         return;
       }
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
@@ -3744,6 +3795,7 @@ class NativeChart {
       const seen = new Set(); const clean = [];
       for (const b of bars) { if (!seen.has(b.time)) { seen.add(b.time); clean.push({ time: b.time, value: b.value }); } }
       area.setData(clean);
+      NativeChart.renderStatBlock(paneIdx, clean, series);
       chart.timeScale().fitContent();
       State.nativeChart = chart;
       const last = clean[clean.length-1], prev = clean[clean.length-2]||last;
@@ -3800,6 +3852,7 @@ class NativeChart {
       // FRED-style % change mode → histogram or line (overrides candle render)
       if (cm && cm !== 'price') {
         NativeChart.renderChange(paneIdx, bars.map(b => ({ time: b.time, value: b.close })), cm, this.CHANGE_LABELS[cm], ticker);
+        NativeChart.renderStatBlock(paneIdx, bars.map(b => ({ time: b.time, value: b.close })), ticker);
         return;
       }
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
@@ -3900,6 +3953,7 @@ class NativeChart {
       
       // RSI / MACD subcharts (synced time scale)
       NativeChart.renderSubcharts(paneIdx, bars, chart);
+      NativeChart.renderStatBlock(paneIdx, bars.map(b => ({ time: b.time, value: b.close })), ticker);
     } catch (e) {
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `Chart error: ${String(e).slice(0,80)}`; }
@@ -4924,6 +4978,15 @@ async function init() {
     if (State.changeMode && State.changeMode !== 'price') { const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t); }
   }));
   document.querySelectorAll('.cst-btn').forEach(x => x.classList.toggle('active', x.dataset.cst === (State.changeStyle || 'histogram')));
+  // ── All-periods stat block toggle ──
+  const sbBtn = document.getElementById('statblock-btn');
+  sbBtn.addEventListener('click', () => {
+    State.statBlock = !State.statBlock;
+    sbBtn.classList.toggle('active', State.statBlock);
+    WatchlistManager.syncToCloud();
+    const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t);
+  });
+  sbBtn.classList.toggle('active', State.statBlock);
   
   // ── Compare button ──
   document.getElementById('compare-btn').addEventListener('click', () => {
