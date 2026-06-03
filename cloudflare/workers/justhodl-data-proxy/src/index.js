@@ -191,6 +191,68 @@ export default {
       }
     }
 
+    if (url.pathname === "/fred") {
+      // GET /fred?series=DGS10&obs=600 → FRED observations as {bars:[{time,value}]}
+      const series = (url.searchParams.get("series") || "").trim().toUpperCase();
+      const obs = Math.min(parseInt(url.searchParams.get("obs") || "600", 10) || 600, 5000);
+      if (!series || !/^[A-Z0-9._\-]{1,40}$/.test(series)) {
+        return new Response(JSON.stringify({ error: "invalid series" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const fredKey = env.FRED_KEY || "2f057499936072679d8843d7fce99989";
+      const fCacheKey = new Request(`https://fred.cache/${series}/${obs}`, { method: "GET" });
+      const fc = caches.default;
+      const hit = await fc.match(fCacheKey);
+      if (hit) {
+        const body = await hit.text();
+        return new Response(body, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } });
+      }
+      try {
+        const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${series}&api_key=${fredKey}&file_type=json&sort_order=desc&limit=${obs}`;
+        const resp = await fetch(fredUrl, { cf: { cacheTtl: 3600, cacheEverything: true } });
+        const data = await resp.json();
+        const obsArr = (data.observations || [])
+          .filter(o => o.value !== "." && o.value != null)
+          .map(o => ({ time: Math.floor(new Date(o.date).getTime() / 1000), value: parseFloat(o.value), date: o.date }))
+          .filter(o => isFinite(o.value))
+          .sort((a, b) => a.time - b.time);
+        const out = JSON.stringify({ series, bars: obsArr, count: obsArr.length });
+        const finalResp = new Response(out, {
+          headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=3600", "X-Cache": "MISS", ...corsHeaders() },
+        });
+        ctx.waitUntil(fc.put(fCacheKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=3600" } })));
+        return finalResp;
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "fred fetch failed", detail: String(e) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
+    if (url.pathname === "/fred-search") {
+      // GET /fred-search?text=inflation → FRED full-text series search (800k+ series)
+      const text = (url.searchParams.get("text") || "").trim();
+      if (!text) {
+        return new Response(JSON.stringify({ series: [] }),
+          { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const fredKey = env.FRED_KEY || "2f057499936072679d8843d7fce99989";
+      try {
+        const sUrl = `https://api.stlouisfed.org/fred/series/search?search_text=${encodeURIComponent(text)}&api_key=${fredKey}&file_type=json&limit=30&order_by=popularity&sort_order=desc`;
+        const resp = await fetch(sUrl, { cf: { cacheTtl: 1800, cacheEverything: true } });
+        const data = await resp.json();
+        const series = (data.seriess || []).map(s => ({
+          id: s.id, title: s.title, units: s.units_short || s.units,
+          frequency: s.frequency_short || s.frequency, popularity: s.popularity,
+          obs_start: s.observation_start, obs_end: s.observation_end,
+        }));
+        return new Response(JSON.stringify({ series }),
+          { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=1800", ...corsHeaders() } });
+      } catch (e) {
+        return new Response(JSON.stringify({ series: [], error: String(e) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
     if (url.pathname === "/ohlc") {
       // GET /ohlc?ticker=AAPL&days=180 → Polygon daily bars for native chart fallback
       const ticker = (url.searchParams.get("ticker") || "").trim().toUpperCase();

@@ -594,6 +594,39 @@ a:hover { text-decoration: underline; }
 .native-chart-head .nch-meta { font-size: 11px; color: var(--fg-3); margin-top: 2px; }
 .native-chart-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--fg-3); font-family: var(--font-mono); font-size: 11.5px; }
 
+/* Macro data catalog */
+.macro-body { flex: 1; padding: 18px; overflow-y: auto; }
+.macro-cat { margin-bottom: 22px; }
+.macro-cat-name {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  color: var(--cyan); letter-spacing: 0.6px; text-transform: uppercase;
+  margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.macro-cat-name .mc-flag { font-size: 13px; }
+.macro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+.macro-item {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 9px 11px; border-radius: 6px; cursor: pointer;
+  background: var(--bg-1); border: 1px solid var(--border);
+  transition: all 0.12s;
+}
+.macro-item:hover { border-color: var(--cyan); background: var(--bg-2); }
+.macro-item .mi-title { font-size: 11.5px; color: var(--fg-1); font-weight: 600; line-height: 1.3; }
+.macro-item .mi-meta { font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); display: flex; gap: 8px; }
+.macro-item .mi-id { color: var(--violet); }
+.macro-search-results { display: flex; flex-direction: column; gap: 5px; }
+.macro-sr {
+  display: grid; grid-template-columns: 110px 1fr auto; align-items: center; gap: 12px;
+  padding: 9px 12px; cursor: pointer; border-radius: 6px;
+  background: var(--bg-1); border: 1px solid var(--border);
+  font-family: var(--font-mono);
+}
+.macro-sr:hover { border-color: var(--cyan); background: var(--bg-2); }
+.macro-sr .sr-id { color: var(--violet); font-weight: 700; font-size: 11.5px; }
+.macro-sr .sr-title { color: var(--fg-1); font-size: 11.5px; font-family: var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.macro-sr .sr-meta { color: var(--fg-3); font-size: 9.5px; text-align: right; }
+
 .chart-toolbar {
   height: 36px;
   background: var(--bg-1);
@@ -1090,6 +1123,9 @@ a:hover { text-decoration: underline; }
     <button class="layout-btn" id="heatmap-btn" title="Heatmap view">
       <svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="3" height="3"/><rect x="6.5" y="2" width="3" height="3" opacity="0.6"/><rect x="11" y="2" width="3" height="3" opacity="0.3"/><rect x="2" y="6.5" width="3" height="3" opacity="0.7"/><rect x="6.5" y="6.5" width="3" height="3"/><rect x="11" y="6.5" width="3" height="3" opacity="0.5"/><rect x="2" y="11" width="3" height="3" opacity="0.4"/><rect x="6.5" y="11" width="3" height="3" opacity="0.8"/><rect x="11" y="11" width="3" height="3"/></svg>
     </button>
+    <button class="layout-btn" id="macro-btn" title="Macro & economic data (FRED, Europe, EM, frontier)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13L6 8l3 3 5-7"/><path d="M2 2v12h12"/></svg>
+    </button>
   </div>
   
   <div class="session-status">
@@ -1236,6 +1272,22 @@ a:hover { text-decoration: underline; }
     </div>
     <div class="heatmap-body" id="heatmap-body">
       <div class="wl-loading">Loading heatmap data...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Macro Data Catalog Modal -->
+<div class="heatmap-modal" id="macro-modal">
+  <div class="heatmap-content" style="width:80vw;max-width:1000px">
+    <div class="heatmap-header">
+      <div class="heatmap-title">\ud83d\udcc8 Macro &amp; Economic Data</div>
+      <div style="flex:1;display:flex;align-items:center;gap:8px;margin:0 16px">
+        <input type="text" id="macro-search-input" placeholder="Search 800,000+ FRED series \u2014 inflation, GDP, yields, any country..." style="flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-family:var(--font-mono);font-size:12px;color:var(--fg-1);outline:none">
+      </div>
+      <button class="modal-close" id="macro-close">\u00d7</button>
+    </div>
+    <div class="macro-body" id="macro-body">
+      <div class="wl-loading">Loading catalog\u2026</div>
     </div>
   </div>
 </div>
@@ -2637,8 +2689,15 @@ class ChartController {
       el.classList.toggle('selected', el.dataset.ticker === ticker);
     });
     
+    // FRED macro series can only render natively (force engine)
+    const isFred = ticker.startsWith('FRED:');
+    if (isFred && State.chartEngine !== 'native') {
+      State.chartEngine = 'native';
+      document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === 'native'));
+    }
+    
     // Render via the active engine
-    if (State.chartEngine === 'native') {
+    if (State.chartEngine === 'native' || isFred) {
       NativeChart.render(ticker);
       return;
     }
@@ -2760,11 +2819,215 @@ class ChartTabs {
   }
 }
 
+// ─── MACRO DATA CATALOG (FRED + Europe + EM + Frontier) ────────────
+class MacroData {
+  // Curated catalog. id is the FRED series id; charted as FRED:id (line).
+  static CATALOG = [
+    { cat: "US Rates & Yields", flag: "\ud83c\uddfa\ud83c\uddf8", items: [
+      ["DGS10","10Y Treasury Yield","%"], ["DGS2","2Y Treasury Yield","%"],
+      ["DGS30","30Y Treasury Yield","%"], ["DGS3MO","3M Treasury Yield","%"],
+      ["T10Y2Y","10Y-2Y Spread","%"], ["T10Y3M","10Y-3M Spread","%"],
+      ["FEDFUNDS","Fed Funds Rate","%"], ["SOFR","SOFR","%"],
+      ["DFEDTARU","Fed Funds Target Upper","%"], ["DPRIME","Bank Prime Rate","%"],
+    ]},
+    { cat: "Inflation", flag: "\ud83d\udd25", items: [
+      ["CPIAUCSL","CPI (All Items)","Index"], ["CPILFESL","Core CPI","Index"],
+      ["PCEPI","PCE Price Index","Index"], ["PCEPILFE","Core PCE","Index"],
+      ["T5YIE","5Y Breakeven Inflation","%"], ["T10YIE","10Y Breakeven","%"],
+      ["T5YIFR","5Y-5Y Forward Inflation","%"], ["PPIACO","Producer Price Index","Index"],
+    ]},
+    { cat: "Growth & Activity", flag: "\ud83d\udcc8", items: [
+      ["GDPC1","Real GDP","$B"], ["A191RL1Q225SBEA","Real GDP Growth (QoQ)","%"],
+      ["INDPRO","Industrial Production","Index"], ["TCU","Capacity Utilization","%"],
+      ["RSAFS","Retail Sales","$M"], ["UMCSENT","Consumer Sentiment","Index"],
+      ["NAPM","ISM Manufacturing PMI","Index"], ["DGORDER","Durable Goods Orders","$M"],
+    ]},
+    { cat: "Employment", flag: "\ud83d\udc77", items: [
+      ["UNRATE","Unemployment Rate","%"], ["PAYEMS","Nonfarm Payrolls","Thousands"],
+      ["ICSA","Initial Jobless Claims","Number"], ["CIVPART","Labor Force Participation","%"],
+      ["JTSJOL","Job Openings (JOLTS)","Thousands"], ["AHETPI","Avg Hourly Earnings","$"],
+      ["CES0500000003","Avg Hourly Earnings (Total)","$"],
+    ]},
+    { cat: "Money & Liquidity", flag: "\ud83d\udcb5", items: [
+      ["M2SL","M2 Money Supply","$B"], ["WALCL","Fed Balance Sheet","$M"],
+      ["WRESBAL","Bank Reserves","$B"], ["RRPONTSYD","Reverse Repo (ON RRP)","$B"],
+      ["WTREGEN","Treasury General Account","$B"], ["BOGMBASE","Monetary Base","$M"],
+      ["WM2NS","M2 (Weekly)","$B"],
+    ]},
+    { cat: "Credit & Stress", flag: "\u26a0\ufe0f", items: [
+      ["BAMLH0A0HYM2","High-Yield OAS","%"], ["BAMLC0A0CM","IG Corporate OAS","%"],
+      ["STLFSI4","St. Louis Fed Financial Stress","Index"], ["NFCI","Chicago Fed Conditions","Index"],
+      ["BAMLH0A0HYM2EY","HY Effective Yield","%"], ["DRTSCILM","Bank Lending Standards","%"],
+    ]},
+    { cat: "Housing", flag: "\ud83c\udfe0", items: [
+      ["HOUST","Housing Starts","Thousands"], ["CSUSHPINSA","Case-Shiller Home Price","Index"],
+      ["MORTGAGE30US","30Y Mortgage Rate","%"], ["MSPUS","Median Home Sale Price","$"],
+      ["PERMIT","Building Permits","Thousands"], ["EXHOSLUSM495S","Existing Home Sales","Number"],
+    ]},
+    { cat: "Dollar & FX", flag: "\ud83d\udcb1", items: [
+      ["DTWEXBGS","Broad Dollar Index","Index"], ["DTWEXAFEGS","Advanced FX Dollar","Index"],
+      ["DEXUSEU","USD/EUR","Rate"], ["DEXJPUS","JPY/USD","Rate"],
+      ["DEXCHUS","CNY/USD","Rate"], ["DEXUSUK","USD/GBP","Rate"],
+      ["DEXKOUS","KRW/USD","Rate"], ["DEXBZUS","BRL/USD","Rate"],
+    ]},
+    { cat: "Europe", flag: "\ud83c\uddea\ud83c\uddfa", items: [
+      ["IRLTLT01DEM156N","German 10Y Bund","%"], ["IRLTLT01FRM156N","France 10Y OAT","%"],
+      ["IRLTLT01ITM156N","Italy 10Y BTP","%"], ["IRLTLT01ESM156N","Spain 10Y","%"],
+      ["ECBDFR","ECB Deposit Facility Rate","%"], ["ECBMRRFR","ECB Main Refi Rate","%"],
+      ["CP0000EZ19M086NEST","Euro Area HICP (Inflation)","Index"], ["LRHUTTTTEZM156S","Euro Area Unemployment","%"],
+      ["CLVMNACSCAB1GQEA19","Euro Area Real GDP","\u20acM"], ["IRLTLT01GBM156N","UK 10Y Gilt","%"],
+    ]},
+    { cat: "Emerging Markets", flag: "\ud83c\udf0d", items: [
+      ["INTDSRJPM193N","Japan Discount Rate","%"], ["INTDSRCNM193N","China Rate","%"],
+      ["IRLTLT01CNM156N","China 10Y","%"], ["INDCPIALLMINMEI","India CPI","Index"],
+      ["BRACPIALLMINMEI","Brazil CPI","Index"], ["MEXCPIALLMINMEI","Mexico CPI","Index"],
+      ["KORCPIALLMINMEI","Korea CPI","Index"], ["ZAFCPIALLMINMEI","South Africa CPI","Index"],
+      ["IDNCPIALLMINMEI","Indonesia CPI","Index"], ["TURCPIALLMINMEI","Turkey CPI","Index"],
+    ]},
+    { cat: "EM/Frontier ETFs (live price)", flag: "\ud83c\udfd7\ufe0f", etf: true, items: [
+      ["EEM","iShares MSCI Emerging Markets"], ["VWO","Vanguard FTSE Emerging Markets"],
+      ["FM","iShares Frontier & Select EM"], ["FXI","China Large-Cap"],
+      ["EWZ","Brazil"], ["INDA","India"], ["EWW","Mexico"], ["EZA","South Africa"],
+      ["TUR","Turkey"], ["EWY","South Korea"], ["EIDO","Indonesia"], ["VNM","Vietnam"],
+      ["NGE","Nigeria"], ["FRN","Frontier Markets"], ["EWT","Taiwan"], ["EPHE","Philippines"],
+    ]},
+    { cat: "Commodities", flag: "\ud83d\udee2\ufe0f", items: [
+      ["DCOILWTICO","WTI Crude Oil","$/bbl"], ["DCOILBRENTEU","Brent Crude","$/bbl"],
+      ["GOLDAMGBD228NLBM","Gold (London Fix)","$/oz"], ["DHHNGSP","Natural Gas (Henry Hub)","$/MMBtu"],
+      ["PCOPPUSDM","Copper","$/mt"], ["WPU0911","Lumber PPI","Index"],
+    ]},
+  ];
+  
+  static open() {
+    document.getElementById('macro-modal').classList.add('open');
+    this.renderCatalog();
+    setTimeout(() => document.getElementById('macro-search-input').focus(), 50);
+  }
+  static close() { document.getElementById('macro-modal').classList.remove('open'); }
+  
+  static renderCatalog() {
+    const body = document.getElementById('macro-body');
+    const html = this.CATALOG.map(cat => {
+      const items = cat.items.map(it => {
+        const [id, title, units] = it;
+        if (cat.etf) {
+          return `<div class="macro-item" data-symbol="${id}" data-kind="etf">
+            <span class="mi-title">${UI.esc(title)}</span>
+            <span class="mi-meta"><span class="mi-id">${id}</span><span>ETF \u00b7 live</span></span>
+          </div>`;
+        }
+        return `<div class="macro-item" data-symbol="FRED:${id}" data-kind="fred">
+          <span class="mi-title">${UI.esc(title)}</span>
+          <span class="mi-meta"><span class="mi-id">${id}</span><span>${UI.esc(units||'')}</span></span>
+        </div>`;
+      }).join('');
+      return `<div class="macro-cat">
+        <div class="macro-cat-name"><span class="mc-flag">${cat.flag}</span>${UI.esc(cat.cat)}</div>
+        <div class="macro-grid">${items}</div>
+      </div>`;
+    }).join('');
+    body.innerHTML = html;
+    body.querySelectorAll('.macro-item').forEach(el => {
+      el.addEventListener('click', () => { this.chartSeries(el.dataset.symbol); this.close(); });
+    });
+  }
+  
+  static async search(text) {
+    const body = document.getElementById('macro-body');
+    if (!text || text.length < 2) { this.renderCatalog(); return; }
+    body.innerHTML = '<div class="wl-loading">Searching FRED\u2026</div>';
+    try {
+      const r = await fetch(`${PROXY}/fred-search?text=${encodeURIComponent(text)}`);
+      const data = await r.json();
+      const series = data.series || [];
+      if (!series.length) { body.innerHTML = '<div class="wl-empty">No FRED series found for "' + UI.esc(text) + '"</div>'; return; }
+      body.innerHTML = '<div class="macro-search-results">' + series.map(s => `
+        <div class="macro-sr" data-symbol="FRED:${s.id}">
+          <span class="sr-id">${UI.esc(s.id)}</span>
+          <span class="sr-title">${UI.esc(s.title)}</span>
+          <span class="sr-meta">${UI.esc(s.units||'')} \u00b7 ${UI.esc(s.frequency||'')}</span>
+        </div>`).join('') + '</div>';
+      body.querySelectorAll('.macro-sr').forEach(el => {
+        el.addEventListener('click', () => { this.chartSeries(el.dataset.symbol); this.close(); });
+      });
+    } catch (e) {
+      body.innerHTML = '<div class="wl-empty">Search failed. Try again.</div>';
+    }
+  }
+  
+  static chartSeries(symbol) {
+    // Force native engine for FRED series; load into active tab
+    if (symbol.startsWith('FRED:')) {
+      State.chartEngine = 'native';
+      document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === 'native'));
+    }
+    ChartController.loadTicker(symbol);
+  }
+}
+
 // ─── NATIVE CHART (Polygon data + Lightweight Charts) ──────────────
 // Works for any US-listed symbol we can get Polygon data for, bypassing
 // TradingView's symbol gating ('only available on TradingView').
 class NativeChart {
   static async render(ticker) {
+    // FRED macro series → line chart; equities → candlesticks
+    if (ticker.startsWith('FRED:')) return this.renderFred(ticker);
+    return this.renderEquity(ticker);
+  }
+  
+  static async renderFred(symbol) {
+    const series = symbol.slice(5);
+    const paneIdx = State.activeChartPane;
+    const container = document.getElementById(`tv-container-${paneIdx}`);
+    if (!container) return;
+    container.innerHTML = `
+      <div class="native-chart-wrap">
+        <div class="native-chart-head"><div class="nch-sym">${UI.esc(series)}</div><div class="nch-meta" id="nch-meta-${paneIdx}">FRED · loading…</div></div>
+        <div class="native-chart-loading" id="nch-loading-${paneIdx}">Loading ${UI.esc(series)} from FRED…</div>
+        <div id="nch-chart-${paneIdx}" style="width:100%;height:100%"></div>
+      </div>`;
+    try {
+      const r = await fetch(`${PROXY}/fred?series=${encodeURIComponent(series)}&obs=800`);
+      const data = await r.json();
+      const bars = data.bars || [];
+      const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (!bars.length) {
+        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `No FRED data for ${series}`; }
+        return;
+      }
+      const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
+      if (!chartEl || typeof LightweightCharts === 'undefined') return;
+      const chart = LightweightCharts.createChart(chartEl, {
+        autoSize: true,
+        layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
+        grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
+        rightPriceScale: { borderColor: '#1c2433' },
+        timeScale: { borderColor: '#1c2433', timeVisible: false },
+        crosshair: { mode: 1 },
+      });
+      const area = chart.addAreaSeries({
+        lineColor: '#22d3ee', topColor: 'rgba(34,211,238,0.25)', bottomColor: 'rgba(34,211,238,0.02)',
+        lineWidth: 2,
+      });
+      // De-dupe times (FRED can have dupes); ensure ascending
+      const seen = new Set(); const clean = [];
+      for (const b of bars) { if (!seen.has(b.time)) { seen.add(b.time); clean.push({ time: b.time, value: b.value }); } }
+      area.setData(clean);
+      chart.timeScale().fitContent();
+      State.nativeChart = chart;
+      const last = clean[clean.length - 1];
+      const prev = clean[clean.length - 2] || last;
+      const chg = prev.value ? ((last.value - prev.value) / Math.abs(prev.value) * 100) : 0;
+      const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
+      if (metaEl) metaEl.innerHTML = `FRED · latest ${last.value.toLocaleString()} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> · ${clean.length} obs`;
+    } catch (e) {
+      const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
+      if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `FRED error: ${String(e).slice(0,80)}`; }
+    }
+  }
+  
+  static async renderEquity(ticker) {
     const paneIdx = State.activeChartPane;
     const container = document.getElementById(`tv-container-${paneIdx}`);
     if (!container) return;
@@ -3472,6 +3735,16 @@ async function init() {
     });
   });
   
+  // ── Macro data catalog ──
+  document.getElementById('macro-btn').addEventListener('click', () => MacroData.open());
+  document.getElementById('macro-close').addEventListener('click', () => MacroData.close());
+  let macroSearchTimer = null;
+  document.getElementById('macro-search-input').addEventListener('input', (e) => {
+    clearTimeout(macroSearchTimer);
+    const v = e.target.value;
+    macroSearchTimer = setTimeout(() => MacroData.search(v), 300);
+  });
+  
   // ── Heatmap ──
   document.getElementById('heatmap-btn').addEventListener('click', () => Heatmap.open());
   document.getElementById('heatmap-close').addEventListener('click', () => Heatmap.close());
@@ -3518,6 +3791,7 @@ async function init() {
     if (e.key === '/') { e.preventDefault(); UniverseSearch.open(); }
     if (e.key === 'Escape') {
       UniverseSearch.close(); Heatmap.close(); FlagPicker.close(); AddSymbol.close();
+      MacroData.close();
       document.getElementById('new-wl-modal').classList.remove('open');
       document.getElementById('wl-selector').classList.remove('open');
     }
