@@ -418,6 +418,8 @@ a:hover { text-decoration: underline; }
 .wl-sig-dot.options { background: var(--tier-options); }
 .wl-sig-dot.retail { background: var(--tier-retail); }
 .wl-sig-dot.earnings { background: var(--tier-earnings); }
+.wl-sig-dot.politician { background: #e0b341; }
+.us-badge.politician_buy, .us-badge.politician_committee { color: #e0b341; border-color: #e0b341; }
 .wl-sub {
   font-family: var(--font-mono); font-size: 9px;
   color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -1395,6 +1397,7 @@ const State = {
   // Cached data
   cascade: null, insider: null, options: null, retail: null,
   trade_tickets: null, ai_rationales: null, predictions: null, calibration: null,
+  political: null, political_ai: null,
   
   tv_widgets: {},
 };
@@ -1407,6 +1410,7 @@ const WATCHLIST_CONFIGS = [
   { id: 'options', label: 'OPTIONS', emoji: '⚡', color: 'var(--tier-options)', tagClass: 'options', signal: true },
   { id: 'retail', label: 'RETAIL', emoji: '📱', color: 'var(--tier-retail)', tagClass: 'retail', signal: true },
   { id: 'earnings', label: 'EARNINGS', emoji: '📊', color: 'var(--tier-earnings)', tagClass: 'earnings', signal: true },
+  { id: 'politician', label: 'CONGRESS', emoji: '🏛️', color: '#e0b341', tagClass: 'politician', signal: true },
 ];
 
 const FLAG_COLORS = ['none','red','orange','yellow','green','blue','purple'];
@@ -1425,7 +1429,7 @@ class DataService {
   }
   
   static async loadAll() {
-    const [cascade, insider, options, retail, tickets, ai, preds, cal] = await Promise.all([
+    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai] = await Promise.all([
       this.fetch('data/theme-cascade.json'),
       this.fetch('data/insider-clusters.json'),
       this.fetch('data/polygon-options-flow.json'),
@@ -1434,6 +1438,8 @@ class DataService {
       this.fetch('data/trade-tickets-ai-rationale.json'),
       this.fetch('data/predictions-snapshots/latest.json'),
       this.fetch('data/cascade-calibration.json'),
+      this.fetch('data/political-intel.json'),
+      this.fetch('data/political-ai-investigation.json'),
     ]);
     State.cascade = cascade;
     State.insider = insider;
@@ -1443,6 +1449,8 @@ class DataService {
     State.ai_rationales = ai;
     State.predictions = preds;
     State.calibration = cal;
+    State.political = political;
+    State.political_ai = polai;
   }
 }
 
@@ -1483,6 +1491,7 @@ class WatchlistManager {
       case 'options':  return this.fromOptions();
       case 'retail':   return this.fromRetail();
       case 'earnings': return this.fromEarnings();
+      case 'politician': return this.fromPolitician();
       default:         return [];
     }
   }
@@ -1548,6 +1557,15 @@ class WatchlistManager {
         score: ((p.features || {}).earnings_score) || 0, fallbackChange: null,
       }));
   }
+  static fromPolitician() {
+    const pol = State.political || {};
+    const top = pol.top_conviction_buys || [];
+    return top.slice(0, 40).map(r => ({
+      ticker: r.ticker, name: r.asset || '',
+      sub: `${r.n_buyers} buyer${r.n_buyers!==1?'s':''}${r.committee_relevant ? ' · COMMITTEE' : ''}${r.cluster ? ' · cluster' : ''}`,
+      score: r.conviction_score || 0, fallbackChange: null,
+    }));
+  }
   
   // All watchlists (signal + custom) for the dropdown
   static getAllWatchlists() {
@@ -1591,6 +1609,8 @@ class WatchlistManager {
     const preds = (State.predictions && State.predictions.predictions) || [];
     const pred = preds.find(p => p.ticker === ticker);
     if (pred && (pred.alerts || []).includes('EARNINGS_FRESH')) sigs.push('earnings');
+    const pol = State.political || {};
+    if ((pol.by_ticker || {})[ticker] && ((pol.by_ticker[ticker].n_buys||0) > 0)) sigs.push('politician');
     return sigs;
   }
   
@@ -2221,6 +2241,31 @@ class UI {
             <div class="feature-row"><span class="feature-label">Mentions</span><span class="feature-value">${retailMatch.mentions || '—'}</span></div>
             <div class="feature-row"><span class="feature-label">Rank Climb</span><span class="feature-value up">${retailMatch.rank_climb ? '+' + retailMatch.rank_climb : '—'}</span></div>
           </div>
+        </div>
+      `;
+    }
+    
+    // Congressional / politician buying
+    const polMatch = (State.political && State.political.by_ticker && State.political.by_ticker[ticker]) || null;
+    if (polMatch && (polMatch.n_buys || 0) > 0) {
+      const inv = (State.political_ai && State.political_ai.by_ticker && State.political_ai.by_ticker[ticker]) || null;
+      const buyerRows = (polMatch.buy_members || []).slice(0, 5).map(b => {
+        const cm = b.committee_match ? ' <span style="color:#e0b341">⚑ committee</span>' : '';
+        return `<div style="font-size:10.5px;color:var(--fg-2);padding:2px 0">${this.esc(b.member)} <span style="color:var(--fg-3)">(${this.esc(b.party)}-${this.esc(b.state)})</span> · ${this.esc(b.amount)}${cm}</div>`;
+      }).join('');
+      html += `
+        <div class="info-section" style="border-color:rgba(224,179,65,0.4);background:rgba(224,179,65,0.04)">
+          <div class="section-title" style="color:#e0b341">🏛️ Congressional Buying
+            <span class="badge" style="color:#e0b341">conviction ${(polMatch.conviction_score||0).toFixed(0)}</span>
+          </div>
+          <div class="feature-grid">
+            <div class="feature-row"><span class="feature-label">Distinct Buyers</span><span class="feature-value" style="color:#e0b341">${polMatch.n_buyers}</span></div>
+            <div class="feature-row"><span class="feature-label">Net Buys / Sells</span><span class="feature-value">${polMatch.n_buys} / ${polMatch.n_sells}</span></div>
+            <div class="feature-row"><span class="feature-label">Committee Edge</span><span class="feature-value ${polMatch.committee_relevant?'up':'muted'}">${polMatch.committee_relevant ? 'YES ⚑' : 'no'}</span></div>
+            <div class="feature-row"><span class="feature-label">Latest Buy</span><span class="feature-value muted">${this.esc(polMatch.latest_tx_date||'—')}</span></div>
+          </div>
+          ${buyerRows ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${buyerRows}</div>` : ''}
+          ${inv && inv.thesis ? `<div style="margin-top:10px;padding:9px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.3);border-radius:5px"><div style="font-size:9.5px;color:var(--violet);font-family:var(--font-mono);font-weight:700;letter-spacing:0.5px;margin-bottom:4px">🧠 AI INVESTIGATION — WHY THIS MIGHT BE A GREAT BUY</div><div class="ai-thesis" style="font-style:normal">${this.esc(inv.thesis)}</div></div>` : ''}
         </div>
       `;
     }

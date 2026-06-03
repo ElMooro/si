@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-political-ai-investigation",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "AI investigation of why top politician-bought stocks might be great buys (committee-catalyst reasoning)",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(30 11 * * ? *)",
+    "name": "justhodl-political-ai-investigation-daily",
+    "description": "Daily 6:30AM ET — after political-intel refreshes"
+  }
+}
