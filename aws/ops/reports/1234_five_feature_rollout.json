@@ -1,0 +1,87 @@
+{
+  "started": "2026-06-03T03:18:38.150396+00:00",
+  "new_lambda": {
+    "action": "updated",
+    "code_sha": "tytdM6/vWjIhOlbz"
+  },
+  "schedule": "cron(5 * * * ? *)",
+  "lambda_states": {
+    "justhodl-cascade-recalibrator": {
+      "state": "Active",
+      "last_update": "Successful",
+      "code_sha": "zE+5TF6Ri8MFOaN4",
+      "modified": "2026-06-03T03:17:49"
+    },
+    "justhodl-trade-tickets": {
+      "state": "Active",
+      "last_update": "Successful",
+      "code_sha": "Cpf5L3XJUAN8uxV5",
+      "modified": "2026-06-03T03:03:41"
+    },
+    "justhodl-trade-ticket-monitor": {
+      "state": "Active",
+      "last_update": "Successful",
+      "code_sha": "Axs/VKpGFf4XbWyI",
+      "modified": "2026-06-03T03:18:40"
+    },
+    "justhodl-prepump-alerts-router": {
+      "state": "Active",
+      "last_update": "Successful",
+      "code_sha": "wOVKleUhMZ+Jumg9",
+      "modified": "2026-06-03T03:18:15"
+    }
+  },
+  "trade_tickets_invoke": {
+    "status": 200,
+    "elapsed_s": 1.7,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.8, \\\"n_tickets\\\": 14, \\\"top_3_tickets\\\": [{\\\"ticker\\\": \\\"CDNS\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 416.39, \\\"stop\\\": 381.56, \\\"tp3\\\": 642.78, \\\"rr\\\": 6.5, \\\"shares\\\": 18, \\\"max_loss_usd\\\": 627.0}, {\\\"ticker\\\": \\\"MU\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 1064.1, \\\"stop\\\": 884.3, \\\"tp3\\\": 1765.32, \\\"rr\\\": 3.9000000000000004, \\\"shares\\\": 8, \\\"max_loss_usd\\\": 1438.0}, {\\\"ticker\\\": \\\"CRWD\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 768.95, \\\"stop\\\": 681.36, \\\"tp3\\\": 1110.56, \\\"rr\\\": 3.9000000000000004, \\\"shares\\\": 8, \\\"max_loss_usd\\\": 701.0}]}\"}"
+  },
+  "rationale_invoke": {
+    "status": 200,
+    "elapsed_s": 20.4,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 19.7, \\\"n_generated\\\": 14, \\\"n_cached\\\": 0, \\\"n_errors\\\": 0}\"}"
+  },
+  "recal_invoke": {
+    "status": 200,
+    "elapsed_s": 1.0,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.3, \\\"n_total_candidates\\\": 14, \\\"n_weights_applied\\\": 0, \\\"n_weights_by_tier\\\": {}, \\\"per_tier_calibration_active\\\": false, \\\"blend\\\": {\\\"original\\\": 1.0, \\\"calibrated\\\": 0.0, \\\"confidence\\\": \\\"NONE\\\", \\\"rationale\\\": \\\"<5 scored predictions \\\\u2014 using base scoring only\\\"}, \\\"rank_audit\\\": {\\\"alert_tier\\\": {\\\"n_compared\\\": 8, \\\"top_10_retention_pct\\\": 100.0, \\\"avg_rank_delta\\\": 0.0, \\\"max_rank_delta\\\": 0, \\\"biggest_movers\\\": [{\\\"ticker\\\": \\\"MU\\\", \\\"original_rank\\\": 1, \\\"calibrated_rank\\\": 1, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"PANW\\\", \\\"original_rank\\\": 2, \\\"calibrated_rank\\\": 2, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"CRWD\\\", \\\"original_rank\\\": 3, \\\"calibrated_rank\\\": 3, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"CDNS\\\", \\\"original_rank\\\": 4, \\\"calibrated_rank\\\": 4, \\\"delta\\\": 0}, {\\\"ticker\\\": \\\"FTNT\\\", \\\"original_rank\\\": 5, \\\"calibrated_rank\\\": 5, \\\"delta\\\": 0}], \\\"weight_source\\\": \\\"global\\\", \\\"n_weig"
+  },
+  "monitor_invoke": {
+    "status": 200,
+    "elapsed_s": 1.7,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.9, \\\"n_watched\\\": 14, \\\"n_priced\\\": 14, \\\"n_checked\\\": 14, \\\"n_skipped\\\": 0, \\\"n_alerts\\\": 0, \\\"alerts_by_type\\\": {}, \\\"telegram_status\\\": null}\"}"
+  },
+  "tickets_schema": {
+    "n_tickets": 14,
+    "sample_has_horizon_days": true,
+    "sample_has_conf_mult": false,
+    "sample_conf_mult": null,
+    "sample_horizon": 15,
+    "sample_regime": "swing",
+    "sample_setup": "WATCH"
+  },
+  "rationale_doc": {
+    "generated_at": "2026-06-03T03:19:05.695365+00:00",
+    "n_tickets_total": 14,
+    "n_generated": 14,
+    "n_cached": 0,
+    "n_in_cache": 14,
+    "sample_rationales": {
+      "CDNS": "CDNS swing pick \u00b7 15d hold \u00b7 cascade 120.3 + theme_accel +142% in IGV. TP3 +554% to $642.78 (R:R 6.5x), stop -8.4% at $381.56. Smart money blocks + 2.4 call/put ratio support.",
+      "MU": "MU swing setup: Entry $1064.1 targeting $1765 (+66%) on 167.7 cascade score + 89% theme acceleration in CHAT ETF. 3.9\u00d7 R:R with $277M 5d inflow; hold ~15d, stop $884.3.",
+      "CRWD": "CRWD swing setup \u00b7 15d hold \u00b7 cascade 137.3 + CIBR theme accel +88% on $4M ETF inflow. TP3 $1110.56 (3.9\u00d7 R:R, -11.4% stop). Cybersecurity demand tailwinds into earnings cycle.",
+      "INTC": "INTC laggard reversal \u00b7 18d hold into cascade 118.6 + SOXX theme +77% accel, $166M ETF inflow. Entry 107.93 \u2192 TP3 205.36 (3.9x R:R, -23.1% stop).",
+      "FTNT": "FTNT swing \u00b7 15d hold \u00b7 cascade 102.8 + theme_accel +88% in CIBR infrastructure play. TP3 $213.75 (3.9x R:R, -11.2% stop). Cybersecurity inflection bias vs. $61M ETF headwind."
+    }
+  },
+  "audit_guardrails": {
+    "status": "CLEAN",
+    "guardrails_count": 0,
+    "sample_guardrails": []
+  },
+  "finished": "2026-06-03T03:19:08.642320+00:00"
+}
