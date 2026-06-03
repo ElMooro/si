@@ -1,0 +1,141 @@
+{
+  "started": "2026-06-03T03:03:40.724600+00:00",
+  "update": {
+    "state": "Active",
+    "code_sha": "Cpf5L3XJUAN8uxV5"
+  },
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 1.6,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.8, \\\"n_tickets\\\": 14, \\\"top_3_tickets\\\": [{\\\"ticker\\\": \\\"CDNS\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 416.39, \\\"stop\\\": 381.56, \\\"tp3\\\": 642.78, \\\"rr\\\": 6.5, \\\"shares\\\": 18, \\\"max_loss_usd\\\": 627.0}, {\\\"ticker\\\": \\\"MU\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 1064.1, \\\"stop\\\": 884.3, \\\"tp3\\\": 1765.32, \\\"rr\\\": 3.9000000000000004, \\\"shares\\\": 8, \\\"max_loss_usd\\\": 1438.0}, {\\\"ticker\\\": \\\"CRWD\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 768.95, \\\"stop\\\": 681.36, \\\"tp3\\\": 1110.56, \\\"rr\\\": 3.9000000000000004, \\\"shares\\\": 8, \\\"max_loss_usd\\\": 701.0}]}\"}"
+  },
+  "schema_check": {
+    "n_tickets_total": 14,
+    "n_with_horizon": 14,
+    "regimes_seen": [
+      "position",
+      "swing"
+    ],
+    "horizon_sources_seen": [
+      "default"
+    ],
+    "sample": [
+      {
+        "ticker": "CDNS",
+        "setup_type": "WATCH",
+        "expected_horizon_days": 15,
+        "horizon_regime": "swing",
+        "horizon_source": "default",
+        "atr_mult_horizon_adj": 1.1,
+        "entry": 416.39,
+        "stop_loss": 381.56,
+        "tp3": 642.78,
+        "rr_tp3": 6.5,
+        "risk_pct": 8.36
+      },
+      {
+        "ticker": "MU",
+        "setup_type": "WATCH",
+        "expected_horizon_days": 15,
+        "horizon_regime": "swing",
+        "horizon_source": "default",
+        "atr_mult_horizon_adj": 1.1,
+        "entry": 1064.1,
+        "stop_loss": 884.3,
+        "tp3": 1765.32,
+        "rr_tp3": 3.9000000000000004,
+        "risk_pct": 16.9
+      },
+      {
+        "ticker": "CRWD",
+        "setup_type": "WATCH",
+        "expected_horizon_days": 15,
+        "horizon_regime": "swing",
+        "horizon_source": "default",
+        "atr_mult_horizon_adj": 1.1,
+        "entry": 768.95,
+        "stop_loss": 681.36,
+        "tp3": 1110.56,
+        "rr_tp3": 3.9000000000000004,
+        "risk_pct": 11.39
+      },
+      {
+        "ticker": "INTC",
+        "setup_type": "LAGGARD",
+        "expected_horizon_days": 18,
+        "horizon_regime": "position",
+        "horizon_source": "default",
+        "atr_mult_horizon_adj": 1.3,
+        "entry": 107.93,
+        "stop_loss": 82.95,
+        "tp3": 205.36,
+        "rr_tp3": 3.9000000000000004,
+        "risk_pct": 23.15
+      },
+      {
+        "ticker": "FTNT",
+        "setup_type": "WATCH",
+        "expected_horizon_days": 15,
+        "horizon_regime": "swing",
+        "horizon_source": "default",
+        "atr_mult_horizon_adj": 1.1,
+        "entry": 148.86,
+        "stop_loss": 132.22,
+        "tp3": 213.75,
+        "rr_tp3": 3.9000000000000004,
+        "risk_pct": 11.18
+      },
+      {
+        "ticker": "ARM",
+        "setup_type": "WATCH",
+        "expected_horizon_days": 15,
+        "horizon_regime": "swing",
+        "horizon_source": "default",
+        "atr_mult_horizon_adj": 1.1,
+        "entry": 402.71,
+        "stop_loss": 331.58,
+        "tp3": 680.12,
+        "rr_tp3": 3.9000000000000004,
+        "risk_pct": 17.66
+      },
+      {
+        "ticker": "AMAT",
+        "setup_type": "WATCH",
+        "expected_horizon_days": 15,
+        "horizon_regime": "swing",
+        "horizon_source": "default",
+        "atr_mult_horizon_adj": 1.1,
+        "entry": 490.05,
+        "stop_loss": 432.34,
+        "tp3": 715.11,
+        "rr_tp3": 3.9000000000000004,
+        "risk_pct": 11.78
+      },
+      {
+        "ticker": "QCOM",
+        "setup_type": "LAGGARD",
+        "expected_horizon_days": 18,
+        "horizon_regime": "position",
+        "horizon_source": "default",
+        "atr_mult_horizon_adj": 1.3,
+        "entry": 240.84,
+        "stop_loss": 188.38,
+        "tp3": 445.42,
+        "rr_tp3": 3.9000000000000004,
+        "risk_pct": 21.78
+      }
+    ]
+  },
+  "distribution": {
+    "by_regime": {
+      "swing": 6,
+      "position": 2
+    },
+    "by_setup": {
+      "WATCH": 6,
+      "LAGGARD": 2
+    }
+  },
+  "finished": "2026-06-03T03:03:47.110052+00:00"
+}
