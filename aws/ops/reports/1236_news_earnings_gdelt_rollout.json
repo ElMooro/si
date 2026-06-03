@@ -1,0 +1,86 @@
+{
+  "started": "2026-06-03T15:13:27.082501+00:00",
+  "updates": {
+    "justhodl-prediction-snapshotter": {
+      "sha": "1jTw2kKkhWxGiCqK",
+      "state": "Active"
+    },
+    "justhodl-self-improvement": {
+      "sha": "OXzjhlS8MfAge9Vw",
+      "state": "Active"
+    },
+    "justhodl-trade-tickets": {
+      "sha": "mlFsoO0uC+i+dARU",
+      "state": "Active"
+    },
+    "justhodl-prepump-alerts-router": {
+      "sha": "nLybGYclh99R8a54",
+      "state": "Active"
+    }
+  },
+  "source_files": {
+    "sentiment/data.json": {
+      "size_kb": 456.5,
+      "modified": "2026-06-03T12:02:07"
+    },
+    "screener/earnings-sentiment.json": {
+      "size_kb": 905.3,
+      "modified": "2026-06-03T11:03:24"
+    },
+    "data/gdelt-financial-sentiment.json": {
+      "missing": true
+    },
+    "data/retail-sentiment.json": {
+      "size_kb": 23.9,
+      "modified": "2026-06-03T15:00:51"
+    }
+  },
+  "snap_invoke": {
+    "status": 200,
+    "elapsed_s": 1.9,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 1.0, \\\"n_tickers\\\": 171, \\\"alert_distribution\\\": {\\\"CASCADE_ALERT\\\": 3, \\\"VELOCITY_EMERGING\\\": 2, \\\"CONVERGENCE_HIGH\\\": 26, \\\"OPTIONS_EXTREME_CALL\\\": 9, \\\"VELOCITY_WATCH\\\": 1, \\\"CONVERGENCE_ULTRA\\\": 19, \\\"EARNINGS_FRESH\\\": 12, \\\"CASCADE_LAGGARD\\\": 4, \\\"CONVERGENCE_MED\\\": 76, \\\"OPTIONS_BULLISH_CALL\\\": 9, \\\"EARLY_MOVER_ALERT\\\": 5, \\\"CONVERGENCE_LOW\\\": 26, \\\"INSIDER_CLUSTER\\\": 24}, \\\"snapshot_date\\\": \\\"2026-06-03\\\"}\"}"
+  },
+  "new_tiers": {
+    "n_news_surge": 0,
+    "n_earnings_fresh": 12,
+    "n_with_news_features": 0,
+    "n_with_earnings_features": 0,
+    "n_with_gdelt_features": 0,
+    "news_surge_sample": [],
+    "earnings_fresh_sample": [
+      "MRVL",
+      "ADI",
+      "NVDA",
+      "WMT",
+      "CRM"
+    ]
+  },
+  "tickets_invoke": {
+    "status": 200,
+    "elapsed_s": 1.9,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 1.1, \\\"n_tickets\\\": 7, \\\"top_3_tickets\\\": [{\\\"ticker\\\": \\\"AVGO\\\", \\\"tier\\\": \\\"WATCH\\\", \\\"entry\\\": 487.19, \\\"stop\\\": 437.12, \\\"tp3\\\": 617.36, \\\"rr\\\": 2.6, \\\"shares\\\": 15, \\\"max_loss_usd\\\": 751.0}, {\\\"ticker\\\": \\\"INTC\\\", \\\"tier\\\": \\\"LAGGARD\\\", \\\"entry\\\": 111.58, \\\"stop\\\": 87.17, \\\"tp3\\\": 175.07, \\\"rr\\\": 2.6, \\\"shares\\\": 52, \\\"max_loss_usd\\\": 1270.0}, {\\\"ticker\\\": \\\"TXN\\\", \\\"tier\\\": \\\"LAGGARD\\\", \\\"entry\\\": 306.33, \\\"stop\\\": 274.68, \\\"tp3\\\": 388.62, \\\"rr\\\": 2.6, \\\"shares\\\": 16, \\\"max_loss_usd\\\": 506.0}]}\"}"
+  },
+  "earnings_overlay": {
+    "n_tickets_total": 7,
+    "n_with_earnings_in_window": 2,
+    "sample": [
+      {
+        "ticker": "ADI",
+        "date": "2026-05-20",
+        "days_until": -14,
+        "source": "transcript",
+        "warning": null
+      },
+      {
+        "ticker": "MRVL",
+        "date": "2026-05-27",
+        "days_until": -7,
+        "source": "transcript",
+        "warning": null
+      }
+    ]
+  },
+  "finished": "2026-06-03T15:13:47.501840+00:00"
+}
