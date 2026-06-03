@@ -50,6 +50,7 @@ def lambda_handler(event, context):
     retail = _read_json("data/retail-sentiment.json") or {}
     news = _read_json("sentiment/data.json") or {}
     political = _read_json("data/political-intel.json") or {}
+    executive = _read_json("data/executive-intel.json") or {}
     earnings = _read_json("screener/earnings-sentiment.json") or {}
     gdelt = _read_json("data/gdelt-financial-sentiment.json") or {}
 
@@ -382,6 +383,25 @@ def lambda_handler(event, context):
                 predictions[ticker]["alerts"].append("POLITICIAN_COMMITTEE")
             elif conviction >= 40 and "POLITICIAN_BUY" not in predictions[ticker]["alerts"]:
                 predictions[ticker]["alerts"].append("POLITICIAN_BUY")
+
+    # ═══ EXECUTIVE-BRANCH (Trump/OGE) ENRICHMENT ═══
+    # Executive officials' disclosed buys (President 3x / senior 2x proximity to
+    # policy levers = informational edge). Features + EXECUTIVE_BUY tier.
+    exec_by_ticker = executive.get("by_ticker") or {}
+    for ticker, erec in exec_by_ticker.items():
+        conviction = erec.get("conviction_score") or 0
+        if (erec.get("n_buys") or 0) <= (erec.get("n_sells") or 0):
+            continue
+        if ticker not in predictions and conviction >= 30:
+            predictions[ticker] = {"ticker": ticker, "snapshot_date": today,
+                                    "alerts": ["EXECUTIVE_BUY"], "features": {}}
+        if ticker in predictions:
+            predictions[ticker]["features"].update({
+                "executive_conviction": round(conviction, 1),
+                "executive_n_buyers": erec.get("n_buyers") or 0,
+            })
+            if "EXECUTIVE_BUY" not in predictions[ticker]["alerts"]:
+                predictions[ticker]["alerts"].append("EXECUTIVE_BUY")
 
     # Macro context (shared across all tickers)
     macro_context = {

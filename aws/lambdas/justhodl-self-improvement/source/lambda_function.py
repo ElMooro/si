@@ -258,6 +258,7 @@ def compute_per_tier_attribution(scored_preds: List[dict]) -> dict:
         # News/earnings/GDELT features
         "news_score", "earnings_score", "gdelt_tone", "gdelt_articles",
         "politician_conviction", "politician_n_buyers", "politician_committee_relevant", "politician_cluster",
+        "executive_conviction", "executive_n_buyers",
         "days_since_earnings",
     ]
 
@@ -268,6 +269,8 @@ def compute_per_tier_attribution(scored_preds: List[dict]) -> dict:
         # Priority order: most specific signal wins
         if "POLITICIAN_COMMITTEE" in alerts_set:
             return "POLITICIAN_COMMITTEE"
+        if "EXECUTIVE_BUY" in alerts_set:
+            return "EXECUTIVE_BUY"
         if "POLITICIAN_BUY" in alerts_set:
             return "POLITICIAN_BUY"
         if "RETAIL_HOT" in alerts_set:
@@ -345,6 +348,7 @@ def compute_multi_horizon_attribution(scored_preds: List[dict]) -> dict:
         # NEW: News/earnings/GDELT features
         "news_score", "earnings_score", "gdelt_tone", "gdelt_articles",
         "politician_conviction", "politician_n_buyers", "politician_committee_relevant", "politician_cluster",
+        "executive_conviction", "executive_n_buyers",
         "days_since_earnings",
     ]
 

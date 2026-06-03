@@ -1397,7 +1397,7 @@ const State = {
   // Cached data
   cascade: null, insider: null, options: null, retail: null,
   trade_tickets: null, ai_rationales: null, predictions: null, calibration: null,
-  political: null, political_ai: null,
+  political: null, political_ai: null, executive: null,
   
   tv_widgets: {},
 };
@@ -1429,7 +1429,7 @@ class DataService {
   }
   
   static async loadAll() {
-    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai] = await Promise.all([
+    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive] = await Promise.all([
       this.fetch('data/theme-cascade.json'),
       this.fetch('data/insider-clusters.json'),
       this.fetch('data/polygon-options-flow.json'),
@@ -1440,6 +1440,7 @@ class DataService {
       this.fetch('data/cascade-calibration.json'),
       this.fetch('data/political-intel.json'),
       this.fetch('data/political-ai-investigation.json'),
+      this.fetch('data/executive-intel.json'),
     ]);
     State.cascade = cascade;
     State.insider = insider;
@@ -1451,6 +1452,7 @@ class DataService {
     State.calibration = cal;
     State.political = political;
     State.political_ai = polai;
+    State.executive = executive;
   }
 }
 
@@ -2266,6 +2268,27 @@ class UI {
           </div>
           ${buyerRows ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${buyerRows}</div>` : ''}
           ${inv && inv.thesis ? `<div style="margin-top:10px;padding:9px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.3);border-radius:5px"><div style="font-size:9.5px;color:var(--violet);font-family:var(--font-mono);font-weight:700;letter-spacing:0.5px;margin-bottom:4px">🧠 AI INVESTIGATION — WHY THIS MIGHT BE A GREAT BUY</div><div class="ai-thesis" style="font-style:normal">${this.esc(inv.thesis)}</div></div>` : ''}
+        </div>
+      `;
+    }
+    
+    // Executive-branch (Trump/OGE) buying
+    const execMatch = (State.executive && State.executive.by_ticker && State.executive.by_ticker[ticker]) || null;
+    if (execMatch && (execMatch.n_buys || 0) > 0) {
+      const txRows = (execMatch.transactions || []).slice(0, 5).map(t =>
+        `<div style="font-size:10.5px;color:var(--fg-2);padding:2px 0">${this.esc(t.filer||'')} · ${this.esc(t.side)} · ${this.esc(t.amount||'')} <span style="color:var(--fg-3)">${this.esc(t.date||'')}</span></div>`
+      ).join('');
+      html += `
+        <div class="info-section" style="border-color:rgba(224,179,65,0.4);background:rgba(224,179,65,0.04)">
+          <div class="section-title" style="color:#e0b341">🇺🇸 Executive-Branch Buying (OGE 278-T)
+            <span class="badge" style="color:#e0b341">conviction ${(execMatch.conviction_score||0).toFixed(0)}</span>
+          </div>
+          <div class="feature-grid">
+            <div class="feature-row"><span class="feature-label">Distinct Filers</span><span class="feature-value" style="color:#e0b341">${execMatch.n_buyers}</span></div>
+            <div class="feature-row"><span class="feature-label">Buys / Sells</span><span class="feature-value">${execMatch.n_buys} / ${execMatch.n_sells}</span></div>
+            <div class="feature-row"><span class="feature-label">Latest</span><span class="feature-value muted">${this.esc(execMatch.latest_tx_date||'—')}</span></div>
+          </div>
+          ${txRows ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${txRows}</div>` : ''}
         </div>
       `;
     }
