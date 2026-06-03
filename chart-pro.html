@@ -162,6 +162,13 @@ a:hover { text-decoration: underline; }
   border-left: 1px solid var(--border);
   margin-left: 4px;
 }
+.sync-status {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--fg-3); padding: 4px 6px; min-width: 60px;
+}
+.sync-status.syncing { color: var(--amber); }
+.sync-status.saved { color: var(--green); }
+.sync-status.error { color: var(--red); }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
 .status-dot.closed { background: var(--fg-3); }
 .status-dot.pre { background: var(--amber); }
@@ -966,6 +973,7 @@ a:hover { text-decoration: underline; }
     <span class="status-dot" id="session-dot"></span>
     <span id="session-text">MARKET</span>
   </div>
+  <span class="sync-status" id="sync-status" title="Your watchlists save & sync automatically"></span>
 </header>
 
 <!-- ═══════════════ MAIN APP LAYOUT ═══════════════ -->
@@ -1160,6 +1168,9 @@ const State = {
   
   customWatchlists: {},  // {id: {name, color, tickers: []}}
   symbolFlags: {},       // {ticker: 'red'|'green'|...} — global, TradingView-style
+  deviceId: null,        // anonymous per-device UID for cloud sync
+  syncStatus: 'idle',    // idle|syncing|saved|error
+  syncTimer: null,
   
   sortBy: null,          // 'symbol'|'last'|'changePct'
   sortDir: 'desc',
@@ -1363,9 +1374,17 @@ class WatchlistManager {
     return sigs;
   }
   
-  // ── localStorage persistence ──
+  // ── localStorage + cloud persistence ──
   static loadAll() {
     try {
+      // Device ID for cloud sync (anonymous, per-browser)
+      let did = localStorage.getItem('jh_device_id');
+      if (!did) {
+        did = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem('jh_device_id', did);
+      }
+      State.deviceId = did;
+      
       const wl = localStorage.getItem('jh_custom_watchlists');
       if (wl) State.customWatchlists = JSON.parse(wl);
       const flags = localStorage.getItem('jh_symbol_flags');
@@ -1376,15 +1395,65 @@ class WatchlistManager {
       }
     } catch (e) { console.warn('Load failed', e); }
   }
-  static saveCustom() {
-    try { localStorage.setItem('jh_custom_watchlists', JSON.stringify(State.customWatchlists)); } catch(e){}
+  
+  // Load from cloud (overrides local if server has data) — called on init
+  static async loadFromCloud() {
+    if (!State.deviceId) return;
+    try {
+      const r = await fetch(`${PROXY}/userdata/${State.deviceId}`);
+      if (!r.ok) return;
+      const data = await r.json();
+      if (data && !data.empty) {
+        if (data.customWatchlists) State.customWatchlists = data.customWatchlists;
+        if (data.symbolFlags) State.symbolFlags = data.symbolFlags;
+        if (data.activeWatchlistId) State.activeWatchlistId = data.activeWatchlistId;
+        // Mirror to localStorage
+        this.saveLocal();
+        return true;
+      }
+    } catch (e) { console.warn('Cloud load failed', e); }
+    return false;
   }
-  static saveFlags() {
-    try { localStorage.setItem('jh_symbol_flags', JSON.stringify(State.symbolFlags)); } catch(e){}
+  
+  static saveLocal() {
+    try {
+      localStorage.setItem('jh_custom_watchlists', JSON.stringify(State.customWatchlists));
+      localStorage.setItem('jh_symbol_flags', JSON.stringify(State.symbolFlags));
+      localStorage.setItem('jh_active_watchlist', State.activeWatchlistId);
+    } catch (e) {}
   }
-  static saveActiveWl() {
-    try { localStorage.setItem('jh_active_watchlist', State.activeWatchlistId); } catch(e){}
+  
+  // Debounced cloud sync — called after every change
+  static syncToCloud() {
+    this.saveLocal();  // always save local immediately
+    if (!State.deviceId) return;
+    clearTimeout(State.syncTimer);
+    State.syncStatus = 'syncing';
+    UI.renderSyncStatus && UI.renderSyncStatus();
+    State.syncTimer = setTimeout(async () => {
+      try {
+        const payload = JSON.stringify({
+          customWatchlists: State.customWatchlists,
+          symbolFlags: State.symbolFlags,
+          activeWatchlistId: State.activeWatchlistId,
+          updated_at: Date.now(),
+        });
+        const r = await fetch(`${PROXY}/userdata/${State.deviceId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+        });
+        State.syncStatus = r.ok ? 'saved' : 'error';
+      } catch (e) {
+        State.syncStatus = 'error';
+      }
+      UI.renderSyncStatus && UI.renderSyncStatus();
+    }, 800);  // debounce 800ms
   }
+  
+  static saveCustom() { this.syncToCloud(); }
+  static saveFlags() { this.syncToCloud(); }
+  static saveActiveWl() { this.syncToCloud(); }
   
   static createCustom(name) {
     const id = 'custom_' + Date.now();
@@ -1394,6 +1463,25 @@ class WatchlistManager {
     State.customWatchlists[id] = { name, color, tickers: [] };
     this.saveCustom();
     return id;
+  }
+  
+  // Ensure at least one personal watchlist exists (auto-create on first use)
+  static ensureDefaultList() {
+    if (Object.keys(State.customWatchlists).length === 0) {
+      const id = 'custom_' + Date.now();
+      State.customWatchlists[id] = { name: 'My Watchlist', color: 'var(--cyan)', tickers: [] };
+      this.saveCustom();
+      return id;
+    }
+    return Object.keys(State.customWatchlists)[0];
+  }
+  
+  // The personal list to add into: active if custom, else last-used / default
+  static getAddTarget() {
+    if (State.activeWatchlistId.startsWith('custom_') && State.customWatchlists[State.activeWatchlistId]) {
+      return State.activeWatchlistId;
+    }
+    return this.ensureDefaultList();
   }
   static renameCustom(id, name) {
     if (State.customWatchlists[id]) { State.customWatchlists[id].name = name; this.saveCustom(); }
@@ -1460,10 +1548,30 @@ class UI {
     document.getElementById('wl-sel-flag').style.background = meta.color;
     document.getElementById('wl-sel-name').textContent = meta.name;
     document.getElementById('wl-sel-count').textContent = members.length;
-    // Show rename + add only for custom
+    // Rename only for custom; + Add and remove always available (add targets a personal list)
     const isCustom = meta.type === 'custom';
     document.getElementById('wl-rename-btn').style.display = isCustom ? 'flex' : 'none';
-    document.getElementById('wl-add-symbol').style.display = isCustom ? 'flex' : 'none';
+    // + Add Symbol button is ALWAYS shown
+    document.getElementById('wl-add-symbol').style.display = 'flex';
+    // Update the add button label to show target
+    const addBtn = document.getElementById('wl-add-btn');
+    if (addBtn) {
+      addBtn.textContent = isCustom ? `+ Add Symbol to ${meta.name}` : '+ Add Symbol to My List';
+    }
+  }
+  
+  static renderSyncStatus() {
+    const el = document.getElementById('sync-status');
+    if (!el) return;
+    const map = {
+      idle: { txt: '', cls: '' },
+      syncing: { txt: '⟳ saving…', cls: 'syncing' },
+      saved: { txt: '✓ saved', cls: 'saved' },
+      error: { txt: '⚠ local only', cls: 'error' },
+    };
+    const s = map[State.syncStatus] || map.idle;
+    el.textContent = s.txt;
+    el.className = 'sync-status ' + s.cls;
   }
   
   // ── Render dropdown of all watchlists ──
@@ -2648,17 +2756,21 @@ class Heatmap {
 
 // ─── INIT ──────────────────────────────────────────────────────────
 async function init() {
-  // Load persisted state (custom watchlists, flags, last active)
+  // Load persisted state (custom watchlists, flags, last active) from localStorage
   WatchlistManager.loadAll();
   
-  // Load all data
+  // Load all platform data
   await DataService.loadAll();
+  
+  // Try to load user data from cloud (syncs across devices); falls back to local
+  await WatchlistManager.loadFromCloud();
   
   // Build search index
   UniverseSearch.buildIndex();
   
   // Render watchlist (selector + dropdown + body) + fetch quotes
   UI.refreshWatchlist();
+  UI.renderSyncStatus();
   UI.renderInfoPanel();
   UI.renderSignalStrip(State.activeTicker);
   ChartController.initLayout();
@@ -2725,11 +2837,10 @@ async function init() {
     });
   });
   
-  // ── Add symbol to custom watchlist (opens full universe search) ──
+  // ── Add symbol (always available — targets active or default personal list) ──
   document.getElementById('wl-add-btn').addEventListener('click', () => {
-    if (State.activeWatchlistId.startsWith('custom_')) {
-      AddSymbol.open(State.activeWatchlistId);
-    }
+    const target = WatchlistManager.getAddTarget();
+    AddSymbol.open(target);
   });
   document.getElementById('add-symbol-input').addEventListener('input', (e) => {
     AddSymbol.focusIdx = 0;

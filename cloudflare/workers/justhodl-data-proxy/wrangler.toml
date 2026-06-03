@@ -12,3 +12,8 @@ enabled = true
 [vars]
 POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
 
+# Per-user data store (watchlists, flags, settings) for the public site.
+[[kv_namespaces]]
+binding = "USER_DATA"
+id = "43a046649f05407dac2b9e50a489e2e9"
+

@@ -41,7 +41,7 @@ function ttlFor(path) {
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin":  "*",
-    "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, HEAD, PUT, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, If-None-Match, If-Modified-Since",
     "Access-Control-Max-Age":       "86400",
     "Vary":                         "Accept-Encoding",
@@ -61,6 +61,47 @@ export default {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders() });
     }
+
+    // ─── PER-USER DATA SYNC (watchlists, flags, settings) ───
+    // GET  /userdata/:uid           → returns stored JSON blob for user
+    // PUT  /userdata/:uid {json}    → stores JSON blob for user
+    // Keyed by anonymous device UID generated client-side. Backed by KV.
+    if (url.pathname.startsWith("/userdata/")) {
+      const uid = url.pathname.slice("/userdata/".length).replace(/[^a-zA-Z0-9_\-]/g, "");
+      if (!uid || uid.length < 8 || uid.length > 64) {
+        return new Response(JSON.stringify({ error: "invalid uid" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      if (!env.USER_DATA) {
+        return new Response(JSON.stringify({ error: "user store unavailable" }),
+          { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const kvKey = `u:${uid}`;
+      if (request.method === "GET") {
+        const stored = await env.USER_DATA.get(kvKey);
+        return new Response(stored || JSON.stringify({ empty: true }),
+          { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
+      }
+      if (request.method === "PUT" || request.method === "POST") {
+        try {
+          const bodyText = await request.text();
+          if (bodyText.length > 500000) {  // 500KB cap per user
+            return new Response(JSON.stringify({ error: "payload too large" }),
+              { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          }
+          // Validate JSON
+          JSON.parse(bodyText);
+          await env.USER_DATA.put(kvKey, bodyText);
+          return new Response(JSON.stringify({ ok: true, saved_at: Date.now() }),
+            { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        } catch (e) {
+          return new Response(JSON.stringify({ error: "invalid json", detail: String(e) }),
+            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        }
+      }
+      return new Response("method not allowed", { status: 405, headers: corsHeaders() });
+    }
+
 
     if (url.pathname === "/" || url.pathname === "/health") {
       return new Response(
