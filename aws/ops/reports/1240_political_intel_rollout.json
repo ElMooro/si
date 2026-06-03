@@ -1,0 +1,19 @@
+{
+  "started": "2026-06-03T18:45:39.378483+00:00",
+  "deploy": {
+    "action": "updated",
+    "sha": "79nxeb6KwWbZ/4MD",
+    "state": "Active"
+  },
+  "schedule": "cron(0 11 * * ? *)",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 14.4,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": false, \\\"msg\\\": \\\"no live trades, kept snapshot\\\"}\"}"
+  },
+  "output": {
+    "error": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  },
+  "finished": "2026-06-03T18:45:57.060862+00:00"
+}
