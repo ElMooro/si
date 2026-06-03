@@ -1,0 +1,152 @@
+{
+  "started": "2026-06-03T23:30:03.280995+00:00",
+  "deploy": {
+    "action": "updated",
+    "sha": "qzK+zaOXu3XFTR5x"
+  },
+  "schedule": "cron(30 14 * * ? *)",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 1.3,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"scored\\\": 500, \\\"laggards\\\": 40, \\\"cohorts\\\": 48, \\\"top5\\\": [{\\\"t\\\": \\\"EXE\\\", \\\"score\\\": 80.8, \\\"vs\\\": \\\"FANG\\\"}, {\\\"t\\\": \\\"PNR\\\", \\\"score\\\": 78.0, \\\"vs\\\": \\\"ETN\\\"}, {\\\"t\\\": \\\"INCY\\\", \\\"score\\\": 77.9, \\\"vs\\\": \\\"MRNA\\\"}, {\\\"t\\\": \\\"ALGN\\\", \\\"score\\\": 77.5, \\\"vs\\\": \\\"EW\\\"}, {\\\"t\\\": \\\"OTIS\\\", \\\"score\\\": 76.1, \\\"vs\\\": \\\"ETN\\\"}]}\"}"
+  },
+  "output": {
+    "universe_scored": 500,
+    "n_cohorts": 48,
+    "n_laggards": 40,
+    "top10": [
+      {
+        "t": "EXE",
+        "score": 80.8,
+        "cap": "large",
+        "industry": "Oil & Gas Exploration & ",
+        "cheap": 0.972,
+        "qual": 0.744,
+        "ev_sales": 1.5063736950549451,
+        "r40": 204.91,
+        "vs": "FANG",
+        "vs_prem": 319,
+        "caveats": []
+      },
+      {
+        "t": "PNR",
+        "score": 78.0,
+        "cap": null,
+        "industry": "Industrial - Machinery",
+        "cheap": 0.857,
+        "qual": 0.788,
+        "ev_sales": 3.1892369444444446,
+        "r40": 248.56999999999996,
+        "vs": "ETN",
+        "vs_prem": 112,
+        "caveats": []
+      },
+      {
+        "t": "INCY",
+        "score": 77.9,
+        "cap": "large",
+        "industry": "Biotechnology",
+        "cheap": 0.887,
+        "qual": 0.759,
+        "ev_sales": 2.9474956702096495,
+        "r40": 48.269999999999996,
+        "vs": "MRNA",
+        "vs_prem": 227,
+        "caveats": []
+      },
+      {
+        "t": "ALGN",
+        "score": 77.5,
+        "cap": null,
+        "industry": "Medical - Devices",
+        "cheap": 0.917,
+        "qual": 0.725,
+        "ev_sales": 2.5540591705364655,
+        "r40": 104.44,
+        "vs": "EW",
+        "vs_prem": 209,
+        "caveats": []
+      },
+      {
+        "t": "OTIS",
+        "score": 76.1,
+        "cap": "large",
+        "industry": "Industrial - Machinery",
+        "cheap": 0.911,
+        "qual": 0.705,
+        "ev_sales": 2.2655696486729955,
+        "r40": 134.44,
+        "vs": "ETN",
+        "vs_prem": 198,
+        "caveats": []
+      },
+      {
+        "t": "AOS",
+        "score": 75.9,
+        "cap": "mid",
+        "industry": "Industrial - Machinery",
+        "cheap": 0.862,
+        "qual": 0.741,
+        "ev_sales": 2.1913837971907473,
+        "r40": 50.55,
+        "vs": "ETN",
+        "vs_prem": 209,
+        "caveats": []
+      },
+      {
+        "t": "VICI",
+        "score": 75.6,
+        "cap": "large",
+        "industry": "REIT - Specialty",
+        "cheap": 0.905,
+        "qual": 0.701,
+        "ev_sales": 10.671244944429965,
+        "r40": 102.75,
+        "vs": "CCI",
+        "vs_prem": 44,
+        "caveats": []
+      },
+      {
+        "t": "TSN",
+        "score": 75.4,
+        "cap": "large",
+        "industry": "Agricultural Farm Produc",
+        "cheap": 0.891,
+        "qual": 0.708,
+        "ev_sales": 0.5402962601715618,
+        "r40": 442.0,
+        "vs": "MO",
+        "vs_prem": 1081,
+        "caveats": []
+      },
+      {
+        "t": "UHS",
+        "score": 73.4,
+        "cap": "mid",
+        "industry": "Medical - Care Facilitie",
+        "cheap": 0.832,
+        "qual": 0.718,
+        "ev_sales": 0.7914193739483412,
+        "r40": 21.21,
+        "vs": "WST",
+        "vs_prem": 715,
+        "caveats": []
+      },
+      {
+        "t": "FDX",
+        "score": 73.2,
+        "cap": "large",
+        "industry": "Integrated Freight & Log",
+        "cheap": 1.0,
+        "qual": 0.593,
+        "ev_sales": 1.264445483702204,
+        "r40": 33.54,
+        "vs": "JBHT",
+        "vs_prem": 82,
+        "caveats": []
+      }
+    ]
+  },
+  "finished": "2026-06-03T23:30:08.024583+00:00"
+}
