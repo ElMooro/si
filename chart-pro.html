@@ -238,19 +238,76 @@ a:hover { text-decoration: underline; }
 
 /* ═══ MAIN LAYOUT ═══ */
 .app {
-  display: grid;
-  grid-template-columns: var(--sidebar-w) 1fr var(--right-w);
+  position: relative;
   height: calc(100vh - var(--header-h));
   overflow: hidden;
 }
 
-/* ═══ LEFT SIDEBAR (Watchlists - TradingView style) ═══ */
-.left-sidebar {
-  background: var(--bg-1);
-  border-right: 1px solid var(--border);
+/* Main chart area fills the entire app */
+.main-area {
+  position: absolute; inset: 0;
   display: flex; flex-direction: column;
+  background: var(--bg);
   overflow: hidden;
 }
+
+/* ═══ EDGE TABS — pull out the drawers ═══ */
+.edge-tab {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  z-index: 40;
+  background: var(--bg-2); border: 1px solid var(--border-bright);
+  color: var(--fg-2); cursor: pointer;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; padding: 14px 6px;
+  writing-mode: vertical-rl; text-orientation: mixed;
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.15s; user-select: none;
+}
+.edge-tab:hover { color: var(--cyan); border-color: var(--cyan); background: var(--bg-3); }
+.edge-tab-left { left: 0; border-left: none; border-radius: 0 8px 8px 0; }
+.edge-tab-right { right: 0; border-right: none; border-radius: 8px 0 0 8px; }
+.edge-tab .et-icon { font-size: 13px; writing-mode: horizontal-tb; }
+.edge-tab.hidden { display: none; }
+
+/* ═══ LEFT SIDEBAR (drawer) ═══ */
+.left-sidebar {
+  position: absolute; top: 0; left: 0; bottom: 0; z-index: 45;
+  width: var(--sidebar-w);
+  background: var(--bg-1);
+  border-right: 1px solid var(--border-bright);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+}
+.left-sidebar.open { transform: translateX(0); }
+
+/* ═══ RIGHT SIDEBAR (drawer) ═══ */
+.right-sidebar {
+  position: absolute; top: 0; right: 0; bottom: 0; z-index: 45;
+  width: var(--right-w);
+  background: var(--bg-1);
+  border-left: 1px solid var(--border-bright);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transform: translateX(100%);
+  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+}
+.right-sidebar.open { transform: translateX(0); }
+
+/* Drawer close button */
+.drawer-close {
+  position: absolute; top: 7px; z-index: 50;
+  width: 22px; height: 22px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-2); border: 1px solid var(--border-bright);
+  color: var(--fg-3); font-size: 14px; cursor: pointer;
+}
+.drawer-close:hover { color: var(--red); border-color: var(--red); }
+.drawer-close-left { right: 6px; }
+.drawer-close-right { left: 6px; }
 
 /* Watchlist selector header */
 .wl-selector {
@@ -540,12 +597,6 @@ a:hover { text-decoration: underline; }
 .flag-opt.flag-purple { background: #a78bfa; }
 
 /* ═══ MAIN CHART AREA ═══ */
-.main-area {
-  display: flex; flex-direction: column;
-  background: var(--bg);
-  overflow: hidden;
-}
-
 .chart-tabs {
   display: flex; align-items: center; gap: 2px;
   background: var(--bg); border-bottom: 1px solid var(--border);
@@ -729,13 +780,6 @@ a:hover { text-decoration: underline; }
 .strip-sig.bull { border-color: var(--green); color: var(--green); }
 
 /* ═══ RIGHT SIDEBAR (Info Panel) ═══ */
-.right-sidebar {
-  background: var(--bg-1);
-  border-left: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
-
 .info-tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1156,8 +1200,13 @@ a:hover { text-decoration: underline; }
 <!-- ═══════════════ MAIN APP LAYOUT ═══════════════ -->
 <div class="app">
 
-  <!-- ─── LEFT SIDEBAR: Watchlists (TradingView-style) ─── -->
-  <aside class="left-sidebar">
+  <!-- Edge tabs to pull out the drawers -->
+  <div class="edge-tab edge-tab-left" id="edge-tab-left"><span class="et-icon">\ud83d\udccb</span>WATCHLIST</div>
+  <div class="edge-tab edge-tab-right" id="edge-tab-right"><span class="et-icon">\ud83e\udde0</span>INTEL</div>
+
+  <!-- \u2500\u2500\u2500 LEFT SIDEBAR: Watchlists (TradingView-style) \u2500\u2500\u2500 -->
+  <aside class="left-sidebar" id="left-sidebar">
+    <button class="drawer-close drawer-close-left" id="close-left" title="Close (Esc)">\u00d7</button>
     <!-- Watchlist selector with dropdown -->
     <div class="wl-selector" id="wl-selector">
       <div class="wl-selector-main" id="wl-selector-main">
@@ -1241,8 +1290,9 @@ a:hover { text-decoration: underline; }
     </div>
   </main>
   
-  <!-- ─── RIGHT SIDEBAR: Info Panel ─── -->
-  <aside class="right-sidebar">
+  <!-- \u2500\u2500\u2500 RIGHT SIDEBAR: Info Panel \u2500\u2500\u2500 -->
+  <aside class="right-sidebar" id="right-sidebar">
+    <button class="drawer-close drawer-close-right" id="close-right" title="Close (Esc)">\u00d7</button>
     <div class="info-tabs">
       <div class="info-tab active" data-info-tab="overview">Overview</div>
       <div class="info-tab" data-info-tab="intel">Intel</div>
@@ -3388,29 +3438,40 @@ class UniverseSearch {
   static onInput(query) {
     clearTimeout(this.debounceTimer);
     this.focusIdx = 0;
-    if (!query || query.length < 1) { this.renderEmpty(); return; }
+    query = (query || '').trim();
+    if (!query) { this.renderEmpty(); return; }
+    // Bump sequence so stale async responses are dropped
+    this._seq = (this._seq || 0) + 1;
+    const seq = this._seq;
     // Instant local (JustHodl) results
     const local = this.localSearch(query).map(r => ({
       ticker: r.ticker, name: r.name, kind: 'justhodl', sources: r.sources,
     }));
-    this.renderGrouped({ justhodl: local, equity: [], macro: [] }, true);
-    // Parallel remote: TradingView universe + FRED
-    this.debounceTimer = setTimeout(() => this.remoteSearch(query, local), 250);
+    this._groups = { justhodl: local, equity: [], macro: [] };
+    this.renderGrouped(this._groups, true);
+    // Parallel remote: each source renders as soon as it returns
+    this.debounceTimer = setTimeout(() => {
+      const q = encodeURIComponent(query);
+      fetch(`${PROXY}/tv-search?text=${q}`).then(r => r.ok ? r.json() : {symbols:[]})
+        .then(d => {
+          if (seq !== this._seq) return; // stale
+          const localTickers = new Set(local.map(l => l.ticker));
+          this._groups.equity = (d.symbols || [])
+            .filter(s => !localTickers.has((s.symbol||'').toUpperCase()))
+            .map(s => ({ ticker: s.symbol, name: s.description, kind: 'equity', type: s.type, exchange: s.exchange, full: s.full }));
+          this.renderGrouped(this._groups);
+        }).catch(()=>{});
+      fetch(`${PROXY}/fred-search?text=${q}`).then(r => r.ok ? r.json() : {series:[]})
+        .then(d => {
+          if (seq !== this._seq) return; // stale
+          this._groups.macro = (d.series || [])
+            .map(s => ({ ticker: 'FRED:' + s.id, display: s.id, name: s.title, kind: 'macro', units: s.units, frequency: s.frequency }));
+          this.renderGrouped(this._groups);
+        }).catch(()=>{});
+    }, 200);
   }
   
-  static async remoteSearch(query, local) {
-    const [tvRes, fredRes] = await Promise.allSettled([
-      fetch(`${PROXY}/tv-search?text=${encodeURIComponent(query)}`).then(r => r.ok ? r.json() : {symbols:[]}),
-      fetch(`${PROXY}/fred-search?text=${encodeURIComponent(query)}`).then(r => r.ok ? r.json() : {series:[]}),
-    ]);
-    const localTickers = new Set(local.map(l => l.ticker));
-    const equity = ((tvRes.value && tvRes.value.symbols) || [])
-      .filter(s => !localTickers.has((s.symbol||'').toUpperCase()))
-      .map(s => ({ ticker: s.symbol, name: s.description, kind: 'equity', type: s.type, exchange: s.exchange, full: s.full }));
-    const macro = ((fredRes.value && fredRes.value.series) || [])
-      .map(s => ({ ticker: 'FRED:' + s.id, display: s.id, name: s.title, kind: 'macro', units: s.units, frequency: s.frequency }));
-    this.renderGrouped({ justhodl: local, equity, macro });
-  }
+  static async remoteSearch(query, local) { /* superseded by incremental onInput */ }
   
   static renderGrouped(groups, partial = false) {
     const body = document.getElementById('search-modal-body');
@@ -4071,10 +4132,29 @@ async function init() {
   
   setInterval(updateSessionStatus, 60 * 1000);
   
+  // ── Drawer controls (full-screen chart, slide-out panels) ──
+  const leftDrawer = document.getElementById('left-sidebar');
+  const rightDrawer = document.getElementById('right-sidebar');
+  const edgeLeft = document.getElementById('edge-tab-left');
+  const edgeRight = document.getElementById('edge-tab-right');
+  function setLeft(open) { leftDrawer.classList.toggle('open', open); edgeLeft.classList.toggle('hidden', open); }
+  function setRight(open) { rightDrawer.classList.toggle('open', open); edgeRight.classList.toggle('hidden', open); }
+  window.__jhDrawers = { setLeft, setRight };
+  edgeLeft.addEventListener('click', () => setLeft(true));
+  edgeRight.addEventListener('click', () => setRight(true));
+  document.getElementById('close-left').addEventListener('click', () => setLeft(false));
+  document.getElementById('close-right').addEventListener('click', () => setRight(false));
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === '[') { e.preventDefault(); setLeft(!leftDrawer.classList.contains('open')); }
+    if (e.key === ']') { e.preventDefault(); setRight(!rightDrawer.classList.contains('open')); }
+  });
+  // Start with watchlist open (chart full-screen behind it); intel hidden
+  setLeft(true);
+  
   // ── Auth: init + reload watchlists when user signs in/out ──
   if (window.JustHodlAuth) {
     JustHodlAuth.onChange(async (user) => {
-      // When auth state changes, reload this user's cloud data
       await WatchlistManager.loadFromCloud();
       UI.refreshWatchlist();
     });
