@@ -455,11 +455,13 @@ export default {
       const hit = await fc.match(fKey);
       if (hit) { const b = await hit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
       try {
-        const [q, p, rm, km] = await Promise.all([
+        const [q, p, rm, km, est, pts] = await Promise.all([
           fetch(`https://financialmodelingprep.com/stable/quote?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 600 } }).then(r => r.ok ? r.json() : []),
           fetch(`https://financialmodelingprep.com/stable/profile?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 3600 } }).then(r => r.ok ? r.json() : []),
           fetch(`https://financialmodelingprep.com/stable/ratios-ttm?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 3600 } }).then(r => r.ok ? r.json() : []),
           fetch(`https://financialmodelingprep.com/stable/key-metrics-ttm?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 3600 } }).then(r => r.ok ? r.json() : []),
+          fetch(`https://financialmodelingprep.com/stable/analyst-estimates?symbol=${ticker}&period=annual&limit=3&apikey=${fmpKey}`, { cf: { cacheTtl: 21600 } }).then(r => r.ok ? r.json() : []),
+          fetch(`https://financialmodelingprep.com/stable/price-target-summary?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 21600 } }).then(r => r.ok ? r.json() : []),
         ]);
         const quote = Array.isArray(q) ? (q[0] || {}) : (q || {});
         const prof = Array.isArray(p) ? (p[0] || {}) : (p || {});
@@ -481,6 +483,12 @@ export default {
           debtToEquity: pick("debtToEquityRatioTTM", "debtEquityRatioTTM"),
           currentRatio: pick("currentRatioTTM"), grossMargin: pick("grossProfitMarginTTM"),
           opMargin: pick("operatingProfitMarginTTM"), fcfYield: pick("freeCashFlowYieldTTM"),
+          estimates: (Array.isArray(est) ? est : []).slice(0, 3).map(e => ({
+            year: (e.date || "").slice(0, 4), revenueAvg: e.revenueAvg || e.estimatedRevenueAvg,
+            epsAvg: e.epsAvg || e.estimatedEpsAvg })),
+          analystPT: (() => { const a = Array.isArray(pts) ? (pts[0] || {}) : (pts || {}); return {
+            avg: a.lastMonthAvgPriceTarget || a.allTimeAvgPriceTarget, high: a.allTimeHighPriceTarget,
+            low: a.allTimeLowPriceTarget, n: a.lastMonthCount || a.allTimeCount }; })(),
         });
         const fr = new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=600", "X-Cache": "MISS", ...corsHeaders() } });
         ctx.waitUntil(fc.put(fKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=600" } })));
