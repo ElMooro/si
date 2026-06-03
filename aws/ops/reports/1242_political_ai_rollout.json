@@ -1,0 +1,71 @@
+{
+  "started": "2026-06-03T19:15:10.485899+00:00",
+  "deploy": {
+    "action": "updated",
+    "sha": "Q2LpjowDSW0/83yo"
+  },
+  "schedule": "cron(30 11 * * ? *)",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 106.1,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"generated\\\": 25, \\\"total\\\": 25}\"}"
+  },
+  "investigation": {
+    "n": 25,
+    "model": "claude-haiku-4-5-20251001",
+    "samples": [
+      {
+        "ticker": "MSFT",
+        "committee": false,
+        "conviction": 244.0,
+        "thesis": "# MSFT Political Intelligence Analysis\n\n**Verdict: WEAK CONVICTION \u2014 Broad but non-actionable buying signal.**\n\nThe 244-conviction score and net 7-buy cluster across 5 distinct politicians appears impressive on surface, but the critical red flag is **Committee-relevant: False**. "
+      },
+      {
+        "ticker": "HD",
+        "committee": false,
+        "conviction": 182.9,
+        "thesis": "**HD Political Intelligence Analysis**\n\nThe conviction score of 182.9 with 9 net buys across 5 distinct congressmen shows genuine multi-partisan accumulation, but the **critical weakness is the absence of committee relevance**\u2014no buyers sit on Energy & Commerce, Ways & Means, or "
+      },
+      {
+        "ticker": "SPGI",
+        "committee": false,
+        "conviction": 107.4,
+        "thesis": "**VERDICT: WEAK PASS \u2013 MONITOR BUT DON'T OVERWEIGHT**\n\nThe conviction score is inflated by concentrated buying from a single congressman (McCaul) with repetitive small tranches, not genuine alpha. McCaul sits on House Foreign Affairs and Homeland Security\u2014neither has direct juris"
+      },
+      {
+        "ticker": "INTU",
+        "committee": false,
+        "conviction": 85.5,
+        "thesis": "# INTU Political Intelligence Analysis\n\n**Conviction: MODERATE-TO-LOW | Pass or underweight significantly**\n\nThe buying cluster lacks meaningful committee relevance\u2014neither Khanna (Financial Services Committee, but no tax/IRS jurisdiction) nor McCaul (Foreign Affairs Chair, cyber"
+      },
+      {
+        "ticker": "GS",
+        "committee": false,
+        "conviction": 83.7,
+        "thesis": "**CONVICTION VERDICT: PASS \u2013 Weak alpha signal despite elevated politician conviction score.**\n\nThe 83.7 conviction score and 5-net-buy cluster look promising on surface, but this breaks down under scrutiny. None of these three buyers sit on Financial Services, Banking, or releva"
+      }
+    ]
+  },
+  "snapshotter": {
+    "alert_distribution": {
+      "CASCADE_ALERT": 4,
+      "VELOCITY_FIRED_CONFIRMED": 1,
+      "VELOCITY_FIRED_FRESH": 1,
+      "CONVERGENCE_HIGH": 27,
+      "EARNINGS_FRESH": 12,
+      "VELOCITY_EMERGING": 1,
+      "CONVERGENCE_ULTRA": 19,
+      "VELOCITY_WATCH": 2,
+      "CASCADE_LAGGARD": 3,
+      "CONVERGENCE_MED": 73,
+      "OPTIONS_BULLISH_CALL": 9,
+      "OPTIONS_EXTREME_CALL": 9,
+      "EARLY_MOVER_ALERT": 2,
+      "POLITICIAN_BUY": 17,
+      "CONVERGENCE_LOW": 24,
+      "INSIDER_CLUSTER": 24
+    }
+  },
+  "finished": "2026-06-03T19:17:02.579821+00:00"
+}
