@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-best-setups",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 120,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Unified conviction engine — fuses all stock signals into ranked Today's Best Setups",
+  "environment_keys": [],
+  "schedule": {
+    "expression": "cron(10 * * * ? *)",
+    "name": "justhodl-best-setups-hourly",
+    "description": "Hourly at :10 — refresh unified conviction setups"
+  }
+}
