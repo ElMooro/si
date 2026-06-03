@@ -191,6 +191,44 @@ export default {
       }
     }
 
+    if (url.pathname === "/ohlc") {
+      // GET /ohlc?ticker=AAPL&days=180 → Polygon daily bars for native chart fallback
+      const ticker = (url.searchParams.get("ticker") || "").trim().toUpperCase();
+      const days = Math.min(parseInt(url.searchParams.get("days") || "180", 10) || 180, 730);
+      if (!ticker || !/^[A-Z0-9.\-]{1,12}$/.test(ticker)) {
+        return new Response(JSON.stringify({ error: "invalid ticker" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const polygonKey = env.POLYGON_KEY || "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d";
+      const to = new Date();
+      const from = new Date(to.getTime() - days * 86400000);
+      const fmt = (d) => d.toISOString().slice(0, 10);
+      const ohlcKey = new Request(`https://ohlc.cache/${ticker}/${days}`, { method: "GET" });
+      const oc = caches.default;
+      let cached = await oc.match(ohlcKey);
+      if (cached) {
+        const body = await cached.text();
+        return new Response(body, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } });
+      }
+      try {
+        const aggUrl = `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/day/${fmt(from)}/${fmt(to)}?adjusted=true&sort=asc&limit=5000&apiKey=${polygonKey}`;
+        const resp = await fetch(aggUrl, { cf: { cacheTtl: 300, cacheEverything: true } });
+        const data = await resp.json();
+        const bars = (data.results || []).map(b => ({
+          time: Math.floor(b.t / 1000), open: b.o, high: b.h, low: b.l, close: b.c, value: b.v,
+        }));
+        const out = JSON.stringify({ ticker, bars, count: bars.length });
+        const finalResp = new Response(out, {
+          headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300", "X-Cache": "MISS", ...corsHeaders() },
+        });
+        ctx.waitUntil(oc.put(ohlcKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300" } })));
+        return finalResp;
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "ohlc fetch failed", detail: String(e) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
     if (url.pathname === "/tv-search") {
       // GET /tv-search?text=AAPL → proxy TradingView symbol search (full universe)
       const text = (url.searchParams.get("text") || "").trim();

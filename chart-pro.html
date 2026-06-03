@@ -544,6 +544,56 @@ a:hover { text-decoration: underline; }
   overflow: hidden;
 }
 
+.chart-tabs {
+  display: flex; align-items: center; gap: 2px;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  padding: 4px 8px 0; flex-shrink: 0; overflow-x: auto;
+  min-height: 32px;
+}
+.chart-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 5px 5px 0 0;
+  font-family: var(--font-mono); font-size: 11.5px; font-weight: 600;
+  color: var(--fg-3); cursor: pointer; white-space: nowrap;
+  border: 1px solid transparent; border-bottom: none;
+  transition: all 0.12s;
+}
+.chart-tab:hover { color: var(--fg-1); background: var(--bg-1); }
+.chart-tab.active { color: var(--fg-0); background: var(--bg-1); border-color: var(--border); }
+.chart-tab.active::after {
+  content: ''; position: absolute;
+}
+.chart-tab .ct-chg { font-size: 10px; font-weight: 500; }
+.chart-tab .ct-chg.up { color: var(--green); }
+.chart-tab .ct-chg.dn { color: var(--red); }
+.chart-tab .ct-close { color: var(--fg-4); font-size: 13px; line-height: 1; opacity: 0; }
+.chart-tab:hover .ct-close { opacity: 1; }
+.chart-tab .ct-close:hover { color: var(--red); }
+.chart-tab-add {
+  padding: 6px 11px; border-radius: 5px;
+  color: var(--green); font-size: 15px; font-weight: 700;
+  border: 1px solid transparent;
+}
+.chart-tab-add:hover { background: var(--bg-1); border-color: var(--green); }
+
+.chart-engine-toggle { display: flex; gap: 2px; margin-left: auto; }
+.ceng-btn {
+  padding: 4px 10px; border-radius: 4px;
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+  color: var(--fg-3); border: 1px solid var(--border);
+}
+.ceng-btn:hover { color: var(--fg-1); border-color: var(--border-bright); }
+.ceng-btn.active { color: var(--cyan); border-color: var(--cyan); background: rgba(34,211,238,0.06); }
+
+.native-chart-wrap { position: relative; width: 100%; height: 100%; background: var(--bg); }
+.native-chart-head {
+  position: absolute; top: 8px; left: 12px; z-index: 5;
+  font-family: var(--font-mono); pointer-events: none;
+}
+.native-chart-head .nch-sym { font-size: 16px; font-weight: 700; color: var(--fg-0); }
+.native-chart-head .nch-meta { font-size: 11px; color: var(--fg-3); margin-top: 2px; }
+.native-chart-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--fg-3); font-family: var(--font-mono); font-size: 11.5px; }
+
 .chart-toolbar {
   height: 36px;
   background: var(--bg-1);
@@ -1111,12 +1161,19 @@ a:hover { text-decoration: underline; }
   
   <!-- ─── MAIN CHART AREA ─── -->
   <main class="main-area">
+    <!-- Chart tabs (multiple charts, click to switch) -->
+    <div class="chart-tabs" id="chart-tabs"></div>
+    
     <div class="chart-toolbar">
       <div class="symbol-header" id="symbol-header">
         <span class="symbol-ticker" id="active-ticker">NVDA</span>
         <span class="symbol-name" id="active-name">NVIDIA Corporation</span>
         <span class="symbol-price" id="active-price">—</span>
         <span class="symbol-change up" id="active-change">—</span>
+      </div>
+      <div class="chart-engine-toggle" id="chart-engine-toggle">
+        <button class="ceng-btn active" data-engine="tv" title="TradingView chart">TradingView</button>
+        <button class="ceng-btn" data-engine="native" title="JustHodl native chart (Polygon data) — works for any US symbol">JustHodl</button>
       </div>
     </div>
     
@@ -1226,6 +1283,7 @@ a:hover { text-decoration: underline; }
 <script src="/auth-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/auth.js"></script>
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
@@ -1250,6 +1308,10 @@ const State = {
   favorites: {},         // {ticker: true} — global per-user favorites (★)
   notes: {},             // {ticker: "note text"} — per-user notes per symbol
   symbolResolution: {},  // {ticker: 'EXCHANGE:SYM'} — resolved TV symbols (cache)
+  chartTabs: [],         // [{id, symbol}] — multiple charts, click to switch
+  activeTabId: null,
+  chartEngine: 'tv',     // 'tv' (TradingView) | 'native' (Polygon + Lightweight Charts)
+  nativeChart: null,     // Lightweight Charts instance
   deviceId: null,        // anonymous per-device UID for cloud sync
   syncStatus: 'idle',    // idle|syncing|saved|error
   syncTimer: null,
@@ -1512,6 +1574,7 @@ class WatchlistManager {
         if (data.favorites) State.favorites = data.favorites;
         if (data.notes) State.notes = data.notes;
         if (data.symbolResolution) Object.assign(State.symbolResolution, data.symbolResolution);
+        if (data.chartTabs && data.chartTabs.length) { State.chartTabs = data.chartTabs; State.activeTabId = data.activeTabId || data.chartTabs[0].id; }
         if (data.activeWatchlistId) State.activeWatchlistId = data.activeWatchlistId;
         this.saveLocal();
         return true;
@@ -1547,6 +1610,8 @@ class WatchlistManager {
           favorites: State.favorites,
           notes: State.notes,
           symbolResolution: State.symbolResolution,
+          chartTabs: State.chartTabs,
+          activeTabId: State.activeTabId,
           activeWatchlistId: State.activeWatchlistId,
           updated_at: Date.now(),
         });
@@ -2516,8 +2581,10 @@ class ChartController {
     return ticker;
   }
   
-  // Resolve a bare ticker → exchange-qualified TV symbol via tv-search.
-  // Caches results so we only resolve once per ticker.
+  // Resolve a bare ticker → best TV symbol. For US stocks we prefer the BARE
+  // ticker (the free TradingView widget resolves it to the primary listing and
+  // accepts it; exchange-qualified can hit 'only available on TradingView').
+  // For crypto/forex/futures we use the exchange-qualified symbol from search.
   static async resolveSymbol(ticker) {
     if (!ticker) return 'NASDAQ:SPY';
     if (ticker.includes(':')) return ticker;
@@ -2527,17 +2594,25 @@ class ChartController {
       if (r.ok) {
         const data = await r.json();
         const syms = data.symbols || [];
-        // Prefer exact symbol match; among those prefer a US stock, then anything.
         const exact = syms.filter(s => (s.symbol || '').toUpperCase() === ticker.toUpperCase());
-        const pick = (exact.find(s => (s.type||'') === 'stock' && /NASDAQ|NYSE|AMEX|ARCA|BATS/i.test(s.exchange||''))
-                     || exact[0] || syms[0]);
-        if (pick && pick.full) {
-          State.symbolResolution[ticker] = pick.full;
-          return pick.full;
+        const best = exact[0] || syms[0];
+        if (best) {
+          const type = (best.type || '').toLowerCase();
+          let resolved;
+          if (type === 'stock' || type === 'fund' || type === 'dr' || type === '') {
+            // US equity/ETF — bare ticker is most reliable in the free widget
+            resolved = ticker;
+          } else if (best.full && best.full.includes(':')) {
+            // crypto / forex / futures / index — needs the exchange prefix
+            resolved = best.full;
+          } else {
+            resolved = ticker;
+          }
+          State.symbolResolution[ticker] = resolved;
+          return resolved;
         }
       }
     } catch (e) { /* fall through */ }
-    // Fallback: bare ticker, let TradingView resolve
     State.symbolResolution[ticker] = ticker;
     return ticker;
   }
@@ -2547,6 +2622,9 @@ class ChartController {
     ticker = ticker.toUpperCase().trim();
     
     State.activeTicker = ticker;
+    
+    // Update the active chart tab's symbol
+    ChartTabs.setActiveTabSymbol(ticker);
     
     // Update header immediately (responsive feel)
     document.getElementById('active-ticker').textContent = ticker;
@@ -2559,14 +2637,19 @@ class ChartController {
       el.classList.toggle('selected', el.dataset.ticker === ticker);
     });
     
-    // Resolve the proper exchange-qualified symbol, then load the chart
+    // Render via the active engine
+    if (State.chartEngine === 'native') {
+      NativeChart.render(ticker);
+      return;
+    }
+    
+    // TradingView engine: resolve the proper symbol, then load
     let fullSymbol = knownFull || State.symbolResolution[ticker];
     if (!fullSymbol) {
       fullSymbol = await this.resolveSymbol(ticker);
     } else {
       State.symbolResolution[ticker] = fullSymbol;
     }
-    
     const paneIdx = State.activeChartPane;
     this.createTVWidgetWithSymbol(paneIdx, fullSymbol, ticker);
     const ps = document.getElementById(`pane-symbol-${paneIdx}`);
@@ -2599,6 +2682,151 @@ class ChartController {
     } catch (e) {
       console.error('TV widget init failed', e);
       container.innerHTML = `<div class="tv-placeholder"><span class="ticker">${displayTicker}</span><span>Chart load failed — try refreshing</span></div>`;
+    }
+  }
+}
+
+// ─── CHART TABS (multiple charts, click to switch) ─────────────────
+class ChartTabs {
+  static init() {
+    if (!State.chartTabs || State.chartTabs.length === 0) {
+      const id = 't' + Date.now();
+      State.chartTabs = [{ id, symbol: State.activeTicker || 'NVDA' }];
+      State.activeTabId = id;
+    }
+    if (!State.activeTabId) State.activeTabId = State.chartTabs[0].id;
+    this.render();
+  }
+  
+  static render() {
+    const el = document.getElementById('chart-tabs');
+    if (!el) return;
+    let html = State.chartTabs.map(tab => {
+      const active = tab.id === State.activeTabId;
+      const q = State.quotes[tab.symbol];
+      const chg = q && q.changePct != null
+        ? `<span class="ct-chg ${q.changePct>=0?'up':'dn'}">${q.changePct>=0?'+':''}${q.changePct.toFixed(1)}%</span>` : '';
+      const closeBtn = State.chartTabs.length > 1 ? `<span class="ct-close" data-close-tab="${tab.id}">×</span>` : '';
+      return `<div class="chart-tab ${active?'active':''}" data-tab-id="${tab.id}" style="position:relative">
+        <span>${UI.esc(tab.symbol)}</span>${chg}${closeBtn}</div>`;
+    }).join('');
+    html += `<button class="chart-tab-add" id="chart-tab-add" title="New chart tab">+</button>`;
+    el.innerHTML = html;
+    
+    el.querySelectorAll('.chart-tab').forEach(t => {
+      t.addEventListener('click', (e) => {
+        if (e.target.dataset.closeTab) { this.closeTab(e.target.dataset.closeTab); return; }
+        this.switchTo(t.dataset.tabId);
+      });
+    });
+    document.getElementById('chart-tab-add').addEventListener('click', () => this.addTab());
+  }
+  
+  static switchTo(tabId) {
+    const tab = State.chartTabs.find(t => t.id === tabId);
+    if (!tab) return;
+    State.activeTabId = tabId;
+    this.render();
+    ChartController.loadTicker(tab.symbol);
+    WatchlistManager.syncToCloud();
+  }
+  
+  static addTab() {
+    const id = 't' + Date.now();
+    State.chartTabs.push({ id, symbol: State.activeTicker || 'SPY' });
+    State.activeTabId = id;
+    this.render();
+    WatchlistManager.syncToCloud();
+  }
+  
+  static closeTab(tabId) {
+    if (State.chartTabs.length <= 1) return;
+    const idx = State.chartTabs.findIndex(t => t.id === tabId);
+    State.chartTabs = State.chartTabs.filter(t => t.id !== tabId);
+    if (State.activeTabId === tabId) {
+      const next = State.chartTabs[Math.max(0, idx - 1)];
+      State.activeTabId = next.id;
+      this.render();
+      ChartController.loadTicker(next.symbol);
+    } else {
+      this.render();
+    }
+    WatchlistManager.syncToCloud();
+  }
+  
+  static setActiveTabSymbol(symbol) {
+    const tab = State.chartTabs.find(t => t.id === State.activeTabId);
+    if (tab) { tab.symbol = symbol; this.render(); }
+  }
+}
+
+// ─── NATIVE CHART (Polygon data + Lightweight Charts) ──────────────
+// Works for any US-listed symbol we can get Polygon data for, bypassing
+// TradingView's symbol gating ('only available on TradingView').
+class NativeChart {
+  static async render(ticker) {
+    const paneIdx = State.activeChartPane;
+    const container = document.getElementById(`tv-container-${paneIdx}`);
+    if (!container) return;
+    container.innerHTML = `
+      <div class="native-chart-wrap">
+        <div class="native-chart-head"><div class="nch-sym">${UI.esc(ticker)}</div><div class="nch-meta" id="nch-meta-${paneIdx}">loading…</div></div>
+        <div class="native-chart-loading" id="nch-loading-${paneIdx}">Loading ${UI.esc(ticker)} from Polygon…</div>
+        <div id="nch-chart-${paneIdx}" style="width:100%;height:100%"></div>
+      </div>`;
+    
+    try {
+      const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&days=250`);
+      const data = await r.json();
+      const bars = data.bars || [];
+      const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (!bars.length) {
+        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `No data for ${ticker} (not on Polygon — try TradingView engine)`; }
+        return;
+      }
+      const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
+      if (!chartEl || typeof LightweightCharts === 'undefined') return;
+      const chart = LightweightCharts.createChart(chartEl, {
+        autoSize: true,
+        layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
+        grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
+        rightPriceScale: { borderColor: '#1c2433' },
+        timeScale: { borderColor: '#1c2433', timeVisible: false },
+        crosshair: { mode: 1 },
+      });
+      const candleSeries = chart.addCandlestickSeries({
+        upColor: '#26ffaf', downColor: '#ff5577', borderUpColor: '#26ffaf',
+        borderDownColor: '#ff5577', wickUpColor: '#26ffaf', wickDownColor: '#ff5577',
+      });
+      candleSeries.setData(bars.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
+      const volSeries = chart.addHistogramSeries({
+        priceFormat: { type: 'volume' }, priceScaleId: '',
+        color: 'rgba(34,211,238,0.3)',
+      });
+      volSeries.priceScale().applyOptions({ scaleMargins: { top: 0.85, bottom: 0 } });
+      volSeries.setData(bars.map(b => ({ time: b.time, value: b.value, color: b.close >= b.open ? 'rgba(38,255,175,0.25)' : 'rgba(255,85,119,0.25)' })));
+      chart.timeScale().fitContent();
+      State.nativeChart = chart;
+      
+      // Overlay trade ticket levels if present
+      const tt = UI.findTradeTicket(ticker);
+      if (tt && tt.entry) {
+        const lvl = (price, color, title) => { if (price) candleSeries.createPriceLine({ price, color, lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title }); };
+        lvl(tt.entry, '#22d3ee', 'Entry');
+        lvl(tt.stop_loss, '#ff5577', 'Stop');
+        lvl(tt.tp1, '#26ffaf', 'TP1');
+        lvl(tt.tp3, '#26ffaf', 'TP3');
+      }
+      
+      const last = bars[bars.length - 1];
+      const prev = bars[bars.length - 2] || last;
+      const chg = prev.close ? ((last.close - prev.close) / prev.close * 100) : 0;
+      const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
+      if (metaEl) metaEl.innerHTML = `$${last.close.toFixed(2)} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> · ${bars.length}d`;
+    } catch (e) {
+      const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
+      if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `Chart error: ${String(e).slice(0,80)}`; }
     }
   }
 }
@@ -2836,10 +3064,16 @@ class AddSymbol {
   
   static addSymbol(symbol, el) {
     if (!this.targetWatchlistId) return;
-    // Cache the resolved full TV symbol so the chart loads correctly
+    // Cache resolution: stocks/ETFs use bare ticker (free TV widget likes it);
+    // crypto/forex/futures use the exchange-qualified full symbol.
     const result = this.currentResults.find(r => r.symbol === symbol);
-    if (result && result.full && result.full.includes(':')) {
-      State.symbolResolution[symbol] = result.full;
+    if (result) {
+      const type = (result.type || '').toLowerCase();
+      if ((type === 'stock' || type === 'fund' || type === 'dr' || type === '')) {
+        State.symbolResolution[symbol] = symbol;
+      } else if (result.full && result.full.includes(':')) {
+        State.symbolResolution[symbol] = result.full;
+      }
     }
     WatchlistManager.addTicker(this.targetWatchlistId, symbol);
     this.addedThisSession.add(symbol);
@@ -3105,6 +3339,12 @@ async function init() {
   // Build search index
   UniverseSearch.buildIndex();
   
+  // Chart tabs (multiple charts) — init before layout
+  ChartTabs.init();
+  // Set active ticker from the active tab
+  const activeTab = State.chartTabs.find(t => t.id === State.activeTabId);
+  if (activeTab) State.activeTicker = activeTab.symbol;
+  
   // Render watchlist (selector + dropdown + body) + fetch quotes
   UI.refreshWatchlist();
   UI.renderSyncStatus();
@@ -3216,6 +3456,19 @@ async function init() {
       document.querySelectorAll('.layout-btn[data-layout]').forEach(b => b.classList.remove('active'));
       el.classList.add('active');
       ChartController.initLayout();
+    });
+  });
+  
+  // ── Chart engine toggle (TradingView / JustHodl native) ──
+  document.querySelectorAll('.ceng-btn[data-engine]').forEach(el => {
+    el.addEventListener('click', () => {
+      State.chartEngine = el.dataset.engine;
+      document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      // Re-render current ticker in the chosen engine
+      const t = State.activeTicker;
+      State.activeTicker = '__reload__';
+      ChartController.loadTicker(t);
     });
   });
   
