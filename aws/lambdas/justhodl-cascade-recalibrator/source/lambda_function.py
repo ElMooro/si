@@ -358,7 +358,9 @@ def lambda_handler(event, context):
         "body": json.dumps({
             "ok": True, "elapsed_s": elapsed,
             "n_total_candidates": n_total,
-            "n_weights_applied": len(weights),
+            "n_weights_applied": len(weights_global),
+            "n_weights_by_tier": {tier: len(w) for tier, w in weights_by_tier.items()},
+            "per_tier_calibration_active": bool(weights_by_tier),
             "blend": blend,
             "rank_audit": rank_audit,
             "calibration_confidence": blend["confidence"],
