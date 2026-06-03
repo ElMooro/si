@@ -744,6 +744,14 @@ a:hover { text-decoration: underline; }
 .nch-legend b { color: var(--fg-0); } .nch-legend span.up { color: var(--green); } .nch-legend span.dn { color: var(--red); } .nch-legend span { color: var(--fg-1); }
 .nch-quickstats { display: flex; gap: 16px; padding: 5px 14px; background: var(--bg-2); border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); flex-shrink: 0; }
 .nch-quickstats span.dn { color: var(--red); } .nch-quickstats span.up { color: var(--green); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; margin-left: 10px; flex-shrink: 0; }
+.live-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); animation: livepulse 2s infinite; }
+.live-dot.off { background: var(--fg-4); }
+@keyframes livepulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes flashup { 0% { background: rgba(38,255,175,0.4); } 100% { background: transparent; } }
+@keyframes flashdn { 0% { background: rgba(255,85,119,0.4); } 100% { background: transparent; } }
+.flash-up { animation: flashup 0.6s ease-out; }
+.flash-dn { animation: flashdn 0.6s ease-out; }
 .tool-btn { margin-left: 8px; padding: 5px 11px; border-radius: 5px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--fg-2); border: 1px solid var(--border-bright); background: var(--bg-2); cursor: pointer; }
 .tool-btn:hover { color: var(--fg-0); border-color: var(--fg-3); }
 .tool-btn.ai-btn { color: var(--violet); border-color: var(--violet); }
@@ -1327,6 +1335,7 @@ a:hover { text-decoration: underline; }
     <kbd>/</kbd>
     <div class="hsearch-dropdown" id="hsearch-dropdown"></div>
   </div>
+  <span class="live-dot off" id="live-indicator" title="Connecting…"></span>
   
   <div class="layout-switcher" id="layout-switcher">
     <button class="layout-btn active" data-layout="1x1" title="Single chart">
@@ -1799,6 +1808,82 @@ class DataService {
 }
 
 // ─── QUOTE SERVICE (live batch quotes via Polygon snapshot) ────────
+// ─── LIVE QUOTES (WebSocket stream from worker, ~3s push) ──────────
+class LiveQuotes {
+  static ws = null;
+  static connected = false;
+  static reconnectT = null;
+  static WS_URL = "wss://justhodl-data-proxy.raafouis.workers.dev/stream";
+  
+  static start() {
+    this.connect();
+    // resubscribe whenever the watchlist/ticker changes (every 4s sweep)
+    setInterval(() => this.subscribe(), 4000);
+  }
+  static currentTickers() {
+    const set = new Set();
+    if (State.activeTicker && !State.activeTicker.startsWith('FRED:') && !State.activeTicker.startsWith('DBN:') && !State.activeTicker.startsWith('BASKET:')) set.add(State.activeTicker);
+    (WatchlistManager.getMembers(State.activeWatchlistId) || []).forEach(m => { if (m.ticker && /^[A-Z][A-Z.\-]{0,6}$/.test(m.ticker)) set.add(m.ticker); });
+    return [...set].slice(0, 55);
+  }
+  static connect() {
+    try {
+      this.ws = new WebSocket(this.WS_URL);
+      this.ws.onopen = () => { this.connected = true; this.setIndicator('live'); this.subscribe(); };
+      this.ws.onmessage = (ev) => {
+        try { const m = JSON.parse(ev.data); if (m.type === 'quotes') this.apply(m.quotes); } catch (e) {}
+      };
+      this.ws.onclose = () => { this.connected = false; this.setIndicator('off'); this.scheduleReconnect(); };
+      this.ws.onerror = () => { this.connected = false; this.setIndicator('off'); try { this.ws.close(); } catch (e) {} };
+    } catch (e) { this.scheduleReconnect(); }
+  }
+  static scheduleReconnect() {
+    clearTimeout(this.reconnectT);
+    this.reconnectT = setTimeout(() => this.connect(), 5000);
+  }
+  static subscribe() {
+    if (this.connected && this.ws && this.ws.readyState === 1) {
+      try { this.ws.send(JSON.stringify({ tickers: this.currentTickers() })); } catch (e) {}
+    }
+  }
+  static apply(quotes) {
+    let changed = false;
+    for (const tk in quotes) {
+      const q = quotes[tk];
+      const prev = State.quotes[tk];
+      State.quotes[tk] = { ...(prev||{}), price: q.price, changePct: q.changePct, change: q.change, volume: q.volume };
+      // flash the watchlist row + header price
+      this.flash(tk, prev && prev.price != null ? (q.price >= prev.price ? 'up' : 'dn') : 'up');
+      changed = true;
+    }
+    if (changed) {
+      // live-patch the active ticker header price without full re-render
+      if (quotes[State.activeTicker]) this.patchHeader(State.activeTicker);
+    }
+  }
+  static patchHeader(tk) {
+    const q = State.quotes[tk]; if (!q) return;
+    const pe = document.getElementById('active-price'); const ce = document.getElementById('active-change');
+    if (pe) pe.textContent = q.price != null ? '$' + q.price.toFixed(2) : '—';
+    if (ce) { ce.textContent = (q.changePct>=0?'+':'') + (q.changePct||0).toFixed(2) + '%'; ce.className = 'symbol-change ' + (q.changePct>=0?'up':'dn'); }
+  }
+  static flash(tk, dir) {
+    document.querySelectorAll(`.wl-row[data-ticker="${tk}"] .wl-last`).forEach(el => {
+      const q = State.quotes[tk]; if (q && q.price != null) el.textContent = '$' + q.price.toFixed(2);
+      el.classList.remove('flash-up','flash-dn'); void el.offsetWidth; el.classList.add(dir === 'up' ? 'flash-up' : 'flash-dn');
+    });
+    document.querySelectorAll(`.wl-row[data-ticker="${tk}"] .wl-chg`).forEach(el => {
+      const q = State.quotes[tk]; if (q && q.changePct != null) { el.textContent = (q.changePct>=0?'+':'')+q.changePct.toFixed(2)+'%'; el.className = 'wl-chg ' + (q.changePct>=0?'up':q.changePct<0?'dn':'flat'); }
+    });
+  }
+  static setIndicator(state) {
+    let el = document.getElementById('live-indicator');
+    if (!el) return;
+    if (state === 'live') { el.className = 'live-dot live'; el.title = 'Live streaming'; }
+    else { el.className = 'live-dot off'; el.title = 'Reconnecting…'; }
+  }
+}
+
 class QuoteService {
   static async fetchBatch(tickers) {
     if (!tickers || tickers.length === 0) return {};
@@ -5734,6 +5819,9 @@ async function init() {
   UI.renderSetups();
   setLeft(true);
   setSetups(true);
+  
+  // ── Live streaming quotes (WebSocket; replaces 60s polling feel) ──
+  try { LiveQuotes.start(); } catch (e) {}
   
   // ── Auth: init + reload watchlists when user signs in/out ──
   if (window.JustHodlAuth) {

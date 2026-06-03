@@ -127,6 +127,56 @@ export default {
     // GET /quotes?tickers=AAPL,MSFT,NVDA → live snapshot via Polygon
     // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
     // Cached 30s at edge. Polygon key from worker env (server-side, secure).
+    if (url.pathname === "/stream") {
+      // Real-time quote stream. Browser opens a WebSocket; the worker polls
+      // Polygon snapshot server-side every ~3s and pushes deltas. Compatible
+      // with the equities REST plan (no Polygon WS tier needed).
+      if (request.headers.get("Upgrade") !== "websocket") {
+        return new Response("expected websocket", { status: 426, headers: corsHeaders() });
+      }
+      const polygonKey = env.POLYGON_KEY || "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d";
+      const pair = new WebSocketPair();
+      const client = pair[0], server = pair[1];
+      server.accept();
+      let tickers = [];
+      let alive = true;
+      let last = {};
+      server.addEventListener("message", (ev) => {
+        try { const m = JSON.parse(ev.data); if (Array.isArray(m.tickers)) tickers = m.tickers.map(t => String(t).toUpperCase()).filter(Boolean).slice(0, 60); } catch (e) {}
+      });
+      server.addEventListener("close", () => { alive = false; });
+      server.addEventListener("error", () => { alive = false; });
+      const pump = async () => {
+        let cycles = 0;
+        while (alive && cycles < 600) {  // ~30 min cap then client reconnects
+          cycles++;
+          if (tickers.length) {
+            try {
+              const snapUrl = `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers=${tickers.join(",")}&apiKey=${polygonKey}`;
+              const r = await fetch(snapUrl);
+              const d = await r.json();
+              const delta = {};
+              for (const t of (d.tickers || [])) {
+                const day = t.day || {}, prev = t.prevDay || {}, lt = t.lastTrade || {}, min = t.min || {};
+                const price = lt.p || min.c || day.c || prev.c || 0;
+                const pc = prev.c || 0;
+                const changePct = pc ? ((price - pc) / pc * 100) : (t.todaysChangePerc || 0);
+                if (last[t.ticker] !== price) {
+                  last[t.ticker] = price;
+                  delta[t.ticker] = { price, changePct, change: pc ? price - pc : 0, volume: day.v || 0 };
+                }
+              }
+              if (Object.keys(delta).length && alive) server.send(JSON.stringify({ type: "quotes", t: Date.now(), quotes: delta }));
+            } catch (e) {}
+          }
+          await new Promise(res => setTimeout(res, 3000));
+        }
+        try { server.close(1000, "cycle-limit"); } catch (e) {}
+      };
+      ctx.waitUntil(pump());
+      return new Response(null, { status: 101, webSocket: client });
+    }
+
     if (url.pathname === "/quotes") {
       const tickersParam = (url.searchParams.get("tickers") || "").trim();
       if (!tickersParam) {
