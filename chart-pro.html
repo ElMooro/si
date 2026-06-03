@@ -1475,6 +1475,7 @@ a:hover { text-decoration: underline; }
       <button class="tool-btn" id="compare-btn" title="Overlay a benchmark / compare symbol">⚖ Compare</button>
       <button class="tool-btn" id="ratio-btn" title="Ratio chart: this symbol ÷ another (e.g. NVDA/SPY)">÷ Ratio</button>
       <button class="tool-btn" id="season-btn" title="Seasonality: average return by calendar month">📅 Seasonality</button>
+      <button class="tool-btn" id="basket-btn" title="Build & chart a weighted basket of symbols as one instrument">🧺 Basket</button>
       <div class="ind-wrap" style="position:relative;display:inline-block">
         <button class="tool-btn" id="indicators-btn" title="Add indicators (Bollinger, RSI, MACD)">📊 Indicators</button>
         <div class="ind-menu" id="ind-menu">
@@ -1560,6 +1561,31 @@ a:hover { text-decoration: underline; }
 </div>
 
 <!-- Macro Data Catalog Modal -->
+<div class="heatmap-modal" id="basket-modal">
+  <div class="heatmap-content" style="width:560px;max-width:92vw">
+    <div class="heatmap-header">
+      <div class="heatmap-title">🧺 Basket Builder</div>
+      <button class="modal-close" id="basket-close">×</button>
+    </div>
+    <div style="padding:16px 18px;overflow-y:auto">
+      <div style="font-size:11.5px;color:var(--fg-3);margin-bottom:12px;line-height:1.5">Build a weighted basket — track it as one synthetic instrument (rebased to 100) with blended return. Great for sectors, theme baskets, or a model portfolio.</div>
+      <input type="text" class="modal-input" id="basket-name" placeholder="Basket name (e.g. 'AI Leaders', 'My Portfolio')" />
+      <div id="basket-constituents" style="margin:10px 0"></div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <input type="text" class="modal-input" id="basket-add-tk" placeholder="Ticker" style="flex:2;text-transform:uppercase" />
+        <input type="number" class="modal-input" id="basket-add-wt" placeholder="Weight %" style="flex:1" />
+        <button class="modal-btn" id="basket-add-btn">+ Add</button>
+      </div>
+      <div id="basket-weight-sum" style="font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);margin-bottom:10px"></div>
+      <div id="basket-saved" style="margin-bottom:12px"></div>
+      <div class="modal-actions">
+        <button class="modal-btn" id="basket-cancel">Close</button>
+        <button class="modal-btn primary" id="basket-chart-btn">Save & Chart</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="heatmap-modal" id="corr-modal">
   <div class="heatmap-content" style="width:auto;max-width:90vw">
     <div class="heatmap-header">
@@ -1689,6 +1715,8 @@ const State = {
   compareSymbol: null,   // overlay symbol for relative comparison
   ratioSymbol: null,     // denominator for a ratio/spread chart (TICKER ÷ ratioSymbol)
   seasonality: false,    // show avg monthly seasonality view
+  baskets: {},           // {name: [{ticker, weight}]} — per-user weighted baskets
+  activeBasket: null,    // name of the basket currently charted (as BASKET:<name>)
   indicators: { bollinger: false, rsi: false, macd: false },  // native chart studies
   changeMode: 'price',   // 'price' | 'dod' | 'wow' | 'mom' | 'qoq' | 'yoy' — FRED-style % change
   changeStyle: 'histogram',  // 'histogram' | 'line' | 'area' — how % change renders
@@ -1997,6 +2025,7 @@ class WatchlistManager {
         if (data.changeStyle) State.changeStyle = data.changeStyle;
         if (data.statBlock != null) State.statBlock = data.statBlock;
         if (data.seasonality != null) State.seasonality = data.seasonality;
+        if (data.baskets) State.baskets = data.baskets;
         if (data.priceAlerts) State.priceAlerts = data.priceAlerts;
         if (data.drawings) State.drawings = data.drawings;
         if (data.chartTabs && data.chartTabs.length) { State.chartTabs = data.chartTabs; State.activeTabId = data.activeTabId || data.chartTabs[0].id; }
@@ -2049,6 +2078,7 @@ class WatchlistManager {
           changeStyle: State.changeStyle,
           statBlock: State.statBlock,
           seasonality: State.seasonality,
+          baskets: State.baskets,
           priceAlerts: State.priceAlerts,
           drawings: State.drawings,
           chartTabs: State.chartTabs,
@@ -3180,6 +3210,8 @@ class ChartController {
     
     // Macro series → always native line
     if (isFred || isDbn) { NativeChart.render(ticker); return; }
+    // Baskets → synthetic native render
+    if (ticker.startsWith('BASKET:')) { NativeChart.render(ticker); return; }
     // Ratio / seasonality / % change all require native rendering
     if (State.ratioSymbol || State.seasonality || changeActive) { NativeChart.render(ticker); return; }
     // Forced native
@@ -3608,6 +3640,7 @@ class NativeChart {
   
   static async render(ticker) {
     const paneIdx = State.activeChartPane;
+    if (ticker.startsWith('BASKET:')) { this._shell(paneIdx, ticker, ticker.slice(7)); return this.renderBasket(paneIdx, ticker.slice(7)); }
     if (State.ratioSymbol && State.ratioSymbol !== ticker) {
       this._shell(paneIdx, ticker, `${ticker} ÷ ${State.ratioSymbol}`);
       return this.renderRatio(paneIdx, ticker, State.ratioSymbol);
@@ -3890,6 +3923,64 @@ class NativeChart {
     const head = host.parentElement && host.parentElement.querySelector('.nch-sym');
     if (head) head.textContent = `${ticker} · Seasonality`;
     const metaEl = document.getElementById(`nch-meta-${paneIdx}`); if(metaEl) metaEl.innerHTML = `Seasonality · ~${yrs}yr avg monthly returns`;
+  }
+  
+  // Render a weighted basket as one synthetic instrument, rebased to 100.
+  static async renderBasket(paneIdx, name) {
+    const host = document.getElementById(`nch-chart-${paneIdx}`);
+    if (!host) return;
+    const constituents = (State.baskets || {})[name] || [];
+    const le = document.getElementById(`nch-loading-${paneIdx}`);
+    if (!constituents.length) { if(le){le.style.display='flex';le.textContent=`Basket "${name}" is empty.`;} return; }
+    const tf = State.tf || { mult: 1, span: 'day', days: 250 };
+    const fetchCloses = async (t) => {
+      const ty = State.symbolType[t] || this.guessType(t);
+      let url;
+      if (ty === 'crypto') url = `${PROXY}/yf-ohlc?symbol=${encodeURIComponent(this.cryptoToYahoo(t))}&range=1y`;
+      else if (ty === 'forex') url = `${PROXY}/yf-ohlc?symbol=${encodeURIComponent(this.fxToYahoo(t))}&range=1y`;
+      else url = `${PROXY}/ohlc?ticker=${encodeURIComponent(t)}&mult=${tf.mult}&span=${tf.span}&days=${tf.days}`;
+      try { const d = await (await fetch(url)).json(); return new Map((d.bars||[]).map(b=>[b.time,b.close])); } catch(e){ return new Map(); }
+    };
+    const series = await Promise.all(constituents.map(c => fetchCloses(c.ticker)));
+    const valid = constituents.map((c,i)=>({...c, m: series[i]})).filter(c => c.m && c.m.size > 5);
+    if (!valid.length) { if(le){le.style.display='flex';le.textContent=`No native data for basket constituents.`;} return; }
+    const totalW = valid.reduce((a,b)=>a+b.weight,0) || 1;
+    // common dates = intersection
+    let common = [...valid[0].m.keys()];
+    for (const c of valid.slice(1)) common = common.filter(t => c.m.has(t));
+    common.sort((a,b)=>a-b);
+    if (common.length < 5) { if(le){le.style.display='flex';le.textContent=`Not enough overlapping dates across constituents.`;} return; }
+    // base prices = first common date
+    const base = {}; valid.forEach(c => base[c.ticker] = c.m.get(common[0]));
+    const idx = common.map(t => {
+      let v = 0;
+      for (const c of valid) { const w = c.weight/totalW; v += w * (c.m.get(t)/base[c.ticker]); }
+      return { time: t, value: +(v*100).toFixed(3) };
+    });
+    host.innerHTML = '';
+    if (typeof LightweightCharts === 'undefined') return;
+    const chart = LightweightCharts.createChart(host, {
+      autoSize: true, layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
+      grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
+      rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
+    });
+    const area = chart.addAreaSeries({ lineColor: '#26ffaf', topColor: 'rgba(38,255,175,0.25)', bottomColor: 'rgba(38,255,175,0.02)', lineWidth: 2 });
+    area.setData(idx);
+    area.createPriceLine({ price: 100, color: 'rgba(168,179,199,0.4)', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: 'base' });
+    chart.timeScale().fitContent();
+    State.nativeChart = chart;
+    if(le) le.style.display='none';
+    const last = idx[idx.length-1];
+    const ret = (last.value - 100);
+    const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
+    const holds = valid.map(c=>`${c.ticker} ${(c.weight/totalW*100).toFixed(0)}%`).join(' · ');
+    if (metaEl) metaEl.innerHTML = `Basket "${UI.esc(name)}" · rebased 100 → ${last.value.toFixed(1)} <span style="color:${ret>=0?'#26ffaf':'#ff5577'}">${ret>=0?'+':''}${ret.toFixed(1)}%</span>`;
+    const head = host.parentElement && host.parentElement.querySelector('.nch-sym');
+    if (head) head.textContent = `🧺 ${name}`;
+    // constituents footer
+    let foot = host.parentElement.querySelector('.nch-quickstats');
+    if (!foot) { foot = document.createElement('div'); foot.className='nch-quickstats'; host.parentElement.appendChild(foot); }
+    foot.innerHTML = `<span>${UI.esc(holds)}</span>`;
   }
   
   // Overlay a second symbol's normalized line for relative-performance comparison
@@ -4759,6 +4850,60 @@ class PriceAlert {
   }
 }
 
+// ─── BASKET BUILDER (weighted synthetic instrument) ────────────────
+class Basket {
+  static draft = [];   // [{ticker, weight}]
+  static open() {
+    document.getElementById('basket-modal').classList.add('open');
+    this.draft = State.activeBasket && State.baskets[State.activeBasket]
+      ? JSON.parse(JSON.stringify(State.baskets[State.activeBasket])) : [];
+    document.getElementById('basket-name').value = State.activeBasket || '';
+    this.renderDraft(); this.renderSaved();
+  }
+  static close() { document.getElementById('basket-modal').classList.remove('open'); }
+  static addRow() {
+    const tk = (document.getElementById('basket-add-tk').value || '').trim().toUpperCase();
+    const wt = parseFloat(document.getElementById('basket-add-wt').value) || 0;
+    if (!tk || wt <= 0) return;
+    this.draft.push({ ticker: tk, weight: wt });
+    document.getElementById('basket-add-tk').value = ''; document.getElementById('basket-add-wt').value = '';
+    this.renderDraft();
+  }
+  static removeRow(i) { this.draft.splice(i, 1); this.renderDraft(); }
+  static renderDraft() {
+    const el = document.getElementById('basket-constituents');
+    const sum = this.draft.reduce((a, b) => a + b.weight, 0);
+    el.innerHTML = this.draft.map((c, i) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;margin-bottom:4px;font-family:var(--font-mono);font-size:11px">
+        <span style="flex:1;color:var(--fg-0);font-weight:700">${UI.esc(c.ticker)}</span>
+        <span style="color:var(--cyan)">${c.weight}% <span style="color:var(--fg-3)">(${sum?((c.weight/sum*100).toFixed(0)):0}% norm)</span></span>
+        <span data-rm="${i}" style="color:var(--red);cursor:pointer;font-size:14px">−</span>
+      </div>`).join('') || '<div style="font-size:11px;color:var(--fg-3);font-style:italic">No constituents yet.</div>';
+    document.getElementById('basket-weight-sum').textContent = `Total weight: ${sum}% (auto-normalized to 100%)`;
+    el.querySelectorAll('[data-rm]').forEach(x => x.addEventListener('click', () => this.removeRow(+x.dataset.rm)));
+  }
+  static renderSaved() {
+    const el = document.getElementById('basket-saved');
+    const names = Object.keys(State.baskets || {});
+    if (!names.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px">Saved baskets</div>' +
+      names.map(n => `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;margin-bottom:4px;font-family:var(--font-mono);font-size:11px">
+        <span style="flex:1;color:var(--fg-1);cursor:pointer" data-load-basket="${UI.esc(n)}">${UI.esc(n)} <span style="color:var(--fg-3)">(${State.baskets[n].length})</span></span>
+        <span data-del-basket="${UI.esc(n)}" style="color:var(--red);cursor:pointer;font-size:14px">🗑</span></div>`).join('');
+    el.querySelectorAll('[data-load-basket]').forEach(x => x.addEventListener('click', () => { State.activeBasket = x.dataset.loadBasket; this.draft = JSON.parse(JSON.stringify(State.baskets[x.dataset.loadBasket])); document.getElementById('basket-name').value = x.dataset.loadBasket; this.renderDraft(); }));
+    el.querySelectorAll('[data-del-basket]').forEach(x => x.addEventListener('click', () => { delete State.baskets[x.dataset.delBasket]; WatchlistManager.syncToCloud(); this.renderSaved(); }));
+  }
+  static saveAndChart() {
+    const name = (document.getElementById('basket-name').value || '').trim() || 'Basket';
+    if (!this.draft.length) return;
+    State.baskets[name] = JSON.parse(JSON.stringify(this.draft));
+    State.activeBasket = name;
+    WatchlistManager.syncToCloud();
+    this.close();
+    ChartController.loadTicker('BASKET:' + name);
+  }
+}
+
 // ─── CORRELATION MATRIX (pairwise return correlation of the watchlist) ──
 class CorrelationMatrix {
   static async open() {
@@ -5484,6 +5629,14 @@ async function init() {
   // ── Correlation matrix ──
   document.getElementById('corr-btn').addEventListener('click', () => CorrelationMatrix.open());
   document.getElementById('corr-close').addEventListener('click', () => CorrelationMatrix.close());
+  // ── Basket builder ──
+  document.getElementById('basket-btn').addEventListener('click', () => Basket.open());
+  document.getElementById('basket-close').addEventListener('click', () => Basket.close());
+  document.getElementById('basket-cancel').addEventListener('click', () => Basket.close());
+  document.getElementById('basket-add-btn').addEventListener('click', () => Basket.addRow());
+  document.getElementById('basket-add-tk').addEventListener('keydown', (e) => { if (e.key === 'Enter') Basket.addRow(); });
+  document.getElementById('basket-add-wt').addEventListener('keydown', (e) => { if (e.key === 'Enter') Basket.addRow(); });
+  document.getElementById('basket-chart-btn').addEventListener('click', () => Basket.saveAndChart());
   // ── Macro data catalog ──
   document.getElementById('macro-btn').addEventListener('click', () => MacroData.open());
   document.getElementById('macro-close').addEventListener('click', () => MacroData.close());
@@ -5538,7 +5691,7 @@ async function init() {
     if (e.key === '/') { e.preventDefault(); const si = document.getElementById('search-input'); if (si) { si.focus(); si.select(); } }
     if (e.key === 'Escape') {
       UniverseSearch.close(); Heatmap.close(); FlagPicker.close(); AddSymbol.close();
-      MacroData.close(); CorrelationMatrix.close();
+      MacroData.close(); CorrelationMatrix.close(); Basket.close();
       document.getElementById('new-wl-modal').classList.remove('open');
       document.getElementById('wl-selector').classList.remove('open');
     }

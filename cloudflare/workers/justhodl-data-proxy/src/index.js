@@ -405,15 +405,17 @@ export default {
       const hit = await fc.match(fKey);
       if (hit) { const b = await hit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
       try {
-        const [q, p, rm] = await Promise.all([
+        const [q, p, rm, km] = await Promise.all([
           fetch(`https://financialmodelingprep.com/stable/quote?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 600 } }).then(r => r.ok ? r.json() : []),
           fetch(`https://financialmodelingprep.com/stable/profile?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 3600 } }).then(r => r.ok ? r.json() : []),
           fetch(`https://financialmodelingprep.com/stable/ratios-ttm?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 3600 } }).then(r => r.ok ? r.json() : []),
+          fetch(`https://financialmodelingprep.com/stable/key-metrics-ttm?symbol=${ticker}&apikey=${fmpKey}`, { cf: { cacheTtl: 3600 } }).then(r => r.ok ? r.json() : []),
         ]);
         const quote = Array.isArray(q) ? (q[0] || {}) : (q || {});
         const prof = Array.isArray(p) ? (p[0] || {}) : (p || {});
         const ratios = Array.isArray(rm) ? (rm[0] || {}) : (rm || {});
-        const pick = (...keys) => { for (const k of keys) { if (ratios[k] != null) return ratios[k]; } return null; };
+        const metrics = Array.isArray(km) ? (km[0] || {}) : (km || {});
+        const pick = (...keys) => { for (const k of keys) { if (ratios[k] != null) return ratios[k]; if (metrics[k] != null) return metrics[k]; } return null; };
         const out = JSON.stringify({
           ticker,
           name: prof.companyName, sector: prof.sector, industry: prof.industry,
@@ -425,7 +427,7 @@ export default {
           yearHigh: quote.yearHigh, yearLow: quote.yearLow,
           beta: prof.beta, dividendYield: pick("dividendYieldTTM", "dividendYielPercentageTTM", "dividendYieldPercentageTTM"),
           pb: pick("priceToBookRatioTTM", "pbRatioTTM"), ps: pick("priceToSalesRatioTTM", "priceSalesRatioTTM"),
-          roe: pick("returnOnEquityTTM", "roeTTM"), netMargin: pick("netProfitMarginTTM", "netIncomePerShareTTM") && pick("netProfitMarginTTM"),
+          roe: pick("returnOnEquityTTM", "roeTTM", "returnOnEquity"), netMargin: pick("netProfitMarginTTM", "netProfitMargin"),
           debtToEquity: pick("debtToEquityRatioTTM", "debtEquityRatioTTM"),
           currentRatio: pick("currentRatioTTM"), grossMargin: pick("grossProfitMarginTTM"),
           opMargin: pick("operatingProfitMarginTTM"), fcfYield: pick("freeCashFlowYieldTTM"),
