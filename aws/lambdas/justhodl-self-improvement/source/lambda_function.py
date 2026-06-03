@@ -253,19 +253,26 @@ def compute_per_tier_attribution(scored_preds: List[dict]) -> dict:
         "options_cv_pv_ratio", "options_call_vol", "options_mean_iv",
         "velocity_composite", "convergence_score", "n_engines",
         "early_score", "insider_n_buyers", "ticket_atr_pct",
-        # NEW: retail features
+        # Retail features
         "retail_velocity_pct", "retail_mentions", "retail_rank_climb",
+        # News/earnings/GDELT features
+        "news_score", "earnings_score", "gdelt_tone", "gdelt_articles",
+        "days_since_earnings",
     ]
 
     # Define tier classifiers
     def classify(alerts: List[str]) -> str:
         """Return the primary tier classification for a prediction."""
         alerts_set = set(alerts or [])
-        # Priority order: most specific first
+        # Priority order: most specific signal wins
         if "RETAIL_HOT" in alerts_set:
             return "RETAIL_HOT"
         if "RETAIL_VELOCITY" in alerts_set:
             return "RETAIL_VELOCITY"
+        if "NEWS_SURGE_BULLISH" in alerts_set:
+            return "NEWS_SURGE"
+        if "EARNINGS_FRESH" in alerts_set:
+            return "EARNINGS_FRESH"
         if "CASCADE_ALERT" in alerts_set:
             return "ALERT"
         if "CASCADE_LAGGARD" in alerts_set:
@@ -328,8 +335,11 @@ def compute_multi_horizon_attribution(scored_preds: List[dict]) -> dict:
         "options_cv_pv_ratio", "options_call_vol", "options_mean_iv",
         "velocity_composite", "convergence_score", "n_engines",
         "early_score", "insider_n_buyers", "ticket_atr_pct",
-        # NEW: retail sentiment features
+        # Retail features
         "retail_velocity_pct", "retail_mentions", "retail_rank_climb",
+        # NEW: News/earnings/GDELT features
+        "news_score", "earnings_score", "gdelt_tone", "gdelt_articles",
+        "days_since_earnings",
     ]
 
     valid = [p for p in scored_preds if p.get("outcome") in ("HIT", "HIT_BIG", "SLOW", "FLAT", "MISS")]

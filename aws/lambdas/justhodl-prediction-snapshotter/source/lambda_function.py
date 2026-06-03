@@ -48,6 +48,9 @@ def lambda_handler(event, context):
     activist = _read_json("data/activist-13d.json") or {}
     tickets = _read_json("data/trade-tickets.json") or {}
     retail = _read_json("data/retail-sentiment.json") or {}
+    news = _read_json("sentiment/data.json") or {}
+    earnings = _read_json("screener/earnings-sentiment.json") or {}
+    gdelt = _read_json("data/gdelt-financial-sentiment.json") or {}
 
     # Build per-ticker feature vectors
     predictions = {}
@@ -247,6 +250,107 @@ def lambda_handler(event, context):
             vel = ret_signal.get("retail_velocity_pct", 0) or 0
             if vel >= 500 and "RETAIL_HOT" not in predictions[ticker]["alerts"]:
                 predictions[ticker]["alerts"].append("RETAIL_HOT")
+
+    # ═══ NEWS / EARNINGS / GDELT INTEGRATION ═══
+    # 
+    # News sentiment: bullish/bearish scoring per ticker from FMP headlines
+    # Earnings transcripts: forward-looking guidance sentiment per ticker
+    # GDELT: geopolitical event impact on tickers/themes
+    
+    # News sentiment map
+    news_map = {}
+    for s in (news.get("sentiment") or []):
+        if isinstance(s, dict):
+            sym = s.get("symbol") or s.get("ticker")
+            if sym:
+                news_map[sym] = {
+                    "news_score": s.get("score"),
+                    "news_signal": s.get("signal"),  # bullish/bearish/neutral
+                    "news_reason": (s.get("reason") or "")[:200],
+                }
+    
+    # Earnings transcript map
+    earnings_map = {}
+    for t in (earnings.get("transcripts") or []):
+        if isinstance(t, dict):
+            sym = t.get("symbol")
+            if sym:
+                earnings_map[sym] = {
+                    "earnings_score": t.get("score") or t.get("sentiment_score"),
+                    "earnings_signal": t.get("signal"),
+                    "earnings_date": t.get("transcript_date") or t.get("earnings_date"),
+                    "earnings_summary": (t.get("summary") or "")[:200],
+                }
+    
+    # GDELT asset sentiment map
+    gdelt_map = {}
+    for asset in (gdelt.get("asset_sentiment") or []):
+        if isinstance(asset, dict):
+            sym = asset.get("ticker") or asset.get("symbol") or asset.get("asset")
+            if sym:
+                gdelt_map[sym] = {
+                    "gdelt_tone": asset.get("avg_tone") or asset.get("tone"),
+                    "gdelt_articles": asset.get("article_count") or asset.get("mentions"),
+                }
+    
+    # Apply enrichment + new alert tiers
+    for ticker, pred in list(predictions.items()):
+        # News sentiment
+        n = news_map.get(ticker)
+        if n:
+            pred["features"].update({
+                "news_score": n.get("news_score"),
+                "news_signal": n.get("news_signal"),
+            })
+            score = n.get("news_score")
+            signal = n.get("news_signal", "")
+            if isinstance(score, (int, float)) and score >= 0.7 and signal == "bullish":
+                if "NEWS_SURGE_BULLISH" not in pred["alerts"]:
+                    pred["alerts"].append("NEWS_SURGE_BULLISH")
+        
+        # Earnings sentiment
+        e = earnings_map.get(ticker)
+        if e:
+            pred["features"].update({
+                "earnings_score": e.get("earnings_score"),
+                "earnings_signal": e.get("earnings_signal"),
+            })
+            # Flag if earnings transcript is recent (within 14 days)
+            try:
+                if e.get("earnings_date"):
+                    edt = datetime.fromisoformat(str(e["earnings_date"])[:10])
+                    days_since = (datetime.now(timezone.utc).replace(tzinfo=None) - edt.replace(tzinfo=None)).days
+                    if 0 <= days_since <= 14:
+                        pred["features"]["days_since_earnings"] = days_since
+                        if "EARNINGS_FRESH" not in pred["alerts"]:
+                            pred["alerts"].append("EARNINGS_FRESH")
+            except Exception:
+                pass
+        
+        # GDELT sentiment
+        g = gdelt_map.get(ticker)
+        if g:
+            pred["features"].update({
+                "gdelt_tone": g.get("gdelt_tone"),
+                "gdelt_articles": g.get("gdelt_articles"),
+            })
+    
+    # Create NEW news-only predictions (tickers with extreme news but not in cascade)
+    for ticker, n in news_map.items():
+        if ticker in predictions:
+            continue
+        score = n.get("news_score")
+        signal = n.get("news_signal", "")
+        if isinstance(score, (int, float)) and score >= 0.8 and signal == "bullish":
+            predictions[ticker] = {
+                "ticker": ticker,
+                "snapshot_date": today,
+                "alerts": ["NEWS_SURGE_BULLISH"],
+                "features": {
+                    "news_score": score,
+                    "news_signal": signal,
+                },
+            }
 
     # Macro context (shared across all tickers)
     macro_context = {

@@ -338,6 +338,64 @@ def get_tier_confidence() -> dict:
         return {}
 
 
+def get_earnings_calendar() -> dict:
+    """Read upcoming earnings calendar.
+    
+    Returns {ticker: {date: 'YYYY-MM-DD', days_until: N}} for tickers with
+    earnings in next 14 days. Trade tickets will flag these for risk mgmt.
+    """
+    try:
+        # Try earnings-sentiment.json first (has transcript dates)
+        earn = _read_json("screener/earnings-sentiment.json") or {}
+        # Try earnings-calendar.json second (if exists)
+        cal = _read_json("data/earnings-calendar.json") or {}
+        
+        out = {}
+        today = datetime.now(timezone.utc).date()
+        
+        # From earnings-sentiment.json (has past transcripts; recent ones suggest
+        # we just had earnings — flag for next 90 days they're "in earnings season")
+        for t in (earn.get("transcripts") or []):
+            sym = t.get("symbol")
+            dt = t.get("transcript_date") or t.get("earnings_date")
+            if sym and dt:
+                try:
+                    edt = datetime.fromisoformat(str(dt)[:10]).date()
+                    days_diff = (edt - today).days
+                    # Recent earnings (within last 14 days OR within next 14 days)
+                    if -14 <= days_diff <= 14:
+                        out[sym] = {
+                            "date": str(dt)[:10],
+                            "days_until": days_diff,
+                            "in_window": True,
+                            "source": "transcript",
+                        }
+                except Exception:
+                    pass
+        
+        # From earnings-calendar.json (future calendar)
+        for e in (cal.get("upcoming") or cal.get("events") or []):
+            sym = e.get("symbol") or e.get("ticker")
+            dt = e.get("date") or e.get("earnings_date")
+            if sym and dt:
+                try:
+                    edt = datetime.fromisoformat(str(dt)[:10]).date()
+                    days_until = (edt - today).days
+                    if 0 <= days_until <= 14:
+                        out[sym] = {
+                            "date": str(dt)[:10],
+                            "days_until": days_until,
+                            "in_window": True,
+                            "source": "calendar",
+                        }
+                except Exception:
+                    pass
+        
+        return out
+    except Exception:
+        return {}
+
+
 def compute_position_size_multiplier(setup_type: str,
                                       tier_confidence: dict) -> dict:
     """Compute position size multiplier based on per-tier confidence.
@@ -414,17 +472,21 @@ def compute_position_size_multiplier(setup_type: str,
 
 def build_ticket(candidate: dict, bars: List[dict],
                  portfolio_usd: float, best_horizons: dict = None,
-                 tier_confidence: dict = None) -> dict:
+                 tier_confidence: dict = None,
+                 earnings_calendar: dict = None) -> dict:
     """Build a complete trade ticket from cascade candidate + price bars.
     
-    Now horizon-aware AND confidence-weighted:
+    Now horizon-aware AND confidence-weighted AND earnings-aware:
       - Uses learned best_horizon_per_feature for stop/TP sizing
       - Multiplies position_pct by per-tier confidence (hit rate based)
+      - Flags tickers with earnings in next 14 days for catalyst risk
     """
     if best_horizons is None:
         best_horizons = {}
     if tier_confidence is None:
         tier_confidence = {}
+    if earnings_calendar is None:
+        earnings_calendar = {}
     ticker = candidate.get("ticker")
     if not bars:
         return {"ticker": ticker, "error": "no_polygon_data"}
@@ -446,6 +508,9 @@ def build_ticket(candidate: dict, bars: List[dict],
     # Compute confidence-weighted position size multiplier
     conf_info = compute_position_size_multiplier(setup_type, tier_confidence)
     conf_mult = conf_info["multiplier"]
+    
+    # Check earnings catalyst risk
+    earnings_info = earnings_calendar.get(ticker) or {}
 
     # Determine tier & base multipliers (existing logic)
     tier = candidate.get("tier") or "UNKNOWN"
@@ -511,6 +576,17 @@ def build_ticket(candidate: dict, bars: List[dict],
         "position_confidence_reason": conf_info.get("reason"),
         "base_position_pct": round(base_position_pct, 3),
         "adjusted_position_pct": round(position_pct, 3),
+        
+        # Earnings catalyst awareness (NEW)
+        "earnings_in_window": bool(earnings_info.get("in_window")),
+        "earnings_date": earnings_info.get("date"),
+        "earnings_days_until": earnings_info.get("days_until"),
+        "earnings_source": earnings_info.get("source"),
+        "earnings_warning": (
+            f"⚠️ Earnings in {earnings_info.get('days_until')}d on {earnings_info.get('date')} — expect IV crush + gap risk"
+            if earnings_info.get("in_window") and (earnings_info.get("days_until") or 0) >= 0
+            else None
+        ),
 
         # Price + risk
         "entry": round(entry, 2),
@@ -571,9 +647,10 @@ def lambda_handler(event, context):
     print(f"[trade-tickets] generating tickets for {len(candidates)} candidates "
           f"(portfolio_usd=${portfolio_usd:,.0f})")
 
-    # Load horizon attribution + tier confidence once (used by all tickets)
+    # Load horizon attribution + tier confidence + earnings calendar
     best_horizons = get_horizon_attribution()
     tier_confidence = get_tier_confidence()
+    earnings_calendar = get_earnings_calendar()
     if best_horizons:
         print(f"[trade-tickets] horizon-aware mode: {len(best_horizons)} features have learned horizons")
     else:
@@ -582,11 +659,14 @@ def lambda_handler(event, context):
         print(f"[trade-tickets] confidence-weighted sizing: {len(tier_confidence)} tiers with empirical hit rates")
     else:
         print(f"[trade-tickets] confidence-weighted sizing: using neutral 1.0× (no empirical data yet)")
+    if earnings_calendar:
+        print(f"[trade-tickets] earnings catalyst awareness: {len(earnings_calendar)} tickers in 14d window")
 
     # Parallel fetch + ticket build
     def _build(c):
         bars = fetch_polygon_ohlc(c["ticker"], days=25)
-        return build_ticket(c, bars, portfolio_usd, best_horizons, tier_confidence)
+        return build_ticket(c, bars, portfolio_usd, best_horizons,
+                              tier_confidence, earnings_calendar)
 
     tickets = []
     with ThreadPoolExecutor(max_workers=N_WORKERS) as ex:

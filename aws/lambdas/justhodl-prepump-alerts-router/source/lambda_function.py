@@ -140,6 +140,12 @@ def _format_trade_ticket(ticker: str) -> List[str]:
     
     lines = [f"  {horizon_tag}"]
     
+    # Earnings warning (catalyst risk)
+    if t.get("earnings_in_window") and t.get("earnings_date"):
+        d = t.get("earnings_days_until", 0)
+        if d >= 0:
+            lines.append(f"  ⚠️ <b>EARNINGS in {d}d</b> ({t.get('earnings_date')}) — IV crush + gap risk")
+    
     # AI rationale (if available)
     rationale_info = rationales.get(ticker) or {}
     rationale_text = rationale_info.get("rationale")
