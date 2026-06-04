@@ -1354,6 +1354,7 @@ a:hover { text-decoration: underline; }
     <div class="hsearch-dropdown" id="hsearch-dropdown"></div>
   </div>
   <span class="live-dot off" id="live-indicator" title="Connecting…"></span>
+  <span id="cp-regime-ribbon" style="display:inline-flex;align-items:center"></span>
   
   <div class="layout-switcher" id="layout-switcher">
     <button class="layout-btn active" data-layout="1x1" title="Single chart">
@@ -6076,5 +6077,7 @@ if (document.readyState === 'loading') {
 }
 </script>
 
+<script src="/regime-ribbon.js"></script>
+<script>if(window.RegimeRibbon)RegimeRibbon.mount({target:'cp-regime-ribbon',position:'inline',compact:true});</script>
 </body>
 </html>
