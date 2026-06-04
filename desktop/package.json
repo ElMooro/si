@@ -39,15 +39,11 @@
       "category": "public.app-category.finance",
       "icon": "build/icon.png",
       "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
+        "dmg",
+        "zip"
       ],
-      "darkModeSupport": true
+      "darkModeSupport": true,
+      "identity": null
     },
     "dmg": {
       "title": "JustHodl AI ${version}",
