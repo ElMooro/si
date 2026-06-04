@@ -167,7 +167,7 @@ def build_industry_benchmarks(universe, fwd_growth):
     return out
 
 
-def fetch_forward_growth(universe, max_n=520):
+def fetch_forward_growth(universe, max_n=1200):
     """Concurrent FMP analyst-estimates → expected (forward) revenue & EPS growth
     per ticker. Computes EXPECTED COMPANY GROWTH from current vs next-year est."""
     import concurrent.futures as cf
@@ -787,15 +787,20 @@ def lambda_handler(event, context):
             if r.get("fund") and num((fund.get(sym) or {}).get("gross_margin", None)) and num((fund.get(sym) or {}).get("gross_margin")) > 50: go += 4
             r["growth_intel"] = gi
             r["growth_opportunity_score"] = max(0, min(100, round(go, 1)))
-            r["cap_bucket"] = s.get("cap_bucket")
-            # ── CREATIVE: Compounder composite — durable high-quality GROWTH.
-            # Requires real expected growth (banks/utilities won't saturate it). ──
+            # cap bucket (from universe or derived from market cap)
+            mcap_v = num(s.get("marketCap"))
+            r["cap_bucket"] = s.get("cap_bucket") or (
+                "nano" if (mcap_v and mcap_v < 50e6) else "micro" if (mcap_v and mcap_v < 300e6)
+                else "small" if (mcap_v and mcap_v < 2e9) else "mid" if (mcap_v and mcap_v < 10e9)
+                else "large" if (mcap_v and mcap_v < 200e9) else "mega" if mcap_v else None)
+            # ── CREATIVE: Compounder composite — durable high-quality GROWTH ──
+            growth_for_comp = exp_co if (exp_co is not None) else cg   # forward, else trailing
             roic_v = num(s.get("roic")); roic_v = roic_v*100 if (roic_v is not None and abs(roic_v) < 3) else roic_v
             gm_v = num(s.get("grossMargin")); gm_v = gm_v*100 if (gm_v is not None and abs(gm_v) < 3) else gm_v
             de_v = num(s.get("debtToEquity"))
-            if exp_co is not None and exp_co > 5:  # must be a genuine grower
-                comp = 0.0; parts = 0
-                comp += min(1.0, max(0, exp_co/30.0)) * 1.5; parts += 1.5   # growth weighted most
+            if growth_for_comp is not None and growth_for_comp > 5:
+                comp = 0.0; parts = 0.0
+                comp += min(1.0, max(0, growth_for_comp/30.0)) * 1.5; parts += 1.5
                 if roic_v is not None: comp += min(1.0, max(0, roic_v/25.0)); parts += 1
                 if gm_v is not None: comp += min(1.0, max(0, gm_v/70.0)); parts += 1
                 if de_v is not None: comp += (1.0 if de_v < 0.5 else 0.5 if de_v < 1.0 else 0.0); parts += 1
@@ -804,8 +809,9 @@ def lambda_handler(event, context):
             else:
                 r["compounder_score"] = None
             dy = num(s.get("dividendYield")); dy = dy*100 if (dy is not None and abs(dy) < 1) else dy
-            if pe and pe > 0 and exp_co is not None:
-                r["lynch_ratio"] = round((exp_co + (dy or 0)) / pe, 2)
+            gr_for_lynch = exp_co if exp_co is not None else cg
+            if pe and pe > 0 and gr_for_lynch is not None:
+                r["lynch_ratio"] = round((gr_for_lynch + (dy or 0)) / pe, 2)
             rows.append(r)
 
     rows.sort(key=lambda r: r["opportunity_score"], reverse=True)
