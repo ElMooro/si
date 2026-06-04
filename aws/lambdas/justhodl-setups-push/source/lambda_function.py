@@ -74,6 +74,21 @@ def lambda_handler(event, context):
     t0 = time.time()
     board = _read_json("data/best-setups.json") or {}
     setups = board.get("top_setups") or []
+    # ── NEW: Triple-Threat alert — the rarest, highest-conviction setups ──
+    triples = board.get("triple_threats") or [s for s in setups if s.get("triple_threat")]
+    if triples:
+        tlines = ["<b>🎯 TRIPLE THREAT ALERT</b>",
+                  "<i>Cheap (dislocation) + durable grower (compounder) + a market/flow signal — all three lenses agree</i>", ""]
+        for s in triples[:5]:
+            vl = ", ".join((s.get("value_lenses") or []) + (s.get("flow_lenses") or [])[:2])
+            tlines.append(f"<b>{s['ticker']}</b> · conviction {round(s.get('conviction') or 0)}\n  {vl}")
+            if s.get("thesis"):
+                tlines.append(f"  <i>{s['thesis'][:160]}</i>")
+            tlines.append("")
+        tlines.append("<i>justhodl.ai/chart-pro</i>")
+        send_telegram("\n".join(tlines))
+        print(f"[setups-push] triple-threat alert: {len(triples)}")
+
     strong = [s for s in setups if s.get("verdict") == "STRONG BUY"]
     buys = [s for s in setups if s.get("verdict") == "BUY"]
     headline = (strong + buys)[:6]

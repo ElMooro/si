@@ -268,11 +268,28 @@ def lambda_handler(event, context):
         elif rat.get(tk) and rat[tk].get("rationale"):
             thesis = rat[tk]["rationale"][:280]
 
+        # ── CREATIVE: "Triple Threat" — the rarest, highest-conviction setup.
+        # A name that is simultaneously CHEAP (dislocation), a durable GROWER
+        # (compounder), AND carrying a market/flow signal. Three independent
+        # value lenses agreeing is the strongest possible confluence. ──
+        keys = set(s["key"] for s in signals)
+        value_signals = keys & {"DISLOCATION", "COMPOUNDER", "REVISION_UP"}
+        flow_signals = keys & {"INSIDER_CLUSTER", "OPTIONS_EXTREME", "OPTIONS_BULLISH",
+                                "POLITICIAN_COMMITTEE", "POLITICIAN_BUY", "EXECUTIVE_BUY",
+                                "CASCADE_ALERT", "RETAIL_HOT"}
+        triple_threat = ("DISLOCATION" in keys and "COMPOUNDER" in keys and len(flow_signals) >= 1)
+        if triple_threat:
+            verdict = "TRIPLE THREAT"
+            composite = min(100.0, composite * 1.15)
+
         setups.append({
             "ticker": tk,
             "name": rec["name"],
-            "conviction": composite,
+            "conviction": round(composite, 1),
             "verdict": verdict,
+            "triple_threat": triple_threat,
+            "value_lenses": sorted(value_signals),
+            "flow_lenses": sorted(flow_signals),
             "n_signals": n,
             "signals": sorted(signals, key=lambda s: -s["strength"] * s["weight"]),
             "signal_keys": [s["key"] for s in signals],
@@ -310,6 +327,7 @@ def lambda_handler(event, context):
             "watch": len(by_verdict["WATCH"]),
         },
         "top_setups": setups[:50],
+        "triple_threats": [s for s in setups if s.get("triple_threat")][:20],
         "by_verdict": dict(by_verdict),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
