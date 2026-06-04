@@ -1,0 +1,162 @@
+{
+  "n_contexts": 40,
+  "context_ids": [
+    "yield-curve-decisive-call",
+    "vix-curve-decisive-call",
+    "dollar-decisive-call",
+    "eurodollar-decisive-call",
+    "lce-decisive-call",
+    "systemic-stress-decisive-call",
+    "bond-vol-decisive-call",
+    "risk-radar-decisive-call",
+    "compass-decisive-call",
+    "defcon-decisive-call",
+    "retail-edges-decisive-call",
+    "bonds-decisive-call",
+    "liquidity-decisive-call",
+    "macro-data-decisive-call",
+    "crisis-decisive-call",
+    "divergence-decisive-call",
+    "trend-engine-decisive-call",
+    "regime-decisive-call",
+    "valuations-decisive-call",
+    "conviction-decisive-call",
+    "fundamentals-decisive-call",
+    "consumer-pulse-decisive-call",
+    "auction-decisive-call",
+    "baggers-names",
+    "eps-velocity-names",
+    "insider-clusters-names",
+    "smart-money-names",
+    "activist-13d-names",
+    "deep-value-names",
+    "momentum-names",
+    "desk-consensus",
+    "portfolio-manager-brief",
+    "frontrun-sniffer",
+    "macro-frontrun-sniffer",
+    "alerts-digest",
+    "alerts-digest-close",
+    "system-uptime-monitor",
+    "frontrun-skill-aggregator",
+    "self-improvement-calibrator",
+    "opportunity-ranker"
+  ],
+  "output_keys": {
+    "yield-curve-decisive-call": "yield-curve-decisive-call",
+    "vix-curve-decisive-call": "vix-curve-decisive-call",
+    "dollar-decisive-call": "dollar-decisive-call",
+    "eurodollar-decisive-call": "eurodollar-decisive-call",
+    "lce-decisive-call": "lce-decisive-call",
+    "systemic-stress-decisive-call": "systemic-stress-decisive-call",
+    "bond-vol-decisive-call": "bond-vol-decisive-call",
+    "risk-radar-decisive-call": "risk-radar-decisive-call",
+    "compass-decisive-call": "compass-decisive-call",
+    "defcon-decisive-call": "defcon-decisive-call",
+    "retail-edges-decisive-call": "retail-edges-decisive-call",
+    "bonds-decisive-call": "bonds-decisive-call",
+    "liquidity-decisive-call": "liquidity-decisive-call",
+    "macro-data-decisive-call": "macro-data-decisive-call",
+    "crisis-decisive-call": "crisis-decisive-call",
+    "divergence-decisive-call": "divergence-decisive-call",
+    "trend-engine-decisive-call": "trend-engine-decisive-call",
+    "regime-decisive-call": "regime-decisive-call",
+    "valuations-decisive-call": "valuations-decisive-call",
+    "conviction-decisive-call": "conviction-decisive-call",
+    "fundamentals-decisive-call": "fundamentals-decisive-call",
+    "consumer-pulse-decisive-call": "consumer-pulse-decisive-call",
+    "auction-decisive-call": "auction-decisive-call",
+    "baggers-names": "baggers-names",
+    "eps-velocity-names": "eps-velocity-names",
+    "insider-clusters-names": "insider-clusters-names",
+    "smart-money-names": "smart-money-names",
+    "activist-13d-names": "activist-13d-names",
+    "deep-value-names": "deep-value-names",
+    "momentum-names": "momentum-names",
+    "desk-consensus": "desk-consensus",
+    "portfolio-manager-brief": "portfolio-manager-brief",
+    "frontrun-sniffer": "frontrun-sniffer",
+    "macro-frontrun-sniffer": "macro-frontrun-sniffer",
+    "alerts-digest": "alerts-digest",
+    "alerts-digest-close": "alerts-digest-close",
+    "system-uptime-monitor": "system-uptime-monitor",
+    "frontrun-skill-aggregator": "frontrun-skill-aggregator",
+    "self-improvement-calibrator": "self-improvement-calibrator",
+    "opportunity-ranker": "opportunity-ranker"
+  },
+  "has_bond_vol": true,
+  "sample_context": {
+    "yield-curve-decisive-call": {
+      "title": "Yield Curve \u2014 Decisive Call",
+      "output_key": "yield-curve-decisive-call",
+      "primary_feed": "data/yield-curve.json",
+      "cross_feeds": {
+        "vix": "data/vix-curve.json",
+        "dollar": "data/dollar-radar.json",
+        "credit": "data/credit-spreads.json",
+        "eurodollar": "data/eurodollar-stress.json",
+        "auctions": "data/auction-crisis.json"
+      },
+      "cross_regime_fields": {
+        "vix": "composite_regime",
+        "dollar": "regime",
+        "credit": "regime",
+        "eurodollar": "severity",
+        "auctions": "regime"
+      },
+      "kb_keywords": [
+        "yield curve inversion",
+        "Hugh Hendry",
+        "1979 Volcker",
+        "term premium",
+        "recession indicator",
+        "Druckenmiller",
+        "real yields",
+        "Volcker shock",
+        "curve steepening",
+        "bull steepener",
+        "bear flattener"
+      ],
+      "episode_indicators_to_show": [
+        "T10Y2Y",
+        "T10Y3M",
+        "DGS10",
+        "DFII10",
+        "DGS2"
+      ],
+      "system_addendum": "You are specifically a SENIOR RATES STRATEGIST focused on term structure. You think about 2s10s, 3m10s, term premium decomposition, real-yield dynamics, and what the curve is signaling about Fed reaction function. You cite Druckenmiller, Hugh Hendry, and Powell explicitly when their frameworks apply.",
+      "assets_to_predict": [
+        {
+          "asset": "US Equities (SPX/NDX)",
+          "ticker": "SPX"
+        },
+        {
+          "asset": "Bitcoin (BTC)",
+          "ticker": "BTC"
+        },
+        {
+          "asset": "Ethereum (ETH)",
+          "ticker": "ETH"
+        },
+        {
+          "asset": "Crypto Total Market",
+          "ticker": "TOTAL"
+        },
+        {
+          "asset": "High-Yield Credit",
+          "ticker": "HYG"
+        },
+        {
+          "asset": "Gold",
+          "ticker": "GLD"
+        },
+        {
+          "asset": "US Dollar (DXY)",
+          "ticker": "DXY"
+        }
+      ],
+      "prompt_intro": "You are analysing the US Treasury yield curve regime \u2014 what the curve shape (2s10s, 3m10s, real yields) is signaling for the broader macro cycle. The primary data below contains the latest yield levels, spreads, and regime classification. Focus on: (1) curve shape implication (recession signal? rate-cut pricing? term-premium reset?), (2) divergence from cross-context regimes (does VIX/credit/dollar confirm or contradict?), (3) what risk assets historically did when the curve looked like this."
+    }
+  },
+  "bond_vol_brief_exists": true
+}
