@@ -1,0 +1,54 @@
+{
+  "started": "2026-06-04T00:55:19.405662+00:00",
+  "opp_invoke": {
+    "status": 200,
+    "elapsed_s": 30.3
+  },
+  "a": {
+    "covered": 1473,
+    "with_fwd_growth": 268,
+    "compounders70plus": 114
+  },
+  "b": {
+    "setups": 50,
+    "with_compounder": 18,
+    "with_revision": 0,
+    "sample": [
+      {
+        "t": "NVDA",
+        "conv": 44.4,
+        "sigs": [
+          "COMPOUNDER",
+          "EARNINGS_FRESH",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "t": "PLTR",
+        "conv": 35.6,
+        "sigs": [
+          "COMPOUNDER",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "t": "MU",
+        "conv": 33.7,
+        "sigs": [
+          "COMPOUNDER",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "t": "WDC",
+        "conv": 31.6,
+        "sigs": [
+          "POLITICIAN_BUY",
+          "COMPOUNDER",
+          "CONVERGENCE"
+        ]
+      }
+    ]
+  },
+  "finished": "2026-06-04T00:57:12.036660+00:00"
+}
