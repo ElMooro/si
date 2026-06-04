@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--bg-3:#131929;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--mono:'SF Mono',ui-monospace,Menlo,monospace}
+*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-select:none}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{width:168px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:var(--fg-1);display:flex;flex-direction:column}
+.drag{-webkit-app-region:drag;height:38px;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:8px;padding:6px 14px 12px;font-family:var(--mono);font-weight:700;font-size:13px;-webkit-app-region:drag}
+.dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.brand b{color:var(--fg-0)}.brand span{color:var(--fg-3)}
+.navbtns{display:flex;gap:4px;padding:0 12px 8px}
+.navbtns button{flex:1;background:var(--bg-2);border:1px solid var(--border);color:var(--fg-2);border-radius:6px;padding:5px 0;font-size:13px;cursor:pointer;-webkit-app-region:no-drag}
+.navbtns button:hover{background:var(--bg-3);color:var(--fg-0)}
+.tools{flex:1;overflow-y:auto;padding:4px 8px}
+.tool{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:12.5px;color:var(--fg-2);margin-bottom:2px;-webkit-app-region:no-drag}
+.tool:hover{background:var(--bg-2);color:var(--fg-0)}
+.tool.active{background:var(--bg-3);color:var(--cyan)}
+.tool .ic{font-size:14px;width:18px;text-align:center}
+.foot{padding:10px 14px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--fg-3);-webkit-app-region:no-drag}
+.foot a{color:var(--fg-3);cursor:pointer;text-decoration:none}.foot a:hover{color:var(--cyan)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+  <div class="drag"></div>
+  <div class="brand"><span class="dot"></span><b>JustHodl</b><span>.AI</span></div>
+  <div class="navbtns">
+    <button id="back" title="Back">‹</button>
+    <button id="fwd" title="Forward">›</button>
+    <button id="reload" title="Reload">⟳</button>
+  </div>
+  <div class="tools" id="tools"></div>
+  <div class="foot"><a id="web">justhodl.ai ↗</a><div style="margin-top:4px">Desktop v1.0.0</div></div>
+<script>
+let TOOLS=[], SITE='https://justhodl.ai', active='';
+async function init(){
+  TOOLS = await window.jh.getTools();
+  SITE = await window.jh.getSite();
+  render();
+  window.jh.onNavChanged(url=>{ active=url; render(); });
+}
+function render(){
+  const el=document.getElementById('tools');
+  el.innerHTML = TOOLS.map(t=>{
+    const on = active.includes(t.path);
+    return `<div class="tool ${on?'active':''}" data-path="${t.path}"><span class="ic">${t.icon}</span><span>${t.label}</span></div>`;
+  }).join('');
+  el.querySelectorAll('.tool').forEach(d=>d.onclick=()=>window.jh.navigate(d.dataset.path));
+}
+document.getElementById('back').onclick=()=>window.jh.back();
+document.getElementById('fwd').onclick=()=>window.jh.forward();
+document.getElementById('reload').onclick=()=>window.jh.reload();
+document.getElementById('web').onclick=()=>window.jh.openExternal(SITE);
+init();
+</script>
+</body>
+</html>

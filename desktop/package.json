@@ -1,0 +1,78 @@
+{
+  "name": "justhodl-desktop",
+  "productName": "JustHodl AI",
+  "version": "1.0.0",
+  "description": "JustHodl.AI — institutional-grade financial intelligence terminal",
+  "author": {
+    "name": "JustHodl.AI",
+    "email": "raafouis@gmail.com"
+  },
+  "homepage": "https://justhodl.ai",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux",
+    "dist:all": "electron-builder -mwl"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "ai.justhodl.desktop",
+    "productName": "JustHodl AI",
+    "copyright": "Copyright © 2026 JustHodl.AI",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "build/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.finance",
+      "icon": "build/icon.icns",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "darkModeSupport": true
+    },
+    "dmg": {
+      "title": "JustHodl AI ${version}",
+      "backgroundColor": "#0a0e14"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "JustHodl AI"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "category": "Finance",
+      "target": ["AppImage", "deb"]
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "ElMooro",
+        "repo": "si"
+      }
+    ]
+  }
+}
