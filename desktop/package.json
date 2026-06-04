@@ -2,7 +2,7 @@
   "name": "justhodl-desktop",
   "productName": "JustHodl AI",
   "version": "1.0.0",
-  "description": "JustHodl.AI — institutional-grade financial intelligence terminal",
+  "description": "JustHodl.AI \u2014 institutional-grade financial intelligence terminal",
   "author": {
     "name": "JustHodl.AI",
     "email": "raafouis@gmail.com"
@@ -24,7 +24,7 @@
   "build": {
     "appId": "ai.justhodl.desktop",
     "productName": "JustHodl AI",
-    "copyright": "Copyright © 2026 JustHodl.AI",
+    "copyright": "Copyright \u00a9 2026 JustHodl.AI",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -37,10 +37,15 @@
     ],
     "mac": {
       "category": "public.app-category.finance",
-      "icon": "build/icon.icns",
+      "icon": "build/icon.png",
       "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] },
-        { "target": "zip", "arch": ["x64", "arm64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
       "darkModeSupport": true
     },
@@ -51,8 +56,18 @@
     "win": {
       "icon": "build/icon.ico",
       "target": [
-        { "target": "nsis", "arch": ["x64"] },
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
     "nsis": {
@@ -65,7 +80,10 @@
     "linux": {
       "icon": "build/icon.png",
       "category": "Finance",
-      "target": ["AppImage", "deb"]
+      "target": [
+        "AppImage",
+        "deb"
+      ]
     },
     "publish": [
       {
