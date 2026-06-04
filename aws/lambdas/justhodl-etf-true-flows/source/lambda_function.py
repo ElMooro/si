@@ -48,6 +48,13 @@ def http_json(url, t=12):
         return None
 
 
+def read_json(key, default=None):
+    try:
+        return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return default
+
+
 def num(v):
     try:
         f = float(v); return f if f == f else None
