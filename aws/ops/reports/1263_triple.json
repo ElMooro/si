@@ -1,0 +1,73 @@
+{
+  "started": "2026-06-04T01:12:45.934109+00:00",
+  "invoke": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"n_setups\\\": 356, \\\"strong_buy\\\": 0, \\\"buy\\\": 2, \\\"weight_source\\\": \\\"prior-only\\\"}\"}",
+  "result": {
+    "n_setups": 50,
+    "triple_threats": 1,
+    "compounder": 20,
+    "revision": 0,
+    "tt_sample": [
+      {
+        "t": "OTIS",
+        "conv": 27.8,
+        "val": [
+          "COMPOUNDER",
+          "DISLOCATION"
+        ],
+        "flow": [
+          "POLITICIAN_BUY"
+        ]
+      }
+    ],
+    "top5": [
+      {
+        "t": "NVDA",
+        "v": "BUY",
+        "conv": 44.4,
+        "sigs": [
+          "COMPOUNDER",
+          "EARNINGS_FRESH",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "t": "PLTR",
+        "v": "BUY",
+        "conv": 35.6,
+        "sigs": [
+          "COMPOUNDER",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "t": "AMD",
+        "v": "WATCH",
+        "conv": 34.3,
+        "sigs": [
+          "OPTIONS_EXTREME",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "t": "MU",
+        "v": "WATCH",
+        "conv": 33.7,
+        "sigs": [
+          "COMPOUNDER",
+          "CONVERGENCE"
+        ]
+      },
+      {
+        "t": "ASML",
+        "v": "WATCH",
+        "conv": 32.4,
+        "sigs": [
+          "OPTIONS_EXTREME",
+          "POLITICIAN_BUY",
+          "CONVERGENCE"
+        ]
+      }
+    ]
+  },
+  "finished": "2026-06-04T01:14:00.202740+00:00"
+}
