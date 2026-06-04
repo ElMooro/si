@@ -1,0 +1,82 @@
+{
+  "top_keys": [
+    "ok",
+    "version",
+    "generated_at",
+    "regime",
+    "composite_z_score",
+    "n_channels_live",
+    "n_channels_total",
+    "channels",
+    "regime_bands",
+    "methodology",
+    "sources",
+    "edge_basis"
+  ],
+  "regime": "NORMAL",
+  "composite_z": null,
+  "n_channels_live": 5,
+  "n_channels_total": 5,
+  "generated_at": "2026-06-04T12:17:12.990262+00:00",
+  "channel_keys": [
+    "id",
+    "fred_series",
+    "name",
+    "edge",
+    "ok",
+    "realized_vol_now",
+    "vol_units",
+    "z_score",
+    "percentile_1y",
+    "n_observations_1y",
+    "latest_obs_date",
+    "latest_obs_value"
+  ],
+  "channels": [
+    {
+      "id": "dgs10",
+      "name": "10Y Treasury Yield Vol",
+      "z": null,
+      "realized_vol": null,
+      "ok": true,
+      "status": null,
+      "contributing": null
+    },
+    {
+      "id": "dgs2",
+      "name": "2Y Treasury Yield Vol",
+      "z": null,
+      "realized_vol": null,
+      "ok": true,
+      "status": null,
+      "contributing": null
+    },
+    {
+      "id": "t10y2y",
+      "name": "2s10s Curve Vol",
+      "z": null,
+      "realized_vol": null,
+      "ok": true,
+      "status": null,
+      "contributing": null
+    },
+    {
+      "id": "hy_spread",
+      "name": "HY Credit Spread Vol",
+      "z": null,
+      "realized_vol": null,
+      "ok": true,
+      "status": null,
+      "contributing": null
+    },
+    {
+      "id": "ig_bbb",
+      "name": "BBB IG Spread Vol",
+      "z": null,
+      "realized_vol": null,
+      "ok": true,
+      "status": null,
+      "contributing": null
+    }
+  ]
+}
