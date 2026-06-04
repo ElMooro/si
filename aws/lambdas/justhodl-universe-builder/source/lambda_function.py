@@ -91,6 +91,9 @@ CURATED_SEED = [
     "AVGO", "NVDA", "AMD", "QCOM", "MRVL", "ARM", "INTC", "CRDO",
     # AI infrastructure / DC / connectivity
     "ANET", "VRT", "PSTG", "NTAP", "DELL", "SMCI", "HPE",
+    # Neoclouds / AI compute / data-center buildout (newly public, high-interest)
+    "NBIS", "CRWV", "APLD", "IREN", "CIFR", "WULF", "GLXY", "CORZ", "SMR", "OKLO",
+    "NNE", "VST", "CEG", "TLN", "GEV", "ETN", "PWR", "NVT", "POWL",
     # Cybersecurity (often AI-driven now)
     "CRWD", "ZS", "PANW", "FTNT", "OKTA", "NET",
     # Hydrogen / energy infra

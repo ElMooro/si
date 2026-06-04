@@ -274,7 +274,29 @@ function card(r,full){
       <span>value <b>${sc.value}</b></span><span>quality <b>${sc.quality}</b></span>
       <span>growth <b>${sc.growth}</b></span><span>momentum <b>${sc.momentum}</b></span>
     </div>
+    ${growthPanel(r)}
     ${extra}
+  </div>`;
+}
+
+function growthPanel(r){
+  const g=r.growth_intel; if(!g) return '';
+  const pct=v=>v==null?'—':(v>=0?'+':'')+v+'%';
+  const goCol = (r.growth_opportunity_score||0)>=80?'#26ffaf':(r.growth_opportunity_score||0)>=60?'#22d3ee':'#6f7b91';
+  const outg = g.expected_to_outgrow_industry?'<span style="color:#26ffaf">▲ outgrowing industry</span>':(g.outgrowing_industry?'<span style="color:#22d3ee">growing w/ industry</span>':'');
+  const peClr = (g.pe_vs_industry_pct!=null && g.pe_vs_industry_pct<-10)?'#26ffaf':(g.pe_vs_industry_pct!=null && g.pe_vs_industry_pct>30?'#ff5577':'#a8b3c7');
+  const bl = r.backlog?`<div style="font-size:10.5px;color:#22d3ee;margin-top:5px">📋 Backlog: ${esc(r.backlog.figure||'')} <span style="color:#6f7b91">(${esc(r.backlog.term||'')})</span></div>`:'';
+  return `<div style="margin-top:9px;padding:9px 10px;background:#0f1420;border:1px solid #1c2433;border-radius:7px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-family:monospace;font-size:10px;color:#6f7b91;text-transform:uppercase;letter-spacing:.5px">Growth vs Industry</span>
+      <span style="margin-left:auto;font-family:monospace;font-size:12px;font-weight:700;color:${goCol}">GO ${r.growth_opportunity_score||'—'}/100</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-family:monospace;font-size:10.5px">
+      <div style="color:#6f7b91">Company growth</div><div style="color:#e1e8f4">${pct(g.company_rev_growth_pct)} → <b>${pct(g.expected_company_growth_pct)}</b> exp</div>
+      <div style="color:#6f7b91">Industry growth</div><div style="color:#a8b3c7">${pct(g.industry_growth_pct)} → ${pct(g.expected_industry_growth_pct)} exp</div>
+      <div style="color:#6f7b91">P/E vs industry</div><div style="color:${peClr}">${g.pe_vs_industry_pct!=null?pct(g.pe_vs_industry_pct):'—'} ${g.industry_pe?`(ind ${g.industry_pe})`:''}</div>
+      <div style="color:#6f7b91">Forward PEG</div><div style="color:#e1e8f4">${g.peg_forward!=null?g.peg_forward:'—'}</div>
+    </div>
+    ${outg?`<div style="font-size:10.5px;margin-top:5px">${outg}</div>`:''}
+    ${bl}
   </div>`;
 }
 
