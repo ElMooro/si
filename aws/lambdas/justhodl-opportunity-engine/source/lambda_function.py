@@ -38,6 +38,7 @@ OUTPUT: data/opportunities.json   SCHEDULE: daily 14:00 UTC
 import json
 import os
 import time
+import urllib.request
 from datetime import datetime, timezone
 
 import boto3
@@ -132,6 +133,115 @@ def build_benchmarks(universe):
                 meds[fld] = round(median(vals), 2)
         out[sec] = {"n": len(members), "medians": meds}
     return out
+
+
+# ── INDUSTRY benchmarks (finer than sector) + growth aggregates ──
+def build_industry_benchmarks(universe, fwd_growth):
+    """Per-industry medians + INDUSTRY GROWTH (trailing) + EXPECTED INDUSTRY
+    GROWTH (forward analyst). Falls back to sector for thin industries."""
+    by_ind = {}
+    for s in universe:
+        key = s.get("industry") or s.get("sector") or "Unknown"
+        by_ind.setdefault(key, []).append(s)
+    out = {}
+    for ind, members in by_ind.items():
+        if len(members) < 4:
+            continue
+        meds = {}
+        for fld, (lo, hi) in BENCH.items():
+            vals = [num(x.get(fld)) for x in members if num(x.get(fld)) is not None and lo <= num(x.get(fld)) <= hi]
+            if len(vals) >= 4:
+                meds[fld] = round(median(vals), 2)
+        # trailing industry growth (median revenue growth of the cohort)
+        trail = [num(x.get("revenueGrowth")) for x in members]
+        trail = [v*100 if (v is not None and abs(v) < 3) else v for v in trail]
+        trail = [v for v in trail if v is not None and -95 <= v <= 300]
+        ind_growth = round(median(trail), 1) if len(trail) >= 4 else None
+        # expected industry growth (median forward revenue growth from analyst est)
+        fwd = [fwd_growth.get((x.get("symbol") or x.get("ticker")), {}).get("fwd_rev_growth") for x in members]
+        fwd = [v for v in fwd if v is not None and -95 <= v <= 300]
+        ind_fwd_growth = round(median(fwd), 1) if len(fwd) >= 3 else None
+        out[ind] = {"n": len(members), "medians": meds,
+                    "industry_growth_pct": ind_growth,
+                    "expected_industry_growth_pct": ind_fwd_growth}
+    return out
+
+
+def fetch_forward_growth(universe, max_n=520):
+    """Concurrent FMP analyst-estimates → expected (forward) revenue & EPS growth
+    per ticker. Computes EXPECTED COMPANY GROWTH from current vs next-year est."""
+    import concurrent.futures as cf
+    syms = [(s.get("symbol") or s.get("ticker")) for s in universe][:max_n]
+    syms = [s for s in syms if s]
+    fmp_key = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    base = "https://financialmodelingprep.com/stable"
+
+    def one(sym):
+        try:
+            est = http_get_json(f"{base}/analyst-estimates?symbol={sym}&period=annual&limit=3&apikey={fmp_key}")
+            if not isinstance(est, list) or len(est) < 2:
+                return sym, None
+            # sort by year ascending
+            rows = sorted([e for e in est if e.get("date")], key=lambda e: e.get("date"))
+            def rev(e): return num(e.get("revenueAvg") or e.get("estimatedRevenueAvg"))
+            def eps(e): return num(e.get("epsAvg") or e.get("estimatedEpsAvg"))
+            r0, r1 = rev(rows[0]), rev(rows[-1])
+            e0, e1 = eps(rows[0]), eps(rows[-1])
+            yrs = max(1, len(rows) - 1)
+            fwd_rev_growth = None
+            if r0 and r1 and r0 > 0:
+                fwd_rev_growth = round(((r1 / r0) ** (1 / yrs) - 1) * 100, 1)
+            fwd_eps_growth = None
+            if e0 and e1 and e0 > 0:
+                fwd_eps_growth = round(((e1 / e0) ** (1 / yrs) - 1) * 100, 1)
+            return sym, {"fwd_rev_growth": fwd_rev_growth, "fwd_eps_growth": fwd_eps_growth,
+                          "next_year_revenue": r1}
+        except Exception:
+            return sym, None
+
+    result = {}
+    with cf.ThreadPoolExecutor(max_workers=20) as ex:
+        for fut in cf.as_completed([ex.submit(one, s) for s in syms]):
+            sym, v = fut.result()
+            if v:
+                result[sym] = v
+    return result
+
+
+def http_get_json(url, timeout=12):
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode())
+    except Exception:
+        return None
+
+
+def extract_backlog(ticker, fmp_key):
+    """Scan the latest earnings-call transcript for backlog / RPO / bookings + $."""
+    import re
+    base = "https://financialmodelingprep.com/stable"
+    tr = (http_get_json(f"{base}/earning-call-transcript-latest?symbol={ticker}&apikey={fmp_key}")
+          or http_get_json(f"{base}/earning-call-transcript?symbol={ticker}&limit=1&apikey={fmp_key}"))
+    if not tr:
+        return None
+    content = ""
+    if isinstance(tr, list) and tr:
+        content = tr[0].get("content") or tr[0].get("transcript") or ""
+    elif isinstance(tr, dict):
+        content = tr.get("content") or tr.get("transcript") or ""
+    if not content:
+        return None
+    low = content.lower()
+    for kw in ["backlog", "remaining performance obligation", "committed", "contracted revenue", "bookings"]:
+        m = low.find(kw)
+        if m >= 0:
+            seg = content[max(0, m - 80): m + 140]
+            dollar = re.search(r"\$\s?[\d.,]+\s?(billion|million|bn|mn|b|m)?", seg, re.I)
+            if dollar:
+                return {"term": kw, "figure": dollar.group(0),
+                        "snippet": seg.strip().replace("\n", " ")[:180]}
+    return None
 
 
 # ──────────────────── 3-method valuation triangulation ──────────────
@@ -536,6 +646,11 @@ def lambda_handler(event, context):
 
     universe = screener.get("stocks", [])
     bench = build_benchmarks(universe)
+    # NEW: expected (forward) growth per ticker + industry-level benchmarks
+    print("[opp] fetching forward analyst growth estimates…")
+    fwd_growth = fetch_forward_growth(universe)
+    print(f"[opp] forward growth for {len(fwd_growth)} names")
+    industry_bench = build_industry_benchmarks(universe, fwd_growth)
     weights = get_weights()
     print(f"[opp] factor weights: {weights}")
 
@@ -545,9 +660,60 @@ def lambda_handler(event, context):
         r = score_stock(s, mr.get(sym), fund.get(sym), shorts.get(sym),
                          bench, weights)
         if r:
+            # ── NEW: growth-vs-industry intelligence ──
+            ind_key = s.get("industry") or s.get("sector") or "Unknown"
+            ib = industry_bench.get(ind_key) or {}
+            fg = fwd_growth.get(sym) or {}
+            cg = num(s.get("revenueGrowth"))
+            if cg is not None and abs(cg) < 3: cg *= 100
+            pe = num(s.get("peRatio"))
+            ind_pe = (ib.get("medians") or {}).get("peRatio")
+            exp_co = fg.get("fwd_rev_growth")
+            exp_ind = ib.get("expected_industry_growth_pct")
+            ind_g = ib.get("industry_growth_pct")
+            gi = {
+                "industry": ind_key,
+                "company_rev_growth_pct": round(cg, 1) if cg is not None else None,
+                "industry_growth_pct": ind_g,
+                "expected_company_growth_pct": exp_co,
+                "expected_industry_growth_pct": exp_ind,
+                "expected_eps_growth_pct": fg.get("fwd_eps_growth"),
+                "pe": round(pe, 1) if pe is not None else None,
+                "industry_pe": ind_pe,
+                "pe_vs_industry_pct": (round((pe / ind_pe - 1) * 100) if (pe and ind_pe and ind_pe > 0) else None),
+                "outgrowing_industry": (cg is not None and ind_g is not None and cg > ind_g),
+                "expected_to_outgrow_industry": (exp_co is not None and exp_ind is not None and exp_co > exp_ind),
+                "peg_forward": (round(pe / exp_co, 2) if (pe and exp_co and exp_co > 0) else None),
+            }
+            # Growth-Opportunity score (0-100): rewards growing faster than the
+            # industry AND being cheap vs it, with forward confirmation + quality.
+            go = 50.0
+            if gi["outgrowing_industry"]: go += 12
+            if gi["expected_to_outgrow_industry"]: go += 14
+            if gi["pe_vs_industry_pct"] is not None and gi["pe_vs_industry_pct"] < -10: go += 12   # cheaper P/E than industry
+            elif gi["pe_vs_industry_pct"] is not None and gi["pe_vs_industry_pct"] > 30: go -= 10
+            if gi["peg_forward"] is not None:
+                if gi["peg_forward"] < 1: go += 14
+                elif gi["peg_forward"] < 1.5: go += 6
+                elif gi["peg_forward"] > 3: go -= 8
+            if exp_co is not None and exp_co > 20: go += 6
+            if r.get("fund") and num((fund.get(sym) or {}).get("gross_margin", None)) and num((fund.get(sym) or {}).get("gross_margin")) > 50: go += 4
+            r["growth_intel"] = gi
+            r["growth_opportunity_score"] = max(0, min(100, round(go, 1)))
             rows.append(r)
 
     rows.sort(key=lambda r: r["opportunity_score"], reverse=True)
+
+    # ── NEW: backlog/RPO from earnings transcripts for the top names ──
+    print("[opp] extracting backlog for top names…")
+    fmp_key = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    for r in rows[:40]:
+        bl = extract_backlog(r["ticker"], fmp_key)
+        if bl:
+            r["backlog"] = bl
+            # backlog is a durability bonus to the growth-opportunity score
+            r["growth_opportunity_score"] = min(100, (r.get("growth_opportunity_score") or 50) + 6)
+
     by_verdict = {}
     for r in rows:
         by_verdict[r["verdict"]] = by_verdict.get(r["verdict"], 0) + 1
@@ -574,6 +740,10 @@ def lambda_handler(event, context):
         "avoid_list": avoid,
         "all": rows,
         "sector_benchmarks": sector_bench,
+        "industry_benchmarks": {ind: {"n": b["n"], "industry_growth_pct": b.get("industry_growth_pct"),
+                                       "expected_industry_growth_pct": b.get("expected_industry_growth_pct"),
+                                       "median_pe": (b.get("medians") or {}).get("peRatio")}
+                                 for ind, b in industry_bench.items()},
         "disclaimer": ("Research and education only — not financial advice. "
                        "Every stock carries risk of loss. Fair value is an "
                        "estimate from models that can be wrong; always do your "
