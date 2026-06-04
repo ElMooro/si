@@ -30,7 +30,10 @@ import json, os, time, math
 from datetime import datetime, timezone, timedelta
 from urllib import request, error
 import boto3
-import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1073)
+try:
+    import _fred_shim  # noqa: F401
+except Exception:
+    pass
 
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "data/cross-asset-rv.json"

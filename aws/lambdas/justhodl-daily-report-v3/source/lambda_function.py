@@ -9,7 +9,10 @@ import json, urllib.request, os, time, boto3
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from _sentry_lite import track_errors
-import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
+try:
+    import _fred_shim  # noqa: F401
+except Exception:
+    pass
 
 
 # Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.

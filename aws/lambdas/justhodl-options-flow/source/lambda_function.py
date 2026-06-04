@@ -1,7 +1,10 @@
 import json
 import os
 import sys
-import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
+try:
+    import _fred_shim  # noqa: F401
+except Exception:
+    pass
 
 # Bundle api_auth.py alongside lambda_function.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

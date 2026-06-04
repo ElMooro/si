@@ -42,7 +42,10 @@ import urllib.error
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
-import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
+try:
+    import _fred_shim  # noqa: F401
+except Exception:
+    pass
 
 # Phase 2 dual-write helper (no khalid_* keys in this output, but keep pattern)
 try:

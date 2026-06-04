@@ -57,7 +57,10 @@ import urllib.parse
 from datetime import datetime, timedelta, timezone
 
 import boto3
-import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1073)
+try:
+    import _fred_shim  # noqa: F401
+except Exception:
+    pass
 
 VERSION = "1.0.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')

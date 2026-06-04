@@ -34,7 +34,10 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
-import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
+try:
+    import _fred_shim  # noqa: F401
+except Exception:
+    pass
 
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"

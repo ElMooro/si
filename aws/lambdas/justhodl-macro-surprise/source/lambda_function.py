@@ -38,7 +38,10 @@ import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from statistics import mean, stdev
-import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1073)
+try:
+    import _fred_shim  # noqa: F401
+except Exception:
+    pass
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
