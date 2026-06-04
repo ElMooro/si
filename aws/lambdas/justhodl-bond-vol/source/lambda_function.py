@@ -65,20 +65,35 @@ ANNUALIZATION = math.sqrt(252) # daily -> annual
 
 CHANNELS = [
     {"id": "dgs10",        "fred": "DGS10",
-     "name": "10Y Treasury Yield Vol",
+     "name": "10Y Treasury Yield Vol", "weight": 1.3,
      "edge": "Duration risk - long-bond price sensitivity to vol regime"},
     {"id": "dgs2",         "fred": "DGS2",
-     "name": "2Y Treasury Yield Vol",
+     "name": "2Y Treasury Yield Vol", "weight": 1.2,
      "edge": "Fed-path risk - markets re-pricing rate-cut expectations"},
+    {"id": "dgs30",        "fred": "DGS30",
+     "name": "30Y Treasury Yield Vol", "weight": 1.0,
+     "edge": "Long-end / term-premium vol - convexity & pension/insurance hedging"},
+    {"id": "dgs5",         "fred": "DGS5",
+     "name": "5Y Treasury Yield Vol", "weight": 1.0,
+     "edge": "Belly vol - the most rate-sensitive part of the curve"},
     {"id": "t10y2y",       "fred": "T10Y2Y",
-     "name": "2s10s Curve Vol",
+     "name": "2s10s Curve Vol", "weight": 1.0,
      "edge": "Curve reshape risk - bull/bear steepener/flattener regime change"},
+    {"id": "t10y3m",       "fred": "T10Y3M",
+     "name": "10Y-3M Curve Vol", "weight": 0.9,
+     "edge": "Recession-signal curve - the Fed's preferred inversion gauge"},
     {"id": "hy_spread",    "fred": "BAMLH0A0HYM2",
-     "name": "HY Credit Spread Vol",
+     "name": "HY Credit Spread Vol", "weight": 1.2,
      "edge": "Credit risk - high-yield spread blowouts foreshadow risk-off"},
     {"id": "ig_bbb",       "fred": "BAMLC0A4CBBB",
-     "name": "BBB IG Spread Vol",
+     "name": "BBB IG Spread Vol", "weight": 1.1,
      "edge": "IG-quality stress - earliest credit-cycle deterioration signal"},
+    {"id": "tips_10y",     "fred": "DFII10",
+     "name": "10Y Real Yield Vol", "weight": 1.0,
+     "edge": "Real-rate vol - the true discount-rate shock to risk assets"},
+    {"id": "breakeven_10y","fred": "T10YIE",
+     "name": "10Y Breakeven Inflation Vol", "weight": 0.9,
+     "edge": "Inflation-expectation vol - re-pricing of the Fed reaction function"},
 ]
 
 REGIME_BANDS = [
@@ -265,17 +280,88 @@ def lambda_handler(event, context):
         if z is not None:
             z_values.append(z)
 
-    composite_z = (round(statistics.mean(z_values), 2)
-                   if z_values else None)
+    # Weighted composite (each channel carries its own weight)
+    wsum = 0.0; wtot = 0.0
+    by_id = {c["id"]: c for c in per_channel}
+    for ch in CHANNELS:
+        c = by_id.get(ch["id"])
+        if c and c.get("ok") and c.get("z_score") is not None:
+            w = ch.get("weight", 1.0)
+            wsum += c["z_score"] * w; wtot += w
+    composite_z = round(wsum / wtot, 2) if wtot else (round(statistics.mean(z_values), 2) if z_values else None)
     regime = classify_regime(composite_z)
     n_live = sum(1 for c in per_channel if c.get("ok"))
 
+    # Composite history for trend + duration + percentile
+    try:
+        hist_doc = json.loads(boto3.client("s3").get_object(Bucket=S3_BUCKET, Key="data/bond-vol-history.json")["Body"].read())
+    except Exception:
+        hist_doc = {"points": []}
+    points = hist_doc.get("points", [])
+    today = started.date().isoformat()
+    if composite_z is not None:
+        if not points or points[-1].get("date") != today:
+            points.append({"date": today, "z": composite_z, "regime": regime})
+        else:
+            points[-1] = {"date": today, "z": composite_z, "regime": regime}
+    points = points[-400:]
+    zhist = [p["z"] for p in points if p.get("z") is not None]
+    def _chg(n):
+        if composite_z is None or len(zhist) <= n: return None
+        return round(composite_z - zhist[-1-n], 2)
+    trend = {"dod": _chg(1), "wow": _chg(5), "mom": _chg(21)}
+    streak = 0
+    for p in reversed(points):
+        if p.get("regime") == regime: streak += 1
+        else: break
+    comp_pct = None
+    if composite_z is not None and len(zhist) >= 30:
+        comp_pct = round(100 * sum(1 for z in zhist if z < composite_z) / len(zhist), 1)
+    def _zof(cid):
+        c = by_id.get(cid); return c.get("z_score") if c and c.get("ok") else None
+    front = [z for z in (_zof("dgs2"), _zof("dgs5")) if z is not None]
+    longend = [z for z in (_zof("dgs10"), _zof("dgs30")) if z is not None]
+    credit = [z for z in (_zof("hy_spread"), _zof("ig_bbb")) if z is not None]
+    real = [z for z in (_zof("tips_10y"), _zof("breakeven_10y")) if z is not None]
+    term_structure = {
+        "front_end_z": round(statistics.mean(front), 2) if front else None,
+        "long_end_z": round(statistics.mean(longend), 2) if longend else None,
+        "credit_z": round(statistics.mean(credit), 2) if credit else None,
+        "real_rate_z": round(statistics.mean(real), 2) if real else None,
+    }
+    fe, le = term_structure["front_end_z"], term_structure["long_end_z"]
+    if fe is not None and le is not None:
+        if fe - le > 0.5: ts_signal = "FRONT-END LED - Fed/rate-path vol dominates (policy uncertainty)"
+        elif le - fe > 0.5: ts_signal = "LONG-END LED - term-premium/duration vol dominates (fiscal/supply)"
+        else: ts_signal = "BALANCED - vol even across the curve"
+    else: ts_signal = None
+    PLAYBOOK = {
+        "CRISIS": {"equities": "De-risk hard. Bond-vol crisis extremes precede the deepest equity drawdowns; cut gross, raise cash, favor quality/low-beta.", "duration": "Whipsaw both ways - size down.", "credit": "HY blow-out risk; up-in-quality.", "vol": "Own convexity - long-vol/tail hedges cheap vs realized.", "risk_posture": "RISK-OFF"},
+        "ELEVATED": {"equities": "Trim beta, tighten stops. Rising bond vol = rising correlation; diversification fails when you need it.", "duration": "Reduce duration; carry fragile.", "credit": "Reduce HY; spreads follow with a lag.", "vol": "Accumulate hedges while affordable.", "risk_posture": "CAUTIOUS"},
+        "NORMAL": {"equities": "Factor/sector selection drives returns, not macro vol. Stay invested.", "duration": "Carry & curve trades viable.", "credit": "Spread carry attractive; selective HY OK.", "vol": "Hedges optional; sell premium selectively.", "risk_posture": "NEUTRAL"},
+        "BOND_VOL_LOW": {"equities": "Compressed vol = complacency. Good near-term BUT the calm precedes spikes - don't add leverage into the quiet.", "duration": "Carry/roll-down favorable; stops matter.", "credit": "Spread carry juicy but crowded.", "vol": "Vol cheap - opportunistic time to BUY tail protection.", "risk_posture": "RISK-ON (complacency watch)"},
+        "DATA_UNAVAILABLE": {"risk_posture": "UNKNOWN"},
+    }
+    playbook = PLAYBOOK.get(regime, PLAYBOOK["NORMAL"])
+    try:
+        boto3.client("s3").put_object(Bucket=S3_BUCKET, Key="data/bond-vol-history.json",
+            Body=json.dumps({"points": points}, default=str).encode(), ContentType="application/json")
+    except Exception as e:
+        print(f"[bond-vol] history write err: {e}")
+
     out = {
         "ok": True,
-        "version": VERSION,
+        "version": "2.0",
         "generated_at": started.isoformat(),
         "regime": regime,
         "composite_z_score": composite_z,
+        "composite_percentile": comp_pct,
+        "regime_streak_days": streak,
+        "trend": trend,
+        "term_structure": {**term_structure, "signal": ts_signal},
+        "playbook": playbook,
+        "risk_posture": playbook.get("risk_posture"),
+        "history": points[-180:],
         "n_channels_live": n_live,
         "n_channels_total": len(CHANNELS),
         "channels": per_channel,
@@ -289,8 +375,7 @@ def lambda_handler(event, context):
             "realized_vol_window_days": REALIZED_WINDOW,
             "zscore_baseline_days": ZSCORE_HISTORY_DAYS,
             "annualization": "sqrt(252)",
-            "composite_aggregation": ("equal-weight z-score average across "
-                                       "5 distinct bond-stress channels"),
+            "composite_aggregation": ("weighted z-score across 10 bond-stress channels"),
             "outlier_treatment": "z clipped to +/- 3.0 sigma",
         },
         "sources": {
