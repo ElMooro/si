@@ -1,0 +1,154 @@
+{
+  "data/etf-flows.json": {
+    "top_keys": [
+      "version",
+      "generated_at",
+      "n_etfs_analyzed",
+      "by_etf",
+      "by_category",
+      "heavy_inflow",
+      "heavy_outflow",
+      "unusual_vol",
+      "rotation_in",
+      "rotation_out",
+      "duration_s",
+      "data_sources",
+      "signal_definitions"
+    ],
+    "arrays": {
+      "by_etf(dict)": {
+        "fields": [
+          "ticker",
+          "category",
+          "name",
+          "latest_close",
+          "aum_b",
+          "return_1d_pct",
+          "return_5d_pct",
+          "return_20d_pct",
+          "today_dollar_vol_b",
+          "avg_5d_dollar_vol_b",
+          "avg_20d_dollar_vol_b",
+          "avg_60d_dollar_vol_b",
+          "dvol_z_score",
+          "dvol_5d_vs_20d_pct",
+          "flow_signal"
+        ],
+        "sample": {
+          "ticker": "ETHA",
+          "category": "CRYPTO",
+          "name": "iShares Ethereum Trust ETF",
+          "latest_close": 13.58,
+          "aum_b": 5.36,
+          "return_1d_pct": -5.56,
+          "return_5d_pct": -12.3,
+          "return_20d_pct": -24.13,
+          "today_dollar_vol_b": 0.451,
+          "avg_5d_dollar_vol_b": 0.505,
+          "avg_20d_dollar_vol_b": 0.393,
+          "avg_60d_dollar_vol_b": null,
+          "dvol_z_score": null,
+          "dvol_5d_vs_20d_pct": 28.3,
+          "flow_signal": "ROTATION_OUT"
+        }
+      },
+      "by_category(dict)": {
+        "fields": [
+          "category",
+          "n_etfs",
+          "total_aum_b",
+          "total_today_dollar_vol_b",
+          "avg_dvol_z",
+          "avg_return_1d_pct",
+          "category_signal"
+        ],
+        "sample": {
+          "category": "BROAD_EQUITY_US",
+          "n_etfs": 8,
+          "total_aum_b": 3964.44,
+          "total_today_dollar_vol_b": 94.295,
+          "avg_dvol_z": 0,
+          "avg_return_1d_pct": -0.73,
+          "category_signal": "NORMAL"
+        }
+      },
+      "rotation_in": {
+        "len": 3,
+        "fields": [
+          "ticker",
+          "category",
+          "name",
+          "latest_close",
+          "aum_b",
+          "return_1d_pct",
+          "return_5d_pct",
+          "return_20d_pct",
+          "today_dollar_vol_b",
+          "avg_5d_dollar_vol_b",
+          "avg_20d_dollar_vol_b",
+          "avg_60d_dollar_vol_b",
+          "dvol_z_score",
+          "dvol_5d_vs_20d_pct",
+          "flow_signal"
+        ],
+        "sample": {
+          "ticker": "MTUM",
+          "category": "ALTERNATIVES",
+          "name": "iShares MSCI USA Momentum Factor ETF",
+          "latest_close": 329.5,
+          "aum_b": 28.83,
+          "return_1d_pct": 1.06,
+          "return_5d_pct": 5.16,
+          "return_20d_pct": 13.19,
+          "today_dollar_vol_b": 0.358,
+          "avg_5d_dollar_vol_b": 0.798,
+          "avg_20d_dollar_vol_b": 0.463,
+          "avg_60d_dollar_vol_b": null,
+          "dvol_z_score": null,
+          "dvol_5d_vs_20d_pct": 72.6,
+          "flow_signal": "ROTATION_IN"
+        }
+      },
+      "rotation_out": {
+        "len": 6,
+        "fields": [
+          "ticker",
+          "category",
+          "name",
+          "latest_close",
+          "aum_b",
+          "return_1d_pct",
+          "return_5d_pct",
+          "return_20d_pct",
+          "today_dollar_vol_b",
+          "avg_5d_dollar_vol_b",
+          "avg_20d_dollar_vol_b",
+          "avg_60d_dollar_vol_b",
+          "dvol_z_score",
+          "dvol_5d_vs_20d_pct",
+          "flow_signal"
+        ],
+        "sample": {
+          "ticker": "QUAL",
+          "category": "ALTERNATIVES",
+          "name": "iShares MSCI USA Quality Factor ETF",
+          "latest_close": 215.63,
+          "aum_b": 52.09,
+          "return_1d_pct": -0.07,
+          "return_5d_pct": 0.18,
+          "return_20d_pct": 3.92,
+          "today_dollar_vol_b": 0.403,
+          "avg_5d_dollar_vol_b": 1.748,
+          "avg_20d_dollar_vol_b": 0.594,
+          "avg_60d_dollar_vol_b": null,
+          "dvol_z_score": null,
+          "dvol_5d_vs_20d_pct": 194.2,
+          "flow_signal": "ROTATION_OUT"
+        }
+      }
+    }
+  },
+  "data/etf-fund-flows.json": {
+    "error": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist"
+  }
+}
