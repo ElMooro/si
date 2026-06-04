@@ -58,6 +58,21 @@ footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);color:v
 .loading{text-align:center;padding:40px;color:var(--dim);font-family:var(--mono)}
 .callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--cyan)}
 .callout strong{color:var(--cyan);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+.panel-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.mini-panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.mp-label{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.mp-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--fg)}
+.mp-sub{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:3px}
+.ts-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.ts-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;text-align:center}
+.ts-l{font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.ts-z{font-family:var(--mono);font-size:22px;font-weight:700;margin:6px 0}
+.ts-s{font-family:var(--mono);font-size:10px;color:var(--mute)}
+.pb-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
+.pb-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.pb-l{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--cyan);margin-bottom:6px}
+.pb-t{font-size:12.5px;color:var(--fg);line-height:1.5}
+@media(max-width:820px){.panel-row,.ts-grid,.pb-grid{grid-template-columns:1fr 1fr}}
 </style>
 <script src="/ai-brief-kit.js"></script>
 </head>
@@ -65,7 +80,7 @@ footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);color:v
 <div class="container">
 <header>
   <h1>📊 Bond Vol Composite (Synthetic MOVE)</h1>
-  <p class="subtitle">Bloomberg MOVE-equivalent regime gauge built from 5 independent FRED bond-stress channels: <strong>10Y yield vol</strong>, <strong>2Y yield vol</strong>, <strong>2s10s curve vol</strong>, <strong>HY credit spread vol</strong>, <strong>BBB IG spread vol</strong>. Equal-weight z-score composite identifies bond-market vol regime (LOW / NORMAL / ELEVATED / CRISIS). ICE MOVE itself is paywalled.</p>
+  <p class="subtitle">Bloomberg MOVE-equivalent regime gauge built from <strong>10 independent FRED bond-stress channels</strong> — 2/5/10/30Y yield vol, 2s10s &amp; 10Y-3M curve vol, HY &amp; BBB credit-spread vol, 10Y real-yield vol, 10Y breakeven vol. <strong>Weighted</strong> z-score composite with regime, term-structure decomposition, trend, and a cross-asset playbook. ICE MOVE itself is paywalled.</p>
   <nav class="crumbs"><a href="/">← Home</a><a href="/retail-edges.html">Retail Edges</a><a href="/risk-desk.html">Risk Desk</a><a href="/liquidity.html">Liquidity</a></nav>
 </header>
 
@@ -100,6 +115,10 @@ function fmtPct(v){
   return v.toFixed(1)+'%';
 }
 
+function postureColor(p){p=(p||'').toUpperCase();if(p.includes('OFF'))return'#ff5577';if(p.includes('CAUTIOUS'))return'#ff9f43';if(p.includes('ON'))return'#26ffaf';return'#fbbf24';}
+function trendStr(t){if(!t)return'—';function a(v){if(v==null)return'·';return(v>=0?'+':'')+v.toFixed(2);}return a(t.dod)+' / '+a(t.wow)+' / '+a(t.mom);}
+function tsCard(label,z,sub){var col=z==null?'#6f7b91':(z>=1?'#ff5577':z>=0.3?'#ff9f43':z<=-1?'#22d3ee':'#26ffaf');return '<div class="ts-card"><div class="ts-l">'+label+'</div><div class="ts-z" style="color:'+col+'">'+(z==null?'—':(z>=0?'+':'')+z.toFixed(2)+'σ')+'</div><div class="ts-s">'+sub+'</div></div>';}
+function pbCard(label,txt){return '<div class="pb-card"><div class="pb-l">'+label+'</div><div class="pb-t">'+(txt||'—')+'</div></div>';}
 function render(d){
   if(!d||!d.ok){
     document.getElementById('root').innerHTML = '<div class="loading">Data load failed.</div>';
@@ -120,10 +139,45 @@ function render(d){
     <div class="regime-banner regime-${d.regime}">
       <div class="label">Current Bond Vol Regime</div>
       <div class="v">${d.regime.replace('_',' ')}</div>
-      <div class="vsub">Composite z: ${d.composite_z_score!==null ? (d.composite_z_score>=0?'+':'')+d.composite_z_score.toFixed(2)+'σ' : '—'} · ${d.n_channels_live}/${d.n_channels_total} channels live · ${regimeMessages[d.regime]||''}</div>
+      <div class="vsub">Composite z: ${d.composite_z_score!==null ? (d.composite_z_score>=0?'+':'')+d.composite_z_score.toFixed(2)+'σ' : '—'}${d.composite_percentile!=null?' · '+d.composite_percentile+'th pctile':''} · ${d.n_channels_live}/${d.n_channels_total} channels live${d.regime_streak_days?' · '+d.regime_streak_days+'d in regime':''} · ${regimeMessages[d.regime]||''}</div>
     </div>
 
-    <h2>5 Bond-Stress Channels</h2>
+    <div class="panel-row">
+      <div class="mini-panel">
+        <div class="mp-label">Risk Posture</div>
+        <div class="mp-val" style="color:${postureColor(d.risk_posture)}">${(d.risk_posture||'—')}</div>
+      </div>
+      <div class="mini-panel">
+        <div class="mp-label">Composite Trend</div>
+        <div class="mp-val">${trendStr(d.trend)}</div>
+        <div class="mp-sub">DoD / WoW / MoM Δz</div>
+      </div>
+      <div class="mini-panel">
+        <div class="mp-label">Term-Structure Lead</div>
+        <div class="mp-val" style="font-size:13px">${d.term_structure?.signal?d.term_structure.signal.split(' - ')[0]:'—'}</div>
+        <div class="mp-sub">${d.term_structure?.signal?(d.term_structure.signal.split(' - ')[1]||''):''}</div>
+      </div>
+    </div>
+
+    ${d.term_structure ? `
+    <h2>Term-Structure Decomposition</h2>
+    <div class="ts-grid">
+      ${tsCard('Front-End (2Y/5Y)', d.term_structure.front_end_z, 'Fed-path / policy vol')}
+      ${tsCard('Long-End (10Y/30Y)', d.term_structure.long_end_z, 'Duration / term-premium vol')}
+      ${tsCard('Credit (HY/BBB)', d.term_structure.credit_z, 'Spread / risk-off vol')}
+      ${tsCard('Real-Rate (TIPS/BE)', d.term_structure.real_rate_z, 'Real-discount / inflation vol')}
+    </div>` : ''}
+
+    ${d.playbook ? `
+    <h2>Regime Playbook — How To Position</h2>
+    <div class="pb-grid">
+      ${pbCard('📉 Equities', d.playbook.equities)}
+      ${pbCard('📈 Duration', d.playbook.duration)}
+      ${pbCard('💳 Credit', d.playbook.credit)}
+      ${pbCard('🛡️ Vol / Hedges', d.playbook.vol)}
+    </div>` : ''}
+
+    <h2>10 Bond-Stress Channels</h2>
     <div class="channel-grid">
       ${d.channels.map(c=>`
         <div class="channel-card">

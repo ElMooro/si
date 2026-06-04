@@ -127,6 +127,7 @@ def lambda_handler(event, context):
     dislocations = read_json("data/dislocations.json") or {}
     opportunities = read_json("data/opportunities.json") or {}
     capital_flow = read_json("data/capital-flow.json") or {}
+    bond_vol = read_json("data/bond-vol.json") or {}
 
     weights, weight_src = learned_weights(calibration)
 
@@ -319,6 +320,23 @@ def lambda_handler(event, context):
         })
 
     setups.sort(key=lambda s: -s["conviction"])
+
+    # ── BOND-VOL RISK-REGIME GATE ──
+    # Bond vol is the leading cross-asset risk gauge. In ELEVATED/CRISIS regimes
+    # (risk-off), temper long conviction (correlations rise, diversification
+    # fails); in LOW/NORMAL, leave full conviction. This makes the whole board
+    # regime-aware rather than firing the same in calm and crisis.
+    bv_regime = (bond_vol.get("regime") or "").upper()
+    bv_z = bond_vol.get("composite_z_score")
+    bv_posture = bond_vol.get("risk_posture")
+    regime_mult = {"CRISIS": 0.78, "ELEVATED": 0.90, "NORMAL": 1.0,
+                   "BOND_VOL_LOW": 1.04, "DATA_UNAVAILABLE": 1.0}.get(bv_regime, 1.0)
+    if regime_mult != 1.0:
+        for s in setups:
+            s["conviction"] = round(min(100.0, s["conviction"] * regime_mult), 1)
+            s["bond_vol_adjusted"] = True
+        setups.sort(key=lambda s: -s["conviction"])
+
     by_verdict = defaultdict(list)
     for s in setups:
         by_verdict[s["verdict"]].append(s["ticker"])
@@ -329,6 +347,8 @@ def lambda_handler(event, context):
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s": round(time.time() - t0, 1),
         "weight_source": weight_src,
+        "bond_vol_regime": {"regime": bv_regime or None, "composite_z": bv_z,
+                            "risk_posture": bv_posture, "conviction_multiplier": regime_mult},
         "methodology": (
             "conviction = Σ(signal_strength × learned_weight) × confluence(1+0.22 "
             "per extra independent signal, cap 2.2) × 22, clamped 100. Weights are "
