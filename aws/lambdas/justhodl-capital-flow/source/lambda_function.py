@@ -44,6 +44,7 @@ def lambda_handler(event=None, context=None):
     t0 = time.time()
     f13 = read_json("data/13f-positions.json") or {}
     etf = read_json("data/etf-flows.json") or {}
+    etf_true = read_json("data/etf-true-flows.json") or {}
     etf2 = read_json("data/etf-fund-flows.json") or {}
     screener = read_json("screener/data.json") or {}
     rows = screener.get("stocks") or (screener if isinstance(screener, list) else [])
@@ -104,36 +105,47 @@ def lambda_handler(event=None, context=None):
                            "investor_chg": inv, "signal": sig,
                            "name": r.get("name"), "sector": r.get("sector")}
 
-    # ── 3) ETF flows (sector/thematic capital direction) ──
-    # etf-flows.json uses dollar-volume z-score + returns as a flow proxy.
+    # ── 3) ETF flows — prefer TRUE net flows (Δshares × price); fall back to
+    # the dollar-volume proxy in etf-flows.json. ──
     etf_flows = []
-    heavy_in = etf.get("heavy_inflow") or etf.get("rotation_in") or []
-    heavy_out = etf.get("heavy_outflow") or etf.get("rotation_out") or []
-    by_etf = etf.get("by_etf") or {}
-    src = list(by_etf.values()) if isinstance(by_etf, dict) else (by_etf if isinstance(by_etf, list) else [])
-    for e in src:
-        tk = (e.get("ticker") or "").upper()
-        if not tk:
-            continue
-        zsc = sf(e.get("dvol_z_score"))
-        r5 = sf(e.get("return_5d_pct"))
-        r20 = sf(e.get("return_20d_pct"))
-        sig = (e.get("flow_signal") or "").upper()
-        # flow proxy: dollar-volume surge in the direction of price (up = inflow)
-        direction = 1 if (r5 is not None and r5 >= 0) else -1
-        flow_proxy = round((zsc or 0) * direction, 2)
-        etf_flows.append({"ticker": tk, "name": e.get("name"), "category": e.get("category"),
-                          "aum_b": sf(e.get("aum_b")), "dvol_z": zsc, "return_5d_pct": r5,
-                          "return_20d_pct": r20, "flow_signal": sig, "flow_proxy": flow_proxy})
-    etf_flows.sort(key=lambda x: -(x.get("flow_proxy") or 0))
-    # category-level rotation
-    by_cat = etf.get("by_category") or {}
-    cat_src = list(by_cat.values()) if isinstance(by_cat, dict) else (by_cat if isinstance(by_cat, list) else [])
-    cat_rotation = sorted([{"category": c.get("category"), "signal": c.get("category_signal"),
-                            "avg_dvol_z": sf(c.get("avg_dvol_z")), "avg_return_1d_pct": sf(c.get("avg_return_1d_pct")),
-                            "total_aum_b": sf(c.get("total_aum_b"))}
-                           for c in cat_src if c.get("category")],
-                          key=lambda x: -(x.get("avg_dvol_z") or 0))
+    if etf_true.get("by_etf"):
+        tin = etf_true.get("inflows") or []
+        tout = etf_true.get("outflows") or []
+        for e in tin + tout:
+            etf_flows.append({"ticker": e.get("ticker"), "name": e.get("category"),
+                              "category": e.get("category"),
+                              "net_flow_5d_usd": e.get("net_flow_5d_usd"),
+                              "net_flow_20d_usd": e.get("net_flow_20d_usd"),
+                              "shares_chg_5d_pct": e.get("shares_chg_5d_pct"),
+                              "aum_est_b": e.get("aum_est_b"), "true_flow": True})
+        cat_rotation = [{"category": c.get("category"), "net_flow_5d_usd": c.get("net_flow_5d_usd"),
+                         "n_etfs": c.get("n_etfs"), "signal": ("INFLOW" if (c.get("net_flow_5d_usd") or 0) > 0 else "OUTFLOW")}
+                        for c in (etf_true.get("category_rotation") or [])]
+    else:
+        heavy_in = etf.get("heavy_inflow") or etf.get("rotation_in") or []
+        heavy_out = etf.get("heavy_outflow") or etf.get("rotation_out") or []
+        by_etf = etf.get("by_etf") or {}
+        src = list(by_etf.values()) if isinstance(by_etf, dict) else (by_etf if isinstance(by_etf, list) else [])
+        for e in src:
+            tk = (e.get("ticker") or "").upper()
+            if not tk:
+                continue
+            zsc = sf(e.get("dvol_z_score")); r5 = sf(e.get("return_5d_pct")); r20 = sf(e.get("return_20d_pct"))
+            sig = (e.get("flow_signal") or "").upper()
+            direction = 1 if (r5 is not None and r5 >= 0) else -1
+            flow_proxy = round((zsc or 0) * direction, 2)
+            etf_flows.append({"ticker": tk, "name": e.get("name"), "category": e.get("category"),
+                              "aum_b": sf(e.get("aum_b")), "dvol_z": zsc, "return_5d_pct": r5,
+                              "return_20d_pct": r20, "flow_signal": sig, "flow_proxy": flow_proxy})
+        by_cat = etf.get("by_category") or {}
+        cat_src = list(by_cat.values()) if isinstance(by_cat, dict) else (by_cat if isinstance(by_cat, list) else [])
+        cat_rotation = sorted([{"category": c.get("category"), "signal": c.get("category_signal"),
+                                "avg_dvol_z": sf(c.get("avg_dvol_z")), "avg_return_1d_pct": sf(c.get("avg_return_1d_pct")),
+                                "total_aum_b": sf(c.get("total_aum_b"))}
+                               for c in cat_src if c.get("category")],
+                              key=lambda x: -(x.get("avg_dvol_z") or 0))
+    # sort by whichever flow metric we have
+    etf_flows.sort(key=lambda x: -(x.get("net_flow_5d_usd") if x.get("true_flow") else (x.get("flow_proxy") or 0)) or 0)
 
     # ── Fuse per ticker ──
     all_tks = set(f13_scores) | set(inst_scores)
@@ -171,7 +183,7 @@ def lambda_handler(event=None, context=None):
         "accumulating": accumulating,
         "distributing": distributing,
         "etf_flows_in": etf_flows[:25],
-        "etf_flows_out": [e for e in etf_flows if (e.get("flow_proxy") or 0) < 0][:15],
+        "etf_flows_out": [e for e in etf_flows if ((e.get("net_flow_5d_usd") if e.get("true_flow") else e.get("flow_proxy")) or 0) < 0][:15],
         "category_rotation": cat_rotation[:15],
         "by_ticker": {r["ticker"]: r for r in results[:300]},
     }

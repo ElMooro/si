@@ -91,10 +91,15 @@ function render(){
     </div>`;
   } else if(tab==='etfs'){
     const ein=DATA.etf_flows_in||[], eout=DATA.etf_flows_out||[];
-    const erow=(e,neg)=>`<div class="row" onclick="window.open('/chart-pro.html','_blank')"><span class="tk">${esc(e.ticker)}</span>
-      <span class="nm">${esc(e.name||e.category||'')}</span>
-      <span class="sc" style="color:${neg?'var(--red)':'var(--green)'}">${e.return_5d_pct!=null?(e.return_5d_pct>=0?'+':'')+e.return_5d_pct+'%':'—'}</span>
-      <span style="font-family:var(--mono);font-size:9px;color:var(--fg-3);min-width:90px;text-align:right">${esc(e.flow_signal||'')}</span></div>`;
+    const erow=(e,neg)=>{
+      const tf=e.net_flow_5d_usd!=null;
+      const v=tf?e.net_flow_5d_usd:e.return_5d_pct;
+      const disp=tf?(Math.abs(v)>=1e9?(v>=0?'+':'')+'$'+(v/1e9).toFixed(2)+'B':(v>=0?'+':'')+'$'+(v/1e6).toFixed(0)+'M'):(v!=null?(v>=0?'+':'')+v+'%':'—');
+      return `<div class="row" onclick="window.open('/chart-pro.html','_blank')"><span class="tk">${esc(e.ticker)}</span>
+      <span class="nm">${esc(e.name||e.category||'')}${tf?' · 5d net flow':''}</span>
+      <span class="sc" style="color:${neg?'var(--red)':'var(--green)'}">${disp}</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--fg-3);min-width:70px;text-align:right">${tf?(e.aum_est_b?'$'+e.aum_est_b+'B':''):esc(e.flow_signal||'')}</span></div>`;
+    };
     h=`<div class="grid">
       <div class="col"><h2>🟢 ETF Inflows (capital rotating in)</h2>${ein.length?ein.map(e=>erow(e,false)).join(''):'<div class="loading">Awaiting market-day volume.</div>'}</div>
       <div class="col"><h2>🔴 ETF Outflows</h2>${eout.length?eout.map(e=>erow(e,true)).join(''):'<div class="loading">None.</div>'}</div>
@@ -102,8 +107,8 @@ function render(){
   } else {
     const cats=DATA.category_rotation||[];
     h=`<h2 style="font-family:var(--mono);font-size:15px;margin-bottom:10px">🔄 Sector / Asset-Class Rotation</h2><div class="cat-grid">`+
-      (cats.length?cats.map(c=>{const z=c.avg_dvol_z||0;const col=z>0.5?'var(--green)':z<-0.5?'var(--red)':'var(--fg-2)';
-        return `<div class="cat"><div class="cn">${esc((c.category||'').replace(/_/g,' '))}</div><div class="cs" style="color:${col}">${esc(c.signal||'')}</div><div style="font-family:var(--mono);font-size:9px;color:var(--fg-3);margin-top:3px">z ${z.toFixed(2)}</div></div>`;}).join(''):'<div class="loading">Awaiting market-day data.</div>')+`</div>`;
+      (cats.length?cats.map(c=>{const nf=c.net_flow_5d_usd;const z=c.avg_dvol_z;const col=(nf!=null?(nf>0?'var(--green)':'var(--red)'):(z>0.5?'var(--green)':z<-0.5?'var(--red)':'var(--fg-2)'));const disp=nf!=null?(Math.abs(nf)>=1e9?(nf>=0?'+':'')+'$'+(nf/1e9).toFixed(2)+'B':(nf>=0?'+':'')+'$'+(nf/1e6).toFixed(0)+'M'):(z!=null?'z '+z.toFixed(2):'');
+        return `<div class="cat"><div class="cn">${esc((c.category||'').replace(/_/g,' '))}</div><div class="cs" style="color:${col}">${esc(c.signal||'')}</div><div style="font-family:var(--mono);font-size:9px;color:var(--fg-3);margin-top:3px">${disp}</div></div>`;}).join(''):'<div class="loading">Awaiting market-day data.</div>')+`</div>`;
   }
   h+=`<div class="disclaimer">${esc((DATA.methodology||''))}<br><br>Sources: 13F ${DATA.sources&&DATA.sources['13f']?'✓':'—'} · inst change ${DATA.sources?DATA.sources.inst_change:0} names · ETFs ${DATA.sources?DATA.sources.etf_flows:0} · Generated ${esc((DATA.generated_at||'').slice(0,16))} UTC.</div>`;
   document.getElementById('content').innerHTML=h;
