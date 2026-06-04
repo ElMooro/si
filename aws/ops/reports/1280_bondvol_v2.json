@@ -1,0 +1,83 @@
+{
+  "started": "2026-06-04T12:40:36.780084+00:00",
+  "invoke": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"version\\\": \\\"1.0.1\\\", \\\"regime\\\": \\\"NORMAL\\\", \\\"composite_z\\\": -0.14, \\\"n_channels_live\\\": 10, \\\"n_channels_total\\\": 10}\"}",
+  "regime": "NORMAL",
+  "z": -0.14,
+  "pct": null,
+  "live": "10/10",
+  "trend": {
+    "dod": null,
+    "wow": null,
+    "mom": null
+  },
+  "term_structure": {
+    "front_end_z": 0.46,
+    "long_end_z": -0.09,
+    "credit_z": -1.59,
+    "real_rate_z": 0.38,
+    "signal": "FRONT-END LED - Fed/rate-path vol dominates (policy uncertainty)"
+  },
+  "risk_posture": "NEUTRAL",
+  "channels": [
+    {
+      "id": "dgs10",
+      "ok": true,
+      "z": 0.38,
+      "pct": 62.3
+    },
+    {
+      "id": "dgs2",
+      "ok": true,
+      "z": 0.52,
+      "pct": 69.0
+    },
+    {
+      "id": "dgs30",
+      "ok": true,
+      "z": -0.56,
+      "pct": 30.6
+    },
+    {
+      "id": "dgs5",
+      "ok": true,
+      "z": 0.4,
+      "pct": 58.7
+    },
+    {
+      "id": "t10y2y",
+      "ok": true,
+      "z": 0.04,
+      "pct": 51.6
+    },
+    {
+      "id": "t10y3m",
+      "ok": true,
+      "z": 0.56,
+      "pct": 68.3
+    },
+    {
+      "id": "hy_spread",
+      "ok": true,
+      "z": -1.68,
+      "pct": 1.2
+    },
+    {
+      "id": "ig_bbb",
+      "ok": true,
+      "z": -1.51,
+      "pct": 7.9
+    },
+    {
+      "id": "tips_10y",
+      "ok": true,
+      "z": -0.13,
+      "pct": 54.0
+    },
+    {
+      "id": "breakeven_10y",
+      "ok": true,
+      "z": 0.89,
+      "pct": 76.6
+    }
+  ]
+}
