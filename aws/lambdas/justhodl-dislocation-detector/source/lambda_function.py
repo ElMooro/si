@@ -319,7 +319,73 @@ def lambda_handler(event=None, context=None):
 
     scored.sort(key=lambda x: -x["dislocation_score"])
 
-    # For the top names, find the "rich peer" — the cohort member that is
+    # ── MOMENTUM / REGIME OVERLAY: "cheap AND inflecting" ──
+    # The backtest showed cheap-value lagged momentum. So we fetch recent price
+    # trend for the TOP cheap candidates and require momentum to be turning UP
+    # before a name is a true buy. Cheap + downtrending = falling knife (penalize);
+    # cheap + inflecting = the real setup (boost).
+    import concurrent.futures as cf
+    polygon_key = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+    top_for_mom = scored[:80]
+
+    def momentum(rc):
+        tk = rc["ticker"]
+        try:
+            from datetime import timedelta
+            to = datetime.now(timezone.utc); frm = to - timedelta(days=120)
+            url = (f"https://api.polygon.io/v2/aggs/ticker/{tk}/range/1/day/"
+                   f"{frm.strftime('%Y-%m-%d')}/{to.strftime('%Y-%m-%d')}?adjusted=true&sort=asc&limit=200&apiKey={polygon_key}")
+            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
+            with urllib.request.urlopen(req, timeout=12) as r:
+                data = json.loads(r.read().decode())
+            bars = data.get("results") or []
+            if len(bars) < 30:
+                return tk, None
+            closes = [b["c"] for b in bars]
+            last = closes[-1]
+            sma20 = sum(closes[-20:]) / 20
+            sma50 = sum(closes[-50:]) / 50 if len(closes) >= 50 else sma20
+            ret_20d = (last / closes[-20] - 1) * 100 if closes[-20] else 0
+            ret_5d = (last / closes[-5] - 1) * 100 if closes[-5] else 0
+            # inflecting = price above 20d SMA, 20d SMA rising vs 50d, recent green
+            above_20 = last > sma20
+            sma_rising = sma20 > sma50
+            recent_up = ret_5d > 0
+            inflecting = above_20 and (sma_rising or recent_up)
+            # momentum score 0-1
+            ms = 0.0
+            if above_20: ms += 0.35
+            if sma_rising: ms += 0.30
+            if recent_up: ms += 0.20
+            if ret_20d > 0: ms += 0.15
+            return tk, {"inflecting": inflecting, "mom_score": round(ms, 2),
+                        "ret_20d": round(ret_20d, 1), "ret_5d": round(ret_5d, 1),
+                        "above_20d_sma": above_20, "sma_rising": sma_rising}
+        except Exception:
+            return tk, None
+
+    mom_map = {}
+    with cf.ThreadPoolExecutor(max_workers=16) as ex:
+        for fut in cf.as_completed([ex.submit(momentum, rc) for rc in top_for_mom]):
+            tk, m = fut.result()
+            if m: mom_map[tk] = m
+    # apply overlay: boost inflecting, penalize falling knives
+    for rc in scored:
+        m = mom_map.get(rc["ticker"])
+        if not m:
+            continue
+        rc["momentum"] = m
+        if m["inflecting"]:
+            rc["dislocation_score"] = round(rc["dislocation_score"] * 1.15, 1)
+            rc["cheap_and_inflecting"] = True
+        elif m["ret_20d"] < -10 and not m["above_20d_sma"]:
+            rc["dislocation_score"] = round(rc["dislocation_score"] * 0.65, 1)  # falling knife
+            rc.setdefault("caveats", []).append("downtrend — not yet inflecting (falling knife)")
+            rc["cheap_and_inflecting"] = False
+        else:
+            rc["cheap_and_inflecting"] = False
+    scored.sort(key=lambda x: -x["dislocation_score"])
+
     # expensive (top-quartile EV/S) AND weaker quality (the dislocation pair)
     by_cohort = {}
     for s in scored: by_cohort.setdefault(s["cohort"], []).append(s)
@@ -356,6 +422,9 @@ def lambda_handler(event=None, context=None):
     top = scored[:120]
     # buy-the-laggard shortlist: strong score + has a richer weaker peer + acceptable risk
     laggards = [s for s in top if s.get("dislocated_vs") and s["risk_penalty"] < 0.45][:40]
+    # The highest-conviction subset: cheap AND inflecting (momentum confirming)
+    cheap_inflecting = [s for s in scored if s.get("cheap_and_inflecting")
+                        and s["risk_penalty"] < 0.45][:25]
 
     output = {
         "engine": "dislocation-detector",
@@ -371,6 +440,7 @@ def lambda_handler(event=None, context=None):
             "concentration. Score = 100*sqrt(cheap)*sqrt(quality)*(1-risk). "
             "Reuses screener/data.json so the full ~1,800-name universe is scored."),
         "buy_the_laggard": laggards,
+        "cheap_and_inflecting": cheap_inflecting,
         "top_dislocations": top,
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
