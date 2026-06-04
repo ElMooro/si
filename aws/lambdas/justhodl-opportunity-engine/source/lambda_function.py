@@ -167,7 +167,7 @@ def build_industry_benchmarks(universe, fwd_growth):
     return out
 
 
-def fetch_forward_growth(universe, max_n=1200):
+def fetch_forward_growth(universe, max_n=2600):
     """Concurrent FMP analyst-estimates → expected (forward) revenue & EPS growth
     per ticker. Computes EXPECTED COMPANY GROWTH from current vs next-year est."""
     import concurrent.futures as cf
@@ -200,7 +200,7 @@ def fetch_forward_growth(universe, max_n=1200):
             return sym, None
 
     result = {}
-    with cf.ThreadPoolExecutor(max_workers=20) as ex:
+    with cf.ThreadPoolExecutor(max_workers=32) as ex:
         for fut in cf.as_completed([ex.submit(one, s) for s in syms]):
             sym, v = fut.result()
             if v:

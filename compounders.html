@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Compounders · Quality Growth · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--bg-3:#131929;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--red:#ff5577;--amber:#fbbf24;--violet:#a78bfa;--mono:'IBM Plex Mono','SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px}.nav a{padding:7px 12px;font-size:12.5px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}
+.nav a:hover{color:var(--fg-1);background:var(--bg-2)}.nav a.active{color:var(--cyan)}.spacer{flex:1}
+.hero{text-align:center;padding:42px 24px 16px}
+.hero h1{font-size:30px;font-weight:800;color:var(--fg-0);margin-bottom:8px}
+.hero h1 .grad{background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:14px;color:var(--fg-2);max-width:640px;margin:0 auto}
+.controls{display:flex;gap:8px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+.pill{padding:6px 13px;border-radius:20px;font-family:var(--mono);font-size:11px;color:var(--fg-3);border:1px solid var(--border);background:var(--bg-1);cursor:pointer}
+.pill.active{color:var(--bg);background:var(--green);border-color:var(--green)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px 60px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .15s;cursor:pointer}
+.card:hover{border-color:var(--green)}
+.card-top{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
+.card-tk{font-family:var(--mono);font-size:19px;font-weight:800;color:var(--fg-0)}
+.card-cap{font-family:var(--mono);font-size:9px;text-transform:uppercase;padding:2px 7px;border-radius:10px;border:1px solid var(--border-bright);color:var(--fg-3)}
+.card-comp{margin-left:auto;font-family:var(--mono);font-size:22px;font-weight:800;color:var(--green)}
+.card-name{font-size:11.5px;color:var(--fg-3);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vbadge{font-family:var(--mono);font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:10px}
+.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px}
+.metric{text-align:center;padding:6px 4px;background:var(--bg-2);border-radius:5px}
+.metric .ml{font-family:var(--mono);font-size:8.5px;color:var(--fg-3);text-transform:uppercase}
+.metric .mv{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--fg-1);margin-top:2px}
+.flags{margin-top:9px;display:flex;flex-wrap:wrap;gap:5px}
+.flag{font-family:var(--mono);font-size:9.5px;padding:2px 7px;border-radius:4px;border:1px solid}
+.loading{text-align:center;padding:60px;color:var(--fg-3);font-family:var(--mono)}
+#quad{width:100%;max-width:900px;margin:0 auto 24px;display:block;background:var(--bg-1);border:1px solid var(--border);border-radius:12px}
+.disclaimer{max-width:900px;margin:24px auto 0;font-size:11px;color:var(--fg-3);line-height:1.6;background:var(--bg-1);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--mono)}
+.footer-note{text-align:center;color:var(--fg-3);font-size:12px;padding:24px;border-top:1px solid var(--border);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav">
+    <a href="/">Home</a><a href="/chart-pro.html">Chart Pro</a><a href="/opportunities.html">Opportunities</a>
+    <a href="/dislocations.html">Buy the Laggard</a><a href="/compounders.html" class="active">Compounders</a><a href="/pricing.html">Pricing</a>
+  </nav>
+  <div class="spacer"></div>
+</header>
+<section class="hero">
+  <h1>The <span class="grad">Compounders</span></h1>
+  <p>Durable quality growth across the full universe — high ROIC, fat margins, fast expected growth, low leverage, reasonable forward PEG. The rare businesses that compound. Plus analyst <b>estimate-revision momentum</b>.</p>
+  <div class="controls" id="filter">
+    <span class="pill active" data-cap="all">All caps</span>
+    <span class="pill" data-cap="mega">Mega</span><span class="pill" data-cap="large">Large</span>
+    <span class="pill" data-cap="mid">Mid</span><span class="pill" data-cap="small">Small</span>
+    <span class="pill" data-cap="micro">Micro</span><span class="pill" data-cap="nano">Nano</span>
+    <span style="width:1px;background:var(--border);margin:0 4px"></span>
+    <span class="pill rev" data-rev="0">All</span><span class="pill rev" data-rev="1">Estimates rising ↑</span>
+  </div>
+</section>
+<div class="wrap">
+  <canvas id="quad" height="360"></canvas>
+  <div id="content"><div class="loading">Loading compounders…</div></div>
+</div>
+<div class="footer-note">JustHodl.AI is a research &amp; analytics platform, not investment advice. A high compounder score is quality+growth — still verify valuation and risk.</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtCap(v){if(!v)return'—';if(v>=1e12)return'$'+(v/1e12).toFixed(1)+'T';if(v>=1e9)return'$'+(v/1e9).toFixed(1)+'B';if(v>=1e6)return'$'+(v/1e6).toFixed(0)+'M';return '$'+v}
+let DATA=[], capF='all', revF=0, gen='';
+const VCOL={'STRONG OPPORTUNITY':['#26ffaf','rgba(38,255,175,.12)'],'OPPORTUNITY':['#22d3ee','rgba(34,211,238,.1)'],'FAIR VALUE':['#a8b3c7','var(--bg-2)'],'HOLD / NEUTRAL':['#a8b3c7','var(--bg-2)'],'EXPENSIVE':['#fbbf24','rgba(251,191,36,.1)'],'HIGH RISK':['#ff5577','rgba(255,85,119,.12)']};
+async function load(){
+  let doc=null;
+  try{const r=await fetch(`${PROXY}/data/opportunities.json?t=${Date.now()}`);if(r.ok)doc=await r.json();}catch(e){}
+  if(!doc){document.getElementById('content').innerHTML='<div class="loading">Data not available — opportunity engine runs daily 14:00 UTC.</div>';return;}
+  gen=doc.generated_at||'';
+  DATA=(doc.all||[]).filter(r=>r.compounder_score!=null).sort((a,b)=>b.compounder_score-a.compounder_score);
+  render();
+}
+function rows(){return DATA.filter(r=>(capF==='all'||r.cap_bucket===capF)&&(!revF||(r.estimate_revision&&r.estimate_revision.direction==='UP')));}
+function card(r){
+  const gi=r.growth_intel||{}; const [vc,vb]=VCOL[r.verdict]||['#6f7b91','var(--bg-2)'];
+  const m=(l,v)=>`<div class="metric"><div class="ml">${l}</div><div class="mv">${v}</div></div>`;
+  const eg=gi.expected_company_growth_pct, cg=gi.company_rev_growth_pct;
+  const flags=[];
+  if(r.estimate_revision&&r.estimate_revision.direction==='UP')flags.push(`<span class="flag" style="color:#26ffaf;border-color:#26ffaf">📈 est ↑ +${r.estimate_revision.delta_pp}pp</span>`);
+  if(gi.expected_to_outgrow_industry)flags.push(`<span class="flag" style="color:#22d3ee;border-color:#22d3ee">▲ outgrowing industry</span>`);
+  if(r.lynch_ratio>=1.5)flags.push(`<span class="flag" style="color:#a78bfa;border-color:#a78bfa">GARP ${r.lynch_ratio}</span>`);
+  return `<div class="card" onclick="window.open('/chart-pro.html','_blank')">
+    <div class="card-top"><span class="card-tk">${esc(r.ticker)}</span><span class="card-cap">${esc(r.cap_bucket||'')}</span><span class="card-comp">${r.compounder_score}</span></div>
+    <div class="card-name">${esc(r.company||'')}${r.sector?' · '+esc(r.sector):''}</div>
+    <span class="vbadge" style="color:${vc};background:${vb};border:1px solid ${vc}">${esc(r.verdict||'')}</span>
+    <div class="metrics">
+      ${m('Exp Growth',eg!=null?(eg>=0?'+':'')+eg+'%':(cg!=null?cg+'%':'—'))}
+      ${m('Gr Margin',gi.gross_margin!=null?gi.gross_margin+'%':'—')}
+      ${m('Fwd PEG',gi.peg_forward!=null?gi.peg_forward:'—')}
+      ${m('P/E vs Ind',gi.pe_vs_industry_pct!=null?(gi.pe_vs_industry_pct>=0?'+':'')+gi.pe_vs_industry_pct+'%':'—')}
+      ${m('GO Score',r.growth_opportunity_score!=null?r.growth_opportunity_score:'—')}
+      ${m('Mkt Cap',fmtCap(r.market_cap||r.marketCap))}
+    </div>
+    ${flags.length?`<div class="flags">${flags.join('')}</div>`:''}
+  </div>`;
+}
+function quadrant(rs){
+  const cv=document.getElementById('quad'); const ctx=cv.getContext('2d');
+  const W=cv.width=cv.clientWidth*2, H=cv.height=720; ctx.scale(1,1);
+  ctx.fillStyle='#0c1018';ctx.fillRect(0,0,W,H);
+  const pad=70;
+  // axes: x = forward PEG (cheap→left), y = compounder score (high→top)
+  ctx.strokeStyle='#1c2433';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,H-pad);ctx.lineTo(W-30,H-pad);ctx.moveTo(pad,30);ctx.lineTo(pad,H-pad);ctx.stroke();
+  ctx.fillStyle='#6f7b91';ctx.font='22px IBM Plex Mono,monospace';
+  ctx.fillText('← cheaper (fwd PEG) · pricier →',pad+10,H-25);
+  ctx.save();ctx.translate(28,H/2);ctx.rotate(-Math.PI/2);ctx.fillText('compounder score →',0,0);ctx.restore();
+  // sweet-spot quadrant shading (high score + low PEG)
+  ctx.fillStyle='rgba(38,255,175,0.06)';ctx.fillRect(pad,30,(W-30-pad)*0.45,(H-pad-30)*0.45);
+  ctx.fillStyle='#26ffaf';ctx.font='18px IBM Plex Mono';ctx.fillText('SWEET SPOT',pad+14,52);
+  const pegMax=4;
+  rs.slice(0,80).forEach(r=>{
+    const peg=(r.growth_intel||{}).peg_forward; if(peg==null)return;
+    const x=pad+Math.min(peg,pegMax)/pegMax*(W-30-pad);
+    const y=(H-pad)-(r.compounder_score/100)*(H-pad-30);
+    const [vc]=VCOL[r.verdict]||['#6f7b91'];
+    ctx.fillStyle=vc;ctx.beginPath();ctx.arc(x,y,7,0,7);ctx.fill();
+    ctx.fillStyle='#e1e8f4';ctx.font='18px IBM Plex Mono';ctx.fillText(r.ticker,x+10,y+5);
+  });
+}
+function render(){
+  const rs=rows();
+  if(!rs.length){document.getElementById('content').innerHTML='<div class="loading">No compounders in this filter.</div>';return;}
+  try{quadrant(rs);}catch(e){}
+  document.getElementById('content').innerHTML='<div class="cards">'+rs.slice(0,120).map(card).join('')+'</div><div class="disclaimer">Compounder = expected growth (1.5×) + ROIC + gross margin + low leverage + reasonable forward PEG. Quadrant plots forward PEG (x) vs compounder score (y) — the green SWEET SPOT is high-quality growth at a fair price. Estimate-revision ↑ = analysts raising forecasts (a top alpha factor). Generated '+esc((gen||'').slice(0,16))+' UTC.</div>';
+}
+document.getElementById('filter').addEventListener('click',e=>{
+  if(e.target.dataset.cap){capF=e.target.dataset.cap;document.querySelectorAll('.pill[data-cap]').forEach(p=>p.classList.toggle('active',p.dataset.cap===capF));render();}
+  if(e.target.dataset.rev!=null){revF=+e.target.dataset.rev;document.querySelectorAll('.pill.rev').forEach(p=>p.classList.toggle('active',+p.dataset.rev===revF));render();}
+});
+window.addEventListener('resize',()=>{try{quadrant(rows());}catch(e){}});
+load();
+</script>
+</body>
+</html>

@@ -46,6 +46,8 @@ def read_json(key, default=None):
 # Each maps to a self-improvement tier so we can swap in the learned hit rate.
 SIGNAL_PRIORS = {
     "POLITICIAN_COMMITTEE": 0.85,   # committee jurisdiction edge — strongest
+    "COMPOUNDER":           0.80,   # durable quality growth (ROIC+margin+growth)
+    "REVISION_UP":          0.78,   # analyst estimate-revision momentum
     "DISLOCATION":          0.78,   # relative-value buy-the-laggard
     "INSIDER_CLUSTER":      0.80,   # multi-insider buying
     "EXECUTIVE_BUY":        0.72,   # executive-branch proximity
@@ -122,6 +124,7 @@ def lambda_handler(event, context):
     ai_rationale = read_json("data/trade-tickets-ai-rationale.json") or {}
     pol_ai = read_json("data/political-ai-investigation.json") or {}
     dislocations = read_json("data/dislocations.json") or {}
+    opportunities = read_json("data/opportunities.json") or {}
 
     weights, weight_src = learned_weights(calibration)
 
@@ -198,6 +201,25 @@ def lambda_handler(event, context):
         if vs: detail += f" · dislocated vs {vs}"
         add(tk, d.get("industry"), "DISLOCATION",
             normalize(d.get("dislocation_score"), 60, 95), detail)
+
+    # 7c. Compounders + estimate-revision momentum (from opportunity-engine)
+    opp_rows = opportunities.get("all") or opportunities.get("top_opportunities") or []
+    # top compounders
+    comps = sorted([r for r in opp_rows if (r.get("compounder_score") or 0) >= 70],
+                   key=lambda r: -(r.get("compounder_score") or 0))[:40]
+    for r in comps:
+        gi = r.get("growth_intel") or {}
+        eg = gi.get("expected_company_growth_pct")
+        add(r.get("ticker"), r.get("sector"), "COMPOUNDER",
+            normalize(r.get("compounder_score"), 70, 100),
+            f"compounder {r.get('compounder_score')}" + (f", {eg}% exp growth" if eg is not None else ""))
+    # estimate-revision UP (the alpha factor)
+    for r in opp_rows:
+        rev = r.get("estimate_revision") or {}
+        if rev.get("direction") == "UP" and (rev.get("delta_pp") or 0) >= 1.0:
+            add(r.get("ticker"), r.get("sector"), "REVISION_UP",
+                normalize(rev.get("delta_pp"), 1, 8),
+                f"analyst estimates revised +{rev.get('delta_pp')}pp")
 
     # 7. Earnings / predictions extras
     for p in (preds_doc.get("predictions") or []):
