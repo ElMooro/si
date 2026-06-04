@@ -1,0 +1,109 @@
+{
+  "started": "2026-06-03T23:58:07.522704+00:00",
+  "deploy": {
+    "action": "updated"
+  },
+  "schedule": "cron(15 15 * * ? *)",
+  "invoke": {
+    "status": 200,
+    "elapsed_s": 186.2,
+    "fe": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"analyzed\\\": 25, \\\"themes\\\": 16}\"}"
+  },
+  "result": {
+    "analyzed": 25,
+    "themes": [
+      "Biotech / Pharma",
+      "Insurance - Property & Casualty",
+      "Software / SaaS",
+      "Power / Energy Infrastructure",
+      "Packaged Foods",
+      "Oil & Gas Exploration & Production",
+      "Fintech / Payments",
+      "Household & Personal Products",
+      "Entertainment",
+      "Oil & Gas Equipment & Services",
+      "Medical - Care Facilities",
+      "Personal Products & Services",
+      "REIT - Specialty",
+      "Insurance - Life",
+      "Regulated Gas",
+      "Banks - Regional"
+    ],
+    "by_theme_counts": {
+      "Packaged Foods": 1,
+      "Insurance - Property & Casualty": 3,
+      "Biotech / Pharma": 6,
+      "Oil & Gas Exploration & Production": 1,
+      "Fintech / Payments": 1,
+      "Software / SaaS": 2,
+      "Power / Energy Infrastructure": 2,
+      "Household & Personal Products": 1,
+      "Entertainment": 1,
+      "Oil & Gas Equipment & Services": 1,
+      "Medical - Care Facilities": 1,
+      "Personal Products & Services": 1,
+      "REIT - Specialty": 1,
+      "Insurance - Life": 1,
+      "Regulated Gas": 1,
+      "Banks - Regional": 1
+    },
+    "samples": [
+      {
+        "t": "HLF",
+        "theme": "Packaged Foods",
+        "verdict": "VALUE_TRAP",
+        "pt": 14.5,
+        "upside": 27.4,
+        "summary": "Herbalife Nutrition is a direct-selling nutrition and wellness company with exceptional gross margins (76%) and ROIC (20%), trading at 0.17x EV/Sales vs. peer L",
+        "backlog": ""
+      },
+      {
+        "t": "SLDE",
+        "theme": "Insurance - Property & Casualty",
+        "verdict": "VALUE_TRAP",
+        "pt": 24.5,
+        "upside": 51.4,
+        "summary": "Slide Insurance Holdings is a P&C insurance operator trading at 0.54x EV/Sales, a 550% discount to peer Kensington (KNSL) at 3.49x. The company generates strong",
+        "backlog": "No backlog or RPO disclosures found; this is a red flag for a P&C insurer and li"
+      },
+      {
+        "t": "EMBC",
+        "theme": "Biotech / Pharma",
+        "verdict": "VALUE_TRAP",
+        "pt": 4.2,
+        "upside": 26.5,
+        "summary": "Embecta Corp. is a specialty pharmaceutical company focused on diabetes management and injection devices, spun from Becton Dickinson. It trades at 1.31x EV/Sale",
+        "backlog": "No backlog or recurring revenue visibility disclosed; transactional, consumption"
+      },
+      {
+        "t": "EXE",
+        "theme": "Oil & Gas Exploration & Production",
+        "verdict": "VALUE_TRAP",
+        "pt": 118.5,
+        "upside": 30.2,
+        "summary": "Expand Energy Corporation is an oil & gas E&P player trading at 1.51x EV/Sales, a 79% discount to peer FANG at 6.31x despite posting 176% revenue growth and a R",
+        "backlog": ""
+      },
+      {
+        "t": "PAYO",
+        "theme": "Fintech / Payments",
+        "verdict": "VALUE_TRAP",
+        "pt": 8.75,
+        "upside": 72,
+        "summary": "Payoneer is a fintech/payments infrastructure platform enabling digital payments and financial services for freelancers, SMBs, and platforms globally. Trading a",
+        "backlog": "No backlog or RPO data provided; typical for SaaS/fintech platforms, suggesting "
+      },
+      {
+        "t": "DBX",
+        "theme": "Software / SaaS",
+        "verdict": "CHEAP",
+        "pt": 34.2,
+        "upside": 23.9,
+        "summary": "Dropbox is a cloud storage and collaboration platform serving millions of users globally; it trades at 2.9x EV/Sales versus Palo Alto Networks at 25.1x, a 775% ",
+        "backlog": ""
+      }
+    ]
+  },
+  "finished": "2026-06-04T00:01:19.069119+00:00"
+}
