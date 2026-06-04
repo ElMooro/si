@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e14">
+<title>JustHodl AI</title>
+<style>
+:root{
+  --bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;
+  --fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--red:#ff5577;
+  --mono:'SF Mono',ui-monospace,Menlo,monospace;--tabbar:62px;--safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+#frame{position:fixed;top:0;left:0;right:0;bottom:calc(var(--tabbar) + var(--safe-b));width:100%;border:none;background:var(--bg)}
+/* top safe-area fill so content doesn't slide under the notch */
+#topfill{position:fixed;top:0;left:0;right:0;height:var(--safe-t);background:var(--bg);z-index:50}
+
+/* Bottom tab bar */
+#tabs{position:fixed;left:0;right:0;bottom:0;height:calc(var(--tabbar) + var(--safe-b));padding-bottom:var(--safe-b);
+  background:var(--bg-1);border-top:1px solid var(--border);display:flex;z-index:100}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--fg-3);transition:color .12s}
+.tab .ic{font-size:20px;line-height:1}
+.tab .lb{font-size:9.5px;font-family:var(--mono);letter-spacing:.2px}
+.tab.active{color:var(--cyan)}
+.tab.active .ic{transform:translateY(-1px)}
+
+/* Loading / splash overlay */
+#splash{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .4s}
+#splash.hide{opacity:0;pointer-events:none}
+.sp-dot{width:14px;height:14px;border-radius:50%;background:var(--green);box-shadow:0 0 16px var(--green);animation:sppulse 1.4s infinite}
+@keyframes sppulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.sp-brand{font-family:var(--mono);font-weight:700;color:var(--fg-0);font-size:18px;letter-spacing:1px}
+.sp-brand span{color:var(--fg-3)}
+.sp-sub{font-family:var(--mono);font-size:10px;color:var(--fg-3)}
+
+/* Offline */
+#offline{position:fixed;inset:0;background:var(--bg);z-index:190;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:30px}
+#offline.show{display:flex}
+#offline .od{width:12px;height:12px;border-radius:50%;background:var(--red);box-shadow:0 0 12px var(--red)}
+#offline h2{color:var(--fg-1);font-size:18px}
+#offline p{color:var(--fg-3);font-size:13px;line-height:1.6;max-width:300px}
+#offline button{background:var(--green);color:var(--bg);border:none;padding:11px 26px;border-radius:9px;font-weight:700;font-size:14px}
+</style>
+</head>
+<body>
+  <div id="topfill"></div>
+  <iframe id="frame" src="about:blank" allow="clipboard-write; fullscreen"></iframe>
+
+  <div id="tabs"></div>
+
+  <div id="splash">
+    <div class="sp-dot"></div>
+    <div class="sp-brand">JustHodl<span>.AI</span></div>
+    <div class="sp-sub">loading your intelligence terminal…</div>
+  </div>
+
+  <div id="offline">
+    <div class="od"></div>
+    <h2>No connection</h2>
+    <p>JustHodl AI needs internet to load live market data and your tools. Check your network and try again.</p>
+    <button onclick="window.JH.reload()">Retry</button>
+  </div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

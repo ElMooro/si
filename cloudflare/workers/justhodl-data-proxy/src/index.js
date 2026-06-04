@@ -127,6 +127,26 @@ export default {
     // GET /quotes?tickers=AAPL,MSFT,NVDA → live snapshot via Polygon
     // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
     // Cached 30s at edge. Polygon key from worker env (server-side, secure).
+    if (url.pathname === "/register-push" && request.method === "POST") {
+      // Store a mobile push token for alert delivery (KV, 90-day TTL).
+      try {
+        const body = await request.json();
+        const token = (body.token || "").slice(0, 400);
+        if (!token) return new Response(JSON.stringify({ ok: false, error: "no token" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        if (env.USER_DATA) {
+          await env.USER_DATA.put("push:" + token,
+            JSON.stringify({ platform: body.platform || "mobile", ts: Date.now() }),
+            { expirationTtl: 60 * 60 * 24 * 90 });
+        }
+        return new Response(JSON.stringify({ ok: true }),
+          { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      } catch (e) {
+        return new Response(JSON.stringify({ ok: false, error: String(e).slice(0, 120) }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
     if (url.pathname === "/stream") {
       // Real-time quote stream. Browser opens a WebSocket; the worker polls
       // Polygon snapshot server-side every ~3s and pushes deltas. Compatible

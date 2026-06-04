@@ -1,0 +1,60 @@
+name: Build Mobile App
+
+# Builds the Android app bundle (.aab) on a mobile-v* tag, ready to upload to
+# Google Play. iOS archiving requires a Mac + Apple signing certs and is run
+# locally (see mobile/README.md). This produces the Play Store artifact.
+on:
+  push:
+    tags:
+      - 'mobile-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Install deps
+        run: npm install
+      - name: Add Android platform
+        run: npx cap add android || true
+      - name: Generate icons & splash
+        run: npx capacitor-assets generate --android || true
+      - name: Sync
+        run: npx cap sync android
+      - name: Build debug APK (installable for testing)
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - name: Build release AAB (for Play Store)
+        run: cd android && ./gradlew bundleRelease || echo "bundleRelease needs signing config — debug APK still produced"
+      - name: Collect artifacts
+        run: |
+          mkdir -p out
+          find android -name "*.apk" -exec cp {} out/ \; || true
+          find android -name "*.aab" -exec cp {} out/ \; || true
+          ls -la out/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: justhodl-android
+          path: mobile/out/*
+          if-no-files-found: warn
+      - name: Publish to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: mobile/out/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
