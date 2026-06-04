@@ -592,13 +592,15 @@ export default {
         );
       }
 
-      // Backward-compat fallback for callers using legacy paths
-      if (!upstream.ok && upstream.status === 404 && !safePath.includes("/")) {
+      // Backward-compat fallback for callers using legacy paths.
+      // S3 returns 403 (AccessDenied) — not 404 — for a missing key when
+      // ListBucket is denied, so retry under /data/ on BOTH.
+      if (!upstream.ok && (upstream.status === 404 || upstream.status === 403) && !safePath.includes("/")) {
         const fallbackUrl = `${BUCKET_BASE}/data/${safePath}`;
         try {
           const fallback = await fetchUpstream(fallbackUrl, ttl);
           if (fallback.ok) { upstream = fallback; upstreamUrl = fallbackUrl; }
-        } catch (_) { /* keep original 404 */ }
+        } catch (_) { /* keep original status */ }
       }
 
       if (!upstream.ok) {
