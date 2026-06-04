@@ -41,6 +41,7 @@ a{color:var(--cyan);text-decoration:none}
 .bar-bg{height:5px;background:var(--bg-3);border-radius:3px;overflow:hidden}.bar-fill{height:100%;border-radius:3px}
 .caveats{margin-top:10px;font-size:10.5px;color:var(--amber)}
 .loading{text-align:center;padding:60px;color:var(--fg-3);font-family:var(--mono)}
+.theme-block{margin-bottom:26px}.theme-h{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)}.theme-h span{color:var(--fg-3);font-weight:400}
 .disclaimer{max-width:900px;margin:30px auto 0;font-size:11px;color:var(--fg-3);line-height:1.6;background:var(--bg-1);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--mono)}
 .footer-note{text-align:center;color:var(--fg-3);font-size:12px;padding:24px;border-top:1px solid var(--border);font-family:var(--mono)}
 </style>
@@ -65,6 +66,9 @@ a{color:var(--cyan);text-decoration:none}
     <span class="cap-pill" data-cap="small">Small</span>
     <span class="cap-pill" data-cap="micro">Micro</span>
     <span class="cap-pill" data-cap="nano">Nano</span>
+    <span style="width:1px;background:var(--border);margin:0 4px"></span>
+    <span class="cap-pill view-pill active" data-view="theme">By Theme</span>
+    <span class="cap-pill view-pill" data-view="flat">Ranked</span>
   </div>
 </section>
 <div class="wrap"><div id="content"><div class="loading">Loading dislocations…</div></div></div>
@@ -73,43 +77,63 @@ a{color:var(--cyan);text-decoration:none}
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function fmtCap(v){if(!v)return'—';if(v>=1e12)return'$'+(v/1e12).toFixed(1)+'T';if(v>=1e9)return'$'+(v/1e9).toFixed(1)+'B';if(v>=1e6)return'$'+(v/1e6).toFixed(0)+'M';return '$'+v}
-let DATA=[], capFilter="all", doc_gen="";
+let DATA=[], AI={}, capFilter='all', view='theme', doc_gen='';
 async function load(){
-  let doc=null;
+  let doc=null, ai=null;
   try{const r=await fetch(`${PROXY}/data/dislocations.json?t=${Date.now()}`);if(r.ok)doc=await r.json();}catch(e){}
-  if(!doc||!doc.buy_the_laggard){document.getElementById('content').innerHTML='<div class="loading">Dislocation data not available yet — the detector runs daily at 14:30 UTC.</div>';return;}
-  DATA=doc.buy_the_laggard;doc_gen=doc.generated_at||"";render();
+  try{const r=await fetch(`${PROXY}/data/dislocation-ai.json?t=${Date.now()}`);if(r.ok)ai=await r.json();}catch(e){}
+  if(!doc||!doc.buy_the_laggard){document.getElementById('content').innerHTML='<div class="loading">Dislocation data not available yet — runs daily 14:30 UTC.</div>';return;}
+  DATA=doc.buy_the_laggard; AI=(ai&&ai.by_ticker)||{}; doc_gen=doc.generated_at||''; render();
+}
+function verdictBadge(v){
+  const map={CHEAP:['var(--green)','rgba(38,255,175,0.12)'],FAIR:['var(--cyan)','rgba(34,211,238,0.1)'],VALUE_TRAP:['var(--red)','rgba(255,85,119,0.12)'],EXPENSIVE:['var(--amber)','rgba(251,191,36,0.1)']};
+  const [col,bg]=map[v]||['var(--fg-3)','var(--bg-2)'];
+  return `<span style="font-family:var(--mono);font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:10px;color:${col};background:${bg};border:1px solid ${col}">${esc(v||'—')}</span>`;
+}
+function card(s){
+  const a=AI[s.ticker]||{}; const vs=s.dislocated_vs;
+  const m=(l,v)=>`<div class="metric"><div class="ml">${l}</div><div class="mv">${v}</div></div>`;
+  const bar=(label,v,color)=>`<div class="bar-wrap"><div class="bar-l">${label}</div><div class="bar-bg"><div class="bar-fill" style="width:${Math.round((v||0)*100)}%;background:${color}"></div></div></div>`;
+  const pt=a.price_target_12m; const up=a.pt_upside_pct;
+  return `<div class="card" onclick="window.open('/chart-pro.html','_blank')">
+    <div class="card-top"><span class="card-tk">${esc(s.ticker)}</span><span class="card-cap">${esc(s.cap_bucket||'')}</span>
+      ${a.cheap_verdict?verdictBadge(a.cheap_verdict):''}<span class="card-score">${s.dislocation_score}</span></div>
+    <div class="card-name">${esc(s.name||'')} · ${esc(s.industry||'')}</div>
+    ${a.summary?`<div style="font-size:12px;color:var(--fg-1);line-height:1.5;margin-bottom:10px">${esc(a.summary)}</div>`:''}
+    ${pt!=null?`<div class="card-vs" style="border-color:${(up||0)>=0?'var(--green)':'var(--red)'}"><b style="color:${(up||0)>=0?'var(--green)':'var(--red)'}">12mo PT $${pt}</b> ${up!=null?`(${up>=0?'+':''}${up}% upside)`:''} <span style="color:var(--fg-3)">· ${esc(a.pt_basis||'')}</span></div>`:''}
+    ${vs?`<div class="card-vs">Dislocated vs <b>${esc(vs.ticker)}</b> — +${vs.ev_sales_premium_pct}% richer on EV/Sales, weaker quality</div>`:''}
+    <div class="bars">${bar('CHEAP',s.cheapness,'var(--cyan)')}${bar('QUALITY',s.quality,'var(--green)')}${bar('MOAT',s.moat_score,'var(--violet)')}</div>
+    <div class="metrics">
+      ${m('EV/Sales',s.ev_sales!=null?s.ev_sales.toFixed(1):'—')}
+      ${m('Rule-40',s.rule_of_40!=null?s.rule_of_40.toFixed(0):'—')}
+      ${m('ROIC',s.roic!=null?s.roic.toFixed(0)+'%':'—')}
+      ${m('Gr Margin',s.gross_margin!=null?s.gross_margin.toFixed(0)+'%':'—')}
+      ${m('Rev Gr',s.rev_growth_pct!=null?s.rev_growth_pct.toFixed(0)+'%':'—')}
+      ${m('Mkt Cap',fmtCap(s.market_cap))}
+    </div>
+    ${a.backlog_note&&a.backlog_note!=='null'?`<div style="margin-top:8px;font-size:10.5px;color:var(--cyan)">📋 ${esc(a.backlog_note)}</div>`:''}
+    ${a.key_risks?`<div class="caveats">⚠ ${esc(a.key_risks)}</div>`:((s.caveats&&s.caveats.length)?`<div class="caveats">⚠ ${s.caveats.map(esc).join(' · ')}</div>`:'')}
+  </div>`;
 }
 function render(){
-  const rows=DATA.filter(s=>capFilter==='all'||s.cap_bucket===capFilter);
+  let rows=DATA.filter(s=>capFilter==='all'||s.cap_bucket===capFilter);
   if(!rows.length){document.getElementById('content').innerHTML='<div class="loading">No dislocations in this cap bucket.</div>';return;}
-  const bar=(label,v,color)=>`<div class="bar-wrap"><div class="bar-l">${label}</div><div class="bar-bg"><div class="bar-fill" style="width:${Math.round((v||0)*100)}%;background:${color}"></div></div></div>`;
-  document.getElementById('content').innerHTML='<div class="cards">'+rows.map(s=>{
-    const vs=s.dislocated_vs;
-    const m=(l,v)=>`<div class="metric"><div class="ml">${l}</div><div class="mv">${v}</div></div>`;
-    return `<div class="card" onclick="window.open('/chart-pro.html','_blank')">
-      <div class="card-top"><span class="card-tk">${esc(s.ticker)}</span><span class="card-cap">${esc(s.cap_bucket||'')}</span><span class="card-score">${s.dislocation_score}</span></div>
-      <div class="card-name">${esc(s.name||'')} · ${esc(s.industry||'')}</div>
-      ${vs?`<div class="card-vs">Dislocated vs <b>${esc(vs.ticker)}</b> — trading <b>+${vs.ev_sales_premium_pct}%</b> richer on EV/Sales with weaker quality</div>`:''}
-      <div class="bars">${bar('CHEAP',s.cheapness,'var(--cyan)')}${bar('QUALITY',s.quality,'var(--green)')}${bar('MOAT',s.moat_score,'var(--violet)')}</div>
-      <div class="metrics">
-        ${m('EV/Sales',s.ev_sales!=null?s.ev_sales.toFixed(1):'—')}
-        ${m('Rule-40',s.rule_of_40!=null?s.rule_of_40.toFixed(0):'—')}
-        ${m('ROIC',s.roic!=null?s.roic.toFixed(0)+'%':'—')}
-        ${m('Gr Margin',s.gross_margin!=null?s.gross_margin.toFixed(0)+'%':'—')}
-        ${m('Rev Gr',s.rev_growth_pct!=null?s.rev_growth_pct.toFixed(0)+'%':'—')}
-        ${m('Mkt Cap',fmtCap(s.market_cap))}
-      </div>
-      ${(s.caveats&&s.caveats.length)?`<div class="caveats">⚠ ${s.caveats.map(esc).join(' · ')}</div>`:''}
-    </div>`;
-  }).join('')+'</div><div class="disclaimer">Score = 100 × √cheapness × √quality × (1 − risk). Cheapness = percentile-rank on EV/Sales, EV/EBITDA, P/S, growth-adjusted EV/S vs industry cohort. Quality = Rule-of-40 + ROIC + gross margin + growth + Piotroski + moat proxy. Risk penalty = leverage, distress (Altman-Z), coverage, concentration. Generated '+esc((doc_gen||'').slice(0,16))+' UTC.</div>';
+  let html='';
+  if(view==='theme'){
+    // group by AI theme (fallback to industry)
+    const groups={};
+    rows.forEach(s=>{const a=AI[s.ticker]||{};const t=a.theme||s.industry||'Other';(groups[t]=groups[t]||[]).push(s);});
+    const order=Object.keys(groups).sort((x,y)=>groups[y].length-groups[x].length);
+    html=order.map(t=>`<div class="theme-block"><div class="theme-h">${esc(t)} <span>(${groups[t].length})</span></div><div class="cards">${groups[t].sort((a,b)=>b.dislocation_score-a.dislocation_score).map(card).join('')}</div></div>`).join('');
+  } else {
+    html='<div class="cards">'+rows.map(card).join('')+'</div>';
+  }
+  html+='<div class="disclaimer">Score = 100 × √cheapness × √quality × (1 − risk) vs industry cohort. AI summary/verdict/PT by Claude — derived from forward revenue × peer-justified EV/Sales, cross-checked vs analyst consensus + backlog/growth/margin. A quant screen surfaces candidates incl. value traps (flagged). Generated '+esc((doc_gen||'').slice(0,16))+' UTC. Not investment advice.</div>';
+  document.getElementById('content').innerHTML=html;
 }
-let doc_gen='';
 document.getElementById('cap-filter').addEventListener('click',e=>{
-  if(!e.target.dataset.cap)return;
-  capFilter=e.target.dataset.cap;
-  document.querySelectorAll('.cap-pill').forEach(p=>p.classList.toggle('active',p.dataset.cap===capFilter));
-  render();
+  if(e.target.dataset.cap){capFilter=e.target.dataset.cap;document.querySelectorAll('.cap-pill').forEach(p=>p.classList.toggle('active',p.dataset.cap===capFilter));render();}
+  if(e.target.dataset.view){view=e.target.dataset.view;document.querySelectorAll('.view-pill').forEach(p=>p.classList.toggle('active',p.dataset.view===view));render();}
 });
 load();
 </script>
