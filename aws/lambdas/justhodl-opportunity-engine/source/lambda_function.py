@@ -787,20 +787,22 @@ def lambda_handler(event, context):
             if r.get("fund") and num((fund.get(sym) or {}).get("gross_margin", None)) and num((fund.get(sym) or {}).get("gross_margin")) > 50: go += 4
             r["growth_intel"] = gi
             r["growth_opportunity_score"] = max(0, min(100, round(go, 1)))
-            # ── CREATIVE: Compounder composite — durable high-quality growth.
-            # Rewards the rare combo: fast growth + high ROIC + fat margins +
-            # low leverage + reasonable price. The "quality compounder" setup. ──
-            comp = 0.0; parts = 0
+            r["cap_bucket"] = s.get("cap_bucket")
+            # ── CREATIVE: Compounder composite — durable high-quality GROWTH.
+            # Requires real expected growth (banks/utilities won't saturate it). ──
             roic_v = num(s.get("roic")); roic_v = roic_v*100 if (roic_v is not None and abs(roic_v) < 3) else roic_v
             gm_v = num(s.get("grossMargin")); gm_v = gm_v*100 if (gm_v is not None and abs(gm_v) < 3) else gm_v
             de_v = num(s.get("debtToEquity"))
-            if roic_v is not None: comp += min(1.0, max(0, roic_v/25.0)); parts += 1
-            if gm_v is not None: comp += min(1.0, max(0, gm_v/70.0)); parts += 1
-            if exp_co is not None: comp += min(1.0, max(0, exp_co/30.0)); parts += 1
-            if de_v is not None: comp += (1.0 if de_v < 0.5 else 0.5 if de_v < 1.0 else 0.0); parts += 1
-            if gi["peg_forward"] is not None: comp += (1.0 if gi["peg_forward"] < 1.5 else 0.4 if gi["peg_forward"] < 2.5 else 0.0); parts += 1
-            r["compounder_score"] = round((comp/parts*100), 1) if parts >= 3 else None
-            # Lynch ratio: (expected growth + div yield) / P/E — >1.5 = attractive GARP
+            if exp_co is not None and exp_co > 5:  # must be a genuine grower
+                comp = 0.0; parts = 0
+                comp += min(1.0, max(0, exp_co/30.0)) * 1.5; parts += 1.5   # growth weighted most
+                if roic_v is not None: comp += min(1.0, max(0, roic_v/25.0)); parts += 1
+                if gm_v is not None: comp += min(1.0, max(0, gm_v/70.0)); parts += 1
+                if de_v is not None: comp += (1.0 if de_v < 0.5 else 0.5 if de_v < 1.0 else 0.0); parts += 1
+                if gi["peg_forward"] is not None: comp += (1.0 if gi["peg_forward"] < 1.5 else 0.4 if gi["peg_forward"] < 2.5 else 0.0); parts += 1
+                r["compounder_score"] = round((comp/parts*100), 1) if parts >= 3.5 else None
+            else:
+                r["compounder_score"] = None
             dy = num(s.get("dividendYield")); dy = dy*100 if (dy is not None and abs(dy) < 1) else dy
             if pe and pe > 0 and exp_co is not None:
                 r["lynch_ratio"] = round((exp_co + (dy or 0)) / pe, 2)
