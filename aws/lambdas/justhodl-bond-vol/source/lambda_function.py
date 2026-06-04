@@ -47,7 +47,10 @@ import urllib.error
 from datetime import datetime, timezone, timedelta
 
 import boto3
-import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
+try:
+    import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
+except Exception:
+    pass  # shim optional; fred_obs falls back to the worker /fred route
 
 VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -98,7 +101,35 @@ def http_json(url):
 
 
 def fred_obs(series_id, days=400):
-    """Fetch recent FRED observations for a series."""
+    """Fetch recent FRED observations. Prefer the Cloudflare worker /fred route
+    (cached, no 429); fall back to direct FRED if the worker is unavailable."""
+    # 1) Worker /fred (proven live + cached) — returns {bars:[{time,value}]}
+    try:
+        wurl = f"https://justhodl-data-proxy.raafouis.workers.dev/fred?series={series_id}&obs=600"
+        d = http_json(wurl)
+        if isinstance(d, dict) and not d.get("_error"):
+            bars = d.get("bars") or d.get("observations") or []
+            out = []
+            for b in bars:
+                v = b.get("value")
+                dt = b.get("date") or b.get("time")
+                if v in (None, ".", ""):
+                    continue
+                try:
+                    # time may be epoch seconds or ISO date
+                    if isinstance(dt, (int, float)):
+                        dt = datetime.fromtimestamp(dt, tz=timezone.utc).date().isoformat()
+                    out.append({"date": str(dt), "value": float(v)})
+                except (ValueError, KeyError, TypeError):
+                    continue
+            if len(out) >= 60:
+                out.sort(key=lambda x: x["date"])
+                return out
+    except Exception:
+        pass
+    # 2) Direct FRED fallback
+    if not FRED_KEY:
+        return None
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=days)
     url = (f"https://api.stlouisfed.org/fred/series/observations"
@@ -108,7 +139,6 @@ def fred_obs(series_id, days=400):
     if not isinstance(d, dict) or "_error" in d:
         return None
     obs = d.get("observations", [])
-    # Parse, skip '.' (FRED missing-value marker)
     out = []
     for o in obs:
         v = o.get("value")
