@@ -35,10 +35,39 @@ jobs:
         run: npx capacitor-assets generate --android || true
       - name: Sync
         run: npx cap sync android
+      - name: Decode upload keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android/app/justhodl-upload.keystore
+          echo "keystore decoded ($(wc -c < android/app/justhodl-upload.keystore) bytes)"
+      - name: Configure signing
+        run: |
+          cat >> android/app/build.gradle <<'GRADLE'
+
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file("justhodl-upload.keystore")
+                      storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          GRADLE
+          echo "signing config appended"
       - name: Build debug APK (installable for testing)
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug
-      - name: Build release AAB (for Play Store)
-        run: cd android && ./gradlew bundleRelease || echo "bundleRelease needs signing config — debug APK still produced"
+      - name: Build SIGNED release AAB (for Play Store)
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: cd android && ./gradlew bundleRelease
       - name: Collect artifacts
         run: |
           mkdir -p out
