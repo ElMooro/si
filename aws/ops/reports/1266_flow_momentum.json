@@ -1,0 +1,129 @@
+{
+  "started": "2026-06-04T01:42:08.672651+00:00",
+  "cf_deploy": "updated",
+  "cf_invoke": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"accumulating\\\": 40, \\\"distributing\\\": 25, \\\"etf_flows\\\": 0}\"}",
+  "capital_flow": {
+    "sources": {
+      "13f": true,
+      "etf_flows": 0,
+      "inst_change": 503
+    },
+    "n_accumulating": 40,
+    "n_distributing": 25,
+    "n_etf_in": 0,
+    "top_accum": [
+      {
+        "t": "APA",
+        "score": 35.0,
+        "lenses": [
+          "inst QoQ accumulation"
+        ]
+      },
+      {
+        "t": "PSX",
+        "score": 35.0,
+        "lenses": [
+          "inst QoQ accumulation"
+        ]
+      },
+      {
+        "t": "COST",
+        "score": 35.0,
+        "lenses": [
+          "inst QoQ accumulation"
+        ]
+      },
+      {
+        "t": "Q",
+        "score": 35.0,
+        "lenses": [
+          "inst QoQ accumulation"
+        ]
+      },
+      {
+        "t": "EOG",
+        "score": 35.0,
+        "lenses": [
+          "inst QoQ accumulation"
+        ]
+      },
+      {
+        "t": "CHRW",
+        "score": 35.0,
+        "lenses": [
+          "inst QoQ accumulation"
+        ]
+      },
+      {
+        "t": "LYV",
+        "score": 35.0,
+        "lenses": [
+          "inst QoQ accumulation"
+        ]
+      },
+      {
+        "t": "AEE",
+        "score": 35.0,
+        "lenses": [
+          "inst QoQ accumulation"
+        ]
+      }
+    ],
+    "etf_in": []
+  },
+  "disl_invoke": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"scored\\\": 1775, \\\"laggards\\\": 40, \\\"cohorts\\\": 113, \\\"top5\\\": [{\\\"t\\\": \\\"PAYO\\\", \\\"score\\\": 91.1, \\\"vs\\\":",
+  "dislocation": {
+    "n_cheap_inflecting": 23,
+    "sample": [
+      {
+        "t": "PAYO",
+        "score": 91.1,
+        "mom": 4.7,
+        "inflecting": true
+      },
+      {
+        "t": "DBX",
+        "score": 89.6,
+        "mom": 11.7,
+        "inflecting": true
+      },
+      {
+        "t": "IIPR",
+        "score": 88.0,
+        "mom": -0.7,
+        "inflecting": true
+      },
+      {
+        "t": "AYI",
+        "score": 87.9,
+        "mom": 5.8,
+        "inflecting": true
+      },
+      {
+        "t": "AMC",
+        "score": 86.9,
+        "mom": 11.6,
+        "inflecting": true
+      },
+      {
+        "t": "IMMR",
+        "score": 86.2,
+        "mom": -0.9,
+        "inflecting": true
+      },
+      {
+        "t": "HRB",
+        "score": 86.1,
+        "mom": 29.5,
+        "inflecting": true
+      },
+      {
+        "t": "CRUS",
+        "score": 83.5,
+        "mom": 6.7,
+        "inflecting": true
+      }
+    ]
+  },
+  "finished": "2026-06-04T01:43:38.142521+00:00"
+}
