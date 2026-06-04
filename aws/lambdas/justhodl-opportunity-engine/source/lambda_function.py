@@ -918,11 +918,15 @@ def lambda_handler(event, context):
     try:
         day = datetime.now(timezone.utc).date().isoformat()
         snap = {"date": day, "generated_at": out["generated_at"],
-                "schema": "1.0", "n": len(rows),
+                "schema": "1.1", "n": len(rows),
                 "picks": {r["ticker"]: {"v": r["verdict"], "p": r["price"],
                                         "fv": r["fair_value_mid"],
                                         "s": r["opportunity_score"],
                                         "c": r["confidence"],
+                                        "go": r.get("growth_opportunity_score"),
+                                        "comp": r.get("compounder_score"),
+                                        "rev": (r.get("estimate_revision") or {}).get("direction"),
+                                        "cap": r.get("cap_bucket"),
                                         "ss": [r["scores"]["value"],
                                                r["scores"]["quality"],
                                                r["scores"]["growth"],

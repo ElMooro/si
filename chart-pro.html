@@ -326,6 +326,13 @@ a:hover { text-decoration: underline; }
 .setup-verdict { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px; padding: 3px 7px; border-radius: 4px; text-align: center; }
 .setup-verdict.strong { color: var(--bg); background: var(--green); }
 .setup-verdict.triple { color: var(--bg); background: linear-gradient(90deg,#fbbf24,#26ffaf); font-weight:800; }
+.tt-banner { background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(38,255,175,0.06)); border: 1px solid var(--amber); border-radius: 9px; padding: 10px 12px; margin-bottom: 12px; }
+.tt-banner-h { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; background: linear-gradient(90deg,#fbbf24,#26ffaf); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+.tt-chip { display: inline-block; margin: 3px; padding: 6px 10px; background: var(--bg-1); border: 1px solid var(--border-bright); border-radius: 7px; cursor: pointer; vertical-align: top; }
+.tt-chip:hover { border-color: var(--amber); }
+.tt-chip b { font-family: var(--font-mono); font-size: 13px; color: var(--fg-0); }
+.tt-chip .tt-conv { font-family: var(--font-mono); font-size: 10px; color: var(--amber); margin-left: 5px; }
+.tt-chip .tt-lenses { font-family: var(--font-mono); font-size: 8.5px; color: var(--fg-3); margin-top: 2px; max-width: 180px; }
 .setup-verdict.buy { color: var(--green); background: rgba(38,255,175,0.12); border: 1px solid var(--green); }
 .setup-verdict.watch { color: var(--fg-3); background: var(--bg-1); border: 1px solid var(--border-bright); }
 .setup-mid { min-width: 0; }
@@ -2421,14 +2428,28 @@ class UI {
   static renderSetups() {
     const doc = State.best_setups || {};
     const setups = doc.top_setups || [];
+    const triples = doc.triple_threats || setups.filter(s => s.triple_threat);
     const meta = document.getElementById('setups-meta');
     if (meta) {
       const st = doc.stats || {};
-      meta.textContent = `${st.strong_buy||0} strong · ${st.buy||0} buy · ${st.watch||0} watch · weights: ${doc.weight_source||'prior'}`;
+      meta.textContent = `${triples.length} 🎯 triple · ${st.strong_buy||0} strong · ${st.buy||0} buy · ${st.watch||0} watch`;
     }
     const body = document.getElementById('setups-body');
     if (!body) return;
     if (!setups.length) { body.innerHTML = '<div class="wl-empty">No setups yet — refreshes hourly.</div>'; return; }
+    // Triple-Threat banner pinned at the very top
+    let ttBanner = '';
+    if (triples.length) {
+      ttBanner = `<div class="tt-banner"><div class="tt-banner-h">🎯 TRIPLE THREAT — cheap + durable grower + flow signal converge</div>` +
+        triples.slice(0, 6).map(s => {
+          const lenses = [...(s.value_lenses||[]), ...(s.flow_lenses||[]).slice(0,2)].map(k=>k.replace(/_/g,' ')).join(' · ');
+          return `<div class="tt-chip" data-ticker="${UI.esc(s.ticker)}"><b>${UI.esc(s.ticker)}</b> <span class="tt-conv">${Math.round(s.conviction)}</span><div class="tt-lenses">${UI.esc(lenses)}</div></div>`;
+        }).join('') + `</div>`;
+    }
+    body.innerHTML = ttBanner + '<div id="setups-cards-mount"></div>';
+    body = document.getElementById('setups-cards-mount');
+    // wire TT chips
+    document.querySelectorAll('.tt-chip[data-ticker]').forEach(el => el.addEventListener('click', () => { ChartController.loadTicker(el.dataset.ticker); if (window.__jhDrawers) window.__jhDrawers.setSetups(false); }));
     const sigClass = (k) => {
       if (k.includes('COMMITTEE')) return 'committee';
       if (k.includes('EXECUTIVE')) return 'executive';
