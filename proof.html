@@ -111,6 +111,7 @@ async function load(){
   }
   html+=`<div class="disclaimer">${esc(doc.note||'')}<br><br>Calibration confidence: <b style="color:var(--cyan)">${esc(doc.calibration_confidence||'NONE')}</b> · Last updated ${esc((doc.generated_at||'').replace('T',' ').slice(0,16))} UTC</div>`;
   document.getElementById('content').innerHTML=html;
+  loadBacktest();
   const eq=doc.equity_curve||[];
   if(eq.length>1&&typeof LightweightCharts!=='undefined'){
     const el=document.getElementById('equity-chart');
@@ -122,6 +123,32 @@ async function load(){
   }
 }
 load();
+async function loadBacktest(){
+  let bt=null;
+  try{const r=await fetch(`${PROXY}/data/signal-backtest.json?t=${Date.now()}`);if(r.ok)bt=await r.json();}catch(e){}
+  if(!bt||!bt.overall){return;}
+  const o=bt.overall;
+  const row=(label,a)=>a?`<tr><td class="tier-name">${esc(label)}</td><td class="num hr-cell ${a.win_rate>=50?'good':a.win_rate>=42?'mid':'low'}">${a.win_rate}%</td><td class="num ret ${a.avg>=0?'pos':'neg'}">${a.avg>=0?'+':''}${a.avg}%</td><td class="num">${a.median>=0?'+':''}${a.median}%</td><td class="num ret pos">${a.hit_5pct}%</td><td class="num">${a.n}</td></tr>`:'';
+  let h=`<div class="section" style="margin-top:36px"><h2>📈 Forward-Return Backtest <span style="font-size:12px;color:var(--fg-3)">(${esc(bt.maturity)})</span></h2>
+    <div class="sub">Actual price-based returns from each daily snapshot's entry to today — the real proof, by signal class. ${bt.n_observations} observations across ${bt.snapshots_used} snapshots.</div>
+    <div class="kpis" style="margin-bottom:18px">
+      <div class="kpi"><div class="v ${o.avg>=0?'green':''}">${o.avg>=0?'+':''}${o.avg}%</div><div class="l">Avg Return</div><div class="s">all signals</div></div>
+      <div class="kpi"><div class="v cyan">${o.win_rate}%</div><div class="l">Win Rate</div><div class="s">positive returns</div></div>
+      <div class="kpi"><div class="v">${o.hit_5pct}%</div><div class="l">Hit +5%</div><div class="s">of observations</div></div>
+      <div class="kpi"><div class="v">${o.n}</div><div class="l">Observations</div><div class="s">${esc(bt.maturity)}</div></div>
+    </div>
+    <table><thead><tr><th>Signal Class</th><th class="num">Win %</th><th class="num">Avg Ret</th><th class="num">Median</th><th class="num">Hit +5%</th><th class="num">N</th></tr></thead><tbody>`;
+  const bv=bt.by_verdict||{};
+  ['STRONG OPPORTUNITY','OPPORTUNITY','FAIR VALUE','HOLD / NEUTRAL','EXPENSIVE','HIGH RISK'].forEach(v=>{if(bv[v])h+=row('Verdict: '+v,bv[v]);});
+  const bc=bt.by_compounder_bucket||{};
+  ['compounder_80+','compounder_70-80','compounder_<70'].forEach(k=>{if(bc[k])h+=row(k.replace(/_/g,' '),bc[k]);});
+  const br=bt.by_revision||{};
+  Object.keys(br).forEach(k=>h+=row(k.replace(/_/g,' '),br[k]));
+  const bcap=bt.by_cap_bucket||{};
+  ['mega','large','mid','small','micro','nano'].forEach(k=>{if(bcap[k])h+=row('Cap: '+k,bcap[k]);});
+  h+=`</tbody></table><div class="disclaimer">${esc(bt.note||'')}</div></div>`;
+  document.getElementById('content').insertAdjacentHTML('beforeend',h);
+}
 if(window.JustHodlAuth)JustHodlAuth.init();
 </script>
 </body>
