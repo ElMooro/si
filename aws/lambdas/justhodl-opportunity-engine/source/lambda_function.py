@@ -633,6 +633,78 @@ def compute_changes(prev, rows):
 
 
 # ────────────────────────────  handler  ─────────────────────────────
+def fetch_tail_metrics(tail):
+    """Deep-fetch full-universe tail (all caps) → screener-shaped records so
+    they flow through the same scoring. key-metrics-ttm + ratios-ttm + quote."""
+    import concurrent.futures as cf
+    fmp_key = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    base = "https://financialmodelingprep.com/stable"
+
+    def cap_bucket(m):
+        if not m: return None
+        if m < 50e6: return "nano"
+        if m < 300e6: return "micro"
+        if m < 2e9: return "small"
+        if m < 10e9: return "mid"
+        if m < 200e9: return "large"
+        return "mega"
+
+    def one(stock):
+        sym = (stock.get("symbol") or "").upper()
+        try:
+            km = http_get_json(f"{base}/key-metrics-ttm?symbol={sym}&apikey={fmp_key}")
+            rt = http_get_json(f"{base}/ratios-ttm?symbol={sym}&apikey={fmp_key}")
+            qt = http_get_json(f"{base}/quote?symbol={sym}&apikey={fmp_key}")
+            km = (km[0] if isinstance(km, list) and km else km) or {}
+            rt = (rt[0] if isinstance(rt, list) and rt else rt) or {}
+            qt = (qt[0] if isinstance(qt, list) and qt else qt) or {}
+            def kp(*keys):
+                for k in keys:
+                    if rt.get(k) is not None: return num(rt[k])
+                    if km.get(k) is not None: return num(km[k])
+                return None
+            def asp(x):
+                if x is None: return None
+                return x*100 if abs(x) < 3 else x
+            mcap = num(stock.get("market_cap")) or num(qt.get("marketCap"))
+            price = num(qt.get("price"))
+            yh, yl = num(qt.get("yearHigh")), num(qt.get("yearLow"))
+            # creative: 52-week range position (0=at low, 1=at high)
+            rng_pos = ((price - yl) / (yh - yl)) if (price and yh and yl and yh > yl) else None
+            return {
+                "symbol": sym, "name": stock.get("name") or sym,
+                "sector": stock.get("sector") or "", "industry": stock.get("industry") or "",
+                "cap_bucket": stock.get("cap_bucket") or cap_bucket(mcap),
+                "marketCap": mcap, "price": price,
+                "peRatio": kp("priceToEarningsRatioTTM", "peRatioTTM"),
+                "psRatio": kp("priceToSalesRatioTTM", "priceSalesRatioTTM"),
+                "evEbitda": kp("enterpriseValueOverEBITDATTM", "evToEBITDATTM"),
+                "roic": asp(kp("returnOnInvestedCapitalTTM", "roicTTM")),
+                "roe": asp(kp("returnOnEquityTTM", "roeTTM")),
+                "grossMargin": asp(kp("grossProfitMarginTTM")),
+                "operatingMargin": asp(kp("operatingProfitMarginTTM")),
+                "netMargin": asp(kp("netProfitMarginTTM")),
+                "debtToEquity": kp("debtToEquityRatioTTM", "debtEquityRatioTTM"),
+                "currentRatio": kp("currentRatioTTM"),
+                "interestCoverage": kp("interestCoverageRatioTTM"),
+                "revenueGrowth": None,  # not in TTM endpoints — scored on value/quality
+                "fcfYieldCalc": kp("freeCashFlowYieldTTM"),
+                "yearHigh": yh, "yearLow": yl, "range_position_52w": round(rng_pos, 2) if rng_pos is not None else None,
+                "changesPct": num(qt.get("changePercentage") or qt.get("changesPercentage")),
+                "_tail": True,
+            }
+        except Exception:
+            return None
+
+    out = []
+    with cf.ThreadPoolExecutor(max_workers=24) as ex:
+        for fut in cf.as_completed([ex.submit(one, s) for s in tail]):
+            r = fut.result()
+            if r and (r.get("peRatio") is not None or r.get("psRatio") is not None):
+                out.append(r)
+    return out
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     screener = load("screener/data.json") or {}
@@ -645,6 +717,20 @@ def lambda_handler(event, context):
     prev = load(OUT_KEY)
 
     universe = screener.get("stocks", [])
+    screener_syms = {(s.get("symbol") or s.get("ticker")) for s in universe}
+
+    # ── FULL-UNIVERSE COVERAGE — deep-fetch the names not in the screener
+    # (all caps: nano/micro/small/mid/large) so every stock gets scored. ──
+    uni = load("data/universe.json") or {}
+    tail = [s for s in (uni.get("stocks") or [])
+            if (s.get("symbol") or "").upper() not in screener_syms
+            and num(s.get("market_cap")) and num(s.get("market_cap")) >= 30e6]
+    tail = tail[:1500]
+    print(f"[opp] full-universe: deep-fetching {len(tail)} tail names (all caps)")
+    tail_rows = fetch_tail_metrics(tail)
+    universe = universe + tail_rows
+    print(f"[opp] total universe now {len(universe)} (was {len(screener_syms)} screener)")
+
     bench = build_benchmarks(universe)
     # NEW: expected (forward) growth per ticker + industry-level benchmarks
     print("[opp] fetching forward analyst growth estimates…")
@@ -684,6 +770,7 @@ def lambda_handler(event, context):
                 "outgrowing_industry": (cg is not None and ind_g is not None and cg > ind_g),
                 "expected_to_outgrow_industry": (exp_co is not None and exp_ind is not None and exp_co > exp_ind),
                 "peg_forward": (round(pe / exp_co, 2) if (pe and exp_co and exp_co > 0) else None),
+                "range_position_52w": s.get("range_position_52w"),
             }
             # Growth-Opportunity score (0-100): rewards growing faster than the
             # industry AND being cheap vs it, with forward confirmation + quality.
@@ -700,6 +787,23 @@ def lambda_handler(event, context):
             if r.get("fund") and num((fund.get(sym) or {}).get("gross_margin", None)) and num((fund.get(sym) or {}).get("gross_margin")) > 50: go += 4
             r["growth_intel"] = gi
             r["growth_opportunity_score"] = max(0, min(100, round(go, 1)))
+            # ── CREATIVE: Compounder composite — durable high-quality growth.
+            # Rewards the rare combo: fast growth + high ROIC + fat margins +
+            # low leverage + reasonable price. The "quality compounder" setup. ──
+            comp = 0.0; parts = 0
+            roic_v = num(s.get("roic")); roic_v = roic_v*100 if (roic_v is not None and abs(roic_v) < 3) else roic_v
+            gm_v = num(s.get("grossMargin")); gm_v = gm_v*100 if (gm_v is not None and abs(gm_v) < 3) else gm_v
+            de_v = num(s.get("debtToEquity"))
+            if roic_v is not None: comp += min(1.0, max(0, roic_v/25.0)); parts += 1
+            if gm_v is not None: comp += min(1.0, max(0, gm_v/70.0)); parts += 1
+            if exp_co is not None: comp += min(1.0, max(0, exp_co/30.0)); parts += 1
+            if de_v is not None: comp += (1.0 if de_v < 0.5 else 0.5 if de_v < 1.0 else 0.0); parts += 1
+            if gi["peg_forward"] is not None: comp += (1.0 if gi["peg_forward"] < 1.5 else 0.4 if gi["peg_forward"] < 2.5 else 0.0); parts += 1
+            r["compounder_score"] = round((comp/parts*100), 1) if parts >= 3 else None
+            # Lynch ratio: (expected growth + div yield) / P/E — >1.5 = attractive GARP
+            dy = num(s.get("dividendYield")); dy = dy*100 if (dy is not None and abs(dy) < 1) else dy
+            if pe and pe > 0 and exp_co is not None:
+                r["lynch_ratio"] = round((exp_co + (dy or 0)) / pe, 2)
             rows.append(r)
 
     rows.sort(key=lambda r: r["opportunity_score"], reverse=True)
@@ -713,6 +817,31 @@ def lambda_handler(event, context):
             r["backlog"] = bl
             # backlog is a durability bonus to the growth-opportunity score
             r["growth_opportunity_score"] = min(100, (r.get("growth_opportunity_score") or 50) + 6)
+
+    # ── CREATIVE: estimate-revision momentum ──
+    # Snapshot today's forward growth; compare vs last snapshot to detect
+    # analysts revising estimates UP (one of the strongest documented alpha
+    # factors). Writes a dated snapshot + patches revision deltas onto rows.
+    try:
+        est_snap = {sym: (fwd_growth.get(sym) or {}).get("fwd_rev_growth")
+                    for sym in [(s.get("symbol") or s.get("ticker")) for s in universe]
+                    if (fwd_growth.get(sym) or {}).get("fwd_rev_growth") is not None}
+        prev_snap = (load("data/estimate-revisions-latest.json") or {}).get("fwd_rev_growth", {})
+        for r in rows:
+            tk = r["ticker"]
+            cur, old = est_snap.get(tk), prev_snap.get(tk)
+            if cur is not None and old is not None:
+                delta = round(cur - old, 1)
+                r["estimate_revision"] = {"prior": old, "current": cur, "delta_pp": delta,
+                                           "direction": "UP" if delta > 0.5 else "DOWN" if delta < -0.5 else "FLAT"}
+                if delta > 1.0:
+                    r["growth_opportunity_score"] = min(100, (r.get("growth_opportunity_score") or 50) + 8)
+        s3.put_object(Bucket=S3_BUCKET, Key="data/estimate-revisions-latest.json",
+                      Body=json.dumps({"date": datetime.now(timezone.utc).date().isoformat(),
+                                        "fwd_rev_growth": est_snap}, default=str).encode(),
+                      ContentType="application/json")
+    except Exception as e:
+        print(f"[opp] revision snapshot err: {e}")
 
     by_verdict = {}
     for r in rows:

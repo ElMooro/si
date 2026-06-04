@@ -296,6 +296,8 @@ function growthPanel(r){
       <div style="color:#6f7b91">Forward PEG</div><div style="color:#e1e8f4">${g.peg_forward!=null?g.peg_forward:'—'}</div>
     </div>
     ${outg?`<div style="font-size:10.5px;margin-top:5px">${outg}</div>`:''}
+    ${r.estimate_revision&&r.estimate_revision.direction!=='FLAT'?`<div style="font-size:10.5px;margin-top:4px;color:${r.estimate_revision.direction==='UP'?'#26ffaf':'#ff5577'}">📈 Est. revisions ${r.estimate_revision.direction} ${r.estimate_revision.delta_pp>=0?'+':''}${r.estimate_revision.delta_pp}pp</div>`:''}
+    ${(r.compounder_score!=null||r.lynch_ratio!=null)?`<div style="display:flex;gap:14px;font-family:monospace;font-size:10px;margin-top:5px;color:#6f7b91">${r.compounder_score!=null?`<span>Compounder <b style="color:${r.compounder_score>=70?'#26ffaf':'#a8b3c7'}">${r.compounder_score}</b></span>`:''}${r.lynch_ratio!=null?`<span>Lynch <b style="color:${r.lynch_ratio>=1.5?'#26ffaf':'#a8b3c7'}">${r.lynch_ratio}</b></span>`:''}${r.growth_intel.range_position_52w!=null?`<span>52w pos <b>${Math.round(r.growth_intel.range_position_52w*100)}%</b></span>`:''}</div>`:''}
     ${bl}
   </div>`;
 }
