@@ -655,6 +655,7 @@ def fetch_tail_metrics(tail):
             km = http_get_json(f"{base}/key-metrics-ttm?symbol={sym}&apikey={fmp_key}")
             rt = http_get_json(f"{base}/ratios-ttm?symbol={sym}&apikey={fmp_key}")
             qt = http_get_json(f"{base}/quote?symbol={sym}&apikey={fmp_key}")
+            est = http_get_json(f"{base}/analyst-estimates?symbol={sym}&period=annual&limit=3&apikey={fmp_key}")
             km = (km[0] if isinstance(km, list) and km else km) or {}
             rt = (rt[0] if isinstance(rt, list) and rt else rt) or {}
             qt = (qt[0] if isinstance(qt, list) and qt else qt) or {}
@@ -671,6 +672,15 @@ def fetch_tail_metrics(tail):
             yh, yl = num(qt.get("yearHigh")), num(qt.get("yearLow"))
             # creative: 52-week range position (0=at low, 1=at high)
             rng_pos = ((price - yl) / (yh - yl)) if (price and yh and yl and yh > yl) else None
+            # forward (expected) growth from analyst estimates — same pass
+            fwd_rev = None
+            if isinstance(est, list) and len(est) >= 2:
+                erows = sorted([e for e in est if e.get("date")], key=lambda e: e.get("date"))
+                r0 = num(erows[0].get("revenueAvg") or erows[0].get("estimatedRevenueAvg"))
+                r1 = num(erows[-1].get("revenueAvg") or erows[-1].get("estimatedRevenueAvg"))
+                yrs = max(1, len(erows) - 1)
+                if r0 and r1 and r0 > 0:
+                    fwd_rev = round(((r1 / r0) ** (1 / yrs) - 1) * 100, 1)
             return {
                 "symbol": sym, "name": stock.get("name") or sym,
                 "sector": stock.get("sector") or "", "industry": stock.get("industry") or "",
@@ -691,6 +701,7 @@ def fetch_tail_metrics(tail):
                 "fcfYieldCalc": kp("freeCashFlowYieldTTM"),
                 "yearHigh": yh, "yearLow": yl, "range_position_52w": round(rng_pos, 2) if rng_pos is not None else None,
                 "changesPct": num(qt.get("changePercentage") or qt.get("changesPercentage")),
+                "_fwd_rev_growth": fwd_rev,
                 "_tail": True,
             }
         except Exception:
@@ -732,10 +743,14 @@ def lambda_handler(event, context):
     print(f"[opp] total universe now {len(universe)} (was {len(screener_syms)} screener)")
 
     bench = build_benchmarks(universe)
-    # NEW: expected (forward) growth per ticker + industry-level benchmarks
-    print("[opp] fetching forward analyst growth estimates…")
-    fwd_growth = fetch_forward_growth(universe)
-    print(f"[opp] forward growth for {len(fwd_growth)} names")
+    # NEW: expected (forward) growth — tail names already fetched theirs in the
+    # same pass; only the screener-500 need a forward fetch now (bounded, fast).
+    print("[opp] fetching forward growth for screener names…")
+    fwd_growth = fetch_forward_growth([s for s in universe if not s.get("_tail")])
+    for tr in tail_rows:
+        if tr.get("_fwd_rev_growth") is not None:
+            fwd_growth[tr["symbol"]] = {"fwd_rev_growth": tr["_fwd_rev_growth"]}
+    print(f"[opp] forward growth for {len(fwd_growth)} names (full universe)")
     industry_bench = build_industry_benchmarks(universe, fwd_growth)
     weights = get_weights()
     print(f"[opp] factor weights: {weights}")
