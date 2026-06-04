@@ -1,0 +1,55 @@
+{
+  "historical-shares-float": {
+    "type": "dict",
+    "keys": [
+      "_err"
+    ],
+    "sample": {
+      "_err": "HTTP Error 404: Not Found"
+    }
+  },
+  "shares-float": {
+    "type": "list",
+    "len": 1,
+    "sample": {
+      "symbol": "SPY",
+      "date": "2026-06-03 17:33:15",
+      "freeFloat": 0,
+      "floatShares": 0,
+      "outstandingShares": 1034680095,
+      "source": null
+    }
+  },
+  "shares-float-all": {
+    "type": "dict",
+    "keys": [
+      "_err"
+    ],
+    "sample": {
+      "_err": "HTTP Error 400: Bad Request"
+    }
+  },
+  "etf-info": {
+    "type": "dict",
+    "keys": [
+      "_err"
+    ],
+    "sample": {
+      "_err": "HTTP Error 404: Not Found"
+    }
+  },
+  "etf-holdings-dates": {
+    "type": "dict",
+    "keys": [
+      "_err"
+    ],
+    "sample": {
+      "_err": "HTTP Error 404: Not Found"
+    }
+  },
+  "key-metrics-spy": {
+    "type": "list",
+    "len": 0,
+    "sample": null
+  }
+}
