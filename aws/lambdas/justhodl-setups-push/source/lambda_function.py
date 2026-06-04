@@ -75,8 +75,11 @@ def lambda_handler(event, context):
     board = _read_json("data/best-setups.json") or {}
     setups = board.get("top_setups") or []
     # ── NEW: Triple-Threat alert — the rarest, highest-conviction setups ──
-    triples = board.get("triple_threats") or [s for s in setups if s.get("triple_threat")]
-    if triples:
+    quads = board.get("quad_threats") or [s for s in setups if s.get("quad_threat")]
+    triples = (board.get("triple_threats") or [s for s in setups if s.get("triple_threat")])
+    alerts = quads + [t for t in triples if t not in quads]
+    if alerts:
+        triples = alerts
         tlines = ["<b>🎯 TRIPLE THREAT ALERT</b>",
                   "<i>Cheap (dislocation) + durable grower (compounder) + a market/flow signal — all three lenses agree</i>", ""]
         for s in triples[:5]:

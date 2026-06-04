@@ -46,6 +46,7 @@ def read_json(key, default=None):
 # Each maps to a self-improvement tier so we can swap in the learned hit rate.
 SIGNAL_PRIORS = {
     "POLITICIAN_COMMITTEE": 0.85,   # committee jurisdiction edge — strongest
+    "CAPITAL_FLOW":         0.82,   # institutions + capital accumulating (13F+inst+ETF)
     "COMPOUNDER":           0.80,   # durable quality growth (ROIC+margin+growth)
     "REVISION_UP":          0.78,   # analyst estimate-revision momentum
     "DISLOCATION":          0.78,   # relative-value buy-the-laggard
@@ -125,6 +126,7 @@ def lambda_handler(event, context):
     pol_ai = read_json("data/political-ai-investigation.json") or {}
     dislocations = read_json("data/dislocations.json") or {}
     opportunities = read_json("data/opportunities.json") or {}
+    capital_flow = read_json("data/capital-flow.json") or {}
 
     weights, weight_src = learned_weights(calibration)
 
@@ -221,6 +223,12 @@ def lambda_handler(event, context):
                 normalize(rev.get("delta_pp"), 1, 8),
                 f"analyst estimates revised +{rev.get('delta_pp')}pp")
 
+    # 7d. Capital flow — institutions + capital accumulating (13F + inst QoQ + ETF)
+    for c in (capital_flow.get("accumulating") or [])[:40]:
+        add(c.get("ticker"), c.get("sector"), "CAPITAL_FLOW",
+            normalize(c.get("flow_score"), 8, 60),
+            "institutions accumulating · " + " · ".join(c.get("lenses") or []))
+
     # 7. Earnings / predictions extras
     for p in (preds_doc.get("predictions") or []):
         alerts = p.get("alerts") or []
@@ -276,9 +284,16 @@ def lambda_handler(event, context):
         value_signals = keys & {"DISLOCATION", "COMPOUNDER", "REVISION_UP"}
         flow_signals = keys & {"INSIDER_CLUSTER", "OPTIONS_EXTREME", "OPTIONS_BULLISH",
                                 "POLITICIAN_COMMITTEE", "POLITICIAN_BUY", "EXECUTIVE_BUY",
-                                "CASCADE_ALERT", "RETAIL_HOT"}
+                                "CASCADE_ALERT", "RETAIL_HOT", "CAPITAL_FLOW"}
+        has_capital = "CAPITAL_FLOW" in keys
         triple_threat = ("DISLOCATION" in keys and "COMPOUNDER" in keys and len(flow_signals) >= 1)
-        if triple_threat:
+        # QUADRUPLE THREAT: cheap + durable grower + a flow signal + institutions
+        # actually putting capital in. The rarest, strongest convergence.
+        quad_threat = triple_threat and has_capital and len(flow_signals) >= 2
+        if quad_threat:
+            verdict = "QUAD THREAT"
+            composite = min(100.0, composite * 1.30)
+        elif triple_threat:
             verdict = "TRIPLE THREAT"
             composite = min(100.0, composite * 1.15)
 
@@ -286,6 +301,7 @@ def lambda_handler(event, context):
             "ticker": tk,
             "name": rec["name"],
             "conviction": round(composite, 1),
+            "quad_threat": quad_threat,
             "verdict": verdict,
             "triple_threat": triple_threat,
             "value_lenses": sorted(value_signals),
@@ -327,6 +343,7 @@ def lambda_handler(event, context):
             "watch": len(by_verdict["WATCH"]),
         },
         "top_setups": setups[:50],
+        "quad_threats": [s for s in setups if s.get("quad_threat")][:15],
         "triple_threats": [s for s in setups if s.get("triple_threat")][:20],
         "by_verdict": dict(by_verdict),
     }

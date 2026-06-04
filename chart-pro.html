@@ -326,6 +326,7 @@ a:hover { text-decoration: underline; }
 .setup-verdict { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px; padding: 3px 7px; border-radius: 4px; text-align: center; }
 .setup-verdict.strong { color: var(--bg); background: var(--green); }
 .setup-verdict.triple { color: var(--bg); background: linear-gradient(90deg,#fbbf24,#26ffaf); font-weight:800; }
+.setup-verdict.quad { color: var(--bg); background: linear-gradient(90deg,#a78bfa,#fbbf24,#26ffaf); font-weight:800; }
 .tt-banner { background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(38,255,175,0.06)); border: 1px solid var(--amber); border-radius: 9px; padding: 10px 12px; margin-bottom: 12px; }
 .tt-banner-h { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; background: linear-gradient(90deg,#fbbf24,#26ffaf); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
 .tt-chip { display: inline-block; margin: 3px; padding: 6px 10px; background: var(--bg-1); border: 1px solid var(--border-bright); border-radius: 7px; cursor: pointer; vertical-align: top; }
@@ -1779,7 +1780,7 @@ const State = {
   // Cached data
   cascade: null, insider: null, options: null, retail: null,
   trade_tickets: null, ai_rationales: null, predictions: null, calibration: null,
-  political: null, political_ai: null, executive: null, best_setups: null, dislocations: null, opportunities: null,
+  political: null, political_ai: null, executive: null, best_setups: null, dislocations: null, opportunities: null, capitalflow: null,
   
   tv_widgets: {},
 };
@@ -1795,6 +1796,7 @@ const WATCHLIST_CONFIGS = [
   { id: 'politician', label: 'CONGRESS', emoji: '🏛️', color: '#e0b341', tagClass: 'politician', signal: true },
   { id: 'dislocation', label: 'LAGGARDS', emoji: '⚖️', color: '#26ffaf', tagClass: 'dislocation', signal: true },
   { id: 'compounder', label: 'COMPOUNDERS', emoji: '🌱', color: '#a78bfa', tagClass: 'compounder', signal: true },
+  { id: 'capitalflow', label: 'ACCUMULATING', emoji: '💰', color: '#fbbf24', tagClass: 'capitalflow', signal: true },
 ];
 
 const FLAG_COLORS = ['none','red','orange','yellow','green','blue','purple'];
@@ -1813,7 +1815,7 @@ class DataService {
   }
   
   static async loadAll() {
-    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups, dislocations, opportunities] = await Promise.all([
+    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups, dislocations, opportunities, capitalflow] = await Promise.all([
       this.fetch('data/theme-cascade.json'),
       this.fetch('data/insider-clusters.json'),
       this.fetch('data/polygon-options-flow.json'),
@@ -1828,6 +1830,7 @@ class DataService {
       this.fetch('data/best-setups.json'),
       this.fetch('data/dislocations.json'),
       this.fetch('data/opportunities.json'),
+      this.fetch('data/capital-flow.json'),
     ]);
     State.cascade = cascade;
     State.insider = insider;
@@ -1843,6 +1846,7 @@ class DataService {
     State.best_setups = bestsetups;
     State.dislocations = dislocations;
     State.opportunities = opportunities;
+    State.capitalflow = capitalflow;
   }
 }
 
@@ -1995,6 +1999,7 @@ class WatchlistManager {
       case 'politician': return this.fromPolitician();
       case 'dislocation': return this.fromDislocation();
       case 'compounder': return this.fromCompounder();
+      case 'capitalflow': return this.fromCapitalFlow();
       default:         return [];
     }
   }
@@ -2094,6 +2099,15 @@ class WatchlistManager {
         score: r.compounder_score || 0, fallbackChange: null,
       };
     });
+  }
+  static fromCapitalFlow() {
+    const cf = State.capitalflow || {};
+    const rows = cf.accumulating || [];
+    return rows.slice(0, 40).map(r => ({
+      ticker: r.ticker, name: r.name || '',
+      sub: `flow +${r.flow_score} · ${(r.lenses||[]).join(' · ')}`,
+      score: r.flow_score || 0, fallbackChange: null,
+    }));
   }
   
   // All watchlists (signal + custom) for the dropdown
@@ -2458,7 +2472,7 @@ class UI {
       if (k.includes('CASCADE')) return 'cascade';
       return '';
     };
-    const vClass = (v) => v === 'TRIPLE THREAT' ? 'triple' : v === 'STRONG BUY' ? 'strong' : v === 'BUY' ? 'buy' : 'watch';
+    const vClass = (v) => v === 'QUAD THREAT' ? 'quad' : v === 'TRIPLE THREAT' ? 'triple' : v === 'STRONG BUY' ? 'strong' : v === 'BUY' ? 'buy' : 'watch';
     body.innerHTML = setups.slice(0, 40).map(s => {
       const sigs = (s.signals || []).map(sg =>
         `<span class="setup-sig ${sigClass(sg.key)}" title="${UI.esc(sg.detail||'')}">${UI.esc(sg.key.replace(/_/g,' '))}</span>`).join('');
