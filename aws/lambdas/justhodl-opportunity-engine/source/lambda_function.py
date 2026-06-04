@@ -802,6 +802,27 @@ def lambda_handler(event, context):
             if r.get("fund") and num((fund.get(sym) or {}).get("gross_margin", None)) and num((fund.get(sym) or {}).get("gross_margin")) > 50: go += 4
             r["growth_intel"] = gi
             r["growth_opportunity_score"] = max(0, min(100, round(go, 1)))
+            # ── MOMENTUM / REGIME GATE: "cheap AND inflecting" ──
+            # The backtest showed cheap value lagged momentum. Use the engine's
+            # own momentum_score + 52w range position to flag whether a name is
+            # actually inflecting. Cheap names that are still falling get a
+            # 'falling knife' tag + score haircut; cheap + rising get a boost.
+            mom = r.get("scores", {}).get("momentum")
+            rng = (r.get("growth_intel") or {}).get("range_position_52w")
+            chg = num(s.get("changesPct"))
+            inflecting = None
+            if mom is not None:
+                inflecting = (mom >= 55) or (rng is not None and rng >= 0.5) or (chg is not None and chg > 0)
+                cheap_value = (r.get("scores", {}).get("value") or 0) >= 60
+                if cheap_value and inflecting:
+                    r["growth_opportunity_score"] = min(100, r["growth_opportunity_score"] + 8)
+                    r["cheap_and_inflecting"] = True
+                elif cheap_value and rng is not None and rng < 0.25 and (mom or 50) < 40:
+                    r["growth_opportunity_score"] = max(0, r["growth_opportunity_score"] - 10)
+                    r["cheap_and_inflecting"] = False
+                    r.setdefault("flags", []).append("falling knife — cheap but not inflecting")
+                else:
+                    r["cheap_and_inflecting"] = bool(inflecting)
             # cap bucket (from universe or derived from market cap)
             mcap_v = num(s.get("marketCap"))
             r["cap_bucket"] = s.get("cap_bucket") or (
