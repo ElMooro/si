@@ -105,18 +105,35 @@ def lambda_handler(event=None, context=None):
                            "name": r.get("name"), "sector": r.get("sector")}
 
     # ── 3) ETF flows (sector/thematic capital direction) ──
+    # etf-flows.json uses dollar-volume z-score + returns as a flow proxy.
     etf_flows = []
-    flowsrc = (etf.get("flows") or etf.get("etfs") or etf2.get("flows") or etf2.get("etfs") or [])
-    if isinstance(flowsrc, dict):
-        flowsrc = list(flowsrc.values())
-    for e in flowsrc:
-        tk = (e.get("ticker") or e.get("symbol") or "").upper()
-        flow = sf(e.get("net_flow_usd") or e.get("flow") or e.get("net_flow") or e.get("flow_5d"))
-        if tk:
-            etf_flows.append({"ticker": tk, "name": e.get("name"), "net_flow": flow,
-                              "flow_pct": sf(e.get("flow_pct") or e.get("flow_pct_aum"))})
-    etf_flows = [e for e in etf_flows if e.get("net_flow") is not None]
-    etf_flows.sort(key=lambda x: -(x["net_flow"] or 0))
+    heavy_in = etf.get("heavy_inflow") or etf.get("rotation_in") or []
+    heavy_out = etf.get("heavy_outflow") or etf.get("rotation_out") or []
+    by_etf = etf.get("by_etf") or {}
+    src = list(by_etf.values()) if isinstance(by_etf, dict) else (by_etf if isinstance(by_etf, list) else [])
+    for e in src:
+        tk = (e.get("ticker") or "").upper()
+        if not tk:
+            continue
+        zsc = sf(e.get("dvol_z_score"))
+        r5 = sf(e.get("return_5d_pct"))
+        r20 = sf(e.get("return_20d_pct"))
+        sig = (e.get("flow_signal") or "").upper()
+        # flow proxy: dollar-volume surge in the direction of price (up = inflow)
+        direction = 1 if (r5 is not None and r5 >= 0) else -1
+        flow_proxy = round((zsc or 0) * direction, 2)
+        etf_flows.append({"ticker": tk, "name": e.get("name"), "category": e.get("category"),
+                          "aum_b": sf(e.get("aum_b")), "dvol_z": zsc, "return_5d_pct": r5,
+                          "return_20d_pct": r20, "flow_signal": sig, "flow_proxy": flow_proxy})
+    etf_flows.sort(key=lambda x: -(x.get("flow_proxy") or 0))
+    # category-level rotation
+    by_cat = etf.get("by_category") or {}
+    cat_src = list(by_cat.values()) if isinstance(by_cat, dict) else (by_cat if isinstance(by_cat, list) else [])
+    cat_rotation = sorted([{"category": c.get("category"), "signal": c.get("category_signal"),
+                            "avg_dvol_z": sf(c.get("avg_dvol_z")), "avg_return_1d_pct": sf(c.get("avg_return_1d_pct")),
+                            "total_aum_b": sf(c.get("total_aum_b"))}
+                           for c in cat_src if c.get("category")],
+                          key=lambda x: -(x.get("avg_dvol_z") or 0))
 
     # ── Fuse per ticker ──
     all_tks = set(f13_scores) | set(inst_scores)
@@ -146,7 +163,7 @@ def lambda_handler(event=None, context=None):
         "engine": "capital-flow", "version": "1.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "sources": {"13f": bool(agg), "etf_flows": len(etf_flows), "inst_change": len(inst_scores)},
+        "sources": {"13f": bool(agg), "etf_flows": len(etf_flows), "inst_change": len(inst_scores), "categories": len(cat_rotation)},
         "methodology": ("Fuses 13F position changes (new/add/trim/exit + $ delta + "
                         "#funds), institutional QoQ ownership change (shares %, "
                         "investor count), and ETF net flows into one capital-flow "
@@ -154,7 +171,8 @@ def lambda_handler(event=None, context=None):
         "accumulating": accumulating,
         "distributing": distributing,
         "etf_flows_in": etf_flows[:25],
-        "etf_flows_out": etf_flows[-15:][::-1] if len(etf_flows) > 15 else [],
+        "etf_flows_out": [e for e in etf_flows if (e.get("flow_proxy") or 0) < 0][:15],
+        "category_rotation": cat_rotation[:15],
         "by_ticker": {r["ticker"]: r for r in results[:300]},
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(output, default=str).encode(),
