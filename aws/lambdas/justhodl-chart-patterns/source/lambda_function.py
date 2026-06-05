@@ -306,6 +306,78 @@ def reindex(mark, start):
 
 
 # ---- handler ---------------------------------------------------------------
+# ---- NEW: robust low-false-positive patterns + forward-expectancy ----------
+def detect_volume_breakout(dates, closes, vols):
+    """Price breaks its 60-day high on >2.5x average volume (new-high confirm)."""
+    n = len(closes)
+    if n < 70:
+        return None
+    i = n - 1
+    win_hi = max(closes[i - 60:i])
+    avg_vol = sum(vols[i - 20:i]) / 20 if vols[i - 20:i] else 0
+    if avg_vol <= 0 or not vols[i]:
+        return None
+    vmult = vols[i] / avg_vol
+    if closes[i] > win_hi and vmult >= 2.5:
+        q = round(min(100, 50 + (vmult - 2.5) * 20 + (closes[i] / win_hi - 1) * 200))
+        return {"pattern": "volume_breakout", "status": "CONFIRMED",
+                "vol_multiple": round(vmult, 1), "breakout_level": round(win_hi, 2),
+                "quality": q, "last_close": round(closes[i], 2)}
+    return None
+
+
+def detect_gap_and_go(dates, closes, vols):
+    """Gap >3% on >2x avg volume that holds above the gap level."""
+    n = len(closes)
+    if n < 25:
+        return None
+    i = n - 1
+    prev = closes[i - 1]
+    if prev <= 0:
+        return None
+    gap = (closes[i] - prev) / prev
+    avg_vol = sum(vols[i - 20:i]) / 20 if vols[i - 20:i] else 0
+    vmult = (vols[i] / avg_vol) if avg_vol else 0
+    if gap >= 0.03 and vmult >= 2.0 and closes[i] >= prev * 1.02:
+        q = round(min(100, 45 + gap * 400 + (vmult - 2) * 12))
+        return {"pattern": "gap_and_go", "status": "CONFIRMED",
+                "gap_pct": round(gap * 100, 1), "vol_multiple": round(vmult, 1),
+                "quality": q, "last_close": round(closes[i], 2)}
+    return None
+
+
+def _fwd_return(closes, idx, horizon):
+    """Forward % return from idx to idx+horizon (None if not enough bars)."""
+    if idx + horizon >= len(closes) or closes[idx] <= 0:
+        return None
+    return (closes[idx + horizon] / closes[idx] - 1) * 100
+
+
+def backtest_expectancy(dates, closes, vols):
+    """Walk the symbol's full history, find every PAST occurrence of each
+    pattern, and record forward 20d/60d returns + quality. Returns a list of
+    {pattern, quality, ret20, ret60} observations the handler aggregates across
+    the universe into honest hit-rate / avg-return stats per pattern+bucket."""
+    obs = []
+    n = len(closes)
+    # Volume-breakout & gap-and-go: cheap per-bar checks across history
+    for i in range(70, n - 60):
+        win_hi = max(closes[i - 60:i])
+        avg_vol = sum(vols[i - 20:i]) / 20 if vols[i - 20:i] else 0
+        if avg_vol > 0 and vols[i] and closes[i] > win_hi and vols[i] / avg_vol >= 2.5:
+            q = round(min(100, 50 + (vols[i] / avg_vol - 2.5) * 20))
+            obs.append({"pattern": "volume_breakout", "quality": q,
+                        "ret20": _fwd_return(closes, i, 20), "ret60": _fwd_return(closes, i, 60)})
+        prev = closes[i - 1]
+        if prev > 0:
+            gap = (closes[i] - prev) / prev
+            if gap >= 0.03 and avg_vol and vols[i] / avg_vol >= 2.0:
+                q = round(min(100, 45 + gap * 400))
+                obs.append({"pattern": "gap_and_go", "quality": q,
+                            "ret20": _fwd_return(closes, i, 20), "ret60": _fwd_return(closes, i, 60)})
+    return obs
+
+
 def scan_symbol(symbol):
     hist = get_history(symbol)
     if not hist:
@@ -315,7 +387,12 @@ def scan_symbol(symbol):
     cross = detect_cross_200dma(closes)
     dt = detect_double_top(dates, closes, vols)
     db = detect_double_bottom(dates, closes, vols)
-    if not (cross or dt or db):
+    vb = detect_volume_breakout(dates, closes, vols)
+    gg = detect_gap_and_go(dates, closes, vols)
+    expectancy = backtest_expectancy(dates, closes, vols)
+    if not (cross or dt or db or vb or gg):
+        if expectancy:
+            return {"symbol": symbol, "_expectancy": expectancy}
         return None
     if cross:
         ser, st = tail_series(dates, closes, with_ma=True)
@@ -338,6 +415,14 @@ def scan_symbol(symbol):
             "trough2": reindex(db["trough2"], st),
             "peak": reindex(db["peak"], st),
             "series": ser}
+    if vb:
+        ser, st = tail_series(dates, closes, with_ma=False)
+        res["volume_breakout"] = {**vb, "series": ser}
+    if gg:
+        ser, st = tail_series(dates, closes, with_ma=False)
+        res["gap_and_go"] = {**gg, "series": ser}
+    if expectancy:
+        res["_expectancy"] = expectancy
     return res
 
 
@@ -355,6 +440,8 @@ def lambda_handler(event, context):
                                     "error": "empty universe"})}
 
     cross_up, cross_down, double_tops, double_bottoms = [], [], [], []
+    volume_breakouts, gap_and_gos = [], []
+    expectancy_obs = []
     n_scanned = 0
     with cf.ThreadPoolExecutor(max_workers=8) as ex:
         for res in ex.map(scan_symbol, universe):
@@ -362,6 +449,8 @@ def lambda_handler(event, context):
                 continue
             n_scanned += 1
             sym = res["symbol"]
+            if res.get("_expectancy"):
+                expectancy_obs.extend(res["_expectancy"])
             if "cross" in res:
                 row = {"symbol": sym, **res["cross"]}
                 (cross_up if row["direction"] == "up"
@@ -371,6 +460,36 @@ def lambda_handler(event, context):
             if "double_bottom" in res:
                 double_bottoms.append(
                     {"symbol": sym, **res["double_bottom"]})
+            if "volume_breakout" in res:
+                volume_breakouts.append({"symbol": sym, **res["volume_breakout"]})
+            if "gap_and_go" in res:
+                gap_and_gos.append({"symbol": sym, **res["gap_and_go"]})
+
+    # ── Forward-expectancy: aggregate every historical occurrence into honest
+    # hit-rate / avg-return stats per pattern + quality bucket. This is what
+    # makes the scores credible (the audit's core ask). ──
+    def _agg(obs, horizon_key):
+        rets = [o[horizon_key] for o in obs if o.get(horizon_key) is not None]
+        if len(rets) < 20:
+            return None
+        rets.sort()
+        n = len(rets)
+        return {
+            "n": n,
+            "avg_pct": round(sum(rets) / n, 2),
+            "median_pct": round(rets[n // 2], 2),
+            "hit_rate_pct": round(100 * sum(1 for r in rets if r > 0) / n, 1),
+            "hit_5pct": round(100 * sum(1 for r in rets if r >= 5) / n, 1),
+        }
+    expectancy = {}
+    for patt in ("volume_breakout", "gap_and_go"):
+        po = [o for o in expectancy_obs if o["pattern"] == patt]
+        for bucket, lo in (("all", 0), ("q60plus", 60), ("q80plus", 80)):
+            bo = [o for o in po if o["quality"] >= lo]
+            e20, e60 = _agg(bo, "ret20"), _agg(bo, "ret60")
+            if e20 or e60:
+                expectancy.setdefault(patt, {})[bucket] = {"fwd_20d": e20, "fwd_60d": e60}
+
 
     # crossovers: freshest first, then the cleanest break
     cross_up.sort(key=lambda r: (r["days_since_cross"],
@@ -381,6 +500,8 @@ def lambda_handler(event, context):
     pk = lambda r: (0 if r["status"] == "CONFIRMED" else 1, -r["quality"])
     double_tops.sort(key=pk)
     double_bottoms.sort(key=pk)
+    volume_breakouts.sort(key=lambda r: -r["quality"])
+    gap_and_gos.sort(key=lambda r: -r["quality"])
 
     out = {
         "schema_version": SCHEMA,
@@ -394,11 +515,16 @@ def lambda_handler(event, context):
             "cross_down_200dma": len(cross_down),
             "double_tops": len(double_tops),
             "double_bottoms": len(double_bottoms),
+            "volume_breakouts": len(volume_breakouts),
+            "gap_and_gos": len(gap_and_gos),
         },
         "cross_up_200dma": cross_up[:LIST_CAP],
         "cross_down_200dma": cross_down[:LIST_CAP],
         "double_tops": double_tops[:LIST_CAP],
         "double_bottoms": double_bottoms[:LIST_CAP],
+        "volume_breakouts": volume_breakouts[:LIST_CAP],
+        "gap_and_gos": gap_and_gos[:LIST_CAP],
+        "expectancy": expectancy,
         "parameters": {
             "swing_window": SWING_W, "peak_tolerance_pct": PEAK_TOL * 100,
             "min_valley_depth_pct": VALLEY_MIN * 100,
