@@ -64,9 +64,12 @@ async function ask(){
   const q=(document.getElementById('q').value||'').trim(); if(!q)return;
   const btn=document.getElementById('go'); btn.disabled=true;
   document.getElementById('out').innerHTML='<div class="loading"><span class="spin"></span> Querying your live engines…</div>';
+  const ASK_FN="https://mxfefd5s3l4kp7ywx4ztlboqui0jrmkc.lambda-url.us-east-1.on.aws/";
+  async function tryPost(url){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
   try{
-    const r=await fetch(`${PROXY}/ask`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});
-    const d=await r.json();
+    let d;
+    try{ d=await tryPost(ASK_FN); }            // direct AWS Function URL (no CDN bot-check)
+    catch(_){ d=await tryPost(`${PROXY}/ask`); } // fallback via worker
     render(d);
   }catch(e){
     document.getElementById('out').innerHTML='<div class="loading">Couldn\'t reach the assistant. Try again in a moment.</div>';
