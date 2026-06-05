@@ -161,8 +161,11 @@ function analyze(){
   html+=`</tbody></table><div class="disclaimer">Your holdings are cross-referenced live against the dislocation, opportunity/compounder, capital-flow, and bond-vol engines + the conviction board. ${HOLD.length-covered>0?(HOLD.length-covered)+' of your names are not in the screened universe (micro/foreign/illiquid) — no signal coverage.':''}<br>JustHodl.AI is research &amp; analytics, not investment advice. You are responsible for your own decisions.</div>`;
   root.innerHTML=html;
 }
-(async function(){renderHoldings();document.getElementById('analysis').innerHTML='<div class="empty">Loading signal data…</div>';await loadData();analyze();})();
+(async function(){renderHoldings();document.getElementById('analysis').innerHTML='<div class="empty">Loading signal data…</div>';await loadData();
+  try{var add=new URLSearchParams(location.search).get('add');if(add){add=add.toUpperCase();if(!HOLD.some(h=>h.tk===add)){HOLD.push({tk:add,sh:null,pr:null});save();renderHoldings();}}}catch(e){}
+  analyze();})();
 </script>
 <script src="/cmdk.js"></script>
+<script src="/symbol-bar.js"></script>
 </body>
 </html>
