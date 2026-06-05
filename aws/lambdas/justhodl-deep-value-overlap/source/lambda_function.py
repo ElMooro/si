@@ -77,6 +77,7 @@ def lambda_handler(event=None, context=None):
         if d and (d.get("cheapness") or 0) >= 0.6: lenses.append("EV/Sales cheap vs cohort")
         if gi.get("pe_vs_industry_pct") is not None and gi["pe_vs_industry_pct"] < -15: lenses.append("P/E < industry")
         if gi.get("peg_forward") is not None and gi["peg_forward"] < 1.0: lenses.append("PEG < 1")
+        if gi.get("reverse_dcf_mispriced"): lenses.append(f"reverse-DCF mispriced (implies {gi.get('implied_growth_pct')}% vs {gi.get('expected_company_growth_pct')}% exp)")
         if o.get("fcf_yield") is not None and sf(o.get("fcf_yield")) and sf(o["fcf_yield"]) > 5: lenses.append("FCF yield > 5%")
         guru = o.get("guru") or {}
         fcfy = sf(guru.get("fcf_yield"))

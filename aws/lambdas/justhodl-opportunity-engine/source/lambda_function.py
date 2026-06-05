@@ -787,6 +787,25 @@ def lambda_handler(event, context):
                 "peg_forward": (round(pe / exp_co, 2) if (pe and exp_co and exp_co > 0) else None),
                 "range_position_52w": s.get("range_position_52w"),
             }
+            # ── REVERSE-DCF IMPLIED GROWTH ──
+            # The growth rate the market is pricing in. Simplified reverse-DCF:
+            # solve the perpetual-growth FCF model for g given price/FCF and a
+            # discount rate. implied_g = r - (FCF/Price) on a no-growth base,
+            # extended with a 10y fade. We approximate via earnings yield:
+            #   a P/E of X at discount r implies growth g s.t. the GGM holds.
+            # implied_g ≈ r − (1/PE)  (Gordon, payout=1) — a clean first-order proxy.
+            disc = 0.09  # 9% cost of equity
+            implied_g = None
+            if pe and pe > 0:
+                implied_g = round((disc - (1.0 / pe)) * 100, 1)
+            gi["implied_growth_pct"] = implied_g
+            # Mispricing: market implies far LESS growth than analysts expect → cheap
+            if implied_g is not None and exp_co is not None:
+                gi["growth_gap_pct"] = round(exp_co - implied_g, 1)
+                gi["reverse_dcf_mispriced"] = (exp_co - implied_g) > 8  # expected >> implied
+            else:
+                gi["growth_gap_pct"] = None
+                gi["reverse_dcf_mispriced"] = False
             # Growth-Opportunity score (0-100): rewards growing faster than the
             # industry AND being cheap vs it, with forward confirmation + quality.
             go = 50.0

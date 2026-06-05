@@ -26,18 +26,21 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 UA = "JustHodl.AI research raafouis@gmail.com"
 s3 = boto3.client("s3", region_name=REGION)
 
-# Backlog-relevant universe by group (where RPO / contract-liability tags matter)
-UNIVERSE = {
-    "SaaS/Software": ["CRM","NOW","SNOW","DDOG","CRWD","ZS","NET","PANW","WDAY","TEAM","HUBS","MDB","OKTA","PLTR","S","FTNT","ADBE","INTU","ORCL"],
-    "Cloud/Mega": ["MSFT","AMZN","GOOGL","META","IBM","ACN"],
-    "Semis": ["NVDA","AMD","AVGO","KLAC","AMAT","LRCX","ASML","MU","TSM","ON","MCHP","ADI","TXN","MRVL"],
-    "Defense": ["LMT","NOC","RTX","GD","LHX","HII","LDOS","BAH","KTOS","AVAV","CW","MRCY"],
-    "Aerospace": ["BA","GE","HON","TDG","HEI","SPR","HWM","TXT"],
-    "Industrials": ["CAT","DE","CMI","PCAR","ETN","EMR","ROK","PH","ITW","GNRC","PWR","VRT"],
-    "Energy svcs": ["SLB","HAL","BKR","FTI","NOV","WFRD"],
+# Backlog-relevant groups are still tagged for context, but coverage is now the
+# FULL universe (data/universe.json) — any name exposing RPO/contract-liability
+# XBRL tags is captured, across mega/large/mid/small/micro.
+SECTOR_GROUP = {
+    "Technology": "Software/Semis", "Communication Services": "Cloud/Media",
+    "Industrials": "Industrials", "Energy": "Energy", "Health Care": "Healthcare",
+    "Consumer Cyclical": "Consumer", "Financial Services": "Financials",
 }
-ALL = sorted({t for v in UNIVERSE.values() for t in v})
-GROUP = {t: g for g, v in UNIVERSE.items() for t in v}
+# A small curated seed guarantees the marquee backlog names are always covered
+# even if they're missing from the universe snapshot.
+SEED = ["CRM","NOW","SNOW","DDOG","CRWD","ZS","NET","PANW","WDAY","MDB","OKTA","PLTR","S","FTNT",
+        "MSFT","AMZN","GOOGL","META","IBM","ACN","NVDA","AMD","AVGO","KLAC","AMAT","LRCX","MU","ON","MCHP","ADI","MRVL",
+        "LMT","NOC","RTX","GD","LHX","HII","LDOS","BAH","KTOS","AVAV","CW","MRCY",
+        "BA","GE","HON","TDG","HEI","HWM","TXT","CAT","DE","CMI","PCAR","ETN","EMR","ROK","PH","VRT","PWR","GNRC",
+        "SLB","HAL","BKR","FTI","NOV"]
 
 RPO_TAGS = ["RevenueRemainingPerformanceObligation"]
 DEF_TAGS = ["ContractWithCustomerLiability", "ContractWithCustomerLiabilityCurrent",
@@ -54,6 +57,13 @@ def http_json(url, t=15):
             return json.loads(raw.decode())
     except Exception:
         return None
+
+
+def read_json(key, default=None):
+    try:
+        return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return default
 
 
 def load_cik_map():
@@ -107,33 +117,32 @@ def pct(cur, prev):
     return None
 
 
-def analyze(sym, cik_map):
+def analyze(sym, cik_map, meta):
     cik = cik_map.get(sym)
     if not cik:
         return None
     rpo_tag, rpo = first_series(cik, RPO_TAGS)
     def_tag, defr = first_series(cik, DEF_TAGS)
     if not rpo and not defr:
-        return None
-    rec = {"ticker": sym, "group": GROUP.get(sym), "cik": cik}
-    # RPO metrics
+        return None   # no backlog disclosure → skip (this is the natural filter)
+    m = meta.get(sym, {})
+    rec = {"ticker": sym, "sector": m.get("sector"), "cap_bucket": m.get("cap_bucket"),
+           "group": SECTOR_GROUP.get(m.get("sector"), m.get("sector")), "cik": cik}
     if rpo:
         latest = rpo[-1]["val"]
         rec["rpo"] = latest
         rec["rpo_qoq"] = pct(latest, rpo[-2]["val"]) if len(rpo) >= 2 else None
-        # YoY: find ~4 quarters back
         rec["rpo_yoy"] = pct(latest, rpo[-5]["val"]) if len(rpo) >= 5 else None
         rec["rpo_tag"] = rpo_tag
-    # Deferred revenue metrics
     if defr:
         rec["deferred_rev"] = defr[-1]["val"]
         rec["deferred_qoq"] = pct(defr[-1]["val"], defr[-2]["val"]) if len(defr) >= 2 else None
         rec["deferred_yoy"] = pct(defr[-1]["val"], defr[-5]["val"]) if len(defr) >= 5 else None
-        # acceleration: latest QoQ vs prior QoQ
         if len(defr) >= 3:
             q1 = pct(defr[-1]["val"], defr[-2]["val"]); q0 = pct(defr[-2]["val"], defr[-3]["val"])
             rec["deferred_accelerating"] = (q1 is not None and q0 is not None and q1 > q0)
-    # Revenue growth (FMP) for the RPO-vs-revenue divergence
+    # Only enrich (extra FMP calls) names that actually disclose backlog → keeps
+    # the run fast even across the full universe.
     try:
         q = fetch_fmp(sym, "income-statement?period=quarter&limit=6")
         if isinstance(q, list) and len(q) >= 5:
@@ -148,20 +157,38 @@ def analyze(sym, cik_map):
             rec["ev_to_rpo"] = round(ev / rec["rpo"], 2)
     except Exception:
         pass
-    # Signal: RPO growth materially > revenue growth = accelerating demand / sandbagging
     if rec.get("rpo_yoy") is not None and rec.get("rev_yoy") is not None:
         rec["rpo_minus_rev_growth"] = round(rec["rpo_yoy"] - rec["rev_yoy"], 1)
         rec["demand_accelerating"] = rec["rpo_yoy"] > rec["rev_yoy"] + 5
     return rec
 
 
+def _capdist(rows):
+    out = {}
+    for r in rows:
+        cb = r.get("cap_bucket") or "?"
+        out[cb] = out.get(cb, 0) + 1
+    return out
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     cik_map = load_cik_map()
-    print(f"[backlog] CIK map: {len(cik_map)}")
+    # Full universe (all caps) + per-ticker sector/cap meta
+    uni = read_json("data/universe.json") or {}
+    meta = {}
+    tickers = set(SEED)
+    for s in (uni.get("stocks") or []):
+        tk = (s.get("symbol") or "").upper()
+        if not tk:
+            continue
+        tickers.add(tk)
+        meta[tk] = {"sector": s.get("sector"), "cap_bucket": s.get("cap_bucket")}
+    tickers = sorted(t for t in tickers if t in cik_map)  # only US-listed w/ CIK
+    print(f"[backlog] CIK map {len(cik_map)} · universe {len(tickers)} tickers w/ CIK")
     results = []
-    with ThreadPoolExecutor(max_workers=10) as ex:
-        futs = {ex.submit(analyze, s, cik_map): s for s in ALL}
+    with ThreadPoolExecutor(max_workers=16) as ex:
+        futs = {ex.submit(analyze, s, cik_map, meta): s for s in tickers}
         for f in as_completed(futs):
             try:
                 r = f.result()
@@ -179,6 +206,7 @@ def lambda_handler(event=None, context=None):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "n_covered": len(results),
+        "cap_distribution": _capdist(results),
         "by_ticker": {r["ticker"]: r for r in results},
         "accelerating": accelerating,
         "cheap_vs_backlog": cheap_vs_backlog,

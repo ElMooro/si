@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Backlog / RPO Radar · JustHodl AI</title>
+<meta name="description" content="Order backlog, RPO, and deferred-revenue growth from SEC XBRL — demand visibility that leads earnings by 1-2 quarters.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:760px}
+.tabs{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.tab{padding:7px 15px;border-radius:20px;font-family:var(--mono);font-size:12px;color:var(--fg-3);border:1px solid var(--border);background:var(--bg-1);cursor:pointer}
+.tab.active{color:var(--bg);background:var(--green);border-color:var(--green)}
+.capf{display:flex;gap:6px;margin:8px 0 18px;flex-wrap:wrap}
+.cp{padding:5px 11px;border-radius:16px;font-family:var(--mono);font-size:10.5px;color:var(--fg-3);border:1px solid var(--border);cursor:pointer}.cp.active{color:var(--bg);background:var(--cyan);border-color:var(--cyan)}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:right;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;font-family:var(--mono)}
+th{font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px}
+td.l,th.l{text-align:left}
+.tk{font-weight:700;color:var(--fg-0);cursor:pointer}.tk:hover{color:var(--cyan)}
+.pos{color:var(--green)}.neg{color:var(--red)}.big{color:var(--green);font-weight:700}
+.flag{font-size:9px;padding:1px 6px;border-radius:4px;border:1px solid var(--green);color:var(--green);margin-left:5px}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.disc{margin-top:22px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6;border-top:1px solid var(--border);padding-top:14px}
+</style></head><body>
+<header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+<nav class="nav"><a href="/">Home</a><a href="/opportunities.html">Opportunities</a><a href="/deep-value-overlap.html">Overlap Board</a><a href="/backlog.html" class="active">Backlog Radar</a><a href="/glossary.html">Glossary</a></nav></header>
+<div class="wrap">
+<div class="hero"><h1>Backlog / RPO <span class="grad">Radar</span></h1>
+<p>Order backlog, remaining performance obligations (RPO), and deferred-revenue growth straight from <b>SEC XBRL filings</b>. When RPO grows faster than revenue, demand is accelerating — a signal that <b>leads earnings by 1–2 quarters</b>. Free, structured, across the universe.</p></div>
+<div class="tabs"><span class="tab active" data-t="accelerating">⚡ Demand Accelerating</span><span class="tab" data-t="cheap">💰 Cheap vs Backlog (EV/RPO)</span><span class="tab" data-t="all">All Covered</span></div>
+<div class="capf" id="capf"></div>
+<div id="content"><div class="loading">Loading backlog data from SEC XBRL…</div></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function pct(v){return v==null?'—':(v>=0?'+':'')+v+'%';}
+function bn(v){if(v==null)return'—';const a=Math.abs(v);if(a>=1e9)return '$'+(v/1e9).toFixed(1)+'B';if(a>=1e6)return '$'+(v/1e6).toFixed(0)+'M';return '$'+v;}
+let DATA=null,tab='accelerating',cap='all';
+async function load(){
+  try{const r=await fetch(`${PROXY}/data/backlog.json?t=${Date.now()}`);if(r.ok)DATA=await r.json();}catch(e){}
+  if(!DATA){document.getElementById('content').innerHTML='<div class="loading">Backlog data not available yet — refreshes daily 11:30 UTC.</div>';return;}
+  const caps=Object.keys(DATA.cap_distribution||{}).filter(Boolean);
+  document.getElementById('capf').innerHTML='<span class="cp active" data-c="all">All caps</span>'+
+    ['mega','large','mid','small','micro','nano'].filter(c=>caps.includes(c)).map(c=>`<span class="cp" data-c="${c}">${c} (${DATA.cap_distribution[c]})</span>`).join('');
+  document.querySelectorAll('.cp').forEach(p=>p.onclick=()=>{cap=p.dataset.c;document.querySelectorAll('.cp').forEach(x=>x.classList.toggle('active',x.dataset.c===cap));render();});
+  render();
+}
+function rows(){
+  let list = tab==='accelerating'?(DATA.accelerating||[]):tab==='cheap'?(DATA.cheap_vs_backlog||[]):Object.values(DATA.by_ticker||{});
+  if(cap!=='all') list=list.filter(r=>r.cap_bucket===cap);
+  return list;
+}
+function render(){
+  const list=rows();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.t===tab));
+  if(!list.length){document.getElementById('content').innerHTML='<div class="loading">No names in this view.</div>';return;}
+  let h='<table><thead><tr><th class="l">Ticker</th><th class="l">Sector</th><th>RPO</th><th>RPO YoY</th><th>Rev YoY</th><th>Divergence</th><th>Def. Rev YoY</th><th>EV/RPO</th></tr></thead><tbody>';
+  list.forEach(r=>{
+    h+=`<tr>
+      <td class="l"><span class="tk" onclick="window.open('/chart-pro.html','_blank')">${esc(r.ticker)}</span>${r.demand_accelerating?'<span class="flag">ACCEL</span>':''}</td>
+      <td class="l" style="color:var(--fg-3)">${esc(r.group||r.sector||'—')}</td>
+      <td>${bn(r.rpo)}</td>
+      <td class="${(r.rpo_yoy||0)>=0?'pos':'neg'}">${pct(r.rpo_yoy)}</td>
+      <td class="${(r.rev_yoy||0)>=0?'pos':'neg'}">${pct(r.rev_yoy)}</td>
+      <td class="${(r.rpo_minus_rev_growth||0)>0?'big':''}">${r.rpo_minus_rev_growth!=null?(r.rpo_minus_rev_growth>=0?'+':'')+r.rpo_minus_rev_growth+'pp':'—'}</td>
+      <td class="${(r.deferred_yoy||0)>=0?'pos':'neg'}">${pct(r.deferred_yoy)}</td>
+      <td>${r.ev_to_rpo!=null?r.ev_to_rpo+'x':'—'}</td></tr>`;
+  });
+  h+='</tbody></table>';
+  h+=`<div class="disc">${esc(DATA.method||'')}<br>Divergence = RPO YoY − Revenue YoY. Positive = order book growing faster than recognized revenue (accelerating demand / sandbagging). ${DATA.n_covered} names expose backlog XBRL tags. Generated ${esc((DATA.generated_at||'').slice(0,16))} UTC. Research, not advice.</div>`;
+  document.getElementById('content').innerHTML=h;
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{tab=t.dataset.t;render();});
+load();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>

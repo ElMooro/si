@@ -46,6 +46,7 @@ def read_json(key, default=None):
 # Each maps to a self-improvement tier so we can swap in the learned hit rate.
 SIGNAL_PRIORS = {
     "POLITICIAN_COMMITTEE": 0.85,   # committee jurisdiction edge — strongest
+    "DEEP_VALUE_OVERLAP":   0.84,   # cheap on multiple lenses + catalysts + inflection
     "CAPITAL_FLOW":         0.82,   # institutions + capital accumulating (13F+inst+ETF)
     "COMPOUNDER":           0.80,   # durable quality growth (ROIC+margin+growth)
     "REVISION_UP":          0.78,   # analyst estimate-revision momentum
@@ -121,6 +122,7 @@ def lambda_handler(event, context):
     insider = read_json("data/insider-clusters.json") or {}
     finra_short = read_json("data/finra-short.json") or {}
     catalysts = read_json("data/catalyst-calendar.json") or {}
+    overlap = read_json("data/deep-value-overlap.json") or {}
     political = read_json("data/political-intel.json") or {}
     executive = read_json("data/executive-intel.json") or {}
     retail = read_json("data/retail-sentiment.json") or {}
@@ -255,6 +257,13 @@ def lambda_handler(event, context):
         add(r.get("ticker"), None, "SHORT_SQUEEZE",
             normalize(r.get("squeeze_score"), 50, 95),
             f"squeeze setup {r.get('squeeze_score')}" + (f" · short z {r.get('z_score')}" if r.get('z_score') is not None else ""))
+
+    # 7g. Deep Value + Catalyst Overlap — the master-board prime setups
+    for r in (overlap.get("prime_setups") or [])[:30]:
+        det = f"{r.get('n_value_lenses')} value lenses + {r.get('n_catalysts')} catalysts"
+        if r.get("n_inflection"): det += f" + {r.get('n_inflection')} inflection"
+        add(r.get("ticker"), r.get("sector"), "DEEP_VALUE_OVERLAP",
+            normalize(r.get("overlap_score"), 40, 90), det)
 
     # 7f. Catalyst calendar — FDA PDUFA + government contract awards (events[] schema)
     for ev in (catalysts.get("events") or []):

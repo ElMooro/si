@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Deep Value + Catalyst Overlap · JustHodl AI</title>
+<meta name="description" content="The master board: stocks cheap on multiple valuation lenses with catalysts and inflection — the convergence engine for deep-undervalued boom detection.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--bg-3:#131929;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 18px;max-width:760px}
+.tabs{display:flex;gap:8px;margin-bottom:18px}
+.tab{padding:7px 15px;border-radius:20px;font-family:var(--mono);font-size:12px;color:var(--fg-3);border:1px solid var(--border);background:var(--bg-1);cursor:pointer}
+.tab.active{color:var(--bg);background:var(--green);border-color:var(--green)}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;cursor:pointer}
+.card:hover{border-color:var(--cyan)}
+.ctop{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.tk{font-family:var(--mono);font-size:18px;font-weight:800;color:var(--fg-0)}
+.cap{font-family:var(--mono);font-size:9px;text-transform:uppercase;padding:2px 7px;border-radius:10px;border:1px solid var(--border-bright);color:var(--fg-3)}
+.score{margin-left:auto;font-family:var(--mono);font-size:22px;font-weight:800;color:var(--green)}
+.cnt{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-left:6px}
+.row2{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.grp{flex:1;min-width:200px}
+.glabel{font-family:var(--mono);font-size:9px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.chip{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;margin:2px 3px 2px 0;border:1px solid}
+.chip.v{color:var(--cyan);border-color:var(--cyan)}.chip.c{color:var(--green);border-color:var(--green)}.chip.i{color:var(--violet);border-color:var(--violet)}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.disc{margin-top:24px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6;border-top:1px solid var(--border);padding-top:14px}
+</style></head><body>
+<header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+<nav class="nav"><a href="/">Home</a><a href="/opportunities.html">Opportunities</a><a href="/dislocations.html">Laggards</a><a href="/backlog.html">Backlog</a><a href="/deep-value-overlap.html" class="active">Overlap Board</a><a href="/glossary.html">Glossary</a></nav></header>
+<div class="wrap">
+<div class="hero"><h1>Deep Value + Catalyst <span class="grad">Overlap</span></h1>
+<p>The master board. Stocks that are <b>cheap on multiple valuation lenses</b>, carrying <b>catalysts</b> (insider, capital flow, short-squeeze, estimate revisions, backlog acceleration), with an <b>inflection</b> — risk-gated by Altman-Z. The convergence engine for catching deep value before it booms.</p></div>
+<div class="tabs"><span class="tab active" data-t="prime">Prime Setups</span><span class="tab" data-t="elite">Elite (2+ catalysts)</span><span class="tab" data-t="board">Full Board</span></div>
+<div id="content"><div class="loading">Loading the overlap board…</div></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let DATA=null,tab='prime';
+async function load(){
+  try{const r=await fetch(`${PROXY}/data/deep-value-overlap.json?t=${Date.now()}`);if(r.ok)DATA=await r.json();}catch(e){}
+  if(!DATA){document.getElementById('content').innerHTML='<div class="loading">Board not available yet — refreshes daily 17:00 UTC.</div>';return;}
+  render();
+}
+function card(r){
+  return `<div class="card" onclick="window.open('/chart-pro.html','_blank')">
+    <div class="ctop"><span class="tk">${esc(r.ticker)}</span><span class="cap">${esc(r.cap_bucket||'')}</span>
+      <span style="font-size:11.5px;color:var(--fg-3)">${esc(r.name||'')}${r.sector?' · '+esc(r.sector):''}</span>
+      <span class="score">${r.overlap_score}</span></div>
+    <div class="row2">
+      <div class="grp"><div class="glabel">${r.n_value_lenses} Value lens${r.n_value_lenses!=1?'es':''}</div>${(r.value_lenses||[]).map(x=>`<span class="chip v">${esc(x)}</span>`).join('')}</div>
+      <div class="grp"><div class="glabel">${r.n_catalysts} Catalyst${r.n_catalysts!=1?'s':''}</div>${(r.catalysts||[]).map(x=>`<span class="chip c">${esc(x)}</span>`).join('')}</div>
+      ${r.n_inflection?`<div class="grp"><div class="glabel">${r.n_inflection} Inflection</div>${(r.inflection||[]).map(x=>`<span class="chip i">${esc(x)}</span>`).join('')}</div>`:''}
+    </div></div>`;
+}
+function render(){
+  const list = tab==='prime'?(DATA.prime_setups||[]):tab==='elite'?(DATA.elite_setups||[]):(DATA.board||[]);
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.t===tab));
+  if(!list.length){document.getElementById('content').innerHTML='<div class="loading">No names in this tier right now.</div>';return;}
+  document.getElementById('content').innerHTML=list.map(card).join('')+`<div class="disc">${esc(DATA.method||'')}<br>Prime = cheap on ≥2 lenses + ≥1 catalyst + inflection + not distressed. Elite also requires ≥2 catalysts. Generated ${esc((DATA.generated_at||'').slice(0,16))} UTC. Research &amp; analytics, not investment advice.</div>`;
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{tab=t.dataset.t;render();});
+load();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
