@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Glossary · JustHodl AI</title><meta name="description" content="Plain-English glossary of the signals, metrics, and acronyms used across JustHodl.AI — GEX, DIX, VRP, WALCL, RRP, dislocation, compounder, and more.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}
+.wrap{max-width:820px;margin:0 auto;padding:40px 24px 70px}
+h1{font-size:30px;font-weight:800;color:var(--fg-0)}
+h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:var(--fg-2);margin:8px 0 18px}
+#search{width:100%;background:var(--bg-1);border:1px solid var(--border-bright);border-radius:10px;color:var(--fg-1);font-size:15px;padding:12px 14px;margin-bottom:8px}
+.cat{font-family:var(--mono);font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin:26px 0 10px}
+.term{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:8px}
+.term .t{font-weight:700;color:var(--fg-0);font-family:var(--mono);font-size:14px}
+.term .d{color:var(--fg-2);font-size:13.5px;margin-top:4px}
+.footer{text-align:center;color:var(--fg-3);font-size:12px;padding:28px;border-top:1px solid var(--border);font-family:var(--mono);margin-top:40px}.footer a{margin:0 8px}
+</style></head><body>
+<header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+<nav class="nav"><a href="/">Home</a><a href="/about.html">About</a><a href="/glossary.html">Glossary</a><a href="/contact.html">Contact</a></nav></header>
+<div class="wrap">
+<h1>Plain-English <span class="grad">Glossary</span></h1>
+<p class="sub">Every signal, metric, and acronym on JustHodl.AI — explained simply. Search below.</p>
+<input id="search" placeholder="Search terms… (e.g. GEX, compounder, dislocation)" />
+<div id="list"></div>
+</div>
+<div class="footer"><a href="/about.html">About</a>·<a href="/contact.html">Contact</a>·<a href="/glossary.html">Glossary</a>·<a href="/terms.html">Terms</a>·<a href="/privacy.html">Privacy</a></div>
+<script>
+const TERMS=[
+{c:"JustHodl signals",t:"Dislocation (Buy the Laggard)",d:"A stock trading cheap on valuation (low EV/Sales) versus its industry peers while having comparable or better growth and quality — the mispriced 'laggard' to consider buying."},
+{c:"JustHodl signals",t:"Compounder",d:"A durable quality grower: high return on invested capital, fat gross margins, fast expected growth, and low leverage — the rare business that compounds over time."},
+{c:"JustHodl signals",t:"Capital Flow",d:"Where institutions and ETF money are actually moving, fused from 13F fund position changes, quarter-over-quarter institutional ownership change, and ETF creation/redemption flows."},
+{c:"JustHodl signals",t:"Triple Threat",d:"The rare setup where three independent lenses agree on one name: it's cheap (dislocation) + a durable grower (compounder) + carrying a market/flow signal."},
+{c:"JustHodl signals",t:"Quad Threat",d:"The apex setup — Triple Threat plus institutions actively accumulating the name. Four independent confirmations; the highest conviction the system produces."},
+{c:"JustHodl signals",t:"Cheap AND Inflecting",d:"A cheap stock where price momentum is also turning up (above its 20-day average, rising trend) — avoids 'falling knives' that are cheap but still dropping."},
+{c:"JustHodl signals",t:"Conviction Score",d:"The blended strength of a setup: sum of each firing signal's strength × its learned weight, multiplied by a confluence bonus when multiple independent signals agree."},
+{c:"Valuation",t:"EV/Sales",d:"Enterprise Value (market cap + debt − cash) divided by revenue. The cleaner 'how expensive is it' number than market-cap/revenue because it accounts for debt."},
+{c:"Valuation",t:"Forward PEG",d:"Price/Earnings divided by expected growth. Below 1.0 means you're paying less than one point of P/E per point of growth — attractive growth-at-a-reasonable-price."},
+{c:"Valuation",t:"Rule of 40",d:"Revenue growth % + profit margin %. Above 40 is the classic bar for a healthy growth company balancing expansion and profitability."},
+{c:"Valuation",t:"ROIC",d:"Return on Invested Capital — how much profit a company generates per dollar of capital deployed. Sustained high ROIC is the fingerprint of a real moat."},
+{c:"Options & positioning",t:"GEX (Gamma Exposure)",d:"How much dealers must buy or sell to stay hedged as prices move. Positive GEX = dealers dampen moves (calm); negative GEX = dealers amplify moves (volatility). 'GEX fired' means a regime shift forcing dealer hedging."},
+{c:"Options & positioning",t:"DIX (Dark Index)",d:"A measure of buying pressure in dark pools (off-exchange). High DIX suggests institutions are quietly accumulating."},
+{c:"Options & positioning",t:"VRP (Volatility Risk Premium)",d:"The gap between implied volatility (what options price in) and realized volatility (what actually happens). A positive VRP is the premium option sellers earn."},
+{c:"Options & positioning",t:"Skew",d:"How much more expensive downside puts are than upside calls. Steep put skew signals demand for crash protection."},
+{c:"Options & positioning",t:"0DTE",d:"Zero-days-to-expiration options — contracts expiring the same day. Heavy 0DTE volume can drive sharp intraday moves via dealer gamma."},
+{c:"Macro & liquidity",t:"Net Liquidity",d:"A proxy for how much cash is sloshing through markets: Fed balance sheet − Treasury General Account − Reverse Repo. Rising net liquidity is generally a tailwind for risk assets."},
+{c:"Macro & liquidity",t:"WALCL",d:"The Fed's total balance sheet (assets). Expansion (QE) adds liquidity; contraction (QT) drains it."},
+{c:"Macro & liquidity",t:"TGA (Treasury General Account)",d:"The U.S. Treasury's checking account at the Fed. When it rises, cash leaves the market; when it falls, cash enters."},
+{c:"Macro & liquidity",t:"RRP (Reverse Repo)",d:"Cash parked overnight at the Fed by money-market funds. A falling RRP releases cash back into the system."},
+{c:"Macro & liquidity",t:"MOVE Index",d:"The bond market's 'VIX' — expected volatility in U.S. Treasuries. Rising MOVE signals rates stress and usually precedes risk-off."},
+{c:"Macro & liquidity",t:"Bond-Vol Regime",d:"JustHodl's MOVE-equivalent: a composite of 10 bond-stress channels (yield vol, curve vol, credit-spread vol, real-rate vol) classifying the market as LOW / NORMAL / ELEVATED / CRISIS."},
+{c:"Macro & liquidity",t:"2s10s / Yield Curve",d:"The spread between 10-year and 2-year Treasury yields. Inversion (negative) has historically preceded recessions."},
+{c:"Fundamental signals",t:"PEAD (Post-Earnings-Announcement Drift)",d:"The tendency of a stock to keep drifting in the direction of an earnings surprise for weeks after the report."},
+{c:"Fundamental signals",t:"Estimate Revision Momentum",d:"When Wall Street analysts are raising their forecasts for a company. Upward revisions are one of the most reliable predictors of outperformance."},
+{c:"Fundamental signals",t:"Backlog / RPO",d:"Contracted future revenue a company has booked but not yet recognized (Remaining Performance Obligations). Growing backlog signals durable forward growth."},
+{c:"Fundamental signals",t:"Altman Z-Score",d:"A bankruptcy-risk score. Below ~1.8 is the distress zone; high scores indicate a financially sound company."},
+{c:"Fundamental signals",t:"Piotroski F-Score",d:"A 0–9 quality score based on profitability, leverage, and efficiency signals. Higher = financially healthier."},
+{c:"Flow & smart money",t:"13F",d:"Quarterly SEC filings disclosing what institutions (>$100M) hold. The gold standard for seeing what funds own — but lagged ~45 days."},
+{c:"Flow & smart money",t:"13D/13G",d:"Filings when an investor crosses 5% ownership. 13D signals activist intent; 13G is passive."},
+{c:"Flow & smart money",t:"Insider Cluster",d:"Multiple company insiders (officers/directors) buying their own stock around the same time — a strong conviction signal."},
+{c:"Flow & smart money",t:"COT (Commitments of Traders)",d:"Weekly CFTC report showing futures positioning by commercials, large speculators, and small traders."},
+{c:"Risk",t:"Sharpe Ratio",d:"Return per unit of total risk (volatility). Higher is better; above 1 is good, above 2 is excellent."},
+{c:"Risk",t:"Max Drawdown",d:"The largest peak-to-trough decline. Measures the worst loss you'd have endured holding through."},
+{c:"Risk",t:"Beta",d:"How much a stock moves relative to the market. Beta 1.5 means it tends to move 50% more than the index, up and down."},
+{c:"Risk",t:"Value Trap",d:"A stock that looks statistically cheap but is cheap for a reason (declining business, secular headwind). JustHodl flags these so cheapness alone doesn't lure you in."},
+];
+function render(q){
+  q=(q||'').toLowerCase();
+  const f=TERMS.filter(t=>!q||t.t.toLowerCase().includes(q)||t.d.toLowerCase().includes(q)||t.c.toLowerCase().includes(q));
+  const cats={};f.forEach(t=>{(cats[t.c]=cats[t.c]||[]).push(t);});
+  let h='';
+  Object.keys(cats).forEach(c=>{h+=`<div class="cat">${c}</div>`+cats[c].map(t=>`<div class="term"><div class="t">${t.t}</div><div class="d">${t.d}</div></div>`).join('');});
+  document.getElementById('list').innerHTML=h||'<div class="term"><div class="d">No matches.</div></div>';
+}
+document.getElementById('search').addEventListener('input',e=>render(e.target.value));
+render('');
+</script>
+</body></html>
