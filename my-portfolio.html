@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>My Portfolio · JustHodl AI</title>
-<meta name="description" content="Your book, analyzed by the whole JustHodl intelligence system — risk, overlaps, which signals touch your names, and what to do.">
+<title>My Portfolio · Personal CIO · JustHodl AI</title>
 <style>
 :root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--bg-3:#131929;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--red:#ff5577;--amber:#fbbf24;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -15,36 +14,39 @@ a{color:var(--cyan);text-decoration:none}
 .brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
 .nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}
 .nav a:hover{color:var(--fg-1);background:var(--bg-2)}.nav a.active{color:var(--cyan)}
-.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 70px}
-h1{font-size:26px;font-weight:800;color:var(--fg-0);margin-bottom:4px}
-.sub{color:var(--fg-2);font-size:13.5px;margin-bottom:20px}
-.priv{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);background:var(--bg-1);border:1px solid var(--border);border-radius:6px;padding:6px 10px;display:inline-block;margin-bottom:18px}
-/* entry */
-.entry{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:14px}
-.entry input{background:var(--bg-2);border:1px solid var(--border);border-radius:7px;color:var(--fg-1);font-family:var(--mono);font-size:13px;padding:9px 11px}
-.entry input.tk{width:120px;text-transform:uppercase}.entry input.sh{width:110px}.entry input.cb{width:130px}
-.entry button{background:var(--green);color:var(--bg);border:none;border-radius:7px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:13px}
-.entry button.ghost{background:var(--bg-3);color:var(--fg-2)}
-.holds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
-.hold{display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:var(--mono);font-size:12px}
-.hold b{color:var(--fg-0)}.hold .x{color:var(--red);cursor:pointer;font-size:14px}
-/* analysis */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:6px 0 22px}
-.kpi{background:var(--bg-1);border:1px solid var(--border);border-radius:11px;padding:15px}
-.kpi .v{font-family:var(--mono);font-size:24px;font-weight:800;color:var(--fg-0)}
-.kpi .l{font-size:11px;color:var(--fg-3);margin-top:3px}.kpi .s{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:4px}
-h2{font-size:16px;font-weight:700;color:var(--fg-0);margin:26px 0 12px;font-family:var(--mono)}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
-.card{background:var(--bg-1);border:1px solid var(--border);border-radius:11px;padding:14px}
-.card.alert{border-color:var(--red)}.card.good{border-color:var(--green)}.card.warn{border-color:var(--amber)}
-.card .ct{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--fg-0);margin-bottom:3px}
-.card .cb{font-size:12.5px;color:var(--fg-2);line-height:1.5}
-.tag{font-family:var(--mono);font-size:9.5px;padding:2px 7px;border-radius:10px;border:1px solid;display:inline-block;margin-top:7px}
+.wrap{max-width:1080px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 22px;font-size:14px}
+.add-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.add-row input{background:var(--bg-1);border:1px solid var(--border-bright);border-radius:8px;color:var(--fg-1);font-family:var(--mono);font-size:13px;padding:10px 12px}
+#h-tk{width:120px;text-transform:uppercase}#h-sh{width:120px}#h-pr{width:130px}
+.btn{background:var(--green);color:var(--bg);border:none;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:var(--mono);font-size:13px}
+.btn.ghost{background:transparent;border:1px solid var(--border-bright);color:var(--fg-2)}
+.holdings{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.hchip{display:flex;align-items:center;gap:8px;background:var(--bg-1);border:1px solid var(--border);border-radius:20px;padding:6px 8px 6px 13px;font-family:var(--mono);font-size:12px}
+.hchip b{color:var(--fg-0)}.hchip .x{cursor:pointer;color:var(--fg-3);font-size:15px;padding:0 4px}.hchip .x:hover{color:var(--red)}
+.note{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin-bottom:24px}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}
+@media(max-width:760px){.summary{grid-template-columns:1fr 1fr}.add-row input{flex:1}}
+.kpi{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:15px 16px}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:800}
+.kpi .l{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.kpi .s{font-size:11px;color:var(--fg-3);margin-top:3px}
+.cio{background:linear-gradient(135deg,rgba(34,211,238,0.06),rgba(38,255,175,0.04));border:1px solid var(--border-bright);border-radius:12px;padding:18px 20px;margin-bottom:24px}
+.cio h2{font-size:14px;font-family:var(--mono);color:var(--cyan);margin-bottom:10px;letter-spacing:.5px}
+.cio .line{display:flex;gap:10px;margin-bottom:8px;font-size:13.5px}
+.cio .ic{flex-shrink:0}
+h2.sec{font-size:16px;color:var(--fg-0);margin:26px 0 12px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+th{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px}
+td.tk{font-family:var(--mono);font-weight:700;color:var(--fg-0);cursor:pointer}
+td.tk:hover{color:var(--cyan)}
+.badge{font-family:var(--mono);font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.flag{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:4px;border:1px solid;margin-right:4px;white-space:nowrap;display:inline-block}
 .empty{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
-.regbar{display:flex;align-items:center;gap:12px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-family:var(--mono);font-size:12.5px;flex-wrap:wrap}
-.bar-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border)}
-.bar-row:last-child{border:none}
-.disclaimer{margin-top:26px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6;background:var(--bg-1);border:1px solid var(--border);border-radius:8px;padding:14px}
+.disclaimer{margin-top:26px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6;border-top:1px solid var(--border);padding-top:14px}
 </style>
 </head>
 <body>
@@ -52,166 +54,114 @@ h2{font-size:16px;font-weight:700;color:var(--fg-0);margin:26px 0 12px;font-fami
   <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
   <nav class="nav">
     <a href="/">Home</a><a href="/chart-pro.html">Chart Pro</a><a href="/opportunities.html">Opportunities</a>
-    <a href="/capital-flow.html">Capital Flow</a><a href="/my-portfolio.html" class="active">My Portfolio</a><a href="/ask.html">Ask</a>
+    <a href="/capital-flow.html">Capital Flow</a><a href="/my-portfolio.html" class="active">My Portfolio</a><a href="/pricing.html">Pricing</a>
   </nav>
 </header>
-<div id="regime-ribbon"></div>
 <div class="wrap">
-  <h1>My Portfolio</h1>
-  <div class="sub">Your book, analyzed by the entire JustHodl intelligence system — what's at risk, where you're concentrated, and which signals touch <i>your</i> names.</div>
-  <div class="priv">🔒 Private — your holdings are stored only in your own account (or this browser if signed out) and never shared.</div>
-
-  <div class="entry">
-    <input class="tk" id="in-tk" placeholder="TICKER" autocomplete="off">
-    <input class="sh" id="in-sh" placeholder="Shares" type="number">
-    <input class="cb" id="in-cb" placeholder="Cost basis $" type="number">
-    <button id="add">+ Add holding</button>
-    <button class="ghost" id="bulk">Paste list</button>
+  <div class="hero">
+    <h1>Your <span class="grad">Personal CIO</span></h1>
+    <p>Enter your holdings — the entire JustHodl engine re-frames around <b>your book</b>: which of your names institutions are buying or dumping, which are cheap-and-inflecting vs value traps, your concentration &amp; regime risk, and what to act on.</p>
   </div>
-  <div class="holds" id="holds"></div>
-
+  <div class="add-row">
+    <input id="h-tk" placeholder="Ticker" />
+    <input id="h-sh" type="number" placeholder="Shares (opt)" />
+    <input id="h-pr" type="number" placeholder="Avg cost (opt)" />
+    <button class="btn" id="add-btn">+ Add holding</button>
+    <button class="btn ghost" id="clear-btn">Clear all</button>
+  </div>
+  <div class="holdings" id="holdings"></div>
+  <div class="note">🔒 Stored only in your browser (localStorage) — nothing is uploaded. Add tickers; shares/cost are optional and only used for weighting &amp; P&amp;L context.</div>
   <div id="analysis"></div>
-
-  <div class="disclaimer">Analysis is computed locally from your holdings against the live JustHodl signal engines (opportunities, dislocations, compounders, capital-flow, bond-vol regime, today's setups). It is informational only and not investment advice. You are responsible for your own decisions.</div>
 </div>
-
-<script src="/regime-ribbon.js"></script>
-<script src="/auth.js"></script>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const LS="jh_my_portfolio";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function fmtUsd(v){if(v==null)return'—';const a=Math.abs(v);if(a>=1e9)return'$'+(v/1e9).toFixed(2)+'B';if(a>=1e6)return'$'+(v/1e6).toFixed(1)+'M';if(a>=1e3)return'$'+(v/1e3).toFixed(0)+'k';return '$'+v.toFixed(0);}
-let HOLDINGS=[];          // [{ticker,shares,cost}]
-let DATA={};              // loaded signal datasets
-
-// ── persistence: per-user KV via worker if signed in, else localStorage ──
-function deviceId(){let d=localStorage.getItem('jh_device');if(!d){d='dev_'+Math.random().toString(36).slice(2);localStorage.setItem('jh_device',d);}return d;}
-function userKey(){try{return (window.JHAuth&&window.JHAuth.userId&&window.JHAuth.userId())||deviceId();}catch(e){return deviceId();}}
-async function saveHoldings(){
-  localStorage.setItem('jh_holdings',JSON.stringify(HOLDINGS));
-  try{await fetch(`${PROXY}/userdata/${userKey()}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'holdings',value:HOLDINGS})});}catch(e){}
+let HOLD=load(); let DATA={};
+function load(){try{return JSON.parse(localStorage.getItem(LS))||[]}catch(e){return[]}}
+function save(){localStorage.setItem(LS,JSON.stringify(HOLD));}
+function renderHoldings(){
+  const el=document.getElementById('holdings');
+  el.innerHTML=HOLD.map((h,i)=>`<div class="hchip"><b>${esc(h.tk)}</b>${h.sh?` <span style="color:var(--fg-3)">${h.sh} sh</span>`:''}<span class="x" data-i="${i}">×</span></div>`).join('');
+  el.querySelectorAll('.x').forEach(x=>x.onclick=()=>{HOLD.splice(+x.dataset.i,1);save();renderHoldings();analyze();});
 }
-async function loadHoldings(){
-  let local=[];try{local=JSON.parse(localStorage.getItem('jh_holdings')||'[]');}catch(e){}
-  try{const r=await fetch(`${PROXY}/userdata/${userKey()}?key=holdings&t=${Date.now()}`);if(r.ok){const d=await r.json();if(d&&d.value&&Array.isArray(d.value)&&d.value.length)return d.value;}}catch(e){}
-  return local;
-}
-
+document.getElementById('add-btn').onclick=()=>{
+  const tk=(document.getElementById('h-tk').value||'').trim().toUpperCase(); if(!tk)return;
+  const sh=parseFloat(document.getElementById('h-sh').value)||null;
+  const pr=parseFloat(document.getElementById('h-pr').value)||null;
+  if(!HOLD.some(h=>h.tk===tk))HOLD.push({tk,sh,pr});
+  save();renderHoldings();
+  document.getElementById('h-tk').value='';document.getElementById('h-sh').value='';document.getElementById('h-pr').value='';
+  analyze();
+};
+document.getElementById('h-tk').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('add-btn').click();});
+document.getElementById('clear-btn').onclick=()=>{if(confirm('Clear all holdings?')){HOLD=[];save();renderHoldings();analyze();}};
 async function loadData(){
-  const f=(k)=>fetch(`${PROXY}/data/${k}?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null);
-  const [opp,disl,best,cf,bv]=await Promise.all([f('opportunities.json'),f('dislocations.json'),f('best-setups.json'),f('capital-flow.json'),f('bond-vol.json')]);
-  DATA={opp:opp||{},disl:disl||{},best:best||{},cf:cf||{},bv:bv||{}};
+  const [disl,opp,cf,bv,bs]=await Promise.all([
+    fetch(`${PROXY}/data/dislocations.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch(`${PROXY}/data/opportunities.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch(`${PROXY}/data/capital-flow.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch(`${PROXY}/data/bond-vol.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch(`${PROXY}/data/best-setups.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+  ]);
+  DATA.opp={}; (opp&&opp.all||[]).forEach(r=>DATA.opp[r.ticker]=r);
+  DATA.disl={}; [...(disl&&disl.buy_the_laggard||[]),...(disl&&disl.top_dislocations||[])].forEach(r=>{if(!DATA.disl[r.ticker])DATA.disl[r.ticker]=r;});
+  DATA.cfAcc={}; (cf&&cf.accumulating||[]).forEach(r=>DATA.cfAcc[r.ticker]=r);
+  DATA.cfDist={}; (cf&&cf.distributing||[]).forEach(r=>DATA.cfDist[r.ticker]=r);
+  DATA.setups={}; (bs&&bs.top_setups||[]).forEach(s=>DATA.setups[s.ticker]=s);
+  DATA.bondvol=bv;
 }
-
-function renderHolds(){
-  const el=document.getElementById('holds');
-  el.innerHTML=HOLDINGS.map((h,i)=>`<div class="hold"><b>${esc(h.ticker)}</b>${h.shares?' · '+h.shares+'sh':''}${h.cost?' · @$'+h.cost:''}<span class="x" data-i="${i}">×</span></div>`).join('');
-  el.querySelectorAll('.x').forEach(x=>x.onclick=()=>{HOLDINGS.splice(+x.dataset.i,1);saveHoldings();renderHolds();analyze();});
-}
-
-function lookup(ticker){
-  const tk=ticker.toUpperCase();
-  const oppRow=(DATA.opp.all||[]).find(r=>r.ticker===tk);
-  const dislRow=(DATA.disl.buy_the_laggard||DATA.disl.top_dislocations||[]).find(r=>r.ticker===tk);
-  const cfAcc=(DATA.cf.accumulating||[]).find(r=>r.ticker===tk);
-  const cfDist=(DATA.cf.distributing||[]).find(r=>r.ticker===tk);
-  const setup=(DATA.best.top_setups||[]).find(r=>r.ticker===tk);
-  return {oppRow,dislRow,cfAcc,cfDist,setup};
-}
-
+function verdictColor(v){const m={'STRONG OPPORTUNITY':'#26ffaf','OPPORTUNITY':'#22d3ee','FAIR VALUE':'#a8b3c7','HOLD / NEUTRAL':'#a8b3c7','EXPENSIVE':'#fbbf24','HIGH RISK':'#ff5577','VALUE_TRAP':'#ff5577'};return m[v]||'#6f7b91';}
 function analyze(){
-  const a=document.getElementById('analysis');
-  if(!HOLDINGS.length){a.innerHTML='<div class="empty">Add your holdings above — the whole system will analyze your book.</div>';return;}
-  const bv=DATA.bv||{};
-  const regime=(bv.regime||'').toUpperCase();
-  const posture=bv.risk_posture;
-  // sector concentration
-  const sectors={}; let flagged=[],accum=[],distrib=[],traps=[],opps=[];
-  HOLDINGS.forEach(h=>{
-    const {oppRow,dislRow,cfAcc,cfDist,setup}=lookup(h.ticker);
-    const sec=(oppRow&&(oppRow.sector))||'Unknown'; sectors[sec]=(sectors[sec]||0)+1;
-    if(oppRow){
-      if((oppRow.verdict||'').includes('HIGH RISK')||((oppRow.cheap_verdict||'')==='VALUE_TRAP')) traps.push({h,oppRow});
-      if((oppRow.verdict||'').includes('STRONG OPPORTUNITY')||((oppRow.compounder_score||0)>=75)) opps.push({h,oppRow});
-    }
-    if(cfDist) distrib.push({h,cfDist});
-    if(cfAcc) accum.push({h,cfAcc});
-    if(setup&&setup.verdict&&(setup.verdict.includes('THREAT')||setup.verdict==='STRONG BUY')) flagged.push({h,setup});
+  const root=document.getElementById('analysis');
+  if(!HOLD.length){root.innerHTML='<div class="empty">Add your holdings above to get your personalized read.</div>';return;}
+  const rows=HOLD.map(h=>{
+    const o=DATA.opp[h.tk]||{}; const d=DATA.disl[h.tk]; const acc=DATA.cfAcc[h.tk]; const dist=DATA.cfDist[h.tk]; const su=DATA.setups[h.tk];
+    const gi=o.growth_intel||{}; const flags=[];
+    if(su&&su.verdict&&su.verdict.indexOf('THREAT')>=0)flags.push({t:su.verdict,c:'#fbbf24'});
+    if(o.compounder_score>=70)flags.push({t:'COMPOUNDER',c:'#a78bfa'});
+    if(d&&d.cheap_and_inflecting)flags.push({t:'CHEAP+INFLECTING',c:'#26ffaf'});
+    else if(d)flags.push({t:'DISLOCATION',c:'#22d3ee'});
+    if(acc)flags.push({t:'INST BUYING',c:'#26ffaf'});
+    if(dist)flags.push({t:'INST SELLING',c:'#ff5577'});
+    if(o.verdict==='HIGH RISK')flags.push({t:'HIGH RISK',c:'#ff5577'});
+    return {h,o,d,acc,dist,su,gi,flags,verdict:o.verdict||'—'};
   });
-  const topSector=Object.entries(sectors).sort((x,y)=>y[1]-x[1])[0];
-  const concPct=topSector?Math.round(topSector[1]/HOLDINGS.length*100):0;
-
-  // KPIs
-  let html=`<div class="regbar"><span class="brand-dot" style="background:${regime==='CRISIS'?'var(--red)':regime==='ELEVATED'?'var(--amber)':regime==='BOND_VOL_LOW'?'var(--cyan)':'var(--amber)'}"></span>
-    <span style="color:var(--fg-3)">MARKET REGIME</span> <b style="color:var(--fg-0)">${esc(regime||'—')}</b>
-    ${posture?`· posture <b style="color:${posture.includes('OFF')?'var(--red)':posture.includes('ON')?'var(--green)':'var(--amber)'}">${esc(posture)}</b>`:''}
-    <span style="margin-left:auto;color:var(--fg-3)">${regimeNote(regime)}</span></div>`;
-
-  html+=`<div class="kpis">
-    <div class="kpi"><div class="v">${HOLDINGS.length}</div><div class="l">Holdings</div></div>
-    <div class="kpi"><div class="v" style="color:${concPct>=50?'var(--red)':concPct>=35?'var(--amber)':'var(--green)'}">${concPct}%</div><div class="l">Top-sector concentration</div><div class="s">${esc(topSector?topSector[0]:'')}</div></div>
-    <div class="kpi"><div class="v" style="color:${traps.length?'var(--red)':'var(--green)'}">${traps.length}</div><div class="l">At-risk positions</div><div class="s">value trap / high risk</div></div>
-    <div class="kpi"><div class="v" style="color:var(--green)">${accum.length}</div><div class="l">Institutions buying</div><div class="s">in your book</div></div>
+  const nRisk=rows.filter(r=>r.verdict==='HIGH RISK'||r.flags.some(f=>f.t==='INST SELLING')).length;
+  const nGood=rows.filter(r=>r.o.compounder_score>=70||r.flags.some(f=>f.t==='INST BUYING'||f.t.indexOf('THREAT')>=0)).length;
+  const sectors={}; rows.forEach(r=>{const s=r.o.sector||'Unknown';sectors[s]=(sectors[s]||0)+1;});
+  const topSector=Object.entries(sectors).sort((a,b)=>b[1]-a[1])[0];
+  const concentration=topSector?Math.round(topSector[1]/rows.length*100):0;
+  const bv=DATA.bondvol||{}; const posture=bv.risk_posture||'—';
+  const covered=rows.filter(r=>DATA.opp[r.h.tk]).length;
+  const cio=[];
+  cio.push({ic:'🧭',t:`Bond-vol regime is <b style="color:${bv.regime==='CRISIS'?'#ff5577':bv.regime==='ELEVATED'?'#ff9f43':'#fbbf24'}">${esc(bv.regime||'—')}</b> (posture: ${esc(posture)}). ${posture.indexOf('OFF')>=0?'Reduce gross & beta — your longs face rising correlation.':posture.indexOf('ON')>=0?'Risk-on backdrop, but watch for complacency.':'Neutral macro backdrop — name selection drives your returns.'}`});
+  if(nRisk)cio.push({ic:'⚠️',t:`<b style="color:#ff5577">${nRisk}</b> of your ${rows.length} holdings show HIGH RISK or institutions selling — review ${rows.filter(r=>r.verdict==='HIGH RISK'||r.flags.some(f=>f.t==='INST SELLING')).map(r=>r.h.tk).join(', ')}.`});
+  if(nGood)cio.push({ic:'✅',t:`<b style="color:#26ffaf">${nGood}</b> holdings are durable compounders, conviction setups, or seeing institutional buying — your strongest names.`});
+  if(topSector&&concentration>=40)cio.push({ic:'🎯',t:`Concentration risk: <b>${concentration}%</b> of your names are in <b>${esc(topSector[0])}</b>. Consider diversifying.`});
+  const accNames=rows.filter(r=>r.acc).map(r=>r.h.tk);
+  if(accNames.length)cio.push({ic:'💰',t:`Smart money is accumulating: ${accNames.join(', ')}.`});
+  let html=`<div class="summary">
+    <div class="kpi"><div class="v" style="color:var(--fg-0)">${rows.length}</div><div class="l">Holdings</div><div class="s">${covered} covered by signals</div></div>
+    <div class="kpi"><div class="v" style="color:${nGood?'#26ffaf':'#a8b3c7'}">${nGood}</div><div class="l">Strong</div><div class="s">compounder / inst-buy / setup</div></div>
+    <div class="kpi"><div class="v" style="color:${nRisk?'#ff5577':'#a8b3c7'}">${nRisk}</div><div class="l">At Risk</div><div class="s">high-risk / inst-selling</div></div>
+    <div class="kpi"><div class="v" style="color:var(--cyan)">${concentration}%</div><div class="l">Top Sector</div><div class="s">${topSector?esc(topSector[0]):'—'}</div></div>
   </div>`;
-
-  // At-risk
-  if(traps.length||distrib.length){
-    html+='<h2>⚠ Watch in your book</h2><div class="cards">';
-    traps.forEach(({h,oppRow})=>{html+=`<div class="card alert"><div class="ct">${esc(h.ticker)} — ${esc(oppRow.verdict||oppRow.cheap_verdict)}</div><div class="cb">${esc(oppRow.company||'')} flagged ${oppRow.cheap_verdict==='VALUE_TRAP'?'a value trap':'high risk'} by the opportunity engine. Review thesis.</div><span class="tag" style="color:var(--red);border-color:var(--red)">at risk</span></div>`;});
-    distrib.forEach(({h,cfDist})=>{html+=`<div class="card warn"><div class="ct">${esc(h.ticker)} — institutions distributing</div><div class="cb">Capital-flow shows institutional selling (${(cfDist.lenses||[]).join(', ')}). Watch for continued outflow.</div><span class="tag" style="color:var(--amber);border-color:var(--amber)">distribution</span></div>`;});
-    html+='</div>';
-  }
-
-  // Strong in your book
-  if(accum.length||flagged.length||opps.length){
-    html+='<h2>✓ Strength in your book</h2><div class="cards">';
-    flagged.forEach(({h,setup})=>{html+=`<div class="card good"><div class="ct">${esc(h.ticker)} — ${esc(setup.verdict)}</div><div class="cb">On today's conviction board at ${Math.round(setup.conviction)} (${(setup.signal_keys||[]).slice(0,3).map(s=>s.replace(/_/g,' ').toLowerCase()).join(', ')}).</div><span class="tag" style="color:var(--green);border-color:var(--green)">conviction</span></div>`;});
-    accum.forEach(({h,cfAcc})=>{html+=`<div class="card good"><div class="ct">${esc(h.ticker)} — institutions accumulating</div><div class="cb">Capital flowing in (${(cfAcc.lenses||[]).join(', ')}), flow score +${cfAcc.flow_score}.</div><span class="tag" style="color:var(--green);border-color:var(--green)">accumulation</span></div>`;});
-    opps.forEach(({h,oppRow})=>{const gi=oppRow.growth_intel||{};html+=`<div class="card good"><div class="ct">${esc(h.ticker)} — quality</div><div class="cb">${oppRow.compounder_score?'Compounder '+oppRow.compounder_score:''}${gi.expected_company_growth_pct!=null?' · '+gi.expected_company_growth_pct+'% exp growth':''}.</div></div>`;});
-    html+='</div>';
-  }
-
-  // Concentration warning
-  if(concPct>=40){
-    html+=`<h2>🎯 Concentration</h2><div class="cards"><div class="card warn"><div class="ct">${concPct}% in ${esc(topSector[0])}</div><div class="cb">Your book leans heavily into one sector. In ${regime||'the current'} regime${posture?(' ('+posture+')'):''}, concentrated books carry higher correlated drawdown risk. Consider diversifying across sectors.</div></div></div>`;
-  }
-
-  // Ideas that fit gaps (top setups not in book)
-  const owned=new Set(HOLDINGS.map(h=>h.ticker.toUpperCase()));
-  const ownedSectors=new Set(Object.keys(sectors));
-  const ideas=(DATA.best.top_setups||[]).filter(s=>!owned.has(s.ticker)).slice(0,6);
-  if(ideas.length){
-    html+='<h2>💡 Ideas that complement your book</h2><div class="cards">';
-    ideas.forEach(s=>{html+=`<div class="card"><div class="ct">${esc(s.ticker)} — ${esc(s.verdict||'')} ${Math.round(s.conviction)}</div><div class="cb">${esc((s.signal_keys||[]).slice(0,3).map(k=>k.replace(/_/g,' ').toLowerCase()).join(' · '))}${s.thesis?'<br><i style="color:var(--fg-3)">'+esc(s.thesis.slice(0,120))+'</i>':''}</div></div>`;});
-    html+='</div>';
-  }
-  a.innerHTML=html;
+  html+=`<div class="cio"><h2>🧠 Your CIO Read</h2>${cio.map(c=>`<div class="line"><span class="ic">${c.ic}</span><span>${c.t}</span></div>`).join('')}</div>`;
+  html+=`<h2 class="sec">Holding-by-holding</h2><table><thead><tr><th>Ticker</th><th>Verdict</th><th>Compounder</th><th>Exp Growth</th><th>Capital Flow</th><th>Signals</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const cf=r.acc?`<span style="color:#26ffaf">+${r.acc.flow_score} accum</span>`:r.dist?`<span style="color:#ff5577">${r.dist.flow_score} distrib</span>`:'<span style="color:var(--fg-3)">—</span>';
+    html+=`<tr><td class="tk" onclick="window.open('/chart-pro.html','_blank')">${esc(r.h.tk)}</td>
+      <td><span class="badge" style="color:${verdictColor(r.verdict)};border:1px solid ${verdictColor(r.verdict)}">${esc(r.verdict)}</span></td>
+      <td style="font-family:var(--mono);color:${r.o.compounder_score>=70?'#a78bfa':'var(--fg-2)'}">${r.o.compounder_score!=null?r.o.compounder_score:'—'}</td>
+      <td style="font-family:var(--mono)">${r.gi.expected_company_growth_pct!=null?(r.gi.expected_company_growth_pct>=0?'+':'')+r.gi.expected_company_growth_pct+'%':'—'}</td>
+      <td>${cf}</td>
+      <td>${r.flags.map(f=>`<span class="flag" style="color:${f.c};border-color:${f.c}">${esc(f.t)}</span>`).join('')||'<span style="color:var(--fg-3)">—</span>'}</td></tr>`;
+  });
+  html+=`</tbody></table><div class="disclaimer">Your holdings are cross-referenced live against the dislocation, opportunity/compounder, capital-flow, and bond-vol engines + the conviction board. ${HOLD.length-covered>0?(HOLD.length-covered)+' of your names are not in the screened universe (micro/foreign/illiquid) — no signal coverage.':''}<br>JustHodl.AI is research &amp; analytics, not investment advice. You are responsible for your own decisions.</div>`;
+  root.innerHTML=html;
 }
-function regimeNote(r){return {CRISIS:'risk-off — de-risk concentrated books',ELEVATED:'caution — correlations rising',NORMAL:'baseline — selection drives returns',BOND_VOL_LOW:'calm — but watch for complacency'}[r]||'';}
-
-document.getElementById('add').onclick=()=>{
-  const tk=document.getElementById('in-tk').value.trim().toUpperCase();
-  if(!tk)return;
-  const sh=parseFloat(document.getElementById('in-sh').value)||null;
-  const cb=parseFloat(document.getElementById('in-cb').value)||null;
-  HOLDINGS.push({ticker:tk,shares:sh,cost:cb});
-  document.getElementById('in-tk').value='';document.getElementById('in-sh').value='';document.getElementById('in-cb').value='';
-  saveHoldings();renderHolds();analyze();
-};
-document.getElementById('in-tk').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('add').click();});
-document.getElementById('bulk').onclick=()=>{
-  const t=prompt('Paste tickers separated by space or comma (e.g. NVDA AAPL MSFT):');
-  if(!t)return;
-  t.split(/[\s,]+/).map(x=>x.trim().toUpperCase()).filter(Boolean).forEach(tk=>{if(!HOLDINGS.find(h=>h.ticker===tk))HOLDINGS.push({ticker:tk});});
-  saveHoldings();renderHolds();analyze();
-};
-async function init(){
-  if(window.RegimeRibbon)RegimeRibbon.mount({target:'regime-ribbon',position:'inline'});
-  await loadData();
-  HOLDINGS=await loadHoldings();
-  renderHolds();analyze();
-}
-init();
+(async function(){renderHoldings();document.getElementById('analysis').innerHTML='<div class="empty">Loading signal data…</div>';await loadData();analyze();})();
 </script>
 </body>
 </html>
