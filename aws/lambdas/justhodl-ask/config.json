@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-ask",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 60,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Natural-language query over the entire JustHodl system (Claude, data-grounded)",
+  "environment_keys": []
+}
