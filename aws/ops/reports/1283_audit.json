@@ -1,0 +1,20 @@
+{
+  "vintage_deployed": "An error occurred (ResourceNotFoundException) when calling t",
+  "data/vintage/_index.json": {
+    "exists": false,
+    "err": "An error occurred (NoSuchKey) when calling the GetObject ope"
+  },
+  "data/track-record.json": {
+    "exists": true,
+    "keys": [
+      "schema_version",
+      "generated_at",
+      "duration_s",
+      "window",
+      "overall",
+      "by_tier",
+      "by_horizon",
+      "equity_curve"
+    ]
+  }
+}
