@@ -1,0 +1,71 @@
+{
+  "catalyst_deploy": "updated",
+  "finra_deploy": "exists",
+  "bestsetups_deploy": "updated",
+  "catalyst": {
+    "stats": {
+      "n_fda": 0,
+      "n_fda_upcoming": 0,
+      "n_gov": 100,
+      "n_gov_mapped": 27
+    },
+    "sample_gov": [
+      {
+        "ticker": "LMT",
+        "recipient": "LOCKHEED MARTIN CORP",
+        "amount": 48063763681.32,
+        "amount_m": 48063.8,
+        "agency": "Department of Energy",
+        "date": "1993-10-15",
+        "desc": "",
+        "mapped": true
+      },
+      {
+        "ticker": "BA",
+        "recipient": "THE BOEING COMPANY",
+        "amount": 22428178818.11,
+        "amount_m": 22428.2,
+        "agency": "National Aeronautics and Space Administration",
+        "date": "1993-11-15",
+        "desc": "INTERNATIONAL SPACE STATION",
+        "mapped": true
+      },
+      {
+        "ticker": "HON",
+        "recipient": "HONEYWELL FEDERAL MANUFACTURING & TECHNOLOGIES, LLC",
+        "amount": 17432021005.91,
+        "amount_m": 17432.0,
+        "agency": "Department of Energy",
+        "date": "2015-07-09",
+        "desc": "IGF::CL,CT::IGF MANAGEMENT AND OPERATION OF THE NATIONAL SECURITY CAMPUS -- CONTRACT NO. DE-NA0002839",
+        "mapped": true
+      }
+    ],
+    "sample_fda": []
+  },
+  "best_setups": {
+    "regime": "NORMAL",
+    "distinct_signals": [
+      "CAPITAL_FLOW",
+      "CASCADE_ALERT",
+      "CASCADE_LAGGARD",
+      "COMPOUNDER",
+      "CONVERGENCE",
+      "DISLOCATION",
+      "EARLY_MOVER",
+      "EARNINGS_FRESH",
+      "EXECUTIVE_BUY",
+      "GOV_CONTRACT",
+      "INSIDER_CLUSTER",
+      "OPTIONS_BULLISH",
+      "OPTIONS_EXTREME",
+      "POLITICIAN_BUY",
+      "POLITICIAN_COMMITTEE"
+    ],
+    "top": {
+      "t": "MU",
+      "conv": 51.1,
+      "why": "MU screens as a buy because it's a durable quality grower (high ROIC + margins + growth) (compounder 96.3); multiple models converging (mult"
+    }
+  }
+}
