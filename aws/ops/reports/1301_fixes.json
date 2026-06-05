@@ -1,0 +1,96 @@
+{
+  "backlog": [
+    {
+      "t": "GOOGL",
+      "rpo_yoy": 406.1,
+      "rev_yoy": 21.8,
+      "div": 384.3,
+      "ev_rpo": 9.64
+    },
+    {
+      "t": "AMD",
+      "rpo_yoy": 256.8,
+      "rev_yoy": 37.8,
+      "div": 219.0,
+      "ev_rpo": 2874.11
+    },
+    {
+      "t": "CAT",
+      "rpo_yoy": 110.8,
+      "rev_yoy": 22.2,
+      "div": 88.6,
+      "ev_rpo": 12.28
+    },
+    {
+      "t": "MSFT",
+      "rpo_yoy": 97.2,
+      "rev_yoy": 18.3,
+      "div": 78.9,
+      "ev_rpo": 4.93
+    },
+    {
+      "t": "GD",
+      "rpo_yoy": 78.0,
+      "rev_yoy": 10.3,
+      "div": 67.7,
+      "ev_rpo": 0.83
+    },
+    {
+      "t": "MDB",
+      "rpo_yoy": 88.4,
+      "rev_yoy": 25.2,
+      "div": 63.2,
+      "ev_rpo": 18.65
+    }
+  ],
+  "overlap": {
+    "scored": 59,
+    "prime": 3,
+    "elite": 0,
+    "top": [
+      {
+        "t": "EXE",
+        "score": 64,
+        "L": 3,
+        "C": 1,
+        "I": 1,
+        "lenses": [
+          "EV/Sales cheap vs cohort",
+          "P/E < industry",
+          "FCF yield > 5%"
+        ],
+        "cats": [
+          "insider cluster"
+        ]
+      },
+      {
+        "t": "HCI",
+        "score": 50,
+        "L": 2,
+        "C": 1,
+        "I": 1,
+        "lenses": [
+          "P/E < industry",
+          "PEG < 1"
+        ],
+        "cats": [
+          "cheap & inflecting"
+        ]
+      },
+      {
+        "t": "MDB",
+        "score": 50,
+        "L": 2,
+        "C": 1,
+        "I": 1,
+        "lenses": [
+          "P/E < industry",
+          "PEG < 1"
+        ],
+        "cats": [
+          "backlog accelerating"
+        ]
+      }
+    ]
+  }
+}
