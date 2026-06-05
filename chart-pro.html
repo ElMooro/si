@@ -1409,24 +1409,24 @@ a:hover { text-decoration: underline; }
 <div class="app">
 
   <!-- Edge tabs to pull out the drawers -->
-  <div class="edge-tab edge-tab-left" id="edge-tab-left"><span class="et-icon">\ud83d\udccb</span>WATCHLIST</div>
-  <div class="edge-tab edge-tab-setups" id="edge-tab-setups"><span class="et-icon">\u26a1</span>TODAY'S SETUPS</div>
-  <div class="edge-tab edge-tab-right" id="edge-tab-right"><span class="et-icon">\ud83e\udde0</span>INTEL</div>
+  <div class="edge-tab edge-tab-left" id="edge-tab-left"><span class="et-icon">📋</span>WATCHLIST</div>
+  <div class="edge-tab edge-tab-setups" id="edge-tab-setups"><span class="et-icon">⚡</span>TODAY'S SETUPS</div>
+  <div class="edge-tab edge-tab-right" id="edge-tab-right"><span class="et-icon">🧠</span>INTEL</div>
 
-  <!-- \u2500\u2500\u2500 SETUPS DRAWER (unified conviction board) \u2500\u2500\u2500 -->
+  <!-- ─── SETUPS DRAWER (unified conviction board) ─── -->
   <aside class="setups-drawer" id="setups-drawer">
     <div class="setups-head">
-      <span class="setups-title">\u26a1 Today's Highest-Conviction Setups</span>
+      <span class="setups-title">⚡ Today's Highest-Conviction Setups</span>
       <span class="setups-meta" id="setups-meta"></span>
-      <button class="wl-sel-act" id="alert-builder-btn" title="Custom alerts" style="margin-left:auto;color:var(--amber);border:1px solid var(--amber);width:auto;padding:0 10px;font-size:11px;font-family:var(--font-mono)">\ud83d\udd14 Alerts</button>
-      <button class="drawer-close" id="close-setups" style="position:static;margin-left:8px">\u00d7</button>
+      <button class="wl-sel-act" id="alert-builder-btn" title="Custom alerts" style="margin-left:auto;color:var(--amber);border:1px solid var(--amber);width:auto;padding:0 10px;font-size:11px;font-family:var(--font-mono)">🔔 Alerts</button>
+      <button class="drawer-close" id="close-setups" style="position:static;margin-left:8px">×</button>
     </div>
-    <div class="setups-body" id="setups-body"><div class="wl-loading">Loading fused conviction\u2026</div></div>
+    <div class="setups-body" id="setups-body"><div class="wl-loading">Loading fused conviction…</div></div>
   </aside>
 
-  <!-- \u2500\u2500\u2500 LEFT SIDEBAR: Watchlists (TradingView-style) \u2500\u2500\u2500 -->
+  <!-- ─── LEFT SIDEBAR: Watchlists (TradingView-style) ─── -->
   <aside class="left-sidebar" id="left-sidebar">
-    <button class="drawer-close drawer-close-left" id="close-left" title="Close (Esc)">\u00d7</button>
+    <button class="drawer-close drawer-close-left" id="close-left" title="Close (Esc)">×</button>
     <!-- Watchlist selector with dropdown -->
     <div class="wl-selector" id="wl-selector">
       <div class="wl-selector-main" id="wl-selector-main">
@@ -1547,9 +1547,9 @@ a:hover { text-decoration: underline; }
     </div>
   </main>
   
-  <!-- \u2500\u2500\u2500 RIGHT SIDEBAR: Info Panel \u2500\u2500\u2500 -->
+  <!-- ─── RIGHT SIDEBAR: Info Panel ─── -->
   <aside class="right-sidebar" id="right-sidebar">
-    <button class="drawer-close drawer-close-right" id="close-right" title="Close (Esc)">\u00d7</button>
+    <button class="drawer-close drawer-close-right" id="close-right" title="Close (Esc)">×</button>
     <div class="info-tabs">
       <div class="info-tab active" data-info-tab="overview">Overview</div>
       <div class="info-tab" data-info-tab="intel">Intel</div>
@@ -1653,14 +1653,14 @@ a:hover { text-decoration: underline; }
 <div class="heatmap-modal" id="macro-modal">
   <div class="heatmap-content" style="width:80vw;max-width:1000px">
     <div class="heatmap-header">
-      <div class="heatmap-title">\ud83d\udcc8 Macro &amp; Economic Data</div>
+      <div class="heatmap-title">📈 Macro &amp; Economic Data</div>
       <div style="flex:1;display:flex;align-items:center;gap:8px;margin:0 16px">
         <input type="text" id="macro-search-input" placeholder="Search all public macro — FRED + ECB, IMF, World Bank, OECD, BIS, Eurostat (millions of series)" style="flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-family:var(--font-mono);font-size:12px;color:var(--fg-1);outline:none">
       </div>
-      <button class="modal-close" id="macro-close">\u00d7</button>
+      <button class="modal-close" id="macro-close">×</button>
     </div>
     <div class="macro-body" id="macro-body">
-      <div class="wl-loading">Loading catalog\u2026</div>
+      <div class="wl-loading">Loading catalog…</div>
     </div>
   </div>
 </div>
@@ -1707,7 +1707,7 @@ a:hover { text-decoration: underline; }
 <!-- Custom Alert Builder Modal -->
 <div class="new-wl-modal" id="alert-modal">
   <div class="new-wl-modal-content" style="width:440px">
-    <div class="modal-title">\ud83d\udd14 Custom Alert</div>
+    <div class="modal-title">🔔 Custom Alert</div>
     <div style="font-size:11.5px;color:var(--fg-3);margin-bottom:12px;line-height:1.5">Get notified when a setup matches your criteria. Rules are saved to your account and evaluated each morning.</div>
     <input type="text" class="modal-input" id="alert-name" placeholder="Alert name (e.g. 'Committee defense buys')" />
     <div style="font-family:var(--font-mono);font-size:11px;color:var(--fg-3);margin:8px 0 4px">Minimum conviction</div>
@@ -2738,7 +2738,12 @@ class UI {
     else if (tab === 'fund') html = this.renderFundTab(ticker);
     
     document.getElementById('info-body').innerHTML = html;
-    
+
+    // Wire the OVERVIEW quote panel (was dead — populate Last/Chg/Vol/MktCap/52W)
+    if (tab === 'overview' && ticker) {
+      InfoPanel.populateQuote(ticker);
+    }
+
     // Wire notes tab editor
     const noteArea = document.getElementById('jh-note-area');
     if (noteArea) {
@@ -2779,6 +2784,27 @@ class UI {
     });
   }
   
+  // Fill the OVERVIEW quote panel from FMP fundamentals (Last/Chg/Vol/MktCap/52W).
+  static async populateQuote(ticker) {
+    const set = (id, v) => { const e = document.getElementById(id); if (e && v != null && v !== '') e.textContent = v; };
+    const fmtB = (n) => { if (n == null) return null; const a = Math.abs(n); if (a >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T'; if (a >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B'; if (a >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M'; return '$' + n; };
+    const fmtN = (n) => n == null ? null : Number(n).toLocaleString();
+    try {
+      const f = await FundamentalsService.get(ticker);
+      if (!f) return;
+      if (f.price != null) set('ov-price', '$' + Number(f.price).toFixed(2));
+      if (f.change != null) {
+        const c = Number(f.change), cp = f.changePct != null ? Number(f.changePct) : null;
+        const el = document.getElementById('ov-change');
+        if (el) { el.textContent = (c >= 0 ? '+' : '') + c.toFixed(2) + (cp != null ? ` (${cp >= 0 ? '+' : ''}${cp.toFixed(2)}%)` : ''); el.style.color = c >= 0 ? 'var(--green)' : 'var(--red)'; }
+      }
+      set('ov-vol', fmtN(f.volume));
+      set('ov-mcap', fmtB(f.marketCap));
+      set('ov-52h', f.yearHigh != null ? '$' + Number(f.yearHigh).toFixed(2) : null);
+      set('ov-52l', f.yearLow != null ? '$' + Number(f.yearLow).toFixed(2) : null);
+    } catch (e) {}
+  }
+
   static renderOverviewTab(ticker) {
     const cascadeMatch = this.findCascadeMatch(ticker);
     const rationaleInfo = (State.ai_rationales && State.ai_rationales.by_ticker && State.ai_rationales.by_ticker[ticker]) || null;
@@ -3395,7 +3421,17 @@ class ChartController {
         const data = await r.json();
         const syms = data.symbols || [];
         const exact = syms.filter(s => (s.symbol || '').toUpperCase() === ticker.toUpperCase());
-        const best = exact[0] || syms[0];
+        // Prefer US equity exchanges so a bare ticker (AAPL) never resolves to a
+        // foreign listing (AAPLD/etc). Rank: NASDAQ/NYSE/ARCA/BATS/AMEX first.
+        const US_EX = ['NASDAQ', 'NYSE', 'ARCA', 'BATS', 'AMEX', 'NYSE ARCA', 'CBOE'];
+        const usRank = (s) => {
+          const ex = ((s.exchange || s.full || '') + '').toUpperCase();
+          const i = US_EX.findIndex(x => ex.includes(x));
+          return i < 0 ? 99 : i;
+        };
+        const pool = exact.length ? exact : syms;
+        pool.sort((a, b) => usRank(a) - usRank(b));
+        const best = pool[0];
         if (best) {
           const type = (best.type || '').toLowerCase();
           let resolved;
@@ -3593,75 +3629,75 @@ class ChartTabs {
 class MacroData {
   // Curated catalog. id is the FRED series id; charted as FRED:id (line).
   static CATALOG = [
-    { cat: "US Rates & Yields", flag: "\ud83c\uddfa\ud83c\uddf8", items: [
+    { cat: "US Rates & Yields", flag: "🇺🇸", items: [
       ["DGS10","10Y Treasury Yield","%"], ["DGS2","2Y Treasury Yield","%"],
       ["DGS30","30Y Treasury Yield","%"], ["DGS3MO","3M Treasury Yield","%"],
       ["T10Y2Y","10Y-2Y Spread","%"], ["T10Y3M","10Y-3M Spread","%"],
       ["FEDFUNDS","Fed Funds Rate","%"], ["SOFR","SOFR","%"],
       ["DFEDTARU","Fed Funds Target Upper","%"], ["DPRIME","Bank Prime Rate","%"],
     ]},
-    { cat: "Inflation", flag: "\ud83d\udd25", items: [
+    { cat: "Inflation", flag: "🔥", items: [
       ["CPIAUCSL","CPI (All Items)","Index"], ["CPILFESL","Core CPI","Index"],
       ["PCEPI","PCE Price Index","Index"], ["PCEPILFE","Core PCE","Index"],
       ["T5YIE","5Y Breakeven Inflation","%"], ["T10YIE","10Y Breakeven","%"],
       ["T5YIFR","5Y-5Y Forward Inflation","%"], ["PPIACO","Producer Price Index","Index"],
     ]},
-    { cat: "Growth & Activity", flag: "\ud83d\udcc8", items: [
+    { cat: "Growth & Activity", flag: "📈", items: [
       ["GDPC1","Real GDP","$B"], ["A191RL1Q225SBEA","Real GDP Growth (QoQ)","%"],
       ["INDPRO","Industrial Production","Index"], ["TCU","Capacity Utilization","%"],
       ["RSAFS","Retail Sales","$M"], ["UMCSENT","Consumer Sentiment","Index"],
       ["NAPM","ISM Manufacturing PMI","Index"], ["DGORDER","Durable Goods Orders","$M"],
     ]},
-    { cat: "Employment", flag: "\ud83d\udc77", items: [
+    { cat: "Employment", flag: "👷", items: [
       ["UNRATE","Unemployment Rate","%"], ["PAYEMS","Nonfarm Payrolls","Thousands"],
       ["ICSA","Initial Jobless Claims","Number"], ["CIVPART","Labor Force Participation","%"],
       ["JTSJOL","Job Openings (JOLTS)","Thousands"], ["AHETPI","Avg Hourly Earnings","$"],
       ["CES0500000003","Avg Hourly Earnings (Total)","$"],
     ]},
-    { cat: "Money & Liquidity", flag: "\ud83d\udcb5", items: [
+    { cat: "Money & Liquidity", flag: "💵", items: [
       ["M2SL","M2 Money Supply","$B"], ["WALCL","Fed Balance Sheet","$M"],
       ["WRESBAL","Bank Reserves","$B"], ["RRPONTSYD","Reverse Repo (ON RRP)","$B"],
       ["WTREGEN","Treasury General Account","$B"], ["BOGMBASE","Monetary Base","$M"],
       ["WM2NS","M2 (Weekly)","$B"],
     ]},
-    { cat: "Credit & Stress", flag: "\u26a0\ufe0f", items: [
+    { cat: "Credit & Stress", flag: "⚠️", items: [
       ["BAMLH0A0HYM2","High-Yield OAS","%"], ["BAMLC0A0CM","IG Corporate OAS","%"],
       ["STLFSI4","St. Louis Fed Financial Stress","Index"], ["NFCI","Chicago Fed Conditions","Index"],
       ["BAMLH0A0HYM2EY","HY Effective Yield","%"], ["DRTSCILM","Bank Lending Standards","%"],
     ]},
-    { cat: "Housing", flag: "\ud83c\udfe0", items: [
+    { cat: "Housing", flag: "🏠", items: [
       ["HOUST","Housing Starts","Thousands"], ["CSUSHPINSA","Case-Shiller Home Price","Index"],
       ["MORTGAGE30US","30Y Mortgage Rate","%"], ["MSPUS","Median Home Sale Price","$"],
       ["PERMIT","Building Permits","Thousands"], ["EXHOSLUSM495S","Existing Home Sales","Number"],
     ]},
-    { cat: "Dollar & FX", flag: "\ud83d\udcb1", items: [
+    { cat: "Dollar & FX", flag: "💱", items: [
       ["DTWEXBGS","Broad Dollar Index","Index"], ["DTWEXAFEGS","Advanced FX Dollar","Index"],
       ["DEXUSEU","USD/EUR","Rate"], ["DEXJPUS","JPY/USD","Rate"],
       ["DEXCHUS","CNY/USD","Rate"], ["DEXUSUK","USD/GBP","Rate"],
       ["DEXKOUS","KRW/USD","Rate"], ["DEXBZUS","BRL/USD","Rate"],
     ]},
-    { cat: "Europe", flag: "\ud83c\uddea\ud83c\uddfa", items: [
+    { cat: "Europe", flag: "🇪🇺", items: [
       ["IRLTLT01DEM156N","German 10Y Bund","%"], ["IRLTLT01FRM156N","France 10Y OAT","%"],
       ["IRLTLT01ITM156N","Italy 10Y BTP","%"], ["IRLTLT01ESM156N","Spain 10Y","%"],
       ["ECBDFR","ECB Deposit Facility Rate","%"], ["ECBMRRFR","ECB Main Refi Rate","%"],
       ["CP0000EZ19M086NEST","Euro Area HICP (Inflation)","Index"], ["LRHUTTTTEZM156S","Euro Area Unemployment","%"],
-      ["CLVMNACSCAB1GQEA19","Euro Area Real GDP","\u20acM"], ["IRLTLT01GBM156N","UK 10Y Gilt","%"],
+      ["CLVMNACSCAB1GQEA19","Euro Area Real GDP","€M"], ["IRLTLT01GBM156N","UK 10Y Gilt","%"],
     ]},
-    { cat: "Emerging Markets", flag: "\ud83c\udf0d", items: [
+    { cat: "Emerging Markets", flag: "🌍", items: [
       ["INTDSRJPM193N","Japan Discount Rate","%"], ["INTDSRCNM193N","China Rate","%"],
       ["IRLTLT01CNM156N","China 10Y","%"], ["INDCPIALLMINMEI","India CPI","Index"],
       ["BRACPIALLMINMEI","Brazil CPI","Index"], ["MEXCPIALLMINMEI","Mexico CPI","Index"],
       ["KORCPIALLMINMEI","Korea CPI","Index"], ["ZAFCPIALLMINMEI","South Africa CPI","Index"],
       ["IDNCPIALLMINMEI","Indonesia CPI","Index"], ["TURCPIALLMINMEI","Turkey CPI","Index"],
     ]},
-    { cat: "EM/Frontier ETFs (live price)", flag: "\ud83c\udfd7\ufe0f", etf: true, items: [
+    { cat: "EM/Frontier ETFs (live price)", flag: "🏗️", etf: true, items: [
       ["EEM","iShares MSCI Emerging Markets"], ["VWO","Vanguard FTSE Emerging Markets"],
       ["FM","iShares Frontier & Select EM"], ["FXI","China Large-Cap"],
       ["EWZ","Brazil"], ["INDA","India"], ["EWW","Mexico"], ["EZA","South Africa"],
       ["TUR","Turkey"], ["EWY","South Korea"], ["EIDO","Indonesia"], ["VNM","Vietnam"],
       ["NGE","Nigeria"], ["FRN","Frontier Markets"], ["EWT","Taiwan"], ["EPHE","Philippines"],
     ]},
-    { cat: "Commodities", flag: "\ud83d\udee2\ufe0f", items: [
+    { cat: "Commodities", flag: "🛢️", items: [
       ["DCOILWTICO","WTI Crude Oil","$/bbl"], ["DCOILBRENTEU","Brent Crude","$/bbl"],
       ["GOLDAMGBD228NLBM","Gold (London Fix)","$/oz"], ["DHHNGSP","Natural Gas (Henry Hub)","$/MMBtu"],
       ["PCOPPUSDM","Copper","$/mt"], ["WPU0911","Lumber PPI","Index"],
@@ -3683,7 +3719,7 @@ class MacroData {
         if (cat.etf) {
           return `<div class="macro-item" data-symbol="${id}" data-kind="etf">
             <span class="mi-title">${UI.esc(title)}</span>
-            <span class="mi-meta"><span class="mi-id">${id}</span><span>ETF \u00b7 live</span></span>
+            <span class="mi-meta"><span class="mi-id">${id}</span><span>ETF · live</span></span>
           </div>`;
         }
         return `<div class="macro-item" data-symbol="FRED:${id}" data-kind="fred">
@@ -3705,7 +3741,7 @@ class MacroData {
   static async search(text) {
     const body = document.getElementById('macro-body');
     if (!text || text.length < 2) { this.renderCatalog(); return; }
-    body.innerHTML = '<div class="wl-loading">Searching FRED + global providers (DBnomics: ECB, IMF, World Bank, OECD, BIS, Eurostat\u2026)</div>';
+    body.innerHTML = '<div class="wl-loading">Searching FRED + global providers (DBnomics: ECB, IMF, World Bank, OECD, BIS, Eurostat…)</div>';
     try {
       const [fredR, dbnR] = await Promise.allSettled([
         fetch(`${PROXY}/fred-search?text=${encodeURIComponent(text)}`).then(r => r.ok ? r.json() : {series:[]}),
@@ -3716,16 +3752,16 @@ class MacroData {
       if (!fred.length && !dbn.length) { body.innerHTML = '<div class="wl-empty">No series found for "' + UI.esc(text) + '"</div>'; return; }
       let html = '';
       if (fred.length) {
-        html += '<div class="macro-cat-name" style="margin-bottom:8px">\ud83c\uddfa\ud83c\uddf8 FRED (St. Louis Fed)</div>';
+        html += '<div class="macro-cat-name" style="margin-bottom:8px">🇺🇸 FRED (St. Louis Fed)</div>';
         html += '<div class="macro-search-results" style="margin-bottom:18px">' + fred.map(s => `
           <div class="macro-sr" data-symbol="FRED:${s.id}">
             <span class="sr-id">${UI.esc(s.id)}</span>
             <span class="sr-title">${UI.esc(s.title)}</span>
-            <span class="sr-meta">${UI.esc(s.units||'')} \u00b7 ${UI.esc(s.frequency||'')}</span>
+            <span class="sr-meta">${UI.esc(s.units||'')} · ${UI.esc(s.frequency||'')}</span>
           </div>`).join('') + '</div>';
       }
       if (dbn.length) {
-        html += '<div class="macro-cat-name" style="margin-bottom:8px">\ud83c\udf10 Global (DBnomics: ECB \u00b7 IMF \u00b7 World Bank \u00b7 OECD \u00b7 BIS \u00b7 Eurostat \u00b7 national)</div>';
+        html += '<div class="macro-cat-name" style="margin-bottom:8px">🌐 Global (DBnomics: ECB · IMF · World Bank · OECD · BIS · Eurostat · national)</div>';
         html += '<div class="macro-search-results">' + dbn.map(s => `
           <div class="macro-sr" data-symbol="DBN:${s.id}">
             <span class="sr-id" style="font-size:9.5px">${UI.esc(s.provider)}</span>
@@ -5363,6 +5399,17 @@ class CorrelationMatrix {
 // ─── FUNDAMENTALS SERVICE (quote + profile + ratios via /fundamentals) ──
 class FundamentalsService {
   static cache = {};
+  // Return the fundamentals data object (cached), for callers that need values
+  // rather than rendered HTML (e.g. the overview quote panel + analyst-PT lines).
+  static async get(ticker) {
+    if (this.cache[ticker]) return this.cache[ticker];
+    try {
+      const r = await fetch(`${PROXY}/fundamentals?ticker=${encodeURIComponent(ticker)}`);
+      const d = await r.json();
+      if (d && !d.error) { this.cache[ticker] = d; return d; }
+    } catch (e) {}
+    return null;
+  }
   static async load(ticker) {
     const el = document.getElementById(`fund-box-${ticker}`);
     if (!el) return;
