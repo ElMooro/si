@@ -216,14 +216,30 @@ def lambda_handler(event=None, context=None):
                     new_no.add(sym)
             except Exception:
                 pass
-    # update coverage cache
-    cache = {"has_backlog": sorted(has_set | new_has),
-             "no_backlog": sorted((no_set | new_no) - new_has)}
-    try:
-        s3.put_object(Bucket=BUCKET, Key="data/backlog-coverage-cache.json",
-                      Body=json.dumps(cache).encode(), ContentType="application/json")
-    except Exception:
-        pass
+    # update coverage cache — throttle-safe:
+    #  • never demote a known-has-backlog name to no_backlog (transient empties)
+    #  • if we captured far fewer than the known-has set, the run was likely
+    #    SEC-rate-limited — do NOT overwrite the cache (avoid poisoning it).
+    expected_known = len(known) + len(seed_first)
+    throttled = expected_known > 10 and len(new_has) < 0.3 * expected_known
+    if not throttled:
+        merged_has = has_set | new_has
+        merged_no = (no_set | new_no) - merged_has   # has always wins
+        cache = {"has_backlog": sorted(merged_has), "no_backlog": sorted(merged_no)}
+        try:
+            s3.put_object(Bucket=BUCKET, Key="data/backlog-coverage-cache.json",
+                          Body=json.dumps(cache).encode(), ContentType="application/json")
+        except Exception:
+            pass
+    else:
+        print(f"[backlog] suspected SEC throttle ({len(new_has)}/{expected_known}) — cache NOT updated")
+    # if THIS run was throttled, keep the prior good output instead of clobbering
+    if throttled and len(results) < 10:
+        prev = read_json(OUT_KEY)
+        if prev and prev.get("n_covered", 0) > len(results):
+            print("[backlog] throttled run — preserving prior output")
+            return {"statusCode": 200, "body": json.dumps({"ok": True, "throttled": True,
+                                                             "kept_prior": prev.get("n_covered")})}
 
     accelerating = sorted([r for r in results if r.get("demand_accelerating") or r.get("deferred_accelerating")],
                           key=lambda r: -(r.get("rpo_minus_rev_growth") or r.get("deferred_yoy") or 0))[:30]
