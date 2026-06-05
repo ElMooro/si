@@ -30,11 +30,6 @@ FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 ALFRED = "https://api.stlouisfed.org/fred/series/observations"
 s3 = boto3.client("s3", region_name=REGION)
 
-try:
-    import _fred_shim  # noqa: F401
-except Exception:
-    pass
-
 # Macro series where revisions matter most (heavily-revised = highest look-ahead risk)
 SERIES = [
     # Growth / activity (heavily revised)
