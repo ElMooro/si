@@ -1322,6 +1322,13 @@ a:hover { text-decoration: underline; }
   .app { grid-template-columns: 220px 1fr; }
   .right-sidebar { display: none; }
 }
+
+#signal-layer-panel{position:fixed;top:120px;left:14px;z-index:600;background:var(--bg-1);border:1px solid var(--green);border-radius:12px;padding:12px;width:230px;box-shadow:0 12px 40px rgba(0,0,0,0.6)}
+.slp-h{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--green);margin-bottom:9px}
+.slp-row{display:flex;align-items:center;gap:8px;padding:5px 4px;font-size:12px;color:var(--fg-2);cursor:pointer;border-radius:5px}
+.slp-row:hover{background:var(--bg-2);color:var(--fg-0)}
+.slp-row input{accent-color:var(--green);cursor:pointer}
+.slp-foot{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);margin-top:8px;border-top:1px solid var(--border);padding-top:7px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -1511,6 +1518,7 @@ a:hover { text-decoration: underline; }
       <button class="tool-btn" id="ratio-btn" title="Ratio chart: this symbol ÷ another (e.g. NVDA/SPY)">÷ Ratio</button>
       <button class="tool-btn" id="season-btn" title="Seasonality: average return by calendar month">📅 Seasonality</button>
       <button class="tool-btn" id="basket-btn" title="Build & chart a weighted basket of symbols as one instrument">🧺 Basket</button>
+      <button class="tool-btn" id="signal-layers-btn" title="JustHodl signal overlays" style="background:rgba(38,255,175,0.08);border-color:var(--green)">🎯 Signals</button>
       <div class="ind-wrap" style="position:relative;display:inline-block">
         <button class="tool-btn" id="indicators-btn" title="Add indicators (Bollinger, RSI, MACD)">📊 Indicators</button>
         <div class="ind-menu" id="ind-menu">
@@ -1766,6 +1774,8 @@ const State = {
   changeMode: 'price',   // 'price' | 'dod' | 'wow' | 'mom' | 'qoq' | 'yoy' — FRED-style % change
   changeStyle: 'histogram',  // 'histogram' | 'line' | 'area' — how % change renders
   statBlock: false,      // show the all-periods (DoD/WoW/MoM/QoQ/YoY) stat overlay
+  signalLayers: {},      // JustHodl signal-overlay layer toggles (per-user)
+  options: null, catalysts: null,  // loaded data for overlays
   priceAlerts: {},       // {ticker: [{price, dir, note}]} — per-user price-level alerts
   drawings: {},          // {ticker: [{type, points}]} — per-user trendline drawings
   nativeChart: null,     // Lightweight Charts instance
@@ -1817,7 +1827,7 @@ class DataService {
   }
   
   static async loadAll() {
-    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups, dislocations, opportunities, capitalflow] = await Promise.all([
+    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups, dislocations, opportunities, capitalflow, catalystsD, optionsD] = await Promise.all([
       this.fetch('data/theme-cascade.json'),
       this.fetch('data/insider-clusters.json'),
       this.fetch('data/polygon-options-flow.json'),
@@ -1833,6 +1843,8 @@ class DataService {
       this.fetch('data/dislocations.json'),
       this.fetch('data/opportunities.json'),
       this.fetch('data/capital-flow.json'),
+      this.fetch('data/catalyst-calendar.json'),
+      this.fetch('data/polygon-options-flow.json'),
     ]);
     State.cascade = cascade;
     State.insider = insider;
@@ -1849,6 +1861,8 @@ class DataService {
     State.dislocations = dislocations;
     State.opportunities = opportunities;
     State.capitalflow = capitalflow;
+    State.catalysts = catalystsD;
+    State.options = optionsD;
   }
 }
 
@@ -3741,6 +3755,119 @@ class MacroData {
 // ─── NATIVE CHART (Polygon data + Lightweight Charts) ──────────────
 // Works for any US-listed symbol we can get Polygon data for, bypassing
 // TradingView's symbol gating ('only available on TradingView').
+// ─── JUSTHODL SIGNAL OVERLAY — proprietary chart layers (the moat) ──────
+// Plots data TradingView can never show: insider/flow/catalyst markers, price
+// lines (DMAs, analyst PT, reverse-DCF implied, GEX walls), and catalyst
+// verticals — all toggled per-user via the layer panel.
+class SignalOverlay {
+  static LAYERS = [
+    { id: 'dma',       label: 'Moving Averages (50/200)', on: true },
+    { id: 'analyst',   label: 'Analyst Price Targets',    on: true },
+    { id: 'revdcf',    label: 'Reverse-DCF Implied',      on: false },
+    { id: 'gex',       label: 'GEX Walls / Max Pain',     on: false },
+    { id: 'insider',   label: 'Insider Clusters',         on: true },
+    { id: 'flow',      label: 'Capital Flow',             on: true },
+    { id: 'congress',  label: 'Congress / Executive',     on: true },
+    { id: 'options',   label: 'Options Sweeps',           on: false },
+    { id: 'catalyst',  label: 'Catalyst Dates',           on: true },
+    { id: 'dislocation', label: 'Dislocation / Laggard',  on: false },
+  ];
+  static _lines = [];
+
+  static enabled() {
+    const saved = (State.signalLayers && Object.keys(State.signalLayers).length) ? State.signalLayers : null;
+    const out = {};
+    this.LAYERS.forEach(l => { out[l.id] = saved ? !!saved[l.id] : l.on; });
+    return out;
+  }
+
+  static apply(chart, series, bars, ticker) {
+    const on = this.enabled();
+    // clear old price lines
+    (this._lines || []).forEach(l => { try { series.removePriceLine(l); } catch (e) {} });
+    this._lines = [];
+    if (!bars || !bars.length) return;
+    const closes = bars.map(b => b.close);
+    const last = closes[closes.length - 1];
+    const pl = (price, color, title, dash) => {
+      if (price == null || !isFinite(price)) return;
+      try { this._lines.push(series.createPriceLine({ price: +price, color, lineWidth: 1,
+        lineStyle: dash ? 2 : 0, axisLabelVisible: true, title })); } catch (e) {}
+    };
+    // Moving averages
+    if (on.dma) {
+      const ma = (n) => closes.length >= n ? closes.slice(-n).reduce((a, b) => a + b, 0) / n : null;
+      pl(ma(50), 'rgba(34,211,238,0.5)', '50 DMA', true);
+      pl(ma(200), 'rgba(168,179,199,0.5)', '200 DMA', true);
+    }
+    // Analyst price targets (from /fundamentals cache)
+    if (on.analyst) {
+      const f = (FundamentalsService.cache || {})[ticker];
+      const pt = f && f.analystPT;
+      if (pt) {
+        pl(pt.high, 'rgba(38,255,175,0.45)', 'PT high', true);
+        pl(pt.avg, 'rgba(38,255,175,0.7)', 'PT avg', false);
+        pl(pt.low, 'rgba(255,85,119,0.45)', 'PT low', true);
+      }
+    }
+    // Reverse-DCF implied price (from opportunities growth_intel, if present)
+    if (on.revdcf) {
+      const o = (State.opportunities && (State.opportunities.all || []).find(r => r.ticker === ticker)) || null;
+      const gi = o && o.growth_intel;
+      if (gi && gi.implied_growth_pct != null && gi.expected_company_growth_pct != null && last) {
+        // crude reprice: if market implies less growth than expected, fair > price
+        const gap = gi.expected_company_growth_pct - gi.implied_growth_pct;
+        const fair = last * (1 + Math.max(-0.4, Math.min(0.6, gap / 100)));
+        pl(fair, 'rgba(167,139,250,0.7)', 'rev-DCF fair', false);
+      }
+    }
+    // GEX walls / max pain (from options data if loaded)
+    if (on.gex) {
+      const opt = (State.options && State.options.by_ticker && State.options.by_ticker[ticker]) || null;
+      if (opt) {
+        pl(opt.call_wall || opt.gamma_call_wall, 'rgba(255,85,119,0.6)', 'call wall', false);
+        pl(opt.put_wall || opt.gamma_put_wall, 'rgba(38,255,175,0.6)', 'put wall', false);
+        pl(opt.max_pain || opt.zero_gamma, 'rgba(251,191,36,0.6)', 'max pain', true);
+      }
+    }
+    // Catalyst vertical markers (earnings / FDA / contract dates) — as markers
+    if (on.catalyst) {
+      const cats = (State.catalysts && State.catalysts.events) ? State.catalysts.events.filter(e => e.ticker === ticker) : [];
+      const extra = cats.map(e => {
+        const t = Math.floor(new Date(e.date).getTime() / 1000);
+        if (!isFinite(t)) return null;
+        const bt = bars.map(b => b.time);
+        let best = bt[0]; for (const x of bt) { if (x <= t) best = x; else break; }
+        const ic = e.type === 'FDA' ? '🧪' : e.type === 'GOV_CONTRACT' ? '🏛️' : e.type === 'EARNINGS' ? '📊' : '📅';
+        return { time: best, position: 'aboveBar', color: '#a78bfa', shape: 'arrowDown', text: ic };
+      }).filter(Boolean);
+      if (extra.length) {
+        const existing = NativeChart.buildMarkers(ticker, bars);
+        const merged = [...existing, ...extra].sort((a, b) => a.time - b.time);
+        try { series.setMarkers(merged); } catch (e) {}
+      }
+    }
+  }
+
+  static togglePanel() {
+    let p = document.getElementById('signal-layer-panel');
+    if (p) { p.remove(); return; }
+    const on = this.enabled();
+    p = document.createElement('div');
+    p.id = 'signal-layer-panel';
+    p.innerHTML = '<div class="slp-h">🎯 Signal Layers</div>' +
+      this.LAYERS.map(l => `<label class="slp-row"><input type="checkbox" data-layer="${l.id}" ${on[l.id] ? 'checked' : ''}><span>${l.label}</span></label>`).join('') +
+      '<div class="slp-foot">Layers JustHodl has that TradingView never will.</div>';
+    document.body.appendChild(p);
+    p.querySelectorAll('input[data-layer]').forEach(inp => inp.addEventListener('change', () => {
+      State.signalLayers = State.signalLayers || {};
+      State.signalLayers[inp.dataset.layer] = inp.checked;
+      WatchlistManager.syncToCloud();
+      const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t);
+    }));
+  }
+}
+
 class NativeChart {
   // ── FRED-style period-over-period % change ──────────────────────
   // Periods in calendar days. For each point, find the value ~N days earlier
@@ -4522,6 +4649,8 @@ class NativeChart {
       
       // Crosshair OHLC legend (follows cursor) + quick stats
       NativeChart.attachLegend(paneIdx, chart, candleSeries, bars, ticker);
+      // ── JustHodl Signal Overlays — the moat ──
+      try { SignalOverlay.apply(chart, candleSeries, bars, ticker); } catch (e) {}
       
       // Compare overlay — normalized line of a second symbol (relative performance)
       if (State.compareSymbol && State.compareSymbol !== ticker) {
@@ -5932,6 +6061,15 @@ async function init() {
   document.getElementById('alertcenter-close').addEventListener('click', () => AlertCenter.close());
   // ── Basket builder ──
   document.getElementById('basket-btn').addEventListener('click', () => Basket.open());
+  document.getElementById('signal-layers-btn').addEventListener('click', () => SignalOverlay.togglePanel());
+  // Deep-link: ?symbol=XYZ&layers=insider,gex,catalyst
+  try {
+    const usp = new URLSearchParams(location.search);
+    const dlLayers = usp.get('layers');
+    if (dlLayers) { State.signalLayers = {}; SignalOverlay.LAYERS.forEach(l => State.signalLayers[l.id] = false); dlLayers.split(',').forEach(id => State.signalLayers[id.trim()] = true); }
+    const dlSym = usp.get('symbol') || usp.get('ticker');
+    if (dlSym) setTimeout(() => ChartController.loadTicker(dlSym.toUpperCase()), 600);
+  } catch (e) {}
   document.getElementById('basket-close').addEventListener('click', () => Basket.close());
   document.getElementById('basket-cancel').addEventListener('click', () => Basket.close());
   document.getElementById('basket-add-btn').addEventListener('click', () => Basket.addRow());
