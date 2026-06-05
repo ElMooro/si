@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Track Record · JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--red:#ff5577;--amber:#fbbf24;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}
+.nav a:hover{color:var(--fg-1);background:var(--bg-2)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1000px;margin:0 auto;padding:40px 24px 70px}
+.hero{text-align:center;margin-bottom:10px}
+.hero h1{font-size:30px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);max-width:640px;margin:8px auto 0}
+.mat{display:inline-block;font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border-bright);color:var(--amber);margin:14px 0}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}
+@media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}}
+.kpi{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center}
+.kpi .v{font-family:var(--mono);font-size:30px;font-weight:800}
+.kpi .l{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px;margin-top:5px}
+h2{font-size:17px;color:var(--fg-0);margin:30px 0 12px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--border);font-size:13px}
+th{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px}
+td.cls{font-family:var(--mono);color:var(--fg-1)}
+.num{font-family:var(--mono);text-align:right}
+.pos{color:var(--green)}.neg{color:var(--red)}.hr{font-weight:700}
+.loading{text-align:center;padding:60px;color:var(--fg-3);font-family:var(--mono)}
+.disclaimer{margin-top:26px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6;border-top:1px solid var(--border);padding-top:14px}
+.method{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:12.5px;color:var(--fg-2);margin-top:18px}
+</style></head>
+<body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Home</a><a href="/opportunities.html">Opportunities</a><a href="/capital-flow.html">Capital Flow</a><a href="/track-public.html" class="active">Track Record</a><a href="/proof.html">Proof</a><a href="/pricing.html">Pricing</a></nav>
+</header>
+<div class="wrap">
+  <div class="hero">
+    <h1>Live <span class="grad">Track Record</span></h1>
+    <p>Every signal, measured against what actually happened. Forward returns from each daily snapshot's entry price to today — by signal class. No cherry-picking; the system grades itself.</p>
+    <div class="mat" id="maturity">Loading…</div>
+  </div>
+  <div id="content"><div class="loading">Loading track record…</div></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function row(label,a){if(!a)return'';const w=a.win_rate;return `<tr><td class="cls">${esc(label)}</td>
+  <td class="num hr" style="color:${w>=55?'#26ffaf':w>=45?'#fbbf24':'#ff5577'}">${w}%</td>
+  <td class="num ${a.avg>=0?'pos':'neg'}">${a.avg>=0?'+':''}${a.avg}%</td>
+  <td class="num">${a.median>=0?'+':''}${a.median}%</td>
+  <td class="num pos">${a.hit_5pct}%</td>
+  <td class="num" style="color:var(--green)">${a.best}%</td>
+  <td class="num" style="color:var(--red)">${a.worst}%</td>
+  <td class="num" style="color:var(--fg-3)">${a.n}</td></tr>`;}
+async function load(){
+  let d=null; try{const r=await fetch(`${PROXY}/data/signal-backtest.json?t=${Date.now()}`);if(r.ok)d=await r.json();}catch(e){}
+  if(!d||!d.overall){document.getElementById('content').innerHTML='<div class="loading">Track record is still accruing — the backtest needs snapshots ≥7 days old. Check back soon.</div>';document.getElementById('maturity').textContent='BOOTSTRAPPING';return;}
+  document.getElementById('maturity').textContent=`${d.maturity} · ${d.n_observations} observations · ${d.snapshots_used} daily snapshots`;
+  const o=d.overall;
+  let h=`<div class="kpis">
+    <div class="kpi"><div class="v ${o.avg>=0?'pos':'neg'}">${o.avg>=0?'+':''}${o.avg}%</div><div class="l">Avg Return</div></div>
+    <div class="kpi"><div class="v" style="color:var(--cyan)">${o.win_rate}%</div><div class="l">Win Rate</div></div>
+    <div class="kpi"><div class="v">${o.hit_5pct}%</div><div class="l">Hit +5%</div></div>
+    <div class="kpi"><div class="v" style="color:var(--fg-0)">${o.n}</div><div class="l">Observations</div></div>
+  </div>`;
+  const mk=(title,obj,order)=>{
+    if(!obj||!Object.keys(obj).length)return'';
+    let s=`<h2>${title}</h2><table><thead><tr><th>Signal class</th><th class="num">Win %</th><th class="num">Avg</th><th class="num">Median</th><th class="num">Hit +5%</th><th class="num">Best</th><th class="num">Worst</th><th class="num">N</th></tr></thead><tbody>`;
+    const keys=order?order.filter(k=>obj[k]):Object.keys(obj);
+    keys.forEach(k=>{s+=row(k.replace(/_/g,' '),obj[k]);});
+    return s+'</tbody></table>';
+  };
+  h+=mk('By verdict tier',d.by_verdict,['STRONG OPPORTUNITY','OPPORTUNITY','FAIR VALUE','HOLD / NEUTRAL','EXPENSIVE','HIGH RISK']);
+  h+=mk('By compounder bucket',d.by_compounder_bucket);
+  h+=mk('By estimate revision',d.by_revision);
+  h+=mk('By market cap',d.by_cap_bucket,['mega','large','mid','small','micro','nano']);
+  h+=`<div class="method">${esc(d.note||'')}</div>`;
+  h+=`<div class="disclaimer">Forward return = % change from each snapshot's recorded entry price to the current price (variable holding period, snapshots ≥7 days old). This is a live, self-grading record — it includes losers. As history deepens these numbers stabilize. Past performance does not guarantee future results. Research &amp; analytics, not investment advice. · Generated ${esc((d.generated_at||'').slice(0,16))} UTC.</div>`;
+  document.getElementById('content').innerHTML=h;
+}
+load();
+</script>
+</body></html>

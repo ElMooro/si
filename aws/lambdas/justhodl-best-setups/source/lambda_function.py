@@ -128,6 +128,7 @@ def lambda_handler(event, context):
     opportunities = read_json("data/opportunities.json") or {}
     capital_flow = read_json("data/capital-flow.json") or {}
     bond_vol = read_json("data/bond-vol.json") or {}
+    bv_regime = (bond_vol.get("regime") or "").upper()
 
     weights, weight_src = learned_weights(calibration)
 
@@ -298,7 +299,42 @@ def lambda_handler(event, context):
             verdict = "TRIPLE THREAT"
             composite = min(100.0, composite * 1.15)
 
+        # ── Universal explainability: a plain-language "why" chain ──
+        WHY_PHRASES = {
+            "DISLOCATION": "trading cheap vs its peers",
+            "COMPOUNDER": "a durable quality grower (high ROIC + margins + growth)",
+            "REVISION_UP": "analysts revising estimates up",
+            "CAPITAL_FLOW": "institutions accumulating it",
+            "POLITICIAN_COMMITTEE": "bought by a politician on a relevant committee",
+            "POLITICIAN_BUY": "recently bought by members of Congress",
+            "EXECUTIVE_BUY": "bought by an executive-branch official",
+            "INSIDER_CLUSTER": "a cluster of insiders buying",
+            "OPTIONS_EXTREME": "extreme bullish options flow",
+            "OPTIONS_BULLISH": "bullish options positioning",
+            "CASCADE_ALERT": "a theme/cascade signal firing",
+            "RETAIL_HOT": "surging retail attention",
+            "EARNINGS_FRESH": "a fresh post-earnings catalyst",
+            "CONVERGENCE": "multiple models converging",
+        }
+        ranked_sigs = sorted(signals, key=lambda s: -s["strength"] * s["weight"])
+        why_parts = []
+        for sg in ranked_sigs[:4]:
+            phrase = WHY_PHRASES.get(sg["key"])
+            if phrase:
+                det = sg.get("detail")
+                why_parts.append(phrase + (f" ({det})" if det and len(str(det)) < 60 else ""))
+        if why_parts:
+            lead = f"{tk} screens as a {verdict.lower()} because it's " if verdict not in ("WATCH",) else f"{tk} is on watch — it's "
+            why_text = lead + "; ".join(why_parts) + "."
+            if n >= 3:
+                why_text += f" {n} independent signals agree, which is the strongest form of confluence."
+            if bv_regime in ("ELEVATED", "CRISIS"):
+                why_text += f" Note: bond-vol regime is {bv_regime} — size accordingly."
+        else:
+            why_text = None
+
         setups.append({
+            "why": why_text,
             "ticker": tk,
             "name": rec["name"],
             "conviction": round(composite, 1),
@@ -326,7 +362,6 @@ def lambda_handler(event, context):
     # (risk-off), temper long conviction (correlations rise, diversification
     # fails); in LOW/NORMAL, leave full conviction. This makes the whole board
     # regime-aware rather than firing the same in calm and crisis.
-    bv_regime = (bond_vol.get("regime") or "").upper()
     bv_z = bond_vol.get("composite_z_score")
     bv_posture = bond_vol.get("risk_posture")
     regime_mult = {"CRISIS": 0.78, "ELEVATED": 0.90, "NORMAL": 1.0,

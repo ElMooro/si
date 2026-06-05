@@ -127,6 +127,21 @@ export default {
     // GET /quotes?tickers=AAPL,MSFT,NVDA → live snapshot via Polygon
     // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
     // Cached 30s at edge. Polygon key from worker env (server-side, secure).
+    if (url.pathname === "/ask") {
+      // Proxy natural-language questions to the justhodl-ask Lambda Function URL.
+      const ASK_URL = "https://JUSTHODL_ASK_FUNCTION_URL_PLACEHOLDER/";
+      if (request.method === "OPTIONS") return new Response("{}", { headers: corsHeaders() });
+      try {
+        const body = await request.text();
+        const r = await fetch(ASK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body });
+        const txt = await r.text();
+        return new Response(txt, { status: r.status, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "ask unavailable", detail: String(e).slice(0, 120) }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
     if (url.pathname === "/register-push" && request.method === "POST") {
       // Store a mobile push token for alert delivery (KV, 90-day TTL).
       try {

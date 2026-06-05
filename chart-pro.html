@@ -346,6 +346,7 @@ a:hover { text-decoration: underline; }
 .setup-sig.options { color: var(--tier-options); border-color: var(--tier-options); }
 .setup-sig.cascade { color: var(--tier-alert); border-color: var(--tier-alert); }
 .setup-thesis { font-size: 10.5px; color: var(--fg-2); margin-top: 4px; font-style: italic; line-height: 1.4; max-width: 640px; }
+.setup-why { font-size: 11.5px; color: var(--fg-1); margin-top: 5px; line-height: 1.45; max-width: 640px; background: rgba(34,211,238,0.06); border-left: 2px solid var(--cyan); padding: 5px 9px; border-radius: 0 5px 5px 0; }
 .setup-levels { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-3); text-align: right; white-space: nowrap; }
 .setup-levels .ll-rr { color: var(--cyan); font-weight: 700; }
 .setups-conf-bar { display: flex; gap: 2px; margin-top: 3px; }
@@ -2484,6 +2485,7 @@ class UI {
         <div class="setup-mid">
           <div class="setup-tk">${UI.esc(s.ticker)} <span class="conv">conviction ${(s.conviction||0).toFixed(0)}</span> <span style="font-size:9.5px;color:var(--fg-3)">${s.n_signals} signals</span></div>
           <div class="setup-sigs">${sigs}</div>
+          ${s.why ? `<div class="setup-why">💡 ${UI.esc(s.why)}</div>` : ''}
           ${s.thesis ? `<div class="setup-thesis">${UI.esc(s.thesis)}</div>` : ''}
         </div>
         <div class="setup-levels">${levels}</div>
