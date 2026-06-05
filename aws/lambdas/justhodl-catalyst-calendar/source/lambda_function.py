@@ -79,15 +79,18 @@ def fetch_fda():
 
 
 def fetch_gov_contracts():
-    """Recent large federal contract awards via USAspending.gov (free)."""
-    end = date.today(); start = end - timedelta(days=21)
+    """Recent large federal contract awards via USAspending.gov (free).
+    Filter on action_date (when the award action happened), newest first, and
+    exclude lifetime-aggregate rows by capping the lookback tightly."""
+    end = date.today(); start = end - timedelta(days=30)
     body = json.dumps({
         "filters": {
             "award_type_codes": ["A", "B", "C", "D"],
-            "time_period": [{"start_date": start.isoformat(), "end_date": end.isoformat()}],
+            "time_period": [{"start_date": start.isoformat(), "end_date": end.isoformat(),
+                             "date_type": "action_date"}],
         },
         "fields": ["Award ID", "Recipient Name", "Award Amount", "Awarding Agency",
-                   "Award Type", "Start Date", "Description"],
+                   "Award Type", "Action Date", "Start Date", "Description"],
         "sort": "Award Amount", "order": "desc", "limit": 100, "page": 1,
     }).encode()
     d = http_json("https://api.usaspending.gov/api/v2/search/spending_by_award/", data=body)
@@ -100,15 +103,15 @@ def fetch_gov_contracts():
                 if name in recip:
                     tk = t; break
             amt = r.get("Award Amount") or 0
-            if amt < 5_000_000:   # only material awards
+            if amt < 5_000_000:
                 continue
+            adt = (r.get("Action Date") or r.get("Start Date") or "")[:10]
             out.append({
                 "ticker": tk, "recipient": r.get("Recipient Name"),
                 "amount": amt, "amount_m": round(amt / 1e6, 1),
-                "agency": r.get("Awarding Agency"), "date": (r.get("Start Date") or "")[:10],
+                "agency": r.get("Awarding Agency"), "date": adt,
                 "desc": (r.get("Description") or "")[:160], "mapped": bool(tk),
             })
-    # ticker-mapped first, then by size
     out.sort(key=lambda x: (not x["mapped"], -x["amount"]))
     return out
 
