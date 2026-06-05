@@ -1,0 +1,78 @@
+{
+  "backlog_invoke": {
+    "elapsed": 47.8,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"covered\\\": 19, \\\"accelerating\\\": 12}\"}"
+  },
+  "backlog": {
+    "covered": 19,
+    "caps": {
+      "mega": 1,
+      "large": 8,
+      "mid": 5,
+      "nano": 3,
+      "micro": 1,
+      "small": 1
+    },
+    "accel": 12
+  },
+  "reverse_dcf": {
+    "n_mispriced": 109,
+    "sample": [
+      {
+        "t": "ARM",
+        "impl": 8.8,
+        "exp": 56.5,
+        "gap": 47.7
+      },
+      {
+        "t": "RDDT",
+        "impl": 6.9,
+        "exp": 16.3,
+        "gap": 9.4
+      },
+      {
+        "t": "UI",
+        "impl": 6.3,
+        "exp": 22.7,
+        "gap": 16.4
+      },
+      {
+        "t": "UTHR",
+        "impl": 3.6,
+        "exp": 20.3,
+        "gap": 16.7
+      },
+      {
+        "t": "HL",
+        "impl": 6.2,
+        "exp": 47.5,
+        "gap": 41.3
+      }
+    ]
+  },
+  "overlap": {
+    "scored": 51,
+    "prime": 1,
+    "elite": 0,
+    "top": [
+      "EXE"
+    ]
+  },
+  "board_has_overlap": true,
+  "board_signals": [
+    "CAPITAL_FLOW",
+    "CASCADE_ALERT",
+    "CASCADE_LAGGARD",
+    "COMPOUNDER",
+    "CONVERGENCE",
+    "DEEP_VALUE_OVERLAP",
+    "DISLOCATION",
+    "EARLY_MOVER",
+    "EARNINGS_FRESH",
+    "EXECUTIVE_BUY",
+    "INSIDER_CLUSTER",
+    "OPTIONS_BULLISH",
+    "OPTIONS_EXTREME",
+    "POLITICIAN_BUY"
+  ]
+}
