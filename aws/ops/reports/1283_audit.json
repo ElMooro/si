@@ -1,20 +1,19 @@
 {
-  "vintage_deployed": "An error occurred (ResourceNotFoundException) when calling t",
-  "data/vintage/_index.json": {
-    "exists": false,
-    "err": "An error occurred (NoSuchKey) when calling the GetObject ope"
+  "vintage": {
+    "index_exists": false,
+    "n_series": null,
+    "updated": null
   },
-  "data/track-record.json": {
-    "exists": true,
-    "keys": [
-      "schema_version",
-      "generated_at",
-      "duration_s",
-      "window",
-      "overall",
-      "by_tier",
-      "by_horizon",
-      "equity_curve"
-    ]
-  }
+  "portfolio_files": {
+    "portfolio-analytics.json": true,
+    "portfolio-risk.json": false,
+    "portfolio-snapshot.json": false,
+    "signal-portfolio.json": false
+  },
+  "track_record_exists": true,
+  "signal_backtest_exists": true,
+  "justhodl-portfolio-analytics_state": "Active",
+  "justhodl-portfolio-risk_state": "Active",
+  "justhodl-signal-portfolio_state": "Active",
+  "justhodl-ai-chat_state": "Active"
 }
