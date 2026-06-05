@@ -1329,6 +1329,8 @@ a:hover { text-decoration: underline; }
 .slp-row:hover{background:var(--bg-2);color:var(--fg-0)}
 .slp-row input{accent-color:var(--green);cursor:pointer}
 .slp-foot{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);margin-top:8px;border-top:1px solid var(--border);padding-top:7px;line-height:1.4}
+.wl-badge{display:inline-flex;align-items:center;font-size:10px;line-height:1;padding:1px 3px;border:1px solid;border-radius:4px;background:rgba(255,255,255,0.02);margin-right:2px}
+.wl-sig-dots{display:inline-flex;flex-wrap:wrap;gap:2px;align-items:center}
 </style>
 </head>
 <body>
@@ -1827,7 +1829,7 @@ class DataService {
   }
   
   static async loadAll() {
-    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups, dislocations, opportunities, capitalflow, catalystsD, optionsD] = await Promise.all([
+    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups, dislocations, opportunities, capitalflow, catalystsD, optionsD, dislocationsD, backlogD, opportunitiesD, overlapD, finraD] = await Promise.all([
       this.fetch('data/theme-cascade.json'),
       this.fetch('data/insider-clusters.json'),
       this.fetch('data/polygon-options-flow.json'),
@@ -1845,6 +1847,11 @@ class DataService {
       this.fetch('data/capital-flow.json'),
       this.fetch('data/catalyst-calendar.json'),
       this.fetch('data/polygon-options-flow.json'),
+      this.fetch('data/dislocations.json'),
+      this.fetch('data/backlog.json'),
+      this.fetch('data/opportunities.json'),
+      this.fetch('data/deep-value-overlap.json'),
+      this.fetch('data/finra-short.json'),
     ]);
     State.cascade = cascade;
     State.insider = insider;
@@ -1863,6 +1870,11 @@ class DataService {
     State.capitalflow = capitalflow;
     State.catalysts = catalystsD;
     State.options = optionsD;
+    State.dislocations = dislocationsD;
+    State.backlog = backlogD;
+    State.opportunities = opportunitiesD;
+    State.overlap = overlapD;
+    State.finraShort = finraD;
   }
 }
 
@@ -2154,23 +2166,71 @@ class WatchlistManager {
   }
   
   // ── Symbol signal detection (which JustHodl signals are active) ──
+  // Rich, labeled signal badges joined across every engine — the watchlist's
+  // visual moat. Returns [{id, icon, label, color}] for per-row badges.
   static getSymbolSignals(ticker) {
-    const sigs = [];
+    const out = [];
+    const push = (id, icon, label, color) => out.push({ id, icon, label, color });
+    const has = (arr, key) => (arr || []).some(c => (c.ticker || c.symbol) === ticker);
+
     const cascade = State.cascade || {};
-    if ((cascade.alert_tier || []).some(c => c.ticker === ticker)) sigs.push('alert');
-    if ((cascade.laggards_hot_themes || []).some(c => c.ticker === ticker)) sigs.push('laggard');
+    if ((cascade.alert_tier || []).some(c => c.ticker === ticker)) push('prepump', '⚡', 'Pre-Pump alert tier', '#fbbf24');
+    if ((cascade.laggards_hot_themes || []).some(c => c.ticker === ticker)) push('laggard', '🪤', 'Hot-theme laggard', '#22d3ee');
+
     const insider = State.insider || {};
-    if ((insider.clusters || insider.items || insider.top_clusters || []).some(c => c.ticker === ticker)) sigs.push('insider');
+    const insArr = insider.clusters || insider.items || insider.top_clusters || [];
+    const insC = insArr.find(c => c.ticker === ticker);
+    if (insC) {
+      const role = ((insC.roles || insC.titles || []).join(' ') + ' ' + (insC.top_role || '')).toUpperCase();
+      const ceo = /CEO|CHIEF EXECUTIVE|CFO|CHIEF FINANCIAL/.test(role);
+      push('insider', '🟢', (ceo ? 'CEO/CFO' : 'Insider') + ' cluster buy' + (insC.n_insiders ? ` (${insC.n_insiders})` : ''), '#26ffaf');
+    }
+
+    const cf = State.capitalflow || {};
+    if (has(cf.accumulating, ticker)) push('flow', '🔥', 'Institutions accumulating', '#26ffaf');
+    if (has(cf.distributing, ticker)) push('distrib', '🧊', 'Institutions distributing', '#ff5577');
+
+    // Dislocation / cheap laggard
+    const disl = State.dislocations || {};
+    const dRec = [...(disl.buy_the_laggard || []), ...(disl.top_dislocations || [])].find(r => r.ticker === ticker);
+    if (dRec) push('dislocation', dRec.cheap_and_inflecting ? '🚀' : '⚖️', dRec.cheap_and_inflecting ? 'Cheap & inflecting' : 'Dislocation (cheap vs peers)', '#22d3ee');
+
+    // Backlog accelerating
+    const bl = (State.backlog && State.backlog.by_ticker) ? State.backlog.by_ticker[ticker] : null;
+    if (bl && (bl.demand_accelerating || bl.deferred_accelerating)) push('backlog', '📈', 'Backlog/RPO accelerating', '#a78bfa');
+
+    // Opportunity-engine derived: compounder, cheap EV/Sales, reverse-DCF mispriced
+    const o = (State.opportunities && (State.opportunities.all || []).find(r => r.ticker === ticker)) || null;
+    if (o) {
+      if (o.compounder_score >= 70) push('compounder', '🌱', 'Durable compounder', '#a78bfa');
+      const gi = o.growth_intel || {};
+      if (gi.reverse_dcf_mispriced) push('revdcf', '🎯', `Reverse-DCF mispriced (implies ${gi.implied_growth_pct}% vs ${gi.expected_company_growth_pct}% exp)`, '#26ffaf');
+      const d = State.dislocations && [...(State.dislocations.top_dislocations||[])].find(r => r.ticker === ticker);
+      if (d && d.ev_sales != null && d.ev_sales < 2) push('evsales', '💎', `EV/Sales ${d.ev_sales}`, '#22d3ee');
+    }
+
+    // Deep-value overlap prime
+    if (State.overlap && (State.overlap.prime_setups || []).some(r => r.ticker === ticker)) push('overlap', '⭐', 'Deep-value + catalyst prime', '#fbbf24');
+
+    // Short-squeeze
+    if (State.finraShort && (State.finraShort.squeeze_candidates || []).some(r => r.ticker === ticker)) push('squeeze', '🩳', 'Short-squeeze setup', '#ff9f43');
+
     const opts = State.options || {};
-    if ([...(opts.extreme_call_flow||[]), ...(opts.bullish_call_flow||[])].some(c => c.ticker === ticker)) sigs.push('options');
+    if ([...(opts.extreme_call_flow || []), ...(opts.bullish_call_flow || [])].some(c => c.ticker === ticker)) push('options', '📊', 'Bullish options flow', '#22d3ee');
+
     const retail = State.retail || {};
-    if ((retail.biggest_velocity_surges || []).some(c => (c.ticker||c.symbol) === ticker)) sigs.push('retail');
-    const preds = (State.predictions && State.predictions.predictions) || [];
-    const pred = preds.find(p => p.ticker === ticker);
-    if (pred && (pred.alerts || []).includes('EARNINGS_FRESH')) sigs.push('earnings');
+    if ((retail.biggest_velocity_surges || []).some(c => (c.ticker || c.symbol) === ticker)) push('retail', '💬', 'Retail attention surge', '#fb923c');
+
     const pol = State.political || {};
-    if ((pol.by_ticker || {})[ticker] && ((pol.by_ticker[ticker].n_buys||0) > 0)) sigs.push('politician');
-    return sigs;
+    if ((pol.by_ticker || {})[ticker] && ((pol.by_ticker[ticker].n_buys || 0) > 0)) push('politician', '🏛️', 'Congress buying', '#e0b341');
+
+    // Catalyst within ~14d
+    const cats = (State.catalysts && State.catalysts.events) ? State.catalysts.events.filter(e => e.ticker === ticker) : [];
+    if (cats.length) {
+      const soon = cats.find(e => { const d = (new Date(e.date) - Date.now()) / 864e5; return d >= -1 && d <= 14; });
+      if (soon) push('catalyst', soon.type === 'FDA' ? '🧪' : soon.type === 'EARNINGS' ? '📅' : '🏛️', `${soon.type} catalyst ${soon.date}`, '#a78bfa');
+    }
+    return out;
   }
   
   // ── localStorage + cloud persistence ──
@@ -2649,7 +2709,7 @@ class UI {
     const html = members.map(m => {
       const changeClass = m.changePct > 0 ? 'up' : m.changePct < 0 ? 'dn' : 'flat';
       const selected = m.ticker === State.activeTicker ? 'selected' : '';
-      const sigDots = m.signals.map(s => `<span class="wl-sig-dot ${s}" title="${s}"></span>`).join('');
+      const sigDots = m.signals.map(s => `<span class="wl-badge" style="border-color:${s.color};color:${s.color}" title="${this.esc(s.label)}">${s.icon}</span>`).join('');
       const lastStr = m.last != null ? '$' + m.last.toFixed(2) : '—';
       const chgStr = m.changePct != null ? (m.changePct >= 0 ? '+' : '') + m.changePct.toFixed(2) + '%' : '—';
       const isFav = WatchlistManager.isFavorite(m.ticker);

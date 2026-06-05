@@ -72,4 +72,6 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{tab=t.dataset.t;rend
 load();
 </script>
 <script src="/cmdk.js"></script>
+<script src="/wl-lens.js"></script>
+<script>(function(){function go(){if(window.WLLens){WLLens.mount({rowSelector:'.card',tickerFn:r=>{var e=r.querySelector('.tk');return e?e.textContent:''}, mountTarget:'#content'});}}setTimeout(go,1200);})();</script>
 </body></html>
