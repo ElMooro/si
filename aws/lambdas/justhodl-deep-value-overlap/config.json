@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-deep-value-overlap",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 120,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Deep Value + Catalyst Overlap master board — joins all signals into one ranked output",
+  "environment_keys": [],
+  "schedule": { "expression": "cron(0 17 * * ? *)", "name": "justhodl-deep-value-overlap-daily", "description": "Daily 17:00 UTC overlap board" }
+}
