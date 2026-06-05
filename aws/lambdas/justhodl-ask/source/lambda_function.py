@@ -147,7 +147,9 @@ def lambda_handler(event=None, context=None):
     raw = call_claude(system, prompt)
     parsed = None
     if raw:
-        m = re.search(r"\{.*\}", raw, re.DOTALL)
+        cleaned = re.sub(r"^```(?:json)?\s*", "", raw.strip())
+        cleaned = re.sub(r"\s*```$", "", cleaned).strip()
+        m = re.search(r"\{.*\}", cleaned, re.DOTALL)
         if m:
             try: parsed = json.loads(m.group(0))
             except Exception: parsed = None

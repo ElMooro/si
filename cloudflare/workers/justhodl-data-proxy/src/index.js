@@ -129,7 +129,7 @@ export default {
     // Cached 30s at edge. Polygon key from worker env (server-side, secure).
     if (url.pathname === "/ask") {
       // Proxy natural-language questions to the justhodl-ask Lambda Function URL.
-      const ASK_URL = "https://JUSTHODL_ASK_FUNCTION_URL_PLACEHOLDER/";
+      const ASK_URL = "https://mxfefd5s3l4kp7ywx4ztlboqui0jrmkc.lambda-url.us-east-1.on.aws/";
       if (request.method === "OPTIONS") return new Response("{}", { headers: corsHeaders() });
       try {
         const body = await request.text();
