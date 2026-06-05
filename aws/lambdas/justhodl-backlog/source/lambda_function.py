@@ -174,27 +174,56 @@ def _capdist(rows):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     cik_map = load_cik_map()
-    # Full universe (all caps) + per-ticker sector/cap meta
+    # Full universe (all caps) restricted to backlog-relevant SECTORS (where
+    # RPO/contract-liability tags actually exist), SEED first, plus a persistent
+    # coverage cache so confirmed-empty names are skipped on future runs — this
+    # converges to full relevant-universe coverage over daily runs without
+    # exceeding SEC's ~10 req/s rate limit in a single invocation.
+    BACKLOG_SECTORS = {"Technology", "Communication Services", "Industrials",
+                       "Energy", "Health Care", "Healthcare", "Consumer Cyclical"}
+    cache = read_json("data/backlog-coverage-cache.json") or {"has_backlog": [], "no_backlog": []}
+    has_set = set(cache.get("has_backlog", []))
+    no_set = set(cache.get("no_backlog", []))
     uni = read_json("data/universe.json") or {}
     meta = {}
-    tickers = set(SEED)
     for s in (uni.get("stocks") or []):
         tk = (s.get("symbol") or "").upper()
-        if not tk:
-            continue
-        tickers.add(tk)
-        meta[tk] = {"sector": s.get("sector"), "cap_bucket": s.get("cap_bucket")}
-    tickers = sorted(t for t in tickers if t in cik_map)  # only US-listed w/ CIK
-    print(f"[backlog] CIK map {len(cik_map)} · universe {len(tickers)} tickers w/ CIK")
+        if tk:
+            meta[tk] = {"sector": s.get("sector"), "cap_bucket": s.get("cap_bucket")}
+    for tk in SEED:
+        meta.setdefault(tk, {"sector": "Technology", "cap_bucket": None})
+    # candidate order: SEED → known-has-backlog → relevant-sector unknowns
+    relevant = [t for t, m in meta.items()
+                if (m.get("sector") in BACKLOG_SECTORS or t in SEED) and t in cik_map]
+    seed_first = [t for t in SEED if t in cik_map]
+    known = [t for t in relevant if t in has_set and t not in seed_first]
+    unknown = [t for t in relevant if t not in has_set and t not in no_set and t not in seed_first]
+    # cap the per-run workload so we finish inside the timeout; unknowns fill in
+    # over successive days.
+    candidates = seed_first + known + unknown[:600]
+    print(f"[backlog] candidates {len(candidates)} (seed {len(seed_first)}, known {len(known)}, new {min(600,len(unknown))})")
     results = []
-    with ThreadPoolExecutor(max_workers=16) as ex:
-        futs = {ex.submit(analyze, s, cik_map, meta): s for s in tickers}
+    new_has, new_no = set(), set()
+    with ThreadPoolExecutor(max_workers=12) as ex:
+        futs = {ex.submit(analyze, s, cik_map, meta): s for s in candidates}
         for f in as_completed(futs):
+            sym = futs[f]
             try:
                 r = f.result()
-                if r: results.append(r)
+                if r:
+                    results.append(r); new_has.add(sym)
+                else:
+                    new_no.add(sym)
             except Exception:
                 pass
+    # update coverage cache
+    cache = {"has_backlog": sorted(has_set | new_has),
+             "no_backlog": sorted((no_set | new_no) - new_has)}
+    try:
+        s3.put_object(Bucket=BUCKET, Key="data/backlog-coverage-cache.json",
+                      Body=json.dumps(cache).encode(), ContentType="application/json")
+    except Exception:
+        pass
 
     accelerating = sorted([r for r in results if r.get("demand_accelerating") or r.get("deferred_accelerating")],
                           key=lambda r: -(r.get("rpo_minus_rev_growth") or r.get("deferred_yoy") or 0))[:30]
