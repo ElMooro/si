@@ -67,36 +67,36 @@ def http_json(url, t=20):
 
 
 def fetch_vintages(series_id, lookback_days=400):
-    """Pull observations WITH realtime metadata so we know the as-reported value
-    and the date it became known. We request the full realtime range so ALFRED
-    returns each value tagged with realtime_start (= knowledge date)."""
+    """Point-in-time observations via ALFRED. Setting realtime_start to a wide
+    past window makes FRED return EACH observation tagged with the realtime
+    period it was valid for — i.e. multiple as-reported rows per date, each
+    with realtime_start = the date the market knew that value."""
     end = date.today()
     start = end - timedelta(days=lookback_days)
-    # realtime_start/end as a wide window makes ALFRED return point-in-time rows
-    params = {
+    base = {
         "series_id": series_id, "api_key": FRED_KEY, "file_type": "json",
         "observation_start": start.isoformat(), "observation_end": end.isoformat(),
-        "realtime_start": start.isoformat(), "realtime_end": end.isoformat(),
-        "output_type": "2",  # all vintages within the realtime period
     }
-    url = ALFRED + "?" + urllib.parse.urlencode(params)
-    d = http_json(url)
-    if not d or "observations" not in d:
-        # fall back to standard (latest) obs if ALFRED output_type unsupported on plan
-        params.pop("output_type", None); params.pop("realtime_start", None); params.pop("realtime_end", None)
-        d = http_json(ALFRED + "?" + urllib.parse.urlencode(params))
-        if not d or "observations" not in d:
-            return None
+    # Primary: ALFRED realtime window (point-in-time vintages)
+    params = dict(base, realtime_start=start.isoformat(), realtime_end=end.isoformat())
+    d = http_json(ALFRED + "?" + urllib.parse.urlencode(params))
+    obs = d.get("observations") if isinstance(d, dict) else None
+    if not obs:
+        # Fallback: latest-only (still gives a valid as-of-today vintage row)
+        d = http_json(ALFRED + "?" + urllib.parse.urlencode(base))
+        obs = d.get("observations") if isinstance(d, dict) else None
+    if not obs:
+        return None
     out = []
-    for o in d["observations"]:
+    for o in obs:
         v = o.get("value")
         if v in (None, ".", ""):
             continue
         try:
             out.append({
-                "date": o["date"],                                   # the period the value refers to
+                "date": o["date"],
                 "value": float(v),
-                "known_on": o.get("realtime_start") or o["date"],    # when the market knew it
+                "known_on": o.get("realtime_start") or o["date"],
             })
         except (ValueError, KeyError):
             continue
