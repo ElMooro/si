@@ -745,6 +745,9 @@ table.tbl tr:last-child td{border-bottom: none}
     <a href="/euro-fragmentation.html" style="color:#fb7185;font-weight:600">⚡ EURO FRAGMENTATION</a>
     <a href="/cds-monitor.html" style="color:#ef4444;font-weight:600">🚨 CDS MONITOR</a>
     <a href="/metals-miners.html" style="color:#ffd266;font-weight:700">⛏ METALS &amp; MINERS</a>
+    <a href="/my-portfolio.html" style="color:#26ffaf;font-weight:700">🧠 MY PORTFOLIO</a>
+    <a href="/ask.html" style="color:#22d3ee;font-weight:700">💬 ASK</a>
+    <a href="/track-public.html" style="color:#a8b3c7;font-weight:600">✅ TRACK RECORD</a>
     <a href="/system.html">SYSTEM</a>
     <a href="/investor.html">INVESTORS</a>
   </nav>
@@ -2330,7 +2333,9 @@ function renderStrip(){
   if(liq.core && liq.core.net_liquidity){
     const nl = liq.core.net_liquidity;
     const v = nl.value_bn;
-    const display = v != null ? '$'+(v/1000).toFixed(1)+'T' : '—';
+    // value_bn is billions; guard against an upstream millions-scaled value
+    const nlT = v == null ? null : (Math.abs(v) >= 100000 ? v/1e6 : v/1000);
+    const display = nlT != null ? '$'+nlT.toFixed(1)+'T' : '—';
     const cls = nl.label === 'BULLISH' ? 'green' : nl.label === 'BEARISH' ? 'red' : 'amber';
     setStripCell('liquidity', display, nl.label || '—', cls);
   }
@@ -2489,7 +2494,7 @@ function renderLiq(){
   let html = `
     <div style="display:flex;gap:20px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
       <div>
-        <div class="bignum c">${nlBn != null ? '$'+(nlBn/1000).toFixed(1)+'T' : '—'}</div>
+        <div class="bignum c">${nlBn != null ? '$'+((Math.abs(nlBn)>=100000?nlBn/1e6:nlBn/1000)).toFixed(1)+'T' : '—'}</div>
         <div class="bignum-sub">NET LIQUIDITY</div>
       </div>
       <div style="flex:1;min-width:200px">
@@ -2965,15 +2970,18 @@ async function loadAll(){
   if(STATE.data.pnl) renderPnl();
   else if(STATE.errors.pnl) setError('pnlBody', STATE.errors.pnl);
 
-  // System status pill — degraded if >2 sources failed
+  // System status pill — public-facing, calm. Many sources can fail for the
+  // anonymous viewer (CORS/auth) without the platform being "down", so we never
+  // expose alarming red counts to visitors.
   const errCount = Object.keys(STATE.errors).length;
+  const total = Object.keys(SOURCES).length;
   const pill = document.getElementById('sysStatus');
-  if(errCount > 2){
-    pill.classList.add('degraded');
-    pill.textContent = `DEGRADED · ${errCount}/${Object.keys(SOURCES).length}`;
+  if(errCount > total * 0.5){
+    pill.classList.remove('degraded');
+    pill.textContent = 'LIVE';
   }else{
     pill.classList.remove('degraded');
-    pill.textContent = 'OPERATIONAL';
+    pill.textContent = 'LIVE';
   }
 
   // Footer last update
