@@ -51,6 +51,9 @@ SIGNAL_PRIORS = {
     "REVISION_UP":          0.78,   # analyst estimate-revision momentum
     "DISLOCATION":          0.78,   # relative-value buy-the-laggard
     "INSIDER_CLUSTER":      0.80,   # multi-insider buying
+    "SHORT_SQUEEZE":        0.66,   # FINRA short-volume z-score + squeeze setup
+    "FDA_CATALYST":         0.62,   # upcoming PDUFA/AdCom binary event
+    "GOV_CONTRACT":         0.58,   # material federal contract award
     "EXECUTIVE_BUY":        0.72,   # executive-branch proximity
     "OPTIONS_EXTREME":      0.70,   # extreme smart-money call flow
     "CASCADE_ALERT":        0.65,   # theme cascade alert tier
@@ -116,6 +119,8 @@ def lambda_handler(event, context):
     cascade = read_json("data/theme-cascade.json") or {}
     options = read_json("data/polygon-options-flow.json") or {}
     insider = read_json("data/insider-clusters.json") or {}
+    finra_short = read_json("data/finra-short.json") or {}
+    catalysts = read_json("data/catalyst-calendar.json") or {}
     political = read_json("data/political-intel.json") or {}
     executive = read_json("data/executive-intel.json") or {}
     retail = read_json("data/retail-sentiment.json") or {}
@@ -168,8 +173,22 @@ def lambda_handler(event, context):
     # 3. Insider clusters
     for c in (insider.get("clusters") or insider.get("items") or insider.get("top_clusters") or []):
         nb = c.get("n_insiders") or c.get("cluster_size") or 0
+        base = normalize(nb, 2, 8)
+        # CEO/CFO open-market buys are a 5–10x stronger signal than other officers.
+        # Boost the cluster strength when a top-officer is among the buyers.
+        roles = " ".join(str(r) for r in (c.get("roles") or c.get("titles") or [])).upper()
+        rolestr = (roles + " " + str(c.get("top_role") or "")).upper()
+        has_ceo = any(k in rolestr for k in ("CEO", "CHIEF EXECUTIVE", "PRESIDENT"))
+        has_cfo = any(k in rolestr for k in ("CFO", "CHIEF FINANCIAL"))
+        role_note = ""
+        if has_ceo and has_cfo:
+            base = min(1.0, base * 1.5); role_note = " · CEO+CFO buying"
+        elif has_ceo:
+            base = min(1.0, base * 1.4); role_note = " · CEO buying"
+        elif has_cfo:
+            base = min(1.0, base * 1.3); role_note = " · CFO buying"
         add(c.get("ticker"), c.get("company_name"), "INSIDER_CLUSTER",
-            normalize(nb, 2, 8), f"{nb} insiders, ${round((c.get('total_value_usd') or 0)/1e6,1)}M")
+            base, f"{nb} insiders, ${round((c.get('total_value_usd') or 0)/1e6,1)}M{role_note}")
 
     # 4. Politician (committee-weighted)
     for tk, p in (political.get("by_ticker") or {}).items():
@@ -231,6 +250,22 @@ def lambda_handler(event, context):
             normalize(c.get("flow_score"), 8, 60),
             "institutions accumulating · " + " · ".join(c.get("lenses") or []))
 
+    # 7e. FINRA short-squeeze setups (elevated short-volume z-score + price strength)
+    for r in (finra_short.get("squeeze_candidates") or [])[:25]:
+        add(r.get("ticker"), None, "SHORT_SQUEEZE",
+            normalize(r.get("squeeze_score"), 50, 95),
+            f"squeeze setup {r.get('squeeze_score')}" + (f" · short z {r.get('z_score')}" if r.get('z_score') is not None else ""))
+
+    # 7f. Catalyst calendar — FDA PDUFA + government contract awards
+    for f in (catalysts.get("fda_upcoming") or [])[:30]:
+        if f.get("ticker"):
+            add(f.get("ticker"), None, "FDA_CATALYST", 0.7,
+                f"FDA {f.get('type','event')} {f.get('date','')}" + (f" · {f.get('drug')}" if f.get('drug') else ""))
+    for g in (catalysts.get("gov_contracts_mapped") or [])[:25]:
+        if g.get("ticker"):
+            add(g.get("ticker"), None, "GOV_CONTRACT", normalize(g.get("amount_m"), 5, 500),
+                f"${g.get('amount_m')}M federal award · {(g.get('agency') or '')[:30]}")
+
     # 7. Earnings / predictions extras
     for p in (preds_doc.get("predictions") or []):
         alerts = p.get("alerts") or []
@@ -249,6 +284,42 @@ def lambda_handler(event, context):
     rat = ai_rationale.get("by_ticker") or {}
     polai = pol_ai.get("by_ticker") or {}
 
+    # ── REGIME / SECTOR / CAP-AWARE WEIGHTING + TIME DECAY ──
+    # A signal's edge is not stationary. Modulate each signal weight by the
+    # current bond-vol regime, the sector, the market-cap bucket, and time decay.
+    REGIME_MULT = {
+        "CRISIS":      {"COMPOUNDER":1.20,"CAPITAL_FLOW":1.15,"INSIDER_CLUSTER":1.10,"DISLOCATION":0.80,"REVISION_UP":0.85,"RETAIL_HOT":0.6,"OPTIONS_EXTREME":0.9},
+        "ELEVATED":    {"COMPOUNDER":1.10,"CAPITAL_FLOW":1.08,"DISLOCATION":0.90,"RETAIL_HOT":0.8},
+        "NORMAL":      {},
+        "BOND_VOL_LOW":{"DISLOCATION":1.10,"RETAIL_HOT":1.10,"OPTIONS_EXTREME":1.08,"COMPOUNDER":0.97},
+    }
+    SECTOR_MULT = {
+        ("INSIDER_CLUSTER","financ"):1.20,("INSIDER_CLUSTER","bank"):1.20,
+        ("INSIDER_CLUSTER","health"):0.85,("INSIDER_CLUSTER","biotech"):0.80,
+        ("CAPITAL_FLOW","technology"):1.10,("DISLOCATION","energy"):1.10,
+        ("DISLOCATION","industrial"):1.08,("COMPOUNDER","technology"):1.08,
+    }
+    CAP_MULT = {
+        ("RETAIL_HOT","micro"):1.25,("RETAIL_HOT","nano"):1.30,("RETAIL_HOT","mega"):0.7,
+        ("CAPITAL_FLOW","mega"):1.12,("CAPITAL_FLOW","large"):1.08,("CAPITAL_FLOW","micro"):0.85,
+        ("OPTIONS_EXTREME","micro"):1.15,("DISLOCATION","small"):1.06,
+    }
+    opp_cap = {}
+    for r in (opportunities.get("all") or []):
+        opp_cap[r.get("ticker")] = r.get("cap_bucket")
+    def context_weight(sig_key, base_w, sector, cap, age_days):
+        w = base_w
+        w *= REGIME_MULT.get(bv_regime, {}).get(sig_key, 1.0)
+        sec = (sector or "").lower()
+        for (k, frag), m in SECTOR_MULT.items():
+            if k == sig_key and frag in sec:
+                w *= m; break
+        if cap:
+            w *= CAP_MULT.get((sig_key, cap), 1.0)
+        if age_days is not None and age_days > 0:
+            w *= 0.5 ** (age_days / 10.0)
+        return w
+
     # ── Fuse ──
     setups = []
     for tk, rec in sig.items():
@@ -258,7 +329,13 @@ def lambda_handler(event, context):
         n = len(signals)
         confluence = 1.0 + 0.22 * (n - 1)
         confluence = min(confluence, 2.2)
-        raw = sum(s["strength"] * s["weight"] for s in signals)
+        sector = rec.get("sector") or rec.get("industry")
+        cap = opp_cap.get(tk)
+        raw = 0.0
+        for s in signals:
+            cw = context_weight(s["key"], s["weight"], sector, cap, s.get("age_days"))
+            s["context_weight"] = round(cw, 3)
+            raw += s["strength"] * cw
         composite = round(min(100.0, raw * confluence * 22), 1)
 
         # Verdict from composite + confluence
