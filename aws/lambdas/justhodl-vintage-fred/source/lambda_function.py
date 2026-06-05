@@ -60,7 +60,7 @@ def read_json(key, default=None):
 def http_json(url, t=20):
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
-        with urllib.request.urlopen(req, t) as r:
+        with urllib.request.urlopen(req, timeout=t) as r:
             return json.loads(r.read().decode())
     except Exception:
         return None

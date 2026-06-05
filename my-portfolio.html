@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>My Portfolio · JustHodl AI</title>
+<meta name="description" content="Your book, analyzed by the whole JustHodl intelligence system — risk, overlaps, which signals touch your names, and what to do.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--bg-3:#131929;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--red:#ff5577;--amber:#fbbf24;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;line-height:1.55;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}
+.nav a:hover{color:var(--fg-1);background:var(--bg-2)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 70px}
+h1{font-size:26px;font-weight:800;color:var(--fg-0);margin-bottom:4px}
+.sub{color:var(--fg-2);font-size:13.5px;margin-bottom:20px}
+.priv{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);background:var(--bg-1);border:1px solid var(--border);border-radius:6px;padding:6px 10px;display:inline-block;margin-bottom:18px}
+/* entry */
+.entry{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:14px}
+.entry input{background:var(--bg-2);border:1px solid var(--border);border-radius:7px;color:var(--fg-1);font-family:var(--mono);font-size:13px;padding:9px 11px}
+.entry input.tk{width:120px;text-transform:uppercase}.entry input.sh{width:110px}.entry input.cb{width:130px}
+.entry button{background:var(--green);color:var(--bg);border:none;border-radius:7px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:13px}
+.entry button.ghost{background:var(--bg-3);color:var(--fg-2)}
+.holds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.hold{display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:var(--mono);font-size:12px}
+.hold b{color:var(--fg-0)}.hold .x{color:var(--red);cursor:pointer;font-size:14px}
+/* analysis */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:6px 0 22px}
+.kpi{background:var(--bg-1);border:1px solid var(--border);border-radius:11px;padding:15px}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:800;color:var(--fg-0)}
+.kpi .l{font-size:11px;color:var(--fg-3);margin-top:3px}.kpi .s{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:4px}
+h2{font-size:16px;font-weight:700;color:var(--fg-0);margin:26px 0 12px;font-family:var(--mono)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:11px;padding:14px}
+.card.alert{border-color:var(--red)}.card.good{border-color:var(--green)}.card.warn{border-color:var(--amber)}
+.card .ct{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--fg-0);margin-bottom:3px}
+.card .cb{font-size:12.5px;color:var(--fg-2);line-height:1.5}
+.tag{font-family:var(--mono);font-size:9.5px;padding:2px 7px;border-radius:10px;border:1px solid;display:inline-block;margin-top:7px}
+.empty{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.regbar{display:flex;align-items:center;gap:12px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-family:var(--mono);font-size:12.5px;flex-wrap:wrap}
+.bar-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border)}
+.bar-row:last-child{border:none}
+.disclaimer{margin-top:26px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6;background:var(--bg-1);border:1px solid var(--border);border-radius:8px;padding:14px}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav">
+    <a href="/">Home</a><a href="/chart-pro.html">Chart Pro</a><a href="/opportunities.html">Opportunities</a>
+    <a href="/capital-flow.html">Capital Flow</a><a href="/my-portfolio.html" class="active">My Portfolio</a><a href="/ask.html">Ask</a>
+  </nav>
+</header>
+<div id="regime-ribbon"></div>
+<div class="wrap">
+  <h1>My Portfolio</h1>
+  <div class="sub">Your book, analyzed by the entire JustHodl intelligence system — what's at risk, where you're concentrated, and which signals touch <i>your</i> names.</div>
+  <div class="priv">🔒 Private — your holdings are stored only in your own account (or this browser if signed out) and never shared.</div>
+
+  <div class="entry">
+    <input class="tk" id="in-tk" placeholder="TICKER" autocomplete="off">
+    <input class="sh" id="in-sh" placeholder="Shares" type="number">
+    <input class="cb" id="in-cb" placeholder="Cost basis $" type="number">
+    <button id="add">+ Add holding</button>
+    <button class="ghost" id="bulk">Paste list</button>
+  </div>
+  <div class="holds" id="holds"></div>
+
+  <div id="analysis"></div>
+
+  <div class="disclaimer">Analysis is computed locally from your holdings against the live JustHodl signal engines (opportunities, dislocations, compounders, capital-flow, bond-vol regime, today's setups). It is informational only and not investment advice. You are responsible for your own decisions.</div>
+</div>
+
+<script src="/regime-ribbon.js"></script>
+<script src="/auth.js"></script>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtUsd(v){if(v==null)return'—';const a=Math.abs(v);if(a>=1e9)return'$'+(v/1e9).toFixed(2)+'B';if(a>=1e6)return'$'+(v/1e6).toFixed(1)+'M';if(a>=1e3)return'$'+(v/1e3).toFixed(0)+'k';return '$'+v.toFixed(0);}
+let HOLDINGS=[];          // [{ticker,shares,cost}]
+let DATA={};              // loaded signal datasets
+
+// ── persistence: per-user KV via worker if signed in, else localStorage ──
+function deviceId(){let d=localStorage.getItem('jh_device');if(!d){d='dev_'+Math.random().toString(36).slice(2);localStorage.setItem('jh_device',d);}return d;}
+function userKey(){try{return (window.JHAuth&&window.JHAuth.userId&&window.JHAuth.userId())||deviceId();}catch(e){return deviceId();}}
+async function saveHoldings(){
+  localStorage.setItem('jh_holdings',JSON.stringify(HOLDINGS));
+  try{await fetch(`${PROXY}/userdata/${userKey()}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'holdings',value:HOLDINGS})});}catch(e){}
+}
+async function loadHoldings(){
+  let local=[];try{local=JSON.parse(localStorage.getItem('jh_holdings')||'[]');}catch(e){}
+  try{const r=await fetch(`${PROXY}/userdata/${userKey()}?key=holdings&t=${Date.now()}`);if(r.ok){const d=await r.json();if(d&&d.value&&Array.isArray(d.value)&&d.value.length)return d.value;}}catch(e){}
+  return local;
+}
+
+async function loadData(){
+  const f=(k)=>fetch(`${PROXY}/data/${k}?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null);
+  const [opp,disl,best,cf,bv]=await Promise.all([f('opportunities.json'),f('dislocations.json'),f('best-setups.json'),f('capital-flow.json'),f('bond-vol.json')]);
+  DATA={opp:opp||{},disl:disl||{},best:best||{},cf:cf||{},bv:bv||{}};
+}
+
+function renderHolds(){
+  const el=document.getElementById('holds');
+  el.innerHTML=HOLDINGS.map((h,i)=>`<div class="hold"><b>${esc(h.ticker)}</b>${h.shares?' · '+h.shares+'sh':''}${h.cost?' · @$'+h.cost:''}<span class="x" data-i="${i}">×</span></div>`).join('');
+  el.querySelectorAll('.x').forEach(x=>x.onclick=()=>{HOLDINGS.splice(+x.dataset.i,1);saveHoldings();renderHolds();analyze();});
+}
+
+function lookup(ticker){
+  const tk=ticker.toUpperCase();
+  const oppRow=(DATA.opp.all||[]).find(r=>r.ticker===tk);
+  const dislRow=(DATA.disl.buy_the_laggard||DATA.disl.top_dislocations||[]).find(r=>r.ticker===tk);
+  const cfAcc=(DATA.cf.accumulating||[]).find(r=>r.ticker===tk);
+  const cfDist=(DATA.cf.distributing||[]).find(r=>r.ticker===tk);
+  const setup=(DATA.best.top_setups||[]).find(r=>r.ticker===tk);
+  return {oppRow,dislRow,cfAcc,cfDist,setup};
+}
+
+function analyze(){
+  const a=document.getElementById('analysis');
+  if(!HOLDINGS.length){a.innerHTML='<div class="empty">Add your holdings above — the whole system will analyze your book.</div>';return;}
+  const bv=DATA.bv||{};
+  const regime=(bv.regime||'').toUpperCase();
+  const posture=bv.risk_posture;
+  // sector concentration
+  const sectors={}; let flagged=[],accum=[],distrib=[],traps=[],opps=[];
+  HOLDINGS.forEach(h=>{
+    const {oppRow,dislRow,cfAcc,cfDist,setup}=lookup(h.ticker);
+    const sec=(oppRow&&(oppRow.sector))||'Unknown'; sectors[sec]=(sectors[sec]||0)+1;
+    if(oppRow){
+      if((oppRow.verdict||'').includes('HIGH RISK')||((oppRow.cheap_verdict||'')==='VALUE_TRAP')) traps.push({h,oppRow});
+      if((oppRow.verdict||'').includes('STRONG OPPORTUNITY')||((oppRow.compounder_score||0)>=75)) opps.push({h,oppRow});
+    }
+    if(cfDist) distrib.push({h,cfDist});
+    if(cfAcc) accum.push({h,cfAcc});
+    if(setup&&setup.verdict&&(setup.verdict.includes('THREAT')||setup.verdict==='STRONG BUY')) flagged.push({h,setup});
+  });
+  const topSector=Object.entries(sectors).sort((x,y)=>y[1]-x[1])[0];
+  const concPct=topSector?Math.round(topSector[1]/HOLDINGS.length*100):0;
+
+  // KPIs
+  let html=`<div class="regbar"><span class="brand-dot" style="background:${regime==='CRISIS'?'var(--red)':regime==='ELEVATED'?'var(--amber)':regime==='BOND_VOL_LOW'?'var(--cyan)':'var(--amber)'}"></span>
+    <span style="color:var(--fg-3)">MARKET REGIME</span> <b style="color:var(--fg-0)">${esc(regime||'—')}</b>
+    ${posture?`· posture <b style="color:${posture.includes('OFF')?'var(--red)':posture.includes('ON')?'var(--green)':'var(--amber)'}">${esc(posture)}</b>`:''}
+    <span style="margin-left:auto;color:var(--fg-3)">${regimeNote(regime)}</span></div>`;
+
+  html+=`<div class="kpis">
+    <div class="kpi"><div class="v">${HOLDINGS.length}</div><div class="l">Holdings</div></div>
+    <div class="kpi"><div class="v" style="color:${concPct>=50?'var(--red)':concPct>=35?'var(--amber)':'var(--green)'}">${concPct}%</div><div class="l">Top-sector concentration</div><div class="s">${esc(topSector?topSector[0]:'')}</div></div>
+    <div class="kpi"><div class="v" style="color:${traps.length?'var(--red)':'var(--green)'}">${traps.length}</div><div class="l">At-risk positions</div><div class="s">value trap / high risk</div></div>
+    <div class="kpi"><div class="v" style="color:var(--green)">${accum.length}</div><div class="l">Institutions buying</div><div class="s">in your book</div></div>
+  </div>`;
+
+  // At-risk
+  if(traps.length||distrib.length){
+    html+='<h2>⚠ Watch in your book</h2><div class="cards">';
+    traps.forEach(({h,oppRow})=>{html+=`<div class="card alert"><div class="ct">${esc(h.ticker)} — ${esc(oppRow.verdict||oppRow.cheap_verdict)}</div><div class="cb">${esc(oppRow.company||'')} flagged ${oppRow.cheap_verdict==='VALUE_TRAP'?'a value trap':'high risk'} by the opportunity engine. Review thesis.</div><span class="tag" style="color:var(--red);border-color:var(--red)">at risk</span></div>`;});
+    distrib.forEach(({h,cfDist})=>{html+=`<div class="card warn"><div class="ct">${esc(h.ticker)} — institutions distributing</div><div class="cb">Capital-flow shows institutional selling (${(cfDist.lenses||[]).join(', ')}). Watch for continued outflow.</div><span class="tag" style="color:var(--amber);border-color:var(--amber)">distribution</span></div>`;});
+    html+='</div>';
+  }
+
+  // Strong in your book
+  if(accum.length||flagged.length||opps.length){
+    html+='<h2>✓ Strength in your book</h2><div class="cards">';
+    flagged.forEach(({h,setup})=>{html+=`<div class="card good"><div class="ct">${esc(h.ticker)} — ${esc(setup.verdict)}</div><div class="cb">On today's conviction board at ${Math.round(setup.conviction)} (${(setup.signal_keys||[]).slice(0,3).map(s=>s.replace(/_/g,' ').toLowerCase()).join(', ')}).</div><span class="tag" style="color:var(--green);border-color:var(--green)">conviction</span></div>`;});
+    accum.forEach(({h,cfAcc})=>{html+=`<div class="card good"><div class="ct">${esc(h.ticker)} — institutions accumulating</div><div class="cb">Capital flowing in (${(cfAcc.lenses||[]).join(', ')}), flow score +${cfAcc.flow_score}.</div><span class="tag" style="color:var(--green);border-color:var(--green)">accumulation</span></div>`;});
+    opps.forEach(({h,oppRow})=>{const gi=oppRow.growth_intel||{};html+=`<div class="card good"><div class="ct">${esc(h.ticker)} — quality</div><div class="cb">${oppRow.compounder_score?'Compounder '+oppRow.compounder_score:''}${gi.expected_company_growth_pct!=null?' · '+gi.expected_company_growth_pct+'% exp growth':''}.</div></div>`;});
+    html+='</div>';
+  }
+
+  // Concentration warning
+  if(concPct>=40){
+    html+=`<h2>🎯 Concentration</h2><div class="cards"><div class="card warn"><div class="ct">${concPct}% in ${esc(topSector[0])}</div><div class="cb">Your book leans heavily into one sector. In ${regime||'the current'} regime${posture?(' ('+posture+')'):''}, concentrated books carry higher correlated drawdown risk. Consider diversifying across sectors.</div></div></div>`;
+  }
+
+  // Ideas that fit gaps (top setups not in book)
+  const owned=new Set(HOLDINGS.map(h=>h.ticker.toUpperCase()));
+  const ownedSectors=new Set(Object.keys(sectors));
+  const ideas=(DATA.best.top_setups||[]).filter(s=>!owned.has(s.ticker)).slice(0,6);
+  if(ideas.length){
+    html+='<h2>💡 Ideas that complement your book</h2><div class="cards">';
+    ideas.forEach(s=>{html+=`<div class="card"><div class="ct">${esc(s.ticker)} — ${esc(s.verdict||'')} ${Math.round(s.conviction)}</div><div class="cb">${esc((s.signal_keys||[]).slice(0,3).map(k=>k.replace(/_/g,' ').toLowerCase()).join(' · '))}${s.thesis?'<br><i style="color:var(--fg-3)">'+esc(s.thesis.slice(0,120))+'</i>':''}</div></div>`;});
+    html+='</div>';
+  }
+  a.innerHTML=html;
+}
+function regimeNote(r){return {CRISIS:'risk-off — de-risk concentrated books',ELEVATED:'caution — correlations rising',NORMAL:'baseline — selection drives returns',BOND_VOL_LOW:'calm — but watch for complacency'}[r]||'';}
+
+document.getElementById('add').onclick=()=>{
+  const tk=document.getElementById('in-tk').value.trim().toUpperCase();
+  if(!tk)return;
+  const sh=parseFloat(document.getElementById('in-sh').value)||null;
+  const cb=parseFloat(document.getElementById('in-cb').value)||null;
+  HOLDINGS.push({ticker:tk,shares:sh,cost:cb});
+  document.getElementById('in-tk').value='';document.getElementById('in-sh').value='';document.getElementById('in-cb').value='';
+  saveHoldings();renderHolds();analyze();
+};
+document.getElementById('in-tk').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('add').click();});
+document.getElementById('bulk').onclick=()=>{
+  const t=prompt('Paste tickers separated by space or comma (e.g. NVDA AAPL MSFT):');
+  if(!t)return;
+  t.split(/[\s,]+/).map(x=>x.trim().toUpperCase()).filter(Boolean).forEach(tk=>{if(!HOLDINGS.find(h=>h.ticker===tk))HOLDINGS.push({ticker:tk});});
+  saveHoldings();renderHolds();analyze();
+};
+async function init(){
+  if(window.RegimeRibbon)RegimeRibbon.mount({target:'regime-ribbon',position:'inline'});
+  await loadData();
+  HOLDINGS=await loadHoldings();
+  renderHolds();analyze();
+}
+init();
+</script>
+</body>
+</html>
