@@ -1,0 +1,60 @@
+{
+  "vintage_invoke": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"series_captured\\\": 25, \\\"total\\\": 25}\"}",
+  "vintage_samples": {
+    "PAYEMS": {
+      "n": 40,
+      "latest": {
+        "date": "2026-05-01",
+        "value": 159001.0,
+        "known_on": "2026-06-05"
+      }
+    },
+    "UNRATE": {
+      "n": 15,
+      "latest": {
+        "date": "2026-05-01",
+        "value": 4.3,
+        "known_on": "2026-06-05"
+      }
+    },
+    "GDP": {
+      "n": 10,
+      "latest": {
+        "date": "2026-01-01",
+        "value": 31819.464,
+        "known_on": "2026-05-28"
+      }
+    },
+    "PCEC96": {
+      "n": 40,
+      "latest": {
+        "date": "2026-04-01",
+        "value": 16792.1,
+        "known_on": "2026-05-28"
+      }
+    },
+    "RSAFS": {
+      "n": 33,
+      "latest": {
+        "date": "2026-04-01",
+        "value": 757085.0,
+        "known_on": "2026-05-14"
+      }
+    }
+  },
+  "ask": {
+    "answer": "Three compounders stand out as **cheap and also high-quality growth engines**: **WTM** (compounder 97.1, fwd PEG 0.1, PE -52% vs industry, cheap_and_inflecting:",
+    "n_results": 4,
+    "first": {
+      "ticker": "WTM",
+      "reason": "Compounder 97.1, fwd PEG 0.1 (sub-1 = cheap), exp growth 49.8%, PE -52% vs industry, cheap_and_inflecting: true",
+      "tags": [
+        "compounder",
+        "cheap_peg",
+        "growth_inflection",
+        "hold_neutral"
+      ]
+    }
+  },
+  "worker_ask_err": "HTTP Error 403: Forbidden"
+}
