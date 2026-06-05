@@ -256,15 +256,15 @@ def lambda_handler(event, context):
             normalize(r.get("squeeze_score"), 50, 95),
             f"squeeze setup {r.get('squeeze_score')}" + (f" · short z {r.get('z_score')}" if r.get('z_score') is not None else ""))
 
-    # 7f. Catalyst calendar — FDA PDUFA + government contract awards
-    for f in (catalysts.get("fda_upcoming") or [])[:30]:
-        if f.get("ticker"):
-            add(f.get("ticker"), None, "FDA_CATALYST", 0.7,
-                f"FDA {f.get('type','event')} {f.get('date','')}" + (f" · {f.get('drug')}" if f.get('drug') else ""))
-    for g in (catalysts.get("gov_contracts_mapped") or [])[:25]:
-        if g.get("ticker"):
-            add(g.get("ticker"), None, "GOV_CONTRACT", normalize(g.get("amount_m"), 5, 500),
-                f"${g.get('amount_m')}M federal award · {(g.get('agency') or '')[:30]}")
+    # 7f. Catalyst calendar — FDA PDUFA + government contract awards (events[] schema)
+    for ev in (catalysts.get("events") or []):
+        et = ev.get("type"); tk = ev.get("ticker"); dt = ev.get("date")
+        if not tk:
+            continue
+        if et == "FDA":
+            add(tk, None, "FDA_CATALYST", 0.7, f"FDA {ev.get('title','event')} {dt or ''}")
+        elif et == "GOV_CONTRACT":
+            add(tk, None, "GOV_CONTRACT", 0.6, ev.get("title") or "federal award")
 
     # 7. Earnings / predictions extras
     for p in (preds_doc.get("predictions") or []):
