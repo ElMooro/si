@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-vintage-fred",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Point-in-time vintage macro data via FRED ALFRED (look-ahead-free)",
+  "environment_keys": ["FRED_KEY"],
+  "schedule": { "expression": "cron(0 13 * * ? *)", "name": "justhodl-vintage-fred-daily", "description": "Daily 13:00 UTC vintage capture" }
+}
