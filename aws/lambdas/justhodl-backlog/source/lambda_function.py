@@ -96,7 +96,8 @@ def first_series(cik, tags):
 
 
 def fetch_fmp(sym, ep):
-    d = http_json(f"https://financialmodelingprep.com/stable/{ep}?symbol={sym}&apikey={FMP_KEY}")
+    sep = "&" if "?" in ep else "?"
+    d = http_json(f"https://financialmodelingprep.com/stable/{ep}{sep}symbol={sym}&apikey={FMP_KEY}")
     return d if isinstance(d, list) else (d if isinstance(d, dict) else None)
 
 
@@ -139,7 +140,7 @@ def analyze(sym, cik_map):
             qs = sorted(q, key=lambda r: r.get("date", ""))
             rev_now = qs[-1].get("revenue"); rev_yoy = qs[-5].get("revenue")
             rec["rev_yoy"] = pct(rev_now, rev_yoy) if (rev_now and rev_yoy) else None
-        prof = fetch_fmp(sym, "key-metrics-ttm?")
+        prof = fetch_fmp(sym, "key-metrics-ttm")
         ev = None
         if isinstance(prof, list) and prof:
             ev = prof[0].get("enterpriseValueTTM") or prof[0].get("enterpriseValue")

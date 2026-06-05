@@ -78,6 +78,11 @@ def lambda_handler(event=None, context=None):
         if gi.get("pe_vs_industry_pct") is not None and gi["pe_vs_industry_pct"] < -15: lenses.append("P/E < industry")
         if gi.get("peg_forward") is not None and gi["peg_forward"] < 1.0: lenses.append("PEG < 1")
         if o.get("fcf_yield") is not None and sf(o.get("fcf_yield")) and sf(o["fcf_yield"]) > 5: lenses.append("FCF yield > 5%")
+        guru = o.get("guru") or {}
+        fcfy = sf(guru.get("fcf_yield"))
+        if fcfy is not None and fcfy > 5 and "FCF yield > 5%" not in lenses: lenses.append("FCF yield > 5%")
+        if (o.get("scores") or {}).get("quality", 0) >= 70 and (o.get("scores") or {}).get("value", 0) >= 55:
+            lenses.append("quality + value")
         n_cheap = len(lenses)
 
         # ── Catalyst layer ──
@@ -134,9 +139,11 @@ def lambda_handler(event=None, context=None):
         })
 
     rows.sort(key=lambda r: -r["overlap_score"])
-    # the prize: cheap on >=2 lenses + >=2 catalysts + inflection + safe
-    prime = [r for r in rows if r["n_value_lenses"] >= 2 and r["n_catalysts"] >= 2
+    # the prize: cheap on >=2 lenses + at least one catalyst + an inflection + safe
+    prime = [r for r in rows if r["n_value_lenses"] >= 2 and r["n_catalysts"] >= 1
              and r["n_inflection"] >= 1 and not r["distress_flag"]][:30]
+    # stronger tier: the rare >=2 lenses + >=2 catalysts + inflection
+    elite = [r for r in prime if r["n_catalysts"] >= 2][:15]
 
     out = {
         "engine": "deep-value-overlap", "version": "1.0",
@@ -144,6 +151,7 @@ def lambda_handler(event=None, context=None):
         "duration_s": round(time.time() - t0, 1),
         "n_scored": len(rows),
         "prime_setups": prime,
+        "elite_setups": elite,
         "board": rows[:120],
         "method": ("Joins value lenses (value score, EV/Sales dislocation, P/E vs "
                    "industry, forward PEG, FCF yield) with catalysts (insider, "
