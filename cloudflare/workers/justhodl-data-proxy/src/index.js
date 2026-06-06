@@ -42,7 +42,7 @@ function corsHeaders() {
   return {
     "Access-Control-Allow-Origin":  "*",
     "Access-Control-Allow-Methods": "GET, HEAD, PUT, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, If-None-Match, If-Modified-Since",
+    "Access-Control-Allow-Headers": "Content-Type, If-None-Match, If-Modified-Since, X-Brain-Pin, X-Requested-With",
     "Access-Control-Max-Age":       "86400",
     "Vary":                         "Accept-Encoding",
   };
@@ -115,7 +115,10 @@ export default {
           { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
       }
       if (request.method === "PUT" || request.method === "POST") {
-        const pin = request.headers.get("X-Brain-Pin") || "";
+        const rawJ = await request.text();
+        let pj = null; try { pj = JSON.parse(rawJ); } catch (e) {}
+        let pin = request.headers.get("X-Brain-Pin") || "";
+        if (!pin && pj && pj._pin) pin = String(pj._pin);
         const ph = await sha(pin);
         const existing = await env.USER_DATA.get(PIN_KEY);
         if (!existing || ph !== existing) {
@@ -123,11 +126,12 @@ export default {
             { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } });
         }
         try {
-          const bodyText = await request.text();
+          if (!pj) throw new Error("invalid json");
+          if (pj._pin) delete pj._pin;
+          const bodyText = JSON.stringify(pj);
           if (bodyText.length > 800000) {
             return new Response(JSON.stringify({ error: "too large" }), { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
-          JSON.parse(bodyText);
           await env.USER_DATA.put(JKEY, bodyText);
           return new Response(JSON.stringify({ ok: true, saved_at: Date.now() }),
             { headers: { "Content-Type": "application/json", ...corsHeaders() } });
@@ -169,7 +173,12 @@ export default {
           { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
       }
       if (request.method === "PUT" || request.method === "POST") {
-        const pin = request.headers.get("X-Brain-Pin") || "";
+        let parsedBody = null, pin = request.headers.get("X-Brain-Pin") || "";
+        const rawText = await request.text();
+        try { parsedBody = JSON.parse(rawText); } catch (e) {}
+        // PIN may arrive in the body (_pin) to avoid a CORS preflight on the
+        // custom header (Cloudflare bot-protection 403s OPTIONS on workers.dev).
+        if (!pin && parsedBody && parsedBody._pin) pin = String(parsedBody._pin);
         if (!pin || pin.length < 4) {
           return new Response(JSON.stringify({ error: "pin required (min 4 chars)" }),
             { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
@@ -185,14 +194,15 @@ export default {
           await env.USER_DATA.put(PIN_KEY, ph);   // bootstrap: first PIN wins (per user)
         }
         try {
-          const bodyText = await request.text();
+          if (!parsedBody) throw new Error("invalid json");
+          // strip the pin before storing — never persist it in the notes blob
+          if (parsedBody._pin) delete parsedBody._pin;
+          const bodyText = JSON.stringify(parsedBody);
           if (bodyText.length > 800000) {
             return new Response(JSON.stringify({ error: "too large" }),
               { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
-          JSON.parse(bodyText);  // validate
-          // Safety net: before overwriting, snapshot the PREVIOUS value into a
-          // rolling 3-deep backup so a bad write can never silently destroy notes.
+          // Safety net: snapshot the PREVIOUS value into a rolling 3-deep backup.
           try {
             const prevCur = await env.USER_DATA.get(BRAIN_KEY);
             if (prevCur) {
@@ -202,7 +212,7 @@ export default {
               baks = baks.slice(0, 3);
               await env.USER_DATA.put(BACKUP_KEY, JSON.stringify(baks));
             }
-          } catch (e) { /* backup is best-effort; never block the save */ }
+          } catch (e) { /* best-effort */ }
           await env.USER_DATA.put(BRAIN_KEY, bodyText);
           return new Response(JSON.stringify({ ok: true, saved_at: Date.now(), scope: who === "khalid" ? "owner" : "user" }),
             { headers: { "Content-Type": "application/json", ...corsHeaders() } });

@@ -307,7 +307,7 @@ async function save(){
   badge('saving…','saving');
   try{
     const payload={notes:STATE.notes,updated_at:new Date().toISOString(),v:1};
-    const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Brain-Pin':PIN},body:JSON.stringify(payload)});
+    const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify({...payload,_pin:PIN})});
     const d=await r.json();
     if(d.ok){badge('✓ saved to brain','saved');setTimeout(()=>badge(''),2000);}
     else if(r.status===403){PIN='';sessionStorage.removeItem('jh_brain_pin');badge('wrong PIN','err');openPin('Wrong PIN','Enter your Brain PIN to save.');}
