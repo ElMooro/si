@@ -1,0 +1,138 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cockpit · JustHodl AI</title><meta name="robots" content="noindex">
+<meta name="description" content="Your personalized command center — the whole system filtered through your Brain.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--orange:#fb923c;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--violet);border-radius:50%;box-shadow:0 0 9px var(--violet)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--violet)}
+.wrap{max-width:1080px;margin:0 auto;padding:26px 22px 80px}
+.hero h1{font-size:26px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--violet),var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:5px 0 18px;font-size:13.5px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:780px){.grid{grid-template-columns:1fr}}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+.card.wide{grid-column:1/-1}
+.card h2{font-size:12px;font-family:var(--mono);letter-spacing:.5px;margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.card h2 .more{margin-left:auto;font-size:10px;color:var(--fg-3)}
+.brief{font-size:13.5px;line-height:1.6;color:var(--fg-1)}
+.brief b{color:var(--violet)}
+.row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.row:last-child{border-bottom:none}
+.tk{font-family:var(--mono);font-weight:700}
+.pill{font-family:var(--mono);font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:10px;border:1px solid}
+.regime-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.rchip{font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:9px;border:1px solid var(--border-bright);background:var(--bg-1)}
+.rchip b{font-weight:800}
+.muted{color:var(--fg-3);font-size:12px}
+.size-bar{height:6px;background:var(--bg-2);border-radius:3px;overflow:hidden;flex:1;max-width:90px}
+.size-bar .f{height:100%;background:var(--green)}
+.conflict{padding:10px 0;border-bottom:1px solid var(--border)}.conflict:last-child{border-bottom:none}
+.conflict .ctype{font-family:var(--mono);font-size:9.5px;color:var(--amber);font-weight:700}
+.conflict .cbull{color:var(--green);font-size:12.5px;margin-top:3px}.conflict .cbear{color:var(--red);font-size:12.5px;margin-top:2px}
+.loading{text-align:center;padding:30px;color:var(--fg-3);font-family:var(--mono);font-size:12px}
+.empty{color:var(--fg-3);font-size:12.5px;font-style:italic;padding:8px 0}
+.cta{display:block;text-align:center;background:rgba(167,139,250,0.1);border:1px solid var(--violet);border-radius:10px;padding:13px;margin-bottom:16px;color:var(--violet);font-weight:600}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Home</a><a href="/cockpit.html" class="active">🎛 Cockpit</a><a href="/brain.html">🧠 Brain</a><a href="/journal.html">📓 Journal</a><a href="/my-portfolio.html">Portfolio</a></nav>
+</header>
+<div class="wrap">
+  <div class="hero"><h1>Your <span class="grad">Cockpit</span></h1>
+  <p>The whole system in one view — filtered through your Brain. Updated continuously by your engines.</p></div>
+  <div id="cta"></div>
+  <div id="regime" class="regime-strip"></div>
+  <div class="grid" id="grid"><div class="loading">Loading your cockpit…</div></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function mdToHtml(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');}
+async function gj(p){try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);return r.ok?await r.json():null;}catch(e){return null;}}
+function rcol(r){return({CRISIS:'#ff5577',STRESS:'#ff5577',ELEVATED:'#ff9f43',FRAGILE:'#ff9f43',TIGHTENING:'#fbbf24',NORMAL:'#26ffaf',AMPLE:'#26ffaf',BOND_VOL_LOW:'#22d3ee',EXTREME:'#ff5577',HIGH:'#ff9f43',MODERATE:'#fbbf24',LOW:'#26ffaf'})[r]||'#a8b3c7';}
+
+async function load(){
+  const [brain,myb,bv,fp,cr,playbook,nvt,sizer,conflicts,journal,bs]=await Promise.all([
+    gj('data/brain.json'),gj('data/my-brief.json'),gj('data/bond-vol.json'),gj('data/funding-plumbing.json'),
+    gj('data/crypto-cycle-risk.json'),gj('data/regime-playbook.json'),gj('data/narrative-vs-tape.json'),
+    gj('data/position-sizing.json'),gj('data/engine-conflicts.json'),gj('data/journal-graded.json'),gj('data/best-setups.json')]);
+
+  // CTA if brain empty
+  if(!brain||!brain.directive){
+    document.getElementById('cta').innerHTML=`<a class="cta" href="/brain.html">🧠 Your Cockpit personalizes once you fill the Brain — add your principles & rules →</a>`;
+  }
+  // regime strip
+  const rs=[];
+  if(bv&&bv.regime)rs.push(`<span class="rchip">Bond Vol <b style="color:${rcol(bv.regime)}">${esc(bv.regime)}</b></span>`);
+  if(fp&&fp.regime)rs.push(`<span class="rchip">Plumbing <b style="color:${rcol(fp.regime)}">${esc(fp.regime)}</b> ${fp.balance_sheet_direction?`<span class="muted">(${esc(fp.balance_sheet_direction)}${fp.qt_ended_not_qe?' · QT≠QE':''})</span>`:''}</span>`);
+  if(cr&&cr.risk_level)rs.push(`<span class="rchip">Crypto Dump <b style="color:${rcol(cr.risk_level)}">${esc(cr.risk_level)}</b> ${cr.dump_risk_score!=null?`<span class="muted">${cr.dump_risk_score}</span>`:''}</span>`);
+  document.getElementById('regime').innerHTML=rs.join('');
+
+  const g=document.getElementById('grid');let h='';
+
+  // My Brief (wide)
+  h+=`<div class="card wide"><h2 style="color:var(--violet)">🧠 WHAT CHANGED FOR YOU TODAY</h2>`;
+  if(myb&&myb.brief)h+=`<div class="brief">${mdToHtml(myb.brief)}</div>`;
+  else h+=`<div class="empty">Personalized brief appears once your Brain has notes. <a href="/brain.html">Fill it →</a></div>`;
+  h+=`</div>`;
+
+  // Journal track record
+  h+=`<div class="card"><h2 style="color:var(--green)">📓 YOUR JUDGMENT<span class="more"><a href="/journal.html">journal →</a></span></h2>`;
+  const tr=journal&&journal.track_record;
+  if(tr&&tr.hit_rate_pct!=null){
+    h+=`<div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:var(--mono);font-size:30px;font-weight:800;color:var(--green)">${tr.hit_rate_pct}%</span><span class="muted">hit rate · ${tr.n_decisions_graded} graded · ${tr.n_pending} pending</span></div>
+      <div class="muted" style="margin-top:6px;line-height:1.5">${esc(tr.edge_summary||'')}</div>`;
+  }else h+=`<div class="empty">Log decisions in the Journal to build your track record.</div>`;
+  h+=`</div>`;
+
+  // Position sizing
+  h+=`<div class="card"><h2 style="color:var(--amber)">📐 SIZED FOR THE REGIME</h2>`;
+  const sp=(sizer&&sizer.sized_positions)||[];
+  if(sp.length){
+    h+=sp.slice(0,6).map(p=>`<div class="row"><span class="tk">${esc(p.ticker)}</span><span class="muted" style="font-size:11px">conv ${p.conviction}</span><div class="size-bar"><div class="f" style="width:${Math.min(100,p.suggested_size_pct/8*100)}%"></div></div><span style="font-family:var(--mono);font-size:12px;color:var(--amber)">${p.size_band}</span></div>`).join('');
+    h+=`<div class="muted" style="margin-top:8px">posture ${sizer.posture_mult}× · regime ${sizer.regime?sizer.regime.combined_mult:'—'}× · sizes shrink as macro deteriorates</div>`;
+  }else h+=`<div class="empty">No sized positions yet.</div>`;
+  h+=`</div>`;
+
+  // Narrative vs Tape — quiet accumulation
+  h+=`<div class="card"><h2 style="color:var(--cyan)">🤫 QUIET ACCUMULATION<span class="more">contrarian</span></h2>`;
+  const qa=(nvt&&nvt.quiet_accumulation)||[];
+  if(qa.length){
+    h+=qa.slice(0,7).map(x=>`<div class="row"><span class="tk">${esc(x.ticker)}</span><span class="muted" style="font-size:11.5px">${esc(x.tape)}</span></div>`).join('');
+    h+=`<div class="muted" style="margin-top:7px">Unloved by the narrative, but smart money is buying.</div>`;
+  }else h+=`<div class="empty">Nothing flagged right now.</div>`;
+  h+=`</div>`;
+
+  // Crowded & fading
+  h+=`<div class="card"><h2 style="color:var(--red)">🔥 CROWDED &amp; FADING<span class="more">contrarian</span></h2>`;
+  const cfd=(nvt&&nvt.crowded_fading)||[];
+  if(cfd.length)h+=cfd.slice(0,7).map(x=>`<div class="row"><span class="tk">${esc(x.ticker)}</span><span class="muted" style="font-size:11.5px">${esc(x.tape)}</span></div>`).join('');
+  else h+=`<div class="empty">No loud-but-fading names right now.</div>`;
+  h+=`</div>`;
+
+  // Regime playbook
+  h+=`<div class="card"><h2 style="color:var(--green)">📖 REGIME PLAYBOOK</h2>`;
+  const pbk=(playbook&&playbook.current_playbook)||[];
+  if(pbk.length)h+=pbk.map(p=>`<div style="margin-bottom:8px"><span class="pill" style="color:${rcol(p.regime)};border-color:${rcol(p.regime)}">${esc(p.regime)}</span> <span style="font-size:12.5px;color:var(--fg-2)">${esc(p.guidance)}</span></div>`).join('');
+  else h+=`<div class="empty">Building regime history.</div>`;
+  h+=`</div>`;
+
+  // Engine conflicts (wide)
+  h+=`<div class="card wide"><h2 style="color:var(--orange)">⚔️ THE SYSTEM ARGUING WITH ITSELF</h2>`;
+  const cf=(conflicts&&conflicts.conflicts)||[];
+  if(cf.length)h+=cf.slice(0,6).map(c=>`<div class="conflict"><span class="ctype">${esc(c.type)} · ${esc(c.ticker)}</span><div class="cbull">▲ ${esc(c.bull)}</div><div class="cbear">▼ ${esc(c.bear)}</div><div class="muted" style="margin-top:3px">→ ${esc(c.resolution||'')}</div></div>`).join('');
+  else h+=`<div class="empty">No engine conflicts right now — the signals broadly agree.</div>`;
+  h+=`</div>`;
+
+  g.innerHTML=h;
+}
+load();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
