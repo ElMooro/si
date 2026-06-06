@@ -153,6 +153,18 @@ export default {
     // GET /quotes?tickers=AAPL,MSFT,NVDA → live snapshot via Polygon
     // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
     // Cached 30s at edge. Polygon key from worker env (server-side, secure).
+    if (url.pathname === "/debug-plan-temp") {
+      // TEMPORARY: read a user's plan from Supabase to confirm the webhook fired.
+      const uid = url.searchParams.get("uid") || "";
+      if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) return jsonResp({ error: "no supabase env" }, 503);
+      try {
+        const r = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?select=id,plan,stripe_customer_id&id=eq.${uid}`, {
+          headers: { "apikey": env.SUPABASE_SERVICE_KEY, "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY },
+        });
+        return jsonResp({ status: r.status, rows: await r.json() });
+      } catch (e) { return jsonResp({ error: String(e).slice(0, 120) }, 500); }
+    }
+
     if (url.pathname === "/create-checkout" && request.method === "POST") {
       // Create a Stripe Checkout session for a signed-in user. Body: {priceId,
       // userId, email, returnUrl}. Requires STRIPE_SECRET env (test or live).
