@@ -1833,7 +1833,7 @@ class DataService {
   }
   
   static async loadAll() {
-    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups, dislocations, opportunities, capitalflow, catalystsD, optionsD, dislocationsD, backlogD, opportunitiesD, overlapD, finraD] = await Promise.all([
+    const [cascade, insider, options, retail, tickets, ai, preds, cal, political, polai, executive, bestsetups, devilsD, dislocations, opportunities, capitalflow, catalystsD, optionsD, dislocationsD, backlogD, opportunitiesD, overlapD, finraD] = await Promise.all([
       this.fetch('data/theme-cascade.json'),
       this.fetch('data/insider-clusters.json'),
       this.fetch('data/polygon-options-flow.json'),
@@ -1846,6 +1846,7 @@ class DataService {
       this.fetch('data/political-ai-investigation.json'),
       this.fetch('data/executive-intel.json'),
       this.fetch('data/best-setups.json'),
+      this.fetch('data/devils-advocate.json'),
       this.fetch('data/dislocations.json'),
       this.fetch('data/opportunities.json'),
       this.fetch('data/capital-flow.json'),
@@ -1869,7 +1870,7 @@ class DataService {
     State.political_ai = polai;
     State.executive = executive;
     State.best_setups = bestsetups;
-    State.dislocations = dislocations;
+    State.devils = devilsD;
     State.opportunities = opportunities;
     State.capitalflow = capitalflow;
     State.catalysts = catalystsD;
@@ -2572,6 +2573,7 @@ class UI {
           <div class="setup-tk">${UI.esc(s.ticker)} <span class="conv">conviction ${(s.conviction||0).toFixed(0)}</span> <span style="font-size:9.5px;color:var(--fg-3)">${s.n_signals} signals</span>${s.brain_aligned ? ` <span class="brain-badge" title="Aligns with your Brain: ${UI.esc(s.brain_aligned)}">🧠</span>` : ''}</div>
           <div class="setup-sigs">${sigs}</div>
           ${s.brain_aligned ? `<div class="setup-why" style="color:#a78bfa">🧠 On your brain: ${UI.esc(s.brain_aligned)}</div>` : ''}
+          ${(() => { const dv = (State.devils && State.devils.by_ticker || {})[s.ticker]; if (!dv) return ''; const rv = dv.violates_your_rule ? ` <b style="color:var(--red)">⚠ Breaks your rule: ${UI.esc(dv.violates_your_rule)}</b>` : ''; return `<div class="setup-why" style="color:#ff9f43">😈 Devil's advocate: ${UI.esc(dv.bear_case||'')}${rv}</div>`; })()}
           ${s.why ? `<div class="setup-why">💡 ${UI.esc(s.why)}</div>` : ''}
           ${s.thesis ? `<div class="setup-thesis">${UI.esc(s.thesis)}</div>` : ''}
         </div>
