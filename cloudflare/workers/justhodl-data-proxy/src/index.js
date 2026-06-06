@@ -93,6 +93,49 @@ export default {
     }
 
     // ─── PER-USER DATA SYNC (watchlists, flags, settings) ───
+    // ── /journal — the Decision Journal: timestamped, locked decisions with the
+    // reasoning + a price snapshot, graded later against what actually happened.
+    // Same PIN as /brain. This is the user's personal track record of judgment. ──
+    if (url.pathname === "/journal") {
+      if (!env.USER_DATA) {
+        return new Response(JSON.stringify({ error: "store unavailable" }),
+          { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const JKEY = "journal:khalid";
+      const PIN_KEY = "brain:pinhash";
+      async function sha(s) {
+        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("jhsalt:" + s));
+        return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+      }
+      if (request.method === "GET") {
+        const stored = await env.USER_DATA.get(JKEY);
+        return new Response(stored || JSON.stringify({ entries: [] }),
+          { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
+      }
+      if (request.method === "PUT" || request.method === "POST") {
+        const pin = request.headers.get("X-Brain-Pin") || "";
+        const ph = await sha(pin);
+        const existing = await env.USER_DATA.get(PIN_KEY);
+        if (!existing || ph !== existing) {
+          return new Response(JSON.stringify({ error: "wrong or unset pin (set it on the Brain first)" }),
+            { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        }
+        try {
+          const bodyText = await request.text();
+          if (bodyText.length > 800000) {
+            return new Response(JSON.stringify({ error: "too large" }), { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          }
+          JSON.parse(bodyText);
+          await env.USER_DATA.put(JKEY, bodyText);
+          return new Response(JSON.stringify({ ok: true, saved_at: Date.now() }),
+            { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        } catch (e) {
+          return new Response(JSON.stringify({ error: "invalid json" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        }
+      }
+      return new Response("method not allowed", { status: 405, headers: corsHeaders() });
+    }
+
     // ── /brain — the system's "brain": Khalid's persistent investing notes &
     // principles. GET is public (it's philosophy, low-harm to read). PUT requires
     // a PIN (X-Brain-Pin header). The PIN is self-bootstrapping: the first PUT

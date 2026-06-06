@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decision Journal · JustHodl AI</title><meta name="robots" content="noindex">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 9px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--green)}
+.savebadge{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg-3)}
+.savebadge.saving{color:var(--amber)}.savebadge.saved{color:var(--green)}.savebadge.err{color:var(--red)}
+.wrap{max-width:880px;margin:0 auto;padding:30px 22px 90px}
+.hero h1{font-size:27px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 18px;max-width:680px;line-height:1.5}
+.tr-card{background:linear-gradient(135deg,rgba(38,255,175,0.06),rgba(34,211,238,0.04));border:1px solid var(--border-bright);border-radius:14px;padding:18px 20px;margin-bottom:20px}
+.tr-top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.tr-rate{font-family:var(--mono);font-size:38px;font-weight:800;color:var(--green)}
+.tr-label{font-family:var(--mono);font-size:11px;color:var(--fg-3)}
+.tr-sub{color:var(--fg-2);font-size:13px;margin-top:8px;line-height:1.5}
+.tr-stats{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--fg-2)}
+.composer{background:var(--bg-1);border:1px solid var(--border-bright);border-radius:14px;padding:16px;margin-bottom:22px}
+.frow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.frow input,.frow select{background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--fg-1);padding:10px 12px;font-size:14px;font-family:var(--sans)}
+.frow input:focus,.frow select:focus{outline:none;border-color:var(--green)}
+#j-ticker{width:120px;text-transform:uppercase;font-family:var(--mono);font-weight:700}
+#j-horizon{width:130px}
+.composer textarea{width:100%;background:var(--bg-2);border:1px solid var(--border);border-radius:9px;color:var(--fg-1);padding:12px;font-size:14.5px;font-family:var(--sans);resize:vertical;min-height:70px;line-height:1.5}
+.composer textarea:focus{outline:none;border-color:var(--green)}
+.btn{padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;border:1px solid;font-family:var(--sans)}
+.btn.primary{background:var(--green);border-color:var(--green);color:var(--bg)}
+.hint{font-family:var(--mono);font-size:10.5px;color:var(--fg-3)}
+.dir-chip{font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:9px;border:1px solid var(--border-bright);color:var(--fg-3);cursor:pointer}
+.dir-chip.active.bull{background:var(--green);border-color:var(--green);color:var(--bg)}
+.dir-chip.active.bear{background:var(--red);border-color:var(--red);color:#fff}
+.dir-chip.active.watch{background:var(--amber);border-color:var(--amber);color:var(--bg)}
+.entry{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:10px}
+.entry .etop{display:flex;align-items:center;gap:9px;margin-bottom:6px;flex-wrap:wrap}
+.entry .etk{font-family:var(--mono);font-weight:800;font-size:15px}
+.grade{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 9px;border-radius:11px}
+.grade.HIT{background:rgba(38,255,175,.15);color:var(--green)}.grade.MISS{background:rgba(255,85,119,.15);color:var(--red)}
+.grade.PENDING{background:rgba(251,191,36,.12);color:var(--amber)}.grade.FLAT{color:var(--fg-3);border:1px solid var(--border-bright)}.grade.WATCH{color:var(--cyan);border:1px solid var(--cyan)}
+.entry .edir{font-family:var(--mono);font-size:10px;text-transform:uppercase}
+.entry .edate{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-left:auto}
+.entry .ethesis{font-size:14px;color:var(--fg-1);line-height:1.5;white-space:pre-wrap}
+.entry .emeta{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin-top:6px}
+.entry .edel{font-family:var(--mono);font-size:10px;color:var(--fg-3);cursor:pointer;margin-left:8px}.entry .edel:hover{color:var(--red)}
+.empty{text-align:center;color:var(--fg-3);padding:40px;font-family:var(--mono);font-size:13px}
+.loading{text-align:center;padding:40px;color:var(--fg-3);font-family:var(--mono)}
+.note{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:6px}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Home</a><a href="/brain.html">🧠 Brain</a><a href="/journal.html" class="active">📓 Journal</a><a href="/my-portfolio.html">Portfolio</a></nav>
+  <span class="savebadge" id="savebadge"></span>
+</header>
+<div class="wrap">
+  <div class="hero"><h1>Decision <span class="grad">Journal</span></h1>
+  <p>Log every call with your reasoning — locked and timestamped at the price it was made. The system grades each decision against what actually happened and builds your personal track record. The only way to know if your judgment has an edge.</p></div>
+
+  <div id="track"></div>
+
+  <div class="composer">
+    <div class="frow">
+      <input id="j-ticker" placeholder="TICKER" autocomplete="off">
+      <div class="dir-chip bull" data-dir="bullish">▲ Bullish</div>
+      <div class="dir-chip bear" data-dir="bearish">▼ Bearish</div>
+      <div class="dir-chip watch" data-dir="watch">◆ Watch</div>
+      <select id="j-horizon"><option value="7">1 week</option><option value="21">1 month</option><option value="63" selected>1 quarter</option><option value="126">6 months</option><option value="252">1 year</option></select>
+    </div>
+    <textarea id="j-thesis" placeholder="Why? Your reasoning, locked in. e.g. 'Buying back stock aggressively + cheap vs peers + AI-capex tailwind. Risk: crowded.'"></textarea>
+    <div class="frow" style="margin-top:10px;align-items:center">
+      <button class="btn primary" id="j-add">Log Decision</button>
+      <span class="hint" id="j-hint">Price is snapshotted automatically at log time</span>
+    </div>
+  </div>
+
+  <div id="entries"><div class="loading">Loading journal…</div></div>
+</div>
+
+<div class="pin-modal" id="pin-modal" style="position:fixed;inset:0;background:rgba(4,6,10,.7);backdrop-filter:blur(4px);z-index:999;display:none;align-items:center;justify-content:center">
+  <div style="background:var(--bg-1);border:1px solid var(--border-bright);border-radius:14px;padding:24px;width:min(340px,92vw)">
+    <h3 style="color:var(--fg-0);margin-bottom:6px">Enter your Brain PIN</h3>
+    <p style="color:var(--fg-2);font-size:12.5px;margin-bottom:14px">The journal shares your Brain PIN. (Set it on the Brain page first if you haven't.)</p>
+    <input id="pin-input" type="password" placeholder="••••" autocomplete="off" style="width:100%;background:var(--bg-2);border:1px solid var(--border-bright);border-radius:8px;color:var(--fg-1);padding:11px;font-size:16px;font-family:var(--mono);margin-bottom:12px;text-align:center;letter-spacing:3px">
+    <div id="pin-err" style="color:var(--red);font-size:12px;min-height:15px;margin-bottom:8px;text-align:center"></div>
+    <button class="btn primary" id="pin-ok" style="width:100%">Continue</button>
+  </div>
+</div>
+
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const FMP="wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function badge(t,cls){const b=document.getElementById('savebadge');b.textContent=t;b.className='savebadge '+(cls||'');}
+function fmtDate(ts){return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
+let ENTRIES=[],GRADED=null,dir="bullish";
+let PIN=sessionStorage.getItem('jh_brain_pin')||"";
+
+function renderTrack(){
+  const box=document.getElementById('track');
+  if(!GRADED||!GRADED.track_record||GRADED.track_record.hit_rate_pct==null){box.innerHTML='';return;}
+  const t=GRADED.track_record;
+  box.innerHTML=`<div class="tr-card">
+    <div class="tr-top"><span class="tr-rate">${t.hit_rate_pct}%</span><span class="tr-label">HIT RATE · ${t.n_decisions_graded} graded · ${t.n_pending} pending</span></div>
+    <div class="tr-sub">${esc(t.edge_summary||'')} <b style="color:var(--cyan)">${esc(t.calibration||'')}</b></div>
+    <div class="tr-stats">
+      ${t.avg_return_when_right_pct!=null?`<span>✓ when right: <b style="color:var(--green)">+${t.avg_return_when_right_pct}%</b></span>`:''}
+      ${t.avg_return_when_wrong_pct!=null?`<span>✗ when wrong: <b style="color:var(--red)">${t.avg_return_when_wrong_pct}%</b></span>`:''}
+      ${(t.by_direction&&t.by_direction.bullish)?`<span>▲ bull: ${t.by_direction.bullish.hit_rate}% (${t.by_direction.bullish.n})</span>`:''}
+      ${(t.by_direction&&t.by_direction.bearish)?`<span>▼ bear: ${t.by_direction.bearish.hit_rate}% (${t.by_direction.bearish.n})</span>`:''}
+    </div></div>`;
+}
+function gradeFor(id){if(!GRADED)return null;return (GRADED.graded||[]).find(g=>g.id===id);}
+function renderEntries(){
+  const box=document.getElementById('entries');
+  if(!ENTRIES.length){box.innerHTML='<div class="empty">No decisions logged yet. Log your first call above. 📓</div>';return;}
+  const sorted=ENTRIES.slice().sort((a,b)=>b.created-a.created);
+  box.innerHTML=sorted.map(e=>{
+    const g=gradeFor(e.id)||{};
+    const grade=g.grade||'PENDING';
+    const dc=e.direction==='bullish'?'var(--green)':e.direction==='bearish'?'var(--red)':'var(--amber)';
+    const dsym=e.direction==='bullish'?'▲':e.direction==='bearish'?'▼':'◆';
+    let perf='';
+    if(g.return_pct!=null)perf=` · moved <b style="color:${g.return_pct>=0?'var(--green)':'var(--red)'}">${g.return_pct>=0?'+':''}${g.return_pct}%</b>`;
+    else if(g.days_left!=null)perf=` · ${g.days_left}d left`;
+    return `<div class="entry">
+      <div class="etop">
+        <span class="etk">${esc(e.ticker)}</span>
+        <span class="edir" style="color:${dc}">${dsym} ${esc(e.direction)}</span>
+        <span class="grade ${grade}">${grade}</span>
+        <span class="edate">${fmtDate(e.created)} · ${e.horizon_days}d horizon</span>
+      </div>
+      <div class="ethesis">${esc(e.thesis)}</div>
+      <div class="emeta">Logged @ $${e.entry_price!=null?Number(e.entry_price).toFixed(2):'?'}${perf}<span class="edel" data-id="${e.id}">delete</span></div>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('.edel').forEach(el=>el.onclick=()=>{if(confirm('Delete this decision?')){ENTRIES=ENTRIES.filter(x=>x.id!==el.dataset.id);save();renderEntries();}});
+}
+async function priceNow(tk){
+  try{const r=await fetch(`https://financialmodelingprep.com/stable/quote?symbol=${tk}&apikey=${FMP}`);const d=await r.json();return (Array.isArray(d)&&d[0])?d[0].price:null;}catch(e){return null;}
+}
+async function addEntry(){
+  const tk=document.getElementById('j-ticker').value.trim().toUpperCase();
+  const th=document.getElementById('j-thesis').value.trim();
+  if(!tk||!th){badge('ticker + thesis required','err');return;}
+  badge('snapshotting price…','saving');
+  const px=await priceNow(tk);
+  ENTRIES.push({id:'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),ticker:tk,direction:dir,thesis:th,horizon_days:parseInt(document.getElementById('j-horizon').value),entry_price:px,created:Date.now()});
+  document.getElementById('j-ticker').value='';document.getElementById('j-thesis').value='';
+  save();renderEntries();
+}
+async function save(){
+  if(!PIN){openPin();return;}
+  badge('saving…','saving');
+  try{
+    const r=await fetch(`${PROXY}/journal`,{method:'PUT',headers:{'Content-Type':'application/json','X-Brain-Pin':PIN},body:JSON.stringify({entries:ENTRIES,updated_at:new Date().toISOString()})});
+    const d=await r.json();
+    if(d.ok){badge('✓ locked in','saved');setTimeout(()=>badge(''),1800);}
+    else if(r.status===403){PIN='';sessionStorage.removeItem('jh_brain_pin');badge('PIN needed','err');openPin();}
+    else badge(d.error||'failed','err');
+  }catch(e){badge('offline','err');}
+}
+async function load(){
+  try{const r=await fetch(`${PROXY}/journal?t=${Date.now()}`);const d=await r.json();ENTRIES=Array.isArray(d.entries)?d.entries:[];}catch(e){ENTRIES=[];}
+  try{const r2=await fetch(`${PROXY}/data/journal-graded.json?t=${Date.now()}`);if(r2.ok)GRADED=await r2.json();}catch(e){}
+  renderTrack();renderEntries();
+}
+function openPin(){document.getElementById('pin-modal').style.display='flex';setTimeout(()=>document.getElementById('pin-input').focus(),30);}
+document.getElementById('pin-ok').onclick=()=>{const v=document.getElementById('pin-input').value.trim();if(v.length<4){document.getElementById('pin-err').textContent='Min 4 chars';return;}PIN=v;sessionStorage.setItem('jh_brain_pin',v);document.getElementById('pin-modal').style.display='none';save();};
+document.getElementById('pin-input').onkeydown=(e)=>{if(e.key==='Enter')document.getElementById('pin-ok').click();};
+document.querySelectorAll('.dir-chip').forEach(el=>el.onclick=()=>{dir=el.dataset.dir;document.querySelectorAll('.dir-chip').forEach(x=>x.classList.remove('active'));el.classList.add('active');});
+document.querySelector('.dir-chip.bull').classList.add('active');
+document.getElementById('j-add').onclick=addEntry;
+load();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
