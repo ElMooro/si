@@ -35,9 +35,9 @@ h1{font-size:26px;font-weight:800;color:var(--fg-0);margin-bottom:24px}
   <h1>Account &amp; Settings</h1>
   <div id="content"><div class="signin-prompt"><p>Loading…</p></div></div>
 </div>
-<script src="/auth-config.js"></script>
+<script src="/auth-config.js?v=3"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/auth.js"></script>
+<script src="/auth.js?v=3"></script>
 <script>
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function render(){
@@ -70,9 +70,16 @@ function render(){
       <button class="btn ghost" onclick="JustHodlAuth.signOut()">Sign Out</button>
     </div>`;
 }
-window.addEventListener('DOMContentLoaded', async ()=>{
-  if(window.JustHodlAuth){ await JustHodlAuth.init(); JustHodlAuth.onChange(render); render(); }
-  else { document.getElementById('content').innerHTML='<div class="signin-prompt"><p>Auth unavailable.</p></div>'; }
+window.addEventListener('DOMContentLoaded', ()=>{
+  let rendered = false;
+  function safeRender(){ try{ rendered = true; render(); }catch(e){ document.getElementById('content').innerHTML='<div class="signin-prompt"><p>Could not load account. <button class="btn primary" onclick="JustHodlAuth&&JustHodlAuth.openSignIn()">Sign in</button></p></div>'; } }
+  if(!window.JustHodlAuth){ document.getElementById('content').innerHTML='<div class="signin-prompt"><p>Auth unavailable — please refresh.</p></div>'; return; }
+  // Safety net: never leave "Loading…" stuck if init hangs/throws.
+  const safety = setTimeout(()=>{ if(!rendered) safeRender(); }, 4000);
+  try { JustHodlAuth.onChange(()=>safeRender()); } catch(e){}
+  Promise.resolve(JustHodlAuth.init())
+    .then(()=>{ clearTimeout(safety); safeRender(); })
+    .catch((e)=>{ clearTimeout(safety); console.error('[settings] auth init error', e); safeRender(); });
 });
 </script>
 <script src="/cmdk.js"></script>

@@ -69,37 +69,50 @@
     async init() {
       this._injectCSS();
       if (!ENABLED) { this._renderAuthUI(); return; }
-      if (typeof window.supabase === "undefined") {
+      if (typeof window.supabase === "undefined" || !window.supabase.createClient) {
         console.warn("[auth] Supabase JS not loaded; running anonymous.");
         this._renderAuthUI();
         return;
       }
-      supabase = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
-
-      // Restore session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        currentUser = session.user;
-        await this._loadTier();
+      try {
+        supabase = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
+        // Restore session (bounded so a network stall can't hang the page)
+        const sessRes = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((res) => setTimeout(() => res({ data: { session: null } }), 3500)),
+        ]);
+        const session = sessRes && sessRes.data ? sessRes.data.session : null;
+        if (session) {
+          currentUser = session.user;
+          await this._loadTier();
+        }
+        supabase.auth.onAuthStateChange(async (_event, s) => {
+          currentUser = s ? s.user : null;
+          if (currentUser) await this._loadTier();
+          else currentTier = "free";
+          this._renderAuthUI();
+          notify();
+        });
+      } catch (e) {
+        console.error("[auth] init error:", e);
       }
-
-      // Listen for auth changes (login, logout, token refresh)
-      supabase.auth.onAuthStateChange(async (_event, session) => {
-        currentUser = session ? session.user : null;
-        if (currentUser) await this._loadTier();
-        else currentTier = "free";
-        this._renderAuthUI();
-        notify();
-      });
-
       this._renderAuthUI();
       notify();
     },
 
     async _loadTier() {
-      // Tier stored in user_metadata.tier OR a 'profiles' table.
-      // Default: read from user metadata; fall back to 'free'.
+      // Real plan lives in the 'profiles' table (the Stripe webhook writes it).
+      // Fall back to metadata, then 'free'. Bounded so it never hangs the page.
+      currentTier = "free";
       try {
+        if (supabase && currentUser) {
+          const q = supabase.from("profiles").select("plan").eq("id", currentUser.id).single();
+          const res = await Promise.race([
+            q, new Promise((r) => setTimeout(() => r({ data: null }), 3000)),
+          ]);
+          const plan = res && res.data && res.data.plan;
+          if (plan) { currentTier = plan; return; }
+        }
         currentTier = (currentUser && currentUser.user_metadata && currentUser.user_metadata.tier)
           || (currentUser && currentUser.app_metadata && currentUser.app_metadata.tier)
           || "free";
