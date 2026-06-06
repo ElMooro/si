@@ -153,6 +153,27 @@ export default {
     // GET /quotes?tickers=AAPL,MSFT,NVDA → live snapshot via Polygon
     // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
     // Cached 30s at edge. Polygon key from worker env (server-side, secure).
+    if (url.pathname === "/debug-supabase-temp") {
+      // TEMPORARY: verify the SUPABASE_SERVICE_KEY can authenticate. Returns only
+      // the HTTP status (never the key). Removed immediately after verification.
+      try {
+        const r = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?select=id&limit=1`, {
+          headers: { "apikey": env.SUPABASE_SERVICE_KEY || "",
+                     "Authorization": "Bearer " + (env.SUPABASE_SERVICE_KEY || "") },
+        });
+        const body = await r.text();
+        return jsonResp({
+          supabase_status: r.status,
+          ok: r.status === 200,
+          key_present: !!env.SUPABASE_SERVICE_KEY,
+          key_prefix: (env.SUPABASE_SERVICE_KEY || "").slice(0, 3),  // "eyJ" if correct, "sk_" if wrong
+          note: body.slice(0, 100),
+        });
+      } catch (e) {
+        return jsonResp({ error: String(e).slice(0, 120) }, 500);
+      }
+    }
+
     if (url.pathname === "/create-checkout" && request.method === "POST") {
       // Create a Stripe Checkout session for a signed-in user. Body: {priceId,
       // userId, email, returnUrl}. Requires STRIPE_SECRET env (test or live).
