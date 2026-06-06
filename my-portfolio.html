@@ -149,6 +149,30 @@ function analyze(){
     <div class="kpi"><div class="v" style="color:var(--cyan)">${concentration}%</div><div class="l">Top Sector</div><div class="s">${topSector?esc(topSector[0]):'—'}</div></div>
   </div>`;
   html+=`<div class="cio"><h2>🧠 Your CIO Read</h2>${cio.map(c=>`<div class="line"><span class="ic">${c.ic}</span><span>${c.t}</span></div>`).join('')}</div>`;
+  // ── PRE-MORTEM: 'if the market drops 20% tomorrow, what breaks first?' ──
+  const SECTOR_BETA={'Technology':1.3,'Communication Services':1.2,'Consumer Cyclical':1.2,'Industrials':1.1,'Financial Services':1.15,'Energy':1.1,'Basic Materials':1.1,'Real Estate':1.0,'Healthcare':0.9,'Consumer Defensive':0.7,'Utilities':0.65,'Unknown':1.0};
+  const pm=rows.map(r=>{
+    const sec=r.o.sector||'Unknown'; let frag=(SECTOR_BETA[sec]||1.0)*30; const reasons=[];
+    if((SECTOR_BETA[sec]||1)>=1.2)reasons.push(`high-beta ${sec}`);
+    if(r.verdict==='HIGH RISK'){frag+=30;reasons.push('high-risk verdict');}
+    if(r.verdict==='EXPENSIVE'){frag+=18;reasons.push('expensive');}
+    if(r.dist){frag+=22;reasons.push('institutions selling');}
+    if(r.d&&!r.d.cheap_and_inflecting){frag+=10;reasons.push('cheap but falling');}
+    if(r.o.compounder_score>=70){frag-=18;reasons.push('quality compounder (cushion)');}
+    if(r.acc){frag-=12;reasons.push('inst accumulating (cushion)');}
+    if((r.gi&&r.gi.buyback_yield_pct)>=4){frag-=10;reasons.push('buyback support (cushion)');}
+    if(['Utilities','Consumer Defensive','Healthcare'].includes(sec))reasons.push('defensive sector (cushion)');
+    frag=Math.max(0,Math.min(100,Math.round(frag)));
+    return {tk:r.h.tk,sec,frag,reasons,est:Math.round(-20*(SECTOR_BETA[sec]||1)*(1+(frag-40)/120))};
+  }).sort((a,b)=>b.frag-a.frag);
+  html+=`<div class="cio" style="border-color:rgba(255,85,119,0.3)"><h2>🔻 Pre-Mortem — if the market drops 20% tomorrow</h2>
+    <div class="line" style="color:var(--fg-2);font-size:13px"><span class="ic"></span><span>Ranked by fragility (sector beta + risk signals − quality/flow cushions). These break first:</span></div>`;
+  pm.slice(0,Math.min(5,pm.length)).forEach((p,i)=>{
+    const c=p.frag>=65?'#ff5577':p.frag>=45?'#ff9f43':'#fbbf24';
+    html+=`<div class="line"><span class="ic" style="color:${c};font-family:var(--mono);font-weight:700">${i+1}.</span><span><b>${esc(p.tk)}</b> <span style="font-family:var(--mono);color:${c}">fragility ${p.frag}</span> · est ~${p.est}% in a 20% tape <span style="color:var(--fg-3);font-size:12px">(${esc(p.reasons.slice(0,3).join(' · ')||'—')})</span></span></div>`;
+  });
+  if(pm.length>1){const sturdiest=pm[pm.length-1];html+=`<div class="line"><span class="ic">🛡️</span><span>Sturdiest: <b>${esc(sturdiest.tk)}</b> (fragility ${sturdiest.frag}).</span></div>`;}
+  html+=`</div>`;
   html+=`<h2 class="sec">Holding-by-holding</h2><table><thead><tr><th>Ticker</th><th>Verdict</th><th>Compounder</th><th>Exp Growth</th><th>Capital Flow</th><th>Signals</th></tr></thead><tbody>`;
   rows.forEach(r=>{
     const cf=r.acc?`<span style="color:#26ffaf">+${r.acc.flow_score} accum</span>`:r.dist?`<span style="color:#ff5577">${r.dist.flow_score} distrib</span>`:'<span style="color:var(--fg-3)">—</span>';
