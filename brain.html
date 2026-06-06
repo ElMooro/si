@@ -22,6 +22,14 @@ a{color:var(--cyan);text-decoration:none}
 .cat-chip.active{color:var(--bg);font-weight:700}
 .composer textarea{width:100%;background:var(--bg-2);border:1px solid var(--border);border-radius:9px;color:var(--fg-1);padding:13px;font-size:15px;font-family:var(--sans);resize:vertical;min-height:84px;line-height:1.5}
 .composer textarea:focus{outline:none;border-color:var(--violet)}
+.dropzone{display:flex;align-items:center;gap:10px;justify-content:center;border:1.5px dashed var(--border-bright);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .15s;text-align:center}
+.dropzone:hover,.dropzone.drag{border-color:var(--violet);background:rgba(167,139,250,0.06)}
+.dz-icon{font-size:20px}
+.dz-text{font-size:12.5px;color:var(--fg-3)}.dz-text b{color:var(--fg-2)}
+.dz-browse{color:var(--violet);text-decoration:underline;cursor:pointer}
+#dz-status{margin-bottom:10px}
+.dz-file{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;padding:6px 10px;border-radius:7px;background:var(--bg-2);margin-bottom:5px}
+.dz-file.ok{color:var(--green)}.dz-file.err{color:var(--red)}.dz-file.working{color:var(--amber)}
 .composer .row{display:flex;align-items:center;gap:10px;margin-top:10px}
 .btn{padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;border:1px solid;font-family:var(--sans)}
 .btn.primary{background:var(--violet);border-color:var(--violet);color:var(--bg)}
@@ -61,6 +69,12 @@ a{color:var(--cyan);text-decoration:none}
 
   <div class="composer" id="composer">
     <div class="cat-row" id="cat-row"></div>
+    <div id="dropzone" class="dropzone">
+      <span class="dz-icon">📄</span>
+      <span class="dz-text">Drag &amp; drop <b>.docx, .txt, .md, or .pdf</b> here — or <span class="dz-browse">browse</span> — and the system reads it automatically</span>
+      <input type="file" id="file-input" accept=".docx,.txt,.md,.pdf,.rtf" multiple hidden>
+    </div>
+    <div id="dz-status"></div>
     <textarea id="note-input" placeholder="A principle, a thesis, a rule, something you've learned the hard way…&#10;e.g. 'Never confuse the end of QT with the start of QE — wait for the balance sheet to actually expand.'"></textarea>
     <div class="row">
       <button class="btn primary" id="add-btn">Add to Brain</button>
@@ -126,7 +140,7 @@ function renderNotes(){
     <div class="note ${n.pinned?'pinned':''}" data-id="${n.id}">
       <div class="ntop">
         <span class="ncat" style="color:${catC(n.cat)};border:1px solid ${catC(n.cat)}">${esc(catL(n.cat))}</span>
-        <span class="ndate">${fmtDate(n.created)}${n.edited?' · edited':''}</span>
+        <span class="ndate">${fmtDate(n.created)}${n.edited?' · edited':''}${n.source?` · 📎 ${esc(n.source)}`:''}</span>
         <span class="npin" title="${n.pinned?'Unpin':'Pin'}" data-act="pin">${n.pinned?'📌':'📍'}</span>
         <span class="nactions"><span class="na" data-act="edit">edit</span><span class="na del" data-act="del">delete</span></span>
       </div>
@@ -151,6 +165,83 @@ function startEdit(el,id){
   ta.onblur=()=>finish(true);
   ta.onkeydown=(e)=>{if(e.key==='Escape')finish(false);if((e.metaKey||e.ctrlKey)&&e.key==='Enter')finish(true);};
 }
+// ── Drag & drop file ingestion: parse .docx/.txt/.md/.pdf IN-BROWSER (files
+// never leave your device) → text becomes notes automatically. ──
+let _mammothLoaded=false,_pdfLoaded=false;
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('load fail '+src));document.head.appendChild(s);});}
+async function ensureMammoth(){if(_mammothLoaded)return;await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.9.0/mammoth.browser.min.js');_mammothLoaded=true;}
+async function ensurePdf(){if(_pdfLoaded)return;await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';_pdfLoaded=true;}
+
+function dzStatus(name,cls,msg){
+  const box=document.getElementById('dz-status');
+  let row=document.getElementById('dzf-'+name.replace(/[^a-z0-9]/gi,''));
+  if(!row){row=document.createElement('div');row.id='dzf-'+name.replace(/[^a-z0-9]/gi,'');box.appendChild(row);}
+  row.className='dz-file '+cls;
+  row.innerHTML=`${cls==='ok'?'✓':cls==='err'?'✕':'⏳'} ${esc(name)} — ${esc(msg)}`;
+  if(cls==='ok')setTimeout(()=>row.remove(),4000);
+}
+
+async function extractText(file){
+  const name=file.name, ext=name.split('.').pop().toLowerCase();
+  if(ext==='txt'||ext==='md'||ext==='rtf'){
+    let t=await file.text();
+    if(ext==='rtf')t=t.replace(/\\[a-z]+\d*/g,' ').replace(/[{}]/g,'').replace(/\s+/g,' ');
+    return t;
+  }
+  if(ext==='docx'){
+    await ensureMammoth();
+    const buf=await file.arrayBuffer();
+    const r=await window.mammoth.extractRawText({arrayBuffer:buf});
+    return r.value;
+  }
+  if(ext==='pdf'){
+    await ensurePdf();
+    const buf=await file.arrayBuffer();
+    const pdf=await window.pdfjsLib.getDocument({data:buf}).promise;
+    let out='';
+    for(let p=1;p<=pdf.numPages;p++){const page=await pdf.getPage(p);const tc=await page.getTextContent();out+=tc.items.map(i=>i.str).join(' ')+'\n';}
+    return out;
+  }
+  throw new Error('unsupported type .'+ext);
+}
+
+async function handleFiles(files){
+  for(const file of files){
+    const name=file.name;
+    dzStatus(name,'working','reading…');
+    try{
+      let text=(await extractText(file)).trim();
+      if(!text){dzStatus(name,'err','no text found');continue;}
+      // For large docs, split into paragraph-sized notes so each idea is tracked
+      // separately (better for the AI directive + matching). Cap chunk size.
+      const chunks=text.split(/\n{2,}/).map(s=>s.replace(/\s+/g,' ').trim()).filter(s=>s.length>15);
+      const blocks=chunks.length>1?chunks:[text];
+      let added=0;
+      blocks.forEach(b=>{
+        // merge tiny fragments; cap very long blocks
+        const txt=b.length>1200?b.slice(0,1200)+'…':b;
+        STATE.notes.unshift({id:uid(),cat:activeCat,text:txt,created:Date.now()+(added++),pinned:false,source:name});
+      });
+      dzStatus(name,'ok',`imported ${added} note${added>1?'s':''} → ${activeCat}`);
+      save();renderNotes();renderFilters();
+    }catch(e){
+      dzStatus(name,'err',(e&&e.message)||'parse failed');
+    }
+  }
+}
+
+(function wireDropzone(){
+  const dz=document.getElementById('dropzone');const fi=document.getElementById('file-input');
+  if(!dz)return;
+  dz.onclick=(e)=>{if(e.target.classList.contains('dz-browse')||e.target===dz||dz.contains(e.target))fi.click();};
+  fi.onchange=()=>{if(fi.files.length)handleFiles(Array.from(fi.files));fi.value='';};
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{if(e.dataTransfer.files.length)handleFiles(Array.from(e.dataTransfer.files));});
+  // also allow dropping anywhere on the page
+  ['dragover','drop'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target.closest('#dropzone'))return;e.preventDefault();if(ev==='drop'&&e.dataTransfer&&e.dataTransfer.files.length){dz.classList.remove('drag');handleFiles(Array.from(e.dataTransfer.files));}}));
+})();
+
 function addNote(){
   const ta=document.getElementById('note-input');const v=ta.value.trim();if(!v)return;
   STATE.notes.unshift({id:uid(),cat:activeCat,text:v,created:Date.now(),pinned:false});
