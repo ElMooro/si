@@ -1,0 +1,26 @@
+{
+  "regime": "TIGHTENING",
+  "score": 57.1,
+  "bs": "FLAT",
+  "has_tgcr": false,
+  "reserves_share": "Reserves 45% of Fed balance sheet (ample)",
+  "all_signals": [
+    "balance_sheet",
+    "reserves",
+    "rrp_cushion",
+    "sofr_iorb",
+    "sofr_effr",
+    "sofr_tail",
+    "rate_band",
+    "reserves_share",
+    "tga"
+  ],
+  "bondvol_has_plumbing": true,
+  "bondvol_plumbing": {
+    "regime": "FRAGILE",
+    "stress_score": 63.5,
+    "balance_sheet_direction": "FLAT",
+    "qt_ended_not_qe": true,
+    "action": "Buffers thin (RRP empty); any liquidity shock now hits reserves directly. Reduce gross, tighten stops."
+  }
+}
