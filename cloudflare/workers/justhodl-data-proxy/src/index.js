@@ -153,29 +153,6 @@ export default {
     // GET /quotes?tickers=AAPL,MSFT,NVDA → live snapshot via Polygon
     // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
     // Cached 30s at edge. Polygon key from worker env (server-side, secure).
-    if (url.pathname === "/debug-supabase-temp") {
-      // TEMPORARY: report which env vars the worker can see (presence + prefix
-      // only, never full values), then test Supabase auth if possible.
-      const present = {
-        SUPABASE_URL: env.SUPABASE_URL || null,
-        SUPABASE_SERVICE_KEY_present: !!env.SUPABASE_SERVICE_KEY,
-        SUPABASE_SERVICE_KEY_prefix: (env.SUPABASE_SERVICE_KEY || "").slice(0, 3),
-        STRIPE_SECRET_present: !!env.STRIPE_SECRET,
-        STRIPE_SECRET_prefix: (env.STRIPE_SECRET || "").slice(0, 3),
-        STRIPE_WEBHOOK_SECRET_present: !!env.STRIPE_WEBHOOK_SECRET,
-      };
-      let supa = null;
-      if (env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY) {
-        try {
-          const r = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?select=id&limit=1`, {
-            headers: { "apikey": env.SUPABASE_SERVICE_KEY, "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY },
-          });
-          supa = { status: r.status, ok: r.status === 200, note: (await r.text()).slice(0, 80) };
-        } catch (e) { supa = { error: String(e).slice(0, 80) }; }
-      }
-      return jsonResp({ env: present, supabase_test: supa });
-    }
-
     if (url.pathname === "/create-checkout" && request.method === "POST") {
       // Create a Stripe Checkout session for a signed-in user. Body: {priceId,
       // userId, email, returnUrl}. Requires STRIPE_SECRET env (test or live).

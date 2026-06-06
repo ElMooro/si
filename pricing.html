@@ -165,7 +165,7 @@ a { color: var(--cyan); text-decoration: none; }
 <div class="footer-note">JustHodl.AI is a research & analytics platform, not a registered investment advisor. Nothing here is financial advice.</div>
 
 <!-- Auth -->
-<script src="/auth-config.js"></script>
+<script src="/auth-config.js?v=2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/auth.js"></script>
 
@@ -259,19 +259,11 @@ function renderPlans() {
 
 function onSelectPlan(planId) {
   if (planId === 'free') {
-    if (window.JustHodlAuth && !JustHodlAuth.isAuthed()) JustHodlAuth.openSignIn();
+    if (window.JustHodlAuth && JustHodlAuth.getUser && !JustHodlAuth.getUser()) JustHodlAuth.openSignIn();
     return;
   }
-  // Requires auth first
-  if (window.JustHodlAuth && !JustHodlAuth.isAuthed()) {
-    JustHodlAuth.openSignIn();
-    return;
-  }
-  const cfg = window.JUSTHODL_AUTH_CONFIG || {};
-  if (!cfg.stripePublishableKey) {
-    alert('Thanks for your interest! Paid tiers are coming soon — the platform is free during early access.');
-    return;
-  }
+  // Paid plan → go straight to checkout. startCheckout() handles sign-in
+  // (opens the modal if not logged in) and the missing-price case itself.
   startCheckout(planId);
 }
 
@@ -279,7 +271,7 @@ async function startCheckout(planId) {
   const cfg = window.JUSTHODL_AUTH_CONFIG || {};
   const user = window.JustHodlAuth && JustHodlAuth.getUser ? JustHodlAuth.getUser() : null;
   if (!user) { if (window.JustHodlAuth) JustHodlAuth.openSignIn(); return; }
-  const priceId = cfg.proPriceId;
+  const priceId = cfg.proPriceId || 'price_1TfKrrQ0UPXfFGwHVUfVhyaA';
   if (!priceId) { alert('Plan not configured yet.'); return; }
   try {
     const r = await fetch((cfg.syncBase || 'https://justhodl-data-proxy.raafouis.workers.dev') + '/create-checkout', {
