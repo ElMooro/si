@@ -35,9 +35,9 @@ h1{font-size:26px;font-weight:800;color:var(--fg-0);margin-bottom:24px}
   <h1>Account &amp; Settings</h1>
   <div id="content"><div class="signin-prompt"><p>Loading…</p></div></div>
 </div>
-<script src="/auth-config.js?v=4"></script>
+<script src="/auth-config.js?v=5"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/auth.js?v=4"></script>
+<script src="/auth.js?v=5"></script>
 <script>
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function render(){
@@ -60,7 +60,7 @@ function render(){
     <div class="card"><h2>💎 Plan</h2>
       <div class="row"><span class="k">Current plan</span><span class="badge ${tier}">${tier.toUpperCase()}</span></div>
       <div class="row"><span class="k">Manage</span><span><a href="/pricing.html" class="btn ghost" style="padding:7px 14px;font-size:12px">${tier==='free'?'Upgrade':'Change plan'}</a></span></div>
-      <div class="muted">${tier==='free'?'You're on the Free plan. Upgrade to Pro for full access.':'Thanks for supporting JustHodl.'}</div>
+      <div class="muted">${tier==='free'?'On the Free plan. Upgrade to Pro for full access.':'Thanks for supporting JustHodl.'}</div>
     </div>
     <div class="card"><h2>🔭 Watchlists</h2>
       <div class="row"><span class="k">Sync</span><span class="v" style="color:var(--green)">Cloud-synced ✓</span></div>
