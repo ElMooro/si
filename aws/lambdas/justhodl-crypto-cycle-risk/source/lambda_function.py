@@ -287,11 +287,22 @@ def lambda_handler(event=None, context=None):
     factors["fed_transition"] = {"weight": 0.04, "risk": fed_risk, "months_since": round(fed_months, 1) if fed_months else None,
                                   "note": fed_note, "caveat": "n=3 sample; 2014/2018/2022 drawdowns were halving-cycle tops that merely overlapped Fed transitions. NOTE: QT actually ENDED Dec 2025 — the 'Fed shrinking the balance sheet' narrative is outdated; the real macro driver is inflation killing rate-cut odds."}
 
-    # ── 7. Macro / bond-vol regime ──
+    # ── 7. Macro / bond-vol regime + funding plumbing ──
     bv_regime = (bond.get("regime") or "").upper()
     macro_regime_risk = {"CRISIS": 85, "ELEVATED": 65, "NORMAL": 45, "BOND_VOL_LOW": 40}.get(bv_regime, 50)
-    factors["macro_regime"] = {"weight": 0.06, "risk": macro_regime_risk, "bond_vol_regime": bv_regime or None,
-                                "note": f"bond-vol regime {bv_regime or 'unknown'} ({'risk-off amplifies crypto beta' if macro_regime_risk>=65 else 'benign'})"}
+    plumb = read_json("data/funding-plumbing.json") or {}
+    plumb_regime = plumb.get("regime")
+    plumb_risk = {"STRESS": 90, "FRAGILE": 70, "TIGHTENING": 55, "AMPLE": 30}.get(plumb_regime)
+    # Blend bond-vol regime with funding-plumbing (plumbing leads risk-asset stress).
+    if plumb_risk is not None:
+        macro_regime_risk = round(0.5 * macro_regime_risk + 0.5 * plumb_risk)
+        pnote = f" · funding plumbing {plumb_regime} (bal-sheet {plumb.get('balance_sheet_direction')})"
+    else:
+        pnote = ""
+    factors["macro_regime"] = {"weight": 0.06, "risk": macro_regime_risk,
+                                "bond_vol_regime": bv_regime or None, "funding_plumbing_regime": plumb_regime,
+                                "balance_sheet_direction": plumb.get("balance_sheet_direction"),
+                                "note": f"bond-vol regime {bv_regime or 'unknown'}{pnote} — {'risk-off amplifies crypto beta' if macro_regime_risk>=65 else 'benign'}"}
 
     # ── Composite ──
     composite = round(sum(f["risk"] * f["weight"] for f in factors.values()), 1)

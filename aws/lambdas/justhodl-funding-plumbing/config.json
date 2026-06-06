@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-funding-plumbing",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 60,
+  "memory": 256,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Funding-plumbing/liquidity-regime gauge (balance-sheet direction, reserves vs LCLoR, RRP, SOFR-IORB)",
+  "environment_keys": [],
+  "schedule": { "expression": "cron(15 13 * * ? *)", "name": "justhodl-funding-plumbing-daily", "description": "Daily 13:15 UTC funding plumbing" }
+}

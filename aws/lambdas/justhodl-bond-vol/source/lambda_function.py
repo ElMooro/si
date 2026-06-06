@@ -343,6 +343,18 @@ def lambda_handler(event, context):
         "DATA_UNAVAILABLE": {"risk_posture": "UNKNOWN"},
     }
     playbook = PLAYBOOK.get(regime, PLAYBOOK["NORMAL"])
+    # ── Funding-plumbing overlay: the bond-vol regime measures rate VOLATILITY,
+    # but the liquidity REGIME (balance-sheet direction + reserves vs LCLoR) is a
+    # separate, leading risk lens. Surface it alongside so users never read
+    # "QT ended" as bullish when the plumbing is actually flat/draining. ──
+    plumbing = None
+    try:
+        pl = json.loads(boto3.client("s3").get_object(Bucket=S3_BUCKET, Key="data/funding-plumbing.json")["Body"].read())
+        plumbing = {"regime": pl.get("regime"), "stress_score": pl.get("plumbing_stress_score"),
+                    "balance_sheet_direction": pl.get("balance_sheet_direction"),
+                    "qt_ended_not_qe": pl.get("qt_ended_not_qe"), "action": pl.get("action")}
+    except Exception:
+        pass
     try:
         boto3.client("s3").put_object(Bucket=S3_BUCKET, Key="data/bond-vol-history.json",
             Body=json.dumps({"points": points}, default=str).encode(), ContentType="application/json")
@@ -359,6 +371,7 @@ def lambda_handler(event, context):
         "regime_streak_days": streak,
         "trend": trend,
         "term_structure": {**term_structure, "signal": ts_signal},
+        "funding_plumbing": plumbing,
         "playbook": playbook,
         "risk_posture": playbook.get("risk_posture"),
         "history": points[-180:],
