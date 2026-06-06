@@ -61,6 +61,9 @@ a{color:var(--cyan);text-decoration:none}
 <header class="header">
   <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
   <nav class="nav"><a href="/">Home</a><a href="/my-portfolio.html">Portfolio</a><a href="/brain.html" class="active">🧠 Brain</a><a href="/journal.html">📓 Journal</a><a href="/ask.html">Ask</a></nav>
+  <button id="export-btn" title="Download a backup of all your notes (JSON)" style="background:transparent;border:1px solid var(--border-bright);color:var(--fg-2);font-family:var(--mono);font-size:11px;padding:6px 11px;border-radius:7px;cursor:pointer;margin-left:auto">⬇ Export</button>
+  <button id="import-btn" title="Restore notes from a backup file (merges)" style="background:transparent;border:1px solid var(--border-bright);color:var(--fg-2);font-family:var(--mono);font-size:11px;padding:6px 11px;border-radius:7px;cursor:pointer">⬆ Import</button>
+  <input type="file" id="import-file" accept=".json" hidden>
   <span class="savebadge" id="savebadge"></span>
 </header>
 <div class="wrap">
@@ -115,6 +118,29 @@ let PIN=sessionStorage.getItem('jh_brain_pin')||"";
 let activeCat="philosophy", filterCat="all";
 
 function badge(t,cls){const b=document.getElementById('savebadge');b.textContent=t;b.className='savebadge '+(cls||'');}
+
+// ── Export: download all notes as a timestamped JSON backup (you fully control it) ──
+function exportNotes(){
+  const blob=new Blob([JSON.stringify({app:"justhodl-brain",exported_at:new Date().toISOString(),n_notes:STATE.notes.length,notes:STATE.notes},null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download=`justhodl-brain-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  badge('✓ exported '+STATE.notes.length+' notes','saved');setTimeout(()=>badge(''),2500);
+}
+// ── Import: merge notes from a backup file (dedupes by id; never deletes) ──
+async function importNotes(file){
+  try{
+    const d=JSON.parse(await file.text());
+    const incoming=Array.isArray(d.notes)?d.notes:(Array.isArray(d)?d:null);
+    if(!incoming){badge('not a valid backup','err');return;}
+    const have=new Set(STATE.notes.map(n=>n.id));
+    let added=0;
+    incoming.forEach(n=>{if(n&&n.text&&!have.has(n.id)){STATE.notes.unshift(n);have.add(n.id);added++;}});
+    if(added){save();renderNotes();renderFilters();renderStatus();badge('✓ imported '+added+' notes','saved');}
+    else badge('nothing new to import','saved');
+    setTimeout(()=>badge(''),2500);
+  }catch(e){badge('import failed — bad file','err');}
+}
 function fmtDate(ts){const d=new Date(ts);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});}
 function uid(){return 'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 
@@ -362,6 +388,9 @@ document.getElementById('pin-ok').onclick=()=>{
 document.getElementById('pin-input').onkeydown=(e)=>{if(e.key==='Enter')document.getElementById('pin-ok').click();};
 
 document.getElementById('add-btn').onclick=addNote;
+document.getElementById('export-btn').onclick=exportNotes;
+document.getElementById('import-btn').onclick=()=>document.getElementById('import-file').click();
+document.getElementById('import-file').onchange=(e)=>{if(e.target.files[0])importNotes(e.target.files[0]);e.target.value='';};
 document.getElementById('note-input').onkeydown=(e)=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter')addNote();};
 load();
 </script>
