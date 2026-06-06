@@ -1025,7 +1025,7 @@ table.tbl tr:last-child td{border-bottom: none}
 
   <!-- ────────── TOP STRIP ────────── -->
   <div class="strip" id="strip">
-    <div class="strip-cell" data-cell="regime">
+    <div id="home-regime-ribbon" style="margin:0 0 8px"></div><div class="strip-cell" data-cell="regime">
       <div class="strip-label">REGIME</div>
       <div class="strip-value">—</div>
       <div class="strip-sub">—</div>
@@ -3034,5 +3034,7 @@ setInterval(loadAll, 5 * 60 * 1000);  // 5-min auto-refresh
 <script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 <script src="/affiliates.js"></script>
 <script>window.addEventListener("load",function(){if(window.Affiliates)Affiliates.renderFooterBar();});</script>
+<script src="/regime-ribbon.js"></script>
+<script>window.addEventListener("load",function(){if(window.RegimeRibbon)RegimeRibbon.mount({target:"home-regime-ribbon",position:"inline"});});</script>
 </body>
 </html>

@@ -58,11 +58,22 @@
     bar.className = "rr-bar" + (opts.position === "fixed" ? " rr-fixed" : "");
     bar.style.background = col.bg;
     bar.title = "Bond-vol regime — click for the full gauge";
+    var plumb = d && d.funding_plumbing;
+    var plumbCol = { STRESS: "#ff5577", FRAGILE: "#ff9f43", TIGHTENING: "#fbbf24", AMPLE: "#26ffaf" };
+    var plumbSeg = "";
+    if (plumb && plumb.regime) {
+      var pc = plumbCol[plumb.regime] || "#6f7b91";
+      var bsd = plumb.balance_sheet_direction;
+      var bsdTxt = bsd ? " (" + bsd + (plumb.qt_ended_not_qe ? " · QT≠QE" : "") + ")" : "";
+      plumbSeg = '<span class="rr-sep"></span><span class="rr-seg' + (opts.compact ? '' : ' rr-opt') +
+        '"><span class="rr-k">Plumbing</span><span class="rr-v" style="color:' + pc + '">' + esc(plumb.regime) + esc(bsdTxt) + '</span></span>';
+    }
     bar.innerHTML =
       '<span class="rr-dot" style="background:' + col.c + ';box-shadow:0 0 7px ' + col.c + '"></span>' +
       '<span class="rr-seg"><span class="rr-k">Bond Vol</span><span class="rr-regime" style="color:' + col.c + '">' + col.label + '</span></span>' +
       '<span class="rr-sep"></span>' +
       '<span class="rr-seg"><span class="rr-k">z</span><span class="rr-v">' + fmtZ(d && d.composite_z_score) + (pct != null ? ' · ' + pct + 'p' : '') + '</span></span>' +
+      plumbSeg +
       (opts.compact ? '' : (
         (posture ? '<span class="rr-sep"></span><span class="rr-seg rr-opt"><span class="rr-k">Posture</span><span class="rr-v" style="color:' + col.c + '">' + esc(posture) + '</span></span>' : '') +
         (ts ? '<span class="rr-sep rr-opt"></span><span class="rr-seg rr-opt"><span class="rr-k">Lead</span><span class="rr-v">' + esc(ts) + '</span></span>' : '') +

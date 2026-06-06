@@ -43,8 +43,8 @@ a{color:var(--cyan);text-decoration:none}
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function col(r){return r>=72?'#ff5577':r>=58?'#ff9f43':r>=45?'#fbbf24':'#26ffaf';}
-const FNAME={balance_sheet:'Balance-Sheet Direction',reserves:'Reserves vs LCLoR',reserves_share:'Reserves % of Bal-Sheet',rrp_cushion:'RRP Cushion',sofr_iorb:'SOFR − IORB',sofr_tail:'Repo Tail (99th−median)',sofr_effr:'SOFR − EFFR',tgcr_iorb:'TGCR − IORB',rate_band:'Rate-Band Integrity',tga:'TGA Trajectory'};
-const ORDER=['balance_sheet','reserves','rrp_cushion','sofr_iorb','rate_band','sofr_tail','reserves_share','tgcr_iorb','sofr_effr','tga'];
+const FNAME={balance_sheet:'Balance-Sheet Direction',reserves:'Reserves vs LCLoR',reserves_share:'Reserves % of Bal-Sheet',rrp_cushion:'RRP Cushion',sofr_iorb:'SOFR − IORB',sofr_tail:'Repo Tail (99th−median)',sofr_effr:'SOFR − EFFR',rate_band:'Rate-Band Integrity',tga:'TGA Trajectory'};
+const ORDER=['balance_sheet','reserves','rrp_cushion','sofr_iorb','rate_band','sofr_tail','reserves_share','sofr_effr','tga'];
 function bsdColor(d){return d==='EXPANDING'?'#26ffaf':d==='DRAINING'?'#ff5577':d==='FLAT'?'#fbbf24':'#6f7b91';}
 async function load(){
   let d=null; try{const r=await fetch(`${PROXY}/data/funding-plumbing.json?t=${Date.now()}`);if(r.ok)d=await r.json();}catch(e){}

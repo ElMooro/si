@@ -40,7 +40,6 @@ SERIES = {
     "sofr": "SOFR",            # Secured Overnight Financing Rate, %, daily
     "sofr99": "SOFR99",        # SOFR 99th percentile — the repo tail (leads the median)
     "sofr75": "SOFR75",        # SOFR 75th percentile
-    "tgcr": "TGCR",            # Triparty General Collateral Rate — 2nd secured confirm
     "iorb": "IORB",            # Interest on Reserve Balances, %, daily
     "effr": "EFFR",            # Effective Fed Funds Rate, %, daily
     "tga": "WTREGEN",          # Treasury General Account, $B, weekly
@@ -171,15 +170,6 @@ def lambda_handler(event=None, context=None):
                             "note": f"SOFR 99th−median {tail_bps:+.0f}bps ({'TAIL STRESS: collateral scarce at the margin' if tail_bps > 8 else 'fat tail forming' if tail_bps > 4 else 'tight distribution'})"}
         stress.append(("sofr_tail", tail_stress, 0.10))
 
-    # ── 5c. TGCR − IORB: second secured-rate confirmation alongside SOFR ──
-    tgcr = data["tgcr"]
-    if tgcr and iorb:
-        tg_bps = (tgcr[0][1] - iorb[0][1]) * 100
-        tg_stress = max(0, min(100, 50 + tg_bps * 5))
-        sig["tgcr_iorb"] = {"spread_bps": round(tg_bps, 1),
-                            "note": f"TGCR−IORB {tg_bps:+.0f}bps ({'secured funding firm' if tg_bps > 3 else 'normal'})"}
-        stress.append(("tgcr_iorb", tg_stress, 0.06))
-
     # ── 5d. Structural rate-band integrity: normally IORB ≥ EFFR ≥ SOFR ≥ RRP.
     # When SOFR pushes ABOVE EFFR (the band inverts), it's a documented stress
     # signal (collateral-driven cash scarcity) — what fired in Oct 2025. ──
@@ -199,9 +189,9 @@ def lambda_handler(event=None, context=None):
         res_share = res[0][1] / walcl[0][1] * 100 if walcl[0][1] else None
         if res_share is not None:
             # historically ~stress when reserves fall below ~13% of the balance sheet
-            share_stress = max(0, min(100, (16 - res_share) / (16 - 11) * 100))
+            share_stress = max(0, min(100, (35 - res_share) / (35 - 22) * 100))
             sig["reserves_share"] = {"reserves_pct_of_balance_sheet": round(res_share, 1),
-                                     "note": f"Reserves {res_share:.0f}% of Fed balance sheet ({'thinning' if res_share < 14 else 'ample'})"}
+                                     "note": f"Reserves {res_share:.0f}% of Fed balance sheet ({'SCARCE' if res_share < 25 else 'thinning' if res_share < 32 else 'ample'})"}
             stress.append(("reserves_share", share_stress, 0.08))
 
 
