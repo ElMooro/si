@@ -48,7 +48,7 @@ a{color:var(--cyan);text-decoration:none}
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function col(r){return r>=75?'#ff5577':r>=60?'#ff9f43':r>=45?'#fbbf24':'#26ffaf';}
-const FNAME={halving_cycle:'Halving Cycle',mvrv_extension:'MVRV Extension',funding_leverage:'Funding / Leverage',fear_greed:'Fear & Greed',macro_risk:'Macro Risk',fed_transition:'Fed Transition',macro_regime:'Bond-Vol Regime'};
+const FNAME={halving_cycle:'Halving Cycle',mvrv_extension:'MVRV Extension',funding_leverage:'Funding / Leverage',fear_greed:'Fear & Greed',macro_risk:'Macro Risk',fed_transition:'Fed Transition',macro_regime:'Bond-Vol Regime',etf_flows:'ETF Flows',ai_rotation:'AI Capital Rotation',inflation_print:'Inflation Print Risk'};
 async function load(){
   let d=null; try{const r=await fetch(`${PROXY}/data/crypto-cycle-risk.json?t=${Date.now()}`);if(r.ok)d=await r.json();}catch(e){}
   if(!d){document.getElementById('content').innerHTML='<div class="loading">Gauge not available yet — refreshes every 6h.</div>';return;}
@@ -59,7 +59,7 @@ async function load(){
     <div class="bar"><div class="fill" style="width:${s}%;background:${c}"></div></div>
     <div class="action">${esc(d.action||'')}</div>
   </div>`;
-  const order=['halving_cycle','macro_risk','mvrv_extension','funding_leverage','macro_regime','fear_greed','fed_transition'];
+  const order=['halving_cycle','macro_risk','etf_flows','ai_rotation','mvrv_extension','funding_leverage','inflation_print','macro_regime','fear_greed','fed_transition'];
   h+='<div class="factors">';
   order.forEach(k=>{
     const f=(d.factors||{})[k]; if(!f)return;

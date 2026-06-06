@@ -229,18 +229,16 @@ def lambda_handler(event=None, context=None):
     # the single most-cited 2026 driver (the rally's engine running in reverse). ──
     etf = read_json("data/etf-true-flows.json") or {}
     btc_flow = None
-    flow_list = etf.get("flows") or etf.get("by_etf") or []
-    if isinstance(flow_list, dict):
-        flow_list = list(flow_list.values())
-    for r in flow_list:
-        if not isinstance(r, dict):
-            continue
-        sym = (r.get("ticker") or r.get("symbol") or "").upper()
-        if sym in ("IBIT", "FBTC", "BTC", "GBTC"):
-            v = r.get("net_flow_usd") or r.get("flow_usd") or r.get("net_creation_usd")
-            if v is not None:
-                try: btc_flow = (btc_flow or 0) + float(v)
-                except (ValueError, TypeError): pass
+    by_etf = etf.get("by_etf") or {}
+    if isinstance(by_etf, dict):
+        for sym in ("IBIT", "FBTC", "GBTC", "BTC", "ARKB", "BITB"):
+            r = by_etf.get(sym)
+            if isinstance(r, dict):
+                v = r.get("net_flow_5d_usd")
+                if v is None: v = r.get("net_flow_1d_usd")
+                if v is not None:
+                    try: btc_flow = (btc_flow or 0) + float(v)
+                    except (ValueError, TypeError): pass
     if btc_flow is not None:
         # outflows (negative) raise risk; inflows lower it. ±$500M/day = strong.
         etf_risk = max(0, min(100, 50 - (btc_flow / 5e8) * 35))

@@ -208,6 +208,56 @@ def fetch_forward_growth(universe, max_n=2600):
     return result
 
 
+# AI-infrastructure / capex-beneficiary sectors: rising capex here signals the
+# AI/power buildout (demand for the picks-and-shovels), so capex GROWTH is read
+# bullishly. Elsewhere capex is more neutral/margin-dilutive.
+CAPEX_BULL_SECTORS = {"Technology", "Communication Services", "Industrials", "Energy", "Utilities"}
+
+def fetch_capex_buyback(universe, max_n=2600):
+    """Per-ticker buyback yield + capex growth from FMP cash-flow statements.
+       buyback_yield  = trailing stock repurchases / market cap  (price support)
+       capex_growth   = capex YoY %  (capacity/demand buildout; AI-buildout proxy)
+       capex_intensity= capex / revenue
+    Concurrent; capped at max_n to bound the run."""
+    import concurrent.futures as _cf
+    fmp_key = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    base = "https://financialmodelingprep.com/stable"
+    syms = [s.get("symbol") for s in universe if s.get("symbol")][:max_n]
+    result = {}
+    def one(sym):
+        try:
+            cf = http_get_json(f"{base}/cash-flow-statement?symbol={sym}&period=annual&limit=2&apikey={fmp_key}")
+            if not isinstance(cf, list) or not cf:
+                return sym, None
+            cur = cf[0]
+            mcap = None
+            q = http_get_json(f"{base}/quote?symbol={sym}&apikey={fmp_key}")
+            if isinstance(q, list) and q:
+                mcap = q[0].get("marketCap")
+            buyback = abs(cur.get("commonStockRepurchased") or cur.get("stockRepurchased") or 0)
+            capex = abs(cur.get("capitalExpenditure") or 0)
+            rev = cur.get("revenue") or (q[0].get("revenue") if isinstance(q, list) and q else None)
+            out = {}
+            if mcap and mcap > 0:
+                out["buyback_yield_pct"] = round(buyback / mcap * 100, 2)
+            if len(cf) >= 2:
+                prev_capex = abs(cf[1].get("capitalExpenditure") or 0)
+                if prev_capex > 0:
+                    out["capex_growth_pct"] = round((capex / prev_capex - 1) * 100, 1)
+            if rev and rev > 0:
+                out["capex_intensity_pct"] = round(capex / rev * 100, 1)
+            return sym, (out or None)
+        except Exception:
+            return sym, None
+    with _cf.ThreadPoolExecutor(max_workers=24) as ex:
+        futs = [ex.submit(one, s) for s in syms]
+        for fut in _cf.as_completed(futs):
+            sym, v = fut.result()
+            if v:
+                result[sym] = v
+    return result
+
+
 def http_get_json(url, timeout=12):
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
@@ -751,6 +801,9 @@ def lambda_handler(event, context):
         if tr.get("_fwd_rev_growth") is not None:
             fwd_growth[tr["symbol"]] = {"fwd_rev_growth": tr["_fwd_rev_growth"]}
     print(f"[opp] forward growth for {len(fwd_growth)} names (full universe)")
+    print("[opp] fetching capex + buyback (price-support & buildout signals)…")
+    capex_bb = fetch_capex_buyback(universe)
+    print(f"[opp] capex/buyback for {len(capex_bb)} names")
     industry_bench = build_industry_benchmarks(universe, fwd_growth)
     weights = get_weights()
     print(f"[opp] factor weights: {weights}")
@@ -819,6 +872,32 @@ def lambda_handler(event, context):
                 elif gi["peg_forward"] > 3: go -= 8
             if exp_co is not None and exp_co > 20: go += 6
             if r.get("fund") and num((fund.get(sym) or {}).get("gross_margin", None)) and num((fund.get(sym) or {}).get("gross_margin")) > 50: go += 4
+
+            # ── CAPEX + BUYBACK (price-support & buildout drivers of who pumps) ──
+            cb = capex_bb.get(sym) or {}
+            bby = cb.get("buyback_yield_pct")
+            cgr = cb.get("capex_growth_pct")
+            sec = s.get("sector") or ""
+            gi["buyback_yield_pct"] = bby
+            gi["capex_growth_pct"] = cgr
+            gi["capex_intensity_pct"] = cb.get("capex_intensity_pct")
+            # Buybacks: a genuine, well-documented support — shrinking share count
+            # mechanically lifts EPS/price. Weight meaningfully but cap it.
+            if bby is not None:
+                if bby >= 8:   go += 12; gi["buyback_signal"] = "aggressive (>8% yield)"
+                elif bby >= 4: go += 8;  gi["buyback_signal"] = "strong (4-8% yield)"
+                elif bby >= 1.5: go += 4; gi["buyback_signal"] = "moderate"
+                else: gi["buyback_signal"] = "minimal"
+            # Capex GROWTH: bullish where it signals the AI/power buildout (capex-
+            # beneficiary sectors); modest/neutral elsewhere (it can dilute margins).
+            if cgr is not None:
+                in_bull = sec in CAPEX_BULL_SECTORS
+                if cgr >= 40 and in_bull:   go += 10; gi["capex_signal"] = f"surging capex (+{cgr}%) in a buildout sector"
+                elif cgr >= 20 and in_bull: go += 6;  gi["capex_signal"] = f"rising capex (+{cgr}%) — capacity/demand buildout"
+                elif cgr >= 25 and not in_bull: go += 2; gi["capex_signal"] = f"rising capex (+{cgr}%)"
+                elif cgr <= -25: go -= 2; gi["capex_signal"] = f"capex cut ({cgr}%) — retrenchment"
+                else: gi["capex_signal"] = "steady capex"
+
             r["growth_intel"] = gi
             r["growth_opportunity_score"] = max(0, min(100, round(go, 1)))
             # ── MOMENTUM / REGIME GATE: "cheap AND inflecting" ──
