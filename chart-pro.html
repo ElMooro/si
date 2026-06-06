@@ -2540,7 +2540,15 @@ class UI {
           return `<div class="tt-chip" data-ticker="${UI.esc(s.ticker)}"><b>${UI.esc(s.ticker)}</b> <span class="tt-conv">${Math.round(s.conviction)}</span><div class="tt-lenses">${UI.esc(lenses)}</div></div>`;
         }).join('') + `</div>`;
     }
-    body.innerHTML = ttBanner + '<div id="setups-cards-mount"></div>';
+    // Buildout-Threat banner (cheap + buying back stock + AI/power capex surging)
+    const buildouts = doc.buildout_threats || setups.filter(s => s.buildout_threat);
+    if (buildouts.length) {
+      ttBanner += `<div class="tt-banner" style="border-color:var(--cyan)"><div class="tt-banner-h" style="background:linear-gradient(90deg,#22d3ee,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">🏗️ BUILDOUT THREAT — cheap + buying back stock + capex surging into a buildout</div>` +
+        buildouts.slice(0, 6).map(s => {
+          const lenses = [...(s.value_lenses||[])].map(k=>k.replace(/_/g,' ')).join(' · ');
+          return `<div class="tt-chip" data-ticker="${UI.esc(s.ticker)}"><b>${UI.esc(s.ticker)}</b> <span class="tt-conv">${Math.round(s.conviction)}</span><div class="tt-lenses">${UI.esc(lenses)}</div></div>`;
+        }).join('') + `</div>`;
+    }    body.innerHTML = ttBanner + '<div id="setups-cards-mount"></div>';
     body = document.getElementById('setups-cards-mount');
     // wire TT chips
     document.querySelectorAll('.tt-chip[data-ticker]').forEach(el => el.addEventListener('click', () => { ChartController.loadTicker(el.dataset.ticker); if (window.__jhDrawers) window.__jhDrawers.setSetups(false); }));
@@ -2552,7 +2560,7 @@ class UI {
       if (k.includes('CASCADE')) return 'cascade';
       return '';
     };
-    const vClass = (v) => v === 'QUAD THREAT' ? 'quad' : v === 'TRIPLE THREAT' ? 'triple' : v === 'STRONG BUY' ? 'strong' : v === 'BUY' ? 'buy' : 'watch';
+    const vClass = (v) => v === 'QUAD THREAT' ? 'quad' : v === 'TRIPLE THREAT' ? 'triple' : v === 'BUILDOUT THREAT' ? 'triple' : v === 'STRONG BUY' ? 'strong' : v === 'BUY' ? 'buy' : 'watch';
     body.innerHTML = setups.slice(0, 40).map(s => {
       const sigs = (s.signals || []).map(sg =>
         `<span class="setup-sig ${sigClass(sg.key)}" title="${UI.esc(sg.detail||'')}">${UI.esc(sg.key.replace(/_/g,' '))}</span>`).join('');

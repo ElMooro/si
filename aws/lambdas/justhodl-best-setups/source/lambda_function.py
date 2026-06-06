@@ -51,6 +51,8 @@ SIGNAL_PRIORS = {
     "COMPOUNDER":           0.80,   # durable quality growth (ROIC+margin+growth)
     "REVISION_UP":          0.78,   # analyst estimate-revision momentum
     "DISLOCATION":          0.78,   # relative-value buy-the-laggard
+    "BUYBACK":              0.74,   # aggressive share repurchase (price support, ↑EPS)
+    "CAPEX_ACCEL":          0.70,   # surging capex in a buildout sector (AI/power demand)
     "INSIDER_CLUSTER":      0.80,   # multi-insider buying
     "SHORT_SQUEEZE":        0.66,   # FINRA short-volume z-score + squeeze setup
     "FDA_CATALYST":         0.62,   # upcoming PDUFA/AdCom binary event
@@ -92,6 +94,7 @@ def learned_weights(calibration):
         "COMPOUNDER": "COMPOUNDER", "CAPITAL_FLOW": "CAPITAL_FLOW",
         "REVISION_UP": "REVISION_UP", "SHORT_SQUEEZE": "SHORT_SQUEEZE",
         "FDA_CATALYST": "FDA_CATALYST", "GOV_CONTRACT": "GOV_CONTRACT",
+        "BUYBACK": "BUYBACK", "CAPEX_ACCEL": "CAPEX_ACCEL",
     }
     for sig, prior in SIGNAL_PRIORS.items():
         cal_tier = tier_map.get(sig)
@@ -244,6 +247,25 @@ def lambda_handler(event, context):
         add(r.get("ticker"), r.get("sector"), "COMPOUNDER",
             normalize(r.get("compounder_score"), 70, 100),
             f"compounder {r.get('compounder_score')}" + (f", {eg}% exp growth" if eg is not None else ""))
+
+    # ── BUYBACK — aggressive share repurchase (price support + EPS lift) ──
+    for r in opp_rows:
+        gi = r.get("growth_intel") or {}
+        bby = gi.get("buyback_yield_pct")
+        if bby is not None and bby >= 4:   # strong/aggressive only
+            add(r.get("ticker"), r.get("sector"), "BUYBACK",
+                normalize(bby, 4, 12),
+                f"{bby}% buyback yield ({gi.get('buyback_signal','strong')})")
+
+    # ── CAPEX_ACCEL — surging capex in a buildout sector (AI/power demand) ──
+    for r in opp_rows:
+        gi = r.get("growth_intel") or {}
+        csig = gi.get("capex_signal") or ""
+        cgr = gi.get("capex_growth_pct")
+        if cgr is not None and cgr >= 20 and ("buildout sector" in csig or "surging" in csig):
+            add(r.get("ticker"), r.get("sector"), "CAPEX_ACCEL",
+                normalize(cgr, 20, 80),
+                f"capex +{cgr}% — {csig}")
     # estimate-revision UP (the alpha factor)
     for r in opp_rows:
         rev = r.get("estimate_revision") or {}
@@ -375,27 +397,36 @@ def lambda_handler(event, context):
         # (compounder), AND carrying a market/flow signal. Three independent
         # value lenses agreeing is the strongest possible confluence. ──
         keys = set(s["key"] for s in signals)
-        value_signals = keys & {"DISLOCATION", "COMPOUNDER", "REVISION_UP"}
+        value_signals = keys & {"DISLOCATION", "COMPOUNDER", "REVISION_UP", "BUYBACK", "CAPEX_ACCEL", "DEEP_VALUE_OVERLAP"}
         flow_signals = keys & {"INSIDER_CLUSTER", "OPTIONS_EXTREME", "OPTIONS_BULLISH",
                                 "POLITICIAN_COMMITTEE", "POLITICIAN_BUY", "EXECUTIVE_BUY",
                                 "CASCADE_ALERT", "RETAIL_HOT", "CAPITAL_FLOW"}
         has_capital = "CAPITAL_FLOW" in keys
-        triple_threat = ("DISLOCATION" in keys and "COMPOUNDER" in keys and len(flow_signals) >= 1)
-        # QUADRUPLE THREAT: cheap + durable grower + a flow signal + institutions
-        # actually putting capital in. The rarest, strongest convergence.
+        # cheap = any relative-value lens; grower = durable/growth or capex buildout
+        cheap = bool(keys & {"DISLOCATION", "DEEP_VALUE_OVERLAP"})
+        grower = bool(keys & {"COMPOUNDER", "CAPEX_ACCEL", "REVISION_UP"})
+        triple_threat = (cheap and grower and len(flow_signals) >= 1)
         quad_threat = triple_threat and has_capital and len(flow_signals) >= 2
+        # ── BUILDOUT THREAT: the specific 'cheap + buying back stock + AI/power
+        # capex surging' stack — self-funded compounding into a demand buildout. ──
+        buildout_threat = (cheap and "BUYBACK" in keys and "CAPEX_ACCEL" in keys)
         if quad_threat:
             verdict = "QUAD THREAT"
             composite = min(100.0, composite * 1.30)
         elif triple_threat:
             verdict = "TRIPLE THREAT"
             composite = min(100.0, composite * 1.15)
+        elif buildout_threat:
+            verdict = "BUILDOUT THREAT"
+            composite = min(100.0, composite * 1.18)
 
         # ── Universal explainability: a plain-language "why" chain ──
         WHY_PHRASES = {
             "DISLOCATION": "trading cheap vs its peers",
             "COMPOUNDER": "a durable quality grower (high ROIC + margins + growth)",
             "REVISION_UP": "analysts revising estimates up",
+            "BUYBACK": "aggressively buying back its own stock (price support + EPS lift)",
+            "CAPEX_ACCEL": "ramping capex into an AI/power buildout (self-funding demand)",
             "CAPITAL_FLOW": "institutions accumulating it",
             "POLITICIAN_COMMITTEE": "bought by a politician on a relevant committee",
             "POLITICIAN_BUY": "recently bought by members of Congress",
@@ -433,6 +464,7 @@ def lambda_handler(event, context):
             "quad_threat": quad_threat,
             "verdict": verdict,
             "triple_threat": triple_threat,
+            "buildout_threat": buildout_threat,
             "value_lenses": sorted(value_signals),
             "flow_lenses": sorted(flow_signals),
             "n_signals": n,
@@ -492,6 +524,7 @@ def lambda_handler(event, context):
         "top_setups": setups[:50],
         "quad_threats": [s for s in setups if s.get("quad_threat")][:15],
         "triple_threats": [s for s in setups if s.get("triple_threat")][:20],
+        "buildout_threats": [s for s in setups if s.get("buildout_threat")][:20],
         "by_verdict": dict(by_verdict),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
