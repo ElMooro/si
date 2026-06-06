@@ -1,0 +1,74 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funding Plumbing · JustHodl AI</title>
+<meta name="description" content="The liquidity-regime gauge: Fed balance-sheet direction, reserves vs LCLoR, RRP cushion, SOFR-IORB, repo tail, and the rate band — one funding-plumbing stress score.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:940px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:740px}
+.gauge{background:var(--bg-1);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;margin-bottom:14px}
+.score{font-family:var(--mono);font-size:58px;font-weight:800;line-height:1}
+.level{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:1px;margin-top:6px}
+.bar{height:10px;background:var(--bg-2);border-radius:6px;margin:16px auto;max-width:520px;overflow:hidden}.bar .fill{height:100%;border-radius:6px;transition:width .6s}
+.action{color:var(--fg-2);font-size:13.5px;max-width:580px;margin:10px auto 0;line-height:1.5}
+.lesson{background:rgba(251,191,36,0.07);border:1px solid #3a2a1a;border-radius:12px;padding:16px 20px;margin-bottom:18px;display:flex;gap:12px}
+.lesson .bsd{font-family:var(--mono);font-weight:800;font-size:13px;padding:4px 10px;border-radius:8px;white-space:nowrap;align-self:flex-start}
+.lesson .txt{font-size:13px;color:var(--fg-2);line-height:1.5}
+.factors{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+@media(max-width:680px){.factors{grid-template-columns:1fr}.score{font-size:46px}}
+.fac{background:var(--bg-1);border:1px solid var(--border);border-radius:11px;padding:13px 16px}
+.fac .fname{font-family:var(--mono);font-size:10.5px;color:var(--fg-1);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.fac .fnote{font-size:12.5px;color:var(--fg-2);line-height:1.45}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.disc{margin-top:18px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6}
+#fresh-slot{margin-bottom:14px}
+</style></head><body>
+<header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+<nav class="nav"><a href="/">Home</a><a href="/bond-vol.html">Bond Vol</a><a href="/funding-plumbing.html" class="active">Funding Plumbing</a><a href="/crypto-risk.html">Crypto Risk</a><a href="/liquidity.html">Liquidity</a><a href="/glossary.html">Glossary</a></nav></header>
+<div class="wrap">
+<div class="hero"><h1>Funding <span class="grad">Plumbing</span></h1>
+<p>The liquidity-regime gauge. Fuses the signals that actually lead risk-asset stress — Fed balance-sheet direction, reserves vs the comfortable floor (LCLoR), the RRP cushion, SOFR−IORB, the repo tail, and the structural rate band — into one stress score. The plumbing tightens long before the headlines.</p></div>
+<div id="fresh-slot"></div>
+<div id="content"><div class="loading">Loading funding-plumbing gauge…</div></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function col(r){return r>=72?'#ff5577':r>=58?'#ff9f43':r>=45?'#fbbf24':'#26ffaf';}
+const FNAME={balance_sheet:'Balance-Sheet Direction',reserves:'Reserves vs LCLoR',reserves_share:'Reserves % of Bal-Sheet',rrp_cushion:'RRP Cushion',sofr_iorb:'SOFR − IORB',sofr_tail:'Repo Tail (99th−median)',sofr_effr:'SOFR − EFFR',tgcr_iorb:'TGCR − IORB',rate_band:'Rate-Band Integrity',tga:'TGA Trajectory'};
+const ORDER=['balance_sheet','reserves','rrp_cushion','sofr_iorb','rate_band','sofr_tail','reserves_share','tgcr_iorb','sofr_effr','tga'];
+function bsdColor(d){return d==='EXPANDING'?'#26ffaf':d==='DRAINING'?'#ff5577':d==='FLAT'?'#fbbf24':'#6f7b91';}
+async function load(){
+  let d=null; try{const r=await fetch(`${PROXY}/data/funding-plumbing.json?t=${Date.now()}`);if(r.ok)d=await r.json();}catch(e){}
+  if(!d){document.getElementById('content').innerHTML='<div class="loading">Gauge not available yet — refreshes daily 13:15 UTC.</div>';return;}
+  const s=d.plumbing_stress_score,c=col(s);
+  let h=`<div class="gauge"><div class="score" style="color:${c}">${s}</div>
+    <div class="level" style="color:${c}">${esc(d.regime)} PLUMBING</div>
+    <div class="bar"><div class="fill" style="width:${s}%;background:${c}"></div></div>
+    <div class="action">${esc(d.action||'')}</div></div>`;
+  // QT-not-QE lesson callout
+  const bsd=d.balance_sheet_direction;
+  h+=`<div class="lesson"><span class="bsd" style="color:${bsdColor(bsd)};border:1px solid ${bsdColor(bsd)}">BALANCE SHEET: ${esc(bsd)}</span>
+    <span class="txt">${esc(d.lesson||'')}</span></div>`;
+  h+='<div class="factors">';
+  const sigs=d.signals||{};
+  ORDER.forEach(k=>{ const f=sigs[k]; if(!f||!f.note)return;
+    h+=`<div class="fac"><div class="fname">${esc(FNAME[k]||k)}</div><div class="fnote">${esc(f.note)}</div></div>`; });
+  h+='</div>';
+  h+=`<div class="disc">Generated ${esc((d.generated_at||'').slice(0,16))} UTC · ${esc(d.methodology||'')} · ${esc(d.source||'')} · Research, not investment advice.</div>`;
+  document.getElementById('content').innerHTML=h;
+}
+load();
+</script>
+<script src="/freshness.js"></script>
+<script>window.addEventListener('load',function(){if(window.Freshness)Freshness.fromUrl('fresh-slot','/data/funding-plumbing.json',{label:'Plumbing',freshHrs:30,staleHrs:72});});</script>
+<script src="/cmdk.js"></script>
+</body></html>

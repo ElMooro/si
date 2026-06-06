@@ -38,10 +38,28 @@ SERIES = {
     "reserves": "WRESBAL",     # Reserve balances at the Fed, $M, weekly
     "rrp": "RRPONTSYD",        # ON RRP usage, $B, daily
     "sofr": "SOFR",            # Secured Overnight Financing Rate, %, daily
+    "sofr99": "SOFR99",        # SOFR 99th percentile — the repo tail (leads the median)
+    "sofr75": "SOFR75",        # SOFR 75th percentile
+    "tgcr": "TGCR",            # Triparty General Collateral Rate — 2nd secured confirm
     "iorb": "IORB",            # Interest on Reserve Balances, %, daily
     "effr": "EFFR",            # Effective Fed Funds Rate, %, daily
     "tga": "WTREGEN",          # Treasury General Account, $B, weekly
 }
+
+
+def _telegram(msg):
+    """Exceptions-only alert via the JustHodl Telegram bot (token + chat from SSM)."""
+    try:
+        token = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+        try:
+            chat_id = boto3.client("ssm", region_name=REGION).get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
+        except Exception:
+            chat_id = "8678089260"
+        body = urllib.parse.urlencode({"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"}).encode()
+        req = urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage", data=body)
+        urllib.request.urlopen(req, timeout=10)
+    except Exception as e:
+        print(f"[plumbing] telegram err: {str(e)[:80]}")
 
 
 def fred(series_id, n=80):
@@ -143,7 +161,50 @@ def lambda_handler(event=None, context=None):
         se_stress = 50; sig["sofr_effr"] = {"note": "unavailable"}
     stress.append(("sofr_effr", se_stress, 0.08))
 
-    # ── 6. TGA trajectory (rising = Treasury draining reserves) ──
+    # ── 5b. SOFR percentile tail (99th − median): the repo tail spikes BEFORE
+    # the median moves — the Fed watches this as an early collateral-scarcity gauge. ──
+    sofr99 = data["sofr99"]
+    if sofr and sofr99:
+        tail_bps = (sofr99[0][1] - sofr[0][1]) * 100
+        tail_stress = max(0, min(100, 40 + tail_bps * 4))
+        sig["sofr_tail"] = {"p99_minus_median_bps": round(tail_bps, 1),
+                            "note": f"SOFR 99th−median {tail_bps:+.0f}bps ({'TAIL STRESS: collateral scarce at the margin' if tail_bps > 8 else 'fat tail forming' if tail_bps > 4 else 'tight distribution'})"}
+        stress.append(("sofr_tail", tail_stress, 0.10))
+
+    # ── 5c. TGCR − IORB: second secured-rate confirmation alongside SOFR ──
+    tgcr = data["tgcr"]
+    if tgcr and iorb:
+        tg_bps = (tgcr[0][1] - iorb[0][1]) * 100
+        tg_stress = max(0, min(100, 50 + tg_bps * 5))
+        sig["tgcr_iorb"] = {"spread_bps": round(tg_bps, 1),
+                            "note": f"TGCR−IORB {tg_bps:+.0f}bps ({'secured funding firm' if tg_bps > 3 else 'normal'})"}
+        stress.append(("tgcr_iorb", tg_stress, 0.06))
+
+    # ── 5d. Structural rate-band integrity: normally IORB ≥ EFFR ≥ SOFR ≥ RRP.
+    # When SOFR pushes ABOVE EFFR (the band inverts), it's a documented stress
+    # signal (collateral-driven cash scarcity) — what fired in Oct 2025. ──
+    if sofr and effr and iorb:
+        band_ok = (iorb[0][1] >= effr[0][1] - 0.02) and (effr[0][1] >= sofr[0][1] - 0.05)
+        sofr_above_effr = sofr[0][1] > effr[0][1]
+        band_stress = 78 if sofr_above_effr else (55 if not band_ok else 30)
+        sig["rate_band"] = {"order_ok": band_ok, "sofr_above_effr": sofr_above_effr,
+                            "values": {"IORB": iorb[0][1], "EFFR": effr[0][1], "SOFR": sofr[0][1], "RRP_rate": None},
+                            "note": ("BAND INVERTED: SOFR above EFFR — secured 'safe' market is short of cash (collateral-driven stress)" if sofr_above_effr
+                                     else "rate band intact (IORB≥EFFR≥SOFR)" if band_ok else "rate band firming")}
+        stress.append(("rate_band", band_stress, 0.12))
+
+    # ── 5e. Reserves as % of Fed balance sheet — normalizes ampleness (the Fed
+    # targets reserves as a share of the system, not an absolute $ level). ──
+    if res and walcl:
+        res_share = res[0][1] / walcl[0][1] * 100 if walcl[0][1] else None
+        if res_share is not None:
+            # historically ~stress when reserves fall below ~13% of the balance sheet
+            share_stress = max(0, min(100, (16 - res_share) / (16 - 11) * 100))
+            sig["reserves_share"] = {"reserves_pct_of_balance_sheet": round(res_share, 1),
+                                     "note": f"Reserves {res_share:.0f}% of Fed balance sheet ({'thinning' if res_share < 14 else 'ample'})"}
+            stress.append(("reserves_share", share_stress, 0.08))
+
+
     tga = data["tga"]
     tga_note = "TGA data unavailable"; tga_stress = 50
     if len(tga) >= 5:
@@ -188,5 +249,26 @@ def lambda_handler(event=None, context=None):
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
+
+    # ── Telegram tripwire — exceptions-only, on regime CHANGE into FRAGILE/STRESS
+    # (or the balance sheet flipping to DRAINING). Don't spam at the same state. ──
+    try:
+        prev = json.loads(s3.get_object(Bucket=BUCKET, Key="data/funding-plumbing-prev.json")["Body"].read())
+    except Exception:
+        prev = {}
+    prev_regime = prev.get("regime")
+    if regime in ("FRAGILE", "STRESS") and regime != prev_regime:
+        top = "\n".join("• " + d["note"] for d in out["top_drivers"][:3] if d.get("note"))
+        msg = (f"🩺 *Funding Plumbing: {regime}* ({composite}/100)\n"
+               f"Balance sheet: *{bs_dir}*" + ("  ⚠️ QT ended ≠ QE — no new liquidity" if bs_dir == "FLAT" else "") + "\n\n"
+               f"{action}\n\n{top}")
+        _telegram(msg)
+    try:
+        s3.put_object(Bucket=BUCKET, Key="data/funding-plumbing-prev.json",
+                      Body=json.dumps({"regime": regime, "score": composite, "bs": bs_dir}).encode(),
+                      ContentType="application/json")
+    except Exception:
+        pass
+
     print(f"[funding-plumbing] DONE {round(time.time()-t0,1)}s — {regime} ({composite}); bs={bs_dir}")
     return {"statusCode": 200, "body": json.dumps({"regime": regime, "score": composite, "bs": bs_dir})}
