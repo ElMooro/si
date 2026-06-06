@@ -247,8 +247,6 @@ def lambda_handler(event=None, context=None):
     # Proxy: BTC 30d return minus QQQ 30d return; deep negative = rotation away.
     ai_risk, ai_note = 50, "rotation proxy unavailable"
     try:
-        spy = NativeChart_none = None
-        btc_bars = fred_series  # placeholder to avoid lint; real fetch below
         import urllib.request as _u
         def _ret30(tkr, crypto=False):
             try:
