@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Brain · JustHodl AI</title><meta name="robots" content="noindex">
+<title>Brain · JustHodl AI</title><meta name="robots" content="noindex"><meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta name="description" content="The brain of the system — your investing philosophy, principles, theses, and reminders. Permanently stored and read by your engines.">
 <style>
 :root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
@@ -29,7 +29,7 @@ a{color:var(--cyan);text-decoration:none}
 .dz-browse{color:var(--violet);text-decoration:underline;cursor:pointer}
 #dz-status{margin-bottom:10px}
 .dz-file{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;padding:6px 10px;border-radius:7px;background:var(--bg-2);margin-bottom:5px}
-.dz-file.ok{color:var(--green)}.dz-file.err{color:var(--red)}.dz-file.working{color:var(--amber)}
+.dz-file.ok{color:var(--green)}.dz-file.err{color:var(--red)}.dz-file.working{color:var(--amber)}.dz-file.skip{color:var(--fg-3)}
 .composer .row{display:flex;align-items:center;gap:10px;margin-top:10px}
 .btn{padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;border:1px solid;font-family:var(--sans)}
 .btn.primary{background:var(--violet);border-color:var(--violet);color:var(--bg)}
@@ -48,6 +48,7 @@ a{color:var(--cyan);text-decoration:none}
 .note .na:hover{color:var(--cyan)}.note .na.del:hover{color:var(--red)}
 .note .nbody{font-size:14.5px;line-height:1.55;color:var(--fg-1);white-space:pre-wrap;word-wrap:break-word}
 .note.pinned{border-color:rgba(251,191,36,0.4)}
+.note.isdup{border-color:rgba(251,191,36,0.5);opacity:0.7}
 .note .nedit{width:100%;background:var(--bg-2);border:1px solid var(--violet);border-radius:8px;color:var(--fg-1);padding:11px;font-size:14.5px;font-family:var(--sans);resize:vertical;min-height:70px;line-height:1.5}
 .empty{text-align:center;color:var(--fg-3);padding:40px;font-family:var(--mono);font-size:13px}
 .pin-modal{position:fixed;inset:0;background:rgba(4,6,10,.7);backdrop-filter:blur(4px);z-index:999;display:none;align-items:center;justify-content:center}
@@ -156,17 +157,47 @@ function renderFilters(){
   document.getElementById('filter-row').innerHTML=h;
   document.querySelectorAll('#filter-row .cat-chip').forEach(el=>el.onclick=()=>{filterCat=el.dataset.f;renderFilters();renderNotes();});
 }
+function normText(t){return String(t||'').toLowerCase().replace(/\s+/g,' ').replace(/[^\w\s]/g,'').trim();}
+function findDuplicates(){
+  // group notes by normalized text; any group with >1 = duplicates. Keep the
+  // oldest/pinned, flag the rest for deletion.
+  const groups={};
+  STATE.notes.forEach(n=>{const k=normText(n.text);if(k.length<8)return;(groups[k]=groups[k]||[]).push(n);});
+  const dupGroups=Object.values(groups).filter(g=>g.length>1);
+  // ids to remove: in each group keep the best (pinned, else oldest), flag others
+  const flagged=[];
+  dupGroups.forEach(g=>{
+    g.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||a.created-b.created); // keeper first
+    g.slice(1).forEach(n=>flagged.push(n.id));
+  });
+  return {dupGroups,flagged:new Set(flagged)};
+}
 function renderNotes(){
   const box=document.getElementById('notes');
+  const {dupGroups,flagged}=findDuplicates();
+  // duplicate banner
+  let banner=document.getElementById('dup-banner');
+  if(!banner){banner=document.createElement('div');banner.id='dup-banner';box.parentNode.insertBefore(banner,box);}
+  if(flagged.size){
+    banner.innerHTML=`<div style="background:rgba(251,191,36,0.08);border:1px solid #3a2a1a;border-radius:10px;padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--amber)">⚠️ Found <b>${flagged.size}</b> duplicate note${flagged.size>1?'s':''} (${dupGroups.length} group${dupGroups.length>1?'s':''}) — flagged below.</span>
+      <button id="dedupe-btn" style="margin-left:auto;background:var(--amber);border:none;color:var(--bg);font-family:var(--mono);font-size:11px;font-weight:700;padding:6px 13px;border-radius:7px;cursor:pointer">Remove ${flagged.size} duplicate${flagged.size>1?'s':''}</button></div>`;
+    banner.querySelector('#dedupe-btn').onclick=()=>{
+      if(confirm('Remove '+flagged.size+' duplicate notes? (keeps one copy of each)')){
+        STATE.notes=STATE.notes.filter(n=>!flagged.has(n.id));save();renderNotes();renderFilters();
+      }
+    };
+  }else banner.innerHTML='';
   let list=STATE.notes.slice();
   if(filterCat!=='all')list=list.filter(n=>n.cat===filterCat);
-  // pinned first, then newest
   list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||b.created-a.created);
   if(!list.length){box.innerHTML='<div class="empty">Nothing here yet. Add the first thing on your mind. 🧠</div>';return;}
+  window._flaggedDup=flagged;
   box.innerHTML=list.map(n=>`
-    <div class="note ${n.pinned?'pinned':''}" data-id="${n.id}">
+    <div class="note ${n.pinned?'pinned':''}${flagged.has(n.id)?' isdup':''}" data-id="${n.id}">
       <div class="ntop">
         <span class="ncat" style="color:${catC(n.cat)};border:1px solid ${catC(n.cat)}">${esc(catL(n.cat))}</span>
+        ${flagged.has(n.id)?'<span class="ncat" style="color:#fbbf24;border:1px solid #fbbf24">⚠ DUPLICATE</span>':''}
         <span class="ndate">${fmtDate(n.created)}${n.edited?' · edited':''}${n.source?` · 📎 ${esc(n.source)}`:''}</span>
         <span class="npin" title="${n.pinned?'Unpin':'Pin'}" data-act="pin">${n.pinned?'📌':'📍'}</span>
         <span class="nactions"><span class="na" data-act="edit">edit</span><span class="na del" data-act="del">delete</span></span>
@@ -204,8 +235,9 @@ function dzStatus(name,cls,msg){
   let row=document.getElementById('dzf-'+name.replace(/[^a-z0-9]/gi,''));
   if(!row){row=document.createElement('div');row.id='dzf-'+name.replace(/[^a-z0-9]/gi,'');box.appendChild(row);}
   row.className='dz-file '+cls;
-  row.innerHTML=`${cls==='ok'?'✓':cls==='err'?'✕':'⏳'} ${esc(name)} — ${esc(msg)}`;
+  row.innerHTML=`${cls==='ok'?'✓':cls==='err'?'✕':cls==='skip'?'·':'⏳'} ${esc(name)} — ${esc(msg)}`;
   if(cls==='ok')setTimeout(()=>row.remove(),4000);
+  if(cls==='skip')setTimeout(()=>row.remove(),2500);
 }
 
 async function ensureTesseract(){if(window._tessLoaded)return;await loadScript('https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js');window._tessLoaded=true;}
@@ -286,8 +318,16 @@ async function extractText(file,onProg){
 }
 
 async function handleFiles(files){
+  const JUNK=['lnk','url','webloc','exe','msi','dmg','app','bat','sh','onedrive','ini','sys','dll','tmp','zip','rar','7z'];
+  const READABLE=['docx','txt','md','rtf','pdf','csv','tsv','json','png','jpg','jpeg','webp','gif','bmp'];
   for(const file of files){
     const name=file.name;
+    const ext=(name.split('.').pop()||'').toLowerCase();
+    // Quietly skip app shortcuts, installers, archives, cloud pointers etc. —
+    // you're dragging a folder; these aren't documents and shouldn't alarm.
+    if(JUNK.includes(ext)||(!READABLE.includes(ext)&&ext!=='')){
+      dzStatus(name,'skip','skipped (not a document)');continue;
+    }
     dzStatus(name,'working','reading…');
     try{
       let text=(await extractText(file,msg=>dzStatus(name,'working',msg))).trim();
