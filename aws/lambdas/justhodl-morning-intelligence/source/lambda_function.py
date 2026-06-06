@@ -187,6 +187,8 @@ def load_all():
         "dix":"data/dix.json",
         # ─── Crypto Perp Funding (Bloomberg-Gap #6) ──────────────────
         "crypto_funding":"data/crypto-funding.json",
+        # ─── Crypto cycle dump-risk gauge (halving + macro + flows + AI rotation) ──
+        "crypto_dump_risk":"data/crypto-cycle-risk.json",
         # ─── Earnings Call Transcript Sentiment NLP (Bloomberg-Gap #5) ──
         "earnings_sentiment":"screener/earnings-sentiment.json",
         # ─── Earnings Call NLP (Bloomberg-Gap #7 · daily) ─────────────
@@ -739,6 +741,12 @@ def extract_metrics(data,weights):
             "dix_history_days": d.get("n_history_days"),
         })(),
         # ─── Crypto Perp Funding (Bloomberg-Gap #6) — OKX hourly ─────
+        **(lambda c=data.get("crypto_dump_risk", {}): {
+            "crypto_dump_risk_score": c.get("dump_risk_score"),
+            "crypto_dump_risk_level": c.get("risk_level"),
+            "crypto_dump_risk_action": c.get("action"),
+            "crypto_dump_top_driver": (c.get("top_drivers") or [{}])[0].get("note"),
+        })(),
         **(lambda c=data.get("crypto_funding", {}): {
             "crypto_funding_regime": c.get("composite_regime"),
             "crypto_funding_signal": c.get("composite_signal"),

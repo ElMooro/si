@@ -43,7 +43,24 @@ MACRO_SERIES = {
     "hy_oas": "BAMLH0A0HYM2",
     "ten_yr": "DGS10",
     "breakeven": "T10YIE",
+    "real_10y": "DFII10",      # 10Y real yield — the true discount-rate shock to risk
+    "dollar": "DTWEXBGS",      # broad trade-weighted USD — strength = headwind for BTC
 }
+
+# CPI/PPI release calendar matters because an inflation SURPRISE is what most
+# directly re-prices rate-cut odds → risk-off. Approximate BLS release cadence:
+# CPI ~10th-14th of the month, PPI ~1-2 days after. We flag the few-day window
+# around the next expected release as elevated event risk.
+def days_to_inflation_print(today):
+    from datetime import date as _date
+    # next CPI ≈ 12th of this or next month
+    candidates = []
+    for mo in (today.month, today.month % 12 + 1):
+        yr = today.year + (1 if mo < today.month else 0)
+        try: candidates.append(_date(yr, mo, 12))
+        except ValueError: pass
+    future = sorted([c for c in candidates if (c - today).days >= -2])
+    return (future[0] - today).days if future else None
 
 
 def read_json(key, default=None):
@@ -81,6 +98,23 @@ def days_since(iso_list, today):
     return best
 
 
+def _telegram(msg):
+    """Send an exceptions-only alert via the JustHodl Telegram bot (token + chat
+    from SSM). Markdown enabled."""
+    try:
+        ssm = boto3.client("ssm", region_name=REGION)
+        token = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+        try:
+            chat_id = ssm.get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
+        except Exception:
+            chat_id = "8678089260"
+        body = urllib.parse.urlencode({"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"}).encode()
+        req = urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage", data=body)
+        urllib.request.urlopen(req, timeout=10)
+    except Exception as e:
+        print(f"[crypto-risk] telegram send err: {str(e)[:80]}")
+
+
 def macro_risk_factor():
     """Score how much macro risk is RISING — the user's thesis: spiking yields,
     spiking inflation, and widening HY credit spreads all foreshadow risk-asset
@@ -102,8 +136,8 @@ def macro_risk_factor():
         rising = chg_1m > 0
         mom_bump = min(25, max(0, chg_1m / (abs(prev_month) + 1e-6) * 100 * 2)) if rising else 0
         score = round(min(100, pct * 0.7 + mom_bump + (10 if rising else 0)))
-        label = {"hy_oas": "HY credit OAS", "ten_yr": "10Y yield", "breakeven": "10Y breakeven inflation"}[name]
-        direction = "widening" if (name == "hy_oas" and rising) else ("spiking" if rising else "easing")
+        label = {"hy_oas": "HY credit OAS", "ten_yr": "10Y yield", "breakeven": "10Y breakeven inflation", "real_10y": "10Y real yield", "dollar": "Broad USD index"}[name]
+        direction = "widening" if (name == "hy_oas" and rising) else ("strengthening" if (name == "dollar" and rising) else ("spiking" if rising else "easing"))
         sub[name] = {"score": score, "latest": round(latest, 2), "chg_1m": round(chg_1m, 2),
                      "level_pctile_6mo": round(pct, 1), "note": f"{label} {round(latest,2)} ({direction}, {'+' if chg_1m>=0 else ''}{round(chg_1m,2)} 1mo)"}
         scores.append(score)
@@ -137,7 +171,7 @@ def lambda_handler(event=None, context=None):
         halving_risk = 35; halving_note = f"{months:.0f}mo post-halving — bear/accumulation"
     else:
         halving_risk = 45; halving_note = f"{months:.0f}mo post-halving — pre-next-halving"
-    factors["halving_cycle"] = {"weight": 0.28, "risk": halving_risk, "months_since_halving": round(months, 1) if months else None, "note": halving_note}
+    factors["halving_cycle"] = {"weight": 0.24, "risk": halving_risk, "months_since_halving": round(months, 1) if months else None, "note": halving_note}
 
     # ── 2. MVRV / price extension ──
     onchain = crypto.get("onchain_ratios") or {}
@@ -147,7 +181,7 @@ def lambda_handler(event=None, context=None):
         mnote = f"MVRV ~{round(mvrv,2)} ({'overheated' if mvrv>3 else 'elevated' if mvrv>2 else 'neutral' if mvrv>1 else 'undervalued'})"
     else:
         mvrv_risk = 50; mnote = "MVRV unavailable"
-    factors["mvrv_extension"] = {"weight": 0.18, "risk": round(mvrv_risk), "mvrv": mvrv, "note": mnote}
+    factors["mvrv_extension"] = {"weight": 0.10, "risk": round(mvrv_risk), "mvrv": mvrv, "note": mnote}
 
     # ── 3. Funding / leverage froth ──
     funding = crypto.get("funding") or {}
@@ -161,7 +195,7 @@ def lambda_handler(event=None, context=None):
         fnote = f"avg perp funding {round(avg_funding,4)}% ({'frothy longs' if avg_funding>0.03 else 'neutral' if avg_funding>-0.01 else 'shorts paying'})"
     else:
         fund_risk = 50; fnote = "funding unavailable"
-    factors["funding_leverage"] = {"weight": 0.14, "risk": round(fund_risk), "avg_funding_pct": round(avg_funding, 4) if avg_funding is not None else None, "note": fnote}
+    factors["funding_leverage"] = {"weight": 0.10, "risk": round(fund_risk), "avg_funding_pct": round(avg_funding, 4) if avg_funding is not None else None, "note": fnote}
 
     # ── 4. Fear & Greed extreme ──
     fg = crypto.get("fear_greed")
@@ -175,10 +209,70 @@ def lambda_handler(event=None, context=None):
         fg_risk = 50; fgnote = "F&G unavailable"
     factors["fear_greed"] = {"weight": 0.08, "risk": round(fg_risk), "value": fg_val, "note": fgnote}
 
-    # ── 5. MACRO RISK — yields/inflation/HY-spread (the genuine risk-off driver) ──
+    # ── 5. MACRO RISK — yields/inflation/HY-spread/real-yield/dollar ──
     macro_score, macro_sub = macro_risk_factor()
-    factors["macro_risk"] = {"weight": 0.18, "risk": macro_score, "components": macro_sub,
-                             "note": "Crypto is high-beta to liquidity/credit: rising 10Y yields, rising inflation breakevens, and WIDENING HY credit spreads (ICE BofA OAS) all pressure risk assets down. Higher = more risk-off."}
+    factors["macro_risk"] = {"weight": 0.14, "risk": macro_score, "components": macro_sub,
+                             "note": "Crypto is high-beta to liquidity/credit: rising 10Y/real yields, rising inflation breakevens, widening HY credit spreads (ICE BofA OAS), and a strengthening USD all pressure risk assets down. Higher = more risk-off."}
+
+    # ── 5b. INFLATION-PRINT EVENT RISK — a CPI/PPI surprise is what most directly
+    # re-prices rate-cut odds → risk-off. Elevated in the days around a release. ──
+    dti = days_to_inflation_print(today)
+    if dti is not None and 0 <= dti <= 3:
+        infl_risk = 70; infl_note = f"CPI/PPI release in ~{dti}d — elevated surprise/event risk into the print"
+    elif dti is not None and dti <= 6:
+        infl_risk = 55; infl_note = f"CPI/PPI release in ~{dti}d — approaching"
+    else:
+        infl_risk = 40; infl_note = f"no inflation print imminent (~{dti}d out)" if dti is not None else "inflation calendar unknown"
+    factors["inflation_print"] = {"weight": 0.06, "risk": infl_risk, "days_to_print": dti, "note": infl_note}
+
+    # ── 5c. ETF FLOWS — the marginal buyer. Sustained spot-BTC-ETF OUTFLOWS were
+    # the single most-cited 2026 driver (the rally's engine running in reverse). ──
+    etf = read_json("data/etf-true-flows.json") or {}
+    btc_flow = None
+    for r in (etf.get("flows") or etf.get("by_etf") or []):
+        sym = (r.get("ticker") or r.get("symbol") or "").upper()
+        if sym in ("IBIT", "FBTC", "BTC", "GBTC"):
+            v = r.get("net_flow_usd") or r.get("flow_usd") or r.get("net_creation_usd")
+            if v is not None: btc_flow = (btc_flow or 0) + v
+    if btc_flow is not None:
+        # outflows (negative) raise risk; inflows lower it. ±$500M/day = strong.
+        etf_risk = max(0, min(100, 50 - (btc_flow / 5e8) * 35))
+        enote = f"BTC ETF net flow ${round(btc_flow/1e6)}M ({'OUTFLOWS — marginal buyer gone' if btc_flow<0 else 'inflows'})"
+    else:
+        etf_risk = 50; enote = "ETF flow data unavailable (populates as etf-true-flows matures)"
+    factors["etf_flows"] = {"weight": 0.12, "risk": round(etf_risk), "btc_net_flow_usd": btc_flow, "note": enote}
+
+    # ── 5d. AI CAPITAL ROTATION — BTC underperforming the Nasdaq/AI complex =
+    # capital chasing AI beta over crypto beta (the Saylor 'rotation' thesis). ──
+    # Proxy: BTC 30d return minus QQQ 30d return; deep negative = rotation away.
+    ai_risk, ai_note = 50, "rotation proxy unavailable"
+    try:
+        spy = NativeChart_none = None
+        btc_bars = fred_series  # placeholder to avoid lint; real fetch below
+        import urllib.request as _u
+        def _ret30(tkr, crypto=False):
+            try:
+                if crypto:
+                    u = f"{ 'https://justhodl-data-proxy.raafouis.workers.dev' }/yf-ohlc?symbol=BTC-USD&range=3mo"
+                else:
+                    u = f"{ 'https://justhodl-data-proxy.raafouis.workers.dev' }/ohlc?ticker={tkr}&mult=1&span=day&days=45"
+                req = _u.Request(u, headers={"User-Agent": "JustHodl/1.0"})
+                d = json.loads(_u.urlopen(req, timeout=12).read().decode())
+                bars = d.get("bars") or []
+                cl = [b.get("close") for b in bars if b.get("close")]
+                if len(cl) >= 22: return (cl[-1] / cl[-22] - 1) * 100
+            except Exception: pass
+            return None
+        btc_30 = _ret30("BTC", crypto=True)
+        qqq_30 = _ret30("QQQ")
+        if btc_30 is not None and qqq_30 is not None:
+            spread = btc_30 - qqq_30   # negative = BTC lagging AI/tech
+            ai_risk = max(0, min(100, 50 - spread * 2.2))
+            ai_note = f"BTC 30d {round(btc_30,1)}% vs QQQ {round(qqq_30,1)}% → spread {round(spread,1)}pp ({'BTC LAGGING AI/tech — rotation away from crypto' if spread<-3 else 'in line' if spread<3 else 'BTC leading'})"
+    except Exception:
+        pass
+    factors["ai_rotation"] = {"weight": 0.06, "risk": round(ai_risk), "note": ai_note,
+                              "context": "AI buildout funding ~$400-450B/6mo (hyperscaler capex >$650B for 2026); marginal risk capital chasing AI beta over crypto beta. Per Saylor: 'capital rotation, not impairment.'"}
 
     # ── 6. Fed-transition proximity (LOW weight, explicitly caveated) ──
     dsf = days_since(FED_TRANSITIONS, today)
@@ -188,12 +282,12 @@ def lambda_handler(event=None, context=None):
     else:
         fed_risk = 40; fed_note = f"{'%.0f' % fed_months if fed_months is not None else '?'}mo since last Fed transition — outside claimed window"
     factors["fed_transition"] = {"weight": 0.04, "risk": fed_risk, "months_since": round(fed_months, 1) if fed_months else None,
-                                  "note": fed_note, "caveat": "n=3 sample; 2014/2018/2022 drawdowns were halving-cycle tops that merely overlapped Fed transitions."}
+                                  "note": fed_note, "caveat": "n=3 sample; 2014/2018/2022 drawdowns were halving-cycle tops that merely overlapped Fed transitions. NOTE: QT actually ENDED Dec 2025 — the 'Fed shrinking the balance sheet' narrative is outdated; the real macro driver is inflation killing rate-cut odds."}
 
     # ── 7. Macro / bond-vol regime ──
     bv_regime = (bond.get("regime") or "").upper()
     macro_regime_risk = {"CRISIS": 85, "ELEVATED": 65, "NORMAL": 45, "BOND_VOL_LOW": 40}.get(bv_regime, 50)
-    factors["macro_regime"] = {"weight": 0.10, "risk": macro_regime_risk, "bond_vol_regime": bv_regime or None,
+    factors["macro_regime"] = {"weight": 0.06, "risk": macro_regime_risk, "bond_vol_regime": bv_regime or None,
                                 "note": f"bond-vol regime {bv_regime or 'unknown'} ({'risk-off amplifies crypto beta' if macro_regime_risk>=65 else 'benign'})"}
 
     # ── Composite ──
@@ -226,6 +320,24 @@ def lambda_handler(event=None, context=None):
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
+
+    # ── Telegram tripwire — exceptions-only. Alert when dump-risk crosses into
+    # HIGH/EXTREME, and only on a CHANGE (don't spam every 6h at the same level). ──
+    try:
+        prev = read_json("data/crypto-cycle-risk-prev.json") or {}
+        prev_level = prev.get("risk_level")
+        if level in ("HIGH", "EXTREME") and level != prev_level:
+            top = "; ".join(d["note"] for d in drivers[:3])
+            msg = (f"🪙 *Crypto Dump-Risk: {level}* ({composite}/100)\n\n{action}\n\n"
+                   f"Top drivers: {top}")
+            _telegram(msg)
+        # persist current level for change-detection
+        s3.put_object(Bucket=BUCKET, Key="data/crypto-cycle-risk-prev.json",
+                      Body=json.dumps({"risk_level": level, "score": composite}).encode(),
+                      ContentType="application/json")
+    except Exception as e:
+        print(f"[crypto-risk] telegram err: {str(e)[:80]}")
+
     print(f"[crypto-cycle-risk] DONE {round(time.time()-t0,1)}s — {level} ({composite}); "
           f"halving {factors['halving_cycle'].get('months_since_halving')}mo")
     return {"statusCode": 200, "body": json.dumps({"score": composite, "level": level})}
