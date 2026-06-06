@@ -21,11 +21,13 @@ OUTPUT: data/crypto-cycle-risk.json — composite 0-100 dump-risk + factor break
 SCHEDULE: every 6h.
 """
 import json, time
+import urllib.request, urllib.parse
 from datetime import datetime, timezone, date
 import boto3
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/crypto-cycle-risk.json"
+FRED_KEY = "2f057499936072679d8843d7fce99989"
 s3 = boto3.client("s3", region_name=REGION)
 
 # Bitcoin halving dates (block-reward halvings — the cycle's anchor).
@@ -33,14 +35,44 @@ HALVINGS = ["2012-11-28", "2016-07-09", "2020-05-11", "2024-04-20"]
 # Fed chair transitions/renewals (the claimed — and weak — signal).
 FED_TRANSITIONS = ["2014-02-03", "2018-02-05", "2022-02-05"]  # Yellen, Powell t1, Powell t2
 
+# Macro risk series (FRED) — the genuine risk-on/off drivers of high-beta crypto.
+#   BAMLH0A0HYM2 = ICE BofA US High-Yield OAS (credit risk; WIDENING = risk-off)
+#   DGS10        = 10Y Treasury yield (SPIKING = discount-rate shock to risk assets)
+#   T10YIE       = 10Y breakeven inflation (SPIKING = forces yields up → risk-off)
+MACRO_SERIES = {
+    "hy_oas": "BAMLH0A0HYM2",
+    "ten_yr": "DGS10",
+    "breakeven": "T10YIE",
+}
+
 
 def read_json(key, default=None):
     try: return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
     except Exception: return default
 
 
+def fred_series(series_id, n=120):
+    """Last ~n daily observations for a FRED series (level)."""
+    try:
+        params = {"series_id": series_id, "api_key": FRED_KEY, "file_type": "json",
+                  "sort_order": "desc", "limit": str(n)}
+        url = "https://api.stlouisfed.org/fred/series/observations?" + urllib.parse.urlencode(params)
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            obs = json.loads(r.read().decode()).get("observations", [])
+        vals = []
+        for o in obs:  # desc → newest first
+            v = o.get("value")
+            if v not in (None, ".", ""):
+                try: vals.append(float(v))
+                except ValueError: pass
+        return vals  # newest-first
+    except Exception as e:
+        print(f"[crypto-risk] FRED {series_id} err: {str(e)[:60]}")
+        return []
+
+
 def days_since(iso_list, today):
-    """Smallest non-negative day-distance since the most recent past date."""
     best = None
     for s in iso_list:
         d = (today - date.fromisoformat(s)).days
@@ -49,10 +81,40 @@ def days_since(iso_list, today):
     return best
 
 
+def macro_risk_factor():
+    """Score how much macro risk is RISING — the user's thesis: spiking yields,
+    spiking inflation, and widening HY credit spreads all foreshadow risk-asset
+    (incl. crypto) drawdowns. Each metric scored on level-percentile + recent
+    momentum; higher = more risk-off pressure on crypto."""
+    sub = {}
+    scores = []
+    for name, sid in MACRO_SERIES.items():
+        vals = fred_series(sid, 120)
+        if len(vals) < 25:
+            sub[name] = {"score": 50, "note": "insufficient data"}; scores.append(50); continue
+        latest = vals[0]
+        prev_month = vals[min(21, len(vals) - 1)]      # ~1 month ago (desc index)
+        chg_1m = latest - prev_month
+        # percentile of the latest level within the ~6mo window (high = stressed)
+        window = vals[:120]
+        pct = 100 * sum(1 for v in window if v < latest) / len(window)
+        # rising fast (top-decile 1m move up) adds risk; the LEVEL percentile sets the base
+        rising = chg_1m > 0
+        mom_bump = min(25, max(0, chg_1m / (abs(prev_month) + 1e-6) * 100 * 2)) if rising else 0
+        score = round(min(100, pct * 0.7 + mom_bump + (10 if rising else 0)))
+        label = {"hy_oas": "HY credit OAS", "ten_yr": "10Y yield", "breakeven": "10Y breakeven inflation"}[name]
+        direction = "widening" if (name == "hy_oas" and rising) else ("spiking" if rising else "easing")
+        sub[name] = {"score": score, "latest": round(latest, 2), "chg_1m": round(chg_1m, 2),
+                     "level_pctile_6mo": round(pct, 1), "note": f"{label} {round(latest,2)} ({direction}, {'+' if chg_1m>=0 else ''}{round(chg_1m,2)} 1mo)"}
+        scores.append(score)
+    composite = round(sum(scores) / len(scores)) if scores else 50
+    return composite, sub
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     today = date.today()
-    crypto = read_json("data/crypto-intel.json") or {}
+    crypto = read_json("crypto-intel.json") or {}   # NOTE: root key, not data/
     bond = read_json("data/bond-vol.json") or {}
     factors = {}
 
@@ -75,18 +137,17 @@ def lambda_handler(event=None, context=None):
         halving_risk = 35; halving_note = f"{months:.0f}mo post-halving — bear/accumulation"
     else:
         halving_risk = 45; halving_note = f"{months:.0f}mo post-halving — pre-next-halving"
-    factors["halving_cycle"] = {"weight": 0.35, "risk": halving_risk, "months_since_halving": round(months, 1) if months else None, "note": halving_note}
+    factors["halving_cycle"] = {"weight": 0.28, "risk": halving_risk, "months_since_halving": round(months, 1) if months else None, "note": halving_note}
 
     # ── 2. MVRV / price extension ──
     onchain = crypto.get("onchain_ratios") or {}
-    mvrv = onchain.get("mvrv_approx") or onchain.get("mvrv")
+    mvrv = onchain.get("mvrv_approx") or onchain.get("mvrv") or (crypto.get("onchain") or {}).get("mvrv_approx")
     if mvrv is not None:
-        # MVRV > 3 historically = overheated; < 1 = undervalued.
         mvrv_risk = max(0, min(100, (mvrv - 1.0) / (3.5 - 1.0) * 100))
         mnote = f"MVRV ~{round(mvrv,2)} ({'overheated' if mvrv>3 else 'elevated' if mvrv>2 else 'neutral' if mvrv>1 else 'undervalued'})"
     else:
         mvrv_risk = 50; mnote = "MVRV unavailable"
-    factors["mvrv_extension"] = {"weight": 0.25, "risk": round(mvrv_risk), "mvrv": mvrv, "note": mnote}
+    factors["mvrv_extension"] = {"weight": 0.18, "risk": round(mvrv_risk), "mvrv": mvrv, "note": mnote}
 
     # ── 3. Funding / leverage froth ──
     funding = crypto.get("funding") or {}
@@ -96,42 +157,44 @@ def lambda_handler(event=None, context=None):
         vals = [r.get("funding_rate_pct") for r in rates if isinstance(r, dict) and r.get("funding_rate_pct") is not None]
         if vals: avg_funding = sum(vals) / len(vals)
     if avg_funding is not None:
-        # Persistently high positive funding (>0.05%/8h) = crowded, frothy longs.
         fund_risk = max(0, min(100, (avg_funding / 0.05) * 60 + 30)) if avg_funding > 0 else max(0, 30 + avg_funding * 200)
         fnote = f"avg perp funding {round(avg_funding,4)}% ({'frothy longs' if avg_funding>0.03 else 'neutral' if avg_funding>-0.01 else 'shorts paying'})"
     else:
         fund_risk = 50; fnote = "funding unavailable"
-    factors["funding_leverage"] = {"weight": 0.20, "risk": round(fund_risk), "avg_funding_pct": round(avg_funding, 4) if avg_funding is not None else None, "note": fnote}
+    factors["funding_leverage"] = {"weight": 0.14, "risk": round(fund_risk), "avg_funding_pct": round(avg_funding, 4) if avg_funding is not None else None, "note": fnote}
 
     # ── 4. Fear & Greed extreme ──
     fg = crypto.get("fear_greed")
     fg_val = fg.get("value") if isinstance(fg, dict) else fg
+    try: fg_val = float(fg_val) if fg_val is not None else None
+    except (ValueError, TypeError): fg_val = None
     if fg_val is not None:
-        fg_val = float(fg_val)
-        # Extreme greed (>75) = correction risk; extreme fear (<25) = low dump risk.
         fg_risk = max(0, min(100, (fg_val - 25) / (90 - 25) * 100))
         fgnote = f"Fear&Greed {int(fg_val)} ({'extreme greed' if fg_val>75 else 'greed' if fg_val>55 else 'neutral' if fg_val>45 else 'fear' if fg_val>25 else 'extreme fear'})"
     else:
         fg_risk = 50; fgnote = "F&G unavailable"
-    factors["fear_greed"] = {"weight": 0.10, "risk": round(fg_risk), "value": fg_val, "note": fgnote}
+    factors["fear_greed"] = {"weight": 0.08, "risk": round(fg_risk), "value": fg_val, "note": fgnote}
 
-    # ── 5. Fed-transition proximity (LOW weight, explicitly caveated) ──
+    # ── 5. MACRO RISK — yields/inflation/HY-spread (the genuine risk-off driver) ──
+    macro_score, macro_sub = macro_risk_factor()
+    factors["macro_risk"] = {"weight": 0.18, "risk": macro_score, "components": macro_sub,
+                             "note": "Crypto is high-beta to liquidity/credit: rising 10Y yields, rising inflation breakevens, and WIDENING HY credit spreads (ICE BofA OAS) all pressure risk assets down. Higher = more risk-off."}
+
+    # ── 6. Fed-transition proximity (LOW weight, explicitly caveated) ──
     dsf = days_since(FED_TRANSITIONS, today)
     fed_months = (dsf / 30.44) if dsf is not None else None
-    # The claim: drawdowns ~12-14mo after a transition. We give a mild bump in
-    # that window ONLY, and cap its influence (weight 0.05).
     if fed_months is not None and 10 <= fed_months <= 16:
         fed_risk = 70; fed_note = f"{fed_months:.0f}mo since last Fed transition — inside the claimed window (LOW CONFIDENCE: n=3, likely halving-confounded)"
     else:
         fed_risk = 40; fed_note = f"{'%.0f' % fed_months if fed_months is not None else '?'}mo since last Fed transition — outside claimed window"
-    factors["fed_transition"] = {"weight": 0.05, "risk": fed_risk, "months_since": round(fed_months, 1) if fed_months else None,
-                                  "note": fed_note, "caveat": "n=3 sample; 2014/2018/2022 drawdowns were halving-cycle tops that merely overlapped Fed transitions. Treated as a weak, confounded input, not a predictor."}
+    factors["fed_transition"] = {"weight": 0.04, "risk": fed_risk, "months_since": round(fed_months, 1) if fed_months else None,
+                                  "note": fed_note, "caveat": "n=3 sample; 2014/2018/2022 drawdowns were halving-cycle tops that merely overlapped Fed transitions."}
 
-    # ── 6. Macro / bond-vol regime ──
+    # ── 7. Macro / bond-vol regime ──
     bv_regime = (bond.get("regime") or "").upper()
-    macro_risk = {"CRISIS": 85, "ELEVATED": 65, "NORMAL": 45, "BOND_VOL_LOW": 40}.get(bv_regime, 50)
-    factors["macro_regime"] = {"weight": 0.05, "risk": macro_risk, "bond_vol_regime": bv_regime or None,
-                                "note": f"bond-vol regime {bv_regime or 'unknown'} ({'risk-off amplifies crypto beta' if macro_risk>=65 else 'benign'})"}
+    macro_regime_risk = {"CRISIS": 85, "ELEVATED": 65, "NORMAL": 45, "BOND_VOL_LOW": 40}.get(bv_regime, 50)
+    factors["macro_regime"] = {"weight": 0.10, "risk": macro_regime_risk, "bond_vol_regime": bv_regime or None,
+                                "note": f"bond-vol regime {bv_regime or 'unknown'} ({'risk-off amplifies crypto beta' if macro_regime_risk>=65 else 'benign'})"}
 
     # ── Composite ──
     composite = round(sum(f["risk"] * f["weight"] for f in factors.values()), 1)
