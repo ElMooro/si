@@ -35,7 +35,7 @@ a{color:var(--cyan);text-decoration:none}
 <header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
 <nav class="nav"><a href="/">Home</a><a href="/opportunities.html">Opportunities</a><a href="/dislocations.html">Laggards</a><a href="/backlog.html">Backlog</a><a href="/deep-value-overlap.html" class="active">Overlap Board</a><a href="/glossary.html">Glossary</a>
     <a href="/compounders.html">Compounders</a><a href="/capital-flow.html">Capital Flow</a><a href="/my-portfolio.html">My Portfolio</a><a href="/ask.html">Ask</a><a href="/track-public.html">Track Record</a>
-  </nav>
+  </nav><div id="fresh-slot" style="padding:6px 24px"></div>
   <div data-auth-slot style="margin-left:auto"></div></header>
 <div class="wrap">
 <div class="hero"><h1>Deep Value + Catalyst <span class="grad">Overlap</span></h1>
@@ -80,4 +80,5 @@ load();
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/auth.js"></script>
 <script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
+<script src="/freshness.js"></script><script>window.addEventListener("load",function(){if(window.Freshness)Freshness.fromUrl("fresh-slot","/data/deep-value-overlap.json",{label:"Data"});});</script>
 </body></html>
