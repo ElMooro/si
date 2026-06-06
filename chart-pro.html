@@ -1509,6 +1509,8 @@ a:hover { text-decoration: underline; }
         <button class="chg-btn" data-chg="mom" title="Month-over-month % change">MoM</button>
         <button class="chg-btn" data-chg="qoq" title="Quarter-over-quarter % change">QoQ</button>
         <button class="chg-btn" data-chg="yoy" title="Year-over-year % change">YoY</button>
+        <button class="chg-btn" data-chg="ytd" title="Year-to-date % change">YTD</button>
+        <button class="chg-btn" data-chg="fromhigh" title="% below the 52-week high (drawdown)">From High</button>
       </div>
       <div class="tf-bar cst-bar" id="cst-bar" title="% change display style">
         <button class="cst-btn active" data-cst="histogram" title="Bars">▮</button>
@@ -1521,6 +1523,7 @@ a:hover { text-decoration: underline; }
       <button class="tool-btn" id="season-btn" title="Seasonality: average return by calendar month">📅 Seasonality</button>
       <button class="tool-btn" id="basket-btn" title="Build & chart a weighted basket of symbols as one instrument">🧺 Basket</button>
       <button class="tool-btn" id="signal-layers-btn" title="JustHodl signal overlays" style="background:rgba(38,255,175,0.08);border-color:var(--green)">🎯 Signals</button>
+      <button class="tool-btn" id="share-chart-btn" title="Copy a shareable link to this exact chart view">🔗 Share</button>
       <div class="ind-wrap" style="position:relative;display:inline-block">
         <button class="tool-btn" id="indicators-btn" title="Add indicators (Bollinger, RSI, MACD)">📊 Indicators</button>
         <div class="ind-menu" id="ind-menu">
@@ -3570,6 +3573,7 @@ class ChartController {
     } else {
       this.loadTV(ticker, knownFull);
     }
+    if (window.jhSyncUrl) window.jhSyncUrl();
   }
   
   static async loadTV(ticker, knownFull) {
@@ -3971,7 +3975,7 @@ class NativeChart {
   // Periods in calendar days. For each point, find the value ~N days earlier
   // (nearest at-or-before within tolerance) and compute the % change.
   static CHANGE_PERIODS = { dod: 1, wow: 7, mom: 30.44, qoq: 91.31, yoy: 365 };
-  static CHANGE_LABELS = { dod: 'Day-over-Day', wow: 'Week-over-Week', mom: 'Month-over-Month', qoq: 'Quarter-over-Quarter', yoy: 'Year-over-Year' };
+  static CHANGE_LABELS = { dod: 'Day-over-Day', wow: 'Week-over-Week', mom: 'Month-over-Month', qoq: 'Quarter-over-Quarter', yoy: 'Year-over-Year', ytd: 'Year-to-Date', fromhigh: 'Drawdown from 52w High' };
   
   // Latest period-over-period % change for ALL modes from one series.
   static latestChanges(series) {
@@ -4012,6 +4016,29 @@ class NativeChart {
   
   static computeChange(series, mode) {
     // series: sorted [{time(sec), value}]
+    if (series.length < 2) return [];
+    // YTD: % from the first bar of the current calendar year
+    if (mode === 'ytd') {
+      const out = [];
+      const yearStart = {};   // year → first bar value
+      for (const p of series) {
+        const yr = new Date(p.time * 1000).getUTCFullYear();
+        if (yearStart[yr] == null) yearStart[yr] = p.value;
+        const base = yearStart[yr];
+        if (base && isFinite(base)) out.push({ time: p.time, value: (p.value / base - 1) * 100 });
+      }
+      return out;
+    }
+    // From High: drawdown from the running 52-week (252-bar) high
+    if (mode === 'fromhigh') {
+      const out = []; const win = 252;
+      for (let i = 0; i < series.length; i++) {
+        let hi = -Infinity;
+        for (let j = Math.max(0, i - win + 1); j <= i; j++) if (series[j].value > hi) hi = series[j].value;
+        if (hi > 0) out.push({ time: series[i].time, value: (series[i].value / hi - 1) * 100 });
+      }
+      return out;
+    }
     const periodDays = this.CHANGE_PERIODS[mode];
     if (!periodDays || series.length < 2) return [];
     const periodSec = periodDays * 86400;
@@ -6177,14 +6204,42 @@ async function init() {
   // ── Basket builder ──
   document.getElementById('basket-btn').addEventListener('click', () => Basket.open());
   document.getElementById('signal-layers-btn').addEventListener('click', () => SignalOverlay.togglePanel());
-  // Deep-link: ?symbol=XYZ&layers=insider,gex,catalyst
+  const shareBtn = document.getElementById('share-chart-btn');
+  if (shareBtn) shareBtn.addEventListener('click', () => {
+    if (window.jhSyncUrl) window.jhSyncUrl();
+    const link = location.href;
+    const done = () => { const o = shareBtn.textContent; shareBtn.textContent = '✓ Copied'; setTimeout(() => shareBtn.textContent = o, 1500); };
+    if (navigator.clipboard) navigator.clipboard.writeText(link).then(done).catch(() => prompt('Copy this chart link:', link));
+    else prompt('Copy this chart link:', link);
+  });
+  // Deep-link: ?s=NVDA&tf=1D&mode=yoy&layers=insider,gex,catalyst (shareable charts)
   try {
     const usp = new URLSearchParams(location.search);
     const dlLayers = usp.get('layers');
     if (dlLayers) { State.signalLayers = {}; SignalOverlay.LAYERS.forEach(l => State.signalLayers[l.id] = false); dlLayers.split(',').forEach(id => State.signalLayers[id.trim()] = true); }
-    const dlSym = usp.get('symbol') || usp.get('ticker');
+    const dlMode = usp.get('mode');
+    if (dlMode && ['price','dod','wow','mom','qoq','yoy','ytd','fromhigh','vsspy'].includes(dlMode)) State.changeMode = dlMode;
+    const dlTf = usp.get('tf');
+    if (dlTf) {
+      const map = { '5m':[5,'minute',5], '1H':[1,'hour',60], '1D':[1,'day',365], '1W':[1,'week',1825], '1M':[1,'month',3650] };
+      if (map[dlTf]) State.tf = { mult: map[dlTf][0], span: map[dlTf][1], days: map[dlTf][2] };
+    }
+    const dlSym = usp.get('s') || usp.get('symbol') || usp.get('ticker');
     if (dlSym) setTimeout(() => ChartController.loadTicker(dlSym.toUpperCase()), 600);
   } catch (e) {}
+  // Reflect current view in the URL (so the address bar is always shareable)
+  window.jhSyncUrl = function () {
+    try {
+      const u = new URL(location.href);
+      u.searchParams.set('s', State.activeTicker || 'NVDA');
+      const tfName = ({ minute: State.tf && State.tf.mult === 5 ? '5m' : '1H', hour: '1H', day: '1D', week: '1W', month: '1M' })[State.tf && State.tf.span] || '1D';
+      u.searchParams.set('tf', tfName);
+      if (State.changeMode && State.changeMode !== 'price') u.searchParams.set('mode', State.changeMode); else u.searchParams.delete('mode');
+      const on = Object.keys(State.signalLayers || {}).filter(k => State.signalLayers[k]);
+      if (on.length) u.searchParams.set('layers', on.join(',')); else u.searchParams.delete('layers');
+      history.replaceState(null, '', u);
+    } catch (e) {}
+  };
   document.getElementById('basket-close').addEventListener('click', () => Basket.close());
   document.getElementById('basket-cancel').addEventListener('click', () => Basket.close());
   document.getElementById('basket-add-btn').addEventListener('click', () => Basket.addRow());
