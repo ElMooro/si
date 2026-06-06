@@ -4013,19 +4013,25 @@ class NativeChart {
     const periodDays = this.CHANGE_PERIODS[mode];
     if (!periodDays || series.length < 2) return [];
     const periodSec = periodDays * 86400;
-    const tol = Math.max(periodSec * 0.5, 4 * 86400);  // tolerance for matching
     const times = series.map(s => s.time);
+    // Tolerance adapts to the chart's bar spacing (daily vs intraday) instead of
+    // a fixed half-period window. This prevents matching a far-off bar as the
+    // "1 year ago" reference when a name lacks enough history — in that case we
+    // return nothing for that point and the UI shows "not enough history".
+    const spacings = [];
+    for (let k = 1; k < times.length; k++) spacings.push(times[k] - times[k - 1]);
+    spacings.sort((a, b) => a - b);
+    const medSpacing = spacings.length ? spacings[Math.floor(spacings.length / 2)] : 86400;
+    const tol = Math.max(7 * medSpacing, 2 * 86400);  // ~7 bars or 2 days, whichever larger
     const out = [];
     let lo = 0;
     for (let i = 0; i < series.length; i++) {
       const target = series[i].time - periodSec;
-      if (target < times[0] - tol) continue;
-      // advance lo to the last index with time <= target
+      if (target < times[0] - tol) continue;   // genuinely not enough history → skip
       while (lo + 1 < series.length && times[lo + 1] <= target) lo++;
-      // pick nearest of lo / lo+1
       let j = lo;
       if (j + 1 < series.length && Math.abs(times[j + 1] - target) < Math.abs(times[j] - target)) j = j + 1;
-      if (Math.abs(times[j] - target) > tol) continue;
+      if (Math.abs(times[j] - target) > tol) continue;   // no bar near the target date
       const then = series[j].value, now = series[i].value;
       if (then === 0 || then == null || now == null) continue;
       out.push({ time: series[i].time, value: (now / then - 1) * 100 });
