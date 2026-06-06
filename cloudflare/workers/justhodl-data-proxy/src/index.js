@@ -101,8 +101,10 @@ export default {
         return new Response(JSON.stringify({ error: "store unavailable" }),
           { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const JKEY = "journal:khalid";
-      const PIN_KEY = "brain:pinhash";
+      const juid = (url.searchParams.get("uid") || "").replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64);
+      const jwho = juid && juid.length >= 8 ? juid : "khalid";
+      const JKEY = "journal:" + jwho;
+      const PIN_KEY = "brainpin:" + jwho;
       async function sha(s) {
         const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("jhsalt:" + s));
         return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
@@ -145,8 +147,14 @@ export default {
         return new Response(JSON.stringify({ error: "store unavailable" }),
           { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const BRAIN_KEY = "brain:khalid";
-      const PIN_KEY = "brain:pinhash";
+      // Per-user isolation: a logged-in user passes ?uid=<supabase-id>; their
+      // notes live under their own key. Anonymous / you (no uid) → 'khalid'.
+      // This keeps every user's notes permanently stored AND fully separated.
+      const uidParam = (url.searchParams.get("uid") || "").replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64);
+      const who = uidParam && uidParam.length >= 8 ? uidParam : "khalid";
+      const BRAIN_KEY = "brain:" + who;
+      const PIN_KEY = "brainpin:" + who;
+      const BACKUP_KEY = "brainbak:" + who;   // rolling backups (corruption safety net)
       async function sha(s) {
         const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("jhsalt:" + s));
         return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
@@ -156,6 +164,7 @@ export default {
         const hasPin = !!(await env.USER_DATA.get(PIN_KEY));
         const body = stored ? JSON.parse(stored) : { notes: [], empty: true };
         body.pin_set = hasPin;
+        body.scope = who === "khalid" ? "owner" : "user";
         return new Response(JSON.stringify(body),
           { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
       }
@@ -173,7 +182,7 @@ export default {
               { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
         } else {
-          await env.USER_DATA.put(PIN_KEY, ph);   // bootstrap: first PIN wins
+          await env.USER_DATA.put(PIN_KEY, ph);   // bootstrap: first PIN wins (per user)
         }
         try {
           const bodyText = await request.text();
@@ -182,8 +191,20 @@ export default {
               { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
           JSON.parse(bodyText);  // validate
+          // Safety net: before overwriting, snapshot the PREVIOUS value into a
+          // rolling 3-deep backup so a bad write can never silently destroy notes.
+          try {
+            const prevCur = await env.USER_DATA.get(BRAIN_KEY);
+            if (prevCur) {
+              let baks = [];
+              try { baks = JSON.parse(await env.USER_DATA.get(BACKUP_KEY) || "[]"); } catch (e) {}
+              baks.unshift({ at: Date.now(), data: prevCur });
+              baks = baks.slice(0, 3);
+              await env.USER_DATA.put(BACKUP_KEY, JSON.stringify(baks));
+            }
+          } catch (e) { /* backup is best-effort; never block the save */ }
           await env.USER_DATA.put(BRAIN_KEY, bodyText);
-          return new Response(JSON.stringify({ ok: true, saved_at: Date.now() }),
+          return new Response(JSON.stringify({ ok: true, saved_at: Date.now(), scope: who === "khalid" ? "owner" : "user" }),
             { headers: { "Content-Type": "application/json", ...corsHeaders() } });
         } catch (e) {
           return new Response(JSON.stringify({ error: "invalid json", detail: String(e).slice(0, 80) }),

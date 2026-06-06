@@ -93,6 +93,7 @@ a{color:var(--cyan);text-decoration:none}
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 const FMP="wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb";
+function uidQ(){try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();return u&&u.id?("uid="+encodeURIComponent(u.id)):"";}catch(e){return "";}}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function badge(t,cls){const b=document.getElementById('savebadge');b.textContent=t;b.className='savebadge '+(cls||'');}
 function fmtDate(ts){return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
@@ -156,7 +157,7 @@ async function save(){
   if(!PIN){openPin();return;}
   badge('saving…','saving');
   try{
-    const r=await fetch(`${PROXY}/journal`,{method:'PUT',headers:{'Content-Type':'application/json','X-Brain-Pin':PIN},body:JSON.stringify({entries:ENTRIES,updated_at:new Date().toISOString()})});
+    const r=await fetch(`${PROXY}/journal?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Brain-Pin':PIN},body:JSON.stringify({entries:ENTRIES,updated_at:new Date().toISOString()})});
     const d=await r.json();
     if(d.ok){badge('✓ locked in','saved');setTimeout(()=>badge(''),1800);}
     else if(r.status===403){PIN='';sessionStorage.removeItem('jh_brain_pin');badge('PIN needed','err');openPin();}
@@ -164,7 +165,7 @@ async function save(){
   }catch(e){badge('offline','err');}
 }
 async function load(){
-  try{const r=await fetch(`${PROXY}/journal?t=${Date.now()}`);const d=await r.json();ENTRIES=Array.isArray(d.entries)?d.entries:[];}catch(e){ENTRIES=[];}
+  try{const r=await fetch(`${PROXY}/journal?t=${Date.now()}&${uidQ()}`);const d=await r.json();ENTRIES=Array.isArray(d.entries)?d.entries:[];}catch(e){ENTRIES=[];}
   try{const r2=await fetch(`${PROXY}/data/journal-graded.json?t=${Date.now()}`);if(r2.ok)GRADED=await r2.json();}catch(e){}
   renderTrack();renderEntries();
 }
@@ -176,5 +177,9 @@ document.querySelector('.dir-chip.bull').classList.add('active');
 document.getElementById('j-add').onclick=addEntry;
 load();
 </script>
+<script src="/auth-config.js?v=5"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js?v=5"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 <script src="/cmdk.js"></script>
 </body></html>

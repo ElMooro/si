@@ -97,6 +97,7 @@ a{color:var(--cyan);text-decoration:none}
 
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function uidQ(){try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();return u&&u.id?("uid="+encodeURIComponent(u.id)):"";}catch(e){return "";}}
 const CATS=[
   {id:"philosophy",label:"Philosophy",c:"#a78bfa"},
   {id:"rule",label:"Rule",c:"#26ffaf"},
@@ -306,7 +307,7 @@ async function save(){
   badge('saving…','saving');
   try{
     const payload={notes:STATE.notes,updated_at:new Date().toISOString(),v:1};
-    const r=await fetch(`${PROXY}/brain`,{method:'PUT',headers:{'Content-Type':'application/json','X-Brain-Pin':PIN},body:JSON.stringify(payload)});
+    const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Brain-Pin':PIN},body:JSON.stringify(payload)});
     const d=await r.json();
     if(d.ok){badge('✓ saved to brain','saved');setTimeout(()=>badge(''),2000);}
     else if(r.status===403){PIN='';sessionStorage.removeItem('jh_brain_pin');badge('wrong PIN','err');openPin('Wrong PIN','Enter your Brain PIN to save.');}
@@ -315,7 +316,7 @@ async function save(){
 }
 async function load(){
   try{
-    const r=await fetch(`${PROXY}/brain?t=${Date.now()}`);const d=await r.json();
+    const r=await fetch(`${PROXY}/brain?t=${Date.now()}&${uidQ()}`);const d=await r.json();
     STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;
   }catch(e){STATE.notes=[];}
   renderStatus();
@@ -364,5 +365,9 @@ document.getElementById('add-btn').onclick=addNote;
 document.getElementById('note-input').onkeydown=(e)=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter')addNote();};
 load();
 </script>
+<script src="/auth-config.js?v=5"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js?v=5"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 <script src="/cmdk.js"></script>
 </body></html>
