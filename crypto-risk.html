@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Crypto Dump-Risk · JustHodl AI</title>
+<meta name="description" content="Multi-factor crypto cycle dump-risk gauge: halving cycle, MVRV, leverage, macro risk (yields/inflation/credit spreads), and fear/greed.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:920px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:720px}
+.gauge{background:var(--bg-1);border:1px solid var(--border);border-radius:16px;padding:26px;text-align:center;margin-bottom:18px}
+.score{font-family:var(--mono);font-size:64px;font-weight:800;line-height:1}
+.level{font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:1px;margin-top:6px}
+.bar{height:10px;background:var(--bg-2);border-radius:6px;margin:18px auto;max-width:520px;overflow:hidden;position:relative}
+.bar .fill{height:100%;border-radius:6px;transition:width .6s}
+.action{color:var(--fg-2);font-size:13.5px;max-width:560px;margin:12px auto 0;line-height:1.5}
+.factors{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+@media(max-width:680px){.factors{grid-template-columns:1fr}.score{font-size:48px}}
+.fac{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:15px 17px}
+.fac .ftop{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.fac .fname{font-family:var(--mono);font-size:11px;color:var(--fg-1);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.fac .fw{font-family:var(--mono);font-size:9px;color:var(--fg-3)}
+.fac .frisk{font-family:var(--mono);font-size:22px;font-weight:800}
+.fac .fnote{font-size:12px;color:var(--fg-2);line-height:1.45}
+.fac .fbar{height:5px;background:var(--bg-2);border-radius:3px;margin:8px 0;overflow:hidden}
+.fac .fbar .ff{height:100%}
+.sub{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin-top:6px;border-top:1px solid var(--border);padding-top:6px}
+.honesty{background:rgba(251,191,36,0.06);border:1px solid #3a2a1a;border-radius:10px;padding:14px 18px;font-size:12.5px;color:var(--fg-2);line-height:1.6;margin-top:14px}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.disc{margin-top:18px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6}
+#fresh-slot{margin-bottom:14px}
+</style></head><body>
+<header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+<nav class="nav"><a href="/">Home</a><a href="/crypto-narratives.html">Crypto Narratives</a><a href="/crypto-opportunities.html">Crypto Opps</a><a href="/crypto-risk.html" class="active">Dump Risk</a><a href="/bond-vol.html">Bond Vol</a><a href="/glossary.html">Glossary</a></nav></header>
+<div class="wrap">
+<div class="hero"><h1>Crypto <span class="grad">Dump-Risk</span> Gauge</h1>
+<p>A multi-factor composite of what actually drives crypto drawdowns: the 4-year <b>halving cycle</b> (dominant), <b>MVRV</b> over-extension, perp <b>leverage/funding</b>, <b>macro risk</b> (rising yields, inflation, &amp; HY credit spreads), and the bond-vol regime. Not a single overfit pattern.</p></div>
+<div id="fresh-slot"></div>
+<div id="content"><div class="loading">Loading dump-risk gauge…</div></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function col(r){return r>=75?'#ff5577':r>=60?'#ff9f43':r>=45?'#fbbf24':'#26ffaf';}
+const FNAME={halving_cycle:'Halving Cycle',mvrv_extension:'MVRV Extension',funding_leverage:'Funding / Leverage',fear_greed:'Fear & Greed',macro_risk:'Macro Risk',fed_transition:'Fed Transition',macro_regime:'Bond-Vol Regime'};
+async function load(){
+  let d=null; try{const r=await fetch(`${PROXY}/data/crypto-cycle-risk.json?t=${Date.now()}`);if(r.ok)d=await r.json();}catch(e){}
+  if(!d){document.getElementById('content').innerHTML='<div class="loading">Gauge not available yet — refreshes every 6h.</div>';return;}
+  const s=d.dump_risk_score, c=col(s);
+  let h=`<div class="gauge">
+    <div class="score" style="color:${c}">${s}</div>
+    <div class="level" style="color:${c}">${esc(d.risk_level)} DUMP RISK</div>
+    <div class="bar"><div class="fill" style="width:${s}%;background:${c}"></div></div>
+    <div class="action">${esc(d.action||'')}</div>
+  </div>`;
+  const order=['halving_cycle','macro_risk','mvrv_extension','funding_leverage','macro_regime','fear_greed','fed_transition'];
+  h+='<div class="factors">';
+  order.forEach(k=>{
+    const f=(d.factors||{})[k]; if(!f)return;
+    const fc=col(f.risk);
+    let sub='';
+    if(k==='macro_risk'&&f.components){ sub='<div class="sub">'+Object.values(f.components).map(x=>esc(x.note)).join(' · ')+'</div>'; }
+    if(k==='fed_transition'&&f.caveat){ sub='<div class="sub">⚠ '+esc(f.caveat)+'</div>'; }
+    h+=`<div class="fac"><div class="ftop"><span class="fname">${esc(FNAME[k]||k)}</span><span class="fw">w ${Math.round(f.weight*100)}%</span></div>
+      <div class="frisk" style="color:${fc}">${f.risk}</div>
+      <div class="fbar"><div class="ff" style="width:${f.risk}%;background:${fc}"></div></div>
+      <div class="fnote">${esc(f.note||'')}</div>${sub}</div>`;
+  });
+  h+='</div>';
+  h+=`<div class="honesty"><b>How to read this:</b> ${esc(d.honesty_note||'')}</div>`;
+  h+=`<div class="disc">Generated ${esc((d.generated_at||'').slice(0,16))} UTC · ${esc(d.methodology||'')} · Research &amp; analytics, not investment advice.</div>`;
+  document.getElementById('content').innerHTML=h;
+}
+load();
+</script>
+<script src="/freshness.js"></script>
+<script>window.addEventListener('load',function(){if(window.Freshness)Freshness.fromUrl('fresh-slot','/data/crypto-cycle-risk.json',{label:'Gauge',freshHrs:8,staleHrs:18});});</script>
+<script src="/cmdk.js"></script>
+</body></html>
