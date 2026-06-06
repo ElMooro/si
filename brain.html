@@ -71,8 +71,8 @@ a{color:var(--cyan);text-decoration:none}
     <div class="cat-row" id="cat-row"></div>
     <div id="dropzone" class="dropzone">
       <span class="dz-icon">📄</span>
-      <span class="dz-text">Drag &amp; drop <b>.docx, .txt, .md, or .pdf</b> here — or <span class="dz-browse">browse</span> — and the system reads it automatically</span>
-      <input type="file" id="file-input" accept=".docx,.txt,.md,.pdf,.rtf" multiple hidden>
+      <span class="dz-text">Drag &amp; drop <b>.docx, .pdf, images, .txt, .md</b> (scanned/photo notes OCR&#39;d automatically) — or <span class="dz-browse">browse</span> — and the system reads it automatically</span>
+      <input type="file" id="file-input" accept=".docx,.txt,.md,.pdf,.rtf,.png,.jpg,.jpeg,.webp" multiple hidden>
     </div>
     <div id="dz-status"></div>
     <textarea id="note-input" placeholder="A principle, a thesis, a rule, something you've learned the hard way…&#10;e.g. 'Never confuse the end of QT with the start of QE — wait for the balance sheet to actually expand.'"></textarea>
@@ -181,7 +181,23 @@ function dzStatus(name,cls,msg){
   if(cls==='ok')setTimeout(()=>row.remove(),4000);
 }
 
-async function extractText(file){
+async function ensureTesseract(){if(window._tessLoaded)return;await loadScript('https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js');window._tessLoaded=true;}
+
+async function ocrImage(imgSource,onProg){
+  await ensureTesseract();
+  const r=await window.Tesseract.recognize(imgSource,'eng',{logger:m=>{if(onProg&&m.status==='recognizing text')onProg(Math.round(m.progress*100));}});
+  return (r&&r.data&&r.data.text)||'';
+}
+
+// Render a pdf.js page to a canvas (for OCR of scanned pages)
+async function pdfPageToCanvas(page,scale){
+  const vp=page.getViewport({scale:scale||2});
+  const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
+  await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+  return cv;
+}
+
+async function extractText(file,onProg){
   const name=file.name, ext=name.split('.').pop().toLowerCase();
   if(ext==='txt'||ext==='md'||ext==='rtf'){
     let t=await file.text();
@@ -194,12 +210,28 @@ async function extractText(file){
     const r=await window.mammoth.extractRawText({arrayBuffer:buf});
     return r.value;
   }
+  if(['png','jpg','jpeg','webp','gif','bmp'].includes(ext)){
+    if(onProg)onProg('OCR…');
+    return await ocrImage(file,p=>onProg&&onProg('OCR '+p+'%'));
+  }
   if(ext==='pdf'){
     await ensurePdf();
     const buf=await file.arrayBuffer();
     const pdf=await window.pdfjsLib.getDocument({data:buf}).promise;
     let out='';
     for(let p=1;p<=pdf.numPages;p++){const page=await pdf.getPage(p);const tc=await page.getTextContent();out+=tc.items.map(i=>i.str).join(' ')+'\n';}
+    // If the text layer is essentially empty (scanned PDF), fall back to OCR.
+    if(out.replace(/\s/g,'').length<40){
+      if(onProg)onProg('scanned PDF — OCR…');
+      let ocrOut='';
+      const maxPages=Math.min(pdf.numPages,15); // cap OCR pages (it's slow)
+      for(let p=1;p<=maxPages;p++){
+        const page=await pdf.getPage(p);
+        const cv=await pdfPageToCanvas(page,2);
+        ocrOut+=await ocrImage(cv,prog=>onProg&&onProg('OCR p'+p+'/'+maxPages+' '+prog+'%'))+'\n';
+      }
+      return ocrOut;
+    }
     return out;
   }
   throw new Error('unsupported type .'+ext);
@@ -210,7 +242,7 @@ async function handleFiles(files){
     const name=file.name;
     dzStatus(name,'working','reading…');
     try{
-      let text=(await extractText(file)).trim();
+      let text=(await extractText(file,msg=>dzStatus(name,'working',msg))).trim();
       if(!text){dzStatus(name,'err','no text found');continue;}
       // For large docs, split into paragraph-sized notes so each idea is tracked
       // separately (better for the AI directive + matching). Cap chunk size.
@@ -241,6 +273,27 @@ async function handleFiles(files){
   // also allow dropping anywhere on the page
   ['dragover','drop'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target.closest('#dropzone'))return;e.preventDefault();if(ev==='drop'&&e.dataTransfer&&e.dataTransfer.files.length){dz.classList.remove('drag');handleFiles(Array.from(e.dataTransfer.files));}}));
 })();
+
+// ── Paste an image (screenshot of notes) anywhere → OCR into a note. ──
+document.addEventListener('paste',async(e)=>{
+  const items=(e.clipboardData&&e.clipboardData.items)||[];
+  for(const it of items){
+    if(it.type&&it.type.indexOf('image')===0){
+      const blob=it.getAsFile(); if(!blob)continue;
+      e.preventDefault();
+      const nm='pasted-image-'+new Date().toISOString().slice(11,19);
+      dzStatus(nm,'working','OCR…');
+      try{
+        const text=(await ocrImage(blob,p=>dzStatus(nm,'working','OCR '+p+'%'))).trim();
+        if(!text){dzStatus(nm,'err','no text found in image');return;}
+        STATE.notes.unshift({id:uid(),cat:activeCat,text:text.length>1200?text.slice(0,1200)+'…':text,created:Date.now(),pinned:false,source:'pasted image'});
+        dzStatus(nm,'ok','imported → '+activeCat);
+        save();renderNotes();renderFilters();
+      }catch(err){dzStatus(nm,'err',(err&&err.message)||'OCR failed');}
+      return;
+    }
+  }
+});
 
 function addNote(){
   const ta=document.getElementById('note-input');const v=ta.value.trim();if(!v)return;
