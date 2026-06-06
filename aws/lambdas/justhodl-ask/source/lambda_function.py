@@ -103,6 +103,8 @@ def build_context():
     ctx["ai_theses"] = {tk: {"verdict": v.get("cheap_verdict"), "summary": v.get("summary"),
                               "pt": v.get("price_target_12m"), "theme": v.get("theme")}
                         for tk, v in list((da.get("by_ticker") or {}).items())[:15]}
+    brain = read_json("data/brain.json") or {}
+    ctx["_brain"] = {"prompt_block": brain.get("prompt_block"), "tickers": brain.get("mentioned_tickers")}
     return ctx
 
 
@@ -129,10 +131,22 @@ def lambda_handler(event=None, context=None):
         return {"statusCode": 400, "headers": cors, "body": json.dumps({"error": "Ask a question via ?q= or {\"q\":...}"})}
 
     ctx = build_context()
+    brain_block = (ctx.get("_brain") or {}).get("prompt_block")
+    brain_directive = ""
+    if brain_block:
+        brain_directive = (
+            " IMPORTANT — THE USER'S OWN INVESTING PHILOSOPHY is provided in the data under "
+            "'_brain.prompt_block'. Answer THROUGH THAT LENS: honor their pinned principles, "
+            "rules, and stated preferences; frame the answer the way THEY think about markets; "
+            "and when their philosophy is relevant to the question, reference which principle "
+            "applies. Their rules override generic framing (e.g. if they say 'never confuse QT "
+            "ending with QE', don't treat QT-ending as bullish)."
+        )
     system = (
         "You are JustHodl AI's analyst assistant. Answer the user's question USING ONLY the "
-        "JSON data provided (it is the live output of the platform's signal engines). "
-        "RULES: (1) Only name tickers that appear in the data — never invent. (2) For every "
+        "JSON data provided (it is the live output of the platform's signal engines)."
+        + brain_directive +
+        " RULES: (1) Only name tickers that appear in the data — never invent. (2) For every "
         "ticker you cite, give the specific data-backed reason (the signal + the metric, e.g. "
         "'compounder 88, est revised +3pp, institutions accumulating via 13F'). (3) Respect the "
         "bond-vol risk regime in your framing. (4) Be concise and scannable — lead with the direct "

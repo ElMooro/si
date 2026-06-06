@@ -144,6 +144,25 @@ def lambda_handler(event, context):
     opportunities = read_json("data/opportunities.json") or {}
     capital_flow = read_json("data/capital-flow.json") or {}
     bond_vol = read_json("data/bond-vol.json") or {}
+    # ── The Brain: Khalid's pinned principles + watched tickers. We flag setups
+    # that align with what's on his mind so the board surfaces HIS theses. ──
+    brain = read_json("data/brain.json") or {}
+    brain_tickers = set((brain.get("mentioned_tickers") or []))
+    brain_pinned = []  # [(lowercased text, original text)] for pinned notes
+    for n in (brain.get("notes") or []):
+        if n.get("pinned") and n.get("text"):
+            brain_pinned.append((n["text"].lower(), n["text"]))
+    def brain_match(ticker, sector, signal_keys):
+        """Return the matched pinned-principle text if this setup aligns with the
+        user's brain — by ticker mention or by a sector/theme keyword in a pinned
+        note. Conservative: only flags clear matches."""
+        if ticker in brain_tickers:
+            return f"You're watching {ticker}"
+        tl = (ticker or "").lower(); sl = (sector or "").lower()
+        for low, orig in brain_pinned:
+            if (tl and tl in low.split()) or (sl and sl in low):
+                return orig[:120]
+        return None
     bv_regime = (bond_vol.get("regime") or "").upper()
 
     weights, weight_src = learned_weights(calibration)
@@ -465,6 +484,7 @@ def lambda_handler(event, context):
             "verdict": verdict,
             "triple_threat": triple_threat,
             "buildout_threat": buildout_threat,
+            "brain_aligned": brain_match(tk, rec.get("sector"), [s["key"] for s in signals]),
             "value_lenses": sorted(value_signals),
             "flow_lenses": sorted(flow_signals),
             "n_signals": n,
@@ -525,6 +545,7 @@ def lambda_handler(event, context):
         "quad_threats": [s for s in setups if s.get("quad_threat")][:15],
         "triple_threats": [s for s in setups if s.get("triple_threat")][:20],
         "buildout_threats": [s for s in setups if s.get("buildout_threat")][:20],
+        "brain_aligned": [s for s in setups if s.get("brain_aligned")][:25],
         "by_verdict": dict(by_verdict),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,

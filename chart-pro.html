@@ -2569,8 +2569,9 @@ class UI {
       return `<div class="setup-card" data-ticker="${UI.esc(s.ticker)}">
         <div><div class="setup-verdict ${vClass(s.verdict)}">${UI.esc(s.verdict)}</div><div class="setups-conf-bar">${pips}</div></div>
         <div class="setup-mid">
-          <div class="setup-tk">${UI.esc(s.ticker)} <span class="conv">conviction ${(s.conviction||0).toFixed(0)}</span> <span style="font-size:9.5px;color:var(--fg-3)">${s.n_signals} signals</span></div>
+          <div class="setup-tk">${UI.esc(s.ticker)} <span class="conv">conviction ${(s.conviction||0).toFixed(0)}</span> <span style="font-size:9.5px;color:var(--fg-3)">${s.n_signals} signals</span>${s.brain_aligned ? ` <span class="brain-badge" title="Aligns with your Brain: ${UI.esc(s.brain_aligned)}">🧠</span>` : ''}</div>
           <div class="setup-sigs">${sigs}</div>
+          ${s.brain_aligned ? `<div class="setup-why" style="color:#a78bfa">🧠 On your brain: ${UI.esc(s.brain_aligned)}</div>` : ''}
           ${s.why ? `<div class="setup-why">💡 ${UI.esc(s.why)}</div>` : ''}
           ${s.thesis ? `<div class="setup-thesis">${UI.esc(s.thesis)}</div>` : ''}
         </div>
