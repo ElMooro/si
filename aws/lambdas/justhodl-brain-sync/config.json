@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-brain-sync",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 30,
+  "memory": 128,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Mirror the user's Brain (philosophy/rules/theses) from KV to S3 for engine consumption",
+  "environment_keys": [],
+  "schedule": { "expression": "rate(15 minutes)", "name": "justhodl-brain-sync-15min", "description": "Sync brain notes every 15 min" }
+}

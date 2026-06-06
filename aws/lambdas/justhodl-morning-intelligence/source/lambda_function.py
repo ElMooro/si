@@ -187,6 +187,9 @@ def load_all():
         "dix":"data/dix.json",
         # ─── Crypto Perp Funding (Bloomberg-Gap #6) ──────────────────
         "crypto_funding":"data/crypto-funding.json",
+        # ─── The Brain: Khalid's investing philosophy/rules/theses (read so the
+        # brief reflects what HE cares about, not just generic signals) ──
+        "brain":"data/brain.json",
         # ─── Crypto cycle dump-risk gauge (halving + macro + flows + AI rotation) ──
         "crypto_dump_risk":"data/crypto-cycle-risk.json",
         # ─── Earnings Call Transcript Sentiment NLP (Bloomberg-Gap #5) ──
@@ -741,6 +744,11 @@ def extract_metrics(data,weights):
             "dix_history_days": d.get("n_history_days"),
         })(),
         # ─── Crypto Perp Funding (Bloomberg-Gap #6) — OKX hourly ─────
+        **(lambda c=data.get("brain", {}): {
+            "brain_prompt_block": c.get("prompt_block"),
+            "brain_n_pinned": c.get("n_pinned"),
+            "brain_tickers": c.get("mentioned_tickers"),
+        })(),
         **(lambda c=data.get("crypto_dump_risk", {}): {
             "crypto_dump_risk_score": c.get("dump_risk_score"),
             "crypto_dump_risk_level": c.get("risk_level"),
@@ -1085,6 +1093,8 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
     parts=[
         templates["morning_brief"],
         "",
+        *(["=== KHALID'S BRAIN (his investing philosophy & rules — honor these first; let them shape tone, focus, and which signals you emphasize) ===",
+           str(m.get("brain_prompt_block")), ""] if m.get("brain_prompt_block") else []),
         "=== LIVE DATA "+date_str+" ===",
         "KHALID: "+str(m["khalid_raw"])+"/100 weight:"+str(round(m["khalid_weight"],2))+"x adj:"+str(m["khalid_adj"])+" REGIME:"+str(m["khalid_regime"])+" PHASE:"+str(m["phase"]),
         "EDGE: "+str(m["edge_score"])+"/100 ("+str(m["edge_regime"])+") ML_RISK:"+str(m["ml_risk"])+" CARRY:"+str(m["carry_risk"])+" CRISIS_DIST:"+str(m["crisis_dist"])+"pts",

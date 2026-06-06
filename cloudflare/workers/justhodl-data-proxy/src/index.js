@@ -93,6 +93,63 @@ export default {
     }
 
     // ─── PER-USER DATA SYNC (watchlists, flags, settings) ───
+    // ── /brain — the system's "brain": Khalid's persistent investing notes &
+    // principles. GET is public (it's philosophy, low-harm to read). PUT requires
+    // a PIN (X-Brain-Pin header). The PIN is self-bootstrapping: the first PUT
+    // sets it (hashed in KV); later PUTs must match. No env secret needed. ──
+    if (url.pathname === "/brain") {
+      if (!env.USER_DATA) {
+        return new Response(JSON.stringify({ error: "store unavailable" }),
+          { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const BRAIN_KEY = "brain:khalid";
+      const PIN_KEY = "brain:pinhash";
+      async function sha(s) {
+        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("jhsalt:" + s));
+        return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+      }
+      if (request.method === "GET") {
+        const stored = await env.USER_DATA.get(BRAIN_KEY);
+        const hasPin = !!(await env.USER_DATA.get(PIN_KEY));
+        const body = stored ? JSON.parse(stored) : { notes: [], empty: true };
+        body.pin_set = hasPin;
+        return new Response(JSON.stringify(body),
+          { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
+      }
+      if (request.method === "PUT" || request.method === "POST") {
+        const pin = request.headers.get("X-Brain-Pin") || "";
+        if (!pin || pin.length < 4) {
+          return new Response(JSON.stringify({ error: "pin required (min 4 chars)" }),
+            { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        }
+        const existing = await env.USER_DATA.get(PIN_KEY);
+        const ph = await sha(pin);
+        if (existing) {
+          if (ph !== existing) {
+            return new Response(JSON.stringify({ error: "wrong pin" }),
+              { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          }
+        } else {
+          await env.USER_DATA.put(PIN_KEY, ph);   // bootstrap: first PIN wins
+        }
+        try {
+          const bodyText = await request.text();
+          if (bodyText.length > 800000) {
+            return new Response(JSON.stringify({ error: "too large" }),
+              { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          }
+          JSON.parse(bodyText);  // validate
+          await env.USER_DATA.put(BRAIN_KEY, bodyText);
+          return new Response(JSON.stringify({ ok: true, saved_at: Date.now() }),
+            { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        } catch (e) {
+          return new Response(JSON.stringify({ error: "invalid json", detail: String(e).slice(0, 80) }),
+            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        }
+      }
+      return new Response("method not allowed", { status: 405, headers: corsHeaders() });
+    }
+
     // GET  /userdata/:uid           → returns stored JSON blob for user
     // PUT  /userdata/:uid {json}    → stores JSON blob for user
     // Keyed by anonymous device UID generated client-side. Backed by KV.

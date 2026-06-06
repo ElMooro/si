@@ -1,0 +1,202 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Brain · JustHodl AI</title><meta name="robots" content="noindex">
+<meta name="description" content="The brain of the system — your investing philosophy, principles, theses, and reminders. Permanently stored and read by your engines.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--violet);border-radius:50%;box-shadow:0 0 9px var(--violet)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--violet)}
+.savebadge{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg-3)}
+.savebadge.saving{color:var(--amber)}.savebadge.saved{color:var(--green)}.savebadge.err{color:var(--red)}
+.wrap{max-width:860px;margin:0 auto;padding:30px 22px 90px}
+.hero h1{font-size:27px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 18px;max-width:680px;line-height:1.5}
+.composer{background:var(--bg-1);border:1px solid var(--border-bright);border-radius:14px;padding:16px;margin-bottom:22px}
+.cat-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.cat-chip{font-family:var(--mono);font-size:10.5px;padding:5px 11px;border-radius:14px;border:1px solid var(--border-bright);color:var(--fg-3);cursor:pointer;background:transparent}
+.cat-chip.active{color:var(--bg);font-weight:700}
+.composer textarea{width:100%;background:var(--bg-2);border:1px solid var(--border);border-radius:9px;color:var(--fg-1);padding:13px;font-size:15px;font-family:var(--sans);resize:vertical;min-height:84px;line-height:1.5}
+.composer textarea:focus{outline:none;border-color:var(--violet)}
+.composer .row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.btn{padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;border:1px solid;font-family:var(--sans)}
+.btn.primary{background:var(--violet);border-color:var(--violet);color:var(--bg)}
+.btn.ghost{background:transparent;border-color:var(--border-bright);color:var(--fg-2);padding:7px 13px;font-size:12px}
+.hint{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin-left:auto}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filter-row .fl{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-right:4px}
+.note{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:11px;position:relative}
+.note .ntop{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.note .ncat{font-family:var(--mono);font-size:9.5px;font-weight:700;padding:2px 9px;border-radius:11px}
+.note .ndate{font-family:var(--mono);font-size:10px;color:var(--fg-3)}
+.note .npin{font-size:11px;color:var(--amber);cursor:pointer;margin-left:2px}
+.note .nactions{margin-left:auto;display:flex;gap:8px;opacity:0;transition:opacity .15s}
+.note:hover .nactions{opacity:1}
+.note .na{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);cursor:pointer}
+.note .na:hover{color:var(--cyan)}.note .na.del:hover{color:var(--red)}
+.note .nbody{font-size:14.5px;line-height:1.55;color:var(--fg-1);white-space:pre-wrap;word-wrap:break-word}
+.note.pinned{border-color:rgba(251,191,36,0.4)}
+.note .nedit{width:100%;background:var(--bg-2);border:1px solid var(--violet);border-radius:8px;color:var(--fg-1);padding:11px;font-size:14.5px;font-family:var(--sans);resize:vertical;min-height:70px;line-height:1.5}
+.empty{text-align:center;color:var(--fg-3);padding:40px;font-family:var(--mono);font-size:13px}
+.pin-modal{position:fixed;inset:0;background:rgba(4,6,10,.7);backdrop-filter:blur(4px);z-index:999;display:none;align-items:center;justify-content:center}
+.pin-modal.on{display:flex}
+.pin-box{background:var(--bg-1);border:1px solid var(--border-bright);border-radius:14px;padding:24px;width:min(340px,92vw)}
+.pin-box h3{color:var(--fg-0);margin-bottom:6px}.pin-box p{color:var(--fg-2);font-size:12.5px;margin-bottom:14px;line-height:1.5}
+.pin-box input{width:100%;background:var(--bg-2);border:1px solid var(--border-bright);border-radius:8px;color:var(--fg-1);padding:11px;font-size:16px;font-family:var(--mono);margin-bottom:12px;text-align:center;letter-spacing:3px}
+.pin-err{color:var(--red);font-size:12px;min-height:15px;margin-bottom:8px;text-align:center}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Home</a><a href="/my-portfolio.html">Portfolio</a><a href="/brain.html" class="active">🧠 Brain</a><a href="/ask.html">Ask</a></nav>
+  <span class="savebadge" id="savebadge"></span>
+</header>
+<div class="wrap">
+  <div class="hero"><h1>The <span class="grad">Brain</span></h1>
+  <p>What's on your mind about the markets — your philosophy, rules, theses, and reminders. Stored permanently and read by your engines, so the system focuses on what matters to <i>you</i>. Pin the principles you never want to forget.</p></div>
+
+  <div class="composer" id="composer">
+    <div class="cat-row" id="cat-row"></div>
+    <textarea id="note-input" placeholder="A principle, a thesis, a rule, something you've learned the hard way…&#10;e.g. 'Never confuse the end of QT with the start of QE — wait for the balance sheet to actually expand.'"></textarea>
+    <div class="row">
+      <button class="btn primary" id="add-btn">Add to Brain</button>
+      <span class="hint" id="composer-hint">Cmd/Ctrl+Enter to add</span>
+    </div>
+  </div>
+
+  <div class="filter-row" id="filter-row"></div>
+  <div id="notes"><div class="loading">Loading your brain…</div></div>
+</div>
+
+<div class="pin-modal" id="pin-modal"><div class="pin-box">
+  <h3 id="pin-title">Set your Brain PIN</h3>
+  <p id="pin-desc">First time here — choose a PIN (min 4 chars) to protect your notes. You'll need it to save changes.</p>
+  <input id="pin-input" type="password" placeholder="••••" autocomplete="off">
+  <div class="pin-err" id="pin-err"></div>
+  <button class="btn primary" id="pin-ok" style="width:100%">Continue</button>
+</div></div>
+
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const CATS=[
+  {id:"philosophy",label:"Philosophy",c:"#a78bfa"},
+  {id:"rule",label:"Rule",c:"#26ffaf"},
+  {id:"thesis",label:"Thesis",c:"#22d3ee"},
+  {id:"macro",label:"Macro View",c:"#fb923c"},
+  {id:"watchlist",label:"Watchlist",c:"#fbbf24"},
+  {id:"lesson",label:"Lesson",c:"#ff5577"},
+  {id:"reminder",label:"Reminder",c:"#6f7b91"},
+];
+const catC=id=>(CATS.find(c=>c.id===id)||{c:"#6f7b91"}).c;
+const catL=id=>(CATS.find(c=>c.id===id)||{label:id}).label;
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let STATE={notes:[],pin_set:false};
+let PIN=sessionStorage.getItem('jh_brain_pin')||"";
+let activeCat="philosophy", filterCat="all";
+
+function badge(t,cls){const b=document.getElementById('savebadge');b.textContent=t;b.className='savebadge '+(cls||'');}
+function fmtDate(ts){const d=new Date(ts);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});}
+function uid(){return 'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+function renderCats(){
+  document.getElementById('cat-row').innerHTML=CATS.map(c=>
+    `<span class="cat-chip ${c.id===activeCat?'active':''}" data-cat="${c.id}" style="${c.id===activeCat?`background:${c.c};border-color:${c.c}`:''}">${c.label}</span>`).join('');
+  document.querySelectorAll('#cat-row .cat-chip').forEach(el=>el.onclick=()=>{activeCat=el.dataset.cat;renderCats();});
+}
+function renderFilters(){
+  const counts={}; STATE.notes.forEach(n=>counts[n.cat]=(counts[n.cat]||0)+1);
+  let h=`<span class="fl">FILTER</span><span class="cat-chip ${filterCat==='all'?'active':''}" data-f="all" style="${filterCat==='all'?'background:#2a3550;border-color:#2a3550;color:#fff':''}">All (${STATE.notes.length})</span>`;
+  CATS.forEach(c=>{if(counts[c.id])h+=`<span class="cat-chip ${filterCat===c.id?'active':''}" data-f="${c.id}" style="${filterCat===c.id?`background:${c.c};border-color:${c.c};color:#0a0e14`:''}">${c.label} (${counts[c.id]})</span>`;});
+  document.getElementById('filter-row').innerHTML=h;
+  document.querySelectorAll('#filter-row .cat-chip').forEach(el=>el.onclick=()=>{filterCat=el.dataset.f;renderFilters();renderNotes();});
+}
+function renderNotes(){
+  const box=document.getElementById('notes');
+  let list=STATE.notes.slice();
+  if(filterCat!=='all')list=list.filter(n=>n.cat===filterCat);
+  // pinned first, then newest
+  list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||b.created-a.created);
+  if(!list.length){box.innerHTML='<div class="empty">Nothing here yet. Add the first thing on your mind. 🧠</div>';return;}
+  box.innerHTML=list.map(n=>`
+    <div class="note ${n.pinned?'pinned':''}" data-id="${n.id}">
+      <div class="ntop">
+        <span class="ncat" style="color:${catC(n.cat)};border:1px solid ${catC(n.cat)}">${esc(catL(n.cat))}</span>
+        <span class="ndate">${fmtDate(n.created)}${n.edited?' · edited':''}</span>
+        <span class="npin" title="${n.pinned?'Unpin':'Pin'}" data-act="pin">${n.pinned?'📌':'📍'}</span>
+        <span class="nactions"><span class="na" data-act="edit">edit</span><span class="na del" data-act="del">delete</span></span>
+      </div>
+      <div class="nbody">${esc(n.text)}</div>
+    </div>`).join('');
+  box.querySelectorAll('.note').forEach(el=>{
+    const id=el.dataset.id;
+    el.querySelector('[data-act="pin"]').onclick=()=>{const n=STATE.notes.find(x=>x.id===id);n.pinned=!n.pinned;save();renderNotes();};
+    el.querySelector('[data-act="del"]').onclick=()=>{if(confirm('Delete this note permanently?')){STATE.notes=STATE.notes.filter(x=>x.id!==id);save();renderNotes();renderFilters();}};
+    el.querySelector('[data-act="edit"]').onclick=()=>startEdit(el,id);
+  });
+}
+function startEdit(el,id){
+  const n=STATE.notes.find(x=>x.id===id);
+  const body=el.querySelector('.nbody');
+  const ta=document.createElement('textarea');ta.className='nedit';ta.value=n.text;
+  body.replaceWith(ta);ta.focus();
+  const finish=(save_)=>{
+    if(save_){const v=ta.value.trim();if(v&&v!==n.text){n.text=v;n.edited=Date.now();save();}}
+    renderNotes();
+  };
+  ta.onblur=()=>finish(true);
+  ta.onkeydown=(e)=>{if(e.key==='Escape')finish(false);if((e.metaKey||e.ctrlKey)&&e.key==='Enter')finish(true);};
+}
+function addNote(){
+  const ta=document.getElementById('note-input');const v=ta.value.trim();if(!v)return;
+  STATE.notes.unshift({id:uid(),cat:activeCat,text:v,created:Date.now(),pinned:false});
+  ta.value='';save();renderNotes();renderFilters();
+}
+
+async function save(){
+  if(!PIN){openPin();return;}
+  badge('saving…','saving');
+  try{
+    const payload={notes:STATE.notes,updated_at:new Date().toISOString(),v:1};
+    const r=await fetch(`${PROXY}/brain`,{method:'PUT',headers:{'Content-Type':'application/json','X-Brain-Pin':PIN},body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(d.ok){badge('✓ saved to brain','saved');setTimeout(()=>badge(''),2000);}
+    else if(r.status===403){PIN='';sessionStorage.removeItem('jh_brain_pin');badge('wrong PIN','err');openPin('Wrong PIN','Enter your Brain PIN to save.');}
+    else{badge(d.error||'save failed','err');}
+  }catch(e){badge('offline — retry','err');}
+}
+async function load(){
+  try{
+    const r=await fetch(`${PROXY}/brain?t=${Date.now()}`);const d=await r.json();
+    STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;
+  }catch(e){STATE.notes=[];}
+  renderCats();renderFilters();renderNotes();
+}
+
+// PIN modal
+function openPin(title,desc){
+  const m=document.getElementById('pin-modal');
+  document.getElementById('pin-title').textContent=title||(STATE.pin_set?'Enter your Brain PIN':'Set your Brain PIN');
+  document.getElementById('pin-desc').textContent=desc||(STATE.pin_set?'Enter your PIN to save changes to your brain.':'First time here — choose a PIN (min 4 chars) to protect your notes.');
+  document.getElementById('pin-err').textContent='';
+  document.getElementById('pin-input').value='';
+  m.classList.add('on');setTimeout(()=>document.getElementById('pin-input').focus(),30);
+}
+document.getElementById('pin-ok').onclick=()=>{
+  const v=document.getElementById('pin-input').value.trim();
+  if(v.length<4){document.getElementById('pin-err').textContent='Min 4 characters';return;}
+  PIN=v;sessionStorage.setItem('jh_brain_pin',v);
+  document.getElementById('pin-modal').classList.remove('on');
+  save();
+};
+document.getElementById('pin-input').onkeydown=(e)=>{if(e.key==='Enter')document.getElementById('pin-ok').click();};
+
+document.getElementById('add-btn').onclick=addNote;
+document.getElementById('note-input').onkeydown=(e)=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter')addNote();};
+load();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
