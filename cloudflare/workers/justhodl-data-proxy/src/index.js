@@ -153,6 +153,21 @@ export default {
     // GET /quotes?tickers=AAPL,MSFT,NVDA → live snapshot via Polygon
     // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
     // Cached 30s at edge. Polygon key from worker env (server-side, secure).
+    if (url.pathname === "/aff-click") {
+      // Privacy-safe affiliate click counter (no PII). Increments a KV counter.
+      try {
+        const p = (url.searchParams.get("p") || "unknown").slice(0, 40);
+        if (env.USER_DATA) {
+          const k = "affclick:" + p + ":" + new Date().toISOString().slice(0, 10);
+          const cur = parseInt(await env.USER_DATA.get(k) || "0", 10) || 0;
+          await env.USER_DATA.put(k, String(cur + 1), { expirationTtl: 60 * 60 * 24 * 120 });
+        }
+        return new Response("ok", { headers: corsHeaders() });
+      } catch (e) {
+        return new Response("ok", { headers: corsHeaders() });
+      }
+    }
+
     if (url.pathname === "/create-checkout" && request.method === "POST") {
       // Create a Stripe Checkout session for a signed-in user. Body: {priceId,
       // userId, email, returnUrl}. Requires STRIPE_SECRET env (test or live).

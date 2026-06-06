@@ -2802,6 +2802,7 @@ class UI {
     // Wire the OVERVIEW quote panel (was dead — populate Last/Chg/Vol/MktCap/52W)
     if (tab === 'overview' && ticker) {
       InfoPanel.populateQuote(ticker);
+      if (window.Affiliates) { try { Affiliates.renderInline('cp-affiliates', { ticker, heading: 'Trade ' + ticker }); } catch(e){} }
     }
 
     // Wire notes tab editor
@@ -2901,6 +2902,7 @@ class UI {
           <div class="quote-row"><span class="quote-label">52W High</span><span class="quote-value" id="ov-52h">—</span></div>
           <div class="quote-row"><span class="quote-label">52W Low</span><span class="quote-value" id="ov-52l">—</span></div>
         </div>
+        <div id="cp-affiliates"></div>
       </div>
     `;
     
@@ -6332,6 +6334,7 @@ if (document.readyState === 'loading') {
 
 <script src="/regime-ribbon.js"></script>
 <script>if(window.RegimeRibbon)RegimeRibbon.mount({target:'cp-regime-ribbon',position:'inline',compact:true});</script>
+<script src="/affiliates.js"></script>
 <script src="/cmdk.js"></script>
 </body>
 </html>
