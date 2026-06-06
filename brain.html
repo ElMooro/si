@@ -278,7 +278,7 @@ async function handleFiles(files){
       let added=0;
       blocks.forEach(b=>{
         // merge tiny fragments; cap very long blocks
-        const txt=b.length>1200?b.slice(0,1200)+'…':b;
+        const txt=b.length>8000?b.slice(0,8000)+'…':b;
         STATE.notes.unshift({id:uid(),cat:activeCat,text:txt,created:Date.now()+(added++),pinned:false,source:name});
       });
       dzStatus(name,'ok',`imported ${added} note${added>1?'s':''} → ${activeCat}`);
@@ -313,7 +313,7 @@ document.addEventListener('paste',async(e)=>{
       try{
         const text=(await ocrImage(blob,p=>dzStatus(nm,'working','OCR '+p+'%'))).trim();
         if(!text){dzStatus(nm,'err','no text found in image');return;}
-        STATE.notes.unshift({id:uid(),cat:activeCat,text:text.length>1200?text.slice(0,1200)+'…':text,created:Date.now(),pinned:false,source:'pasted image'});
+        STATE.notes.unshift({id:uid(),cat:activeCat,text:text.length>8000?text.slice(0,8000)+'…':text,created:Date.now(),pinned:false,source:'pasted image'});
         dzStatus(nm,'ok','imported → '+activeCat);
         save();renderNotes();renderFilters();
       }catch(err){dzStatus(nm,'err',(err&&err.message)||'OCR failed');}

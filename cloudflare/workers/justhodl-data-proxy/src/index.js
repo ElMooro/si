@@ -129,7 +129,7 @@ export default {
           if (!pj) throw new Error("invalid json");
           if (pj._pin) delete pj._pin;
           const bodyText = JSON.stringify(pj);
-          if (bodyText.length > 800000) {
+          if (bodyText.length > 10000000) {
             return new Response(JSON.stringify({ error: "too large" }), { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
           await env.USER_DATA.put(JKEY, bodyText);
@@ -198,19 +198,18 @@ export default {
           // strip the pin before storing — never persist it in the notes blob
           if (parsedBody._pin) delete parsedBody._pin;
           const bodyText = JSON.stringify(parsedBody);
-          if (bodyText.length > 800000) {
+          if (bodyText.length > 10000000) {
             return new Response(JSON.stringify({ error: "too large" }),
               { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
-          // Safety net: snapshot the PREVIOUS value into a rolling 3-deep backup.
+          // Safety net: keep ONE previous version as a restore point. Single-deep
+          // (not stacked) so the backup key can never exceed the 25MB KV value
+          // limit even when notes grow large. The export button + S3 mirror give
+          // deeper history.
           try {
             const prevCur = await env.USER_DATA.get(BRAIN_KEY);
-            if (prevCur) {
-              let baks = [];
-              try { baks = JSON.parse(await env.USER_DATA.get(BACKUP_KEY) || "[]"); } catch (e) {}
-              baks.unshift({ at: Date.now(), data: prevCur });
-              baks = baks.slice(0, 3);
-              await env.USER_DATA.put(BACKUP_KEY, JSON.stringify(baks));
+            if (prevCur && prevCur.length < 12000000) {
+              await env.USER_DATA.put(BACKUP_KEY, JSON.stringify({ at: Date.now(), data: prevCur }));
             }
           } catch (e) { /* best-effort */ }
           await env.USER_DATA.put(BRAIN_KEY, bodyText);
