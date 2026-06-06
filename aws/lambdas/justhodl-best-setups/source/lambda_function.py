@@ -86,6 +86,12 @@ def learned_weights(calibration):
         "OPTIONS_EXTREME": "OPTIONS_EXTREME", "OPTIONS_BULLISH": "OPTIONS_BULLISH",
         "CASCADE_ALERT": "ALERT", "CASCADE_LAGGARD": "LAGGARD", "CONVERGENCE": "CONVERGENCE",
         "EARLY_MOVER": "EARLY_MOVER", "RETAIL_HOT": "RETAIL_HOT", "RETAIL_VELOCITY": "RETAIL_VELOCITY",
+        # Newer signals — now also self-calibrate from proven forward-return data
+        # once their tier accrues enough scored observations.
+        "DEEP_VALUE_OVERLAP": "DEEP_VALUE_OVERLAP", "DISLOCATION": "DISLOCATION",
+        "COMPOUNDER": "COMPOUNDER", "CAPITAL_FLOW": "CAPITAL_FLOW",
+        "REVISION_UP": "REVISION_UP", "SHORT_SQUEEZE": "SHORT_SQUEEZE",
+        "FDA_CATALYST": "FDA_CATALYST", "GOV_CONTRACT": "GOV_CONTRACT",
     }
     for sig, prior in SIGNAL_PRIORS.items():
         cal_tier = tier_map.get(sig)

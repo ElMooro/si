@@ -1511,6 +1511,7 @@ a:hover { text-decoration: underline; }
         <button class="chg-btn" data-chg="yoy" title="Year-over-year % change">YoY</button>
         <button class="chg-btn" data-chg="ytd" title="Year-to-date % change">YTD</button>
         <button class="chg-btn" data-chg="fromhigh" title="% below the 52-week high (drawdown)">From High</button>
+        <button class="chg-btn" data-chg="vsspy" title="Cumulative out/underperformance vs SPY">vs SPY</button>
       </div>
       <div class="tf-bar cst-bar" id="cst-bar" title="% change display style">
         <button class="cst-btn active" data-cst="histogram" title="Bars">▮</button>
@@ -3975,7 +3976,7 @@ class NativeChart {
   // Periods in calendar days. For each point, find the value ~N days earlier
   // (nearest at-or-before within tolerance) and compute the % change.
   static CHANGE_PERIODS = { dod: 1, wow: 7, mom: 30.44, qoq: 91.31, yoy: 365 };
-  static CHANGE_LABELS = { dod: 'Day-over-Day', wow: 'Week-over-Week', mom: 'Month-over-Month', qoq: 'Quarter-over-Quarter', yoy: 'Year-over-Year', ytd: 'Year-to-Date', fromhigh: 'Drawdown from 52w High' };
+  static CHANGE_LABELS = { dod: 'Day-over-Day', wow: 'Week-over-Week', mom: 'Month-over-Month', qoq: 'Quarter-over-Quarter', yoy: 'Year-over-Year', ytd: 'Year-to-Date', fromhigh: 'Drawdown from 52w High', vsspy: 'Relative Strength vs SPY' };
   
   // Latest period-over-period % change for ALL modes from one series.
   static latestChanges(series) {
@@ -4069,11 +4070,43 @@ class NativeChart {
   }
   
   // Render the % change as a FRED-style chart — histogram OR line/area (linear).
-  static renderChange(paneIdx, series, mode, label, ticker) {
+  static _spyCache = null;
+  static async fetchSpySeries() {
+    if (this._spyCache) return this._spyCache;
+    try {
+      const d = await (await fetch(`${PROXY}/ohlc?ticker=SPY&mult=1&span=day&days=2200`)).json();
+      const bars = d.bars || [];
+      this._spyCache = bars.map(b => ({ time: b.time, value: b.close }));
+    } catch (e) { this._spyCache = []; }
+    return this._spyCache;
+  }
+  // Cumulative relative strength vs SPY: both rebased to the window start, then
+  // (ticker_rebased / spy_rebased − 1)×100 = how much the name has out/under-
+  // performed SPY since the start of the visible series. >0 = outperforming.
+  static computeVsSpy(series, spy) {
+    if (!series.length || !spy || !spy.length) return [];
+    const spyMap = new Map(spy.map(p => [p.time, p.value]));
+    // align: keep ticker points that have a SPY value
+    const aligned = series.filter(p => spyMap.has(p.time) && p.value && spyMap.get(p.time));
+    if (aligned.length < 2) return [];
+    const t0 = aligned[0].value, s0 = spyMap.get(aligned[0].time);
+    return aligned.map(p => {
+      const tr = p.value / t0, sr = spyMap.get(p.time) / s0;
+      return { time: p.time, value: (tr / sr - 1) * 100 };
+    });
+  }
+
+  static async renderChange(paneIdx, series, mode, label, ticker) {
     const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
     if (!chartEl || typeof LightweightCharts === 'undefined') return;
     chartEl.innerHTML = '';
-    const data = this.computeChange(series, mode);
+    let data;
+    if (mode === 'vsspy') {
+      const spy = await this.fetchSpySeries();
+      data = this.computeVsSpy(series, spy);
+    } else {
+      data = this.computeChange(series, mode);
+    }
     if (!data.length) {
       const le = document.getElementById(`nch-loading-${paneIdx}`);
       if (le) { le.style.display = 'flex'; le.textContent = `Not enough history for ${this.CHANGE_LABELS[mode]} on ${ticker}`; }
