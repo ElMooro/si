@@ -149,10 +149,6 @@ export default {
       );
     }
 
-    if (request.method !== "GET" && request.method !== "HEAD") {
-      return new Response("method not allowed", { status: 405, headers: corsHeaders() });
-    }
-
     // ─── BATCH QUOTES ROUTE ───
     // GET /quotes?tickers=AAPL,MSFT,NVDA → live snapshot via Polygon
     // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
@@ -716,6 +712,13 @@ export default {
         return new Response(JSON.stringify({ symbols: [], error: String(e) }),
           { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
+    }
+
+    // Everything below is the read-only S3 data proxy — GET/HEAD only.
+    // (POST routes like /create-checkout, /stripe-webhook, /ask, /register-push
+    // are all handled above this line.)
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      return new Response("method not allowed", { status: 405, headers: corsHeaders() });
     }
 
     const safePath = url.pathname.replace(/^\/+/, "");
