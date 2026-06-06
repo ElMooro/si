@@ -1,0 +1,9 @@
+{
+  "bytes": 6740,
+  "has_authconfig": true,
+  "has_supabase_cdn": true,
+  "has_authjs": true,
+  "has_safety_timeout": true,
+  "has_v3": true,
+  "init_snippet": "DOMContentLoaded', ()=>{\n  let rendered = false;\n  function safeRender(){ try{ rendered = true; render(); }catch(e){ document.getElementById('content').innerHTML='<div class=\"signin-prompt\"><p>Could not load account. <button class=\"btn primary\" onclick=\"JustHodlAuth&&JustHodlAuth.openSignIn()\">Sign in</button></p></div>'; } }\n  if(!window.JustHodlAuth){ document.getElementById('content').innerHTML"
+}
