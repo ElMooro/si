@@ -147,21 +147,36 @@ def lambda_handler(event, context):
     # ── The Brain: Khalid's pinned principles + watched tickers. We flag setups
     # that align with what's on his mind so the board surfaces HIS theses. ──
     brain = read_json("data/brain.json") or {}
+    brain_directive = brain.get("directive") or {}
     brain_tickers = set((brain.get("mentioned_tickers") or []))
-    brain_pinned = []  # [(lowercased text, original text)] for pinned notes
+    brain_themes = [t.lower() for t in (brain_directive.get("themes") or [])]
+    brain_tilts = {k.lower(): v for k, v in (brain_directive.get("sector_tilts") or {}).items()}
+    brain_pinned = []
     for n in (brain.get("notes") or []):
         if n.get("pinned") and n.get("text"):
             brain_pinned.append((n["text"].lower(), n["text"]))
     def brain_match(ticker, sector, signal_keys):
-        """Return the matched pinned-principle text if this setup aligns with the
-        user's brain — by ticker mention or by a sector/theme keyword in a pinned
-        note. Conservative: only flags clear matches."""
+        """Smart brain alignment: watched ticker, sector tilt (overweight), theme
+        keyword, or pinned-note match. Returns the matched reason or None."""
         if ticker in brain_tickers:
-            return f"You're watching {ticker}"
-        tl = (ticker or "").lower(); sl = (sector or "").lower()
+            return f"You're tracking {ticker}"
+        sl = (sector or "").lower()
+        # sector tilt from the AI directive
+        for sec, stance in brain_tilts.items():
+            if sl and (sl in sec or sec in sl):
+                low = stance.lower()
+                if "overweight" in low:
+                    return f"Your brain is overweight {sector}: {stance[:90]}"
+                if "avoid" in low or "underweight" in low:
+                    return None  # don't flag setups you want to avoid
+        # theme match against sector
+        for th in brain_themes:
+            if sl and (sl in th or any(w in th for w in sl.split())):
+                return f"Fits your theme: {th}"
+        tl = (ticker or "").lower()
         for low, orig in brain_pinned:
-            if (tl and tl in low.split()) or (sl and sl in low):
-                return orig[:120]
+            if tl and tl in low.split():
+                return orig[:110]
         return None
     bv_regime = (bond_vol.get("regime") or "").upper()
 

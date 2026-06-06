@@ -104,7 +104,8 @@ def build_context():
                               "pt": v.get("price_target_12m"), "theme": v.get("theme")}
                         for tk, v in list((da.get("by_ticker") or {}).items())[:15]}
     brain = read_json("data/brain.json") or {}
-    ctx["_brain"] = {"prompt_block": brain.get("prompt_block"), "tickers": brain.get("mentioned_tickers")}
+    ctx["_brain"] = {"prompt_block": brain.get("prompt_block"), "tickers": brain.get("mentioned_tickers"),
+                     "directive": brain.get("directive")}
     return ctx
 
 
