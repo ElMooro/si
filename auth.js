@@ -67,6 +67,7 @@
 
   const JustHodlAuth = {
     async init() {
+      this._injectCSS();
       if (!ENABLED) { this._renderAuthUI(); return; }
       if (typeof window.supabase === "undefined") {
         console.warn("[auth] Supabase JS not loaded; running anonymous.");
@@ -176,6 +177,40 @@
     },
 
     // ── UI: inject a sign-in button / user menu into [data-auth-slot] ──
+    _injectCSS() {
+      if (document.getElementById("jh-auth-css")) return;
+      const s = document.createElement("style"); s.id = "jh-auth-css";
+      s.textContent = [
+        ".jh-signin-btn{background:#26ffaf;color:#0a0e14;border:none;border-radius:7px;padding:7px 16px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit}",
+        ".jh-signin-btn:hover{background:#1be89a}",
+        ".jh-auth-anon{font-family:ui-monospace,monospace;font-size:10px;color:#6f7b91;border:1px solid #2a3550;padding:3px 8px;border-radius:6px}",
+        ".jh-user-menu{position:relative}",
+        ".jh-user-trigger{display:flex;align-items:center;gap:7px;cursor:pointer;padding:4px 8px;border:1px solid #2a3550;border-radius:8px}",
+        ".jh-avatar{width:24px;height:24px;border-radius:50%;background:#22d3ee;color:#0a0e14;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}",
+        ".jh-caret{color:#6f7b91;font-size:9px}",
+        ".jh-tier-badge{font-family:ui-monospace,monospace;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;border:1px solid}",
+        ".jh-tier-badge.pro{color:#22d3ee;border-color:#22d3ee}.jh-tier-badge.elite{color:#a78bfa;border-color:#a78bfa}",
+        ".jh-user-dropdown{position:absolute;right:0;top:120%;background:#0c1018;border:1px solid #2a3550;border-radius:10px;padding:10px;min-width:200px;display:none;z-index:9999;box-shadow:0 12px 40px rgba(0,0,0,.5)}",
+        ".jh-user-menu.open .jh-user-dropdown{display:block}",
+        ".jh-user-email{font-size:12px;color:#e1e8f4;font-family:ui-monospace,monospace;padding:4px 6px;word-break:break-all}",
+        ".jh-user-tier{font-size:11px;color:#6f7b91;padding:4px 6px;border-bottom:1px solid #1c2433;margin-bottom:4px}",
+        ".jh-menu-link{display:block;padding:8px 6px;color:#a8b3c7;font-size:13px;text-decoration:none;border-radius:5px}",
+        ".jh-menu-link:hover{background:#131929;color:#fff}",
+        "#jh-auth-modal{position:fixed;inset:0;background:rgba(4,6,10,.7);backdrop-filter:blur(4px);z-index:99999;display:flex;align-items:center;justify-content:center}",
+        "#jh-auth-modal .jh-box{background:#0c1018;border:1px solid #2a3550;border-radius:16px;padding:26px;width:min(380px,92vw);font-family:-apple-system,system-ui,sans-serif}",
+        "#jh-auth-modal h2{color:#fff;font-size:20px;margin-bottom:6px}",
+        "#jh-auth-modal p{color:#a8b3c7;font-size:13px;margin-bottom:18px}",
+        "#jh-auth-modal input{width:100%;background:#0f1420;border:1px solid #2a3550;border-radius:8px;color:#e1e8f4;padding:11px 13px;font-size:14px;margin-bottom:10px}",
+        "#jh-auth-modal .jh-oauth{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:#fff;color:#1a1a1a;border:none;border-radius:8px;padding:11px;font-weight:600;font-size:14px;cursor:pointer;margin-bottom:9px}",
+        "#jh-auth-modal .jh-pw-btn{width:100%;background:#26ffaf;color:#0a0e14;border:none;border-radius:8px;padding:11px;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:8px}",
+        "#jh-auth-modal .jh-alt{width:100%;background:transparent;color:#22d3ee;border:1px solid #2a3550;border-radius:8px;padding:10px;font-size:13px;cursor:pointer;margin-bottom:8px}",
+        "#jh-auth-modal .jh-sep{text-align:center;color:#6f7b91;font-size:11px;margin:12px 0;font-family:ui-monospace,monospace}",
+        "#jh-auth-modal .jh-close{position:absolute;top:18px;right:22px;color:#6f7b91;cursor:pointer;font-size:22px}",
+        "#jh-auth-modal .jh-err{color:#ff5577;font-size:12px;min-height:16px;margin-bottom:6px}",
+      ].join("");
+      document.head.appendChild(s);
+    },
+
     _renderAuthUI() {
       const slots = document.querySelectorAll("[data-auth-slot]");
       slots.forEach((slot) => {

@@ -160,6 +160,7 @@ tr:hover td{background:var(--panel2)}
       <a href="/intelligence/">intelligence</a>
       <a href="/defcon.html">defcon</a>
     </nav>
+  <div data-auth-slot style="margin-left:auto"></div>
   </header>
 
   <div id="hero"><div class="loading">LOADING SIGNAL BOARD…</div></div>
@@ -222,5 +223,9 @@ function catColor(v){return v>=0.75?"var(--green)":v>=0.2?"var(--cyan)":v<=-0.75
 </script>
 <script src="/cmdk.js"></script>
 <script src="/symbol-bar.js"></script>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 </body>
 </html>

@@ -50,6 +50,7 @@ a{color:var(--cyan);text-decoration:none}
     <a href="/capital-flow.html" class="active">Capital Flow</a><a href="/download.html">Download</a>>Pricing</a>
     <a href="/deep-value-overlap.html">Overlap Board</a><a href="/backlog.html">Backlog</a><a href="/my-portfolio.html">My Portfolio</a><a href="/ask.html">Ask</a><a href="/track-public.html">Track Record</a>
   </nav>
+  <div data-auth-slot style="margin-left:auto"></div>
   <div class="spacer"></div>
 </header>
 <section class="hero">
@@ -121,5 +122,9 @@ load();
 <script src="/wl-lens.js"></script>
 <script>(function(){function go(){if(window.WLLens){WLLens.mount({rowSelector:'.row',tickerFn:r=>{var m=(r.textContent||'').match(/\b[A-Z]{1,5}\b/);return m?m[0]:''}});}}setTimeout(go,1200);})();</script>
 <script src="/symbol-bar.js"></script>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 </body>
 </html>

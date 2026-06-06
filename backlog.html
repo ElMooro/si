@@ -32,7 +32,8 @@ td.l,th.l{text-align:left}
 <header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
 <nav class="nav"><a href="/">Home</a><a href="/opportunities.html">Opportunities</a><a href="/deep-value-overlap.html">Overlap Board</a><a href="/backlog.html" class="active">Backlog Radar</a><a href="/glossary.html">Glossary</a>
     <a href="/dislocations.html">Buy the Laggard</a><a href="/compounders.html">Compounders</a><a href="/capital-flow.html">Capital Flow</a><a href="/my-portfolio.html">My Portfolio</a><a href="/ask.html">Ask</a><a href="/track-public.html">Track Record</a>
-  </nav></header>
+  </nav>
+  <div data-auth-slot style="margin-left:auto"></div></header>
 <div class="wrap">
 <div class="hero"><h1>Backlog / RPO <span class="grad">Radar</span></h1>
 <p>Order backlog, remaining performance obligations (RPO), and deferred-revenue growth straight from <b>SEC XBRL filings</b>. When RPO grows faster than revenue, demand is accelerating — a signal that <b>leads earnings by 1–2 quarters</b>. Free, structured, across the universe.</p></div>
@@ -87,4 +88,8 @@ load();
 <script src="/wl-lens.js"></script>
 <script>(function(){function go(){if(window.WLLens){WLLens.mount({rowSelector:'#content tbody tr',tickerFn:r=>{var e=r.querySelector('.tk');return e?e.textContent:''}, mountTarget:'#content'});}}setTimeout(go,1200);})();</script>
 <script src="/symbol-bar.js"></script>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 </body></html>

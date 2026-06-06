@@ -37,6 +37,7 @@ td.cls{font-family:var(--mono);color:var(--fg-1)}
 <header class="header">
   <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
   <nav class="nav"><a href="/">Home</a><a href="/opportunities.html">Opportunities</a><a href="/capital-flow.html">Capital Flow</a><a href="/track-public.html" class="active">Track Record</a><a href="/proof.html">Proof</a><a href="/dislocations.html">Buy the Laggard</a><a href="/compounders.html">Compounders</a><a href="/deep-value-overlap.html">Overlap Board</a><a href="/backlog.html">Backlog</a><a href="/my-portfolio.html">My Portfolio</a><a href="/ask.html">Ask</a><a href="/pricing.html">Pricing</a></nav>
+  <div data-auth-slot style="margin-left:auto"></div>
 </header>
 <div class="wrap">
   <div class="hero">
@@ -87,4 +88,8 @@ load();
 </script>
 <script src="/cmdk.js"></script>
 <script src="/symbol-bar.js"></script>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 </body></html>

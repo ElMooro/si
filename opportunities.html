@@ -96,6 +96,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
       <a href="/capital-flow.html">capital flow</a>
       <a href="/my-portfolio.html">my portfolio</a>
     </nav>
+  <div data-auth-slot style="margin-left:auto"></div>
     <div class="searchbar">
       <input id="search" type="text" placeholder="Look up any ticker — e.g. AAPL" autocomplete="off">
       <p class="hint">Type a ticker for its full report — fair value, cycle, peer comparison, the works.</p>
@@ -392,5 +393,9 @@ document.getElementById("search").addEventListener("input",function(){
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['T10Y2Y','BAMLH0A0HYM2']);});</script>
 <script src="/cmdk.js"></script>
 <script src="/symbol-bar.js"></script>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 </body>
 </html>

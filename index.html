@@ -763,6 +763,7 @@ table.tbl tr:last-child td{border-bottom: none}
     <a href="/status.html">STATUS</a>
     <a href="/investor.html">INVESTORS</a>
   </nav>
+  <div data-auth-slot style="margin-left:auto"></div>
   <div class="topbar-meta">
     <span id="clock">—</span>
     <span class="status-pill" id="sysStatus">OPERATIONAL</span>
@@ -3026,5 +3027,9 @@ setInterval(loadAll, 5 * 60 * 1000);  // 5-min auto-refresh
 </footer>
 <script src="/cmdk.js"></script>
 <script src="/symbol-bar.js"></script>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 </body>
 </html>

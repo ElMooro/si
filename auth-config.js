@@ -10,12 +10,12 @@
  * NEVER put the service_role key here — that one stays server-side only.
  */
 window.JUSTHODL_AUTH_CONFIG = {
-  supabaseUrl: "REPLACE_WITH_SUPABASE_URL",
-  supabaseAnonKey: "REPLACE_WITH_SUPABASE_ANON_KEY",
+  supabaseUrl: "https://bdmjenqcyvzouusfcgow.supabase.co",
+  supabaseAnonKey: "sb_publishable_W6V6OaQ9aXvpVVV9k4Lrpg_pCPuBLvB",
 
   // Flip to true after pasting your keys above.
   // When false, the app runs in anonymous mode (device-ID storage, no login UI).
-  enabled: false,
+  enabled: true,
 
   // Data sync worker (per-user KV-backed storage)
   syncBase: "https://justhodl-data-proxy.raafouis.workers.dev",

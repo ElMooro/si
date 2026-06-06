@@ -65,6 +65,7 @@ a{color:var(--cyan);text-decoration:none}
   <div class="sp"></div>
   <a class="cta" href="/index.html">Open Terminal →</a>
 </nav>
+  <div data-auth-slot style="margin-left:auto"></div>
 
 <section class="hero">
   <span class="pill">🚀 EARLY ACCESS · FREE RIGHT NOW</span>
@@ -117,4 +118,8 @@ a{color:var(--cyan);text-decoration:none}
 <div class="footer"><a href="/about.html">About</a>·<a href="/contact.html">Contact</a>·<a href="/glossary.html">Glossary</a>·<a href="/download.html">Download</a>·<a href="/pricing.html">Pricing</a>·<a href="/status.html">Status</a>·<a href="/terms.html">Terms</a>·<a href="/privacy.html">Privacy</a></div>
 <script src="/cmdk.js"></script>
 <script src="/symbol-bar.js"></script>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 </body></html>

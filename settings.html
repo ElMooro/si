@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Account & Settings · JustHodl AI</title><meta name="robots" content="noindex">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}
+.spacer{margin-left:auto}
+.wrap{max-width:620px;margin:0 auto;padding:48px 24px 70px}
+h1{font-size:26px;font-weight:800;color:var(--fg-0);margin-bottom:24px}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+.card h2{font-size:14px;font-family:var(--mono);color:var(--cyan);margin-bottom:14px;letter-spacing:.5px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.row .k{color:var(--fg-3);font-size:13px}.row .v{color:var(--fg-0);font-family:var(--mono);font-size:13px}
+.badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 10px;border-radius:12px;border:1px solid}
+.badge.free{color:var(--fg-3);border-color:var(--border-bright)}.badge.pro{color:var(--cyan);border-color:var(--cyan)}.badge.elite{color:var(--violet);border-color:var(--violet)}
+.btn{display:inline-block;padding:11px 22px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;border:1px solid;font-family:var(--sans)}
+.btn.primary{background:var(--green);border-color:var(--green);color:var(--bg)}
+.btn.ghost{background:transparent;border-color:var(--border-bright);color:var(--fg-2)}
+.signin-prompt{text-align:center;padding:50px 20px}
+.signin-prompt p{color:var(--fg-2);margin-bottom:20px}
+.muted{color:var(--fg-3);font-size:12px;margin-top:8px}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Home</a><a href="/chart-pro.html">Chart Pro</a><a href="/pricing.html">Pricing</a><a href="/my-portfolio.html">My Portfolio</a></nav>
+  <div class="spacer"></div><div data-auth-slot></div>
+</header>
+<div class="wrap">
+  <h1>Account &amp; Settings</h1>
+  <div id="content"><div class="signin-prompt"><p>Loading…</p></div></div>
+</div>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script>
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function render(){
+  const u = JustHodlAuth.getUser();
+  const tier = JustHodlAuth.getTier();
+  const el = document.getElementById('content');
+  if(!u){
+    el.innerHTML = `<div class="signin-prompt">
+      <p>Sign in to manage your account, plan, and synced watchlists.</p>
+      <button class="btn primary" onclick="JustHodlAuth.openSignIn()">Sign In / Create Account</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="card"><h2>👤 Account</h2>
+      <div class="row"><span class="k">Email</span><span class="v">${esc(u.email||'—')}</span></div>
+      <div class="row"><span class="k">User ID</span><span class="v" style="font-size:11px">${esc((u.id||'').slice(0,18))}…</span></div>
+      <div class="row"><span class="k">Signed in via</span><span class="v">${esc((u.app_metadata&&u.app_metadata.provider)||'email')}</span></div>
+    </div>
+    <div class="card"><h2>💎 Plan</h2>
+      <div class="row"><span class="k">Current plan</span><span class="badge ${tier}">${tier.toUpperCase()}</span></div>
+      <div class="row"><span class="k">Manage</span><span><a href="/pricing.html" class="btn ghost" style="padding:7px 14px;font-size:12px">${tier==='free'?'Upgrade':'Change plan'}</a></span></div>
+      <div class="muted">${tier==='free'?'Free during early access. Paid tiers coming soon.':'Thanks for supporting JustHodl.'}</div>
+    </div>
+    <div class="card"><h2>🔭 Watchlists</h2>
+      <div class="row"><span class="k">Sync</span><span class="v" style="color:var(--green)">Cloud-synced ✓</span></div>
+      <div class="muted">Your watchlists now sync across devices via your account.</div>
+    </div>
+    <div class="card"><h2>⚙️ Session</h2>
+      <button class="btn ghost" onclick="JustHodlAuth.signOut()">Sign Out</button>
+    </div>`;
+}
+window.addEventListener('DOMContentLoaded', async ()=>{
+  if(window.JustHodlAuth){ await JustHodlAuth.init(); JustHodlAuth.onChange(render); render(); }
+  else { document.getElementById('content').innerHTML='<div class="signin-prompt"><p>Auth unavailable.</p></div>'; }
+});
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
