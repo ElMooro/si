@@ -74,8 +74,8 @@ a{color:var(--cyan);text-decoration:none}
     <div class="cat-row" id="cat-row"></div>
     <div id="dropzone" class="dropzone">
       <span class="dz-icon">📄</span>
-      <span class="dz-text">Drag &amp; drop <b>.docx, .pdf, images, .txt, .md</b> (scanned/photo notes OCR&#39;d automatically) — or <span class="dz-browse">browse</span> — and the system reads it automatically</span>
-      <input type="file" id="file-input" accept=".docx,.txt,.md,.pdf,.rtf,.png,.jpg,.jpeg,.webp" multiple hidden>
+      <span class="dz-text">Drag &amp; drop <b>.docx, .pdf, .csv, images, .txt, .md</b> (scanned/photo notes OCR&#39;d automatically) — or <span class="dz-browse">browse</span> — and the system reads it automatically</span>
+      <input type="file" id="file-input" accept=".docx,.txt,.md,.pdf,.rtf,.csv,.tsv,.json,.png,.jpg,.jpeg,.webp" multiple hidden>
     </div>
     <div id="dz-status"></div>
     <textarea id="note-input" placeholder="A principle, a thesis, a rule, something you've learned the hard way…&#10;e.g. 'Never confuse the end of QT with the start of QE — wait for the balance sheet to actually expand.'"></textarea>
@@ -261,7 +261,28 @@ async function extractText(file,onProg){
     }
     return out;
   }
-  throw new Error('unsupported type .'+ext);
+  if(ext==='csv'||ext==='tsv'){
+    const raw=await file.text();
+    const sep=ext==='tsv'?'\t':',';
+    const lines=raw.split(/\r?\n/).filter(l=>l.trim());
+    if(!lines.length)return '';
+    // Small files: keep as-is (readable). Large files: header + a compact preview
+    // so the note captures WHAT the data is without dumping thousands of rows.
+    if(lines.length<=40)return `[CSV: ${file.name}]\n`+raw.trim();
+    const header=lines[0];
+    const cols=header.split(sep).length;
+    const preview=lines.slice(0,15).join('\n');
+    const tail=lines.slice(-3).join('\n');
+    return `[CSV: ${file.name} — ${lines.length-1} rows × ${cols} cols]\nColumns: ${header}\n\nFirst rows:\n${preview}\n…\nLast rows:\n${tail}`;
+  }
+  if(ext==='json'){
+    // (only reached via drag, not the import button) — pretty-print
+    try{return '[JSON: '+file.name+']\n'+JSON.stringify(JSON.parse(await file.text()),null,2).slice(0,8000);}catch(e){return await file.text();}
+  }
+  if(ext==='lnk'||ext==='url'||ext==='webloc'){
+    throw new Error('that\u2019s a shortcut, not a document — open it and drop the real file');
+  }
+  throw new Error('unsupported type .'+ext+' — try .docx .pdf .csv .txt .md or an image');
 }
 
 async function handleFiles(files){
