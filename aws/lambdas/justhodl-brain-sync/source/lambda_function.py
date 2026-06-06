@@ -72,6 +72,13 @@ def read_prev():
         return {}
 
 
+def read_history():
+    try:
+        return (json.loads(s3.get_object(Bucket=BUCKET, Key="data/brain-history.json")["Body"].read()) or {}).get("history", [])
+    except Exception:
+        return []
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     try:
@@ -123,10 +130,35 @@ def lambda_handler(event=None, context=None):
     content_hash = hashlib.sha256(all_text.encode()).hexdigest()[:16]
     directive = None
     prev = read_prev()
+    directive_changed = False
     if notes and (prev.get("content_hash") != content_hash or not prev.get("directive")):
         directive = _ai_extract(all_text)
+        directive_changed = bool(directive)
     else:
         directive = prev.get("directive")  # reuse — content unchanged
+
+    # ── TRACK: keep a history of how the brain/worldview evolves over time, so
+    # the system can show what changed and when, and prove it's applying the
+    # latest thinking. Only appends a snapshot when the content actually changes. ──
+    if directive_changed:
+        try:
+            hist = read_history()
+            hist.append({
+                "at": datetime.now(timezone.utc).isoformat(),
+                "content_hash": content_hash,
+                "n_notes": len(notes), "n_pinned": len(pinned),
+                "investor_profile": (directive or {}).get("investor_profile"),
+                "hard_rules": (directive or {}).get("hard_rules"),
+                "themes": (directive or {}).get("themes"),
+                "sector_tilts": (directive or {}).get("sector_tilts"),
+                "risk_posture": (directive or {}).get("risk_posture"),
+            })
+            hist = hist[-200:]
+            s3.put_object(Bucket=BUCKET, Key="data/brain-history.json",
+                          Body=json.dumps({"history": hist}, default=str).encode(),
+                          ContentType="application/json")
+        except Exception as e:
+            print(f"[brain-sync] history write err: {str(e)[:60]}")
 
     out = {
         "engine": "brain-sync", "version": "2.0",
@@ -137,6 +169,9 @@ def lambda_handler(event=None, context=None):
         "notes": notes,
         "prompt_block": prompt_block,
         "directive": directive,                # ← the smart, structured worldview
+        "directive_changed_this_run": directive_changed,
+        "applied_by": ["morning-intelligence", "ask", "best-setups (brain-aligned)",
+                       "devils-advocate (rule checks)", "my-brief", "position-sizer (risk posture)"],
         "mentioned_tickers": sorted(tickers | set((directive or {}).get("watched_tickers", []) or [])),
         "categories": {CAT_LABEL.get(k, k): len(v) for k, v in by_cat.items()},
     }

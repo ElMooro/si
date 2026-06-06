@@ -69,6 +69,7 @@ a{color:var(--cyan);text-decoration:none}
   </div>
 
   <div class="filter-row" id="filter-row"></div>
+  <div id="brain-status"></div>
   <div id="notes"><div class="loading">Loading your brain…</div></div>
 </div>
 
@@ -173,7 +174,28 @@ async function load(){
     const r=await fetch(`${PROXY}/brain?t=${Date.now()}`);const d=await r.json();
     STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;
   }catch(e){STATE.notes=[];}
+  renderStatus();
   renderCats();renderFilters();renderNotes();
+}
+async function renderStatus(){
+  // Show that the system has READ, ANALYZED, and is APPLYING the notes.
+  const el=document.getElementById('brain-status'); if(!el)return;
+  let synced=null;
+  try{const r=await fetch(`${PROXY}/data/brain.json?t=${Date.now()}`);if(r.ok)synced=await r.json();}catch(e){}
+  if(!synced||!synced.directive){
+    el.innerHTML=`<div style="background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:16px;font-size:12.5px;color:var(--fg-3);font-family:var(--mono)">⏳ The system syncs and analyzes your notes every ~15 min. ${STATE.notes.length?'Your notes are saved — the AI worldview will appear here shortly.':'Add notes and they\'ll be read, analyzed, and applied across your engines.'}</div>`;
+    return;
+  }
+  const dir=synced.directive;
+  const when=synced.generated_at?new Date(synced.generated_at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
+  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(34,211,238,0.05));border:1px solid var(--border-bright);border-radius:14px;padding:16px 18px;margin-bottom:18px">
+    <div style="font-family:var(--mono);font-size:10px;color:#26ffaf;letter-spacing:.5px;margin-bottom:8px">✓ SYSTEM IS READING &amp; APPLYING YOUR BRAIN · last analyzed ${esc(when)}</div>
+    <div style="font-size:13.5px;color:var(--fg-1);line-height:1.55;margin-bottom:10px"><b style="color:#a78bfa">How the system sees you:</b> ${esc(dir.investor_profile||'—')}</div>
+    ${(dir.themes&&dir.themes.length)?`<div style="margin-bottom:7px"><span style="font-family:var(--mono);font-size:10px;color:var(--fg-3)">THEMES </span>${dir.themes.map(t=>`<span style="font-family:var(--mono);font-size:11px;color:#22d3ee;border:1px solid #22d3ee;border-radius:10px;padding:1px 8px;margin-right:4px">${esc(t)}</span>`).join('')}</div>`:''}
+    ${(dir.hard_rules&&dir.hard_rules.length)?`<div style="margin-bottom:7px;font-size:12.5px;color:var(--fg-2)"><span style="font-family:var(--mono);font-size:10px;color:var(--fg-3)">YOUR RULES (enforced) </span>${dir.hard_rules.map(r=>`<div style="margin:3px 0 0 4px">⚖️ ${esc(r)}</div>`).join('')}</div>`:''}
+    ${dir.risk_posture?`<div style="font-size:12px;color:var(--fg-2)"><span style="font-family:var(--mono);font-size:10px;color:var(--fg-3)">RISK POSTURE </span>${esc(dir.risk_posture)}</div>`:''}
+    <div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);margin-top:10px;border-top:1px solid var(--border);padding-top:8px">Applied by: ${(synced.applied_by||[]).join(' · ')}</div>
+  </div>`;
 }
 
 // PIN modal
