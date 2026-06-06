@@ -48,6 +48,36 @@ function corsHeaders() {
   };
 }
 
+function jsonResp(obj, status) {
+  return new Response(JSON.stringify(obj), {
+    status: status || 200,
+    headers: { "Content-Type": "application/json", ...corsHeaders() },
+  });
+}
+
+// Verify a Stripe webhook signature (HMAC-SHA256 over `${t}.${payload}`),
+// using the Web Crypto API available in Workers. Tolerates 5-min clock skew.
+async function verifyStripeSig(payload, sigHeader, secret) {
+  try {
+    const parts = {};
+    sigHeader.split(",").forEach(kv => { const [k, v] = kv.split("="); parts[k] = v; });
+    const t = parts["t"]; const v1 = parts["v1"];
+    if (!t || !v1) return false;
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey("raw", enc.encode(secret),
+      { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    const mac = await crypto.subtle.sign("HMAC", key, enc.encode(`${t}.${payload}`));
+    const hex = [...new Uint8Array(mac)].map(b => b.toString(16).padStart(2, "0")).join("");
+    // constant-time-ish compare
+    if (hex.length !== v1.length) return false;
+    let diff = 0;
+    for (let i = 0; i < hex.length; i++) diff |= hex.charCodeAt(i) ^ v1.charCodeAt(i);
+    if (diff !== 0) return false;
+    if (Math.abs(Date.now() / 1000 - Number(t)) > 300) return false;  // 5-min skew
+    return true;
+  } catch (e) { return false; }
+}
+
 async function fetchUpstream(upstreamUrl, ttl) {
   return fetch(upstreamUrl, {
     cf: { cacheTtl: ttl, cacheEverything: true },
@@ -127,6 +157,91 @@ export default {
     // GET /quotes?tickers=AAPL,MSFT,NVDA → live snapshot via Polygon
     // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
     // Cached 30s at edge. Polygon key from worker env (server-side, secure).
+    if (url.pathname === "/create-checkout" && request.method === "POST") {
+      // Create a Stripe Checkout session for a signed-in user. Body: {priceId,
+      // userId, email, returnUrl}. Requires STRIPE_SECRET env (test or live).
+      if (!env.STRIPE_SECRET) return jsonResp({ error: "billing not configured" }, 503);
+      try {
+        const b = await request.json();
+        const priceId = (b.priceId || "").trim();
+        const userId = (b.userId || "").trim();
+        const email = (b.email || "").trim();
+        if (!priceId || !userId) return jsonResp({ error: "missing priceId/userId" }, 400);
+        const base = b.returnUrl || "https://justhodl.ai";
+        const form = new URLSearchParams();
+        form.set("mode", "subscription");
+        form.set("line_items[0][price]", priceId);
+        form.set("line_items[0][quantity]", "1");
+        form.set("success_url", base + "/settings.html?checkout=success");
+        form.set("cancel_url", base + "/pricing.html?checkout=cancel");
+        form.set("client_reference_id", userId);          // ties session → our user
+        form.set("metadata[user_id]", userId);
+        form.set("subscription_data[metadata][user_id]", userId);
+        if (email) form.set("customer_email", email);
+        const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + env.STRIPE_SECRET,
+                     "Content-Type": "application/x-www-form-urlencoded" },
+          body: form.toString(),
+        });
+        const sess = await r.json();
+        if (sess.error) return jsonResp({ error: sess.error.message }, 400);
+        return jsonResp({ url: sess.url, id: sess.id });
+      } catch (e) {
+        return jsonResp({ error: String(e).slice(0, 140) }, 500);
+      }
+    }
+
+    if (url.pathname === "/stripe-webhook" && request.method === "POST") {
+      // On checkout.session.completed / subscription changes, flip the user's
+      // plan in Supabase via the service-role key. Verifies Stripe signature.
+      if (!env.STRIPE_WEBHOOK_SECRET || !env.SUPABASE_SERVICE_KEY) {
+        return new Response("not configured", { status: 503 });
+      }
+      try {
+        const sig = request.headers.get("stripe-signature") || "";
+        const payload = await request.text();
+        const ok = await verifyStripeSig(payload, sig, env.STRIPE_WEBHOOK_SECRET);
+        if (!ok) return new Response("bad signature", { status: 400 });
+        const evt = JSON.parse(payload);
+        const type = evt.type;
+        const obj = evt.data && evt.data.object || {};
+        let userId = null, plan = null;
+        if (type === "checkout.session.completed") {
+          userId = obj.client_reference_id || (obj.metadata && obj.metadata.user_id);
+          plan = "pro";
+        } else if (type === "customer.subscription.deleted" ||
+                   (type === "customer.subscription.updated" && obj.status !== "active" && obj.status !== "trialing")) {
+          userId = obj.metadata && obj.metadata.user_id;
+          plan = "free";
+        } else if (type === "customer.subscription.updated" && (obj.status === "active" || obj.status === "trialing")) {
+          userId = obj.metadata && obj.metadata.user_id;
+          plan = "pro";
+        }
+        if (userId && plan) {
+          // Update Supabase profiles.plan via REST (service role bypasses RLS)
+          await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+            method: "PATCH",
+            headers: {
+              "apikey": env.SUPABASE_SERVICE_KEY,
+              "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY,
+              "Content-Type": "application/json",
+              "Prefer": "return=minimal",
+            },
+            body: JSON.stringify({ plan,
+              stripe_customer_id: obj.customer || null }),
+          });
+          // cache entitlement at the edge for fast gating
+          if (env.USER_DATA) {
+            await env.USER_DATA.put("plan:" + userId, plan, { expirationTtl: 60 * 60 * 24 * 35 });
+          }
+        }
+        return new Response("ok", { status: 200 });
+      } catch (e) {
+        return new Response("err " + String(e).slice(0, 100), { status: 200 }); // 200 so Stripe doesn't retry-storm on our bug
+      }
+    }
+
     if (url.pathname === "/ask") {
       // Proxy natural-language questions to the justhodl-ask Lambda Function URL.
       const ASK_URL = "https://mxfefd5s3l4kp7ywx4ztlboqui0jrmkc.lambda-url.us-east-1.on.aws/";

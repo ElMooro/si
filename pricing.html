@@ -267,20 +267,31 @@ function onSelectPlan(planId) {
     JustHodlAuth.openSignIn();
     return;
   }
-  // Stripe Checkout — wired once Stripe keys + price IDs are configured
   const cfg = window.JUSTHODL_AUTH_CONFIG || {};
   if (!cfg.stripePublishableKey) {
-    alert('Thanks for your interest! Paid tiers are coming soon — the platform is free during early access. Email raafouis@gmail.com to join the early-access list.');
+    alert('Thanks for your interest! Paid tiers are coming soon — the platform is free during early access.');
     return;
   }
-  // TODO: redirect to Stripe Checkout session for the selected plan
   startCheckout(planId);
 }
 
 async function startCheckout(planId) {
-  // Placeholder for Stripe Checkout — creates a session via the worker,
-  // then redirects. Wired in once Stripe account + products exist.
-  alert('Paid tiers are coming soon — free during early access. Email raafouis@gmail.com to be notified.');
+  const cfg = window.JUSTHODL_AUTH_CONFIG || {};
+  const user = window.JustHodlAuth && JustHodlAuth.getUser ? JustHodlAuth.getUser() : null;
+  if (!user) { if (window.JustHodlAuth) JustHodlAuth.openSignIn(); return; }
+  const priceId = cfg.proPriceId;
+  if (!priceId) { alert('Plan not configured yet.'); return; }
+  try {
+    const r = await fetch((cfg.syncBase || 'https://justhodl-data-proxy.raafouis.workers.dev') + '/create-checkout', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priceId, userId: user.id, email: user.email, returnUrl: location.origin })
+    });
+    const d = await r.json();
+    if (d.url) { location.href = d.url; }              // → Stripe-hosted checkout
+    else { alert(d.error || 'Could not start checkout. Try again.'); }
+  } catch (e) {
+    alert('Could not reach checkout. Try again in a moment.');
+  }
 }
 
 document.getElementById('bill-toggle').addEventListener('click', () => {

@@ -21,11 +21,13 @@ window.JUSTHODL_AUTH_CONFIG = {
   syncBase: "https://justhodl-data-proxy.raafouis.workers.dev",
 
   // Stripe publishable key (safe client-side). Set after creating Stripe products.
-  stripePublishableKey: "",
+  stripePublishableKey: "pk_test_51RKpTAQ0UPXfFGwHI7Fg8do8IfI5uhdGcEGiUsdC1cOZCpfgdAJSU3zmfKIDDHjxdjPj557yLWYLZO27If4pFNCU00DQLkPQR9",
 
   // Map your Stripe Price IDs → tier names (set after creating products in Stripe)
   stripePrices: {
-    // "price_xxx": "pro",
-    // "price_yyy": "elite",
+    "price_1TfKrrQ0UPXfFGwHVUfVhyaA": "pro",
   },
+
+  // Which Stripe price to open for the Pro upgrade button.
+  proPriceId: "price_1TfKrrQ0UPXfFGwHVUfVhyaA",
 };
