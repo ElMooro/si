@@ -106,6 +106,9 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          STRIPE_SECRET: ${{ secrets.STRIPE_SECRET }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           set -e
           for w in ${{ steps.detect.outputs.targets }}; do
@@ -129,6 +132,11 @@ jobs:
             # Yahoo proxy uses the same shared token for simplicity
             if [ "$w" = "justhodl-yahoo-proxy" ]; then
               echo "$AI_CHAT_TOKEN" | wrangler secret put PROXY_TOKEN
+            fi
+            if [ "$w" = "justhodl-data-proxy" ]; then
+              if [ -n "$STRIPE_SECRET" ]; then echo "$STRIPE_SECRET" | wrangler secret put STRIPE_SECRET; fi
+              if [ -n "$STRIPE_WEBHOOK_SECRET" ]; then echo "$STRIPE_WEBHOOK_SECRET" | wrangler secret put STRIPE_WEBHOOK_SECRET; fi
+              if [ -n "$SUPABASE_SERVICE_KEY" ]; then echo "$SUPABASE_SERVICE_KEY" | wrangler secret put SUPABASE_SERVICE_KEY; fi
             fi
 
             echo "✅ $w deployed"
