@@ -35,9 +35,9 @@ h1{font-size:26px;font-weight:800;color:var(--fg-0);margin-bottom:24px}
   <h1>Account &amp; Settings</h1>
   <div id="content"><div class="signin-prompt"><p>Loading…</p></div></div>
 </div>
-<script src="/auth-config.js?v=3"></script>
+<script src="/auth-config.js?v=4"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/auth.js?v=3"></script>
+<script src="/auth.js?v=4"></script>
 <script>
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function render(){
@@ -70,17 +70,17 @@ function render(){
       <button class="btn ghost" onclick="JustHodlAuth.signOut()">Sign Out</button>
     </div>`;
 }
-window.addEventListener('DOMContentLoaded', ()=>{
-  let rendered = false;
-  function safeRender(){ try{ rendered = true; render(); }catch(e){ document.getElementById('content').innerHTML='<div class="signin-prompt"><p>Could not load account. <button class="btn primary" onclick="JustHodlAuth&&JustHodlAuth.openSignIn()">Sign in</button></p></div>'; } }
-  if(!window.JustHodlAuth){ document.getElementById('content').innerHTML='<div class="signin-prompt"><p>Auth unavailable — please refresh.</p></div>'; return; }
-  // Safety net: never leave "Loading…" stuck if init hangs/throws.
-  const safety = setTimeout(()=>{ if(!rendered) safeRender(); }, 4000);
+function safeRender(){ try{ render(); }catch(e){ console.error('[settings] render error', e); var c=document.getElementById('content'); if(c) c.innerHTML='<div class="signin-prompt"><p>Couldn\'t load your account. Try a refresh, or <button class="btn primary" onclick="window.JustHodlAuth&&JustHodlAuth.openSignIn()">sign in</button>.</p></div>'; } }
+function boot(){
+  safeRender();                       // render immediately — never leave "Loading…"
+  if(!window.JustHodlAuth) return;
   try { JustHodlAuth.onChange(()=>safeRender()); } catch(e){}
-  Promise.resolve(JustHodlAuth.init())
-    .then(()=>{ clearTimeout(safety); safeRender(); })
-    .catch((e)=>{ clearTimeout(safety); console.error('[settings] auth init error', e); safeRender(); });
-});
+  Promise.resolve().then(()=>JustHodlAuth.init())
+    .then(()=>safeRender())
+    .catch((e)=>{ console.error('[settings] auth init', e); safeRender(); });
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();   // DOM already parsed (scripts ran late/cached) → run now
 </script>
 <script src="/cmdk.js"></script>
 </body></html>
