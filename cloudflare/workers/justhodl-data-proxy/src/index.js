@@ -154,24 +154,26 @@ export default {
     // Returns {tickers: {AAPL: {price, change, changePct, volume, ...}}}
     // Cached 30s at edge. Polygon key from worker env (server-side, secure).
     if (url.pathname === "/debug-supabase-temp") {
-      // TEMPORARY: verify the SUPABASE_SERVICE_KEY can authenticate. Returns only
-      // the HTTP status (never the key). Removed immediately after verification.
-      try {
-        const r = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?select=id&limit=1`, {
-          headers: { "apikey": env.SUPABASE_SERVICE_KEY || "",
-                     "Authorization": "Bearer " + (env.SUPABASE_SERVICE_KEY || "") },
-        });
-        const body = await r.text();
-        return jsonResp({
-          supabase_status: r.status,
-          ok: r.status === 200,
-          key_present: !!env.SUPABASE_SERVICE_KEY,
-          key_prefix: (env.SUPABASE_SERVICE_KEY || "").slice(0, 3),  // "eyJ" if correct, "sk_" if wrong
-          note: body.slice(0, 100),
-        });
-      } catch (e) {
-        return jsonResp({ error: String(e).slice(0, 120) }, 500);
+      // TEMPORARY: report which env vars the worker can see (presence + prefix
+      // only, never full values), then test Supabase auth if possible.
+      const present = {
+        SUPABASE_URL: env.SUPABASE_URL || null,
+        SUPABASE_SERVICE_KEY_present: !!env.SUPABASE_SERVICE_KEY,
+        SUPABASE_SERVICE_KEY_prefix: (env.SUPABASE_SERVICE_KEY || "").slice(0, 3),
+        STRIPE_SECRET_present: !!env.STRIPE_SECRET,
+        STRIPE_SECRET_prefix: (env.STRIPE_SECRET || "").slice(0, 3),
+        STRIPE_WEBHOOK_SECRET_present: !!env.STRIPE_WEBHOOK_SECRET,
+      };
+      let supa = null;
+      if (env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY) {
+        try {
+          const r = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?select=id&limit=1`, {
+            headers: { "apikey": env.SUPABASE_SERVICE_KEY, "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY },
+          });
+          supa = { status: r.status, ok: r.status === 200, note: (await r.text()).slice(0, 80) };
+        } catch (e) { supa = { error: String(e).slice(0, 80) }; }
       }
+      return jsonResp({ env: present, supabase_test: supa });
     }
 
     if (url.pathname === "/create-checkout" && request.method === "POST") {
