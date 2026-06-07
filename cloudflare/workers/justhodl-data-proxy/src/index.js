@@ -153,6 +153,48 @@ export default {
     //   PUT  /brain?uid=…  {note:{…}}      → upsert one note  (tiny write)
     //   PUT  /brain?uid=…  {delete:"<id>"} → delete one note
     //   PUT  /brain?uid=…  {notes:[…]}     → bulk replace (migration / import); shards it
+    // ── /brain-debug — server-side truth: lists every brain identity in KV and
+    // how many notes each holds. Lets us SEE where notes landed without the
+    // browser. Read-only, no secrets exposed (ids are non-sensitive uuids). ──
+    if (url.pathname === "/brain-debug") {
+      if (!env.USER_DATA) return jsonResp({ error: "no kv" }, 503);
+      try {
+        const out = { identities: [], device_ids: [], total_note_shards: 0 };
+        let cursor = undefined;
+        const indexes = [];
+        do {
+          const list = await env.USER_DATA.list({ prefix: "bidx:", cursor });
+          for (const k of list.keys) indexes.push(k.name);
+          cursor = list.list_complete ? undefined : list.cursor;
+        } while (cursor);
+        for (const idxKey of indexes) {
+          const who = idxKey.slice("bidx:".length);
+          let ids = [];
+          try { ids = JSON.parse(await env.USER_DATA.get(idxKey) || "[]"); } catch (e) {}
+          out.identities.push({ uid: who, kind: who.startsWith("dev-") ? "guest" : "account", notes: ids.length });
+          out.total_note_shards += ids.length;
+        }
+        // also count raw note shards + legacy blobs
+        let c2 = undefined, shardCount = 0, legacy = [];
+        do {
+          const list = await env.USER_DATA.list({ prefix: "bnote:", cursor: c2 });
+          shardCount += list.keys.length;
+          c2 = list.list_complete ? undefined : list.cursor;
+        } while (c2);
+        out.raw_note_shards = shardCount;
+        let c3 = undefined;
+        do {
+          const list = await env.USER_DATA.list({ prefix: "brain:", cursor: c3 });
+          for (const k of list.keys) legacy.push(k.name);
+          c3 = list.list_complete ? undefined : list.cursor;
+        } while (c3);
+        out.legacy_blobs = legacy;
+        return jsonResp(out);
+      } catch (e) {
+        return jsonResp({ error: String(e).slice(0, 150) }, 500);
+      }
+    }
+
     if (url.pathname === "/brain") {
       if (!env.USER_DATA) {
         return new Response(JSON.stringify({ error: "store unavailable" }),
