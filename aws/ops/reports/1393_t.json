@@ -1,0 +1,22 @@
+{
+  "justhodl-brain-sync-15min": {
+    "old": "rate(15 minutes)",
+    "new": "cron(0 13 * * ? *)",
+    "ok": true
+  },
+  "fed-nlp-6h": {
+    "old": "rate(6 hours)",
+    "new": "cron(30 13 * * ? *)",
+    "ok": true
+  },
+  "justhodl-devils-advocate-6h": {
+    "old": "rate(6 hours)",
+    "new": "cron(0 14 * * ? *)",
+    "ok": true
+  },
+  "justhodl-opportunity-ranker-4h": {
+    "old": "rate(4 hours)",
+    "new": "cron(30 14 * * ? *)",
+    "ok": true
+  }
+}
