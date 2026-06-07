@@ -1,15 +1,13 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <script>
-// Self-heal: the brain page must always run fresh code. A stale service worker
-// (it kept serving v1.0.24 cached HTML) was making fixes never take. Unregister
-// ALL service workers and clear their caches the moment this page loads, so the
-// browser always fetches the live brain.html/worker directly. Runs once.
+// Self-heal: unregister any stale service worker so the brain always runs fresh
+// code. Does NOT touch localStorage/cookies (your device identity must survive,
+// or notes would appear under a new id). Runs once per load, harmless.
 (function(){
   try{
     if('serviceWorker' in navigator){
       navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}).catch(function(){});
     }
-    if(window.caches&&caches.keys){caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});}).catch(function(){});}
   }catch(e){}
 })();
 </script>
@@ -119,9 +117,18 @@ const PROXY="https://api.justhodl.ai";const PROXY_FALLBACK="https://justhodl-dat
 // user id; otherwise use a silent per-device id (auto-generated once, stored
 // locally). Either way it's a >=20-char unguessable key → the worker treats it
 // as auth and never asks for a PIN. Sign in later to sync across devices.
+function _getCookie(k){try{return (document.cookie.match('(^|;)\\s*'+k+'\\s*=\\s*([^;]+)')||[])[2]||'';}catch(e){return '';}}
+function _setCookie(k,v){try{document.cookie=k+'='+v+';path=/;max-age='+(60*60*24*3650)+';SameSite=Lax';}catch(e){}}
 function deviceId(){
-  let d=localStorage.getItem('jh_brain_device');
-  if(!d){d='dev-'+(crypto.randomUUID?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)));localStorage.setItem('jh_brain_device',d);}
+  // Durable across storage clears: read from localStorage OR cookie, then write
+  // BOTH. A 'Clear site data' that wipes localStorage can still recover the id
+  // from the cookie (and vice versa) — so your guest identity stays stable.
+  let d='';
+  try{d=localStorage.getItem('jh_brain_device')||'';}catch(e){}
+  if(!d)d=_getCookie('jh_brain_device');
+  if(!d)d='dev-'+(crypto.randomUUID?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)));
+  try{localStorage.setItem('jh_brain_device',d);}catch(e){}
+  _setCookie('jh_brain_device',d);
   return d;
 }
 // Identity is LOCKED ONCE at boot (after auth settles) and never changes during
@@ -496,6 +503,19 @@ async function load(){
 async function renderStatus(){
   // Show that the system has READ, ANALYZED, and is APPLYING the notes.
   const el=document.getElementById('brain-status'); if(!el)return;
+  // Guest-mode banner: if not signed in, notes live under a device id (this
+  // browser only). Signing in moves them to a stable account id that syncs
+  // everywhere and never resets on a storage clear.
+  let gb='';
+  try{
+    const u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();
+    if(!u){
+      gb=`<div style="background:rgba(34,211,238,0.07);border:1px solid #1c3a44;border-radius:10px;padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--fg-2)">
+        <span>🔒 <b>Guest mode</b> — notes are saved to this browser only. <b>Sign in</b> to sync across devices &amp; never lose them.</span>
+        <button onclick="if(window.JustHodlAuth)JustHodlAuth.openSignIn()" style="margin-left:auto;background:var(--cyan);border:none;color:var(--bg);font-weight:700;font-size:12px;padding:6px 14px;border-radius:7px;cursor:pointer">Sign in to sync</button>
+      </div>`;
+    }
+  }catch(e){}
   let synced=null;
   // The AI worldview/regime-read mirror (data/brain.json) is written by the
   // brain-sync Lambda to S3 and served by the data-proxy worker — NOT by
@@ -503,7 +523,7 @@ async function renderStatus(){
   // data-proxy directly; 404 just means the AI hasn't analyzed yet.
   try{const r=await fetch(`${PROXY_FALLBACK}/data/brain.json?t=${Date.now()}`);if(r.ok)synced=await r.json();}catch(e){}
   if(!synced||!synced.directive){
-    el.innerHTML=`<div style="background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:16px;font-size:12.5px;color:var(--fg-3);font-family:var(--mono)">⏳ The system syncs and analyzes your notes every ~15 min. ${STATE.notes.length?'Your notes are saved — the AI worldview will appear here shortly.':'Add notes and they\'ll be read, analyzed, and applied across your engines.'}</div>`;
+    el.innerHTML=gb+`<div style="background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:16px;font-size:12.5px;color:var(--fg-3);font-family:var(--mono)">⏳ The system syncs and analyzes your notes every ~15 min. ${STATE.notes.length?'Your notes are saved — the AI worldview will appear here shortly.':'Add notes and they\'ll be read, analyzed, and applied across your engines.'}</div>`;
     return;
   }
   const dir=synced.directive;
@@ -519,7 +539,7 @@ async function renderStatus(){
       ${(rr.recheck_notes&&rr.recheck_notes.length)?`<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:9px"><span style="font-family:var(--mono);font-size:10px;color:var(--amber)">⚠ DOUBLE-CHECK THESE NOTES:</span>${rr.recheck_notes.map(n=>`<div style="font-size:12.5px;color:var(--fg-1);margin:4px 0 0 2px;padding:5px 9px;background:rgba(251,191,36,0.06);border-left:2px solid var(--amber);border-radius:3px">${esc(n)}</div>`).join('')}</div>`:''}
     </div>`;
   }
-  el.innerHTML=rrHtml+`<div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(34,211,238,0.05));border:1px solid var(--border-bright);border-radius:14px;padding:16px 18px;margin-bottom:18px">
+  el.innerHTML=gb+rrHtml+`<div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(34,211,238,0.05));border:1px solid var(--border-bright);border-radius:14px;padding:16px 18px;margin-bottom:18px">
     <div style="font-family:var(--mono);font-size:10px;color:#26ffaf;letter-spacing:.5px;margin-bottom:8px">✓ SYSTEM IS READING &amp; APPLYING YOUR BRAIN · last analyzed ${esc(when)}</div>
     <div style="font-size:13.5px;color:var(--fg-1);line-height:1.55;margin-bottom:10px"><b style="color:#a78bfa">How the system sees you:</b> ${esc(dir.investor_profile||'—')}</div>
     ${(dir.themes&&dir.themes.length)?`<div style="margin-bottom:7px"><span style="font-family:var(--mono);font-size:10px;color:var(--fg-3)">THEMES </span>${dir.themes.map(t=>`<span style="font-family:var(--mono);font-size:11px;color:#22d3ee;border:1px solid #22d3ee;border-radius:10px;padding:1px 8px;margin-right:4px">${esc(t)}</span>`).join('')}</div>`:''}
