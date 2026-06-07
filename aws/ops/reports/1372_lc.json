@@ -1,11 +1,14 @@
 {
   "has_saveNote": true,
-  "has_sharded_queue": true,
-  "has_uidQ": true,
+  "has_shard_queue": true,
   "has_deviceId": true,
-  "loads_authjs": true,
-  "proxy_url": true,
-  "saveNote_snippet": "function saveNote(n){_q.push({note:n});_runQueue();}\nfunction deleteNote(id){_q.push({delete:id});_runQueue();}\n// Legacy 'save()' (used by import/dedupe bulk ops) \u2192 bulk replace\nfunction save(){_q.pu",
-  "still_has_old_doSave": false,
-  "bytes": 34310
+  "has_brainUid": true,
+  "proxy": [
+    "https://justhodl-data-proxy.raafouis.workers.dev"
+  ],
+  "runQueue_snippet": "async function _runQueue(){\n  if(_qrunning)return; _qrunning=true;\n  while(_q.length){\n    const job=_q.shift();\n    try{\n      badge('saving\u2026','saving');\n      const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(job)});\n      const d=await r.json();\n      if(!d.ok)badge(d.error||'save failed','err');\n    }catch(e){badge('offline \u2014",
+  "fetch_line": [
+    "fetch(`${PROXY}/brain?${uidQ()}`",
+    "fetch(`${PROXY}/brain?t=${Date.now()}&${uidQ()}`"
+  ]
 }
