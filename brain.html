@@ -110,7 +110,16 @@ function deviceId(){
   if(!d){d='dev-'+(crypto.randomUUID?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)));localStorage.setItem('jh_brain_device',d);}
   return d;
 }
-function brainUid(){try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();if(u&&u.id)return u.id;}catch(e){}return deviceId();}
+// Identity is LOCKED ONCE at boot (after auth settles) and never changes during
+// the session — so save and load always use the SAME uid. This fixes notes
+// appearing to vanish (they were written under one uid, read under another when
+// auth loaded at a different time).
+let _BRAIN_UID=null;
+function brainUid(){
+  if(_BRAIN_UID)return _BRAIN_UID;
+  try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();if(u&&u.id){_BRAIN_UID=u.id;return _BRAIN_UID;}}catch(e){}
+  _BRAIN_UID=deviceId();return _BRAIN_UID;
+}
 function uidQ(){return "uid="+encodeURIComponent(brainUid());}
 const CATS=[
   {id:"philosophy",label:"Philosophy",c:"#a78bfa"},
@@ -500,11 +509,28 @@ document.getElementById('export-btn').onclick=exportNotes;
 document.getElementById('import-btn').onclick=()=>document.getElementById('import-file').click();
 document.getElementById('import-file').onchange=(e)=>{if(e.target.files[0])importNotes(e.target.files[0]);e.target.value='';};
 document.getElementById('note-input').onkeydown=(e)=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter')addNote();};
-load();
+// Boot: WAIT for auth to settle (so the uid is final) BEFORE loading notes.
+// Otherwise load() reads under the device id while saves use the real user id.
+(async function boot(){
+  try{
+    if(window.JustHodlAuth&&JustHodlAuth.init){
+      await Promise.race([JustHodlAuth.init(), new Promise(r=>setTimeout(r,3500))]);
+    }
+  }catch(e){}
+  brainUid();           // lock identity ONCE, now that auth is settled
+  load();               // load under the locked uid
+  // if auth restores slightly later and the uid would change, reload once
+  if(window.JustHodlAuth&&JustHodlAuth.onChange){
+    JustHodlAuth.onChange(()=>{
+      try{var u=JustHodlAuth.getUser&&JustHodlAuth.getUser();
+        if(u&&u.id&&u.id!==_BRAIN_UID){_BRAIN_UID=u.id;load();}
+      }catch(e){}
+    });
+  }
+})();
 </script>
 <script src="/auth-config.js?v=5"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/auth.js?v=5"></script>
-<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 <script src="/cmdk.js"></script>
 </body></html>
