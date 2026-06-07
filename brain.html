@@ -1,4 +1,18 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<script>
+// Self-heal: the brain page must always run fresh code. A stale service worker
+// (it kept serving v1.0.24 cached HTML) was making fixes never take. Unregister
+// ALL service workers and clear their caches the moment this page loads, so the
+// browser always fetches the live brain.html/worker directly. Runs once.
+(function(){
+  try{
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}).catch(function(){});
+    }
+    if(window.caches&&caches.keys){caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});}).catch(function(){});}
+  }catch(e){}
+})();
+</script>
 <title>Brain · JustHodl AI</title><meta name="robots" content="noindex"><meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta name="description" content="The brain of the system — your investing philosophy, principles, theses, and reminders. Permanently stored and read by your engines.">
 <style>

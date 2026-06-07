@@ -248,9 +248,11 @@ export default {
             await env.USER_DATA.put(IDX_KEY, JSON.stringify(ids));
             return new Response(JSON.stringify({ ok: true, mode: "delete", id: body.delete }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
-          // (c) bulk replace (import / migration): shard the whole array
+          // Defensive: handle stale-page payloads. If it's an array, treat as bulk.
+          if (Array.isArray(body)) {
+            const arr = body; body = { notes: arr };
+          }
           if (Array.isArray(body.notes)) {
-            // remove old shards not in the new set
             const oldIds = await readIndex();
             const newIds = [];
             for (const n of body.notes) {
@@ -262,7 +264,7 @@ export default {
             try { await env.USER_DATA.delete(LEGACY_KEY); } catch (e) {}
             return new Response(JSON.stringify({ ok: true, mode: "bulk", count: newIds.length }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
-          return new Response(JSON.stringify({ error: "send {note}, {delete}, or {notes:[…]}" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          return new Response(JSON.stringify({ error: "send {note}, {delete}, or {notes:[…]}", received_keys: Object.keys(body || {}) }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
         } catch (e) {
           return new Response(JSON.stringify({ error: "save failed", detail: String(e).slice(0, 100) }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
         }
