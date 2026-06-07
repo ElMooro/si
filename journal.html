@@ -153,18 +153,25 @@ async function addEntry(){
   document.getElementById('j-ticker').value='';document.getElementById('j-thesis').value='';
   save();renderEntries();
 }
-async function save(){
+let _jsaving=false,_jpending=false,_jtimer=null;
+async function _jdoSave(){
+  if(_jsaving){_jpending=true;return;}
+  _jsaving=true;_jpending=false;
   var _authed=!!(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());
-  if(!_authed && !PIN){openPin();return;}
+  if(!_authed && !PIN){_jsaving=false;openPin();return;}
   badge('saving…','saving');
   try{
-    const _au=(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());const _bd={entries:ENTRIES,updated_at:new Date().toISOString()};if(!_au)_bd._pin=PIN;const r=await fetch(`${PROXY}/journal?${uidQ()}`,{method:"PUT",headers:{"Content-Type":"text/plain"},body:JSON.stringify(_bd)});
+    var _bd={entries:ENTRIES,updated_at:new Date().toISOString()};if(!_authed)_bd._pin=PIN;
+    const r=await fetch(`${PROXY}/journal?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(_bd)});
     const d=await r.json();
-    if(d.ok){badge('✓ locked in','saved');setTimeout(()=>badge(''),1800);}
-    else if(r.status===403){PIN='';sessionStorage.removeItem('jh_brain_pin');badge('PIN needed','err');openPin();}
+    if(d.ok){badge('✓ locked in','saved');setTimeout(()=>{if(!_jsaving&&!_jpending)badge('');},1800);}
+    else if(r.status===403||r.status===401){if(!_authed){PIN='';sessionStorage.removeItem('jh_brain_pin');openPin();}else badge('save error','err');}
     else badge(d.error||'failed','err');
-  }catch(e){badge('offline','err');}
+  }catch(e){badge('offline','err');_jpending=true;}
+  _jsaving=false;
+  if(_jpending){_jpending=false;setTimeout(_jdoSave,150);}
 }
+function save(){clearTimeout(_jtimer);_jtimer=setTimeout(_jdoSave,400);}
 async function load(){
   try{const r=await fetch(`${PROXY}/journal?t=${Date.now()}&${uidQ()}`);const d=await r.json();ENTRIES=Array.isArray(d.entries)?d.entries:[];}catch(e){ENTRIES=[];}
   try{const r2=await fetch(`${PROXY}/data/journal-graded.json?t=${Date.now()}`);if(r2.ok)GRADED=await r2.json();}catch(e){}

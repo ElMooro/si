@@ -348,16 +348,17 @@ async function handleFiles(files){
       const blocks=chunks.length>1?chunks:[text];
       let added=0;
       blocks.forEach(b=>{
-        // merge tiny fragments; cap very long blocks
         const txt=b.length>8000?b.slice(0,8000)+'…':b;
-        STATE.notes.unshift({id:uid(),cat:activeCat,text:txt,created:Date.now()+(added++),pinned:false,source:name});
+        STATE.notes.unshift({id:uid(),cat:activeCat,text:txt,created:Date.now(),pinned:false,source:name});
+        added++;
       });
       dzStatus(name,'ok',`imported ${added} note${added>1?'s':''} → ${activeCat}`);
-      save();renderNotes();renderFilters();
+      renderNotes();renderFilters();
     }catch(e){
       dzStatus(name,'err',(e&&e.message)||'parse failed');
     }
   }
+  save();   // single coalesced save of the FINAL state (race-proof)
 }
 
 (function wireDropzone(){
@@ -399,16 +400,25 @@ function addNote(){
   ta.value='';save();renderNotes();renderFilters();
 }
 
-async function save(){
+// Race-proof save: serialize writes (never two at once) + always send the
+// LATEST state + coalesce rapid changes. Fixes 'some notes save, some don't'
+// when dropping multiple files (each used to fire its own racing PUT).
+let _saving=false, _pendingSave=false, _saveTimer=null;
+async function _doSave(){
+  if(_saving){_pendingSave=true;return;}
+  _saving=true; _pendingSave=false;
   badge('saving…','saving');
   try{
     const payload={notes:STATE.notes,updated_at:new Date().toISOString(),v:1};
     const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
     const d=await r.json();
-    if(d.ok){badge('✓ saved','saved');setTimeout(()=>badge(''),1800);}
+    if(d.ok){badge('✓ saved ('+STATE.notes.length+')','saved');setTimeout(()=>{if(!_saving&&!_pendingSave)badge('');},1800);}
     else{badge(d.error||'save failed','err');}
-  }catch(e){badge('offline — retry','err');}
+  }catch(e){badge('offline — retry','err');_pendingSave=true;}
+  _saving=false;
+  if(_pendingSave){_pendingSave=false;setTimeout(_doSave,150);}
 }
+function save(){clearTimeout(_saveTimer);_saveTimer=setTimeout(_doSave,400);}
 async function load(){
   try{
     const r=await fetch(`${PROXY}/brain?t=${Date.now()}&${uidQ()}`);const d=await r.json();
