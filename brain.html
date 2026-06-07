@@ -358,7 +358,7 @@ async function handleFiles(files){
       let added=0;
       blocks.forEach(b=>{
         const txt=b.length>8000?b.slice(0,8000)+'…':b;
-        var _fn={id:uid(),cat:activeCat,text:txt,created:Date.now(),pinned:false,source:name};STATE.notes.unshift(_fn);saveNote(_fn);
+        STATE.notes.unshift({id:uid(),cat:activeCat,text:txt,created:Date.now()+(added),pinned:false,source:name});
         added++;
       });
       dzStatus(name,'ok',`imported ${added} note${added>1?'s':''} → ${activeCat}`);
@@ -367,6 +367,7 @@ async function handleFiles(files){
       dzStatus(name,'err',(e&&e.message)||'parse failed');
     }
   }
+  save();   // ONE bulk write of all imported notes (server shards them) — no pile-up
 }
 
 (function wireDropzone(){
@@ -425,11 +426,15 @@ async function _runQueue(){
   if(_qrunning)return; _qrunning=true;
   while(_q.length){
     const job=_q.shift();
-    try{
-      badge('saving…','saving');
-      const d=await _putBrain(job);
-      if(!d.ok)badge(d.error||'save failed','err');
-    }catch(e){badge('offline — retry','err');_q.unshift(job);await new Promise(r=>setTimeout(r,1500));}
+    let ok=false;
+    for(let attempt=0;attempt<3 && !ok;attempt++){   // CAP retries — never hang
+      try{
+        badge('saving…','saving');
+        const d=await _putBrain(job);
+        if(d&&d.ok)ok=true; else { badge((d&&d.error)||'save failed','err'); ok=true; } // server error → don't loop
+      }catch(e){ if(attempt<2) await new Promise(r=>setTimeout(r,800)); }
+    }
+    if(!ok)badge('⚠ one save failed — others continue','err');  // skip, keep going
   }
   _qrunning=false;
   badge('✓ saved ('+STATE.notes.length+')','saved');setTimeout(()=>{if(!_q.length)badge('');},1500);
