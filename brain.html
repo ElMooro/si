@@ -445,7 +445,11 @@ async function renderStatus(){
   // Show that the system has READ, ANALYZED, and is APPLYING the notes.
   const el=document.getElementById('brain-status'); if(!el)return;
   let synced=null;
-  try{const r=await fetch(`${PROXY}/data/brain.json?t=${Date.now()}`);if(r.ok)synced=await r.json();}catch(e){}
+  // The AI worldview/regime-read mirror (data/brain.json) is written by the
+  // brain-sync Lambda to S3 and served by the data-proxy worker — NOT by
+  // api.justhodl.ai (which only proxies /brain & /journal). So fetch it from the
+  // data-proxy directly; 404 just means the AI hasn't analyzed yet.
+  try{const r=await fetch(`${PROXY_FALLBACK}/data/brain.json?t=${Date.now()}`);if(r.ok)synced=await r.json();}catch(e){}
   if(!synced||!synced.directive){
     el.innerHTML=`<div style="background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:16px;font-size:12.5px;color:var(--fg-3);font-family:var(--mono)">⏳ The system syncs and analyzes your notes every ~15 min. ${STATE.notes.length?'Your notes are saved — the AI worldview will appear here shortly.':'Add notes and they\'ll be read, analyzed, and applied across your engines.'}</div>`;
     return;
