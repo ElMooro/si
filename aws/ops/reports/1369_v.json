@@ -1,0 +1,18 @@
+{
+  "wipe": {
+    "s": 200,
+    "b": "{\"ok\":true,\"mode\":\"bulk\",\"count\":0}"
+  },
+  "GET_clean": {
+    "s": 200,
+    "notes": 0
+  },
+  "add": {
+    "s": 200,
+    "b": "{\"ok\":true,\"mode\":\"upsert\",\"id\":\"r0\"}"
+  },
+  "GET_after": {
+    "s": 200,
+    "notes": 1
+  }
+}
