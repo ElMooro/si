@@ -1,0 +1,67 @@
+[
+  {
+    "lambda": "justhodl-ai-brief-router",
+    "sched": "cron(0 21 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-ai-brief-router",
+    "sched": "cron(0 9 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-ai-brief-router",
+    "sched": "cron(30 10 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-ai-brief-router",
+    "sched": "cron(30 14 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-ai-brief-router",
+    "sched": "cron(0 11 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-ai-brief-router",
+    "sched": "cron(0 * * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-brain-sync",
+    "sched": "cron(0 13 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-devils-advocate",
+    "sched": "cron(0 14 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-dislocation-ai",
+    "sched": "cron(15 15 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-fed-nlp",
+    "sched": "cron(30 13 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-fed-nlp",
+    "sched": "cron(30 13 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-my-brief",
+    "sched": "cron(30 13 * * ? *)",
+    "state": "ENABLED"
+  },
+  {
+    "lambda": "justhodl-weekly-ai-review",
+    "sched": "cron(0 14 ? * SUN *)",
+    "state": "ENABLED"
+  }
+]
