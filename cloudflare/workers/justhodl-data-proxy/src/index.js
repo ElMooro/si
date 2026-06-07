@@ -231,6 +231,22 @@ export default {
         }
         try {
           if (!body) throw new Error("invalid json");
+          // (a0) BATCH upsert — many notes in one request (parallel KV writes).
+          // This is what makes adding/importing multiple notes fast.
+          if (Array.isArray(body.notes_upsert) && body.notes_upsert.length) {
+            const valid = body.notes_upsert.filter(n => n && n.id);
+            // write all shards in parallel, batched
+            const B = 40;
+            for (let i = 0; i < valid.length; i += B) {
+              await Promise.all(valid.slice(i, i + B).map(n => env.USER_DATA.put(NOTE_PREFIX + n.id, JSON.stringify(n)).catch(() => {})));
+            }
+            // update index once
+            let ids = await readIndex();
+            const have = new Set(ids);
+            for (const n of valid) { if (!have.has(n.id)) { ids.unshift(n.id); have.add(n.id); } }
+            await env.USER_DATA.put(IDX_KEY, JSON.stringify(ids));
+            return new Response(JSON.stringify({ ok: true, mode: "batch", count: valid.length }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          }
           // (a) upsert a single note — the normal, tiny save
           if (body.note && body.note.id) {
             const n = body.note;

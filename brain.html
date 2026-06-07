@@ -460,10 +460,23 @@ async function _runQueue(){
   _qrunning=false;
   badge('✓ saved ('+STATE.notes.length+')','saved');setTimeout(()=>{if(!_q.length)badge('');},1500);
 }
-function saveNote(n){_q.push({note:n});_runQueue();}
-function deleteNote(id){_q.push({delete:id});_runQueue();}
-// Legacy 'save()' (used by import/dedupe bulk ops) → bulk replace
+function saveNote(n){_pendingUpserts.set(n.id,n);_scheduleBatch();}
+function deleteNote(id){_pendingUpserts.delete(id);_q.push({delete:id});_runQueue();}
 function save(){_q.push({notes:STATE.notes});_runQueue();}
+
+// Coalesce rapid note adds/edits (typing, multi-file import, paste) into ONE
+// batched request instead of one round-trip per note → fast even for 50 notes.
+let _pendingUpserts=new Map(), _batchTimer=null;
+function _scheduleBatch(){
+  badge('saving…','saving');
+  clearTimeout(_batchTimer);
+  _batchTimer=setTimeout(_flushBatch,250);
+}
+function _flushBatch(){
+  if(!_pendingUpserts.size)return;
+  const notes=[..._pendingUpserts.values()];_pendingUpserts.clear();
+  _q.push({notes_upsert:notes});_runQueue();
+}
 async function load(){
   try{
     let d=null;
