@@ -1,0 +1,11 @@
+{
+  "has_saveNote": true,
+  "has_sharded_queue": true,
+  "has_uidQ": true,
+  "has_deviceId": true,
+  "loads_authjs": true,
+  "proxy_url": true,
+  "saveNote_snippet": "function saveNote(n){_q.push({note:n});_runQueue();}\nfunction deleteNote(id){_q.push({delete:id});_runQueue();}\n// Legacy 'save()' (used by import/dedupe bulk ops) \u2192 bulk replace\nfunction save(){_q.pu",
+  "still_has_old_doSave": false,
+  "bytes": 34310
+}
