@@ -269,6 +269,25 @@ async function handleAgent(request, env, origin, agentKey, subPath) {
   });
 }
 
+// Forward /brain and /journal to the data-proxy worker (server-side, so browser
+// adblock/extension filters on *.workers.dev don't apply). Passes through method,
+// body, query string, and the brain pin header. Re-adds CORS for the browser.
+async function handleDataProxy(request, origin, path, search) {
+  const DATA_PROXY = 'https://justhodl-data-proxy.raafouis.workers.dev';
+  try {
+    const upstream = DATA_PROXY + path + (search || '');
+    const init = { method: request.method, headers: {} };
+    const ct = request.headers.get('Content-Type'); if (ct) init.headers['Content-Type'] = ct;
+    const bp = request.headers.get('X-Brain-Pin'); if (bp) init.headers['X-Brain-Pin'] = bp;
+    if (request.method !== 'GET' && request.method !== 'HEAD') init.body = await request.text();
+    const r = await fetch(upstream, init);
+    const text = await r.text();
+    return new Response(text, { status: r.status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...corsHeaders(origin) } });
+  } catch (e) {
+    return json(502, { error: 'brain proxy failed', detail: String(e).slice(0, 100) }, origin);
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin') || '';
@@ -283,6 +302,14 @@ export default {
     // Origin check
     if (!ALLOWED_ORIGINS.has(origin)) {
       return json(403, { error: 'Forbidden' }, origin);
+    }
+
+    // /brain and /journal → forward to the data-proxy worker. The browser can't
+    // reach *.workers.dev directly (adblock/wallet-extension filters), but
+    // api.justhodl.ai is on the user's own domain and never blocked. Worker→worker
+    // server-side fetch is unaffected by browser filters.
+    if (path === '/brain' || path === '/journal') {
+      return handleDataProxy(request, origin, path, url.search);
     }
 
     // /agent/<key>[/<subpath>]

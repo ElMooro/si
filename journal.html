@@ -91,7 +91,7 @@ a{color:var(--cyan);text-decoration:none}
 </div>
 
 <script>
-const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const PROXY="https://api.justhodl.ai";const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
 const FMP="wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb";
 function uidQ(){try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();return u&&u.id?("uid="+encodeURIComponent(u.id)):"";}catch(e){return "";}}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -162,8 +162,8 @@ async function _jdoSave(){
   badge('saving…','saving');
   try{
     var _bd={entries:ENTRIES,updated_at:new Date().toISOString()};if(!_authed)_bd._pin=PIN;
-    const r=await fetch(`${PROXY}/journal?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(_bd)});
-    const d=await r.json();
+    let d=null;for(const base of [PROXY,PROXY_FALLBACK]){try{const r=await fetch(`${base}/journal?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(_bd)});d=await r.json();break;}catch(e){}}
+    if(!d)throw new Error('unreachable');
     if(d.ok){badge('✓ locked in','saved');setTimeout(()=>{if(!_jsaving&&!_jpending)badge('');},1800);}
     else if(r.status===403||r.status===401){if(!_authed){PIN='';sessionStorage.removeItem('jh_brain_pin');openPin();}else badge('save error','err');}
     else badge(d.error||'failed','err');
@@ -173,7 +173,7 @@ async function _jdoSave(){
 }
 function save(){clearTimeout(_jtimer);_jtimer=setTimeout(_jdoSave,400);}
 async function load(){
-  try{const r=await fetch(`${PROXY}/journal?t=${Date.now()}&${uidQ()}`);const d=await r.json();ENTRIES=Array.isArray(d.entries)?d.entries:[];}catch(e){ENTRIES=[];}
+  try{let d=null;for(const base of [PROXY,PROXY_FALLBACK]){try{const r=await fetch(`${base}/journal?t=${Date.now()}&${uidQ()}`);d=await r.json();break;}catch(e){}}ENTRIES=(d&&Array.isArray(d.entries))?d.entries:[];}catch(e){ENTRIES=[];}
   try{const r2=await fetch(`${PROXY}/data/journal-graded.json?t=${Date.now()}`);if(r2.ok)GRADED=await r2.json();}catch(e){}
   renderTrack();renderEntries();
 }

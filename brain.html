@@ -100,7 +100,7 @@ a{color:var(--cyan);text-decoration:none}
 </div></div>
 
 <script>
-const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const PROXY="https://api.justhodl.ai";const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
 // Resolve a stable identity with NO friction: prefer the logged-in Supabase
 // user id; otherwise use a silent per-device id (auto-generated once, stored
 // locally). Either way it's a >=20-char unguessable key → the worker treats it
@@ -402,14 +402,23 @@ function addNote(){
 // SHARDED saves: each operation writes only the ONE note that changed — tiny,
 // fast, no size limit, no race. Scales to 500MB+ total. A queue serializes them.
 let _q=[],_qrunning=false;
+async function _putBrain(job){
+  // Try the unblockable custom domain first; fall back to workers.dev.
+  for(const base of [PROXY, PROXY_FALLBACK]){
+    try{
+      const r=await fetch(`${base}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(job)});
+      const d=await r.json(); return d;
+    }catch(e){/* try next base */}
+  }
+  throw new Error('all endpoints unreachable');
+}
 async function _runQueue(){
   if(_qrunning)return; _qrunning=true;
   while(_q.length){
     const job=_q.shift();
     try{
       badge('saving…','saving');
-      const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(job)});
-      const d=await r.json();
+      const d=await _putBrain(job);
       if(!d.ok)badge(d.error||'save failed','err');
     }catch(e){badge('offline — retry','err');_q.unshift(job);await new Promise(r=>setTimeout(r,1500));}
   }
@@ -422,7 +431,11 @@ function deleteNote(id){_q.push({delete:id});_runQueue();}
 function save(){_q.push({notes:STATE.notes});_runQueue();}
 async function load(){
   try{
-    const r=await fetch(`${PROXY}/brain?t=${Date.now()}&${uidQ()}`);const d=await r.json();
+    let d=null;
+    for(const base of [PROXY, PROXY_FALLBACK]){
+      try{const r=await fetch(`${base}/brain?t=${Date.now()}&${uidQ()}`);d=await r.json();break;}catch(e){}
+    }
+    if(!d)throw new Error('load failed');
     STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;
   }catch(e){STATE.notes=[];}
   renderStatus();
