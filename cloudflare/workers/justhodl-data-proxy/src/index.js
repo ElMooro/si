@@ -177,7 +177,9 @@ export default {
         // one-time migration: if no index yet but a legacy blob exists, shard it
         if ((!ids || !ids.length)) {
           const legacy = await env.USER_DATA.get(LEGACY_KEY);
-          if (legacy) {
+          // Only migrate a reasonably-sized legacy blob. A huge one is almost
+          // certainly junk/corrupt and would time out the read — skip + drop it.
+          if (legacy && legacy.length < 2000000) {
             try {
               const obj = JSON.parse(legacy);
               const notes = Array.isArray(obj.notes) ? obj.notes : [];
@@ -189,7 +191,10 @@ export default {
                 await env.USER_DATA.put(IDX_KEY, JSON.stringify(newIds));
                 ids = newIds;
               }
-            } catch (e) {}
+              await env.USER_DATA.delete(LEGACY_KEY);  // migrated → remove the blob
+            } catch (e) { await env.USER_DATA.delete(LEGACY_KEY); }
+          } else if (legacy) {
+            await env.USER_DATA.delete(LEGACY_KEY);  // oversized/junk → drop it, don't migrate
           }
         }
         const notes = [];
@@ -247,6 +252,7 @@ export default {
             const newSet = new Set(newIds);
             for (const oid of oldIds) { if (!newSet.has(oid)) await env.USER_DATA.delete(NOTE_PREFIX + oid); }
             await env.USER_DATA.put(IDX_KEY, JSON.stringify(newIds));
+            try { await env.USER_DATA.delete(LEGACY_KEY); } catch (e) {}
             return new Response(JSON.stringify({ ok: true, mode: "bulk", count: newIds.length }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
           return new Response(JSON.stringify({ error: "send {note}, {delete}, or {notes:[…]}" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
