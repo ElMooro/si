@@ -119,11 +119,14 @@ export default {
         let pj = null; try { pj = JSON.parse(rawJ); } catch (e) {}
         let pin = request.headers.get("X-Brain-Pin") || "";
         if (!pin && pj && pj._pin) pin = String(pj._pin);
-        const ph = await sha(pin);
-        const existing = await env.USER_DATA.get(PIN_KEY);
-        if (!existing || ph !== existing) {
-          return new Response(JSON.stringify({ error: "wrong or unset pin (set it on the Brain first)" }),
-            { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        const jAuthed = (jwho !== "khalid" && juid.length >= 20);  // logged-in UUID = auth
+        if (!jAuthed) {
+          const ph = await sha(pin);
+          const existing = await env.USER_DATA.get(PIN_KEY);
+          if (!existing || ph !== existing) {
+            return new Response(JSON.stringify({ error: "wrong or unset pin (set it on the Brain first)" }),
+              { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          }
         }
         try {
           if (!pj) throw new Error("invalid json");
@@ -176,22 +179,28 @@ export default {
         let parsedBody = null, pin = request.headers.get("X-Brain-Pin") || "";
         const rawText = await request.text();
         try { parsedBody = JSON.parse(rawText); } catch (e) {}
-        // PIN may arrive in the body (_pin) to avoid a CORS preflight on the
-        // custom header (Cloudflare bot-protection 403s OPTIONS on workers.dev).
         if (!pin && parsedBody && parsedBody._pin) pin = String(parsedBody._pin);
-        if (!pin || pin.length < 4) {
-          return new Response(JSON.stringify({ error: "pin required (min 4 chars)" }),
-            { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
-        }
-        const existing = await env.USER_DATA.get(PIN_KEY);
-        const ph = await sha(pin);
-        if (existing) {
-          if (ph !== existing) {
-            return new Response(JSON.stringify({ error: "wrong pin" }),
-              { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        // ── Auth model ──
+        // • Logged-in user (uid is their unguessable Supabase UUID): the uid IS the
+        //   key — no PIN needed, ever. Frictionless + safe (UUID is effectively secret).
+        // • Anonymous/owner ('khalid'): keep the optional PIN fallback so a random
+        //   visitor can't overwrite the owner brain.
+        const isAuthedUser = (who !== "khalid" && uidParam.length >= 20); // a real UUID
+        if (!isAuthedUser) {
+          if (!pin || pin.length < 4) {
+            return new Response(JSON.stringify({ error: "pin required (min 4 chars)" }),
+              { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
-        } else {
-          await env.USER_DATA.put(PIN_KEY, ph);   // bootstrap: first PIN wins (per user)
+          const existing = await env.USER_DATA.get(PIN_KEY);
+          const ph = await sha(pin);
+          if (existing) {
+            if (ph !== existing) {
+              return new Response(JSON.stringify({ error: "wrong pin" }),
+                { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+            }
+          } else {
+            await env.USER_DATA.put(PIN_KEY, ph);
+          }
         }
         try {
           if (!parsedBody) throw new Error("invalid json");

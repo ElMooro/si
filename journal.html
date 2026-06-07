@@ -154,10 +154,11 @@ async function addEntry(){
   save();renderEntries();
 }
 async function save(){
-  if(!PIN){openPin();return;}
+  var _authed=!!(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());
+  if(!_authed && !PIN){openPin();return;}
   badge('saving…','saving');
   try{
-    const r=await fetch(`${PROXY}/journal?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify({entries:ENTRIES,updated_at:new Date().toISOString(),_pin:PIN})});
+    const _au=(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());const _bd={entries:ENTRIES,updated_at:new Date().toISOString()};if(!_au)_bd._pin=PIN;const r=await fetch(`${PROXY}/journal?${uidQ()}`,{method:"PUT",headers:{"Content-Type":"text/plain"},body:JSON.stringify(_bd)});
     const d=await r.json();
     if(d.ok){badge('✓ locked in','saved');setTimeout(()=>badge(''),1800);}
     else if(r.status===403){PIN='';sessionStorage.removeItem('jh_brain_pin');badge('PIN needed','err');openPin();}

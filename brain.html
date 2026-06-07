@@ -389,15 +389,18 @@ function addNote(){
   ta.value='';save();renderNotes();renderFilters();
 }
 
+function isLoggedIn(){try{return !!(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());}catch(e){return false;}}
 async function save(){
-  if(!PIN){openPin();return;}
+  const authed=isLoggedIn();
+  if(!authed && !PIN){openPin();return;}   // PIN only matters when NOT logged in
   badge('saving…','saving');
   try{
     const payload={notes:STATE.notes,updated_at:new Date().toISOString(),v:1};
-    const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify({...payload,_pin:PIN})});
+    const body=authed?payload:{...payload,_pin:PIN};   // logged-in = uid is the auth, no PIN
+    const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
     const d=await r.json();
     if(d.ok){badge('✓ saved to brain','saved');setTimeout(()=>badge(''),2000);}
-    else if(r.status===403){PIN='';sessionStorage.removeItem('jh_brain_pin');badge('wrong PIN','err');openPin('Wrong PIN','Enter your Brain PIN to save.');}
+    else if(r.status===403||r.status===401){if(!authed){PIN='';sessionStorage.removeItem('jh_brain_pin');badge('PIN needed','err');openPin();}else badge('save error — refresh','err');}
     else{badge(d.error||'save failed','err');}
   }catch(e){badge('offline — retry','err');}
 }
