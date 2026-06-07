@@ -156,6 +156,45 @@ export default {
     // ── /brain-debug — server-side truth: lists every brain identity in KV and
     // how many notes each holds. Lets us SEE where notes landed without the
     // browser. Read-only, no secrets exposed (ids are non-sensitive uuids). ──
+    // ── /brain-purge — ADMIN maintenance: delete junk/test shards and prune the
+    // index in bounded batches (the brain fragmented to 138k shards from test
+    // loops, making reads exceed the subrequest limit). Gated by an admin token.
+    // ?uid=<id>&token=<t>&max=<n>  → scans the index, deletes junk-pattern notes,
+    // returns progress; call repeatedly until done. ──
+    if (url.pathname === "/brain-purge") {
+      if (!env.USER_DATA) return jsonResp({ error: "no kv" }, 503);
+      const token = url.searchParams.get("token") || "";
+      if (token !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
+      const uid = (url.searchParams.get("uid") || "").replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64);
+      const max = Math.min(parseInt(url.searchParams.get("max") || "400", 10) || 400, 800);
+      const IDX = "bidx:" + uid, NP = "bnote:" + uid + ":";
+      function isJunk(t) {
+        t = t || "";
+        return (t.split("MACRO NOTE.").length > 4) || t.startsWith("XXXX") ||
+          /^(test|cors check|kv reset check|save path test|round-trip persistence test)$/.test(t) ||
+          /^(multi note |batch note |real note |device save test)/.test(t) ||
+          t.indexOf("no-preflight") >= 0 || t.indexOf("PERMANENCE TEST") >= 0;
+      }
+      try {
+        let ids = JSON.parse(await env.USER_DATA.get(IDX) || "[]");
+        const keep = [], toCheck = ids.slice(0, max), rest = ids.slice(max);
+        let deleted = 0;
+        // fetch this batch in parallel, classify, delete junk
+        const raws = await Promise.all(toCheck.map(id => env.USER_DATA.get(NP + id).then(v => [id, v]).catch(() => [id, null])));
+        for (const [id, raw] of raws) {
+          let junk = false, txt = "";
+          if (raw) { try { txt = (JSON.parse(raw).text) || ""; } catch (e) {} }
+          if (!raw || isJunk(txt)) { await env.USER_DATA.delete(NP + id).catch(() => {}); deleted++; }
+          else keep.push(id);
+        }
+        const newIds = keep.concat(rest);
+        await env.USER_DATA.put(IDX, JSON.stringify(newIds));
+        return jsonResp({ ok: true, uid, checked: toCheck.length, deleted, remaining_in_index: newIds.length, more: rest.length > 0 });
+      } catch (e) {
+        return jsonResp({ error: String(e).slice(0, 150) }, 500);
+      }
+    }
+
     if (url.pathname === "/brain-debug") {
       if (!env.USER_DATA) return jsonResp({ error: "no kv" }, 503);
       try {
