@@ -447,7 +447,11 @@ async function load(){
   try{
     let d=null;
     for(const base of [PROXY, PROXY_FALLBACK]){
-      try{const r=await fetch(`${base}/brain?t=${Date.now()}&${uidQ()}`);d=await r.json();break;}catch(e){}
+      try{
+        const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),12000);
+        const r=await fetch(`${base}/brain?t=${Date.now()}&${uidQ()}`,{signal:ctl.signal});
+        clearTimeout(to);d=await r.json();break;
+      }catch(e){}
     }
     if(!d)throw new Error('load failed');
     STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;

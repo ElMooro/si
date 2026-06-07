@@ -197,10 +197,17 @@ export default {
             await env.USER_DATA.delete(LEGACY_KEY);  // oversized/junk → drop it, don't migrate
           }
         }
+        // Fetch all note shards in PARALLEL (serial awaits were slow/timed out
+        // with many notes → 'Loading…' hung). Batch to stay within subrequest
+        // limits, preserve index order.
         const notes = [];
-        for (const id of ids) {
-          const raw = await env.USER_DATA.get(NOTE_PREFIX + id);
-          if (raw) { try { notes.push(JSON.parse(raw)); } catch (e) {} }
+        const BATCH = 40;
+        for (let i = 0; i < ids.length; i += BATCH) {
+          const slice = ids.slice(i, i + BATCH);
+          const raws = await Promise.all(slice.map(id => env.USER_DATA.get(NOTE_PREFIX + id).catch(() => null)));
+          for (const raw of raws) {
+            if (raw) { try { notes.push(JSON.parse(raw)); } catch (e) {} }
+          }
         }
         return notes;
       }
