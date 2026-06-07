@@ -1,0 +1,54 @@
+{
+  "found": [
+    {
+      "name": "justhodl-alerts-digest-close-daily",
+      "sched": "cron(0 21 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "justhodl-alerts-digest-daily",
+      "sched": "cron(0 9 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "justhodl-frontrun-skill-daily",
+      "sched": "cron(30 10 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "justhodl-opportunity-ranker-4h",
+      "sched": "cron(30 14 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "justhodl-self-improvement-daily",
+      "sched": "cron(0 11 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "justhodl-uptime-monitor-hourly",
+      "sched": "cron(0 * * * ? *)",
+      "state": "ENABLED"
+    }
+  ],
+  "actions": [
+    {
+      "justhodl-alerts-digest-close-daily": "DISABLED (cron(0 21 * * ? *))"
+    },
+    {
+      "justhodl-alerts-digest-daily": "DISABLED (cron(0 9 * * ? *))"
+    },
+    {
+      "justhodl-frontrun-skill-daily": "DISABLED (cron(30 10 * * ? *))"
+    },
+    {
+      "justhodl-opportunity-ranker-4h": "DISABLED (cron(30 14 * * ? *))"
+    },
+    {
+      "justhodl-self-improvement-daily": "KEPT daily 11:00"
+    },
+    {
+      "justhodl-uptime-monitor-hourly": "DISABLED (cron(0 * * * ? *))"
+    }
+  ]
+}
