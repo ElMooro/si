@@ -1,0 +1,14 @@
+{
+  "api_GET": {
+    "s": 200,
+    "b": "{\"notes\":[{\"id\":\"r0\",\"cat\":\"rule\",\"text\":\"first real note\",\""
+  },
+  "api_PUT": {
+    "s": 400,
+    "b": "{\"error\":\"save failed\",\"detail\":\"Error: KV put() limit exceeded for the day.\"}"
+  },
+  "api_GET_after": {
+    "s": 200,
+    "b": "{\"notes\":[{\"id\":\"r0\",\"cat\":\"rule\",\"text\":\"first real note\",\""
+  }
+}
