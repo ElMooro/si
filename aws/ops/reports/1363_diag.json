@@ -1,0 +1,22 @@
+{
+  "1KB": {
+    "status": 200,
+    "body": "{\"ok\":true,\"saved_at\":1780795089735,\"scope\":\"user\"}"
+  },
+  "100KB": {
+    "status": 200,
+    "body": "{\"ok\":true,\"saved_at\":1780795090435,\"scope\":\"user\"}"
+  },
+  "1000KB": {
+    "status": 200,
+    "body": "{\"ok\":true,\"saved_at\":1780795091363,\"scope\":\"user\"}"
+  },
+  "5000KB": {
+    "status": 200,
+    "body": "{\"ok\":true,\"saved_at\":1780795093334,\"scope\":\"user\"}"
+  },
+  "12000KB": {
+    "status": 413,
+    "body": "{\"error\":\"too large\"}"
+  }
+}
