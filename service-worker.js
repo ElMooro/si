@@ -1,6 +1,6 @@
 // JustHodl.AI Service Worker — v1.0
 // Handles: offline cache shell, push notifications, click-to-open
-const VERSION = "v1.0.24";
+const VERSION = "v1.0.25";
 const CACHE_NAME = `justhodl-${VERSION}`;
 const SHELL = [
   "/",
@@ -47,6 +47,13 @@ self.addEventListener("fetch", (event) => {
   }
   // Don't cache external CDNs (jsdelivr, cloudflare)
   if (url.hostname !== self.location.hostname) return;
+
+  // NEVER cache the live app pages — they must always be the freshest version
+  // (stale-cached versions caused "fixes don't take" / save failures).
+  const NO_CACHE_PAGES = ["/brain.html", "/journal.html", "/cockpit.html", "/my-portfolio.html"];
+  if (NO_CACHE_PAGES.some((p) => url.pathname === p || url.pathname.startsWith(p + "?"))) {
+    return;  // browser fetches directly, always fresh
+  }
 
   event.respondWith(
     fetch(request)
