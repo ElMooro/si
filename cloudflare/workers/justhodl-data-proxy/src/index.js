@@ -166,6 +166,13 @@ export default {
       const token = url.searchParams.get("token") || "";
       if (token !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
       const uid = (url.searchParams.get("uid") || "").replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64);
+      if (url.searchParams.get("reset") === "1") {
+        try {
+          await env.USER_DATA.put("bidx:" + uid, "[]");
+          await env.USER_DATA.delete("brain:" + uid).catch(() => {});
+          return jsonResp({ ok: true, mode: "reset", uid });
+        } catch (e) { return jsonResp({ error: String(e).slice(0, 120) }, 500); }
+      }
       const max = Math.min(parseInt(url.searchParams.get("max") || "400", 10) || 400, 800);
       const IDX = "bidx:" + uid, NP = "bnote:" + uid + ":";
       function isJunk(t) {
