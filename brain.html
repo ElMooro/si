@@ -99,6 +99,7 @@ a{color:var(--cyan);text-decoration:none}
   </div>
 
   <div class="filter-row" id="filter-row"></div>
+  <div id="brain-debug" style="font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#0c1018;border:1px solid #2a3550;border-radius:8px;padding:10px 12px;margin-bottom:12px;color:#a8b3c7;line-height:1.6;white-space:pre-wrap"></div>
   <div id="brain-status"></div>
   <div id="notes"><div class="loading">Loading your brain…</div></div>
 </div>
@@ -440,13 +441,16 @@ function addNote(){
 // SHARDED saves: each operation writes only the ONE note that changed — tiny,
 // fast, no size limit, no race. Scales to 500MB+ total. A queue serializes them.
 let _q=[],_qrunning=false;
+function dbg(msg){var el=document.getElementById('brain-debug');if(el){var t=new Date().toLocaleTimeString();el.textContent=(t+' '+msg+'\n'+el.textContent).split('\n').slice(0,8).join('\n');}}
 async function _putBrain(job){
-  // Try the unblockable custom domain first; fall back to workers.dev.
+  const kind=job.note?'note':job.notes_upsert?('batch×'+job.notes_upsert.length):job.delete?'delete':job.notes?('bulk×'+job.notes.length):'?';
   for(const base of [PROXY, PROXY_FALLBACK]){
     try{
       const r=await fetch(`${base}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(job)});
-      const d=await r.json(); return d;
-    }catch(e){/* try next base */}
+      const d=await r.json();
+      dbg('SAVE '+kind+' → '+base.replace('https://','')+' = '+r.status+' '+(d.ok?'OK':JSON.stringify(d).slice(0,60)));
+      return d;
+    }catch(e){ dbg('SAVE '+kind+' → '+base.replace('https://','')+' FAILED: '+String(e).slice(0,50)); }
   }
   throw new Error('all endpoints unreachable');
 }
@@ -485,6 +489,9 @@ function _flushBatch(){
   _q.push({notes_upsert:notes});_runQueue();
 }
 async function load(){
+  var _uid=brainUid();
+  var _signedin=false;try{_signedin=!!(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());}catch(e){}
+  dbg('IDENTITY: '+(_signedin?'signed-in':'guest')+' uid='+_uid.slice(0,16)+'…');
   try{
     let d=null;
     for(const base of [PROXY, PROXY_FALLBACK]){
@@ -496,7 +503,8 @@ async function load(){
     }
     if(!d)throw new Error('load failed');
     STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;
-  }catch(e){STATE.notes=[];}
+    dbg('LOAD: '+STATE.notes.length+' notes found for this uid');
+  }catch(e){STATE.notes=[];dbg('LOAD FAILED: '+String(e).slice(0,50));}
   renderStatus();
   renderCats();renderFilters();renderNotes();
 }
