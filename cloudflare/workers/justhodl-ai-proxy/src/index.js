@@ -61,8 +61,8 @@ function corsHeaders(origin) {
   const allowed = ALLOWED_ORIGINS.has(origin) ? origin : 'https://justhodl.ai';
   return {
     'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, x-mgr-pass',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, x-mgr-pass, X-Brain-Pin',
     'Access-Control-Max-Age': '300',
     'Vary': 'Origin',
   };
