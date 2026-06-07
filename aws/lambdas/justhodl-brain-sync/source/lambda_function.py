@@ -79,6 +79,36 @@ def read_history():
         return []
 
 
+def _regime_read(notes_text, regimes):
+    """Top AI read: given the user's notes + the live regime, say where we are
+    relative to THEIR thinking, and flag which of their notes to double-check
+    (because conditions may have changed or a thesis may be playing out/breaking)."""
+    if not ANTHROPIC_KEY or not notes_text.strip():
+        return None
+    system = (
+        "You are the user's macro co-pilot. Given THEIR investing notes and the LIVE regime data, "
+        "produce a tight read. Return STRICT JSON only: {"
+        "\"headline\": \"<one punchy sentence: where the regime is vs how they think>\", "
+        "\"assessment\": \"<2-4 sentences connecting the live regime to their specific notes/theses>\", "
+        "\"alignment\": \"<aligned|mixed|at-odds — is the current tape with or against their positioning?>\", "
+        "\"recheck_notes\": [\"<verbatim-ish snippets of THEIR notes that they should double-check now "
+        "because conditions changed, a thesis is triggering, or a rule is being tested — max 4>\"]}"
+    )
+    try:
+        body = {"model": MODEL, "max_tokens": 700, "system": system,
+                "messages": [{"role": "user", "content": f"LIVE REGIME:\n{json.dumps(regimes, default=str)}\n\nTHEIR NOTES:\n{notes_text[:7000]}"}]}
+        req = urllib.request.Request("https://api.anthropic.com/v1/messages",
+            data=json.dumps(body).encode(),
+            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01"})
+        r = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
+        txt = "".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")
+        import re as _re
+        return json.loads(_re.sub(r"^```(?:json)?\s*|\s*```$", "", txt.strip()))
+    except Exception as e:
+        print(f"[brain-sync] regime read err: {str(e)[:70]}")
+        return None
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     try:
@@ -136,6 +166,19 @@ def lambda_handler(event=None, context=None):
         directive_changed = bool(directive)
     else:
         directive = prev.get("directive")  # reuse — content unchanged
+
+    # Top AI regime read vs the user's notes (refresh when notes change OR every
+    # run if absent — regimes shift even when notes don't, but cap cost by only
+    # recomputing on content change or if missing). We refresh it each run since
+    # the live regime moves; it's one cheap call.
+    regime_read = None
+    if notes:
+        regimes = {
+            "bond_vol": (read_json("data/bond-vol.json") or {}).get("regime"),
+            "funding_plumbing": {k: (read_json("data/funding-plumbing.json") or {}).get(k) for k in ["regime", "balance_sheet_direction", "qt_ended_not_qe"]},
+            "crypto_dump_risk": {k: (read_json("data/crypto-cycle-risk.json") or {}).get(k) for k in ["risk_level", "dump_risk_score"]},
+        }
+        regime_read = _regime_read(all_text, regimes)
 
     # ── TRACK: keep a history of how the brain/worldview evolves over time, so
     # the system can show what changed and when, and prove it's applying the

@@ -101,7 +101,17 @@ a{color:var(--cyan);text-decoration:none}
 
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
-function uidQ(){try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();return u&&u.id?("uid="+encodeURIComponent(u.id)):"";}catch(e){return "";}}
+// Resolve a stable identity with NO friction: prefer the logged-in Supabase
+// user id; otherwise use a silent per-device id (auto-generated once, stored
+// locally). Either way it's a >=20-char unguessable key → the worker treats it
+// as auth and never asks for a PIN. Sign in later to sync across devices.
+function deviceId(){
+  let d=localStorage.getItem('jh_brain_device');
+  if(!d){d='dev-'+(crypto.randomUUID?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)));localStorage.setItem('jh_brain_device',d);}
+  return d;
+}
+function brainUid(){try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();if(u&&u.id)return u.id;}catch(e){}return deviceId();}
+function uidQ(){return "uid="+encodeURIComponent(brainUid());}
 const CATS=[
   {id:"philosophy",label:"Philosophy",c:"#a78bfa"},
   {id:"rule",label:"Rule",c:"#26ffaf"},
@@ -389,18 +399,13 @@ function addNote(){
   ta.value='';save();renderNotes();renderFilters();
 }
 
-function isLoggedIn(){try{return !!(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());}catch(e){return false;}}
 async function save(){
-  const authed=isLoggedIn();
-  if(!authed && !PIN){openPin();return;}   // PIN only matters when NOT logged in
   badge('saving…','saving');
   try{
     const payload={notes:STATE.notes,updated_at:new Date().toISOString(),v:1};
-    const body=authed?payload:{...payload,_pin:PIN};   // logged-in = uid is the auth, no PIN
-    const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
+    const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
     const d=await r.json();
-    if(d.ok){badge('✓ saved to brain','saved');setTimeout(()=>badge(''),2000);}
-    else if(r.status===403||r.status===401){if(!authed){PIN='';sessionStorage.removeItem('jh_brain_pin');badge('PIN needed','err');openPin();}else badge('save error — refresh','err');}
+    if(d.ok){badge('✓ saved','saved');setTimeout(()=>badge(''),1800);}
     else{badge(d.error||'save failed','err');}
   }catch(e){badge('offline — retry','err');}
 }
@@ -422,8 +427,19 @@ async function renderStatus(){
     return;
   }
   const dir=synced.directive;
+  const rr=synced.regime_read;
   const when=synced.generated_at?new Date(synced.generated_at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
-  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(34,211,238,0.05));border:1px solid var(--border-bright);border-radius:14px;padding:16px 18px;margin-bottom:18px">
+  let rrHtml='';
+  if(rr&&rr.headline){
+    const ac=rr.alignment==='at-odds'?'#ff5577':rr.alignment==='mixed'?'#fbbf24':'#26ffaf';
+    rrHtml=`<div style="background:linear-gradient(135deg,rgba(34,211,238,0.08),rgba(167,139,250,0.05));border:1px solid ${ac};border-radius:14px;padding:16px 18px;margin-bottom:14px">
+      <div style="font-family:var(--mono);font-size:10px;color:${ac};letter-spacing:.5px;margin-bottom:7px">🧭 REGIME READ vs YOUR THINKING · ${esc((rr.alignment||'').toUpperCase())}</div>
+      <div style="font-size:15px;font-weight:700;color:var(--fg-0);margin-bottom:6px">${esc(rr.headline)}</div>
+      <div style="font-size:13px;color:var(--fg-2);line-height:1.55">${esc(rr.assessment||'')}</div>
+      ${(rr.recheck_notes&&rr.recheck_notes.length)?`<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:9px"><span style="font-family:var(--mono);font-size:10px;color:var(--amber)">⚠ DOUBLE-CHECK THESE NOTES:</span>${rr.recheck_notes.map(n=>`<div style="font-size:12.5px;color:var(--fg-1);margin:4px 0 0 2px;padding:5px 9px;background:rgba(251,191,36,0.06);border-left:2px solid var(--amber);border-radius:3px">${esc(n)}</div>`).join('')}</div>`:''}
+    </div>`;
+  }
+  el.innerHTML=rrHtml+`<div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(34,211,238,0.05));border:1px solid var(--border-bright);border-radius:14px;padding:16px 18px;margin-bottom:18px">
     <div style="font-family:var(--mono);font-size:10px;color:#26ffaf;letter-spacing:.5px;margin-bottom:8px">✓ SYSTEM IS READING &amp; APPLYING YOUR BRAIN · last analyzed ${esc(when)}</div>
     <div style="font-size:13.5px;color:var(--fg-1);line-height:1.55;margin-bottom:10px"><b style="color:#a78bfa">How the system sees you:</b> ${esc(dir.investor_profile||'—')}</div>
     ${(dir.themes&&dir.themes.length)?`<div style="margin-bottom:7px"><span style="font-family:var(--mono);font-size:10px;color:var(--fg-3)">THEMES </span>${dir.themes.map(t=>`<span style="font-family:var(--mono);font-size:11px;color:#22d3ee;border:1px solid #22d3ee;border-radius:10px;padding:1px 8px;margin-right:4px">${esc(t)}</span>`).join('')}</div>`:''}
