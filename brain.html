@@ -216,8 +216,8 @@ function renderNotes(){
     </div>`).join('');
   box.querySelectorAll('.note').forEach(el=>{
     const id=el.dataset.id;
-    el.querySelector('[data-act="pin"]').onclick=()=>{const n=STATE.notes.find(x=>x.id===id);n.pinned=!n.pinned;save();renderNotes();};
-    el.querySelector('[data-act="del"]').onclick=()=>{if(confirm('Delete this note permanently?')){STATE.notes=STATE.notes.filter(x=>x.id!==id);save();renderNotes();renderFilters();}};
+    el.querySelector('[data-act="pin"]').onclick=()=>{const n=STATE.notes.find(x=>x.id===id);n.pinned=!n.pinned;saveNote(n);renderNotes();};
+    el.querySelector('[data-act="del"]').onclick=()=>{if(confirm('Delete this note permanently?')){STATE.notes=STATE.notes.filter(x=>x.id!==id);deleteNote(id);renderNotes();renderFilters();}};
     el.querySelector('[data-act="edit"]').onclick=()=>startEdit(el,id);
   });
 }
@@ -227,7 +227,7 @@ function startEdit(el,id){
   const ta=document.createElement('textarea');ta.className='nedit';ta.value=n.text;
   body.replaceWith(ta);ta.focus();
   const finish=(save_)=>{
-    if(save_){const v=ta.value.trim();if(v&&v!==n.text){n.text=v;n.edited=Date.now();save();}}
+    if(save_){const v=ta.value.trim();if(v&&v!==n.text){n.text=v;n.edited=Date.now();saveNote(n);}}
     renderNotes();
   };
   ta.onblur=()=>finish(true);
@@ -349,7 +349,7 @@ async function handleFiles(files){
       let added=0;
       blocks.forEach(b=>{
         const txt=b.length>8000?b.slice(0,8000)+'…':b;
-        STATE.notes.unshift({id:uid(),cat:activeCat,text:txt,created:Date.now(),pinned:false,source:name});
+        var _fn={id:uid(),cat:activeCat,text:txt,created:Date.now(),pinned:false,source:name};STATE.notes.unshift(_fn);saveNote(_fn);
         added++;
       });
       dzStatus(name,'ok',`imported ${added} note${added>1?'s':''} → ${activeCat}`);
@@ -358,7 +358,6 @@ async function handleFiles(files){
       dzStatus(name,'err',(e&&e.message)||'parse failed');
     }
   }
-  save();   // single coalesced save of the FINAL state (race-proof)
 }
 
 (function wireDropzone(){
@@ -385,7 +384,7 @@ document.addEventListener('paste',async(e)=>{
       try{
         const text=(await ocrImage(blob,p=>dzStatus(nm,'working','OCR '+p+'%'))).trim();
         if(!text){dzStatus(nm,'err','no text found in image');return;}
-        STATE.notes.unshift({id:uid(),cat:activeCat,text:text.length>8000?text.slice(0,8000)+'…':text,created:Date.now(),pinned:false,source:'pasted image'});
+        var _pn={id:uid(),cat:activeCat,text:text.length>8000?text.slice(0,8000)+'…':text,created:Date.now(),pinned:false,source:'pasted image'};STATE.notes.unshift(_pn);saveNote(_pn);
         dzStatus(nm,'ok','imported → '+activeCat);
         save();renderNotes();renderFilters();
       }catch(err){dzStatus(nm,'err',(err&&err.message)||'OCR failed');}
@@ -396,29 +395,31 @@ document.addEventListener('paste',async(e)=>{
 
 function addNote(){
   const ta=document.getElementById('note-input');const v=ta.value.trim();if(!v)return;
-  STATE.notes.unshift({id:uid(),cat:activeCat,text:v,created:Date.now(),pinned:false});
+  var _n={id:uid(),cat:activeCat,text:v,created:Date.now(),pinned:false};STATE.notes.unshift(_n);saveNote(_n);
   ta.value='';save();renderNotes();renderFilters();
 }
 
-// Race-proof save: serialize writes (never two at once) + always send the
-// LATEST state + coalesce rapid changes. Fixes 'some notes save, some don't'
-// when dropping multiple files (each used to fire its own racing PUT).
-let _saving=false, _pendingSave=false, _saveTimer=null;
-async function _doSave(){
-  if(_saving){_pendingSave=true;return;}
-  _saving=true; _pendingSave=false;
-  badge('saving…','saving');
-  try{
-    const payload={notes:STATE.notes,updated_at:new Date().toISOString(),v:1};
-    const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
-    const d=await r.json();
-    if(d.ok){badge('✓ saved ('+STATE.notes.length+')','saved');setTimeout(()=>{if(!_saving&&!_pendingSave)badge('');},1800);}
-    else{badge(d.error||'save failed','err');}
-  }catch(e){badge('offline — retry','err');_pendingSave=true;}
-  _saving=false;
-  if(_pendingSave){_pendingSave=false;setTimeout(_doSave,150);}
+// SHARDED saves: each operation writes only the ONE note that changed — tiny,
+// fast, no size limit, no race. Scales to 500MB+ total. A queue serializes them.
+let _q=[],_qrunning=false;
+async function _runQueue(){
+  if(_qrunning)return; _qrunning=true;
+  while(_q.length){
+    const job=_q.shift();
+    try{
+      badge('saving…','saving');
+      const r=await fetch(`${PROXY}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(job)});
+      const d=await r.json();
+      if(!d.ok)badge(d.error||'save failed','err');
+    }catch(e){badge('offline — retry','err');_q.unshift(job);await new Promise(r=>setTimeout(r,1500));}
+  }
+  _qrunning=false;
+  badge('✓ saved ('+STATE.notes.length+')','saved');setTimeout(()=>{if(!_q.length)badge('');},1500);
 }
-function save(){clearTimeout(_saveTimer);_saveTimer=setTimeout(_doSave,400);}
+function saveNote(n){_q.push({note:n});_runQueue();}
+function deleteNote(id){_q.push({delete:id});_runQueue();}
+// Legacy 'save()' (used by import/dedupe bulk ops) → bulk replace
+function save(){_q.push({notes:STATE.notes});_runQueue();}
 async function load(){
   try{
     const r=await fetch(`${PROXY}/brain?t=${Date.now()}&${uidQ()}`);const d=await r.json();

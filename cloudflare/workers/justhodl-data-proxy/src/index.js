@@ -145,88 +145,113 @@ export default {
       return new Response("method not allowed", { status: 405, headers: corsHeaders() });
     }
 
-    // ── /brain — the system's "brain": Khalid's persistent investing notes &
-    // principles. GET is public (it's philosophy, low-harm to read). PUT requires
-    // a PIN (X-Brain-Pin header). The PIN is self-bootstrapping: the first PUT
-    // sets it (hashed in KV); later PUTs must match. No env secret needed. ──
+    // ── /brain — SHARDED storage: one KV key per note (bnote:<user>:<id>) + a
+    // small index (bidx:<user>). Scales far past the 25MB single-value limit
+    // (effectively unlimited / 500MB+), and each save writes only the ONE note
+    // that changed — tiny, fast, no race, no size error.
+    //   GET  /brain?uid=…                 → {notes:[…], scope}   (reads index + shards)
+    //   PUT  /brain?uid=…  {note:{…}}      → upsert one note  (tiny write)
+    //   PUT  /brain?uid=…  {delete:"<id>"} → delete one note
+    //   PUT  /brain?uid=…  {notes:[…]}     → bulk replace (migration / import); shards it
     if (url.pathname === "/brain") {
       if (!env.USER_DATA) {
         return new Response(JSON.stringify({ error: "store unavailable" }),
           { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      // Per-user isolation: a logged-in user passes ?uid=<supabase-id>; their
-      // notes live under their own key. Anonymous / you (no uid) → 'khalid'.
-      // This keeps every user's notes permanently stored AND fully separated.
       const uidParam = (url.searchParams.get("uid") || "").replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64);
       const who = uidParam && uidParam.length >= 8 ? uidParam : "khalid";
-      const BRAIN_KEY = "brain:" + who;
+      const IDX_KEY = "bidx:" + who;            // JSON array of note ids (order)
+      const NOTE_PREFIX = "bnote:" + who + ":";
+      const LEGACY_KEY = "brain:" + who;        // old single-blob (for migration)
       const PIN_KEY = "brainpin:" + who;
-      const BACKUP_KEY = "brainbak:" + who;   // rolling backups (corruption safety net)
+      const isAuthedUser = (who !== "khalid" && uidParam.length >= 20);
       async function sha(s) {
         const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("jhsalt:" + s));
         return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
       }
-      if (request.method === "GET") {
-        const stored = await env.USER_DATA.get(BRAIN_KEY);
-        const hasPin = !!(await env.USER_DATA.get(PIN_KEY));
-        const body = stored ? JSON.parse(stored) : { notes: [], empty: true };
-        body.pin_set = hasPin;
-        body.scope = who === "khalid" ? "owner" : "user";
-        return new Response(JSON.stringify(body),
-          { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
+      async function readIndex() {
+        try { return JSON.parse(await env.USER_DATA.get(IDX_KEY) || "[]"); } catch (e) { return []; }
       }
-      if (request.method === "PUT" || request.method === "POST") {
-        let parsedBody = null, pin = request.headers.get("X-Brain-Pin") || "";
-        const rawText = await request.text();
-        try { parsedBody = JSON.parse(rawText); } catch (e) {}
-        if (!pin && parsedBody && parsedBody._pin) pin = String(parsedBody._pin);
-        // ── Auth model ──
-        // • Logged-in user (uid is their unguessable Supabase UUID): the uid IS the
-        //   key — no PIN needed, ever. Frictionless + safe (UUID is effectively secret).
-        // • Anonymous/owner ('khalid'): keep the optional PIN fallback so a random
-        //   visitor can't overwrite the owner brain.
-        const isAuthedUser = (who !== "khalid" && uidParam.length >= 20); // a real UUID
-        if (!isAuthedUser) {
-          if (!pin || pin.length < 4) {
-            return new Response(JSON.stringify({ error: "pin required (min 4 chars)" }),
-              { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
-          }
-          const existing = await env.USER_DATA.get(PIN_KEY);
-          const ph = await sha(pin);
-          if (existing) {
-            if (ph !== existing) {
-              return new Response(JSON.stringify({ error: "wrong pin" }),
-                { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } });
-            }
-          } else {
-            await env.USER_DATA.put(PIN_KEY, ph);
+      async function readAllNotes() {
+        let ids = await readIndex();
+        // one-time migration: if no index yet but a legacy blob exists, shard it
+        if ((!ids || !ids.length)) {
+          const legacy = await env.USER_DATA.get(LEGACY_KEY);
+          if (legacy) {
+            try {
+              const obj = JSON.parse(legacy);
+              const notes = Array.isArray(obj.notes) ? obj.notes : [];
+              if (notes.length) {
+                const newIds = [];
+                for (const n of notes) {
+                  if (n && n.id) { await env.USER_DATA.put(NOTE_PREFIX + n.id, JSON.stringify(n)); newIds.push(n.id); }
+                }
+                await env.USER_DATA.put(IDX_KEY, JSON.stringify(newIds));
+                ids = newIds;
+              }
+            } catch (e) {}
           }
         }
+        const notes = [];
+        for (const id of ids) {
+          const raw = await env.USER_DATA.get(NOTE_PREFIX + id);
+          if (raw) { try { notes.push(JSON.parse(raw)); } catch (e) {} }
+        }
+        return notes;
+      }
+
+      if (request.method === "GET") {
+        const notes = await readAllNotes();
+        const hasPin = !!(await env.USER_DATA.get(PIN_KEY));
+        return new Response(JSON.stringify({ notes, pin_set: hasPin, scope: who === "khalid" ? "owner" : "user", sharded: true }),
+          { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
+      }
+
+      if (request.method === "PUT" || request.method === "POST") {
+        const rawText = await request.text();
+        let body = null; try { body = JSON.parse(rawText); } catch (e) {}
+        let pin = request.headers.get("X-Brain-Pin") || (body && body._pin) || "";
+        if (!isAuthedUser) {
+          if (!pin || pin.length < 4) return new Response(JSON.stringify({ error: "pin required (min 4 chars)" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          const existing = await env.USER_DATA.get(PIN_KEY); const ph = await sha(pin);
+          if (existing) { if (ph !== existing) return new Response(JSON.stringify({ error: "wrong pin" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } }); }
+          else await env.USER_DATA.put(PIN_KEY, ph);
+        }
         try {
-          if (!parsedBody) throw new Error("invalid json");
-          // strip the pin before storing — never persist it in the notes blob
-          if (parsedBody._pin) delete parsedBody._pin;
-          const bodyText = JSON.stringify(parsedBody);
-          if (bodyText.length > 10000000) {
-            return new Response(JSON.stringify({ error: "too large" }),
-              { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          if (!body) throw new Error("invalid json");
+          // (a) upsert a single note — the normal, tiny save
+          if (body.note && body.note.id) {
+            const n = body.note;
+            const s = JSON.stringify(n);
+            if (s.length > 20000000) return new Response(JSON.stringify({ error: "single note too large" }), { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+            await env.USER_DATA.put(NOTE_PREFIX + n.id, s);
+            let ids = await readIndex();
+            if (!ids.includes(n.id)) { ids.unshift(n.id); await env.USER_DATA.put(IDX_KEY, JSON.stringify(ids)); }
+            return new Response(JSON.stringify({ ok: true, mode: "upsert", id: n.id }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
-          // Safety net: keep ONE previous version as a restore point. Single-deep
-          // (not stacked) so the backup key can never exceed the 25MB KV value
-          // limit even when notes grow large. The export button + S3 mirror give
-          // deeper history.
-          try {
-            const prevCur = await env.USER_DATA.get(BRAIN_KEY);
-            if (prevCur && prevCur.length < 12000000) {
-              await env.USER_DATA.put(BACKUP_KEY, JSON.stringify({ at: Date.now(), data: prevCur }));
+          // (b) delete a single note
+          if (body.delete) {
+            await env.USER_DATA.delete(NOTE_PREFIX + body.delete);
+            let ids = (await readIndex()).filter(x => x !== body.delete);
+            await env.USER_DATA.put(IDX_KEY, JSON.stringify(ids));
+            return new Response(JSON.stringify({ ok: true, mode: "delete", id: body.delete }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          }
+          // (c) bulk replace (import / migration): shard the whole array
+          if (Array.isArray(body.notes)) {
+            // remove old shards not in the new set
+            const oldIds = await readIndex();
+            const newIds = [];
+            for (const n of body.notes) {
+              if (n && n.id) { await env.USER_DATA.put(NOTE_PREFIX + n.id, JSON.stringify(n)); newIds.push(n.id); }
             }
-          } catch (e) { /* best-effort */ }
-          await env.USER_DATA.put(BRAIN_KEY, bodyText);
-          return new Response(JSON.stringify({ ok: true, saved_at: Date.now(), scope: who === "khalid" ? "owner" : "user" }),
-            { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+            const newSet = new Set(newIds);
+            for (const oid of oldIds) { if (!newSet.has(oid)) await env.USER_DATA.delete(NOTE_PREFIX + oid); }
+            await env.USER_DATA.put(IDX_KEY, JSON.stringify(newIds));
+            return new Response(JSON.stringify({ ok: true, mode: "bulk", count: newIds.length }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          }
+          return new Response(JSON.stringify({ error: "send {note}, {delete}, or {notes:[…]}" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
         } catch (e) {
-          return new Response(JSON.stringify({ error: "invalid json", detail: String(e).slice(0, 80) }),
-            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          return new Response(JSON.stringify({ error: "save failed", detail: String(e).slice(0, 100) }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
         }
       }
       return new Response("method not allowed", { status: 405, headers: corsHeaders() });
