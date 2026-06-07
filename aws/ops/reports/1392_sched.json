@@ -1,0 +1,132 @@
+{
+  "scheduled": [
+    {
+      "lambda": "justhodl-fed-nlp",
+      "rule": "fed-nlp-6h",
+      "sched": "rate(6 hours)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-fed-nlp",
+      "rule": "fed-nlp-6h",
+      "sched": "rate(6 hours)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-ai-brief",
+      "rule": "justhodl-ai-brief-4h",
+      "sched": "cron(5 0,4,8,12,16,20 ? * * *)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-ai-brief-router",
+      "rule": "justhodl-alerts-digest-close-daily",
+      "sched": "cron(0 21 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-ai-brief-router",
+      "rule": "justhodl-alerts-digest-daily",
+      "sched": "cron(0 9 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-brain-sync",
+      "rule": "justhodl-brain-sync-15min",
+      "sched": "rate(15 minutes)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-devils-advocate",
+      "rule": "justhodl-devils-advocate-6h",
+      "sched": "rate(6 hours)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-dislocation-ai",
+      "rule": "justhodl-dislocation-ai-daily",
+      "sched": "cron(15 15 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-flows-ai-analysis",
+      "rule": "justhodl-flows-ai-analysis-daily",
+      "sched": "cron(30 22 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-ai-brief-router",
+      "rule": "justhodl-frontrun-skill-daily",
+      "sched": "cron(30 10 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-my-brief",
+      "rule": "justhodl-my-brief-daily",
+      "sched": "cron(30 13 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-ai-brief-router",
+      "rule": "justhodl-opportunity-ranker-4h",
+      "sched": "rate(4 hours)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-political-ai-investigation",
+      "rule": "justhodl-political-ai-investigation-daily",
+      "sched": "cron(30 11 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-ai-brief-router",
+      "rule": "justhodl-self-improvement-daily",
+      "sched": "cron(0 11 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-ai-brief-router",
+      "rule": "justhodl-uptime-monitor-hourly",
+      "sched": "cron(0 * * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-weekly-ai-review",
+      "rule": "justhodl-weekly-ai-review-sunday",
+      "sched": "cron(0 14 ? * SUN *)",
+      "state": "ENABLED"
+    }
+  ],
+  "frequent": [
+    {
+      "lambda": "justhodl-fed-nlp",
+      "rule": "fed-nlp-6h",
+      "sched": "rate(6 hours)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-fed-nlp",
+      "rule": "fed-nlp-6h",
+      "sched": "rate(6 hours)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-brain-sync",
+      "rule": "justhodl-brain-sync-15min",
+      "sched": "rate(15 minutes)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-devils-advocate",
+      "rule": "justhodl-devils-advocate-6h",
+      "sched": "rate(6 hours)",
+      "state": "ENABLED"
+    },
+    {
+      "lambda": "justhodl-ai-brief-router",
+      "rule": "justhodl-opportunity-ranker-4h",
+      "sched": "rate(4 hours)",
+      "state": "ENABLED"
+    }
+  ]
+}
