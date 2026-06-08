@@ -376,10 +376,16 @@ export default {
             if(/^(test|cors check|kv reset check|save path test|round-trip persistence test)$/.test(t)) return false;
             if(/^(multi note |batch note |real note |device save test)/.test(t)) return false;
             if(t.indexOf("no-preflight")>=0||t.indexOf("PERMANENCE TEST")>=0) return false;
+            // AI-assistant chat transcript / dev-log junk (polluted the brain)
+            var tl=t.toLowerCase();
+            if(/would you like me to|shall i|let me |here'?s (what|the|your)|✅|🔥|📈|📬|perfect —|you now have|i'?ll (build|create|add|start)|let'?s build|do you want me to/.test(tl)) return false;
+            if(/^[\[{]/.test(t) && /[\]}]$/.test(t)) return false;          // JSON blob
+            if(/\{"results"|"id":|→ returns|lambda|endpoint|backend|frontend|deploy|api key|\.json|http[s]?:\/\//.test(tl)) return false;  // code/dev
+            if(/^(step \d|fix \d|ops \d|\d+\.\s)/.test(tl)) return false;   // numbered build steps
             var letters=(t.match(/[a-zA-Z]/g)||[]).length;
             var words=(t.match(/\b[a-zA-Z]{3,}\b/g)||[]).length;
-            if(letters/t.length < 0.6) return false;             // mostly symbols/digits = OCR garble
-            if(words < Math.max(5, t.length/45)) return false;   // too few real words
+            if(letters/t.length < 0.6) return false;
+            if(words < Math.max(5, t.length/45)) return false;
             if(/[|©£@]{2,}/.test(t)) return false;
             return true;
           }

@@ -243,7 +243,7 @@ function renderNotes(){
       <button id="dedupe-btn" style="margin-left:auto;background:var(--amber);border:none;color:var(--bg);font-family:var(--mono);font-size:11px;font-weight:700;padding:6px 13px;border-radius:7px;cursor:pointer">Remove ${flagged.size} duplicate${flagged.size>1?'s':''}</button></div>`;
     banner.querySelector('#dedupe-btn').onclick=()=>{
       if(confirm('Remove '+flagged.size+' duplicate notes? (keeps one copy of each)')){
-        STATE.notes=STATE.notes.filter(n=>!flagged.has(n.id));save();renderNotes();renderFilters();
+        STATE.notes=STATE.notes.filter(n=>!flagged.has(n.id));flagged.forEach(id=>deleteNote(id));renderNotes();renderFilters();
       }
     };
   }else banner.innerHTML='';
