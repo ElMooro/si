@@ -1,0 +1,549 @@
+{
+  "enabled_remaining": [
+    {
+      "rule": "aiapi-daily-training",
+      "sched": "cron(0 2 * * ? *)"
+    },
+    {
+      "rule": "alpha-compass-3h",
+      "sched": "cron(50 */3 * * ? *)"
+    },
+    {
+      "rule": "alphavantage-market-update",
+      "sched": "cron(*/15 13-21 ? * MON-FRI *)"
+    },
+    {
+      "rule": "analyst-consensus-daily",
+      "sched": "cron(45 11 ? * MON-FRI *)"
+    },
+    {
+      "rule": "ark-holdings-daily",
+      "sched": "cron(0 6 * * ? *)"
+    },
+    {
+      "rule": "bagger-engine-weekly",
+      "sched": "cron(0 12 ? * SUN *)"
+    },
+    {
+      "rule": "bank-stress-daily",
+      "sched": "cron(0 15 ? * MON-FRI *)"
+    },
+    {
+      "rule": "boj-detail-daily",
+      "sched": "cron(20 11 * * ? *)"
+    },
+    {
+      "rule": "bond-trace-daily",
+      "sched": "cron(0 21 ? * MON-FRI *)"
+    },
+    {
+      "rule": "buzz-velocity-4x-daily",
+      "sched": "cron(0 10,14,18,22 * * ? *)"
+    },
+    {
+      "rule": "canary-grid-daily",
+      "sched": "cron(30 */6 * * ? *)"
+    },
+    {
+      "rule": "capitulation-3h",
+      "sched": "cron(45 */3 * * ? *)"
+    },
+    {
+      "rule": "cb-injection-daily",
+      "sched": "cron(0 13 * * ? *)"
+    },
+    {
+      "rule": "cds-monitor-daily",
+      "sched": "cron(0 13 * * ? *)"
+    },
+    {
+      "rule": "cds-proxy-tri-daily",
+      "sched": "cron(0 13,17,21 ? * MON-FRI *)"
+    },
+    {
+      "rule": "cftc-cot-weekly-update",
+      "sched": "cron(0 18 ? * FRI *)"
+    },
+    {
+      "rule": "chart-vision-daily",
+      "sched": "cron(0 16 ? * MON-FRI *)"
+    },
+    {
+      "rule": "china-liquidity-daily",
+      "sched": "cron(30 14 ? * MON-FRI *)"
+    },
+    {
+      "rule": "coffee-can-daily",
+      "sched": "cron(0 13 ? * MON-FRI *)"
+    },
+    {
+      "rule": "construction-housing-daily",
+      "sched": "cron(0 11 ? * * *)"
+    },
+    {
+      "rule": "consumer-pulse-daily",
+      "sched": "cron(40 12 * * ? *)"
+    },
+    {
+      "rule": "crisis-composite-hourly",
+      "sched": "cron(15 * * * ? *)"
+    },
+    {
+      "rule": "cross-asset-rv-daily",
+      "sched": "cron(45 22 ? * MON-FRI *)"
+    },
+    {
+      "rule": "crypto-opportunities-4h",
+      "sched": "cron(0 0,4,8,12,16,20 ? * * *)"
+    },
+    {
+      "rule": "ecb-detail-daily",
+      "sched": "cron(0 11 * * ? *)"
+    },
+    {
+      "rule": "ecb-weekly-update",
+      "sched": "cron(0 6 ? * MON *)"
+    },
+    {
+      "rule": "economyapi-weekly-update",
+      "sched": "cron(0 14 ? * MON *)"
+    },
+    {
+      "rule": "engine-signal-map-daily",
+      "sched": "cron(0 9 * * ? *)"
+    },
+    {
+      "rule": "episode-reference-daily",
+      "sched": "cron(0 10 ? * * *)"
+    },
+    {
+      "rule": "esi-daily",
+      "sched": "cron(30 12 ? * MON-FRI *)"
+    },
+    {
+      "rule": "euro-fragmentation-daily",
+      "sched": "cron(20 12 * * ? *)"
+    },
+    {
+      "rule": "failure-library-daily",
+      "sched": "cron(0 15 ? * MON-FRI *)"
+    },
+    {
+      "rule": "fed-liquidity-update",
+      "sched": "cron(0 8 ? * TUE,SAT *)"
+    },
+    {
+      "rule": "fed-nlp-6h",
+      "sched": "cron(30 13 * * ? *)"
+    },
+    {
+      "rule": "forward-orders-daily",
+      "sched": "cron(0 11 * * ? *)"
+    },
+    {
+      "rule": "forward-returns-weekly",
+      "sched": "cron(0 3 ? * SUN *)"
+    },
+    {
+      "rule": "future-intel-2x-daily",
+      "sched": "cron(30 12,20 * * ? *)"
+    },
+    {
+      "rule": "global-liquidity-daily",
+      "sched": "cron(0 14 ? * MON-FRI *)"
+    },
+    {
+      "rule": "hiring-velocity-weekly",
+      "sched": "cron(30 12 ? * SUN *)"
+    },
+    {
+      "rule": "ice-bofa-update-schedule",
+      "sched": "cron(0 9 ? * MON,WED,FRI *)"
+    },
+    {
+      "rule": "insider-aggregate-daily",
+      "sched": "cron(30 22 ? * MON-FRI *)"
+    },
+    {
+      "rule": "jhk-tick-15min",
+      "sched": "cron(0/15 * * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-30min",
+      "sched": "cron(0/30 * * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-4hourly",
+      "sched": "cron(0 0/4 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-5min",
+      "sched": "cron(0/5 * * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-daily-06utc",
+      "sched": "cron(0 6 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-daily-07utc",
+      "sched": "cron(0 7 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-daily-08utc",
+      "sched": "cron(0 8 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-daily-15utc",
+      "sched": "cron(0 15 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-daily-16utc",
+      "sched": "cron(0 16 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-daily-17utc",
+      "sched": "cron(0 17 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-daily-eve",
+      "sched": "cron(0 22 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-daily-morn",
+      "sched": "cron(0 11 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-every_3h",
+      "sched": "cron(0 0/3 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-every_6h",
+      "sched": "cron(0 0/6 * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-hourly-orchestrate",
+      "sched": "cron(5 * * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-monthly",
+      "sched": "cron(0 12 1 * ? *)"
+    },
+    {
+      "rule": "jhk-tick-weekly-sun",
+      "sched": "cron(0 12 ? * SUN *)"
+    },
+    {
+      "rule": "justhodl-ai-brief-4h",
+      "sched": "cron(5 0,4,8,12,16,20 ? * * *)"
+    },
+    {
+      "rule": "justhodl-alerts-digest-close-daily",
+      "sched": "cron(0 21 * * ? *)"
+    },
+    {
+      "rule": "justhodl-alerts-digest-daily",
+      "sched": "cron(0 9 * * ? *)"
+    },
+    {
+      "rule": "justhodl-analytics-snapshot-nightly",
+      "sched": "cron(0 9 * * ? *)"
+    },
+    {
+      "rule": "justhodl-anomaly-detector-hourly",
+      "sched": "cron(33 * * * ? *)"
+    },
+    {
+      "rule": "justhodl-backlog-daily",
+      "sched": "cron(30 11 * * ? *)"
+    },
+    {
+      "rule": "justhodl-best-setups-hourly",
+      "sched": "cron(10 * * * ? *)"
+    },
+    {
+      "rule": "justhodl-brain-sync-15min",
+      "sched": "cron(0 13 * * ? *)"
+    },
+    {
+      "rule": "justhodl-capital-flow-daily",
+      "sched": "cron(30 16 * * ? *)"
+    },
+    {
+      "rule": "justhodl-catalyst-calendar-daily",
+      "sched": "cron(0 12 * * ? *)"
+    },
+    {
+      "rule": "justhodl-cot-extremes-scanner-weekly",
+      "sched": "cron(0 19 ? * FRI *)"
+    },
+    {
+      "rule": "justhodl-dealer-gex-hourly",
+      "sched": "cron(7 13-21 ? * MON-FRI *)"
+    },
+    {
+      "rule": "justhodl-deep-value-overlap-daily",
+      "sched": "cron(0 17 * * ? *)"
+    },
+    {
+      "rule": "justhodl-devils-advocate-6h",
+      "sched": "cron(0 14 * * ? *)"
+    },
+    {
+      "rule": "justhodl-dislocation-ai-daily",
+      "sched": "cron(15 15 * * ? *)"
+    },
+    {
+      "rule": "justhodl-dislocation-detector-daily",
+      "sched": "cron(30 14 * * ? *)"
+    },
+    {
+      "rule": "justhodl-early-movers-twice-per-hour",
+      "sched": "cron(15,45 * * * ? *)"
+    },
+    {
+      "rule": "justhodl-equity-prewarm-nightly",
+      "sched": "cron(0 8 * * ? *)"
+    },
+    {
+      "rule": "justhodl-etf-constituents-daily",
+      "sched": "cron(45 22 * * ? *)"
+    },
+    {
+      "rule": "justhodl-etf-fund-flows-daily",
+      "sched": "cron(0 22 * * ? *)"
+    },
+    {
+      "rule": "justhodl-etf-true-flows-daily",
+      "sched": "cron(45 15 * * ? *)"
+    },
+    {
+      "rule": "justhodl-executive-intel-daily",
+      "sched": "cron(15 11 * * ? *)"
+    },
+    {
+      "rule": "justhodl-flow-anomaly-detector-daily",
+      "sched": "cron(0 23 * * ? *)"
+    },
+    {
+      "rule": "justhodl-flows-ai-analysis-daily",
+      "sched": "cron(30 22 * * ? *)"
+    },
+    {
+      "rule": "justhodl-frontrun-skill-daily",
+      "sched": "cron(30 10 * * ? *)"
+    },
+    {
+      "rule": "justhodl-funding-plumbing-daily",
+      "sched": "cron(15 13 * * ? *)"
+    },
+    {
+      "rule": "justhodl-gbc-daily",
+      "sched": "cron(0 12 * * ? *)"
+    },
+    {
+      "rule": "justhodl-journal-grader-daily",
+      "sched": "cron(0 14 * * ? *)"
+    },
+    {
+      "rule": "justhodl-macro-regime-daily",
+      "sched": "cron(15 22 * * ? *)"
+    },
+    {
+      "rule": "justhodl-margin-lending-weekday-16",
+      "sched": "cron(0 16 ? * MON-FRI *)"
+    },
+    {
+      "rule": "justhodl-my-brief-daily",
+      "sched": "cron(30 13 * * ? *)"
+    },
+    {
+      "rule": "justhodl-opportunity-ranker-4h",
+      "sched": "cron(30 14 * * ? *)"
+    },
+    {
+      "rule": "justhodl-political-ai-investigation-daily",
+      "sched": "cron(30 11 * * ? *)"
+    },
+    {
+      "rule": "justhodl-political-intel-daily",
+      "sched": "cron(0 11 * * ? *)"
+    },
+    {
+      "rule": "justhodl-portfolio-catalysts-3x-daily",
+      "sched": "cron(0 11,17,23 * * ? *)"
+    },
+    {
+      "rule": "justhodl-prepump-alerts-router-30min",
+      "sched": "cron(30 12 * * ? *)"
+    },
+    {
+      "rule": "justhodl-regime-playbook-daily",
+      "sched": "cron(30 14 * * ? *)"
+    },
+    {
+      "rule": "justhodl-repo-lending-daily",
+      "sched": "cron(0 16 ? * MON-FRI *)"
+    },
+    {
+      "rule": "justhodl-research-backtest-daily",
+      "sched": "cron(0 11 * * ? *)"
+    },
+    {
+      "rule": "justhodl-retail-sentiment-30min",
+      "sched": "cron(0,30 * ? * * *)"
+    },
+    {
+      "rule": "justhodl-self-improvement-daily",
+      "sched": "cron(0 11 * * ? *)"
+    },
+    {
+      "rule": "justhodl-setups-push-daily",
+      "sched": "cron(45 12 * * ? *)"
+    },
+    {
+      "rule": "justhodl-signal-backtest-daily",
+      "sched": "cron(0 16 * * ? *)"
+    },
+    {
+      "rule": "justhodl-theme-cascade-backtest-daily",
+      "sched": "cron(45 22 * * ? *)"
+    },
+    {
+      "rule": "justhodl-theme-cascade-twice-per-hour",
+      "sched": "cron(20,50 * * * ? *)"
+    },
+    {
+      "rule": "justhodl-ticket-ai-rationale-hourly",
+      "sched": "cron(5 * * * ? *)"
+    },
+    {
+      "rule": "justhodl-track-record-daily",
+      "sched": "cron(0 13 * * ? *)"
+    },
+    {
+      "rule": "justhodl-uptime-monitor-hourly",
+      "sched": "cron(0 12 * * ? *)"
+    },
+    {
+      "rule": "justhodl-vintage-fred-daily",
+      "sched": "cron(0 13 * * ? *)"
+    },
+    {
+      "rule": "justhodl-wave-signal-logger-6h",
+      "sched": "cron(30 0,6,12,18 ? * * *)"
+    },
+    {
+      "rule": "justhodl-weekly-ai-review-sunday",
+      "sched": "cron(0 14 ? * SUN *)"
+    },
+    {
+      "rule": "leading-markets-daily",
+      "sched": "cron(30 22 ? * MON-FRI *)"
+    },
+    {
+      "rule": "liquidity-profile-fri",
+      "sched": "cron(0 22 ? * FRI *)"
+    },
+    {
+      "rule": "lobbying-intel-daily",
+      "sched": "cron(0 16 * * ? *)"
+    },
+    {
+      "rule": "magnitude-distributions-daily",
+      "sched": "cron(30 7 * * ? *)"
+    },
+    {
+      "rule": "market-internals-hourly",
+      "sched": "cron(15 21 ? * MON-FRI *)"
+    },
+    {
+      "rule": "miss-calibrator-weekly",
+      "sched": "cron(15 9 ? * MON *)"
+    },
+    {
+      "rule": "miss-detector-nightly",
+      "sched": "cron(0 1 * * ? *)"
+    },
+    {
+      "rule": "multi-agent-market-15min",
+      "sched": "cron(*/15 13-21 ? * MON-FRI *)"
+    },
+    {
+      "rule": "multi-agent-orchestrator-schedule",
+      "sched": "cron(*/5 9-16 ? * MON-FRI *)"
+    },
+    {
+      "rule": "near-miss-monitor-hourly",
+      "sched": "cron(30 * * * ? *)"
+    },
+    {
+      "rule": "nyfed-data-update-schedule",
+      "sched": "cron(0 8 ? * MON,THU *)"
+    },
+    {
+      "rule": "opportunity-engine-daily",
+      "sched": "cron(0 14 * * ? *)"
+    },
+    {
+      "rule": "patent-velocity-daily",
+      "sched": "cron(0 17 * * ? *)"
+    },
+    {
+      "rule": "pm-decision-daily",
+      "sched": "cron(0 14 ? * MON-FRI *)"
+    },
+    {
+      "rule": "political-stocks-daily",
+      "sched": "cron(0 14 * * ? *)"
+    },
+    {
+      "rule": "rotation-chain-2x-daily",
+      "sched": "cron(0 12,20 * * ? *)"
+    },
+    {
+      "rule": "seasonality-monday",
+      "sched": "cron(0 11 ? * MON *)"
+    },
+    {
+      "rule": "sec-filings-intel-3x-daily",
+      "sched": "cron(0 9,15,21 * * ? *)"
+    },
+    {
+      "rule": "sector-heatmap-30m",
+      "sched": "cron(*/30 13-21 ? * MON-FRI *)"
+    },
+    {
+      "rule": "sellside-views-mwf",
+      "sched": "cron(0 14 ? * MON,WED,FRI *)"
+    },
+    {
+      "rule": "signal-board-3h",
+      "sched": "cron(15 */3 * * ? *)"
+    },
+    {
+      "rule": "signal-halflife-weekly",
+      "sched": "cron(0 6 ? * MON *)"
+    },
+    {
+      "rule": "signal-scorecard-daily",
+      "sched": "cron(30 10 * * ? *)"
+    },
+    {
+      "rule": "snb-detail-daily",
+      "sched": "cron(40 11 * * ? *)"
+    },
+    {
+      "rule": "tic-flows-thu",
+      "sched": "cron(0 22 ? * THU *)"
+    },
+    {
+      "rule": "ticker-trends-2x-daily",
+      "sched": "cron(0 13,21 * * ? *)"
+    },
+    {
+      "rule": "yen-carry-daily",
+      "sched": "cron(0 12 * * ? *)"
+    }
+  ],
+  "count": 136
+}
