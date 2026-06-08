@@ -147,8 +147,11 @@ function brainUid(){
   //    guest just because the session is slow/expired this load). This is what
   //    keeps you on your account notes across refreshes without re-signing-in.
   try{var rem=localStorage.getItem('jh_brain_account');if(rem){_BRAIN_UID=rem;return _BRAIN_UID;}}catch(e){}
-  // 3. never signed in → guest device id
-  _BRAIN_UID=deviceId();return _BRAIN_UID;
+  // 3. OWNER DEFAULT — single-user system: default to Khalid's account so a
+  //    fresh/cleared browser loads his REAL notes, never an empty guest brain.
+  _BRAIN_UID="9f48a96b-1a1e-4867-9fc6-e6cc5054c56d";
+  try{localStorage.setItem('jh_brain_account',_BRAIN_UID);}catch(e){}
+  return _BRAIN_UID;
 }
 function uidQ(){return "uid="+encodeURIComponent(brainUid());}
 // One-time account pin: visiting brain.html?account=<your-uid> remembers it
