@@ -113,7 +113,7 @@ def _regime_read(notes_text, regimes):
         " Ground everything in their actual notes + the live data. Be decisive, not hedged. This is research, not advice."
     )
     try:
-        body = {"model": MODEL, "max_tokens": 1500, "system": system,
+        body = {"model": MODEL, "max_tokens": 2500, "system": system,
                 "messages": [{"role": "user", "content": f"LIVE MARKET REGIME DATA:\n{json.dumps(regimes, default=str)}\n\nTHEIR INVESTING NOTES (their worldview):\n{notes_text[:14000]}"}]}
         req = urllib.request.Request("https://api.anthropic.com/v1/messages",
             data=json.dumps(body).encode(),
