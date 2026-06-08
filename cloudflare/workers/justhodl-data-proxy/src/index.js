@@ -320,6 +320,27 @@ export default {
         return notes;
       }
 
+      // CHUNKED CACHE BUILD: assemble bcache:<uid> in offset windows so we never
+      // fan-out all 854 shards in one invocation (that 500s). Call repeatedly with
+      // ?build=1&offset=N until done. Admin-token gated.
+      if (url.searchParams.get("build") === "1") {
+        if ((url.searchParams.get("token") || "") !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
+        try {
+          let ids = JSON.parse(await env.USER_DATA.get(IDX) || "[]");
+          const offset = Math.max(0, parseInt(url.searchParams.get("offset") || "0", 10) || 0);
+          const win = 150;
+          if (offset === 0) await env.USER_DATA.put(CACHE_KEY + ":wip", "[]");
+          let acc = JSON.parse(await env.USER_DATA.get(CACHE_KEY + ":wip") || "[]");
+          const slice = ids.slice(offset, offset + win);
+          const raws = await Promise.all(slice.map(id => env.USER_DATA.get(NOTE_PREFIX + id).catch(() => null)));
+          for (const raw of raws) { if (raw) { try { acc.push(JSON.parse(raw)); } catch (e) {} } }
+          await env.USER_DATA.put(CACHE_KEY + ":wip", JSON.stringify(acc));
+          const next = offset + win;
+          const done = next >= ids.length;
+          if (done) await env.USER_DATA.put(CACHE_KEY, JSON.stringify(acc));
+          return jsonResp({ ok: true, built: acc.length, next_offset: next, total: ids.length, done });
+        } catch (e) { return jsonResp({ error: String(e).slice(0, 150) }, 500); }
+      }
       if (request.method === "GET") {
         // CACHE-FIRST: read the single bcache:<uid> key (instant — no 854-shard
         // fan-out that was timing out). If missing, rebuild from shards once and
@@ -330,8 +351,11 @@ export default {
           if (cached) notes = JSON.parse(cached);
         } catch (e) {}
         if (notes === null) {
-          notes = await readAllNotes();                 // one-time rebuild
-          try { await env.USER_DATA.put(CACHE_KEY, JSON.stringify(notes)); } catch (e) {}
+          // No cache yet. Do NOT fan-out 854 shards here (it 500s/times out).
+          // Return empty fast with a flag; the cache is built via ?build=1.
+          const idsLen = (JSON.parse(await env.USER_DATA.get(IDX) || "[]")).length;
+          return new Response(JSON.stringify({ notes: [], pin_set: !!(await env.USER_DATA.get(PIN_KEY)), scope: who === "khalid" ? "owner" : "user", cache_building: true, index_count: idsLen }),
+            { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
         }
         const hasPin = !!(await env.USER_DATA.get(PIN_KEY));
         return new Response(JSON.stringify({ notes, pin_set: hasPin, scope: who === "khalid" ? "owner" : "user", cached: true }),
