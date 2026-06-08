@@ -326,19 +326,39 @@ export default {
       if (url.searchParams.get("build") === "1") {
         if ((url.searchParams.get("token") || "") !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
         try {
+          // garble/junk filter so we keep ONLY real notes (index re-grew to 26k junk)
+          function realNote(t){
+            t=(t||"").trim();
+            if(t.length<25) return false;
+            if((t.split("MACRO NOTE.").length>4)||t.startsWith("XXXX")) return false;
+            if(/^(test|cors check|kv reset check|save path test|round-trip persistence test)$/.test(t)) return false;
+            if(/^(multi note |batch note |real note |device save test)/.test(t)) return false;
+            if(t.indexOf("no-preflight")>=0||t.indexOf("PERMANENCE TEST")>=0) return false;
+            var letters=(t.match(/[a-zA-Z]/g)||[]).length;
+            var words=(t.match(/\b[a-zA-Z]{3,}\b/g)||[]).length;
+            if(letters/t.length < 0.6) return false;             // mostly symbols/digits = OCR garble
+            if(words < Math.max(5, t.length/45)) return false;   // too few real words
+            if(/[|©£@]{2,}/.test(t)) return false;
+            return true;
+          }
           let ids = JSON.parse(await env.USER_DATA.get(IDX_KEY) || "[]");
           const offset = Math.max(0, parseInt(url.searchParams.get("offset") || "0", 10) || 0);
           const win = 150;
-          if (offset === 0) await env.USER_DATA.put(CACHE_KEY + ":wip", "[]");
+          if (offset === 0) { await env.USER_DATA.put(CACHE_KEY + ":wip", "[]"); await env.USER_DATA.put(CACHE_KEY + ":keepids", "[]"); }
           let acc = JSON.parse(await env.USER_DATA.get(CACHE_KEY + ":wip") || "[]");
+          let keepIds = JSON.parse(await env.USER_DATA.get(CACHE_KEY + ":keepids") || "[]");
           const slice = ids.slice(offset, offset + win);
-          const raws = await Promise.all(slice.map(id => env.USER_DATA.get(NOTE_PREFIX + id).catch(() => null)));
-          for (const raw of raws) { if (raw) { try { acc.push(JSON.parse(raw)); } catch (e) {} } }
+          const raws = await Promise.all(slice.map(id => env.USER_DATA.get(NOTE_PREFIX + id).then(v=>[id,v]).catch(() => [id,null])));
+          for (const [id,raw] of raws) { if (raw) { try { var n=JSON.parse(raw); if(realNote(n.text)){acc.push(n); keepIds.push(id);} } catch (e) {} } }
           await env.USER_DATA.put(CACHE_KEY + ":wip", JSON.stringify(acc));
+          await env.USER_DATA.put(CACHE_KEY + ":keepids", JSON.stringify(keepIds));
           const next = offset + win;
           const done = next >= ids.length;
-          if (done) await env.USER_DATA.put(CACHE_KEY, JSON.stringify(acc));
-          return jsonResp({ ok: true, built: acc.length, next_offset: next, total: ids.length, done });
+          if (done) {
+            await env.USER_DATA.put(CACHE_KEY, JSON.stringify(acc));   // promote cache
+            await env.USER_DATA.put(IDX_KEY, JSON.stringify(keepIds)); // COMPACT index → real notes only
+          }
+          return jsonResp({ ok: true, kept: acc.length, scanned_to: next, total_index: ids.length, done });
         } catch (e) { return jsonResp({ error: String(e).slice(0, 150) }, 500); }
       }
       if (request.method === "GET") {
