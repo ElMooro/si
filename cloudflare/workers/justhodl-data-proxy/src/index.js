@@ -175,12 +175,27 @@ export default {
       }
       const max = Math.min(parseInt(url.searchParams.get("max") || "400", 10) || 400, 800);
       const IDX = "bidx:" + uid, NP = "bnote:" + uid + ":";
+      var stripGarble = url.searchParams.get("garble") === "1";
+      function isGarble(t){
+        t=(t||"").trim();
+        if(t.length<20) return true;                       // too short to be a real note
+        var letters=(t.match(/[a-zA-Z]/g)||[]).length;
+        var alnumWords=(t.match(/\b[a-zA-Z]{3,}\b/g)||[]).length;  // real words (3+ letters)
+        var ratio=letters/t.length;
+        // OCR garble = low letter ratio OR very few real words for its length
+        if(ratio<0.55) return true;                        // lots of symbols/digits/pipes
+        if(alnumWords < Math.max(4, t.length/40)) return true; // sparse real words
+        if(/[|©£@]{2,}/.test(t) || /\b[a-z]\b(\s+\b[a-z]\b){4,}/i.test(t)) return true; // table/char fragments
+        return false;
+      }
       function isJunk(t) {
         t = t || "";
-        return (t.split("MACRO NOTE.").length > 4) || t.startsWith("XXXX") ||
+        if ((t.split("MACRO NOTE.").length > 4) || t.startsWith("XXXX") ||
           /^(test|cors check|kv reset check|save path test|round-trip persistence test)$/.test(t) ||
           /^(multi note |batch note |real note |device save test)/.test(t) ||
-          t.indexOf("no-preflight") >= 0 || t.indexOf("PERMANENCE TEST") >= 0;
+          t.indexOf("no-preflight") >= 0 || t.indexOf("PERMANENCE TEST") >= 0) return true;
+        if (stripGarble && isGarble(t)) return true;
+        return false;
       }
       try {
         let ids = JSON.parse(await env.USER_DATA.get(IDX) || "[]");
@@ -289,7 +304,7 @@ export default {
         // with many notes → 'Loading…' hung). Batch to stay within subrequest
         // limits, preserve index order.
         const notes = [];
-        const BATCH = 40;
+        const BATCH = 250;
         for (let i = 0; i < ids.length; i += BATCH) {
           const slice = ids.slice(i, i + BATCH);
           const raws = await Promise.all(slice.map(id => env.USER_DATA.get(NOTE_PREFIX + id).catch(() => null)));
