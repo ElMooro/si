@@ -130,7 +130,7 @@ def _regime_read(notes_text, regimes):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     try:
-        req = urllib.request.Request(BRAIN_URL + "?sync=1&uid=9f48a96b-1a1e-4867-9fc6-e6cc5054c56d", headers={"User-Agent": "JustHodl-BrainSync/1.0"})
+        req = urllib.request.Request(BRAIN_URL + "?sync=1&uid=brain-930ffa48-60a1-4b11-8726-8848d1b827f9", headers={"User-Agent": "JustHodl-BrainSync/1.0"})
         d = json.loads(urllib.request.urlopen(req, timeout=15).read().decode())
     except Exception as e:
         print(f"[brain-sync] fetch err: {str(e)[:80]}")

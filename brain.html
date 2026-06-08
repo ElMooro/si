@@ -138,19 +138,9 @@ function deviceId(){
 // auth loaded at a different time).
 let _BRAIN_UID=null;
 function brainUid(){
-  if(_BRAIN_UID)return _BRAIN_UID;
-  // 1. live signed-in session → account id (and remember it permanently)
-  try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();
-    if(u&&u.id){_BRAIN_UID=u.id;try{localStorage.setItem('jh_brain_account',u.id);}catch(e){}return _BRAIN_UID;}
-  }catch(e){}
-  // 2. remembered account id from a prior sign-in → keep using it (don't drop to
-  //    guest just because the session is slow/expired this load). This is what
-  //    keeps you on your account notes across refreshes without re-signing-in.
-  try{var rem=localStorage.getItem('jh_brain_account');if(rem){_BRAIN_UID=rem;return _BRAIN_UID;}}catch(e){}
-  // 3. OWNER DEFAULT — single-user system: default to Khalid's account so a
-  //    fresh/cleared browser loads his REAL notes, never an empty guest brain.
-  _BRAIN_UID="9f48a96b-1a1e-4867-9fc6-e6cc5054c56d";
-  try{localStorage.setItem('jh_brain_account',_BRAIN_UID);}catch(e){}
+  // Single-user system: the brain ALWAYS lives under this fixed private key.
+  // (Bypasses session/localStorage uids that pointed at the old polluted store.)
+  _BRAIN_UID="brain-930ffa48-60a1-4b11-8726-8848d1b827f9";
   return _BRAIN_UID;
 }
 function uidQ(){return "uid="+encodeURIComponent(brainUid());}
