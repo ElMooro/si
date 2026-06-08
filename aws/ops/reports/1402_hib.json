@@ -1,0 +1,132 @@
+{
+  "disabled_count": 31,
+  "disabled": [
+    {
+      "rule": "aiapi-hourly-collection",
+      "was": "rate(1 hour)"
+    },
+    {
+      "rule": "carry-surface-4h",
+      "was": "rate(4 hours)"
+    },
+    {
+      "rule": "cross-asset-confirm-3h",
+      "was": "rate(3 hours)"
+    },
+    {
+      "rule": "divergence-v2-2hourly",
+      "was": "rate(2 hours)"
+    },
+    {
+      "rule": "event-flow-monitor-hourly",
+      "was": "cron(0 * * * ? *)"
+    },
+    {
+      "rule": "jhk-tick-hourly",
+      "was": "cron(0 * * * ? *)"
+    },
+    {
+      "rule": "justhodl-13f-positions-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-backtest-engine-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-crisis-plumbing-refresh",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-crypto-cycle-risk-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-earnings-tracker-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-edge-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-engine-conflicts-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-etf-flows-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-exchange-flows-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-forensic-screen-12h",
+      "was": "rate(12 hours)"
+    },
+    {
+      "rule": "justhodl-macro-nowcast-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-macro-surprise-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-narrative-vs-tape-4h",
+      "was": "rate(4 hours)"
+    },
+    {
+      "rule": "justhodl-onchain-ratios-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-options-flow-30m",
+      "was": "rate(30 minutes)"
+    },
+    {
+      "rule": "justhodl-position-sizer-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-short-interest-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-signal-logger-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-system-signal-logger-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "justhodl-telegram-alerts",
+      "was": "rate(2 hours)"
+    },
+    {
+      "rule": "justhodl-yield-curve-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "lce-every-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "liquidity-pulse-6h",
+      "was": "rate(6 hours)"
+    },
+    {
+      "rule": "multi-agent-economic-hourly",
+      "was": "rate(1 hour)"
+    },
+    {
+      "rule": "pairs-scanner-6hourly",
+      "was": "rate(6 hours)"
+    }
+  ],
+  "kept_essential": [
+    "justhodl-brain-sync-15min"
+  ]
+}
