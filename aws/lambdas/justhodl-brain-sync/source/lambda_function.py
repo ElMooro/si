@@ -72,6 +72,14 @@ def read_prev():
         return {}
 
 
+def read_json(key, default=None):
+    """Read any S3 JSON file (used by the regime-read to pull live macro engines)."""
+    try:
+        return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return default or {}
+
+
 def read_history():
     try:
         return (json.loads(s3.get_object(Bucket=BUCKET, Key="data/brain-history.json")["Body"].read()) or {}).get("history", [])
