@@ -554,6 +554,12 @@ export default {
             try { await env.USER_DATA.delete(LEGACY_KEY); } catch (e) {}
             return new Response(JSON.stringify({ ok: true, mode: "bulk", count: newIds.length }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
+          // If a notes_upsert/notes array was present but filtered to empty by the
+          // junk guard, that's a successful no-op (not a 400). Avoids the cosmetic
+          // error in the save log when a batch was all junk.
+          if ("notes_upsert" in body || "notes" in body) {
+            return jsonResp({ ok: true, mode: "noop", filtered: true });
+          }
           return new Response(JSON.stringify({ error: "send {note}, {delete}, or {notes:[…]}", received_keys: Object.keys(body || {}) }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
         } catch (e) {
           return new Response(JSON.stringify({ error: "save failed", detail: String(e).slice(0, 100) }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
