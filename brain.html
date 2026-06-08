@@ -139,15 +139,15 @@ function deviceId(){
 let _BRAIN_UID=null;
 function brainUid(){
   if(_BRAIN_UID)return _BRAIN_UID;
-  // 1) live signed-in session → account id (and remember it permanently)
+  // 1. live signed-in session → account id (and remember it permanently)
   try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();
     if(u&&u.id){_BRAIN_UID=u.id;try{localStorage.setItem('jh_brain_account',u.id);}catch(e){}return _BRAIN_UID;}
   }catch(e){}
-  // 2) remembered account id from a prior sign-in → keep using it (don't drop to
+  // 2. remembered account id from a prior sign-in → keep using it (don't drop to
   //    guest just because the session is slow/expired this load). This is what
   //    keeps you on your account notes across refreshes without re-signing-in.
   try{var rem=localStorage.getItem('jh_brain_account');if(rem){_BRAIN_UID=rem;return _BRAIN_UID;}}catch(e){}
-  // 3) never signed in → guest device id
+  // 3. never signed in → guest device id
   _BRAIN_UID=deviceId();return _BRAIN_UID;
 }
 function uidQ(){return "uid="+encodeURIComponent(brainUid());}
