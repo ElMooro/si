@@ -484,6 +484,16 @@ export default {
           // hard cap: a single bulk write can't carry more than 500 notes (stops the
           // 20k-array re-save that kept re-inflating the brain)
           if (Array.isArray(body.notes) && body.notes.length > 500) return jsonResp({ error: "bulk too large — max 500/write", got: body.notes.length }, 413);
+          if (Array.isArray(body.notes_upsert) && body.notes_upsert.length > 500) return jsonResp({ error: "batch too large — max 500/write", got: body.notes_upsert.length }, 413);
+          // HARD INDEX CEILING: refuse writes that would push the brain over 3000
+          // notes (no human has more real notes — this is the runaway-writer kill switch).
+          if (body.note || (Array.isArray(body.notes_upsert) && body.notes_upsert.length)) {
+            try {
+              const curLen = (JSON.parse(await env.USER_DATA.get(IDX_KEY) || "[]")).length;
+              const incoming = body.note ? 1 : body.notes_upsert.length;
+              if (curLen + incoming > 3000) return jsonResp({ error: "brain at capacity (3000) — refusing write", index: curLen }, 429);
+            } catch (e) {}
+          }
           // helpers to keep bcache:<uid> (the fast-read copy) in sync
           async function cacheGet(){ try{ var v=await env.USER_DATA.get(CACHE_KEY); return v?JSON.parse(v):null; }catch(e){ return null; } }
           async function cachePut(arr){ try{ await env.USER_DATA.put(CACHE_KEY, JSON.stringify(arr)); }catch(e){} }
