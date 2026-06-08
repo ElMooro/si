@@ -212,6 +212,7 @@ export default {
         if (deleted) {
           ids = ids.filter(x => !deadSet.has(x));
           await env.USER_DATA.put(IDX, JSON.stringify(ids));
+          await env.USER_DATA.delete("bcache:" + uid).catch(() => {});  // invalidate fast-read cache
         }
         const nextOffset = offset + window.length - deleted;
         return jsonResp({ ok: true, uid, scanned: window.length, deleted, total_now: ids.length, next_offset: nextOffset, more: nextOffset < ids.length });
@@ -268,6 +269,7 @@ export default {
       const who = uidParam && uidParam.length >= 8 ? uidParam : "khalid";
       const IDX_KEY = "bidx:" + who;            // JSON array of note ids (order)
       const NOTE_PREFIX = "bnote:" + who + ":";
+      const CACHE_KEY = "bcache:" + who;        // SINGLE key holding the full notes array → instant reads
       const LEGACY_KEY = "brain:" + who;        // old single-blob (for migration)
       const PIN_KEY = "brainpin:" + who;
       const isAuthedUser = (who !== "khalid" && uidParam.length >= 20);
@@ -319,9 +321,20 @@ export default {
       }
 
       if (request.method === "GET") {
-        const notes = await readAllNotes();
+        // CACHE-FIRST: read the single bcache:<uid> key (instant — no 854-shard
+        // fan-out that was timing out). If missing, rebuild from shards once and
+        // cache it. This is the audit's read-path fix.
+        let notes = null;
+        try {
+          const cached = await env.USER_DATA.get(CACHE_KEY);
+          if (cached) notes = JSON.parse(cached);
+        } catch (e) {}
+        if (notes === null) {
+          notes = await readAllNotes();                 // one-time rebuild
+          try { await env.USER_DATA.put(CACHE_KEY, JSON.stringify(notes)); } catch (e) {}
+        }
         const hasPin = !!(await env.USER_DATA.get(PIN_KEY));
-        return new Response(JSON.stringify({ notes, pin_set: hasPin, scope: who === "khalid" ? "owner" : "user", sharded: true }),
+        return new Response(JSON.stringify({ notes, pin_set: hasPin, scope: who === "khalid" ? "owner" : "user", cached: true }),
           { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
       }
 
@@ -337,23 +350,29 @@ export default {
         }
         try {
           if (!body) throw new Error("invalid json");
+          // helpers to keep bcache:<uid> (the fast-read copy) in sync
+          async function cacheGet(){ try{ var v=await env.USER_DATA.get(CACHE_KEY); return v?JSON.parse(v):null; }catch(e){ return null; } }
+          async function cachePut(arr){ try{ await env.USER_DATA.put(CACHE_KEY, JSON.stringify(arr)); }catch(e){} }
           // (a0) BATCH upsert — many notes in one request (parallel KV writes).
-          // This is what makes adding/importing multiple notes fast.
           if (Array.isArray(body.notes_upsert) && body.notes_upsert.length) {
             const valid = body.notes_upsert.filter(n => n && n.id);
-            // write all shards in parallel, batched
             const B = 40;
             for (let i = 0; i < valid.length; i += B) {
               await Promise.all(valid.slice(i, i + B).map(n => env.USER_DATA.put(NOTE_PREFIX + n.id, JSON.stringify(n)).catch(() => {})));
             }
-            // update index once
             let ids = await readIndex();
             const have = new Set(ids);
             for (const n of valid) { if (!have.has(n.id)) { ids.unshift(n.id); have.add(n.id); } }
             await env.USER_DATA.put(IDX_KEY, JSON.stringify(ids));
+            // cache sync: prepend new, replace existing
+            let cache = await cacheGet(); if (cache === null) cache = await readAllNotes();
+            const cmap = new Map(cache.map(n => [n.id, n]));
+            for (const n of valid) cmap.set(n.id, n);
+            // preserve index order
+            await cachePut(ids.map(id => cmap.get(id)).filter(Boolean));
             return new Response(JSON.stringify({ ok: true, mode: "batch", count: valid.length }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
-          // (a) upsert a single note — the normal, tiny save
+          // (a) upsert a single note
           if (body.note && body.note.id) {
             const n = body.note;
             const s = JSON.stringify(n);
@@ -361,6 +380,10 @@ export default {
             await env.USER_DATA.put(NOTE_PREFIX + n.id, s);
             let ids = await readIndex();
             if (!ids.includes(n.id)) { ids.unshift(n.id); await env.USER_DATA.put(IDX_KEY, JSON.stringify(ids)); }
+            let cache = await cacheGet(); if (cache === null) cache = await readAllNotes();
+            const idx = cache.findIndex(x => x.id === n.id);
+            if (idx >= 0) cache[idx] = n; else cache.unshift(n);
+            await cachePut(cache);
             return new Response(JSON.stringify({ ok: true, mode: "upsert", id: n.id }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
           // (b) delete a single note
@@ -368,12 +391,12 @@ export default {
             await env.USER_DATA.delete(NOTE_PREFIX + body.delete);
             let ids = (await readIndex()).filter(x => x !== body.delete);
             await env.USER_DATA.put(IDX_KEY, JSON.stringify(ids));
+            let cache = await cacheGet(); if (cache === null) cache = await readAllNotes();
+            await cachePut(cache.filter(x => x.id !== body.delete));
             return new Response(JSON.stringify({ ok: true, mode: "delete", id: body.delete }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
-          // Defensive: handle stale-page payloads. If it's an array, treat as bulk.
-          if (Array.isArray(body)) {
-            const arr = body; body = { notes: arr };
-          }
+          // Defensive: array → bulk
+          if (Array.isArray(body)) { body = { notes: body }; }
           if (Array.isArray(body.notes)) {
             const oldIds = await readIndex();
             const newIds = [];
@@ -383,6 +406,7 @@ export default {
             const newSet = new Set(newIds);
             for (const oid of oldIds) { if (!newSet.has(oid)) await env.USER_DATA.delete(NOTE_PREFIX + oid); }
             await env.USER_DATA.put(IDX_KEY, JSON.stringify(newIds));
+            await cachePut(body.notes.filter(n => n && n.id));   // cache = exactly the new set
             try { await env.USER_DATA.delete(LEGACY_KEY); } catch (e) {}
             return new Response(JSON.stringify({ ok: true, mode: "bulk", count: newIds.length }), { headers: { "Content-Type": "application/json", ...corsHeaders() } });
           }
