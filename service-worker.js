@@ -1,6 +1,6 @@
 // JustHodl.AI Service Worker — v1.0
 // Handles: offline cache shell, push notifications, click-to-open
-const VERSION = "v1.0.35";
+const VERSION = "v1.0.36";
 const CACHE_NAME = `justhodl-${VERSION}`;
 const SHELL = [
   "/",

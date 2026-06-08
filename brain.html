@@ -509,20 +509,28 @@ function _flushBatch(){
 async function load(){
   var _uid=brainUid();
   var _signedin=false;try{_signedin=!!(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());}catch(e){}
-  dbg('IDENTITY: '+(_signedin?'signed-in':'guest')+' uid='+_uid.slice(0,16)+'…');
-  try{
-    let d=null;
-    for(const base of [PROXY, PROXY_FALLBACK]){
-      try{
-        const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),12000);
-        const r=await fetch(`${base}/brain?t=${Date.now()}&${uidQ()}`,{signal:ctl.signal});
-        clearTimeout(to);d=await r.json();break;
-      }catch(e){}
-    }
-    if(!d)throw new Error('load failed');
-    STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;
-    dbg('LOAD: '+STATE.notes.length+' notes found for this uid');
-  }catch(e){STATE.notes=[];dbg('LOAD FAILED: '+String(e).slice(0,50));}
+  dbg('IDENTITY: '+(_signedin?'signed-in':'owner-default')+' uid='+_uid.slice(0,16)+'…');
+  let d=null,lastErr=null;
+  for(const base of [PROXY, PROXY_FALLBACK]){
+    const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),9000);
+    try{
+      const t0=Date.now();
+      const r=await fetch(`${base}/brain?t=${Date.now()}&${uidQ()}`,{signal:ctl.signal});
+      const dt=Date.now()-t0;
+      if(!r.ok){const body=await r.text().catch(()=>'' );lastErr=base.replace('https://','')+' HTTP '+r.status+' in '+dt+'ms · '+body.slice(0,80);dbg('LOAD '+lastErr);continue;}
+      d=await r.json();dbg('LOAD OK '+base.replace('https://','')+' '+dt+'ms · notes='+((d.notes||[]).length));break;
+    }catch(e){lastErr=base.replace('https://','')+' '+e.name+': '+e.message;dbg('LOAD ERR '+lastErr);}
+    finally{clearTimeout(to);}
+  }
+  // Fix 2: fall back to the S3 mirror so the page never goes blank on a CF stall
+  if(!d){
+    try{
+      const r=await fetch(`${PROXY_FALLBACK}/data/brain.json?t=${Date.now()}`);
+      if(r.ok){const m=await r.json();if(Array.isArray(m.notes)){d={notes:m.notes,pin_set:false,scope:'mirror'};STATE.stale=true;STATE.mirrorTime=m.generated_at;dbg('LOAD MIRROR · '+m.notes.length+' notes from '+(m.generated_at||'').slice(0,16));}}
+    }catch(e){}
+  }
+  if(d){STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;STATE.source=d.scope;}
+  else{STATE.notes=[];dbg('LOAD FAILED — '+(lastErr||'all sources unreachable'));}
   renderStatus();
   renderCats();renderFilters();renderNotes();
 }
