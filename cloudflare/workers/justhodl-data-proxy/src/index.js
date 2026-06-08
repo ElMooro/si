@@ -169,8 +169,12 @@ export default {
       if (url.searchParams.get("reset") === "1") {
         try {
           await env.USER_DATA.put("bidx:" + uid, "[]");
-          await env.USER_DATA.delete("brain:" + uid).catch(() => {});
-          return jsonResp({ ok: true, mode: "reset", uid });
+          await env.USER_DATA.put("bcache:" + uid, "[]");                 // clear served cache
+          await env.USER_DATA.delete("brain:" + uid).catch(() => {});      // legacy blob
+          await env.USER_DATA.delete("bcache:" + uid + ":wip").catch(() => {});
+          await env.USER_DATA.delete("bcache:" + uid + ":keepids").catch(() => {});
+          await env.USER_DATA.delete("bcache:" + uid + ":seen").catch(() => {});
+          return jsonResp({ ok: true, mode: "reset", uid, cleared: ["index", "cache", "wip", "legacy"] });
         } catch (e) { return jsonResp({ error: String(e).slice(0, 120) }, 500); }
       }
       const max = Math.min(parseInt(url.searchParams.get("max") || "400", 10) || 400, 800);
