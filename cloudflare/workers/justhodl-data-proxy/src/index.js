@@ -385,15 +385,28 @@ export default {
           }
           let ids = JSON.parse(await env.USER_DATA.get(IDX_KEY) || "[]");
           const offset = Math.max(0, parseInt(url.searchParams.get("offset") || "0", 10) || 0);
-          const win = 150;
-          if (offset === 0) { await env.USER_DATA.put(CACHE_KEY + ":wip", "[]"); await env.USER_DATA.put(CACHE_KEY + ":keepids", "[]"); }
+          const win = 400;
+          function normT(t){ return String(t||"").toLowerCase().replace(/\s+/g," ").replace(/[^\w\s]/g,"").trim().slice(0,250); }
+          if (offset === 0) { await env.USER_DATA.put(CACHE_KEY + ":wip", "[]"); await env.USER_DATA.put(CACHE_KEY + ":keepids", "[]"); await env.USER_DATA.put(CACHE_KEY + ":seen", "{}"); }
           let acc = JSON.parse(await env.USER_DATA.get(CACHE_KEY + ":wip") || "[]");
           let keepIds = JSON.parse(await env.USER_DATA.get(CACHE_KEY + ":keepids") || "[]");
+          let seen = JSON.parse(await env.USER_DATA.get(CACHE_KEY + ":seen") || "{}");
           const slice = ids.slice(offset, offset + win);
           const raws = await Promise.all(slice.map(id => env.USER_DATA.get(NOTE_PREFIX + id).then(v=>[id,v]).catch(() => [id,null])));
-          for (const [id,raw] of raws) { if (raw) { try { var n=JSON.parse(raw); if(realNote(n.text)){acc.push(n); keepIds.push(id);} } catch (e) {} } }
+          for (const [id,raw] of raws) {
+            if (!raw) continue;
+            try {
+              var n = JSON.parse(raw);
+              if (!realNote(n.text)) continue;          // garble/junk → drop
+              var k = normT(n.text);
+              if (k.length >= 8 && seen[k]) continue;    // duplicate text → drop
+              if (k.length >= 8) seen[k] = 1;
+              acc.push(n); keepIds.push(id);
+            } catch (e) {}
+          }
           await env.USER_DATA.put(CACHE_KEY + ":wip", JSON.stringify(acc));
           await env.USER_DATA.put(CACHE_KEY + ":keepids", JSON.stringify(keepIds));
+          await env.USER_DATA.put(CACHE_KEY + ":seen", JSON.stringify(seen));
           const next = offset + win;
           const done = next >= ids.length;
           if (done) {
