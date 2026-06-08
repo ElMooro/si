@@ -86,17 +86,27 @@ def _regime_read(notes_text, regimes):
     if not ANTHROPIC_KEY or not notes_text.strip():
         return None
     system = (
-        "You are the user's macro co-pilot. Given THEIR investing notes and the LIVE regime data, "
-        "produce a tight read. Return STRICT JSON only: {"
-        "\"headline\": \"<one punchy sentence: where the regime is vs how they think>\", "
-        "\"assessment\": \"<2-4 sentences connecting the live regime to their specific notes/theses>\", "
-        "\"alignment\": \"<aligned|mixed|at-odds — is the current tape with or against their positioning?>\", "
-        "\"recheck_notes\": [\"<verbatim-ish snippets of THEIR notes that they should double-check now "
-        "because conditions changed, a thesis is triggering, or a rule is being tested — max 4>\"]}"
+        "You are the user's personal macro strategist & CIO. You've studied THEIR investing notes "
+        "(their philosophy, frameworks, heroes, hard rules) and you see the LIVE market regime data. "
+        "Speak in THEIR voice and framework. Return STRICT JSON only: {"
+        "\"regime\": \"<2-4 word name of the current regime, e.g. 'Liquidity-drain / late-cycle' or 'Stagflationary risk-off'>\", "
+        "\"headline\": \"<one punchy sentence: what regime we're in right now and the single biggest thing it means>\", "
+        "\"assessment\": \"<3-5 sentences: connect the live data (rates, dollar, liquidity/plumbing, credit, crypto) to "
+        "THEIR specific frameworks and notes. Reference their own thinking by name where it applies.>\", "
+        "\"risk_assets\": \"<2-3 sentences: what should happen to risk assets (equities, crypto, credit) in THIS regime, "
+        "per their playbook — up/down/chop, and why>\", "
+        "\"invest_in\": [\"<4-8 specific, actionable ideas: assets/sectors/themes/tickers to favor NOW given the regime + "
+        "their philosophy — e.g. 'Gold & gold miners (currency-debasement hedge)', 'Long-duration Treasuries if growth rolls over', "
+        "'Quality compounders with pricing power', 'BTC on dips — post-halving + debasement'. Be concrete.>\"], "
+        "\"avoid\": [\"<2-4 things to avoid/reduce in this regime per their rules>\"], "
+        "\"alignment\": \"<aligned|mixed|at-odds — is the current tape with or against how they're positioned/thinking?>\", "
+        "\"recheck_notes\": [\"<verbatim-ish snippets of THEIR notes to revisit NOW because a thesis is triggering "
+        "or conditions changed — max 4>\"]}"
+        " Ground everything in their actual notes + the live data. Be decisive, not hedged. This is research, not advice."
     )
     try:
-        body = {"model": MODEL, "max_tokens": 700, "system": system,
-                "messages": [{"role": "user", "content": f"LIVE REGIME:\n{json.dumps(regimes, default=str)}\n\nTHEIR NOTES:\n{notes_text[:7000]}"}]}
+        body = {"model": MODEL, "max_tokens": 1500, "system": system,
+                "messages": [{"role": "user", "content": f"LIVE MARKET REGIME DATA:\n{json.dumps(regimes, default=str)}\n\nTHEIR INVESTING NOTES (their worldview):\n{notes_text[:14000]}"}]}
         req = urllib.request.Request("https://api.anthropic.com/v1/messages",
             data=json.dumps(body).encode(),
             headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01"})
@@ -173,10 +183,26 @@ def lambda_handler(event=None, context=None):
     # the live regime moves; it's one cheap call.
     regime_read = None
     if notes:
+        # Pull live macro series so the regime-read reasons from real data, not vibes.
+        def _fred_latest(series):
+            try:
+                u = f"https://api.stlouisfed.org/fred/series/observations?series_id={series}&api_key=2f057499936072679d8843d7fce99989&file_type=json&sort_order=desc&limit=1"
+                d = json.loads(urllib.request.urlopen(u, timeout=8).read().decode())
+                return float(d["observations"][0]["value"])
+            except Exception:
+                return None
         regimes = {
             "bond_vol": (read_json("data/bond-vol.json") or {}).get("regime"),
             "funding_plumbing": {k: (read_json("data/funding-plumbing.json") or {}).get(k) for k in ["regime", "balance_sheet_direction", "qt_ended_not_qe"]},
             "crypto_dump_risk": {k: (read_json("data/crypto-cycle-risk.json") or {}).get(k) for k in ["risk_level", "dump_risk_score"]},
+            "us10y_yield": _fred_latest("DGS10"),
+            "us2y_yield": _fred_latest("DGS2"),
+            "real_10y_yield_TIPS": _fred_latest("DFII10"),
+            "10y_breakeven_inflation": _fred_latest("T10YIE"),
+            "dollar_index_DTWEXBGS": _fred_latest("DTWEXBGS"),
+            "hy_credit_spread_OAS": _fred_latest("BAMLH0A0HYM2"),
+            "fed_funds_rate": _fred_latest("DFF"),
+            "as_of": datetime.now(timezone.utc).date().isoformat(),
         }
         regime_read = _regime_read(all_text, regimes)
 

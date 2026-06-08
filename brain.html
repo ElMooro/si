@@ -568,11 +568,16 @@ async function renderStatus(){
   let rrHtml='';
   if(rr&&rr.headline){
     const ac=rr.alignment==='at-odds'?'#ff5577':rr.alignment==='mixed'?'#fbbf24':'#26ffaf';
-    rrHtml=`<div style="background:linear-gradient(135deg,rgba(34,211,238,0.08),rgba(167,139,250,0.05));border:1px solid ${ac};border-radius:14px;padding:16px 18px;margin-bottom:14px">
-      <div style="font-family:var(--mono);font-size:10px;color:${ac};letter-spacing:.5px;margin-bottom:7px">🧭 REGIME READ vs YOUR THINKING · ${esc((rr.alignment||'').toUpperCase())}</div>
-      <div style="font-size:15px;font-weight:700;color:var(--fg-0);margin-bottom:6px">${esc(rr.headline)}</div>
-      <div style="font-size:13px;color:var(--fg-2);line-height:1.55">${esc(rr.assessment||'')}</div>
-      ${(rr.recheck_notes&&rr.recheck_notes.length)?`<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:9px"><span style="font-family:var(--mono);font-size:10px;color:var(--amber)">⚠ DOUBLE-CHECK THESE NOTES:</span>${rr.recheck_notes.map(n=>`<div style="font-size:12.5px;color:var(--fg-1);margin:4px 0 0 2px;padding:5px 9px;background:rgba(251,191,36,0.06);border-left:2px solid var(--amber);border-radius:3px">${esc(n)}</div>`).join('')}</div>`:''}
+    rrHtml=`<div style="background:linear-gradient(135deg,rgba(34,211,238,0.08),rgba(167,139,250,0.05));border:1px solid ${ac};border-radius:14px;padding:18px 20px;margin-bottom:14px">
+      <div style="font-family:var(--mono);font-size:10px;color:${ac};letter-spacing:.5px;margin-bottom:7px">🧭 REGIME READ — FROM YOUR BRAIN${rr.alignment?' · '+esc(rr.alignment.toUpperCase()):''}</div>
+      ${rr.regime?`<div style="font-family:var(--mono);font-size:11px;color:#22d3ee;border:1px solid #22d3ee;border-radius:11px;padding:2px 10px;display:inline-block;margin-bottom:8px">${esc(rr.regime)}</div>`:''}
+      <div style="font-size:15.5px;font-weight:700;color:var(--fg-0);margin-bottom:7px;line-height:1.4">${esc(rr.headline)}</div>
+      <div style="font-size:13px;color:var(--fg-2);line-height:1.55;margin-bottom:10px">${esc(rr.assessment||'')}</div>
+      ${rr.risk_assets?`<div style="margin-bottom:10px"><span style="font-family:var(--mono);font-size:10px;color:var(--fg-3)">⚖ RISK ASSETS</span><div style="font-size:13px;color:var(--fg-1);line-height:1.5;margin-top:3px">${esc(rr.risk_assets)}</div></div>`:''}
+      ${(rr.invest_in&&rr.invest_in.length)?`<div style="margin-bottom:10px"><span style="font-family:var(--mono);font-size:10px;color:#26ffaf">📈 FAVOR NOW</span>${rr.invest_in.map(x=>`<div style="font-size:13px;color:var(--fg-1);margin:4px 0 0 2px;padding:5px 10px;background:rgba(38,255,175,0.06);border-left:2px solid #26ffaf;border-radius:3px">${esc(x)}</div>`).join('')}</div>`:''}
+      ${(rr.avoid&&rr.avoid.length)?`<div style="margin-bottom:10px"><span style="font-family:var(--mono);font-size:10px;color:#ff5577">🚫 AVOID / REDUCE</span>${rr.avoid.map(x=>`<div style="font-size:12.5px;color:var(--fg-2);margin:3px 0 0 2px">• ${esc(x)}</div>`).join('')}</div>`:''}
+      ${(rr.recheck_notes&&rr.recheck_notes.length)?`<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:9px"><span style="font-family:var(--mono);font-size:10px;color:var(--amber)">⚠ DOUBLE-CHECK THESE NOTES</span>${rr.recheck_notes.map(n=>`<div style="font-size:12.5px;color:var(--fg-1);margin:4px 0 0 2px;padding:5px 9px;background:rgba(251,191,36,0.06);border-left:2px solid var(--amber);border-radius:3px">${esc(n)}</div>`).join('')}</div>`:''}
+      <div style="font-family:var(--mono);font-size:9px;color:var(--fg-3);margin-top:10px">Research, not advice · grounded in your notes + live macro data</div>
     </div>`;
   }
   el.innerHTML=gb+rrHtml+`<div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(34,211,238,0.05));border:1px solid var(--border-bright);border-radius:14px;padding:16px 18px;margin-bottom:18px">

@@ -323,6 +323,48 @@ export default {
       // CHUNKED CACHE BUILD: assemble bcache:<uid> in offset windows so we never
       // fan-out all 854 shards in one invocation (that 500s). Call repeatedly with
       // ?build=1&offset=N until done. Admin-token gated.
+      // DEDUP: walk the index in offset windows, drop notes whose normalized text
+      // was already seen (keeps first occurrence). Carries the seen-set across calls
+      // via a temp key. Call ?dedup=1&offset=N&token=... until done. Updates index+cache.
+      if (url.searchParams.get("dedup") === "1") {
+        if ((url.searchParams.get("token") || "") !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
+        try {
+          function norm(t){ return String(t||"").toLowerCase().replace(/\s+/g," ").replace(/[^\w\s]/g,"").trim().slice(0,300); }
+          let ids = JSON.parse(await env.USER_DATA.get(IDX_KEY) || "[]");
+          const offset = Math.max(0, parseInt(url.searchParams.get("offset") || "0", 10) || 0);
+          const win = 200;
+          const SEEN = CACHE_KEY + ":dedupseen", KEEP = CACHE_KEY + ":dedupkeep";
+          if (offset === 0) { await env.USER_DATA.put(SEEN, "{}"); await env.USER_DATA.put(KEEP, "[]"); }
+          let seen = JSON.parse(await env.USER_DATA.get(SEEN) || "{}");
+          let keep = JSON.parse(await env.USER_DATA.get(KEEP) || "[]");
+          const slice = ids.slice(offset, offset + win);
+          const raws = await Promise.all(slice.map(id => env.USER_DATA.get(NOTE_PREFIX + id).then(v=>[id,v]).catch(()=>[id,null])));
+          let dropped = 0;
+          for (const [id, raw] of raws) {
+            if (!raw) { dropped++; continue; }
+            let txt = ""; try { txt = JSON.parse(raw).text || ""; } catch (e) {}
+            const k = norm(txt);
+            if (k.length < 8) { keep.push(id); continue; }   // too short to dedup safely → keep
+            if (seen[k]) { await env.USER_DATA.delete(NOTE_PREFIX + id).catch(()=>{}); dropped++; }
+            else { seen[k] = 1; keep.push(id); }
+          }
+          await env.USER_DATA.put(SEEN, JSON.stringify(seen));
+          await env.USER_DATA.put(KEEP, JSON.stringify(keep));
+          const next = offset + win;
+          const done = next >= ids.length;
+          if (done) {
+            await env.USER_DATA.put(IDX_KEY, JSON.stringify(keep));
+            // rebuild cache from the deduped keep set
+            const cacheRaws = [];
+            for (let i = 0; i < keep.length; i += 200) {
+              const part = await Promise.all(keep.slice(i, i+200).map(id => env.USER_DATA.get(NOTE_PREFIX + id).catch(()=>null)));
+              for (const r of part) { if (r) { try { cacheRaws.push(JSON.parse(r)); } catch(e){} } }
+            }
+            await env.USER_DATA.put(CACHE_KEY, JSON.stringify(cacheRaws));
+          }
+          return jsonResp({ ok: true, kept: keep.length, dropped_total: "see kept vs index", scanned_to: next, total_index: ids.length, done });
+        } catch (e) { return jsonResp({ error: String(e).slice(0, 150) }, 500); }
+      }
       if (url.searchParams.get("build") === "1") {
         if ((url.searchParams.get("token") || "") !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
         try {
