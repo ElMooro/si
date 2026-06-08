@@ -268,6 +268,7 @@ def lambda_handler(event=None, context=None):
         "notes": notes,
         "prompt_block": prompt_block,
         "directive": directive,                # ← the smart, structured worldview
+        "regime_read": regime_read,            # ← the actionable regime + buy-list (was missing from output!)
         "directive_changed_this_run": directive_changed,
         "applied_by": ["morning-intelligence", "ask", "best-setups (brain-aligned)",
                        "devils-advocate (rule checks)", "my-brief", "position-sizer (risk posture)"],
