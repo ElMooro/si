@@ -1,0 +1,47 @@
+"""Continue dedup from where it left off, running MANY invocations to walk the
+full 43.5k index. Tracks offset via the worker's own wip state (offset resumes)."""
+import json, os, time, zipfile, io
+import boto3
+from botocore.config import Config
+cfg=Config(read_timeout=600,retries={"max_attempts":1})
+lam=boto3.client("lambda",region_name="us-east-1",config=cfg)
+ROLE="arn:aws:iam::857687956942:role/lambda-execution-role"; FN="tmp-dd2"
+code=r'''
+import json,urllib.request,time
+B="https://justhodl-data-proxy.raafouis.workers.dev"; T="jhpurge_9f48_2026"; UID="9f48a96b-1a1e-4867-9fc6-e6cc5054c56d"
+def call(p):
+    try:
+        r=urllib.request.urlopen(urllib.request.Request(B+p,headers={"User-Agent":"jh","Origin":"https://justhodl.ai"}),timeout=45); return json.loads(r.read().decode())
+    except Exception as e: return {"err":str(e)[:60]}
+def lambda_handler(e,c):
+    # IMPORTANT: do NOT reset (offset>0 keeps the seen-set). Resume from given offset.
+    off=int(e.get("offset",6600)); out={"start":off,"rounds":0}
+    deadline=time.time()+780
+    while time.time()<deadline:
+        d=call("/brain?dedup=1&token="+T+"&uid="+UID+"&offset="+str(off))
+        out["rounds"]+=1
+        if d.get("err"): out["err"]=d["err"]; break
+        off=d.get("scanned_to",off+200); out["kept"]=d.get("kept"); out["total"]=d.get("total_index"); out["scanned_to"]=off
+        if d.get("done"): out["done"]=True; break
+    return out
+'''
+buf=io.BytesIO()
+with zipfile.ZipFile(buf,"w",zipfile.ZIP_DEFLATED) as zf: zf.writestr("lambda_function.py",code)
+out={"invocations":[]}
+try:
+    try: lam.get_function_configuration(FunctionName=FN); lam.update_function_code(FunctionName=FN,ZipFile=buf.getvalue())
+    except lam.exceptions.ResourceNotFoundException:
+        lam.create_function(FunctionName=FN,Runtime="python3.12",Role=ROLE,Handler="lambda_function.lambda_handler",Code={"ZipFile":buf.getvalue()},Timeout=800,MemorySize=256)
+    for _ in range(25):
+        time.sleep(2); c=lam.get_function_configuration(FunctionName=FN)
+        if c.get("State")=="Active" and c.get("LastUpdateStatus") in ("Successful",None): break
+    off=6600
+    for inv in range(6):
+        r=json.loads(lam.invoke(FunctionName=FN,InvocationType="RequestResponse",Payload=json.dumps({"offset":off}).encode())["Payload"].read())
+        out["invocations"].append(r)
+        if r.get("done"): out["DONE"]=True; break
+        if r.get("err"): break
+        off=r.get("scanned_to",off)
+    lam.delete_function(FunctionName=FN)
+except Exception as e: out["err"]=str(e)[:150]
+open("aws/ops/reports/1424_dd.json","w").write(json.dumps(out,indent=2,default=str)); print("done")
