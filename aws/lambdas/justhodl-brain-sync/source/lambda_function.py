@@ -121,10 +121,18 @@ def _regime_read(notes_text, regimes):
         r = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
         txt = "".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")
         import re as _re
-        return json.loads(_re.sub(r"^```(?:json)?\s*|\s*```$", "", txt.strip()))
+        cleaned = _re.sub(r"^```(?:json)?\s*|\s*```$", "", txt.strip())
+        try:
+            return json.loads(cleaned)
+        except Exception:
+            # extract the first {...} block if the model added prose around it
+            m = _re.search(r"\{.*\}", cleaned, _re.DOTALL)
+            if m:
+                return json.loads(m.group(0))
+            return {"_parse_failed": True, "raw": cleaned[:200]}
     except Exception as e:
-        print(f"[brain-sync] regime read err: {str(e)[:70]}")
-        return None
+        print(f"[brain-sync] regime read err: {str(e)[:120]}")
+        return {"_error": str(e)[:120]}
 
 
 def lambda_handler(event=None, context=None):
