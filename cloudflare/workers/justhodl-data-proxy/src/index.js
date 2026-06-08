@@ -199,19 +199,22 @@ export default {
       }
       try {
         let ids = JSON.parse(await env.USER_DATA.get(IDX) || "[]");
-        const keep = [], toCheck = ids.slice(0, max), rest = ids.slice(max);
+        const offset = Math.max(0, parseInt(url.searchParams.get("offset") || "0", 10) || 0);
+        const window = ids.slice(offset, offset + max);   // walk by offset (was re-scanning front)
         let deleted = 0;
-        // fetch this batch in parallel, classify, delete junk
-        const raws = await Promise.all(toCheck.map(id => env.USER_DATA.get(NP + id).then(v => [id, v]).catch(() => [id, null])));
+        const raws = await Promise.all(window.map(id => env.USER_DATA.get(NP + id).then(v => [id, v]).catch(() => [id, null])));
+        const deadSet = new Set();
         for (const [id, raw] of raws) {
           let junk = false, txt = "";
           if (raw) { try { txt = (JSON.parse(raw).text) || ""; } catch (e) {} }
-          if (!raw || isJunk(txt)) { await env.USER_DATA.delete(NP + id).catch(() => {}); deleted++; }
-          else keep.push(id);
+          if (!raw || isJunk(txt)) { await env.USER_DATA.delete(NP + id).catch(() => {}); deadSet.add(id); deleted++; }
         }
-        const newIds = keep.concat(rest);
-        await env.USER_DATA.put(IDX, JSON.stringify(newIds));
-        return jsonResp({ ok: true, uid, checked: toCheck.length, deleted, remaining_in_index: newIds.length, more: rest.length > 0 });
+        if (deleted) {
+          ids = ids.filter(x => !deadSet.has(x));
+          await env.USER_DATA.put(IDX, JSON.stringify(ids));
+        }
+        const nextOffset = offset + window.length - deleted;
+        return jsonResp({ ok: true, uid, scanned: window.length, deleted, total_now: ids.length, next_offset: nextOffset, more: nextOffset < ids.length });
       } catch (e) {
         return jsonResp({ error: String(e).slice(0, 150) }, 500);
       }
