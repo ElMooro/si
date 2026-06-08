@@ -459,6 +459,31 @@ export default {
         }
         try {
           if (!body) throw new Error("invalid json");
+          // ── WRITE-TIME JUNK GUARD: reject AI-chat transcripts, code/dev-logs,
+          // garble, and oversized bulk writes so the brain can NEVER re-pollute. ──
+          function _isJunk(t){
+            t=(t||"").trim();
+            if(t.length<25) return true;
+            var tl=t.toLowerCase();
+            if((t.split("MACRO NOTE.").length>4)||t.startsWith("XXXX")) return true;
+            if(/would you like me to|shall i|here'?s (what|the|your)|✅|🔥|📈|📬|🧬|🚨|➗|perfect —|you now have|i'?ll (build|create|add|start)|let'?s build|do you want me to|or just a zip|upload to vercel/.test(tl)) return true;
+            if(/^[\[{]/.test(t) && /[\]}]$/.test(t)) return true;
+            if(/\{"results"|"id":|→ returns|lambda|endpoint|\bbackend\b|\bfrontend\b|\bdeploy\b|api key|\.json\b|http[s]?:\/\//.test(tl)) return true;
+            if(/^(step \d|fix \d|ops \d|\d+\.\s)/.test(tl)) return true;
+            var letters=(t.match(/[a-zA-Z]/g)||[]).length;
+            var words=(t.match(/\b[a-zA-Z]{3,}\b/g)||[]).length;
+            if(letters/t.length < 0.55) return true;
+            if(words < Math.max(4, t.length/45)) return true;
+            if(/[|©£@]{2,}/.test(t)) return true;
+            return false;
+          }
+          // strip junk from incoming notes
+          if (Array.isArray(body.notes_upsert)) body.notes_upsert = body.notes_upsert.filter(n => n && n.id && !_isJunk(n.text));
+          if (Array.isArray(body.notes)) body.notes = body.notes.filter(n => n && n.id && !_isJunk(n.text));
+          if (body.note && _isJunk(body.note.text)) return jsonResp({ ok: true, mode: "rejected-junk", id: body.note.id });
+          // hard cap: a single bulk write can't carry more than 500 notes (stops the
+          // 20k-array re-save that kept re-inflating the brain)
+          if (Array.isArray(body.notes) && body.notes.length > 500) return jsonResp({ error: "bulk too large — max 500/write", got: body.notes.length }, 413);
           // helpers to keep bcache:<uid> (the fast-read copy) in sync
           async function cacheGet(){ try{ var v=await env.USER_DATA.get(CACHE_KEY); return v?JSON.parse(v):null; }catch(e){ return null; } }
           async function cachePut(arr){ try{ await env.USER_DATA.put(CACHE_KEY, JSON.stringify(arr)); }catch(e){} }
