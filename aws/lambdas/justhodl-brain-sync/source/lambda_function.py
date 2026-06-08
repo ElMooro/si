@@ -139,6 +139,15 @@ def lambda_handler(event=None, context=None):
     notes = d.get("notes") or []
     # newest first; pinned float to top
     notes = sorted(notes, key=lambda n: (0 if n.get("pinned") else 1, -(n.get("created") or 0)))
+    # Strip broken surrogate/un-encodable chars (from emojis/OCR) that crash .encode()
+    def _clean(s):
+        try:
+            return str(s or "").encode("utf-8", "ignore").decode("utf-8", "ignore")
+        except Exception:
+            return ""
+    for _n in notes:
+        if isinstance(_n, dict) and "text" in _n:
+            _n["text"] = _clean(_n["text"])
 
     # Pre-format a compact prompt block the AI engines can inject directly.
     pinned = [n for n in notes if n.get("pinned")]
