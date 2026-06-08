@@ -174,7 +174,12 @@ def lambda_handler(event=None, context=None):
     # ── SMART layer: AI-extracted structured directive (hash-gated so we only
     # spend a Claude call when the brain actually changes) ──
     import hashlib
-    all_text = "\n".join(f"[{'PINNED ' if n.get('pinned') else ''}{n.get('cat')}] {n.get('text','')}" for n in notes)
+    # 16k notes is far more than the AI needs (and too big to process). Use pinned
+    # notes (always) + the most recent ~400 for the worldview/regime distillation.
+    _pinned_notes = [n for n in notes if n.get("pinned")]
+    _recent_notes = [n for n in notes if not n.get("pinned")][:400]
+    _ai_notes = _pinned_notes + _recent_notes
+    all_text = "\n".join(f"[{'PINNED ' if n.get('pinned') else ''}{n.get('cat')}] {n.get('text','')}" for n in _ai_notes)
     content_hash = hashlib.sha256(all_text.encode()).hexdigest()[:16]
     directive = None
     prev = read_prev()
