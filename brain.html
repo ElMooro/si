@@ -139,10 +139,25 @@ function deviceId(){
 let _BRAIN_UID=null;
 function brainUid(){
   if(_BRAIN_UID)return _BRAIN_UID;
-  try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();if(u&&u.id){_BRAIN_UID=u.id;return _BRAIN_UID;}}catch(e){}
+  // 1) live signed-in session → account id (and remember it permanently)
+  try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();
+    if(u&&u.id){_BRAIN_UID=u.id;try{localStorage.setItem('jh_brain_account',u.id);}catch(e){}return _BRAIN_UID;}
+  }catch(e){}
+  // 2) remembered account id from a prior sign-in → keep using it (don't drop to
+  //    guest just because the session is slow/expired this load). This is what
+  //    keeps you on your account notes across refreshes without re-signing-in.
+  try{var rem=localStorage.getItem('jh_brain_account');if(rem){_BRAIN_UID=rem;return _BRAIN_UID;}}catch(e){}
+  // 3) never signed in → guest device id
   _BRAIN_UID=deviceId();return _BRAIN_UID;
 }
 function uidQ(){return "uid="+encodeURIComponent(brainUid());}
+// One-time account pin: visiting brain.html?account=<your-uid> remembers it
+// permanently so the Brain always loads your account notes — no sign-in modal
+// needed. Useful when the OAuth flow is fiddly.
+(function(){try{var p=new URLSearchParams(location.search).get('account');
+  if(p&&p.length>=20){localStorage.setItem('jh_brain_account',p);_BRAIN_UID=p;
+    var u=new URL(location.href);u.searchParams.delete('account');history.replaceState(null,'',u);}
+}catch(e){}})();
 const CATS=[
   {id:"philosophy",label:"Philosophy",c:"#a78bfa"},
   {id:"rule",label:"Rule",c:"#26ffaf"},
@@ -517,7 +532,9 @@ async function renderStatus(){
   let gb='';
   try{
     const u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();
-    if(!u){
+    let remembered='';try{remembered=localStorage.getItem('jh_brain_account')||'';}catch(e){}
+    const onAccount=!!u || (_BRAIN_UID&&_BRAIN_UID.indexOf('dev-')!==0) || !!remembered;
+    if(!onAccount){
       gb=`<div style="background:rgba(34,211,238,0.07);border:1px solid #1c3a44;border-radius:10px;padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--fg-2)">
         <span>🔒 <b>Guest mode</b> — notes are saved to this browser only. <b>Sign in</b> to sync across devices &amp; never lose them.</span>
         <button onclick="if(window.JustHodlAuth)JustHodlAuth.openSignIn()" style="margin-left:auto;background:var(--cyan);border:none;color:var(--bg);font-weight:700;font-size:12px;padding:6px 14px;border-radius:7px;cursor:pointer">Sign in to sync</button>
