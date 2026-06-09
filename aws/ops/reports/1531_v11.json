@@ -1,0 +1,182 @@
+{
+  "ops": 1531,
+  "justhodl-global-tide": {
+    "function_error": "NONE",
+    "resp": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"EBBING\\\", \\\"risk\\\": 40.0, \\\"n_flashing\\\": 1}\"}"
+  },
+  "justhodl-apex-fusion": {
+    "function_error": "NONE",
+    "resp": "{\"statusCode\": 200, \"body\": \"{\\\"n\\\": 219, \\\"by_tier\\\": {\\\"IGNITION\\\": 10, \\\"SIMMER\\\": 25, \\\"NOISE\\\": 184}, \\\"logged\\\": 7}\"}"
+  },
+  "global_tide": {
+    "version": "1.1",
+    "headline": "GLI EBBING (-21) \u00b7 Risk 40/100 ELEVATED \u00b7 1 flashing",
+    "fed": {
+      "net_liquidity_usd_bn": 5835.0,
+      "fed_bs_usd_bn": 6711.0,
+      "rrp_usd_bn": 1.0,
+      "tga_usd_bn": 876.0,
+      "impulse_13w_usd_bn": 40.0,
+      "as_of": "2026-06-03"
+    },
+    "gli": {
+      "g4_stock_usd_tn": 17.11,
+      "n_cb_measured": 3,
+      "impulse_score": -21.0,
+      "regime": "EBBING",
+      "components": [
+        "Fed 13w +40bn",
+        "ECB -1",
+        "BoJ -2"
+      ]
+    },
+    "risk": {
+      "global_risk_0_100": 40.0,
+      "tier": "ELEVATED",
+      "components": [
+        "VIX 23.92",
+        "vol regime BACKWARDATED",
+        "HY OAS 2.75%",
+        "NFCI -0.49",
+        "\u00a5-carry 62.5/100",
+        "ESI 22.3"
+      ]
+    },
+    "spx_60d_pct": 11.9,
+    "indicators": {
+      "liquidity_equity_divergence": {
+        "signal": "WATCH",
+        "spx_60d_pct": 11.9,
+        "gli_impulse": -21.0,
+        "impulse": null,
+        "score": null
+      }
+    }
+  },
+  "apex": {
+    "version": "1.1",
+    "by_tier": {
+      "IGNITION": 10,
+      "SIMMER": 25,
+      "NOISE": 184
+    },
+    "tier_inversion": {
+      "active": true,
+      "alert_tier_hit_pct": 0.0,
+      "n_validated": 16,
+      "fade_set": [
+        "AMAT",
+        "CRWD"
+      ]
+    },
+    "n_logged": 7,
+    "log_errors": [
+      "NTAP: ConditionalCheckFailedException An error occurred (ConditionalCheckFailedException) when calling the P",
+      "DXCM: ConditionalCheckFailedException An error occurred (ConditionalCheckFailedException) when calling the P",
+      "NBIS: ConditionalCheckFailedException An error occurred (ConditionalCheckFailedException) when calling the P"
+    ],
+    "weights": {
+      "pump": 1.2,
+      "momentum": 1.25,
+      "squeeze": 1.0,
+      "flow": 1.0,
+      "insider": 0.9
+    },
+    "top8": [
+      {
+        "ticker": "NTAP",
+        "apex_score": 89.8,
+        "tier": "IGNITION",
+        "n_sources": 2,
+        "sources": [
+          "momentum",
+          "pump"
+        ],
+        "fade_flag": false,
+        "price": 165
+      },
+      {
+        "ticker": "DXCM",
+        "apex_score": 85.9,
+        "tier": "IGNITION",
+        "n_sources": 2,
+        "sources": [
+          "momentum",
+          "pump"
+        ],
+        "fade_flag": false,
+        "price": 78.19
+      },
+      {
+        "ticker": "NBIS",
+        "apex_score": 80.5,
+        "tier": "IGNITION",
+        "n_sources": 2,
+        "sources": [
+          "momentum",
+          "pump"
+        ],
+        "fade_flag": false,
+        "price": 220.12
+      },
+      {
+        "ticker": "QNT",
+        "apex_score": 78.0,
+        "tier": "SIMMER",
+        "n_sources": 1,
+        "sources": [
+          "insider"
+        ],
+        "fade_flag": false,
+        "price": 60.0
+      },
+      {
+        "ticker": "CDNS",
+        "apex_score": 73.8,
+        "tier": "IGNITION",
+        "n_sources": 2,
+        "sources": [
+          "momentum",
+          "pump"
+        ],
+        "fade_flag": false,
+        "price": 390.9
+      },
+      {
+        "ticker": "PSX",
+        "apex_score": 70.1,
+        "tier": "IGNITION",
+        "n_sources": 2,
+        "sources": [
+          "momentum",
+          "pump"
+        ],
+        "fade_flag": false,
+        "price": 179
+      },
+      {
+        "ticker": "VLO",
+        "apex_score": 69.1,
+        "tier": "IGNITION",
+        "n_sources": 2,
+        "sources": [
+          "momentum",
+          "pump"
+        ],
+        "fade_flag": false,
+        "price": 253.78
+      },
+      {
+        "ticker": "BB",
+        "apex_score": 68.4,
+        "tier": "SIMMER",
+        "n_sources": 1,
+        "sources": [
+          "momentum"
+        ],
+        "fade_flag": false,
+        "price": 8.84
+      }
+    ]
+  }
+}
