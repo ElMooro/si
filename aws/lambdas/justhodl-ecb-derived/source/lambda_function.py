@@ -203,6 +203,30 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         out["indicators"]["bank_pass_through_premium"] = {"err": str(e)[:60]}
 
+    # ── #3 TARGET2 Imbalance Stress — correct dataflow is TGB (not ILM A090400) ──
+    # DE claim (capital fleeing TO Germany) and IT balance (FROM Italy) = fragmentation.
+    try:
+        de = ecb_csv("TGB/M.DE.N.A094T.U2.EUR.E", last_n=60)   # Germany TARGET2 position (monthly)
+        it = ecb_csv("TGB/M.IT.N.A094T.U2.EUR.E", last_n=60)   # Italy TARGET2 position
+        if de:
+            de_now = de[-1][1]
+            de_3m_ago = de[-4][1] if len(de) > 3 else None
+            de_chg_3m = round(de_now - de_3m_ago) if de_3m_ago is not None else None
+            it_now = it[-1][1] if it else None
+            # DE−IT spread proxy for fragmentation (both are €mn)
+            frag = round(de_now - it_now) if it_now is not None else None
+            # capital-flight signal: rising DE claim. €mn so 100bn = 100000
+            sig = "CRITICAL" if (de_chg_3m or 0) > 200000 else "WATCH" if (de_chg_3m or 0) > 100000 else "NORMAL"
+            out["indicators"]["target2_imbalance"] = {
+                "name": "TARGET2 Imbalance (Bundesbank claim — eurozone fragmentation)",
+                "de_target2_eur_mn": round(de_now), "it_target2_eur_mn": round(it_now) if it_now is not None else None,
+                "de_3m_change_eur_mn": de_chg_3m, "de_minus_it_eur_mn": frag,
+                "as_of": de[-1][0], "signal": sig,
+                "interpretation": f"Bundesbank TARGET2 position €{round(de_now/1000)}bn (DE−IT spread €{round(frag/1000) if frag is not None else '—'}bn). Rising DE claim = capital fleeing periphery into Germany. 3m Δ €{round(de_chg_3m/1000) if de_chg_3m is not None else '—'}bn; >+€100bn watch, >+€200bn critical (2011-12 fragmentation signature).",
+                "thresholds": {"watch_3m_eur_bn": 100, "critical_3m_eur_bn": 200}}
+    except Exception as e:
+        out["indicators"]["target2_imbalance"] = {"err": str(e)[:60]}
+
     # ── #1 USD Funding Stress Composite — A030000 + L080000 (+ Fed swap lines) z-scored ──
     try:
         a030 = ecb_csv("ILM/W.U2.C.A030000.U2.Z06", last_n=260)   # USD claims on EA residents
