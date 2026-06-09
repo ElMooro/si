@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ECB History · JustHodl AI</title>
+<meta name="description" content="Full 1997+ ECB liquidity & systemic-stress history — CISS, dollar-shortage, balance sheet, clickable charts.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--bg-1);position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--violet);border-radius:50%;box-shadow:0 0 9px var(--violet)}
+.nav{display:flex;gap:3px;margin-left:10px;flex-wrap:wrap}.nav a{padding:6px 10px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--violet)}
+.wrap{max-width:1080px;margin:0 auto;padding:22px}
+.hero h1{font-size:25px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:5px 0 16px;font-size:13px;max-width:740px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.tile{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:border-color .12s}
+.tile:hover{border-color:var(--violet)}
+.tile .lbl{font-size:11px;color:var(--fg-3);line-height:1.35;margin-bottom:8px;min-height:30px}
+.tile .val{font-family:var(--mono);font-size:24px;font-weight:800;color:var(--fg-0)}
+.tile .meta{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:6px}
+.zpill{font-family:var(--mono);font-size:9px;padding:1px 7px;border-radius:8px;margin-left:6px}
+.z-hi{background:rgba(255,85,119,.15);color:var(--red)}.z-mid{background:rgba(251,191,36,.13);color:var(--amber)}.z-lo{background:rgba(38,255,175,.13);color:var(--green)}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.modal{position:fixed;inset:0;background:rgba(4,6,10,.8);backdrop-filter:blur(4px);z-index:999;display:none;align-items:center;justify-content:center;padding:20px}
+.modal.on{display:flex}
+.modal-card{background:var(--bg-1);border:1px solid var(--border-bright);border-radius:16px;padding:20px;width:min(900px,96vw);max-height:92vh;overflow:auto}
+.modal-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.modal-title{font-family:var(--mono);font-size:16px;font-weight:800;color:var(--fg-0)}
+.modal-x{margin-left:auto;background:none;border:none;color:var(--fg-3);font-size:24px;cursor:pointer}
+.ranges{display:flex;gap:6px;margin:12px 0}
+.range-btn{font-family:var(--mono);font-size:11px;padding:5px 12px;border-radius:7px;border:1px solid var(--border-bright);background:var(--bg-2);color:var(--fg-2);cursor:pointer}
+.range-btn.on{background:var(--violet);border-color:var(--violet);color:var(--bg);font-weight:700}
+.chart-host{width:100%;height:380px;min-height:0;overflow:hidden}
+.modal-stats{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--fg-2);margin-top:10px}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Desk</a><a href="/ecb-detail.html">ECB</a><a href="/ecb-history.html" class="active">📊 ECB History</a><a href="/systemic-stress.html">Systemic Stress</a></nav>
+</header>
+<div class="wrap">
+  <div class="hero"><h1>ECB <span class="grad">History</span> · 1997→now</h1>
+  <p>Full daily/weekly history for the high-signal ECB liquidity & systemic-stress series — CISS (1997+), the dollar-shortage indicators, balance sheet. Click any tile for the chart with crisis markers (2008 · 2011 · 2020 · 2023).</p></div>
+  <div id="tiles"><div class="loading">Loading ECB series…</div></div>
+</div>
+<div class="modal" id="modal"><div class="modal-card">
+  <div class="modal-head"><span class="modal-title" id="m-title">—</span><button class="modal-x" onclick="closeModal()">×</button></div>
+  <div id="m-sub" style="font-size:12px;color:var(--fg-3)"></div>
+  <div class="ranges" id="m-ranges"></div>
+  <div class="chart-host" id="m-chart"></div>
+  <div class="modal-stats" id="m-stats"></div>
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightweight-charts/4.1.3/lightweight-charts.standalone.production.js"></script>
+<script>
+const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const CRISES=[["2008-09-15","Lehman"],["2011-08-05","EU sovereign"],["2020-03-16","COVID"],["2023-03-13","SVB/CS"]];
+let CHART=null,SERIES=null,FULL=null,RANGE='MAX';
+
+async function loadTiles(){
+  const m=await gj('data/ecb-hist/_manifest.json');
+  if(!m||!m.series){document.getElementById('tiles').innerHTML='<div class="loading">History not built yet — runs weekly.</div>';return;}
+  document.getElementById('tiles').innerHTML='<div class="grid">'+m.series.map(s=>{
+    const z=s.z_score;const zc=z==null?'':(Math.abs(z)>=2?'z-hi':Math.abs(z)>=1?'z-mid':'z-lo');
+    return `<div class="tile" onclick="openModal('${esc(s.id)}')">
+      <div class="lbl">${esc(s.label)}</div>
+      <div class="val">${s.latest!=null?Number(s.latest).toLocaleString():'—'}${z!=null?`<span class="zpill ${zc}">z ${z}</span>`:''}</div>
+      <div class="meta">${s.percentile!=null?s.percentile+'%ile':''} · ${esc(s.first_date)}→${esc(s.latest_date)} · ${s.n_points} pts · ${esc(s.freq)}</div>
+    </div>`;
+  }).join('')+'</div>';
+}
+async function openModal(id){
+  document.getElementById('modal').classList.add('on');
+  document.getElementById('m-title').textContent=id;
+  document.getElementById('m-chart').innerHTML='<div class="loading">Loading history…</div>';
+  const d=await gj('data/ecb-hist/'+id+'.json');
+  if(!d||!d.points){document.getElementById('m-chart').innerHTML='<div class="loading">No history.</div>';return;}
+  FULL=d;RANGE='MAX';
+  document.getElementById('m-title').textContent=d.label||id;
+  document.getElementById('m-sub').textContent=`${d.first_date} → ${d.latest_date} · ${d.n_points} points · ${d.freq} · ECB SDMX`;
+  document.getElementById('m-stats').innerHTML=`<span>Latest <b style="color:var(--fg-0)">${Number(d.latest).toLocaleString()}</b></span><span>Min ${Number(d.min).toLocaleString()}</span><span>Max ${Number(d.max).toLocaleString()}</span><span>%ile ${d.percentile}</span><span>z ${d.z_score}</span>`;
+  document.getElementById('m-ranges').innerHTML=['1Y','5Y','10Y','MAX'].map(r=>`<span class="range-btn ${r==='MAX'?'on':''}" onclick="setRange('${r}')">${r}</span>`).join('');
+  drawChart();
+}
+function setRange(r){RANGE=r;document.querySelectorAll('.range-btn').forEach(b=>b.classList.toggle('on',b.textContent===r));drawChart();}
+function drawChart(){
+  const host=document.getElementById('m-chart');host.innerHTML='';
+  if(!window.LightweightCharts){host.innerHTML='<div class="loading">chart lib loading…</div>';return;}
+  CHART=LightweightCharts.createChart(host,{autoSize:true,layout:{background:{color:'#0c1018'},textColor:'#a8b3c7',fontFamily:"'IBM Plex Mono',monospace"},grid:{vertLines:{color:'#1c2433'},horzLines:{color:'#1c2433'}},rightPriceScale:{borderColor:'#1c2433'},timeScale:{borderColor:'#1c2433'}});
+  let pts=FULL.points.map(p=>({time:p[0],value:p[1]}));
+  if(RANGE!=='MAX'){const yrs={'1Y':1,'5Y':5,'10Y':10}[RANGE];const cut=new Date();cut.setFullYear(cut.getFullYear()-yrs);const cs=cut.toISOString().slice(0,10);pts=pts.filter(p=>p.time>=cs);}
+  const line=CHART.addAreaSeries({lineColor:'#a78bfa',topColor:'rgba(167,139,250,0.25)',bottomColor:'rgba(167,139,250,0.02)',lineWidth:2});
+  line.setData(pts);
+  // crisis markers (only those within range)
+  const inRange=new Set(pts.map(p=>p.time));
+  const marks=CRISES.filter(([d])=>pts.length&&d>=pts[0].time&&d<=pts[pts.length-1].time).map(([d,lab])=>({time:d,position:'aboveBar',color:'#ff5577',shape:'arrowDown',text:lab}));
+  if(marks.length)try{line.setMarkers(marks);}catch(e){}
+  CHART.timeScale().fitContent();
+}
+function closeModal(){document.getElementById('modal').classList.remove('on');if(CHART){try{CHART.remove();}catch(e){}CHART=null;}}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+loadTiles();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
