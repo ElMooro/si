@@ -1,0 +1,125 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Engine Viewer · JustHodl AI</title><meta name="robots" content="noindex">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--bg-1);position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--cyan);border-radius:50%;box-shadow:0 0 9px var(--cyan)}
+.nav{display:flex;gap:3px;margin-left:10px;flex-wrap:wrap}.nav a{padding:6px 10px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1100px;margin:0 auto;padding:22px}
+.eng-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+.eng-name{font-family:var(--mono);font-size:24px;font-weight:800;color:var(--fg-0)}
+.fresh{font-family:var(--mono);font-size:11px;padding:2px 9px;border-radius:10px}
+.fresh.ok{background:rgba(38,255,175,.13);color:var(--green)}.fresh.stale{background:rgba(251,191,36,.13);color:var(--amber)}.fresh.dead{background:rgba(255,85,119,.13);color:var(--red)}
+.sub{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--bg-1);border:1px solid var(--border-bright);border-radius:11px;padding:12px 14px}
+.kpi .k{font-family:var(--mono);font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px}
+.kpi .v{font-family:var(--mono);font-size:20px;font-weight:800;margin-top:4px;word-break:break-word}
+.sec{margin:20px 0 8px;font-family:var(--mono);font-size:12px;color:var(--fg-2);letter-spacing:.4px}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:12px}
+.tbl th{text-align:left;font-family:var(--mono);font-size:10px;color:var(--fg-3);padding:7px 9px;border-bottom:1px solid var(--border-bright);text-transform:uppercase;white-space:nowrap}
+.tbl td{padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top}
+.tbl tr:hover{background:var(--bg-1)}
+.tbl td.num{font-family:var(--mono);text-align:right}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.kv{background:var(--bg-1);border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin-bottom:12px}
+.kv-row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.kv-row:last-child{border-bottom:none}.kv-row .k{color:var(--fg-3)}.kv-row .v{font-family:var(--mono);color:var(--fg-1);text-align:right;max-width:60%;word-break:break-word}
+.raw{background:var(--bg-1);border:1px solid var(--border);border-radius:11px;padding:12px;font-family:var(--mono);font-size:11px;color:var(--fg-2);white-space:pre-wrap;max-height:400px;overflow:auto}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.pill{font-family:var(--mono);font-size:10px;padding:1px 8px;border-radius:9px;background:var(--bg-2);border:1px solid var(--border-bright);color:var(--fg-2)}
+.search{margin-left:auto;display:flex;gap:6px}
+.search input{background:var(--bg-2);border:1px solid var(--border-bright);border-radius:7px;color:var(--fg-1);padding:7px 11px;font-family:var(--mono);font-size:12px;width:170px}
+.toggle{font-family:var(--mono);font-size:11px;color:var(--cyan);cursor:pointer;margin-bottom:10px;display:inline-block}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Desk</a><a href="/engines.html">⚙ Engines</a><a href="/master-board.html">🎯 Board</a><a href="/scorecard.html">📊 Scorecard</a></nav>
+  <div class="search"><input id="eng-input" placeholder="engine name" autocomplete="off"><button onclick="goEng()" style="background:var(--cyan);border:none;color:var(--bg);font-weight:700;border-radius:7px;padding:7px 12px;cursor:pointer;font-size:12px">View</button></div>
+</header>
+<div class="wrap" id="wrap"><div class="loading">Loading engine…</div></div>
+<script>
+const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function qp(k){return new URLSearchParams(location.search).get(k);}
+function goEng(){const e=document.getElementById('eng-input').value.trim().replace(/\.json$/,'').replace(/^data\//,'');if(e)location.href='/engine.html?e='+e;}
+document.getElementById('eng-input').onkeydown=e=>{if(e.key==='Enter')goEng();};
+function ago(ts){if(!ts)return null;const m=Math.round((Date.now()-new Date(ts).getTime())/60000);if(isNaN(m))return null;return m<60?m+'m':m<1440?Math.round(m/60)+'h':Math.round(m/1440)+'d';}
+function isNum(v){return typeof v==='number'&&isFinite(v);}
+function fmtV(v){
+  if(v==null)return '—';
+  if(typeof v==='boolean')return v?'✓ true':'✗ false';
+  if(isNum(v)){const a=Math.abs(v);if(a>=1e12)return (v/1e12).toFixed(2)+'T';if(a>=1e9)return (v/1e9).toFixed(2)+'B';if(a>=1e6)return (v/1e6).toFixed(2)+'M';if(Number.isInteger(v))return v.toLocaleString();return v.toFixed(2);}
+  if(typeof v==='string')return esc(v.length>120?v.slice(0,120)+'…':v);
+  return esc(JSON.stringify(v).slice(0,80));
+}
+const HIDE=new Set(['schema_version','version','v','engine','method','duration_s','elapsed_s','elapsed_seconds','build_seconds','methodology','schema','generated_at','as_of','generated_at_unix','note','source']);
+
+function renderArrayTable(arr,title){
+  if(!arr.length)return '';
+  // collect columns from first ~5 objects
+  if(typeof arr[0]!=='object'||arr[0]==null){
+    return `<div class="sec">${esc(title)} (${arr.length})</div><div class="kv">${arr.slice(0,50).map(x=>`<span class="pill" style="margin:2px">${fmtV(x)}</span>`).join('')}</div>`;
+  }
+  const cols=[];const seen=new Set();
+  arr.slice(0,8).forEach(o=>Object.keys(o||{}).forEach(k=>{if(!seen.has(k)&&!/^(history|series|points|_)/.test(k)){seen.add(k);cols.push(k);}}));
+  const showCols=cols.slice(0,9);
+  let h=`<div class="sec">${esc(title)} <span style="color:var(--fg-3)">(${arr.length} rows)</span></div><table class="tbl"><thead><tr>${showCols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>`;
+  arr.slice(0,60).forEach(o=>{
+    h+='<tr>'+showCols.map(c=>{const v=o?o[c]:null;const cls=isNum(v)?(v>0?'num pos':v<0?'num neg':'num'):'';return `<td class="${cls}">${fmtV(v)}</td>`;}).join('')+'</tr>';
+  });
+  h+='</tbody></table>';
+  if(arr.length>60)h+=`<div style="font-family:var(--mono);font-size:10px;color:var(--fg-3)">…and ${arr.length-60} more rows</div>`;
+  return h;
+}
+
+async function load(){
+  const e=(qp('e')||'').replace(/\.json$/,'').replace(/^data\//,'');
+  if(!e){document.getElementById('wrap').innerHTML='<div class="loading">No engine specified. Try <a href="/engines.html">the directory →</a></div>';return;}
+  document.getElementById('eng-input').value=e;
+  let d=null,age=null,lastErr=null;
+  for(const base of ['https://justhodl.ai',PROXY_FALLBACK]){
+    try{const r=await fetch(`${base}/data/${e}.json?t=${Date.now()}`);if(r.ok){d=await r.json();const lm=r.headers.get('last-modified');if(lm)age=ago(lm);break;}else lastErr='HTTP '+r.status;}catch(err){lastErr=err.message;}
+  }
+  if(!d){document.getElementById('wrap').innerHTML=`<div class="loading">Couldn't load <b>${esc(e)}</b> — ${esc(lastErr||'not found')}. <a href="/engines.html">← directory</a></div>`;return;}
+  const gen=d.generated_at||d.as_of;const genAge=ago(gen)||age;
+  let cls='ok',lbl='live';
+  if(genAge){const u=genAge.slice(-1),n=parseInt(genAge);if(u==='d'&&n>=2){cls='dead';lbl='stale';}else if(u==='h'&&n>=30){cls='stale';lbl='aging';}}
+  let h=`<div class="eng-head"><span class="eng-name">${esc(e)}</span>${genAge?`<span class="fresh ${cls}">${lbl} · ${genAge} ago</span>`:''}</div>`;
+  h+=`<div class="sub">${esc(d.engine||d.method||'')} ${gen?'· generated '+esc(String(gen).slice(0,19)):''}</div>`;
+  if(typeof d!=='object'||Array.isArray(d)){h+=renderArrayTable(Array.isArray(d)?d:[d],'data');document.getElementById('wrap').innerHTML=h;return;}
+
+  // 1) scalar KPIs (top-level numbers/strings/bools, not hidden, not objects/arrays)
+  const kpis=[];const objs=[];const arrs=[];
+  Object.keys(d).forEach(k=>{
+    if(HIDE.has(k))return;
+    const v=d[k];
+    if(Array.isArray(v)){if(v.length)arrs.push([k,v]);}
+    else if(v&&typeof v==='object'){objs.push([k,v]);}
+    else if(v!=null)kpis.push([k,v]);
+  });
+  if(kpis.length){h+=`<div class="kpis">`+kpis.slice(0,16).map(([k,v])=>{
+    const cls=isNum(v)?(v>0?'pos':v<0?'neg':''):'';
+    return `<div class="kpi"><div class="k">${esc(k.replace(/_/g,' '))}</div><div class="v ${cls}">${fmtV(v)}</div></div>`;
+  }).join('')+`</div>`;}
+  // 2) nested objects → kv panels
+  objs.slice(0,8).forEach(([k,o])=>{
+    const entries=Object.entries(o).filter(([kk,vv])=>!Array.isArray(vv)&&!(vv&&typeof vv==='object'));
+    if(!entries.length)return;
+    h+=`<div class="sec">${esc(k.replace(/_/g,' '))}</div><div class="kv">`+entries.slice(0,20).map(([kk,vv])=>`<div class="kv-row"><span class="k">${esc(kk.replace(/_/g,' '))}</span><span class="v">${fmtV(vv)}</span></div>`).join('')+`</div>`;
+  });
+  // 3) arrays → tables
+  arrs.sort((a,b)=>b[1].length-a[1].length);
+  arrs.slice(0,6).forEach(([k,v])=>{h+=renderArrayTable(v,k.replace(/_/g,' '));});
+  // 4) raw toggle
+  h+=`<span class="toggle" onclick="var r=document.getElementById('raw-json');r.style.display=r.style.display==='none'?'block':'none'">⌄ raw JSON</span><pre class="raw" id="raw-json" style="display:none">${esc(JSON.stringify(d,null,2).slice(0,12000))}</pre>`;
+  document.getElementById('wrap').innerHTML=h;
+}
+load();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
