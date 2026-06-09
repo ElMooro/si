@@ -178,6 +178,17 @@ def fetch_polygon_short_interest(ticker):
         prev = results[1] if len(results) > 1 else None
         si = latest.get("short_interest")
         avg_vol = latest.get("avg_daily_volume")
+        # FRESHNESS GUARD: Polygon's short-interest endpoint sometimes only has
+        # very old snapshots for a ticker (e.g. 2018). Showing that as "current"
+        # is worse than showing nothing. Drop snapshots older than ~180 days.
+        sd = latest.get("settlement_date") or ""
+        try:
+            from datetime import datetime as _dt
+            age_days = (_dt.now().date() - _dt.fromisoformat(sd).date()).days
+            if age_days > 180:
+                return None
+        except Exception:
+            pass
         days_to_cover = None
         if si and avg_vol and avg_vol > 0:
             days_to_cover = round(si / avg_vol, 2)
