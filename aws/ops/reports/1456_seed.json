@@ -1,0 +1,40 @@
+{
+  "justhodl-signal-logger": "{\"statusCode\": 200, \"body\": \"{\\\"logged\\\": 52}\"}",
+  "justhodl-backtest-engine": "{\"statusCode\": 200, \"body\": \"{\\\"n_outcomes\\\": 11024, \\\"total_return_pct\\\": 115.6",
+  "justhodl-backtest-harness": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\",
+  "justhodl-outcome-checker": "{\"statusCode\": 200, \"body\": \"{\\\"processed\\\": 59, \\\"timestamp\\\": \\\"2026-06-09T01:",
+  "FILE_data/backtest-summary.json": {
+    "keys": [
+      "generated_at",
+      "snapshot_today",
+      "forward_returns_computed_today",
+      "by_signal",
+      "fetch_duration_s"
+    ],
+    "generated_at": "2026-06-09T01:24:27",
+    "signal_sample": {
+      "8k_red_flag": {},
+      "big_insider_buy": {},
+      "asymmetric_setup": {},
+      "insider_cluster": {},
+      "aaii_extreme": {}
+    }
+  },
+  "FILE_data/signal-backtest.json": {
+    "keys": [
+      "engine",
+      "version",
+      "generated_at",
+      "duration_s",
+      "n_observations",
+      "snapshots_used",
+      "maturity",
+      "overall",
+      "by_verdict",
+      "by_compounder_bucket"
+    ],
+    "generated_at": "2026-06-08T16:00:44"
+  },
+  "FILE_data/signal-log.json": "MISSING/An error occurred (NoSuchKey) when calli",
+  "FILE_data/outcomes.json": "MISSING/An error occurred (NoSuchKey) when calli"
+}
