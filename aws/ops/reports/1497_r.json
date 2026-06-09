@@ -1,0 +1,18 @@
+{
+  "run": "{\"statusCode\": 200, \"body\": \"{\\\"n_flashing\\\": 2}\"}",
+  "headline": "2 ECB-derived dump signal(s) active: eu_us_liquidity_divergence, bls_credit_standards",
+  "divergence": {
+    "ecb_total_assets_eur_bn": 6162.0,
+    "ecb_balance_sheet_6m_chg_eur_bn": 18.4,
+    "fed_net_liquidity_6m_chg_usd_bn": 61629.7,
+    "divergence_bn": -61611.3,
+    "signal": "TAIL_RISK",
+    "err": null
+  },
+  "all_signals": {
+    "ciss_acceleration": "CALM",
+    "bank_funding_stress": "NORMAL",
+    "eu_us_liquidity_divergence": "TAIL_RISK",
+    "bls_credit_standards": "TIGHTENING"
+  }
+}
