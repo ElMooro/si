@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Master Board · JustHodl AI</title>
+<meta name="description" content="The ranked opportunity board — every name scored by signal confluence, with full decomposition.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--orange:#fb923c;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--bg-1);position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 9px var(--green)}
+.nav{display:flex;gap:3px;margin-left:10px;flex-wrap:wrap}.nav a{padding:6px 10px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--green)}
+.fresh{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--fg-3)}
+.wrap{max-width:1240px;margin:0 auto;padding:22px}
+.hero h1{font-size:25px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:5px 0 16px;font-size:13px;max-width:760px}
+.regime{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.rchip{font-family:var(--mono);font-size:11px;padding:6px 11px;border-radius:9px;border:1px solid var(--border-bright);background:var(--bg-1)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filt{font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:8px;border:1px solid var(--border-bright);background:var(--bg-1);color:var(--fg-2);cursor:pointer}
+.filt.on{background:var(--green);border-color:var(--green);color:var(--bg);font-weight:700}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-family:var(--mono);font-size:10px;color:var(--fg-3);padding:8px 10px;border-bottom:1px solid var(--border-bright);text-transform:uppercase;letter-spacing:.4px;cursor:pointer;white-space:nowrap}
+.tbl th:hover{color:var(--cyan)}
+.tbl td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
+.tbl tr:hover{background:var(--bg-1)}
+.tk{font-family:var(--mono);font-weight:800;font-size:15px;color:var(--fg-0)}
+.verdict{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.v-STRONGBUY{background:rgba(38,255,175,.16);color:var(--green)}
+.v-BUY{background:rgba(34,211,238,.13);color:var(--cyan)}
+.v-TRIPLETHREAT,.v-QUADTHREAT,.v-BUILDOUTTHREAT{background:rgba(167,139,250,.16);color:var(--violet)}
+.v-WATCH{color:var(--fg-3);border:1px solid var(--border-bright)}
+.conv-bar{height:6px;background:var(--bg-2);border-radius:3px;overflow:hidden;width:70px;display:inline-block;vertical-align:middle;margin-right:6px}
+.conv-bar .f{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green))}
+.sigs{display:flex;gap:3px;flex-wrap:wrap;max-width:260px}
+.sig{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:8px;background:var(--bg-2);color:var(--fg-2);border:1px solid var(--border)}
+.sig.strong{border-color:var(--green);color:var(--green)}
+.thesis{font-size:12px;color:var(--fg-2);line-height:1.45;max-width:380px;margin-top:5px}
+.lvls{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);white-space:nowrap}
+.brain-tag{font-family:var(--mono);font-size:9px;color:var(--violet);border:1px solid var(--violet);border-radius:8px;padding:1px 6px}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.note{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:16px;line-height:1.5}
+.expand{cursor:pointer;color:var(--cyan);font-size:11px;font-family:var(--mono)}
+.detail-row td{background:var(--bg-1);padding:14px 18px}
+.sig-detail{font-family:var(--mono);font-size:11px;color:var(--fg-2);margin:3px 0}
+.sig-detail b{color:var(--fg-1)}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Desk</a><a href="/master-board.html" class="active">🎯 Master Board</a><a href="/brain.html">🧠 Brain</a><a href="/opportunities.html">Opportunities</a><a href="/signal-board.html">Signals</a></nav>
+  <span class="fresh" id="fresh"></span>
+</header>
+<div class="wrap">
+  <div class="hero"><h1>Master <span class="grad">Opportunity Board</span></h1>
+  <p>Every covered name ranked by <b>signal confluence</b> — where multiple independent engines (valuation, quality, flow, insider, backlog, catalyst) agree on the same ticker. Click any row for the full score decomposition. The more signals that converge, the stronger the setup.</p></div>
+  <div class="regime" id="regime"></div>
+  <div class="filters" id="filters">
+    <span class="filt on" data-f="all">All</span>
+    <span class="filt" data-f="strong">Strong Buy</span>
+    <span class="filt" data-f="threat">Threats (3+ signals)</span>
+    <span class="filt" data-f="brain">🧠 Brain-aligned</span>
+    <span class="filt" data-f="conv60">Conviction ≥ 60</span>
+  </div>
+  <div id="board"><div class="loading">Loading the board…</div></div>
+  <div class="note" id="note"></div>
+</div>
+<script>
+const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+let ALL=[],FILTER='all',SORT={k:'conviction',dir:-1};
+
+function vclass(v){return 'v-'+String(v||'').replace(/[^A-Z]/gi,'').toUpperCase();}
+function ago(ts){if(!ts)return '';const m=Math.round((Date.now()-new Date(ts).getTime())/60000);return m<60?m+'m ago':Math.round(m/60)+'h ago';}
+
+async function load(){
+  const [bs,reg,fp,cr]=await Promise.all([gj('data/best-setups.json'),gj('data/bond-vol.json'),gj('data/funding-plumbing.json'),gj('data/crypto-cycle-risk.json')]);
+  // regime strip
+  const rs=[];
+  if(reg&&reg.regime)rs.push(`<span class="rchip">Bond Vol <b>${esc(reg.regime)}</b></span>`);
+  if(fp&&fp.regime)rs.push(`<span class="rchip">Plumbing <b>${esc(fp.regime)}</b>${fp.qt_ended_not_qe?' · QT≠QE':''}</span>`);
+  if(cr&&cr.risk_level)rs.push(`<span class="rchip">Crypto Risk <b>${esc(cr.risk_level)}</b></span>`);
+  if(bs&&bs.bond_vol_regime)rs.push(`<span class="rchip">Setups tuned for <b>${esc(bs.bond_vol_regime)}</b></span>`);
+  document.getElementById('regime').innerHTML=rs.join('');
+  if(!bs||!bs.top_setups){document.getElementById('board').innerHTML='<div class="loading">Board data unavailable right now.</div>';return;}
+  ALL=bs.top_setups;
+  document.getElementById('fresh').textContent='Updated '+ago(bs.generated_at)+' · '+(bs.stats?bs.stats.n_setups:ALL.length)+' names scored';
+  const st=bs.stats||{};
+  document.getElementById('note').innerHTML=`Confluence engine · ${st.strong_buy||0} strong buy · ${st.buy||0} buy · ${st.watch||0} watch of ${st.n_setups||ALL.length} scored. Conviction = weighted sum of converging signals. <b>Research, not advice.</b> Forward-return validation is maturing in the backtest harness — conviction reflects signal agreement, not yet proven hit-rate.`;
+  render();
+}
+function passes(s){
+  if(FILTER==='strong')return s.verdict==='STRONG BUY';
+  if(FILTER==='threat')return s.triple_threat||s.quad_threat||s.buildout_threat||(s.n_signals>=3);
+  if(FILTER==='brain')return !!s.brain_aligned;
+  if(FILTER==='conv60')return (s.conviction||0)>=60;
+  return true;
+}
+function render(){
+  let rows=ALL.filter(passes);
+  rows.sort((a,b)=>{const k=SORT.k;let av=a[k],bv=b[k];if(typeof av==='string'){return SORT.dir*String(av).localeCompare(String(bv));}return SORT.dir*((av||0)-(bv||0));});
+  let h=`<table class="tbl"><thead><tr>
+    <th data-k="rank">#</th><th data-k="ticker">Ticker</th><th data-k="verdict">Verdict</th>
+    <th data-k="conviction">Conviction</th><th data-k="n_signals">Signals (confluence)</th>
+    <th data-k="horizon_days">Horizon</th><th>Levels (R:R)</th><th></th></tr></thead><tbody>`;
+  rows.forEach((s,i)=>{
+    const conv=Math.round(s.conviction||0);
+    const sigs=(s.signals||[]).map(sg=>`<span class="sig ${(sg.strength||0)>=0.7?'strong':''}" title="${esc(sg.detail||'')} · strength ${(sg.strength||0).toFixed(2)}">${esc(sg.key)}</span>`).join('');
+    const lvls=s.entry?`E ${s.entry} · S ${s.stop||'—'} · T ${s.tp3||'—'}${s.rr?' · '+s.rr+'R':''}`:'—';
+    h+=`<tr>
+      <td style="color:var(--fg-3);font-family:var(--mono)">${i+1}</td>
+      <td><span class="tk">${esc(s.ticker)}</span>${s.brain_aligned?'<br><span class="brain-tag">🧠 brain</span>':''}</td>
+      <td><span class="verdict ${vclass(s.verdict)}">${esc(s.verdict)}</span></td>
+      <td><span class="conv-bar"><span class="f" style="width:${Math.min(100,conv)}%"></span></span><span style="font-family:var(--mono);color:${conv>=60?'var(--green)':conv>=45?'var(--cyan)':'var(--fg-2)'}">${conv}</span></td>
+      <td><div class="sigs">${sigs}</div></td>
+      <td style="font-family:var(--mono);color:var(--fg-3);font-size:11px">${s.horizon_days||'—'}d</td>
+      <td class="lvls">${esc(lvls)}</td>
+      <td><span class="expand" onclick="document.getElementById('d${i}').style.display=document.getElementById('d${i}').style.display==='table-row'?'none':'table-row'">why ▾</span></td>
+    </tr>
+    <tr class="detail-row" id="d${i}" style="display:none"><td colspan="8">
+      <div class="thesis" style="max-width:none;margin-bottom:8px">${esc(s.why||s.thesis||'')}</div>
+      ${(s.signals||[]).map(sg=>`<div class="sig-detail">▸ <b>${esc(sg.key)}</b> — ${esc(sg.detail||'')} <span style="color:var(--fg-3)">(strength ${(sg.strength||0).toFixed(2)} × weight ${(sg.weight||0).toFixed(2)})</span></div>`).join('')}
+    </td></tr>`;
+  });
+  h+='</tbody></table>';
+  if(!rows.length)h='<div class="loading">No names match this filter.</div>';
+  document.getElementById('board').innerHTML=h;
+  document.querySelectorAll('.tbl th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;SORT.dir=(SORT.k===k)?-SORT.dir:-1;SORT.k=k;render();});
+}
+document.querySelectorAll('.filt').forEach(el=>el.onclick=()=>{document.querySelectorAll('.filt').forEach(x=>x.classList.remove('on'));el.classList.add('on');FILTER=el.dataset.f;render();});
+load();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
