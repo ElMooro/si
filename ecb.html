@@ -59,6 +59,18 @@ a{color:var(--cyan);text-decoration:none}
   <div class="sec">🏦 POLICY RATES</div>
   <div class="grid" id="rates"></div>
 
+  <div class="sec">📈 CURVE & EXPECTATIONS</div>
+  <div class="grid" id="curve"></div>
+  <div class="read" id="curve-read"></div>
+
+  <div class="sec">📊 INFLATION — HICP</div>
+  <div class="grid" id="hicp"></div>
+  <div class="read" id="hicp-read"></div>
+
+  <div class="sec">🌍 TARGET2 BY COUNTRY · CREDIT · FX</div>
+  <div class="grid" id="t2grid"></div>
+  <div class="read" id="t2-read"></div>
+
   <div class="sec">🚨 DUMP-PREDICTOR SIGNALS <a class="more" href="/eu-dump-radar.html">full radar →</a></div>
   <div class="grid" id="signals"></div>
 
@@ -79,7 +91,7 @@ const PX="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 function sigClass(s){if(['CRITICAL','ACUTE','TAIL_RISK','SEVERE_TIGHTENING','CREDIT_STRESS'].includes(s))return 'alert';if(['WATCH','ELEVATED','TIGHTENING'].includes(s))return 'warn';return 'calm';}
-const SIGNAMES={ciss_acceleration:'CISS Acceleration',bank_funding_stress:'Bank Funding Stress',eu_us_liquidity_divergence:'EU/US Liq Divergence',bls_credit_standards:'EU Credit Standards',bank_pass_through_premium:'Pass-Through Premium',target2_imbalance:'TARGET2 Imbalance',usd_funding_stress_composite:'USD Funding Composite'};
+const SIGNAMES={ciss_acceleration:'CISS Acceleration',bank_funding_stress:'Bank Funding Stress',eu_us_liquidity_divergence:'EU/US Liq Divergence',bls_credit_standards:'EU Credit Standards',bank_pass_through_premium:'Pass-Through Premium',target2_imbalance:'TARGET2 Imbalance',usd_funding_stress_composite:'USD Funding Composite',euribor_ois_stress:'Euribor−OIS Stress',estr_dfr_dislocation:'€STR−DFR Dislocation',credit_contraction:'EA Credit Contraction',expectations_deanchoring:'Expectations De-anchor'};
 
 async function load(){
   const [ed,der,m]=await Promise.all([gj('data/ecb-detail.json'),gj('data/ecb-derived.json'),gj('data/ecb-hist/_manifest.json')]);
@@ -136,8 +148,48 @@ async function load(){
       else if(k==='bank_pass_through_premium')metric=`${v.premium_pct!=null?v.premium_pct+'pp premium':'—'}`;
       else if(k==='target2_imbalance')metric=`DE €${v.de_target2_eur_mn!=null?Math.round(v.de_target2_eur_mn/1000)+'bn':'—'} · Δ3m €${v.de_3m_change_eur_mn!=null?Math.round(v.de_3m_change_eur_mn/1000)+'bn':'—'}`;
       else if(k==='usd_funding_stress_composite')metric=`${v.score_0_100!=null?v.score_0_100+'/100':'—'}`;
+      else if(k==='euribor_ois_stress')metric=`${v.spread_bp!=null?v.spread_bp+'bp':'—'}`;
+      else if(k==='estr_dfr_dislocation')metric=`${v.spread_bp!=null?v.spread_bp+'bp vs floor':'—'}`;
+      else if(k==='credit_contraction')metric=`NFC ${v.nfc_loans_yoy!=null?v.nfc_loans_yoy+'% YoY':'—'}`;
+      else if(k==='expectations_deanchoring')metric=`SPF ${v.spf_longterm_pct!=null?v.spf_longterm_pct+'%':'—'}`;
       return `<div class="card ${sc}"><span class="sig ${sc}">${esc(v.signal)}</span><div class="lbl">${esc(SIGNAMES[k]||k)}</div><div class="val" style="font-size:16px">${esc(metric)}</div></div>`;
     }).join('');
+  }
+  // curve & expectations
+  if(der&&der.rates_curve&&!der.rates_curve.err){
+    const C=der.rates_curve,X=der.inflation_expectations||{};
+    const cards=[];
+    if(C.estr_pct!=null)cards.push(`<div class="card ${C.estr_dfr_spread_bp!=null&&C.estr_dfr_spread_bp>=-1?'warn':''}"><div class="lbl">€STR vs DFR floor</div><div class="val">${C.estr_pct}%</div><div class="sub">DFR ${C.dfr_pct!=null?C.dfr_pct+'%':'—'} · spread ${C.estr_dfr_spread_bp!=null?C.estr_dfr_spread_bp+'bp':'—'}</div></div>`);
+    if(C.euribor_ois_proxy_bp!=null)cards.push(`<div class="card ${C.euribor_ois_proxy_bp>=25?'warn':''}"><div class="lbl">Euribor−OIS (3M)</div><div class="val">${C.euribor_ois_proxy_bp}bp</div><div class="sub">Euribor ${C.euribor_3m_pct!=null?C.euribor_3m_pct+'%':'—'} · €STR comp ${C.estr_3m_compounded_pct!=null?C.estr_3m_compounded_pct+'%':'—'} · ≥50 critical</div></div>`);
+    if(C.implied_next_12m_bp!=null)cards.push(`<div class="card"><div class="lbl">Market-Implied Path (12m)</div><div class="val">${C.implied_next_12m_bp>0?'+':''}${C.implied_next_12m_bp}bp</div><div class="sub">${C.implied_following_12m_bp!=null?'then '+(C.implied_following_12m_bp>0?'+':'')+C.implied_following_12m_bp+'bp · ':''}1y1y ${C.fwd_1y1y_pct!=null?C.fwd_1y1y_pct+'%':'—'}</div></div>`);
+    if(C.aaa_spot&&C.aaa_spot['10y']!=null)cards.push(`<div class="card"><div class="lbl">EA AAA Curve</div><div class="val">${C.aaa_spot['2y']!=null?C.aaa_spot['2y'].toFixed(2):'—'}/${C.aaa_spot['10y'].toFixed(2)}%</div><div class="sub">2y/10y · slope ${C.aaa_spot['2y']!=null?Math.round((C.aaa_spot['10y']-C.aaa_spot['2y'])*100)+'bp':'—'} · 5y5y nom ${C.fwd_5y5y_nominal_pct!=null?C.fwd_5y5y_nominal_pct+'%':'—'}</div></div>`);
+    if(X.spf_longterm_pct!=null)cards.push(`<div class="card ${X.anchored===false?'warn':''}"><div class="lbl">LT Inflation Expectations (SPF)</div><div class="val">${X.spf_longterm_pct}%</div><div class="sub">${X.anchored?'anchored (1.7–2.3 band)':'⚠ outside anchor band'} · ${esc(X.spf_as_of||'')}</div></div>`);
+    document.getElementById('curve').innerHTML=cards.join('');
+    document.getElementById('curve-read').textContent=C.path_read||'';
+  }
+  // HICP inflation
+  if(der&&der.inflation&&!der.inflation.err){
+    const I=der.inflation;
+    const cards=[];
+    if(I.headline_yoy!=null)cards.push(`<div class="card ${Math.abs(I.vs_target_pp||0)>=1?'warn':''}"><div class="lbl">HICP Headline</div><div class="val">${I.headline_yoy}%</div><div class="sub">${I.vs_target_pp!=null?(I.vs_target_pp>=0?'+':'')+I.vs_target_pp+'pp vs target':''} · 3m ${I.headline_3m_chg_pp!=null?(I.headline_3m_chg_pp>=0?'+':'')+I.headline_3m_chg_pp+'pp':'—'}</div></div>`);
+    if(I.core_yoy!=null)cards.push(`<div class="card"><div class="lbl">Core (ex energy/food)</div><div class="val">${I.core_yoy}%</div><div class="sub">3m ${I.core_3m_chg_pp!=null?(I.core_3m_chg_pp>=0?'+':'')+I.core_3m_chg_pp+'pp':'—'}</div></div>`);
+    if(I.services_yoy!=null)cards.push(`<div class="card ${I.sticky_services?'warn':''}"><div class="lbl">Services</div><div class="val">${I.services_yoy}%</div><div class="sub">${I.sticky_services?'⚠ sticky — ECB\'s hardest mile':'goods '+(I.goods_yoy!=null?I.goods_yoy+'%':'—')}</div></div>`);
+    if(I.energy_yoy!=null)cards.push(`<div class="card"><div class="lbl">Energy · Food</div><div class="val">${I.energy_yoy}% · ${I.food_yoy!=null?I.food_yoy+'%':'—'}</div><div class="sub">ind. goods ex-energy ${I.indus_goods_ex_energy_yoy!=null?I.indus_goods_ex_energy_yoy+'%':'—'} · ${esc(I.as_of||'')}</div></div>`);
+    document.getElementById('hicp').innerHTML=cards.join('');
+    document.getElementById('hicp-read').textContent=I.read||'';
+  }
+  // TARGET2 country table + credit + FX
+  if(der&&((der.target2&&der.target2.countries)||der.credit||der.fx)){
+    const T=der.target2||{},K=der.credit||{},F=der.fx||{};
+    const cards=[];
+    if(T.countries&&T.countries.length){
+      const rows=T.countries.map(r=>`<tr><td style="padding:2px 8px 2px 0;font-weight:700">${esc(r.cc)}</td><td style="text-align:right;padding:2px 8px;color:${r.eur_bn>=0?'var(--green)':'var(--red)'}">${r.eur_bn>=0?'+':''}${r.eur_bn}bn</td><td style="text-align:right;padding:2px 0;color:var(--fg-3)">${r.chg_3m_bn!=null?(r.chg_3m_bn>=0?'+':'')+r.chg_3m_bn+'bn/3m':'—'}</td></tr>`).join('');
+      cards.push(`<div class="card" style="grid-column:span 2"><div class="lbl">TARGET2 Balances · ${esc(T.as_of||'')}</div><table style="width:100%;font-family:var(--mono);font-size:12px;border-collapse:collapse;margin-top:4px"><tbody>${rows}</tbody></table><div class="sub" style="margin-top:6px">DE−IT gap ${T.de_minus_it_bn!=null?'€'+T.de_minus_it_bn+'bn':'—'} · max 3m flow €${T.max_abs_3m_flow_bn!=null?T.max_abs_3m_flow_bn:'—'}bn</div></div>`);
+    }
+    if(K.nfc_loans_yoy!=null)cards.push(`<div class="card ${K.nfc_loans_yoy<0?'warn':''}"><div class="lbl">Credit Impulse (BSI loans)</div><div class="val">${K.nfc_loans_yoy}%</div><div class="sub">NFC YoY · HH ${K.hh_loans_yoy!=null?K.hh_loans_yoy+'%':'—'} · impulse ${K.impulse_6m_pp!=null?(K.impulse_6m_pp>=0?'+':'')+K.impulse_6m_pp+'pp/6m':'—'}</div></div>`);
+    if(F.eurusd!=null)cards.push(`<div class="card"><div class="lbl">EUR/USD · NEER</div><div class="val">${F.eurusd}</div><div class="sub">${F.eurusd_3m_pct!=null?(F.eurusd_3m_pct>=0?'+':'')+F.eurusd_3m_pct+'%/3m':''} z ${F.eurusd_z_1y!=null?F.eurusd_z_1y:'—'} · NEER ${F.neer_3m_pct!=null?(F.neer_3m_pct>=0?'+':'')+F.neer_3m_pct+'%/3m':'—'}</div></div>`);
+    document.getElementById('t2grid').innerHTML=cards.join('');
+    document.getElementById('t2-read').textContent=[T.read,K.read].filter(Boolean).join(' ');
   }
   // history buttons
   if(m&&m.series){

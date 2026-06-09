@@ -10,6 +10,16 @@ stress / euro-fragmentation / systemic-stress / global-liquidity). Builds:
   #18 EU/US Liquidity Diverge  — ECB balance-sheet 6m Δ vs Fed net-liquidity 6m Δ.
   #12 BLS Credit Standards     — EU bank lending survey C&I tightening (vs Fed SLOOS).
 
+v2.0 adds the Top-10 gap-fills (ops 1522) + the important-ECB sweep:
+  (a) 5Y5Y EUR inflation breakeven   (market-based LT expectations)
+  (b) Market-implied ECB rate path   (AAA-curve forwards vs DFR — OIS proxy)
+  #4  3M Euribor - 3M compounded eSTR  (the EU FRA-OIS analogue; interbank stress)
+  #6  eSTR level + eSTR-DFR spread     (money-market plumbing dislocation)
+  #7  TARGET2 by country               (full creditor/debtor table, 3m flows)
+  #8  HICP headline/core/services/energy/food/goods (+ vs 2% target, momentum)
+  SWEEP: SPF long-term inflation expectations - BSI loans to NFC/HH YoY (credit
+  impulse) - EUR/USD + nominal EER trend.
+
 OUTPUT: data/ecb-derived.json · SCHEDULE: daily 14:40 UTC.
 """
 import json, time, ssl, statistics
@@ -51,6 +61,33 @@ def ecb_csv(key, last_n=None, start=None):
         print(f"[ecb-derived] {key} err: {str(e)[:60]}"); return []
 
 
+def ecb_multi(path, last_n=None, start=None):
+    """One OR-syntax SDMX call -> {series_key: [(date, val), ...]} sorted by date."""
+    q = "?format=csvdata"
+    if last_n: q += f"&lastNObservations={last_n}"
+    if start: q += f"&startPeriod={start}"
+    out = {}
+    try:
+        raw = urllib.request.urlopen(urllib.request.Request(ECB + path + q, headers=HEADERS), timeout=45, context=_ctx).read()
+        if raw[:2] == b"\x1f\x8b":
+            import gzip; raw = gzip.decompress(raw)
+        lines = raw.decode("utf-8", "replace").strip().split("\n")
+        if len(lines) < 2: return out
+        hdr = lines[0].split(",")
+        ki = hdr.index("KEY"); ti = hdr.index("TIME_PERIOD"); vi = hdr.index("OBS_VALUE")
+        for ln in lines[1:]:
+            c = ln.split(",")
+            if len(c) <= max(ki, ti, vi): continue
+            k, d, v = c[ki].strip(), c[ti].strip(), c[vi].strip()
+            if not k or not d or not v: continue
+            try: out.setdefault(k, []).append((d, float(v)))
+            except ValueError: continue
+        for k in out: out[k].sort()
+    except Exception as e:
+        print(f"[ecb-derived] multi {path} err: {str(e)[:60]}")
+    return out
+
+
 def fred_series(sid):
     try:
         u = f"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=200"
@@ -70,7 +107,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "1.0",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "2.0",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -295,6 +332,212 @@ def lambda_handler(event=None, context=None):
             pass
     except Exception as e:
         out["indicators"]["eurodollar_stress_index"] = {"err": str(e)[:60]}
+
+    # ════════════════ v2.0 — Top-10 gap-fills (ops 1522) + important-ECB sweep ════════════════
+
+    # ── #6 €STR + €STR−DFR · (b) market-implied rate path · #4 Euribor−OIS analogue ──
+    try:
+        estr = ecb_csv("EST/B.EU000A2X2A25.WT", last_n=15)                    # €STR volume-weighted rate
+        dfr_d = ecb_csv("FM/D.U2.EUR.4F.KR.DFR.LEV", last_n=30)               # deposit facility rate
+        estr3m = ecb_csv("EST/B.EU000A2QQF32.CR", last_n=10)                  # 3M compounded €STR average
+        eur3m = ecb_csv("FM/M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA", last_n=8)       # 3M Euribor (monthly avg)
+        yc = ecb_multi("YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_3M+SR_1Y+SR_2Y+SR_5Y+SR_10Y", last_n=3)
+
+        def _yc(tenor):
+            for k, pts in yc.items():
+                if k.endswith("." + tenor) and pts:
+                    return pts[-1][1]
+            return None
+        s3m_, s1y, s2y, s5y, s10y = _yc("SR_3M"), _yc("SR_1Y"), _yc("SR_2Y"), _yc("SR_5Y"), _yc("SR_10Y")
+        e_now = estr[-1][1] if estr else None
+        d_now = dfr_d[-1][1] if dfr_d else None
+        spread_bp = round((e_now - d_now) * 100, 1) if (e_now is not None and d_now is not None) else None
+        # market-implied path from AAA spot-curve forwards (public OIS proxy)
+        f1y1y = round(((1 + s2y / 100) ** 2 / (1 + s1y / 100) - 1) * 100, 2) if (s1y is not None and s2y is not None) else None
+        f5y5y_nom = round((((1 + s10y / 100) ** 10 / (1 + s5y / 100) ** 5) ** 0.2 - 1) * 100, 2) if (s5y is not None and s10y is not None) else None
+        next12_bp = round((s1y - e_now) * 100) if (s1y is not None and e_now is not None) else None
+        following12_bp = round((f1y1y - s1y) * 100) if (f1y1y is not None and s1y is not None) else None
+        eo_bp = round((eur3m[-1][1] - estr3m[-1][1]) * 100, 1) if (eur3m and estr3m) else None
+        path_read = None
+        if next12_bp is not None:
+            verb = "cuts" if next12_bp < 0 else "hikes"
+            path_read = (f"Curve prices ~{abs(next12_bp)}bp of {verb} over the next 12m"
+                         + (f", then {abs(following12_bp)}bp more {'cuts' if (following12_bp or 0) < 0 else 'hikes'} the following year (1y1y {f1y1y}%)." if following12_bp is not None else "."))
+        out["rates_curve"] = {
+            "estr_pct": round(e_now, 3) if e_now is not None else None,
+            "estr_as_of": estr[-1][0] if estr else None,
+            "dfr_pct": round(d_now, 2) if d_now is not None else None,
+            "estr_dfr_spread_bp": spread_bp,
+            "euribor_3m_pct": round(eur3m[-1][1], 3) if eur3m else None,
+            "euribor_as_of": eur3m[-1][0] if eur3m else None,
+            "estr_3m_compounded_pct": round(estr3m[-1][1], 3) if estr3m else None,
+            "euribor_ois_proxy_bp": eo_bp,
+            "aaa_spot": {"3m": s3m_, "1y": s1y, "2y": s2y, "5y": s5y, "10y": s10y},
+            "fwd_1y1y_pct": f1y1y, "fwd_5y5y_nominal_pct": f5y5y_nom,
+            "implied_next_12m_bp": next12_bp, "implied_following_12m_bp": following12_bp,
+            "path_read": path_read,
+            "method_note": "Path from EA AAA spot-curve forwards vs €STR (OIS proxy — true OIS quotes are licensed). Euribor−OIS uses 3M compounded €STR (backward avg) as the risk-free leg.",
+        }
+        if spread_bp is not None:
+            sig = "CRITICAL" if spread_bp >= 3 else "WATCH" if spread_bp >= -1 else "NORMAL"
+            out["indicators"]["estr_dfr_dislocation"] = {
+                "name": "€STR−DFR Dislocation (money-market plumbing)",
+                "estr_pct": round(e_now, 3), "dfr_pct": round(d_now, 2), "spread_bp": spread_bp, "signal": sig,
+                "interpretation": f"€STR {round(e_now,3)}% vs DFR {round(d_now,2)}% → {spread_bp}bp. Normally €STR sits a few bp BELOW the floor; ≥−1bp = collateral/reserve scarcity creeping in, ≥+3bp = plumbing dislocation (floor losing grip).",
+                "thresholds": {"watch_bp": -1, "critical_bp": 3}}
+        if eo_bp is not None:
+            sig = "CRITICAL" if eo_bp >= 50 else "WATCH" if eo_bp >= 25 else "NORMAL"
+            out["indicators"]["euribor_ois_stress"] = {
+                "name": "Euribor−OIS Stress (EU interbank, FRA-OIS analogue)",
+                "euribor_3m_pct": round(eur3m[-1][1], 3), "estr_3m_comp_pct": round(estr3m[-1][1], 3),
+                "spread_bp": eo_bp, "signal": sig,
+                "interpretation": f"3M Euribor − 3M compounded €STR = {eo_bp}bp. <25 normal, 25-50 watch, ≥50 critical (2008 >150bp, 2011 ~90bp). The euro leg of bank counterparty fear.",
+                "thresholds": {"watch": 25, "critical": 50}}
+    except Exception as e:
+        out["rates_curve"] = {"err": str(e)[:60]}
+
+    # ── (a) LT inflation expectations — SPF anchor + market context ──
+    try:
+        spf = ecb_csv("SPF/Q.U2.HICP.POINT.LT.Q.AVG", last_n=6)
+        spf_now = round(spf[-1][1], 2) if spf else None
+        spf_prev = round(spf[-2][1], 2) if len(spf) > 1 else None
+        anchored = (spf_now is not None and 1.7 <= spf_now <= 2.3)
+        rcb = out.get("rates_curve", {})
+        out["inflation_expectations"] = {
+            "spf_longterm_pct": spf_now, "spf_prev_q_pct": spf_prev,
+            "spf_as_of": spf[-1][0] if spf else None,
+            "anchored": anchored,
+            "nominal_5y5y_fwd_pct": rcb.get("fwd_5y5y_nominal_pct"),
+            "note": ("Market 5y5y ILS is licensed data not redistributed via the ECB public portal. "
+                     "SPF long-term is the ECB's own survey anchor; nominal AAA 5y5y forward shown for the rates leg."),
+        }
+        if spf_now is not None and not anchored:
+            out["indicators"]["expectations_deanchoring"] = {
+                "name": "LT Inflation Expectations De-anchoring (SPF)",
+                "spf_longterm_pct": spf_now, "signal": "WATCH",
+                "interpretation": f"SPF long-term expectations {spf_now}% outside the 1.7–2.3% anchored band — credibility stress.",
+                "thresholds": {"anchored_band": [1.7, 2.3]}}
+    except Exception as e:
+        out["inflation_expectations"] = {"err": str(e)[:60]}
+
+    # ── #8 HICP headline / core / services / energy / food / goods ──
+    try:
+        icp = ecb_multi("ICP/M.U2.N.000000+XEF000+SERV00+NRGY00+FOOD00+GOODS0+IGXE00.4.ANR", last_n=15)
+
+        def _icp(code):
+            for k, pts in icp.items():
+                if f".{code}." in k:
+                    return pts
+            return []
+        Hd, Co, Sv = _icp("000000"), _icp("XEF000"), _icp("SERV00")
+        En, Fd, Gd, Ig = _icp("NRGY00"), _icp("FOOD00"), _icp("GOODS0"), _icp("IGXE00")
+
+        def _L(p): return round(p[-1][1], 2) if p else None
+        def _m3(p): return round(p[-1][1] - p[-4][1], 2) if len(p) > 3 else None
+        h, c_, sv = _L(Hd), _L(Co), _L(Sv)
+        sticky = (sv is not None and sv > 3.0 and (c_ or 0) > 2.4)
+        read = None
+        if h is not None:
+            gap = round(h - 2.0, 2)
+            mom = _m3(Hd)
+            read = (f"Headline {h}% ({'+' if gap >= 0 else ''}{gap}pp vs 2% target), core {c_}%, services {sv}%. "
+                    f"3m momentum {'+' if (mom or 0) >= 0 else ''}{mom}pp"
+                    + (" — services-sticky: ECB's hardest mile." if sticky else "."))
+        out["inflation"] = {
+            "headline_yoy": h, "headline_3m_chg_pp": _m3(Hd),
+            "core_yoy": c_, "core_3m_chg_pp": _m3(Co),
+            "services_yoy": sv, "energy_yoy": _L(En), "food_yoy": _L(Fd),
+            "goods_yoy": _L(Gd), "indus_goods_ex_energy_yoy": _L(Ig),
+            "vs_target_pp": round(h - 2.0, 2) if h is not None else None,
+            "sticky_services": sticky,
+            "as_of": Hd[-1][0] if Hd else None, "read": read,
+        }
+    except Exception as e:
+        out["inflation"] = {"err": str(e)[:60]}
+
+    # ── #7 TARGET2 by country — full creditor/debtor table ──
+    try:
+        cc = "DE+IT+ES+FR+NL+GR+PT+AT+BE+FI+IE+LU"
+        tg = ecb_multi(f"TGB/M.{cc}.N.A094T.U2.EUR.E", last_n=8)
+        rows = []
+        latest_d = None
+        for k, pts in tg.items():
+            if not pts:
+                continue
+            # key form TGB.M.DE.N.A094T... → REF_AREA is the 3rd token
+            c2 = k.split(".")[2]
+            now = pts[-1][1]
+            ago = pts[-4][1] if len(pts) > 3 else None
+            rows.append({"cc": c2, "eur_bn": round(now / 1000, 1),
+                         "chg_3m_bn": round((now - ago) / 1000, 1) if ago is not None else None})
+            latest_d = max(latest_d or pts[-1][0], pts[-1][0])
+        rows.sort(key=lambda r: -(r["eur_bn"] if r["eur_bn"] is not None else 0))
+        de = next((r for r in rows if r["cc"] == "DE"), None)
+        it = next((r for r in rows if r["cc"] == "IT"), None)
+        big_flow = max((abs(r["chg_3m_bn"]) for r in rows if r["chg_3m_bn"] is not None), default=0)
+        out["target2"] = {
+            "countries": rows, "as_of": latest_d,
+            "de_minus_it_bn": round(de["eur_bn"] - it["eur_bn"], 1) if (de and it) else None,
+            "max_abs_3m_flow_bn": big_flow,
+            "read": (f"Largest creditor {rows[0]['cc']} €{rows[0]['eur_bn']}bn; biggest 3m flow €{big_flow}bn. "
+                     "Rising DE claim + falling IT/ES = capital flight to the core (2011-12 signature).") if rows else None,
+        }
+    except Exception as e:
+        out["target2"] = {"err": str(e)[:60]}
+
+    # ── SWEEP: credit impulse — BSI adjusted loans YoY (NFC + households) ──
+    try:
+        nfc = ecb_csv("BSI/M.U2.Y.U.A20T.A.I.U2.2240.Z01.A", last_n=15)
+        hh = ecb_csv("BSI/M.U2.Y.U.A20T.A.I.U2.2250.Z01.A", last_n=15)
+
+        def _g(p, i): return round(p[i][1], 2) if len(p) > abs(i) else None
+        n_now, n_6m = _g(nfc, -1), _g(nfc, -7)
+        h_now, h_6m = _g(hh, -1), _g(hh, -7)
+        accel = None
+        if n_now is not None and n_6m is not None:
+            accel = round(((n_now - n_6m) + ((h_now or 0) - (h_6m or 0))) / 2, 2)
+        out["credit"] = {
+            "nfc_loans_yoy": n_now, "nfc_6m_ago": n_6m,
+            "hh_loans_yoy": h_now, "hh_6m_ago": h_6m,
+            "impulse_6m_pp": accel,
+            "as_of": nfc[-1][0] if nfc else None,
+            "read": (f"NFC credit {n_now}% YoY ({'+' if (n_now or 0) - (n_6m or 0) >= 0 else ''}{round((n_now or 0)-(n_6m or 0),2)}pp/6m), "
+                     f"households {h_now}%. Credit impulse {'accelerating' if (accel or 0) > 0 else 'decelerating'} — leads EA domestic demand ~2-3q.") if n_now is not None else None,
+        }
+        if n_now is not None and n_now < 0:
+            out["indicators"]["credit_contraction"] = {
+                "name": "EA Credit Contraction (NFC loans YoY < 0)",
+                "nfc_loans_yoy": n_now, "signal": "WATCH",
+                "interpretation": f"NFC loan growth {n_now}% — outright contraction; 2009/2012-14 recession signature.",
+                "thresholds": {"watch_below": 0}}
+    except Exception as e:
+        out["credit"] = {"err": str(e)[:60]}
+
+    # ── SWEEP: FX — EUR/USD + nominal effective exchange rate ──
+    try:
+        eu = ecb_csv("EXR/D.USD.EUR.SP00.A", last_n=270)
+        ne = ecb_csv("EXR/D.E02.EUR.EN00.A", last_n=270)
+        ne_grp = "E02"
+        if not ne:
+            ne = ecb_csv("EXR/D.E01.EUR.EN00.A", last_n=270); ne_grp = "E01"
+
+        def _pct(p, back):
+            if len(p) <= back: return None
+            a, b = p[-1][1], p[-1 - back][1]
+            return round((a / b - 1) * 100, 2) if b else None
+        ez = zscore([v for _, v in eu]) if eu else None
+        out["fx"] = {
+            "eurusd": round(eu[-1][1], 4) if eu else None,
+            "eurusd_1m_pct": _pct(eu, 22), "eurusd_3m_pct": _pct(eu, 66),
+            "eurusd_z_1y": ez,
+            "neer": round(ne[-1][1], 2) if ne else None, "neer_group": ne_grp if ne else None,
+            "neer_3m_pct": _pct(ne, 66),
+            "as_of": eu[-1][0] if eu else None,
+            "read": (f"EUR/USD {round(eu[-1][1],4)} ({'+' if (_pct(eu,66) or 0) >= 0 else ''}{_pct(eu,66)}% /3m, z {ez}). "
+                     f"NEER {'+' if (_pct(ne,66) or 0) >= 0 else ''}{_pct(ne,66)}% /3m — euro {'strength tightens' if (_pct(ne,66) or 0) > 0 else 'weakness eases'} financial conditions.") if eu else None,
+        }
+    except Exception as e:
+        out["fx"] = {"err": str(e)[:60]}
 
     # composite headline: count how many are flashing
     flashing = []
