@@ -1,0 +1,118 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Signal Replay · JustHodl AI</title>
+<meta name="description" content="Scrub backward in time — see what the system believed on any past date, before the move.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--cyan);border-radius:50%;box-shadow:0 0 9px var(--cyan)}
+.nav{display:flex;gap:3px;margin-left:10px;flex-wrap:wrap}.nav a{padding:6px 10px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:980px;margin:0 auto;padding:22px}
+.hero h1{font-size:25px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:5px 0 16px;font-size:13px;max-width:720px;line-height:1.5}
+.scrubber{background:var(--bg-1);border:1px solid var(--border-bright);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+.scrub-date{font-family:var(--mono);font-size:22px;font-weight:800;color:var(--cyan);text-align:center;margin-bottom:12px}
+input[type=range]{width:100%;accent-color:var(--cyan);height:6px}
+.scrub-ends{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:4px}
+.scrub-ctrl{display:flex;gap:8px;justify-content:center;margin-top:12px}
+.scrub-ctrl button{background:var(--bg-2);border:1px solid var(--border-bright);color:var(--fg-1);font-family:var(--mono);font-size:12px;padding:6px 14px;border-radius:7px;cursor:pointer}
+.scrub-ctrl button:hover{border-color:var(--cyan)}
+.panel{background:var(--bg-1);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+.panel h2{font-size:12px;font-family:var(--mono);letter-spacing:.5px;margin-bottom:10px;color:var(--fg-2)}
+.metric{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.metric:last-child{border-bottom:none}.metric .k{color:var(--fg-3)}.metric .v{font-family:var(--mono);color:var(--fg-1)}
+.setup-pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:9px;background:var(--bg-2);border:1px solid var(--border-bright);margin:3px}
+.loading{text-align:center;padding:30px;color:var(--fg-3);font-family:var(--mono)}
+.empty{color:var(--fg-3);font-size:12.5px;font-style:italic}
+.note{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:16px;line-height:1.5}
+.badge{font-family:var(--mono);font-size:9px;padding:1px 7px;border-radius:8px;background:rgba(34,211,238,.12);color:var(--cyan);margin-left:8px}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Desk</a><a href="/master-board.html">🎯 Board</a><a href="/signal-replay.html" class="active">⏪ Replay</a><a href="/scorecard.html">📊 Scorecard</a></nav>
+</header>
+<div class="wrap">
+  <div class="hero"><h1>Signal <span class="grad">Replay</span></h1>
+  <p>Scrub backward through time and see what the system <i>saw</i> on any past date — before the move happened. Point-in-time snapshots, captured daily. The honest test of whether the signals were early.</p></div>
+  <div class="scrubber" id="scrubber"><div class="loading">Loading snapshot timeline…</div></div>
+  <div id="panels"></div>
+  <div class="note" id="note"></div>
+</div>
+<script>
+const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+// snapshot key pattern: data/snapshots/data_<engine>-YYYY-MM-DD.json
+function snapKey(engine,date){return `data/snapshots/data_${engine}-${date}.json`;}
+function num(v,d){return v==null?'—':(typeof v==='number'?v.toFixed(d==null?1:d):v);}
+
+// Build a date list (last ~36 trading-ish days). We probe which exist lazily.
+let DATES=[];
+function buildDates(){
+  const out=[];const today=new Date();
+  for(let i=0;i<40;i++){const d=new Date(today);d.setDate(d.getDate()-i);out.push(d.toISOString().slice(0,10));}
+  return out.reverse(); // oldest → newest
+}
+
+async function loadDate(date){
+  document.getElementById('panels').innerHTML='<div class="loading">Loading what the system saw on '+esc(date)+'…</div>';
+  // engines with daily snapshots
+  const [yc,ms,si,ev,bs,opp]=await Promise.all([
+    gj(snapKey('yield-curve',date)),gj(snapKey('macro-surprise',date)),gj(snapKey('short-interest',date)),
+    gj(snapKey('event-study',date)),gj(snapKey('best-setups',date)),gj(snapKey('opportunities',date))]);
+  let h='';
+  // best-setups (only exists for recent dates going forward)
+  if(bs&&bs.top_setups){
+    h+=`<div class="panel"><h2>🎯 TOP CONVICTION SETUPS — as of ${esc(date)}<span class="badge">point-in-time</span></h2>`;
+    h+=bs.top_setups.slice(0,12).map(s=>`<span class="setup-pill">${esc(s.ticker)} · ${esc(s.verdict)} · ${num(s.conviction,0)}</span>`).join('');
+    h+=`<div style="font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:8px">This is what the board ranked highest on ${esc(date)}. Compare to where those names are now → did the system see it early?</div></div>`;
+  }
+  if(opp&&opp.top_opportunities){
+    h+=`<div class="panel"><h2>💎 TOP OPPORTUNITIES — as of ${esc(date)}</h2>`;
+    h+=opp.top_opportunities.slice(0,10).map(o=>`<span class="setup-pill">${esc(o.ticker)}${o.verdict?' · '+esc(o.verdict):''}</span>`).join('');
+    h+=`</div>`;
+  }
+  // macro context that day
+  if(yc||ms){
+    h+=`<div class="panel"><h2>🌐 MACRO CONTEXT — ${esc(date)}</h2>`;
+    if(yc){const sp=yc.spread_10y_2y||yc.spread||yc['10y2y'];if(sp!=null)h+=`<div class="metric"><span class="k">10y–2y spread</span><span class="v">${num(sp,2)}</span></div>`;
+      if(yc.regime||yc.signal)h+=`<div class="metric"><span class="k">Curve regime</span><span class="v">${esc(yc.regime||yc.signal)}</span></div>`;}
+    if(ms){const su=ms.surprise_index||ms.composite||ms.score;if(su!=null)h+=`<div class="metric"><span class="k">Macro surprise</span><span class="v">${num(su,1)}</span></div>`;}
+    h+=`</div>`;
+  }
+  // short interest leaders that day
+  if(si){
+    const sit=si.by_ticker||si.tickers;const arr=sit?(Array.isArray(sit)?sit:Object.entries(sit).map(([k,v])=>({ticker:k,...v}))):[];
+    const hi=arr.filter(x=>(x.short_pct_float||x.si_pct||0)>15).slice(0,8);
+    if(hi.length){h+=`<div class="panel"><h2>🩳 HIGH SHORT INTEREST — ${esc(date)}</h2>`+hi.map(x=>`<span class="setup-pill">${esc(x.ticker)} · ${num(x.short_pct_float||x.si_pct,1)}%</span>`).join('')+`</div>`;}
+  }
+  if(!h)h=`<div class="panel"><div class="empty">No snapshot captured for ${esc(date)} (snapshots run daily; weekends/pre-launch dates may be empty). Conviction-board history begins accumulating from today forward. Try a recent weekday.</div></div>`;
+  document.getElementById('panels').innerHTML=h;
+}
+
+async function init(){
+  DATES=buildDates();
+  const max=DATES.length-1;
+  document.getElementById('scrubber').innerHTML=`
+    <div class="scrub-date" id="scrubDate">${esc(DATES[max])}</div>
+    <input type="range" id="scrub" min="0" max="${max}" value="${max}" step="1">
+    <div class="scrub-ends"><span>${esc(DATES[0])}</span><span>${esc(DATES[max])} (today)</span></div>
+    <div class="scrub-ctrl">
+      <button onclick="step(-1)">◀ Prev day</button>
+      <button onclick="document.getElementById('scrub').value=${max};onScrub()">Today</button>
+      <button onclick="step(1)">Next day ▶</button>
+    </div>`;
+  document.getElementById('scrub').addEventListener('input',onScrub);
+  document.getElementById('note').innerHTML='Snapshots captured daily across macro, ownership, and (from today forward) the conviction board. As history deepens, replay any date to audit whether a signal was early. Research, not advice.';
+  loadDate(DATES[max]);
+}
+window.onScrub=function(){const v=+document.getElementById('scrub').value;document.getElementById('scrubDate').textContent=DATES[v];loadDate(DATES[v]);};
+window.step=function(d){const s=document.getElementById('scrub');s.value=Math.max(0,Math.min(DATES.length-1,+s.value+d));onScrub();};
+init();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>

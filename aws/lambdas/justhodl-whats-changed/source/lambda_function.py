@@ -48,6 +48,11 @@ TRACKED = [
     ("data/13f-positions.json",        "thirteen_f"),
     ("data/short-interest.json",       "short_interest"),
     ("data/earnings-tracker.json",     "earnings"),
+    # Added for Signal Replay — the conviction board + opportunities, so the
+    # replay can scrub what the system RANKED on each date going forward.
+    ("data/best-setups.json",          "best_setups"),
+    ("data/opportunities.json",        "opportunities"),
+    ("data/signal-board.json",         "signal_board"),
 ]
 
 
