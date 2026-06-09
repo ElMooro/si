@@ -1,0 +1,107 @@
+{
+  "data/ecb-detail.json": {
+    "bytes": 2228,
+    "age_h": 7.1,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "ok",
+      "headline",
+      "ecb_injection_score",
+      "stance_label",
+      "liquidity",
+      "balance_sheet",
+      "policy_rates",
+      "eurodollar_read",
+      "cross_reference",
+      "sources"
+    ],
+    "history_arrays": []
+  },
+  "data/euro-fragmentation.json": {
+    "bytes": 6863,
+    "age_h": 5.9,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "ok",
+      "headline",
+      "fragmentation",
+      "bund_benchmark_10y_pct",
+      "countries",
+      "core_vs_periphery",
+      "france_focus",
+      "ecb_backstop",
+      "cross_reference",
+      "sources"
+    ],
+    "history_arrays": []
+  },
+  "data/eurodollar-stress.json": {
+    "bytes": 2672,
+    "age_h": 29.2,
+    "keys": [
+      "as_of",
+      "v",
+      "composite_score",
+      "severity",
+      "regime",
+      "n_signals_used",
+      "n_signals_total",
+      "n_failures",
+      "signals",
+      "hot_signals",
+      "cold_signals",
+      "failures",
+      "thresholds",
+      "duration_s"
+    ],
+    "history_arrays": []
+  },
+  "data/systemic-stress.json": {
+    "bytes": 6347,
+    "age_h": 7.2,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "ok",
+      "headline",
+      "composite",
+      "systemic_stress",
+      "sovereign_stress",
+      "cross_reference",
+      "sources",
+      "errors"
+    ],
+    "history_arrays": []
+  },
+  "LIVE_ECB_FETCH": {
+    "ILM_jsondata": {
+      "status": 200,
+      "bytes": 3758,
+      "n_rows": null,
+      "first": "{\"header\":{\"id\":\"64c7f40e-667e-433a-8e43-3f160e80a",
+      "last_row": ""
+    },
+    "ILM_csvdata_1997": {
+      "status": 200,
+      "bytes": 531622,
+      "n_rows": 1432,
+      "first": "KEY,FREQ,REF_AREA,BS_REP_SECTOR,BS_ITEM,COUNT_AREA",
+      "last_row": "ILM.W.U2.C.A030000.U2.Z06,W,U2,C,A030000,U2,Z06,2026-W23,193"
+    },
+    "CISS_csv": {
+      "status": 200,
+      "bytes": 2154202,
+      "n_rows": 7685,
+      "first": "KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_",
+      "last_row": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX,D,U2,Z0Z,4F,EC,SS_CIN,IDX,202"
+    }
+  }
+}
