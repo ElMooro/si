@@ -1,0 +1,160 @@
+{
+  "ops": 1530,
+  "iam_events": "attached",
+  "validator_rule": "cron(30 22 * * ? *)",
+  "global_tide": {
+    "headline": "GLI EBBING (-58) \u00b7 Risk 40/100 ELEVATED \u00b7 1 flashing",
+    "gli": {
+      "g4_stock_usd_tn": -857.73,
+      "n_cb_measured": 3,
+      "impulse_score": -58.0,
+      "regime": "EBBING",
+      "components": [
+        "Fed 13w -43576bn",
+        "ECB -1",
+        "BoJ -2"
+      ]
+    },
+    "risk": {
+      "global_risk_0_100": 40.0,
+      "tier": "ELEVATED",
+      "components": [
+        "VIX 23.92",
+        "vol regime BACKWARDATED",
+        "HY OAS 2.75%",
+        "NFCI -0.49",
+        "\u00a5-carry 62.5/100",
+        "ESI 22.3"
+      ]
+    },
+    "fed": {
+      "net_liquidity_usd_bn": -869002.0,
+      "fed_bs_usd_bn": 6711.0,
+      "rrp_usd_bn": 1.0,
+      "tga_usd_bn": 875713.0,
+      "impulse_13w_usd_bn": -43576.0,
+      "as_of": "2026-06-03"
+    },
+    "boj": {
+      "injection_score": -2,
+      "stance": "STRONG DRAIN",
+      "bs_jpy_tn": 664.4,
+      "usdjpy": 160.26,
+      "bs_usd_bn": 4146.0,
+      "bs_chg_6m_pct": -4.81,
+      "carry_unwind_risk_0_100": 62.5
+    },
+    "china": {
+      "injection_score": null,
+      "stance": null,
+      "m2_yoy_pct": 8.21,
+      "m1_yoy_pct": 1.5,
+      "usdcny": 6.7655
+    },
+    "n_flashing": 1,
+    "indicators": [
+      "liquidity_equity_divergence"
+    ],
+    "err_any": null
+  },
+  "apex": {
+    "n_universe": 219,
+    "by_tier": {
+      "SIMMER": 94,
+      "IGNITION": 10,
+      "NOISE": 115
+    },
+    "weights": {
+      "pump": 1.2,
+      "momentum": 1.25,
+      "squeeze": 1.0,
+      "flow": 1.0,
+      "insider": 0.9
+    },
+    "weight_sources": {
+      "momentum": {
+        "signal_type": "momentum_spy",
+        "multiplier": 1.25,
+        "n": 310
+      }
+    },
+    "tier_inversion": {
+      "active": false,
+      "alert_tier_hit_pct": 0.0,
+      "n_validated": 16
+    },
+    "n_logged": 0,
+    "top6": [
+      {
+        "ticker": "QNT",
+        "apex_score": 100,
+        "tier": "SIMMER",
+        "n_sources": 1,
+        "sources": [
+          "insider"
+        ]
+      },
+      {
+        "ticker": "NTAP",
+        "apex_score": 89.8,
+        "tier": "IGNITION",
+        "n_sources": 2,
+        "sources": [
+          "momentum",
+          "pump"
+        ]
+      },
+      {
+        "ticker": "BB",
+        "apex_score": 87.7,
+        "tier": "SIMMER",
+        "n_sources": 1,
+        "sources": [
+          "momentum"
+        ]
+      },
+      {
+        "ticker": "DXCM",
+        "apex_score": 85.9,
+        "tier": "IGNITION",
+        "n_sources": 2,
+        "sources": [
+          "momentum",
+          "pump"
+        ]
+      },
+      {
+        "ticker": "NBIS",
+        "apex_score": 80.5,
+        "tier": "IGNITION",
+        "n_sources": 2,
+        "sources": [
+          "momentum",
+          "pump"
+        ]
+      },
+      {
+        "ticker": "FTNT",
+        "apex_score": 80.4,
+        "tier": "SIMMER",
+        "n_sources": 1,
+        "sources": [
+          "momentum"
+        ]
+      }
+    ],
+    "err_any": null
+  },
+  "smart_wake": {
+    "mode": "SLEEPING",
+    "stress": {
+      "esi": 22.3,
+      "n_flashing": 2,
+      "vix": 21.5,
+      "auction": 7.7
+    },
+    "errors": [],
+    "read": "Mode SLEEPING. All stress gauges calm.",
+    "err_any": null
+  }
+}
