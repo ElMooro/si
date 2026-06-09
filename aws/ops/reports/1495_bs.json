@@ -1,0 +1,8 @@
+{
+  "errorMessage": "cannot access local variable 'boto3' where it is not associated with a value",
+  "errorType": "UnboundLocalError",
+  "requestId": "f3791d30-a7f6-4219-b605-6ce0a9774ccf",
+  "stackTrace": [
+    "  File \"/var/task/lambda_function.py\", line 23, in lambda_handler\n    s3=boto3.client(\"s3\",region_name=\"us-east-1\")\n"
+  ]
+}
