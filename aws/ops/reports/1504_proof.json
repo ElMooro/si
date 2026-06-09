@@ -1,68 +1,101 @@
 {
-  "lambda_justhodl-ecb-derived": {
-    "EXISTS": true,
-    "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ecb-derived",
-    "last_modified": "2026-06-09T20:33:50.000+0000",
-    "runtime": "python3.12"
+  "ecb_lambdas_deployed": [
+    {
+      "name": "justhodl-ecb-detail",
+      "modified": "2026-06-04T12:37:23",
+      "runtime": "python3.12"
+    },
+    {
+      "name": "ecb-data-daily-updater",
+      "modified": "2026-05-22T11:00:47",
+      "runtime": "python3.9"
+    },
+    {
+      "name": "ecb-auto-updater",
+      "modified": "2026-05-22T10:55:32",
+      "runtime": "python3.9"
+    },
+    {
+      "name": "ecb",
+      "modified": "2026-06-02T12:43:48",
+      "runtime": "python3.9"
+    },
+    {
+      "name": "justhodl-ecb-proxy",
+      "modified": "2026-05-31T13:23:07",
+      "runtime": "python3.12"
+    },
+    {
+      "name": "justhodl-ecb-derived",
+      "modified": "2026-06-09T20:33:50",
+      "runtime": "python3.12"
+    },
+    {
+      "name": "justhodl-eurodollar-stress",
+      "modified": "2026-06-04T12:39:18",
+      "runtime": "python3.12"
+    },
+    {
+      "name": "justhodl-ecb-history",
+      "modified": "2026-06-09T18:42:01",
+      "runtime": "python3.12"
+    }
+  ],
+  "s3_files": {
+    "data/ecb-derived.json": {
+      "exists": true,
+      "bytes": 2309,
+      "age_h": 0.3
+    },
+    "data/ecb-detail.json": {
+      "exists": true,
+      "bytes": 2228,
+      "age_h": 9.8
+    },
+    "data/ecb-hist/_manifest.json": {
+      "exists": true,
+      "bytes": 1697,
+      "age_h": 2.1
+    },
+    "data/ecb-hist/ciss_ea.json": {
+      "exists": true,
+      "bytes": 278980,
+      "age_h": 2.1
+    },
+    "data/move-index.json": {
+      "exists": true,
+      "bytes": 8245,
+      "age_h": 3.2
+    },
+    "data/basket-var.json": {
+      "exists": true,
+      "bytes": 903,
+      "age_h": 3.2
+    }
   },
-  "lambda_justhodl-ecb-history": {
-    "EXISTS": true,
-    "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ecb-history",
-    "last_modified": "2026-06-09T18:42:01.000+0000",
-    "runtime": "python3.12"
-  },
-  "lambda_justhodl-move-index": {
-    "EXISTS": true,
-    "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-move-index",
-    "last_modified": "2026-06-09T17:38:07.000+0000",
-    "runtime": "python3.12"
-  },
-  "lambda_justhodl-basket-var": {
-    "EXISTS": true,
-    "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-basket-var",
-    "last_modified": "2026-06-09T17:38:12.000+0000",
-    "runtime": "python3.12"
-  },
-  "s3_data/ecb-derived.json": {
-    "EXISTS": true,
-    "bytes": 2309,
-    "age_h": 0.2
-  },
-  "s3_data/move-index.json": {
-    "EXISTS": true,
-    "bytes": 8245,
-    "age_h": 3.1
-  },
-  "s3_data/basket-var.json": {
-    "EXISTS": true,
-    "bytes": 903,
-    "age_h": 3.1
-  },
-  "s3_data/ecb-hist/_manifest.json": {
-    "EXISTS": true,
-    "bytes": 1697,
-    "age_h": 2.0
-  },
-  "s3_data/ecb-hist/ciss_ea.json": {
-    "EXISTS": true,
-    "bytes": 278980,
-    "age_h": 2.1
-  },
-  "PAGES_LIVE": {
+  "live": {
     "/eu-dump-radar.html": {
       "status": 200,
-      "has_marker": true,
-      "bytes": 9463
+      "bytes": 9463,
+      "renders": true
     },
     "/ecb-history.html": {
       "status": 200,
-      "has_marker": true,
       "bytes": 10384
     },
-    "/engine.html?e=ecb-derived": {
+    "/ecb-detail.html": {
       "status": 200,
-      "has_marker": true,
-      "bytes": 10972
+      "bytes": 12511
+    },
+    "ecb_derived_live": {
+      "headline": "1 ECB-derived dump signal(s) active: bls_credit_standards",
+      "signals": {
+        "ciss_acceleration": "CALM",
+        "bank_funding_stress": "NORMAL",
+        "eu_us_liquidity_divergence": "NORMAL",
+        "bls_credit_standards": "TIGHTENING",
+        "bank_pass_through_premium": "NORMAL"
+      }
     }
   }
 }
