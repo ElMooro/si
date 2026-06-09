@@ -1,0 +1,60 @@
+{
+  "data/user-watchlist.json": {
+    "keys": [
+      "version",
+      "updated_at",
+      "categories",
+      "tags",
+      "settings",
+      "history"
+    ],
+    "watchlist_sample": null,
+    "top_setup_tickers": null
+  },
+  "portfolio/snapshot.json": {
+    "keys": [
+      "generated_at",
+      "generated_at_unix",
+      "elapsed_seconds",
+      "portfolio_summary",
+      "positions",
+      "watchlist",
+      "sector_concentration",
+      "watchlist_sync"
+    ],
+    "watchlist_sample": null,
+    "top_setup_tickers": null
+  },
+  "data/watchlist.json": {
+    "keys": [
+      "err"
+    ],
+    "watchlist_sample": null,
+    "top_setup_tickers": null
+  },
+  "data/best-setups.json": {
+    "keys": [
+      "schema_version",
+      "engine",
+      "generated_at",
+      "duration_s",
+      "weight_source",
+      "bond_vol_regime",
+      "methodology",
+      "stats"
+    ],
+    "watchlist_sample": null,
+    "top_setup_tickers": [
+      "MU",
+      "NVDA",
+      "AOS",
+      "ANET",
+      "AMD",
+      "CRWD",
+      "ASML",
+      "PLTR",
+      "ALGN",
+      "JNJ"
+    ]
+  }
+}
