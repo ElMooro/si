@@ -1,0 +1,64 @@
+{
+  "bugs_found": [
+    {
+      "check": "best-setups weight_source",
+      "value": "prior-only",
+      "bug": true,
+      "note": "conviction uses hardcoded priors, not learned weights"
+    },
+    {
+      "check": "short-interest stale rows",
+      "n_pre2025": 157,
+      "sample": [
+        "AAPL:2018-05-15",
+        "MSFT:2018-05-15",
+        "GOOGL:2018-05-15",
+        "GOOG:2018-05-15"
+      ],
+      "bug": true
+    },
+    {
+      "check": "STRONG OPPORTUNITY win rate",
+      "value": 42.4,
+      "n": 396,
+      "bug": true,
+      "note": "top verdict underperforming"
+    }
+  ],
+  "all_checks": [
+    {
+      "check": "best-setups weight_source",
+      "value": "prior-only",
+      "bug": true,
+      "note": "conviction uses hardcoded priors, not learned weights"
+    },
+    {
+      "check": "short-interest stale rows",
+      "n_pre2025": 157,
+      "sample": [
+        "AAPL:2018-05-15",
+        "MSFT:2018-05-15",
+        "GOOGL:2018-05-15",
+        "GOOG:2018-05-15"
+      ],
+      "bug": true
+    },
+    {
+      "check": "opportunities growth units",
+      "sample": [],
+      "bug": false
+    },
+    {
+      "check": "STRONG OPPORTUNITY win rate",
+      "value": 42.4,
+      "n": 396,
+      "bug": true,
+      "note": "top verdict underperforming"
+    },
+    {
+      "check": "backlog accelerating list",
+      "n": 30,
+      "bug": false
+    }
+  ]
+}
