@@ -107,7 +107,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "2.1",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "2.2",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -376,6 +376,7 @@ def lambda_handler(event=None, context=None):
             "fwd_1y1y_pct": f1y1y, "fwd_5y5y_nominal_pct": f5y5y_nom,
             "implied_next_12m_bp": next12_bp, "implied_following_12m_bp": following12_bp,
             "path_read": path_read,
+            "as_of": estr[-1][0] if estr else None,
             "method_note": "Path from EA AAA spot-curve forwards vs €STR (OIS proxy — true OIS quotes are licensed). Euribor−OIS uses 3M compounded €STR (backward avg) as the risk-free leg.",
         }
         if spread_bp is not None:
@@ -573,6 +574,111 @@ def lambda_handler(event=None, context=None):
         }
     except Exception as e:
         out["fx"] = {"err": str(e)[:60]}
+
+    # ════════════════ v2.2 — fragmentation, M3, GC countdown, percentile ranks ════════════════
+
+    # ── Fragmentation: peripheral 10Y spreads vs Bund (IRS convergence yields, monthly) ──
+    try:
+        irs = {}
+        for cc in ("DE", "IT", "FR", "ES", "PT", "GR"):
+            r = ecb_csv(f"IRS/M.{cc}.L.L40.CI.0000.EUR.N.Z", last_n=4)
+            irs[cc] = r[-1] if r else None
+        de = irs["DE"]
+        frag = {}
+        for cc in ("IT", "FR", "ES", "PT", "GR"):
+            if de and irs[cc] and irs[cc][0] == de[0]:
+                frag[cc] = round((irs[cc][1] - de[1]) * 100, 0)
+        out["fragmentation"] = {
+            "spreads_bp": frag, "as_of": de[0] if de else None, "cadence": "monthly avg",
+            "tpi_watch_bp": 150,
+            "read": (f"IT−DE {frag.get('IT', '—')}bp · FR−DE {frag.get('FR', '—')}bp · ES−DE {frag.get('ES', '—')}bp "
+                     f"(monthly convergence yields). TPI-watch threshold 150bp on IT." if frag else None),
+        }
+        if frag.get("IT") is not None and frag["IT"] >= 150:
+            out["indicators"]["fragmentation_stress"] = {
+                "name": "Fragmentation Stress (TPI watch)", "it_de_bp": frag["IT"], "signal": "CRITICAL" if frag["IT"] >= 250 else "WATCH",
+                "interpretation": f"IT−DE 10Y at {frag['IT']}bp ≥150 — the zone where TPI chatter starts; periphery funding stress.",
+                "thresholds": {"watch": 150, "critical": 250}}
+    except Exception as e:
+        out["fragmentation"] = {"err": str(e)[:60]}
+
+    # ── M3 (primary monetary aggregate) → into credit block ──
+    try:
+        m3 = ecb_csv("BSI/M.U2.Y.V.M30.X.I.U2.2300.Z01.A", last_n=8)
+        if m3 and isinstance(out.get("credit"), dict) and not out["credit"].get("err"):
+            out["credit"]["m3_yoy"] = round(m3[-1][1], 1)
+            out["credit"]["m3_6m_chg_pp"] = round(m3[-1][1] - m3[-7][1], 1) if len(m3) > 6 else None
+            out["credit"]["m3_as_of"] = m3[-1][0]
+    except Exception:
+        pass
+
+    # ── Next Governing Council meeting (confirmed 2026 dates) ──
+    try:
+        GC_2026 = ["2026-06-11", "2026-07-23", "2026-09-10", "2026-10-29", "2026-12-17"]
+        today = datetime.now(timezone.utc).date()
+        nxt = next((d for d in GC_2026 if datetime.strptime(d, "%Y-%m-%d").date() >= today), None)
+        if nxt:
+            days = (datetime.strptime(nxt, "%Y-%m-%d").date() - today).days
+            out["next_gc"] = {"date": nxt, "days_to": days,
+                              "note": "Jun/Jul/Sep confirmed; Oct/Dec provisional",
+                              "read": f"Next Governing Council: {nxt} ({days}d). Curve prices the 12m path shown above into it."}
+    except Exception:
+        pass
+
+    # ── Percentile ranks vs own history (data/ecb-hist/) ──
+    def _pct_rank(hist_id, current):
+        try:
+            doc = json.loads(s3.get_object(Bucket=BUCKET, Key=f"data/ecb-hist/{hist_id}.json")["Body"].read())
+            vals = [p[1] for p in doc.get("points", []) if p[1] is not None]
+            if len(vals) < 24 or current is None:
+                return None
+            r = round(100 * sum(1 for v in vals if v <= current) / len(vals))
+            return {"pct": r, "n": len(vals), "since": doc.get("first_date", "")[:4]}
+        except Exception:
+            return None
+
+    try:
+        PCT_MAP = [("inflation", "headline_yoy", "hicp_headline"), ("inflation", "core_yoy", "hicp_core"),
+                   ("inflation", "services_yoy", "hicp_services"), ("wages", "negotiated_yoy_official", "wages_negotiated"),
+                   ("credit", "nfc_loans_yoy", "nfc_loans_yoy"), ("credit", "m3_yoy", "m3_yoy"),
+                   ("fx", "eurusd", "eurusd"), ("target2", "de_minus_it_bn", "t2_de_minus_it"),
+                   ("rates_curve", "euribor_ois_proxy_bp", "euribor_ois_bp"), ("rates_curve", "fwd_1y1y_pct", "yc_1y1y"),
+                   ("inflation_expectations", "spf_longterm_pct", "spf_longterm")]
+        for blk, field, hid in PCT_MAP:
+            b = out.get(blk)
+            if isinstance(b, dict) and not b.get("err") and b.get(field) is not None:
+                pr = _pct_rank(hid, b[field])
+                if pr:
+                    b.setdefault("pct_ranks", {})[field] = pr
+        fr = out.get("fragmentation", {})
+        if isinstance(fr, dict) and (fr.get("spreads_bp") or {}).get("IT") is not None:
+            pr = _pct_rank("it_de_10y_bp", fr["spreads_bp"]["IT"])
+            if pr:
+                fr["pct_ranks"] = {"IT": pr}
+    except Exception:
+        pass
+
+    # ── ESI daily history accumulator (snapshot-only metric becomes chartable) ──
+    try:
+        esi_now = (out["indicators"].get("eurodollar_stress_index") or {}).get("esi_0_100")
+        if esi_now is not None:
+            key = "data/ecb-hist/esi.json"
+            try:
+                doc = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+            except Exception:
+                doc = {"id": "esi", "label": "Eurodollar Stress Index (0-100)", "freq": "daily",
+                       "unit": "", "source": "justhodl-ecb-derived", "points": []}
+            d0 = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            pts = [p for p in doc["points"] if p[0] != d0] + [[d0, esi_now]]
+            pts.sort()
+            doc.update({"points": pts, "first_date": pts[0][0], "latest_date": pts[-1][0], "n_points": len(pts)})
+            s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(doc).encode(),
+                          ContentType="application/json", CacheControl="public, max-age=3600")
+            esi_pr = _pct_rank("esi", esi_now)
+            if esi_pr and len(pts) >= 24:
+                out["indicators"]["eurodollar_stress_index"]["pct_rank"] = esi_pr
+    except Exception:
+        pass
 
     # composite headline: count how many are flashing
     flashing = []
