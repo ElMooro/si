@@ -1,0 +1,27 @@
+{
+  "run": "{\"statusCode\": 200, \"body\": \"{\\\"n_flashing\\\": 1}\"}",
+  "headline": "1 ECB-derived dump signal(s) active: bls_credit_standards",
+  "n_flashing": 1,
+  "indicators": {
+    "ciss_acceleration": {
+      "ciss_level": 0.00409,
+      "delta_30d": -0.00059,
+      "signal": "CALM"
+    },
+    "bank_funding_stress": {
+      "ltro_share_pct": 52.8,
+      "mlf_eur_mn": 7,
+      "signal": "NORMAL"
+    },
+    "eu_us_liquidity_divergence": {
+      "ecb_balance_sheet_6m_chg_eur_bn": null,
+      "fed_net_liquidity_6m_chg_usd_bn": 175.8,
+      "divergence_bn": null,
+      "signal": "NORMAL"
+    },
+    "bls_credit_standards": {
+      "net_pct_tightening": 10.1,
+      "signal": "TIGHTENING"
+    }
+  }
+}
