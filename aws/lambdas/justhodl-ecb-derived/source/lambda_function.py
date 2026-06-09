@@ -107,7 +107,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "2.0",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "2.1",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -454,6 +454,41 @@ def lambda_handler(event=None, context=None):
         }
     except Exception as e:
         out["inflation"] = {"err": str(e)[:60]}
+
+    # ── SWEEP: wages — official negotiated (STS) + ECB forward wage tracker (EWT) ──
+    try:
+        off = ecb_csv("STS/Q.U2.N.INWR.000000.3.ANR", last_n=10)          # official negotiated wages YoY
+        trk = ecb_csv("EWT/Q.U2.N.WT.INWR._T.4F0.GY", last_n=10)          # wage tracker incl one-offs (extends fwd)
+        trx = ecb_csv("EWT/Q.U2.N.WT.INWX._T.4F0.GY", last_n=4)           # ex one-off payments
+        cov = ecb_csv("EWT/Q.U2.N.WT.COVR._T.4F0._Z", last_n=2)           # agreement coverage %
+        o_now = round(off[-1][1], 2) if off else None
+        o_1y = round(off[-5][1], 2) if len(off) > 4 else None
+        t_fwd = round(trk[-1][1], 2) if trk else None
+        t_fwd_d = trk[-1][0] if trk else None
+        x_fwd = round(trx[-1][1], 2) if trx else None
+        persist = (o_now is not None and o_now > 3.5) or (t_fwd is not None and t_fwd > 3.5)
+        out["wages"] = {
+            "negotiated_yoy_official": o_now, "official_as_of": off[-1][0] if off else None,
+            "negotiated_1y_ago": o_1y,
+            "tracker_fwd_yoy": t_fwd, "tracker_fwd_to": t_fwd_d,
+            "tracker_ex_oneoffs_yoy": x_fwd,
+            "tracker_coverage_pct": round(cov[-1][1], 1) if cov else None,
+            "target_consistent_ceiling_pct": 3.0,
+            "read": ((f"Negotiated wages {o_now}% YoY (official, {off[-1][0]}); ECB wage tracker projects {t_fwd}% "
+                      f"through {t_fwd_d} ({x_fwd}% ex one-offs). ~3% is the 2%-inflation-consistent ceiling "
+                      f"(target + ~1% productivity); "
+                      + ("wage persistence ABOVE ceiling — services inflation stays sticky."
+                         if persist else "wage disinflation intact — supports the easing case."))
+                     if (o_now is not None and t_fwd is not None) else None),
+        }
+        if persist:
+            out["indicators"]["wage_persistence"] = {
+                "name": "Wage Persistence (negotiated > 3.5%)",
+                "official_yoy": o_now, "tracker_fwd_yoy": t_fwd, "signal": "WATCH",
+                "interpretation": f"Negotiated wages {o_now}% / tracker {t_fwd}% — above the ~3% target-consistent ceiling; services CPI stays sticky.",
+                "thresholds": {"watch_above": 3.5}}
+    except Exception as e:
+        out["wages"] = {"err": str(e)[:60]}
 
     # ── #7 TARGET2 by country — full creditor/debtor table ──
     try:

@@ -91,7 +91,7 @@ const PX="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 function sigClass(s){if(['CRITICAL','ACUTE','TAIL_RISK','SEVERE_TIGHTENING','CREDIT_STRESS'].includes(s))return 'alert';if(['WATCH','ELEVATED','TIGHTENING'].includes(s))return 'warn';return 'calm';}
-const SIGNAMES={ciss_acceleration:'CISS Acceleration',bank_funding_stress:'Bank Funding Stress',eu_us_liquidity_divergence:'EU/US Liq Divergence',bls_credit_standards:'EU Credit Standards',bank_pass_through_premium:'Pass-Through Premium',target2_imbalance:'TARGET2 Imbalance',usd_funding_stress_composite:'USD Funding Composite',euribor_ois_stress:'Euribor−OIS Stress',estr_dfr_dislocation:'€STR−DFR Dislocation',credit_contraction:'EA Credit Contraction',expectations_deanchoring:'Expectations De-anchor'};
+const SIGNAMES={ciss_acceleration:'CISS Acceleration',bank_funding_stress:'Bank Funding Stress',eu_us_liquidity_divergence:'EU/US Liq Divergence',bls_credit_standards:'EU Credit Standards',bank_pass_through_premium:'Pass-Through Premium',target2_imbalance:'TARGET2 Imbalance',usd_funding_stress_composite:'USD Funding Composite',euribor_ois_stress:'Euribor−OIS Stress',estr_dfr_dislocation:'€STR−DFR Dislocation',credit_contraction:'EA Credit Contraction',expectations_deanchoring:'Expectations De-anchor',wage_persistence:'Wage Persistence'};
 
 async function load(){
   const [ed,der,m]=await Promise.all([gj('data/ecb-detail.json'),gj('data/ecb-derived.json'),gj('data/ecb-hist/_manifest.json')]);
@@ -152,6 +152,7 @@ async function load(){
       else if(k==='estr_dfr_dislocation')metric=`${v.spread_bp!=null?v.spread_bp+'bp vs floor':'—'}`;
       else if(k==='credit_contraction')metric=`NFC ${v.nfc_loans_yoy!=null?v.nfc_loans_yoy+'% YoY':'—'}`;
       else if(k==='expectations_deanchoring')metric=`SPF ${v.spf_longterm_pct!=null?v.spf_longterm_pct+'%':'—'}`;
+      else if(k==='wage_persistence')metric=`${v.official_yoy!=null?v.official_yoy+'% YoY':'—'}`;
       return `<div class="card ${sc}"><span class="sig ${sc}">${esc(v.signal)}</span><div class="lbl">${esc(SIGNAMES[k]||k)}</div><div class="val" style="font-size:16px">${esc(metric)}</div></div>`;
     }).join('');
   }
@@ -175,8 +176,10 @@ async function load(){
     if(I.core_yoy!=null)cards.push(`<div class="card"><div class="lbl">Core (ex energy/food)</div><div class="val">${I.core_yoy}%</div><div class="sub">3m ${I.core_3m_chg_pp!=null?(I.core_3m_chg_pp>=0?'+':'')+I.core_3m_chg_pp+'pp':'—'}</div></div>`);
     if(I.services_yoy!=null)cards.push(`<div class="card ${I.sticky_services?'warn':''}"><div class="lbl">Services</div><div class="val">${I.services_yoy}%</div><div class="sub">${I.sticky_services?'⚠ sticky — ECB\'s hardest mile':'goods '+(I.goods_yoy!=null?I.goods_yoy+'%':'—')}</div></div>`);
     if(I.energy_yoy!=null)cards.push(`<div class="card"><div class="lbl">Energy · Food</div><div class="val">${I.energy_yoy}% · ${I.food_yoy!=null?I.food_yoy+'%':'—'}</div><div class="sub">ind. goods ex-energy ${I.indus_goods_ex_energy_yoy!=null?I.indus_goods_ex_energy_yoy+'%':'—'} · ${esc(I.as_of||'')}</div></div>`);
+    const W=der.wages||{};
+    if(W.negotiated_yoy_official!=null)cards.push(`<div class="card ${W.negotiated_yoy_official>3.5?'warn':''}"><div class="lbl">Negotiated Wages · ECB Tracker</div><div class="val">${W.negotiated_yoy_official}%</div><div class="sub">tracker fwd ${W.tracker_fwd_yoy!=null?W.tracker_fwd_yoy+'%':'—'} → ${esc(W.tracker_fwd_to||'')} · ceiling ~3%</div></div>`);
     document.getElementById('hicp').innerHTML=cards.join('');
-    document.getElementById('hicp-read').textContent=I.read||'';
+    document.getElementById('hicp-read').textContent=[I.read,W.read].filter(Boolean).join(' ');
   }
   // TARGET2 country table + credit + FX
   if(der&&((der.target2&&der.target2.countries)||der.credit||der.fx)){
