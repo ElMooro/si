@@ -94,6 +94,15 @@ def lambda_handler(event=None, context=None):
         if len(pts) < 20: continue
         vals = [p[1] for p in pts]
         latest = vals[-1]
+        # Smart rounding: small-range indices (CISS 0-1) need more decimals than
+        # large ones (balance sheet €bn). Round to keep ~4 significant figures.
+        def _r(v):
+            if v is None: return None
+            a = abs(v)
+            if a == 0: return 0.0
+            if a < 1: return round(v, 5)
+            if a < 100: return round(v, 3)
+            return round(v, 1)
         below = sum(1 for v in vals if v <= latest)
         pctl = round(100 * below / len(vals), 1)
         try:
@@ -105,14 +114,14 @@ def lambda_handler(event=None, context=None):
         out = {"id": sid, "label": label, "freq": freq, "flow_key": flow_key,
                "generated_at": datetime.now(timezone.utc).isoformat(),
                "n_points": len(pts), "first_date": pts[0][0], "latest_date": pts[-1][0],
-               "latest": round(latest, 2), "min": round(min(vals), 2), "max": round(max(vals), 2),
+               "latest": _r(latest), "min": _r(min(vals)), "max": _r(max(vals)),
                "percentile": pctl, "z_score": z, "points": pts}
         s3.put_object(Bucket=BUCKET, Key=f"data/ecb-hist/{sid}.json",
                       Body=json.dumps(out, default=str).encode(),
                       ContentType="application/json", CacheControl="public, max-age=43200")
         written.append(sid)
         manifest.append({"id": sid, "label": label, "freq": freq,
-                         "latest": round(latest, 2), "percentile": pctl, "z_score": z,
+                         "latest": _r(latest), "percentile": pctl, "z_score": z,
                          "first_date": pts[0][0], "latest_date": pts[-1][0], "n_points": len(pts)})
         time.sleep(0.4)
     s3.put_object(Bucket=BUCKET, Key="data/ecb-hist/_manifest.json",

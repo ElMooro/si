@@ -56,6 +56,8 @@ a{color:var(--cyan);text-decoration:none}
 const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+// Smart number format: small-range indices (CISS 0-1) keep decimals; big numbers use locale.
+function fmtIdx(v){if(v==null)return '—';v=Number(v);const a=Math.abs(v);if(a===0)return '0';if(a<1)return v.toFixed(4);if(a<100)return v.toFixed(2);return v.toLocaleString();}
 const CRISES=[["2008-09-15","Lehman"],["2011-08-05","EU sovereign"],["2020-03-16","COVID"],["2023-03-13","SVB/CS"]];
 let CHART=null,SERIES=null,FULL=null,RANGE='MAX';
 
@@ -66,7 +68,7 @@ async function loadTiles(){
     const z=s.z_score;const zc=z==null?'':(Math.abs(z)>=2?'z-hi':Math.abs(z)>=1?'z-mid':'z-lo');
     return `<div class="tile" onclick="openModal('${esc(s.id)}')">
       <div class="lbl">${esc(s.label)}</div>
-      <div class="val">${s.latest!=null?Number(s.latest).toLocaleString():'—'}${z!=null?`<span class="zpill ${zc}">z ${z}</span>`:''}</div>
+      <div class="val">${fmtIdx(s.latest)}${z!=null?`<span class="zpill ${zc}">z ${z}</span>`:''}</div>
       <div class="meta">${s.percentile!=null?s.percentile+'%ile':''} · ${esc(s.first_date)}→${esc(s.latest_date)} · ${s.n_points} pts · ${esc(s.freq)}</div>
     </div>`;
   }).join('')+'</div>';
@@ -80,14 +82,20 @@ async function openModal(id){
   FULL=d;RANGE='MAX';
   document.getElementById('m-title').textContent=d.label||id;
   document.getElementById('m-sub').textContent=`${d.first_date} → ${d.latest_date} · ${d.n_points} points · ${d.freq} · ECB SDMX`;
-  document.getElementById('m-stats').innerHTML=`<span>Latest <b style="color:var(--fg-0)">${Number(d.latest).toLocaleString()}</b></span><span>Min ${Number(d.min).toLocaleString()}</span><span>Max ${Number(d.max).toLocaleString()}</span><span>%ile ${d.percentile}</span><span>z ${d.z_score}</span>`;
+  document.getElementById('m-stats').innerHTML=`<span>Latest <b style="color:var(--fg-0)">${fmtIdx(d.latest)}</b></span><span>Min ${fmtIdx(d.min)}</span><span>Max ${fmtIdx(d.max)}</span><span>%ile ${d.percentile}</span><span>z ${d.z_score}</span>`;
   document.getElementById('m-ranges').innerHTML=['1Y','5Y','10Y','MAX'].map(r=>`<span class="range-btn ${r==='MAX'?'on':''}" onclick="setRange('${r}')">${r}</span>`).join('');
   drawChart();
 }
 function setRange(r){RANGE=r;document.querySelectorAll('.range-btn').forEach(b=>b.classList.toggle('on',b.textContent===r));drawChart();}
 function drawChart(){
   const host=document.getElementById('m-chart');host.innerHTML='';
-  if(!window.LightweightCharts){host.innerHTML='<div class="loading">chart lib loading…</div>';return;}
+  if(!window.LightweightCharts){
+    // CDN not ready yet — retry up to ~5s instead of giving up
+    host.innerHTML='<div class="loading">loading chart…</div>';
+    if((drawChart._tries=(drawChart._tries||0)+1)<25){setTimeout(drawChart,200);return;}
+    host.innerHTML='<div class="loading">Chart library failed to load (CDN blocked?). Data is intact — try a hard refresh.</div>';return;
+  }
+  drawChart._tries=0;
   CHART=LightweightCharts.createChart(host,{autoSize:true,layout:{background:{color:'#0c1018'},textColor:'#a8b3c7',fontFamily:"'IBM Plex Mono',monospace"},grid:{vertLines:{color:'#1c2433'},horzLines:{color:'#1c2433'}},rightPriceScale:{borderColor:'#1c2433'},timeScale:{borderColor:'#1c2433'}});
   let pts=FULL.points.map(p=>({time:p[0],value:p[1]}));
   if(RANGE!=='MAX'){const yrs={'1Y':1,'5Y':5,'10Y':10}[RANGE];const cut=new Date();cut.setFullYear(cut.getFullYear()-yrs);const cs=cut.toISOString().slice(0,10);pts=pts.filter(p=>p.time>=cs);}
