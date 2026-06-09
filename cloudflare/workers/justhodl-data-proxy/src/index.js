@@ -330,6 +330,27 @@ export default {
       // DEDUP: walk the index in offset windows, drop notes whose normalized text
       // was already seen (keeps first occurrence). Carries the seen-set across calls
       // via a temp key. Call ?dedup=1&offset=N&token=... until done. Updates index+cache.
+      // ONE-SHOT DEDUP: read the cache, dedup by normalized text in memory, write
+      // back the deduped index+cache in a single call (works for brains ≤~10k).
+      if (url.searchParams.get("dedupnow") === "1") {
+        if ((url.searchParams.get("token") || "") !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
+        try {
+          function nz(t){ return String(t||"").toLowerCase().replace(/\s+/g," ").replace(/[^\w\s]/g,"").trim().slice(0,200); }
+          let cache = [];
+          try { cache = JSON.parse(await env.USER_DATA.get(CACHE_KEY) || "[]"); } catch(e){}
+          const seen = new Set(); const keep = []; const keepIds = [];
+          for (const n of cache) {
+            if (!n || !n.id) continue;
+            const k = nz(n.text);
+            if (k.length >= 8 && seen.has(k)) continue;
+            if (k.length >= 8) seen.add(k);
+            keep.push(n); keepIds.push(n.id);
+          }
+          await env.USER_DATA.put(CACHE_KEY, JSON.stringify(keep));
+          await env.USER_DATA.put(IDX_KEY, JSON.stringify(keepIds));
+          return jsonResp({ ok: true, before: cache.length, after: keep.length, removed: cache.length - keep.length });
+        } catch (e) { return jsonResp({ error: String(e).slice(0,150) }, 500); }
+      }
       if (url.searchParams.get("dedup") === "1") {
         if ((url.searchParams.get("token") || "") !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
         try {
