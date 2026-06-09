@@ -1,0 +1,1304 @@
+{
+  "ops": 1529,
+  "pump_positioning": {
+    "n_candidates": 12,
+    "macro_regime": "NEUTRAL",
+    "candidate_sample": [
+      {
+        "ticker": "PWR",
+        "n_engines": 2,
+        "convergence_score": 39.3,
+        "domain_coverage": [
+          "earnings"
+        ],
+        "n_domains": 1,
+        "avg_signal": 61.1,
+        "engines": {
+          "eps-revision-velocity": {
+            "domain": "earnings",
+            "score": 52.3,
+            "raw_score": 52.3,
+            "flag": "HIGH_VELOCITY_TIER_B",
+            "status": "ok"
+          },
+          "earnings-pead": {
+            "domain": "earnings",
+            "score": 70.0,
+            "raw_score": 70.0,
+            "tier": "TIER_A_HIGH_QUALITY_BEAT",
+            "beat_streak": 8
+          }
+        },
+        "tier": "LOW",
+        "directional_score": 85.7,
+        "n_bullish_eng": 2,
+        "n_bearish_eng": 0,
+        "n_neutral_eng": 0,
+        "bullish_engines": [
+          {
+            "engine": "earnings-pead",
+            "mag": 1.0,
+            "weight": 1.2,
+            "weighted": 1.2,
+            "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 8Q ()"
+          },
+          {
+            "engine": "eps-revision-velocity",
+            "mag": 0.7,
+            "weight": 1.1,
+            "weighted": 0.77,
+            "note": "HIGH_VELOCITY_TIER_B"
+          }
+        ],
+        "bearish_engines": [],
+        "prior_n_engines": 0,
+        "is_new_high": false,
+        "is_accelerating": false,
+        "is_ultra_new": false,
+        "pump_likelihood": 62.7,
+        "pump_category": "PUMP_LIKELY",
+        "exclude_from_longs": false,
+        "pump_components": {
+          "directional": 42.9,
+          "convergence": 9.8,
+          "acceleration": 10.0,
+          "earnings_cat": 0.0
+        },
+        "price_data": {
+          "current": 691.95,
+          "atr_14": 26.26,
+          "atr_pct": 3.79,
+          "hv_30": 56.68,
+          "perf_5d_pct": -2.0,
+          "perf_20d_pct": -11.45,
+          "perf_60d_pct": 23.78,
+          "volume_avg_20d": 1128156,
+          "adv_dollars": 780627820,
+          "beta_spy": 1.215
+        },
+        "context": {
+          "sector": "Industrials",
+          "industry": "Engineering & Construction",
+          "sector_etf": "XLI",
+          "market_cap": 103834017000,
+          "liquidity_tier": "M",
+          "adv_dollars": 780627820.98,
+          "days_to_earnings": null,
+          "next_earnings_date": null,
+          "next_earnings_time": null,
+          "macro_regime": "NEUTRAL",
+          "regime_supports_long": true
+        },
+        "trade_framework": {
+          "entry_zone": {
+            "low": 673.57,
+            "high": 705.08,
+            "current": 691.95
+          },
+          "stop_loss": 639.44,
+          "stop_loss_pct": -7.59,
+          "stop_multiplier": 2.0,
+          "tp_ladder": [
+            {
+              "level": "TP1",
+              "price": 718.21,
+              "rr": 0.5,
+              "gain_pct": 3.8,
+              "size_pct": 33
+            },
+            {
+              "level": "TP2",
+              "price": 744.46,
+              "rr": 1.0,
+              "gain_pct": 7.59,
+              "size_pct": 33
+            },
+            {
+              "level": "TP3",
+              "price": 770.72,
+              "rr": 1.5,
+              "gain_pct": 11.38,
+              "size_pct": 34
+            }
+          ],
+          "position_size_pct": 5.0,
+          "kelly_fraction": 0.25,
+          "vol_target_size_pct": 25.05,
+          "rr_ratio": "1:1.0",
+          "avg_tp_rr": 1.0,
+          "risk_per_share": 52.51,
+          "max_dollar_risk_pct": 0.38
+        },
+        "warnings": [],
+        "momentum": {
+          "momentum_score": 33.2,
+          "rank": 48,
+          "tags": [
+            "MULTI_GAP_UP"
+          ],
+          "perf_5d": -2.0,
+          "perf_20d": -11.45,
+          "rs_spy_20d": -11.15,
+          "wk52_proximity": 0.8773,
+          "pump_confirmed": false
+        },
+        "catalyst_record": {
+          "ticker": "PWR",
+          "primary_catalyst": "8-quarter beat streak plus high-velocity EPS revision upside signals accelerating demand and margin expansion.",
+          "catalyst_type": "EARNINGS_BEAT",
+          "catalyst_grade": "B",
+          "catalyst_date": null,
+          "days_to_catalyst": null,
+          "thesis_durability": "1M",
+          "secondary_catalysts": [
+            "High-velocity EPS revision upside indicates analyst momentum",
+            "Accelerating demand in industrial/power infrastructure"
+          ],
+          "invalidation": "EPS revision velocity mean-reverts sharply or guidance growth slows.",
+          "claude_reasoning": "PWR shows strong 8-quarter beat consistency paired with rising EPS revisions (high-velocity environment), but context explicitly warns that revision velocity 'usually mean-reverts within weeks.' Momentum is weak (37.8, pump_confirmed false). Grade B reflects confirmed beats without near-term catalyst date; 1M durability reflects revision mean-reversion risk."
+        }
+      },
+      {
+        "ticker": "BIIB",
+        "n_engines": 2,
+        "convergence_score": 41.5,
+        "domain_coverage": [
+          "earnings",
+          "insider"
+        ],
+        "n_domains": 2,
+        "avg_signal": 51.5,
+        "engines": {
+          "lobbying-intel": {
+            "domain": "insider",
+            "score": 35.0,
+            "raw_score": 35,
+            "recent_amount_usd": 1670000.0,
+            "acceleration_ratio": 1.3
+          },
+          "earnings-pead": {
+            "domain": "earnings",
+            "score": 68.0,
+            "raw_score": 68.0,
+            "tier": "TIER_A_HIGH_QUALITY_BEAT",
+            "beat_streak": 8
+          }
+        },
+        "tier": "MED",
+        "directional_score": 84.0,
+        "n_bullish_eng": 1,
+        "n_bearish_eng": 0,
+        "n_neutral_eng": 1,
+        "bullish_engines": [
+          {
+            "engine": "earnings-pead",
+            "mag": 1.0,
+            "weight": 1.2,
+            "weighted": 1.2,
+            "note": "TIER_A_HIGH_QUALITY_BEAT \u00b7 streak 8Q ()"
+          }
+        ],
+        "bearish_engines": [],
+        "prior_n_engines": 0,
+        "is_new_high": false,
+        "is_accelerating": false,
+        "is_ultra_new": false,
+        "pump_likelihood": 62.4,
+        "pump_category": "PUMP_LIKELY",
+        "exclude_from_longs": false,
+        "pump_components": {
+          "directional": 42.0,
+          "convergence": 10.4,
+          "acceleration": 10.0,
+          "earnings_cat": 0.0
+        },
+        "price_data": {
+          "current": 199.1,
+          "atr_14": 5.51,
+          "atr_pct": 2.77,
+          "hv_30": 35.94,
+          "perf_5d_pct": 5.44,
+          "perf_20d_pct": 0.58,
+          "perf_60d_pct": 9.67,
+          "volume_avg_20d": 1133856,
+          "adv_dollars": 225750908,
+          "beta_spy": 0.177
+        },
+        "context": {
+          "sector": "Healthcare",
+          "industry": "Drug Manufacturers - General",
+          "sector_etf": "XLV",
+          "market_cap": 29394526700,
+          "liquidity_tier": "M",
+          "adv_dollars": 225750908.78999996,
+          "days_to_earnings": null,
+          "next_earnings_date": null,
+          "next_earnings_time": null,
+          "macro_regime": "NEUTRAL",
+          "regime_supports_long": true
+        },
+        "trade_framework": {
+          "entry_zone": {
+            "low": 195.24,
+            "high": 201.86,
+            "current": 199.1
+          },
+          "stop_loss": 188.07,
+          "stop_loss_pct": -5.54,
+          "stop_multiplier": 2.0,
+          "tp_ladder": [
+            {
+              "level": "TP1",
+              "price": 204.61,
+              "rr": 0.5,
+              "gain_pct": 2.77,
+              "size_pct": 33
+            },
+            {
+              "level": "TP2",
+              "price": 210.13,
+              "rr": 1.0,
+              "gain_pct": 5.54,
+              "size_pct": 33
+            },
+            {
+              "level": "TP3",
+              "price": 215.64,
+              "rr": 1.5,
+              "gain_pct": 8.31,
+              "size_pct": 34
+            }
+          ],
+          "position_size_pct": 5.0,
+          "kelly_fraction": 0.248,
+          "vol_target_size_pct": 39.51,
+          "rr_ratio": "1:1.0",
+          "avg_tp_rr": 1.0,
+          "risk_per_share": 11.03,
+          "max_dollar_risk_pct": 0.28
+        },
+        "warnings": [],
+        "momentum": {
+          "momentum_score": 40.7,
+          "rank": 41,
+          "tags": [
+            "NEAR_52W_HIGH",
+            "ALL_GREEN",
+            "ACCELERATING",
+            "MULTI_GAP_UP"
+          ],
+          "perf_5d": 5.44,
+          "perf_20d": 0.58,
+          "rs_spy_20d": 0.88,
+          "wk52_proximity": 0.9666,
+          "pump_confirmed": false
+        }
+      }
+    ],
+    "aggressive_sample": {
+      "n_positions": 8,
+      "total_exposure": 68.0,
+      "cash_pct": 32.0,
+      "max_risk_at_stops_pct": 8.04,
+      "sector_breakdown": {
+        "Technology": 28.0,
+        "Healthcare": 19.0,
+        "Communication Services": 10.0,
+        "Energy": 6.0,
+        "Industrials": 5.0
+      },
+      "positions": [
+        {
+          "ticker": "NTAP",
+          "position_pct": 15.0,
+          "pump_score": 60.3,
+          "momentum_score": 85.7,
+          "combined_score": 82.67,
+          "base_combined": 71.89,
+          "catalyst_grade": "B",
+          "catalyst_type": "EARNINGS_BEAT",
+          "catalyst": "5-quarter earnings beat streak with 2.87% buyback yield signals FCF strength and shareholder-friendly allocation.",
+          "catalyst_mult": 1.0,
+          "cluster_mult": 1.0,
+          "pump_confirmed": true,
+          "mom_tags": [
+            "RS_LEADER",
+            "MULTI_GAP_UP",
+            "MOMENTUM_LEADER",
+            "PUMP_CONFIRMED"
+          ],
+          "sector": "Technology",
+          "stop": 142.07,
+          "tp1": 176.46,
+          "tp2": 187.93,
+          "tp3": 199.39,
+          "entry": 165,
+          "rr_ratio": "1:1.0",
+          "horizon": "1-2w"
+        },
+        {
+          "ticker": "DXCM",
+          "position_pct": 13.0,
+          "pump_score": 60.5,
+          "momentum_score": 78.7,
+          "combined_score": 79.35,
+          "base_combined": 69.0,
+          "catalyst_grade": "B",
+          "catalyst_type": "EARNINGS_BEAT",
+          "catalyst": "4-quarter earnings beat streak in high-growth diabetes management signals operational leverage maturation.",
+          "catalyst_mult": 1.0,
+          "cluster_mult": 1.0,
+          "pump_confirmed": true,
+          "mom_tags": [
+            "NEAR_52W_HIGH",
+            "RS_LEADER",
+            "ALL_GREEN",
+            "MULTI_GAP_UP"
+          ],
+          "sector": "Healthcare",
+          "stop": 72.29,
+          "tp1": 81.14,
+          "tp2": 84.09,
+          "tp3": 87.04,
+          "entry": 78.19,
+          "rr_ratio": "1:1.0",
+          "horizon": "1-2w"
+        },
+        {
+          "ticker": "NBIS",
+          "position_pct": 10.0,
+          "pump_score": 56.5,
+          "momentum_score": 76.5,
+          "combined_score": 75.61,
+          "base_combined": 65.74,
+          "catalyst_grade": "B",
+          "catalyst_type": "",
+          "catalyst": "",
+          "catalyst_mult": 1.0,
+          "cluster_mult": 1.0,
+          "pump_confirmed": true,
+          "mom_tags": [
+            "RS_LEADER",
+            "MULTI_GAP_UP",
+            "PUMP_CONFIRMED"
+          ],
+          "sector": "Communication Services",
+          "stop": 170.15,
+          "tp1": 245.1,
+          "tp2": 270.09,
+          "tp3": 295.07,
+          "entry": 220.12,
+          "rr_ratio": "1:1.0",
+          "horizon": "1-2w"
+        },
+        {
+          "ticker": "CDNS",
+          "position_pct": 8.0,
+          "pump_score": 56.8,
+          "momentum_score": 61.3,
+          "combined_score": 59.01,
+          "base_combined": 59.01,
+          "catalyst_grade": "B",
+          "catalyst_type": "",
+          "catalyst": "",
+          "catalyst_mult": 1.0,
+          "cluster_mult": 1.0,
+          "pump_confirmed": false,
+          "mom_tags": [
+            "NEAR_52W_HIGH",
+            "MULTI_GAP_UP"
+          ],
+          "sector": "Technology",
+          "stop": 351.53,
+          "tp1": 410.58,
+          "tp2": 430.27,
+          "tp3": 449.95,
+          "entry": 390.9,
+          "rr_ratio": "1:1.0",
+          "horizon": "1-2w"
+        },
+        {
+          "ticker": "BIIB",
+          "position_pct": 6.0,
+          "pump_score": 62.4,
+          "momentum_score": 40.7,
+          "combined_score": 50.4,
+          "base_combined": 50.4,
+          "catalyst_grade": "B",
+          "catalyst_type": "",
+          "catalyst": "",
+          "catalyst_mult": 1.0,
+          "cluster_mult": 1.0,
+          "pump_confirmed": false,
+          "mom_tags": [
+            "NEAR_52W_HIGH",
+            "ALL_GREEN",
+            "ACCELERATING",
+            "MULTI_GAP_UP"
+          ],
+          "sector": "Healthcare",
+          "stop": 188.07,
+          "tp1": 204.61,
+          "tp2": 210.13,
+          "tp3": 215.64,
+          "entry": 199.1,
+          "rr_ratio": "1:1.0",
+          "horizon": "1-2w"
+        },
+        {
+          "ticker": "PSX",
+          "position_pct": 6.0,
+          "pump_score": 56.3,
+          "momentum_score": 41.9,
+          "combined_score": 48.57,
+          "base_combined": 48.57,
+          "catalyst_grade": "B",
+          "catalyst_type": "",
+          "catalyst": "",
+          "catalyst_mult": 1.0,
+          "cluster_mult": 1.0,
+          "pump_confirmed": false,
+          "mom_tags": [
+            "NEAR_52W_HIGH"
+          ],
+          "sector": "Energy",
+          "stop": 167.68,
+          "tp1": 184.66,
+          "tp2": 190.32,
+          "tp3": 195.98,
+          "entry": 179,
+          "rr_ratio": "1:1.0",
+          "horizon": "1-2w"
+        },
+        {
+          "ticker": "PWR",
+          "position_pct": 5.0,
+          "pump_score": 62.7,
+          "momentum_score": 33.2,
+          "combined_score": 45.62,
+          "base_combined": 45.62,
+          "catalyst_grade": "B",
+          "catalyst_type": "EARNINGS_BEAT",
+          "catalyst": "8-quarter beat streak plus high-velocity EPS revision upside signals accelerating demand and margin expansion.",
+          "catalyst_mult": 1.0,
+          "cluster_mult": 1.0,
+          "pump_confirmed": false,
+          "mom_tags": [
+            "MULTI_GAP_UP"
+          ],
+          "sector": "Industrials",
+          "stop": 639.44,
+          "tp1": 718.21,
+          "tp2": 744.46,
+          "tp3": 770.72,
+          "entry": 691.95,
+          "rr_ratio": "1:1.0",
+          "horizon": "1-2w"
+        },
+        {
+          "ticker": "GLW",
+          "position_pct": 5.0,
+          "pump_score": 57.6,
+          "momentum_score": 33.4,
+          "combined_score": 43.86,
+          "base_combined": 43.86,
+          "catalyst_grade": "B",
+          "catalyst_type": "",
+          "catalyst": "",
+          "catalyst_mult": 1.0,
+          "cluster_mult": 1.0,
+          "pump_confirmed": false,
+          "mom_tags": [
+            "MULTI_GAP_UP"
+          ],
+          "sector": "Technology",
+          "stop": 145.75,
+          "tp1": 188.03,
+          "tp2": 202.13,
+          "tp3": 216.22,
+          "entry": 173.94,
+          "rr_ratio": "1:1.0",
+          "horizon": "1-2w"
+        }
+      ],
+      "suggested_additions": [],
+      "philosophy": "PUMP-HUNTER MODE with CATALYST-AWARE SIZING. 5-7 names, 5-18% each, ~100% deployment. Sized by sqrt(pump \u00d7 momentum) \u00d7 catalyst_grade_mult (A=1.2 / B=1.0 / C=0.8 / D=0.4) \u00d7 1.15 if PUMP_CONFIRMED \u00d7 cluster_modifier. Grade D / no-catalyst names get 60% downsize \u2014 naked momentum is speculative. Sector cap 60%. Stops mandatory.",
+      "construction_rules": {
+        "max_per_position": 15.0,
+        "min_per_position": 5.0,
+        "max_per_sector": 60.0,
+        "n_names_target": 6,
+        "target_exposure": 100.0,
+        "combined_score": "sqrt(pump \u00d7 momentum) \u00d7 catalyst_grade_mult \u00d7 1.15 if PUMP_CONFIRMED \u00d7 cluster_modifier",
+        "catalyst_grade_multipliers": {
+          "A": 1.2,
+          "B": 1.0,
+          "C": 0.8,
+          "D": 0.4
+        },
+        "cluster_modifiers": {
+          "BOOST": 1.4,
+          "TRIM": 0.6,
+          "EXCLUDE": 0
+        }
+      }
+    }
+  },
+  "momentum_leaders": {
+    "keys": [
+      "schema_version",
+      "generated_at",
+      "elapsed_sec",
+      "lookback_days",
+      "n_scored",
+      "n_leaders",
+      "n_pump_confirmed",
+      "leaders",
+      "pump_confirmed",
+      "all_scored"
+    ],
+    "row": [
+      {
+        "ticker": "BB",
+        "current_price": 8.84,
+        "perf_5d_pct": -14.34,
+        "perf_20d_pct": 42.12,
+        "perf_60d_pct": 164.67,
+        "rs_spy_20d_pct": 42.42,
+        "wk52_proximity": 0.8088,
+        "volume_surge": 1.21,
+        "gap_up_count_3d": 2,
+        "momentum_score": 87.7,
+        "perf_5d_rank": 0.08,
+        "perf_20d_rank": 1.0,
+        "perf_60d_rank": 1.0,
+        "rank": 1,
+        "in_pump_candidates": true,
+        "pump_likelihood": 53.4,
+        "n_engines": 2,
+        "convergence_tier": "MED",
+        "sources": [
+          "convergence-pump"
+        ],
+        "mbo_tier": null,
+        "mbo_flags": [],
+        "tags": [
+          "RS_LEADER",
+          "MULTI_GAP_UP",
+          "MOMENTUM_LEADER",
+          "PUMP_CONFIRMED"
+        ],
+        "pump_confirmed": true
+      }
+    ]
+  },
+  "squeeze": {
+    "stats": {
+      "n_universe": 600,
+      "n_evaluated": 125,
+      "n_filtered_out": 475,
+      "n_tier_s": 0,
+      "n_tier_a": 25,
+      "n_tier_b": 50,
+      "n_finra_tickers": 12759
+    },
+    "row": [
+      {
+        "symbol": "FCN",
+        "score": 67.0,
+        "tier": "TIER_A_SQUEEZE_BREWING",
+        "flags": [
+          "FLOAT_MOD_TURNOVER",
+          "SHORT_PCT_50%+",
+          "SHORT_RISING_5PP+",
+          "BASE_FORMING_SETUP"
+        ],
+        "metrics": {
+          "price": 159.7,
+          "market_cap": 4813996800,
+          "float_shares": 24115200,
+          "shares_outstanding": 30144000,
+          "avg_vol_30d": 571559,
+          "avg_dollar_vol_30d": 90197978,
+          "float_turnover_30d_pct": 2.37,
+          "short_pct_recent": 71.9,
+          "short_pct_change": 13.75,
+          "days_to_cover_proxy": 1.0,
+          "ret_5d": 4.2,
+          "ret_30d": -13.6,
+          "ret_60d": -1.6,
+          "range_pos_60d": 37.3,
+          "vol_surge_30v60": 1.24,
+          "sector": "Industrials",
+          "industry": "Consulting Services"
+        }
+      }
+    ]
+  },
+  "options_flow": {
+    "stats": {
+      "n_universe": 150,
+      "n_evaluated": 10,
+      "n_no_data": 2,
+      "n_tier_a": 3,
+      "n_tier_b": 4,
+      "n_finra_tickers": 12770
+    },
+    "row": [
+      {
+        "symbol": "TSLA",
+        "score": 70.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "metrics": {
+          "spot": 396.68,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 0.66,
+          "avg_cpr_older": 0.33,
+          "cpr_change_pct": 97.9,
+          "total_call_vol_5d": 334794,
+          "total_put_vol_5d": 386919,
+          "call_vol_surge": 167.36,
+          "short_metrics": {
+            "recent_avg_short_pct": 50.3,
+            "older_avg_short_pct": 49.2,
+            "short_pct_change": 1.1,
+            "avg_total_vol_5d": 24748802,
+            "n_finra_days": 20
+          }
+        }
+      }
+    ]
+  },
+  "insider_clusters": {
+    "stats": {
+      "n_form4_filings_scanned": 13628,
+      "n_form4_parsed": 3000,
+      "n_buy_transactions": 353,
+      "n_unique_tickers": 71,
+      "n_clusters": 29,
+      "n_strong_signals": 2,
+      "n_smart_money_dual": 0,
+      "n_ceo_conviction": 0,
+      "n_cluster_buys": 3,
+      "n_contrarian_clusters": 4
+    },
+    "row": [
+      {
+        "ticker": "QNT",
+        "company": "Quantinuum Inc.",
+        "cik": "0002110105",
+        "n_insiders": 11,
+        "n_transactions": 11,
+        "total_shares": 411032,
+        "total_value": 24661920.0,
+        "avg_price": 60.0,
+        "first_buy": "2026-06-05",
+        "last_buy": "2026-06-05",
+        "highest_role": "Chief Financial Officer",
+        "has_ceo": false,
+        "has_cfo": true,
+        "has_chairman": false,
+        "has_director": true,
+        "insiders": [
+          {
+            "name": "SHARAN NITESH",
+            "role": "Chief Financial Officer",
+            "n_buys": 1,
+            "total_shares": 6500,
+            "total_value": 390000.0,
+            "role_tier": 90
+          },
+          {
+            "name": "Dehoff Kevin Scott",
+            "role": "Chief Strategy Officer",
+            "n_buys": 1,
+            "total_shares": 15000,
+            "total_value": 900000.0,
+            "role_tier": 60
+          },
+          {
+            "name": "BHATIA MANISH H",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 20000,
+            "total_value": 1200000.0,
+            "role_tier": 40
+          },
+          {
+            "name": "Barron Hal",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 250000,
+            "total_value": 15000000.0,
+            "role_tier": 40
+          },
+          {
+            "name": "Branderiz Eric",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 8334,
+            "total_value": 500040.0,
+            "role_tier": 40
+          },
+          {
+            "name": "DENMAN KENNETH D",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 14000,
+            "total_value": 840000.0,
+            "role_tier": 40
+          },
+          {
+            "name": "Daugherty Paul R.",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 4000,
+            "total_value": 240000.0,
+            "role_tier": 40
+          },
+          {
+            "name": "JIMENEZ JOSEPH",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 66665,
+            "total_value": 3999900.0,
+            "role_tier": 40
+          },
+          {
+            "name": "Kapur Vimal",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 13000,
+            "total_value": 780000.0,
+            "role_tier": 40
+          },
+          {
+            "name": "Narang Prineha",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 200,
+            "total_value": 12000.0,
+            "role_tier": 40
+          },
+          {
+            "name": "Stepniak Michal",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 13333,
+            "total_value": 799980.0,
+            "role_tier": 40
+          }
+        ],
+        "transactions": [
+          {
+            "ticker": "QNT",
+            "insider_name": "BHATIA MANISH H",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 20000,
+            "price": 60.0,
+            "value": 1200000.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041621"
+          },
+          {
+            "ticker": "QNT",
+            "insider_name": "Barron Hal",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 250000,
+            "price": 60.0,
+            "value": 15000000.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041630"
+          },
+          {
+            "ticker": "QNT",
+            "insider_name": "Branderiz Eric",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 8334,
+            "price": 60.0,
+            "value": 500040.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041628"
+          },
+          {
+            "ticker": "QNT",
+            "insider_name": "DENMAN KENNETH D",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 14000,
+            "price": 60.0,
+            "value": 840000.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041622"
+          },
+          {
+            "ticker": "QNT",
+            "insider_name": "Daugherty Paul R.",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 4000,
+            "price": 60.0,
+            "value": 240000.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041623"
+          },
+          {
+            "ticker": "QNT",
+            "insider_name": "Dehoff Kevin Scott",
+            "role": "Chief Strategy Officer",
+            "role_tier": 60,
+            "shares": 15000,
+            "price": 60.0,
+            "value": 900000.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041624"
+          },
+          {
+            "ticker": "QNT",
+            "insider_name": "JIMENEZ JOSEPH",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 66665,
+            "price": 60.0,
+            "value": 3999900.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041633"
+          },
+          {
+            "ticker": "QNT",
+            "insider_name": "Kapur Vimal",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 13000,
+            "price": 60.0,
+            "value": 780000.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041627"
+          },
+          {
+            "ticker": "QNT",
+            "insider_name": "Narang Prineha",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 200,
+            "price": 60.0,
+            "value": 12000.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041635"
+          },
+          {
+            "ticker": "QNT",
+            "insider_name": "Stepniak Michal",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 13333,
+            "price": 60.0,
+            "value": 799980.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041626"
+          },
+          {
+            "ticker": "QNT",
+            "insider_name": "SHARAN NITESH",
+            "role": "Chief Financial Officer",
+            "role_tier": 90,
+            "shares": 6500,
+            "price": 60.0,
+            "value": 390000.0,
+            "txn_date": "2026-06-05",
+            "filed_date": "2026060",
+            "accession": "0001628280-26-041632"
+          }
+        ],
+        "score": 89.5,
+        "signal_type": "executive_cluster",
+        "fundamentals": {
+          "market_cap": 1831593068,
+          "price_now": 58.4,
+          "high_52w": 71.35,
+          "low_52w": 51.15,
+          "pct_from_52w_high": -18.15,
+          "pct_from_52w_low": 14.17,
+          "sector": "Technology",
+          "industry": "Computer Hardware",
+          "country": "US",
+          "company_name": "Quantinuum Inc. Class A Common Stock",
+          "shares_outstanding": 0
+        },
+        "rationale": "11 insiders bought $24.66M of QNT over 0d at $60.00 avg \u2014 stock 18% off 52w high"
+      }
+    ]
+  },
+  "breakout52": {
+    "keys": [
+      "engine",
+      "version",
+      "as_of",
+      "state",
+      "signal_strength",
+      "summary",
+      "picks",
+      "forward_expectations",
+      "methodology",
+      "sources"
+    ],
+    "row": []
+  },
+  "scorecard": {
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "n_outcomes_scanned",
+      "n_outcomes_scored",
+      "n_outcomes_neutral",
+      "n_outcomes_legacy",
+      "n_outcomes_unresolved",
+      "n_signals_tracked",
+      "n_signals_graded",
+      "n_promoted"
+    ],
+    "store_key": "scorecard",
+    "sample": [
+      {
+        "signal_type": "ml_risk",
+        "n_total": 813,
+        "n_scored": 92,
+        "n_neutral": 351,
+        "n_legacy": 336,
+        "n_unresolved": 34,
+        "hits": 92,
+        "hit_rate": 1.0,
+        "wilson_lb": 0.96,
+        "edge_vs_coinflip_pct": 46.0,
+        "avg_return_pct": 6.74,
+        "stored_flag_agreement": 1.0,
+        "grade": "A",
+        "status": "PROMOTED",
+        "performance_multiplier": 1.25,
+        "by_window": {
+          "day_30": {
+            "n": 59,
+            "hit_rate": 1.0,
+            "wilson_lb": 0.939
+          },
+          "day_14": {
+            "n": 29,
+            "hit_rate": 1.0,
+            "wilson_lb": 0.883
+          },
+          "day_7": {
+            "n": 4,
+            "hit_rate": 1.0,
+            "wilson_lb": 0.51
+          }
+        }
+      },
+      {
+        "signal_type": "carry_risk",
+        "n_total": 444,
+        "n_scored": 230,
+        "n_neutral": 0,
+        "n_legacy": 183,
+        "n_unresolved": 31,
+        "hits": 214,
+        "hit_rate": 0.93,
+        "wilson_lb": 0.89,
+        "edge_vs_coinflip_pct": 39.0,
+        "avg_return_pct": 3.92,
+        "stored_flag_agreement": 0.978,
+        "grade": "A",
+        "status": "PROMOTED",
+        "performance_multiplier": 1.25,
+        "by_window": {
+          "day_30": {
+            "n": 98,
+            "hit_rate": 0.959,
+            "wilson_lb": 0.9
+          },
+          "day_14": {
+            "n": 132,
+            "hit_rate": 0.909,
+            "wilson_lb": 0.848
+          }
+        }
+      },
+      {
+        "signal_type": "crisis_dfii10_vs_gld",
+        "n_total": 163,
+        "n_scored": 163,
+        "n_neutral": 0,
+        "n_legacy": 0,
+        "n_unresolved": 0,
+        "hits": 144,
+        "hit_rate": 0.883,
+        "wilson_lb": 0.825,
+        "edge_vs_coinflip_pct": 32.5,
+        "avg_return_pct": -2.55,
+        "stored_flag_agreement": 0.89,
+        "grade": "A",
+        "status": "PROMOTED",
+        "performance_multiplier": 1.25,
+        "by_window": {
+          "day_14": {
+            "n": 113,
+            "hit_rate": 0.832,
+            "wilson_lb": 0.752
+          },
+          "day_30": {
+            "n": 50,
+            "hit_rate": 1.0,
+            "wilson_lb": 0.929
+          }
+        }
+      }
+    ]
+  },
+  "best_setups": {
+    "keys": [
+      "schema_version",
+      "engine",
+      "generated_at",
+      "duration_s",
+      "weight_source",
+      "bond_vol_regime",
+      "methodology",
+      "stats",
+      "top_setups",
+      "quad_threats"
+    ],
+    "row": []
+  },
+  "global_liquidity": {
+    "updated_at": null,
+    "snap_sample": null
+  },
+  "china_liquidity": {
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "fred_failed",
+      "series_resolved",
+      "regime",
+      "regime_read",
+      "money",
+      "credit_impulse",
+      "interbank_rate",
+      "currency",
+      "dr_copper"
+    ]
+  },
+  "china_detail": {
+    "schema_version": "1.0",
+    "method": "china_liquidity_v1",
+    "generated_at": "2026-06-09T14:30:23.068451+00:00",
+    "elapsed_s": 19.9,
+    "fred_failed": [],
+    "series_resolved": {
+      "m1": "MANMM101CNM189S",
+      "m2": "MYAGM2CNM189N",
+      "interbank": "IR3TIB01CNM156N",
+      "usdcny": "DEXCHUS",
+      "copper": "PCOPPUSDM",
+      "gold": "IQ12260"
+    }
+  },
+  "boj_detail": {
+    "schema_version": "1.0",
+    "method": "boj_liquidity_yen_carry_detail",
+    "generated_at": "2026-06-09T11:20:45.016201+00:00",
+    "elapsed_s": 1.75,
+    "ok": true,
+    "headline": "BOJ: STRONG DRAIN. Yen-carry unwind risk 62/100 (UNWIND RISK ELEVATED). Balance sheet -4.8%/6m (tapering); policy rate 0.73% (tightening); USD/JPY 160.",
+    "boj_injection_score": -2,
+    "stance_label": "STRONG DRAIN",
+    "carry_unwind_risk": "<class 'dict'>",
+    "balance_sheet": "<class 'dict'>",
+    "policy_rate": "<class 'dict'>",
+    "jgb_10y": "<class 'dict'>",
+    "rate_differential": "<class 'dict'>",
+    "usdjpy": "<class 'dict'>"
+  },
+  "vix_curve": {
+    "keys": [
+      "generated_at",
+      "generated_at_unix",
+      "version",
+      "source",
+      "data_date",
+      "elapsed_seconds",
+      "current",
+      "spreads",
+      "spread_regimes",
+      "composite_regime",
+      "composite_signal",
+      "regime_changed_from_prior"
+    ]
+  },
+  "ed_file": "data/ecb-detail.json",
+  "ed_keys": [
+    "schema_version",
+    "method",
+    "generated_at",
+    "elapsed_s",
+    "ok",
+    "headline",
+    "ecb_injection_score",
+    "stance_label",
+    "liquidity",
+    "balance_sheet",
+    "policy_rates",
+    "eurodollar_read",
+    "cross_reference",
+    "sources",
+    "errors",
+    "eurodollar_stress_score"
+  ],
+  "ed_balance_sheet": {
+    "total_assets_eur_bn": 6162.0,
+    "change_6m_pct": 0.3,
+    "change_12m_pct": -1.79,
+    "qt_pace": "FLAT",
+    "read": "Eurosystem balance sheet EUR 6,162bn, +0.3% over 6m (-1.8% / 12m) \u2014 flat; the APP and PEPP portfolios are rolling off without reinvestment."
+  },
+  "ddb_signals": {
+    "keys": [
+      {
+        "AttributeName": "signal_id",
+        "KeyType": "HASH"
+      }
+    ],
+    "n_items_approx": 30954,
+    "size_mb": 18.3
+  },
+  "ddb_item_sample_keys": [
+    [
+      "baseline_price",
+      "check_windows",
+      "conviction",
+      "direction",
+      "horizon_days_primary",
+      "logged_at",
+      "metadata",
+      "signal_id",
+      "source",
+      "ticker",
+      "ts_iso"
+    ],
+    [
+      "accuracy_scores",
+      "baseline_benchmark_price",
+      "baseline_price",
+      "benchmark",
+      "check_timestamps",
+      "check_windows",
+      "confidence",
+      "horizon_days_primary",
+      "ka_score_at_log",
+      "khalid_score_at_log",
+      "last_checked",
+      "logged_at",
+      "logged_epoch",
+      "measure_against",
+      "metadata",
+      "outcomes",
+      "predicted_direction",
+      "predicted_magnitude_pct",
+      "predicted_target_price",
+      "rationale",
+      "regime_at_log",
+      "schema_version",
+      "signal_id",
+      "signal_type",
+      "signal_value",
+      "status",
+      "supporting_signals",
+      "ttl"
+    ]
+  ],
+  "cascade_rules": [
+    {
+      "name": "justhodl-cascade-recalibrator-daily",
+      "state": "ENABLED",
+      "sched": "cron(0 23 * * ? *)"
+    }
+  ],
+  "validator_invoke": {
+    "err": "NONE",
+    "resp": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.9, \\\"n_validated\\\": 35, \\\"outcome_counts\\\": {\\\"SLOW\\\":"
+  },
+  "validation_now": {
+    "generated_at": "2026-06-09T23:19:26.084936+00:00",
+    "n": 35,
+    "by_tier_stats": {
+      "ALERT_TIER": {
+        "n": 16,
+        "n_hit": 0,
+        "n_hit_big": 0,
+        "n_slow": 7,
+        "n_flat": 0,
+        "n_miss": 9,
+        "hit_rate_pct": 0.0,
+        "big_hit_rate_pct": 0.0,
+        "mean_max_return_pct": -1.34,
+        "best_return": 3.39,
+        "worst_return": -9.59
+      },
+      "LAGGARD": {
+        "n": 16,
+        "n_hit": 3,
+        "n_hit_big": 0,
+        "n_slow": 7,
+        "n_flat": 4,
+        "n_miss": 2,
+        "hit_rate_pct": 18.8,
+        "big_hit_rate_pct": 0.0,
+        "mean_max_return_pct": 2.06,
+        "best_return": 8.32,
+        "worst_return": -9.12
+      },
+      "MEDIUM_TIER": {
+        "n": 3,
+        "n_hit": 0,
+        "n_hit_big": 0,
+        "n_slow": 3,
+        "n_flat": 0,
+        "n_miss": 0,
+        "hit_rate_pct": 0.0,
+        "big_hit_rate_pct": 0.0,
+        "mean_max_return_pct": 2.22,
+        "best_return": 3.39,
+        "worst_return": 1.57
+      }
+    },
+    "outcomes": {
+      "SLOW": 17,
+      "MISS": 11,
+      "FLAT": 4,
+      "HIT": 3
+    }
+  },
+  "opp_calibrator_kicked": 202
+}
