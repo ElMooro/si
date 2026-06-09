@@ -110,7 +110,7 @@ function render(){
     const lvls=s.entry?`E ${s.entry} · S ${s.stop||'—'} · T ${s.tp3||'—'}${s.rr?' · '+s.rr+'R':''}`:'—';
     h+=`<tr>
       <td style="color:var(--fg-3);font-family:var(--mono)">${i+1}</td>
-      <td><span class="tk">${esc(s.ticker)}</span>${s.brain_aligned?'<br><span class="brain-tag">🧠 brain</span>':''}</td>
+      <td><a href="/dossier.html?t=${esc(s.ticker)}" class="tk" style="color:var(--fg-0)">${esc(s.ticker)}</a>${s.brain_aligned?'<br><span class="brain-tag">🧠 brain</span>':''}</td>
       <td><span class="verdict ${vclass(s.verdict)}">${esc(s.verdict)}</span></td>
       <td><span class="conv-bar"><span class="f" style="width:${Math.min(100,conv)}%"></span></span><span style="font-family:var(--mono);color:${conv>=60?'var(--green)':conv>=45?'var(--cyan)':'var(--fg-2)'}">${conv}</span></td>
       <td><div class="sigs">${sigs}</div></td>
