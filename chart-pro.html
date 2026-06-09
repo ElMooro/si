@@ -2816,7 +2816,7 @@ class UI {
 
     // Wire the OVERVIEW quote panel (was dead — populate Last/Chg/Vol/MktCap/52W)
     if (tab === 'overview' && ticker) {
-      InfoPanel.populateQuote(ticker);
+      UI.populateQuote(ticker);
       if (window.Affiliates) { try { Affiliates.renderInline('cp-affiliates', { ticker, heading: 'Trade ' + ticker }); } catch(e){} }
     }
 
