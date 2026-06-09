@@ -123,37 +123,37 @@ def lambda_handler(event=None, context=None):
 
     # ── #18 EU/US Liquidity Divergence ──
     try:
-        # ECB total assets (balance sheet) weekly; Fed net liquidity proxy via FRED (WALCL - RRP - TGA)
-        ecb_bs = ecb_csv("ILM/W.U2.C.T000000.U2.EUR", last_n=80) or ecb_csv("BSI/M.U2.N.A.T00.A.1.U2.2300.Z01.E", last_n=40)
+        # ECB side: reuse the already-computed balance sheet from ecb-detail (no dup fetch).
+        ecb_6m_bn = None; ecb_total_bn = None
+        try:
+            ed = json.loads(s3.get_object(Bucket=BUCKET, Key="data/ecb-detail.json")["Body"].read())
+            bs = ed.get("balance_sheet", {})
+            ecb_total_bn = bs.get("total_assets_eur_bn")
+            ch6_pct = bs.get("change_6m_pct")
+            if ecb_total_bn is not None and ch6_pct is not None:
+                # convert % change to absolute €bn change over 6m
+                prev = ecb_total_bn / (1 + ch6_pct/100.0)
+                ecb_6m_bn = round(ecb_total_bn - prev, 1)
+        except Exception:
+            pass
+        # Fed side: net liquidity (WALCL - RRP - TGA), 6m change, $bn
         walcl = fred_series("WALCL"); rrp = fred_series("RRPONTSYD"); tga = fred_series("WTREGEN")
-        def chg6m(pts, weekly=True):
-            if len(pts) < 27: return None
-            back = 26 if weekly else 6
-            if len(pts) <= back: return None
-            return pts[-1][1] - pts[-1-back][1]
-        ecb_6m = chg6m(ecb_bs, weekly=True)
-        # Fed net liq now vs 6m ago (all weekly-ish FRED)
         def fred_netliq_6m():
-            if not walcl or not rrp or not tga: return None
-            def val_at(pts, idx): return pts[idx][1] if len(pts) > abs(idx) else None
-            now = (val_at(walcl,-1) or 0) - (val_at(rrp,-1) or 0)/1000 - (val_at(tga,-1) or 0)/1000
-            then = (val_at(walcl,-27) or 0) - (val_at(rrp,-27) or 0)/1000 - (val_at(tga,-27) or 0)/1000
-            return now - then if (walcl and len(walcl) > 27) else None
-        fed_6m = fred_netliq_6m()
-        # normalize to €bn / $bn (WALCL in $mn). ECB ILM in €mn.
-        ecb_6m_bn = round(ecb_6m/1000, 1) if ecb_6m is not None else None
-        fed_6m_bn = round(fed_6m/1000, 1) if fed_6m is not None else None
-        diverg = None
-        if ecb_6m_bn is not None and fed_6m_bn is not None:
-            diverg = round(ecb_6m_bn - fed_6m_bn, 1)
-        sig = "NORMAL"
-        if diverg is not None and abs(diverg) > 300: sig = "TAIL_RISK"
+            if not walcl or len(walcl) < 27: return None
+            def v(pts, idx): return pts[idx][1] if len(pts) > abs(idx) else 0
+            now = v(walcl,-1)/1000 - v(rrp,-1) - v(tga,-1)        # WALCL $mn→$bn; RRP/TGA already $bn
+            then = v(walcl,-27)/1000 - v(rrp,-27) - v(tga,-27)
+            return round(now - then, 1)
+        fed_6m_bn = fred_netliq_6m()
+        diverg = round(ecb_6m_bn - fed_6m_bn, 1) if (ecb_6m_bn is not None and fed_6m_bn is not None) else None
+        sig = "TAIL_RISK" if (diverg is not None and abs(diverg) > 300) else "NORMAL"
         out["indicators"]["eu_us_liquidity_divergence"] = {
             "name": "EU/US Liquidity Divergence (6m Δ)",
+            "ecb_total_assets_eur_bn": ecb_total_bn,
             "ecb_balance_sheet_6m_chg_eur_bn": ecb_6m_bn,
             "fed_net_liquidity_6m_chg_usd_bn": fed_6m_bn,
             "divergence_bn": diverg, "signal": sig,
-            "interpretation": f"ECB 6m Δ {ecb_6m_bn}€bn vs Fed 6m Δ {fed_6m_bn}$bn → divergence {diverg}bn. |>300| = FX/carry tail risk (drove 2024 yen-unwind).",
+            "interpretation": f"ECB 6m Δ {ecb_6m_bn}€bn vs Fed net-liq 6m Δ {fed_6m_bn}$bn → divergence {diverg}bn. |>300| = FX/carry tail risk (drove 2024 yen-unwind).",
             "thresholds": {"tail_risk_abs_bn": 300}}
     except Exception as e:
         out["indicators"]["eu_us_liquidity_divergence"] = {"err": str(e)[:60]}
