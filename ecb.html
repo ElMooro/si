@@ -50,6 +50,8 @@ a{color:var(--cyan);text-decoration:none}
   <p>Everything from the European Central Bank in one place — liquidity & balance sheet, policy rates, the eurodollar/dollar-shortage read, the 5 dump-predictor signals, and full daily/weekly history back to 1997. Click any history button for the chart with crisis markers.</p></div>
   <div id="headline" class="headline-bar"><div class="loading">Loading ECB intelligence…</div></div>
 
+  <div id="esi-hero"></div>
+
   <div class="sec">💧 LIQUIDITY & BALANCE SHEET</div>
   <div class="grid" id="liq"></div>
   <div class="read" id="liq-read"></div>
@@ -87,6 +89,19 @@ async function load(){
   if(der&&der.headline){const nf=der.n_flashing||0;hb+=`<div style="margin-top:8px;font-family:var(--mono);font-size:12px;color:${nf?'var(--amber)':'var(--green)'}">${nf?'🟠':'🟢'} ${esc(der.headline)}</div>`;}
   document.getElementById('headline').innerHTML=hb||'ECB data unavailable.';
 
+  // ESI hero tile — the master dollar-shortage gauge
+  if(der&&der.indicators&&der.indicators.eurodollar_stress_index){
+    const E=der.indicators.eurodollar_stress_index;const U=der.indicators.usd_funding_stress_composite||{};
+    const tier=E.tier||'NORMAL';const tc=tier==='BLACK_SWAN'||tier==='CRITICAL'?'alert':tier==='WATCH'?'warn':'calm';
+    const col=tc==='alert'?'var(--red)':tc==='warn'?'var(--amber)':'var(--green)';
+    document.getElementById('esi-hero').innerHTML=`<div class="card ${tc}" style="border-left-width:4px;margin-bottom:6px">
+      <span class="sig ${tc}">${esc(tier)}</span>
+      <div class="lbl">🌊 Eurodollar Stress Index (ESI) — master dollar-shortage gauge</div>
+      <div class="val" style="font-size:34px;color:${col}">${E.esi_0_100!=null?E.esi_0_100:'—'}<span style="font-size:15px;color:var(--fg-3)">/100</span></div>
+      <div class="sub">USD funding composite ${U.score_0_100!=null?U.score_0_100:'—'}/100 · WATCH ≥50 · CRITICAL ≥70 · BLACK SWAN ≥85</div>
+      <div style="font-size:11.5px;color:var(--fg-2);line-height:1.5;margin-top:8px">${esc(E.interpretation||'')}</div>
+    </div>`;
+  }
   // liquidity + balance sheet
   if(ed){
     const L=ed.liquidity||{},B=ed.balance_sheet||{};
@@ -122,7 +137,7 @@ async function load(){
   }
   // history buttons
   if(m&&m.series){
-    document.getElementById('history').innerHTML=m.series.map(s=>`<span class="histlink" onclick="openModal('${esc(s.id)}')">📈 ${esc(s.label.split('—')[0].trim())}</span>`).join('');
+    document.getElementById('history').innerHTML=m.series.map(s=>`<span class="histlink" onclick="openModal('${esc(s.id)}')">📈 ${esc(s.label.split('—')[0].trim())}${s.discontinued?' <span style=\'color:var(--amber);font-size:9px\'>⚠ ECB ended '+esc(s.latest_date)+'</span>':''}</span>`).join('');
   }
   document.getElementById('note').innerHTML=`Sources: ECB Data Portal (ILM, CISS, BLS, MIR), FRED. Updated ${ed&&ed.generated_at?new Date(ed.generated_at).toLocaleString():'recently'}. Research, not advice.`;
 }
