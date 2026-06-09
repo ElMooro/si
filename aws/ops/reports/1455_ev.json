@@ -1,0 +1,20 @@
+{
+  "justhodl-signal-logger-6h": {
+    "old": "rate(6 hours)",
+    "new": "cron(0 21 * * ? *)",
+    "now": "ENABLED"
+  },
+  "justhodl-backtest-engine-6h": {
+    "old": "rate(6 hours)",
+    "new": "cron(30 22 * * ? *)",
+    "now": "ENABLED"
+  },
+  "justhodl-backtest-harness": {
+    "created_rule": "justhodl-backtest-harness-daily",
+    "set": "cron(0 22 * * ? *)"
+  },
+  "justhodl-outcome-checker": {
+    "created_rule": "justhodl-outcome-checker-daily",
+    "set": "cron(0 23 * * ? *)"
+  }
+}
