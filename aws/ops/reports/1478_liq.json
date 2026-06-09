@@ -1,0 +1,211 @@
+{
+  "global-liquidity": {
+    "age_h": 3.3,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "fred_failed",
+      "global_liquidity_index",
+      "fed_net_liquidity",
+      "broad_money",
+      "regime",
+      "regime_read",
+      "global_impulse_13w_pct",
+      "history_points",
+      "net_liq_points"
+    ]
+  },
+  "china-liquidity": {
+    "age_h": 2.8,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "fred_failed",
+      "series_resolved",
+      "regime",
+      "regime_read",
+      "money",
+      "credit_impulse",
+      "interbank_rate",
+      "currency",
+      "dr_copper"
+    ]
+  },
+  "eurodollar-stress": {
+    "age_h": 28.2,
+    "keys": [
+      "as_of",
+      "v",
+      "composite_score",
+      "severity",
+      "regime",
+      "n_signals_used",
+      "n_signals_total",
+      "n_failures",
+      "signals",
+      "hot_signals",
+      "cold_signals",
+      "failures",
+      "thresholds",
+      "duration_s"
+    ]
+  },
+  "funding-plumbing": {
+    "age_h": 4.0,
+    "keys": [
+      "engine",
+      "version",
+      "generated_at",
+      "duration_s",
+      "plumbing_stress_score",
+      "regime",
+      "action",
+      "balance_sheet_direction",
+      "qt_ended_not_qe",
+      "signals",
+      "top_drivers",
+      "methodology",
+      "lesson",
+      "source"
+    ]
+  },
+  "plumbing-aggregator": {
+    "MISSING": "An error occurred (NoSuchKey) "
+  },
+  "repo-monitor": {
+    "MISSING": "An error occurred (NoSuchKey) "
+  },
+  "carry-surface": {
+    "age_h": 28.8,
+    "keys": [
+      "version",
+      "generated_at",
+      "elapsed_s",
+      "n_assets",
+      "financing_rate_pct",
+      "by_class",
+      "all_assets",
+      "cross_asset_top",
+      "cross_asset_bottom",
+      "risk_adjusted_leaders",
+      "regime_summary",
+      "methodology"
+    ]
+  },
+  "crisis-composite": {
+    "age_h": 28.0,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "master_crisis_score",
+      "defcon_level",
+      "defcon_name",
+      "defcon_color",
+      "playbook",
+      "trend",
+      "components_available",
+      "components",
+      "primary_drivers",
+      "scale",
+      "methodology"
+    ]
+  },
+  "liquidity": {
+    "MISSING": "An error occurred (NoSuchKey) "
+  },
+  "bond-vol": {
+    "age_h": 0.0,
+    "keys": [
+      "ok",
+      "version",
+      "generated_at",
+      "regime",
+      "composite_z_score",
+      "composite_percentile",
+      "regime_streak_days",
+      "trend",
+      "term_structure",
+      "funding_plumbing",
+      "playbook",
+      "risk_posture",
+      "history",
+      "n_channels_live",
+      "n_channels_total",
+      "channels",
+      "regime_bands",
+      "methodology"
+    ]
+  },
+  "portfolio-risk": {
+    "MISSING": "An error occurred (NoSuchKey) "
+  },
+  "risk-monitor": {
+    "age_h": 15.8,
+    "keys": [
+      "schema_version",
+      "engine",
+      "generated_at",
+      "build_seconds",
+      "headline",
+      "risk_posture",
+      "posture_color",
+      "risk_budget_utilization_pct",
+      "n_breaches",
+      "n_watches",
+      "n_warming",
+      "limits",
+      "breaches",
+      "watches",
+      "single_name_breaches",
+      "sector_breaches",
+      "desk_drawdowns",
+      "mandate"
+    ]
+  },
+  "global-stress": {
+    "age_h": 3.7,
+    "keys": [
+      "schema_version",
+      "engine",
+      "generated_at",
+      "build_seconds",
+      "global_stress_index",
+      "global_stress_level",
+      "weights",
+      "gsi_by_horizon",
+      "market_stress_index",
+      "equity_stress",
+      "bond_stress",
+      "implied_vol",
+      "credit_spreads",
+      "rates",
+      "sovereign",
+      "funding",
+      "contagion",
+      "breadth"
+    ]
+  },
+  "systemic-stress": {
+    "age_h": 6.2,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "ok",
+      "headline",
+      "composite",
+      "systemic_stress",
+      "sovereign_stress",
+      "cross_reference",
+      "sources",
+      "errors"
+    ]
+  }
+}
