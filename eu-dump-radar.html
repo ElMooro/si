@@ -1,0 +1,87 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EU Dump Radar · JustHodl AI</title>
+<meta name="description" content="ECB-derived equity-dump predictors — CISS acceleration, bank funding stress, EU/US liquidity divergence, credit standards.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--bg-1);position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--red);border-radius:50%;box-shadow:0 0 9px var(--red)}
+.nav{display:flex;gap:3px;margin-left:10px;flex-wrap:wrap}.nav a{padding:6px 10px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--red)}
+.wrap{max-width:980px;margin:0 auto;padding:22px}
+.hero h1{font-size:25px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--red),var(--amber));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:5px 0 14px;font-size:13px;max-width:760px;line-height:1.5}
+.banner{border-radius:14px;padding:16px 20px;margin-bottom:18px;font-family:var(--mono);font-size:15px;font-weight:700}
+.banner.calm{background:rgba(38,255,175,.08);border:1px solid #1e3a30;color:var(--green)}
+.banner.warn{background:rgba(251,191,36,.08);border:1px solid #3a3320;color:var(--amber)}
+.banner.alert{background:rgba(255,85,119,.08);border:1px solid #3a2230;color:var(--red)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:14px;padding:16px 18px;border-left:3px solid var(--border-bright)}
+.card.calm{border-left-color:var(--green)}.card.warn{border-left-color:var(--amber)}.card.alert{border-left-color:var(--red)}
+.card h2{font-size:13px;font-family:var(--mono);color:var(--fg-1);margin-bottom:3px}
+.card .num{font-family:var(--mono);font-size:9px;color:var(--fg-3);margin-bottom:10px}
+.sig{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 9px;border-radius:10px;float:right}
+.sig.calm{background:rgba(38,255,175,.15);color:var(--green)}.sig.warn{background:rgba(251,191,36,.15);color:var(--amber)}.sig.alert{background:rgba(255,85,119,.15);color:var(--red)}
+.metric{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.metric:last-of-type{border-bottom:none}.metric .k{color:var(--fg-3)}.metric .v{font-family:var(--mono);color:var(--fg-1)}
+.interp{font-size:12px;color:var(--fg-2);line-height:1.5;margin-top:10px}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.note{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:18px;line-height:1.5}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Desk</a><a href="/eu-dump-radar.html" class="active">🚨 EU Dump Radar</a><a href="/ecb-history.html">📊 ECB History</a><a href="/eurodollar.html">Eurodollar</a></nav>
+</header>
+<div class="wrap">
+  <div class="hero"><h1>EU Dump <span class="grad">Radar</span></h1>
+  <p>ECB-derived early-warning signals for equity/risk-asset drawdowns — the indicators a prime-broker desk builds from ECB data. CISS acceleration, bank-funding stress, EU/US liquidity divergence, and EU credit-standard tightening, each with crisis-calibrated thresholds.</p></div>
+  <div id="banner"></div>
+  <div id="cards"><div class="loading">Loading ECB-derived signals…</div></div>
+  <div class="note" id="note"></div>
+</div>
+<script>
+const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function sigClass(s){if(['CRITICAL','ACUTE','TAIL_RISK','SEVERE_TIGHTENING'].includes(s))return 'alert';if(['WATCH','ELEVATED','TIGHTENING'].includes(s))return 'warn';return 'calm';}
+function row(k,v){return v==null?'':`<div class="metric"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`;}
+
+async function load(){
+  const d=await gj('data/ecb-derived.json');
+  if(!d||!d.indicators){document.getElementById('cards').innerHTML='<div class="loading">Radar data unavailable — runs daily.</div>';return;}
+  const ind=d.indicators;
+  const nf=d.n_flashing||0;
+  const bclass=nf===0?'calm':nf>=3?'alert':'warn';
+  document.getElementById('banner').innerHTML=`<div class="banner ${bclass}">${nf===0?'🟢':nf>=3?'🔴':'🟠'} ${esc(d.headline||'')}</div>`;
+  const cards=[];
+  // #8
+  const a=ind.ciss_acceleration;
+  if(a&&!a.err){const sc=sigClass(a.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(a.signal)}</span><h2>CISS Acceleration</h2><div class="num">#8 · 30-day Δ of Euro-Area systemic stress</div>
+    ${row('CISS level',a.ciss_level)}${row('Δ 30-day',a.delta_30d)}${row('Δ z-score',a.delta_30d_zscore)}
+    <div class="interp">${esc(a.interpretation||'')}</div></div>`);}
+  // #5
+  const b=ind.bank_funding_stress;
+  if(b&&!b.err){const sc=sigClass(b.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(b.signal)}</span><h2>Bank Funding Stress</h2><div class="num">#5 · MRO/LTRO reliance + MLF spike</div>
+    ${row('LTRO share',b.ltro_share_pct!=null?b.ltro_share_pct+'%':null)}${row('LTRO share 4w ago',b.ltro_share_4w_ago_pct!=null?b.ltro_share_4w_ago_pct+'%':null)}${row('MLF (panic button)','€'+(b.mlf_eur_mn||0)+'mn')}
+    <div class="interp">${esc(b.interpretation||'')}</div></div>`);}
+  // #18
+  const c=ind.eu_us_liquidity_divergence;
+  if(c&&!c.err){const sc=sigClass(c.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(c.signal)}</span><h2>EU/US Liquidity Divergence</h2><div class="num">#18 · ECB vs Fed 6-month liquidity Δ</div>
+    ${row('ECB balance sheet 6m Δ',c.ecb_balance_sheet_6m_chg_eur_bn!=null?'€'+c.ecb_balance_sheet_6m_chg_eur_bn+'bn':null)}${row('Fed net-liq 6m Δ',c.fed_net_liquidity_6m_chg_usd_bn!=null?'$'+c.fed_net_liquidity_6m_chg_usd_bn+'bn':null)}${row('Divergence',c.divergence_bn!=null?c.divergence_bn+'bn':null)}
+    <div class="interp">${esc(c.interpretation||'')}</div></div>`);}
+  // #12
+  const e=ind.bls_credit_standards;
+  if(e&&!e.err){const sc=sigClass(e.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(e.signal)}</span><h2>EU Credit Standards</h2><div class="num">#12 · Bank Lending Survey (C&I) — EU SLOOS</div>
+    ${row('Net % tightening',e.net_pct_tightening!=null?e.net_pct_tightening+'%':null)}${row('Prev quarter',e.prev_quarter!=null?e.prev_quarter+'%':null)}${row('As of',e.as_of)}
+    <div class="interp">${esc(e.interpretation||'')}</div></div>`);}
+  document.getElementById('cards').innerHTML='<div class="grid">'+cards.join('')+'</div>';
+  document.getElementById('note').innerHTML=`Updated ${d.generated_at?new Date(d.generated_at).toLocaleString():'recently'} · thresholds calibrated to 2008/2011/2020/2023 crises · Research, not advice. The other high-signal ECB indicators (USD funding composite, SovCISS fragmentation, ESI, global CB stress) live on eurodollar / systemic-stress / cb-injection.`;
+}
+load();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
