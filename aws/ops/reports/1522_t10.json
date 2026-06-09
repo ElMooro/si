@@ -1,0 +1,78 @@
+{
+  "engines_checked": [
+    "euro-fragmentation",
+    "ecb-detail",
+    "systemic-stress",
+    "eurodollar-stress",
+    "global-liquidity",
+    "macro-calendar",
+    "consumer-pulse",
+    "global-markets",
+    "cb-injection"
+  ],
+  "results": {
+    "#1 BTP-Bund / periphery spreads": {
+      "exists_in": [
+        "euro-fragmentation",
+        "systemic-stress"
+      ],
+      "status": "EXISTS"
+    },
+    "#2 5Y5Y EUR inflation breakeven": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#3 ECB OIS-implied rate path": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#4 3M Euribor / Euribor-OIS": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#5 M3 money supply YoY": {
+      "exists_in": [
+        "global-liquidity"
+      ],
+      "status": "EXISTS"
+    },
+    "#6 \u20acSTR / \u20acSTR-DFR spread": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#7 TARGET2 by country": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#8 HICP headline/core/services": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#9 APP/PEPP roll-off": {
+      "exists_in": [
+        "ecb-detail"
+      ],
+      "status": "EXISTS"
+    },
+    "#10 Sovereign/Bank CDS": {
+      "exists_in": [
+        "systemic-stress"
+      ],
+      "status": "EXISTS"
+    }
+  },
+  "GAPS": [
+    "#2 5Y5Y EUR inflation breakeven",
+    "#3 ECB OIS-implied rate path",
+    "#4 3M Euribor / Euribor-OIS",
+    "#6 \u20acSTR / \u20acSTR-DFR spread",
+    "#7 TARGET2 by country",
+    "#8 HICP headline/core/services"
+  ],
+  "EXISTS": [
+    "#1 BTP-Bund / periphery spreads",
+    "#5 M3 money supply YoY",
+    "#9 APP/PEPP roll-off",
+    "#10 Sovereign/Bank CDS"
+  ]
+}
