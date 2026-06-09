@@ -12,7 +12,13 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from collections import defaultdict
 from boto3.dynamodb.conditions import Attr
-from _sentry_lite import track_errors
+try:
+    from _sentry_lite import track_errors
+except Exception:
+    # Optional error-logging helper; fall back to a no-op decorator if absent
+    # (keeps the Lambda self-contained — the missing module was crashing imports).
+    def track_errors(fn):
+        return fn
 
 
 # Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
