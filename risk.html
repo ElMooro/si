@@ -251,6 +251,7 @@ table.tbl tr:last-child td{border-bottom:none}
   </div>
 
 <div style="max-width:1500px; margin:18px auto; padding:0 18px;">
+  <div id="basket-var-panel" style="margin-top:18px"></div>
   <div id="tenor-signals-panel"></div>
 <div id="liquidity-credit-panel" style="margin-top:18px"></div>
 <div id="liquidity-pulse-panel" style="margin-bottom:18px"></div>
@@ -398,6 +399,34 @@ updateClock();
 setInterval(updateClock, 1000);
 load();
 setInterval(load, 5 * 60 * 1000);
+
+// ── Historical VaR / CVaR / beta on the live conviction basket (audit #8) ──
+async function loadBasketVaR(){
+  try{
+    const r = await fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/basket-var.json?t='+Date.now());
+    if(!r.ok) return;
+    const d = await r.json();
+    if(!d || !d.ok) return;
+    const el = document.getElementById('basket-var-panel');
+    if(!el) return;
+    const fmt = (v)=> v==null?'—':v.toFixed(2)+'%';
+    el.innerHTML = `
+      <div class="card" style="border:1px solid var(--border-bright);border-radius:14px;padding:16px 18px;background:var(--bg-1)">
+        <div style="font-family:var(--font-mono,monospace);font-size:12px;color:var(--fg-2);letter-spacing:.5px;margin-bottom:4px">📉 VALUE AT RISK · ${d.n_names}-NAME CONVICTION BASKET (EQUAL-WEIGHT)</div>
+        <div style="font-size:11px;color:var(--fg-3);margin-bottom:12px">${(d.basket||[]).join(' · ')}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+          <div><div style="font-family:monospace;font-size:10px;color:var(--fg-3)">1-DAY VaR 95%</div><div style="font-family:monospace;font-size:24px;font-weight:800;color:#fb923c">${fmt(d.var_1d_95_pct)}</div><div style="font-size:10px;color:var(--fg-3)">worst loss, 19/20 days</div></div>
+          <div><div style="font-family:monospace;font-size:10px;color:var(--fg-3)">1-DAY VaR 99%</div><div style="font-family:monospace;font-size:24px;font-weight:800;color:#ff5577">${fmt(d.var_1d_99_pct)}</div><div style="font-size:10px;color:var(--fg-3)">worst loss, 99/100 days</div></div>
+          <div><div style="font-family:monospace;font-size:10px;color:var(--fg-3)">CVaR 95% (tail)</div><div style="font-family:monospace;font-size:24px;font-weight:800;color:#ff5577">${fmt(d.cvar_1d_95_pct)}</div><div style="font-size:10px;color:var(--fg-3)">avg loss in worst 1/20</div></div>
+          <div><div style="font-family:monospace;font-size:10px;color:var(--fg-3)">ANN. VOL</div><div style="font-family:monospace;font-size:24px;font-weight:800;color:var(--fg-1)">${d.vol_annual_pct!=null?d.vol_annual_pct.toFixed(0)+'%':'—'}</div><div style="font-size:10px;color:var(--fg-3)">β to SPY ${d.basket_beta_spy!=null?d.basket_beta_spy:'—'}</div></div>
+          <div><div style="font-family:monospace;font-size:10px;color:var(--fg-3)">WORST DAY</div><div style="font-family:monospace;font-size:24px;font-weight:800;color:#ff5577">${fmt(d.worst_day_pct)}</div><div style="font-size:10px;color:var(--fg-3)">over ${d.lookback_days}d</div></div>
+        </div>
+        <div style="font-size:10.5px;color:var(--fg-3);margin-top:12px;line-height:1.5">${escHtml(d.interpretation||'')} <span style="color:var(--fg-3)">· ${escHtml(d.var_method||'')}. Add real positions for portfolio-specific VaR.</span></div>
+      </div>`;
+  }catch(e){}
+}
+loadBasketVaR();
+setInterval(loadBasketVaR, 5 * 60 * 1000);
 </script>
 
 </body>

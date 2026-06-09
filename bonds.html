@@ -630,7 +630,7 @@ function renderRegimeBanner(){
 }
 
 /* ─────────────── KEY METRICS ─────────────── */
-function renderKeyMetrics(){
+async function renderKeyMetrics(){
   const cards = [];
   const dgs10 = gv(REPORT,'treasury','DGS10');
   const dgs2 = gv(REPORT,'treasury','DGS2');
@@ -638,7 +638,12 @@ function renderKeyMetrics(){
   const t10y2y = gv(REPORT,'treasury','T10Y2Y');
   const t10yie = gv(REPORT,'treasury','T10YIE');
   const dfii10 = gv(REPORT,'treasury','DFII10');
-  const moveIdx = REPORT?.fred?.risk?.MOVE?.current || gv(REPORT,'risk','MOVE');
+  let moveIdx = REPORT?.fred?.risk?.MOVE?.current || gv(REPORT,'risk','MOVE');
+  let moveData = null;
+  try {
+    const _mr = await fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/move-index.json?t='+Date.now());
+    if (_mr.ok) { moveData = await _mr.json(); if (moveData && moveData.ok && moveData.level != null) moveIdx = moveData.level; }
+  } catch(e) {}
 
   cards.push({name:'10Y YIELD',value:dgs10!=null?dgs10.toFixed(2)+'%':'—',
     meta:dgs10!=null&&dgs10_30d!=null?(dgs10>dgs10_30d?'+':'')+(dgs10-dgs10_30d).toFixed(2)+'pp vs 30d ago':'',
@@ -661,7 +666,7 @@ function renderKeyMetrics(){
 
   cards.push({name:'MOVE INDEX',value:moveIdx!=null?moveIdx.toFixed(0):'—',
     cls: moveIdx!=null && moveIdx>120 ? 'red' : moveIdx!=null && moveIdx>100 ? 'amber' : '',
-    meta:'bond vol (≈ VIX of bonds)',
+    meta: moveData&&moveData.ok ? ('real ICE MOVE'+(moveData.change_1d!=null?' · '+(moveData.change_1d>=0?'+':'')+moveData.change_1d+' 1d':'')+(moveData.percentile!=null?' · '+moveData.percentile+'%ile':'')) : 'bond vol (≈ VIX of bonds)',
     interp:moveIdx==null?'':moveIdx>140?'Crisis-level vol — market expecting massive yield moves':moveIdx>120?'Elevated — bonds are unstable':moveIdx>90?'Normal range':'Suppressed — confidence in Fed path'});
 
   document.getElementById('key-metrics').innerHTML = cards.map(c => `<div class="stat-card">
@@ -1253,7 +1258,7 @@ async function loadAll(){
     document.getElementById('updated').textContent = fmtAge(REPORT.generated_at);
 
     renderRegimeBanner();
-    renderKeyMetrics();
+    await renderKeyMetrics();
     renderYieldCurve();
     renderSpreads();
     const sub = classifySubRegime();
