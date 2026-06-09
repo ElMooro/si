@@ -1,0 +1,101 @@
+{
+  "ops": 1525,
+  "fn": "justhodl-ecb-derived",
+  "config_before": {
+    "timeout": 120,
+    "memory": 256
+  },
+  "config_after": {
+    "timeout": 120,
+    "memory": 256
+  },
+  "code_updated": true,
+  "function_error": "NONE",
+  "invoke_response": "{\"statusCode\": 200, \"body\": \"{\\\"n_flashing\\\": 2}\"}",
+  "version": "2.0",
+  "duration_s": 21.2,
+  "n_flashing": 2,
+  "flashing": [
+    "bls_credit_standards",
+    "euribor_ois_stress"
+  ],
+  "v2_blocks": {
+    "rates_curve": "OK",
+    "inflation_expectations": "OK",
+    "inflation": "OK",
+    "target2": "OK",
+    "credit": "OK",
+    "fx": "OK"
+  },
+  "spot_check": {
+    "estr_pct": 1.93,
+    "dfr_pct": 2.0,
+    "estr_dfr_spread_bp": -7.0,
+    "euribor_ois_proxy_bp": 29.0,
+    "implied_next_12m_bp": 59,
+    "path_read": "Curve prices ~59bp of hikes over the next 12m, then 20bp more hikes the following year (1y1y 2.72%).",
+    "spf_lt": 2.03,
+    "hicp_headline": 1.9,
+    "hicp_services": 3.4,
+    "t2_countries": 12,
+    "de_minus_it_bn": 1408.3,
+    "nfc_loans_yoy": 3.44,
+    "eurusd": 1.1573,
+    "n_indicators": 10
+  },
+  "dataflow_grep": {
+    "bytes": 39226,
+    "n_flows": 104,
+    "inflation_swap": [],
+    "wages": [
+      {
+        "id": "ECB_EST1",
+        "name": "ECB wage tracker"
+      },
+      {
+        "id": "ECB_ILM1",
+        "name": "Indicator of negotiated wage rates"
+      }
+    ],
+    "survey": [
+      {
+        "id": "ECB_BKN1",
+        "name": "Bank Lending Survey Statistics"
+      },
+      {
+        "id": "ECB_CCP1",
+        "name": "Consumer Expectations Survey"
+      },
+      {
+        "id": "ECB_MIR1",
+        "name": "Money Market Survey"
+      },
+      {
+        "id": "ECB_RTD1",
+        "name": "Survey on the Access to Finance of SMEs"
+      },
+      {
+        "id": "ECB_SEE1",
+        "name": "Survey on credit terms and conditions in euro-denominated securities financing and over-th"
+      },
+      {
+        "id": "NA_SEC",
+        "name": "Survey of Professional Forecasters"
+      },
+      {
+        "id": "ECB_SUP1",
+        "name": "Opinion Surveys"
+      }
+    ],
+    "fm_like": [
+      {
+        "id": "ECB_EXR1",
+        "name": "Financial market data"
+      },
+      {
+        "id": "ECB_WTS1",
+        "name": "Financial market data - yield curve"
+      }
+    ]
+  }
+}
