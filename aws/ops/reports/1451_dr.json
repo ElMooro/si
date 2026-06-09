@@ -1,0 +1,201 @@
+{
+  "backtest": {
+    "snapshot_today": {
+      "date": "2026-06-08",
+      "by_signal": {
+        "insider_cluster": {
+          "extracted": 2,
+          "written": 2
+        },
+        "big_insider_buy": {
+          "extracted": 27,
+          "written": 27
+        },
+        "asymmetric_setup": {
+          "extracted": 30,
+          "written": 30
+        },
+        "8k_red_flag": {
+          "extracted": 7,
+          "written": 7
+        },
+        "aaii_extreme": {
+          "extracted": 1,
+          "written": 1
+        }
+      }
+    },
+    "fwd_computed": {
+      "30d": 1,
+      "60d": 0,
+      "90d": 0,
+      "180d": 0
+    },
+    "n_signals": 5,
+    "sample": {
+      "8k_red_flag": {},
+      "big_insider_buy": {},
+      "asymmetric_setup": {},
+      "insider_cluster": {},
+      "aaii_extreme": {}
+    }
+  },
+  "best_setups_top": [
+    {
+      "t": "MU",
+      "verdict": "STRONG BUY",
+      "conv": 66.9,
+      "sig": [
+        "CASCADE_LAGGARD",
+        "DISLOCATION",
+        "COMPOUNDER",
+        "CONVERGENCE"
+      ]
+    },
+    {
+      "t": "NVDA",
+      "verdict": "STRONG BUY",
+      "conv": 65.9,
+      "sig": [
+        "COMPOUNDER",
+        "DEEP_VALUE_OVERLAP",
+        "EARNINGS_FRESH",
+        "CONVERGENCE"
+      ]
+    },
+    {
+      "t": "AOS",
+      "verdict": "BUY",
+      "conv": 52.7,
+      "sig": [
+        "DISLOCATION",
+        "COMPOUNDER",
+        "DEEP_VALUE_OVERLAP"
+      ]
+    },
+    {
+      "t": "EXE",
+      "verdict": "TRIPLE THREAT",
+      "conv": 49.7,
+      "sig": [
+        "INSIDER_CLUSTER",
+        "DISLOCATION",
+        "COMPOUNDER",
+        "DEEP_VALUE_OVERLAP"
+      ]
+    },
+    {
+      "t": "ANET",
+      "verdict": "BUY",
+      "conv": 47.8,
+      "sig": [
+        "CASCADE_LAGGARD",
+        "COMPOUNDER",
+        "CAPITAL_FLOW",
+        "CONVERGENCE"
+      ]
+    },
+    {
+      "t": "MSFT",
+      "verdict": "BUY",
+      "conv": 46.6,
+      "sig": [
+        "POLITICIAN_BUY",
+        "DEEP_VALUE_OVERLAP",
+        "CONVERGENCE"
+      ]
+    },
+    {
+      "t": "AMD",
+      "verdict": "BUY",
+      "conv": 45.0,
+      "sig": [
+        "CASCADE_LAGGARD",
+        "OPTIONS_EXTREME",
+        "CONVERGENCE"
+      ]
+    },
+    {
+      "t": "CRWD",
+      "verdict": "BUY",
+      "conv": 37.7,
+      "sig": [
+        "CASCADE_ALERT",
+        "CONVERGENCE",
+        "EARLY_MOVER"
+      ]
+    }
+  ],
+  "best_setups_stats": {
+    "n_setups": 383,
+    "strong_buy": 2,
+    "buy": 7,
+    "watch": 372
+  },
+  "master_ranker_top": [
+    {
+      "ticker": "STX",
+      "score": 128.4
+    },
+    {
+      "ticker": "VRT",
+      "score": 124.4
+    },
+    {
+      "ticker": "DELL",
+      "score": 114.9
+    },
+    {
+      "ticker": "AVGO",
+      "score": 114.7
+    },
+    {
+      "ticker": "GOOGL",
+      "score": 114.7
+    },
+    {
+      "ticker": "NVDA",
+      "score": 113.7
+    },
+    {
+      "ticker": "PSX",
+      "score": 113.4
+    },
+    {
+      "ticker": "SNDK",
+      "score": 112.5
+    }
+  ],
+  "opportunities_top": [
+    {
+      "ticker": "BKNG",
+      "verdict": "STRONG OPPORTUNITY"
+    },
+    {
+      "ticker": "NFLX",
+      "verdict": "STRONG OPPORTUNITY"
+    },
+    {
+      "ticker": "FICO",
+      "verdict": "STRONG OPPORTUNITY"
+    },
+    {
+      "ticker": "NEM",
+      "verdict": "OPPORTUNITY"
+    },
+    {
+      "ticker": "BX",
+      "verdict": "STRONG OPPORTUNITY"
+    },
+    {
+      "ticker": "DECK",
+      "verdict": "OPPORTUNITY"
+    }
+  ],
+  "factor_weights": {
+    "value": 0.4,
+    "quality": 0.3,
+    "growth": 0.2,
+    "momentum": 0.1
+  }
+}
