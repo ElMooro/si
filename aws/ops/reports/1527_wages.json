@@ -1,0 +1,38 @@
+{
+  "ops": 1527,
+  "fn": "justhodl-ecb-derived",
+  "config": {
+    "timeout": 240,
+    "memory": 512
+  },
+  "function_error": "NONE",
+  "invoke_response": "{\"statusCode\": 200, \"body\": \"{\\\"n_flashing\\\": 2}\"}",
+  "version": "2.1",
+  "duration_s": 18.3,
+  "n_flashing": 2,
+  "flashing": [
+    "bls_credit_standards",
+    "euribor_ois_stress"
+  ],
+  "wages_block": "OK",
+  "wages": {
+    "negotiated_yoy_official": 1.87,
+    "official_as_of": "2025-Q3",
+    "negotiated_1y_ago": 5.38,
+    "tracker_fwd_yoy": 2.5,
+    "tracker_fwd_to": "2026-Q4",
+    "tracker_ex_oneoffs_yoy": 2.59,
+    "tracker_coverage_pct": 38.8,
+    "read": "Negotiated wages 1.87% YoY (official, 2025-Q3); ECB wage tracker projects 2.5% through 2026-Q4 (2.59% ex one-offs). ~3% is the 2%-inflation-consistent ceiling (target + ~1% productivity); wage disinflation intact \u2014 supports the easing case."
+  },
+  "all_blocks": {
+    "rates_curve": "OK",
+    "inflation_expectations": "OK",
+    "inflation": "OK",
+    "wages": "OK",
+    "target2": "OK",
+    "credit": "OK",
+    "fx": "OK"
+  },
+  "n_indicators": 10
+}
