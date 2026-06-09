@@ -76,7 +76,8 @@ def tier_inversion():
     """If cascade ALERT_TIER validates <30% (n≥10) → return its fade set."""
     vl = _rd("data/cascade-validation-log.json")
     st = (vl.get("by_tier_stats") or {}).get("ALERT_TIER") or {}
-    if (st.get("n") or 0) >= 10 and (st.get("hit_rate_pct") or 100) < 30:
+    hr = st.get("hit_rate_pct")
+    if (st.get("n") or 0) >= 10 and hr is not None and hr < 30:
         tc = _rd("data/theme-cascade-calibrated.json")
         fades = {str(c.get("ticker", "")).upper() for c in (tc.get("alert_tier") or []) if c.get("ticker")}
         return {"active": True, "alert_tier_hit_pct": st.get("hit_rate_pct"),
@@ -170,6 +171,8 @@ def lambda_handler(event, context):
         base = num / den
         n_src = len(comp)
         score = min(100, round(base * (1 + 0.08 * (n_src - 1)), 1))
+        if n_src == 1:
+            score = round(score * 0.78, 1)   # single-source haircut — confluence is the edge
         fade = inv["active"] and tk in set(inv.get("fade_set", []))
         tier = ("LIFTOFF" if score >= 78 and n_src >= 3 else
                 "IGNITION" if score >= 62 and n_src >= 2 else
@@ -186,7 +189,7 @@ def lambda_handler(event, context):
         by_tier[r["tier"]] = by_tier.get(r["tier"], 0) + 1
 
     # ── DDB prediction logging (closed loop grades us) ──
-    logged = []
+    logged, log_errors = [], []
     for r in rows[:12]:
         if r["tier"] not in ("LIFTOFF", "IGNITION") or not r["price"]:
             continue
@@ -204,8 +207,8 @@ def lambda_handler(event, context):
                                               "components": r["components"]})[:900]},
             }, ConditionExpression="attribute_not_exists(signal_id)")
             logged.append(sid)
-        except Exception:
-            pass  # already logged today / throttle
+        except Exception as ex:
+            log_errors.append(f"{r['ticker']}: {type(ex).__name__} {str(ex)[:70]}")
 
     top = rows[:25]
     lift = [r for r in top if r["tier"] == "LIFTOFF"][:5] or [r for r in top if r["tier"] == "IGNITION"][:3]
@@ -214,10 +217,10 @@ def lambda_handler(event, context):
         _tg("🚀 <b>APEX FUSION</b> — top conviction\n" + "\n".join(lines) +
             (f"\n⚠ tier-inversion active (ALERT_TIER {inv['alert_tier_hit_pct']}% hit)" if inv["active"] else ""))
 
-    out = {"engine": "apex-fusion", "version": "1.0", "generated_at": now.isoformat(),
+    out = {"engine": "apex-fusion", "version": "1.1", "generated_at": now.isoformat(),
            "weights_used": W, "weight_sources": w_src, "tier_inversion": inv,
            "n_universe": len(book), "n_scored": len(rows), "by_tier": by_tier,
-           "n_logged_to_ddb": len(logged), "top": top,
+           "n_logged_to_ddb": len(logged), "log_errors": log_errors[:5], "top": top,
            "read": (f"{len(rows)} names fused across 5 engines; "
                     f"{by_tier.get('LIFTOFF', 0)} LIFTOFF / {by_tier.get('IGNITION', 0)} IGNITION. "
                     + (f"Tier-inversion guard ACTIVE — cascade alert tier validating at "

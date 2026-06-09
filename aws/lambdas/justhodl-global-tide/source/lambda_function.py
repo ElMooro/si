@@ -97,7 +97,7 @@ def _dig(d, *names):
 def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
-    out = {"engine": "global-tide", "version": "1.0", "generated_at": now.isoformat()}
+    out = {"engine": "global-tide", "version": "1.1", "generated_at": now.isoformat()}
     prev = _rd("data/global-tide.json")
 
     # ── 1. FED leg: net liquidity = WALCL − RRP − TGA (USD bn) ──
@@ -110,8 +110,8 @@ def lambda_handler(event, context):
             w_now, w_13 = wal[-1][1] / 1000, wal[-14][1] / 1000 if len(wal) > 13 else None
             r_now = rrp[-1][1]
             r_13 = rrp[-66][1] if len(rrp) > 65 else rrp[0][1]
-            t_now = tga[-1][1]
-            t_13 = tga[-14][1] if len(tga) > 13 else tga[0][1]
+            t_now = tga[-1][1] / 1000      # WTREGEN is $mn
+            t_13 = (tga[-14][1] if len(tga) > 13 else tga[0][1]) / 1000
             nl_now = round(w_now - r_now - t_now, 0)
             nl_13 = round((w_13 - r_13 - t_13), 0) if w_13 is not None else None
             fed = {"net_liquidity_usd_bn": nl_now, "fed_bs_usd_bn": round(w_now, 0),
