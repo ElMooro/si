@@ -141,8 +141,9 @@ def lambda_handler(event=None, context=None):
         def fred_netliq_6m():
             if not walcl or len(walcl) < 27: return None
             def v(pts, idx): return pts[idx][1] if len(pts) > abs(idx) else 0
-            now = v(walcl,-1)/1000 - v(rrp,-1) - v(tga,-1)        # WALCL $mn→$bn; RRP/TGA already $bn
-            then = v(walcl,-27)/1000 - v(rrp,-27) - v(tga,-27)
+            # FRED units: WALCL $mn, WTREGEN(TGA) $mn → /1000 to $bn; RRPONTSYD already $bn
+            now = v(walcl,-1)/1000.0 - v(rrp,-1) - v(tga,-1)/1000.0
+            then = v(walcl,-27)/1000.0 - v(rrp,-27) - v(tga,-27)/1000.0
             return round(now - then, 1)
         fed_6m_bn = fred_netliq_6m()
         diverg = round(ecb_6m_bn - fed_6m_bn, 1) if (ecb_6m_bn is not None and fed_6m_bn is not None) else None
