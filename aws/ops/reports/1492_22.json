@@ -1,0 +1,99 @@
+{
+  "engines_checked": [
+    "eurodollar-stress",
+    "euro-fragmentation",
+    "systemic-stress",
+    "ecb-detail",
+    "cb-injection",
+    "crisis-composite",
+    "global-stress",
+    "global-liquidity"
+  ],
+  "indicator_audit": {
+    "#2 USD Funding Stress Composite": {
+      "exists_in": [
+        "ecb-detail",
+        "cb-injection",
+        "global-stress",
+        "global-liquidity"
+      ],
+      "status": "EXISTS"
+    },
+    "#5 TARGET2 Imbalance": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#8 CISS Acceleration": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#9 CISS Subindex Divergence": {
+      "exists_in": [
+        "euro-fragmentation",
+        "systemic-stress",
+        "global-stress"
+      ],
+      "status": "EXISTS"
+    },
+    "#10 SovCISS Fragmentation Spread": {
+      "exists_in": [
+        "euro-fragmentation",
+        "systemic-stress",
+        "global-stress"
+      ],
+      "status": "EXISTS"
+    },
+    "#12 BLS Credit Standards": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#14 Bank Pass-Through Premium": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#16 Eurodollar Stress Index ESI": {
+      "exists_in": [
+        "eurodollar-stress",
+        "ecb-detail",
+        "global-stress"
+      ],
+      "status": "EXISTS"
+    },
+    "#17 European Liquidity Pulse": {
+      "exists_in": [
+        "ecb-detail",
+        "global-liquidity"
+      ],
+      "status": "EXISTS"
+    },
+    "#18 EU/US Liquidity Divergence": {
+      "exists_in": [],
+      "status": "GAP"
+    },
+    "#21 Global CB Composite Stress": {
+      "exists_in": [
+        "euro-fragmentation",
+        "systemic-stress",
+        "ecb-detail",
+        "cb-injection",
+        "global-stress"
+      ],
+      "status": "EXISTS"
+    }
+  },
+  "gaps": [
+    "#5 TARGET2 Imbalance",
+    "#8 CISS Acceleration",
+    "#12 BLS Credit Standards",
+    "#14 Bank Pass-Through Premium",
+    "#18 EU/US Liquidity Divergence"
+  ],
+  "exists": [
+    "#2 USD Funding Stress Composite",
+    "#9 CISS Subindex Divergence",
+    "#10 SovCISS Fragmentation Spread",
+    "#16 Eurodollar Stress Index ESI",
+    "#17 European Liquidity Pulse",
+    "#21 Global CB Composite Stress"
+  ]
+}
