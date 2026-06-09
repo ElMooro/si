@@ -99,7 +99,7 @@ def _regime_read(notes_text, regimes):
         "Speak in THEIR voice and framework. Return STRICT JSON only: {"
         "\"regime\": \"<2-4 word name of the current regime, e.g. 'Liquidity-drain / late-cycle' or 'Stagflationary risk-off'>\", "
         "\"headline\": \"<one punchy sentence: what regime we're in right now and the single biggest thing it means>\", "
-        "\"assessment\": \"<3-5 sentences: connect the live data (rates, dollar, liquidity/plumbing, credit, crypto) to "
+        "\"assessment\": \"<3-5 sentences: connect the live data (rates, dollar, liquidity/plumbing, credit, crypto, bond-vol MOVE, the ECB dump-radar signals, and the conviction-basket VaR) to "
         "THEIR specific frameworks and notes. Reference their own thinking by name where it applies.>\", "
         "\"risk_assets\": \"<2-3 sentences: what should happen to risk assets (equities, crypto, credit) in THIS regime, "
         "per their playbook — up/down/chop, and why>\", "
@@ -232,6 +232,14 @@ def lambda_handler(event=None, context=None):
             "dollar_index_DTWEXBGS": _fred_latest("DTWEXBGS"),
             "hy_credit_spread_OAS": _fred_latest("BAMLH0A0HYM2"),
             "fed_funds_rate": _fred_latest("DFF"),
+            # ── NEW institutional signals (so the regime-read reasons from them) ──
+            "move_index_bond_vol": {k: (read_json("data/move-index.json") or {}).get(k) for k in ["level", "regime", "percentile"]},
+            "ecb_dump_radar": {
+                "headline": (read_json("data/ecb-derived.json") or {}).get("headline"),
+                "n_flashing": (read_json("data/ecb-derived.json") or {}).get("n_flashing"),
+                "signals": {k: (v or {}).get("signal") for k, v in ((read_json("data/ecb-derived.json") or {}).get("indicators") or {}).items()},
+            },
+            "conviction_basket_var": {k: (read_json("data/basket-var.json") or {}).get(k) for k in ["var_1d_95_pct", "cvar_1d_95_pct", "basket_beta_spy", "vol_annual_pct"]},
             "as_of": datetime.now(timezone.utc).date().isoformat(),
         }
         regime_read = _regime_read(all_text, regimes)
