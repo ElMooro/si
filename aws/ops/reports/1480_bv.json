@@ -1,0 +1,29 @@
+{
+  "n_channels": 10,
+  "channel_names": [
+    "10Y Treasury Yield Vol",
+    "2Y Treasury Yield Vol",
+    "30Y Treasury Yield Vol",
+    "5Y Treasury Yield Vol",
+    "2s10s Curve Vol",
+    "10Y-3M Curve Vol",
+    "HY Credit Spread Vol",
+    "BBB IG Spread Vol",
+    "10Y Real Yield Vol",
+    "10Y Breakeven Inflation Vol"
+  ],
+  "one_channel_shape": {
+    "id": "dgs10",
+    "fred_series": "DGS10",
+    "name": "10Y Treasury Yield Vol",
+    "edge": "Duration risk - long-bond price sensitivity to vol regime",
+    "ok": true,
+    "realized_vol_now": 0.7365,
+    "vol_units": "annualized stdev of daily changes",
+    "z_score": 0.62,
+    "percentile_1y": 68.7,
+    "n_observations_1y": 252,
+    "latest_obs_date": "2026-06-05",
+    "latest_obs_value": 4.55
+  }
+}
