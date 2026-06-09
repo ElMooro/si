@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Scorecard · JustHodl AI</title>
+<meta name="description" content="Honest forward-return validation of every signal — proven hit-rates, including what we got wrong.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--cyan);border-radius:50%;box-shadow:0 0 9px var(--cyan)}
+.nav{display:flex;gap:3px;margin-left:10px;flex-wrap:wrap}.nav a{padding:6px 10px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1000px;margin:0 auto;padding:24px}
+.hero h1{font-size:25px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:5px 0 16px;font-size:13px;max-width:780px;line-height:1.5}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.scard{background:var(--bg-1);border:1px solid var(--border-bright);border-radius:12px;padding:14px 16px}
+.scard .lab{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase}
+.scard .val{font-family:var(--mono);font-size:26px;font-weight:800;margin-top:4px}
+.scard .sub{font-size:11px;color:var(--fg-3);margin-top:2px}
+.maturity{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 9px;border-radius:10px;margin-left:8px}
+.maturity.MATURE{background:rgba(38,255,175,.15);color:var(--green)}
+.maturity.MATURING,.maturity.BOOTSTRAPPING{background:rgba(251,191,36,.13);color:var(--amber)}
+h2{font-size:15px;color:var(--fg-1);margin:24px 0 10px;font-family:var(--mono)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:right;font-family:var(--mono);font-size:10px;color:var(--fg-3);padding:8px 10px;border-bottom:1px solid var(--border-bright);text-transform:uppercase}
+.tbl th:first-child{text-align:left}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+.tbl td:first-child{text-align:left;font-family:var(--sans);font-weight:600}
+.tbl tr:hover{background:var(--bg-1)}
+.wr-good{color:var(--green)}.wr-mid{color:var(--amber)}.wr-bad{color:var(--red)}
+.flag{font-family:var(--mono);font-size:9px;padding:1px 7px;border-radius:8px;margin-left:6px}
+.flag.inverted{background:rgba(255,85,119,.15);color:var(--red)}
+.flag.best{background:rgba(38,255,175,.15);color:var(--green)}
+.callout{background:rgba(255,85,119,0.06);border:1px solid #3a2230;border-radius:12px;padding:14px 18px;margin:18px 0;font-size:13px;color:var(--fg-1);line-height:1.55}
+.callout b{color:var(--red)}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.note{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:18px;line-height:1.5}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Desk</a><a href="/master-board.html">🎯 Master Board</a><a href="/scorecard.html" class="active">📊 Scorecard</a><a href="/brain.html">🧠 Brain</a></nav>
+</header>
+<div class="wrap">
+  <div class="hero"><h1>Signal <span class="grad">Scorecard</span></h1>
+  <p>Honest forward-return validation. Every verdict and signal is tracked against what actually happened — wins, losses, and the uncomfortable truths. Most platforms hide this. We show it, because a signal you can't validate isn't an edge.</p></div>
+  <div id="content"><div class="loading">Loading validation data…</div></div>
+  <div class="note">Point-in-time: signals are snapshotted daily, then graded against forward price returns. Win rate = % positive forward return. avg = mean forward return %. This is research, not advice. As snapshots accumulate, confidence grows.</div>
+</div>
+<script>
+const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function wrClass(w){return w>=56?'wr-good':w>=50?'wr-mid':'wr-bad';}
+function num(v,d){return v==null?'—':(typeof v==='number'?v.toFixed(d==null?1:d):v);}
+
+async function load(){
+  const d=await gj('data/signal-backtest.json');
+  if(!d||!d.overall){document.getElementById('content').innerHTML='<div class="loading">Validation data still maturing — check back as snapshots accumulate.</div>';return;}
+  const o=d.overall;
+  let h=`<div class="summary">
+    <div class="scard"><div class="lab">Observations</div><div class="val" style="color:var(--cyan)">${(d.n_observations||0).toLocaleString()}</div><div class="sub">${d.snapshots_used||0} daily snapshots</div></div>
+    <div class="scard"><div class="lab">Overall Win Rate</div><div class="val ${wrClass(o.win_rate)}">${num(o.win_rate)}%</div><div class="sub">positive forward return</div></div>
+    <div class="scard"><div class="lab">Avg Forward Return</div><div class="val" style="color:${o.avg>=0?'var(--green)':'var(--red)'}">${o.avg>=0?'+':''}${num(o.avg)}%</div><div class="sub">median ${num(o.median)}%</div></div>
+    <div class="scard"><div class="lab">Hit ≥5%</div><div class="val" style="color:var(--violet)">${num(o.hit_5pct)}%</div><div class="sub">best ${num(o.best)}% · worst ${num(o.worst)}%</div></div>
+  </div>
+  <div style="font-family:var(--mono);font-size:11px;color:var(--fg-3)">Maturity: <span class="maturity ${esc(d.maturity)}">${esc(d.maturity)}</span></div>`;
+
+  // by verdict — sort by win_rate, flag inverted/best
+  const bv=d.by_verdict||{};
+  const verdicts=Object.entries(bv).filter(([k,v])=>v&&v.n).sort((a,b)=>b[1].win_rate-a[1].win_rate);
+  if(verdicts.length){
+    // detect inversion: is a "buy-ish" verdict underperforming a "neutral/expensive" one?
+    const buyish=verdicts.find(([k])=>/STRONG|OPPORTUNITY|BUY/.test(k));
+    const top=verdicts[0];
+    let inverted=buyish&&top&&!/STRONG|OPPORTUNITY|BUY/.test(top[0])&&buyish[1].win_rate<top[1].win_rate-3;
+    if(inverted){
+      h+=`<div class="callout">⚠ <b>Honest finding:</b> the <b>${esc(buyish[0])}</b> verdict is currently underperforming (${num(buyish[1].win_rate)}% win, ${buyish[1].avg>=0?'+':''}${num(buyish[1].avg)}% avg) while "${esc(top[0])}" leads (${num(top[1].win_rate)}%). The conviction labels aren't yet predictive — the validation loop is recalibrating signal weights. This is exactly the gap between a scanner and a proven alpha engine, shown openly.</div>`;
+    }
+    h+=`<h2>By Verdict</h2><table class="tbl"><thead><tr><th>Verdict</th><th>N</th><th>Win Rate</th><th>Avg Return</th><th>Median</th><th>Hit ≥5%</th><th>Best / Worst</th></tr></thead><tbody>`;
+    verdicts.forEach(([k,v])=>{
+      const fl=v.win_rate>=57?'<span class="flag best">best</span>':(/STRONG|OPPORTUNITY|BUY/.test(k)&&v.win_rate<48?'<span class="flag inverted">underperforming</span>':'');
+      h+=`<tr><td>${esc(k)}${fl}</td><td>${v.n}</td><td class="${wrClass(v.win_rate)}">${num(v.win_rate)}%</td><td style="color:${v.avg>=0?'var(--green)':'var(--red)'}">${v.avg>=0?'+':''}${num(v.avg)}%</td><td>${num(v.median)}%</td><td>${num(v.hit_5pct)}%</td><td style="color:var(--fg-3)">${num(v.best)} / ${num(v.worst)}</td></tr>`;
+    });
+    h+='</tbody></table>';
+  }
+  // by compounder bucket if present
+  const bc=d.by_compounder_bucket||{};
+  if(Object.keys(bc).length){
+    h+=`<h2>By Quality (Compounder Bucket)</h2><table class="tbl"><thead><tr><th>Bucket</th><th>N</th><th>Win Rate</th><th>Avg</th></tr></thead><tbody>`;
+    Object.entries(bc).forEach(([k,v])=>{if(v&&v.n)h+=`<tr><td>${esc(k)}</td><td>${v.n}</td><td class="${wrClass(v.win_rate)}">${num(v.win_rate)}%</td><td style="color:${v.avg>=0?'var(--green)':'var(--red)'}">${v.avg>=0?'+':''}${num(v.avg)}%</td></tr>`;});
+    h+='</tbody></table>';
+  }
+  document.getElementById('content').innerHTML=h;
+}
+load();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
