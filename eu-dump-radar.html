@@ -47,7 +47,7 @@ a{color:var(--cyan);text-decoration:none}
 const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-function sigClass(s){if(['CRITICAL','ACUTE','TAIL_RISK','SEVERE_TIGHTENING'].includes(s))return 'alert';if(['WATCH','ELEVATED','TIGHTENING'].includes(s))return 'warn';return 'calm';}
+function sigClass(s){if(['CRITICAL','ACUTE','TAIL_RISK','SEVERE_TIGHTENING','CREDIT_STRESS'].includes(s))return 'alert';if(['WATCH','ELEVATED','TIGHTENING'].includes(s))return 'warn';return 'calm';}
 function row(k,v){return v==null?'':`<div class="metric"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`;}
 
 async function load(){
@@ -78,6 +78,11 @@ async function load(){
   if(e&&!e.err){const sc=sigClass(e.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(e.signal)}</span><h2>EU Credit Standards</h2><div class="num">#12 · Bank Lending Survey (C&I) — EU SLOOS</div>
     ${row('Net % tightening',e.net_pct_tightening!=null?e.net_pct_tightening+'%':null)}${row('Prev quarter',e.prev_quarter!=null?e.prev_quarter+'%':null)}${row('As of',e.as_of)}
     <div class="interp">${esc(e.interpretation||'')}</div></div>`);}
+  // #14 Bank Pass-Through Premium
+  const p=ind.bank_pass_through_premium;
+  if(p&&!p.err){const sc=sigClass(p.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(p.signal)}</span><h2>Bank Pass-Through Premium</h2><div class="num">#14 · NFC lending rate − ECB DFR</div>
+    ${row('NFC lending rate',p.nfc_lending_rate_pct!=null?p.nfc_lending_rate_pct+'%':null)}${row('ECB DFR',p.dfr_pct!=null?p.dfr_pct+'%':null)}${row('Premium',p.premium_pct!=null?p.premium_pct+'pp':null)}${row('3m widening',p.widening_3m_pp!=null?p.widening_3m_pp+'pp':null)}
+    <div class="interp">${esc(p.interpretation||'')}</div></div>`);}
   document.getElementById('cards').innerHTML='<div class="grid">'+cards.join('')+'</div>';
   document.getElementById('note').innerHTML=`Updated ${d.generated_at?new Date(d.generated_at).toLocaleString():'recently'} · thresholds calibrated to 2008/2011/2020/2023 crises · Research, not advice. The other high-signal ECB indicators (USD funding composite, SovCISS fragmentation, ESI, global CB stress) live on eurodollar / systemic-stress / cb-injection.`;
 }

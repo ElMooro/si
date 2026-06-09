@@ -178,11 +178,36 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         out["indicators"]["bls_credit_standards"] = {"err": str(e)[:60]}
 
+    # ── #14 Bank Pass-Through Premium — NFC lending rate minus ECB DFR ──
+    try:
+        nfc = ecb_csv("MIR/M.U2.B.A2A.A.R.A.2240.EUR.N", last_n=18)   # NFC new-business lending rate
+        dfr = ecb_csv("FM/D.U2.EUR.4F.KR.DFR.LEV", last_n=200)         # deposit facility rate (daily)
+        if nfc and dfr:
+            nfc_now = nfc[-1][1]; dfr_now = dfr[-1][1]
+            premium = round(nfc_now - dfr_now, 2)
+            # 3-month change in the premium (NFC is monthly → 3 obs back)
+            prem_3m_ago = None
+            if len(nfc) > 3:
+                # match DFR ~3 months back (≈63 trading days)
+                dfr_3m = dfr[-64][1] if len(dfr) > 64 else dfr[0][1]
+                prem_3m_ago = round(nfc[-4][1] - dfr_3m, 2)
+            widening_3m = round(premium - prem_3m_ago, 2) if prem_3m_ago is not None else None
+            sig = "CREDIT_STRESS" if (widening_3m is not None and widening_3m > 0.50) else "NORMAL"
+            out["indicators"]["bank_pass_through_premium"] = {
+                "name": "Bank Pass-Through Premium (NFC lending rate − DFR)",
+                "nfc_lending_rate_pct": round(nfc_now, 2), "dfr_pct": round(dfr_now, 2),
+                "premium_pct": premium, "premium_3m_ago_pct": prem_3m_ago,
+                "widening_3m_pp": widening_3m, "as_of": nfc[-1][0], "signal": sig,
+                "interpretation": f"Banks charge corporates {premium}pp over the ECB risk-free rate ({round(nfc_now,2)}% NFC vs {round(dfr_now,2)}% DFR). Widening >+0.50pp/3m = banks pricing default risk, credit cycle turning. 3m change: {widening_3m if widening_3m is not None else '—'}pp.",
+                "thresholds": {"credit_stress_widening_3m_pp": 0.50}}
+    except Exception as e:
+        out["indicators"]["bank_pass_through_premium"] = {"err": str(e)[:60]}
+
     # composite headline: count how many are flashing
     flashing = []
     for k, v in out["indicators"].items():
         s = (v or {}).get("signal", "")
-        if s in ("WATCH", "CRITICAL", "ELEVATED", "ACUTE", "TAIL_RISK", "TIGHTENING", "SEVERE_TIGHTENING"):
+        if s in ("WATCH", "CRITICAL", "ELEVATED", "ACUTE", "TAIL_RISK", "TIGHTENING", "SEVERE_TIGHTENING", "CREDIT_STRESS"):
             flashing.append(k)
     out["n_flashing"] = len(flashing); out["flashing"] = flashing
     out["headline"] = (f"{len(flashing)} ECB-derived dump signal(s) active: {', '.join(flashing)}"
