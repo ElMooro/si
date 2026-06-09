@@ -369,22 +369,34 @@ def run_calibration():
     report["recommendations"] = recs
 
     # ── Save to SSM ────────────────────────────────────────────────────────
-    ssm.put_parameter(
-        Name=SSM_WEIGHTS_PATH,
-        Value=json.dumps(weights),
-        Type="String",
-        Overwrite=True
-    )
-    ssm.put_parameter(
-        Name=SSM_ACCURACY_PATH,
-        Value=json.dumps({k: {
+    # SSM Standard tier caps values at 4096 chars; weights/accuracy have grown
+    # past that as signal types accumulated → PutParameter threw ValidationException
+    # and killed the whole calibrator (100% error rate). Fix: Advanced tier (8KB)
+    # with a guarded fallback, and always mirror to S3 (the durable source of truth).
+    def _put_param(name, value):
+        body = json.dumps(value)
+        try:
+            kw = {"Name": name, "Value": body, "Type": "String", "Overwrite": True}
+            if len(body) > 4096:
+                kw["Tier"] = "Advanced"
+            ssm.put_parameter(**kw)
+            return True
+        except Exception as e:
+            print(f"[CALIBRATE] SSM write {name} failed ({len(body)} chars): {str(e)[:80]}")
+            return False
+    _put_param(SSM_WEIGHTS_PATH, weights)
+    _put_param(SSM_ACCURACY_PATH, {k: {
             "accuracy": v.get("accuracy"),
             "n": v.get("n"),
             "avg_return": v.get("avg_return"),
-        } for k, v in accuracy_by_type.items()}),
-        Type="String",
-        Overwrite=True
-    )
+        } for k, v in accuracy_by_type.items()})
+    # Durable mirror to S3 so consumers never depend on the SSM tier limit
+    try:
+        s3.put_object(Bucket="justhodl-dashboard-live", Key="calibration/weights.json",
+                      Body=json.dumps({"weights": weights, "accuracy_by_type": {k: {"accuracy": v.get("accuracy"), "n": v.get("n")} for k, v in accuracy_by_type.items()}, "generated_at": report["generated_at"]}, default=str).encode(),
+                      ContentType="application/json")
+    except Exception as e:
+        print(f"[CALIBRATE] S3 weights mirror failed: {str(e)[:60]}")
 
     # Phase: per-horizon weights at /justhodl/calibration/weights/{window}
     # Consumers (backtest engine, ai-brief, position monitors) can opt-in by
@@ -397,16 +409,8 @@ def run_calibration():
             by_window_flat[win][stype] = w
     for window, type_map in by_window_flat.items():
         path = f"{SSM_WEIGHTS_PATH}/{window}"
-        try:
-            ssm.put_parameter(
-                Name=path,
-                Value=json.dumps(type_map),
-                Type="String",
-                Overwrite=True,
-            )
+        if _put_param(path, type_map):
             horizon_writes.append((path, len(type_map)))
-        except Exception as e:
-            print(f"[CALIBRATE] horizon SSM write {path} failed: {e}")
     if horizon_writes:
         print(f"[CALIBRATE] Wrote {len(horizon_writes)} per-horizon SSM weights:")
         for path, n in horizon_writes:
