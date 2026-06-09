@@ -122,6 +122,22 @@ async function load(){
   if(setup&&setup.entry){h+=`<div style="margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--fg-2)">Levels: entry ${setup.entry} · stop ${setup.stop||'—'} · target ${setup.tp3||'—'}${setup.rr?' · '+setup.rr+'R':''} · horizon ${setup.horizon_days||'—'}d</div>`;}
   h+=`</div>`;
 
+  // OPPORTUNITY DNA — the visual fingerprint of WHAT KIND of setup this is
+  if(setup){
+    try{
+      const dm=OpportunityDNA.score(setup);
+      h+=`<div class="card"><h2>🧬 OPPORTUNITY DNA</h2>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div>${OpportunityDNA.svg(dm,120)}</div>
+          <div style="flex:1;min-width:160px">
+            <div style="font-family:var(--mono);font-size:13px;color:var(--violet);font-weight:700;margin-bottom:8px">${esc(OpportunityDNA.archetype(dm))}</div>
+            ${OpportunityDNA.bars(dm)}
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:10px">The fingerprint shows the character of the setup — which forces are driving it. Two names with the same conviction can have very different DNA.</div>
+      </div>`;
+    }catch(e){}
+  }
   // VALUATION
   h+=`<div class="card"><h2>💰 VALUATION &amp; QUALITY</h2>`;
   if(fu){
@@ -202,5 +218,6 @@ async function load(){
 }
 load();
 </script>
+<script src="/opportunity-dna.js"></script>
 <script src="/cmdk.js"></script>
 </body></html>

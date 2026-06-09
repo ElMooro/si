@@ -102,7 +102,7 @@ function render(){
   rows.sort((a,b)=>{const k=SORT.k;let av=a[k],bv=b[k];if(typeof av==='string'){return SORT.dir*String(av).localeCompare(String(bv));}return SORT.dir*((av||0)-(bv||0));});
   let h=`<table class="tbl"><thead><tr>
     <th data-k="rank">#</th><th data-k="ticker">Ticker</th><th data-k="verdict">Verdict</th>
-    <th data-k="conviction">Conviction</th><th data-k="n_signals">Signals (confluence)</th>
+    <th data-k="conviction">Conviction</th><th data-k="n_signals">Signals (confluence)</th><th>DNA · Archetype</th>
     <th data-k="horizon_days">Horizon</th><th>Levels (R:R)</th><th></th></tr></thead><tbody>`;
   rows.forEach((s,i)=>{
     const conv=Math.round(s.conviction||0);
@@ -114,7 +114,7 @@ function render(){
       <td><span class="verdict ${vclass(s.verdict)}">${esc(s.verdict)}</span></td>
       <td><span class="conv-bar"><span class="f" style="width:${Math.min(100,conv)}%"></span></span><span style="font-family:var(--mono);color:${conv>=60?'var(--green)':conv>=45?'var(--cyan)':'var(--fg-2)'}">${conv}</span></td>
       <td><div class="sigs">${sigs}</div></td>
-      <td style="font-family:var(--mono);color:var(--fg-3);font-size:11px">${s.horizon_days||'—'}d</td>
+      <td>${(function(){try{var dm=OpportunityDNA.score(s);return '<div style="display:flex;align-items:center;gap:8px">'+OpportunityDNA.svg(dm,52)+'<span style="font-size:11px;color:var(--fg-2)">'+OpportunityDNA.archetype(dm)+'</span></div>';}catch(e){return '—';}})()}</td><td style="font-family:var(--mono);color:var(--fg-3);font-size:11px">${s.horizon_days||'—'}d</td>
       <td class="lvls">${esc(lvls)}</td>
       <td><span class="expand" onclick="document.getElementById('d${i}').style.display=document.getElementById('d${i}').style.display==='table-row'?'none':'table-row'">why ▾</span></td>
     </tr>
@@ -131,5 +131,6 @@ function render(){
 document.querySelectorAll('.filt').forEach(el=>el.onclick=()=>{document.querySelectorAll('.filt').forEach(x=>x.classList.remove('on'));el.classList.add('on');FILTER=el.dataset.f;render();});
 load();
 </script>
+<script src="/opportunity-dna.js"></script>
 <script src="/cmdk.js"></script>
 </body></html>
