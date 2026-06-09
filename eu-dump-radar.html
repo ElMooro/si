@@ -83,6 +83,16 @@ async function load(){
   if(p&&!p.err){const sc=sigClass(p.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(p.signal)}</span><h2>Bank Pass-Through Premium</h2><div class="num">#14 · NFC lending rate − ECB DFR</div>
     ${row('NFC lending rate',p.nfc_lending_rate_pct!=null?p.nfc_lending_rate_pct+'%':null)}${row('ECB DFR',p.dfr_pct!=null?p.dfr_pct+'%':null)}${row('Premium',p.premium_pct!=null?p.premium_pct+'pp':null)}${row('3m widening',p.widening_3m_pp!=null?p.widening_3m_pp+'pp':null)}
     <div class="interp">${esc(p.interpretation||'')}</div></div>`);}
+  // #3 TARGET2
+  const t=ind.target2_imbalance;
+  if(t&&!t.err){const sc=sigClass(t.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(t.signal)}</span><h2>TARGET2 Imbalance</h2><div class="num">#3 · Bundesbank claim / eurozone fragmentation</div>
+    ${row('Germany position',t.de_target2_eur_mn!=null?'€'+Math.round(t.de_target2_eur_mn/1000)+'bn':null)}${row('Italy position',t.it_target2_eur_mn!=null?'€'+Math.round(t.it_target2_eur_mn/1000)+'bn':null)}${row('3m change',t.de_3m_change_eur_mn!=null?'€'+Math.round(t.de_3m_change_eur_mn/1000)+'bn':null)}
+    <div class="interp">${esc(t.interpretation||'')}</div></div>`);}
+  // #1 USD Funding Composite
+  const u=ind.usd_funding_stress_composite;
+  if(u&&!u.err){const sc=sigClass(u.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(u.signal)}</span><h2>USD Funding Stress Composite</h2><div class="num">#1 · A030000 + L080000 + Fed swaps (z-scored)</div>
+    ${row('Score',u.score_0_100!=null?u.score_0_100+'/100':null)}${row('Composite z',u.composite_z)}
+    <div class="interp">${esc(u.interpretation||'')}</div></div>`);}
   document.getElementById('cards').innerHTML='<div class="grid">'+cards.join('')+'</div>';
   document.getElementById('note').innerHTML=`Updated ${d.generated_at?new Date(d.generated_at).toLocaleString():'recently'} · thresholds calibrated to 2008/2011/2020/2023 crises · Research, not advice. The other high-signal ECB indicators (USD funding composite, SovCISS fragmentation, ESI, global CB stress) live on eurodollar / systemic-stress / cb-injection.`;
 }
