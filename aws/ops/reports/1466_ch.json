@@ -1,0 +1,185 @@
+{
+  "best-setups": {
+    "age_h": 0.2,
+    "keys": [
+      "schema_version",
+      "engine",
+      "generated_at",
+      "duration_s",
+      "weight_source",
+      "bond_vol_regime",
+      "methodology",
+      "stats"
+    ]
+  },
+  "opportunities": {
+    "age_h": 12.3,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "n_covered",
+      "factor_weights",
+      "verdict_counts",
+      "changes"
+    ]
+  },
+  "compound-signals": {
+    "age_h": 13.3,
+    "keys": [
+      "schema_version",
+      "generated_at",
+      "duration_s",
+      "feed_stats",
+      "stats",
+      "compound",
+      "new_alerts"
+    ],
+    "new_alerts_n": 3,
+    "new_alerts_sample": [
+      {
+        "symbol": "GOOG",
+        "type": "COMPOUND_OVER_200",
+        "score": 1118.2,
+        "systems": [
+          "options_flow",
+          "pead",
+          "pre_pump",
+          "rev_accel",
+          "smart_money",
+          "vol_squeeze"
+        ],
+        "reason": "GOOG compound score reached 1118 (options_flow, pead, pre_pump, rev_accel, smart_money, vol_squeeze)"
+      },
+      {
+        "symbol": "INTC",
+        "type": "COMPOUND_OVER_200",
+        "score": 652.5,
+        "systems": [
+          "eps_velocity",
+          "momentum",
+          "nobrainers",
+          "pead"
+        ],
+        "reason": "INTC compound score reached 652 (eps_velocity, momentum, nobrainers, pead)"
+      }
+    ]
+  },
+  "master-ranker": {
+    "age_h": 13.3,
+    "keys": [
+      "schema_version",
+      "method",
+      "as_of",
+      "regime_context",
+      "n_tickers_total",
+      "n_macro_signals",
+      "alerts",
+      "top_tickers"
+    ]
+  },
+  "signal-board": {
+    "age_h": 14.1,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "composite_signal",
+      "composite_posture",
+      "n_engines",
+      "n_live"
+    ]
+  },
+  "funding-plumbing": {
+    "age_h": 13.1,
+    "keys": [
+      "engine",
+      "version",
+      "generated_at",
+      "duration_s",
+      "plumbing_stress_score",
+      "regime",
+      "action",
+      "balance_sheet_direction"
+    ]
+  },
+  "crypto-cycle-risk": {
+    "age_h": 14.8,
+    "keys": [
+      "engine",
+      "version",
+      "generated_at",
+      "duration_s",
+      "dump_risk_score",
+      "risk_level",
+      "action",
+      "factors"
+    ]
+  },
+  "bond-vol": {
+    "age_h": 0.1,
+    "keys": [
+      "ok",
+      "version",
+      "generated_at",
+      "regime",
+      "composite_z_score",
+      "composite_percentile",
+      "regime_streak_days",
+      "trend"
+    ]
+  },
+  "redflag-alerts": {
+    "age_h": 12.9,
+    "keys": [
+      "generated_at",
+      "alerted_accessions",
+      "log",
+      "stats"
+    ]
+  },
+  "catalyst-calendar": {
+    "age_h": 13.3,
+    "keys": [
+      "schema_version",
+      "method",
+      "as_of",
+      "window_days",
+      "n_events",
+      "events",
+      "by_type",
+      "by_source"
+    ],
+    "events_n": 12,
+    "events_sample": [
+      {
+        "date": "2026-06-08",
+        "time": null,
+        "type": "AUCTION",
+        "title": "13-Week Bill auction",
+        "subtitle": "Size TBD",
+        "impact": "LOW",
+        "source": "TreasuryDirect",
+        "url": "https://www.treasurydirect.gov/auctions/upcoming/",
+        "size_billions": 0.0,
+        "cusip": "912797UF2",
+        "days_to": 0
+      },
+      {
+        "date": "2026-06-08",
+        "time": null,
+        "type": "AUCTION",
+        "title": "26-Week Bill auction",
+        "subtitle": "Size TBD",
+        "impact": "LOW",
+        "source": "TreasuryDirect",
+        "url": "https://www.treasurydirect.gov/auctions/upcoming/",
+        "size_billions": 0.0,
+        "cusip": "912797VG9",
+        "days_to": 0
+      }
+    ]
+  }
+}
