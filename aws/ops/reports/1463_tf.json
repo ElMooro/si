@@ -1,0 +1,83 @@
+{
+  "fundamentals_NVDA": {
+    "fields": [
+      "altman_z",
+      "dcf",
+      "dcf_gap_pct",
+      "fiscal_year",
+      "geo_mix",
+      "n_products",
+      "n_regions",
+      "ok",
+      "piotroski",
+      "price",
+      "product_mix",
+      "quality_label",
+      "ticker",
+      "top_product",
+      "top_product_pct",
+      "top_region",
+      "top_region_pct",
+      "valuation_label"
+    ]
+  },
+  "backlog_NVDA": {
+    "ticker": "NVDA",
+    "sector": "Technology",
+    "cap_bucket": "mega",
+    "group": "Software/Semis",
+    "cik": "0001045810",
+    "rpo": 2600000000.0,
+    "rpo_qoq": 13.0,
+    "rpo_yoy": 44.4,
+    "rpo_tag": "RevenueRemainingPerformanceObligation",
+    "deferred_rev": 3117000000.0,
+    "deferred_qoq": 21.2,
+    "deferred_yoy": 50.0,
+    "deferred_accelerating": true,
+    "rev_yoy": 85.2,
+    "ev_to_rpo": 1910.5,
+    "rpo_minus_rev_growth": -40.8,
+    "demand_accelerating": false
+  },
+  "deepvalue_NVDA": {
+    "ticker": "NVDA",
+    "name": "NVIDIA Corporation",
+    "sector": "Technology",
+    "cap_bucket": "mega",
+    "overlap_score": 64,
+    "n_value_lenses": 3,
+    "value_lenses": [
+      "value-score cheap",
+      "P/E < industry",
+      "quality + value"
+    ],
+    "n_catalysts": 1,
+    "catalysts": [
+      "backlog accelerating"
+    ],
+    "n_inflection": 1,
+    "inflection": [
+      "durable compounder"
+    ],
+    "distress_flag": false,
+    "altman_z": null,
+    "verdict": "OPPORTUNITY",
+    "conviction": 65.9,
+    "ev_sales": 17.250004990321298,
+    "expected_growth_pct": null
+  },
+  "est_rev_keys": [
+    "date",
+    "fwd_rev_growth"
+  ],
+  "asym_NVDA": "not in top",
+  "short_int_shape": [
+    "version",
+    "generated_at",
+    "watchlist_size",
+    "n_tickers_with_data",
+    "n_tickers_finra",
+    "n_tickers_polygon"
+  ]
+}
