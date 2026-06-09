@@ -1,0 +1,43 @@
+{
+  "prefix_signals/": [
+    "signals/alert-history.json",
+    "signals/anomalies.json",
+    "signals/anomaly-alert-history.json",
+    "signals/confluence-prev.json",
+    "signals/confluence.json",
+    "signals/regime-picks.json"
+  ],
+  "prefix_data/snapshots/": [
+    "data/snapshots/data_13f-positions-2026-05-04.json",
+    "data/snapshots/data_13f-positions-2026-05-05.json",
+    "data/snapshots/data_13f-positions-2026-05-06.json",
+    "data/snapshots/data_13f-positions-2026-05-07.json",
+    "data/snapshots/data_13f-positions-2026-05-08.json",
+    "data/snapshots/data_13f-positions-2026-05-09.json",
+    "data/snapshots/data_13f-positions-2026-05-10.json",
+    "data/snapshots/data_13f-positions-2026-05-11.json"
+  ],
+  "data/signal-backtest.json_keys": [
+    "engine",
+    "version",
+    "generated_at",
+    "duration_s",
+    "n_observations",
+    "snapshots_used",
+    "maturity",
+    "overall",
+    "by_verdict",
+    "by_compounder_bucket",
+    "by_cap_bucket",
+    "by_revision",
+    "note"
+  ],
+  "data/signal-backtest.json_snapshots_used": 23,
+  "data/backtest-summary.json_keys": [
+    "generated_at",
+    "snapshot_today",
+    "forward_returns_computed_today",
+    "by_signal",
+    "fetch_duration_s"
+  ]
+}
