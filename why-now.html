@@ -1,0 +1,126 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Why Now · JustHodl AI</title>
+<meta name="description" content="A stream of only the meaningful state changes — what actually changed and why it matters, right now.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--orange:#fb923c;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--bg-1);position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--amber);border-radius:50%;box-shadow:0 0 9px var(--amber)}
+.nav{display:flex;gap:3px;margin-left:10px;flex-wrap:wrap}.nav a{padding:6px 10px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--amber)}
+.wrap{max-width:820px;margin:0 auto;padding:22px}
+.hero h1{font-size:25px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--amber),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:5px 0 16px;font-size:13px;max-width:680px;line-height:1.5}
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.filt{font-family:var(--mono);font-size:11px;padding:5px 11px;border-radius:8px;border:1px solid var(--border-bright);background:var(--bg-1);color:var(--fg-2);cursor:pointer}
+.filt.on{background:var(--amber);border-color:var(--amber);color:var(--bg);font-weight:700}
+.event{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}
+.ev-icon{font-size:18px;flex-shrink:0;width:30px;text-align:center;padding-top:2px}
+.ev-body{flex:1}
+.ev-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:3px}
+.ev-tk{font-family:var(--mono);font-weight:800;font-size:14px}
+.ev-tk a{color:var(--fg-0)}
+.ev-tag{font-family:var(--mono);font-size:9px;padding:1px 7px;border-radius:8px;border:1px solid var(--border-bright)}
+.ev-tag.bull{border-color:var(--green);color:var(--green)}
+.ev-tag.bear{border-color:var(--red);color:var(--red)}
+.ev-tag.macro{border-color:var(--violet);color:var(--violet)}
+.ev-tag.flow{border-color:var(--orange);color:var(--orange)}
+.ev-time{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-left:auto}
+.ev-text{font-size:13px;color:var(--fg-1);line-height:1.5}
+.ev-sub{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin-top:3px}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.note{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:18px;line-height:1.5}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Desk</a><a href="/master-board.html">🎯 Board</a><a href="/why-now.html" class="active">⚡ Why Now</a><a href="/dossier.html">📂 Dossier</a></nav>
+</header>
+<div class="wrap">
+  <div class="hero"><h1>Why <span class="grad">Now?</span></h1>
+  <p>Not every tick — only the <b>meaningful state changes</b>. New high-conviction setups, regime flips, multi-system convergence, signals newly firing. The signal, filtered from the noise.</p></div>
+  <div class="filters" id="filters">
+    <span class="filt on" data-f="all">All</span>
+    <span class="filt" data-f="setup">New Setups</span>
+    <span class="filt" data-f="convergence">Convergence</span>
+    <span class="filt" data-f="macro">Macro / Regime</span>
+    <span class="filt" data-f="risk">Risk</span>
+  </div>
+  <div id="feed"><div class="loading">Scanning for what changed…</div></div>
+  <div class="note">Events are sourced from your engines' change-detection layers (new alerts, verdict changes, regime shifts). Sorted most-recent first. This is research, not advice.</div>
+</div>
+<script>
+const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+let EVENTS=[],FILTER='all';
+function ago(ts){if(!ts)return '';const m=Math.round((Date.now()-new Date(ts).getTime())/60000);if(isNaN(m))return '';return m<1?'just now':m<60?m+'m ago':m<1440?Math.round(m/60)+'h ago':Math.round(m/1440)+'d ago';}
+function tkLink(t){return `<a href="/dossier.html?t=${esc(t)}">${esc(t)}</a>`;}
+
+async function load(){
+  const [cmp,opp,mr,bs,fp,cr,bv,sb]=await Promise.all([
+    gj('data/compound-signals.json'),gj('data/opportunities.json'),gj('data/master-ranker.json'),
+    gj('data/best-setups.json'),gj('data/funding-plumbing.json'),gj('data/crypto-cycle-risk.json'),
+    gj('data/bond-vol.json'),gj('data/signal-board.json')]);
+  const ev=[];
+  const now=Date.now();
+  // 1) compound-signals new_alerts — multi-system convergence (highest signal)
+  (cmp&&cmp.new_alerts||[]).forEach(a=>{
+    ev.push({cat:'convergence',icon:'🎯',tk:a.symbol,tag:'CONVERGENCE',tagc:'bull',ts:cmp.generated_at,
+      text:`<b>${tkLink(a.symbol)}</b> hit a compound score of ${Math.round(a.score)} — ${(a.systems||[]).length} independent systems firing at once.`,
+      sub:(a.systems||[]).join(' · ')});
+  });
+  // 2) opportunities changes — verdict upgrades/new
+  (opp&&opp.changes||[]).forEach(ch=>{
+    const up=/UP|NEW|BUY|OPPORTUNITY|improve/i.test(JSON.stringify(ch));
+    ev.push({cat:'setup',icon:up?'📈':'🔻',tk:ch.ticker||ch.symbol,tag:up?'VERDICT ↑':'VERDICT ↓',tagc:up?'bull':'bear',ts:opp.generated_at,
+      text:`<b>${tkLink(ch.ticker||ch.symbol||'?')}</b> ${esc(ch.reason||ch.change||ch.note||JSON.stringify(ch).slice(0,90))}`,sub:'opportunity engine'});
+  });
+  // 3) master-ranker alerts
+  (mr&&mr.alerts||[]).forEach(a=>{
+    ev.push({cat:'setup',icon:'⭐',tk:a.ticker||a.symbol,tag:'RANK ALERT',tagc:'bull',ts:mr.as_of,
+      text:`<b>${a.ticker||a.symbol?tkLink(a.ticker||a.symbol):''}</b> ${esc(a.reason||a.message||a.detail||JSON.stringify(a).slice(0,90))}`,sub:'master ranker'});
+  });
+  // 4) best-setups — the freshest STRONG BUY / threat names as "newly surfaced"
+  (bs&&bs.top_setups||[]).filter(s=>s.verdict==='STRONG BUY'||s.triple_threat||s.quad_threat||s.buildout_threat).slice(0,6).forEach(s=>{
+    ev.push({cat:'setup',icon:'🔥',tk:s.ticker,tag:esc(s.verdict),tagc:'bull',ts:bs.generated_at,
+      text:`<b>${tkLink(s.ticker)}</b> is a top conviction setup (${Math.round(s.conviction)}) — ${(s.signal_keys||[]).slice(0,3).join(', ')}.`,sub:s.n_signals+' signals converging'});
+  });
+  // 5) macro / regime
+  if(fp&&fp.regime){ev.push({cat:'macro',icon:'🏦',tk:'PLUMBING',tag:'REGIME',tagc:'macro',ts:fp.generated_at,
+    text:`Funding plumbing regime: <b>${esc(fp.regime)}</b>${fp.qt_ended_not_qe?' — QT ended but NOT QE':''}. ${esc(fp.action||'')}`,sub:`balance sheet ${esc(fp.balance_sheet_direction||'—')}`});}
+  if(bv&&bv.regime){ev.push({cat:'macro',icon:'📉',tk:'BOND VOL',tag:'REGIME',tagc:'macro',ts:bv.generated_at,
+    text:`Bond-vol regime: <b>${esc(bv.regime)}</b>.`,sub:'rate volatility'});}
+  if(cr&&cr.risk_level){ev.push({cat:'macro',icon:'₿',tk:'CRYPTO',tag:'DUMP RISK',tagc:cr.risk_level==='HIGH'||cr.risk_level==='EXTREME'?'bear':'macro',ts:cr.generated_at,
+    text:`Crypto dump-risk: <b>${esc(cr.risk_level)}</b>${cr.dump_risk_score!=null?' ('+cr.dump_risk_score+')':''}. ${esc(cr.action||'')}`,sub:'cycle + macro'});}
+  // sort newest first
+  ev.sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
+  EVENTS=ev;
+  render();
+}
+function passes(e){
+  if(FILTER==='all')return true;
+  if(FILTER==='setup')return e.cat==='setup';
+  if(FILTER==='convergence')return e.cat==='convergence';
+  if(FILTER==='macro')return e.cat==='macro';
+  if(FILTER==='risk')return e.tagc==='bear';
+  return true;
+}
+function render(){
+  const rows=EVENTS.filter(passes);
+  if(!rows.length){document.getElementById('feed').innerHTML='<div class="loading">Quiet right now — no meaningful changes match this filter.</div>';return;}
+  document.getElementById('feed').innerHTML=rows.map(e=>`<div class="event">
+    <div class="ev-icon">${e.icon}</div>
+    <div class="ev-body">
+      <div class="ev-top"><span class="ev-tk">${e.tk?(/^[A-Z]{1,5}$/.test(e.tk)?tkLink(e.tk):esc(e.tk)):''}</span><span class="ev-tag ${e.tagc}">${esc(e.tag)}</span><span class="ev-time">${ago(e.ts)}</span></div>
+      <div class="ev-text">${e.text}</div>
+      ${e.sub?`<div class="ev-sub">${esc(e.sub)}</div>`:''}
+    </div></div>`).join('');
+}
+document.querySelectorAll('.filt').forEach(el=>el.onclick=()=>{document.querySelectorAll('.filt').forEach(x=>x.classList.remove('on'));el.classList.add('on');FILTER=el.dataset.f;render();});
+load();
+</script>
+<script src="/cmdk.js"></script>
+</body></html>
