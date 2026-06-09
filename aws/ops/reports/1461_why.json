@@ -1,0 +1,10 @@
+{
+  "full_response": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 0.4, \\\"n_total_candidates\\\": 11, \\\"n_weights_applied\\\": 0, \\\"n_weights_by_tier\\\": {}, \\\"per_tier_calibration_active\\\": false, \\\"blend\\\": {\\\"original\\\": 1.0, \\\"calibrated\\\": 0.0, \\\"confidence\\\": \\\"NONE\\\", \\\"rationale\\\": \\\"<5 scored predictions \\\\u2014 using base scoring only\\\"}, \\\"rank_audit\\\": {\\\"alert_tier\\\": {\\\"n_compared\\\": 2, \\\"top_10_retention_pct\\\": 100.0, \\\"avg_rank_delta\\\": 0.0, \\\"",
+  "reads": [
+    "data/cascade-calibration.json",
+    "data/cascade-recalibration-audit.json",
+    "data/theme-cascade-calibrated.json",
+    "data/theme-cascade.json"
+  ],
+  "min_obs_gate": []
+}
