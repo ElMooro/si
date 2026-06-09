@@ -1,0 +1,142 @@
+{
+  "ecb_detail": {
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "ok",
+      "headline",
+      "ecb_injection_score",
+      "stance_label",
+      "liquidity",
+      "balance_sheet",
+      "policy_rates",
+      "eurodollar_read",
+      "cross_reference",
+      "sources",
+      "errors"
+    ],
+    "liquidity": {
+      "excess_liquidity_eur_bn": 2222.3,
+      "change_1m_bn": -26.5,
+      "change_3m_bn": -170.1,
+      "change_6m_bn": -239.8,
+      "drain_pace_bn_per_month": -56.7,
+      "deposit_facility_recourse_eur_bn": 2225.1,
+      "current_accounts_eur_bn": 170.8,
+      "net_liquidity_effect_eur_bn": -2370.8,
+      "level": "ABUNDANT",
+      "trend": "DRAINING",
+      "regime": "ABUNDANT \u2014 DRAINING",
+      "runway_to_floor_months": 12,
+      "read": "Excess liquidity EUR 2,222bn (-170bn over 3m, ~-57bn/month) \u2014 abundant \u2014 draining. At this pace ~12 months to the EUR 1,500bn ample-reserves zone where money-market rates turn sensitive."
+    },
+    "balance_sheet": {
+      "total_assets_eur_bn": 6162.0,
+      "change_6m_pct": 0.3,
+      "change_12m_pct": -1.79,
+      "qt_pace": "FLAT",
+      "read": "Eurosystem balance sheet EUR 6,162bn, +0.3% over 6m (-1.8% / 12m) \u2014 flat; the APP and PEPP portfolios are rolling off without reinvestment."
+    },
+    "policy_rates": {
+      "deposit_facility_pct": 2.0,
+      "main_refinancing_pct": 2.15,
+      "marginal_lending_pct": 2.4,
+      "corridor_width_bp": 40,
+      "deposit_rate_change_6m_pp": 0.0,
+      "deposit_rate_change_12m_pp": -0.25,
+      "stance": "ON HOLD",
+      "read": "Deposit facility rate 2.0% (the floor that prices euro liquidity), main refinancing 2.15%, marginal lending 2.4% \u2014 corridor 40bp; policy on hold (+0.00pp over 6m)."
+    },
+    "eurodollar_read": "ECB in passive QT \u2014 euro liquidity still abundant but trending down; a slow, persistent tightening of the eurodollar system rather than an acute squeeze."
+  },
+  "ecb_derived_indicators": [
+    "ciss_acceleration",
+    "bank_funding_stress",
+    "eu_us_liquidity_divergence",
+    "bls_credit_standards",
+    "bank_pass_through_premium"
+  ],
+  "history_series": [
+    [
+      "ilm_usd_claims",
+      "USD claims on EA residents (\u20acbn) \u2014 dolla"
+    ],
+    [
+      "ilm_eur_to_nonres",
+      "EUR liabilities to non-residents (\u20acbn) \u2014"
+    ],
+    [
+      "ilm_mp_lending",
+      "Monetary policy lending to banks (\u20acbn)"
+    ],
+    [
+      "ciss_ea",
+      "CISS \u2014 Euro Area systemic stress composi"
+    ],
+    [
+      "ciss_fi",
+      "CISS \u2014 financial intermediaries sub-inde"
+    ],
+    [
+      "ciss_fx",
+      "CISS \u2014 FX market sub-index"
+    ],
+    [
+      "ciss_mm",
+      "CISS \u2014 money market sub-index"
+    ]
+  ],
+  "euro-fragmentation.json": {
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "ok",
+      "headline",
+      "fragmentation",
+      "bund_benchmark_10y_pct",
+      "countries",
+      "core_vs_periphery",
+      "france_focus",
+      "ecb_backstop"
+    ],
+    "headline": "Euro fragmentation DISPERSION. Score 46/100 \u2014 widest spread 78bp (Greece); France OAT-Bund 68bp."
+  },
+  "eurodollar-stress.json": {
+    "keys": [
+      "as_of",
+      "v",
+      "composite_score",
+      "severity",
+      "regime",
+      "n_signals_used",
+      "n_signals_total",
+      "n_failures",
+      "signals",
+      "hot_signals",
+      "cold_signals",
+      "failures"
+    ],
+    "headline": null
+  },
+  "systemic-stress.json": {
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "ok",
+      "headline",
+      "composite",
+      "systemic_stress",
+      "sovereign_stress",
+      "cross_reference",
+      "sources",
+      "errors"
+    ],
+    "headline": "Systemic stress WATCH. Composite 42/100 \u2014 euro-area CISS calm (5th pct); euro sovereign fragmentation mild dispersion."
+  }
+}
