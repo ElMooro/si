@@ -1,0 +1,31 @@
+{
+  "history_run": "{\"statusCode\": 200, \"body\": \"{\\\"written\\\": 7}\"}",
+  "derived_run": "{\"statusCode\": 200, \"body\": \"{\\\"n_flashing\\\": 1}\"}",
+  "usd_funding": {
+    "score_0_100": 47.8,
+    "composite_z": -0.11,
+    "signal": "NORMAL",
+    "err": null
+  },
+  "esi": {
+    "esi_0_100": 22.3,
+    "tier": "NORMAL",
+    "components": {
+      "usd_funding": 47.8,
+      "ciss": 0.8,
+      "pass_through": 27.0,
+      "mlf_spike": 0.0
+    },
+    "err": null
+  },
+  "all_signals": {
+    "ciss_acceleration": "CALM",
+    "bank_funding_stress": "NORMAL",
+    "eu_us_liquidity_divergence": "NORMAL",
+    "bls_credit_standards": "TIGHTENING",
+    "bank_pass_through_premium": "NORMAL",
+    "usd_funding_stress_composite": "NORMAL",
+    "eurodollar_stress_index": "NORMAL"
+  },
+  "ecb_detail_eurodollar_stress_score": 22.3
+}
