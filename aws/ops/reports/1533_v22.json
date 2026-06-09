@@ -1,0 +1,142 @@
+{
+  "ops": 1533,
+  "function_error": "NONE",
+  "version": "2.2",
+  "duration_s": 21.0,
+  "fragmentation": {
+    "spreads_bp": {
+      "IT": 82.0,
+      "FR": 73.0,
+      "ES": 45.0,
+      "PT": 43.0,
+      "GR": 78.0
+    },
+    "as_of": "2026-04",
+    "cadence": "monthly avg",
+    "tpi_watch_bp": 150,
+    "read": "IT\u2212DE 82.0bp \u00b7 FR\u2212DE 73.0bp \u00b7 ES\u2212DE 45.0bp (monthly convergence yields). TPI-watch threshold 150bp on IT.",
+    "pct_ranks": {
+      "IT": {
+        "pct": 38,
+        "n": 376,
+        "since": "1995"
+      }
+    }
+  },
+  "next_gc": {
+    "date": "2026-06-11",
+    "days_to": 2,
+    "note": "Jun/Jul/Sep confirmed; Oct/Dec provisional",
+    "read": "Next Governing Council: 2026-06-11 (2d). Curve prices the 12m path shown above into it."
+  },
+  "m3": {
+    "m3_yoy": 2.7,
+    "m3_6m_chg_pp": -0.0,
+    "m3_as_of": "2026-04"
+  },
+  "pct_ranks_found": {
+    "inflation": [
+      "headline_yoy",
+      "core_yoy",
+      "services_yoy"
+    ],
+    "wages": [
+      "negotiated_yoy_official"
+    ],
+    "credit": [
+      "nfc_loans_yoy",
+      "m3_yoy"
+    ],
+    "fx": [
+      "eurusd"
+    ],
+    "target2": [
+      "de_minus_it_bn"
+    ],
+    "rates_curve": [
+      "euribor_ois_proxy_bp",
+      "fwd_1y1y_pct"
+    ],
+    "inflation_expectations": [
+      "spf_longterm_pct"
+    ]
+  },
+  "esi_pct_rank": null,
+  "rates_curve_as_of": "2026-06-08",
+  "acceptance_top_nulls": [],
+  "esi_hist": {
+    "n": 1,
+    "latest": [
+      "2026-06-09",
+      22.3
+    ]
+  },
+  "hist_ids": [
+    "_manifest",
+    "ciss_ea",
+    "ciss_fi",
+    "ciss_fx",
+    "ciss_mm",
+    "es_de_10y_bp",
+    "esi",
+    "estr",
+    "euribor_3m",
+    "euribor_ois_bp",
+    "eurusd",
+    "fr_de_10y_bp",
+    "gr_de_10y_bp",
+    "hh_loans_yoy",
+    "hicp_core",
+    "hicp_energy",
+    "hicp_headline",
+    "hicp_services",
+    "ilm_eur_to_nonres",
+    "ilm_mp_lending",
+    "ilm_usd_claims",
+    "it_de_10y_bp",
+    "m3_yoy",
+    "nfc_loans_yoy",
+    "pt_de_10y_bp",
+    "spf_longterm",
+    "t2_de_minus_it",
+    "wages_negotiated",
+    "yc_1y",
+    "yc_1y1y"
+  ],
+  "hicp_probe_ecb_lastN": [
+    [
+      "2025-09",
+      "2.2"
+    ],
+    [
+      "2025-10",
+      "2.1"
+    ],
+    [
+      "2025-11",
+      "2.1"
+    ],
+    [
+      "2025-12",
+      "1.9"
+    ]
+  ],
+  "hicp_probe_eurostat": [
+    [
+      "2025-09",
+      2.2
+    ],
+    [
+      "2025-10",
+      2.1
+    ],
+    [
+      "2025-11",
+      2.1
+    ],
+    [
+      "2025-12",
+      2.0
+    ]
+  ]
+}
