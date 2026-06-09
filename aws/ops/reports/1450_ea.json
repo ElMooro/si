@@ -1,0 +1,189 @@
+{
+  "opportunities": {
+    "age_h": 11.0,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "n_covered",
+      "factor_weights",
+      "verdict_counts",
+      "changes",
+      "top_opportunities",
+      "avoid_list",
+      "all",
+      "sector_benchmarks"
+    ],
+    "generated_at": "2026-06-08T14:01:05"
+  },
+  "best-setups": {
+    "age_h": 0.9,
+    "keys": [
+      "schema_version",
+      "engine",
+      "generated_at",
+      "duration_s",
+      "weight_source",
+      "bond_vol_regime",
+      "methodology",
+      "stats",
+      "top_setups",
+      "quad_threats",
+      "triple_threats",
+      "buildout_threats"
+    ],
+    "top_setups_count": 50,
+    "generated_at": "2026-06-09T00:10:08"
+  },
+  "master-ranker": {
+    "age_h": 12.0,
+    "keys": [
+      "schema_version",
+      "method",
+      "as_of",
+      "regime_context",
+      "n_tickers_total",
+      "n_macro_signals",
+      "alerts",
+      "top_tickers",
+      "top_macro",
+      "feed_health",
+      "calibration_weights",
+      "duration_s"
+    ]
+  },
+  "backtest-summary": {
+    "age_h": 3.0,
+    "keys": [
+      "generated_at",
+      "snapshot_today",
+      "forward_returns_computed_today",
+      "by_signal",
+      "fetch_duration_s"
+    ],
+    "generated_at": "2026-06-08T22:00:26"
+  },
+  "alpha-score": {
+    "age_h": 12.0,
+    "keys": [
+      "generated_at",
+      "generated_at_unix",
+      "model_version",
+      "elapsed_seconds",
+      "count",
+      "scored_count",
+      "tier_distribution",
+      "weights",
+      "weights_source",
+      "weights_calibration_version",
+      "weights_active_since",
+      "weights_default_fallback"
+    ],
+    "generated_at": "2026-06-08T13:00:31"
+  },
+  "estimate-revisions": {
+    "age_h": 11.0,
+    "keys": [
+      "date",
+      "fwd_rev_growth"
+    ]
+  },
+  "deep-value-overlap": {
+    "age_h": 8.0,
+    "keys": [
+      "engine",
+      "version",
+      "generated_at",
+      "duration_s",
+      "n_scored",
+      "prime_setups",
+      "elite_setups",
+      "board",
+      "method",
+      "legend"
+    ],
+    "generated_at": "2026-06-08T17:00:42"
+  },
+  "backlog": {
+    "age_h": 13.5,
+    "keys": [
+      "engine",
+      "version",
+      "generated_at",
+      "duration_s",
+      "n_covered",
+      "cap_distribution",
+      "by_ticker",
+      "accelerating",
+      "cheap_vs_backlog",
+      "method",
+      "sources"
+    ],
+    "generated_at": "2026-06-08T11:30:46"
+  },
+  "compound-signals": {
+    "age_h": 12.0,
+    "keys": [
+      "schema_version",
+      "generated_at",
+      "duration_s",
+      "feed_stats",
+      "stats",
+      "compound",
+      "new_alerts"
+    ],
+    "generated_at": "2026-06-08T13:00:31"
+  },
+  "asymmetric-scorer": {
+    "age_h": 14.0,
+    "keys": [
+      "as_of",
+      "v",
+      "summary",
+      "cross_pollination",
+      "cutoffs",
+      "sector_breakdown",
+      "top_setups",
+      "value_traps",
+      "filter_logic"
+    ],
+    "top_setups_count": 30
+  },
+  "signal-board": {
+    "age_h": 12.8,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "composite_signal",
+      "composite_posture",
+      "n_engines",
+      "n_live",
+      "n_stale",
+      "categories",
+      "engines",
+      "note"
+    ],
+    "engines_count": 55,
+    "generated_at": "2026-06-08T12:15:22"
+  },
+  "fundamentals": {
+    "age_h": 14.0,
+    "keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "universe_source",
+      "n_covered",
+      "n_failed",
+      "failed_tickers",
+      "summary",
+      "companies",
+      "note"
+    ],
+    "generated_at": "2026-06-08T11:00:16"
+  }
+}
