@@ -185,8 +185,8 @@ async function importNotes(file){
     if(!incoming){badge('not a valid backup','err');return;}
     const have=new Set(STATE.notes.map(n=>n.id));
     let added=0;
-    incoming.forEach(n=>{if(n&&n.text&&!have.has(n.id)){STATE.notes.unshift(n);have.add(n.id);added++;}});
-    if(added){save();renderNotes();renderFilters();renderStatus();badge('✓ imported '+added+' notes','saved');}
+    incoming.forEach(n=>{if(n&&n.text&&!have.has(n.id)){const note={...n,id:n.id||uid(),text:String(n.text).slice(0,8000)};STATE.notes.unshift(note);have.add(note.id);saveNote(note);added++;}});
+    if(added){renderNotes();renderFilters();renderStatus();badge('✓ importing '+added+' notes…','saved');}
     else badge('nothing new to import','saved');
     setTimeout(()=>badge(''),2500);
   }catch(e){badge('import failed — bad file','err');}
@@ -494,7 +494,9 @@ function _scheduleBatch(){
 function _flushBatch(){
   if(!_pendingUpserts.size)return;
   const notes=[..._pendingUpserts.values()];_pendingUpserts.clear();
-  _q.push({notes_upsert:notes});_runQueue();
+  // Split into ≤450-note chunks so no single request exceeds the worker's 500 cap.
+  for(let i=0;i<notes.length;i+=450){_q.push({notes_upsert:notes.slice(i,i+450)});}
+  _runQueue();
 }
 async function load(){
   var _uid=brainUid();
@@ -594,7 +596,7 @@ document.getElementById('pin-ok').onclick=()=>{
   if(v.length<4){document.getElementById('pin-err').textContent='Min 4 characters';return;}
   PIN=v;sessionStorage.setItem('jh_brain_pin',v);
   document.getElementById('pin-modal').classList.remove('on');
-  save();
+  // No bulk save() — PIN is only needed for the (now per-note) write path.
 };
 document.getElementById('pin-input').onkeydown=(e)=>{if(e.key==='Enter')document.getElementById('pin-ok').click();};
 
