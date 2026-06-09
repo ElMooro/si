@@ -1,0 +1,42 @@
+{
+  "calibration": {
+    "age_h": 143.0,
+    "keys": [
+      "history",
+      "last_updated",
+      "current_weights",
+      "feature_attribution",
+      "current_weights_by_tier",
+      "feature_attribution_by_tier",
+      "horizon_attribution"
+    ],
+    "generated_at": "",
+    "has_attribution": true
+  },
+  "calib_rules": [
+    {
+      "fn": "justhodl-theme-cascade-backtest",
+      "rule": "justhodl-theme-cascade-backtest-daily",
+      "sched": "cron(45 22 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "fn": "justhodl-theme-cascade",
+      "rule": "justhodl-theme-cascade-twice-per-hour",
+      "sched": "cron(20,50 * * * ? *)",
+      "state": "DISABLED"
+    },
+    {
+      "fn": "justhodl-miss-calibrator",
+      "rule": "miss-calibrator-weekly",
+      "sched": "cron(15 9 ? * MON *)",
+      "state": "ENABLED"
+    },
+    {
+      "fn": "justhodl-miss-calibrator",
+      "rule": "miss-calibrator-weekly",
+      "sched": "cron(15 9 ? * MON *)",
+      "state": "ENABLED"
+    }
+  ]
+}
