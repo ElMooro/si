@@ -485,13 +485,34 @@ export default {
           // 20k-array re-save that kept re-inflating the brain)
           if (Array.isArray(body.notes) && body.notes.length > 500) return jsonResp({ error: "bulk too large — max 500/write", got: body.notes.length }, 413);
           if (Array.isArray(body.notes_upsert) && body.notes_upsert.length > 500) return jsonResp({ error: "batch too large — max 500/write", got: body.notes_upsert.length }, 413);
-          // HARD INDEX CEILING: refuse writes that would push the brain over 3000
-          // notes (no human has more real notes — this is the runaway-writer kill switch).
+          // CONTENT-DEDUP at write time: drop incoming notes whose normalized text
+          // already exists in the brain (stops re-imports from re-duplicating).
+          if ((body.note && body.note.id) || (Array.isArray(body.notes_upsert) && body.notes_upsert.length)) {
+            try {
+              function _nrm(t){ return String(t||"").toLowerCase().replace(/\s+/g," ").replace(/[^\w\s]/g,"").trim().slice(0,200); }
+              const cacheArr = await (async()=>{ try{ var v=await env.USER_DATA.get(CACHE_KEY); return v?JSON.parse(v):[]; }catch(e){ return []; } })();
+              const existingText = new Set(cacheArr.map(n => _nrm(n.text)).filter(k => k.length >= 8));
+              if (body.note && existingText.has(_nrm(body.note.text))) {
+                return jsonResp({ ok: true, mode: "dedup-skip", id: body.note.id });
+              }
+              if (Array.isArray(body.notes_upsert)) {
+                const seenInBatch = new Set();
+                body.notes_upsert = body.notes_upsert.filter(n => {
+                  const k = _nrm(n && n.text);
+                  if (k.length < 8) return true;
+                  if (existingText.has(k) || seenInBatch.has(k)) return false;
+                  seenInBatch.add(k); return true;
+                });
+              }
+            } catch (e) {}
+          }
+          // CAPACITY CEILING raised to 15000 (real notes shouldn't be blocked); the
+          // write-time dedup above prevents the duplicate-flood that hit the old 3000.
           if (body.note || (Array.isArray(body.notes_upsert) && body.notes_upsert.length)) {
             try {
               const curLen = (JSON.parse(await env.USER_DATA.get(IDX_KEY) || "[]")).length;
               const incoming = body.note ? 1 : body.notes_upsert.length;
-              if (curLen + incoming > 3000) return jsonResp({ error: "brain at capacity (3000) — refusing write", index: curLen }, 429);
+              if (curLen + incoming > 15000) return jsonResp({ error: "brain at capacity (15000)", index: curLen }, 429);
             } catch (e) {}
           }
           // helpers to keep bcache:<uid> (the fast-read copy) in sync

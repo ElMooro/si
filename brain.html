@@ -456,6 +456,7 @@ async function _putBrain(job){
     try{
       const r=await fetch(`${base}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(job)});
       const d=await r.json();
+      d._status=r.status;
       dbg('SAVE '+kind+' → '+base.replace('https://','')+' = '+r.status+' '+(d.ok?'OK':JSON.stringify(d).slice(0,60)));
       return d;
     }catch(e){ dbg('SAVE '+kind+' → '+base.replace('https://','')+' FAILED: '+String(e).slice(0,50)); }
@@ -471,7 +472,14 @@ async function _runQueue(){
       try{
         badge(_q.length?('saving… '+(_q.length+1)+' left'):'saving…','saving');
         const d=await _putBrain(job);
-        if(d&&d.ok)ok=true; else { badge((d&&d.error)||'save failed','err'); ok=true; }
+        if(d&&d.ok){ok=true;}
+        else if(d&&d._status===429){
+          // capacity full — park this job locally, stop the queue (don't churn)
+          try{var ov=JSON.parse(localStorage.getItem('brain_overflow')||'[]');ov.push(job);localStorage.setItem('brain_overflow',JSON.stringify(ov).slice(0,4000000));}catch(e){}
+          badge('⚠ Brain full — extra notes parked locally. Dedupe or remove old notes.','err');
+          _q.length=0; ok=true;   // clear queue; capacity won't fix by retrying
+        }
+        else { badge((d&&d.error)||'save failed','err'); ok=true; }
       }catch(e){ if(attempt<2) await new Promise(r=>setTimeout(r,800)); }
     }
     if(!ok)badge('⚠ one save failed — others continue','err');
