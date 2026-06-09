@@ -826,7 +826,7 @@ a:hover { text-decoration: underline; }
 .ceng-btn:hover { color: var(--fg-1); border-color: var(--border-bright); }
 .ceng-btn.active { color: var(--cyan); border-color: var(--cyan); background: rgba(34,211,238,0.06); }
 
-.native-chart-wrap { position: relative; width: 100%; height: 100%; background: var(--bg); }
+.native-chart-wrap { position: relative; width: 100%; height: 100%; background: var(--bg); min-height: 0; overflow: hidden; }
 .native-chart-head {
   position: absolute; top: 8px; left: 12px; z-index: 5;
   font-family: var(--font-mono); pointer-events: none;
@@ -930,7 +930,7 @@ a:hover { text-decoration: underline; }
 .pane-act { font-family: var(--font-mono); font-size: 9.5px; padding: 1px 5px; border-radius: 2px; color: var(--fg-3); border: 1px solid var(--border); }
 .pane-act:hover { color: var(--fg-1); border-color: var(--border-bright); }
 
-.tv-container { flex: 1; position: relative; }
+.tv-container { flex: 1; position: relative; min-height: 0; overflow: hidden; }
 .tv-container iframe { width: 100%; height: 100%; border: none; }
 .tv-placeholder {
   position: absolute; inset: 0;
@@ -1433,7 +1433,7 @@ a:hover { text-decoration: underline; }
     <div class="wl-selector" id="wl-selector">
       <div class="wl-selector-main" id="wl-selector-main">
         <span class="wl-sel-flag" id="wl-sel-flag" style="background:var(--tier-alert)"></span>
-        <span class="wl-sel-name" id="wl-sel-name">ALERT</span>
+        <span class="wl-sel-name" id="wl-sel-name">WATCHLIST</span>
         <span class="wl-sel-count" id="wl-sel-count">0</span>
         <span class="wl-sel-caret">▼</span>
       </div>
@@ -2456,6 +2456,19 @@ class WatchlistManager {
     if (text && text.trim()) State.notes[ticker] = text;
     else delete State.notes[ticker];
     this.syncToCloud();
+    // Push chart notes into the Brain (source:chart) — one workspace, two surfaces.
+    // TradingView can't do this: a note you write on a chart becomes a Brain note.
+    if (text && text.trim()) this.pushNoteToBrain(ticker, text);
+  }
+  static async pushNoteToBrain(ticker, text) {
+    try {
+      const BRAIN_UID = "brain-930ffa48-60a1-4b11-8726-8848d1b827f9";
+      // stable id per ticker chart-note so re-edits update (not duplicate)
+      const id = "chart-" + ticker.toLowerCase();
+      const note = { id, cat: "thesis", text: "[" + ticker + " · chart note] " + text.trim().slice(0, 4000),
+                     created: Date.now(), pinned: false, source: "chart:" + ticker };
+      await fetch(`${PROXY}/brain?uid=${BRAIN_UID}`, { method: 'PUT', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ note }) });
+    } catch (e) {}
   }
   static hasNote(ticker) { return !!(State.notes[ticker] && State.notes[ticker].trim()); }
   
@@ -2472,6 +2485,51 @@ class WatchlistManager {
     }
   }
 }
+
+// ─── WATCHLIST RIGHT-CLICK MENU (TradingView-style) ────────────────
+const WatchlistContextMenu = {
+  el: null,
+  open(x, y, ticker) {
+    this.close();
+    const items = [
+      { label: '📈 Open ' + ticker + ' on chart', run: () => ChartController.loadTicker(ticker) },
+      { label: '📝 Add note for ' + ticker, run: () => this.addNote(ticker) },
+      { label: '🚩 Flag / color', run: () => { const row = document.querySelector(`.wl-row[data-ticker="${ticker}"] .wl-flag`); if (row) FlagPicker.open(row, ticker); } },
+      { label: '⭐ Toggle favorite', run: () => { try { WatchlistManager.toggleFavorite(ticker); } catch(e){} } },
+      { sep: true },
+      { label: '📂 Open dossier', run: () => window.open('/dossier.html?t=' + ticker, '_blank') },
+      { label: '➕ Add symbol to list', run: () => { const b = document.getElementById('wl-header-add-btn'); if (b) b.click(); } },
+    ];
+    const m = document.createElement('div');
+    m.className = 'wl-ctx-menu';
+    m.style.cssText = 'position:fixed;z-index:9999;background:#0c1018;border:1px solid #2a3550;border-radius:9px;padding:5px;min-width:200px;box-shadow:0 12px 40px rgba(0,0,0,.6);font-family:var(--sans);font-size:13px';
+    m.innerHTML = items.map((it, i) => it.sep
+      ? '<div style="height:1px;background:#1c2433;margin:5px 0"></div>'
+      : `<div class="wl-ctx-item" data-i="${i}" style="padding:7px 11px;border-radius:6px;cursor:pointer;color:#e1e8f4">${it.label}</div>`).join('');
+    document.body.appendChild(m);
+    // position (flip if off-screen)
+    const r = m.getBoundingClientRect();
+    m.style.left = Math.min(x, window.innerWidth - r.width - 8) + 'px';
+    m.style.top = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+    m.querySelectorAll('.wl-ctx-item').forEach(it => {
+      it.addEventListener('mouseenter', () => it.style.background = '#131929');
+      it.addEventListener('mouseleave', () => it.style.background = '');
+      it.addEventListener('click', () => { const idx = +it.dataset.i; this.close(); try { items[idx].run(); } catch(e){} });
+    });
+    this.el = m;
+    setTimeout(() => document.addEventListener('click', this._closeBound = () => this.close(), { once: true }), 0);
+  },
+  close() { if (this.el) { this.el.remove(); this.el = null; } },
+  addNote(ticker) {
+    // load the ticker, open the intel drawer, switch to Notes tab, focus textarea
+    ChartController.loadTicker(ticker);
+    try { if (window.__jhDrawers) window.__jhDrawers.setRight(true); } catch(e){}
+    State.activeInfoTab = 'notes';
+    document.querySelectorAll('.info-tab').forEach(t => t.classList.toggle('active', t.dataset.infoTab === 'notes'));
+    UI.renderInfoPanel();
+    setTimeout(() => { const a = document.getElementById('jh-note-area'); if (a) { a.focus(); } }, 200);
+  }
+};
 
 
 // ─── UI RENDERER ───────────────────────────────────────────────────
@@ -2506,7 +2564,7 @@ class UI {
     if (!meta) { State.activeWatchlistId = 'alert'; return this.renderWatchlistSelector(); }
     const members = WatchlistManager.getMembers(State.activeWatchlistId);
     document.getElementById('wl-sel-flag').style.background = meta.color;
-    document.getElementById('wl-sel-name').textContent = meta.name;
+    document.getElementById('wl-sel-name').textContent = 'WATCHLIST · ' + meta.name;
     document.getElementById('wl-sel-count').textContent = members.length;
     // Rename only for custom; + Add and remove always available (add targets a personal list)
     const isCustom = meta.type === 'custom';
@@ -2529,7 +2587,7 @@ class UI {
       const st = doc.stats || {};
       meta.textContent = `${triples.length} 🎯 triple · ${st.strong_buy||0} strong · ${st.buy||0} buy · ${st.watch||0} watch`;
     }
-    const body = document.getElementById('setups-body');
+    let body = document.getElementById('setups-body');
     if (!body) return;
     if (!setups.length) { body.innerHTML = '<div class="wl-empty">No setups yet — refreshes hourly.</div>'; return; }
     // Triple-Threat banner pinned at the very top
@@ -2757,6 +2815,11 @@ class UI {
         if (e.target.dataset.removeTicker) return;
         if (e.target.dataset.favTicker) return;
         ChartController.loadTicker(el.dataset.ticker);
+      });
+      // TradingView-style right-click menu (Add note → Notes tab → flows to Brain)
+      el.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        WatchlistContextMenu.open(e.clientX, e.clientY, el.dataset.ticker);
       });
     });
     // Wire flag clicks
@@ -4181,10 +4244,10 @@ class NativeChart {
     const container = document.getElementById(`tv-container-${paneIdx}`);
     if (!container) return;
     container.innerHTML = `
-      <div class="native-chart-wrap" style="display:flex;flex-direction:column">
+      <div class="native-chart-wrap" style="display:flex;flex-direction:column;min-height:0;overflow:hidden">
         <div class="native-chart-head"><div class="nch-sym">${UI.esc(label)}</div><div class="nch-meta" id="nch-meta-${paneIdx}">loading…</div></div>
         <div class="native-chart-loading" id="nch-loading-${paneIdx}">Loading ${UI.esc(label)}…</div>
-        <div id="nch-chart-${paneIdx}" style="width:100%;height:100%;flex:none"></div>
+        <div id="nch-chart-${paneIdx}" style="width:100%;flex:1 1 0;min-height:0;overflow:hidden"></div>
       </div>`;
   }
   
