@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Global Tide · JustHodl AI</title>
+<meta name="description" content="G4 central-bank liquidity composite (Fed + ECB + BoJ + PBoC) and the global risk dial — the tide that moves every asset.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--blue:#4572a7;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--bg-1);position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:#003399;border-radius:50%;box-shadow:0 0 9px #4572a7}
+.nav{display:flex;gap:3px;margin-left:10px;flex-wrap:wrap}.nav a{padding:6px 10px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1120px;margin:0 auto;padding:22px}
+.hero h1{font-size:25px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,#4572a7,var(--cyan));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:5px 0 14px;font-size:13px;max-width:760px;line-height:1.5}
+.headline-bar{background:linear-gradient(135deg,rgba(69,114,167,0.1),rgba(34,211,238,0.04));border:1px solid var(--border-bright);border-radius:12px;padding:14px 18px;margin-bottom:18px;font-size:13.5px;line-height:1.5;color:var(--fg-1)}
+.sec{margin:22px 0 10px;font-family:var(--mono);font-size:13px;color:var(--cyan);letter-spacing:.4px;display:flex;align-items:center;gap:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:13px;padding:15px 17px;border-left:3px solid var(--border-bright)}
+.card.calm{border-left-color:var(--green)}.card.warn{border-left-color:var(--amber)}.card.alert{border-left-color:var(--red)}
+.card .lbl{font-size:11px;color:var(--fg-3);margin-bottom:4px}
+.card .val{font-family:var(--mono);font-size:23px;font-weight:800;color:var(--fg-0)}
+.card .sub{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:5px;line-height:1.4}
+.card .sig{font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:9px;float:right}
+.sig.calm{background:rgba(38,255,175,.15);color:var(--green)}.sig.warn{background:rgba(251,191,36,.15);color:var(--amber)}.sig.alert{background:rgba(255,85,119,.15);color:var(--red)}
+.read{font-size:12px;color:var(--fg-2);line-height:1.5;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:12px 15px;margin-top:8px}
+.loading{text-align:center;padding:40px;color:var(--fg-3);font-family:var(--mono)}
+.note{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:20px;line-height:1.5}
+.gauge{height:10px;background:var(--bg-2);border-radius:6px;overflow:hidden;margin-top:8px;border:1px solid var(--border)}
+.gauge>div{height:100%;border-radius:6px}
+</style></head><body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav"><a href="/">Desk</a><a href="/global-tide.html" class="active">🌊 Global Tide</a><a href="/ecb.html">ECB Hub</a><a href="/eurodollar.html">Eurodollar</a><a href="/liquidity.html">Liquidity</a><a href="/apex.html">Apex Fusion</a></nav>
+</header>
+<div class="wrap">
+  <div class="hero"><h1>Global <span class="grad">Tide</span></h1>
+  <p>The composite the platform was missing — Fed + ECB + BoJ + PBoC liquidity fused into one impulse, a single global risk dial, and the divergence trigger that fires when equities levitate while the tide goes out.</p></div>
+  <div id="headline" class="headline-bar"><div class="loading">Loading the tide…</div></div>
+
+  <div id="hero-tiles" class="grid" style="margin-bottom:6px"></div>
+
+  <div class="sec">🏦 CENTRAL BANK LEGS</div>
+  <div class="grid" id="legs"></div>
+
+  <div class="sec">⚠️ TIDE SIGNALS</div>
+  <div class="grid" id="signals"></div>
+  <div class="read" id="tide-read"></div>
+
+  <div class="note" id="note"></div>
+</div>
+<script>
+const PX="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function sigClass(s){s=String(s||'').toUpperCase();if(['CRITICAL','CRISIS','DRAIN'].includes(s))return 'alert';if(['WATCH','STRESSED','ELEVATED','EBBING'].includes(s))return 'warn';return 'calm';}
+(async function(){
+  const d=await gj('data/global-tide.json');
+  if(!d){document.getElementById('headline').innerHTML='Global Tide data unavailable.';return;}
+  document.getElementById('headline').innerHTML=`<b>${esc(d.headline||'')}</b><br><span style="color:var(--fg-2)">${esc(d.read||'')}</span><div style="margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--fg-3)">as of ${esc(d.generated_at||'')}</div>`;
+  const G=d.gli||{},R=d.risk||{};
+  const reg=G.regime||'—';const rc=sigClass(reg);
+  const imp=G.impulse_score;const ix=imp!=null?Math.max(0,Math.min(100,(imp+100)/2)):null;
+  const rk=R.global_risk_0_100;
+  const tiles=[];
+  tiles.push(`<div class="card ${rc}" style="border-left-width:4px"><span class="sig ${rc}">${esc(reg)}</span><div class="lbl">🌊 G4 Liquidity Impulse</div><div class="val" style="font-size:30px">${imp!=null?(imp>0?'+':'')+imp:'—'}</div>${ix!=null?`<div class="gauge"><div style="width:${ix}%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))"></div></div>`:''}<div class="sub">${(G.components||[]).join(' · ')}</div></div>`);
+  const rcl=sigClass(R.tier);
+  tiles.push(`<div class="card ${rcl}" style="border-left-width:4px"><span class="sig ${rcl}">${esc(R.tier||'—')}</span><div class="lbl">🎚 Global Risk Dial</div><div class="val" style="font-size:30px">${rk!=null?rk:'—'}<span style="font-size:14px;color:var(--fg-3)">/100</span></div>${rk!=null?`<div class="gauge"><div style="width:${rk}%;background:linear-gradient(90deg,var(--green),var(--amber),var(--red))"></div></div>`:''}<div class="sub">${(R.components||[]).join(' · ')}</div></div>`);
+  if(G.g4_stock_usd_tn!=null)tiles.push(`<div class="card"><div class="lbl">G4 Liquidity Stock</div><div class="val">$${G.g4_stock_usd_tn}tn</div><div class="sub">${G.n_cb_measured}/4 CBs in USD terms${d.spx_60d_pct!=null?' · SPX 60d '+(d.spx_60d_pct>=0?'+':'')+d.spx_60d_pct+'%':''}</div></div>`);
+  document.getElementById('hero-tiles').innerHTML=tiles.join('');
+  const F=d.fed||{},E=d.ecb||{},B=d.boj||{},C=d.china||{};
+  const legs=[];
+  if(F.net_liquidity_usd_bn!=null)legs.push(`<div class="card ${ (F.impulse_13w_usd_bn||0)<0?'warn':'calm'}"><div class="lbl">🇺🇸 Fed Net Liquidity</div><div class="val">$${(F.net_liquidity_usd_bn/1000).toFixed(2)}tn</div><div class="sub">B/S $${(F.fed_bs_usd_bn/1000).toFixed(2)}tn − RRP $${F.rrp_usd_bn}bn − TGA $${F.tga_usd_bn}bn · 13w ${F.impulse_13w_usd_bn>=0?'+':''}${F.impulse_13w_usd_bn}bn</div></div>`);
+  if(E.bs_eur_bn!=null)legs.push(`<div class="card ${sigClass(E.stance)}"><div class="lbl">🇪🇺 ECB · ${esc(E.stance||'')}</div><div class="val">€${(E.bs_eur_bn/1000).toFixed(2)}tn</div><div class="sub">${E.chg_6m_pct!=null?(E.chg_6m_pct>=0?'+':'')+E.chg_6m_pct+'%/6m':''} · QT ${esc(E.qt_pace||'')} · ESI ${E.esi_0_100!=null?E.esi_0_100:'—'} · inj ${E.injection_score!=null?E.injection_score:'—'}</div></div>`);
+  if(B.injection_score!=null||B.bs_usd_bn!=null)legs.push(`<div class="card ${(B.carry_unwind_risk_0_100||0)>=55?'warn':sigClass(B.stance)}"><div class="lbl">🇯🇵 BoJ · ${esc(B.stance||'')}</div><div class="val">${B.bs_usd_bn!=null?'$'+(B.bs_usd_bn/1000).toFixed(2)+'tn':(B.injection_score!=null?B.injection_score:'—')}</div><div class="sub">USD/JPY ${B.usdjpy!=null?B.usdjpy:'—'} · ¥-carry unwind ${B.carry_unwind_risk_0_100!=null?B.carry_unwind_risk_0_100+'/100':'—'} · inj ${B.injection_score!=null?B.injection_score:'—'}</div></div>`);
+  if(C.injection_score!=null||C.m2_yoy_pct!=null)legs.push(`<div class="card ${sigClass(C.stance)}"><div class="lbl">🇨🇳 PBoC · ${esc(C.stance||'')}</div><div class="val">${C.m2_yoy_pct!=null?C.m2_yoy_pct+'%':'—'}</div><div class="sub">M2 YoY · M1 ${C.m1_yoy_pct!=null?C.m1_yoy_pct+'%':'—'} · USDCNY ${C.usdcny!=null?C.usdcny:'—'} · inj ${C.injection_score!=null?C.injection_score:'—'}</div></div>`);
+  if(d.hy_oas_pct!=null)legs.push(`<div class="card ${d.hy_oas_pct>=4.5?'warn':''}"><div class="lbl">HY OAS · NFCI</div><div class="val">${d.hy_oas_pct}%</div><div class="sub">${d.hy_oas_3m_chg_bp!=null?(d.hy_oas_3m_chg_bp>=0?'+':'')+d.hy_oas_3m_chg_bp+'bp/3m':''} · NFCI ${d.nfci!=null?d.nfci:'—'}</div></div>`);
+  document.getElementById('legs').innerHTML=legs.join('');
+  const inds=d.indicators||{};
+  const sig=Object.entries(inds).map(([k,v])=>{
+    const sc=sigClass(v.signal);
+    return `<div class="card ${sc}"><span class="sig ${sc}">${esc(v.signal)}</span><div class="lbl">${esc(v.name||k)}</div><div class="sub" style="font-size:11.5px;color:var(--fg-2)">${esc(v.interpretation||'')}</div></div>`;
+  }).join('');
+  document.getElementById('signals').innerHTML=sig||'<div class="card calm"><span class="sig calm">CALM</span><div class="lbl">No tide signals flashing</div><div class="sub">Divergence + drain triggers all quiet.</div></div>';
+  document.getElementById('tide-read').textContent=d.read||'';
+  document.getElementById('note').textContent='Sources: FRED (WALCL, RRP, TGA, HY OAS, NFCI, SP500) + own platform briefs (ecb-detail, ecb-derived, boj-detail, china-liquidity, vix-curve). Regime change → Telegram. Engine: justhodl-global-tide, daily 11:30 UTC.';
+})();
+</script>
+</body></html>
