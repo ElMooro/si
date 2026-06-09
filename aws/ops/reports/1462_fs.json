@@ -1,0 +1,15 @@
+{
+  "recalibrator": {
+    "rule": "justhodl-cascade-recalibrator-daily",
+    "sched": "cron(0 23 * * ? *)",
+    "ENABLED": true
+  },
+  "enabled_pipeline": {
+    "justhodl-backtest-engine": "cron(30 22 * * ? *)",
+    "justhodl-backtest-harness": "cron(0 22 * * ? *)",
+    "justhodl-best-setups": "cron(10 * * * ? *)",
+    "justhodl-cascade-recalibrator": "cron(0 23 * * ? *)",
+    "justhodl-outcome-checker": "cron(0 23 * * ? *)",
+    "justhodl-signal-logger": "cron(0 21 * * ? *)"
+  }
+}
