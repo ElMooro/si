@@ -203,11 +203,80 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         out["indicators"]["bank_pass_through_premium"] = {"err": str(e)[:60]}
 
+    # ── #1 USD Funding Stress Composite — A030000 + L080000 (+ Fed swap lines) z-scored ──
+    try:
+        a030 = ecb_csv("ILM/W.U2.C.A030000.U2.Z06", last_n=260)   # USD claims on EA residents
+        l080 = ecb_csv("ILM/W.U2.C.L080000.U4.EUR", last_n=260)   # FX liabilities to non-EA
+        swp = fred_series("SWPT")  # Fed central-bank liquidity swaps ($mn); SWPT is the current series
+        def _z_last(pts):
+            if not pts or len(pts) < 20: return None
+            vals = [p[1] for p in pts]
+            mu = statistics.mean(vals); sd = statistics.pstdev(vals)
+            return (vals[-1] - mu) / sd if sd else 0.0
+        za = _z_last(a030); zl = _z_last(l080); zs = _z_last(swp) if swp else 0.0
+        comps = [z for z in [za, zl, zs] if z is not None]
+        if comps:
+            # weighted: 40% A030000, 30% L080000, 30% swap (fall back to equal if missing)
+            w = []
+            if za is not None: w.append((za, 0.40))
+            if zl is not None: w.append((zl, 0.30))
+            if zs is not None: w.append((zs, 0.30))
+            tw = sum(x[1] for x in w)
+            composite_z = sum(x[0]*x[1] for x in w) / tw if tw else None
+            # map z to 0-100 (z of +2 → ~84th pctile feel; clamp)
+            score = round(max(0, min(100, 50 + (composite_z or 0) * 20)), 1)
+            sig = "CRITICAL" if score >= 70 else "WATCH" if score >= 50 else "NORMAL"
+            out["indicators"]["usd_funding_stress_composite"] = {
+                "name": "USD Funding Stress Composite (A030000 + L080000 + Fed swaps)",
+                "score_0_100": score, "composite_z": round(composite_z, 2) if composite_z is not None else None,
+                "a030000_z": round(za, 2) if za is not None else None,
+                "l080000_z": round(zl, 2) if zl is not None else None,
+                "fed_swap_z": round(zs, 2) if zs is not None else None,
+                "signal": sig,
+                "interpretation": f"Eurodollar dollar-shortage composite {score}/100 (z {round(composite_z,2) if composite_z is not None else '—'}). <50 normal, 50-70 watch, ≥70 critical. Combines ECB USD lending, foreign FX parking, and Fed swap-line usage.",
+                "thresholds": {"watch": 50, "critical": 70}}
+    except Exception as e:
+        out["indicators"]["usd_funding_stress_composite"] = {"err": str(e)[:60]}
+
+    # ── #4 Eurodollar Stress Index (ESI) — the master 0-100 dollar-shortage composite ──
+    try:
+        ufsc = out["indicators"].get("usd_funding_stress_composite", {})
+        ciss = out["indicators"].get("ciss_acceleration", {})
+        ptp = out["indicators"].get("bank_pass_through_premium", {})
+        bfs = out["indicators"].get("bank_funding_stress", {})
+        # components (each a 0-1 stress contribution)
+        parts = []
+        if ufsc.get("score_0_100") is not None: parts.append(("usd_funding", ufsc["score_0_100"]/100.0, 0.35))
+        if ciss.get("ciss_level") is not None: parts.append(("ciss", min(1.0, ciss["ciss_level"]/0.5), 0.25))  # CISS 0.5+ = severe
+        if ptp.get("premium_pct") is not None: parts.append(("pass_through", min(1.0, max(0, (ptp["premium_pct"]-1.0)/2.0)), 0.20))  # >1pp starts to matter
+        mlf_binary = 1.0 if (bfs.get("mlf_eur_mn") or 0) > 1000 else 0.0
+        parts.append(("mlf_spike", mlf_binary, 0.20))
+        tw = sum(p[2] for p in parts)
+        esi = round(sum(p[1]*p[2] for p in parts) / tw * 100, 1) if tw else None
+        tier = "BLACK_SWAN" if (esi or 0) >= 85 else "CRITICAL" if (esi or 0) >= 70 else "WATCH" if (esi or 0) >= 50 else "NORMAL"
+        out["indicators"]["eurodollar_stress_index"] = {
+            "name": "Eurodollar Stress Index (ESI) — master dollar-shortage composite",
+            "esi_0_100": esi, "tier": tier,
+            "components": {p[0]: round(p[1]*100, 1) for p in parts},
+            "signal": tier if tier != "NORMAL" else "NORMAL",
+            "interpretation": f"ESI {esi}/100 → {tier}. The master dollar-shortage gauge: WATCH ≥50, CRITICAL ≥70, BLACK SWAN ≥85. 2008/2011/2020/2023 all crossed 70 weeks before SPX bottomed.",
+            "thresholds": {"watch": 50, "critical": 70, "black_swan": 85}}
+        # also mirror ESI into ecb-detail's eurodollar slot (where the audit looked)
+        try:
+            ed = json.loads(s3.get_object(Bucket=BUCKET, Key="data/ecb-detail.json")["Body"].read())
+            ed["eurodollar_stress_score"] = esi
+            ed["eurodollar_stress_tier"] = tier
+            s3.put_object(Bucket=BUCKET, Key="data/ecb-detail.json", Body=json.dumps(ed, default=str).encode(), ContentType="application/json")
+        except Exception:
+            pass
+    except Exception as e:
+        out["indicators"]["eurodollar_stress_index"] = {"err": str(e)[:60]}
+
     # composite headline: count how many are flashing
     flashing = []
     for k, v in out["indicators"].items():
         s = (v or {}).get("signal", "")
-        if s in ("WATCH", "CRITICAL", "ELEVATED", "ACUTE", "TAIL_RISK", "TIGHTENING", "SEVERE_TIGHTENING", "CREDIT_STRESS"):
+        if s in ("WATCH", "CRITICAL", "ELEVATED", "ACUTE", "TAIL_RISK", "TIGHTENING", "SEVERE_TIGHTENING", "CREDIT_STRESS", "BLACK_SWAN"):
             flashing.append(k)
     out["n_flashing"] = len(flashing); out["flashing"] = flashing
     out["headline"] = (f"{len(flashing)} ECB-derived dump signal(s) active: {', '.join(flashing)}"

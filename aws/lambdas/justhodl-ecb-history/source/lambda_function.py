@@ -120,9 +120,17 @@ def lambda_handler(event=None, context=None):
                       Body=json.dumps(out, default=str).encode(),
                       ContentType="application/json", CacheControl="public, max-age=43200")
         written.append(sid)
+        # flag series ECB has stopped updating (e.g. CISS sub-contributions ended ~2025-05)
+        _stale_days = None
+        try:
+            from datetime import date as _d
+            _stale_days = (datetime.now().date() - _d.fromisoformat(pts[-1][0])).days
+        except Exception:
+            pass
         manifest.append({"id": sid, "label": label, "freq": freq,
                          "latest": _r(latest), "percentile": pctl, "z_score": z,
-                         "first_date": pts[0][0], "latest_date": pts[-1][0], "n_points": len(pts)})
+                         "first_date": pts[0][0], "latest_date": pts[-1][0], "n_points": len(pts),
+                         "discontinued": bool(_stale_days and _stale_days > 120), "stale_days": _stale_days})
         time.sleep(0.4)
     s3.put_object(Bucket=BUCKET, Key="data/ecb-hist/_manifest.json",
                   Body=json.dumps({"generated_at": datetime.now(timezone.utc).isoformat(),
