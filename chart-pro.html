@@ -5626,16 +5626,29 @@ class FundamentalsService {
   static fmtB(v) { if (v==null) return '—'; const a=Math.abs(v); if(a>=1e12)return '$'+(v/1e12).toFixed(2)+'T'; if(a>=1e9)return '$'+(v/1e9).toFixed(2)+'B'; if(a>=1e6)return '$'+(v/1e6).toFixed(1)+'M'; return '$'+v.toLocaleString(); }
   static pct(v) { return v==null?'—':(v*100).toFixed(1)+'%'; }
   static num(v,d=2) { return v==null?'—':(+v).toFixed(d); }
+  // Ratio sanity: a P/E (or P/B, P/S) that's negative or absurdly large is not a
+  // meaningful figure — it means earnings/book are ~0 or negative. Show N/A, the
+  // way a real terminal does, instead of a garbage number like -6448.
+  static ratio(v, {allowNeg=false, max=1000}={}) {
+    if (v==null || isNaN(+v)) return '—';
+    const n=+v;
+    if (!allowNeg && n<=0) return 'N/A';
+    if (Math.abs(n) > max) return 'N/A';
+    return n.toFixed(2);
+  }
   static render(d) {
     const row = (l,v) => `<div class="fund-row"><span class="fund-l">${l}</span><span class="fund-v">${v}</span></div>`;
+    // P/E: if negative earnings, label it so the user knows WHY there's no P/E
+    let peDisplay = this.ratio(d.pe);
+    if (peDisplay === 'N/A' && (d.eps != null ? +d.eps < 0 : (d.netMargin != null && +d.netMargin < 0))) peDisplay = 'N/A (neg. earnings)';
     return `
       <div style="font-size:11px;color:var(--fg-3);margin-bottom:8px">${UI.esc(d.name||'')} · ${UI.esc(d.sector||'')} · ${UI.esc(d.exchange||'')}</div>
       <div class="fund-grid">
         ${row('Market Cap', this.fmtB(d.marketCap))}
-        ${row('P/E', this.num(d.pe))}
-        ${row('EPS', this.num(d.eps))}
-        ${row('P/B', this.num(d.pb))}
-        ${row('P/S', this.num(d.ps))}
+        ${row('P/E', peDisplay)}
+        ${row('EPS', d.eps!=null?'$'+(+d.eps).toFixed(2):'—')}
+        ${row('P/B', this.ratio(d.pb))}
+        ${row('P/S', this.ratio(d.ps))}
         ${row('Beta', this.num(d.beta))}
         ${row('Div Yield', this.pct(d.dividendYield))}
         ${row('ROE', this.pct(d.roe))}
