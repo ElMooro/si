@@ -1,0 +1,194 @@
+"""justhodl-ecb-derived — the genuinely-missing ECB-derived dump predictors.
+
+Verified gaps (the other ~6 high-signal indicators already exist in eurodollar-
+stress / euro-fragmentation / systemic-stress / global-liquidity). Builds:
+
+  #8  CISS Acceleration        — 30d Δ of CISS (raw + z). Strongest lead signal.
+  #5  Bank Funding Stress      — MRO/LTRO reliance ratio + MLF spike (TARGET2 code
+                                 A090400 is 404 at ECB; this captures the same
+                                 bank-funding-stress intent with data that exists).
+  #18 EU/US Liquidity Diverge  — ECB balance-sheet 6m Δ vs Fed net-liquidity 6m Δ.
+  #12 BLS Credit Standards     — EU bank lending survey C&I tightening (vs Fed SLOOS).
+
+OUTPUT: data/ecb-derived.json · SCHEDULE: daily 14:40 UTC.
+"""
+import json, time, ssl, statistics
+import urllib.request
+from datetime import datetime, timezone
+import boto3
+
+REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
+ECB = "https://data-api.ecb.europa.eu/service/data/"
+FRED_KEY = __import__("os").environ.get("FRED_API_KEY") or "2f057499936072679d8843d7fce99989"
+HEADERS = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+           "Accept": "text/csv;q=0.9, */*;q=0.5", "Accept-Language": "en-US,en;q=0.9"}
+s3 = boto3.client("s3", region_name=REGION)
+_ctx = ssl.create_default_context(); _ctx.check_hostname = False; _ctx.verify_mode = ssl.CERT_NONE
+
+
+def ecb_csv(key, last_n=None, start=None):
+    q = "?format=csvdata"
+    if last_n: q += f"&lastNObservations={last_n}"
+    if start: q += f"&startPeriod={start}"
+    try:
+        raw = urllib.request.urlopen(urllib.request.Request(ECB + key + q, headers=HEADERS), timeout=40, context=_ctx).read()
+        if raw[:2] == b"\x1f\x8b":
+            import gzip; raw = gzip.decompress(raw)
+        text = raw.decode("utf-8", "replace")
+        lines = text.strip().split("\n"); hdr = lines[0].split(",")
+        ti = hdr.index("TIME_PERIOD"); vi = hdr.index("OBS_VALUE")
+        pts = []
+        for ln in lines[1:]:
+            c = ln.split(",")
+            if len(c) <= max(ti, vi): continue
+            d, v = c[ti].strip(), c[vi].strip()
+            if not d or not v: continue
+            try: pts.append((d, float(v)))
+            except ValueError: continue
+        pts.sort()
+        return pts
+    except Exception as e:
+        print(f"[ecb-derived] {key} err: {str(e)[:60]}"); return []
+
+
+def fred_series(sid):
+    try:
+        u = f"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=200"
+        d = json.loads(urllib.request.urlopen(u, timeout=20).read().decode())
+        obs = [(o["date"], float(o["value"])) for o in d.get("observations", []) if o["value"] not in (".", "")]
+        obs.sort()
+        return obs
+    except Exception as e:
+        print(f"[ecb-derived] fred {sid} err: {str(e)[:50]}"); return []
+
+
+def zscore(vals, lookback=260):
+    if len(vals) < 10: return None
+    w = vals[-lookback:] if len(vals) >= lookback else vals
+    mu = statistics.mean(w); sd = statistics.pstdev(w)
+    return round((vals[-1] - mu) / sd, 2) if sd else None
+
+
+def lambda_handler(event=None, context=None):
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "1.0",
+                             "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
+
+    # ── #8 CISS Acceleration — read the history file we already build ──
+    try:
+        ch = json.loads(s3.get_object(Bucket=BUCKET, Key="data/ecb-hist/ciss_ea.json")["Body"].read())
+        pts = ch.get("points", [])
+        vals = [p[1] for p in pts]
+        if len(vals) > 40:
+            latest = vals[-1]
+            # 30 calendar days ≈ 22 trading days (CISS is business-daily)
+            d30 = vals[-1] - vals[-23] if len(vals) > 23 else None
+            d30_series = [vals[i] - vals[i-23] for i in range(23, len(vals))]
+            accel_z = zscore(d30_series) if d30_series else None
+            level = "CRITICAL" if (d30 or 0) > 0.30 else "WATCH" if (d30 or 0) > 0.15 else "CALM"
+            out["indicators"]["ciss_acceleration"] = {
+                "name": "CISS 30-day Acceleration", "ciss_level": round(latest, 5),
+                "delta_30d": round(d30, 5) if d30 is not None else None,
+                "delta_30d_zscore": accel_z, "signal": level,
+                "interpretation": f"CISS Δ30d {round(d30,4) if d30 is not None else '—'} — {level}. >+0.15 watch, >+0.30 critical. Lead ~2w EU / ~4w US equities.",
+                "thresholds": {"watch": 0.15, "critical": 0.30}}
+    except Exception as e:
+        out["indicators"]["ciss_acceleration"] = {"err": str(e)[:60]}
+
+    # ── #5 Bank Funding Stress — MRO/LTRO reliance + MLF spike ──
+    try:
+        mro = ecb_csv("ILM/W.U2.C.A050100.U2.EUR", last_n=60)
+        ltro = ecb_csv("ILM/W.U2.C.A050200.U2.EUR", last_n=60)
+        mlf = ecb_csv("ILM/W.U2.C.A050500.U2.EUR", last_n=60)
+        if mro and ltro:
+            m, l = mro[-1][1], ltro[-1][1]
+            total = m + l
+            ltro_share = round(100 * l / total, 1) if total else None
+            ltro_share_4wago = None
+            if len(mro) > 4 and len(ltro) > 4:
+                t4 = mro[-5][1] + ltro[-5][1]
+                ltro_share_4wago = round(100 * ltro[-5][1] / t4, 1) if t4 else None
+            mlf_latest = mlf[-1][1] if mlf else None
+            stress = "ELEVATED" if (ltro_share or 0) > 80 else "NORMAL"
+            if mlf_latest and mlf_latest > 1000: stress = "ACUTE"  # MLF > €1bn = panic button
+            out["indicators"]["bank_funding_stress"] = {
+                "name": "Bank Funding Stress (MRO/LTRO reliance + MLF)",
+                "mro_eur_mn": round(m), "ltro_eur_mn": round(l),
+                "ltro_share_pct": ltro_share, "ltro_share_4w_ago_pct": ltro_share_4wago,
+                "mlf_eur_mn": round(mlf_latest) if mlf_latest is not None else None,
+                "signal": stress,
+                "interpretation": f"LTRO share {ltro_share}% of policy lending (banks hoarding long when high). MLF €{round(mlf_latest) if mlf_latest else 0}mn (>€1bn = panic). {stress}.",
+                "thresholds": {"ltro_share_elevated": 80, "mlf_acute_eur_mn": 1000}}
+    except Exception as e:
+        out["indicators"]["bank_funding_stress"] = {"err": str(e)[:60]}
+
+    # ── #18 EU/US Liquidity Divergence ──
+    try:
+        # ECB total assets (balance sheet) weekly; Fed net liquidity proxy via FRED (WALCL - RRP - TGA)
+        ecb_bs = ecb_csv("ILM/W.U2.C.T000000.U2.EUR", last_n=80) or ecb_csv("BSI/M.U2.N.A.T00.A.1.U2.2300.Z01.E", last_n=40)
+        walcl = fred_series("WALCL"); rrp = fred_series("RRPONTSYD"); tga = fred_series("WTREGEN")
+        def chg6m(pts, weekly=True):
+            if len(pts) < 27: return None
+            back = 26 if weekly else 6
+            if len(pts) <= back: return None
+            return pts[-1][1] - pts[-1-back][1]
+        ecb_6m = chg6m(ecb_bs, weekly=True)
+        # Fed net liq now vs 6m ago (all weekly-ish FRED)
+        def fred_netliq_6m():
+            if not walcl or not rrp or not tga: return None
+            def val_at(pts, idx): return pts[idx][1] if len(pts) > abs(idx) else None
+            now = (val_at(walcl,-1) or 0) - (val_at(rrp,-1) or 0)/1000 - (val_at(tga,-1) or 0)/1000
+            then = (val_at(walcl,-27) or 0) - (val_at(rrp,-27) or 0)/1000 - (val_at(tga,-27) or 0)/1000
+            return now - then if (walcl and len(walcl) > 27) else None
+        fed_6m = fred_netliq_6m()
+        # normalize to €bn / $bn (WALCL in $mn). ECB ILM in €mn.
+        ecb_6m_bn = round(ecb_6m/1000, 1) if ecb_6m is not None else None
+        fed_6m_bn = round(fed_6m/1000, 1) if fed_6m is not None else None
+        diverg = None
+        if ecb_6m_bn is not None and fed_6m_bn is not None:
+            diverg = round(ecb_6m_bn - fed_6m_bn, 1)
+        sig = "NORMAL"
+        if diverg is not None and abs(diverg) > 300: sig = "TAIL_RISK"
+        out["indicators"]["eu_us_liquidity_divergence"] = {
+            "name": "EU/US Liquidity Divergence (6m Δ)",
+            "ecb_balance_sheet_6m_chg_eur_bn": ecb_6m_bn,
+            "fed_net_liquidity_6m_chg_usd_bn": fed_6m_bn,
+            "divergence_bn": diverg, "signal": sig,
+            "interpretation": f"ECB 6m Δ {ecb_6m_bn}€bn vs Fed 6m Δ {fed_6m_bn}$bn → divergence {diverg}bn. |>300| = FX/carry tail risk (drove 2024 yen-unwind).",
+            "thresholds": {"tail_risk_abs_bn": 300}}
+    except Exception as e:
+        out["indicators"]["eu_us_liquidity_divergence"] = {"err": str(e)[:60]}
+
+    # ── #12 BLS Credit Standards (C&I tightening) ──
+    try:
+        bls = ecb_csv("BLS/Q.U2.ALL.O.E.Z.B3.ST.S.WFNET", last_n=12)
+        if bls:
+            # drop empty trailing quarters (survey not yet released)
+            bls = [(d, v) for d, v in bls if v is not None]
+            if bls:
+                latest = bls[-1][1]
+                prev = bls[-2][1] if len(bls) > 1 else None
+                sig = "SEVERE_TIGHTENING" if latest > 20 else "TIGHTENING" if latest > 0 else "EASING"
+                out["indicators"]["bls_credit_standards"] = {
+                    "name": "EU Bank Lending Survey — credit standards (C&I)",
+                    "net_pct_tightening": round(latest, 1), "prev_quarter": round(prev, 1) if prev is not None else None,
+                    "as_of": bls[-1][0], "signal": sig,
+                    "interpretation": f"Net {round(latest,1)}% of EU banks tightening C&I standards (>+20 severe). EU equivalent of Fed SLOOS; SX5E drawdowns follow 1-2 quarters.",
+                    "thresholds": {"severe": 20}}
+    except Exception as e:
+        out["indicators"]["bls_credit_standards"] = {"err": str(e)[:60]}
+
+    # composite headline: count how many are flashing
+    flashing = []
+    for k, v in out["indicators"].items():
+        s = (v or {}).get("signal", "")
+        if s in ("WATCH", "CRITICAL", "ELEVATED", "ACUTE", "TAIL_RISK", "TIGHTENING", "SEVERE_TIGHTENING"):
+            flashing.append(k)
+    out["n_flashing"] = len(flashing); out["flashing"] = flashing
+    out["headline"] = (f"{len(flashing)} ECB-derived dump signal(s) active: {', '.join(flashing)}"
+                       if flashing else "ECB-derived dump signals all calm")
+    out["duration_s"] = round(time.time() - t0, 1)
+    s3.put_object(Bucket=BUCKET, Key="data/ecb-derived.json",
+                  Body=json.dumps(out, default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=1800")
+    print(f"[ecb-derived] flashing={flashing} in {out['duration_s']}s")
+    return {"statusCode": 200, "body": json.dumps({"n_flashing": len(flashing)})}
