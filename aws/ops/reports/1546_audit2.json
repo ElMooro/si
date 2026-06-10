@@ -1,0 +1,268 @@
+{
+  "ops": 1546,
+  "ages_h": {
+    "data/carry-surface.json": 1.0,
+    "data/carry.json": null,
+    "data/vol-surface.json": 1.0,
+    "data/volatility.json": null,
+    "data/sector-rotation.json": 37.8,
+    "data/best-setups.json": 0.6,
+    "data/_skill/frontrun-skill-index.json": 241.5,
+    "data/alert-backtests.json": 0.1,
+    "data/auction-crisis.json": 38.8,
+    "data/eurodollar-stress.json": 37.8,
+    "data/historical-analogs.json": 0.1,
+    "data/backtest-summary.json": 4.8
+  },
+  "briefs_stalest_15": [
+    [
+      "data/archive/pump-radar-brief/20260601_1925.json",
+      199.4
+    ],
+    [
+      "data/archive/pump-radar-brief/20260601_2008.json",
+      198.7
+    ],
+    [
+      "data/archive/pump-radar-brief/20260601_2148.json",
+      197.0
+    ],
+    [
+      "data/archive/pump-radar-brief/20260601_2201.json",
+      196.8
+    ],
+    [
+      "data/archive/pump-radar-brief/20260602_1330.json",
+      181.3
+    ],
+    [
+      "data/archive/pump-radar-brief/20260603_1330.json",
+      157.3
+    ],
+    [
+      "data/archive/pump-radar-brief/20260604_1330.json",
+      133.3
+    ],
+    [
+      "data/archive/pump-radar-brief/20260605_1330.json",
+      109.3
+    ],
+    [
+      "data/archive/pump-radar-brief/20260606_1330.json",
+      85.3
+    ],
+    [
+      "data/archive/pump-radar-brief/20260607_1330.json",
+      61.3
+    ],
+    [
+      "data/portfolio-manager-brief.json",
+      38.8
+    ],
+    [
+      "data/ai-brief.json",
+      38.7
+    ],
+    [
+      "data/ai-brief.md",
+      38.7
+    ],
+    [
+      "data/archive/pump-radar-brief/20260608_1330.json",
+      37.3
+    ],
+    [
+      "data/alpha-brief.json",
+      15.8
+    ]
+  ],
+  "briefs_n": 20,
+  "bond_vol_regime": {
+    "type": "dict",
+    "value": {
+      "regime": "NORMAL",
+      "composite_z": -0.02,
+      "risk_posture": "NEUTRAL",
+      "conviction_multiplier": 1.0
+    }
+  },
+  "skill_sample": [],
+  "rules": {
+    "justhodl-sector-rotation": [
+      {
+        "rule": "justhodl-sector-rotation-6h",
+        "state": "DESCRIBE_FAIL An error occurred (ResourceNotFoundExcep"
+      },
+      {
+        "rule": "justhodl-sector-rotation-hourly",
+        "state": "DESCRIBE_FAIL An error occurred (ResourceNotFoundExcep"
+      },
+      {
+        "rule": "justhodl-sector-rotation-hourly",
+        "state": "DESCRIBE_FAIL An error occurred (ResourceNotFoundExcep"
+      }
+    ],
+    "justhodl-ai-brief-router": [
+      {
+        "rule": "justhodl-alerts-digest-daily",
+        "state": "ENABLED",
+        "sched": "cron(0 9 * * ? *)"
+      },
+      {
+        "rule": "justhodl-alerts-digest-close-daily",
+        "state": "ENABLED",
+        "sched": "cron(0 21 * * ? *)"
+      },
+      {
+        "rule": "justhodl-uptime-monitor-hourly",
+        "state": "ENABLED",
+        "sched": "cron(0 12 * * ? *)"
+      },
+      {
+        "rule": "justhodl-frontrun-skill-daily",
+        "state": "ENABLED",
+        "sched": "cron(30 10 * * ? *)"
+      },
+      {
+        "rule": "justhodl-self-improvement-daily",
+        "state": "ENABLED",
+        "sched": "cron(0 11 * * ? *)"
+      },
+      {
+        "rule": "justhodl-opportunity-ranker-4h",
+        "state": "ENABLED",
+        "sched": "cron(30 14 * * ? *)"
+      }
+    ],
+    "justhodl-ai-brief": [
+      {
+        "rule": "justhodl-ai-brief-4h",
+        "state": "DISABLED",
+        "sched": "cron(5 0,4,8,12,16,20 ? * * *)"
+      }
+    ],
+    "justhodl-alpha-daily-brief": [
+      {
+        "rule": "justhodl-alpha-daily-brief",
+        "state": "DESCRIBE_FAIL An error occurred (ResourceNotFoundExcep"
+      }
+    ],
+    "justhodl-auction-crisis-detector": [
+      {
+        "rule": "justhodl-auction-crisis-active",
+        "state": "DESCRIBE_FAIL An error occurred (ResourceNotFoundExcep"
+      },
+      {
+        "rule": "justhodl-auction-crisis-backstop",
+        "state": "DESCRIBE_FAIL An error occurred (ResourceNotFoundExcep"
+      }
+    ],
+    "justhodl-carry-surface": [
+      {
+        "rule": "carry-surface-4h",
+        "state": "DISABLED",
+        "sched": "rate(4 hours)"
+      },
+      {
+        "rule": "carry-surface-4h",
+        "state": "DISABLED",
+        "sched": "rate(4 hours)"
+      },
+      {
+        "rule": "justhodl-carry-surface-sched",
+        "state": "ENABLED",
+        "sched": "cron(0 13 * * ? *)"
+      }
+    ],
+    "justhodl-vol-surface": [
+      {
+        "rule": "",
+        "state": "DESCRIBE_FAIL Parameter validation failed:\nInvalid len"
+      },
+      {
+        "rule": "justhodl-vol-surface-daily",
+        "state": "ENABLED",
+        "sched": "cron(30 13 * * ? *)"
+      },
+      {
+        "rule": "justhodl-vol-surface-sched",
+        "state": "ENABLED",
+        "sched": "cron(30 13 * * ? *)"
+      }
+    ],
+    "justhodl-fleet-freshness-monitor": [
+      {
+        "rule": "justhodl-fleet-freshness-monitor-30min",
+        "state": "DESCRIBE_FAIL An error occurred (ResourceNotFoundExcep"
+      },
+      {
+        "rule": "fleet-freshness-monitor-30min",
+        "state": "DESCRIBE_FAIL An error occurred (ResourceNotFoundExcep"
+      },
+      {
+        "rule": "justhodl-fleet-freshness-hourly",
+        "state": "ENABLED",
+        "sched": "rate(1 hour)"
+      },
+      {
+        "rule": "justhodl-fleet-freshness-monitor-sched",
+        "state": "ENABLED",
+        "sched": "rate(1 hour)"
+      }
+    ]
+  },
+  "monitor_env": {
+    "TELEGRAM_BOT_TOKEN": "SET",
+    "TELEGRAM_CHAT_ID": "SET",
+    "SNS_ARN": "SET",
+    "DEFAULT_MAX_AGE_H": "SET",
+    "ALERT_RATIO": "SET"
+  },
+  "manifest": "NOT FOUND at known keys",
+  "cw": {
+    "justhodl-sector-rotation": {
+      "n_starts_48h": 6,
+      "last_start": "2026-06-08T08:00:31.840000+00:00",
+      "n_err_48h": 0,
+      "err_sample": []
+    },
+    "justhodl-ai-brief-router": {
+      "n_starts_48h": 5,
+      "last_start": "2026-06-08T11:00:03.173000+00:00",
+      "n_err_48h": 0,
+      "err_sample": []
+    },
+    "justhodl-carry-surface": {
+      "n_starts_48h": 5,
+      "last_start": "2026-06-08T12:00:08.210000+00:00",
+      "n_err_48h": 0,
+      "err_sample": []
+    },
+    "justhodl-vol-surface": {
+      "n_starts_48h": 2,
+      "last_start": "2026-06-10T01:47:18.090000+00:00",
+      "n_err_48h": 0,
+      "err_sample": []
+    },
+    "justhodl-fleet-freshness-monitor": {
+      "n_starts_48h": 7,
+      "last_start": "2026-06-08T06:00:11.797000+00:00",
+      "n_err_48h": 0,
+      "err_sample": []
+    }
+  },
+  "monitor_lines": [
+    "[freshness-monitor] tracked=86  stale=45  fresh=41",
+    "[freshness-monitor] done \u2014 5 alerts, 40 suppressed, 6.0s",
+    "[freshness-monitor] tracked=86  stale=45  fresh=41",
+    "[freshness-monitor] done \u2014 3 alerts, 42 suppressed, 6.0s",
+    "[freshness-monitor] tracked=86  stale=45  fresh=41",
+    "[freshness-monitor] done \u2014 1 alerts, 44 suppressed, 6.1s",
+    "[freshness-monitor] tracked=86  stale=45  fresh=41",
+    "[freshness-monitor] done \u2014 0 alerts, 45 suppressed, 5.8s"
+  ],
+  "sector_invoke": {
+    "err": "NONE",
+    "age_after_h": -0.0
+  }
+}
