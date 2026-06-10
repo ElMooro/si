@@ -2947,6 +2947,14 @@ def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
               "brief_type": "skill_aggregator", "output_key": cfg.get("output_key")}
     try:
         tracked = cfg.get("tracked_signal_types") or []
+        if not tracked:
+            # Registry entry lost its list → Attr.is_in([]) raises ParamValidation.
+            # Fail soft with the canonical engine set (extra names are harmless in is_in).
+            tracked = ["frontrun_sniffer_setup", "macro_frontrun_sniffer_setup",
+                       "convergence_fingerprint", "equity_convergence_fingerprint",
+                       "sustained_target_equity", "sustained_target_macro",
+                       "apex_fusion", "bottleneck_boom"]
+            print(f"[skill-agg] tracked_signal_types missing in cfg — defaulting to {len(tracked)} canonical types")
         lookback_days = cfg.get("lookback_days", 90)
         cutoff_epoch = int((datetime.now(timezone.utc) - timedelta(days=lookback_days)).timestamp())
 
