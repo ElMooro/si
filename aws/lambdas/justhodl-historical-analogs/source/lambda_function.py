@@ -44,6 +44,30 @@ FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 
 
+def yahoo_spx():
+    """Deepest free S&P 500 daily closes: Yahoo ^GSPC range=max (1927+)."""
+    try:
+        u = ("https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC"
+             "?range=max&interval=1d&events=history")
+        raw = urllib.request.urlopen(
+            urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0 (JustHodl research)"}),
+            timeout=60).read()
+        j = json.loads(raw)
+        r0 = (j.get("chart", {}).get("result") or [{}])[0]
+        ts = r0.get("timestamp") or []
+        cl = ((r0.get("indicators") or {}).get("quote") or [{}])[0].get("close") or []
+        out = {}
+        for t, c in zip(ts, cl):
+            if c is None:
+                continue
+            d = datetime.fromtimestamp(t, tz=timezone.utc).date().isoformat()
+            out[d] = float(c)
+        return out if len(out) > 8000 else None
+    except Exception as e:
+        print(f"[spx] yahoo failed: {str(e)[:70]}")
+        return None
+
+
 def stooq_spx():
     """Deep S&P 500 closes via Stooq (^spx, 1928+). Primary for analog/backtest depth."""
     try:
@@ -192,8 +216,8 @@ def lambda_handler(event=None, context=None):
 
     # 2. SPX closes — v2: Polygon SPY daily 1999+ (FRED SP500 only spans ~2015+,
     # which silently capped the whole analog pool). Fallback to FRED on failure.
-    spx = stooq_spx() or polygon_spy_closes() or raw.get("spx_close", {})
-    print(f"[analogs] spx closes: {len(spx)} (source={'stooq' if len(spx)>6000 else 'polygon' if len(spx)>1000 else 'fred'})")
+    spx = yahoo_spx() or stooq_spx() or polygon_spy_closes() or raw.get("spx_close", {})
+    print(f"[analogs] spx closes: {len(spx)} (source={'yahoo' if len(spx)>8000 else 'stooq' if len(spx)>6000 else 'polygon' if len(spx)>1000 else 'fred'})")
     spx_returns_1m = compute_returns(spx)
 
     # 3. Build feature dict: each feature -> dict of date -> z-score
@@ -239,8 +263,16 @@ def lambda_handler(event=None, context=None):
         distances.append((d, dist, vec))
     distances.sort(key=lambda x: x[1])
 
-    # 8. Top K nearest neighbors
-    nearest = distances[:K_NEIGHBORS]
+    # 8. Top K nearest neighbors — v2.1 DE-CLUSTERED: adjacent days of one
+    # episode would let a single event masquerade as 8 independent analogs.
+    # Enforce >=30 calendar days between selected neighbors.
+    nearest = []
+    for d_, dist_, vec_ in distances:
+        dd_ = date.fromisoformat(d_)
+        if all(abs((dd_ - date.fromisoformat(sd)).days) >= 30 for sd, _, _ in nearest):
+            nearest.append((d_, dist_, vec_))
+        if len(nearest) >= K_NEIGHBORS:
+            break
     print(f"[analogs] top {K_NEIGHBORS} matches:")
     for d, dist, vec in nearest[:5]:
         print(f"   {d} dist={dist:.3f}")
@@ -328,7 +360,7 @@ def lambda_handler(event=None, context=None):
         call_desc = "Could not compute 21d forward returns from analogs"
 
     out = {
-        "version": "2.0",
+        "version": "2.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - started, 2),
         "today": today_snapshot,
@@ -339,7 +371,7 @@ def lambda_handler(event=None, context=None):
         "forward_distribution": forward_distribution,
         "directional_call": call,
         "directional_description": call_desc,
-        "methodology": "Euclidean distance (deep pool: SPY via Polygon 1999+) over rolling 252d z-scores of [vix, 2s10s, HY OAS, USD, 10Y, SPX 1m return]",
+        "methodology": "Euclidean distance (deep pool: S&P via Yahoo 1927+; neighbors de-clustered >=30d) over rolling 252d z-scores of [vix, 2s10s, HY OAS, USD, 10Y, SPX 1m return]",
         "data_sources": {"all": "FRED API (free)"},
     }
 

@@ -53,6 +53,30 @@ def hist(sid):
         return []
 
 
+def yahoo_spx():
+    """Deepest free S&P 500 daily closes: Yahoo ^GSPC range=max (1927+)."""
+    try:
+        u = ("https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC"
+             "?range=max&interval=1d&events=history")
+        raw = urllib.request.urlopen(
+            urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0 (JustHodl research)"}),
+            timeout=60).read()
+        j = json.loads(raw)
+        r0 = (j.get("chart", {}).get("result") or [{}])[0]
+        ts = r0.get("timestamp") or []
+        cl = ((r0.get("indicators") or {}).get("quote") or [{}])[0].get("close") or []
+        out = {}
+        for t, c in zip(ts, cl):
+            if c is None:
+                continue
+            d = datetime.fromtimestamp(t, tz=timezone.utc).date().isoformat()
+            out[d] = float(c)
+        return out if len(out) > 8000 else None
+    except Exception as e:
+        print(f"[spx] yahoo failed: {str(e)[:70]}")
+        return None
+
+
 def stooq_spx():
     """Deep S&P 500 closes via Stooq (^spx, 1928+). Primary for backtest depth."""
     try:
@@ -165,7 +189,7 @@ def forward_stats(fire_dates, spy):
 
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
-    sq = stooq_spx()
+    sq = yahoo_spx() or stooq_spx()
     spy = sorted(sq.items()) if sq else spy_closes()
     print(f"[bt] spy {len(spy)} bars {spy[0][0]}→{spy[-1][0]}")
 
@@ -234,7 +258,7 @@ def lambda_handler(event, context):
             "FRED NFCI", [(d, v > 0) for d, v in nfci])
 
     fired_recent = [r["id"] for r in RULES if r["last_fired"] and r["last_fired"] >= "2026-05-01"]
-    out = {"engine": "alert-backtester", "version": "1.0", "generated_at": now.isoformat(),
+    out = {"engine": "alert-backtester", "version": "1.1", "generated_at": now.isoformat(),
            "spy_span": f"{spy[0][0]}→{spy[-1][0]}", "n_rules": len(RULES),
            "horizons_days": HORIZONS, "rearm_days": REARM, "rules": RULES,
            "read": (f"{len(RULES)} institutional alert rules replayed over their full history "
