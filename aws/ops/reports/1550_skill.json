@@ -1,0 +1,58 @@
+{
+  "ops": 1550,
+  "errors": [],
+  "ctx_before": {
+    "keys": [
+      "brief_type",
+      "lookback_days",
+      "output_key",
+      "title",
+      "tracked_signal_types"
+    ],
+    "tracked": [
+      "frontrun_sniffer_setup",
+      "macro_frontrun_sniffer_setup",
+      "macro_convergence_fingerprint",
+      "equity_convergence_fingerprint",
+      "sustained_target_equity"
+    ],
+    "brief_type": "skill_aggregator",
+    "output_key": "frontrun-skill-aggregator"
+  },
+  "registry_written": true,
+  "regen_fn_err": "NONE",
+  "regen_lines": [],
+  "skill_age_after_h": 242.09,
+  "skill_index": {
+    "generated_at": null,
+    "n_total": null,
+    "n_scored": 0,
+    "n_pending": 5,
+    "engines": {
+      "sustained_target_equity": {
+        "n": 2,
+        "scored": 0,
+        "hit": null
+      },
+      "macro_frontrun_sniffer": {
+        "n": 3,
+        "scored": 0,
+        "hit": null
+      }
+    }
+  },
+  "organic_0900_fired": "too early (now 03:23Z)",
+  "final_ages": {
+    "data/carry-surface.json": 1.6,
+    "data/vol-surface.json": 1.6,
+    "data/sector-rotation.json": 0.59,
+    "data/eurodollar-stress.json": 0.47,
+    "data/auction-crisis.json": 0.46,
+    "data/ai-brief.json": 0.46,
+    "data/_skill/frontrun-skill-index.json": 242.09,
+    "data/bottleneck-boom.json": 0.26,
+    "data/alert-backtests.json": 0.73,
+    "data/historical-analogs.json": 0.73,
+    "data/apex-fusion.json": 0.94
+  }
+}
