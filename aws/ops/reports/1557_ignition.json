@@ -1,0 +1,83 @@
+{
+  "ops": 1557,
+  "errors": [],
+  "fn": "created",
+  "rule": "cron(30 10 * * ? *)",
+  "fn_err": "NONE",
+  "verify": {
+    "scored_n": 48,
+    "duration_s": 6.4,
+    "pillar_availability": {
+      "obv_div": true,
+      "ftd": true,
+      "insider": false,
+      "f13_init": false,
+      "dark_share": false,
+      "rev_breadth": true,
+      "cadence": true,
+      "shelf": true
+    },
+    "probes": {
+      "grades": true,
+      "inst": false,
+      "insider_brief": "data/insider-buys-enriched.json",
+      "insider_fmp": false,
+      "ftd": true,
+      "dark": true,
+      "edgar": true
+    },
+    "ftd_files": [
+      "202605a",
+      "202604b"
+    ],
+    "signals_logged": 8,
+    "top_calls": [
+      "CAMT",
+      "MOD",
+      "AXON",
+      "SMCI",
+      "DELL",
+      "MRVL",
+      "HEI",
+      "NVDA"
+    ],
+    "rank1": {
+      "ticker": "CAMT",
+      "obv_slope_n": -14.039,
+      "px_slope_n": -4.724,
+      "divergence": -9.315,
+      "px": 168.15,
+      "adv30": 518041.0,
+      "mkt_cap": 7705995015,
+      "name": "Camtek Ltd.",
+      "sector": "Technology",
+      "rev_up30": 3,
+      "rev_dn30": 0,
+      "rev_net": 3,
+      "n30": 3,
+      "base30": 7.0,
+      "cadence_ratio": 0.43,
+      "shelf_active": false,
+      "ftd_shares": 123607,
+      "ftd_chg_ratio": 1.85,
+      "ftd_days_adv": 0.239,
+      "z_obv": -0.04,
+      "z_ftd": 3,
+      "z_rev": 0.23,
+      "z_cad": -0.86,
+      "coverage_pct": 57.0,
+      "ignition_score": 62.5,
+      "pillars_hit": [
+        "ftd"
+      ],
+      "why": [
+        "FTD pressure z 3"
+      ]
+    }
+  },
+  "ddb": {
+    "found": true,
+    "conf": "0.66",
+    "n_fields": 21
+  }
+}
