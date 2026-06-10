@@ -1,0 +1,148 @@
+{
+  "ops": 1537,
+  "flag": "created OFF",
+  "kill_switch_check": "{\"statusCode\": 200, \"body\": \"{\\\"mode\\\": \\\"ARMED\\\", \\\"flag\\\": \\\"OFF\\\", \\\"state_present\\\": false}\"}",
+  "apex_invoke": {
+    "err": "NONE",
+    "resp": "{\"statusCode\": 200, \"body\": \"{\\\"n\\\": 219, \\\"by_tier\\\": {\\\"IGNITION\\\": 10, \\\"SIMMER\\\": 25, \\\"NOISE\\\": 184}, \\\"logged\\\": 10}\"}"
+  },
+  "rules_enabled": [],
+  "apex": {
+    "version": "1.2",
+    "n_logged": 10,
+    "log_errors": [],
+    "top1": {
+      "ticker": "NTAP",
+      "tier": "IGNITION"
+    }
+  },
+  "apex_item": {
+    "found": true,
+    "fields": [
+      "accuracy_scores",
+      "baseline_price",
+      "benchmark",
+      "check_timestamps",
+      "check_windows",
+      "confidence",
+      "horizon_days_primary",
+      "logged_at",
+      "logged_epoch",
+      "measure_against",
+      "metadata",
+      "outcomes",
+      "predicted_direction",
+      "rationale",
+      "regime_at_log",
+      "schema_version",
+      "signal_id",
+      "signal_type",
+      "signal_value",
+      "source",
+      "status",
+      "ticker",
+      "ttl"
+    ],
+    "status": "pending",
+    "signal_type": "apex_fusion"
+  },
+  "analogs": {
+    "version": "2.0",
+    "n_dates": 652,
+    "first_analog": "2023-08-24",
+    "fwd": {
+      "5d": {
+        "n": 15,
+        "mean_pct": 0.19,
+        "median_pct": 0.06,
+        "hit_rate_pct": 53.3,
+        "min_pct": -2.87,
+        "max_pct": 3.08,
+        "stdev_pct": 1.79
+      },
+      "21d": {
+        "n": 15,
+        "mean_pct": -1.54,
+        "median_pct": -1.54,
+        "hit_rate_pct": 26.7,
+        "min_pct": -4.87,
+        "max_pct": 1.69,
+        "stdev_pct": 2.15
+      },
+      "63d": {
+        "n": 15,
+        "mean_pct": 2.12,
+        "median_pct": 2.33,
+        "hit_rate_pct": 73.3,
+        "min_pct": -7.09,
+        "max_pct": 9.82,
+        "stdev_pct": 4.06
+      },
+      "126d": {
+        "n": 15,
+        "mean_pct": 14.41,
+        "median_pct": 14.49,
+        "hit_rate_pct": 100.0,
+        "min_pct": 8.68,
+        "max_pct": 20.76,
+        "stdev_pct": 3.04
+      }
+    },
+    "call": "BEARISH"
+  },
+  "alert_bt": {
+    "n_rules": 11,
+    "spy_span": "2021-06-10\u21922026-06-09",
+    "sample": [
+      [
+        "euribor_ois_ge50",
+        1,
+        7.03
+      ],
+      [
+        "it_de_ge150",
+        3,
+        3.18
+      ],
+      [
+        "estr_dfr_ge_m1",
+        0,
+        null
+      ],
+      [
+        "wages_gt_35",
+        3,
+        3.18
+      ],
+      [
+        "m3_lt_2",
+        2,
+        2.72
+      ],
+      [
+        "t2_gap_z2",
+        2,
+        3.18
+      ]
+    ],
+    "err": null
+  },
+  "scorecard": {
+    "age_ok": "2026-06-10T00:49:01.465403+00:00",
+    "n_rows": 65,
+    "regime_sample": {
+      "signal_type": "ml_risk",
+      "by_regime": {
+        "UNKNOWN": {
+          "n": 92,
+          "hit_rate": 1.0,
+          "wilson_lb": 0.96,
+          "avg_return_pct": 6.74
+        }
+      }
+    }
+  },
+  "backtest_summary_peek": {
+    "generated_at": "2026-06-09T22:00:33+00:00"
+  }
+}
