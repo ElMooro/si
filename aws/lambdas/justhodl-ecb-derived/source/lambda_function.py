@@ -108,7 +108,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.2.2",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.2.3",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -763,6 +763,7 @@ def lambda_handler(event=None, context=None):
                     return pts, f"eurostat:{dataset}:{geo}"
             except Exception as _e:
                 print(f"[eurostat] {dataset} {geo}: {str(_e)[:70]}")
+                out.setdefault("_eurostat_debug", {})[f"{dataset}:{geo}"] = str(_e)[:90]
                 continue
         return [], None
 
@@ -799,13 +800,21 @@ def lambda_handler(event=None, context=None):
     # (FRED EA19 code discontinued; flashing 3-year-old data is worse than no data).
     try:
         ip, sid = [], None
-        for dims in ({"indic_bt": "PROD", "nace_r2": "B-D", "s_adj": "SCA", "unit": "I21"},
+        # ECB STS first (same proven SDMX path as everything else on this engine)
+        for k in ("STS/M.I9.Y.PROD.NS0010.4.000", "STS/M.I8.Y.PROD.NS0010.4.000",
+                  "STS/M.U2.Y.PROD.NS0010.4.000"):
+            ipx = ecb_csv(k, start="1999-01")
+            if len(ipx) > 30:
+                ip, sid = ipx, f"ecb:{k}"
+                break
+        if not ip:
+         for dims in ({"indic_bt": "PROD", "nace_r2": "B-D", "s_adj": "SCA", "unit": "I21"},
                      {"indic_bt": "PROD", "nace_r2": "B-D", "s_adj": "SCA", "unit": "I15"},
                      {"indic_bt": "PROD", "nace_r2": "B-D", "s_adj": "CA", "unit": "I21"},
                      {"indic_bt": "PROD", "nace_r2": "C", "s_adj": "SCA", "unit": "I21"}):
             ip, sid = eurostat_series("sts_inpr_m", dims, n=240)
             if ip:
-                break
+                break  # noqa: indented under the fallback guard
         if len(ip) > 14:
             yoy = [(ip[i][0], round((ip[i][1] / ip[i - 12][1] - 1) * 100, 2))
                    for i in range(12, len(ip)) if ip[i - 12][1]]
