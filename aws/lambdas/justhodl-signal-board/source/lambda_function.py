@@ -651,6 +651,93 @@ def n_earnings_quality(d):
 
 
 # (engine, category, s3_key, normaliser)
+
+
+# === 2026-06 Alpha Stack (18-edge buildout + EU Dump Radar v3) ===
+
+def n_ignition(d):
+    """Pre-pump accumulation composite: hot top-decile = equity-bullish."""
+    ranks = d.get("ranks") or []
+    top = [r.get("ignition_score") for r in ranks[:8]
+           if isinstance(r.get("ignition_score"), (int, float))]
+    if not top:
+        return 0, "Ignition n/a"
+    avg = sum(top) / len(top)
+    sig = 2 if avg >= 68 else 1 if avg >= 58 else 0
+    tc = ", ".join((d.get("top_calls") or [])[:3])
+    return sig, f"Ignition avg {avg:.1f} (top: {tc or 'n/a'})"
+
+
+def n_bottleneck_boom(d):
+    ranks = d.get("ranks") or d.get("top") or []
+    vals = []
+    for r in ranks[:8]:
+        if isinstance(r, dict):
+            v = next((r[k] for k in ("boom_score", "bottleneck_score", "score", "composite")
+                      if isinstance(r.get(k), (int, float))), None)
+            if v is not None:
+                vals.append(v)
+    if not vals:
+        return 0, "Bottleneck n/a"
+    avg = sum(vals) / len(vals)
+    return (1 if avg >= 60 else 0), f"Bottleneck avg {avg:.1f}"
+
+
+def n_crisis_canaries(d):
+    sc = d.get("composite_score")
+    if sc is None:
+        return 0, "Canaries n/a"
+    sig = -2 if sc >= 70 else -1 if sc >= 45 else 0
+    return sig, f"Funding canaries {sc} ({d.get('level', 'n/a')})"
+
+
+def n_liquidity_inflection(d):
+    u = d.get("usd") or {}
+    z = u.get("impulse_z")
+    if z is None:
+        return 0, "Liq-inflect n/a"
+    sig = 2 if z > 1 else 1 if z > 0.25 else -2 if z < -1 else -1 if z < -0.25 else 0
+    return sig, f"USD liq impulse z={z} ({u.get('state', 'n/a')})"
+
+
+def n_confluence_meta(d):
+    nt = d.get("net_today") or {}
+    net = nt.get("net")
+    if net is None:
+        return 0, "Confluence n/a"
+    sig = 2 if net >= 4 else 1 if net >= 2 else -2 if net <= -4 else -1 if net <= -2 else 0
+    return sig, (f"Net engine breadth {net:+d} "
+                 f"({len(nt.get('up_engines') or [])}↑/{len(nt.get('down_engines') or [])}↓)")
+
+
+def n_kb_match(d):
+    top = (d.get("top_matches") or [{}])[0]
+    fw, mp = top.get("framework") or "", top.get("match_pct")
+    if not fw or mp is None:
+        return 0, "KB-match n/a"
+    bear = any(w in fw for w in ("Crisis", "Stress", "Inversion", "Default",
+                                  "Stagflation", "Shortage", "Top", "Auction"))
+    bull = any(w in fw for w in ("Pivot", "Bottom", "Buy"))
+    sig = (-1 if mp >= 75 else 0) if bear else ((1 if mp >= 75 else 0) if bull else 0)
+    return sig, f"KB closest: {fw} ({mp}%)"
+
+
+def n_eu_dump(d):
+    ds = d.get("dump_score") or {}
+    sc = ds.get("score_0_100")
+    if sc is None:
+        return 0, "EU-dump n/a"
+    sig = -2 if sc >= 75 else -1 if sc >= 60 else 0
+    return sig, f"EU dump score {sc} ({ds.get('level', 'n/a')})"
+
+
+def n_index_inclusion(d):
+    n = d.get("n_eligible")
+    if n is None:
+        return 0, "Inclusion n/a"
+    return 0, f"S&P inclusion-eligible names: {n} (context, non-directional)"
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -714,6 +801,15 @@ FEEDS = [
     ("CTA Trend Exhaust",         "positioning",      "data/cta-trend-exhaust.json",         n_cta_trend_exhaust),
     ("NDX-SPX Spread",            "equity tactical",  "data/ndx-spx-spread.json",            n_ndx_spx_spread),
     ("Earnings Quality",          "equity valuation", "data/earnings-quality.json",          n_earnings_quality),
+    # === 2026-06 Alpha Stack (18-edge buildout + EU Dump Radar v3) ===
+    ("Ignition Pre-Pump",      "smart money",      "data/ignition.json",             n_ignition),
+    ("Bottleneck Boom",        "equity tactical",  "data/bottleneck-boom.json",      n_bottleneck_boom),
+    ("Crisis Canaries",        "macro",            "data/crisis-canaries.json",      n_crisis_canaries),
+    ("Liquidity Inflection",   "macro",            "data/liquidity-inflection.json", n_liquidity_inflection),
+    ("Confluence Net-Breadth", "sentiment",        "data/confluence-meta.json",      n_confluence_meta),
+    ("Crisis-KB Match",        "macro",            "data/kb-match.json",             n_kb_match),
+    ("EU Dump Radar",          "macro",            "data/ecb-derived.json",          n_eu_dump),
+    ("S&P Inclusion Watch",    "events",           "data/index-inclusion.json",      n_index_inclusion),
 ]
 
 
