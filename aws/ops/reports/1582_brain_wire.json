@@ -1,0 +1,246 @@
+{
+  "ops": 1582,
+  "errors": [],
+  "uc": "updated",
+  "mi": "updated",
+  "verify": {
+    "cn_err": "NONE",
+    "cn": {
+      "version": "2.0.1",
+      "avail": {
+        "sofr_tail": true,
+        "ofr_repo": true,
+        "discount_window": true,
+        "bank_deposits": true,
+        "fhlb_dn": false,
+        "auction_slope": false,
+        "revision_nowcast": true,
+        "treasury_vol_proxy": true,
+        "cp_bill_spread": true,
+        "floor_spreads": true,
+        "bank_reserves": true,
+        "pd_fails": true
+      },
+      "new": {
+        "treasury_vol_proxy": {
+          "rv20_bp_ann": 73.9,
+          "z": -0.48,
+          "as_of": "2026-06-09",
+          "note": "MOVE-proxy: 20d realized vol of DGS10 (no free MOVE feed)"
+        },
+        "cp_bill_spread": {
+          "spread_bp": 0.0,
+          "z": -1.21,
+          "as_of": "2026-06-08"
+        },
+        "mmf_assets": null,
+        "floor_spreads": {
+          "sofr_iorb_bp": -5.0,
+          "sofr_iorb_z": -0.27,
+          "effr_sofr_bp": 2.0,
+          "as_of": "2026-06-09"
+        },
+        "bank_reserves": {
+          "level_bn": 3013902.0,
+          "chg_13w_bn": -1629.0,
+          "drain_z": 0.18,
+          "as_of": "2026-06-03"
+        },
+        "pd_fails": {
+          "series": "PDFTD-USTET",
+          "level_mn": 102245.0,
+          "z": 0.14,
+          "as_of": "2026-05-27"
+        }
+      },
+      "score": 0.5,
+      "level": "CALM",
+      "alerts": []
+    },
+    "li_err": "NONE",
+    "li": {
+      "version": "1.1.0",
+      "us_money": {
+        "real_m2_yoy_pct": 1.17,
+        "z": -0.54,
+        "as_of": "2026-04-01",
+        "note": "M2 YoY \u2212 CPI YoY; negative real M2 preceded 2008 and the 2022-23 drawdown (brain: track M2/GDP, real money)"
+      }
+    },
+    "uc_err": "NONE",
+    "uc": {
+      "score": {
+        "score_0_100": 54.6,
+        "level": "WATCH",
+        "components": [
+          {
+            "id": "sahm",
+            "z": 0.4,
+            "w": 0.2
+          },
+          {
+            "id": "sloos",
+            "z": 0.54,
+            "w": 0.15
+          },
+          {
+            "id": "claims",
+            "z": -0.75,
+            "w": 0.12
+          },
+          {
+            "id": "quits",
+            "z": 0.0,
+            "w": 0.1
+          },
+          {
+            "id": "copper_gold",
+            "z": 0,
+            "w": 0.12
+          },
+          {
+            "id": "real_10y",
+            "z": 1.3,
+            "w": 0.08
+          },
+          {
+            "id": "term_premium",
+            "z": 0.94,
+            "w": 0.05
+          },
+          {
+            "id": "buffett",
+            "z": 1.12,
+            "w": 0.08
+          },
+          {
+            "id": "margin",
+            "z": 1.28,
+            "w": 0.05
+          },
+          {
+            "id": "semis",
+            "z": -2.37,
+            "w": 0.05
+          }
+        ],
+        "coverage_pillars": 10
+      },
+      "alerts": [],
+      "duration_s": 4.7,
+      "pillars": {
+        "sahm": {
+          "value": 0.1,
+          "as_of": "2026-05-01",
+          "signal": "NORMAL"
+        },
+        "sloos": {
+          "ci_large_net_pct": 8.1,
+          "as_of": "2026-04-01",
+          "signal": "NORMAL"
+        },
+        "claims": {
+          "four_wk_avg_k": 208.2,
+          "yoy_pct": -9.0,
+          "as_of": "2026-05-30",
+          "signal": "NORMAL"
+        },
+        "quits": {
+          "quits_rate_pct": 1.9,
+          "chg_6m_pp": 0.0,
+          "as_of": "2026-04-01",
+          "signal": "NORMAL"
+        },
+        "copper_gold": {
+          "ratio": 0.0015,
+          "z_10y": 2.29,
+          "as_of": "2026-06-10",
+          "signal": "NORMAL"
+        },
+        "term_premium": {
+          "series": "THREEFYTP10",
+          "tp10_pct": 0.8,
+          "as_of": "2026-06-05",
+          "signal": "NORMAL"
+        },
+        "real_10y": {
+          "pct": 2.2,
+          "as_of": "2026-06-09",
+          "signal": "NORMAL"
+        },
+        "infl_5y5y": {
+          "pct": 2.24,
+          "as_of": "2026-06-10",
+          "signal": "NORMAL"
+        },
+        "buffett": {
+          "mcap_gdp_pct": 232.7,
+          "pctile": 99.3,
+          "series": "NCBEILQ027S",
+          "as_of": "2025-10-01",
+          "signal": "WATCH"
+        },
+        "margin_debt": {
+          "series": "BOGZ1FL663067003Q",
+          "level_bn": 609.7,
+          "yoy_pct": 25.6,
+          "pctile": 99.2,
+          "as_of": "2025-10-01",
+          "signal": "WATCH"
+        },
+        "semis_leadership": {
+          "smh_spy_60d_pct": 33.66,
+          "as_of": "2026-06-10",
+          "signal": "NORMAL"
+        }
+      }
+    },
+    "mi_err": "NONE",
+    "mi": {
+      "sessions": 145,
+      "fetched": 0,
+      "latest": {
+        "date": "2026-06-09",
+        "advancers": 3038,
+        "decliners": 2010,
+        "rana": 203.6
+      },
+      "mcclellan": {
+        "oscillator": -8.3,
+        "summation": -3409.0,
+        "state": "NEUTRAL",
+        "spec": "\u00b170 stretch, \u00b1100 washout/blowoff (brain: breadth narrows ahead of corrections)"
+      },
+      "thrust": {
+        "fired": false,
+        "date": null,
+        "ema10_pct_adv": 0.507,
+        "spec": "<0.40\u2192>0.615 in \u226410 sessions = rare bull thrust"
+      },
+      "duration_s": 0.1,
+      "signal_logged": null
+    },
+    "sb_err": "NONE",
+    "sb": {
+      "n_engines": 66,
+      "rows": {
+        "US Macro Cycle": {
+          "signal": 0,
+          "signal_label": "NEUTRAL",
+          "read": "US cycle 54.6 (WATCH; drivers: semis z-2.4, real_10y z+1.3)"
+        },
+        "Market Internals": {
+          "signal": 0,
+          "signal_label": "NEUTRAL",
+          "read": "McClellan -8.3 (NEUTRAL), summation -3409.0"
+        },
+        "US Real M2": {
+          "signal": 0,
+          "signal_label": "NEUTRAL",
+          "read": "US real M2 +1.2% YoY (z -0.54)"
+        }
+      }
+    },
+    "registry_n": 48
+  }
+}
