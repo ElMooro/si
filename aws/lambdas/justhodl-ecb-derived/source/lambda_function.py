@@ -107,7 +107,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "2.2",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "2.3",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -333,6 +333,23 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         out["indicators"]["eurodollar_stress_index"] = {"err": str(e)[:60]}
 
+    def eurostat_manr(coicop, n=8):
+        """Latest euro-area HICP YoY months from Eurostat (post-enlargement aggregate)."""
+        for geo in ("EA21", "EA20", "EA"):
+            try:
+                u = ("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr"
+                     f"?format=JSON&lang=EN&geo={geo}&coicop={coicop}&lastTimePeriod={n}")
+                raw = urllib.request.urlopen(urllib.request.Request(u, headers=HEADERS), timeout=30, context=_ctx).read()
+                j = json.loads(raw)
+                idx = j.get("dimension", {}).get("time", {}).get("category", {}).get("index", {})
+                vals = j.get("value", {})
+                pts = sorted((t, float(vals[str(i)])) for t, i in idx.items() if str(i) in vals)
+                if pts:
+                    return pts, geo
+            except Exception:
+                continue
+        return [], None
+
     # ════════════════ v2.0 — Top-10 gap-fills (ops 1522) + important-ECB sweep ════════════════
 
     # ── #6 €STR + €STR−DFR · (b) market-implied rate path · #4 Euribor−OIS analogue ──
@@ -424,6 +441,26 @@ def lambda_handler(event=None, context=None):
     # ── #8 HICP headline / core / services / energy / food / goods ──
     try:
         icp = ecb_multi("ICP/M.U2.N.000000+XEF000+SERV00+NRGY00+FOOD00+GOODS0+IGXE00.4.ANR", last_n=15)
+        # euro-area enlargement (BG 2026-01) re-coded the aggregate: ECB U2/ICP lags at 2025-12.
+        # Merge latest months from Eurostat post-enlargement series (EA21 → EA20 → EA fallback).
+        ES_MAP = {"000000": "CP00", "XEF000": "TOT_X_NRG_FOOD", "SERV00": "SERV", "NRGY00": "NRG", "FOOD00": "FOOD"}
+        es_geo_used = None
+        for ecb_code, es_code in ES_MAP.items():
+            try:
+                base = None
+                for k in icp:
+                    if f".{ecb_code}." in k:
+                        base = k; break
+                if base is None:
+                    continue
+                last_ecb = icp[base][-1][0] if icp[base] else ""
+                es_pts, geo = eurostat_manr(es_code, n=8)
+                if es_pts:
+                    es_geo_used = es_geo_used or geo
+                    add = [(d, v) for d, v in es_pts if d > last_ecb]
+                    icp[base] = icp[base] + add
+            except Exception:
+                continue
 
         def _icp(code):
             for k, pts in icp.items():
@@ -452,6 +489,7 @@ def lambda_handler(event=None, context=None):
             "vs_target_pp": round(h - 2.0, 2) if h is not None else None,
             "sticky_services": sticky,
             "as_of": Hd[-1][0] if Hd else None, "read": read,
+            "latest_source": ("Eurostat " + es_geo_used) if es_geo_used else "ECB ICP (U2)",
         }
     except Exception as e:
         out["inflation"] = {"err": str(e)[:60]}
