@@ -108,7 +108,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.3.0",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.3.1",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -894,11 +894,23 @@ def lambda_handler(event=None, context=None):
             pts = ecb_csv(f"LFSI/M.{cc}.S.UNEHRT.TOTAL0.15_74.T", start="2000-01")
             if len(pts) > 24:
                 cmap[cc] = pts
-        ch_pts, _src = eurostat_series("une_rt_m", {"s_adj": "SA", "age": "TOTAL",
-                                                     "unit": "PC_ACT", "sex": "T"},
-                                        n=320, geos=("CH",))
+        ch_pts = []
+        for dims in ({"s_adj": "SA", "age": "TOTAL", "unit": "PC_ACT", "sex": "T"},
+                     {"s_adj": "NSA", "age": "TOTAL", "unit": "PC_ACT", "sex": "T"},
+                     {"s_adj": "TC", "age": "TOTAL", "unit": "PC_ACT", "sex": "T"}):
+            ch_pts, _src = eurostat_series("une_rt_m", dims, n=320, geos=("CH",))
+            if len(ch_pts) > 24:
+                break
+        if len(ch_pts) <= 24:
+            for sid_ in ("LRHUTTTTCHM156S", "LRHUTTTTCHQ156S", "LMUNRRTTCHM156S"):
+                f_ = fred_obs(sid_, "2000-01-01")
+                if len(f_) > 24:
+                    ch_pts, _src = f_, f"fred:{sid_}"
+                    break
         if len(ch_pts) > 24:
             cmap["CH"] = ch_pts
+        else:
+            out.setdefault("_eurostat_debug", {})["CH_unemployment"] = "all sources empty"
         if cmap:
             rows, worst = {}, 0.0
             for cc, pts in cmap.items():
@@ -1206,6 +1218,19 @@ def lambda_handler(event=None, context=None):
                 tgt["spark"] = {"points": c_["points"][-70:], "pctile": c_["pctile"]}
                 n_sparks += 1
         out["n_sparks"] = n_sparks
+        misses = {}
+        for ik in ("wage_persistence", "credit_contraction", "expectations_deanchoring",
+                   "fragmentation_stress", "eurodollar_stress_index", "estr_dfr_dislocation",
+                   "euribor_ois_stress"):
+            tgt = out["indicators"].get(ik)
+            if not isinstance(tgt, dict):
+                misses[ik] = "indicator_absent"
+            elif tgt.get("err"):
+                misses[ik] = f"indicator_err:{tgt['err'][:40]}"
+            elif "spark" not in tgt:
+                src_n = len(spark_src.get(ik) or [])
+                misses[ik] = f"src_pts={src_n}" + ("" if ik not in REUSE else f";chart={'Y' if charts.get(REUSE[ik]) else 'N'}")
+        out["spark_misses"] = misses
     except Exception as e:
         print(f"[sparks] {str(e)[:80]}")
 

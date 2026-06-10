@@ -127,8 +127,19 @@ def lambda_handler(event=None, context=None):
             _stale_days = (datetime.now().date() - _d.fromisoformat(pts[-1][0])).days
         except Exception:
             pass
+        # staleness vs frequency-appropriate SLA
+        try:
+            ld = pts[-1][0]
+            ld10 = (ld + "-01-01")[:10] if len(ld) == 4 else (ld + "-01")[:10] if len(ld) == 7 else ld[:10]
+            stale_days = (datetime.now(timezone.utc).date()
+                           - datetime.strptime(ld10[:10], "%Y-%m-%d").date()).days
+        except Exception:
+            stale_days = None
+        sla = {"daily": 7, "weekly": 14, "monthly": 45, "quarterly": 120, "annual": 430}.get(freq, 60)
+        discontinued = bool(stale_days is not None and stale_days > sla * 3)
         manifest.append({"id": sid, "label": label, "freq": freq,
                          "latest": _r(latest), "percentile": pctl, "z_score": z,
+                         "stale_days": stale_days, "discontinued": discontinued,
                          "first_date": pts[0][0], "latest_date": pts[-1][0], "n_points": len(pts),
                          "discontinued": bool(_stale_days and _stale_days > 120), "stale_days": _stale_days})
         time.sleep(0.4)
