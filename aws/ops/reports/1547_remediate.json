@@ -1,0 +1,72 @@
+{
+  "ops": 1547,
+  "errors": [],
+  "rules": [
+    {
+      "fn": "justhodl-fleet-freshness-monitor",
+      "rule": "justhodl-freshness-30m",
+      "expr": "rate(30 minutes)"
+    },
+    {
+      "fn": "justhodl-sector-rotation",
+      "rule": "justhodl-sector-rotation-6h",
+      "expr": "cron(15 1/6 * * ? *)"
+    },
+    {
+      "fn": "justhodl-auction-crisis-detector",
+      "rule": "justhodl-auction-crisis-active",
+      "expr": "cron(0/15 14-22 ? * MON-FRI *)"
+    },
+    {
+      "fn": "justhodl-auction-crisis-detector",
+      "rule": "justhodl-auction-crisis-backstop",
+      "expr": "cron(5 13 * * ? *)"
+    },
+    {
+      "fn": "justhodl-eurodollar-stress",
+      "rule": "justhodl-eurodollar-stress-2h",
+      "expr": "cron(10 0/2 * * ? *)"
+    },
+    {
+      "fn": "justhodl-ai-brief",
+      "rule": "justhodl-ai-brief-4h",
+      "expr": "ENABLED (existing)"
+    }
+  ],
+  "invoked": [
+    "justhodl-auction-crisis-detector",
+    "justhodl-eurodollar-stress",
+    "justhodl-ai-brief"
+  ],
+  "skill_chain_fns": [
+    "justhodl-alpha-calibrator",
+    "justhodl-calibration-fleet",
+    "justhodl-calibration-snapshot",
+    "justhodl-calibration-snapshotter",
+    "justhodl-calibrator",
+    "justhodl-cascade-recalibrator",
+    "justhodl-compound-aggregator",
+    "justhodl-gsi-calibrator",
+    "justhodl-insider-aggregate",
+    "justhodl-miss-calibrator",
+    "justhodl-opportunity-calibrator",
+    "justhodl-outcome-checker",
+    "justhodl-plumbing-aggregator"
+  ],
+  "manifest_written": 14,
+  "monitor_invoke_err": "NONE",
+  "monitor_run_lines": [
+    "[freshness-monitor] v1.2.0 run_id=20260610_025522",
+    "[freshness-monitor] 1 rule(s) in manifest",
+    "[freshness-monitor] rule prefix=data/ \u2192 10000 objects",
+    "[freshness-monitor] tracked=110  stale=64  fresh=46",
+    "[telegram] failed: HTTP Error 400: Bad Request"
+  ],
+  "ages_after": {
+    "data/sector-rotation.json": 0.1,
+    "data/auction-crisis.json": 0.0,
+    "data/eurodollar-stress.json": 0.0,
+    "data/ai-brief.json": 0.0,
+    "data/_skill/frontrun-skill-index.json": 241.6
+  }
+}
