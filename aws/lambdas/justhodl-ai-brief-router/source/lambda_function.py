@@ -2989,12 +2989,24 @@ def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
         n_pending = 0
         cutoff_30d = int((datetime.now(timezone.utc) - timedelta(days=30)).timestamp())
 
+        def _asdict(v):
+            # Legacy items stored metadata/outcomes/accuracy_scores as JSON strings.
+            if isinstance(v, dict):
+                return v
+            if isinstance(v, str) and v:
+                try:
+                    j = json.loads(v)
+                    return j if isinstance(j, dict) else {}
+                except Exception:
+                    return {}
+            return {}
+
         for it in items:
             stype = it.get("signal_type") or "?"
-            engine = (it.get("metadata") or {}).get("engine") or stype
+            engine = _asdict(it.get("metadata")).get("engine") or stype
             status = str(it.get("status") or "").lower()
-            scores = it.get("accuracy_scores") or {}
-            outcomes = it.get("outcomes") or {}
+            scores = _asdict(it.get("accuracy_scores"))
+            outcomes = _asdict(it.get("outcomes"))
             logged_epoch = int(it.get("logged_epoch") or 0)
 
             # Find the best-scored window (longest horizon with a verdict)
