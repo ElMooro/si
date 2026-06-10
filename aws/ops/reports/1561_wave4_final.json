@@ -1,0 +1,248 @@
+{
+  "ops": 1561,
+  "errors": [],
+  "verify": {
+    "kb_err": "NONE",
+    "kb": {
+      "schema_map": {
+        "group_depth": 2,
+        "level_keys": [
+          "characteristic_moves",
+          "description",
+          "duration",
+          "historical_examples",
+          "id",
+          "implication",
+          "name",
+          "phases",
+          "playbook",
+          "policy_response",
+          "rules",
+          "shapes",
+          "trigger_signals",
+          "warning",
+          "watch_for_resolution"
+        ],
+        "top_keys": [
+          "build_duration_s",
+          "current_state",
+          "frameworks",
+          "generated_at",
+          "n_frameworks",
+          "n_patterns",
+          "patterns",
+          "version"
+        ],
+        "n_leaves": 132
+      },
+      "stats": {
+        "n_frameworks": 15,
+        "n_rules_harvested": 123,
+        "n_evaluable_today": 16,
+        "n_machine_rules": 0,
+        "coverage_pct": 13.0
+      },
+      "method": "keyword-heuristic-v1",
+      "top": [
+        [
+          "trigger_signals",
+          75.0,
+          4,
+          36
+        ],
+        [
+          "characteristic_moves",
+          66.7,
+          3,
+          27
+        ],
+        [
+          "playbook",
+          66.7,
+          3,
+          13
+        ]
+      ],
+      "top1_next": [
+        {
+          "rule": "Funding rates persistently > 0.05% per 8h",
+          "gap": "sofr_tail chg=-0.21 vs wants rise"
+        }
+      ]
+    },
+    "cm_err": "NONE",
+    "cm": {
+      "version": "1.1.0",
+      "net_today": {
+        "date": "2026-06-10",
+        "net": 3,
+        "up_engines": [
+          "apex_fusion",
+          "bottleneck-boom",
+          "ignition"
+        ],
+        "down_engines": []
+      },
+      "curves": {
+        "\u2264-3": {
+          "n_days": 12,
+          "med_5d": 3.67,
+          "pos_5d_pct": 90.9,
+          "n_5d": 11,
+          "med_21d": 7.88,
+          "pos_21d_pct": 100.0,
+          "n_21d": 8
+        },
+        "-2..-1": {
+          "n_days": 13,
+          "med_5d": 1.64,
+          "pos_5d_pct": 50.0,
+          "n_5d": 10,
+          "med_21d": 12.07,
+          "pos_21d_pct": 100.0,
+          "n_21d": 2
+        },
+        "0": {
+          "n_days": 10,
+          "med_5d": 0.73,
+          "pos_5d_pct": 55.6,
+          "n_5d": 9,
+          "med_21d": 7.33,
+          "pos_21d_pct": 100.0,
+          "n_21d": 6
+        },
+        "+1..+2": {
+          "n_days": 25,
+          "med_5d": 2.17,
+          "pos_5d_pct": 62.5,
+          "n_5d": 24,
+          "med_21d": 12.53,
+          "pos_21d_pct": 100.0,
+          "n_21d": 16
+        },
+        "\u2265+3": {
+          "n_days": 31,
+          "med_5d": 2.17,
+          "pos_5d_pct": 75.0,
+          "n_5d": 28,
+          "med_21d": 8.29,
+          "pos_21d_pct": 96.0,
+          "n_21d": 25
+        }
+      },
+      "fade": [
+        [
+          "sustained_target_equity",
+          0.062,
+          32
+        ],
+        [
+          "equity_frontrun_sniffer",
+          0.321,
+          53
+        ]
+      ]
+    },
+    "ii_err": "NONE",
+    "ii": {
+      "version": "1.0.1",
+      "eligible": 28,
+      "head": [
+        [
+          "ASML",
+          "ASML Holding N.V.",
+          686.8,
+          true
+        ],
+        [
+          "MRVL",
+          "Marvell Technology, Inc.",
+          232.0,
+          true
+        ],
+        [
+          "SCCO",
+          "Southern Copper Corporation",
+          141.8,
+          true
+        ],
+        [
+          "TBB",
+          "AT&T Inc. 5.35% GLB NTS 66",
+          126.3,
+          true
+        ],
+        [
+          "BNJ",
+          "Brookfield Finance Inc. 4.50% P",
+          105.7,
+          true
+        ],
+        [
+          "SPOT",
+          "Spotify Technology S.A.",
+          104.9,
+          true
+        ],
+        [
+          "BNH",
+          "Brookfield Finance Inc. 4.625%",
+          104.8,
+          true
+        ],
+        [
+          "EPD",
+          "Enterprise Products Partners L.P.",
+          81.7,
+          true
+        ]
+      ]
+    },
+    "freshness_hours": {
+      "data/ignition.json": 0.15,
+      "data/liquidity-inflection.json": 0.14,
+      "data/crisis-canaries.json": 0.14,
+      "data/confluence-meta.json": 0.0,
+      "data/kb-match.json": 0.0,
+      "data/index-inclusion.json": -0.0,
+      "data/historical-analogs.json": 0.13
+    },
+    "rules": {
+      "justhodl-ignition-daily": {
+        "state": "ENABLED",
+        "sched": "cron(30 10 * * ? *)",
+        "targets": 1
+      },
+      "justhodl-liquidity-inflection-daily": {
+        "state": "ENABLED",
+        "sched": "cron(15 11 * * ? *)",
+        "targets": 1
+      },
+      "justhodl-crisis-canaries-daily": {
+        "state": "ENABLED",
+        "sched": "cron(40 11 * * ? *)",
+        "targets": 1
+      },
+      "justhodl-confluence-meta-daily": {
+        "state": "ENABLED",
+        "sched": "cron(50 11 * * ? *)",
+        "targets": 1
+      },
+      "justhodl-kb-matcher-daily": {
+        "state": "ENABLED",
+        "sched": "cron(0 12 * * ? *)",
+        "targets": 1
+      },
+      "justhodl-index-inclusion-weekly": {
+        "state": "ENABLED",
+        "sched": "cron(0 13 ? * MON *)",
+        "targets": 1
+      }
+    },
+    "signal_census_today": {
+      "ignition": 0,
+      "liquidity_inflection": 0,
+      "crisis_canary": 0
+    }
+  }
+}
