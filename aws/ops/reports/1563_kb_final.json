@@ -1,0 +1,116 @@
+{
+  "ops": 1563,
+  "errors": [],
+  "verify": {
+    "kb_err": "NONE",
+    "kb": {
+      "stats": {
+        "n_frameworks": 17,
+        "n_rules_harvested": 125,
+        "n_evaluable_today": 16,
+        "n_machine_rules": 0,
+        "coverage_pct": 12.8
+      },
+      "n_named": 17,
+      "named": [
+        "Dollar Shortage / Funding Stress",
+        "Treasury Auction Stress",
+        "Credit Event / Default Wave",
+        "Growth Scare / Recession Pricing",
+        "Inflation Resurgence / Stagflation",
+        "Fed Pivot \u2014 The Generational Buy",
+        "BTC Cycle Top",
+        "BTC Cycle Bottom",
+        "Yield Curve Inversion",
+        "VIX Term Structure Inversion (Backwardat",
+        "Permanent Portfolio (Browne)",
+        "13F Institutional Consensus Build",
+        "Asymmetric Risk/Reward Setup (QARP)",
+        "Dollar Smile Theory (Stephen Jen)",
+        "Yield Curve Decomposition",
+        "Plant-and-Harvest Cycle",
+        "Fed Pivot \u2014 The Generational Buy"
+      ],
+      "skeleton": "{\"version\": \"str\", \"generated_at\": \"str\", \"n_patterns\": \"int\", \"n_frameworks\": \"int\", \"patterns\": [\"list[13]\", {\"id\": \"str\", \"name\": \"str\", \"category\": \"str\", \"trigger_signals\": \"list\", \"historical_examples\": \"list\", \"characteristic_moves\": \"dict\", \"duration\": \"str\", \"policy_response\": \"str\"}], \"frameworks\": {\"dollar_smile\": {\"name\": \"str\", \"description\": \"str\", \"implication\": \"str\"}, \"yield_curve_shapes\": {\"name\": \"str\", \"shapes\": \"dict\"}, \"btc_cycle_indicators\": {\"name\": \"str\", \"phases\": \"dict\"}, \"plant_and_harvest\": {\"name\": \"str\", \"description\": \"str\", \"rules\": \"list\"}}, \"current_state\": {\"as_of\": \"str\", \"indicators\": {\"khalid_index\": \"dict\", \"vix\": \"dict\", \"liquidity\": \"dict\", \"aaii\": \"dict\", \"bond_regime\": \"dict\", \"yield_curve_2s10s\": \"float\", \"dxy\": \"dict\"}, \"active_patterns\": [\"list[1]\", \"dict\"]}, \"build_duration_s\": \"float\"}",
+      "top": [
+        [
+          "Yield Curve Inversion",
+          100.0,
+          5,
+          5
+        ]
+      ],
+      "top1_matched": [
+        {
+          "rule": "Curve inverted for 3+ months",
+          "why": "curve_2s10s chg=-0.07 vs wants fall"
+        },
+        {
+          "rule": "often rally first 6-12 months after inversion (false comfort)",
+          "why": "curve_2s10s chg=-0.07 vs wants fall"
+        },
+        {
+          "rule": "arrives 6-22 months later when curve dis-inverts (bull steepens)",
+          "why": "curve_2s10s chg=-0.07 vs wants fall"
+        }
+      ],
+      "top1_next": []
+    },
+    "ii_err": "NONE",
+    "ii": {
+      "eligible": 23,
+      "head": [
+        [
+          "MRVL",
+          "Marvell Technology, Inc.",
+          226.9
+        ],
+        [
+          "SCCO",
+          "Southern Copper Corporation",
+          140.7
+        ],
+        [
+          "SPOT",
+          "Spotify Technology S.A.",
+          104.7
+        ],
+        [
+          "BE",
+          "Bloom Energy Corporation",
+          68.7
+        ],
+        [
+          "ALAB",
+          "Astera Labs, Inc. Common Stock",
+          58.5
+        ],
+        [
+          "SOMN",
+          "The Southern Company",
+          56.0
+        ],
+        [
+          "CRDO",
+          "Credo Technology Group Holding Ltd",
+          45.2
+        ],
+        [
+          "HEI",
+          "HEICO Corporation",
+          44.9
+        ],
+        [
+          "GFS",
+          "GLOBALFOUNDRIES Inc.",
+          40.9
+        ],
+        [
+          "ALNY",
+          "Alnylam Pharmaceuticals, Inc.",
+          39.7
+        ]
+      ]
+    }
+  }
+}
