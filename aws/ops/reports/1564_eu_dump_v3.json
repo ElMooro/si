@@ -1,0 +1,110 @@
+{
+  "ops": 1564,
+  "errors": [],
+  "akey_found": false,
+  "fn_err": "NONE",
+  "verify": {
+    "version": "3.0",
+    "duration_s": 19.9,
+    "brief_kb": 44.5,
+    "charts": {
+      "ciss_level": {
+        "n": 321,
+        "pctile": 3.9,
+        "latest": 0.0041,
+        "since": "1997-01-01"
+      },
+      "ciss_delta30": {
+        "n": 321,
+        "pctile": 54.1,
+        "latest": -0.0001,
+        "since": "1997-02-03"
+      },
+      "it_de_spread": {
+        "n": 321,
+        "pctile": 36.7,
+        "latest": 82.0,
+        "since": "1995-01-01"
+      },
+      "ltro_share": {
+        "n": 321,
+        "pctile": 7.4,
+        "latest": 52.84,
+        "since": "2007-W01"
+      }
+    },
+    "event_study": {
+      "n_episodes": 26,
+      "spx": {
+        "d21": {
+          "n": 26,
+          "median_pct": 1.01,
+          "hit_pct": 23.1
+        },
+        "d63": {
+          "n": 26,
+          "median_pct": 7.09,
+          "hit_pct": 26.9
+        }
+      },
+      "eurusd": {
+        "d21": {
+          "n": 26,
+          "median_pct": 0.22,
+          "hit_pct": 50.0
+        },
+        "d63": {
+          "n": 26,
+          "median_pct": -0.03,
+          "hit_pct": 53.8
+        }
+      },
+      "err": null,
+      "definition": "CISS \u039430d crosses +0.15 (90-session cooldown)"
+    },
+    "episode_dates_tail": [
+      "2016-06-24",
+      "2019-08-20",
+      "2020-03-02",
+      "2022-03-04",
+      "2022-09-16",
+      "2023-03-20",
+      "2024-08-08",
+      "2025-04-10"
+    ],
+    "dump_score": {
+      "score_0_100": 35.2,
+      "level": "CALM",
+      "components": [
+        {
+          "id": "ciss_accel",
+          "z": 0.0,
+          "w": 0.3
+        },
+        {
+          "id": "it_de_spread",
+          "z": -0.78,
+          "w": 0.15
+        },
+        {
+          "id": "ltro_share",
+          "z": -2.51,
+          "w": 0.15
+        }
+      ],
+      "coverage_pillars": 3
+    },
+    "n_flashing": 2,
+    "flashing": [
+      "bls_credit_standards",
+      "euribor_ois_stress"
+    ],
+    "ai_brief_keys": [
+      "error"
+    ],
+    "ai_error": "ANTHROPIC_API_KEY not set on this lambda",
+    "ai_base_case": "",
+    "ai_watch_next": null,
+    "signal_logged": false
+  }
+}
