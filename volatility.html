@@ -137,14 +137,14 @@ table.tbl tr:last-child td{border-bottom:none}
 <main class="page">
   <div class="page-head">
     <h1>VOLATILITY MONITOR</h1>
-    <div class="sub">VIX · MOVE · SKEW · cross-asset volatility regime · auto-refresh 5min · powered by volatility-monitor-agent</div>
+    <div class="sub">VIX · MOVE · SKEW · cross-asset volatility regime · VIX family (14 FRED series) + SKEW/VVIX · daily 13:30 UTC · justhodl-vol-surface v3</div>
   </div>
 
   <div class="regime-strip" id="regimeStrip">
     <div class="regime-cell cyan"><div class="label">REGIME</div><div class="value" id="regimeVal">—</div><div class="sub" id="regimeSub">classifying…</div></div>
     <div class="regime-cell"><div class="label">VIX</div><div class="value" id="vixVal">—</div><div class="sub" id="vixSub">—</div></div>
-    <div class="regime-cell"><div class="label">MOVE</div><div class="value" id="moveVal">—</div><div class="sub" id="moveSub">—</div></div>
-    <div class="regime-cell"><div class="label">RISK ENV</div><div class="value" id="riskVal">—</div><div class="sub" id="riskSub">—</div></div>
+    <div class="regime-cell"><div class="label">TERM 3M/30D</div><div class="value" id="moveVal">—</div><div class="sub" id="moveSub">—</div></div>
+    <div class="regime-cell"><div class="label">STRESS SCORE</div><div class="value" id="riskVal">—</div><div class="sub" id="riskSub">/100 composite</div></div>
   </div>
 
   <div class="grid">
@@ -184,117 +184,57 @@ table.tbl tr:last-child td{border-bottom:none}
 </footer>
 
 <script>
-const URL_VOL = 'https://api.justhodl.ai/agent/volatility';
-
-function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function fmtNum(n,d=2){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})}
-function fmtSigned(n,d=2){if(n==null||isNaN(n))return'—';const s=Number(n)>=0?'+':'';return s+Number(n).toFixed(d)+'%'}
-function chgClass(n){if(n==null||isNaN(n))return'';return Number(n)>=0?'chg-pos':'chg-neg'}
-function updateClock(){document.getElementById('clock').textContent = new Date().toISOString().slice(11,16) + ' UTC'}
-
-function regimeClass(regime){
-  const r = (regime||'').toUpperCase();
-  if(r === 'CRISIS' || r === 'STRESS' || r === 'HIGH') return 'red';
-  if(r === 'ELEVATED' || r === 'CAUTION') return 'amber';
-  if(r === 'LOW' || r === 'COMPLACENT') return 'cyan';
-  return 'green'; // NORMAL
-}
-
-function signalCls(signal){
-  const s = (signal||'').toUpperCase();
-  if(s.includes('HIGH') || s.includes('CRISIS') || s.includes('STRESS')) return 'high';
-  if(s.includes('ELEVATED') || s.includes('CAUTION')) return 'elevated';
-  if(s.includes('LOW') || s.includes('COMPLACENT')) return 'low';
-  return 'normal';
-}
-
-function renderTable(targetId, dataDict, emptyMsg){
-  const target = document.getElementById(targetId);
-  if(!dataDict || Object.keys(dataDict).length === 0){
-    target.innerHTML = `<div class="empty-state">${escHtml(emptyMsg || 'No data')}</div>`;
-    return;
-  }
-  let html = `<table class="tbl"><thead><tr>
-    <th>METRIC</th><th class="r">CURRENT</th><th class="r">1D</th><th class="r">1W</th><th class="r">1M</th><th>SIGNAL</th>
-  </tr></thead><tbody>`;
-  for(const [k, v] of Object.entries(dataDict)){
-    if(!v || typeof v !== 'object') continue;
-    const ch = v.changes || {};
-    html += `<tr>
-      <td class="metric-name">${escHtml(k.replace(/_/g,' '))}</td>
-      <td class="r">${fmtNum(v.current, v.current >= 1000 ? 0 : 2)}</td>
-      <td class="r ${chgClass(ch['1D'])}">${fmtSigned(ch['1D'])}</td>
-      <td class="r ${chgClass(ch['1W'])}">${fmtSigned(ch['1W'])}</td>
-      <td class="r ${chgClass(ch['1M'])}">${fmtSigned(ch['1M'])}</td>
-      <td><span class="signal-badge ${signalCls(v.signal)}">${escHtml(v.signal||'—')}</span></td>
-    </tr>`;
-  }
-  html += '</tbody></table>';
-  target.innerHTML = html;
-}
-
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function bad(reg){reg=String(reg||'').toUpperCase();if(/PANIC|CRISIS|HIGH|BACKWARD/.test(reg))return 'high';if(/ELEVATED|STRESS|FLAT|IDIO/.test(reg))return 'elevated';if(/LOW|CALM|COMPRESS/.test(reg))return 'low';return 'normal';}
+function row(k,v,b){return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)"><span style="color:var(--fg-2);font-size:12px">${k}</span><span class="signal-badge ${b||'normal'}" style="font-family:var(--font-mono)">${v}</span></div>`;}
 async function load(){
-  try{
-    const r = await fetch(URL_VOL);
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const wrapped = await r.json();
-    // Handle both raw response or {statusCode, body}-wrapped
-    let data = wrapped;
-    if(wrapped.statusCode && typeof wrapped.body === 'string'){
-      data = JSON.parse(wrapped.body);
-    }
-
-    // Top strip
-    const an = data.analysis || {};
-    const regime = an.volatility_regime || 'UNKNOWN';
-    const cell0 = document.getElementById('regimeStrip').children[0];
-    cell0.classList.remove('green','amber','red','cyan');
-    cell0.classList.add(regimeClass(regime));
-    document.getElementById('regimeVal').textContent = regime;
-    document.getElementById('regimeSub').textContent = data.timestamp ? 'updated ' + data.timestamp.slice(11,16) : '—';
-    document.getElementById('vixVal').textContent = an.vix_level != null ? an.vix_level.toFixed(1) : '—';
-    document.getElementById('vixSub').textContent = an.vix_percentile != null ? `${an.vix_percentile.toFixed(0)}th pct` : '—';
-    document.getElementById('moveVal').textContent = an.move_level != null ? an.move_level.toFixed(0) : '—';
-    document.getElementById('moveSub').textContent = 'bond vol';
-    document.getElementById('riskVal').textContent = an.risk_environment || '—';
-    document.getElementById('riskSub').textContent = 'cross-asset';
-
-    // Tables
-    renderTable('eqVolBody', data.equity_volatility, 'No equity volatility data — VIX/SKEW source may be temporarily unavailable');
-    renderTable('assetVolBody', data.asset_volatility, 'No cross-asset volatility data');
-    renderTable('termStrucBody', data.term_structure, 'No term structure data');
-
-    // Divergences + recommendations
-    const divs = an.divergences || [];
-    const recs = data.recommendations || [];
-    let divHtml = '';
-    if(divs.length){
-      divHtml += '<ul class="divergence-list">';
-      for(const d of divs) divHtml += `<li>${escHtml(typeof d === 'string' ? d : JSON.stringify(d))}</li>`;
-      divHtml += '</ul>';
-    }
-    if(recs.length){
-      divHtml += '<div style="margin-top:12px"><div style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px">RECOMMENDATIONS</div>';
-      divHtml += '<div class="recommendations">';
-      for(const rec of recs) divHtml += `<div class="rec">${escHtml(typeof rec === 'string' ? rec : JSON.stringify(rec))}</div>`;
-      divHtml += '</div></div>';
-    }
-    if(!divHtml) divHtml = '<div class="empty-state">No divergences detected — vol regime is internally consistent.</div>';
-    document.getElementById('divBody').innerHTML = divHtml;
-
-    document.getElementById('statusPill').textContent = 'LIVE';
-    document.getElementById('statusPill').className = 'status-pill green';
-  }catch(e){
-    document.getElementById('eqVolBody').innerHTML = `<div class="err">⚠ Failed: ${escHtml(e.message)}</div>`;
-    document.getElementById('statusPill').textContent = 'OFFLINE';
-    document.getElementById('statusPill').className = 'status-pill red';
-  }
+  const d=await gj('data/vol-surface.json');
+  if(!d){document.getElementById('regimeSub').textContent='vol-surface.json unavailable';return;}
+  const t=d.term_structure||{},sk=d.skew||{},vv=d.vvix||{},ca=d.cross_asset||{},ed=d.equity_dispersion||{};
+  const reg=d.regime||t.regime||'UNKNOWN';
+  const c0=document.getElementById('regimeStrip').children[0];
+  c0.classList.remove('green','amber','red','cyan');
+  c0.classList.add({high:'red',elevated:'amber',low:'cyan',normal:'green'}[bad(reg)]);
+  document.getElementById('regimeVal').textContent=reg;
+  document.getElementById('regimeSub').textContent=d.generated_at?('updated '+d.generated_at.slice(5,16).replace('T',' ')+'Z'):'—';
+  document.getElementById('vixVal').textContent=t.spot!=null?t.spot.toFixed(1):'—';
+  document.getElementById('vixSub').textContent='VIX 30d ('+((d.data_freshness||{}).latest_fred_date||'—')+')';
+  const ratio=(t.spot&&t.back)?(t.back/t.spot):null;
+  document.getElementById('moveVal').textContent=ratio!=null?ratio.toFixed(3):'—';
+  document.getElementById('moveSub').textContent=ratio!=null?(ratio<1?'⚠ backwardation':'contango'):'—';
+  document.getElementById('riskVal').textContent=d.composite_stress_score!=null?d.composite_stress_score:'—';
+  // equity vol card
+  let eq='';
+  eq+=row('Skew (CBOE)',(sk.value!=null?sk.value:'—')+(sk.pctile_252d!=null?` · ${sk.pctile_252d}th pct`:''),bad(sk.regime));
+  eq+=row('VVIX (vol-of-vol)',(vv.value!=null?vv.value:'—')+(vv.pctile_252d!=null?` · ${vv.pctile_252d}th pct`:''),bad(vv.regime));
+  eq+=row('Equity dispersion',ed.regime||'—',bad(ed.regime));
+  if(ed.highest&&ed.highest.name)eq+=row('Highest single-name vol',`${ed.highest.name} ${ed.highest.value??''}`,'elevated');
+  document.getElementById('eqVolBody').innerHTML=eq;
+  // cross-asset card
+  let cx='';
+  if(ca.rut_vix_ratio!=null)cx+=row('RVX / VIX (small-cap)',ca.rut_vix_ratio,ca.smallcap_stress?'high':'normal');
+  if(ca.oil_vix_ratio!=null)cx+=row('OVX / VIX (oil)',ca.oil_vix_ratio,ca.oil_dominant?'elevated':'normal');
+  const un=d.underlyings||{};const sp=un.spots||un;
+  Object.keys(sp).slice(0,6).forEach(k=>{const v=sp[k];if(typeof v==='number')cx+=row(k,v.toFixed(1),'normal');});
+  document.getElementById('assetVolBody').innerHTML=cx||row('Cross-asset','no data','elevated');
+  // term structure card
+  let tm='';
+  tm+=row('VIX 30d (spot)',t.spot!=null?t.spot.toFixed(2):'—','normal');
+  tm+=row('VIX 3M (back)',t.back!=null?t.back.toFixed(2):'—','normal');
+  tm+=row('3M / 30D ratio',ratio!=null?ratio.toFixed(3):'—',ratio!=null&&ratio<1?'high':'normal');
+  tm+=row('Term regime',t.regime||'—',bad(t.regime));
+  document.getElementById('termStrucBody').innerHTML=tm;
+  // alerts + components card
+  let dv='';
+  (d.alerts||[]).forEach(a=>{dv+=row('⚠',a,'elevated');});
+  const comp=d.stress_components||{};
+  Object.keys(comp).forEach(k=>{dv+=row(k.replace(/_/g,' '),'+'+comp[k],'normal');});
+  document.getElementById('divBody').innerHTML=dv||row('Signals','all calm','low');
+  document.getElementById('statusPill').textContent='LIVE';
 }
-
-updateClock();
-setInterval(updateClock, 1000);
-load();
-setInterval(load, 5 * 60 * 1000);
+function clock(){const el=document.getElementById('clock');if(el)el.textContent=new Date().toISOString().slice(11,19)+' UTC';}
+setInterval(clock,1000);clock();load();
 </script>
 
 

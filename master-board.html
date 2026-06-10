@@ -81,7 +81,7 @@ async function load(){
   if(reg&&reg.regime)rs.push(`<span class="rchip">Bond Vol <b>${esc(reg.regime)}</b></span>`);
   if(fp&&fp.regime)rs.push(`<span class="rchip">Plumbing <b>${esc(fp.regime)}</b>${fp.qt_ended_not_qe?' · QT≠QE':''}</span>`);
   if(cr&&cr.risk_level)rs.push(`<span class="rchip">Crypto Risk <b>${esc(cr.risk_level)}</b></span>`);
-  if(bs&&bs.bond_vol_regime)rs.push(`<span class="rchip">Setups tuned for <b>${esc(bs.bond_vol_regime)}</b></span>`);
+  if(bs&&bs.bond_vol_regime){const bvr=bs.bond_vol_regime;const lbl=(bvr&&typeof bvr==='object')?(bvr.regime||bvr.label||'—'):bvr;const cm=(bvr&&typeof bvr==='object'&&bvr.conviction_multiplier!=null)?` · conv ×${bvr.conviction_multiplier}`:'';rs.push(`<span class="rchip">Setups tuned for <b>${esc(lbl)}</b>${esc(cm)}</span>`);}
   document.getElementById('regime').innerHTML=rs.join('');
   if(!bs||!bs.top_setups){document.getElementById('board').innerHTML='<div class="loading">Board data unavailable right now.</div>';return;}
   ALL=bs.top_setups;

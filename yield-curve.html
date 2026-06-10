@@ -269,7 +269,7 @@ function renderHistCtx(ref,ids){
           <span class="hl">${esc(ind.label)}</span>
           <span class="hc">now <b style="color:var(--txt)">${ind.current}${ind.unit||""}</b> · <span class="pctbadge" style="background:rgba(255,255,255,.05);color:${pctColor(ind.percentile)}">${ind.percentile}th pctile</span></span>
         </div>
-        <div class="hnear" style="margin-top:2px">Closest analog: <b style="color:${epTypeColor(ne.type||"")}">${esc(ne.name||"—")}</b> — ${tword} (was ${ne.value}${ind.unit||""}).</div>
+        <div class="hnear" style="margin-top:2px">Closest analog: <b style="color:${epTypeColor(ne.type||"")}">${esc(ne.name||"—")}</b> — ${tword}${ne.value!=null?` (was ${ne.value}${ind.unit||""})`:''}.</div>
         ${episodeRank(ind,ref.episodes)}
       </div>`;
   });
