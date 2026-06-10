@@ -108,7 +108,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.0.1",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.1.0",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -939,7 +939,7 @@ def lambda_handler(event=None, context=None):
                                      ("n_episodes", "spx", "eurusd", "definition")}}
             prompt = ("You are the chief macro strategist for an institutional Euro-area risk desk. "
                       "Using ONLY the JSON below (real live data + a real historical event study), "
-                      "write the daily EU Dump Radar briefing. Respond with STRICT JSON only, no "
+                      "write the daily EU Dump Radar briefing. Units: CISS is a 0-1 index (NOT bp); watch_next items must be plain strings. Respond with STRICT JSON only, no "
                       "markdown fences, keys exactly: what_this_is (2 sentences, what this radar "
                       "measures), why_it_matters (2-3 sentences, the ECB-plumbing-to-risk-assets "
                       "transmission), current_vs_history (3-4 sentences citing the percentiles), "
@@ -949,7 +949,7 @@ def lambda_handler(event=None, context=None):
                       "on direct effects if current readings persist or worsen), watch_next (array of "
                       "exactly 3 concrete triggers with numeric thresholds), confidence_note (1 "
                       "sentence on sample-size limits).\n\nDATA:\n" + json.dumps(ctx_, default=str))
-            payload = json.dumps({"model": "claude-haiku-4-5-20251001", "max_tokens": 1300,
+            payload = json.dumps({"model": "claude-haiku-4-5-20251001", "max_tokens": 2500,
                                    "temperature": 0.3,
                                    "messages": [{"role": "user", "content": prompt}]}).encode()
             req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=payload,
@@ -959,12 +959,50 @@ def lambda_handler(event=None, context=None):
             resp = json.loads(urllib.request.urlopen(req, timeout=60).read())
             txt = "".join(b_.get("text", "") for b_ in resp.get("content", []))
             txt = txt.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-            brief = json.loads(txt)
+            def _salvage(t):
+                t = "".join(c if (c >= " " or c == "\t") else " " for c in t)
+                try:
+                    return json.loads(t)
+                except Exception:
+                    pass
+                i = t.find("{")
+                if i < 0:
+                    raise ValueError("no json object")
+                depth, instr, escp = 0, False, False
+                for j in range(i, len(t)):
+                    c = t[j]
+                    if instr:
+                        if escp:
+                            escp = False
+                        elif c == "\\":
+                            escp = True
+                        elif c == '"':
+                            instr = False
+                    else:
+                        if c == '"':
+                            instr = True
+                        elif c == "{":
+                            depth += 1
+                        elif c == "}":
+                            depth -= 1
+                            if depth == 0:
+                                return json.loads(t[i:j + 1])
+                tail = t[i:].rstrip()
+                if instr:
+                    tail += '"'
+                tail = tail.rstrip().rstrip(",")
+                return json.loads(tail + "}" * depth)
+            try:
+                brief = _salvage(txt)
+            except Exception as pe:
+                out["ai_brief"] = {"error": f"parse: {str(pe)[:80]}", "raw_head": txt[:400]}
+                raise
             brief["model"] = "claude-haiku-4-5-20251001"
             brief["generated_at"] = datetime.now(timezone.utc).isoformat()
             out["ai_brief"] = brief
     except Exception as e:
-        out["ai_brief"] = {"error": str(e)[:120]}
+        if not (out.get("ai_brief") or {}).get("error"):
+            out["ai_brief"] = {"error": str(e)[:120]}
 
     # ── Closed-loop: extreme radar readings must earn a hit rate ──
     try:
