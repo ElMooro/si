@@ -1,0 +1,146 @@
+{
+  "ops": 1572,
+  "errors": [],
+  "fn_err": "NONE",
+  "verify": {
+    "version": "3.2.0",
+    "duration_s": 44.5,
+    "brief_kb": 85.2,
+    "macro_indicators": {
+      "ea_unemployment": {
+        "signal": "NORMAL",
+        "unemployment_rate_pct": 6.7,
+        "chg_3m_pp": 0.1,
+        "as_of": "2023-01-01",
+        "series": "LRHUTTTTEZM156S"
+      },
+      "ea_industrial_production": {
+        "signal": "CRITICAL",
+        "ip_yoy_pct": -5.69,
+        "as_of": "2023-10-01",
+        "series": "EA19PRINTO01IXOBSAM"
+      },
+      "ea_confidence": {
+        "signal": "NORMAL",
+        "business_conf": -6.8,
+        "business_z": -0.33,
+        "consumer_z": -0.21,
+        "as_of": "2026-01-01"
+      },
+      "real_m1_growth": {
+        "signal": "NORMAL",
+        "real_m1_growth_pct": 2.81,
+        "m1_yoy_pct": 3.799821800387182,
+        "hicp_yoy_pct": null,
+        "as_of": "2025-12"
+      }
+    },
+    "charts": {
+      "ciss_level": {
+        "n": 321,
+        "pctile": 3.9,
+        "latest": 0.0041,
+        "since": "1997-01-01"
+      },
+      "ciss_delta30": {
+        "n": 321,
+        "pctile": 54.1,
+        "latest": -0.0001,
+        "since": "1997-02-03"
+      },
+      "it_de_spread": {
+        "n": 321,
+        "pctile": 36.7,
+        "latest": 82.0,
+        "since": "1995-01-01"
+      },
+      "ltro_share": {
+        "n": 321,
+        "pctile": 7.4,
+        "latest": 52.84,
+        "since": "2007-W01"
+      },
+      "eu_us_divergence": {
+        "n": 321,
+        "pctile": 21.1,
+        "latest": -232.3,
+        "since": "2015-07-10"
+      },
+      "ea_unemployment": {
+        "n": 301,
+        "pctile": 0.3,
+        "latest": 6.7,
+        "since": "1998-01-01"
+      },
+      "ip_yoy": {
+        "n": 298,
+        "pctile": 6.7,
+        "latest": -5.69,
+        "since": "1999-01-01"
+      },
+      "business_confidence": {
+        "n": 321,
+        "pctile": 36.2,
+        "latest": -6.8,
+        "since": "1998-01-01"
+      },
+      "real_m1_growth": {
+        "n": 321,
+        "pctile": 25.9,
+        "latest": 2.81,
+        "since": "1999-01"
+      }
+    },
+    "dump_score": {
+      "score_0_100": 54.1,
+      "level": "WATCH",
+      "components": [
+        {
+          "id": "ciss_accel",
+          "z": 0.0,
+          "w": 0.3
+        },
+        {
+          "id": "it_de_spread",
+          "z": -0.78,
+          "w": 0.15
+        },
+        {
+          "id": "ltro_share",
+          "z": -2.51,
+          "w": 0.15
+        },
+        {
+          "id": "unemp_3m",
+          "z": 0.5,
+          "w": 0.1
+        },
+        {
+          "id": "ip_yoy",
+          "z": 1.97,
+          "w": 0.1
+        },
+        {
+          "id": "real_m1",
+          "z": 1.1,
+          "w": 0.15
+        },
+        {
+          "id": "eu_us_div",
+          "z": 1.7,
+          "w": 0.2
+        }
+      ],
+      "coverage_pillars": 7
+    },
+    "n_flashing": 3,
+    "flashing": [
+      "bls_credit_standards",
+      "euribor_ois_stress",
+      "ea_industrial_production"
+    ],
+    "ai_error": null,
+    "ai_cvh": "At 54.1, the score sits in the 54th percentile of 30-day CISS momentum, but three components flash red: industrial production at \u22125.69% YoY (6.7th percentile, worst since 2009), LTRO dependency at 52.8% (7.4th percentile, indicating acute bank stress), and EU\u2013US liquidity divergence at \u2212232.3bn (21.1st percentile, euro funding drought). CISS itself",
+    "ai_base": "The radar is in a **pre-shock accumulation phase**: real activity has collapsed (IP \u22125.69%) while financial conditions remain deceptively loose, a classic setup for sudden repricing. Of 26 historical episodes, 26.9% saw SPX losses exceed 7% within 63 days; EURUSD showed 53.8% hit rates on the downsi"
+  }
+}
