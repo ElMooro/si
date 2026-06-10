@@ -108,7 +108,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.2.0",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.2.1",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -744,9 +744,39 @@ def lambda_handler(event=None, context=None):
 
     macro_series = {}
 
-    # Unemployment rate, euro area (harmonized, monthly)
+    def eurostat_series(dataset, dims, n=400):
+        """Generic Eurostat JSON fetch → sorted [(YYYY-MM, val)]. Tries EA21/EA20/EA."""
+        for geo in ("EA21", "EA20", "EA"):
+            try:
+                q = "&".join(f"{k}={v}" for k, v in dims.items())
+                u = ("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/"
+                     f"{dataset}?format=JSON&lang=EN&geo={geo}&{q}&lastTimePeriod={n}")
+                raw = urllib.request.urlopen(urllib.request.Request(u, headers=HEADERS),
+                                              timeout=35, context=_ctx).read()
+                j = json.loads(raw)
+                idx = (j.get("dimension", {}).get("time", {}).get("category", {})
+                        .get("index", {}))
+                vals = j.get("value", {})
+                pts = sorted((t, float(vals[str(i)])) for t, i in idx.items()
+                              if str(i) in vals)
+                if len(pts) > 24:
+                    return pts, f"eurostat:{dataset}:{geo}"
+            except Exception:
+                continue
+        return [], None
+
+    # Unemployment rate, euro area — LIVE (FRED EA codes discontinued 2023):
+    # ECB LFSI first, Eurostat une_rt_m fallback.
     try:
-        sid, ue = _probe(["LRHUTTTTEZM156S", "LRHUTTTTEZQ156S"])
+        ue, sid = [], None
+        for k in ("LFSI/M.I9.S.UNEHRT.TOTAL0.15_74.T", "LFSI/M.U2.S.UNEHRT.TOTAL0.15_74.T"):
+            ue = ecb_csv(k, start="1998-01")
+            if len(ue) > 24:
+                sid = f"ecb:{k}"
+                break
+        if not ue:
+            ue, sid = eurostat_series("une_rt_m", {"s_adj": "SA", "age": "TOTAL",
+                                                    "unit": "PC_ACT", "sex": "T"})
         if ue:
             vals = [v for _, v in ue]
             chg3 = round(vals[-1] - vals[-4], 2) if len(vals) > 4 else None
@@ -760,15 +790,18 @@ def lambda_handler(event=None, context=None):
                                     f"{chg3:+.2f}pp. Rises of +0.2pp WATCH / +0.4pp CRITICAL — "
                                     "labor turns are slow but never false; the EU Sahm analogue."),
                 "thresholds": {"watch_3m_pp": 0.2, "critical_3m_pp": 0.4}}
-            macro_series["ea_unemployment"] = ("EA unemployment rate (%)", ue,
-                                                {"watch": None})
+            macro_series["ea_unemployment"] = ("EA unemployment rate (%)", ue, {})
     except Exception as e:
         out["indicators"]["ea_unemployment"] = {"err": str(e)[:60]}
 
-    # Industrial production, euro area (index → YoY)
+    # Industrial production, euro area — LIVE via Eurostat sts_inpr_m
+    # (FRED EA19 code discontinued; flashing 3-year-old data is worse than no data).
     try:
-        sid, ip = _probe(["PRINTO01EZM661S", "EA19PRINTO01IXOBSAM", "PRMNTO01EZM661S",
-                           "PRINTO01EZQ661S"])
+        ip, sid = eurostat_series("sts_inpr_m", {"indic_bt": "PROD", "nace_r2": "B-D",
+                                                  "s_adj": "SCA", "unit": "I21"})
+        if not ip:
+            ip, sid = eurostat_series("sts_inpr_m", {"indic_bt": "PROD", "nace_r2": "B-D",
+                                                      "s_adj": "SCA", "unit": "I15"})
         if len(ip) > 14:
             yoy = [(ip[i][0], round((ip[i][1] / ip[i - 12][1] - 1) * 100, 2))
                    for i in range(12, len(ip)) if ip[i - 12][1]]
@@ -814,8 +847,11 @@ def lambda_handler(event=None, context=None):
     # Negative real M1 preceded 2008, 2011 and the 2023 stagnation — the single
     # best free EA liquidity-cycle canary.
     try:
-        m1 = ecb_csv("BSI/M.U2.Y.V.M10.X.I.U2.2300.Z01.A", start="1999-01")
-        icp = ecb_csv("ICP/M.U2.N.000000.4.ANR", start="1999-01")
+        m1 = ecb_csv("BSI/M.U2.Y.V.M10.X.I.U2.2300.Z01.A", start="1998-01")
+        icx = ecb_csv("ICP/M.U2.N.000000.4.INX", start="1998-01")
+        icp = [(icx[i][0], round((icx[i][1] / icx[i - 12][1] - 1) * 100, 2))
+               for i in range(12, len(icx)) if icx[i - 12][1]] if len(icx) > 14 else \
+              ecb_csv("ICP/M.U2.N.000000.4.ANR", start="1999-01")
         if len(m1) > 40 and len(icp) > 40:
             di = dict(icp)
             real = [(d_, round(v_ - di[d_], 2)) for d_, v_ in m1 if d_ in di]
@@ -824,7 +860,8 @@ def lambda_handler(event=None, context=None):
                 sig = ("CRITICAL" if cur <= -3 else "WATCH" if cur < 0 else "NORMAL")
                 out["indicators"]["real_m1_growth"] = {
                     "name": "Real M1 Growth (M1 YoY − HICP YoY)",
-                    "m1_yoy_pct": m1[-1][1], "hicp_yoy_pct": di.get(m1[-1][0]),
+                    "m1_yoy_pct": round(dict(m1).get(real[-1][0], m1[-1][1]), 2),
+                    "hicp_yoy_pct": di.get(real[-1][0]),
                     "real_m1_growth_pct": cur, "as_of": real[-1][0], "signal": sig,
                     "interpretation": (f"Real M1 growth {cur:+.1f}% ({real[-1][0]}). Negative "
                                         "real M1 preceded every EA recession (2008, 2011, "

@@ -103,7 +103,7 @@ function chart(c){
   g+=`<line x1="${P}" x2="${W-P}" y1="${H-BOT}" y2="${H-BOT}" stroke="#1c2433" stroke-width="1"/>`;
   const NT=5;
   for(let t=0;t<NT;t++){const i=Math.round(t*(pts.length-1)/(NT-1));
-    const lab=String(pts[i][0]).slice(0,7);
+    const s0=String(pts[i][0]);const lab=s0.includes('W')?s0:s0.slice(0,7);
     g+=`<line x1="${X(i).toFixed(1)}" x2="${X(i).toFixed(1)}" y1="${H-BOT}" y2="${H-BOT+4}" stroke="#2a3550"/>`;
     g+=`<text x="${X(i).toFixed(1)}" y="${H-BOT+15}" fill="#6f7b91" font-size="8" font-family="monospace" text-anchor="${t===0?'start':t===NT-1?'end':'middle'}">${lab}</text>`;}
   const pc=c.pctile, pcl=pc>=85?'hi':pc<=15?'lo':'';
