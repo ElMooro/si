@@ -23,7 +23,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/kb-match.json"
 KB_KEY = "data/crisis-knowledge-base.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 
 def s3j(key):
@@ -61,8 +61,12 @@ def build_today_state():
     if len(dx) > 5:
         st["dollar"] = {"value": dx[-1][1], "chg": round(dx[-1][1] - dx[max(0, len(dx) - 21)][1], 2)}
     vs = s3j("data/vol-surface.json") or {}
-    spot = (((vs.get("term") or {}).get("spot")) or vs.get("vix_spot") or
-            ((vs.get("composite") or {}).get("vix")))
+    term = vs.get("term") or {}
+    spot = next((x for x in (term.get("spot"), term.get("vix_spot"), term.get("vix"),
+                              vs.get("vix_spot"), vs.get("spot_vix"),
+                              (vs.get("composite") or {}).get("vix"),
+                              (vs.get("cross") or {}).get("vix"))
+                 if isinstance(x, (int, float))), None)
     if isinstance(spot, (int, float)):
         st["vix"] = {"value": spot, "chg": None}
     cn = s3j("data/crisis-canaries.json") or {}
@@ -182,6 +186,17 @@ def lambda_handler(event=None, context=None):
         elif isinstance(node, str) and len(node) > 25:
             leaves.append((path, {"kind": "text", "text": node}))
     walk(kb, ())
+    # Preferred path: real framework objects (each carries its own name/id).
+    fw_objs = []
+    fwn = kb.get("frameworks") if isinstance(kb, dict) else None
+    if isinstance(fwn, list):
+        fw_objs = [f for f in fwn if isinstance(f, dict)]
+    elif isinstance(fwn, dict):
+        for v_ in fwn.values():
+            if isinstance(v_, dict) and ("name" in v_ or "rules" in v_ or "id" in v_):
+                fw_objs.append(v_)
+            elif isinstance(v_, list):
+                fw_objs.extend(x for x in v_ if isinstance(x, dict))
     META = {"version", "generated_at", "meta", "methodology", "source", "sources",
             "as_of", "engine", "schema", "notes", "academic_basis"}
     best_depth, best_score = 0, -1
@@ -196,7 +211,16 @@ def lambda_handler(event=None, context=None):
     for pa, r in leaves:
         if len(pa) > best_depth and pa[best_depth] not in META and not pa[best_depth].isdigit():
             groups.setdefault(pa[best_depth], []).append(r)
-    frameworks = [{"_name": k, "_rules": v} for k, v in groups.items()]
+    if len(fw_objs) >= 4:
+        frameworks = []
+        for f in fw_objs:
+            rl = []
+            rule_texts(f, rl)
+            frameworks.append({"_name": f.get("name") or f.get("id") or f.get("framework") or "unnamed",
+                               "_rules": rl})
+        groups = {fw["_name"]: fw["_rules"] for fw in frameworks}
+    else:
+        frameworks = [{"_name": k, "_rules": v} for k, v in groups.items()]
     schema_map = {"group_depth": best_depth,
                   "level_keys": sorted(groups.keys())[:24],
                   "top_keys": sorted(k for k in kb.keys())[:15] if isinstance(kb, dict) else "list",

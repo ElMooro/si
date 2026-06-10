@@ -19,7 +19,7 @@ S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/index-inclusion.json"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 MCAP_FLOOR = 18e9
 
 
@@ -72,12 +72,21 @@ def lambda_handler(event=None, context=None):
             nm = str(r.get("companyName", "")).lower()
             if any(w in nm for w in (" fund", " trust", "index ", "etf", "portfolio")):
                 return False
+            if any(w in nm for w in ("%", " notes", " nts", " due 20", "preferred",
+                                      "depositary", " l.p", " lp ", "partners l", "lp,")):
+                return False                      # exchange-listed debt / prefs / LPs
             return True
         nonmem = sorted((r for r in cands if keep(r)),
                         key=lambda r: -(r.get("marketCap") or 0))[:40]
 
         def profit_check(r):
             sym = str(r["symbol"]).upper()
+            prof = fmp("profile", {"symbol": sym})
+            p0 = prof[0] if isinstance(prof, list) and prof else {}
+            if p0.get("isAdr") or str(p0.get("country", "US")).upper() not in ("US", "USA"):
+                return None                       # ADR / foreign domicile (S&P rule)
+            if p0.get("isFund") or p0.get("isEtf"):
+                return None
             inc = fmp("income-statement", {"symbol": sym, "period": "quarter", "limit": 4})
             if not isinstance(inc, list) or len(inc) < 4:
                 return None
