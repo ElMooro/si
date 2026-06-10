@@ -53,6 +53,27 @@ def hist(sid):
         return []
 
 
+def stooq_spx():
+    """Deep S&P 500 closes via Stooq (^spx, 1928+). Primary for backtest depth."""
+    try:
+        raw = urllib.request.urlopen(
+            urllib.request.Request("https://stooq.com/q/d/l/?s=%5Espx&i=d",
+                                   headers={"User-Agent": "Mozilla/5.0"}), timeout=45).read()
+        lines = raw.decode("utf-8", "replace").strip().split("\n")
+        out = {}
+        for ln in lines[1:]:
+            c = ln.split(",")
+            if len(c) >= 5 and c[0][:2] in ("19", "20"):
+                try:
+                    out[c[0]] = float(c[4])
+                except ValueError:
+                    pass
+        return out if len(out) > 5000 else None
+    except Exception as e:
+        print(f"[spx] stooq failed: {str(e)[:70]}")
+        return None
+
+
 def spy_closes():
     end = date.today().isoformat()
     u = (f"https://api.polygon.io/v2/aggs/ticker/SPY/range/1/day/1999-01-01/{end}"
@@ -110,6 +131,8 @@ def forward_stats(fire_dates, spy):
         if d in idx:
             return idx[d]
         # next trading day at/after d
+        if d < dates_sorted[0]:
+            return None  # fire predates SPX span — never map onto index 0
         import bisect
         i = bisect.bisect_left(dates_sorted, d)
         return i if i < len(spy) else None
@@ -142,7 +165,8 @@ def forward_stats(fire_dates, spy):
 
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
-    spy = spy_closes()
+    sq = stooq_spx()
+    spy = sorted(sq.items()) if sq else spy_closes()
     print(f"[bt] spy {len(spy)} bars {spy[0][0]}→{spy[-1][0]}")
 
     # series pulls

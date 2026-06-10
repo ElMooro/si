@@ -44,6 +44,27 @@ FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 
 
+def stooq_spx():
+    """Deep S&P 500 closes via Stooq (^spx, 1928+). Primary for analog/backtest depth."""
+    try:
+        raw = urllib.request.urlopen(
+            urllib.request.Request("https://stooq.com/q/d/l/?s=%5Espx&i=d",
+                                   headers={"User-Agent": "Mozilla/5.0"}), timeout=45).read()
+        lines = raw.decode("utf-8", "replace").strip().split("\n")
+        out = {}
+        for ln in lines[1:]:
+            c = ln.split(",")
+            if len(c) >= 5 and c[0][:2] in ("19", "20"):
+                try:
+                    out[c[0]] = float(c[4])
+                except ValueError:
+                    pass
+        return out if len(out) > 5000 else None
+    except Exception as e:
+        print(f"[spx] stooq failed: {str(e)[:70]}")
+        return None
+
+
 def polygon_spy_closes():
     """SPY daily closes 1999→today via Polygon aggs (one call, 50k cap)."""
     try:
@@ -171,8 +192,8 @@ def lambda_handler(event=None, context=None):
 
     # 2. SPX closes — v2: Polygon SPY daily 1999+ (FRED SP500 only spans ~2015+,
     # which silently capped the whole analog pool). Fallback to FRED on failure.
-    spx = polygon_spy_closes() or raw.get("spx_close", {})
-    print(f"[analogs] spx closes: {len(spx)} (source={'polygon' if len(spx)>4000 else 'fred'})")
+    spx = stooq_spx() or polygon_spy_closes() or raw.get("spx_close", {})
+    print(f"[analogs] spx closes: {len(spx)} (source={'stooq' if len(spx)>6000 else 'polygon' if len(spx)>1000 else 'fred'})")
     spx_returns_1m = compute_returns(spx)
 
     # 3. Build feature dict: each feature -> dict of date -> z-score
