@@ -1,0 +1,625 @@
+{
+  "ops": 1580,
+  "brain_top_keys": [
+    "applied_by",
+    "categories",
+    "content_hash",
+    "directive",
+    "directive_changed_this_run",
+    "engine",
+    "generated_at",
+    "mentioned_tickers",
+    "n_notes",
+    "n_pinned",
+    "notes",
+    "prompt_block"
+  ],
+  "n_notes": 9197,
+  "sample_note": "2026-06-10T13:01:45.821838+00:00",
+  "gaps": [
+    {
+      "metric": "ISM/PMI (US)",
+      "note_hits": 93,
+      "implemented": null,
+      "source_candidate": "regional Fed composite (free proxy)",
+      "excerpts": [
+        " assess economy Jim Rickards: housing starts, global trade, ISM surveys, industrial outputs, inventories. \r \r Big corrections happens about every 10 y",
+        " treasury bond yields. Commodity: spiky oil and food prices Ism purchasing managers index Institute for supply and management Oecd consumer confidence"
+      ]
+    },
+    {
+      "metric": "Bank reserves",
+      "note_hits": 86,
+      "implemented": null,
+      "source_candidate": "FRED WRESBAL",
+      "excerpts": [
+        " decisions about investment and financial policy.\r \r Why is Bank Reserves with the FED is a great barometer for liquidity? Liquidity Coverage Ratio re",
+        "rom financial and economic stress, bank argued that keeping bank reserves with fed on hold makes it harder for them to lend out cash on a dime when mo"
+      ]
+    },
+    {
+      "metric": "MOVE index",
+      "note_hits": 74,
+      "implemented": null,
+      "source_candidate": "no free feed; proxy via bond-vol-regime exists",
+      "excerpts": [
+        " if the FED is gonna intervene? A key thing to watch is the Move index and overall treasuries liquidity conditions bcs the one market that the FED wil",
+        "roblems Early RRP Balances (Fed reverse repo usage) VIX and MOVE Index (bond volatility) Global M2 YoY (U.S., China, Japan, EU) Cross-currency basis ("
+      ]
+    },
+    {
+      "metric": "Cross-currency basis",
+      "note_hits": 67,
+      "implemented": null,
+      "source_candidate": "paid; note-only",
+      "excerpts": [
+        "apan) becomes expensive, it signals global dollar shortage. Cross-currency basis widening Example: Sept 2019 repo spike foreshadowed later liquidity f",
+        "m TED Spread (3M LIBOR - T-Bill) Global dollar funding cost Cross-Currency Basis Swaps (EUR/USD, JPY/USD) Net liquidity being added/withdrawn globally"
+      ]
+    },
+    {
+      "metric": "MMF assets",
+      "note_hits": 56,
+      "implemented": null,
+      "source_candidate": "FRED MMMFFAQ027S + ICI",
+      "excerpts": [
+        "n wholesale markets to fund their operations. This includes money market funds, private equity firms, and entities involved in asset-backed securities",
+        "structured credit markets Collapse or freeze in funding for money market funds, CP, or CLOs Widening investment grade vs high yield spreads HY bond ET"
+      ]
+    },
+    {
+      "metric": "CP spread",
+      "note_hits": 37,
+      "implemented": null,
+      "source_candidate": "FRED DCPF3M vs DTB3",
+      "excerpts": [
+        "te for supply and management Oecd consumer confidence Index Commercial paper is issued by large institutions to raise money to cover short-term financ",
+        "he Securities and Exchange Commission (SEC) doesn't require commercial paper securities to be registered Commercial paper is a short-term, unsecured d"
+      ]
+    },
+    {
+      "metric": "CDS / CDX / iTraxx",
+      "note_hits": 34,
+      "implemented": null,
+      "source_candidate": "paid; HY OAS proxy exists",
+      "excerpts": [
+        ", KRW/USD, BRL/USD (hot money flow proxies) Credit spreads (CDS, HY spreads) Loan growth, bank reserves GDP, GDI, Industrial production Repo/Reverse R",
+        "frequency and reacts quickly. Credit Market Spreads (HY-IG, CDS, LIBOR-OIS) Signals institutional recognition of stress. Lagging but confirms trend re"
+      ]
+    },
+    {
+      "metric": "Breadth (equity)",
+      "note_hits": 34,
+      "implemented": null,
+      "source_candidate": "compute from Polygon universe",
+      "excerpts": [
+        "l doom and gloom: We\u2019re seeing classic warning signs\u2014narrow breadth, heavy mega-cap reliance, and elevated margin debt\u2014all of which often appear ahead",
+        "debt\u2014all of which often appear ahead of market corrections. Breadth may still deepen; margin debt not yet at bubble-like extremes; not a guaranteed cr"
+      ]
+    },
+    {
+      "metric": "M2 (US)",
+      "note_hits": 30,
+      "implemented": null,
+      "source_candidate": "FRED M2SL",
+      "excerpts": [
+        "rics to Track Custom formula builder (e.g., CPI \u2013 Core CPI, M2/GDP) Anomaly detection in market plumbing (e.g., dislocation in FRA-OIS or repo spikes)",
+        "ng = global tailwind ECB + Fed Both Easing (QE, rate cuts): M2 recovery = consumer + investor liquidity improving M2 YoY Growth Turns Positive: After "
+      ]
+    },
+    {
+      "metric": "Repo fails",
+      "note_hits": 26,
+      "implemented": null,
+      "source_candidate": "NY Fed PD fails (free)",
+      "excerpts": [
+        "ond yield tell us about Collateral. Other Metrics: Spike in Fails to Deliver and Fails to Receive, U.S. Treasury Securities: Maturing in 16 Days to 90",
+        "ut Collateral. Other Metrics: Spike in Fails to Deliver and Fails to Receive, U.S. Treasury Securities: Maturing in 16 Days to 90 Days: Wednesday Leve"
+      ]
+    },
+    {
+      "metric": "Margin debt",
+      "note_hits": 25,
+      "implemented": null,
+      "source_candidate": "FINRA monthly stats (free)",
+      "excerpts": [
+        "signs\u2014narrow breadth, heavy mega-cap reliance, and elevated margin debt\u2014all of which often appear ahead of market corrections. Breadth may still deepe",
+        "pear ahead of market corrections. Breadth may still deepen; margin debt not yet at bubble-like extremes; not a guaranteed crash indicator Multiple red"
+      ]
+    },
+    {
+      "metric": "Swap spreads",
+      "note_hits": 23,
+      "implemented": null,
+      "source_candidate": "FRED SOFR swap probe / OFR",
+      "excerpts": [
+        "llar futures curve, Inverted Treasury Yield Curve, Negative Swap Spreads, Treasury Bills auctions with the Yield to maturity below what the Fed will g",
+        "le stocks fall - Repo spike + Dollar surge - Cross-currency swap spreads - VIX below 30 (spike = panic) - EM currencies stable (fall = contagion) - Co"
+      ]
+    },
+    {
+      "metric": "Real rates / TIPS",
+      "note_hits": 21,
+      "implemented": null,
+      "source_candidate": "FRED DFII10",
+      "excerpts": [
+        "Mexico, Korea, Australia, India \ud83d\udcb5 DXY (Dollar Index) and US real yields \ud83d\udee2\ufe0f Commodity prices (especially copper, oil) \ud83c\udfc3\u200d\u2642\ufe0f Capital flows into EM ETFs \ud83d\udcb1",
+        " = inflows to EMs Especially true in FX/carry trades Higher real rates attract hot money Real rates (inflation-adjusted) Drives hot money into high-yi"
+      ]
+    },
+    {
+      "metric": "Primary dealer positions/fails",
+      "note_hits": 15,
+      "implemented": null,
+      "source_candidate": "NY Fed PD weekly (free)",
+      "excerpts": [
+        "Weak Indirect Bidding \u2014 Foreign central banks pulling back. Primary Dealer Take-Down Spike \u2014 Dealers forced to absorb unwanted supply. Huge Spread Bet",
+        "llar futures , money curves, libor spreadsheet, Ted spreads Primary dealer network Repo collateral Oil curve March and September are always problems M"
+      ]
+    },
+    {
+      "metric": "HY default rate",
+      "note_hits": 14,
+      "implemented": null,
+      "source_candidate": "paid (Moody's); HY OAS exists",
+      "excerpts": [
+        "here arent many new loans and credit issued and bcs of high default rate on loans and credit. Defaults and bankcruptcies takes off Dollars and loans o",
+        "ol (e.g. CPIAUCSL, FEDFUNDS, GDP) In a Recession: Number of default rates of leveraged loans increase rapidly. That's why u should stay out of leverag"
+      ]
+    },
+    {
+      "metric": "ACM term premium",
+      "note_hits": 13,
+      "implemented": null,
+      "source_candidate": "NY Fed ACM CSV (free)",
+      "excerpts": [
+        "et is pricing in for feds rate hikes. The back end is about term premium .5y-10y spread show u the term premium. A collapse in risk premium is all abo",
+        "he back end is about term premium .5y-10y spread show u the term premium. A collapse in risk premium is all about change in risk appetite. It tells u "
+      ]
+    },
+    {
+      "metric": "Term premium",
+      "note_hits": 13,
+      "implemented": null,
+      "source_candidate": "NY Fed ACM (dup-check)",
+      "excerpts": [
+        "et is pricing in for feds rate hikes. The back end is about term premium .5y-10y spread show u the term premium. A collapse in risk premium is all abo",
+        "he back end is about term premium .5y-10y spread show u the term premium. A collapse in risk premium is all about change in risk appetite. It tells u "
+      ]
+    },
+    {
+      "metric": "SOMA runoff",
+      "note_hits": 12,
+      "implemented": null,
+      "source_candidate": "NY Fed SOMA CSV (free)",
+      "excerpts": [
+        "idity. Top Global Bond Yields to Watch for Global Liquidity SOMA: HOW MUCH IS THE FED BUYING OF THE SPECIFIC TREASURIES. FOR EX IN THE PICTURE: The Fe",
+        "ls) QE resumes or balance sheet runoff slows (watch RRP and SOMA changes on NY Fed site) Fed pauses or pivots from rate hikes to cuts These are clues "
+      ]
+    },
+    {
+      "metric": "ETF/fund flows",
+      "note_hits": 11,
+      "implemented": null,
+      "source_candidate": "ICI weekly (scrape)",
+      "excerpts": [
+        " ownership trends and institutional flow proxies (e.g. TIC, fund flows) ETF flow data, sovereign bond demand, and cross-asset liquidity shifts Capital",
+        "s Hot money chases yield or flees to safety High-yield bond ETF flows (e.g. HYG, JNK) Outflows = risk-off exodus Inflows = hot money risk-on Flows int"
+      ]
+    },
+    {
+      "metric": "New highs-lows",
+      "note_hits": 11,
+      "implemented": null,
+      "source_candidate": "compute from Polygon",
+      "excerpts": [
+        " as the broader indices (e.g., S&P 500, Nasdaq) are hitting new highs, many individual stocks are lagging behind. That signals an unhealthy rally buil",
+        " S&P 500 goes up but only a few stocks are actually hitting new highs, that means the rally is narrow and weak under the surface. What it means: Bread"
+      ]
+    },
+    {
+      "metric": "Copper/gold",
+      "note_hits": 10,
+      "implemented": null,
+      "source_candidate": "FRED PCOPPUSDM/GOLDPM",
+      "excerpts": [
+        "ok for united states interbank rate to bottom then look for copper/gold ratio for sniper exit A flattening or slow down of pce: personal consumption e",
+        " future inflation Oil /copper ratio for inflation A dump is copper/gold ratio always causes a dump in sp500 , crypto and risk on assets When copper/go"
+      ]
+    },
+    {
+      "metric": "TIC flows",
+      "note_hits": 8,
+      "implemented": null,
+      "source_candidate": "Treasury TIC (free)",
+      "excerpts": [
+        "edt | D pedi | D Oper | D Ope | D dash DIX + - a X [CBG YL: TIC: Users/soule/Desktop/dashboard. html] 3 Googlelens  ) (@ & \u00a9} [3 D : 28 antell pity BB",
+        "orlds sovereign bond demand Treasury International Capital (TIC) data ETF flows (e.g. SPY, EMB, HYG) Add the component to your Global Liquidity & Capi"
+      ]
+    },
+    {
+      "metric": "Jobless claims",
+      "note_hits": 6,
+      "implemented": null,
+      "source_candidate": "FRED ICSA/CCSA",
+      "excerpts": [
+        "ead: 10-year treasury bonds less federal funds rate, weekly initial claims of unemployment, building permits, avg consumer expectations for business c",
+        "), Freight (baltic Dry index), GDP Growth and labor market (initial claims). \ud83d\udce6 Open-Source Tools You\u2019ll Use: Global PMI diffusion refers to the propor"
+      ]
+    },
+    {
+      "metric": "Baltic Dry",
+      "note_hits": 6,
+      "implemented": null,
+      "source_candidate": "no free; note-only",
+      "excerpts": [
+        "d. Basic Material price shows manufacturing trend Reversal. Baltic DRY Index , FEDEX , Maersk , China Intl Marine Containers shows Global freight ther",
+        "l Indicator: PPI: pulp, DXY, Purchasing Managers index PMI, Baltic Dry Index, Basic Materials, Small Cap, Small Cap growth, Emerging Markets, High Yie"
+      ]
+    },
+    {
+      "metric": "EFFR-SOFR spread",
+      "note_hits": 5,
+      "implemented": null,
+      "source_candidate": "FRED EFFR & SOFR (free)",
+      "excerpts": [
+        " and gauge true base funding cost Effective Fed Funds Rate (EFFR) Interbank credit risk; spikes = liquidity fear TED Spread (LIBOR - T-bills) Steepeni",
+        "to slow down for south east asia in 1996. When the SOFR and EFFR reach/surpass the upper limit of the target range, it means the cash flow is tight, a"
+      ]
+    },
+    {
+      "metric": "Short interest",
+      "note_hits": 5,
+      "implemented": null,
+      "source_candidate": "FINRA key (parked) / FMP probe",
+      "excerpts": [
+        "regime shifts: \u201c\ud83d\udfe5 Capitulation Imminent: Downside hedging + short interest spike + outflows from tech\u201d \u201c\ud83e\udde0 Greed Phase 2: Retail long exposure + vol di",
+        "S DOESNT SUPPORT THE INSANELY EXPENSIVE PRICE OF THE ASSET. SHORT INTEREST: IS THE TOTAL NUMBER OF SHARES OF A STOCK THAT HAVE BEEN SOLD SHORT AND THA"
+      ]
+    },
+    {
+      "metric": "EMBI / EM spreads",
+      "note_hits": 4,
+      "implemented": null,
+      "source_candidate": "FRED BAMLEMHB? probe",
+      "excerpts": [
+        "Spreads (Euro IG, Euro HY) EM Sovereign Credit Spreads (JPM EMBI Global) ICE BofA Investment Grade Index (YTW) ICE BofA US High Yield Index (YTW) i al",
+        "(DCOILBRENTEU) ICE/Brent Crude Market (via EIA) J.P. Morgan EMBI Index (proprietary) EMBI Global Spread (EM Sovereign Bonds) Real-time (intraday updat"
+      ]
+    },
+    {
+      "metric": "Sahm rule (US)",
+      "note_hits": 2,
+      "implemented": null,
+      "source_candidate": "FRED SAHMREALTIME",
+      "excerpts": [
+        "XI: Global Consumer Discretionary/ Global Consumer Staples. Sahm Rule tells us if the Economy is in a Recession Right now. when the spread is wide, it",
+        "omy gets into a recession and things get a lot worse).\r \r \r Sahm Rule tells us if the Economy is in a Recession Right now.\r \r When Fed pivots and star"
+      ]
+    },
+    {
+      "metric": "McClellan",
+      "note_hits": 2,
+      "implemented": null,
+      "source_candidate": "compute from A/D",
+      "excerpts": [
+        "H models * Market breadth indicators: Advance/Decline line, McClellan Oscillator Pattern Recognition * Head and shoulders, double tops/bottoms * Candl",
+        "ps/bottoms Market breadth indicators: Advance/Decline line, McClellan Oscillator Volatility regime changes: GARCH models Volume analysis: Unusual volu"
+      ]
+    },
+    {
+      "metric": "Fed custody (foreign)",
+      "note_hits": 1,
+      "implemented": null,
+      "source_candidate": "FRED H.4.1 probe",
+      "excerpts": [
+        " Wednesday Level (WFCDA) Eurodollar Shortage: Securities in Custody for Foreign and International Accounts: Week Average (WSEFINT1) Eurodollar Excessi"
+      ]
+    },
+    {
+      "metric": "Delinquencies",
+      "note_hits": 1,
+      "implemented": null,
+      "source_candidate": "FRED DRCCLACBS etc",
+      "excerpts": [
+        "re the job growth is at: Small and med size companies. Loan delinquencies, bank failures, deposit flows the average for forward P/E for the S&P is 18."
+      ]
+    },
+    {
+      "metric": "C&I loans",
+      "note_hits": 1,
+      "implemented": null,
+      "source_candidate": "FRED BUSLOANS",
+      "excerpts": [
+        ". Net Percentage of Domestic Banks Tightening Standards for Commercial and Industrial Loans to Small Firms (DRTSCIS), Net % of Banks Increasing Spread"
+      ]
+    },
+    {
+      "metric": "Lumber",
+      "note_hits": 1,
+      "implemented": null,
+      "source_candidate": "FRED WPU081 (PPI proxy)",
+      "excerpts": [
+        " EXPOSURE. SOFT COMMODITIES ARE GROWN AND HARVESTED SUCH AS LUMBER, WHEAT, COFFEE, AND CATTLE. HARD COMMODITIES ARE NATURAL RESOURCES EXTRACTED OR MIN"
+      ]
+    },
+    {
+      "metric": "Semis ratio (SOX)",
+      "note_hits": 1,
+      "implemented": null,
+      "source_candidate": "compute SMH/SPY via Polygon",
+      "excerpts": [
+        "nline-flex items-center px-3 py-1 rounded-full text-xs font-semibold leading-tight ${getStatusColor(status)}}> {status.charAt(0).toUpperCase() + statu"
+      ]
+    }
+  ],
+  "covered": [
+    {
+      "metric": "Eurodollar/offshore USD",
+      "hits": 526,
+      "where": "ESI master composite"
+    },
+    {
+      "metric": "DXY/dollar",
+      "hits": 441,
+      "where": "dollar-radar feed"
+    },
+    {
+      "metric": "Gold",
+      "hits": 303,
+      "where": "tide/crypto-intel partial"
+    },
+    {
+      "metric": "TGA/RRP/net liquidity",
+      "hits": 278,
+      "where": "liquidity-inflection"
+    },
+    {
+      "metric": "SOFR tail",
+      "hits": 145,
+      "where": "crisis-canaries C1"
+    },
+    {
+      "metric": "NFCI",
+      "hits": 62,
+      "where": "alert-backtester"
+    },
+    {
+      "metric": "2s10s curve",
+      "hits": 29,
+      "where": "kb/yield-curve feed"
+    },
+    {
+      "metric": "Swap lines",
+      "hits": 29,
+      "where": "eurodollar composite (SWPT)"
+    },
+    {
+      "metric": "Buybacks",
+      "hits": 24,
+      "where": "buyback-yield engine"
+    },
+    {
+      "metric": "FTD",
+      "hits": 18,
+      "where": "ignition P3"
+    },
+    {
+      "metric": "HY OAS",
+      "hits": 13,
+      "where": "deep base splice + kb state"
+    },
+    {
+      "metric": "VIX term/skew",
+      "hits": 11,
+      "where": "vol-surface v3"
+    },
+    {
+      "metric": "Discount window",
+      "hits": 7,
+      "where": "crisis-canaries C3"
+    },
+    {
+      "metric": "COT/CFTC",
+      "hits": 6,
+      "where": "cftc agent + R7 deep-view"
+    },
+    {
+      "metric": "Auction tails",
+      "hits": 6,
+      "where": "auction-crisis + slope"
+    },
+    {
+      "metric": "Stablecoins",
+      "hits": 6,
+      "where": "stablecoin-flow + accel"
+    },
+    {
+      "metric": "Payroll revisions",
+      "hits": 4,
+      "where": "ALFRED nowcast C6"
+    },
+    {
+      "metric": "CISS",
+      "hits": 3,
+      "where": "EU radar core"
+    },
+    {
+      "metric": "Dark pool",
+      "hits": 3,
+      "where": "ignition P4 (parked: FINRA key)"
+    },
+    {
+      "metric": "Put/call",
+      "hits": 2,
+      "where": "sentiment-extreme composite v2 (CBOE dead)"
+    },
+    {
+      "metric": "China credit",
+      "hits": 2,
+      "where": "liq-inflection pillar"
+    }
+  ],
+  "novel_terms_top40": [
+    [
+      "You",
+      195
+    ],
+    [
+      "Japanese",
+      150
+    ],
+    [
+      "Global",
+      115
+    ],
+    [
+      "Let",
+      115
+    ],
+    [
+      "Why",
+      112
+    ],
+    [
+      "U.S",
+      106
+    ],
+    [
+      "USA",
+      105
+    ],
+    [
+      "Bitcoin",
+      100
+    ],
+    [
+      "CPI",
+      97
+    ],
+    [
+      "But",
+      91
+    ],
+    [
+      "They",
+      89
+    ],
+    [
+      "FRED",
+      79
+    ],
+    [
+      "All",
+      76
+    ],
+    [
+      "Reverse Repo",
+      74
+    ],
+    [
+      "Task",
+      73
+    ],
+    [
+      "Here",
+      71
+    ],
+    [
+      "How",
+      71
+    ],
+    [
+      "Crypto",
+      71
+    ],
+    [
+      "API",
+      68
+    ],
+    [
+      "ROW",
+      66
+    ],
+    [
+      "DUMP",
+      63
+    ],
+    [
+      "Dollars",
+      63
+    ],
+    [
+      "S&P",
+      59
+    ],
+    [
+      "These",
+      59
+    ],
+    [
+      "September",
+      59
+    ],
+    [
+      "Once",
+      59
+    ],
+    [
+      "United States",
+      52
+    ],
+    [
+      "Rest",
+      50
+    ],
+    [
+      "Ready",
+      50
+    ],
+    [
+      "Optional",
+      49
+    ],
+    [
+      "Euro",
+      48
+    ],
+    [
+      "Add",
+      46
+    ],
+    [
+      "Investors",
+      44
+    ],
+    [
+      "Trillion",
+      42
+    ],
+    [
+      "Chinese",
+      42
+    ],
+    [
+      "Emerging Markets",
+      42
+    ],
+    [
+      "Buy",
+      40
+    ],
+    [
+      "Great",
+      40
+    ],
+    [
+      "Federal Reserve",
+      39
+    ],
+    [
+      "European",
+      39
+    ]
+  ]
+}
