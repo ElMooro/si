@@ -1,0 +1,183 @@
+{
+  "ops": 1543,
+  "errors": [],
+  "tried": [
+    {
+      "WILL5000PR": "HTTP Error 400: Bad Request"
+    },
+    {
+      "WILL5000IND": "HTTP Error 400: Bad Request"
+    },
+    {
+      "NASDAQCOM": {
+        "n": 13952,
+        "span": "1971-02-05\u21922026-06-08"
+      }
+    }
+  ],
+  "deep_base": {
+    "n": 13952,
+    "span": "1971-02-05\u21922026-06-08",
+    "source": "NASDAQCOM"
+  },
+  "analogs_fn_error": "NONE",
+  "analogs_verify": {
+    "version": "2.2",
+    "n_pool": 652,
+    "analog_years": [
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "duration_s": 29.18,
+    "top5": [
+      [
+        "2023-08-24",
+        2.672,
+        4.15
+      ],
+      [
+        "2024-04-10",
+        3.261,
+        8.24
+      ],
+      [
+        "2023-07-25",
+        3.539,
+        -7.68
+      ],
+      [
+        "2024-05-30",
+        3.607,
+        6.84
+      ],
+      [
+        "2023-09-25",
+        3.73,
+        9.58
+      ]
+    ],
+    "fwd_21d": {
+      "n": 15,
+      "mean_pct": 0.6,
+      "median_pct": 0.56,
+      "hit_rate_pct": 60.0,
+      "min_pct": -6.73,
+      "max_pct": 6.49,
+      "stdev_pct": 3.98
+    },
+    "fwd_63d": {
+      "n": 15,
+      "mean_pct": 6.33,
+      "median_pct": 6.84,
+      "hit_rate_pct": 86.7,
+      "min_pct": -7.68,
+      "max_pct": 15.48,
+      "stdev_pct": 5.76
+    },
+    "call": "MIXED"
+  },
+  "bt_span": "2021-06-10\u21922026-06-09",
+  "bt_summary": [
+    {
+      "id": "euribor_ois_ge50",
+      "n": 1,
+      "last": "2022-07-01",
+      "med21": 7.03,
+      "n21": 1,
+      "med63": -6.31,
+      "neg63": 100.0
+    },
+    {
+      "id": "it_de_ge150",
+      "n": 3,
+      "last": "2016-11-01",
+      "med21": null,
+      "n21": 0,
+      "med63": null,
+      "neg63": null
+    },
+    {
+      "id": "estr_dfr_ge_m1",
+      "n": 0,
+      "last": null,
+      "med21": null,
+      "n21": 0,
+      "med63": null,
+      "neg63": null
+    },
+    {
+      "id": "wages_gt_35",
+      "n": 3,
+      "last": "2023-01-01",
+      "med21": 9.44,
+      "n21": 1,
+      "med63": 7.31,
+      "neg63": 0.0
+    },
+    {
+      "id": "m3_lt_2",
+      "n": 2,
+      "last": "2023-03-01",
+      "med21": 2.27,
+      "n21": 1,
+      "med63": 5.85,
+      "neg63": 0.0
+    },
+    {
+      "id": "t2_gap_z2",
+      "n": 2,
+      "last": "2020-09-01",
+      "med21": null,
+      "n21": 0,
+      "med63": null,
+      "neg63": null
+    },
+    {
+      "id": "eurusd_z_m2",
+      "n": 17,
+      "last": "2024-11-12",
+      "med21": 2.6,
+      "n21": 4,
+      "med63": 0.67,
+      "neg63": 50.0
+    },
+    {
+      "id": "vix_term_inversion",
+      "n": 45,
+      "last": "2026-03-03",
+      "med21": 1.71,
+      "n21": 11,
+      "med63": 3.67,
+      "neg63": 36.0
+    },
+    {
+      "id": "hy_oas_3m_p50bp",
+      "n": 4,
+      "last": "2026-03-27",
+      "med21": 5.73,
+      "n21": 4,
+      "med63": 6.97,
+      "neg63": 0.0
+    },
+    {
+      "id": "curve_reinversion",
+      "n": 7,
+      "last": "2022-07-06",
+      "med21": 0.0,
+      "n21": 2,
+      "med63": -8.52,
+      "neg63": 100.0
+    },
+    {
+      "id": "nfci_positive",
+      "n": 3,
+      "last": "2020-03-13",
+      "med21": null,
+      "n21": 0,
+      "med63": null,
+      "neg63": null
+    }
+  ]
+}
