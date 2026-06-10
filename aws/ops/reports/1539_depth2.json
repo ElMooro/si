@@ -1,0 +1,165 @@
+{
+  "ops": 1539,
+  "deployed": [
+    "analogs v2.1",
+    "backtester v1.1"
+  ],
+  "rules_created": [
+    "justhodl-opex-calendar-daily \u2192 justhodl-opex-calendar (cron(0 11 * * ? *))",
+    "justhodl-vol-surface-daily \u2192 justhodl-vol-surface (cron(30 13 * * ? *))",
+    "justhodl-stablecoin-flow-daily \u2192 justhodl-stablecoin-flow (cron(0 14 * * ? *))",
+    "justhodl-breadth-thrust-daily \u2192 justhodl-breadth-thrust (cron(30 21 * * ? *))",
+    "justhodl-rv-iv-scanner-daily \u2192 justhodl-rv-iv-scanner (cron(30 14 * * ? *))",
+    "justhodl-insider-buys-enriched-daily \u2192 justhodl-insider-buys-enriched (cron(0 10 * * ? *))",
+    "justhodl-buyback-scanner-weekly \u2192 justhodl-buyback-scanner (cron(0 12 ? * MON *))",
+    "justhodl-russell-recon-daily \u2192 justhodl-russell-recon-frontrun (cron(30 12 * * ? *))",
+    "justhodl-fleet-freshness-hourly \u2192 justhodl-fleet-freshness-monitor (rate(1 hour))",
+    "justhodl-fleet-monitor-6h \u2192 justhodl-fleet-monitor (rate(6 hours))",
+    "justhodl-fleet-error-6h \u2192 justhodl-fleet-error-monitor (rate(6 hours))"
+  ],
+  "sched_errors": [],
+  "backtest_prefix": [
+    {
+      "key": "backtest/calls-results.json",
+      "age_h": 14.0,
+      "kb": 61.1
+    },
+    {
+      "key": "backtest/results.json",
+      "age_h": 2.5,
+      "kb": 65.1
+    },
+    {
+      "key": "backtest/summary.json",
+      "age_h": 2.5,
+      "kb": 6.0
+    }
+  ],
+  "wf_summary": {
+    "v": "2.1",
+    "generated_at": "2026-06-09T22:30:01.187137+00:00",
+    "duration_s": 11.11,
+    "_keys": [
+      "v",
+      "generated_at",
+      "summary",
+      "realistic_summary",
+      "honest_summary",
+      "walkforward_summary",
+      "constants",
+      "top_5_contributors",
+      "bottom_5_contributors",
+      "duration_s"
+    ]
+  },
+  "analogs": {
+    "version": "2.1",
+    "n_dates": 652,
+    "analog_dates": [
+      "2023-08-24",
+      "2024-04-10",
+      "2023-07-25",
+      "2024-05-30",
+      "2023-09-25",
+      "2024-03-11",
+      "2026-03-05",
+      "2025-02-21",
+      "2025-07-31",
+      "2023-11-09"
+    ],
+    "fwd21": {
+      "n": 15,
+      "mean_pct": 0.6,
+      "median_pct": 0.56,
+      "hit_rate_pct": 60.0,
+      "min_pct": -6.73,
+      "max_pct": 6.49,
+      "stdev_pct": 3.98
+    },
+    "call": "MIXED"
+  },
+  "alert_bt": {
+    "version": "1.1",
+    "spy_span": "2021-06-10\u21922026-06-09",
+    "n_rules": 11,
+    "rows": [
+      [
+        "euribor_ois_ge50",
+        1,
+        1,
+        7.03,
+        0.0
+      ],
+      [
+        "it_de_ge150",
+        3,
+        0,
+        null,
+        null
+      ],
+      [
+        "estr_dfr_ge_m1",
+        0,
+        0,
+        null,
+        null
+      ],
+      [
+        "wages_gt_35",
+        3,
+        1,
+        9.44,
+        0.0
+      ],
+      [
+        "m3_lt_2",
+        2,
+        1,
+        2.27,
+        0.0
+      ],
+      [
+        "t2_gap_z2",
+        2,
+        0,
+        null,
+        null
+      ],
+      [
+        "eurusd_z_m2",
+        17,
+        4,
+        2.6,
+        0.0
+      ],
+      [
+        "vix_term_inversion",
+        45,
+        11,
+        1.71,
+        27.0
+      ],
+      [
+        "hy_oas_3m_p50bp",
+        4,
+        4,
+        5.73,
+        25.0
+      ],
+      [
+        "curve_reinversion",
+        7,
+        2,
+        0.0,
+        50.0
+      ],
+      [
+        "nfci_positive",
+        3,
+        0,
+        null,
+        null
+      ]
+    ]
+  }
+}
