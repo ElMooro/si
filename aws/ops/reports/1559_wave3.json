@@ -1,0 +1,392 @@
+{
+  "ops": 1559,
+  "errors": [],
+  "cn_fn": "created",
+  "cn_err": "NONE",
+  "cn_verify": {
+    "availability": {
+      "sofr_tail": true,
+      "ofr_repo": true,
+      "discount_window": true,
+      "bank_deposits": true,
+      "fhlb_dn": false,
+      "auction_slope": false,
+      "revision_nowcast": false
+    },
+    "score": 0,
+    "level": "CALM",
+    "alerts": [],
+    "canaries": {
+      "sofr_tail": {
+        "as_of": "2026-06-08",
+        "tail_bp": 8.0,
+        "z": -0.95,
+        "vol_bn": 3115
+      },
+      "ofr_repo": {
+        "mnemonic": "REPO-TRI_TV_TOT-P",
+        "as_of": "2026-06-05",
+        "level": 2287458058265.66,
+        "z": 0.15
+      },
+      "discount_window": {
+        "series": "WLCFLPCL",
+        "as_of": "2026-06-03",
+        "level_mn": 6072.0,
+        "wow_chg": -290.0,
+        "z": 0.95,
+        "wow_z": -0.37
+      },
+      "bank_deposits": {
+        "series": "DPSSCBW027SBOG",
+        "as_of": "2026-05-27",
+        "level_bn": 5646.4,
+        "wow_chg_bn": 7.0,
+        "outflow_z": 0.33
+      },
+      "auction_slope": {
+        "status": "warming up (1/3 obs)",
+        "composite_now": 12.4
+      }
+    },
+    "duration_s": 9.7
+  },
+  "li_err": "NONE",
+  "li_verify": {
+    "n_flips_10y": 4,
+    "last_flip": {
+      "date": "2022-09-21",
+      "direction": "DOWN",
+      "z": -0.204
+    },
+    "spx_d21": {
+      "after_UP_flip": {
+        "n": 2,
+        "median_pct": -2.29,
+        "hit_dir_pct": 0.0
+      },
+      "after_DOWN_flip": {
+        "n": 2,
+        "median_pct": 0.65,
+        "hit_dir_pct": 50.0
+      }
+    },
+    "hyg_d21": {
+      "after_UP_flip": {
+        "n": 2,
+        "median_pct": 0.1,
+        "hit_dir_pct": 100.0
+      },
+      "after_DOWN_flip": {
+        "n": 2,
+        "median_pct": 0.1,
+        "hit_dir_pct": 50.0
+      }
+    },
+    "btc_d63": {
+      "after_UP_flip": {
+        "n": 2,
+        "median_pct": 26.43,
+        "hit_dir_pct": 50.0
+      },
+      "after_DOWN_flip": {
+        "n": 2,
+        "median_pct": 12.79,
+        "hit_dir_pct": 50.0
+      }
+    },
+    "leads": {
+      "SPX_proxy": {
+        "lead_days": 2,
+        "corr_21d_fwd": 0.044
+      },
+      "BTC": {
+        "lead_days": 10,
+        "corr_21d_fwd": 0.077
+      },
+      "HYG": {
+        "lead_days": 30,
+        "corr_21d_fwd": -0.355
+      }
+    },
+    "sc_hint": [
+      "aggregate",
+      "as_of",
+      "engine",
+      "forward_expectations",
+      "forward_expectations_by_asset_60d",
+      "historical_episodes",
+      "methodology",
+      "previous_state",
+      "recommended_trade",
+      "run_duration_seconds",
+      "schedule",
+      "signal_strength"
+    ],
+    "signals_logged": 0
+  },
+  "diag_insider": {
+    "top_keys": [
+      "academic_basis",
+      "as_of",
+      "engine",
+      "methodology",
+      "schedule",
+      "signal_strength",
+      "source",
+      "source_as_of",
+      "sources",
+      "state"
+    ],
+    "first_list_item": {
+      "ticker": "QNT",
+      "company": "Quantinuum Inc.",
+      "score": 89.5,
+      "signal_type": "executive_cluster",
+      "n_insiders": 11,
+      "n_transactions": 11,
+      "total_value_usd": 24661920.0,
+      "first_buy": "2026-06-05",
+      "last_buy": "2026-06-05",
+      "highest_role": "Chief Financial Officer",
+      "has_ceo": false,
+      "has_cfo": true,
+      "has_chairman": false,
+      "fundamentals": {
+        "market_cap": 1831593068,
+        "price_now": 58.4,
+        "high_52w": 71.35,
+        "low_52w": 51.15,
+        "pct_from_52w_high": -18.15,
+        "pct_from_52w_low": 14.17,
+        "sector": "Technology",
+        "industry": "Computer Hardware",
+        "country": "US",
+        "company_name": "Quantinuum Inc. Class A Common Stock",
+        "shares_outstanding": 0
+      },
+      "expected_returns": {
+        "1m": {
+          "return_pct": 4.4,
+          "basis": "Cohen-Malloy-Pomorski + Lakonishok-Lee priors + cluster-quality boosts"
+        },
+        "3m": {
+          "return_pct": 12.5,
+          "win_rate_pct": 77,
+          "basis": "Empirical academic priors, quality-adjusted"
+        },
+        "12m": {
+          "return_pct": 27.0,
+          "basis": "Lakonishok-Lee 6-12m horizon, quality-adjusted"
+        },
+        "quality_boosts_applied": [
+          {
+            "factor": "Small-cap (<$5B mcap)",
+            "boost_1m": 1.0,
+            "boost_3m": 2.5,
+            "boost_12m": 5.0,
+            "win_rate_boost": 5
+          },
+          {
+            "factor": "3+ insiders aligned",
+            "boost_1m": 0.5,
+            "boost_3m": 1.5,
+            "boost_12m": 3.0,
+            "win_rate_boost": 4
+          },
+          {
+            "factor": "5+ insiders aligned",
+            "boost_1m": 0.5,
+            "boost_3m": 1.5,
+            "boost_12m": 3.0,
+            "win_rate_boost": 4
+          },
+          {
+            "factor": "CFO participation",
+            "boost_1m": 0.3,
+            "boost_3m": 1.0,
+            "boost_12m": 2.0,
+            "win_rate_boost": 3
+          },
+          {
+            "factor": "Total purchase >$2M",
+            "boost_1m": 0.5,
+            "boost_3m": 1.5,
+            "boost_12m": 3.0,
+            "win_rate_boost": 3
+          },
+          {
+            "factor": "Total purchase >$5M",
+            "boost_1m": 0.4,
+            "boost_3m": 1.0,
+            "boost_12m": 2.0,
+            "win_rate_boost": 2
+          }
+        ],
+        "conviction_tier": "HIGH"
+      },
+      "recommended_trade": {
+        "primary": {
+          "instrument": "QNT shares (long, outright)",
+          "conviction_tier": "HIGH",
+          "size_guidance": "1.5-2.0% of total risk capital",
+          "entry": "Scale in over 2-5 sessions at current price or any pullback. Avoid chasing >5%% above last insider buy.",
+          "expected_horizon": "3-6 months minimum, 6-12 months optimal",
+          "expected_return_basis": "1m 4.4% / 3m 12.5% (win rate 77%) / 12m 27.0%"
+        },
+        "options_alt": null,
+        "exit_rules": [
+          "Scale out 1/3 at +30% gain",
+          "Scale out next 1/3 at +60% gain",
+          "Hard stop at -15% on shares, or -50% on options",
+          "Re-evaluate on any new insider SELL (Form 4 with transaction code S) by the same names"
+        ],
+        "conviction_tier": "HIGH"
+      },
+      "why_now_explainer": "**QNT (Quantinuum Inc.)** -- 11 insiders purchased 11 transactions totaling **$24,661,920** between 2026-06-05 and 2026-06-05. Top role: Chief Financial Officer. Market cap: $1.8B. Price is -18.1% from 52-week high.\n\n**Why this is high-quality:** Small-cap (<$5B mcap), 3+ insiders aligned, 5+ insiders aligned, CFO participation, Total purchase >$2M, Total purchase >$5M.\n\n**Expected return** (academic-prior + cluster-quality adjusted): **+12.5% 3-month** (win rate 77%), **+27.0% 12-month**. Position sizing tier: HIGH.\n\n**Institutional logic:** open-market insider purchases are the most credible bullish signal because the people buying have non-public information about operations and are putting their own money down -- net of tax. Academic work (Lakonishok-Lee, Cohen-Malloy-Pomorski) consistently shows clusters of 3+ insider purchases generate statistically significant abnormal returns over 3-12 months, with the effect concentrated in small/mid-caps and after price declines. The signal is more about WHO and WHEN than about WHAT they buy.\n\n**Risks:** single-stock idiosyncratic risk, illiquidity in small caps, possible motivated buying ahead of bad news that doesn't materialise as expected. Always size for the downside.",
+      "insiders": [
+        {
+          "name": "SHARAN NITESH",
+          "role": "Chief Financial Officer",
+          "n_buys": 1,
+          "total_shares": 6500,
+          "total_value": 390000.0,
+          "role_tier": 90
+        },
+        {
+          "name": "Dehoff Kevin Scott",
+          "role": "Chief Strategy Officer",
+          "n_buys": 1,
+          "total_shares": 15000,
+          "total_value": 900000.0,
+          "role_tier": 60
+        },
+        {
+          "name": "BHATIA MANISH H",
+          "role": "Director",
+          "n_buys": 1,
+          "total_shares": 20000,
+          "total_value": 1200000.0,
+          "role_tier": 40
+        },
+        {
+          "name": "Barron Hal",
+          "role": "Director",
+          "n_buys": 1,
+          "total_shares": 250000,
+          "total_value": 15000000.0,
+          "role_tier": 40
+        },
+        {
+          "name": "Branderiz Eric",
+          "role": "Director",
+          "n_buys": 1,
+          "total_shares": 8334,
+          "total_value": 500040.0,
+          "role_tier": 40
+        },
+        {
+          "name": "DENMAN KENNETH D",
+          "role": "Director",
+          "n_buys": 1,
+          "total_shares": 14000,
+          "total_value": 840000.0,
+          "role_tier": 40
+        },
+        {
+          "name": "Daugherty Paul R.",
+          "role": "Director",
+          "n_buys": 1,
+          "total_shares": 4000,
+          "total_value": 240000.0,
+          "role_tier": 40
+        },
+        {
+          "name": "JIMENEZ JOSEPH",
+          "role": "Director",
+          "n_buys": 1,
+          "total_shares": 66665,
+          "total_value": 3999900.0,
+          "role_tier": 40
+        },
+        {
+          "name": "Kapur Vimal",
+          "role": "Director",
+          "n_buys": 1,
+          "total_shares": 13000,
+          "total_value": 780000.0,
+          "role_tier": 40
+        },
+        {
+          "name": "Narang Prineha",
+          "role": "Director",
+          "n_buys": 1,
+          "total_shares": 200,
+          "total_value": 12000.0,
+          "role_tier": 40
+        },
+        {
+          "name": "Stepniak Michal",
+          "role": "Director",
+          "n_buys": 1,
+          "total_shares": 13333,
+          "total_value": 799980.0,
+          "role_tier": 40
+        }
+      ]
+    }
+  },
+  "diag_f13_latest": {
+    "type": "list",
+    "first": {
+      "cik": "0001351991",
+      "name": "RATHBONES GROUP PLC",
+      "date": "2025-12-31",
+      "filingDate": "2026-06-09 00:00:00",
+      "acceptedDate": "2026-06-09 11:11:00",
+      "formType": "13F-HR/A",
+      "link": "https://www.sec.gov/Archives/edgar/data/1351991/000114036126024582/0001140361-26-024582-index.htm",
+      "finalLink": "https://www.sec.gov/Archives/edgar/data/1351991/000114036126024582/informationtable.xml"
+    }
+  },
+  "diag_finra": [
+    {
+      "totalWeeklyShareQuantity": 6489206414,
+      "issueSymbolIdentifier": null,
+      "issueName": null,
+      "lastUpdateDate": "2023-12-11",
+      "lastReportedDate": "2023-11-10",
+      "tierDescription": "Not Applicable",
+      "initialPublishedDate": "2023-12-11",
+      "tierIdentifier": "NMS",
+      "summaryStartDate": "2023-11-06",
+      "totalNotionalSum": 347503970963,
+      "totalWeeklyTradeCount": 66391371,
+      "weekStartDate": "2023-11-06",
+      "MPID": null,
+      "firmCRDNumber": null,
+      "productTypeCode": null,
+      "marketParticipantName": null,
+      "summaryTypeCode": "ATS_W_VOL_STATS"
+    },
+    {
+      "totalWeeklyShareQuantity": 21779,
+      "issueSymbolIdentifier": "BRKR",
+      "issueName": "Bruker Corporation Common Stock",
+      "lastUpdateDate": "2023-11-27",
+      "lastReportedDate": "2023-11-10",
+      "tierDescription": "NMS Tier 1",
+      "initialPublishedDate": "2023-11-27",
+      "tierIdentifier": "NMS",
+      "summaryStartDate": "2023-11-06",
+      "totalNotionalSum": 1257506,
+      "totalWeeklyTradeCount": 241,
+      "weekStartDate": "2023-11-06",
+      "MPID": "JPBX",
+      "firmCRDNumber": null,
+      "productTypeCode": null,
+      "marketParticipantName": "JPBX JPB-X",
+      "summaryTypeCode": "ATS_W_SMBL_FIRM"
+    }
+  ]
+}
