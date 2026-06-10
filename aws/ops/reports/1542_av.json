@@ -1,0 +1,192 @@
+{
+  "ops": 1542,
+  "errors": [
+    "AV keys: ['Information'] | {'Information': 'Thank you for using Alpha Vantage! The outputsize=full parameter value is a premium feature for the TIME_SERIES_DAILY endpoint. You may subscri"
+  ],
+  "deep_base": "INSUFFICIENT n=0 last=\u2014",
+  "analogs_fn_error": "NONE",
+  "analogs_verify": {
+    "version": "2.2",
+    "n_pool": 652,
+    "analog_years": [
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "top5": [
+      [
+        "2023-08-24",
+        2.672,
+        4.15
+      ],
+      [
+        "2024-04-10",
+        3.261,
+        8.24
+      ],
+      [
+        "2023-07-25",
+        3.539,
+        -7.68
+      ],
+      [
+        "2024-05-30",
+        3.607,
+        6.84
+      ],
+      [
+        "2023-09-25",
+        3.73,
+        9.58
+      ]
+    ],
+    "fwd_21d": {
+      "n": 15,
+      "mean_pct": 0.6,
+      "median_pct": 0.56,
+      "hit_rate_pct": 60.0,
+      "min_pct": -6.73,
+      "max_pct": 6.49,
+      "stdev_pct": 3.98
+    },
+    "call": "MIXED",
+    "duration_s": 29.28
+  },
+  "bt_top_keys": [
+    "engine",
+    "generated_at",
+    "horizons_days",
+    "n_rules",
+    "read",
+    "rearm_days",
+    "rules",
+    "spy_span",
+    "version"
+  ],
+  "bt_row_schema": [
+    "desc",
+    "forward_spy",
+    "id",
+    "last_fired",
+    "n_fires",
+    "recent_fires",
+    "since",
+    "source"
+  ],
+  "bt_rows_raw": [
+    {
+      "id": "euribor_ois_ge50",
+      "desc": "Euribor\u2212OIS 3M \u2265 50bp (EU interbank stress critical)",
+      "source": "ecb-hist euribor_ois_bp",
+      "since": "2020-01-01",
+      "n_fires": 1,
+      "last_fired": "2022-07-01",
+      "forward_spy": {
+        "5d": {
+          "n": 1,
+          "median_pct": 0.78,
+          "mean_pct": 0.78,
+          "pct_negative": 0.0
+        },
+        "21d": {
+          "n": 1,
+          "median_pct": 7.03,
+          "mean_pct": 7.03,
+          "pct_negative": 0.0
+        },
+        "63d": {
+          "n": 1,
+          "median_pct": -6.31,
+          "mean_pct": -6.31,
+          "pct_negative": 100.0
+        }
+      },
+      "recent_fires": [
+        {
+          "date": "2022-07-01",
+          "fwd_5d": 0.78,
+          "fwd_21d": 7.03,
+          "fwd_63d": -6.31
+        }
+      ]
+    },
+    {
+      "id": "it_de_ge150",
+      "desc": "IT\u2212DE 10Y \u2265 150bp (TPI-watch fragmentation)",
+      "source": "ecb-hist it_de_10y_bp",
+      "since": "1995-01-01",
+      "n_fires": 3,
+      "last_fired": "2016-11-01",
+      "forward_spy": {
+        "5d": {
+          "n": 0
+        },
+        "21d": {
+          "n": 0
+        },
+        "63d": {
+          "n": 0
+        }
+      },
+      "recent_fires": []
+    },
+    {
+      "id": "estr_dfr_ge_m1",
+      "desc": "\u20acSTR\u2212DFR \u2265 \u22121bp (floor losing grip)",
+      "source": "ecb-hist estr/dfr",
+      "since": "2019-10-01",
+      "n_fires": 0,
+      "last_fired": null,
+      "forward_spy": {
+        "5d": {
+          "n": 0
+        },
+        "21d": {
+          "n": 0
+        },
+        "63d": {
+          "n": 0
+        }
+      },
+      "recent_fires": []
+    },
+    {
+      "id": "wages_gt_35",
+      "desc": "Negotiated wages > 3.5% YoY (second-round risk)",
+      "source": "ecb-hist wages_negotiated",
+      "since": "1992-01-01",
+      "n_fires": 3,
+      "last_fired": "2023-01-01",
+      "forward_spy": {
+        "5d": {
+          "n": 1,
+          "median_pct": 2.56,
+          "mean_pct": 2.56,
+          "pct_negative": 0.0
+        },
+        "21d": {
+          "n": 1,
+          "median_pct": 9.44,
+          "mean_pct": 9.44,
+          "pct_negative": 0.0
+        },
+        "63d": {
+          "n": 1,
+          "median_pct": 7.31,
+          "mean_pct": 7.31,
+          "pct_negative": 0.0
+        }
+      },
+      "recent_fires": [
+        {
+          "date": "2023-01-01",
+          "fwd_5d": 2.56,
+          "fwd_21d": 9.44,
+          "fwd_63d": 7.31
+        }
+      ]
+    }
+  ],
+  "bt_span": "2021-06-10\u21922026-06-09"
+}
