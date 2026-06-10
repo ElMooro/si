@@ -1,0 +1,168 @@
+{
+  "ops": 1558,
+  "errors": [],
+  "li_fn": "created",
+  "li_err": "NONE",
+  "li_verify": {
+    "availability": {
+      "usd": true,
+      "eur": true,
+      "china": true,
+      "stablecoin": false
+    },
+    "usd": {
+      "as_of": "2026-06-03",
+      "impulse_z": -0.672,
+      "net_liq_usd_bn": 5835.8,
+      "state": "CONTRACTING",
+      "last_flip": {
+        "date": "2015-06-24",
+        "direction": "DOWN",
+        "z": -1.417
+      },
+      "n_flips_10y": 1
+    },
+    "eur": {
+      "z": -1.357,
+      "as_of": "2026-06-08",
+      "flips_5y": 3
+    },
+    "china": {
+      "series": "CRDQCNAPABIS",
+      "as_of": "2025-07-01",
+      "credit_yoy_pct": 5.5,
+      "impulse_z": -0.12
+    },
+    "stablecoin": null,
+    "event_study": {
+      "SPX_proxy": {
+        "d5": {
+          "after_UP_flip": null,
+          "after_DOWN_flip": {
+            "n": 1,
+            "median_pct": -2.13,
+            "hit_dir_pct": 100.0
+          }
+        },
+        "d21": {
+          "after_UP_flip": null,
+          "after_DOWN_flip": {
+            "n": 1,
+            "median_pct": -0.66,
+            "hit_dir_pct": 100.0
+          }
+        },
+        "d63": {
+          "after_UP_flip": null,
+          "after_DOWN_flip": {
+            "n": 1,
+            "median_pct": -7.22,
+            "hit_dir_pct": 100.0
+          }
+        }
+      },
+      "BTC": {
+        "d5": {
+          "after_UP_flip": null,
+          "after_DOWN_flip": {
+            "n": 1,
+            "median_pct": 11.09,
+            "hit_dir_pct": 0.0
+          }
+        },
+        "d21": {
+          "after_UP_flip": null,
+          "after_DOWN_flip": {
+            "n": 1,
+            "median_pct": 18.28,
+            "hit_dir_pct": 0.0
+          }
+        },
+        "d63": {
+          "after_UP_flip": null,
+          "after_DOWN_flip": {
+            "n": 1,
+            "median_pct": -6.48,
+            "hit_dir_pct": 100.0
+          }
+        }
+      },
+      "HYG": {
+        "d5": {
+          "after_UP_flip": null,
+          "after_DOWN_flip": {
+            "n": 1,
+            "median_pct": -0.22,
+            "hit_dir_pct": 100.0
+          }
+        },
+        "d21": {
+          "after_UP_flip": null,
+          "after_DOWN_flip": {
+            "n": 1,
+            "median_pct": 0.1,
+            "hit_dir_pct": 0.0
+          }
+        },
+        "d63": {
+          "after_UP_flip": null,
+          "after_DOWN_flip": {
+            "n": 1,
+            "median_pct": 0.24,
+            "hit_dir_pct": 0.0
+          }
+        }
+      }
+    },
+    "leads": {
+      "SPX_proxy": {
+        "lead_days": 2,
+        "corr_21d_fwd": 0.044
+      },
+      "BTC": {
+        "lead_days": 10,
+        "corr_21d_fwd": 0.077
+      },
+      "HYG": {
+        "lead_days": 30,
+        "corr_21d_fwd": -0.355
+      }
+    },
+    "duration_s": 3.5,
+    "signals_logged": 0
+  },
+  "ig_err": "NONE",
+  "ig_verify": {
+    "pillar_availability": {
+      "obv_div": true,
+      "ftd": true,
+      "insider": false,
+      "f13_init": false,
+      "dark_share": false,
+      "rev_breadth": true,
+      "cadence": true,
+      "shelf": true
+    },
+    "probes": {
+      "grades": true,
+      "inst": "institutional-ownership/latest",
+      "insider_brief": "data/insider-buys-enriched.json",
+      "insider_fmp": false,
+      "ftd": true,
+      "dark": true,
+      "edgar": true
+    },
+    "top_calls": [
+      "CAMT",
+      "MOD",
+      "AXON",
+      "SMCI",
+      "DELL",
+      "MRVL",
+      "HEI",
+      "NVDA"
+    ],
+    "scored_n": 48,
+    "signals_logged": 8
+  }
+}
