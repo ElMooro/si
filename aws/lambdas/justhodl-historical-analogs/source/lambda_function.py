@@ -151,7 +151,7 @@ ZSCORE_LOOKBACK = 252
 K_NEIGHBORS = 15
 
 # Earliest date considered (data quality cutoff)
-MIN_DATE = "2002-01-01"
+MIN_DATE = "1997-01-01"
 
 # Drop dates too close to today (avoid trivial matches)
 EXCLUDE_RECENT_DAYS = 90
@@ -238,6 +238,23 @@ def lambda_handler(event=None, context=None):
             obs = f.result()
             raw[label] = obs
             print(f"[analogs] {label} ({sid}): {len(obs)} obs")
+
+    # 1b. USD splice: DTWEXBGS only starts 2006 and silently floored the pool.
+    # Ratio-splice the discontinued major-currencies index (DTWEXM, 1973-2019) underneath.
+    try:
+        old_usd = fred_full("DTWEXM", start="1973-01-01")
+        new_usd = raw.get("usd_index", {})
+        if old_usd and new_usd:
+            common = sorted(set(old_usd) & set(new_usd))
+            if common:
+                anchor = common[0]
+                ratio = new_usd[anchor] / old_usd[anchor]
+                spliced = {d: round(v * ratio, 4) for d, v in old_usd.items() if d < anchor}
+                spliced.update(new_usd)
+                raw["usd_index"] = spliced
+                print(f"[analogs] usd spliced: {len(spliced)} obs from {min(spliced)} (anchor {anchor}, ratio {round(ratio,4)})")
+    except Exception as e:
+        print(f"[analogs] usd splice skipped: {str(e)[:60]}")
 
     # 2. SPX closes — v2: Polygon SPY daily 1999+ (FRED SP500 only spans ~2015+,
     # which silently capped the whole analog pool). Fallback to FRED on failure.
@@ -385,7 +402,7 @@ def lambda_handler(event=None, context=None):
         call_desc = "Could not compute 21d forward returns from analogs"
 
     out = {
-        "version": "2.1",
+        "version": "2.2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - started, 2),
         "today": today_snapshot,
@@ -396,7 +413,7 @@ def lambda_handler(event=None, context=None):
         "forward_distribution": forward_distribution,
         "directional_call": call,
         "directional_description": call_desc,
-        "methodology": "Euclidean distance (deep pool: S&P via Yahoo 1927+; neighbors de-clustered >=30d) over rolling 252d z-scores of [vix, 2s10s, HY OAS, USD, 10Y, SPX 1m return]",
+        "methodology": "Euclidean distance (deep pool: S&P via Yahoo 1927+; neighbors de-clustered >=30d; USD = DTWEXM<2006 spliced to DTWEXBGS) over rolling 252d z-scores of [vix, 2s10s, HY OAS, USD, 10Y, SPX 1m return]",
         "data_sources": {"all": "FRED API (free)"},
     }
 
