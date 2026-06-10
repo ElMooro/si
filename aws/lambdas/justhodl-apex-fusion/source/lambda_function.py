@@ -19,7 +19,7 @@ performance_multiplier, and cascade validation shows ALERT_TIER inverted
 Output: data/apex-fusion.json · Telegram top picks · DDB predictions.
 """
 import json, os, time, urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import boto3
 
@@ -188,27 +188,56 @@ def lambda_handler(event, context):
     for r in rows:
         by_tier[r["tier"]] = by_tier.get(r["tier"], 0) + 1
 
-    # ── DDB prediction logging (closed loop grades us) ──
+    # ── DDB prediction logging — CANONICAL schema (v1.2) so outcome-checker
+    # (status='pending' + check_timestamps + predicted_direction) and
+    # signal-scorecard (signal_type) grade apex-fusion like every other engine ──
+    regime_now = None
+    try:
+        rep = _rd("data/report.json")
+        regime_now = rep.get("regime") or (rep.get("khalid_index") or {}).get("regime")
+    except Exception:
+        pass
     logged, log_errors = [], []
+    windows = [3, 7, 14, 30]
     for r in rows[:12]:
         if r["tier"] not in ("LIFTOFF", "IGNITION") or not r["price"]:
             continue
         sid = f"apex-fusion#{r['ticker']}#{today}"
+        ts = {f"day_{d}": (now + timedelta(days=d)).isoformat() for d in windows}
         try:
-            DDB.put_item(TableName=TABLE, Item={
-                "signal_id": {"S": sid}, "source": {"S": "apex-fusion"},
-                "ticker": {"S": r["ticker"]}, "direction": {"S": "LONG"},
-                "conviction": {"N": str(round(r["apex_score"] / 100, 3))},
-                "horizon_days_primary": {"N": "14"},
-                "check_windows": {"L": [{"N": "3"}, {"N": "7"}, {"N": "14"}, {"N": "30"}]},
+            item = {
+                "signal_id": {"S": sid},
+                "signal_type": {"S": "apex_fusion"},
+                "signal_value": {"S": str(r["apex_score"])},
+                "predicted_direction": {"S": "UP"},
+                "confidence": {"N": str(round(r["apex_score"] / 100, 3))},
+                "measure_against": {"S": r["ticker"]},
+                "ticker": {"S": r["ticker"]},
+                "source": {"S": "apex-fusion"},
                 "baseline_price": {"N": str(r["price"])},
-                "logged_at": {"S": now.isoformat()}, "ts_iso": {"S": now.isoformat()},
+                "benchmark": {"NULL": True},
+                "check_windows": {"L": [{"S": str(d)} for d in windows]},
+                "check_timestamps": {"M": {k: {"S": v} for k, v in ts.items()}},
+                "outcomes": {"M": {}},
+                "accuracy_scores": {"M": {}},
+                "logged_at": {"S": now.isoformat()},
+                "logged_epoch": {"N": str(int(now.timestamp()))},
+                "status": {"S": "pending"},
+                "schema_version": {"S": "2"},
+                "horizon_days_primary": {"N": "30"},
+                "regime_at_log": ({"S": str(regime_now)} if regime_now else {"NULL": True}),
+                "ttl": {"N": str(int(now.timestamp()) + 365 * 86400)},
                 "metadata": {"S": json.dumps({"tier": r["tier"], "sources": r["sources"],
                                               "components": r["components"]})[:900]},
-            }, ConditionExpression="attribute_not_exists(signal_id)")
+                "rationale": {"S": (f"Apex fusion {r['apex_score']} via {r['n_sources']} engines: "
+                                    + ", ".join(r["sources"]))[:300]},
+            }
+            DDB.put_item(TableName=TABLE, Item=item,
+                         ConditionExpression="attribute_not_exists(signal_id)")
             logged.append(sid)
         except Exception as ex:
-            log_errors.append(f"{r['ticker']}: {type(ex).__name__} {str(ex)[:70]}")
+            if "ConditionalCheckFailed" not in type(ex).__name__ + str(ex):
+                log_errors.append(f"{r['ticker']}: {type(ex).__name__} {str(ex)[:70]}")
 
     top = rows[:25]
     lift = [r for r in top if r["tier"] == "LIFTOFF"][:5] or [r for r in top if r["tier"] == "IGNITION"][:3]
@@ -217,7 +246,7 @@ def lambda_handler(event, context):
         _tg("🚀 <b>APEX FUSION</b> — top conviction\n" + "\n".join(lines) +
             (f"\n⚠ tier-inversion active (ALERT_TIER {inv['alert_tier_hit_pct']}% hit)" if inv["active"] else ""))
 
-    out = {"engine": "apex-fusion", "version": "1.1", "generated_at": now.isoformat(),
+    out = {"engine": "apex-fusion", "version": "1.2", "generated_at": now.isoformat(),
            "weights_used": W, "weight_sources": w_src, "tier_inversion": inv,
            "n_universe": len(book), "n_scored": len(rows), "by_tier": by_tier,
            "n_logged_to_ddb": len(logged), "log_errors": log_errors[:5], "top": top,

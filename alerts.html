@@ -373,8 +373,35 @@ async function load(){
 load();
 </script>
 
+<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Alert Edge — Every Rule Backtested</h2>
+<div style="font-size:12px;color:#a8b3c7;margin-bottom:10px;line-height:1.5">Each institutional rule replayed over its full history (15–27y where data allows), with forward SPY at 5/21/63 sessions after every fire. Fires de-clustered with a 21-session re-arm. This is the audit other platforms don't ship: the alert's own track record.</div>
+<div id="jhk-bt"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">REPLAYING RULES vs HISTORY…</div></div></div>
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
+<script>
+(async function(){
+  const host=document.getElementById('jhk-bt');
+  let d=null;
+  try{d=await fetch(`https://justhodl-data-proxy.raafouis.workers.dev/data/alert-backtests.json?_=${Date.now()}`).then(r=>r.ok?r.json():null);}catch(e){}
+  if(!d){try{d=await fetch(`/data/alert-backtests.json?_=${Date.now()}`).then(r=>r.ok?r.json():null);}catch(e){}}
+  if(!d||!d.rules){host.innerHTML='<div style="text-align:center;padding:18px;color:#6f7b91;font-family:monospace;font-size:12px">Backtests not generated yet — justhodl-alert-backtester runs daily 12:00 UTC.</div>';return;}
+  const esc=x=>String(x==null?'—':x).replace(/</g,'&lt;');
+  const cell=(v,neg)=>{if(v==null)return '<td style="padding:7px 10px;color:#6f7b91">—</td>';const c=neg?(v>=60?'#ff5577':v>=45?'#fbbf24':'#26ffaf'):(v<0?'#ff5577':'#26ffaf');return `<td style="padding:7px 10px;font-family:monospace;color:${c}">${neg?v+'%':(v>0?'+':'')+v+'%'}</td>`;};
+  const rows=d.rules.sort((a,b)=>(b.n_fires||0)-(a.n_fires||0)).map(r=>{
+    const f21=(r.forward_spy||{})['21d']||{},f63=(r.forward_spy||{})['63d']||{},f5=(r.forward_spy||{})['5d']||{};
+    return `<tr style="border-bottom:1px solid #1c2433">
+      <td style="padding:7px 10px"><b style="color:#e1e8f4">${esc(r.id)}</b><div style="font-size:10.5px;color:#6f7b91;max-width:330px">${esc(r.desc)}</div></td>
+      <td style="padding:7px 10px;font-family:monospace;color:#a8b3c7">${esc((r.since||'').slice(0,7))}</td>
+      <td style="padding:7px 10px;font-family:monospace;color:#e1e8f4;text-align:center">${r.n_fires}</td>
+      <td style="padding:7px 10px;font-family:monospace;color:#a8b3c7">${esc(r.last_fired)}</td>
+      ${cell(f5.median_pct,false)}${cell(f21.median_pct,false)}${cell(f21.pct_negative,true)}${cell(f63.median_pct,false)}
+    </tr>`;}).join('');
+  host.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;background:#0c1018;border:1px solid #1c2433;border-radius:12px">
+    <thead><tr style="border-bottom:1px solid #2a3550">${['RULE','SINCE','FIRES','LAST FIRED','MED 5D','MED 21D','% NEG 21D','MED 63D'].map(h=>`<th style="padding:8px 10px;text-align:left;font-family:monospace;font-size:10px;color:#6f7b91;letter-spacing:.4px">${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div style="font-size:10.5px;color:#6f7b91;font-family:monospace;margin-top:8px">SPY span ${esc(d.spy_span)} · re-arm ${d.rearm_days} sessions · generated ${esc(d.generated_at)}</div></div>`;
+})();
+</script>
 </body>
 </html>

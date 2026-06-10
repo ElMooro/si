@@ -41,6 +41,24 @@ BUCKET = "justhodl-dashboard-live"
 KEY = "data/historical-analogs.json"
 
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
+POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+
+
+def polygon_spy_closes():
+    """SPY daily closes 1999→today via Polygon aggs (one call, 50k cap)."""
+    try:
+        end = date.today().isoformat()
+        u = (f"https://api.polygon.io/v2/aggs/ticker/SPY/range/1/day/1999-01-01/{end}"
+             f"?adjusted=true&sort=asc&limit=50000&apiKey={POLY_KEY}")
+        j = json.loads(urllib.request.urlopen(u, timeout=45).read())
+        out = {}
+        for row in (j.get("results") or []):
+            d = datetime.fromtimestamp(row["t"] / 1000, tz=timezone.utc).date().isoformat()
+            out[d] = float(row["c"])
+        return out if len(out) > 1000 else None
+    except Exception as e:
+        print(f"[analogs] polygon SPY failed: {str(e)[:80]}")
+        return None
 
 # Daily series with deep history (all 20+ years on FRED)
 FEATURES = [
@@ -151,8 +169,10 @@ def lambda_handler(event=None, context=None):
             raw[label] = obs
             print(f"[analogs] {label} ({sid}): {len(obs)} obs")
 
-    # 2. SPX returns (used both as feature AND for forward calc)
-    spx = raw.get("spx_close", {})
+    # 2. SPX closes — v2: Polygon SPY daily 1999+ (FRED SP500 only spans ~2015+,
+    # which silently capped the whole analog pool). Fallback to FRED on failure.
+    spx = polygon_spy_closes() or raw.get("spx_close", {})
+    print(f"[analogs] spx closes: {len(spx)} (source={'polygon' if len(spx)>4000 else 'fred'})")
     spx_returns_1m = compute_returns(spx)
 
     # 3. Build feature dict: each feature -> dict of date -> z-score
@@ -287,7 +307,7 @@ def lambda_handler(event=None, context=None):
         call_desc = "Could not compute 21d forward returns from analogs"
 
     out = {
-        "version": "1.0",
+        "version": "2.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - started, 2),
         "today": today_snapshot,
@@ -298,7 +318,7 @@ def lambda_handler(event=None, context=None):
         "forward_distribution": forward_distribution,
         "directional_call": call,
         "directional_description": call_desc,
-        "methodology": "Euclidean distance over rolling 252d z-scores of [vix, 2s10s, HY OAS, USD, 10Y, SPX 1m return]",
+        "methodology": "Euclidean distance (deep pool: SPY via Polygon 1999+) over rolling 252d z-scores of [vix, 2s10s, HY OAS, USD, 10Y, SPX 1m return]",
         "data_sources": {"all": "FRED API (free)"},
     }
 

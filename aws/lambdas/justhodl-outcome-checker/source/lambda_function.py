@@ -343,6 +343,7 @@ def check_pending_signals():
                 "predicted_dir": pred_dir,
                 "outcome":       outcome,
                 "logged_at":     signal.get("logged_at"),
+                "regime_at_log": signal.get("regime_at_log"),
                 "checked_at":    now_iso,
                 "ttl":           int((now.timestamp()) + 365 * 86400),
             }))

@@ -222,7 +222,8 @@ def lambda_handler(event, context):
             continue
         g = by_sig.setdefault(st, {"n": 0, "n_neutral": 0, "n_legacy": 0,
                                    "n_unresolved": 0, "n_scored": 0, "hits": 0,
-                                   "stored_agree": 0, "rets": [], "windows": {}})
+                                   "stored_agree": 0, "rets": [], "windows": {},
+                                   "by_regime": {}})
         g["n"] += 1
         pd = predicted_dir(o)
         if not pd:
@@ -257,6 +258,14 @@ def lambda_handler(event, context):
         w["n"] += 1
         if correct:
             w["hits"] += 1
+        # regime-conditioned tally (institutional: edges are not stationary)
+        rg = str(o.get("regime_at_log") or "UNKNOWN")
+        rgd = g["by_regime"].setdefault(rg, {"n": 0, "hits": 0, "rets": []})
+        rgd["n"] += 1
+        if correct:
+            rgd["hits"] += 1
+        if r is not None:
+            rgd["rets"].append(r)
 
     scorecard = []
     for st, g in by_sig.items():
@@ -289,6 +298,12 @@ def lambda_handler(event, context):
             "status": status,
             "performance_multiplier": MULTIPLIER[status],
             "by_window": windows,
+            "by_regime": {rg: {"n": v["n"],
+                               "hit_rate": round(v["hits"] / v["n"], 3) if v["n"] else None,
+                               "wilson_lb": round(wilson_lower(v["hits"], v["n"]), 3),
+                               "avg_return_pct": round(sum(v["rets"]) / len(v["rets"]), 2) if v["rets"] else None}
+                          for rg, v in sorted(g["by_regime"].items(), key=lambda kv: -kv[1]["n"])[:6]
+                          if v["n"] >= 3},
         })
 
     # rank: promoted first, then by Wilson lower bound
