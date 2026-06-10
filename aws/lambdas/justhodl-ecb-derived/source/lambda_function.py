@@ -108,7 +108,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.3.1",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.3.2",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -915,7 +915,18 @@ def lambda_handler(event=None, context=None):
             rows, worst = {}, 0.0
             for cc, pts in cmap.items():
                 vals = [v for _, v in pts]
-                c3 = round(vals[-1] - vals[-4], 2) if len(vals) > 4 else None
+                # frequency-aware 3m momentum: monthly → 3 steps back, quarterly → 1
+                step = 4
+                if len(pts) > 3:
+                    try:
+                        d1 = (pts[-1][0] + "-01")[:10] if len(pts[-1][0]) == 7 else pts[-1][0][:10]
+                        d0 = (pts[-2][0] + "-01")[:10] if len(pts[-2][0]) == 7 else pts[-2][0][:10]
+                        from datetime import date as _date
+                        gap = (_date.fromisoformat(d1) - _date.fromisoformat(d0)).days
+                        step = 2 if gap > 45 else 4
+                    except Exception:
+                        pass
+                c3 = round(vals[-1] - vals[-step], 2) if len(vals) > step else None
                 rows[cc] = {"rate_pct": vals[-1], "chg_3m_pp": c3, "as_of": pts[-1][0]}
                 if c3 is not None:
                     worst = max(worst, c3)
@@ -955,7 +966,7 @@ def lambda_handler(event=None, context=None):
         out_.append(pts[-1])
         return out_
 
-    def _ctx(pts):
+    def _cctx(pts):
         vals = sorted(v for _, v in pts)
         if not vals:
             return {}
@@ -982,24 +993,24 @@ def lambda_handler(event=None, context=None):
     ciss_pts, _ = _hist("ciss_ea")
     if len(ciss_pts) > 100:
         charts["ciss_level"] = {"label": "Euro-Area CISS (systemic stress, 0–1)",
-                                 "points": _down(ciss_pts), **_ctx(ciss_pts),
+                                 "points": _down(ciss_pts), **_cctx(ciss_pts),
                                  "thresholds": {"watch": 0.28, "crisis": 0.5}}
         cv = [v for _, v in ciss_pts]
         d30 = [(ciss_pts[i][0], round(cv[i] - cv[i - 23], 5)) for i in range(23, len(cv))]
         charts["ciss_delta30"] = {"label": "CISS 30-day Acceleration",
-                                   "points": _down(d30), **_ctx(d30),
+                                   "points": _down(d30), **_cctx(d30),
                                    "thresholds": {"watch": 0.15, "critical": 0.30}}
     # 3) ESI accumulated daily
     esi_pts, _ = _hist("esi")
     if len(esi_pts) > 5:
         charts["esi"] = {"label": "Eurodollar Stress Index (0–100)",
-                          "points": _down(esi_pts), **_ctx(esi_pts),
+                          "points": _down(esi_pts), **_cctx(esi_pts),
                           "thresholds": {"watch": 50, "critical": 70}}
     # 4) IT–DE 10y fragmentation spread
     frag_pts, fl = _hist("it_de_10y_bp")
     if len(frag_pts) > 50:
         charts["it_de_spread"] = {"label": "BTP–Bund 10y spread (bp)",
-                                   "points": _down(frag_pts), **_ctx(frag_pts),
+                                   "points": _down(frag_pts), **_cctx(frag_pts),
                                    "thresholds": {"watch": 200, "critical": 300}}
     # 5) LTRO share of policy lending — full GFC/2011/2020 history from SDMX
     try:
@@ -1010,7 +1021,7 @@ def lambda_handler(event=None, context=None):
               for d_ in sorted(set(dm) & set(dl)) if (dm[d_] + dl[d_]) > 0]
         if len(sh) > 100:
             charts["ltro_share"] = {"label": "LTRO share of ECB policy lending (%)",
-                                     "points": _down(sh), **_ctx(sh),
+                                     "points": _down(sh), **_cctx(sh),
                                      "thresholds": {"elevated": 80}}
     except Exception as e:
         print(f"[v3 ltro] {str(e)[:50]}")
@@ -1044,12 +1055,12 @@ def lambda_handler(event=None, context=None):
             if len(div) > 60:
                 charts["eu_us_divergence"] = {
                     "label": "EU−US 6m liquidity divergence (≈bn, ECB Δ − Fed net-liq Δ)",
-                    "points": _down(div), **_ctx(div), "thresholds": {}}
+                    "points": _down(div), **_cctx(div), "thresholds": {}}
     except Exception as e:
         print(f"[v3 diverge] {str(e)[:50]}")
     for cid, (lbl, pts_, th_) in macro_series.items():
         if len(pts_) > 30:
-            charts[cid] = {"label": lbl, "points": _down(pts_), **_ctx(pts_),
+            charts[cid] = {"label": lbl, "points": _down(pts_), **_cctx(pts_),
                             "thresholds": {k: v for k, v in th_.items() if v is not None}}
     out["charts"] = charts
 

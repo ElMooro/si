@@ -143,6 +143,61 @@ def lambda_handler(event=None, context=None):
                          "first_date": pts[0][0], "latest_date": pts[-1][0], "n_points": len(pts),
                          "discontinued": bool(_stale_days and _stale_days > 120), "stale_days": _stale_days})
         time.sleep(0.4)
+    # HEAL-FROM-FILES: the manifest is rebuilt from EVERY data/ecb-hist/*.json on S3,
+    # not just this builder's own list. Files written by any past or sibling writer
+    # (hub v3 series, esi accumulator, ...) stay visible with full stats; nothing a
+    # narrower builder deploy can ever erase from the page again.
+    seen = {m["id"] for m in manifest}
+    tok = None
+    while True:
+        kw = {"Bucket": BUCKET, "Prefix": "data/ecb-hist/", "MaxKeys": 200}
+        if tok:
+            kw["ContinuationToken"] = tok
+        rr = s3.list_objects_v2(**kw)
+        for o in rr.get("Contents", []):
+            key = o["Key"]
+            sid = key.split("/")[-1].replace(".json", "")
+            if sid.startswith("_") or sid in seen:
+                continue
+            try:
+                doc = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+                pts = [(p_[0], float(p_[1])) for p_ in (doc.get("points") or [])
+                       if p_[1] is not None]
+                if len(pts) < 5:
+                    continue
+                vals = [v for _, v in pts]
+                latest = vals[-1]
+                below = sum(1 for v in vals if v <= latest)
+                pctl = round(100.0 * below / len(vals), 1)
+                mu = statistics.mean(vals)
+                sd = statistics.pstdev(vals)
+                z = round((latest - mu) / sd, 2) if sd else None
+                freq = doc.get("freq") or ("daily" if len(pts) > 3000 else
+                                            "weekly" if len(pts) > 800 else
+                                            "monthly" if len(pts) > 100 else "quarterly")
+                ld = pts[-1][0]
+                ld10 = (ld + "-01-01")[:10] if len(ld) == 4 else                        (ld + "-01")[:10] if len(ld) == 7 else ld[:10]
+                try:
+                    stale_days = (datetime.now(timezone.utc).date()
+                                   - datetime.strptime(ld10, "%Y-%m-%d").date()).days
+                except Exception:
+                    stale_days = None
+                sla = {"daily": 7, "weekly": 14, "monthly": 45,
+                       "quarterly": 120, "annual": 430}.get(freq, 60)
+                manifest.append({"id": sid, "label": doc.get("label") or sid, "freq": freq,
+                                  "latest": round(latest, 5), "percentile": pctl, "z_score": z,
+                                  "stale_days": stale_days,
+                                  "discontinued": bool(stale_days is not None
+                                                        and stale_days > sla * 3),
+                                  "first_date": pts[0][0], "latest_date": pts[-1][0],
+                                  "n_points": len(pts), "healed_from_file": True})
+                seen.add(sid)
+            except Exception as _e:
+                print(f"[heal] {sid}: {str(_e)[:60]}")
+        tok = rr.get("NextContinuationToken")
+        if not tok:
+            break
+    manifest.sort(key=lambda m: m["id"])
     s3.put_object(Bucket=BUCKET, Key="data/ecb-hist/_manifest.json",
                   Body=json.dumps({"generated_at": datetime.now(timezone.utc).isoformat(),
                                    "series": manifest, "n": len(manifest)}, default=str).encode(),
