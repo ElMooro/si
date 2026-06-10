@@ -3021,6 +3021,22 @@ def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
                         break
                     except: pass
 
+            # Fallback: outcome-checker writes verdicts into outcomes[window].correct
+            # (bool) + return_pct/excess_return — it never writes accuracy_scores.
+            if verdict_pct is None and outcomes:
+                def _wnum(k):
+                    try:
+                        return int(str(k).split("_")[-1])
+                    except Exception:
+                        return 0
+                for window_key in sorted(outcomes.keys(), key=_wnum, reverse=True):
+                    o = outcomes.get(window_key)
+                    o = o if isinstance(o, dict) else _asdict(o)
+                    if o and o.get("correct") is not None:
+                        verdict_pct = 100.0 if o.get("correct") else 0.0
+                        window_used = window_key
+                        break
+
             is_graded = verdict_pct is not None
             if not is_graded:
                 n_pending += 1
@@ -3038,7 +3054,11 @@ def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
             # Return % from outcomes (per-window)
             outcome_obj = outcomes.get(window_used) or {}
             ret_pct = None
-            try: ret_pct = float(outcome_obj.get("return_pct") or 0)
+            try:
+                _rp = outcome_obj.get("return_pct")
+                if _rp is None:
+                    _rp = outcome_obj.get("excess_return")
+                ret_pct = float(_rp) if _rp is not None else None
             except: ret_pct = None
 
             # Bucket: engine
