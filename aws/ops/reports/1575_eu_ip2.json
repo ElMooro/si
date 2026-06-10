@@ -1,0 +1,146 @@
+{
+  "ops": 1575,
+  "errors": [],
+  "fn_err": "NONE",
+  "verify": {
+    "version": "3.2.3",
+    "duration_s": 45.8,
+    "brief_kb": 84.8,
+    "macro_indicators": {
+      "ea_unemployment": {
+        "signal": "NORMAL",
+        "unemployment_rate_pct": 6.3,
+        "chg_3m_pp": 0.0,
+        "as_of": "2026-04",
+        "series": "ecb:LFSI/M.I9.S.UNEHRT.TOTAL0.15_74.T"
+      },
+      "ea_industrial_production": {
+        "signal": "NORMAL",
+        "ip_yoy_pct": 1.12,
+        "as_of": "2025-09",
+        "series": "ecb:STS/M.I9.Y.PROD.NS0010.4.000"
+      },
+      "ea_confidence": {
+        "signal": "NORMAL",
+        "business_conf": -6.8,
+        "business_z": -0.33,
+        "consumer_z": -0.21,
+        "as_of": "2026-01-01"
+      },
+      "real_m1_growth": {
+        "signal": "NORMAL",
+        "real_m1_growth_pct": 2.77,
+        "m1_yoy_pct": 4.71,
+        "hicp_yoy_pct": 1.94,
+        "as_of": "2025-12"
+      }
+    },
+    "charts": {
+      "ciss_level": {
+        "n": 321,
+        "pctile": 3.9,
+        "latest": 0.0041,
+        "since": "1997-01-01"
+      },
+      "ciss_delta30": {
+        "n": 321,
+        "pctile": 54.1,
+        "latest": -0.0001,
+        "since": "1997-02-03"
+      },
+      "it_de_spread": {
+        "n": 321,
+        "pctile": 36.7,
+        "latest": 82.0,
+        "since": "1995-01-01"
+      },
+      "ltro_share": {
+        "n": 321,
+        "pctile": 7.4,
+        "latest": 52.84,
+        "since": "2007-W01"
+      },
+      "eu_us_divergence": {
+        "n": 321,
+        "pctile": 21.1,
+        "latest": -232.3,
+        "since": "2015-07-10"
+      },
+      "ea_unemployment": {
+        "n": 316,
+        "pctile": 0.3,
+        "latest": 6.3,
+        "since": "2000-01"
+      },
+      "ip_yoy": {
+        "n": 309,
+        "pctile": 54.4,
+        "latest": 1.12,
+        "since": "2000-01"
+      },
+      "business_confidence": {
+        "n": 321,
+        "pctile": 36.2,
+        "latest": -6.8,
+        "since": "1998-01-01"
+      },
+      "real_m1_growth": {
+        "n": 321,
+        "pctile": 25.9,
+        "latest": 2.77,
+        "since": "1999-01"
+      }
+    },
+    "dump_score": {
+      "score_0_100": 49.9,
+      "level": "CALM",
+      "components": [
+        {
+          "id": "ciss_accel",
+          "z": 0.0,
+          "w": 0.3
+        },
+        {
+          "id": "it_de_spread",
+          "z": -0.78,
+          "w": 0.15
+        },
+        {
+          "id": "ltro_share",
+          "z": -2.51,
+          "w": 0.15
+        },
+        {
+          "id": "unemp_3m",
+          "z": 0.0,
+          "w": 0.1
+        },
+        {
+          "id": "ip_yoy",
+          "z": -0.2,
+          "w": 0.1
+        },
+        {
+          "id": "real_m1",
+          "z": 1.1,
+          "w": 0.15
+        },
+        {
+          "id": "eu_us_div",
+          "z": 1.7,
+          "w": 0.2
+        }
+      ],
+      "coverage_pillars": 7
+    },
+    "n_flashing": 2,
+    "flashing": [
+      "bls_credit_standards",
+      "euribor_ois_stress"
+    ],
+    "ai_error": null,
+    "ai_cvh": "CISS absolute level (0.41 bp) ranks in the 3.9th percentile since 1997\u2014among the lowest stress readings on record, comparable to 2021\u20132022 post-pandemic normalization. The 30-day acceleration (\u22120.59 bp) sits at the 54th percentile, indicating stress is flat to slightly easing. However, LTRO dependency (52.8% of ECB liquidity) has collapsed to the 7",
+    "ai_base": "The most likely path (60\u201365% probability) is a gradual drift toward tighter financial conditions over the next 6\u20138 weeks, without acute stress. Bank credit standards are tightening (10.1% net), unemployment is at historic lows (6.3%, 0.3 pctile), and real money growth is below median; these are clas",
+    "eurostat_debug": null
+  }
+}
