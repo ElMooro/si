@@ -1,0 +1,69 @@
+{
+  "ops": 1565,
+  "errors": [],
+  "key_found_in": "justhodl-ai-brief:ANTHROPIC_KEY",
+  "fn_err": "NONE",
+  "verify": {
+    "version": "3.0.1",
+    "duration_s": 38.6,
+    "brief_kb": 52.5,
+    "charts": {
+      "ciss_level": {
+        "n": 321,
+        "pctile": 3.9
+      },
+      "ciss_delta30": {
+        "n": 321,
+        "pctile": 54.1
+      },
+      "it_de_spread": {
+        "n": 321,
+        "pctile": 36.7
+      },
+      "ltro_share": {
+        "n": 321,
+        "pctile": 7.4
+      },
+      "eu_us_divergence": {
+        "n": 321,
+        "pctile": 21.1
+      }
+    },
+    "empirical_read": "Across 26 episodes, SPX confirmed risk-off only 23.1% of the time at +21d \u2014 CISS spikes have historically marked CAPITULATION (markets bottom during the stress spike). Treat fresh episodes as a contrarian rebound timer on a 1\u20133 month horizon, not a sell trigger; the dump risk is in the SLOW build (rising percentiles across pillars) before the spike.",
+    "dump_score": {
+      "score_0_100": 46.6,
+      "level": "CALM",
+      "components": [
+        {
+          "id": "ciss_accel",
+          "z": 0.0,
+          "w": 0.3
+        },
+        {
+          "id": "it_de_spread",
+          "z": -0.78,
+          "w": 0.15
+        },
+        {
+          "id": "ltro_share",
+          "z": -2.51,
+          "w": 0.15
+        },
+        {
+          "id": "eu_us_div",
+          "z": 1.7,
+          "w": 0.2
+        }
+      ],
+      "coverage_pillars": 4
+    },
+    "ai_keys": [
+      "error"
+    ],
+    "ai_error": "Unterminated string starting at: line 29 column 22 (char 4112)",
+    "ai_what": "",
+    "ai_base_case": "",
+    "ai_transmission_keys": [],
+    "ai_watch_next": null
+  }
+}
