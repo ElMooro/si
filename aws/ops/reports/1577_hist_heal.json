@@ -1,0 +1,83 @@
+{
+  "ops": 1577,
+  "errors": [],
+  "deployed_builder": {
+    "n_series_tuples": 19,
+    "writes_percentile": true,
+    "has_stale_days": true,
+    "bytes": 6941
+  },
+  "hist_err": "NONE",
+  "eng_err": "NONE",
+  "manifest": {
+    "n": 7,
+    "missing_stats": [],
+    "sample": [
+      {
+        "id": "ilm_usd_claims",
+        "freq": "weekly",
+        "latest": 19329.0,
+        "percentile": 28.0,
+        "z_score": -0.04,
+        "stale_days": 5,
+        "discontinued": false
+      },
+      {
+        "id": "ilm_eur_to_nonres",
+        "freq": "weekly",
+        "latest": 148284.0,
+        "percentile": 62.1,
+        "z_score": -1.0,
+        "stale_days": 5,
+        "discontinued": false
+      },
+      {
+        "id": "ilm_mp_lending",
+        "freq": "weekly",
+        "latest": 25080.0,
+        "percentile": 3.5,
+        "z_score": -0.93,
+        "stale_days": 5,
+        "discontinued": false
+      },
+      {
+        "id": "ciss_ea",
+        "freq": "daily",
+        "latest": 0.00291,
+        "percentile": 2.4,
+        "z_score": -1.52,
+        "stale_days": 1,
+        "discontinued": false
+      }
+    ],
+    "n_discontinued": 3
+  },
+  "radar": {
+    "version": "3.3.1",
+    "n_sparks": 12,
+    "spark_misses": {
+      "wage_persistence": "indicator_absent",
+      "credit_contraction": "indicator_absent",
+      "expectations_deanchoring": "indicator_absent",
+      "fragmentation_stress": "indicator_absent",
+      "eurodollar_stress_index": "src_pts=0;chart=N"
+    },
+    "countries": [
+      "CH",
+      "DE",
+      "ES",
+      "FR",
+      "IT"
+    ],
+    "ch": {
+      "rate_pct": 5.084341,
+      "chg_3m_pp": 0.5,
+      "as_of": "2025-10-01"
+    },
+    "eurostat_debug": {
+      "une_rt_m:CH": "cannot access free variable '_ctx' where it is not associated with a value in enclosing sc"
+    },
+    "n_charts": 14,
+    "ai_error": null
+  }
+}
