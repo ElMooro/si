@@ -23,7 +23,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/kb-match.json"
 KB_KEY = "data/crisis-knowledge-base.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 
 def s3j(key):
@@ -162,14 +162,45 @@ def lambda_handler(event=None, context=None):
             ContentType="application/json")
         return {"statusCode": 200, "body": "kb missing"}
 
-    fw_node = kb.get("frameworks") or kb.get("playbooks") or kb
-    frameworks = []
-    if isinstance(fw_node, list):
-        frameworks = fw_node
-    elif isinstance(fw_node, dict):
-        frameworks = [dict(v, _name=k) if isinstance(v, dict) else {"_name": k, "rules": v}
-                      for k, v in fw_node.items()
-                      if k not in ("version", "generated_at", "meta", "methodology")]
+    # Adaptive harvest: collect every meaningful leaf with its PATH, then choose the
+    # grouping depth whose distinct-key count is closest to a framework-like 4..40.
+    leaves = []
+    def walk(node, path):
+        if isinstance(node, dict):
+            ind, op, th = node.get("indicator"), node.get("operator") or node.get("op"), node.get("threshold")
+            txt = node.get("rule") or node.get("text") or node.get("condition") or node.get("description")
+            if ind is not None and op and th is not None:
+                leaves.append((path, {"kind": "machine", "indicator": str(ind), "op": str(op),
+                                       "threshold": th, "text": txt or f"{ind} {op} {th}"}))
+            elif isinstance(txt, str) and len(txt) > 12:
+                leaves.append((path, {"kind": "text", "text": txt}))
+            for k, v in node.items():
+                walk(v, path + (str(k),))
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                walk(v, path + (str(i),))
+        elif isinstance(node, str) and len(node) > 25:
+            leaves.append((path, {"kind": "text", "text": node}))
+    walk(kb, ())
+    META = {"version", "generated_at", "meta", "methodology", "source", "sources",
+            "as_of", "engine", "schema", "notes", "academic_basis"}
+    best_depth, best_score = 0, -1
+    for depth in (0, 1, 2):
+        keys = {pa[depth] for pa, _ in leaves
+                if len(pa) > depth and pa[depth] not in META and not pa[depth].isdigit()}
+        n = len(keys)
+        score = -abs(n - 16) + (100 if 4 <= n <= 40 else 0)
+        if score > best_score:
+            best_depth, best_score = depth, score
+    groups = {}
+    for pa, r in leaves:
+        if len(pa) > best_depth and pa[best_depth] not in META and not pa[best_depth].isdigit():
+            groups.setdefault(pa[best_depth], []).append(r)
+    frameworks = [{"_name": k, "_rules": v} for k, v in groups.items()]
+    schema_map = {"group_depth": best_depth,
+                  "level_keys": sorted(groups.keys())[:24],
+                  "top_keys": sorted(k for k in kb.keys())[:15] if isinstance(kb, dict) else "list",
+                  "n_leaves": len(leaves)}
     state = build_today_state()
 
     scored = []
@@ -178,8 +209,9 @@ def lambda_handler(event=None, context=None):
         if not isinstance(fw, dict):
             continue
         name = fw.get("name") or fw.get("framework") or fw.get("_name") or "unnamed"
-        rules = []
-        rule_texts(fw, rules)
+        rules = list(fw.get("_rules") or [])
+        if not rules:
+            rule_texts(fw, rules)
         seen, dedup = set(), []
         for r in rules:
             k = r["text"][:90]
@@ -212,6 +244,7 @@ def lambda_handler(event=None, context=None):
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1),
            "method": "machine" if tot_machine > tot_eval / 2 else "keyword-heuristic-v1",
+           "schema_map": schema_map,
            "kb_stats": {"n_frameworks": len(frameworks), "n_rules_harvested": tot_rules,
                         "n_evaluable_today": tot_eval, "n_machine_rules": tot_machine,
                         "coverage_pct": round(100 * tot_eval / tot_rules, 1) if tot_rules else 0},

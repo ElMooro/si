@@ -19,7 +19,7 @@ S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/index-inclusion.json"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 MCAP_FLOOR = 18e9
 
 
@@ -48,7 +48,8 @@ def lambda_handler(event=None, context=None):
 
     cands = None
     scr = fmp("company-screener", {"marketCapMoreThan": int(MCAP_FLOOR), "isEtf": "false",
-                                   "isActivelyTrading": "true", "country": "US", "limit": 1000})
+                                   "isFund": "false", "isActivelyTrading": "true",
+                                   "country": "US", "limit": 1000})
     if isinstance(scr, list) and len(scr) > 50:
         avail["screener"] = True
         cands = [r for r in scr
@@ -59,7 +60,20 @@ def lambda_handler(event=None, context=None):
 
     watch, checked = [], 0
     if members and cands:
-        nonmem = sorted((r for r in cands if str(r.get("symbol", "")).upper() not in members),
+        member_bases = {m.split("-")[0].split(".")[0] for m in members}
+        def keep(r):
+            sym = str(r.get("symbol", "")).upper()
+            if sym in members or sym.split("-")[0].split(".")[0] in member_bases:
+                return False                      # share-class twin of a member (BRK-A)
+            if str(r.get("country", "US")).upper() not in ("US", "USA"):
+                return False                      # foreign domicile (ASML)
+            if len(sym) == 5 and sym.endswith("X"):
+                return False                      # mutual-fund ticker convention (VTSAX)
+            nm = str(r.get("companyName", "")).lower()
+            if any(w in nm for w in (" fund", " trust", "index ", "etf", "portfolio")):
+                return False
+            return True
+        nonmem = sorted((r for r in cands if keep(r)),
                         key=lambda r: -(r.get("marketCap") or 0))[:40]
 
         def profit_check(r):

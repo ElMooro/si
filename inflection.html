@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liquidity Inflection — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg0:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',ui-monospace,monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg0);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);backdrop-filter:blur(8px);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand .dot{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--cyan)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--cyan)}
+.wrap{max-width:1100px;margin:0 auto;padding:22px}
+h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:880px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:22px 0 10px;text-transform:uppercase}
+.hero{display:flex;gap:18px;flex-wrap:wrap;align-items:center;background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:16px 20px}
+.st{font-family:var(--mono);font-size:24px;font-weight:800}.EXPANDING{color:var(--green)}.CONTRACTING{color:var(--red)}.NEUTRAL{color:var(--amber)}
+svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:13px}
+.card h3{margin:0 0 7px;font-size:12px;font-family:var(--mono);color:var(--fg2)}
+.v{font-family:var(--mono);font-size:19px;font-weight:700}.m{font-size:11px;color:var(--fg3);font-family:var(--mono);margin-top:4px;line-height:1.55}
+table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:9px;border-bottom:1px solid var(--border);background:var(--bg2)}
+th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+</style></head><body>
+<header><div class="brand"><span class="dot"></span>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/canaries.html">Canaries</a><a href="/inflection.html" class="on">🌊 Liquidity</a><a href="/confluence.html">Confluence</a><a href="/ignition.html">Ignition</a></nav></header>
+<div class="wrap">
+<h1>Liquidity Inflection — <span class="grad">trade the second derivative</span></h1>
+<p class="sub">Levels are consensus; inflections are the trade. 13-week impulse of USD net liquidity (Fed balance sheet − TGA − RRP), Schmitt-trigger flip detection, and a <b>real event-study lead/lag table</b> — what actually happened to SPX, BTC and HYG after each historical flip, with n shown. ECB excess liquidity, China credit impulse and stablecoin acceleration ride alongside.</p>
+<div class="sec">USD impulse</div><div class="hero" id="hero"><span class="loading">Loading…</span></div>
+<div class="sec">Other tides</div><div class="grid" id="tides"></div>
+<div class="sec">Event study — forward returns after impulse flips</div><div id="study"><div class="loading">Loading…</div></div>
+<div class="sec">Lead estimates (impulse → 21d fwd return, best shift)</div><div id="leads"></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function spark(tail){
+  if(!tail||tail.length<10)return '';
+  const w=560,h=110,vs=tail.map(p=>p[1]);
+  const mn=Math.min(...vs,-0.3),mx=Math.max(...vs,0.3);
+  const X=i=>8+(w-16)*i/(tail.length-1), Y=v=>h-10-(h-20)*(v-mn)/(mx-mn);
+  const path=vs.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><line x1="8" x2="${w-8}" y1="${Y(0)}" y2="${Y(0)}" stroke="#5d6b82" stroke-dasharray="3 4"/><path d="${path}" fill="none" stroke="#22d3ee" stroke-width="2"/></svg>`;
+}
+function cell(s){if(!s)return '<td>—</td>';return `<td>${s.median_pct>0?'+':''}${s.median_pct}% <span style="color:var(--fg3)">(n${s.n}, ${s.hit_dir_pct}%✓)</span></td>`;}
+async function load(){
+  const d=await gj('data/liquidity-inflection.json');
+  if(!d){document.getElementById('hero').innerHTML='<span class="loading">brief unavailable</span>';return;}
+  const u=d.usd||{};
+  document.getElementById('hero').innerHTML=`<div><div class="st ${esc(u.state)}">${esc(u.state)}</div><div class="m">impulse z <b>${esc(u.impulse_z)}</b> · net liq $${esc(u.net_liq_usd_bn)}bn · ${esc(u.as_of)}<br>last flip: ${u.last_flip?esc(u.last_flip.direction)+' '+esc(u.last_flip.date):'—'} · ${esc(u.n_flips_10y)} flips/10y</div></div>${spark(u.impulse_tail_180d)}`;
+  const e=d.eur,c=d.china,s=d.stablecoin;let t='';
+  t+=`<div class="card"><h3>EUR excess liquidity ${e?'●':'○'}</h3><div class="v">${e?('z '+esc(e.z)):'—'}</div><div class="m">${e?esc(e.as_of)+' · '+esc(e.flips_5y)+' flips/5y · ECB hist store':'unavailable'}</div></div>`;
+  t+=`<div class="card"><h3>China credit impulse ${c?'●':'○'}</h3><div class="v">${c?('z '+esc(c.impulse_z)):'—'}</div><div class="m">${c?('credit yoy '+esc(c.credit_yoy_pct)+'% · '+esc(c.series)+' · '+esc(c.as_of)+' (quarterly lag)'):'unavailable'}</div></div>`;
+  t+=`<div class="card"><h3>Stablecoin tide ${s?'●':'○'}</h3><div class="v">${s?esc(s.state||('accel z '+s.accel_z)):'—'}</div><div class="m">${s?('strength '+esc(s.signal_strength)+' · 7d Δ $'+esc(Math.round((s.aggregate||{}).delta_7d_usd/1e6))+'mn · '+esc(s.as_of||'')):'unavailable'}</div></div>`;
+  document.getElementById('tides').innerHTML=t;
+  const es=d.event_study_after_flips||{};
+  let rows='';
+  for(const [a,tbl] of Object.entries(es)){
+    for(const dir of ['UP','DOWN']){
+      rows+=`<tr><td>${esc(a)}</td><td>${dir}</td>${cell((tbl.d5||{})['after_'+dir+'_flip'])}${cell((tbl.d21||{})['after_'+dir+'_flip'])}${cell((tbl.d63||{})['after_'+dir+'_flip'])}</tr>`;
+    }
+  }
+  document.getElementById('study').innerHTML=rows?`<table><thead><tr><th>Asset</th><th>Flip</th><th>+5d</th><th>+21d</th><th>+63d</th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="loading">no flips in window</div>';
+  const ld=d.lead_estimates||{};
+  document.getElementById('leads').innerHTML=Object.entries(ld).map(([a,v])=>`<div class="card" style="display:inline-block;margin:0 8px 8px 0"><h3>${esc(a)}</h3><div class="v">${esc(v.lead_days)}d</div><div class="m">corr ${esc(v.corr_21d_fwd)}</div></div>`).join('')||'—';
+  document.getElementById('note').textContent=`${d.methodology} · v${d.version} · ${d.generated_at} · Research, not advice.`;
+}
+load();
+</script></body></html>

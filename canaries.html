@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crisis Canaries — Funding Plumbing — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg0:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',ui-monospace,monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg0);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);backdrop-filter:blur(8px);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand .dot{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--cyan)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--cyan)}
+.wrap{max-width:1100px;margin:0 auto;padding:22px}
+h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--amber),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:880px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:22px 0 10px;text-transform:uppercase}
+.score{display:flex;gap:16px;align-items:center;background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:16px 20px}
+.big{font-family:var(--mono);font-size:42px;font-weight:800}
+.lvl{font-family:var(--mono);font-size:13px;padding:5px 12px;border-radius:9px;border:1px solid}
+.CALM{color:var(--green);border-color:var(--green)}.WATCH{color:var(--cyan);border-color:var(--cyan)}.ELEVATED{color:var(--amber);border-color:var(--amber)}.ACUTE{color:var(--red);border-color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:12px}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:13px}
+.card h3{margin:0 0 7px;font-size:12px;font-family:var(--mono);color:var(--fg2)}
+.v{font-family:var(--mono);font-size:19px;font-weight:700}.m{font-size:11px;color:var(--fg3);font-family:var(--mono);margin-top:4px;line-height:1.55}
+.off{opacity:.55}.alert{background:rgba(255,85,119,.08);border:1px solid var(--red);border-radius:11px;padding:11px 14px;font-size:13px;margin-bottom:8px}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+</style></head><body>
+<header><div class="brand"><span class="dot"></span>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/risk-desk.html">Risk</a><a href="/canaries.html" class="on">🐤 Canaries</a><a href="/inflection.html">Liquidity</a><a href="/ignition.html">Ignition</a></nav></header>
+<div class="wrap">
+<h1>Crisis Canaries — <span class="grad">the plumbing speaks first</span></h1>
+<p class="sub">Crisis starts in collateral and bank funding, weeks before equities notice. Live coverage of SOFR distribution tails (NY Fed official API), OFR triparty repo volumes, H.4.1 discount-window borrowings, H.8 small-bank deposit flows, Treasury-auction deterioration slope, and the ALFRED first-release-vs-latest payroll revision signature. Coverage-honest: dead feeds shown dead.</p>
+<div class="sec">Composite</div><div class="score" id="score"><span class="loading">Loading…</span></div>
+<div id="alerts"></div>
+<div class="sec">Canaries</div><div class="grid" id="cards"></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function card(title,val,meta,on){return `<div class="card ${on?'':'off'}"><h3>${esc(title)} ${on?'●':'○ offline'}</h3><div class="v">${esc(val)}</div><div class="m">${meta}</div></div>`;}
+async function load(){
+  const d=await gj('data/crisis-canaries.json');
+  if(!d){document.getElementById('score').innerHTML='<span class="loading">brief unavailable</span>';return;}
+  const lvl=d.level||'CALM';
+  document.getElementById('score').innerHTML=`<div class="big">${d.composite_score??'—'}</div><div><span class="lvl ${esc(lvl)}">${esc(lvl)}</span><div class="m" style="margin-top:8px">coverage-honest composite over live canaries · score ≥70 auto-logs a crisis_canary DOWN call to the closed loop</div></div>`;
+  document.getElementById('alerts').innerHTML=(d.alerts||[]).map(a=>`<div class="alert">⚠ ${esc(a)}</div>`).join('');
+  const c=d.canaries||{},av=d.availability||{};
+  let h='';
+  const sf=c.sofr_tail||{};h+=card('SOFR 99th-pct tail',(sf.tail_bp??'—')+' bp',`z ${esc(sf.z)} · vol $${esc(sf.vol_bn)}bn · ${esc(sf.as_of)} · NY Fed`,av.sofr_tail);
+  const of=c.ofr_repo||{};h+=card('Triparty repo volume',of.level?('$'+(of.level/1e12).toFixed(2)+'T'):'—',`z ${esc(of.z)} · ${esc(of.mnemonic)} · ${esc(of.as_of)} · OFR`,av.ofr_repo);
+  const dw=c.discount_window||{};h+=card('Discount window','$'+esc(dw.level_mn)+'mn',`WoW ${esc(dw.wow_chg)} (z ${esc(dw.wow_z)}) · ${esc(dw.series)} · H.4.1`,av.discount_window);
+  const dp=c.bank_deposits||{};h+=card('Small-bank deposits','$'+esc(dp.level_bn)+'bn',`WoW ${esc(dp.wow_chg_bn)}bn (outflow z ${esc(dp.outflow_z)}) · H.8`,av.bank_deposits);
+  const au=c.auction_slope||{};h+=card('Auction slope',au.slope_per_obs!=null?(au.slope_per_obs>0?'+':'')+au.slope_per_obs+'/obs':esc(au.status),`composite now ${esc(au.composite_now)} · self-bootstrapping history`,av.auction_slope);
+  const rv=c.revision_nowcast||{};h+=card('Payroll revisions',rv.mean_rev_k!=null?rv.mean_rev_k+'k avg':'—',`last4 all-negative: ${rv.all_negative_last4?'<b style="color:var(--red)">YES</b>':'no'} · ALFRED initial-vs-latest`,av.revision_nowcast);
+  h+=card('FHLB discount notes','—','no free machine-readable feed — KHALID_ACTIONS',false);
+  document.getElementById('cards').innerHTML=h;
+  document.getElementById('note').textContent=`${d.methodology} · v${d.version} · ${d.generated_at} · Research, not advice.`;
+}
+load();
+</script></body></html>

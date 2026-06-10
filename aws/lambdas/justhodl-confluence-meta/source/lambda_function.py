@@ -18,7 +18,7 @@ S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/confluence-meta.json"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 CORE_BRIEFS = ["data/best-setups.json", "data/vol-surface.json", "data/carry-surface.json",
                "data/sector-rotation.json", "data/eurodollar-stress.json", "data/auction-crisis.json",
                "data/historical-analogs.json", "data/alert-backtests.json", "data/apex-fusion.json",
@@ -81,28 +81,31 @@ def lambda_handler(event=None, context=None):
             return None
         return (spx[sdates[j + w]] / spx[sdates[j]] - 1) * 100
 
+    # NET breadth: with a dozen engines logging daily, raw same-direction counts
+    # saturate. The informative statistic is net = (#UP engines) − (#DOWN engines).
+    def bucket_of(net):
+        return ("≤-3" if net <= -3 else "-2..-1" if net <= -1 else "0"
+                if net == 0 else "+1..+2" if net <= 2 else "≥+3")
+    buckets = {b: [] for b in ("≤-3", "-2..-1", "0", "+1..+2", "≥+3")}
+    for d, dd in by_day.items():
+        buckets[bucket_of(len(dd["UP"]) - len(dd["DOWN"]))].append(d)
     curves = {}
-    for direction in ("UP", "DOWN"):
-        buckets = {"1": [], "2": [], "3": [], "4+": []}
-        for d, dd in by_day.items():
-            c = len(dd[direction])
-            if c == 0:
-                continue
-            b = "4+" if c >= 4 else str(c)
-            buckets[b].append(d)
-        tab = {}
-        for b, ds in buckets.items():
-            row = {"n_days": len(ds)}
-            for w in (5, 21, 63):
-                rs = [r for r in (fwd(d, w) for d in ds) if r is not None]
-                if rs:
-                    rs.sort()
-                    row[f"med_{w}d"] = round(rs[len(rs) // 2], 2)
-                    row[f"hit_{w}d"] = round(100 * sum(1 for r in rs
-                                                       if (r > 0) == (direction == "UP")) / len(rs), 1)
-                    row[f"n_{w}d"] = len(rs)
-            tab[b] = row
-        curves[direction] = tab
+    for b, ds in buckets.items():
+        row = {"n_days": len(ds)}
+        for w in (5, 21, 63):
+            rs = [r for r in (fwd(d, w) for d in ds) if r is not None]
+            if rs:
+                rs.sort()
+                row[f"med_{w}d"] = round(rs[len(rs) // 2], 2)
+                row[f"pos_{w}d_pct"] = round(100 * sum(1 for r in rs if r > 0) / len(rs), 1)
+                row[f"n_{w}d"] = len(rs)
+        curves[b] = row
+    net_today = None
+    last_day = max(by_day) if by_day else None
+    if last_day:
+        net_today = {"date": last_day, "net": len(by_day[last_day]["UP"]) - len(by_day[last_day]["DOWN"]),
+                     "up_engines": sorted(by_day[last_day]["UP"]),
+                     "down_engines": sorted(by_day[last_day]["DOWN"])}
 
     # ── fade index from skill ──
     sk = s3j("data/_skill/frontrun-skill-index.json") or {}
@@ -136,10 +139,11 @@ def lambda_handler(event=None, context=None):
            "today_confluence": {d: {k: sorted(v) for k, v in dd.items()}
                                  for d, dd in by_day.items()
                                  if d >= (now - timedelta(days=3)).date().isoformat()},
-           "confluence_curves": curves,
+           "confluence_curves_net": curves,
+           "net_today": net_today,
            "fade_index": fade,
            "ledger_briefs_ok": sum(1 for v in ledger["briefs"].values() if v),
-           "methodology": ("Confluence = distinct engines aligned same-direction per calendar day "
+           "methodology": ("Net confluence = (#engines logging UP) − (#engines logging DOWN) per day "
                            "(closed-loop log, 120d). Forward distributions are computed against the "
                            "1971+ deep equity base — real n shown per bucket. Fade Index lists engines "
                            "with ≥10 graded calls and <35% hit: their inverse is the signal. Daily "

@@ -127,3 +127,8 @@ The Lambda `justhodl-patent-velocity` is deployed and scheduled (daily 17 UTC), 
    ```
 
 **Note:** PatentsView is migrating to USPTO Open Data Portal (data.uspto.gov) as of March 20, 2026. Once that migration stabilizes, consider switching to the ODP endpoint instead. The current Lambda still uses `search.patentsview.org/api/v1/patent/` which is the surviving v1 endpoint.
+
+## 2026-06-10 — 18-edge buildout
+- **FINRA data API key (free)** — register at developer.finra.org → put key in Lambda env `FINRA_API_KEY` to activate the Ignition dark-pool pillar (anonymous tier returns symbol-stripped stale rows).
+- **FMP 13F holdings tier** — `/stable/institutional-ownership` per-symbol holdings need a higher FMP plan; activates Ignition 13F cluster-initiation pillar (currently parked).
+- **FHLB discount-note issuance feed** — no free machine-readable source; paid (e.g. Bloomberg) or scrape fhlb-of.com to complete the 7th crisis canary.
