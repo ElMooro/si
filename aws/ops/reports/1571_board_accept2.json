@@ -1,0 +1,131 @@
+{
+  "ops": 1571,
+  "n_engines": 63,
+  "n_live": 54,
+  "n_stale": 9,
+  "composite_signal": 0.02,
+  "composite_posture": "NEUTRAL / MIXED",
+  "categories": {
+    "positioning": {
+      "signal": 0.2,
+      "n": 5
+    },
+    "relative value": {
+      "signal": 0.0,
+      "n": 1
+    },
+    "equity valuation": {
+      "signal": 0.0,
+      "n": 3
+    },
+    "macro": {
+      "signal": -0.25,
+      "n": 12
+    },
+    "smart money": {
+      "signal": 0.0,
+      "n": 7
+    },
+    "volatility": {
+      "signal": 0.0,
+      "n": 7
+    },
+    "events": {
+      "signal": 0.25,
+      "n": 4
+    },
+    "crypto": {
+      "signal": 0.0,
+      "n": 3
+    },
+    "equity tactical": {
+      "signal": 0.11,
+      "n": 9
+    },
+    "risk avoidance": {
+      "signal": 0.0,
+      "n": 1
+    },
+    "sentiment": {
+      "signal": 0.5,
+      "n": 2
+    }
+  },
+  "new_rows": {
+    "Ignition Pre-Pump": {
+      "engine": "Ignition Pre-Pump",
+      "category": "smart money",
+      "signal": 0,
+      "signal_label": "NEUTRAL",
+      "read": "Ignition avg 58.0 (top: CAMT, TSM, MOD)",
+      "stale": false
+    },
+    "Bottleneck Boom": {
+      "engine": "Bottleneck Boom",
+      "category": "equity tactical",
+      "signal": 0,
+      "signal_label": "NEUTRAL",
+      "read": "Bottleneck avg 52.7",
+      "stale": false
+    },
+    "Crisis Canaries": {
+      "engine": "Crisis Canaries",
+      "category": "macro",
+      "signal": 0,
+      "signal_label": "NEUTRAL",
+      "read": "Funding canaries 0 (CALM)",
+      "stale": false
+    },
+    "Liquidity Inflection": {
+      "engine": "Liquidity Inflection",
+      "category": "macro",
+      "signal": -1,
+      "signal_label": "RISK-OFF",
+      "read": "USD liq impulse z=-0.672 (CONTRACTING)",
+      "stale": false
+    },
+    "Confluence Net-Breadth": {
+      "engine": "Confluence Net-Breadth",
+      "category": "sentiment",
+      "signal": 1,
+      "signal_label": "RISK-ON",
+      "read": "Net engine breadth +3 (3\u2191/0\u2193)",
+      "stale": false
+    },
+    "Crisis-KB Match": {
+      "engine": "Crisis-KB Match",
+      "category": "macro",
+      "signal": -1,
+      "signal_label": "RISK-OFF",
+      "read": "KB closest: Yield Curve Inversion (100.0%)",
+      "stale": false
+    },
+    "EU Dump Radar": {
+      "engine": "EU Dump Radar",
+      "category": "macro",
+      "signal": 0,
+      "signal_label": "NEUTRAL",
+      "read": "EU dump score 46.6 (CALM)",
+      "stale": false
+    },
+    "S&P Inclusion Watch": {
+      "engine": "S&P Inclusion Watch",
+      "category": "events",
+      "signal": 0,
+      "signal_label": "NEUTRAL",
+      "read": "S&P inclusion-eligible names: 23 (context, non-directional)",
+      "stale": false
+    }
+  },
+  "stale_engines": [
+    "Crypto Narratives",
+    "Canary Grid",
+    "Edge#1 VIX Backwardation",
+    "Edge#4 Vol-Target Unwind",
+    "Earnings IV Crush",
+    "REIT NAV Discount",
+    "Dividend Cut Warning",
+    "SPAC Floor + Warrant",
+    "Buyback Yield Ranking"
+  ]
+}
