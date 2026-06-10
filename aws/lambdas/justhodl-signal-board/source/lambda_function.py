@@ -771,6 +771,19 @@ def n_us_money(d):
     return sig, f"US real M2 {v:+.1f}% YoY (z {z})"
 
 
+
+
+def n_ma_reversion(d):
+    sp = (d.get("spx") or {}).get("current") or {}
+    ns = sp.get("nearest_shelf")
+    n_set = d.get("n_setups") or 0
+    if not sp:
+        return 0, "MA-reversion n/a"
+    if ns and ns.get("below_pct", 99) <= 1.0:
+        return 1, f"SPX at the {ns['ma']}DMA shelf ({ns['below_pct']}% above) · {n_set} stock setups"
+    return 0, (f"Nearest shelf {ns['ma']}DMA −{ns['below_pct']}%" if ns else "Below all MAs") +                f" · {n_set} setups at MAs"
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -847,6 +860,7 @@ FEEDS = [
     ("US Macro Cycle",         "macro",            "data/us-cycle.json",             n_us_cycle),
     ("Market Internals",       "sentiment",        "data/market-internals.json",     n_market_internals),
     ("US Real M2",             "macro",            "data/liquidity-inflection.json", n_us_money),
+    ("MA Reversion Shelves",   "equity tactical",  "data/ma-reversion.json",         n_ma_reversion),
 ]
 
 

@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MA Mean-Reversion — Measured, Not Believed — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg0:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',ui-monospace,monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg0);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);backdrop-filter:blur(8px);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand .dot{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--cyan)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--cyan)}
+.wrap{max-width:1150px;margin:0 auto;padding:22px}
+h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:920px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase}
+.shelves{display:flex;gap:12px;flex-wrap:wrap}
+.sh{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-family:var(--mono)}
+.sh b{font-size:18px}.sh .m{font-size:10.5px;color:var(--fg3);margin-top:3px;line-height:1.5}
+.near{border-color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:9px;border-bottom:1px solid var(--border);background:var(--bg2)}
+th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+.hi{color:var(--green)}.lo{color:var(--red)}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+.tabs span{font-family:var(--mono);font-size:11px;padding:4px 12px;border:1px solid var(--border);border-radius:8px;margin-right:6px;cursor:pointer;color:var(--fg2)}
+.tabs span.on{color:var(--cyan);border-color:var(--cyan)}
+</style></head><body>
+<header><div class="brand"><span class="dot"></span>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/ignition.html">Ignition</a><a href="/ma-reversion.html" class="on">📐 MA Reversion</a><a href="/confluence.html">Confluence</a><a href="/skill.html">Skill</a></nav></header>
+<div class="wrap">
+<h1>MA Mean-Reversion — <span class="grad">measured, not believed</span></h1>
+<p class="sub">The crowd watches the 20/50/100/200-day moving averages and assumes "that's where buying liquidity comes in." This page measures that belief on <b>five decades of data</b>: every touch, breakdown and reclaim, split bull/bear, with real n, hit rates and <b>shelf depth</b> (how far below the MA the dip actually goes before the bid shows up). Stock setups require an uptrend and are ranked by each name's <b>own</b> historical bounce rate — folklore gets no free conviction here.</p>
+<div class="sec">Live shelves</div><div class="shelves" id="shelves"><span class="loading">Loading…</span></div>
+<div class="sec">Touch-from-above → forward returns <span class="tabs" id="tabs"></span></div><div id="touch"></div>
+<div class="sec">Stretch vs 200DMA → +21d (the gravity map)</div><div id="stretch"></div>
+<div class="sec">Golden / Death cross record</div><div id="cross"></div>
+<div class="sec">🎯 Stock setups (at a major MA, uptrend, own record shown)</div><div id="setups"></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+let D=null,IDX='spx';
+function cell(s,inv){if(!s)return '<td>—</td>';const good=inv?s.hit_pct>=55:s.hit_pct>=55;return `<td class="${good?'hi':s.hit_pct<=45?'lo':''}">${s.median_pct>0?'+':''}${s.median_pct}% <span style="color:var(--fg3)">(${s.hit_pct}%✓ n${s.n})</span></td>`;}
+function render(){
+  const X=D[IDX]; if(!X){document.getElementById('touch').innerHTML='<div class="loading">n/a</div>';return;}
+  const cur=X.current||{};
+  document.getElementById('shelves').innerHTML=[20,50,100,200].map(m=>{
+    const d=cur['dist_ma'+m+'_pct'];const near=cur.nearest_shelf&&cur.nearest_shelf.ma===m;
+    return `<div class="sh ${near?'near':''}"><b>${m}DMA</b> ${cur['ma'+m]??'—'}<div class="m">${d!=null?(d>0?'+':'')+d+'% away':'—'}${near?' · NEAREST SHELF':''}</div></div>`;}).join('')
+    +`<div class="sh"><b>${esc(X.label)}</b> ${cur.close}<div class="m">${esc(cur.as_of)} · ${X.n_days} sessions</div></div>`;
+  let rows='';
+  for(const m of [20,50,100,200]){
+    for(const reg of ['bull','bear']){
+      const e=(X.events||{})['ma'+m+'_'+reg]||{};const t=e.touch||{};
+      rows+=`<tr><td>${m}DMA · ${reg}</td><td>${e.touch_n??0}</td>${cell(t[5])}${cell(t[21])}${cell(t[63])}<td>${e.shelf_depth_med_pct??'—'}%</td><td>${e.breakdown_n??0} → ${(e.breakdown&&e.breakdown[21])?((e.breakdown[21].median_pct>0?'+':'')+e.breakdown[21].median_pct+'% ('+e.breakdown[21].hit_pct+'%↓✓)'):'—'}</td></tr>`;
+    }
+  }
+  document.getElementById('touch').innerHTML=`<table><thead><tr><th>MA · regime</th><th>Touches</th><th>+5d</th><th>+21d</th><th>+63d</th><th>Shelf depth</th><th>Breakdowns → +21d</th></tr></thead><tbody>${rows}</tbody></table>`;
+  const st=X.stretch_vs_200||{};
+  document.getElementById('stretch').innerHTML=`<table><thead><tr><th>Distance vs 200DMA</th><th>n</th><th>+21d median</th><th>% positive</th></tr></thead><tbody>${['<-10%','-10..-5%','-5..0%','+0..+5%','+5..+10%','>+10%'].filter(b=>st[b]).map(b=>`<tr><td>${esc(b)}</td><td>${st[b].n}</td><td class="${st[b].med_21d_pct>0?'hi':'lo'}">${st[b].med_21d_pct>0?'+':''}${st[b].med_21d_pct}%</td><td>${st[b].pos_pct}%</td></tr>`).join('')}</tbody></table>`;
+  const cr=X.crosses||{};
+  document.getElementById('cross').innerHTML=`<table><thead><tr><th>Cross</th><th>n</th><th>+21d</th><th>+63d</th></tr></thead><tbody>
+    <tr><td>Golden (50>200)</td><td>${cr.golden_n??0}</td>${cell((cr.golden||{})[21])}${cell((cr.golden||{})[63])}</tr>
+    <tr><td>Death (50<200)</td><td>${cr.death_n??0}</td>${cell((cr.death||{})[21],true)}${cell((cr.death||{})[63],true)}</tr></tbody></table>`;
+}
+async function load(){
+  D=await gj('data/ma-reversion.json');
+  if(!D){document.getElementById('shelves').innerHTML='<span class="loading">brief unavailable — first run pending</span>';return;}
+  const tabs=document.getElementById('tabs');
+  tabs.innerHTML=['spx','qqq'].filter(k=>D[k]).map(k=>`<span class="${k===IDX?'on':''}" data-k="${k}">${k.toUpperCase()}</span>`).join('');
+  tabs.onclick=e=>{const k=e.target.dataset.k;if(k){IDX=k;tabs.querySelectorAll('span').forEach(s=>s.classList.toggle('on',s.dataset.k===k));render();}};
+  render();
+  const su=(D.stock_setups||[]).map(r=>`<tr><td><b>${esc(r.ticker)}</b></td><td>${r.at_ma}DMA</td><td>+${r.dist_pct}%</td><td class="${(r.own_hit10_pct||0)>=60?'hi':(r.own_hit10_pct||0)<=45&&r.own_touch_n>=8?'lo':''}">${r.own_hit10_pct??'—'}% <span style="color:var(--fg3)">(n${r.own_touch_n})</span></td><td>+${r.above_200_pct}%</td><td>${r.px}</td></tr>`).join('');
+  document.getElementById('setups').innerHTML=su?`<table><thead><tr><th>Ticker</th><th>At</th><th>Above MA</th><th>Own +10d hit</th><th>vs 200</th><th>Px</th></tr></thead><tbody>${su}</tbody></table>`:'<div class="loading">No names sitting at a major MA in an uptrend right now.</div>';
+  document.getElementById('note').textContent=`${D.methodology} · ${D.signals_logged} logged today · v${D.version} · ${D.generated_at} · Research, not advice.`;
+}
+load();
+</script></body></html>

@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-10T22:00:31.767452+00:00",
+ "generated_at": "2026-06-10T22:21:47.235914+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2485,6 +2485,38 @@
     "BAMLH0A0HYM2"
    ],
    "system_addendum": "You are specifically a MARKET-INTERNALS TECHNICIAN. The brain's rule: narrow breadth + mega-cap reliance + elevated margin debt precedes corrections. Read the McClellan oscillator/summation and the Zweig thrust tracker; washouts \u2264\u2212100 are contrarian longs, not sells."
+  },
+  "ma-reversion-decisive-call": {
+   "title": "MA Mean-Reversion \u2014 Decisive Call",
+   "output_key": "ma-reversion-decisive-call",
+   "primary_feed": "data/ma-reversion.json",
+   "cross_feeds": {
+    "yield_curve": "data/yield-curve.json",
+    "vix": "data/vix-curve.json",
+    "credit": "data/credit-spreads.json",
+    "dollar": "data/dollar-radar.json"
+   },
+   "cross_regime_fields": {
+    "yield_curve": "regime",
+    "vix": "composite_regime",
+    "credit": "regime",
+    "dollar": "regime"
+   },
+   "kb_keywords": [
+    "moving average",
+    "200 day",
+    "mean reversion",
+    "support",
+    "golden cross",
+    "breadth",
+    "dip buying"
+   ],
+   "episode_indicators_to_show": [
+    "VIXCLS",
+    "DGS10",
+    "BAMLH0A0HYM2"
+   ],
+   "system_addendum": "You are specifically a QUANT TECHNICIAN who measured the crowd's MA-liquidity belief on 50+ years of data. NEVER assert that an MA 'is support' \u2014 cite the engine's measured table: touch hit rate, n, median, shelf depth, and the bull/bear regime split. Where the data contradicts the folklore (e.g. breakdowns continuing), say so plainly. Confidence comes only from the conditional tables."
   }
  }
 }
