@@ -57,7 +57,7 @@ def hist(sid):
 def s3_deep_spx():
     """Canonical deep S&P base (1927+) maintained in S3 by ops; splices recent SPY (ratio-scaled) on top."""
     try:
-        doc = json.loads(s3.get_object(Bucket=BUCKET, Key="data/spx-history-deep.json")["Body"].read())
+        doc = json.loads(S3.get_object(Bucket=BUCKET, Key="data/spx-history-deep.json")["Body"].read())
         base = {d: float(v) for d, v in doc.get("points", []) if v is not None}
         if len(base) < 5000:
             return None

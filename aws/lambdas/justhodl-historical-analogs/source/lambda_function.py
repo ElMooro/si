@@ -48,7 +48,7 @@ POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 def s3_deep_spx():
     """Canonical deep S&P base (1927+) maintained in S3 by ops; splices recent SPY (ratio-scaled) on top."""
     try:
-        doc = json.loads(s3.get_object(Bucket=BUCKET, Key="data/spx-history-deep.json")["Body"].read())
+        doc = json.loads(S3.get_object(Bucket=BUCKET, Key="data/spx-history-deep.json")["Body"].read())
         base = {d: float(v) for d, v in doc.get("points", []) if v is not None}
         if len(base) < 5000:
             return None
@@ -256,6 +256,23 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[analogs] usd splice skipped: {str(e)[:60]}")
 
+    # 1c. Credit splice: FRED's ICE BofA HY OAS is licensing-truncated to ~3y (785 obs)
+    # and was silently flooring the whole pool at 2023. Splice Moody's Baa-10Y (1986+) underneath.
+    try:
+        deep_credit = fred_full("BAA10Y", start="1986-01-01")
+        hy = raw.get("hy_oas", {})
+        if deep_credit and hy:
+            common = sorted(set(deep_credit) & set(hy))
+            if common:
+                anchor = common[0]
+                ratio = hy[anchor] / deep_credit[anchor] if deep_credit[anchor] else 1.0
+                spliced = {d: round(v * ratio, 4) for d, v in deep_credit.items() if d < anchor}
+                spliced.update(hy)
+                raw["hy_oas"] = spliced
+                print(f"[analogs] credit spliced: {len(spliced)} obs from {min(spliced)} (BAA10Y<{anchor[:7]} scaled {round(ratio,3)}, HY OAS after)")
+    except Exception as e:
+        print(f"[analogs] credit splice skipped: {str(e)[:60]}")
+
     # 2. SPX closes — v2: Polygon SPY daily 1999+ (FRED SP500 only spans ~2015+,
     # which silently capped the whole analog pool). Fallback to FRED on failure.
     spx = s3_deep_spx() or yahoo_spx() or stooq_spx() or polygon_spy_closes() or raw.get("spx_close", {})
@@ -402,7 +419,7 @@ def lambda_handler(event=None, context=None):
         call_desc = "Could not compute 21d forward returns from analogs"
 
     out = {
-        "version": "2.2",
+        "version": "2.3",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - started, 2),
         "today": today_snapshot,
@@ -413,7 +430,7 @@ def lambda_handler(event=None, context=None):
         "forward_distribution": forward_distribution,
         "directional_call": call,
         "directional_description": call_desc,
-        "methodology": "Euclidean distance (deep pool: S&P via Yahoo 1927+; neighbors de-clustered >=30d; USD = DTWEXM<2006 spliced to DTWEXBGS) over rolling 252d z-scores of [vix, 2s10s, HY OAS, USD, 10Y, SPX 1m return]",
+        "methodology": "Euclidean distance (deep pool: S&P via Yahoo 1927+; neighbors de-clustered >=30d; USD = DTWEXM<2006 spliced to DTWEXBGS; credit = Baa-10Y<2023 spliced to HY OAS) over rolling 252d z-scores of [vix, 2s10s, HY OAS, USD, 10Y, SPX 1m return]",
         "data_sources": {"all": "FRED API (free)"},
     }
 
