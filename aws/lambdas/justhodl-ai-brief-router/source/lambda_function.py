@@ -3028,7 +3028,8 @@ def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
                 if engine not in by_engine:
                     by_engine[engine] = {"n_total": 0, "n_scored": 0, "n_correct": 0,
                                           "sum_return_pct": 0.0, "n_recent_30d": 0,
-                                          "n_correct_30d": 0, "wins": [], "losses": []}
+                                          "n_correct_30d": 0, "wins": [], "losses": [],
+                                          "sum_claimed_conf": 0.0, "sum_claimed_conf_n": 0}
                 by_engine[engine]["n_total"] += 1
                 continue
 
@@ -3109,8 +3110,8 @@ def generate_frontrun_skill_check(ctx_id, cfg, episode_ref):
                 be["hit_rate"] = None
                 be["avg_return_pct"] = None
             # Average claimed confidence (across ALL predictions for this engine)
-            if be["sum_claimed_conf_n"] > 0:
-                be["avg_claimed_confidence"] = round(be["sum_claimed_conf"] / be["sum_claimed_conf_n"], 4)
+            if be.get("sum_claimed_conf_n", 0) > 0:
+                be["avg_claimed_confidence"] = round(be.get("sum_claimed_conf", 0.0) / be["sum_claimed_conf_n"], 4)
             else:
                 be["avg_claimed_confidence"] = None
             # Calibration error: hit_rate − claimed (positive = underconfident, negative = overconfident)
