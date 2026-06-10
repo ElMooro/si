@@ -23,7 +23,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/kb-match.json"
 KB_KEY = "data/crisis-knowledge-base.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 
 
 def s3j(key):
@@ -186,17 +186,34 @@ def lambda_handler(event=None, context=None):
         elif isinstance(node, str) and len(node) > 25:
             leaves.append((path, {"kind": "text", "text": node}))
     walk(kb, ())
-    # Preferred path: real framework objects (each carries its own name/id).
+    # Exhaustive named-node harvest: a framework is ANY dict, anywhere in the tree,
+    # that carries a name/id/framework label AND has ≥3 substantial text leaves
+    # beneath it. Nested named nodes inside an already-selected framework are
+    # skipped (ancestor wins). Robust to arbitrary KB nesting.
+    def count_leaves(node, depth=0):
+        if depth > 8:
+            return 0
+        if isinstance(node, str):
+            return 1 if len(node) > 25 else 0
+        if isinstance(node, dict):
+            return sum(count_leaves(v_, depth + 1) for v_ in node.values())
+        if isinstance(node, list):
+            return sum(count_leaves(v_, depth + 1) for v_ in node)
+        return 0
     fw_objs = []
-    fwn = kb.get("frameworks") if isinstance(kb, dict) else None
-    if isinstance(fwn, list):
-        fw_objs = [f for f in fwn if isinstance(f, dict)]
-    elif isinstance(fwn, dict):
-        for v_ in fwn.values():
-            if isinstance(v_, dict) and ("name" in v_ or "rules" in v_ or "id" in v_):
-                fw_objs.append(v_)
-            elif isinstance(v_, list):
-                fw_objs.extend(x for x in v_ if isinstance(x, dict))
+    def find_named(node, inside_fw=False):
+        if isinstance(node, dict):
+            label = node.get("name") or node.get("id") or node.get("framework") or node.get("title")
+            is_fw = (not inside_fw and isinstance(label, str) and 2 < len(label) < 90
+                     and count_leaves(node) >= 3)
+            if is_fw:
+                fw_objs.append(node)
+            for v_ in node.values():
+                find_named(v_, inside_fw or is_fw)
+        elif isinstance(node, list):
+            for v_ in node:
+                find_named(v_, inside_fw)
+    find_named(kb)
     META = {"version", "generated_at", "meta", "methodology", "source", "sources",
             "as_of", "engine", "schema", "notes", "academic_basis"}
     best_depth, best_score = 0, -1
@@ -221,7 +238,18 @@ def lambda_handler(event=None, context=None):
         groups = {fw["_name"]: fw["_rules"] for fw in frameworks}
     else:
         frameworks = [{"_name": k, "_rules": v} for k, v in groups.items()]
-    schema_map = {"group_depth": best_depth,
+    def skel(node, depth=0):
+        if depth > 2:
+            return type(node).__name__
+        if isinstance(node, dict):
+            return {k: skel(v_, depth + 1) for k, v_ in list(node.items())[:8]}
+        if isinstance(node, list):
+            return [f"list[{len(node)}]"] + ([skel(node[0], depth + 1)] if node else [])
+        return type(node).__name__
+    schema_map = {"kb_skeleton": skel(kb),
+                  "n_named_nodes": len(fw_objs),
+                  "named": [str((f.get("name") or f.get("id")))[:40] for f in fw_objs[:20]],
+                  "group_depth": best_depth,
                   "level_keys": sorted(groups.keys())[:24],
                   "top_keys": sorted(k for k in kb.keys())[:15] if isinstance(kb, dict) else "list",
                   "n_leaves": len(leaves)}

@@ -19,7 +19,7 @@ S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/index-inclusion.json"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 MCAP_FLOOR = 18e9
 
 
@@ -72,7 +72,8 @@ def lambda_handler(event=None, context=None):
             nm = str(r.get("companyName", "")).lower()
             if any(w in nm for w in (" fund", " trust", "index ", "etf", "portfolio")):
                 return False
-            if any(w in nm for w in ("%", " notes", " nts", " due 20", "preferred",
+            if nm.rstrip().endswith((" lp", " l.p.", " l.p")) or any(
+                    w in nm for w in ("%", " notes", " nts", " due 20", "preferred",
                                       "depositary", " l.p", " lp ", "partners l", "lp,")):
                 return False                      # exchange-listed debt / prefs / LPs
             return True
