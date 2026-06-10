@@ -28,7 +28,7 @@ HIST_KEY = "data/_canaries/history.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 
 
 def hj(url, timeout=30):
@@ -228,9 +228,10 @@ def lambda_handler(event=None, context=None):
     # C9: MMF assets — brain 56×: flight-to-cash / wholesale lenders' war chest.
     try:
         mm = None
-        for sid in ("WRMFSL", "MMMFFAQ027S", "WIMFSL"):
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=200)).date().isoformat()
+        for sid in ("MMMFFAQ027S", "WRMFSL", "WIMFSL"):
             o = fred(sid, "2019-01-01")
-            if len(o) > 24:
+            if len(o) > 12 and o[-1][0] >= cutoff:   # reject discontinued series
                 mm = (sid, o); break
         if mm:
             sid, o = mm

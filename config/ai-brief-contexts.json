@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-10T17:05:52.335114+00:00",
+ "generated_at": "2026-06-10T22:00:31.767452+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2420,6 +2420,71 @@
     "DGS2"
    ],
    "system_addendum": "You are specifically a META/ENSEMBLE PM grading your own engine stack. Use the net-breadth conditional curves (real n) and the Fade Index \u2014 engines the system should trade AGAINST. State the ensemble's net posture and which single engine you would fade today."
+  },
+  "us-cycle-decisive-call": {
+   "title": "US Macro Cycle \u2014 Decisive Call",
+   "output_key": "us-cycle-decisive-call",
+   "primary_feed": "data/us-cycle.json",
+   "cross_feeds": {
+    "yield_curve": "data/yield-curve.json",
+    "vix": "data/vix-curve.json",
+    "credit": "data/credit-spreads.json",
+    "dollar": "data/dollar-radar.json"
+   },
+   "cross_regime_fields": {
+    "yield_curve": "regime",
+    "vix": "composite_regime",
+    "credit": "regime",
+    "dollar": "regime"
+   },
+   "kb_keywords": [
+    "sahm",
+    "sloos",
+    "recession",
+    "margin debt",
+    "copper gold",
+    "term premium",
+    "buffett",
+    "jobless claims"
+   ],
+   "episode_indicators_to_show": [
+    "DGS2",
+    "VIXCLS",
+    "BAMLH0A0HYM2",
+    "DTWEXBGS",
+    "DGS10"
+   ],
+   "system_addendum": "You are specifically a US BUSINESS-CYCLE STRATEGIST built from Khalid's own brain notes (ops-1580 audit). Each pillar carries its note-spec \u2014 cite them. Distinguish valuation altitude (Buffett, margin debt percentiles) from cycle timing (Sahm, claims, quits, copper/gold): altitude says size, timing says when."
+  },
+  "market-internals-decisive-call": {
+   "title": "Market Internals \u2014 Decisive Call",
+   "output_key": "market-internals-decisive-call",
+   "primary_feed": "data/market-internals.json",
+   "cross_feeds": {
+    "yield_curve": "data/yield-curve.json",
+    "vix": "data/vix-curve.json",
+    "credit": "data/credit-spreads.json",
+    "dollar": "data/dollar-radar.json"
+   },
+   "cross_regime_fields": {
+    "yield_curve": "regime",
+    "vix": "composite_regime",
+    "credit": "regime",
+    "dollar": "regime"
+   },
+   "kb_keywords": [
+    "breadth",
+    "mcclellan",
+    "advance decline",
+    "thrust",
+    "narrow market"
+   ],
+   "episode_indicators_to_show": [
+    "VIXCLS",
+    "DGS10",
+    "BAMLH0A0HYM2"
+   ],
+   "system_addendum": "You are specifically a MARKET-INTERNALS TECHNICIAN. The brain's rule: narrow breadth + mega-cap reliance + elevated margin debt precedes corrections. Read the McClellan oscillator/summation and the Zweig thrust tracker; washouts \u2264\u2212100 are contrarian longs, not sells."
   }
  }
 }

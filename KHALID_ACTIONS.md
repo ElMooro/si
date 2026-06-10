@@ -132,3 +132,11 @@ The Lambda `justhodl-patent-velocity` is deployed and scheduled (daily 17 UTC), 
 - **FINRA data API key (free)** — register at developer.finra.org → put key in Lambda env `FINRA_API_KEY` to activate the Ignition dark-pool pillar (anonymous tier returns symbol-stripped stale rows).
 - **FMP 13F holdings tier** — `/stable/institutional-ownership` per-symbol holdings need a higher FMP plan; activates Ignition 13F cluster-initiation pillar (currently parked).
 - **FHLB discount-note issuance feed** — no free machine-readable source; paid (e.g. Bloomberg) or scrape fhlb-of.com to complete the 7th crisis canary.
+
+## 2026-06-10 — Brain-gap audit (ops 1580): paid/manual feeds
+- **MOVE index real feed** (brain 74×) — proxy live (DGS10 realized vol in canaries); real MOVE needs ICE/Bloomberg.
+- **Cross-currency basis** (brain 67×) — JPY/EUR xccy basis needs Bloomberg/Refinitiv; free slice live as SOFR−IORB + EFFR−SOFR + swap-lines.
+- **ICI weekly MMF assets** (brain 56×) — quarterly FRED live; weekly = ICI xls scrape or subscription.
+- **FINRA margin statistics file** (brain 25×) — Z.1 quarterly proxy live; FINRA monthly file is xls download.
+- **NY Fed GSCPI** — xlsx-only publication; needs openpyxl layer in a lambda.
+- **Swap spreads (negative-swap-spread signal)** — SOFR swap curve not on FRED; needs ICE/Refinitiv.

@@ -738,6 +738,39 @@ def n_index_inclusion(d):
     return 0, f"S&P inclusion-eligible names: {n} (context, non-directional)"
 
 
+
+
+def n_us_cycle(d):
+    cs = d.get("cycle_score") or {}
+    sc = cs.get("score_0_100")
+    if sc is None:
+        return 0, "US-cycle n/a"
+    sig = -2 if sc >= 75 else -1 if sc >= 60 else 0
+    drv = sorted((cs.get("components") or []), key=lambda c: -abs(c.get("z", 0)))[:2]
+    return sig, f"US cycle {sc} ({cs.get('level')}; drivers: " +                 ", ".join(f"{c['id']} z{c['z']:+.1f}" for c in drv) + ")"
+
+
+def n_market_internals(d):
+    mc = d.get("mcclellan") or {}
+    osc = mc.get("oscillator")
+    if osc is None:
+        return 0, "Internals n/a"
+    if (d.get("zweig_thrust") or {}).get("fired"):
+        return 2, f"ZWEIG BREADTH THRUST {d['zweig_thrust'].get('date')}"
+    sig = 2 if osc <= -100 else 1 if osc <= -70 else -1 if osc >= 100 else 0
+    return sig, f"McClellan {osc} ({mc.get('state')}), summation {mc.get('summation')}"
+
+
+def n_us_money(d):
+    um = d.get("us_money") or {}
+    z = um.get("z")
+    if z is None:
+        return 0, "Real-M2 n/a"
+    v = um.get("real_m2_yoy_pct")
+    sig = -1 if (v or 0) < 0 else 1 if z > 1 else 0
+    return sig, f"US real M2 {v:+.1f}% YoY (z {z})"
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -810,6 +843,10 @@ FEEDS = [
     ("Crisis-KB Match",        "macro",            "data/kb-match.json",             n_kb_match),
     ("EU Dump Radar",          "macro",            "data/ecb-derived.json",          n_eu_dump),
     ("S&P Inclusion Watch",    "events",           "data/index-inclusion.json",      n_index_inclusion),
+    # === Brain-gap wave (ops-1580 audit) ===
+    ("US Macro Cycle",         "macro",            "data/us-cycle.json",             n_us_cycle),
+    ("Market Internals",       "sentiment",        "data/market-internals.json",     n_market_internals),
+    ("US Real M2",             "macro",            "data/liquidity-inflection.json", n_us_money),
 ]
 
 

@@ -28,7 +28,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/us-cycle.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 
 def fred(sid, start="1990-01-01"):
@@ -144,13 +144,29 @@ def lambda_handler(event=None, context=None):
                       "signal": "WATCH" if (ch6 or 0) <= -0.3 else "NORMAL",
                       "spec": "quits fall before layoffs rise — workers smell it first"}
 
-    # 5) Copper/gold ("sniper exit")
-    cu = dict(fred("PCOPPUSDM", "2000-01-01"))
-    au = dict(probe(["GOLDPMGBD228NLBM", "GOLDAMGBD228NLBM"], "2000-01-01")[1])
-    aum = {}
-    for d_, v_ in au.items():
-        aum[d_[:7]] = v_
-    cg = [(d_, cu[d_] / aum[d_[:7]]) for d_ in sorted(cu) if d_[:7] in aum and aum[d_[:7]]]
+    # 5) Copper/gold ("sniper exit") — FRED LBMA gold discontinued → FMP commodities
+    def fmp_eod(sym, days=1900):
+        k = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+        frm = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
+        u = (f"https://financialmodelingprep.com/stable/historical-price-eod/full"
+             f"?symbol={sym}&from={frm}&apikey={k}")
+        try:
+            j = json.loads(urllib.request.urlopen(u, timeout=35).read())
+            rows = j if isinstance(j, list) else (j.get("historical") or [])
+            return sorted((r["date"], float(r["close"])) for r in rows
+                           if r.get("close"))
+        except Exception as e:
+            print(f"[fmp_eod] {sym}: {str(e)[:50]}")
+            return []
+    cu_d = dict(fmp_eod("HGUSD"))
+    au_d = dict(fmp_eod("GCUSD"))
+    cg = [(d_, cu_d[d_] / au_d[d_]) for d_ in sorted(set(cu_d) & set(au_d)) if au_d[d_]]
+    if len(cg) < 40:   # fallback to FRED copper / any live gold
+        cu = dict(fred("PCOPPUSDM", "2000-01-01"))
+        au = dict(probe(["GOLDPMGBD228NLBM", "GOLDAMGBD228NLBM"], "2000-01-01")[1])
+        aum = {d_[:7]: v_ for d_, v_ in au.items()}
+        cg = [(d_, cu[d_] / aum[d_[:7]]) for d_ in sorted(cu)
+              if d_[:7] in aum and aum[d_[:7]]]
     if len(cg) > 40:
         vals = [v for _, v in cg]
         z = zlast(vals, 120)
@@ -241,7 +257,8 @@ def lambda_handler(event=None, context=None):
     add("claims", ((P.get("claims", {}).get("yoy_pct") or 0)) / 12.0, 0.12)
     add("quits", -((P.get("quits", {}).get("chg_6m_pp") or 0)) / 0.25, 0.10)
     cg_ = P.get("copper_gold", {})
-    add("copper_gold", -(cg_.get("z_10y") or 0) if (cg_.get("slope_6m") or 0) < 0 else 0, 0.12)
+    if cg_:
+        add("copper_gold", -(cg_.get("z_10y") or 0) if (cg_.get("slope_6m") or 0) < 0 else 0, 0.12)
     add("real_10y", (P.get("real_10y", {}).get("z_3y") or 0), 0.08)
     add("term_premium", (P.get("term_premium", {}).get("z_5y") or 0) * 0.5, 0.05)
     add("buffett", ((P.get("buffett", {}).get("pctile") or 50) - 50) / 22.0 * 0.5, 0.08)
