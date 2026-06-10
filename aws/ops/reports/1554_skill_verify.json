@@ -1,0 +1,105 @@
+{
+  "ops": 1554,
+  "skill_result": {
+    "context_id": "frontrun-skill-aggregator",
+    "title": "Front-Run Skill Aggregator",
+    "brief_type": "skill_aggregator",
+    "output_key": "frontrun-skill-aggregator",
+    "status": "OK",
+    "n_total": 286,
+    "n_scored": 0,
+    "n_pending": 286,
+    "n_engines_tracked": 6,
+    "duration_s": 0.74
+  },
+  "index_age_min": 0.1,
+  "index": {
+    "updated_at": "2026-06-10T03:45:36.914528+00:00",
+    "n_total": 286,
+    "n_scored": 0,
+    "n_pending": 286,
+    "scored_pct": 0.0,
+    "engines": {
+      "macro_frontrun_sniffer": {
+        "n": 114,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib_err": null,
+        "avg_conf": null
+      },
+      "sustained_target_equity": {
+        "n": 76,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib_err": null,
+        "avg_conf": null
+      },
+      "equity_frontrun_sniffer": {
+        "n": 68,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib_err": null,
+        "avg_conf": null
+      },
+      "apex_fusion": {
+        "n": 11,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib_err": null,
+        "avg_conf": null
+      },
+      "equity_convergence_fingerprint": {
+        "n": 9,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib_err": null,
+        "avg_conf": null
+      },
+      "bottleneck-boom": {
+        "n": 8,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib_err": null,
+        "avg_conf": null
+      }
+    },
+    "by_regime": {
+      "NORMAL": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      },
+      "ELEVATED": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      },
+      "EXTREME": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      }
+    },
+    "by_conf_bucket": {}
+  },
+  "final_ages": {
+    "data/carry-surface.json": 1.97,
+    "data/vol-surface.json": 1.97,
+    "data/sector-rotation.json": 0.97,
+    "data/eurodollar-stress.json": 0.84,
+    "data/auction-crisis.json": 0.84,
+    "data/ai-brief.json": 0.83,
+    "data/_skill/frontrun-skill-index.json": 0.0,
+    "data/bottleneck-boom.json": 0.63,
+    "data/alert-backtests.json": 1.1,
+    "data/historical-analogs.json": 1.1,
+    "data/apex-fusion.json": 1.31,
+    "backtest/summary.json": 5.26
+  }
+}
