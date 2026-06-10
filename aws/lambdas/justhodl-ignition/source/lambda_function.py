@@ -30,7 +30,7 @@ OUT_KEY = "data/ignition.json"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 DEFAULT_UNIVERSE = ["NVDA","AMD","AVGO","TSM","MU","SMCI","VRT","ETN","PWR","ANET","CLS","FLEX","JBL",
                     "COHR","LITE","MRVL","ARM","ASML","AMAT","LRCX","KLAC","TER","ONTO","CAMT","ACLS",
@@ -110,16 +110,21 @@ def load_ftd():
 
 # ── P4: FINRA ATS (probe) ───────────────────────────────────────────
 def load_dark():
+    """FINRA anonymous tier returns symbol-stripped stale aggregates — require
+    real symbols + recent dates before claiming availability."""
     url = ("https://api.finra.org/data/group/otcMarket/name/weeklySummary"
            "?limit=5000&fields=issueSymbolIdentifier,totalWeeklyShareQuantity,summaryTypeCode")
     j = http_json(url, headers={**UA, "Accept": "application/json"}, timeout=30)
     if not isinstance(j, list) or not j:
         return None
     out = {}
+    fresh = (datetime.now(timezone.utc) - timedelta(days=45)).date().isoformat()
     for r in j:
         sym = r.get("issueSymbolIdentifier")
-        if sym and r.get("summaryTypeCode") == "ATS_W_SMBL":
+        if sym and str(r.get("summaryStartDate", "")) >= fresh:
             out[sym] = out.get(sym, 0) + int(r.get("totalWeeklyShareQuantity") or 0)
+    if not out:
+        print("[dark] FINRA anonymous tier: symbols null / stale — free API key required (KHALID_ACTIONS)")
     return out or None
 
 
@@ -265,8 +270,7 @@ def lambda_handler(event=None, context=None):
     g = fmp("grades", {"symbol": "NVDA", "limit": 2})
     probes["grades"] = isinstance(g, list) and len(g) > 0
     probes["inst"] = False
-    for ep in ("institutional-ownership/symbol-positions-summary", "institutional-holders",
-               "institutional-ownership/latest"):
+    for ep in ("institutional-ownership/symbol-positions-summary", "institutional-holders"):
         h = fmp(ep, {"symbol": "NVDA"})
         if isinstance(h, (list, dict)) and h:
             probes["inst"] = ep
@@ -279,10 +283,8 @@ def lambda_handler(event=None, context=None):
             break
         except Exception:
             continue
-    probes["insider_fmp"] = not insider_brief
-    if probes["insider_fmp"]:
-        it = fmp("insider-trading/search", {"symbol": "NVDA", "limit": 2})
-        probes["insider_fmp"] = isinstance(it, list) and len(it) > 0
+    it = fmp("insider-trading/search", {"symbol": "NVDA", "limit": 2})
+    probes["insider_fmp"] = isinstance(it, list) and len(it) > 0
 
     ftd_map, ftd_files = load_ftd()
     probes["ftd"] = bool(ftd_map)

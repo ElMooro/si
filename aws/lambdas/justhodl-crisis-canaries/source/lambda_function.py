@@ -28,7 +28,7 @@ HIST_KEY = "data/_canaries/history.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 
 def hj(url, timeout=30):
@@ -167,7 +167,7 @@ def lambda_handler(event=None, context=None):
     rev = None
     try:
         start = (datetime.now(timezone.utc) - timedelta(days=420)).date().isoformat()
-        init = dict(fred("PAYEMS", start, "&output_type=4"))
+        init = dict(fred("PAYEMS", start, "&output_type=4&realtime_start=2015-01-01&realtime_end=9999-12-31"))
         latest = dict(fred("PAYEMS", start))
         common = sorted(set(init) & set(latest))[:-1]
         revs = [(d, latest[d] - init[d]) for d in common][-8:]

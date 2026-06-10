@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -89,7 +89,7 @@ def build_impulse(series):
     return dates[W_SLOPE:], z
 
 
-def find_flips(dates, z, th=0.20):
+def find_flips(dates, z, th=0.15):
     """Schmitt-trigger hysteresis: a flip is recorded when the impulse crosses
     ±th from the OPPOSITE armed state. Robust to smooth slow-moving z."""
     flips = []
@@ -238,6 +238,14 @@ def lambda_handler(event=None, context=None):
                 m, sd = mean(d2[-180:]), (stdev(d2[-180:]) if len(d2) > 30 else 0)
                 sc_state = {"accel_z": round((d2[-1] - m) / sd, 2) if sd else 0,
                             "n_points": len(vals), "as_of": sc.get("generated_at", "")[:10]}
+    if not sc_state and isinstance(sc, dict):
+        ag = sc.get("aggregate") or {}
+        if isinstance(ag, dict) and ag:
+            nums = {k: v for k, v in ag.items() if isinstance(v, (int, float))}
+            sc_state = {"mode": "state_passthrough", "state": sc.get("state"),
+                        "signal_strength": sc.get("signal_strength"),
+                        "aggregate": dict(list(nums.items())[:6]),
+                        "as_of": sc.get("as_of")}
     avail["stablecoin"] = bool(sc_state)
     sc_schema_hint = (sorted(sc.keys())[:12] if (sc and not sc_state) else None)
 

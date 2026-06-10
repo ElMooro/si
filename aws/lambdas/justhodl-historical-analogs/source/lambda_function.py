@@ -312,6 +312,24 @@ def lambda_handler(event=None, context=None):
     today_vec = vectors[today_date]
     print(f"[analogs] today_date={today_date} vec={[round(v,2) for v in today_vec]}")
 
+    # 6b. Unprecedentedness (item 16): how far is TODAY from the historical cloud?
+    # z-features are already standardized → centroid distance percentile is a
+    # Mahalanobis-lite novelty score. High = playbooks unreliable, cut size.
+    try:
+        dims = len(feature_order)
+        centroid = [mean(v[i] for v in vectors.values()) for i in range(dims)]
+        d_all = sorted(euclidean(v, centroid) for v in vectors.values())
+        d_today = euclidean(today_vec, centroid)
+        import bisect
+        pct = round(100.0 * bisect.bisect_left(d_all, d_today) / len(d_all), 1)
+        unprecedentedness = {"centroid_dist": round(d_today, 3),
+                              "pctile_vs_history": pct,
+                              "regime": ("UNCHARTED" if pct >= 97 else "RARE" if pct >= 85
+                                          else "FAMILIAR" if pct <= 50 else "NORMAL"),
+                              "note": "≥97th pct: analog playbooks unreliable — reduce size"}
+    except Exception as _e:
+        unprecedentedness = {"error": str(_e)[:60]}
+
     # 7. Compute distance from today to every historical date (excluding last 90 days)
     cutoff_date = (date.fromisoformat(today_date) - timedelta(days=EXCLUDE_RECENT_DAYS)).isoformat()
     distances = []
@@ -419,12 +437,13 @@ def lambda_handler(event=None, context=None):
         call_desc = "Could not compute 21d forward returns from analogs"
 
     out = {
-        "version": "2.3",
+        "version": "2.4",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - started, 2),
         "today": today_snapshot,
         "feature_order": feature_order,
         "n_historical_dates_evaluated": len(distances),
+        "unprecedentedness": unprecedentedness,
         "k_neighbors": K_NEIGHBORS,
         "analogs": analogs,
         "forward_distribution": forward_distribution,
