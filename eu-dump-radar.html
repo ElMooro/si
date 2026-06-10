@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>EU Dump Radar · JustHodl AI</title>
-<meta name="description" content="ECB-derived equity-dump predictors — CISS acceleration, bank funding stress, EU/US liquidity divergence, credit standards.">
+<meta name="description" content="ECB-derived equity-dump predictors with full historical context, real event studies, and a daily AI strategist briefing — CISS acceleration, bank funding stress, EU/US liquidity divergence, fragmentation.">
 <style>
 :root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -10,14 +10,36 @@ a{color:var(--cyan);text-decoration:none}
 .brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
 .brand-dot{width:8px;height:8px;background:var(--red);border-radius:50%;box-shadow:0 0 9px var(--red)}
 .nav{display:flex;gap:3px;margin-left:10px;flex-wrap:wrap}.nav a{padding:6px 10px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--red)}
-.wrap{max-width:980px;margin:0 auto;padding:22px}
+.wrap{max-width:1080px;margin:0 auto;padding:22px}
 .hero h1{font-size:25px;font-weight:800;color:var(--fg-0)}
 .hero h1 .grad{background:linear-gradient(90deg,var(--red),var(--amber));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{color:var(--fg-2);margin:5px 0 14px;font-size:13px;max-width:760px;line-height:1.5}
-.banner{border-radius:14px;padding:16px 20px;margin-bottom:18px;font-family:var(--mono);font-size:15px;font-weight:700}
+.hero p{color:var(--fg-2);margin:5px 0 14px;font-size:13px;max-width:820px;line-height:1.5}
+.sec{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--fg-3);margin:24px 0 10px;text-transform:uppercase}
+.banner{border-radius:14px;padding:16px 20px;margin-bottom:14px;font-family:var(--mono);font-size:15px;font-weight:700;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
 .banner.calm{background:rgba(38,255,175,.08);border:1px solid #1e3a30;color:var(--green)}
 .banner.warn{background:rgba(251,191,36,.08);border:1px solid #3a3320;color:var(--amber)}
 .banner.alert{background:rgba(255,85,119,.08);border:1px solid #3a2230;color:var(--red)}
+.dial{font-size:38px;font-weight:800}
+.dialsub{font-size:10px;color:var(--fg-3);font-weight:400;font-family:var(--mono);line-height:1.5}
+.ai{background:linear-gradient(135deg,rgba(167,139,250,.07),rgba(34,211,238,.05));border:1px solid var(--border-bright);border-radius:14px;padding:18px 20px}
+.ai h2{font-size:13px;font-family:var(--mono);color:var(--violet);margin-bottom:10px}
+.ai h3{font-size:11px;font-family:var(--mono);color:var(--fg-3);margin:12px 0 4px;text-transform:uppercase;letter-spacing:1px}
+.ai p,.ai li{font-size:13px;line-height:1.65;color:var(--fg-1)}
+.ai .tx{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:6px}
+.ai .tx div{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.55}
+.ai .tx b{font-family:var(--mono);font-size:10.5px;color:var(--cyan);display:block;margin-bottom:4px;text-transform:uppercase}
+.ai .meta{font-family:var(--mono);font-size:9.5px;color:var(--fg-3);margin-top:12px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:820px){.charts{grid-template-columns:1fr}}
+.ch{background:var(--bg-1);border:1px solid var(--border);border-radius:14px;padding:13px 15px}
+.ch h3{font-size:12px;font-family:var(--mono);color:var(--fg-1)}
+.ch .pc{float:right;font-family:var(--mono);font-size:10px;padding:2px 9px;border-radius:10px;border:1px solid var(--border-bright);color:var(--fg-2)}
+.pc.hi{color:var(--red);border-color:var(--red)}.pc.lo{color:var(--green);border-color:var(--green)}
+.ch .rng{font-family:var(--mono);font-size:9.5px;color:var(--fg-3);margin:2px 0 6px}
+svg{display:block;width:100%}
+table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--bg-1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg-3);text-align:right;padding:9px;border-bottom:1px solid var(--border);background:var(--bg-2)}
+th:first-child,td:first-child{text-align:left}td{padding:9px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:760px){.grid{grid-template-columns:1fr}}
 .card{background:var(--bg-1);border:1px solid var(--border);border-radius:14px;padding:16px 18px;border-left:3px solid var(--border-bright)}
@@ -34,12 +56,16 @@ a{color:var(--cyan);text-decoration:none}
 </style></head><body>
 <header class="header">
   <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
-  <nav class="nav"><a href="/">Desk</a><a href="/eu-dump-radar.html" class="active">🚨 EU Dump Radar</a><a href="/ecb-history.html">📊 ECB History</a><a href="/eurodollar.html">Eurodollar</a></nav>
+  <nav class="nav"><a href="/">Desk</a><a href="/eu-dump-radar.html" class="active">🚨 EU Dump Radar</a><a href="/ecb-history.html">📊 ECB History</a><a href="/eurodollar.html">Eurodollar</a><a href="/canaries.html">Canaries</a><a href="/inflection.html">Liquidity</a></nav>
 </header>
 <div class="wrap">
   <div class="hero"><h1>EU Dump <span class="grad">Radar</span></h1>
-  <p>ECB-derived early-warning signals for equity/risk-asset drawdowns — the indicators a prime-broker desk builds from ECB data. CISS acceleration, bank-funding stress, EU/US liquidity divergence, and EU credit-standard tightening, each with crisis-calibrated thresholds.</p></div>
+  <p>ECB-derived early-warning for risk-asset drawdowns — now with full historical context (where every reading sits in its own distribution back to 1999), a <b>real event study</b> of what markets actually did after past CISS-acceleration episodes, and a daily AI strategist briefing grounded in those numbers.</p></div>
   <div id="banner"></div>
+  <div class="sec">🤖 AI Strategist Briefing</div><div id="aibrief" class="ai"><div class="loading">Loading…</div></div>
+  <div class="sec">📈 Current vs History</div><div class="charts" id="charts"><div class="loading">Loading…</div></div>
+  <div class="sec">📊 Event Study — after past CISS-acceleration episodes</div><div id="study"></div>
+  <div class="sec">Indicator Detail</div>
   <div id="cards"><div class="loading">Loading ECB-derived signals…</div></div>
   <div class="note" id="note"></div>
 </div>
@@ -47,54 +73,95 @@ a{color:var(--cyan);text-decoration:none}
 const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-function sigClass(s){if(['CRITICAL','ACUTE','TAIL_RISK','SEVERE_TIGHTENING','CREDIT_STRESS'].includes(s))return 'alert';if(['WATCH','ELEVATED','TIGHTENING'].includes(s))return 'warn';return 'calm';}
+function sigClass(s){if(['CRITICAL','ACUTE','TAIL_RISK','SEVERE_TIGHTENING','CREDIT_STRESS','BLACK_SWAN'].includes(s))return 'alert';if(['WATCH','ELEVATED','TIGHTENING'].includes(s))return 'warn';return 'calm';}
 function row(k,v){return v==null?'':`<div class="metric"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`;}
-
+const CRISES=[['2008-09-15','GFC'],['2011-11-01','EZ crisis'],['2020-03-16','COVID'],['2022-09-26','Gilt/energy'],['2023-03-13','SVB/CS']];
+function chart(c){
+  const pts=c.points||[]; if(pts.length<10)return '';
+  const W=480,H=150,P=8;
+  const vs=pts.map(p=>p[1]);
+  const mn=Math.min(...vs),mx=Math.max(...vs),sp=(mx-mn)||1;
+  const X=i=>P+(W-2*P)*i/(pts.length-1), Y=v=>H-16-(H-30)*(v-mn)/sp;
+  let g='';
+  const isDaily=String(pts[0][0]).length===10&&!String(pts[0][0]).includes('W');
+  if(isDaily){for(const [cd,lab] of CRISES){
+    let j=pts.findIndex(p=>p[0]>=cd); if(j>0&&j<pts.length-1){g+=`<line x1="${X(j).toFixed(1)}" x2="${X(j).toFixed(1)}" y1="14" y2="${H-16}" stroke="#3a2230" stroke-width="1"/><text x="${X(j).toFixed(1)}" y="11" fill="#6f7b91" font-size="7" font-family="monospace" text-anchor="middle">${lab}</text>`;}}}
+  const th=c.thresholds||{};
+  for(const[k,tv]of Object.entries(th)){if(tv>=mn&&tv<=mx){const col=/crit|crisis/.test(k)?'#ff5577':'#fbbf24';g+=`<line x1="${P}" x2="${W-P}" y1="${Y(tv).toFixed(1)}" y2="${Y(tv).toFixed(1)}" stroke="${col}" stroke-dasharray="3 5" stroke-width="1" opacity=".6"/>`;}}
+  if(c.median!=null&&c.median>=mn&&c.median<=mx)g+=`<line x1="${P}" x2="${W-P}" y1="${Y(c.median).toFixed(1)}" y2="${Y(c.median).toFixed(1)}" stroke="#2a3550" stroke-dasharray="2 6" stroke-width="1"/>`;
+  const path=vs.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+  g+=`<path d="${path}" fill="none" stroke="#22d3ee" stroke-width="1.6"/>`;
+  g+=`<circle cx="${X(pts.length-1).toFixed(1)}" cy="${Y(vs[vs.length-1]).toFixed(1)}" r="3.5" fill="#ff5577"/>`;
+  const pc=c.pctile, pcl=pc>=85?'hi':pc<=15?'lo':'';
+  return `<div class="ch"><span class="pc ${pcl}">${pc!=null?pc+'th pctile':''}</span><h3>${esc(c.label)}</h3><div class="rng">${esc(c.first_date)} → ${esc(c.latest_date)} · now <b style="color:var(--fg-1)">${esc(c.latest)}</b> · median ${esc(c.median)} · range ${esc(c.min)}–${esc(c.max)}</div><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg></div>`;
+}
+function studyCell(s){if(!s)return '<td>—</td>';return `<td>${s.median_pct>0?'+':''}${s.median_pct}% <span style="color:var(--fg-3)">(n${s.n}, ${s.hit_pct}%✓)</span></td>`;}
 async function load(){
   const d=await gj('data/ecb-derived.json');
   if(!d||!d.indicators){document.getElementById('cards').innerHTML='<div class="loading">Radar data unavailable — runs daily.</div>';return;}
-  const ind=d.indicators;
-  const nf=d.n_flashing||0;
-  const bclass=nf===0?'calm':nf>=3?'alert':'warn';
-  document.getElementById('banner').innerHTML=`<div class="banner ${bclass}">${nf===0?'🟢':nf>=3?'🔴':'🟠'} ${esc(d.headline||'')}</div>`;
+  const ind=d.indicators, nf=d.n_flashing||0, ds=d.dump_score||{};
+  const bclass=ds.level==='ACUTE'?'alert':ds.level==='ELEVATED'||nf>=3?'alert':ds.level==='WATCH'||nf>0?'warn':'calm';
+  document.getElementById('banner').innerHTML=`<div class="banner ${bclass}"><span class="dial">${ds.score_0_100??'—'}<span style="font-size:14px;color:var(--fg-3)">/100</span></span><span class="dialsub">EU DUMP SCORE · ${esc(ds.level||'')} · ${ds.coverage_pillars||0} pillars<br>${nf===0?'🟢':nf>=3?'🔴':'🟠'} ${esc(d.headline||'')}</span></div>`;
+  // AI brief
+  const ai=d.ai_brief||{};
+  if(ai.error){document.getElementById('aibrief').innerHTML=`<div class="loading">AI briefing unavailable: ${esc(ai.error)}</div>`;}
+  else{
+    const tx=ai.transmission||{};
+    document.getElementById('aibrief').innerHTML=`<h2>Daily Briefing — Euro-Area Risk Desk</h2>
+      <h3>What this is</h3><p>${esc(ai.what_this_is)}</p>
+      <h3>Why it matters</h3><p>${esc(ai.why_it_matters)}</p>
+      <h3>Current vs history</h3><p>${esc(ai.current_vs_history)}</p>
+      <h3>Base case</h3><p>${esc(ai.base_case)}</p>
+      <h3>Transmission if readings persist</h3>
+      <div class="tx"><div><b>Risk assets</b>${esc(tx.risk_assets)}</div><div><b>Liquidity</b>${esc(tx.liquidity)}</div><div><b>FX / USD</b>${esc(tx.fx_usd)}</div><div><b>Credit</b>${esc(tx.credit)}</div></div>
+      <h3>Watch next</h3><p>${(ai.watch_next||[]).map(w=>'▸ '+esc(w)).join('<br>')}</p>
+      <div class="meta">${esc(ai.confidence_note||'')} · generated by ${esc(ai.model||'')} at ${esc(ai.generated_at||'')} from live radar data + the event study below — not advice.</div>`;
+  }
+  // charts
+  const ch=d.charts||{};
+  const order=['ciss_level','ciss_delta30','esi','it_de_spread','ltro_share','eu_us_divergence'];
+  document.getElementById('charts').innerHTML=order.filter(k=>ch[k]).map(k=>chart(ch[k])).join('')||'<div class="loading">history loading…</div>';
+  // event study
+  const ev=d.event_study||{};
+  if(ev.n_episodes){
+    document.getElementById('study').innerHTML=`<table><thead><tr><th>Asset</th><th>+21d median</th><th>+63d median</th></tr></thead><tbody>
+      <tr><td>S&amp;P 500</td>${studyCell((ev.spx||{}).d21)}${studyCell((ev.spx||{}).d63)}</tr>
+      <tr><td>EUR/USD</td>${studyCell((ev.eurusd||{}).d21)}${studyCell((ev.eurusd||{}).d63)}</tr>
+    </tbody></table><div class="note" style="margin-top:8px">${esc(ev.definition)} → ${ev.n_episodes} episodes since ${esc(((d.charts||{}).ciss_level||{}).first_date||'1999')}. Hypothesis: ${esc(ev.hypothesis)}. ✓ = share of episodes confirming risk-off. Real history, real n — no curve-fit.</div>`;
+  } else {document.getElementById('study').innerHTML='<div class="loading">event study warming…</div>';}
+  // bespoke cards (unchanged)
   const cards=[];
-  // #8
   const a=ind.ciss_acceleration;
   if(a&&!a.err){const sc=sigClass(a.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(a.signal)}</span><h2>CISS Acceleration</h2><div class="num">#8 · 30-day Δ of Euro-Area systemic stress</div>
-    ${row('CISS level',a.ciss_level)}${row('Δ 30-day',a.delta_30d)}${row('Δ z-score',a.delta_30d_zscore)}
-    <div class="interp">${esc(a.interpretation||'')}</div></div>`);}
-  // #5
+    ${row('CISS level',a.ciss_level)}${row('Δ 30-day',a.delta_30d)}${row('Δ z-score',a.delta_30d_zscore)}<div class="interp">${esc(a.interpretation||'')}</div></div>`);}
   const b=ind.bank_funding_stress;
   if(b&&!b.err){const sc=sigClass(b.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(b.signal)}</span><h2>Bank Funding Stress</h2><div class="num">#5 · MRO/LTRO reliance + MLF spike</div>
-    ${row('LTRO share',b.ltro_share_pct!=null?b.ltro_share_pct+'%':null)}${row('LTRO share 4w ago',b.ltro_share_4w_ago_pct!=null?b.ltro_share_4w_ago_pct+'%':null)}${row('MLF (panic button)','€'+(b.mlf_eur_mn||0)+'mn')}
-    <div class="interp">${esc(b.interpretation||'')}</div></div>`);}
-  // #18
-  const c=ind.eu_us_liquidity_divergence;
-  if(c&&!c.err){const sc=sigClass(c.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(c.signal)}</span><h2>EU/US Liquidity Divergence</h2><div class="num">#18 · ECB vs Fed 6-month liquidity Δ</div>
-    ${row('ECB balance sheet 6m Δ',c.ecb_balance_sheet_6m_chg_eur_bn!=null?'€'+c.ecb_balance_sheet_6m_chg_eur_bn+'bn':null)}${row('Fed net-liq 6m Δ',c.fed_net_liquidity_6m_chg_usd_bn!=null?'$'+c.fed_net_liquidity_6m_chg_usd_bn+'bn':null)}${row('Divergence',c.divergence_bn!=null?c.divergence_bn+'bn':null)}
-    <div class="interp">${esc(c.interpretation||'')}</div></div>`);}
-  // #12
+    ${row('LTRO share',b.ltro_share_pct!=null?b.ltro_share_pct+'%':null)}${row('LTRO share 4w ago',b.ltro_share_4w_ago_pct!=null?b.ltro_share_4w_ago_pct+'%':null)}${row('MLF (panic button)','€'+(b.mlf_eur_mn||0)+'mn')}<div class="interp">${esc(b.interpretation||'')}</div></div>`);}
+  const c2=ind.eu_us_liquidity_divergence;
+  if(c2&&!c2.err){const sc=sigClass(c2.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(c2.signal)}</span><h2>EU/US Liquidity Divergence</h2><div class="num">#18 · ECB vs Fed 6-month liquidity Δ</div>
+    ${row('ECB balance sheet 6m Δ',c2.ecb_balance_sheet_6m_chg_eur_bn!=null?'€'+c2.ecb_balance_sheet_6m_chg_eur_bn+'bn':null)}${row('Fed net-liq 6m Δ',c2.fed_net_liquidity_6m_chg_usd_bn!=null?'$'+c2.fed_net_liquidity_6m_chg_usd_bn+'bn':null)}${row('Divergence',c2.divergence_bn!=null?c2.divergence_bn+'bn':null)}<div class="interp">${esc(c2.interpretation||'')}</div></div>`);}
   const e=ind.bls_credit_standards;
   if(e&&!e.err){const sc=sigClass(e.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(e.signal)}</span><h2>EU Credit Standards</h2><div class="num">#12 · Bank Lending Survey (C&I) — EU SLOOS</div>
-    ${row('Net % tightening',e.net_pct_tightening!=null?e.net_pct_tightening+'%':null)}${row('Prev quarter',e.prev_quarter!=null?e.prev_quarter+'%':null)}${row('As of',e.as_of)}
-    <div class="interp">${esc(e.interpretation||'')}</div></div>`);}
-  // #14 Bank Pass-Through Premium
+    ${row('Net % tightening',e.net_pct_tightening!=null?e.net_pct_tightening+'%':null)}${row('Prev quarter',e.prev_quarter!=null?e.prev_quarter+'%':null)}${row('As of',e.as_of)}<div class="interp">${esc(e.interpretation||'')}</div></div>`);}
   const p=ind.bank_pass_through_premium;
   if(p&&!p.err){const sc=sigClass(p.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(p.signal)}</span><h2>Bank Pass-Through Premium</h2><div class="num">#14 · NFC lending rate − ECB DFR</div>
-    ${row('NFC lending rate',p.nfc_lending_rate_pct!=null?p.nfc_lending_rate_pct+'%':null)}${row('ECB DFR',p.dfr_pct!=null?p.dfr_pct+'%':null)}${row('Premium',p.premium_pct!=null?p.premium_pct+'pp':null)}${row('3m widening',p.widening_3m_pp!=null?p.widening_3m_pp+'pp':null)}
-    <div class="interp">${esc(p.interpretation||'')}</div></div>`);}
-  // #3 TARGET2
+    ${row('NFC lending rate',p.nfc_lending_rate_pct!=null?p.nfc_lending_rate_pct+'%':null)}${row('ECB DFR',p.dfr_pct!=null?p.dfr_pct+'%':null)}${row('Premium',p.premium_pct!=null?p.premium_pct+'pp':null)}${row('3m widening',p.widening_3m_pp!=null?p.widening_3m_pp+'pp':null)}<div class="interp">${esc(p.interpretation||'')}</div></div>`);}
   const t=ind.target2_imbalance;
   if(t&&!t.err){const sc=sigClass(t.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(t.signal)}</span><h2>TARGET2 Imbalance</h2><div class="num">#3 · Bundesbank claim / eurozone fragmentation</div>
-    ${row('Germany position',t.de_target2_eur_mn!=null?'€'+Math.round(t.de_target2_eur_mn/1000)+'bn':null)}${row('Italy position',t.it_target2_eur_mn!=null?'€'+Math.round(t.it_target2_eur_mn/1000)+'bn':null)}${row('3m change',t.de_3m_change_eur_mn!=null?'€'+Math.round(t.de_3m_change_eur_mn/1000)+'bn':null)}
-    <div class="interp">${esc(t.interpretation||'')}</div></div>`);}
-  // #1 USD Funding Composite
+    ${row('Germany position',t.de_target2_eur_mn!=null?'€'+Math.round(t.de_target2_eur_mn/1000)+'bn':null)}${row('Italy position',t.it_target2_eur_mn!=null?'€'+Math.round(t.it_target2_eur_mn/1000)+'bn':null)}${row('3m change',t.de_3m_change_eur_mn!=null?'€'+Math.round(t.de_3m_change_eur_mn/1000)+'bn':null)}<div class="interp">${esc(t.interpretation||'')}</div></div>`);}
   const u=ind.usd_funding_stress_composite;
   if(u&&!u.err){const sc=sigClass(u.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(u.signal)}</span><h2>USD Funding Stress Composite</h2><div class="num">#1 · A030000 + L080000 + Fed swaps (z-scored)</div>
-    ${row('Score',u.score_0_100!=null?u.score_0_100+'/100':null)}${row('Composite z',u.composite_z)}
-    <div class="interp">${esc(u.interpretation||'')}</div></div>`);}
+    ${row('Score',u.score_0_100!=null?u.score_0_100+'/100':null)}${row('Composite z',u.composite_z)}<div class="interp">${esc(u.interpretation||'')}</div></div>`);}
+  // generic cards for everything else
+  const done=new Set(['ciss_acceleration','bank_funding_stress','eu_us_liquidity_divergence','bls_credit_standards','bank_pass_through_premium','target2_imbalance','usd_funding_stress_composite']);
+  for(const[k,v]of Object.entries(ind)){
+    if(done.has(k)||!v||v.err)continue;
+    const sc=sigClass(v.signal);
+    const rows=Object.entries(v).filter(([kk,vv])=>!['name','signal','interpretation','thresholds','err'].includes(kk)&&(typeof vv==='number'||typeof vv==='string')).slice(0,5).map(([kk,vv])=>row(kk.replace(/_/g,' '),vv)).join('');
+    cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(v.signal||'')}</span><h2>${esc(v.name||k.replace(/_/g,' '))}</h2><div class="num">${esc(k)}</div>${rows}<div class="interp">${esc(v.interpretation||'')}</div></div>`);
+  }
   document.getElementById('cards').innerHTML='<div class="grid">'+cards.join('')+'</div>';
-  document.getElementById('note').innerHTML=`Updated ${d.generated_at?new Date(d.generated_at).toLocaleString():'recently'} · thresholds calibrated to 2008/2011/2020/2023 crises · Research, not advice. The other high-signal ECB indicators (USD funding composite, SovCISS fragmentation, ESI, global CB stress) live on eurodollar / systemic-stress / cb-injection.`;
+  document.getElementById('note').innerHTML=`Updated ${d.generated_at?new Date(d.generated_at).toLocaleString():'recently'} · engine v${esc(d.version)} · charts show full available history with crisis markers (GFC, EZ 2011, COVID, 2022, SVB/CS) · extreme readings (score ≥70) are logged to the closed loop and graded vs SPY on /skill.html · thresholds calibrated to 2008/2011/2020/2023 · Research, not advice.`;
 }
 load();
 </script>

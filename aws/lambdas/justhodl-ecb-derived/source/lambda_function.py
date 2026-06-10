@@ -22,9 +22,10 @@ v2.0 adds the Top-10 gap-fills (ops 1522) + the important-ECB sweep:
 
 OUTPUT: data/ecb-derived.json · SCHEDULE: daily 14:40 UTC.
 """
-import json, time, ssl, statistics
+import json, time, ssl, statistics, os, bisect
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from decimal import Decimal
 import boto3
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
@@ -107,7 +108,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "2.3",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.0",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -717,6 +718,271 @@ def lambda_handler(event=None, context=None):
                 out["indicators"]["eurodollar_stress_index"]["pct_rank"] = esi_pr
     except Exception:
         pass
+
+
+    # ════════════════════════════════════════════════════════════════════
+    # v3.0 — HISTORY CHARTS · EVENT STUDY · COMPOSITE · AI BRIEFING · LOOP
+    # ════════════════════════════════════════════════════════════════════
+    def _hist(hid):
+        try:
+            d = json.loads(s3.get_object(Bucket=BUCKET, Key=f"data/ecb-hist/{hid}.json")["Body"].read())
+            return [(p[0], float(p[1])) for p in d.get("points", []) if p[1] is not None], d.get("label", hid)
+        except Exception:
+            return [], hid
+
+    def _down(pts, cap=320):
+        if len(pts) <= cap:
+            return pts
+        st = len(pts) / cap
+        out_, i = [], 0.0
+        while int(i) < len(pts) - 1:
+            out_.append(pts[int(i)]); i += st
+        out_.append(pts[-1])
+        return out_
+
+    def _ctx(pts):
+        vals = sorted(v for _, v in pts)
+        if not vals:
+            return {}
+        cur = pts[-1][1]
+        pct = round(100.0 * bisect.bisect_left(vals, cur) / len(vals), 1)
+        return {"latest": round(cur, 4), "latest_date": pts[-1][0],
+                "pctile": pct, "min": round(vals[0], 4), "max": round(vals[-1], 4),
+                "median": round(vals[len(vals) // 2], 4), "n": len(pts),
+                "first_date": pts[0][0]}
+
+    def fred_full(sid, start="1999-01-01"):
+        try:
+            u = (f"https://api.stlouisfed.org/fred/series/observations?series_id={sid}"
+                 f"&api_key={FRED_KEY}&file_type=json&observation_start={start}&limit=100000")
+            d = json.loads(urllib.request.urlopen(u, timeout=40).read().decode())
+            o = [(x["date"], float(x["value"])) for x in d.get("observations", [])
+                 if x.get("value") not in (".", "")]
+            o.sort(); return o
+        except Exception as e:
+            print(f"[v3 fred_full] {sid}: {str(e)[:50]}"); return []
+
+    charts = {}
+    # 1) CISS level (hist store, 1999+) + 2) CISS Δ30d derived
+    ciss_pts, _ = _hist("ciss_ea")
+    if len(ciss_pts) > 100:
+        charts["ciss_level"] = {"label": "Euro-Area CISS (systemic stress, 0–1)",
+                                 "points": _down(ciss_pts), **_ctx(ciss_pts),
+                                 "thresholds": {"watch": 0.28, "crisis": 0.5}}
+        cv = [v for _, v in ciss_pts]
+        d30 = [(ciss_pts[i][0], round(cv[i] - cv[i - 23], 5)) for i in range(23, len(cv))]
+        charts["ciss_delta30"] = {"label": "CISS 30-day Acceleration",
+                                   "points": _down(d30), **_ctx(d30),
+                                   "thresholds": {"watch": 0.15, "critical": 0.30}}
+    # 3) ESI accumulated daily
+    esi_pts, _ = _hist("esi")
+    if len(esi_pts) > 10:
+        charts["esi"] = {"label": "Eurodollar Stress Index (0–100)",
+                          "points": _down(esi_pts), **_ctx(esi_pts),
+                          "thresholds": {"watch": 50, "critical": 70}}
+    # 4) IT–DE 10y fragmentation spread
+    frag_pts, fl = _hist("it_de_10y_bp")
+    if len(frag_pts) > 50:
+        charts["it_de_spread"] = {"label": "BTP–Bund 10y spread (bp)",
+                                   "points": _down(frag_pts), **_ctx(frag_pts),
+                                   "thresholds": {"watch": 200, "critical": 300}}
+    # 5) LTRO share of policy lending — full GFC/2011/2020 history from SDMX
+    try:
+        mroH = ecb_csv("ILM/W.U2.C.A050100.U2.EUR", start="2007-01")
+        ltroH = ecb_csv("ILM/W.U2.C.A050200.U2.EUR", start="2007-01")
+        dm, dl = dict(mroH), dict(ltroH)
+        sh = [(d_, round(100 * dl[d_] / (dm[d_] + dl[d_]), 2))
+              for d_ in sorted(set(dm) & set(dl)) if (dm[d_] + dl[d_]) > 0]
+        if len(sh) > 100:
+            charts["ltro_share"] = {"label": "LTRO share of ECB policy lending (%)",
+                                     "points": _down(sh), **_ctx(sh),
+                                     "thresholds": {"elevated": 80}}
+    except Exception as e:
+        print(f"[v3 ltro] {str(e)[:50]}")
+    # 6) EU/US 6m liquidity divergence history (ECB BS weekly vs Fed net-liq)
+    try:
+        ecb_bs = ecb_csv("ILM/W.U2.C.T000000.U2.EUR", start="2015-01")
+        wl = fred_full("WALCL", "2015-01-01"); rr = fred_full("RRPONTSYD", "2015-01-01")
+        tg = fred_full("WTREGEN", "2015-01-01")
+        dr, dt = dict(rr), dict(tg)
+        fed = []
+        for d_, v_ in wl:
+            r_ = dr.get(d_); t_ = dt.get(d_)
+            if r_ is None or t_ is None:
+                cand_r = [x for x in dr if x <= d_]; cand_t = [x for x in dt if x <= d_]
+                r_ = dr[max(cand_r)] if cand_r else None
+                t_ = dt[max(cand_t)] if cand_t else None
+            if r_ is not None and t_ is not None:
+                fed.append((d_, (v_ - r_ - t_) / 1000.0))  # $bn
+        if len(ecb_bs) > 40 and len(fed) > 40:
+            def six(series):
+                return [(series[i][0], round(series[i][1] - series[i - 26][1], 1))
+                        for i in range(26, len(series))]
+            e6 = dict(six([(d_, v_ / 1000.0) for d_, v_ in ecb_bs]))  # €bn
+            f6 = dict(six(fed))
+            fdk = sorted(f6)
+            div = []
+            for d_, ev in sorted(e6.items()):
+                j = bisect.bisect_right(fdk, d_) - 1
+                if j >= 0:
+                    div.append((d_, round(ev - f6[fdk[j]], 1)))
+            if len(div) > 60:
+                charts["eu_us_divergence"] = {
+                    "label": "EU−US 6m liquidity divergence (≈bn, ECB Δ − Fed net-liq Δ)",
+                    "points": _down(div), **_ctx(div), "thresholds": {}}
+    except Exception as e:
+        print(f"[v3 diverge] {str(e)[:50]}")
+    out["charts"] = charts
+
+    # ── Event study: what ACTUALLY happened after CISS-acceleration episodes ──
+    ev_study = {}
+    try:
+        if len(ciss_pts) > 500:
+            cv = [v for _, v in ciss_pts]
+            episodes, last_i = [], -10**9
+            for i in range(23, len(cv)):
+                if (cv[i] - cv[i - 23]) > 0.15 and (i - last_i) > 90:
+                    episodes.append(ciss_pts[i][0]); last_i = i
+            spx = {}
+            try:
+                sd = json.loads(s3.get_object(Bucket=BUCKET, Key="data/spx-history-deep.json")["Body"].read())
+                spx = {d_: float(v_) for d_, v_ in (sd.get("points") or []) if v_ is not None}
+            except Exception:
+                pass
+            eur = dict(fred_full("DEXUSEU", "1999-01-01"))
+            def study(px, want_neg):
+                dd = sorted(px); idx = {d_: i for i, d_ in enumerate(dd)}
+                res = {}
+                for w in (21, 63):
+                    rs = []
+                    for ep in episodes:
+                        j = idx.get(ep)
+                        if j is None:
+                            k = bisect.bisect_left(dd, ep)
+                            j = k if k < len(dd) else None
+                        if j is not None and j + w < len(dd):
+                            rs.append((px[dd[j + w]] / px[dd[j]] - 1) * 100)
+                    if rs:
+                        rs.sort()
+                        res[f"d{w}"] = {"n": len(rs), "median_pct": round(rs[len(rs) // 2], 2),
+                                         "hit_pct": round(100 * sum(1 for r in rs
+                                                                     if (r < 0) == want_neg) / len(rs), 1)}
+                return res
+            ev_study = {"definition": "CISS Δ30d crosses +0.15 (90-session cooldown)",
+                        "n_episodes": len(episodes), "episode_dates": episodes,
+                        "spx": study(spx, True) if spx else None,
+                        "eurusd": study(eur, True) if eur else None,
+                        "hypothesis": "episodes → risk-off: SPX down, EUR down (hit% = share confirming)"}
+    except Exception as e:
+        ev_study = {"err": str(e)[:70]}
+    out["event_study"] = ev_study
+
+    # ── Composite EU-Dump Score (coverage-honest z-blend) ──
+    try:
+        zs_ = []
+        cd = charts.get("ciss_delta30")
+        if cd:
+            vv = [v for _, v in cd["points"]]
+            sd_ = statistics.pstdev(vv) or 1
+            zs_.append(("ciss_accel", max(-3, min(3, (vv[-1] - statistics.mean(vv)) / sd_)), 0.30))
+        for cid, w_ in (("esi", 0.20), ("it_de_spread", 0.15), ("ltro_share", 0.15)):
+            c_ = charts.get(cid)
+            if c_:
+                zs_.append((cid, max(-3, min(3, (c_["pctile"] - 50) / 17.0)), w_))
+        ed_ = charts.get("eu_us_divergence")
+        if ed_:
+            zs_.append(("eu_us_div", max(-3, min(3, (50 - ed_["pctile"]) / 17.0)), 0.20))
+        tw = sum(w_ for _, _, w_ in zs_)
+        zbar = sum(z_ * w_ for _, z_, w_ in zs_) / tw if tw else 0
+        score = round(max(0, min(100, 50 + 18 * zbar)), 1)
+        out["dump_score"] = {"score_0_100": score,
+                              "level": ("ACUTE" if score >= 75 else "ELEVATED" if score >= 60
+                                         else "WATCH" if score >= 50 else "CALM"),
+                              "components": [{"id": i_, "z": round(z_, 2), "w": w_} for i_, z_, w_ in zs_],
+                              "coverage_pillars": len(zs_)}
+    except Exception as e:
+        out["dump_score"] = {"err": str(e)[:60]}
+
+    # ── AI briefing (server-side, cached in brief) ──
+    try:
+        akey = os.environ.get("ANTHROPIC_API_KEY", "")
+        if not akey:
+            out["ai_brief"] = {"error": "ANTHROPIC_API_KEY not set on this lambda"}
+        else:
+            ctx_ = {"as_of": out["generated_at"],
+                    "dump_score": out.get("dump_score"),
+                    "n_flashing": len([1 for k_, v_ in out["indicators"].items()
+                                        if (v_ or {}).get("signal") in ("WATCH", "CRITICAL", "ELEVATED",
+                                        "ACUTE", "TAIL_RISK", "TIGHTENING", "SEVERE_TIGHTENING",
+                                        "CREDIT_STRESS", "BLACK_SWAN")]),
+                    "indicators": {k_: {kk: vv for kk, vv in (v_ or {}).items()
+                                         if kk in ("signal", "ciss_level", "delta_30d", "ltro_share_pct",
+                                                    "mlf_eur_mn", "divergence_bn", "net_pct_tightening",
+                                                    "premium_pct", "esi_0_100", "score_0_100",
+                                                    "spread_bp", "headline_yoy", "core_yoy")}
+                                    for k_, v_ in out["indicators"].items() if v_ and not v_.get("err")},
+                    "history_context": {k_: {"pctile": c_["pctile"], "latest": c_["latest"],
+                                              "median": c_["median"], "since": c_["first_date"]}
+                                         for k_, c_ in charts.items()},
+                    "event_study": {kk: ev_study.get(kk) for kk in
+                                     ("n_episodes", "spx", "eurusd", "definition")}}
+            prompt = ("You are the chief macro strategist for an institutional Euro-area risk desk. "
+                      "Using ONLY the JSON below (real live data + a real historical event study), "
+                      "write the daily EU Dump Radar briefing. Respond with STRICT JSON only, no "
+                      "markdown fences, keys exactly: what_this_is (2 sentences, what this radar "
+                      "measures), why_it_matters (2-3 sentences, the ECB-plumbing-to-risk-assets "
+                      "transmission), current_vs_history (3-4 sentences citing the percentiles), "
+                      "base_case (3-4 sentences: most likely path forward grounded in the event-study "
+                      "sample sizes and hit rates — be probabilistic, never certain), transmission "
+                      "(object with keys risk_assets, liquidity, fx_usd, credit — 1-2 sentences each "
+                      "on direct effects if current readings persist or worsen), watch_next (array of "
+                      "exactly 3 concrete triggers with numeric thresholds), confidence_note (1 "
+                      "sentence on sample-size limits).\n\nDATA:\n" + json.dumps(ctx_, default=str))
+            payload = json.dumps({"model": "claude-haiku-4-5-20251001", "max_tokens": 1300,
+                                   "temperature": 0.3,
+                                   "messages": [{"role": "user", "content": prompt}]}).encode()
+            req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=payload,
+                                          headers={"Content-Type": "application/json",
+                                                   "x-api-key": akey,
+                                                   "anthropic-version": "2023-06-01"})
+            resp = json.loads(urllib.request.urlopen(req, timeout=60).read())
+            txt = "".join(b_.get("text", "") for b_ in resp.get("content", []))
+            txt = txt.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+            brief = json.loads(txt)
+            brief["model"] = "claude-haiku-4-5-20251001"
+            brief["generated_at"] = datetime.now(timezone.utc).isoformat()
+            out["ai_brief"] = brief
+    except Exception as e:
+        out["ai_brief"] = {"error": str(e)[:120]}
+
+    # ── Closed-loop: extreme radar readings must earn a hit rate ──
+    try:
+        sc_ = (out.get("dump_score") or {}).get("score_0_100") or 0
+        nfl = len([1 for k_, v_ in out["indicators"].items()
+                    if (v_ or {}).get("signal") in ("CRITICAL", "ACUTE", "TAIL_RISK", "BLACK_SWAN")])
+        if sc_ >= 70 or nfl >= 3:
+            spy = fred_full("SP500", (datetime.now(timezone.utc) - timedelta(days=10)).date().isoformat())
+            px0 = spy[-1][1] if spy else None
+            if px0:
+                nowt = datetime.now(timezone.utc)
+                boto3.resource("dynamodb", region_name=REGION).Table("justhodl-signals").put_item(Item={
+                    "signal_id": f"eu-dump-radar#EA#{nowt.strftime('%Y-%m-%d')}",
+                    "signal_type": "eu_dump_radar", "signal_value": str(sc_),
+                    "predicted_direction": "DOWN", "confidence": Decimal("0.58"),
+                    "measure_against": "ticker", "baseline_price": str(px0), "benchmark": "SPY",
+                    "check_windows": ["day_5", "day_21", "day_63"],
+                    "check_timestamps": {f"day_{w}": (nowt + timedelta(days=w)).isoformat()
+                                          for w in (5, 21, 63)},
+                    "outcomes": {}, "accuracy_scores": {}, "logged_at": nowt.isoformat(),
+                    "logged_epoch": int(nowt.timestamp()), "status": "pending",
+                    "schema_version": "2", "horizon_days_primary": 21,
+                    "regime_at_log": (out.get("dump_score") or {}).get("level", "UNKNOWN"),
+                    "ttl": int(nowt.timestamp()) + 120 * 86400,
+                    "metadata": {"engine": "ecb-derived", "v": "3.0", "score": str(sc_)},
+                    "rationale": f"EU dump score {sc_} ({nfl} critical signals) — risk-off vs SPY"})
+                out["signal_logged"] = True
+    except Exception as e:
+        print(f"[v3 loop] {str(e)[:70]}")
 
     # composite headline: count how many are flashing
     flashing = []
