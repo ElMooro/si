@@ -1,0 +1,305 @@
+{
+  "ops": 1541,
+  "errors": [],
+  "tried": [
+    {
+      "yahoo": "HTTP Error 429: Too Many Requests"
+    },
+    {
+      "stooq": 0
+    }
+  ],
+  "deep_base": "ALL SOURCES FAILED FROM RUNNER",
+  "wf_realistic": {
+    "n_trades": 11310,
+    "initial_nav": 100000.0,
+    "final_nav": 197461.39,
+    "total_return_pct": 97.4614,
+    "max_drawdown_pct": 28.9176,
+    "sharpe_proxy": 6.2501,
+    "alpha_vs_spy_pct": 89.5665,
+    "total_slippage_cost_pct": 3.8589,
+    "n_concentration_capped_days": 3,
+    "n_gross_capped_days": 1,
+    "n_total_days": 90,
+    "friction_drag_pct": 6.6036
+  },
+  "wf_honest": {
+    "method": "lump_sum_on_firing_day_full_calendar_arithmetic_ann_with_rf_and_bootstrap",
+    "rf_annual": 0.05,
+    "n_business_days": 64,
+    "n_years": 0.254,
+    "n_trades_distributed": 11310,
+    "n_trades_skipped": 0,
+    "data_sufficient": false,
+    "data_sufficiency_min_years": 0.5,
+    "data_sufficiency_note": "Insufficient data: 64 business days (0.254y). Annualized Sharpe is unreliable for windows under 0.5y. Use the unannualized period stats below. The window is constrained because the calibrator filters pre-2026-04-24 legacy outcomes via 30d TTL \u2014 window will widen as new outcomes accumulate.",
+    "initial_nav": 100000.0,
+    "final_nav": 194593.13,
+    "period_total_return_pct": 94.5931,
+    "period_max_drawdown_pct": 28.9944,
+    "period_n_business_days": 64,
+    "period_alpha_vs_spy_pct": 86.6982,
+    "total_return_pct": 94.5931,
+    "annualized_return_pct": 275.701,
+    "annualized_vol_pct": 50.4582,
+    "max_drawdown_pct": 28.9944,
+    "sharpe_point": 5.3649,
+    "sharpe_p5": -0.8716,
+    "sharpe_median": 4.6605,
+    "sharpe_p95": 9.5147,
+    "n_bootstrap_samples": 1000,
+    "n_pos_days": 28,
+    "n_neg_days": 36,
+    "n_flat_days": 0,
+    "daily_hit_rate": 0.4375,
+    "alpha_vs_spy_pct": 86.6982,
+    "known_limitations": [
+      "Window currently <0.5y because calibrator filters pre-2026-04-24 legacy outcomes via 30d TTL \u2014 annualized Sharpe gated by data_sufficient",
+      "In-sample calibration weights (look-ahead bias) \u2014 fixed in v2.1 with walk-forward",
+      "No daily mark-to-market \u2014 trades are lumped on firing day, real positions accrue P&L over holding period",
+      "Survivorship bias \u2014 outcomes only include scored trades (delisted positions excluded)"
+    ]
+  },
+  "wf_walkforward": {
+    "method": "walk_forward_calibration",
+    "available": true,
+    "n_snapshots": 5,
+    "snapshots_earliest": "2026-05-04",
+    "snapshots_latest": "2026-06-07",
+    "n_trades_total": 11310,
+    "n_trades_walkforward_resolved": 6027,
+    "n_trades_predates_snapshots": 4746,
+    "n_trades_signal_missing_in_snapshot": 537,
+    "coverage_pct": 53.29,
+    "data_sufficient": false,
+    "data_sufficiency_note": "walk-forward coverage 53.3%, window 64 biz days (0.254y). NOT YET PUBLISHABLE \u2014 wait for more snapshots and/or longer window.",
+    "n_business_days": 64,
+    "n_years": 0.254,
+    "initial_nav": 100000.0,
+    "final_nav": 77501.64,
+    "period_total_return_pct": -22.4984,
+    "period_max_drawdown_pct": 22.4984,
+    "period_alpha_vs_spy_pct": -30.3933,
+    "n_pos_days": 0,
+    "n_neg_days": 26,
+    "daily_hit_rate": 0.0,
+    "annualized_return_pct": -99.4089,
+    "annualized_vol_pct": 12.117,
+    "sharpe_point": -8.6167,
+    "rf_annual": 0.05,
+    "fetch_errors": []
+  },
+  "wf_top5": [
+    {
+      "signal_type": "screener_top_pick",
+      "weight": 0.9598,
+      "n_outcomes": 3805,
+      "win_rate": 0.6187,
+      "avg_return_pct": 4.2383,
+      "total_contribution": 77.843,
+      "avg_contribution": 0.0205,
+      "windows_used": {
+        "day_30": 2850,
+        "day_60": 955
+      }
+    },
+    {
+      "signal_type": "carry_risk",
+      "weight": 1.3864,
+      "n_outcomes": 166,
+      "win_rate": 0.8253,
+      "avg_return_pct": 4.2405,
+      "total_contribution": 4.8997,
+      "avg_contribution": 0.0295,
+      "windows_used": {
+        "day_30": 102,
+        "day_14": 64
+      }
+    },
+    {
+      "signal_type": "crisis_dfii10_vs_gld",
+      "weight": 1.2719,
+      "n_outcomes": 117,
+      "win_rate": 0.8462,
+      "avg_return_pct": -3.3689,
+      "total_contribution": 2.5767,
+      "avg_contribution": 0.022,
+      "windows_used": {
+        "day_14": 63,
+        "day_30": 54
+      }
+    },
+    {
+      "signal_type": "squeeze_risk",
+      "weight": 0.5769,
+      "n_outcomes": 294,
+      "win_rate": 0.4456,
+      "avg_return_pct": 2.3065,
+      "total_contribution": 1.9564,
+      "avg_contribution": 0.0067,
+      "windows_used": {
+        "day_14": 238,
+        "day_3": 56
+      }
+    },
+    {
+      "signal_type": "momentum_top_pick",
+      "weight": 1.42,
+      "n_outcomes": 9,
+      "win_rate": 1.0,
+      "avg_return_pct": 25.0133,
+      "total_contribution": 1.5984,
+      "avg_contribution": 0.1776,
+      "windows_used": {
+        "day_7": 9
+      }
+    }
+  ],
+  "wf_bottom5": [
+    {
+      "signal_type": "corr_break_composite_vs_vxx",
+      "weight": 0.3163,
+      "n_outcomes": 147,
+      "win_rate": 0.1088,
+      "avg_return_pct": -5.3535,
+      "total_contribution": -1.2252,
+      "avg_contribution": -0.0083,
+      "windows_used": {
+        "day_14": 116,
+        "day_3": 31
+      }
+    },
+    {
+      "signal_type": "correlation_break",
+      "weight": 0.3674,
+      "n_outcomes": 685,
+      "win_rate": 0.2467,
+      "avg_return_pct": -0.2065,
+      "total_contribution": -1.2861,
+      "avg_contribution": -0.0019,
+      "windows_used": {
+        "day_14": 465,
+        "day_3": 220
+      }
+    },
+    {
+      "signal_type": "khalid_index",
+      "weight": 0.3223,
+      "n_outcomes": 222,
+      "win_rate": 0.1036,
+      "avg_return_pct": 3.736,
+      "total_contribution": -1.4876,
+      "avg_contribution": -0.0067,
+      "windows_used": {
+        "day_30": 127,
+        "day_14": 64,
+        "day_7": 31
+      }
+    },
+    {
+      "signal_type": "crypto_risk_score",
+      "weight": 0.3257,
+      "n_outcomes": 230,
+      "win_rate": 0.1522,
+      "avg_return_pct": -4.4873,
+      "total_contribution": -1.7536,
+      "avg_contribution": -0.0076,
+      "windows_used": {
+        "day_14": 177,
+        "day_7": 31,
+        "day_3": 16,
+        "day_1": 6
+      }
+    },
+    {
+      "signal_type": "crypto_fear_greed",
+      "weight": 0.4866,
+      "n_outcomes": 229,
+      "win_rate": 0.3712,
+      "avg_return_pct": -4.5069,
+      "total_contribution": -2.5086,
+      "avg_contribution": -0.011,
+      "windows_used": {
+        "day_14": 176,
+        "day_7": 31,
+        "day_3": 16,
+        "day_1": 6
+      }
+    }
+  ],
+  "analogs_verify": {
+    "version": "2.1",
+    "n_eval": 652,
+    "analog_years": [
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "sources": {
+      "all": "FRED API (free)"
+    },
+    "call": "MIXED"
+  },
+  "alertbt": {
+    "spy_span": "2021-06-10\u21922026-06-09",
+    "rows": [
+      {
+        "rule": "euribor_ois_ge50",
+        "n": 1,
+        "med21": null
+      },
+      {
+        "rule": "it_de_ge150",
+        "n": 3,
+        "med21": null
+      },
+      {
+        "rule": "estr_dfr_ge_m1",
+        "n": 0,
+        "med21": null
+      },
+      {
+        "rule": "wages_gt_35",
+        "n": 3,
+        "med21": null
+      },
+      {
+        "rule": "m3_lt_2",
+        "n": 2,
+        "med21": null
+      },
+      {
+        "rule": "t2_gap_z2",
+        "n": 2,
+        "med21": null
+      },
+      {
+        "rule": "eurusd_z_m2",
+        "n": 17,
+        "med21": null
+      },
+      {
+        "rule": "vix_term_inversion",
+        "n": 45,
+        "med21": null
+      },
+      {
+        "rule": "hy_oas_3m_p50bp",
+        "n": 4,
+        "med21": null
+      },
+      {
+        "rule": "curve_reinversion",
+        "n": 7,
+        "med21": null
+      },
+      {
+        "rule": "nfci_positive",
+        "n": 3,
+        "med21": null
+      }
+    ]
+  }
+}
