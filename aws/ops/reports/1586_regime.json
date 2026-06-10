@@ -1,0 +1,135 @@
+{
+  "ops": 1586,
+  "errors": [],
+  "fn": "created",
+  "fn_err": "NONE",
+  "verify": {
+    "duration_s": 4.0,
+    "n_months": 753,
+    "first_month": "1963-07",
+    "current": {
+      "quadrant": "STAGFLATION",
+      "as_of_month": "2026-04",
+      "months_in_regime": 2,
+      "previous_quadrant": "DEFLATION-BUST",
+      "growth_6m_momentum": -0.24,
+      "inflation_6m_momentum": 0.92,
+      "liquidity_nfci": -0.49,
+      "liquidity_state": "EASY",
+      "next_3m_probabilities": {
+        "GOLDILOCKS": 6.3,
+        "REFLATION": 17.5,
+        "STAGFLATION": 51.9,
+        "DEFLATION-BUST": 24.3
+      },
+      "history_share_pct": {
+        "GOLDILOCKS": 21.1,
+        "REFLATION": 27.5,
+        "STAGFLATION": 25.4,
+        "DEFLATION-BUST": 26.0
+      }
+    },
+    "spx_3m_playbook": {
+      "GOLDILOCKS": {
+        "n": 150,
+        "median": 3.4,
+        "pos_pct": 67.3
+      },
+      "REFLATION": {
+        "n": 169,
+        "median": 4.15,
+        "pos_pct": 69.2
+      },
+      "STAGFLATION": {
+        "n": 161,
+        "median": 2.18,
+        "pos_pct": 62.1
+      },
+      "DEFLATION-BUST": {
+        "n": 181,
+        "median": 3.59,
+        "pos_pct": 66.9
+      }
+    },
+    "y10_3m": {
+      "GOLDILOCKS": {
+        "n": 159,
+        "median": 0.02,
+        "pos_pct": 52.2
+      },
+      "REFLATION": {
+        "n": 207,
+        "median": 0.06,
+        "pos_pct": 54.1
+      },
+      "STAGFLATION": {
+        "n": 190,
+        "median": 0.0,
+        "pos_pct": 48.9
+      },
+      "DEFLATION-BUST": {
+        "n": 196,
+        "median": 0.05,
+        "pos_pct": 54.6
+      }
+    },
+    "credit_3m": {
+      "GOLDILOCKS": {
+        "n": 93,
+        "median": -0.06,
+        "pos_pct": 35.5
+      },
+      "REFLATION": {
+        "n": 142,
+        "median": 0.0,
+        "pos_pct": 49.3
+      },
+      "STAGFLATION": {
+        "n": 114,
+        "median": 0.01,
+        "pos_pct": 50.0
+      },
+      "DEFLATION-BUST": {
+        "n": 133,
+        "median": -0.1,
+        "pos_pct": 32.3
+      }
+    },
+    "tmat": {
+      "GOLDILOCKS": {
+        "GOLDILOCKS": 51.6,
+        "REFLATION": 25.8,
+        "STAGFLATION": 5.7,
+        "DEFLATION-BUST": 17.0
+      },
+      "REFLATION": {
+        "GOLDILOCKS": 14.5,
+        "REFLATION": 54.1,
+        "STAGFLATION": 21.7,
+        "DEFLATION-BUST": 9.7
+      },
+      "STAGFLATION": {
+        "GOLDILOCKS": 6.3,
+        "REFLATION": 17.5,
+        "STAGFLATION": 51.9,
+        "DEFLATION-BUST": 24.3
+      },
+      "DEFLATION-BUST": {
+        "GOLDILOCKS": 17.4,
+        "REFLATION": 9.7,
+        "STAGFLATION": 20.0,
+        "DEFLATION-BUST": 52.8
+      }
+    },
+    "strip_n": 363,
+    "signals_logged": 0
+  },
+  "sb_err": "NONE",
+  "board_row": {
+    "signal": -1,
+    "signal_label": "RISK-OFF",
+    "read": "STAGFLATION (2m, liq EASY) \u00b7 SPX+3m playbook: 2.18% med, 62.1%+ n=161"
+  },
+  "board_n": 68,
+  "registry_n": 49
+}
