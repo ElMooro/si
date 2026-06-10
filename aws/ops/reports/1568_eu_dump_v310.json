@@ -1,0 +1,48 @@
+{
+  "ops": 1568,
+  "errors": [],
+  "fn_err": "NONE",
+  "verify": {
+    "version": "3.1.0",
+    "duration_s": 46.3,
+    "brief_kb": 56.4,
+    "charts_n": {
+      "ciss_level": 321,
+      "ciss_delta30": 321,
+      "it_de_spread": 321,
+      "ltro_share": 321,
+      "eu_us_divergence": 321
+    },
+    "dump_score": 46.6,
+    "ai_error": null,
+    "ai_keys": [
+      "base_case",
+      "confidence_note",
+      "current_vs_history",
+      "generated_at",
+      "model",
+      "transmission",
+      "watch_next",
+      "what_this_is",
+      "why_it_matters"
+    ],
+    "ai_what": "The EU Dump Radar synthesizes five real-time stress pillars (CISS acceleration, bank funding, liquidity divergence, credit standards, and USD funding) into a single 0\u2013100 score tracking systemic fragility in the Euro area. It flags when conditions de",
+    "ai_why": "ECB policy transmission depends on a functioning interbank market and stable bank funding costs; when CISS spikes or LTRO usage surges, banks hoard liquidity and tighten credit, starving real economy and equity valuations. A DUMP episode (CISS \u039430d >",
+    "ai_cvh": "The radar reads 46.6 (CALM), with CISS at 0.41 bp\u2014in the 3.9th percentile since 1997, indicating exceptionally low absolute stress. CISS momentum is flat (\u22120.59 bp over 30d, 54th percentile), and LTRO share at 52.8% sits at the 7.4th percentile, signaling banks are drawing heavily on ECB backstops r",
+    "ai_base_case": "Over the next 3\u20139 weeks, the most likely path is continued CALM with gradual normalization. The event-study sample (n=26 CISS acceleration episodes) shows only 23\u201327% hit rates on SPX drawdowns and 50\u201354% on EUR weakness, implying that even when CISS does spike, equity and FX moves are modest and noisy. However, the elevated LTRO share (7.4th percentile) and tightening credit standards (10.1% net)",
+    "ai_tx": {
+      "risk_assets": "SPX and Euro-area equities are currently insulated by low absolute CISS and flat momentum, but the 7.4th percentile LTRO share indicates banks are already ratio",
+      "liquidity": "ESTR\u2013DFR spread at \u22127 bp and Euribor\u2013OIS at 29 bp (both NORMAL/WATCH) show no acute dislocation, but the 52.8% LTRO share reveals structural reliance on ECB fun",
+      "fx_usd": "EUR is under structural headwind (EU\u2013US divergence at 21.1th percentile, \u2212232 bn), with historical median EUR weakness of 0.22% in first 3 weeks after CISS spik",
+      "credit": "Bank credit standards are tightening (10.1% net), and LTRO share at 7.4th percentile suggests banks are already rationing; if CISS exceeds +0.15, credit spreads"
+    },
+    "ai_watch_next": [
+      "CISS 30-day acceleration crosses +0.15 (triggers DUMP episode definition; historical median SPX loss \u22127% over 9 weeks)",
+      "LTRO share rises above 65% (signals acute bank funding stress; only 7.4th percentile now, next stress threshold)",
+      "Euribor\u2013OIS spread widens above 50 bp (currently 29 bp; breach would indicate interbank stress and potential ECB rate-cut cycle)"
+    ],
+    "ai_conf": "Event-study sample size is modest (n=26 CISS acceleration episodes since 2007), and hit rates are low (23\u201327% for SPX, 50\u201354% for EUR), so forward guidance is probabilistic and sensitive to regime shifts in ECB policy or geopolitical shocks not captured in historical data.",
+    "ai_raw_head": null,
+    "deployed_version_ok": true
+  }
+}
