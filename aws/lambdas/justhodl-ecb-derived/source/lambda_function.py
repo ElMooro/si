@@ -108,7 +108,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.1.0",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.2.0",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -720,6 +720,122 @@ def lambda_handler(event=None, context=None):
         pass
 
 
+
+    # ── EU MACRO-CYCLE CANARIES (v3.2): unemployment, IP, confidence, real M1 ──
+    def fred_obs(sid, start="1998-01-01"):
+        try:
+            import urllib.parse as _up
+            u = ("https://api.stlouisfed.org/fred/series/observations?"
+                 + _up.urlencode({"series_id": sid, "api_key": FRED_KEY, "file_type": "json",
+                                   "observation_start": start, "limit": 100000}))
+            j = json.loads(urllib.request.urlopen(u, timeout=35).read())
+            o = [(x["date"], float(x["value"])) for x in j.get("observations", [])
+                 if x.get("value") not in (".", "")]
+            o.sort(); return o
+        except Exception as e:
+            print(f"[macro fred] {sid}: {str(e)[:50]}"); return []
+
+    def _probe(sids, start="1998-01-01"):
+        for sid in sids:
+            o = fred_obs(sid, start)
+            if len(o) > 40:
+                return sid, o
+        return None, []
+
+    macro_series = {}
+
+    # Unemployment rate, euro area (harmonized, monthly)
+    try:
+        sid, ue = _probe(["LRHUTTTTEZM156S", "LRHUTTTTEZQ156S"])
+        if ue:
+            vals = [v for _, v in ue]
+            chg3 = round(vals[-1] - vals[-4], 2) if len(vals) > 4 else None
+            sig = ("CRITICAL" if (chg3 or 0) >= 0.4 else
+                   "WATCH" if (chg3 or 0) >= 0.2 else "NORMAL")
+            out["indicators"]["ea_unemployment"] = {
+                "name": "EA Unemployment Momentum (Sahm-style)",
+                "unemployment_rate_pct": vals[-1], "chg_3m_pp": chg3,
+                "as_of": ue[-1][0], "series": sid, "signal": sig,
+                "interpretation": (f"EA unemployment {vals[-1]}% ({ue[-1][0]}), 3m change "
+                                    f"{chg3:+.2f}pp. Rises of +0.2pp WATCH / +0.4pp CRITICAL — "
+                                    "labor turns are slow but never false; the EU Sahm analogue."),
+                "thresholds": {"watch_3m_pp": 0.2, "critical_3m_pp": 0.4}}
+            macro_series["ea_unemployment"] = ("EA unemployment rate (%)", ue,
+                                                {"watch": None})
+    except Exception as e:
+        out["indicators"]["ea_unemployment"] = {"err": str(e)[:60]}
+
+    # Industrial production, euro area (index → YoY)
+    try:
+        sid, ip = _probe(["PRINTO01EZM661S", "EA19PRINTO01IXOBSAM", "PRMNTO01EZM661S",
+                           "PRINTO01EZQ661S"])
+        if len(ip) > 14:
+            yoy = [(ip[i][0], round((ip[i][1] / ip[i - 12][1] - 1) * 100, 2))
+                   for i in range(12, len(ip)) if ip[i - 12][1]]
+            cur = yoy[-1][1]
+            sig = ("CRITICAL" if cur <= -5 else "WATCH" if cur <= -2 else "NORMAL")
+            out["indicators"]["ea_industrial_production"] = {
+                "name": "EA Industrial Production (YoY)",
+                "ip_yoy_pct": cur, "as_of": yoy[-1][0], "series": sid, "signal": sig,
+                "interpretation": (f"EA industrial output {cur:+.1f}% YoY ({yoy[-1][0]}). "
+                                    "≤−2% WATCH, ≤−5% CRITICAL — the manufacturing leg of every "
+                                    "EA recession (2008 −21%, 2012 −4%, 2020 −28%)."),
+                "thresholds": {"watch_yoy": -2, "critical_yoy": -5}}
+            macro_series["ip_yoy"] = ("EA industrial production YoY (%)", yoy,
+                                       {"watch": -2, "critical": -5})
+    except Exception as e:
+        out["indicators"]["ea_industrial_production"] = {"err": str(e)[:60]}
+
+    # Business + consumer confidence (OECD MEI, monthly, amplitude-adjusted ~100)
+    try:
+        _, bc = _probe(["BSCICP02EZM460S", "BSCICP03EZM665S"])
+        _, cc = _probe(["CSCICP02EZM460S", "CSCICP03EZM665S"])
+        if bc:
+            bvals = [v for _, v in bc]
+            bz = zscore(bvals, 240)
+            cz = zscore([v for _, v in cc], 240) if cc else None
+            worst = min(x for x in (bz, cz) if x is not None)
+            sig = ("CRITICAL" if worst <= -2 else "WATCH" if worst <= -1.2 else "NORMAL")
+            out["indicators"]["ea_confidence"] = {
+                "name": "EA Business & Consumer Confidence",
+                "business_conf": bvals[-1], "business_z": bz,
+                "consumer_conf": (cc[-1][1] if cc else None), "consumer_z": cz,
+                "as_of": bc[-1][0], "signal": sig,
+                "interpretation": (f"Business confidence {bvals[-1]} (z {bz}), consumer "
+                                    f"{cc[-1][1] if cc else '—'} (z {cz}). Either leg ≤−1.2z "
+                                    "WATCH, ≤−2z CRITICAL — soft data leads hard data 2-4m."),
+                "thresholds": {"watch_z": -1.2, "critical_z": -2}}
+            macro_series["business_confidence"] = ("EA business confidence (OECD, ~100)",
+                                                    bc, {})
+    except Exception as e:
+        out["indicators"]["ea_confidence"] = {"err": str(e)[:60]}
+
+    # Real M1 growth: M1 annual growth (ECB BSI) minus HICP headline YoY (ECB ICP).
+    # Negative real M1 preceded 2008, 2011 and the 2023 stagnation — the single
+    # best free EA liquidity-cycle canary.
+    try:
+        m1 = ecb_csv("BSI/M.U2.Y.V.M10.X.I.U2.2300.Z01.A", start="1999-01")
+        icp = ecb_csv("ICP/M.U2.N.000000.4.ANR", start="1999-01")
+        if len(m1) > 40 and len(icp) > 40:
+            di = dict(icp)
+            real = [(d_, round(v_ - di[d_], 2)) for d_, v_ in m1 if d_ in di]
+            if len(real) > 40:
+                cur = real[-1][1]
+                sig = ("CRITICAL" if cur <= -3 else "WATCH" if cur < 0 else "NORMAL")
+                out["indicators"]["real_m1_growth"] = {
+                    "name": "Real M1 Growth (M1 YoY − HICP YoY)",
+                    "m1_yoy_pct": m1[-1][1], "hicp_yoy_pct": di.get(m1[-1][0]),
+                    "real_m1_growth_pct": cur, "as_of": real[-1][0], "signal": sig,
+                    "interpretation": (f"Real M1 growth {cur:+.1f}% ({real[-1][0]}). Negative "
+                                        "real M1 preceded every EA recession (2008, 2011, "
+                                        "2023's −9% trough). <0 WATCH, ≤−3 CRITICAL — the "
+                                        "liquidity-cycle master canary."),
+                    "thresholds": {"watch": 0, "critical": -3}}
+                macro_series["real_m1_growth"] = ("Real M1 growth, EA (% YoY, deflated)",
+                                                   real, {"watch": 0, "critical": -3})
+    except Exception as e:
+        out["indicators"]["real_m1_growth"] = {"err": str(e)[:60]}
+
     # ════════════════════════════════════════════════════════════════════
     # v3.0 — HISTORY CHARTS · EVENT STUDY · COMPOSITE · AI BRIEFING · LOOP
     # ════════════════════════════════════════════════════════════════════
@@ -832,6 +948,10 @@ def lambda_handler(event=None, context=None):
                     "points": _down(div), **_ctx(div), "thresholds": {}}
     except Exception as e:
         print(f"[v3 diverge] {str(e)[:50]}")
+    for cid, (lbl, pts_, th_) in macro_series.items():
+        if len(pts_) > 30:
+            charts[cid] = {"label": lbl, "points": _down(pts_), **_ctx(pts_),
+                            "thresholds": {k: v for k, v in th_.items() if v is not None}}
     out["charts"] = charts
 
     # ── Event study: what ACTUALLY happened after CISS-acceleration episodes ──
@@ -900,6 +1020,15 @@ def lambda_handler(event=None, context=None):
             c_ = charts.get(cid)
             if c_:
                 zs_.append((cid, max(-3, min(3, (c_["pctile"] - 50) / 17.0)), w_))
+        ue_ = out["indicators"].get("ea_unemployment") or {}
+        if isinstance(ue_.get("chg_3m_pp"), (int, float)):
+            zs_.append(("unemp_3m", max(-3, min(3, ue_["chg_3m_pp"] / 0.2)), 0.10))
+        ip_ = charts.get("ip_yoy")
+        if ip_:
+            zs_.append(("ip_yoy", max(-3, min(3, (50 - ip_["pctile"]) / 22.0)), 0.10))
+        m1_ = charts.get("real_m1_growth")
+        if m1_:
+            zs_.append(("real_m1", max(-3, min(3, (50 - m1_["pctile"]) / 22.0)), 0.15))
         ed_ = charts.get("eu_us_divergence")
         if ed_:
             zs_.append(("eu_us_div", max(-3, min(3, (50 - ed_["pctile"]) / 17.0)), 0.20))
@@ -930,7 +1059,11 @@ def lambda_handler(event=None, context=None):
                                          if kk in ("signal", "ciss_level", "delta_30d", "ltro_share_pct",
                                                     "mlf_eur_mn", "divergence_bn", "net_pct_tightening",
                                                     "premium_pct", "esi_0_100", "score_0_100",
-                                                    "spread_bp", "headline_yoy", "core_yoy")}
+                                                    "spread_bp", "headline_yoy", "core_yoy",
+                                                    "unemployment_rate_pct", "chg_3m_pp",
+                                                    "ip_yoy_pct", "real_m1_growth_pct",
+                                                    "business_conf", "business_z",
+                                                    "consumer_conf")}
                                     for k_, v_ in out["indicators"].items() if v_ and not v_.get("err")},
                     "history_context": {k_: {"pctile": c_["pctile"], "latest": c_["latest"],
                                               "median": c_["median"], "since": c_["first_date"]}

@@ -60,7 +60,7 @@ th:first-child,td:first-child{text-align:left}td{padding:9px;border-bottom:1px s
 </header>
 <div class="wrap">
   <div class="hero"><h1>EU Dump <span class="grad">Radar</span></h1>
-  <p>ECB-derived early-warning for risk-asset drawdowns — now with full historical context (where every reading sits in its own distribution back to 1999), a <b>real event study</b> of what markets actually did after past CISS-acceleration episodes, and a daily AI strategist briefing grounded in those numbers.</p></div>
+  <p>ECB- and Eurostat-derived early-warning for risk-asset drawdowns — funding plumbing plus the macro cycle (real M1, unemployment momentum, industrial output, confidence) — now with full historical context (where every reading sits in its own distribution back to 1999), a <b>real event study</b> of what markets actually did after past CISS-acceleration episodes, and a daily AI strategist briefing grounded in those numbers.</p></div>
   <div id="banner"></div>
   <div class="sec">🤖 AI Strategist Briefing</div><div id="aibrief" class="ai"><div class="loading">Loading…</div></div>
   <div class="sec">📈 Current vs History</div><div class="charts" id="charts"><div class="loading">Loading…</div></div>
@@ -75,23 +75,37 @@ function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 function sigClass(s){if(['CRITICAL','ACUTE','TAIL_RISK','SEVERE_TIGHTENING','CREDIT_STRESS','BLACK_SWAN'].includes(s))return 'alert';if(['WATCH','ELEVATED','TIGHTENING'].includes(s))return 'warn';return 'calm';}
 function row(k,v){return v==null?'':`<div class="metric"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`;}
-const CRISES=[['2008-09-15','GFC'],['2011-11-01','EZ crisis'],['2020-03-16','COVID'],['2022-09-26','Gilt/energy'],['2023-03-13','SVB/CS']];
+const CRISES=[['2008-09-01','2009-06-30','GFC'],['2011-07-01','2012-08-31','EZ crisis'],['2020-02-15','2020-06-15','COVID'],['2022-08-01','2022-10-31','2022'],['2023-03-01','2023-05-15','SVB/CS']];
 function chart(c){
   const pts=c.points||[]; if(pts.length<10)return '';
-  const W=480,H=150,P=8;
+  const W=480,H=170,P=10,BOT=26,TOP=16;
   const vs=pts.map(p=>p[1]);
   const mn=Math.min(...vs),mx=Math.max(...vs),sp=(mx-mn)||1;
-  const X=i=>P+(W-2*P)*i/(pts.length-1), Y=v=>H-16-(H-30)*(v-mn)/sp;
+  const X=i=>P+(W-2*P)*i/(pts.length-1), Y=v=>H-BOT-(H-BOT-TOP)*(v-mn)/sp;
   let g='';
-  const isDaily=String(pts[0][0]).length===10&&!String(pts[0][0]).includes('W');
-  if(isDaily){for(const [cd,lab] of CRISES){
-    let j=pts.findIndex(p=>p[0]>=cd); if(j>0&&j<pts.length-1){g+=`<line x1="${X(j).toFixed(1)}" x2="${X(j).toFixed(1)}" y1="14" y2="${H-16}" stroke="#3a2230" stroke-width="1"/><text x="${X(j).toFixed(1)}" y="11" fill="#6f7b91" font-size="7" font-family="monospace" text-anchor="middle">${lab}</text>`;}}}
+  const isISO=String(pts[0][0]).length===10&&!String(pts[0][0]).includes('W');
+  // shaded crisis bands with in-band labels
+  if(isISO){for(const [c0,c1,lab] of CRISES){
+    let i0=pts.findIndex(p=>p[0]>=c0), i1=pts.findIndex(p=>p[0]>=c1);
+    if(i0>0){ if(i1<0)i1=pts.length-1;
+      const x0=X(i0),x1=Math.max(X(i1),x0+5);
+      g+=`<rect x="${x0.toFixed(1)}" y="${TOP}" width="${(x1-x0).toFixed(1)}" height="${H-BOT-TOP}" fill="rgba(255,85,119,.10)" stroke="rgba(255,85,119,.35)" stroke-width="0.6"/>`;
+      g+=`<text x="${((x0+x1)/2).toFixed(1)}" y="${TOP-4}" fill="#ff8aa5" font-size="7.5" font-family="monospace" text-anchor="middle">${lab}</text>`;}}}
+  // thresholds + median
   const th=c.thresholds||{};
-  for(const[k,tv]of Object.entries(th)){if(tv>=mn&&tv<=mx){const col=/crit|crisis/.test(k)?'#ff5577':'#fbbf24';g+=`<line x1="${P}" x2="${W-P}" y1="${Y(tv).toFixed(1)}" y2="${Y(tv).toFixed(1)}" stroke="${col}" stroke-dasharray="3 5" stroke-width="1" opacity=".6"/>`;}}
+  for(const[k,tv]of Object.entries(th)){if(tv>=mn&&tv<=mx){const col=/crit|crisis/.test(k)?'#ff5577':'#fbbf24';g+=`<line x1="${P}" x2="${W-P}" y1="${Y(tv).toFixed(1)}" y2="${Y(tv).toFixed(1)}" stroke="${col}" stroke-dasharray="3 5" stroke-width="1" opacity=".65"/><text x="${W-P}" y="${(Y(tv)-3).toFixed(1)}" fill="${col}" font-size="7" font-family="monospace" text-anchor="end" opacity=".8">${k} ${tv}</text>`;}}
   if(c.median!=null&&c.median>=mn&&c.median<=mx)g+=`<line x1="${P}" x2="${W-P}" y1="${Y(c.median).toFixed(1)}" y2="${Y(c.median).toFixed(1)}" stroke="#2a3550" stroke-dasharray="2 6" stroke-width="1"/>`;
+  // series + current dot
   const path=vs.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
   g+=`<path d="${path}" fill="none" stroke="#22d3ee" stroke-width="1.6"/>`;
   g+=`<circle cx="${X(pts.length-1).toFixed(1)}" cy="${Y(vs[vs.length-1]).toFixed(1)}" r="3.5" fill="#ff5577"/>`;
+  // x-axis date ticks (5 evenly spaced)
+  g+=`<line x1="${P}" x2="${W-P}" y1="${H-BOT}" y2="${H-BOT}" stroke="#1c2433" stroke-width="1"/>`;
+  const NT=5;
+  for(let t=0;t<NT;t++){const i=Math.round(t*(pts.length-1)/(NT-1));
+    const lab=String(pts[i][0]).slice(0,7);
+    g+=`<line x1="${X(i).toFixed(1)}" x2="${X(i).toFixed(1)}" y1="${H-BOT}" y2="${H-BOT+4}" stroke="#2a3550"/>`;
+    g+=`<text x="${X(i).toFixed(1)}" y="${H-BOT+15}" fill="#6f7b91" font-size="8" font-family="monospace" text-anchor="${t===0?'start':t===NT-1?'end':'middle'}">${lab}</text>`;}
   const pc=c.pctile, pcl=pc>=85?'hi':pc<=15?'lo':'';
   return `<div class="ch"><span class="pc ${pcl}">${pc!=null?pc+'th pctile':''}</span><h3>${esc(c.label)}</h3><div class="rng">${esc(c.first_date)} → ${esc(c.latest_date)} · now <b style="color:var(--fg-1)">${esc(c.latest)}</b> · median ${esc(c.median)} · range ${esc(c.min)}–${esc(c.max)}</div><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg></div>`;
 }
@@ -119,7 +133,7 @@ async function load(){
   }
   // charts
   const ch=d.charts||{};
-  const order=['ciss_level','ciss_delta30','esi','it_de_spread','ltro_share','eu_us_divergence'];
+  const order=['ciss_level','ciss_delta30','real_m1_growth','ea_unemployment','ip_yoy','business_confidence','esi','it_de_spread','ltro_share','eu_us_divergence'];
   document.getElementById('charts').innerHTML=order.filter(k=>ch[k]).map(k=>chart(ch[k])).join('')||'<div class="loading">history loading…</div>';
   // event study
   const ev=d.event_study||{};
