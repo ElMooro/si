@@ -1,0 +1,128 @@
+{
+  "ops": 1573,
+  "errors": [],
+  "fn_err": "NONE",
+  "verify": {
+    "version": "3.2.1",
+    "duration_s": 43.6,
+    "brief_kb": 77.4,
+    "macro_indicators": {
+      "ea_unemployment": {
+        "signal": "NORMAL",
+        "unemployment_rate_pct": 6.3,
+        "chg_3m_pp": 0.0,
+        "as_of": "2026-04",
+        "series": "ecb:LFSI/M.I9.S.UNEHRT.TOTAL0.15_74.T"
+      },
+      "ea_confidence": {
+        "signal": "NORMAL",
+        "business_conf": -6.8,
+        "business_z": -0.33,
+        "consumer_z": -0.21,
+        "as_of": "2026-01-01"
+      },
+      "real_m1_growth": {
+        "signal": "NORMAL",
+        "real_m1_growth_pct": 2.77,
+        "m1_yoy_pct": 4.71,
+        "hicp_yoy_pct": 1.94,
+        "as_of": "2025-12"
+      }
+    },
+    "charts": {
+      "ciss_level": {
+        "n": 321,
+        "pctile": 3.9,
+        "latest": 0.0041,
+        "since": "1997-01-01"
+      },
+      "ciss_delta30": {
+        "n": 321,
+        "pctile": 54.1,
+        "latest": -0.0001,
+        "since": "1997-02-03"
+      },
+      "it_de_spread": {
+        "n": 321,
+        "pctile": 36.7,
+        "latest": 82.0,
+        "since": "1995-01-01"
+      },
+      "ltro_share": {
+        "n": 321,
+        "pctile": 7.4,
+        "latest": 52.84,
+        "since": "2007-W01"
+      },
+      "eu_us_divergence": {
+        "n": 321,
+        "pctile": 21.1,
+        "latest": -232.3,
+        "since": "2015-07-10"
+      },
+      "ea_unemployment": {
+        "n": 316,
+        "pctile": 0.3,
+        "latest": 6.3,
+        "since": "2000-01"
+      },
+      "business_confidence": {
+        "n": 321,
+        "pctile": 36.2,
+        "latest": -6.8,
+        "since": "1998-01-01"
+      },
+      "real_m1_growth": {
+        "n": 321,
+        "pctile": 25.9,
+        "latest": 2.77,
+        "since": "1999-01"
+      }
+    },
+    "dump_score": {
+      "score_0_100": 50.2,
+      "level": "WATCH",
+      "components": [
+        {
+          "id": "ciss_accel",
+          "z": 0.0,
+          "w": 0.3
+        },
+        {
+          "id": "it_de_spread",
+          "z": -0.78,
+          "w": 0.15
+        },
+        {
+          "id": "ltro_share",
+          "z": -2.51,
+          "w": 0.15
+        },
+        {
+          "id": "unemp_3m",
+          "z": 0.0,
+          "w": 0.1
+        },
+        {
+          "id": "real_m1",
+          "z": 1.1,
+          "w": 0.15
+        },
+        {
+          "id": "eu_us_div",
+          "z": 1.7,
+          "w": 0.2
+        }
+      ],
+      "coverage_pillars": 6
+    },
+    "n_flashing": 2,
+    "flashing": [
+      "bls_credit_standards",
+      "euribor_ois_stress"
+    ],
+    "ai_error": null,
+    "ai_cvh": "The dump score sits at 50.2 (WATCH), driven by two flashing components: real M1 growth at +1.1\u03c3 (25.9th percentile, well below median 5.76%) and EU\u2013US equity-risk divergence at +1.7\u03c3 (21.1th percentile). CISS itself remains historically calm at 0.0041 (3.9th percentile), but LTRO dependency is elevated at 52.8% (7.4th percentile), signaling banks a",
+    "ai_base": "Over the next 3\u20136 weeks, the most likely path is a gradual tightening of financial conditions without acute stress. The event-study sample (n=26 CISS acceleration episodes) shows median SPX gains of 1.01% by day 21 (23.1% hit rate) and 7.09% by day 63 (26.9% hit rate), suggesting equity markets have"
+  }
+}
