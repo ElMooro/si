@@ -30,7 +30,7 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/ma-reversion.json"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 MAS = (20, 50, 100, 200)
 UNIVERSE = ["NVDA","AMD","AVGO","TSM","MU","SMCI","VRT","ETN","PWR","ANET","CLS","FLEX","JBL",
             "COHR","LITE","MRVL","ARM","ASML","AMAT","LRCX","KLAC","TER","ONTO","CAMT","ACLS",
@@ -181,12 +181,88 @@ def study_index(dates, closes, label):
             "current": cur}
 
 
-def stock_setup(t):
-    pts = poly(t, (datetime.now(timezone.utc) - timedelta(days=2000)).date().isoformat())
+def polyv(t, start):
+    """closes + volumes"""
+    end = datetime.now(timezone.utc).date().isoformat()
+    u = (f"https://api.polygon.io/v2/aggs/ticker/{t}/range/1/day/{start}/{end}"
+         f"?adjusted=true&sort=asc&limit=50000&apiKey={POLY_KEY}")
+    try:
+        j = json.loads(urllib.request.urlopen(u, timeout=50).read())
+        return [(datetime.fromtimestamp(r["t"] / 1000, tz=timezone.utc).date().isoformat(),
+                 float(r["c"]), float(r.get("v") or 0)) for r in (j.get("results") or [])]
+    except Exception as e:
+        print(f"[polyv] {t}: {str(e)[:50]}")
+        return []
+
+
+def cross_history(closes, ma_arr, m, direction, run_req=5):
+    """All historical crossings of MA m in `direction` → fwd21 stats (own record)."""
+    n = len(closes)
+    evs = []
+    run = 0
+    cooldown = 0
+    for i in range(max(m, 210), n - 21):
+        mi, mp = ma_arr[m][i], ma_arr[m][i - 1]
+        if mi is None or mp is None:
+            continue
+        below = closes[i - 1] < mp
+        if cooldown:
+            cooldown -= 1
+        prev_run = run
+        run = run + 1 if (below if direction == "UP" else not below) else 0
+        if cooldown:
+            continue
+        if direction == "UP" and prev_run >= run_req and closes[i] > mi * 1.002:
+            evs.append(i); cooldown = 15
+        elif direction == "DOWN" and prev_run >= run_req and closes[i] < mi * 0.998:
+            evs.append(i); cooldown = 15
+    rets = [(closes[i + 21] / closes[i] - 1) * 100 for i in evs if i + 21 < n]
+    if not rets:
+        return {"n": len(evs)}
+    rets.sort()
+    want_pos = direction == "UP"
+    return {"n": len(rets), "median_pct": round(rets[len(rets) // 2], 2),
+            "hit_pct": round(100 * sum(1 for r in rets
+                                        if (r > 0) == want_pos) / len(rets), 1)}
+
+
+def detect_crossings(t, rows, lookback=3):
+    """Fresh crossings of any MA in the last `lookback` sessions, with own record."""
+    if len(rows) < 260:
+        return []
+    closes = [c for _, c, _ in rows]
+    vols = [v for _, _, v in rows]
+    ma = mas_of(closes)
+    n = len(closes)
+    v20 = sum(vols[-21:-1]) / 20 if n > 21 else None
+    outs = []
+    for m in MAS:
+        for k in range(1, lookback + 1):
+            i = n - k
+            mi, mp = ma[m][i], ma[m][i - 1]
+            if mi is None or mp is None:
+                continue
+            up = closes[i - 1] <= mp and closes[i] > mi * 1.002 and                  all(closes[i - j] < ma[m][i - j] for j in range(2, 7) if ma[m][i - j])
+            dn = closes[i - 1] >= mp and closes[i] < mi * 0.998 and                  all(closes[i - j] > ma[m][i - j] for j in range(2, 7) if ma[m][i - j])
+            if up or dn:
+                d = "UP" if up else "DOWN"
+                outs.append({
+                    "ticker": t, "ma": m, "direction": d,
+                    "days_ago": k - 1, "cross_date": rows[i][0],
+                    "px": closes[-1],
+                    "dist_pct": round((closes[-1] / ma[m][-1] - 1) * 100, 2)
+                                 if ma[m][-1] else None,
+                    "vol_ratio": round(vols[i] / v20, 2) if v20 else None,
+                    "own_record_21d": cross_history(closes, ma, m, d)})
+                break  # one event per MA
+    return outs
+
+
+def stock_setup(t, rows=None):
+    pts = rows or polyv(t, (datetime.now(timezone.utc) - timedelta(days=2000)).date().isoformat())
     if len(pts) < 260:
         return None
-    dates = [d for d, _ in pts]
-    closes = [c for _, c in pts]
+    closes = [r[1] for r in pts]
     ma = mas_of(closes)
     c, n = closes[-1], len(closes)
     if not ma[200][-1] or c < ma[200][-1]:
@@ -234,16 +310,32 @@ def lambda_handler(event=None, context=None):
     qqq = (study_index([d for d, _ in qq], [v for _, v in qq], "QQQ (1999+)")
            if len(qq) > 1000 else None)
 
-    setups = []
-    with ThreadPoolExecutor(max_workers=5) as ex:
-        for f in as_completed({ex.submit(stock_setup, t): t for t in UNIVERSE}):
+    setups, crossings = [], []
+    start2k = (datetime.now(timezone.utc) - timedelta(days=2000)).date().isoformat()
+
+    def scan(t):
+        rows = polyv(t, start2k)
+        return (stock_setup(t, rows), detect_crossings(t, rows))
+
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        for f in as_completed({ex.submit(scan, t): t for t in UNIVERSE}):
             try:
-                r = f.result()
-                if r:
-                    setups.append(r)
+                su, cr = f.result()
+                if su:
+                    setups.append(su)
+                crossings.extend(cr)
             except Exception as e:
-                print(f"[setup] {str(e)[:50]}")
+                print(f"[scan] {str(e)[:50]}")
     setups.sort(key=lambda r: (-(r["own_hit10_pct"] or 0), r["dist_pct"]))
+    # indexes get the same scanner
+    idx_crossings = []
+    for t in ("SPY", "QQQ", "IWM", "DIA"):
+        try:
+            idx_crossings.extend(detect_crossings(t, polyv(t, start2k)))
+        except Exception as e:
+            print(f"[idx] {t}: {str(e)[:50]}")
+    crossings.sort(key=lambda c: (-c["ma"], 0 if c["direction"] == "UP" else 1,
+                                    -(c["vol_ratio"] or 0)))
 
     # measured edge for the live state → closed-loop logging
     n_logged = 0
@@ -284,6 +376,30 @@ def lambda_handler(event=None, context=None):
                 f"SPX at the {m}DMA in bull regime — measured: {t21['hit_pct']}% positive "
                 f"+21d over n={t21['n']} touches, median {t21['median_pct']}%",
                 {"ma": str(m), "hit": str(t21["hit_pct"])})
+    # Khalid's thesis, graded: 200DMA crosses are HIGH-significance; 100/50 with
+    # volume ≥1.5×. Confidence anchored to the name's OWN measured record.
+    for c in crossings + idx_crossings:
+        if c["days_ago"] > 1:
+            continue
+        m, d, rec = c["ma"], c["direction"], c.get("own_record_21d") or {}
+        if m == 200:
+            base = 0.62
+        elif m in (100, 50) and (c.get("vol_ratio") or 0) >= 1.5:
+            base = 0.55
+        else:
+            continue
+        if rec.get("n", 0) >= 6 and rec.get("hit_pct") is not None:
+            base = min(0.70, max(0.50, 0.30 + rec["hit_pct"] / 100 * 0.45))
+        own = (f"; own record {rec['hit_pct']}% +21d (n={rec['n']}, "
+               f"med {rec['median_pct']}%)" if rec.get("hit_pct") is not None else
+               f"; own record thin (n={rec.get('n', 0)})")
+        log(f"ma-cross-{d.lower()}{m}-{c['ticker']}#{c['ticker']}#{d0}",
+            "ma_cross", "UP" if d == "UP" else "DOWN", round(base, 2), c["px"],
+            f"{c['ticker']} broke {d} through the {m}DMA on {c['cross_date']} "
+            f"(vol {c.get('vol_ratio', '—')}×){own}. Thesis: {m}DMA breaks "
+            f"{'unlock upside' if d == 'UP' else 'flag major risk'} — graded here.",
+            {"ma": str(m), "dir": d, "own_n": str(rec.get("n", 0))})
+
     for r in setups[:3]:
         if r["own_touch_n"] and r["own_touch_n"] >= 8 and (r["own_hit10_pct"] or 0) >= 60:
             log(f"ma-touch-{r['ticker']}#{r['ticker']}#{d0}", "ma_reversion", "UP",
@@ -296,6 +412,10 @@ def lambda_handler(event=None, context=None):
            "generated_at": nowt.isoformat(), "duration_s": round(time.time() - t0, 1),
            "spx": spx, "qqq": qqq,
            "stock_setups": setups[:20], "n_setups": len(setups),
+           "crossings": {"stocks_up": [c for c in crossings if c["direction"] == "UP"][:25],
+                          "stocks_down": [c for c in crossings if c["direction"] == "DOWN"][:25],
+                          "indexes": idx_crossings,
+                          "lookback_sessions": 3},
            "signals_logged": n_logged,
            "methodology": ("The crowd's MA-liquidity belief, measured: every touch/breakdown/"
                            "reclaim of the 20/50/100/200 DMA on the 1971+ SPX base and QQQ, "

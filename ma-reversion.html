@@ -22,17 +22,39 @@ th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1
 .loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
 .tabs span{font-family:var(--mono);font-size:11px;padding:4px 12px;border:1px solid var(--border);border-radius:8px;margin-right:6px;cursor:pointer;color:var(--fg2)}
 .tabs span.on{color:var(--cyan);border-color:var(--cyan)}
+.bigtabs{display:flex;gap:8px;margin:18px 0 4px}.bigtabs span{font-family:var(--mono);font-size:12px;padding:7px 16px;border:1px solid var(--border);border-radius:10px;cursor:pointer;color:var(--fg2);background:var(--bg1)}
+.bigtabs span.on{color:#0a0e14;background:linear-gradient(90deg,var(--green),var(--cyan));font-weight:700;border-color:transparent}
+.xgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:860px){.xgrid{grid-template-columns:1fr}}
+.xcol h4{font-family:var(--mono);font-size:12px;letter-spacing:1px;margin:4px 0 8px}
+.xrow{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-bottom:8px;font-family:var(--mono);font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.xrow.m200{border-width:2px}.up .xrow.m200{border-color:var(--green);background:rgba(52,211,153,.06)}.down .xrow.m200{border-color:var(--red);background:rgba(255,85,119,.06)}
+.badge{font-size:9.5px;letter-spacing:1px;padding:2px 8px;border-radius:6px;font-weight:800}
+.up .badge{background:rgba(52,211,153,.15);color:var(--green)}.down .badge{background:rgba(255,85,119,.15);color:var(--red)}
+.rec{color:var(--fg3);font-size:10.5px}.rec b{color:var(--fg2)}
+.idxstrip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+
 </style></head><body>
 <header><div class="brand"><span class="dot"></span>JustHodl<span style="color:var(--fg3)">.AI</span></div>
 <nav><a href="/">Desk</a><a href="/ignition.html">Ignition</a><a href="/ma-reversion.html" class="on">📐 MA Reversion</a><a href="/confluence.html">Confluence</a><a href="/skill.html">Skill</a></nav></header>
 <div class="wrap">
 <h1>MA Mean-Reversion — <span class="grad">measured, not believed</span></h1>
 <p class="sub">The crowd watches the 20/50/100/200-day moving averages and assumes "that's where buying liquidity comes in." This page measures that belief on <b>five decades of data</b>: every touch, breakdown and reclaim, split bull/bear, with real n, hit rates and <b>shelf depth</b> (how far below the MA the dip actually goes before the bid shows up). Stock setups require an uptrend and are ranked by each name's <b>own</b> historical bounce rate — folklore gets no free conviction here.</p>
+<div class="bigtabs" id="bigtabs"><span data-p="cross" class="on">🚦 Crossings</span><span data-p="tables">📊 50y Tables</span><span data-p="setups">🎯 Setups</span></div>
+<div id="pane-cross">
+<div class="sec">Index crossings (last 3 sessions)</div><div class="idxstrip" id="idxx"><span class="loading">Loading…</span></div>
+<div class="sec">Stocks breaking up / breaking down — 200·100·50·20 DMA</div>
+<div class="xgrid"><div class="xcol up"><h4 style="color:var(--green)">▲ BREAKING UP</h4><div id="xup"></div></div>
+<div class="xcol down"><h4 style="color:var(--red)">▼ BREAKING DOWN</h4><div id="xdn"></div></div></div>
+</div>
+<div id="pane-tables" style="display:none">
 <div class="sec">Live shelves</div><div class="shelves" id="shelves"><span class="loading">Loading…</span></div>
 <div class="sec">Touch-from-above → forward returns <span class="tabs" id="tabs"></span></div><div id="touch"></div>
 <div class="sec">Stretch vs 200DMA → +21d (the gravity map)</div><div id="stretch"></div>
 <div class="sec">Golden / Death cross record</div><div id="cross"></div>
+</div>
+<div id="pane-setups" style="display:none">
 <div class="sec">🎯 Stock setups (at a major MA, uptrend, own record shown)</div><div id="setups"></div>
+</div>
 <div class="note" id="note"></div>
 </div>
 <script>
@@ -40,6 +62,24 @@ const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 let D=null,IDX='spx';
+document.getElementById('bigtabs').onclick=e=>{const p=e.target.dataset.p;if(!p)return;
+  document.querySelectorAll('#bigtabs span').forEach(x=>x.classList.toggle('on',x.dataset.p===p));
+  for(const k of ['cross','tables','setups'])document.getElementById('pane-'+k).style.display=k===p?'':'none';};
+function rec(r){if(!r)return '<span class="rec">no record</span>';
+  if(r.hit_pct==null)return `<span class="rec">own n=${r.n||0} (thin)</span>`;
+  const c=r.hit_pct>=60?'var(--green)':r.hit_pct<=45?'var(--red)':'var(--fg2)';
+  return `<span class="rec">own: <b style="color:${c}">${r.hit_pct}%</b> +21d · med ${r.median_pct>0?'+':''}${r.median_pct}% · n${r.n}</span>`;}
+function xrow(c){const hi=c.ma===200;
+  return `<div class="xrow m${c.ma}"><span><b>${esc(c.ticker)}</b> <span class="badge">${c.ma}DMA${hi?' · HIGH':''}</span></span>
+  <span class="rec">${esc(c.cross_date)} · vol ${c.vol_ratio??'—'}× · now ${c.dist_pct>0?'+':''}${c.dist_pct}%</span>${rec(c.own_record_21d)}</div>`;}
+function renderCross(){
+  const X=(D.crossings)||{};
+  const idx=(X.indexes||[]);
+  document.getElementById('idxx').innerHTML=idx.length?idx.map(c=>`<div class="sh ${c.direction==='UP'?'near':''}" style="border-color:${c.direction==='UP'?'var(--green)':'var(--red)'}"><b>${esc(c.ticker)}</b> ${c.direction==='UP'?'▲':'▼'} ${c.ma}DMA<div class="m">${esc(c.cross_date)} · vol ${c.vol_ratio??'—'}× · ${rec(c.own_record_21d)}</div></div>`).join(''):'<span class="loading">No index crossings in the last 3 sessions.</span>';
+  const up=(X.stocks_up||[]),dn=(X.stocks_down||[]);
+  document.getElementById('xup').innerHTML=up.length?up.map(xrow).join(''):'<div class="loading">None.</div>';
+  document.getElementById('xdn').innerHTML=dn.length?dn.map(xrow).join(''):'<div class="loading">None.</div>';
+}
 function cell(s,inv){if(!s)return '<td>—</td>';const good=inv?s.hit_pct>=55:s.hit_pct>=55;return `<td class="${good?'hi':s.hit_pct<=45?'lo':''}">${s.median_pct>0?'+':''}${s.median_pct}% <span style="color:var(--fg3)">(${s.hit_pct}%✓ n${s.n})</span></td>`;}
 function render(){
   const X=D[IDX]; if(!X){document.getElementById('touch').innerHTML='<div class="loading">n/a</div>';return;}
@@ -70,6 +110,7 @@ async function load(){
   tabs.innerHTML=['spx','qqq'].filter(k=>D[k]).map(k=>`<span class="${k===IDX?'on':''}" data-k="${k}">${k.toUpperCase()}</span>`).join('');
   tabs.onclick=e=>{const k=e.target.dataset.k;if(k){IDX=k;tabs.querySelectorAll('span').forEach(s=>s.classList.toggle('on',s.dataset.k===k));render();}};
   render();
+  renderCross();
   const su=(D.stock_setups||[]).map(r=>`<tr><td><b>${esc(r.ticker)}</b></td><td>${r.at_ma}DMA</td><td>+${r.dist_pct}%</td><td class="${(r.own_hit10_pct||0)>=60?'hi':(r.own_hit10_pct||0)<=45&&r.own_touch_n>=8?'lo':''}">${r.own_hit10_pct??'—'}% <span style="color:var(--fg3)">(n${r.own_touch_n})</span></td><td>+${r.above_200_pct}%</td><td>${r.px}</td></tr>`).join('');
   document.getElementById('setups').innerHTML=su?`<table><thead><tr><th>Ticker</th><th>At</th><th>Above MA</th><th>Own +10d hit</th><th>vs 200</th><th>Px</th></tr></thead><tbody>${su}</tbody></table>`:'<div class="loading">No names sitting at a major MA in an uptrend right now.</div>';
   document.getElementById('note').textContent=`${D.methodology} · ${D.signals_logged} logged today · v${D.version} · ${D.generated_at} · Research, not advice.`;

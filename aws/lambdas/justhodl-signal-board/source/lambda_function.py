@@ -779,6 +779,12 @@ def n_ma_reversion(d):
     n_set = d.get("n_setups") or 0
     if not sp:
         return 0, "MA-reversion n/a"
+    xx = d.get("crossings") or {}
+    u2 = sum(1 for c in (xx.get("stocks_up") or []) if c.get("ma") == 200)
+    d2 = sum(1 for c in (xx.get("stocks_down") or []) if c.get("ma") == 200)
+    if u2 + d2 >= 3 or abs(u2 - d2) >= 2:
+        sig = 1 if u2 > d2 else -1 if d2 > u2 else 0
+        return sig, f"200DMA breaks: {u2}▲/{d2}▼ in 3 sessions · {n_set} setups at shelves"
     if ns and ns.get("below_pct", 99) <= 1.0:
         return 1, f"SPX at the {ns['ma']}DMA shelf ({ns['below_pct']}% above) · {n_set} stock setups"
     return 0, (f"Nearest shelf {ns['ma']}DMA −{ns['below_pct']}%" if ns else "Below all MAs") +                f" · {n_set} setups at MAs"
