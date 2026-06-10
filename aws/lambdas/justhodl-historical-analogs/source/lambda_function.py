@@ -44,6 +44,31 @@ FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 
 
+
+def s3_deep_spx():
+    """Canonical deep S&P base (1927+) maintained in S3 by ops; splices recent SPY (ratio-scaled) on top."""
+    try:
+        doc = json.loads(s3.get_object(Bucket=BUCKET, Key="data/spx-history-deep.json")["Body"].read())
+        base = {d: float(v) for d, v in doc.get("points", []) if v is not None}
+        if len(base) < 5000:
+            return None
+        last = max(base)
+        try:
+            rec = dict(polygon_spy_closes())
+            common = sorted(set(rec) & set(base))
+            if common:
+                ratio = base[common[-1]] / rec[common[-1]]
+                for d in sorted(rec):
+                    if d > last:
+                        base[d] = round(rec[d] * ratio, 2)
+        except Exception as e:
+            print(f"[spx] splice skipped: {str(e)[:50]}")
+        print(f"[spx] s3 deep base: {len(base)} pts {min(base)}->{max(base)}")
+        return base
+    except Exception as e:
+        print(f"[spx] s3 deep failed: {str(e)[:60]}")
+        return None
+
 def yahoo_spx():
     """Deepest free S&P 500 daily closes: Yahoo ^GSPC range=max (1927+)."""
     try:
@@ -216,8 +241,8 @@ def lambda_handler(event=None, context=None):
 
     # 2. SPX closes — v2: Polygon SPY daily 1999+ (FRED SP500 only spans ~2015+,
     # which silently capped the whole analog pool). Fallback to FRED on failure.
-    spx = yahoo_spx() or stooq_spx() or polygon_spy_closes() or raw.get("spx_close", {})
-    print(f"[analogs] spx closes: {len(spx)} (source={'yahoo' if len(spx)>8000 else 'stooq' if len(spx)>6000 else 'polygon' if len(spx)>1000 else 'fred'})")
+    spx = s3_deep_spx() or yahoo_spx() or stooq_spx() or polygon_spy_closes() or raw.get("spx_close", {})
+    print(f"[analogs] spx closes: {len(spx)} (source={'s3-deep/yahoo' if len(spx)>8000 else 'stooq' if len(spx)>6000 else 'polygon' if len(spx)>1000 else 'fred'})")
     spx_returns_1m = compute_returns(spx)
 
     # 3. Build feature dict: each feature -> dict of date -> z-score

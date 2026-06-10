@@ -53,6 +53,31 @@ def hist(sid):
         return []
 
 
+
+def s3_deep_spx():
+    """Canonical deep S&P base (1927+) maintained in S3 by ops; splices recent SPY (ratio-scaled) on top."""
+    try:
+        doc = json.loads(s3.get_object(Bucket=BUCKET, Key="data/spx-history-deep.json")["Body"].read())
+        base = {d: float(v) for d, v in doc.get("points", []) if v is not None}
+        if len(base) < 5000:
+            return None
+        last = max(base)
+        try:
+            rec = dict(spy_closes())
+            common = sorted(set(rec) & set(base))
+            if common:
+                ratio = base[common[-1]] / rec[common[-1]]
+                for d in sorted(rec):
+                    if d > last:
+                        base[d] = round(rec[d] * ratio, 2)
+        except Exception as e:
+            print(f"[spx] splice skipped: {str(e)[:50]}")
+        print(f"[spx] s3 deep base: {len(base)} pts {min(base)}->{max(base)}")
+        return base
+    except Exception as e:
+        print(f"[spx] s3 deep failed: {str(e)[:60]}")
+        return None
+
 def yahoo_spx():
     """Deepest free S&P 500 daily closes: Yahoo ^GSPC range=max (1927+)."""
     try:
@@ -189,7 +214,7 @@ def forward_stats(fire_dates, spy):
 
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
-    sq = yahoo_spx() or stooq_spx()
+    sq = s3_deep_spx() or yahoo_spx() or stooq_spx()
     spy = sorted(sq.items()) if sq else spy_closes()
     print(f"[bt] spy {len(spy)} bars {spy[0][0]}→{spy[-1][0]}")
 

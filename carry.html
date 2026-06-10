@@ -409,7 +409,7 @@ document.querySelectorAll('#all-table th[data-sort]').forEach(th => {
 
 // Load data
 fetch('data/carry-surface.json?ts=' + Date.now())
-  .then(r => r.json())
+  .then(r => { if(!r.ok) throw new Error('HTTP '+r.status+' — data refresh in progress, retry in a minute'); return r.json(); })
   .then(renderTables)
   .catch(e => {
     document.getElementById('updated').textContent = 'load error: ' + e.message;
