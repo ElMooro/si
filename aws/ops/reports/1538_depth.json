@@ -1,0 +1,200 @@
+{
+  "ops": 1538,
+  "deployed": [
+    "analogs",
+    "backtester"
+  ],
+  "disabled_all": [
+    "aiapi-hourly-collection",
+    "alpha-compass-3h",
+    "alphavantage-market-update",
+    "buzz-velocity-4x-daily",
+    "canary-grid-daily",
+    "capitulation-3h",
+    "carry-surface-4h",
+    "cds-proxy-tri-daily",
+    "crisis-composite-hourly",
+    "cross-asset-confirm-3h",
+    "crypto-opportunities-4h",
+    "divergence-v2-2hourly",
+    "event-flow-monitor-hourly",
+    "future-intel-2x-daily",
+    "jhk-tick-15min",
+    "jhk-tick-30min",
+    "jhk-tick-4hourly",
+    "jhk-tick-5min",
+    "jhk-tick-every_3h",
+    "jhk-tick-every_6h",
+    "jhk-tick-hourly",
+    "jhk-tick-hourly-orchestrate",
+    "justhodl-13f-positions-6h",
+    "justhodl-ai-brief-4h",
+    "justhodl-anomaly-detector-hourly",
+    "justhodl-crisis-plumbing-refresh",
+    "justhodl-crypto-cycle-risk-6h",
+    "justhodl-dealer-gex-hourly",
+    "justhodl-early-movers-twice-per-hour",
+    "justhodl-earnings-tracker-6h",
+    "justhodl-edge-6h",
+    "justhodl-engine-conflicts-6h",
+    "justhodl-etf-flows-6h",
+    "justhodl-exchange-flows-6h",
+    "justhodl-forensic-screen-12h",
+    "justhodl-macro-nowcast-6h",
+    "justhodl-macro-surprise-6h",
+    "justhodl-narrative-vs-tape-4h",
+    "justhodl-onchain-ratios-6h",
+    "justhodl-options-flow-30m",
+    "justhodl-portfolio-catalysts-3x-daily",
+    "justhodl-position-sizer-6h",
+    "justhodl-retail-sentiment-30min",
+    "justhodl-short-interest-6h",
+    "justhodl-system-signal-logger-6h",
+    "justhodl-telegram-alerts",
+    "justhodl-theme-cascade-twice-per-hour",
+    "justhodl-ticket-ai-rationale-hourly",
+    "justhodl-wave-signal-logger-6h",
+    "justhodl-yield-curve-6h",
+    "lce-every-6h",
+    "liquidity-pulse-6h",
+    "multi-agent-economic-hourly",
+    "multi-agent-market-15min",
+    "multi-agent-orchestrator-schedule",
+    "near-miss-monitor-hourly",
+    "pairs-scanner-6hourly",
+    "rotation-chain-2x-daily",
+    "sec-filings-intel-3x-daily",
+    "sector-heatmap-30m",
+    "signal-board-3h",
+    "ticker-trends-2x-daily"
+  ],
+  "rules_enabled": [],
+  "backtest_summary_keys": [
+    "generated_at",
+    "snapshot_today",
+    "forward_returns_computed_today",
+    "by_signal",
+    "fetch_duration_s"
+  ],
+  "backtest_summary_head": {
+    "generated_at": "2026-06-09T22:00:33+00:00",
+    "fetch_duration_s": 9.5
+  },
+  "analogs": {
+    "n_dates": 652,
+    "analog_dates": [
+      "2023-08-24",
+      "2023-08-25",
+      "2023-09-20",
+      "2023-08-23",
+      "2023-08-28",
+      "2023-08-15",
+      "2023-08-16",
+      "2023-08-02"
+    ],
+    "fwd21": {
+      "n": 15,
+      "mean_pct": -1.54,
+      "median_pct": -1.54,
+      "hit_rate_pct": 26.7,
+      "min_pct": -4.87,
+      "max_pct": 1.69,
+      "stdev_pct": 2.15
+    },
+    "call": "BEARISH"
+  },
+  "alert_bt": {
+    "spy_span": "2021-06-10\u21922026-06-09",
+    "n_rules": 11,
+    "sample": [
+      [
+        "euribor_ois_ge50",
+        "2020-01-01",
+        1,
+        "2022-07-01",
+        7.03,
+        0.0
+      ],
+      [
+        "it_de_ge150",
+        "1995-01-01",
+        3,
+        "2016-11-01",
+        null,
+        null
+      ],
+      [
+        "estr_dfr_ge_m1",
+        "2019-10-01",
+        0,
+        null,
+        null,
+        null
+      ],
+      [
+        "wages_gt_35",
+        "1992-01-01",
+        3,
+        "2023-01-01",
+        9.44,
+        0.0
+      ],
+      [
+        "m3_lt_2",
+        "1981-01-01",
+        2,
+        "2023-03-01",
+        2.27,
+        0.0
+      ],
+      [
+        "t2_gap_z2",
+        "2013-05-01",
+        2,
+        "2020-09-01",
+        null,
+        null
+      ],
+      [
+        "eurusd_z_m2",
+        "1999-12-22",
+        17,
+        "2024-11-12",
+        2.6,
+        0.0
+      ],
+      [
+        "vix_term_inversion",
+        "2007-12-04",
+        45,
+        "2026-03-03",
+        1.71,
+        27.0
+      ],
+      [
+        "hy_oas_3m_p50bp",
+        "2023-09-12",
+        4,
+        "2026-03-27",
+        5.73,
+        25.0
+      ],
+      [
+        "curve_reinversion",
+        "1999-01-04",
+        7,
+        "2022-07-06",
+        0.0,
+        50.0
+      ],
+      [
+        "nfci_positive",
+        "1999-01-01",
+        3,
+        "2020-03-13",
+        null,
+        null
+      ]
+    ]
+  }
+}
