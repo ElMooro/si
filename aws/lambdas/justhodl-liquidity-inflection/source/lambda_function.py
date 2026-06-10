@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -89,15 +89,22 @@ def build_impulse(series):
     return dates[W_SLOPE:], z
 
 
-def find_flips(dates, z):
+def find_flips(dates, z, th=0.20):
+    """Schmitt-trigger hysteresis: a flip is recorded when the impulse crosses
+    ±th from the OPPOSITE armed state. Robust to smooth slow-moving z."""
     flips = []
-    for i in range(1, len(z)):
-        if z[i - 1] is None or z[i] is None:
+    state = None
+    for i, zz in enumerate(z):
+        if zz is None:
             continue
-        if z[i - 1] <= 0 < z[i] and abs(z[i] - z[i - 1]) >= DEBOUNCE:
-            flips.append({"date": dates[i], "direction": "UP", "z": z[i]})
-        elif z[i - 1] >= 0 > z[i] and abs(z[i] - z[i - 1]) >= DEBOUNCE:
-            flips.append({"date": dates[i], "direction": "DOWN", "z": z[i]})
+        if zz > th and state != "UP":
+            if state == "DOWN":
+                flips.append({"date": dates[i], "direction": "UP", "z": zz})
+            state = "UP"
+        elif zz < -th and state != "DOWN":
+            if state == "UP":
+                flips.append({"date": dates[i], "direction": "DOWN", "z": zz})
+            state = "DOWN"
     return flips
 
 
@@ -232,6 +239,7 @@ def lambda_handler(event=None, context=None):
                 sc_state = {"accel_z": round((d2[-1] - m) / sd, 2) if sd else 0,
                             "n_points": len(vals), "as_of": sc.get("generated_at", "")[:10]}
     avail["stablecoin"] = bool(sc_state)
+    sc_schema_hint = (sorted(sc.keys())[:12] if (sc and not sc_state) else None)
 
     # Lead/lag event-study vs SPX / BTC / HYG
     spx_doc = s3_json("data/spx-history-deep.json") or {}
@@ -285,6 +293,7 @@ def lambda_handler(event=None, context=None):
                    "n_flips_10y": len(flips10),
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
            "eur": eur_state, "china": cn_state, "stablecoin": sc_state,
+           "stablecoin_schema_hint": sc_schema_hint,
            "event_study_after_flips": studies, "lead_estimates": leads,
            "signals_logged": n_logged,
            "methodology": ("Impulse = 13-week slope of net liquidity (WALCL−TGA−RRP), 3y z-score; "
