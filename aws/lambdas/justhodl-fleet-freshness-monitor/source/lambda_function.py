@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 from botocore.exceptions import ClientError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 ACCOUNT = '857687956942'
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
@@ -60,8 +60,16 @@ def send_telegram(msg):
             'disable_web_page_preview': 'true',
         }).encode()
         req = urllib.request.Request(url, data=data, method='POST')
-        urllib.request.urlopen(req, timeout=10)
-        return True
+        try:
+            urllib.request.urlopen(req, timeout=10)
+            return True
+        except urllib.error.HTTPError as he:
+            if he.code == 400:  # Markdown entity parse failure (underscores in keys) → resend plain
+                data2 = urllib.parse.urlencode({'chat_id': TELEGRAM_CHAT_ID, 'text': msg[:4000],
+                                                'disable_web_page_preview': 'true'}).encode()
+                urllib.request.urlopen(urllib.request.Request(url, data=data2, method='POST'), timeout=10)
+                return True
+            raise
     except Exception as e:
         print(f"[telegram] failed: {e}")
         return False
@@ -228,7 +236,11 @@ def lambda_handler(event=None, context=None):
     # If anything is >3x past its SLA (or >=10 keys stale), send an un-deduped
     # digest at most once per 6h via the '_escalation' history slot.
     try:
-        critical = [r for r in stale if r.get('age_h', 0) > 3 * r.get('max_age_h', 26)]
+        ov = set(((manifest or {}).get('key_overrides') or {}).keys())
+        def _scoped(r):
+            k = r['key']
+            return k in ov or ('/' not in k[len('data/'):])
+        critical = [r for r in stale if _scoped(r) and r.get('age_h', 0) > 3 * r.get('max_age_h', 26)]
         now_ts = datetime.now(timezone.utc).timestamp()
         last_esc = history.get('_escalation', 0)
         if (critical or len(stale) >= 10) and now_ts - last_esc > 6 * 3600:
