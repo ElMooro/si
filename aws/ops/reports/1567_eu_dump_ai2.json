@@ -1,0 +1,57 @@
+{
+  "ops": 1567,
+  "errors": [],
+  "fn_err": "NONE",
+  "verify": {
+    "version": "3.0.1",
+    "duration_s": 38.1,
+    "brief_kb": 56.0,
+    "charts_n": {
+      "ciss_level": 321,
+      "ciss_delta30": 321,
+      "it_de_spread": 321,
+      "ltro_share": 321,
+      "eu_us_divergence": 321
+    },
+    "dump_score": 46.6,
+    "ai_error": null,
+    "ai_keys": [
+      "base_case",
+      "confidence_note",
+      "current_vs_history",
+      "generated_at",
+      "model",
+      "transmission",
+      "watch_next",
+      "what_this_is",
+      "why_it_matters"
+    ],
+    "ai_what": "The EU Dump Radar monitors systemic stress transmission from ECB plumbing (funding, liquidity, credit conditions) to real economy and asset prices via a composite CISS-acceleration framework. It flags when European financial conditions deteriorate sh",
+    "ai_why": "ECB policy transmission breaks down during funding dislocations: when LTRO dependency spikes, bank pass-through widens, and credit standards tighten simultaneously, equity volatility and FX basis risk spike 2\u20138 weeks forward. Today's reading sits at ",
+    "ai_cvh": "CISS level (0.41 bp) ranks at the 3.9th percentile\u2014exceptionally low by 29-year standards\u2014yet LTRO share (52.8%) sits at only the 7.4th percentile, indicating heavy reliance on central bank liquidity despite surface calm. IT-DE spread (82 bp) is at the 36.7th percentile, tighter than median but elev",
+    "ai_base_case": "Over the next 3 weeks, the radar remains in CALM mode with ~77% probability (23.1% hit rate on SPX moves >1% in 26 historical episodes). However, the 7.4th percentile LTRO share and 10.1% net credit tightening suggest a 50\u201354% probability of EUR weakness and modest equity consolidation by week 9 (median -0.03% EURUSD, but 53.8% of prior episodes saw moves). The base case: no acute dump, but gradua",
+    "ai_tx": {
+      "risk_assets": "SPX median return +1.01% over 21 days in the event-study sample, but only 23% of episodes exceeded +1%; if LTRO share falls further and credit tightening accele",
+      "liquidity": "ESTR-DFR dislocation (-7 bp) and Euribor-OIS (29 bp) remain orderly; however, if LTRO share drops below 45%, repo haircuts will tighten and money-market funds w",
+      "fx_usd": "EUR-USD median -0.03% over 63 days in prior episodes; current -232 bn divergence (21st percentile) favors USD carry, with 54% of historical episodes seeing EUR ",
+      "credit": "BLS net tightening at 10.1% and bank pass-through premium at 1.54% (normal) mask rising default expectations; if HY spreads widen >50 bp from current levels, IG"
+    },
+    "ai_watch_next": [
+      {
+        "trigger": "LTRO share falls below 45%",
+        "rationale": "Signals voluntary ECB liquidity exit; historically precedes 150\u2013200 bp IT-DE re-widening within 4 weeks."
+      },
+      {
+        "trigger": "BLS net credit tightening exceeds 15%",
+        "rationale": "Threshold at which bank lending surveys show material loan-loss provisioning; correlates with 2\u20133% equity drawdowns 3\u20136 weeks forward."
+      },
+      {
+        "trigger": "Euribor-OIS spread widens to 45+ bp",
+        "rationale": "Currently 29 bp (WATCH level); breach signals interbank stress and forces ECB emergency liquidity ops, triggering 300+ bp equity vol spike."
+      }
+    ],
+    "ai_conf": "Event-study sample size (n=26 episodes) is modest; hit rates of 23\u201354% reflect high dispersion, so probabilistic forecasts carry \u00b115\u201320 percentage-point uncertainty bands.",
+    "ai_raw_head": null,
+    "deployed_version_ok": false
+  }
+}
