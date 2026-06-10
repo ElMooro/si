@@ -76,7 +76,33 @@ async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.
 function sigClass(s){if(['CRITICAL','ACUTE','TAIL_RISK','SEVERE_TIGHTENING','CREDIT_STRESS','BLACK_SWAN'].includes(s))return 'alert';if(['WATCH','ELEVATED','TIGHTENING'].includes(s))return 'warn';return 'calm';}
 function row(k,v){return v==null?'':`<div class="metric"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`;}
 const CRISES=[['2008-09-01','2009-06-30','GFC'],['2011-07-01','2012-08-31','EZ crisis'],['2020-02-15','2020-06-15','COVID'],['2022-08-01','2022-10-31','2022'],['2023-03-01','2023-05-15','SVB/CS']];
-function chart(c){
+const CHDATA={};
+function spark(sp){
+  if(!sp||!sp.points||sp.points.length<6)return '';
+  const pts=sp.points,W=150,H=36;
+  const vs=pts.map(p=>p[1]),mn=Math.min(...vs),mx=Math.max(...vs),r=(mx-mn)||1;
+  const X=i=>2+(W-4)*i/(pts.length-1),Y=v=>H-4-(H-8)*(v-mn)/r;
+  const path=vs.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+  const pc=sp.pctile,pcl=pc>=85?'hi':pc<=15?'lo':'';
+  return `<div style="display:flex;align-items:center;gap:8px;margin-top:9px;padding-top:8px;border-top:1px dashed var(--border)"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><path d="${path}" fill="none" stroke="#a78bfa" stroke-width="1.3" opacity=".9"/><circle cx="${X(pts.length-1).toFixed(1)}" cy="${Y(vs[vs.length-1]).toFixed(1)}" r="2.6" fill="#ff5577"/></svg><span class="pc ${pcl}" style="float:none">${pc}th pctile vs full history</span></div>`;
+}
+function attachTooltips(){
+  let tip=document.getElementById('charttip');
+  if(!tip){tip=document.createElement('div');tip.id='charttip';tip.style.cssText='position:fixed;pointer-events:none;background:#0c1018;border:1px solid var(--border-bright);border-radius:8px;padding:5px 9px;font-family:var(--mono);font-size:11px;color:var(--fg-1);z-index:99;display:none;box-shadow:0 4px 14px rgba(0,0,0,.5)';document.body.appendChild(tip);}
+  document.querySelectorAll('.ch svg[data-cid]').forEach(svg=>{
+    svg.addEventListener('mousemove',e=>{
+      const c=CHDATA[svg.dataset.cid];if(!c)return;
+      const r=svg.getBoundingClientRect();
+      const fx=(e.clientX-r.left)/r.width;
+      const i=Math.max(0,Math.min(c.points.length-1,Math.round(fx*(c.points.length-1))));
+      const [d,v]=c.points[i];
+      tip.innerHTML=`${esc(d)} · <b>${typeof v==='number'?+v.toFixed(4):esc(v)}</b>`;
+      tip.style.display='block';tip.style.left=(e.clientX+13)+'px';tip.style.top=(e.clientY-12)+'px';
+    });
+    svg.addEventListener('mouseleave',()=>{tip.style.display='none';});
+  });
+}
+function chart(cid,c){
   const pts=c.points||[]; if(pts.length<10)return '';
   const W=480,H=170,P=10,BOT=26,TOP=16;
   const vs=pts.map(p=>p[1]);
@@ -107,7 +133,8 @@ function chart(c){
     g+=`<line x1="${X(i).toFixed(1)}" x2="${X(i).toFixed(1)}" y1="${H-BOT}" y2="${H-BOT+4}" stroke="#2a3550"/>`;
     g+=`<text x="${X(i).toFixed(1)}" y="${H-BOT+15}" fill="#6f7b91" font-size="8" font-family="monospace" text-anchor="${t===0?'start':t===NT-1?'end':'middle'}">${lab}</text>`;}
   const pc=c.pctile, pcl=pc>=85?'hi':pc<=15?'lo':'';
-  return `<div class="ch"><span class="pc ${pcl}">${pc!=null?pc+'th pctile':''}</span><h3>${esc(c.label)}</h3><div class="rng">${esc(c.first_date)} → ${esc(c.latest_date)} · now <b style="color:var(--fg-1)">${esc(c.latest)}</b> · median ${esc(c.median)} · range ${esc(c.min)}–${esc(c.max)}</div><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg></div>`;
+  CHDATA[cid]=c;
+  return `<div class="ch"><span class="pc ${pcl}">${pc!=null?pc+'th pctile':''}</span><h3>${esc(c.label)}</h3><div class="rng">${esc(c.first_date)} → ${esc(c.latest_date)} · now <b style="color:var(--fg-1)">${esc(c.latest)}</b> · median ${esc(c.median)} · range ${esc(c.min)}–${esc(c.max)}</div><svg data-cid="${esc(cid)}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="cursor:crosshair">${g}</svg></div>`;
 }
 function studyCell(s){if(!s)return '<td>—</td>';return `<td>${s.median_pct>0?'+':''}${s.median_pct}% <span style="color:var(--fg-3)">(n${s.n}, ${s.hit_pct}%✓)</span></td>`;}
 async function load(){
@@ -116,6 +143,12 @@ async function load(){
   const ind=d.indicators, nf=d.n_flashing||0, ds=d.dump_score||{};
   const bclass=ds.level==='ACUTE'?'alert':ds.level==='ELEVATED'||nf>=3?'alert':ds.level==='WATCH'||nf>0?'warn':'calm';
   document.getElementById('banner').innerHTML=`<div class="banner ${bclass}"><span class="dial">${ds.score_0_100??'—'}<span style="font-size:14px;color:var(--fg-3)">/100</span></span><span class="dialsub">EU DUMP SCORE · ${esc(ds.level||'')} · ${ds.coverage_pillars||0} pillars<br>${nf===0?'🟢':nf>=3?'🔴':'🟠'} ${esc(d.headline||'')}</span></div>`;
+  const ct=d.changes_today||{};
+  if(ct.signal_changes||ct.score_delta!=null){
+    const items=(ct.signal_changes||[]).map(c=>`<b>${esc(c.indicator)}</b> ${esc(c.from)}→${esc(c.to)}`).join(' · ');
+    const sd=ct.score_delta;
+    document.getElementById('banner').insertAdjacentHTML('afterend',`<div class="banner ${ (ct.signal_changes||[]).length?'warn':'calm'}" style="font-size:12px;font-weight:400"><span style="font-weight:700;font-family:var(--mono)">Δ TODAY</span><span class="dialsub">score ${ct.score_prev??'—'}→${ct.score_now??'—'}${sd!=null?` (${sd>0?'+':''}${sd})`:''} · ${items||'no signal changes'} · vs ${esc((ct.vs||'').slice(0,16))}</span></div>`);
+  }
   // AI brief
   const ai=d.ai_brief||{};
   if(ai.error){document.getElementById('aibrief').innerHTML=`<div class="loading">AI briefing unavailable: ${esc(ai.error)}</div>`;}
@@ -133,8 +166,8 @@ async function load(){
   }
   // charts
   const ch=d.charts||{};
-  const order=['ciss_level','ciss_delta30','real_m1_growth','ea_unemployment','ip_yoy','business_confidence','esi','it_de_spread','ltro_share','eu_us_divergence'];
-  document.getElementById('charts').innerHTML=order.filter(k=>ch[k]).map(k=>chart(ch[k])).join('')||'<div class="loading">history loading…</div>';
+  const order=['ciss_level','ciss_delta30','real_m1_growth','ea_unemployment','unemp_de','unemp_fr','unemp_it','unemp_es','unemp_ch','ip_yoy','business_confidence','esi','it_de_spread','ltro_share','eu_us_divergence'];
+  document.getElementById('charts').innerHTML=order.filter(k=>ch[k]).map(k=>chart(k,ch[k])).join('')||'<div class="loading">history loading…</div>';attachTooltips();
   // event study
   const ev=d.event_study||{};
   if(ev.n_episodes){
@@ -147,32 +180,34 @@ async function load(){
   const cards=[];
   const a=ind.ciss_acceleration;
   if(a&&!a.err){const sc=sigClass(a.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(a.signal)}</span><h2>CISS Acceleration</h2><div class="num">#8 · 30-day Δ of Euro-Area systemic stress</div>
-    ${row('CISS level',a.ciss_level)}${row('Δ 30-day',a.delta_30d)}${row('Δ z-score',a.delta_30d_zscore)}<div class="interp">${esc(a.interpretation||'')}</div></div>`);}
+    ${row('CISS level',a.ciss_level)}${row('Δ 30-day',a.delta_30d)}${row('Δ z-score',a.delta_30d_zscore)}<div class="interp">${esc(a.interpretation||'')}</div>${spark(a.spark)}</div>`);}
   const b=ind.bank_funding_stress;
   if(b&&!b.err){const sc=sigClass(b.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(b.signal)}</span><h2>Bank Funding Stress</h2><div class="num">#5 · MRO/LTRO reliance + MLF spike</div>
-    ${row('LTRO share',b.ltro_share_pct!=null?b.ltro_share_pct+'%':null)}${row('LTRO share 4w ago',b.ltro_share_4w_ago_pct!=null?b.ltro_share_4w_ago_pct+'%':null)}${row('MLF (panic button)','€'+(b.mlf_eur_mn||0)+'mn')}<div class="interp">${esc(b.interpretation||'')}</div></div>`);}
+    ${row('LTRO share',b.ltro_share_pct!=null?b.ltro_share_pct+'%':null)}${row('LTRO share 4w ago',b.ltro_share_4w_ago_pct!=null?b.ltro_share_4w_ago_pct+'%':null)}${row('MLF (panic button)','€'+(b.mlf_eur_mn||0)+'mn')}<div class="interp">${esc(b.interpretation||'')}</div>${spark(b.spark)}</div>`);}
   const c2=ind.eu_us_liquidity_divergence;
   if(c2&&!c2.err){const sc=sigClass(c2.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(c2.signal)}</span><h2>EU/US Liquidity Divergence</h2><div class="num">#18 · ECB vs Fed 6-month liquidity Δ</div>
-    ${row('ECB balance sheet 6m Δ',c2.ecb_balance_sheet_6m_chg_eur_bn!=null?'€'+c2.ecb_balance_sheet_6m_chg_eur_bn+'bn':null)}${row('Fed net-liq 6m Δ',c2.fed_net_liquidity_6m_chg_usd_bn!=null?'$'+c2.fed_net_liquidity_6m_chg_usd_bn+'bn':null)}${row('Divergence',c2.divergence_bn!=null?c2.divergence_bn+'bn':null)}<div class="interp">${esc(c2.interpretation||'')}</div></div>`);}
+    ${row('ECB balance sheet 6m Δ',c2.ecb_balance_sheet_6m_chg_eur_bn!=null?'€'+c2.ecb_balance_sheet_6m_chg_eur_bn+'bn':null)}${row('Fed net-liq 6m Δ',c2.fed_net_liquidity_6m_chg_usd_bn!=null?'$'+c2.fed_net_liquidity_6m_chg_usd_bn+'bn':null)}${row('Divergence',c2.divergence_bn!=null?c2.divergence_bn+'bn':null)}<div class="interp">${esc(c2.interpretation||'')}</div>${spark(c2.spark)}</div>`);}
   const e=ind.bls_credit_standards;
   if(e&&!e.err){const sc=sigClass(e.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(e.signal)}</span><h2>EU Credit Standards</h2><div class="num">#12 · Bank Lending Survey (C&I) — EU SLOOS</div>
-    ${row('Net % tightening',e.net_pct_tightening!=null?e.net_pct_tightening+'%':null)}${row('Prev quarter',e.prev_quarter!=null?e.prev_quarter+'%':null)}${row('As of',e.as_of)}<div class="interp">${esc(e.interpretation||'')}</div></div>`);}
+    ${row('Net % tightening',e.net_pct_tightening!=null?e.net_pct_tightening+'%':null)}${row('Prev quarter',e.prev_quarter!=null?e.prev_quarter+'%':null)}${row('As of',e.as_of)}<div class="interp">${esc(e.interpretation||'')}</div>${spark(e.spark)}</div>`);}
   const p=ind.bank_pass_through_premium;
   if(p&&!p.err){const sc=sigClass(p.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(p.signal)}</span><h2>Bank Pass-Through Premium</h2><div class="num">#14 · NFC lending rate − ECB DFR</div>
-    ${row('NFC lending rate',p.nfc_lending_rate_pct!=null?p.nfc_lending_rate_pct+'%':null)}${row('ECB DFR',p.dfr_pct!=null?p.dfr_pct+'%':null)}${row('Premium',p.premium_pct!=null?p.premium_pct+'pp':null)}${row('3m widening',p.widening_3m_pp!=null?p.widening_3m_pp+'pp':null)}<div class="interp">${esc(p.interpretation||'')}</div></div>`);}
+    ${row('NFC lending rate',p.nfc_lending_rate_pct!=null?p.nfc_lending_rate_pct+'%':null)}${row('ECB DFR',p.dfr_pct!=null?p.dfr_pct+'%':null)}${row('Premium',p.premium_pct!=null?p.premium_pct+'pp':null)}${row('3m widening',p.widening_3m_pp!=null?p.widening_3m_pp+'pp':null)}<div class="interp">${esc(p.interpretation||'')}</div>${spark(p.spark)}</div>`);}
   const t=ind.target2_imbalance;
   if(t&&!t.err){const sc=sigClass(t.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(t.signal)}</span><h2>TARGET2 Imbalance</h2><div class="num">#3 · Bundesbank claim / eurozone fragmentation</div>
-    ${row('Germany position',t.de_target2_eur_mn!=null?'€'+Math.round(t.de_target2_eur_mn/1000)+'bn':null)}${row('Italy position',t.it_target2_eur_mn!=null?'€'+Math.round(t.it_target2_eur_mn/1000)+'bn':null)}${row('3m change',t.de_3m_change_eur_mn!=null?'€'+Math.round(t.de_3m_change_eur_mn/1000)+'bn':null)}<div class="interp">${esc(t.interpretation||'')}</div></div>`);}
+    ${row('Germany position',t.de_target2_eur_mn!=null?'€'+Math.round(t.de_target2_eur_mn/1000)+'bn':null)}${row('Italy position',t.it_target2_eur_mn!=null?'€'+Math.round(t.it_target2_eur_mn/1000)+'bn':null)}${row('3m change',t.de_3m_change_eur_mn!=null?'€'+Math.round(t.de_3m_change_eur_mn/1000)+'bn':null)}<div class="interp">${esc(t.interpretation||'')}</div>${spark(t.spark)}</div>`);}
   const u=ind.usd_funding_stress_composite;
   if(u&&!u.err){const sc=sigClass(u.signal);cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(u.signal)}</span><h2>USD Funding Stress Composite</h2><div class="num">#1 · A030000 + L080000 + Fed swaps (z-scored)</div>
-    ${row('Score',u.score_0_100!=null?u.score_0_100+'/100':null)}${row('Composite z',u.composite_z)}<div class="interp">${esc(u.interpretation||'')}</div></div>`);}
+    ${row('Score',u.score_0_100!=null?u.score_0_100+'/100':null)}${row('Composite z',u.composite_z)}<div class="interp">${esc(u.interpretation||'')}</div>${spark(u.spark)}</div>`);}
   // generic cards for everything else
   const done=new Set(['ciss_acceleration','bank_funding_stress','eu_us_liquidity_divergence','bls_credit_standards','bank_pass_through_premium','target2_imbalance','usd_funding_stress_composite']);
   for(const[k,v]of Object.entries(ind)){
     if(done.has(k)||!v||v.err)continue;
     const sc=sigClass(v.signal);
-    const rows=Object.entries(v).filter(([kk,vv])=>!['name','signal','interpretation','thresholds','err'].includes(kk)&&(typeof vv==='number'||typeof vv==='string')).slice(0,5).map(([kk,vv])=>row(kk.replace(/_/g,' '),vv)).join('');
-    cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(v.signal||'')}</span><h2>${esc(v.name||k.replace(/_/g,' '))}</h2><div class="num">${esc(k)}</div>${rows}<div class="interp">${esc(v.interpretation||'')}</div></div>`);
+    let rows;
+    if(k==='country_unemployment'&&v.countries){rows=Object.entries(v.countries).map(([cc,r])=>row(cc+' · '+r.as_of, r.rate_pct+'% ('+(r.chg_3m_pp>0?'+':'')+r.chg_3m_pp+'pp 3m)')).join('');}
+    else rows=Object.entries(v).filter(([kk,vv])=>!['name','signal','interpretation','thresholds','err','spark'].includes(kk)&&(typeof vv==='number'||typeof vv==='string')).slice(0,5).map(([kk,vv])=>row(kk.replace(/_/g,' '),vv)).join('');
+    cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(v.signal||'')}</span><h2>${esc(v.name||k.replace(/_/g,' '))}</h2><div class="num">${esc(k)}</div>${rows}<div class="interp">${esc(v.interpretation||'')}</div>${spark(v.spark)}</div>`);
   }
   document.getElementById('cards').innerHTML='<div class="grid">'+cards.join('')+'</div>';
   document.getElementById('note').innerHTML=`Updated ${d.generated_at?new Date(d.generated_at).toLocaleString():'recently'} · engine v${esc(d.version)} · charts show full available history with crisis markers (GFC, EZ 2011, COVID, 2022, SVB/CS) · extreme readings (score ≥70) are logged to the closed loop and graded vs SPY on /skill.html · thresholds calibrated to 2008/2011/2020/2023 · Research, not advice.`;

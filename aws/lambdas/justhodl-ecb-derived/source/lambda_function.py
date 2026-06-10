@@ -108,7 +108,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.2.3",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.3.0",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -744,9 +744,9 @@ def lambda_handler(event=None, context=None):
 
     macro_series = {}
 
-    def eurostat_series(dataset, dims, n=400):
-        """Generic Eurostat JSON fetch → sorted [(YYYY-MM, val)]. Tries EA21/EA20/EA."""
-        for geo in ("EA21", "EA20", "EA"):
+    def eurostat_series(dataset, dims, n=400, geos=("EA21", "EA20", "EA")):
+        """Generic Eurostat JSON fetch → sorted [(YYYY-MM, val)]."""
+        for geo in geos:
             try:
                 q = "&".join(f"{k}={v}" for k, v in dims.items())
                 u = ("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/"
@@ -885,6 +885,43 @@ def lambda_handler(event=None, context=None):
                                                    real, {"watch": 0, "critical": -3})
     except Exception as e:
         out["indicators"]["real_m1_growth"] = {"err": str(e)[:60]}
+
+
+    # ── Country unemployment: DE / FR / IT / ES (ECB LFSI) + CH (Eurostat) ──
+    try:
+        cmap = {}
+        for cc in ("DE", "FR", "IT", "ES"):
+            pts = ecb_csv(f"LFSI/M.{cc}.S.UNEHRT.TOTAL0.15_74.T", start="2000-01")
+            if len(pts) > 24:
+                cmap[cc] = pts
+        ch_pts, _src = eurostat_series("une_rt_m", {"s_adj": "SA", "age": "TOTAL",
+                                                     "unit": "PC_ACT", "sex": "T"},
+                                        n=320, geos=("CH",))
+        if len(ch_pts) > 24:
+            cmap["CH"] = ch_pts
+        if cmap:
+            rows, worst = {}, 0.0
+            for cc, pts in cmap.items():
+                vals = [v for _, v in pts]
+                c3 = round(vals[-1] - vals[-4], 2) if len(vals) > 4 else None
+                rows[cc] = {"rate_pct": vals[-1], "chg_3m_pp": c3, "as_of": pts[-1][0]}
+                if c3 is not None:
+                    worst = max(worst, c3)
+                LBL = {"DE": "Germany", "FR": "France", "IT": "Italy",
+                       "ES": "Spain", "CH": "Switzerland"}[cc]
+                macro_series[f"unemp_{cc.lower()}"] = (f"{LBL} unemployment rate (%)",
+                                                        pts, {})
+            sig = ("CRITICAL" if worst >= 0.4 else "WATCH" if worst >= 0.2 else "NORMAL")
+            out["indicators"]["country_unemployment"] = {
+                "name": "Country Unemployment Momentum (DE/FR/IT/ES/CH)",
+                "countries": rows, "worst_3m_rise_pp": round(worst, 2), "signal": sig,
+                "interpretation": ("Per-country Sahm read: any 3m rise ≥+0.2pp WATCH / "
+                                    "≥+0.4pp CRITICAL. Italy & Spain turning up while core "
+                                    "holds = fragmentation-flavored downturn; Switzerland is "
+                                    "the non-EA control."),
+                "thresholds": {"watch_3m_pp": 0.2, "critical_3m_pp": 0.4}}
+    except Exception as e:
+        out["indicators"]["country_unemployment"] = {"err": str(e)[:60]}
 
     # ════════════════════════════════════════════════════════════════════
     # v3.0 — HISTORY CHARTS · EVENT STUDY · COMPOSITE · AI BRIEFING · LOOP
@@ -1092,6 +1129,105 @@ def lambda_handler(event=None, context=None):
                               "coverage_pillars": len(zs_)}
     except Exception as e:
         out["dump_score"] = {"err": str(e)[:60]}
+
+
+    # ── Per-indicator history sparks: every Detail card gets current-vs-history ──
+    def _spark_ctx(pts, cap=70):
+        if len(pts) < 8:
+            return None
+        vals = sorted(v for _, v in pts)
+        cur = pts[-1][1]
+        return {"points": _down([(d_, round(v_, 4)) for d_, v_ in pts], cap),
+                "pctile": round(100.0 * bisect.bisect_left(vals, cur) / len(vals), 1)}
+
+    try:
+        spark_src = {}
+        estrH = ecb_csv("EST/B.EU000A2X2A25.WT", start="2019-10")
+        dfrH = ecb_csv("FM/D.U2.EUR.4F.KR.DFR.LEV", start="2003-01")
+        if estrH and dfrH:
+            dd = dict(dfrH); keys = sorted(dd); last = None; sprd = []
+            for d_, v_ in estrH:
+                j = bisect.bisect_right(keys, d_) - 1
+                if j >= 0:
+                    sprd.append((d_, (v_ - dd[keys[j]]) * 100))
+            spark_src["estr_dfr_dislocation"] = sprd
+        nfcH = ecb_csv("MIR/M.U2.B.A2A.A.R.A.2240.EUR.N", start="2003-01")
+        if nfcH and dfrH:
+            dd = dict(dfrH); keys = sorted(dd)
+            prem = []
+            for d_, v_ in nfcH:
+                j = bisect.bisect_right(keys, d_ + "-28") - 1
+                if j >= 0:
+                    prem.append((d_, v_ - dd[keys[j]]))
+            spark_src["bank_pass_through_premium"] = prem
+        e3m = ecb_csv("FM/M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA", start="2019-10")
+        c3m = ecb_csv("EST/B.EU000A2QQF32.CR", start="2019-10")
+        if e3m and c3m:
+            mm = {}
+            for d_, v_ in c3m:
+                mm.setdefault(d_[:7], []).append(v_)
+            sprd = [(d_, (v_ - sum(mm[d_]) / len(mm[d_])) * 100)
+                    for d_, v_ in e3m if d_ in mm]
+            spark_src["euribor_ois_stress"] = sprd
+        t2 = ecb_csv("TGB/M.DE.N.A094T.U2.EUR.E", start="2007-01")
+        if t2:
+            spark_src["target2_imbalance"] = [(d_, v_ / 1000.0) for d_, v_ in t2]
+        blsH = ecb_csv("BLS/Q.U2.ALL.O.E.Z.B3.ST.S.WFNET", start="2003-01")
+        if blsH:
+            spark_src["bls_credit_standards"] = blsH
+        wg = ecb_csv("STS/Q.U2.N.INWR.000000.3.ANR", start="2000-01")
+        if wg:
+            spark_src["wage_persistence"] = wg
+        nfcL = ecb_csv("BSI/M.U2.Y.U.A20T.A.I.U2.2240.Z01.A", start="2004-01")
+        if nfcL:
+            spark_src["credit_contraction"] = nfcL
+        spf = ecb_csv("SPF/Q.U2.HICP.POINT.LT.Q.AVG", start="2004-01")
+        if spf:
+            spark_src["expectations_deanchoring"] = spf
+        # reuse already-built chart histories where they map 1:1
+        REUSE = {"ciss_acceleration": "ciss_delta30", "bank_funding_stress": "ltro_share",
+                 "fragmentation_stress": "it_de_spread",
+                 "eu_us_liquidity_divergence": "eu_us_divergence",
+                 "eurodollar_stress_index": "esi",
+                 "ea_unemployment": "ea_unemployment",
+                 "ea_industrial_production": "ip_yoy",
+                 "real_m1_growth": "real_m1_growth",
+                 "ea_confidence": "business_confidence"}
+        n_sparks = 0
+        for ik, pts in spark_src.items():
+            sp = _spark_ctx(pts)
+            tgt = out["indicators"].get(ik)
+            if sp and isinstance(tgt, dict) and not tgt.get("err"):
+                tgt["spark"] = sp; n_sparks += 1
+        for ik, cid in REUSE.items():
+            c_ = charts.get(cid)
+            tgt = out["indicators"].get(ik)
+            if c_ and isinstance(tgt, dict) and not tgt.get("err") and "spark" not in tgt:
+                tgt["spark"] = {"points": c_["points"][-70:], "pctile": c_["pctile"]}
+                n_sparks += 1
+        out["n_sparks"] = n_sparks
+    except Exception as e:
+        print(f"[sparks] {str(e)[:80]}")
+
+    # ── What changed today: diff vs the previous brief ──
+    try:
+        prev = json.loads(s3.get_object(Bucket=BUCKET, Key="data/ecb-derived.json")["Body"].read())
+        chg = []
+        for k_, v_ in out["indicators"].items():
+            a_ = ((prev.get("indicators") or {}).get(k_) or {}).get("signal")
+            b_ = (v_ or {}).get("signal")
+            if a_ and b_ and a_ != b_:
+                chg.append({"indicator": k_, "from": a_, "to": b_})
+        p_sc = (prev.get("dump_score") or {}).get("score_0_100")
+        n_sc = (out.get("dump_score") or {}).get("score_0_100")
+        out["changes_today"] = {"signal_changes": chg,
+                                 "score_prev": p_sc, "score_now": n_sc,
+                                 "score_delta": (round(n_sc - p_sc, 1)
+                                                  if isinstance(p_sc, (int, float))
+                                                  and isinstance(n_sc, (int, float)) else None),
+                                 "vs": prev.get("generated_at")}
+    except Exception as e:
+        out["changes_today"] = {"err": str(e)[:60]}
 
     # ── AI briefing (server-side, cached in brief) ──
     try:

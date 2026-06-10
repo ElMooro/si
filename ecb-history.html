@@ -97,7 +97,14 @@ function drawChart(){
   }
   drawChart._tries=0;
   CHART=LightweightCharts.createChart(host,{autoSize:true,layout:{background:{color:'#0c1018'},textColor:'#a8b3c7',fontFamily:"'IBM Plex Mono',monospace"},grid:{vertLines:{color:'#1c2433'},horzLines:{color:'#1c2433'}},rightPriceScale:{borderColor:'#1c2433'},timeScale:{borderColor:'#1c2433'}});
-  let pts=FULL.points.map(p=>({time:p[0],value:p[1]}));
+  function normTime(t){t=String(t);
+    if(/^\d{4}$/.test(t))return t+'-01-01';
+    if(/^\d{4}-\d{2}$/.test(t))return t+'-01';
+    let q=t.match(/^(\d{4})-Q([1-4])$/);if(q)return q[1]+'-'+String((+q[2]-1)*3+1).padStart(2,'0')+'-01';
+    let w=t.match(/^(\d{4})-W(\d{1,2})$/);if(w){const d=new Date(Date.UTC(+w[1],0,4+(+w[2]-1)*7));return d.toISOString().slice(0,10);}
+    return t.slice(0,10);}
+  let seen=new Set();
+  let pts=FULL.points.map(p=>({time:normTime(p[0]),value:p[1]})).filter(p=>p.value!=null&&!seen.has(p.time)&&seen.add(p.time)).sort((x,y)=>x.time<y.time?-1:1);
   if(RANGE!=='MAX'){const yrs={'1Y':1,'5Y':5,'10Y':10}[RANGE];const cut=new Date();cut.setFullYear(cut.getFullYear()-yrs);const cs=cut.toISOString().slice(0,10);pts=pts.filter(p=>p.time>=cs);}
   const line=CHART.addAreaSeries({lineColor:'#a78bfa',topColor:'rgba(167,139,250,0.25)',bottomColor:'rgba(167,139,250,0.02)',lineWidth:2});
   line.setData(pts);
