@@ -1,0 +1,319 @@
+{
+  "ops": 1536,
+  "ts": "2026-06-10T00:35:47.775913+00:00",
+  "n_briefs": 496,
+  "stale_72h": [
+    [
+      "khalid-config.json",
+      2465.9
+    ],
+    [
+      "ka-config.json",
+      1066.6
+    ],
+    [
+      "feedback-summary.json",
+      875.8
+    ],
+    [
+      "history-api-url.json",
+      822.6
+    ],
+    [
+      "user-trades-stats.json",
+      801.2
+    ],
+    [
+      "user-trades.json",
+      801.2
+    ],
+    [
+      "user-watchlist.json",
+      801.2
+    ],
+    [
+      "vol-surface-history.json",
+      600.1
+    ],
+    [
+      "vol-surface.json",
+      600.1
+    ],
+    [
+      "rv-iv-scanner.json",
+      490.8
+    ],
+    [
+      "stablecoin-flow.json",
+      490.7
+    ],
+    [
+      "buyback-scanner.json",
+      490.5
+    ],
+    [
+      "opex-calendar.json",
+      490.5
+    ],
+    [
+      "russell-recon-frontrun.json",
+      490.2
+    ],
+    [
+      "breadth-history.json",
+      489.1
+    ],
+    [
+      "breadth-thrust.json",
+      489.1
+    ],
+    [
+      "vix-backwardation-trigger.json",
+      489.1
+    ],
+    [
+      "vol-target-unwind.json",
+      489.0
+    ],
+    [
+      "insider-buys-enriched.json",
+      488.8
+    ],
+    [
+      "_freshness-status.json",
+      443.4
+    ],
+    [
+      "_freshness-manifest.json",
+      417.3
+    ],
+    [
+      "factor-data-cache.json",
+      402.6
+    ],
+    [
+      "eventbridge-audit.json",
+      394.7
+    ],
+    [
+      "system-audit.json",
+      352.8
+    ],
+    [
+      "fred-cache-secretary.json",
+      295.2
+    ],
+    [
+      "secretary-latest.json",
+      295.2
+    ],
+    [
+      "ka-metrics.json",
+      253.6
+    ],
+    [
+      "ka-analysis.json",
+      253.5
+    ],
+    [
+      "forward-orders.json",
+      224.1
+    ],
+    [
+      "congress-party-map.json",
+      223.4
+    ]
+  ],
+  "checklist": {
+    "backtest_briefs": {
+      "backtest-summary.json": 2.6,
+      "radar-backtest.json": 18.6,
+      "signal-backtest.json": 8.6,
+      "theme-cascade-backtest.json": 1.8
+    },
+    "historical_analogs": {
+      "age_h": 13.6,
+      "keys": [
+        "version",
+        "generated_at",
+        "duration_s",
+        "today",
+        "feature_order",
+        "n_historical_dates_evaluated",
+        "k_neighbors",
+        "analogs",
+        "forward_distribution",
+        "directional_call",
+        "directional_description",
+        "methodology",
+        "data_sources"
+      ],
+      "methodology": "Euclidean distance over rolling 252d z-scores of [vix, 2s10s, HY OAS, USD, 10Y, SPX 1m return]",
+      "analogs": [
+        {
+          "date": "2023-08-24",
+          "distance": 2.66,
+          "similarity": 0.468,
+          "vector": {
+            "vix": -0.64,
+            "twos_tens_bps": -0.56,
+            "hy_oas": -0.64,
+            "usd_index": -0.42,
+            "ten_year_yield": 1.93,
+            "spx_1m_ret": -1.02
+          },
+          "forward_5d_pct": 3.0,
+          "forward_21d_pct": -0.89,
+          "forward_63d_pct": 4.12,
+          "forward_126d_pct": 15.84
+        },
+        {
+          "date": "2023-08-25",
+          "distance": 2.704,
+          "similarity": 0.459,
+          "vector": {
+            "vix": -0.94,
+            "twos_tens_bps": -0.7,
+            "hy_oas": -0.69,
+            "usd_index": -0.33,
+            "ten_year_yield": 1.99,
+            "spx_1m_ret": -0.75
+          },
+          "forward_5d_pct": 2.5,
+          "forward_21d_pct": -3.0,
+          "forward_63d_pct": 3.49,
+          "forward_126d_pct": 15.26
+        }
+      ]
+    },
+    "alert_history": {
+      "age_h": 35.1,
+      "keys": [
+        "version",
+        "alerts",
+        "last_run",
+        "last_run_summary"
+      ]
+    },
+    "alert_briefs": {
+      "_fleet-monitor-alert-history.json": 34.8,
+      "_freshness-alert-history.json": 35.1,
+      "alert-history.json": 35.1,
+      "auction-crisis-alert-state.json": 35.4,
+      "redflag-alerts.json": 35.1
+    },
+    "pnl_attribution_age_h": 21.6,
+    "desk_returns_age_h": 1.1,
+    "vintage_keys": [
+      "data/vintage/BAMLH0A0HYM2.json",
+      "data/vintage/CPIAUCSL.json",
+      "data/vintage/CPILFESL.json",
+      "data/vintage/DGS10.json",
+      "data/vintage/DGS2.json"
+    ],
+    "vol_surface_age_h": 600.1,
+    "opex_age_h": 490.5,
+    "vix_curve_age_h": 36.6,
+    "scorecard": {
+      "age_h": 13.6,
+      "n_rows": 65,
+      "has_by_regime": false,
+      "apex_in_scorecard": false
+    },
+    "kill_switch": "MISSING (ParameterNotFound)",
+    "apex_ddb": {
+      "n_seen": 0,
+      "with_outcomes": 0,
+      "sample_id": null
+    },
+    "global_tide_age_h": 1.0,
+    "apex_fusion_age_h": 1.0,
+    "smart_wake": {
+      "age_h": 0.1,
+      "mode": "SLEEPING",
+      "woken": [],
+      "stress": {
+        "esi": 22.3,
+        "n_flashing": 2,
+        "vix": 21.5,
+        "auction": 7.7
+      }
+    },
+    "ecb_derived_age_h": 0.5,
+    "cascade_validation_age_h": 1.3,
+    "opportunity_calibration_age_h": 1.3
+  },
+  "eb": {
+    "total": 179,
+    "disabled": 62
+  },
+  "cw_48h": {
+    "justhodl-daily-report-v3": {
+      "err": 0,
+      "inv": 4
+    },
+    "justhodl-ai-chat": {
+      "err": 0,
+      "inv": 0
+    },
+    "justhodl-ecb-derived": {
+      "err": 0,
+      "inv": 10
+    },
+    "justhodl-apex-fusion": {
+      "err": 0,
+      "inv": 3
+    },
+    "justhodl-global-tide": {
+      "err": 0,
+      "inv": 2
+    },
+    "justhodl-smart-wake": {
+      "err": 0,
+      "inv": 2
+    },
+    "justhodl-signal-board": {
+      "err": 0,
+      "inv": 12
+    },
+    "justhodl-master-ranker": {
+      "err": 0,
+      "inv": 15
+    },
+    "justhodl-pnl-attribution": {
+      "err": 0,
+      "inv": 2
+    },
+    "justhodl-historical-analogs": {
+      "err": 0,
+      "inv": 2
+    },
+    "justhodl-alert-router": {
+      "err": 0,
+      "inv": 26
+    },
+    "justhodl-backtest-engine": {
+      "err": 0,
+      "inv": 4
+    }
+  },
+  "pages": {
+    "index": "HTTP Error 403: Forbidden",
+    "ecb.html": "HTTP Error 403: Forbidden",
+    "apex.html": "HTTP Error 403: Forbidden",
+    "global-tide.html": "HTTP Error 403: Forbidden",
+    "signal-board.html": "HTTP Error 403: Forbidden",
+    "master-board.html": "HTTP Error 403: Forbidden",
+    "risk-desk.html": "HTTP Error 403: Forbidden",
+    "squeeze.html": "HTTP Error 403: Forbidden",
+    "retail-edges.html": "HTTP Error 403: Forbidden",
+    "best-ideas.html": "HTTP Error 403: Forbidden",
+    "skill.html": "HTTP Error 403: Forbidden",
+    "alerts.html": "HTTP Error 403: Forbidden",
+    "analogs.html": "HTTP Error 403: Forbidden",
+    "backtest.html": "HTTP Error 403: Forbidden",
+    "pnl-attribution.html": "HTTP Error 403: Forbidden",
+    "fundamentals.html": "HTTP Error 403: Forbidden"
+  },
+  "spy_1999": "HTTP Error 403: Forbidden"
+}
