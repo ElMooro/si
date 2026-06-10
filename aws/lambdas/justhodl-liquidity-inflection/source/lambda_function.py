@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.0.2"
+VERSION = "1.1.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -289,6 +289,27 @@ def lambda_handler(event=None, context=None):
         except Exception as e:
             print(f"[signals] {str(e)[:80]}")
 
+    # US money block (brain-gap: M2 30×, real-money mirror of EU real-M1)
+    us_money = None
+    try:
+        m2 = fred("M2SL", "1990-01-01")
+        cpi = fred("CPIAUCSL", "1990-01-01")
+        if len(m2) > 30 and len(cpi) > 30:
+            dm = dict(m2); dc = dict(cpi)
+            common = sorted(set(dm) & set(dc))
+            yy = [(d, (dm[d] / dm[common[i - 12]] - 1) * 100
+                       - (dc[d] / dc[common[i - 12]] - 1) * 100)
+                  for i, d in enumerate(common) if i >= 12]
+            vals = [v for _, v in yy]
+            m_, sd_ = mean(vals[-360:]), stdev(vals[-360:])
+            us_money = {"real_m2_yoy_pct": round(vals[-1], 2),
+                         "z": round((vals[-1] - m_) / sd_, 2) if sd_ else 0,
+                         "as_of": yy[-1][0],
+                         "note": "M2 YoY − CPI YoY; negative real M2 preceded 2008 and the "
+                                 "2022-23 drawdown (brain: track M2/GDP, real money)"}
+    except Exception as e:
+        print(f"[us_money] {str(e)[:60]}")
+
     out = {"engine": "liquidity-inflection", "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1), "availability": avail,
@@ -300,6 +321,7 @@ def lambda_handler(event=None, context=None):
                    "last_flip": usd_flips[-1] if usd_flips else None,
                    "n_flips_10y": len(flips10),
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
+           "us_money": us_money,
            "eur": eur_state, "china": cn_state, "stablecoin": sc_state,
            "stablecoin_schema_hint": sc_schema_hint,
            "event_study_after_flips": studies, "lead_estimates": leads,

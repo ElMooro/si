@@ -1,368 +1,207 @@
 """
-justhodl-market-internals — Bloomberg MMR equivalent.
+justhodl-market-internals v1.0 — Breadth / A-D / McClellan (brain-gap)
+======================================================================
+Brain 34×: "narrow breadth, heavy mega-cap reliance ... ahead of corrections";
+11×: indices at new highs while individual stocks lag. Built market-wide from
+Polygon grouped-daily bars (one call per session, every listed stock):
 
-Daily breadth + internals composite. Uses Polygon grouped daily for S&P 500
-constituents + sector ETFs + FRED for NYSE TICK history.
+  • Advancers/decliners (vs prior close), filtered px>$3 & vol>100k
+  • A/D cumulative line · RANA = (A−D)/(A+D)×1000
+  • McClellan Oscillator (EMA19−EMA39 of RANA) + Summation Index
+  • Zweig Breadth Thrust (10d EMA of A/(A+D): <0.40 → >0.615 within 10 sessions)
 
-Computes:
-  • ADVANCE/DECLINE LINE — cumulative A/D, 5d momentum, 20d momentum
-  • McCLELLAN OSCILLATOR — 19d EMA minus 39d EMA of (Adv − Dec)
-  • McCLELLAN SUMMATION INDEX — cumulative oscillator
-  • % ABOVE MOVING AVERAGES — 50DMA and 200DMA across S&P 500
-  • NEW 52-WK HIGHS vs LOWS
-  • Net volume on advancing vs declining issues (proxy for TRIN)
-
-Output: data/market-internals.json
-  • breadth_score 0-100 (composite of all)
-  • state: STRONG / EXPANDING / NEUTRAL / NARROWING / WASHOUT
-  • per-metric drill-down
-
-Schedule: cron(15 21 ? * MON-FRI *) — daily at 5:15 PM ET after market close.
-
-Telegram alerts:
-  • McClellan oscillator extreme readings (< -100 oversold, > +100 overbought)
-  • Major breadth divergence (price up, A/D line down)
-  • % above 50DMA crossing 70 (overbought) or 30 (oversold)
+History self-accumulates at data/_internals/history.json (first run backfills
+~150 sessions). Oscillator extremes and thrusts log to the closed loop.
 """
-import json
-import os
-import time
-import urllib.request
-import urllib.error
+import json, os, time, urllib.request
 from datetime import datetime, timezone, timedelta
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
+from decimal import Decimal
 import boto3
 
-S3_BUCKET = "justhodl-dashboard-live"
-S3_KEY = "data/market-internals.json"
-S3_KEY_HIST = "data/market-internals-history.json"
-POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
-
-# S&P 500 tickers (subset used as proxy — 100 large + 200 diversified)
-SP500_PROXY = [
-    "AAPL","MSFT","GOOGL","GOOG","AMZN","NVDA","META","TSLA","BRK-B","LLY",
-    "AVGO","V","JPM","WMT","XOM","UNH","MA","JNJ","PG","HD","ORCL","COST",
-    "ABBV","BAC","NFLX","CRM","CVX","KO","TMO","PEP","ADBE","CSCO","ACN","AMD",
-    "WFC","MRK","ABT","NKE","TXN","DIS","LIN","DHR","MCD","NOW","IBM","PM",
-    "INTU","CAT","SPGI","GE","AMGN","RTX","UNP","UBER","NEE","BLK","T","AMAT",
-    "HON","C","BKNG","LRCX","LOW","MS","GS","ETN","COP","BX","TJX","MDT","PLD",
-    "SBUX","DE","SCHW","CB","ELV","ADP","BSX","ANET","KLAC","TT","GILD","REGN",
-    "PGR","PFE","CI","SO","FI","PANW","BMY","MMC","MO","CMCSA","INTC","CVS",
-    "TGT","F","GM","NSC","CSX","FDX","UPS","DAL","AAL","LUV","MAR","HLT","DPZ",
-    "CMG","YUM","MDLZ","CL","KMB","CHD","EL","ULTA","GIS","SJM","WMT","BBY",
-    "ROST","DG","DLTR","USB","PNC","TFC","COF","BK","STT","FITB","HBAN","RF",
-    "CFG","KEY","CMA","MU","ON","QCOM","MRVL","ARM","WDC","STX","BA","LMT","NOC",
-    "GD","VLO","MPC","PSX","SLB","HAL","OXY","DVN","FANG","EOG","APA","VRTX",
-    "ISRG","SYK","ZTS","BDX","DXCM","IDXX","HUM","CNC","MMM","KHC","DLR","EQIX",
-    "PSA","CCI","AMT","CME","ICE","NDAQ","MCO","TROW","BEN","IVZ","NTRS","PRU",
-    "MET","TRV","AIG","ALL","HIG","AFL","CINF","WRB","RE","RGA","BIIB","ALXN",
-    "INCY","ALGN","ILMN","CRL","TMUS","VZ","CHTR","DISH","WBD","FOX","FOXA","CMCSK",
-    "PARA","SIRI","LYV","TTWO","EA","WBA","WAB","WAT","WCN","WEC","WFC","WHR",
-    "WMB","WST","WTW","WY","WYNN","XEL","XYL","YUM","ZBH","ZBRA","ZTS",
-]
-# Dedupe
-SP500_PROXY = sorted(set(SP500_PROXY))
-
-s3 = boto3.client("s3", region_name="us-east-1")
+S3 = boto3.client("s3", region_name="us-east-1")
+DDB = boto3.resource("dynamodb", region_name="us-east-1")
+BUCKET = "justhodl-dashboard-live"
+OUT_KEY = "data/market-internals.json"
+HIST_KEY = "data/_internals/history.json"
+POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+VERSION = "1.0.0"
+BACKFILL_SESSIONS = 150
 
 
-def http_get(url, timeout=20, retries=1):
-    for a in range(retries+1):
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                return json.loads(r.read())
-        except urllib.error.HTTPError as e:
-            if e.code in (429, 503) and a < retries:
-                time.sleep(2); continue
-            return None
-        except Exception:
-            if a < retries:
-                time.sleep(1); continue
-            return None
-
-
-def get_s3_json(key, default=None):
+def grouped(date):
+    u = (f"https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{date}"
+         f"?adjusted=true&apiKey={POLY_KEY}")
     try:
-        obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
-        return json.loads(obj["Body"].read())
-    except Exception:
-        return default
-
-
-def put_s3_json(key, body, cache="public, max-age=900"):
-    s3.put_object(Bucket=S3_BUCKET, Key=key,
-                   Body=json.dumps(body, default=str).encode("utf-8"),
-                   ContentType="application/json", CacheControl=cache)
-
-
-def fetch_grouped_daily(date_iso):
-    """Polygon grouped daily for a single date — all US tickers."""
-    if not POLYGON_KEY: return None
-    url = (f"https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/"
-           f"{date_iso}?adjusted=true&apiKey={POLYGON_KEY}")
-    data = http_get(url)
-    if not data or "results" not in data:
-        return None
-    return data["results"]
-
-
-def fetch_aggs(ticker, days_back=210):
-    """Polygon daily bars for one ticker."""
-    if not POLYGON_KEY: return None
-    end = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    start = (datetime.now(timezone.utc) - timedelta(days=days_back)).strftime("%Y-%m-%d")
-    url = (f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/"
-           f"{start}/{end}?adjusted=true&apiKey={POLYGON_KEY}")
-    data = http_get(url)
-    if not data or "results" not in data:
-        return None
-    return data["results"]
-
-
-def previous_market_day(d):
-    """Move back until not weekend."""
-    while d.weekday() >= 5:
-        d -= timedelta(days=1)
-    return d
-
-
-def lambda_handler(event, context):
-    t0 = time.time()
-    print(f"[internals] starting universe={len(SP500_PROXY)}")
-    if not POLYGON_KEY:
-        return {"statusCode": 500, "body": json.dumps({"err": "POLYGON_KEY missing"})}
-
-    prior = get_s3_json(S3_KEY, {}) or {}
-
-    # Fetch most-recent two days of grouped daily
-    today = previous_market_day(datetime.now(timezone.utc).date())
-    yesterday = previous_market_day(today - timedelta(days=1))
-
-    day0 = fetch_grouped_daily(today.isoformat()) or []
-    day1 = fetch_grouped_daily(yesterday.isoformat()) or []
-    print(f"[internals] day0={len(day0)} day1={len(day1)}")
-
-    # Build map by ticker
-    by_t0 = {r.get("T"): r for r in day0}
-    by_t1 = {r.get("T"): r for r in day1}
-
-    # Limit to S&P proxy
-    universe = [t for t in SP500_PROXY if t in by_t0 and t in by_t1]
-    advances = declines = unchanged = 0
-    adv_volume = dec_volume = 0
-    advancing = []
-    declining = []
-    for t in universe:
-        d0 = by_t0[t]; d1 = by_t1[t]
-        chg = (d0.get("c", 0) or 0) - (d1.get("c", 0) or 0)
-        vol = d0.get("v", 0) or 0
-        if chg > 0:
-            advances += 1; adv_volume += vol; advancing.append((t, chg))
-        elif chg < 0:
-            declines += 1; dec_volume += vol; declining.append((t, chg))
-        else:
-            unchanged += 1
-
-    ad_diff = advances - declines
-    ad_ratio = advances / max(1, declines)
-    trin_proxy = (advances / max(1, declines)) / max(0.001, adv_volume / max(1, dec_volume))
-
-    # % above 50DMA / 200DMA — fetch per-ticker bars for subset (top 100 by mcap proxy)
-    pct_above_50 = pct_above_200 = None
-    n_above_50 = n_above_200 = n_with_bars = 0
-    n_52w_high = n_52w_low = 0
-
-    def check_one(t):
-        bars = fetch_aggs(t, days_back=260)
-        if not bars or len(bars) < 200:
-            return None
-        closes = [b.get("c") for b in bars if b.get("c")]
-        if len(closes) < 200: return None
-        ma50 = sum(closes[-50:]) / 50
-        ma200 = sum(closes[-200:]) / 200
-        latest = closes[-1]
-        hi52 = max(closes[-252:]) if len(closes) >= 252 else max(closes)
-        lo52 = min(closes[-252:]) if len(closes) >= 252 else min(closes)
-        return {
-            "ticker": t, "latest": latest, "ma50": ma50, "ma200": ma200,
-            "is_above_50": latest > ma50, "is_above_200": latest > ma200,
-            "is_52w_high": latest >= hi52 * 0.99,
-            "is_52w_low": latest <= lo52 * 1.01,
-        }
-
-    # Subset to top 100 to control API calls
-    subset = SP500_PROXY[:100]
-    bar_results = []
-    with ThreadPoolExecutor(max_workers=8) as ex:
-        futs = {ex.submit(check_one, t): t for t in subset}
-        for f in as_completed(futs):
-            try:
-                r = f.result()
-                if r: bar_results.append(r)
-            except Exception: pass
-
-    if bar_results:
-        n_with_bars = len(bar_results)
-        n_above_50 = sum(1 for r in bar_results if r["is_above_50"])
-        n_above_200 = sum(1 for r in bar_results if r["is_above_200"])
-        n_52w_high = sum(1 for r in bar_results if r["is_52w_high"])
-        n_52w_low = sum(1 for r in bar_results if r["is_52w_low"])
-        pct_above_50 = round(100 * n_above_50 / n_with_bars, 1)
-        pct_above_200 = round(100 * n_above_200 / n_with_bars, 1)
-
-    # McClellan oscillator (load history, append today, compute EMAs)
-    hist = get_s3_json(S3_KEY_HIST, {}) or {}
-    snapshots = hist.get("snapshots", [])
-    snapshots.append({
-        "date": today.isoformat(),
-        "advances": advances, "declines": declines,
-        "ad_diff": ad_diff,
-    })
-    # Keep last 60 trading days
-    snapshots = snapshots[-60:]
-
-    def ema(vals, period):
-        if len(vals) < period: return None
-        k = 2 / (period + 1)
-        e = sum(vals[:period]) / period
-        for v in vals[period:]:
-            e = v * k + e * (1 - k)
-        return e
-
-    ad_diffs = [s["ad_diff"] for s in snapshots]
-    ema19 = ema(ad_diffs, 19)
-    ema39 = ema(ad_diffs, 39)
-    mcclellan = round(ema19 - ema39, 1) if (ema19 is not None and ema39 is not None) else None
-
-    # Summation Index — cumulative McClellan
-    summation_index = hist.get("summation_index", 0)
-    if mcclellan is not None:
-        summation_index = round((summation_index or 0) + mcclellan, 1)
-
-    # Save history
-    put_s3_json(S3_KEY_HIST, {
-        "snapshots": snapshots, "summation_index": summation_index,
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-    }, cache="public, max-age=600")
-
-    # Composite breadth score 0-100
-    score = 50
-    reasons = []
-    if pct_above_50 is not None:
-        if pct_above_50 > 70: score += 15; reasons.append(f"{pct_above_50:.0f}% > 50DMA (strong)")
-        elif pct_above_50 > 55: score += 8
-        elif pct_above_50 < 30: score -= 15; reasons.append(f"{pct_above_50:.0f}% > 50DMA (weak)")
-        elif pct_above_50 < 45: score -= 8
-    if pct_above_200 is not None:
-        if pct_above_200 > 65: score += 10
-        elif pct_above_200 < 35: score -= 10
-    if mcclellan is not None:
-        if mcclellan > 50: score += 8; reasons.append(f"McClellan +{mcclellan:.0f} (breadth expanding)")
-        elif mcclellan < -50: score -= 8; reasons.append(f"McClellan {mcclellan:.0f} (breadth contracting)")
-        elif mcclellan > 100: score += 12  # overheated but bullish
-        elif mcclellan < -100: score -= 12
-    if ad_ratio > 2:
-        score += 5; reasons.append(f"A/D {ad_ratio:.1f}:1 (broad rally)")
-    elif ad_ratio < 0.5:
-        score -= 5; reasons.append(f"A/D {ad_ratio:.1f}:1 (broad selloff)")
-    if n_52w_high > 0 and n_with_bars > 0:
-        hl_diff = n_52w_high - n_52w_low
-        if hl_diff > 8: score += 6
-        elif hl_diff < -8: score -= 6
-
-    score = max(0, min(100, score))
-    state = ("STRONG" if score >= 70 else
-              "EXPANDING" if score >= 55 else
-              "NEUTRAL" if score >= 45 else
-              "NARROWING" if score >= 30 else
-              "WASHOUT")
-
-    output = {
-        "schema_version": "1.0",
-        "method": "market_internals_v1",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "for_date": today.isoformat(),
-        "breadth_score": round(score, 1),
-        "state": state,
-        "reasons": reasons,
-        "ad_line": {
-            "advances": advances, "declines": declines, "unchanged": unchanged,
-            "ad_ratio": round(ad_ratio, 2),
-            "ad_diff_today": ad_diff,
-            "advancing_volume": adv_volume, "declining_volume": dec_volume,
-            "trin_proxy": round(trin_proxy, 3) if trin_proxy else None,
-        },
-        "mcclellan": {
-            "oscillator": mcclellan,
-            "summation_index": summation_index,
-            "ema19": round(ema19, 1) if ema19 is not None else None,
-            "ema39": round(ema39, 1) if ema39 is not None else None,
-            "interpretation": (
-                f"Overbought" if mcclellan and mcclellan > 100 else
-                f"Oversold" if mcclellan and mcclellan < -100 else
-                f"Bull momentum" if mcclellan and mcclellan > 50 else
-                f"Bear momentum" if mcclellan and mcclellan < -50 else
-                f"Neutral"
-            ),
-        },
-        "moving_averages": {
-            "pct_above_50dma": pct_above_50,
-            "pct_above_200dma": pct_above_200,
-            "n_with_bars": n_with_bars,
-        },
-        "highs_lows": {
-            "n_52w_highs": n_52w_high,
-            "n_52w_lows": n_52w_low,
-            "hl_diff": n_52w_high - n_52w_low,
-        },
-        "duration_s": round(time.time()-t0, 1),
-    }
-
-    put_s3_json(S3_KEY, output)
-    print(f"[internals] breadth={score:.1f} state={state} mcclellan={mcclellan}")
-
-    # ─── ALERTS ───────────────────────────────────────────────────────
-    try:
-        def tg(msg):
-            if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-                print(f"[tg] no creds: {msg[:80]}"); return
-            body = json.dumps({
-                "chat_id": TELEGRAM_CHAT_ID, "text": msg,
-                "parse_mode": "HTML", "disable_web_page_preview": True,
-            }).encode("utf-8")
-            req = urllib.request.Request(
-                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
-                data=body, headers={"Content-Type": "application/json"})
-            urllib.request.urlopen(req, timeout=10).read()
-
-        prior_state = prior.get("state")
-        if prior_state and prior_state != state:
-            tg(f"📊 <b>BREADTH STATE CHANGE</b>\n"
-                f"{prior_state} → <b>{state}</b> · score {output['breadth_score']:.0f}\n"
-                f"% above 50DMA: {pct_above_50}\n"
-                f"McClellan: {mcclellan} ({output['mcclellan']['interpretation']})")
-
-        # Extreme McClellan
-        prior_mc = (prior.get("mcclellan") or {}).get("oscillator")
-        if mcclellan and mcclellan > 100 and (prior_mc is None or prior_mc <= 100):
-            tg(f"🔥 <b>McCLELLAN OVERBOUGHT</b> {mcclellan:+.0f}\n"
-                f"Historically: short-term tops form within 1-3 weeks.")
-        elif mcclellan and mcclellan < -100 and (prior_mc is None or prior_mc >= -100):
-            tg(f"💎 <b>McCLELLAN OVERSOLD</b> {mcclellan:+.0f}\n"
-                f"Historically: short-term bottoms within 1-3 weeks.")
+        j = json.loads(urllib.request.urlopen(u, timeout=50).read())
+        return {r["T"]: (float(r["c"]), float(r.get("v") or 0))
+                for r in (j.get("results") or []) if r.get("c")}
     except Exception as e:
-        print(f"[alerts] err: {e}")
+        print(f"[grouped] {date}: {str(e)[:50]}")
+        return {}
 
-    return {
-        "statusCode": 200,
-        "headers": {"Content-Type": "application/json"},
-        "body": json.dumps({
-            "ok": True, "breadth_score": round(score, 1), "state": state,
-            "mcclellan": mcclellan, "ad_ratio": round(ad_ratio, 2),
-            "duration_s": round(time.time()-t0, 1),
-        }),
-    }
+
+def ema(series, n):
+    k = 2.0 / (n + 1)
+    out, e = [], None
+    for v in series:
+        e = v if e is None else v * k + e * (1 - k)
+        out.append(e)
+    return out
+
+
+def lambda_handler(event=None, context=None):
+    t0 = time.time()
+    hist = {"rows": []}
+    try:
+        hist = json.loads(S3.get_object(Bucket=BUCKET, Key=HIST_KEY)["Body"].read())
+    except Exception:
+        pass
+    have = {r["date"] for r in hist["rows"]}
+
+    # sessions to (back)fill
+    today = datetime.now(timezone.utc).date()
+    cands = []
+    d = today
+    need = BACKFILL_SESSIONS if len(hist["rows"]) < 30 else 6
+    while len(cands) < need + 2:
+        d -= timedelta(days=1)
+        if d.weekday() < 5:
+            cands.append(d.isoformat())
+    cands = [c for c in reversed(cands) if c not in have]
+
+    prev_map = None
+    if hist["rows"]:
+        prev_map = None  # will fetch the session before the first new one
+    new_rows, fetched = [], 0
+    for i, ds in enumerate(cands):
+        if time.time() - t0 > 460:
+            print("[internals] time budget — resuming next run")
+            break
+        cur = grouped(ds)
+        fetched += 1
+        if not cur:
+            continue
+        if prev_map is None:
+            # find prior session map
+            pd_ = datetime.fromisoformat(ds).date()
+            for _ in range(6):
+                pd_ -= timedelta(days=1)
+                if pd_.weekday() < 5:
+                    prev_map = grouped(pd_.isoformat())
+                    fetched += 1
+                    if prev_map:
+                        break
+            if not prev_map:
+                prev_map = cur
+                continue
+        adv = dec = 0
+        for t, (c, v) in cur.items():
+            p = prev_map.get(t)
+            if not p:
+                continue
+            pc, _pv = p
+            if c < 3 or v < 100_000 or pc <= 0:
+                continue
+            if c > pc:
+                adv += 1
+            elif c < pc:
+                dec += 1
+        tot = adv + dec
+        if tot > 800:
+            new_rows.append({"date": ds, "adv": adv, "dec": dec,
+                              "rana": round((adv - dec) / tot * 1000, 1),
+                              "pct_adv": round(adv / tot, 4)})
+        prev_map = cur
+
+    if new_rows:
+        hist["rows"] = sorted(hist["rows"] + new_rows, key=lambda r: r["date"])[-420:]
+        S3.put_object(Bucket=BUCKET, Key=HIST_KEY, Body=json.dumps(hist).encode(),
+                      ContentType="application/json")
+
+    rows = hist["rows"]
+    out = {"engine": "market-internals", "version": VERSION,
+           "generated_at": datetime.now(timezone.utc).isoformat(),
+           "duration_s": round(time.time() - t0, 1),
+           "sessions": len(rows), "fetched_this_run": fetched,
+           "brain_audit_source": "ops-1580"}
+    if len(rows) >= 40:
+        rana = [r["rana"] for r in rows]
+        e19, e39 = ema(rana, 19), ema(rana, 39)
+        osc = [round(a - b, 1) for a, b in zip(e19, e39)]
+        summ = []
+        s_ = 0.0
+        for o_ in osc:
+            s_ += o_
+            summ.append(round(s_, 0))
+        pa10 = ema([r["pct_adv"] for r in rows], 10)
+        # Zweig thrust: <0.40 → >0.615 within 10 sessions
+        thrust_date = None
+        for i in range(len(pa10) - 1, max(0, len(pa10) - 40), -1):
+            if pa10[i] > 0.615:
+                for j in range(max(0, i - 10), i):
+                    if pa10[j] < 0.40:
+                        thrust_date = rows[i]["date"]
+                        break
+            if thrust_date:
+                break
+        ad_line = []
+        c_ = 0
+        for r in rows:
+            c_ += r["adv"] - r["dec"]
+            ad_line.append([r["date"], c_])
+        latest = rows[-1]
+        osc_now = osc[-1]
+        state = ("WASHOUT" if osc_now <= -100 else "OVERSOLD" if osc_now <= -70
+                  else "OVERBOUGHT" if osc_now >= 70 else "NEUTRAL")
+        out.update({
+            "latest": {"date": latest["date"], "advancers": latest["adv"],
+                        "decliners": latest["dec"], "rana": latest["rana"]},
+            "mcclellan": {"oscillator": osc_now, "summation": summ[-1], "state": state,
+                           "spec": "±70 stretch, ±100 washout/blowoff (brain: breadth "
+                                   "narrows ahead of corrections)"},
+            "zweig_thrust": {"fired": bool(thrust_date), "date": thrust_date,
+                              "ema10_pct_adv": round(pa10[-1], 3),
+                              "spec": "<0.40→>0.615 in ≤10 sessions = rare bull thrust"},
+            "ad_line_tail": ad_line[-180:],
+            "oscillator_tail": [[rows[i]["date"], osc[i]] for i in range(max(0, len(osc) - 180), len(osc))]})
+
+        # closed loop: washout (contrarian UP) or fresh thrust (UP)
+        sig = None
+        if osc_now <= -100:
+            sig = ("internals-washout", "UP", 0.58,
+                   f"McClellan {osc_now} washout — breadth capitulation, contrarian long")
+        elif thrust_date and thrust_date >= rows[-3]["date"]:
+            sig = ("internals-thrust", "UP", 0.62,
+                   f"Zweig breadth thrust {thrust_date} — historically near-perfect 6-12m record")
+        elif osc_now >= 100:
+            sig = ("internals-blowoff", "DOWN", 0.55, f"McClellan {osc_now} blowoff stretch")
+        if sig:
+            try:
+                spy = grouped(latest["date"]).get("SPY")
+                px0 = spy[0] if spy else None
+                if px0:
+                    nowt = datetime.now(timezone.utc)
+                    kind, dr, cf, why = sig
+                    DDB.Table("justhodl-signals").put_item(Item={
+                        "signal_id": f"{kind}#US#{latest['date']}",
+                        "signal_type": "market_internals", "signal_value": str(osc_now),
+                        "predicted_direction": dr, "confidence": Decimal(str(cf)),
+                        "measure_against": "ticker", "baseline_price": str(px0),
+                        "benchmark": "SPY", "check_windows": ["day_5", "day_21", "day_63"],
+                        "check_timestamps": {f"day_{w}": (nowt + timedelta(days=w)).isoformat()
+                                              for w in (5, 21, 63)},
+                        "outcomes": {}, "accuracy_scores": {},
+                        "logged_at": nowt.isoformat(), "logged_epoch": int(nowt.timestamp()),
+                        "status": "pending", "schema_version": "2",
+                        "horizon_days_primary": 21, "regime_at_log": state,
+                        "ttl": int(nowt.timestamp()) + 120 * 86400,
+                        "metadata": {"engine": "market-internals", "v": VERSION,
+                                     "kind": kind},
+                        "rationale": why})
+                    out["signal_logged"] = kind
+            except Exception as e:
+                print(f"[loop] {str(e)[:70]}")
+    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=1800")
+    print(f"[internals] sessions={len(rows)} osc={out.get('mcclellan',{}).get('oscillator')} {out['duration_s']}s")
+    return {"statusCode": 200, "body": json.dumps({"sessions": len(rows)})}

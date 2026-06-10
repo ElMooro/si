@@ -28,7 +28,7 @@ HIST_KEY = "data/_canaries/history.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
-VERSION = "1.0.1"
+VERSION = "2.0.0"
 
 
 def hj(url, timeout=30):
@@ -185,6 +185,130 @@ def lambda_handler(event=None, context=None):
     if rev:
         canaries["revision_nowcast"] = rev
 
+
+    # ── BRAIN-GAP CANARIES (v2.0, from Khalid's brain audit ops-1580) ──
+    # C7: MOVE-proxy — brain 74×: "key thing to watch if the Fed is gonna intervene
+    #     is the MOVE index and overall treasury liquidity conditions". No free MOVE
+    #     feed → honest proxy: 20d realized vol of the 10y yield, 3y z.
+    try:
+        g10 = fred("DGS10", "2018-01-01")
+        if len(g10) > 60:
+            ch = [g10[i][1] - g10[i - 1][1] for i in range(1, len(g10))]
+            rv = []
+            for i in range(20, len(ch)):
+                w = ch[i - 20:i]
+                m_ = mean(w)
+                rv.append((sum((x - m_) ** 2 for x in w) / 20) ** 0.5 * 15.87)  # ~annualized bp
+            canaries["treasury_vol_proxy"] = {
+                "rv20_bp_ann": round(rv[-1] * 100, 1), "z": zlast(rv, 756),
+                "as_of": g10[-1][0],
+                "note": "MOVE-proxy: 20d realized vol of DGS10 (no free MOVE feed)"}
+            avail["treasury_vol_proxy"] = True
+            if (canaries["treasury_vol_proxy"]["z"] or 0) >= 2:
+                alerts.append(f"Treasury vol proxy z {canaries['treasury_vol_proxy']['z']} — "
+                              "Fed-intervention watch (brain: MOVE spike precedes backstops)")
+    except Exception as e:
+        avail["treasury_vol_proxy"] = False; print(f"[c7] {str(e)[:50]}")
+
+    # C8: CP−bill spread — brain 37×: the 2008-style wholesale-funding canary.
+    try:
+        cp = dict(fred("DCPF3M", "2019-01-01") or fred("CPF3M", "2019-01-01"))
+        tb = dict(fred("DTB3", "2019-01-01"))
+        sprd = [(d_, (cp[d_] - tb[d_]) * 100) for d_ in sorted(set(cp) & set(tb))]
+        if len(sprd) > 60:
+            vals = [v for _, v in sprd]
+            canaries["cp_bill_spread"] = {"spread_bp": round(vals[-1], 1),
+                                           "z": zlast(vals, 504), "as_of": sprd[-1][0]}
+            avail["cp_bill_spread"] = True
+            if (canaries["cp_bill_spread"]["z"] or 0) >= 2.5:
+                alerts.append(f"CP−bill spread {vals[-1]:.0f}bp (z) — wholesale funding stress")
+    except Exception as e:
+        avail["cp_bill_spread"] = False; print(f"[c8] {str(e)[:50]}")
+
+    # C9: MMF assets — brain 56×: flight-to-cash / wholesale lenders' war chest.
+    try:
+        mm = None
+        for sid in ("WRMFSL", "MMMFFAQ027S", "WIMFSL"):
+            o = fred(sid, "2019-01-01")
+            if len(o) > 24:
+                mm = (sid, o); break
+        if mm:
+            sid, o = mm
+            vals = [v for _, v in o]
+            d4 = [vals[i] - vals[i - 4] for i in range(4, len(vals))]
+            canaries["mmf_assets"] = {"series": sid, "level_bn": round(vals[-1], 0),
+                                       "chg_4obs": round(d4[-1], 0),
+                                       "surge_z": zlast(d4, 156), "as_of": o[-1][0]}
+            avail["mmf_assets"] = True
+            if (canaries["mmf_assets"]["surge_z"] or 0) >= 2.5:
+                alerts.append("MMF asset surge — flight to cash underway")
+    except Exception as e:
+        avail["mmf_assets"] = False; print(f"[c9] {str(e)[:50]}")
+
+    # C10: Floor spreads — SOFR−IORB & EFFR−SOFR (free slice of the brain's
+    #      67×-mentioned dollar-shortage / xccy-basis complex).
+    try:
+        sofr = dict(fred("SOFR", "2021-01-01")); iorb = dict(fred("IORB", "2021-01-01"))
+        effr = dict(fred("EFFR", "2021-01-01"))
+        si = [(d_, (sofr[d_] - iorb[d_]) * 100) for d_ in sorted(set(sofr) & set(iorb))]
+        es = [(d_, (effr[d_] - sofr[d_]) * 100) for d_ in sorted(set(effr) & set(sofr))]
+        if si:
+            v1 = [v for _, v in si]; v2 = [v for _, v in es]
+            canaries["floor_spreads"] = {"sofr_iorb_bp": round(v1[-1], 1),
+                                          "sofr_iorb_z": zlast(v1, 504),
+                                          "effr_sofr_bp": round(v2[-1], 1) if v2 else None,
+                                          "as_of": si[-1][0]}
+            avail["floor_spreads"] = True
+            if v1[-1] >= 5:
+                alerts.append(f"SOFR−IORB +{v1[-1]:.0f}bp — repo pressing through the floor "
+                              "(Sept-2019 signature)")
+    except Exception as e:
+        avail["floor_spreads"] = False; print(f"[c10] {str(e)[:50]}")
+
+    # C11: Bank reserves — brain 86×: "great barometer for liquidity".
+    try:
+        wr = fred("WRESBAL", "2018-01-01")
+        if len(wr) > 30:
+            vals = [v for _, v in wr]
+            d13 = [vals[i] - vals[i - 13] for i in range(13, len(vals))]
+            canaries["bank_reserves"] = {"level_bn": round(vals[-1], 0),
+                                          "chg_13w_bn": round(d13[-1], 0),
+                                          "drain_z": zlast(d13, 260), "as_of": wr[-1][0]}
+            avail["bank_reserves"] = True
+            if (canaries["bank_reserves"]["drain_z"] or 0) <= -2:
+                alerts.append(f"Bank reserves draining (13w z {canaries['bank_reserves']['drain_z']}) "
+                              "— the liquidity barometer is falling")
+    except Exception as e:
+        avail["bank_reserves"] = False; print(f"[c11] {str(e)[:50]}")
+
+    # C12: Primary-dealer UST fails — brain 26×: collateral-scarcity tell.
+    #      NY Fed PD API, series discovered at runtime (probe-tolerant).
+    try:
+        ts = hj("https://markets.newyorkfed.org/api/pd/list/timeseries.json", 30)
+        rows = (ts or {}).get("pd", {}).get("timeseries", []) if isinstance(ts, dict) else []
+        cand = [r.get("keyid") for r in rows
+                if "fail" in str(r.get("description", "")).lower()
+                and "deliver" in str(r.get("description", "")).lower()
+                and "treasur" in str(r.get("description", "")).lower()][:2]
+        pdser = None
+        for kid in cand:
+            j2 = hj(f"https://markets.newyorkfed.org/api/pd/get/{kid}.json", 30)
+            obs = (j2 or {}).get("pd", {}).get("timeseries", [])
+            pts = [(o_.get("asofdate"), float(o_.get("value")))
+                   for o_ in obs if o_.get("value") not in (None, "", "*")]
+            if len(pts) > 30:
+                pdser = (kid, sorted(pts)); break
+        if pdser:
+            kid, pts = pdser
+            vals = [v for _, v in pts]
+            canaries["pd_fails"] = {"series": kid, "level_mn": round(vals[-1], 0),
+                                     "z": zlast(vals, 156), "as_of": pts[-1][0]}
+            avail["pd_fails"] = True
+            if (canaries["pd_fails"]["z"] or 0) >= 2.5:
+                alerts.append("Primary-dealer UST fails spiking — collateral scarcity")
+    except Exception as e:
+        avail["pd_fails"] = False; print(f"[c12] {str(e)[:50]}")
+
     # ── composite (coverage-honest) ──
     parts = []
     st = (canaries.get("sofr_tail") or {}).get("z")
@@ -200,6 +324,15 @@ def lambda_handler(event=None, context=None):
         parts.append(("auc", 1.5))
     if rev and rev["all_negative_last4"]:
         parts.append(("rev", 1.5))
+    for ck, fld, inv in (("treasury_vol_proxy", "z", False), ("cp_bill_spread", "z", False),
+                          ("mmf_assets", "surge_z", False), ("bank_reserves", "drain_z", True),
+                          ("pd_fails", "z", False)):
+        zz = (canaries.get(ck) or {}).get(fld)
+        if zz is not None:
+            parts.append((ck[:6], max(0, -zz if inv else zz)))
+    fs = (canaries.get("floor_spreads") or {}).get("sofr_iorb_bp")
+    if fs is not None:
+        parts.append(("floor", max(0, fs / 3.0)))
     score = round(min(100, max(0, (sum(v for _, v in parts) / max(1, len(parts))) * 28)), 1) if parts else None
     level = ("ACUTE" if (score or 0) >= 70 else "ELEVATED" if (score or 0) >= 45
              else "WATCH" if (score or 0) >= 25 else "CALM")
