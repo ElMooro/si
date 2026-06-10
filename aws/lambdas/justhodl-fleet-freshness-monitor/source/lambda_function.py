@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 from botocore.exceptions import ClientError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 ACCOUNT = '857687956942'
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
@@ -223,6 +223,24 @@ def lambda_handler(event=None, context=None):
     # Dedupe alerts
     history = load_alert_history()
     new_alerts = [r for r in stale if should_alert(r['key'], history)]
+
+    # v1.2 escalation: persistent staleness must not hide behind dedupe.
+    # If anything is >3x past its SLA (or >=10 keys stale), send an un-deduped
+    # digest at most once per 6h via the '_escalation' history slot.
+    try:
+        critical = [r for r in stale if r.get('age_h', 0) > 3 * r.get('max_age_h', 26)]
+        now_ts = datetime.now(timezone.utc).timestamp()
+        last_esc = history.get('_escalation', 0)
+        if (critical or len(stale) >= 10) and now_ts - last_esc > 6 * 3600:
+            worst = sorted(stale, key=lambda r: -r.get('age_h', 0))[:8]
+            lines = [f"🚨 *FRESHNESS ESCALATION* — {len(stale)} stale ({len(critical)} critical >3×SLA)"]
+            for r in worst:
+                lines.append(f"• `{r['key']}` {r['age_h']:.0f}h (SLA {r.get('max_age_h')}h)")
+            send_telegram("\n".join(lines))
+            history['_escalation'] = now_ts
+    except Exception as e:
+        print(f"[escalation] {e}")
+
     suppressed = len(stale) - len(new_alerts)
     
     # Send digest
