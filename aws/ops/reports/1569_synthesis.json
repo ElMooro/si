@@ -1,0 +1,96 @@
+{
+  "ops": 1569,
+  "errors": [],
+  "bottleneck_rank0_keys": [
+    "boom_score",
+    "group_pressure",
+    "industry",
+    "inv_turnover",
+    "mkt_cap",
+    "name",
+    "pressure_group",
+    "ps_ttm",
+    "rev_accel_pp",
+    "rev_growth_yoy",
+    "rev_to_mcap_pct",
+    "sector"
+  ],
+  "bottleneck_score_field": "boom_score",
+  "registry_contexts_uploaded": 46,
+  "fn_err": "NONE",
+  "new_feeds": {
+    "Ignition": null,
+    "Bottleneck": null,
+    "Crisis Canaries": null,
+    "Liquidity Inflection": null,
+    "Confluence": null,
+    "Crisis-KB": null,
+    "EU Dump": null,
+    "Inclusion": null
+  },
+  "board_top_keys": [
+    "categories",
+    "composite_posture",
+    "composite_signal",
+    "elapsed_s",
+    "engines",
+    "generated_at",
+    "method",
+    "n_engines",
+    "n_live",
+    "n_stale",
+    "note",
+    "schema_version"
+  ],
+  "composite": {
+    "composite_signal": 0.02,
+    "categories": {
+      "positioning": {
+        "signal": 0.2,
+        "n": 5
+      },
+      "relative value": {
+        "signal": 0.0,
+        "n": 1
+      },
+      "equity valuation": {
+        "signal": 0.0,
+        "n": 3
+      },
+      "macro": {
+        "signal": -0.25,
+        "n": 12
+      },
+      "smart money": {
+        "signal": 0.0,
+        "n": 7
+      },
+      "volatility": {
+        "signal": 0.0,
+        "n": 7
+      },
+      "events": {
+        "signal": 0.25,
+        "n": 4
+      },
+      "crypto": {
+        "signal": 0.0,
+        "n": 3
+      },
+      "equity tactical": {
+        "signal": 0.11,
+        "n": 9
+      },
+      "risk avoidance": {
+        "signal": 0.0,
+        "n": 1
+      },
+      "sentiment": {
+        "signal": 0.5,
+        "n": 2
+      }
+    },
+    "n_stale": 9
+  },
+  "registry_s3_has_new": true
+}
