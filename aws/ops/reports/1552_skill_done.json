@@ -1,0 +1,52 @@
+{
+  "ops": 1552,
+  "skill_result": {
+    "context_id": "frontrun-skill-aggregator",
+    "title": "Front-Run Skill Aggregator",
+    "brief_type": "skill_aggregator",
+    "output_key": "frontrun-skill-aggregator",
+    "status": "ERR_EXC",
+    "err": "'sum_claimed_conf_n'"
+  },
+  "index_age_min": 14534.8,
+  "index": {
+    "updated_at": "2026-05-31T01:18:03.308350+00:00",
+    "n_total": 5,
+    "n_scored": 0,
+    "n_pending": 5,
+    "scored_pct": 0.0,
+    "engines": {
+      "macro_frontrun_sniffer": {
+        "n": 3,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib_err": null
+      },
+      "sustained_target_equity": {
+        "n": 2,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib_err": null
+      }
+    },
+    "by_regime": {
+      "NORMAL": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      },
+      "ELEVATED": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      },
+      "EXTREME": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      }
+    }
+  }
+}
