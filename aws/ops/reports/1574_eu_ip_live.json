@@ -1,0 +1,128 @@
+{
+  "ops": 1574,
+  "errors": [],
+  "fn_err": "NONE",
+  "verify": {
+    "version": "3.2.2",
+    "duration_s": 40.5,
+    "brief_kb": 76.8,
+    "macro_indicators": {
+      "ea_unemployment": {
+        "signal": "NORMAL",
+        "unemployment_rate_pct": 6.3,
+        "chg_3m_pp": 0.0,
+        "as_of": "2026-04",
+        "series": "ecb:LFSI/M.I9.S.UNEHRT.TOTAL0.15_74.T"
+      },
+      "ea_confidence": {
+        "signal": "NORMAL",
+        "business_conf": -6.8,
+        "business_z": -0.33,
+        "consumer_z": -0.21,
+        "as_of": "2026-01-01"
+      },
+      "real_m1_growth": {
+        "signal": "NORMAL",
+        "real_m1_growth_pct": 2.77,
+        "m1_yoy_pct": 4.71,
+        "hicp_yoy_pct": 1.94,
+        "as_of": "2025-12"
+      }
+    },
+    "charts": {
+      "ciss_level": {
+        "n": 321,
+        "pctile": 3.9,
+        "latest": 0.0041,
+        "since": "1997-01-01"
+      },
+      "ciss_delta30": {
+        "n": 321,
+        "pctile": 54.1,
+        "latest": -0.0001,
+        "since": "1997-02-03"
+      },
+      "it_de_spread": {
+        "n": 321,
+        "pctile": 36.7,
+        "latest": 82.0,
+        "since": "1995-01-01"
+      },
+      "ltro_share": {
+        "n": 321,
+        "pctile": 7.4,
+        "latest": 52.84,
+        "since": "2007-W01"
+      },
+      "eu_us_divergence": {
+        "n": 321,
+        "pctile": 21.1,
+        "latest": -232.3,
+        "since": "2015-07-10"
+      },
+      "ea_unemployment": {
+        "n": 316,
+        "pctile": 0.3,
+        "latest": 6.3,
+        "since": "2000-01"
+      },
+      "business_confidence": {
+        "n": 321,
+        "pctile": 36.2,
+        "latest": -6.8,
+        "since": "1998-01-01"
+      },
+      "real_m1_growth": {
+        "n": 321,
+        "pctile": 25.9,
+        "latest": 2.77,
+        "since": "1999-01"
+      }
+    },
+    "dump_score": {
+      "score_0_100": 50.2,
+      "level": "WATCH",
+      "components": [
+        {
+          "id": "ciss_accel",
+          "z": 0.0,
+          "w": 0.3
+        },
+        {
+          "id": "it_de_spread",
+          "z": -0.78,
+          "w": 0.15
+        },
+        {
+          "id": "ltro_share",
+          "z": -2.51,
+          "w": 0.15
+        },
+        {
+          "id": "unemp_3m",
+          "z": 0.0,
+          "w": 0.1
+        },
+        {
+          "id": "real_m1",
+          "z": 1.1,
+          "w": 0.15
+        },
+        {
+          "id": "eu_us_div",
+          "z": 1.7,
+          "w": 0.2
+        }
+      ],
+      "coverage_pillars": 6
+    },
+    "n_flashing": 2,
+    "flashing": [
+      "bls_credit_standards",
+      "euribor_ois_stress"
+    ],
+    "ai_error": null,
+    "ai_cvh": "CISS level sits at 0.41 bp (3.9th percentile since 1997)\u2014historically tranquil\u2014but 30-day acceleration is flat at the 54th percentile, masking two flashing sub-indicators: EURIBOR-OIS at 29 bp (WATCH) and credit standards tightening at 10.1 net % (TIGHTENING). Italy-Germany spread at 82 bp is 37th percentile (tighter than median 126 bp), unemployme",
+    "ai_base": "The radar remains in WATCH mode (50.2/100) because credit standards are tightening and EURIBOR-OIS is elevated despite CISS calm; this mirrors 6 of 26 historical episodes (23%) that saw no immediate shock but gradual 2\u20133 week deterioration. Most likely path (probability ~60\u201365%): ECB holds rates ste"
+  }
+}
