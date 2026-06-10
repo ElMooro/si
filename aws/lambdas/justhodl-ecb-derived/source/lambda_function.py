@@ -108,7 +108,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.3.2",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.4.0",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -430,11 +430,21 @@ def lambda_handler(event=None, context=None):
             "note": ("Market 5y5y ILS is licensed data not redistributed via the ECB public portal. "
                      "SPF long-term is the ECB's own survey anchor; nominal AAA 5y5y forward shown for the rates leg."),
         }
-        if spf_now is not None and not anchored:
+        if spf_now is not None:
             out["indicators"]["expectations_deanchoring"] = {
-                "name": "LT Inflation Expectations De-anchoring (SPF)",
-                "spf_longterm_pct": spf_now, "signal": "WATCH",
-                "interpretation": f"SPF long-term expectations {spf_now}% outside the 1.7–2.3% anchored band — credibility stress.",
+                "name": "LT Inflation Expectations (SPF anchor)",
+                "spf_longterm_pct": spf_now, "spf_prev_q_pct": spf_prev,
+                "nominal_5y5y_fwd_pct": rcb.get("fwd_5y5y_nominal_pct"),
+                "as_of": spf[-1][0],
+                "signal": "NORMAL" if anchored else "WATCH",
+                "interpretation": (f"SPF long-term inflation expectations {spf_now}% "
+                                    f"(prev {spf_prev}%) — "
+                                    + ("inside the 1.7–2.3% anchored band: ECB credibility "
+                                        "intact, the precondition for cutting into weakness."
+                                        if anchored else
+                                        "OUTSIDE the 1.7–2.3% anchored band — credibility "
+                                        "stress; de-anchoring forces policy to stay tight "
+                                        "into a downturn.")),
                 "thresholds": {"anchored_band": [1.7, 2.3]}}
     except Exception as e:
         out["inflation_expectations"] = {"err": str(e)[:60]}
@@ -521,12 +531,22 @@ def lambda_handler(event=None, context=None):
                          if persist else "wage disinflation intact — supports the easing case."))
                      if (o_now is not None and t_fwd is not None) else None),
         }
-        if persist:
+        if o_now is not None or t_fwd is not None:
             out["indicators"]["wage_persistence"] = {
-                "name": "Wage Persistence (negotiated > 3.5%)",
-                "official_yoy": o_now, "tracker_fwd_yoy": t_fwd, "signal": "WATCH",
-                "interpretation": f"Negotiated wages {o_now}% / tracker {t_fwd}% — above the ~3% target-consistent ceiling; services CPI stays sticky.",
-                "thresholds": {"watch_above": 3.5}}
+                "name": "Wage Persistence (negotiated wages vs 3% ceiling)",
+                "official_yoy": o_now, "tracker_fwd_yoy": t_fwd,
+                "tracker_ex_oneoffs_yoy": x_fwd,
+                "coverage_pct": round(cov[-1][1], 1) if cov else None,
+                "as_of": off[-1][0] if off else t_fwd_d,
+                "signal": "WATCH" if persist else "NORMAL",
+                "interpretation": (f"Negotiated wages {o_now}% YoY, ECB tracker projects "
+                                    f"{t_fwd}% ({x_fwd}% ex one-offs). ~3% is the "
+                                    "2%-target-consistent ceiling (+~1% productivity); "
+                                    + ("ABOVE ceiling — services inflation stays sticky, "
+                                        "ECB hands tied." if persist else
+                                        "wage disinflation intact — supports the easing "
+                                        "path if growth cracks.")),
+                "thresholds": {"watch_above": 3.5, "ceiling": 3.0}}
     except Exception as e:
         out["wages"] = {"err": str(e)[:60]}
 
@@ -579,12 +599,23 @@ def lambda_handler(event=None, context=None):
             "read": (f"NFC credit {n_now}% YoY ({'+' if (n_now or 0) - (n_6m or 0) >= 0 else ''}{round((n_now or 0)-(n_6m or 0),2)}pp/6m), "
                      f"households {h_now}%. Credit impulse {'accelerating' if (accel or 0) > 0 else 'decelerating'} — leads EA domestic demand ~2-3q.") if n_now is not None else None,
         }
-        if n_now is not None and n_now < 0:
+        if n_now is not None:
+            csig = ("CRITICAL" if n_now < 0 else
+                    "WATCH" if (accel is not None and accel <= -1.0) else "NORMAL")
             out["indicators"]["credit_contraction"] = {
-                "name": "EA Credit Contraction (NFC loans YoY < 0)",
-                "nfc_loans_yoy": n_now, "signal": "WATCH",
-                "interpretation": f"NFC loan growth {n_now}% — outright contraction; 2009/2012-14 recession signature.",
-                "thresholds": {"watch_below": 0}}
+                "name": "EA Credit Cycle (NFC + household loans)",
+                "nfc_loans_yoy": n_now, "hh_loans_yoy": h_now,
+                "impulse_6m_pp": accel, "as_of": nfc[-1][0],
+                "signal": csig,
+                "interpretation": (f"NFC credit {n_now}% YoY, households {h_now}%; "
+                                    f"6m impulse {accel:+.2f}pp. "
+                                    + ("Outright CONTRACTION — 2009/2012-14 recession "
+                                        "signature." if n_now < 0 else
+                                        "Impulse decelerating ≥1pp — domestic demand "
+                                        "rolls in ~2-3 quarters." if csig == "WATCH" else
+                                        "Credit impulse healthy — leads EA domestic "
+                                        "demand by ~2-3 quarters.")),
+                "thresholds": {"critical_below": 0, "watch_impulse_6m": -1.0}}
     except Exception as e:
         out["credit"] = {"err": str(e)[:60]}
 
@@ -633,10 +664,23 @@ def lambda_handler(event=None, context=None):
             "read": (f"IT−DE {frag.get('IT', '—')}bp · FR−DE {frag.get('FR', '—')}bp · ES−DE {frag.get('ES', '—')}bp "
                      f"(monthly convergence yields). TPI-watch threshold 150bp on IT." if frag else None),
         }
-        if frag.get("IT") is not None and frag["IT"] >= 150:
+        if frag.get("IT") is not None:
+            itbp = frag["IT"]
+            fsig = "CRITICAL" if itbp >= 250 else "WATCH" if itbp >= 150 else "NORMAL"
             out["indicators"]["fragmentation_stress"] = {
-                "name": "Fragmentation Stress (TPI watch)", "it_de_bp": frag["IT"], "signal": "CRITICAL" if frag["IT"] >= 250 else "WATCH",
-                "interpretation": f"IT−DE 10Y at {frag['IT']}bp ≥150 — the zone where TPI chatter starts; periphery funding stress.",
+                "name": "Fragmentation / TPI Watch (periphery vs Bund)",
+                "it_de_bp": itbp, "spreads_bp": frag,
+                "as_of": de[0] if de else None,
+                "signal": fsig,
+                "interpretation": (f"IT−DE {itbp}bp · FR−DE {frag.get('FR','—')}bp · "
+                                    f"ES−DE {frag.get('ES','—')}bp · GR−DE "
+                                    f"{frag.get('GR','—')}bp (monthly convergence yields). "
+                                    + ("≥250bp — TPI-activation territory; periphery "
+                                        "funding stress acute." if fsig == "CRITICAL" else
+                                        "≥150bp — TPI-chatter zone." if fsig == "WATCH" else
+                                        "Below the 150bp TPI-watch line — periphery "
+                                        "funding calm; the 2011/2022 dump channel is "
+                                        "closed for now.")),
                 "thresholds": {"watch": 150, "critical": 250}}
     except Exception as e:
         out["fragmentation"] = {"err": str(e)[:60]}
@@ -645,6 +689,9 @@ def lambda_handler(event=None, context=None):
     try:
         m3 = ecb_csv("BSI/M.U2.Y.V.M30.X.I.U2.2300.Z01.A", last_n=8)
         if m3 and isinstance(out.get("credit"), dict) and not out["credit"].get("err"):
+            ci = out["indicators"].get("credit_contraction")
+            if isinstance(ci, dict):
+                ci["m3_yoy"] = round(m3[-1][1], 1)
             out["credit"]["m3_yoy"] = round(m3[-1][1], 1)
             out["credit"]["m3_6m_chg_pp"] = round(m3[-1][1] - m3[-7][1], 1) if len(m3) > 6 else None
             out["credit"]["m3_as_of"] = m3[-1][0]
@@ -1285,7 +1332,11 @@ def lambda_handler(event=None, context=None):
                                                     "unemployment_rate_pct", "chg_3m_pp",
                                                     "ip_yoy_pct", "real_m1_growth_pct",
                                                     "business_conf", "business_z",
-                                                    "consumer_conf")}
+                                                    "consumer_conf", "official_yoy",
+                                                    "tracker_fwd_yoy", "nfc_loans_yoy",
+                                                    "hh_loans_yoy", "impulse_6m_pp",
+                                                    "m3_yoy", "spf_longterm_pct",
+                                                    "it_de_bp", "worst_3m_rise_pp")}
                                     for k_, v_ in out["indicators"].items() if v_ and not v_.get("err")},
                     "history_context": {k_: {"pctile": c_["pctile"], "latest": c_["latest"],
                                               "median": c_["median"], "since": c_["first_date"]}

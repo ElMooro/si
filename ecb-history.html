@@ -69,7 +69,7 @@ async function loadTiles(){
     return `<div class="tile" onclick="openModal('${esc(s.id)}')">
       <div class="lbl">${esc(s.label)}</div>
       <div class="val">${fmtIdx(s.latest)}${z!=null?`<span class="zpill ${zc}">z ${z}</span>`:''}</div>
-      <div class="meta">${s.percentile!=null?s.percentile+'%ile':''} · ${esc(s.first_date)}→${esc(s.latest_date)} · ${s.n_points} pts · ${esc(s.freq)}</div>
+      <div class="meta">${s.percentile!=null?s.percentile+'%ile':''} · ${esc(s.first_date)}→${esc(s.latest_date)} · ${s.n_points} pts · ${esc(s.freq)}${s.discontinued?' · <span style="color:#ff5577">⚠ stale '+s.stale_days+'d</span>':''}</div>
     </div>`;
   }).join('')+'</div>';
 }

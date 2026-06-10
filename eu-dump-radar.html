@@ -205,7 +205,8 @@ async function load(){
     if(done.has(k)||!v||v.err)continue;
     const sc=sigClass(v.signal);
     let rows;
-    if(k==='country_unemployment'&&v.countries){rows=Object.entries(v.countries).map(([cc,r])=>row(cc+' · '+r.as_of, r.rate_pct+'% ('+(r.chg_3m_pp>0?'+':'')+r.chg_3m_pp+'pp 3m)')).join('');}
+    if(k==='fragmentation_stress'&&v.spreads_bp){rows=Object.entries(v.spreads_bp).map(([cc,bp])=>row(cc+'−DE 10y', bp+'bp')).join('')+row('as of',v.as_of);}
+    else if(k==='country_unemployment'&&v.countries){rows=Object.entries(v.countries).map(([cc,r])=>row(cc+' · '+r.as_of, r.rate_pct+'% ('+(r.chg_3m_pp>0?'+':'')+r.chg_3m_pp+'pp 3m)')).join('');}
     else rows=Object.entries(v).filter(([kk,vv])=>!['name','signal','interpretation','thresholds','err','spark'].includes(kk)&&(typeof vv==='number'||typeof vv==='string')).slice(0,5).map(([kk,vv])=>row(kk.replace(/_/g,' '),vv)).join('');
     cards.push(`<div class="card ${sc}"><span class="sig ${sc}">${esc(v.signal||'')}</span><h2>${esc(v.name||k.replace(/_/g,' '))}</h2><div class="num">${esc(k)}</div>${rows}<div class="interp">${esc(v.interpretation||'')}</div>${spark(v.spark)}</div>`);
   }
