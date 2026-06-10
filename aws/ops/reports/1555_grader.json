@@ -1,0 +1,97 @@
+{
+  "ops": 1555,
+  "errors": [],
+  "grader_rules_before": [
+    {
+      "rule": "justhodl-outcome-checker-weekly",
+      "state": "DELETED"
+    },
+    {
+      "rule": "justhodl-outcome-checker-daily",
+      "state": "ENABLED",
+      "sched": "cron(0 23 * * ? *)",
+      "targets": 1
+    },
+    {
+      "rule": "justhodl-outcome-checker-monthly",
+      "state": "DELETED"
+    },
+    {
+      "rule": "justhodl-outcome-checker-daily",
+      "state": "ENABLED",
+      "sched": "cron(0 23 * * ? *)",
+      "targets": 1
+    }
+  ],
+  "grader_rule": "justhodl-outcome-checker-4h cron(20 1/4 * * ? *)",
+  "grader_fn_err": "NONE",
+  "grader_payload": "{\"statusCode\": 200, \"body\": \"{\\\"processed\\\": 154, \\\"timestamp\\\": \\\"2026-06-10T03:50:31.144895+00:00\\\"}\"}",
+  "grader_lines": [],
+  "index_after": {
+    "updated_at": "2026-06-10T03:50:38.477836+00:00",
+    "n_total": 286,
+    "n_scored": 0,
+    "n_pending": 286,
+    "engines": {
+      "macro_frontrun_sniffer": {
+        "n": 114,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib": null
+      },
+      "sustained_target_equity": {
+        "n": 76,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib": null
+      },
+      "equity_frontrun_sniffer": {
+        "n": 68,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib": null
+      },
+      "apex_fusion": {
+        "n": 11,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib": null
+      },
+      "equity_convergence_fingerprint": {
+        "n": 9,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib": null
+      },
+      "bottleneck-boom": {
+        "n": 8,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib": null
+      }
+    },
+    "by_regime": {
+      "NORMAL": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      },
+      "ELEVATED": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      },
+      "EXTREME": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      }
+    }
+  }
+}
