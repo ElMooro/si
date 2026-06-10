@@ -30,7 +30,7 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/ma-reversion.json"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 MAS = (20, 50, 100, 200)
 UNIVERSE = ["NVDA","AMD","AVGO","TSM","MU","SMCI","VRT","ETN","PWR","ANET","CLS","FLEX","JBL",
             "COHR","LITE","MRVL","ARM","ASML","AMAT","LRCX","KLAC","TER","ONTO","CAMT","ACLS",
@@ -89,7 +89,9 @@ def study_index(dates, closes, label):
                 mi, c = ma[m][i], closes[i]
                 if mi is None:
                     continue
-                reg_bull = ma[200][i] is not None and closes[i] > ma[200][i]
+                # ENTRY regime: yesterday's state — at the touch itself price sits
+                # on/below the line, so judging regime on day i destroys 200DMA events
+                reg_bull = ma[200][i - 1] is not None and closes[i - 1] > ma[200][i - 1]
                 if regime == "bull" and not reg_bull:
                     above_run = below_run = 0
                     continue
@@ -121,13 +123,13 @@ def study_index(dates, closes, label):
                     cooldown = 15
             key = f"ma{m}_{regime}"
             events[key] = {
-                "touch": {w: stats([fwd(i, w) for i in touches]) for w in (5, 21, 63)},
+                "touch": {str(w): stats([fwd(i, w) for i in touches]) for w in (5, 21, 63)},
                 "touch_n": len(touches),
                 "shelf_depth_med_pct": round(median(shelf_mae), 2) if shelf_mae else None,
-                "breakdown": {w: stats([fwd(i, w) for i in breaks], want_pos=False)
+                "breakdown": {str(w): stats([fwd(i, w) for i in breaks], want_pos=False)
                                for w in (5, 21, 63)},
                 "breakdown_n": len(breaks),
-                "reclaim": {w: stats([fwd(i, w) for i in reclaims]) for w in (5, 21)},
+                "reclaim": {str(w): stats([fwd(i, w) for i in reclaims]) for w in (5, 21)},
                 "reclaim_n": len(reclaims)}
 
     # stretch table vs 200DMA (sampled every 10 sessions to limit overlap)
@@ -159,9 +161,9 @@ def study_index(dates, closes, label):
             gx.append(i)
         elif a50p >= a200p and a50 < a200:
             dx.append(i)
-    crosses = {"golden": {w: stats([fwd(i, w) for i in gx]) for w in (21, 63)},
+    crosses = {"golden": {str(w): stats([fwd(i, w) for i in gx]) for w in (21, 63)},
                "golden_n": len(gx),
-               "death": {w: stats([fwd(i, w) for i in dx], want_pos=False) for w in (21, 63)},
+               "death": {str(w): stats([fwd(i, w) for i in dx], want_pos=False) for w in (21, 63)},
                "death_n": len(dx)}
 
     cur = {"close": closes[-1], "as_of": dates[-1]}
@@ -274,7 +276,7 @@ def lambda_handler(event=None, context=None):
     for m in (50, 100, 200):
         dist = spx["current"].get(f"dist_ma{m}_pct")
         ev = spx["events"].get(f"ma{m}_bull", {})
-        t21 = ((ev.get("touch") or {}).get(21)) or {}
+        t21 = ((ev.get("touch") or {}).get("21")) or {}
         if dist is not None and 0 <= dist <= 0.5 and spy_px and t21.get("n", 0) >= 15:
             hit = t21["hit_pct"] / 100
             log(f"ma-touch-spx{m}#SPY#{d0}", "ma_reversion", "UP",
