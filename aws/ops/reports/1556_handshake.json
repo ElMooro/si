@@ -1,0 +1,148 @@
+{
+  "ops": 1556,
+  "grader_payload": "{\"statusCode\": 200, \"body\": \"{\\\"processed\\\": 0, \\\"timestamp\\\": \\\"2026-06-10T04:12:30.962718+00:00\\\"}\"}",
+  "skill_result": {
+    "context_id": "frontrun-skill-aggregator",
+    "title": "Front-Run Skill Aggregator",
+    "brief_type": "skill_aggregator",
+    "output_key": "frontrun-skill-aggregator",
+    "status": "OK",
+    "n_total": 286,
+    "n_scored": 132,
+    "n_pending": 154,
+    "n_engines_tracked": 6,
+    "duration_s": 0.77
+  },
+  "index": {
+    "updated_at": "2026-06-10T04:12:32.815238+00:00",
+    "n_total": 286,
+    "n_scored": 132,
+    "n_pending": 154,
+    "scored_pct": 46.2,
+    "engines": {
+      "equity_frontrun_sniffer": {
+        "n": 68,
+        "scored": 51,
+        "hit": 0.2941,
+        "pf": -0.343,
+        "calib": -0.2371,
+        "roll30": 0.2941
+      },
+      "macro_frontrun_sniffer": {
+        "n": 114,
+        "scored": 45,
+        "hit": 0.4444,
+        "pf": -1.408,
+        "calib": -0.1556,
+        "roll30": 0.4444
+      },
+      "sustained_target_equity": {
+        "n": 76,
+        "scored": 30,
+        "hit": 0.0333,
+        "pf": 0.004,
+        "calib": -0.6167,
+        "roll30": 0.0333
+      },
+      "equity_convergence_fingerprint": {
+        "n": 9,
+        "scored": 6,
+        "hit": 0.1667,
+        "pf": -1.168,
+        "calib": -0.5333,
+        "roll30": 0.1667
+      },
+      "apex_fusion": {
+        "n": 11,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib": null,
+        "roll30": null
+      },
+      "bottleneck-boom": {
+        "n": 8,
+        "scored": 0,
+        "hit": null,
+        "pf": null,
+        "calib": null,
+        "roll30": null
+      }
+    },
+    "by_regime": {
+      "NORMAL": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      },
+      "ELEVATED": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      },
+      "EXTREME": {
+        "n": 0,
+        "correct": 0,
+        "hit_rate": null
+      }
+    },
+    "by_conf": {
+      "0.50-0.65": {
+        "n": 110,
+        "correct": 33,
+        "hit_rate": 0.3
+      },
+      "0.30-0.50": {
+        "n": 16,
+        "correct": 3,
+        "hit_rate": 0.1875
+      },
+      "0.65-0.80": {
+        "n": 6,
+        "correct": 1,
+        "hit_rate": 0.1667
+      }
+    },
+    "recent_3": [
+      {
+        "logged_at": "2026-06-07T03:10:24.662037+00:00",
+        "engine": "equity_frontrun_sniffer",
+        "signal_type": "frontrun_sniffer_setup",
+        "signal_value": "GOOG_UP",
+        "asset": "GOOG",
+        "direction": "UP",
+        "confidence": 0.62,
+        "window": "day_3",
+        "verdict_pct": 0.0,
+        "is_correct": false,
+        "return_pct": -0.94871
+      },
+      {
+        "logged_at": "2026-06-06T15:10:22.636130+00:00",
+        "engine": "equity_frontrun_sniffer",
+        "signal_type": "frontrun_sniffer_setup",
+        "signal_value": "PEP_UP",
+        "asset": "PEP",
+        "direction": "UP",
+        "confidence": 0.48,
+        "window": "day_3",
+        "verdict_pct": 0.0,
+        "is_correct": false,
+        "return_pct": -0.873732
+      },
+      {
+        "logged_at": "2026-06-06T03:10:23.332489+00:00",
+        "engine": "equity_frontrun_sniffer",
+        "signal_type": "frontrun_sniffer_setup",
+        "signal_value": "AMZN_UP",
+        "asset": "AMZN",
+        "direction": "UP",
+        "confidence": 0.48,
+        "window": "day_3",
+        "verdict_pct": 0.0,
+        "is_correct": false,
+        "return_pct": -0.329228
+      }
+    ]
+  }
+}
