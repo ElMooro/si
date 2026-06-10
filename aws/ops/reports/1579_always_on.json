@@ -1,0 +1,111 @@
+{
+  "ops": 1579,
+  "errors": [],
+  "deployed_builder": {
+    "n_series_tuples": 28,
+    "writes_percentile": true,
+    "has_stale_days": true,
+    "bytes": 10617
+  },
+  "hist_err": "NONE",
+  "eng_err": "NONE",
+  "manifest": {
+    "n": 31,
+    "missing_stats": [],
+    "healed_n": 24,
+    "has_balance_sheet": true,
+    "sample": [
+      {
+        "id": "balance_sheet",
+        "freq": "weekly",
+        "latest": 19.3,
+        "percentile": 28.3,
+        "z_score": -0.39,
+        "stale_days": 9,
+        "discontinued": false
+      },
+      {
+        "id": "ciss_ea",
+        "freq": "daily",
+        "latest": 0.00291,
+        "percentile": 2.4,
+        "z_score": -1.52,
+        "stale_days": 1,
+        "discontinued": false
+      },
+      {
+        "id": "ciss_fi",
+        "freq": "daily",
+        "latest": 0.0805,
+        "percentile": 36.0,
+        "z_score": -0.66,
+        "stale_days": 404,
+        "discontinued": true
+      },
+      {
+        "id": "ciss_fx",
+        "freq": "daily",
+        "latest": 0.02417,
+        "percentile": 31.1,
+        "z_score": -0.39,
+        "stale_days": 404,
+        "discontinued": true
+      }
+    ],
+    "n_discontinued": 7
+  },
+  "radar": {
+    "version": "3.4.0",
+    "n_sparks": 16,
+    "spark_misses": {
+      "eurodollar_stress_index": "src_pts=0;chart=N"
+    },
+    "countries": [
+      "CH",
+      "DE",
+      "ES",
+      "FR",
+      "IT"
+    ],
+    "ch": {
+      "rate_pct": 5.0,
+      "chg_3m_pp": -0.1,
+      "as_of": "2026-03"
+    },
+    "eurostat_debug": null,
+    "n_charts": 14,
+    "ai_error": null,
+    "always_on": {
+      "wage_persistence": {
+        "signal": "NORMAL",
+        "official_yoy": 1.87,
+        "tracker_fwd_yoy": 2.5,
+        "as_of": "2025-Q3"
+      },
+      "credit_contraction": {
+        "signal": "NORMAL",
+        "nfc_loans_yoy": 3.44,
+        "impulse_6m_pp": 0.39,
+        "m3_yoy": 2.7,
+        "as_of": "2026-04"
+      },
+      "expectations_deanchoring": {
+        "signal": "NORMAL",
+        "spf_longterm_pct": 2.03,
+        "as_of": "2026-Q2"
+      },
+      "fragmentation_stress": {
+        "signal": "NORMAL",
+        "it_de_bp": 82.0,
+        "as_of": "2026-04"
+      }
+    },
+    "spreads_bp": {
+      "IT": 82.0,
+      "FR": 73.0,
+      "ES": 45.0,
+      "PT": 43.0,
+      "GR": 78.0
+    }
+  }
+}
