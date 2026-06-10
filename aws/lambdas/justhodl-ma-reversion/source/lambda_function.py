@@ -30,7 +30,7 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/ma-reversion.json"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 MAS = (20, 50, 100, 200)
 UNIVERSE = ["NVDA","AMD","AVGO","TSM","MU","SMCI","VRT","ETN","PWR","ANET","CLS","FLEX","JBL",
             "COHR","LITE","MRVL","ARM","ASML","AMAT","LRCX","KLAC","TER","ONTO","CAMT","ACLS",
@@ -61,6 +61,91 @@ def mas_of(closes):
             if i >= m - 1:
                 out[m][i] = sums[m] / m
     return out
+
+
+def ema_of(closes, n):
+    k = 2.0 / (n + 1)
+    out, e = [], None
+    for c in closes:
+        e = c if e is None else c * k + e * (1 - k)
+        out.append(e)
+    return out
+
+
+def z_series(closes, m, ma_type="SMA", win=60):
+    """z of (close − MA) vs rolling std of that distance."""
+    ma = mas_of(closes)[m] if ma_type == "SMA" else ema_of(closes, m)
+    dist = [(closes[i] - ma[i]) / ma[i] * 100 if ma[i] else None
+            for i in range(len(closes))]
+    z = [None] * len(closes)
+    for i in range(m + win, len(closes)):
+        w = [d for d in dist[i - win:i] if d is not None]
+        if len(w) < win - 5:
+            continue
+        mu = sum(w) / len(w)
+        sd = (sum((x - mu) ** 2 for x in w) / len(w)) ** 0.5
+        if sd:
+            z[i] = (dist[i] - mu) / sd
+    return z, ma
+
+
+def eff_ratio(closes, n=60):
+    """Kaufman efficiency ratio: |net change| / sum |daily changes| — trendiness."""
+    er = [None] * len(closes)
+    for i in range(n, len(closes)):
+        net = abs(closes[i] - closes[i - n])
+        path = sum(abs(closes[j] - closes[j - 1]) for j in range(i - n + 1, i + 1))
+        er[i] = net / path if path else None
+    return er
+
+
+def z_backtest(dates, closes, m, z_in, ma_type="SMA", regime="all",
+                time_stop=21, keep_examples=False):
+    """Long-only stretch-buy: enter when z crosses ≤ −z_in (regime permitting),
+    exit when z ≥ 0 (back at mean) or time_stop sessions. Long side only by
+    design — the measured tables already show shorting MA breaks in bulls loses."""
+    z, ma = z_series(closes, m, ma_type)
+    er = eff_ratio(closes)
+    ma200 = mas_of(closes)[200]
+    trades = []
+    i = max(m + 70, 210)
+    n = len(closes)
+    while i < n - time_stop - 1:
+        zi = z[i]
+        if zi is None or z[i - 1] is None:
+            i += 1
+            continue
+        bull = ma200[i] is not None and closes[i] > ma200[i]
+        chop = er[i] is not None and er[i] < 0.30
+        trend = er[i] is not None and er[i] > 0.45
+        ok = (regime == "all" or (regime == "bull" and bull) or
+              (regime == "bear" and not bull) or (regime == "chop" and chop) or
+              (regime == "trend" and trend))
+        if z[i - 1] > -z_in >= zi and ok:
+            e0 = i
+            j = i + 1
+            while j < min(i + time_stop, n - 1) and (z[j] is None or z[j] < 0):
+                j += 1
+            ret = (closes[j] / closes[e0] - 1) * 100
+            mae = (min(closes[e0:j + 1]) / closes[e0] - 1) * 100
+            trades.append((dates[e0], dates[j], round(ret, 2), j - e0, round(mae, 2)))
+            i = j + 5
+        else:
+            i += 1
+    if not trades:
+        return {"n": 0}
+    rets = sorted(t[2] for t in trades)
+    res = {"n": len(trades),
+           "win_pct": round(100 * sum(1 for t in trades if t[2] > 0) / len(trades), 1),
+           "median_pct": round(rets[len(rets) // 2], 2),
+           "expectancy_pct": round(sum(rets) / len(rets), 2),
+           "avg_hold_d": round(sum(t[3] for t in trades) / len(trades), 1),
+           "worst_pct": rets[0], "best_pct": rets[-1],
+           "med_mae_pct": round(sorted(t[4] for t in trades)[len(trades) // 2], 2)}
+    if keep_examples:
+        st = sorted(trades, key=lambda t: t[2])
+        res["examples"] = {"worst": st[:3], "best": st[-3:][::-1]}
+    return res
 
 
 def study_index(dates, closes, label):
@@ -310,20 +395,64 @@ def lambda_handler(event=None, context=None):
     qqq = (study_index([d for d, _ in qq], [v for _, v in qq], "QQQ (1999+)")
            if len(qq) > 1000 else None)
 
-    setups, crossings = [], []
+    # ── MEAN-REVERSION LAB (server-computed proof, 50y) ──
+    sd, sc = [d for d, _ in sp], [v for _, v in sp]
+    cut = next(i for i, d_ in enumerate(sd) if d_ >= "2010-01-01")
+    H = dict(m=50, z=2.0)  # headline rules
+    lab = {
+        "rules": ("LONG-ONLY stretch-buy. Enter: z(price vs MA) crosses ≤ −Z "
+                   "(z-window 60d). Exit: z back ≥ 0 (mean) or 21-session time stop. "
+                   "Regime layer: bull = above 200DMA; chop = efficiency-ratio<0.30; "
+                   "trend = ER>0.45 (the measured don't-fade zone). No shorts: the 50y "
+                   "tables show fading bull-regime MA breaks loses."),
+        "headline": {"ma": H["m"], "z_entry": H["z"], "ma_type": "SMA",
+                      "full": z_backtest(sd, sc, H["m"], H["z"], keep_examples=True),
+                      "in_sample_71_09": z_backtest(sd[:cut], sc[:cut], H["m"], H["z"]),
+                      "out_of_sample_10_now": z_backtest(sd[cut:], sc[cut:], H["m"], H["z"])},
+        "regime_breakdown": {r: z_backtest(sd, sc, H["m"], H["z"], regime=r)
+                              for r in ("all", "bull", "bear", "chop", "trend")},
+        "heatmap": [{"ma": m_, "z": z_,
+                      **{k: v for k, v in z_backtest(sd, sc, m_, z_).items()
+                         if k in ("n", "win_pct", "expectancy_pct")}}
+                     for m_ in (20, 50, 100, 200) for z_ in (1.5, 2.0, 2.5)],
+        "ema_vs_sma": {t_: z_backtest(sd, sc, H["m"], H["z"], ma_type=t_)
+                        for t_ in ("SMA", "EMA")},
+        "qqq_headline": (z_backtest([d for d, _ in qq], [v for _, v in qq],
+                                      H["m"], H["z"]) if len(qq) > 1000 else None)}
+    ex = lab["headline"]["full"].pop("examples", None)
+    lab["trade_examples"] = ex
+
+    setups, crossings, stretch_scan = [], [], []
     start2k = (datetime.now(timezone.utc) - timedelta(days=2000)).date().isoformat()
+
+    def stretch_state(t, rows):
+        if len(rows) < 320:
+            return None
+        closes = [r[1] for r in rows]
+        z, _ = z_series(closes, 50)
+        er = eff_ratio(closes)
+        zi, ei = z[-1], er[-1]
+        if zi is None:
+            return None
+        reg = ("TREND" if (ei or 0) > 0.45 else "CHOP" if (ei or 0) < 0.30 else "MIXED")
+        own = z_backtest([r[0] for r in rows], closes, 50, 2.0)
+        return {"ticker": t, "z50": round(zi, 2), "er60": round(ei, 2) if ei else None,
+                "regime": reg, "px": closes[-1],
+                "own_record": {k: own.get(k) for k in ("n", "win_pct", "median_pct")}}
 
     def scan(t):
         rows = polyv(t, start2k)
-        return (stock_setup(t, rows), detect_crossings(t, rows))
+        return (stock_setup(t, rows), detect_crossings(t, rows), stretch_state(t, rows))
 
     with ThreadPoolExecutor(max_workers=6) as ex:
         for f in as_completed({ex.submit(scan, t): t for t in UNIVERSE}):
             try:
-                su, cr = f.result()
+                su, cr, stx = f.result()
                 if su:
                     setups.append(su)
                 crossings.extend(cr)
+                if stx:
+                    stretch_scan.append(stx)
             except Exception as e:
                 print(f"[scan] {str(e)[:50]}")
     setups.sort(key=lambda r: (-(r["own_hit10_pct"] or 0), r["dist_pct"]))
@@ -336,6 +465,16 @@ def lambda_handler(event=None, context=None):
             print(f"[idx] {t}: {str(e)[:50]}")
     crossings.sort(key=lambda c: (-c["ma"], 0 if c["direction"] == "UP" else 1,
                                     -(c["vol_ratio"] or 0)))
+    stretch_scan.sort(key=lambda r: r["z50"])
+    # index stretch states
+    idx_stretch = []
+    for t in ("SPY", "QQQ", "IWM", "DIA"):
+        try:
+            st_ = stretch_state(t, polyv(t, start2k))
+            if st_:
+                idx_stretch.append(st_)
+        except Exception as e:
+            print(f"[idxz] {t}: {str(e)[:40]}")
 
     # measured edge for the live state → closed-loop logging
     n_logged = 0
@@ -412,6 +551,10 @@ def lambda_handler(event=None, context=None):
            "generated_at": nowt.isoformat(), "duration_s": round(time.time() - t0, 1),
            "spx": spx, "qqq": qqq,
            "stock_setups": setups[:20], "n_setups": len(setups),
+           "reversion_lab": lab,
+           "stretch_scan": {"stocks": stretch_scan[:30], "indexes": idx_stretch,
+                             "note": "z50 = z of price vs 50DMA (60d window); "
+                                      "regime via 60d efficiency ratio"},
            "crossings": {"stocks_up": [c for c in crossings if c["direction"] == "UP"][:25],
                           "stocks_down": [c for c in crossings if c["direction"] == "DOWN"][:25],
                           "indexes": idx_crossings,

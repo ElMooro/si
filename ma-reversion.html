@@ -32,6 +32,15 @@ th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1
 .up .badge{background:rgba(52,211,153,.15);color:var(--green)}.down .badge{background:rgba(255,85,119,.15);color:var(--red)}
 .rec{color:var(--fg3);font-size:10.5px}.rec b{color:var(--fg2)}
 .idxstrip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.statrow{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.stat{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-family:var(--mono);min-width:200px}
+.stat h5{margin:0 0 6px;font-size:10px;letter-spacing:1.5px;color:var(--fg3);text-transform:uppercase}
+.stat .big{font-size:19px;font-weight:800}.stat .m{font-size:10.5px;color:var(--fg3);margin-top:4px;line-height:1.7}
+.rules{background:var(--bg1);border:1px solid var(--violet);border-radius:12px;padding:12px 16px;font-size:12px;color:var(--fg2);line-height:1.7;margin-bottom:14px}
+.hm{display:grid;grid-template-columns:70px repeat(3,1fr);gap:5px;font-family:var(--mono);font-size:11px;max-width:560px;margin-bottom:14px}
+.hm div{padding:9px 6px;border-radius:8px;text-align:center}.hm .hd{color:var(--fg3);background:none;font-size:10px}
+.zneg{color:var(--green)}.zpos{color:var(--red)}
+
 
 </style></head><body>
 <header><div class="brand"><span class="dot"></span>JustHodl<span style="color:var(--fg3)">.AI</span></div>
@@ -39,12 +48,21 @@ th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1
 <div class="wrap">
 <h1>MA Mean-Reversion — <span class="grad">measured, not believed</span></h1>
 <p class="sub">The crowd watches the 20/50/100/200-day moving averages and assumes "that's where buying liquidity comes in." This page measures that belief on <b>five decades of data</b>: every touch, breakdown and reclaim, split bull/bear, with real n, hit rates and <b>shelf depth</b> (how far below the MA the dip actually goes before the bid shows up). Stock setups require an uptrend and are ranked by each name's <b>own</b> historical bounce rate — folklore gets no free conviction here.</p>
-<div class="bigtabs" id="bigtabs"><span data-p="cross" class="on">🚦 Crossings</span><span data-p="tables">📊 50y Tables</span><span data-p="setups">🎯 Setups</span></div>
+<div class="bigtabs" id="bigtabs"><span data-p="cross" class="on">🚦 Crossings</span><span data-p="lab">🌀 Reversion Lab</span><span data-p="tables">📊 50y Tables</span><span data-p="setups">🎯 Setups</span></div>
 <div id="pane-cross">
 <div class="sec">Index crossings (last 3 sessions)</div><div class="idxstrip" id="idxx"><span class="loading">Loading…</span></div>
 <div class="sec">Stocks breaking up / breaking down — 200·100·50·20 DMA</div>
 <div class="xgrid"><div class="xcol up"><h4 style="color:var(--green)">▲ BREAKING UP</h4><div id="xup"></div></div>
 <div class="xcol down"><h4 style="color:var(--red)">▼ BREAKING DOWN</h4><div id="xdn"></div></div></div>
+</div>
+<div id="pane-lab" style="display:none">
+<div class="sec">The two-layer model — rules in plain English</div><div class="rules" id="rules"></div>
+<div class="sec">Proof — SPX 1971+, in-sample vs out-of-sample</div><div class="statrow" id="proof"></div>
+<div class="sec">Regime layer, measured (where mean-reversion lives and dies)</div><div id="regimes"></div>
+<div class="sec">Parameter heatmap — MA × z-entry (win% / expectancy / n)</div><div class="hm" id="hm"></div>
+<div class="sec">SMA vs EMA · QQQ check</div><div id="matype"></div>
+<div class="sec">Trade examples — best & worst (real dates)</div><div id="examples"></div>
+<div class="sec">🌀 Live stretch scan — z vs 50DMA, regime-labeled</div><div class="idxstrip" id="zidx"></div><div id="zscan"></div>
 </div>
 <div id="pane-tables" style="display:none">
 <div class="sec">Live shelves</div><div class="shelves" id="shelves"><span class="loading">Loading…</span></div>
@@ -64,7 +82,7 @@ const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').
 let D=null,IDX='spx';
 document.getElementById('bigtabs').onclick=e=>{const p=e.target.dataset.p;if(!p)return;
   document.querySelectorAll('#bigtabs span').forEach(x=>x.classList.toggle('on',x.dataset.p===p));
-  for(const k of ['cross','tables','setups'])document.getElementById('pane-'+k).style.display=k===p?'':'none';};
+  for(const k of ['cross','lab','tables','setups'])document.getElementById('pane-'+k).style.display=k===p?'':'none';};
 function rec(r){if(!r)return '<span class="rec">no record</span>';
   if(r.hit_pct==null)return `<span class="rec">own n=${r.n||0} (thin)</span>`;
   const c=r.hit_pct>=60?'var(--green)':r.hit_pct<=45?'var(--red)':'var(--fg2)';
@@ -72,6 +90,41 @@ function rec(r){if(!r)return '<span class="rec">no record</span>';
 function xrow(c){const hi=c.ma===200;
   return `<div class="xrow m${c.ma}"><span><b>${esc(c.ticker)}</b> <span class="badge">${c.ma}DMA${hi?' · HIGH':''}</span></span>
   <span class="rec">${esc(c.cross_date)} · vol ${c.vol_ratio??'—'}× · now ${c.dist_pct>0?'+':''}${c.dist_pct}%</span>${rec(c.own_record_21d)}</div>`;}
+function stat(t,x,extra){if(!x||!x.n)return `<div class="stat"><h5>${t}</h5><div class="big">—</div></div>`;
+  return `<div class="stat"><h5>${t}</h5><div class="big ${x.win_pct>=60?'hi':x.win_pct<=48?'lo':''}">${x.win_pct}% win</div>
+  <div class="m">exp ${x.expectancy_pct>0?'+':''}${x.expectancy_pct}% · med ${x.median_pct>0?'+':''}${x.median_pct}% · n=${x.n}<br>hold ${x.avg_hold_d??'—'}d · MAE ${x.med_mae_pct??'—'}% · worst ${x.worst_pct??'—'}%${extra||''}</div></div>`;}
+function renderLab(){
+  const L=D.reversion_lab; if(!L){return;}
+  document.getElementById('rules').textContent=L.rules;
+  const H=L.headline||{};
+  document.getElementById('proof').innerHTML=
+    stat(`FULL 1971+ · ${H.ma}DMA z≤−${H.z_entry}`,H.full)+
+    stat('IN-SAMPLE 1971-09',H.in_sample_71_09)+
+    stat('OUT-OF-SAMPLE 2010+',H.out_of_sample_10_now);
+  const R=L.regime_breakdown||{};
+  document.getElementById('regimes').innerHTML=`<table><thead><tr><th>Regime filter</th><th>n</th><th>Win%</th><th>Expectancy</th><th>Median</th><th>Hold</th></tr></thead><tbody>${
+    ['all','bull','bear','chop','trend'].filter(r=>R[r]).map(r=>{const x=R[r];const warn=r==='trend';
+    return `<tr><td>${r.toUpperCase()}${warn?' ⛔ don\u2019t-fade zone':''}${r==='chop'?' ✅ revert home':''}</td><td>${x.n||0}</td><td class="${(x.win_pct||0)>=60?'hi':(x.win_pct||0)<=48?'lo':''}">${x.win_pct??'—'}%</td><td>${x.expectancy_pct>0?'+':''}${x.expectancy_pct??'—'}%</td><td>${x.median_pct??'—'}%</td><td>${x.avg_hold_d??'—'}d</td></tr>`;}).join('')}</tbody></table>`;
+  const hm=L.heatmap||[];
+  let g='<div class="hd"></div>'+[1.5,2,2.5].map(z=>`<div class="hd">z≤−${z}</div>`).join('');
+  for(const m of [20,50,100,200]){g+=`<div class="hd" style="text-align:right;padding-right:8px">${m}DMA</div>`;
+    for(const z of [1.5,2,2.5]){const c=hm.find(x=>x.ma===m&&x.z===z)||{};const w=c.win_pct||0;
+      const bg=w?`rgba(${w>=58?'52,211,153':w<=50?'255,85,119':'251,191,36'},${0.10+Math.min(0.5,Math.abs(w-54)/30)})`:'var(--bg1)';
+      g+=`<div style="background:${bg};border:1px solid var(--border)"><b>${c.win_pct??'—'}%</b><br><span style="color:var(--fg3);font-size:9.5px">${c.expectancy_pct>0?'+':''}${c.expectancy_pct??'—'}% · n${c.n??'—'}</span></div>`;}}
+  document.getElementById('hm').innerHTML=g;
+  const M=L.ema_vs_sma||{},Q=L.qqq_headline;
+  document.getElementById('matype').innerHTML=`<table><thead><tr><th>Variant</th><th>n</th><th>Win%</th><th>Expectancy</th><th>Hold</th></tr></thead><tbody>${
+    Object.entries(M).map(([t,x])=>`<tr><td>${t} ${H.ma}DMA z≤−${H.z_entry} (SPX)</td><td>${x.n??0}</td><td>${x.win_pct??'—'}%</td><td>${x.expectancy_pct>0?'+':''}${x.expectancy_pct??'—'}%</td><td>${x.avg_hold_d??'—'}d</td></tr>`).join('')}
+    ${Q?`<tr><td>SMA ${H.ma}DMA z≤−${H.z_entry} (QQQ 1999+)</td><td>${Q.n}</td><td>${Q.win_pct}%</td><td>${Q.expectancy_pct>0?'+':''}${Q.expectancy_pct}%</td><td>${Q.avg_hold_d}d</td></tr>`:''}</tbody></table>`;
+  const E=L.trade_examples||{};
+  const exr=(t,arr,cls)=>(arr||[]).map(x=>`<div class="xrow"><span><b class="${cls}">${t}</b> ${esc(x[0])} → ${esc(x[1])}</span><span>${x[2]>0?'+':''}${x[2]}% in ${x[3]}d · MAE ${x[4]}%</span></div>`).join('');
+  document.getElementById('examples').innerHTML=exr('WIN',E.best,'hi')+exr('LOSS',E.worst,'lo')||'<div class="loading">—</div>';
+  const ZS=D.stretch_scan||{};
+  document.getElementById('zidx').innerHTML=(ZS.indexes||[]).map(r=>`<div class="sh"><b>${esc(r.ticker)}</b> z ${r.z50}<div class="m">${esc(r.regime)} · ER ${r.er60}</div></div>`).join('')||'—';
+  const rows=(ZS.stocks||[]).filter(r=>Math.abs(r.z50)>=1.5);
+  document.getElementById('zscan').innerHTML=rows.length?`<table><thead><tr><th>Ticker</th><th>z (50DMA)</th><th>Regime</th><th>ER60</th><th>Own z≤−2 record</th><th>Px</th></tr></thead><tbody>${rows.map(r=>{const o=r.own_record||{};
+    return `<tr><td><b>${esc(r.ticker)}</b></td><td class="${r.z50<=-2?'zneg':r.z50>=2?'zpos':''}">${r.z50}</td><td>${esc(r.regime)}${r.regime==='TREND'&&r.z50<=-1.8?' ⛔':''}${r.regime==='CHOP'&&r.z50<=-1.8?' ✅':''}</td><td>${r.er60??'—'}</td><td>${o.win_pct!=null?o.win_pct+'% · med '+o.median_pct+'% · n'+o.n:'thin'}</td><td>${r.px}</td></tr>`;}).join('')}</tbody></table>`:'<div class="loading">Nothing stretched beyond |z|≥1.5 right now.</div>';
+}
 function renderCross(){
   const X=(D.crossings)||{};
   const idx=(X.indexes||[]);
@@ -111,6 +164,7 @@ async function load(){
   tabs.onclick=e=>{const k=e.target.dataset.k;if(k){IDX=k;tabs.querySelectorAll('span').forEach(s=>s.classList.toggle('on',s.dataset.k===k));render();}};
   render();
   renderCross();
+  renderLab();
   const su=(D.stock_setups||[]).map(r=>`<tr><td><b>${esc(r.ticker)}</b></td><td>${r.at_ma}DMA</td><td>+${r.dist_pct}%</td><td class="${(r.own_hit10_pct||0)>=60?'hi':(r.own_hit10_pct||0)<=45&&r.own_touch_n>=8?'lo':''}">${r.own_hit10_pct??'—'}% <span style="color:var(--fg3)">(n${r.own_touch_n})</span></td><td>+${r.above_200_pct}%</td><td>${r.px}</td></tr>`).join('');
   document.getElementById('setups').innerHTML=su?`<table><thead><tr><th>Ticker</th><th>At</th><th>Above MA</th><th>Own +10d hit</th><th>vs 200</th><th>Px</th></tr></thead><tbody>${su}</tbody></table>`:'<div class="loading">No names sitting at a major MA in an uptrend right now.</div>';
   document.getElementById('note').textContent=`${D.methodology} · ${D.signals_logged} logged today · v${D.version} · ${D.generated_at} · Research, not advice.`;
