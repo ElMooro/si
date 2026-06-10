@@ -1,0 +1,158 @@
+{
+  "ops": 1583,
+  "errors": [],
+  "fn": "created",
+  "fn_err": "NONE",
+  "verify": {
+    "duration_s": 5.4,
+    "spx_n_days": 13952,
+    "current": {
+      "close": 25929.66,
+      "as_of": "2026-06-08",
+      "ma20": 26460.98,
+      "dist_ma20_pct": -2.01,
+      "ma50": 24863.44,
+      "dist_ma50_pct": 4.29,
+      "ma100": 23837.21,
+      "dist_ma100_pct": 8.78,
+      "ma200": 23346.01,
+      "dist_ma200_pct": 11.07,
+      "nearest_shelf": {
+        "ma": 50,
+        "below_pct": 4.29
+      }
+    },
+    "ma200_bull": {
+      "touches": 16,
+      "t21": null,
+      "shelf": -1.89,
+      "bd_n": 0,
+      "bd21": null
+    },
+    "ma50_bull": {
+      "touches": 108,
+      "t21": null,
+      "shelf": -0.74,
+      "bd_n": 21,
+      "bd21": null
+    },
+    "ma200_bear": {
+      "touches": 0,
+      "t21": null,
+      "shelf": null,
+      "bd_n": 0,
+      "bd21": null
+    },
+    "ma20_bull": {
+      "touches": 172,
+      "t21": null,
+      "shelf": -0.98,
+      "bd_n": 26,
+      "bd21": null
+    },
+    "stretch": {
+      ">+10%": {
+        "n": 398,
+        "med_21d_pct": 1.78,
+        "pos_pct": 63.8
+      },
+      "+5..+10%": {
+        "n": 339,
+        "med_21d_pct": 1.74,
+        "pos_pct": 66.4
+      },
+      "+0..+5%": {
+        "n": 237,
+        "med_21d_pct": 1.63,
+        "pos_pct": 63.7
+      },
+      "-5..0%": {
+        "n": 161,
+        "med_21d_pct": 1.61,
+        "pos_pct": 60.9
+      },
+      "-10..-5%": {
+        "n": 98,
+        "med_21d_pct": 1.82,
+        "pos_pct": 56.1
+      },
+      "<-10%": {
+        "n": 140,
+        "med_21d_pct": 0.24,
+        "pos_pct": 50.0
+      }
+    },
+    "crosses": {
+      "golden": {
+        "21": {
+          "n": 33,
+          "median_pct": 2.65,
+          "hit_pct": 78.8
+        },
+        "63": {
+          "n": 33,
+          "median_pct": 5.94,
+          "hit_pct": 81.8
+        }
+      },
+      "golden_n": 33,
+      "death": {
+        "21": {
+          "n": 32,
+          "median_pct": 2.51,
+          "hit_pct": 28.1
+        },
+        "63": {
+          "n": 32,
+          "median_pct": 6.59,
+          "hit_pct": 31.2
+        }
+      },
+      "death_n": 32
+    },
+    "qqq_ok": true,
+    "qqq_ma200_bull": {
+      "touches": 0,
+      "t21": null
+    },
+    "setups": [
+      {
+        "ticker": "ONTO",
+        "at_ma": 50,
+        "px": 269.33,
+        "dist_pct": 0.24,
+        "own_touch_n": 8,
+        "own_hit10_pct": 50.0,
+        "above_200_pct": 42.5
+      },
+      {
+        "ticker": "CAMT",
+        "at_ma": 100,
+        "px": 166.69,
+        "dist_pct": 0.31,
+        "own_touch_n": 2,
+        "own_hit10_pct": 50.0,
+        "above_200_pct": 21.4
+      },
+      {
+        "ticker": "PH",
+        "at_ma": 200,
+        "px": 875.6,
+        "dist_pct": 0.5,
+        "own_touch_n": 1,
+        "own_hit10_pct": 0.0,
+        "above_200_pct": 0.5
+      }
+    ],
+    "n_setups": 3,
+    "signals_logged": 0
+  },
+  "sb_err": "NONE",
+  "board_row": {
+    "signal": 0,
+    "signal_label": "NEUTRAL",
+    "read": "Nearest shelf 50DMA \u22124.29% \u00b7 3 setups at MAs"
+  },
+  "board_n": 67,
+  "registry_n": 49
+}
