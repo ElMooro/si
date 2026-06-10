@@ -790,6 +790,22 @@ def n_ma_reversion(d):
     return 0, (f"Nearest shelf {ns['ma']}DMA −{ns['below_pct']}%" if ns else "Below all MAs") +                f" · {n_set} setups at MAs"
 
 
+
+
+def n_regime(d):
+    c = d.get("current") or {}
+    q = c.get("quadrant")
+    if not q:
+        return 0, "Regime n/a"
+    pb = ((d.get("playbook") or {}).get("spx") or {}).get("3m", {}).get(q) or {}
+    sig = {"GOLDILOCKS": 1, "REFLATION": 0, "STAGFLATION": -1, "DEFLATION-BUST": -1}.get(q, 0)
+    if pb.get("pos_pct") is not None and 45 <= pb["pos_pct"] <= 60:
+        sig = min(sig, 0) if sig < 0 else sig  # keep mild
+    return sig, (f"{q} ({c.get('months_in_regime')}m, liq {c.get('liquidity_state')}) · "
+                  f"SPX+3m playbook: {pb.get('median', '—')}% med, {pb.get('pos_pct', '—')}%+ "
+                  f"n={pb.get('n', '—')}")
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -867,6 +883,7 @@ FEEDS = [
     ("Market Internals",       "sentiment",        "data/market-internals.json",     n_market_internals),
     ("US Real M2",             "macro",            "data/liquidity-inflection.json", n_us_money),
     ("MA Reversion Shelves",   "equity tactical",  "data/ma-reversion.json",         n_ma_reversion),
+    ("Macro Regime (Conductor)","macro",           "data/regime.json",               n_regime),
 ]
 
 

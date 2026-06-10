@@ -1,499 +1,76 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Regime &amp; Anomaly · JustHodl.AI</title>
-<meta name="description" content="HMM regime detector · probabilistic state machine · Mahalanobis anomaly detection · daily refit">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Regime Engine — The Conductor — JustHodl AI</title>
 <style>
-:root{
-  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
-  --bg-glow:rgba(0,212,255,0.04);
-  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
-  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
-  --green:#38ffa8; --green-dim:#1b8a5c;
-  --amber:#ffb13d; --amber-dim:#8a5e10;
-  --red:#ff5c7a; --red-dim:#8a2c44;
-  --cyan:#00d4ff; --cyan-dim:#0a6080;
-  --violet:#a78bfa;
-  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
-  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
-  --radius:4px;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
-body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
-a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
-
-.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
-.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;display:flex;align-items:center;gap:8px}
-.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
-.brand span{color:var(--cyan);font-weight:500}
-.nav-links{display:flex;gap:0;flex:1;overflow-x:auto}
-.nav-links a{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
-.nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
-.nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
-
-.container{max-width:1400px;margin:0 auto;padding:24px}
-.page-hdr{margin-bottom:28px}
-.page-hdr h1{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
-.page-hdr p{color:var(--fg-3);font-size:13px}
-.page-hdr .meta{display:flex;gap:16px;margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);flex-wrap:wrap}
-
-.warmup-banner{background:linear-gradient(135deg,rgba(255,177,61,.08),rgba(255,177,61,.02));border:1px solid var(--amber);color:var(--fg-1);padding:14px 18px;border-radius:6px;font-size:12px;margin-bottom:20px;display:none;line-height:1.6}
-.warmup-banner.show{display:block}
-.warmup-banner strong{color:var(--amber);font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;font-size:11px}
-
-.regime-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-.regime-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px;text-align:center;position:relative;overflow:hidden;transition:all .2s}
-.regime-card.active{border-width:2px;background:var(--bg-elevated);transform:translateY(-2px)}
-.regime-card.active.expansion{border-color:var(--green);box-shadow:0 0 25px rgba(56,255,168,.15)}
-.regime-card.active.late_cycle{border-color:var(--cyan);box-shadow:0 0 25px rgba(0,212,255,.15)}
-.regime-card.active.contraction{border-color:var(--amber);box-shadow:0 0 25px rgba(255,177,61,.15)}
-.regime-card.active.crisis{border-color:var(--red);box-shadow:0 0 25px rgba(255,92,122,.18)}
-.regime-card .label{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1.5px;margin-bottom:8px}
-.regime-card .prob{font-family:var(--font-mono);font-size:32px;font-weight:700;line-height:1;color:var(--fg-1)}
-.regime-card .pct{font-size:14px;color:var(--fg-2);margin-top:4px}
-.regime-card .bar{height:4px;background:var(--bg-sunken);margin-top:14px;border-radius:2px;overflow:hidden}
-.regime-card .bar .fill{height:100%;border-radius:2px;transition:width .6s ease}
-.regime-card.expansion .bar .fill{background:var(--green)}
-.regime-card.late_cycle .bar .fill{background:var(--cyan)}
-.regime-card.contraction .bar .fill{background:var(--amber)}
-.regime-card.crisis .bar .fill{background:var(--red)}
-
-.section-hdr{display:flex;align-items:baseline;justify-content:space-between;margin:32px 0 14px}
-.section-hdr h3{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:2px;color:var(--fg-2);text-transform:uppercase}
-.section-hdr .sub{font-size:11px;color:var(--fg-3);font-family:var(--font-mono)}
-
-.transition-matrix{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px;overflow-x:auto}
-.transition-matrix table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px}
-.transition-matrix th,.transition-matrix td{padding:10px 14px;text-align:center;border:1px solid var(--border)}
-.transition-matrix th{background:var(--bg-sunken);color:var(--fg-3);font-size:10px;letter-spacing:1px;font-weight:500;text-transform:uppercase}
-.transition-matrix th.diag,.transition-matrix td.diag{background:var(--bg-elevated)}
-.transition-matrix tbody td:first-child{background:var(--bg-sunken);color:var(--fg-3);font-size:10px;letter-spacing:1px;font-weight:500;text-transform:uppercase}
-.heat-0{color:var(--fg-4)}
-.heat-1{color:var(--fg-3)}
-.heat-2{color:var(--fg-2)}
-.heat-3{color:var(--cyan)}
-.heat-4{color:var(--fg-1);font-weight:700}
-
-.fit-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px;font-family:var(--font-mono);font-size:11px;color:var(--fg-2);line-height:1.8}
-.fit-card div{display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:6px 0}
-.fit-card div:last-child{border-bottom:none}
-.fit-card span:first-child{color:var(--fg-3);letter-spacing:1px}
-.fit-card span:last-child{color:var(--fg-1);font-weight:600}
-
-.anomaly-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.anomaly-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px;transition:border-color .15s}
-.anomaly-card.anomaly{border-color:var(--amber)}
-.anomaly-card.extreme{border-color:var(--red);background:linear-gradient(135deg,var(--bg-raised),rgba(255,92,122,.05))}
-.anomaly-card .name{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
-.anomaly-card .z{font-family:var(--font-mono);font-size:20px;font-weight:600}
-.anomaly-card .meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-top:6px}
-.anomaly-card.anomaly .z{color:var(--amber)}
-.anomaly-card.extreme .z{color:var(--red)}
-
-.composite-banner{background:linear-gradient(135deg,var(--bg-raised),var(--bg-elevated));border:1px solid var(--border-strong);border-radius:8px;padding:24px;margin-bottom:24px;display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:center}
-.composite-banner.crisis{border-color:var(--red)}
-.composite-banner.elevated{border-color:var(--amber)}
-.composite-banner.normal{border-color:var(--green-dim)}
-
-.score-circle{width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-sunken);border:3px solid var(--cyan-dim)}
-.score-circle.crisis{border-color:var(--red)}
-.score-circle.elevated{border-color:var(--amber)}
-.score-circle.normal{border-color:var(--green)}
-.score-circle .num{font-family:var(--font-mono);font-size:36px;font-weight:700;line-height:1}
-.score-circle .lbl{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:1.5px;margin-top:4px}
-
-.composite-info h2{font-family:var(--font-mono);font-size:14px;font-weight:600;letter-spacing:1.5px;color:var(--fg-3);margin-bottom:6px}
-.composite-info .signal-text{font-size:24px;font-weight:600;line-height:1.2;margin-bottom:8px;font-family:var(--font-mono);letter-spacing:1px}
-.composite-info .desc{color:var(--fg-2);max-width:600px;line-height:1.6}
-
-.error-banner{background:rgba(255,92,122,.08);border:1px solid var(--red);color:var(--fg-1);padding:14px 18px;border-radius:6px;font-family:var(--font-mono);font-size:12px;margin-bottom:20px;display:none}
-
-footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--fg-3);text-align:center}
-footer a{margin:0 10px}
-
-
-/* ─── MOBILE RESPONSIVE — auto-injected 2026-05-06 ─── */
-@media (max-width: 900px){
-  .kpis{grid-template-columns: repeat(2, 1fr) !important; gap: 12px}
-  .grid{grid-template-columns: repeat(6, 1fr)}
-  .col-4,.col-5{grid-column: span 6 !important}
-  .col-6,.col-7,.col-8{grid-column: span 12 !important}
-  .strip{grid-template-columns: repeat(2, 1fr)}
-  .tools{grid-template-columns: repeat(2, 1fr)}
-  .card-grid{grid-template-columns: repeat(2, 1fr)}
-  .tabs{overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch}
-  .nav-tabs{overflow-x: auto; -webkit-overflow-scrolling: touch}
-  h1{font-size: 22px !important; line-height: 1.25}
-  .lede,.hero p{font-size: 13px !important}
-  main{padding: 14px !important}
-  header.hero{padding: 14px 18px !important}
-  table{font-size: 11.5px}
-  .meta{flex-wrap: wrap; gap: 8px}
-}
-@media (max-width: 600px){
-  .kpis{grid-template-columns: 1fr !important}
-  .col-4,.col-5,.col-6{grid-column: span 12 !important}
-  .strip{grid-template-columns: 1fr}
-  .tools{grid-template-columns: 1fr}
-  .card-grid{grid-template-columns: 1fr}
-  h1{font-size: 19px !important}
-  table{font-size: 11px}
-  th,td{padding: 6px 8px !important}
-  .kpi h3{font-size: 10px !important}
-  .kpi .v{font-size: 22px !important}
-}
-</style>
-<script src="/ai-brief-kit.js"></script>
-<script src="/jh-ai-insights.js?t=20260601a" defer></script>
-</head>
-<body>
-<div class="topbar">
-  <div class="brand"><span class="dot"></span>JUSTHODL<span>.AI</span></div>
-  <nav class="nav-links">
-    <a href="/">Desk</a>
-    <a href="/intelligence.html">Intel</a>
-    <a href="/desk-v2.html">Desk v2</a>
-    <a href="/ka/">KA Index</a>
-    <a href="/crisis.html">Crisis</a>
-    <a href="/regime.html" class="active">Regime</a>
-    <a href="/correlation.html">Correlations</a>
-    <a href="/macro-data.html">Macro</a>
-    <a href="/bonds.html">Bonds</a>
-    <a href="/auction-crisis.html">Auctions</a>
-    <a href="/repo.html">Repo</a>
-    <a href="/sentiment.html">Sentiment</a>
-    <a href="/volatility.html">Vol</a>
-    <a href="/reports.html">Reports</a>
-  </nav>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg0:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',ui-monospace,monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg0);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);backdrop-filter:blur(8px);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand .dot{display:inline-block;width:8px;height:8px;background:var(--violet);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--violet)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--violet)}
+.wrap{max-width:1100px;margin:0 auto;padding:22px}
+h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:900px}
+.hero{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0}
+.q{background:var(--bg1);border:2px solid var(--border);border-radius:14px;padding:16px 20px;font-family:var(--mono)}
+.q .name{font-size:22px;font-weight:800}.q .m{font-size:11px;color:var(--fg3);margin-top:6px;line-height:1.7}
+.q.GOLDILOCKS{border-color:var(--green)}.q.REFLATION{border-color:var(--amber)}.q.STAGFLATION{border-color:var(--red)}.q.DEFLATION-BUST{border-color:var(--cyan)}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:9px;border-bottom:1px solid var(--border);background:var(--bg2)}
+th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+.hi{color:var(--green)}.lo{color:var(--red)}.cur td{background:rgba(167,139,250,.07)}
+.strip{display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.strip i{flex:1}.lg{display:flex;gap:14px;font-family:var(--mono);font-size:10.5px;color:var(--fg3);margin-top:7px}
+.lg b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+</style></head><body>
+<header><div class="brand"><span class="dot"></span>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/us-cycle.html">US Cycle</a><a href="/regime.html" class="on">🧭 Regime</a><a href="/risk-desk.html">Risk Desk</a><a href="/skill.html">Skill</a></nav></header>
+<div class="wrap">
+<h1>Regime Engine — <span class="grad">the conductor</span></h1>
+<p class="sub">One canonical macro state for the whole platform: Growth × Inflation quadrants classified monthly back to the 1960s, with an NFCI liquidity overlay. The playbooks below are <b>measured</b> forward distributions per quadrant — real n, no folklore — plus the historical transition matrix: where regimes like this one usually went next.</p>
+<div class="hero" id="hero"><span class="loading">Loading…</span></div>
+<div class="sec">Measured playbook — forward returns inside each quadrant</div><div id="pb"></div>
+<div class="sec">3-month transition matrix (where this regime goes, historically)</div><div id="tm"></div>
+<div class="sec">30-year regime strip</div><div id="strip"></div><div class="lg" id="lg"></div>
+<div class="note" id="note"></div>
 </div>
-
-<main class="container">
-  <div class="page-hdr">
-    <h1>REGIME &amp; ANOMALY</h1>
-<div id="ai-decisive-call" style="max-width:1280px;margin:14px auto 8px;padding:0 18px"></div>
-<script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","regime-decisive-call");</script>
-    <p>Hidden Markov Model 4-state regime detector · Mahalanobis anomaly layer · daily refit</p>
-    <div class="meta">
-      <span>🧠 model: HMM (Baum-Welch EM, 4-state Gaussian)</span>
-      <span>🔄 refit: daily 14:00 UTC</span>
-      <span>🕒 last: <span id="updated">—</span></span>
-      <span>📊 training: <span id="training-n">—</span> obs</span>
-      <span id="macroNowcastBadge" title="Macroeconomic composite from 7 FRED series">📊 macro: <span style="color:var(--fg-3)">loading…</span></span>
-    </div>
-  </div>
-
-  <div id="errorBanner" class="error-banner">⚠️ Failed to load data — please retry shortly</div>
-
-  <div id="warmupBanner" class="warmup-banner">
-    <strong>⏳ Model warming up</strong>
-    <div style="margin-top:6px">
-      The HMM needs <strong>≥12 observations</strong> to fit its first parameters and <strong>≥60 observations</strong> to be considered fully calibrated.
-      Current sample: <strong id="warmup-n">—</strong> observations.
-      <span id="warmup-detail"></span>
-    </div>
-    <!-- Phase 9.4 — training progress bar + ETA -->
-    <div id="warmup-progress" style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,177,61,.18);display:none">
-      <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px;margin-bottom:6px">
-        <span id="warmup-pct">0%</span>
-        <span id="warmup-eta">—</span>
-      </div>
-      <div style="height:8px;background:rgba(255,177,61,.08);border-radius:4px;overflow:hidden;border:1px solid rgba(255,177,61,.18)">
-        <div id="warmup-bar" style="height:100%;background:linear-gradient(90deg,var(--amber),var(--green));width:0%;transition:width .6s ease"></div>
-      </div>
-      <div style="margin-top:8px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);display:flex;justify-content:space-between;letter-spacing:.5px">
-        <span>Median <span id="warmup-rate">—</span> obs/day (last 7d)</span>
-        <span><span id="warmup-needed">—</span> more obs needed</span>
-      </div>
-    </div>
-    <div style="margin-top:6px;color:var(--fg-3);font-size:11px">
-      Note: archive entries with score = 0 (the Mar 9 → Apr 24 producer-bug period) are filtered from training. As more daily data accumulates from the post-fix Apr 25 baseline, the model retrains and improves automatically.
-    </div>
-  </div>
-
-  <!-- Composite anomaly banner -->
-  <div id="composite-banner" class="composite-banner normal">
-    <div id="score-circle" class="score-circle normal">
-      <div class="num" id="anomaly-score">—</div>
-      <div class="lbl">ANOMALY</div>
-    </div>
-    <div class="composite-info">
-      <h2>COMPOSITE ANOMALY SIGNAL</h2>
-      <div class="signal-text" id="anomaly-signal" style="color:var(--green)">LOADING…</div>
-      <div class="desc" id="anomaly-desc">Per-signal Mahalanobis distance vs 90-day rolling distribution. Anomalies are |z|&gt;2 deviations; extreme readings are |z|&gt;3. Catches structural breaks the threshold detectors miss.</div>
-    </div>
-  </div>
-
-  <!-- 4-state regime probabilities -->
-  <div class="section-hdr">
-    <h3>HMM REGIME PROBABILITIES</h3>
-    <div class="sub">probabilistic state membership · current observation</div>
-  </div>
-  <div id="regime-strip" class="regime-strip"></div>
-
-  <!-- Transition matrix -->
-  <div class="section-hdr">
-    <h3>TRANSITION PROBABILITIES</h3>
-    <div class="sub">P(next state | current state) · diagonal = stay-in-state probability</div>
-  </div>
-  <div id="transition-matrix" class="transition-matrix"></div>
-
-  <!-- Fit quality -->
-  <div class="section-hdr">
-    <h3>FIT QUALITY</h3>
-    <div class="sub">model diagnostics · how confident is the HMM in its parameters</div>
-  </div>
-  <div id="fit-card" class="fit-card"></div>
-
-  <!-- Anomalies -->
-  <div class="section-hdr">
-    <h3>SIGNAL ANOMALIES</h3>
-    <div class="sub">per-signal Mahalanobis z-score vs 90d rolling distribution</div>
-  </div>
-  <div id="anomaly-grid" class="anomaly-grid"></div>
-
-  <footer>
-    <a href="/crisis.html">Crisis & Plumbing</a> ·
-    <a href="/intelligence.html">Intelligence</a> ·
-    <a href="/">JustHodl.AI</a>
-    <div style="margin-top:6px">model: pure-python Baum-Welch EM · 4-state Gaussian HMM · last refit: <span id="footer-ts">—</span></div>
-  </footer>
-</main>
-
 <script>
-const URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/regime-anomaly.json?t=' + Date.now();
-
-const REGIMES = ['EXPANSION', 'LATE_CYCLE', 'CONTRACTION', 'CRISIS'];
-
-function fmtAge(iso) {
-  if (!iso) return '—';
-  const ageMin = (Date.now() - new Date(iso).getTime()) / 60000;
-  if (ageMin < 60) return Math.round(ageMin) + 'm ago';
-  const h = ageMin / 60;
-  if (h < 24) return h.toFixed(1) + 'h ago';
-  return (h / 24).toFixed(1) + 'd ago';
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const QC={GOLDILOCKS:'#34d399',REFLATION:'#fbbf24',STAGFLATION:'#ff5577','DEFLATION-BUST':'#22d3ee'};
+const QUADS=['GOLDILOCKS','REFLATION','STAGFLATION','DEFLATION-BUST'];
+function cell(s,inv){if(!s)return '<td>—</td>';const good=inv?s.pos_pct<=45:s.pos_pct>=55;const bad=inv?s.pos_pct>=55:s.pos_pct<=45;
+  return `<td class="${good?'hi':bad?'lo':''}">${s.median>0?'+':''}${s.median} <span style="color:var(--fg3)">(${s.pos_pct}%+ n${s.n})</span></td>`;}
+async function load(){
+  const D=await gj('data/regime.json');
+  if(!D){document.getElementById('hero').innerHTML='<span class="loading">brief unavailable — first run pending</span>';return;}
+  const c=D.current||{};
+  document.getElementById('hero').innerHTML=`
+   <div class="q ${esc(c.quadrant)}"><div class="name" style="color:${QC[c.quadrant]||'#fff'}">${esc(c.quadrant)}</div>
+    <div class="m">${c.months_in_regime} months · since ${esc(c.as_of_month)} · prev ${esc(c.previous_quadrant)}<br>
+    growth 6m ${c.growth_6m_momentum>0?'+':''}${c.growth_6m_momentum} · inflation 6m ${c.inflation_6m_momentum>0?'+':''}${c.inflation_6m_momentum}<br>
+    liquidity ${esc(c.liquidity_state)} (NFCI ${c.liquidity_nfci})</div></div>
+   <div class="q"><div class="name" style="font-size:14px">Next 3m odds</div><div class="m">${Object.entries(c.next_3m_probabilities||{}).sort((a,b)=>b[1]-a[1]).map(([q,p])=>`<span style="color:${QC[q]}">${q}</span> ${p}%`).join('<br>')}</div></div>
+   <div class="q"><div class="name" style="font-size:14px">History share</div><div class="m">${Object.entries(c.history_share_pct||{}).map(([q,p])=>`<span style="color:${QC[q]}">${q}</span> ${p}%`).join('<br>')}<br>${D.n_months_classified} months since ${esc(D.first_month)}</div></div>`;
+  const pb=D.playbook||{};
+  let rows='';
+  for(const q of QUADS){
+    const cur=q===c.quadrant?' class="cur"':'';
+    rows+=`<tr${cur}><td style="color:${QC[q]}"><b>${q}</b></td>
+      ${cell((pb.spx?.['1m']||{})[q])}${cell((pb.spx?.['3m']||{})[q])}
+      ${cell((pb.ust10y_yield?.['3m']||{})[q],false)}
+      ${cell((pb.usd?.['3m']||{})[q])}${cell((pb.wti?.['3m']||{})[q])}
+      ${cell((pb.credit_spread?.['3m']||{})[q],true)}</tr>`;
+  }
+  document.getElementById('pb').innerHTML=`<table><thead><tr><th>Quadrant</th><th>SPX +1m %</th><th>SPX +3m %</th><th>10y Δ +3m</th><th>USD +3m %</th><th>WTI +3m %</th><th>Credit Δ +3m</th></tr></thead><tbody>${rows}</tbody></table>`;
+  const tm=D.transition_matrix_3m||{};
+  document.getElementById('tm').innerHTML=`<table><thead><tr><th>From \\ To</th>${QUADS.map(q=>`<th style="color:${QC[q]}">${q.slice(0,6)}</th>`).join('')}</tr></thead><tbody>${QUADS.filter(q=>tm[q]).map(q=>`<tr${q===c.quadrant?' class="cur"':''}><td style="color:${QC[q]}"><b>${q}</b></td>${QUADS.map(q2=>`<td>${tm[q][q2]??'—'}%</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const st=D.regime_strip||[];
+  document.getElementById('strip').innerHTML='<div class="strip">'+st.map(([m,q])=>`<i style="background:${QC[q]}" title="${m} ${q}"></i>`).join('')+'</div>';
+  document.getElementById('lg').innerHTML=QUADS.map(q=>`<span><b style="background:${QC[q]}"></b>${q}</span>`).join('')+`<span style="margin-left:auto">${esc(st[0]?.[0])} → ${esc(st[st.length-1]?.[0])}</span>`;
+  document.getElementById('note').textContent=`${D.methodology} · ${D.signals_logged} transition signals logged · v${D.version} · ${D.generated_at} · Research, not advice.`;
 }
-
-function setError(msg) {
-  const eb = document.getElementById('errorBanner');
-  eb.textContent = '⚠️ ' + msg;
-  eb.style.display = 'block';
-}
-
-function renderRegimes(hmm) {
-  const strip = document.getElementById('regime-strip');
-  if (!hmm || !hmm.state_probabilities) {
-    strip.innerHTML = '<div class="regime-card"><div class="label">No model output yet</div></div>';
-    return;
-  }
-  const probs = hmm.state_probabilities;
-  const current = hmm.state_label;
-  let html = '';
-  for (const r of REGIMES) {
-    const p = probs[r] || 0;
-    const isActive = r === current;
-    const lower = r.toLowerCase();
-    html += `<div class="regime-card ${lower} ${isActive ? 'active' : ''}">
-      <div class="label">${r.replace('_', ' ')}</div>
-      <div class="prob">${(p * 100).toFixed(1)}<span class="pct">%</span></div>
-      <div class="bar"><div class="fill" style="width:${p * 100}%"></div></div>
-      ${isActive ? '<div style="font-family:var(--font-mono);font-size:9px;color:var(--cyan);letter-spacing:1px;margin-top:8px">▸ CURRENT</div>' : ''}
-    </div>`;
-  }
-  strip.innerHTML = html;
-}
-
-function renderTransitionMatrix(hmm) {
-  const div = document.getElementById('transition-matrix');
-  if (!hmm || !hmm.transition_matrix) { div.innerHTML = ''; return; }
-  const M = hmm.transition_matrix;
-  let html = '<table><thead><tr><th>From → To</th>';
-  for (const to of REGIMES) html += `<th>${to.replace('_', ' ')}</th>`;
-  html += '</tr></thead><tbody>';
-  for (const from of REGIMES) {
-    html += `<tr><td>${from.replace('_', ' ')}</td>`;
-    for (const to of REGIMES) {
-      const p = (M[from] && M[from][to]) || 0;
-      const isDiag = from === to;
-      const heat = Math.min(4, Math.floor(p * 5));
-      html += `<td class="${isDiag ? 'diag' : ''} heat-${heat}">${p.toFixed(3)}</td>`;
-    }
-    html += '</tr>';
-  }
-  html += '</tbody></table>';
-  div.innerHTML = html;
-}
-
-function renderFitCard(hmm) {
-  const div = document.getElementById('fit-card');
-  if (!hmm) { div.innerHTML = ''; return; }
-  const rows = [
-    ['Training observations', hmm.training_n ?? '—'],
-    ['Log-likelihood', hmm.fit_log_likelihood ?? '—'],
-    ['Avg log-lik per obs', hmm.fit_avg_loglik_per_obs ?? '—'],
-    ['Expected duration in current state', hmm.expected_regime_duration_obs != null ? hmm.expected_regime_duration_obs + ' obs' : '—'],
-    ['Warming up', hmm.is_warming_up ? 'YES' : 'NO'],
-  ];
-  if (hmm.state_means) {
-    rows.push(['', '']);
-    for (const [r, m] of Object.entries(hmm.state_means)) {
-      rows.push(['μ ' + r.replace('_', ' '), m]);
-    }
-  }
-  let html = '';
-  for (const [k, v] of rows) {
-    if (k === '') { html += '<div style="border:none;height:6px"></div>'; continue; }
-    html += `<div><span>${k}</span><span>${v}</span></div>`;
-  }
-  div.innerHTML = html;
-}
-
-function renderAnomalies(anomaly) {
-  const grid = document.getElementById('anomaly-grid');
-  if (!anomaly || !anomaly.per_signal || Object.keys(anomaly.per_signal).length === 0) {
-    grid.innerHTML = '<div class="anomaly-card"><div class="name">No signals analyzed</div><div class="z">—</div><div class="meta">Anomaly engine warming up — needs 90d signal history</div></div>';
-    return;
-  }
-  let html = '';
-  // Sort by abs z-score descending
-  const entries = Object.entries(anomaly.per_signal).sort((a, b) => Math.abs(b[1].z_score || 0) - Math.abs(a[1].z_score || 0));
-  for (const [name, data] of entries) {
-    const cls = data.is_extreme ? 'extreme' : data.is_anomaly ? 'anomaly' : '';
-    const z = data.z_score;
-    const sign = z > 0 ? '+' : '';
-    html += `<div class="anomaly-card ${cls}">
-      <div class="name">${name}</div>
-      <div class="z">${sign}${z != null ? z.toFixed(2) : '—'}σ</div>
-      <div class="meta">latest=${data.latest != null ? data.latest.toFixed(2) : '—'} · μ=${data.mean_90d ?? '—'} · n=${data.n_samples ?? 0}</div>
-    </div>`;
-  }
-  grid.innerHTML = html;
-}
-
-function renderComposite(anomaly) {
-  if (!anomaly) return;
-  const score = anomaly.composite_anomaly_score ?? 0;
-  const banner = document.getElementById('composite-banner');
-  const circle = document.getElementById('score-circle');
-  const sigEl = document.getElementById('anomaly-signal');
-  const descEl = document.getElementById('anomaly-desc');
-
-  let cls, label, desc;
-  if (score >= 50) {
-    cls = 'crisis';
-    label = 'CRISIS-LIKE';
-    desc = 'Multiple signals showing extreme deviations from their 90d distributions. This often precedes regime breaks.';
-  } else if (score >= 25) {
-    cls = 'elevated';
-    label = 'ELEVATED';
-    desc = 'Several signals showing anomalous behavior. Worth investigating which signals are firing and why.';
-  } else {
-    cls = 'normal';
-    label = 'NORMAL';
-    desc = 'No anomalous signal behavior detected. All signals within their typical 90-day distributions.';
-  }
-
-  banner.className = 'composite-banner ' + cls;
-  circle.className = 'score-circle ' + cls;
-  document.getElementById('anomaly-score').textContent = Math.round(score);
-  sigEl.textContent = label;
-  sigEl.style.color = cls === 'crisis' ? 'var(--red)' : cls === 'elevated' ? 'var(--amber)' : 'var(--green)';
-  descEl.textContent = desc;
-}
-
-async function loadData() {
-  try {
-    const res = await fetch(URL);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-
-    document.getElementById('updated').textContent = fmtAge(data.generated_at);
-    document.getElementById('footer-ts').textContent = data.generated_at || '—';
-    document.getElementById('training-n').textContent = data.hmm?.training_n ?? '—';
-
-    if (data.hmm?.is_warming_up) {
-      document.getElementById('warmupBanner').classList.add('show');
-      const n = data.hmm?.training_n ?? 0;
-      document.getElementById('warmup-n').textContent = n;
-      const detailEl = document.getElementById('warmup-detail');
-      if (n < 12) {
-        detailEl.textContent = ` ↳ Below 12-observation minimum — HMM has not fit yet. Showing all-zero state probabilities; this is expected.`;
-      } else if (n < 60) {
-        detailEl.textContent = ` ↳ HMM has fit but is below the 60-observation calibration target. Probabilities are directional, not authoritative.`;
-      }
-      // Phase 9.4 — populate training-progress bar from new training_progress field
-      const prog = data.training_progress;
-      if (prog) {
-        const progEl = document.getElementById('warmup-progress');
-        progEl.style.display = 'block';
-        const pct = Math.min(100, prog.pct_complete || 0);
-        document.getElementById('warmup-bar').style.width = pct + '%';
-        document.getElementById('warmup-pct').textContent =
-          `${prog.n_obs} / ${prog.target_n_obs} obs (${pct.toFixed(1)}%)`;
-        document.getElementById('warmup-rate').textContent = prog.median_obs_per_day_7d ?? '—';
-        document.getElementById('warmup-needed').textContent =
-          Math.max(0, (prog.target_n_obs || 0) - (prog.n_obs || 0));
-        if (prog.eta_live_iso) {
-          const eta = new Date(prog.eta_live_iso);
-          const days = prog.days_to_target;
-          document.getElementById('warmup-eta').textContent =
-            `ETA fully-calibrated: ${eta.toISOString().slice(0, 10)} (${days}d)`;
-        } else if (prog.n_obs >= prog.target_n_obs) {
-          document.getElementById('warmup-eta').textContent = 'Target reached';
-        } else if (prog.median_obs_per_day_7d === 0) {
-          document.getElementById('warmup-eta').textContent = 'ETA: no recent observations';
-        } else {
-          document.getElementById('warmup-eta').textContent = '—';
-        }
-      }
-    } else {
-      document.getElementById('warmupBanner').classList.remove('show');
-    }
-
-    renderRegimes(data.hmm);
-    renderTransitionMatrix(data.hmm);
-    renderFitCard(data.hmm);
-    renderComposite(data.anomaly);
-    renderAnomalies(data.anomaly);
-  } catch (e) {
-    console.error(e);
-    setError('Failed to load: ' + e.message);
-  }
-}
-
-// ─── Macro Nowcast cross-link badge ──────────────────────────────
-// Fetches data/macro-nowcast.json and renders a small badge linking to
-// /macro-data.html. The HMM model on this page detects regimes from
-// price action; the macro nowcast classifies the macroeconomic state
-// from 7 FRED series. Showing both gives a fuller regime picture.
-async function loadNowcastBadge(){
-  const el = document.getElementById('macroNowcastBadge');
-  if (!el) return;
-  try {
-    const r = await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/macro-nowcast.json?t=' + Date.now());
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
-    const score = d.normalized_score;
-    const regime = d.regime || '—';
-    const icon = {'STRONG EXPANSION':'🟢','EXPANSION':'🟢','MUDDLE':'🟡','SLOWING':'🟠','CONTRACTION RISK':'🔴'}[regime] || '⚪';
-    const color = d.regime_color === 'green' ? 'var(--green)'
-                : d.regime_color === 'red'   ? 'var(--red)'
-                : d.regime_color === 'amber' ? 'var(--amber)' : 'var(--fg-2)';
-    const sign = (score >= 0 ? '+' : '');
-    el.innerHTML = `📊 macro: <a href="/macro-data.html" style="color:${color};font-weight:500" title="Composite z-score from 7 FRED series · click for full nowcast">${icon} ${regime} ${sign}${score?.toFixed(2)}</a>`;
-  } catch(e) {
-    el.innerHTML = `📊 macro: <a href="/macro-data.html" style="color:var(--fg-3)">view nowcast →</a>`;
-  }
-}
-loadNowcastBadge();
-loadData();
-setInterval(loadData, 5 * 60 * 1000);
-</script>
-</body>
-</html>
+load();
+</script></body></html>

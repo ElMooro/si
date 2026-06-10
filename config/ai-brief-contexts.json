@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-10T22:21:47.235914+00:00",
+ "generated_at": "2026-06-10T22:54:40.424854+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -1230,71 +1230,38 @@
    "prompt_intro": "You are analysing TREND across the major asset classes \u2014 slope, persistence, breakout/breakdown signals. Trends persist longer than people expect (positive autocorrelation) until they crash sharply. Focus on: (1) which assets have the strongest trends right now (12-1 momentum + 200-DMA slope)?, (2) is trend strength rising or fading (the second derivative \u2014 pre-crash signal)?, (3) which prior trend-persistence vs trend-crash episode rhymes?"
   },
   "regime-decisive-call": {
-   "title": "Regime Anomaly Detector \u2014 Decisive Call",
+   "title": "Macro Regime \u2014 Decisive Call",
    "output_key": "regime-decisive-call",
-   "primary_feed": "data/regime-anomaly.json",
+   "primary_feed": "data/regime.json",
    "cross_feeds": {
     "yield_curve": "data/yield-curve.json",
     "vix": "data/vix-curve.json",
     "credit": "data/credit-spreads.json",
-    "systemic_stress": "data/systemic-stress.json"
+    "dollar": "data/dollar-radar.json"
    },
    "cross_regime_fields": {
     "yield_curve": "regime",
     "vix": "composite_regime",
     "credit": "regime",
-    "systemic_stress": "regime"
+    "dollar": "regime"
    },
    "kb_keywords": [
-    "regime change",
-    "structural break",
-    "Markov regime switching",
-    "Hamilton filter",
-    "factor crowding",
-    "vol regime shift",
-    "correlation breakdown",
-    "Feb 2018 Volmageddon",
-    "Aug 2007 quant melt",
-    "March 2020 regime shift"
+    "regime",
+    "stagflation",
+    "goldilocks",
+    "reflation",
+    "quadrant",
+    "growth inflation",
+    "macro regime"
    ],
    "episode_indicators_to_show": [
     "VIXCLS",
-    "T10Y2Y",
+    "DGS10",
     "BAMLH0A0HYM2",
-    "DGS10"
+    "DTWEXBGS",
+    "DGS2"
    ],
-   "system_addendum": "You are specifically a SENIOR REGIME-DETECTION QUANT / Markov-switching practitioner. You think in terms of structural breaks, regime transitions, hidden-state probability shifts. You cite specific structural-break episodes (Aug 2007 quant melt = factor regime shift, Feb 2018 = vol regime shift, March 2020 = correlation regime shift, Q4 2022 = duration regime shift) and explain whether current data looks like a regime is ABOUT to change, IS changing, or HAS changed.",
-   "assets_to_predict": [
-    {
-     "asset": "US Equities (SPX/NDX)",
-     "ticker": "SPX"
-    },
-    {
-     "asset": "Bitcoin (BTC)",
-     "ticker": "BTC"
-    },
-    {
-     "asset": "Ethereum (ETH)",
-     "ticker": "ETH"
-    },
-    {
-     "asset": "High-Yield Credit",
-     "ticker": "HYG"
-    },
-    {
-     "asset": "Gold",
-     "ticker": "GLD"
-    },
-    {
-     "asset": "US Dollar (DXY)",
-     "ticker": "DXY"
-    },
-    {
-     "asset": "Duration / Long Bonds",
-     "ticker": "TLT"
-    }
-   ],
-   "prompt_intro": "You are analysing REGIME ANOMALIES \u2014 statistical evidence that the current regime is breaking. Primary data has regime classifications, anomaly scores, hidden-state probabilities. Focus on: (1) what regime is the system currently classifying us in?, (2) what's the probability of a regime SHIFT in the near term?, (3) which prior regime-change episode rhymes (Aug 2007, Feb 2018, March 2020, Q4 2022)?"
+   "system_addendum": "You are specifically the platform's REGIME CONDUCTOR \u2014 a multi-asset CIO. State the quadrant, months-in-regime, liquidity overlay, then allocate strictly from the MEASURED playbook tables (cite median, %positive and n per asset) and the 3m transition matrix. Where the current quadrant's sample is mixed, say so. Never invoke quadrant folklore the tables don't support."
   },
   "valuations-decisive-call": {
    "title": "Equity Valuations \u2014 Decisive Call",
