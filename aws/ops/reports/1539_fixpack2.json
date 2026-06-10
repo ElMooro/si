@@ -1,0 +1,239 @@
+{
+  "ops": 1539,
+  "deployed": [
+    "justhodl-historical-analogs",
+    "justhodl-alert-backtester"
+  ],
+  "rules": [
+    {
+      "fn": "justhodl-opex-calendar",
+      "rule": "justhodl-opex-calendar-sched",
+      "expr": "cron(0 11 * * ? *)"
+    },
+    {
+      "fn": "justhodl-vol-surface",
+      "rule": "justhodl-vol-surface-sched",
+      "expr": "cron(30 13 * * ? *)"
+    },
+    {
+      "fn": "justhodl-stablecoin-flow",
+      "rule": "justhodl-stablecoin-flow-sched",
+      "expr": "cron(0 14 * * ? *)"
+    },
+    {
+      "fn": "justhodl-breadth-thrust",
+      "rule": "justhodl-breadth-thrust-sched",
+      "expr": "cron(30 21 * * ? *)"
+    },
+    {
+      "fn": "justhodl-rv-iv-scanner",
+      "rule": "justhodl-rv-iv-scanner-sched",
+      "expr": "cron(30 14 * * ? *)"
+    },
+    {
+      "fn": "justhodl-insider-buys-enriched",
+      "rule": "justhodl-insider-buys-enriched-sched",
+      "expr": "cron(0 10 * * ? *)"
+    },
+    {
+      "fn": "justhodl-buyback-scanner",
+      "rule": "justhodl-buyback-scanner-sched",
+      "expr": "cron(0 12 ? * MON *)"
+    },
+    {
+      "fn": "justhodl-russell-recon-frontrun",
+      "rule": "justhodl-russell-recon-frontrun-sched",
+      "expr": "cron(30 12 * * ? *)"
+    },
+    {
+      "fn": "justhodl-fleet-freshness-monitor",
+      "rule": "justhodl-fleet-freshness-monitor-sched",
+      "expr": "rate(1 hour)"
+    },
+    {
+      "fn": "justhodl-fleet-monitor",
+      "rule": "justhodl-fleet-monitor-sched",
+      "expr": "rate(6 hours)"
+    },
+    {
+      "fn": "justhodl-carry-surface",
+      "rule": "justhodl-carry-surface-sched",
+      "expr": "cron(0 13 * * ? *)"
+    }
+  ],
+  "invoked": [
+    "justhodl-opex-calendar",
+    "justhodl-vol-surface",
+    "justhodl-stablecoin-flow",
+    "justhodl-breadth-thrust",
+    "justhodl-rv-iv-scanner",
+    "justhodl-insider-buys-enriched",
+    "justhodl-buyback-scanner",
+    "justhodl-russell-recon-frontrun",
+    "justhodl-fleet-freshness-monitor",
+    "justhodl-fleet-monitor",
+    "justhodl-carry-surface"
+  ],
+  "errors": [],
+  "backtest_prefix": [
+    {
+      "key": "backtest/calls-results.json",
+      "age_h": 14.8,
+      "kb": 61.1
+    },
+    {
+      "key": "backtest/results.json",
+      "age_h": 3.3,
+      "kb": 65.1
+    },
+    {
+      "key": "backtest/summary.json",
+      "age_h": 3.3,
+      "kb": 6.0
+    }
+  ],
+  "sector_schema": {
+    "top_keys": [
+      "elapsed_seconds",
+      "generated_at",
+      "generated_at_unix",
+      "macro_context",
+      "ratios",
+      "risk_appetite",
+      "rotation_alerts",
+      "sectors",
+      "summary",
+      "version"
+    ],
+    "sector0_keys": [
+      "chaikin_money_flow_20",
+      "current_price",
+      "cycle_fit_phases",
+      "death_cross_active",
+      "golden_cross_active",
+      "in_current_cycle",
+      "money_flow_index_14",
+      "name",
+      "obv_slope_10d",
+      "pct_vs_sma20",
+      "pct_vs_sma200",
+      "pct_vs_sma50",
+      "rank",
+      "return_1d_pct",
+      "return_1m_pct",
+      "return_3m_pct",
+      "return_5d_pct",
+      "return_6m_pct",
+      "rotating_in",
+      "rotating_out",
+      "rotation_in_flags",
+      "rotation_out_flags",
+      "rotation_score",
+      "rs_1d_pct",
+      "rs_1m_pct",
+      "rs_3m_pct",
+      "rs_5d_pct",
+      "rs_6m_pct",
+      "rs_acceleration",
+      "rs_pct_rank_1y",
+      "rs_slope_21d_pct_per_day",
+      "score_components",
+      "sma20",
+      "sma200",
+      "sma50",
+      "spy_return_1d_pct",
+      "spy_return_1m_pct",
+      "spy_return_3m_pct",
+      "spy_return_5d_pct",
+      "spy_return_6m_pct",
+      "sub_sector_check",
+      "symbol",
+      "volume_surge_ratio"
+    ],
+    "sector0_sample": {
+      "symbol": "XLK",
+      "name": "Technology",
+      "current_price": 180.3,
+      "cycle_fit_phases": [
+        "EXPANSION-EARLY",
+        "EXPANSION-MID"
+      ],
+      "in_current_cycle": true,
+      "rotation_score": 84.2,
+      "score_components": {
+        "rs_momentum": 100,
+        "money_flow": 100,
+        "breadth": 70.7,
+        "regime_fit": 75,
+        "sub_sector": 38.0
+      },
+      "rs_1d_pct": -4.08
+    }
+  },
+  "freshness_h": {
+    "data/carry-surface.json": 37.3,
+    "data/sector-rotation.json": 36.8,
+    "data/13f-intel.json": null,
+    "data/13f.json": null,
+    "data/deep-value.json": 14.8,
+    "data/eps-velocity.json": null,
+    "data/volatility.json": null,
+    "data/vol-surface.json": 0.8,
+    "data/repo-stress.json": null,
+    "data/flow.json": null,
+    "data/event-flow.json": null,
+    "data/master-board.json": null,
+    "data/best-setups.json": 0.6,
+    "data/screener-brief.json": null,
+    "data/opex-calendar.json": 0.0,
+    "data/breadth-thrust.json": 0.8,
+    "data/stablecoin-flow.json": 0.0,
+    "data/rv-iv.json": null,
+    "data/insider-buys-enriched.json": 0.0,
+    "data/buyback-scan.json": null,
+    "data/russell-recon.json": null
+  },
+  "analogs_verify": {
+    "version": "2.1",
+    "spy_span": null,
+    "n_pool": null,
+    "analog_years": [],
+    "n_analogs": 0
+  },
+  "alertbt_verify": {
+    "spy_span": "2021-06-10\u21922026-06-09",
+    "n_rules": 11,
+    "sample": [
+      {
+        "rule": "euribor_ois_ge50",
+        "n_fires": 1,
+        "med_21d": null
+      },
+      {
+        "rule": "it_de_ge150",
+        "n_fires": 3,
+        "med_21d": null
+      },
+      {
+        "rule": "estr_dfr_ge_m1",
+        "n_fires": 0,
+        "med_21d": null
+      },
+      {
+        "rule": "wages_gt_35",
+        "n_fires": 3,
+        "med_21d": null
+      },
+      {
+        "rule": "m3_lt_2",
+        "n_fires": 2,
+        "med_21d": null
+      },
+      {
+        "rule": "t2_gap_z2",
+        "n_fires": 2,
+        "med_21d": null
+      }
+    ]
+  }
+}
