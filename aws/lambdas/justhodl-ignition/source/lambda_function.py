@@ -30,7 +30,7 @@ OUT_KEY = "data/ignition.json"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 DEFAULT_UNIVERSE = ["NVDA","AMD","AVGO","TSM","MU","SMCI","VRT","ETN","PWR","ANET","CLS","FLEX","JBL",
                     "COHR","LITE","MRVL","ARM","ASML","AMAT","LRCX","KLAC","TER","ONTO","CAMT","ACLS",
@@ -196,8 +196,8 @@ def fmp_pillars(ticker, probes):
         out["rev_up30"], out["rev_dn30"] = up, dn
         out["rev_net"] = up - dn
     if probes.get("inst"):
-        h = fmp("institutional-ownership/symbol-positions-summary", {"symbol": ticker}) or \
-            fmp("institutional-ownership", {"symbol": ticker}) or []
+        h = fmp(probes["inst"] if isinstance(probes["inst"], str)
+                else "institutional-ownership/symbol-positions-summary", {"symbol": ticker}) or []
         h0 = h[0] if isinstance(h, list) and h else (h if isinstance(h, dict) else {})
         out["inst_investors_chg"] = h0.get("investorsHoldingChange") or h0.get("newPositions")
     if probes.get("insider_fmp"):
@@ -264,8 +264,13 @@ def lambda_handler(event=None, context=None):
     probes = {}
     g = fmp("grades", {"symbol": "NVDA", "limit": 2})
     probes["grades"] = isinstance(g, list) and len(g) > 0
-    h = fmp("institutional-ownership/symbol-positions-summary", {"symbol": "NVDA"})
-    probes["inst"] = isinstance(h, (list, dict)) and bool(h)
+    probes["inst"] = False
+    for ep in ("institutional-ownership/symbol-positions-summary", "institutional-holders",
+               "institutional-ownership/latest"):
+        h = fmp(ep, {"symbol": "NVDA"})
+        if isinstance(h, (list, dict)) and h:
+            probes["inst"] = ep
+            break
     insider_brief = None
     for k in ("data/insider-buys-enriched.json", "data/insider-buys.json"):
         try:
@@ -315,11 +320,17 @@ def lambda_handler(event=None, context=None):
     # insider from platform brief if present
     if insider_brief:
         per = {}
-        items = insider_brief.get("buys") or insider_brief.get("items") or insider_brief.get("ranks") or []
-        for it in (items if isinstance(items, list) else []):
-            tk = (it.get("ticker") or it.get("symbol") or "").upper()
-            if tk:
-                per[tk] = per.get(tk, 0) + 1
+        def _walk(o):
+            if isinstance(o, dict):
+                tk = o.get("ticker") or o.get("symbol")
+                if isinstance(tk, str) and 1 <= len(tk) <= 6 and tk.isupper():
+                    per[tk] = per.get(tk, 0) + 1
+                for v in o.values():
+                    _walk(v)
+            elif isinstance(o, list):
+                for v in o:
+                    _walk(v)
+        _walk(insider_brief)
         for r in rows:
             if r["ticker"] in per:
                 r["insider_buys45"] = per[r["ticker"]]
