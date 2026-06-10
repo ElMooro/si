@@ -1,0 +1,104 @@
+{
+  "ops": 1548,
+  "errors": [],
+  "monitor": "v1.2.1 deployed",
+  "router_targets": [
+    "justhodl-alerts-digest-daily:had_1_targets",
+    "justhodl-alerts-digest-close-daily:had_1_targets",
+    "justhodl-ai-brief-4h:had_1_targets"
+  ],
+  "bottleneck_fn": "created",
+  "bottleneck_rule": "cron(45 12 * * ? *)",
+  "bnb_fn_error": "NONE",
+  "bnb_verify": {
+    "scored_n": 48,
+    "universe_source": "default_universe",
+    "signals_logged": 0,
+    "top_calls": [
+      "VST",
+      "CEG",
+      "LDOS",
+      "NRG",
+      "MU",
+      "DELL",
+      "HPE",
+      "PWR"
+    ],
+    "fred_used": [
+      "AMTMUO",
+      "AMTMNO",
+      "AMTMVS",
+      "A34SUO",
+      "A34SNO",
+      "A34SVS",
+      "IPB53122S"
+    ],
+    "fred_failed": [],
+    "pressure": {
+      "TOTAL_MFG": {
+        "as_of": "2026-04-01",
+        "backlog_to_shipments": 2.448,
+        "backlog_ratio_z": 0.53,
+        "new_orders_yoy_pct": 11.7,
+        "new_orders_yoy_z": 0.88,
+        "backlog_yoy_pct": 11.5,
+        "backlog_yoy_z": 1.61,
+        "pressure_0_100": 66.1
+      },
+      "COMPUTERS_ELECTRONICS": {
+        "as_of": "2026-04-01",
+        "backlog_to_shipments": 4.61,
+        "backlog_ratio_z": -0.44,
+        "new_orders_yoy_pct": 14.9,
+        "new_orders_yoy_z": 3.07,
+        "backlog_yoy_pct": 2.9,
+        "backlog_yoy_z": -0.29,
+        "pressure_0_100": 62.5
+      },
+      "SEMIS_IP_STRAIN": {
+        "ip_yoy_pct": 15.3,
+        "ip_yoy_z": 1.05,
+        "as_of": "2026-04-01"
+      }
+    },
+    "rank1": {
+      "ticker": "VST",
+      "name": "Vistra Corp.",
+      "sector": "Utilities",
+      "industry": "Independent Power Producers",
+      "mkt_cap": 49302820471,
+      "rev_growth_yoy": 99.1,
+      "rev_accel_pp": 152.0,
+      "ps_ttm": 3.04,
+      "rev_to_mcap_pct": 32.9,
+      "inv_turnover": 13.74,
+      "z_rev_growth_yoy": 3,
+      "z_rev_accel_pp": 3,
+      "z_rev_to_mcap_pct": 0.28,
+      "z_inv_turnover": 0.47,
+      "pressure_group": "TOTAL_MFG",
+      "group_pressure": 66.1,
+      "boom_score": 58.5
+    },
+    "duration_s": 34.7
+  },
+  "ddb_signal": {
+    "found": false,
+    "fields": null,
+    "status": null,
+    "direction": null
+  },
+  "acceptance_ages": {
+    "data/carry-surface.json": 1.2,
+    "data/vol-surface.json": 1.3,
+    "data/sector-rotation.json": 0.2,
+    "data/eurodollar-stress.json": 0.1,
+    "data/auction-crisis.json": 0.1,
+    "data/ai-brief.json": 0.1,
+    "data/_skill/frontrun-skill-index.json": 241.7,
+    "data/bottleneck-boom.json": 0.0,
+    "data/alert-backtests.json": 0.4,
+    "data/historical-analogs.json": 0.4
+  },
+  "sector_table_rows": 11
+}
