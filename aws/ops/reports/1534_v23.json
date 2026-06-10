@@ -1,0 +1,38 @@
+{
+  "ops": 1534,
+  "written": [
+    {
+      "id": "excess_liquidity",
+      "n": 620,
+      "range": "2024-09-27\u21922026-06-08"
+    },
+    {
+      "id": "balance_sheet",
+      "n": 1431,
+      "range": "1999-W01\u21922026-W23"
+    },
+    {
+      "id": "dfr",
+      "n": 10023,
+      "range": "1999-01-01\u21922026-06-10"
+    }
+  ],
+  "failed": [],
+  "manifest_n": 31,
+  "function_error": "NONE",
+  "verify": {
+    "version": "2.3",
+    "hicp_as_of": "2025-12",
+    "latest_source": "Eurostat EA20",
+    "headline": 1.9,
+    "core": 2.3,
+    "services": 3.4,
+    "vs_target": -0.1,
+    "n_flashing": 2,
+    "flashing": [
+      "bls_credit_standards",
+      "euribor_ois_stress"
+    ],
+    "duration_s": 46.3
+  }
+}
