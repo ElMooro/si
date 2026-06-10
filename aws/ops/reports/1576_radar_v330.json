@@ -1,0 +1,153 @@
+{
+  "ops": 1576,
+  "errors": [],
+  "fn_err": "NONE",
+  "verify": {
+    "version": "3.3.0",
+    "duration_s": 55.4,
+    "brief_kb": 125.5,
+    "country_unemployment": {
+      "name": "Country Unemployment Momentum (DE/FR/IT/ES/CH)",
+      "countries": {
+        "DE": {
+          "rate_pct": 3.8,
+          "chg_3m_pp": -0.1,
+          "as_of": "2026-04"
+        },
+        "FR": {
+          "rate_pct": 8.2,
+          "chg_3m_pp": 0.1,
+          "as_of": "2026-04"
+        },
+        "IT": {
+          "rate_pct": 5.1,
+          "chg_3m_pp": -0.1,
+          "as_of": "2026-04"
+        },
+        "ES": {
+          "rate_pct": 10.3,
+          "chg_3m_pp": 0.0,
+          "as_of": "2026-04"
+        }
+      },
+      "worst_3m_rise_pp": 0.1,
+      "signal": "NORMAL",
+      "interpretation": "Per-country Sahm read: any 3m rise \u2265+0.2pp WATCH / \u2265+0.4pp CRITICAL. Italy & Spain turning up while core holds = fragmentation-flavored downturn; Switzerland is the non-EA control.",
+      "thresholds": {
+        "watch_3m_pp": 0.2,
+        "critical_3m_pp": 0.4
+      }
+    },
+    "n_sparks": 12,
+    "spark_pctiles": {
+      "ciss_acceleration": 54.1,
+      "bank_funding_stress": 7.4,
+      "eu_us_liquidity_divergence": 21.1,
+      "bls_credit_standards": 70.2,
+      "bank_pass_through_premium": 13.9,
+      "target2_imbalance": 79.2,
+      "estr_dfr_dislocation": 62.7,
+      "euribor_ois_stress": 77.9,
+      "ea_unemployment": 0.3,
+      "ea_industrial_production": 54.4,
+      "ea_confidence": 36.2,
+      "real_m1_growth": 25.9
+    },
+    "country_charts": {
+      "unemp_de": {
+        "n": 316,
+        "latest": 3.8,
+        "as_of": "2026-04"
+      },
+      "unemp_fr": {
+        "n": 316,
+        "latest": 8.2,
+        "as_of": "2026-04"
+      },
+      "unemp_it": {
+        "n": 316,
+        "latest": 5.1,
+        "as_of": "2026-04"
+      },
+      "unemp_es": {
+        "n": 316,
+        "latest": 10.3,
+        "as_of": "2026-04"
+      }
+    },
+    "n_charts": 13,
+    "changes_today": {
+      "signal_changes": [],
+      "score_prev": 49.9,
+      "score_now": 49.9,
+      "score_delta": 0.0,
+      "vs": "2026-06-10T17:49:08.974125+00:00"
+    },
+    "dump_score": {
+      "score_0_100": 49.9,
+      "level": "CALM",
+      "coverage_pillars": 7
+    },
+    "ai_error": null
+  },
+  "ecb_hist_audit": {
+    "manifest_n_series": 31,
+    "manifest_sample": [
+      {
+        "id": "balance_sheet",
+        "label": "Eurosystem Total Assets (\u20acbn, weekly)",
+        "freq": "weekly",
+        "first_date": "1999-01-04",
+        "latest_date": "2026-06-01",
+        "n_points": 1431
+      },
+      {
+        "id": "ciss_ea",
+        "label": "CISS \u2014 Euro Area systemic stress composite",
+        "freq": "daily",
+        "latest": 0.00409,
+        "percentile": 3.9,
+        "z_score": -1.48,
+        "first_date": "1997-01-01",
+        "latest_date": "2026-06-04",
+        "n_points": 7685,
+        "discontinued": false,
+        "stale_days": 5
+      },
+      {
+        "id": "ciss_fi",
+        "label": "CISS \u2014 financial intermediaries sub-index",
+        "freq": "daily",
+        "latest": 0.0805,
+        "percentile": 36.0,
+        "z_score": -0.66,
+        "first_date": "1999-01-08",
+        "latest_date": "2025-05-02",
+        "n_points": 1374,
+        "discontinued": true,
+        "stale_days": 403
+      }
+    ],
+    "s3_files_n": 33,
+    "s3_files_sample": [
+      "_manifest.json",
+      "balance_sheet.json",
+      "ciss_ea.json",
+      "ciss_fi.json",
+      "ciss_fx.json",
+      "ciss_mm.json",
+      "dfr.json",
+      "es_de_10y_bp.json",
+      "esi.json",
+      "estr.json",
+      "euribor_3m.json",
+      "euribor_ois_bp.json"
+    ],
+    "freqs_in_manifest": [
+      "daily",
+      "monthly",
+      "quarterly",
+      "weekly"
+    ]
+  }
+}
