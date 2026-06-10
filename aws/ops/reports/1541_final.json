@@ -1,0 +1,239 @@
+{
+  "ops": 1541,
+  "errors": [],
+  "base_source": "stooq",
+  "deep_base": "INSUFFICIENT (0 pts) \u2014 key left untouched",
+  "analogs_fn_error": "NONE",
+  "analogs_verify": {
+    "version": "2.2",
+    "n_pool": 652,
+    "duration_s": 28.97,
+    "analog_years": [
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "top5": [
+      [
+        "2023-08-24",
+        2.672,
+        4.15
+      ],
+      [
+        "2024-04-10",
+        3.261,
+        8.24
+      ],
+      [
+        "2023-07-25",
+        3.539,
+        -7.68
+      ],
+      [
+        "2024-05-30",
+        3.607,
+        6.84
+      ],
+      [
+        "2023-09-25",
+        3.73,
+        9.58
+      ]
+    ],
+    "fwd_dist": {
+      "5d": {
+        "n": 15,
+        "mean_pct": 0.37,
+        "median_pct": 0.23,
+        "hit_rate_pct": 60.0,
+        "min_pct": -2.64,
+        "max_pct": 3.78,
+        "stdev_pct": 2.33
+      },
+      "21d": {
+        "n": 15,
+        "mean_pct": 0.6,
+        "median_pct": 0.56,
+        "hit_rate_pct": 60.0,
+        "min_pct": -6.73,
+        "max_pct": 6.49,
+        "stdev_pct": 3.98
+      },
+      "63d": {
+        "n": 15,
+        "mean_pct": 6.33,
+        "median_pct": 6.84,
+        "hit_rate_pct": 86.7,
+        "min_pct": -7.68,
+        "max_pct": 15.48,
+        "stdev_pct": 5.76
+      },
+      "126d": {
+        "n": 14,
+        "mean_pct": 12.79,
+        "median_pct": 12.42,
+        "hit_rate_pct": 100.0,
+        "min_pct": 6.58,
+        "max_pct": 20.07,
+        "stdev_pct": 4.57
+      }
+    },
+    "call": "MIXED",
+    "today_spx": 737.55
+  },
+  "backtester_verify": {
+    "generated_at": "2026-06-10T02:17:49.362781+00:00",
+    "spy_span": "2021-06-10\u21922026-06-09",
+    "rows": [
+      {
+        "rule": "euribor_ois_ge50",
+        "n": 1,
+        "med21": null,
+        "first": null,
+        "last": null
+      },
+      {
+        "rule": "it_de_ge150",
+        "n": 3,
+        "med21": null,
+        "first": null,
+        "last": null
+      },
+      {
+        "rule": "estr_dfr_ge_m1",
+        "n": null,
+        "med21": null,
+        "first": null,
+        "last": null
+      },
+      {
+        "rule": "wages_gt_35",
+        "n": 3,
+        "med21": null,
+        "first": null,
+        "last": null
+      },
+      {
+        "rule": "m3_lt_2",
+        "n": 2,
+        "med21": null,
+        "first": null,
+        "last": null
+      },
+      {
+        "rule": "t2_gap_z2",
+        "n": 2,
+        "med21": null,
+        "first": null,
+        "last": null
+      },
+      {
+        "rule": "eurusd_z_m2",
+        "n": 17,
+        "med21": null,
+        "first": null,
+        "last": null
+      },
+      {
+        "rule": "vix_term_inversion",
+        "n": 45,
+        "med21": null,
+        "first": null,
+        "last": null
+      },
+      {
+        "rule": "hy_oas_3m_p50bp",
+        "n": 4,
+        "med21": null,
+        "first": null,
+        "last": null
+      },
+      {
+        "rule": "curve_reinversion",
+        "n": 7,
+        "med21": null,
+        "first": null,
+        "last": null
+      },
+      {
+        "rule": "nfci_positive",
+        "n": 3,
+        "med21": null,
+        "first": null,
+        "last": null
+      }
+    ]
+  },
+  "walkforward": {
+    "v": "2.1",
+    "generated_at": "2026-06-09T22:30:01.187137+00:00",
+    "summary_naive": {
+      "win_rate": 0.4002,
+      "total_return_pct": 104.065,
+      "max_drawdown_pct": 27.7392,
+      "sharpe_proxy": 6.4691,
+      "alpha_vs_spy_pct": 96.1701
+    },
+    "honest_summary": {
+      "method": "lump_sum_on_firing_day_full_calendar_arithmetic_ann_with_rf_and_bootstrap",
+      "rf_annual": 0.05,
+      "n_business_days": 64,
+      "n_years": 0.254,
+      "n_trades_distributed": 11310,
+      "n_trades_skipped": 0,
+      "data_sufficient": false,
+      "data_sufficiency_min_years": 0.5,
+      "data_sufficiency_note": "Insufficient data: 64 business days (0.254y). Annualized Sharpe is unreliable for windows under 0.5y. Use the unannualized period stats below. The window is constrained because the calibrator filters pre-2026-04-24 legacy outcomes via 30d TTL \u2014 window will widen as new outcomes accumulate.",
+      "initial_nav": 100000.0,
+      "final_nav": 194593.13,
+      "period_total_return_pct": 94.5931,
+      "period_max_drawdown_pct": 28.9944,
+      "period_n_business_days": 64,
+      "period_alpha_vs_spy_pct": 86.6982,
+      "total_return_pct": 94.5931,
+      "annualized_return_pct": 275.701,
+      "annualized_vol_pct": 50.4582,
+      "max_drawdown_pct": 28.9944,
+      "sharpe_point": 5.3649,
+      "sharpe_p5": -0.8716,
+      "sharpe_median": 4.6605,
+      "sharpe_p95": 9.5147,
+      "n_bootstrap_samples": 1000,
+      "n_pos_days": 28,
+      "n_neg_days": 36,
+      "n_flat_days": 0,
+      "daily_hit_rate": 0.4375,
+      "alpha_vs_spy_pct": 86.6982,
+      "known_limitations": [
+        "Window currently <0.5y because calibrator filters pre-2026-04-24 legacy outcomes via 30d TTL \u2014 annualized Sharpe gated by data_sufficient",
+        "In-sample calibration weights (look-ahead bias) \u2014 fixed in v2.1 with walk-forward",
+        "No daily mark-to-market \u2014 trades are lumped on firing day, real positions accrue P&L over holding period",
+        "Survivorship bias \u2014 outcomes only include scored trades (delisted positions excluded)"
+      ]
+    },
+    "realistic_summary": {
+      "n_trades": 11310,
+      "initial_nav": 100000.0,
+      "final_nav": 197461.39,
+      "total_return_pct": 97.4614,
+      "max_drawdown_pct": 28.9176,
+      "sharpe_proxy": 6.2501,
+      "alpha_vs_spy_pct": 89.5665,
+      "total_slippage_cost_pct": 3.8589,
+      "n_concentration_capped_days": 3,
+      "n_gross_capped_days": 1,
+      "n_total_days": 90,
+      "friction_drag_pct": 6.6036
+    },
+    "constants": {
+      "POSITION_SIZE": 0.005,
+      "SLIPPAGE_BPS_PER_LEG": 5,
+      "CONCENTRATION_CAP": 0.4,
+      "GROSS_EXPOSURE_CAP": 1.0,
+      "RF_ANNUAL": 0.05,
+      "N_BOOTSTRAP": 1000,
+      "BOOTSTRAP_BLOCK_LEN": 5
+    }
+  }
+}
