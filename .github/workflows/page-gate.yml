@@ -1,0 +1,20 @@
+name: page-gate
+on:
+  push:
+    paths: ['*.html']
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 2}
+      - name: forbid object-Object / undefined% literals in changed pages
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- '*.html' || true)
+          [ -z "$CHANGED" ] && exit 0
+          BAD=0
+          for f in $CHANGED; do
+            [ -f "$f" ] || continue
+            if grep -nE '\[object Object\]|undefined%' "$f"; then echo "::error file=$f::forbidden literal"; BAD=1; fi
+          done
+          exit $BAD

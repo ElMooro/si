@@ -20,6 +20,7 @@ from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from statistics import mean, stdev
 import boto3
+from decimal import Decimal
 
 S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
@@ -202,7 +203,7 @@ def log_signals(top, regime):
                 "signal_type": "bottleneck_boom",
                 "signal_value": str(r["boom_score"]),
                 "predicted_direction": "UP",
-                "confidence": min(0.75, round(0.45 + r["boom_score"] / 250, 2)),
+                "confidence": Decimal(str(min(0.75, round(0.45 + r["boom_score"] / 250, 2)))),
                 "measure_against": "ticker",
                 "baseline_price": str(px),
                 "benchmark": "SPY",
