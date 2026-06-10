@@ -108,7 +108,7 @@ def zscore(vals, lookback=260):
 
 
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.0",
+    t0 = time.time(); out = {"engine": "ecb-derived", "version": "3.0.1",
                              "generated_at": datetime.now(timezone.utc).isoformat(), "indicators": {}}
 
     # ── #8 CISS Acceleration — read the history file we already build ──
@@ -776,7 +776,7 @@ def lambda_handler(event=None, context=None):
                                    "thresholds": {"watch": 0.15, "critical": 0.30}}
     # 3) ESI accumulated daily
     esi_pts, _ = _hist("esi")
-    if len(esi_pts) > 10:
+    if len(esi_pts) > 5:
         charts["esi"] = {"label": "Eurodollar Stress Index (0–100)",
                           "points": _down(esi_pts), **_ctx(esi_pts),
                           "thresholds": {"watch": 50, "critical": 70}}
@@ -801,7 +801,7 @@ def lambda_handler(event=None, context=None):
         print(f"[v3 ltro] {str(e)[:50]}")
     # 6) EU/US 6m liquidity divergence history (ECB BS weekly vs Fed net-liq)
     try:
-        ecb_bs = ecb_csv("ILM/W.U2.C.T000000.U2.EUR", start="2015-01")
+        ecb_bs = fred_full("ECBASSETSW", "2015-01-01")  # ECB total assets, EUR mn, weekly
         wl = fred_full("WALCL", "2015-01-01"); rr = fred_full("RRPONTSYD", "2015-01-01")
         tg = fred_full("WTREGEN", "2015-01-01")
         dr, dt = dict(rr), dict(tg)
@@ -872,7 +872,18 @@ def lambda_handler(event=None, context=None):
                         "n_episodes": len(episodes), "episode_dates": episodes,
                         "spx": study(spx, True) if spx else None,
                         "eurusd": study(eur, True) if eur else None,
-                        "hypothesis": "episodes → risk-off: SPX down, EUR down (hit% = share confirming)"}
+                        "hypothesis": "tested: risk-off (SPX down, EUR down); hit% = share confirming"}
+            sp21 = ((ev_study.get("spx") or {}).get("d21") or {})
+            if sp21.get("n", 0) >= 10:
+                hp = sp21.get("hit_pct", 50)
+                ev_study["empirical_read"] = (
+                    f"Across {ev_study['n_episodes']} episodes, SPX confirmed risk-off only {hp}% of the "
+                    "time at +21d — CISS spikes have historically marked CAPITULATION (markets bottom "
+                    "during the stress spike). Treat fresh episodes as a contrarian rebound timer on a "
+                    "1–3 month horizon, not a sell trigger; the dump risk is in the SLOW build "
+                    "(rising percentiles across pillars) before the spike." if hp < 40 else
+                    f"SPX confirmed risk-off in {hp}% of {ev_study['n_episodes']} episodes at +21d — "
+                    "treat fresh episodes as de-risking triggers.")
     except Exception as e:
         ev_study = {"err": str(e)[:70]}
     out["event_study"] = ev_study

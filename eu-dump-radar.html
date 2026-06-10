@@ -127,7 +127,7 @@ async function load(){
     document.getElementById('study').innerHTML=`<table><thead><tr><th>Asset</th><th>+21d median</th><th>+63d median</th></tr></thead><tbody>
       <tr><td>S&amp;P 500</td>${studyCell((ev.spx||{}).d21)}${studyCell((ev.spx||{}).d63)}</tr>
       <tr><td>EUR/USD</td>${studyCell((ev.eurusd||{}).d21)}${studyCell((ev.eurusd||{}).d63)}</tr>
-    </tbody></table><div class="note" style="margin-top:8px">${esc(ev.definition)} → ${ev.n_episodes} episodes since ${esc(((d.charts||{}).ciss_level||{}).first_date||'1999')}. Hypothesis: ${esc(ev.hypothesis)}. ✓ = share of episodes confirming risk-off. Real history, real n — no curve-fit.</div>`;
+    </tbody></table><div class="note" style="margin-top:8px">${esc(ev.definition)} → ${ev.n_episodes} episodes since ${esc(((d.charts||{}).ciss_level||{}).first_date||'1999')}. ✓ = share of episodes confirming risk-off. Real history, real n — no curve-fit.</div>${ev.empirical_read?`<div class="ai" style="margin-top:10px"><h3>Empirical read</h3><p>${esc(ev.empirical_read)}</p></div>`:''}`;
   } else {document.getElementById('study').innerHTML='<div class="loading">event study warming…</div>';}
   // bespoke cards (unchanged)
   const cards=[];
