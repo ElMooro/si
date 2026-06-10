@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ignition — Pre-Pump Composite — JustHodl AI</title>
+<meta name="description" content="Accumulation-before-price: OBV divergence, SEC fails-to-deliver, insider clusters, 13F initiations, dark-pool share, revision breadth, filing cadence. Coverage-honest, closed-loop graded.">
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg0:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',ui-monospace,monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg0);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);backdrop-filter:blur(8px);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand .dot{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--cyan)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--cyan)}
+.wrap{max-width:1220px;margin:0 auto;padding:22px}
+h1{font-size:26px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:900px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase}
+.pillars{display:flex;gap:8px;flex-wrap:wrap}
+.pl{font-family:var(--mono);font-size:10.5px;padding:5px 10px;border-radius:9px;border:1px solid var(--border);background:var(--bg1);color:var(--fg2)}
+.pl.on{border-color:var(--green);color:var(--green)}.pl.off{border-color:var(--red);color:var(--red);opacity:.7}
+table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:10px;border-bottom:1px solid var(--border);background:var(--bg2)}
+th:first-child,td:first-child{text-align:left}td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+td.why{font-family:Inter;text-align:left;color:var(--fg2);font-size:11px;max-width:340px}
+.ig{font-weight:800}.i-hot{color:var(--red)}.i-warm{color:var(--amber)}.i-ok{color:var(--green)}
+.cov{font-size:10px;color:var(--fg3)}
+.tc{font-family:var(--mono);font-weight:800;font-size:13px;padding:7px 13px;border-radius:10px;background:var(--bg2);border:1px solid var(--cyan);margin:0 6px 6px 0;display:inline-block}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.loading{text-align:center;color:var(--fg3);font-family:var(--mono);padding:40px}
+</style></head><body>
+<header><div class="brand"><span class="dot"></span>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/bottleneck.html">Bottleneck</a><a href="/ignition.html" class="on">🔥 Ignition</a><a href="/master-board.html">Setups</a><a href="/skill.html">Skill</a></nav></header>
+<div class="wrap">
+<h1>Ignition — <span class="grad">accumulation before price</span></h1>
+<p class="sub">Eight independent footprints of quiet positioning — OBV rising into a flat tape, SEC fails-to-deliver pressure, insider buy clusters, 13F new-position clusters, dark-pool volume share, analyst revision breadth, EDGAR filing-cadence anomalies — minus live-shelf supply risk. Pillars that are unavailable are <b>excluded with weights renormalized and coverage shown per name</b>: no faked completeness. Every top call is logged to the closed loop and must earn its hit rate on <a href="/skill.html" style="color:var(--cyan)">/skill.html</a>.</p>
+<div class="sec">Pillar availability (live probes)</div><div class="pillars" id="pillars"><span class="loading">Loading…</span></div>
+<div class="sec">🔥 Top Calls (logged today)</div><div id="topcalls"></div>
+<div class="sec">Ranking</div><div id="ranktable"><div class="loading">Loading…</div></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const PNAMES={obv_div:'OBV divergence',ftd:'SEC fails-to-deliver',insider:'Insider clusters',f13_init:'13F initiations',dark_share:'Dark-pool share',rev_breadth:'Revision breadth',cadence:'Filing cadence',shelf:'Shelf overhang (−)'};
+function icls(v){return v>=68?'i-hot':v>=57?'i-warm':'i-ok';}
+async function load(){
+  const d=await gj('data/ignition.json');
+  if(!d){document.getElementById('pillars').innerHTML='<span class="loading">ignition.json unavailable — first run pending.</span>';return;}
+  const av=d.pillar_availability||{};
+  document.getElementById('pillars').innerHTML=Object.entries(PNAMES).map(([k,n])=>`<span class="pl ${av[k]?'on':'off'}">${av[k]?'●':'○'} ${esc(n)}</span>`).join('');
+  document.getElementById('topcalls').innerHTML=(d.top_calls||[]).map(t=>`<span class="tc">${esc(t)}</span>`).join('')||'—';
+  const rows=(d.ranks||[]).slice(0,25).map(r=>`<tr>
+    <td><b>${esc(r.ticker)}</b><div class="cov">${esc(r.sector||'')}</div></td>
+    <td class="ig ${icls(r.ignition_score)}">${r.ignition_score}<div class="cov">cov ${r.coverage_pct}%</div></td>
+    <td>${r.z_obv??'—'}</td><td>${r.z_ftd??'—'}</td><td>${r.z_insider??'—'}</td>
+    <td>${r.z_f13??'—'}</td><td>${r.z_dark??'—'}</td><td>${r.z_rev??'—'}</td><td>${r.z_cad??'—'}</td>
+    <td>${r.shelf_active?'⚠':'—'}</td>
+    <td class="why">${(r.why||[]).slice(0,3).map(esc).join(' · ')||'—'}</td></tr>`).join('');
+  document.getElementById('ranktable').innerHTML=`<table><thead><tr><th>Ticker</th><th>Ignition</th><th>OBV z</th><th>FTD z</th><th>Insider z</th><th>13F z</th><th>Dark z</th><th>Rev z</th><th>Cad z</th><th>Shelf</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table>`;
+  document.getElementById('note').textContent=`${d.methodology} Universe: ${d.universe_source} (${d.scored_n}/${d.universe_n} scored ≥35% coverage) · FTD files: ${(d.ftd_files||[]).join(', ')||'—'} · ${d.signals_logged} calls logged (regime ${d.regime_at_log}) · v${d.version} · ${d.generated_at} · Research, not advice.`;
+}
+load();
+</script></body></html>
