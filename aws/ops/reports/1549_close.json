@@ -1,0 +1,87 @@
+{
+  "ops": 1549,
+  "errors": [],
+  "bnb_signals_err_line": [
+    "[signals] Float types are not supported. Use Decimal types instead."
+  ],
+  "bnb_fn_err": "NONE",
+  "bnb_run2": {
+    "signals_logged": 8,
+    "top_calls": [
+      "VST",
+      "CEG",
+      "LDOS",
+      "NRG",
+      "MU",
+      "DELL",
+      "HPE",
+      "PWR"
+    ],
+    "regime": "NORMAL"
+  },
+  "ddb_signal": {
+    "id": "bottleneck-boom#VST#2026-06-10",
+    "found": true,
+    "status": "pending",
+    "confidence": "0.68",
+    "n_fields": 21
+  },
+  "skill_age_h_pre": 241.83,
+  "router_cw": {
+    "n_events": 40,
+    "head": [
+      "[ai-brief-router] running 40 contexts in parallel: ['yield-curve-decisive-call', 'vix-curve-decisive-call', 'dollar-decisive-call', 'eurodollar-decisi",
+      "[ai-brief-router] frontrun-skill-aggregator: ERR_EXC ?s",
+      "[ai-brief-router] portfolio-manager-brief: ERR_CLAUDE ?s"
+    ],
+    "any_start": true
+  },
+  "registry": {
+    "n_contexts": 40,
+    "skill_ctx": "frontrun-skill-aggregator",
+    "ids": [
+      "yield-curve-decisive-call",
+      "vix-curve-decisive-call",
+      "dollar-decisive-call",
+      "eurodollar-decisive-call",
+      "lce-decisive-call",
+      "systemic-stress-decisive-call",
+      "bond-vol-decisive-call",
+      "risk-radar-decisive-call",
+      "compass-decisive-call",
+      "defcon-decisive-call",
+      "retail-edges-decisive-call",
+      "bonds-decisive-call",
+      "liquidity-decisive-call",
+      "macro-data-decisive-call",
+      "crisis-decisive-call",
+      "divergence-decisive-call",
+      "trend-engine-decisive-call",
+      "regime-decisive-call"
+    ]
+  },
+  "router_cfg": {
+    "timeout": 240,
+    "mem": 1024,
+    "reserved": null
+  },
+  "digest_rules": {
+    "justhodl-alerts-digest-daily": {
+      "state": "ENABLED",
+      "sched": "cron(0 9 * * ? *)"
+    },
+    "justhodl-alerts-digest-close-daily": {
+      "state": "ENABLED",
+      "sched": "cron(0 21 * * ? *)"
+    }
+  },
+  "skill_targeted_run": {
+    "ran": true,
+    "ctx": "frontrun-skill-aggregator",
+    "age_after_h": 241.83
+  },
+  "skill_run_lines": [
+    "[ai-brief-router] running 1 contexts in parallel: ['frontrun-skill-aggregator']",
+    "[ai-brief-router] frontrun-skill-aggregator: ERR_EXC ?s"
+  ]
+}
