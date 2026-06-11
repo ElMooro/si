@@ -1,0 +1,42 @@
+{
+  "ops": 1598,
+  "s3_head": {
+    "len": 49744,
+    "ct": "application/json",
+    "modified": "2026-06-11 15:54:39+00:00"
+  },
+  "pre_cdn": {
+    "url": "https://justhodl.ai/data/altseason.json?t=1781195433",
+    "status": "ERR",
+    "err": "HTTP Error 404: Not Found"
+  },
+  "pre_proxy": {
+    "url": "https://justhodl-data-proxy.raafouis.workers.dev/data/altseason.json?t=1781195433",
+    "status": 200,
+    "len": 49744,
+    "ct": "application/json",
+    "head": "{\"engine\": \"altseason\", \"version\": \"1.0.0\", \"generated_at\": \"2026-06-11T15:54:30.719764+00:00\", \"com",
+    "contains_NaN_or_Inf": false,
+    "strict_parse_ok": true
+  },
+  "fn_err": "NONE",
+  "fn_body": "{\"statusCode\": 200, \"body\": \"{\\\"phase\\\": \\\"DORMANT\\\", \\\"score\\\": 5.0}\"}",
+  "cf_err": "An error occurred (AccessDenied) when calling the ListDistributions operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl ",
+  "post_cdn": {
+    "url": "https://justhodl.ai/data/altseason.json?t=1781195499",
+    "status": "ERR",
+    "err": "HTTP Error 404: Not Found"
+  },
+  "post_cdn_noqs": {
+    "url": "https://justhodl.ai/data/altseason.json",
+    "status": "ERR",
+    "err": "HTTP Error 404: Not Found"
+  },
+  "brief_now": {
+    "phase": "DORMANT",
+    "score": 5.0,
+    "votes_n": 10,
+    "alt_index_pts": 500,
+    "ai_verdict": "DORMANT | Score 5.0 \u2014 Altseason rejected: macro headwind + participation collapse block ignition"
+  }
+}
