@@ -29,13 +29,16 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sizing.json"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 DIRMAP = {"UP": 1, "LONG": 1, "OUTPERFORM": 1, "BULLISH": 1,
            "DOWN": -1, "SHORT": -1, "UNDERPERFORM": -1, "BEARISH": -1}
 VOL_TARGET = 0.30      # annualized
 CAP_W = 5.0            # % of book per name
 FLOOR_W = 0.25
 STARTER_W = 0.5
+LOSS_FLOOR_PCT = 0.75    # min assumed loss magnitude (cost+slippage reality)
+PAYOFF_CAP = 6.0
+KELLY_CAP = 0.30         # pre-quarter cap → max base 7.5%
 
 
 def f(x):
@@ -139,17 +142,16 @@ def lambda_handler(event=None, context=None):
         p = nw / n
         W = sorted(d["wins"])[nw // 2] if nw else 0.0
         L = sorted(d["losses"])[nl // 2] if nl else 0.0
+        L_eff = max(L, LOSS_FLOOR_PCT)
         kelly = None
-        if W > 0 and L > 0:
-            b = W / L
-            kelly = p - (1 - p) / b
-        elif nw and not nl:
-            kelly = p
-        qk = round(max(0.0, (kelly or 0)) / 4 * 100, 2)   # % of book
+        if W > 0:
+            b = min(W / L_eff, PAYOFF_CAP)
+            kelly = min(p - (1 - p) / b, KELLY_CAP)
+        qk = round(max(0.0, (kelly or 0)) / 4 * 100, 2)
         sc = f((cal.get(ty) or {}).get("confidence_scale")) or 1.0
         table.append({"signal_type": ty, "n": n, "win_rate": round(p * 100, 1),
-                       "median_win_pct": round(W, 2), "median_loss_pct": round(L, 2),
-                       "payoff": round(W / L, 2) if W and L else None,
+                       "median_win_pct": round(W, 2), "median_loss_pct": round(L, 2), "loss_floored": bool(L < LOSS_FLOOR_PCT),
+                       "payoff_eff": round(min(W / max(L, LOSS_FLOOR_PCT), PAYOFF_CAP), 2) if W else None,
                        "kelly_pct": round((kelly or 0) * 100, 1),
                        "quarter_kelly_w_pct": qk,
                        "avg_claimed_conf": round(sum(d["confs"]) / len(d["confs"]), 2)
@@ -292,13 +294,13 @@ def lambda_handler(event=None, context=None):
              "(outcomes.correct + return_pct at each signal's primary horizon; median "
              "win/loss magnitudes), confidence multiplied by the calibrator's "
              "per-engine scale (self-audited deflation), 30% annualized vol target, "
-             "greedy cluster-correlation haircut, 5% cap / 0.25% floor. Engines with "
+             "greedy cluster-correlation haircut, 5% per-name cap / 0.25% floor; prudence: 0.75% loss floor, 6x payoff cap, 30% Kelly cap. Engines with "
              "negative measured Kelly publish on the FADE list and are never sized. "
              "Sizes are research outputs per $100k of book, not advice.")}
+    out["duration_s"] = round(time.time() - t0, 1)
     clean = json.loads(json.dumps(out, default=str), parse_constant=lambda c: None)
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(clean).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
-    out["duration_s"] = round(time.time() - t0, 1)
     print(f"[sizing] graded={scanned} engines={len(table)} recs={len(recs)} "
           f"gross={gross}% {out['duration_s']}s")
     return {"statusCode": 200, "body": json.dumps({"recs": len(recs), "gross": gross})}
