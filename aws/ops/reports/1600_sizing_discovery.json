@@ -1,0 +1,334 @@
+{
+  "ops": 1600,
+  "signals_total": 31089,
+  "by_status": {
+    "?": 14721,
+    "complete": 5695,
+    "partial": 7287,
+    "pending": 3068,
+    "unscoreable": 318
+  },
+  "by_type": {
+    "?": {
+      "n": 14721,
+      "resolved": 0,
+      "pending": 0
+    },
+    "screener_top_pick": {
+      "n": 5605,
+      "resolved": 175,
+      "pending": 1695
+    },
+    "correlation_break": {
+      "n": 720,
+      "resolved": 360,
+      "pending": 0
+    },
+    "etf_rotation": {
+      "n": 588,
+      "resolved": 280,
+      "pending": 0
+    },
+    "earnings_pead": {
+      "n": 428,
+      "resolved": 219,
+      "pending": 0
+    },
+    "edge_regime": {
+      "n": 371,
+      "resolved": 201,
+      "pending": 49
+    },
+    "market_phase": {
+      "n": 371,
+      "resolved": 122,
+      "pending": 49
+    },
+    "edge_composite": {
+      "n": 371,
+      "resolved": 293,
+      "pending": 1
+    },
+    "carry_risk": {
+      "n": 371,
+      "resolved": 201,
+      "pending": 49
+    },
+    "khalid_index": {
+      "n": 371,
+      "resolved": 229,
+      "pending": 18
+    },
+    "crypto_risk_score": {
+      "n": 371,
+      "resolved": 309,
+      "pending": 1
+    },
+    "ml_risk": {
+      "n": 371,
+      "resolved": 229,
+      "pending": 18
+    },
+    "plumbing_stress": {
+      "n": 371,
+      "resolved": 229,
+      "pending": 1
+    },
+    "crypto_fear_greed": {
+      "n": 370,
+      "resolved": 308,
+      "pending": 1
+    },
+    "squeeze_risk": {
+      "n": 315,
+      "resolved": 196,
+      "pending": 0
+    },
+    "momentum_uso": {
+      "n": 275,
+      "resolved": 260,
+      "pending": 0
+    },
+    "momentum_gld": {
+      "n": 208,
+      "resolved": 197,
+      "pending": 0
+    },
+    "divergence_extreme": {
+      "n": 179,
+      "resolved": 23,
+      "pending": 0
+    },
+    "crisis_sloos_tighten": {
+      "n": 173,
+      "resolved": 0,
+      "pending": 173
+    },
+    "crisis_broad_dollar_vs_spy": {
+      "n": 171,
+      "resolved": 125,
+      "pending": 18
+    },
+    "crisis_ig_bbb_oas": {
+      "n": 171,
+      "resolved": 61,
+      "pending": 46
+    },
+    "crisis_hy_oas_vs_spy": {
+      "n": 171,
+      "resolved": 62,
+      "pending": 18
+    },
+    "crisis_hy_oas_vs_hyg": {
+      "n": 171,
+      "resolved": 125,
+      "pending": 3
+    },
+    "crisis_broad_dollar_vs_eem": {
+      "n": 171,
+      "resolved": 62,
+      "pending": 18
+    },
+    "crisis_index_stlfsi4": {
+      "n": 170,
+      "resolved": 60,
+      "pending": 46
+    },
+    "crisis_index_kcfsi": {
+      "n": 170,
+      "resolved": 62,
+      "pending": 45
+    },
+    "crisis_dfii10_vs_gld": {
+      "n": 170,
+      "resolved": 0,
+      "pending": 46
+    },
+    "crisis_dfii10_vs_spy": {
+      "n": 170,
+      "resolved": 0,
+      "pending": 46
+    },
+    "crisis_index_nfci": {
+      "n": 169,
+      "resolved": 59,
+      "pending": 46
+    },
+    "crisis_index_anfci": {
+      "n": 169,
+      "resolved": 59,
+      "pending": 46
+    },
+    "crisis_t10yie_extreme": {
+      "n": 168,
+      "resolved": 0,
+      "pending": 108
+    },
+    "crisis_sofr_iorb": {
+      "n": 167,
+      "resolved": 121,
+      "pending": 3
+    },
+    "momentum_spy": {
+      "n": 166,
+      "resolved": 157,
+      "pending": 0
+    },
+    "crisis_rate_diff_eur_3m": {
+      "n": 158,
+      "resolved": 123,
+      "pending": 18
+    },
+    "crisis_rate_diff_jpy_3m": {
+      "n": 157,
+      "resolved": 122,
+      "pending": 18
+    },
+    "corr_break_composite_vs_vxx": {
+      "n": 156,
+      "resolved": 123,
+      "pending": 3
+    },
+    "corr_break_top_pair": {
+      "n": 156,
+      "resolved": 123,
+      "pending": 10
+    },
+    "corr_break_composite_vs_spy": {
+      "n": 156,
+      "resolved": 123,
+      "pending": 3
+    },
+    "cot_extreme": {
+      "n": 154,
+      "resolved": 0,
+      "pending": 27
+    },
+    "crisis_obfr_iorb": {
+      "n": 153,
+      "resolved": 135,
+      "pending": 3
+    }
+  },
+  "samples": {
+    "complete": {
+      "benchmark": null,
+      "signal_type": "crisis_index_nfci",
+      "metadata": {
+        "pct_rank": "41.6",
+        "is_stressed": false,
+        "latest": "-0.518"
+      },
+      "logged_at": "2026-05-04T15:10:31.309303+00:00",
+      "check_windows": [
+        "14",
+        "30"
+      ],
+      "horizon_days_primary": "30",
+      "predicted_direction": "NEUTRAL",
+      "regime_at_log": "NEUTRAL",
+      "status": "complete",
+      "ttl": "1809443431",
+      "predicted_magnitude_pct": null,
+      "supporting_signals": null,
+      "last_checked": "2026-06-03T22:00:26.791211+00:00",
+      "logged_epoch": "1777907431",
+      "signal_value": "NORMAL",
+      "confidence": "0.45",
+      "baseline_benchmark_price": null,
+      "outcomes": {
+        "day_14": {
+          "price_at_check": "738.65",
+          "actual_direction": "UP",
+          "return_pct": "2.48068",
+          "checked_at": "2026-05-18T22:30:03.192683+00:00",
+          "correct": false,
+          "price_at_signal": "720.77"
+        },
+        "day_30": {
+          "price_at_check": "759.57",
+          "actual_direction": "UP",
+          "return_pct": "5.383132",
+          "checked_at": "2026-06-03T22:00:26.791211+00:00",
+          "correct": false,
+          "price_at_signal": "720.77"
+        }
+      },
+      "baseline_price": "720.77",
+      "check_timestamps": "{'day_14': '2026-05-18T15:10:31.309303+00:00', 'day_30': '2026-06-03T15:10:31.30",
+      "khalid_score_at_log": "48",
+      "predicted_target_price": null,
+      "ka_score_at_log": "48",
+      "rationale": "NFCI latest=-0.518 pct_rank=41.6 \u2192 NORMAL",
+      "signal_id": "06c69359-b82a-4d2c-8589-68ac2e775968",
+      "accuracy_scores": {},
+      "measure_against": "SPY",
+      "schema_version": "2"
+    },
+    "pending": {
+      "benchmark": "SPY",
+      "signal_type": "screener_top_pick",
+      "metadata": {
+        "rank": "15",
+        "piotroski": "8"
+      },
+      "logged_at": "2026-05-13T21:10:15.713993+00:00",
+      "horizon_days_primary": "90",
+      "check_windows": [
+        "30",
+        "60",
+        "90"
+      ],
+      "predicted_direction": "OUTPERFORM",
+      "regime_at_log": "NEUTRAL",
+      "status": "pending",
+      "ttl": "1810242615",
+      "predicted_magnitude_pct": null,
+      "supporting_signals": null,
+      "logged_epoch": "1778706615",
+      "signal_value": "TOP_25",
+      "confidence": "0.888889",
+      "outcomes": {},
+      "baseline_benchmark_price": "742.31",
+      "baseline_price": "455.826",
+      "check_timestamps": "{'day_90': '2026-08-11T21:10:15.713993+00:00', 'day_60': '2026-07-12T21:10:15.71",
+      "predicted_target_price": null,
+      "khalid_score_at_log": "51",
+      "ka_score_at_log": "51",
+      "signal_id": "42b4213b-84e8-4747-a785-f478e7f7d277",
+      "rationale": null,
+      "accuracy_scores": {},
+      "measure_against": "APP",
+      "schema_version": "2"
+    }
+  },
+  "portfolio_count": 1,
+  "portfolio_items": [
+    {
+      "sk": "config",
+      "owner": "khalid",
+      "created_at": "2026-05-12T22:47:02.591305+00:00",
+      "description": "Portfolio + watchlist + stop-loss tracker for JustHodl.AI",
+      "pk": "META",
+      "schema_version": "1.0"
+    }
+  ],
+  "skill_keys": [
+    "data/_skill/calibration-config.json",
+    "data/_skill/frontrun-skill-index.json",
+    "data/_skill/opportunity-rankings.json",
+    "data/calibration-fleet-history.json",
+    "data/calibration-fleet.json",
+    "data/calibration-history.json",
+    "data/calibration-latest.json",
+    "data/calibration-snapshot.json"
+  ],
+  "skill_heads": {
+    "data/_skill/calibration-config.json": "{\"version\": \"3.0\", \"version_int\": 3, \"updated_at\": \"2026-06-11T11:00:03.842125+00:00\", \"engine_overrides\": {\"macro_frontrun_sniffer\": {\"confidence_scale\": 0.8023, \"last_tweak_at\": \"2026-06-11T11:00:03.842097+00:00\", \"last_tweak_rationale\": \"macro_frontrun_sniffer claimed avg confidence 60% but actual hit rate 37% over 60 predictions (overconfident by 23.3%). Proposing scale 0.91 \\u2192 0.80.\", \"n_predictions_at_tweak\": 60, \"calibration_version\": 3}, \"equity_frontrun_sniffer\": {\"confidence_scale\": 0.8328, \"last_tweak_at\": \"2026-06-11T11:00:03.842119+00:00\", \"last_tweak_rationale\": \"equity_frontrun_sniffer claimed avg confidence 53% but actual hit rate 39% over 62 predictions (overconfident by",
+    "data/_skill/frontrun-skill-index.json": "{\"version\": \"1.0\", \"updated_at\": \"2026-06-11T10:30:51.215649+00:00\", \"lookback_days\": 90, \"n_total_predictions\": 275, \"n_scored\": 171, \"n_pending\": 104, \"scored_pct\": 62.2, \"by_engine\": {\"sustained_target_equity\": {\"n_total\": 78, \"n_scored\": 40, \"n_correct\": 5, \"n_recent_30d\": 40, \"hit_rate\": 0.125, \"avg_return_pct\": -5.107, \"avg_claimed_confidence\": 0.65, \"calibration_error\": -0.525, \"rolling_30d_hit_rate\": 0.125, \"profit_factor\": 0.023, \"n_pending_grade\": 38}, \"macro_frontrun_sniffer\": {\"n_total\": 117, \"n_scored\": 60, \"n_correct\": 22, \"n_recent_30d\": 60, \"hit_rate\": 0.3667, \"avg_return_pct\": -0.646, \"avg_claimed_confidence\": 0.6, \"calibration_error\": -0.2333, \"rolling_30d_hit_rate\": 0.3667",
+    "data/_skill/opportunity-rankings.json": "{\"version\": \"1.0\", \"generated_at\": \"2026-06-11T14:30:49.627232+00:00\", \"n_total\": 8, \"engine_hit_rates\": {\"sustained_target_equity\": 0.125, \"macro_frontrun_sniffer\": 0.3667, \"equity_convergence_fingerprint\": 0.2222, \"equity_frontrun_sniffer\": 0.3871}, \"ranked_opportunities\": [{\"rank\": 1, \"opportunity_id\": \"mac_TLT_SHOR_1781188249\", \"engine\": \"macro_frontrun_sniffer\", \"engine_hit_rate\": 0.3667, \"asset\": \"TLT\", \"direction\": \"SHORT\", \"setup_type\": \"DURATION_SHORT\", \"claimed_confidence\": 0.6, \"n_pillars_supporting\": 0, \"signal_richness\": 0.5, \"recency_decay\": 0.2281, \"age_hours\": 35.5, \"score\": 0.0376, \"entry_level\": \"92.50 (approx 4.47% 10Y yield)\", \"target_level\": \"90.00 (approx 4.70% 10Y yiel",
+    "data/calibration-fleet-history.json": "{\"snapshots\": [{\"date\": \"2026-05-20\", \"spy_close\": null, \"scores\": {\"global_stress\": 42.0, \"crisis_composite\": 34.8, \"dollar_radar\": -22.0, \"eurodollar_stress\": 26.3}}, {\"date\": \"2026-05-21\", \"spy_close\": null, \"scores\": {\"global_stress\": 43.0, \"crisis_composite\": 34.0, \"dollar_radar\": -15.0, \"eurodollar_stress\": 28.2}}, {\"date\": \"2026-05-22\", \"spy_close\": null, \"scores\": {\"global_stress\": 42.0, \"crisis_composite\": 34.6, \"dollar_radar\": -22.0, \"eurodollar_stress\": 26.38}}, {\"date\": \"2026-05-23\", \"spy_close\": null, \"scores\": {\"global_stress\": 39.0, \"crisis_composite\": 33.6, \"dollar_radar\": -15.0, \"eurodollar_stress\": 25.21}}, {\"date\": \"2026-05-24\", \"spy_close\": null, \"scores\": {\"global_stress",
+    "data/calibration-fleet.json": "{\"as_of\": \"2026-06-11T09:10:36.004875+00:00\", \"forward_days\": 21, \"ic_floor\": 0.05, \"min_n\": 30, \"min_n_stable\": 60, \"engines\": [{\"name\": \"global_stress\", \"label\": \"Global Stress Matrix\", \"n_paired\": 269, \"ic_spearman\": -0.0195, \"hit_rate\": 52.1, \"ic_first_half\": 0.0476, \"ic_second_half\": 0.1668, \"ic_stability_gap\": 0.1191, \"quality_rating\": \"NOISE\", \"weight_proposal\": 0.0, \"current_score\": 50.0, \"note\": \"\", \"weight_proposal_normalised\": 0.0}, {\"name\": \"crisis_composite\", \"label\": \"Crisis Composite\", \"n_paired\": 0, \"ic_spearman\": null, \"hit_rate\": null, \"ic_first_half\": null, \"ic_second_half\": null, \"quality_rating\": \"INSUFFICIENT\", \"weight_proposal\": 0.0, \"current_score\": 35.1, \"note\": \"acc",
+    "data/calibration-history.json": "{\"history\":[{\"generated_at\":\"2026-05-13T09:00:57.204890+00:00\",\"version\":\"1.0.0\",\"summary\":{\"n_trades_analyzed\":59,\"n_evaluated_30d\":0,\"n_strategies_with_data\":3,\"n_strategies_sufficient\":0,\"n_significant_strategies\":0,\"overall_30d_avg_return_pct\":null,\"overall_30d_win_rate\":null},\"current_weights\":{\"quality\":0.16,\"growth\":0.17,\"momentum\":0.14,\"smart_money\":0.16,\"sentiment\":0.1,\"analysts\":0.08,\"insiders\":0.11,\"options_flow\":0.08},\"proposed_weights\":null,\"weight_deltas\":null,\"deployment_decision\":{\"auto_apply_calibrations_flag\":false,\"would_auto_apply\":false,\"reason\":\"Insufficient data (n=0 < 60)\"},\"r_squared\":null},{\"generated_at\":\"2026-05-17T09:00:05.582448+00:00\",\"version\":\"1.0.0\",\"summary"
+  }
+}
