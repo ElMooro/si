@@ -834,6 +834,21 @@ def n_episode_compass(d):
                   f"{tails} tails — {profile}")
 
 
+
+
+def n_upside_radar(d):
+    sc = d.get("scans") or {}
+    st = d.get("state") or {}
+    nb = len(sc.get("breakout") or [])
+    if not st:
+        return 0, "Upside-radar n/a"
+    apass = sum(1 for a in (d.get("anatomy") or []) if (a.get("anatomy_score") or 0) >= 40)
+    sig = 1 if (nb >= 5 and apass >= 2) else 0
+    warm = "" if st.get("warm") else f" (warming {st.get('sessions_seen')}/252)"
+    return sig, (f"{nb} breakouts · {len(sc.get('rs_leaders') or [])} RS leaders · "
+                  f"{len(sc.get('coiled') or [])} coiled · anatomy-pass {apass}{warm}")
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -913,6 +928,7 @@ FEEDS = [
     ("MA Reversion Shelves",   "equity tactical",  "data/ma-reversion.json",         n_ma_reversion),
     ("Macro Regime (Conductor)","macro",           "data/regime.json",               n_regime),
     ("Episode Compass",        "macro",            "data/episode-compass.json",      n_episode_compass),
+    ("Upside Radar",           "equity tactical",  "data/upside-radar.json",         n_upside_radar),
 ]
 
 

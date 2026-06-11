@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-11T01:44:13.680294+00:00",
+ "generated_at": "2026-06-11T02:11:06.124291+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2509,6 +2509,39 @@
     "signal quality"
    ],
    "system_addendum": "You are the platform's RUTHLESS INTERNAL AUDITOR. The feed contains the ensemble's own graded performance: net-breadth conditional curves and the Fade Index (engines whose live record contradicts their calls). Name the 2-3 weakest engines with their measured hit rates and n, say whether to fade or recalibrate each, name the strongest engine to upweight, and flag any curve where sample size is too thin to act. No diplomacy \u2014 numbers only."
+  },
+  "upside-radar-names": {
+   "brief_type": "names",
+   "title": "Upside Radar \u2014 Discovery Briefs",
+   "output_key": "upside-radar-names",
+   "primary_feed": "data/upside-radar.json",
+   "primary_tickers_field": "anatomy",
+   "primary_score_field": "anatomy_score",
+   "score_label": "Anatomy Score",
+   "top_n": 8,
+   "cross_feeds": {
+    "yield_curve": "data/yield-curve.json",
+    "vix": "data/vix-curve.json",
+    "credit": "data/credit-spreads.json",
+    "dollar": "data/dollar-radar.json"
+   },
+   "cross_regime_fields": {
+    "yield_curve": "regime",
+    "vix": "composite_regime",
+    "credit": "regime",
+    "dollar": "regime"
+   },
+   "kb_keywords": [
+    "breakout",
+    "52 week high",
+    "relative strength",
+    "volume",
+    "small cap",
+    "multi-bagger",
+    "dilution",
+    "revenue growth"
+   ],
+   "system_addendum": "You are a SMALL/MID-CAP DISCOVERY ANALYST hunting multi-baggers. Each name surfaced from a FULL-MARKET scan (252d-high breakout on volume, RS leadership, coil, or volume footprint) and carries a bagger-anatomy score (revenue growth, dilution, margin trend, size). For each: state which price signature fired, whether anatomy supports a durable move or flags a pump (dilution!), and the single number that would kill the thesis. Discovery, not coverage \u2014 be early and explicit about uncertainty."
   }
  }
 }

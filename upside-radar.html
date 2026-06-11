@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Upside Radar — Market-Wide Multi-Bagger Discovery — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--green)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--green)}
+.wrap{max-width:1150px;margin:0 auto;padding:22px}
+h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:940px}
+.warm{font-family:var(--mono);font-size:11.5px;background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:9px 14px;display:inline-block;margin:12px 0;color:var(--fg2)}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase}
+.bigtabs{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}.bigtabs span{font-family:var(--mono);font-size:12px;padding:7px 15px;border:1px solid var(--border);border-radius:10px;cursor:pointer;color:var(--fg2);background:var(--bg1)}
+.bigtabs span.on{color:#0a0e14;background:linear-gradient(90deg,var(--green),var(--cyan));font-weight:700;border-color:transparent}
+table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:9px;border-bottom:1px solid var(--border);background:var(--bg2)}
+th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+.hi{color:var(--green)}.lo{color:var(--red)}.am{color:var(--amber)}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/ignition.html">Ignition</a><a href="/upside-radar.html" class="on">🚀 Upside Radar</a><a href="/ma-reversion.html">MA Engine</a><a href="/skill.html">Skill</a></nav></header>
+<div class="wrap">
+<h1>Upside Radar — <span class="grad">market-wide multi-bagger discovery</span></h1>
+<p class="sub">Every liquid US stock — not a curated universe — screened daily for the four price signatures that precede huge winners (252d-high breakouts on volume, relative-strength leadership, tight coils under highs, first-footprint volume anomalies), then gated by <b>bagger anatomy</b>: revenue growth, zero dilution, margin inflection, size. Breakouts that pass anatomy log to the closed loop and get graded on /skill.html — the thesis earns its confidence.</p>
+<div class="warm" id="warm">loading…</div>
+<div class="sec">🤖 AI Discovery Briefing</div>
+<div id="aibrief" style="background:var(--bg1);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;color:var(--fg2)"><span class="loading">…</span></div>
+<div class="bigtabs" id="tabs"><span data-p="breakout" class="on">🚀 Breakouts</span><span data-p="rs_leaders">🏆 RS Leaders</span><span data-p="coiled">🌀 Coiled</span><span data-p="footprint">👣 Footprints</span><span data-p="anatomy">🧬 Anatomy</span></div>
+<div id="pane"></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+let D=null,P='breakout';
+function tbl(rows,cols){if(!rows||!rows.length)return '<div class="loading">Nothing qualifying today.</div>';
+  return `<table><thead><tr>${cols.map(c=>`<th>${c[1]}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>{const v=typeof c[0]==='function'?c[0](r):r[c[0]];return `<td class="${c[2]?c[2](r):''}">${esc(v)}</td>`;}).join('')}</tr>`).join('')}</tbody></table>`;}
+function render(){
+  const S=D.scans||{};
+  const base=[['t','Ticker'],['c','Px'],[r=>r.dist_hi_pct+'%','vs 252d-hi',r=>r.dist_hi_pct>=-0.2?'hi':''],[r=>(r.ret63>0?'+':'')+r.ret63+'%','3m'],[r=>r.ret252!=null?(r.ret252>0?'+':'')+r.ret252+'%':'—','12m',r=>r.ret252>=100?'hi':'']];
+  const M={
+   breakout:tbl(S.breakout,[...base,[r=>r.dvol_x+'×','$Vol vs 20d',r=>r.dvol_x>=3?'am':'']]),
+   rs_leaders:tbl(S.rs_leaders,[...base,[r=>r.rs_pctile,'RS pctile',()=>'hi']]),
+   coiled:tbl(S.coiled,[...base,[r=>r.range63_pct+'%','63d range',()=>'am']]),
+   footprint:tbl(S.footprint,[...base,[r=>r.dvol_x+'×','$Vol surge',()=>'am']]),
+   anatomy:tbl(D.anatomy,[['ticker','Ticker'],[r=>r.anatomy_score,'Score',r=>r.anatomy_score>=40?'hi':r.anatomy_score<0?'lo':''],[r=>r.rev_growth_pct!=null?r.rev_growth_pct+'%':'—','Rev growth',r=>r.rev_growth_pct>=15?'hi':''],[r=>r.share_chg_4y_pct!=null?r.share_chg_4y_pct+'%':'—','Share chg 4y',r=>r.share_chg_4y_pct<=2?'hi':r.share_chg_4y_pct>10?'lo':''],[r=>r.gross_margin_now!=null?r.gross_margin_now+'%←'+r.gross_margin_then+'%':'—','GM now←then'],[r=>r.mcap_bn!=null?r.mcap_bn+'B':'—','Mcap',r=>r.mcap_bn<3?'hi':'']])};
+  document.getElementById('pane').innerHTML=M[P]||'';
+}
+document.getElementById('tabs').onclick=e=>{const p=e.target.dataset.p;if(!p)return;P=p;
+  document.querySelectorAll('#tabs span').forEach(x=>x.classList.toggle('on',x.dataset.p===p));render();};
+async function load(){
+  D=await gj('data/upside-radar.json');
+  if(!D){document.getElementById('warm').textContent='first run pending';return;}
+  const st=D.state||{};
+  document.getElementById('warm').innerHTML=`state: <b>${st.sessions_seen}</b>/252 sessions · <b>${st.rings}</b> liquid names tracked · universe scanned today: <b>${(D.scans||{}).universe_n??'—'}</b> · as of ${esc(st.as_of)} ${st.warm?'· <span class="hi">WARM ✓</span>':'· <span class="am">warming — 12m metrics partial</span>'}`;
+  render();
+  document.getElementById('note').textContent=`${D.methodology} · ${D.signals_logged??0} logged today · v${D.version} · ${D.generated_at} · Research, not advice.`;
+}
+load();
+async function aiPanel(key,mount){
+  const el=document.getElementById(mount);
+  try{const r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now());if(!r.ok)throw 0;
+    const b=await r.json();let h='';
+    if(b.headline)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1);margin-bottom:8px">${esc(b.headline)}</div>`;
+    const skip=new Set(['context_id','title','output_key','generated_at','generated_at_utc','model','error','headline','tokens','cost_usd','schema_version']);
+    for(const[k,v]of Object.entries(b)){if(skip.has(k)||v==null)continue;
+      if(typeof v==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(k.replace(/_/g,' '))}</b><div style="font-size:12.5px;line-height:1.65">${esc(v)}</div></div>`;
+      else if(Array.isArray(v)&&v.length&&typeof v[0]==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px">${esc(k.replace(/_/g,' ').toUpperCase())}</b>${v.map(x=>`<div style="font-size:12.5px">• ${esc(x)}</div>`).join('')}</div>`;
+      else if(Array.isArray(v)&&v.length&&typeof v[0]==='object')h+=v.slice(0,8).map(o=>`<div style="font-size:12px;margin:4px 0;padding:6px 9px;background:rgba(167,139,250,.05);border-radius:8px">${o.ticker?`<b>${esc(o.ticker)}</b> · `:''}${esc(o.headline||o.thesis||o.text||JSON.stringify(o).slice(0,170))}</div>`).join('');}
+    el.innerHTML=h||'<span class="loading">AI brief generating — next router cycle.</span>';
+  }catch(e){el.innerHTML='<span class="loading">AI brief generates on the next 4-hour router cycle.</span>';}
+}
+aiPanel('upside-radar-names','aibrief');
+</script></body></html>
