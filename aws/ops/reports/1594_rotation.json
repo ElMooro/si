@@ -1,0 +1,119 @@
+{
+  "ops": 1594,
+  "errors": [],
+  "fn": "created",
+  "fn_err": "NONE",
+  "verify": {
+    "duration_s": 143.1,
+    "scores": {
+      "crypto_altseason": null,
+      "equity_rotation": 21.2
+    },
+    "crypto_live": null,
+    "crypto_events": null,
+    "crypto_tables": {
+      "alts_in_btc": null,
+      "eth_usd": null
+    },
+    "equity": {
+      "highbeta_lowvol": {
+        "n_events": 2,
+        "latest": "2025-04-25",
+        "iwm_rel_90": {
+          "n": 2,
+          "median_pct": 2.1,
+          "pos_pct": 50.0
+        },
+        "live": {
+          "value": 1.896897503196716,
+          "as_of": "2026-06-11",
+          "off_180d_low_pct": 29.8,
+          "days_since_180d_low": 138,
+          "vs_365d_high_pct": -11.3,
+          "mom_20d_pct": -1.6,
+          "thrust_live": false
+        }
+      },
+      "smallcap_large": {
+        "n_events": 1,
+        "latest": "2024-07-25",
+        "iwm_rel_90": {
+          "n": 1,
+          "median_pct": -7.4,
+          "pos_pct": 0.0
+        },
+        "live": {
+          "value": 0.39293890497862366,
+          "as_of": "2026-06-11",
+          "off_180d_low_pct": 12.4,
+          "days_since_180d_low": 141,
+          "vs_365d_high_pct": 0.0,
+          "mom_20d_pct": 3.2,
+          "thrust_live": false
+        }
+      },
+      "equalweight_cap": {
+        "n_events": 0,
+        "latest": null,
+        "iwm_rel_90": null,
+        "live": {
+          "value": 0.2857812715487519,
+          "as_of": "2026-06-11",
+          "off_180d_low_pct": 5.0,
+          "days_since_180d_low": 19,
+          "vs_365d_high_pct": -8.1,
+          "mom_20d_pct": 4.5,
+          "thrust_live": false
+        }
+      },
+      "biotech_mkt": {
+        "n_events": 3,
+        "latest": "2023-12-04",
+        "iwm_rel_90": {
+          "n": 3,
+          "median_pct": 2.9,
+          "pos_pct": 66.7
+        },
+        "live": {
+          "value": 0.18044407667907875,
+          "as_of": "2026-06-11",
+          "off_180d_low_pct": 23.9,
+          "days_since_180d_low": 178,
+          "vs_365d_high_pct": -8.2,
+          "mom_20d_pct": -1.4,
+          "thrust_live": false
+        }
+      },
+      "spec_growth": {
+        "n_events": 3,
+        "latest": "2023-11-15",
+        "iwm_rel_90": {
+          "n": 3,
+          "median_pct": -0.9,
+          "pos_pct": 0.0
+        },
+        "live": {
+          "value": 0.10454792074181621,
+          "as_of": "2026-06-11",
+          "off_180d_low_pct": 0.0,
+          "days_since_180d_low": 0,
+          "vs_365d_high_pct": -30.9,
+          "mom_20d_pct": -4.3,
+          "thrust_live": false
+        }
+      }
+    },
+    "ai_error": null,
+    "ai_verdict": "Equity rotation stalled at 21.2; no thrust live across any appetite ratio. High-beta recovery (29.8% off-low, 138d) most advanced but momentum fading (-1.6% MoM). Spec-growth at fresh 180d-low signals",
+    "ai_alt": "No crypto data available; cannot assess ETH/BTC season-starter status.",
+    "signals_logged": 0
+  },
+  "sb_err": "NONE",
+  "board_row": {
+    "signal": 0,
+    "signal_label": "NEUTRAL",
+    "read": "Altseason None \u00b7 equity rotation 21.2 \u00b7 no thrusts live"
+  },
+  "board_n": 71,
+  "registry_n": 51
+}
