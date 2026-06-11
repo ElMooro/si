@@ -76,8 +76,11 @@ load();
 async function aiPanel(key,mount){
   const el=document.getElementById(mount); if(!el)return;
   try{
-    const r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now());
-    if(!r.ok)throw 0;
+    const PXA='https://justhodl-data-proxy.raafouis.workers.dev';
+    let r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now()).catch(()=>null);
+    if(!r||!r.ok)r=await fetch(PXA+'/data/'+key+'.json?t='+Date.now()).catch(()=>null);
+    if(!r||!r.ok)throw 0;
+    const b=await r.json();
     const b=await r.json();
     const skip=new Set(['context_id','title','output_key','generated_at','generated_at_utc','model','error','tokens','cost_usd','schema_version']);
     let h='';

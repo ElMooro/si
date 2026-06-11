@@ -37,7 +37,8 @@ td{padding:8px 9px;border-bottom:1px solid var(--border);font-family:var(--mono)
 <script>
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const CC={TOP:'var(--red)',BOTTOM:'var(--green)',BLACK_SWAN:'var(--amber)'};
-async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 function chips(arr,cls){return (arr||[]).map(x=>`<span class="chip ${cls}">${esc(x.f)} ${x.ep_z}z↔${x.today_z}z</span>`).join('');}
 async function load(){
   const D=await gj('data/episode-compass.json');
