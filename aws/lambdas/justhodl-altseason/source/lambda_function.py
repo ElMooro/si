@@ -34,7 +34,7 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/altseason.json"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
 DIAG = []
 
@@ -374,7 +374,10 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         ai["error"] = str(e)[:120]
     out["ai_brief"] = ai
-    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
+    # NaN/Infinity are valid to Python's json but fatal to browser JSON.parse —
+    # scrub by round-tripping with parse_constant→None before publishing.
+    clean = json.loads(json.dumps(out, default=str), parse_constant=lambda c: None)
+    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(clean).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[altseason] {phase} {score} confirms={len(composite['confirms'])} "
           f"rejects={len(composite['rejects'])} alt_index={ai_now} {out['duration_s']}s")

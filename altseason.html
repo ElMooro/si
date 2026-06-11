@@ -38,7 +38,8 @@ td{padding:8px 9px;border-bottom:1px solid var(--border);font-family:var(--mono)
 </div>
 <script>
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 const PC={DORMANT:'var(--fg3)',SETUP:'var(--cyan)',IGNITION:'var(--amber)',CONFIRMED:'var(--green)'};
 function sparkline(pts){
   if(!pts||pts.length<10)return '<span class="loading">history pending</span>';
