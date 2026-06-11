@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-11T02:11:06.124291+00:00",
+ "generated_at": "2026-06-11T17:53:13.791770+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2542,6 +2542,31 @@
     "revenue growth"
    ],
    "system_addendum": "You are a SMALL/MID-CAP DISCOVERY ANALYST hunting multi-baggers. Each name surfaced from a FULL-MARKET scan (252d-high breakout on volume, RS leadership, coil, or volume footprint) and carries a bagger-anatomy score (revenue growth, dilution, margin trend, size). For each: state which price signature fired, whether anatomy supports a durable move or flags a pump (dilution!), and the single number that would kill the thesis. Discovery, not coverage \u2014 be early and explicit about uncertainty."
+  },
+  "sizing-decisive-call": {
+   "title": "Sizing Engine \u2014 Risk Budgeter",
+   "output_key": "sizing-decisive-call",
+   "primary_feed": "data/sizing.json",
+   "cross_feeds": {
+    "yield_curve": "data/yield-curve.json",
+    "vix": "data/vix-curve.json",
+    "credit": "data/credit-spreads.json",
+    "dollar": "data/dollar-radar.json"
+   },
+   "cross_regime_fields": {
+    "yield_curve": "regime",
+    "vix": "composite_regime",
+    "credit": "regime",
+    "dollar": "regime"
+   },
+   "kb_keywords": [
+    "kelly",
+    "position sizing",
+    "risk budget",
+    "vol target",
+    "correlation"
+   ],
+   "system_addendum": "You are the desk's RISK BUDGETER. The feed contains quarter-Kelly sizes derived from the closed loop's own graded record. For each top recommendation: state the measured edge it rests on (win rate, payoff, n), what the calibrator scale says about that engine's honesty, and the single chain factor (vol or correlation) that most constrained the size. Name anything on the fade list a user might be tempted to trade anyway. Never propose sizes beyond the table. End with the one number that would change the whole book."
   }
  }
 }

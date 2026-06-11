@@ -878,6 +878,17 @@ def n_altseason(d):
                   + (" · MACRO-REJECTED" if rej else ""))
 
 
+def n_sizing(d):
+    recs = d.get("recommendations") or []
+    if not d.get("engine_table"):
+        return 0, "Sizing n/a"
+    top = recs[0] if recs else None
+    rd = (f"{len(recs)} sized · gross {d.get(chr(103)+chr(114)+chr(111)+chr(115)+chr(115)+chr(95)+chr(114)+chr(101)+chr(99)+chr(111)+chr(109)+chr(109)+chr(101)+chr(110)+chr(100)+chr(101)+chr(100)+chr(95)+chr(119)+chr(95)+chr(112)+chr(99)+chr(116))}%"
+          + (f" · top {top[chr(116)+chr(105)+chr(99)+chr(107)+chr(101)+chr(114)]} {top[chr(102)+chr(105)+chr(110)+chr(97)+chr(108)+chr(95)+chr(119)+chr(95)+chr(112)+chr(99)+chr(116)]}%" if top else "")
+          + f" · fade {len(d.get(chr(102)+chr(97)+chr(100)+chr(101)+chr(95)+chr(108)+chr(105)+chr(115)+chr(116)) or [])}")
+    return 0, rd
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -960,6 +971,7 @@ FEEDS = [
     ("Upside Radar",           "equity tactical",  "data/upside-radar.json",         n_upside_radar),
     ("Rotation Radar",         "sentiment",        "data/rotation-radar.json",       n_rotation_radar),
     ("Altseason Tribunal",     "sentiment",        "data/altseason.json",            n_altseason),
+    ("Sizing Engine",          "meta",             "data/sizing.json",               n_sizing),
 ]
 
 

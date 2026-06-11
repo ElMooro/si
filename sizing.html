@@ -1,344 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0a0d12">
-<title>Sizing · JustHodl</title>
-<meta name="description" content="Horizon-aware Kelly position sizing. Per open position: current size, recommended size, action (TRIM/HOLD/ADD), based on the signal's measured reliability at its predicted horizon.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sizing Engine — Signal → Size (Quarter-Kelly) — JustHodl AI</title>
 <style>
-:root{
-  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
-  --brd:#1c2433; --brd2:#2a3548;
-  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
-  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-strong:rgba(0,230,118,.22);
-  --red:#ff174a; --red-bg:rgba(255,23,74,.1); --red-strong:rgba(255,23,74,.22);
-  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
-  --orange:#ff7a18; --orange-bg:rgba(255,122,24,.1);
-  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
-  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
-  --display:'Fraunces',Georgia,serif;
-  --sans:'IBM Plex Sans',system-ui,sans-serif;
-  --mono:'IBM Plex Mono',monospace;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,230,118,.04),transparent 60%);min-height:100vh}
-a{color:inherit;text-decoration:none}
-nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
-nav.tabs .tabs-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
-nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
-nav.tabs .brand i{color:var(--cyan);font-style:italic}
-nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
-nav.tabs .tab:hover{color:var(--t1)}
-nav.tabs .tab.active{color:var(--green);border-bottom-color:var(--green)}
-
-main{max-width:1400px;margin:0 auto;padding:32px 24px 60px}
-header.hero{margin-bottom:28px}
-header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
-header.hero .lede{color:var(--t2);font-size:16px;max-width:880px}
-header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap;align-items:center}
-header.hero .meta b{color:var(--t2);font-weight:500}
-header.hero .meta .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:var(--bg2);border:1px solid var(--brd2);color:var(--t2)}
-header.hero .meta .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
-
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
-@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:600px){.kpis{grid-template-columns:1fr}}
-.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px}
-.kpi h3{font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px}
-.kpi .v{font-family:var(--display);font-size:32px;font-weight:700;color:var(--t1);font-variant-numeric:tabular-nums;line-height:1.1}
-.kpi .v.up{color:var(--green)} .kpi .v.down{color:var(--red)} .kpi .v.flat{color:var(--yellow)}
-.kpi .vsub{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:6px}
-
-.section{margin-bottom:32px}
-.section h2{font-family:var(--display);font-size:24px;font-weight:600;margin-bottom:8px}
-.section .sub{color:var(--t3);font-size:13px;margin-bottom:14px;max-width:880px}
-.card{background:var(--bg1);border:1px solid var(--brd);border-radius:12px}
-
-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
-table th{text-align:left;padding:10px 12px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--brd2);background:var(--bg2);position:sticky;top:0;z-index:1}
-table td{padding:10px 12px;border-bottom:1px solid var(--brd);color:var(--t2);font-variant-numeric:tabular-nums;vertical-align:middle}
-table tr:hover td{background:var(--bg2)}
-table td.tname{color:var(--t1);font-weight:500}
-table td.num{text-align:right}
-
-.tag{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
-.tag.green{background:var(--green-bg);color:var(--green)}
-.tag.red{background:var(--red-bg);color:var(--red)}
-.tag.orange{background:var(--orange-bg);color:var(--orange)}
-.tag.yellow{background:var(--yellow-bg);color:var(--yellow)}
-.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
-.tag.purple{background:var(--purple-bg);color:var(--purple)}
-.tag.muted{background:rgba(71,80,100,.2);color:var(--t3)}
-
-.action-tag{display:inline-block;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
-.action-tag.HOLD{background:rgba(111,123,145,.18);color:var(--t2)}
-.action-tag.ADD{background:rgba(0,230,118,.15);color:var(--green);border:1px solid var(--green)}
-.action-tag.TRIM{background:rgba(255,122,24,.15);color:var(--orange);border:1px solid var(--orange)}
-.action-tag.EXIT{background:rgba(255,23,74,.18);color:var(--red);border:1px solid var(--red)}
-
-.call-banner{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--brd2);border-radius:12px;padding:20px 26px;margin-bottom:24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
-.call-banner .label{font-family:var(--mono);font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.call-banner .verb{font-family:var(--display);font-size:32px;font-weight:700;line-height:1;letter-spacing:-1px}
-.call-banner .ctx{font-family:var(--mono);font-size:13px;color:var(--t2);margin-left:auto;line-height:1.7}
-
-.notice{background:var(--cyan-bg);border:1px solid var(--cyan);color:var(--cyan);padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:12px;line-height:1.6;margin-bottom:24px}
-.err{background:var(--red-bg);border:1px solid var(--red-strong);color:#ffb3c1;padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:13px}
-.loading{padding:48px;text-align:center;color:var(--t3);font-family:var(--mono);font-size:13px}
-
-.delta-bar{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;font-variant-numeric:tabular-nums}
-.delta-bar.pos{color:var(--green)}
-.delta-bar.neg{color:var(--red)}
-.delta-bar.flat{color:var(--t3)}
-
-.kelly-cell{font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12px}
-.kelly-cell .flat{color:var(--t4);text-decoration:line-through}
-.kelly-cell .horizon{color:var(--t1);font-weight:600}
-
-.method-card{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px 22px;margin-bottom:22px;font-family:var(--mono);font-size:12px;color:var(--t2);line-height:1.7}
-.method-card b{color:var(--t1);font-weight:600}
-.method-card code{color:var(--cyan);background:rgba(0,212,255,.08);padding:1px 6px;border-radius:3px;font-size:11px}
-</style>
-</head>
-<body>
-
-<nav class="tabs">
-  <div class="tabs-inner">
-    <span class="brand"><i>just</i>hodl</span>
-    <a class="tab" href="/today.html">Today</a>
-    <a class="tab" href="/brief.html">Brief</a>
-    <a class="tab" href="/calls.html">Calls</a>
-    <a class="tab" href="/performance.html">Performance</a>
-    <a class="tab active" href="/sizing.html">Sizing</a>
-    <a class="tab" href="/backtest.html">Backtest</a>
-    <a class="tab" href="/weights.html">Weights</a>
-    <a class="tab" href="/horizons.html">Horizons</a>
-    <a class="tab" href="/themes.html">Themes</a>
-    <a class="tab" href="/nobrainers.html">Nobrainers</a>
-    <a class="tab" href="/defcon.html">DEFCON</a>
-    <a class="tab" href="/baggers.html">Baggers</a>
-    <a class="tab" href="/insider-clusters.html">Clusters</a>
-    <a class="tab" href="/eps-velocity.html">EPS Velocity</a>
-    <a class="tab" href="/deep-value.html">Deep Value</a>
-    <a class="tab" href="/compound-signals.html">Compound</a>
-    <a class="tab" href="/smart-money.html">SMART MONEY</a>
-    <a class="tab" href="/accuracy.html">Accuracy</a>
-    <a class="tab" href="/sectors.html">Sectors</a>
-    <a class="tab" href="/momentum.html">Momentum</a>
-    <a class="tab" href="/research.html">Research</a>
-    <a class="tab" href="/desk.html">Desk</a>
-    <a class="tab" href="/intelligence.html">Intel</a>
-  </div>
-</nav>
-
-<main>
-  <header class="hero">
-    <h1>Position Sizing — Horizon-Aware Kelly</h1>
-    <p class="lede">For each open paper position and top asymmetric setup, compute a Kelly fraction using the calibration weight at the trade's <em>actual</em> predicted horizon. A 14-day setup uses <code>day_14</code> weights. A 30-day position uses <code>day_30</code>. The "horizon premium" column shows how much sizing shifts vs the flat-aggregate Kelly. Final size is modulated by the system's current decisive call: EXIT_ALL_RISK collapses everything to zero; LEVER scales 1.6×.</p>
-    <div class="meta" id="meta">
-      <span class="pill"><span class="dot"></span><span id="status">loading…</span></span>
-      <span>Generated <b id="generated-at">—</b></span>
-      <span>Positions <b id="n-positions">—</b></span>
-      <span>Setups <b id="n-setups">—</b></span>
-      <span>Auto-refresh <b>5min</b></span>
-    </div>
-  </header>
-
-  <div id="notice-area"></div>
-
-  <div class="call-banner" id="call-banner" style="display:none">
-    <div>
-      <div class="label">Decisive call</div>
-      <div class="verb" id="call-verb">—</div>
-    </div>
-    <div class="ctx" id="call-ctx"></div>
-  </div>
-
-  <div class="kpis" id="kpi-row">
-    <div class="kpi"><h3>Loading…</h3></div>
-  </div>
-
-  <div class="method-card">
-    <b>Method:</b> <code>horizon_aware_kelly_v1</code> · <b>Kelly fraction:</b> 0.25 (quarter-Kelly) · <b>Max single position:</b> 8% of NAV
-    <br><br>
-    <b>Formula:</b> <code>f* = max(0, 2 × adjusted_p − 1) × 0.25</code> where <code>adjusted_p = 0.5 + (confidence − 0.5) × (1 + weight) / 2</code>.
-    Weight comes from <code>/justhodl/calibration/weights/{horizon}</code> if (signal, horizon) has n≥5; else flat fallback.
-    Final sizing is multiplied by call-based risk multiplier: EXIT_ALL_RISK=0×, EXIT=0.25×, TRIM=0.5×, HEDGE=0.6×, WAIT=0.7×, HOLD=1.0×, LONG=1.2×, LOAD=1.4×, LEVER=1.6×.
-  </div>
-
-  <div class="section">
-    <h2>Open positions — current vs recommended</h2>
-    <p class="sub">For each of the open paper positions, the recommended size adjusts (a) for the calibration weight at this position's predicted horizon and (b) for the system's current decisive call. The <span class="action-tag ADD">ADD</span>/<span class="action-tag HOLD">HOLD</span>/<span class="action-tag TRIM">TRIM</span>/<span class="action-tag EXIT">EXIT</span> tag is fired when the recommended size differs from current by ≥30%.</p>
-    <div class="card" style="overflow-x:auto">
-      <table id="pos-table">
-        <thead><tr>
-          <th>Ticker</th>
-          <th>Source</th>
-          <th>Horizon</th>
-          <th class="num">Weight</th>
-          <th class="num">Confidence</th>
-          <th class="num">Current %</th>
-          <th class="num">Recommended %</th>
-          <th class="num">Δ</th>
-          <th class="num">$ Size</th>
-          <th>Action</th>
-        </tr></thead>
-        <tbody id="pos-body"><tr><td colspan="10" class="loading">Loading…</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>Top asymmetric setups — Kelly recommendations</h2>
-    <p class="sub">Forward-looking opportunities from the asymmetric scorer, with horizon-aware Kelly sizing. Setups with composite_score ≥80 and high horizon-premium are the most actionable: the system sees them as undervalued at their predicted timeframe.</p>
-    <div class="card" style="overflow-x:auto">
-      <table id="setup-table">
-        <thead><tr>
-          <th>Ticker</th>
-          <th class="num">Composite</th>
-          <th>Horizon</th>
-          <th class="num">Weight</th>
-          <th class="num">Flat Kelly</th>
-          <th class="num">Horizon Kelly</th>
-          <th class="num">Premium</th>
-          <th class="num">Final %</th>
-          <th class="num">$ Size</th>
-        </tr></thead>
-        <tbody id="setup-body"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</main>
-
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--cyan)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:22px}
+h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:960px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase}
+.hero{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
+.g{background:var(--bg1);border:2px solid var(--border);border-radius:14px;padding:13px 18px;font-family:var(--mono)}
+.g b{font-size:24px}.g .m{font-size:10.5px;color:var(--fg3);margin-top:4px;line-height:1.6}
+table{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:8px;border-bottom:1px solid var(--border);background:var(--bg2)}
+th:first-child,td:first-child{text-align:left}td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+.hi{color:var(--green)}.lo{color:var(--red)}.am{color:var(--amber)}
+.gOK{color:var(--green);font-weight:700}.gTHIN{color:var(--amber)}.gNO{color:var(--red)}
+.fade{background:rgba(255,85,119,.06);border:1px solid rgba(255,85,119,.3);border-radius:12px;padding:11px 14px;font-family:var(--mono);font-size:11.5px;color:var(--fg2);margin-bottom:14px}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/skill.html">Skill</a><a href="/sizing.html" class="on">📐 Sizing</a><a href="/portfolio-manager.html">Book</a><a href="/methodology.html">Methodology</a></nav></header>
+<div class="wrap">
+<h1>Sizing Engine — <span class="grad">signal → size</span></h1>
+<p class="sub">Every live directional signal arrives with a position size built from <b>measured</b> edge: quarter-Kelly per engine from the closed loop's own graded record, confidence deflated by the calibrator's self-audit, a 30% annualized vol budget, and a cluster-correlation haircut. Engines with negative measured Kelly land on the <b>fade list</b> and are never sized. Sizes are per $100k of book — research, not advice.</p>
+<div class="hero" id="hero"><span class="loading">Loading…</span></div>
+<div class="sec">🤖 AI Risk Budgeter</div>
+<div id="aibrief" style="background:var(--bg1);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;color:var(--fg2)"><span class="loading">…</span></div>
+<div class="sec">Sized recommendations — the chain, itemized</div><div id="recs"></div>
+<div class="sec">Engine Kelly table — measured edge per signal type</div><div id="etable"></div>
+<div class="sec">⛔ Fade list — negative measured Kelly</div><div class="fade" id="fade"></div>
+<div class="note" id="note"></div>
+</div>
 <script>
-const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
-const VERB_COLOR = {
-  "EXIT_ALL_RISK":"#ff174a","EXIT":"#ff4d6d","TRIM":"#ff7a18","HEDGE":"#ffc400",
-  "WAIT":"#b56bff","HOLD":"#6f7b91","LONG":"#00e676","LOAD":"#26ffaf","LEVER":"#00d4ff",
-  "UNKNOWN":"#475064",
-};
-function fmt(n, opts){ if (n==null||isNaN(n)) return "—"; return Number(n).toLocaleString(undefined, opts || {maximumFractionDigits:2}); }
-function fmtPct(n, dp=2){ if (n==null||isNaN(n)) return "—"; return `${(n*100).toFixed(dp)}%`; }
-function fmtSignedPct(n, dp=2){ if (n==null||isNaN(n)) return "—"; return `${n>=0?'+':''}${(n*100).toFixed(dp)}%`; }
-function fmtSignedPP(n, dp=2){ if (n==null||isNaN(n)) return "—"; return `${n>=0?'+':''}${(n*100).toFixed(dp)}pp`; }
-function fmtDollar(n){ if (n==null||isNaN(n)) return "—"; return `$${Math.round(n).toLocaleString()}`; }
-function timeAgo(iso){
-  if (!iso) return "—";
-  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  return `${Math.floor(m/60)}h ${m%60}m ago`;
-}
-
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 async function load(){
-  document.getElementById('status').textContent = 'loading…';
-  try {
-    const r = await fetch(`${BUCKET}/portfolio/sizer-v2.json?t=${Date.now()}`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
-    document.getElementById('status').textContent = 'fresh';
-    document.getElementById('generated-at').textContent = timeAgo(d.generated_at);
-    document.getElementById('n-positions').textContent = (d.positions || []).length;
-    document.getElementById('n-setups').textContent = (d.setups || []).length;
-
-    renderCallBanner(d);
-    renderKPIs(d);
-    renderPositions(d.positions || []);
-    renderSetups(d.setups || []);
-  } catch (err) {
-    document.getElementById('kpi-row').innerHTML =
-      `<div class="err" style="grid-column:1/-1">Failed to load sizer-v2.json: ${err.message}<br>The Lambda may not have run yet.</div>`;
-    document.getElementById('status').textContent = 'error';
-  }
+  const D=await gj('data/sizing.json');
+  if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
+  const recs=D.recommendations||[];
+  document.getElementById('hero').innerHTML=
+   `<div class="g" style="border-color:var(--cyan)"><b style="color:var(--cyan)">${recs.length}</b><div class="m">sized recommendations<br>from live pending signals</div></div>
+    <div class="g"><b>${D.gross_recommended_w_pct??'—'}%</b><div class="m">gross recommended weight<br>(per $100k book)</div></div>
+    <div class="g"><b style="font-size:14px">${esc(D.book_status).slice(0,42)}</b><div class="m">book status</div></div>
+    <div class="g"><b>${D.scanned_graded??'—'}</b><div class="m">graded signals feeding Kelly</div></div>`;
+  document.getElementById('recs').innerHTML=recs.length?`<table><thead><tr><th>Ticker</th><th>Dir</th><th>Engine</th><th>¼K base</th><th>×conf</th><th>vol(ann)</th><th>×vol</th><th>maxρ</th><th>×haircut</th><th>FINAL w</th><th>$/100k</th><th>flags</th></tr></thead><tbody>${
+    recs.map(r=>{const c=r.chain||{};return `<tr><td><b>${esc(r.ticker)}</b></td><td class="${r.direction==='LONG'?'hi':'lo'}">${esc(r.direction)}</td><td style="font-size:10px">${esc(r.engine)} <span class="g${(r.engine_gate||'').slice(0,2)==='OK'?'OK':(r.engine_gate||'').slice(0,2)==='TH'?'THIN':'NO'}">${esc(r.engine_gate)}</span></td>
+      <td>${c.quarter_kelly_w}%</td><td>${c.conf_adj_x}×</td><td>${c.vol_ann_pct??'—'}%</td><td>${c.vol_scalar_x}×</td><td>${c.cluster_corr_max}</td><td>${c.haircut_x}×</td>
+      <td class="hi" style="font-weight:800">${r.final_w_pct}%</td><td>$${r.dollars_per_100k}</td><td style="font-size:10px;color:var(--amber)">${esc((r.overlap_flags||[]).join(' '))}</td></tr>`;}).join('')}</tbody></table>`
+   :'<div class="loading">No pending directional signals clear the gates right now.</div>';
+  const T=D.engine_table||[];
+  document.getElementById('etable').innerHTML=`<table><thead><tr><th>Signal type</th><th>n</th><th>Win%</th><th>Med win</th><th>Med loss</th><th>Payoff</th><th>Kelly</th><th>¼K weight</th><th>Claimed conf</th><th>Calib ×</th><th>Gate</th></tr></thead><tbody>${
+    T.map(x=>`<tr><td><b>${esc(x.signal_type)}</b></td><td>${x.n}</td><td class="${x.win_rate>=55?'hi':x.win_rate<=45?'lo':''}">${x.win_rate}%</td><td>${x.median_win_pct}%</td><td>${x.median_loss_pct}%</td><td>${x.payoff??'—'}</td><td class="${x.kelly_pct>0?'hi':'lo'}">${x.kelly_pct}%</td><td><b>${x.quarter_kelly_w_pct}%</b></td><td>${x.avg_claimed_conf??'—'}</td><td class="${x.calibrator_scale<1?'am':''}">${x.calibrator_scale}</td><td class="g${x.gate==='OK'?'OK':x.gate==='THIN'?'THIN':'NO'}">${esc(x.gate)}</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('fade').textContent=(D.fade_list||[]).length?(D.fade_list.join(' · ')):'— none —';
+  document.getElementById('note').textContent=`${D.methodology} · params ${JSON.stringify(D.params)} · v${D.version} · ${D.generated_at}`;
 }
-
-function renderCallBanner(d){
-  const verb = d.decisive_call || 'UNKNOWN';
-  const mult = d.risk_multiplier;
-  document.getElementById('call-banner').style.display = '';
-  document.getElementById('call-verb').textContent = verb.replace('_',' ');
-  document.getElementById('call-verb').style.color = VERB_COLOR[verb] || 'var(--t1)';
-  document.getElementById('call-ctx').innerHTML = `
-    Risk multiplier: <b style="color:var(--t1)">${mult}×</b><br>
-    Total exposure: <b style="color:var(--t1)">${fmtPct(d.summary?.total_current_exposure_pct)}</b> →
-    <b style="color:var(--t1)">${fmtPct(d.summary?.total_recommended_exposure_pct)}</b>
-    (${fmtSignedPP(d.summary?.exposure_change_pp)})
-  `;
-}
-
-function renderKPIs(d){
-  const s = d.summary || {};
-  const a = s.actions || {};
-  const tiles = [
-    {h:'Open positions', v: s.n_open_positions || 0, sub: 'evaluated'},
-    {h:'Recommended actions', v:
-      `${a.ADD || 0} ADD · ${a.HOLD || 0} HOLD · ${a.TRIM || 0} TRIM · ${a.EXIT || 0} EXIT`,
-      sub: 'across positions', valStyle: 'font-size:18px'},
-    {h:'Horizon-aware', v: `${s.n_horizon_aware || 0}`, sub: `${s.n_flat_fallback || 0} flat fallback`},
-    {h:'Setups evaluated', v: s.n_setups_evaluated || 0, sub: 'asymmetric scorer'},
-  ];
-  document.getElementById('kpi-row').innerHTML = tiles.map(t =>
-    `<div class="kpi"><h3>${t.h}</h3><div class="v" style="${t.valStyle || ''}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
-  ).join('');
-}
-
-function renderPositions(positions){
-  if (!positions.length) {
-    document.getElementById('pos-body').innerHTML = '<tr><td colspan="10" class="loading">No open positions.</td></tr>';
-    return;
-  }
-  document.getElementById('pos-body').innerHTML = positions.map(p => {
-    const action = p.recommended_action;
-    const delta = p.delta_pct;
-    const deltaCls = delta > 0.001 ? 'pos' : (delta < -0.001 ? 'neg' : 'flat');
-    const wsrcCls = p.weight_source.startsWith('horizon:') ? 'cyan' : 'muted';
-    return `<tr>
-      <td class="tname">${p.ticker}</td>
-      <td>${p.source || '—'}</td>
-      <td><span class="tag ${wsrcCls}">${p.horizon}</span></td>
-      <td class="num">${p.weight_used.toFixed(3)}</td>
-      <td class="num">${fmtPct(p.confidence)}</td>
-      <td class="num">${fmtPct(p.current_pct)}</td>
-      <td class="num"><span class="kelly-cell"><span class="horizon">${fmtPct(p.call_adjusted_pct)}</span></span></td>
-      <td class="num"><span class="delta-bar ${deltaCls}">${fmtSignedPP(delta)}</span></td>
-      <td class="num">${fmtDollar(p.dollar_size)}</td>
-      <td><span class="action-tag ${action}">${action}</span></td>
-    </tr>`;
-  }).join('');
-}
-
-function renderSetups(setups){
-  if (!setups.length) {
-    document.getElementById('setup-body').innerHTML = '<tr><td colspan="9" class="loading">No setups available.</td></tr>';
-    return;
-  }
-  document.getElementById('setup-body').innerHTML = setups.map(s => {
-    const wsrcCls = s.weight_source.startsWith('horizon:') ? 'cyan' : 'muted';
-    const premiumCls = s.horizon_premium_pp > 0.001 ? 'pos' : (s.horizon_premium_pp < -0.001 ? 'neg' : 'flat');
-    return `<tr>
-      <td class="tname">${s.ticker}</td>
-      <td class="num">${fmt(s.composite_score)}</td>
-      <td><span class="tag ${wsrcCls}">${s.horizon}</span></td>
-      <td class="num">${s.weight_used.toFixed(3)}</td>
-      <td class="num"><span class="kelly-cell"><span class="flat">${fmtPct(s.flat_kelly_pct)}</span></span></td>
-      <td class="num"><span class="kelly-cell"><span class="horizon">${fmtPct(s.horizon_kelly_pct)}</span></span></td>
-      <td class="num"><span class="delta-bar ${premiumCls}">${fmtSignedPP(s.horizon_premium_pp)}</span></td>
-      <td class="num">${fmtPct(s.call_adjusted_pct)}</td>
-      <td class="num">${fmtDollar(s.dollar_size)}</td>
-    </tr>`;
-  }).join('');
-}
-
 load();
-setInterval(load, 5*60*1000);
-</script>
-
-<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
-<script src="/interp-kit.js"></script>
-<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
-</body>
-</html>
+async function aiPanel(key,mount){
+  const el=document.getElementById(mount);
+  try{const PXA='https://justhodl-data-proxy.raafouis.workers.dev';
+    let r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now()).catch(()=>null);
+    if(!r||!r.ok)r=await fetch(PXA+'/data/'+key+'.json?t='+Date.now()).catch(()=>null);
+    if(!r||!r.ok)throw 0;
+    const b=await r.json();let h='';
+    if(b.headline)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1);margin-bottom:8px">${esc(b.headline)}</div>`;
+    const skip=new Set(['context_id','title','output_key','generated_at','generated_at_utc','model','error','headline','tokens','cost_usd','schema_version']);
+    for(const[k,v]of Object.entries(b)){if(skip.has(k)||v==null)continue;
+      if(typeof v==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(k.replace(/_/g,' '))}</b><div style="font-size:12.5px;line-height:1.65">${esc(v)}</div></div>`;
+      else if(Array.isArray(v)&&v.length&&typeof v[0]==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px">${esc(k.replace(/_/g,' ').toUpperCase())}</b>${v.map(x=>`<div style="font-size:12.5px">• ${esc(x)}</div>`).join('')}</div>`;}
+    el.innerHTML=h||'<span class="loading">AI brief generating — next router cycle.</span>';
+  }catch(e){el.innerHTML='<span class="loading">AI brief generates on the next 4-hour router cycle.</span>';}
+}
+aiPanel('sizing-decisive-call','aibrief');
+</script></body></html>
