@@ -31,7 +31,7 @@ OUT_KEY = "data/upside-radar.json"
 STATE_KEY = "data/_upside/state.json.gz"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 RING = 256
 DV_FLOOR = 3_000_000  # $ 20d avg dollar-volume
 TIME_BUDGET = 420
@@ -54,6 +54,26 @@ def grouped(date):
     except Exception as e:
         print(f"[grouped] {date}: {str(e)[:50]}")
         return {}
+
+
+def fetch_etf_set():
+    """Non-common-stock tickers (ETF/ETN/FUND/...) via Polygon reference."""
+    out = set()
+    url = ("https://api.polygon.io/v3/reference/tickers?market=stocks"
+           f"&active=true&limit=1000&apiKey={POLY_KEY}")
+    try:
+        for _ in range(40):
+            j = json.loads(urllib.request.urlopen(url, timeout=40).read())
+            for r in j.get("results") or []:
+                if r.get("type") and r["type"] != "CS":
+                    out.add(r.get("ticker"))
+            nxt = j.get("next_url")
+            if not nxt:
+                break
+            url = nxt + f"&apiKey={POLY_KEY}"
+    except Exception as e:
+        print(f"[etfset] {str(e)[:60]}")
+    return out
 
 
 def load_state():
@@ -153,6 +173,13 @@ def fmp_anatomy(t):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     st = load_state()
+    if not st.get("etf") or st.get("etf_asof", "") < \
+            (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat():
+        es = fetch_etf_set()
+        if len(es) > 1000:
+            st["etf"] = sorted(es)
+            st["etf_asof"] = datetime.now(timezone.utc).date().isoformat()
+            print(f"[etfset] {len(es)} non-CS cached")
     fetched = ingest(st, t0)
     save_state(st)
     rings = st["rings"]
@@ -194,9 +221,15 @@ def lambda_handler(event=None, context=None):
             return round(100 * _b.bisect_left(rets252, x) / len(rets252), 1)
 
         latest = grouped(st["last_date"]) if st["last_date"] else {}
+        etfset = set(st.get("etf") or [])
         breakout, leaders, coiled, footprint = [], [], [], []
         for r in rows:
             t = r["t"]
+            if t in etfset or not t.isalpha() or not t.isupper():
+                continue
+            if r["range63_pct"] < 2 and abs(r["ret252"] or 0) < 3:
+                continue  # cash-like instrument
+            r["suspect_split"] = bool((r["ret252"] or 0) > 800)
             cv = latest.get(t)
             dvz = None
             if cv and r["dv"]:
@@ -205,9 +238,9 @@ def lambda_handler(event=None, context=None):
             if near_hi and (dvz or 0) >= 2.0:
                 breakout.append({**r, "dvol_x": dvz})
             rp = pctl(r["ret252"])
-            if rp is not None and rp >= 95 and r["ret63"] > 0:
+            if (rp is not None and rp >= 95 and r["ret63"] > 0 and r["ring_n"] >= 250 and not r["suspect_split"]):
                 leaders.append({**r, "rs_pctile": rp})
-            if r["range63_pct"] <= 12 and r["dist_hi_pct"] >= -5 and r["ring_n"] >= 150:
+            if (3 <= r["range63_pct"] <= 12 and r["dist_hi_pct"] >= -5 and r["ring_n"] >= 150 and (r["ret252"] or 0) > 5):
                 coiled.append(r)
             if (dvz or 0) >= 4.0 and cv and cv[0] > r["c"] * 0.999 and r["dist_hi_pct"] <= -15:
                 footprint.append({**r, "dvol_x": dvz})
