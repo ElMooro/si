@@ -25,7 +25,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/rotation-radar.json"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
 
 
@@ -165,12 +165,19 @@ def fwd(series_map, dates, i, w, ref=None):
     d0 = dates[i]
     tgt = (datetime.strptime(d0, "%Y-%m-%d") + timedelta(days=w)).date().isoformat()
     keys = sorted(series_map)
+    if not keys:
+        return None
     import bisect
     j0 = bisect.bisect_left(keys, d0)
     j1 = bisect.bisect_left(keys, tgt)
     if j0 >= len(keys) or j1 >= len(keys):
         return None
-    a, b = series_map[keys[min(j0, len(keys) - 1)]], series_map[keys[min(j1, len(keys) - 1)]]
+    def near(k, dd, tol=6):
+        return abs((datetime.strptime(k, "%Y-%m-%d")
+                     - datetime.strptime(dd, "%Y-%m-%d")).days) <= tol
+    if not near(keys[j0], d0) or not near(keys[j1], tgt):
+        return None  # event predates coverage or target beyond it — honest null
+    a, b = series_map[keys[j0]], series_map[keys[j1]]
     return round((b / a - 1) * 100, 1) if a else None
 
 
