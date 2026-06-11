@@ -34,7 +34,7 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/altseason.json"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
 DIAG = []
 
@@ -90,6 +90,7 @@ def cg_global():
             return {"src": "coingecko", "total_mcap_usd": tot, "btc_d": round(btc, 2),
                      "eth_d": round(eth, 2) if eth else None,
                      "total2_usd": round(tot * (1 - btc / 100), 0)}
+        DIAG.append(f"cg/global shape: tot={bool(tot)} btc={bool(btc)} keys={list(d)[:6]}")
     except Exception as e:
         DIAG.append(f"cg/global: {str(e)[:60]}")
     try:
@@ -104,6 +105,9 @@ def cg_global():
                 return {"src": "cmc", "total_mcap_usd": tot, "btc_d": round(btc, 2),
                          "eth_d": round(d.get("eth_dominance"), 2) if d.get("eth_dominance") else None,
                          "total2_usd": round(tot * (1 - btc / 100), 0)}
+            DIAG.append(f"cmc/global shape: tot={bool(tot)} btc={bool(btc)}")
+        else:
+            DIAG.append("cmc/global: no CMC_KEY in env")
     except Exception as e:
         DIAG.append(f"cmc/global: {str(e)[:60]}")
     return None
@@ -326,7 +330,9 @@ def lambda_handler(event=None, context=None):
     # ── BTC.D / TOTAL2: live + accrual + proxy history ──
         gnow = cg_global()
         ACC_KEY = "data/_altseason/global-history.json"
-        acc = s3json(ACC_KEY) or {"rows": []}
+        _, acc = s3json([ACC_KEY])
+        acc = acc if isinstance(acc, dict) else {"rows": []}
+        acc.setdefault("rows", [])
         today_d = datetime.now(timezone.utc).date().isoformat()
         if gnow and not any(r.get("date") == today_d for r in acc["rows"]):
             acc["rows"].append({"date": today_d, **gnow})
