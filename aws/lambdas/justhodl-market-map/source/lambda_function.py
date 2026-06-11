@@ -23,13 +23,18 @@ STATE_KEY = "data/_map/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 DIAG = []
 SECTOR_ETFS = [("XLK", "Technology"), ("XLF", "Financials"), ("XLV", "Health Care"),
                 ("XLY", "Consumer Discretionary"), ("XLC", "Communication Services"),
                 ("XLI", "Industrials"), ("XLP", "Consumer Staples"), ("XLE", "Energy"),
                 ("XLU", "Utilities"), ("XLRE", "Real Estate"), ("XLB", "Materials")]
 WINDOWS = [("c", 1), ("w", 5), ("m1", 21), ("m3", 63), ("m6", 126), ("y1", 251)]
+SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
+                 "Consumer Discretionary", "Healthcare": "Health Care",
+                 "Consumer Defensive": "Consumer Staples",
+                 "Basic Materials": "Materials"}
+DUAL_DROP = {"GOOG": "GOOGL", "FOX": "FOXA", "NWS": "NWSA"}
 
 
 def jget(url, timeout=35, headers=None):
@@ -41,7 +46,10 @@ def jget(url, timeout=35, headers=None):
 def constituents():
     try:
         j = jget(f"https://financialmodelingprep.com/stable/sp500-constituent?apikey={FMP_KEY}")
-        out = {r["symbol"]: r.get("sector") or "Other" for r in j if r.get("symbol")}
+        out = {r["symbol"]: SECTOR_ALIAS.get(r.get("sector") or "Other", r.get("sector") or "Other") for r in j if r.get("symbol")}
+        for d_, keep in DUAL_DROP.items():
+            if d_ in out and keep in out:
+                del out[d_]
         DIAG.append(f"sp500 constituents: {len(out)}")
         return out
     except Exception as e:
@@ -161,15 +169,17 @@ def lambda_handler(event=None, context=None):
                                  "reference, weekly cache; dollar-volume proxy if cache "
                                  "cold — labeled), color = % change per window computed "
                                  "from the desk's own close-rings; sectors from FMP "
-                                 "constituents. Last-session EOD, not intraday.")}
+                                 "constituents. Last-session EOD, not intraday; Groups trimmed to the same session; FMP sector names normalized to SPDR taxonomy; dual share classes deduped (GOOG/FOX/NWS).")}
 
     # ── GROUPS ──
-    spy = dict(poly_closes("SPY"))
+    def trim(ser):
+        return [(d_, v) for d_, v in ser if not as_of or d_ <= as_of]
+    spy = dict(trim(poly_closes("SPY")))
     spy_dates = sorted(spy)
     ytd0 = next((d for d in spy_dates if d >= f"{spy_dates[-1][:4]}-01-01"), None)
     groups = []
     for etf, name in SECTOR_ETFS:
-        ser = poly_closes(etf)
+        ser = trim(poly_closes(etf))
         if len(ser) < 260:
             continue
         d = dict(ser)
