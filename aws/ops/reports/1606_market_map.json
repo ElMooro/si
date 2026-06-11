@@ -1,0 +1,307 @@
+{
+  "ops": 1606,
+  "errors": [],
+  "fn": "created",
+  "fn_err": "NONE",
+  "verify": {
+    "diagnostics": [
+      "sp500 constituents: 503",
+      "upside rings: 6073 as of 2026-06-10",
+      "mcap cache: 501 cached, 501 refreshed"
+    ],
+    "n_tiles": 501,
+    "size_mode": "market_cap",
+    "as_of": "2026-06-10",
+    "breadth": {
+      "advancers": 174,
+      "decliners": 326,
+      "mcap_weighted_chg": -1.61
+    },
+    "tiles_top": [
+      {
+        "t": "NVDA",
+        "s": "Technology",
+        "mc": 4854372820000.0,
+        "c": -3.73,
+        "w": -6.67,
+        "m1": -8.67,
+        "m3": 7.74,
+        "m6": 8.01,
+        "y1": 39.22
+      },
+      {
+        "t": "GOOGL",
+        "s": "Communication Services",
+        "mc": 4346031014772.7397,
+        "c": -2.16,
+        "w": -0.73,
+        "m1": -8.3,
+        "m3": 15.45,
+        "m6": 13.6,
+        "y1": 99.54
+      },
+      {
+        "t": "GOOG",
+        "s": "Communication Services",
+        "mc": 4308714512990.36,
+        "c": -2.48,
+        "w": -0.66,
+        "m1": -8.65,
+        "m3": 14.56,
+        "m6": 12.36,
+        "y1": 96.28
+      },
+      {
+        "t": "AAPL",
+        "s": "Technology",
+        "mc": 4282539262480.0,
+        "c": 0.35,
+        "w": -6.02,
+        "m1": -0.38,
+        "m3": 11.8,
+        "m6": 4.93,
+        "y1": 43.87
+      },
+      {
+        "t": "MSFT",
+        "s": "Technology",
+        "mc": 2951762813981.44,
+        "c": -1.5,
+        "w": -7.02,
+        "m1": -3.71,
+        "m3": -1.86,
+        "m6": -19.07,
+        "y1": -15.62
+      },
+      {
+        "t": "AMZN",
+        "s": "Consumer Cyclical",
+        "mc": 2560192045768.0,
+        "c": -2.53,
+        "w": -4.81,
+        "m1": -11.52,
+        "m3": 11.92,
+        "m6": 4.9,
+        "y1": 9.37
+      }
+    ],
+    "sector_agg": {
+      "Industrials": {
+        "mc": 5001714425212.06,
+        "adv": 6,
+        "dec": 71,
+        "n": 77,
+        "chg_mcap_weighted": -3.24
+      },
+      "Healthcare": {
+        "mc": 5687220522616.0,
+        "adv": 10,
+        "dec": 49,
+        "n": 59,
+        "chg_mcap_weighted": -1.12
+      },
+      "Consumer Cyclical": {
+        "mc": 6587486865031.239,
+        "adv": 13,
+        "dec": 40,
+        "n": 53,
+        "chg_mcap_weighted": -2.18
+      },
+      "Technology": {
+        "mc": 23982187736458.367,
+        "adv": 9,
+        "dec": 75,
+        "n": 84,
+        "chg_mcap_weighted": -2.28
+      },
+      "Basic Materials": {
+        "mc": 1062013480101.2201,
+        "adv": 3,
+        "dec": 17,
+        "n": 20,
+        "chg_mcap_weighted": -2.28
+      },
+      "Financial Services": {
+        "mc": 6818301873277.952,
+        "adv": 38,
+        "dec": 31,
+        "n": 69,
+        "chg_mcap_weighted": -0.42
+      },
+      "Communication Services": {
+        "mc": 11585723308848.34,
+        "adv": 10,
+        "dec": 10,
+        "n": 20,
+        "chg_mcap_weighted": -1.89
+      },
+      "Energy": {
+        "mc": 2188952873506.2202,
+        "adv": 16,
+        "dec": 6,
+        "n": 22,
+        "chg_mcap_weighted": 1.39
+      },
+      "Utilities": {
+        "mc": 1614124560714.4897,
+        "adv": 24,
+        "dec": 7,
+        "n": 32,
+        "chg_mcap_weighted": -0.83
+      },
+      "Consumer Defensive": {
+        "mc": 3559811522092.639,
+        "adv": 31,
+        "dec": 3,
+        "n": 34,
+        "chg_mcap_weighted": 1.51
+      },
+      "Real Estate": {
+        "mc": 1218570077528.12,
+        "adv": 14,
+        "dec": 17,
+        "n": 31,
+        "chg_mcap_weighted": 0.03
+      }
+    },
+    "groups_head": [
+      {
+        "etf": "XLV",
+        "sector": "Health Care",
+        "perf": {
+          "c": 0.81,
+          "w": 1.32,
+          "m1": 5.65,
+          "m3": 2.62,
+          "m6": 2.75,
+          "y1": 13.51,
+          "ytd": -0.91
+        },
+        "rs_3m_vs_spy": -8.14,
+        "breadth": {
+          "adv": null,
+          "dec": null,
+          "n": null
+        },
+        "rank_1m": 1
+      },
+      {
+        "etf": "XLK",
+        "sector": "Technology",
+        "perf": {
+          "c": 3.73,
+          "w": -5.16,
+          "m1": 4.57,
+          "m3": 32.91,
+          "m6": 23.77,
+          "y1": 52.46,
+          "ytd": 26.96
+        },
+        "rs_3m_vs_spy": 22.15,
+        "breadth": {
+          "adv": 9,
+          "dec": 75,
+          "n": 84
+        },
+        "rank_1m": 2
+      },
+      {
+        "etf": "XLF",
+        "sector": "Financials",
+        "perf": {
+          "c": 0.75,
+          "w": 0.82,
+          "m1": 2.02,
+          "m3": 7.76,
+          "m6": -1.24,
+          "y1": 3.18,
+          "ytd": -4.21
+        },
+        "rs_3m_vs_spy": -3.0,
+        "breadth": {
+          "adv": null,
+          "dec": null,
+          "n": null
+        },
+        "rank_1m": 3
+      },
+      {
+        "etf": "XLP",
+        "sector": "Consumer Staples",
+        "perf": {
+          "c": -0.26,
+          "w": 3.94,
+          "m1": 0.98,
+          "m3": 1.21,
+          "m6": 9.33,
+          "y1": 4.65,
+          "ytd": 9.76
+        },
+        "rs_3m_vs_spy": -9.55,
+        "breadth": {
+          "adv": null,
+          "dec": null,
+          "n": null
+        },
+        "rank_1m": 4
+      },
+      {
+        "etf": "XLRE",
+        "sector": "Real Estate",
+        "perf": {
+          "c": -0.16,
+          "w": 1.17,
+          "m1": 0.76,
+          "m3": 6.6,
+          "m6": 10.91,
+          "y1": 6.95,
+          "ytd": 11.24
+        },
+        "rs_3m_vs_spy": -4.16,
+        "breadth": {
+          "adv": 14,
+          "dec": 17,
+          "n": 31
+        },
+        "rank_1m": 5
+      },
+      {
+        "etf": "XLI",
+        "sector": "Industrials",
+        "perf": {
+          "c": 3.24,
+          "w": -0.57,
+          "m1": 0.46,
+          "m3": 6.0,
+          "m6": 14.28,
+          "y1": 21.43,
+          "ytd": 10.87
+        },
+        "rs_3m_vs_spy": -4.76,
+        "breadth": {
+          "adv": 6,
+          "dec": 71,
+          "n": 77
+        },
+        "rank_1m": 6
+      }
+    ],
+    "leadership": {
+      "top_1m": "Health Care",
+      "bottom_1m": "Communication Services"
+    }
+  },
+  "sb_err": "NONE",
+  "board_row_groups": {
+    "signal": -1,
+    "signal_label": "RISK-OFF",
+    "read": "1M leadership: Health Care \u2192 \u2026 \u2192 Communication Services (defensive rotation)"
+  },
+  "board_row": {
+    "signal": 0,
+    "signal_label": "NEUTRAL",
+    "read": "S&P breadth 174/326 \u00b7 cap-wtd -1.61% \u00b7 501 tiles (market_cap)"
+  },
+  "board_n": 75,
+  "registry_n": 53
+}
