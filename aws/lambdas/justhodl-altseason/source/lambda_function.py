@@ -34,7 +34,7 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/altseason.json"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
 DIAG = []
 
@@ -115,7 +115,7 @@ def cg_mcap_hist(coin):
         req = urllib.request.Request(
             f"https://api.coingecko.com/api/v3/coins/{coin}/market_chart"
             f"?vs_currency=usd&days=max&interval=daily", headers=UA)
-        j = json.loads(urllib.request.urlopen(req, timeout=45).read())
+        j = json.loads(urllib.request.urlopen(req, timeout=20).read())
         out = {}
         for ts, mc in j.get("market_caps", []):
             if mc:
@@ -129,14 +129,25 @@ def cg_mcap_hist(coin):
 def build_dominance_total2():
     """Ladder: (a) CG mcap proxy history (BTC vs BTC+ETH+8 alts), (b) self-accrued
     snapshots from data/_altseason/global-history.json. Honest about which."""
-    coins = ["bitcoin", "ethereum", "ripple", "litecoin", "cardano",
-              "dogecoin", "solana", "chainlink", "avalanche-2", "polkadot"]
+    t_b = time.time()
     H = {}
-    for c in coins:
+    for c in ("bitcoin", "ethereum"):
         h = cg_mcap_hist(c)
         if len(h) > 800:
             H[c] = h
-        time.sleep(1.1)
+        time.sleep(0.8)
+    if "bitcoin" in H and "ethereum" in H:
+        for c in ("ripple", "litecoin", "cardano", "dogecoin", "solana",
+                   "chainlink", "avalanche-2", "polkadot"):
+            if time.time() - t_b > 240:
+                DIAG.append("proxy: time budget hit")
+                break
+            h = cg_mcap_hist(c)
+            if len(h) > 800:
+                H[c] = h
+            time.sleep(0.8)
+    else:
+        DIAG.append("proxy: BTC/ETH mcap unavailable — skipping alt fetches")
     proxy = None
     if "bitcoin" in H and "ethereum" in H and len(H) >= 7:
         ds = sorted(set(H["bitcoin"]) & set(H["ethereum"]))
@@ -302,41 +313,53 @@ def lambda_handler(event=None, context=None):
             return None
         a = basket_usd.get(d0)
         return round((basket_usd[ks[j]] / a - 1) * 100, 1) if a else None
+    # defaults so a global-metrics failure can never kill the tribunal
+    gnow = None; bd_ser = []; t2_ser = []; bd_src = "unavailable"
+    bd_now = bd_90 = bd_d30 = t2_now = t2_200 = t2_m90 = None
+    global_block = {"live": None,
+                     "btc_d": {"now": None, "ma90": None, "chg_30d_pts": None,
+                                 "history_src": bd_src, "history_n": 0},
+                     "total2": {"now_usd": None, "ma200": None, "mom_90d_pct": None,
+                                  "above_200dma": False, "history_src": bd_src,
+                                  "history_n": 0}}
+    try:
     # ── BTC.D / TOTAL2: live + accrual + proxy history ──
-    gnow = cg_global()
-    ACC_KEY = "data/_altseason/global-history.json"
-    acc = s3json(ACC_KEY) or {"rows": []}
-    today_d = datetime.now(timezone.utc).date().isoformat()
-    if gnow and not any(r.get("date") == today_d for r in acc["rows"]):
-        acc["rows"].append({"date": today_d, **gnow})
-        acc["rows"] = acc["rows"][-1500:]
-        try:
-            S3.put_object(Bucket=BUCKET, Key=ACC_KEY,
-                           Body=json.dumps(acc).encode(), ContentType="application/json")
-        except Exception as e:
-            print(f"[acc] {str(e)[:50]}")
-    proxy = build_dominance_total2()
-    bd_ser = (proxy or {}).get("btc_d") or [(r["date"], r["btc_d"]) for r in acc["rows"]
-                                              if r.get("btc_d")]
-    t2_ser = (proxy or {}).get("total2") or [(r["date"], r["total2_usd"]) for r in acc["rows"]
-                                               if r.get("total2_usd")]
-    bd_src = "proxy" if proxy else f"accrued ({len(bd_ser)}d)"
-    def _ma(ser, n):
-        vs = [v for _, v in ser]
-        return sum(vs[-n:]) / n if len(vs) >= n else None
-    bd_now = gnow["btc_d"] if gnow else (bd_ser[-1][1] if bd_ser else None)
-    bd_90 = _ma(bd_ser, 90)
-    bd_d30 = (bd_ser[-1][1] - bd_ser[-31][1]) if len(bd_ser) > 31 else None
-    t2_now = gnow["total2_usd"] if gnow else (t2_ser[-1][1] if t2_ser else None)
-    t2_200 = _ma(t2_ser, 200)
-    t2_m90 = ((t2_ser[-1][1] / t2_ser[-91][1] - 1) * 100) if len(t2_ser) > 91 else None
-    global_block = {"live": gnow, "btc_d": {"now": bd_now, "ma90": round(bd_90, 2) if bd_90 else None,
-                      "chg_30d_pts": round(bd_d30, 2) if bd_d30 is not None else None,
-                      "history_src": bd_src, "history_n": len(bd_ser)},
-                     "total2": {"now_usd": t2_now, "ma200": round(t2_200, 0) if t2_200 else None,
-                      "mom_90d_pct": round(t2_m90, 1) if t2_m90 is not None else None,
-                      "above_200dma": bool(t2_200 and t2_now and t2_now > t2_200),
-                      "history_src": bd_src, "history_n": len(t2_ser)}}
+        gnow = cg_global()
+        ACC_KEY = "data/_altseason/global-history.json"
+        acc = s3json(ACC_KEY) or {"rows": []}
+        today_d = datetime.now(timezone.utc).date().isoformat()
+        if gnow and not any(r.get("date") == today_d for r in acc["rows"]):
+            acc["rows"].append({"date": today_d, **gnow})
+            acc["rows"] = acc["rows"][-1500:]
+            try:
+                S3.put_object(Bucket=BUCKET, Key=ACC_KEY,
+                               Body=json.dumps(acc).encode(), ContentType="application/json")
+            except Exception as e:
+                print(f"[acc] {str(e)[:50]}")
+        proxy = build_dominance_total2()
+        bd_ser = (proxy or {}).get("btc_d") or [(r["date"], r["btc_d"]) for r in acc["rows"]
+                                                  if r.get("btc_d")]
+        t2_ser = (proxy or {}).get("total2") or [(r["date"], r["total2_usd"]) for r in acc["rows"]
+                                                   if r.get("total2_usd")]
+        bd_src = "proxy" if proxy else f"accrued ({len(bd_ser)}d)"
+        def _ma(ser, n):
+            vs = [v for _, v in ser]
+            return sum(vs[-n:]) / n if len(vs) >= n else None
+        bd_now = gnow["btc_d"] if gnow else (bd_ser[-1][1] if bd_ser else None)
+        bd_90 = _ma(bd_ser, 90)
+        bd_d30 = (bd_ser[-1][1] - bd_ser[-31][1]) if len(bd_ser) > 31 else None
+        t2_now = gnow["total2_usd"] if gnow else (t2_ser[-1][1] if t2_ser else None)
+        t2_200 = _ma(t2_ser, 200)
+        t2_m90 = ((t2_ser[-1][1] / t2_ser[-91][1] - 1) * 100) if len(t2_ser) > 91 else None
+        global_block = {"live": gnow, "btc_d": {"now": bd_now, "ma90": round(bd_90, 2) if bd_90 else None,
+                          "chg_30d_pts": round(bd_d30, 2) if bd_d30 is not None else None,
+                          "history_src": bd_src, "history_n": len(bd_ser)},
+                         "total2": {"now_usd": t2_now, "ma200": round(t2_200, 0) if t2_200 else None,
+                          "mom_90d_pct": round(t2_m90, 1) if t2_m90 is not None else None,
+                          "above_200dma": bool(t2_200 and t2_now and t2_now > t2_200),
+                          "history_src": bd_src, "history_n": len(t2_ser)}}
+    except Exception as e:
+        DIAG.append(f"global-block degraded: {type(e).__name__} {str(e)[:80]}")
 
     _, _rg = s3json(["data/regime.json"])
     _strip = dict((_rg or {}).get("regime_strip") or [])
