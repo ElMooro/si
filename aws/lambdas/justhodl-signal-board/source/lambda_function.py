@@ -865,6 +865,19 @@ def n_rotation_radar(d):
                   + (f" · ARMED: {chr(44).join(armed)}" if armed else " · no thrusts live"))
 
 
+def n_altseason(d):
+    c = d.get("composite") or {}
+    ph, sc = c.get("phase"), c.get("score")
+    if ph is None:
+        return 0, "Altseason n/a"
+    rej = c.get("rejected_overlay")
+    sig = 2 if (ph == "CONFIRMED" and not rej) else 1 if ph == "IGNITION" and not rej else \
+          -1 if rej else 0
+    return sig, (f"{ph} {sc}/100 · {len(c.get(chr(99)+chr(111)+chr(110)+chr(102)+chr(105)+chr(114)+chr(109)+chr(115)) or [])} confirm"
+                  f" / {len(c.get(chr(114)+chr(101)+chr(106)+chr(101)+chr(99)+chr(116)+chr(115)) or [])} reject"
+                  + (" · MACRO-REJECTED" if rej else ""))
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -946,6 +959,7 @@ FEEDS = [
     ("Episode Compass",        "macro",            "data/episode-compass.json",      n_episode_compass),
     ("Upside Radar",           "equity tactical",  "data/upside-radar.json",         n_upside_radar),
     ("Rotation Radar",         "sentiment",        "data/rotation-radar.json",       n_rotation_radar),
+    ("Altseason Tribunal",     "sentiment",        "data/altseason.json",            n_altseason),
 ]
 
 
