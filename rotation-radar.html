@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rotation Radar — Altseason & Leadership Cascades — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--orange:#ff9f43}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--orange);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--orange)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--orange)}
+.wrap{max-width:1120px;margin:0 auto;padding:22px}
+h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--orange),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:940px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase}
+.hero{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
+.g{background:var(--bg1);border:2px solid var(--border);border-radius:14px;padding:14px 18px;font-family:var(--mono)}
+.g b{font-size:28px}.g .m{font-size:10.5px;color:var(--fg3);margin-top:5px;line-height:1.6}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-family:var(--mono);font-size:11.5px}
+.card.armed{border-color:var(--green);background:rgba(52,211,153,.05)}
+.card h3{margin:0 0 7px;font-size:12.5px;font-family:Inter}
+.kv{display:flex;justify-content:space-between;padding:2px 0;color:var(--fg2)}.kv b{color:var(--fg-1)}
+table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:9px;border-bottom:1px solid var(--border);background:var(--bg2)}
+th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+.hi{color:var(--green)}.lo{color:var(--red)}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/upside-radar.html">Upside</a><a href="/rotation-radar.html" class="on">🔄 Rotation</a><a href="/crypto.html">Crypto</a><a href="/skill.html">Skill</a></nav></header>
+<div class="wrap">
+<h1>Rotation Radar — <span class="grad">altseason &amp; leadership cascades</span></h1>
+<p class="sub">"ETH/BTC hitting bottom and ripping has preceded every altseason" — here that claim is <b>measured</b>: every historical bottom→thrust on ETH/BTC with the real alt-complex sequel, then the same anatomy generalized to equities (high-beta/low-vol, small/large, equal/cap, XBI, ARKK). Live detectors arm on fresh thrusts and log to the closed loop at sequel-table confidence.</p>
+<div class="hero" id="hero"><span class="loading">Loading…</span></div>
+<div class="sec">🤖 AI Rotation Strategist</div>
+<div id="ai" style="background:var(--bg1);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;color:var(--fg2)"><span class="loading">…</span></div>
+<div class="sec">₿ Crypto — ETH/BTC season-starter, measured</div>
+<div class="cards" id="clive"></div><div id="cstudy"></div>
+<div class="sec">📈 Equities — appetite-ratio thrusts → small-cap/spec sequels</div>
+<div class="cards" id="elive"></div><div id="etables"></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const f=(x,p)=>x==null?'—':(x>0?'+':'')+x+(p===false?'':'%');
+function liveCard(name,lv){if(!lv)return '';
+  return `<div class="card ${lv.thrust_live?'armed':''}"><h3>${esc(name)} ${lv.thrust_live?'⚡ THRUST ARMED':''}</h3>
+  <div class="kv"><span>off 180d low</span><b class="${lv.off_180d_low_pct>=25?'hi':''}">${f(lv.off_180d_low_pct)}</b></div>
+  <div class="kv"><span>days since low</span><b>${lv.days_since_180d_low}</b></div>
+  <div class="kv"><span>vs 365d high</span><b>${f(lv.vs_365d_high_pct)}</b></div>
+  <div class="kv"><span>20d momentum</span><b class="${(lv.mom_20d_pct||0)>0?'hi':'lo'}">${f(lv.mom_20d_pct)}</b></div>
+  <div class="kv"><span>as of</span><b>${esc(lv.as_of)}</b></div></div>`;}
+function st(s){return s?`${f(s.median_pct)} <span style="color:var(--fg3)">(${s.pos_pct}%+ n${s.n})</span>`:'—';}
+async function load(){
+  const D=await gj('data/rotation-radar.json');
+  if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
+  const sc=D.scores||{};
+  document.getElementById('hero').innerHTML=
+   `<div class="g" style="border-color:var(--orange)"><b style="color:var(--orange)">${sc.crypto_altseason??'—'}</b><span style="color:var(--fg3)">/100</span><div class="m">ALTSEASON IGNITION<br>ETH/BTC season-starter state</div></div>
+    <div class="g" style="border-color:var(--violet)"><b style="color:var(--violet)">${sc.equity_rotation??'—'}</b><span style="color:var(--fg3)">/100</span><div class="m">EQUITY ROTATION<br>avg across 5 appetite ratios</div></div>`;
+  const ai=D.ai_brief||{};let h='';
+  if(ai.verdict)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1);margin-bottom:8px">${esc(ai.verdict)}</div>`;
+  for(const[k,l]of[['altseason_read','Altseason read'],['equity_rotation_read','Equity rotation'],['what_confirms','What confirms'],['what_kills','What kills']]){
+    if(ai[k])h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase">${l}</b><div style="font-size:12.5px;line-height:1.65">${esc(ai[k])}</div></div>`;}
+  if(Array.isArray(ai.watch_next))h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px">WATCH NEXT</b>${ai.watch_next.map(x=>`<div style="font-size:12.5px">• ${esc(x)}</div>`).join('')}</div>`;
+  document.getElementById('ai').innerHTML=h||`<span class="loading">${esc(ai.error||'…')}</span>`;
+  const C=D.crypto||{};
+  document.getElementById('clive').innerHTML=liveCard('ETH/BTC',(C.live||{}).ethbtc)+liveCard('Alt basket / BTC',(C.live||{}).alt_basket_btc);
+  const ev=(C.event_study||{}).events||[];
+  const tb=(C.event_study||{});
+  document.getElementById('cstudy').innerHTML=ev.length?`
+   <table><thead><tr><th>Thrust confirmed</th><th>ETH/BTC</th><th>Alt-basket/BTC +30d</th><th>+90d</th><th>+180d</th><th>ETH/USD +90d</th><th>BTC/USD +90d</th></tr></thead><tbody>
+   ${ev.map(r=>`<tr><td><b>${esc(r.thrust_date)}</b></td><td>${r.ethbtc_at_thrust}</td>${[30,90,180].map(w=>`<td class="${(r.alts_btc_fwd[w]||0)>0?'hi':'lo'}">${f(r.alts_btc_fwd[w])}</td>`).join('')}<td class="${(r.alts_usd_proxy_eth_fwd[90]||0)>0?'hi':'lo'}">${f(r.alts_usd_proxy_eth_fwd[90])}</td><td>${f(r.btc_usd_fwd_90)}</td></tr>`).join('')}
+   <tr style="background:var(--bg2)"><td><b>SEQUEL STATS</b></td><td></td><td>${st(tb.alts_in_btc?.['30'])}</td><td>${st(tb.alts_in_btc?.['90'])}</td><td>${st(tb.alts_in_btc?.['180'])}</td><td>${st(tb.eth_usd?.['90'])}</td><td></td></tr></tbody></table>`
+   :'<div class="loading">crypto study unavailable</div>';
+  const E=(D.equity||{}).ratios||{};
+  document.getElementById('elive').innerHTML=Object.entries(E).map(([k,v])=>liveCard(k.replace(/_/g,'/'),v.live)).join('');
+  document.getElementById('etables').innerHTML=`<table><thead><tr><th>Ratio</th><th>Thrusts (n)</th><th>IWM/SPY +30d</th><th>+90d</th><th>+180d</th><th>XBI +90d</th><th>Latest thrust</th></tr></thead><tbody>${
+   Object.entries(E).map(([k,v])=>{const ev2=v.events||[];return `<tr><td><b>${esc(k.replace(/_/g,'/'))}</b></td><td>${ev2.length}</td><td>${st(v.iwm_rel?.['30'])}</td><td>${st(v.iwm_rel?.['90'])}</td><td>${st(v.iwm_rel?.['180'])}</td><td>${st(v.xbi_90)}</td><td>${esc(ev2.length?ev2[ev2.length-1].thrust_date:'—')}</td></tr>`;}).join('')}</tbody></table>`;
+  document.getElementById('note').textContent=`${D.methodology} · ${D.signals_logged} logged today · v${D.version} · ${D.generated_at} · Research, not advice.`;
+}
+load();
+</script></body></html>

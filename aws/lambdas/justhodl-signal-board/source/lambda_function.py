@@ -849,6 +849,22 @@ def n_upside_radar(d):
                   f"{len(sc.get('coiled') or [])} coiled · anatomy-pass {apass}{warm}")
 
 
+def n_rotation_radar(d):
+    sc = d.get("scores") or {}
+    ca, er = sc.get("crypto_altseason"), sc.get("equity_rotation")
+    if ca is None and er is None:
+        return 0, "Rotation n/a"
+    armed = []
+    if ((d.get("crypto") or {}).get("live") or {}).get("ethbtc", {}).get("thrust_live"):
+        armed.append("ETH/BTC")
+    for k, v in ((d.get("equity") or {}).get("ratios") or {}).items():
+        if (v.get("live") or {}).get("thrust_live"):
+            armed.append(k)
+    sig = 2 if len(armed) >= 2 else 1 if armed else 0
+    return sig, (f"Altseason {ca} · equity rotation {er}"
+                  + (f" · ARMED: {chr(44).join(armed)}" if armed else " · no thrusts live"))
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -929,6 +945,7 @@ FEEDS = [
     ("Macro Regime (Conductor)","macro",           "data/regime.json",               n_regime),
     ("Episode Compass",        "macro",            "data/episode-compass.json",      n_episode_compass),
     ("Upside Radar",           "equity tactical",  "data/upside-radar.json",         n_upside_radar),
+    ("Rotation Radar",         "sentiment",        "data/rotation-radar.json",       n_rotation_radar),
 ]
 
 
