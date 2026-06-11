@@ -34,8 +34,10 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/altseason.json"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.2.2"
+VERSION = "1.2.3"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
+CG_KEY = os.environ.get("COINGECKO_KEY", "")
+CGH = dict(UA, **({"x-cg-demo-api-key": CG_KEY} if CG_KEY else {}))
 DIAG = []
 
 ALTS = [("LTC", "2016-09-01"), ("BCH", "2017-12-20"), ("ETC", "2018-08-07"),
@@ -81,7 +83,7 @@ CMC_KEY = os.environ.get("CMC_KEY", "")
 def cg_global():
     """Live global metrics: CoinGecko primary, CMC fallback. Current-only on free tiers."""
     try:
-        req = urllib.request.Request("https://api.coingecko.com/api/v3/global", headers=UA)
+        req = urllib.request.Request("https://api.coingecko.com/api/v3/global", headers=CGH)
         d = json.loads(urllib.request.urlopen(req, timeout=30).read()).get("data") or {}
         tot = (d.get("total_market_cap") or {}).get("usd")
         btc = (d.get("market_cap_percentage") or {}).get("btc")
@@ -118,7 +120,7 @@ def cg_mcap_hist(coin):
     try:
         req = urllib.request.Request(
             f"https://api.coingecko.com/api/v3/coins/{coin}/market_chart"
-            f"?vs_currency=usd&days=max&interval=daily", headers=UA)
+            f"?vs_currency=usd&days=max&interval=daily", headers=CGH)
         j = json.loads(urllib.request.urlopen(req, timeout=20).read())
         out = {}
         for ts, mc in j.get("market_caps", []):

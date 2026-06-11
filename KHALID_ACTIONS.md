@@ -143,3 +143,4 @@ The Lambda `justhodl-patent-velocity` is deployed and scheduled (daily 17 UTC), 
 
 ## 2026-06-11 — BTC.D / TOTAL2 historical depth
 - Free tiers give CURRENT global metrics only. Engine self-accrues daily snapshots (data/_altseason/global-history.json) and attempts a CG mcap-proxy reconstruction. For TRUE long BTC.D/TOTAL2 history: CMC Standard plan (global-metrics/quotes/historical) or CryptoCompare key.
+- FREE fast path: create a CoinGecko **demo API key** (free tier) and set env COINGECKO_KEY on justhodl-altseason — unlocks market_chart 401s, lighting BTC.D/TOTAL2 proxy history to 2013+, both event studies and regime splits retroactively.
