@@ -19,7 +19,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/episode-compass.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 EPISODES = {
   "TOP": [("1973-01", "Nifty-Fifty top"), ("1980-11", "Pre-Volcker-recession top"),
@@ -197,7 +197,20 @@ def lambda_handler(event=None, context=None):
                    key=lambda x: -abs(x[1]))
     swan_checklist = [{"feature": k, "z": z} for k, z in tails]
 
-    out = {"engine": "episode-compass", "version": VERSION,
+    spread = None
+    if classes.get("TOP", {}).get("score") is not None and \
+       classes.get("BOTTOM", {}).get("score") is not None:
+        spread = round(classes["TOP"]["score"] - classes["BOTTOM"]["score"], 1)
+    reading = {
+        "top_minus_bottom": spread, "tails_n": len(swan_checklist),
+        "interpretation": (
+            "All class scores run high when today's vector is unstretched — calm "
+            "states precede both tops and vol accidents. Read the SPREAD (top-minus-"
+            f"bottom {spread:+.1f}) and the tail count ({len(swan_checklist)} features "
+            "|z|≥1.5). High swan-likeness with ZERO tails means 'calm-before-accident' "
+            "resemblance (2018-type), not active crisis (2008-type).")}
+
+    out = {"engine": "episode-compass", "version": VERSION, "reading": reading,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "today_vector": today, "classes": classes,
            "swan_checklist": swan_checklist,
@@ -213,13 +226,13 @@ def lambda_handler(event=None, context=None):
     ai = {"error": None}
     try:
         if ANTHROPIC_KEY:
-            compact = {"class_scores": out["class_scores"],
+            compact = {"class_scores": out["class_scores"], "reading": reading,
                         "top_matches": {c: classes[c]["episodes"][:2] for c in classes},
                         "today_extremes": swan_checklist[:6]}
             prompt = (
               "You are a market historian on an institutional desk. Using ONLY the "
               "measured comparison below (z-scores, similarity %, real SPX sequels), "
-              "write JSON with keys: verdict (<=160 chars), closest_rhyme (which single "
+              "Never claim feature counts beyond the data shown. Write JSON with keys: verdict (<=160 chars), closest_rhyme (which single "
               "historical episode today most resembles and why, citing features), "
               "key_divergences (what today does NOT share with tops/swans), "
               "historical_sequels (what followed the closest matches, with the numbers), "
