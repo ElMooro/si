@@ -810,11 +810,28 @@ def n_regime(d):
 
 def n_episode_compass(d):
     cs = d.get("class_scores") or {}
+    rd = d.get("reading") or {}
     t, b, sw = cs.get("TOP"), cs.get("BOTTOM"), cs.get("BLACK_SWAN")
     if t is None:
         return 0, "Compass n/a"
-    sig = -2 if (sw or 0) >= 70 else -1 if (t or 0) - (b or 0) >= 20 else           1 if (b or 0) - (t or 0) >= 20 else 0
-    return sig, f"Resemblance — tops {t} · bottoms {b} · swans {sw} (top-3 avg sim)"
+    spread = rd.get("top_minus_bottom")
+    if spread is None and b is not None:
+        spread = round(t - b, 1)
+    tails = rd.get("tails_n") or 0
+    # calm states score high on every class; the signal lives in the SPREAD
+    # and in tail presence (active stress) vs none (calm-before-accident)
+    if (sw or 0) >= 80 and tails >= 2:
+        sig = -2
+    elif (spread or 0) >= 10:
+        sig = -1
+    elif (spread or 0) <= -10:
+        sig = 1
+    else:
+        sig = 0
+    profile = ("calm-before-accident profile" if tails == 0 and (sw or 0) >= 80
+                else "active-stress profile" if tails >= 2 else "mid-cycle")
+    return sig, (f"Tops {t} vs bottoms {b} (spread {spread:+.1f}) · swans {sw} · "
+                  f"{tails} tails — {profile}")
 
 
 FEEDS = [
