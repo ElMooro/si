@@ -140,3 +140,6 @@ The Lambda `justhodl-patent-velocity` is deployed and scheduled (daily 17 UTC), 
 - **FINRA margin statistics file** (brain 25×) — Z.1 quarterly proxy live; FINRA monthly file is xls download.
 - **NY Fed GSCPI** — xlsx-only publication; needs openpyxl layer in a lambda.
 - **Swap spreads (negative-swap-spread signal)** — SOFR swap curve not on FRED; needs ICE/Refinitiv.
+
+## 2026-06-11 — BTC.D / TOTAL2 historical depth
+- Free tiers give CURRENT global metrics only. Engine self-accrues daily snapshots (data/_altseason/global-history.json) and attempts a CG mcap-proxy reconstruction. For TRUE long BTC.D/TOTAL2 history: CMC Standard plan (global-metrics/quotes/historical) or CryptoCompare key.

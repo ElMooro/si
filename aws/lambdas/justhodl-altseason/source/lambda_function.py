@@ -34,7 +34,7 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/altseason.json"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
 DIAG = []
 
@@ -73,6 +73,89 @@ def cb_daily(product, start):
     except Exception as e:
         DIAG.append(f"{product}: {str(e)[:60]}")
     return out
+
+
+CMC_KEY = os.environ.get("CMC_KEY", "")
+
+
+def cg_global():
+    """Live global metrics: CoinGecko primary, CMC fallback. Current-only on free tiers."""
+    try:
+        req = urllib.request.Request("https://api.coingecko.com/api/v3/global", headers=UA)
+        d = json.loads(urllib.request.urlopen(req, timeout=30).read()).get("data") or {}
+        tot = (d.get("total_market_cap") or {}).get("usd")
+        btc = (d.get("market_cap_percentage") or {}).get("btc")
+        eth = (d.get("market_cap_percentage") or {}).get("eth")
+        if tot and btc:
+            return {"src": "coingecko", "total_mcap_usd": tot, "btc_d": round(btc, 2),
+                     "eth_d": round(eth, 2) if eth else None,
+                     "total2_usd": round(tot * (1 - btc / 100), 0)}
+    except Exception as e:
+        DIAG.append(f"cg/global: {str(e)[:60]}")
+    try:
+        if CMC_KEY:
+            req = urllib.request.Request(
+                "https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest",
+                headers={"X-CMC_PRO_API_KEY": CMC_KEY, **UA})
+            d = (json.loads(urllib.request.urlopen(req, timeout=30).read()) or {}).get("data") or {}
+            tot = ((d.get("quote") or {}).get("USD") or {}).get("total_market_cap")
+            btc = d.get("btc_dominance")
+            if tot and btc:
+                return {"src": "cmc", "total_mcap_usd": tot, "btc_d": round(btc, 2),
+                         "eth_d": round(d.get("eth_dominance"), 2) if d.get("eth_dominance") else None,
+                         "total2_usd": round(tot * (1 - btc / 100), 0)}
+    except Exception as e:
+        DIAG.append(f"cmc/global: {str(e)[:60]}")
+    return None
+
+
+def cg_mcap_hist(coin):
+    """Market-cap history via CoinGecko market_chart (may be tier-limited)."""
+    try:
+        req = urllib.request.Request(
+            f"https://api.coingecko.com/api/v3/coins/{coin}/market_chart"
+            f"?vs_currency=usd&days=max&interval=daily", headers=UA)
+        j = json.loads(urllib.request.urlopen(req, timeout=45).read())
+        out = {}
+        for ts, mc in j.get("market_caps", []):
+            if mc:
+                out[datetime.fromtimestamp(ts / 1000, tz=timezone.utc).date().isoformat()] = mc
+        return out
+    except Exception as e:
+        DIAG.append(f"cg/mcap {coin}: {str(e)[:55]}")
+        return {}
+
+
+def build_dominance_total2():
+    """Ladder: (a) CG mcap proxy history (BTC vs BTC+ETH+8 alts), (b) self-accrued
+    snapshots from data/_altseason/global-history.json. Honest about which."""
+    coins = ["bitcoin", "ethereum", "ripple", "litecoin", "cardano",
+              "dogecoin", "solana", "chainlink", "avalanche-2", "polkadot"]
+    H = {}
+    for c in coins:
+        h = cg_mcap_hist(c)
+        if len(h) > 800:
+            H[c] = h
+        time.sleep(1.1)
+    proxy = None
+    if "bitcoin" in H and "ethereum" in H and len(H) >= 7:
+        ds = sorted(set(H["bitcoin"]) & set(H["ethereum"]))
+        btc_d, tot2 = [], []
+        for d_ in ds:
+            tot = 0.0; nA = 0
+            for c, h in H.items():
+                v = h.get(d_)
+                if v:
+                    tot += v; nA += 1
+            if nA >= 6 and tot:
+                bd = H["bitcoin"][d_] / tot * 100
+                btc_d.append((d_, round(bd, 2)))
+                tot2.append((d_, round(tot - H["bitcoin"][d_], 0)))
+        if len(btc_d) > 800:
+            proxy = {"btc_d": btc_d, "total2": tot2, "n_coins": len(H),
+                      "note": f"proxy = BTC mcap share of {len(H)}-coin universe"}
+    DIAG.append(f"dominance proxy: {'OK ' + str(len(proxy['btc_d'])) + 'pts' if proxy else 'unavailable'}")
+    return proxy
 
 
 def thrust_state(dates, vals):
@@ -219,6 +302,42 @@ def lambda_handler(event=None, context=None):
             return None
         a = basket_usd.get(d0)
         return round((basket_usd[ks[j]] / a - 1) * 100, 1) if a else None
+    # ── BTC.D / TOTAL2: live + accrual + proxy history ──
+    gnow = cg_global()
+    ACC_KEY = "data/_altseason/global-history.json"
+    acc = s3json(ACC_KEY) or {"rows": []}
+    today_d = datetime.now(timezone.utc).date().isoformat()
+    if gnow and not any(r.get("date") == today_d for r in acc["rows"]):
+        acc["rows"].append({"date": today_d, **gnow})
+        acc["rows"] = acc["rows"][-1500:]
+        try:
+            S3.put_object(Bucket=BUCKET, Key=ACC_KEY,
+                           Body=json.dumps(acc).encode(), ContentType="application/json")
+        except Exception as e:
+            print(f"[acc] {str(e)[:50]}")
+    proxy = build_dominance_total2()
+    bd_ser = (proxy or {}).get("btc_d") or [(r["date"], r["btc_d"]) for r in acc["rows"]
+                                              if r.get("btc_d")]
+    t2_ser = (proxy or {}).get("total2") or [(r["date"], r["total2_usd"]) for r in acc["rows"]
+                                               if r.get("total2_usd")]
+    bd_src = "proxy" if proxy else f"accrued ({len(bd_ser)}d)"
+    def _ma(ser, n):
+        vs = [v for _, v in ser]
+        return sum(vs[-n:]) / n if len(vs) >= n else None
+    bd_now = gnow["btc_d"] if gnow else (bd_ser[-1][1] if bd_ser else None)
+    bd_90 = _ma(bd_ser, 90)
+    bd_d30 = (bd_ser[-1][1] - bd_ser[-31][1]) if len(bd_ser) > 31 else None
+    t2_now = gnow["total2_usd"] if gnow else (t2_ser[-1][1] if t2_ser else None)
+    t2_200 = _ma(t2_ser, 200)
+    t2_m90 = ((t2_ser[-1][1] / t2_ser[-91][1] - 1) * 100) if len(t2_ser) > 91 else None
+    global_block = {"live": gnow, "btc_d": {"now": bd_now, "ma90": round(bd_90, 2) if bd_90 else None,
+                      "chg_30d_pts": round(bd_d30, 2) if bd_d30 is not None else None,
+                      "history_src": bd_src, "history_n": len(bd_ser)},
+                     "total2": {"now_usd": t2_now, "ma200": round(t2_200, 0) if t2_200 else None,
+                      "mom_90d_pct": round(t2_m90, 1) if t2_m90 is not None else None,
+                      "above_200dma": bool(t2_200 and t2_now and t2_now > t2_200),
+                      "history_src": bd_src, "history_n": len(t2_ser)}}
+
     _, _rg = s3json(["data/regime.json"])
     _strip = dict((_rg or {}).get("regime_strip") or [])
     FAV = ("GOLDILOCKS", "REFLATION")
@@ -248,6 +367,63 @@ def lambda_handler(event=None, context=None):
                                                       "fwd_90": st_sub("basket_fwd_90", True)},
                                        "adverse": {"fwd_30": st_sub("basket_fwd_30", False),
                                                      "fwd_90": st_sub("basket_fwd_90", False)}}}
+
+    def make_rows(events_idx, ser_dates, ser_vals):
+        return [{"date": ser_dates[ix], "value": ser_vals[ix],
+                  "regime": quad_at(ser_dates[ix]),
+                  "basket_fwd_30": None, "basket_fwd_90": None} for ix in events_idx]
+    def fill_fwd(rows):
+        ks = sorted(basket_usd)
+        import bisect as _b
+        for r_ in rows:
+            for w_, key_ in ((30, "basket_fwd_30"), (90, "basket_fwd_90")):
+                tgt = (datetime.strptime(r_["date"], "%Y-%m-%d")
+                        + timedelta(days=w_)).date().isoformat()
+                j0 = _b.bisect_left(ks, r_["date"]); j1 = _b.bisect_left(ks, tgt)
+                if j0 >= len(ks) or j1 >= len(ks):
+                    continue
+                def near(k, dd):
+                    return abs((datetime.strptime(k, "%Y-%m-%d")
+                                 - datetime.strptime(dd, "%Y-%m-%d")).days) <= 6
+                if near(ks[j0], r_["date"]) and near(ks[j1], tgt) and basket_usd.get(ks[j0]):
+                    r_[key_] = round((basket_usd[ks[j1]] / basket_usd[ks[j0]] - 1) * 100, 1)
+    def pack(rows):
+        def st_(key, sub=None):
+            xs = sorted(x[key] for x in rows if x[key] is not None and
+                         (sub is None or (x["regime"] in FAV) == sub))
+            return ({"n": len(xs), "median_pct": xs[len(xs) // 2],
+                      "pos_pct": round(100 * sum(1 for v_ in xs if v_ > 0) / len(xs), 1)}
+                     if xs else None)
+        return {"events": rows, "fwd_30": st_("basket_fwd_30"), "fwd_90": st_("basket_fwd_90"),
+                 "by_regime": {"favorable": {"fwd_30": st_("basket_fwd_30", True),
+                                               "fwd_90": st_("basket_fwd_90", True)},
+                                "adverse": {"fwd_30": st_("basket_fwd_30", False),
+                                              "fwd_90": st_("basket_fwd_90", False)}}}
+    if len(bd_ser) > 400:
+        bdd = [d_ for d_, _ in bd_ser]; bdv = [v for _, v in bd_ser]
+        evs, k_ = [], 200
+        while k_ < len(bdv):
+            ma = sum(bdv[k_-90:k_]) / 90
+            ma_prev = sum(bdv[k_-91:k_-1]) / 90
+            above_prior = sum(1 for x in bdv[k_-90:k_] if x > sum(bdv[k_-90:k_])/90)
+            if bdv[k_-1] > ma_prev and bdv[k_] <= ma and bdv[k_-30] > ma:
+                evs.append(k_); k_ += 120
+            else:
+                k_ += 1
+        rows = make_rows(evs, bdd, bdv); fill_fwd(rows)
+        study["btcd_rollover"] = pack(rows)
+    if len(t2_ser) > 500:
+        t2d = [d_ for d_, _ in t2_ser]; t2v = [v for _, v in t2_ser]
+        evs, k_ = [], 230
+        while k_ < len(t2v):
+            ma = sum(t2v[k_-200:k_]) / 200
+            ma_p = sum(t2v[k_-201:k_-1]) / 200
+            if t2v[k_-1] < ma_p and t2v[k_] >= ma and t2v[k_-30] < ma_p:
+                evs.append(k_); k_ += 120
+            else:
+                k_ += 1
+        rows = make_rows(evs, t2d, t2v); fill_fwd(rows)
+        study["total2_reclaim_200dma"] = pack(rows)
 
     # ── gates from the desk ──
     _, regime = s3json(["data/regime.json"])
@@ -283,6 +459,18 @@ def lambda_handler(event=None, context=None):
           False, 8, "leadership expansion")
     vote("Alt volume share (1y pctile)", vs_pct, vs_pct is not None and vs_pct >= 70,
           vs_pct is not None and vs_pct <= 20, 10, f"14d share {vs_now}% of spot $vol")
+    bd_conf = (bd_d30 is not None and bd_d30 <= -1.5) or \
+               (bd_now is not None and bd_90 is not None and bd_now < bd_90)
+    bd_rej = bd_d30 is not None and bd_d30 >= 2.0
+    vote("BTC dominance trend", f"{bd_now}% (Δ30d {bd_d30:+.1f}pt)" if bd_d30 is not None
+          else (f"{bd_now}% — history {bd_src}" if bd_now else None),
+          bd_conf if bd_d30 is not None or bd_90 else False,
+          bd_rej, 12, f"falling BTC.D = rotation; src {bd_src}")
+    vote("TOTAL2 structure", (f"${t2_now/1e12:.2f}T, mom90 {t2_m90:+.1f}%" if t2_now and
+          t2_m90 is not None else (f"${t2_now/1e12:.2f}T" if t2_now else None)),
+          bool(global_block["total2"]["above_200dma"] and (t2_m90 or 0) > 0),
+          bool(t2_200 and t2_now and t2_now < t2_200 and (t2_m90 or 0) < 0),
+          10, f"alt-complex mcap vs 200DMA; src {bd_src}")
     vote("BTC consolidation", f"RV pctile {rv_pct}, {btc_vs_hi}% vs hi",
           btc_cons["consolidating"], rv_pct >= 85, 8,
           "calm leader = rotation env; vol shock = reject")
@@ -342,6 +530,8 @@ def lambda_handler(event=None, context=None):
            "ethbtc": {"thrust": ts, "trend": ethbtc_trend},
            "btc_consolidation": btc_cons,
            "histories": {k: v[-500:] for k, v in hist.items()},
+           "global_metrics": global_block,
+           "btc_d_history": bd_ser[-500:], "total2_history": t2_ser[-500:],
            "event_study": study,
            "gates": {"regime_quadrant": quad, "canaries_level": can_level},
            "signals_logged": n_logged, "diagnostics": list(DIAG),
@@ -350,7 +540,7 @@ def lambda_handler(event=None, context=None):
              "the canonical Altseason Index (% of 16-alt Coinbase basket beating BTC "
              "over 90d, full history so the 50/70 thresholds carry event-studied "
              "sequels), breadth above 90DMA, 90d-high breadth, alt volume share "
-             "percentile, BTC consolidation regime, and the desk's own macro-regime "
+             "percentile, BTC consolidation regime, BTC dominance trend (live via CoinGecko/CMC; history via mcap-proxy or self-accrued snapshots, labeled), TOTAL2 structure vs its 200DMA, and the desk's own macro-regime "
              "and crisis-canary gates as vetoes. Weighted score → DORMANT/SETUP/"
              "IGNITION/CONFIRMED with REJECTED overlay; first CONFIRMED cross logs "
              "to the closed loop at sequel-table confidence.")}
