@@ -1,0 +1,437 @@
+{
+  "ops": 1588,
+  "errors": [],
+  "fn": "created",
+  "fn_err": "NONE",
+  "verify": {
+    "duration_s": 13.6,
+    "class_scores": {
+      "TOP": 87.3,
+      "BOTTOM": 75.5,
+      "BLACK_SWAN": 86.5
+    },
+    "tops_head": [
+      {
+        "date": "2007-10",
+        "label": "GFC top",
+        "similarity": 91.6,
+        "n_features": 14,
+        "matches": [
+          {
+            "f": "spx_dist_200dma",
+            "ep_z": 0.63,
+            "today_z": 0.61
+          },
+          {
+            "f": "growth_6m_mom",
+            "ep_z": -0.03,
+            "today_z": -0.06
+          },
+          {
+            "f": "unemp_3m_mom",
+            "ep_z": 0.01,
+            "today_z": -0.13
+          }
+        ],
+        "divergences": [
+          {
+            "f": "nfci",
+            "ep_z": 0.0,
+            "today_z": -0.51
+          },
+          {
+            "f": "spx_12m_ret",
+            "ep_z": 0.34,
+            "today_z": 0.91
+          },
+          {
+            "f": "spx_drawdown",
+            "ep_z": -1.0,
+            "today_z": 0.78
+          }
+        ],
+        "sequel": {
+          "fwd_3m_pct": -16.4,
+          "fwd_12m_pct": -39.8
+        }
+      },
+      {
+        "date": "2000-03",
+        "label": "Dot-com top",
+        "similarity": 85.9,
+        "n_features": 13,
+        "matches": [
+          {
+            "f": "cpi_6m_mom",
+            "ep_z": 0.89,
+            "today_z": 1.0
+          },
+          {
+            "f": "unemp_3m_mom",
+            "ep_z": 0.01,
+            "today_z": -0.13
+          },
+          {
+            "f": "growth_6m_mom",
+            "ep_z": 0.15,
+            "today_z": -0.06
+          }
+        ],
+        "divergences": [
+          {
+            "f": "real_10y",
+            "ep_z": 0.2,
+            "today_z": -0.74
+          },
+          {
+            "f": "spx_12m_ret",
+            "ep_z": 2.79,
+            "today_z": 0.91
+          },
+          {
+            "f": "spx_dist_200dma",
+            "ep_z": 2.57,
+            "today_z": 0.61
+          }
+        ],
+        "sequel": {
+          "fwd_3m_pct": -13.3,
+          "fwd_12m_pct": -59.8
+        }
+      },
+      {
+        "date": "2021-12",
+        "label": "QE-era top",
+        "similarity": 84.3,
+        "n_features": 13,
+        "matches": [
+          {
+            "f": "nfci",
+            "ep_z": -0.55,
+            "today_z": -0.51
+          },
+          {
+            "f": "spx_drawdown",
+            "ep_z": 0.85,
+            "today_z": 0.78
+          },
+          {
+            "f": "credit_baa10y",
+            "ep_z": -0.1,
+            "today_z": -0.36
+          }
+        ],
+        "divergences": [
+          {
+            "f": "growth_6m_mom",
+            "ep_z": -1.23,
+            "today_z": -0.06
+          },
+          {
+            "f": "term_premium",
+            "ep_z": -1.19,
+            "today_z": -0.02
+          },
+          {
+            "f": "real_10y",
+            "ep_z": -3.16,
+            "today_z": -0.74
+          }
+        ],
+        "sequel": {
+          "fwd_3m_pct": -9.1,
+          "fwd_12m_pct": -33.1
+        }
+      }
+    ],
+    "bottoms_head": [
+      {
+        "date": "1987-12",
+        "label": "Post-crash low",
+        "similarity": 76.6,
+        "n_features": 12,
+        "matches": [
+          {
+            "f": "vix_spliced",
+            "ep_z": 0.47,
+            "today_z": 0.43
+          },
+          {
+            "f": "unemp_3m_mom",
+            "ep_z": -0.27,
+            "today_z": -0.13
+          },
+          {
+            "f": "real_m2_yoy",
+            "ep_z": -0.84,
+            "today_z": -0.51
+          }
+        ],
+        "divergences": [
+          {
+            "f": "real_10y",
+            "ep_z": 1.09,
+            "today_z": -0.74
+          },
+          {
+            "f": "curve_10y3m",
+            "ep_z": 1.55,
+            "today_z": -0.39
+          },
+          {
+            "f": "spx_dist_200dma",
+            "ep_z": -1.95,
+            "today_z": 0.61
+          }
+        ],
+        "sequel": {
+          "fwd_3m_pct": 13.4,
+          "fwd_12m_pct": 15.4
+        }
+      },
+      {
+        "date": "2022-10",
+        "label": "Inflation-bear low",
+        "similarity": 76.1,
+        "n_features": 14,
+        "matches": [
+          {
+            "f": "growth_6m_mom",
+            "ep_z": -0.33,
+            "today_z": -0.06
+          },
+          {
+            "f": "unemp_3m_mom",
+            "ep_z": 0.15,
+            "today_z": -0.13
+          },
+          {
+            "f": "nfci",
+            "ep_z": -0.12,
+            "today_z": -0.51
+          }
+        ],
+        "divergences": [
+          {
+            "f": "real_10y",
+            "ep_z": -2.37,
+            "today_z": -0.74
+          },
+          {
+            "f": "spx_dist_200dma",
+            "ep_z": -1.37,
+            "today_z": 0.61
+          },
+          {
+            "f": "spx_12m_ret",
+            "ep_z": -1.79,
+            "today_z": 0.91
+          }
+        ],
+        "sequel": {
+          "fwd_3m_pct": 5.4,
+          "fwd_12m_pct": 17.0
+        }
+      },
+      {
+        "date": "1990-10",
+        "label": "S&L low",
+        "similarity": 73.8,
+        "n_features": 14,
+        "matches": [
+          {
+            "f": "cpi_6m_mom",
+            "ep_z": 1.3,
+            "today_z": 1.0
+          },
+          {
+            "f": "growth_6m_mom",
+            "ep_z": 0.26,
+            "today_z": -0.06
+          },
+          {
+            "f": "credit_baa10y",
+            "ep_z": 0.14,
+            "today_z": -0.36
+          }
+        ],
+        "divergences": [
+          {
+            "f": "sloos",
+            "ep_z": 2.05,
+            "today_z": 0.06
+          },
+          {
+            "f": "spx_12m_ret",
+            "ep_z": -1.73,
+            "today_z": 0.91
+          },
+          {
+            "f": "spx_dist_200dma",
+            "ep_z": -2.23,
+            "today_z": 0.61
+          }
+        ],
+        "sequel": {
+          "fwd_3m_pct": 25.6,
+          "fwd_12m_pct": 64.6
+        }
+      }
+    ],
+    "swans_head": [
+      {
+        "date": "2018-02",
+        "label": "Volmageddon",
+        "similarity": 94.3,
+        "n_features": 13,
+        "matches": [
+          {
+            "f": "unemp_3m_mom",
+            "ep_z": -0.13,
+            "today_z": -0.13
+          },
+          {
+            "f": "vix_spliced",
+            "ep_z": 0.42,
+            "today_z": 0.43
+          },
+          {
+            "f": "credit_baa10y",
+            "ep_z": -0.32,
+            "today_z": -0.36
+          }
+        ],
+        "divergences": [
+          {
+            "f": "growth_6m_mom",
+            "ep_z": 0.5,
+            "today_z": -0.06
+          },
+          {
+            "f": "term_premium",
+            "ep_z": -0.67,
+            "today_z": -0.02
+          },
+          {
+            "f": "cpi_6m_mom",
+            "ep_z": 0.28,
+            "today_z": 1.0
+          }
+        ],
+        "sequel": {
+          "fwd_3m_pct": 2.3,
+          "fwd_12m_pct": 3.6
+        }
+      },
+      {
+        "date": "2018-12",
+        "label": "Powell-pivot purge",
+        "similarity": 83.6,
+        "n_features": 13,
+        "matches": [
+          {
+            "f": "growth_6m_mom",
+            "ep_z": -0.03,
+            "today_z": -0.06
+          },
+          {
+            "f": "nfci",
+            "ep_z": -0.42,
+            "today_z": -0.51
+          },
+          {
+            "f": "real_m2_yoy",
+            "ep_z": -0.32,
+            "today_z": -0.51
+          }
+        ],
+        "divergences": [
+          {
+            "f": "cpi_6m_mom",
+            "ep_z": -0.58,
+            "today_z": 1.0
+          },
+          {
+            "f": "spx_12m_ret",
+            "ep_z": -0.74,
+            "today_z": 0.91
+          },
+          {
+            "f": "spx_dist_200dma",
+            "ep_z": -1.36,
+            "today_z": 0.61
+          }
+        ],
+        "sequel": {
+          "fwd_3m_pct": 16.5,
+          "fwd_12m_pct": 35.2
+        }
+      },
+      {
+        "date": "2015-08",
+        "label": "Yuan deval",
+        "similarity": 81.7,
+        "n_features": 13,
+        "matches": [
+          {
+            "f": "nfci",
+            "ep_z": -0.41,
+            "today_z": -0.51
+          },
+          {
+            "f": "spx_drawdown",
+            "ep_z": 0.59,
+            "today_z": 0.78
+          },
+          {
+            "f": "growth_6m_mom",
+            "ep_z": -0.54,
+            "today_z": -0.06
+          }
+        ],
+        "divergences": [
+          {
+            "f": "spx_dist_200dma",
+            "ep_z": -0.62,
+            "today_z": 0.61
+          },
+          {
+            "f": "spx_12m_ret",
+            "ep_z": -0.37,
+            "today_z": 0.91
+          },
+          {
+            "f": "credit_baa10y",
+            "ep_z": 1.38,
+            "today_z": -0.36
+          }
+        ],
+        "sequel": {
+          "fwd_3m_pct": 7.0,
+          "fwd_12m_pct": 9.1
+        }
+      }
+    ],
+    "today_tails": [],
+    "ai_keys": [
+      "closest_rhyme",
+      "error",
+      "historical_sequels",
+      "key_divergences",
+      "swan_checklist_read",
+      "verdict",
+      "watch_next"
+    ],
+    "ai_error": null,
+    "ai_verdict": "2007 GFC top (91.6% match) most likely scenario, but 2018 Volmageddon tail risk (94.3%) cannot be dismissed. Today elevated but not extreme; positioning matters more than valuation.",
+    "ai_rhyme": "{'episode': '2007-10 GFC top', 'similarity_pct': 91.6, 'why': 'Identical SPX distance to 200dma (0.61 vs 0.63 z), matching growth stall (-0.06 vs -0.03), stable unemployment. 14 of 14 features aligned.', 'context': 'Pre-Lehman confidence: equity rally (12m ret"
+  },
+  "sb_err": "NONE",
+  "board_row": {
+    "signal": -2,
+    "signal_label": "STRONG RISK-OFF",
+    "read": "Resemblance \u2014 tops 87.3 \u00b7 bottoms 75.5 \u00b7 swans 86.5 (top-3 avg sim)"
+  },
+  "board_n": 69,
+  "registry_n": 50
+}
