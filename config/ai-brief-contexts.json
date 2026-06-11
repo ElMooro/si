@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-10T22:54:40.424854+00:00",
+ "generated_at": "2026-06-11T01:44:13.680294+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2484,6 +2484,31 @@
     "BAMLH0A0HYM2"
    ],
    "system_addendum": "You are specifically a QUANT TECHNICIAN who measured the crowd's MA-liquidity belief on 50+ years of data. NEVER assert that an MA 'is support' \u2014 cite the engine's measured table: touch hit rate, n, median, shelf depth, and the bull/bear regime split. Where the data contradicts the folklore (e.g. breakdowns continuing), say so plainly. Confidence comes only from the conditional tables."
+  },
+  "system-critic-decisive-call": {
+   "title": "System Critic \u2014 Weakness Audit",
+   "output_key": "system-critic-decisive-call",
+   "primary_feed": "data/confluence-meta.json",
+   "cross_feeds": {
+    "yield_curve": "data/yield-curve.json",
+    "vix": "data/vix-curve.json",
+    "credit": "data/credit-spreads.json",
+    "dollar": "data/dollar-radar.json"
+   },
+   "cross_regime_fields": {
+    "yield_curve": "regime",
+    "vix": "composite_regime",
+    "credit": "regime",
+    "dollar": "regime"
+   },
+   "kb_keywords": [
+    "calibration",
+    "hit rate",
+    "fade",
+    "overfit",
+    "signal quality"
+   ],
+   "system_addendum": "You are the platform's RUTHLESS INTERNAL AUDITOR. The feed contains the ensemble's own graded performance: net-breadth conditional curves and the Fade Index (engines whose live record contradicts their calls). Name the 2-3 weakest engines with their measured hit rates and n, say whether to fade or recalibrate each, name the strongest engine to upweight, and flag any curve where sample size is too thin to act. No diplomacy \u2014 numbers only."
   }
  }
 }

@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>US Macro Cycle — Brain-Built Canaries — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--cyan)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--cyan)}
+.wrap{max-width:1120px;margin:0 auto;padding:22px}
+h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:900px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase}
+.dial{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}
+.d{background:var(--bg1);border:2px solid var(--border);border-radius:14px;padding:14px 18px;font-family:var(--mono)}
+.d b{font-size:28px}.d .m{font-size:10.5px;color:var(--fg3);margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.card h3{margin:0 0 6px;font-size:13px}.kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;padding:2.5px 0;color:var(--fg2)}
+.kv b{color:var(--fg-1)}.spec{color:var(--fg3);font-size:10.5px;line-height:1.55;margin-top:7px;border-top:1px dashed var(--border);padding-top:6px}
+.sig{float:right;font-size:9.5px;letter-spacing:1px;padding:2px 8px;border-radius:6px;font-weight:800}
+.NORMAL{background:rgba(52,211,153,.13);color:var(--green)}.WATCH{background:rgba(251,191,36,.13);color:var(--amber)}.CRITICAL{background:rgba(255,85,119,.15);color:var(--red)}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/regime.html">Regime</a><a href="/us-cycle.html" class="on">🇺🇸 US Cycle</a><a href="/canaries.html">Canaries</a><a href="/episode-compass.html">Compass</a></nav></header>
+<div class="wrap">
+<h1>US Macro Cycle — <span class="grad">brain-built canaries</span></h1>
+<p class="sub">Ten pillars implemented straight from the Brain audit — Sahm, SLOOS, claims momentum, quits, copper/gold "sniper exit", ACM term premium, real rates, Buffett percentile, margin debt, semis leadership — each carrying its note-spec and live thresholds. Altitude (valuation) is separated from timing (labor, credit, copper) by design.</p>
+<div class="dial" id="dial"><span class="loading">Loading…</span></div>
+<div class="sec">🤖 AI Cycle Strategist</div>
+<div id="aibrief" style="background:var(--bg1);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;color:var(--fg2)"><span class="loading">…</span></div>
+<div class="sec">Pillars</div><div class="grid" id="pillars"></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+async function load(){
+  const D=await gj('data/us-cycle.json');
+  if(!D){document.getElementById('dial').innerHTML='<span class="loading">first run pending</span>';return;}
+  const cs=D.cycle_score||{};
+  const col=cs.level==='ACUTE'?'var(--red)':cs.level==='ELEVATED'?'var(--amber)':cs.level==='WATCH'?'var(--amber)':'var(--green)';
+  document.getElementById('dial').innerHTML=`<div class="d" style="border-color:${col}"><b style="color:${col}">${cs.score_0_100??'—'}</b><span style="color:var(--fg3)">/100</span><div class="m">${esc(cs.level)} · ${cs.coverage_pillars} pillars</div></div>`+
+   (cs.components||[]).sort((a,b)=>Math.abs(b.z)-Math.abs(a.z)).slice(0,4).map(c=>`<div class="d"><b style="font-size:16px;color:${c.z>0.5?'var(--red)':c.z<-0.5?'var(--green)':'var(--fg-1)'}">${c.z>0?'+':''}${c.z}z</b><div class="m">${esc(c.id)} (w ${c.w})</div></div>`).join('');
+  const P=D.pillars||{};
+  document.getElementById('pillars').innerHTML=Object.entries(P).map(([k,p])=>{
+    const rows=Object.entries(p).filter(([kk,v])=>!['signal','spec','series'].includes(kk)&&(typeof v==='number'||typeof v==='string')).slice(0,5)
+      .map(([kk,v])=>`<div class="kv"><span>${esc(kk.replace(/_/g,' '))}</span><b>${esc(v)}</b></div>`).join('');
+    return `<div class="card"><span class="sig ${esc(p.signal)}">${esc(p.signal)}</span><h3>${esc(k.replace(/_/g,' ').toUpperCase())}</h3>${rows}<div class="spec">${esc(p.spec||'')}</div></div>`;}).join('');
+  document.getElementById('note').textContent=`${D.methodology} · v${D.version} · ${D.generated_at} · Research, not advice.`;
+}
+load();
+async function aiPanel(key,mount){
+  const el=document.getElementById(mount);
+  try{const r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now());if(!r.ok)throw 0;
+    const b=await r.json();let h='';
+    if(b.headline)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1);margin-bottom:8px">${esc(b.headline)}</div>`;
+    const skip=new Set(['context_id','title','output_key','generated_at','generated_at_utc','model','error','headline','tokens','cost_usd','schema_version']);
+    for(const[k,v]of Object.entries(b)){if(skip.has(k)||v==null)continue;
+      if(typeof v==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(k.replace(/_/g,' '))}</b><div style="font-size:12.5px;line-height:1.65">${esc(v)}</div></div>`;
+      else if(Array.isArray(v)&&typeof v[0]==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(k.replace(/_/g,' '))}</b>${v.map(x=>`<div style="font-size:12.5px">• ${esc(x)}</div>`).join('')}</div>`;}
+    el.innerHTML=h||'<span class="loading">AI brief generating — next router cycle.</span>';
+  }catch(e){el.innerHTML='<span class="loading">AI brief generates on the next 4-hour router cycle.</span>';}
+}
+aiPanel('us-cycle-decisive-call','aibrief');
+</script></body></html>

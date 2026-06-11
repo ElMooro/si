@@ -27,6 +27,8 @@ h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--ambe
 <div class="wrap">
 <h1>Crisis Canaries — <span class="grad">the plumbing speaks first</span></h1>
 <p class="sub">Crisis starts in collateral and bank funding, weeks before equities notice. Live coverage of SOFR distribution tails (NY Fed official API), OFR triparty repo volumes, H.4.1 discount-window borrowings, H.8 small-bank deposit flows, Treasury-auction deterioration slope, and the ALFRED first-release-vs-latest payroll revision signature. Coverage-honest: dead feeds shown dead.</p>
+<div class="sec">🤖 AI DESK BRIEFING</div>
+<div id="aibrief" style="background:var(--bg1,#10151f);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;margin-bottom:6px;color:var(--fg2,#a8b3c7)"><span style="color:#5d6b82">loading…</span></div>
 <div class="sec">Composite</div><div class="score" id="score"><span class="loading">Loading…</span></div>
 <div id="alerts"></div>
 <div class="sec">Canaries</div><div class="grid" id="cards"></div>
@@ -56,4 +58,28 @@ async function load(){
   document.getElementById('note').textContent=`${d.methodology} · v${d.version} · ${d.generated_at} · Research, not advice.`;
 }
 load();
+
+async function aiPanel(key,mount){
+  const el=document.getElementById(mount); if(!el)return;
+  try{
+    const r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now());
+    if(!r.ok)throw 0;
+    const b=await r.json();
+    const skip=new Set(['context_id','title','output_key','generated_at','generated_at_utc','model','error','tokens','cost_usd','schema_version']);
+    let h='';
+    if(b.headline)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1,#e8edf5);margin-bottom:8px">${esc(b.headline)}</div>`;
+    const lab=k=>k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    for(const[k,v]of Object.entries(b)){
+      if(skip.has(k)||k==='headline'||v==null)continue;
+      if(typeof v==='string'&&v.length>1)h+=`<div style="margin:7px 0"><b style="color:#a78bfa;font-family:var(--mono,monospace);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(lab(k))}</b><div style="font-size:12.5px;line-height:1.65">${esc(v)}</div></div>`;
+      else if(Array.isArray(v)&&v.length&&typeof v[0]==='string')h+=`<div style="margin:7px 0"><b style="color:#a78bfa;font-family:var(--mono,monospace);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(lab(k))}</b>${v.map(x=>`<div style="font-size:12.5px;line-height:1.6">• ${esc(x)}</div>`).join('')}</div>`;
+      else if(Array.isArray(v)&&v.length&&typeof v[0]==='object')h+=`<div style="margin:7px 0"><b style="color:#a78bfa;font-family:var(--mono,monospace);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(lab(k))}</b>${v.slice(0,8).map(o=>`<div style="font-size:12px;line-height:1.55;margin:4px 0;padding:6px 9px;background:rgba(167,139,250,.05);border-radius:8px">${o.ticker?`<b>${esc(o.ticker)}</b> · `:''}${esc(o.headline||o.thesis||o.text||o.what||JSON.stringify(o).slice(0,180))}</div>`).join('')}</div>`;
+    }
+    el.innerHTML=h||'<span style="color:#5d6b82">AI brief generating — next 4-hour router cycle.</span>';
+    const gen=b.generated_at||b.generated_at_utc;
+    if(gen)el.insertAdjacentHTML('beforeend',`<div style="color:#5d6b82;font-size:10px;margin-top:8px;font-family:var(--mono,monospace)">model-written ${esc(String(gen).slice(0,16))} · bound to this page's measured tables</div>`);
+  }catch(e){el.innerHTML='<span style="color:#5d6b82">AI brief generates on the next 4-hour router cycle.</span>';}
+}
+
+aiPanel('canaries-decisive-call','aibrief');
 </script></body></html>

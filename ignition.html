@@ -29,6 +29,8 @@ td.why{font-family:Inter;text-align:left;color:var(--fg2);font-size:11px;max-wid
 <div class="wrap">
 <h1>Ignition — <span class="grad">accumulation before price</span></h1>
 <p class="sub">Eight independent footprints of quiet positioning — OBV rising into a flat tape, SEC fails-to-deliver pressure, insider buy clusters, 13F new-position clusters, dark-pool volume share, analyst revision breadth, EDGAR filing-cadence anomalies — minus live-shelf supply risk. Pillars that are unavailable are <b>excluded with weights renormalized and coverage shown per name</b>: no faked completeness. Every top call is logged to the closed loop and must earn its hit rate on <a href="/skill.html" style="color:var(--cyan)">/skill.html</a>.</p>
+<div class="sec">🤖 AI DESK BRIEFING</div>
+<div id="aibrief" style="background:var(--bg1,#10151f);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;margin-bottom:6px;color:var(--fg2,#a8b3c7)"><span style="color:#5d6b82">loading…</span></div>
 <div class="sec">Pillar availability (live probes)</div><div class="pillars" id="pillars"><span class="loading">Loading…</span></div>
 <div class="sec">🔥 Top Calls (logged today)</div><div id="topcalls"></div>
 <div class="sec">Ranking</div><div id="ranktable"><div class="loading">Loading…</div></div>
@@ -57,4 +59,28 @@ async function load(){
   document.getElementById('note').textContent=`${d.methodology} Universe: ${d.universe_source} (${d.scored_n}/${d.universe_n} scored ≥35% coverage) · FTD files: ${(d.ftd_files||[]).join(', ')||'—'} · ${d.signals_logged} calls logged (regime ${d.regime_at_log}) · v${d.version} · ${d.generated_at} · Research, not advice.`;
 }
 load();
+
+async function aiPanel(key,mount){
+  const el=document.getElementById(mount); if(!el)return;
+  try{
+    const r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now());
+    if(!r.ok)throw 0;
+    const b=await r.json();
+    const skip=new Set(['context_id','title','output_key','generated_at','generated_at_utc','model','error','tokens','cost_usd','schema_version']);
+    let h='';
+    if(b.headline)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1,#e8edf5);margin-bottom:8px">${esc(b.headline)}</div>`;
+    const lab=k=>k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    for(const[k,v]of Object.entries(b)){
+      if(skip.has(k)||k==='headline'||v==null)continue;
+      if(typeof v==='string'&&v.length>1)h+=`<div style="margin:7px 0"><b style="color:#a78bfa;font-family:var(--mono,monospace);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(lab(k))}</b><div style="font-size:12.5px;line-height:1.65">${esc(v)}</div></div>`;
+      else if(Array.isArray(v)&&v.length&&typeof v[0]==='string')h+=`<div style="margin:7px 0"><b style="color:#a78bfa;font-family:var(--mono,monospace);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(lab(k))}</b>${v.map(x=>`<div style="font-size:12.5px;line-height:1.6">• ${esc(x)}</div>`).join('')}</div>`;
+      else if(Array.isArray(v)&&v.length&&typeof v[0]==='object')h+=`<div style="margin:7px 0"><b style="color:#a78bfa;font-family:var(--mono,monospace);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(lab(k))}</b>${v.slice(0,8).map(o=>`<div style="font-size:12px;line-height:1.55;margin:4px 0;padding:6px 9px;background:rgba(167,139,250,.05);border-radius:8px">${o.ticker?`<b>${esc(o.ticker)}</b> · `:''}${esc(o.headline||o.thesis||o.text||o.what||JSON.stringify(o).slice(0,180))}</div>`).join('')}</div>`;
+    }
+    el.innerHTML=h||'<span style="color:#5d6b82">AI brief generating — next 4-hour router cycle.</span>';
+    const gen=b.generated_at||b.generated_at_utc;
+    if(gen)el.insertAdjacentHTML('beforeend',`<div style="color:#5d6b82;font-size:10px;margin-top:8px;font-family:var(--mono,monospace)">model-written ${esc(String(gen).slice(0,16))} · bound to this page's measured tables</div>`);
+  }catch(e){el.innerHTML='<span style="color:#5d6b82">AI brief generates on the next 4-hour router cycle.</span>';}
+}
+
+aiPanel('ignition-names','aibrief');
 </script></body></html>

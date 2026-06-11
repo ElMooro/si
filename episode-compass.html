@@ -1,0 +1,66 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Episode Compass — Tops · Bottoms · Black Swans — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);backdrop-filter:blur(8px);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--amber);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--amber)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--amber)}
+.wrap{max-width:1120px;margin:0 auto;padding:22px}
+h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--amber),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:920px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.gauge{background:var(--bg1);border:2px solid var(--border);border-radius:14px;padding:14px 18px;font-family:var(--mono)}
+.gauge b{font-size:30px}.gauge .m{font-size:10.5px;color:var(--fg3);margin-top:5px;line-height:1.6}
+table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:left;padding:9px;border-bottom:1px solid var(--border);background:var(--bg2)}
+td{padding:8px 9px;border-bottom:1px solid var(--border);font-family:var(--mono);vertical-align:top}
+.chip{display:inline-block;font-size:10px;padding:2px 7px;border-radius:6px;margin:1px 2px;background:rgba(34,211,238,.1);color:var(--cyan)}
+.chip.d{background:rgba(255,85,119,.1);color:var(--red)}
+.hi{color:var(--green)}.lo{color:var(--red)}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/regime.html">Regime</a><a href="/episode-compass.html" class="on">🧭 Compass</a><a href="/analogs.html">Analogs</a><a href="/methodology.html">Methodology</a></nav></header>
+<div class="wrap">
+<h1>Episode Compass — <span class="grad">tops · bottoms · black swans</span></h1>
+<p class="sub">Today's macro state — 14 features z-scored over their full histories — measured against every labeled market top, bottom and black swan since 1973. Similarity is arithmetic, sequels are real S&amp;P forwards, and the AI historian below is bound to these tables only.</p>
+<div class="sec">Resemblance scores (top-3 episode average)</div><div class="g3" id="gauges"><span class="loading">Loading…</span></div>
+<div class="sec">🤖 AI Market Historian</div>
+<div id="ai" style="background:var(--bg1);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;color:var(--fg2)"><span class="loading">…</span></div>
+<div id="classes"></div>
+<div class="sec">Today's vector — tail features first</div><div id="vec"></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const CC={TOP:'var(--red)',BOTTOM:'var(--green)',BLACK_SWAN:'var(--amber)'};
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function chips(arr,cls){return (arr||[]).map(x=>`<span class="chip ${cls}">${esc(x.f)} ${x.ep_z}z↔${x.today_z}z</span>`).join('');}
+async function load(){
+  const D=await gj('data/episode-compass.json');
+  if(!D){document.getElementById('gauges').innerHTML='<span class="loading">first run pending</span>';return;}
+  const cs=D.class_scores||{};
+  document.getElementById('gauges').innerHTML=['TOP','BOTTOM','BLACK_SWAN'].map(c=>`<div class="gauge" style="border-color:${CC[c]}"><b style="color:${CC[c]}">${cs[c]??'—'}</b><span style="color:var(--fg3)"> /100</span><div class="m">${c.replace('_',' ')}-likeness<br>${c==='TOP'?'how much today rhymes with major peaks':c==='BOTTOM'?'how much today rhymes with major lows':'how much today rhymes with tail events'}</div></div>`).join('');
+  const ai=D.ai_brief||{};
+  let h='';
+  if(ai.verdict)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1);margin-bottom:8px">${esc(ai.verdict)}</div>`;
+  for(const[k,lab]of[['closest_rhyme','Closest rhyme'],['key_divergences','Key divergences'],['historical_sequels','Historical sequels'],['swan_checklist_read','Swan checklist']]){
+    if(ai[k])h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase">${lab}</b><div style="font-size:12.5px;line-height:1.65">${esc(ai[k])}</div></div>`;}
+  if(Array.isArray(ai.watch_next))h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase">Watch next</b>${ai.watch_next.map(x=>`<div style="font-size:12.5px">• ${esc(x)}</div>`).join('')}</div>`;
+  document.getElementById('ai').innerHTML=h||`<span class="loading">${esc(ai.error||'AI unavailable')}</span>`;
+  let html='';
+  for(const c of ['TOP','BOTTOM','BLACK_SWAN']){
+    const rows=(D.classes?.[c]?.episodes)||[];
+    html+=`<div class="sec" style="color:${CC[c]}">${c.replace('_',' ')}S — ranked by similarity</div>
+    <table><thead><tr><th>Episode</th><th>Sim</th><th>Matches (z then ↔ z now)</th><th>Divergences</th><th>SPX sequel +3m / +12m</th></tr></thead><tbody>${
+      rows.map(r=>`<tr><td><b>${esc(r.date)}</b> ${esc(r.label)}</td><td style="color:${CC[c]};font-weight:700">${r.similarity}</td><td>${chips(r.matches,'')}</td><td>${chips(r.divergences,'d')}</td><td>${r.sequel?`<span class="${(r.sequel.fwd_3m_pct||0)>0?'hi':'lo'}">${r.sequel.fwd_3m_pct>0?'+':''}${r.sequel.fwd_3m_pct??'—'}%</span> / <span class="${(r.sequel.fwd_12m_pct||0)>0?'hi':'lo'}">${r.sequel.fwd_12m_pct>0?'+':''}${r.sequel.fwd_12m_pct??'—'}%</span>`:'—'}</td></tr>`).join('')}</tbody></table>`;}
+  document.getElementById('classes').innerHTML=html;
+  const tv=Object.entries(D.today_vector||{}).sort((a,b)=>Math.abs(b[1].z)-Math.abs(a[1].z));
+  document.getElementById('vec').innerHTML=`<table><thead><tr><th>Feature</th><th>z (full history)</th><th>as of</th></tr></thead><tbody>${tv.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="${Math.abs(v.z)>=2?(v.z>0?'lo':'hi'):''}" style="font-weight:${Math.abs(v.z)>=1.5?700:400}">${v.z>0?'+':''}${v.z}</td><td style="color:var(--fg3)">${esc(v.as_of)}</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('note').textContent=`${D.methodology} · v${D.version} · ${D.generated_at} · Research, not advice.`;
+}
+load();
+</script></body></html>

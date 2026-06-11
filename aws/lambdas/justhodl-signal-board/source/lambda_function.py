@@ -806,6 +806,17 @@ def n_regime(d):
                   f"n={pb.get('n', '—')}")
 
 
+
+
+def n_episode_compass(d):
+    cs = d.get("class_scores") or {}
+    t, b, sw = cs.get("TOP"), cs.get("BOTTOM"), cs.get("BLACK_SWAN")
+    if t is None:
+        return 0, "Compass n/a"
+    sig = -2 if (sw or 0) >= 70 else -1 if (t or 0) - (b or 0) >= 20 else           1 if (b or 0) - (t or 0) >= 20 else 0
+    return sig, f"Resemblance — tops {t} · bottoms {b} · swans {sw} (top-3 avg sim)"
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -884,6 +895,7 @@ FEEDS = [
     ("US Real M2",             "macro",            "data/liquidity-inflection.json", n_us_money),
     ("MA Reversion Shelves",   "equity tactical",  "data/ma-reversion.json",         n_ma_reversion),
     ("Macro Regime (Conductor)","macro",           "data/regime.json",               n_regime),
+    ("Episode Compass",        "macro",            "data/episode-compass.json",      n_episode_compass),
 ]
 
 
