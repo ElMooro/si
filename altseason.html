@@ -74,9 +74,9 @@ async function load(){
   document.getElementById('spark').innerHTML=sparkline((D.histories||{}).alt_index);
   const S=D.event_study||{};
   document.getElementById('study').innerHTML=['cross_up_50','cross_up_70'].map(k=>{const x=S[k]||{};const ev=x.events||[];
-    return `<table><thead><tr><th>Index crosses ↑ ${k.slice(-2)}%</th><th>Index</th><th>Basket +30d</th><th>+90d</th></tr></thead><tbody>
-    ${ev.map(r=>`<tr><td><b>${esc(r.date)}</b></td><td>${r.alt_index}%</td><td class="${(r.basket_fwd_30||0)>0?'hi':'lo'}">${r.basket_fwd_30==null?'—':(r.basket_fwd_30>0?'+':'')+r.basket_fwd_30+'%'}</td><td class="${(r.basket_fwd_90||0)>0?'hi':'lo'}">${r.basket_fwd_90==null?'—':(r.basket_fwd_90>0?'+':'')+r.basket_fwd_90+'%'}</td></tr>`).join('')}
-    <tr style="background:var(--bg2)"><td><b>STATS</b></td><td></td><td>${st(x.fwd_30)}</td><td>${st(x.fwd_90)}</td></tr></tbody></table>`;}).join('');
+    return `<table><thead><tr><th>Index crosses ↑ ${k.slice(-2)}%</th><th>Index</th><th>Regime</th><th>Basket +30d</th><th>+90d</th></tr></thead><tbody>
+    ${ev.map(r=>`<tr><td><b>${esc(r.date)}</b></td><td>${r.alt_index}%</td><td style="color:${['GOLDILOCKS','REFLATION'].includes(r.regime)?'var(--green)':r.regime?'var(--red)':'var(--fg3)'}">${esc(r.regime||'—')}</td><td class="${(r.basket_fwd_30||0)>0?'hi':'lo'}">${r.basket_fwd_30==null?'—':(r.basket_fwd_30>0?'+':'')+r.basket_fwd_30+'%'}</td><td class="${(r.basket_fwd_90||0)>0?'hi':'lo'}">${r.basket_fwd_90==null?'—':(r.basket_fwd_90>0?'+':'')+r.basket_fwd_90+'%'}</td></tr>`).join('')}
+    <tr style="background:var(--bg2)"><td><b>STATS — all</b></td><td></td><td></td><td>${st(x.fwd_30)}</td><td>${st(x.fwd_90)}</td></tr><tr style="background:var(--bg2)"><td>↳ favorable regime</td><td></td><td style="color:var(--green)">GOLD/REFL</td><td>${st(x.by_regime?.favorable?.fwd_30)}</td><td>${st(x.by_regime?.favorable?.fwd_90)}</td></tr><tr style="background:var(--bg2)"><td>↳ adverse regime</td><td></td><td style="color:var(--red)">STAG/BUST</td><td>${st(x.by_regime?.adverse?.fwd_30)}</td><td>${st(x.by_regime?.adverse?.fwd_90)}</td></tr></tbody></table>`;}).join('');
   document.getElementById('note').textContent=`${D.methodology} · gates: ${JSON.stringify(D.gates)} · ${D.signals_logged} logged · v${D.version} · ${D.generated_at} · Research, not advice.`;
 }
 load();

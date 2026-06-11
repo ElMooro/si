@@ -34,7 +34,7 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/altseason.json"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
 DIAG = []
 
@@ -219,9 +219,15 @@ def lambda_handler(event=None, context=None):
             return None
         a = basket_usd.get(d0)
         return round((basket_usd[ks[j]] / a - 1) * 100, 1) if a else None
+    _, _rg = s3json(["data/regime.json"])
+    _strip = dict((_rg or {}).get("regime_strip") or [])
+    FAV = ("GOLDILOCKS", "REFLATION")
+    def quad_at(dstr):
+        return _strip.get(dstr[:7])
     study = {}
     for lv in (50, 70):
         rows = [{"date": ai_d[i], "alt_index": ai_v[i],
+                  "regime": quad_at(ai_d[i]),
                   "basket_fwd_30": bk_fwd(i, 30), "basket_fwd_90": bk_fwd(i, 90)}
                  for i in crossings(lv)]
         def st(key):
@@ -229,8 +235,19 @@ def lambda_handler(event=None, context=None):
             return ({"n": len(xs), "median_pct": xs[len(xs) // 2],
                       "pos_pct": round(100 * sum(1 for x in xs if x > 0) / len(xs), 1)}
                      if xs else None)
+        def st_sub(key, fav):
+            xs = sorted(x[key] for x in rows
+                         if x[key] is not None and (x["regime"] in FAV) == fav)
+            return ({"n": len(xs), "median_pct": xs[len(xs) // 2],
+                      "pos_pct": round(100 * sum(1 for v_ in xs if v_ > 0) / len(xs), 1)}
+                     if xs else None)
         study[f"cross_up_{lv}"] = {"events": rows, "fwd_30": st("basket_fwd_30"),
-                                     "fwd_90": st("basket_fwd_90")}
+                                     "fwd_90": st("basket_fwd_90"),
+                                     "by_regime": {
+                                       "favorable": {"fwd_30": st_sub("basket_fwd_30", True),
+                                                      "fwd_90": st_sub("basket_fwd_90", True)},
+                                       "adverse": {"fwd_30": st_sub("basket_fwd_30", False),
+                                                     "fwd_90": st_sub("basket_fwd_90", False)}}}
 
     # ── gates from the desk ──
     _, regime = s3json(["data/regime.json"])
@@ -355,7 +372,7 @@ def lambda_handler(event=None, context=None):
                        "phase_read (where in DORMANT→SETUP→IGNITION→CONFIRMED we are and "
                        "the single next domino), what_flips_confirmed (exact numeric "
                        "triggers), what_invalidates, watch_next (array of 3 short "
-                       "strings). Cite n from event-study stats when referencing "
+                       "strings). Cite n from event-study stats — especially the regime-conditioned by_regime splits (favorable=GOLDILOCKS/REFLATION vs adverse) — when referencing "
                        "thresholds. <380 words. JSON only.\n\nDATA:\n"
                        + json.dumps(compact, default=str))
             req = urllib.request.Request(
