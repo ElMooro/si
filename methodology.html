@@ -1,0 +1,70 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Methodology & Trust — How JustHodl Measures Itself · JustHodl.AI</title>
+<meta name="description" content="How every JustHodl signal is generated, graded out-of-sample, and calibrated: closed-loop scoring, data sources and cadences, freshness SLAs, and honest-coverage policy.">
+<style>
+:root{--bg:#0a0e14;--p:#10151f;--p2:#161d2a;--l:#1d2636;--fg:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--c:#22d3ee;--g:#34d399;--a:#fbbf24;--r:#ff5577;--v:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif;line-height:1.65}
+header{padding:14px 22px;border-bottom:1px solid var(--l);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:rgba(10,14,20,.95);z-index:9}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--g);border-radius:50%;margin-right:7px;box-shadow:0 0 8px var(--g)}
+nav a{color:var(--fg2);font-size:12.5px;margin-left:14px;text-decoration:none}nav a:hover{color:var(--g)}
+.wrap{max-width:880px;margin:0 auto;padding:26px 22px}
+h1{font-size:26px;margin:8px 0}.grad{background:linear-gradient(90deg,var(--g),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:17px;margin:30px 0 8px;font-family:var(--mono)}
+p,li{color:var(--fg2);font-size:14px}
+.live{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+.lv{background:var(--p);border:1px solid var(--l);border-radius:12px;padding:12px 16px;font-family:var(--mono)}
+.lv b{font-size:20px;color:var(--fg)}.lv span{display:block;font-size:10px;color:var(--fg3);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+.case{background:var(--p);border-left:3px solid var(--v);border-radius:10px;padding:12px 16px;margin:10px 0;font-size:13px;color:var(--fg2)}
+.case b{color:var(--fg)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--p);border:1px solid var(--l);border-radius:12px;overflow:hidden;margin:12px 0}
+th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:left;padding:9px;border-bottom:1px solid var(--l);background:var(--p2)}
+td{padding:8px 9px;border-bottom:1px solid var(--l);color:var(--fg2)}td:first-child{color:var(--fg);font-weight:600}
+.disc{background:rgba(255,85,119,.06);border:1px solid rgba(255,85,119,.35);border-radius:12px;padding:14px 18px;margin:26px 0;font-size:13px;color:var(--fg2)}
+a{color:var(--c)}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/skill.html">Skill</a><a href="/accuracy.html">Accuracy</a><a href="/directory.html">Directory</a></nav></header>
+<div class="wrap">
+<h1>Methodology — <span class="grad">measured, not believed</span></h1>
+<p>JustHodl's founding rule: <b style="color:var(--fg)">no claim ships without its sample size.</b> Every engine that makes a directional call must log that call to a closed loop where it is graded against real prices out-of-sample, in public, forever. This page explains how the machine measures itself.</p>
+<div class="live" id="live"><div class="lv"><b>…</b><span>engines on the board</span></div></div>
+
+<h2>1 · The closed loop (how signals are graded)</h2>
+<p>When an engine fires, it writes a signal record: prediction, direction, confidence, baseline price, benchmark and check windows (+5/+21/+63 days). A grader revisits each record at those horizons and scores it against what actually happened. A skill aggregator then computes per-engine hit rates, profit factors and rolling 30-day form — visible on <a href="/skill.html">/skill.html</a> — and a calibrator automatically shrinks the confidence of any engine whose live record diverges from its claims (n≥20, |error|≥10%). Engines don't get to grade themselves, and they don't get to forget.</p>
+
+<h2>2 · Measured, not believed — three examples</h2>
+<div class="case"><b>The MA "support" folklore.</b> The crowd says the 200-day moving average is where buying liquidity lives. We ran every touch, breakdown and reclaim on 55 years of S&amp;P data (13,952 sessions). Verdict: touch returns are roughly base-rate; the liquidity is real but shows up as <b>shelf depth</b> (median undercut only −0.7% to −1.5% before the bid) — and breaking <i>below</i> the 50DMA in a bull market was historically a buy 70% of the time, not a sell. Death crosses? Only 31% were lower 63 days later. <a href="/ma-reversion.html">Full tables →</a></div>
+<div class="case"><b>The CISS "dump" signal.</b> Euro-area systemic-stress spikes are sold as crash predictors. Across 26 episodes since 1997, spikes marked <b>capitulation lows</b>, not dump-starts — the real dump risk is the slow percentile build in funding plumbing. The radar says so on its face. <a href="/eu-dump-radar.html">EU Dump Radar →</a></div>
+<div class="case"><b>Regime playbooks with n.</b> "Stagflation kills equities" — measured: SPX still returned +2.2% median over the next 3 months across n=161 stagflation months since 1963; it's merely the <i>worst</i> quadrant, and the cleaner tell is credit spreads. Every quadrant claim on <a href="/regime.html">/regime.html</a> carries its sample size.</div>
+
+<h2>3 · Data sources & cadence</h2>
+<table><thead><tr><th>Source</th><th>What we take</th><th>Cadence</th></tr></thead><tbody>
+<tr><td>FRED (St. Louis Fed)</td><td>600+ macro series: rates, money, labor, credit, liquidity</td><td>daily–quarterly</td></tr>
+<tr><td>ECB SDMX</td><td>CISS, BSI money &amp; credit, ILM liquidity, TARGET2, MIR, wages, SPF</td><td>daily–quarterly</td></tr>
+<tr><td>Eurostat</td><td>Unemployment (incl. CH), HICP post-enlargement, industry</td><td>monthly</td></tr>
+<tr><td>NY Fed</td><td>SOFR distribution, primary-dealer fails &amp; positions, ACM</td><td>daily–weekly</td></tr>
+<tr><td>OFR</td><td>Repo market volumes &amp; rates</td><td>daily</td></tr>
+<tr><td>US Treasury / SEC EDGAR</td><td>Auctions, MSPD, filings, FTDs, insider, 13D/G, S-3</td><td>daily–monthly</td></tr>
+<tr><td>CFTC</td><td>Futures positioning (COT, disaggregated)</td><td>weekly</td></tr>
+<tr><td>Polygon</td><td>Full-market equity bars (grouped daily), index ETFs</td><td>daily</td></tr>
+<tr><td>FMP</td><td>Fundamentals, estimates, commodities (gold/copper)</td><td>daily</td></tr>
+<tr><td>BLS · BEA · Census</td><td>Employment detail, GDP/GDI, shipments &amp; backlog</td><td>monthly</td></tr>
+</tbody></table>
+
+<h2>4 · Freshness & honest coverage</h2>
+<p>Every published brief carries its <b>as-of dates</b>, and a freshness manifest enforces per-feed SLAs — an hourly watchdog alerts on FRESH→STALE transitions. Three honesty rules are enforced in code: <b>(a) staleness-guarded probes</b> — discontinued upstream series (a real, recurring hazard: OECD EA codes, LBMA gold, weekly MMF) are rejected rather than silently served years stale; <b>(b) availability flags</b> — when a pillar can't be measured, composites renormalize and say so instead of pretending; <b>(c) discontinued badges</b> — dead history series are labeled on the page, never hidden. Where a needed feed is paid-only (real MOVE, cross-currency basis, dark pools), we publish the gap and the free proxy we use instead.</p>
+
+<h2>5 · What the AI layer is — and isn't</h2>
+<p>AI briefings on each page are <b>narrators bound to the numbers</b>: each persona is instructed to cite only the engine's measured tables (hit rates, n, medians, event studies) and is forbidden from asserting folklore the data doesn't support. Models summarize; the closed loop decides what was right.</p>
+
+<div class="disc"><b>Disclosure.</b> JustHodl.AI is research software. Nothing here is investment advice, a recommendation, or an offer to buy or sell any security. Signals are statistical hypotheses with published error rates; past performance — even measured honestly — does not guarantee future results. Markets can and will behave outside historical samples. Do your own diligence; consult a licensed advisor for personal financial decisions.</div>
+<p style="color:var(--fg3);font-size:11px">Page architecture: <a href="/directory.html">all pages</a> · <a href="/sitemap.xml">sitemap.xml</a> · graded record: <a href="/skill.html">/skill.html</a> · <a href="/signal-replay.html">signal replay</a></p>
+</div>
+<script>
+(async()=>{try{const r=await fetch('https://justhodl.ai/data/signal-board.json?t='+Date.now());const d=await r.json();
+document.getElementById('live').innerHTML=
+ `<div class="lv"><b>${d.n_engines??'—'}</b><span>engines on the board</span></div>`+
+ `<div class="lv"><b>${d.n_live??'—'}</b><span>reporting fresh today</span></div>`+
+ `<div class="lv"><b>${(d.composite_posture||'—')}</b><span>composite posture now</span></div>`+
+ `<div class="lv"><b><a href="/skill.html" style="color:var(--g);text-decoration:none">live →</a></b><span>per-engine graded record</span></div>`;}catch(e){}})();
+</script></body></html>
