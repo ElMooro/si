@@ -1,0 +1,152 @@
+{
+  "ops": 1597,
+  "errors": [],
+  "fn": "created",
+  "fn_err": "NONE",
+  "verify": {
+    "duration_s": 35.6,
+    "diagnostics": [
+      "coins: BTC 3980 \u00b7 ETH 3663 \u00b7 alts 16/16"
+    ],
+    "composite": {
+      "score": 5.0,
+      "phase": "DORMANT",
+      "rejected_overlay": true,
+      "reject_weight": 45,
+      "confirms": [
+        "Crisis canaries gate"
+      ],
+      "rejects": [
+        "ETH/BTC > 200DMA",
+        "Altseason Index (% alts beat BTC 90d)",
+        "Alt breadth > 90DMA",
+        "Macro regime gate"
+      ]
+    },
+    "votes": [
+      {
+        "metric": "ETH/BTC thrust",
+        "value": "1.7% off low, 5d",
+        "vote": "NEUTRAL",
+        "weight": 18,
+        "note": "season-starter: 180d low \u2192 \u226525% in \u226460 sessions"
+      },
+      {
+        "metric": "ETH/BTC > 200DMA",
+        "value": false,
+        "vote": "REJECT",
+        "weight": 8,
+        "note": "trend confirmation"
+      },
+      {
+        "metric": "ETH/BTC golden (50>200)",
+        "value": false,
+        "vote": "NEUTRAL",
+        "weight": 6,
+        "note": "regime persistence"
+      },
+      {
+        "metric": "Altseason Index (% alts beat BTC 90d)",
+        "value": 18.8,
+        "vote": "REJECT",
+        "weight": 20,
+        "note": "canonical \u226570% = season"
+      },
+      {
+        "metric": "Alt breadth > 90DMA",
+        "value": 6.2,
+        "vote": "REJECT",
+        "weight": 10,
+        "note": "participation"
+      },
+      {
+        "metric": "Alt 90d-high breadth",
+        "value": 0.0,
+        "vote": "NEUTRAL",
+        "weight": 8,
+        "note": "leadership expansion"
+      },
+      {
+        "metric": "Alt volume share (1y pctile)",
+        "value": 20.3,
+        "vote": "NEUTRAL",
+        "weight": 10,
+        "note": "14d share 18.46% of spot $vol"
+      },
+      {
+        "metric": "BTC consolidation",
+        "value": "RV pctile 58.1, -49.9% vs hi",
+        "vote": "NEUTRAL",
+        "weight": 8,
+        "note": "calm leader = rotation env; vol shock = reject"
+      },
+      {
+        "metric": "Macro regime gate",
+        "value": "STAGFLATION",
+        "vote": "REJECT",
+        "weight": 7,
+        "note": "from data/regime.json"
+      },
+      {
+        "metric": "Crisis canaries gate",
+        "value": "CALM",
+        "vote": "CONFIRM",
+        "weight": 5,
+        "note": "funding-stress veto"
+      }
+    ],
+    "alt_index_now": 18.8,
+    "alt_index_len": 500,
+    "study": {
+      "cross_up_50": {
+        "n_events": 8,
+        "latest": "2025-07-19",
+        "fwd_30": {
+          "n": 8,
+          "median_pct": 4.1,
+          "pos_pct": 62.5
+        },
+        "fwd_90": {
+          "n": 8,
+          "median_pct": 13.5,
+          "pos_pct": 50.0
+        }
+      },
+      "cross_up_70": {
+        "n_events": 5,
+        "latest": "2025-07-21",
+        "fwd_30": {
+          "n": 5,
+          "median_pct": 0.6,
+          "pos_pct": 60.0
+        },
+        "fwd_90": {
+          "n": 5,
+          "median_pct": -8.7,
+          "pos_pct": 40.0
+        }
+      }
+    },
+    "gates": {
+      "regime_quadrant": "STAGFLATION",
+      "canaries_level": "CALM"
+    },
+    "ai_error": null,
+    "ai_verdict": "DORMANT phase, score 5.0/100 \u2014 Altseason Index 18.8% (need \u226570%, n=5) far below canonical threshold. Three rejection gates active.",
+    "ai_flips": [
+      "Altseason Index crosses 50.0 (n=8 historical events, median +4.1% fwd-30d, 62.5% positive)",
+      "Altseason Index crosses 70.0 (n=5 historical, but fwd_90 median -8.7%, pos_pct 40.0% \u2014 high-risk zone, stagflation risk)",
+      "Macro regime gate flips EXPANSION",
+      "ETH/BTC breakout >200DMA + thrust >2.5% within 60 sessions (season-starter pattern, 180d low \u2192 \u226525% in \u226460 sessions)"
+    ],
+    "signals_logged": 0
+  },
+  "sb_err": "NONE",
+  "board_row": {
+    "signal": -1,
+    "signal_label": "RISK-OFF",
+    "read": "DORMANT 5.0/100 \u00b7 1 confirm / 4 reject \u00b7 MACRO-REJECTED"
+  },
+  "board_n": 72,
+  "registry_n": 51
+}
