@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-11T17:53:13.791770+00:00",
+ "generated_at": "2026-06-11T23:48:47.542734+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2567,6 +2567,31 @@
     "correlation"
    ],
    "system_addendum": "You are the desk's RISK BUDGETER. The feed contains quarter-Kelly sizes derived from the closed loop's own graded record. For each top recommendation: state the measured edge it rests on (win rate, payoff, n), what the calibrator scale says about that engine's honesty, and the single chain factor (vol or correlation) that most constrained the size. Name anything on the fade list a user might be tempted to trade anyway. Never propose sizes beyond the table. End with the one number that would change the whole book."
+  },
+  "market-map-decisive-call": {
+   "title": "Market Map \u2014 Tape Reader",
+   "output_key": "market-map-decisive-call",
+   "primary_feed": "data/market-map.json",
+   "cross_feeds": {
+    "yield_curve": "data/yield-curve.json",
+    "vix": "data/vix-curve.json",
+    "credit": "data/credit-spreads.json",
+    "dollar": "data/dollar-radar.json"
+   },
+   "cross_regime_fields": {
+    "yield_curve": "regime",
+    "vix": "composite_regime",
+    "credit": "regime",
+    "dollar": "regime"
+   },
+   "kb_keywords": [
+    "breadth",
+    "sector rotation",
+    "dispersion",
+    "leadership",
+    "risk appetite"
+   ],
+   "system_addendum": "You are the desk's TAPE READER on the S&P treemap. From sector_agg and breadth only: name where the cap-weighted move is concentrated vs broad, the strongest/weakest sector with its adv/dec, whether the map shows risk-on or defensive money, and one divergence worth watching (e.g., index up on narrow breadth). Numbers from the feed only; last-session EOD, say so."
   }
  }
 }

@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sector Groups — Performance & Leadership — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--red:#ff5577;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--violet);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--violet)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--violet)}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 22px}
+h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tf{display:flex;gap:6px;margin:12px 0}.tf span{font-family:var(--mono);font-size:11.5px;padding:6px 12px;border:1px solid var(--border);border-radius:9px;cursor:pointer;color:var(--fg2);background:var(--bg1)}
+.tf span.on{color:#0a0e14;background:var(--violet);font-weight:800;border-color:transparent}
+.row{display:flex;align-items:center;gap:10px;margin:5px 0;font-family:var(--mono);font-size:12px}
+.row .nm{width:215px;color:var(--fg2)}.row .nm b{color:var(--fg-1)}
+.bw{flex:1;height:20px;background:var(--bg1);border:1px solid var(--border);border-radius:6px;position:relative;overflow:hidden}
+.bw i{position:absolute;top:0;bottom:0}.row .v{width:78px;text-align:right;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:18px 0}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:8px;border-bottom:1px solid var(--border);background:var(--bg2)}
+th:first-child,td:first-child{text-align:left}td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+.hi{color:var(--green)}.lo{color:var(--red)}
+.note{color:var(--fg3);font-size:11px;margin-top:14px;line-height:1.6}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/market-map.html">🗺 Map</a><a href="/groups.html" class="on">Groups</a><a href="/regime.html">Regime</a></nav></header>
+<div class="wrap">
+<h1>Sector Groups — <span class="grad">performance &amp; leadership</span></h1>
+<div class="tf" id="tf"><span data-k="c">1D</span><span data-k="w">1W</span><span data-k="m1" class="on">1M</span><span data-k="m3">3M</span><span data-k="m6">6M</span><span data-k="y1">1Y</span><span data-k="ytd">YTD</span></div>
+<div id="bars"></div>
+<div id="tbl"></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+let D=null,K='m1';
+function render(){
+  const gs=[...(D.groups||[])].sort((a,b)=>(b.perf[K]??-99)-(a.perf[K]??-99));
+  const mx=Math.max(...gs.map(g=>Math.abs(g.perf[K]??0)),0.1);
+  document.getElementById('bars').innerHTML=gs.map(g=>{const v=g.perf[K];
+    const wpct=Math.abs(v??0)/mx*48;
+    return `<div class="row"><div class="nm"><b>${esc(g.etf)}</b> ${esc(g.sector)}</div>
+     <div class="bw"><i style="${v>=0?`left:50%;background:var(--green)`:`right:50%;background:var(--red)`};width:${wpct}%"></i><i style="left:50%;width:1px;background:var(--border)"></i></div>
+     <div class="v ${v>=0?'hi':'lo'}">${v==null?'—':(v>0?'+':'')+v+'%'}</div></div>`;}).join('');
+  document.getElementById('tbl').innerHTML=`<table><thead><tr><th>Sector</th><th>1D</th><th>1W</th><th>1M</th><th>3M</th><th>6M</th><th>1Y</th><th>YTD</th><th>RS 3M vs SPY</th><th>Breadth A/D</th></tr></thead><tbody>${
+   (D.groups||[]).map(g=>`<tr><td><b>${esc(g.etf)}</b> ${esc(g.sector)}</td>${['c','w','m1','m3','m6','y1','ytd'].map(k=>{const v=g.perf[k];return `<td class="${v>0?'hi':v<0?'lo':''}">${v==null?'—':(v>0?'+':'')+v}%</td>`;}).join('')}<td class="${g.rs_3m_vs_spy>0?'hi':'lo'}">${g.rs_3m_vs_spy==null?'—':(g.rs_3m_vs_spy>0?'+':'')+g.rs_3m_vs_spy}</td><td>${g.breadth?.adv??'—'}/${g.breadth?.dec??'—'}</td></tr>`).join('')}</tbody></table>`;
+}
+document.getElementById('tf').onclick=e=>{const k=e.target.dataset.k;if(!k)return;K=k;
+  document.querySelectorAll('#tf span').forEach(x=>x.classList.toggle('on',x.dataset.k===k));render();};
+(async()=>{D=await gj('data/sector-groups.json');
+  if(!D){document.getElementById('bars').innerHTML='<span style="color:var(--fg3);font-family:var(--mono)">first run pending</span>';return;}
+  render();
+  const l=D.leadership||{};
+  document.getElementById('note').textContent=`Leadership 1M: top ${l.top_1m} · bottom ${l.bottom_1m} · ${D.methodology} · v${D.version} · ${D.generated_at} · Research, not advice.`;
+})();
+</script></body></html>

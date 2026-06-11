@@ -1,0 +1,117 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Market Map — S&P 500 Treemap — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--cyan)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--cyan)}
+.wrap{max-width:1280px;margin:0 auto;padding:18px 22px}
+h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,#30cc5a,#f63538);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 12px}
+.tf{display:flex;gap:6px}.tf span{font-family:var(--mono);font-size:11.5px;padding:6px 12px;border:1px solid var(--border);border-radius:9px;cursor:pointer;color:var(--fg2);background:var(--bg1)}
+.tf span.on{color:#0a0e14;background:var(--cyan);font-weight:800;border-color:transparent}
+#q{background:var(--bg1);border:1px solid var(--border);border-radius:9px;color:var(--fg-1);padding:7px 12px;font-family:var(--mono);font-size:12px;width:170px}
+.meta{font-family:var(--mono);font-size:11px;color:var(--fg3);margin-left:auto}
+#map{position:relative;width:100%;height:74vh;min-height:560px;background:var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.secblk{position:absolute;border:1px solid #0a0e14}
+.seclab{position:absolute;left:0;top:0;right:0;height:16px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:#cfd6e4;background:rgba(10,14,20,.55);padding:2px 5px;white-space:nowrap;overflow:hidden;z-index:3}
+.tile{position:absolute;border:1px solid rgba(10,14,20,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;font-family:var(--mono)}
+.tile b{font-weight:800;line-height:1}.tile span{opacity:.92;line-height:1.1}
+.tile.dim{filter:brightness(.32)}
+#tip{position:fixed;pointer-events:none;background:#0d1320;border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-family:var(--mono);font-size:11px;color:var(--fg2);z-index:99;display:none;max-width:260px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#tip b{color:var(--fg-1)}
+.lg{display:flex;gap:2px;align-items:center;font-family:var(--mono);font-size:10px;color:var(--fg3)}
+.lg i{width:26px;height:11px;display:inline-block}
+.note{color:var(--fg3);font-size:11px;margin-top:12px;line-height:1.6}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/market-map.html" class="on">🗺 Map</a><a href="/groups.html">Groups</a><a href="/upside-radar.html">Upside</a><a href="/internals.html">Internals</a></nav></header>
+<div class="wrap">
+<h1>Market Map — <span class="grad">S&amp;P 500 treemap</span></h1>
+<div class="bar">
+  <div class="tf" id="tf"><span data-k="c" class="on">1D</span><span data-k="w">1W</span><span data-k="m1">1M</span><span data-k="m3">3M</span><span data-k="m6">6M</span><span data-k="y1">1Y</span></div>
+  <input id="q" placeholder="highlight ticker…">
+  <div class="lg" id="lg"></div>
+  <div class="meta" id="meta">loading…</div>
+</div>
+<div id="map"></div>
+<div id="tip"></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const SCALE={c:3,w:5,m1:10,m3:18,m6:28,y1:45};
+function col(v,k){if(v==null)return '#2b3142';const s=SCALE[k],x=Math.max(-1,Math.min(1,v/s));
+  const lerp=(a,b,t)=>Math.round(a+(b-a)*t);
+  const G=[48,204,90],D=[65,69,84],R=[246,53,56];
+  const c=x>=0?[lerp(D[0],G[0],x),lerp(D[1],G[1],x),lerp(D[2],G[2],x)]:[lerp(D[0],R[0],-x),lerp(D[1],R[1],-x),lerp(D[2],R[2],-x)];
+  return `rgb(${c[0]},${c[1]},${c[2]})`;}
+function squarify(items,x,y,w,h,out){ // items:[{v,...}] desc-sorted
+  if(!items.length)return;
+  if(items.length===1){out.push({...items[0],x,y,w,h});return;}
+  const total=items.reduce((s,i)=>s+i.v,0);
+  let row=[],rest=items.slice(),best=Infinity;
+  const horiz=w>=h, side=horiz?h:w;
+  function worst(row,len){const s=row.reduce((a,b)=>a+b.v,0);const sw=s/total*(horiz?w:h);
+    let m=0;for(const it of row){const l=it.v/s*len;m=Math.max(m,Math.max(sw/l,l/sw));}return m;}
+  while(rest.length){
+    const cand=[...row,rest[0]];
+    const wcur=row.length?worst(row,side):Infinity, wnew=worst(cand,side);
+    if(wnew<=wcur){row=cand;rest.shift();}else break;
+  }
+  const s=row.reduce((a,b)=>a+b.v,0), frac=s/total;
+  if(horiz){const rw=w*frac;let cy=y;for(const it of row){const ih=h*(it.v/s);out.push({...it,x,y:cy,w:rw,h:ih});cy+=ih;}
+    squarify(rest,x+rw,y,w-rw,h,out);}
+  else{const rh=h*frac;let cx=x;for(const it of row){const iw=w*(it.v/s);out.push({...it,x:cx,y,w:iw,h:rh});cx+=iw;}
+    squarify(rest,x,y+rh,w,h-rh,out);}
+}
+let D=null,K='c';
+function render(){
+  if(!D)return;
+  const el=document.getElementById('map');
+  const W=el.clientWidth,H=el.clientHeight;
+  const tiles=(D.tiles||[]).filter(t=>t.mc>0);
+  const bySec={};for(const t of tiles)(bySec[t.s]=bySec[t.s]||[]).push(t);
+  const secs=Object.entries(bySec).map(([s,arr])=>({s,v:arr.reduce((a,b)=>a+b.mc,0),arr}))
+    .sort((a,b)=>b.v-a.v);
+  const blocks=[];squarify(secs.map(s=>({v:s.v,s:s.s,arr:s.arr})),0,0,W,H,blocks);
+  let html='';
+  for(const b of blocks){
+    html+=`<div class="secblk" style="left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px"><div class="seclab">${esc(b.s).toUpperCase()}</div></div>`;
+    const inner=[];const items=b.arr.map(t=>({v:t.mc,t})).sort((a,b2)=>b2.v-a.v);
+    squarify(items,b.x,b.y+16,b.w,Math.max(b.h-16,1),inner);
+    for(const it of inner){
+      const t=it.t,v=t[K],area=it.w*it.h;
+      const fs=Math.max(8,Math.min(22,Math.sqrt(area)/4.2));
+      const showTxt=it.w>34&&it.h>22, showPct=it.w>46&&it.h>34;
+      html+=`<div class="tile" data-t="${t.t}" style="left:${it.x}px;top:${it.y}px;width:${it.w}px;height:${it.h}px;background:${col(v,K)}">${showTxt?`<b style="font-size:${fs}px">${t.t}</b>`:''}${showPct?`<span style="font-size:${Math.max(8,fs*0.62)}px">${v==null?'—':(v>0?'+':'')+v.toFixed(2)}%</span>`:''}</div>`;
+    }
+  }
+  el.innerHTML=html;
+  const q=document.getElementById('q').value.trim().toUpperCase();
+  if(q)document.querySelectorAll('.tile').forEach(x=>x.classList.toggle('dim',!x.dataset.t.includes(q)));
+  const b=D.breadth||{};
+  document.getElementById('meta').textContent=`${D.n_tiles} tiles · adv ${b.advancers}/dec ${b.decliners} · cap-wtd ${b.mcap_weighted_chg>0?'+':''}${b.mcap_weighted_chg}% (1D) · ${esc(D.as_of_session)} · size=${esc(D.size_mode)}`;
+  const lg=document.getElementById('lg');lg.innerHTML='−'+SCALE[K]+'% '+[-1,-.6,-.3,0,.3,.6,1].map(x=>`<i style="background:${col(x*SCALE[K],K)}"></i>`).join('')+' +'+SCALE[K]+'%';
+}
+document.getElementById('tf').onclick=e=>{const k=e.target.dataset.k;if(!k)return;K=k;
+  document.querySelectorAll('#tf span').forEach(x=>x.classList.toggle('on',x.dataset.k===k));render();};
+document.getElementById('q').addEventListener('input',render);
+const tip=document.getElementById('tip');
+document.getElementById('map').addEventListener('mousemove',e=>{
+  const t=e.target.closest('.tile');if(!t){tip.style.display='none';return;}
+  const d=(D.tiles||[]).find(x=>x.t===t.dataset.t);if(!d)return;
+  tip.style.display='block';tip.style.left=Math.min(e.clientX+14,window.innerWidth-280)+'px';tip.style.top=(e.clientY+14)+'px';
+  tip.innerHTML=`<b>${esc(d.t)}</b> · ${esc(d.s)}<br>mcap ${d.mc?'$'+(d.mc/1e9).toFixed(1)+'B':'—'}<br>1D ${d.c>0?'+':''}${d.c}% · 1W ${d.w>0?'+':''}${d.w??'—'}%<br>1M ${d.m1>0?'+':''}${d.m1??'—'}% · 3M ${d.m3>0?'+':''}${d.m3??'—'}%<br>6M ${d.m6>0?'+':''}${d.m6??'—'}% · 1Y ${d.y1>0?'+':''}${d.y1??'—'}%`;
+});
+document.getElementById('map').addEventListener('mouseleave',()=>tip.style.display='none');
+window.addEventListener('resize',()=>render());
+(async()=>{D=await gj('data/market-map.json');
+  if(!D){document.getElementById('meta').textContent='first run pending';return;}
+  render();
+  document.getElementById('note').textContent=`${D.methodology} · v${D.version} · ${D.generated_at} · Research, not advice.`;
+})();
+</script></body></html>

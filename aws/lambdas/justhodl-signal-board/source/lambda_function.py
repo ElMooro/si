@@ -889,6 +889,28 @@ def n_sizing(d):
     return 0, rd
 
 
+def n_market_map(d):
+    b = d.get("breadth") or {}
+    if b.get("advancers") is None:
+        return 0, "Map n/a"
+    a, dec = b["advancers"], b["decliners"]
+    chg = b.get("mcap_weighted_chg") or 0
+    sig = 1 if (a >= dec * 2 and chg >= 0.8) else -1 if (dec >= a * 2 and chg <= -0.8) else 0
+    return sig, (f"S&P breadth {a}/{dec} · cap-wtd {chg:+.2f}% · "
+                  f"{d.get(chr(110)+chr(95)+chr(116)+chr(105)+chr(108)+chr(101)+chr(115))} tiles ({d.get(chr(115)+chr(105)+chr(122)+chr(101)+chr(95)+chr(109)+chr(111)+chr(100)+chr(101))})")
+
+
+def n_sector_groups(d):
+    l = d.get("leadership") or {}
+    top, bot = l.get("top_1m"), l.get("bottom_1m")
+    if not top:
+        return 0, "Groups n/a"
+    DEF = ("Utilities", "Consumer Staples", "Health Care")
+    CYC = ("Technology", "Consumer Discretionary", "Communication Services")
+    sig = -1 if (top in DEF and bot in CYC) else 1 if (top in CYC and bot in DEF) else 0
+    return sig, f"1M leadership: {top} → … → {bot}" + (" (defensive rotation)" if sig < 0 else " (risk-on rotation)" if sig > 0 else "")
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -972,6 +994,8 @@ FEEDS = [
     ("Rotation Radar",         "sentiment",        "data/rotation-radar.json",       n_rotation_radar),
     ("Altseason Tribunal",     "sentiment",        "data/altseason.json",            n_altseason),
     ("Sizing Engine",          "meta",             "data/sizing.json",               n_sizing),
+    ("Market Map (S&P)",       "equity tactical",  "data/market-map.json",           n_market_map),
+    ("Sector Groups",          "equity tactical",  "data/sector-groups.json",        n_sector_groups),
 ]
 
 
