@@ -25,7 +25,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/rotation-radar.json"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
 
 
@@ -38,6 +38,7 @@ def cg(path, tries=3):
         except Exception as e:
             if i == tries - 1:
                 print(f"[cg] {path[:40]}: {str(e)[:50]}")
+                DIAG.append(f"coingecko {path[:38]}: {str(e)[:60]}")
                 return None
             time.sleep(8)
 
@@ -50,6 +51,73 @@ def cg_daily(coin, vs="btc"):
     for ts, px in j.get("prices", []):
         out[datetime.fromtimestamp(ts / 1000, tz=timezone.utc).date().isoformat()] = px
     return sorted(out.items())
+
+
+DIAG = []
+
+
+def cb_daily(product, start="2016-06-01"):
+    """Coinbase Exchange public daily candles, paginated (300/req), no key."""
+    out = {}
+    try:
+        cur = datetime.strptime(start, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        end_all = datetime.now(timezone.utc)
+        while cur < end_all:
+            seg_end = min(cur + timedelta(days=295), end_all)
+            u = (f"https://api.exchange.coinbase.com/products/{product}/candles"
+                 f"?granularity=86400&start={cur.strftime('%Y-%m-%dT00:00:00Z')}"
+                 f"&end={seg_end.strftime('%Y-%m-%dT00:00:00Z')}")
+            req = urllib.request.Request(u, headers=UA)
+            j = json.loads(urllib.request.urlopen(req, timeout=40).read())
+            if isinstance(j, list):
+                for row in j:
+                    try:
+                        d = datetime.fromtimestamp(row[0], tz=timezone.utc).date().isoformat()
+                        out[d] = float(row[4])
+                    except Exception:
+                        pass
+            else:
+                DIAG.append(f"coinbase {product}: {str(j)[:60]}")
+            cur = seg_end
+            time.sleep(0.13)
+    except Exception as e:
+        DIAG.append(f"coinbase {product}: {str(e)[:70]}")
+    return sorted(out.items())
+
+
+def crypto_history():
+    """Source ladder for the crypto leg; every failure lands in DIAG."""
+    ethbtc = cb_daily("ETH-BTC", "2016-06-01")
+    DIAG.append(f"coinbase ETH-BTC: {len(ethbtc)} pts")
+    btc_usd = dict(cb_daily("BTC-USD", "2015-01-15"))
+    eth_usd = dict(cb_daily("ETH-USD", "2016-06-01"))
+    DIAG.append(f"coinbase BTC-USD/ETH-USD: {len(btc_usd)}/{len(eth_usd)} pts")
+    alts = {}
+    for prod, since in (("LTC-USD", "2016-09-01"), ("LINK-USD", "2019-07-01"),
+                         ("ADA-USD", "2021-03-20"), ("DOGE-USD", "2021-06-03"),
+                         ("SOL-USD", "2021-06-01")):
+        s = dict(cb_daily(prod, since))
+        ab = {d: v / btc_usd[d] for d, v in s.items() if btc_usd.get(d)}
+        if len(ab) > 400:
+            alts[prod.split("-")[0]] = ab
+    DIAG.append(f"alt basket coins (USD/BTC-derived): {len(alts)}")
+    if len(ethbtc) < 500:
+        cgs = cg_daily("ethereum", "btc")
+        DIAG.append(f"coingecko ETH/BTC fallback: {len(cgs)} pts")
+        if len(cgs) > len(ethbtc):
+            ethbtc = cgs
+    if len(ethbtc) < 500:
+        pe, pb = dict(poly_closes("X:ETHUSD")), dict(poly_closes("X:BTCUSD"))
+        ks = sorted(set(pe) & set(pb))
+        pr = [(k, pe[k] / pb[k]) for k in ks if pb[k]]
+        DIAG.append(f"polygon X-pair fallback: {len(pr)} pts")
+        if len(pr) > len(ethbtc):
+            ethbtc = pr
+        if not eth_usd:
+            eth_usd = pe
+        if not btc_usd:
+            btc_usd = pb
+    return ethbtc, alts, btc_usd, eth_usd
 
 
 def poly_closes(t, days=4200):
@@ -138,15 +206,8 @@ def lambda_handler(event=None, context=None):
            "generated_at": datetime.now(timezone.utc).isoformat()}
 
     # ── CRYPTO: ETH/BTC + alt basket (in BTC and USD) ──
-    ethbtc = cg_daily("ethereum", "btc")
-    alts = {}
-    for c in ("litecoin", "ripple", "cardano", "dogecoin", "chainlink"):
-        s = cg_daily(c, "btc")
-        if len(s) > 400:
-            alts[c] = dict(s)
-        time.sleep(1.2)
-    btc_usd = dict(cg_daily("bitcoin", "usd"))
-    eth_usd = dict(cg_daily("ethereum", "usd"))
+    DIAG.clear()
+    ethbtc, alts, btc_usd, eth_usd = crypto_history()
     crypto = {"available": bool(len(ethbtc) > 500 and alts)}
     if crypto["available"]:
         dates = [d for d, _ in ethbtc]
@@ -181,6 +242,7 @@ def lambda_handler(event=None, context=None):
         # BTC-dominance proxy: ETH/BTC slope + basket/BTC slope combined
         b_ser = sorted(basket.items())
         crypto["live"]["alt_basket_btc"] = live_state(b_ser)
+    crypto["diagnostics"] = list(DIAG)
     out["crypto"] = crypto
 
     # ── EQUITIES: appetite ratios → spec-complex sequels ──
@@ -321,7 +383,7 @@ def lambda_handler(event=None, context=None):
         "≥25% off-low ≤60 sessions) and five equity appetite ratios (≥12%), each with "
         "real forward sequels (alt basket in BTC, ETH/USD, IWM/SPY relative, XBI) and n. "
         "Live detectors score thrust-armed states; fresh thrusts log to the closed loop "
-        "at sequel-table confidence. CoinGecko histories where exchange data allows — "
+        "at sequel-table confidence. Coinbase Exchange daily candles (primary) with CoinGecko/Polygon fallbacks — "
         "coverage honest.")
     out["duration_s"] = round(time.time() - t0, 1)
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
