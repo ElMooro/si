@@ -33,7 +33,7 @@ svg.spark{vertical-align:middle}
 <div class="sec">Mode A — Rule Archetypes (out-of-sample)</div>
 <div style="overflow-x:auto"><table><thead><tr><th>Rule</th><th>Family</th><th>OOS trades</th><th>Hit %</th><th>Avg excess</th><th>OOS Sharpe</th><th>Gate (E[maxSR])</th><th>Max DD</th><th>Equity (OOS)</th><th>Verdict</th></tr></thead><tbody id="ta"></tbody></table></div>
 <div class="sec">Mode B — Live Signal Types (independently re-graded, 21d excess vs SPY)</div>
-<div style="overflow-x:auto"><table><thead><tr><th>Signal type</th><th>Graded</th><th>Pending</th><th>Hit %</th><th>Avg excess %</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div style="overflow-x:auto"><table><thead><tr><th>Signal type</th><th>Graded</th><th>Pending</th><th>Hit %</th><th>Avg excess %</th><th>Median %</th><th>Artifacts</th></tr></thead><tbody id="tb"></tbody></table></div>
 <div class="note" id="note"></div>
 </div>
 <script>
@@ -60,8 +60,10 @@ function spark(c){if(!c||c.length<2)return'';const w=110,h=26,mn=Math.min(...c),
   document.getElementById('tb').innerHTML=(D.live_signal_types||[]).map(r=>`<tr>
     <td><b>${esc(r.signal_type)}</b></td><td>${r.graded}</td><td style="color:var(--fg3)">${r.pending}</td>
     <td class="${(r.hit_pct||0)>=55?'hi':''}">${r.hit_pct??'—'}</td>
-    <td class="${(r.avg_excess_pct||0)>0?'hi':'lo'}">${r.avg_excess_pct??'—'}</td></tr>`).join('')
-    ||'<tr><td colspan="5" style="color:var(--fg3)">no graded live signals yet</td></tr>';
+    <td class="${(r.avg_excess_pct||0)>0?'hi':'lo'}">${r.avg_excess_pct??'—'}</td>
+    <td class="${(r.median_excess_pct||0)>0?'hi':'lo'}">${r.median_excess_pct??'—'}</td>
+    <td style="color:var(--fg3)">${r.artifacts||0}</td></tr>`).join('')
+    ||'<tr><td colspan="7" style="color:var(--fg3)">no graded live signals yet</td></tr>';
   document.getElementById('note').textContent=`${D.methodology} v${D.version} · ${D.generated_at} · ${D.duration_s}s`;
 })();
 </script></body></html>

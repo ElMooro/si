@@ -29,7 +29,7 @@ HORIZON = 21
 N_UNIVERSE = 1500
 WARMUP = 110
 N_FOLDS = 3
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 DIAG = []
 
 
@@ -275,11 +275,12 @@ def mode_b(uni_full, spy, last_date):
         sid = it.get("signal_id") or ""
         ty = it.get("signal_type") or (sid.split("#")[0] if "#" in sid else None) \
               or it.get("type") or "unknown"
+        ty = str(ty).replace("-", "_")
         tick = it.get("ticker")
         ep = int(it.get("logged_epoch") or 0)
         age_td = (now - ep) / 86400 * (252 / 365.0)
         if age_td < HORIZON + 2:
-            by_type.setdefault(ty, {"pending": 0, "trades": []})["pending"] += 1
+            by_type.setdefault(ty, {"pending": 0, "trades": [], "artifacts": 0})["pending"] += 1
             continue
         d0 = datetime.fromtimestamp(ep, tz=timezone.utc).date().isoformat()
         key = f"{tick}"
@@ -305,12 +306,16 @@ def mode_b(uni_full, spy, last_date):
                 if b0 and b1:
                     rb = b1 / b0 - 1
                 else:
-                    by_type.setdefault(ty, {"pending": 0, "trades": []})["pending"] += 1
+                    by_type.setdefault(ty, {"pending": 0, "trades": [], "artifacts": 0})["pending"] += 1
                     continue
                 ex = (rr - rb) * (1 if (it.get("predicted_direction") or "UP") == "UP" else -1)
-                by_type.setdefault(ty, {"pending": 0, "trades": []})["trades"].append(ex)
+                slot = by_type.setdefault(ty, {"pending": 0, "trades": [], "artifacts": 0})
+                if abs(ex) > 3.0:      # split-unadjusted / bad-series artifact, not a trade
+                    slot["artifacts"] = slot.get("artifacts", 0) + 1
+                else:
+                    slot["trades"].append(ex)
                 continue
-        by_type.setdefault(ty, {"pending": 0, "trades": []})["pending"] += 1
+        by_type.setdefault(ty, {"pending": 0, "trades": [], "artifacts": 0})["pending"] += 1
     st["pxc"] = {k: v for k, v in list(pxc.items())[-400:]}
     S3.put_object(Bucket=BUCKET, Key=STATE_KEY, Body=json.dumps(st).encode(),
                   ContentType="application/json")
@@ -318,11 +323,15 @@ def mode_b(uni_full, spy, last_date):
     for ty, d in by_type.items():
         tr = d["trades"]
         n = len(tr)
-        row = {"signal_type": ty, "graded": n, "pending": d["pending"]}
+        row = {"signal_type": ty, "graded": n, "pending": d["pending"],
+                "artifacts": d.get("artifacts", 0)}
         if n >= 3:
             m = sum(tr) / n
+            sv = sorted(tr)
+            med = sv[n // 2] if n % 2 else (sv[n // 2 - 1] + sv[n // 2]) / 2
             row |= {"hit_pct": round(sum(1 for x in tr if x > 0) / n * 100, 1),
-                     "avg_excess_pct": round(m * 100, 2)}
+                     "avg_excess_pct": round(m * 100, 2),
+                     "median_excess_pct": round(med * 100, 2)}
         table.append(row)
     table.sort(key=lambda x: -(x.get("graded") or 0))
     return table
