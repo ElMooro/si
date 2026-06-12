@@ -1,0 +1,220 @@
+{
+ "ops": 1627,
+ "fn_err": "NONE",
+ "verify": {
+  "version": "1.1.0",
+  "duration_s": 2.0,
+  "diag": [
+   "sp cache: 500 cached, 0 refreshed",
+   "catalyst joins: index-inclusion 25, overlap 40"
+  ],
+  "sp_rows": 500,
+  "labels": {
+   "CHEAP": 82,
+   "FAIR": 319,
+   "RICH": 99
+  },
+  "vclass_hist": {
+   "VALUE TRAP RISK": 13,
+   "POTENTIALLY UNDERVALUED": 66,
+   "LOW MULTIPLE": 3,
+   "SECTOR MID": 319,
+   "HIGH MULTIPLE": 99
+  },
+  "hp_class_hist": {
+   "TURNAROUND": 18,
+   "DEEP VALUE": 14,
+   "MIXED": 19,
+   "MOMENTUM (not cheap)": 12,
+   "GARP": 8,
+   "QUALITY AT PREMIUM": 9
+  },
+  "undervalued_head": [
+   {
+    "t": "UAL",
+    "sector": "Industrials",
+    "value_pct": 6.0,
+    "pe": 10.29,
+    "ps": 0.62,
+    "roe": 0.2491,
+    "fcf_y": 0.0856,
+    "rev_g": 3.5,
+    "gf_gap": -17.8
+   },
+   {
+    "t": "FISV",
+    "sector": "Technology",
+    "value_pct": 6.0,
+    "pe": 9.02,
+    "ps": 1.36,
+    "roe": 0.1251,
+    "fcf_y": 0.1445,
+    "rev_g": 3.6,
+    "gf_gap": 65.0
+   },
+   {
+    "t": "EG",
+    "sector": "Financials",
+    "value_pct": 6.0,
+    "pe": 6.72,
+    "ps": 0.78,
+    "roe": 0.1331,
+    "fcf_y": 0.2128,
+    "rev_g": 1.4,
+    "gf_gap": 45.9
+   },
+   {
+    "t": "DAL",
+    "sector": "Industrials",
+    "value_pct": 7.0,
+    "pe": 12.09,
+    "ps": 0.84,
+    "roe": 0.2314,
+    "fcf_y": 0.0719,
+    "rev_g": 2.8,
+    "gf_gap": 32.2
+   },
+   {
+    "t": "UHS",
+    "sector": "Health Care",
+    "value_pct": 7.0,
+    "pe": 5.91,
+    "ps": 0.52,
+    "roe": 0.2093,
+    "fcf_y": 0.0969,
+    "rev_g": 9.7,
+    "gf_gap": 55.5
+   },
+   {
+    "t": "VICI",
+    "sector": "Real Estate",
+    "value_pct": 7.0,
+    "pe": 9.79,
+    "ps": 7.57,
+    "roe": 0.1122,
+    "fcf_y": 0.0832,
+    "rev_g": 4.1,
+    "gf_gap": 47.3
+   }
+  ],
+  "trap_head": [
+   {
+    "t": "HPQ",
+    "sector": "Technology",
+    "value_pct": 5.0,
+    "rev_g": 3.2,
+    "fcf_y": 0.1644,
+    "roe": -4.7344
+   },
+   {
+    "t": "PRU",
+    "sector": "Financials",
+    "value_pct": 12.0,
+    "rev_g": -14.0,
+    "fcf_y": 0.2601,
+    "roe": 0.1091
+   },
+   {
+    "t": "APA",
+    "sector": "Energy",
+    "value_pct": 14.0,
+    "rev_g": -8.4,
+    "fcf_y": 0.1135,
+    "roe": 0.2511
+   },
+   {
+    "t": "HCA",
+    "sector": "Health Care",
+    "value_pct": 17.0,
+    "rev_g": 7.1,
+    "fcf_y": 0.0918,
+    "roe": -1.232
+   },
+   {
+    "t": "SYF",
+    "sector": "Financials",
+    "value_pct": 17.0,
+    "rev_g": -7.9,
+    "fcf_y": 0.3973,
+    "roe": 0.2141
+   },
+   {
+    "t": "BLDR",
+    "sector": "Industrials",
+    "value_pct": 19.0,
+    "rev_g": -7.4,
+    "fcf_y": 0.1026,
+    "roe": 0.0692
+   }
+  ],
+  "neg_pe_sample": {
+   "t": "GPN",
+   "pe": -23.03,
+   "value_pct": 25.0,
+   "label": "CHEAP",
+   "vclass": "VALUE TRAP RISK"
+  },
+  "aapl": {
+   "label": "FAIR",
+   "vclass": "SECTOR MID",
+   "value_pct": 59.0
+  },
+  "spnt": {
+   "score": 73.0,
+   "hp_class": "DEEP VALUE",
+   "soft_flags": [
+    "financial: EV/GM/cash-vs-debt n/m, neutral-scored"
+   ]
+  },
+  "spnt_cats": {
+   "revenue_growth": 8,
+   "valuation": 9.0,
+   "balance_sheet": 6,
+   "runway": 10,
+   "gross_margin": 6,
+   "dilution": 10,
+   "catalyst_proxy": 3,
+   "insider": 3,
+   "chart": 10,
+   "sector_tailwind": 8
+  },
+  "frsh": {
+   "score": 79.0,
+   "hp_class": "TURNAROUND"
+  },
+  "ramp_class": "TURNAROUND",
+  "n_serious": 2,
+  "hp_top": [
+   [
+    "FRSH",
+    79.0,
+    "TURNAROUND"
+   ],
+   [
+    "RAMP",
+    77.0,
+    "TURNAROUND"
+   ],
+   [
+    "SPNT",
+    73.0,
+    "DEEP VALUE"
+   ],
+   [
+    "NTCT",
+    71.5,
+    "MIXED"
+   ],
+   [
+    "GRDN",
+    71.5,
+    "TURNAROUND"
+   ],
+   [
+    "COHU",
+    71.0,
+    "MOMENTUM (not cheap)"
+   ]
+  ]
+ }
+}
