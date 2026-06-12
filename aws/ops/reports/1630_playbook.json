@@ -1,0 +1,132 @@
+{
+ "ops": 1630,
+ "fn_err": "NONE",
+ "verify": {
+  "version": "1.3.0",
+  "duration_s": 219.7,
+  "diag": [
+   "v1.3.0: full refetch (SBC/rev, gross-margin history, HP SBC capture)",
+   "ratios-annual keys sample: enterpriseValueMultiple,forwardPriceToEarningsGrowthRatio,priceToBookRatio,priceToEarningsGrowthRatio,priceToEarningsRatio,priceToFairValue,priceToFreeCashFlowRatio,priceToOperatingCashFlowRatio,priceToSalesRatio",
+   "hist cache: 496 names with >=5y, 500 refreshed"
+  ],
+  "hist_coverage": 496,
+  "n_deep_discount": 41,
+  "aapl": {
+   "value_pct": 59.0,
+   "hist_pct": 93.0,
+   "vclass": "SECTOR MID"
+  },
+  "nvda": {
+   "value_pct": 67.0,
+   "hist_pct": 31.0
+  },
+  "aapl_new": {
+   "rule40": 35.0,
+   "sbc_rev": null
+  },
+  "cycle_notes": [
+   {
+    "t": "SWKS",
+    "note": "CYCLE-TROUGH candidate (depressed margins)",
+    "pe": 30.78,
+    "gm": 0.4107
+   },
+   {
+    "t": "NVDA",
+    "note": "PEAK-CYCLE? low P/E at peak margins",
+    "pe": 31.21,
+    "gm": 0.7415
+   },
+   {
+    "t": "TXN",
+    "note": "CYCLE-TROUGH candidate (depressed margins)",
+    "pe": 51.0,
+    "gm": 0.5732
+   },
+   {
+    "t": "INTC",
+    "note": "CYCLE-TROUGH candidate (depressed margins)",
+    "pe": -199.49,
+    "gm": 0.3543
+   },
+   {
+    "t": "MPWR",
+    "note": "CYCLE-TROUGH candidate (depressed margins)",
+    "pe": 114.67,
+    "gm": 0.5518
+   }
+  ],
+  "hp_sample": [
+   {
+    "t": "FRSH",
+    "score": 79.0,
+    "class": "TURNAROUND",
+    "f21": false,
+    "rule40": 45.0,
+    "fcf_margin": 29.2,
+    "sbc_pct_rev": 16.0,
+    "capex_pct_rev": 0.1,
+    "op_leverage": 0.8
+   },
+   {
+    "t": "RAMP",
+    "score": 77.0,
+    "class": "TURNAROUND",
+    "f21": false,
+    "rule40": 30.0,
+    "fcf_margin": 20.7,
+    "sbc_pct_rev": 5.6,
+    "capex_pct_rev": 0.1,
+    "op_leverage": -0.5
+   },
+   {
+    "t": "SPNT",
+    "score": 73.0,
+    "class": "DEEP VALUE",
+    "f21": false,
+    "rule40": 32.0,
+    "fcf_margin": 10.1,
+    "sbc_pct_rev": 0.0,
+    "capex_pct_rev": 0.0,
+    "op_leverage": 88.6
+   },
+   {
+    "t": "NTCT",
+    "score": 71.5,
+    "class": "MIXED",
+    "f21": false,
+    "rule40": 38.0,
+    "fcf_margin": 33.2,
+    "sbc_pct_rev": 7.0,
+    "capex_pct_rev": 1.1,
+    "op_leverage": -0.2
+   },
+   {
+    "t": "GRDN",
+    "score": 71.5,
+    "class": "TURNAROUND",
+    "f21": false,
+    "rule40": 18.0,
+    "fcf_margin": 4.8,
+    "sbc_pct_rev": 0.7,
+    "capex_pct_rev": 1.3,
+    "op_leverage": 6.6
+   },
+   {
+    "t": "COHU",
+    "score": 71.0,
+    "class": "MOMENTUM (not cheap)",
+    "f21": false,
+    "rule40": 31.0,
+    "fcf_margin": 8.3,
+    "sbc_pct_rev": 2.4,
+    "capex_pct_rev": 2.5,
+    "op_leverage": -14.4
+   }
+  ],
+  "f21_list": [
+   "TRMK"
+  ],
+  "n_serious2": 2
+ }
+}
