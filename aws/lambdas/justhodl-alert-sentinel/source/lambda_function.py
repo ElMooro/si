@@ -26,7 +26,7 @@ STATE_KEY = "data/_alerts/last.json"
 OUT_KEY = "data/alert-sentinel.json"
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 DIAG = []
 
 
@@ -110,6 +110,16 @@ def snapshot():
     s["hp_serious"] = sorted(x.get("t") for x in ser if x.get("t"))[:12]
     s["_hp_detail"] = {x["t"]: f"HP {x.get('score')}/100" for x in ser if x.get("t")}
 
+    rp = gj("data/research-papers.json")
+    pidx = (rp.get("papers") or [])[:12]
+    s["papers"] = sorted(e.get("t") for e in pidx if e.get("t"))
+    s["_paper_detail"] = {e["t"]: f"{(e.get('title') or '')[:70]} ({e.get('conviction')}/10)"
+                           for e in pidx if e.get("t")}
+    ult = (sv.get("underlooked_top") or [{}])[0]
+    s["ul_leader"] = ult.get("t")
+    s["_ul_detail"] = (f"UL {ult.get('underlooked')} · {ult.get('class')} · "
+                        f"{(ult.get('industry') or '')[:30]}") if ult.get("t") else ""
+
     cc = gj("data/crisis-canaries.json")
     s["canary_reds"] = sorted(k for k, v in (cc.get("canaries") or {}).items()
                                 if isinstance(v, dict) and v.get("family")
@@ -142,6 +152,15 @@ def diff(old, new):
         add = sorted(n - o)
         if add:
             msgs.append(f"{emoji} {label}: {', '.join(add[:12])}" + (" …" if len(add) > 12 else ""))
+    # 📜 research papers: announce each new note
+    op_, np_ = set(old.get("papers") or []), set(new.get("papers") or [])
+    for k in sorted(np_ - op_):
+        msgs.append(f"📜 New research note — {k}: "
+                     f"{(new.get('_paper_detail') or {}).get(k, '')}")
+    if (new.get("ul_leader") and old.get("ul_leader")
+            and new["ul_leader"] != old["ul_leader"]):
+        msgs.append(f"🔭 Underlooked #1 → {new['ul_leader']} "
+                     f"({new.get('_ul_detail')})")
     # 🏆 HP-Score: new >=75 clean names ("worth serious research")
     oh, nh = set(old.get("hp_serious") or []), set(new.get("hp_serious") or [])
     for k in sorted(nh - oh):
