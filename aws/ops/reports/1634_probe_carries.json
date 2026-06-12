@@ -1,0 +1,83 @@
+{
+ "ops": 1634,
+ "probes": {
+  "insider_ownership": {
+   "ok": false,
+   "err": "HTTP Error 404: Not Found"
+  },
+  "institutional_ownership": {
+   "ok": false,
+   "err": "HTTP Error 404: Not Found"
+  },
+  "institutional_holders": {
+   "ok": false,
+   "err": "HTTP Error 404: Not Found"
+  },
+  "share_float": {
+   "ok": true,
+   "type": "list",
+   "n": 1,
+   "keys": [
+    "date",
+    "floatShares",
+    "freeFloat",
+    "outstandingShares",
+    "source",
+    "symbol"
+   ]
+  },
+  "km_sbc_keys": [
+   "stockBasedCompensationToRevenueTTM"
+  ],
+  "finra_short": {
+   "top_keys": [
+    "config",
+    "data_date",
+    "elapsed_seconds",
+    "generated_at",
+    "generated_at_unix",
+    "market_composite",
+    "sectors",
+    "squeeze_candidates",
+    "tickers",
+    "top_svr",
+    "top_zscore",
+    "version"
+   ],
+   "squeeze_n": 30,
+   "row_keys": [
+    "days_to_cover",
+    "momentum_pct",
+    "name",
+    "price_strength",
+    "sector",
+    "short_volume",
+    "squeeze_flags",
+    "squeeze_score",
+    "svr_pct",
+    "symbol",
+    "total_volume",
+    "z_score"
+   ],
+   "has_full_map": true
+  }
+ },
+ "sentinel": {
+  "version": "1.4.0",
+  "n_changes": 20,
+  "state_saved": false,
+  "papers_watch": [
+   "BBUC",
+   "HLMN",
+   "LOB",
+   "OPRA"
+  ],
+  "ul_leader": "OPRA",
+  "new_msgs": [
+   "\ud83d\udcdc New research note \u2014 BBUC: BBUC (Brookfield Business Corporation) \u2014 Unloved Conglomerate Hiding i (5/10)",
+   "\ud83d\udcdc New research note \u2014 HLMN: Hillman Solutions Corp. (HLMN) \u2013 Deep Value Hardware Distributor Tradi (5/10)",
+   "\ud83d\udcdc New research note \u2014 LOB: Live Oak Bancshares (LOB): Niche SBA Fintech-Bank Hybrid Trading at a  (6/10)",
+   "\ud83d\udcdc New research note \u2014 OPRA: Opera Limited (OPRA): Profitable, Cash-Rich Browser Franchise Trading  (6/10)"
+  ]
+ }
+}
