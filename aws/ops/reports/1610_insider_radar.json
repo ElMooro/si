@@ -1,0 +1,149 @@
+{
+ "ops": 1610,
+ "fn": "created",
+ "fn_err": "NONE",
+ "log_tail": "START RequestId: 29577615-2a62-4873-9efc-5565113180f4 Version: $LATEST\n[insider] src=fmp buys=56 clusters=2 decline_clusters=0 1.8s\nEND RequestId: 29577615-2a62-4873-9efc-5565113180f4\nREPORT RequestId: 29577615-2a62-4873-9efc-5565113180f4\tDuration: 1859.52 ms\tBilled Duration: 2444 ms\tMemory Size: 512 MB\tMax Memory Used: 157 MB\tInit Duration: 583.67 ms\t\n",
+ "verify": {
+  "source_used": "fmp",
+  "n_raw": 1000,
+  "n_buys": 56,
+  "n_sells": 447,
+  "diagnostics": [
+   "fmp/search: 1000 rows",
+   "rings: 6073"
+  ],
+  "buys_head": [
+   {
+    "ticker": "ARTV",
+    "date": "2026-06-11",
+    "insider": "RA CAPITAL MANAGEMENT, L.P.",
+    "title": "director, 10 percent owner: ",
+    "type": "P-Purchase",
+    "shares": 548580.0,
+    "price": 7.91,
+    "value": 4339267.8,
+    "w": 1.8,
+    "score": 37.5
+   },
+   {
+    "ticker": "STEP",
+    "date": "2026-06-11",
+    "insider": "McCabe Michael I",
+    "title": "director, officer: Head of Strategy",
+    "type": "P-Purchase",
+    "shares": 96887.0,
+    "price": 41.71,
+    "value": 4041156.77,
+    "w": 1.8,
+    "score": 36.2
+   },
+   {
+    "ticker": "ARTV",
+    "date": "2026-06-09",
+    "insider": "RA CAPITAL MANAGEMENT, L.P.",
+    "title": "director, 10 percent owner: ",
+    "type": "P-Purchase",
+    "shares": 479039.0,
+    "price": 6.91,
+    "value": 3310159.49,
+    "w": 1.8,
+    "score": 32.7
+   },
+   {
+    "ticker": "BKKT",
+    "date": "2026-06-09",
+    "insider": "ALFRED MICHAEL",
+    "title": "director",
+    "type": "P-Purchase",
+    "shares": 180000.0,
+    "price": 7.71,
+    "value": 1387800.0,
+    "w": 1.8,
+    "score": 21.2
+   },
+   {
+    "ticker": "AII",
+    "date": "2026-06-09",
+    "insider": "SOWELL JAMES E",
+    "title": "10 percent owner",
+    "type": "P-Purchase",
+    "shares": 79497.0,
+    "price": 16.85,
+    "value": 1339524.4500000002,
+    "w": 1.0,
+    "score": 11.6
+   },
+   {
+    "ticker": "STEP",
+    "date": "2026-06-11",
+    "insider": "McCabe Michael I",
+    "title": "director, officer: Head of Strategy",
+    "type": "P-Purchase",
+    "shares": 23113.0,
+    "price": 42.44,
+    "value": 980915.72,
+    "w": 1.8,
+    "score": 17.8
+   }
+  ],
+  "clusters": [
+   {
+    "ticker": "MBBC",
+    "n_insiders": 4,
+    "n_buys": 24,
+    "total_value": 105104,
+    "span_days": 7,
+    "first": "2026-06-03",
+    "last": "2026-06-10",
+    "max_rank_w": 3.0,
+    "ret_60d_pct": null,
+    "names": [
+     "Cornish Terry",
+     "Knopf Michelle",
+     "Spatz Nora",
+     "Zillges Nicholas W"
+    ]
+   },
+   {
+    "ticker": "GUTS",
+    "n_insiders": 3,
+    "n_buys": 3,
+    "total_value": 94110,
+    "span_days": 0,
+    "first": "2026-06-10",
+    "last": "2026-06-10",
+    "max_rank_w": 3.0,
+    "ret_60d_pct": null,
+    "names": [
+     "BRADLEY WILLIAM",
+     "Rajagopalan Harith",
+     "Sheffield Ian"
+    ]
+   }
+  ],
+  "decline_clusters": [],
+  "decline_buys_head": [
+   {
+    "ticker": "STTK",
+    "date": "2026-06-09",
+    "insider": "SIEGALL CLAY B",
+    "title": "director",
+    "type": "P-Purchase",
+    "shares": 62500.0,
+    "price": 4.0,
+    "value": 250000.0,
+    "w": 1.8,
+    "score": 9.0,
+    "ret_60d_pct": -31.4
+   }
+  ],
+  "logged": []
+ },
+ "sb_err": "NONE",
+ "board_n": 76,
+ "board_row": {
+  "signal": 0,
+  "signal_label": "NEUTRAL",
+  "read": "56 buys 30d \u00b7 2 clusters \u00b7 0 after-decline"
+ }
+}
