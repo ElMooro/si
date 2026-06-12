@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -541,6 +541,8 @@ def lambda_handler(event=None, context=None):
             for k in RATIO_LADDERS:
                 row[k] = (round(r[k], 4 if k in PCT4 else 2)
                            if r.get(k) is not None else None)
+            row["sbc_rev"] = (round(r["sbc_rev"], 4)
+                               if r.get("sbc_rev") is not None else None)
             row.update({"rev_g": round(r["rev_g"] * 100, 1) if r.get("rev_g") is not None else None,
                          "eps_g": round(r["eps_g"] * 100, 1) if r.get("eps_g") is not None else None,
                          "fcf_g": round(r["fcf_g"] * 100, 1) if r.get("fcf_g") is not None else None,
