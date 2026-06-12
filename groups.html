@@ -45,8 +45,8 @@ function render(){
     return `<div class="row"><div class="nm"><b>${esc(g.etf)}</b> ${esc(g.sector)}</div>
      <div class="bw"><i style="${v>=0?`left:50%;background:var(--green)`:`right:50%;background:var(--red)`};width:${wpct}%"></i><i style="left:50%;width:1px;background:var(--border)"></i></div>
      <div class="v ${v>=0?'hi':'lo'}">${v==null?'—':(v>0?'+':'')+v+'%'}</div></div>`;}).join('');
-  document.getElementById('tbl').innerHTML=`<table><thead><tr><th>Sector</th><th>1D</th><th>1W</th><th>1M</th><th>3M</th><th>6M</th><th>1Y</th><th>YTD</th><th>RS 3M vs SPY</th><th>Vol×20d</th><th>Breadth A/D</th></tr></thead><tbody>${
-   (D.groups||[]).map(g=>`<tr><td><b>${esc(g.etf)}</b> ${esc(g.sector)}</td>${['c','w','m1','m3','m6','y1','ytd'].map(k=>{const v=g.perf[k];return `<td class="${v>0?'hi':v<0?'lo':''}">${v==null?'—':(v>0?'+':'')+v}%</td>`;}).join('')}<td class="${g.rs_3m_vs_spy>0?'hi':'lo'}">${g.rs_3m_vs_spy==null?'—':(g.rs_3m_vs_spy>0?'+':'')+g.rs_3m_vs_spy}</td><td class="${g.vol_x_20d>=1.5?'hi':''}">${g.vol_x_20d??'—'}×</td><td>${g.breadth?.adv??'—'}/${g.breadth?.dec??'—'}</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('tbl').innerHTML=`<table><thead><tr><th>Sector</th><th>1D</th><th>1W</th><th>1M</th><th>3M</th><th>6M</th><th>1Y</th><th>YTD</th><th>RS 3M vs SPY</th><th>Vol×20d</th><th>Med P/S</th><th>Breadth A/D</th></tr></thead><tbody>${
+   (D.groups||[]).map(g=>`<tr><td><b>${esc(g.etf)}</b> ${esc(g.sector)}</td>${['c','w','m1','m3','m6','y1','ytd'].map(k=>{const v=g.perf[k];return `<td class="${v>0?'hi':v<0?'lo':''}">${v==null?'—':(v>0?'+':'')+v}%</td>`;}).join('')}<td class="${g.rs_3m_vs_spy>0?'hi':'lo'}">${g.rs_3m_vs_spy==null?'—':(g.rs_3m_vs_spy>0?'+':'')+g.rs_3m_vs_spy}</td><td class="${g.vol_x_20d>=1.5?'hi':''}">${g.vol_x_20d??'—'}×</td><td>${g.ps_median??'—'}×</td><td>${g.breadth?.adv??'—'}/${g.breadth?.dec??'—'}</td></tr>`).join('')}</tbody></table>`;
 }
 document.getElementById('tf').onclick=e=>{const k=e.target.dataset.k;if(!k)return;K=k;
   document.querySelectorAll('#tf span').forEach(x=>x.classList.toggle('on',x.dataset.k===k));render();};

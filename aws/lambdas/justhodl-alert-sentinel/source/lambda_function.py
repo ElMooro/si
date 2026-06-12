@@ -26,7 +26,7 @@ STATE_KEY = "data/_alerts/last.json"
 OUT_KEY = "data/alert-sentinel.json"
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 DIAG = []
 
 
@@ -98,6 +98,13 @@ def snapshot():
     s["altseason_phase"] = ((alt.get("composite") or {}).get("phase")
                              or alt.get("phase") or alt.get("verdict"))
 
+    mp2 = gj("data/market-map.json")
+    cands = (mp2.get("cheap_candidates") or [])[:10]
+    s["value_pump"] = [c.get("t") for c in cands if c.get("t")]
+    s["_vp_detail"] = {c["t"]: (f"P/S {c.get('ps')} vs sector {c.get('sector_ps_median')} "
+                                  f"({c.get('discount_pct')}% disc), 3M {c.get('m3')}%")
+                        for c in cands if c.get("t")}
+
     cc = gj("data/crisis-canaries.json")
     s["canary_reds"] = sorted(k for k, v in (cc.get("canaries") or {}).items()
                                 if isinstance(v, dict) and v.get("family")
@@ -130,6 +137,11 @@ def diff(old, new):
         add = sorted(n - o)
         if add:
             msgs.append(f"{emoji} {label}: {', '.join(add[:12])}" + (" …" if len(add) > 12 else ""))
+    # 💎 value-pump: new sector-cheap P/S + momentum candidates
+    ov, nv = set(old.get("value_pump") or []), set(new.get("value_pump") or [])
+    for k in sorted(nv - ov):
+        msgs.append(f"💎 New value-momentum candidate — {k}: "
+                     f"{(new.get('_vp_detail') or {}).get(k, '')}")
     # crisis canaries: name each newly-red canary with its detail
     oc, nc = set(old.get("canary_reds") or []), set(new.get("canary_reds") or [])
     for k in sorted(nc - oc):

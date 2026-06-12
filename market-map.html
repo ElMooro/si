@@ -24,18 +24,24 @@ h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,#30cc5a,#f
 .lg{display:flex;gap:2px;align-items:center;font-family:var(--mono);font-size:10px;color:var(--fg3)}
 .lg i{width:26px;height:11px;display:inline-block}
 .note{color:var(--fg3);font-size:11px;margin-top:12px;line-height:1.6}
+table.ch{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table.ch th{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:8px;border-bottom:1px solid var(--border);background:var(--bg2)}
+table.ch th:first-child,table.ch td:first-child{text-align:left}table.ch td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+.gn{color:#34d399}.rd{color:#ff5577}
 </style></head><body>
 <header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
 <nav><a href="/">Desk</a><a href="/market-map.html" class="on">🗺 Map</a><a href="/groups.html">Groups</a><a href="/upside-radar.html">Upside</a><a href="/internals.html">Internals</a></nav></header>
 <div class="wrap">
 <h1>Market Map — <span class="grad">S&amp;P 500 treemap</span></h1>
 <div class="bar">
-  <div class="tf" id="tf"><span data-k="c" class="on">1D</span><span data-k="w">1W</span><span data-k="m1">1M</span><span data-k="m3">3M</span><span data-k="m6">6M</span><span data-k="y1">1Y</span><span data-k="hi">52W-HI</span><span data-k="rs">RS</span></div>
+  <div class="tf" id="tf"><span data-k="c" class="on">1D</span><span data-k="w">1W</span><span data-k="m1">1M</span><span data-k="m3">3M</span><span data-k="m6">6M</span><span data-k="y1">1Y</span><span data-k="hi">52W-HI</span><span data-k="rs">RS</span><span data-k="ps">P/S</span></div>
   <input id="q" placeholder="highlight ticker…"><button id="dl" style="background:var(--bg1);border:1px solid var(--border);border-radius:9px;color:var(--fg2);padding:6px 12px;font-family:var(--mono);font-size:11px;cursor:pointer">⬇ CSV</button>
   <div class="lg" id="lg"></div>
   <div class="meta" id="meta">loading…</div>
 </div>
 <div id="map"></div>
+<div style="font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:22px 0 9px;text-transform:uppercase">💎 Cheap on P/S — sector-relative bottom quintile · momentum confirming</div>
+<div id="cheap" style="overflow-x:auto"></div>
 <div id="tip"></div>
 <div class="note" id="note"></div>
 </div>
@@ -44,7 +50,7 @@ const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 const SCALE={c:3,w:5,m1:10,m3:18,m6:28,y1:45,rs:15};
-function col(v,k){if(v==null)return '#2b3142';let x;if(k==='hi'){x=Math.max(-1,Math.min(1,(v+30)/15-1));}else{const s=SCALE[k];x=Math.max(-1,Math.min(1,v/s));}
+function col(v,k){if(v==null)return '#2b3142';let x;if(k==='ps'){x=1-2*Math.max(0,Math.min(1,v/12));}else if(k==='hi'){x=Math.max(-1,Math.min(1,(v+30)/15-1));}else{const s=SCALE[k];x=Math.max(-1,Math.min(1,v/s));}
   const lerp=(a,b,t)=>Math.round(a+(b-a)*t);
   const G=[48,204,90],D=[65,69,84],R=[246,53,56];
   const c=x>=0?[lerp(D[0],G[0],x),lerp(D[1],G[1],x),lerp(D[2],G[2],x)]:[lerp(D[0],R[0],-x),lerp(D[1],R[1],-x),lerp(D[2],R[2],-x)];
@@ -87,7 +93,7 @@ function render(){
       const t=it.t,v=t[K],area=it.w*it.h;
       const fs=Math.max(8,Math.min(22,Math.sqrt(area)/4.2));
       const showTxt=it.w>34&&it.h>22, showPct=it.w>46&&it.h>34;
-      html+=`<div class="tile" data-t="${t.t}" style="left:${it.x}px;top:${it.y}px;width:${it.w}px;height:${it.h}px;background:${col(v,K)}">${showTxt?`<b style="font-size:${fs}px">${t.t}</b>`:''}${showPct?`<span style="font-size:${Math.max(8,fs*0.62)}px">${v==null?'—':(v>0?'+':'')+v.toFixed(2)}%</span>`:''}</div>`;
+      html+=`<div class="tile" data-t="${t.t}" style="left:${it.x}px;top:${it.y}px;width:${it.w}px;height:${it.h}px;background:${col(v,K)}">${showTxt?`<b style="font-size:${fs}px">${t.t}</b>`:''}${showPct?`<span style="font-size:${Math.max(8,fs*0.62)}px">${v==null?'—':(v>0&&K!=='ps'?'+':'')+v.toFixed(2)}${K==='ps'?'\u00d7':'%'}</span>`:''}</div>`;
     }
   }
   el.innerHTML=html;
@@ -95,7 +101,7 @@ function render(){
   if(q)document.querySelectorAll('.tile').forEach(x=>x.classList.toggle('dim',!x.dataset.t.includes(q)));
   const b=D.breadth||{};
   document.getElementById('meta').textContent=`${D.n_tiles} tiles · adv ${b.advancers}/dec ${b.decliners} · cap-wtd ${b.mcap_weighted_chg>0?'+':''}${b.mcap_weighted_chg}% (1D) · ${esc(D.as_of_session)} · size=${esc(D.size_mode)}`;
-  const lg=document.getElementById('lg');const LO=K==='hi'?-30:-SCALE[K],HI=K==='hi'?0:SCALE[K];lg.innerHTML=LO+'% '+[0,.17,.33,.5,.67,.83,1].map(t=>`<i style="background:${col(LO+t*(HI-LO),K)}"></i>`).join('')+' '+(HI>0?'+':'')+HI+'%';
+  const lg=document.getElementById('lg');const LO=K==='hi'?-30:K==='ps'?0:-SCALE[K],HI=K==='hi'?0:K==='ps'?12:SCALE[K];const LSUF=K==='ps'?'\u00d7':'%';lg.innerHTML=LO+LSUF+' '+[0,.17,.33,.5,.67,.83,1].map(t=>`<i style="background:${col(LO+t*(HI-LO),K)}"></i>`).join('')+' '+(HI>0&&K!=='ps'?'+':'')+HI+LSUF;
 }
 document.getElementById('tf').onclick=e=>{const k=e.target.dataset.k;if(!k)return;K=k;
   document.querySelectorAll('#tf span').forEach(x=>x.classList.toggle('on',x.dataset.k===k));render();};
@@ -105,16 +111,19 @@ document.getElementById('map').addEventListener('mousemove',e=>{
   const t=e.target.closest('.tile');if(!t){tip.style.display='none';return;}
   const d=(D.tiles||[]).find(x=>x.t===t.dataset.t);if(!d)return;
   tip.style.display='block';tip.style.left=Math.min(e.clientX+14,window.innerWidth-280)+'px';tip.style.top=(e.clientY+14)+'px';
-  tip.innerHTML=`<b>${esc(d.t)}</b> · ${esc(d.s)}<br>mcap ${d.mc?'$'+(d.mc/1e9).toFixed(1)+'B':'—'}<br>1D ${d.c>0?'+':''}${d.c}% · 1W ${d.w>0?'+':''}${d.w??'—'}%<br>1M ${d.m1>0?'+':''}${d.m1??'—'}% · 3M ${d.m3>0?'+':''}${d.m3??'—'}%<br>6M ${d.m6>0?'+':''}${d.m6??'—'}% · 1Y ${d.y1>0?'+':''}${d.y1??'—'}%<br>52W-hi ${d.hi??'—'}% · RS3M ${d.rs>0?'+':''}${d.rs??'—'}`;
+  tip.innerHTML=`<b>${esc(d.t)}</b> · ${esc(d.s)}<br>mcap ${d.mc?'$'+(d.mc/1e9).toFixed(1)+'B':'—'}<br>1D ${d.c>0?'+':''}${d.c}% · 1W ${d.w>0?'+':''}${d.w??'—'}%<br>1M ${d.m1>0?'+':''}${d.m1??'—'}% · 3M ${d.m3>0?'+':''}${d.m3??'—'}%<br>6M ${d.m6>0?'+':''}${d.m6??'—'}% · 1Y ${d.y1>0?'+':''}${d.y1??'—'}%<br>52W-hi ${d.hi??'—'}% · RS3M ${d.rs>0?'+':''}${d.rs??'—'} · P/S ${d.ps??'—'}\u00d7`;
 });
 document.getElementById('map').addEventListener('mouseleave',()=>tip.style.display='none');
 window.addEventListener('resize',()=>render());
-document.getElementById('dl').onclick=()=>{if(!D)return;const cols=['t','s','mc','c','w','m1','m3','m6','y1','hi','rs'];
+document.getElementById('dl').onclick=()=>{if(!D)return;const cols=['t','s','mc','c','w','m1','m3','m6','y1','hi','rs','ps'];
   const csv=[cols.join(',')].concat((D.tiles||[]).map(r=>cols.map(c=>{const v=r[c];return v==null?'':String(v).replace(/,/g,';');}).join(','))).join('\n');
   const a2=document.createElement('a');a2.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a2.download='justhodl-market-map.csv';a2.click();};
 (async()=>{D=await gj('data/market-map.json');
   if(!D){document.getElementById('meta').textContent='first run pending';return;}
   render();
+  const ch=D.cheap_candidates||[];
+  document.getElementById('cheap').innerHTML=ch.length?`<table class="ch"><thead><tr><th>Ticker</th><th>Sector</th><th>P/S</th><th>Sector med</th><th>Discount</th><th>3M</th><th>RS3M</th><th>off 52w-hi</th><th>Mcap</th></tr></thead><tbody>${ch.slice(0,15).map(c=>`<tr><td><b>${esc(c.t)}</b></td><td style="font-size:10px">${esc(c.s)}</td><td class="gn">${c.ps}\u00d7</td><td>${c.sector_ps_median}\u00d7</td><td class="gn">−${c.discount_pct}%</td><td class="${c.m3>0?'gn':'rd'}">${c.m3>0?'+':''}${c.m3}%</td><td class="${c.rs>0?'gn':'rd'}">${c.rs>0?'+':''}${c.rs??'—'}</td><td>${c.hi}%</td><td>$${(c.mc/1e9).toFixed(1)}B</td></tr>`).join('')}</tbody></table>`
+   :'<span style="color:var(--fg3);font-family:var(--mono);font-size:11px">No candidates passing all gates today — the list is selective by design.</span>';
   document.getElementById('note').textContent=`${D.methodology} · v${D.version} · ${D.generated_at} · Research, not advice.`;
 })();
 </script></body></html>

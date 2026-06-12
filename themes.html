@@ -52,12 +52,13 @@ let D=null;
       <span class="chip">3M <b class="${p.m3>0?'hi':'lo'}">${pc(p.m3)}</b></span>
       <span class="chip">1Y <b class="${p.y1>0?'hi':'lo'}">${pc(p.y1)}</b></span>
       <span class="chip">RS3M <b class="${t.rs_3m_vs_spy>0?'hi':'lo'}">${t.rs_3m_vs_spy==null?'—':(t.rs_3m_vs_spy>0?'+':'')+t.rs_3m_vs_spy}</b></span>
+      <span class="chip">P/S med <b>${t.ps_median??'—'}×</b></span>
     </div>
     <div class="mem">leader 1M <b class="hi">${esc(t.leader_1m)}</b> · laggard <b class="lo">${esc(t.laggard_1m)}</b><br>${
       (t.members||[]).slice().sort((a,b)=>(b.m1??-99)-(a.m1??-99)).map(m=>`<b>${m.t}</b> ${pc(m.m1)}`).join(' · ')}</div></div>`;}).join('');
   document.getElementById('meta').textContent=`${T.length} themes · as of ${esc(D.as_of_session)}`;
   document.getElementById('note').textContent=`${D.methodology} · v${D.version} · ${D.generated_at} · Research, not advice.`;
   document.getElementById('dl').onclick=()=>{const rows=[];T.forEach(t=>(t.members||[]).forEach(m=>rows.push({theme:t.theme,...m})));
-    dlCSV(rows,['theme','t','c','w','m1','m3','m6','y1','hi'],'justhodl-themes.csv');};
+    dlCSV(rows,['theme','t','c','w','m1','m3','m6','y1','hi','ps'],'justhodl-themes.csv');};
 })();
 </script></body></html>

@@ -23,7 +23,7 @@ OUT_KEY = "data/insider-radar.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 DIAG = []
 RANK = (("CEO", 3.0), ("CHIEF EXECUTIVE", 3.0), ("CFO", 2.8), ("CHIEF FINANCIAL", 2.8),
          ("PRESIDENT", 2.4), ("COO", 2.2), ("CHAIR", 2.2), ("DIRECTOR", 1.8),
@@ -127,6 +127,26 @@ def weight(title):
     return 1.0
 
 
+def ps_ttm_map(tickers, cap=25):
+    """Per-ticker FMP P/S TTM for small lists (clusters/decline buys)."""
+    out = {}
+    for t in list(dict.fromkeys(tickers))[:cap]:
+        try:
+            j = jget(f"https://financialmodelingprep.com/stable/ratios-ttm?symbol={t}"
+                      f"&apikey={FMP_KEY}", timeout=10)
+            if isinstance(j, list) and j:
+                for k in ("priceToSalesRatioTTM", "priceToSalesTTM", "priceToSalesRatio"):
+                    v = j[0].get(k)
+                    if isinstance(v, (int, float)):
+                        out[t] = round(v, 2)
+                        break
+        except Exception:
+            pass
+        time.sleep(0.08)
+    DIAG.append(f"ps_ttm: {len(out)}/{min(len(set(tickers)), cap)} fetched")
+    return out
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     DIAG.clear()
@@ -185,6 +205,14 @@ def lambda_handler(event=None, context=None):
                            key=lambda x: x["ret_60d_pct"])[:25]
     decline_clusters = [c for c in clusters if (c["ret_60d_pct"] or 0) <= -25]
 
+    # P/S context: cheap + insiders buying = the strongest version of the signal
+    psm = ps_ttm_map([c["ticker"] for c in clusters[:20]]
+                      + [b["ticker"] for b in decline_buys])
+    for c in clusters:
+        c["ps_ttm"] = psm.get(c["ticker"])
+    for b in decline_buys:
+        b["ps_ttm"] = psm.get(b["ticker"])
+
     # closed-loop: log strongest cluster-after-decline
     logged = []
     try:
@@ -205,7 +233,8 @@ def lambda_handler(event=None, context=None):
                     "status": "pending", "logged_epoch": int(time.time()),
                     "ttl": int(time.time()) + 150 * 86400,
                     "rationale": (f"{c['n_insiders']} insiders bought ${c['total_value']:,.0f} "
-                                   f"within {c['span_days']}d after {c['ret_60d_pct']}% 60d decline"),
+                                   f"within {c['span_days']}d after {c['ret_60d_pct']}% 60d decline"
+                                   + (f", P/S {c.get('ps_ttm')}" if c.get('ps_ttm') else "")),
                 }, ConditionExpression="attribute_not_exists(signal_id)")
                 logged.append(sid)
     except Exception as e:

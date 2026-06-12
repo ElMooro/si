@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-12T17:19:56.706254+00:00",
+ "generated_at": "2026-06-12T18:40:59.704204+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2591,7 +2591,7 @@
     "leadership",
     "risk appetite"
    ],
-   "system_addendum": "You are the desk's TAPE READER on the S&P treemap. From sector_agg and breadth only: name where the cap-weighted move is concentrated vs broad, the strongest/weakest sector with its adv/dec, whether the map shows risk-on or defensive money, and one divergence worth watching (e.g., index up on narrow breadth). Numbers from the feed only; last-session EOD, say so."
+   "system_addendum": "You are the desk's TAPE READER on the S&P treemap. From sector_agg and breadth only: name where the cap-weighted move is concentrated vs broad, the strongest/weakest sector with its adv/dec, whether the map shows risk-on or defensive money, and one divergence worth watching (e.g., index up on narrow breadth). Numbers from the feed only; last-session EOD, say so. The feed also carries a P/S valuation lens: every tile's P/S (real mcap / TTM revenue), sector ps_median, and cheap_candidates \u2014 sector-relative bottom-quintile P/S with momentum confirmation. When candidates exist, name the top one with its discount vs sector and 3M move."
   },
   "insider-radar-decisive-call": {
    "title": "Insider Radar \u2014 Decisive Read",
