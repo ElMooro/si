@@ -25,7 +25,7 @@ ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 MODELS = ["claude-sonnet-4-6", "claude-haiku-4-5-20251001"]
 PAPERS_PER_RUN = 3
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 DIAG = []
 
 BULL_SYS = (
@@ -150,22 +150,27 @@ def lambda_handler(event=None, context=None):
                    f"{cc.get('red_count')} red canaries of {cc.get('n_global')}")
     todo = [c for c in cands if (done.get(c["t"]) or "") < cutoff][:PAPERS_PER_RUN]
     written = []
+    TIME_BUDGET = 360
     for c in todo:
+        if time.time() - t0 > TIME_BUDGET:
+            DIAG.append(f"time budget {TIME_BUDGET}s reached — remaining papers roll "
+                         "to next daily run")
+            break
         t = c["t"]
         try:
             dossier = gather(t, c, sv, sec_rank, macro_line)
             dj = json.dumps(dossier, default=str)
             bull, m1 = call_claude(f"DOSSIER for {t}:\n{dj}\n\nBuild the bull case.",
-                                    BULL_SYS, 1800)
+                                    BULL_SYS, 1400)
             bear, m2 = call_claude(f"DOSSIER for {t}:\n{dj}\n\nBULL CASE:\n"
                                     + json.dumps(bull) + "\n\nAttack it.",
-                                    BEAR_SYS, 1800)
+                                    BEAR_SYS, 1400)
             paper, model = call_claude(f"DOSSIER for {t}:\n{dj}\n\nBULL CASE:\n"
                                         + json.dumps(bull) + "\n\nBEAR REBUTTAL:\n"
                                         + json.dumps(bear)
                                         + "\n\nJudge the debate and write the final "
                                           "research note now.",
-                                        JUDGE_SYS, 3500)
+                                        JUDGE_SYS, 3000)
             paper["debate"] = {"bull": bull, "bear": bear,
                                 "models": {"bull": m1, "bear": m2, "judge": model}}
             conv = paper.get("conviction_1_10")
