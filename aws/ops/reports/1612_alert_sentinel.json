@@ -1,0 +1,43 @@
+{
+ "ops": 1612,
+ "fn": "created",
+ "fn_err": "NONE",
+ "log_tail": "START RequestId: d6206fb0-d056-499a-9aa6-896e70130c3a Version: $LATEST\n[sentinel] first=True sent=True changes=1\nEND RequestId: d6206fb0-d056-499a-9aa6-896e70130c3a\nREPORT RequestId: d6206fb0-d056-499a-9aa6-896e70130c3a\tDuration: 1134.01 ms\tBilled Duration: 1679 ms\tMemory Size: 256 MB\tMax Memory Used: 99 MB\tInit Duration: 544.10 ms\t\n",
+ "verify": {
+  "first_run": true,
+  "message_sent": true,
+  "n_changes": 1,
+  "changes": [
+   "(seed)"
+  ],
+  "diagnostics": [
+   "breakouts: 12"
+  ],
+  "snap_keys": {
+   "breakouts": 12,
+   "insider_decline": [],
+   "thrusts": {
+    "highbeta_lowvol": false,
+    "smallcap_large": false,
+    "equalweight_cap": false,
+    "biotech_mkt": false,
+    "spec_growth": false,
+    "semis_mkt": false
+   },
+   "semis_off_low": 70.1,
+   "smallcap_vs_high": 0.0,
+   "breadth_capwtd": -1.56,
+   "breadth_regime_day": true,
+   "altseason_phase": null,
+   "sizing_top": "GLD",
+   "sizing_gross": null,
+   "ma_reclaim_200": [],
+   "ma_break_200": []
+  }
+ },
+ "second_run": {
+  "first_run": false,
+  "message_sent": false,
+  "n_changes": 0
+ }
+}
