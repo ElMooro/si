@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -91,6 +91,24 @@ def fetch_ratios(t):
         DIAG.append("ratios-ttm return/yield keys: " + ",".join(
             k for k in sorted(row.keys()) if "eturn" in k or "ividend" in k or "ield" in k))
     return {k: pick(row, lad) for k, lad in RATIO_LADDERS.items()}
+
+
+KM_LADDERS = {"roe": ["returnOnEquityTTM", "roeTTM", "returnOnCommonEquityTTM"],
+               "roa": ["returnOnAssetsTTM", "roaTTM", "returnOnTangibleAssetsTTM"],
+               "fcf_y": ["freeCashFlowYieldTTM", "fcfYieldTTM"],
+               "ev_fcf": ["evToFreeCashFlowTTM", "enterpriseValueOverFreeCashFlowTTM"]}
+
+
+def fetch_keymetrics(t):
+    j = jget(f"https://financialmodelingprep.com/stable/key-metrics-ttm?symbol={t}&apikey={FMP_KEY}")
+    if not (isinstance(j, list) and j):
+        return {}
+    row = j[0]
+    if not _sampled.get("km"):
+        _sampled["km"] = True
+        DIAG.append("key-metrics-ttm return/yield keys: " + ",".join(
+            k for k in sorted(row.keys()) if "eturn" in k or "ield" in k)[:200])
+    return {k: pick(row, lad) for k, lad in KM_LADDERS.items()}
 
 
 def fetch_growth(t):
@@ -200,10 +218,10 @@ def lambda_handler(event=None, context=None):
     except Exception:
         st = {"sp": {}, "hp": {}, "sp_asof": "", "hp_asof": "", "hp_rows": [], "hp_src": ""}
     week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat()
-    if not st.get("v101_refetch"):
+    if not st.get("v102_refetch"):
         st["sp_asof"] = ""
-        st["v101_refetch"] = True
-        DIAG.append("v1.0.1: forcing full sp refetch (widened ROE/ROA ladders)")
+        st["v102_refetch"] = True
+        DIAG.append("v1.0.2: forcing sp refetch (key-metrics-ttm ROE/ROA/FCF-yield fill)")
 
     sec = {}
     try:
@@ -230,7 +248,7 @@ def lambda_handler(event=None, context=None):
         todo += [t for t in sec if t in st["sp"]]
     a0 = time.time(); got = 0
     for t in todo:
-        if time.time() - a0 > 230:
+        if time.time() - a0 > 300:
             DIAG.append(f"sp budget hit ({got} done, {len(todo)-got} remain)")
             break
         r = None
@@ -241,6 +259,13 @@ def lambda_handler(event=None, context=None):
         if r:
             try:
                 r.update(fetch_growth(t))
+            except Exception:
+                pass
+            try:
+                km = fetch_keymetrics(t)
+                for k, v in km.items():
+                    if r.get(k) is None and v is not None:
+                        r[k] = v
             except Exception:
                 pass
             r["asof"] = datetime.now(timezone.utc).date().isoformat()
@@ -277,7 +302,8 @@ def lambda_handler(event=None, context=None):
     gf = {}
     try:
         g = json.loads(S3.get_object(Bucket=BUCKET, Key="data/gf-value.json")["Body"].read())
-        for row in (g.get("results") or g.get("rows") or g.get("valuations") or []):
+        for row in (g.get("all_tickers") or g.get("deepest_value")
+                     or g.get("results") or g.get("rows") or []):
             t = row.get("ticker") or row.get("symbol")
             gap = row.get("margin_of_safety_pct")
             if gap is None:
