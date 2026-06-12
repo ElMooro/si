@@ -26,7 +26,7 @@ STATE_KEY = "data/_alerts/last.json"
 OUT_KEY = "data/alert-sentinel.json"
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 DIAG = []
 
 
@@ -203,11 +203,20 @@ def lambda_handler(event=None, context=None):
             sent = telegram("🛰 JustHodl Alerts — " +
                              datetime.now(timezone.utc).strftime("%b %d %H:%M UTC") + "\n\n"
                              + "\n".join(changes))
-    S3.put_object(Bucket=BUCKET, Key=STATE_KEY,
-                  Body=json.dumps(new, default=str).encode(), ContentType="application/json")
+    # queue-until-delivered: if real changes failed to send, DON'T advance state —
+    # the same diff (plus anything new) retries next run and delivers as one message.
+    if first or sent or not changes:
+        S3.put_object(Bucket=BUCKET, Key=STATE_KEY,
+                      Body=json.dumps(new, default=str).encode(),
+                      ContentType="application/json")
+        state_saved = True
+    else:
+        state_saved = False
+        DIAG.append("state NOT advanced — alert queued for retry")
     out = {"engine": "alert-sentinel", "version": VERSION,
             "generated_at": datetime.now(timezone.utc).isoformat(),
-            "first_run": first, "message_sent": sent, "n_changes": len(changes),
+            "first_run": first, "message_sent": sent, "state_saved": state_saved,
+            "n_changes": len(changes),
             "changes": changes, "snapshot": new, "diagnostics": list(DIAG)}
     clean = json.loads(json.dumps(out, default=str), parse_constant=lambda c: None)
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(clean).encode(),

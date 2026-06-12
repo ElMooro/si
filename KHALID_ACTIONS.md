@@ -152,3 +152,5 @@ The Lambda `justhodl-patent-velocity` is deployed and scheduled (daily 17 UTC), 
 - Alert Sentinel (justhodl-alert-sentinel, cron 45 14): Telegram diff alerts; alerts.html. Fires only on change (idempotency verified).
 - Rotation +SMH/SPY ratio (v1.2.1). api-docs.html publishes 10 public endpoints + tiers.
 - OPTIONAL next (Phase 3): news/catalyst scoring engine (Module 5 — only partial via EDGAR), NDX/Russell map universe toggle, per-ticker quote snapshot page, screener-presets page, pattern-zoo (cup&handle/flag scans beyond current coil/crossing detection).
+
+- **TELEGRAM 403 (2026-06-12):** Alert Sentinel sends now return 403 Forbidden (boot messages at 14:xx delivered fine, then 403) — the bot was most likely blocked/stopped in Telegram after the test boots. FIX: open the bot chat (token 8679881066:...) and press START / unblock. Sentinel v1.1.1 queues alerts (state not advanced on failed send) so nothing is lost — first successful send delivers everything pending.
