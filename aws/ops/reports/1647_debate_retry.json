@@ -1,0 +1,68 @@
+{
+ "ops": 1647,
+ "err": "NONE",
+ "log": "START RequestId: 9523047a-9138-43e5-9a0c-e6abfe077452 Version: $LATEST\n[research] wrote ['SKWD'] \u00b7 index 8 \u00b7 279.4s \u00b7 [\"DRD: all models failed: Expecting ',' delimiter: line 16 column 4 (char 5880)\", 'QCRH: all models failed: Unterminated string starting at: line 13 column 5 (char 5081)']\nEND RequestId: 9523047a-9138-43e5-9a0c-e6abfe077452\nREPORT RequestId: 9523047a-9138-43e5-9a0c-e6abfe077452\tDuration: 279473.56 ms\tBilled Duration: 280052 ms\tMemory Size: 512 MB\tMax Memory Used: 104 MB\tInit Duration: 578.31 ms\t\nXRAY TraceId: 1-6a2c8f9a-05de413e562e1d56780ca68a\tSegmentId: 768c606dc26a7f5e\tSampled: true\t\n",
+ "written": [
+  "SKWD"
+ ],
+ "diag": [
+  "DRD: all models failed: Expecting ',' delimiter: line 16 column 4 (char 5880)",
+  "QCRH: all models failed: Unterminated string starting at: line 13 column 5 (char 5081)"
+ ],
+ "index_head": [
+  {
+   "t": "SKWD",
+   "conviction": 5,
+   "stance": "RESEARCH-MORE"
+  },
+  {
+   "t": "AVAH",
+   "conviction": 4,
+   "stance": "RESEARCH-MORE"
+  },
+  {
+   "t": "INVX",
+   "conviction": 5,
+   "stance": "RESEARCH-MORE"
+  },
+  {
+   "t": "RES",
+   "conviction": 4,
+   "stance": "RESEARCH-MORE"
+  },
+  {
+   "t": "HLMN",
+   "conviction": 5,
+   "stance": null
+  }
+ ],
+ "debate_sample": {
+  "ticker": "SKWD",
+  "conviction": 5,
+  "stance": "RESEARCH-MORE",
+  "bull_point_1": "Valuation anomaly: 1.37x PS with 22.2% revenue growth and 28.6% FCF margin represents structural underpricing\u2014Rule 40 score of 51.0 shows profitable growth execution (per underlooked_row and key_metrics)",
+  "bear_attack_1": "FCF is insurance float, not free cash: $424.3M TTM FCF on a $2.03B market cap sounds extraordinary, but for a P&C insurer, 'FCF' reflects premium inflows ahead of claim outflows \u2014 this is float, not distributable owner e",
+  "kill_conditions": [
+   "Combined ratio deterioration above 100% (not in dossier baseline) in any quarterly filing, signaling underwriting losses that would expose the FCF figure as float-dependent rather than profit-driven",
+   "Reserve strengthening charge or adverse loss development disclosed in 10-Q/10-K, which would directly impair the 'cash fortress' narrative and could trigger sector-wide multiple compression",
+   "Regulatory capital action or state insurance commissioner intervention requiring additional reserves, which would confirm the $2.45B cash is encumbered and not available for capital return",
+   "Revenue growth decelerating below 10% YoY \u2014 given the stock is priced at 1.37x PS on a 22.2% growth premium, any meaningful deceleration removes the core valuation anomaly argument and re-rates the stock toward distressed P&C multiples"
+  ],
+  "debate_verdict": "The bear argued materially better. The bull's most powerful-seeming points\u2014the $424M FCF yield implying a sub-5x P/FCF and the $2.45B cash fortress\u2014were systematically dismantled by the bear's correct observation that insurance FCF includes premium float and that the dossier itself explicitly flags ",
+  "conceded": [
+   "FCF of $424.3M for a P&C insurer includes premium float and cannot be treated as distributable owner earnings equivalent to SaaS FCF\u2014the P/FCF of 4.78x is not a clean valuation metric",
+   "The $2.45B cash balance is explicitly flagged 'net_cash: false' in the dossier; the bull's implied near-negative net debt position is not supportable and was not in the dossier",
+   "Op_leverage is NULL in the dossier\u2014the 'operating leverage' narrative has no data support",
+   "Catalyst score of 3/10 (lowest rubric score) directly undermines the confident catalyst enumeration; this was not addressed by the bull",
+   "Insider score of 3/10 is a meaningful signal that those with the most information show low conviction; the bull never acknowledged this",
+   "The dossier contains zero combined ratio, loss ratio, or reserve adequacy data\u2014the actual health metrics of the underwriting business are entirely absent, making a complete investment thesis impossible from available data",
+   "31% gross margin is low and scored only 6/10; the 'capital-light model' framing is misleading for an insurance holding company"
+  ],
+  "models": {
+   "bull": "claude-haiku-4-5-20251001",
+   "bear": "claude-sonnet-4-6",
+   "judge": "claude-sonnet-4-6"
+  },
+  "has_all": true
+ }
+}
