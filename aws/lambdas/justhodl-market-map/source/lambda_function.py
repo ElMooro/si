@@ -25,7 +25,7 @@ STATE_KEY = "data/_map/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 DIAG = []
 SECTOR_ETFS = [("XLK", "Technology"), ("XLF", "Financials"), ("XLV", "Health Care"),
                 ("XLY", "Consumer Discretionary"), ("XLC", "Communication Services"),
@@ -107,6 +107,13 @@ def mcap_state(tickers):
     DIAG.append(f"mcap cache: {len(st['mcap'])} cached, {got} refreshed")
     # ── revenue TTM cache (weekly; FMP income-statement quarterly×4, annual fallback) ──
     st.setdefault("rev", {})
+    if "rev_ccy_guard" not in st:
+        # one-time purge: theme ADRs may have cached local-currency revenue (TWD/CNY)
+        for tl in THEMES.values():
+            for t_ in tl:
+                st["rev"].pop(t_, None)
+        st["rev_ccy_guard"] = True
+        DIAG.append("rev cache: ccy guard purge applied (theme members refetch)")
     rev_fresh = st.get("rev_asof", "") >= (datetime.now(timezone.utc)
                                              - timedelta(days=7)).date().isoformat()
     rmissing = [t for t in tickers if t not in st["rev"]]
@@ -122,13 +129,16 @@ def mcap_state(tickers):
             q = jget(f"https://financialmodelingprep.com/stable/income-statement?symbol={t}"
                       f"&period=quarter&limit=4&apikey={FMP_KEY}", timeout=12)
             if isinstance(q, list) and q:
-                vs = [x.get("revenue") for x in q if isinstance(x.get("revenue"), (int, float))]
-                if vs:
-                    rv = float(sum(vs[:4]))
+                if str(q[0].get("reportedCurrency") or "USD").upper() == "USD":
+                    vs = [x.get("revenue") for x in q if isinstance(x.get("revenue"), (int, float))]
+                    if vs:
+                        rv = float(sum(vs[:4]))
             if rv is None:
                 a = jget(f"https://financialmodelingprep.com/stable/income-statement?symbol={t}"
                           f"&period=annual&limit=1&apikey={FMP_KEY}", timeout=12)
-                if isinstance(a, list) and a and isinstance(a[0].get("revenue"), (int, float)):
+                if (isinstance(a, list) and a
+                        and str(a[0].get("reportedCurrency") or "USD").upper() == "USD"
+                        and isinstance(a[0].get("revenue"), (int, float))):
                     rv = float(a[0]["revenue"])
         except Exception:
             pass
