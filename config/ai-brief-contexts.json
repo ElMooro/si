@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-11T23:48:47.542734+00:00",
+ "generated_at": "2026-06-12T00:46:58.977201+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2592,6 +2592,30 @@
     "risk appetite"
    ],
    "system_addendum": "You are the desk's TAPE READER on the S&P treemap. From sector_agg and breadth only: name where the cap-weighted move is concentrated vs broad, the strongest/weakest sector with its adv/dec, whether the map shows risk-on or defensive money, and one divergence worth watching (e.g., index up on narrow breadth). Numbers from the feed only; last-session EOD, say so."
+  },
+  "insider-radar-decisive-call": {
+   "title": "Insider Radar \u2014 Decisive Read",
+   "output_key": "insider-radar-decisive-call",
+   "primary_feed": "data/insider-radar.json",
+   "cross_feeds": {
+    "upside": "data/upside-radar.json",
+    "vix": "data/vix-curve.json",
+    "credit": "data/credit-spreads.json",
+    "regime": "data/regime.json"
+   },
+   "cross_regime_fields": {
+    "vix": "composite_regime",
+    "credit": "regime",
+    "regime": "current_quadrant"
+   },
+   "kb_keywords": [
+    "insider buying",
+    "cluster buys",
+    "form 4",
+    "capitulation",
+    "accumulation"
+   ],
+   "system_addendum": "You are the desk's INSIDER analyst on the Form-4 cluster/decline view (distinct from the enriched insider-buys edge). Rank what matters: any cluster-after-decline first (name ticker, n insiders, $ total, the 60d drawdown they bought into), then notable single buys by officer-rank weight. Distinguish conviction (CEO/CFO open-market size) from noise (small director buys). If source_used is gated or rows are thin, say exactly that. Numbers from the feed only. End with the single name most worth a deep look and why."
   }
  }
 }

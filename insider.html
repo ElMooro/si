@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Insider Radar — Cluster Buys & Decline Accumulation — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--red:#ff5577;--violet:#a78bfa;--amber:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--green)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--green)}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 22px}
+h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13px;max-width:920px;line-height:1.6}
+.hero{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}
+.g{background:var(--bg1);border:2px solid var(--border);border-radius:14px;padding:12px 17px;font-family:var(--mono)}
+.g b{font-size:23px}.g .m{font-size:10.5px;color:var(--fg3);margin-top:3px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:22px 0 9px;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:8px;border-bottom:1px solid var(--border);background:var(--bg2)}
+th:first-child,td:first-child{text-align:left}td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+td.l{text-align:left}.hi{color:var(--green)}.lo{color:var(--red)}.am{color:var(--amber)}
+.badge{font-size:9px;padding:2px 6px;border-radius:5px;background:var(--bg2);border:1px solid var(--border);color:var(--fg2)}
+.note{color:var(--fg3);font-size:11px;margin-top:14px;line-height:1.6}
+button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px;color:var(--fg2);padding:6px 12px;font-family:var(--mono);font-size:11px;cursor:pointer;margin:6px 0}
+.loading{color:var(--fg3);font-family:var(--mono)}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/insider.html" class="on">🕵 Insider</a><a href="/upside-radar.html">Upside</a><a href="/market-map.html">Map</a><a href="/sizing.html">Sizing</a></nav></header>
+<div class="wrap">
+<h1>Insider Radar — <span class="grad">clusters &amp; decline accumulation</span></h1>
+<p class="sub">Form-4 open-market purchases through a desk lens: officer-rank weighting, <b>cluster detection</b> (≥2 distinct insiders, ≤14 days), and the highest-value pattern — <b>insiders buying after a −25%+ 60-day decline</b>, joined against the desk's own price rings. Cluster∩decline events log to the graded closed loop.</p>
+<div class="hero" id="hero"><span class="loading">Loading…</span></div>
+<div class="sec">🤖 AI Insider Read</div>
+<div id="aibrief" style="background:var(--bg1);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;color:var(--fg2)"><span class="loading">…</span></div>
+<div class="sec" style="color:var(--green)">★ Clusters after decline — the signal</div><div id="dc"></div>
+<div class="sec">Clusters (≥2 insiders ≤14d)</div><div id="cl"></div>
+<div class="sec">Latest open-market buys (30d)</div><button class="dl" id="dl">⬇ CSV buys</button><div id="buys"></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const usd=v=>v==null?'—':'$'+(v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v.toFixed(0));
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+let D=null;
+(async()=>{D=await gj('data/insider-radar.json');
+  if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
+  document.getElementById('hero').innerHTML=
+   `<div class="g" style="border-color:var(--green)"><b style="color:var(--green)">${D.n_buys}</b><div class="m">open-market buys (30d)<br>vs ${D.n_sells} sells</div></div>
+    <div class="g"><b>${(D.clusters||[]).length}</b><div class="m">insider clusters</div></div>
+    <div class="g" style="border-color:${(D.decline_clusters||[]).length?'var(--amber)':'var(--border)'}"><b class="am">${(D.decline_clusters||[]).length}</b><div class="m">clusters after −25% decline<br>★ the signal</div></div>
+    <div class="g"><b style="font-size:13px">${esc(D.source_used)}</b><div class="m">source · ${D.n_raw} raw rows</div></div>`;
+  const dc=D.decline_clusters||[];
+  document.getElementById('dc').innerHTML=dc.length?`<table><thead><tr><th>Ticker</th><th>Insiders</th><th>Buys</th><th>Total $</th><th>Span</th><th>60d ret</th><th>Names</th></tr></thead><tbody>${
+   dc.map(c=>`<tr style="background:rgba(251,191,36,.05)"><td class="l"><b>${esc(c.ticker)}</b></td><td>${c.n_insiders}</td><td>${c.n_buys}</td><td class="hi">${usd(c.total_value)}</td><td>${c.span_days}d</td><td class="lo">${c.ret_60d_pct}%</td><td class="l" style="font-size:10px">${esc((c.names||[]).join(', '))}</td></tr>`).join('')}</tbody></table>`
+   :'<div class="loading">None in window — this list is empty most days; that is the point.</div>';
+  const cl=D.clusters||[];
+  document.getElementById('cl').innerHTML=cl.length?`<table><thead><tr><th>Ticker</th><th>Insiders</th><th>Total $</th><th>Span</th><th>Top rank w</th><th>60d ret</th><th>Window</th></tr></thead><tbody>${
+   cl.map(c=>`<tr><td class="l"><b>${esc(c.ticker)}</b></td><td>${c.n_insiders}</td><td>${usd(c.total_value)}</td><td>${c.span_days}d</td><td>${c.max_rank_w}×</td><td class="${(c.ret_60d_pct||0)<0?'lo':'hi'}">${c.ret_60d_pct??'—'}%</td><td style="font-size:10px">${esc(c.first)} → ${esc(c.last)}</td></tr>`).join('')}</tbody></table>`
+   :'<div class="loading">No clusters in window.</div>';
+  const b=D.latest_buys||[];
+  document.getElementById('buys').innerHTML=b.length?`<table><thead><tr><th>Date</th><th>Ticker</th><th>Insider</th><th>Title</th><th>Shares</th><th>Px</th><th>Value</th><th>W</th></tr></thead><tbody>${
+   b.map(x=>`<tr><td class="l">${esc(x.date)}</td><td class="l"><b>${esc(x.ticker)}</b></td><td class="l" style="font-size:10px">${esc(x.insider)}</td><td class="l"><span class="badge">${esc((x.title||'').slice(0,26))}</span></td><td>${x.shares?Math.round(x.shares).toLocaleString():'—'}</td><td>${x.price??'—'}</td><td class="hi">${usd(x.value)}</td><td>${x.w}×</td></tr>`).join('')}</tbody></table>`
+   :`<div class="loading">${D.source_used==='unavailable'?'Source gated — see diagnostics in payload; KHALID_ACTIONS has the unlock.':'No buys parsed.'}</div>`;
+  document.getElementById('note').textContent=`${D.methodology} · diagnostics: ${(D.diagnostics||[]).join(' | ')} · v${D.version} · ${D.generated_at}`;
+  document.getElementById('dl').onclick=()=>{const cols=['date','ticker','insider','title','shares','price','value','w'];
+    const csv=[cols.join(',')].concat(b.map(r=>cols.map(c=>{const v=r[c];return v==null?'':String(v).replace(/,/g,';');}).join(','))).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='justhodl-insider-buys.csv';a.click();};
+})();
+async function aiPanel(key,mount){
+  const el=document.getElementById(mount);
+  try{let r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now()).catch(()=>null);
+    if(!r||!r.ok)r=await fetch(PX+'/data/'+key+'.json?t='+Date.now()).catch(()=>null);
+    if(!r||!r.ok)throw 0;
+    const b=await r.json();let h='';
+    if(b.headline)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1);margin-bottom:8px">${esc(b.headline)}</div>`;
+    const skip=new Set(['context_id','title','output_key','generated_at','generated_at_utc','model','error','headline','tokens','cost_usd','schema_version']);
+    for(const[k,v]of Object.entries(b)){if(skip.has(k)||v==null)continue;
+      if(typeof v==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(k.replace(/_/g,' '))}</b><div style="font-size:12.5px;line-height:1.65">${esc(v)}</div></div>`;
+      else if(Array.isArray(v)&&v.length&&typeof v[0]==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px">${esc(k.replace(/_/g,' ').toUpperCase())}</b>${v.map(x=>`<div style="font-size:12.5px">• ${esc(x)}</div>`).join('')}</div>`;}
+    el.innerHTML=h||'<span class="loading">AI brief generates on the next router cycle.</span>';
+  }catch(e){el.innerHTML='<span class="loading">AI brief generates on the next 4-hour router cycle.</span>';}
+}
+aiPanel('insider-radar-decisive-call','aibrief');
+</script></body></html>

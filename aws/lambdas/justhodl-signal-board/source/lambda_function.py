@@ -911,6 +911,16 @@ def n_sector_groups(d):
     return sig, f"1M leadership: {top} → … → {bot}" + (" (defensive rotation)" if sig < 0 else " (risk-on rotation)" if sig > 0 else "")
 
 
+def n_insider_radar(d):
+    if d.get("source_used") == "unavailable":
+        return 0, "Insider source gated (see diagnostics)"
+    nb = d.get("n_buys") or 0
+    nc = len(d.get("clusters") or [])
+    nd = len(d.get("decline_clusters") or [])
+    sig = 1 if nd >= 2 else 0
+    return sig, f"{nb} buys 30d \u00b7 {nc} clusters \u00b7 {nd} after-decline"
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -996,6 +1006,7 @@ FEEDS = [
     ("Sizing Engine",          "meta",             "data/sizing.json",               n_sizing),
     ("Market Map (S&P)",       "equity tactical",  "data/market-map.json",           n_market_map),
     ("Sector Groups",          "equity tactical",  "data/sector-groups.json",        n_sector_groups),
+    ("Insider Radar",          "equity tactical",  "data/insider-radar.json",        n_insider_radar),
 ]
 
 
