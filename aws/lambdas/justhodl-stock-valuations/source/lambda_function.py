@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -226,6 +226,13 @@ def hp_universe():
                 DIAG.append("screener keys sample: " + ",".join(sorted(j[0].keys())[:18]))
             rows = [(x.get("symbol"), SECTOR_ALIAS.get(x.get("sector") or "", x.get("sector")),
                       f(x.get("marketCap")), x.get("industry")) for x in j if x.get("symbol")]
+            FUND_IND = ("Asset Management -", "Closed-End Fund", "Shell Compan",
+                         "Exchange Traded Fund")
+            rows = [(x.get("symbol"), SECTOR_ALIAS.get(x.get("sector") or "", x.get("sector")),
+                      f(x.get("marketCap")), x.get("industry"))
+                     for x in j if x.get("symbol")
+                     and not x.get("isEtf") and not x.get("isFund")
+                     and not any((x.get("industry") or "").startswith(fi) for fi in FUND_IND)]
             rows = [r for r in rows if r[0] and "." not in r[0] and (r[2] or 0) >= 75e6]
             rows.sort(key=lambda r: -(r[2] or 0))
             DIAG.append(f"hp universe: screener {len(rows)} rows")
@@ -279,6 +286,10 @@ def lambda_handler(event=None, context=None):
     except Exception:
         st = {"sp": {}, "hp": {}, "sp_asof": "", "hp_asof": "", "hp_rows": [], "hp_src": ""}
     week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat()
+    if not st.get("v141_universe"):
+        st["hp_asof"] = ""
+        st["v141_universe"] = True
+        DIAG.append("v1.4.1: universe regen excluding funds/ETFs/CEF industries")
     if not st.get("v140_universe"):
         st["hp_asof"] = ""
         st["v140_universe"] = True
@@ -766,7 +777,8 @@ def lambda_handler(event=None, context=None):
                  "class": x.get("hp_class"), "industry": x.get("industry"),
                  "sector": x.get("sector"), "mcap": hp_mcap.get(x["t"]),
                  "turnover_bp": x.get("turnover_bp"), "off_hi_pct": x.get("off_hi_pct"),
-                 "ps": mt.get("ps"), "rev_yoy_pct": mt.get("rev_yoy_pct"),
+                 "ps": round(mt["ps"], 2) if mt.get("ps") is not None else None,
+                 "rev_yoy_pct": mt.get("rev_yoy_pct"),
                  "rule40": mt.get("rule40"), "runway_q": mt.get("runway_q"),
                  "net_cash": mt.get("net_cash"), "soft_flags": x.get("soft_flags")}
     industries = {}
