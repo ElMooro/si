@@ -75,89 +75,103 @@ def expected_max_sr(n_trials, n_trades):
     return ((1 - g) * z1 + g * z2) / math.sqrt(max(1, n_trades - 1))
 
 
-# ── rule archetypes: f(prices, i, cfg) -> bool entry at index i ──
-def r_mom_breakout(p, i, n):
-    return i >= n and p[i] > max(p[i - n:i])
+# ── precomputed features per ticker: every rule eval is O(1) ──
+def feats(p, spy):
+    n = len(p)
+    F = {"p": p}
+    for w in (10, 20, 50, 100, 200):
+        ma, run = [None] * n, 0.0
+        for i in range(n):
+            run += p[i]
+            if i >= w:
+                run -= p[i - w]
+            if i >= w - 1:
+                ma[i] = run / w
+        F[f"ma{w}"] = ma
+    for w in (10, 40, 50, 60, 100, 200):
+        from collections import deque
+        dq, hi = deque(), [None] * n
+        for i in range(n):
+            while dq and p[dq[-1]] <= p[i]:
+                dq.pop()
+            dq.append(i)
+            if dq[0] <= i - w:
+                dq.popleft()
+            if i >= w - 1:
+                hi[i] = p[dq[0]]
+        F[f"hi{w}"] = hi
+    from collections import deque
+    dq, lo = deque(), [None] * n
+    for i in range(n):
+        while dq and p[dq[-1]] >= p[i]:
+            dq.pop()
+        dq.append(i)
+        if dq[0] <= i - 60:
+            dq.popleft()
+        if i >= 59:
+            lo[i] = p[dq[0]]
+    F["lo60"] = lo
+    off = [None] * n
+    run_hi = 0.0
+    for i in range(n):
+        run_hi = max(run_hi, p[i])
+        off[i] = (p[i] / run_hi - 1) * 100 if run_hi else None
+    F["off_hi"] = off
+    sd, rets = [None] * n, [0.0] * n
+    for i in range(1, n):
+        rets[i] = p[i] / p[i - 1] - 1 if p[i - 1] else 0.0
+    w = 20
+    s1 = s2 = 0.0
+    for i in range(1, n):
+        s1 += rets[i]; s2 += rets[i] * rets[i]
+        if i > w:
+            s1 -= rets[i - w]; s2 -= rets[i - w] * rets[i - w]
+        if i >= w:
+            m = s1 / w
+            sd[i] = max(0.0, s2 / w - m * m) ** 0.5
+    F["sd20"] = sd
+    rank = [None] * n
+    for i in range(60, n):
+        win = [x for x in sd[i - 39:i + 1] if x is not None]
+        if win and sd[i] is not None:
+            rank[i] = sum(1 for h in win if h <= sd[i]) / len(win)
+    F["sd_rank"] = rank
+    return F
 
-def r_ma_cross(p, i, fast, slow):
-    if i < slow + 1:
-        return False
-    fa = sum(p[i - fast + 1:i + 1]) / fast
-    sl = sum(p[i - slow + 1:i + 1]) / slow
-    fa0 = sum(p[i - fast:i]) / fast
-    sl0 = sum(p[i - slow:i]) / slow
-    return fa > sl and fa0 <= sl0
-
-def r_pullback(p, i, lo, hi):
-    if i < 200:
-        return False
-    ma200 = sum(p[i - 199:i + 1]) / 200
-    off = p[i] / max(p[max(0, i - 251):i + 1]) - 1
-    return p[i] > ma200 and lo <= off * 100 <= hi
-
-def r_meanrev(p, i, x):
-    if i < 60:
-        return False
-    off = p[i] / max(p[max(0, i - 251):i + 1]) - 1
-    return off * 100 <= -x
-
-def r_relstr(p, i, spy, lb, top):
-    if i < lb or spy[i - lb] <= 0:
-        return False
-    r_ = p[i] / p[i - lb] - 1
-    rs = spy[i] / spy[i - lb] - 1
-    return (r_ - rs) * 100 >= top
-
-def r_squeeze(p, i, look, pct_thr):
-    if i < look + 40:
-        return False
-    rets = [p[k] / p[k - 1] - 1 for k in range(i - look + 1, i + 1)]
-    m = sum(rets) / len(rets)
-    sd = math.sqrt(sum((x - m) ** 2 for x in rets) / len(rets))
-    hist = []
-    for j in range(i - 39, i + 1):
-        rr = [p[k] / p[k - 1] - 1 for k in range(j - look + 1, j + 1)]
-        mm = sum(rr) / len(rr)
-        hist.append(math.sqrt(sum((x - mm) ** 2 for x in rr) / len(rr)))
-    rank = sum(1 for h in hist if h <= sd) / len(hist)
-    return rank <= pct_thr and p[i] > max(p[i - 10:i])
-
-def r_consistency(p, i, k):
-    if i < k * 21:
-        return False
-    return all(p[i - j * 21] > p[i - (j + 1) * 21] for j in range(k))
-
-def r_basing_break(p, i, look, band):
-    if i < look + 1:
-        return False
-    w = p[i - look:i]
-    lo, hi = min(w), max(w)
-    return hi > 0 and (hi / lo - 1) * 100 <= band and p[i] > hi
 
 RULES = {
-  "momentum_breakout":   {"fam": "trend/ignition",      "cfgs": [{"n": 50}, {"n": 100}, {"n": 200}],
-                           "fn": lambda p, i, spy, c: r_mom_breakout(p, i, c["n"])},
-  "ma_cross":            {"fam": "trend",               "cfgs": [{"fast": 10, "slow": 50}, {"fast": 20, "slow": 50}, {"fast": 20, "slow": 100}],
-                           "fn": lambda p, i, spy, c: r_ma_cross(p, i, c["fast"], c["slow"])},
-  "pullback_in_uptrend": {"fam": "upside-radar",        "cfgs": [{"lo": -15, "hi": -5}, {"lo": -20, "hi": -8}],
-                           "fn": lambda p, i, spy, c: r_pullback(p, i, c["lo"], c["hi"])},
-  "deep_drawdown_buy":   {"fam": "mean-reversion",      "cfgs": [{"x": 25}, {"x": 35}, {"x": 45}],
-                           "fn": lambda p, i, spy, c: r_meanrev(p, i, c["x"])},
-  "relative_strength":   {"fam": "momentum/leaders",    "cfgs": [{"lb": 21, "top": 10}, {"lb": 63, "top": 15}, {"lb": 126, "top": 20}],
-                           "fn": lambda p, i, spy, c: r_relstr(p, i, spy, c["lb"], c["top"])},
-  "vol_squeeze_break":   {"fam": "volatility-squeeze",  "cfgs": [{"look": 20, "pct_thr": 0.2}, {"look": 20, "pct_thr": 0.1}],
-                           "fn": lambda p, i, spy, c: r_squeeze(p, i, c["look"], c["pct_thr"])},
-  "momentum_consistency":{"fam": "quality-momentum",    "cfgs": [{"k": 3}, {"k": 4}],
-                           "fn": lambda p, i, spy, c: r_consistency(p, i, c["k"])},
-  "basing_breakout":     {"fam": "pre-pump/basing",     "cfgs": [{"look": 60, "band": 12}, {"look": 60, "band": 18}, {"look": 40, "band": 10}],
-                           "fn": lambda p, i, spy, c: r_basing_break(p, i, c["look"], c["band"])},
+  "momentum_breakout":   {"fam": "trend/ignition", "cfgs": [{"n": 50}, {"n": 100}, {"n": 200}],
+    "fn": lambda F, i, SF, c: F[f"hi{c['n']}"][i - 1] is not None and F["p"][i] > F[f"hi{c['n']}"][i - 1]},
+  "ma_cross":            {"fam": "trend", "cfgs": [{"f": 10, "s": 50}, {"f": 20, "s": 50}, {"f": 20, "s": 100}],
+    "fn": lambda F, i, SF, c: (F[f"ma{c['f']}"][i] is not None and F[f"ma{c['s']}"][i] is not None
+                                 and F[f"ma{c['f']}"][i - 1] is not None and F[f"ma{c['s']}"][i - 1] is not None
+                                 and F[f"ma{c['f']}"][i] > F[f"ma{c['s']}"][i]
+                                 and F[f"ma{c['f']}"][i - 1] <= F[f"ma{c['s']}"][i - 1])},
+  "pullback_in_uptrend": {"fam": "upside-radar", "cfgs": [{"lo": -15, "hi": -5}, {"lo": -20, "hi": -8}],
+    "fn": lambda F, i, SF, c: (F["ma200"][i] is not None and F["p"][i] > F["ma200"][i]
+                                 and F["off_hi"][i] is not None and c["lo"] <= F["off_hi"][i] <= c["hi"])},
+  "deep_drawdown_buy":   {"fam": "mean-reversion", "cfgs": [{"x": 25}, {"x": 35}, {"x": 45}],
+    "fn": lambda F, i, SF, c: F["off_hi"][i] is not None and F["off_hi"][i] <= -c["x"]},
+  "relative_strength":   {"fam": "momentum/leaders", "cfgs": [{"lb": 21, "top": 10}, {"lb": 63, "top": 15}, {"lb": 126, "top": 20}],
+    "fn": lambda F, i, SF, c: (i >= c["lb"] and F["p"][i - c["lb"]] and SF["p"][i - c["lb"]]
+                                 and (F["p"][i] / F["p"][i - c["lb"]] - SF["p"][i] / SF["p"][i - c["lb"]]) * 100 >= c["top"])},
+  "vol_squeeze_break":   {"fam": "volatility-squeeze", "cfgs": [{"thr": 0.2}, {"thr": 0.1}],
+    "fn": lambda F, i, SF, c: (F["sd_rank"][i] is not None and F["sd_rank"][i] <= c["thr"]
+                                 and F["hi10"][i - 1] is not None and F["p"][i] > F["hi10"][i - 1])},
+  "momentum_consistency": {"fam": "quality-momentum", "cfgs": [{"k": 3}, {"k": 4}],
+    "fn": lambda F, i, SF, c: (i >= c["k"] * 21
+                                 and all(F["p"][i - j * 21] > F["p"][i - (j + 1) * 21] for j in range(c["k"])))},
+  "basing_breakout":     {"fam": "pre-pump/basing", "cfgs": [{"band": 12}, {"band": 18}, {"band": 10}],
+    "fn": lambda F, i, SF, c: (F["hi60"][i - 1] is not None and F["lo60"][i - 1]
+                                 and (F["hi60"][i - 1] / F["lo60"][i - 1] - 1) * 100 <= c["band"]
+                                 and F["p"][i] > F["hi60"][i - 1])},
 }
 
 
-def collect_trades(rule_fn, cfg, uni, spy, i0, i1):
-    """entries in [i0,i1); returns list of 21d excess returns vs SPY"""
+def collect_trades(rule_fn, cfg, uniF, spyF, spy, i0, i1):
     out = []
-    for t, p in uni.items():
+    for t, F in uniF.items():
+        p = F["p"]
         last_entry = -999
         for i in range(max(i0, 1), i1):
             if i + HORIZON >= len(p):
@@ -165,10 +179,8 @@ def collect_trades(rule_fn, cfg, uni, spy, i0, i1):
             if i - last_entry < HORIZON:
                 continue
             try:
-                if rule_fn(p, i, spy, cfg):
-                    r_ = p[i + HORIZON] / p[i] - 1
-                    rb = spy[i + HORIZON] / spy[i] - 1
-                    out.append(r_ - rb)
+                if rule_fn(F, i, spyF, cfg):
+                    out.append(p[i + HORIZON] / p[i] - 1 - (spy[i + HORIZON] / spy[i] - 1))
                     last_entry = i
             except Exception:
                 break
@@ -193,7 +205,7 @@ def stats(trades):
              "avg": round(m * 100, 2), "maxdd": round(mdd * 100, 1), "curve": curve[::step][:60]}
 
 
-def mode_a(uni, spy):
+def mode_a(uniF, spyF, spy):
     L = len(spy)
     seg = (L - WARMUP - HORIZON) // N_FOLDS
     results = []
@@ -205,14 +217,14 @@ def mode_a(uni, spy):
             t2 = t1 + seg
             best, best_sr = None, -99
             for cfg in R["cfgs"]:
-                tr = collect_trades(R["fn"], cfg, uni, spy, 1, t1)
+                tr = collect_trades(R["fn"], cfg, uniF, spyF, spy, 1, t1)
                 st = stats(tr)
                 if st["sr"] is not None and st["sr"] > best_sr:
                     best, best_sr = cfg, st["sr"]
             if best is None:
                 best = R["cfgs"][0]
             picks.append(best)
-            oos += collect_trades(R["fn"], best, uni, spy, t1, t2)
+            oos += collect_trades(R["fn"], best, uniF, spyF, spy, t1, t2)
         st = stats(oos)
         emax = expected_max_sr(len(R["cfgs"]) * N_FOLDS, st["n"])
         gate = bool(st["sr"] is not None and st["sr"] > emax
@@ -312,9 +324,11 @@ def lambda_handler(event=None, context=None):
     ranked = sorted((t for t in rings if t in dv and len(rings[t]) == len(spy)),
                      key=lambda t: -dv[t])[:N_UNIVERSE]
     uni = {t: rings[t] for t in ranked}
+    spyF = feats(spy, spy)
+    uniF = {t: feats(uni[t], spy) for t in uni}
     DIAG.append(f"universe {len(uni)} of {len(rings)} rings · {len(spy)} days · "
                  f"{N_FOLDS} OOS folds · horizon {HORIZON}d excess vs SPY")
-    rules = mode_a(uni, spy)
+    rules = mode_a(uniF, spyF, spy)
     live = mode_b(rings, spy, up.get("last_date"))
     out = {"engine": "backtest-harness", "version": VERSION,
             "generated_at": datetime.now(timezone.utc).isoformat(),

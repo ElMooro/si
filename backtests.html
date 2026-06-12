@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Backtest Harness — walk-forward validation — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--green:#34d399;--cyan:#22d3ee;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--green)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12px;margin-left:12px}nav a:hover,nav a.on{color:var(--green)}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 22px}
+h1{font-size:22px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13px;line-height:1.6;max-width:940px}
+.hero{display:flex;gap:11px;flex-wrap:wrap;margin:14px 0}
+.g{background:var(--bg1);border:2px solid var(--border);border-radius:13px;padding:11px 16px;font-family:var(--mono)}
+.g b{font-size:21px}.g .m{font-size:10px;color:var(--fg3);margin-top:3px}
+.sec{font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--cyan);margin:18px 0 7px;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+th{font-family:var(--mono);font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:8px;border-bottom:1px solid var(--border);background:var(--bg2)}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);white-space:nowrap}
+.hi{color:var(--green)}.lo{color:var(--red)}
+.pill{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:6px;font-weight:800}
+.pP{background:rgba(52,211,153,.15);color:var(--green)}.pF{background:rgba(255,85,119,.13);color:var(--red)}
+.note{color:var(--fg3);font-size:11px;margin-top:18px;line-height:1.7;max-width:980px}
+.loading{color:var(--fg3);font-family:var(--mono)}
+svg.spark{vertical-align:middle}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/backtests.html" class="on">🧪 Backtests</a><a href="/signal-board.html">Board</a><a href="/engines.html">🧭 Engines</a><a href="/valuations.html">💰 Valuations</a></nav></header>
+<div class="wrap">
+<h1>Backtest Harness — <span class="grad">walk-forward, deflated, out-of-sample</span></h1>
+<p class="sub">Eight signal archetypes (mapping to the desk's engine families) validated <b>anchored walk-forward</b>: parameters are chosen on the train window only, then applied to sequential out-of-sample folds. Trades are 21-day excess returns vs SPY pooled across a 1,500-name universe. <b>PASS</b> requires the OOS Sharpe to clear the Bailey/López-de-Prado expected-max-Sharpe under the number of trials — the deflated-Sharpe gate that, on random walks, passes nothing.</p>
+<div class="hero" id="hero"><span class="loading">Loading…</span></div>
+<div class="sec">Mode A — Rule Archetypes (out-of-sample)</div>
+<div style="overflow-x:auto"><table><thead><tr><th>Rule</th><th>Family</th><th>OOS trades</th><th>Hit %</th><th>Avg excess</th><th>OOS Sharpe</th><th>Gate (E[maxSR])</th><th>Max DD</th><th>Equity (OOS)</th><th>Verdict</th></tr></thead><tbody id="ta"></tbody></table></div>
+<div class="sec">Mode B — Live Signal Types (independently re-graded, 21d excess vs SPY)</div>
+<div style="overflow-x:auto"><table><thead><tr><th>Signal type</th><th>Graded</th><th>Pending</th><th>Hit %</th><th>Avg excess %</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="note" id="note"></div>
+</div>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function spark(c){if(!c||c.length<2)return'';const w=110,h=26,mn=Math.min(...c),mx=Math.max(...c),sp=mx-mn||1;
+  const pts=c.map((v,i)=>`${(i/(c.length-1)*w).toFixed(1)},${(h-(v-mn)/sp*h).toFixed(1)}`).join(' ');
+  const up=c[c.length-1]>=c[0];
+  return `<svg class="spark" width="${w}" height="${h}"><polyline points="${pts}" fill="none" stroke="${up?'#34d399':'#ff5577'}" stroke-width="1.6"/></svg>`;}
+(async()=>{const D=await gj('data/backtest-harness.json');
+  if(!D){document.getElementById('hero').innerHTML='<span class="loading">harness pending first run</span>';return;}
+  document.getElementById('hero').innerHTML=
+   `<div class="g"><b class="${D.n_pass>0?'hi':''}">${D.n_pass}/${(D.rules||[]).length}</b><div class="m">archetypes PASS deflated gate</div></div>
+    <div class="g"><b>${D.universe_n}</b><div class="m">ticker universe</div></div>
+    <div class="g"><b>${D.days}</b><div class="m">trading days · ${D.folds} OOS folds</div></div>
+    <div class="g"><b>${D.horizon_days}d</b><div class="m">horizon · excess vs SPY</div></div>`;
+  document.getElementById('ta').innerHTML=(D.rules||[]).map(r=>{const o=r.oos||{};return `<tr>
+    <td><b>${esc(r.rule)}</b></td><td style="color:var(--fg3);font-size:10px">${esc(r.family)}</td>
+    <td>${o.n??'—'}</td><td>${o.hit??'—'}</td><td class="${(o.avg||0)>0?'hi':'lo'}">${o.avg??'—'}%</td>
+    <td class="${(o.sr||0)>0?'hi':'lo'}"><b>${o.sr??'—'}</b></td><td style="color:var(--fg3)">${r.deflated_gate_sr}</td>
+    <td class="${(o.maxdd||0)<-25?'lo':''}">${o.maxdd??'—'}%</td><td>${spark(o.curve)}</td>
+    <td><span class="pill ${r.PASS?'pP':'pF'}">${r.PASS?'PASS':'FAIL'}</span></td></tr>`;}).join('');
+  document.getElementById('tb').innerHTML=(D.live_signal_types||[]).map(r=>`<tr>
+    <td><b>${esc(r.signal_type)}</b></td><td>${r.graded}</td><td style="color:var(--fg3)">${r.pending}</td>
+    <td class="${(r.hit_pct||0)>=55?'hi':''}">${r.hit_pct??'—'}</td>
+    <td class="${(r.avg_excess_pct||0)>0?'hi':'lo'}">${r.avg_excess_pct??'—'}</td></tr>`).join('')
+    ||'<tr><td colspan="5" style="color:var(--fg3)">no graded live signals yet</td></tr>';
+  document.getElementById('note').textContent=`${D.methodology} v${D.version} · ${D.generated_at} · ${D.duration_s}s`;
+})();
+</script></body></html>

@@ -946,6 +946,13 @@ def n_research_papers(d):
     return 0, f"{n} AI papers · latest {p0.get(chr(116))} conviction {p0.get(chr(99)+chr(111)+chr(110)+chr(118)+chr(105)+chr(99)+chr(116)+chr(105)+chr(111)+chr(110))}/10"
 
 
+def n_backtest_harness(d):
+    np_, nr = d.get("n_pass"), len(d.get("rules") or [])
+    if np_ is None:
+        return 0, "Backtest harness n/a"
+    return 0, f"{np_}/{nr} archetypes pass deflated-Sharpe OOS gate"
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1034,6 +1041,7 @@ FEEDS = [
     ("Insider Radar",          "equity tactical",  "data/insider-radar.json",        n_insider_radar),
     ("Stock Valuations",       "equity tactical",  "data/stock-valuations.json",     n_stock_valuations),
     ("Research Papers",        "equity tactical",  "data/research-papers.json",      n_research_papers),
+    ("Backtest Harness",       "meta",             "data/backtest-harness.json",     n_backtest_harness),
 ]
 
 
