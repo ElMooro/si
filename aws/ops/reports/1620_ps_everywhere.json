@@ -1,0 +1,303 @@
+{
+ "ops": 1620,
+ "map_err": "NONE",
+ "map_log": "START RequestId: 57d600ba-836b-4920-8fe8-03fcc9484447 Version: $LATEST\n[map] tiles=498 size=market_cap breadth 4/181 groups=11 84.8s\nEND RequestId: 57d600ba-836b-4920-8fe8-03fcc9484447\nREPORT RequestId: 57d600ba-836b-4920-8fe8-03fcc9484447\tDuration: 84842.70 ms\tBilled Duration: 85344 ms\tMemory Size: 1024 MB\tMax Memory Used: 160 MB\tInit Duration: 500.94 ms\t\nXRAY TraceId: 1-6a2c52d5-6146db5e6263c4f92bf6117a\tSegmentId: 828d9f9c8c0c7f99\tSampled: true\t\n",
+ "map": {
+  "version": "1.2.0",
+  "diagnostics": [
+   "sp500 constituents: 500",
+   "upside rings: 6069 as of 2026-06-11",
+   "mcap cache: 501 cached, 0 refreshed",
+   "rev cache: 498 cached, 498 refreshed (asof 2026-06-12)",
+   "cheap candidates: 25 (sector-relative P/S q20 + momentum)"
+  ],
+  "ps_coverage": 498,
+  "n_tiles": 498,
+  "tiles_top_ps": [
+   {
+    "t": "NVDA",
+    "s": "Technology",
+    "ps": 19.15,
+    "m3": 11.87
+   },
+   {
+    "t": "GOOGL",
+    "s": "Communication Services",
+    "ps": 10.28,
+    "m3": 17.86
+   },
+   {
+    "t": "AAPL",
+    "s": "Technology",
+    "ps": 9.49,
+    "m3": 15.59
+   },
+   {
+    "t": "MSFT",
+    "s": "Technology",
+    "ps": 9.27,
+    "m3": -2.87
+   },
+   {
+    "t": "AMZN",
+    "s": "Consumer Discretionary",
+    "ps": 3.45,
+    "m3": 15.26
+   },
+   {
+    "t": "AVGO",
+    "s": "Technology",
+    "ps": 23.46,
+    "m3": 14.76
+   }
+  ],
+  "sector_ps_medians": {
+   "Industrials": 3.38,
+   "Health Care": 3.42,
+   "Consumer Discretionary": 2.09,
+   "Technology": 6.22,
+   "Materials": 2.78,
+   "Financials": 2.54,
+   "Communication Services": 1.76,
+   "Energy": 2.45,
+   "Utilities": 3.06,
+   "Consumer Staples": 1.78,
+   "Real Estate": 7.92
+  },
+  "cheap_head": [
+   {
+    "t": "CNC",
+    "s": "Health Care",
+    "ps": 0.16,
+    "sector_ps_median": 3.42,
+    "discount_pct": 95.0,
+    "m3": 83.8,
+    "rs": 73.04,
+    "hi": -4.03,
+    "mc": 32264695980.0,
+    "score": 87.5
+   },
+   {
+    "t": "HUM",
+    "s": "Health Care",
+    "ps": 0.32,
+    "sector_ps_median": 3.42,
+    "discount_pct": 91.0,
+    "m3": 125.26,
+    "rs": 114.5,
+    "hi": 0.0,
+    "mc": 43757614290.0,
+    "score": 85.5
+   },
+   {
+    "t": "ELV",
+    "s": "Health Care",
+    "ps": 0.44,
+    "sector_ps_median": 3.42,
+    "discount_pct": 87.0,
+    "m3": 38.66,
+    "rs": 27.9,
+    "hi": -5.95,
+    "mc": 87855212452.8,
+    "score": 82.2
+   },
+   {
+    "t": "JBL",
+    "s": "Technology",
+    "ps": 1.14,
+    "sector_ps_median": 6.22,
+    "discount_pct": 82.0,
+    "m3": 49.48,
+    "rs": 38.72,
+    "hi": -0.88,
+    "mc": 37174903887.92,
+    "score": 81.0
+   },
+   {
+    "t": "DAL",
+    "s": "Industrials",
+    "ps": 0.77,
+    "sector_ps_median": 3.38,
+    "discount_pct": 77.0,
+    "m3": 41.23,
+    "rs": 30.47,
+    "hi": -0.8,
+    "mc": 50240357179.8,
+    "score": 78.5
+   },
+   {
+    "t": "UNH",
+    "s": "Health Care",
+    "ps": 0.82,
+    "sector_ps_median": 3.42,
+    "discount_pct": 76.0,
+    "m3": 46.38,
+    "rs": 35.62,
+    "hi": -1.8,
+    "mc": 370032518853.83997,
+    "score": 78.0
+   },
+   {
+    "t": "CVS",
+    "s": "Health Care",
+    "ps": 0.31,
+    "sector_ps_median": 3.42,
+    "discount_pct": 91.0,
+    "m3": 32.09,
+    "rs": 21.33,
+    "hi": 0.0,
+    "mc": 125066394632.14,
+    "score": 77.6
+   },
+   {
+    "t": "HPE",
+    "s": "Technology",
+    "ps": 1.55,
+    "sector_ps_median": 6.22,
+    "discount_pct": 75.0,
+    "m3": 116.87,
+    "rs": 106.11,
+    "hi": -16.65,
+    "mc": 60238018170.29,
+    "score": 77.5
+   }
+  ],
+  "ps_logged": [
+   "CNC"
+  ]
+ },
+ "groups_ps": [
+  {
+   "etf": "XLV",
+   "ps_median": 3.42
+  },
+  {
+   "etf": "XLK",
+   "ps_median": 6.22
+  },
+  {
+   "etf": "XLF",
+   "ps_median": 2.54
+  },
+  {
+   "etf": "XLP",
+   "ps_median": 1.78
+  },
+  {
+   "etf": "XLRE",
+   "ps_median": 7.92
+  },
+  {
+   "etf": "XLI",
+   "ps_median": 3.38
+  }
+ ],
+ "themes_ps": [
+  {
+   "theme": "Homebuilders",
+   "ps_median": 1.34
+  },
+  {
+   "theme": "Semiconductors",
+   "ps_median": 19.15
+  },
+  {
+   "theme": "AI Leaders",
+   "ps_median": 19.15
+  },
+  {
+   "theme": "Crypto Equities",
+   "ps_median": null
+  },
+  {
+   "theme": "Energy",
+   "ps_median": 2.31
+  },
+  {
+   "theme": "Biotech Rotation",
+   "ps_median": 4.89
+  },
+  {
+   "theme": "China ADRs",
+   "ps_median": null
+  },
+  {
+   "theme": "Uranium",
+   "ps_median": null
+  }
+ ],
+ "ins_err": "NONE",
+ "insider": {
+  "version": "1.1.0",
+  "clusters_ps": [
+   {
+    "t": "SMMT",
+    "ps": 0,
+    "ret60": -17.5
+   },
+   {
+    "t": "MBBC",
+    "ps": 3.53,
+    "ret60": 8.7
+   }
+  ],
+  "decline_ps": [
+   {
+    "t": "DBGI",
+    "ps": 1.18,
+    "ret60": -65.3
+   },
+   {
+    "t": "CLIK",
+    "ps": 0.07,
+    "ret60": -43.6
+   },
+   {
+    "t": "CLIK",
+    "ps": 0.07,
+    "ret60": -43.6
+   },
+   {
+    "t": "CLIK",
+    "ps": 0.07,
+    "ret60": -43.6
+   },
+   {
+    "t": "CLIK",
+    "ps": 0.07,
+    "ret60": -43.6
+   }
+  ],
+  "diag_tail": [
+   "fmp/search: 1000 rows",
+   "rings: 6069",
+   "ps_ttm: 9/9 fetched"
+  ]
+ },
+ "sen_err": "NONE",
+ "sentinel": {
+  "version": "1.2.0",
+  "n_changes": 11,
+  "state_saved": false,
+  "value_pump": [
+   "CNC",
+   "HUM",
+   "ELV",
+   "JBL",
+   "DAL",
+   "UNH",
+   "CVS",
+   "HPE",
+   "HPQ",
+   "DELL"
+  ],
+  "changes": [
+   "\ud83d\udc8e New value-momentum candidate \u2014 CNC: P/S 0.16 vs sector 3.42 (95.0% disc), 3M 83.8%",
+   "\ud83d\udc8e New value-momentum candidate \u2014 CVS: P/S 0.31 vs sector 3.42 (91.0% disc), 3M 32.09%",
+   "\ud83d\udc8e New value-momentum candidate \u2014 DAL: P/S 0.77 vs sector 3.38 (77.0% disc), 3M 41.23%",
+   "\ud83d\udc8e New value-momentum candidate \u2014 DELL: P/S 1.79 vs sector 6.22 (71.0% disc), 3M 161.12%",
+   "\ud83d\udc8e New value-momentum candidate \u2014 ELV: P/S 0.44 vs sector 3.42 (87.0% disc), 3M 38.66%",
+   "\ud83d\udc8e New value-momentum candidate \u2014 HPE: P/S 1.55 vs sector 6.22 (75.0% disc), 3M 116.87%"
+  ]
+ }
+}
