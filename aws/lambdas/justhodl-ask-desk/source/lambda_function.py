@@ -45,7 +45,7 @@ ANSWER_SYS = (
   "advice. Sources are SLIMMED (long lists truncated) — never declare a #1 or "
   "ranking unless the source field is explicitly a ranked list like "
   "underlooked_top; if data looks truncated, say so.")
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 
 def claude(system, user, models, max_tokens=1100):
@@ -71,10 +71,17 @@ def slim(obj, depth=0):
     if isinstance(obj, dict):
         # retention order: scalars first, then lists (ranked tables), then
         # nested dicts last — so giant sub-dicts can't crowd out top lists
+        def grp(v):
+            return (0 if isinstance(v, (str, int, float, bool)) or v is None
+                     else 1 if isinstance(v, list) else 2)
+        def sz(v):
+            try:
+                return len(json.dumps(slim(v, 2), default=str))
+            except Exception:
+                return 9999
         items = sorted(obj.items(),
-                        key=lambda kv: (0 if isinstance(kv[1], (str, int, float, bool))
-                                           or kv[1] is None
-                                           else 1 if isinstance(kv[1], list) else 2))
+                        key=lambda kv: (grp(kv[1]),
+                                          sz(kv[1]) if depth == 0 and grp(kv[1]) == 1 else 0))
         out = {}
         for k, v in items[:60]:
             if isinstance(v, (str, int, float, bool)) or v is None:
