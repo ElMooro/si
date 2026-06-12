@@ -15,6 +15,7 @@ MODE B (live signals): every schema-v2 signal in justhodl-signals
 Output: data/backtest-harness.json · weekly Sun 12:10 UTC + on-demand.
 """
 import json, gzip, math, os, time, urllib.request
+import re
 from datetime import datetime, timezone
 import boto3
 
@@ -29,7 +30,7 @@ HORIZON = 21
 N_UNIVERSE = 1500
 WARMUP = 110
 N_FOLDS = 3
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 DIAG = []
 
 
@@ -254,6 +255,7 @@ def mode_b(uni_full, spy, last_date):
         if not lek:
             break
     DIAG.append(f"mode B: {len(items)} schema-v2 signals")
+    UNDATED = [0]
     st = {}
     try:
         st = json.loads(S3.get_object(Bucket=BUCKET, Key=STATE_KEY)["Body"].read())
@@ -280,12 +282,36 @@ def mode_b(uni_full, spy, last_date):
               or it.get("type") or "unknown"
         ty = str(ty).replace("-", "_")
         tick = it.get("ticker")
-        ep = int(it.get("logged_epoch") or 0)
+        ep = 0
+        for f_ in ("logged_epoch", "timestamp", "created_epoch", "ts"):
+            try:
+                v = int(float(it.get(f_) or 0))
+                if v > 1_500_000_000:
+                    ep = v if v < 10_000_000_000 else v // 1000
+                    break
+            except Exception:
+                pass
+        d0 = None
+        if ep:
+            d0 = datetime.fromtimestamp(ep, tz=timezone.utc).date().isoformat()
+        else:
+            m_ = re.search(r"(20[2-3]\d-[01]\d-[0-3]\d)", sid)
+            if not m_:
+                for f_ in ("date", "signal_date", "created_at", "logged_at"):
+                    v = str(it.get(f_) or "")
+                    m_ = re.search(r"(20[2-3]\d-[01]\d-[0-3]\d)", v)
+                    if m_:
+                        break
+            if m_:
+                d0 = m_.group(1)
+                ep = int(datetime.fromisoformat(d0).replace(tzinfo=timezone.utc).timestamp())
+        if not d0:
+            UNDATED[0] += 1
+            continue
         age_td = (now - ep) / 86400 * (252 / 365.0)
         if age_td < HORIZON + 2:
             by_type.setdefault(ty, {"pending": 0, "trades": [], "artifacts": 0})["pending"] += 1
             continue
-        d0 = datetime.fromtimestamp(ep, tz=timezone.utc).date().isoformat()
         key = f"{tick}"
         if key not in pxc and fetched < 60:
             try:
@@ -333,6 +359,7 @@ def mode_b(uni_full, spy, last_date):
         DIAG.append(f"graded dump: {str(e)[:50]}")
     S3.put_object(Bucket=BUCKET, Key=STATE_KEY, Body=json.dumps(st).encode(),
                   ContentType="application/json")
+    DIAG.append(f"mode B: {UNDATED[0]} undated signals excluded (no recoverable date)")
     table = []
     for ty, d in by_type.items():
         tr = d["trades"]
