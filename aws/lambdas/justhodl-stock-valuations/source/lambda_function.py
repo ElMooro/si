@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -45,6 +45,8 @@ RATIO_LADDERS = {
              "pfcfRatioTTM"],
   "ev_fcf": ["evToFreeCashFlowTTM", "enterpriseValueOverFreeCashFlowTTM",
              "enterpriseValueToFreeCashFlowTTM"],
+  "ev_s": ["evToSalesTTM", "enterpriseValueOverRevenueTTM", "evToRevenueTTM",
+            "enterpriseValueToSalesTTM"],
   "div_y": ["dividendYieldTTM", "dividendYielTTM", "dividendYieldPercentageTTM"],
   "fcf_y": ["freeCashFlowYieldTTM"],
   "roe": ["returnOnEquityTTM", "roeTTM", "returnOnCommonEquityTTM",
@@ -90,10 +92,14 @@ def fetch_ratios(t):
         DIAG.append("ratios-ttm keys sample: " + ",".join(sorted(row.keys())[:24]))
         DIAG.append("ratios-ttm return/yield keys: " + ",".join(
             k for k in sorted(row.keys()) if "eturn" in k or "ividend" in k or "ield" in k))
+        DIAG.append("ratios-ttm EV keys: " + (",".join(
+            k for k in sorted(row.keys()) if "nterpris" in k or k.startswith("ev")) or "NONE"))
     return {k: pick(row, lad) for k, lad in RATIO_LADDERS.items()}
 
 
 KM_LADDERS = {"roe": ["returnOnEquityTTM", "roeTTM", "returnOnCommonEquityTTM"],
+               "ev_s": ["evToSalesTTM", "enterpriseValueOverRevenueTTM"],
+               "ev": ["enterpriseValueTTM", "enterpriseValue"],
                "roa": ["returnOnAssetsTTM", "roaTTM", "returnOnTangibleAssetsTTM"],
                "fcf_y": ["freeCashFlowYieldTTM", "fcfYieldTTM"],
                "ev_fcf": ["evToFreeCashFlowTTM", "enterpriseValueOverFreeCashFlowTTM"]}
@@ -108,6 +114,8 @@ def fetch_keymetrics(t):
         _sampled["km"] = True
         DIAG.append("key-metrics-ttm return/yield keys: " + ",".join(
             k for k in sorted(row.keys()) if "eturn" in k or "ield" in k)[:200])
+        DIAG.append("key-metrics-ttm EV keys: " + (",".join(
+            k for k in sorted(row.keys()) if "nterpris" in k or k.startswith("ev")) or "NONE")[:180])
     return {k: pick(row, lad) for k, lad in KM_LADDERS.items()}
 
 
@@ -218,10 +226,10 @@ def lambda_handler(event=None, context=None):
     except Exception:
         st = {"sp": {}, "hp": {}, "sp_asof": "", "hp_asof": "", "hp_rows": [], "hp_src": ""}
     week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat()
-    if not st.get("v102_refetch"):
+    if not st.get("v103_refetch"):
         st["sp_asof"] = ""
-        st["v102_refetch"] = True
-        DIAG.append("v1.0.2: forcing sp refetch (key-metrics-ttm ROE/ROA/FCF-yield fill)")
+        st["v103_refetch"] = True
+        DIAG.append("v1.0.3: forcing sp refetch (EV/Sales + EV ladders)")
 
     sec = {}
     try:
@@ -283,6 +291,7 @@ def lambda_handler(event=None, context=None):
         st["hp"] = {t: v for t, v in st["hp"].items() if t in {r[0] for r in rows}}
     hp_rows = st.get("hp_rows") or []
     hp_secmap = {r[0]: r[1] for r in hp_rows}
+    hp_mcap = {r[0]: r[2] for r in hp_rows if len(r) > 2 and r[2]}
     todo = [r[0] for r in hp_rows if r[0] not in st["hp"]]
     b0 = time.time(); hgot = 0
     for t in todo:
@@ -398,6 +407,11 @@ def lambda_handler(event=None, context=None):
         fcf_ttm = sum(fcf4) if len(fcf4) >= 2 else None
         burn_q = (-fcf_ttm / max(len(fcf4), 1)) if (fcf_ttm is not None and fcf_ttm < 0) else 0
         cash, debt = bal.get("cash"), bal.get("debt")
+        mc_hp = hp_mcap.get(t)
+        ev_hp = (mc_hp + (debt or 0) - (cash or 0)) if mc_hp else None
+        ev_s_hp = (round(ev_hp / rev_ttm, 2) if (ev_hp is not None and rev_ttm and rev_ttm > 0)
+                    else rr.get("ev_s"))
+        net_cash = bool(cash is not None and debt is not None and cash > debt)
         runway_q = (cash / burn_q) if (burn_q > 0 and cash) else None
         ni_now = sum(x.get("ni") or 0 for x in inc[:4]) if len(inc) >= 4 else None
         ni_prior = sum(x.get("ni") or 0 for x in inc[4:8]) if len(inc) >= 8 else None
@@ -446,6 +460,7 @@ def lambda_handler(event=None, context=None):
                                      "rev_yoy_pct": round(yoy * 100, 1) if yoy is not None else None,
                                      "gross_margin_pct": round((g or 0) * 100, 1) if g is not None else None,
                                      "dilution_yoy_pct": round(dil * 100, 1) if dil is not None else None,
+                                     "ev": ev_hp, "ev_s": ev_s_hp, "net_cash": net_cash,
                                      "fcf_ttm": fcf_ttm, "cash": cash, "debt": debt,
                                      "runway_q": round(runway_q, 1) if runway_q else None}})
     hp_out.sort(key=lambda x: -x["score"])
@@ -485,7 +500,7 @@ def lambda_handler(event=None, context=None):
                              "(weekly cache, budgeted resume), composite = mean sector-"
                              "relative percentile of P/S, P/E, P/B, EV/EBITDA, P/FCF "
                              "(negatives treated as expensive); CHEAP<=25th pct, RICH>=75th; "
-                             "intrinsic gap joined from gf-value composite fair value. "
+                             "intrinsic gap joined from gf-value composite fair value; EV pillar = EV/EBITDA + EV/FCF + EV/Sales columns (EV/EBITDA inside the label composite), and on small/mids explicit EV = mcap + debt - cash with net-cash flag (a $100M mcap with $400M debt is a $500M business). "
                              "Layer B: the 10x10 Huge-Potential rubric — revenue growth, "
                              "cheapness (P/S+P/FCF tiers), balance sheet (cash vs debt), "
                              "runway quarters, gross-margin tier + trend, dilution (share "

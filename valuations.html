@@ -69,7 +69,7 @@ const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 const PCT=new Set(['div_y','fcf_y','roe','roa','gm','om']);
-const COLS=[['t','Ticker'],['sector','Sector'],['label','Label'],['value_pct','Val pct'],['pe','P/E'],['ps','P/S'],['pb','P/B'],['ev_ebitda','EV/EBITDA'],['p_fcf','P/FCF'],['fcf_y','FCF y%'],['div_y','Div y%'],['roe','ROE%'],['gm','GM%'],['de','D/E'],['rev_g','Rev g%'],['eps_g','EPS g%'],['peg','PEG'],['gf_gap','GF gap%']];
+const COLS=[['t','Ticker'],['sector','Sector'],['label','Label'],['value_pct','Val pct'],['pe','P/E'],['ps','P/S'],['pb','P/B'],['ev_ebitda','EV/EBITDA'],['ev_s','EV/S'],['p_fcf','P/FCF'],['fcf_y','FCF y%'],['div_y','Div y%'],['roe','ROE%'],['gm','GM%'],['de','D/E'],['rev_g','Rev g%'],['eps_g','EPS g%'],['peg','PEG'],['gf_gap','GF gap%']];
 let D=null,LAB='ALL',SORT='value_pct',ASC=true,FLAGF='all';
 const fmt=(k,v)=>{if(v==null)return '—';if(PCT.has(k))return (v*100).toFixed(1);if(k==='gf_gap'||k==='rev_g'||k==='eps_g')return (v>0?'+':'')+v;return v;};
 function renderA(){
@@ -89,12 +89,12 @@ function renderB(){
     const col=r.score>=75?'var(--green)':r.score>=55?'var(--amber)':'var(--fg3)';
     return `<div class="card ${(r.flags||[]).length?'fl':''}">
      <div style="display:flex;align-items:center;gap:11px">
-      <b style="font-family:var(--mono);font-size:15px;min-width:64px">#${i+1} ${esc(r.t)}</b>
+      <b style="font-family:var(--mono);font-size:15px;min-width:64px">#${i+1} ${esc(r.t)}</b>${r.metrics?.net_cash?'<span class="pill pCHEAP" style="margin-left:2px">NET CASH</span>':''}
       <div class="scorebar"><i style="width:${r.score}%;background:${col}"></i></div>
       <b style="font-family:var(--mono);color:${col};min-width:72px;text-align:right">${r.score}/100</b></div>
      <div class="chips">${Object.entries(r.cats||{}).map(([k,v])=>`<span class="chip" style="border-color:${v>=8?'rgba(52,211,153,.5)':v<=2?'rgba(255,85,119,.5)':'var(--border)'}">${esc(k.replace(/_/g,' '))} <b>${v}</b></span>`).join('')}</div>
      ${(r.flags||[]).length?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--red)">⚠ ${r.flags.map(esc).join(' · ')} — score capped</div>`:''}
-     <div style="font-family:var(--mono);font-size:10px;color:var(--fg3);margin-top:5px">${esc(r.sector||'')} · P/S ${r.metrics?.ps??'—'} · rev YoY ${r.metrics?.rev_yoy_pct??'—'}% · GM ${r.metrics?.gross_margin_pct??'—'}% · dilution ${r.metrics?.dilution_yoy_pct??'—'}%/yr · runway ${r.metrics?.runway_q??'FCF+'}q · cash $${((r.metrics?.cash||0)/1e6).toFixed(0)}M vs debt $${((r.metrics?.debt||0)/1e6).toFixed(0)}M · ${esc(r.chart_detail)}</div></div>`;}).join('')
+     <div style="font-family:var(--mono);font-size:10px;color:var(--fg3);margin-top:5px">${esc(r.sector||'')} · P/S ${r.metrics?.ps??'—'} · EV $${r.metrics?.ev!=null?(r.metrics.ev/1e9).toFixed(2)+'B':'—'} · EV/S ${r.metrics?.ev_s??'—'} · rev YoY ${r.metrics?.rev_yoy_pct??'—'}% · GM ${r.metrics?.gross_margin_pct??'—'}% · dilution ${r.metrics?.dilution_yoy_pct??'—'}%/yr · runway ${r.metrics?.runway_q??'FCF+'}q · cash $${((r.metrics?.cash||0)/1e6).toFixed(0)}M vs debt $${((r.metrics?.debt||0)/1e6).toFixed(0)}M · ${esc(r.chart_detail)}</div></div>`;}).join('')
    ||'<span class="loading">HP universe filling…</span>';
 }
 document.getElementById('lab').onclick=e=>{const l=e.target.dataset.l;if(!l)return;LAB=l;document.querySelectorAll('#lab span').forEach(x=>x.classList.toggle('on',x.dataset.l===l));renderA();};
