@@ -1,0 +1,28 @@
+{
+ "ops": 1651,
+ "tests": [
+  {
+   "q": "Which underlooked stock ranks #1 and what stance did its research debate reach?",
+   "sources": [
+    "data/stock-valuations.json",
+    "data/debate.json",
+    "data/research-papers.json"
+   ],
+   "duration_s": 17.7,
+   "answer_head": "## Underlooked Stock #1 and Debate Stance\n\nThe source data does not contain an explicitly ranked list field called `underlooked_top` or equivalent that designates a **#1 underlooked stock** with a clear ordinal ranking. The `data/research-papers.json` references `underlooked_top` only in its methodology description (\"Daily AI research notes on the top underlooked names (stock-valuations underlooked_top)\") but the actual ranked list itself is not reproduced in the provided source data [data/research-papers.json]. The `papers` array appears to be ordered b",
+   "cited": true,
+   "names_opra": true
+  },
+  {
+   "q": "Did the backtest harness indict any live signal type, and does the meta-labeler agree?",
+   "sources": [
+    "data/backtest-harness.json",
+    "data/meta-labeler.json"
+   ],
+   "duration_s": 16.0,
+   "answer_head": "## Backtest Harness Indictment of Live Signal Types\n\n### What the Harness Found\n\nOnly one live signal type has been fully graded: **`screener_top_pick`**, with 40 graded signals. Its results are damning:\n\n- **Hit rate: 30.0%** (only 30% of signals produced positive 21-day excess returns vs SPY) [data/backtest-harness.json]\n- **Average excess return: -10.01%** [data/backtest-harness.json]\n- **Median excess return: -11.43%** [data/backtest-harness.json]\n\nThis is a clear negative-alpha indictment of the `screener_top_pick` signal type on an out-of-sample ba",
+   "cited": true,
+   "names_opra": false
+  }
+ ]
+}
