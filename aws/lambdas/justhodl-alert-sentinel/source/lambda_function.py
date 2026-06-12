@@ -26,7 +26,7 @@ STATE_KEY = "data/_alerts/last.json"
 OUT_KEY = "data/alert-sentinel.json"
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 DIAG = []
 
 
@@ -105,6 +105,11 @@ def snapshot():
                                   f"({c.get('discount_pct')}% disc), 3M {c.get('m3')}%")
                         for c in cands if c.get("t")}
 
+    sv = gj("data/stock-valuations.json")
+    ser = [x for x in (sv.get("hp") or []) if (x.get("score") or 0) >= 75 and not x.get("flags")]
+    s["hp_serious"] = sorted(x.get("t") for x in ser if x.get("t"))[:12]
+    s["_hp_detail"] = {x["t"]: f"HP {x.get('score')}/100" for x in ser if x.get("t")}
+
     cc = gj("data/crisis-canaries.json")
     s["canary_reds"] = sorted(k for k, v in (cc.get("canaries") or {}).items()
                                 if isinstance(v, dict) and v.get("family")
@@ -137,6 +142,10 @@ def diff(old, new):
         add = sorted(n - o)
         if add:
             msgs.append(f"{emoji} {label}: {', '.join(add[:12])}" + (" …" if len(add) > 12 else ""))
+    # 🏆 HP-Score: new >=75 clean names ("worth serious research")
+    oh, nh = set(old.get("hp_serious") or []), set(new.get("hp_serious") or [])
+    for k in sorted(nh - oh):
+        msgs.append(f"🏆 HP-Score serious — {k}: {(new.get('_hp_detail') or {}).get(k, '')}")
     # 💎 value-pump: new sector-cheap P/S + momentum candidates
     ov, nv = set(old.get("value_pump") or []), set(new.get("value_pump") or [])
     for k in sorted(nv - ov):

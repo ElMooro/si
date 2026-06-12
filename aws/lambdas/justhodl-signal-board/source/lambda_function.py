@@ -926,6 +926,18 @@ def n_insider_radar(d):
     return sig, f"{nb} buys 30d \u00b7 {nc} clusters \u00b7 {nd} after-decline"
 
 
+def n_stock_valuations(d):
+    sp = d.get("sp_coverage")
+    if sp is None:
+        return 0, "Valuations n/a"
+    hp = d.get("hp") or []
+    top = hp[0] if hp else {}
+    ns = d.get("n_serious") or 0
+    sig = 1 if ns >= 1 else 0
+    return sig, (f"S&P {sp}/{d.get(chr(115)+chr(112)+chr(95)+chr(117)+chr(110)+chr(105)+chr(118)+chr(101)+chr(114)+chr(115)+chr(101))} valued · "
+                  f"top HP {top.get(chr(116))} {top.get(chr(115)+chr(99)+chr(111)+chr(114)+chr(101))} · {ns} ≥75 clean")
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1012,6 +1024,7 @@ FEEDS = [
     ("Market Map (S&P)",       "equity tactical",  "data/market-map.json",           n_market_map),
     ("Sector Groups",          "equity tactical",  "data/sector-groups.json",        n_sector_groups),
     ("Insider Radar",          "equity tactical",  "data/insider-radar.json",        n_insider_radar),
+    ("Stock Valuations",       "equity tactical",  "data/stock-valuations.json",     n_stock_valuations),
 ]
 
 
