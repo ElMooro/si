@@ -1,0 +1,22 @@
+{
+ "ops": 1617,
+ "state_keys_removed": true,
+ "env_check": {
+  "has_token": true,
+  "token_head": "8679881066:A",
+  "chat": "8678089260"
+ },
+ "fn_err": "NONE",
+ "log_tail": "START RequestId: e9d5b03d-513c-4f05-baf4-75442baeafcf Version: $LATEST\n[sentinel] first=False sent=False changes=1\nEND RequestId: e9d5b03d-513c-4f05-baf4-75442baeafcf\nREPORT RequestId: e9d5b03d-513c-4f05-baf4-75442baeafcf\tDuration: 1016.09 ms\tBilled Duration: 1017 ms\tMemory Size: 256 MB\tMax Memory Used: 100 MB\t\nXRAY TraceId: 1-6a2c40b3-601480c256638eac1e5afe73\tSegmentId: 665a9977f4570163\tSampled: true\t\n",
+ "verify": {
+  "message_sent": false,
+  "n_changes": 1,
+  "changes": [
+   "\ud83d\udc24 NEW RED canary \u2014 Quits rate (JOLTS): 1.9% (-0.10pp YoY) \u2014 workers stop quitting before layoffs"
+  ],
+  "diagnostics": [
+   "breakouts: 20",
+   "telegram: HTTP Error 403: Forbidden"
+  ]
+ }
+}
