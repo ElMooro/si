@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -139,6 +139,38 @@ def fetch_growth(t):
         _sampled["growth"] = True
         DIAG.append("financial-growth keys sample: " + ",".join(sorted(row.keys())[:20]))
     return {k: pick(row, lad) for k, lad in GROWTH_LADDERS.items()}
+
+
+HIST_LADDERS = {
+  "ps": ["priceToSalesRatio", "priceSalesRatio"],
+  "pe": ["priceToEarningsRatio", "priceEarningsRatio"],
+  "pb": ["priceToBookRatio", "priceBookValueRatio", "priceToBookValueRatio"],
+  "ev_ebitda": ["enterpriseValueMultiple", "evToEBITDA", "enterpriseValueOverEBITDA"],
+  "p_fcf": ["priceToFreeCashFlowRatio", "priceToFreeCashFlowsRatio"],
+}
+
+
+def fetch_hist(t):
+    """10 years of annual ratios for own-history percentiles."""
+    j = jget(f"https://financialmodelingprep.com/stable/ratios?symbol={t}"
+              f"&period=annual&limit=10&apikey={FMP_KEY}")
+    if not (isinstance(j, list) and j):
+        return None
+    if not _sampled.get("hist"):
+        _sampled["hist"] = True
+        DIAG.append("ratios-annual keys sample: " + ",".join(
+            k for k in sorted(j[0].keys()) if "price" in k.lower()
+            or "nterpris" in k.lower())[:220])
+    out = {}
+    for k, lad in HIST_LADDERS.items():
+        vals = []
+        for row in j:
+            v = pick(row, lad)
+            if v is not None and v > 0:
+                vals.append(round(v, 3))
+        if len(vals) >= 5:
+            out[k] = vals
+    return out or None
 
 
 def fetch_hp_raw(t):
@@ -296,6 +328,29 @@ def lambda_handler(event=None, context=None):
         st["sp_asof"] = datetime.now(timezone.utc).date().isoformat()
     DIAG.append(f"sp cache: {len(st['sp'])} cached, {got} refreshed")
 
+    # ── own-history cache (10y annual ratios; the "vs history" axis) ──
+    st.setdefault("hist", {})
+    hist_fresh = st.get("hist_asof", "") >= week_ago
+    htodo = [t for t in sec if t not in st["hist"]]
+    if not hist_fresh:
+        htodo += [t for t in sec if t in st["hist"]]
+    h0 = time.time(); hgot2 = 0
+    for t in htodo:
+        if time.time() - h0 > 150:
+            DIAG.append(f"hist budget hit ({hgot2} done, {len(htodo)-hgot2} remain)")
+            break
+        try:
+            hv = fetch_hist(t)
+            if hv:
+                st["hist"][t] = hv
+        except Exception:
+            pass
+        hgot2 += 1
+        time.sleep(0.10)
+    if hgot2:
+        st["hist_asof"] = datetime.now(timezone.utc).date().isoformat()
+    DIAG.append(f"hist cache: {len(st['hist'])} names with >=5y, {hgot2} refreshed")
+
     if st.get("hp_asof", "") < week_ago or not st.get("hp_rows"):
         rows, src = hp_universe()
         st["hp_rows"], st["hp_src"] = rows, src
@@ -411,6 +466,19 @@ def lambda_handler(event=None, context=None):
                 vclass = "HIGH MULTIPLE"
             else:
                 vclass = "SECTOR MID"
+            # own-history axis: where does the CURRENT multiple sit vs its own 10y?
+            hrow = st["hist"].get(t) or {}
+            hn, hd = 0.0, 0.0
+            for k, w in W.items():
+                if w <= 0:
+                    continue
+                hv, cv = hrow.get(k), r.get(k)
+                if hv and cv is not None and cv > 0 and len(hv) >= 5:
+                    hp_ = sum(1 for x in hv if x <= cv) / len(hv) * 100
+                    hn += w * max(5.0, min(95.0, hp_))
+                    hd += w
+            hist_pct = round(hn / hd, 0) if hd else None
+            deep_discount = bool(vpct <= 25 and hist_pct is not None and hist_pct <= 25)
             peg = None
             if r.get("pe") and r.get("eps_g") and r["eps_g"] > 0:
                 peg = round(r["pe"] / (r["eps_g"] * 100), 2)
@@ -423,7 +491,8 @@ def lambda_handler(event=None, context=None):
                          "eps_g": round(r["eps_g"] * 100, 1) if r.get("eps_g") is not None else None,
                          "fcf_g": round(r["fcf_g"] * 100, 1) if r.get("fcf_g") is not None else None,
                          "peg": peg, "value_pct": vpct, "label": label,
-                         "vclass": vclass, "gf_gap": gf.get(t)})
+                         "vclass": vclass, "hist_pct": hist_pct,
+                         "deep_discount": deep_discount, "gf_gap": gf.get(t)})
             sp_table.append(row)
     sp_table.sort(key=lambda x: x["value_pct"])
 
@@ -597,6 +666,8 @@ def lambda_handler(event=None, context=None):
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "duration_s": round(time.time() - t0, 1),
             "sp_table": sp_table, "sp_coverage": len(sp_table), "sp_universe": len(sec),
+            "hist_coverage": sum(1 for x in sp_table if x.get("hist_pct") is not None),
+            "n_deep_discount": sum(1 for x in sp_table if x.get("deep_discount")),
             "sp_asof": st.get("sp_asof"),
             "hp": hp_out[:80], "hp_coverage": len(hp_out), "hp_universe": len(hp_rows),
             "hp_src": st.get("hp_src"), "hp_logged": logged, "n_serious": len(serious),
@@ -605,7 +676,7 @@ def lambda_handler(event=None, context=None):
                              "sector percentiles — P/B-led for Financials, FFO-proxy-led for "
                              "REITs, P/S+P/FCF-led for Tech, EV/EBITDA-led default; negative "
                              "earnings/FCF map to 70th pct (NM: worse than neutral, not "
-                             "max-penalty). Labels are MULTIPLE labels (LOW<=25th, HIGH>=75th); "
+                             "max-penalty). Labels are MULTIPLE labels (LOW<=25th, HIGH>=75th); hist_pct = the same weighted composite vs the name's OWN 10y annual multiples (FMP ratios-annual), and deep_discount marks bottom-quartile on BOTH the sector axis and the own-history axis — 'below sector & history'; "
                              "a low multiple is only POTENTIALLY UNDERVALUED when quality "
                              "confirms (ROE>10%% or FCF yield>4%%, revenue not shrinking) and "
                              "flips to VALUE TRAP RISK on shrinking revenue / negative FCF or "
