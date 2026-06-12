@@ -25,7 +25,7 @@ ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 MODELS = ["claude-sonnet-4-6", "claude-haiku-4-5-20251001"]
 PAPERS_PER_RUN = 3
-VERSION = "2.0.1"
+VERSION = "2.0.2"
 DIAG = []
 
 BULL_SYS = (
@@ -95,7 +95,29 @@ def call_claude(user_text, system, max_tokens=3500):
                 txt = txt.strip("`")
                 if txt.lower().startswith("json"):
                     txt = txt[4:]
-            return json.loads(txt.strip()), model
+            try:
+                return json.loads(txt.strip()), model
+            except json.JSONDecodeError as je:
+                # one repair round: send the broken output back for correction
+                rep = json.dumps({"model": model, "max_tokens": max_tokens,
+                                    "system": "You repair invalid JSON. Respond with ONLY "
+                                               "the corrected JSON object, nothing else.",
+                                    "messages": [{"role": "user", "content":
+                                      f"This JSON is invalid ({je}). Fix and return it:\n"
+                                      + txt[:8000]}]}).encode()
+                rq = urllib.request.Request(
+                    "https://api.anthropic.com/v1/messages", data=rep,
+                    headers={"Content-Type": "application/json",
+                              "x-api-key": ANTHROPIC_KEY,
+                              "anthropic-version": "2023-06-01"})
+                r2 = json.loads(urllib.request.urlopen(rq, timeout=90).read())
+                t2 = "".join(b.get("text", "") for b in r2.get("content", [])
+                              if b.get("type") == "text").strip()
+                if t2.startswith("```"):
+                    t2 = t2.strip("`")
+                    if t2.lower().startswith("json"):
+                        t2 = t2[4:]
+                return json.loads(t2.strip()), model + "+repair"
         except Exception as e:
             last = e
             continue
