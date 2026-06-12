@@ -22,7 +22,8 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/insider-radar.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.0"
+POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+VERSION = "1.0.1"
 DIAG = []
 RANK = (("CEO", 3.0), ("CHIEF EXECUTIVE", 3.0), ("CFO", 2.8), ("CHIEF FINANCIAL", 2.8),
          ("PRESIDENT", 2.4), ("COO", 2.2), ("CHAIR", 2.2), ("DIRECTOR", 1.8),
@@ -39,6 +40,27 @@ def f(x):
         return float(x)
     except Exception:
         return None
+
+
+_PX60 = {}
+def poly_ret60(t):
+    if t in _PX60:
+        return _PX60[t]
+    from datetime import date
+    end = datetime.now(timezone.utc).date().isoformat()
+    start = (datetime.now(timezone.utc) - timedelta(days=95)).date().isoformat()
+    val = None
+    try:
+        u = (f"https://api.polygon.io/v2/aggs/ticker/{t}/range/1/day/{start}/{end}"
+             f"?adjusted=true&sort=asc&limit=200&apiKey={POLYGON_KEY}")
+        rows = [float(r["c"]) for r in (jget(u, timeout=15).get("results") or [])]
+        if len(rows) > 40:
+            base = rows[-61] if len(rows) > 61 else rows[0]
+            val = round((rows[-1] / base - 1) * 100, 1)
+    except Exception as e:
+        DIAG.append(f"poly_ret60 {t}: {str(e)[:40]}")
+    _PX60[t] = val
+    return val
 
 
 def fetch_fmp():
@@ -135,7 +157,7 @@ def lambda_handler(event=None, context=None):
         r = rings.get(t)
         if r and len(r) > 61 and r[-61]:
             return round((r[-1] / r[-61] - 1) * 100, 1)
-        return None
+        return poly_ret60(t)
 
     # clusters: ≥2 distinct insiders / ticker / ≤14d span
     byt = {}
@@ -201,7 +223,7 @@ def lambda_handler(event=None, context=None):
             "logged": logged, "diagnostics": list(DIAG),
             "methodology": ("Form-4 open-market purchases (P-type), 30d window. Clusters = "
                              "≥2 distinct insiders ≤14d. Decline join = ticker −25%+ over 60 "
-                             "sessions from the desk's own close-rings. Officer rank weights "
+                             "sessions from the desk's own close-rings (Polygon 60d fallback for micro-caps outside the rings). Officer rank weights "
                              "CEO 3.0 → director 1.8. Cluster∩decline logs to the graded "
                              "closed loop (insider_cluster_decline, 63d horizon). "
                              "Research, not advice.")}
