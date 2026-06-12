@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -591,6 +591,8 @@ def lambda_handler(event=None, context=None):
         gp_yoy = (gp_ttm / gp_prior - 1) if (gp_ttm and gp_prior and gp_prior > 0) else None
         op_leverage = (round((gp_yoy - yoy) * 100, 1)
                         if (gp_yoy is not None and yoy is not None) else None)
+        if hp_secmap.get(t) in FIN_SECTORS:
+            op_leverage = None   # GP semantics n/m for financials
         ni_now = sum(x.get("ni") or 0 for x in inc[:4]) if len(inc) >= 4 else None
         ni_prior = sum(x.get("ni") or 0 for x in inc[4:8]) if len(inc) >= 8 else None
         is_fin = hp_secmap.get(t) in FIN_SECTORS
@@ -692,7 +694,8 @@ def lambda_handler(event=None, context=None):
         else:
             hp_class = "MIXED"
         # doc S21 "cheap AI stock" formula as a strict badge
-        formula21 = bool((yoy or 0) >= 0.20
+        formula21 = bool(not is_fin
+                          and (yoy or 0) >= 0.20
                           and (g or 0) >= 0.50
                           and rr.get("ps") is not None
                           and (rr["ps"] < 5 or (rr["ps"] < 8 and (yoy or 0) >= 0.40))
