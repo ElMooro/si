@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI Research Papers — Underlooked Stocks — JustHodl AI</title>
 <style>
-:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--green:#34d399;--cyan:#22d3ee;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577}
+:root{--red:#ff5577;--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--green:#34d399;--cyan:#22d3ee;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
 header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
 .brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--green)}
@@ -65,6 +65,7 @@ function renderUL(){if(!SV)return;
   const draw=()=>{const rows=(SV.industries||{})[sel.value]||[];
     document.getElementById('indtbl').innerHTML=`<table class="ul">${ULH}<tbody>${rows.map(ulRow).join('')}</tbody></table>`;};
   sel.onchange=draw;if(inds.length)draw();}
+const JSECTIONS=[['debate_verdict','Judge\'s verdict'],['points_conceded_to_bear','Points conceded to the bear']];
 const SECTIONS=[['one_line_thesis','Thesis'],['business_overview','Business'],['why_underlooked','Why it\'s underlooked'],['financial_analysis','Financial analysis'],['valuation_case','Valuation case'],['catalysts','Catalysts'],['risks','Risks'],['bear_case','Bear case'],['what_would_break_the_thesis','What would break the thesis'],['verdict','Verdict']];
 function showList(){document.getElementById('paper').style.display='none';document.getElementById('list').style.display='block';}
 async function showPaper(key){
@@ -75,6 +76,11 @@ async function showPaper(key){
   const p=d.paper||{};
   let h=`<h1 style="font-size:21px">${esc(p.title||d.ticker)}</h1>
    <div style="font-family:var(--mono);font-size:11px;color:var(--fg3)">${esc(d.ticker)} · ${esc(d.name||'')} · ${esc((d.generated_at||'').slice(0,10))} · ${esc(d.model_used||'')} · conviction <b style="color:var(--violet)">${p.conviction_1_10??'—'}/10</b></div>`;
+  const db=p.debate||null;
+  if(db&&db.bull){h+=`<div class="sec" style="color:var(--green)">🐂 Bull case</div><p>${esc(db.bull.bull_thesis||'')}</p><ul>${(db.bull.strongest_points||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul><p style="font-size:12px;color:var(--fg3)">${esc(db.bull.what_the_market_misses||'')}</p>`;}
+  if(db&&db.bear){h+=`<div class="sec" style="color:var(--red,#ff5577)">🐻 Bear rebuttal</div><p>${esc(db.bear.bear_rebuttal||'')}</p><ul>${(db.bear.strongest_attacks||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${(db.bear.kill_conditions||[]).length?`<p style="font-size:12px"><b style="color:var(--amber)">Kill conditions:</b> ${db.bear.kill_conditions.map(esc).join(' · ')}</p>`:''}`;}
+  for(const[k,h2]of JSECTIONS){const v=p[k];if(v==null)continue;h+=`<div class="sec">${esc(h2)}</div>`;if(Array.isArray(v))h+=`<ul>${v.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;else h+=`<p>${esc(v)}</p>`;}
+  if(p.position_stance)h+=`<div class="sec">Stance</div><p><b style="color:var(--cyan)">${esc(p.position_stance)}</b></p>`;
   for(const[k,h2]of SECTIONS){const v=p[k];if(v==null)continue;
     h+=`<div class="sec">${esc(h2)}</div>`;
     if(Array.isArray(v))h+=`<ul>${v.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;

@@ -25,11 +25,31 @@ ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 MODELS = ["claude-sonnet-4-6", "claude-haiku-4-5-20251001"]
 PAPERS_PER_RUN = 3
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 DIAG = []
 
-SYSTEM = (
-  "You are a senior buy-side equity analyst at a value-oriented fund writing an "
+BULL_SYS = (
+  "You are the BULL analyst in an internal investment-desk debate on an underlooked "
+  "small/mid-cap. Build the STRONGEST affirmative case — but every figure must appear "
+  "verbatim in the DOSSIER; absent data must be called 'not in dossier'; never invent "
+  "facts. Respond ONLY with a JSON object: bull_thesis (string), strongest_points "
+  "(array of 3-5 strings, each citing dossier numbers), what_the_market_misses "
+  "(string), upside_framework (string).")
+
+BEAR_SYS = (
+  "You are the BEAR analyst in an internal investment-desk debate. You receive the "
+  "dossier AND the bull case. Your job is to ATTACK it: find what the bull ignored, "
+  "stretched, or got wrong — using ONLY dossier figures; absent data must be called "
+  "'not in dossier'. Be ruthless but honest: concede genuinely strong points. Respond "
+  "ONLY with a JSON object: bear_rebuttal (string), strongest_attacks (array of 3-5 "
+  "strings, each citing dossier numbers), what_the_bull_ignores (string), "
+  "kill_conditions (array of 2-4 strings: observable events that would end the thesis).")
+
+JUDGE_SYS = (
+  "You are the PORTFOLIO MANAGER judging an internal bull/bear debate and writing "
+  "the final research note on an underlooked small/mid-cap. You receive the dossier, "
+  "the bull case, and the bear rebuttal. Your conviction MUST reflect the bear's best "
+  "surviving attacks - do not award high conviction to a thesis the bear wounded. "
   "internal research note on an UNDERLOOKED small/mid-cap stock. STRICT RULES: "
   "every figure you cite must appear verbatim in the DOSSIER; if a datum you want "
   "is absent, write 'not in dossier' rather than estimating; never invent "
@@ -39,7 +59,9 @@ SYSTEM = (
   "exactly these keys: title (string), one_line_thesis, business_overview, "
   "why_underlooked, financial_analysis, valuation_case, catalysts (array of "
   "strings), risks (array of strings), bear_case, what_would_break_the_thesis, "
-  "verdict, conviction_1_10 (integer 1-10).")
+  "verdict, conviction_1_10 (integer 1-10), debate_verdict (string: who argued "
+  "better and why), points_conceded_to_bear (array of strings), "
+  "position_stance (one of: BUY-WATCH, RESEARCH-MORE, PASS).")
 
 
 def jget(url, timeout=20):
@@ -54,12 +76,12 @@ def s3j(key):
         return {}
 
 
-def call_claude(user_text):
+def call_claude(user_text, system, max_tokens=3500):
     last = None
     for model in MODELS:
         try:
-            payload = json.dumps({"model": model, "max_tokens": 3500,
-                                   "system": SYSTEM,
+            payload = json.dumps({"model": model, "max_tokens": max_tokens,
+                                   "system": system,
                                    "messages": [{"role": "user", "content": user_text}]}).encode()
             req = urllib.request.Request(
                 "https://api.anthropic.com/v1/messages", data=payload,
@@ -132,9 +154,20 @@ def lambda_handler(event=None, context=None):
         t = c["t"]
         try:
             dossier = gather(t, c, sv, sec_rank, macro_line)
-            paper, model = call_claude(f"DOSSIER for {t}:\n"
-                                        + json.dumps(dossier, default=str)
-                                        + "\n\nWrite the research note now.")
+            dj = json.dumps(dossier, default=str)
+            bull, m1 = call_claude(f"DOSSIER for {t}:\n{dj}\n\nBuild the bull case.",
+                                    BULL_SYS, 1800)
+            bear, m2 = call_claude(f"DOSSIER for {t}:\n{dj}\n\nBULL CASE:\n"
+                                    + json.dumps(bull) + "\n\nAttack it.",
+                                    BEAR_SYS, 1800)
+            paper, model = call_claude(f"DOSSIER for {t}:\n{dj}\n\nBULL CASE:\n"
+                                        + json.dumps(bull) + "\n\nBEAR REBUTTAL:\n"
+                                        + json.dumps(bear)
+                                        + "\n\nJudge the debate and write the final "
+                                          "research note now.",
+                                        JUDGE_SYS, 3500)
+            paper["debate"] = {"bull": bull, "bear": bear,
+                                "models": {"bull": m1, "bear": m2, "judge": model}}
             conv = paper.get("conviction_1_10")
             conv = max(1, min(10, int(conv))) if isinstance(conv, (int, float)) else 5
             paper["conviction_1_10"] = conv
@@ -153,6 +186,7 @@ def lambda_handler(event=None, context=None):
                               "title": paper.get("title"),
                               "one_line_thesis": (paper.get("one_line_thesis") or "")[:180],
                               "conviction": conv, "date": today,
+                              "stance": paper.get("position_stance"),
                               "key": f"data/research/{t}.json"})
             written.append(t)
             try:
@@ -188,7 +222,7 @@ def lambda_handler(event=None, context=None):
             "methodology": ("Daily AI research notes on the top underlooked names "
                              "(stock-valuations underlooked_top). Dossier-locked: the "
                              "model may only cite numbers present in the dossier and "
-                             "must say 'not in dossier' otherwise. Conviction 1-10; "
+                             "must say 'not in dossier' otherwise. TradingAgents-style bull/bear debate: a bull analyst builds the case, a bear analyst attacks it with the dossier, and a PM judge writes the final note with debate-tempered conviction, points conceded to the bear, and a stance (BUY-WATCH/RESEARCH-MORE/PASS). Conviction 1-10; "
                              "every note logs research_paper (UP, 63d) to the graded "
                              "closed loop so the theses are scored, not just written. "
                              "Research, not advice.")}
