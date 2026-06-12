@@ -42,8 +42,10 @@ ANSWER_SYS = (
   "source key in square brackets like [data/crisis-canaries.json]; if the sources "
   "don't contain something, say 'not in desk data' rather than guessing; numbers "
   "must appear verbatim in a source; be concise and direct; this is research, not "
-  "advice.")
-VERSION = "1.0.0"
+  "advice. Sources are SLIMMED (long lists truncated) — never declare a #1 or "
+  "ranking unless the source field is explicitly a ranked list like "
+  "underlooked_top; if data looks truncated, say so.")
+VERSION = "1.0.1"
 
 
 def claude(system, user, models, max_tokens=1100):
@@ -67,15 +69,21 @@ def claude(system, user, models, max_tokens=1100):
 
 def slim(obj, depth=0):
     if isinstance(obj, dict):
+        # retention order: scalars first, then lists (ranked tables), then
+        # nested dicts last — so giant sub-dicts can't crowd out top lists
+        items = sorted(obj.items(),
+                        key=lambda kv: (0 if isinstance(kv[1], (str, int, float, bool))
+                                           or kv[1] is None
+                                           else 1 if isinstance(kv[1], list) else 2))
         out = {}
-        for k, v in list(obj.items())[:40]:
+        for k, v in items[:60]:
             if isinstance(v, (str, int, float, bool)) or v is None:
                 out[k] = v if not isinstance(v, str) else v[:300]
             elif depth < 2:
                 out[k] = slim(v, depth + 1)
         return out
     if isinstance(obj, list):
-        return [slim(x, depth + 1) for x in obj[:8]]
+        return [slim(x, depth + 1) for x in obj[:10]]
     return str(obj)[:200]
 
 
