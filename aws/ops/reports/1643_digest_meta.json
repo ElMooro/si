@@ -1,0 +1,142 @@
+{
+ "ops": 1643,
+ "sentinel": {
+  "version": "2.0.0",
+  "buffer_n": 24,
+  "last_sent": "",
+  "sent": false,
+  "diag": [
+   "breakouts: 20",
+   "telegram: HTTP Error 403: Forbidden",
+   "daily report send failed \u2014 24 signals retained for tomorrow's report"
+  ],
+  "delivery": "one daily report >= 21:00 UTC (flush event to force)"
+ },
+ "harness_err": "NONE",
+ "harness": {
+  "version": "1.1.0",
+  "graded_diag": [
+   "graded rows for meta-labeler: 14654"
+  ]
+ },
+ "meta_fn": "created",
+ "meta_err": "NONE",
+ "meta_log": "START RequestId: dbd14cae-88f4-4722-9c9f-01606cc486ee Version: $LATEST\n[meta] uplift Nonepp \u00b7 take 0.0% \u00b7 0/2982 pending TAKE \u00b7 27.6s\nEND RequestId: dbd14cae-88f4-4722-9c9f-01606cc486ee\nREPORT RequestId: dbd14cae-88f4-4722-9c9f-01606cc486ee\tDuration: 28006.58 ms\tBilled Duration: 28573 ms\tMemory Size: 512 MB\tMax Memory Used: 156 MB\tInit Duration: 565.96 ms\t\n",
+ "meta": {
+  "model": {
+   "n_train": 28,
+   "n_test": 12,
+   "coefficients": {
+    "bias": -0.373,
+    "confidence": 0.0,
+    "direction": 0.0,
+    "spy_mom21": 0.0,
+    "spy_vol20": 0.0,
+    "spy_above50": 0.0,
+    "type:unknown": 0.0,
+    "type:screener_top_pick": -0.373,
+    "type:apex_fusion": 0.0
+   },
+   "test_base_hit": 25.0,
+   "test_take_precision": null,
+   "test_take_rate": 0.0,
+   "uplift_pp": null,
+   "avg_excess_all_pct": -9.28,
+   "avg_excess_taken_pct": null,
+   "brier": 0.1927
+  },
+  "per_type": [
+   {
+    "type": "screener_top_pick",
+    "n_test": 12,
+    "base_hit": 25.0,
+    "gated_hit": null,
+    "take_rate": 0.0
+   }
+  ],
+  "n_take": 0,
+  "n_gated": 2982,
+  "gates_head": [
+   {
+    "signal_id": "b472aaa0-a13e-4e17-92ac-9011a7348f3d",
+    "type": "crisis_t10yie_extreme",
+    "ticker": null,
+    "date": "2026-05-24",
+    "conf": 0.45,
+    "meta_p": 0.408,
+    "verdict": "SKIP"
+   },
+   {
+    "signal_id": "fcff158a-f6c2-4c9c-b090-68b702d08ad1",
+    "type": "market_phase",
+    "ticker": null,
+    "date": "2026-06-06",
+    "conf": 0.75,
+    "meta_p": 0.408,
+    "verdict": "SKIP"
+   },
+   {
+    "signal_id": "3b2c646d-299f-419e-84a7-a71553c7955b",
+    "type": "corr_break_composite_vs_vxx",
+    "ticker": null,
+    "date": "2026-06-11",
+    "conf": 0.85,
+    "meta_p": 0.408,
+    "verdict": "SKIP"
+   },
+   {
+    "signal_id": "073ce9a8-d376-450a-a1ef-bea6fb1238d2",
+    "type": "analog_signal",
+    "ticker": null,
+    "date": "2026-06-03",
+    "conf": 0.4,
+    "meta_p": 0.408,
+    "verdict": "SKIP"
+   },
+   {
+    "signal_id": "b61f8f61-1cad-4747-9ad6-74220ac56430",
+    "type": "crisis_sloos_tighten",
+    "ticker": null,
+    "date": "2026-04-29",
+    "conf": 0.45,
+    "meta_p": 0.408,
+    "verdict": "SKIP"
+   },
+   {
+    "signal_id": "86029b10-3998-40cf-9469-8dba76cf071a",
+    "type": "crisis_dfii10_vs_gld",
+    "ticker": null,
+    "date": "2026-05-30",
+    "conf": 0.65,
+    "meta_p": 0.408,
+    "verdict": "SKIP"
+   },
+   {
+    "signal_id": "29eb3709-1b01-4219-ad36-e3fcec5ecae5",
+    "type": "crisis_ig_bbb_oas",
+    "ticker": null,
+    "date": "2026-06-06",
+    "conf": 0.45,
+    "meta_p": 0.408,
+    "verdict": "SKIP"
+   },
+   {
+    "signal_id": "3b9011ee-ed1f-4e9d-a7c3-656a6bab78b0",
+    "type": "analog_signal",
+    "ticker": null,
+    "date": "2026-05-25",
+    "conf": 0.4,
+    "meta_p": 0.408,
+    "verdict": "SKIP"
+   }
+  ],
+  "diag": [
+   "40 graded rows featurized; train 28 (<= 2026-03-11) test 12; types ['unknown', 'screener_top_pick', 'apex_fusion']"
+  ]
+ },
+ "board_n": 80,
+ "board_row": {
+  "read": "Meta-labeler n/a",
+  "sig": 0
+ }
+}
