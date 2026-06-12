@@ -1,4 +1,4 @@
-# ops 1649 — create ask-desk fn + Function URL (CORS) + desk key config + live RAG tests
+# ops 1649 — create ask-desk fn + Function URL (CORS) + desk key config + live RAG tests  # retrigger-w-log
 import json, zipfile, io, os, time, secrets
 import boto3
 from botocore.config import Config

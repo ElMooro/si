@@ -1,4 +1,4 @@
-# ops 1647 — debate desk v2.0.1 (time-guarded) deploy + invoke + verify
+# ops 1647 — debate desk v2.0.1 (time-guarded) deploy + invoke + verify  # retrigger-w-log
 import json, zipfile, io, os, time, base64
 import boto3
 from botocore.config import Config
