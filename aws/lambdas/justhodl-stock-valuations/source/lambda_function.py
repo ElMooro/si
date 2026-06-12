@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -43,10 +43,13 @@ RATIO_LADDERS = {
                  "enterpriseValueMultipleTTM"],
   "p_fcf": ["priceToFreeCashFlowRatioTTM", "priceToFreeCashFlowsRatioTTM",
              "pfcfRatioTTM"],
-  "ev_fcf": ["evToFreeCashFlowTTM", "enterpriseValueOverFreeCashFlowTTM"],
-  "div_y": ["dividendYieldTTM", "dividendYielTTM"],
+  "ev_fcf": ["evToFreeCashFlowTTM", "enterpriseValueOverFreeCashFlowTTM",
+             "enterpriseValueToFreeCashFlowTTM"],
+  "div_y": ["dividendYieldTTM", "dividendYielTTM", "dividendYieldPercentageTTM"],
   "fcf_y": ["freeCashFlowYieldTTM"],
-  "roe": ["returnOnEquityTTM"], "roa": ["returnOnAssetsTTM"],
+  "roe": ["returnOnEquityTTM", "roeTTM", "returnOnCommonEquityTTM",
+          "returnOnStockholdersEquityTTM"],
+  "roa": ["returnOnAssetsTTM", "returnOnTangibleAssetsTTM", "roaTTM"],
   "gm": ["grossProfitMarginTTM"], "om": ["operatingProfitMarginTTM"],
   "de": ["debtToEquityRatioTTM", "debtEquityRatioTTM"],
   "cr": ["currentRatioTTM"],
@@ -85,6 +88,8 @@ def fetch_ratios(t):
     if not _sampled["ratios"]:
         _sampled["ratios"] = True
         DIAG.append("ratios-ttm keys sample: " + ",".join(sorted(row.keys())[:24]))
+        DIAG.append("ratios-ttm return/yield keys: " + ",".join(
+            k for k in sorted(row.keys()) if "eturn" in k or "ividend" in k or "ield" in k))
     return {k: pick(row, lad) for k, lad in RATIO_LADDERS.items()}
 
 
@@ -195,6 +200,10 @@ def lambda_handler(event=None, context=None):
     except Exception:
         st = {"sp": {}, "hp": {}, "sp_asof": "", "hp_asof": "", "hp_rows": [], "hp_src": ""}
     week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat()
+    if not st.get("v101_refetch"):
+        st["sp_asof"] = ""
+        st["v101_refetch"] = True
+        DIAG.append("v1.0.1: forcing full sp refetch (widened ROE/ROA ladders)")
 
     sec = {}
     try:
@@ -270,7 +279,9 @@ def lambda_handler(event=None, context=None):
         g = json.loads(S3.get_object(Bucket=BUCKET, Key="data/gf-value.json")["Body"].read())
         for row in (g.get("results") or g.get("rows") or g.get("valuations") or []):
             t = row.get("ticker") or row.get("symbol")
-            gap = row.get("upside_pct") or row.get("fair_gap_pct") or row.get("gap_pct")
+            gap = row.get("margin_of_safety_pct")
+            if gap is None:
+                gap = row.get("upside_pct") or row.get("fair_gap_pct") or row.get("gap_pct")
             if t and gap is not None:
                 gf[str(t).upper()] = round(f(gap) or 0, 1)
         DIAG.append(f"gf-value gaps: {len(gf)}")
@@ -317,8 +328,10 @@ def lambda_handler(event=None, context=None):
             if r.get("pe") and r.get("eps_g") and r["eps_g"] > 0:
                 peg = round(r["pe"] / (r["eps_g"] * 100), 2)
             row = {"t": t, "sector": s_}
+            PCT4 = {"div_y", "fcf_y", "roe", "roa", "gm", "om"}
             for k in RATIO_LADDERS:
-                row[k] = round(r[k], 2) if r.get(k) is not None else None
+                row[k] = (round(r[k], 4 if k in PCT4 else 2)
+                           if r.get(k) is not None else None)
             row.update({"rev_g": round(r["rev_g"] * 100, 1) if r.get("rev_g") is not None else None,
                          "eps_g": round(r["eps_g"] * 100, 1) if r.get("eps_g") is not None else None,
                          "fcf_g": round(r["fcf_g"] * 100, 1) if r.get("fcf_g") is not None else None,
