@@ -1,87 +1,108 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Crisis Canaries — Funding Plumbing — JustHodl AI</title>
+<title>Crisis Canaries — 40+ Early-Warning Metrics — JustHodl AI</title>
 <style>
-:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg0:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',ui-monospace,monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg0);font-family:Inter,system-ui,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);backdrop-filter:blur(8px);z-index:50}
-.brand{font-family:var(--mono);font-weight:800}.brand .dot{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--cyan)}
-nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--cyan)}
-.wrap{max-width:1100px;margin:0 auto;padding:22px}
-h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--amber),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:880px}
-.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:22px 0 10px;text-transform:uppercase}
-.score{display:flex;gap:16px;align-items:center;background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:16px 20px}
-.big{font-family:var(--mono);font-size:42px;font-weight:800}
-.lvl{font-family:var(--mono);font-size:13px;padding:5px 12px;border-radius:9px;border:1px solid}
-.CALM{color:var(--green);border-color:var(--green)}.WATCH{color:var(--cyan);border-color:var(--cyan)}.ELEVATED{color:var(--amber);border-color:var(--amber)}.ACUTE{color:var(--red);border-color:var(--red)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:12px}
-.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:13px}
-.card h3{margin:0 0 7px;font-size:12px;font-family:var(--mono);color:var(--fg2)}
-.v{font-family:var(--mono);font-size:19px;font-weight:700}.m{font-size:11px;color:var(--fg3);font-family:var(--mono);margin-top:4px;line-height:1.55}
-.off{opacity:.55}.alert{background:rgba(255,85,119,.08);border:1px solid var(--red);border-radius:11px;padding:11px 14px;font-size:13px;margin-bottom:8px}
-.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
-.loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--red:#ff5577;--violet:#a78bfa;--amber:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--red);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--red)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--red)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 22px}
+h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--red),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13px;max-width:960px;line-height:1.6}
+.hero{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0;align-items:stretch}
+.g{background:var(--bg1);border:2px solid var(--border);border-radius:14px;padding:12px 17px;font-family:var(--mono)}
+.g b{font-size:24px}.g .m{font-size:10px;color:var(--fg3);margin-top:3px}
+.famchips{display:flex;gap:7px;flex-wrap:wrap;margin:6px 0 2px}
+.fc{font-family:var(--mono);font-size:10px;padding:4px 9px;border-radius:7px;background:var(--bg1);border:1px solid var(--border);color:var(--fg2)}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 9px;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:11px 14px}
+.card.red{border-color:rgba(255,85,119,.55);background:rgba(255,85,119,.05)}
+.card.amber{border-color:rgba(251,191,36,.45)}
+.cn{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cn b{font-size:13px}.cv{font-family:var(--mono);font-size:14px;font-weight:800;white-space:nowrap}
+.cd{color:var(--fg2);font-size:11.3px;line-height:1.55;margin-top:5px}
+.cm{font-family:var(--mono);font-size:9.5px;color:var(--fg3);margin-top:6px;display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.hi{color:var(--green)}.lo{color:var(--red)}.am{color:var(--amber)}
+#alerts{margin:10px 0}.al{font-family:var(--mono);font-size:12px;color:var(--red);padding:6px 12px;background:rgba(255,85,119,.06);border:1px solid rgba(255,85,119,.3);border-radius:9px;margin:5px 0}
+.note{color:var(--fg3);font-size:11px;margin-top:18px;line-height:1.65}
+button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px;color:var(--fg2);padding:6px 12px;font-family:var(--mono);font-size:11px;cursor:pointer;margin-left:auto}
+.loading{color:var(--fg3);font-family:var(--mono)}
 </style></head><body>
-<header><div class="brand"><span class="dot"></span>JustHodl<span style="color:var(--fg3)">.AI</span></div>
-<nav><a href="/">Desk</a><a href="/risk-desk.html">Risk</a><a href="/canaries.html" class="on">🐤 Canaries</a><a href="/inflection.html">Liquidity</a><a href="/ignition.html">Ignition</a></nav></header>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/canaries.html" class="on">🐤 Canaries</a><a href="/canary-grid.html">Global Grid</a><a href="/eurodollar-stress.html">Eurodollar</a><a href="/systemic-risk.html">Systemic</a><a href="/alerts.html">Alerts</a></nav></header>
 <div class="wrap">
-<h1>Crisis Canaries — <span class="grad">the plumbing speaks first</span></h1>
-<p class="sub">Crisis starts in collateral and bank funding, weeks before equities notice. Live coverage of SOFR distribution tails (NY Fed official API), OFR triparty repo volumes, H.4.1 discount-window borrowings, H.8 small-bank deposit flows, Treasury-auction deterioration slope, and the ALFRED first-release-vs-latest payroll revision signature. Coverage-honest: dead feeds shown dead.</p>
-<div class="sec">🤖 AI DESK BRIEFING</div>
-<div id="aibrief" style="background:var(--bg1,#10151f);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;margin-bottom:6px;color:var(--fg2,#a8b3c7)"><span style="color:#5d6b82">loading…</span></div>
-<div class="sec">Composite</div><div class="score" id="score"><span class="loading">Loading…</span></div>
+<h1>Crisis Canaries — <span class="grad">40+ early-warning metrics</span></h1>
+<p class="sub">Every credible crisis lead the desk can measure live, in one cockpit: funding plumbing (SOFR tails, discount window, deposits), the labor cycle (Sahm, quits, overtime), the real economy (heavy trucks, permits, WEI), stealth credit (CCC−BB), the rates regime (the <b>un-inversion trigger</b> — recessions start when the curve re-steepens), global FX (<b>copper/gold with stage-1/2 driver decomposition</b>, AUD/JPY, the Chilean peso as copper-currency), market internals, and acute dollar-shortage tells (swap lines, foreign repo pool). Each canary carries its threshold, lead time, z-score, and source.</p>
+<div class="hero" id="hero"><span class="loading">Loading…</span></div>
+<div class="famchips" id="fams"></div>
 <div id="alerts"></div>
-<div class="sec">Canaries</div><div class="grid" id="cards"></div>
+<div class="sec">🤖 AI DESK BRIEFING</div>
+<div id="aibrief" style="background:var(--bg1);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;color:var(--fg2)"><span class="loading">…</span></div>
+<div id="sections"></div>
 <div class="note" id="note"></div>
 </div>
 <script>
 const PX='https://justhodl-data-proxy.raafouis.workers.dev';
-async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-function card(title,val,meta,on){return `<div class="card ${on?'':'off'}"><h3>${esc(title)} ${on?'●':'○ offline'}</h3><div class="v">${esc(val)}</div><div class="m">${meta}</div></div>`;}
-async function load(){
-  const d=await gj('data/crisis-canaries.json');
-  if(!d){document.getElementById('score').innerHTML='<span class="loading">brief unavailable</span>';return;}
-  const lvl=d.level||'CALM';
-  document.getElementById('score').innerHTML=`<div class="big">${d.composite_score??'—'}</div><div><span class="lvl ${esc(lvl)}">${esc(lvl)}</span><div class="m" style="margin-top:8px">coverage-honest composite over live canaries · score ≥70 auto-logs a crisis_canary DOWN call to the closed loop</div></div>`;
-  document.getElementById('alerts').innerHTML=(d.alerts||[]).map(a=>`<div class="alert">⚠ ${esc(a)}</div>`).join('');
-  const c=d.canaries||{},av=d.availability||{};
-  let h='';
-  const sf=c.sofr_tail||{};h+=card('SOFR 99th-pct tail',(sf.tail_bp??'—')+' bp',`z ${esc(sf.z)} · vol $${esc(sf.vol_bn)}bn · ${esc(sf.as_of)} · NY Fed`,av.sofr_tail);
-  const of=c.ofr_repo||{};h+=card('Triparty repo volume',of.level?('$'+(of.level/1e12).toFixed(2)+'T'):'—',`z ${esc(of.z)} · ${esc(of.mnemonic)} · ${esc(of.as_of)} · OFR`,av.ofr_repo);
-  const dw=c.discount_window||{};h+=card('Discount window','$'+esc(dw.level_mn)+'mn',`WoW ${esc(dw.wow_chg)} (z ${esc(dw.wow_z)}) · ${esc(dw.series)} · H.4.1`,av.discount_window);
-  const dp=c.bank_deposits||{};h+=card('Small-bank deposits','$'+esc(dp.level_bn)+'bn',`WoW ${esc(dp.wow_chg_bn)}bn (outflow z ${esc(dp.outflow_z)}) · H.8`,av.bank_deposits);
-  const au=c.auction_slope||{};h+=card('Auction slope',au.slope_per_obs!=null?(au.slope_per_obs>0?'+':'')+au.slope_per_obs+'/obs':esc(au.status),`composite now ${esc(au.composite_now)} · self-bootstrapping history`,av.auction_slope);
-  const rv=c.revision_nowcast||{};h+=card('Payroll revisions',rv.mean_rev_k!=null?rv.mean_rev_k+'k avg':'—',`last4 all-negative: ${rv.all_negative_last4?'<b style="color:var(--red)">YES</b>':'no'} · ALFRED initial-vs-latest`,av.revision_nowcast);
-  h+=card('FHLB discount notes','—','no free machine-readable feed — KHALID_ACTIONS',false);
-  document.getElementById('cards').innerHTML=h;
-  document.getElementById('note').textContent=`${d.methodology} · v${d.version} · ${d.generated_at} · Research, not advice.`;
-}
-load();
-
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const FAM_LABEL={labor:'Labor Cycle',real_economy:'Real Economy',credit:'Credit Quality (stealth)',rates_regime:'Rates Regime',global_fx:'Global / FX / Commodity-currencies',internals:'Market Internals',plumbing_extra:'Acute Dollar-Shortage Tells'};
+const FAM_ORDER=['global_fx','rates_regime','labor','credit','real_economy','internals','plumbing_extra'];
+let D=null;
+(async()=>{D=await gj('data/crisis-canaries.json');
+  if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
+  const lv=D.level_v3||D.level, cv=D.composite_v3??D.composite_score;
+  const col=lv==='ACUTE'?'var(--red)':lv==='ELEVATED'?'var(--amber)':lv==='WATCH'?'var(--cyan)':'var(--green)';
+  document.getElementById('hero').innerHTML=
+   `<div class="g" style="border-color:${col}"><b style="color:${col}">${cv??'—'}</b><div class="m">COMPOSITE v3 · ${esc(lv)}<br>plumbing ${D.composite_score??'—'} · global ${D.global_score??'—'} · grid ${D.grid_score_ingested??'—'}</div></div>
+    <div class="g" style="border-color:${(D.red_count||0)?'var(--red)':'var(--border)'}"><b class="${(D.red_count||0)?'lo':'hi'}">${D.red_count??0}</b><div class="m">RED canaries<br>of ${D.n_global??'—'} global</div></div>
+    <div class="g"><b>${Object.keys(D.canaries||{}).length}</b><div class="m">total metrics live<br>(plumbing + global)</div></div>`;
+  document.getElementById('fams').innerHTML=FAM_ORDER.map(f=>{const s=(D.families||{})[f];if(!s)return '';
+    const c=s.red?'var(--red)':s.amber?'var(--amber)':'var(--green)';
+    return `<span class="fc" style="border-color:${c}">${FAM_LABEL[f]} · ${s.score} · ${s.red}R/${s.amber}A/${s.green}G</span>`;}).join('');
+  document.getElementById('alerts').innerHTML=(D.alerts||[]).map(a=>`<div class="al">⚠ ${esc(a)}</div>`).join('');
+  const cans=D.canaries||{};
+  const fams={},legacy={};
+  for(const[k,v]of Object.entries(cans)){if(v&&v.family)(fams[v.family]=fams[v.family]||{})[k]=v;else legacy[k]=v;}
+  const ord=s=>({RED:0,AMBER:1,GREEN:2}[s]??3);
+  let html='';
+  for(const f of FAM_ORDER){const g=fams[f];if(!g)continue;
+    html+=`<div class="sec">${FAM_LABEL[f]}</div><div class="grid">`+
+     Object.values(g).sort((a,b)=>ord(a.status)-ord(b.status)).map(c=>{
+      const dot=c.status==='RED'?'🔴':c.status==='AMBER'?'🟡':'🟢';
+      const vc=c.status==='RED'?'lo':c.status==='AMBER'?'am':'hi';
+      return `<div class="card ${(c.status||'').toLowerCase()}"><div class="cn"><b>${dot} ${esc(c.name)}</b><span class="cv ${vc}">${esc(c.value)}<span style="font-size:10px;color:var(--fg3)"> ${esc(c.unit)}</span></span></div>
+       <div class="cd">${esc(c.detail)}</div>
+       <div class="cm"><span>lead ${esc(c.lead)}${c.z!=null?' · z '+c.z:''}</span><span>${esc(c.as_of)} · ${esc(c.source)}</span></div></div>`;
+     }).join('')+'</div>';}
+  // legacy plumbing core (no family tag)
+  if(Object.keys(legacy).length){
+    html+='<div class="sec">Funding Plumbing — core (SOFR tails · discount window · deposits · auctions)</div><div class="grid">'+
+     Object.entries(legacy).map(([k,c])=>{if(!c||typeof c!=='object')return '';
+      const kv=Object.entries(c).filter(([a,b])=>typeof b!=='object').slice(0,5).map(([a,b])=>`<span style="margin-right:9px"><span style="color:var(--fg3)">${esc(a)}</span> <b>${esc(b)}</b></span>`).join('');
+      return `<div class="card"><div class="cn"><b>${esc(k.replace(/_/g,' '))}</b></div><div class="cd" style="font-family:var(--mono);font-size:10.5px">${kv}</div></div>`;}).join('')+'</div>';}
+  document.getElementById('sections').innerHTML=html;
+  const dl=document.createElement('button');dl.className='dl';dl.textContent='⬇ CSV all canaries';
+  dl.onclick=()=>{const rows=[];for(const[k,v]of Object.entries(cans)){if(v&&v.family)rows.push({key:k,...v});}
+    const cols=['key','family','name','value','unit','status','z','lead','as_of','source','detail'];
+    const csv=[cols.join(',')].concat(rows.map(r=>cols.map(c2=>{const v=r[c2];return v==null?'':String(v).replace(/,/g,';').replace(/\n/g,' ');}).join(','))).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='justhodl-crisis-canaries.csv';a.click();};
+  document.getElementById('hero').appendChild(dl);
+  document.getElementById('note').textContent=`${D.methodology||''} v3 adds 31 global early-warning canaries across 7 families; composite_v3 blends plumbing (35%) + global (45%) + canary-grid ingest (20%). Stale series (>13m) auto-excluded. v${D.version} · ${D.generated_at} · Research, not advice.`;
+})();
 async function aiPanel(key,mount){
-  const el=document.getElementById(mount); if(!el)return;
-  try{
-    const PXA='https://justhodl-data-proxy.raafouis.workers.dev';
-    let r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now()).catch(()=>null);
-    if(!r||!r.ok)r=await fetch(PXA+'/data/'+key+'.json?t='+Date.now()).catch(()=>null);
+  const el=document.getElementById(mount);
+  try{let r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now()).catch(()=>null);
+    if(!r||!r.ok)r=await fetch(PX+'/data/'+key+'.json?t='+Date.now()).catch(()=>null);
     if(!r||!r.ok)throw 0;
-    const b=await r.json();
-    const skip=new Set(['context_id','title','output_key','generated_at','generated_at_utc','model','error','tokens','cost_usd','schema_version']);
-    let h='';
-    if(b.headline)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1,#e8edf5);margin-bottom:8px">${esc(b.headline)}</div>`;
-    const lab=k=>k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-    for(const[k,v]of Object.entries(b)){
-      if(skip.has(k)||k==='headline'||v==null)continue;
-      if(typeof v==='string'&&v.length>1)h+=`<div style="margin:7px 0"><b style="color:#a78bfa;font-family:var(--mono,monospace);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(lab(k))}</b><div style="font-size:12.5px;line-height:1.65">${esc(v)}</div></div>`;
-      else if(Array.isArray(v)&&v.length&&typeof v[0]==='string')h+=`<div style="margin:7px 0"><b style="color:#a78bfa;font-family:var(--mono,monospace);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(lab(k))}</b>${v.map(x=>`<div style="font-size:12.5px;line-height:1.6">• ${esc(x)}</div>`).join('')}</div>`;
-      else if(Array.isArray(v)&&v.length&&typeof v[0]==='object')h+=`<div style="margin:7px 0"><b style="color:#a78bfa;font-family:var(--mono,monospace);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(lab(k))}</b>${v.slice(0,8).map(o=>`<div style="font-size:12px;line-height:1.55;margin:4px 0;padding:6px 9px;background:rgba(167,139,250,.05);border-radius:8px">${o.ticker?`<b>${esc(o.ticker)}</b> · `:''}${esc(o.headline||o.thesis||o.text||o.what||JSON.stringify(o).slice(0,180))}</div>`).join('')}</div>`;
-    }
-    el.innerHTML=h||'<span style="color:#5d6b82">AI brief generating — next 4-hour router cycle.</span>';
-    const gen=b.generated_at||b.generated_at_utc;
-    if(gen)el.insertAdjacentHTML('beforeend',`<div style="color:#5d6b82;font-size:10px;margin-top:8px;font-family:var(--mono,monospace)">model-written ${esc(String(gen).slice(0,16))} · bound to this page's measured tables</div>`);
-  }catch(e){el.innerHTML='<span style="color:#5d6b82">AI brief generates on the next 4-hour router cycle.</span>';}
+    const b=await r.json();let h='';
+    if(b.headline)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1);margin-bottom:8px">${esc(b.headline)}</div>`;
+    const skip=new Set(['context_id','title','output_key','generated_at','generated_at_utc','model','error','headline','tokens','cost_usd','schema_version']);
+    for(const[k,v]of Object.entries(b)){if(skip.has(k)||v==null)continue;
+      if(typeof v==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(k.replace(/_/g,' '))}</b><div style="font-size:12.5px;line-height:1.65">${esc(v)}</div></div>`;
+      else if(Array.isArray(v)&&v.length&&typeof v[0]==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px">${esc(k.replace(/_/g,' ').toUpperCase())}</b>${v.map(x=>`<div style="font-size:12.5px">• ${esc(x)}</div>`).join('')}</div>`;}
+    el.innerHTML=h||'<span class="loading">AI brief generates on the next router cycle.</span>';
+  }catch(e){el.innerHTML='<span class="loading">AI brief generates on the next 4-hour router cycle.</span>';}
 }
-
 aiPanel('canaries-decisive-call','aibrief');
 </script></body></html>

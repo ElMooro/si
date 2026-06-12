@@ -28,7 +28,7 @@ HIST_KEY = "data/_canaries/history.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
-VERSION = "2.0.1"
+VERSION = "3.0.0"
 
 
 def hj(url, timeout=30):
@@ -108,6 +108,11 @@ def global_canaries(canaries, avail, alerts):
         try:
             r = fn()
             if r:
+                cut = (datetime.now(timezone.utc) - timedelta(days=400)).date().isoformat()
+                if str(r.get("as_of", ""))[:10] < cut:
+                    avail[key] = "stale"
+                    print(f"[g:{key}] STALE {r.get('as_of')} — excluded")
+                    return
                 G[key] = r; avail[key] = True
                 if r["signal"] == 1:
                     alerts.append(f"{r['name']}: {r['detail'][:120]}")
@@ -181,7 +186,7 @@ def global_canaries(canaries, avail, alerts):
         vals = [v for _, v in o]
         yoy = pct(vals[-1], vals[-13])
         sig = 1 if (yoy or 0) <= -12 else 0 if (yoy or 0) <= -5 else -1
-        return _mk("Heavy truck sales", "real_economy", vals[-1], "k SAAR", sig,
+        return _mk("Heavy truck sales", "real_economy", round(vals[-1] * 1000, 0), "k units SAAR", sig,
                     f"YoY {(yoy or 0):+.1f}% — legendary capex/freight lead", o[-1][0],
                     lead="6-12m", src="HTRUCKSSAAR")
     put("heavy_trucks", f_trucks)
@@ -215,7 +220,7 @@ def global_canaries(canaries, avail, alerts):
         vals = [v for _, v in o]
         yoy = pct(vals[-1], vals[-13]) if len(vals) > 13 else None
         sig = 1 if (yoy or 0) <= -6 else 0 if (yoy or 0) <= -2 else -1
-        return _mk("Rail/freight volumes", "real_economy", round(vals[-1], 1), "idx", sig,
+        return _mk("Rail/freight volumes", "real_economy", round(vals[-1] / 1000, 0), "k carloads", sig,
                     f"YoY {(yoy or 0):+.1f}%", o[-1][0], lead="1-3m", src=sid)
     put("rail_freight", f_rail)
 
@@ -439,10 +444,10 @@ def global_canaries(canaries, avail, alerts):
     def f_swaps():
         sid, o = fred_ladder(["SWPT", "WLCFLSCBLS"], "2019-01-01")
         if not o: return None
-        v = o[-1][1]
+        v = o[-1][1] / 1000.0   # FRED SWPT reported in $millions
         sig = 1 if v >= 5 else 0 if v >= 0.5 else -1
-        return _mk("Fed FX swap lines", "plumbing_extra", round(v, 1), "$bn", sig,
-                    f"${v:.1f}bn outstanding — ANY real usage = global dollar shortage",
+        return _mk("Fed FX swap lines", "plumbing_extra", round(v, 2), "$bn", sig,
+                    f"${v:.2f}bn outstanding — ANY real usage (>$0.5bn) = global dollar shortage",
                     o[-1][0], lead="0m (acute)", src=sid)
     put("swap_lines", f_swaps)
 
@@ -454,8 +459,8 @@ def global_canaries(canaries, avail, alerts):
         d13 = [vals[i] - vals[i - 13] for i in range(13, len(vals))]
         z = zlast(d13, 156) if d13 else None
         sig = 1 if (z or 0) >= 2 else 0 if (z or 0) >= 1.2 else -1
-        return _mk("Foreign repo pool (Fed)", "plumbing_extra", round(vals[-1], 0), "$bn",
-                    sig, f"${vals[-1]:.0f}bn ({(ch13 or 0):+.0f} 13wk) — foreign officials "
+        return _mk("Foreign repo pool (Fed)", "plumbing_extra", round(vals[-1] / 1000, 0), "$bn",
+                    sig, f"${vals[-1]/1000:.0f}bn ({(ch13 or 0)/1000:+.0f}bn 13wk) — foreign officials "
                     f"hoarding dollars", o[-1][0], z=z, lead="0-2m", src=sid)
     put("foreign_repo_pool", f_foreign_repo)
 
@@ -746,7 +751,7 @@ def lambda_handler(event=None, context=None):
     grid_score = None
     try:
         gj_ = json.loads(S3.get_object(Bucket=BUCKET, Key='data/canary-grid.json')['Body'].read())
-        for k_ in ('composite_score', 'early_warning_score', 'composite', 'score'):
+        for k_ in ('early_warning_level', 'composite_score', 'early_warning_score', 'composite', 'score'):
             v_ = gj_.get(k_)
             if isinstance(v_, (int, float)):
                 grid_score = round(float(v_), 1); break
