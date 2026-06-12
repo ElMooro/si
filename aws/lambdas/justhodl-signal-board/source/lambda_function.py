@@ -938,6 +938,14 @@ def n_stock_valuations(d):
                   f"top HP {top.get(chr(116))} {top.get(chr(115)+chr(99)+chr(111)+chr(114)+chr(101))} · {ns} ≥75 clean")
 
 
+def n_research_papers(d):
+    n = d.get("n_papers")
+    if not n:
+        return 0, "Research papers n/a"
+    p0 = (d.get("papers") or [{}])[0]
+    return 0, f"{n} AI papers · latest {p0.get(chr(116))} conviction {p0.get(chr(99)+chr(111)+chr(110)+chr(118)+chr(105)+chr(99)+chr(116)+chr(105)+chr(111)+chr(110))}/10"
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1025,6 +1033,7 @@ FEEDS = [
     ("Sector Groups",          "equity tactical",  "data/sector-groups.json",        n_sector_groups),
     ("Insider Radar",          "equity tactical",  "data/insider-radar.json",        n_insider_radar),
     ("Stock Valuations",       "equity tactical",  "data/stock-valuations.json",     n_stock_valuations),
+    ("Research Papers",        "equity tactical",  "data/research-papers.json",      n_research_papers),
 ]
 
 

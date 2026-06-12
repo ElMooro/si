@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.3.1"
+VERSION = "1.4.0"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -225,11 +225,11 @@ def hp_universe():
                 _sampled["screener"] = True
                 DIAG.append("screener keys sample: " + ",".join(sorted(j[0].keys())[:18]))
             rows = [(x.get("symbol"), SECTOR_ALIAS.get(x.get("sector") or "", x.get("sector")),
-                      f(x.get("marketCap"))) for x in j if x.get("symbol")]
+                      f(x.get("marketCap")), x.get("industry")) for x in j if x.get("symbol")]
             rows = [r for r in rows if r[0] and "." not in r[0] and (r[2] or 0) >= 75e6]
             rows.sort(key=lambda r: -(r[2] or 0))
             DIAG.append(f"hp universe: screener {len(rows)} rows")
-            return rows[:200], "fmp_company_screener"
+            return rows[:400], "fmp_company_screener"
     except Exception as e:
         DIAG.append(f"screener: {str(e)[:60]}")
     names = {}
@@ -246,9 +246,9 @@ def hp_universe():
                         names[str(t).upper()] = (None, None)
         except Exception:
             continue
-    rows = [(t, s, m) for t, (s, m) in names.items()]
+    rows = [(t, s, m, None) for t, (s, m) in names.items()]
     DIAG.append(f"hp universe: fallback union {len(rows)} names")
-    return rows[:200], "fallback_union(deep-value,overlap,insider,cheap_candidates)"
+    return rows[:400], "fallback_union(deep-value,overlap,insider,cheap_candidates)"
 
 
 def sc_rev_growth(yoy):
@@ -279,6 +279,10 @@ def lambda_handler(event=None, context=None):
     except Exception:
         st = {"sp": {}, "hp": {}, "sp_asof": "", "hp_asof": "", "hp_rows": [], "hp_src": ""}
     week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat()
+    if not st.get("v140_universe"):
+        st["hp_asof"] = ""
+        st["v140_universe"] = True
+        DIAG.append("v1.4.0: regenerating HP universe at 400 names w/ industry")
     if not st.get("v130_refetch"):
         st["sp_asof"] = ""
         st["hist_asof"] = ""
@@ -301,10 +305,11 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         DIAG.append(f"constituents: {str(e)[:50]}")
 
-    rings, spy_r = {}, []
+    rings, spy_r, dv = {}, [], {}
     try:
         up = json.loads(gzip.decompress(S3.get_object(Bucket=BUCKET, Key=UP_STATE)["Body"].read()))
         rings = up.get("rings") or {}
+        dv = up.get("dv") or {}
         spy_r = rings.get("SPY") or []
     except Exception as e:
         DIAG.append(f"rings: {str(e)[:40]}")
@@ -374,10 +379,11 @@ def lambda_handler(event=None, context=None):
     hp_rows = st.get("hp_rows") or []
     hp_secmap = {r[0]: r[1] for r in hp_rows}
     hp_mcap = {r[0]: r[2] for r in hp_rows if len(r) > 2 and r[2]}
+    hp_ind = {r[0]: r[3] for r in hp_rows if len(r) > 3 and r[3]}
     todo = [r[0] for r in hp_rows if r[0] not in st["hp"]]
     b0 = time.time(); hgot = 0
     for t in todo:
-        if time.time() - b0 > 160:
+        if time.time() - b0 > 200:
             DIAG.append(f"hp budget hit ({hgot} done, {len(todo)-hgot} remain)")
             break
         try:
@@ -720,6 +726,57 @@ def lambda_handler(event=None, context=None):
                                      "fcf_ttm": fcf_ttm, "cash": cash, "debt": debt,
                                      "runway_q": round(runway_q, 1) if runway_q else None}})
     hp_out.sort(key=lambda x: -x["score"])
+    # ── UNDERLOOKED scoring: small + ignored-by-volume + strong + cheap + basing ──
+    mcs = sorted(m for m in hp_mcap.values() if m)
+    tov = {t: dv[t] / m for t, m in hp_mcap.items() if m and dv.get(t)}
+    tol = sorted(tov.values())
+
+    def pup(arr, v):
+        if not arr or v is None:
+            return 0.5
+        return sum(1 for x in arr if x <= v) / len(arr)
+
+    for x in hp_out:
+        t = x["t"]
+        m = hp_mcap.get(t)
+        if x["flags"] or not m:
+            x["underlooked"] = None
+            x["industry"] = hp_ind.get(t)
+            continue
+        small = (1 - pup(mcs, m)) * 20
+        attn = ((1 - pup(tol, tov.get(t))) * 25) if t in tov else 12.0
+        fund = (x["cats"]["revenue_growth"] + x["pillars"]["quality"]
+                 + x["pillars"]["survival"]) / 30 * 35
+        val = x["pillars"]["value"] / 10 * 10
+        r_ = rings.get(t) or []
+        hi_ = ((r_[-1] / max(r_[-252:]) - 1) * 100) if len(r_) >= 60 else None
+        base = (10 if (hi_ is not None and -35 <= hi_ <= -5)
+                 else 6 if (hi_ is not None and (-50 <= hi_ < -35 or hi_ > -5))
+                 else 2)
+        x["underlooked"] = round(small + attn + fund + val + base, 1)
+        x["industry"] = hp_ind.get(t)
+        x["turnover_bp"] = round(tov[t] * 10000, 1) if t in tov else None
+        x["off_hi_pct"] = round(hi_, 1) if hi_ is not None else None
+    ranked = sorted([x for x in hp_out if x.get("underlooked") is not None],
+                     key=lambda x: -x["underlooked"])
+
+    def slim(x):
+        mt = x.get("metrics") or {}
+        return {"t": x["t"], "underlooked": x["underlooked"], "hp_score": x["score"],
+                 "class": x.get("hp_class"), "industry": x.get("industry"),
+                 "sector": x.get("sector"), "mcap": hp_mcap.get(x["t"]),
+                 "turnover_bp": x.get("turnover_bp"), "off_hi_pct": x.get("off_hi_pct"),
+                 "ps": mt.get("ps"), "rev_yoy_pct": mt.get("rev_yoy_pct"),
+                 "rule40": mt.get("rule40"), "runway_q": mt.get("runway_q"),
+                 "net_cash": mt.get("net_cash"), "soft_flags": x.get("soft_flags")}
+    industries = {}
+    for x in ranked:
+        ind = x.get("industry") or "Other"
+        industries.setdefault(ind, [])
+        if len(industries[ind]) < 10:
+            industries[ind].append(slim(x))
+    underlooked_top = [slim(x) for x in ranked[:25]]
+    DIAG.append(f"underlooked: {len(ranked)} scored across {len(industries)} industries")
     serious = [x for x in hp_out if x["score"] >= 75 and not x["flags"]]
     logged = []
     try:
@@ -752,6 +809,8 @@ def lambda_handler(event=None, context=None):
             "n_deep_discount": sum(1 for x in sp_table if x.get("deep_discount")),
             "sp_asof": st.get("sp_asof"),
             "hp": hp_out[:80], "hp_coverage": len(hp_out), "hp_universe": len(hp_rows),
+            "industries": industries, "n_industries": len(industries),
+            "underlooked_top": underlooked_top,
             "hp_src": st.get("hp_src"), "hp_logged": logged, "n_serious": len(serious),
             "diagnostics": list(DIAG),
             "methodology": ("Layer A: sector-WEIGHTED composite of winsorized (5-95) "
@@ -773,7 +832,7 @@ def lambda_handler(event=None, context=None):
                              "pillars (Value/Quality/Survival/Re-rating) classify each name: "
                              "DEEP VALUE, TURNAROUND, GARP, MOMENTUM (not cheap), QUALITY AT "
                              "PREMIUM, VALUE TRAP RISK, MIXED — high HP-Score does NOT mean "
-                             "cheap; read the class. Playbook layer: Rule-of-40 (growth+FCF margin) on both layers; SBC%-of-rev with FCF-after-SBC (SBC>=15% docks quality); operating leverage (GP growth vs revenue growth, bonus when positive); capex pass-through soft-flag (growing + capex>30%rev + FCF<0 = AI-spender pattern); semi cycle inversion on 18 S&P semis (low P/E at own-history peak margins = PEAK-CYCLE trap note; depressed margins + high/neg P/E = TROUGH candidate); formula21 badge = strict cheap-AI screen (20%+ growth, 50%+ GM, P/S<5 (<8 if 40%+), FCF+, dilution<5%, chart>=6, no hard flags). Score>=75 with no hard flags logs "
+                             "cheap; read the class. Playbook layer: Rule-of-40 (growth+FCF margin) on both layers; SBC%-of-rev with FCF-after-SBC (SBC>=15% docks quality); operating leverage (GP growth vs revenue growth, bonus when positive); capex pass-through soft-flag (growing + capex>30%rev + FCF<0 = AI-spender pattern); semi cycle inversion on 18 S&P semis (low P/E at own-history peak margins = PEAK-CYCLE trap note; depressed margins + high/neg P/E = TROUGH candidate); formula21 badge = strict cheap-AI screen (20%+ growth, 50%+ GM, P/S<5 (<8 if 40%+), FCF+, dilution<5%, chart>=6, no hard flags). UNDERLOOKED board: per-industry top-10 by underlooked score = smallness(20) + low-attention turnover dv/mcap(25) + fundamental strength growth+quality+survival(35) + value pillar(10) + basing chart -35..-5% off-hi(10); hard-flagged names excluded. Score>=75 with no hard flags logs "
                              "hp_score (UP, 63d) to the graded loop. Research, not advice.")}
     clean = json.loads(json.dumps(out, default=str), parse_constant=lambda c: None)
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(clean).encode(),
