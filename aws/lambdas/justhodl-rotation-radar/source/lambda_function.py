@@ -25,7 +25,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/rotation-radar.json"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
 
 
@@ -125,13 +125,20 @@ def poly_closes(t, days=4200):
     start = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
     u = (f"https://api.polygon.io/v2/aggs/ticker/{t}/range/1/day/{start}/{end}"
          f"?adjusted=true&sort=asc&limit=50000&apiKey={POLY_KEY}")
-    try:
-        j = json.loads(urllib.request.urlopen(u, timeout=50).read())
-        return [(datetime.fromtimestamp(r["t"] / 1000, tz=timezone.utc).date().isoformat(),
-                 float(r["c"])) for r in (j.get("results") or [])]
-    except Exception as e:
-        print(f"[poly] {t}: {str(e)[:40]}")
-        return []
+    last = "empty"
+    for k, back in enumerate((0, 3, 9)):
+        if back:
+            time.sleep(back)
+        try:
+            j = json.loads(urllib.request.urlopen(u, timeout=50).read())
+            rows = [(datetime.fromtimestamp(r["t"] / 1000, tz=timezone.utc).date().isoformat(),
+                      float(r["c"])) for r in (j.get("results") or [])]
+            if rows:
+                return rows
+        except Exception as e:
+            last = str(e)[:50]
+    DIAG.append(f"poly {t}: failed x3 ({last})")
+    return []
 
 
 def thrust_events(series, low_win=180, thrust_pct=25.0, thrust_win=60, cooldown=120):
@@ -256,6 +263,8 @@ def lambda_handler(event=None, context=None):
     legs = {}
     for t in ("SPHB", "SPLV", "RSP", "SPY", "IWM", "XBI", "ARKK", "QQQ", "SMH"):
         legs[t] = dict(poly_closes(t))
+        time.sleep(0.15)
+    DIAG.append("equity legs: " + ", ".join(f"{t}:{len(v)}" for t, v in legs.items()))
     def ratio(a, b):
         ks = sorted(set(legs[a]) & set(legs[b]))
         return [(k, legs[a][k] / legs[b][k]) for k in ks]
@@ -284,6 +293,7 @@ def lambda_handler(event=None, context=None):
     out["equity"] = {"definition": "ratio makes 180d low then ≥12% off-low within "
                                      "60 sessions; sequels on IWM/SPY relative + XBI",
                       "ratios": eq}
+    out["diagnostics"] = list(DIAG)
 
     # composite ignition scores
     def score(lv):
