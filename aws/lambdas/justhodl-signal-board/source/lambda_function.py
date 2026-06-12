@@ -955,6 +955,10 @@ def n_backtest_harness(d):
 
 def n_meta_labeler(d):
     m = d.get("model") or {}
+    if d.get("status") == "warming_up":
+        return 0, (f"gatekeeper WARMING UP - {d.get('n_training_rows')} graded rows "
+                    f"(activates at {d.get('min_rows_to_activate')}); "
+                    f"{d.get('n_pending_gated')} pending aging in")
     if m.get("uplift_pp") is None:
         return 0, "Meta-labeler n/a"
     up = m["uplift_pp"]

@@ -20,7 +20,7 @@ GRADED_KEY = "data/_backtest/graded.json.gz"
 OUT_KEY = "data/meta-labeler.json"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 THRESH = 0.55
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 DIAG = []
 
 
@@ -107,6 +107,8 @@ def lambda_handler(event=None, context=None):
         Y.append(1.0 if r["ex"] > 0 else 0.0)
         META.append(r)
     n = len(X)
+    MIN_N = 300
+    warming = n < MIN_N
     cut = int(n * 0.7)
     DIAG.append(f"{n} graded rows featurized; train {cut} (<= {META[cut-1]['date']}) "
                  f"test {n-cut}; types {top_types}")
@@ -179,7 +181,12 @@ def lambda_handler(event=None, context=None):
         if not lek:
             break
     gates.sort(key=lambda g: -g["meta_p"])
-    out = {"engine": "meta-labeler", "version": VERSION,
+    if warming:
+        DIAG.append(f"WARM-UP: only {n} dated graded rows (<{MIN_N}); model published "
+                     "for transparency but gating is advisory-only until pending "
+                     "signals age in (~140/day crossing 21 trading days)")
+    out = {"engine": "meta-labeler", "version": VERSION, "status": ("warming_up" if warming else "active"),
+            "n_training_rows": n, "min_rows_to_activate": MIN_N,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "duration_s": round(time.time() - t0, 1), "threshold": THRESH,
             "model": {"n_train": cut, "n_test": n - cut,
