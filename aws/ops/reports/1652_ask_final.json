@@ -1,0 +1,28 @@
+{
+ "ops": 1652,
+ "tests": [
+  {
+   "q": "Which underlooked stock ranks #1 and what stance did its research debate reach?",
+   "sources": [
+    "data/stock-valuations.json",
+    "data/debate.json",
+    "data/research-papers.json"
+   ],
+   "duration_s": 8.2,
+   "answer_head": "## Underlooked #1 Stock and Research Debate Stance\n\n**#1 Ranked Underlooked Stock: OPRA (Opera Limited)**\n\nThe `underlooked_top` field in the source is explicitly a ranked list. OPRA sits at position 1 with an underlooked score of **86.1** [data/stock-valuations.json].\n\n**Research Debate Stance: RESEARCH-MORE**\n\nThe research paper for OPRA reached a stance of **\"RESEARCH-MORE\"** with a conviction score of **6** [data/research-papers.json]. The one-line thesis describes it as \"a profitable, net-cash, Rule-of-40 compounder (score: 44) growing revenue 24% Y",
+   "cited": true,
+   "names_opra": true
+  },
+  {
+   "q": "Did the backtest harness indict any live signal type, and does the meta-labeler agree?",
+   "sources": [
+    "data/backtest-harness.json",
+    "data/meta-labeler.json"
+   ],
+   "duration_s": 17.6,
+   "answer_head": "## Backtest Harness Indictment of Live Signal Types\n\n### What the Harness Found\n\nOnly one live signal type had enough graded rows to produce a verdict: **`screener_top_pick`**, with 40 graded rows [data/backtest-harness.json].\n\nThe results are damning:\n\n| Metric | Value |\n|---|---|\n| Hit rate | **30.0%** |\n| Avg 21-day excess vs SPY | **\u201310.01%** |\n| Median 21-day excess vs SPY | **\u201311.43%** |\n\n[data/backtest-harness.json]\n\nAll other live signal types (`apex_fusion`, `hp_score`, `research_paper`, `ps_value_momentum`) had **zero graded rows** \u2014 they remai",
+   "cited": true,
+   "names_opra": false
+  }
+ ]
+}
