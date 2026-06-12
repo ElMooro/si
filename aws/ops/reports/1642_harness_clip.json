@@ -1,0 +1,150 @@
+{
+ "ops": 1642,
+ "fn": "updated",
+ "err": "NONE",
+ "log_tail": "START RequestId: 93c8effd-134d-4ac3-b51c-41e226c0324a Version: $LATEST\n[harness] 1/8 rules pass \u00b7 88.0s\nEND RequestId: 93c8effd-134d-4ac3-b51c-41e226c0324a\nREPORT RequestId: 93c8effd-134d-4ac3-b51c-41e226c0324a\tDuration: 88325.71 ms\tBilled Duration: 88935 ms\tMemory Size: 512 MB\tMax Memory Used: 342 MB\tInit Duration: 608.70 ms\t\nXRAY TraceId: 1-6a2c8242-2777f621772f902b727e3245\tSegmentId: 610b51521e4ae24f\tSampled: true\t\n",
+ "verify": {
+  "version": "1.0.2",
+  "duration_s": 88.0,
+  "universe": 1500,
+  "days": 256,
+  "n_pass": 1,
+  "diag": [
+   "universe 1500 of 6069 rings \u00b7 256 days \u00b7 3 OOS folds \u00b7 horizon 21d excess vs SPY",
+   "mode B: 14805 schema-v2 signals"
+  ],
+  "rules": [
+   {
+    "rule": "basing_breakout",
+    "PASS": false,
+    "deflated_gate_sr": 0.04,
+    "sr": 0.82,
+    "n": 1408,
+    "hit": 60.4,
+    "avg": 2.03,
+    "mdd": -42.4
+   },
+   {
+    "rule": "relative_strength",
+    "PASS": true,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.62,
+    "n": 2960,
+    "hit": 53.7,
+    "avg": 3.32,
+    "mdd": -38.2
+   },
+   {
+    "rule": "momentum_breakout",
+    "PASS": false,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.57,
+    "n": 3351,
+    "hit": 55.4,
+    "avg": 2.71,
+    "mdd": -52.7
+   },
+   {
+    "rule": "momentum_consistency",
+    "PASS": false,
+    "deflated_gate_sr": 0.02,
+    "sr": 0.54,
+    "n": 2957,
+    "hit": 52.8,
+    "avg": 2.15,
+    "mdd": -58.3
+   },
+   {
+    "rule": "ma_cross",
+    "PASS": false,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.35,
+    "n": 1938,
+    "hit": 52.7,
+    "avg": 1.76,
+    "mdd": -48.6
+   },
+   {
+    "rule": "vol_squeeze_break",
+    "PASS": false,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.26,
+    "n": 2088,
+    "hit": 50.5,
+    "avg": 1.25,
+    "mdd": -72.9
+   },
+   {
+    "rule": "pullback_in_uptrend",
+    "PASS": false,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.12,
+    "n": 1382,
+    "hit": 39.1,
+    "avg": 0.6,
+    "mdd": -72.2
+   },
+   {
+    "rule": "deep_drawdown_buy",
+    "PASS": false,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.1,
+    "n": 2507,
+    "hit": 47.1,
+    "avg": 0.58,
+    "mdd": -87.6
+   }
+  ],
+  "live_types": [
+   {
+    "signal_type": "unknown",
+    "graded": 14604,
+    "pending": 24,
+    "artifacts": 82,
+    "hit_pct": 62.9,
+    "avg_excess_pct": 5.34,
+    "median_excess_pct": 3.96
+   },
+   {
+    "signal_type": "screener_top_pick",
+    "graded": 40,
+    "pending": 0,
+    "artifacts": 0,
+    "hit_pct": 30.0,
+    "avg_excess_pct": -10.01,
+    "median_excess_pct": -11.43
+   },
+   {
+    "signal_type": "apex_fusion",
+    "graded": 10,
+    "pending": 38,
+    "artifacts": 0,
+    "hit_pct": 50.0,
+    "avg_excess_pct": 5.8,
+    "median_excess_pct": 1.88
+   },
+   {
+    "signal_type": "hp_score",
+    "graded": 0,
+    "pending": 2,
+    "artifacts": 0
+   },
+   {
+    "signal_type": "research_paper",
+    "graded": 0,
+    "pending": 4,
+    "artifacts": 0
+   },
+   {
+    "signal_type": "ps_value_momentum",
+    "graded": 0,
+    "pending": 1,
+    "artifacts": 0
+   }
+  ]
+ },
+ "board_row": {
+  "read": "1/8 archetypes pass deflated-Sharpe OOS gate"
+ },
+ "board_n": 79
+}
