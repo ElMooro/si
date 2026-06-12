@@ -953,6 +953,16 @@ def n_backtest_harness(d):
     return 0, f"{np_}/{nr} archetypes pass deflated-Sharpe OOS gate"
 
 
+def n_meta_labeler(d):
+    m = d.get("model") or {}
+    if m.get("uplift_pp") is None:
+        return 0, "Meta-labeler n/a"
+    up = m["uplift_pp"]
+    tr = m.get("test_take_rate")
+    return (1 if up > 3 else 0), (f"gatekeeper uplift {up:+}pp at {tr}% take-rate; "
+                                     f"{d.get('n_take')}/{d.get('n_pending_gated')} pending TAKE")
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1042,6 +1052,7 @@ FEEDS = [
     ("Stock Valuations",       "equity tactical",  "data/stock-valuations.json",     n_stock_valuations),
     ("Research Papers",        "equity tactical",  "data/research-papers.json",      n_research_papers),
     ("Backtest Harness",       "meta",             "data/backtest-harness.json",     n_backtest_harness),
+    ("Meta-Labeler",           "meta",             "data/meta-labeler.json",         n_meta_labeler),
 ]
 
 

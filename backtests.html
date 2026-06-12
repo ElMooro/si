@@ -34,6 +34,14 @@ svg.spark{vertical-align:middle}
 <div style="overflow-x:auto"><table><thead><tr><th>Rule</th><th>Family</th><th>OOS trades</th><th>Hit %</th><th>Avg excess</th><th>OOS Sharpe</th><th>Gate (E[maxSR])</th><th>Max DD</th><th>Equity (OOS)</th><th>Verdict</th></tr></thead><tbody id="ta"></tbody></table></div>
 <div class="sec">Mode B — Live Signal Types (independently re-graded, 21d excess vs SPY)</div>
 <div style="overflow-x:auto"><table><thead><tr><th>Signal type</th><th>Graded</th><th>Pending</th><th>Hit %</th><th>Avg excess %</th><th>Median %</th><th>Artifacts</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="sec">Meta-Labeler — the gatekeeper (López de Prado)</div>
+<div class="hero" id="mhero"><span class="loading">…</span></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px" id="mgrid">
+<div><div class="sec" style="color:var(--violet)">Per-type: base vs gated hit % (test)</div>
+<div style="overflow-x:auto"><table><thead><tr><th>Type</th><th>n test</th><th>Base hit</th><th>Gated hit</th><th>Take %</th></tr></thead><tbody id="mt"></tbody></table></div></div>
+<div><div class="sec" style="color:var(--violet)">Pending signals — live verdicts</div>
+<div style="overflow-x:auto;max-height:340px;overflow-y:auto"><table><thead><tr><th>Type</th><th>Ticker</th><th>conf</th><th>meta-p</th><th>Verdict</th></tr></thead><tbody id="mg"></tbody></table></div></div>
+</div>
 <div class="note" id="note"></div>
 </div>
 <script>
@@ -65,5 +73,17 @@ function spark(c){if(!c||c.length<2)return'';const w=110,h=26,mn=Math.min(...c),
     <td style="color:var(--fg3)">${r.artifacts||0}</td></tr>`).join('')
     ||'<tr><td colspan="7" style="color:var(--fg3)">no graded live signals yet</td></tr>';
   document.getElementById('note').textContent=`${D.methodology} v${D.version} · ${D.generated_at} · ${D.duration_s}s`;
+})();
+(async()=>{const M=await gj('data/meta-labeler.json');
+  if(!M){document.getElementById('mhero').innerHTML='<span class="loading">meta-labeler pending first run</span>';document.getElementById('mgrid').style.display='none';return;}
+  const m=M.model||{};
+  document.getElementById('mhero').innerHTML=
+   `<div class="g"><b class="${(m.uplift_pp||0)>0?'hi':''}">${m.uplift_pp>0?'+':''}${m.uplift_pp??'—'}pp</b><div class="m">hit-rate uplift (gated vs base)</div></div>
+    <div class="g"><b>${m.test_take_precision??'—'}%</b><div class="m">gated hit · base ${m.test_base_hit}%</div></div>
+    <div class="g"><b>${m.avg_excess_taken_pct??'—'}%</b><div class="m">avg excess taken · all ${m.avg_excess_all_pct}%</div></div>
+    <div class="g"><b>${M.n_take}/${M.n_pending_gated}</b><div class="m">pending TAKE @ p≥${M.threshold}</div></div>
+    <div class="g"><b>${m.n_train}/${m.n_test}</b><div class="m">train/test (chronological)</div></div>`;
+  document.getElementById('mt').innerHTML=(M.per_type_test||[]).map(r=>`<tr><td><b>${esc(r.type)}</b></td><td>${r.n_test}</td><td>${r.base_hit}%</td><td class="${(r.gated_hit||0)>r.base_hit?'hi':''}">${r.gated_hit??'—'}%</td><td style="color:var(--fg3)">${r.take_rate}%</td></tr>`).join('');
+  document.getElementById('mg').innerHTML=(M.gates||[]).slice(0,60).map(g=>`<tr><td>${esc(g.type)}</td><td><b>${esc(g.ticker)}</b></td><td>${g.conf}</td><td>${g.meta_p}</td><td><span class="pill ${g.verdict==='TAKE'?'pP':'pF'}">${g.verdict}</span></td></tr>`).join('');
 })();
 </script></body></html>
