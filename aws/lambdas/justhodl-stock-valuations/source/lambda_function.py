@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -398,8 +398,12 @@ def lambda_handler(event=None, context=None):
             # second-stage class: low multiple is NOT undervalued until quality confirms
             roe_, fy_, rg_ = r.get("roe"), r.get("fcf_y"), r.get("rev_g")
             quality_ok = ((roe_ or 0) > 0.10 or (fy_ or 0) > 0.04) and (rg_ is None or rg_ > -0.02)
+            pe_ = r.get("pe")
+            # negative ROE only signals trouble when earnings are also non-positive;
+            # buyback-driven negative book equity (HPQ-type) is not a trap signal
             trapish = ((rg_ or 0) < -0.05 or (fy_ is not None and fy_ < 0)
-                        or (roe_ is not None and roe_ < 0))
+                        or (roe_ is not None and roe_ < 0
+                            and (pe_ is None or pe_ <= 0)))
             if label == "CHEAP":
                 vclass = ("VALUE TRAP RISK" if trapish
                            else "POTENTIALLY UNDERVALUED" if quality_ok else "LOW MULTIPLE")
