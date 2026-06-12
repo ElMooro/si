@@ -67,6 +67,8 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/aws/ops
         run: |
           set -e
+          mkdir -p aws/ops/reports
+          : > aws/ops/reports/_lastrun.log
           for s in ${{ steps.pick.outputs.scripts }}; do
             # Skip files that are no longer in the working tree (e.g. moved
             # to ran/ or historical/ in the same push). git diff lists
@@ -79,7 +81,7 @@ jobs:
             echo "══════════════════════════════════════════"
             echo "  Running: $s"
             echo "══════════════════════════════════════════"
-            python3 "$s"
+            ( python3 "$s" 2>&1 | tee -a aws/ops/reports/_lastrun.log ) || { echo "OPS-FAIL: $s" >> aws/ops/reports/_lastrun.log; FAIL=1; }
             echo "✅ $s completed"
             # Auto-move successful scripts to ran/ so the pending dir
             # only contains scripts that are still pending or failed.
@@ -89,6 +91,7 @@ jobs:
               git mv "$s" "$target" 2>/dev/null && echo "📦 moved to $target" || true
             fi
           done
+          if [ "${FAIL:-0}" = "1" ]; then exit 1; fi
 
       - name: Commit any new/changed reports or imports
         if: always()
