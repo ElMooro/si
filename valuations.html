@@ -41,7 +41,7 @@ button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px
 <nav><a href="/">Desk</a><a href="/valuations.html" class="on">💰 Valuations</a><a href="/valuations-macro.html">Macro</a><a href="/deep-value.html">Net-Nets</a><a href="/deep-value-overlap.html">Overlap</a><a href="/gf-value.html">Fair Value</a><a href="/fundamentals.html">X-Ray</a><a href="/market-map.html">Map</a></nav></header>
 <div class="wrap">
 <h1>Valuations — <span class="grad">cheap vs expensive, measured</span></h1>
-<p class="sub">Two layers. <b>The Valuation Table</b>: every S&amp;P 500 name across P/E · P/B · P/S · EV/EBITDA · P/FCF · yields · ROE/ROA · margins · leverage · growth · PEG, labeled <b>CHEAP / FAIR / RICH</b> by sector-relative composite percentile, with the gf-value intrinsic gap joined. <b>The HP-Score</b>: the 10×10 Huge-Potential rubric on small/mids — growth, cheapness, balance sheet, runway, margin quality, dilution, catalyst, insider, chart, sector tailwind — red flags hard-cap the total; ≥75 logs to the graded closed loop.</p>
+<p class="sub">Two layers. <b>The Valuation Table</b>: every S&amp;P 500 name across P/E · P/B · P/S · EV/EBITDA · P/FCF · yields · ROE/ROA · margins · leverage · growth · PEG, labeled <b>LOW / MID / HIGH MULTIPLE</b> by sector-WEIGHTED winsorized percentile composite — and only <b>POTENTIALLY UNDERVALUED</b> when quality confirms (otherwise <b>VALUE TRAP RISK</b>), with the gf-value intrinsic gap joined. <b>The HP-Score</b>: the 10×10 Huge-Potential rubric on small/mids — growth, cheapness, balance sheet, runway, margin quality, dilution, catalyst, insider, chart, sector tailwind — red flags hard-cap the total; ≥75 logs to the graded closed loop.</p>
 <div class="hero" id="hero"><span class="loading">Loading…</span></div>
 <div class="sec">🤖 AI VALUE PM</div>
 <div id="aibrief" style="background:var(--bg1);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;color:var(--fg2)"><span class="loading">…</span></div>
@@ -51,15 +51,16 @@ button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px
 <tr><td><b>Growth</b></td><td>Revenue, EPS, FCF growth, PEG</td><td>Positive, strong vs peers</td></tr>
 <tr><td><b>Balance sheet</b></td><td>D/E, current ratio, cash vs debt</td><td>Manageable debt, solid coverage</td></tr>
 <tr><td><b>Quality</b></td><td>ROE, ROA, gross/op margins</td><td>Decent or improving</td></tr>
-<tr><td><b>Cash return</b></td><td>Dividend yield, FCF yield</td><td>Attractive yield, rational capital use</td></tr>
-<tr><td><b>Intrinsic value</b></td><td>Composite fair-value gap (gf-value)</td><td>Large discount (30%+ below value)</td></tr>
+<tr><td><b>Cash return</b></td><td>Dividend yield, FCF yield, net buyback/dilution trend</td><td>Attractive yield, rational capital use</td></tr>
+<tr><td><b>Model fair value</b></td><td>gf-value composite gap (model-based estimate, not ground truth)</td><td>Large discount (30%+ below model value)</td></tr>
 </tbody></table>
 <div class="sec">Layer A — S&amp;P 500 valuation table <span id="fillA" style="letter-spacing:0;text-transform:none;color:var(--amber)"></span></div>
-<div class="bar"><div class="tf" id="lab"><span data-l="ALL" class="on">ALL</span><span data-l="CHEAP">CHEAP</span><span data-l="FAIR">FAIR</span><span data-l="RICH">RICH</span></div>
+<div class="bar"><div class="tf" id="lab"><span data-l="ALL" class="on">ALL</span><span data-l="CHEAP">LOW MULT</span><span data-l="FAIR">MID</span><span data-l="RICH">HIGH MULT</span></div>
 <input id="q" placeholder="ticker…"><button class="dl" id="dlA">⬇ CSV</button>
 <span class="loading" id="cntA"></span></div>
 <div style="overflow-x:auto"><div id="tblA"></div></div>
-<div class="sec">Layer B — HP-Score: huge-potential rubric (10 × 10) <span id="fillB" style="letter-spacing:0;text-transform:none;color:var(--amber)"></span></div>
+<div class="sec">Layer B — HP-Score: huge-potential (value + growth + quality + catalysts) <span id="fillB" style="letter-spacing:0;text-transform:none;color:var(--amber)"></span></div>
+<p class="sub" style="margin-top:-2px">A high HP-Score does <b>not</b> mean cheap — read the class pill. Valuation sub-score: <b>7–10 cheap · 5 fair · 0–3 expensive</b>; P/S&gt;10 with no/negative FCF is hard-capped at 1. Financials are neutral-scored on cash-vs-debt/GM/EV (float &amp; leverage are the business model). <b>Hard flags</b> (cap score at 45): revenue declining + burning cash · revenue down &gt;20% · negative gross margin · dilution ≥25%/yr · debt-heavy + FCF-negative. <b>Soft flags</b> (shown, not capped): current ratio &lt;1 · runway &lt;4q · financial-adjusted.</p>
 <div class="bar"><div class="tf" id="flagf"><span data-f="all" class="on">ALL</span><span data-f="clean">NO RED FLAGS</span></div><button class="dl" id="dlB">⬇ CSV</button></div>
 <div id="hp"></div>
 <div class="note" id="note"></div>
@@ -69,7 +70,7 @@ const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 const PCT=new Set(['div_y','fcf_y','roe','roa','gm','om']);
-const COLS=[['t','Ticker'],['sector','Sector'],['label','Label'],['value_pct','Val pct'],['pe','P/E'],['ps','P/S'],['pb','P/B'],['ev_ebitda','EV/EBITDA'],['ev_s','EV/S'],['p_fcf','P/FCF'],['fcf_y','FCF y%'],['div_y','Div y%'],['roe','ROE%'],['gm','GM%'],['de','D/E'],['rev_g','Rev g%'],['eps_g','EPS g%'],['peg','PEG'],['gf_gap','GF gap%']];
+const COLS=[['t','Ticker'],['sector','Sector'],['label','Label'],['value_pct','Val pct'],['pe','P/E'],['ps','P/S'],['pb','P/B'],['ev_ebitda','EV/EBITDA'],['ev_s','EV/S'],['p_fcf','P/FCF'],['fcf_y','FCF y%'],['div_y','Div y%'],['roe','ROE%'],['gm','GM%'],['de','D/E'],['rev_g','Rev g%'],['eps_g','EPS g%'],['peg','PEG'],['gf_gap','Model FV gap%']];
 let D=null,LAB='ALL',SORT='value_pct',ASC=true,FLAGF='all';
 const fmt=(k,v)=>{if(v==null)return '—';if(PCT.has(k))return (v*100).toFixed(1);if(k==='gf_gap'||k==='rev_g'||k==='eps_g')return (v>0?'+':'')+v;return v;};
 function renderA(){
@@ -80,7 +81,7 @@ function renderA(){
   document.getElementById('cntA').textContent=rows.length+' names';
   const shown=rows.slice(0,520);
   document.getElementById('tblA').innerHTML=`<table><thead><tr>${COLS.map(([k,h])=>`<th data-k="${k}">${h}${SORT===k?(ASC?' ▲':' ▼'):''}</th>`).join('')}</tr></thead><tbody>${
-   shown.map(r=>`<tr><td class="l"><b>${esc(r.t)}</b></td><td class="l" style="font-size:9px">${esc(r.sector)}</td><td class="l"><span class="pill p${r.label}">${r.label}</span></td>${COLS.slice(3).map(([k])=>{const v=r[k];const cls=(k==='gf_gap'&&v>0)||((k==='rev_g'||k==='eps_g'||k==='roe'||k==='fcf_y')&&v>0)?'hi':(k==='gf_gap'&&v<0)||((k==='rev_g'||k==='eps_g')&&v<0)?'lo':'';return `<td class="${cls}">${fmt(k,v)}</td>`;}).join('')}</tr>`).join('')}</tbody></table>`;
+   shown.map(r=>`<tr><td class="l"><b>${esc(r.t)}</b></td><td class="l" style="font-size:9px">${esc(r.sector)}</td><td class="l"><span class="pill p${r.label}">${({CHEAP:'LOW MULT',FAIR:'MID',RICH:'HIGH MULT'})[r.label]||r.label}</span>${r.vclass==='POTENTIALLY UNDERVALUED'?'<br><span class="pill pCHEAP" style="margin-top:2px;display:inline-block">UNDERVALUED?</span>':r.vclass==='VALUE TRAP RISK'?'<br><span class="pill pRICH" style="margin-top:2px;display:inline-block">TRAP RISK</span>':''}</td>${COLS.slice(3).map(([k])=>{const v=r[k];const cls=(k==='gf_gap'&&v>0)||((k==='rev_g'||k==='eps_g'||k==='roe'||k==='fcf_y')&&v>0)?'hi':(k==='gf_gap'&&v<0)||((k==='rev_g'||k==='eps_g')&&v<0)?'lo':'';return `<td class="${cls}">${fmt(k,v)}</td>`;}).join('')}</tr>`).join('')}</tbody></table>`;
   document.querySelectorAll('#tblA th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(SORT===k)ASC=!ASC;else{SORT=k;ASC=true;}renderA();});
 }
 function renderB(){
@@ -91,10 +92,12 @@ function renderB(){
      <div style="display:flex;align-items:center;gap:11px">
       <b style="font-family:var(--mono);font-size:15px;min-width:64px">#${i+1} ${esc(r.t)}</b>${r.metrics?.net_cash?'<span class="pill pCHEAP" style="margin-left:2px">NET CASH</span>':''}
       <div class="scorebar"><i style="width:${r.score}%;background:${col}"></i></div>
-      <b style="font-family:var(--mono);color:${col};min-width:72px;text-align:right">${r.score}/100</b></div>
+      <b style="font-family:var(--mono);color:${col};min-width:72px;text-align:right">${r.score}/100</b><span class="pill ${r.hp_class==='DEEP VALUE'||r.hp_class==='TURNAROUND'?'pCHEAP':r.hp_class==='VALUE TRAP RISK'?'pRICH':'pFAIR'}">${esc(r.hp_class||'')}</span></div>
+     ${r.pillars?`<div style="font-family:var(--mono);font-size:10px;color:var(--fg2);margin-top:4px">PILLARS — value <b>${r.pillars.value}</b> · quality <b>${r.pillars.quality}</b> · survival <b>${r.pillars.survival}</b> · re-rating <b>${r.pillars.rerating}</b></div>`:''}
      <div class="chips">${Object.entries(r.cats||{}).map(([k,v])=>`<span class="chip" style="border-color:${v>=8?'rgba(52,211,153,.5)':v<=2?'rgba(255,85,119,.5)':'var(--border)'}">${esc(k.replace(/_/g,' '))} <b>${v}</b></span>`).join('')}</div>
      ${(r.flags||[]).length?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--red)">⚠ ${r.flags.map(esc).join(' · ')} — score capped</div>`:''}
-     <div style="font-family:var(--mono);font-size:10px;color:var(--fg3);margin-top:5px">${esc(r.sector||'')} · P/S ${r.metrics?.ps??'—'} · EV $${r.metrics?.ev!=null?(r.metrics.ev/1e9).toFixed(2)+'B':'—'} · EV/S ${r.metrics?.ev_s??'—'} · rev YoY ${r.metrics?.rev_yoy_pct??'—'}% · GM ${r.metrics?.gross_margin_pct??'—'}% · dilution ${r.metrics?.dilution_yoy_pct??'—'}%/yr · runway ${r.metrics?.runway_q??'FCF+'}q · cash $${((r.metrics?.cash||0)/1e6).toFixed(0)}M vs debt $${((r.metrics?.debt||0)/1e6).toFixed(0)}M · ${esc(r.chart_detail)}</div></div>`;}).join('')
+     ${(r.soft_flags||[]).length?`<div style="font-family:var(--mono);font-size:10px;color:var(--amber)">△ ${r.soft_flags.map(esc).join(' · ')}</div>`:''}
+     <div style="font-family:var(--mono);font-size:10px;color:var(--fg3);margin-top:5px">${esc(r.sector||'')} · P/S ${r.metrics?.ps??'—'} · EV ${r.metrics?.fin_adjusted?'n/m (fin)':r.metrics?.ev!=null?'$'+(r.metrics.ev/1e9).toFixed(2)+'B':'—'} · EV/S ${r.metrics?.ev_s??'—'} · rev YoY ${r.metrics?.rev_yoy_pct??'—'}% · GM ${r.metrics?.gross_margin_pct??'—'}% · dilution ${r.metrics?.dilution_yoy_pct??'—'}%/yr · runway ${r.metrics?.runway_q??'FCF+'}q · cash $${((r.metrics?.cash||0)/1e6).toFixed(0)}M vs debt $${((r.metrics?.debt||0)/1e6).toFixed(0)}M · ${esc(r.chart_detail)}</div></div>`;}).join('')
    ||'<span class="loading">HP universe filling…</span>';
 }
 document.getElementById('lab').onclick=e=>{const l=e.target.dataset.l;if(!l)return;LAB=l;document.querySelectorAll('#lab span').forEach(x=>x.classList.toggle('on',x.dataset.l===l));renderA();};
@@ -104,9 +107,11 @@ function dl(rows,cols,name){const csv=[cols.join(',')].concat(rows.map(r=>cols.m
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;a.click();}
 (async()=>{D=await gj('data/stock-valuations.json');
   if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
-  const top=(D.hp||[])[0];
+  const top=(D.hp||[])[0];const nA=(D.sp_table||[]).length;
+  if(!nA)document.getElementById('tblA').innerHTML='<div style="border:1px solid rgba(255,85,119,.5);border-radius:10px;padding:12px;font-family:var(--mono);font-size:12px;color:var(--red)">⚠ Valuation table unavailable / cache empty — engine reported sp_coverage '+(D.sp_coverage??'—')+'. Diagnostics: '+esc((D.diagnostics||[]).join(' · '))+'</div>';
   document.getElementById('hero').innerHTML=
-   `<div class="g"><b>${D.sp_coverage}</b><div class="m">S&P names valued<br>of ${D.sp_universe}</div></div>
+   `<div class="g"><b>${nA}</b><div class="m">S&P rows loaded<br>of ${D.sp_universe} (eng ${D.sp_coverage})</div></div>
+    <div class="g"><b style="font-size:13px">${esc((D.sp_asof||'—'))}</b><div class="m">data as-of<br>gen ${esc((D.generated_at||'').slice(0,16))}</div></div>
     <div class="g"><b class="hi">${(D.sp_table||[]).filter(r=>r.label==='CHEAP').length}</b><div class="m">CHEAP (≤25th pct)</div></div>
     <div class="g"><b class="lo">${(D.sp_table||[]).filter(r=>r.label==='RICH').length}</b><div class="m">RICH (≥75th pct)</div></div>
     <div class="g"><b>${D.hp_coverage}</b><div class="m">HP names scored<br>of ${D.hp_universe} (${esc(D.hp_src||'').slice(0,18)})</div></div>

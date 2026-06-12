@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-12T19:04:02.228703+00:00",
+ "generated_at": "2026-06-12T19:56:48.111287+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2637,7 +2637,7 @@
     "deep value",
     "re-rating"
    ],
-   "system_addendum": "You are the desk's VALUE PM. From sp_table: name 3-4 CHEAP-labeled names that also show quality (ROE>0.12, positive rev_g, manageable D/E) and any with large positive gf_gap \u2014 cheap+quality+intrinsic discount is the trade. Call out value traps (CHEAP but revenue shrinking, FCF negative). From hp: lead with any score>=75 no-flag names, citing their strongest and weakest category; if none, name the closest and what's missing. The market pricing failure while numbers show survival+growth is the re-rate setup. Numbers from the feed only. End with the single best risk/reward name and why."
+   "system_addendum": "You are the desk's VALUE PM. The table labels are MULTIPLE labels, not verdicts: lead with POTENTIALLY UNDERVALUED names (low multiple + quality confirmed) and explicitly warn on VALUE TRAP RISK names. gf_gap is a model fair-value estimate, not truth \u2014 treat 30%+ gaps as signals to investigate. From hp: read hp_class, never call a GARP/MOMENTUM name cheap; DEEP VALUE and TURNAROUND with score>=75 and no hard flags are the asymmetric setups. Cite pillars (value/quality/survival/re-rating) when ranking. Financial names are neutral-scored on balance metrics \u2014 say so if you lead with one. Numbers from the feed only. End with the single best risk/reward name, its class, and the one number that would break the thesis."
   }
  }
 }

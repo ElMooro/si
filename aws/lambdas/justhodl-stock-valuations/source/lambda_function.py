@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.3"
+VERSION = "1.1.0"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -58,6 +58,16 @@ RATIO_LADDERS = {
 }
 GROWTH_LADDERS = {"rev_g": ["revenueGrowth"], "eps_g": ["epsgrowth", "epsGrowth"],
                    "fcf_g": ["freeCashFlowGrowth"]}
+# sector-specific composite weights (audit fix: equal-mean overweights noisy ratios;
+# P/B is the financial lens, EV/EBITDA the industrial lens, P/S+P/FCF the software lens)
+SECTOR_WEIGHTS = {
+  "Financials":             {"pb": .45, "pe": .35, "p_fcf": .20, "ps": 0, "ev_ebitda": 0},
+  "Real Estate":            {"p_fcf": .40, "ev_ebitda": .30, "pb": .30, "ps": 0, "pe": 0},
+  "Technology":             {"ps": .30, "p_fcf": .30, "ev_ebitda": .25, "pe": .15, "pb": 0},
+  "Communication Services": {"ev_ebitda": .35, "p_fcf": .30, "pe": .20, "ps": .15, "pb": 0},
+}
+DEFAULT_WEIGHTS = {"ev_ebitda": .30, "p_fcf": .25, "pe": .25, "ps": .10, "pb": .10}
+FIN_SECTORS = {"Financials", "Financial Services"}
 _sampled = {"ratios": False, "growth": False, "screener": False}
 
 
@@ -207,7 +217,7 @@ def sc_rev_growth(yoy):
     return 10 if p >= 50 else 8 if p >= 20 else 6 if p >= 10 else 4 if p >= 0 else 1 if p >= -10 else 0
 
 
-def sc_cheap(ps, pfcf):
+def sc_cheap(ps, pfcf, fcf_neg=False):
     s = 0.0
     if ps is not None:
         s += 6 if 0 < ps < 1 else 5 if ps < 2 else 3.5 if ps < 3 else 2 if ps < 6 else 0.5 if ps < 10 else 0
@@ -215,6 +225,8 @@ def sc_cheap(ps, pfcf):
         s += 2
     if pfcf is not None and pfcf > 0:
         s += 4 if pfcf < 5 else 3 if pfcf < 10 else 1.5 if pfcf < 20 else 0.5
+    if ps is not None and ps > 10 and (pfcf is None or pfcf <= 0 or fcf_neg):
+        s = min(s, 1.0)   # rich on sales with no cash support is never "cheap"
     return round(min(s, 10), 1)
 
 
@@ -331,6 +343,20 @@ def lambda_handler(event=None, context=None):
     except Exception:
         pass
 
+    idx_set, ovl_set = set(), set()
+    try:
+        ii = json.loads(S3.get_object(Bucket=BUCKET, Key="data/index-inclusion.json")["Body"].read())
+        idx_set = {r.get("ticker") for r in (ii.get("watch_list") or []) if r.get("ticker")}
+    except Exception:
+        pass
+    try:
+        ov = json.loads(S3.get_object(Bucket=BUCKET, Key="data/deep-value-overlap.json")["Body"].read())
+        ovl_set = {r.get("ticker") for r in ((ov.get("board") or ov.get("rows") or [])[:40])
+                    if r.get("ticker")}
+    except Exception:
+        pass
+    DIAG.append(f"catalyst joins: index-inclusion {len(idx_set)}, overlap {len(ovl_set)}")
+
     ins_buy, ins_cluster = set(), set()
     try:
         ir = json.loads(S3.get_object(Bucket=BUCKET, Key="data/insider-radar.json")["Body"].read())
@@ -344,21 +370,43 @@ def lambda_handler(event=None, context=None):
         if t in sec:
             by_sec.setdefault(sec[t], []).append((t, r))
 
-    def pctile(vals, v, lower_better=True):
+    def pctile(vals, v):
+        """Winsorized sector percentile; None for invalid v; negatives handled by caller."""
         xs = sorted(x for x in vals if x is not None and x > 0)
-        if v is None or v <= 0 or len(xs) < 8:
-            return 95.0 if lower_better else 5.0
+        if v is None or len(xs) < 8:
+            return None
+        if v <= 0:
+            return 70.0   # NM (negative earnings/FCF): worse than neutral, not max-penalty
         idx = sum(1 for x in xs if x <= v)
-        p = idx / len(xs) * 100
-        return round(p if lower_better else 100 - p, 0)
+        return max(5.0, min(95.0, round(idx / len(xs) * 100, 0)))
 
     sp_table = []
     for s_, arr in by_sec.items():
         cols = {k: [r.get(k) for _, r in arr] for k in ("ps", "pe", "pb", "ev_ebitda", "p_fcf")}
+        W = SECTOR_WEIGHTS.get(s_, DEFAULT_WEIGHTS)
         for t, r in arr:
-            ps_ = [pctile(cols[k], r.get(k)) for k in cols]
-            vpct = round(sum(ps_) / len(ps_), 0)
+            num, den = 0.0, 0.0
+            for k, w in W.items():
+                if w <= 0:
+                    continue
+                pc = pctile(cols[k], r.get(k))
+                if pc is not None:
+                    num += w * pc
+                    den += w
+            vpct = round(num / den, 0) if den else 50.0
             label = "CHEAP" if vpct <= 25 else "RICH" if vpct >= 75 else "FAIR"
+            # second-stage class: low multiple is NOT undervalued until quality confirms
+            roe_, fy_, rg_ = r.get("roe"), r.get("fcf_y"), r.get("rev_g")
+            quality_ok = ((roe_ or 0) > 0.10 or (fy_ or 0) > 0.04) and (rg_ is None or rg_ > -0.02)
+            trapish = ((rg_ or 0) < -0.05 or (fy_ is not None and fy_ < 0)
+                        or (roe_ is not None and roe_ < 0))
+            if label == "CHEAP":
+                vclass = ("VALUE TRAP RISK" if trapish
+                           else "POTENTIALLY UNDERVALUED" if quality_ok else "LOW MULTIPLE")
+            elif label == "RICH":
+                vclass = "HIGH MULTIPLE"
+            else:
+                vclass = "SECTOR MID"
             peg = None
             if r.get("pe") and r.get("eps_g") and r["eps_g"] > 0:
                 peg = round(r["pe"] / (r["eps_g"] * 100), 2)
@@ -370,7 +418,8 @@ def lambda_handler(event=None, context=None):
             row.update({"rev_g": round(r["rev_g"] * 100, 1) if r.get("rev_g") is not None else None,
                          "eps_g": round(r["eps_g"] * 100, 1) if r.get("eps_g") is not None else None,
                          "fcf_g": round(r["fcf_g"] * 100, 1) if r.get("fcf_g") is not None else None,
-                         "peg": peg, "value_pct": vpct, "label": label, "gf_gap": gf.get(t)})
+                         "peg": peg, "value_pct": vpct, "label": label,
+                         "vclass": vclass, "gf_gap": gf.get(t)})
             sp_table.append(row)
     sp_table.sort(key=lambda x: x["value_pct"])
 
@@ -415,21 +464,40 @@ def lambda_handler(event=None, context=None):
         runway_q = (cash / burn_q) if (burn_q > 0 and cash) else None
         ni_now = sum(x.get("ni") or 0 for x in inc[:4]) if len(inc) >= 4 else None
         ni_prior = sum(x.get("ni") or 0 for x in inc[4:8]) if len(inc) >= 8 else None
+        is_fin = hp_secmap.get(t) in FIN_SECTORS
+        if is_fin:
+            ev_hp, ev_s_hp, net_cash = None, None, False
         cats = {}
         cats["revenue_growth"] = sc_rev_growth(yoy)
-        cats["valuation"] = sc_cheap(rr.get("ps"), rr.get("p_fcf"))
-        if cash is not None and debt is not None:
+        cats["valuation"] = sc_cheap(rr.get("ps"), rr.get("p_fcf"),
+                                      fcf_neg=(fcf_ttm is not None and fcf_ttm < 0))
+        if is_fin:
+            cats["balance_sheet"] = 6   # cash-vs-debt n/m for financials (float/leverage model)
+        elif cash is not None and debt is not None:
             cats["balance_sheet"] = 10 if cash > debt else 7 if debt < cash * 2 else \
                 4 if (rr.get("de") or 9) < 1.5 else 1
         else:
             cats["balance_sheet"] = 4
-        cats["runway"] = 10 if (fcf_ttm or 0) > 0 else \
-            ((7 if runway_q > 8 else 4 if runway_q > 4 else 1) if runway_q else 2)
+        latest_fcf = cf[0].get("fcf") if cf else None
+        if (fcf_ttm or 0) > 0 and (latest_fcf or 0) > 0:
+            cats["runway"] = 10
+        elif (latest_fcf or 0) > 0:
+            cats["runway"] = 7
+        elif (fcf_ttm or 0) > 0:
+            cats["runway"] = 6
+        elif runway_q:
+            cats["runway"] = 8 if runway_q >= 8 else 5 if runway_q >= 4 else \
+                3 if runway_q >= 2 else 1
+        else:
+            cats["runway"] = 2
         g = gm if gm is not None else rr.get("gm")
-        cats["gross_margin"] = (9 if (g or 0) >= 0.7 else 7 if (g or 0) >= 0.4 else
-                                 5 if (g or 0) >= 0.2 else 2 if (g or 0) > 0 else 0)
-        if g is not None and gm_prior is not None and g > gm_prior + 0.01:
-            cats["gross_margin"] = min(10, cats["gross_margin"] + 1)
+        if is_fin:
+            cats["gross_margin"] = 6   # GM n/m for financials
+        else:
+            cats["gross_margin"] = (9 if (g or 0) >= 0.7 else 7 if (g or 0) >= 0.4 else
+                                     5 if (g or 0) >= 0.2 else 2 if (g or 0) > 0 else 0)
+            if g is not None and gm_prior is not None and g > gm_prior + 0.01:
+                cats["gross_margin"] = min(10, cats["gross_margin"] + 1)
         cats["dilution"] = (10 if (dil or 0) <= 0 else 8 if dil < 0.03 else 5 if dil < 0.08
                              else 3 if dil < 0.15 else 0) if dil is not None else 5
         accel = (yoy is not None and rev_prior and len(inc) >= 8 and inc[0]["rev"]
@@ -437,25 +505,58 @@ def lambda_handler(event=None, context=None):
         losses_shrink = (ni_now is not None and ni_prior is not None and ni_now > ni_prior)
         cs, cdet = chart_score(t)
         cats["catalyst_proxy"] = min(10, (4 if accel else 0) + (3 if t in ins_cluster else 0)
-                                      + (3 if losses_shrink else 0))
+                                      + (3 if losses_shrink else 0)
+                                      + (2 if t in idx_set else 0) + (2 if t in ovl_set else 0))
         cats["insider"] = 9 if t in ins_cluster else 6 if t in ins_buy else 3
         cats["chart"] = cs
         sr = sec_rank.get(hp_secmap.get(t))
         cats["sector_tailwind"] = round(11 - sr, 0) if sr else 5
-        flags = []
+        flags, soft = [], []
         if yoy is not None and yoy < 0 and (fcf_ttm or 0) < 0:
             flags.append("revenue declining + burning cash")
-        if g is not None and g < 0:
+        if yoy is not None and yoy < -0.20:
+            flags.append(f"revenue down {yoy*100:.0f}% YoY")
+        if g is not None and not is_fin and g < 0:
             flags.append("negative gross margin")
         if dil is not None and dil >= 0.25:
             flags.append(f"heavy dilution {dil*100:.0f}%/yr")
-        if debt and cash is not None and debt > max(cash * 4, 1) and (fcf_ttm or 0) < 0:
+        if debt and cash is not None and not is_fin and debt > max(cash * 4, 1) and (fcf_ttm or 0) < 0:
             flags.append("debt heavy + FCF negative")
+        if rr.get("cr") is not None and rr["cr"] < 1 and not is_fin:
+            soft.append(f"current ratio {rr['cr']:.2f}")
+        if runway_q is not None and runway_q < 4:
+            soft.append(f"runway {runway_q:.1f}q")
+        if is_fin:
+            soft.append("financial: EV/GM/cash-vs-debt n/m, neutral-scored")
         total = round(sum(cats.values()), 1)
         if flags:
             total = min(total, 45.0)
+        pillars = {"value": cats["valuation"],
+                    "quality": round(cats["gross_margin"] * 0.6
+                                      + (10 if (fcf_ttm or 0) > 0 else
+                                         4 if fcf_ttm is None else 1) * 0.4, 1),
+                    "survival": round((cats["balance_sheet"] + cats["runway"]
+                                        + cats["dilution"]) / 3, 1),
+                    "rerating": round((cats["catalyst_proxy"] + cats["insider"]
+                                        + cats["chart"] + cats["sector_tailwind"]) / 4, 1)}
+        growth_p = cats["revenue_growth"]
+        if pillars["value"] >= 7 and (pillars["quality"] <= 3 or pillars["survival"] <= 3):
+            hp_class = "VALUE TRAP RISK"
+        elif pillars["value"] >= 7 and pillars["survival"] >= 5:
+            hp_class = "DEEP VALUE"
+        elif pillars["value"] >= 5 and losses_shrink and growth_p >= 4:
+            hp_class = "TURNAROUND"
+        elif pillars["value"] >= 3 and growth_p >= 6 and pillars["quality"] >= 6:
+            hp_class = "GARP"
+        elif pillars["value"] <= 3 and pillars["rerating"] >= 6:
+            hp_class = "MOMENTUM (not cheap)"
+        elif pillars["value"] <= 3 and pillars["quality"] >= 7:
+            hp_class = "QUALITY AT PREMIUM"
+        else:
+            hp_class = "MIXED"
         hp_out.append({"t": t, "sector": hp_secmap.get(t), "score": total, "cats": cats,
-                        "flags": flags, "chart_detail": cdet,
+                        "flags": flags, "soft_flags": soft, "pillars": pillars,
+                        "hp_class": hp_class, "chart_detail": cdet,
                         "metrics": {"ps": rr.get("ps"), "p_fcf": rr.get("p_fcf"),
                                      "rev_yoy_pct": round(yoy * 100, 1) if yoy is not None else None,
                                      "gross_margin_pct": round((g or 0) * 100, 1) if g is not None else None,
@@ -496,19 +597,27 @@ def lambda_handler(event=None, context=None):
             "hp": hp_out[:80], "hp_coverage": len(hp_out), "hp_universe": len(hp_rows),
             "hp_src": st.get("hp_src"), "hp_logged": logged, "n_serious": len(serious),
             "diagnostics": list(DIAG),
-            "methodology": ("Layer A: FMP ratios-ttm + financial-growth per S&P name "
-                             "(weekly cache, budgeted resume), composite = mean sector-"
-                             "relative percentile of P/S, P/E, P/B, EV/EBITDA, P/FCF "
-                             "(negatives treated as expensive); CHEAP<=25th pct, RICH>=75th; "
-                             "intrinsic gap joined from gf-value composite fair value; EV pillar = EV/EBITDA + EV/FCF + EV/Sales columns (EV/EBITDA inside the label composite), and on small/mids explicit EV = mcap + debt - cash with net-cash flag (a $100M mcap with $400M debt is a $500M business). "
-                             "Layer B: the 10x10 Huge-Potential rubric — revenue growth, "
-                             "cheapness (P/S+P/FCF tiers), balance sheet (cash vs debt), "
-                             "runway quarters, gross-margin tier + trend, dilution (share "
-                             "count YoY), catalyst proxy (revenue acceleration + insider "
-                             "cluster + losses shrinking), insider, chart (50dma/higher-low/"
-                             "RS), sector tailwind. Red flags cap totals at 45. Score>=75 "
-                             "with no flags logs hp_score (UP, 63d) to the graded loop. "
-                             "Research, not advice.")}
+            "methodology": ("Layer A: sector-WEIGHTED composite of winsorized (5-95) "
+                             "sector percentiles — P/B-led for Financials, FFO-proxy-led for "
+                             "REITs, P/S+P/FCF-led for Tech, EV/EBITDA-led default; negative "
+                             "earnings/FCF map to 70th pct (NM: worse than neutral, not "
+                             "max-penalty). Labels are MULTIPLE labels (LOW<=25th, HIGH>=75th); "
+                             "a low multiple is only POTENTIALLY UNDERVALUED when quality "
+                             "confirms (ROE>10%% or FCF yield>4%%, revenue not shrinking) and "
+                             "flips to VALUE TRAP RISK on shrinking revenue / negative FCF or "
+                             "ROE. gf_gap is a MODEL fair-value estimate (gf-value composite), "
+                             "not ground-truth intrinsic value. Layer B HP-Score: 10x10 rubric "
+                             "with financial-sector neutralization (cash-vs-debt/GM/EV n/m for "
+                             "insurers+banks), tiered runway (FCF+ TTM & latest q=10, latest "
+                             "only=7, else cash/burn quarters), valuation hard rule (P/S>10 "
+                             "with no/negative FCF caps cheapness at 1), catalyst joins from "
+                             "index-inclusion watch + deep-value-overlap board. Hard red flags "
+                             "cap totals at 45; soft flags shown, not capped. Four derived "
+                             "pillars (Value/Quality/Survival/Re-rating) classify each name: "
+                             "DEEP VALUE, TURNAROUND, GARP, MOMENTUM (not cheap), QUALITY AT "
+                             "PREMIUM, VALUE TRAP RISK, MIXED — high HP-Score does NOT mean "
+                             "cheap; read the class. Score>=75 with no hard flags logs "
+                             "hp_score (UP, 63d) to the graded loop. Research, not advice.")}
     clean = json.loads(json.dumps(out, default=str), parse_constant=lambda c: None)
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(clean).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
