@@ -26,7 +26,7 @@ STATE_KEY = "data/_alerts/last.json"
 OUT_KEY = "data/alert-sentinel.json"
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 DIAG = []
 
 
@@ -105,6 +105,13 @@ def snapshot():
                                   f"({c.get('discount_pct')}% disc), 3M {c.get('m3')}%")
                         for c in cands if c.get("t")}
 
+    rp = gj("data/research-papers.json")
+    rp_l = (rp.get("papers") or [])[:12]
+    s["papers"] = sorted(f"{x.get('t')}#{x.get('date')}" for x in rp_l if x.get("t"))
+    s["_paper_detail"] = {f"{x.get('t')}#{x.get('date')}":
+                            f"{x.get('t')} ({x.get('conviction')}/10): {(x.get('title') or '')[:90]}"
+                           for x in rp_l if x.get("t")}
+
     sv = gj("data/stock-valuations.json")
     ser = [x for x in (sv.get("hp") or []) if (x.get("score") or 0) >= 75 and not x.get("flags")]
     s["hp_serious"] = sorted(x.get("t") for x in ser if x.get("t"))[:12]
@@ -161,6 +168,10 @@ def diff(old, new):
             and new["ul_leader"] != old["ul_leader"]):
         msgs.append(f"🔭 Underlooked #1 → {new['ul_leader']} "
                      f"({new.get('_ul_detail')})")
+    # 📜 new AI research notes
+    opp, npp = set(old.get("papers") or []), set(new.get("papers") or [])
+    for k in sorted(npp - opp):
+        msgs.append(f"📜 New research note — {(new.get('_paper_detail') or {}).get(k, k)}")
     # 🏆 HP-Score: new >=75 clean names ("worth serious research")
     oh, nh = set(old.get("hp_serious") or []), set(new.get("hp_serious") or [])
     for k in sorted(nh - oh):
