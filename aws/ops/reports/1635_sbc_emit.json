@@ -1,0 +1,61 @@
+{
+ "ops": 1635,
+ "fn_err": "NONE",
+ "verify": {
+  "version": "1.4.2",
+  "sbc_coverage": 500,
+  "high_sbc": [
+   {
+    "t": "CRWD",
+    "sbc": 22.4
+   },
+   {
+    "t": "AXON",
+    "sbc": 16.6
+   },
+   {
+    "t": "WDAY",
+    "sbc": 16.0
+   },
+   {
+    "t": "DDOG",
+    "sbc": 16.0
+   },
+   {
+    "t": "TTD",
+    "sbc": 15.9
+   },
+   {
+    "t": "COIN",
+    "sbc": 15.4
+   }
+  ],
+  "hpq": {
+   "sbc_rev": 0.0084,
+   "vclass": "POTENTIALLY UNDERVALUED",
+   "rule40": 10.0
+  },
+  "hca": {
+   "sbc_rev": 0.0013,
+   "vclass": "POTENTIALLY UNDERVALUED",
+   "rule40": 17.0
+  },
+  "pru": {
+   "sbc_rev": 0.0,
+   "vclass": "VALUE TRAP RISK",
+   "rule40": 2.0
+  },
+  "gpn": {
+   "sbc_rev": 0.0085,
+   "vclass": "VALUE TRAP RISK",
+   "rule40": -12.0
+  },
+  "vclass_hist": {
+   "POTENTIALLY UNDERVALUED": 69,
+   "VALUE TRAP RISK": 9,
+   "LOW MULTIPLE": 4,
+   "SECTOR MID": 318,
+   "HIGH MULTIPLE": 100
+  }
+ }
+}
