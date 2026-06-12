@@ -1,0 +1,77 @@
+{
+ "ops": 1650,
+ "debate": {
+  "written": [
+   "QCRH",
+   "GLP"
+  ],
+  "diag": [
+   "DRD: all models failed: Unterminated string starting at: line 12 column 5 (char 5279)"
+  ],
+  "index_head": [
+   {
+    "t": "GLP",
+    "conviction": 4,
+    "stance": "RESEARCH-MORE"
+   },
+   {
+    "t": "QCRH",
+    "conviction": 5,
+    "stance": "RESEARCH-MORE"
+   },
+   {
+    "t": "WBTN",
+    "conviction": 4,
+    "stance": "RESEARCH-MORE"
+   },
+   {
+    "t": "SKWD",
+    "conviction": 5,
+    "stance": "RESEARCH-MORE"
+   },
+   {
+    "t": "AVAH",
+    "conviction": 4,
+    "stance": "RESEARCH-MORE"
+   }
+  ],
+  "sample": {
+   "t": "QCRH",
+   "conv": 5,
+   "stance": "RESEARCH-MORE",
+   "models": {
+    "bull": "claude-sonnet-4-6",
+    "bear": "claude-haiku-4-5-20251001",
+    "judge": "claude-sonnet-4-6"
+   }
+  }
+ },
+ "fn": "updated",
+ "url": "https://ud5s77q3iwwzjig7lovn5q5uxu0fozgg.lambda-url.us-east-1.on.aws/",
+ "tests": [
+  {
+   "q": "What is the current crisis composite and which canaries are red?",
+   "sources": [
+    "data/crisis-canaries.json",
+    "data/crisis-composite.json",
+    "data/crisis-knowledge-base.json"
+   ],
+   "router_why": "Crisis canaries feed directly reports the 30-canary composite and red flags; crisis-composite provides the master aggregate; knowledge-base contextualizes which rules are firing.",
+   "duration_s": 14.2,
+   "answer_head": "## Crisis Composite & Red Canaries\n\n### Master Crisis Score\n\n**35.1 / 100 \u2014 DEFCON 4 \"NORMAL\"** [data/crisis-composite.json]\n\nThe score sits in the 20\u201340 \"normal\" band. Trend is **stable**, with no single component in stress territory. [data/crisis-composite.json]\n\n| Component | Weight | Crisis Contribution |\n|---|---|---|\n| USD funding stress | 20% | 32.1 |\n| Crisis plumbing / XCC basis | 20% | 33.6 |\n| Credit sprea",
+   "cited": true
+  },
+  {
+   "q": "Which underlooked stock ranks #1 and what stance did its research debate reach?",
+   "sources": [
+    "data/stock-valuations.json",
+    "data/debate.json",
+    "data/research-papers.json"
+   ],
+   "router_why": "stock-valuations identifies underlooked stocks with HP scores and rankings; debate-engine captures research stance positions; research-papers provides indexed thesis context.",
+   "duration_s": 11.8,
+   "answer_head": "Looking at the underlooked stocks, I need to identify the #1 ranked name and its research debate outcome.\n\n## #1 Underlooked Stock: **VCEL**\n\nFrom the stock-valuations data, the `underlooked` scores in the `hp` (high-performance) table rank as follows:\n\n- FRSH: 44.4\n- RAMP: 49.6\n- AUPH: 68.5\n- **VCEL: 69.6** \u2190 highest shown\n\nVCEL ranks #1 with an underlooked score of **69.6** [data/stock-valuations.json].\n\n## Researc",
+   "cited": true
+  }
+ ]
+}
