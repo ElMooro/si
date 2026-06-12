@@ -1,0 +1,743 @@
+{
+  "ops": 1608,
+  "errors": [],
+  "fn": "updated",
+  "fn_err": "NONE",
+  "verify": {
+    "diagnostics": [
+      "sp500 constituents: 500",
+      "upside rings: 6073 as of 2026-06-10",
+      "mcap cache: 501 cached, 0 refreshed"
+    ],
+    "n_tiles": 498,
+    "size_mode": "market_cap",
+    "as_of": "2026-06-10",
+    "breadth": {
+      "advancers": 173,
+      "decliners": 324,
+      "mcap_weighted_chg": -1.56
+    },
+    "tiles_top": [
+      {
+        "t": "NVDA",
+        "s": "Technology",
+        "mc": 4854372820000.0,
+        "c": -3.73,
+        "w": -6.67,
+        "m1": -8.67,
+        "m3": 7.74,
+        "m6": 8.01,
+        "y1": 39.22,
+        "hi": -14.98,
+        "rs": 0.48
+      },
+      {
+        "t": "GOOGL",
+        "s": "Communication Services",
+        "mc": 4346031014772.7397,
+        "c": -2.16,
+        "w": -0.73,
+        "m1": -8.3,
+        "m3": 15.45,
+        "m6": 13.6,
+        "y1": 99.54,
+        "hi": -11.48,
+        "rs": 8.19
+      },
+      {
+        "t": "AAPL",
+        "s": "Technology",
+        "mc": 4282539262480.0,
+        "c": 0.35,
+        "w": -6.02,
+        "m1": -0.38,
+        "m3": 11.8,
+        "m6": 4.93,
+        "y1": 43.87,
+        "hi": -7.49,
+        "rs": 4.54
+      },
+      {
+        "t": "MSFT",
+        "s": "Technology",
+        "mc": 2951762813981.44,
+        "c": -1.5,
+        "w": -7.02,
+        "m1": -3.71,
+        "m3": -1.86,
+        "m6": -19.07,
+        "y1": -15.62,
+        "hi": -26.7,
+        "rs": -9.12
+      },
+      {
+        "t": "AMZN",
+        "s": "Consumer Discretionary",
+        "mc": 2560192045768.0,
+        "c": -2.53,
+        "w": -4.81,
+        "m1": -11.52,
+        "m3": 11.92,
+        "m6": 4.9,
+        "y1": 9.37,
+        "hi": -13.45,
+        "rs": 4.66
+      },
+      {
+        "t": "AVGO",
+        "s": "Technology",
+        "mc": 1770295591675.8,
+        "c": -5.12,
+        "w": -22.35,
+        "m1": -13.15,
+        "m3": 8.94,
+        "m6": -7.23,
+        "y1": 52.11,
+        "hi": -22.73,
+        "rs": 1.68
+      }
+    ],
+    "sector_agg": {
+      "Industrials": {
+        "mc": 5001714425212.06,
+        "adv": 6,
+        "dec": 71,
+        "n": 77,
+        "chg_mcap_weighted": -3.24
+      },
+      "Health Care": {
+        "mc": 5687220522616.0,
+        "adv": 10,
+        "dec": 49,
+        "n": 59,
+        "chg_mcap_weighted": -1.12
+      },
+      "Consumer Discretionary": {
+        "mc": 6587486865031.239,
+        "adv": 13,
+        "dec": 40,
+        "n": 53,
+        "chg_mcap_weighted": -2.18
+      },
+      "Technology": {
+        "mc": 23982187736458.367,
+        "adv": 9,
+        "dec": 75,
+        "n": 84,
+        "chg_mcap_weighted": -2.28
+      },
+      "Materials": {
+        "mc": 1062013480101.2201,
+        "adv": 3,
+        "dec": 17,
+        "n": 20,
+        "chg_mcap_weighted": -2.28
+      },
+      "Financials": {
+        "mc": 6818301873277.952,
+        "adv": 38,
+        "dec": 31,
+        "n": 69,
+        "chg_mcap_weighted": -0.42
+      },
+      "Communication Services": {
+        "mc": 7234531171566.529,
+        "adv": 9,
+        "dec": 8,
+        "n": 17,
+        "chg_mcap_weighted": -1.55
+      },
+      "Energy": {
+        "mc": 2188952873506.2202,
+        "adv": 16,
+        "dec": 6,
+        "n": 22,
+        "chg_mcap_weighted": 1.39
+      },
+      "Utilities": {
+        "mc": 1614124560714.4897,
+        "adv": 24,
+        "dec": 7,
+        "n": 32,
+        "chg_mcap_weighted": -0.83
+      },
+      "Consumer Staples": {
+        "mc": 3559811522092.639,
+        "adv": 31,
+        "dec": 3,
+        "n": 34,
+        "chg_mcap_weighted": 1.51
+      },
+      "Real Estate": {
+        "mc": 1218570077528.12,
+        "adv": 14,
+        "dec": 17,
+        "n": 31,
+        "chg_mcap_weighted": 0.03
+      }
+    },
+    "groups_head": [
+      {
+        "etf": "XLV",
+        "sector": "Health Care",
+        "perf": {
+          "c": -1.11,
+          "w": 3.59,
+          "m1": 6.86,
+          "m3": 0.0,
+          "m6": 0.94,
+          "y1": 12.65,
+          "ytd": -1.71
+        },
+        "rs_3m_vs_spy": -7.26,
+        "vol_x_20d": 1.05,
+        "breadth": {
+          "adv": 10,
+          "dec": 49,
+          "n": 59
+        },
+        "rank_1m": 1
+      },
+      {
+        "etf": "XLP",
+        "sector": "Consumer Staples",
+        "perf": {
+          "c": 1.65,
+          "w": 4.05,
+          "m1": 2.54,
+          "m3": 1.06,
+          "m6": 9.87,
+          "y1": 4.56,
+          "ytd": 10.04
+        },
+        "rs_3m_vs_spy": -6.2,
+        "vol_x_20d": 1.06,
+        "breadth": {
+          "adv": 31,
+          "dec": 3,
+          "n": 34
+        },
+        "rank_1m": 2
+      },
+      {
+        "etf": "XLF",
+        "sector": "Financials",
+        "perf": {
+          "c": -0.44,
+          "w": 2.67,
+          "m1": 2.05,
+          "m3": 5.22,
+          "m6": -2.34,
+          "y1": 2.29,
+          "ytd": -4.92
+        },
+        "rs_3m_vs_spy": -2.04,
+        "vol_x_20d": 0.83,
+        "breadth": {
+          "adv": 38,
+          "dec": 31,
+          "n": 69
+        },
+        "rank_1m": 3
+      },
+      {
+        "etf": "XLE",
+        "sector": "Energy",
+        "perf": {
+          "c": 1.5,
+          "w": -0.78,
+          "m1": 1.89,
+          "m3": 2.23,
+          "m6": 28.25,
+          "y1": 36.96,
+          "ytd": 27.6
+        },
+        "rs_3m_vs_spy": -5.03,
+        "vol_x_20d": 0.96,
+        "breadth": {
+          "adv": 16,
+          "dec": 6,
+          "n": 22
+        },
+        "rank_1m": 4
+      },
+      {
+        "etf": "XLRE",
+        "sector": "Real Estate",
+        "perf": {
+          "c": 0.04,
+          "w": 3.4,
+          "m1": 0.94,
+          "m3": 6.08,
+          "m6": 10.43,
+          "y1": 6.54,
+          "ytd": 11.42
+        },
+        "rs_3m_vs_spy": -1.18,
+        "vol_x_20d": 0.92,
+        "breadth": {
+          "adv": 14,
+          "dec": 17,
+          "n": 31
+        },
+        "rank_1m": 5
+      },
+      {
+        "etf": "XLK",
+        "sector": "Technology",
+        "perf": {
+          "c": -2.29,
+          "w": -9.99,
+          "m1": -0.7,
+          "m3": 25.78,
+          "m6": 19.64,
+          "y1": 46.66,
+          "ytd": 22.4
+        },
+        "rs_3m_vs_spy": 18.52,
+        "vol_x_20d": 1.35,
+        "breadth": {
+          "adv": 9,
+          "dec": 75,
+          "n": 84
+        },
+        "rank_1m": 6
+      }
+    ],
+    "leadership": {
+      "top_1m": "Health Care",
+      "bottom_1m": "Materials"
+    },
+    "groups_breadth_join": [
+      {
+        "etf": "XLV",
+        "sector": "Health Care",
+        "breadth": {
+          "adv": 10,
+          "dec": 49,
+          "n": 59
+        },
+        "c": -1.11
+      },
+      {
+        "etf": "XLP",
+        "sector": "Consumer Staples",
+        "breadth": {
+          "adv": 31,
+          "dec": 3,
+          "n": 34
+        },
+        "c": 1.65
+      },
+      {
+        "etf": "XLF",
+        "sector": "Financials",
+        "breadth": {
+          "adv": 38,
+          "dec": 31,
+          "n": 69
+        },
+        "c": -0.44
+      },
+      {
+        "etf": "XLE",
+        "sector": "Energy",
+        "breadth": {
+          "adv": 16,
+          "dec": 6,
+          "n": 22
+        },
+        "c": 1.5
+      },
+      {
+        "etf": "XLRE",
+        "sector": "Real Estate",
+        "breadth": {
+          "adv": 14,
+          "dec": 17,
+          "n": 31
+        },
+        "c": 0.04
+      },
+      {
+        "etf": "XLK",
+        "sector": "Technology",
+        "breadth": {
+          "adv": 9,
+          "dec": 75,
+          "n": 84
+        },
+        "c": -2.29
+      },
+      {
+        "etf": "XLU",
+        "sector": "Utilities",
+        "breadth": {
+          "adv": 24,
+          "dec": 7,
+          "n": 32
+        },
+        "c": 0.05
+      },
+      {
+        "etf": "XLI",
+        "sector": "Industrials",
+        "breadth": {
+          "adv": 6,
+          "dec": 71,
+          "n": 77
+        },
+        "c": -3.38
+      },
+      {
+        "etf": "XLC",
+        "sector": "Communication Services",
+        "breadth": {
+          "adv": 9,
+          "dec": 8,
+          "n": 17
+        },
+        "c": -0.42
+      },
+      {
+        "etf": "XLY",
+        "sector": "Consumer Discretionary",
+        "breadth": {
+          "adv": 13,
+          "dec": 40,
+          "n": 53
+        },
+        "c": -2.05
+      },
+      {
+        "etf": "XLB",
+        "sector": "Materials",
+        "breadth": {
+          "adv": 3,
+          "dec": 17,
+          "n": 20
+        },
+        "c": -2.3
+      }
+    ],
+    "goog_present": false,
+    "sector_names": [
+      "Communication Services",
+      "Consumer Discretionary",
+      "Consumer Staples",
+      "Energy",
+      "Financials",
+      "Health Care",
+      "Industrials",
+      "Materials",
+      "Real Estate",
+      "Technology",
+      "Utilities"
+    ],
+    "tile_sample_new": [
+      {
+        "t": "NVDA",
+        "c": -3.73,
+        "m3": 7.74,
+        "hi": -14.98,
+        "rs": 0.48
+      },
+      {
+        "t": "GOOGL",
+        "c": -2.16,
+        "m3": 15.45,
+        "hi": -11.48,
+        "rs": 8.19
+      },
+      {
+        "t": "AAPL",
+        "c": 0.35,
+        "m3": 11.8,
+        "hi": -7.49,
+        "rs": 4.54
+      },
+      {
+        "t": "MSFT",
+        "c": -1.5,
+        "m3": -1.86,
+        "hi": -26.7,
+        "rs": -9.12
+      }
+    ],
+    "industries_head": [
+      {
+        "etf": "KRE",
+        "industry": "Regional Banks",
+        "perf": {
+          "c": 0.56,
+          "w": 5.54,
+          "m1": 4.51,
+          "m3": 11.97,
+          "m6": 10.32,
+          "y1": 21.57
+        },
+        "rs_3m_vs_spy": 4.71,
+        "vol_x_20d": 0.96,
+        "rank_1m": 1
+      },
+      {
+        "etf": "JETS",
+        "industry": "Airlines",
+        "perf": {
+          "c": -4.59,
+          "w": -2.08,
+          "m1": 2.41,
+          "m3": 8.05,
+          "m6": -0.66,
+          "y1": 16.25
+        },
+        "rs_3m_vs_spy": 0.79,
+        "vol_x_20d": 0.78,
+        "rank_1m": 2
+      },
+      {
+        "etf": "XHB",
+        "industry": "Homebuilders",
+        "perf": {
+          "c": -3.31,
+          "w": -0.39,
+          "m1": 1.86,
+          "m3": 0.42,
+          "m6": -2.14,
+          "y1": 5.53
+        },
+        "rs_3m_vs_spy": -6.84,
+        "vol_x_20d": 1.01,
+        "rank_1m": 3
+      },
+      {
+        "etf": "IGV",
+        "industry": "Software",
+        "perf": {
+          "c": -1.47,
+          "w": -8.6,
+          "m1": 0.98,
+          "m3": 6.81,
+          "m6": -16.29,
+          "y1": -13.51
+        },
+        "rs_3m_vs_spy": -0.45,
+        "vol_x_20d": 0.59,
+        "rank_1m": 4
+      },
+      {
+        "etf": "XOP",
+        "industry": "Oil & Gas E&P",
+        "perf": {
+          "c": 2.4,
+          "w": -1.83,
+          "m1": -0.4,
+          "m3": 2.0,
+          "m6": 25.24,
+          "y1": 33.22
+        },
+        "rs_3m_vs_spy": -5.26,
+        "vol_x_20d": 0.89,
+        "rank_1m": 5
+      },
+      {
+        "etf": "ITA",
+        "industry": "Aerospace & Defense",
+        "perf": {
+          "c": -2.42,
+          "w": -0.01,
+          "m1": -0.5,
+          "m3": -5.79,
+          "m6": 10.04,
+          "y1": 25.53
+        },
+        "rs_3m_vs_spy": -13.05,
+        "vol_x_20d": 0.75,
+        "rank_1m": 6
+      },
+      {
+        "etf": "SMH",
+        "industry": "Semiconductors",
+        "perf": {
+          "c": -3.4,
+          "w": -10.5,
+          "m1": -0.94,
+          "m3": 42.36,
+          "m6": 54.91,
+          "y1": 117.85
+        },
+        "rs_3m_vs_spy": 35.1,
+        "vol_x_20d": 1.15,
+        "rank_1m": 7
+      },
+      {
+        "etf": "XBI",
+        "industry": "Biotech",
+        "perf": {
+          "c": -1.93,
+          "w": -0.75,
+          "m1": -4.38,
+          "m3": 1.95,
+          "m6": 4.2,
+          "y1": 51.09
+        },
+        "rs_3m_vs_spy": -5.31,
+        "vol_x_20d": 1.0,
+        "rank_1m": 8
+      }
+    ],
+    "themes_head": [
+      {
+        "theme": "Semiconductors",
+        "n": 10,
+        "perf": {
+          "c": -3.29,
+          "w": -9.19,
+          "m1": 8.5,
+          "m3": 60.46,
+          "m6": 88.89,
+          "y1": 210.9
+        },
+        "rs_3m_vs_spy": 53.2,
+        "breadth_1d": "0/10",
+        "leader_1m": "MRVL",
+        "laggard_1m": "AVGO"
+      },
+      {
+        "theme": "AI Leaders",
+        "n": 10,
+        "perf": {
+          "c": -1.82,
+          "w": -9.31,
+          "m1": 4.95,
+          "m3": 11.68,
+          "m6": -0.63,
+          "y1": 28.36
+        },
+        "rs_3m_vs_spy": 4.42,
+        "breadth_1d": "2/8",
+        "leader_1m": "SNOW",
+        "laggard_1m": "AVGO"
+      },
+      {
+        "theme": "Homebuilders",
+        "n": 5,
+        "perf": {
+          "c": -2.91,
+          "w": 1.43,
+          "m1": 3.29,
+          "m3": -3.15,
+          "m6": -9.54,
+          "y1": 3.36
+        },
+        "rs_3m_vs_spy": -10.41,
+        "breadth_1d": "0/5",
+        "leader_1m": "NVR",
+        "laggard_1m": "DHI"
+      },
+      {
+        "theme": "Energy",
+        "n": 7,
+        "perf": {
+          "c": 1.48,
+          "w": -2.39,
+          "m1": 0.94,
+          "m3": 5.84,
+          "m6": 33.0,
+          "y1": 45.16
+        },
+        "rs_3m_vs_spy": -1.42,
+        "breadth_1d": "6/1",
+        "leader_1m": "OXY",
+        "laggard_1m": "HAL"
+      },
+      {
+        "theme": "Biotech Rotation",
+        "n": 7,
+        "perf": {
+          "c": -2.82,
+          "w": -2.25,
+          "m1": -6.82,
+          "m3": -11.92,
+          "m6": -0.26,
+          "y1": 10.14
+        },
+        "rs_3m_vs_spy": -19.18,
+        "breadth_1d": "0/7",
+        "leader_1m": "AMGN",
+        "laggard_1m": "SRPT"
+      },
+      {
+        "theme": "China ADRs",
+        "n": 6,
+        "perf": {
+          "c": -0.37,
+          "w": -4.18,
+          "m1": -8.53,
+          "m3": -10.48,
+          "m6": -21.8,
+          "y1": -10.19
+        },
+        "rs_3m_vs_spy": -17.74,
+        "breadth_1d": "2/4",
+        "leader_1m": "NTES",
+        "laggard_1m": "BIDU"
+      },
+      {
+        "theme": "Crypto Equities",
+        "n": 6,
+        "perf": {
+          "c": -2.67,
+          "w": -8.03,
+          "m1": -11.61,
+          "m3": 22.12,
+          "m6": -7.47,
+          "y1": 10.51
+        },
+        "rs_3m_vs_spy": 14.86,
+        "breadth_1d": "1/5",
+        "leader_1m": "HOOD",
+        "laggard_1m": "MSTR"
+      },
+      {
+        "theme": "Uranium",
+        "n": 5,
+        "perf": {
+          "c": -5.74,
+          "w": -20.58,
+          "m1": -29.26,
+          "m3": -25.79,
+          "m6": -9.73,
+          "y1": 75.56
+        },
+        "rs_3m_vs_spy": -33.05,
+        "breadth_1d": "1/4",
+        "leader_1m": "DNN",
+        "laggard_1m": "UEC"
+      }
+    ],
+    "rotation": {
+      "version": "1.2.0",
+      "ratio_keys": [],
+      "semis_mkt": {
+        "n_events": 0,
+        "events_tail": [],
+        "live": null
+      },
+      "diag_tail": []
+    }
+  },
+  "sb_err": "NONE",
+  "board_row_groups": {
+    "signal": 0,
+    "signal_label": "NEUTRAL",
+    "read": "1M leadership: Health Care \u2192 \u2026 \u2192 Materials"
+  },
+  "board_row": {
+    "signal": 0,
+    "signal_label": "NEUTRAL",
+    "read": "S&P breadth 173/324 \u00b7 cap-wtd -1.56% \u00b7 498 tiles (market_cap)"
+  },
+  "board_n": 75,
+  "registry_n": 53
+}
