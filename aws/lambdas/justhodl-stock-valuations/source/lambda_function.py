@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -110,6 +110,8 @@ def fetch_ratios(t):
 KM_LADDERS = {"roe": ["returnOnEquityTTM", "roeTTM", "returnOnCommonEquityTTM"],
                "ev_s": ["evToSalesTTM", "enterpriseValueOverRevenueTTM"],
                "ev": ["enterpriseValueTTM", "enterpriseValue"],
+               "sbc_rev": ["stockBasedCompensationToRevenueTTM",
+                            "stockBasedCompensationToRevenue"],
                "roa": ["returnOnAssetsTTM", "roaTTM", "returnOnTangibleAssetsTTM"],
                "fcf_y": ["freeCashFlowYieldTTM", "fcfYieldTTM"],
                "ev_fcf": ["evToFreeCashFlowTTM", "enterpriseValueOverFreeCashFlowTTM"]}
@@ -147,7 +149,11 @@ HIST_LADDERS = {
   "pb": ["priceToBookRatio", "priceBookValueRatio", "priceToBookValueRatio"],
   "ev_ebitda": ["enterpriseValueMultiple", "evToEBITDA", "enterpriseValueOverEBITDA"],
   "p_fcf": ["priceToFreeCashFlowRatio", "priceToFreeCashFlowsRatio"],
+  "gm": ["grossProfitMargin", "grossProfitMarginRatio"],
 }
+# semiconductor names on the S&P (cycle-inversion detector applies to these)
+SEMI_SET = {"NVDA", "AMD", "AVGO", "QCOM", "TXN", "ADI", "MU", "INTC", "AMAT",
+             "LRCX", "KLAC", "NXPI", "ON", "MCHP", "MPWR", "TER", "SWKS", "QRVO"}
 
 
 def fetch_hist(t):
@@ -188,8 +194,11 @@ def fetch_hp_raw(t):
     try:
         c = jget(f"https://financialmodelingprep.com/stable/cash-flow-statement?symbol={t}"
                   f"&period=quarter&limit=4&apikey={FMP_KEY}")
-        r["cf"] = [{"ocf": f(x.get("operatingCashFlow")), "capex": f(x.get("capitalExpenditure")),
-                     "fcf": f(x.get("freeCashFlow"))} for x in (c if isinstance(c, list) else [])]
+        r["cf"] = [{"ocf": f(x.get("operatingCashFlow")),
+                     "capex": f(x.get("capitalExpenditure")),
+                     "fcf": f(x.get("freeCashFlow")),
+                     "sbc": f(x.get("stockBasedCompensation"))}
+                    for x in (c if isinstance(c, list) else [])]
     except Exception:
         r["cf"] = []
     try:
@@ -270,6 +279,12 @@ def lambda_handler(event=None, context=None):
     except Exception:
         st = {"sp": {}, "hp": {}, "sp_asof": "", "hp_asof": "", "hp_rows": [], "hp_src": ""}
     week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat()
+    if not st.get("v130_refetch"):
+        st["sp_asof"] = ""
+        st["hist_asof"] = ""
+        st["hp"] = {}
+        st["v130_refetch"] = True
+        DIAG.append("v1.3.0: full refetch (SBC/rev, gross-margin history, HP SBC capture)")
     if not st.get("v103_refetch"):
         st["sp_asof"] = ""
         st["v103_refetch"] = True
@@ -479,6 +494,28 @@ def lambda_handler(event=None, context=None):
                     hd += w
             hist_pct = round(hn / hd, 0) if hd else None
             deep_discount = bool(vpct <= 25 and hist_pct is not None and hist_pct <= 25)
+            # Rule of 40 with zero extra fetches: FCF margin = FCF yield x P/S
+            fcfm_ = (r.get("fcf_y") * r.get("ps") * 100
+                      if (r.get("fcf_y") is not None and r.get("ps")) else None)
+            rule40 = (round((r.get("rev_g") or 0) * 100 + fcfm_, 0)
+                       if (fcfm_ is not None and r.get("rev_g") is not None) else None)
+            # semi cycle inversion: low P/E AT peak own-history margins = trap;
+            # high/negative P/E at trough margins = recovery candidate
+            cycle_note = None
+            if t in SEMI_SET:
+                hpe = hrow.get("pe") or []
+                hgm = hrow.get("gm") or []
+                cpe, cgm = r.get("pe"), r.get("gm")
+                if len(hpe) >= 8 and len(hgm) >= 8 and cgm is not None:
+                    gm_pos = sum(1 for x in hgm if x <= cgm) / len(hgm)
+                    if cpe is not None and cpe > 0:
+                        pe_pos = sum(1 for x in hpe if x <= cpe) / len(hpe)
+                        if pe_pos <= 0.25 and gm_pos >= 0.80:
+                            cycle_note = "PEAK-CYCLE? low P/E at peak margins"
+                    if (cpe is None or cpe <= 0 or
+                            (cpe > 0 and sum(1 for x in hpe if x <= cpe) / len(hpe) >= 0.80)) \
+                            and gm_pos <= 0.25:
+                        cycle_note = "CYCLE-TROUGH candidate (depressed margins)"
             peg = None
             if r.get("pe") and r.get("eps_g") and r["eps_g"] > 0:
                 peg = round(r["pe"] / (r["eps_g"] * 100), 2)
@@ -492,7 +529,8 @@ def lambda_handler(event=None, context=None):
                          "fcf_g": round(r["fcf_g"] * 100, 1) if r.get("fcf_g") is not None else None,
                          "peg": peg, "value_pct": vpct, "label": label,
                          "vclass": vclass, "hist_pct": hist_pct,
-                         "deep_discount": deep_discount, "gf_gap": gf.get(t)})
+                         "deep_discount": deep_discount, "rule40": rule40,
+                         "cycle_note": cycle_note, "gf_gap": gf.get(t)})
             sp_table.append(row)
     sp_table.sort(key=lambda x: x["value_pct"])
 
@@ -535,6 +573,24 @@ def lambda_handler(event=None, context=None):
                     else rr.get("ev_s"))
         net_cash = bool(cash is not None and debt is not None and cash > debt)
         runway_q = (cash / burn_q) if (burn_q > 0 and cash) else None
+        sbc4 = [x.get("sbc") for x in cf if x.get("sbc") is not None]
+        sbc_ttm = sum(sbc4) if len(sbc4) >= 2 else None
+        sbc_pct_rev = (round(sbc_ttm / rev_ttm * 100, 1)
+                        if (sbc_ttm is not None and rev_ttm) else None)
+        fcf_after_sbc = (round(fcf_ttm - sbc_ttm)
+                          if (fcf_ttm is not None and sbc_ttm is not None) else None)
+        capex4 = [x.get("capex") for x in cf if x.get("capex") is not None]
+        capex_pct_rev = (round(abs(sum(capex4)) / rev_ttm * 100, 1)
+                          if (capex4 and rev_ttm) else None)
+        fcf_margin = (round(fcf_ttm / rev_ttm * 100, 1)
+                       if (fcf_ttm is not None and rev_ttm) else None)
+        rule40 = (round((yoy or 0) * 100 + fcf_margin, 0)
+                   if (fcf_margin is not None and yoy is not None) else None)
+        gp_ttm = sum(x.get("gp") or 0 for x in inc[:4]) if len(inc) >= 4 else None
+        gp_prior = sum(x.get("gp") or 0 for x in inc[4:8]) if len(inc) >= 8 else None
+        gp_yoy = (gp_ttm / gp_prior - 1) if (gp_ttm and gp_prior and gp_prior > 0) else None
+        op_leverage = (round((gp_yoy - yoy) * 100, 1)
+                        if (gp_yoy is not None and yoy is not None) else None)
         ni_now = sum(x.get("ni") or 0 for x in inc[:4]) if len(inc) >= 4 else None
         ni_prior = sum(x.get("ni") or 0 for x in inc[4:8]) if len(inc) >= 8 else None
         is_fin = hp_secmap.get(t) in FIN_SECTORS
@@ -599,15 +655,23 @@ def lambda_handler(event=None, context=None):
             soft.append(f"current ratio {rr['cr']:.2f}")
         if runway_q is not None and runway_q < 4:
             soft.append(f"runway {runway_q:.1f}q")
+        if sbc_pct_rev is not None and sbc_pct_rev >= 20:
+            soft.append(f"SBC {sbc_pct_rev:.0f}% of revenue")
+        if ((yoy or 0) > 0.15 and (capex_pct_rev or 0) > 30 and (fcf_ttm or 0) < 0):
+            soft.append(f"capex pass-through {capex_pct_rev:.0f}% of rev (AI-spender pattern)")
         if is_fin:
             soft.append("financial: EV/GM/cash-vs-debt n/m, neutral-scored")
         total = round(sum(cats.values()), 1)
         if flags:
             total = min(total, 45.0)
+        q_base = (cats["gross_margin"] * 0.6
+                   + (10 if (fcf_ttm or 0) > 0 else 4 if fcf_ttm is None else 1) * 0.4)
+        if sbc_pct_rev is not None and sbc_pct_rev >= 15:
+            q_base -= 2          # SBC is a real cost (doc tier: 10-20 watch, 20+ major)
+        if op_leverage is not None and op_leverage > 2 and (yoy or 0) > 0:
+            q_base += 1          # gross profit outgrowing revenue = operating leverage
         pillars = {"value": cats["valuation"],
-                    "quality": round(cats["gross_margin"] * 0.6
-                                      + (10 if (fcf_ttm or 0) > 0 else
-                                         4 if fcf_ttm is None else 1) * 0.4, 1),
+                    "quality": round(max(0, min(10, q_base)), 1),
                     "survival": round((cats["balance_sheet"] + cats["runway"]
                                         + cats["dilution"]) / 3, 1),
                     "rerating": round((cats["catalyst_proxy"] + cats["insider"]
@@ -627,13 +691,28 @@ def lambda_handler(event=None, context=None):
             hp_class = "QUALITY AT PREMIUM"
         else:
             hp_class = "MIXED"
+        # doc S21 "cheap AI stock" formula as a strict badge
+        formula21 = bool((yoy or 0) >= 0.20
+                          and (g or 0) >= 0.50
+                          and rr.get("ps") is not None
+                          and (rr["ps"] < 5 or (rr["ps"] < 8 and (yoy or 0) >= 0.40))
+                          and (fcf_ttm or 0) > 0
+                          and (dil is None or dil < 0.05)
+                          and cats["chart"] >= 6
+                          and not flags)
         hp_out.append({"t": t, "sector": hp_secmap.get(t), "score": total, "cats": cats,
                         "flags": flags, "soft_flags": soft, "pillars": pillars,
-                        "hp_class": hp_class, "chart_detail": cdet,
+                        "hp_class": hp_class, "formula21": formula21,
+                        "chart_detail": cdet,
                         "metrics": {"ps": rr.get("ps"), "p_fcf": rr.get("p_fcf"),
                                      "rev_yoy_pct": round(yoy * 100, 1) if yoy is not None else None,
                                      "gross_margin_pct": round((g or 0) * 100, 1) if g is not None else None,
                                      "dilution_yoy_pct": round(dil * 100, 1) if dil is not None else None,
+                                     "rule40": rule40, "fcf_margin": fcf_margin,
+                                     "sbc_pct_rev": sbc_pct_rev,
+                                     "fcf_after_sbc": fcf_after_sbc,
+                                     "capex_pct_rev": capex_pct_rev,
+                                     "op_leverage": op_leverage,
                                      "ev": ev_hp, "ev_s": ev_s_hp, "net_cash": net_cash,
                                      "fcf_ttm": fcf_ttm, "cash": cash, "debt": debt,
                                      "runway_q": round(runway_q, 1) if runway_q else None}})
@@ -691,7 +770,7 @@ def lambda_handler(event=None, context=None):
                              "pillars (Value/Quality/Survival/Re-rating) classify each name: "
                              "DEEP VALUE, TURNAROUND, GARP, MOMENTUM (not cheap), QUALITY AT "
                              "PREMIUM, VALUE TRAP RISK, MIXED — high HP-Score does NOT mean "
-                             "cheap; read the class. Score>=75 with no hard flags logs "
+                             "cheap; read the class. Playbook layer: Rule-of-40 (growth+FCF margin) on both layers; SBC%-of-rev with FCF-after-SBC (SBC>=15% docks quality); operating leverage (GP growth vs revenue growth, bonus when positive); capex pass-through soft-flag (growing + capex>30%rev + FCF<0 = AI-spender pattern); semi cycle inversion on 18 S&P semis (low P/E at own-history peak margins = PEAK-CYCLE trap note; depressed margins + high/neg P/E = TROUGH candidate); formula21 badge = strict cheap-AI screen (20%+ growth, 50%+ GM, P/S<5 (<8 if 40%+), FCF+, dilution<5%, chart>=6, no hard flags). Score>=75 with no hard flags logs "
                              "hp_score (UP, 63d) to the graded loop. Research, not advice.")}
     clean = json.loads(json.dumps(out, default=str), parse_constant=lambda c: None)
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(clean).encode(),

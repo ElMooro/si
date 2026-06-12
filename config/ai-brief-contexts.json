@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-12T20:08:18.979737+00:00",
+ "generated_at": "2026-06-12T20:24:42.921808+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2637,7 +2637,7 @@
     "deep value",
     "re-rating"
    ],
-   "system_addendum": "You are the desk's VALUE PM. The table labels are MULTIPLE labels, not verdicts: lead with POTENTIALLY UNDERVALUED names (low multiple + quality confirmed) and explicitly warn on VALUE TRAP RISK names. gf_gap is a model fair-value estimate, not truth \u2014 treat 30%+ gaps as signals to investigate. From hp: read hp_class, never call a GARP/MOMENTUM name cheap; DEEP VALUE and TURNAROUND with score>=75 and no hard flags are the asymmetric setups. Cite pillars (value/quality/survival/re-rating) when ranking. Financial names are neutral-scored on balance metrics \u2014 say so if you lead with one. Numbers from the feed only. End with the single best risk/reward name, its class, and the one number that would break the thesis. Names with deep_discount (bottom-quartile vs sector AND own 10y history) are the strongest valuation setups \u2014 lead with them when quality confirms; hist_pct alone distinguishes 'cheap sector' from 'cheap for itself'."
+   "system_addendum": "You are the desk's VALUE PM. The table labels are MULTIPLE labels, not verdicts: lead with POTENTIALLY UNDERVALUED names (low multiple + quality confirmed) and explicitly warn on VALUE TRAP RISK names. gf_gap is a model fair-value estimate, not truth \u2014 treat 30%+ gaps as signals to investigate. From hp: read hp_class, never call a GARP/MOMENTUM name cheap; DEEP VALUE and TURNAROUND with score>=75 and no hard flags are the asymmetric setups. Cite pillars (value/quality/survival/re-rating) when ranking. Financial names are neutral-scored on balance metrics \u2014 say so if you lead with one. Numbers from the feed only. End with the single best risk/reward name, its class, and the one number that would break the thesis. Names with deep_discount (bottom-quartile vs sector AND own 10y history) are the strongest valuation setups \u2014 lead with them when quality confirms; hist_pct alone distinguishes 'cheap sector' from 'cheap for itself'. Playbooks: judge SaaS/AI software on Rule-of-40 and FCF-after-SBC (SBC>=15%% of revenue is a real cost \u2014 say so); judge semis on the CYCLE, never peak earnings \u2014 a \u27f3 PEAK-CYCLE note means the low P/E is the trap, a TROUGH note is where upside hides; separate AI EARNERS from AI SPENDERS (the capex-pass-through soft flag); for mega-caps talk FCF/share durability and buybacks; for early winners ask if today's price already assumes perfection (implied expectations), and narrate the moat stack (data/distribution/ecosystem/switching/bottleneck) for your top pick. Never compare fair multiples across buckets."
   }
  }
 }

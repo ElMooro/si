@@ -54,6 +54,15 @@ button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px
 <tr><td><b>Cash return</b></td><td>Dividend yield, FCF yield, net buyback/dilution trend</td><td>Attractive yield, rational capital use</td></tr>
 <tr><td><b>Model fair value</b></td><td>gf-value composite gap (model-based estimate, not ground truth)</td><td>Large discount (30%+ below model value)</td></tr>
 </tbody></table>
+<div class="sec">Playbooks — fair-multiple ladder (don't mix the buckets)</div>
+<table class="legend"><thead><tr><th>Bucket</th><th>Value on</th><th>Rough fair zone</th></tr></thead><tbody>
+<tr><td>Declining tech</td><td>asset value / low P/E</td><td>cheap or avoid</td></tr>
+<tr><td>Slow-growth profitable</td><td>FCF yield</td><td>10–18× FCF</td></tr>
+<tr><td>Quality SaaS</td><td>Rule-of-40, P/FCF, NRR</td><td>25–40× FCF</td></tr>
+<tr><td>Elite AI/software compounder</td><td>FCF/share growth + moat stack</td><td>35–60× FCF</td></tr>
+<tr><td>Cyclical semis</td><td><b>normalized</b> P/E, EV/EBITDA — never peak earnings (low P/E at peak margins = trap ⟳)</td><td>mid-cycle multiple</td></tr>
+<tr><td>Semi bottleneck leader</td><td>moat premium, implied expectations</td><td>premium justified while bottleneck holds</td></tr>
+</tbody></table>
 <div class="sec">Layer A — S&amp;P 500 valuation table <span id="fillA" style="letter-spacing:0;text-transform:none;color:var(--amber)"></span></div>
 <div class="bar"><div class="tf" id="lab"><span data-l="ALL" class="on">ALL</span><span data-l="CHEAP">LOW MULT</span><span data-l="FAIR">MID</span><span data-l="RICH">HIGH MULT</span></div>
 <input id="q" placeholder="ticker…"><button class="dl" id="dlA">⬇ CSV</button>
@@ -63,14 +72,24 @@ button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px
 <p class="sub" style="margin-top:-2px">A high HP-Score does <b>not</b> mean cheap — read the class pill. Valuation sub-score: <b>7–10 cheap · 5 fair · 0–3 expensive</b>; P/S&gt;10 with no/negative FCF is hard-capped at 1. Financials are neutral-scored on cash-vs-debt/GM/EV (float &amp; leverage are the business model). <b>Hard flags</b> (cap score at 45): revenue declining + burning cash · revenue down &gt;20% · negative gross margin · dilution ≥25%/yr · debt-heavy + FCF-negative. <b>Soft flags</b> (shown, not capped): current ratio &lt;1 · runway &lt;4q · financial-adjusted.</p>
 <div class="bar"><div class="tf" id="flagf"><span data-f="all" class="on">ALL</span><span data-f="clean">NO RED FLAGS</span></div><button class="dl" id="dlB">⬇ CSV</button></div>
 <div id="hp"></div>
+<div class="sec">3-year exit model (§18) — what are you implicitly paying for?</div>
+<div class="card" style="font-family:var(--mono);font-size:12px">
+ <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+  <select id="x-sel" style="background:var(--bg2);color:var(--fg-1);border:1px solid var(--border);border-radius:8px;padding:6px"></select>
+  growth %/yr <input id="x-g" type="number" value="25" style="width:64px;background:var(--bg2);color:var(--fg-1);border:1px solid var(--border);border-radius:8px;padding:6px">
+  future FCF margin % <input id="x-m" type="number" value="20" style="width:64px;background:var(--bg2);color:var(--fg-1);border:1px solid var(--border);border-radius:8px;padding:6px">
+  exit ×FCF <input id="x-x" type="number" value="25" style="width:64px;background:var(--bg2);color:var(--fg-1);border:1px solid var(--border);border-radius:8px;padding:6px">
+ </div>
+ <div id="x-out" style="margin-top:9px;color:var(--fg2)">pick a name…</div>
+</div>
 <div class="note" id="note"></div>
 </div>
 <script>
 const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-const PCT=new Set(['div_y','fcf_y','roe','roa','gm','om']);
-const COLS=[['t','Ticker'],['sector','Sector'],['label','Label'],['value_pct','Sector pct'],['hist_pct','Own-hist pct'],['pe','P/E'],['ps','P/S'],['pb','P/B'],['ev_ebitda','EV/EBITDA'],['ev_s','EV/S'],['p_fcf','P/FCF'],['fcf_y','FCF y%'],['div_y','Div y%'],['roe','ROE%'],['gm','GM%'],['de','D/E'],['rev_g','Rev g%'],['eps_g','EPS g%'],['peg','PEG'],['gf_gap','Model FV gap%']];
+const PCT=new Set(['div_y','fcf_y','roe','roa','gm','om','sbc_rev']);
+const COLS=[['t','Ticker'],['sector','Sector'],['label','Label'],['value_pct','Sector pct'],['hist_pct','Own-hist pct'],['pe','P/E'],['ps','P/S'],['pb','P/B'],['ev_ebitda','EV/EBITDA'],['ev_s','EV/S'],['p_fcf','P/FCF'],['fcf_y','FCF y%'],['div_y','Div y%'],['roe','ROE%'],['gm','GM%'],['de','D/E'],['rev_g','Rev g%'],['eps_g','EPS g%'],['peg','PEG'],['rule40','R40'],['sbc_rev','SBC/rev%'],['gf_gap','Model FV gap%']];
 let D=null,LAB='ALL',SORT='value_pct',ASC=true,FLAGF='all';
 const fmt=(k,v)=>{if(v==null)return '—';if(PCT.has(k))return (v*100).toFixed(1);if(k==='gf_gap'||k==='rev_g'||k==='eps_g')return (v>0?'+':'')+v;return v;};
 function renderA(){
@@ -81,7 +100,7 @@ function renderA(){
   document.getElementById('cntA').textContent=rows.length+' names';
   const shown=rows.slice(0,520);
   document.getElementById('tblA').innerHTML=`<table><thead><tr>${COLS.map(([k,h])=>`<th data-k="${k}">${h}${SORT===k?(ASC?' ▲':' ▼'):''}</th>`).join('')}</tr></thead><tbody>${
-   shown.map(r=>`<tr><td class="l"><b>${esc(r.t)}</b></td><td class="l" style="font-size:9px">${esc(r.sector)}</td><td class="l"><span class="pill p${r.label}">${({CHEAP:'LOW MULT',FAIR:'MID',RICH:'HIGH MULT'})[r.label]||r.label}</span>${r.deep_discount?'<br><span class="pill" style="background:rgba(34,211,238,.14);color:var(--cyan);border:1px solid rgba(34,211,238,.45);margin-top:2px;display:inline-block">★ DEEP DISCOUNT</span>':''}${r.vclass==='POTENTIALLY UNDERVALUED'?'<br><span class="pill pCHEAP" style="margin-top:2px;display:inline-block">UNDERVALUED?</span>':r.vclass==='VALUE TRAP RISK'?'<br><span class="pill pRICH" style="margin-top:2px;display:inline-block">TRAP RISK</span>':''}</td>${COLS.slice(3).map(([k])=>{const v=r[k];const cls=(k==='gf_gap'&&v>0)||((k==='rev_g'||k==='eps_g'||k==='roe'||k==='fcf_y')&&v>0)?'hi':(k==='gf_gap'&&v<0)||((k==='rev_g'||k==='eps_g')&&v<0)?'lo':'';return `<td class="${cls}">${fmt(k,v)}</td>`;}).join('')}</tr>`).join('')}</tbody></table>`;
+   shown.map(r=>`<tr><td class="l"><b>${esc(r.t)}</b></td><td class="l" style="font-size:9px">${esc(r.sector)}</td><td class="l"><span class="pill p${r.label}">${({CHEAP:'LOW MULT',FAIR:'MID',RICH:'HIGH MULT'})[r.label]||r.label}</span>${r.cycle_note?'<br><span style="font-family:var(--mono);font-size:8.5px;color:var(--amber)">⟳ '+esc(r.cycle_note)+'</span>':''}${r.deep_discount?'<br><span class="pill" style="background:rgba(34,211,238,.14);color:var(--cyan);border:1px solid rgba(34,211,238,.45);margin-top:2px;display:inline-block">★ DEEP DISCOUNT</span>':''}${r.vclass==='POTENTIALLY UNDERVALUED'?'<br><span class="pill pCHEAP" style="margin-top:2px;display:inline-block">UNDERVALUED?</span>':r.vclass==='VALUE TRAP RISK'?'<br><span class="pill pRICH" style="margin-top:2px;display:inline-block">TRAP RISK</span>':''}</td>${COLS.slice(3).map(([k])=>{const v=r[k];const cls=(k==='gf_gap'&&v>0)||((k==='rev_g'||k==='eps_g'||k==='roe'||k==='fcf_y')&&v>0)?'hi':(k==='gf_gap'&&v<0)||((k==='rev_g'||k==='eps_g')&&v<0)?'lo':'';return `<td class="${cls}">${fmt(k,v)}</td>`;}).join('')}</tr>`).join('')}</tbody></table>`;
   document.querySelectorAll('#tblA th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(SORT===k)ASC=!ASC;else{SORT=k;ASC=true;}renderA();});
 }
 function renderB(){
@@ -92,12 +111,12 @@ function renderB(){
      <div style="display:flex;align-items:center;gap:11px">
       <b style="font-family:var(--mono);font-size:15px;min-width:64px">#${i+1} ${esc(r.t)}</b>${r.metrics?.net_cash?'<span class="pill pCHEAP" style="margin-left:2px">NET CASH</span>':''}
       <div class="scorebar"><i style="width:${r.score}%;background:${col}"></i></div>
-      <b style="font-family:var(--mono);color:${col};min-width:72px;text-align:right">${r.score}/100</b><span class="pill ${r.hp_class==='DEEP VALUE'||r.hp_class==='TURNAROUND'?'pCHEAP':r.hp_class==='VALUE TRAP RISK'?'pRICH':'pFAIR'}">${esc(r.hp_class||'')}</span></div>
+      <b style="font-family:var(--mono);color:${col};min-width:72px;text-align:right">${r.score}/100</b><span class="pill ${r.hp_class==='DEEP VALUE'||r.hp_class==='TURNAROUND'?'pCHEAP':r.hp_class==='VALUE TRAP RISK'?'pRICH':'pFAIR'}">${esc(r.hp_class||'')}</span>${r.formula21?'<span class="pill" style="background:rgba(167,139,250,.16);color:var(--violet);border:1px solid rgba(167,139,250,.5)">✦ CHEAP-AI §21</span>':''}</div>
      ${r.pillars?`<div style="font-family:var(--mono);font-size:10px;color:var(--fg2);margin-top:4px">PILLARS — value <b>${r.pillars.value}</b> · quality <b>${r.pillars.quality}</b> · survival <b>${r.pillars.survival}</b> · re-rating <b>${r.pillars.rerating}</b></div>`:''}
      <div class="chips">${Object.entries(r.cats||{}).map(([k,v])=>`<span class="chip" style="border-color:${v>=8?'rgba(52,211,153,.5)':v<=2?'rgba(255,85,119,.5)':'var(--border)'}">${esc(k.replace(/_/g,' '))} <b>${v}</b></span>`).join('')}</div>
      ${(r.flags||[]).length?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--red)">⚠ ${r.flags.map(esc).join(' · ')} — score capped</div>`:''}
      ${(r.soft_flags||[]).length?`<div style="font-family:var(--mono);font-size:10px;color:var(--amber)">△ ${r.soft_flags.map(esc).join(' · ')}</div>`:''}
-     <div style="font-family:var(--mono);font-size:10px;color:var(--fg3);margin-top:5px">${esc(r.sector||'')} · P/S ${r.metrics?.ps??'—'} · EV ${r.metrics?.fin_adjusted?'n/m (fin)':r.metrics?.ev!=null?'$'+(r.metrics.ev/1e9).toFixed(2)+'B':'—'} · EV/S ${r.metrics?.ev_s??'—'} · rev YoY ${r.metrics?.rev_yoy_pct??'—'}% · GM ${r.metrics?.gross_margin_pct??'—'}% · dilution ${r.metrics?.dilution_yoy_pct??'—'}%/yr · runway ${r.metrics?.runway_q??'FCF+'}q · cash $${((r.metrics?.cash||0)/1e6).toFixed(0)}M vs debt $${((r.metrics?.debt||0)/1e6).toFixed(0)}M · ${esc(r.chart_detail)}</div></div>`;}).join('')
+     <div style="font-family:var(--mono);font-size:10px;color:var(--fg3);margin-top:5px">${esc(r.sector||'')} · P/S ${r.metrics?.ps??'—'} · EV ${r.metrics?.fin_adjusted?'n/m (fin)':r.metrics?.ev!=null?'$'+(r.metrics.ev/1e9).toFixed(2)+'B':'—'} · EV/S ${r.metrics?.ev_s??'—'} · rev YoY ${r.metrics?.rev_yoy_pct??'—'}% · GM ${r.metrics?.gross_margin_pct??'—'}% · R40 <b>${r.metrics?.rule40??'—'}</b> · FCFm ${r.metrics?.fcf_margin??'—'}% · SBC ${r.metrics?.sbc_pct_rev??'—'}% · capex ${r.metrics?.capex_pct_rev??'—'}% · opLev ${r.metrics?.op_leverage!=null?(r.metrics.op_leverage>0?'+':'')+r.metrics.op_leverage:'—'} · dilution ${r.metrics?.dilution_yoy_pct??'—'}%/yr · runway ${r.metrics?.runway_q??'FCF+'}q · cash $${((r.metrics?.cash||0)/1e6).toFixed(0)}M vs debt $${((r.metrics?.debt||0)/1e6).toFixed(0)}M · ${esc(r.chart_detail)}</div></div>`;}).join('')
    ||'<span class="loading">HP universe filling…</span>';
 }
 document.getElementById('lab').onclick=e=>{const l=e.target.dataset.l;if(!l)return;LAB=l;document.querySelectorAll('#lab span').forEach(x=>x.classList.toggle('on',x.dataset.l===l));renderA();};
@@ -121,6 +140,15 @@ function dl(rows,cols,name){const csv=[cols.join(',')].concat(rows.map(r=>cols.m
   if(D.sp_coverage<D.sp_universe)document.getElementById('fillA').textContent=`· filling ${D.sp_coverage}/${D.sp_universe} (daily budgeted refresh)`;
   if(D.hp_coverage<D.hp_universe)document.getElementById('fillB').textContent=`· filling ${D.hp_coverage}/${D.hp_universe}`;
   renderA();renderB();
+  const XN=(D.hp||[]).filter(r=>r.metrics?.ev>0&&r.metrics?.ev_s>0).slice(0,40);
+  const xs=document.getElementById('x-sel');
+  xs.innerHTML='<option value="">— HP name —</option>'+XN.map((r,i)=>`<option value="${i}">${esc(r.t)}</option>`).join('');
+  const recalcX=()=>{const i=xs.value;if(i==='')return;const r=XN[+i];const ev=r.metrics.ev,rev=ev/r.metrics.ev_s;
+    const g=+document.getElementById('x-g').value/100,m=+document.getElementById('x-m').value/100,x=+document.getElementById('x-x').value;
+    const rev3=rev*Math.pow(1+g,3),fcf3=rev3*m,fv=fcf3*x,up=(fv/ev-1)*100;
+    document.getElementById('x-out').innerHTML=`${esc(r.t)}: rev TTM $${(rev/1e6).toFixed(0)}M → 3y rev $${(rev3/1e6).toFixed(0)}M → FCF $${(fcf3/1e6).toFixed(0)}M × ${x} = <b>$${(fv/1e9).toFixed(2)}B</b> vs EV $${(ev/1e9).toFixed(2)}B → <b class="${up>30?'hi':up<0?'lo':''}">${up>0?'+':''}${up.toFixed(0)}%</b> implied 3y upside`;};
+  xs.onchange=()=>{const i=xs.value;if(i!==''){document.getElementById('x-g').value=Math.round(XN[+i].metrics.rev_yoy_pct??25);document.getElementById('x-m').value=Math.max(15,Math.round(XN[+i].metrics.fcf_margin??20));}recalcX();};
+  ['x-g','x-m','x-x'].forEach(id=>document.getElementById(id).oninput=recalcX);
   document.getElementById('dlA').onclick=()=>dl(D.sp_table||[],COLS.map(c=>c[0]),'justhodl-sp500-valuations.csv');
   document.getElementById('dlB').onclick=()=>dl(D.hp||[],['t','sector','score','metrics.ps','metrics.p_fcf','metrics.rev_yoy_pct','metrics.gross_margin_pct','metrics.dilution_yoy_pct','metrics.runway_q','metrics.cash','metrics.debt'],'justhodl-hp-scores.csv');
   document.getElementById('note').textContent=`${D.methodology} v${D.version} · ${D.generated_at}`;
