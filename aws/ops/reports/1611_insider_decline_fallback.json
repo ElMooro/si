@@ -1,0 +1,48 @@
+{
+ "ops": 1611,
+ "fn": "updated",
+ "fn_err": "NONE",
+ "log_tail": "START RequestId: 6e4a8acf-3b4f-449f-86b7-e14395d20169 Version: $LATEST\n[insider] src=fmp buys=56 clusters=2 decline_clusters=0 1.9s\nEND RequestId: 6e4a8acf-3b4f-449f-86b7-e14395d20169\nREPORT RequestId: 6e4a8acf-3b4f-449f-86b7-e14395d20169\tDuration: 1964.08 ms\tBilled Duration: 2538 ms\tMemory Size: 512 MB\tMax Memory Used: 157 MB\tInit Duration: 573.36 ms\t\nXRAY TraceId: 1-6a2b5849-4da199c304f9968c7bd90623\tSegmentId: 2932355c4d6580a1\tSampled: true\t\n",
+ "verify": {
+  "version": "1.0.1",
+  "source_used": "fmp",
+  "n_buys": 56,
+  "clusters": [
+   {
+    "t": "MBBC",
+    "ins": 4,
+    "val": 105104,
+    "ret60": 3.1
+   },
+   {
+    "t": "GUTS",
+    "ins": 3,
+    "val": 94110,
+    "ret60": 57.6
+   }
+  ],
+  "decline_clusters": [],
+  "decline_buys_head": [
+   {
+    "t": "CRCW",
+    "ret60": -42.9,
+    "val": null
+   },
+   {
+    "t": "STTK",
+    "ret60": -31.4,
+    "val": 250000.0
+   },
+   {
+    "t": "EU",
+    "ret60": -30.8,
+    "val": 64000.0
+   }
+  ],
+  "logged": [],
+  "diag_tail": [
+   "fmp/search: 1000 rows",
+   "rings: 6073"
+  ]
+ }
+}
