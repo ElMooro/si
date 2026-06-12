@@ -1,0 +1,441 @@
+{
+ "ops": 1615,
+ "fn": "updated",
+ "fn_err": "NONE",
+ "log_tail": "START RequestId: 7ea5b85d-320e-49e0-841b-4986882819cb Version: $LATEST\n[g:chile_ip] STALE 2024-03-01 \u2014 excluded\n[canaries] score=7.9 level=CALM avail={'sofr_tail': True, 'ofr_repo': True, 'discount_window': True, 'bank_deposits': True, 'fhlb_dn': False, 'auction_slope': True, 'revision_nowcast': True, 'treasury_vol_proxy': True, 'cp_bill_spread': True, 'mmf_assets': True, 'floor_spreads': True, 'bank_reserves': True, 'pd_fails': True, 'sahm_rule': True, 'claims_4wk': True, 'continuing_claims': True, 'quits_rate': True, 'overtime_mfg': True, 'heavy_trucks': True, 'building_permits': True, 'truck_tonnage': True, 'rail_freight': True, 'wei': True, 'ccc_vs_bb': True, 'ci_loans': True, 'bank_credit': True, 'sloos': True, 'cc_delinquency': True, 'uninversion_trigger': True, 'inversion_breadth': True, 'breakevens': True, 'twoyr_collapse': True, 'copper_gold': True, 'aud_jpy': True, 'usd_clp': True, 'em_fx_stress': True, 'chile_ip': 'stale', 'transports_rel': True, 'defensives_bid': True, 'regional_banks_rel': True, 'korea_beta': True, 'swap_lines': True, 'foreign_repo_pool': True, 'real_m2': True} 17.3s\nEND RequestId: 7ea5b85d-320e-49e0-841b-4986882819cb\nREPORT RequestId: 7ea5b85d-320e-49e0-841b-4986882819cb\tDuration: 17344.70 ms\tBilled Duration: 17860 ms\tMemory Size: 512 MB\tMax Memory Used: 106 MB\tInit Duration: 515.29 ms\t\nXRAY TraceId: 1-6a2c3649-3e71dabd785aeeaa0890ee3a\tSegmentId: b0c2102664ac4ab8\tSampled: true\t\n",
+ "verify": {
+  "version": "3.0.0",
+  "duration_s": 17.3,
+  "n_got": 30,
+  "n_miss": 1,
+  "missing": [
+   {
+    "key": "chile_ip",
+    "avail": "stale"
+   }
+  ],
+  "families": {
+   "labor": {
+    "n": 5,
+    "red": 1,
+    "amber": 0,
+    "green": 4,
+    "score": 20.0
+   },
+   "real_economy": {
+    "n": 5,
+    "red": 0,
+    "amber": 1,
+    "green": 4,
+    "score": 10.0
+   },
+   "credit": {
+    "n": 5,
+    "red": 0,
+    "amber": 2,
+    "green": 3,
+    "score": 20.0
+   },
+   "rates_regime": {
+    "n": 4,
+    "red": 0,
+    "amber": 1,
+    "green": 3,
+    "score": 12.0
+   },
+   "global_fx": {
+    "n": 4,
+    "red": 0,
+    "amber": 0,
+    "green": 4,
+    "score": 0.0
+   },
+   "internals": {
+    "n": 4,
+    "red": 0,
+    "amber": 0,
+    "green": 4,
+    "score": 0.0
+   },
+   "plumbing_extra": {
+    "n": 3,
+    "red": 0,
+    "amber": 0,
+    "green": 3,
+    "score": 0.0
+   }
+  },
+  "red_count": 1,
+  "n_global": 30,
+  "plumbing_score": 7.9,
+  "global_score": 8.9,
+  "grid_score_ingested": 37.4,
+  "composite_v3": 14.2,
+  "level_v3": "CALM",
+  "alerts": [
+   "Quits rate (JOLTS): 1.9% (-0.10pp YoY) \u2014 workers stop quitting before layoffs"
+  ],
+  "canaries": {
+   "sahm_rule": {
+    "name": "Sahm Rule (real-time)",
+    "value": 0.1,
+    "unit": "pp vs 12m low",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "0.10 (trigger 0.50; called every recession since 1970)",
+    "as_of": "2026-05-01",
+    "z": null,
+    "lead": "0-2m",
+    "source": "SAHMREALTIME"
+   },
+   "claims_4wk": {
+    "name": "Initial claims (4-wk avg)",
+    "value": 219.0,
+    "unit": "k",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "4wk 219k, YoY -7.9%",
+    "as_of": "2026-06-06",
+    "z": -0.35,
+    "lead": "1-3m",
+    "source": "ICSA"
+   },
+   "continuing_claims": {
+    "name": "Continuing claims",
+    "value": 1.79,
+    "unit": "mn",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "YoY -7.8% \u2014 the hiring-freeze read",
+    "as_of": "2026-05-30",
+    "z": null,
+    "lead": "1-3m",
+    "source": "CCSA"
+   },
+   "quits_rate": {
+    "name": "Quits rate (JOLTS)",
+    "value": 1.9,
+    "unit": "%",
+    "signal": 1,
+    "status": "RED",
+    "detail": "1.9% (-0.10pp YoY) \u2014 workers stop quitting before layoffs",
+    "as_of": "2026-04-01",
+    "z": null,
+    "lead": "3-6m",
+    "source": "JTSQUR"
+   },
+   "overtime_mfg": {
+    "name": "Mfg overtime hours",
+    "value": 4.0,
+    "unit": "hrs",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "YoY +8.1% \u2014 overtime cut before headcount",
+    "as_of": "2026-05-01",
+    "z": null,
+    "lead": "2-4m",
+    "source": "AWOTMAN"
+   },
+   "heavy_trucks": {
+    "name": "Heavy truck sales",
+    "value": 402.0,
+    "unit": "k units SAAR",
+    "signal": 0,
+    "status": "AMBER",
+    "detail": "YoY -11.4% \u2014 legendary capex/freight lead",
+    "as_of": "2026-05-01",
+    "z": null,
+    "lead": "6-12m",
+    "source": "HTRUCKSSAAR"
+   },
+   "building_permits": {
+    "name": "Building permits",
+    "value": 1423.0,
+    "unit": "k SAAR",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "YoY -1.5% \u2014 housing leads the cycle",
+    "as_of": "2026-04-01",
+    "z": null,
+    "lead": "6-12m",
+    "source": "PERMIT"
+   },
+   "truck_tonnage": {
+    "name": "Truck tonnage",
+    "value": 116.8,
+    "unit": "idx",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "YoY +2.9% \u2014 goods-economy pulse",
+    "as_of": "2026-03-01",
+    "z": null,
+    "lead": "2-4m",
+    "source": "TRUCKD11"
+   },
+   "rail_freight": {
+    "name": "Rail/freight volumes",
+    "value": 996.0,
+    "unit": "k carloads",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "YoY +1.7%",
+    "as_of": "2026-03-01",
+    "z": null,
+    "lead": "1-3m",
+    "source": "RAILFRTCARLOADSD11"
+   },
+   "wei": {
+    "name": "Weekly Economic Index (NY Fed)",
+    "value": 2.9,
+    "unit": "GDP-scaled",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "2.90 (+0.23 vs 13wk) \u2014 real-time activity",
+    "as_of": "2026-06-06",
+    "z": null,
+    "lead": "0-1m",
+    "source": "WEI"
+   },
+   "ccc_vs_bb": {
+    "name": "CCC\u2212BB spread (stealth credit)",
+    "value": 787.0,
+    "unit": "bp",
+    "signal": 0,
+    "status": "AMBER",
+    "detail": "787bp (+20 3m) \u2014 junk's junk cracks first",
+    "as_of": "2026-06-10",
+    "z": 1.39,
+    "lead": "2-6m",
+    "source": "BAMLH0A3HYC\u2212BAMLH0A1HYBB"
+   },
+   "ci_loans": {
+    "name": "C&I loan growth",
+    "value": 7.68,
+    "unit": "% YoY",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "+7.7% YoY \u2014 contraction = crunch",
+    "as_of": "2026-04-01",
+    "z": null,
+    "lead": "0-3m",
+    "source": "BUSLOANS"
+   },
+   "bank_credit": {
+    "name": "Total bank credit",
+    "value": 6.4,
+    "unit": "% YoY",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "+6.4% YoY (weekly H.8)",
+    "as_of": "2026-05-27",
+    "z": null,
+    "lead": "0-3m",
+    "source": "TOTBKCR"
+   },
+   "sloos": {
+    "name": "SLOOS net tightening (C&I)",
+    "value": 8.1,
+    "unit": "% net",
+    "signal": 0,
+    "status": "AMBER",
+    "detail": "+8.1% net tightening (quarterly; \u226520 preceded every modern recession)",
+    "as_of": "2026-04-01",
+    "z": null,
+    "lead": "3-9m",
+    "source": "DRTSCILM"
+   },
+   "cc_delinquency": {
+    "name": "Credit-card delinquency",
+    "value": 2.92,
+    "unit": "%",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "2.92% (-0.14pp YoY) \u2014 consumer stress build",
+    "as_of": "2026-01-01",
+    "z": null,
+    "lead": "3-6m",
+    "source": "DRCCLACBS"
+   },
+   "uninversion_trigger": {
+    "name": "Un-inversion trigger (2s10s)",
+    "value": 0.4,
+    "unit": "%",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "2s10s +0.40% (-0.15 3m; trough -0.47). Recessions start when the curve RE-steepens, not when it inverts.",
+    "as_of": "2026-06-11",
+    "z": null,
+    "lead": "0-3m",
+    "source": "T10Y2Y"
+   },
+   "inversion_breadth": {
+    "name": "Curve inversion breadth",
+    "value": 0.0,
+    "unit": "% pairs inverted",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "0/6 maturity pairs inverted",
+    "as_of": "2026-06-12",
+    "z": null,
+    "lead": "6-18m",
+    "source": "DGS*"
+   },
+   "breakevens": {
+    "name": "5y breakevens (growth scare)",
+    "value": 2.4,
+    "unit": "%",
+    "signal": 0,
+    "status": "AMBER",
+    "detail": "2.40% (-21bp 3m) \u2014 fast BE collapse = deflation impulse",
+    "as_of": "2026-06-11",
+    "z": null,
+    "lead": "0-2m",
+    "source": "T5YIE"
+   },
+   "twoyr_collapse": {
+    "name": "2y yield collapse",
+    "value": 4.13,
+    "unit": "%",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "4.13% (+37bp 3m) \u2014 front-end smells breakage first",
+    "as_of": "2026-06-10",
+    "z": null,
+    "lead": "0-2m",
+    "source": "DGS2"
+   },
+   "copper_gold": {
+    "name": "Copper/Gold ratio",
+    "value": 0.1013,
+    "unit": "CPER/GLD",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "z -0.39 \u00b7 6m +19.1% \u00b7 Cu3m +12.7% vs Au3m -15.9% \u2192 mixed. 2026 regime: ratio at ~175-year lows.",
+    "as_of": "2026-06-12",
+    "z": -0.39,
+    "lead": "2-6m",
+    "source": "CPER/GLD (Polygon)"
+   },
+   "aud_jpy": {
+    "name": "AUD/JPY (risk FX)",
+    "value": 112.93,
+    "unit": "",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "3m +3.2% \u2014 THE carry/risk barometer; fast falls precede equity stress",
+    "as_of": "2026-06-12",
+    "z": null,
+    "lead": "0-2m",
+    "source": "C:AUDJPY"
+   },
+   "usd_clp": {
+    "name": "USD/CLP (copper currency)",
+    "value": 901.0,
+    "unit": "",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "3m -3.1% \u2014 the Chilean peso IS the copper economy; CLP breakdowns lead industrial downturns",
+    "as_of": "2026-06-12",
+    "z": null,
+    "lead": "1-4m",
+    "source": "C:USDCLP"
+   },
+   "em_fx_stress": {
+    "name": "USD vs EM (broad)",
+    "value": 129.4,
+    "unit": "idx",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "3m -0.2% \u2014 EM FX stress = dollar-shortage transmission",
+    "as_of": "2026-06-05",
+    "z": null,
+    "lead": "1-3m",
+    "source": "DTWEXEMEGS"
+   },
+   "transports_rel": {
+    "name": "Transports vs SPY",
+    "value": 0.1164,
+    "unit": "IYT/SPY",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "3m +5.3% \u2014 Dow-theory non-confirmation when falling",
+    "as_of": "2026-06-12",
+    "z": null,
+    "lead": "1-3m",
+    "source": "IYT/SPY (Polygon)"
+   },
+   "defensives_bid": {
+    "name": "Defensives bid (XLP/SPY)",
+    "value": 0.1152,
+    "unit": "XLP/SPY",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "3m -10.0% \u2014 staples outperforming = de-risking under the hood",
+    "as_of": "2026-06-12",
+    "z": null,
+    "lead": "1-3m",
+    "source": "XLP/SPY (Polygon)"
+   },
+   "regional_banks_rel": {
+    "name": "Regional banks vs SPY",
+    "value": 0.0989,
+    "unit": "KRE/SPY",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "3m +3.7% \u2014 the SVB-class canary",
+    "as_of": "2026-06-12",
+    "z": null,
+    "lead": "1-3m",
+    "source": "KRE/SPY (Polygon)"
+   },
+   "korea_beta": {
+    "name": "Korea (EWY) vs SPY",
+    "value": 0.2675,
+    "unit": "EWY/SPY",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "3m +42.7% \u2014 global-trade beta, priced daily",
+    "as_of": "2026-06-12",
+    "z": null,
+    "lead": "1-3m",
+    "source": "EWY/SPY (Polygon)"
+   },
+   "swap_lines": {
+    "name": "Fed FX swap lines",
+    "value": 0.03,
+    "unit": "$bn",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "$0.03bn outstanding \u2014 ANY real usage (>$0.5bn) = global dollar shortage",
+    "as_of": "2026-06-10",
+    "z": null,
+    "lead": "0m (acute)",
+    "source": "SWPT"
+   },
+   "foreign_repo_pool": {
+    "name": "Foreign repo pool (Fed)",
+    "value": 317.0,
+    "unit": "$bn",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "$317bn (-8bn 13wk) \u2014 foreign officials hoarding dollars",
+    "as_of": "2026-06-10",
+    "z": -0.16,
+    "lead": "0-2m",
+    "source": "WLRRAFOIAL"
+   },
+   "real_m2": {
+    "name": "Real M2 growth",
+    "value": 1.13,
+    "unit": "% YoY",
+    "signal": -1,
+    "status": "GREEN",
+    "detail": "+1.1% YoY \u2014 real money contraction starves risk assets",
+    "as_of": "2026-04-01",
+    "z": null,
+    "lead": "6-12m",
+    "source": "M2SL/CPIAUCSL"
+   }
+  }
+ }
+}
