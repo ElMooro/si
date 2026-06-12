@@ -1,0 +1,84 @@
+{
+ "ops": 1609,
+ "fn": "updated",
+ "fn_err": "NONE",
+ "log_tail": "START RequestId: 60439b43-d0ab-4fb1-8e3b-46b8ffd5afb1 Version: $LATEST\n[rotation] scores={'crypto_altseason': 12, 'equity_rotation': 25.2} crypto_ev=7 eq=[('highbeta_lowvol', 2), ('smallcap_large', 1), ('equalweight_cap', 0), ('biotech_mkt', 3), ('spec_growth', 3), ('semis_mkt', 2)] 34.7s\nEND RequestId: 60439b43-d0ab-4fb1-8e3b-46b8ffd5afb1\nREPORT RequestId: 60439b43-d0ab-4fb1-8e3b-46b8ffd5afb1\tDuration: 34810.75 ms\tBilled Duration: 35386 ms\tMemory Size: 1024 MB\tMax Memory Used: 106 MB\tInit Duration: 574.52 ms\t\nXRAY TraceId: 1-6a2b542a-2aa862d91ff5c89e550d19c1\tSegmentId: 4bafaf6c454a1f87\tSampled: true\t\n",
+ "verify": {
+  "version": "1.2.1",
+  "generated_at": "2026-06-12T00:34:51.651110+00:00",
+  "diagnostics": [
+   "coinbase ETH-BTC: 3664 pts",
+   "coinbase BTC-USD/ETH-USD: 3981/3664 pts",
+   "alt basket coins (USD/BTC-derived): 5",
+   "equity legs: SPHB:1255, SPLV:1255, RSP:1255, SPY:1255, IWM:1255, XBI:1255, ARKK:1255, QQQ:1255, SMH:1255"
+  ],
+  "ratio_keys": [
+   "highbeta_lowvol",
+   "smallcap_large",
+   "equalweight_cap",
+   "biotech_mkt",
+   "spec_growth",
+   "semis_mkt"
+  ],
+  "semis_mkt": {
+   "n_events": 2,
+   "events": [
+    {
+     "thrust_date": "2022-07-20",
+     "iwm_rel_fwd": {
+      "30": 0.3,
+      "90": 2.1,
+      "180": 2.2
+     },
+     "xbi_fwd_90": -4.1,
+     "spy_fwd_90": -6.0
+    },
+    {
+     "thrust_date": "2025-05-12",
+     "iwm_rel_fwd": {
+      "30": -0.4,
+      "90": -2.9,
+      "180": 0.4
+     },
+     "xbi_fwd_90": 7.2,
+     "spy_fwd_90": 9.1
+    }
+   ],
+   "iwm_rel_stats": {
+    "30": {
+     "n": 2,
+     "median_pct": 0.3,
+     "pos_pct": 50.0
+    },
+    "90": {
+     "n": 2,
+     "median_pct": 2.1,
+     "pos_pct": 50.0
+    },
+    "180": {
+     "n": 2,
+     "median_pct": 2.2,
+     "pos_pct": 100.0
+    }
+   },
+   "live": {
+    "value": 0.8260816525699415,
+    "as_of": "2026-06-11",
+    "off_180d_low_pct": 70.1,
+    "days_since_180d_low": 179,
+    "vs_365d_high_pct": -2.3,
+    "mom_20d_pct": 7.1,
+    "thrust_live": false
+   }
+  },
+  "smallcap_live": {
+   "value": 0.39363749728909136,
+   "as_of": "2026-06-11",
+   "off_180d_low_pct": 12.6,
+   "days_since_180d_low": 141,
+   "vs_365d_high_pct": 0.0,
+   "mom_20d_pct": 3.4,
+   "thrust_live": false
+  }
+ }
+}
