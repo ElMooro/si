@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>API & Data Exports — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border)}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--cyan)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover{color:var(--cyan)}
+.wrap{max-width:980px;margin:0 auto;padding:24px 22px}
+h1{font-size:24px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:15px;font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--fg3);margin:26px 0 10px}
+p{color:var(--fg2);font-size:13.5px;line-height:1.7;max-width:860px}
+table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:10px 0}
+th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:left;padding:9px;border-bottom:1px solid var(--border);background:var(--bg2)}
+td{padding:8px 9px;border-bottom:1px solid var(--border);font-family:var(--mono);vertical-align:top}
+td a{color:var(--cyan);text-decoration:none}
+pre{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:14px;font-family:var(--mono);font-size:11.5px;color:var(--fg2);overflow-x:auto;line-height:1.6}
+.note{color:var(--fg3);font-size:11px;margin-top:20px;border-top:1px solid var(--border);padding-top:12px;line-height:1.6}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/methodology.html">Methodology</a><a href="/directory.html">Directory</a></nav></header>
+<div class="wrap">
+<h1>API &amp; Data Exports — <span class="grad">build on the desk</span></h1>
+<p>Every engine publishes a versioned JSON brief. The briefs below are public, keyless, CORS-open, and refresh on each engine's schedule (most daily, some intraday). Base URL: <b style="color:var(--fg-1)">https://justhodl-data-proxy.raafouis.workers.dev/</b></p>
+<h2>Public data endpoints</h2>
+<table><thead><tr><th>Endpoint</th><th>What it is</th><th>Page</th></tr></thead><tbody>
+<tr><td><a href="https://justhodl-data-proxy.raafouis.workers.dev/data/signal-board.json">data/signal-board.json</a></td><td>Composite desk posture — 75+ engines, per-category sub-postures</td><td><a href="/signal-board.html">signal-board</a></td></tr>
+<tr><td><a href="https://justhodl-data-proxy.raafouis.workers.dev/data/regime.json">data/regime.json</a></td><td>Growth×Inflation quadrant since 1963, playbooks, transition odds</td><td><a href="/regime.html">regime</a></td></tr>
+<tr><td><a href="https://justhodl-data-proxy.raafouis.workers.dev/data/market-map.json">data/market-map.json</a></td><td>S&amp;P 500 treemap tiles: mcap, 6 windows, 52w-hi dist, RS</td><td><a href="/market-map.html">market-map</a></td></tr>
+<tr><td><a href="https://justhodl-data-proxy.raafouis.workers.dev/data/sector-groups.json">data/sector-groups.json</a></td><td>11 SPDR sectors + 12 industry ETFs: perf, RS, vol-expansion, breadth</td><td><a href="/groups.html">groups</a></td></tr>
+<tr><td><a href="https://justhodl-data-proxy.raafouis.workers.dev/data/themes.json">data/themes.json</a></td><td>Curated thematic watchlists with members and leadership</td><td><a href="/themes.html">themes</a></td></tr>
+<tr><td><a href="https://justhodl-data-proxy.raafouis.workers.dev/data/upside-radar.json">data/upside-radar.json</a></td><td>Full-tape breakout / RS / coiled / volume-footprint scans + anatomy</td><td><a href="/upside-radar.html">upside-radar</a></td></tr>
+<tr><td><a href="https://justhodl-data-proxy.raafouis.workers.dev/data/rotation-radar.json">data/rotation-radar.json</a></td><td>Risk-appetite thrust event studies (IWM/RSP/XBI/ARKK/SMH vs SPY, ETH/BTC) + live state</td><td><a href="/rotation-radar.html">rotation-radar</a></td></tr>
+<tr><td><a href="https://justhodl-data-proxy.raafouis.workers.dev/data/altseason.json">data/altseason.json</a></td><td>Altseason tribunal: 12 weighted votes, BTC.D, TOTAL2, event studies</td><td><a href="/altseason.html">altseason</a></td></tr>
+<tr><td><a href="https://justhodl-data-proxy.raafouis.workers.dev/data/sizing.json">data/sizing.json</a></td><td>Quarter-Kelly sizes from the graded closed loop + fade list</td><td><a href="/sizing.html">sizing</a></td></tr>
+<tr><td><a href="https://justhodl-data-proxy.raafouis.workers.dev/data/episode-compass.json">data/episode-compass.json</a></td><td>Similarity vs 25 labeled tops/bottoms/swans + measured sequels</td><td><a href="/episode-compass.html">episode-compass</a></td></tr>
+</tbody></table>
+<h2>Quick start</h2>
+<pre># curl
+curl -s https://justhodl-data-proxy.raafouis.workers.dev/data/sector-groups.json | head -c 400
+
+# python
+import requests
+g = requests.get("https://justhodl-data-proxy.raafouis.workers.dev/data/themes.json").json()
+for t in g["themes"]: print(t["theme"], t["perf"]["m1"], t["leader_1m"])
+
+# javascript
+const d = await (await fetch("https://justhodl-data-proxy.raafouis.workers.dev/data/market-map.json")).json();
+console.log(d.breadth, d.tiles.length);</pre>
+<h2>CSV exports</h2>
+<p>The <a href="/market-map.html" style="color:var(--cyan)">Map</a>, <a href="/groups.html" style="color:var(--cyan)">Groups</a> and <a href="/themes.html" style="color:var(--cyan)">Themes</a> pages each carry one-click ⬇ CSV buttons (tiles, sectors, industries, theme members) — Sheets-ready.</p>
+<h2>Authenticated compute API</h2>
+<p>Interactive endpoints (AI chat, screeners, portfolio admin) live at <b style="color:var(--fg-1)">api.justhodl.ai</b> behind keyed tiers: FREE 100 req/hr · PRO 5,000 req/hr · ENTERPRISE unlimited. Keys are issued per account; rate state is enforced server-side. Public JSON briefs above never require a key.</p>
+<div class="note">Briefs are research outputs, refreshed on engine schedules, versioned in each payload (`version`, `generated_at`). Schemas can evolve — pin to fields you use. Research, not advice.</div>
+</div></body></html>

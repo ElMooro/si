@@ -27,6 +27,9 @@ th:first-child,td:first-child{text-align:left}td{padding:7px 8px;border-bottom:1
 <div class="tf" id="tf"><span data-k="c">1D</span><span data-k="w">1W</span><span data-k="m1" class="on">1M</span><span data-k="m3">3M</span><span data-k="m6">6M</span><span data-k="y1">1Y</span><span data-k="ytd">YTD</span></div>
 <div id="bars"></div>
 <div id="tbl"></div>
+<div style="font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:26px 0 8px;text-transform:uppercase">Industries — momentum · RS · volume expansion</div>
+<div id="ind"></div>
+<div style="display:flex;gap:10px;margin:10px 0"><button id="dlg" style="background:var(--bg1);border:1px solid var(--border);border-radius:9px;color:var(--fg2);padding:7px 13px;font-family:var(--mono);font-size:11.5px;cursor:pointer">⬇ CSV sectors</button><button id="dli" style="background:var(--bg1);border:1px solid var(--border);border-radius:9px;color:var(--fg2);padding:7px 13px;font-family:var(--mono);font-size:11.5px;cursor:pointer">⬇ CSV industries</button></div>
 <div class="note" id="note"></div>
 </div>
 <script>
@@ -42,14 +45,21 @@ function render(){
     return `<div class="row"><div class="nm"><b>${esc(g.etf)}</b> ${esc(g.sector)}</div>
      <div class="bw"><i style="${v>=0?`left:50%;background:var(--green)`:`right:50%;background:var(--red)`};width:${wpct}%"></i><i style="left:50%;width:1px;background:var(--border)"></i></div>
      <div class="v ${v>=0?'hi':'lo'}">${v==null?'—':(v>0?'+':'')+v+'%'}</div></div>`;}).join('');
-  document.getElementById('tbl').innerHTML=`<table><thead><tr><th>Sector</th><th>1D</th><th>1W</th><th>1M</th><th>3M</th><th>6M</th><th>1Y</th><th>YTD</th><th>RS 3M vs SPY</th><th>Breadth A/D</th></tr></thead><tbody>${
-   (D.groups||[]).map(g=>`<tr><td><b>${esc(g.etf)}</b> ${esc(g.sector)}</td>${['c','w','m1','m3','m6','y1','ytd'].map(k=>{const v=g.perf[k];return `<td class="${v>0?'hi':v<0?'lo':''}">${v==null?'—':(v>0?'+':'')+v}%</td>`;}).join('')}<td class="${g.rs_3m_vs_spy>0?'hi':'lo'}">${g.rs_3m_vs_spy==null?'—':(g.rs_3m_vs_spy>0?'+':'')+g.rs_3m_vs_spy}</td><td>${g.breadth?.adv??'—'}/${g.breadth?.dec??'—'}</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('tbl').innerHTML=`<table><thead><tr><th>Sector</th><th>1D</th><th>1W</th><th>1M</th><th>3M</th><th>6M</th><th>1Y</th><th>YTD</th><th>RS 3M vs SPY</th><th>Vol×20d</th><th>Breadth A/D</th></tr></thead><tbody>${
+   (D.groups||[]).map(g=>`<tr><td><b>${esc(g.etf)}</b> ${esc(g.sector)}</td>${['c','w','m1','m3','m6','y1','ytd'].map(k=>{const v=g.perf[k];return `<td class="${v>0?'hi':v<0?'lo':''}">${v==null?'—':(v>0?'+':'')+v}%</td>`;}).join('')}<td class="${g.rs_3m_vs_spy>0?'hi':'lo'}">${g.rs_3m_vs_spy==null?'—':(g.rs_3m_vs_spy>0?'+':'')+g.rs_3m_vs_spy}</td><td class="${g.vol_x_20d>=1.5?'hi':''}">${g.vol_x_20d??'—'}×</td><td>${g.breadth?.adv??'—'}/${g.breadth?.dec??'—'}</td></tr>`).join('')}</tbody></table>`;
 }
 document.getElementById('tf').onclick=e=>{const k=e.target.dataset.k;if(!k)return;K=k;
   document.querySelectorAll('#tf span').forEach(x=>x.classList.toggle('on',x.dataset.k===k));render();};
 (async()=>{D=await gj('data/sector-groups.json');
   if(!D){document.getElementById('bars').innerHTML='<span style="color:var(--fg3);font-family:var(--mono)">first run pending</span>';return;}
   render();
+  const I=D.industries||[];
+  document.getElementById('ind').innerHTML=`<table><thead><tr><th>#1M</th><th>ETF · Industry</th><th>1D</th><th>1W</th><th>1M</th><th>3M</th><th>1Y</th><th>RS 3M</th><th>Vol×20d</th></tr></thead><tbody>${
+   I.map(g=>`<tr><td>${g.rank_1m}</td><td><b>${esc(g.etf)}</b> ${esc(g.industry)}</td>${['c','w','m1','m3','y1'].map(k=>{const v=g.perf[k];return `<td class="${v>0?'hi':v<0?'lo':''}">${v==null?'—':(v>0?'+':'')+v}%</td>`;}).join('')}<td class="${g.rs_3m_vs_spy>0?'hi':'lo'}">${g.rs_3m_vs_spy==null?'—':(g.rs_3m_vs_spy>0?'+':'')+g.rs_3m_vs_spy}</td><td class="${g.vol_x_20d>=1.5?'hi':''}">${g.vol_x_20d??'—'}×</td></tr>`).join('')}</tbody></table>`;
+  function dlCSV(rows,cols,name){const csv=[cols.join(',')].concat(rows.map(r=>cols.map(c=>{const v=c.includes('.')?c.split('.').reduce((o,k)=>o?.[k],r):r[c];return v==null?'':String(v).replace(/,/g,';');}).join(','))).join('\n');
+    const a2=document.createElement('a');a2.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a2.download=name;a2.click();}
+  document.getElementById('dlg').onclick=()=>dlCSV(D.groups||[],['etf','sector','perf.c','perf.w','perf.m1','perf.m3','perf.m6','perf.y1','perf.ytd','rs_3m_vs_spy','vol_x_20d'],'justhodl-sectors.csv');
+  document.getElementById('dli').onclick=()=>dlCSV(I,['rank_1m','etf','industry','perf.c','perf.w','perf.m1','perf.m3','perf.y1','rs_3m_vs_spy','vol_x_20d'],'justhodl-industries.csv');
   const l=D.leadership||{};
   document.getElementById('note').textContent=`Leadership 1M: top ${l.top_1m} · bottom ${l.bottom_1m} · ${D.methodology} · v${D.version} · ${D.generated_at} · Research, not advice.`;
 })();

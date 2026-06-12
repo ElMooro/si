@@ -25,7 +25,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/rotation-radar.json"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
 
 
@@ -254,7 +254,7 @@ def lambda_handler(event=None, context=None):
 
     # ── EQUITIES: appetite ratios → spec-complex sequels ──
     legs = {}
-    for t in ("SPHB", "SPLV", "RSP", "SPY", "IWM", "XBI", "ARKK", "QQQ"):
+    for t in ("SPHB", "SPLV", "RSP", "SPY", "IWM", "XBI", "ARKK", "QQQ", "SMH"):
         legs[t] = dict(poly_closes(t))
     def ratio(a, b):
         ks = sorted(set(legs[a]) & set(legs[b]))
@@ -263,7 +263,8 @@ def lambda_handler(event=None, context=None):
                "smallcap_large": ratio("IWM", "SPY"),
                "equalweight_cap": ratio("RSP", "SPY"),
                "biotech_mkt": ratio("XBI", "SPY"),
-               "spec_growth": ratio("ARKK", "QQQ")}
+               "spec_growth": ratio("ARKK", "QQQ"),
+               "semis_mkt": ratio("SMH", "SPY")}
     iwm_rel = dict(ratio("IWM", "SPY"))
     eq = {}
     for name, ser in RATIOS.items():

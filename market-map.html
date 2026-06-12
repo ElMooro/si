@@ -30,8 +30,8 @@ h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,#30cc5a,#f
 <div class="wrap">
 <h1>Market Map — <span class="grad">S&amp;P 500 treemap</span></h1>
 <div class="bar">
-  <div class="tf" id="tf"><span data-k="c" class="on">1D</span><span data-k="w">1W</span><span data-k="m1">1M</span><span data-k="m3">3M</span><span data-k="m6">6M</span><span data-k="y1">1Y</span></div>
-  <input id="q" placeholder="highlight ticker…">
+  <div class="tf" id="tf"><span data-k="c" class="on">1D</span><span data-k="w">1W</span><span data-k="m1">1M</span><span data-k="m3">3M</span><span data-k="m6">6M</span><span data-k="y1">1Y</span><span data-k="hi">52W-HI</span><span data-k="rs">RS</span></div>
+  <input id="q" placeholder="highlight ticker…"><button id="dl" style="background:var(--bg1);border:1px solid var(--border);border-radius:9px;color:var(--fg2);padding:6px 12px;font-family:var(--mono);font-size:11px;cursor:pointer">⬇ CSV</button>
   <div class="lg" id="lg"></div>
   <div class="meta" id="meta">loading…</div>
 </div>
@@ -43,8 +43,8 @@ h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,#30cc5a,#f
 const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-const SCALE={c:3,w:5,m1:10,m3:18,m6:28,y1:45};
-function col(v,k){if(v==null)return '#2b3142';const s=SCALE[k],x=Math.max(-1,Math.min(1,v/s));
+const SCALE={c:3,w:5,m1:10,m3:18,m6:28,y1:45,rs:15};
+function col(v,k){if(v==null)return '#2b3142';let x;if(k==='hi'){x=Math.max(-1,Math.min(1,(v+30)/15-1));}else{const s=SCALE[k];x=Math.max(-1,Math.min(1,v/s));}
   const lerp=(a,b,t)=>Math.round(a+(b-a)*t);
   const G=[48,204,90],D=[65,69,84],R=[246,53,56];
   const c=x>=0?[lerp(D[0],G[0],x),lerp(D[1],G[1],x),lerp(D[2],G[2],x)]:[lerp(D[0],R[0],-x),lerp(D[1],R[1],-x),lerp(D[2],R[2],-x)];
@@ -95,7 +95,7 @@ function render(){
   if(q)document.querySelectorAll('.tile').forEach(x=>x.classList.toggle('dim',!x.dataset.t.includes(q)));
   const b=D.breadth||{};
   document.getElementById('meta').textContent=`${D.n_tiles} tiles · adv ${b.advancers}/dec ${b.decliners} · cap-wtd ${b.mcap_weighted_chg>0?'+':''}${b.mcap_weighted_chg}% (1D) · ${esc(D.as_of_session)} · size=${esc(D.size_mode)}`;
-  const lg=document.getElementById('lg');lg.innerHTML='−'+SCALE[K]+'% '+[-1,-.6,-.3,0,.3,.6,1].map(x=>`<i style="background:${col(x*SCALE[K],K)}"></i>`).join('')+' +'+SCALE[K]+'%';
+  const lg=document.getElementById('lg');const LO=K==='hi'?-30:-SCALE[K],HI=K==='hi'?0:SCALE[K];lg.innerHTML=LO+'% '+[0,.17,.33,.5,.67,.83,1].map(t=>`<i style="background:${col(LO+t*(HI-LO),K)}"></i>`).join('')+' '+(HI>0?'+':'')+HI+'%';
 }
 document.getElementById('tf').onclick=e=>{const k=e.target.dataset.k;if(!k)return;K=k;
   document.querySelectorAll('#tf span').forEach(x=>x.classList.toggle('on',x.dataset.k===k));render();};
@@ -105,10 +105,13 @@ document.getElementById('map').addEventListener('mousemove',e=>{
   const t=e.target.closest('.tile');if(!t){tip.style.display='none';return;}
   const d=(D.tiles||[]).find(x=>x.t===t.dataset.t);if(!d)return;
   tip.style.display='block';tip.style.left=Math.min(e.clientX+14,window.innerWidth-280)+'px';tip.style.top=(e.clientY+14)+'px';
-  tip.innerHTML=`<b>${esc(d.t)}</b> · ${esc(d.s)}<br>mcap ${d.mc?'$'+(d.mc/1e9).toFixed(1)+'B':'—'}<br>1D ${d.c>0?'+':''}${d.c}% · 1W ${d.w>0?'+':''}${d.w??'—'}%<br>1M ${d.m1>0?'+':''}${d.m1??'—'}% · 3M ${d.m3>0?'+':''}${d.m3??'—'}%<br>6M ${d.m6>0?'+':''}${d.m6??'—'}% · 1Y ${d.y1>0?'+':''}${d.y1??'—'}%`;
+  tip.innerHTML=`<b>${esc(d.t)}</b> · ${esc(d.s)}<br>mcap ${d.mc?'$'+(d.mc/1e9).toFixed(1)+'B':'—'}<br>1D ${d.c>0?'+':''}${d.c}% · 1W ${d.w>0?'+':''}${d.w??'—'}%<br>1M ${d.m1>0?'+':''}${d.m1??'—'}% · 3M ${d.m3>0?'+':''}${d.m3??'—'}%<br>6M ${d.m6>0?'+':''}${d.m6??'—'}% · 1Y ${d.y1>0?'+':''}${d.y1??'—'}%<br>52W-hi ${d.hi??'—'}% · RS3M ${d.rs>0?'+':''}${d.rs??'—'}`;
 });
 document.getElementById('map').addEventListener('mouseleave',()=>tip.style.display='none');
 window.addEventListener('resize',()=>render());
+document.getElementById('dl').onclick=()=>{if(!D)return;const cols=['t','s','mc','c','w','m1','m3','m6','y1','hi','rs'];
+  const csv=[cols.join(',')].concat((D.tiles||[]).map(r=>cols.map(c=>{const v=r[c];return v==null?'':String(v).replace(/,/g,';');}).join(','))).join('\n');
+  const a2=document.createElement('a');a2.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a2.download='justhodl-market-map.csv';a2.click();};
 (async()=>{D=await gj('data/market-map.json');
   if(!D){document.getElementById('meta').textContent='first run pending';return;}
   render();
