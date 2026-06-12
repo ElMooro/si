@@ -25,7 +25,7 @@ STATE_KEY = "data/_alerts/last.json"
 OUT_KEY = "data/alert-sentinel.json"
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 DIAG = []
 
 
@@ -94,14 +94,15 @@ def snapshot():
     s["breadth_regime_day"] = bool(cap is not None and abs(cap) >= 1.5)
 
     alt = gj("data/altseason.json")
-    s["altseason_phase"] = (alt.get("phase") or alt.get("verdict")
-                             or (alt.get("tribunal") or {}).get("phase"))
+    s["altseason_phase"] = ((alt.get("composite") or {}).get("phase")
+                             or alt.get("phase") or alt.get("verdict"))
 
     sz = gj("data/sizing.json")
     recs = sz.get("recommendations") or sz.get("sizes") or sz.get("positions") or []
     top = recs[0] if isinstance(recs, list) and recs else {}
     s["sizing_top"] = (top.get("ticker") or top.get("symbol")) if isinstance(top, dict) else None
-    s["sizing_gross"] = sz.get("gross_pct") or sz.get("gross") or (sz.get("summary") or {}).get("gross_pct")
+    s["sizing_gross"] = (sz.get("gross_recommended_w_pct") or sz.get("gross_pct")
+                          or sz.get("gross"))
 
     ma = gj("data/ma-reversion.json")
     if ma:
