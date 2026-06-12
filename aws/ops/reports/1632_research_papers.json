@@ -1,0 +1,325 @@
+{
+ "ops": 1632,
+ "val_fills": [
+  {
+   "run": 1,
+   "err": "NONE",
+   "hp_cov": 400,
+   "hp_uni": 400,
+   "n_ind": 92
+  }
+ ],
+ "val": {
+  "version": "1.4.0",
+  "diag": [
+   "v1.4.0: regenerating HP universe at 400 names w/ industry",
+   "hp universe: screener 500 rows",
+   "hp cache: 400/400 names, 203 refreshed (src fmp_company_screener)",
+   "underlooked: 322 scored across 92 industries"
+  ],
+  "n_industries": 92,
+  "industry_keys": [
+   "Advertising Agencies",
+   "Aerospace & Defense",
+   "Airlines, Airports & Air Services",
+   "Apparel - Manufacturers",
+   "Apparel - Retail",
+   "Asset Management",
+   "Asset Management - Bonds",
+   "Asset Management - Global",
+   "Asset Management - Income",
+   "Asset Management - Leveraged",
+   "Auto - Dealerships",
+   "Auto - Manufacturers",
+   "Auto - Parts",
+   "Auto - Recreational Vehicles",
+   "Banks - Diversified",
+   "Banks - Regional",
+   "Beverages - Alcoholic",
+   "Beverages - Non-Alcoholic"
+  ],
+  "sample_industries": {
+   "Advertising Agencies": [
+    {
+     "t": "CMPR",
+     "underlooked": 67.7,
+     "hp_score": 55.5,
+     "class": "DEEP VALUE",
+     "mcap": 2221598011.2000003,
+     "turnover_bp": 75.8
+    },
+    {
+     "t": "ZD",
+     "underlooked": 66.2,
+     "hp_score": 54.0,
+     "class": "DEEP VALUE",
+     "mcap": 1684851196.0,
+     "turnover_bp": 160.2
+    },
+    {
+     "t": "MGNI",
+     "underlooked": 52.7,
+     "hp_score": 54.5,
+     "class": "QUALITY AT PREMIUM",
+     "mcap": 2244179097.0099998,
+     "turnover_bp": 157.1
+    }
+   ],
+   "Aerospace & Defense": [
+    {
+     "t": "VVX",
+     "underlooked": 42.8,
+     "hp_score": 57.5,
+     "class": "TURNAROUND",
+     "mcap": 2819509084.2,
+     "turnover_bp": 154.1
+    },
+    {
+     "t": "HAWK",
+     "underlooked": 35.9,
+     "hp_score": 45.0,
+     "class": "MIXED",
+     "mcap": 2386684323.68,
+     "turnover_bp": 577.2
+    },
+    {
+     "t": "ARXS",
+     "underlooked": 34.2,
+     "hp_score": 29.0,
+     "class": "MIXED",
+     "mcap": 1621620000.0,
+     "turnover_bp": 837.7
+    }
+   ],
+   "Airlines, Airports & Air Services": [
+    {
+     "t": "AERO",
+     "underlooked": 71.0,
+     "hp_score": 59.0,
+     "class": "MIXED",
+     "mcap": 2346126672.0,
+     "turnover_bp": 16.6
+    }
+   ]
+  },
+  "underlooked_head": [
+   {
+    "t": "RQI",
+    "underlooked": 81.0,
+    "hp_score": 61.5,
+    "class": "QUALITY AT PREMIUM",
+    "industry": "Asset Management - Income",
+    "sector": "Financials",
+    "mcap": 1726099702.44,
+    "turnover_bp": 41.6,
+    "off_hi_pct": -5.2,
+    "ps": 17.76662470937893,
+    "rev_yoy_pct": 61.0,
+    "rule40": 118.0,
+    "runway_q": null,
+    "net_cash": false,
+    "soft_flags": [
+     "financial: EV/GM/cash-vs-debt n/m, neutral-scored"
+    ]
+   },
+   {
+    "t": "GAB",
+    "underlooked": 79.9,
+    "hp_score": 62.5,
+    "class": "MOMENTUM (not cheap)",
+    "industry": "Asset Management",
+    "sector": "Financials",
+    "mcap": 1728697679.61,
+    "turnover_bp": 37.7,
+    "off_hi_pct": -11.5,
+    "ps": 11.352436406929098,
+    "rev_yoy_pct": 360.5,
+    "rule40": 393.0,
+    "runway_q": null,
+    "net_cash": false,
+    "soft_flags": [
+     "financial: EV/GM/cash-vs-debt n/m, neutral-scored"
+    ]
+   },
+   {
+    "t": "LOB",
+    "underlooked": 79.6,
+    "hp_score": 64.5,
+    "class": "TURNAROUND",
+    "industry": "Banks - Regional",
+    "sector": "Financials",
+    "mcap": 1788504036.06,
+    "turnover_bp": 48.1,
+    "off_hi_pct": -7.4,
+    "ps": 1.6956656799815937,
+    "rev_yoy_pct": 12.7,
+    "rule40": 24.0,
+    "runway_q": null,
+    "net_cash": false,
+    "soft_flags": [
+     "financial: EV/GM/cash-vs-debt n/m, neutral-scored"
+    ]
+   },
+   {
+    "t": "BBUC",
+    "underlooked": 79.4,
+    "hp_score": 69.5,
+    "class": "TURNAROUND",
+    "industry": "Asset Management",
+    "sector": "Financials",
+    "mcap": 2208122916.0,
+    "turnover_bp": 43.8,
+    "off_hi_pct": -16.3,
+    "ps": 0.13102554811075431,
+    "rev_yoy_pct": 104.3,
+    "rule40": 105.0,
+    "runway_q": null,
+    "net_cash": false,
+    "soft_flags": [
+     "financial: EV/GM/cash-vs-debt n/m, neutral-scored"
+    ]
+   },
+   {
+    "t": "BDJ",
+    "underlooked": 78.2,
+    "hp_score": 58.5,
+    "class": "QUALITY AT PREMIUM",
+    "industry": "Asset Management",
+    "sector": "Financials",
+    "mcap": 1645585607.7,
+    "turnover_bp": 29.6,
+    "off_hi_pct": -4.5,
+    "ps": 11.7753749095874,
+    "rev_yoy_pct": 178.7,
+    "rule40": 188.0,
+    "runway_q": null,
+    "net_cash": false,
+    "soft_flags": [
+     "financial: EV/GM/cash-vs-debt n/m, neutral-scored"
+    ]
+   },
+   {
+    "t": "INVX",
+    "underlooked": 77.8,
+    "hp_score": 65.0,
+    "class": "GARP",
+    "industry": "Oil & Gas Equipment & Services",
+    "sector": "Energy",
+    "mcap": 1976840685.0,
+    "turnover_bp": 59.8,
+    "off_hi_pct": -7.4,
+    "ps": 2.072925442255701,
+    "rev_yoy_pct": 26.3,
+    "rule40": 41.0,
+    "runway_q": null,
+    "net_cash": true,
+    "soft_flags": []
+   },
+   {
+    "t": "SKWD",
+    "underlooked": 77.0,
+    "hp_score": 71.0,
+    "class": "DEEP VALUE",
+    "industry": "Insurance - Property & Casualty",
+    "sector": "Financials",
+    "mcap": 1984583031.75,
+    "turnover_bp": 90.7,
+    "off_hi_pct": -15.1,
+    "ps": 1.3669862774593966,
+    "rev_yoy_pct": 22.2,
+    "rule40": 51.0,
+    "runway_q": null,
+    "net_cash": false,
+    "soft_flags": [
+     "financial: EV/GM/cash-vs-debt n/m, neutral-scored"
+    ]
+   },
+   {
+    "t": "DRD",
+    "underlooked": 76.9,
+    "hp_score": 60.5,
+    "class": "QUALITY AT PREMIUM",
+    "industry": "Gold",
+    "sector": "Materials",
+    "mcap": 1983253374.0,
+    "turnover_bp": 38.5,
+    "off_hi_pct": -41.4,
+    "ps": 3.630026172678577,
+    "rev_yoy_pct": 43.9,
+    "rule40": 51.0,
+    "runway_q": null,
+    "net_cash": true,
+    "soft_flags": []
+   }
+  ]
+ },
+ "env_has_key": true,
+ "fn": "created",
+ "res_err": "NONE",
+ "res_log": "START RequestId: 5dc21b08-35df-49c7-8b7e-f4d02320ebe0 Version: $LATEST\n[research] wrote ['RQI', 'GAB', 'LOB'] \u00b7 index 3 \u00b7 142.9s \u00b7 []\nEND RequestId: 5dc21b08-35df-49c7-8b7e-f4d02320ebe0\nREPORT RequestId: 5dc21b08-35df-49c7-8b7e-f4d02320ebe0\tDuration: 142894.74 ms\tBilled Duration: 143496 ms\tMemory Size: 512 MB\tMax Memory Used: 104 MB\tInit Duration: 600.34 ms\t\n",
+ "research": {
+  "n_papers": 3,
+  "written": [
+   "RQI",
+   "GAB",
+   "LOB"
+  ],
+  "diag": [],
+  "index_head": [
+   {
+    "t": "LOB",
+    "name": "Live Oak Bancshares, Inc.",
+    "title": "Live Oak Bancshares (LOB): Niche SBA Fintech-Bank Hybrid Trading at a Discount to Its Growth Profile",
+    "one_line_thesis": "LOB is a high-quality SBA-focused digital bank with a fintech investment arm, 12.7% revenue growth, an 11.8% FCF margin, and a Rule of 40 score of 24 \u2014 yet trades at only 1.70x P/S",
+    "conviction": 6,
+    "date": "2026-06-12",
+    "key": "data/research/LOB.json"
+   },
+   {
+    "t": "GAB",
+    "name": "The Gabelli Equity Trust Inc.",
+    "title": "GAB \u2013 The Gabelli Equity Trust Inc.: Closed-End Fund Yield Play With Structural Complexity",
+    "one_line_thesis": "GAB is a long-running closed-end equity fund managed by Gabelli Funds LLC that screens as 'underlooked' primarily due to low turnover and modest size, but its MOMENTUM (not cheap) ",
+    "conviction": 3,
+    "date": "2026-06-12",
+    "key": "data/research/GAB.json"
+   },
+   {
+    "t": "RQI",
+    "name": "Cohen & Steers Quality Income Realty Fund, Inc.",
+    "title": "RQI \u2013 Cohen & Steers Quality Income Realty Fund: A Quietly Compounding REIT CEF Flying Below the Radar",
+    "one_line_thesis": "RQI is a seasoned, fundamentally-driven closed-end REIT fund with a high underlooked score of 81, modest trading turnover of 41.6 bps, and a Rule of 40 score of 118, suggesting an ",
+    "conviction": 5,
+    "date": "2026-06-12",
+    "key": "data/research/RQI.json"
+   }
+  ]
+ },
+ "paper_sample": {
+  "ticker": "LOB",
+  "model": "claude-sonnet-4-6",
+  "title": "Live Oak Bancshares (LOB): Niche SBA Fintech-Bank Hybrid Trading at a Discount to Its Growth Profile",
+  "thesis": "LOB is a high-quality SBA-focused digital bank with a fintech investment arm, 12.7% revenue growth, an 11.8% FCF margin, and a Rule of 40 score of 24 \u2014 yet trades at only 1.70x P/S and 14.3x P/FCF, reflecting institution",
+  "conviction": 6,
+  "sections": [
+   "bear_case",
+   "business_overview",
+   "catalysts",
+   "conviction_1_10",
+   "financial_analysis",
+   "one_line_thesis",
+   "risks",
+   "title",
+   "valuation_case",
+   "verdict",
+   "what_would_break_the_thesis",
+   "why_underlooked"
+  ],
+  "why_underlooked_head": "LOB scores 79.6 on the proprietary underlooked composite \u2014 driven by its small size relative to coverage thresholds, low trading attention (turnover of only 48.1 basis points), and a classification as a 'TURNAROUND' rather than a growth bank, which likely caus"
+ },
+ "board_n": 78,
+ "board_row": {
+  "signal": 0,
+  "read": "3 AI papers \u00b7 latest LOB conviction 6/10"
+ }
+}
