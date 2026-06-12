@@ -29,7 +29,7 @@ HORIZON = 21
 N_UNIVERSE = 1500
 WARMUP = 110
 N_FOLDS = 3
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 DIAG = []
 
 
@@ -260,8 +260,21 @@ def mode_b(uni_full, spy, last_date):
     now = time.time()
     fetched = 0
     by_type = {}
+    # date-aligned SPY benchmark from FMP (removes ring-tail clamp bias)
+    if "SPY" not in pxc:
+        try:
+            j = jget(f"https://financialmodelingprep.com/stable/historical-price-eod/"
+                      f"light?symbol=SPY&apikey={FMP_KEY}")
+            rows = j if isinstance(j, list) else (j.get("historical") or [])
+            pxc["SPY"] = {x["date"]: x.get("price") or x.get("close") for x in rows[:600]
+                           if x.get("date")}
+        except Exception:
+            pxc["SPY"] = {}
+    spyser = pxc.get("SPY") or {}
     for it in items:
-        ty = it.get("signal_type") or "unknown"
+        sid = it.get("signal_id") or ""
+        ty = it.get("signal_type") or (sid.split("#")[0] if "#" in sid else None) \
+              or it.get("type") or "unknown"
         tick = it.get("ticker")
         ep = int(it.get("logged_epoch") or 0)
         age_td = (now - ep) / 86400 * (252 / 365.0)
@@ -288,12 +301,12 @@ def mode_b(uni_full, spy, last_date):
             if p0 and p1:
                 rr = p1 / p0 - 1
                 rb = 0.0
-                if len(spy) > HORIZON:
-                    back = int(age_td)
-                    j0 = max(0, len(spy) - 1 - back)
-                    j1 = min(len(spy) - 1, j0 + HORIZON)
-                    if spy[j0]:
-                        rb = spy[j1] / spy[j0] - 1
+                b0, b1 = spyser.get(dates[0]), spyser.get(dates[HORIZON])
+                if b0 and b1:
+                    rb = b1 / b0 - 1
+                else:
+                    by_type.setdefault(ty, {"pending": 0, "trades": []})["pending"] += 1
+                    continue
                 ex = (rr - rb) * (1 if (it.get("predicted_direction") or "UP") == "UP" else -1)
                 by_type.setdefault(ty, {"pending": 0, "trades": []})["trades"].append(ex)
                 continue
