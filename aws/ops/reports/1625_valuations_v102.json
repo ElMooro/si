@@ -1,0 +1,143 @@
+{
+ "ops": 1625,
+ "fn": "updated",
+ "fn_err": "NONE",
+ "verify": {
+  "version": "1.0.2",
+  "duration_s": 103.1,
+  "key_diag": [
+   "v1.0.2: forcing sp refetch (key-metrics-ttm ROE/ROA/FCF-yield fill)",
+   "ratios-ttm return/yield keys: dividendPaidAndCapexCoverageRatioTTM,dividendPayoutRatioTTM,dividendPerShareTTM,dividendYieldTTM",
+   "key-metrics-ttm return/yield keys: earningsYieldTTM,freeCashFlowYieldTTM,operatingReturnOnAssetsTTM,returnOnAssetsTTM,returnOnCapitalEmployedTTM,returnOnEquityTTM,returnOnInvestedCapitalTTM,returnOnTangibleAssetsTTM",
+   "gf-value gaps: 461"
+  ],
+  "sp_coverage": 500,
+  "aapl": {
+   "roe": 1.4669,
+   "roa": 0.3303,
+   "div_y": 0.0036,
+   "fcf_y": 0.0303,
+   "gm": 0.4786,
+   "pe": 34.87,
+   "label": "FAIR"
+  },
+  "n_with_gf_gap": 458,
+  "biggest_gf_upside": [
+   {
+    "t": "CHTR",
+    "sector": "Communication Services",
+    "pe": 3.65,
+    "pb": 1.1,
+    "ps": 0.37,
+    "ev_ebitda": 5.67,
+    "p_fcf": 5.03,
+    "ev_fcf": 28.72,
+    "div_y": 0.0,
+    "fcf_y": 0.199,
+    "roe": 0.3084,
+    "roa": 0.0319,
+    "gm": 0.4326,
+    "om": 0.2411,
+    "de": 5.86,
+    "cr": 0.4,
+    "rev_g": -0.6,
+    "eps_g": 3.9,
+    "fcf_g": 39.8,
+    "peg": 0.95,
+    "value_pct": 13.0,
+    "label": "CHEAP",
+    "gf_gap": 85.6
+   },
+   {
+    "t": "GDDY",
+    "sector": "Technology",
+    "pe": 11.64,
+    "pb": 42.68,
+    "ps": 2.0,
+    "ev_ebitda": 9.41,
+    "p_fcf": 6.11,
+    "ev_fcf": 7.69,
+    "div_y": 0.0,
+    "fcf_y": 0.1636,
+    "roe": 3.669,
+    "roa": 0.1067,
+    "gm": 0.598,
+    "om": 0.2385,
+    "de": 16.22,
+    "cr": 0.67,
+    "rev_g": 8.3,
+    "eps_g": -4.5,
+    "fcf_g": 24.9,
+    "peg": null,
+    "value_pct": 27.0,
+    "label": "FAIR",
+    "gf_gap": 70.8
+   },
+   {
+    "t": "CAG",
+    "sector": "Consumer Staples",
+    "pe": -150.58,
+    "pb": 0.8,
+    "ps": 0.58,
+    "ev_ebitda": 13.89,
+    "p_fcf": 7.74,
+    "ev_fcf": 15.46,
+    "div_y": 0.1028,
+    "fcf_y": 0.1293,
+    "roe": -0.0051,
+    "roa": -0.0023,
+    "gm": 0.2418,
+    "om": 0.1228,
+    "de": 0.8,
+    "cr": 0.9,
+    "rev_g": -3.6,
+    "eps_g": 230.1,
+    "fcf_g": -20.0,
+    "peg": -0.65,
+    "value_pct": 36.0,
+    "label": "FAIR",
+    "gf_gap": 66.1
+   },
+   {
+    "t": "CMCSA",
+    "sector": "Communication Services",
+    "pe": 4.7,
+    "pb": 1.0,
+    "ps": 0.7,
+    "ev_ebitda": 3.86,
+    "p_fcf": 4.28,
+    "ev_fcf": 8.46,
+    "div_y": 0.054,
+    "fcf_y": 0.2335,
+    "roe": 0.1983,
+    "roa": 0.0723,
+    "gm": 0.7013,
+    "om": 0.1528,
+    "de": 1.07,
+    "cr": 0.87,
+    "rev_g": -0.0,
+    "eps_g": 29.7,
+    "fcf_g": 41.3,
+    "peg": 0.16,
+    "value_pct": 11.0,
+    "label": "CHEAP",
+    "gf_gap": 65.7
+   }
+  ],
+  "n_serious": 3,
+  "hp_top_t": [
+   [
+    "SPNT",
+    79.0
+   ],
+   [
+    "FRSH",
+    79.0
+   ],
+   [
+    "RAMP",
+    77.0
+   ]
+  ]
+ }
+}
