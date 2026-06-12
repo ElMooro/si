@@ -29,7 +29,7 @@ HORIZON = 21
 N_UNIVERSE = 1500
 WARMUP = 110
 N_FOLDS = 3
-VERSION = "1.0.2"
+VERSION = "1.1.0"
 DIAG = []
 
 
@@ -236,6 +236,9 @@ def mode_a(uniF, spyF, spy):
     return results
 
 
+GRADED_ROWS = []
+
+
 def mode_b(uni_full, spy, last_date):
     T = DDB.Table("justhodl-signals")
     items, lek = [], None
@@ -314,9 +317,20 @@ def mode_b(uni_full, spy, last_date):
                     slot["artifacts"] = slot.get("artifacts", 0) + 1
                 else:
                     slot["trades"].append(ex)
+                    GRADED_ROWS.append({"id": sid[:80], "type": ty, "ticker": tick,
+                                          "date": d0, "conf": float(it.get("confidence") or 0.5),
+                                          "dir": 1 if (it.get("predicted_direction") or "UP") == "UP" else 0,
+                                          "ex": round(ex, 5)})
                 continue
         by_type.setdefault(ty, {"pending": 0, "trades": [], "artifacts": 0})["pending"] += 1
     st["pxc"] = {k: v for k, v in list(pxc.items())[-400:]}
+    try:
+        S3.put_object(Bucket=BUCKET, Key="data/_backtest/graded.json.gz",
+                      Body=gzip.compress(json.dumps(GRADED_ROWS).encode()),
+                      ContentType="application/json", ContentEncoding="gzip")
+        DIAG.append(f"graded rows for meta-labeler: {len(GRADED_ROWS)}")
+    except Exception as e:
+        DIAG.append(f"graded dump: {str(e)[:50]}")
     S3.put_object(Bucket=BUCKET, Key=STATE_KEY, Body=json.dumps(st).encode(),
                   ContentType="application/json")
     table = []
@@ -340,6 +354,7 @@ def mode_b(uni_full, spy, last_date):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     DIAG.clear()
+    GRADED_ROWS.clear()
     up = json.loads(gzip.decompress(S3.get_object(Bucket=BUCKET, Key=UP_STATE)["Body"].read()))
     rings, dv = up.get("rings") or {}, up.get("dv") or {}
     spy = rings.get("SPY") or []

@@ -26,7 +26,9 @@ STATE_KEY = "data/_alerts/last.json"
 OUT_KEY = "data/alert-sentinel.json"
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
-VERSION = "1.5.0"
+SEND_HOUR_UTC = 21        # one big report per day, after US close + all engines
+PART_LIMIT = 3500
+VERSION = "2.0.0"
 DIAG = []
 
 
@@ -230,6 +232,31 @@ def telegram(text):
         return False
 
 
+def compose_report(buffer, today):
+    by_date = {}
+    for it in buffer:
+        by_date.setdefault(it.get("d", "?"), []).append(it.get("line", ""))
+    fams = {}
+    for it in buffer:
+        fams[(it.get("line") or "•")[0]] = fams.get((it.get("line") or "•")[0], 0) + 1
+    fam_line = " ".join(f"{k}{v}" for k, v in sorted(fams.items(), key=lambda x: -x[1]))
+    body = ""
+    for d in sorted(by_date):
+        body += f"\n── {d} · {len(by_date[d])} signals ──\n" + "\n".join(by_date[d]) + "\n"
+    head = f"📊 JustHodl DAILY SIGNAL REPORT — {today}\n{len(buffer)} signals · {fam_line}\n"
+    parts, cur = [], head
+    for ln in body.split("\n"):
+        if len(cur) + len(ln) + 1 > PART_LIMIT:
+            parts.append(cur)
+            cur = ""
+        cur += ln + "\n"
+    if cur.strip():
+        parts.append(cur)
+    if len(parts) > 1:
+        parts = [f"(part {i+1}/{len(parts)})\n" + p_ for i, p_ in enumerate(parts)]
+    return parts
+
+
 def lambda_handler(event=None, context=None):
     DIAG.clear()
     new = snapshot()
@@ -238,36 +265,49 @@ def lambda_handler(event=None, context=None):
         first = False
     except Exception:
         old, first = {}, True
+    # ── v2: capture is decoupled from delivery ──
+    if "snap" not in old and not first:
+        old = {"snap": old, "buffer": [], "last_sent_date": ""}   # v1 -> v2 migration
+    snap_old = old.get("snap") or {}
+    buffer = old.get("buffer") or []
+    last_sent = old.get("last_sent_date") or ""
+    today = datetime.now(timezone.utc).date().isoformat()
     sent = False
     if first:
-        n_watch = (len(new.get("breakouts") or []) + len(new.get("thrusts") or {})
-                    + (1 if new.get("breadth_capwtd") is not None else 0))
-        sent = telegram(f"🛰 JustHodl Alert Sentinel online — watching breakouts, insider "
-                         f"clusters, rotation thrusts, breadth, altseason, sizing. "
-                         f"Seed: {len(new.get('breakouts') or [])} breakouts, "
-                         f"{sum(new.get('thrusts',{}).values())} live thrusts, "
-                         f"breadth {new.get('breadth_capwtd')}%.")
+        sent = telegram("🛰 JustHodl Alert Sentinel v2 online — signals are captured all "
+                         "day and delivered as ONE daily report after the US close.")
         changes = ["(seed)"]
     else:
-        changes = diff(old, new)
-        if changes:
-            sent = telegram("🛰 JustHodl Alerts — " +
-                             datetime.now(timezone.utc).strftime("%b %d %H:%M UTC") + "\n\n"
-                             + "\n".join(changes))
-    # queue-until-delivered: if real changes failed to send, DON'T advance state —
-    # the same diff (plus anything new) retries next run and delivers as one message.
-    if first or sent or not changes:
-        S3.put_object(Bucket=BUCKET, Key=STATE_KEY,
-                      Body=json.dumps(new, default=str).encode(),
-                      ContentType="application/json")
-        state_saved = True
-    else:
-        state_saved = False
-        DIAG.append("state NOT advanced — alert queued for retry")
+        changes = diff(snap_old, new)
+        for c in changes:
+            buffer.append({"d": today[5:], "line": c[:220]})
+    buffer = buffer[-400:]
+    # one big report per day (or forced flush)
+    hour = datetime.now(timezone.utc).hour
+    want_send = bool(buffer) and (bool((event or {}).get("flush"))
+                                    or (hour >= SEND_HOUR_UTC and last_sent != today))
+    if want_send:
+        parts = compose_report(buffer, today)
+        ok = all(telegram(p_) for p_ in parts)
+        if ok:
+            sent = True
+            buffer = []
+            last_sent = today
+            DIAG.append(f"daily report delivered in {len(parts)} part(s)")
+        else:
+            DIAG.append(f"daily report send failed — {len(buffer)} signals retained for "
+                         "tomorrow's report")
+    S3.put_object(Bucket=BUCKET, Key=STATE_KEY,
+                  Body=json.dumps({"snap": new, "buffer": buffer,
+                                     "last_sent_date": last_sent}, default=str).encode(),
+                  ContentType="application/json")
+    state_saved = True
     out = {"engine": "alert-sentinel", "version": VERSION,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "first_run": first, "message_sent": sent, "state_saved": state_saved,
-            "n_changes": len(changes),
+            "n_changes": len(changes), "buffer_n": len(buffer),
+            "last_sent_date": last_sent,
+            "delivery": "one daily report >= 21:00 UTC (flush event to force)",
             "changes": changes, "snapshot": new, "diagnostics": list(DIAG)}
     clean = json.loads(json.dumps(out, default=str), parse_constant=lambda c: None)
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(clean).encode(),
