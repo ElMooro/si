@@ -1,0 +1,41 @@
+{
+ "ops": 1624,
+ "fn": "updated",
+ "fn_err": "NONE",
+ "verify": {
+  "version": "1.0.1",
+  "duration_s": 90.4,
+  "key_diag": [
+   "v1.0.1: forcing full sp refetch (widened ROE/ROA ladders)",
+   "ratios-ttm return/yield keys: dividendPaidAndCapexCoverageRatioTTM,dividendPayoutRatioTTM,dividendPerShareTTM,dividendYieldTTM",
+   "gf-value gaps: 0"
+  ],
+  "sp_coverage": 500,
+  "aapl": {
+   "roe": null,
+   "roa": null,
+   "div_y": 0.0036,
+   "fcf_y": null,
+   "gm": 0.4786,
+   "pe": 34.88,
+   "label": "FAIR"
+  },
+  "n_with_gf_gap": 0,
+  "biggest_gf_upside": [],
+  "n_serious": 3,
+  "hp_top_t": [
+   [
+    "SPNT",
+    79.0
+   ],
+   [
+    "FRSH",
+    79.0
+   ],
+   [
+    "RAMP",
+    77.0
+   ]
+  ]
+ }
+}
