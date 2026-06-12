@@ -1,407 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Alerts · JustHodl.AI</title>
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#facc15">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="JustHodl">
-<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
-<meta name="description" content="Alert delivery audit — Telegram + webhook history, severity distribution, last 100 fired, dedup state.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alert Sentinel — Live Watch State — JustHodl AI</title>
 <style>
-:root{--bg:#0a0d12;--bg1:#0f131a;--bg2:#141a23;--brd:#1c2433;--brd2:#2a3548;--t1:#e9eef7;--t2:#a8b3c7;--t3:#6f7b91;--green:#00e676;--green-bg:rgba(0,230,118,.08);--yellow:#ffc400;--yellow-bg:rgba(255,196,0,.1);--cyan:#00d4ff;--cyan-bg:rgba(0,212,255,.1);--red:#ff174a;--red-bg:rgba(255,23,74,.1);--purple:#b070ff;--purple-bg:rgba(176,112,255,.1);--display:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
-*{margin:0;padding:0;box-sizing:border-box}html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
-body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),transparent 50%);min-height:100vh}
-.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}
-.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}
-.topnav a:hover{color:var(--yellow)}.topnav a.active{color:var(--cyan);border-bottom:2px solid var(--cyan)}
-.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}
-.nav-brand i{color:var(--yellow);font-style:normal}
-.shell{max-width:1280px;margin:0 auto;padding:36px 24px 80px}@media(max-width:700px){.shell{padding:20px 14px 60px}}
-.hero{margin-bottom:32px}
-.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
-.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--cyan);border-radius:50%;animation:pulse 2.4s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,38px);line-height:1.05;letter-spacing:-.012em;margin-bottom:10px;max-width:920px}
-.hero-title em{font-style:italic;color:var(--cyan);font-weight:500}
-.hero-blurb{font-size:15px;color:var(--t2);max-width:680px;line-height:1.55;margin-bottom:18px}
-.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:8px}
-.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
-.kpi-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.6px;text-transform:uppercase}
-.kpi-val{font-family:var(--display);font-size:24px;font-weight:600;color:var(--t1);letter-spacing:-.01em}
-.kpi-sub{font-size:11px;color:var(--t3)}
-.section{margin-bottom:48px}
-.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px}
-.section-title{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);margin-bottom:8px;letter-spacing:-.01em}
-.section-blurb{font-size:13px;color:var(--t2);margin-bottom:18px;max-width:780px}
-.card{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px 22px}
-.dv-table{width:100%;border-collapse:collapse;background:var(--bg1);border:1px solid var(--brd);border-radius:8px;overflow:hidden;font-size:13px}
-.dv-table th{background:var(--bg2);text-align:left;padding:10px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--t3);text-transform:uppercase;border-bottom:1px solid var(--brd)}
-.dv-table td{padding:10px 14px;border-bottom:1px solid var(--brd);color:var(--t1);vertical-align:top}
-.dv-table tr:hover td{background:var(--bg2)}
-.dv-table .num{font-family:var(--mono);text-align:right;white-space:nowrap}
-.dv-table .pos{color:var(--green)}.dv-table .neg{color:var(--red)}.dv-table .warn{color:var(--yellow)}
-.flag-pill{font-family:var(--mono);font-size:9.5px;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:1px;font-weight:500;display:inline-block;margin-right:4px}
-.sev-critical{background:var(--red-bg);color:var(--red);border:1px solid rgba(255,23,74,.25)}
-.sev-important{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(255,196,0,.25)}
-.sev-info{background:var(--cyan-bg);color:var(--cyan);border:1px solid rgba(0,212,255,.25)}
-.delivery-ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,230,118,.25)}
-.delivery-fail{background:var(--red-bg);color:var(--red);border:1px solid rgba(255,23,74,.25)}
-.delivery-none{background:var(--bg2);color:var(--t3);border:1px solid var(--brd2)}
-.empty{text-align:center;padding:48px 20px;color:var(--t3);font-style:italic}
-.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
-.config-block{background:var(--bg2);border:1px solid var(--brd);border-radius:6px;padding:14px 18px;font-family:var(--mono);font-size:12px;color:var(--t2);overflow-x:auto;white-space:pre;line-height:1.7}
-.config-block .k{color:var(--cyan)}
-.config-block .v{color:var(--yellow)}
-.config-block .c{color:var(--t3);font-style:italic}
-.disclaimer{font-size:11px;color:var(--t3);margin-top:24px;font-style:italic;line-height:1.5}
-.fade-in{animation:fade .35s ease-out}@keyframes fade{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
-@media (max-width: 900px){
-  .kpi-strip{grid-template-columns: repeat(2, 1fr)}
-  .dv-table{font-size: 11.5px}
-}
-@media (max-width: 600px){
-  .kpi-strip{grid-template-columns: 1fr}
-  .dv-table th,.dv-table td{padding: 6px 8px}
-}
-</style>
-<script src="/tenor-signals.js" defer></script>
-<script src="/liquidity-credit.js" defer></script>
-<script src="/liquidity-pulse.js" defer></script>
-<script src="/ai-alerts-cockpit-kit.js"></script>
-</head>
-<body>
-<nav class="topnav">
-  <span class="nav-brand">just<i>hodl</i>.ai</span>
-  <a href="/">Home</a>
-  <a href="/system.html">System</a>
-  <a href="/alerts.html" class="active">Alerts</a>
-  <a href="/digest-archive.html" style="color:#b070ff">📂 Digest Archive</a>
-  <a href="/digest-trends.html" style="color:#b070ff">📊 Trends</a>
-  <a href="/targets.html" style="color:#ff7a18">🎯 Targets</a>
-  <a href="/uptime.html" style="color:#26ffaf">🟢 Uptime</a>
-    <a href="/skill.html" style="color:#a78bfa">🧠 Skill</a>
-  <a href="/brief.html">Brief</a>
-  <a href="/desk.html">Desk</a>
-  <a href="/screener/">Screener</a>
-  <a href="/forensic.html">Forensic</a>
-  <a href="/backtest.html">Backtest</a>
-</nav>
-
-<main class="shell">
-
-  <!-- ═══ FRONT-RUN ALERTS COCKPIT (added 2026-05) ═══ -->
-  <header class="hero" style="margin-bottom:6px">
-    <div class="hero-eyebrow" style="color:#a78bfa">📡 Front-Run Sniffer Cockpit</div>
-    <h1 class="hero-title">Both sniffers, <em>one cockpit</em>.</h1>
-    <p class="hero-blurb">
-      Live status of both front-run sniffers (equity + macro), the macro
-      convergence-fingerprint state across the 3 critical pillars (auction tape,
-      primary dealer, funding plumbing), and a chronological timeline of every
-      alert event from the last 7 days. Telegram alerts via
-      <code>@Justhodl_bot</code>.
-    </p>
-  </header>
-
-  <div id="ai-alerts-cockpit" style="margin-bottom:18px"></div>
-  <script>if(window.JHAIAlerts)JHAIAlerts.mount("ai-alerts-cockpit");</script>
-
-  <!-- ═══ FRONT-RUN PRIORITY RULES (4-card reference) ═══ -->
-  <div class="section" style="margin-bottom:18px">
-    <div class="section-eyebrow">Reference</div>
-    <h2 class="section-title" style="font-size:18px">The 4 alert triggers, in priority order</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:11px;margin-top:12px">
-      <div style="background:var(--bg1);border:1px solid var(--brd);border-left:3px solid var(--red);border-radius:7px;padding:12px 14px">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 1 · bypasses cooldown</div>
-        <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:var(--red);margin-bottom:5px">🚨 Convergence Fingerprint (both sniffers)</div>
-        <div style="font-size:12px;color:var(--t2);line-height:1.5"><b style="color:#22d3ee">🏛 Macro:</b> auction tape + primary dealer + funding plumbing all stress simultaneously (Aug 2007 / Sep 2019 / Mar 2020 / Mar 2023). <b style="color:#ff7a18">🎯 Equity:</b> 3+ of dealer GEX, options flow/gamma, skew/vol, CFTC/short fire in top setup (Jan 2021 GME / Feb 2018 vol unwind / Dec 2018 dealer cascade).</div>
-      </div>
-      <div style="background:var(--bg1);border:1px solid var(--brd);border-left:3px solid #ff7a18;border-radius:7px;padding:12px 14px">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 2 · bypasses cooldown</div>
-        <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:#ff7a18;margin-bottom:5px">🚨 Regime Transition</div>
-        <div style="font-size:12px;color:var(--t2);line-height:1.5">NORMAL→ELEVATED, ELEVATED→EXTREME, or de-escalation in the reverse direction. Each transition fires its own alert — the de-escalation pings are the all-clear signal.</div>
-      </div>
-      <div style="background:var(--bg1);border:1px solid var(--brd);border-left:3px solid #ff7a18;border-radius:7px;padding:12px 14px">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 3 · bypasses cooldown</div>
-        <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:#ff7a18;margin-bottom:5px">⚠️ Partial Buildup (NEW)</div>
-        <div style="font-size:12px;color:var(--t2);line-height:1.5"><b style="color:#22d3ee">🏛 Macro:</b> first transition to <b>2/3 pillars stressed</b> (auction + dealer + funding cardinals). <b style="color:#ff7a18">🎯 Equity:</b> first transition to <b>2/4 cardinals firing</b>. Fires once per upward crossing — you'll see the convergence brewing 3-7 days before the full fingerprint typically.</div>
-      </div>
-      <div style="background:var(--bg1);border:1px solid var(--brd);border-left:3px solid var(--yellow);border-radius:7px;padding:12px 14px">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 4 · respects cooldown</div>
-        <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:var(--yellow);margin-bottom:5px">🔥 EXTREME Regime Persisting</div>
-        <div style="font-size:12px;color:var(--t2);line-height:1.5">Score ≥ 60 and regime EXTREME for another 60-min window. Keeps you informed during a sustained crisis without spamming.</div>
-      </div>
-      <div style="background:var(--bg1);border:1px solid var(--brd);border-left:3px solid #4a90e2;border-radius:7px;padding:12px 14px">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 5 · bypasses cooldown</div>
-        <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:#4a90e2;margin-bottom:5px">🔵 Partial Early Warning (NEW)</div>
-        <div style="font-size:12px;color:var(--t2);line-height:1.5"><b style="color:#22d3ee">🏛 Macro only.</b> First transition to <b>1/3 pillars stressed</b> — the earliest signal in the convergence sequence. Historically the auction tape or funding plumbing moves first; this catches it. Equity 1/4 not alerted (too noisy).</div>
-      </div>
-      <div style="background:var(--bg1);border:1px solid var(--brd);border-left:3px solid var(--cyan);border-radius:7px;padding:12px 14px">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-weight:700">Priority 6 · respects cooldown</div>
-        <div style="font-family:var(--mono);font-weight:800;font-size:12px;color:var(--cyan);margin-bottom:5px">📈 Score Jump ≥ 15</div>
-        <div style="font-size:12px;color:var(--t2);line-height:1.5">Absolute score change of 15+ points in either direction since the last cycle. Catches significant moves that haven't yet crossed a regime threshold.</div>
-      </div>
-    </div>
-    <div style="margin-top:12px;font-size:12px;color:var(--t2);line-height:1.55;padding:11px 14px;background:var(--bg1);border:1px solid var(--brd);border-left:3px solid var(--purple);border-radius:6px;font-style:italic">
-      <b style="color:var(--purple);font-style:normal">Hard cap:</b> 8 alerts/day/sniffer (resets at UTC midnight). State is stored
-      per-sniffer in S3 at <code style="font-family:var(--mono);font-size:11px;color:var(--cyan)">data/_alerts/{sniffer}-alert-state.json</code>.<br>
-      <b style="color:var(--purple);font-style:normal">New cardinal tracking:</b> alert state now persists
-      <code style="font-family:var(--mono);font-size:11px;color:var(--cyan)">last_cardinal_count</code> per cycle so
-      transitions across thresholds (0→1, 1→2, 2→3) fire alerts once and don't spam at steady states.
-    </div>
-  </div>
-
-  <!-- separator -->
-  <div style="border-top:1px solid var(--brd2);margin:24px 0 12px;padding-top:18px">
-    <div style="font-family:var(--mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:700">Below: legacy system-wide alert delivery audit (from justhodl-alert-router)</div>
-  </div>
-
-  <!-- ═══ ORIGINAL ALERT-ROUTER AUDIT PAGE (preserved) ═══ -->
-  <header class="hero" style="margin-bottom:18px;padding-top:0">
-    <div class="hero-eyebrow">Alert audit</div>
-    <h1 class="hero-title">Every alert <em>that fired</em> — and where it went.</h1>
-    <p class="hero-blurb">Last 100 alerts fired by <code>justhodl-alert-router</code> (every 30 min) with delivery status to Telegram and any configured webhooks (Slack, Discord, generic). Audit trail for institutional compliance.</p>
-    <div class="kpi-strip" id="kpis"></div>
-  </header>
-
-  <div class="section">
-    <div class="section-eyebrow">Last run</div>
-    <h2 class="section-title">Latest router run</h2>
-    <p class="section-blurb">Most recent alert-router execution: how many alert candidates, how many sent, how many suppressed by 6h dedup, webhook delivery rate.</p>
-    <div class="card" id="last-run-card">
-      <div class="empty">Loading…</div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-eyebrow">History</div>
-    <h2 class="section-title">Last 100 alerts</h2>
-    <p class="section-blurb">Reverse chronological. Severity badge, source, delivery status to Telegram + webhooks. Click headline for details.</p>
-    <div class="scroll-x">
-      <table class="dv-table" id="alerts-table">
-        <thead><tr>
-          <th>Time</th>
-          <th>Severity</th>
-          <th>Source</th>
-          <th>Title</th>
-          <th>Telegram</th>
-          <th>Webhooks</th>
-        </tr></thead>
-        <tbody id="alerts-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-eyebrow">Configuration</div>
-    <h2 class="section-title">Webhook delivery</h2>
-    <p class="section-blurb">Multi-channel delivery is built in but requires you to add webhook URLs to the <code>/justhodl/alerts/webhook_urls</code> SSM SecureString. Slack and Discord URLs are auto-detected; everything else uses a generic JSON POST format.</p>
-    <div id="webhook-status-card" class="card">
-      <div class="empty">Loading…</div>
-    </div>
-    <div style="margin-top:18px">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Add a webhook</div>
-      <div class="config-block"><span class="c"># SSM parameter: /justhodl/alerts/webhook_urls (SecureString)</span>
-<span class="c"># JSON list of webhook target objects.</span>
-<span class="c"># 'type' is auto-detected from URL when omitted.</span>
-<span class="c"># 'min_severity' filters which alerts get sent (default: 'important').</span>
-
-[
-  {
-    <span class="k">"url"</span>: <span class="v">"https://hooks.slack.com/services/T0XX/B0XX/..."</span>,
-    <span class="k">"type"</span>: <span class="v">"slack"</span>,
-    <span class="k">"min_severity"</span>: <span class="v">"critical"</span>
-  },
-  {
-    <span class="k">"url"</span>: <span class="v">"https://discord.com/api/webhooks/123/abc..."</span>,
-    <span class="k">"type"</span>: <span class="v">"discord"</span>,
-    <span class="k">"min_severity"</span>: <span class="v">"important"</span>
-  }
-]</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:8px">
-        AWS CLI: <code style="color:var(--cyan)">aws ssm put-parameter --name /justhodl/alerts/webhook_urls --type SecureString --value '[...]' --overwrite</code>
-      </div>
-    </div>
-  </div>
-
-  <p class="disclaimer">Alert dedup is 6h per alert ID. Telegram and webhook delivery are independent — failure of one does not block the other. Severity filtering applies per-target via <code>min_severity</code>. History buffer is the last 100 fired alerts.</p>
-
-</main>
-
-<footer style="background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0;font-family:var(--mono);font-size:11px">
-  <div style="max-width:1280px;margin:0 auto;padding:0 24px;display:flex;flex-wrap:wrap;gap:24px;color:var(--t3)">
-    <span>Engine: <span style="color:var(--t2)">justhodl-alert-router</span></span>
-    <span>Schedule: <span style="color:var(--t2)">rate(30 minutes)</span></span>
-    <span>State: <span style="color:var(--t2)">s3://justhodl-dashboard-live/alerts-state.json</span></span>
-    <span>History: <span style="color:var(--t2)">s3://justhodl-dashboard-live/data/alert-history.json</span></span>
-    <span id="last-updated">—</span>
-  </div>
-</footer>
-
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--red:#ff5577;--violet:#a78bfa;--amber:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--red);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--red)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--red)}
+.wrap{max-width:1020px;margin:0 auto;padding:20px 22px}
+h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--red),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13px;max-width:880px;line-height:1.6}
+.hero{display:flex;gap:11px;flex-wrap:wrap;margin:14px 0}
+.g{background:var(--bg1);border:2px solid var(--border);border-radius:13px;padding:11px 16px;font-family:var(--mono);min-width:120px}
+.g b{font-size:20px}.g .m{font-size:10px;color:var(--fg3);margin-top:3px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:22px 0 9px;text-transform:uppercase}
+.changes{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:6px 4px}
+.chg{font-family:var(--mono);font-size:12.5px;padding:8px 12px;border-bottom:1px solid var(--border)}
+.chg:last-child{border-bottom:none}
+.watch{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.w{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:10px 13px;font-family:var(--mono);font-size:11.5px}
+.w .k{color:var(--fg3);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.w .v{color:var(--fg-1);font-size:13px}
+.hi{color:var(--green)}.lo{color:var(--red)}.am{color:var(--amber)}.on{color:var(--cyan)}
+.note{color:var(--fg3);font-size:11px;margin-top:16px;line-height:1.6}
+.loading{color:var(--fg3);font-family:var(--mono)}
+.tg{display:inline-block;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--cyan);border:1px solid var(--border);border-radius:7px;padding:5px 11px}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/alerts.html" class="on">🛰 Alerts</a><a href="/insider.html">Insider</a><a href="/upside-radar.html">Upside</a><a href="/signal-board.html">Board</a></nav></header>
+<div class="wrap">
+<h1>Alert Sentinel — <span class="grad">live watch state</span></h1>
+<p class="sub">A stateful diff watcher: each session it snapshots the desk's actionable signals and pushes a Telegram alert <b>only when something changes</b> — new breakouts, an insider cluster after a decline, a rotation thrust firing, a breadth regime day, an altseason phase shift, or a change in the top sizing call. No change, no noise.</p>
+<span class="tg" id="tg">📲 alerts delivered to Telegram</span>
+<div class="hero" id="hero"><span class="loading">Loading…</span></div>
+<div class="sec">Most recent change set</div>
+<div class="changes" id="changes"><span class="loading">…</span></div>
+<div class="sec">Full watch state</div>
+<div class="watch" id="watch"></div>
+<div class="note" id="note"></div>
+</div>
 <script>
-const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
-
-function timeAgo(iso){
-  if (!iso) return "—";
-  const t = new Date(iso).getTime();
-  const m = Math.floor((Date.now() - t) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  if (m < 1440) return `${Math.floor(m/60)}h ${m%60}m ago`;
-  return `${Math.floor(m/1440)}d ago`;
-}
-function fmtDate(iso){
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString();
-}
-function deliveryBadge(ok, attempted){
-  if (!attempted) return `<span class="flag-pill delivery-none">none</span>`;
-  return ok
-    ? `<span class="flag-pill delivery-ok">sent</span>`
-    : `<span class="flag-pill delivery-fail">failed</span>`;
-}
-function severityBadge(sev){
-  const cls = sev === 'critical' ? 'sev-critical'
-            : sev === 'important' ? 'sev-important'
-            : 'sev-info';
-  return `<span class="flag-pill ${cls}">${(sev||'info').toUpperCase()}</span>`;
-}
-
-async function load(){
-  let data = null;
-  try {
-    data = await fetch(`${BUCKET}/data/alert-history.json?_=${Date.now()}`).then(r => r.ok ? r.json() : null);
-  } catch (e) {
-    document.getElementById('alerts-body').innerHTML = `<tr><td colspan="6" class="empty">Failed to load: ${e.message}</td></tr>`;
-    return;
-  }
-  if (!data) {
-    document.getElementById('alerts-body').innerHTML = `<tr><td colspan="6" class="empty">No alert history yet — alert-router writes to data/alert-history.json after its first run that fires alerts.</td></tr>`;
-    document.getElementById('last-run-card').innerHTML = `<div class="empty">Alert router has not yet recorded a run.</div>`;
-    document.getElementById('webhook-status-card').innerHTML = `<div class="empty">No data yet.</div>`;
-    return;
-  }
-  document.getElementById('last-updated').textContent =
-    data.last_run ? `Updated ${timeAgo(data.last_run)}` : '';
-
-  const alerts = (data.alerts || []).slice().reverse(); // most-recent first
-
-  // KPI strip
-  const last24h = alerts.filter(a => {
-    const t = new Date(a.sent_at || 0).getTime();
-    return Date.now() - t < 86400000;
-  });
-  const last7d = alerts.filter(a => {
-    const t = new Date(a.sent_at || 0).getTime();
-    return Date.now() - t < 7 * 86400000;
-  });
-  const tgOk = alerts.filter(a => a.telegram_sent === true).length;
-  const tgTotal = alerts.filter(a => a.telegram_sent !== undefined).length;
-  const tgRate = tgTotal > 0 ? Math.round(tgOk / tgTotal * 100) : null;
-
-  const lr = data.last_run_summary || {};
-  const whAttempts = lr.webhook_attempts || 0;
-  const whOk = lr.webhook_ok || 0;
-  const whRate = whAttempts > 0 ? Math.round(whOk / whAttempts * 100) : null;
-
-  const bySev = {};
-  alerts.forEach(a => { bySev[a.severity || 'info'] = (bySev[a.severity || 'info'] || 0) + 1; });
-
-  const kpis = [
-    { l: 'Last 24h', v: last24h.length, sub: `${last7d.length} in last 7d` },
-    { l: 'Telegram delivery', v: tgRate !== null ? `${tgRate}%` : '—', sub: `${tgOk} of ${tgTotal} fired` },
-    { l: 'Webhook delivery', v: whRate !== null ? `${whRate}%` : '—', sub: lr.webhooks_configured ? `${lr.webhooks_configured} target(s)` : 'no targets' },
-    { l: 'Critical alerts', v: bySev.critical || 0, sub: `${bySev.important || 0} important · ${bySev.info || 0} info` },
-    { l: 'Last run', v: timeAgo(data.last_run), sub: data.last_run ? fmtDate(data.last_run).split(',')[1] : '' },
-  ];
-  document.getElementById('kpis').innerHTML = kpis.map(k =>
-    `<div class="kpi"><span class="kpi-label">${k.l}</span><span class="kpi-val">${k.v}</span><span class="kpi-sub">${k.sub}</span></div>`
-  ).join('');
-
-  // Last run card
-  document.getElementById('last-run-card').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:18px;font-family:var(--mono);font-size:12px">
-      <div><div style="color:var(--t3);text-transform:uppercase;font-size:10px;letter-spacing:1.5px;margin-bottom:4px">Candidates</div><div style="color:var(--t1);font-size:18px">${lr.candidates ?? '—'}</div></div>
-      <div><div style="color:var(--t3);text-transform:uppercase;font-size:10px;letter-spacing:1.5px;margin-bottom:4px">Sent</div><div style="color:var(--green);font-size:18px">${lr.sent ?? '—'}</div></div>
-      <div><div style="color:var(--t3);text-transform:uppercase;font-size:10px;letter-spacing:1.5px;margin-bottom:4px">Suppressed (dedup)</div><div style="color:var(--yellow);font-size:18px">${lr.suppressed ?? '—'}</div></div>
-      <div><div style="color:var(--t3);text-transform:uppercase;font-size:10px;letter-spacing:1.5px;margin-bottom:4px">Webhook targets</div><div style="color:var(--t1);font-size:18px">${lr.webhooks_configured ?? 0}</div></div>
-      <div><div style="color:var(--t3);text-transform:uppercase;font-size:10px;letter-spacing:1.5px;margin-bottom:4px">Webhook attempts</div><div style="color:var(--t1);font-size:18px">${lr.webhook_attempts ?? 0}</div></div>
-      <div><div style="color:var(--t3);text-transform:uppercase;font-size:10px;letter-spacing:1.5px;margin-bottom:4px">Webhook ok</div><div style="color:${(lr.webhook_attempts||0) === (lr.webhook_ok||0) ? 'var(--green)' : 'var(--yellow)'};font-size:18px">${lr.webhook_ok ?? 0}</div></div>
-    </div>`;
-
-  // Webhook status card
-  if ((lr.webhooks_configured ?? 0) === 0) {
-    document.getElementById('webhook-status-card').innerHTML = `
-      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--yellow);text-transform:uppercase">⚠ No webhooks configured</div>
-        <div style="font-size:13px;color:var(--t2);flex:1;min-width:240px">Alerts only go to Telegram. Add webhook URLs below to multicast to Slack, Discord, or any HTTP endpoint.</div>
-      </div>`;
-  } else {
-    document.getElementById('webhook-status-card').innerHTML = `
-      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--green);text-transform:uppercase">✓ ${lr.webhooks_configured} webhook${lr.webhooks_configured > 1 ? 's' : ''} active</div>
-        <div style="font-size:13px;color:var(--t2);flex:1;min-width:240px">Last run delivered ${lr.webhook_ok}/${lr.webhook_attempts} (${whRate}%). Per-target details aren't surfaced here for security — check CloudWatch logs of justhodl-alert-router for individual delivery codes.</div>
-      </div>`;
-  }
-
-  // Alerts table
-  if (alerts.length === 0) {
-    document.getElementById('alerts-body').innerHTML = `<tr><td colspan="6" class="empty">No alerts have fired yet. The router checks 12 sources every 30 min.</td></tr>`;
-  } else {
-    document.getElementById('alerts-body').innerHTML = alerts.slice(0, 100).map(a => {
-      const whResults = a.webhook_results || [];
-      const whSummary = whResults.length === 0
-        ? `<span class="flag-pill delivery-none">—</span>`
-        : `${whResults.filter(r=>r.ok).length}/${whResults.length}`;
-      return `<tr class="fade-in">
-        <td style="white-space:nowrap;color:var(--t3);font-family:var(--mono);font-size:11.5px">${timeAgo(a.sent_at)}<br><span style="color:var(--t3);font-size:10px">${fmtDate(a.sent_at)}</span></td>
-        <td>${severityBadge(a.severity)}</td>
-        <td style="font-family:var(--mono);font-size:11.5px;color:var(--t2)">${a.source || '—'}</td>
-        <td><strong>${a.title || a.message || '—'}</strong>${a.detail ? `<br><span style="font-size:11.5px;color:var(--t3)">${a.detail}</span>` : ''}</td>
-        <td>${deliveryBadge(a.telegram_sent, a.telegram_sent !== undefined)}</td>
-        <td>${whSummary}</td>
-      </tr>`;
-    }).join('');
-  }
-}
-
-load();
-</script>
-
-<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Alert Edge — Every Rule Backtested</h2>
-<div style="font-size:12px;color:#a8b3c7;margin-bottom:10px;line-height:1.5">Each institutional rule replayed over its full history (15–27y where data allows), with forward SPY at 5/21/63 sessions after every fire. Fires de-clustered with a 21-session re-arm. This is the audit other platforms don't ship: the alert's own track record.</div>
-<div id="jhk-bt"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">REPLAYING RULES vs HISTORY…</div></div></div>
-<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
-<script src="/interp-kit.js"></script>
-<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
-<script>
-(async function(){
-  const host=document.getElementById('jhk-bt');
-  let d=null;
-  try{d=await fetch(`https://justhodl-data-proxy.raafouis.workers.dev/data/alert-backtests.json?_=${Date.now()}`).then(r=>r.ok?r.json():null);}catch(e){}
-  if(!d){try{d=await fetch(`/data/alert-backtests.json?_=${Date.now()}`).then(r=>r.ok?r.json():null);}catch(e){}}
-  if(!d||!d.rules){host.innerHTML='<div style="text-align:center;padding:18px;color:#6f7b91;font-family:monospace;font-size:12px">Backtests not generated yet — justhodl-alert-backtester runs daily 12:00 UTC.</div>';return;}
-  const esc=x=>String(x==null?'—':x).replace(/</g,'&lt;');
-  const cell=(v,neg)=>{if(v==null)return '<td style="padding:7px 10px;color:#6f7b91">—</td>';const c=neg?(v>=60?'#ff5577':v>=45?'#fbbf24':'#26ffaf'):(v<0?'#ff5577':'#26ffaf');return `<td style="padding:7px 10px;font-family:monospace;color:${c}">${neg?v+'%':(v>0?'+':'')+v+'%'}</td>`;};
-  const rows=d.rules.sort((a,b)=>(b.n_fires||0)-(a.n_fires||0)).map(r=>{
-    const f21=(r.forward_spy||{})['21d']||{},f63=(r.forward_spy||{})['63d']||{},f5=(r.forward_spy||{})['5d']||{};
-    return `<tr style="border-bottom:1px solid #1c2433">
-      <td style="padding:7px 10px"><b style="color:#e1e8f4">${esc(r.id)}</b><div style="font-size:10.5px;color:#6f7b91;max-width:330px">${esc(r.desc)}</div></td>
-      <td style="padding:7px 10px;font-family:monospace;color:#a8b3c7">${esc((r.since||'').slice(0,7))}</td>
-      <td style="padding:7px 10px;font-family:monospace;color:#e1e8f4;text-align:center">${r.n_fires}</td>
-      <td style="padding:7px 10px;font-family:monospace;color:#a8b3c7">${esc(r.last_fired)}</td>
-      ${cell(f5.median_pct,false)}${cell(f21.median_pct,false)}${cell(f21.pct_negative,true)}${cell(f63.median_pct,false)}
-    </tr>`;}).join('');
-  host.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;background:#0c1018;border:1px solid #1c2433;border-radius:12px">
-    <thead><tr style="border-bottom:1px solid #2a3550">${['RULE','SINCE','FIRES','LAST FIRED','MED 5D','MED 21D','% NEG 21D','MED 63D'].map(h=>`<th style="padding:8px 10px;text-align:left;font-family:monospace;font-size:10px;color:#6f7b91;letter-spacing:.4px">${h}</th>`).join('')}</tr></thead>
-    <tbody>${rows}</tbody></table>
-    <div style="font-size:10.5px;color:#6f7b91;font-family:monospace;margin-top:8px">SPY span ${esc(d.spy_span)} · re-arm ${d.rearm_days} sessions · generated ${esc(d.generated_at)}</div></div>`;
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+(async()=>{const D=await gj('data/alert-sentinel.json');
+  if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
+  const s=D.snapshot||{};
+  const liveThrusts=Object.entries(s.thrusts||{}).filter(([k,v])=>v).map(([k])=>k);
+  document.getElementById('hero').innerHTML=
+   `<div class="g" style="border-color:var(--green)"><b class="hi">${(s.breakouts||[]).length}</b><div class="m">breakouts watched</div></div>
+    <div class="g" style="border-color:${(s.insider_decline||[]).length?'var(--amber)':'var(--border)'}"><b class="am">${(s.insider_decline||[]).length}</b><div class="m">insider clusters<br>after decline</div></div>
+    <div class="g" style="border-color:${liveThrusts.length?'var(--cyan)':'var(--border)'}"><b class="on">${liveThrusts.length}</b><div class="m">rotation thrusts live</div></div>
+    <div class="g" style="border-color:${s.breadth_regime_day?'var(--amber)':'var(--border)'}"><b class="${(s.breadth_capwtd||0)<0?'lo':'hi'}">${s.breadth_capwtd==null?'—':(s.breadth_capwtd>0?'+':'')+s.breadth_capwtd+'%'}</b><div class="m">S&P cap-wtd ${s.breadth_regime_day?'· REGIME DAY':''}</div></div>
+    <div class="g"><b style="font-size:15px">${esc(s.altseason_phase)}</b><div class="m">altseason phase</div></div>
+    <div class="g"><b style="font-size:15px">${esc(s.sizing_top)}</b><div class="m">top size · gross ${esc(s.sizing_gross)}%</div></div>`;
+  const ch=D.changes||[];
+  document.getElementById('changes').innerHTML=(ch.length&&ch[0]!=='(seed)')
+    ? ch.map(c=>`<div class="chg">${esc(c)}</div>`).join('')
+    : `<div class="chg loading">${ch[0]==='(seed)'?'State seeded — alerts will appear here on the next change.':'No changes in the latest run.'}</div>`;
+  const w=[];
+  const add=(k,v,cls)=>w.push(`<div class="w"><div class="k">${k}</div><div class="v ${cls||''}">${v}</div></div>`);
+  add('Breakouts',(s.breakouts||[]).slice(0,18).join(' ')||'—');
+  add('Insider decline clusters',(s.insider_decline||[]).join(' ')||'none',(s.insider_decline||[]).length?'am':'');
+  add('Rotation thrusts live',liveThrusts.join(' ')||'none',liveThrusts.length?'on':'');
+  add('Semis off 180d-low',s.semis_off_low==null?'—':s.semis_off_low+'%');
+  add('Smallcap vs 365d-high',s.smallcap_vs_high==null?'—':s.smallcap_vs_high+'%');
+  add('200DMA reclaim',(s.ma_reclaim_200||[]).join(' ')||'—','hi');
+  add('200DMA break',(s.ma_break_200||[]).join(' ')||'—','lo');
+  document.getElementById('watch').innerHTML=w.join('');
+  document.getElementById('note').textContent=`Watching breakouts · insider clusters · rotation thrusts · breadth · altseason · sizing · 200DMA crossings. v${D.version} · ${D.generated_at} · first_run=${D.first_run} · Research, not advice.`;
 })();
-</script>
-</body>
-</html>
+</script></body></html>

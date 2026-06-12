@@ -144,3 +144,11 @@ The Lambda `justhodl-patent-velocity` is deployed and scheduled (daily 17 UTC), 
 ## 2026-06-11 — BTC.D / TOTAL2 historical depth
 - Free tiers give CURRENT global metrics only. Engine self-accrues daily snapshots (data/_altseason/global-history.json) and attempts a CG mcap-proxy reconstruction. For TRUE long BTC.D/TOTAL2 history: CMC Standard plan (global-metrics/quotes/historical) or CryptoCompare key.
 - FREE fast path: create a CoinGecko **demo API key** (free tier) and set env COINGECKO_KEY on justhodl-altseason — unlocks market_chart 401s, lighting BTC.D/TOTAL2 proxy history to 2013+, both event studies and regime splits retroactively.
+
+
+## Finviz suite (2026-06-11) — built & live
+- Market Map (justhodl-market-map, cron 25 14): S&P500 treemap + 11 sectors + 12 industries + 8 themes. Pages: market-map.html, groups.html, themes.html.
+- Insider Radar (justhodl-insider-radar, cron 40 14): FMP Form-4 source WORKS (no plan-unlock needed) — 1000 rows/run. insider.html. Polygon 60d fallback for micro-cap decline-join.
+- Alert Sentinel (justhodl-alert-sentinel, cron 45 14): Telegram diff alerts; alerts.html. Fires only on change (idempotency verified).
+- Rotation +SMH/SPY ratio (v1.2.1). api-docs.html publishes 10 public endpoints + tiers.
+- OPTIONAL next (Phase 3): news/catalyst scoring engine (Module 5 — only partial via EDGAR), NDX/Russell map universe toggle, per-ticker quote snapshot page, screener-presets page, pattern-zoo (cup&handle/flag scans beyond current coil/crossing detection).
