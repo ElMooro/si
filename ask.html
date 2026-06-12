@@ -1,99 +1,66 @@
-<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Ask · JustHodl AI</title>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ask the Desk — RAG over 433 engines — JustHodl AI</title>
 <style>
-:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--bg-3:#131929;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--red:#ff5577;--amber:#fbbf24;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
-a{color:var(--cyan);text-decoration:none}
-.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
-.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
-.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
-.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}
-.nav a:hover{color:var(--fg-1);background:var(--bg-2)}.nav a.active{color:var(--cyan)}
-.wrap{max-width:780px;margin:0 auto;padding:42px 24px 80px}
-.hero h1{font-size:30px;font-weight:800;color:var(--fg-0);text-align:center}
-.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{color:var(--fg-2);text-align:center;margin:8px 0 24px}
-.askbox{display:flex;gap:8px;background:var(--bg-1);border:1px solid var(--border-bright);border-radius:12px;padding:8px;margin-bottom:14px}
-.askbox input{flex:1;background:transparent;border:none;outline:none;color:var(--fg-1);font-size:15px;padding:10px 12px}
-.askbox button{background:var(--green);color:var(--bg);border:none;border-radius:8px;padding:10px 20px;font-weight:700;cursor:pointer;font-family:var(--mono)}
-.askbox button:disabled{opacity:.5}
-.examples{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
-.ex{font-size:12px;color:var(--fg-2);background:var(--bg-1);border:1px solid var(--border);border-radius:18px;padding:7px 13px;cursor:pointer}
-.ex:hover{border-color:var(--cyan);color:var(--fg-0)}
-.answer{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;line-height:1.7}
-.answer p{margin-bottom:10px}
-.res{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--border)}
-.res .tk{font-family:var(--mono);font-weight:700;color:var(--fg-0);min-width:64px;cursor:pointer}
-.res .tk:hover{color:var(--cyan)}
-.res .rs{flex:1;font-size:13.5px;color:var(--fg-2)}
-.res .tags{margin-top:4px}
-.tag{font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:4px;border:1px solid var(--border-bright);color:var(--fg-3);margin-right:4px}
-.caveat{font-size:12.5px;color:var(--amber);font-family:var(--mono);margin-top:14px}
-.loading{text-align:center;padding:40px;color:var(--fg-3);font-family:var(--mono)}
-.disclaimer{margin-top:22px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6}
-.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:sp .8s linear infinite;vertical-align:middle}
-@keyframes sp{to{transform:rotate(360deg)}}
-</style></head>
-<body>
-<header class="header">
-  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
-  <nav class="nav"><a href="/">Home</a><a href="/opportunities.html">Opportunities</a><a href="/capital-flow.html">Capital Flow</a><a href="/my-portfolio.html">My Portfolio</a><a href="/ask.html" class="active">Ask</a><a href="/dislocations.html">Buy the Laggard</a><a href="/compounders.html">Compounders</a><a href="/deep-value-overlap.html">Overlap Board</a><a href="/backlog.html">Backlog</a><a href="/track-public.html">Track Record</a><a href="/pricing.html">Pricing</a></nav>
-  <div data-auth-slot style="margin-left:auto"></div>
-</header>
+:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--green:#34d399;--cyan:#22d3ee;--violet:#a78bfa;--amber:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
+.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--green)}
+nav a{color:var(--fg2);text-decoration:none;font-size:12px;margin-left:12px}nav a:hover,nav a.on{color:var(--green)}
+.wrap{max-width:880px;margin:0 auto;padding:22px}
+h1{font-size:22px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--fg2);font-size:13px;line-height:1.6}
+.qbox{display:flex;gap:9px;margin:16px 0}
+textarea{flex:1;background:var(--bg1);border:1px solid var(--border);border-radius:11px;color:var(--fg-1);padding:11px 13px;font-family:Inter;font-size:14px;min-height:64px;resize:vertical}
+button{background:var(--cyan);color:#06121a;border:0;border-radius:11px;font-weight:800;padding:0 22px;cursor:pointer;font-size:14px}
+button:disabled{opacity:.4}
+.turn{margin:14px 0}
+.q{font-weight:700;font-size:14px;color:var(--cyan)}
+.a{background:var(--bg1);border:1px solid var(--border);border-radius:13px;padding:13px 16px;margin-top:7px;font-size:13.5px;line-height:1.75;color:var(--fg2);white-space:pre-wrap}
+.chip{display:inline-block;font-family:var(--mono);font-size:9.5px;background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.4);border-radius:6px;padding:1px 7px;margin:0 2px;text-decoration:none}
+.meta{font-family:var(--mono);font-size:10px;color:var(--fg3);margin-top:7px}
+.think{color:var(--fg3);font-family:var(--mono);font-size:12px}
+.sugg{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.sugg span{font-size:11px;border:1px solid var(--border);border-radius:9px;padding:4px 10px;color:var(--fg2);cursor:pointer;background:var(--bg1)}
+.sugg span:hover{border-color:var(--cyan)}
+</style></head><body>
+<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
+<nav><a href="/">Desk</a><a href="/ask.html" class="on">🤖 Ask</a><a href="/engines.html">🧭 Engines</a><a href="/research.html">📜 Research</a><a href="/backtests.html">🧪 Backtests</a></nav></header>
 <div class="wrap">
-  <div class="hero">
-    <h1>Ask <span class="grad">JustHodl</span></h1>
-    <p>Ask anything about the market in plain English — the answer is grounded only in your live signal engines. No hallucinated tickers.</p>
-  </div>
-  <div class="askbox">
-    <input id="q" placeholder="e.g. cheap small-caps institutions are buying that aren't falling knives" />
-    <button id="go">Ask</button>
-  </div>
-  <div class="examples" id="examples"></div>
-  <div id="out"></div>
-  <div class="disclaimer">Answers are generated by AI strictly from JustHodl's live signal data (best-setups, opportunities, dislocations, capital-flow, bond-vol). It will not name tickers outside the screened universe. Research &amp; analytics, not investment advice.</div>
+<h1>Ask the Desk — <span class="grad">RAG over every engine, with citations</span></h1>
+<p class="sub">One question, two-stage retrieval: a router picks the most relevant of the desk's <b>433 live feeds</b> (plus the research library, crisis KB, backtests and gatekeeper), and an analyst answers <b>only from those sources</b> — every claim carries a <span class="chip">data/…json</span> citation you can open in the Engine Explorer. If it's not in desk data, it says so.</p>
+<div class="sugg" id="sugg">
+<span>What's the crisis composite right now and which canaries are red?</span>
+<span>Which underlooked stock ranks #1 and what did its research debate conclude?</span>
+<span>Which signal types are the harness's live grades indicting?</span>
+<span>What does the meta-labeler currently say to TAKE?</span>
+</div>
+<div class="qbox"><textarea id="q" placeholder="Ask anything about the desk's data…"></textarea><button id="go">Ask</button></div>
+<div id="feed"></div>
 </div>
 <script>
-const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-const EX=["What are today's highest-conviction setups?","Cheap stocks institutions are accumulating","Which compounders are also cheap?","Any quad threats right now?","What's the bond-vol regime telling me?","Value traps to avoid"];
-document.getElementById('examples').innerHTML=EX.map(e=>`<span class="ex">${esc(e)}</span>`).join('');
-document.querySelectorAll('.ex').forEach(x=>x.onclick=()=>{document.getElementById('q').value=x.textContent;ask();});
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+let CFG=null;
+function fmt(a){return esc(a).replace(/\[(data\/[a-z0-9_\-\.\/]+\.json)\]/gi,(m,k)=>`<a class="chip" href="/engines.html" title="${k}">${k.replace('data/','').replace('.json','')}</a>`);}
 async function ask(){
-  const q=(document.getElementById('q').value||'').trim(); if(!q)return;
-  const btn=document.getElementById('go'); btn.disabled=true;
-  document.getElementById('out').innerHTML='<div class="loading"><span class="spin"></span> Querying your live engines…</div>';
-  const ASK_FN="https://mxfefd5s3l4kp7ywx4ztlboqui0jrmkc.lambda-url.us-east-1.on.aws/";
-  async function tryPost(url){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+  const q=document.getElementById('q').value.trim();if(!q||!CFG)return;
+  const b=document.getElementById('go');b.disabled=true;
+  const feed=document.getElementById('feed');
+  const div=document.createElement('div');div.className='turn';
+  div.innerHTML=`<div class="q">Q: ${esc(q)}</div><div class="a"><span class="think">routing across 433 feeds → fetching → answering…</span></div>`;
+  feed.prepend(div);document.getElementById('q').value='';
   try{
-    let d;
-    try{ d=await tryPost(ASK_FN); }            // direct AWS Function URL (no CDN bot-check)
-    catch(_){ d=await tryPost(`${PROXY}/ask`); } // fallback via worker
-    render(d);
-  }catch(e){
-    document.getElementById('out').innerHTML='<div class="loading">Couldn\'t reach the assistant. Try again in a moment.</div>';
-  }
-  btn.disabled=false;
-}
-function mdToHtml(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');}
-function render(d){
-  let h=`<div class="answer"><p>${mdToHtml(d.answer||'No answer.')}</p>`;
-  (d.results||[]).forEach(r=>{
-    h+=`<div class="res"><span class="tk" onclick="window.open('/chart-pro.html','_blank')">${esc(r.ticker)}</span><div class="rs">${esc(r.reason)}<div class="tags">${(r.tags||[]).map(t=>`<span class="tag">${esc(String(t).replace(/_/g,' '))}</span>`).join('')}</div></div></div>`;
-  });
-  if(d.caveat)h+=`<div class="caveat">⚠ ${esc(d.caveat)}</div>`;
-  h+='</div>';
-  document.getElementById('out').innerHTML=h;
+    const r=await fetch(CFG.url,{method:'POST',headers:{'content-type':'application/json','x-desk-key':CFG.k},body:JSON.stringify({question:q})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    div.querySelector('.a').innerHTML=fmt(d.answer)+`<div class="meta">sources: ${(d.sources_used||[]).map(k=>`<a class="chip" href="/engines.html">${esc(k.replace('data/','').replace('.json',''))}</a>`).join(' ')} · router: ${esc(d.router_why||'')} · ${d.duration_s}s</div>`;
+  }catch(e){div.querySelector('.a').innerHTML='<span class="think">error: '+esc(e.message)+'</span>';}
+  b.disabled=false;
 }
 document.getElementById('go').onclick=ask;
-document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter')ask();});
-</script>
-<script src="/cmdk.js"></script>
-<script src="/symbol-bar.js"></script>
-<script src="/auth-config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/auth.js"></script>
-<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
-</body></html>
+document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))ask();});
+document.querySelectorAll('#sugg span').forEach(s=>s.onclick=()=>{document.getElementById('q').value=s.textContent;ask();});
+(async()=>{CFG=await gj('data/askdesk-config.json');
+  if(!CFG){document.getElementById('feed').innerHTML='<span class="think">endpoint config pending first deploy…</span>';}})();
+</script></body></html>
