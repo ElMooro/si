@@ -25,7 +25,7 @@ STATE_KEY = "data/_map/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 DIAG = []
 SECTOR_ETFS = [("XLK", "Technology"), ("XLF", "Financials"), ("XLV", "Health Care"),
                 ("XLY", "Consumer Discretionary"), ("XLC", "Communication Services"),
@@ -171,7 +171,9 @@ def lambda_handler(event=None, context=None):
         DIAG.append(f"upside rings: {len(rings)} as of {as_of}")
     except Exception as e:
         DIAG.append(f"upside state: {str(e)[:60]}")
-    mcap, revs = mcap_state([t for t in sec if t in rings])
+    cache_universe = sorted({t for t in sec if t in rings}
+                              | {t for tl in THEMES.values() for t in tl if t in rings})
+    mcap, revs = mcap_state(cache_universe)
     spy_r = rings.get("SPY") or []
     spy63 = (spy_r[-1] / spy_r[-64] - 1) * 100 if len(spy_r) > 64 else None
 

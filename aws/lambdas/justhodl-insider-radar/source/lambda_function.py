@@ -23,7 +23,7 @@ OUT_KEY = "data/insider-radar.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 DIAG = []
 RANK = (("CEO", 3.0), ("CHIEF EXECUTIVE", 3.0), ("CFO", 2.8), ("CHIEF FINANCIAL", 2.8),
          ("PRESIDENT", 2.4), ("COO", 2.2), ("CHAIR", 2.2), ("DIRECTOR", 1.8),
@@ -137,7 +137,7 @@ def ps_ttm_map(tickers, cap=25):
             if isinstance(j, list) and j:
                 for k in ("priceToSalesRatioTTM", "priceToSalesTTM", "priceToSalesRatio"):
                     v = j[0].get(k)
-                    if isinstance(v, (int, float)):
+                    if isinstance(v, (int, float)) and v > 0:
                         out[t] = round(v, 2)
                         break
         except Exception:
