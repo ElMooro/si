@@ -1,0 +1,144 @@
+{
+ "ops": 1641,
+ "fn": "updated",
+ "err": "NONE",
+ "log_tail": "START RequestId: 6cd567f3-fbb9-448b-8d31-5f50c4124413 Version: $LATEST\n[harness] 1/8 rules pass \u00b7 75.9s\nEND RequestId: 6cd567f3-fbb9-448b-8d31-5f50c4124413\nREPORT RequestId: 6cd567f3-fbb9-448b-8d31-5f50c4124413\tDuration: 76213.30 ms\tBilled Duration: 76806 ms\tMemory Size: 512 MB\tMax Memory Used: 341 MB\tInit Duration: 592.53 ms\t\nXRAY TraceId: 1-6a2c8110-05486606220da3a33e5e5a40\tSegmentId: 99b605a5350b2e72\tSampled: true\t\n",
+ "verify": {
+  "version": "1.0.1",
+  "duration_s": 75.9,
+  "universe": 1500,
+  "days": 256,
+  "n_pass": 1,
+  "diag": [
+   "universe 1500 of 6069 rings \u00b7 256 days \u00b7 3 OOS folds \u00b7 horizon 21d excess vs SPY",
+   "mode B: 14805 schema-v2 signals"
+  ],
+  "rules": [
+   {
+    "rule": "basing_breakout",
+    "PASS": false,
+    "deflated_gate_sr": 0.04,
+    "sr": 0.82,
+    "n": 1408,
+    "hit": 60.4,
+    "avg": 2.03,
+    "mdd": -42.4
+   },
+   {
+    "rule": "relative_strength",
+    "PASS": true,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.62,
+    "n": 2960,
+    "hit": 53.7,
+    "avg": 3.32,
+    "mdd": -38.2
+   },
+   {
+    "rule": "momentum_breakout",
+    "PASS": false,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.57,
+    "n": 3351,
+    "hit": 55.4,
+    "avg": 2.71,
+    "mdd": -52.7
+   },
+   {
+    "rule": "momentum_consistency",
+    "PASS": false,
+    "deflated_gate_sr": 0.02,
+    "sr": 0.54,
+    "n": 2957,
+    "hit": 52.8,
+    "avg": 2.15,
+    "mdd": -58.3
+   },
+   {
+    "rule": "ma_cross",
+    "PASS": false,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.35,
+    "n": 1938,
+    "hit": 52.7,
+    "avg": 1.76,
+    "mdd": -48.6
+   },
+   {
+    "rule": "vol_squeeze_break",
+    "PASS": false,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.26,
+    "n": 2088,
+    "hit": 50.5,
+    "avg": 1.25,
+    "mdd": -72.9
+   },
+   {
+    "rule": "pullback_in_uptrend",
+    "PASS": false,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.12,
+    "n": 1382,
+    "hit": 39.1,
+    "avg": 0.6,
+    "mdd": -72.2
+   },
+   {
+    "rule": "deep_drawdown_buy",
+    "PASS": false,
+    "deflated_gate_sr": 0.03,
+    "sr": 0.1,
+    "n": 2507,
+    "hit": 47.1,
+    "avg": 0.58,
+    "mdd": -87.6
+   }
+  ],
+  "live_types": [
+   {
+    "signal_type": "unknown",
+    "graded": 11759,
+    "pending": 2951,
+    "hit_pct": 66.5,
+    "avg_excess_pct": 136824.42
+   },
+   {
+    "signal_type": "screener_top_pick",
+    "graded": 28,
+    "pending": 12,
+    "hit_pct": 28.6,
+    "avg_excess_pct": -11.37
+   },
+   {
+    "signal_type": "apex-fusion",
+    "graded": 1,
+    "pending": 9
+   },
+   {
+    "signal_type": "apex_fusion",
+    "graded": 0,
+    "pending": 38
+   },
+   {
+    "signal_type": "hp_score",
+    "graded": 0,
+    "pending": 2
+   },
+   {
+    "signal_type": "research_paper",
+    "graded": 0,
+    "pending": 4
+   },
+   {
+    "signal_type": "ps_value_momentum",
+    "graded": 0,
+    "pending": 1
+   }
+  ]
+ },
+ "board_row": {
+  "read": "1/8 archetypes pass deflated-Sharpe OOS gate"
+ },
+ "board_n": 79
+}
