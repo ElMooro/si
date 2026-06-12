@@ -23,6 +23,11 @@ h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--viol
 .back{font-family:var(--mono);font-size:12px;color:var(--cyan);cursor:pointer}
 .note{color:var(--fg3);font-size:11px;margin-top:18px;line-height:1.65}
 .loading{color:var(--fg3);font-family:var(--mono)}
+table.ul{width:100%;border-collapse:collapse;font-size:11px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table.ul th{font-family:var(--mono);font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:7px;border-bottom:1px solid var(--border);background:var(--bg2)}
+table.ul th:first-child,table.ul td:first-child,table.ul td.l{text-align:left}
+table.ul td{padding:6px 7px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);white-space:nowrap}
+.hi{color:var(--green)}
 </style></head><body>
 <header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
 <nav><a href="/">Desk</a><a href="/valuations.html">💰 Valuations</a><a href="/research.html" class="on">📜 Research</a><a href="/market-map.html">Map</a><a href="/insider.html">Insider</a></nav></header>
@@ -31,6 +36,12 @@ h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--viol
 <h1>AI Research Papers — <span class="grad">the most underlooked names</span></h1>
 <p class="sub">Every day the desk takes the top <b>underlooked</b> candidates (small + ignored by volume + strong fundamentals + cheap + basing, hard-flagged names excluded) and an AI analyst writes a dossier-locked research note: it may only cite numbers present in the dossier, must say "not in dossier" otherwise, and every thesis is <b>logged to the graded closed loop</b> — so the papers get scored at 21 and 63 days, not just written.</p>
 <div class="hero" id="hero"><span class="loading">Loading…</span></div>
+<div class="sec" style="font-size:11.5px;letter-spacing:2px;color:var(--fg3)">UNDERLOOKED — GLOBAL TOP 25</div>
+<div style="overflow-x:auto"><div id="ultop"></div></div>
+<div class="sec" style="font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin-top:20px">UNDERLOOKED — BY INDUSTRY (top 10 each)</div>
+<select id="indsel" style="background:var(--bg1);color:var(--fg-1);border:1px solid var(--border);border-radius:9px;padding:7px 12px;font-family:var(--mono);font-size:12px;max-width:420px"></select>
+<div style="overflow-x:auto;margin-top:8px"><div id="indtbl"></div></div>
+<div class="sec" style="font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin-top:22px">RESEARCH LIBRARY</div>
 <div id="cards"></div>
 <div class="note" id="note"></div>
 </div>
@@ -43,7 +54,17 @@ h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--viol
 const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-let IDX=null;
+let IDX=null,SV=null;
+function ulRow(r){return `<tr><td><b>${esc(r.t)}</b></td><td class="l" style="font-size:10px">${esc(r.industry||'—')}</td><td><b style="color:var(--violet)">${r.underlooked}</b></td><td>${r.hp_score}</td><td class="l" style="font-size:9.5px">${esc(r.class||'')}</td><td>$${((r.mcap||0)/1e6).toFixed(0)}M</td><td>${r.turnover_bp??'—'}bp</td><td>${r.ps??'—'}×</td><td class="${(r.rev_yoy_pct||0)>0?'hi':''}">${r.rev_yoy_pct??'—'}%</td><td>${r.rule40??'—'}</td><td>${r.off_hi_pct??'—'}%</td><td>${r.net_cash?'✓':''}</td></tr>`;}
+const ULH='<thead><tr><th>T</th><th>Industry</th><th>UL</th><th>HP</th><th>Class</th><th>Mcap</th><th>Turnover</th><th>P/S</th><th>Rev YoY</th><th>R40</th><th>off-Hi</th><th>NetCash</th></tr></thead>';
+function renderUL(){if(!SV)return;
+  document.getElementById('ultop').innerHTML=`<table class="ul">${ULH}<tbody>${(SV.underlooked_top||[]).map(ulRow).join('')}</tbody></table>`;
+  const inds=Object.keys(SV.industries||{}).sort();
+  const sel=document.getElementById('indsel');
+  sel.innerHTML=inds.map(k=>`<option>${esc(k)}</option>`).join('');
+  const draw=()=>{const rows=(SV.industries||{})[sel.value]||[];
+    document.getElementById('indtbl').innerHTML=`<table class="ul">${ULH}<tbody>${rows.map(ulRow).join('')}</tbody></table>`;};
+  sel.onchange=draw;if(inds.length)draw();}
 const SECTIONS=[['one_line_thesis','Thesis'],['business_overview','Business'],['why_underlooked','Why it\'s underlooked'],['financial_analysis','Financial analysis'],['valuation_case','Valuation case'],['catalysts','Catalysts'],['risks','Risks'],['bear_case','Bear case'],['what_would_break_the_thesis','What would break the thesis'],['verdict','Verdict']];
 function showList(){document.getElementById('paper').style.display='none';document.getElementById('list').style.display='block';}
 async function showPaper(key){
@@ -62,7 +83,7 @@ async function showPaper(key){
   el.innerHTML=h;window.scrollTo(0,0);
 }
 document.getElementById('back').onclick=showList;
-(async()=>{IDX=await gj('data/research-papers.json');
+(async()=>{IDX=await gj('data/research-papers.json');SV=await gj('data/stock-valuations.json');renderUL();
   if(!IDX||!(IDX.papers||[]).length){document.getElementById('hero').innerHTML='<span class="loading">first papers generate after the next engine run</span>';return;}
   const ps=IDX.papers;const avg=(ps.reduce((a,p)=>a+(p.conviction||0),0)/ps.length).toFixed(1);
   document.getElementById('hero').innerHTML=
