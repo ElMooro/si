@@ -1,5 +1,5 @@
 """
-justhodl-crisis-canaries v1.0 — Funding-Plumbing Early Warning
+justhodl-crisis-canaries v3.0 — Funding-Plumbing Early Warning
 ==============================================================
 Items 1/2/4/5: crisis starts in collateral and bank funding, weeks before equities.
 
@@ -56,6 +56,423 @@ def zlast(vals, look=252):
     w = vals[-look:]
     m, sd = mean(w), (stdev(w) if len(w) > 1 else 0)
     return round((vals[-1] - m) / sd, 2) if sd else 0.0
+
+
+
+def poly_closes(t, days=1500):
+    end = datetime.now(timezone.utc).date().isoformat()
+    start = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
+    u = (f"https://api.polygon.io/v2/aggs/ticker/{t}/range/1/day/{start}/{end}"
+         f"?adjusted=true&sort=asc&limit=50000&apiKey={POLY_KEY}")
+    for back in (0, 3, 9):
+        if back:
+            time.sleep(back)
+        try:
+            j = hj(u, timeout=45)
+            rows = [(datetime.fromtimestamp(r["t"] / 1000, tz=timezone.utc).date().isoformat(),
+                      float(r["c"])) for r in (j.get("results") or [])]
+            if rows:
+                return rows
+        except Exception:
+            pass
+    return []
+
+
+def fred_ladder(sids, start="2015-01-01"):
+    for sid in sids:
+        try:
+            o = fred(sid, start)
+            if len(o) > 8:
+                return sid, o
+        except Exception:
+            continue
+    return None, []
+
+
+def pct(a, b):
+    return round((a / b - 1) * 100, 2) if (a is not None and b) else None
+
+
+def _mk(name, family, value, unit, signal, detail, as_of, z=None, lead=None, src=None):
+    return {"name": name, "family": family, "value": value, "unit": unit,
+             "signal": signal,
+             "status": {1: "RED", 0: "AMBER", -1: "GREEN"}.get(signal, "GREEN"),
+             "detail": detail, "as_of": as_of, "z": z, "lead": lead, "source": src}
+
+
+def global_canaries(canaries, avail, alerts):
+    """v3.0 — 31 early-warning canaries across 7 families."""
+    G = {}
+
+    def put(key, fn):
+        try:
+            r = fn()
+            if r:
+                G[key] = r; avail[key] = True
+                if r["signal"] == 1:
+                    alerts.append(f"{r['name']}: {r['detail'][:120]}")
+            else:
+                avail[key] = False
+        except Exception as e:
+            avail[key] = False
+            print(f"[g:{key}] {str(e)[:60]}")
+
+    # LABOR
+    def f_sahm():
+        sid, o = fred_ladder(["SAHMREALTIME", "SAHMCURRENT"], "2019-01-01")
+        if not o: return None
+        v = o[-1][1]
+        sig = 1 if v >= 0.50 else 0 if v >= 0.30 else -1
+        return _mk("Sahm Rule (real-time)", "labor", round(v, 2), "pp vs 12m low", sig,
+                    f"{v:.2f} (trigger 0.50; called every recession since 1970)", o[-1][0],
+                    lead="0-2m", src=sid)
+    put("sahm_rule", f_sahm)
+
+    def f_claims():
+        o = fred("ICSA", "2015-01-01")
+        if len(o) < 60: return None
+        vals = [v for _, v in o]
+        a4 = [sum(vals[i-4:i]) / 4 for i in range(4, len(vals) + 1)]
+        yoy = pct(a4[-1], a4[-53]) if len(a4) > 53 else None
+        z = zlast(a4, 156)
+        sig = 1 if (yoy or 0) >= 15 and (z or 0) >= 1.2 else 0 if (yoy or 0) >= 8 else -1
+        return _mk("Initial claims (4-wk avg)", "labor", round(a4[-1] / 1000, 0), "k", sig,
+                    f"4wk {a4[-1]/1000:.0f}k, YoY {(yoy or 0):+.1f}%", o[-1][0], z=z,
+                    lead="1-3m", src="ICSA")
+    put("claims_4wk", f_claims)
+
+    def f_continuing():
+        o = fred("CCSA", "2015-01-01")
+        if len(o) < 60: return None
+        vals = [v for _, v in o]
+        yoy = pct(vals[-1], vals[-53]) if len(vals) > 53 else None
+        sig = 1 if (yoy or 0) >= 12 else 0 if (yoy or 0) >= 5 else -1
+        return _mk("Continuing claims", "labor", round(vals[-1] / 1e6, 2), "mn", sig,
+                    f"YoY {(yoy or 0):+.1f}% — the hiring-freeze read", o[-1][0],
+                    lead="1-3m", src="CCSA")
+    put("continuing_claims", f_continuing)
+
+    def f_quits():
+        o = fred("JTSQUR", "2015-01-01")
+        if len(o) < 26: return None
+        vals = [v for _, v in o]
+        yoy = round(vals[-1] - vals[-13], 2) if len(vals) > 13 else None
+        sig = 1 if vals[-1] <= 1.9 and (yoy or 0) < 0 else 0 if (yoy or 0) <= -0.2 else -1
+        return _mk("Quits rate (JOLTS)", "labor", vals[-1], "%", sig,
+                    f"{vals[-1]}% ({(yoy or 0):+.2f}pp YoY) — workers stop quitting before layoffs",
+                    o[-1][0], lead="3-6m", src="JTSQUR")
+    put("quits_rate", f_quits)
+
+    def f_overtime():
+        o = fred("AWOTMAN", "2015-01-01")
+        if len(o) < 26: return None
+        vals = [v for _, v in o]
+        yoy = pct(vals[-1], vals[-13])
+        sig = 1 if (yoy or 0) <= -8 else 0 if (yoy or 0) <= -3 else -1
+        return _mk("Mfg overtime hours", "labor", vals[-1], "hrs", sig,
+                    f"YoY {(yoy or 0):+.1f}% — overtime cut before headcount", o[-1][0],
+                    lead="2-4m", src="AWOTMAN")
+    put("overtime_mfg", f_overtime)
+
+    # REAL ECONOMY
+    def f_trucks():
+        o = fred("HTRUCKSSAAR", "2014-01-01")
+        if len(o) < 26: return None
+        vals = [v for _, v in o]
+        yoy = pct(vals[-1], vals[-13])
+        sig = 1 if (yoy or 0) <= -12 else 0 if (yoy or 0) <= -5 else -1
+        return _mk("Heavy truck sales", "real_economy", vals[-1], "k SAAR", sig,
+                    f"YoY {(yoy or 0):+.1f}% — legendary capex/freight lead", o[-1][0],
+                    lead="6-12m", src="HTRUCKSSAAR")
+    put("heavy_trucks", f_trucks)
+
+    def f_permits():
+        o = fred("PERMIT", "2014-01-01")
+        if len(o) < 26: return None
+        vals = [v for _, v in o]
+        yoy = pct(vals[-1], vals[-13])
+        sig = 1 if (yoy or 0) <= -12 else 0 if (yoy or 0) <= -5 else -1
+        return _mk("Building permits", "real_economy", vals[-1], "k SAAR", sig,
+                    f"YoY {(yoy or 0):+.1f}% — housing leads the cycle", o[-1][0],
+                    lead="6-12m", src="PERMIT")
+    put("building_permits", f_permits)
+
+    def f_tonnage():
+        sid, o = fred_ladder(["TRUCKD11"], "2014-01-01")
+        if not o: return None
+        vals = [v for _, v in o]
+        yoy = pct(vals[-1], vals[-13]) if len(vals) > 13 else None
+        sig = 1 if (yoy or 0) <= -4 else 0 if (yoy or 0) <= -1 else -1
+        return _mk("Truck tonnage", "real_economy", round(vals[-1], 1), "idx", sig,
+                    f"YoY {(yoy or 0):+.1f}% — goods-economy pulse", o[-1][0],
+                    lead="2-4m", src=sid)
+    put("truck_tonnage", f_tonnage)
+
+    def f_rail():
+        sid, o = fred_ladder(["RAILFRTCARLOADSD11", "RAILFRTINTERMODALD11",
+                                "FRGSHPUSM649NCIS"], "2014-01-01")
+        if not o: return None
+        vals = [v for _, v in o]
+        yoy = pct(vals[-1], vals[-13]) if len(vals) > 13 else None
+        sig = 1 if (yoy or 0) <= -6 else 0 if (yoy or 0) <= -2 else -1
+        return _mk("Rail/freight volumes", "real_economy", round(vals[-1], 1), "idx", sig,
+                    f"YoY {(yoy or 0):+.1f}%", o[-1][0], lead="1-3m", src=sid)
+    put("rail_freight", f_rail)
+
+    def f_wei():
+        o = fred("WEI", "2019-01-01")
+        if len(o) < 30: return None
+        vals = [v for _, v in o]
+        d13 = round(vals[-1] - vals[-14], 2) if len(vals) > 14 else None
+        sig = 1 if vals[-1] < 0.5 else 0 if vals[-1] < 1.5 or (d13 or 0) <= -1 else -1
+        return _mk("Weekly Economic Index (NY Fed)", "real_economy", round(vals[-1], 2),
+                    "GDP-scaled", sig,
+                    f"{vals[-1]:.2f} ({(d13 or 0):+.2f} vs 13wk) — real-time activity",
+                    o[-1][0], lead="0-1m", src="WEI")
+    put("wei", f_wei)
+
+    # CREDIT QUALITY
+    def f_ccc_bb():
+        c = dict(fred("BAMLH0A3HYC", "2018-01-01"))
+        b = dict(fred("BAMLH0A1HYBB", "2018-01-01"))
+        ks = sorted(set(c) & set(b))
+        if len(ks) < 60: return None
+        sp = [(c[k] - b[k]) * 100 for k in ks]
+        z = zlast(sp, 504)
+        ch3m = round(sp[-1] - sp[-64], 0) if len(sp) > 64 else None
+        sig = 1 if (z or 0) >= 1.5 or (ch3m or 0) >= 150 else 0 if (z or 0) >= 0.7 else -1
+        return _mk("CCC−BB spread (stealth credit)", "credit", round(sp[-1], 0), "bp", sig,
+                    f"{sp[-1]:.0f}bp ({(ch3m or 0):+.0f} 3m) — junk's junk cracks first",
+                    ks[-1], z=z, lead="2-6m", src="BAMLH0A3HYC−BAMLH0A1HYBB")
+    put("ccc_vs_bb", f_ccc_bb)
+
+    def f_ci():
+        o = fred("BUSLOANS", "2014-01-01")
+        if len(o) < 26: return None
+        vals = [v for _, v in o]
+        yoy = pct(vals[-1], vals[-13])
+        sig = 1 if (yoy or 0) < 0 else 0 if (yoy or 0) < 2 else -1
+        return _mk("C&I loan growth", "credit", yoy, "% YoY", sig,
+                    f"{(yoy or 0):+.1f}% YoY — contraction = crunch", o[-1][0],
+                    lead="0-3m", src="BUSLOANS")
+    put("ci_loans", f_ci)
+
+    def f_bankcred():
+        o = fred("TOTBKCR", "2014-01-01")
+        if len(o) < 60: return None
+        vals = [v for _, v in o]
+        yoy = pct(vals[-1], vals[-53]) if len(vals) > 53 else None
+        sig = 1 if (yoy or 0) < 0.5 else 0 if (yoy or 0) < 2.5 else -1
+        return _mk("Total bank credit", "credit", yoy, "% YoY", sig,
+                    f"{(yoy or 0):+.1f}% YoY (weekly H.8)", o[-1][0],
+                    lead="0-3m", src="TOTBKCR")
+    put("bank_credit", f_bankcred)
+
+    def f_sloos():
+        o = fred("DRTSCILM", "2014-01-01")
+        if len(o) < 8: return None
+        v = o[-1][1]
+        sig = 1 if v >= 20 else 0 if v >= 8 else -1
+        return _mk("SLOOS net tightening (C&I)", "credit", v, "% net", sig,
+                    f"{v:+.1f}% net tightening (quarterly; ≥20 preceded every modern recession)",
+                    o[-1][0], lead="3-9m", src="DRTSCILM")
+    put("sloos", f_sloos)
+
+    def f_ccdelinq():
+        o = fred("DRCCLACBS", "2012-01-01")
+        if len(o) < 10: return None
+        vals = [v for _, v in o]
+        ch4q = round(vals[-1] - vals[-5], 2) if len(vals) > 5 else None
+        sig = 1 if (ch4q or 0) >= 0.6 else 0 if (ch4q or 0) >= 0.25 else -1
+        return _mk("Credit-card delinquency", "credit", vals[-1], "%", sig,
+                    f"{vals[-1]}% ({(ch4q or 0):+.2f}pp YoY) — consumer stress build",
+                    o[-1][0], lead="3-6m", src="DRCCLACBS")
+    put("cc_delinquency", f_ccdelinq)
+
+    # RATES REGIME
+    def f_uninvert():
+        o = fred("T10Y2Y", "2021-06-01")
+        if len(o) < 200: return None
+        vals = [v for _, v in o]
+        deep = min(vals[-504:]) if len(vals) >= 504 else min(vals)
+        now = vals[-1]
+        ch3m = round(now - vals[-64], 2) if len(vals) > 64 else None
+        was_deep = deep <= -0.40
+        sig = 1 if (was_deep and now >= -0.10 and (ch3m or 0) >= 0.35) else               0 if (was_deep and (ch3m or 0) >= 0.20) else -1
+        return _mk("Un-inversion trigger (2s10s)", "rates_regime", now, "%", sig,
+                    f"2s10s {now:+.2f}% ({(ch3m or 0):+.2f} 3m; trough {deep:+.2f}). Recessions "
+                    f"start when the curve RE-steepens, not when it inverts.", o[-1][0],
+                    lead="0-3m", src="T10Y2Y")
+    put("uninversion_trigger", f_uninvert)
+
+    def f_breadth():
+        ids = ["DGS3MO", "DGS2", "DGS5", "DGS10", "DGS30"]
+        d = {}
+        for s in ids:
+            o = fred(s, "2024-09-01")
+            if o:
+                d[s] = o[-1][1]
+        if len(d) < 5: return None
+        pairs = [("DGS3MO", "DGS10"), ("DGS3MO", "DGS30"), ("DGS2", "DGS10"),
+                  ("DGS2", "DGS30"), ("DGS2", "DGS5"), ("DGS5", "DGS30")]
+        inv = sum(1 for a, b in pairs if d[a] > d[b])
+        pv = round(inv / len(pairs) * 100, 0)
+        sig = 1 if pv >= 67 else 0 if pv >= 34 else -1
+        return _mk("Curve inversion breadth", "rates_regime", pv, "% pairs inverted", sig,
+                    f"{inv}/{len(pairs)} maturity pairs inverted",
+                    datetime.now(timezone.utc).date().isoformat(),
+                    lead="6-18m", src="DGS*")
+    put("inversion_breadth", f_breadth)
+
+    def f_breakevens():
+        o = fred("T5YIE", "2022-01-01")
+        if len(o) < 80: return None
+        vals = [v for _, v in o]
+        ch3m = round((vals[-1] - vals[-64]) * 100, 0)
+        sig = 1 if ch3m <= -40 else 0 if ch3m <= -20 else -1
+        return _mk("5y breakevens (growth scare)", "rates_regime", vals[-1], "%", sig,
+                    f"{vals[-1]:.2f}% ({ch3m:+.0f}bp 3m) — fast BE collapse = deflation impulse",
+                    o[-1][0], lead="0-2m", src="T5YIE")
+    put("breakevens", f_breakevens)
+
+    def f_2y():
+        o = fred("DGS2", "2022-01-01")
+        if len(o) < 80: return None
+        vals = [v for _, v in o]
+        ch3m = round((vals[-1] - vals[-64]) * 100, 0)
+        sig = 1 if ch3m <= -60 else 0 if ch3m <= -30 else -1
+        return _mk("2y yield collapse", "rates_regime", vals[-1], "%", sig,
+                    f"{vals[-1]:.2f}% ({ch3m:+.0f}bp 3m) — front-end smells breakage first",
+                    o[-1][0], lead="0-2m", src="DGS2")
+    put("twoyr_collapse", f_2y)
+
+    # GLOBAL / FX / EM
+    def f_cu_au():
+        cu = dict(poly_closes("CPER"))
+        au = dict(poly_closes("GLD"))
+        ks = sorted(set(cu) & set(au))
+        if len(ks) < 300: return None
+        r = [cu[k] / au[k] for k in ks]
+        z = zlast(r, 756)
+        ch6m = pct(r[-1], r[-127]) if len(r) > 127 else None
+        cu3 = pct(cu[ks[-1]], cu[ks[-64]])
+        au3 = pct(au[ks[-1]], au[ks[-64]])
+        driver = ("copper-driven (STAGE-2: real demand cracking)" if (cu3 or 0) <= -5
+                   else "gold-driven (stage-1: fear bid, demand intact)" if (au3 or 0) >= 5
+                   else "mixed")
+        sig = 1 if ((z or 0) <= -1.3 and (cu3 or 0) <= -5) else 0 if (z or 0) <= -0.8 else -1
+        return _mk("Copper/Gold ratio", "global_fx", round(r[-1], 4), "CPER/GLD", sig,
+                    f"z {z} · 6m {(ch6m or 0):+.1f}% · Cu3m {(cu3 or 0):+.1f}% vs Au3m "
+                    f"{(au3 or 0):+.1f}% → {driver}. 2026 regime: ratio at ~175-year lows.",
+                    ks[-1], z=z, lead="2-6m", src="CPER/GLD (Polygon)")
+    put("copper_gold", f_cu_au)
+
+    def f_audjpy():
+        o = poly_closes("C:AUDJPY", 900)
+        if len(o) < 120: return None
+        vals = [v for _, v in o]
+        ch3m = pct(vals[-1], vals[-64])
+        sig = 1 if (ch3m or 0) <= -6 else 0 if (ch3m or 0) <= -3 else -1
+        return _mk("AUD/JPY (risk FX)", "global_fx", round(vals[-1], 2), "", sig,
+                    f"3m {(ch3m or 0):+.1f}% — THE carry/risk barometer; fast falls precede "
+                    f"equity stress", o[-1][0], lead="0-2m", src="C:AUDJPY")
+    put("aud_jpy", f_audjpy)
+
+    def f_clp():
+        o = poly_closes("C:USDCLP", 900)
+        if len(o) < 120: return None
+        vals = [v for _, v in o]
+        ch3m = pct(vals[-1], vals[-64])
+        sig = 1 if (ch3m or 0) >= 8 else 0 if (ch3m or 0) >= 4 else -1
+        return _mk("USD/CLP (copper currency)", "global_fx", round(vals[-1], 1), "", sig,
+                    f"3m {(ch3m or 0):+.1f}% — the Chilean peso IS the copper economy; CLP "
+                    f"breakdowns lead industrial downturns", o[-1][0], lead="1-4m",
+                    src="C:USDCLP")
+    put("usd_clp", f_clp)
+
+    def f_emfx():
+        o = fred("DTWEXEMEGS", "2019-01-01")
+        if len(o) < 120: return None
+        vals = [v for _, v in o]
+        ch3m = pct(vals[-1], vals[-64])
+        sig = 1 if (ch3m or 0) >= 5 else 0 if (ch3m or 0) >= 2.5 else -1
+        return _mk("USD vs EM (broad)", "global_fx", round(vals[-1], 1), "idx", sig,
+                    f"3m {(ch3m or 0):+.1f}% — EM FX stress = dollar-shortage transmission",
+                    o[-1][0], lead="1-3m", src="DTWEXEMEGS")
+    put("em_fx_stress", f_emfx)
+
+    def f_chile_ip():
+        sid, o = fred_ladder(["CHLPROINDMISMEI", "PRINTO01CLQ661S",
+                                "CHLPRMNTO01IXOBM"], "2015-01-01")
+        if not o: return None
+        vals = [v for _, v in o]
+        yoy = pct(vals[-1], vals[-13]) if len(vals) > 13 else None
+        sig = 1 if (yoy or 0) <= -3 else 0 if (yoy or 0) <= 0 else -1
+        return _mk("Chile industrial production", "global_fx", round(vals[-1], 1), "idx", sig,
+                    f"YoY {(yoy or 0):+.1f}% — copper-economy real output", o[-1][0],
+                    lead="2-5m", src=sid)
+    put("chile_ip", f_chile_ip)
+
+    # MARKET INTERNALS
+    def ratio_canary(num, den, name, red, amber, invert, extra, lead="1-3m"):
+        a = dict(poly_closes(num, 900))
+        b = dict(poly_closes(den, 900))
+        ks = sorted(set(a) & set(b))
+        if len(ks) < 120: return None
+        r = [a[k] / b[k] for k in ks]
+        ch3m = pct(r[-1], r[-64])
+        x = -(ch3m or 0) if invert else (ch3m or 0)
+        sig = 1 if x >= red else 0 if x >= amber else -1
+        return _mk(name, "internals", round(r[-1], 4), f"{num}/{den}", sig,
+                    f"3m {(ch3m or 0):+.1f}% — {extra}", ks[-1], lead=lead,
+                    src=f"{num}/{den} (Polygon)")
+    put("transports_rel", lambda: ratio_canary("IYT", "SPY", "Transports vs SPY", 8, 4,
+        True, "Dow-theory non-confirmation when falling"))
+    put("defensives_bid", lambda: ratio_canary("XLP", "SPY", "Defensives bid (XLP/SPY)",
+        5, 2.5, False, "staples outperforming = de-risking under the hood"))
+    put("regional_banks_rel", lambda: ratio_canary("KRE", "SPY", "Regional banks vs SPY",
+        10, 5, True, "the SVB-class canary"))
+    put("korea_beta", lambda: ratio_canary("EWY", "SPY", "Korea (EWY) vs SPY", 10, 5,
+        True, "global-trade beta, priced daily"))
+
+    # PLUMBING EXTRAS
+    def f_swaps():
+        sid, o = fred_ladder(["SWPT", "WLCFLSCBLS"], "2019-01-01")
+        if not o: return None
+        v = o[-1][1]
+        sig = 1 if v >= 5 else 0 if v >= 0.5 else -1
+        return _mk("Fed FX swap lines", "plumbing_extra", round(v, 1), "$bn", sig,
+                    f"${v:.1f}bn outstanding — ANY real usage = global dollar shortage",
+                    o[-1][0], lead="0m (acute)", src=sid)
+    put("swap_lines", f_swaps)
+
+    def f_foreign_repo():
+        sid, o = fred_ladder(["WLRRAFOIAL", "WREPOFOR"], "2019-01-01")
+        if not o: return None
+        vals = [v for _, v in o]
+        ch13 = round(vals[-1] - vals[-14], 0) if len(vals) > 14 else None
+        d13 = [vals[i] - vals[i - 13] for i in range(13, len(vals))]
+        z = zlast(d13, 156) if d13 else None
+        sig = 1 if (z or 0) >= 2 else 0 if (z or 0) >= 1.2 else -1
+        return _mk("Foreign repo pool (Fed)", "plumbing_extra", round(vals[-1], 0), "$bn",
+                    sig, f"${vals[-1]:.0f}bn ({(ch13 or 0):+.0f} 13wk) — foreign officials "
+                    f"hoarding dollars", o[-1][0], z=z, lead="0-2m", src=sid)
+    put("foreign_repo_pool", f_foreign_repo)
+
+    def f_realm2():
+        md = dict(fred("M2SL", "2014-01-01"))
+        cd = dict(fred("CPIAUCSL", "2014-01-01"))
+        ks = sorted(set(md) & set(cd))
+        if len(ks) < 26: return None
+        real = [md[k] / cd[k] for k in ks]
+        yoy = pct(real[-1], real[-13])
+        sig = 1 if (yoy or 0) < -1 else 0 if (yoy or 0) < 0.5 else -1
+        return _mk("Real M2 growth", "plumbing_extra", yoy, "% YoY", sig,
+                    f"{(yoy or 0):+.1f}% YoY — real money contraction starves risk assets",
+                    ks[-1], lead="6-12m", src="M2SL/CPIAUCSL")
+    put("real_m2", f_realm2)
+
+    return G
 
 
 def lambda_handler(event=None, context=None):
@@ -310,6 +727,36 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         avail["pd_fails"] = False; print(f"[c12] {str(e)[:50]}")
 
+    # ── v3.0 GLOBAL CANARIES (31 metrics, 7 families) ──
+    gcs = global_canaries(canaries, avail, alerts)
+    canaries.update(gcs)
+    fam_scores = {}
+    for fam in ('labor', 'real_economy', 'credit', 'rates_regime', 'global_fx',
+                 'internals', 'plumbing_extra'):
+        sigs = [v['signal'] for v in gcs.values()
+                 if isinstance(v, dict) and v.get('family') == fam]
+        if sigs:
+            fam_scores[fam] = {'n': len(sigs), 'red': sigs.count(1),
+                                'amber': sigs.count(0), 'green': sigs.count(-1),
+                                'score': round(sum((s + 1) * 50 for s in sigs) / len(sigs), 0)}
+    red_total = sum(f['red'] for f in fam_scores.values())
+    n_total = sum(f['n'] for f in fam_scores.values())
+    global_score = (round(sum(f['score'] for f in fam_scores.values())
+                           / len(fam_scores), 1) if fam_scores else None)
+    grid_score = None
+    try:
+        gj_ = json.loads(S3.get_object(Bucket=BUCKET, Key='data/canary-grid.json')['Body'].read())
+        for k_ in ('composite_score', 'early_warning_score', 'composite', 'score'):
+            v_ = gj_.get(k_)
+            if isinstance(v_, (int, float)):
+                grid_score = round(float(v_), 1); break
+            if isinstance(v_, dict):
+                vv = v_.get('score')
+                if isinstance(vv, (int, float)):
+                    grid_score = round(float(vv), 1); break
+    except Exception as e_:
+        print(f'[grid-ingest] {str(e_)[:50]}')
+
     # ── composite (coverage-honest) ──
     parts = []
     st = (canaries.get("sofr_tail") or {}).get("z")
@@ -371,12 +818,22 @@ def lambda_handler(event=None, context=None):
            "availability": avail, "canaries": canaries,
            "composite_score": score, "level": level, "alerts": alerts,
            "signals_logged": n_logged,
+           "families": fam_scores, "red_count": red_total, "n_global": n_total,
+           "global_score": global_score, "grid_score_ingested": grid_score,
+           "composite_v3": (round(0.35 * (score or 0) + 0.45 * (global_score or 0)
+                                    + 0.20 * (grid_score if grid_score is not None
+                                               else (global_score or 0)), 1)
+                             if (global_score is not None or score is not None) else None),
+           "level_v3": None,
            "known_gaps": ["FHLB discount-note issuance has no free machine-readable feed (KHALID_ACTIONS)"],
            "methodology": ("Coverage-honest composite over live funding canaries: SOFR 99th-pct tail z, "
                            "H.4.1 discount-window WoW z, H.8 small-bank deposit outflow z, auction-composite "
                            "slope (self-bootstrapping 3-obs min), ALFRED payroll first-release-vs-latest "
                            "revision signature, OFR repo volume z. Score≥70 logs crisis_canary DOWN vs SPY "
                            "to the closed loop.")}
+    cv3 = out.get("composite_v3")
+    out["level_v3"] = ("ACUTE" if (cv3 or 0) >= 70 else "ELEVATED" if (cv3 or 0) >= 45
+                        else "WATCH" if (cv3 or 0) >= 25 else "CALM") if cv3 is not None else None
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[canaries] score={score} level={level} avail={avail} {out['duration_s']}s")
