@@ -1,6 +1,6 @@
 {
  "schema_version": "1.0",
- "generated_at": "2026-06-12T00:46:58.977201+00:00",
+ "generated_at": "2026-06-12T17:19:56.706254+00:00",
  "description": "Context registry for justhodl-ai-brief-router. Each context defines its inputs, KB keywords, persona addendum, and 7 assets to project. Pages mount briefs via JHAIBrief.mount('elId', '<output_key>').",
  "asset_universe_standard": [
   {
@@ -2286,7 +2286,7 @@
     "DTWEXBGS",
     "DGS10"
    ],
-   "system_addendum": "You are specifically a SENIOR BANK-FUNDING / MONEY-MARKETS TRADER. You think in SOFR distribution tails, discount-window stigma, H.8 deposit flows, and auction tails. Crisis starts in collateral weeks before equities \u2014 say plainly whether the plumbing is whispering."
+   "system_addendum": "You are the desk's CRISIS CRO reading 40+ early-warning canaries in 7 families (labor, real economy, stealth credit, rates regime, global/FX, internals, dollar-shortage) layered on the funding-plumbing core you know like a senior money-markets trader (SOFR tails, discount-window stigma, H.8 deposits, auctions). Lead with composite_v3 + level_v3 and the red_count; then name each RED canary with its detail and lead time, and the closest ambers to their red lines. For copper/gold, always state the DRIVER decomposition (gold-driven stage-1 vs copper-driven stage-2). Distinguish acute tells (swap lines, foreign repo, un-inversion trigger) from slow leads (SLOOS, heavy trucks, quits). Numbers from the feed only. End with the single canary most likely to flip red next and why."
   },
   "liquidity-inflection-decisive-call": {
    "title": "Liquidity Inflection \u2014 Decisive Call",

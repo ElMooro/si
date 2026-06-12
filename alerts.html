@@ -29,7 +29,7 @@ h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--red)
 <nav><a href="/">Desk</a><a href="/alerts.html" class="on">🛰 Alerts</a><a href="/insider.html">Insider</a><a href="/upside-radar.html">Upside</a><a href="/signal-board.html">Board</a></nav></header>
 <div class="wrap">
 <h1>Alert Sentinel — <span class="grad">live watch state</span></h1>
-<p class="sub">A stateful diff watcher: each session it snapshots the desk's actionable signals and pushes a Telegram alert <b>only when something changes</b> — new breakouts, an insider cluster after a decline, a rotation thrust firing, a breadth regime day, an altseason phase shift, or a change in the top sizing call. No change, no noise.</p>
+<p class="sub">A stateful diff watcher: each session it snapshots the desk's actionable signals and pushes a Telegram alert <b>only when something changes</b> — new breakouts, an insider cluster after a decline, a rotation thrust firing, a breadth regime day, an altseason phase shift, a change in the top sizing call, or a crisis canary flipping RED (40+ early-warning metrics). No change, no noise.</p>
 <span class="tg" id="tg">📲 alerts delivered to Telegram</span>
 <div class="hero" id="hero"><span class="loading">Loading…</span></div>
 <div class="sec">Most recent change set</div>
@@ -67,6 +67,6 @@ async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.
   add('200DMA reclaim',(s.ma_reclaim_200||[]).join(' ')||'—','hi');
   add('200DMA break',(s.ma_break_200||[]).join(' ')||'—','lo');
   document.getElementById('watch').innerHTML=w.join('');
-  document.getElementById('note').textContent=`Watching breakouts · insider clusters · rotation thrusts · breadth · altseason · sizing · 200DMA crossings. v${D.version} · ${D.generated_at} · first_run=${D.first_run} · Research, not advice.`;
+  document.getElementById('note').textContent=`Watching breakouts · insider clusters · rotation thrusts · breadth · altseason · sizing · crisis canaries · 200DMA crossings. v${D.version} · ${D.generated_at} · first_run=${D.first_run} · Research, not advice.`;
 })();
 </script></body></html>

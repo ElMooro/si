@@ -12,6 +12,7 @@ Watched (each extracted defensively; misses land in DIAG, never crash):
   • rotation live extremes       (semis off-low, smallcap vs 365d-high)
   • S&P breadth regime day       (data/market-map.json — |cap-wtd| >= 1.5%)
   • altseason phase change       (data/altseason.json)
+  • crisis-canary red flips     (data/crisis-canaries.json v3)
   • sizing top recommendation    (data/sizing.json)
   • 200DMA reclaim/break          (data/ma-reversion.json if present)
 """
@@ -25,7 +26,7 @@ STATE_KEY = "data/_alerts/last.json"
 OUT_KEY = "data/alert-sentinel.json"
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 DIAG = []
 
 
@@ -97,6 +98,17 @@ def snapshot():
     s["altseason_phase"] = ((alt.get("composite") or {}).get("phase")
                              or alt.get("phase") or alt.get("verdict"))
 
+    cc = gj("data/crisis-canaries.json")
+    s["canary_reds"] = sorted(k for k, v in (cc.get("canaries") or {}).items()
+                                if isinstance(v, dict) and v.get("family")
+                                and v.get("status") == "RED")
+    s["canary_level_v3"] = cc.get("level_v3") or cc.get("level")
+    s["canary_v3"] = cc.get("composite_v3")
+    s["_canary_names"] = {k: (v.get("name"), (v.get("detail") or "")[:90])
+                           for k, v in (cc.get("canaries") or {}).items()
+                           if isinstance(v, dict) and v.get("family")
+                           and v.get("status") == "RED"}
+
     sz = gj("data/sizing.json")
     recs = sz.get("recommendations") or sz.get("sizes") or sz.get("positions") or []
     top = recs[0] if isinstance(recs, list) and recs else {}
@@ -118,6 +130,15 @@ def diff(old, new):
         add = sorted(n - o)
         if add:
             msgs.append(f"{emoji} {label}: {', '.join(add[:12])}" + (" …" if len(add) > 12 else ""))
+    # crisis canaries: name each newly-red canary with its detail
+    oc, nc = set(old.get("canary_reds") or []), set(new.get("canary_reds") or [])
+    for k in sorted(nc - oc):
+        nm, det = (new.get("_canary_names") or {}).get(k, (k, ""))
+        msgs.append(f"🐤 NEW RED canary — {nm}: {det}")
+    if (new.get("canary_level_v3") and old.get("canary_level_v3")
+            and new["canary_level_v3"] != old["canary_level_v3"]):
+        msgs.append(f"🚨 Crisis composite → {new['canary_level_v3']} "
+                     f"({new.get('canary_v3')}) from {old['canary_level_v3']}")
     newset("insider_decline", "NEW insider cluster after decline", "🕵")
     newset("breakouts", "New breakouts", "🚀")
     newset("ma_reclaim_200", "Reclaimed 200DMA", "📈")

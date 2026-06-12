@@ -684,11 +684,16 @@ def n_bottleneck_boom(d):
 
 
 def n_crisis_canaries(d):
+    v3 = d.get("composite_v3")
     sc = d.get("composite_score")
-    if sc is None:
+    if v3 is None and sc is None:
         return 0, "Canaries n/a"
-    sig = -2 if sc >= 70 else -1 if sc >= 45 else 0
-    return sig, f"Funding canaries {sc} ({d.get('level', 'n/a')})"
+    use = v3 if v3 is not None else sc
+    lvl = d.get("level_v3") or d.get("level", "n/a")
+    red = d.get("red_count")
+    sig = -2 if use >= 70 else -1 if (use >= 45 or (red or 0) >= 4) else 0
+    extra = f" · {red} red of {d.get('n_global')}" if red is not None else ""
+    return sig, f"Crisis composite v3 {use} ({lvl}){extra} · plumbing {sc}"
 
 
 def n_liquidity_inflection(d):
