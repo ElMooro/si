@@ -1,0 +1,107 @@
+{
+ "ops": 1654,
+ "tg_env": false,
+ "fn": "created",
+ "arm": {
+  "armed": 43
+ },
+ "pulse": {
+  "events": 5,
+  "movers": 43
+ },
+ "verify": {
+  "armed_n": 43,
+  "n_events": 5,
+  "movers_head": [
+   {
+    "t": "ADBE",
+    "p": 204.02,
+    "chg": -6.66
+   },
+   {
+    "t": "NEXA",
+    "p": 13.73,
+    "chg": 6.35
+   },
+   {
+    "t": "MH",
+    "p": 11.76,
+    "chg": -5.67
+   },
+   {
+    "t": "GLP",
+    "p": 47.13,
+    "chg": -5.06
+   },
+   {
+    "t": "LILA",
+    "p": 8.16,
+    "chg": 3.29
+   },
+   {
+    "t": "WBTN",
+    "p": 12.0,
+    "chg": 3.18
+   },
+   {
+    "t": "STRA",
+    "p": 77.41,
+    "chg": -3.06
+   },
+   {
+    "t": "DRD",
+    "p": 23.47,
+    "chg": 2.96
+   }
+  ],
+  "events_head": [
+   {
+    "at": "01:36",
+    "line": "\u26a1 HMN broke its 60d high (48.75 \u2192 48.86, +0.2% today)"
+   },
+   {
+    "at": "01:36",
+    "line": "\ud83d\udd3b ADBE down -6.7% intraday (now 204.02)"
+   },
+   {
+    "at": "01:36",
+    "line": "\u26a1 LOB broke its 60d high (38.78 \u2192 39.03, +1.0% today)"
+   },
+   {
+    "at": "01:36",
+    "line": "\u26a1 DCOM broke its 60d high (39.81 \u2192 40.08, +0.7% today)"
+   },
+   {
+    "at": "01:36",
+    "line": "\u26a1 IWM broke its 60d high (292.03 \u2192 292.95, +0.9% today)"
+   }
+  ]
+ },
+ "armed_sample": {
+  "ACN": {
+   "hi60": 203.55,
+   "prev": 167.52
+  },
+  "ADBE": {
+   "hi60": 274.03,
+   "prev": 218.8
+  },
+  "AVAH": {
+   "hi60": 7.72,
+   "prev": 7.0
+  },
+  "BBUC": {
+   "hi60": 34.99,
+   "prev": 31.51
+  },
+  "BHC": {
+   "hi60": 5.91,
+   "prev": 5.16
+  }
+ },
+ "sentinel_buffer_n": 5,
+ "board_n": 81,
+ "board_row": {
+  "read": "43 armed \u00b7 5 events today \u00b7 top mover ADBE -6.66%"
+ }
+}
