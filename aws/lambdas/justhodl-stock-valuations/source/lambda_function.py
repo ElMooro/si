@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -329,6 +329,12 @@ def lambda_handler(event=None, context=None):
         spy_r = rings.get("SPY") or []
     except Exception as e:
         DIAG.append(f"rings: {str(e)[:40]}")
+    try:
+        ESTREV = (json.loads(S3.get_object(Bucket=BUCKET,
+                   Key="data/estimate-revisions.json")["Body"].read())
+                   .get("tickers") or {})
+    except Exception:
+        ESTREV = {}
 
     sp_fresh = st.get("sp_asof", "") >= week_ago
     todo = [t for t in sec if t not in st["sp"]]
@@ -555,6 +561,8 @@ def lambda_handler(event=None, context=None):
                          "vclass": vclass, "hist_pct": hist_pct,
                          "deep_discount": deep_discount, "rule40": rule40,
                          "mcap": r.get("mcap"),
+                         "est_g": (ESTREV.get(t) or {}).get("est_g_pct"),
+                         "eps_rev": (ESTREV.get(t) or {}).get("eps_rev_pct"),
                          "cycle_note": cycle_note, "gf_gap": gf.get(t)})
             sp_table.append(row)
     sp_table.sort(key=lambda x: x["value_pct"])
@@ -718,6 +726,14 @@ def lambda_handler(event=None, context=None):
             hp_class = "QUALITY AT PREMIUM"
         else:
             hp_class = "MIXED"
+        er = ESTREV.get(t) or {}
+        if er.get("eps_rev_pct") is not None:
+            if er["eps_rev_pct"] >= 3:
+                pillars["rerating"] = round(min(10, pillars["rerating"] + 1.5), 1)
+            elif er["eps_rev_pct"] <= -3:
+                pillars["rerating"] = round(max(0, pillars["rerating"] - 1.5), 1)
+        elif (er.get("est_g_pct") or 0) >= 15:
+            pillars["rerating"] = round(min(10, pillars["rerating"] + 0.8), 1)
         # doc S21 "cheap AI stock" formula as a strict badge
         formula21 = bool(not is_fin
                           and (yoy or 0) >= 0.20
@@ -736,6 +752,8 @@ def lambda_handler(event=None, context=None):
                                      "rev_yoy_pct": round(yoy * 100, 1) if yoy is not None else None,
                                      "gross_margin_pct": round((g or 0) * 100, 1) if g is not None else None,
                                      "dilution_yoy_pct": round(dil * 100, 1) if dil is not None else None,
+                                     "est_g_pct": er.get("est_g_pct"),
+                                     "eps_rev_pct": er.get("eps_rev_pct"),
                                      "rule40": rule40, "fcf_margin": fcf_margin,
                                      "sbc_pct_rev": sbc_pct_rev,
                                      "fcf_after_sbc": fcf_after_sbc,
@@ -822,6 +840,9 @@ def lambda_handler(event=None, context=None):
             a += 8.0
         if (r.get("rule40") or 0) >= 40:
             a += 5.0
+        erv = (ESTREV.get(r["t"]) or {}).get("eps_rev_pct")
+        if erv is not None:
+            a += 4.0 if erv >= 3 else (-4.0 if erv <= -3 else 0.0)
         cn = r.get("cycle_note") or ""
         if cn.startswith("PEAK"):
             a -= 15.0

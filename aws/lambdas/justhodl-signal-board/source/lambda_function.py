@@ -976,6 +976,16 @@ def n_intraday_pulse(d):
                                      f"top mover {tm.get('t')} {tm.get('chg')}%")
 
 
+def n_estimate_revisions(d):
+    b = d.get("breadth") or {}
+    if d.get("coverage") is None:
+        return 0, "Estimate revisions n/a"
+    net = (b.get("up", 0) - b.get("down", 0))
+    sig = 1 if net >= 8 else (-1 if net <= -8 else 0)
+    return sig, (f"{d.get('coverage')} covered · revisions {b.get('up',0)}up/"
+                  f"{b.get('down',0)}dn (aging in) · fwd-growth live")
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1067,6 +1077,7 @@ FEEDS = [
     ("Backtest Harness",       "meta",             "data/backtest-harness.json",     n_backtest_harness),
     ("Meta-Labeler",           "meta",             "data/meta-labeler.json",         n_meta_labeler),
     ("Intraday Pulse",         "tape",             "data/intraday-pulse.json",       n_intraday_pulse),
+    ("Estimate Revisions",     "equity tactical",  "data/estimate-revisions.json",   n_estimate_revisions),
 ]
 
 

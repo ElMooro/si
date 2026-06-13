@@ -28,7 +28,7 @@ TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
 SEND_HOUR_UTC = 21        # one big report per day, after US close + all engines
 PART_LIMIT = 3500
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 DIAG = []
 
 
@@ -107,6 +107,11 @@ def snapshot():
                                   f"({c.get('discount_pct')}% disc), 3M {c.get('m3')}%")
                         for c in cands if c.get("t")}
 
+    er = gj("data/estimate-revisions.json")
+    s["est_up5"] = sorted(x["t"] for x in (er.get("movers_up") or []) if x.get("rv", 0) >= 5)[:15]
+    s["_est_detail"] = {x["t"]: f"{x['t']} EPS estimate revised {x['rv']:+.1f}%"
+                          for x in (er.get("movers_up") or []) if x.get("rv", 0) >= 5}
+
     rp = gj("data/research-papers.json")
     rp_l = (rp.get("papers") or [])[:12]
     s["papers"] = sorted(f"{x.get('t')}#{x.get('date')}" for x in rp_l if x.get("t"))
@@ -118,6 +123,11 @@ def snapshot():
     ser = [x for x in (sv.get("hp") or []) if (x.get("score") or 0) >= 75 and not x.get("flags")]
     s["hp_serious"] = sorted(x.get("t") for x in ser if x.get("t"))[:12]
     s["_hp_detail"] = {x["t"]: f"HP {x.get('score')}/100" for x in ser if x.get("t")}
+
+    er = gj("data/estimate-revisions.json")
+    s["est_up5"] = sorted(x["t"] for x in (er.get("movers_up") or []) if x.get("rv", 0) >= 5)[:15]
+    s["_est_detail"] = {x["t"]: f"{x['t']} EPS estimate revised {x['rv']:+.1f}%"
+                          for x in (er.get("movers_up") or []) if x.get("rv", 0) >= 5}
 
     rp = gj("data/research-papers.json")
     pidx = (rp.get("papers") or [])[:12]
@@ -170,6 +180,10 @@ def diff(old, new):
             and new["ul_leader"] != old["ul_leader"]):
         msgs.append(f"🔭 Underlooked #1 → {new['ul_leader']} "
                      f"({new.get('_ul_detail')})")
+    # 📈 big upward estimate revisions
+    oe, ne = set(old.get("est_up5") or []), set(new.get("est_up5") or [])
+    for t in sorted(ne - oe):
+        msgs.append(f"📈 {(new.get('_est_detail') or {}).get(t, t)} — analysts chasing")
     # 📜 new AI research notes
     opp, npp = set(old.get("papers") or []), set(new.get("papers") or [])
     for k in sorted(npp - opp):
