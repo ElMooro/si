@@ -967,6 +967,15 @@ def n_meta_labeler(d):
                                      f"{d.get('n_take')}/{d.get('n_pending_gated')} pending TAKE")
 
 
+def n_intraday_pulse(d):
+    n = d.get("n_events_today")
+    if n is None:
+        return 0, "Intraday pulse n/a"
+    tm = (d.get("top_movers") or [{}])[0]
+    return (1 if n >= 3 else 0), (f"{d.get('armed_n')} armed · {n} events today · "
+                                     f"top mover {tm.get('t')} {tm.get('chg')}%")
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1057,6 +1066,7 @@ FEEDS = [
     ("Research Papers",        "equity tactical",  "data/research-papers.json",      n_research_papers),
     ("Backtest Harness",       "meta",             "data/backtest-harness.json",     n_backtest_harness),
     ("Meta-Labeler",           "meta",             "data/meta-labeler.json",         n_meta_labeler),
+    ("Intraday Pulse",         "tape",             "data/intraday-pulse.json",       n_intraday_pulse),
 ]
 
 
