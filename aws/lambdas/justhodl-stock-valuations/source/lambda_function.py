@@ -27,7 +27,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.4.2"
+VERSION = "1.5.0"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -112,6 +112,7 @@ KM_LADDERS = {"roe": ["returnOnEquityTTM", "roeTTM", "returnOnCommonEquityTTM"],
                "ev": ["enterpriseValueTTM", "enterpriseValue"],
                "sbc_rev": ["stockBasedCompensationToRevenueTTM",
                             "stockBasedCompensationToRevenue"],
+               "mcap": ["marketCapTTM", "marketCap"],
                "roa": ["returnOnAssetsTTM", "roaTTM", "returnOnTangibleAssetsTTM"],
                "fcf_y": ["freeCashFlowYieldTTM", "fcfYieldTTM"],
                "ev_fcf": ["evToFreeCashFlowTTM", "enterpriseValueOverFreeCashFlowTTM"]}
@@ -286,6 +287,10 @@ def lambda_handler(event=None, context=None):
     except Exception:
         st = {"sp": {}, "hp": {}, "sp_asof": "", "hp_asof": "", "hp_rows": [], "hp_src": ""}
     week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat()
+    if not st.get("v150_refetch"):
+        st["sp_asof"] = ""
+        st["v150_refetch"] = True
+        DIAG.append("v1.5.0: sp refetch for mcap (heatmap tile sizing)")
     if not st.get("v141_universe"):
         st["hp_asof"] = ""
         st["v141_universe"] = True
@@ -549,6 +554,7 @@ def lambda_handler(event=None, context=None):
                          "peg": peg, "value_pct": vpct, "label": label,
                          "vclass": vclass, "hist_pct": hist_pct,
                          "deep_discount": deep_discount, "rule40": rule40,
+                         "mcap": r.get("mcap"),
                          "cycle_note": cycle_note, "gf_gap": gf.get(t)})
             sp_table.append(row)
     sp_table.sort(key=lambda x: x["value_pct"])
@@ -790,6 +796,47 @@ def lambda_handler(event=None, context=None):
         if len(industries[ind]) < 10:
             industries[ind].append(slim(x))
     underlooked_top = [slim(x) for x in ranked[:25]]
+    # ── attractiveness heatmap tiles (TradingView-style treemap data) ──
+    hm_hp = []
+    for x in hp_out:
+        m = hp_mcap.get(x["t"])
+        if not m:
+            continue
+        a = float(x["score"])
+        if x["flags"]:
+            a = min(a, 15.0)
+        a = max(0.0, min(100.0, a - 4.0 * len(x.get("soft_flags") or [])
+                          + (6.0 if x.get("formula21") else 0.0)))
+        hm_hp.append({"t": x["t"], "g": x.get("industry") or "Other",
+                       "m": round(m / 1e6), "a": round(a, 1),
+                       "u": x.get("underlooked"), "c": x.get("hp_class")})
+    hm_sp = []
+    for r in sp_table:
+        m = r.get("mcap")
+        if not m or r.get("value_pct") is None:
+            continue
+        a = 100.0 - float(r["value_pct"])
+        if r.get("vclass") == "VALUE TRAP RISK":
+            a = min(a, 32.0)
+        if r.get("deep_discount"):
+            a += 8.0
+        if (r.get("rule40") or 0) >= 40:
+            a += 5.0
+        cn = r.get("cycle_note") or ""
+        if cn.startswith("PEAK"):
+            a -= 15.0
+        elif cn.startswith("CYCLE-TROUGH"):
+            a += 8.0
+        a = max(0.0, min(100.0, a))
+        hm_sp.append({"t": r["t"], "g": r.get("sector") or "Other",
+                       "m": round(m / 1e6), "a": round(a, 1),
+                       "c": r.get("vclass") or r.get("vlabel")})
+    heatmap = {"hp": hm_hp, "sp": hm_sp,
+                "note": ("a = attractiveness 0-100. HP layer: HP-score minus soft-flag "
+                          "docks, hard flags cap at 15, formula21 +6; grouped by industry. "
+                          "S&P layer: 100-value_pct with trap cap 32, deep-discount +8, "
+                          "Rule40>=40 +5, semi PEAK -15 / TROUGH +8; grouped by sector.")}
+    DIAG.append(f"heatmap tiles: {len(hm_hp)} HP / {len(hm_sp)} S&P")
     DIAG.append(f"underlooked: {len(ranked)} scored across {len(industries)} industries")
     serious = [x for x in hp_out if x["score"] >= 75 and not x["flags"]]
     logged = []
@@ -823,6 +870,7 @@ def lambda_handler(event=None, context=None):
             "n_deep_discount": sum(1 for x in sp_table if x.get("deep_discount")),
             "sp_asof": st.get("sp_asof"),
             "hp": hp_out[:80], "hp_coverage": len(hp_out), "hp_universe": len(hp_rows),
+            "heatmap": heatmap,
             "industries": industries, "n_industries": len(industries),
             "underlooked_top": underlooked_top,
             "hp_src": st.get("hp_src"), "hp_logged": logged, "n_serious": len(serious),
