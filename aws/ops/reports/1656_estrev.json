@@ -1,0 +1,84 @@
+{
+ "ops": 1656,
+ "fn": "created",
+ "invokes": [
+  {
+   "coverage": 578
+  },
+  {
+   "coverage": 578
+  }
+ ],
+ "estrev": {
+  "coverage": 578,
+  "universe": 580,
+  "breadth": {
+   "up": 0,
+   "down": 0,
+   "flat": 0
+  },
+  "diag": [
+   "fetched 580 this run, rolled 0 prior snapshots"
+  ],
+  "fwd_growth_n": 570,
+  "top_fwd_growth": [
+   [
+    "COHU",
+    150.3
+   ],
+   [
+    "LITE",
+    125.1
+   ],
+   [
+    "WY",
+    107.4
+   ],
+   [
+    "MCHP",
+    100.8
+   ],
+   [
+    "BA",
+    90.4
+   ],
+   [
+    "IP",
+    89.1
+   ],
+   [
+    "SATS",
+    83.7
+   ],
+   [
+    "VPG",
+    79.5
+   ]
+  ],
+  "sample_AAPL": {
+   "eps_fy1": 9.63476,
+   "rev_fy1": 518047576246.0,
+   "n_analysts": 33,
+   "fy1": "2027",
+   "asof": "2026-06-13",
+   "est_g_pct": 10.4
+  },
+  "sample_OPRA": null
+ },
+ "val_err": "NONE",
+ "val_join": {
+  "version": "1.5.1",
+  "sp_with_estg": 496,
+  "hp_with_estg": 74,
+  "aapl_estg": 10.4
+ },
+ "board_n": 82,
+ "board_row": {
+  "read": "578 covered \u00b7 revisions 0up/0dn (aging in) \u00b7 fwd-growth live",
+  "sig": 0
+ },
+ "sentinel": {
+  "version": "2.1.0",
+  "buffer_n": 43
+ }
+}
