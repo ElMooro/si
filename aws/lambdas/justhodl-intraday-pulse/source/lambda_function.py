@@ -21,13 +21,13 @@ import boto3
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", os.environ.get("TELEGRAM_BOT_TOKEN", ""))
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
 ARMED_KEY = "data/_intraday/armed.json"
 STATE_KEY = "data/_intraday/state.json"
-SENT_STATE = "data/_sentinel/state.json"
+SENT_STATE = "data/_alerts/last.json"
 OUT_KEY = "data/intraday-pulse.json"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 
 def jget(url, timeout=15):
