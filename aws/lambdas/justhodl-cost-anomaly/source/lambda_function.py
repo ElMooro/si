@@ -282,6 +282,33 @@ def send_telegram(msg):
         return False
 
 
+def check_zai_balance():
+    """Canary GLM call to detect Z.ai balance exhaustion (error 1113).
+    Cheap (max_tokens=1). Returns status: funded | exhausted | no_key | error."""
+    import urllib.error
+    try:
+        key = boto3.client("ssm", region_name="us-east-1").get_parameter(
+            Name="/justhodl/zai-api-key", WithDecryption=True)["Parameter"]["Value"]
+    except Exception as e:
+        return {"status": "no_key", "detail": str(e)[:120]}
+    body = json.dumps({"model": "glm-4.6", "max_tokens": 1,
+                       "messages": [{"role": "user", "content": "ok"}]}).encode()
+    req = urllib.request.Request(
+        "https://api.z.ai/api/paas/v4/chat/completions", data=body,
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            json.loads(r.read())
+        return {"status": "funded"}
+    except urllib.error.HTTPError as e:
+        raw = e.read().decode("utf-8", "ignore")
+        if "1113" in raw or "Insufficient balance" in raw:
+            return {"status": "exhausted", "detail": "error 1113 — recharge at z.ai"}
+        return {"status": "error", "http": e.code, "detail": raw[:150]}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)[:120]}
+
+
 def build_alert(payload):
     aws = payload['aws_spend']
     lams = payload['lambda_invocations']
@@ -306,7 +333,16 @@ def build_alert(payload):
     
     lines.append(f"\nClaude est: {anth.get('claude_invocations_7d', 0)} inv/7d, "
                  f"~${anth.get('est_cost_monthly_usd', 0)}/mo")
-    
+
+    zai = payload.get('zai_balance', {})
+    if zai.get('status') == 'exhausted':
+        lines.append("\n*🔴 Z.ai balance EXHAUSTED* — GLM reasoning tier is DOWN "
+                     "(engines falling back to Claude). Recharge at z.ai.")
+    elif zai.get('status') == 'no_key':
+        lines.append("\n*⚠️ Z.ai key missing from SSM* — GLM tier cannot run.")
+    elif zai.get('status') == 'error':
+        lines.append(f"\n*⚠️ Z.ai check error*: {str(zai.get('detail',''))[:80]}")
+
     return "\n".join(lines)
 
 
@@ -320,6 +356,7 @@ def lambda_handler(event=None, context=None):
     aws_spend = fetch_aws_spend()
     lambda_inv = detect_lambda_invocation_anomalies()
     anthropic = fetch_anthropic_spend()
+    zai_balance = check_zai_balance()
     
     payload = {
         'version': VERSION,
@@ -327,6 +364,7 @@ def lambda_handler(event=None, context=None):
         'aws_spend': aws_spend,
         'lambda_invocations': lambda_inv,
         'anthropic_spend': anthropic,
+        'zai_balance': zai_balance,
         'monthly_budget_usd': MONTHLY_BUDGET_USD,
         'elapsed_s': round(time.time() - started, 1),
     }
@@ -341,6 +379,8 @@ def lambda_handler(event=None, context=None):
         n_anomalies += len(lambda_inv['anomalies'])
         should_alert = True
     if aws_spend.get('projected_vs_budget_pct', 0) > 110:
+        should_alert = True
+    if zai_balance.get('status') in ('exhausted', 'no_key'):
         should_alert = True
     
     # Write outputs
