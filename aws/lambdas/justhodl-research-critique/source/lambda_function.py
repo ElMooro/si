@@ -56,6 +56,21 @@ ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_CRITIC_MODEL", "claude-sonnet-4-6")
 OPENAI_MODEL = os.environ.get("OPENAI_CRITIC_MODEL", "o3-mini")
 CRITIQUE_TIMEOUT = int(os.environ.get("CRITIQUE_TIMEOUT", "90"))
 
+# GLM-5.1 (Z.ai) — primary for this public-data critique engine; Anthropic
+# Sonnet is the automatic fallback. Key read from SSM (cached per warm container).
+ZAI_BASE_URL = os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/paas/v4")
+ZAI_MODEL = os.environ.get("ZAI_CRITIC_MODEL", "glm-5.1")
+ZAI_SSM_NAME = "/justhodl/zai-api-key"
+_zai_key_cache = None
+
+
+def _zai_key():
+    global _zai_key_cache
+    if _zai_key_cache is None:
+        _zai_key_cache = boto3.client("ssm", region_name="us-east-1").get_parameter(
+            Name=ZAI_SSM_NAME, WithDecryption=True)["Parameter"]["Value"]
+    return _zai_key_cache
+
 s3 = boto3.client("s3", region_name="us-east-1")
 
 
@@ -221,12 +236,55 @@ def call_openai(system: str, user: str, max_tokens: int = 4000) -> tuple:
     return text, data.get("usage", {}) or {}
 
 
+def call_glm(system: str, user: str, max_tokens: int = 4000) -> tuple:
+    """Returns (text, usage_dict). GLM-5.1 via Z.ai (/api/paas/v4)."""
+    payload = json.dumps({
+        "model": ZAI_MODEL,
+        # GLM-5.1 is a reasoning model — give headroom so reasoning tokens
+        # don't starve the visible answer (the empty-content trap).
+        "max_tokens": max(max_tokens, 4000),
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+    }).encode()
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {_zai_key()}",
+    }
+    data = _post_json(f"{ZAI_BASE_URL}/chat/completions",
+                      headers, payload, CRITIQUE_TIMEOUT)
+    choices = data.get("choices") or []
+    if not choices:
+        raise RuntimeError(f"Empty GLM response: {data}")
+    msg = choices[0].get("message") or {}
+    text = (msg.get("content") or msg.get("reasoning_content") or "").strip()
+    if not text:
+        raise RuntimeError(f"GLM returned empty content: {data}")
+    return text, data.get("usage", {}) or {}
+
+
 def critique_via_chosen_model(system: str, user: str) -> dict:
     """Tries OpenAI first if key available, else Anthropic Sonnet.
 
     Returns dict with text, usage, model_used, cost_estimate_usd, elapsed_s.
     """
     t0 = time.time()
+    # GLM-5.1 primary (public-data critique per data-classification policy).
+    # Any error falls through to OpenAI/Anthropic below.
+    try:
+        text, usage = call_glm(system, user)
+        in_tok = usage.get("prompt_tokens", 0)
+        out_tok = usage.get("completion_tokens", 0)
+        # GLM-5.1 approx: $1.40/MTok in, $4.40/MTok out
+        cost = round((in_tok * 1.40 + out_tok * 4.40) / 1_000_000, 6)
+        return {
+            "model_used": ZAI_MODEL, "provider": "zai",
+            "text": text, "usage": usage, "cost_usd": cost,
+            "elapsed_s": round(time.time() - t0, 1),
+        }
+    except Exception as e:
+        print(f"[critique] GLM-5.1 failed, falling back: {e}")
     if OPENAI_KEY:
         try:
             text, usage = call_openai(system, user)
