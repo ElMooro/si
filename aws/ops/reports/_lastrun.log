@@ -1,12 +1,6 @@
-key length 49
+Key loaded from SSM (length 49).
 
-============================================================
-URL: https://api.z.ai/api/paas/v4/chat/completions
-HTTP 429
-BODY: {"error":{"code":"1113","message":"Insufficient balance or no resource package. Please recharge."}}
+[OK]   glm-4.6: 'connection OK' | 18 in / 173 out | ~$0.000391/call
+[OK]   glm-5.1: '' | 18 in / 32 out | ~$0.000114/call
 
-============================================================
-URL: https://api.z.ai/api/openai/v1/chat/completions
-HTTP 200
-BODY: {"code":500,"msg":"404 NOT_FOUND","success":false}
-
+RESULT: ALL MODELS OK
