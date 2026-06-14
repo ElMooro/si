@@ -1,7 +1,9 @@
-invoked opportunity-engine (async)
-  ...waiting (20s)
+panel before: False
+invoked alpha-score (async)
+PANEL WRITTEN after ~20s: n=503 factors=['quality', 'growth', 'momentum', 'smart_money', 'sentiment', 'analysts', 'insiders', 'options_flow']
+  sample row: {"VRT": {"p": 302.87, "a": 77, "c": {"quality": 82, "growth": 95, "momentum": 76, "smart_money": 61, "sentiment": 76, "analysts": 49, "insiders": 87, "options_flow": null}}, "INCY": {"p": 108.53, "a": 77, "c": {"quality": 91, "growth": 78, "momentum": 78, "sma
 
-snapshot 2026-06-14: 1237 picks
-  pv (peer valuation) distribution: {'rich': 417, 'fair': 223, 'cheap': 497, 'None': 100}
-  cyc (cycle stage) distribution: {"{'tag': '—', 'note': None}": 537, "{'tag': 'EARLY CYCLE', 'note': 'Earnings look depressed but the forward outlook is improving — the classic point where cyclical stocks look pricey just before they turn up.'}": 180, '{\'tag\': \'LATE CYCLE\', \'note\': "Earnings look near a cyclical peak — a low P/E here can be a trap, because peak profits rarely last. Treat \'cheap\' with caution."}': 70, "{'tag': 'MID CYCLE', 'note': None}": 450}
-  sample CHEAP-vs-peer names: ['MCK', 'NEM', 'AOS', 'BIIB', 'FOX', 'PTC', 'INTU', 'ADBE', 'BSX', 'IQV', 'REGN', 'PNR']
+invoked signal-backtest (async)
+
+factor-ic.json: maturity=WARMING_UP panels_total=1 panels_matured=0 dates_used=None
+  note: Need alpha-panels >= 7d old. Accruing daily.
