@@ -1,0 +1,95 @@
+"""
+aws/shared/llm_router.py — centralized, tiered LLM routing for the engine fleet.
+
+Strategy (from the 2026-06 audit):
+  - 52 engines already run on Claude Haiku 4.5 — cheapest tier. GLM is NOT
+    worth it there (reasoning-token overhead erases the gap). Keep them.
+  - 9 engines run on Sonnet 4.6 — the real GLM-5.1 target (~1/3 the cost,
+    competitive reasoning). Route via tier="reason" with Claude fallback.
+  - Proprietary data (Khalid Index internals, portfolio, private notes)
+    NEVER leaves Claude — enforced by the data-classification guard.
+
+Tiers:
+  "bulk"     -> Claude Haiku 4.5   (default; summarize/classify/extract)
+  "reason"   -> GLM-5.1 on Z.ai    (fallback: Claude Sonnet on any error)
+  "critical" -> Claude Sonnet 4.6  (high-stakes; never offshored)
+
+contains_proprietary=True forces Claude regardless of tier.
+
+Keys: Anthropic from env (ANTHROPIC_API_KEY or ANTHROPIC_KEY).
+      Z.ai from SSM /justhodl/zai-api-key (cached per warm container).
+"""
+import json
+import os
+import urllib.request
+import urllib.error
+
+HAIKU = "claude-haiku-4-5-20251001"
+SONNET = "claude-sonnet-4-6"
+GLM_REASON = "glm-5.1"
+
+ZAI_BASE_URL = os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/paas/v4")
+ZAI_SSM_NAME = "/justhodl/zai-api-key"
+_ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_KEY", "")
+
+_zai_key_cache = None
+
+
+def _zai_key():
+    global _zai_key_cache
+    if _zai_key_cache is None:
+        import boto3
+        ssm = boto3.client("ssm", region_name="us-east-1")
+        _zai_key_cache = ssm.get_parameter(Name=ZAI_SSM_NAME, WithDecryption=True)["Parameter"]["Value"]
+    return _zai_key_cache
+
+
+def _msgs(prompt):
+    return [{"role": "user", "content": prompt}] if isinstance(prompt, str) else prompt
+
+
+def _claude(prompt, model, max_tokens, system=None):
+    payload = {"model": model, "max_tokens": max_tokens, "messages": _msgs(prompt)}
+    if system:
+        payload["system"] = system
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json", "x-api-key": _ANTHROPIC_KEY,
+                 "anthropic-version": "2023-06-01"},
+    )
+    with urllib.request.urlopen(req, timeout=60) as r:
+        d = json.loads(r.read().decode())
+    return "".join(b.get("text", "") for b in d.get("content", []))
+
+
+def _glm(prompt, model, max_tokens, system=None):
+    msgs = _msgs(prompt)
+    if system:
+        msgs = [{"role": "system", "content": system}] + msgs
+    # GLM-5.1 is a reasoning model: give it room so reasoning tokens don't
+    # starve the visible answer (the empty-content trap seen in testing).
+    payload = {"model": model, "max_tokens": max(max_tokens, 1500), "messages": msgs}
+    req = urllib.request.Request(
+        f"{ZAI_BASE_URL}/chat/completions",
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {_zai_key()}"},
+    )
+    with urllib.request.urlopen(req, timeout=90) as r:
+        d = json.loads(r.read().decode())
+    msg = d["choices"][0]["message"]
+    return msg.get("content") or msg.get("reasoning_content") or ""
+
+
+def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, system=None):
+    """Single entry point. Returns the model's text. Falls back to Claude if GLM fails."""
+    if contains_proprietary or tier == "critical":
+        return _claude(prompt, SONNET if (contains_proprietary or tier == "critical") else HAIKU,
+                       max_tokens, system)
+    if tier == "reason":
+        try:
+            return _glm(prompt, GLM_REASON, max_tokens, system)
+        except Exception as e:
+            print(f"[llm_router] GLM failed ({e!r}); falling back to Sonnet")
+            return _claude(prompt, SONNET, max_tokens, system)
+    return _claude(prompt, HAIKU, max_tokens, system)  # bulk default
