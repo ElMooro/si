@@ -1,5 +1,10 @@
-screener/data.json: generated_at=2026-06-13T16:42:34.191388+00:00 | age=29.3h | stocks=503
-  record fields: ['symbol', 'name', 'sector', 'industry', 'price', 'beta', 'volume', 'marketCap', 'peRatio', 'pbRatio', 'psRatio', 'evEbitda', 'roe', 'roa', 'roic', 'grossMargin', 'operatingMargin', 'netMargin']
+snapshot 2026-06-14: 1237 picks
 
-fundamentals recency (latest SEC filing): median 116d old, range 5..379d  (n=15)
-stored-vs-live price drift: median 0.0% (n=15)  [>2% suggests stale stored prices]
+    cap |    n |   pv% |  rev% |  cyc%
+------------------------------------------
+   mega |   62 |   92% |    0% |  100%
+  large |  524 |   91% |    0% |  100%
+    mid |  423 |   91% |    0% |  100%
+  small |  228 |   96% |    0% |  100%
+
+pv coverage: large/mid 91% (n=1009)  vs small/micro/nano 96% (n=228)
