@@ -1,10 +1,17 @@
-snapshot 2026-06-14: 1237 picks
+/home/runner/work/si/si/aws/ops/pending/1627_universe_source_audit.py:42: SyntaxWarning: invalid escape sequence '\$'
+  print(f"  {b:>8}: {dist.get(b,0):>5}   (>=\$30M tail-eligible: {ge30.get(b,0)})")
+/home/runner/work/si/si/aws/ops/pending/1627_universe_source_audit.py:43: SyntaxWarning: invalid escape sequence '\$'
+  print(f"\nTOTAL >=\$30M tail-eligible: {sum(ge30.values())}")
+data/universe.json: 1859 names | generated/keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'cap_buckets', 'stocks']
+sample record fields: ['symbol', 'name', 'sector', 'industry', 'exchange', 'market_cap', 'price', 'cap_bucket', 'source']
 
-    cap |    n |   pv% |  rev% |  cyc%
-------------------------------------------
-   mega |   62 |   92% |    0% |  100%
-  large |  524 |   91% |    0% |  100%
-    mid |  423 |   91% |    0% |  100%
-  small |  228 |   96% |    0% |  100%
+full source universe by cap bucket:
+      nano:   256   (>=\$30M tail-eligible: 132)
+     micro:   323   (>=\$30M tail-eligible: 323)
+     small:   369   (>=\$30M tail-eligible: 369)
+       mid:   429   (>=\$30M tail-eligible: 429)
+     large:   428   (>=\$30M tail-eligible: 428)
+      mega:    54   (>=\$30M tail-eligible: 54)
+   no_mcap:     0   (>=\$30M tail-eligible: 0)
 
-pv coverage: large/mid 91% (n=1009)  vs small/micro/nano 96% (n=228)
+TOTAL >=\$30M tail-eligible: 1735
