@@ -1,6 +1,9 @@
-Key loaded from SSM (length 49).
+Lambda StatusCode: 200
+statusCode: None
+provider: None
+model: None
+cost_usd: None
+elapsed_s: None
+body snippet: {"errorMessage": "'str' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "75c2afde-a412-49ef-9848-a32d52d8aba1", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 542, in lambda_handler\n    \"rating\": (research.get(\"verdict\") or {}).get(\"rating\"),\n"]}
 
-[OK]   glm-4.6: 'connection OK' | 18 in / 173 out | ~$0.000391/call
-[OK]   glm-5.1: '' | 18 in / 32 out | ~$0.000114/call
-
-RESULT: ALL MODELS OK
+⚠️  served by None/None — GLM not primary (check fallback path)
