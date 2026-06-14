@@ -1,9 +1,3 @@
-provider: zai
-model: glm-5.1
-cost_usd: 0.011152
-elapsed_s: 51.1
-usage: {'completion_tokens': 2013, 'completion_tokens_details': {'reasoning_tokens': 1134}, 'prompt_tokens': 1639, 'prompt_tokens_details': {'cached_tokens': 1344}, 'total_tokens': 3652}
-critique disagreement_score: 42
-critique keys: ['anti_thesis', 'data_reinterpretations', 'underweighted_risks', 'bear_case_strengtheners', 'alternative_rating', 'alternative_pt', 'alternative_thesis_1liner', 'disagreement_score']
-
-✅ VERIFIED: research-critique is served by GLM-5.1 in production
+=== crypto-intel (shared router path) ===
+justhodl-crypto-intel: lambda_status=200 served_model_marker=?
+   snippet: {"statusCode": 200, "body": "{\"status\": \"published\", \"risk\": 65, \"regime\": \"HIGH\", \"ok\": 12, \"total\": 17, \"ai\": true, \"tfs\": 3, \"time\": 64.2}"}
