@@ -80,6 +80,151 @@ def agg(returns):
             "best": round(max(rs), 1), "worst": round(min(rs), 1)}
 
 
+FACTOR_IC_KEY = "data/factor-ic.json"
+PANEL_PREFIX = "screener/alpha-panel/"
+IC_MIN_AGE = 7        # forward window (days) before a panel is usable
+IC_MIN_NAMES = 50     # min cross-section per date for a stable IC
+
+
+def _ranks(vals):
+    order = sorted(range(len(vals)), key=lambda i: vals[i])
+    r = [0.0] * len(vals)
+    i = 0
+    while i < len(vals):
+        j = i
+        while j + 1 < len(vals) and vals[order[j + 1]] == vals[order[i]]:
+            j += 1
+        avg = (i + j) / 2.0 + 1.0
+        for k in range(i, j + 1):
+            r[order[k]] = avg
+        i = j + 1
+    return r
+
+
+def _pearson(x, y):
+    n = len(x)
+    if n < 3:
+        return None
+    mx = sum(x) / n; my = sum(y) / n
+    num = sum((x[i] - mx) * (y[i] - my) for i in range(n))
+    dx = sum((x[i] - mx) ** 2 for i in range(n)) ** 0.5
+    dy = sum((y[i] - my) ** 2 for i in range(n)) ** 0.5
+    if dx == 0 or dy == 0:
+        return None
+    return num / (dx * dy)
+
+
+def _spearman(x, y):
+    return _pearson(_ranks(x), _ranks(y))
+
+
+def _ic_summ(ics):
+    n = len(ics)
+    if n == 0:
+        return {"n_dates": 0, "insufficient": True}
+    mean = statistics.mean(ics)
+    sd = statistics.pstdev(ics) if n > 1 else 0.0
+    ir = (mean / sd) if sd > 0 else None
+    t = (mean / (sd / (n ** 0.5))) if sd > 0 else None
+    return {"n_dates": n, "mean_ic": round(mean, 4), "ic_std": round(sd, 4),
+            "ic_ir": round(ir, 3) if ir is not None else None,
+            "t_stat": round(t, 2) if t is not None else None}
+
+
+def compute_factor_ic():
+    """Cross-sectional forward-return IC per factor, pooled across dated panels.
+    Needs NO trade journal: per panel date, correlate each factor's score vs the
+    realized forward return across the whole universe, then average daily ICs.
+    This is the root fix for the calibrator's n=0 problem."""
+    panel_keys = list_snapshots(PANEL_PREFIX)
+    today = date.today()
+    matured = []
+    for k in panel_keys:
+        d = k.split("/")[-1].replace(".json", "")
+        try:
+            age = (today - date.fromisoformat(d)).days
+        except Exception:
+            continue
+        if age >= IC_MIN_AGE:
+            matured.append((d, age, k))
+
+    if not matured:
+        out = {"engine": "factor-ic", "generated_at": datetime.now(timezone.utc).isoformat(),
+               "maturity": "WARMING_UP", "panels_total": len(panel_keys), "panels_matured": 0,
+               "note": f"Need alpha-panels >= {IC_MIN_AGE}d old. Accruing daily.",
+               "eta": "first read ~7d after first panel; stable mean IC ~3-4 weeks."}
+        s3.put_object(Bucket=BUCKET, Key=FACTOR_IC_KEY, Body=json.dumps(out, default=str).encode(),
+                      ContentType="application/json", CacheControl="public, max-age=3600")
+        print(f"[ic] warming up — {len(panel_keys)} panels, 0 matured")
+        return out
+
+    panels, all_tk = [], set()
+    for d, age, k in matured:
+        rows = (read_json(k) or {}).get("rows") or {}
+        if rows:
+            panels.append((d, age, rows))
+            all_tk.update(rows.keys())
+    prices = batch_quotes(all_tk)
+
+    factors = None
+    daily_ic = defaultdict(list)
+    daily_spread = defaultdict(list)
+    composite_ic = []
+    dates_used = 0
+    for d, age, rows in panels:
+        pairs = []
+        for sym, rec in rows.items():
+            p0 = rec.get("p"); pnow = prices.get(sym.upper())
+            if not p0 or p0 <= 0 or not pnow:
+                continue
+            pairs.append((rec.get("a"), (pnow / p0 - 1) * 100, rec.get("c") or {}))
+        if len(pairs) < IC_MIN_NAMES:
+            continue
+        dates_used += 1
+        if factors is None:
+            factors = sorted({f for _, _, c in pairs for f in c.keys()})
+        a_pairs = [(a, r) for a, r, _ in pairs if a is not None]
+        if len(a_pairs) >= IC_MIN_NAMES:
+            ic = _spearman([a for a, _ in a_pairs], [r for _, r in a_pairs])
+            if ic is not None:
+                composite_ic.append(ic)
+        for f in factors:
+            fp = [(c.get(f), r) for _, r, c in pairs if c.get(f) is not None]
+            if len(fp) < IC_MIN_NAMES:
+                continue
+            xs = [v for v, _ in fp]; ys = [r for _, r in fp]
+            ic = _spearman(xs, ys)
+            if ic is not None:
+                daily_ic[f].append(ic)
+            order = sorted(range(len(fp)), key=lambda i: xs[i])
+            q = max(1, len(fp) // 5)
+            daily_spread[f].append(statistics.mean(ys[i] for i in order[-q:])
+                                   - statistics.mean(ys[i] for i in order[:q]))
+
+    factor_ic = {}
+    for f in (factors or []):
+        summ = _ic_summ(daily_ic.get(f, []))
+        sp = daily_spread.get(f, [])
+        summ["quintile_spread_avg"] = round(statistics.mean(sp), 2) if sp else None
+        factor_ic[f] = summ
+
+    out = {"engine": "factor-ic", "version": "1.0",
+           "generated_at": datetime.now(timezone.utc).isoformat(),
+           "maturity": "MATURE" if dates_used >= 15 else "BUILDING" if dates_used >= 5 else "BOOTSTRAPPING",
+           "panels_total": len(panel_keys), "panels_matured": len(matured),
+           "dates_used": dates_used, "universe_priced": len(prices),
+           "composite_alpha_ic": _ic_summ(composite_ic), "factor_ic": factor_ic,
+           "note": ("Cross-sectional Spearman rank IC of each factor vs forward return, "
+                    "per panel date, averaged. mean_ic ~0.03-0.05 with t_stat>2 is a real, "
+                    "tradeable factor. quintile_spread_avg = top-20% minus bottom-20% return. "
+                    "No trade journal required.")}
+    s3.put_object(Bucket=BUCKET, Key=FACTOR_IC_KEY, Body=json.dumps(out, default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=3600")
+    print(f"[ic] dates_used={dates_used} maturity={out['maturity']} "
+          f"composite_ic={out['composite_alpha_ic'].get('mean_ic')}")
+    return out
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     snap_keys = list_snapshots("data/track-record/snapshots/")
@@ -174,6 +319,12 @@ def lambda_handler(event=None, context=None):
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     print(f"[bt] DONE {round(time.time()-t0,1)}s — {len(overall)} obs, maturity {out['maturity']}")
+    # cross-sectional factor IC (no trade journal) — writes data/factor-ic.json
+    try:
+        fic = compute_factor_ic()
+        print(f"[bt] factor-ic: {fic.get('maturity')} dates_used={fic.get('dates_used', 0)}")
+    except Exception as e:
+        print(f"[bt] factor-ic err: {str(e)[:140]}")
     return {"statusCode": 200, "body": json.dumps({"ok": True, "obs": len(overall),
                                                      "maturity": out["maturity"],
                                                      "overall": out["overall"]})}

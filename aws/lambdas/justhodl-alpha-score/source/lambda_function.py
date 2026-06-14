@@ -793,6 +793,33 @@ def lambda_handler(event, context):
     except Exception as e:
         return {"statusCode": 500, "body": json.dumps({"err": f"s3 put: {e}"})}
 
+    # ── dated factor panel (enables cross-sectional factor IC, no trade journal) ──
+    # Persist today's per-ticker factor scores + entry price ONCE per day so a
+    # forward-return engine can correlate each factor vs realized returns across
+    # the whole universe. This is true factor research and needs no logged trades.
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        panel_date = _dt.now(_tz.utc).date().isoformat()
+        panel_key = f"screener/alpha-panel/{panel_date}.json"
+        try:
+            s3.head_object(Bucket=S3_BUCKET, Key=panel_key)
+            panel_exists = True
+        except Exception:
+            panel_exists = False
+        if not panel_exists:
+            panel_rows = {s["symbol"]: {"p": s.get("price"), "a": s.get("alpha_score"),
+                                        "c": s.get("components")}
+                          for s in ranked
+                          if s.get("price") and s.get("alpha_score") is not None}
+            panel = {"date": panel_date, "factors": list(WEIGHTS.keys()),
+                     "weights": active_weights, "n": len(panel_rows), "rows": panel_rows}
+            s3.put_object(Bucket=S3_BUCKET, Key=panel_key,
+                          Body=json.dumps(panel, separators=(",", ":")).encode("utf-8"),
+                          ContentType="application/json")
+            print(f"  wrote factor panel {panel_date}: {len(panel_rows)} tickers")
+    except Exception as e:
+        print(f"  [panel] err: {e}")
+
     return {"statusCode": 200, "body": json.dumps({
         "success": True,
         "scored": len(ranked),
