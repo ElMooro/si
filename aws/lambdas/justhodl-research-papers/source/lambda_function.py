@@ -76,7 +76,42 @@ def s3j(key):
         return {}
 
 
+# GLM-5.1 (Z.ai) — primary for this public-data research engine; Claude is fallback.
+_ZAI_BASE = os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/paas/v4")
+_ZAI_MODEL = os.environ.get("ZAI_PAPERS_MODEL", "glm-5.1")
+_zai_key_cache = {"k": None}
+
+
+def _zai_key():
+    if _zai_key_cache["k"] is None:
+        import boto3
+        _zai_key_cache["k"] = boto3.client("ssm", region_name="us-east-1").get_parameter(
+            Name="/justhodl/zai-api-key", WithDecryption=True)["Parameter"]["Value"]
+    return _zai_key_cache["k"]
+
+
+def _glm_json(user_text, system, max_tokens):
+    payload = json.dumps({"model": _ZAI_MODEL, "max_tokens": max(max_tokens, 4000),
+                          "messages": [{"role": "system", "content": system},
+                                       {"role": "user", "content": user_text}]}).encode()
+    req = urllib.request.Request(f"{_ZAI_BASE}/chat/completions", data=payload,
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {_zai_key()}"})
+    r = json.loads(urllib.request.urlopen(req, timeout=120).read())
+    msg = (r.get("choices") or [{}])[0].get("message", {})
+    txt = (msg.get("content") or msg.get("reasoning_content") or "").strip()
+    if txt.startswith("```"):
+        txt = txt.strip("`")
+        if txt.lower().startswith("json"):
+            txt = txt[4:]
+    return json.loads(txt.strip())
+
+
 def call_claude(user_text, system, max_tokens=3500):
+    # GLM-5.1 primary (public-data research synthesis); falls back to Claude MODELS.
+    try:
+        return _glm_json(user_text, system, max_tokens), _ZAI_MODEL
+    except Exception as _ge:
+        print(f"[papers] GLM-5.1 failed, falling back to Claude: {str(_ge)[:120]}")
     last = None
     for model in MODELS:
         try:
