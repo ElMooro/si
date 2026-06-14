@@ -528,6 +528,17 @@ def score_stock(s, mr, fund, short_state, bench, weights):
     guru = guru_metrics(s)
     scard = vs_industry(s, sec_med)
 
+    # peer-relative valuation bucket — isolated from the bundled verdict so the
+    # backtest can measure "cheap vs industry peers" as its OWN axis. Net of the
+    # valuation metrics that read cheaper vs pricier than the industry median.
+    _VAL_METRICS = {"P/E", "Forward P/E", "Price / Sales"}
+    _net = _cov = 0
+    for _c in scard:
+        if _c.get("metric") in _VAL_METRICS and _c.get("tag") in ("cheaper than peers", "pricier than peers"):
+            _cov += 1
+            _net += 1 if _c["tag"] == "cheaper than peers" else -1
+    peer_val = (None if _cov == 0 else "cheap" if _net >= 1 else "rich" if _net <= -1 else "fair")
+
     # ── risk flags & opportunity highlights (plain English) ──
     distress = altman is not None and altman < 1.8
     risks, ops = [], []
@@ -607,6 +618,7 @@ def score_stock(s, mr, fund, short_state, bench, weights):
         "ticker": sym,
         "company": s.get("companyName") or s.get("name") or sym,
         "sector": sec, "industry": s.get("industry"),
+        "peer_val": peer_val, "cycle": cyc_tag,
         "price": price,
         "fair_value_low": val["low"], "fair_value_mid": val["mid"],
         "fair_value_high": val["high"],
@@ -1096,6 +1108,8 @@ def lambda_handler(event, context):
                                         "comp": r.get("compounder_score"),
                                         "rev": (r.get("estimate_revision") or {}).get("direction"),
                                         "cap": r.get("cap_bucket"),
+                                        "pv": r.get("peer_val"),
+                                        "cyc": r.get("cycle"),
                                         "ss": [r["scores"]["value"],
                                                r["scores"]["quality"],
                                                r["scores"]["growth"],

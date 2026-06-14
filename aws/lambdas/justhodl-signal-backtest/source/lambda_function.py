@@ -106,7 +106,7 @@ def lambda_handler(event=None, context=None):
             records.append({"date": d, "age": age, "ticker": tk, "p0": p0,
                             "verdict": p.get("v"), "comp": p.get("comp"),
                             "go": p.get("go"), "cap": p.get("cap"),
-                            "rev": p.get("rev")})
+                            "rev": p.get("rev"), "pv": p.get("pv"), "cyc": p.get("cyc")})
 
     if not records:
         out = {"engine": "signal-backtest", "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -127,6 +127,8 @@ def lambda_handler(event=None, context=None):
     by_comp = defaultdict(list)
     by_cap = defaultdict(list)
     by_rev = defaultdict(list)
+    by_val = defaultdict(list)
+    by_cheap_improving = defaultdict(list)
     overall = []
     for r in records:
         pnow = prices.get(r["ticker"])
@@ -141,6 +143,12 @@ def lambda_handler(event=None, context=None):
             by_comp[bucket].append(ret)
         if r.get("cap"): by_cap[r["cap"]].append(ret)
         if r.get("rev") in ("UP", "DOWN", "FLAT"): by_rev["revision_" + r["rev"]].append(ret)
+        # peer-relative valuation axis (the 'cheap vs industry' half of the thesis)
+        if r.get("pv"): by_val["valuation_" + r["pv"]].append(ret)
+        # the interaction = the actual thesis: cheap vs peers AND estimates moving.
+        # cheap_x_rev_UP is the re-rate setup; cheap_x_rev_DOWN is the value trap.
+        if r.get("pv") and r.get("rev") in ("UP", "DOWN", "FLAT"):
+            by_cheap_improving[f"{r['pv']}_x_rev_{r['rev']}"].append(ret)
 
     # dislocation + triple-threat membership (from latest snapshots; approximate
     # using current dislocations/best-setups as the cohort, returns since entry)
@@ -156,6 +164,8 @@ def lambda_handler(event=None, context=None):
         "by_compounder_bucket": {k: agg(v) for k, v in by_comp.items()},
         "by_cap_bucket": {k: agg(v) for k, v in by_cap.items()},
         "by_revision": {k: agg(v) for k, v in by_rev.items()},
+        "by_valuation_vs_peer": {k: agg(v) for k, v in by_val.items()},
+        "by_cheap_x_improving": {k: agg(v) for k, v in by_cheap_improving.items()},
         "note": ("Forward return = % change from the snapshot's entry price to "
                  "the current price (variable holding period, snapshots >=7d old). "
                  "As history matures these become reliable; the conviction board "
