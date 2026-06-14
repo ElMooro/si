@@ -1,5 +1,12 @@
-generated_at: 2026-06-14T17:21:12.541302+00:00
---- IC-related fields ---
-  information_coefficients: {"quality": {"1d": {"n": 0, "insufficient": true}, "7d": {"n": 0, "insufficient": true}, "30d": {"n": 0, "insufficient": true}, "90d": {"n": 0, "insufficient": true}}, "growth": {"1d": {"n": 0, "insuf
---- top-level keys ---
-['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'alpha_model_version_observed', 'config', 'summary', 'current_weights', 'per_strategy', 'information_coefficients', 'factor_attribution', 'proposed_weights', 'weight_deltas', 'guardrails', 'deployment_decision']
+=== signal-backtest.json ===
+maturity: MATURE | n_observations: 14250
+keys: ['engine', 'version', 'generated_at', 'duration_s', 'n_observations', 'snapshots_used', 'maturity', 'overall', 'by_verdict', 'by_compounder_bucket', 'by_cap_bucket', 'by_revision']
+
+=== daily snapshots ===
+snapshot count: 29; span: 2026-05-17.json .. 2026-06-14.json
+latest snapshot ticker-row fields: <class 'list'>
+
+=== alpha-score.json ===
+alpha-score keys: ['generated_at', 'generated_at_unix', 'model_version', 'elapsed_seconds', 'count', 'scored_count', 'tier_distribution', 'weights', 'weights_source', 'weights_calibration_version', 'weights_active_since', 'weights_default_fallback']
+per-ticker fields: ['symbol', 'name', 'sector', 'price', 'alpha_score', 'tier', 'components', 'components_coverage', 'top_signals', 'risk_flags', 'rank']
+has 'components'?: True
