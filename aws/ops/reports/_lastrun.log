@@ -1,8 +1,5 @@
-invoke status: 200
-composite: -0.03 posture: NEUTRAL / MIXED n_live: 64
-model: glm-5.1 trigger: dispersion
-lean: RISK-OFF_TILT confidence: MEDIUM
-dominant_driver: Liquidity contraction in a stagflationary regime — stablecoin exodus (-2, the tape's only max-conviction signal) and USD liq impulse z=-0.663 are draining the float while yield-curve inversion sits at
-resolve_triggers: ['USD liquidity impulse z > +0.3 (sustained) — removes the core macro headwind and flips the regime', 'Stablecoin 30d net flow turns positive — confirms crypto liquidity returning and risk appetite re-opening', 'VIX9D > VIX spot for 2+ consecutive sessions — immediate-term stress ignition that breaks the calm-before-accident', 'CDX HY spreads widen ≥50bp from current tights — credit bull rolls and confirms the lagging risk-on signal was misleading']
+waiting for deploy...
+lambda status: 200
+zai_balance: {'status': 'funded'}
 
-✅ VERIFIED: Upgrade A live — GLM-5.1 deep read fired on conflicted tape
+✅ VERIFIED: Z.ai balance monitor live — balance currently FUNDED
