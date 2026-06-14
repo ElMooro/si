@@ -960,30 +960,80 @@ def lambda_handler(event, context):
             # backlog is a durability bonus to the growth-opportunity score
             r["growth_opportunity_score"] = min(100, (r.get("growth_opportunity_score") or 50) + 6)
 
-    # ── CREATIVE: estimate-revision momentum ──
-    # Snapshot today's forward growth; compare vs last snapshot to detect
-    # analysts revising estimates UP (one of the strongest documented alpha
-    # factors). Writes a dated snapshot + patches revision deltas onto rows.
+    # ── estimate-revision momentum (v2: dated baselines, multi-week lookback) ──
+    # Revisions show up over WEEKS, not intraday. The v1 logic compared today
+    # vs a file it overwrote every run, so prior≈current → everything collapsed
+    # to FLAT/None and the signal was never measurable. v2 persists an IMMUTABLE
+    # dated baseline once per day and compares today's forward-growth estimate
+    # against one ~REV_LOOKBACK_DAYS old, so analysts walking estimates up/down
+    # is actually detectable. Writes data/estimate-revisions/{date}.json (per-day,
+    # not clobbered intraday) plus -latest.json for back-compat.
+    REV_LOOKBACK_DAYS = 15   # compare vs ~3 trading weeks ago
+    REV_THRESH_PP = 1.5      # +/- pp change in fwd revenue-growth rate = a real revision
     try:
+        from datetime import date as _date
+        today_iso = datetime.now(timezone.utc).date().isoformat()
         est_snap = {sym: (fwd_growth.get(sym) or {}).get("fwd_rev_growth")
                     for sym in [(s.get("symbol") or s.get("ticker")) for s in universe]
                     if (fwd_growth.get(sym) or {}).get("fwd_rev_growth") is not None}
-        prev_snap = (load("data/estimate-revisions-latest.json") or {}).get("fwd_rev_growth", {})
+
+        # 1) persist today's dated baseline ONCE (don't clobber intraday re-runs)
+        dated_key = f"data/estimate-revisions/{today_iso}.json"
+        try:
+            s3.head_object(Bucket=S3_BUCKET, Key=dated_key)
+            baseline_exists = True
+        except Exception:
+            baseline_exists = False
+        if not baseline_exists:
+            s3.put_object(Bucket=S3_BUCKET, Key=dated_key,
+                          Body=json.dumps({"date": today_iso, "fwd_rev_growth": est_snap}, default=str).encode(),
+                          ContentType="application/json")
+
+        # 2) choose comparison baseline: newest dated file that is >= LOOKBACK old;
+        #    while warming up (no file that old yet), fall back to OLDEST available.
+        objs = s3.list_objects_v2(Bucket=S3_BUCKET, Prefix="data/estimate-revisions/").get("Contents", [])
+        dated = []
+        for o in objs:
+            nm = o["Key"].split("/")[-1].replace(".json", "")
+            try:
+                age = (_date.fromisoformat(today_iso) - _date.fromisoformat(nm)).days
+                if age > 0:
+                    dated.append((age, nm, o["Key"]))
+            except Exception:
+                continue
+        dated.sort()  # age ascending
+        aged = [d for d in dated if d[0] >= REV_LOOKBACK_DAYS]
+        chosen = aged[0] if aged else (dated[-1] if dated else None)
+        warming = not aged
+        prev_snap, base_date, base_age = {}, None, None
+        if chosen:
+            base_age, base_date, base_k = chosen
+            prev_snap = (load(base_k) or {}).get("fwd_rev_growth", {})
+
+        # 3) patch revision momentum onto rows
+        n_up = n_dn = n_flat = 0
         for r in rows:
-            tk = r["ticker"]
-            cur, old = est_snap.get(tk), prev_snap.get(tk)
+            cur, old = est_snap.get(r["ticker"]), prev_snap.get(r["ticker"])
             if cur is not None and old is not None:
                 delta = round(cur - old, 1)
+                direction = "UP" if delta > REV_THRESH_PP else "DOWN" if delta < -REV_THRESH_PP else "FLAT"
                 r["estimate_revision"] = {"prior": old, "current": cur, "delta_pp": delta,
-                                           "direction": "UP" if delta > 0.5 else "DOWN" if delta < -0.5 else "FLAT"}
-                if delta > 1.0:
+                                           "direction": direction, "baseline_date": base_date,
+                                           "baseline_age_days": base_age, "warming_up": warming}
+                if direction == "UP":   n_up += 1
+                elif direction == "DOWN": n_dn += 1
+                else:                    n_flat += 1
+                if delta > 2.0:
                     r["growth_opportunity_score"] = min(100, (r.get("growth_opportunity_score") or 50) + 8)
+        print(f"[opp] revision-momentum: baseline={base_date} age={base_age}d warming={warming} "
+              f"UP={n_up} DOWN={n_dn} FLAT={n_flat} covered={len(est_snap)}")
+
+        # 4) keep -latest.json for back-compat
         s3.put_object(Bucket=S3_BUCKET, Key="data/estimate-revisions-latest.json",
-                      Body=json.dumps({"date": datetime.now(timezone.utc).date().isoformat(),
-                                        "fwd_rev_growth": est_snap}, default=str).encode(),
+                      Body=json.dumps({"date": today_iso, "fwd_rev_growth": est_snap}, default=str).encode(),
                       ContentType="application/json")
     except Exception as e:
-        print(f"[opp] revision snapshot err: {e}")
+        print(f"[opp] revision momentum err: {e}")
 
     by_verdict = {}
     for r in rows:

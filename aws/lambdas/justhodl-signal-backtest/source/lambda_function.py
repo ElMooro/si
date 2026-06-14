@@ -140,7 +140,7 @@ def lambda_handler(event=None, context=None):
             bucket = "compounder_80+" if c >= 80 else "compounder_70-80" if c >= 70 else "compounder_<70"
             by_comp[bucket].append(ret)
         if r.get("cap"): by_cap[r["cap"]].append(ret)
-        if r.get("rev") in ("UP", "DOWN"): by_rev["revision_" + r["rev"]].append(ret)
+        if r.get("rev") in ("UP", "DOWN", "FLAT"): by_rev["revision_" + r["rev"]].append(ret)
 
     # dislocation + triple-threat membership (from latest snapshots; approximate
     # using current dislocations/best-setups as the cohort, returns since entry)
