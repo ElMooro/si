@@ -718,6 +718,7 @@ def fetch_tail_metrics(tail):
             rt = http_get_json(f"{base}/ratios-ttm?symbol={sym}&apikey={fmp_key}")
             qt = http_get_json(f"{base}/quote?symbol={sym}&apikey={fmp_key}")
             est = http_get_json(f"{base}/analyst-estimates?symbol={sym}&period=annual&limit=3&apikey={fmp_key}")
+            inc = http_get_json(f"{base}/income-statement?symbol={sym}&period=annual&limit=2&apikey={fmp_key}")
             km = (km[0] if isinstance(km, list) and km else km) or {}
             rt = (rt[0] if isinstance(rt, list) and rt else rt) or {}
             qt = (qt[0] if isinstance(qt, list) and qt else qt) or {}
@@ -743,6 +744,12 @@ def fetch_tail_metrics(tail):
                 yrs = max(1, len(erows) - 1)
                 if r0 and r1 and r0 > 0:
                     fwd_rev = round(((r1 / r0) ** (1 / yrs) - 1) * 100, 1)
+            # trailing revenue growth (YoY) from the last two annual income statements
+            rev_growth = None
+            if isinstance(inc, list) and len(inc) >= 2:
+                r_new = num(inc[0].get("revenue")); r_old = num(inc[1].get("revenue"))
+                if r_new and r_old and r_old > 0:
+                    rev_growth = round((r_new / r_old - 1) * 100, 1)
             return {
                 "symbol": sym, "name": stock.get("name") or sym,
                 "sector": stock.get("sector") or "", "industry": stock.get("industry") or "",
@@ -759,7 +766,7 @@ def fetch_tail_metrics(tail):
                 "debtToEquity": kp("debtToEquityRatioTTM", "debtEquityRatioTTM"),
                 "currentRatio": kp("currentRatioTTM"),
                 "interestCoverage": kp("interestCoverageRatioTTM"),
-                "revenueGrowth": None,  # not in TTM endpoints — scored on value/quality
+                "revenueGrowth": rev_growth,  # trailing YoY from income-statement (was None)
                 "fcfYieldCalc": kp("freeCashFlowYieldTTM"),
                 "yearHigh": yh, "yearLow": yl, "range_position_52w": round(rng_pos, 2) if rng_pos is not None else None,
                 "changesPct": num(qt.get("changePercentage") or qt.get("changesPercentage")),
