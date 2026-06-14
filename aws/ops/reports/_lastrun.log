@@ -1,10 +1,20 @@
-     WMS (  mid): revenueGrowth = 5.0%
-    ENSG (  mid): revenueGrowth = 18.7%
-     MOH (  mid): revenueGrowth = 11.7%
-     BXP (  mid): revenueGrowth = 2.2%
-    GTLS (  mid): revenueGrowth = 2.5%
-      HL (  mid): revenueGrowth = 53.0%
-    FCFS (  mid): revenueGrowth = 8.0%
-    BPOP (  mid): revenueGrowth = 5.7%
+generated_at: 2026-06-14T12:45:21.224909+00:00 | version: 1.0.0
+universe_n: 48 scored_n: 48 signals_logged: 8
+top_calls: ['VST', 'CEG', 'MU', 'LDOS', 'NRG', 'DELL', 'PWR', 'HPE']
 
-populated 8/8 sampled tail names (was 0/all before — hardcoded None)
+industry_pressure type: dict
+  TOTAL_MFG: {'as_of': '2026-04-01', 'backlog_to_shipments': 2.448, 'backlog_ratio_z': 0.53, 'new_orders_yoy_pct': 11.7, 'new_orders_yoy_z': 0.88, 'backlog_yoy_pct': 11.5, 'backlog_yoy_z': 1.61, 'pressure_0_100': 66.1}
+  COMPUTERS_ELECTRONICS: {'as_of': '2026-04-01', 'backlog_to_shipments': 4.61, 'backlog_ratio_z': -0.44, 'new_orders_yoy_pct': 14.9, 'new_orders_yoy_z': 3.07, 'backlog_yoy_pct': 2.9, 'backlog_yoy_z': -0.29, 'pressure_0_100': 62.5}
+  SEMIS_IP_STRAIN: {'ip_yoy_pct': 15.3, 'ip_yoy_z': 1.05, 'as_of': '2026-04-01'}
+
+top 8 ranks:
+     VST Independent Power Producer | accel 152.0pp growth 99.1% rev/mcap 32.5% boom 58.4
+     CEG        Renewable Utilities | accel 127.7pp growth 103.7% rev/mcap 32.6% boom 57.1
+      MU             Semiconductors | accel 54.3pp growth 74.9% rev/mcap 5.3% boom 54.7
+    LDOS Information Technology Ser | accel 10.5pp growth 4.6% rev/mcap 112.8% boom 54.2
+     NRG Independent Power Producer | accel 31.4pp growth 32.9% rev/mcap 122.5% boom 54.1
+    DELL          Computer Hardware | accel 7.7pp growth 31.3% rev/mcap 51.0% boom 47.4
+     PWR Engineering & Construction | accel -4.0pp growth 0.4% rev/mcap 28.2% boom 46.7
+     HPE          Computer Hardware | accel 18.9pp growth 14.8% rev/mcap 60.9% boom 46.7
+
+field keys on a rank row: ['ticker', 'name', 'sector', 'industry', 'mkt_cap', 'rev_growth_yoy', 'rev_accel_pp', 'ps_ttm', 'rev_to_mcap_pct', 'inv_turnover', 'z_rev_growth_yoy', 'z_rev_accel_pp', 'z_rev_to_mcap_pct', 'z_inv_turnover', 'pressure_group', 'group_pressure', 'boom_score']
