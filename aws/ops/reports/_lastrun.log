@@ -1,9 +1,5 @@
-panel before: False
-invoked alpha-score (async)
-PANEL WRITTEN after ~20s: n=503 factors=['quality', 'growth', 'momentum', 'smart_money', 'sentiment', 'analysts', 'insiders', 'options_flow']
-  sample row: {"VRT": {"p": 302.87, "a": 77, "c": {"quality": 82, "growth": 95, "momentum": 76, "smart_money": 61, "sentiment": 76, "analysts": 49, "insiders": 87, "options_flow": null}}, "INCY": {"p": 108.53, "a": 77, "c": {"quality": 91, "growth": 78, "momentum": 78, "sma
+screener/data.json: generated_at=2026-06-13T16:42:34.191388+00:00 | age=29.3h | stocks=503
+  record fields: ['symbol', 'name', 'sector', 'industry', 'price', 'beta', 'volume', 'marketCap', 'peRatio', 'pbRatio', 'psRatio', 'evEbitda', 'roe', 'roa', 'roic', 'grossMargin', 'operatingMargin', 'netMargin']
 
-invoked signal-backtest (async)
-
-factor-ic.json: maturity=WARMING_UP panels_total=1 panels_matured=0 dates_used=None
-  note: Need alpha-panels >= 7d old. Accruing daily.
+fundamentals recency (latest SEC filing): median 116d old, range 5..379d  (n=15)
+stored-vs-live price drift: median 0.0% (n=15)  [>2% suggests stale stored prices]
