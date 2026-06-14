@@ -1133,6 +1133,44 @@ def lambda_handler(event, context):
     else:
         posture = "RISK-OFF"
 
+    # ── Upgrade A: tiered-depth escalation ──────────────────────────────
+    # On a genuinely conflicted cross-asset tape, fire a GLM-5.1 deep read.
+    # Cheap by default: only runs when signals are dispersed across strong
+    # both-ways OR the composite sits in the NEUTRAL no-man's-land — exactly
+    # when a desk PM wants deeper analysis. Never breaks the board.
+    deep_read = None
+    try:
+        sig_vals = [e["signal"] for e in live]
+        dispersed = bool(sig_vals) and (max(sig_vals) >= 1 and min(sig_vals) <= -1)
+        no_mans_land = posture == "NEUTRAL / MIXED"
+        if len(live) >= 5 and (dispersed or no_mans_land):
+            from llm_router import complete
+            ctx = "\n".join(
+                f"- [{e['category']}] {e['engine']}: {e['signal']} "
+                f"({e['signal_label']}) — {e['read']}" for e in live)
+            sys_p = (
+                "You are a senior global-macro PM resolving a conflicted cross-asset "
+                "tape. Signals are normalised -2 (strong risk-off) .. +2 (strong "
+                "risk-on) from public-market models. Cut through decisively. Respond "
+                "ONLY with a JSON object with keys: dominant_driver (string), "
+                "conflict_resolution (string), hidden_risk (string), resolve_triggers "
+                "(array of 2-4 observable level/threshold strings that would tip the "
+                "posture), lean (one of RISK-ON_TILT, RISK-OFF_TILT, GENUINELY_FLAT), "
+                "confidence (LOW/MEDIUM/HIGH). Be decisive; do not hedge.")
+            usr_p = (f"Composite {composite} ({posture}); {len(live)} live signals:\n\n"
+                     f"{ctx}\n\nResolve the cross-currents into one actionable lean.")
+            raw = complete(usr_p, tier="reason", max_tokens=1600, system=sys_p)
+            import re as _re
+            j = _re.sub(r"^```(?:json)?|```$", "", (raw or "").strip(),
+                        flags=_re.MULTILINE).strip()
+            deep_read = json.loads(j)
+            deep_read["_model"] = "glm-5.1"
+            deep_read["_trigger"] = "dispersion" if dispersed else "neutral_mixed"
+            print(f"[signal-board] deep_read fired lean={deep_read.get('lean')} "
+                  f"trigger={deep_read['_trigger']}")
+    except Exception as _de:
+        print(f"[signal-board] deep_read skipped/failed: {str(_de)[:140]}")
+
     out = {
         "schema_version": "1.0",
         "method": "cross_asset_signal_aggregation",
@@ -1144,6 +1182,7 @@ def lambda_handler(event, context):
         "n_live": len(live),
         "n_stale": stale,
         "categories": categories,
+        "deep_read": deep_read,
         "engines": engines,
         "note": ("Unified signal store — each engine's headline read "
                  "normalised to a 5-state signal and aggregated into one "
