@@ -3395,7 +3395,12 @@ Be AGGRESSIVE with predictions. Give SPECIFIC numbers."""
 
 
 
-    r=http_post("https://api.anthropic.com/v1/messages",{'model':'claude-sonnet-4-20250514','max_tokens':3000,'messages':[{'role':'user','content':prompt}]},{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01'},timeout=60)
+    try:
+        from llm_router import complete
+        r={'content':[{'type':'text','text':complete(prompt, tier="reason", max_tokens=3000)}]}; _amodel='glm-5.1'  # GLM-5.1 (router carries Sonnet fallback)
+    except Exception as _ge:
+        print(f"[crypto-intel] GLM route failed: {str(_ge)[:120]}")
+        r=http_post("https://api.anthropic.com/v1/messages",{'model':'claude-sonnet-4-20250514','max_tokens':3000,'messages':[{'role':'user','content':prompt}]},{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01'},timeout=60); _amodel='claude-sonnet-4-20250514'
 
 
 
@@ -3407,7 +3412,7 @@ Be AGGRESSIVE with predictions. Give SPECIFIC numbers."""
 
 
 
-        return {'status':'ok','analysis':r['content'][0].get('text',''),'model':'claude-sonnet-4-20250514','generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'macro':{'khalid_index':ki,'regime':reg,'sofr':sofr,'plumbing':ps,'ml_risk':mlrsk}}
+        return {'status':'ok','analysis':r['content'][0].get('text',''),'model':_amodel,'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'macro':{'khalid_index':ki,'regime':reg,'sofr':sofr,'plumbing':ps,'ml_risk':mlrsk}}
 
 
 
