@@ -1,5 +1,7 @@
-dated baseline before: False
 invoked opportunity-engine (async)
-dated baseline WRITTEN after ~60s: 974 tickers, date=2026-06-14
-dated baselines accumulated: 1 -> ['2026-06-14'] ... 
-NOTE: UP/DOWN signal needs ~15 of these; ETA ~3 weeks of daily runs.
+  ...waiting (20s)
+
+snapshot 2026-06-14: 1237 picks
+  pv (peer valuation) distribution: {'rich': 417, 'fair': 223, 'cheap': 497, 'None': 100}
+  cyc (cycle stage) distribution: {"{'tag': '—', 'note': None}": 537, "{'tag': 'EARLY CYCLE', 'note': 'Earnings look depressed but the forward outlook is improving — the classic point where cyclical stocks look pricey just before they turn up.'}": 180, '{\'tag\': \'LATE CYCLE\', \'note\': "Earnings look near a cyclical peak — a low P/E here can be a trap, because peak profits rarely last. Treat \'cheap\' with caution."}': 70, "{'tag': 'MID CYCLE', 'note': None}": 450}
+  sample CHEAP-vs-peer names: ['MCK', 'NEM', 'AOS', 'BIIB', 'FOX', 'PTC', 'INTU', 'ADBE', 'BSX', 'IQV', 'REGN', 'PNR']
