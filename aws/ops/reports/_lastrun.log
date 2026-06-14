@@ -1,9 +1,9 @@
-Lambda StatusCode: 200
-statusCode: None
-provider: None
-model: None
-cost_usd: None
-elapsed_s: None
-body snippet: {"errorMessage": "'str' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "75c2afde-a412-49ef-9848-a32d52d8aba1", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 542, in lambda_handler\n    \"rating\": (research.get(\"verdict\") or {}).get(\"rating\"),\n"]}
+provider: zai
+model: glm-5.1
+cost_usd: 0.011152
+elapsed_s: 51.1
+usage: {'completion_tokens': 2013, 'completion_tokens_details': {'reasoning_tokens': 1134}, 'prompt_tokens': 1639, 'prompt_tokens_details': {'cached_tokens': 1344}, 'total_tokens': 3652}
+critique disagreement_score: 42
+critique keys: ['anti_thesis', 'data_reinterpretations', 'underweighted_risks', 'bear_case_strengtheners', 'alternative_rating', 'alternative_pt', 'alternative_thesis_1liner', 'disagreement_score']
 
-⚠️  served by None/None — GLM not primary (check fallback path)
+✅ VERIFIED: research-critique is served by GLM-5.1 in production
