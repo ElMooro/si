@@ -366,19 +366,26 @@ def claude_call(user_prompt: str) -> dict:
         ],
         "messages": [{"role": "user", "content": user_prompt}],
     }
-    req = urllib.request.Request(
-        "https://api.anthropic.com/v1/messages",
-        data=json.dumps(payload).encode(),
-        headers={
-            "Content-Type": "application/json",
-            "x-api-key": ANTHROPIC_KEY,
-            "anthropic-version": "2023-06-01",
-            "anthropic-beta": "extended-cache-ttl-2025-04-11",
-        },
-    )
     t0 = time.time()
-    with urllib.request.urlopen(req, timeout=180) as r:
-        body = json.loads(r.read())
+    try:
+        from llm_router import complete
+        body = {"content": [{"type": "text",
+                "text": complete(user_prompt, tier="reason", max_tokens=MAX_TOKENS, system=SYSTEM_PROMPT)}],
+                "usage": {"via": "glm-5.1"}}
+    except Exception as _ge:
+        print(f"[flows-ai] GLM route failed, Claude fallback: {str(_ge)[:120]}")
+        req = urllib.request.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=json.dumps(payload).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "x-api-key": ANTHROPIC_KEY,
+                "anthropic-version": "2023-06-01",
+                "anthropic-beta": "extended-cache-ttl-2025-04-11",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=180) as r:
+            body = json.loads(r.read())
     elapsed = round(time.time() - t0, 1)
     print(f"[claude] elapsed {elapsed}s; usage={body.get('usage')}")
 
