@@ -1,9 +1,9 @@
-FEED digest-trends-history: 2 days; latest: 2026-06-15 fields: ['date', 'realized_pnl_usd', 'win_rate_pct', 'n_open', 'n_closed', 'n_predictions', 'n_calibration', 'n_validated', 'total_alerts', 'top_retail_pct']
-PAGE live:
-  OK  trends section
-  OK  renderTrends fn
-  OK  tiles container
-  OK  sparkline fn
-  OK  history fetch
-  OK  hook wired
-  OK  css
+top-level keys: ['generated_at', 'generated_at_unix', 'version', 'sources', 'elapsed_seconds', 'n_all_stocks', 'n_wsb', 'n_stocks', 'n_investing', 'n_with_stwt_data', 'market_regime', 'market_regime_signal', 'market_regime_data', 'regime_changed_from_prior', 'top_30_by_mentions', 'ranked', 'stocktwits_trending', 'subreddit_breakdown']
+generated_at: 2026-06-08T13:30:49.672984+00:00 | now: 2026-06-15T17:11:18
+ranked keys: ['biggest_velocity_surges', 'biggest_rank_climbers', 'most_bullish_stwt', 'most_bearish_stwt', 'new_entrants']
+biggest_velocity_surges n: 15
+  sample surge: {"rank": 29, "ticker": "SOXS", "name": "Direxion Shares ETF Trust - Direxion Daily Semiconductor Bear 3X Share", "mentions": 20, "mentions_24h_ago": 3, "rank_24h_ago": 112, "upvotes": 42, "velocity_pct": 566.7, "rank_climb": 83}
+top_30_by_mentions n: 30
+  sample t30: {"rank": 1, "ticker": "MU", "name": "Micron Technology", "mentions": 249, "mentions_24h_ago": 98, "rank_24h_ago": 1, "upvotes": 2256, "velocity_pct": 154.1, "rank_climb": 0, "stwt_bull_pct": 84.6, "stwt_bear_pct": 15.4, "stwt_bull_bear_ratio": 5.5, "stwt_n_messages": 30, "stwt_total_likes": 0, "stwt_watchlist_count": 199261}
+market_regime_data: {"total_mentions": 2697, "prior_total": 2581, "delta_pct": 4.5}
+lambda LastModified: 2026-05-31T13:39:49.000+0000
