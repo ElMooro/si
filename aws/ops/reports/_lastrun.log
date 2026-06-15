@@ -1,3 +1,20 @@
-invoked
-READY 20s: int_cov 28 | ev_ebitda 30 | peg 22
-DELL: int_cov 5.4 | ev/ebitda 23.9 | peg 0.81 | nde 1.69
+FEED:
+  cash_conv 30 accruals 30 | nde 30 int_cov 28 cur 30
+  insider 30 | sector_mom 30 | peg 22 ev_ebitda 30
+  bear 30 | scorecard 30 | seg_conc 30 acq 23
+
+PAGE live:
+  OK  scorecard
+  OK  bear box
+  OK  quality section
+  OK  insider badge
+  OK  sector
+  OK  PEG
+  OK  bottleneck-trend
+  OK  row score chip
+  OK  clean filter
+  OK  header fixed
+
+VST: 2▲/2▼  bull=['cheap vs own history', '13F funds adding']  bear=['weak cash conversion', 'insiders selling']
+
+DELL: 3▲/3▼  bull=['strong cash conversion', 'low leverage', 'consistent earnings beats']  bear=['insiders selling', 'expensive vs own history', 'revenue concentration']
