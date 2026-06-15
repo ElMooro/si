@@ -86,6 +86,18 @@ table.data .tier-watch{color:var(--gold);font-family:var(--mono);font-size:10.5p
 .loading{color:var(--fg-4);font-style:italic;font-size:13px;padding:20px;text-align:center}
 .empty{color:var(--fg-4);font-size:13px;padding:30px;text-align:center;background:var(--bg-raised);border:1px dashed var(--border);border-radius:8px}
 footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);color:var(--fg-4);font-size:11.5px;font-family:var(--mono);text-align:center}
+
+/* === performance trends strip (added) === */
+.trend-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.trend-tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:13px 15px 9px;display:flex;flex-direction:column;gap:6px}
+.tt-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.tt-label{font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--fg-4)}
+.tt-delta{font-family:var(--mono);font-size:10.5px;font-weight:600}
+.tt-delta.pos{color:var(--green)}.tt-delta.neg{color:var(--red)}.tt-delta.flat{color:var(--fg-4)}
+.tt-val{font-size:22px;font-weight:700;letter-spacing:-.01em;line-height:1}
+.tspark{display:block;margin-top:2px;overflow:visible}
+.tspark-empty{font-family:var(--mono);font-size:11px;color:var(--fg-4);height:40px;display:flex;align-items:center}
+
 </style>
 </head>
 <body>
@@ -120,6 +132,12 @@ footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);colo
         </div>
       </div>
     </div>
+  </section>
+
+  <section class="section" id="trends-section" style="display:none">
+    <div class="section-hdr"><h2>📈 Performance Trends</h2><span class="badge" id="trends-meta">—</span></div>
+    <p class="section-blurb" style="font-size:12.5px;color:var(--fg-4);margin:-4px 0 14px;line-height:1.5">The trajectory behind today's snapshot — each metric is logged once every morning, so these lines build over time. The point is direction: is the system learning, is realized P&amp;L compounding, are alerts thinning or surging.</p>
+    <div class="trend-tiles" id="trend-tiles"></div>
   </section>
 
   <section class="section">
@@ -298,8 +316,52 @@ function renderAlertDist(snapshot) {
   }).join('');
 }
 
+
+function _tspark(vals,color){
+  const v=vals.filter(function(x){return x!=null && !isNaN(x);});
+  if(v.length<2) return '<div class="tspark-empty">accumulating…</div>';
+  const w=180,h=40,mn=Math.min.apply(null,v),mx=Math.max.apply(null,v),rng=(mx-mn)||1;
+  const pts=v.map(function(x,i){return [(i/(v.length-1))*w, h-3-((x-mn)/rng)*(h-6)];});
+  const line=pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ');
+  const area='0,'+h+' '+line+' '+w+','+h;
+  const last=pts[pts.length-1];
+  return '<svg class="tspark" width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+
+    '<polygon points="'+area+'" fill="'+color+'" opacity="0.09"/>'+
+    '<polyline points="'+line+'" fill="none" stroke="'+color+'" stroke-width="1.6"/>'+
+    '<circle cx="'+last[0].toFixed(1)+'" cy="'+last[1].toFixed(1)+'" r="2.4" fill="'+color+'"/></svg>';
+}
+function renderTrends(hist){
+  const sec=document.getElementById('trends-section'), wrap=document.getElementById('trend-tiles');
+  if(!sec||!wrap) return;
+  const series=(((hist||{}).series)||[]).slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
+  if(series.length<1){ sec.style.display='none'; return; }
+  sec.style.display='';
+  const cssv=function(n){return (getComputedStyle(document.documentElement).getPropertyValue(n)||'').trim()||'#26ffaf';};
+  const metrics=[
+    {key:'realized_pnl_usd',label:'Realized P&L',f:fmtUsd,c:'--green',money:true},
+    {key:'win_rate_pct',label:'Win rate',f:function(v){return fmt(v,0)+'%';},c:'--cyan'},
+    {key:'n_predictions',label:'Predictions / day',f:function(v){return fmt(v,0);},c:'--cyan'},
+    {key:'n_calibration',label:'Calibration dataset',f:function(v){return fmt(v,0)+' pts';},c:'--purple'},
+    {key:'total_alerts',label:'Daily alerts',f:function(v){return fmt(v,0);},c:'--gold'},
+    {key:'n_open',label:'Open positions',f:function(v){return fmt(v,0);},c:'--gold'}
+  ];
+  wrap.innerHTML=metrics.map(function(m){
+    const vals=series.map(function(s){var x=s[m.key];return x==null?0:Number(x);});
+    const cur=vals[vals.length-1], first=vals[0], delta=cur-first, col=cssv(m.c);
+    const dStr=series.length>1?((delta>=0?'+':'')+(m.money?fmtUsd(delta):fmt(delta,0))):'';
+    const dCls=delta>0?'pos':delta<0?'neg':'flat';
+    return '<div class="trend-tile"><div class="tt-top"><span class="tt-label">'+m.label+'</span>'+
+      (series.length>1?'<span class="tt-delta '+dCls+'">'+dStr+'</span>':'')+'</div>'+
+      '<div class="tt-val" style="color:'+col+'">'+m.f(cur)+'</div>'+_tspark(vals,col)+'</div>';
+  }).join('');
+  const meta=document.getElementById('trends-meta');
+  if(meta) meta.textContent = series.length<3
+    ? 'building — '+series.length+' day'+(series.length===1?'':'s')+' logged (one added each morning)'
+    : series.length+' days · '+series[0].date+' → '+series[series.length-1].date;
+}
+
 async function loadAll() {
-  const [aiDoc, calibration, snapshot, portfolio, monitor, tickets, retail] = await Promise.all([
+  const [aiDoc, calibration, snapshot, portfolio, monitor, tickets, retail, history] = await Promise.all([
     fetchJson('/data/digest-trends-ai.json'),
     fetchJson('/data/cascade-calibration.json'),
     fetchJson('/data/predictions-snapshots/latest.json'),
@@ -307,6 +369,7 @@ async function loadAll() {
     fetchJson('/data/trade-monitor-snapshots.json'),
     fetchJson('/data/trade-tickets.json'),
     fetchJson('/data/retail-sentiment.json'),
+    fetchJson('/data/digest-trends-history.json'),
   ]);
   renderKpi({portfolio, snapshot, calibration});
   renderAiNarrative(aiDoc);
@@ -315,6 +378,7 @@ async function loadAll() {
   renderTickets(tickets);
   renderRetail(retail);
   renderAlertDist(snapshot);
+  renderTrends(history);
 }
 loadAll();
 setInterval(loadAll, 60000);
