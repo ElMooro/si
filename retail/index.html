@@ -120,6 +120,18 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .track-bar .tk-side i{color:var(--text-mute);font-style:normal;margin-left:3px}
 .track-bar .tk-note{color:var(--text-mute);font-size:10px;flex-basis:100%;line-height:1.4}
 
+
+/* === #4 attention stage + sparkline === */
+.hc-stage{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sb{font-family:var(--mono,monospace);font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 6px;border-radius:4px}
+.sb-sus{background:rgba(0,230,118,.14);color:var(--pos)}
+.sb-spk{background:rgba(251,191,36,.16);color:var(--gold)}
+.sb-bld{background:rgba(34,211,238,.14);color:var(--info)}
+.sb-cool{background:var(--border);color:var(--text-mute)}
+.sb-std{background:var(--border);color:var(--text-mute)}
+.msp{display:block}
+.hc-trend{font-family:var(--mono,monospace);font-size:9.5px}.hc-trend.up{color:var(--pos)}.hc-trend.dn{color:var(--neg)}
+
 </style>
 </head>
 <body>
@@ -247,6 +259,17 @@ function buzzBadge(state){
   const x=m[state]||['• —','bz-steady']; return `<span class="bz ${x[1]}">${x[0]}</span>`;
 }
 function fmtChg(v){ if(v==null) return '<span class="r-detail">—</span>'; const c=v>=0?'pos':'neg'; return `<span class="px-chg ${c}">${v>=0?'+':''}${v.toFixed(1)}%</span>`; }
+function stageBadge(st){
+  if(!st) return '';
+  const m={SUSTAINED:['sustained','sb-sus'],SPIKE:['spike','sb-spk'],BUILDING:['building','sb-bld'],COOLING:['cooling','sb-cool'],STEADY:['steady','sb-std']};
+  const x=m[st]; return x?`<span class="sb ${x[1]}">${x[0]}</span>`:'';
+}
+function miniSpark(arr){
+  const v=(arr||[]).filter(x=>x!=null); if(v.length<2) return '';
+  const w=54,h=14,mn=Math.min(...v),mx=Math.max(...v),rng=(mx-mn)||1;
+  const pts=v.map((x,i)=>((i/(v.length-1))*w)+','+(h-1-((x-mn)/rng)*(h-2))).join(' ');
+  return `<svg class="msp" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>`;
+}
 function hotCard(e){
   const heat=e.heat||0; const hc=heat>=70?'h-hot':heat>=50?'h-warm':'h-cool';
   const nearHi = e.off_52w_high!=null && e.off_52w_high>-3 ? '<span class="px-hi">near 52w hi</span>' : '';
@@ -255,7 +278,7 @@ function hotCard(e){
     <div class="hc-name">${(e.name||'').slice(0,30)}</div>
     <div class="hc-heat"><div class="hc-bar"><div class="hc-fill ${hc}" style="width:${heat}%"></div></div><span class="hc-heatval">${heat}</span></div>
     <div class="hc-stats"><span>💬 ${fmtNum(e.mentions)}</span><span class="pos">${fmtVel(e.velocity_pct)}</span>${e.stwt_bull_pct!=null?`<span>${e.stwt_bull_pct.toFixed(0)}% bull</span>`:''}</div>
-    <div class="hc-price">${e.price!=null?'$'+e.price.toFixed(2):'—'} ${fmtChg(e.change_pct)} ${nearHi}</div>
+    ${e.attention_stage||(e.mentions_hist&&e.mentions_hist.length>1)?('<div class="hc-stage">'+stageBadge(e.attention_stage)+miniSpark(e.mentions_hist)+(e.trend_7d_pct!=null?('<span class="hc-trend '+(e.trend_7d_pct>=0?'up':'dn')+'">'+(e.trend_7d_pct>=0?'+':'')+e.trend_7d_pct+'% 7d</span>'):'')+'</div>'):''}<div class="hc-price">${e.price!=null?'$'+e.price.toFixed(2):'—'} ${fmtChg(e.change_pct)} ${nearHi}</div>
   </div>`;
 }
 function renderHottest(){
