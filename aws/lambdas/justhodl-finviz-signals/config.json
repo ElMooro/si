@@ -1,0 +1,6 @@
+{
+  "timeout": 120,
+  "schedule": "cron(20 14,22 * * ? *)",
+  "description": "Finviz technical signals \u2014 SMA200/50 crossovers, golden/death cross, momentum leaders, unusual volume, RSI extremes, 52w-high proximity (computed from finviz-universe, zero extra API calls)",
+  "memory": 512
+}
