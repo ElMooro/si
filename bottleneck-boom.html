@@ -60,7 +60,8 @@ tr.drawer>td{background:var(--bg-2);padding:0;border-bottom:2px solid var(--bord
 .kv span{font-family:var(--mono);font-size:11px;color:var(--fg-2);background:var(--bg-1);border:1px solid var(--border);border-radius:6px;padding:5px 10px}
 .kv span b{color:var(--fg-0)}.kv span i{color:var(--fg-3);font-style:normal}
 .kv span.good b{color:var(--green)}.kv span.bad b{color:var(--red)}
-.fin{margin-top:14px}.fin h4{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.fin{margin-top:14px}.fin h4,.conf h4{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.conf{margin-top:14px}
 .fintbl{width:100%;font-size:11.5px;border-collapse:collapse}.fintbl th,.fintbl td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)}.fintbl th{font-size:9px}
 .fintbl td.l,.fintbl th.l{text-align:left}
 .loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
@@ -93,7 +94,7 @@ This page finds where <b>demand is outrunning supply</b>, then the companies pos
 <dt>vs 52w high</dt><dd>How far below its 52-week high it trades. Cheap + accelerating near the lows = undiscovered (max asymmetry); already up big = consensus.</dd>
 <dt>Next earnings</dt><dd>When backlog converts to reported revenue — the date the thesis actually gets tested.</dd>
 </dl>
-<b>Tap any stock</b> to open its full research — an AI-written plain-English thesis (why it could re-rate, and the key risk), what the company does, valuation vs its industry, and 10 years of financials. Everything you need without leaving the page. Not investment advice.
+<b>Tap any stock</b> to open its full research — an AI-written plain-English thesis (why it could re-rate, and the key risk), the trap-check verdict, what the company does, valuation vs its industry, 10 years of financials, plus <b>confirmation signals</b> from the rest of the platform: 13F smart-money positioning, short interest, analyst forward estimates, and where it sits in a rotation/value chain. Everything you need without leaving the page. Not investment advice.
 </div></details>
 
 <div class="sec-h">Industry Pressure — where supply is tight</div>
@@ -184,7 +185,13 @@ function drawer(tk){
     (v.share_chg_pct!=null?`<span class="${v.share_chg_pct>3?'bad':''}">Shares <b>${v.share_chg_pct>=0?'+':''}${v.share_chg_pct}%</b> <i>/10y</i></span>`:'')+
     '</div>'+
     (trapTxt?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin:-4px 0 2px">${trapTxt}</div>`:'');
-  return `<div class="dwrap">${thesisHtml}${dctx}${what}${kv}${finHtml}</div>`;
+  const ch=v.chain; let cb=[];
+  if(v.sm_funds!=null)cb.push(`<span class="${(v.sm_net||0)>0?'good':''}">🏦 13F <b>${v.sm_funds} funds</b>${v.sm_net!=null?`, <b>${v.sm_net>=0?'+':''}${v.sm_net} net adding</b>`:''}${v.sm_value?` · ${bn(v.sm_value)}`:''}</span>`);
+  if(v.short_pct!=null)cb.push(`<span class="${v.short_pct>=20?'bad':''}">📉 Short <b>${r1(v.short_pct)}%</b>${v.short_signal?` <i>${esc(v.short_signal)}</i>`:''}${v.short_pct>=20?' <i>· squeeze fuel</i>':''}</span>`);
+  if(v.fwd_rev_growth!=null)cb.push(`<span class="${v.fwd_rev_growth>0?'good':'bad'}">🔮 Analysts see <b>${v.fwd_rev_growth>=0?'+':''}${r1(v.fwd_rev_growth)}%</b> fwd rev</span>`);
+  if(ch)cb.push(`<span>🔗 <b>${esc(ch.chain)} chain</b> · ${esc(ch.role)}${ch.catchup!=null?` · <b>+${r1(ch.catchup)}%</b> expected catch-up`:''}${ch.leader_30d!=null&&ch.own_30d!=null?` <i>(leader +${r1(ch.leader_30d)}% vs this ${ch.own_30d>=0?'+':''}${r1(ch.own_30d)}% /30d)</i>`:''}</span>`);
+  const conf=cb.length?`<div class="conf"><h4>Confirmation signals — who else sees it</h4><div class="kv">${cb.join('')}</div></div>`:'';
+  return `<div class="dwrap">${thesisHtml}${dctx}${conf}${what}${kv}${finHtml}</div>`;
 }
 
 function renderTable(){
