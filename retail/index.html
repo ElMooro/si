@@ -132,6 +132,11 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .msp{display:block}
 .hc-trend{font-family:var(--mono,monospace);font-size:9.5px}.hc-trend.up{color:var(--pos)}.hc-trend.dn{color:var(--neg)}
 
+
+/* === #6 corroboration chips === */
+.corr{display:inline-flex;gap:3px;margin-top:3px}
+.cc{font-family:var(--mono,monospace);font-size:8px;font-weight:700;width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;background:var(--border);color:var(--text-dim)}
+
 </style>
 </head>
 <body>
@@ -182,6 +187,12 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
   <div class="panel-title">🎯 Squeeze Radar <span style="font-weight:400;font-size:11px;color:var(--text-mute)">— retail heat × short interest · <a href="/squeeze.html" style="color:#ef4444">full squeeze desk →</a></span></div>
   <div class="pt-note">Retail piling into heavily-shorted names = squeeze fuel. Short-interest coverage is partial, so this list is sparse by design — when it fires, it's worth a look.</div>
   <div id="squeeze-radar"><div class="loading">Loading…</div></div>
+</div>
+
+<div class="panel" style="margin-bottom:18px;border-left:3px solid #a78bfa">
+  <div class="panel-title">🛰 Confirmed Across Venues <span style="font-weight:400;font-size:11px;color:var(--text-mute)">— lit up on 3+ independent sources at once</span></div>
+  <div class="pt-note">Reddit + StockTwits + news + Google search + options flow. A name showing across <b>independent</b> venues is a far stronger signal than one loud subreddit.</div>
+  <div id="multi-venue"><div class="loading">Loading…</div></div>
 </div>
 
 <div class="row-3col">
@@ -264,7 +275,7 @@ async function load() {
     document.getElementById('status').textContent = 'live';
     document.getElementById('status').style.color = 'var(--pos)';
     document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
-    renderRegime(); renderTrack(); renderHottest(); renderConfirmation(); renderContrarian(); renderSqueeze(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
+    renderRegime(); renderTrack(); renderHottest(); renderConfirmation(); renderContrarian(); renderSqueeze(); renderMultiVenue(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
   } catch (e) {
     document.getElementById('status').textContent = 'offline';
     document.getElementById('status').style.color = 'var(--neg)';
@@ -278,6 +289,11 @@ function buzzBadge(state){
   const x=m[state]||['• —','bz-steady']; return `<span class="bz ${x[1]}">${x[0]}</span>`;
 }
 function fmtChg(v){ if(v==null) return '<span class="r-detail">—</span>'; const c=v>=0?'pos':'neg'; return `<span class="px-chg ${c}">${v>=0?'+':''}${v.toFixed(1)}%</span>`; }
+function corrChips(srcs){
+  if(!srcs||srcs.length<2) return '';
+  const ab={Reddit:'R',StockTwits:'ST',News:'N',Search:'G',Options:'O'};
+  return '<span class="corr">'+srcs.map(x=>`<span class="cc" title="${x}">${ab[x]||x[0]}</span>`).join('')+'</span>';
+}
 function stageBadge(st){
   if(!st) return '';
   const m={SUSTAINED:['sustained','sb-sus'],SPIKE:['spike','sb-spk'],BUILDING:['building','sb-bld'],COOLING:['cooling','sb-cool'],STEADY:['steady','sb-std']};
@@ -294,7 +310,7 @@ function hotCard(e){
   const nearHi = e.off_52w_high!=null && e.off_52w_high>-3 ? '<span class="px-hi">near 52w hi</span>' : '';
   return `<div class="hot-card">
     <div class="hc-top"><span class="hc-tk">${e.ticker}</span>${buzzBadge(e.buzz_state)}</div>
-    <div class="hc-name">${(e.name||'').slice(0,30)}</div>
+    <div class="hc-name">${(e.name||'').slice(0,30)}</div>${corrChips(e.corroboration)}
     <div class="hc-heat"><div class="hc-bar"><div class="hc-fill ${hc}" style="width:${heat}%"></div></div><span class="hc-heatval">${heat}</span></div>
     <div class="hc-stats"><span>💬 ${fmtNum(e.mentions)}</span><span class="pos">${fmtVel(e.velocity_pct)}</span>${e.stwt_bull_pct!=null?`<span>${e.stwt_bull_pct.toFixed(0)}% bull</span>`:''}</div>
     ${e.attention_stage||(e.mentions_hist&&e.mentions_hist.length>1)?('<div class="hc-stage">'+stageBadge(e.attention_stage)+miniSpark(e.mentions_hist)+(e.trend_7d_pct!=null?('<span class="hc-trend '+(e.trend_7d_pct>=0?'up':'dn')+'">'+(e.trend_7d_pct>=0?'+':'')+e.trend_7d_pct+'% 7d</span>'):'')+'</div>'):''}<div class="hc-price">${e.price!=null?'$'+e.price.toFixed(2):'—'} ${fmtChg(e.change_pct)} ${nearHi}</div>
@@ -344,6 +360,11 @@ function renderSqueeze(){
   const sq=(DATA.ranked||{}).squeeze_radar||[];
   const el=document.getElementById('squeeze-radar'); if(!el) return;
   el.innerHTML = sq.length ? sq.map(e=>`<div class="row-list"><span><span class="r-ticker">${e.ticker}</span><br><span class="r-name">💬${fmtNum(e.mentions)} · ${e.heat||0}🔥 · short ${e.short_pct!=null?e.short_pct+'%':'—'}${e.days_to_cover?' · '+e.days_to_cover+'d cover':''}</span></span><span class="r-metric" style="color:#ef4444">${e.squeeze_score||0}</span><span class="r-detail">${e.change_pct!=null?(e.change_pct>=0?'+':'')+e.change_pct.toFixed(1)+'%':''}</span></div>`).join('') : '<div style="padding:22px;text-align:center;color:var(--text-mute)">No squeeze setups right now — no heavily-shorted names carrying heavy retail attention.</div>';
+}
+function renderMultiVenue(){
+  const mv=(DATA.ranked||{}).multi_venue_confirmed||[];
+  const el=document.getElementById('multi-venue'); if(!el) return;
+  el.innerHTML = mv.length ? mv.map(e=>`<div class="row-list"><span><span class="r-ticker">${e.ticker}</span><br><span class="r-name">${(e.corroboration||[]).join(' · ')}</span></span><span class="r-metric" style="color:#a78bfa">${e.corroboration_count}×</span><span class="r-detail">${e.heat||0}🔥 ${e.change_pct!=null?(e.change_pct>=0?'+':'')+e.change_pct.toFixed(1)+'%':''}</span></div>`).join('') : '<div style="padding:22px;text-align:center;color:var(--text-mute)">No multi-venue names right now.</div>';
 }
 function renderRegime() {
   const regime = DATA.market_regime || 'UNKNOWN';
