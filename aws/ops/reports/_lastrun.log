@@ -1,10 +1,22 @@
-exclude_prefixes: 7 -> 15
-AFTER mute: tracked=72 fresh=41 stale=31 alerts=0
+FINAL: tracked=36 fresh=19 stale=17 alerts=0
 
-REMAINING stale by dir (these are the REAL live-feed failures now):
-  [LIVE-FEED] data/ai-commentary/ n=10 dated=0 maxage=311h e.g.=liquidity.json
-  [LIVE-FEED] data/ n=9 dated=0 maxage=584h e.g.=_freshness-status.json
-  [LIVE-FEED] data/_askdesk/ n=6 dated=0 maxage=70h e.g.=1781308108.json
-  [archive?] data/_ledger/ n=4 dated=4 maxage=127h e.g.=2026-06-10.json
-  [LIVE-FEED] data/_internals/ n=1 dated=0 maxage=57h e.g.=history.json
-  [LIVE-FEED] data/_cache/ n=1 dated=0 maxage=52h e.g.=ticker-profiles.json
+remaining stale LIVE feeds (key | age | SLA):
+  data/ai-commentary/liquidity.json | 311h | SLA 26.0h
+  data/ai-commentary/pre-pump-radar.json | 311h | SLA 26.0h
+  data/ai-commentary/risk-desk.json | 311h | SLA 26.0h
+  data/ai-commentary/signal-board.json | 311h | SLA 26.0h
+  data/ai-commentary/crisis.json | 311h | SLA 26.0h
+  data/ai-commentary/fundamentals.json | 311h | SLA 26.0h
+  data/ai-commentary/portfolio.json | 311h | SLA 26.0h
+  data/ai-commentary/signals.json | 311h | SLA 26.0h
+  data/ai-commentary/13f.json | 311h | SLA 26.0h
+  data/ai-commentary/screener.json | 311h | SLA 26.0h
+  data/13f-positions.json | 179h | SLA 26.0h
+  data/allocator.json | 178h | SLA 26.0h
+  data/10kq-filings.json | 178h | SLA 26.0h
+  data/8k-filings.json | 176h | SLA 26.0h
+  data/alert-history.json | 176h | SLA 26.0h
+  data/13f-price-divergence.json | 160h | SLA 26.0h
+  data/activist-13d-names.json | 139h | SLA 26.0h
+
+exclude_prefixes now: ['data/_', 'data/_alerts/', 'data/_archive/', 'data/_skill/archive/', 'data/activity-nowcast/snapshots/', 'data/ai-commentary/history/', 'data/archive/', 'data/carry-surface/', 'data/crisis-knowledge-base', 'data/digest-trends-ai-history/', 'data/ecb-hist/', 'data/estimate-revisions/', 'data/regime-history/', 'data/track-record/', 'data/track-record/snapshots/', 'data/vintage/']
