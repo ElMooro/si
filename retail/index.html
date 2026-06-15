@@ -178,6 +178,12 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
   </div>
 </div>
 
+<div class="panel" style="margin-bottom:18px;border-left:3px solid #ef4444">
+  <div class="panel-title">🎯 Squeeze Radar <span style="font-weight:400;font-size:11px;color:var(--text-mute)">— retail heat × short interest · <a href="/squeeze.html" style="color:#ef4444">full squeeze desk →</a></span></div>
+  <div class="pt-note">Retail piling into heavily-shorted names = squeeze fuel. Short-interest coverage is partial, so this list is sparse by design — when it fires, it's worth a look.</div>
+  <div id="squeeze-radar"><div class="loading">Loading…</div></div>
+</div>
+
 <div class="row-3col">
   <div class="panel">
     <div class="panel-title">🚀 Biggest Velocity Surges</div>
@@ -258,7 +264,7 @@ async function load() {
     document.getElementById('status').textContent = 'live';
     document.getElementById('status').style.color = 'var(--pos)';
     document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
-    renderRegime(); renderTrack(); renderHottest(); renderConfirmation(); renderContrarian(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
+    renderRegime(); renderTrack(); renderHottest(); renderConfirmation(); renderContrarian(); renderSqueeze(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
   } catch (e) {
     document.getElementById('status').textContent = 'offline';
     document.getElementById('status').style.color = 'var(--neg)';
@@ -333,6 +339,11 @@ function renderContrarian(){
   const a=document.getElementById('crowded-exhaustion'), b=document.getElementById('capitulation');
   if(a) a.innerHTML = ex.length?ex.map(row).join(''):'<div style="padding:22px;text-align:center;color:var(--text-mute)">None right now — nothing euphoric, crowded and extended at once.</div>';
   if(b) b.innerHTML = cap.length?cap.map(row).join(''):'<div style="padding:22px;text-align:center;color:var(--text-mute)">None right now.</div>';
+}
+function renderSqueeze(){
+  const sq=(DATA.ranked||{}).squeeze_radar||[];
+  const el=document.getElementById('squeeze-radar'); if(!el) return;
+  el.innerHTML = sq.length ? sq.map(e=>`<div class="row-list"><span><span class="r-ticker">${e.ticker}</span><br><span class="r-name">💬${fmtNum(e.mentions)} · ${e.heat||0}🔥 · short ${e.short_pct!=null?e.short_pct+'%':'—'}${e.days_to_cover?' · '+e.days_to_cover+'d cover':''}</span></span><span class="r-metric" style="color:#ef4444">${e.squeeze_score||0}</span><span class="r-detail">${e.change_pct!=null?(e.change_pct>=0?'+':'')+e.change_pct.toFixed(1)+'%':''}</span></div>`).join('') : '<div style="padding:22px;text-align:center;color:var(--text-mute)">No squeeze setups right now — no heavily-shorted names carrying heavy retail attention.</div>';
 }
 function renderRegime() {
   const regime = DATA.market_regime || 'UNKNOWN';
