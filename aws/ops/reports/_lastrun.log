@@ -1,17 +1,10 @@
-n_stale total: 100 | in snapshot: 50
+exclude_prefixes: 7 -> 15
+AFTER mute: tracked=72 fresh=41 stale=31 alerts=0
 
-stale grouped by directory (dated = filename has YYYY-MM-DD → immutable archive):
-  [ARCHIVE(mute)] data/activity-nowcast/snapshots/  n=15 dated=15 maxage=700h e.g.=2026-05-17.json
-  [ARCHIVE(mute)] data/_alerts/  n=13 dated=12 maxage=382h e.g.=digest-2026-05-30.json
-  [LIVE-FEED(keep)] data/ai-commentary/  n=10 dated=0 maxage=311h e.g.=pre-pump-radar.json
-  [LIVE-FEED(keep)] data/  n=2 dated=0 maxage=584h e.g.=_freshness-status.json
-  [ARCHIVE(mute)] data/ai-commentary/history/pre-pump-radar/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
-  [ARCHIVE(mute)] data/ai-commentary/history/risk-desk/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
-  [ARCHIVE(mute)] data/ai-commentary/history/signal-board/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
-  [ARCHIVE(mute)] data/ai-commentary/history/crisis/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
-  [ARCHIVE(mute)] data/ai-commentary/history/fundamentals/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
-  [ARCHIVE(mute)] data/ai-commentary/history/liquidity/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
-  [ARCHIVE(mute)] data/ai-commentary/history/portfolio/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
-  [ARCHIVE(mute)] data/ai-commentary/history/signals/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
-  [ARCHIVE(mute)] data/ai-commentary/history/13f/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
-  [ARCHIVE(mute)] data/ai-commentary/history/screener/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
+REMAINING stale by dir (these are the REAL live-feed failures now):
+  [LIVE-FEED] data/ai-commentary/ n=10 dated=0 maxage=311h e.g.=liquidity.json
+  [LIVE-FEED] data/ n=9 dated=0 maxage=584h e.g.=_freshness-status.json
+  [LIVE-FEED] data/_askdesk/ n=6 dated=0 maxage=70h e.g.=1781308108.json
+  [archive?] data/_ledger/ n=4 dated=4 maxage=127h e.g.=2026-06-10.json
+  [LIVE-FEED] data/_internals/ n=1 dated=0 maxage=57h e.g.=history.json
+  [LIVE-FEED] data/_cache/ n=1 dated=0 maxage=52h e.g.=ticker-profiles.json
