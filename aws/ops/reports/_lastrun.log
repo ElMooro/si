@@ -1,26 +1,10 @@
-invoke body: {"n_tickers": 11302, "short_float": 5756, "float": 5783, "rel_volume": 11269, "elapsed_s": 6.5} | wall=7.6s
-universe tickers: 11302
-  roe                  4887 / 11302
-  roic                 5114 / 11302
-  profit_margin        4702 / 11302
-  gross_margin         4184 / 11302
-  analyst_recom        4588 / 11302
-  target_price         4637 / 11302
-  rsi                 11096 / 11302
-  sma200_pct          11291 / 11302
-  sma50_pct           11291 / 11302
-  perf_m              11064 / 11302
-  perf_y               9529 / 11302
-  off_52w_high_pct    11269 / 11302
-  rel_volume          11269 / 11302
-  short_float_pct      5756 / 11302
-  eps_growth_ny        4061 / 11302
-  debt_eq              5048 / 11302
-  div_yield            6381 / 11302
-  earnings_date        4583 / 11302
+invoke: {"crossUp200": 0, "crossDn200": 0, "golden": 0, "death": 0, "momentum": 0, "unusualVol": 0, "had_prev": false}
+universe_n: 11302
+crosses: up200=0 dn200=0 golden=0 death=0 (crossovers populate on NEXT snapshot)
+momentum_leaders: 0 | unusual_volume: 0 | rsi_ob: 0 | rsi_os: 0 | near_52w_high: 0
 
-NVDA: recom=1.25 tgt=309.93 px=212.45 rsi=51.29 sma200%=12.16 perfM=-9.88 roe=114.29 pmargin=62.97 short=1.23
+Top 8 momentum leaders:
 
-AAPL: recom=1.98 tgt=318.45 px=296.42 rsi=49.46 sma200%=10.94 perfM=-0.6 roe=141.47 pmargin=27.15 short=1.06
+Top 6 unusual volume:
 
-MU: recom=1.35 tgt=942.02 px=1087.99 rsi=66.56 sma200%=181.45 perfM=40.2 roe=39.82 pmargin=41.49 short=3.34
+Near 52w high (top 5):
