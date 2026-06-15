@@ -637,6 +637,44 @@ def lambda_handler(event, context):
         "note": "Mention counts can be botted or pumped. Flags surface attention with no price/volume/multi-venue confirmation — caution, not conviction.",
     }
 
+    # ─── #10 Signal decay / staging: where each name sits in its lifecycle ───
+    def lifecycle_stage(ser, e):
+        ms = [(p.get("mentions") or 0) for p in ser]
+        hs = [(p.get("heat") or 0) for p in ser]
+        chg = e.get("change_pct"); vel = e.get("velocity_pct")
+        if len(ms) < 3:
+            if vel is not None and vel >= 150 and (chg is None or chg >= -1):
+                return "IGNITING"
+            return None
+        m_now, m_prev, m_max = ms[-1], ms[-2], (max(ms) or 1)
+        cur_h, mx_h = hs[-1], (max(hs) or 1)
+        if m_now >= m_prev and m_now < 0.7 * m_max and (chg is None or chg >= 0):
+            return "IGNITING"
+        if m_now >= 0.8 * m_max and cur_h >= 0.85 * mx_h:
+            return "PEAKING"
+        if m_now < m_prev and m_now < 0.6 * m_max:
+            return "FADING"
+        return "ACTIVE"
+    for e in enriched:
+        ls = lifecycle_stage(by_t.get(e.get("ticker"), []), e)
+        if ls:
+            e["lifecycle"] = ls
+    _by_heat = sorted(enriched, key=lambda x: -(x.get("heat") or 0))
+    igniting = [e for e in _by_heat if e.get("lifecycle") == "IGNITING"][:10]
+    peaking = [e for e in _by_heat if e.get("lifecycle") == "PEAKING"][:10]
+    fading = [e for e in _by_heat if e.get("lifecycle") == "FADING"][:10]
+    _persist = []
+    for tk, ser in by_t.items():
+        hs = [(p.get("heat") or 0) for p in ser]
+        if len(hs) >= 4 and max(hs) > 0:
+            _persist.append(sum(1 for h in hs if h >= 0.5 * max(hs)))
+    _persist.sort()
+    signal_persistence = {
+        "median_days_elevated": (_persist[len(_persist) // 2] if _persist else None),
+        "n_tickers_measured": len(_persist),
+        "note": "Median days a hot name stays within 50% of its peak heat — a half-life proxy. Accumulates as history grows.",
+    }
+
     # ─── Rankings ───
     # Biggest velocity surges (high mentions + high velocity)
     velocity_filtered = [e for e in enriched
@@ -727,6 +765,9 @@ def lambda_handler(event, context):
             "multi_venue_confirmed": multi_venue_confirmed,
             "flow_leaders": flow_leaders,
             "suspicious": suspicious,
+            "igniting": igniting,
+            "peaking": peaking,
+            "fading": fading,
             "momentum_confirmed": momentum_confirmed,
             "fading_divergence": fading_divergence,
             "biggest_velocity_surges": biggest_velocity,
@@ -737,6 +778,7 @@ def lambda_handler(event, context):
         },
         "n_with_price": n_with_price,
         "data_quality": data_quality,
+        "signal_persistence": signal_persistence,
         "signals_logged": n_signals,
         "track_record": track_record,
         "stocktwits_trending": trending[:20],
