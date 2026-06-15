@@ -675,6 +675,43 @@ def lambda_handler(event, context):
         "note": "Median days a hot name stays within 50% of its peak heat — a half-life proxy. Accumulates as history grows.",
     }
 
+    # ─── #8 Theme rollup: what retail is rotating into (curated theme map) ───
+    THEMES = {
+        "AI": ["NVDA","AMD","SMCI","PLTR","AVGO","MRVL","ARM","TSM","MSFT","GOOGL","GOOG","META","DELL","ANET","VRT","CRWV","BBAI","SOUN","AI"],
+        "Quantum": ["IONQ","RGTI","QBTS","QUBT","ARQQ","LAES"],
+        "Nuclear/Uranium": ["SMR","OKLO","CCJ","LEU","UEC","NNE","CEG","VST","TLN","UUUU","DNN"],
+        "Crypto-equity": ["MSTR","COIN","MARA","RIOT","CLSK","HUT","BITF","HOOD","CIFR","WULF","BTBT","IREN","SMLR","BMNR"],
+        "EV/Battery": ["TSLA","RIVN","LCID","NIO","XPEV","LI","QS","CHPT","BLNK"],
+        "Space/eVTOL": ["RKLB","ASTS","LUNR","RDW","ACHR","JOBY","PL","SPCE"],
+        "Biotech/GLP-1": ["LLY","NVO","VKTX","HIMS","ALT","SMMT"],
+        "Meme/Retail-classic": ["GME","AMC","BB","KOSS","TLRY","DJT","RDDT","BYND","OPEN"],
+        "Semis": ["NVDA","AMD","INTC","MU","TSM","AVGO","MRVL","ARM","QCOM","ASML","LRCX","AMAT","KLAC"],
+    }
+    _ta = {}
+    for e in enriched:
+        tk = (e.get("ticker") or "").upper()
+        for th, lst in THEMES.items():
+            if tk in lst:
+                a = _ta.setdefault(th, {"theme": th, "n_names": 0, "total_mentions": 0, "_sv": 0, "_nv": 0, "_sc": 0, "_nc": 0, "_sb": 0, "_nb": 0, "names": []})
+                a["n_names"] += 1; a["total_mentions"] += (e.get("mentions") or 0)
+                if e.get("velocity_pct") is not None:
+                    a["_sv"] += e["velocity_pct"]; a["_nv"] += 1
+                if e.get("change_pct") is not None:
+                    a["_sc"] += e["change_pct"]; a["_nc"] += 1
+                if e.get("stwt_bull_pct") is not None:
+                    a["_sb"] += e["stwt_bull_pct"]; a["_nb"] += 1
+                a["names"].append({"ticker": tk, "mentions": e.get("mentions"), "heat": e.get("heat"), "change_pct": e.get("change_pct")})
+    theme_rollup = []
+    for th, a in _ta.items():
+        a["avg_velocity"] = round(a["_sv"] / a["_nv"]) if a["_nv"] else None
+        a["avg_change"] = round(a["_sc"] / a["_nc"], 1) if a["_nc"] else None
+        a["avg_bull"] = round(a["_sb"] / a["_nb"]) if a["_nb"] else None
+        a["names"] = sorted(a["names"], key=lambda x: -(x.get("mentions") or 0))[:6]
+        for k in ("_sv", "_nv", "_sc", "_nc", "_sb", "_nb"):
+            a.pop(k, None)
+        theme_rollup.append(a)
+    theme_rollup = sorted(theme_rollup, key=lambda x: -(x.get("total_mentions") or 0))
+
     # ─── Rankings ───
     # Biggest velocity surges (high mentions + high velocity)
     velocity_filtered = [e for e in enriched
@@ -779,6 +816,7 @@ def lambda_handler(event, context):
         "n_with_price": n_with_price,
         "data_quality": data_quality,
         "signal_persistence": signal_persistence,
+        "theme_rollup": theme_rollup,
         "signals_logged": n_signals,
         "track_record": track_record,
         "stocktwits_trending": trending[:20],
