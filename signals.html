@@ -141,6 +141,30 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
 .rot-sources span{padding:2px 6px;background:var(--bg3);border-radius:4px}
 .rot-sources span.up{background:var(--green-bg);color:var(--green)}
 .rot-sources span.down{background:var(--red-bg);color:var(--red)}
+
+/* === composite read (cross-source synthesis, added) === */
+.composite{background:linear-gradient(180deg,var(--bg2),var(--bg1));border:1px solid var(--brd);border-top:3px solid var(--cyan);border-radius:14px;padding:20px 22px;margin:6px 0 30px;display:none}
+.composite.show{display:block}
+.comp-top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:13px}
+.comp-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan)}
+.comp-posture{font-family:var(--display);font-size:25px;font-weight:700;letter-spacing:-.01em}
+.comp-posture.on{color:var(--green)}.comp-posture.off{color:var(--red)}.comp-posture.mixed{color:var(--yellow)}
+.comp-tally{font-family:var(--mono);font-size:11.5px;color:var(--t3);margin-left:auto;text-align:right}
+.comp-tally b{color:var(--t1)}
+.comp-meter{height:8px;border-radius:99px;background:var(--bg3);overflow:hidden;display:flex;margin-bottom:16px}
+.comp-meter .seg{height:100%}.comp-meter .seg.g{background:var(--green)}.comp-meter .seg.w{background:var(--orange)}.comp-meter .seg.b{background:var(--red)}
+.comp-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:720px){.comp-cols{grid-template-columns:1fr}}
+.comp-col h5{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin:0 0 8px}
+.comp-chips{display:flex;flex-wrap:wrap;gap:6px}
+.comp-chip{font-family:var(--mono);font-size:10.5px;padding:4px 9px;border-radius:7px;border:1px solid var(--brd2);background:var(--bg3);color:var(--t2);white-space:nowrap}
+.comp-chip.g{border-color:rgba(0,230,118,.4);color:var(--green)}
+.comp-chip.b{border-color:rgba(255,23,74,.4);color:var(--red)}
+.comp-chip.w{border-color:rgba(255,122,24,.4);color:var(--orange)}
+.comp-chip small{color:var(--t4);margin-left:6px;font-size:9.5px}
+.comp-note{font-size:11.5px;color:var(--t4);line-height:1.55;margin-top:14px;border-top:1px dashed var(--brd2);padding-top:11px}
+.comp-divergence{color:var(--yellow);font-weight:600}
+
 </style>
 </head>
 <body>
@@ -320,6 +344,9 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
     <p>This page shows you the latest reading from each source. The <code>justhodl-asymmetric-scorer</code> Lambda will be wired to read these next — turning the aggregate into a single conviction score per ticker.</p>
   </div>
 
+  <!-- ─── COMPOSITE READ ─── -->
+  <div id="composite-read" class="composite"></div>
+
   <!-- ─── NARRATIVE ─── -->
   <section class="section">
     <div class="section-eyebrow">Narrative & Sentiment</div>
@@ -494,6 +521,48 @@ const fmtSign = (v, d=1) => v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(d
 async function fetchJSON(path){
   try{ const r = await fetch(BUCKET+path,{cache:'no-cache'}); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); }
   catch(e){ console.warn('fetch fail',path,e); return null; }
+}
+
+
+function renderComposite(){
+  const box=document.getElementById('composite-read'); if(!box) return;
+  const cards=[].slice.call(document.querySelectorAll('article.card'));
+  const items=cards.map(function(c){
+    const nm=c.querySelector('.card-name'); const st=c.querySelector('.card-stat');
+    const cls=st?st.className:''; const label=st?st.textContent.trim():'';
+    let k='neutral';
+    if(cls.indexOf('s-good')>=0)k='good'; else if(cls.indexOf('s-bad')>=0)k='bad'; else if(cls.indexOf('s-warn')>=0)k='warn';
+    const live=!!label && label!=='\u2014' && label.toLowerCase()!=='no data' && cls.indexOf('skel')<0;
+    return {name:nm?nm.textContent.trim():'', label:label, k:k, live:live};
+  }).filter(function(x){return x.name;});
+  const live=items.filter(function(x){return x.live;});
+  if(live.length<3){box.classList.remove('show');return;}
+  const g=live.filter(function(x){return x.k==='good';}),
+        b=live.filter(function(x){return x.k==='bad';}),
+        w=live.filter(function(x){return x.k==='warn';}),
+        n=live.filter(function(x){return x.k==='neutral';});
+  const caution=b.length+w.length;
+  let posture,pc;
+  if(g.length>=caution*2 && g.length>=4){posture='CONSTRUCTIVE';pc='on';}
+  else if(caution>=g.length*1.5 && caution>=3){posture='CAUTIOUS';pc='off';}
+  else{posture='MIXED';pc='mixed';}
+  const tot=Math.max(1,g.length+w.length+b.length);
+  const gp=g.length/tot*100, wp=w.length/tot*100, bp=b.length/tot*100;
+  const chip=function(x,k){return '<span class="comp-chip '+k+'">'+escape(x.name)+'<small>'+escape(x.label)+'</small></span>';};
+  const constructive=g.length?g.map(function(x){return chip(x,'g');}).join(''):'<span class="comp-chip">none right now</span>';
+  const cautionary=(caution)?b.map(function(x){return chip(x,'b');}).join('')+w.map(function(x){return chip(x,'w');}).join(''):'<span class="comp-chip">none right now</span>';
+  let div='';
+  if(posture==='CONSTRUCTIVE' && caution>0) div='<span class="comp-divergence">Divergences to watch:</span> '+b.concat(w).map(function(x){return x.name;}).join(', ')+(caution===1?' is':' are')+' leaning the other way.';
+  else if(posture==='CAUTIOUS' && g.length>0) div='<span class="comp-divergence">Holding up:</span> '+g.map(function(x){return x.name;}).join(', ')+' still constructive against the caution.';
+  else if(posture==='MIXED') div='Sources are split \u2014 no clean consensus. The disagreement itself is information: the strong setups come when independent sources converge at extremes.';
+  box.innerHTML='<div class="comp-top"><span class="comp-eyebrow">Composite read \u00b7 all sources</span>'+
+    '<span class="comp-posture '+pc+'">'+posture+'</span>'+
+    '<span class="comp-tally"><b>'+g.length+'</b> constructive \u00b7 <b>'+w.length+'</b> caution \u00b7 <b>'+b.length+'</b> bearish \u00b7 <b>'+n.length+'</b> neutral<br>'+live.length+'/'+items.length+' sources live</span></div>'+
+    '<div class="comp-meter"><div class="seg g" style="width:'+gp+'%"></div><div class="seg w" style="width:'+wp+'%"></div><div class="seg b" style="width:'+bp+'%"></div></div>'+
+    '<div class="comp-cols"><div class="comp-col"><h5>\u2713 Constructive ('+g.length+')</h5><div class="comp-chips">'+constructive+'</div></div>'+
+    '<div class="comp-col"><h5>\u26a0 Cautionary / bearish ('+caution+')</h5><div class="comp-chips">'+cautionary+'</div></div></div>'+
+    '<div class="comp-note">'+div+' This is a live tally of each source\u2019s current stance \u2014 a map of where independent data agrees and diverges, not a backtested trade signal. Convergence at extremes is the strong setup; the named divergences are where to look first.</div>';
+  box.classList.add('show');
 }
 
 function setStat(cardId, status, label){
@@ -813,6 +882,7 @@ async function refreshAll(){
 
   // After individual sources load, build cross-source consensus
   buildRotationMap();
+  renderComposite();
 
   const liveCount = results.filter(r => r != null).length;
 
