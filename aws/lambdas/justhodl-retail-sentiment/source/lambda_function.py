@@ -482,6 +482,32 @@ def lambda_handler(event, context):
     except Exception as _e:
         print(f"[retail-hist] save fail {str(_e)[:80]}")
 
+    # ─── #2 Contrarian / crowding: exhaustion (fade risk) vs capitulation (bottom) ───
+    _ment_all = sorted([(e.get("mentions") or 0) for e in enriched], reverse=True)
+    def _ment_pctile(m):
+        if not _ment_all:
+            return 0
+        below = sum(1 for x in _ment_all if x < m)
+        return round(below / len(_ment_all) * 100)
+    for e in enriched:
+        m = e.get("mentions") or 0; bull = e.get("stwt_bull_pct"); off_hi = e.get("off_52w_high")
+        chg = e.get("change_pct"); vel = e.get("velocity_pct") or 0
+        mp = _ment_pctile(m); e["mention_pctile"] = mp
+        ext = max(0, min(100, (off_hi + 15) / 15 * 100)) if off_hi is not None else 50
+        bx = bull if bull is not None else 50
+        e["crowding_score"] = round(0.45 * mp + 0.30 * bx + 0.25 * ext)
+        flag = None
+        if bull is not None and bull >= 80 and mp >= 90 and (off_hi is None or off_hi > -8) and vel >= 80:
+            flag = "EXHAUSTION"      # crowded + euphoric + extended → fade risk
+        elif bull is not None and bull <= 35 and ((off_hi is not None and off_hi < -40) or (chg is not None and chg <= -6)):
+            flag = "CAPITULATION"    # bearish + washed-out → possible bottom
+        if flag:
+            e["contrarian_flag"] = flag
+    crowded_exhaustion = sorted([e for e in enriched if e.get("contrarian_flag") == "EXHAUSTION"],
+                                key=lambda x: -(x.get("crowding_score") or 0))[:10]
+    capitulation = sorted([e for e in enriched if e.get("contrarian_flag") == "CAPITULATION"],
+                          key=lambda x: -(x.get("mention_pctile") or 0))[:10]
+
     # ─── Rankings ───
     # Biggest velocity surges (high mentions + high velocity)
     velocity_filtered = [e for e in enriched
@@ -566,6 +592,8 @@ def lambda_handler(event, context):
         "top_30_by_mentions": enriched[:30],
         "ranked": {
             "hottest": hottest,
+            "crowded_exhaustion": crowded_exhaustion,
+            "capitulation": capitulation,
             "momentum_confirmed": momentum_confirmed,
             "fading_divergence": fading_divergence,
             "biggest_velocity_surges": biggest_velocity,
