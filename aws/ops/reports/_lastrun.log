@@ -1,16 +1,3 @@
 invoked
-  ...20s
-READY 40s new=30 dur=28.3s
-#1 cash:   cash_conv 30 | accruals 30
-#2 solv:   net_debt_ebitda 30 | cur_ratio 30 | int_cov 0
-#3 insider:30 | #4 pressure_trend 0
-#5 val:    peg 0 | ev_ebitda 0
-#6 revqual:acq_pct 23 | seg_conc 30
-#7 bear:   30 | #9 sector_mom 30 | #10 scorecard 30
-
-MU: cash_conv 20% accruals -10.9 | nde 0.3 cur 2.89682428651371 intcov None
-  peg None ev/ebitda None | insider selling (1b/78s) | pressure_trend None
-  scorecard: 5 bull / 3 bear
-  bull: ['trap-check: real play', 'low leverage', 'cheap vs own history', 'consistent earnings beats', 'high short interest (squeeze fuel)']
-  bear: ['weak cash conversion', 'insiders selling', 'revenue concentration']
-  BEAR CASE: Memory chips are a commodity where prices fall relentlessly whenever supply catches up, and the current shortage is already spurring competitors to flood capacity online; if gross margin contracts back below 35% or revenue growth decelerates below 20% within two quarters, it proves the shortage is breaking and the re-rating is over. The falsifier is a miss on next quarter's gross margin expansion—if margins flatten or shrink, the bull thesis that Micron has genuine pricing power collapses.
+READY 20s: int_cov 28 | ev_ebitda 30 | peg 22
+DELL: int_cov 5.4 | ev/ebitda 23.9 | peg 0.81 | nde 1.69
