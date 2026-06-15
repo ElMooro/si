@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Bottleneck Boom · JustHodl AI</title>
-<meta name="description" content="Where demand is outrunning supply: industry backlog/orders pressure crossed with single-name revenue acceleration and cheap revenue-to-market-cap. The bottleneck is where the re-rate concentrates.">
+<meta name="description" content="Where demand is outrunning supply: industry backlog/orders pressure crossed with revenue acceleration and cheap revenue-to-market-cap. Tap any stock for a plain-English thesis + 10-year financials.">
 <style>
 :root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -15,6 +15,16 @@ a{color:var(--cyan);text-decoration:none}
 .hero h1 .grad{background:linear-gradient(90deg,var(--amber),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .hero p{color:var(--fg-2);margin:6px 0 16px;max-width:820px;line-height:1.55}
 .sec-h{font-family:var(--mono);font-size:12px;color:var(--fg-3);text-transform:uppercase;letter-spacing:1px;margin:26px 0 12px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.explain{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.explain summary{cursor:pointer;padding:13px 16px;font-family:var(--mono);font-size:12px;color:var(--cyan);list-style:none}
+.explain summary::-webkit-details-marker{display:none}
+.explain summary::before{content:'▸ ';color:var(--fg-3)}
+.explain[open] summary::before{content:'▾ '}
+.explain .body{padding:2px 18px 16px;font-size:12.5px;color:var(--fg-2);line-height:1.7}
+.explain .body b{color:var(--fg-1)}.explain .body i{color:var(--fg-3);font-style:normal}
+.explain dl{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin-top:10px}
+.explain dt{font-family:var(--mono);color:var(--green);font-size:11px;white-space:nowrap}
+.explain dd{color:var(--fg-2);font-size:12px}
 .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
 .pc{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
 .pc .nm{font-family:var(--mono);font-size:12px;color:var(--fg-1);font-weight:700;letter-spacing:.3px}
@@ -34,6 +44,21 @@ td.l,th.l{text-align:left}
 .bscore{display:inline-block;min-width:34px}.bswrap{display:flex;align-items:center;gap:7px;justify-content:flex-end}
 .bsbar{width:54px;height:5px;border-radius:3px;background:var(--bg-2);overflow:hidden}.bsbar i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--green))}
 .ind{color:var(--fg-3);font-size:11px}
+tr.stk{cursor:pointer}tr.stk:hover td{background:var(--bg-1)}
+tr.stk td.l::before{content:'▸';color:var(--fg-3);margin-right:8px;font-size:10px;display:inline-block;width:9px}
+tr.stk.open td.l::before{content:'▾'}
+tr.drawer>td{background:var(--bg-2);padding:0;border-bottom:2px solid var(--border-bright)}
+.dwrap{padding:18px 20px}
+.thesis{background:linear-gradient(90deg,rgba(38,255,175,0.06),transparent);border-left:3px solid var(--green);padding:12px 16px;border-radius:0 8px 8px 0;font-size:13.5px;line-height:1.65;color:var(--fg-1)}
+.thesis .lbl{font-family:var(--mono);font-size:9.5px;color:var(--green);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px}
+.whatis{margin:14px 0 4px;font-size:13px;color:var(--fg-2);line-height:1.6}.whatis b{color:var(--fg-1)}
+.kv{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.kv span{font-family:var(--mono);font-size:11px;color:var(--fg-2);background:var(--bg-1);border:1px solid var(--border);border-radius:6px;padding:5px 10px}
+.kv span b{color:var(--fg-0)}.kv span i{color:var(--fg-3);font-style:normal}
+.kv span.good b{color:var(--green)}.kv span.bad b{color:var(--red)}
+.fin{margin-top:14px}.fin h4{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.fintbl{width:100%;font-size:11.5px;border-collapse:collapse}.fintbl th,.fintbl td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)}.fintbl th{font-size:9px}
+.fintbl td.l,.fintbl th.l{text-align:left}
 .loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
 .disc{margin-top:24px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.7;border-top:1px solid var(--border);padding-top:14px}
 .disc b{color:var(--fg-2)}
@@ -44,12 +69,28 @@ td.l,th.l{text-align:left}
   <div data-auth-slot style="margin-left:auto"></div></header>
 <div class="wrap">
 <div class="hero"><h1>Bottleneck <span class="grad">Boom</span></h1>
-<p>The biggest re-ratings of a cycle happen where <b>demand outruns supply</b>. This engine finds the choke point: it reads <b>industry backlog &amp; new-orders pressure</b> (Census M3 + FRED, with a semiconductor IP-strain bonus), then ranks single names by <b>revenue acceleration</b> and <b>cheap revenue-to-market-cap</b> — the names positioned at the bottleneck that the multiple hasn't caught up to yet. Top calls are logged and graded vs SPY at 5/21/63 days.</p></div>
+<p>The biggest re-ratings of a cycle happen where <b>demand outruns supply</b>. This engine finds the choke point — industry <b>backlog &amp; new-orders pressure</b> (Census M3 + FRED) — then ranks the companies there by <b>revenue acceleration</b> and <b>cheap revenue-to-market-cap</b> that the multiple hasn't caught up to. Tap any stock for the full plain-English thesis + 10 years of financials. Top calls are logged and graded vs SPY at 5/21/63 days.</p></div>
+
+<details class="explain"><summary>How to read this page — every metric in plain English</summary>
+<div class="body">
+This page finds where <b>demand is outrunning supply</b>, then the companies positioned at that choke point that the market hasn't re-priced yet.
+<dl>
+<dt>Industry pressure</dt><dd>A 0–100 score for how supply-constrained an industry is, from order backlogs and new orders (US Census M3 + FRED). High = orders piling up faster than companies can ship.</dd>
+<dt>Backlog / shipments</dt><dd>The unfilled order book divided by monthly shipments — roughly <b>how many months of work is already booked</b> at the current shipping pace. High and <i>rising</i> = orders stacking up faster than they can be filled, the signature of a bottleneck. (Some industries like aircraft always carry years of backlog, so the engine also compares each industry to its own history.)</dd>
+<dt>New orders YoY</dt><dd>How fast fresh orders are arriving versus a year ago. Rising = demand accelerating.</dd>
+<dt>Rev accel</dt><dd>Revenue acceleration — this quarter's growth rate minus last quarter's, in percentage points. Positive = the company is <b>speeding up</b>, not just growing.</dd>
+<dt>Rev growth</dt><dd>Revenue growth versus a year ago.</dd>
+<dt>Rev / MktCap</dt><dd>Annual revenue as a % of market value — a quick cheapness gauge. Higher = you pay less for each dollar of sales.</dd>
+<dt>P/E vs industry</dt><dd>The stock's price-to-earnings ratio next to its industry's typical P/E. A <i>lower</i> P/E than peers despite faster growth is the re-rate setup.</dd>
+<dt>Boom score</dt><dd>The blended rank: revenue acceleration (35%), growth (25%), cheapness (25%), inventory turnover (15%), shaded by industry bottleneck pressure.</dd>
+</dl>
+<b>Tap any stock</b> to open its full research — an AI-written plain-English thesis (why it could re-rate, and the key risk), what the company does, valuation vs its industry, and 10 years of financials. Everything you need without leaving the page. Not investment advice.
+</div></details>
 
 <div class="sec-h">Industry Pressure — where supply is tight</div>
 <div class="pcards" id="pcards"><div class="loading">Loading industry pressure…</div></div>
 
-<div class="sec-h">Boom Candidates — ranked by acceleration × cheapness × bottleneck pressure</div>
+<div class="sec-h">Boom Candidates — tap a row for full research</div>
 <div id="content"><div class="loading">Loading bottleneck candidates…</div></div>
 
 <div class="disc" id="disc"></div>
@@ -59,29 +100,72 @@ const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function pp(v){return v==null?'—':(v>=0?'+':'')+v+'pp';}
 function pct(v){return v==null?'—':(v>=0?'+':'')+v+'%';}
-function cap(v){if(v==null)return'—';const a=Math.abs(v);if(a>=1e12)return '$'+(v/1e12).toFixed(2)+'T';if(a>=1e9)return '$'+(v/1e9).toFixed(1)+'B';if(a>=1e6)return '$'+(v/1e6).toFixed(0)+'M';return '$'+v;}
+function r1(v){return v==null?'—':(Math.round(v*10)/10);}
+function bn(v){if(v==null)return'—';const a=Math.abs(v),s=v<0?'-':'';if(a>=1e12)return s+'$'+(a/1e12).toFixed(2)+'T';if(a>=1e9)return s+'$'+(a/1e9).toFixed(1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(0)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+a;}
 function pcolor(s){if(s==null)return'var(--fg-3)';if(s>=60)return'var(--green)';if(s>=45)return'var(--amber)';return'var(--fg-3)';}
-let DATA=null,SORT='boom_score';
+function score(v){return (v&&v.pressure_0_100!=null)?v.pressure_0_100:(v&&v.ip_yoy_z!=null?50+v.ip_yoy_z*10:null);}
+let DATA=null,RESEARCH={},SORT='boom_score',OPEN=null;
+
+function sparkline(vals,color){
+  const v=vals.filter(x=>x!=null); if(v.length<2)return'';
+  const w=180,h=34,mn=Math.min(...v),mx=Math.max(...v),rng=(mx-mn)||1;
+  const pts=v.map((x,i)=>`${(i/(v.length-1))*w},${h-2-((x-mn)/rng)*(h-4)}`).join(' ');
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline fill="none" stroke="${color}" stroke-width="1.6" points="${pts}"/></svg>`;
+}
 
 function renderPressure(ip){
   const el=document.getElementById('pcards');
   if(!ip||!Object.keys(ip).length){el.innerHTML='<div class="loading">No industry-pressure data.</div>';return;}
-  const order=Object.entries(ip).sort((a,b)=>(score(b[1])-score(a[1])));
-  el.innerHTML=order.map(([k,v])=>{
-    const s=score(v), asof=v.as_of?('as of '+v.as_of):'';
-    const no=v.new_orders_yoy_pct, bk=v.backlog_yoy_pct, ip_=v.ip_yoy_pct, b2s=v.backlog_to_shipments;
+  el.innerHTML=Object.entries(ip).sort((a,b)=>(score(b[1])-score(a[1]))).map(([k,v])=>{
+    const s=score(v),asof=v.as_of?('as of '+v.as_of):'';
     let rows='';
-    if(no!=null)rows+=`<div class="row"><span>New orders YoY</span><b class="${no>=0?'pos':'neg'}">${pct(no)}</b></div>`;
-    if(bk!=null)rows+=`<div class="row"><span>Backlog YoY</span><b class="${bk>=0?'pos':'neg'}">${pct(bk)}</b></div>`;
-    if(b2s!=null)rows+=`<div class="row"><span>Backlog / shipments</span><b>${b2s}×</b></div>`;
-    if(ip_!=null)rows+=`<div class="row"><span>Industrial prod YoY</span><b class="${ip_>=0?'pos':'neg'}">${pct(ip_)}</b></div>`;
-    const sval=(s==null?'—':Math.round(s));
+    if(v.new_orders_yoy_pct!=null)rows+=`<div class="row"><span>New orders YoY</span><b class="${v.new_orders_yoy_pct>=0?'pos':'neg'}">${pct(v.new_orders_yoy_pct)}</b></div>`;
+    if(v.backlog_yoy_pct!=null)rows+=`<div class="row"><span>Backlog YoY</span><b class="${v.backlog_yoy_pct>=0?'pos':'neg'}">${pct(v.backlog_yoy_pct)}</b></div>`;
+    if(v.backlog_to_shipments!=null)rows+=`<div class="row"><span>Backlog / shipments</span><b>${v.backlog_to_shipments}×</b></div>`;
+    if(v.ip_yoy_pct!=null)rows+=`<div class="row"><span>Industrial prod YoY</span><b class="${v.ip_yoy_pct>=0?'pos':'neg'}">${pct(v.ip_yoy_pct)}</b></div>`;
     return `<div class="pc"><span class="asof">${esc(asof)}</span><div class="nm">${esc(k.replace(/_/g,' '))}</div>
-      <div class="score" style="color:${pcolor(s)}">${sval}${s!=null?'<span style="font-size:13px;color:var(--fg-3)"> /100</span>':''}</div>
+      <div class="score" style="color:${pcolor(s)}">${s==null?'—':Math.round(s)}${s!=null?'<span style="font-size:13px;color:var(--fg-3)"> /100</span>':''}</div>
       <div class="bar"><i style="width:${s!=null?Math.max(4,Math.min(100,s)):0}%;background:${pcolor(s)}"></i></div>${rows}</div>`;
   }).join('');
 }
-function score(v){return (v&&v.pressure_0_100!=null)?v.pressure_0_100:(v&&v.ip_yoy_z!=null?50+v.ip_yoy_z*10:null);}
+
+function drawer(tk){
+  const r=(DATA.ranks||[]).find(x=>x.ticker===tk)||{};
+  const v=RESEARCH[tk]||{};
+  const pe=v.pe,ipe=v.industry_pe;
+  const peCls=(pe&&ipe)?(pe<ipe?'good':'bad'):'';
+  const fins=v.financials||[];
+  let thesisHtml = v.thesis
+    ? `<div class="thesis"><span class="lbl">Why it could re-rate — and the risk</span>${esc(v.thesis)}</div>`
+    : `<div class="thesis"><span class="lbl">Thesis</span><span class="dim">AI thesis is generating — check back shortly.</span></div>`;
+  let what = v.desc ? `<div class="whatis"><b>What it does.</b> ${esc(v.desc)}</div>` : '';
+  let kv = '<div class="kv">'+
+    `<span class="${peCls}">P/E <b>${r1(pe)}</b> <i>vs ind ${ipe==null?'—':ipe}</i></span>`+
+    `<span>P/S <b>${r1(v.ps)}</b></span>`+
+    (v.pb!=null?`<span>P/B <b>${r1(v.pb)}</b></span>`:'')+
+    `<span>Mkt cap <b>${bn(v.mkt_cap)}</b></span>`+
+    (v.range_52w?`<span>52w <b>${esc(v.range_52w)}</b></span>`:'')+
+    (v.beta!=null?`<span>Beta <b>${r1(v.beta)}</b></span>`:'')+
+    (v.div_yield!=null?`<span>Div yld <b>${v.div_yield}%</b></span>`:'')+
+    '</div>'+
+    '<div class="kv">'+
+    `<span class="${(r.rev_accel_pp||0)>=0?'good':'bad'}">Rev accel <b>${pp(r.rev_accel_pp)}</b></span>`+
+    `<span>Rev growth <b>${pct(r.rev_growth_yoy)}</b></span>`+
+    `<span>Rev/MktCap <b>${r.rev_to_mcap_pct==null?'—':r.rev_to_mcap_pct+'%'}</b></span>`+
+    `<span>Bottleneck <b>${r.group_pressure==null?'—':Math.round(r.group_pressure)}/100</b></span>`+
+    `<span>Boom <b>${r.boom_score==null?'—':r.boom_score}</b></span>`+
+    (v.employees?`<span>Staff <b>${Number(v.employees).toLocaleString()}</b></span>`:'')+
+    (v.website?`<span><a href="${esc(v.website)}" target="_blank" rel="noopener">site ↗</a></span>`:'')+
+    '</div>';
+  let finHtml='';
+  if(fins.length){
+    const rows=fins.map(f=>`<tr><td class="l">${esc(f.year)}</td><td>${bn(f.revenue)}</td><td class="${(f.netIncome||0)>=0?'pos':'neg'}">${bn(f.netIncome)}</td><td class="${(f.nm||0)>=0?'pos':'neg'}">${f.nm==null?'—':f.nm+'%'}</td><td>${f.eps==null?'—':'$'+r1(f.eps)}</td></tr>`).join('');
+    finHtml=`<div class="fin"><h4>10-year financials</h4>
+      ${sparkline(fins.map(f=>f.revenue),'var(--cyan)')}<span style="font-family:var(--mono);font-size:9px;color:var(--fg-3)">revenue trend →</span>
+      <table class="fintbl"><thead><tr><th class="l">Year</th><th>Revenue</th><th>Net income</th><th>Net margin</th><th>EPS</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  return `<div class="dwrap">${thesisHtml}${what}${kv}${finHtml}</div>`;
+}
 
 function renderTable(){
   const el=document.getElementById('content');
@@ -90,32 +174,37 @@ function renderTable(){
   const calls=new Set(DATA.top_calls||[]);
   ranks.sort((a,b)=>((b[SORT]==null?-1e9:b[SORT])-(a[SORT]==null?-1e9:a[SORT])));
   const mx=Math.max(...ranks.map(r=>r.boom_score||0));
-  const head=[['l','ticker','Name'],['rev_accel_pp','Rev accel'],['rev_growth_yoy','Rev growth'],['rev_to_mcap_pct','Rev/MktCap'],['ps_ttm','P/S'],['inv_turnover','Inv turn'],['group_pressure','Pressure'],['boom_score','Boom']];
+  const head=[['l','ticker','Name'],['rev_accel_pp','Rev accel'],['rev_growth_yoy','Rev growth'],['rev_to_mcap_pct','Rev/MktCap'],['pe','P/E vs ind'],['group_pressure','Pressure'],['boom_score','Boom']];
   let h='<table><thead><tr>'+head.map(c=>`<th class="${c[0]==='l'?'l':''}" data-s="${c[1]}">${c[2]}</th>`).join('')+'</tr></thead><tbody>';
-  h+=ranks.map(r=>{
-    const isc=calls.has(r.ticker);
-    const bw=mx>0?Math.max(4,(r.boom_score/mx)*100):0;
-    return `<tr><td class="l"><span class="tk">${esc(r.ticker)}</span>${isc?'<span class="call">TOP CALL</span>':''}<div class="ind">${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
+  ranks.forEach(r=>{
+    const tk=r.ticker,isc=calls.has(tk),bw=mx>0?Math.max(4,(r.boom_score/mx)*100):0;
+    const rv=RESEARCH[tk]||{},pe=rv.pe,ipe=rv.industry_pe;
+    const peTxt=pe==null?'—':`${r1(pe)}<span class="dim"> / ${ipe==null?'—':ipe}</span>`;
+    h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}<div class="ind">${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
       <td class="${r.rev_accel_pp>=0?'pos':'neg'}">${pp(r.rev_accel_pp)}</td>
       <td>${pct(r.rev_growth_yoy)}</td>
       <td>${r.rev_to_mcap_pct==null?'—':r.rev_to_mcap_pct+'%'}</td>
-      <td class="dim">${r.ps_ttm==null?'—':r.ps_ttm}</td>
-      <td class="dim">${r.inv_turnover==null?'—':r.inv_turnover}</td>
+      <td class="${(pe&&ipe&&pe<ipe)?'pos':'dim'}">${peTxt}</td>
       <td class="dim">${r.group_pressure==null?'—':Math.round(r.group_pressure)}</td>
       <td><div class="bswrap"><span class="bscore" style="color:${pcolor(r.boom_score)}">${r.boom_score==null?'—':r.boom_score}</span><span class="bsbar"><i style="width:${bw}%"></i></span></div></td></tr>`;
-  }).join('');
+    if(OPEN===tk)h+=`<tr class="drawer"><td colspan="7">${drawer(tk)}</td></tr>`;
+  });
   h+='</tbody></table>';
   el.innerHTML=h;
-  el.querySelectorAll('th[data-s]').forEach(th=>th.onclick=()=>{SORT=th.getAttribute('data-s')==='ticker'?'boom_score':th.getAttribute('data-s');renderTable();});
+  el.querySelectorAll('tr.stk').forEach(tr=>tr.onclick=()=>{const tk=tr.getAttribute('data-tk');OPEN=OPEN===tk?null:tk;renderTable();});
+  el.querySelectorAll('th[data-s]').forEach(th=>th.onclick=(e)=>{e.stopPropagation();SORT=th.getAttribute('data-s')==='ticker'?'boom_score':th.getAttribute('data-s');renderTable();});
 }
 
 async function load(){
-  try{const r=await fetch(`${PROXY}/data/bottleneck-boom.json?t=${Date.now()}`);if(r.ok)DATA=await r.json();}catch(e){}
+  const [boom,res]=await Promise.all([
+    fetch(`${PROXY}/data/bottleneck-boom.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch(`${PROXY}/data/bottleneck-boom-research.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null)
+  ]);
+  DATA=boom; RESEARCH=(res&&res.by_ticker)||{};
   if(!DATA){document.getElementById('content').innerHTML='<div class="loading">Bottleneck data not available yet.</div>';document.getElementById('pcards').innerHTML='';return;}
   renderPressure(DATA.industry_pressure||{});
   renderTable();
-  const m=DATA.methodology||'';
-  document.getElementById('disc').innerHTML=`<b>Methodology.</b> ${esc(m)} <br><br>Scored ${DATA.scored_n||0} names from a curated bottleneck-relevant universe (${DATA.universe_n||0}). Not investment advice — a research signal. Cheap revenue-to-market-cap with <b>decelerating</b> orders is the trap this is built to avoid; the bottleneck-pressure shading and revenue acceleration are what separate a real boom from a value trap. Track record: <a href="/track-public.html">/track-public.html</a>.`;
+  document.getElementById('disc').innerHTML=`<b>Methodology.</b> ${esc(DATA.methodology||'')}<br><br>Per-stock theses are AI-written in plain English from the stock's own numbers (mechanism + the key risk) — research aid, not advice. Cheap revenue-to-market-cap with <b>decelerating</b> orders is the value trap this is built to avoid; bottleneck pressure + revenue acceleration are what separate a real boom from a trap. Scored ${DATA.scored_n||0} of a curated bottleneck-relevant universe. Track record: <a href="/track-public.html">/track-public.html</a>.`;
 }
 load();
 </script>
