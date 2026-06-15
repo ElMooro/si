@@ -34,18 +34,19 @@ BASE = "https://financialmodelingprep.com/stable"
 TOP_N = 30
 THESIS_CACHE_HRS = 20
 MAX_NEW_THESES = 30
-THESIS_VER = "haiku-2"
+THESIS_VER = "haiku-3"
 
 SYSTEM = (
     "You are a sharp, honest equity analyst explaining a stock to a smart beginner with no "
-    "finance background. Plain English, zero jargon, no hype, no price targets, never promise "
-    "gains. Write 3-4 short sentences: first explain in simple terms the MECHANISM for why this "
-    "stock could re-rate higher (tie it to the demand/supply bottleneck and the specific numbers "
-    "given), then end with ONE sentence naming the single biggest risk or the thing that would "
-    "prove the thesis wrong. Be concrete and specific to the numbers provided. "
-    "Output ONLY the thesis as 3-4 sentences of plain prose — no headings, no bullet points, "
-    "no markdown, no numbered steps, no labels, no 'Draft', and never restate or analyze these "
-    "instructions. Begin directly with the thesis."
+    "finance background. Plain English, zero jargon, no hype, no price targets, never promise gains. "
+    "Output EXACTLY two labeled parts and nothing else.\n"
+    "THESIS: 3-4 short sentences — first the plain-English MECHANISM for why this stock could re-rate "
+    "higher (tie it to the demand/supply bottleneck and the specific numbers given), then one sentence "
+    "on the single biggest risk.\n"
+    "BEAR: 1-2 sentences — the strongest argument AGAINST owning it, plus the one specific number or "
+    "event that would prove the bull case wrong (a clear falsifier).\n"
+    "Use the exact labels 'THESIS:' and 'BEAR:'. No headings, no markdown, no bullet points, no numbered "
+    "steps, no 'Draft', and never restate these instructions."
 )
 
 
@@ -73,13 +74,18 @@ def fetch_financials(tk):
     cf = fmp("cash-flow-statement", {"symbol": tk, "period": "annual", "limit": 10})
     rat = fmp("ratios-ttm", {"symbol": tk})
     earn = fmp("earnings", {"symbol": tk, "limit": 12})
+    bs = fmp("balance-sheet-statement", {"symbol": tk, "period": "annual", "limit": 2})
+    seg = fmp("revenue-product-segmentation", {"symbol": tk})
+    ins = fmp("insider-trading/search", {"symbol": tk, "limit": 80})
     p = (prof[0] if isinstance(prof, list) and prof else {}) or {}
     r = (rat[0] if isinstance(rat, list) and rat else {}) or {}
 
-    fcf_by_year = {}
+    fcf_by_year = {}; ocf_by_year = {}; acq_by_year = {}
     for row in (cf if isinstance(cf, list) else []):
         yr = (row.get("calendarYear") or str(row.get("date", ""))[:4])
         fcf_by_year[yr] = num(row.get("freeCashFlow"))
+        ocf_by_year[yr] = num(row.get("operatingCashFlow")) or num(row.get("netCashProvidedByOperatingActivities"))
+        acq_by_year[yr] = num(row.get("acquisitionsNet"))
 
     fins = []
     for row in (inc if isinstance(inc, list) else [])[:10]:
@@ -176,6 +182,59 @@ def fetch_financials(tk):
             nq_eps = num(row.get("epsEstimated")); nq_rev = num(row.get("revenueEstimated"))
     beat_rate = round(beats / tot * 100) if tot else None
 
+    # --- financial quality: cash conversion + accruals ---
+    ni_l = latest.get("netIncome"); fcf_l = latest.get("fcf"); yr_l = latest.get("year"); rev_l = latest.get("revenue")
+    cash_conv = round(fcf_l / ni_l * 100) if (ni_l and fcf_l is not None and ni_l > 0) else None
+    ocf_l = ocf_by_year.get(yr_l)
+    bs0 = (bs[0] if isinstance(bs, list) and bs else {}) or {}
+    tot_assets = num(bs0.get("totalAssets"))
+    accruals = round((ni_l - ocf_l) / tot_assets * 100, 1) if (ni_l is not None and ocf_l is not None and tot_assets) else None
+
+    # --- solvency / balance sheet ---
+    cur_ratio = num(r.get("currentRatioTTM"))
+    if cur_ratio is None:
+        ca = num(bs0.get("totalCurrentAssets")); cl = num(bs0.get("totalCurrentLiabilities"))
+        cur_ratio = round(ca / cl, 2) if (ca and cl) else None
+    int_cov = num(r.get("interestCoverageTTM"))
+    net_debt_ebitda = num(r.get("netDebtToEBITDATTM"))
+    if net_debt_ebitda is None:
+        debt = num(bs0.get("totalDebt")); cash = num(bs0.get("cashAndCashEquivalents"))
+        ebitda = num((inc[0] if isinstance(inc, list) and inc else {}).get("ebitda"))
+        if debt is not None and ebitda:
+            net_debt_ebitda = round((debt - (cash or 0)) / ebitda, 2)
+
+    # --- valuation depth (PEG, EV/EBITDA) ---
+    peg = num(r.get("priceEarningsToGrowthRatioTTM"))
+    ev_ebitda = num(r.get("enterpriseValueOverEBITDATTM")) or num(r.get("evToEBITDATTM"))
+
+    # --- inorganic-growth flag (large recent acquisitions vs revenue) ---
+    acq_l = acq_by_year.get(yr_l)
+    acq_pct = round(abs(acq_l) / rev_l * 100) if (acq_l and rev_l) else None
+    acq_driven = bool(acq_pct is not None and acq_pct >= 8)
+
+    # --- revenue concentration (top product-segment share) ---
+    seg_conc = seg_n = None
+    segrows = seg if isinstance(seg, list) else []
+    if segrows and isinstance(segrows[0], dict):
+        data = segrows[0].get("data")
+        if isinstance(data, dict) and data:
+            vals = [v for v in data.values() if isinstance(v, (int, float)) and v > 0]
+            if vals:
+                seg_n = len(vals); seg_conc = round(max(vals) / sum(vals) * 100)
+
+    # --- insider activity (selling into the boom = quiet veto) ---
+    ibuys = isells = 0
+    for row in (ins if isinstance(ins, list) else [])[:80]:
+        tt = str(row.get("transactionType") or "")
+        ad = str(row.get("acquisitionOrDisposition") or "")
+        if ad == "A" or tt.startswith("P-Purchase"):
+            ibuys += 1
+        elif ad == "D" or tt.startswith("S-Sale"):
+            isells += 1
+    insider_net = (ibuys - isells) if (ibuys or isells) else None
+    insider_sig = (("buying" if insider_net > 0 else "selling" if insider_net < 0 else "neutral")
+                   if insider_net is not None else None)
+
     return {
         "desc": (p.get("description") or "")[:650],
         "ceo": p.get("ceo"), "employees": p.get("fullTimeEmployees"),
@@ -197,6 +256,16 @@ def fetch_financials(tk):
         "pe_low": pe_low, "pe_high": pe_high, "pe_pctile": pe_pctile,
         "beat_rate": beat_rate, "beats_n": tot,
         "nq_eps_est": nq_eps, "nq_rev_est": nq_rev,
+        "cash_conv": cash_conv, "accruals": accruals,
+        "cur_ratio": cur_ratio,
+        "int_cov": (round(int_cov, 1) if int_cov is not None else None),
+        "net_debt_ebitda": net_debt_ebitda,
+        "peg": (round(peg, 2) if peg is not None else None),
+        "ev_ebitda": (round(ev_ebitda, 1) if ev_ebitda is not None else None),
+        "acq_driven": acq_driven, "acq_pct": acq_pct,
+        "seg_conc": seg_conc, "seg_n": seg_n,
+        "insider_net": insider_net, "insider_sig": insider_sig,
+        "insider_buys": ibuys, "insider_sells": isells,
     }
 
 
@@ -233,15 +302,19 @@ def make_thesis(name, tk, ind, m):
         f"Write the plain-English thesis for why this stock could re-rate higher, then the single biggest risk."
     )
     try:
-        out = complete(prompt, tier="bulk", max_tokens=300, system=SYSTEM)
+        out = complete(prompt, tier="bulk", max_tokens=440, system=SYSTEM)
         txt = (out or "").strip()
-        # defensive: reject any output that still leaked reasoning scaffolding
-        if not txt or any(m in txt for m in ("Draft", "Critique", "Analyze the Request", "**", "1.  ")):
-            return None
-        return txt
+        if not txt or any(x in txt for x in ("Draft", "Critique", "Analyze the Request", "**")):
+            return None, None
+        thesis, bear = txt, None
+        if "BEAR:" in txt:
+            a, b = txt.split("BEAR:", 1)
+            thesis, bear = a, b.strip()
+        thesis = thesis.replace("THESIS:", "").strip()
+        return (thesis or None), (bear or None)
     except Exception as e:
         print(f"[research] thesis fail {tk}: {str(e)[:80]}")
-        return None
+        return None, None
 
 
 def load_confirmation_feeds():
@@ -270,6 +343,44 @@ def load_confirmation_feeds():
     return si, f13, fwd, chain_idx
 
 
+def pressure_trend(industry_pressure):
+    """Snapshot today's industry pressure and return the ~30-day change per group."""
+    HK = "data/bottleneck-pressure-history.json"
+    try:
+        hist = json.loads(S3.get_object(Bucket=BUCKET, Key=HK)["Body"].read())
+    except Exception:
+        hist = {"by_date": {}}
+    hist.setdefault("by_date", {})
+    today = datetime.now(timezone.utc).date().isoformat()
+    snap = {}
+    for g, v in (industry_pressure or {}).items():
+        if not isinstance(v, dict):
+            continue
+        s = v.get("pressure_0_100")
+        if s is None and v.get("ip_yoy_z") is not None:
+            s = round(50 + v["ip_yoy_z"] * 10, 1)
+        if s is not None:
+            snap[g] = s
+    hist["by_date"][today] = snap
+    for d0 in sorted(hist["by_date"].keys())[:-60]:
+        hist["by_date"].pop(d0, None)
+    try:
+        S3.put_object(Bucket=BUCKET, Key=HK, Body=json.dumps(hist).encode(), ContentType="application/json")
+    except Exception:
+        pass
+    trend = {}
+    dates = sorted(hist["by_date"].keys())
+    base = None
+    for d0 in dates:
+        if (datetime.fromisoformat(today) - datetime.fromisoformat(d0)).days >= 21:
+            base = d0
+    if base:
+        for g, s in snap.items():
+            if g in hist["by_date"][base]:
+                trend[g] = round(s - hist["by_date"][base][g], 1)
+    return trend
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     try:
@@ -285,6 +396,7 @@ def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     ind_pe, sec_pe = fetch_peer_pe()
     si_f, f13_f, fwd_f, chain_f = load_confirmation_feeds()
+    pgr_trend = pressure_trend(src.get("industry_pressure") or {})
 
     tickers = [r["ticker"] for r in ranks]
     fin_map = {}
@@ -324,6 +436,14 @@ def lambda_handler(event=None, context=None):
             "pe_low": fin.get("pe_low"), "pe_high": fin.get("pe_high"), "pe_pctile": fin.get("pe_pctile"),
             "beat_rate": fin.get("beat_rate"), "beats_n": fin.get("beats_n"),
             "nq_eps_est": fin.get("nq_eps_est"), "nq_rev_est": fin.get("nq_rev_est"),
+            "cash_conv": fin.get("cash_conv"), "accruals": fin.get("accruals"),
+            "cur_ratio": fin.get("cur_ratio"), "int_cov": fin.get("int_cov"),
+            "net_debt_ebitda": fin.get("net_debt_ebitda"), "peg": fin.get("peg"),
+            "ev_ebitda": fin.get("ev_ebitda"), "acq_driven": fin.get("acq_driven"),
+            "acq_pct": fin.get("acq_pct"), "seg_conc": fin.get("seg_conc"), "seg_n": fin.get("seg_n"),
+            "insider_sig": fin.get("insider_sig"), "insider_net": fin.get("insider_net"),
+            "insider_buys": fin.get("insider_buys"), "insider_sells": fin.get("insider_sells"),
+            "pressure_group": r.get("pressure_group"),
         }
         # trap-check: is the thesis actually working, or a value trap?
         _accel = rec["rev_accel_pp"]; _gmt = fin.get("gm_trend")
@@ -348,6 +468,7 @@ def lambda_handler(event=None, context=None):
             rec["fwd_rev_growth"] = fwd_f.get(tk)
         if tk in chain_f:
             rec["chain"] = chain_f.get(tk)
+        rec["pressure_trend"] = pgr_trend.get(r.get("pressure_group"))
         cached = cache.get(tk, {})
         ts = cached.get("thesis_at")
         fresh = False
@@ -357,6 +478,7 @@ def lambda_handler(event=None, context=None):
             except Exception:
                 fresh = False
         rec["thesis"], rec["thesis_at"] = cached.get("thesis"), cached.get("thesis_at")
+        rec["bear"] = cached.get("bear")
         if not (fresh and cached.get("thesis") and cached.get("thesis_ver") == THESIS_VER):
             need.append(tk)
         else:
@@ -373,11 +495,54 @@ def lambda_handler(event=None, context=None):
 
     if targets:
         with ThreadPoolExecutor(max_workers=6) as ex:
-            for tk, th in ex.map(_gen, targets):
+            for tk, res in ex.map(_gen, targets):
+                th, be = res
                 if th:
                     out[tk]["thesis"], out[tk]["thesis_at"] = th, now.isoformat()
+                    out[tk]["bear"] = be
                     out[tk]["thesis_ver"] = THESIS_VER
                     new_theses += 1
+
+    # --- sector momentum overlay (is this corner of the market working?) ---
+    import statistics as _st
+    by_sector = {}
+    for rec in out.values():
+        s = rec.get("sector"); rm = rec.get("ret_1m")
+        if s and rm is not None:
+            by_sector.setdefault(s, []).append(rm)
+    sector_mom = {s: round(_st.median(v), 1) for s, v in by_sector.items() if v}
+    for rec in out.values():
+        rec["sector_mom"] = sector_mom.get(rec.get("sector"))
+
+    # --- conviction scorecard: tally bullish vs bearish signals (surface DISAGREEMENT) ---
+    for rec in out.values():
+        bull, bearf = [], []
+        if rec.get("trap") == "real": bull.append("trap-check: real play")
+        if rec.get("trap") == "trap": bearf.append("trap-check: revenue decelerating")
+        cc = rec.get("cash_conv")
+        if cc is not None and cc >= 80: bull.append("strong cash conversion")
+        if cc is not None and cc < 50: bearf.append("weak cash conversion")
+        ac = rec.get("accruals")
+        if ac is not None and ac > 15: bearf.append("high accruals / low earnings quality")
+        nde = rec.get("net_debt_ebitda")
+        if nde is not None and nde > 4: bearf.append("high leverage")
+        if nde is not None and 0 <= nde < 2: bull.append("low leverage")
+        if rec.get("insider_sig") == "buying": bull.append("insiders buying")
+        if rec.get("insider_sig") == "selling": bearf.append("insiders selling")
+        pt = rec.get("pressure_trend")
+        if pt is not None and pt > 1: bull.append("bottleneck intensifying")
+        if pt is not None and pt < -1: bearf.append("bottleneck easing")
+        pp = rec.get("pe_pctile")
+        if pp is not None and pp < 40: bull.append("cheap vs own history")
+        if pp is not None and pp > 80: bearf.append("expensive vs own history")
+        if (rec.get("sm_funds") is not None) and (rec.get("sm_net") or 0) > 0: bull.append("13F funds adding")
+        if rec.get("beat_rate") is not None and rec["beat_rate"] >= 70: bull.append("consistent earnings beats")
+        if rec.get("acq_driven"): bearf.append("acquisition-driven growth")
+        if rec.get("seg_conc") is not None and rec["seg_conc"] > 70: bearf.append("revenue concentration")
+        sp = rec.get("short_pct")
+        if sp is not None and sp >= 20: bull.append("high short interest (squeeze fuel)")
+        rec["score_bull"] = len(bull); rec["score_bear"] = len(bearf)
+        rec["flags_bull"] = bull; rec["flags_bear"] = bearf
 
     payload = {
         "engine": "bottleneck-research", "version": VERSION,
