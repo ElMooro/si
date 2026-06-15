@@ -201,8 +201,8 @@ function renderTable(){
   const calls=new Set(DATA.top_calls||[]);
   ranks.sort((a,b)=>((b[SORT]==null?-1e9:b[SORT])-(a[SORT]==null?-1e9:a[SORT])));
   const mx=Math.max(...ranks.map(r=>r.boom_score||0));
-  const head=[['l','ticker','Name'],['rev_accel_pp','Rev accel'],['rev_growth_yoy','Rev growth'],['rev_to_mcap_pct','Rev/MktCap'],['pe','P/E vs ind'],['group_pressure','Pressure'],['boom_score','Boom']];
-  let h='<table><thead><tr>'+head.map(c=>`<th class="${c[0]==='l'?'l':''}" data-s="${c[1]}">${c[2]}</th>`).join('')+'</tr></thead><tbody>';
+  const head=[['ticker','Name','l'],['rev_accel_pp','Rev accel'],['rev_growth_yoy','Rev growth'],['rev_to_mcap_pct','Rev/MktCap'],['pe','P/E vs ind'],['group_pressure','Pressure'],['boom_score','Boom']];
+  let h='<table><thead><tr>'+head.map(c=>`<th class="${c[2]||''}" data-s="${c[0]}">${esc(c[1])}</th>`).join('')+'</tr></thead><tbody>';
   ranks.forEach(r=>{
     const tk=r.ticker,isc=calls.has(tk),bw=mx>0?Math.max(4,(r.boom_score/mx)*100):0;
     const rv=RESEARCH[tk]||{},pe=rv.pe,ipe=rv.industry_pe,trp=rv.trap;
