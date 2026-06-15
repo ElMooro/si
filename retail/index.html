@@ -167,6 +167,28 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .th-meta{display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono,monospace);font-size:10px;color:var(--text-dim);margin-bottom:5px}
 .th-names{font-family:var(--mono,monospace);font-size:10px;color:var(--text-mute);line-height:1.4}
 
+
+/* === #5 per-ticker drawer === */
+.rd-overlay{position:fixed;inset:0;background:rgba(2,5,10,.66);backdrop-filter:blur(3px);z-index:9000;display:none;justify-content:flex-end}
+.rd-overlay.open{display:flex}
+.rd-panel{position:relative;width:min(480px,94vw);height:100%;overflow-y:auto;background:var(--panel);border-left:1px solid var(--border);padding:22px 22px 60px;box-shadow:-12px 0 40px rgba(0,0,0,.4)}
+.rd-close{position:absolute;top:14px;right:14px;background:var(--border);border:none;color:var(--text);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:14px}
+.rd-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin:4px 30px 14px 0}
+.rd-tk{font-size:24px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.rd-name{font-size:12px;color:var(--text-mute);margin-top:3px}
+.rd-px{text-align:right}.rd-pxv{font-size:20px;font-weight:700;color:var(--text)}.rd-pxc{font-family:var(--mono,monospace);font-size:13px}
+.rd-read{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:13px 15px;font-size:12.5px;line-height:1.65;color:var(--text-dim);margin-bottom:16px}
+.rd-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--info);margin:16px 0 8px;border-bottom:1px solid var(--border);padding-bottom:4px}
+.rd-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rd-stat{display:flex;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 11px}
+.rd-l{font-size:10px;color:var(--text-mute)}
+.rd-v{font-family:var(--mono,monospace);font-size:12px;font-weight:600;color:var(--text)}
+.rd-v.pos{color:var(--pos)}.rd-v.neg{color:var(--neg)}
+.rd-spark{display:flex;align-items:center;gap:10px;margin:10px 0;padding:8px 11px;background:var(--bg);border:1px solid var(--border);border-radius:7px}
+.rd-spark svg{width:120px;height:26px}
+.rd-foot{margin-top:18px;font-size:10px;color:var(--text-mute);line-height:1.5;font-style:italic}
+@media(max-width:520px){.rd-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -376,7 +398,7 @@ function miniSpark(arr){
 function hotCard(e){
   const heat=e.heat||0; const hc=heat>=70?'h-hot':heat>=50?'h-warm':'h-cool';
   const nearHi = e.off_52w_high!=null && e.off_52w_high>-3 ? '<span class="px-hi">near 52w hi</span>' : '';
-  return `<div class="hot-card">
+  return `<div class="hot-card" style="cursor:pointer" onclick="openRetailDrawer('${e.ticker}')">
     <div class="hc-top"><span class="hc-tk">${e.ticker}</span>${buzzBadge(e.buzz_state)}</div>
     <div class="hc-name">${(e.name||'').slice(0,30)}</div>${corrChips(e.corroboration)}
     <div class="hc-heat"><div class="hc-bar"><div class="hc-fill ${hc}" style="width:${heat}%"></div></div><span class="hc-heatval">${heat}</span></div>
@@ -464,6 +486,58 @@ function renderThemes(){
     </div>`;
   }).join('');
 }
+function findTicker(tk){
+  const r=DATA.ranked||{}; const pools=[(DATA.top_30_by_mentions||[])];
+  ['hottest','momentum_confirmed','fading_divergence','crowded_exhaustion','capitulation','squeeze_radar','multi_venue_confirmed','flow_leaders','suspicious','igniting','peaking','fading'].forEach(k=>{if(Array.isArray(r[k]))pools.push(r[k]);});
+  const m={}; pools.forEach(pool=>pool.forEach(e=>{if(e&&e.ticker===tk){for(const k in e){if(m[k]==null&&e[k]!=null)m[k]=e[k];}}}));
+  return m.ticker?m:null;
+}
+function buildRead(e){
+  const p=[];
+  let att=`<b>${e.ticker}</b> has ${fmtNum(e.mentions)} mentions`;
+  if(e.velocity_pct!=null) att+=` (${fmtVel(e.velocity_pct)} vs yesterday)`;
+  if(e.attention_stage) att+=`, attention ${e.attention_stage.toLowerCase()}`;
+  p.push(att+'.');
+  if(e.stwt_bull_pct!=null) p.push(`StockTwits ${e.stwt_bull_pct.toFixed(0)}% bullish${e.stwt_n_messages?` across ${e.stwt_n_messages} msgs`:''}.`);
+  if(e.change_pct!=null) p.push(`Price ${e.change_pct>=0?'confirming the buzz':'diverging from the buzz'} (${e.change_pct>=0?'+':''}${e.change_pct.toFixed(1)}%${e.off_52w_high!=null?`, ${e.off_52w_high}% vs 52w high`:''}).`);
+  if(e.short_pct!=null) p.push(`Short interest ${e.short_pct}%${e.days_to_cover?`, ${e.days_to_cover}d to cover`:''}${e.squeeze_setup?' — squeeze fuel present':''}.`);
+  if(e.flow_signal==='BULLISH_CALLS') p.push(`Options flow bullish — call/put ${e.opt_cpr}${e.opt_call_surge?`, ${e.opt_call_surge}× call-volume surge`:''}.`);
+  if(e.flow_signal==='PUT_HEAVY') p.push(`Options flow put-heavy (call/put ${e.opt_cpr}).`);
+  if((e.corroboration_count||0)>=3) p.push(`Confirmed across ${e.corroboration_count} independent venues (${(e.corroboration||[]).join(', ')}).`);
+  if(e.contrarian_flag==='EXHAUSTION') p.push(`⚠ Crowded and extended (crowding ${e.crowding_score}) — historically where retail darlings top out; fade risk if momentum stalls.`);
+  if(e.contrarian_flag==='CAPITULATION') p.push(`Washed-out with bearish chatter — contrarian bottoming candidate, not a confirmed turn.`);
+  if(e.quality_flags&&e.quality_flags.length) p.push(`⚠ Quality: ${e.quality_flags.join(', ')} — treat with caution, may be bot/pump-driven.`);
+  if(e.lifecycle) p.push(`Lifecycle stage: <b>${e.lifecycle.toLowerCase()}</b>.`);
+  return p.join(' ');
+}
+function rdStat(label,val,cls){ if(val==null||val==='')return ''; return `<div class="rd-stat"><span class="rd-l">${label}</span><span class="rd-v ${cls||''}">${val}</span></div>`; }
+function openRetailDrawer(tk){
+  const e=findTicker(tk); const body=document.getElementById('rd-body'); const ov=document.getElementById('retail-drawer');
+  if(!e||!body){return;}
+  const chg=e.change_pct; const chgTxt=chg!=null?`${chg>=0?'+':''}${chg.toFixed(1)}%`:'—'; const chgCls=chg==null?'':(chg>=0?'pos':'neg');
+  const big=miniSpark(e.mentions_hist);
+  body.innerHTML=`
+    <div class="rd-head"><div><div class="rd-tk">${e.ticker} ${lifeBadge(e.lifecycle)}${stageBadge(e.attention_stage)}${flowBadge(e.flow_signal)}${qualBadge(e.quality_flags)}</div><div class="rd-name">${e.name||''}</div></div>
+      <div class="rd-px"><div class="rd-pxv">${e.price!=null?'$'+e.price.toFixed(2):'—'}</div><div class="rd-pxc ${chgCls}">${chgTxt}</div></div></div>
+    <div class="rd-read">${buildRead(e)}</div>
+    <div class="rd-section">Attention</div>
+    <div class="rd-grid">
+      ${rdStat('Mentions',fmtNum(e.mentions))}${rdStat('Velocity',fmtVel(e.velocity_pct),'pos')}${rdStat('Heat',e.heat)}${rdStat('Buzz',e.buzz_state)}
+      ${rdStat('Days tracked',e.days_tracked)}${rdStat('7d trend',e.trend_7d_pct!=null?(e.trend_7d_pct>=0?'+':'')+e.trend_7d_pct+'%':null)}${rdStat('Watchlist Δ',e.watchlist_chg_pct!=null?(e.watchlist_chg_pct>=0?'+':'')+e.watchlist_chg_pct+'%':null)}${rdStat('Mention %ile',e.mention_pctile!=null?e.mention_pctile+'th':null)}
+    </div>
+    ${big?`<div class="rd-spark">${big}<span class="rd-l">14-day attention</span></div>`:''}
+    <div class="rd-section">Sentiment</div>
+    <div class="rd-grid">${rdStat('Bullish',e.stwt_bull_pct!=null?e.stwt_bull_pct.toFixed(0)+'%':null,'pos')}${rdStat('Bearish',e.stwt_bear_pct!=null?e.stwt_bear_pct.toFixed(0)+'%':null,'neg')}${rdStat('Messages',e.stwt_n_messages)}${rdStat('Watchlist',fmtNum(e.stwt_watchlist_count))}</div>
+    <div class="rd-section">Mechanics & flow</div>
+    <div class="rd-grid">${rdStat('Short %',e.short_pct!=null?e.short_pct+'%':null)}${rdStat('Days to cover',e.days_to_cover)}${rdStat('Squeeze score',e.squeeze_score)}${rdStat('Call/Put',e.opt_cpr)}${rdStat('Call surge',e.opt_call_surge!=null?e.opt_call_surge+'×':null)}${rdStat('Crowding',e.crowding_score)}</div>
+    <div class="rd-section">Price</div>
+    <div class="rd-grid">${rdStat('Off 52w high',e.off_52w_high!=null?e.off_52w_high+'%':null)}${rdStat('Rel volume',e.rel_volume!=null?e.rel_volume+'×':null)}${rdStat('Market cap',e.market_cap!=null?'$'+fmtNum(e.market_cap):null)}${rdStat('Venues',(e.corroboration||[]).join(' · '))}</div>
+    <div class="rd-foot">Synthesis is a transparent rules-based read of the live signals above — not a black-box score or a recommendation.</div>`;
+  ov.classList.add('open'); document.body.style.overflow='hidden';
+}
+function closeRetailDrawer(){ const ov=document.getElementById('retail-drawer'); if(ov)ov.classList.remove('open'); document.body.style.overflow=''; }
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeRetailDrawer();});
+function findTicker_placeholder(){}
 function renderRegime() {
   const regime = DATA.market_regime || 'UNKNOWN';
   const signal = DATA.market_regime_signal || '';
@@ -552,7 +626,7 @@ function renderTopTable() {
     const bbCls = e.stwt_bull_bear_ratio == null ? '' : (e.stwt_bull_bear_ratio >= 2 ? 'pos' : (e.stwt_bull_bear_ratio < 0.5 ? 'neg' : ''));
     const chgCls = e.change_pct == null ? '' : (e.change_pct >= 0 ? 'pos' : 'neg');
     const heat = e.heat || 0; const heatCol = heat>=70?'var(--neg)':heat>=50?'var(--orange)':'var(--info)';
-    return `<tr>
+    return `<tr style="cursor:pointer" onclick="openRetailDrawer('${e.ticker}')">
       <td>${e.rank}</td>
       <td><span class="t-ticker">${e.ticker}</span><br><span class="t-name">${(e.name||'').slice(0,24)}</span></td>
       <td class="t-num">${fmtNum(e.mentions)}</td>
@@ -606,5 +680,8 @@ function renderSubBreakdown() {
 load();
 setInterval(load, 5 * 60 * 1000);
 </script>
+<div id="retail-drawer" class="rd-overlay" onclick="if(event.target===this)closeRetailDrawer()">
+  <div class="rd-panel"><button class="rd-close" onclick="closeRetailDrawer()">✕</button><div id="rd-body"></div></div>
+</div>
 </body>
 </html>
