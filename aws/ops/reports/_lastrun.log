@@ -1,11 +1,105 @@
-data/finviz-short.json: age=0.2h tickers=5751 n_short=?
-data/finviz-universe.json: age=0.2h tickers=11302 n_short=5751
-LOG: finviz short coverage: 5751 tickers
-squeeze short_pct coverage: 23/30 (was 13/30) | from finviz: 23
-squeeze_radar: 10
-  SPCX   short=None src=None sqz=None relvol=None
-  SPY    short=None src=None sqz=None relvol=None
-  MU     short=3.3 src=finviz sqz=45 relvol=0.88
-  MSFT   short=1.2 src=finviz sqz=40 relvol=0.92
-  QQQ    short=None src=None sqz=None relvol=None
-  SNDK   short=6.3 src=finviz sqz=38 relvol=0.59
+=== FULL CUSTOM COLUMN SET (v=152&c=0..70) — the complete data surface ===
+http=200 | 72 columns available:
+   c=0: No.
+   c=1: Ticker
+   c=2: Company
+   c=3: Sector
+   c=4: Industry
+   c=5: Country
+   c=6: Market Cap
+   c=7: P/E
+   c=8: Forward P/E
+   c=9: PEG
+   c=10: P/S
+   c=11: P/B
+   c=12: P/Cash
+   c=13: P/Free Cash Flow
+   c=14: Dividend Yield
+   c=15: Payout Ratio
+   c=16: EPS (ttm)
+   c=17: EPS Growth This Year
+   c=18: EPS Growth Next Year
+   c=19: EPS Growth Past 5 Years
+   c=20: EPS Growth Next 5 Years
+   c=21: Sales Growth Past 5 Years
+   c=22: EPS Growth Quarter Over Quarter
+   c=23: Sales Growth Quarter Over Quarter
+   c=24: Shares Outstanding
+   c=25: Shares Float
+   c=26: Insider Ownership
+   c=27: Insider Transactions
+   c=28: Institutional Ownership
+   c=29: Institutional Transactions
+   c=30: Short Float
+   c=31: Short Ratio
+   c=32: Return on Assets
+   c=33: Return on Equity
+   c=34: Return on Invested Capital
+   c=35: Current Ratio
+   c=36: Quick Ratio
+   c=37: LT Debt/Equity
+   c=38: Total Debt/Equity
+   c=39: Gross Margin
+   c=40: Operating Margin
+   c=41: Profit Margin
+   c=42: Performance (Week)
+   c=43: Performance (Month)
+   c=44: Performance (Quarter)
+   c=45: Performance (Half Year)
+   c=46: Performance (Year)
+   c=47: Performance (YTD)
+   c=48: Beta
+   c=49: Average True Range
+   c=50: Volatility (Week)
+   c=51: Volatility (Month)
+   c=52: 20-Day Simple Moving Average
+   c=53: 50-Day Simple Moving Average
+   c=54: 200-Day Simple Moving Average
+   c=55: 50-Day High
+   c=56: 50-Day Low
+   c=57: 52-Week High
+   c=58: 52-Week Low
+   c=59: Relative Strength Index (14)
+   c=60: Change from Open
+   c=61: Gap
+   c=62: Analyst Recom
+   c=63: Average Volume
+   c=64: Relative Volume
+   c=65: Price
+   c=66: Change
+   c=67: Volume
+   c=68: Earnings Date
+   c=69: Target Price
+   c=70: IPO Date
+   c=71: After-Hours Close
+
+=== SIGNAL PRESETS (s=) — row counts ===
+  s=ta_topgainers      http=200 rows=200
+  s=ta_toplosers       http=200 rows=200
+  s=ta_newhigh         http=200 rows=200
+  s=ta_newlow          http=200 rows=109
+  s=ta_mostvolatile    http=429 rows=-1
+  s=ta_mostactive      http=429 rows=-1
+  s=ta_unusualvolume   http=429 rows=-1
+  s=ta_overbought      http=429 rows=-1
+  s=ta_oversold        http=429 rows=-1
+  s=n_majornews        http=429 rows=-1
+  s=it_latestbuys      http=429 rows=-1
+  s=it_latestsales     http=429 rows=-1
+
+=== TECHNICAL FILTERS (f=) — MA crossovers / position ===
+  f=ta_sma50_cross200a     http=429 rows=-1
+  f=ta_sma50_cross200b     http=429 rows=-1
+  f=ta_sma200_pa           http=429 rows=-1
+  f=ta_sma200_pb           http=429 rows=-1
+  f=ta_sma200_cross200a    http=429 rows=-1
+  f=ta_perf_4w30o          http=429 rows=-1
+  f=ta_rsi_os30            http=429 rows=-1
+  f=ta_rsi_ob70            http=429 rows=-1
+  f=ta_highlow52w_nh       http=429 rows=-1
+  f=sh_relvol_o2           http=429 rows=-1
+  f=ta_pattern_channelup   http=429 rows=-1
+
+=== NEWS / OPTIONS availability ===
+  v=3 (news?) http=429 first60=This user has performed an unusual high number of requests a
+  f=sh_opt_option (optionable) http=429 rows=-1
