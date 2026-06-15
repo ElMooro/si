@@ -1,4 +1,10 @@
-  File "/home/runner/work/si/si/aws/ops/pending/1680_freshness_manifest.py", line 40
-    print("\ntop stale overall:", [(r['key'],f\"{r['age_h']}h/SLA{r['max_age_h']}h\") for r in st.get('stale_top_50',[])[:8]])
-                                               ^
-SyntaxError: unexpected character after line continuation character
+manifest overrides set for: ['data/google-trends.json', 'data/retail-alerts.json', 'data/retail-attention-history.json', 'data/retail-sentiment.json', 'data/ticker-trends.json']
+rule fleet-freshness-monitor-30min: already ENABLED
+monitor: tracked=156 fresh=56 stale=100 alerts=4
+  ok    data/ticker-trends.json: within SLA
+  ok    data/retail-sentiment.json: within SLA
+  ok    data/retail-attention-history.json: within SLA
+  ok    data/options-flow.json: within SLA
+  ok    data/news-velocity.json: within SLA
+  ok    data/short-interest.json: within SLA
+top stale overall: ['data/activity-nowcast/snapshots/2026-05-17.json 699.82h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-18.json 681.05h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-19.json 657.05h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-20.json 633.05h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-21.json 609.05h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-22.json 585.05h/SLA26.0h', 'data/_freshness-status.json 584.4h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-23.json 561.05h/SLA26.0h']
