@@ -194,6 +194,32 @@ def make_thesis(name, tk, ind, m):
         return None
 
 
+def load_confirmation_feeds():
+    """Pull per-ticker confirmation signals from the wider engine fleet."""
+    def L(k):
+        try:
+            return json.loads(S3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
+        except Exception:
+            return {}
+    si = (L("data/short-interest.json") or {}).get("by_ticker", {}) or {}
+    f13 = (L("data/13f-positions.json") or {}).get("aggregate_by_ticker", {}) or {}
+    fwd = (L("data/estimate-revisions-latest.json") or {}).get("fwd_rev_growth", {}) or {}
+    chains = (L("data/rotation-chains.json") or {}).get("chains", {}) or {}
+    chain_idx = {}
+    for cname, c in (chains.items() if isinstance(chains, dict) else []):
+        if not isinstance(c, dict):
+            continue
+        for nt in (c.get("next_up_tickers") or []):
+            t = nt.get("ticker")
+            if t and t not in chain_idx:
+                chain_idx[t] = {
+                    "chain": c.get("chain") or cname, "role": "next-up laggard",
+                    "catchup": c.get("expected_catchup_pct"),
+                    "own_30d": nt.get("own_30d_pct"), "leader_30d": c.get("leader_perf_30d_pct"),
+                }
+    return si, f13, fwd, chain_idx
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     try:
@@ -208,6 +234,7 @@ def lambda_handler(event=None, context=None):
         cache = {}
     now = datetime.now(timezone.utc)
     ind_pe, sec_pe = fetch_peer_pe()
+    si_f, f13_f, fwd_f, chain_f = load_confirmation_feeds()
 
     tickers = [r["ticker"] for r in ranks]
     fin_map = {}
@@ -254,6 +281,19 @@ def lambda_handler(event=None, context=None):
             rec["trap"] = "real"          # accelerating + margins holding/expanding + cheap
         else:
             rec["trap"] = "watch"
+        # confirmation signals from the wider engine fleet (matched by ticker)
+        _s = si_f.get(tk) or {}
+        if _s:
+            rec["short_pct"] = _s.get("latest_short_pct"); rec["short_signal"] = _s.get("signal")
+        _f = f13_f.get(tk) or {}
+        if _f:
+            rec["sm_funds"] = _f.get("n_funds_holding")
+            rec["sm_net"] = (_f.get("n_funds_adding") or 0) - (_f.get("n_funds_trimming") or 0)
+            rec["sm_new"] = _f.get("n_funds_new_position"); rec["sm_value"] = _f.get("total_value")
+        if tk in fwd_f:
+            rec["fwd_rev_growth"] = fwd_f.get(tk)
+        if tk in chain_f:
+            rec["chain"] = chain_f.get(tk)
         cached = cache.get(tk, {})
         ts = cached.get("thesis_at")
         fresh = False
