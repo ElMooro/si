@@ -438,7 +438,7 @@ def lambda_handler(event, context):
         if not tk:
             continue
         ser = [p for p in by_t.get(tk, []) if p.get("date") != today_d]
-        ser.append({"date": today_d, "mentions": e.get("mentions"), "heat": e.get("heat")})
+        ser.append({"date": today_d, "mentions": e.get("mentions"), "heat": e.get("heat"), "wl": e.get("stwt_watchlist_count")})
         by_t[tk] = sorted(ser, key=lambda p: p.get("date") or "")[-30:]
     cutoff = (datetime.now(timezone.utc) - timedelta(days=31)).strftime("%Y-%m-%d")
     by_t = {t: ss for t, ss in by_t.items() if ss and (ss[-1].get("date") or "") >= cutoff}
@@ -585,6 +585,35 @@ def lambda_handler(event, context):
         [e for e in enriched if (e.get("corroboration_count") or 0) >= 3 and (e.get("mentions") or 0) >= 15],
         key=lambda x: (-(x.get("corroboration_count") or 0), -(x.get("heat") or 0)))[:12]
 
+    # ─── #7 Retail flow proxy: options call/put skew + watchlist growth ───
+    opt_doc = _load_json("data/options-flow.json")
+    opt_map = {}
+    for r in (opt_doc.get("all_qualifying") or (opt_doc.get("summary", {}) or {}).get("top_25_overall") or []):
+        sym = (r.get("symbol") or "").upper()
+        if not sym:
+            continue
+        m = r.get("metrics") or r
+        opt_map[sym] = {
+            "cpr": m.get("avg_cpr_recent_5d") if m.get("avg_cpr_recent_5d") is not None else r.get("cpr_recent"),
+            "call_surge": m.get("call_vol_surge") if m.get("call_vol_surge") is not None else r.get("call_vol_surge"),
+            "score": r.get("score"),
+        }
+    for e in enriched:
+        o = opt_map.get((e.get("ticker") or "").upper())
+        if o:
+            e["opt_cpr"] = o["cpr"]; e["opt_call_surge"] = o["call_surge"]; e["opt_score"] = o["score"]
+            cpr = o["cpr"]; surge = o["call_surge"]
+            if cpr is not None and cpr >= 1.3 and (surge is None or surge >= 1.3):
+                e["flow_signal"] = "BULLISH_CALLS"
+            elif cpr is not None and cpr <= 0.7:
+                e["flow_signal"] = "PUT_HEAVY"
+        ser = by_t.get(e.get("ticker"), [])
+        wls = [p.get("wl") for p in ser if p.get("wl") is not None]
+        if len(wls) >= 2 and wls[-2]:
+            e["watchlist_chg_pct"] = round((wls[-1] - wls[-2]) / wls[-2] * 100, 1)
+    flow_leaders = sorted([e for e in enriched if e.get("flow_signal") == "BULLISH_CALLS" and (e.get("mentions") or 0) >= 15],
+                          key=lambda x: -(x.get("heat") or 0))[:10]
+
     # ─── Rankings ───
     # Biggest velocity surges (high mentions + high velocity)
     velocity_filtered = [e for e in enriched
@@ -673,6 +702,7 @@ def lambda_handler(event, context):
             "capitulation": capitulation,
             "squeeze_radar": squeeze_radar,
             "multi_venue_confirmed": multi_venue_confirmed,
+            "flow_leaders": flow_leaders,
             "momentum_confirmed": momentum_confirmed,
             "fading_divergence": fading_divergence,
             "biggest_velocity_surges": biggest_velocity,
