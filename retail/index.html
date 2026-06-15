@@ -157,6 +157,16 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .lb-fade{background:rgba(255,61,90,.14);color:var(--neg)}
 .lb-act{background:var(--border);color:var(--text-dim)}
 
+
+/* === #8 theme rollup === */
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.theme-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.th-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.th-name{font-weight:700;color:var(--text);font-size:13px}
+.th-ment{font-family:var(--mono,monospace);font-size:11px;color:var(--info)}
+.th-meta{display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono,monospace);font-size:10px;color:var(--text-dim);margin-bottom:5px}
+.th-names{font-family:var(--mono,monospace);font-size:10px;color:var(--text-mute);line-height:1.4}
+
 </style>
 </head>
 <body>
@@ -188,6 +198,12 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
     <div class="pt-note">Lots of talk while the price drops. Often a crowded trade or a fade — treat with caution.</div>
     <div id="divergence"><div class="loading">Loading…</div></div>
   </div>
+</div>
+
+<div class="panel" style="margin-bottom:18px;border-left:3px solid #22d3ee">
+  <div class="panel-title">🧭 Theme Rotation <span style="font-weight:400;font-size:11px;color:var(--text-mute)">— where retail attention is flowing, by theme</span></div>
+  <div class="pt-note">Curated theme buckets (AI, quantum, nuclear, crypto-equity, …) ranked by total retail mentions. Shows the wave, not just single names.</div>
+  <div id="theme-rollup" class="theme-grid"><div class="loading">Loading…</div></div>
 </div>
 
 <div class="row-2col">
@@ -313,7 +329,7 @@ async function load() {
     document.getElementById('status').textContent = 'live';
     document.getElementById('status').style.color = 'var(--pos)';
     document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
-    renderRegime(); renderTrack(); renderHottest(); renderConfirmation(); renderContrarian(); renderSqueeze(); renderMultiVenue(); renderFlow(); renderQuality(); renderLifecycle(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
+    renderRegime(); renderTrack(); renderThemes(); renderHottest(); renderConfirmation(); renderContrarian(); renderSqueeze(); renderMultiVenue(); renderFlow(); renderQuality(); renderLifecycle(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
   } catch (e) {
     document.getElementById('status').textContent = 'offline';
     document.getElementById('status').style.color = 'var(--neg)';
@@ -434,6 +450,19 @@ function renderLifecycle(){
   const mk=(arr)=>arr&&arr.length?arr.map(e=>`<div class="row-list"><span><span class="r-ticker">${e.ticker}</span><br><span class="r-name">💬${fmtNum(e.mentions)} · ${e.heat||0}🔥</span></span><span class="r-metric ${e.change_pct>=0?'pos':'neg'}">${e.change_pct!=null?(e.change_pct>=0?'+':'')+e.change_pct.toFixed(1)+'%':'—'}</span></div>`).join(''):'<div style="padding:18px;text-align:center;color:var(--text-mute)">none right now</div>';
   const a=document.getElementById('lc-igniting'),b=document.getElementById('lc-peaking'),c=document.getElementById('lc-fading');
   if(a)a.innerHTML=mk(r.igniting); if(b)b.innerHTML=mk(r.peaking); if(c)c.innerHTML=mk(r.fading);
+}
+function renderThemes(){
+  const tr=DATA.theme_rollup||[]; const el=document.getElementById('theme-rollup'); if(!el) return;
+  if(!tr.length){el.innerHTML='<div style="padding:18px;color:var(--text-mute)">No themes active right now.</div>';return;}
+  el.innerHTML = tr.map(t=>{
+    const chg=t.avg_change; const chgc=chg==null?'var(--text-mute)':(chg>=0?'var(--pos)':'var(--neg)');
+    const names=(t.names||[]).map(n=>n.ticker).join(' · ');
+    return `<div class="theme-card">
+      <div class="th-head"><span class="th-name">${t.theme}</span><span class="th-ment">💬${fmtNum(t.total_mentions)}</span></div>
+      <div class="th-meta"><span>${t.n_names} names</span>${t.avg_velocity!=null?`<span class="pos">${fmtVel(t.avg_velocity)} avg</span>`:''}${chg!=null?`<span style="color:${chgc}">${chg>=0?'+':''}${chg}%</span>`:''}${t.avg_bull!=null?`<span>${t.avg_bull}% bull</span>`:''}</div>
+      <div class="th-names">${names}</div>
+    </div>`;
+  }).join('');
 }
 function renderRegime() {
   const regime = DATA.market_regime || 'UNKNOWN';
