@@ -87,6 +87,22 @@ COLMAP = {
     "Volatility (Week)": ("volatility_w", _num), "Volatility (Month)": ("volatility_m", _num),
     "Analyst Recom": ("analyst_recom", _num), "Target Price": ("target_price", _num),
     "Price": ("price", _num), "Change": ("change_pct", _num), "Volume": ("volume", _num),
+    # --- expanded to full 72-column custom surface ---
+    "Dividend Yield": ("div_yield", _num), "Payout Ratio": ("payout_ratio", _num),
+    "EPS (ttm)": ("eps_ttm", _num),
+    "EPS Growth Next 5 Years": ("eps_growth_n5y", _num),
+    "EPS Growth Quarter Over Quarter": ("eps_growth_qoq", _num),
+    "Sales Growth Quarter Over Quarter": ("sales_growth_qoq", _num),
+    "Return on Assets": ("roa", _num), "Return on Equity": ("roe", _num),
+    "Return on Invested Capital": ("roic", _num),
+    "Current Ratio": ("current_ratio", _num), "Quick Ratio": ("quick_ratio", _num),
+    "LT Debt/Equity": ("lt_debt_eq", _num), "Total Debt/Equity": ("debt_eq", _num),
+    "Gross Margin": ("gross_margin", _num), "Operating Margin": ("oper_margin", _num),
+    "Profit Margin": ("profit_margin", _num),
+    "50-Day High": ("off_50d_high_pct", _num), "50-Day Low": ("off_50d_low_pct", _num),
+    "Change from Open": ("change_open_pct", _num), "Gap": ("gap_pct", _num),
+    "Earnings Date": ("earnings_date", _txt), "IPO Date": ("ipo_date", _txt),
+    "After-Hours Close": ("ah_close", _num),
 }
 
 
@@ -100,28 +116,48 @@ def fetch_view(view, filt=None, timeout=60):
     return list(csv.DictReader(io.StringIO(body)))
 
 
-def build_universe(views=("overview", "ownership", "technical", "performance", "valuation"), filt=None):
-    """Pull each view across the whole universe and merge by ticker into clean keyed records."""
+CUSTOM_COLS = ",".join(str(i) for i in range(72))  # full 72-column surface
+
+
+def fetch_custom(filt=None, cols=CUSTOM_COLS, timeout=90):
+    """One authenticated custom-column export = ALL fields for the whole (filtered) universe in a single call."""
+    url = "%s?v=152&c=%s%s&auth=%s" % (BASE, cols, ("&f=" + filt) if filt else "", _token())
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; justhodl/1.0)"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        body = r.read().decode("utf-8", "ignore")
+    head = body.split("\n", 1)[0]
+    if "Ticker" not in head:
+        raise RuntimeError("finviz custom export non-CSV (auth/tier/rate-limit): " + head[:80])
+    return list(csv.DictReader(io.StringIO(body)))
+
+
+def build_universe(filt=None, **_legacy):
+    """Whole (filtered) universe as clean keyed records from ONE custom-column export call
+    (replaces the old 5-view merge: complete 72-field surface, fewer API hits, no rate-limit)."""
     uni = {}
-    for v in views:
-        try:
-            rows = fetch_view(v, filt)
-        except Exception as e:
-            print("[finviz] view %s failed: %s" % (v, str(e)[:90]))
+    try:
+        rows = fetch_custom(filt)
+    except Exception as e:
+        print("[finviz] custom export failed, falling back to views: %s" % str(e)[:90])
+        rows = []
+        for v in ("overview", "ownership", "technical", "performance", "valuation"):
+            try:
+                rows.extend(fetch_view(v, filt))
+            except Exception as e2:
+                print("[finviz] view %s failed: %s" % (v, str(e2)[:80]))
+    for raw in rows:
+        tk = (raw.get("Ticker") or "").strip().upper()
+        if not tk:
             continue
-        for raw in rows:
-            tk = (raw.get("Ticker") or "").strip().upper()
-            if not tk:
+        rec = uni.setdefault(tk, {"ticker": tk})
+        for rawk, val in raw.items():
+            m = COLMAP.get(rawk.strip())
+            if not m or m[0] == "ticker":
                 continue
-            rec = uni.setdefault(tk, {"ticker": tk})
-            for rawk, val in raw.items():
-                m = COLMAP.get(rawk)
-                if not m or m[0] == "ticker":
-                    continue
-                key, parse = m
-                pv = parse(val)
-                if pv is not None and rec.get(key) in (None, ""):
-                    rec[key] = pv
+            key, parse = m
+            pv = parse(val)
+            if pv is not None and rec.get(key) in (None, ""):
+                rec[key] = pv
     return uni
 
 
