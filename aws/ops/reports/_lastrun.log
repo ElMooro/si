@@ -1,83 +1,14 @@
-=== SSM params containing 'finviz' (any case) ===
-NONE — no Finviz token stored in SSM
+FINVIZ_AUTH present: length 36
+stored -> SSM /justhodl/finviz/auth-token (SecureString)
 
-=== all SSM param names (for context, to see key-naming convention) ===
-   /justhodl/13f-price-divergence/state
-   /justhodl/52wk-quality-breakout/state
-   /justhodl/ai-chat/auth-token
-   /justhodl/alerts/webhook_urls
-   /justhodl/anthropic/api-key
-   /justhodl/anthropic/api_key
-   /justhodl/api-admin/token
-   /justhodl/breadth-divergence/state
-   /justhodl/breadth-thrust/state
-   /justhodl/buyback-yield-ranking/state
-   /justhodl/calibration-fleet/weights
-   /justhodl/calibration/accuracy
-   /justhodl/calibration/miss_recurring_tickers
-   /justhodl/calibration/miss_threshold_proposals
-   /justhodl/calibration/report
-   /justhodl/calibration/scorecard
-   /justhodl/calibration/weights
-   /justhodl/calibration/weights/day_1
-   /justhodl/calibration/weights/day_14
-   /justhodl/calibration/weights/day_21
-   /justhodl/calibration/weights/day_3
-   /justhodl/calibration/weights/day_30
-   /justhodl/calibration/weights/day_5
-   /justhodl/calibration/weights/day_60
-   /justhodl/calibration/weights/day_7
-   /justhodl/calibration/weights/day_90
-   /justhodl/cef-discount/state
-   /justhodl/credit-equity-divergence/state
-   /justhodl/crypto-etf-arb/state
-   /justhodl/crypto-opportunities/state
-   /justhodl/cta-trend-exhaust/state
-   /justhodl/divcut-warning/state
-   /justhodl/dxy-equity-divergence/state
-   /justhodl/earnings-quality/state
-   /justhodl/event-flow/last-alerts
-   /justhodl/event-flow/pulse
-   /justhodl/feedback/auth-token
-   /justhodl/gap-fill-confirm/state
-   /justhodl/gold-equity-rotation/state
-   /justhodl/gsi/weights
-   /justhodl/gsi/weights/21d
-   /justhodl/gsi/weights/252d
-   /justhodl/gsi/weights/5d
-   /justhodl/gsi/weights/63d
-   /justhodl/history-api/url
-   /justhodl/insider-buyback-confluence/state
-   /justhodl/insider-sell-cluster/state
-   /justhodl/kill-switch
-   /justhodl/lockup-expiration/state
-   /justhodl/master-allocation/target
-   /justhodl/multi-tf-convergence/state
-   /justhodl/ndx-spx-spread/state
-   /justhodl/nowcast/last_state
-   /justhodl/opex-calendar/state
-   /justhodl/opportunity/weights
-   /justhodl/portfolio-admin/manager-pass
-   /justhodl/portfolio-admin/token
-   /justhodl/post-earnings-mean-rev/state
-   /justhodl/precatalyst-vol-expansion/state
-   /justhodl/push/admin-token
-   /justhodl/push/vapid-private-key
-   /justhodl/push/vapid-public-key
-   /justhodl/push/vapid-subject
-   /justhodl/put-call-extreme/state
-   /justhodl/rating-change-cluster/state
-   /justhodl/reit-nav-discount/state
-   /justhodl/skew-tail-hedging/state
-   /justhodl/spac-floor-warrant/state
-   /justhodl/stablecoin-flow/state
-   /justhodl/stress/simulator-url
-   /justhodl/sympathetic-momentum/state
-   /justhodl/telegram/bot_token
-   /justhodl/telegram/chat_id
-   /justhodl/vix-backwardation/state
-   /justhodl/vix9d-vix-inversion/state
-   /justhodl/vol-target-unwind/state
-   /justhodl/vvix-vov-regime/state
-   /justhodl/wss/endpoint
-   /justhodl/zai-api-key
+=== validation ===
+[user-screen/export.ashx] HTTP 200 ct=text/csv rows=144 cols=11 csv=True
+   header: "No.","Ticker","Company","Sector","Industry","Country","Market Cap","P/E","Price","Change","Volume"
+[whole-universe-overview/export.ashx] HTTP 200 ct=text/csv rows=11302 cols=11 csv=True
+   header: "No.","Ticker","Company","Sector","Industry","Country","Market Cap","P/E","Price","Change","Volume"
+[ownership(short-float)/export.ashx] HTTP 200 ct=text/csv rows=11302 cols=18 csv=True
+   header: "No.","Ticker","Market Cap","Dividend Yield","Return on Assets","Return on Equity","Return on Invested Capital","Current Ratio","Quick Ratio","LT Debt/Equity","Total Debt/Equity","Gross Margin","Operating Margin","Profit
+[performance(relvol/recom)/export.ashx] HTTP 200 ct=text/csv rows=11302 cols=15 csv=True
+   header: "No.","Ticker","Beta","Average True Range","20-Day Simple Moving Average","50-Day Simple Moving Average","200-Day Simple Moving Average","52-Week High","52-Week Low","Relative Strength Index (14)","Price","Change","Chang
+[technical(rsi/sma)/export.ashx] HTTP 200 ct=text/csv rows=11302 cols=18 csv=True
+   header: "No.","Ticker","Performance (Week)","Performance (Month)","Performance (Quarter)","Performance (Half Year)","Performance (YTD)","Performance (Year)","Performance (3 Years)","Performance (5 Years)","Performance (10 Years)
