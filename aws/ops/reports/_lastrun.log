@@ -1,12 +1,9 @@
-[v=131 ownership] rows=11302 cols=15
-    "No.","Ticker","Market Cap","Shares Outstanding","Shares Float","Insider Ownership","Insider Transactions","Institutional Ownership","Institutional Transactions","Short Float","Short Ratio","Average Volume","Price","Change","Volume"
-    -> HAS: Short
-    -> HAS: Float
-    -> HAS: Insider
-    -> HAS: Institutional
-[v=121 valuation] rows=11302 cols=18
-    "No.","Ticker","Market Cap","P/E","Forward P/E","PEG","P/S","P/B","P/Cash","P/Free Cash Flow","EPS Growth This Year","EPS Growth Next Year","EPS Growth Past 5 Years","EPS Growth Next 5 Years","Sales Growth Past 5 Years","Price","Change","Volume"
-[v=152 custom-test] rows=11302 cols=15
-    "Ticker","Company","Sector","Industry","Market Cap","P/E","Price","Change","Volume","Earnings Date","Target Price","IPO Date","Index","Prev Close","Short Interest"
-    -> HAS: Short
-    -> HAS: Target Price
+invoke: 200 err: None
+payload: {"statusCode": 200, "body": "{\"n_tickers\": 11302, \"short_float\": 5751, \"float\": 5778, \"rel_volume\": 11269, \"elapsed_s\": 6.6}"}
+universe: n_tickers=11302 n_with_short_float=5751
+  MU    short_float=3.34 short_ratio=0.74 float=1122.72 rel_vol=0.88 rsi=66.56 perf_m=40.2 pe=51.37
+  NVDA  short_float=1.23 short_ratio=1.72 float=23210.6 rel_vol=0.91 rsi=51.29 perf_m=-9.88 pe=32.54
+  GME   short_float=14.41 short_ratio=7.7 float=409.09 rel_vol=0.62 rsi=43.86 perf_m=0.6 pe=16.56
+  AMC   short_float=10.28 short_ratio=1.85 float=574.88 rel_vol=1.25 rsi=67.68 perf_m=70.15 pe=None
+  TSLA  short_float=2.64 short_ratio=1.31 float=2913.95 rel_vol=0.77 rsi=50.56 perf_m=-7.25 pe=375.62
+slim short index: 5751 tickers
