@@ -1,4 +1,4 @@
-ticker-trends.json age=0.02h  generated_at=2026-06-15T21:01:24+00:00  n_results=71  n_ok=71
-rising/stealth now: 3 -> ['RDDT', 'PYPL', 'TSLA']
-retail Search corroboration now: 2 names ['TSLA', 'RDDT']
-multi_venue_confirmed: 9
+  File "/home/runner/work/si/si/aws/ops/pending/1680_freshness_manifest.py", line 40
+    print("\ntop stale overall:", [(r['key'],f\"{r['age_h']}h/SLA{r['max_age_h']}h\") for r in st.get('stale_top_50',[])[:8]])
+                                               ^
+SyntaxError: unexpected character after line continuation character
