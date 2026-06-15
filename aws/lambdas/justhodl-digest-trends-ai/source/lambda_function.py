@@ -143,7 +143,8 @@ def build_context_for_ai(state: dict) -> dict:
     # Retail sentiment surges
     retail = state.get("retail", {})
     retail_surges = []
-    for r in (retail.get("velocity_surges") or [])[:6]:
+    for r in (((retail.get("ranked") or {}).get("biggest_velocity_surges"))
+              or retail.get("velocity_surges") or [])[:6]:
         if isinstance(r, dict):
             retail_surges.append({
                 "ticker": r.get("ticker"),

@@ -289,13 +289,18 @@ function renderTickets(tickets) {
 
 function renderRetail(retail) {
   const wrap = document.getElementById('retail-list');
-  const surges = (retail || {}).velocity_surges || (retail || {}).surges || [];
+  const surges = ((retail || {}).ranked || {}).biggest_velocity_surges
+    || (retail || {}).velocity_surges || (retail || {}).surges
+    || (retail || {}).top_30_by_mentions || [];
   if (!surges.length) { wrap.innerHTML = '<div class="empty">No retail data available. The retail-sentiment Lambda surfaces Reddit/social mention velocity surges.</div>'; return; }
+  let stale = '';
+  const ga = (retail || {}).generated_at;
+  if (ga) { const ageH = (Date.now() - new Date(ga).getTime()) / 3.6e6; if (ageH > 36) stale = `<div class="empty" style="padding:4px 0 8px;color:var(--gold)">⚠ as of ${ga.slice(0,10)} — feed refreshing</div>`; }
   const max = Math.max(...surges.map(s => Math.abs(s.velocity_pct || s.change_pct || 0)));
-  wrap.innerHTML = surges.slice(0,8).map(s => {
+  wrap.innerHTML = stale + surges.slice(0,8).map(s => {
     const pct = s.velocity_pct || s.change_pct || 0;
-    const w = max > 0 ? Math.min(100, (pct/max)*100) : 0;
-    return `<div class="retail-row"><div class="tk">${s.ticker || '—'}</div><div class="bar"><div class="bar-fill" style="width:${w}%"></div></div><div class="pct">+${(pct||0).toLocaleString('en-US',{maximumFractionDigits:0})}%</div><div class="mentions">${s.mentions || '—'} mentions</div></div>`;
+    const w = max > 0 ? Math.min(100, (Math.abs(pct)/max)*100) : 0;
+    return `<div class="retail-row"><div class="tk">${s.ticker || '—'}</div><div class="bar"><div class="bar-fill" style="width:${w}%"></div></div><div class="pct">${pct>=0?'+':''}${(pct||0).toLocaleString('en-US',{maximumFractionDigits:0})}%</div><div class="mentions">${s.mentions || '—'} mentions</div></div>`;
   }).join('');
 }
 
