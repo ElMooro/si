@@ -88,6 +88,18 @@ tr.drawer>td{background:var(--bg-2);padding:0;border-bottom:2px solid var(--bord
 .fchips .cnt{color:var(--fg-3);font-size:10px;margin-left:5px}
 .dlink2{display:inline-block;margin-top:14px;font-family:var(--mono);font-size:11.5px;color:var(--cyan);border:1px solid var(--border);border-radius:6px;padding:7px 13px}
 .dlink2:hover{border-color:var(--cyan)}
+.trustbar{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 12px}
+.trustcard{flex:1;min-width:280px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:12px 15px}
+.trustcard h4{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.trk{display:flex;gap:18px;flex-wrap:wrap}
+.trk .w{font-family:var(--mono);font-size:12px}.trk .w b{font-size:15px;color:var(--fg-0)}.trk .w i{color:var(--fg-3);font-style:normal;font-size:9px;display:block;margin-top:1px}
+.acc{font-family:var(--mono);font-size:11px;color:var(--amber);line-height:1.55}
+.concbanner{font-size:12.5px;color:var(--fg-1);line-height:1.5}.concbanner b{color:var(--amber)}
+.chg{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.chg .item{font-family:var(--mono);font-size:11px;border-radius:6px;padding:5px 10px;border:1px solid var(--border);background:var(--bg-1);color:var(--fg-2)}
+.chg .item.up{border-color:var(--green);color:var(--green)}
+.chg .item.down{border-color:var(--red);color:var(--red)}
+.chg .item.new{border-color:var(--cyan);color:var(--cyan)}
 .loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
 .disc{margin-top:24px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.7;border-top:1px solid var(--border);padding-top:14px}
 .disc b{color:var(--fg-2)}
@@ -130,9 +142,12 @@ This page finds where <b>demand is outrunning supply</b>, then the companies pos
 <b>Tap any stock</b> to open its full research — an AI-written plain-English thesis (why it could re-rate, and the key risk), the trap-check verdict, what the company does, valuation vs its industry, 10 years of financials, plus <b>confirmation signals</b> from the rest of the platform: 13F smart-money positioning, short interest, analyst forward estimates, and where it sits in a rotation/value chain. Everything you need without leaving the page. Not investment advice.
 </div></details>
 
+<div class="trustbar" id="trustbar"></div>
+
 <div class="sec-h">Industry Pressure — where supply is tight</div>
 <div class="pcards" id="pcards"><div class="loading">Loading industry pressure…</div></div>
 
+<div class="changes" id="changes"></div>
 <div class="sec-h">Boom Candidates — tap a row for full research</div>
 <div class="fchips" id="fchips"></div>
 <div id="content"><div class="loading">Loading bottleneck candidates…</div></div>
@@ -148,7 +163,35 @@ function r1(v){return v==null?'—':(Math.round(v*10)/10);}
 function bn(v){if(v==null)return'—';const a=Math.abs(v),s=v<0?'-':'';if(a>=1e12)return s+'$'+(a/1e12).toFixed(2)+'T';if(a>=1e9)return s+'$'+(a/1e9).toFixed(1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(0)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+a;}
 function pcolor(s){if(s==null)return'var(--fg-3)';if(s>=60)return'var(--green)';if(s>=45)return'var(--amber)';return'var(--fg-3)';}
 function score(v){return (v&&v.pressure_0_100!=null)?v.pressure_0_100:(v&&v.ip_yoy_z!=null?50+v.ip_yoy_z*10:null);}
-let DATA=null,RESEARCH={},SORT='boom_score',OPEN=null,FILTER='all';
+let DATA=null,RESEARCH={},RMETA={},SORT='boom_score',OPEN=null,FILTER='all';
+function renderTrust(){
+  const tr=RMETA.track_record,c=RMETA.concentration;let html='';
+  if(tr){
+    const w=tr.windows||{};let inner;
+    if(Object.keys(w).length){
+      inner='<div class="trk">'+[['d5','5-day'],['d21','21-day'],['d63','63-day']].filter(x=>w[x[0]]).map(x=>{
+        const o=w[x[0]];return `<span class="w"><b class="${o.avg_excess>=0?'pos':'neg'}">${o.hit_rate}% beat SPY</b><i>${x[1]} · ${o.avg_excess>=0?'+':''}${o.avg_excess}% avg excess · n=${o.n}</i></span>`;
+      }).join('')+'</div>';
+    }else{
+      inner=`<div class="acc">Accumulating — ${tr.n_calls} call${tr.n_calls===1?'':'s'} logged since ${esc(tr.first_date||'')}. Grades appear only as calls mature (5-day in ~1wk, 21-day at ~3wk). No look-ahead — only real dated forward returns vs SPY are scored.</div>`;
+    }
+    html+=`<div class="trustcard"><h4>Engine track record vs SPY</h4>${inner}</div>`;
+  }
+  if(c&&c.dominant_group&&c.count>=Math.ceil((c.of||10)*0.4)){
+    html+=`<div class="trustcard"><h4>Concentration check</h4><div class="concbanner"><b>${c.count} of the top ${c.of}</b> sit in <b>${esc(String(c.dominant_group).replace(/_/g,' '))}</b> — this is closer to one position than ${c.of}. Size it like a single bet, not a diversified basket.</div></div>`;
+  }
+  document.getElementById('trustbar').innerHTML=html;
+}
+function renderChanges(){
+  const ch=RMETA.changes,el=document.getElementById('changes');
+  if(!ch||ch.first_run){el.innerHTML='';return;}
+  const items=[];
+  (ch.promoted||[]).forEach(p=>items.push(`<span class="item up">▲ ${esc(p.t)} ${esc(p.from)}→${esc(p.to)}</span>`));
+  (ch.demoted||[]).forEach(p=>items.push(`<span class="item down">▼ ${esc(p.t)} ${esc(p.from)}→${esc(p.to)}</span>`));
+  (ch.new||[]).forEach(t=>items.push(`<span class="item new">+ ${esc(t)} new</span>`));
+  (ch.dropped||[]).forEach(t=>items.push(`<span class="item">− ${esc(t)} dropped</span>`));
+  el.innerHTML=items.length?`<div class="sec-h">What changed since the last run</div><div class="chg">${items.join('')}</div>`:'';
+}
 const FILTERS=[['all','All'],['real','✓ Real only'],['clean','Few red flags'],['top','Top calls'],['smart','Smart money']];
 function passFilter(r,f,calls){
   const rv=RESEARCH[r.ticker]||{};
@@ -181,6 +224,8 @@ function renderPressure(ip){
     if(v.backlog_yoy_pct!=null)rows+=`<div class="row"><span>Backlog YoY</span><b class="${v.backlog_yoy_pct>=0?'pos':'neg'}">${pct(v.backlog_yoy_pct)}</b></div>`;
     if(v.backlog_to_shipments!=null)rows+=`<div class="row"><span>Backlog / shipments</span><b>${v.backlog_to_shipments}×</b></div>`;
     if(v.ip_yoy_pct!=null)rows+=`<div class="row"><span>Industrial prod YoY</span><b class="${v.ip_yoy_pct>=0?'pos':'neg'}">${pct(v.ip_yoy_pct)}</b></div>`;
+    const pctile=(RMETA.pressure_pctiles||{})[k];
+    if(pctile!=null)rows+=`<div class="row"><span>vs 10y history</span><b class="${pctile>=80?'pos':''}">${pctile}th pctile</b></div>`;
     return `<div class="pc"><span class="asof">${esc(asof)}</span><div class="nm">${esc(k.replace(/_/g,' '))}</div>
       <div class="score" style="color:${pcolor(s)}">${s==null?'—':Math.round(s)}${s!=null?'<span style="font-size:13px;color:var(--fg-3)"> /100</span>':''}</div>
       <div class="bar"><i style="width:${s!=null?Math.max(4,Math.min(100,s)):0}%;background:${pcolor(s)}"></i></div>${rows}</div>`;
@@ -236,6 +281,7 @@ function drawer(tk){
     (v.nq_eps_est!=null?`<span>Next-Q est <b>$${r1(v.nq_eps_est)}</b> EPS${v.nq_rev_est?` · ${bn(v.nq_rev_est)} rev`:''}</span>`:'')+
     (gmt!=null?`<span class="${gmt>0.5?'good':gmt<-0.5?'bad':''}">Gross margin <b>${gmt>0.5?'expanding':gmt<-0.5?'compressing':'flat'}</b> <i>(${gmt>=0?'+':''}${gmt}pp)</i></span>`:'')+
     (v.pressure_trend!=null?`<span class="${v.pressure_trend>1?'good':v.pressure_trend<-1?'bad':''}">Bottleneck <b>${v.pressure_trend>1?'intensifying':v.pressure_trend<-1?'easing':'stable'}</b> <i>(${v.pressure_trend>=0?'+':''}${v.pressure_trend}/30d)</i></span>`:'')+
+    (v.pressure_pctile!=null?`<span class="${v.pressure_pctile>=80?'good':''}">Pressure <b>${v.pressure_pctile}th pctile</b> <i>vs 10y</i></span>`:'')+
     (v.share_chg_pct!=null?`<span class="${v.share_chg_pct>3?'bad':''}">Shares <b>${v.share_chg_pct>=0?'+':''}${v.share_chg_pct}%</b> <i>/10y</i></span>`:'')+
     '</div>'+
     (trapTxt?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin:-4px 0 2px">${trapTxt}</div>`:'');
@@ -305,9 +351,11 @@ async function load(){
     fetch(`${PROXY}/data/bottleneck-boom.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
     fetch(`${PROXY}/data/bottleneck-boom-research.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null)
   ]);
-  DATA=boom; RESEARCH=(res&&res.by_ticker)||{};
+  DATA=boom; RESEARCH=(res&&res.by_ticker)||{}; RMETA=res||{};
   if(!DATA){document.getElementById('content').innerHTML='<div class="loading">Bottleneck data not available yet.</div>';document.getElementById('pcards').innerHTML='';return;}
+  renderTrust();
   renderPressure(DATA.industry_pressure||{});
+  renderChanges();
   renderChips();
   renderTable();
   document.getElementById('disc').innerHTML=`<b>Methodology.</b> ${esc(DATA.methodology||'')}<br><br>Per-stock theses are AI-written in plain English from the stock's own numbers (mechanism + the key risk) — research aid, not advice. Cheap revenue-to-market-cap with <b>decelerating</b> orders is the value trap this is built to avoid; bottleneck pressure + revenue acceleration are what separate a real boom from a trap. Scored ${DATA.scored_n||0} of a curated bottleneck-relevant universe. Track record: <a href="/track-public.html">/track-public.html</a>.`;
