@@ -18,7 +18,8 @@ import os
 import time
 import urllib.request
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import math
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
@@ -393,6 +394,144 @@ def pressure_trend(industry_pressure):
     return trend
 
 
+def _hist_map(tk):
+    """date -> close for a ticker (recent sessions), for point-in-time grading."""
+    h = fmp("historical-price-eod/light", {"symbol": tk})
+    rows = h if isinstance(h, list) else (h.get("historical") if isinstance(h, dict) else [])
+    m = {}
+    for row in (rows or []):
+        d = str(row.get("date", ""))[:10]
+        c = num(row.get("price")) if row.get("price") is not None else num(row.get("close"))
+        if d and c:
+            m[d] = c
+    return m
+
+
+def _on_or_after(series_dates, target):
+    for d in series_dates:
+        if d >= target:
+            return d
+    return None
+
+
+def grade_track_record():
+    """Forward test of logged bottleneck calls vs SPY at 5/21/63 days (point-in-time, no look-ahead)."""
+    try:
+        from boto3.dynamodb.conditions import Attr
+        tbl = boto3.resource("dynamodb", region_name="us-east-1").Table("justhodl-signals")
+        items = []; lek = None
+        for _ in range(10):
+            kw = dict(FilterExpression=Attr("signal_type").eq("bottleneck_boom"), Limit=300)
+            if lek:
+                kw["ExclusiveStartKey"] = lek
+            r = tbl.scan(**kw); items += r.get("Items", []); lek = r.get("LastEvaluatedKey")
+            if not lek:
+                break
+    except Exception as e:
+        print(f"[track] scan fail {str(e)[:80]}"); return None
+    if not items:
+        return None
+    today = datetime.now(timezone.utc).date().isoformat()
+    spy = _hist_map("SPY"); spy_d = sorted(spy)
+    windows = [5, 21, 63]
+    agg = {w: {"n": 0, "wins": 0, "sx": 0.0} for w in windows}
+    hist_cache = {}; n_pending = 0
+    for it in items:
+        sid = it.get("signal_id", ""); logged = it.get("logged_at")
+        try:
+            base = float(str(it.get("baseline_price")))
+        except Exception:
+            base = None
+        tk = sid.split("#")[1] if sid.count("#") >= 1 else it.get("ticker")
+        if not (logged and base and tk):
+            continue
+        d_log = str(logged)[:10]
+        if tk not in hist_cache:
+            hist_cache[tk] = _hist_map(tk)
+        sm = hist_cache[tk]; sm_d = sorted(sm)
+        spy_base_d = _on_or_after(spy_d, d_log); spy_base = spy.get(spy_base_d) if spy_base_d else None
+        graded = False
+        for w in windows:
+            tgt = (datetime.fromisoformat(d_log) + timedelta(days=w)).date().isoformat()
+            if tgt > today:
+                continue
+            sd = _on_or_after(sm_d, tgt); pd = _on_or_after(spy_d, tgt)
+            if sd and pd and spy_base:
+                stock_ret = (sm[sd] / base - 1) * 100
+                spy_ret = (spy[pd] / spy_base - 1) * 100
+                ex = stock_ret - spy_ret
+                agg[w]["n"] += 1; agg[w]["wins"] += 1 if ex > 0 else 0; agg[w]["sx"] += ex
+                graded = True
+        if not graded:
+            n_pending += 1
+    dates = sorted(str(it.get("logged_at"))[:10] for it in items if it.get("logged_at"))
+    out = {"generated_at": datetime.now(timezone.utc).isoformat(), "n_calls": len(items),
+           "n_pending": n_pending, "first_date": dates[0] if dates else None,
+           "last_date": dates[-1] if dates else None, "windows": {}}
+    for w in windows:
+        a = agg[w]
+        if a["n"]:
+            out["windows"][f"d{w}"] = {"n": a["n"], "hit_rate": round(a["wins"] / a["n"] * 100),
+                                       "avg_excess": round(a["sx"] / a["n"], 1)}
+    try:
+        S3.put_object(Bucket=BUCKET, Key="data/bottleneck-track-record.json",
+                      Body=json.dumps(out).encode(), ContentType="application/json",
+                      CacheControl="public, max-age=1800")
+    except Exception as e:
+        print(f"[track] write fail {str(e)[:60]}")
+    return out
+
+
+def _phi(z):
+    return 0.5 * (1 + math.erf(z / math.sqrt(2)))
+
+
+def pressure_percentiles(industry_pressure):
+    """Convert each industry's standardized pressure z-scores to a 0-100 historical percentile."""
+    out = {}
+    for g, v in (industry_pressure or {}).items():
+        if not isinstance(v, dict):
+            continue
+        zs = [v.get(k) for k in ("new_orders_yoy_z", "backlog_yoy_z", "backlog_ratio_z", "ip_yoy_z")
+              if isinstance(v.get(k), (int, float))]
+        if zs:
+            out[g] = round(_phi(max(zs)) * 100)
+    return out
+
+
+def compute_changes(ranked, trap_by_tk):
+    """Diff today's list vs the previously stored state: new entrants + trap-status flips."""
+    PK = "data/bottleneck-prev-state.json"
+    try:
+        prev = json.loads(S3.get_object(Bucket=BUCKET, Key=PK)["Body"].read())
+    except Exception:
+        prev = {}
+    prev_ranked = set(prev.get("ranked") or [])
+    prev_trap = prev.get("trap_by_tk") or {}
+    new_entrants = [t for t in ranked if t not in prev_ranked] if prev_ranked else []
+    dropped = [t for t in prev_ranked if t not in set(ranked)] if prev_ranked else []
+    promoted, demoted = [], []
+    order = {"trap": 0, "watch": 1, "real": 2}
+    for t, now_v in trap_by_tk.items():
+        pv = prev_trap.get(t)
+        if pv and now_v and pv != now_v:
+            if order.get(now_v, 1) > order.get(pv, 1):
+                promoted.append({"t": t, "from": pv, "to": now_v})
+            elif order.get(now_v, 1) < order.get(pv, 1):
+                demoted.append({"t": t, "from": pv, "to": now_v})
+    try:
+        S3.put_object(Bucket=BUCKET, Key=PK,
+                      Body=json.dumps({"date": datetime.now(timezone.utc).date().isoformat(),
+                                       "ranked": ranked, "trap_by_tk": trap_by_tk}).encode(),
+                      ContentType="application/json")
+    except Exception:
+        pass
+    if not prev_ranked:
+        return {"first_run": True}
+    return {"new": new_entrants[:10], "dropped": dropped[:10],
+            "promoted": promoted[:10], "demoted": demoted[:10]}
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     try:
@@ -409,6 +548,7 @@ def lambda_handler(event=None, context=None):
     ind_pe, sec_pe = fetch_peer_pe()
     si_f, f13_f, fwd_f, chain_f = load_confirmation_feeds()
     pgr_trend = pressure_trend(src.get("industry_pressure") or {})
+    pgr_pct = pressure_percentiles(src.get("industry_pressure") or {})
 
     tickers = [r["ticker"] for r in ranks]
     fin_map = {}
@@ -481,6 +621,7 @@ def lambda_handler(event=None, context=None):
         if tk in chain_f:
             rec["chain"] = chain_f.get(tk)
         rec["pressure_trend"] = pgr_trend.get(r.get("pressure_group"))
+        rec["pressure_pctile"] = pgr_pct.get(r.get("pressure_group"))
         cached = cache.get(tk, {})
         ts = cached.get("thesis_at")
         fresh = False
@@ -556,10 +697,26 @@ def lambda_handler(event=None, context=None):
         rec["score_bull"] = len(bull); rec["score_bear"] = len(bearf)
         rec["flags_bull"] = bull; rec["flags_bear"] = bearf
 
+    # --- #2 theme concentration of the top 10 ---
+    from collections import Counter
+    grp = Counter(r.get("pressure_group") for r in ranks[:10] if r.get("pressure_group"))
+    dom_g, dom_n = (grp.most_common(1)[0] if grp else (None, 0))
+    concentration = {"dominant_group": dom_g, "count": dom_n, "of": min(10, len(ranks)), "groups": dict(grp)}
+
+    # --- #3 what changed since the last run ---
+    ranked_tk = [r["ticker"] for r in ranks]
+    trap_by_tk = {t: (out.get(t, {}) or {}).get("trap") for t in ranked_tk if (out.get(t, {}) or {}).get("trap")}
+    changes = compute_changes(ranked_tk, trap_by_tk)
+
+    # --- #1 track record (forward test vs SPY) ---
+    track = grade_track_record()
+
     payload = {
         "engine": "bottleneck-research", "version": VERSION,
         "generated_at": now.isoformat(), "source_generated_at": src.get("generated_at"),
         "n": len(out), "new_theses": new_theses, "duration_s": round(time.time() - t0, 1),
+        "concentration": concentration, "changes": changes, "track_record": track,
+        "pressure_pctiles": pgr_pct,
         "by_ticker": out,
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(payload, default=str).encode(),
