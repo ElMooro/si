@@ -1,56 +1,85 @@
-======================================================================
-justhodl-page-ai-commentary  ->  ai-commentary/* (10 feeds)
-  last_modified=2026-06-02T22:57:59.000+0000
-  rules: NONE target this function
+### ALL DISABLED EventBridge rules in account ###
+58 disabled rules:
+   - aiapi-hourly-collection
+   - alpha-compass-3h
+   - alphavantage-market-update
+   - buzz-velocity-4x-daily
+   - canary-grid-daily
+   - capitulation-3h
+   - carry-surface-4h
+   - cds-proxy-tri-daily
+   - crisis-composite-hourly
+   - cross-asset-confirm-3h
+   - crypto-opportunities-4h
+   - divergence-v2-2hourly
+   - event-flow-monitor-hourly
+   - future-intel-2x-daily
+   - jhk-tick-15min
+   - jhk-tick-30min
+   - jhk-tick-4hourly
+   - jhk-tick-5min
+   - jhk-tick-every_3h
+   - jhk-tick-every_6h
+   - jhk-tick-hourly
+   - jhk-tick-hourly-orchestrate
+   - justhodl-13f-positions-6h
+   - justhodl-anomaly-detector-hourly
+   - justhodl-crisis-plumbing-refresh
+   - justhodl-crypto-cycle-risk-6h
+   - justhodl-dealer-gex-hourly
+   - justhodl-early-movers-twice-per-hour
+   - justhodl-earnings-tracker-6h
+   - justhodl-edge-6h
+   - justhodl-engine-conflicts-6h
+   - justhodl-etf-flows-6h
+   - justhodl-exchange-flows-6h
+   - justhodl-forensic-screen-12h
+   - justhodl-macro-nowcast-6h
+   - justhodl-macro-surprise-6h
+   - justhodl-narrative-vs-tape-4h
+   - justhodl-onchain-ratios-6h
+   - justhodl-options-flow-30m
+   - justhodl-portfolio-catalysts-3x-daily
+   - justhodl-position-sizer-6h
+   - justhodl-short-interest-6h
+   - justhodl-system-signal-logger-6h
+   - justhodl-telegram-alerts
+   - justhodl-theme-cascade-twice-per-hour
+   - justhodl-ticket-ai-rationale-hourly
+   - justhodl-wave-signal-logger-6h
+   - justhodl-yield-curve-6h
+   - lce-every-6h
+   - liquidity-pulse-6h
+   - multi-agent-economic-hourly
+   - multi-agent-market-15min
+   - multi-agent-orchestrator-schedule
+   - near-miss-monitor-hourly
+   - pairs-scanner-6hourly
+   - rotation-chain-2x-daily
+   - sec-filings-intel-3x-daily
+   - sector-heatmap-30m
+
+================================================================
+justhodl-health-monitor
+  rules: NONE (orchestrated by another fn)
+  invocations(14d): [('06-01', 96), ('06-02', 96), ('06-03', 96), ('06-04', 96), ('06-05', 96), ('06-06', 96), ('06-07', 64)]
+================================================================
+justhodl-sector-tilt
+  rules: NONE (orchestrated by another fn)
+  invocations(14d): [('06-01', 6), ('06-02', 6), ('06-03', 6), ('06-04', 6), ('06-05', 6), ('06-06', 6), ('06-07', 4)]
+================================================================
+justhodl-desk-allocator
+  rules: NONE (orchestrated by another fn)
+  invocations(14d): [('06-01', 1), ('06-02', 1), ('06-03', 1), ('06-04', 1), ('06-05', 1), ('06-06', 1), ('06-07', 1), ('06-08', 1), ('06-09', 1), ('06-10', 1), ('06-11', 1), ('06-12', 1), ('06-13', 1), ('06-14', 1)]
+================================================================
+justhodl-prepump-alerts-router
+  rule justhodl-prepump-alerts-router-30min: State=ENABLED sched=cron(30 12 * * ? *)
+  invocations(14d): [('06-01', 9), ('06-02', 36), ('06-03', 1), ('06-04', 1), ('06-05', 1), ('06-06', 1), ('06-07', 1), ('06-08', 1), ('06-09', 1), ('06-10', 1), ('06-11', 1), ('06-12', 1), ('06-13', 1), ('06-14', 1)]
+================================================================
+justhodl-page-ai-commentary
+  rules: NONE (orchestrated by another fn)
   invocations(14d): [('06-02', 2)]
-  errors(14d): [('06-02', 0)]
-  >>> 2 inv / 0 err in 14d  =>  invoked OK (stale feed may be downstream/write issue)
-======================================================================
-justhodl-smart-money-cluster  ->  13f-positions.json
-  last_modified=2026-05-30T18:45:25.000+0000
-  rules: NONE target this function
+================================================================
+justhodl-smart-money-cluster
+  rules: NONE (orchestrated by another fn)
   invocations(14d): [('06-01', 1), ('06-02', 1), ('06-03', 1), ('06-04', 1), ('06-05', 1), ('06-06', 1), ('06-07', 1), ('06-08', 1), ('06-09', 1), ('06-10', 1), ('06-11', 1), ('06-12', 1), ('06-13', 1), ('06-14', 1)]
-  errors(14d): [('06-01', 0), ('06-02', 0), ('06-03', 0), ('06-04', 0), ('06-05', 0), ('06-06', 0), ('06-07', 0), ('06-08', 0), ('06-09', 0), ('06-10', 0), ('06-11', 0), ('06-12', 0), ('06-13', 0), ('06-14', 0)]
-  >>> 14 inv / 0 err in 14d  =>  invoked OK (stale feed may be downstream/write issue)
-======================================================================
-justhodl-allocator  ->  allocator.json
-  last_modified=2026-05-30T18:33:32.000+0000
-  rules: NONE target this function
-  invocations(14d): [('06-01', 6), ('06-02', 6), ('06-03', 6), ('06-04', 6), ('06-05', 6), ('06-06', 6), ('06-07', 4)]
-  errors(14d): [('06-01', 0), ('06-02', 0), ('06-03', 0), ('06-04', 0), ('06-05', 0), ('06-06', 0), ('06-07', 0)]
-  >>> 40 inv / 0 err in 14d  =>  invoked OK (stale feed may be downstream/write issue)
-======================================================================
-justhodl-redflag-alerter  ->  8k-filings.json
-  last_modified=2026-05-31T13:38:12.000+0000
-  rules: NONE target this function
-  invocations(14d): [('06-01', 48), ('06-02', 48), ('06-03', 48), ('06-04', 48), ('06-05', 48), ('06-06', 48), ('06-07', 32)]
-  errors(14d): [('06-01', 0), ('06-02', 0), ('06-03', 0), ('06-04', 0), ('06-05', 0), ('06-06', 0), ('06-07', 0)]
-  >>> 320 inv / 0 err in 14d  =>  invoked OK (stale feed may be downstream/write issue)
-======================================================================
-justhodl-sec-10kq  ->  10kq-filings.json
-  last_modified=2026-05-31T13:41:05.000+0000
-  rules: NONE target this function
-  invocations(14d): [('06-01', 6), ('06-02', 6), ('06-03', 6), ('06-04', 6), ('06-05', 6), ('06-06', 6), ('06-07', 4)]
-  errors(14d): [('06-01', 0), ('06-02', 0), ('06-03', 0), ('06-04', 0), ('06-05', 0), ('06-06', 0), ('06-07', 0)]
-  >>> 40 inv / 0 err in 14d  =>  invoked OK (stale feed may be downstream/write issue)
-======================================================================
-justhodl-13f-price-divergence  ->  13f-price-divergence.json
-  last_modified=2026-05-30T18:34:07.000+0000
-  rules: NONE target this function
-  invocations(14d): [('06-01', 1), ('06-08', 1)]
-  errors(14d): [('06-01', 0), ('06-08', 0)]
-  >>> 2 inv / 0 err in 14d  =>  invoked OK (stale feed may be downstream/write issue)
-======================================================================
-justhodl-activist-13d  ->  activist-13d-names.json
-  last_modified=2026-05-30T18:45:24.000+0000
-  rules: NONE target this function
-  invocations(14d): [('06-01', 1), ('06-02', 1), ('06-03', 1), ('06-04', 1), ('06-05', 1), ('06-06', 1), ('06-07', 1), ('06-08', 1), ('06-09', 1), ('06-10', 1), ('06-11', 1), ('06-12', 1), ('06-13', 1), ('06-14', 1)]
-  errors(14d): [('06-01', 0), ('06-02', 0), ('06-03', 0), ('06-04', 0), ('06-05', 0), ('06-06', 0), ('06-07', 0), ('06-08', 0), ('06-09', 0), ('06-10', 0), ('06-11', 0), ('06-12', 0), ('06-13', 0), ('06-14', 0)]
-  >>> 14 inv / 0 err in 14d  =>  invoked OK (stale feed may be downstream/write issue)
-======================================================================
-justhodl-alert-router  ->  alert-history.json
-  last_modified=2026-05-30T18:38:48.000+0000
-  rules: NONE target this function
-  invocations(14d): [('06-01', 48), ('06-02', 48), ('06-03', 48), ('06-04', 48), ('06-05', 48), ('06-06', 48), ('06-07', 32)]
-  errors(14d): [('06-01', 0), ('06-02', 0), ('06-03', 0), ('06-04', 0), ('06-05', 0), ('06-06', 0), ('06-07', 0)]
-  >>> 320 inv / 0 err in 14d  =>  invoked OK (stale feed may be downstream/write issue)
