@@ -508,6 +508,36 @@ def lambda_handler(event, context):
     capitulation = sorted([e for e in enriched if e.get("contrarian_flag") == "CAPITULATION"],
                           key=lambda x: -(x.get("mention_pctile") or 0))[:10]
 
+    # ─── #3 Squeeze overlay: retail heat × short interest (the GME/AMC mechanic) ───
+    try:
+        si_feed, f13_feed, _fwd, _ch = EE.load_confirmation_feeds()
+    except Exception as _e:
+        print(f"[retail-squeeze] feeds {str(_e)[:80]}"); si_feed, f13_feed = {}, {}
+    for e in enriched:
+        sdat = si_feed.get(e.get("ticker")) or {}
+        sp = sdat.get("latest_short_pct") or sdat.get("short_interest_pct") or sdat.get("short_pct")
+        dtc = sdat.get("days_to_cover") or sdat.get("days_cover")
+        ff = f13_feed.get(e.get("ticker")) or {}
+        if ff.get("n_funds_holding") is not None:
+            e["sm_funds"] = ff.get("n_funds_holding")
+        try:
+            spf = float(sp) if sp is not None else None
+        except Exception:
+            spf = None
+        if spf is not None:
+            e["short_pct"] = round(spf, 1)
+            if dtc is not None:
+                e["days_to_cover"] = dtc
+            heat = e.get("heat") or 0
+            sp_c = min(spf / 30.0, 1) * 100
+            dtc_c = (min(float(dtc) / 10.0, 1) * 100) if dtc else 50
+            e["squeeze_score"] = round(0.50 * heat + 0.35 * sp_c + 0.15 * dtc_c)
+            if heat >= 50 and spf >= 15:
+                e["squeeze_setup"] = True
+    squeeze_radar = sorted([e for e in enriched if e.get("squeeze_setup")],
+                           key=lambda x: -(x.get("squeeze_score") or 0))[:10]
+    n_squeeze = len(squeeze_radar)
+
     # ─── Rankings ───
     # Biggest velocity surges (high mentions + high velocity)
     velocity_filtered = [e for e in enriched
@@ -594,6 +624,7 @@ def lambda_handler(event, context):
             "hottest": hottest,
             "crowded_exhaustion": crowded_exhaustion,
             "capitulation": capitulation,
+            "squeeze_radar": squeeze_radar,
             "momentum_confirmed": momentum_confirmed,
             "fading_divergence": fading_divergence,
             "biggest_velocity_surges": biggest_velocity,
