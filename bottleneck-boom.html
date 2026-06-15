@@ -45,6 +45,8 @@ td.l,th.l{text-align:left}
 .tb.real{border:1px solid var(--green);color:var(--green);background:rgba(38,255,175,.08)}
 .tb.watch{border:1px solid var(--amber);color:var(--amber);background:rgba(251,191,36,.08)}
 .tb.trap{border:1px solid var(--red);color:var(--red);background:rgba(255,85,119,.08)}
+.sc{font-family:var(--mono);font-size:9px;color:var(--fg-3);margin-left:7px;white-space:nowrap}
+.sc b.g{color:var(--green)}.sc b.r{color:var(--red)}
 .bscore{display:inline-block;min-width:34px}.bswrap{display:flex;align-items:center;gap:7px;justify-content:flex-end}
 .bsbar{width:54px;height:5px;border-radius:3px;background:var(--bg-2);overflow:hidden}.bsbar i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--green))}
 .ind{color:var(--fg-3);font-size:11px}
@@ -62,6 +64,18 @@ tr.drawer>td{background:var(--bg-2);padding:0;border-bottom:2px solid var(--bord
 .kv span.good b{color:var(--green)}.kv span.bad b{color:var(--red)}
 .fin{margin-top:14px}.fin h4,.conf h4{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
 .conf{margin-top:14px}
+.scorecard{display:flex;gap:12px;align-items:stretch;margin-bottom:14px;flex-wrap:wrap}
+.scol{flex:1;min-width:210px;background:var(--bg-1);border:1px solid var(--border);border-radius:8px;padding:11px 13px}
+.scol.bull{border-left:3px solid var(--green)}.scol.bear{border-left:3px solid var(--red)}
+.scol .hd{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px}
+.scol.bull .hd{color:var(--green)}.scol.bear .hd{color:var(--red)}.scol .hd b{font-size:16px}
+.scol ul{list-style:none;margin:0;padding:0}.scol li{font-size:11.5px;color:var(--fg-2);padding:2px 0 2px 14px;position:relative}
+.scol.bull li::before{content:'+';position:absolute;left:0;color:var(--green);font-weight:700}
+.scol.bear li::before{content:'\2212';position:absolute;left:0;color:var(--red);font-weight:700}
+.scol .none{font-size:11px;color:var(--fg-3);font-style:italic;padding-left:0}
+.scol .none::before{content:''}
+.bearbox{background:linear-gradient(90deg,rgba(255,85,119,0.06),transparent);border-left:3px solid var(--red);padding:11px 16px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.6;color:var(--fg-2);margin:0 0 4px}
+.bearbox .lbl{font-family:var(--mono);font-size:9.5px;color:var(--red);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px}
 .fintbl{width:100%;font-size:11.5px;border-collapse:collapse}.fintbl th,.fintbl td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)}.fintbl th{font-size:9px}
 .fintbl td.l,.fintbl th.l{text-align:left}
 .phdr{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}
@@ -106,6 +120,12 @@ This page finds where <b>demand is outrunning supply</b>, then the companies pos
 <dt>Price &amp; 1M/3M</dt><dd>Current price and recent momentum with a 75-day price line. Cheap + accelerating + <i>just turning up</i> beats cheap + still falling.</dd>
 <dt>P/E own range</dt><dd>Where today's P/E sits in the stock's own 10-year range. Cheap vs peers <b>and</b> cheap vs its own history is the strongest setup; cheap vs peers but at the <i>top</i> of its own range is a caution flag.</dd>
 <dt>Beats est</dt><dd>How often it beat EPS estimates recently. Consistent beats often mean management low-balls guidance — which sets up upside surprises right at the catalyst.</dd>
+<dt>Bull ▲ / Bear ▼ scorecard</dt><dd>A tally of how many independent signals point bullish vs bearish — and it <b>lists both</b> instead of hiding them in one number. The disagreement is the useful part: 6 bullish with 3 bearish (insiders selling, weak cash) is a very different bet than 6 bullish and 0 bearish.</dd>
+<dt>Cash conversion / accruals</dt><dd>How much reported profit becomes real free cash (FCF ÷ net income). When profit races ahead of cash, the boom may be on paper — unpaid receivables or inventory build. The core trap-killer.</dd>
+<dt>Solvency</dt><dd>Net debt/EBITDA, interest coverage, current ratio — catches the value trap that's cheap <i>because</i> it may not survive long enough for the thesis to play out.</dd>
+<dt>Insiders</dt><dd>Net insider buying vs selling. Heavy selling into a bottleneck is a quiet "we don't think this lasts" — a red flag often beats a green one.</dd>
+<dt>Bottleneck trend</dt><dd>Whether the industry's supply pressure is intensifying or <i>easing</i> over the last month. A bottleneck that's already loosening means the re-rate window is closing.</dd>
+<dt>Bear case</dt><dd>The strongest argument <b>against</b> each stock and the specific number/event that would prove the bull thesis wrong — kept separate so the honesty is structural, not buried in the thesis.</dd>
 </dl>
 <b>Tap any stock</b> to open its full research — an AI-written plain-English thesis (why it could re-rate, and the key risk), the trap-check verdict, what the company does, valuation vs its industry, 10 years of financials, plus <b>confirmation signals</b> from the rest of the platform: 13F smart-money positioning, short interest, analyst forward estimates, and where it sits in a rotation/value chain. Everything you need without leaving the page. Not investment advice.
 </div></details>
@@ -129,10 +149,11 @@ function bn(v){if(v==null)return'—';const a=Math.abs(v),s=v<0?'-':'';if(a>=1e1
 function pcolor(s){if(s==null)return'var(--fg-3)';if(s>=60)return'var(--green)';if(s>=45)return'var(--amber)';return'var(--fg-3)';}
 function score(v){return (v&&v.pressure_0_100!=null)?v.pressure_0_100:(v&&v.ip_yoy_z!=null?50+v.ip_yoy_z*10:null);}
 let DATA=null,RESEARCH={},SORT='boom_score',OPEN=null,FILTER='all';
-const FILTERS=[['all','All'],['real','✓ Real only'],['top','Top calls'],['smart','Smart money']];
+const FILTERS=[['all','All'],['real','✓ Real only'],['clean','Few red flags'],['top','Top calls'],['smart','Smart money']];
 function passFilter(r,f,calls){
   const rv=RESEARCH[r.ticker]||{};
   if(f==='real')return rv.trap==='real';
+  if(f==='clean')return rv.score_bear!=null&&rv.score_bear<=1;
   if(f==='top')return calls.has(r.ticker);
   if(f==='smart')return rv.sm_funds!=null&&(rv.sm_net||0)>0;
   return true;
@@ -180,6 +201,8 @@ function drawer(tk){
     `<span class="${peCls}">P/E <b>${r1(pe)}</b> <i>vs ind ${ipe==null?'—':ipe}</i></span>`+
     (v.pe_low!=null&&v.pe_high!=null?`<span class="${v.pe_pctile!=null?(v.pe_pctile<40?'good':v.pe_pctile>80?'bad':''):''}">P/E own range <b>${v.pe_low}–${v.pe_high}</b> <i>${v.pe_pctile!=null?v.pe_pctile+'th pctile':''}</i></span>`:'')+
     `<span>P/S <b>${r1(v.ps)}</b></span>`+
+    (v.peg!=null?`<span class="${v.peg<1?'good':v.peg>2?'bad':''}">PEG <b>${v.peg}</b></span>`:'')+
+    (v.ev_ebitda!=null?`<span>EV/EBITDA <b>${v.ev_ebitda}×</b></span>`:'')+
     (v.pb!=null?`<span>P/B <b>${r1(v.pb)}</b></span>`:'')+
     `<span>Mkt cap <b>${bn(v.mkt_cap)}</b></span>`+
     (v.range_52w?`<span>52w <b>${esc(v.range_52w)}</b></span>`:'')+
@@ -212,6 +235,7 @@ function drawer(tk){
     (v.beat_rate!=null?`<span class="${v.beat_rate>=70?'good':''}">Beats est <b>${v.beat_rate}%</b> <i>last ${v.beats_n}Q</i></span>`:'')+
     (v.nq_eps_est!=null?`<span>Next-Q est <b>$${r1(v.nq_eps_est)}</b> EPS${v.nq_rev_est?` · ${bn(v.nq_rev_est)} rev`:''}</span>`:'')+
     (gmt!=null?`<span class="${gmt>0.5?'good':gmt<-0.5?'bad':''}">Gross margin <b>${gmt>0.5?'expanding':gmt<-0.5?'compressing':'flat'}</b> <i>(${gmt>=0?'+':''}${gmt}pp)</i></span>`:'')+
+    (v.pressure_trend!=null?`<span class="${v.pressure_trend>1?'good':v.pressure_trend<-1?'bad':''}">Bottleneck <b>${v.pressure_trend>1?'intensifying':v.pressure_trend<-1?'easing':'stable'}</b> <i>(${v.pressure_trend>=0?'+':''}${v.pressure_trend}/30d)</i></span>`:'')+
     (v.share_chg_pct!=null?`<span class="${v.share_chg_pct>3?'bad':''}">Shares <b>${v.share_chg_pct>=0?'+':''}${v.share_chg_pct}%</b> <i>/10y</i></span>`:'')+
     '</div>'+
     (trapTxt?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin:-4px 0 2px">${trapTxt}</div>`:'');
@@ -220,6 +244,8 @@ function drawer(tk){
   if(v.short_pct!=null)cb.push(`<span class="${v.short_pct>=20?'bad':''}">📉 Short <b>${r1(v.short_pct)}%</b>${v.short_signal?` <i>${esc(v.short_signal)}</i>`:''}${v.short_pct>=20?' <i>· squeeze fuel</i>':''}</span>`);
   if(v.fwd_rev_growth!=null)cb.push(`<span class="${v.fwd_rev_growth>0?'good':'bad'}">🔮 Analysts see <b>${v.fwd_rev_growth>=0?'+':''}${r1(v.fwd_rev_growth)}%</b> fwd rev</span>`);
   if(ch)cb.push(`<span>🔗 <b>${esc(ch.chain)} chain</b> · ${esc(ch.role)}${ch.catchup!=null?` · <b>+${r1(ch.catchup)}%</b> expected catch-up`:''}${ch.leader_30d!=null&&ch.own_30d!=null?` <i>(leader +${r1(ch.leader_30d)}% vs this ${ch.own_30d>=0?'+':''}${r1(ch.own_30d)}% /30d)</i>`:''}</span>`);
+  if(v.insider_sig)cb.push(`<span class="${v.insider_sig==='selling'?'bad':v.insider_sig==='buying'?'good':''}">👤 Insiders <b>${v.insider_sig}</b>${v.insider_buys!=null?` <i>(${v.insider_buys}b/${v.insider_sells}s)</i>`:''}</span>`);
+  if(v.sector_mom!=null)cb.push(`<span class="${v.sector_mom>=0?'good':'bad'}">🌐 Sector 1M <b>${v.sector_mom>=0?'+':''}${v.sector_mom}%</b></span>`);
   const conf=cb.length?`<div class="conf"><h4>Confirmation signals — who else sees it</h4><div class="kv">${cb.join('')}</div></div>`:'';
   const psp=v.price_spark||[];
   const priceHdr = v.price!=null ? `<div class="phdr"><span class="px">$${r1(v.price)}</span>`+
@@ -227,7 +253,22 @@ function drawer(tk){
     (v.ret_3m!=null?`<span class="rt ${v.ret_3m>=0?'pos':'neg'}">${v.ret_3m>=0?'+':''}${v.ret_3m}%<i>3M</i></span>`:'')+
     (psp.length>2?sparkline(psp,(v.ret_3m||0)>=0?'var(--green)':'var(--red)'):'')+`</div>` : '';
   const chartLink=`<a class="dlink2" href="/chart-pro.html?ticker=${encodeURIComponent(tk)}">Open full chart &amp; technicals ↗</a>`;
-  return `<div class="dwrap">${priceHdr}${thesisHtml}${dctx}${conf}${what}${kv}${finHtml}${chartLink}</div>`;
+  const sb=v.flags_bull||[],sx=v.flags_bear||[];
+  const scorecard=(sb.length||sx.length)?`<div class="scorecard">
+    <div class="scol bull"><div class="hd"><b>${v.score_bull||0}</b> bullish signals</div><ul>${sb.length?sb.map(x=>`<li>${esc(x)}</li>`).join(''):'<li class="none">none</li>'}</ul></div>
+    <div class="scol bear"><div class="hd"><b>${v.score_bear||0}</b> bearish signals</div><ul>${sx.length?sx.map(x=>`<li>${esc(x)}</li>`).join(''):'<li class="none">no red flags</li>'}</ul></div>
+  </div>`:'';
+  const bearHtml=v.bear?`<div class="bearbox"><span class="lbl">The bear case &amp; what would prove it wrong</span>${esc(v.bear)}</div>`:'';
+  let qb=[];
+  if(v.cash_conv!=null)qb.push(`<span class="${v.cash_conv>=80?'good':v.cash_conv<50?'bad':''}">Cash conversion <b>${v.cash_conv}%</b> <i>FCF/NI</i></span>`);
+  if(v.accruals!=null)qb.push(`<span class="${v.accruals>15?'bad':''}">Accruals <b>${v.accruals}%</b></span>`);
+  if(v.net_debt_ebitda!=null)qb.push(`<span class="${v.net_debt_ebitda>4?'bad':v.net_debt_ebitda<2?'good':''}">Net debt/EBITDA <b>${v.net_debt_ebitda}×</b></span>`);
+  if(v.int_cov!=null)qb.push(`<span class="${v.int_cov<3?'bad':''}">Interest cover <b>${v.int_cov}×</b></span>`);
+  if(v.cur_ratio!=null)qb.push(`<span class="${v.cur_ratio<1?'bad':''}">Current ratio <b>${r1(v.cur_ratio)}</b></span>`);
+  if(v.seg_conc!=null)qb.push(`<span class="${v.seg_conc>70?'bad':''}">Top segment <b>${v.seg_conc}%</b>${v.seg_n?` <i>of ${v.seg_n}</i>`:''}</span>`);
+  if(v.acq_driven)qb.push(`<span class="bad">⚠ Acquisition-driven <i>(${v.acq_pct}% of rev)</i></span>`);
+  const quality=qb.length?`<div class="conf"><h4>Quality &amp; solvency — can it survive to deliver?</h4><div class="kv">${qb.join('')}</div></div>`:'';
+  return `<div class="dwrap">${priceHdr}${scorecard}${thesisHtml}${bearHtml}${dctx}${conf}${quality}${what}${kv}${finHtml}${chartLink}</div>`;
 }
 
 function renderTable(){
@@ -244,7 +285,7 @@ function renderTable(){
     const rv=RESEARCH[tk]||{},pe=rv.pe,ipe=rv.industry_pe,trp=rv.trap;
     const peTxt=pe==null?'—':`${r1(pe)}<span class="dim"> / ${ipe==null?'—':ipe}</span>`;
     const tbadge=trp?`<span class="tb ${trp}">${trp==='real'?'✓ REAL':trp==='trap'?'⚠ TRAP':'• WATCH'}</span>`:'';
-    h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}${tbadge}<div class="ind">${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
+    h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}${tbadge}${rv.score_bull!=null?`<span class="sc"><b class="g">${rv.score_bull}▲</b> <b class="r">${rv.score_bear}▼</b></span>`:''}<div class="ind">${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
       <td class="${r.rev_accel_pp>=0?'pos':'neg'}">${pp(r.rev_accel_pp)}</td>
       <td>${pct(r.rev_growth_yoy)}</td>
       <td>${r.rev_to_mcap_pct==null?'—':r.rev_to_mcap_pct+'%'}</td>
