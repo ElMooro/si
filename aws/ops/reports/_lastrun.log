@@ -1,8 +1,4 @@
-proxy live: 30 tickers, 0 theses regenerated last run
-CLUSTER 1 (financials):  gm 30 | om 30 | fcf 30 | shares 30
-CLUSTER 2 (decision):    trap 30 | 52w 30 | earnings 30 | gm_trend 30
-CLUSTER 3 (confirm):     short 7 | smart-money 3 | fwd-growth 4 | value-chain 4
-
-VST full record sample: trap=watch 52w_high=-32.7% earnings=2026-08-06 gm_trend=-4.0pp
-  smart-money: 6 funds, +4 net adding | chain=AI +42.22% catch-up
-  thesis present: True | 10yr financials: 10 years
+live head array: const head=[['ticker','Name','l']
+has OLD bug pattern ('l','ticker','Name'): False
+has FIXED pattern ('ticker','Name','l'): True
+cache-control: max-age=600
