@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finviz Signals · JustHodl.AI</title>
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e8edf4; --text-dim:#aab4c4; --text-mute:#6b7687;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24; --orange:#fb923c;
+  --font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+a{color:inherit;}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 60px;}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+header{margin:6px 0 14px;}
+.title-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+h1{font-size:21px;margin:8px 0 2px;font-weight:700;letter-spacing:-.2px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:3px 7px;border-radius:3px;letter-spacing:.5px;}
+.sub{color:var(--text-mute);font-size:12px;margin-top:4px;max-width:760px;}
+.meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:16px;align-items:center;margin-top:8px;flex-wrap:wrap;}
+.meta b{color:var(--info);font-weight:600;}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 14px;border-bottom:1px solid var(--border);padding-bottom:12px;}
+.tab{font-family:var(--font-mono);font-size:11px;letter-spacing:.4px;color:var(--text-dim);background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:6px 12px;cursor:pointer;transition:.12s;}
+.tab:hover{border-color:var(--border-hi);color:var(--text);}
+.tab.on{color:var(--bg);background:var(--info);border-color:var(--info);font-weight:700;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.card-h{padding:11px 13px;border-bottom:1px solid var(--border);}
+.card-t{font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-t .cnt{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);font-weight:400;}
+.card-d{font-size:11px;color:var(--text-mute);margin-top:3px;}
+table{width:100%;border-collapse:collapse;}
+th{padding:7px 11px;text-align:right;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);background:rgba(28,35,48,.4);font-weight:500;}
+th.l,td.l{text-align:left;}
+td{padding:6px 11px;font-family:var(--font-mono);font-size:11.5px;text-align:right;border-bottom:1px solid rgba(28,35,48,.5);white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+.tk{font-weight:600;color:var(--text);}
+.co{color:var(--text-mute);font-family:var(--font-ui);font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;}
+.pos{color:var(--pos);} .neg{color:var(--neg);} .dim{color:var(--text-mute);}
+.scroll{max-height:440px;overflow-y:auto;}
+.scroll::-webkit-scrollbar{width:7px;} .scroll::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:4px;}
+.recom-buy{color:var(--pos);} .recom-sell{color:var(--neg);} .recom-hold{color:var(--gold);}
+.empty{padding:18px;color:var(--text-mute);font-size:12px;text-align:center;}
+.foot{margin-top:22px;font-size:11px;color:var(--text-mute);border-top:1px solid var(--border);padding-top:12px;line-height:1.6;}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/" class="nav-back">← JustHodl.AI</a>
+  <header>
+    <div class="title-row"><h1>📊 Finviz Signals</h1><span class="badge">FINVIZ ELITE · LIVE</span></div>
+    <div class="sub">Whole-market event screens — trend turns, momentum, volume, reversals, short-squeeze candidates, insider activity and tagged news across ~11,300 US listings. EOD/intraday snapshot, refreshed 3× per trading day.</div>
+    <div class="meta">
+      <span>updated <b id="m-upd">—</b></span>
+      <span>tagged names <b id="m-tot">—</b></span>
+      <span>source <b>finviz.com</b></span>
+    </div>
+  </header>
+  <div class="tabs" id="tabs"></div>
+  <div id="view"><div class="loading">loading signals…</div></div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const TABS={
+  "Trend":[
+    {k:"golden_cross",t:"⬆ Golden Cross",d:"50-day SMA crossed ABOVE the 200-day — bullish trend turn",sort:"perf_m"},
+    {k:"death_cross",t:"⬇ Death Cross",d:"50-day SMA crossed BELOW the 200-day — bearish trend turn",sort:"perf_m",asc:true},
+    {k:"new_high_52w",t:"52-Week New Highs",d:"Trading at a fresh 52-week high",sort:"perf_m"},
+    {k:"new_low_52w",t:"52-Week New Lows",d:"Trading at a fresh 52-week low",sort:"perf_m",asc:true},
+  ],
+  "Momentum":[
+    {k:"momentum_month",t:"Momentum · +20% / month",d:"Up more than 20% over the past month",sort:"perf_m"},
+    {k:"top_gainers",t:"Top Gainers (today)",d:"Largest intraday percentage gains",sort:"change"},
+    {k:"top_losers",t:"Top Losers (today)",d:"Largest intraday percentage losses",sort:"change",asc:true},
+  ],
+  "Volume":[
+    {k:"unusual_volume",t:"Unusual Volume",d:"Volume far above the normal baseline — attention spike",sort:"rel_volume"},
+    {k:"rel_vol_2x",t:"Relative Volume > 2×",d:"Trading at over twice average volume",sort:"rel_volume"},
+    {k:"most_active",t:"Most Active",d:"Highest absolute share volume today",sort:"volume"},
+  ],
+  "Reversal":[
+    {k:"overbought",t:"Overbought · RSI > 70",d:"Technically stretched to the upside",sort:"perf_m"},
+    {k:"oversold",t:"Oversold · RSI < 30",d:"Technically stretched to the downside",sort:"perf_m",asc:true},
+  ],
+  "Squeeze":[
+    {k:"short_high",t:"High Short Float",d:"Elevated short interest — squeeze fuel (pair with retail desk)",sort:"perf_m"},
+  ],
+  "Insider":[
+    {k:"insider_buys",t:"Insider Buying",d:"Recent open-market insider purchases",sort:"perf_m"},
+    {k:"insider_sales",t:"Insider Selling",d:"Recent insider sales",sort:"perf_m",asc:true},
+  ],
+  "News":[
+    {k:"major_news",t:"Major News",d:"Names carrying notable tagged news",sort:"change"},
+  ],
+};
+let DATA=null, cur="Trend";
+const fmtPct=v=>v==null?"—":(v>0?"+":"")+v.toFixed(1)+"%";
+const cls=v=>v==null?"dim":(v>0?"pos":(v<0?"neg":""));
+const fmtVol=v=>v==null?"—":(v>=1e6?(v/1e6).toFixed(1)+"M":v>=1e3?(v/1e3).toFixed(0)+"K":v);
+function recom(v){if(v==null)return ["—","dim"];if(v<=2)return [v.toFixed(1),"recom-buy"];if(v>=4)return [v.toFixed(1),"recom-sell"];return [v.toFixed(1),"recom-hold"];}
+function sortRows(rows,key,asc){return [...rows].sort((a,b)=>{let x=a[key],y=b[key];if(x==null)return 1;if(y==null)return -1;return asc?x-y:y-x;});}
+function cardHTML(cfg){
+  const rows=(DATA.signals[cfg.k]||[]);
+  const sorted=sortRows(rows,cfg.sort,cfg.asc).slice(0,40);
+  let body;
+  if(!sorted.length){body=`<div class="empty">no names in this screen right now</div>`;}
+  else{
+    body=`<div class="scroll"><table><thead><tr>
+      <th class="l">Ticker</th><th class="l">Company</th><th>Price</th><th>Chg</th><th>1M</th><th>RelV</th><th>Rec</th>
+    </tr></thead><tbody>`+sorted.map(r=>{
+      const [rc,rcl]=recom(r.analyst_recom);
+      return `<tr>
+        <td class="l tk">${r.ticker||""}</td>
+        <td class="l co" title="${(r.company||"").replace(/"/g,'')}">${r.company||""}</td>
+        <td>${r.price!=null?r.price.toFixed(2):"—"}</td>
+        <td class="${cls(r.change)}">${fmtPct(r.change)}</td>
+        <td class="${cls(r.perf_m)}">${fmtPct(r.perf_m)}</td>
+        <td class="${r.rel_volume>=2?'pos':'dim'}">${r.rel_volume!=null?r.rel_volume.toFixed(1)+"×":"—"}</td>
+        <td class="${rcl}">${rc}</td>
+      </tr>`;}).join("")+`</tbody></table></div>`;
+  }
+  return `<div class="card"><div class="card-h"><div class="card-t"><span>${cfg.t}</span><span class="cnt">${rows.length}</span></div><div class="card-d">${cfg.d}</div></div>${body}</div>`;
+}
+function render(){
+  document.getElementById("tabs").innerHTML=Object.keys(TABS).map(name=>{
+    const n=TABS[name].reduce((s,c)=>s+((DATA.signals[c.k]||[]).length),0);
+    return `<div class="tab ${name===cur?'on':''}" data-t="${name}">${name} <span style="opacity:.6">${n}</span></div>`;
+  }).join("");
+  document.querySelectorAll(".tab").forEach(el=>el.onclick=()=>{cur=el.dataset.t;render();});
+  document.getElementById("view").innerHTML=`<div class="grid">${TABS[cur].map(cardHTML).join("")}</div>`;
+}
+async function load(){
+  try{
+    const r=await fetch(PROXY+"/data/finviz-signals.json?t="+Date.now());
+    DATA=await r.json();
+    const tot=Object.values(DATA.counts||{}).reduce((a,b)=>a+b,0);
+    document.getElementById("m-tot").textContent=tot.toLocaleString();
+    const d=new Date(DATA.generated_at);
+    document.getElementById("m-upd").textContent=isNaN(d)?"—":d.toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
+    document.getElementById("foot").innerHTML="Recom = Finviz analyst consensus (1 = strong buy → 5 = strong sell). Trend turns use the 50-day vs 200-day moving-average cross. <b>Finviz does not expose options put/call flow</b> — see the Options Flow desk (Polygon) for that. Data is a snapshot, not intraday tick; refreshed 3× per trading day.";
+    render();
+  }catch(e){
+    document.getElementById("view").innerHTML=`<div class="empty">Could not load signals feed. ${e}</div>`;
+  }
+}
+load();
+setInterval(load,300000);
+</script>
+</body>
+</html>
