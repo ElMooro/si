@@ -1,1 +1,3 @@
-rule justhodl-retail-sentiment-30min: DISABLED -> ENABLED | sched cron(0,30 * ? * * *)
+FEED: generated_at 2026-06-15T17:13:31 (0.1h old) | surges 15 | sample CTM +2800.0% / 29 mentions
+PAGE reads correct key: True
+PAGE stale-guard present: True
