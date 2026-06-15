@@ -34,7 +34,7 @@ BASE = "https://financialmodelingprep.com/stable"
 TOP_N = 30
 THESIS_CACHE_HRS = 20
 MAX_NEW_THESES = 30
-THESIS_VER = "haiku-1"
+THESIS_VER = "haiku-2"
 
 SYSTEM = (
     "You are a sharp, honest equity analyst explaining a stock to a smart beginner with no "
@@ -70,35 +70,83 @@ def num(v):
 def fetch_financials(tk):
     prof = fmp("profile", {"symbol": tk})
     inc = fmp("income-statement", {"symbol": tk, "period": "annual", "limit": 10})
+    cf = fmp("cash-flow-statement", {"symbol": tk, "period": "annual", "limit": 10})
     rat = fmp("ratios-ttm", {"symbol": tk})
+    earn = fmp("earnings", {"symbol": tk, "limit": 12})
     p = (prof[0] if isinstance(prof, list) and prof else {}) or {}
     r = (rat[0] if isinstance(rat, list) and rat else {}) or {}
+
+    fcf_by_year = {}
+    for row in (cf if isinstance(cf, list) else []):
+        yr = (row.get("calendarYear") or str(row.get("date", ""))[:4])
+        fcf_by_year[yr] = num(row.get("freeCashFlow"))
+
     fins = []
     for row in (inc if isinstance(inc, list) else [])[:10]:
+        yr = (row.get("calendarYear") or str(row.get("date", ""))[:4])
         rev = num(row.get("revenue")); ni = num(row.get("netIncome"))
         gp = num(row.get("grossProfit")); oi = num(row.get("operatingIncome"))
+        fcf = fcf_by_year.get(yr)
+        sh = num(row.get("weightedAverageShsOutDil")) or num(row.get("weightedAverageShsOut"))
         fins.append({
-            "year": (row.get("calendarYear") or str(row.get("date", ""))[:4]),
-            "revenue": rev, "netIncome": ni,
+            "year": yr, "revenue": rev, "netIncome": ni,
             "eps": num(row.get("epsdiluted")) or num(row.get("eps")),
             "gm": round(gp / rev * 100, 1) if (rev and gp is not None) else None,
             "om": round(oi / rev * 100, 1) if (rev and oi is not None) else None,
             "nm": round(ni / rev * 100, 1) if (rev and ni is not None) else None,
+            "fcf": fcf,
+            "fcfm": round(fcf / rev * 100, 1) if (rev and fcf is not None) else None,
+            "shares": sh,
         })
     fins.reverse()  # oldest -> newest for charting
+
+    # next earnings date (the bottleneck catalyst)
+    today = datetime.now(timezone.utc).date().isoformat()
+    futs = sorted(s for s in (str(x.get("date", ""))[:10] for x in (earn if isinstance(earn, list) else []))
+                  if s and s >= today)
+    next_earn = futs[0] if futs else None
+
+    # 52-week position (asymmetry / timing)
+    price = num(p.get("price")); rng = p.get("range"); off_high = off_low = None
+    if rng and "-" in str(rng) and price:
+        try:
+            lo, hi = [float(x) for x in str(rng).split("-")[:2]]
+            if hi:
+                off_high = round((price / hi - 1) * 100, 1)
+            if lo:
+                off_low = round((price / lo - 1) * 100, 1)
+        except Exception:
+            pass
+
+    # gross-margin trend: latest year vs the average of prior years (pricing power)
+    gms = [f["gm"] for f in fins if f.get("gm") is not None]
+    gm_trend = None
+    if len(gms) >= 3:
+        gm_trend = round(gms[-1] - (sum(gms[:-1]) / len(gms[:-1])), 1)
+    # share-count trend: latest vs earliest (dilution check)
+    shs = [f["shares"] for f in fins if f.get("shares")]
+    share_chg = None
+    if len(shs) >= 2 and shs[0]:
+        share_chg = round((shs[-1] / shs[0] - 1) * 100, 1)
+    latest = fins[-1] if fins else {}
+
     return {
         "desc": (p.get("description") or "")[:650],
         "ceo": p.get("ceo"), "employees": p.get("fullTimeEmployees"),
         "website": p.get("website"), "exchange": p.get("exchangeShortName"),
         "sector": p.get("sector"), "industry": p.get("industry"),
         "mkt_cap": p.get("mktCap") or p.get("marketCap"),
-        "price": num(p.get("price")), "range_52w": p.get("range"), "beta": num(p.get("beta")),
+        "price": price, "range_52w": p.get("range"), "beta": num(p.get("beta")),
         "pe": num(p.get("pe")) or num(r.get("priceToEarningsRatioTTM")),
         "ps": num(r.get("priceToSalesRatioTTM")),
         "pb": num(r.get("priceToBookRatioTTM")),
         "div_yield": (round(num(r.get("dividendYieldTTM")) * 100, 2)
                       if num(r.get("dividendYieldTTM")) is not None else None),
         "financials": fins,
+        "next_earnings": next_earn,
+        "off_52w_high": off_high, "off_52w_low": off_low,
+        "gm_trend": gm_trend, "gm_latest": latest.get("gm"), "om_latest": latest.get("om"),
+        "fcfm_latest": latest.get("fcfm"), "share_chg_pct": share_chg,
     }
 
 
@@ -130,6 +178,8 @@ def make_thesis(name, tk, ind, m):
         f"- valuation: P/E {m.get('pe')} vs its industry's typical P/E {m.get('industry_pe')}\n"
         f"- its industry's supply-bottleneck pressure is {m.get('group_pressure')}/100 "
         f"(high = orders/backlog piling up faster than companies can ship)\n"
+        f"- gross margin trend: {('expanding' if (m.get('gm_trend') or 0) > 0.5 else 'compressing' if (m.get('gm_trend') or 0) < -0.5 else 'roughly flat')} "
+        f"({m.get('gm_trend')}pp vs its own history — rising margins mean real pricing power, the proof it's capturing the bottleneck)\n"
         f"Write the plain-English thesis for why this stock could re-rate higher, then the single biggest risk."
     )
     try:
@@ -188,7 +238,22 @@ def lambda_handler(event=None, context=None):
             "rev_growth_yoy": r.get("rev_growth_yoy"), "rev_accel_pp": r.get("rev_accel_pp"),
             "rev_to_mcap_pct": r.get("rev_to_mcap_pct"), "boom_score": r.get("boom_score"),
             "group_pressure": r.get("group_pressure"), "is_top_call": tk in top_calls,
+            "next_earnings": fin.get("next_earnings"),
+            "off_52w_high": fin.get("off_52w_high"), "off_52w_low": fin.get("off_52w_low"),
+            "gm_trend": fin.get("gm_trend"), "gm_latest": fin.get("gm_latest"),
+            "om_latest": fin.get("om_latest"), "fcfm_latest": fin.get("fcfm_latest"),
+            "share_chg_pct": fin.get("share_chg_pct"),
         }
+        # trap-check: is the thesis actually working, or a value trap?
+        _accel = rec["rev_accel_pp"]; _gmt = fin.get("gm_trend")
+        _cheap = ((industry_pe and rec["pe"] and rec["pe"] < industry_pe)
+                  or (rec.get("rev_to_mcap_pct") and rec["rev_to_mcap_pct"] >= 20))
+        if _accel is not None and _accel < 0:
+            rec["trap"] = "trap"          # decelerating while cheap = the value-trap signature
+        elif _accel is not None and _accel > 0 and (_gmt is None or _gmt >= -1) and _cheap:
+            rec["trap"] = "real"          # accelerating + margins holding/expanding + cheap
+        else:
+            rec["trap"] = "watch"
         cached = cache.get(tk, {})
         ts = cached.get("thesis_at")
         fresh = False
