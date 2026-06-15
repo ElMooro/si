@@ -1,10 +1,25 @@
-invoked
-  ...20s
-READY 40s new=30 dur=31.2s
-coverage: fcf 30/30 | shares 30/30 | earnings 30/30 | 52w 30/30 | gm_trend 30/30
-trap-check distribution: {'watch': 9, 'real': 17, 'trap': 4}
 
-MU: 52w off-high -9.9% off-low 849.5% | next earnings 2026-06-24 | gm_trend 7.2pp | trap=real | share_chg 8.6%
-MU latest yr fin: {'year': '2025', 'revenue': 37378000000.0, 'gm': 39.8, 'om': 26.4, 'nm': 22.8, 'fcf': 1668000000.0, 'fcfm': 4.5, 'shares': 1125000000.0}
+data/short-interest.json
+  top-keys: ['version', 'generated_at', 'watchlist_size', 'n_tickers_with_data', 'n_tickers_finra', 'n_tickers_polygon', 'by_ticker', 'top_crowded_shorts']
+  shape=dict:by_ticker n_keys=153 | bottleneck coverage: ['AVGO', 'MU']
+  sample MU: {"ticker": "MU", "latest_short_pct": 32.29, "trend_pct": 1.22, "recent_5d_avg": 40.96, "prior_9d_avg": 40.46, "days_to_cover": null, "si_change_pct": null, "short_interest": null, "settlement_date": null, "signal": "NEUTRAL", "score": 50, "
 
-MU thesis: Micron is growing revenue at 75% and accelerating that growth, which signals genuine demand pull rather than a one-time bump, and the industry faces severe supply constraints (69/100 bottleneck pressure) that allow memory makers to raise prices and expand gross margins by 7.2 percentage points—proof they're capturing real pricing power from a starved market. At a P/E of 46 versus the industry aver
+data/insider-buys-enriched.json
+  top-keys: ['engine', 'version', 'as_of', 'state', 'signal_strength', 'source', 'source_as_of', 'summary']
+  shape=? n_keys=0 | bottleneck coverage: []
+
+data/insider-radar.json
+  top-keys: ['engine', 'version', 'generated_at', 'source_used', 'n_raw', 'window_days', 'n_buys', 'n_sells']
+  shape=? n_keys=0 | bottleneck coverage: []
+
+data/13f-positions.json
+  top-keys: ['generated_at', 'as_of_quarter', 'funds_total', 'funds_parsed', 'funds_failed', 'fund_errors', 'by_fund', 'aggregate_by_ticker']
+  shape=? n_keys=0 | bottleneck coverage: []
+
+data/rotation-chains.json
+  top-keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'n_chains', 'n_tickers', 'lag_candidates', 'chains']
+  shape=dict:chains n_keys=11 | bottleneck coverage: []
+
+data/estimate-revisions-latest.json
+  top-keys: ['date', 'fwd_rev_growth']
+  shape=? n_keys=0 | bottleneck coverage: []
