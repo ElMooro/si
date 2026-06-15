@@ -5,9 +5,19 @@
   "handler": "lambda_function.lambda_handler",
   "timeout": 600,
   "memory": 1024,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Per-ticker research + bull/bear scorecard for the Alpha Scoreboard (cross-system convergence). Reuses equity_enrich. Writes data/alpha-scoreboard-research.json + logs calls for SPY track record.",
-  "environment_keys": ["ANTHROPIC_API_KEY", "FMP_KEY"],
-  "inherit_env": true
+  "environment_keys": [
+    "ANTHROPIC_API_KEY",
+    "FMP_KEY"
+  ],
+  "inherit_env": true,
+  "schedule": {
+    "rule_name": "justhodl-alpha-research-6h",
+    "cron": "rate(6 hours)",
+    "description": "Refresh Alpha Scoreboard research enrichment every 6h"
+  }
 }
