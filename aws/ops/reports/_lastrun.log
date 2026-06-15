@@ -1,10 +1,14 @@
-FEED: tickers 35 | theses 35 | scorecards 35 | financials 35
-  track_record: {"generated_at": "2026-06-15T03:37:21.992115+00:00", "n_calls": 2, "n_pending": 2, "first_date": "2026-06-15", "last_date": "2026-06-15", "windows": {}} | concentration: {"dominant_sector": "Technology", "count": 5, "of": 10, "sectors": {"Technology": 5, "Communication Services": 2, "Consumer Cyclical": 2, "Healthcare": 1}}
-PAGE live:
-  OK  research feed wired
-  OK  drawer fn
-  OK  renderTrust
-  OK  row clickable
-  OK  scorecard css
-  OK  explainer
-  OK  trustbar
+key from justhodl-research-critique (len 108)
+key patched
+invoked
+  ...20s
+
+READY 40s n=40 new_theses=40 dur=35.0s verdicts=['OPPORTUNITY', 'STRONG OPPORTUNITY']
+coverage: thesis 40 bear 40 financials 40 pe 40 pe_pctile 40 cash_conv 40 scorecard 40 13F 8
+
+SAMPLE TYL (Tyler Technologies, Inc.) — STRONG OPPORTUNITY score 84.2
+  scorecard 6bull/0bear | P/E 40.4 vs ind 58.5 (own 0pctile) | 10yr fins | cashconv 202%
+  bull: ['cheap vs its own history', 'cheaper than industry', 'strong cash conversion', 'insiders buying', 'consistent earnings beats', 'gross margins expanding']
+  bear: []
+  THESIS: Tyler Technologies is trading at 40x earnings versus 59x for its software peers, and that gap sits at the bottom of its own decade-long range—suggesting the market is pricing in either structural decline or temporary disgrace that may not stick. The company is throwing off 202 cents of free cash for
+  BEAR: Government software is a sticky, predictable business, so a 48% markdown is irrational only if growth reaccelerates; if the next two quarters show revenue growth rolling over below 7% or worse, contract wins declining sharply, the
