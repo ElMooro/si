@@ -1,3 +1,25 @@
-FEED: generated_at 2026-06-15T17:13:31 (0.1h old) | surges 15 | sample CTM +2800.0% / 29 mentions
-PAGE reads correct key: True
-PAGE stale-guard present: True
+invoke status: 200 err: None
+body: {"statusCode": 200, "body": "{\"success\": true, \"version\": \"1.0.0\", \"market_regime\": \"NORMAL\", \"total_mentions\": 3616, \"n_top_with_stwt\": 25, \"n_velocity_surges\": 15, \"n_rank_climbers\": 15, \"n_new_entrants\": 3, \"top_1\": \"SPY\", \"top_1_mentions\": 428, \"reg
+
+generated_at: 2026-06-15T17:44:59 | n_with_price: 35
+ranked keys: ['hottest', 'momentum_confirmed', 'fading_divergence', 'biggest_velocity_surges', 'biggest_rank_climbers', 'most_bullish_stwt', 'most_bearish_stwt', 'new_entrants']
+
+HOTTEST (n=20):
+  MU     heat=77 buzz=MOMENTUM   mentions=281 vel=553.5% chg=9.59% bull=94.4 relvol=None
+  ES     heat=72 buzz=MOMENTUM   mentions=29 vel=866.7% chg=1.56% bull=100.0 relvol=None
+  SPY    heat=70 buzz=MOMENTUM   mentions=428 vel=336.7% chg=1.89% bull=50.0 relvol=None
+  CTM    heat=70 buzz=IGNITION   mentions=30 vel=2900.0% chg=0.47% bull=86.7 relvol=None
+  MSFT   heat=67 buzz=MOMENTUM   mentions=254 vel=398.0% chg=2.31% bull=60.0 relvol=None
+
+MOMENTUM_CONFIRMED (buzz+price up) (n=12):
+  MU     heat=77 buzz=MOMENTUM   mentions=281 vel=553.5% chg=9.59% bull=94.4 relvol=None
+  ES     heat=72 buzz=MOMENTUM   mentions=29 vel=866.7% chg=1.56% bull=100.0 relvol=None
+  SPY    heat=70 buzz=MOMENTUM   mentions=428 vel=336.7% chg=1.89% bull=50.0 relvol=None
+  MSFT   heat=67 buzz=MOMENTUM   mentions=254 vel=398.0% chg=2.31% bull=60.0 relvol=None
+  NOW    heat=67 buzz=MOMENTUM   mentions=31 vel=520.0% chg=2.58% bull=87.5 relvol=None
+
+FADING_DIVERGENCE (buzz, price down) (n=2):
+  LFVN   heat=63 buzz=DIVERGENCE mentions=27 vel=800.0% chg=-23.98% bull=85.7 relvol=None
+  USO    heat=52 buzz=DIVERGENCE mentions=26 vel=420.0% chg=-4.36% bull=None relvol=None
+
+top_30 coverage: price 30/30 | heat 30/30 | buzz 30/30
