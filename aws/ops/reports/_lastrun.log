@@ -1,13 +1,10 @@
-#6 multi_venue_confirmed: 8
-  corroboration coverage: 30 / 30
-    MSFT 4 × ['Reddit', 'StockTwits', 'News', 'Options']
-    NVDA 4 × ['Reddit', 'StockTwits', 'News', 'Options']
-    META 4 × ['Reddit', 'StockTwits', 'News', 'Options']
-    AMZN 4 × ['Reddit', 'StockTwits', 'News', 'Options']
-#7 flow_leaders: 5
-  flow_signal coverage: 4 / 30 | opt_cpr: 6
-    MSFT BULLISH_CALLS cpr 1.43 surge 49.58
-    NVDA BULLISH_CALLS cpr 2.69 surge 32.9
-    GOOG BULLISH_CALLS cpr 1.35 surge 4.07
-    AMZN BULLISH_CALLS cpr 2.09 surge 47.9
-  watchlist_chg coverage: 0 / 30 (needs 2+ days, sparse at day-1)
+#10 lifecycle — igniting: 10 peaking: 0 fading: 0
+  persistence: None median days, measured on 0 tickers
+  igniting sample: [('MU', 'IGNITING'), ('SPCX', 'IGNITING'), ('SPY', 'IGNITING'), ('CTM', 'IGNITING')]
+#8 theme_rollup: 8 themes
+   AI                     ment=  770 names=14 avgVel=476 avgChg=4.8 top=['MSFT', 'NVDA', 'MRVL']
+   Semis                  ment=  732 names=10 avgVel=435 avgChg=7.0 top=['MU', 'NVDA', 'MRVL']
+   Space/eVTOL            ment=  174 names=6 avgVel=317 avgChg=3.2 top=['RKLB', 'ASTS', 'LUNR']
+   Meme/Retail-classic    ment=   94 names=5 avgVel=640 avgChg=5.5 top=['RDDT', 'OPEN', 'BB']
+   EV/Battery             ment=   75 names=1 avgVel=150 avgChg=1.2 top=['TSLA']
+   Crypto-equity          ment=   61 names=3 avgVel=667 avgChg=5.3 top=['HOOD', 'MSTR', 'IREN']
