@@ -1,13 +1,12 @@
-invoked
-READY 20s dur=2.5s
-price: ret_1m 30 | ret_3m 30 | sparkline 30
-valuation hist: pe_low 30 | pe_high 30 | pe_pctile 30
-earnings: beat_rate 30 | nq_eps_est 30 | nq_rev_est 30
+FEED fields live:
+  #1 price/mom: ret_1m 30 ret_3m 30 spark 30
+  #2 pe-range:  pe_pctile 30
+  #3 earnings:  beat_rate 30 nq_eps_est 30
 
-MU: price $981.61 | 1m 22.1% 3m 130.4% | spark_pts 16
-   P/E 45.8 | own range 4.6-135.7 (31th pctile)
-   beats 100% of last 11 | next-Q est EPS 19.96 rev 34723140000.0
-
-DELL: price $395.57 | 1m 62.2% 3m 160.9% | spark_pts 16
-   P/E 30.5 | own range 3.9-18.8 (100th pctile)
-   beats 91% of last 11 | next-Q est EPS 4.83 rev 44228070000.0
+PAGE live (justhodl.ai):
+  OK  #1 price header
+  OK  #2 pe own-range
+  OK  #3 beats badge
+  OK  #4 filter chips
+  OK  #5 chart link
+  OK  header fixed
