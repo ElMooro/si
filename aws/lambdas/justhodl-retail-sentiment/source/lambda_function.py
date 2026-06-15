@@ -564,7 +564,14 @@ def lambda_handler(event, context):
                 _collect_tickers(it, depth + 1, acc)
         return acc
     news_set = _collect_tickers(_load_json("data/news-velocity.json"))
-    trends_set = _collect_tickers(_load_json("data/google-trends.json"))
+    # Search venue = LIVE ticker-trends (google-trends Lambda retired ops 547). Count only RISING/stealth search interest, not the whole tracked universe.
+    _tt = _load_json("data/ticker-trends.json")
+    trends_set = set()
+    for _r in (_tt.get("all_results") or []):
+        if isinstance(_r, dict) and _r.get("ticker"):
+            _v = _r.get("velocity")
+            if _r.get("stealth") or (_v is not None and _v >= 1.5):
+                trends_set.add(str(_r["ticker"]).upper())
     options_set = _collect_tickers(_load_json("data/options-flow.json"))
     stwt_trend_set = set((t.get("symbol") or "").upper() for t in trending if t.get("symbol"))
     print(f"  corroboration: news={len(news_set)} trends={len(trends_set)} options={len(options_set)} stwt_trend={len(stwt_trend_set)}")
