@@ -1,13 +1,4 @@
-bottleneck_boom signals found: 10
-with outcomes: 10
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/1652_inspect_bn_outcomes.py", line 26, in <module>
-    s=D(items[0]); print("\nfields:", sorted(s.keys()))
-      ^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/1652_inspect_bn_outcomes.py", line 20, in D
-    return {k:v(val) for k,val in it.items()}
-              ^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/1652_inspect_bn_outcomes.py", line 17, in v
-    if t=="M": return {k:v(z) for k,v in val.items()} if False else {k:v2 for k,v2 in [(k2,v(z2)) for k2,z2 in val.items()]}
-                                                                                           ^
-UnboundLocalError: cannot access local variable 'v' where it is not associated with a value
+total bottleneck_boom: 10
+with non-empty outcomes: 0
+by logged date: {'2026-06-11': 2, '2026-06-14': 2, '2026-06-12': 2, '2026-06-13': 2, '2026-06-10': 2}
+status dist: {'pending': 10}
