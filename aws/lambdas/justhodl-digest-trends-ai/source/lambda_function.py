@@ -310,6 +310,40 @@ def lambda_handler(event, context):
         ContentType="application/json", CacheControl="public, max-age=86400",
     )
 
+    # Rolling compact history → powers the page's trend sparklines (makes "Trends" real)
+    try:
+        try:
+            _h = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/digest-trends-history.json")["Body"].read())
+            series = _h.get("series", []) if isinstance(_h, dict) else []
+        except Exception:
+            series = []
+        _pf = ai_context.get("portfolio", {}); _pr = ai_context.get("predictions", {})
+        rec = {
+            "date": today,
+            "realized_pnl_usd": _pf.get("realized_pnl_usd", 0),
+            "win_rate_pct": _pf.get("win_rate_pct", 0),
+            "n_open": _pf.get("n_open", 0),
+            "n_closed": _pf.get("n_closed", 0),
+            "n_predictions": _pr.get("n_today", 0),
+            "n_calibration": (ai_context.get("calibration_state") or {}).get("n_data_points", 0),
+            "n_validated": (ai_context.get("validation") or {}).get("n_validated", 0),
+            "total_alerts": sum((_pr.get("alert_distribution") or {}).values()),
+            "top_retail_pct": max([abs(r.get("velocity_pct") or 0)
+                                   for r in ai_context.get("retail_sentiment_surges", [])] or [0]),
+        }
+        series = [r for r in series if r.get("date") != today]
+        series.append(rec)
+        series = sorted(series, key=lambda r: r.get("date") or "")[-120:]
+        s3.put_object(
+            Bucket=S3_BUCKET, Key="data/digest-trends-history.json",
+            Body=json.dumps({"generated_at": datetime.now(timezone.utc).isoformat(),
+                             "series": series}, default=str).encode(),
+            ContentType="application/json", CacheControl="public, max-age=600",
+        )
+        print(f"[ai-digest] history series now {len(series)} days")
+    except Exception as e:
+        print(f"[ai-digest] history accumulate fail: {str(e)[:120]}")
+
     elapsed = round(time.time() - t0, 1)
     print(f"[ai-digest] DONE in {elapsed}s")
 
