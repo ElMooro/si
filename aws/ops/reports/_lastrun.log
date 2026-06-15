@@ -1,13 +1,16 @@
-FEED:
-  #1 track_record: {"generated_at": "2026-06-15T02:59:51.231335+00:00", "n_calls": 5, "n_pending": 5, "first_date": "2026-06-11", "last_date": "2026-06-14", "windows": {}}
-  #2 concentration: {"dominant_group": "TOTAL_MFG", "count": 6, "of": 10, "groups": {"TOTAL_MFG": 6, "COMPUTERS_ELECTRONICS": 4}}
-  #3 changes: {"first_run": true}
-  #4 pressure_pctiles: {"TOTAL_MFG": 95, "COMPUTERS_ELECTRONICS": 100, "SEMIS_IP_STRAIN": 85}
+key from justhodl-research-critique (len 108)
+key patched
+invoked
+  ...20s
 
-PAGE live:
-  OK  track-record bar
-  OK  concentration banner
-  OK  what-changed
-  OK  percentile (cards)
-  OK  percentile (drawer)
-  OK  renderTrust
+READY 40s n=35 new_theses=35 logged=15 dur=32.8s
+coverage: thesis 35 bear 35 financials 35 pe 35 pe_pctile 34 cash_conv 33 scorecard 35
+concentration: {"dominant_sector": "Technology", "count": 5, "of": 10, "sectors": {"Technology": 5, "Communication Services": 2, "Consumer Cyclical": 2, "Healthcare": 1}}
+track_record: {"generated_at": "2026-06-15T03:28:26.481522+00:00", "n_calls": 2, "n_pending": 2, "first_date": "2026-06-15", "last_date": "2026-06-15", "windows": {}}
+
+SAMPLE AVGO (Broadcom Inc.): 7 systems ['EPS revisions accelerating', 'asymmetric setup', 'options flow', 'pre pump', 'rev accel', 'smart-money funds buying', 'vol squeeze']
+  score 11bull/1bear | P/E 61.9 vs ind 67.0 (own 44pctile) | 10yr fins
+  bull: ['system: EPS revisions accelerating', 'system: asymmetric setup', 'system: options flow', 'system: pre pump', 'system: rev accel', 'system: smart-money funds buying', 'system: vol squeeze', 'strong cash conversion', 'low leverage', 'consistent earnings beats', 'gross margins expanding']
+  bear: ['insiders selling']
+  THESIS: Broadcom is trading at a historically cheap valuation (44th percentile of its 10-year P/E range) while posting aggressive revenue growth of 24% and exceptional cash generation (42% FCF margin, 116% cash conversion), which means the market is pricing in skepticism despite fundamen
+  BEAR: The strongest case against is that 61.9× P/E is still expensive in absolute terms and relies entirely on continued 24% revenue growth translating into earnings—if the next two quarterly earnings misses or guidance cuts, 
