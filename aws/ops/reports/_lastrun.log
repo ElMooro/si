@@ -1,6 +1,13 @@
-#2 crowded_exhaustion: 4 | capitulation: 0
-  crowding_score coverage: 30 / 30
-  sample exhaustion: MU bull 87.5 crowd 94
-#3 squeeze_radar: 10
-  short_pct coverage: 13 / 30 | squeeze_score: 13
-  sample squeeze: MU heat 78 short 32.3 score 82
+#6 multi_venue_confirmed: 8
+  corroboration coverage: 30 / 30
+    MSFT 4 × ['Reddit', 'StockTwits', 'News', 'Options']
+    NVDA 4 × ['Reddit', 'StockTwits', 'News', 'Options']
+    META 4 × ['Reddit', 'StockTwits', 'News', 'Options']
+    AMZN 4 × ['Reddit', 'StockTwits', 'News', 'Options']
+#7 flow_leaders: 5
+  flow_signal coverage: 4 / 30 | opt_cpr: 6
+    MSFT BULLISH_CALLS cpr 1.43 surge 49.58
+    NVDA BULLISH_CALLS cpr 2.69 surge 32.9
+    GOOG BULLISH_CALLS cpr 1.35 surge 4.07
+    AMZN BULLISH_CALLS cpr 2.09 surge 47.9
+  watchlist_chg coverage: 0 / 30 (needs 2+ days, sparse at day-1)
