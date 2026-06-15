@@ -41,6 +41,10 @@ td.l,th.l{text-align:left}
 .tk{font-weight:700;color:var(--fg-0)}
 .pos{color:var(--green)}.neg{color:var(--red)}.dim{color:var(--fg-3)}
 .call{font-size:8.5px;padding:1px 6px;border-radius:4px;border:1px solid var(--amber);color:var(--amber);margin-left:6px;font-family:var(--mono);vertical-align:middle}
+.tb{font-size:8.5px;padding:1px 6px;border-radius:4px;font-family:var(--mono);margin-left:6px;vertical-align:middle;font-weight:700}
+.tb.real{border:1px solid var(--green);color:var(--green);background:rgba(38,255,175,.08)}
+.tb.watch{border:1px solid var(--amber);color:var(--amber);background:rgba(251,191,36,.08)}
+.tb.trap{border:1px solid var(--red);color:var(--red);background:rgba(255,85,119,.08)}
 .bscore{display:inline-block;min-width:34px}.bswrap{display:flex;align-items:center;gap:7px;justify-content:flex-end}
 .bsbar{width:54px;height:5px;border-radius:3px;background:var(--bg-2);overflow:hidden}.bsbar i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--green))}
 .ind{color:var(--fg-3);font-size:11px}
@@ -83,6 +87,11 @@ This page finds where <b>demand is outrunning supply</b>, then the companies pos
 <dt>Rev / MktCap</dt><dd>Annual revenue as a % of market value — a quick cheapness gauge. Higher = you pay less for each dollar of sales.</dd>
 <dt>P/E vs industry</dt><dd>The stock's price-to-earnings ratio next to its industry's typical P/E. A <i>lower</i> P/E than peers despite faster growth is the re-rate setup.</dd>
 <dt>Boom score</dt><dd>The blended rank: revenue acceleration (35%), growth (25%), cheapness (25%), inventory turnover (15%), shaded by industry bottleneck pressure.</dd>
+<dt>✓ Real / • Watch / ⚠ Trap</dt><dd>The trap-check verdict. <b>Real</b> = accelerating + margins holding or expanding + cheap vs peers (thesis is working). <b>Watch</b> = cheap but momentum/margins aren't confirming yet. <b>Trap</b> = revenue is <i>decelerating</i> — cheap for a reason.</dd>
+<dt>Gross margin trend</dt><dd>Whether gross margins are expanding vs the company's own history — the proof it's actually <b>capturing</b> the bottleneck with pricing power, not just selling more at the same price. This is the bottleneck made visible in the P&L.</dd>
+<dt>Free cash flow</dt><dd>The real cash left after running and growing the business — much harder to fake than reported net income.</dd>
+<dt>vs 52w high</dt><dd>How far below its 52-week high it trades. Cheap + accelerating near the lows = undiscovered (max asymmetry); already up big = consensus.</dd>
+<dt>Next earnings</dt><dd>When backlog converts to reported revenue — the date the thesis actually gets tested.</dd>
 </dl>
 <b>Tap any stock</b> to open its full research — an AI-written plain-English thesis (why it could re-rate, and the key risk), what the company does, valuation vs its industry, and 10 years of financials. Everything you need without leaving the page. Not investment advice.
 </div></details>
@@ -159,12 +168,23 @@ function drawer(tk){
     '</div>';
   let finHtml='';
   if(fins.length){
-    const rows=fins.map(f=>`<tr><td class="l">${esc(f.year)}</td><td>${bn(f.revenue)}</td><td class="${(f.netIncome||0)>=0?'pos':'neg'}">${bn(f.netIncome)}</td><td class="${(f.nm||0)>=0?'pos':'neg'}">${f.nm==null?'—':f.nm+'%'}</td><td>${f.eps==null?'—':'$'+r1(f.eps)}</td></tr>`).join('');
+    const rows=fins.map(f=>`<tr><td class="l">${esc(f.year)}</td><td>${bn(f.revenue)}</td><td>${f.gm==null?'—':f.gm+'%'}</td><td>${f.om==null?'—':f.om+'%'}</td><td class="${(f.nm||0)>=0?'pos':'neg'}">${f.nm==null?'—':f.nm+'%'}</td><td class="${(f.fcf||0)>=0?'pos':'neg'}">${bn(f.fcf)}</td><td>${f.eps==null?'—':'$'+r1(f.eps)}</td></tr>`).join('');
     finHtml=`<div class="fin"><h4>10-year financials</h4>
       ${sparkline(fins.map(f=>f.revenue),'var(--cyan)')}<span style="font-family:var(--mono);font-size:9px;color:var(--fg-3)">revenue trend →</span>
-      <table class="fintbl"><thead><tr><th class="l">Year</th><th>Revenue</th><th>Net income</th><th>Net margin</th><th>EPS</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      <table class="fintbl"><thead><tr><th class="l">Year</th><th>Revenue</th><th>Gross %</th><th>Op %</th><th>Net %</th><th>Free cash flow</th><th>EPS</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
-  return `<div class="dwrap">${thesisHtml}${what}${kv}${finHtml}</div>`;
+  const trp=v.trap;
+  const trapTxt={real:'✓ Thesis working — revenue accelerating, margins holding or expanding, cheap vs peers.',watch:'• Mixed — cheap, but momentum or margins aren\u2019t confirming the thesis yet.',trap:'⚠ Value-trap risk — revenue is decelerating, the classic cheap-for-a-reason setup.'}[trp]||'';
+  const gmt=v.gm_trend;
+  let dctx='<div class="kv">'+
+    (trp?`<span class="tb ${trp}" style="margin:0">${trp==='real'?'✓ REAL PLAY':trp==='trap'?'⚠ VALUE-TRAP RISK':'• WATCH'}</span>`:'')+
+    (v.off_52w_high!=null?`<span>vs 52w high <b class="${v.off_52w_high>-12?'':'dim'}">${v.off_52w_high}%</b></span>`:'')+
+    (v.next_earnings?`<span>Next earnings <b>${esc(v.next_earnings)}</b></span>`:'')+
+    (gmt!=null?`<span class="${gmt>0.5?'good':gmt<-0.5?'bad':''}">Gross margin <b>${gmt>0.5?'expanding':gmt<-0.5?'compressing':'flat'}</b> <i>(${gmt>=0?'+':''}${gmt}pp)</i></span>`:'')+
+    (v.share_chg_pct!=null?`<span class="${v.share_chg_pct>3?'bad':''}">Shares <b>${v.share_chg_pct>=0?'+':''}${v.share_chg_pct}%</b> <i>/10y</i></span>`:'')+
+    '</div>'+
+    (trapTxt?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin:-4px 0 2px">${trapTxt}</div>`:'');
+  return `<div class="dwrap">${thesisHtml}${dctx}${what}${kv}${finHtml}</div>`;
 }
 
 function renderTable(){
@@ -178,9 +198,10 @@ function renderTable(){
   let h='<table><thead><tr>'+head.map(c=>`<th class="${c[0]==='l'?'l':''}" data-s="${c[1]}">${c[2]}</th>`).join('')+'</tr></thead><tbody>';
   ranks.forEach(r=>{
     const tk=r.ticker,isc=calls.has(tk),bw=mx>0?Math.max(4,(r.boom_score/mx)*100):0;
-    const rv=RESEARCH[tk]||{},pe=rv.pe,ipe=rv.industry_pe;
+    const rv=RESEARCH[tk]||{},pe=rv.pe,ipe=rv.industry_pe,trp=rv.trap;
     const peTxt=pe==null?'—':`${r1(pe)}<span class="dim"> / ${ipe==null?'—':ipe}</span>`;
-    h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}<div class="ind">${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
+    const tbadge=trp?`<span class="tb ${trp}">${trp==='real'?'✓ REAL':trp==='trap'?'⚠ TRAP':'• WATCH'}</span>`:'';
+    h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}${tbadge}<div class="ind">${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
       <td class="${r.rev_accel_pp>=0?'pos':'neg'}">${pp(r.rev_accel_pp)}</td>
       <td>${pct(r.rev_growth_yoy)}</td>
       <td>${r.rev_to_mcap_pct==null?'—':r.rev_to_mcap_pct+'%'}</td>
