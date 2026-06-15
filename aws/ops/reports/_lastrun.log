@@ -1,10 +1,17 @@
-manifest overrides set for: ['data/google-trends.json', 'data/retail-alerts.json', 'data/retail-attention-history.json', 'data/retail-sentiment.json', 'data/ticker-trends.json']
-rule fleet-freshness-monitor-30min: already ENABLED
-monitor: tracked=156 fresh=56 stale=100 alerts=4
-  ok    data/ticker-trends.json: within SLA
-  ok    data/retail-sentiment.json: within SLA
-  ok    data/retail-attention-history.json: within SLA
-  ok    data/options-flow.json: within SLA
-  ok    data/news-velocity.json: within SLA
-  ok    data/short-interest.json: within SLA
-top stale overall: ['data/activity-nowcast/snapshots/2026-05-17.json 699.82h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-18.json 681.05h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-19.json 657.05h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-20.json 633.05h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-21.json 609.05h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-22.json 585.05h/SLA26.0h', 'data/_freshness-status.json 584.4h/SLA26.0h', 'data/activity-nowcast/snapshots/2026-05-23.json 561.05h/SLA26.0h']
+n_stale total: 100 | in snapshot: 50
+
+stale grouped by directory (dated = filename has YYYY-MM-DD → immutable archive):
+  [ARCHIVE(mute)] data/activity-nowcast/snapshots/  n=15 dated=15 maxage=700h e.g.=2026-05-17.json
+  [ARCHIVE(mute)] data/_alerts/  n=13 dated=12 maxage=382h e.g.=digest-2026-05-30.json
+  [LIVE-FEED(keep)] data/ai-commentary/  n=10 dated=0 maxage=311h e.g.=pre-pump-radar.json
+  [LIVE-FEED(keep)] data/  n=2 dated=0 maxage=584h e.g.=_freshness-status.json
+  [ARCHIVE(mute)] data/ai-commentary/history/pre-pump-radar/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
+  [ARCHIVE(mute)] data/ai-commentary/history/risk-desk/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
+  [ARCHIVE(mute)] data/ai-commentary/history/signal-board/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
+  [ARCHIVE(mute)] data/ai-commentary/history/crisis/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
+  [ARCHIVE(mute)] data/ai-commentary/history/fundamentals/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
+  [ARCHIVE(mute)] data/ai-commentary/history/liquidity/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
+  [ARCHIVE(mute)] data/ai-commentary/history/portfolio/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
+  [ARCHIVE(mute)] data/ai-commentary/history/signals/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
+  [ARCHIVE(mute)] data/ai-commentary/history/13f/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
+  [ARCHIVE(mute)] data/ai-commentary/history/screener/  n=1 dated=1 maxage=311h e.g.=2026-06-02.json
