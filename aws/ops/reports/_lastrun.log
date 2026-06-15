@@ -1,14 +1,11 @@
-token received: length=36 (value NOT printed — public log)
-stored SSM /justhodl/finviz/auth-token (SecureString)
-
-[Overview v=111] http=200 rows=784 csv=True
-  columns(11): ['No.', 'Ticker', 'Company', 'Sector', 'Industry', 'Country', 'Market Cap', 'P/E', 'Price', 'Change', 'Volume']
-  sample row: 1,"AAOI","Applied Optoelectronics Inc","Technology","Communication Equipment","USA",15370.50,,191.55,13.31%,14588906
-
-[Ownership v=131 (short float)] http=200 rows=784 csv=True
-  columns(15): ['No.', 'Ticker', 'Market Cap', 'Shares Outstanding', 'Shares Float', 'Insider Ownership', 'Insider Transactions', 'Institutional Ownership', 'Institutional Transactions', 'Short Float', 'Short Ratio', 'Average Volume', 'Price', 'Change', 'Volume']
-  sample row: 1,"AAOI",15370.50,78.97,75.51,5.90%,-11.64%,72.13%,12.40%,13.29%,0.79,12772.38,191.55,13.31%,14588906
-
-[Custom v=152 short-float cols] http=200 rows=784 csv=True
-  columns(11): ['No.', 'Ticker', 'Company', 'Sector', 'Industry', 'Country', 'Market Cap', 'P/E', 'Volume', 'Price', 'Change']
-  sample row: 1,"AAOI","Applied Optoelectronics Inc","Technology","Communication Equipment","USA",15370.50,,14588906,191.55,13.31%
+data/finviz-short.json: age=0.2h tickers=5751 n_short=?
+data/finviz-universe.json: age=0.2h tickers=11302 n_short=5751
+LOG: finviz short coverage: 5751 tickers
+squeeze short_pct coverage: 23/30 (was 13/30) | from finviz: 23
+squeeze_radar: 10
+  SPCX   short=None src=None sqz=None relvol=None
+  SPY    short=None src=None sqz=None relvol=None
+  MU     short=3.3 src=finviz sqz=45 relvol=0.88
+  MSFT   short=1.2 src=finviz sqz=40 relvol=0.92
+  QQQ    short=None src=None sqz=None relvol=None
+  SNDK   short=6.3 src=finviz sqz=38 relvol=0.59
