@@ -1,36 +1,36 @@
-=== SIGNALS (s=) — each is a prebuilt screen ===
-most-active (volume)               http=200 rows=200 csv=True
-unusual-volume                     http=200 rows=200 csv=True
-most-volatile                      http=200 rows=200 csv=True
-top-gainers                        http=200 rows=200 csv=True
-top-losers                         http=200 rows=200 csv=True
-new-high-52w                       http=200 rows=200 csv=True
-new-low-52w                        http=200 rows=109 csv=True
-overbought                         http=200 rows=25 csv=True
-oversold                           http=200 rows=23 csv=True
-major-news                         http=200 rows=40 csv=True
-insider-buys                       http=200 rows=100 csv=True
-insider-sales                      http=200 rows=100 csv=True
-unusual-volume-up                  http=200 rows=200 csv=True
+tickers: 11302
+distinct fields: 71
 
-=== FILTERS (f=) — confirm technical/momentum/short/options filters ===
-golden-cross 50x200 up             http=200 rows=387 csv=True
-death-cross 50x200 dn              http=200 rows=90 csv=True
-price ABOVE sma200                 http=200 rows=6546 csv=True
-price BELOW sma200                 http=200 rows=4721 csv=True
-price x sma200 up                  http=200 rows=11302 csv=True
-RSI overbought >70                 http=200 rows=335 csv=True
-RSI oversold <30                   http=200 rows=199 csv=True
-new high 52w (filt)                http=200 rows=1346 csv=True
-rel-volume > 2x                    http=200 rows=837 csv=True
-optionable (options)               http=200 rows=5889 csv=True
-short float high                   http=200 rows=270 csv=True
-perf month up >20%                 http=200 rows=628 csv=True
+field coverage (have non-null / total):
+  short_float          MISSING
+  short_ratio           11117/11302  (98%)
+  float_shares           5783/11302  (51%)
+  recom                MISSING
+  analyst_recom          4588/11302  (40%)
+  target_price           4637/11302  (41%)
+  roe                    4887/11302  (43%)
+  roic                   5114/11302  (45%)
+  roa                    5166/11302  (45%)
+  rsi                   11096/11302  (98%)
+  sma200               MISSING
+  sma50                MISSING
+  sma20                MISSING
+  off_52w_high_pct      11269/11302  (99%)
+  perf_m                11064/11302  (97%)
+  perf_y                 9529/11302  (84%)
+  rel_volume            11269/11302  (99%)
+  avg_volume            11269/11302  (99%)
+  beta                   9603/11302  (84%)
+  atr                   11291/11302  (99%)
+  inst_own             MISSING
+  insider_own          MISSING
+  profit_margin          4702/11302  (41%)
+  debt_equity          MISSING
+  current_ratio          5476/11302  (48%)
+  pe                     3197/11302  (28%)
+  fwd_pe                 3086/11302  (27%)
+  peg                    1961/11302  (17%)
+  eps_g_ny             MISSING
+  earnings_date          4583/11302  (40%)
 
-=== CUSTOM COLUMNS (v=152&c=0..71) — full field set in one export ===
-custom 72-col (tech)               http=200 rows=784 csv=True
-  -> 72 columns returned
-  cols: ['No.', 'Ticker', 'Company', 'Sector', 'Industry', 'Country', 'Market Cap', 'P/E', 'Forward P/E', 'PEG', 'P/S', 'P/B', 'P/Cash', 'P/Free Cash Flow', 'Dividend Yield', 'Payout Ratio', 'EPS (ttm)', 'EPS Growth This Year', 'EPS Growth Next Year', 'EPS Growth Past 5 Years', 'EPS Growth Next 5 Years', 'Sales Growth Past 5 Years', 'EPS Growth Quarter Over Quarter', 'Sales Growth Quarter Over Quarter', 'Shares Outstanding', 'Shares Float', 'Insider Ownership', 'Insider Transactions', 'Institutional Ownership', 'Institutional Transactions', 'Short Float', 'Short Ratio', 'Return on Assets', 'Return on Equity', 'Return on Invested Capital', 'Current Ratio', 'Quick Ratio', 'LT Debt/Equity', 'Total Debt/Equity', 'Gross Margin', 'Operating Margin', 'Profit Margin', 'Performance (Week)', 'Performance (Month)', 'Performance (Quarter)', 'Performance (Half Year)', 'Performance (Year)', 'Performance (YTD)', 'Beta', 'Average True Range', 'Volatility (Week)', 'Volatility (Month)', '20-Day Simple Moving Average', '50-Day Simple Moving Average', '200-Day Simple Moving Average', '50-Day High', '50-Day Low', '52-Week High', '52-Week Low', 'Relative Strength Index (14)', 'Change from Open', 'Gap', 'Analyst Recom', 'Average Volume', 'Relative Volume', 'Price', 'Change', 'Volume', 'Earnings Date', 'Target Price', 'IPO Date', 'After-Hours Close']
-
-=== NEWS export endpoint ===
-news_export v=3: http=200 rows=100 hdr="Title","Source","Date","Url","Category","Ticker"
+sample AAPL: {"ticker": "AAPL", "company": "Apple Inc", "sector": "Technology", "industry": "Consumer Electronics", "country": "USA", "market_cap": 4353626.39, "pe": 35.86, "fwd_pe": 30.76, "peg": 2.42, "ps": 9.64, "pb": 40.83, "p_cash": 63.55, "p_fcf": 33.7, "div_yield": 0.36, "payout_ratio": 13.66, "eps_ttm": 8.27, "eps_growth_ty": 17.36, "eps_growth_ny": 10.07, "eps_growth_5y": 17.91, "eps_growth_n5y": 12.73, "sales_growth_5y": 8.71, "eps_growth_qoq": 22.04, "sales_growth_qoq": 16.6, "shares_out": 14687.4, "float_shares": 14669.4, "insider_own_pct": 0.12, "insider_trans_pct": -2.21, "inst_own_pct": 65.9
