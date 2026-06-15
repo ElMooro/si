@@ -614,6 +614,29 @@ def lambda_handler(event, context):
     flow_leaders = sorted([e for e in enriched if e.get("flow_signal") == "BULLISH_CALLS" and (e.get("mentions") or 0) >= 15],
                           key=lambda x: -(x.get("heat") or 0))[:10]
 
+    # ─── #9 Manipulation / quality flags (trust the feed) ───
+    for e in enriched:
+        vel = e.get("velocity_pct"); chg = e.get("change_pct"); relvol = e.get("rel_volume")
+        ment = e.get("mentions") or 0; stwt_n = e.get("stwt_n_messages")
+        qf = []
+        if vel is not None and vel >= 300 and ment >= 20:
+            if ((chg is None) or (chg <= 1)) and ((relvol is None) or (relvol < 1.2)):
+                qf.append("UNCONFIRMED_SPIKE")   # loud, but no price/volume follow-through
+        if ment >= 50 and (stwt_n is not None and stwt_n < 5):
+            qf.append("SINGLE_VENUE")            # Reddit echo not seen on StockTwits
+        if vel is not None and vel >= 800:
+            qf.append("PARABOLIC_BUZZ")          # extreme velocity = pump risk
+        if qf:
+            e["quality_flags"] = qf
+    suspicious = sorted([e for e in enriched if e.get("quality_flags")],
+                        key=lambda x: -(x.get("velocity_pct") or 0))[:10]
+    data_quality = {
+        "price_coverage_pct": round(n_with_price / max(len(enriched), 1) * 100),
+        "stwt_coverage_pct": round(sum(1 for e in enriched if e.get("stwt_n_messages") is not None) / max(len(enriched), 1) * 100),
+        "n_suspicious": len(suspicious),
+        "note": "Mention counts can be botted or pumped. Flags surface attention with no price/volume/multi-venue confirmation — caution, not conviction.",
+    }
+
     # ─── Rankings ───
     # Biggest velocity surges (high mentions + high velocity)
     velocity_filtered = [e for e in enriched
@@ -703,6 +726,7 @@ def lambda_handler(event, context):
             "squeeze_radar": squeeze_radar,
             "multi_venue_confirmed": multi_venue_confirmed,
             "flow_leaders": flow_leaders,
+            "suspicious": suspicious,
             "momentum_confirmed": momentum_confirmed,
             "fading_divergence": fading_divergence,
             "biggest_velocity_surges": biggest_velocity,
@@ -712,6 +736,7 @@ def lambda_handler(event, context):
             "new_entrants": new_entrants,
         },
         "n_with_price": n_with_price,
+        "data_quality": data_quality,
         "signals_logged": n_signals,
         "track_record": track_record,
         "stocktwits_trending": trending[:20],
