@@ -1,0 +1,76 @@
+name: ops-retention
+
+# Keeps aws/ops/reports and aws/ops/ran lean: anything not committed within the
+# retention window (default 60 days) is bundled into a single compressed archive
+# under aws/ops/_archive/ and removed as loose files. History is preserved (as the
+# tarball + git history); the loose-file count drops sharply. Touches only aws/ops,
+# so it never triggers deploy-lambdas or run-ops.
+
+on:
+  schedule:
+    - cron: '17 6 * * 0'      # weekly · Sunday 06:17 UTC
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Keep ops artifacts committed within the last N days'
+        default: '60'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ops-retention
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0       # full history needed to date files by last commit
+
+      - name: Archive ops artifacts older than the retention window
+        run: |
+          set -euo pipefail
+          DAYS="${{ github.event.inputs.days || '60' }}"
+          echo "Retention window: ${DAYS} days"
+
+          # All candidate artifacts (never touch the live run log)
+          git ls-files aws/ops/reports aws/ops/ran \
+            | grep -vE '/_lastrun\.log$' \
+            | sort -u > /tmp/candidates.txt
+          echo "Candidate artifacts: $(wc -l < /tmp/candidates.txt)"
+
+          # Files committed within the window = keep
+          git log --since="${DAYS} days ago" --name-only --pretty=format: \
+            -- aws/ops/reports aws/ops/ran \
+            | grep -E '^aws/ops/(reports|ran)/' \
+            | sort -u > /tmp/recent.txt || true
+          echo "Recently-touched (kept): $(wc -l < /tmp/recent.txt)"
+
+          # Old = candidates not in recent
+          comm -23 /tmp/candidates.txt /tmp/recent.txt > /tmp/old.txt || true
+          COUNT=$(wc -l < /tmp/old.txt | tr -d ' ')
+          echo "Artifacts to archive: ${COUNT}"
+
+          if [ "${COUNT}" -eq 0 ]; then
+            echo "Nothing older than ${DAYS} days. Done."
+            exit 0
+          fi
+
+          STAMP=$(date -u +%Y%m%d-%H%M)
+          mkdir -p aws/ops/_archive
+          tar -czf "aws/ops/_archive/ops-artifacts-${STAMP}.tar.gz" -T /tmp/old.txt
+          echo "Archive: aws/ops/_archive/ops-artifacts-${STAMP}.tar.gz ($(du -h aws/ops/_archive/ops-artifacts-${STAMP}.tar.gz | cut -f1))"
+
+          # Remove the loose files
+          xargs -a /tmp/old.txt git rm -q
+
+          git config user.email raafouis@gmail.com
+          git config user.name Khalid
+          git add aws/ops/_archive
+          git commit -q -m "chore(ops-retention): archive ${COUNT} ops artifacts older than ${DAYS}d [skip-deploy]"
+          git pull --rebase -q origin main || true
+          git push origin main
+          echo "Swept ${COUNT} files. Remaining tracked under aws/ops/{reports,ran}: $(git ls-files aws/ops/reports aws/ops/ran | wc -l)"
