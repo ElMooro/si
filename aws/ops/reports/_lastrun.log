@@ -1,20 +1,15 @@
-finviz-signals.json EXISTS age=0.8min
-generated_at: 2026-06-15T23:39:58.159538+00:00
-  golden_cross     200
-  momentum_month   200
-  rel_vol_2x       200
-  short_high       200
-  new_high_52w     150
-  unusual_volume   150
-  new_low_52w      109
-  most_active      100
-  top_gainers      100
-  top_losers       100
-  insider_buys     100
-  insider_sales    100
-  death_cross      90
-  major_news       40
-  overbought       25
-  oversold         23
-golden_cross: [('ABEO', 1.25), ('ABLV', 9.9), ('ADUR', 3.78), ('AERT', -4.11), ('AFCG', 15.22)]
-death_cross: ['ABUS', 'ACIC', 'AENT', 'AMBP', 'AQN']
+=== CHART PATTERNS (reversal/continuation) ===
+DOUBLE BOTTOM (bullish)          http=200 rows=197 csv=True
+DOUBLE TOP (bearish)             http=200 rows=190 csv=True
+inverse H&S (bullish bottom)     http=200 rows=49 csv=True
+head&shoulders (bearish top)     http=200 rows=86 csv=True
+multiple bottom                  http=200 rows=129 csv=True
+multiple top                     http=200 rows=102 csv=True
+channel up                       http=200 rows=1048 csv=True
+channel down                     http=200 rows=961 csv=True
+triangle ascending               http=200 rows=11302 csv=True
+triangle descending              http=200 rows=11302 csv=True
+wedge up                         http=200 rows=2388 csv=True
+wedge down                       http=200 rows=1344 csv=True
+TL support                       http=200 rows=10009 csv=True
+TL resistance                    http=200 rows=9777 csv=True
