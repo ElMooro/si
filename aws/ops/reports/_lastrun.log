@@ -1,10 +1,18 @@
-#10 lifecycle — igniting: 10 peaking: 0 fading: 0
-  persistence: None median days, measured on 0 tickers
-  igniting sample: [('MU', 'IGNITING'), ('SPCX', 'IGNITING'), ('SPY', 'IGNITING'), ('CTM', 'IGNITING')]
+invoke: 200 err: None
+  LOG: attention-history: 61 tickers tracked
+  LOG: corroboration: news=15 trends=0 options=8 stwt_trend=30
+  LOG: alerts: 15 new, 15 in feed
+
+=== ALL 11 FEATURES — payload presence ===
+#1 track_record: True | signals_logged: 13
+#2 crowded_exhaustion/capitulation: 6 / 0
+#3 squeeze_radar: 10
+#4 attention history fields on top names: 30
+#6 multi_venue_confirmed: 8
+#7 flow_leaders: 5
 #8 theme_rollup: 8 themes
-   AI                     ment=  770 names=14 avgVel=476 avgChg=4.8 top=['MSFT', 'NVDA', 'MRVL']
-   Semis                  ment=  732 names=10 avgVel=435 avgChg=7.0 top=['MU', 'NVDA', 'MRVL']
-   Space/eVTOL            ment=  174 names=6 avgVel=317 avgChg=3.2 top=['RKLB', 'ASTS', 'LUNR']
-   Meme/Retail-classic    ment=   94 names=5 avgVel=640 avgChg=5.5 top=['RDDT', 'OPEN', 'BB']
-   EV/Battery             ment=   75 names=1 avgVel=150 avgChg=1.2 top=['TSLA']
-   Crypto-equity          ment=   61 names=3 avgVel=667 avgChg=5.3 top=['HOOD', 'MSTR', 'IREN']
+#9 suspicious + data_quality: 10 | True
+#10 igniting/peaking/fading + persistence: 10 / 0 / 0 | persist: True
+#11 recent_alerts: 12 | alert state written
+
+elapsed_seconds: 6.23 | n_with_price: 35
