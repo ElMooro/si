@@ -1,85 +1,83 @@
-### ALL DISABLED EventBridge rules in account ###
-58 disabled rules:
-   - aiapi-hourly-collection
-   - alpha-compass-3h
-   - alphavantage-market-update
-   - buzz-velocity-4x-daily
-   - canary-grid-daily
-   - capitulation-3h
-   - carry-surface-4h
-   - cds-proxy-tri-daily
-   - crisis-composite-hourly
-   - cross-asset-confirm-3h
-   - crypto-opportunities-4h
-   - divergence-v2-2hourly
-   - event-flow-monitor-hourly
-   - future-intel-2x-daily
-   - jhk-tick-15min
-   - jhk-tick-30min
-   - jhk-tick-4hourly
-   - jhk-tick-5min
-   - jhk-tick-every_3h
-   - jhk-tick-every_6h
-   - jhk-tick-hourly
-   - jhk-tick-hourly-orchestrate
-   - justhodl-13f-positions-6h
-   - justhodl-anomaly-detector-hourly
-   - justhodl-crisis-plumbing-refresh
-   - justhodl-crypto-cycle-risk-6h
-   - justhodl-dealer-gex-hourly
-   - justhodl-early-movers-twice-per-hour
-   - justhodl-earnings-tracker-6h
-   - justhodl-edge-6h
-   - justhodl-engine-conflicts-6h
-   - justhodl-etf-flows-6h
-   - justhodl-exchange-flows-6h
-   - justhodl-forensic-screen-12h
-   - justhodl-macro-nowcast-6h
-   - justhodl-macro-surprise-6h
-   - justhodl-narrative-vs-tape-4h
-   - justhodl-onchain-ratios-6h
-   - justhodl-options-flow-30m
-   - justhodl-portfolio-catalysts-3x-daily
-   - justhodl-position-sizer-6h
-   - justhodl-short-interest-6h
-   - justhodl-system-signal-logger-6h
-   - justhodl-telegram-alerts
-   - justhodl-theme-cascade-twice-per-hour
-   - justhodl-ticket-ai-rationale-hourly
-   - justhodl-wave-signal-logger-6h
-   - justhodl-yield-curve-6h
-   - lce-every-6h
-   - liquidity-pulse-6h
-   - multi-agent-economic-hourly
-   - multi-agent-market-15min
-   - multi-agent-orchestrator-schedule
-   - near-miss-monitor-hourly
-   - pairs-scanner-6hourly
-   - rotation-chain-2x-daily
-   - sec-filings-intel-3x-daily
-   - sector-heatmap-30m
+=== SSM params containing 'finviz' (any case) ===
+NONE — no Finviz token stored in SSM
 
-================================================================
-justhodl-health-monitor
-  rules: NONE (orchestrated by another fn)
-  invocations(14d): [('06-01', 96), ('06-02', 96), ('06-03', 96), ('06-04', 96), ('06-05', 96), ('06-06', 96), ('06-07', 64)]
-================================================================
-justhodl-sector-tilt
-  rules: NONE (orchestrated by another fn)
-  invocations(14d): [('06-01', 6), ('06-02', 6), ('06-03', 6), ('06-04', 6), ('06-05', 6), ('06-06', 6), ('06-07', 4)]
-================================================================
-justhodl-desk-allocator
-  rules: NONE (orchestrated by another fn)
-  invocations(14d): [('06-01', 1), ('06-02', 1), ('06-03', 1), ('06-04', 1), ('06-05', 1), ('06-06', 1), ('06-07', 1), ('06-08', 1), ('06-09', 1), ('06-10', 1), ('06-11', 1), ('06-12', 1), ('06-13', 1), ('06-14', 1)]
-================================================================
-justhodl-prepump-alerts-router
-  rule justhodl-prepump-alerts-router-30min: State=ENABLED sched=cron(30 12 * * ? *)
-  invocations(14d): [('06-01', 9), ('06-02', 36), ('06-03', 1), ('06-04', 1), ('06-05', 1), ('06-06', 1), ('06-07', 1), ('06-08', 1), ('06-09', 1), ('06-10', 1), ('06-11', 1), ('06-12', 1), ('06-13', 1), ('06-14', 1)]
-================================================================
-justhodl-page-ai-commentary
-  rules: NONE (orchestrated by another fn)
-  invocations(14d): [('06-02', 2)]
-================================================================
-justhodl-smart-money-cluster
-  rules: NONE (orchestrated by another fn)
-  invocations(14d): [('06-01', 1), ('06-02', 1), ('06-03', 1), ('06-04', 1), ('06-05', 1), ('06-06', 1), ('06-07', 1), ('06-08', 1), ('06-09', 1), ('06-10', 1), ('06-11', 1), ('06-12', 1), ('06-13', 1), ('06-14', 1)]
+=== all SSM param names (for context, to see key-naming convention) ===
+   /justhodl/13f-price-divergence/state
+   /justhodl/52wk-quality-breakout/state
+   /justhodl/ai-chat/auth-token
+   /justhodl/alerts/webhook_urls
+   /justhodl/anthropic/api-key
+   /justhodl/anthropic/api_key
+   /justhodl/api-admin/token
+   /justhodl/breadth-divergence/state
+   /justhodl/breadth-thrust/state
+   /justhodl/buyback-yield-ranking/state
+   /justhodl/calibration-fleet/weights
+   /justhodl/calibration/accuracy
+   /justhodl/calibration/miss_recurring_tickers
+   /justhodl/calibration/miss_threshold_proposals
+   /justhodl/calibration/report
+   /justhodl/calibration/scorecard
+   /justhodl/calibration/weights
+   /justhodl/calibration/weights/day_1
+   /justhodl/calibration/weights/day_14
+   /justhodl/calibration/weights/day_21
+   /justhodl/calibration/weights/day_3
+   /justhodl/calibration/weights/day_30
+   /justhodl/calibration/weights/day_5
+   /justhodl/calibration/weights/day_60
+   /justhodl/calibration/weights/day_7
+   /justhodl/calibration/weights/day_90
+   /justhodl/cef-discount/state
+   /justhodl/credit-equity-divergence/state
+   /justhodl/crypto-etf-arb/state
+   /justhodl/crypto-opportunities/state
+   /justhodl/cta-trend-exhaust/state
+   /justhodl/divcut-warning/state
+   /justhodl/dxy-equity-divergence/state
+   /justhodl/earnings-quality/state
+   /justhodl/event-flow/last-alerts
+   /justhodl/event-flow/pulse
+   /justhodl/feedback/auth-token
+   /justhodl/gap-fill-confirm/state
+   /justhodl/gold-equity-rotation/state
+   /justhodl/gsi/weights
+   /justhodl/gsi/weights/21d
+   /justhodl/gsi/weights/252d
+   /justhodl/gsi/weights/5d
+   /justhodl/gsi/weights/63d
+   /justhodl/history-api/url
+   /justhodl/insider-buyback-confluence/state
+   /justhodl/insider-sell-cluster/state
+   /justhodl/kill-switch
+   /justhodl/lockup-expiration/state
+   /justhodl/master-allocation/target
+   /justhodl/multi-tf-convergence/state
+   /justhodl/ndx-spx-spread/state
+   /justhodl/nowcast/last_state
+   /justhodl/opex-calendar/state
+   /justhodl/opportunity/weights
+   /justhodl/portfolio-admin/manager-pass
+   /justhodl/portfolio-admin/token
+   /justhodl/post-earnings-mean-rev/state
+   /justhodl/precatalyst-vol-expansion/state
+   /justhodl/push/admin-token
+   /justhodl/push/vapid-private-key
+   /justhodl/push/vapid-public-key
+   /justhodl/push/vapid-subject
+   /justhodl/put-call-extreme/state
+   /justhodl/rating-change-cluster/state
+   /justhodl/reit-nav-discount/state
+   /justhodl/skew-tail-hedging/state
+   /justhodl/spac-floor-warrant/state
+   /justhodl/stablecoin-flow/state
+   /justhodl/stress/simulator-url
+   /justhodl/sympathetic-momentum/state
+   /justhodl/telegram/bot_token
+   /justhodl/telegram/chat_id
+   /justhodl/vix-backwardation/state
+   /justhodl/vix9d-vix-inversion/state
+   /justhodl/vol-target-unwind/state
+   /justhodl/vvix-vov-regime/state
+   /justhodl/wss/endpoint
+   /justhodl/zai-api-key
