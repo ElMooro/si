@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-opportunities-research",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 600,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Adds thesis+bear, 10yr financials, quality/solvency, confirmation and a bull/bear scorecard to the top opportunity-tier names on the S&P-500 screener. Reuses equity_enrich. Writes data/opportunities-research.json.",
+  "environment_keys": ["ANTHROPIC_API_KEY", "FMP_KEY"],
+  "inherit_env": true,
+  "schedule": {
+    "rule_name": "justhodl-opportunities-research-daily",
+    "cron": "cron(30 14 * * ? *)",
+    "description": "Refresh Opportunities deep-research 30min after the daily screener run"
+  }
+}
