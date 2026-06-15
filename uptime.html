@@ -72,7 +72,7 @@ footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);colo
     </p>
     <div class="hero-pills">
       <span class="pill">⏱ heartbeat: <b>hourly</b> (cron(0 * * * ? *))</span>
-      <span class="pill">📊 monitored: <b>7 critical briefs</b></span>
+      <span class="pill">📊 monitored: <b>7 briefs + live data feeds</b></span>
       <span class="pill">🚨 telegram on: <b>STALE / REMINDER / ALL_CLEAR</b></span>
       <span class="pill">💸 cost: <b>~$0.001/month</b> (no Claude calls)</span>
     </div>
@@ -81,6 +81,37 @@ footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);colo
   <!-- THE COCKPIT -->
   <div id="ai-uptime"></div>
   <script>if(window.JHAIUptime)JHAIUptime.mount("ai-uptime");</script>
+
+  <!-- DATA FEED FRESHNESS (fleet-freshness-monitor) -->
+  <section class="hero" style="margin-top:18px">
+    <h1>📡 Data Feed <em>Freshness</em></h1>
+    <p class="sub">Live S3 data feeds checked every 30 min against per-feed SLAs (immutable archives &amp; internal caches excluded, so this list is real failures only). A feed past its SLA shows here — this is what catches a silently-disabled EventBridge schedule.</p>
+    <div id="freshness-summary" class="hero-pills"><span class="pill">loading…</span></div>
+    <div id="freshness-stale" style="margin-top:14px"></div>
+  </section>
+  <script>
+  (async function(){
+    const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+    try{
+      const r=await fetch(PROXY+"/data/_freshness-monitor.json",{cache:"no-cache"});
+      const d=await r.json();
+      const ts=d.generated_at?new Date(d.generated_at).toLocaleString():"\u2014";
+      document.getElementById("freshness-summary").innerHTML=
+        '<span class="pill">\ud83d\udcca tracked: <b>'+(d.n_keys_tracked||0)+'</b></span>'+
+        '<span class="pill" style="color:#26ffaf">\u2713 fresh: <b>'+(d.n_fresh||0)+'</b></span>'+
+        '<span class="pill" style="color:'+((d.n_stale||0)>0?'#ff5577':'#26ffaf')+'">\u26a0 stale: <b>'+(d.n_stale||0)+'</b></span>'+
+        '<span class="pill">\u23f1 '+ts+'</span>';
+      const stale=(d.stale_top_50||[]).slice().sort((a,b)=>b.age_h-a.age_h);
+      const el=document.getElementById("freshness-stale");
+      if(!stale.length){el.innerHTML='<div style="padding:16px;color:#26ffaf;font-weight:600">\u2713 All tracked feeds fresh.</div>';return;}
+      el.innerHTML='<table style="width:100%;border-collapse:collapse;font-family:monospace;font-size:12.5px"><thead><tr style="text-align:left;color:#8b96a8;border-bottom:1px solid rgba(255,255,255,.12)"><th style="padding:6px 8px">Feed</th><th style="padding:6px 8px;text-align:right">Age</th><th style="padding:6px 8px;text-align:right">SLA</th><th style="padding:6px 8px;text-align:right">Over</th></tr></thead><tbody>'+
+        stale.map(function(x){var ratio=x.age_h/x.max_age_h;var days=x.age_h/24;return '<tr style="border-bottom:1px solid rgba(255,255,255,.05)"><td style="padding:6px 8px;color:#e8edf4">'+x.key.replace("data/","")+'</td><td style="padding:6px 8px;text-align:right;color:#ff5577">'+(days>=1?days.toFixed(1)+"d":Math.round(x.age_h)+"h")+'</td><td style="padding:6px 8px;text-align:right;color:#8b96a8">'+x.max_age_h+'h</td><td style="padding:6px 8px;text-align:right;color:#fb923c">'+ratio.toFixed(1)+'\u00d7</td></tr>';}).join("")+
+        '</tbody></table>';
+    }catch(e){
+      document.getElementById("freshness-summary").innerHTML='<span class="pill" style="color:#ff5577">freshness feed unavailable</span>';
+    }
+  })();
+  </script>
 
 </main>
 
