@@ -611,6 +611,7 @@ table.tbl tr:last-child td{border-bottom: none}
     <a href="/cockpit.html" style="color:#a78bfa;font-weight:800;background:rgba(167,139,250,0.12);border-radius:5px;padding:2px 8px">🎛 COCKPIT</a>
     <a href="/brain.html" style="color:#a78bfa;font-weight:700">🧠 BRAIN</a>
     <a href="/master-board.html" style="color:#26ffaf;font-weight:800;background:rgba(38,255,175,0.1);border-radius:5px;padding:2px 8px">🎯 MASTER BOARD</a>
+    <a href="/retail/" style="color:#22d3ee;font-weight:800;background:rgba(34,211,238,0.14);border:1px solid rgba(34,211,238,0.45);border-radius:5px;padding:2px 9px">📱 RETAIL</a>
     <a href="/scorecard.html" style="color:#22d3ee;font-weight:700">📊 SCORECARD</a>
     <a href="/dossier.html" style="color:#a78bfa;font-weight:700">📂 DOSSIER</a>
     <a href="/engines.html" style="color:#26ffaf;font-weight:700">⚙ ENGINES</a>
@@ -668,7 +669,6 @@ table.tbl tr:last-child td{border-bottom: none}
     <a href="/insider/" style="color:#00e676;font-weight:600">💼 INSIDER</a>
     <a href="/commodities/" style="color:#fb923c;font-weight:600">🛢️ COMMODITIES</a>
     <a href="/news-velocity/" style="color:#22d3ee;font-weight:600">📰 NEWS VEL</a>
-    <a href="/retail/" style="color:#22d3ee;font-weight:600">📱 RETAIL</a>
     <a href="/cb/" style="color:#fbbf24;font-weight:600">🏦 CB STANCE</a>
     <a href="/trends/" style="color:#22d3ee;font-weight:600">🔎 TRENDS</a>
     <a href="/earnings/" style="color:#a78bfa;font-weight:600">🎙 EARNINGS NLP</a>
@@ -1138,6 +1138,32 @@ table.tbl tr:last-child td{border-bottom: none}
           <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Catalyst Clusters</div>
           <div id="ppClusters" style="font-size:12px;line-height:1.55;color:var(--text)">—</div>
           <div id="ppEarly" style="font-size:11px;line-height:1.5;color:var(--muted);margin-top:4px">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Retail Sentiment hero -->
+    <section class="card col-12" id="retailHero" style="border-left:3px solid #22d3ee;background:linear-gradient(135deg,rgba(34,211,238,.05),rgba(167,139,250,.04) 60%,rgba(38,255,175,.03))">
+      <div class="card-head">
+        <div>
+          <div class="card-title">📱 RETAIL SENTIMENT <span style="color:#22d3ee;font-weight:600;font-size:11px;letter-spacing:1.5px;background:rgba(34,211,238,.15);padding:2px 8px;border-radius:3px;margin-left:6px">LIVE</span></div>
+          <div class="card-subtitle" id="rtSub">What retail is buying, talking about &amp; excited about — Reddit × StockTwits, paired with price · loading…</div>
+        </div>
+        <a href="/retail/" class="card-action" style="color:#22d3ee">OPEN DESK →</a>
+      </div>
+      <div id="retailBody" style="display:grid;grid-template-columns:1.1fr 1.3fr 3fr;gap:16px;align-items:start">
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Regime</div>
+          <div id="rtRegime" style="font-size:24px;font-weight:700;letter-spacing:-.01em;color:var(--text)">—</div>
+          <div id="rtMentions" style="font-size:12px;color:var(--muted);margin-top:2px">— mentions</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Buzz vs price</div>
+          <div id="rtMomDiv" style="font-size:13px;line-height:1.7;color:var(--text)">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">🔥 Hottest right now</div>
+          <div id="rtHottest" style="font-size:12px;line-height:1.9;color:var(--text)">loading…</div>
         </div>
       </div>
     </section>
@@ -2232,6 +2258,7 @@ const SOURCES = {
   setups:   `${S3}/opportunities/asymmetric-equity.json`,
   pnl:      `${S3}/portfolio/pnl-daily.json`,
   signalBoard: `${S3}/data/signal-board.json`,
+  retail:   `${S3}/data/retail-sentiment.json`,
 };
 
 // Pre-pump radar — single slim fetch (~3 KB raw, ~700B gzipped via edge).
@@ -2941,6 +2968,32 @@ function renderPrePumpRadar(){
 /* ──────────────────────────────────────────────────────────────
    FETCH ORCHESTRATION — parallel, fault-tolerant
    ────────────────────────────────────────────────────────────── */
+function renderRetailHero(){
+  const d = STATE.data.retail; if(!d) return;
+  const r = d.ranked || {}, md = d.market_regime_data || {};
+  const regime = d.market_regime || '—';
+  const rc = {MANIA:'#ff3d5a',ELEVATED:'#fb923c',NORMAL:'#22d3ee',QUIET:'#8b96a8'}[regime] || 'var(--text)';
+  const el = id => document.getElementById(id);
+  if(el('rtRegime')){ el('rtRegime').textContent = regime; el('rtRegime').style.color = rc; }
+  if(el('rtMentions')) el('rtMentions').textContent = (md.total_mentions!=null ? md.total_mentions.toLocaleString() : '—') + ' mentions' + (md.delta_pct!=null ? ` (${md.delta_pct>=0?'+':''}${md.delta_pct}% vs prior)` : '');
+  if(el('rtSub')) el('rtSub').textContent = `What retail is buying, talking about & excited about — Reddit × StockTwits, paired with price · ${d.n_with_price||0} price-confirmed`;
+  const mom = r.momentum_confirmed||[], div = r.fading_divergence||[];
+  if(el('rtMomDiv')){
+    const momS = mom.slice(0,3).map(e=>e.ticker).join(', ') || 'none';
+    const divS = div.slice(0,3).map(e=>e.ticker).join(', ') || 'none';
+    el('rtMomDiv').innerHTML = `<span style="color:#26ffaf">🚀 ${mom.length} confirmed</span> <span style="color:var(--muted)">${momS}</span><br><span style="color:#ff5577">⚠ ${div.length} diverging</span> <span style="color:var(--muted)">${divS}</span>`;
+  }
+  const hot = (r.hottest||[]).slice(0,5);
+  if(el('rtHottest')){
+    el('rtHottest').innerHTML = hot.length ? hot.map(e=>{
+      const chg = e.change_pct;
+      const chgStr = chg==null ? '' : `<span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(1)}%</span>`;
+      const bz = {MOMENTUM:'🚀',IGNITION:'✨',DIVERGENCE:'⚠',RISING:'↑',FADING:'↓',STEADY:'·'}[e.buzz_state]||'·';
+      return `<span style="display:inline-block;margin-right:16px;white-space:nowrap"><b style="color:var(--text)">${e.ticker}</b> <span style="color:#fbbf24">${e.heat||0}🔥</span> ${bz} ${chgStr}</span>`;
+    }).join('') : 'no data';
+  }
+}
+
 async function loadAll(){
   const tasks = Object.entries(SOURCES).map(async ([key, url]) => {
     try{
@@ -2963,6 +3016,9 @@ async function loadAll(){
     const sb = document.getElementById('signalBoardBody');
     if(sb) sb.innerHTML = `<div class="err" style="grid-column:1/-1">⚠ Signal-board feed unavailable</div>`;
   }
+
+  if(STATE.data.retail) renderRetailHero();
+  else if(STATE.errors.retail){ const b=document.getElementById('rtHottest'); if(b) b.innerHTML='<span class="err">⚠ retail feed unavailable</span>'; }
 
   // PRE-PUMP RADAR — fire-and-forget, doesn't block other renders.
   // Page becomes interactive immediately; card fills in when its 5 fetches return.
