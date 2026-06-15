@@ -130,6 +130,52 @@ def fetch_financials(tk):
         share_chg = round((shs[-1] / shs[0] - 1) * 100, 1)
     latest = fins[-1] if fins else {}
 
+    # --- price momentum + sparkline (recent ~75 trading days) ---
+    hist = fmp("historical-price-eod/light", {"symbol": tk})
+    rows = hist if isinstance(hist, list) else (hist.get("historical") if isinstance(hist, dict) else [])
+    closes = []
+    for row in (rows or [])[:80]:
+        c = num(row.get("price")) if row.get("price") is not None else num(row.get("close"))
+        if c is not None:
+            closes.append((str(row.get("date", ""))[:10], c))
+    closes.sort()  # oldest -> newest
+    price_now = closes[-1][1] if closes else price
+
+    def _ret(nb):
+        if len(closes) > nb and closes[-1 - nb][1]:
+            return round((closes[-1][1] / closes[-1 - nb][1] - 1) * 100, 1)
+        return None
+    ret_1m, ret_3m = _ret(21), _ret(63)
+    spk = [c for _, c in closes]
+    if len(spk) > 15:
+        step = len(spk) / 15.0
+        spk = [spk[int(i * step)] for i in range(15)] + [spk[-1]]
+
+    # --- valuation vs its OWN history (P/E percentile) ---
+    rat_hist = fmp("ratios", {"symbol": tk, "period": "annual", "limit": 10})
+    pes = []
+    for row in (rat_hist if isinstance(rat_hist, list) else []):
+        pv = num(row.get("priceToEarningsRatio")) or num(row.get("peRatio"))
+        if pv is not None and pv > 0:
+            pes.append(pv)
+    pe_low = pe_high = pe_pctile = None
+    cur_pe = num(p.get("pe")) or num(r.get("priceToEarningsRatioTTM"))
+    if pes:
+        pe_low, pe_high = round(min(pes), 1), round(max(pes), 1)
+        if cur_pe and pe_high != pe_low:
+            pe_pctile = max(0, min(100, round((cur_pe - pe_low) / (pe_high - pe_low) * 100)))
+
+    # --- earnings beat history + next-quarter estimate ---
+    beats = tot = 0
+    nq_eps = nq_rev = None
+    for row in (earn if isinstance(earn, list) else []):
+        ea, ee = num(row.get("epsActual")), num(row.get("epsEstimated"))
+        if ea is not None and ee is not None:
+            tot += 1; beats += 1 if ea > ee else 0
+        if str(row.get("date", ""))[:10] == next_earn:
+            nq_eps = num(row.get("epsEstimated")); nq_rev = num(row.get("revenueEstimated"))
+    beat_rate = round(beats / tot * 100) if tot else None
+
     return {
         "desc": (p.get("description") or "")[:650],
         "ceo": p.get("ceo"), "employees": p.get("fullTimeEmployees"),
@@ -147,6 +193,10 @@ def fetch_financials(tk):
         "off_52w_high": off_high, "off_52w_low": off_low,
         "gm_trend": gm_trend, "gm_latest": latest.get("gm"), "om_latest": latest.get("om"),
         "fcfm_latest": latest.get("fcfm"), "share_chg_pct": share_chg,
+        "price": price_now, "ret_1m": ret_1m, "ret_3m": ret_3m, "price_spark": spk,
+        "pe_low": pe_low, "pe_high": pe_high, "pe_pctile": pe_pctile,
+        "beat_rate": beat_rate, "beats_n": tot,
+        "nq_eps_est": nq_eps, "nq_rev_est": nq_rev,
     }
 
 
@@ -270,6 +320,10 @@ def lambda_handler(event=None, context=None):
             "gm_trend": fin.get("gm_trend"), "gm_latest": fin.get("gm_latest"),
             "om_latest": fin.get("om_latest"), "fcfm_latest": fin.get("fcfm_latest"),
             "share_chg_pct": fin.get("share_chg_pct"),
+            "ret_1m": fin.get("ret_1m"), "ret_3m": fin.get("ret_3m"), "price_spark": fin.get("price_spark"),
+            "pe_low": fin.get("pe_low"), "pe_high": fin.get("pe_high"), "pe_pctile": fin.get("pe_pctile"),
+            "beat_rate": fin.get("beat_rate"), "beats_n": fin.get("beats_n"),
+            "nq_eps_est": fin.get("nq_eps_est"), "nq_rev_est": fin.get("nq_rev_est"),
         }
         # trap-check: is the thesis actually working, or a value trap?
         _accel = rec["rev_accel_pp"]; _gmt = fin.get("gm_trend")
