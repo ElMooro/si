@@ -52,6 +52,7 @@ import io, json, os, time, urllib.request, urllib.error, re
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
+import equity_enrich as EE
 
 VERSION = "1.0.0"
 
@@ -301,6 +302,36 @@ def buzz_state(e):
     return "STEADY"
 
 
+def log_retail_signals(momentum, divergence):
+    """Log MOMENTUM (predict UP) and DIVERGENCE (predict fade) calls to justhodl-signals for forward grading vs SPY."""
+    try:
+        tbl = boto3.resource("dynamodb", region_name="us-east-1").Table("justhodl-signals")
+        now = datetime.now(timezone.utc); d0 = now.strftime("%Y-%m-%d"); n = 0
+        def put(e, stype, direction):
+            px = e.get("price")
+            if not px:
+                return 0
+            tbl.put_item(Item={
+                "signal_id": f"{stype}#{e['ticker']}#{d0}", "signal_type": stype,
+                "predicted_direction": direction, "baseline_price": str(px), "benchmark": "SPY",
+                "measure_against": "ticker", "check_windows": ["day_5", "day_21", "day_63"],
+                "logged_at": now.isoformat(), "logged_epoch": int(now.timestamp()),
+                "status": "pending", "schema_version": "2", "horizon_days_primary": 21,
+                "ttl": int(now.timestamp()) + 120 * 86400, "signal_value": str(e.get("heat")),
+                "metadata": {"buzz_state": str(e.get("buzz_state")), "mentions": str(e.get("mentions")),
+                             "velocity_pct": str(e.get("velocity_pct")), "engine": "retail-sentiment"},
+            })
+            return 1
+        for e in (momentum or [])[:10]:
+            n += put(e, "retail_momentum", "UP")
+        for e in (divergence or [])[:10]:
+            n += put(e, "retail_divergence", "DOWN")
+        return n
+    except Exception as ex:
+        print(f"[retail-signals] {str(ex)[:120]}")
+        return 0
+
+
 def lambda_handler(event, context):
     started = time.time()
     print(f"=== retail-sentiment v{VERSION} · {datetime.now(timezone.utc).isoformat()} ===")
@@ -432,6 +463,16 @@ def lambda_handler(event, context):
     fading_divergence = sorted([e for e in enriched if e.get("buzz_state") == "DIVERGENCE"],
                                 key=lambda x: -(x.get("heat") or 0))[:12]
 
+    # ─── #1 Track record: log buzz calls + grade prior calls forward vs SPY ───
+    n_signals = log_retail_signals(momentum_confirmed, fading_divergence)
+    try:
+        track_record = {
+            "momentum": EE.grade_track_record("retail_momentum", "data/retail-momentum-track.json"),
+            "divergence": EE.grade_track_record("retail_divergence", "data/retail-divergence-track.json"),
+        }
+    except Exception as _e:
+        print(f"[retail-track] {str(_e)[:100]}"); track_record = None
+
     # Subreddit breakdown — compare WSB top 10 to stocks top 10
     wsb_top = [r.get("ticker") for r in wsb[:10] if r.get("ticker")]
     stocks_top = [r.get("ticker") for r in stocks[:10] if r.get("ticker")]
@@ -477,6 +518,8 @@ def lambda_handler(event, context):
             "new_entrants": new_entrants,
         },
         "n_with_price": n_with_price,
+        "signals_logged": n_signals,
+        "track_record": track_record,
         "stocktwits_trending": trending[:20],
         "subreddit_breakdown": {
             "wsb_top_10": wsb_top,
