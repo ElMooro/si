@@ -538,6 +538,53 @@ def lambda_handler(event, context):
                            key=lambda x: -(x.get("squeeze_score") or 0))[:10]
     n_squeeze = len(squeeze_radar)
 
+    # ─── #6 Cross-source corroboration: independent venues confirming the buzz ───
+    def _load_json(key):
+        try:
+            return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+        except Exception:
+            return {}
+    def _collect_tickers(obj, depth=0, acc=None):
+        if acc is None:
+            acc = set()
+        if depth > 4:
+            return acc
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if k in ("by_ticker", "by_symbol") and isinstance(v, dict):
+                    for tk in v.keys():
+                        if isinstance(tk, str) and 1 <= len(tk) <= 6:
+                            acc.add(tk.upper())
+                elif k in ("ticker", "symbol") and isinstance(v, str) and 1 <= len(v) <= 6:
+                    acc.add(v.upper())
+                else:
+                    _collect_tickers(v, depth + 1, acc)
+        elif isinstance(obj, list):
+            for it in obj[:250]:
+                _collect_tickers(it, depth + 1, acc)
+        return acc
+    news_set = _collect_tickers(_load_json("data/news-velocity.json"))
+    trends_set = _collect_tickers(_load_json("data/google-trends.json"))
+    options_set = _collect_tickers(_load_json("data/options-flow.json"))
+    stwt_trend_set = set((t.get("symbol") or "").upper() for t in trending if t.get("symbol"))
+    print(f"  corroboration: news={len(news_set)} trends={len(trends_set)} options={len(options_set)} stwt_trend={len(stwt_trend_set)}")
+    for e in enriched:
+        tk = (e.get("ticker") or "").upper()
+        srcs = ["Reddit"]
+        if e.get("stwt_n_messages") is not None or tk in stwt_trend_set:
+            srcs.append("StockTwits")
+        if tk in news_set:
+            srcs.append("News")
+        if tk in trends_set:
+            srcs.append("Search")
+        if tk in options_set:
+            srcs.append("Options")
+        e["corroboration"] = srcs
+        e["corroboration_count"] = len(srcs)
+    multi_venue_confirmed = sorted(
+        [e for e in enriched if (e.get("corroboration_count") or 0) >= 3 and (e.get("mentions") or 0) >= 15],
+        key=lambda x: (-(x.get("corroboration_count") or 0), -(x.get("heat") or 0)))[:12]
+
     # ─── Rankings ───
     # Biggest velocity surges (high mentions + high velocity)
     velocity_filtered = [e for e in enriched
@@ -625,6 +672,7 @@ def lambda_handler(event, context):
             "crowded_exhaustion": crowded_exhaustion,
             "capitulation": capitulation,
             "squeeze_radar": squeeze_radar,
+            "multi_venue_confirmed": multi_venue_confirmed,
             "momentum_confirmed": momentum_confirmed,
             "fading_divergence": fading_divergence,
             "biggest_velocity_surges": biggest_velocity,
