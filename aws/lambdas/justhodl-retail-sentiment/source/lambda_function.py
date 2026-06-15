@@ -49,7 +49,7 @@ cron(0,30 * ? * * *) — every 30 minutes around the clock
 (retail flow is global, doesn't pause at US close)
 """
 import io, json, os, time, urllib.request, urllib.error, re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 import equity_enrich as EE
@@ -424,6 +424,63 @@ def lambda_handler(event, context):
         e["buzz_state"] = buzz_state(e)
     n_with_price = sum(1 for e in enriched if e.get("change_pct") is not None)
     print(f"  price-confirmed {n_with_price}/{len(quote_tickers)}")
+
+    # ─── #4 Attention history: sustained vs spike (multi-day mention trend) ───
+    HIST_KEY = "data/retail-attention-history.json"
+    try:
+        _hraw = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=HIST_KEY)["Body"].read())
+        by_t = _hraw.get("by_ticker", {}) if isinstance(_hraw, dict) else {}
+    except Exception:
+        by_t = {}
+    today_d = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    for e in enriched[:60]:
+        tk = e.get("ticker")
+        if not tk:
+            continue
+        ser = [p for p in by_t.get(tk, []) if p.get("date") != today_d]
+        ser.append({"date": today_d, "mentions": e.get("mentions"), "heat": e.get("heat")})
+        by_t[tk] = sorted(ser, key=lambda p: p.get("date") or "")[-30:]
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=31)).strftime("%Y-%m-%d")
+    by_t = {t: ss for t, ss in by_t.items() if ss and (ss[-1].get("date") or "") >= cutoff}
+    if len(by_t) > 400:
+        by_t = dict(sorted(by_t.items(), key=lambda kv: (kv[1][-1].get("mentions") or 0), reverse=True)[:400])
+
+    def attention_stage(ms):
+        if len(ms) < 3:
+            return None
+        cur, prev = ms[-1], ms[-2]
+        srt = sorted(ms[:-1]); med = srt[len(srt) // 2] or 1; mx = max(ms) or 1
+        days_elev = sum(1 for m in ms[-5:] if m >= 0.5 * mx)
+        if cur >= 2.5 * med and cur >= 30:
+            return "SPIKE"
+        if days_elev >= 4:
+            return "SUSTAINED"
+        if len(ms) >= 3 and cur > prev >= ms[-3]:
+            return "BUILDING"
+        if cur < prev:
+            return "COOLING"
+        return "STEADY"
+
+    for e in enriched:
+        ser = by_t.get(e.get("ticker"), [])
+        ms = [(p.get("mentions") or 0) for p in ser]
+        if ms:
+            e["mentions_hist"] = ms[-14:]
+            e["days_tracked"] = len(ser)
+            st = attention_stage(ms)
+            if st:
+                e["attention_stage"] = st
+            if len(ms) >= 8:
+                wk = ms[-8] or 1
+                e["trend_7d_pct"] = round((ms[-1] - wk) / max(wk, 1) * 100)
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=HIST_KEY,
+            Body=json.dumps({"generated_at": datetime.now(timezone.utc).isoformat(), "by_ticker": by_t},
+                            separators=(",", ":"), default=str).encode(),
+            ContentType="application/json", CacheControl="public, max-age=600")
+        print(f"  attention-history: {len(by_t)} tickers tracked")
+    except Exception as _e:
+        print(f"[retail-hist] save fail {str(_e)[:80]}")
 
     # ─── Rankings ───
     # Biggest velocity surges (high mentions + high velocity)
