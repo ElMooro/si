@@ -137,6 +137,12 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .corr{display:inline-flex;gap:3px;margin-top:3px}
 .cc{font-family:var(--mono,monospace);font-size:8px;font-weight:700;width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;background:var(--border);color:var(--text-dim)}
 
+
+/* === #7 flow badges === */
+.fb{font-family:var(--mono,monospace);font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:4px}
+.fb-call{background:rgba(38,255,175,.14);color:var(--pos)}
+.fb-put{background:rgba(255,61,90,.14);color:var(--neg)}
+
 </style>
 </head>
 <body>
@@ -193,6 +199,12 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
   <div class="panel-title">🛰 Confirmed Across Venues <span style="font-weight:400;font-size:11px;color:var(--text-mute)">— lit up on 3+ independent sources at once</span></div>
   <div class="pt-note">Reddit + StockTwits + news + Google search + options flow. A name showing across <b>independent</b> venues is a far stronger signal than one loud subreddit.</div>
   <div id="multi-venue"><div class="loading">Loading…</div></div>
+</div>
+
+<div class="panel" style="margin-bottom:18px;border-left:3px solid #26ffaf">
+  <div class="panel-title">📈 Where Retail Is Positioning <span style="font-weight:400;font-size:11px;color:var(--text-mute)">— options call flow, not just chatter</span></div>
+  <div class="pt-note">Call/put skew + call-volume surge on near-the-money options. Bullish call buying is where retail puts money behind the talk. Coverage is liquid names only.</div>
+  <div id="flow-leaders"><div class="loading">Loading…</div></div>
 </div>
 
 <div class="row-3col">
@@ -275,7 +287,7 @@ async function load() {
     document.getElementById('status').textContent = 'live';
     document.getElementById('status').style.color = 'var(--pos)';
     document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
-    renderRegime(); renderTrack(); renderHottest(); renderConfirmation(); renderContrarian(); renderSqueeze(); renderMultiVenue(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
+    renderRegime(); renderTrack(); renderHottest(); renderConfirmation(); renderContrarian(); renderSqueeze(); renderMultiVenue(); renderFlow(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
   } catch (e) {
     document.getElementById('status').textContent = 'offline';
     document.getElementById('status').style.color = 'var(--neg)';
@@ -289,6 +301,11 @@ function buzzBadge(state){
   const x=m[state]||['• —','bz-steady']; return `<span class="bz ${x[1]}">${x[0]}</span>`;
 }
 function fmtChg(v){ if(v==null) return '<span class="r-detail">—</span>'; const c=v>=0?'pos':'neg'; return `<span class="px-chg ${c}">${v>=0?'+':''}${v.toFixed(1)}%</span>`; }
+function flowBadge(fs){
+  if(fs==='BULLISH_CALLS') return '<span class="fb fb-call">📈 calls</span>';
+  if(fs==='PUT_HEAVY') return '<span class="fb fb-put">📉 puts</span>';
+  return '';
+}
 function corrChips(srcs){
   if(!srcs||srcs.length<2) return '';
   const ab={Reddit:'R',StockTwits:'ST',News:'N',Search:'G',Options:'O'};
@@ -313,7 +330,7 @@ function hotCard(e){
     <div class="hc-name">${(e.name||'').slice(0,30)}</div>${corrChips(e.corroboration)}
     <div class="hc-heat"><div class="hc-bar"><div class="hc-fill ${hc}" style="width:${heat}%"></div></div><span class="hc-heatval">${heat}</span></div>
     <div class="hc-stats"><span>💬 ${fmtNum(e.mentions)}</span><span class="pos">${fmtVel(e.velocity_pct)}</span>${e.stwt_bull_pct!=null?`<span>${e.stwt_bull_pct.toFixed(0)}% bull</span>`:''}</div>
-    ${e.attention_stage||(e.mentions_hist&&e.mentions_hist.length>1)?('<div class="hc-stage">'+stageBadge(e.attention_stage)+miniSpark(e.mentions_hist)+(e.trend_7d_pct!=null?('<span class="hc-trend '+(e.trend_7d_pct>=0?'up':'dn')+'">'+(e.trend_7d_pct>=0?'+':'')+e.trend_7d_pct+'% 7d</span>'):'')+'</div>'):''}<div class="hc-price">${e.price!=null?'$'+e.price.toFixed(2):'—'} ${fmtChg(e.change_pct)} ${nearHi}</div>
+    ${e.attention_stage||e.flow_signal||(e.mentions_hist&&e.mentions_hist.length>1)?('<div class="hc-stage">'+stageBadge(e.attention_stage)+flowBadge(e.flow_signal)+miniSpark(e.mentions_hist)+(e.trend_7d_pct!=null?('<span class="hc-trend '+(e.trend_7d_pct>=0?'up':'dn')+'">'+(e.trend_7d_pct>=0?'+':'')+e.trend_7d_pct+'% 7d</span>'):'')+'</div>'):''}<div class="hc-price">${e.price!=null?'$'+e.price.toFixed(2):'—'} ${fmtChg(e.change_pct)} ${nearHi}</div>
   </div>`;
 }
 function renderHottest(){
@@ -365,6 +382,11 @@ function renderMultiVenue(){
   const mv=(DATA.ranked||{}).multi_venue_confirmed||[];
   const el=document.getElementById('multi-venue'); if(!el) return;
   el.innerHTML = mv.length ? mv.map(e=>`<div class="row-list"><span><span class="r-ticker">${e.ticker}</span><br><span class="r-name">${(e.corroboration||[]).join(' · ')}</span></span><span class="r-metric" style="color:#a78bfa">${e.corroboration_count}×</span><span class="r-detail">${e.heat||0}🔥 ${e.change_pct!=null?(e.change_pct>=0?'+':'')+e.change_pct.toFixed(1)+'%':''}</span></div>`).join('') : '<div style="padding:22px;text-align:center;color:var(--text-mute)">No multi-venue names right now.</div>';
+}
+function renderFlow(){
+  const fl=(DATA.ranked||{}).flow_leaders||[];
+  const el=document.getElementById('flow-leaders'); if(!el) return;
+  el.innerHTML = fl.length ? fl.map(e=>`<div class="row-list"><span><span class="r-ticker">${e.ticker}</span><br><span class="r-name">💬${fmtNum(e.mentions)} · ${e.heat||0}🔥 · C/P ${e.opt_cpr!=null?e.opt_cpr:'—'}${e.opt_call_surge!=null?' · '+e.opt_call_surge+'× call surge':''}</span></span><span class="r-metric" style="color:#26ffaf">📈</span><span class="r-detail">${e.change_pct!=null?(e.change_pct>=0?'+':'')+e.change_pct.toFixed(1)+'%':''}</span></div>`).join('') : '<div style="padding:22px;text-align:center;color:var(--text-mute)">No bullish options flow on retail names right now.</div>';
 }
 function renderRegime() {
   const regime = DATA.market_regime || 'UNKNOWN';
