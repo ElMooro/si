@@ -53,6 +53,7 @@ from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 import equity_enrich as EE
+import finviz as FV
 
 VERSION = "1.0.0"
 
@@ -513,11 +514,26 @@ def lambda_handler(event, context):
         si_feed, f13_feed, _fwd, _ch = EE.load_confirmation_feeds()
     except Exception as _e:
         print(f"[retail-squeeze] feeds {str(_e)[:80]}"); si_feed, f13_feed = {}, {}
+    try:
+        fv_short = FV.load_short()   # whole-market short float from Finviz Elite (~11k tickers)
+        print(f"  finviz short coverage: {len(fv_short)} tickers")
+    except Exception as _e:
+        print(f"[retail-squeeze] finviz {str(_e)[:80]}"); fv_short = {}
     for e in enriched:
-        sdat = si_feed.get(e.get("ticker")) or {}
-        sp = sdat.get("latest_short_pct") or sdat.get("short_interest_pct") or sdat.get("short_pct")
-        dtc = sdat.get("days_to_cover") or sdat.get("days_cover")
-        ff = f13_feed.get(e.get("ticker")) or {}
+        tk = e.get("ticker")
+        sdat = si_feed.get(tk) or {}
+        fv = fv_short.get((tk or "").upper()) or {}
+        # Prefer Finviz short float (whole-market) over the sparse FMP short feed
+        sp = fv.get("short_float_pct")
+        if sp is None:
+            sp = sdat.get("latest_short_pct") or sdat.get("short_interest_pct") or sdat.get("short_pct")
+        dtc = fv.get("short_ratio") or sdat.get("days_to_cover") or sdat.get("days_cover")
+        if e.get("rel_volume") is None and fv.get("rel_volume") is not None:
+            e["rel_volume"] = fv.get("rel_volume")   # fill rel-vol for quality flags
+        if fv.get("float_shares") is not None:
+            e["float_shares"] = fv.get("float_shares")
+        e["short_src"] = "finviz" if fv.get("short_float_pct") is not None else ("fmp" if sp is not None else None)
+        ff = f13_feed.get(tk) or {}
         if ff.get("n_funds_holding") is not None:
             e["sm_funds"] = ff.get("n_funds_holding")
         try:
