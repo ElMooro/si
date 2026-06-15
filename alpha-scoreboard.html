@@ -126,6 +126,58 @@
     table { font-size: 11px; }
     th, td { padding: 4px 6px; }
   }
+
+/* === research drawer + trust bar (added) === */
+tr.stk{cursor:pointer}
+tr.stk:hover>td{background:var(--bg-card-elev)}
+tr.stk .ticker::before{content:'\25b8';color:var(--text-muted);margin-right:6px;font-size:9px}
+tr.stk.open .ticker::before{content:'\25be'}
+tr.drawer-row>td{background:#0d0d0d;border-bottom:2px solid var(--accent);padding:0 !important}
+.dwrap{padding:18px 20px;max-width:1020px}
+.phdr{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+.phdr .px{font-size:22px;font-weight:800;color:var(--text)}
+.rt{font-size:12px;font-family:monospace}.rt.pos{color:var(--green)}.rt.neg{color:var(--red)}.rt i{color:var(--text-muted);font-style:normal;font-size:9px;margin-left:2px}
+.scorecard{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.scol{flex:1;min-width:220px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:11px 13px}
+.scol.bull{border-left:3px solid var(--green)}.scol.bear{border-left:3px solid var(--red)}
+.scol .hd{font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;font-family:monospace}
+.scol.bull .hd{color:var(--green)}.scol.bear .hd{color:var(--red)}.scol .hd b{font-size:16px}
+.scol ul{list-style:none;margin:0;padding:0}.scol li{font-size:11.5px;color:var(--text-dim);padding:2px 0 2px 14px;position:relative}
+.scol.bull li::before{content:'+';position:absolute;left:0;color:var(--green);font-weight:700}
+.scol.bear li::before{content:'\2212';position:absolute;left:0;color:var(--red);font-weight:700}
+.scol .none{color:var(--text-muted);font-style:italic;padding-left:0}.scol .none::before{content:''}
+.tbox{border-left:3px solid var(--green);padding:11px 15px;border-radius:0 8px 8px 0;font-size:13.5px;line-height:1.6;color:var(--text);background:rgba(34,197,94,0.05);margin-bottom:4px}
+.tbox.bearbox{border-color:var(--red);background:rgba(239,68,68,0.05);color:var(--text-dim);font-size:12.5px}
+.tbox .lbl{font-family:monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px;color:var(--green)}
+.tbox.bearbox .lbl{color:var(--red)}
+.kv{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.kv span{font-family:monospace;font-size:11px;color:var(--text-dim);background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:5px 10px}
+.kv span b{color:var(--text)}.kv span i{color:var(--text-muted);font-style:normal}
+.kv span.good b{color:var(--green)}.kv span.bad b{color:var(--red)}
+.dsec h4{font-family:monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px}
+.fintbl{width:100%;font-size:11.5px;border-collapse:collapse}.fintbl th,.fintbl td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)}.fintbl th{font-size:9px;color:var(--text-muted)}.fintbl td.l,.fintbl th.l{text-align:left}
+.fintbl td.pos{color:var(--green)}.fintbl td.neg{color:var(--red)}
+.dwrap .whatis{font-size:13px;color:var(--text-dim);line-height:1.6;margin:12px 0 4px}.dwrap .whatis b{color:var(--text)}
+.dlink2{display:inline-block;margin-top:14px;font-family:monospace;font-size:11.5px;color:var(--accent);border:1px solid var(--border);border-radius:6px;padding:7px 13px;text-decoration:none}
+.dlink2:hover{border-color:var(--accent)}
+.spark{display:block;margin:2px 0}
+.syschip2{display:inline-block;font-family:monospace;font-size:10px;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:2px 8px;margin:2px 4px 2px 0;opacity:.85}
+.trustbar{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 12px}
+.trustcard{flex:1;min-width:280px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 15px}
+.trustcard h4{font-family:monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.trk{display:flex;gap:18px;flex-wrap:wrap}.trk .w{font-family:monospace;font-size:12px}.trk .w b{font-size:15px;color:var(--text)}.trk .w i{color:var(--text-muted);font-style:normal;font-size:9px;display:block}
+.trk .w b.pos{color:var(--green)}.trk .w b.neg{color:var(--red)}
+.acc{font-family:monospace;font-size:11px;color:var(--amber);line-height:1.55}
+.concbanner{font-size:12.5px;color:var(--text);line-height:1.5}.concbanner b{color:var(--accent)}
+.ascb-explain{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.ascb-explain summary{cursor:pointer;padding:12px 16px;font-family:monospace;font-size:12px;color:var(--accent);list-style:none}
+.ascb-explain summary::-webkit-details-marker{display:none}
+.ascb-explain summary::before{content:'\25b8 ';color:var(--text-muted)}.ascb-explain[open] summary::before{content:'\25be '}
+.exp-body{padding:0 18px 16px;font-size:12.5px;color:var(--text-dim);line-height:1.7}.exp-body b{color:var(--text)}.exp-body i{color:var(--text-muted);font-style:normal}
+.chg{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chg .item{font-family:monospace;font-size:11px;border-radius:6px;padding:5px 10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-dim)}
+.chg .item.new{border-color:var(--blue);color:var(--blue)}
+
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#facc15">
@@ -204,6 +256,9 @@
       <span class="count" id="count">—</span>
     </div>
 
+    <div id="trustbar"></div>
+    <details class="ascb-explain"><summary>How to read this — and what the scorecard means</summary>
+    <div class="exp-body">This board surfaces stocks flagged by <b>several independent alpha systems at once</b> — convergence, not a single screen. Tap any row for full research: a plain-English thesis, the bear case, valuation on two axes (vs industry <i>and</i> vs the stock's own history), 10-year financials, quality &amp; solvency, who else is positioned, and an honest <b>bull/bear scorecard</b>. The scorecard lists the alpha systems backing it on one side and the fundamental red flags on the other — the disagreement is the useful part. More systems isn't automatically better; a name flagged by 6 systems with 4 red flags is a different bet than 6 systems and none. Track record below shows whether these calls have actually beaten SPY. Not investment advice.</div></details>
     <div id="tableHost"><div class="loader">Loading scoreboard…</div></div>
   </div>
 
@@ -218,10 +273,12 @@ const FEEDS = {
   deep_value:  'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/deep-value.json',
   macro:       'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/macro-nowcast.json',
   sectors:     'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/sector-rotation.json',
+  research:    'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/alpha-scoreboard-research.json',
 };
 
 let DATA = {};
 let ROWS = [];
+let RESEARCH = {}, RMETA = {}, OPEN = null;
 let SORT = { col: 'compound_score', dir: 'desc' };
 
 // SPY forward returns by regime (from existing memory in project)
@@ -391,6 +448,84 @@ function chipFor(systemName) {
   return `<span class="chip ${cls}">${systemName.replace(/_/g,' ')}</span>`;
 }
 
+
+function escA(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function r1A(v){return v==null?'\u2014':Math.round(v*10)/10;}
+function bnA(v){if(v==null)return'\u2014';const a=Math.abs(v),s=v<0?'-':'';if(a>=1e12)return s+'$'+(a/1e12).toFixed(2)+'T';if(a>=1e9)return s+'$'+(a/1e9).toFixed(1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(0)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+a;}
+function sparkA(vals,color){const v=(vals||[]).filter(x=>x!=null);if(v.length<2)return'';const w=180,h=34,mn=Math.min(...v),mx=Math.max(...v),rng=(mx-mn)||1;const pts=v.map((x,i)=>((i/(v.length-1))*w)+','+(h-2-((x-mn)/rng)*(h-4))).join(' ');return '<svg class="spark" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline fill="none" stroke="'+color+'" stroke-width="1.6" points="'+pts+'"/></svg>';}
+
+function drawer(sym){
+  const v=RESEARCH[sym]||{};
+  if(!Object.keys(v).length) return '<div class="dwrap"><div class="acc">Research for '+escA(sym)+' is generating \u2014 check back shortly.</div></div>';
+  const psp=v.price_spark||[];
+  const priceHdr = v.price!=null ? '<div class="phdr"><span class="px">$'+r1A(v.price)+'</span>'+
+    (v.ret_1m!=null?'<span class="rt '+(v.ret_1m>=0?'pos':'neg')+'">'+(v.ret_1m>=0?'+':'')+v.ret_1m+'%<i>1M</i></span>':'')+
+    (v.ret_3m!=null?'<span class="rt '+(v.ret_3m>=0?'pos':'neg')+'">'+(v.ret_3m>=0?'+':'')+v.ret_3m+'%<i>3M</i></span>':'')+
+    (psp.length>2?sparkA(psp,(v.ret_3m||0)>=0?'#22c55e':'#ef4444'):'')+'</div>':'';
+  const sb=v.flags_bull||[],sx=v.flags_bear||[];
+  const scorecard=(sb.length||sx.length)?'<div class="scorecard"><div class="scol bull"><div class="hd"><b>'+(v.score_bull||0)+'</b> bullish</div><ul>'+(sb.length?sb.map(function(x){return '<li>'+escA(x)+'</li>';}).join(''):'<li class="none">none</li>')+'</ul></div><div class="scol bear"><div class="hd"><b>'+(v.score_bear||0)+'</b> bearish</div><ul>'+(sx.length?sx.map(function(x){return '<li>'+escA(x)+'</li>';}).join(''):'<li class="none">no red flags</li>')+'</ul></div></div>':'';
+  const sysline=(v.systems&&v.systems.length)?'<div style="margin-bottom:10px">'+v.systems.map(function(s){return '<span class="syschip2">'+escA(s)+'</span>';}).join('')+'</div>':'';
+  const thesisHtml=v.thesis?'<div class="tbox"><span class="lbl">Why these systems converge \u2014 and the risk</span>'+escA(v.thesis)+'</div>':'<div class="tbox"><span class="lbl">Thesis</span><span style="color:var(--text-muted)">generating\u2026</span></div>';
+  const bearHtml=v.bear?'<div class="tbox bearbox"><span class="lbl">The bear case &amp; what would prove it wrong</span>'+escA(v.bear)+'</div>':'';
+  const what=v.desc?'<div class="whatis"><b>What it does.</b> '+escA(v.desc)+'</div>':'';
+  const peCls=(v.pe&&v.industry_pe)?(v.pe<v.industry_pe?'good':'bad'):'';
+  let val='<div class="kv">'+
+    '<span class="'+peCls+'">P/E <b>'+r1A(v.pe)+'</b> <i>vs ind '+(v.industry_pe==null?'\u2014':v.industry_pe)+'</i></span>'+
+    (v.pe_low!=null&&v.pe_high!=null?'<span class="'+(v.pe_pctile!=null?(v.pe_pctile<40?'good':v.pe_pctile>80?'bad':''):'')+'">own range <b>'+v.pe_low+'\u2013'+v.pe_high+'</b> <i>'+(v.pe_pctile!=null?v.pe_pctile+'th pctile':'')+'</i></span>':'')+
+    (v.peg!=null?'<span class="'+(v.peg<1?'good':v.peg>2?'bad':'')+'">PEG <b>'+v.peg+'</b></span>':'')+
+    (v.ev_ebitda!=null?'<span>EV/EBITDA <b>'+v.ev_ebitda+'\u00d7</b></span>':'')+
+    '<span>P/S <b>'+r1A(v.ps)+'</b></span>'+
+    '<span>Mkt cap <b>'+bnA(v.mkt_cap)+'</b></span>'+
+    (v.off_52w_high!=null?'<span>vs 52w hi <b>'+v.off_52w_high+'%</b></span>':'')+
+    (v.next_earnings?'<span>Earnings <b>'+escA(v.next_earnings)+'</b></span>':'')+
+    (v.beat_rate!=null?'<span class="'+(v.beat_rate>=70?'good':'')+'">Beats <b>'+v.beat_rate+'%</b> <i>'+v.beats_n+'Q</i></span>':'')+
+    '</div>';
+  let qb=[];
+  if(v.cash_conv!=null)qb.push('<span class="'+(v.cash_conv>=80?'good':v.cash_conv<50?'bad':'')+'">Cash conv <b>'+v.cash_conv+'%</b></span>');
+  if(v.accruals!=null)qb.push('<span class="'+(v.accruals>15?'bad':'')+'">Accruals <b>'+v.accruals+'%</b></span>');
+  if(v.net_debt_ebitda!=null)qb.push('<span class="'+(v.net_debt_ebitda>4?'bad':v.net_debt_ebitda<2?'good':'')+'">Net debt/EBITDA <b>'+v.net_debt_ebitda+'\u00d7</b></span>');
+  if(v.int_cov!=null)qb.push('<span class="'+(v.int_cov<3?'bad':'')+'">Int cover <b>'+v.int_cov+'\u00d7</b></span>');
+  if(v.cur_ratio!=null)qb.push('<span class="'+(v.cur_ratio<1?'bad':'')+'">Current <b>'+r1A(v.cur_ratio)+'</b></span>');
+  if(v.gm_trend!=null)qb.push('<span class="'+(v.gm_trend>0.5?'good':v.gm_trend<-0.5?'bad':'')+'">Gross margin <b>'+(v.gm_trend>0.5?'expanding':v.gm_trend<-0.5?'compressing':'flat')+'</b></span>');
+  if(v.seg_conc!=null)qb.push('<span class="'+(v.seg_conc>70?'bad':'')+'">Top segment <b>'+v.seg_conc+'%</b></span>');
+  if(v.acq_driven)qb.push('<span class="bad">\u26a0 Acquisition-driven</span>');
+  const quality=qb.length?'<div class="dsec"><h4>Quality &amp; solvency</h4><div class="kv">'+qb.join('')+'</div></div>':'';
+  let cb=[];
+  if(v.sm_funds!=null)cb.push('<span class="'+((v.sm_net||0)>0?'good':'')+'">\ud83c\udfe6 13F <b>'+v.sm_funds+' funds</b>'+(v.sm_net!=null?', '+(v.sm_net>=0?'+':'')+v.sm_net+' net':'')+'</span>');
+  if(v.short_pct!=null)cb.push('<span class="'+(v.short_pct>=20?'bad':'')+'">\ud83d\udcc9 Short <b>'+r1A(v.short_pct)+'%</b></span>');
+  if(v.insider_sig)cb.push('<span class="'+(v.insider_sig==='selling'?'bad':v.insider_sig==='buying'?'good':'')+'">\ud83d\udc64 Insiders <b>'+v.insider_sig+'</b></span>');
+  if(v.fwd_rev_growth!=null)cb.push('<span class="'+(v.fwd_rev_growth>0?'good':'bad')+'">\ud83d\udd2e Fwd rev <b>'+(v.fwd_rev_growth>=0?'+':'')+r1A(v.fwd_rev_growth)+'%</b></span>');
+  const conf=cb.length?'<div class="dsec"><h4>Confirmation \u2014 who else sees it</h4><div class="kv">'+cb.join('')+'</div></div>':'';
+  let finHtml='';const fins=v.financials||[];
+  if(fins.length){
+    const rows=fins.map(function(f){return '<tr><td class="l">'+escA(f.year)+'</td><td>'+bnA(f.revenue)+'</td><td>'+(f.gm==null?'\u2014':f.gm+'%')+'</td><td>'+(f.om==null?'\u2014':f.om+'%')+'</td><td class="'+((f.nm||0)>=0?'pos':'neg')+'">'+(f.nm==null?'\u2014':f.nm+'%')+'</td><td class="'+((f.fcf||0)>=0?'pos':'neg')+'">'+bnA(f.fcf)+'</td><td>'+(f.eps==null?'\u2014':'$'+r1A(f.eps))+'</td></tr>';}).join('');
+    finHtml='<div class="dsec"><h4>10-year financials</h4>'+sparkA(fins.map(function(f){return f.revenue;}),'#3b82f6')+'<table class="fintbl"><thead><tr><th class="l">Year</th><th>Revenue</th><th>Gross%</th><th>Op%</th><th>Net%</th><th>Free cash flow</th><th>EPS</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+  const chartLink='<a class="dlink2" href="/chart-pro.html?ticker='+encodeURIComponent(sym)+'">Open full chart &amp; technicals \u2197</a>';
+  return '<div class="dwrap">'+priceHdr+sysline+scorecard+thesisHtml+bearHtml+what+val+quality+conf+finHtml+chartLink+'</div>';
+}
+
+function renderTrust(){
+  const tr=RMETA.track_record,c=RMETA.concentration,ch=RMETA.changes;let html='';
+  if(tr){
+    const w=tr.windows||{};let inner;
+    if(Object.keys(w).length){
+      inner='<div class="trk">'+[['d5','5-day'],['d21','21-day'],['d63','63-day']].filter(function(x){return w[x[0]];}).map(function(x){const o=w[x[0]];return '<span class="w"><b class="'+(o.avg_excess>=0?'pos':'neg')+'">'+o.hit_rate+'% beat SPY</b><i>'+x[1]+' \u00b7 '+(o.avg_excess>=0?'+':'')+o.avg_excess+'% excess \u00b7 n='+o.n+'</i></span>';}).join('')+'</div>';
+    }else{
+      inner='<div class="acc">Accumulating \u2014 '+tr.n_calls+' call'+(tr.n_calls===1?'':'s')+' logged since '+escA(tr.first_date||'today')+'. Grades appear as calls mature (5-day ~1wk, 21-day ~3wk). No look-ahead \u2014 only real dated forward returns vs SPY are scored.</div>';
+    }
+    html+='<div class="trustcard"><h4>Scoreboard track record vs SPY</h4>'+inner+'</div>';
+  }
+  if(c&&c.dominant_sector&&c.count>=Math.ceil((c.of||10)*0.4)){
+    html+='<div class="trustcard"><h4>Concentration check</h4><div class="concbanner"><b>'+c.count+' of the top '+c.of+'</b> are <b>'+escA(c.dominant_sector)+'</b> \u2014 the board is leaning one way. Size accordingly, this is less diversified than it looks.</div></div>';
+  }
+  if(ch&&!ch.first_run&&(((ch.new||[]).length)||((ch.dropped||[]).length))){
+    const items=[].concat((ch.new||[]).map(function(t){return '<span class="item new">+ '+escA(t)+' new</span>';}),(ch.dropped||[]).map(function(t){return '<span class="item">\u2212 '+escA(t)+' dropped</span>';}));
+    html+='<div class="trustcard"><h4>What changed</h4><div class="chg">'+items.join('')+'</div></div>';
+  }
+  const el=document.getElementById('trustbar'); if(el) el.innerHTML=html;
+}
+
 function renderTable() {
   const rows = applySort(applyFilters(ROWS));
   document.getElementById('count').textContent = `${rows.length} names`;
@@ -430,7 +565,7 @@ function renderTable() {
       ? `<span class="${fromHi < -20 ? 'num-neg' : (fromHi < -10 ? '' : 'num-pos')}">${fmtPct(fromHi, 1)}</span>`
       : '<span class="small">—</span>';
     return `
-      <tr class="${r.n_systems >= 5 ? 'highlight' : ''}">
+      <tr class="stk ${r.n_systems >= 5 ? 'highlight' : ''} ${OPEN===r.symbol?'open':''}" data-sym="${r.symbol||''}">
         <td>
           <div class="ticker">${r.symbol||'?'}</div>
           ${r.name ? `<div class="name">${(r.name||'').slice(0,28)}</div>` : ''}
@@ -452,6 +587,7 @@ function renderTable() {
         <td class="small">${r.sector || '—'}</td>
         <td>$${fmt(r.asym_mcap, 0)}</td>
       </tr>
+      ${OPEN===r.symbol ? `<tr class="drawer-row"><td colspan="13">${drawer(r.symbol)}</td></tr>` : ''}
     `;
   }).join('');
 
@@ -459,6 +595,10 @@ function renderTable() {
     <table><thead><tr>${thead}</tr></thead><tbody>${tbody || '<tr><td colspan="13" class="loader">No matches</td></tr>'}</tbody></table>
   `;
 
+  document.querySelectorAll('tr.stk').forEach(tr => tr.addEventListener('click', (e) => {
+    if (e.target.closest('a')) return;
+    const s = tr.dataset.sym; OPEN = (OPEN === s) ? null : s; renderTable();
+  }));
   document.querySelectorAll('th[data-col]').forEach(th => {
     th.addEventListener('click', () => {
       const c = th.dataset.col;
@@ -529,9 +669,12 @@ function populateSectorFilter() {
 
 async function load() {
   await loadAll();
+  RESEARCH = (DATA.research && DATA.research.by_ticker) || {};
+  RMETA = DATA.research || {};
   ROWS = buildRows();
   renderHeader();
   populateSectorFilter();
+  renderTrust();
   renderTable();
 }
 
