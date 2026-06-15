@@ -1,9 +1,14 @@
-invoke: 200 err: None
-payload: {"statusCode": 200, "body": "{\"n_tickers\": 11302, \"short_float\": 5751, \"float\": 5778, \"rel_volume\": 11269, \"elapsed_s\": 6.6}"}
-universe: n_tickers=11302 n_with_short_float=5751
-  MU    short_float=3.34 short_ratio=0.74 float=1122.72 rel_vol=0.88 rsi=66.56 perf_m=40.2 pe=51.37
-  NVDA  short_float=1.23 short_ratio=1.72 float=23210.6 rel_vol=0.91 rsi=51.29 perf_m=-9.88 pe=32.54
-  GME   short_float=14.41 short_ratio=7.7 float=409.09 rel_vol=0.62 rsi=43.86 perf_m=0.6 pe=16.56
-  AMC   short_float=10.28 short_ratio=1.85 float=574.88 rel_vol=1.25 rsi=67.68 perf_m=70.15 pe=None
-  TSLA  short_float=2.64 short_ratio=1.31 float=2913.95 rel_vol=0.77 rsi=50.56 perf_m=-7.25 pe=375.62
-slim short index: 5751 tickers
+token received: length=36 (value NOT printed — public log)
+stored SSM /justhodl/finviz/auth-token (SecureString)
+
+[Overview v=111] http=200 rows=784 csv=True
+  columns(11): ['No.', 'Ticker', 'Company', 'Sector', 'Industry', 'Country', 'Market Cap', 'P/E', 'Price', 'Change', 'Volume']
+  sample row: 1,"AAOI","Applied Optoelectronics Inc","Technology","Communication Equipment","USA",15370.50,,191.55,13.31%,14588906
+
+[Ownership v=131 (short float)] http=200 rows=784 csv=True
+  columns(15): ['No.', 'Ticker', 'Market Cap', 'Shares Outstanding', 'Shares Float', 'Insider Ownership', 'Insider Transactions', 'Institutional Ownership', 'Institutional Transactions', 'Short Float', 'Short Ratio', 'Average Volume', 'Price', 'Change', 'Volume']
+  sample row: 1,"AAOI",15370.50,78.97,75.51,5.90%,-11.64%,72.13%,12.40%,13.29%,0.79,12772.38,191.55,13.31%,14588906
+
+[Custom v=152 short-float cols] http=200 rows=784 csv=True
+  columns(11): ['No.', 'Ticker', 'Company', 'Sector', 'Industry', 'Country', 'Market Cap', 'P/E', 'Volume', 'Price', 'Change']
+  sample row: 1,"AAOI","Applied Optoelectronics Inc","Technology","Communication Equipment","USA",15370.50,,14588906,191.55,13.31%
