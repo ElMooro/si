@@ -1,0 +1,15 @@
+import json, urllib.request
+u="https://justhodl-data-proxy.raafouis.workers.dev/data/bottleneck-boom-research.json"
+r=urllib.request.Request(u,headers={"User-Agent":"JustHodl/1.0"})
+d=json.loads(urllib.request.urlopen(r,timeout=20).read())
+bt=d.get("by_ticker",{})
+def cov(f): return sum(1 for v in bt.values() if (v.get(f) not in (None,"",[],{})))
+def covfin(f): return sum(1 for v in bt.values() if any(x.get(f) is not None for x in (v.get("financials") or [])))
+print(f"proxy live: {len(bt)} tickers, {d.get('new_theses')} theses regenerated last run")
+print("CLUSTER 1 (financials):  gm",covfin("gm"),"| om",covfin("om"),"| fcf",covfin("fcf"),"| shares",covfin("shares"))
+print("CLUSTER 2 (decision):    trap",cov("trap"),"| 52w",cov("off_52w_high"),"| earnings",cov("next_earnings"),"| gm_trend",cov("gm_trend"))
+print("CLUSTER 3 (confirm):     short",cov("short_pct"),"| smart-money",cov("sm_funds"),"| fwd-growth",cov("fwd_rev_growth"),"| value-chain",cov("chain"))
+v=bt.get("VST",{})
+print(f"\nVST full record sample: trap={v.get('trap')} 52w_high={v.get('off_52w_high')}% earnings={v.get('next_earnings')} gm_trend={v.get('gm_trend')}pp")
+print(f"  smart-money: {v.get('sm_funds')} funds, +{v.get('sm_net')} net adding | chain={(v.get('chain') or {}).get('chain')} +{(v.get('chain') or {}).get('catchup')}% catch-up")
+print(f"  thesis present: {bool(v.get('thesis'))} | 10yr financials: {len(v.get('financials') or [])} years")
