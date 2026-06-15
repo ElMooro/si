@@ -1,7 +1,13 @@
-track-record snapshots: 29 files, latest: data/track-record/snapshots/2026-06-14.json
-signal-backtest top keys: ['engine', 'version', 'generated_at', 'duration_s', 'n_observations', 'snapshots_used', 'maturity', 'overall', 'by_verdict', 'by_compounder_bucket', 'by_cap_bucket', 'by_revision', 'by_valuation_vs_peer', 'by_cheap_x_improving', 'note']
-  has by_verdict: ['STRONG OPPORTUNITY', 'OPPORTUNITY', 'HIGH RISK', 'FAIR VALUE', 'EXPENSIVE', 'HOLD / NEUTRAL']
-justhodl-signals sample item keys: [['metadata', 'logged_at', 'signal_id', 'horizon_days_primary', 'check_windows', 'ticker', 'direction', 'source', 'conviction', 'ts_iso', 'baseline_price'], ['benchmark', 'signal_type', 'metadata', 'logged_at', 'check_windows', 'horizon_days_primary', 'predicted_direction', 'regime_at_log', 'status', 'ttl', 'predicted_magnitude_pct', 'supporting_signals', 'last_checked', 'logged_epoch', 'signal_value', 'confidence', 'baseline_benchmark_price', 'outcomes', 'baseline_price', 'check_timestamps', 'khalid_score_at_log', 'predicted_target_price', 'ka_score_at_log', 'rationale', 'signal_id', 'accuracy_scores', 'measure_against', 'schema_version']]
-  sample item: {"metadata": {"mcap_to_rev": {"N": "0.41"}, "flag": {"S": "MARGINAL"}, "net_cash_pct": {"N": "0.193"}, "rev_yield": {"N": "2.425"}}, "logged_at": "1778537171", "signal_id": "deepvalue_ELV_1778537171", "horizon_days_primary": "180", "check_windows": [{"N": "180"}, {"N": "360"}], "ticker": "ELV", "dir
-data/bottleneck-track-record.json: none
-data/bottleneck-boom-outcomes.json: none
+bottleneck_boom signals found: 10
+with outcomes: 10
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/1652_inspect_bn_outcomes.py", line 26, in <module>
+    s=D(items[0]); print("\nfields:", sorted(s.keys()))
+      ^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/pending/1652_inspect_bn_outcomes.py", line 20, in D
+    return {k:v(val) for k,val in it.items()}
+              ^^^^^^
+  File "/home/runner/work/si/si/aws/ops/pending/1652_inspect_bn_outcomes.py", line 17, in v
+    if t=="M": return {k:v(z) for k,v in val.items()} if False else {k:v2 for k,v2 in [(k2,v(z2)) for k2,z2 in val.items()]}
+                                                                                           ^
+UnboundLocalError: cannot access local variable 'v' where it is not associated with a value
