@@ -78,6 +78,43 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .glossary dd{margin:2px 0 0;color:var(--mute)}
 .timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
 .empty{color:var(--dim);font-size:12px;padding:8px 2px}
+
+/* === deep research drawer (added) === */
+details.deep{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+details.deep>summary{cursor:pointer;list-style:none;font-family:monospace;font-size:11px;color:var(--cyan);padding:3px 0;letter-spacing:.3px}
+details.deep>summary::-webkit-details-marker{display:none}
+details.deep>summary::before{content:'\25b8 ';color:var(--dim)}
+details.deep[open]>summary::before{content:'\25be '}
+.deepbody{padding:10px 2px 2px}
+.dphdr{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.dpx{font-size:19px;font-weight:800;color:var(--txt)}
+.drt{font-family:monospace;font-size:11px}.drt.up{color:var(--green)}.drt.dn{color:var(--red)}.drt i{color:var(--dim);font-style:normal;font-size:8.5px;margin-left:2px}
+.dscore{display:flex;gap:10px;margin-bottom:11px;flex-wrap:wrap}
+.dscol{flex:1;min-width:150px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:9px 11px}
+.dscol.bull{border-left:3px solid var(--green)}.dscol.bear{border-left:3px solid var(--red)}
+.dscol .dhd{font-family:monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.dscol.bull .dhd{color:var(--green)}.dscol.bear .dhd{color:var(--red)}.dscol .dhd b{font-size:14px}
+.dscol ul{list-style:none;margin:0;padding:0}.dscol li{font-size:11px;color:var(--mute);padding:2px 0 2px 13px;position:relative;line-height:1.35}
+.dscol.bull li::before{content:'+';position:absolute;left:0;color:var(--green);font-weight:700}
+.dscol.bear li::before{content:'\2212';position:absolute;left:0;color:var(--red);font-weight:700}
+.dscol li.z{color:var(--dim);font-style:italic}.dscol li.z::before{content:''}
+.dbox{border-left:3px solid var(--green);background:rgba(38,255,175,.05);padding:10px 13px;border-radius:0 7px 7px 0;font-size:13px;line-height:1.6;color:var(--txt);margin-bottom:6px}
+.dbox.bear{border-color:var(--red);background:rgba(255,85,119,.05);color:var(--mute);font-size:12px}
+.dbox .dlbl{display:block;font-family:monospace;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--green);margin-bottom:4px}
+.dbox.bear .dlbl{color:var(--red)}
+.dsub{margin-top:11px}.dsub h5{font-family:monospace;font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin:0 0 6px}
+.dkv{display:flex;flex-wrap:wrap;gap:6px}
+.dkv span{font-family:monospace;font-size:10.5px;color:var(--mute);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 9px}
+.dkv span b{color:var(--txt)}.dkv span i{color:var(--dim);font-style:normal}
+.dkv span.g b{color:var(--green)}.dkv span.b b{color:var(--red)}
+.dfin{width:100%;border-collapse:collapse;font-size:10.5px;margin-top:3px}
+.dfin th,.dfin td{padding:4px 7px;text-align:right;border-bottom:1px solid var(--line)}
+.dfin th{font-size:8.5px;color:var(--dim);font-weight:600}.dfin td.l,.dfin th.l{text-align:left}
+.dfin td.up{color:var(--green)}.dfin td.dn{color:var(--red)}
+.dspark{display:block;margin:2px 0 4px}
+.dchart{display:inline-block;margin-top:11px;font-family:monospace;font-size:10.5px;color:var(--cyan);border:1px solid var(--line);border-radius:6px;padding:6px 11px;text-decoration:none}
+.dchart:hover{border-color:var(--cyan)}
+
 </style>
 </head>
 <body>
@@ -134,10 +171,11 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 </div>
 <script>
 const URL_="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/opportunities.json";
+const RESEARCH_URL="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/opportunities-research.json";
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const BC={green:"b-green",cyan:"b-cyan",yellow:"b-yellow",orange:"b-orange",red:"b-red",dim:"b-dim"};
 const BORDER={green:"#26ffaf",cyan:"#00d4ff",yellow:"#ffd266",orange:"#ff7a18",red:"#ff5577",dim:"#1c2433"};
-let DATA=null, BYSYM={}, FILTER={sector:"",verdict:""};
+let DATA=null, BYSYM={}, RESEARCH={}, FILTER={sector:"",verdict:""};
 
 /* ── watchlist (saved on this device) ── */
 const WL=()=>{try{return JSON.parse(localStorage.getItem("jh_watchlist")||"[]")}catch{return[]}};
@@ -240,6 +278,46 @@ function cycBadge(r){
   const cls=t==="EARLY CYCLE"?"cyc-early":"cyc-late";
   return `<span class="cyc ${cls}">${esc(t)}</span>`;
 }
+
+function _bn(v){if(v==null)return '\u2014';const a=Math.abs(v),s=v<0?'-':'';if(a>=1e12)return s+'$'+(a/1e12).toFixed(2)+'T';if(a>=1e9)return s+'$'+(a/1e9).toFixed(1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(0)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+a;}
+function _r1(v){return v==null?'\u2014':Math.round(v*10)/10;}
+function _spark(vals,color){const v=(vals||[]).filter(x=>x!=null);if(v.length<2)return'';const w=170,h=32,mn=Math.min(...v),mx=Math.max(...v),rng=(mx-mn)||1;const pts=v.map((x,i)=>((i/(v.length-1))*w)+','+(h-2-((x-mn)/rng)*(h-4))).join(' ');return '<svg class="dspark" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline fill="none" stroke="'+color+'" stroke-width="1.6" points="'+pts+'"/></svg>';}
+function deepDrawer(tk){
+  const v=RESEARCH[tk]; if(!v||!v.thesis) return '';
+  const psp=v.price_spark||[];
+  const ph=v.price!=null?'<div class="dphdr"><span class="dpx">$'+_r1(v.price)+'</span>'+
+    (v.ret_1m!=null?'<span class="drt '+(v.ret_1m>=0?'up':'dn')+'">'+(v.ret_1m>=0?'+':'')+v.ret_1m+'%<i>1M</i></span>':'')+
+    (v.ret_3m!=null?'<span class="drt '+(v.ret_3m>=0?'up':'dn')+'">'+(v.ret_3m>=0?'+':'')+v.ret_3m+'%<i>3M</i></span>':'')+
+    (psp.length>2?_spark(psp,(v.ret_3m||0)>=0?'#26ffaf':'#ff5577'):'')+'</div>':'';
+  const sb=v.flags_bull||[],sx=v.flags_bear||[];
+  const score='<div class="dscore"><div class="dscol bull"><div class="dhd"><b>'+(v.score_bull||0)+'</b> for</div><ul>'+(sb.length?sb.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li class="z">none</li>')+'</ul></div>'+
+    '<div class="dscol bear"><div class="dhd"><b>'+(v.score_bear||0)+'</b> against</div><ul>'+(sx.length?sx.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li class="z">no red flags</li>')+'</ul></div></div>';
+  const th='<div class="dbox"><span class="dlbl">The plain-English case \u2014 and the main risk</span>'+esc(v.thesis)+'</div>';
+  const be=v.bear?'<div class="dbox bear"><span class="dlbl">Why it might be cheap for a reason \u2014 and the tell</span>'+esc(v.bear)+'</div>':'';
+  let qb=[];
+  if(v.cash_conv!=null)qb.push('<span class="'+(v.cash_conv>=80?'g':v.cash_conv<50?'b':'')+'">Cash conv <b>'+v.cash_conv+'%</b></span>');
+  if(v.accruals!=null)qb.push('<span class="'+(v.accruals>15?'b':'')+'">Accruals <b>'+v.accruals+'%</b></span>');
+  if(v.net_debt_ebitda!=null)qb.push('<span class="'+(v.net_debt_ebitda>4?'b':v.net_debt_ebitda<2?'g':'')+'">Net debt/EBITDA <b>'+v.net_debt_ebitda+'\u00d7</b></span>');
+  if(v.int_cov!=null)qb.push('<span class="'+(v.int_cov<3?'b':'')+'">Int cover <b>'+v.int_cov+'\u00d7</b></span>');
+  if(v.cur_ratio!=null)qb.push('<span class="'+(v.cur_ratio<1?'b':'')+'">Current <b>'+_r1(v.cur_ratio)+'</b></span>');
+  if(v.beat_rate!=null)qb.push('<span class="'+(v.beat_rate>=70?'g':'')+'">Beats <b>'+v.beat_rate+'%</b> <i>'+v.beats_n+'Q</i></span>');
+  if(v.pe_pctile!=null)qb.push('<span class="'+(v.pe_pctile<40?'g':v.pe_pctile>80?'b':'')+'">P/E own range <b>'+v.pe_pctile+'th</b> <i>pctile</i></span>');
+  const qual=qb.length?'<div class="dsub"><h5>Quality &amp; solvency \u2014 the trap-killers</h5><div class="dkv">'+qb.join('')+'</div></div>':'';
+  let cb=[];
+  if(v.sm_funds!=null)cb.push('<span class="'+((v.sm_net||0)>0?'g':'')+'">\ud83c\udfe6 13F <b>'+v.sm_funds+' funds</b>'+(v.sm_net!=null?', '+(v.sm_net>=0?'+':'')+v.sm_net+' net':'')+'</span>');
+  if(v.short_pct!=null)cb.push('<span class="'+(v.short_pct>=20?'b':'')+'">\ud83d\udcc9 Short <b>'+_r1(v.short_pct)+'%</b></span>');
+  if(v.insider_sig)cb.push('<span class="'+(v.insider_sig==='selling'?'b':v.insider_sig==='buying'?'g':'')+'">\ud83d\udc64 Insiders <b>'+v.insider_sig+'</b></span>');
+  if(v.fwd_rev_growth!=null)cb.push('<span class="'+(v.fwd_rev_growth>0?'g':'b')+'">\ud83d\udd2e Fwd rev <b>'+(v.fwd_rev_growth>=0?'+':'')+_r1(v.fwd_rev_growth)+'%</b></span>');
+  const conf=cb.length?'<div class="dsub"><h5>Confirmation \u2014 who else is positioned</h5><div class="dkv">'+cb.join('')+'</div></div>':'';
+  let fin='';const F=v.financials||[];
+  if(F.length){
+    const rows=F.map(f=>'<tr><td class="l">'+esc(f.year)+'</td><td>'+_bn(f.revenue)+'</td><td>'+(f.gm==null?'\u2014':f.gm+'%')+'</td><td>'+(f.om==null?'\u2014':f.om+'%')+'</td><td class="'+((f.nm||0)>=0?'up':'dn')+'">'+(f.nm==null?'\u2014':f.nm+'%')+'</td><td class="'+((f.fcf||0)>=0?'up':'dn')+'">'+_bn(f.fcf)+'</td><td>'+(f.eps==null?'\u2014':'$'+_r1(f.eps))+'</td></tr>').join('');
+    fin='<div class="dsub"><h5>10-year financials</h5>'+_spark(F.map(f=>f.revenue),'#00d4ff')+'<table class="dfin"><thead><tr><th class="l">Year</th><th>Revenue</th><th>Gross</th><th>Op</th><th>Net</th><th>Free cash</th><th>EPS</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+  const cl='<a class="dchart" href="/chart-pro.html?ticker='+encodeURIComponent(tk)+'">Open full chart &amp; technicals \u2197</a>';
+  return '<details class="deep"><summary>\ud83d\udd2c Deep research \u2014 thesis, financials, scorecard</summary><div class="deepbody">'+ph+score+th+be+qual+conf+fin+cl+'</div></details>';
+}
+
 function card(r,full){
   const bc=BC[r.verdict_color]||"b-dim";
   const ops=(r.opportunities||[]).map(o=>`<li class="pos"><span class="ic">▲</span><span>${esc(o)}</span></li>`).join("");
@@ -281,6 +359,7 @@ function card(r,full){
     </div>
     ${growthPanel(r)}
     ${extra}
+    ${deepDrawer(r.ticker)}
   </div>`;
 }
 
@@ -342,6 +421,7 @@ function buildFilters(){
   try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)DATA=await r.json();}catch{}
   if(!DATA){document.getElementById("top").innerHTML=`<div class="loading">AWAITING FIRST RUN — the engine runs daily at 14:00 UTC.</div>`;document.getElementById("avoid").innerHTML="";return;}
   (DATA.all||[]).forEach(r=>{BYSYM[r.ticker]=r;});
+  try{const rr=await fetch(RESEARCH_URL+"?t="+Date.now());if(rr.ok){const rj=await rr.json();RESEARCH=(rj&&rj.by_ticker)||{};}}catch{}
 
   const vc=DATA.verdict_counts||{};
   document.getElementById("kpi").innerHTML=
