@@ -1,15 +1,9 @@
-13F aggregate_by_ticker: type dict n 8250
-  coverage: ['VST', 'AVGO']
-  sample VST : {"ticker": "VST", "cusip": "92189F106", "name": "Vistra Corp", "n_funds_holding": 6, "total_value": 2028942527, "n_funds_adding": 5, "n_funds_trimming": 1, "n_funds_new_position": 0, "n_funds_exiting": 0, "fund_actions": [{"fund": "RENAISSANCE", "fund_name": "
+invoked
+READY 20s new=0 dur=2.3s
+confirmation coverage: short 7/30 | smart-money 3/30 | fwd-growth 4/30 | value-chain 4/30
 
-fwd_rev_growth: type dict n 713
-  coverage: ['ARM', 'HEI']
-  samples: {'ARM': 56.2, 'HEI': 8.2}
+VST: short=None%/None | funds=6 net_adding=4 new=0 val=2028942527 | fwd_growth=None | chain={'chain': 'AI', 'role': 'next-up laggard', 'catchup': 42.22, 'own_30d': -5.16, 'leader_30d': 35.47}
 
-rotation chains: n 11
-  chain key sample: AI
-  chain struct: {"chain": "AI", "current_leader_tier": 2, "leader_perf_30d_pct": 35.47, "leader_breadth_pct": 100.0, "leader_volume_ratio": 1.08, "rotation_confidence": 75, "next_tier": 3, "next_tier_perf_30d": -6.75, "next_tier_breadth": 16.7, "next_tier_volume": 1.15, "expected_catchup_pct": 42.22, "next_up_tickers": [{"ticker": "VST", "own_30d_pct": -5.16, "own_60d_pct": -6.53, "leader_30d_pct": 35.47, "lag_pc
-  bottleneck tickers found in chains: {'VST': ['AI'], 'CEG': ['AI'], 'PWR': ['AI']}
+MU: short=32.29%/NEUTRAL | funds=None net_adding=None new=None val=None | fwd_growth=None | chain=None
 
-insider-buys-enriched summary type: dict
-   {"total_clusters_in_source": 17, "eligible_for_enrichment": 4, "enriched_returned": 4, "high_conviction": 0, "medium_high_conviction": 2}
+CEG: short=None%/None | funds=None net_adding=None new=None val=None | fwd_growth=None | chain={'chain': 'AI', 'role': 'next-up laggard', 'catchup': 42.22, 'own_30d': -12.96, 'leader_30d': 35.47}
