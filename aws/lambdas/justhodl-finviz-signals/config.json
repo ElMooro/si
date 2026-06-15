@@ -1,6 +1,12 @@
 {
-  "timeout": 120,
-  "schedule": "cron(20 14,22 * * ? *)",
-  "description": "Finviz technical signals \u2014 SMA200/50 crossovers, golden/death cross, momentum leaders, unusual volume, RSI extremes, 52w-high proximity (computed from finviz-universe, zero extra API calls)",
-  "memory": 512
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 180,
+  "memory": 256,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "schedule": {
+    "rule_name": "finviz-signals-3x",
+    "cron": "cron(0 14,18,21 * * ? *)",
+    "description": "Finviz prebuilt signal screens (MA cross, momentum, breakout, insider, unusual vol) 3x trading day"
+  }
 }

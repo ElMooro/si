@@ -175,3 +175,31 @@ def load_short():
         return json.loads(_s3.get_object(Bucket=BUCKET, Key=SHORT_KEY)["Body"].read()).get("by_ticker", {})
     except Exception:
         return {}
+
+
+def fetch_screen(qs, view="152", cols="1,2,3,6,43,46,63,65,66,67,61", timeout=40):
+    """Generic screen pull for signals: qs is a raw fragment like 's=ta_newhigh' or 'f=ta_sma50_cross200a'.
+    Default custom cols = Ticker,Company,Sector,MktCap,PerfMonth,PerfYTD,RelVol,Price,Change,Volume,Recom.
+    Returns slim list[dict] of normalized rows. Caller should space calls (Finviz 429s on rapid bursts)."""
+    url = "%s?v=%s&c=%s&%s&auth=%s" % (BASE, view, cols, qs, _token())
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; justhodl/1.0)"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        body = r.read().decode("utf-8", "ignore")
+    head = body.split("\n", 1)[0]
+    if "Ticker" not in head:
+        raise RuntimeError("finviz screen non-CSV (auth/rate-limit): " + head[:80])
+    out = []
+    for raw in csv.DictReader(io.StringIO(body)):
+        tk = (raw.get("Ticker") or "").strip().upper()
+        if not tk:
+            continue
+        rec = {"ticker": tk}
+        for rawk, val in raw.items():
+            m = COLMAP.get(rawk)
+            if not m or m[0] == "ticker":
+                continue
+            pv = m[1](val)
+            if pv is not None:
+                rec[m[0]] = pv
+        out.append(rec)
+    return out
