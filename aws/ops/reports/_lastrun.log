@@ -1,14 +1,12 @@
-FINVIZ_AUTH present: length 36
-stored -> SSM /justhodl/finviz/auth-token (SecureString)
-
-=== validation ===
-[user-screen/export.ashx] HTTP 200 ct=text/csv rows=144 cols=11 csv=True
-   header: "No.","Ticker","Company","Sector","Industry","Country","Market Cap","P/E","Price","Change","Volume"
-[whole-universe-overview/export.ashx] HTTP 200 ct=text/csv rows=11302 cols=11 csv=True
-   header: "No.","Ticker","Company","Sector","Industry","Country","Market Cap","P/E","Price","Change","Volume"
-[ownership(short-float)/export.ashx] HTTP 200 ct=text/csv rows=11302 cols=18 csv=True
-   header: "No.","Ticker","Market Cap","Dividend Yield","Return on Assets","Return on Equity","Return on Invested Capital","Current Ratio","Quick Ratio","LT Debt/Equity","Total Debt/Equity","Gross Margin","Operating Margin","Profit
-[performance(relvol/recom)/export.ashx] HTTP 200 ct=text/csv rows=11302 cols=15 csv=True
-   header: "No.","Ticker","Beta","Average True Range","20-Day Simple Moving Average","50-Day Simple Moving Average","200-Day Simple Moving Average","52-Week High","52-Week Low","Relative Strength Index (14)","Price","Change","Chang
-[technical(rsi/sma)/export.ashx] HTTP 200 ct=text/csv rows=11302 cols=18 csv=True
-   header: "No.","Ticker","Performance (Week)","Performance (Month)","Performance (Quarter)","Performance (Half Year)","Performance (YTD)","Performance (Year)","Performance (3 Years)","Performance (5 Years)","Performance (10 Years)
+[v=131 ownership] rows=11302 cols=15
+    "No.","Ticker","Market Cap","Shares Outstanding","Shares Float","Insider Ownership","Insider Transactions","Institutional Ownership","Institutional Transactions","Short Float","Short Ratio","Average Volume","Price","Change","Volume"
+    -> HAS: Short
+    -> HAS: Float
+    -> HAS: Insider
+    -> HAS: Institutional
+[v=121 valuation] rows=11302 cols=18
+    "No.","Ticker","Market Cap","P/E","Forward P/E","PEG","P/S","P/B","P/Cash","P/Free Cash Flow","EPS Growth This Year","EPS Growth Next Year","EPS Growth Past 5 Years","EPS Growth Next 5 Years","Sales Growth Past 5 Years","Price","Change","Volume"
+[v=152 custom-test] rows=11302 cols=15
+    "Ticker","Company","Sector","Industry","Market Cap","P/E","Price","Change","Volume","Earnings Date","Target Price","IPO Date","Index","Prev Close","Short Interest"
+    -> HAS: Short
+    -> HAS: Target Price
