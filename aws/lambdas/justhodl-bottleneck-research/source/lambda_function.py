@@ -195,17 +195,29 @@ def fetch_financials(tk):
     if cur_ratio is None:
         ca = num(bs0.get("totalCurrentAssets")); cl = num(bs0.get("totalCurrentLiabilities"))
         cur_ratio = round(ca / cl, 2) if (ca and cl) else None
-    int_cov = num(r.get("interestCoverageTTM"))
+    inc0 = (inc[0] if isinstance(inc, list) and inc else {}) or {}
+    debt = num(bs0.get("totalDebt")); cash = num(bs0.get("cashAndCashEquivalents"))
+    ebitda = num(inc0.get("ebitda"))
+    if ebitda is None:
+        _oi = num(inc0.get("operatingIncome")); _da = num(inc0.get("depreciationAndAmortization"))
+        ebitda = (_oi + _da) if (_oi is not None and _da is not None) else None
     net_debt_ebitda = num(r.get("netDebtToEBITDATTM"))
-    if net_debt_ebitda is None:
-        debt = num(bs0.get("totalDebt")); cash = num(bs0.get("cashAndCashEquivalents"))
-        ebitda = num((inc[0] if isinstance(inc, list) and inc else {}).get("ebitda"))
-        if debt is not None and ebitda:
-            net_debt_ebitda = round((debt - (cash or 0)) / ebitda, 2)
-
-    # --- valuation depth (PEG, EV/EBITDA) ---
-    peg = num(r.get("priceEarningsToGrowthRatioTTM"))
-    ev_ebitda = num(r.get("enterpriseValueOverEBITDATTM")) or num(r.get("evToEBITDATTM"))
+    if net_debt_ebitda is None and debt is not None and ebitda:
+        net_debt_ebitda = round((debt - (cash or 0)) / ebitda, 2)
+    # interest coverage = operating income / interest expense
+    op_inc = num(inc0.get("operatingIncome")); int_exp = num(inc0.get("interestExpense"))
+    int_cov = None
+    if op_inc is not None and int_exp and abs(int_exp) > 0:
+        int_cov = round(op_inc / abs(int_exp), 1)
+    # --- valuation depth (EV/EBITDA, PEG) computed from statements ---
+    mc = num(p.get("mktCap") or p.get("marketCap"))
+    ev_ebitda = round((mc + (debt or 0) - (cash or 0)) / ebitda, 1) if (ebitda and mc is not None) else None
+    peg = None
+    _eps = [f.get("eps") for f in fins if f.get("eps") is not None]
+    if cur_pe and len(_eps) >= 2 and _eps[-2] and _eps[-2] > 0 and _eps[-1] is not None:
+        _g = (_eps[-1] / _eps[-2] - 1) * 100
+        if _g and _g > 0:
+            peg = round(cur_pe / _g, 2)
 
     # --- inorganic-growth flag (large recent acquisitions vs revenue) ---
     acq_l = acq_by_year.get(yr_l)
