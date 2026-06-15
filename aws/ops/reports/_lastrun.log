@@ -1,25 +1,15 @@
+13F aggregate_by_ticker: type dict n 8250
+  coverage: ['VST', 'AVGO']
+  sample VST : {"ticker": "VST", "cusip": "92189F106", "name": "Vistra Corp", "n_funds_holding": 6, "total_value": 2028942527, "n_funds_adding": 5, "n_funds_trimming": 1, "n_funds_new_position": 0, "n_funds_exiting": 0, "fund_actions": [{"fund": "RENAISSANCE", "fund_name": "
 
-data/short-interest.json
-  top-keys: ['version', 'generated_at', 'watchlist_size', 'n_tickers_with_data', 'n_tickers_finra', 'n_tickers_polygon', 'by_ticker', 'top_crowded_shorts']
-  shape=dict:by_ticker n_keys=153 | bottleneck coverage: ['AVGO', 'MU']
-  sample MU: {"ticker": "MU", "latest_short_pct": 32.29, "trend_pct": 1.22, "recent_5d_avg": 40.96, "prior_9d_avg": 40.46, "days_to_cover": null, "si_change_pct": null, "short_interest": null, "settlement_date": null, "signal": "NEUTRAL", "score": 50, "
+fwd_rev_growth: type dict n 713
+  coverage: ['ARM', 'HEI']
+  samples: {'ARM': 56.2, 'HEI': 8.2}
 
-data/insider-buys-enriched.json
-  top-keys: ['engine', 'version', 'as_of', 'state', 'signal_strength', 'source', 'source_as_of', 'summary']
-  shape=? n_keys=0 | bottleneck coverage: []
+rotation chains: n 11
+  chain key sample: AI
+  chain struct: {"chain": "AI", "current_leader_tier": 2, "leader_perf_30d_pct": 35.47, "leader_breadth_pct": 100.0, "leader_volume_ratio": 1.08, "rotation_confidence": 75, "next_tier": 3, "next_tier_perf_30d": -6.75, "next_tier_breadth": 16.7, "next_tier_volume": 1.15, "expected_catchup_pct": 42.22, "next_up_tickers": [{"ticker": "VST", "own_30d_pct": -5.16, "own_60d_pct": -6.53, "leader_30d_pct": 35.47, "lag_pc
+  bottleneck tickers found in chains: {'VST': ['AI'], 'CEG': ['AI'], 'PWR': ['AI']}
 
-data/insider-radar.json
-  top-keys: ['engine', 'version', 'generated_at', 'source_used', 'n_raw', 'window_days', 'n_buys', 'n_sells']
-  shape=? n_keys=0 | bottleneck coverage: []
-
-data/13f-positions.json
-  top-keys: ['generated_at', 'as_of_quarter', 'funds_total', 'funds_parsed', 'funds_failed', 'fund_errors', 'by_fund', 'aggregate_by_ticker']
-  shape=? n_keys=0 | bottleneck coverage: []
-
-data/rotation-chains.json
-  top-keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'n_chains', 'n_tickers', 'lag_candidates', 'chains']
-  shape=dict:chains n_keys=11 | bottleneck coverage: []
-
-data/estimate-revisions-latest.json
-  top-keys: ['date', 'fwd_rev_growth']
-  shape=? n_keys=0 | bottleneck coverage: []
+insider-buys-enriched summary type: dict
+   {"total_clusters_in_source": 17, "eligible_for_enrichment": 4, "enriched_returned": 4, "high_conviction": 0, "medium_high_conviction": 2}
