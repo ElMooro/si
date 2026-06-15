@@ -111,6 +111,15 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .bz-steady{background:var(--border);color:var(--text-mute)}
 .t-heat{font-family:var(--mono,monospace);font-weight:700}
 
+
+/* === #1 buzz-signal track record bar === */
+.track-bar{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 15px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;font-family:var(--mono,monospace);font-size:11.5px;color:var(--text-dim)}
+.track-bar .tk-title{color:var(--info);font-weight:700}
+.track-bar .tk-side b{color:var(--text)}
+.track-bar .tk-side .pos{color:var(--pos)}.track-bar .tk-side .neg{color:var(--neg)}
+.track-bar .tk-side i{color:var(--text-mute);font-style:normal;margin-left:3px}
+.track-bar .tk-note{color:var(--text-mute);font-size:10px;flex-basis:100%;line-height:1.4}
+
 </style>
 </head>
 <body>
@@ -124,6 +133,7 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 </header>
 <main>
 <div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+<div id="track-bar"></div>
 
 <div class="panel hot-panel" style="margin-bottom:18px">
   <div class="panel-title">🔥 Hottest Right Now <span class="pt-sub">— heat blends mentions, velocity, rank-climb &amp; bullishness, paired with today's price</span></div>
@@ -223,7 +233,7 @@ async function load() {
     document.getElementById('status').textContent = 'live';
     document.getElementById('status').style.color = 'var(--pos)';
     document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
-    renderRegime(); renderHottest(); renderConfirmation(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
+    renderRegime(); renderTrack(); renderHottest(); renderConfirmation(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
   } catch (e) {
     document.getElementById('status').textContent = 'offline';
     document.getElementById('status').style.color = 'var(--neg)';
@@ -264,6 +274,21 @@ function renderConfirmation(){
   const mom=(r.momentum_confirmed||[]).slice(0,8), div=(r.fading_divergence||[]).slice(0,8);
   document.getElementById('momentum-confirmed').innerHTML = mom.length?mom.map(confRow).join(''):'<div style="padding:22px;text-align:center;color:var(--text-mute)">None right now — no names where heavy buzz lines up with a rising price.</div>';
   document.getElementById('divergence').innerHTML = div.length?div.map(confRow).join(''):'<div style="padding:22px;text-align:center;color:var(--text-mute)">None right now — buzz and price are broadly aligned.</div>';
+}
+function renderTrack(){
+  const tr=DATA.track_record||{}; const el=document.getElementById('track-bar'); if(!el) return;
+  function side(label, t, wantPos){
+    if(!t) return `<span class="tk-side"><b>${label}</b> no calls yet</span>`;
+    const w=t.windows||{};
+    if(!Object.keys(w).length) return `<span class="tk-side"><b>${label}</b> accumulating — ${t.n_calls||0} call${(t.n_calls||0)===1?'':'s'} logged${t.first_date?' since '+t.first_date:''}</span>`;
+    const d=w.d21||w.d5||Object.values(w)[0]; const ex=d.avg_excess;
+    const good = wantPos ? ex>=0 : ex<0;
+    const interp = wantPos ? (ex>=0?'beating SPY ✓':'lagging SPY') : (ex<0?'fading as expected ✓':'not fading');
+    return `<span class="tk-side"><b>${label}</b> <span class="${good?'pos':'neg'}">${ex>=0?'+':''}${ex}% vs SPY @21d</span> · ${d.hit_rate}% · n=${d.n} <i>${interp}</i></span>`;
+  }
+  el.innerHTML = '<div class="track-bar"><span class="tk-title">📊 Buzz-signal forward test vs SPY</span>'+
+    side('🚀 Momentum', tr.momentum, true)+side('⚠ Divergence', tr.divergence, false)+
+    '<span class="tk-note">Honest forward test, no look-ahead — each MOMENTUM/DIVERGENCE call is logged daily and scored against SPY as it matures. Momentum should beat SPY; divergence should fade.</span></div>';
 }
 function renderRegime() {
   const regime = DATA.market_regime || 'UNKNOWN';
