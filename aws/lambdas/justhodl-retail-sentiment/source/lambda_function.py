@@ -65,6 +65,9 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 HTTP_TIMEOUT = 20
 MAX_PARALLEL = 8
 N_TOP_FOR_STOCKTWITS = 25  # only fetch StockTwits for top 25 by mentions (rate-aware)
+FMP_KEY = os.environ.get("FMP_KEY") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_BASE = "https://financialmodelingprep.com/stable"
+N_TOP_FOR_QUOTES = 35  # fetch price for the top names shown on the page
 
 s3 = boto3.client("s3", region_name="us-east-1")
 ssm = boto3.client("ssm", region_name="us-east-1")
@@ -235,6 +238,69 @@ def send_telegram(text):
 # HANDLER
 # ═══════════════════════════════════════════════════════════════════════════
 
+def fetch_quote(ticker):
+    """Live price + day change + 52w position + relative volume (FMP /stable/quote)."""
+    try:
+        url = f"{FMP_BASE}/quote?symbol={ticker}&apikey={FMP_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "justhodl-retail"})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            arr = json.loads(r.read())
+        q = (arr[0] if isinstance(arr, list) and arr else arr) or {}
+        if not isinstance(q, dict):
+            return {}
+        chg = q.get("changePercentage")
+        if chg is None:
+            chg = q.get("changesPercentage")
+        price = q.get("price")
+        yh = q.get("yearHigh")
+        off_high = round((price / yh - 1) * 100, 1) if (price and yh) else None
+        vol = q.get("volume")
+        avg = q.get("avgVolume") or q.get("averageVolume")
+        rvol = round(vol / avg, 2) if (vol and avg) else None
+        return {
+            "price": price,
+            "change_pct": round(chg, 2) if isinstance(chg, (int, float)) else None,
+            "off_52w_high": off_high, "rel_volume": rvol, "market_cap": q.get("marketCap"),
+        }
+    except Exception:
+        return {}
+
+
+def compute_heat(e):
+    """Transparent 0-100 'retail heat': blend of mention volume, velocity, rank-climb, bullishness."""
+    mentions = e.get("mentions") or 0
+    vel = e.get("velocity_pct")
+    climb = e.get("rank_climb") or 0
+    bull = e.get("stwt_bull_pct")
+    m_c = min(mentions / 300.0, 1.0) * 100
+    v_c = (min((vel or 0) / 300.0, 1.0) * 100) if vel is not None else 40
+    c_c = min(max(climb, 0) / 50.0, 1.0) * 100
+    b_c = bull if bull is not None else 50
+    heat = 0.30 * v_c + 0.30 * m_c + 0.20 * c_c + 0.20 * b_c
+    return round(max(0, min(100, heat)))
+
+
+def buzz_state(e):
+    """Is the chatter translating into price? The actionable read.
+    IGNITION=just appeared · MOMENTUM=buzz+price up · DIVERGENCE=buzz+price down · RISING/FADING/STEADY."""
+    vel = e.get("velocity_pct"); chg = e.get("change_pct")
+    is_new = (e.get("mentions_24h_ago") or 0) <= 2 and (e.get("mentions") or 0) >= 20
+    if is_new:
+        return "IGNITION"
+    if chg is None:
+        return "STEADY"
+    hot = (vel or 0) >= 50 or (e.get("rank_climb") or 0) >= 10
+    if hot and chg >= 1.5:
+        return "MOMENTUM"
+    if hot and chg <= -1.5:
+        return "DIVERGENCE"
+    if chg >= 1.5:
+        return "RISING"
+    if chg <= -1.5:
+        return "FADING"
+    return "STEADY"
+
+
 def lambda_handler(event, context):
     started = time.time()
     print(f"=== retail-sentiment v{VERSION} · {datetime.now(timezone.utc).isoformat()} ===")
@@ -309,6 +375,25 @@ def lambda_handler(event, context):
             })
         enriched.append(entry)
 
+    # ─── Price confirmation: is the chatter translating into a move? ───
+    quote_tickers = [e.get("ticker") for e in enriched[:N_TOP_FOR_QUOTES] if e.get("ticker")]
+    print(f"  fetching quotes for {len(quote_tickers)} top tickers...")
+    quotes = {}
+    with ThreadPoolExecutor(max_workers=MAX_PARALLEL) as ex:
+        qf = {ex.submit(fetch_quote, t): t for t in quote_tickers}
+        for f in as_completed(qf):
+            quotes[qf[f]] = f.result() or {}
+    for e in enriched:
+        q = quotes.get(e.get("ticker")) or {}
+        if q:
+            e["price"] = q.get("price"); e["change_pct"] = q.get("change_pct")
+            e["off_52w_high"] = q.get("off_52w_high"); e["rel_volume"] = q.get("rel_volume")
+            e["market_cap"] = q.get("market_cap")
+        e["heat"] = compute_heat(e)
+        e["buzz_state"] = buzz_state(e)
+    n_with_price = sum(1 for e in enriched if e.get("change_pct") is not None)
+    print(f"  price-confirmed {n_with_price}/{len(quote_tickers)}")
+
     # ─── Rankings ───
     # Biggest velocity surges (high mentions + high velocity)
     velocity_filtered = [e for e in enriched
@@ -337,6 +422,15 @@ def lambda_handler(event, context):
     new_entrants = [e for e in enriched
                      if (e.get("mentions_24h_ago") or 0) <= 2
                      and e.get("mentions", 0) >= 20][:15]
+
+    # Hottest by composite heat (what retail is most excited about right now)
+    hottest = sorted([e for e in enriched if (e.get("mentions") or 0) >= 15],
+                      key=lambda x: -(x.get("heat") or 0))[:20]
+    # Buzz CONFIRMED by price (piling in AND it's working) vs DIVERGING (talk, but fading)
+    momentum_confirmed = sorted([e for e in enriched if e.get("buzz_state") == "MOMENTUM"],
+                                 key=lambda x: -(x.get("heat") or 0))[:12]
+    fading_divergence = sorted([e for e in enriched if e.get("buzz_state") == "DIVERGENCE"],
+                                key=lambda x: -(x.get("heat") or 0))[:12]
 
     # Subreddit breakdown — compare WSB top 10 to stocks top 10
     wsb_top = [r.get("ticker") for r in wsb[:10] if r.get("ticker")]
@@ -373,12 +467,16 @@ def lambda_handler(event, context):
         "regime_changed_from_prior": (prior_regime != regime) if prior_regime else False,
         "top_30_by_mentions": enriched[:30],
         "ranked": {
+            "hottest": hottest,
+            "momentum_confirmed": momentum_confirmed,
+            "fading_divergence": fading_divergence,
             "biggest_velocity_surges": biggest_velocity,
             "biggest_rank_climbers": biggest_climbers,
             "most_bullish_stwt": most_bullish,
             "most_bearish_stwt": most_bearish,
             "new_entrants": new_entrants,
         },
+        "n_with_price": n_with_price,
         "stocktwits_trending": trending[:20],
         "subreddit_breakdown": {
             "wsb_top_10": wsb_top,
