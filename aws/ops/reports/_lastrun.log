@@ -1,16 +1,56 @@
-invoked bottleneck-research (async)
-  ...waiting (20s)
-  ...waiting (40s)
-  ...waiting (60s)
-  ...waiting (80s)
-  ...waiting (100s)
-  ...waiting (120s)
-  ...waiting (140s)
-  ...waiting (160s)
-  ...waiting (180s)
-  ...waiting (200s)
-  ...waiting (220s)
-  ...waiting (240s)
-  ...waiting (260s)
-  ...waiting (280s)
-research not ready in time (may still be generating theses)
+invoked
+  ...20s
+  ...40s
+  ...60s
+  ...80s
+  ...100s
+  ...120s
+  ...140s
+  ...160s
+READY ~180s: n=30 new_theses=30 dur=168.9s
+coverage: financials 30/30 | thesis 30/30 | industry_pe 30/30
+
+SAMPLE VST (Vistra Corp.): P/E 22.444085676037485 vs ind 26.9 | P/S 3.078378394683279 | 10yr fins ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025']
+desc: Vistra Corp., along with its various holdings, functions as a unified entity primarily engaged in retail electricity supply and power genera
+THESIS: 1.  **Analyze the Request:**
+    *   **Role:** Sharp, honest equity analyst explaining to a smart beginner (no finance background).
+    *   **Tone/Style:** Plain English, zero jargon, no hype, no price targets, never promise gains. 3-4 short sentences.
+    *   **Structure:**
+        *   Sentence 1-2/3: Explain the MECHANISM for a potential re-rate, tying it to the demand/supply bottleneck and specific numbers given.
+        *   Last sentence: Name the single biggest risk or the thing that would prove the thesis wrong.
+    *   **Data provided:**
+        *   Stock: Vistra Corp. (VST)
+        *   Industry: Independent Power Producers
+        *   What it does: Retail electricity supply and power generation.
+        *   Signals: Revenue growth 99.1% YoY, Revenue acceleration +152.0pp, Revenue-to-market-cap 32.5% (cheap for its sales), P/E 22.4 vs Industry 26.9, Industry supply-bottleneck pressure 66.1/100.
+
+2.  **Deconstruct the Mechanism:**
+    *   *Bottleneck/Demand:* The power industry has high supply-bottleneck pressure (66.1/100), meaning demand for electricity (likely from AI/data centers, though I shouldn't invent too much, just stick to the numbers) is outpacing the ability to generate/deliver it.
+    *   *Company performance:* VST's revenue is exploding (99.1% growth) and accelerating rapidly (+152.0pp), meaning they are capturing this bottleneck-driven demand.
+    *   *Valuation re-rate:* Despite this massive growth, VST is priced cheaply (revenue-to-market-cap is 32.5%) and its P/E (22.4) is lower than the industry average (26.9), so the market hasn't fully priced in this sustained demand squeeze, meaning the stock could be revalued upward as those sales drop to the bottom line.
+
+3.  **Draft the Sentences (Iterative refinement):**
+    *   *Draft 1:* Vistra generates and sells electricity in an industry where demand is outstripping supply, evidenced by a high supply-bottleneck score of 66.1 out of 100. Because of this squeeze, Vistra's sales nearly doubled with 99.1% growth that is rapidly accelerating by 152 percentage points, yet the stock remains cheap at a price-to-earnings ratio of 22.4 compared to the industry's 26.9. If the market realizes this growth is sustainable, the stock could be re-rated higher to catch up to its peers. The single biggest risk is that this massive revenue surge is a one-time event rather than a permanent shift, which would leave the stock overvalued.
+    *   *Critique 1:* Too much jargon ("price-to-earnings ratio", "re-rated"). A bit wordy. Need to simplify. The mechanism needs to be clearer on *why* the bottleneck drives the re-rate. "Sales nearly doubled" is good.
+
+    *   *Draft 2:* Power demand is outstripping supply right now, and as an electricity generator, Vistra is cashing in on this bottleneck with 99.1% sales growth that is accelerating incredibly fast. Even with this massive surge in business, the stock is still cheaper than its rivals based on its 22.4 valuation multiple versus the industry's 26.9. As those booming sales turn into steady profits, the market should eventually price the stock higher to match its true earning power. The biggest risk is that the power demand driving this growth is temporary, causing sales to crash back down.
+    *   *Critique 2:* Better. Let's tighten the numbers in. "valuation multiple" is borderline jargon, let's just say "priced lower than its rivals". Let's make sure I hit 3-4 short sentences exactly.
+
+    *   *Draft 3 (Focusing on the exact constraints):*
+        Electricity demand is heavily outpacing supply, and as a major power generator, Vistra is capturing this squeeze with 99.1% sales growth that is actually speeding up. Despite this massive revenue explosion, the stock remains unusually cheap compared to its industry peers, trading at a 22.4 earnings multiple versus the group's 26.9. If the market realizes this growth is a permanent shift rather than a fluke, it should re-price the stock upward to reflect its true earning power. The single biggest risk is a reversal in power demand that proves this explosive growth was just a temporary spike.
+
+    *   *Critique 3:* "earnings multiple" might be jargon. Let's rephrase. "trading at a lower valuation (22.4) than its rivals (26.9)" or just explain the mechanic simply.
+    Let's refine: "Electricity demand is outstripping supply, allowing Vistra to cash in on this grid squeeze with 99.1% sales growth that is rapidly accelerating. Despite this boom, the stock remains cheaper than its rivals, earning a valuation rating of 22.4 versus the industry's 26.9. As the market realizes Vistra's sales are sustainably boosted by this power bottleneck, it should re-price the shares higher. The single biggest risk is that the power demand driving this growth cools off, proving the sales surge was temporary."
+
+    *   *Wait, "valuation rating" is vague.* Let's stick closer to simple concepts: The company is making way more money but still priced like a slow-growing utility.
+
+    *   *Draft 4:*
+        Power demand is outstripping supply, allowing Vistra to capitalize on this grid squeeze with 99.1% sales growth that is accelerating rapidly. Despite this boom, the stock remains cheap relative to its sales and is priced lower than its industry rivals. As the market realizes Vistra's business is sustainably boosted by this power bottleneck, it should re-price the shares higher to match its peers. The single biggest risk is that the electricity demand driving this surge suddenly cools off, proving the growth was temporary.
+
+    *   *Critique 4:* Missed the specific numbers for valuation. "priced at 22.4 times its earnings versus the industry's 26.9" is a bit jargon-y for a beginner. How about: "Despite this boom, the stock is still valued at 22.4 times its earnings—cheaper than its industry average of 26.9." Simple enough.
+
+    *   *Let's check the mechanism constraint:* "first explain in simple terms the MECHANISM for why this stock could re-rate higher (tie it to the demand/supply bottleneck and the specific numbers given)"
+    Mechanism: Bottleneck (66.1 pressure) -> Revenue boom (99.1%, +152pp acceleration) -> Valuation disconnect (P/E 22.4 vs 26.9, high rev/mkt cap) -> Re-rate.
+
+    *   *Draft 5:*
+        High electricity demand is slamming into a limited power supply, allowing Vistra to
