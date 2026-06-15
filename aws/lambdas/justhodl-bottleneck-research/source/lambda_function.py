@@ -34,6 +34,7 @@ BASE = "https://financialmodelingprep.com/stable"
 TOP_N = 30
 THESIS_CACHE_HRS = 20
 MAX_NEW_THESES = 30
+THESIS_VER = "haiku-1"
 
 SYSTEM = (
     "You are a sharp, honest equity analyst explaining a stock to a smart beginner with no "
@@ -41,7 +42,10 @@ SYSTEM = (
     "gains. Write 3-4 short sentences: first explain in simple terms the MECHANISM for why this "
     "stock could re-rate higher (tie it to the demand/supply bottleneck and the specific numbers "
     "given), then end with ONE sentence naming the single biggest risk or the thing that would "
-    "prove the thesis wrong. Be concrete and specific to the numbers provided."
+    "prove the thesis wrong. Be concrete and specific to the numbers provided. "
+    "Output ONLY the thesis as 3-4 sentences of plain prose — no headings, no bullet points, "
+    "no markdown, no numbered steps, no labels, no 'Draft', and never restate or analyze these "
+    "instructions. Begin directly with the thesis."
 )
 
 
@@ -129,8 +133,12 @@ def make_thesis(name, tk, ind, m):
         f"Write the plain-English thesis for why this stock could re-rate higher, then the single biggest risk."
     )
     try:
-        out = complete(prompt, tier="reason", max_tokens=320, system=SYSTEM)
-        return (out or "").strip() or None
+        out = complete(prompt, tier="bulk", max_tokens=300, system=SYSTEM)
+        txt = (out or "").strip()
+        # defensive: reject any output that still leaked reasoning scaffolding
+        if not txt or any(m in txt for m in ("Draft", "Critique", "Analyze the Request", "**", "1.  ")):
+            return None
+        return txt
     except Exception as e:
         print(f"[research] thesis fail {tk}: {str(e)[:80]}")
         return None
@@ -190,8 +198,10 @@ def lambda_handler(event=None, context=None):
             except Exception:
                 fresh = False
         rec["thesis"], rec["thesis_at"] = cached.get("thesis"), cached.get("thesis_at")
-        if not (fresh and cached.get("thesis")):
+        if not (fresh and cached.get("thesis") and cached.get("thesis_ver") == THESIS_VER):
             need.append(tk)
+        else:
+            rec["thesis_ver"] = THESIS_VER
         out[tk] = rec
 
     # generate stale/new theses IN PARALLEL (independent LLM calls) to fit the timeout
@@ -207,6 +217,7 @@ def lambda_handler(event=None, context=None):
             for tk, th in ex.map(_gen, targets):
                 if th:
                     out[tk]["thesis"], out[tk]["thesis_at"] = th, now.isoformat()
+                    out[tk]["thesis_ver"] = THESIS_VER
                     new_theses += 1
 
     payload = {
