@@ -1,10 +1,36 @@
-invoke: {"crossUp200": 0, "crossDn200": 0, "golden": 0, "death": 0, "momentum": 0, "unusualVol": 0, "had_prev": false}
-universe_n: 11302
-crosses: up200=0 dn200=0 golden=0 death=0 (crossovers populate on NEXT snapshot)
-momentum_leaders: 0 | unusual_volume: 0 | rsi_ob: 0 | rsi_os: 0 | near_52w_high: 0
+=== SIGNALS (s=) — each is a prebuilt screen ===
+most-active (volume)               http=200 rows=200 csv=True
+unusual-volume                     http=200 rows=200 csv=True
+most-volatile                      http=200 rows=200 csv=True
+top-gainers                        http=200 rows=200 csv=True
+top-losers                         http=200 rows=200 csv=True
+new-high-52w                       http=200 rows=200 csv=True
+new-low-52w                        http=200 rows=109 csv=True
+overbought                         http=200 rows=25 csv=True
+oversold                           http=200 rows=23 csv=True
+major-news                         http=200 rows=40 csv=True
+insider-buys                       http=200 rows=100 csv=True
+insider-sales                      http=200 rows=100 csv=True
+unusual-volume-up                  http=200 rows=200 csv=True
 
-Top 8 momentum leaders:
+=== FILTERS (f=) — confirm technical/momentum/short/options filters ===
+golden-cross 50x200 up             http=200 rows=387 csv=True
+death-cross 50x200 dn              http=200 rows=90 csv=True
+price ABOVE sma200                 http=200 rows=6546 csv=True
+price BELOW sma200                 http=200 rows=4721 csv=True
+price x sma200 up                  http=200 rows=11302 csv=True
+RSI overbought >70                 http=200 rows=335 csv=True
+RSI oversold <30                   http=200 rows=199 csv=True
+new high 52w (filt)                http=200 rows=1346 csv=True
+rel-volume > 2x                    http=200 rows=837 csv=True
+optionable (options)               http=200 rows=5889 csv=True
+short float high                   http=200 rows=270 csv=True
+perf month up >20%                 http=200 rows=628 csv=True
 
-Top 6 unusual volume:
+=== CUSTOM COLUMNS (v=152&c=0..71) — full field set in one export ===
+custom 72-col (tech)               http=200 rows=784 csv=True
+  -> 72 columns returned
+  cols: ['No.', 'Ticker', 'Company', 'Sector', 'Industry', 'Country', 'Market Cap', 'P/E', 'Forward P/E', 'PEG', 'P/S', 'P/B', 'P/Cash', 'P/Free Cash Flow', 'Dividend Yield', 'Payout Ratio', 'EPS (ttm)', 'EPS Growth This Year', 'EPS Growth Next Year', 'EPS Growth Past 5 Years', 'EPS Growth Next 5 Years', 'Sales Growth Past 5 Years', 'EPS Growth Quarter Over Quarter', 'Sales Growth Quarter Over Quarter', 'Shares Outstanding', 'Shares Float', 'Insider Ownership', 'Insider Transactions', 'Institutional Ownership', 'Institutional Transactions', 'Short Float', 'Short Ratio', 'Return on Assets', 'Return on Equity', 'Return on Invested Capital', 'Current Ratio', 'Quick Ratio', 'LT Debt/Equity', 'Total Debt/Equity', 'Gross Margin', 'Operating Margin', 'Profit Margin', 'Performance (Week)', 'Performance (Month)', 'Performance (Quarter)', 'Performance (Half Year)', 'Performance (Year)', 'Performance (YTD)', 'Beta', 'Average True Range', 'Volatility (Week)', 'Volatility (Month)', '20-Day Simple Moving Average', '50-Day Simple Moving Average', '200-Day Simple Moving Average', '50-Day High', '50-Day Low', '52-Week High', '52-Week Low', 'Relative Strength Index (14)', 'Change from Open', 'Gap', 'Analyst Recom', 'Average Volume', 'Relative Volume', 'Price', 'Change', 'Volume', 'Earnings Date', 'Target Price', 'IPO Date', 'After-Hours Close']
 
-Near 52w high (top 5):
+=== NEWS export endpoint ===
+news_export v=3: http=200 rows=100 hdr="Title","Source","Date","Url","Category","Ticker"
