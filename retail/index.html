@@ -80,6 +80,37 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
 .method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
 .loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+
+/* === hottest hero + buzz/heat (added) === */
+.pt-sub{font-weight:400;font-size:11px;color:var(--text-mute);letter-spacing:0}
+.pt-note{font-size:11.5px;color:var(--text-dim);margin:-4px 0 10px;line-height:1.45}.pt-note b{color:var(--text)}
+.hot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.hot-card{background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:12px 13px;display:flex;flex-direction:column;gap:7px}
+.hot-card:hover{border-color:var(--border-hi)}
+.hc-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.hc-tk{font-family:var(--mono,monospace);font-weight:800;font-size:16px;color:var(--text);letter-spacing:.3px}
+.hc-name{font-size:10.5px;color:var(--text-mute);margin-top:-4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hc-heat{display:flex;align-items:center;gap:7px}
+.hc-bar{flex:1;height:5px;border-radius:99px;background:var(--border);overflow:hidden}
+.hc-fill{height:100%;border-radius:99px}
+.hc-fill.h-hot{background:linear-gradient(90deg,var(--orange),var(--neg))}
+.hc-fill.h-warm{background:linear-gradient(90deg,var(--gold),var(--orange))}
+.hc-fill.h-cool{background:linear-gradient(90deg,var(--info),var(--accent))}
+.hc-heatval{font-family:var(--mono,monospace);font-size:12px;font-weight:700;color:var(--text);min-width:22px;text-align:right}
+.hc-stats{display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono,monospace);font-size:10.5px;color:var(--text-dim)}
+.hc-stats .pos{color:var(--pos)}
+.hc-price{font-family:var(--mono,monospace);font-size:12px;color:var(--text);display:flex;align-items:center;gap:7px;border-top:1px solid var(--border);padding-top:7px}
+.px-chg{font-weight:700}.px-chg.pos{color:var(--pos)}.px-chg.neg{color:var(--neg)}
+.px-hi{font-size:9px;color:var(--gold);border:1px solid var(--gold);border-radius:4px;padding:1px 5px;opacity:.8}
+.bz{font-family:var(--mono,monospace);font-size:9px;font-weight:700;letter-spacing:.4px;padding:3px 7px;border-radius:99px;white-space:nowrap;text-transform:uppercase}
+.bz-mom{background:rgba(0,230,118,.14);color:var(--pos);border:1px solid rgba(0,230,118,.4)}
+.bz-ign{background:rgba(34,211,238,.14);color:var(--info);border:1px solid rgba(34,211,238,.4)}
+.bz-div{background:rgba(255,61,90,.14);color:var(--neg);border:1px solid rgba(255,61,90,.4)}
+.bz-rise{background:rgba(0,230,118,.07);color:var(--pos)}
+.bz-fade{background:rgba(255,61,90,.07);color:var(--neg)}
+.bz-steady{background:var(--border);color:var(--text-mute)}
+.t-heat{font-family:var(--mono,monospace);font-weight:700}
+
 </style>
 </head>
 <body>
@@ -93,6 +124,24 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 </header>
 <main>
 <div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+
+<div class="panel hot-panel" style="margin-bottom:18px">
+  <div class="panel-title">🔥 Hottest Right Now <span class="pt-sub">— heat blends mentions, velocity, rank-climb &amp; bullishness, paired with today's price</span></div>
+  <div id="hottest" class="hot-grid"><div class="loading">Loading…</div></div>
+</div>
+
+<div class="row-2col">
+  <div class="panel">
+    <div class="panel-title">🚀 Momentum — buzz confirmed by price</div>
+    <div class="pt-note">Heavy chatter <b>and</b> the stock is up today — retail piling in, and it's working.</div>
+    <div id="momentum-confirmed"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">⚠️ Divergence — loud, but price falling</div>
+    <div class="pt-note">Lots of talk while the price drops. Often a crowded trade or a fade — treat with caution.</div>
+    <div id="divergence"><div class="loading">Loading…</div></div>
+  </div>
+</div>
 
 <div class="row-3col">
   <div class="panel">
@@ -132,10 +181,11 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
       <table class="full-table">
         <thead><tr>
           <th>#</th><th>Ticker</th><th style="text-align:right">Mentions</th>
-          <th style="text-align:right">Velocity</th><th style="text-align:right">Rank Δ</th>
-          <th style="text-align:right">Bull/Bear</th>
+          <th style="text-align:right">Velocity</th><th style="text-align:right">Bull/Bear</th>
+          <th style="text-align:right">Price</th><th style="text-align:right">Day</th>
+          <th style="text-align:right">Heat</th><th style="text-align:right">Buzz</th>
         </tr></thead>
-        <tbody id="top-table"><tr><td colspan="6" class="loading">Loading universe…</td></tr></tbody>
+        <tbody id="top-table"><tr><td colspan="9" class="loading">Loading universe…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -173,7 +223,7 @@ async function load() {
     document.getElementById('status').textContent = 'live';
     document.getElementById('status').style.color = 'var(--pos)';
     document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
-    renderRegime(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
+    renderRegime(); renderHottest(); renderConfirmation(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
   } catch (e) {
     document.getElementById('status').textContent = 'offline';
     document.getElementById('status').style.color = 'var(--neg)';
@@ -182,6 +232,39 @@ async function load() {
   }
 }
 
+function buzzBadge(state){
+  const m={MOMENTUM:['🚀 Momentum','bz-mom'],IGNITION:['✨ Igniting','bz-ign'],DIVERGENCE:['⚠ Divergence','bz-div'],RISING:['↑ Rising','bz-rise'],FADING:['↓ Fading','bz-fade'],STEADY:['• Steady','bz-steady']};
+  const x=m[state]||['• —','bz-steady']; return `<span class="bz ${x[1]}">${x[0]}</span>`;
+}
+function fmtChg(v){ if(v==null) return '<span class="r-detail">—</span>'; const c=v>=0?'pos':'neg'; return `<span class="px-chg ${c}">${v>=0?'+':''}${v.toFixed(1)}%</span>`; }
+function hotCard(e){
+  const heat=e.heat||0; const hc=heat>=70?'h-hot':heat>=50?'h-warm':'h-cool';
+  const nearHi = e.off_52w_high!=null && e.off_52w_high>-3 ? '<span class="px-hi">near 52w hi</span>' : '';
+  return `<div class="hot-card">
+    <div class="hc-top"><span class="hc-tk">${e.ticker}</span>${buzzBadge(e.buzz_state)}</div>
+    <div class="hc-name">${(e.name||'').slice(0,30)}</div>
+    <div class="hc-heat"><div class="hc-bar"><div class="hc-fill ${hc}" style="width:${heat}%"></div></div><span class="hc-heatval">${heat}</span></div>
+    <div class="hc-stats"><span>💬 ${fmtNum(e.mentions)}</span><span class="pos">${fmtVel(e.velocity_pct)}</span>${e.stwt_bull_pct!=null?`<span>${e.stwt_bull_pct.toFixed(0)}% bull</span>`:''}</div>
+    <div class="hc-price">${e.price!=null?'$'+e.price.toFixed(2):'—'} ${fmtChg(e.change_pct)} ${nearHi}</div>
+  </div>`;
+}
+function renderHottest(){
+  const hot=((DATA.ranked||{}).hottest||[]).slice(0,12);
+  document.getElementById('hottest').innerHTML = hot.length ? hot.map(hotCard).join('') : '<div style="padding:24px;color:var(--text-mute)">No data yet.</div>';
+}
+function confRow(e){
+  return `<div class="row-list">
+    <span><span class="r-ticker">${e.ticker}</span><br><span class="r-name">💬${fmtNum(e.mentions)} · ${fmtVel(e.velocity_pct)}${e.stwt_bull_pct!=null?' · '+e.stwt_bull_pct.toFixed(0)+'% bull':''}</span></span>
+    <span class="r-metric ${e.change_pct>=0?'pos':'neg'}">${e.change_pct!=null?(e.change_pct>=0?'+':'')+e.change_pct.toFixed(1)+'%':'—'}</span>
+    <span class="r-detail">heat ${e.heat}</span>
+  </div>`;
+}
+function renderConfirmation(){
+  const r=DATA.ranked||{};
+  const mom=(r.momentum_confirmed||[]).slice(0,8), div=(r.fading_divergence||[]).slice(0,8);
+  document.getElementById('momentum-confirmed').innerHTML = mom.length?mom.map(confRow).join(''):'<div style="padding:22px;text-align:center;color:var(--text-mute)">None right now — no names where heavy buzz lines up with a rising price.</div>';
+  document.getElementById('divergence').innerHTML = div.length?div.map(confRow).join(''):'<div style="padding:22px;text-align:center;color:var(--text-mute)">None right now — buzz and price are broadly aligned.</div>';
+}
 function renderRegime() {
   const regime = DATA.market_regime || 'UNKNOWN';
   const signal = DATA.market_regime_signal || '';
@@ -264,18 +347,22 @@ function renderLists() {
 function renderTopTable() {
   const tbody = document.getElementById('top-table');
   const rows = (DATA.top_30_by_mentions || []).slice(0, 30);
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6" class="loading">No data</td></tr>'; return; }
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="9" class="loading">No data</td></tr>'; return; }
   tbody.innerHTML = rows.map(e => {
     const velCls = e.velocity_pct == null ? '' : (e.velocity_pct > 0 ? 'pos' : 'neg');
-    const rankCls = e.rank_climb == null ? '' : (e.rank_climb > 0 ? 'pos' : (e.rank_climb < 0 ? 'neg' : ''));
     const bbCls = e.stwt_bull_bear_ratio == null ? '' : (e.stwt_bull_bear_ratio >= 2 ? 'pos' : (e.stwt_bull_bear_ratio < 0.5 ? 'neg' : ''));
+    const chgCls = e.change_pct == null ? '' : (e.change_pct >= 0 ? 'pos' : 'neg');
+    const heat = e.heat || 0; const heatCol = heat>=70?'var(--neg)':heat>=50?'var(--orange)':'var(--info)';
     return `<tr>
       <td>${e.rank}</td>
-      <td><span class="t-ticker">${e.ticker}</span><br><span class="t-name">${(e.name||'').slice(0,28)}</span></td>
+      <td><span class="t-ticker">${e.ticker}</span><br><span class="t-name">${(e.name||'').slice(0,24)}</span></td>
       <td class="t-num">${fmtNum(e.mentions)}</td>
       <td class="t-vel ${velCls}">${fmtVel(e.velocity_pct)}</td>
-      <td class="t-rank ${rankCls}">${e.rank_climb == null ? '-' : (e.rank_climb >= 0 ? '+' : '') + e.rank_climb}</td>
       <td class="t-sent ${bbCls}">${fmtBB(e.stwt_bull_bear_ratio)}</td>
+      <td class="t-num">${e.price!=null?'$'+e.price.toFixed(2):'-'}</td>
+      <td class="t-num ${chgCls}">${e.change_pct!=null?(e.change_pct>=0?'+':'')+e.change_pct.toFixed(1)+'%':'-'}</td>
+      <td class="t-heat" style="text-align:right;color:${heatCol}">${heat}</td>
+      <td style="text-align:right">${buzzBadge(e.buzz_state)}</td>
     </tr>`;
   }).join('');
 }
