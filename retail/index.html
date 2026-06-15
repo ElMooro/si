@@ -189,6 +189,16 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .rd-foot{margin-top:18px;font-size:10px;color:var(--text-mute);line-height:1.5;font-style:italic}
 @media(max-width:520px){.rd-grid{grid-template-columns:1fr}}
 
+
+/* === #11 alerts feed === */
+.al-row{display:grid;grid-template-columns:24px 72px 92px 1fr 42px;gap:8px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--border);font-size:11.5px}
+.al-row:last-child{border-bottom:none}.al-ico{font-size:14px}
+.al-tk{font-weight:700;color:var(--text);font-family:var(--mono,monospace)}
+.al-type{font-family:var(--mono,monospace);font-size:9.5px;font-weight:700;color:var(--info)}
+.al-det{color:var(--text-dim)}
+.al-ago{color:var(--text-mute);font-family:var(--mono,monospace);font-size:10px;text-align:right}
+@media(max-width:560px){.al-row{grid-template-columns:20px 60px 1fr 36px}.al-type{display:none}}
+
 </style>
 </head>
 <body>
@@ -203,6 +213,10 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 <main>
 <div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
 <div id="track-bar"></div>
+<div class="panel" id="alert-panel" style="margin-bottom:18px;border-left:3px solid #ff5577">
+  <div class="panel-title">🔔 Live Alerts <span style="font-weight:400;font-size:11px;color:var(--text-mute)">— squeeze · ignition · divergence · crowding (⭐ = in your portfolio)</span></div>
+  <div id="alert-feed"><div class="loading">Loading…</div></div>
+</div>
 
 <div class="panel hot-panel" style="margin-bottom:18px">
   <div class="panel-title">🔥 Hottest Right Now <span class="pt-sub">— heat blends mentions, velocity, rank-climb &amp; bullishness, paired with today's price</span></div>
@@ -351,7 +365,7 @@ async function load() {
     document.getElementById('status').textContent = 'live';
     document.getElementById('status').style.color = 'var(--pos)';
     document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
-    renderRegime(); renderTrack(); renderThemes(); renderHottest(); renderConfirmation(); renderContrarian(); renderSqueeze(); renderMultiVenue(); renderFlow(); renderQuality(); renderLifecycle(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
+    renderRegime(); renderAlerts(); renderTrack(); renderThemes(); renderHottest(); renderConfirmation(); renderContrarian(); renderSqueeze(); renderMultiVenue(); renderFlow(); renderQuality(); renderLifecycle(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
   } catch (e) {
     document.getElementById('status').textContent = 'offline';
     document.getElementById('status').style.color = 'var(--neg)';
@@ -538,6 +552,13 @@ function openRetailDrawer(tk){
 function closeRetailDrawer(){ const ov=document.getElementById('retail-drawer'); if(ov)ov.classList.remove('open'); document.body.style.overflow=''; }
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeRetailDrawer();});
 function findTicker_placeholder(){}
+function tsAgo(ts){ if(!ts)return''; const s=Math.floor(Date.now()/1000)-ts; if(s<3600)return Math.max(1,Math.floor(s/60))+'m'; if(s<86400)return Math.floor(s/3600)+'h'; return Math.floor(s/86400)+'d'; }
+function renderAlerts(){
+  const al=DATA.recent_alerts||[]; const el=document.getElementById('alert-feed'); if(!el) return;
+  if(!al.length){el.innerHTML='<div style="padding:14px;color:var(--text-mute);font-size:12px">No alerts in the last 7 days. Fires on squeeze setups, ignitions, divergences and crowding extremes.</div>';return;}
+  const em={SQUEEZE:'🎯',IGNITION:'🌱',DIVERGENCE:'⚠️',EXHAUSTION:'🧨'};
+  el.innerHTML=al.map(a=>`<div class="al-row" style="cursor:pointer" onclick="openRetailDrawer('${a.ticker}')"><span class="al-ico">${em[a.type]||'•'}</span><span class="al-tk">${a.held?'⭐':''}${a.ticker}</span><span class="al-type">${a.type}</span><span class="al-det">${a.detail||''}</span><span class="al-ago">${tsAgo(a.ts)}</span></div>`).join('');
+}
 function renderRegime() {
   const regime = DATA.market_regime || 'UNKNOWN';
   const signal = DATA.market_regime_signal || '';
