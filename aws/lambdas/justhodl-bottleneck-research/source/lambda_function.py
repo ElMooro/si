@@ -162,7 +162,7 @@ def lambda_handler(event=None, context=None):
                 fin_map[futs[f]] = {}
 
     out = {}
-    new_theses = 0
+    need = []
     for r in ranks:
         tk = r["ticker"]
         fin = fin_map.get(tk, {}) or {}
@@ -189,18 +189,25 @@ def lambda_handler(event=None, context=None):
                 fresh = (now - datetime.fromisoformat(ts)).total_seconds() < THESIS_CACHE_HRS * 3600
             except Exception:
                 fresh = False
-        if fresh and cached.get("thesis"):
-            rec["thesis"], rec["thesis_at"] = cached["thesis"], ts
-        elif new_theses < MAX_NEW_THESES:
-            th = make_thesis(r.get("name") or tk, tk, ind, rec)
-            if th:
-                rec["thesis"], rec["thesis_at"] = th, now.isoformat()
-                new_theses += 1
-            else:
-                rec["thesis"], rec["thesis_at"] = cached.get("thesis"), cached.get("thesis_at")
-        else:
-            rec["thesis"], rec["thesis_at"] = cached.get("thesis"), cached.get("thesis_at")
+        rec["thesis"], rec["thesis_at"] = cached.get("thesis"), cached.get("thesis_at")
+        if not (fresh and cached.get("thesis")):
+            need.append(tk)
         out[tk] = rec
+
+    # generate stale/new theses IN PARALLEL (independent LLM calls) to fit the timeout
+    new_theses = 0
+    targets = need[:MAX_NEW_THESES]
+
+    def _gen(tk):
+        rec = out[tk]
+        return tk, make_thesis(rec.get("name") or tk, tk, rec.get("industry"), rec)
+
+    if targets:
+        with ThreadPoolExecutor(max_workers=6) as ex:
+            for tk, th in ex.map(_gen, targets):
+                if th:
+                    out[tk]["thesis"], out[tk]["thesis_at"] = th, now.isoformat()
+                    new_theses += 1
 
     payload = {
         "engine": "bottleneck-research", "version": VERSION,
