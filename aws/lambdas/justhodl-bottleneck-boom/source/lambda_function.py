@@ -285,4 +285,9 @@ def lambda_handler(event=None, context=None):
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[bottleneck] scored={len(rows)} logged={n_logged} in {out['duration_s']}s")
+    try:
+        boto3.client("lambda", region_name="us-east-1").invoke(
+            FunctionName="justhodl-bottleneck-research", InvocationType="Event")
+    except Exception as e:
+        print(f"[bottleneck] research invoke failed: {str(e)[:80]}")
     return {"statusCode": 200, "body": json.dumps({"scored": len(rows), "logged": n_logged})}

@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-bottleneck-research",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 1024,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Per-stock research + honest plain-English AI thesis layer for bottleneck-boom. 10yr financials + P/E vs industry + cached GLM/Claude thesis. Writes data/bottleneck-boom-research.json.",
+  "environment_keys": [
+    "ANTHROPIC_API_KEY",
+    "FMP_KEY"
+  ],
+  "inherit_env": true
+}
