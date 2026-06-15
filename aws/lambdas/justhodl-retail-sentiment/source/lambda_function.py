@@ -773,6 +773,68 @@ def lambda_handler(event, context):
     total_mentions = sum(e.get("mentions", 0) for e in enriched)
     regime, signal, _ = classify_market_regime(enriched, prior_total)
 
+    # ─── #11 Watchlist-aware alerting (Telegram best-effort + on-page feed) ───
+    try:
+        _astate = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/retail-alert-state.json")["Body"].read())
+    except Exception:
+        _astate = {}
+    if not isinstance(_astate, dict):
+        _astate = {}
+    last_alert = _astate.get("last_alert") if isinstance(_astate.get("last_alert"), dict) else {}
+    held = set()
+    try:
+        held = set(_collect_tickers(json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/portfolio.json")["Body"].read())))
+    except Exception:
+        pass
+    now_ep = int(time.time()); COOLDOWN = 12 * 3600
+    events = []
+    def _consider(e, etype, detail):
+        tk = e.get("ticker")
+        if not tk:
+            return
+        key = f"{tk}#{etype}"
+        if now_ep - (last_alert.get(key, 0) or 0) < COOLDOWN:
+            return
+        last_alert[key] = now_ep
+        events.append({"ticker": tk, "type": etype, "detail": detail, "held": tk in held,
+                       "heat": e.get("heat"), "change_pct": e.get("change_pct"), "ts": now_ep})
+    for e in (squeeze_radar or [])[:5]:
+        if (e.get("squeeze_score") or 0) >= 70:
+            _consider(e, "SQUEEZE", f"heat {e.get('heat')}, short {e.get('short_pct')}%, score {e.get('squeeze_score')}")
+    for e in (igniting or [])[:5]:
+        if (e.get("heat") or 0) >= 70:
+            _consider(e, "IGNITION", f"heat {e.get('heat')}, {int(e.get('velocity_pct') or 0)}% velocity")
+    for e in (fading_divergence or [])[:5]:
+        if (e.get("heat") or 0) >= 55:
+            _consider(e, "DIVERGENCE", f"loud but price {e.get('change_pct')}%")
+    for e in (crowded_exhaustion or [])[:3]:
+        _consider(e, "EXHAUSTION", f"crowding {e.get('crowding_score')}, {e.get('stwt_bull_pct')}% bull")
+    try:
+        _af = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/retail-alerts.json")["Body"].read())
+        feed = _af.get("alerts", []) if isinstance(_af, dict) else []
+    except Exception:
+        feed = []
+    feed = (events + feed)
+    feed = [a for a in feed if now_ep - (a.get("ts") or 0) <= 7 * 86400][:60]
+    recent_alerts = feed[:12]
+    if events:
+        _em = {"SQUEEZE": "🎯", "IGNITION": "🌱", "DIVERGENCE": "⚠️", "EXHAUSTION": "🧨"}
+        lines = ["📱 RETAIL ALERTS"] + [f"{_em.get(a['type'],'•')} {'⭐' if a['held'] else ''}{a['ticker']} {a['type']} — {a['detail']}" for a in events[:10]]
+        try:
+            send_telegram("\n".join(lines))
+        except Exception as _e:
+            print(f"[retail-alert] tg {str(_e)[:60]}")
+    _astate["last_alert"] = last_alert
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key="data/retail-alert-state.json",
+                      Body=json.dumps(_astate, default=str).encode(), ContentType="application/json")
+        s3.put_object(Bucket=S3_BUCKET, Key="data/retail-alerts.json",
+                      Body=json.dumps({"generated_at": datetime.now(timezone.utc).isoformat(), "alerts": feed}, default=str).encode(),
+                      ContentType="application/json", CacheControl="public, max-age=300")
+        print(f"  alerts: {len(events)} new, {len(feed)} in feed")
+    except Exception as _e:
+        print(f"[retail-alert] save {str(_e)[:60]}")
+
     # ─── Build payload ───
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -817,6 +879,7 @@ def lambda_handler(event, context):
         "data_quality": data_quality,
         "signal_persistence": signal_persistence,
         "theme_rollup": theme_rollup,
+        "recent_alerts": recent_alerts,
         "signals_logged": n_signals,
         "track_record": track_record,
         "stocktwits_trending": trending[:20],
