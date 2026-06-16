@@ -1,71 +1,13 @@
-=== SNB capchstocki (share price indices) — structure ===
-  ﻿"CubeId";"capchstocki"
-  "PublishingDate";"2026-05-21 09:00"
-  
-  "Date";"D0";"Value"
-  "1989-01-02";"GDR";
-  "1989-01-02";"BA";
-  "1989-01-02";"FD";
-  "1989-01-02";"VS";
-  "1989-01-02";"NGT";
-  "1989-01-02";"GW";
-  "1989-01-02";"B";
-  "1989-01-02";"F";
-  "1989-01-02";"V";
-  "1989-01-02";"NG";
-  "1989-01-02";"G";
-  "1989-01-02";"N";
-  "1989-01-02";"IPS";
-  "1989-01-02";"SMISMIDR";
-  "1989-01-03";"GDR";"954.7"
-  "1989-01-03";"BA";
-  "1989-01-03";"FD";
-  "1989-01-03";"VS";
-  "1989-01-03";"NGT";
-  "1989-01-03";"GW";
-  "1989-01-03";"B";
-  "1989-01-03";"F";
-  "1989-01-03";"V";
-  "1989-01-03";"NG";
-  "1989-01-03";"G";
-  "1989-01-03";"N";"1195.8"
-  "1989-01-03";"IPS";"844.1"
-  "1989-01-03";"SMISMIDR";"1466.2"
-  "1989-01-04";"GDR";"954.5"
-  "1989-01-04";"BA";
-  "1989-01-04";"FD";
-  "1989-01-04";"VS";
-  "1989-01-04";"NGT";
-  "1989-01-04";"GW";
-  "1989-01-04";"B";
-  "1989-01-04";"F";
-
-=== SNB snbbipo (balance sheet — find sight deposits) dimensions ===
-   200 <!doctype html>
-<html lang="de">
-<head>
-  <meta charset="utf-8">
-  <title>Datenportal der Schweizeri
-
-=== SNB rendoblid (yields) + devkua (CHF) latest sample ===
-  rendoblid: 215714 lines; tail:
-     "2025-07-31";"IKH";"1.117"
-     "2025-07-31";"AAA";"0.707"
-     "2025-07-31";"AA";"0.826"
-     "2025-07-31";"A";"1.052"
-  devkua: 1460 lines; tail:
-     "2025";"NZD1";"0.48296"
-     "2025";"SGD1";"0.63529"
-     "2025";"THB100";"2.52557"
-     "2025";"XDR1";"1.12026"
-
-=== FRED Swiss unemployment + IP (find FRESH ids) ===
-  unemp q        CHEUNTOTQDSMEI     -> none
-  unemp SLU      LMUNRRTTCHQ156S    -> 2.146489 (2023-10-01)
-  IP q OECD      CHEPROINDQISMEI    -> 131.7 (2023-10-01)
-  IP PRINTO q    PRINTO01CHQ657S    -> -1.5983194833 (2026-01-01)
-  mfg PRMNTO q   PRMNTO01CHQ657S    -> -1.2013627395 (2026-01-01)
-  IP MEI         PRINTO01CHQ659S    -> -6.7509087754 (2026-01-01)
-
-=== existing ECB esi.json (what's in it?) ===
-  esi.json: {'id': 'esi', 'label': 'Eurodollar Stress Index (0-100)', 'freq': 'daily', 'latest_date': '2026-06-16'}
+invoke: {"statusCode": 200, "body": "{\"n_series\": 10, \"regime\": \"CALM\", \"score\": 15}"}
+n_series: 10 | crisis: CALM 15
+  smi                        13717.54 (2026-06-15) pctile=99.6 3m=5.86 | Swiss Market Index (SMI)
+  spi                      19373.1094 (2026-06-15) pctile=100.0 3m=7.88 | Swiss Performance Index (SPI)
+  eurchf                       0.9208 (2026-06-16) pctile=3.2 3m=0.83 | EUR/CHF — franc safe-haven gauge
+  usdchf                       0.7928 (2026-06-16) pctile=4.3 3m=0.52 | USD/CHF — franc vs dollar
+  ch_business_confidence     -10.4233 (2026-05-01) pctile=40.3 3m=14.5 | Switzerland — business confidence (OECD)
+  ch_ip_yoy                   -1.5983 (2026-01-01) pctile=15.9 3m=-9.03 | Switzerland — industrial production YoY 
+  ch_mfg_yoy                  -1.2014 (2026-01-01) pctile=14.8 3m=-64.13 | Switzerland — manufacturing production Y
+  ch_unemployment              2.1726 (2023-12-01) pctile=17.6 3m=7.63 | Switzerland — unemployment rate (%, harm
+  ea_business_confidence         -6.8 (2026-01-01) pctile=43.0 3m=-32.67 | Euro Area — business confidence (OECD)
+  ea_consumer_confidence        -12.4 (2026-01-01) pctile=30.5 3m=-8.15 | Euro Area — consumer confidence (OECD)
+drivers: ['industrial production contracting (-1.6% YoY)']
