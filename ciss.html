@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CISS Systemic Stress · JustHodl.AI</title>
+<meta name="description" content="Every ECB CISS & CLIFS systemic-stress index — euro-area composite, sub-indices, SovCISS, country-level, and CLIFS — with full history to 1980, live AI interpretation, and implications for global risk assets and liquidity cycles.">
+<meta name="theme-color" content="#0a0a0a">
+<style>
+:root{--bg:#0a0a0a;--c1:#131313;--c2:#181818;--bd:#262626;--fg:#e5e5e5;--fg2:#a3a3a3;--fg3:#666;
+--amber:#facc15;--green:#22c55e;--amberw:#f59e0b;--red:#ef4444;--blue:#3b82f6;--violet:#a78bfa;--cyan:#22d3ee;--mono:ui-monospace,'SF Mono',Menlo,monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:13px;line-height:1.5;}
+.wrap{max-width:1500px;margin:0 auto;padding:18px;}
+.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+h1{font-size:20px;font-weight:700;}h1 .s{color:var(--fg3);font-weight:400;font-size:13px;}
+.nav a{color:var(--fg2);text-decoration:none;margin-left:14px;font-size:12px;}.nav a:hover{color:var(--amber);}
+.sec{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);margin:22px 0 10px;border-bottom:1px solid var(--bd);padding-bottom:5px;}
+.ai{background:linear-gradient(180deg,#15131f,#111);border:1px solid #a78bfa44;border-radius:14px;padding:16px 18px;margin-bottom:8px;}
+.ai .rb{display:inline-block;font-family:var(--mono);font-weight:700;font-size:12px;padding:3px 11px;border-radius:6px;letter-spacing:1px;}
+.ai h2{font-size:15px;margin:8px 0;font-weight:650;line-height:1.45;}
+.ai .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;}
+.ai .blk{background:#0d0d12;border:1px solid var(--bd);border-radius:10px;padding:11px 13px;}
+.ai .blk b{color:var(--violet);font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px;}
+.ai .blk p{font-size:12px;line-height:1.6;color:var(--fg);}
+.watch li{font-size:11.5px;color:var(--fg2);margin:4px 0;list-style:none;padding-left:14px;position:relative;}
+.watch li:before{content:"▸";position:absolute;left:0;color:var(--amber);}
+.hero{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.hg{background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;min-width:120px;}
+.hg b{font-family:var(--mono);font-size:20px;display:block;}.hg .m{color:var(--fg3);font-size:10px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px;}
+.card{background:var(--c1);border:1px solid var(--bd);border-radius:11px;padding:11px 13px;cursor:pointer;transition:border-color .15s;}
+.card:hover{border-color:var(--violet);}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.card .nm{font-weight:600;font-size:12.5px;}.card .ind{color:var(--fg3);font-size:10px;font-family:var(--mono);}
+.card .val{font-family:var(--mono);font-size:17px;font-weight:700;text-align:right;}
+.card .row{display:flex;gap:10px;font-family:var(--mono);font-size:10px;color:var(--fg2);margin-top:3px;flex-wrap:wrap;}
+.pill{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:4px;font-weight:700;}
+.spark{margin-top:7px;}
+.feat{grid-column:1/-1;}
+.feat .val{font-size:30px;}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+#modal .box{background:var(--c1);border:1px solid var(--violet);border-radius:14px;padding:18px;max-width:1100px;width:100%;max-height:90vh;overflow:auto;}
+#modal .x{float:right;color:var(--fg3);cursor:pointer;font-size:20px;}
+.note{color:var(--fg3);font-size:10px;font-family:var(--mono);margin-top:18px;border-top:1px solid var(--bd);padding-top:8px;}
+.loading{color:var(--fg3);font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="head">
+  <div><h1>🌡 CISS Systemic Stress <span class="s">— every ECB stress index, 1980→now</span></h1></div>
+  <div class="nav"><a href="/">← home</a><a href="/stress.html">stress simulator</a><a href="/risk-desk.html">risk desk</a></div>
+</div>
+
+<div id="aiPanel" class="ai"><span class="loading">Loading AI interpretation…</span></div>
+<div id="hero" class="hero"></div>
+<div id="body"><span class="loading">Loading every CISS & CLIFS series…</span></div>
+
+<div class="note" id="note"></div>
+</div>
+
+<div id="modal"><div class="box"><span class="x" onclick="document.getElementById('modal').style.display='none'">✕</span><div id="modalBody"></div></div></div>
+
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+
+const CAT={ea_headline:{t:"Euro-Area Composite CISS",o:1},ea_subindex:{t:"Euro-Area Sub-Indices",o:2},
+ sovereign_ea:{t:"Euro-Area Sovereign Stress (SovCISS)",o:3},country_ciss:{t:"Country CISS — Systemic Stress",o:4},
+ sovereign_country:{t:"Country Sovereign Stress (SovCISS)",o:5},clifs:{t:"CLIFS — Country-Level Financial Stress",o:6},other:{t:"Other",o:9}};
+
+// colour by percentile (universal across CISS 0-1 and CLIFS scales)
+function pcol(p){if(p==null)return 'var(--fg3)';return p>=75?'var(--red)':p>=50?'var(--amberw)':p>=25?'var(--amber)':'var(--green)';}
+function pband(p){return p==null?'—':p>=75?'HIGH':p>=50?'ELEVATED':p>=25?'NORMAL':'LOW';}
+
+function sparkline(pts,w,h,col){
+  if(!pts||pts.length<2)return '';
+  const vs=pts.map(p=>p[1]);const mn=Math.min(...vs),mx=Math.max(...vs),rg=(mx-mn)||1;
+  const n=pts.length;const d=pts.map((p,i)=>`${(i/(n-1)*w).toFixed(1)},${(h-(p[1]-mn)/rg*h).toFixed(1)}`).join(' ');
+  return `<svg class="spark" width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${d}" fill="none" stroke="${col}" stroke-width="1.3"/></svg>`;
+}
+
+function detailChart(s){
+  const pts=s.points||[];const W=1040,H=380,PL=56,PR=16,PT=18,PB=34;const w=W-PL-PR,h=H-PT-PB;
+  const vs=pts.map(p=>p[1]);const mn=Math.min(...vs),mx=Math.max(...vs),rg=(mx-mn)||1;
+  const n=pts.length;
+  const x=i=>PL+i/(n-1)*w, y=v=>PT+h-(v-mn)/rg*h;
+  const line=pts.map((p,i)=>`${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ');
+  // year ticks
+  let ticks='';const yrs={};pts.forEach((p,i)=>{const yr=p[0].slice(0,4);if(!(yr in yrs))yrs[yr]=i;});
+  const yl=Object.keys(yrs);const step=Math.ceil(yl.length/10);
+  yl.forEach((yr,k)=>{if(k%step===0){const px=x(yrs[yr]);ticks+=`<line x1="${px}" y1="${PT}" x2="${px}" y2="${PT+h}" stroke="#222"/><text x="${px}" y="${H-12}" fill="#666" font-size="10" text-anchor="middle">${yr}</text>`;}});
+  // crisis shading (GFC, EU debt, COVID) where in range
+  const shade=[['2008-09','2009-06','GFC'],['2011-07','2012-09','EU debt'],['2020-02','2020-05','COVID']];
+  let sh='';shade.forEach(([a,b,lab])=>{let ia=pts.findIndex(p=>p[0]>=a),ib=pts.findIndex(p=>p[0]>=b);if(ia>=0){if(ib<0)ib=n-1;sh+=`<rect x="${x(ia)}" y="${PT}" width="${Math.max(2,x(ib)-x(ia))}" height="${h}" fill="#ef444411"/><text x="${(x(ia)+x(ib))/2}" y="${PT+11}" fill="#ef444488" font-size="9" text-anchor="middle">${lab}</text>`;}});
+  // value gridlines
+  let gl='';for(let k=0;k<=4;k++){const v=mn+rg*k/4;const py=y(v);gl+=`<line x1="${PL}" y1="${py}" x2="${PL+w}" y2="${py}" stroke="#1a1a1a"/><text x="${PL-6}" y="${py+3}" fill="#666" font-size="10" text-anchor="end">${v.toFixed(3)}</text>`;}
+  // CISS regime thresholds (only for 0-1 CISS-type series)
+  let thr='';if(s.flow==='CISS'&&mx<=1.05){[[0.1,'elevated','#f59e0b55'],[0.2,'stress','#ef444455'],[0.45,'crisis','#ef4444']].forEach(([t,lab,c])=>{if(t>=mn&&t<=mx){const py=y(t);thr+=`<line x1="${PL}" y1="${py}" x2="${PL+w}" y2="${py}" stroke="${c}" stroke-dasharray="4 3"/><text x="${PL+w-2}" y="${py-3}" fill="${c}" font-size="9" text-anchor="end">${lab} ${t}</text>`;}});}
+  const col=pcol(s.pctile);
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}"><rect x="${PL}" y="${PT}" width="${w}" height="${h}" fill="#0d0d0d"/>${sh}${gl}${ticks}${thr}<polyline points="${line}" fill="none" stroke="${col}" stroke-width="1.5"/></svg>`;
+}
+
+function card(s,feat){
+  const col=pcol(s.pctile);
+  return `<div class="card ${feat?'feat':''}" data-id="${s.id}">
+    <div class="top"><div><div class="nm">${esc(s.country)}</div><div class="ind">${esc(s.indicator)} · ${s.freq==='D'?'daily':'monthly'}</div></div>
+      <div class="val" style="color:${col}">${(s.latest!=null?s.latest.toFixed(4):'—')}</div></div>
+    <div class="row">
+      <span class="pill" style="background:${col}22;color:${col}">${pband(s.pctile)} ${s.pctile!=null?s.pctile.toFixed(0)+'%ile':''}</span>
+      <span>z ${s.zscore>=0?'+':''}${s.zscore}</span>
+      <span>1y ${s.chg_1y>=0?'+':''}${s.chg_1y}</span>
+      <span>${(s.start_date||'').slice(0,4)}→ · ${s.pct_of_peak!=null?s.pct_of_peak.toFixed(0)+'% of peak':''}</span>
+    </div>
+    ${sparkline(s.points,300,38,col)}</div>`;
+}
+
+let SERIES={};
+function openModal(id){const s=SERIES[id];if(!s)return;
+  document.getElementById('modalBody').innerHTML=`<h2 style="font-size:17px;margin-bottom:2px">${esc(s.country)} — ${esc(s.indicator)}</h2>
+   <div style="font-family:var(--mono);font-size:11px;color:var(--fg2);margin-bottom:10px">${esc(s.key)} · ${esc(s.flow)} · ${s.n_obs} obs · ${esc(s.start_date)} → ${esc(s.latest_date)}</div>
+   <div style="display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;margin-bottom:10px">
+     <span>latest <b style="color:${pcol(s.pctile)}">${s.latest}</b></span><span>percentile <b>${s.pctile}%</b></span>
+     <span>z-score <b>${s.zscore}</b></span><span>1y chg <b>${s.chg_1y}</b></span><span>min <b>${s.min}</b></span><span>max <b>${s.max}</b></span><span>% of peak <b>${s.pct_of_peak}%</b></span></div>
+   ${detailChart(s)}`;
+  document.getElementById('modal').style.display='flex';}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')document.getElementById('modal').style.display='none';});
+
+function renderAI(a){
+  const el=document.getElementById('aiPanel');
+  const it=(a&&a.interpretation)||null;
+  if(!it){el.innerHTML='<span class="loading">AI interpretation generates on the next daily cycle.</span>';return;}
+  const reg=it.regime||a.ea_regime||'—';
+  const rc={CALM:'var(--green)',ELEVATED:'var(--amber)',STRESS:'var(--amberw)',CRISIS:'var(--red)'}[reg]||'var(--fg2)';
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+     <span class="rb" style="background:${rc}22;color:${rc};border:1px solid ${rc}66">SYSTEMIC STRESS: ${esc(reg)}</span>
+     <span style="font-family:var(--mono);font-size:10px;color:var(--fg3)">AI · ${esc((a.model||'').split('(')[0])} · as of ${esc(a.based_on||'')}</span></div>
+   <h2>${esc(it.headline)}</h2>
+   <div style="font-size:12.5px;color:var(--fg2);line-height:1.6">${esc(it.regime_read)}</div>
+   <div class="grid">
+     <div class="blk"><b>🌍 Global Risk Assets</b><p>${esc(it.risk_assets)}</p></div>
+     <div class="blk"><b>💧 Global Liquidity Cycle</b><p>${esc(it.liquidity)}</p></div>
+     <div class="blk"><b>⚡ Stress Source</b><p>${esc(it.stress_source)}</p></div>
+     <div class="blk"><b>🏛 Sovereign / Fragmentation</b><p>${esc(it.sovereign)}</p></div>
+     <div class="blk"><b>🗺 Cross-Country Dispersion</b><p>${esc(it.cross_country)}</p></div>
+     <div class="blk"><b>👁 What To Watch</b><ul class="watch">${(it.watch||[]).map(w=>`<li>${esc(w)}</li>`).join('')}</ul></div>
+   </div>`;
+}
+
+(async()=>{
+  const [D,AI]=await Promise.all([gj('data/ciss-stress.json'),gj('data/ciss-ai.json')]);
+  renderAI(AI);
+  if(!D||!D.series){document.getElementById('body').innerHTML='<span class="loading">CISS data first run pending.</span>';return;}
+  const reg=D.ea_regime||'—';const rc={CALM:'var(--green)',ELEVATED:'var(--amber)',STRESS:'var(--amberw)',CRISIS:'var(--red)'}[reg]||'var(--fg2)';
+  document.getElementById('hero').innerHTML=
+    `<div class="hg"><b style="color:${rc}">${D.ea_composite!=null?D.ea_composite.toFixed(4):'—'}</b><div class="m">EA Composite CISS<br>${esc(D.ea_composite_date)}</div></div>
+     <div class="hg"><b style="color:${rc}">${esc(reg)}</b><div class="m">euro-area regime</div></div>
+     <div class="hg"><b>${D.n_series}</b><div class="m">stress series tracked</div></div>
+     <div class="hg"><b>1980</b><div class="m">history depth</div></div>`;
+  D.series.forEach(s=>SERIES[s.id]=s);
+  const byCat={};D.series.forEach(s=>{(byCat[s.category]=byCat[s.category]||[]).push(s);});
+  const cats=Object.keys(byCat).sort((a,b)=>(CAT[a]?.o||9)-(CAT[b]?.o||9));
+  let html='';
+  cats.forEach(c=>{
+    const list=byCat[c].sort((a,b)=>(b.pctile||0)-(a.pctile||0));
+    html+=`<div class="sec">${esc(CAT[c]?.t||c)} <span style="color:var(--fg3);text-transform:none;letter-spacing:0">· ${list.length} series</span></div>`;
+    html+=`<div class="grid">${list.map(s=>card(s,c==='ea_headline')).join('')}</div>`;
+  });
+  document.getElementById('body').innerHTML=html;
+  document.querySelectorAll('.card').forEach(el=>el.onclick=()=>openModal(el.dataset.id));
+  document.getElementById('note').textContent=`${D.frequency_note} · ${D.provenance} · generated ${(D.generated_at||'').slice(0,16)} · click any tile for full-history chart`;
+})();
+</script>
+</body>
+</html>
