@@ -1,13 +1,18 @@
-=== ei_bssi_m_r2 (sentiment/confidence) structure ===
-  dims: ['freq', 'indic', 's_adj', 'geo', 'time']
-    freq: M=Monthly
-    indic: BS-CCI-BAL=Construction confidenc, BS-ESI-I=Economic sentiment ind, BS-ICI-BAL=Industrial confidence , BS-RCI-BAL=Retail confidence indi, BS-CSMCI-BAL=Consumer confidence in, BS-SCI-BAL=Services confidence in
-    s_adj: NSA=Unadjusted data (i.e. , SA=Seasonally adjusted da
+invoke: {"statusCode": 200, "body": "{\"n_flashing\": 2}"}
 
-=== sts_inpr_m (industrial production) structure ===
-  dims: ['freq', 'indic_bt', 'nace_r2', 's_adj', 'unit', 'geo', 'time']
-    freq: M=Monthly
-    indic_bt: PRD=Production (volume)
-    nace_r2: B-D=Mining and quarrying; , MIG_ING_CAG=MIG - intermediate and, MIG_ING=MIG - intermediate goo, MIG_NRG_X_E=MIG - energy (except s, MIG_NRG_X_D_E=MIG - energy (except s, MIG_CAG=MIG - capital goods, MIG_COG=MIG - consumer goods, MIG_COG_X_FOOD=MIG - consumer goods (, MIG_DCOG=MIG - durable consumer, MIG_NDCOG=MIG - non-durable cons, B_C=Mining and quarrying; , B_C_X_MIG_NRG=Mining and quarrying; , B-D_X_FOOD=Mining and quarrying; , B_C_X_FD_MIG_NRG=Mining and quarrying; 
-    s_adj: NSA=Unadjusted data (i.e. , CA=Calendar adjusted data, SCA=Seasonally and calenda
-    unit: I21=Index, 2021=100, I15=Index, 2015=100, I10=Index, 2010=100, PCH_PRE=Percentage change on p, PCH_SM=Percentage change comp
+=== NEW confidence + IP-YoY charts ===
+  conf_industrial        1983-02→2026-05 (321pts) latest=-8.0 pctile=34.4
+  conf_services          1995-04→2026-05 (321pts) latest=2.2 pctile=21.1
+  conf_consumer          1985-01→2026-05 (321pts) latest=-19.0 pctile=5.0
+  conf_retail            1985-01→2026-05 (321pts) latest=-10.9 pctile=32.6
+  conf_construction      1983-02→2026-05 (321pts) latest=-3.6 pctile=73.1
+  esi_sentiment          1983-02→2026-05 (321pts) latest=93.5 pctile=24.4
+  ipyoy_total            MISSING
+  ipyoy_manufacturing    MISSING
+  ipyoy_intermediate     MISSING
+  ipyoy_capital          MISSING
+  ipyoy_durable          MISSING
+  ipyoy_nondurable       MISSING
+  ipyoy_energy           MISSING
+
+total charts: 21
