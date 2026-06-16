@@ -31,11 +31,11 @@ SERIES = [
     ("ILM/W.U2.C.L060000.U4.EUR", "ilm_eur_to_nonres", "EUR liabilities to non-residents (€bn) — foreign parking"),
     ("ILM/W.U2.C.A050000.U2.EUR", "ilm_mp_lending", "Monetary policy lending to banks (€bn)"),
     ("CISS/D.U2.Z0Z.4F.EC.SS_CIN.IDX", "ciss_ea", "CISS — Euro Area systemic stress composite"),
-    ("CISS/D.U2.Z0Z.4F.EC.SS_FI.CON", "ciss_fi", "CISS — financial intermediaries sub-index"),
-    ("CISS/D.U2.Z0Z.4F.EC.SS_BM.CON", "ciss_bo", "CISS — bond market sub-index"),
-    ("CISS/D.U2.Z0Z.4F.EC.SS_FX.CON", "ciss_fx", "CISS — FX market sub-index"),
-    ("CISS/D.U2.Z0Z.4F.EC.SS_EM.CON", "ciss_eq", "CISS — equity market sub-index"),
-    ("CISS/D.U2.Z0Z.4F.EC.SS_MM.CON", "ciss_mm", "CISS — money market sub-index"),
+    ("CISS/D.U2.Z0Z.4F.EC.SS_FIN.CON", "ciss_fi", "CISS — financial intermediaries sub-index"),
+    ("CISS/D.U2.Z0Z.4F.EC.SS_BMN.CON", "ciss_bo", "CISS — bond market sub-index"),
+    ("CISS/D.U2.Z0Z.4F.EC.SS_FXN.CON", "ciss_fx", "CISS — FX market sub-index"),
+    ("CISS/D.U2.Z0Z.4F.EC.SS_EMN.CON", "ciss_eq", "CISS — equity market sub-index"),
+    ("CISS/D.U2.Z0Z.4F.EC.SS_MMN.CON", "ciss_mm", "CISS — money market sub-index"),
 ]
 
 

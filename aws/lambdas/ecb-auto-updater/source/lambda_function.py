@@ -36,27 +36,27 @@ def lambda_handler(event, context):
     # These are the actual series keys from ECB
     ciss_components = [
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_BM.CON',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_BMN.CON',
             'symbol': 'ECB.CISS.D.U2.BON_CI',
             'name': 'CISS Bond Market Subindex (Euro Area Daily)'
         },
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_FX.CON',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_FXN.CON',
             'symbol': 'ECB.CISS.D.U2.FX_CI',
             'name': 'CISS Foreign Exchange Market Subindex (Euro Area Daily)'
         },
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_MM.CON',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_MMN.CON',
             'symbol': 'ECB.CISS.D.U2.MMS_CI',
             'name': 'CISS Money Market Subindex (Euro Area Daily)'
         },
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_EM.CON',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_EMN.CON',
             'symbol': 'ECB.CISS.D.U2.EQU_CI',
             'name': 'CISS Equity Market Subindex (Euro Area Daily)'
         },
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_FI.CON',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_FIN.CON',
             'symbol': 'ECB.CISS.D.U2.FII_CI',
             'name': 'CISS Financial Intermediaries Subindex (Euro Area Daily)'
         },
@@ -71,7 +71,7 @@ def lambda_handler(event, context):
     for component in ciss_components:
         try:
             # Use the ECB SDW API with correct path
-            # data-api expects flow/dot-key, e.g. 'CISS/D.U2.Z0Z.4F.EC.SS_BM.CON'
+            # data-api expects flow/dot-key, e.g. 'CISS/D.U2.Z0Z.4F.EC.SS_BMN.CON'
             _p = component['key'].split('.', 1)
             series_key = _p[0] + '/' + _p[1]
             url = f"https://data-api.ecb.europa.eu/service/data/{series_key}"
