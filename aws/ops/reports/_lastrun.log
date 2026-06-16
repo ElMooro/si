@@ -1,6 +1,35 @@
-invoke: {"statusCode": 200, "body": "{\"written\": 54}"}
-  m1_growth      freq=monthly   n=  352 1997-01->2026-04 latest=3.8 pctile=18.5
-  gdp_yoy        freq=quarterly n=  117 1997-Q1->2026-Q1 latest=0.31547 pctile=17.9
-  bank_rate_nfc  freq=monthly   n=  316 2000-01->2026-04 latest=3.54 pctile=66.5
-  eurcny         freq=daily     n= 6761 2000-01-13->2026-06-16 latest=7.833 pctile=39.4
-  eurjpy         freq=daily     n= 7028 1999-01-04->2026-06-16 latest=185.9 pctile=99.8
+=== A) SNB API (data.snb.ch) — confirm + find cubes ===
+  cube snbpolrat      -> http=404 | HTTP Error 404: Not Found
+  cube rendoblid      -> http=200 | ﻿"CubeId";"rendoblid"
+  cube devkua         -> http=200 | ﻿"CubeId";"devkua"
+  cube devkum         -> http=200 | ﻿"CubeId";"devkum"
+  cube capchstocki    -> http=200 | ﻿"CubeId";"capchstocki"
+  cube capchstockm    -> http=404 | HTTP Error 404: Not Found
+  cube snbbipo        -> http=200 | ﻿"CubeId";"snbbipo"
+  cube zimoma         -> http=200 | ﻿"CubeId";"zimoma"
+  cube plkoba         -> http=404 | HTTP Error 404: Not Found
+
+=== B) Yahoo — SMI / SPI indices ===
+  %5ESSMI    -> http=200 price=13761.53 (^SSMI)
+  %5ESSHI    -> http=200 price=19408.53 (^SSHI)
+  SPI.SW     -> http=404 (no data)
+  %5ESPI     -> http=200 price=None (^SPI)
+
+=== C) FRED — Swiss macro (check freshness) ===
+  unemployment LRHU  LRHUTTTTCHM156S    -> http=400 (none)
+  unemp SECO         LMUNRRTTCHM156S    -> 2.172642 (2023-12-01)
+  IP OECD            CHEPROINDMISMEI    -> http=400 (none)
+  IP prod PRINTO     PRINTO01CHQ661S    -> http=400 (none)
+  mfg PRMNTO         PRMNTO01CHQ661S    -> http=400 (none)
+  BCI OECD           BSCICP02CHM460S    -> -10.4233333333 (2026-05-01)
+  CCI OECD           CSCICP02CHM460S    -> http=400 (none)
+  CLI                CHELOLITONOSTSAM   -> 97.9672829037042 (2022-11-01)
+
+=== D) KOF barometer (datenservice.kof.ethz.ch) ===
+  KOF barometer -> http=404 | HTTP Error 404: Not Found
+
+=== E) ECB business/industrial confidence + production YoY ===
+  ESI sentiment              RTD/M.S0.S.Y_ESI.LEVEL             -> http=404
+  ind confidence BCS         RTD/M.S0.S.Y_BCS_BCI.LEVEL         -> http=404
+  ind conf ESI               RTD/M.S0.S.B_ICI.LEVEL             -> http=404
+  IP YoY (compute from idx)  STS/M.I9.Y.PROD.NS0020.4.000       -> 98.1 (2025-09) Industrial production; total excluding c
