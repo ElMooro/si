@@ -110,7 +110,7 @@ const TABS={
     {k:"major_news",t:"Major News",d:"Names carrying notable tagged news",sort:"change"},
   ],
 };
-let DATA=null, cur="Trend";
+let DATA=null, HEAT=null, cur="Trend";
 const fmtPct=v=>v==null?"—":(v>0?"+":"")+v.toFixed(1)+"%";
 const cls=v=>v==null?"dim":(v>0?"pos":(v<0?"neg":""));
 const fmtVol=v=>v==null?"—":(v>=1e6?(v/1e6).toFixed(1)+"M":v>=1e3?(v/1e3).toFixed(0)+"K":v);
@@ -138,18 +138,46 @@ function cardHTML(cfg){
   }
   return `<div class="card"><div class="card-h"><div class="card-t"><span>${cfg.t}</span><span class="cnt">${rows.length}</span></div><div class="card-d">${cfg.d}</div></div>${body}</div>`;
 }
+function confluenceHTML(){
+  const c=DATA.confluence||{};const bsi=c.bottom_squeeze_insider||[],bi=c.bottom_insider||[],tis=c.top_insider_sell||[];
+  if(!bsi.length&&!bi.length&&!tis.length)return "";
+  const chips=(a,col)=>a.length?a.map(t=>`<span style="display:inline-block;font-family:var(--font-mono);font-size:11px;padding:2px 7px;margin:2px;border:1px solid ${col};border-radius:4px;color:var(--text)">${t}</span>`).join(""):'<span class="dim">none today</span>';
+  return `<div class="card" style="margin-bottom:14px;border-color:var(--gold)"><div class="card-h"><div class="card-t"><span>⭐ Confluence — multi-confirmed reversals</span></div><div class="card-d">Highest-conviction setups where independent signals align — far stronger than any one pattern alone.</div></div>
+   <div style="padding:11px 13px;font-size:12px">
+     <div style="margin:4px 0"><b style="color:var(--pos)">BOTTOM · double-bottom + high short + insider buy</b><br>${chips(bsi,'rgba(0,230,118,.6)')}</div>
+     <div style="margin:9px 0"><b style="color:var(--info)">BOTTOM · reversal pattern + insider buy</b><br>${chips(bi,'rgba(34,211,238,.5)')}</div>
+     <div style="margin:9px 0"><b style="color:var(--neg)">TOP · reversal pattern + insider sell</b><br>${chips(tis,'rgba(255,61,90,.5)')}</div>
+   </div></div>`;
+}
+function heatHTML(){
+  if(!HEAT||!HEAT.sectors)return '<div class="empty">heatmap loading…</div>';
+  const bg=v=>v==null?'transparent':v>0?`rgba(0,230,118,${Math.min(Math.abs(v)/8,.45)+.08})`:`rgba(255,61,90,${Math.min(Math.abs(v)/8,.45)+.08})`;
+  const sg=v=>v==null?'dim':v>0?'pos':'neg',pp=v=>v==null?'—':(v>0?'+':'')+v+'%';
+  return `<div style="margin-bottom:10px;color:var(--text-mute);font-size:11px">Cap-weighted sector performance across the whole market — tile color is the 1-month move. Cap-weighted means the big names drive it, so this is the sector's real move, not micro-cap noise.</div>
+   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:10px">${HEAT.sectors.map(x=>`
+     <div class="card" style="background:${bg(x.avg_perf_m)}"><div style="padding:11px 13px">
+       <div style="display:flex;justify-content:space-between;align-items:baseline"><b>${x.sector}</b><b class="${sg(x.avg_perf_m)}" style="font-family:var(--font-mono);font-size:14px">${pp(x.avg_perf_m)}</b></div>
+       <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-top:4px">${x.n} names · $${(x.total_mktcap_b/1000).toFixed(1)}T · 1W ${pp(x.avg_perf_w)} · YTD ${pp(x.avg_perf_ytd)}</div>
+       <div style="font-family:var(--font-mono);font-size:10px;margin-top:6px;color:var(--text-dim)">▲ ${(x.top||[]).slice(0,3).map(t=>t.ticker).join(' ')}</div>
+     </div></div>`).join("")}</div>`;
+}
 function render(){
-  document.getElementById("tabs").innerHTML=Object.keys(TABS).map(name=>{
-    const n=TABS[name].reduce((s,c)=>s+((DATA.signals[c.k]||[]).length),0);
+  const names=Object.keys(TABS).concat(["Sectors"]);
+  document.getElementById("tabs").innerHTML=names.map(name=>{
+    const n=name==="Sectors"?((HEAT&&HEAT.sectors&&HEAT.sectors.length)||0):TABS[name].reduce((s,c)=>s+((DATA.signals[c.k]||[]).length),0);
     return `<div class="tab ${name===cur?'on':''}" data-t="${name}">${name} <span style="opacity:.6">${n}</span></div>`;
   }).join("");
   document.querySelectorAll(".tab").forEach(el=>el.onclick=()=>{cur=el.dataset.t;render();});
-  document.getElementById("view").innerHTML=`<div class="grid">${TABS[cur].map(cardHTML).join("")}</div>`;
+  const view=document.getElementById("view");
+  if(cur==="Sectors"){view.innerHTML=heatHTML();return;}
+  const banner=cur==="Patterns"?confluenceHTML():"";
+  view.innerHTML=banner+`<div class="grid">${TABS[cur].map(cardHTML).join("")}</div>`;
 }
 async function load(){
   try{
     const r=await fetch(PROXY+"/data/finviz-signals.json?t="+Date.now());
     DATA=await r.json();
+    try{const hr=await fetch(PROXY+"/data/finviz-heatmap.json?t="+Date.now());HEAT=await hr.json();}catch(e){HEAT=null;}
     const tot=Object.values(DATA.counts||{}).reduce((a,b)=>a+b,0);
     document.getElementById("m-tot").textContent=tot.toLocaleString();
     const d=new Date(DATA.generated_at);
