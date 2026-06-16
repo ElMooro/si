@@ -1,7 +1,6 @@
-ev_tier coverage: 263/500
-tier dist: {'cheap': 66, 'fair': 103, 'rich': 94}
-  AAPL: ev_ebitda=26.97 sector_med=22.1 tier=rich
-  XOM: ev_ebitda=10.73 sector_med=8.4 tier=rich
-  KO: ev_ebitda=20.21 sector_med=None tier=None
-  NVDA: ev_ebitda=25.78 sector_med=22.1 tier=fair
-DIAG EV: ['finviz EV/EBITDA lens: 263 names tagged (vs sector median)']
+ev_tier coverage: 500/500 | dist: {'cheap': 125, 'fair': 178, 'rich': 197}
+  KO: ev_ebitda=20.21 sec=Consumer Staples med=11.4 tier=rich
+  PG: ev_ebitda=16.04 sec=Consumer Staples med=11.4 tier=rich
+  JNJ: ev_ebitda=18.21 sec=Health Care med=14.0 tier=rich
+  UNH: ev_ebitda=18.31 sec=Health Care med=14.0 tier=rich
+  CAT: ev_ebitda=28.8 sec=Industrials med=15.2 tier=rich
