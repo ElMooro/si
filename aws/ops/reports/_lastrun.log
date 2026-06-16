@@ -1,10 +1,8 @@
-invoke: {"statusCode": 200, "body": "{\"written\": 13}"}
-  unemployment_ea      monthly  latest=2026-04 val=6.3 pctile=3.8 n=316 disc=False
-  indprod_total        monthly  latest=2025-09 val=98.9 pctile=47.8 n=345 disc=False
-  indprod_core         monthly  latest=2025-09 val=98.1 pctile=69.6 n=345 disc=False
-  eurusd               daily    latest=2026-06-16 val=1.159 pctile=47.2 n=7028 disc=False
-  ilm_usd_claims       weekly   latest=2026-06-12 val=18804.0 pctile=26.0 n=1433 disc=False
-  ilm_eur_to_nonres    weekly   latest=2026-06-12 val=154916.0 pctile=63.9 n=1433 disc=False
-  ciss_fx              daily    latest=2026-06-15 val=0.00109 pctile=0.5 n=7162 disc=False
-  ciss_mm              daily    latest=2026-06-15 val=0.0115 pctile=6.2 n=7162 disc=False
-manifest total series: 37
+invoke ecb-history: {"statusCode": 200, "body": "{\"written\": 13}"}
+  unemployment_ea      freq=monthly  n=316 2000-01->2026-04 latest=6.3 pctile=3.8
+  indprod_total        freq=monthly  n=345 1997-01->2025-09 latest=98.9 pctile=47.8
+  indprod_core         freq=monthly  n=345 1997-01->2025-09 latest=98.1 pctile=69.6
+  eurusd               freq=daily    n=7028 1999-01-04->2026-06-16 latest=1.159 pctile=47.2
+  ilm_usd_claims       freq=weekly   n=1433 1999-01-01->2026-06-12 latest=18804.0 pctile=26.0
+  ilm_eur_to_nonres    freq=weekly   n=1433 1999-01-01->2026-06-12 latest=154916.0 pctile=63.9
+manifest series: None
