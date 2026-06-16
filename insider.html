@@ -33,6 +33,7 @@ button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px
 <div class="sec" style="color:var(--green)">★ Clusters after decline — the signal</div><div id="dc"></div>
 <div class="sec">Clusters (≥2 insiders ≤14d)</div><div id="cl"></div>
 <div class="sec">Latest open-market buys (30d)</div><button class="dl" id="dl">⬇ CSV buys</button><div id="buys"></div>
+<div class="sec" style="color:#22d3ee">⚡ Finviz insider breadth — whole-market</div><div id="fvins"></div>
 <div class="note" id="note"></div>
 </div>
 <script>
@@ -60,6 +61,20 @@ let D=null;
   document.getElementById('buys').innerHTML=b.length?`<table><thead><tr><th>Date</th><th>Ticker</th><th>Insider</th><th>Title</th><th>Shares</th><th>Px</th><th>Value</th><th>W</th></tr></thead><tbody>${
    b.map(x=>`<tr><td class="l">${esc(x.date)}</td><td class="l"><b>${esc(x.ticker)}</b></td><td class="l" style="font-size:10px">${esc(x.insider)}</td><td class="l"><span class="badge">${esc((x.title||'').slice(0,26))}</span></td><td>${x.shares?Math.round(x.shares).toLocaleString():'—'}</td><td>${x.price??'—'}</td><td class="hi">${usd(x.value)}</td><td>${x.w}×</td></tr>`).join('')}</tbody></table>`
    :`<div class="loading">${D.source_used==='unavailable'?'Source gated — see diagnostics in payload; KHALID_ACTIONS has the unlock.':'No buys parsed.'}</div>`;
+  // Finviz insider breadth (whole-market) + cross-source confirmation
+  const fc=D.finviz_buy_confirm||[], fb=D.finviz_buys||[], fs=D.finviz_sells||[];
+  const fvel=document.getElementById('fvins');
+  if(fvel){
+    const chip=(t,c)=>`<span style="display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;margin:2px;border:1px solid ${c};border-radius:4px">${esc(t)}</span>`;
+    const tbl=(arr)=>arr.length?`<table><thead><tr><th>Ticker</th><th>Sector</th><th>Price</th><th>1M</th></tr></thead><tbody>${arr.map(x=>`<tr><td class="l"><b>${esc(x.ticker)}</b></td><td class="l" style="font-size:10px">${esc(x.sector||'')}</td><td>${x.price??'—'}</td><td class="${(x.perf_m||0)<0?'lo':'hi'}">${x.perf_m!=null?(x.perf_m>0?'+':'')+x.perf_m+'%':'—'}</td></tr>`).join('')}</tbody></table>`:'<div class="loading">none</div>';
+    fvel.innerHTML=`
+      <div style="margin-bottom:10px;font-size:12px;color:var(--fg2)">Finviz flags recent insider activity across the whole market — broader than the Form-4 desk above. Names confirmed by <b>both</b> sources are strongest.</div>
+      ${fc.length?`<div style="margin:8px 0"><b style="color:#22d3ee;font-family:var(--mono);font-size:11px">✓ CONFIRMED BY BOTH (Form-4 ∩ Finviz) — ${fc.length}</b><br>${fc.map(t=>chip(t,'rgba(34,211,238,.6)')).join('')}</div>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+        <div><div class="sec" style="font-size:12px;color:var(--green)">Insider buying (${fb.length})</div>${tbl(fb.slice(0,20))}</div>
+        <div><div class="sec" style="font-size:12px;color:var(--amber)">Insider selling (${fs.length})</div>${tbl(fs.slice(0,20))}</div>
+      </div>`;
+  }
   document.getElementById('note').textContent=`${D.methodology} · diagnostics: ${(D.diagnostics||[]).join(' | ')} · v${D.version} · ${D.generated_at}`;
   document.getElementById('dl').onclick=()=>{const cols=['date','ticker','insider','title','shares','price','value','w'];
     const csv=[cols.join(',')].concat(b.map(r=>cols.map(c=>{const v=r[c];return v==null?'':String(v).replace(/,/g,';');}).join(','))).join('\n');
