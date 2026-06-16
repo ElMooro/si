@@ -241,3 +241,25 @@ def fetch_group(g, v=140, timeout=40):
         if rec.get("name"):
             out.append(rec)
     return out
+
+
+NEWS_BASE = "https://elite.finviz.com/news_export.ashx"
+
+
+def fetch_news(v=3, timeout=40):
+    """Finviz news (v=3) / blogs (v=4) export. Returns list of {title,source,date,url,category,ticker}."""
+    url = "%s?v=%s&auth=%s" % (NEWS_BASE, v, _token())
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; justhodl/1.0)"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        body = r.read().decode("utf-8", "ignore")
+    if "Title" not in body.split("\n", 1)[0]:
+        raise RuntimeError("finviz news non-CSV: " + body[:80])
+    out = []
+    for raw in csv.DictReader(io.StringIO(body)):
+        out.append({"title": (raw.get("Title") or "").strip(),
+                    "source": (raw.get("Source") or "").strip(),
+                    "date": (raw.get("Date") or "").strip(),
+                    "url": (raw.get("Url") or "").strip(),
+                    "category": (raw.get("Category") or "").strip(),
+                    "ticker": (raw.get("Ticker") or "").strip().upper()})
+    return out
