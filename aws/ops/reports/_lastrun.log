@@ -1,15 +1,12 @@
-=== CHART PATTERNS (reversal/continuation) ===
-DOUBLE BOTTOM (bullish)          http=200 rows=197 csv=True
-DOUBLE TOP (bearish)             http=200 rows=190 csv=True
-inverse H&S (bullish bottom)     http=200 rows=49 csv=True
-head&shoulders (bearish top)     http=200 rows=86 csv=True
-multiple bottom                  http=200 rows=129 csv=True
-multiple top                     http=200 rows=102 csv=True
-channel up                       http=200 rows=1048 csv=True
-channel down                     http=200 rows=961 csv=True
-triangle ascending               http=200 rows=11302 csv=True
-triangle descending              http=200 rows=11302 csv=True
-wedge up                         http=200 rows=2388 csv=True
-wedge down                       http=200 rows=1344 csv=True
-TL support                       http=200 rows=10009 csv=True
-TL resistance                    http=200 rows=9777 csv=True
+invoke: 200
+total screens: 24
+  double_bottom    120
+  double_top       120
+  inverse_hs       49
+  head_shoulders   80
+  multiple_bottom  120
+  multiple_top     102
+  channel_up       150
+  channel_down     150
+double_bottom sample: [('AGGH', -0.24, None), ('AIOS', -24.24, None), ('AMT', 8.95, None), ('AMZO', 15.81, None), ('APP', 7.36, None)]
+double_top sample: [('ACIC', -2.54), ('ACYN', -0.24), ('AIOO', 0.38), ('AIRR', -0.56), ('AKAM', -13.79)]
