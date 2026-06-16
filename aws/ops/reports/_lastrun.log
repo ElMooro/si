@@ -1,15 +1,37 @@
-=== DOLLAR SHORTAGE — Eurosystem FX claims (titles) ===
-  EA-res FX W A030000 Z06    ILM/W.U2.C.A030000.U2.Z06      -> ('ILM.W.U2.C.A030000.U2.Z06', 'Claims on euro area residents denominated in foreign currenc', '2026-W24', '18804')
-  nonEA-res FX W A020000 Z06 ILM/W.U2.C.A020000.U2.Z06      -> ERR 404
-  nonEA-res FX W A020000 U4  ILM/W.U2.C.A020000.U4.Z06      -> ('ILM.W.U2.C.A020000.U4.Z06', 'Claims on non-euro area residents denominated in foreign cur', '2026-W24', '519958')
+=== UNEMPLOYMENT (LFSI) — EA youth + member states ===
+  EA total   LFSI/M.I9.S.UNEHRT.TOTAL0.15_74.T      -> 6.3 (2026-04) "Unemployment rate
+  EA youth<25 LFSI/M.I9.S.UNEHRT.TOTAL0.15_24.T      -> 14.8 (2026-04) "Unemployment rate
+  DE         LFSI/M.DE.S.UNEHRT.TOTAL0.15_74.T      -> 3.8 (2026-04) "Unemployment rate
+  FR         LFSI/M.FR.S.UNEHRT.TOTAL0.15_74.T      -> 8.2 (2026-04) "Unemployment rate
+  IT         LFSI/M.IT.S.UNEHRT.TOTAL0.15_74.T      -> 5.1 (2026-04) "Unemployment rate
+  ES         LFSI/M.ES.S.UNEHRT.TOTAL0.15_74.T      -> 10.3 (2026-04) "Unemployment rate
+  NL         LFSI/M.NL.S.UNEHRT.TOTAL0.15_74.T      -> 3.9 (2026-04) "Unemployment rate
+  GR         LFSI/M.GR.S.UNEHRT.TOTAL0.15_74.T      -> 9.5 (2026-04) "Unemployment rate
+  PT         LFSI/M.PT.S.UNEHRT.TOTAL0.15_74.T      -> 5.7 (2026-04) "Unemployment rate
+  IE         LFSI/M.IE.S.UNEHRT.TOTAL0.15_74.T      -> 4.9 (2026-05) "Unemployment rate
+  AT         LFSI/M.AT.S.UNEHRT.TOTAL0.15_74.T      -> 5.7 (2026-04) "Unemployment rate
+  BE         LFSI/M.BE.S.UNEHRT.TOTAL0.15_74.T      -> 6.2 (2026-04) "Unemployment rate
+  FI         LFSI/M.FI.S.UNEHRT.TOTAL0.15_74.T      -> 10.7 (2026-04) "Unemployment rate
 
---- ILM weekly foreign-currency items (wildcard) ---
-status OK count 2
-  ILM.W.U2.C.A030000.U2.Z06          Claims on euro area residents denominated in foreign currenc | 2026-W24 18804
-  ILM.W.U2.C.L070000.U2.Z06          Liabilities to euro area residents denominated in foreign cu | 2026-W24 16259
+=== STS PRODUCTION activity codes (map manufacturing/MIGs/construction) ===
+  NS0010     -> 98.9 (2025-09) Industrial production; total including construction 
+  NS0011     ->  () ERR 404
+  NS0020     -> 98.1 (2025-09) Industrial production; total excluding construction 
+  NS0021     -> 98.7 (2025-09) "Industrial production; total excluding construction
+  NS0022     ->  () ERR 404
+  NS0023     ->  () ERR 404
+  NS0030     ->  () ERR 404
+  NS0040     -> 88.2 (2025-09) Industrial production; intermediate goods
+  NS0050     -> 101.5 (2025-09) Industrial production; capital goods
+  NS0060     -> 93.2 (2025-09) Industrial production; durable consumer goods
+  MIG_CAG    ->  () ERR 404
+  MIG_ING    ->  () ERR 404
+  MIG_COG    ->  () ERR 404
+  MIG_DCOG   ->  () ERR 404
+  MIG_NDCOG  ->  () ERR 404
+  MIG_NRG    ->  () ERR 404
 
-=== UNEMPLOYMENT universe (LFSI) ===
-EA breakdowns status ERR 400 count 0
-
-=== INDUSTRIAL/MANUFACTURING universe (STS PROD, EA) ===
-STS PROD status ERR 400 count 0
+--- other STS families ---
+  construction PROD  STS/M.I9.Y.PRCO.NS0030.4.000       ->  () ERR 404
+  retail turnover    STS/M.I9.Y.TOVT.NS0040.4.000       -> 103 (2025-08) 
+  manufacturing TOVT STS/M.I9.Y.TOVT.NS0020.4.000       -> 114.7 (2025-08) 
