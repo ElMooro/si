@@ -1,8 +1,11 @@
-invoke ecb-history: {"statusCode": 200, "body": "{\"written\": 13}"}
-  unemployment_ea      freq=monthly  n=316 2000-01->2026-04 latest=6.3 pctile=3.8
-  indprod_total        freq=monthly  n=345 1997-01->2025-09 latest=98.9 pctile=47.8
-  indprod_core         freq=monthly  n=345 1997-01->2025-09 latest=98.1 pctile=69.6
-  eurusd               freq=daily    n=7028 1999-01-04->2026-06-16 latest=1.159 pctile=47.2
-  ilm_usd_claims       freq=weekly   n=1433 1999-01-01->2026-06-12 latest=18804.0 pctile=26.0
-  ilm_eur_to_nonres    freq=weekly   n=1433 1999-01-01->2026-06-12 latest=154916.0 pctile=63.9
-manifest series: None
+manifest series count: 37
+  unemployment_ea    OK latest=6.3 2026-04
+  indprod_total      OK latest=98.9 2025-09
+  indprod_core       OK latest=98.1 2025-09
+  eurusd             OK latest=1.159 2026-06-16
+  ciss_fx            OK latest=0.00109 2026-06-15
+  ciss_mm            OK latest=0.0115 2026-06-15
+  eurusd.json            latest=1.159 n=7028 1999-01-04->2026-06-16
+  ilm_usd_claims.json    latest=18804.0 n=1433 1999-01-01->2026-06-12
+ciss ea_subindex: ['Bond market', 'Cross-subindex correlation', 'Equity market', 'Financial intermediaries', 'FX market', 'Money market']
+ciss n_series: 65 | has US/CN: True True
