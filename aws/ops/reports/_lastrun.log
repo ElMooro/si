@@ -1,4 +1,18 @@
-invoke: {"statusCode": 200, "body": "{\"written\": 49}"}
-unemployment series now (29): ['unemp_at', 'unemp_be', 'unemp_bg', 'unemp_cy', 'unemp_cz', 'unemp_de', 'unemp_dk', 'unemp_ea_youth', 'unemp_ee', 'unemp_es', 'unemp_fi', 'unemp_fr', 'unemp_gr', 'unemp_hr', 'unemp_hu', 'unemp_ie', 'unemp_it', 'unemp_lt', 'unemp_lu', 'unemp_lv', 'unemp_mt', 'unemp_nl', 'unemp_pl', 'unemp_pt', 'unemp_ro', 'unemp_se', 'unemp_si', 'unemp_sk', 'unemployment_ea']
-industrial/manuf series (9): ['indprod_capital', 'indprod_core', 'indprod_durable', 'indprod_energy', 'indprod_intermediate', 'indprod_nondurable', 'indprod_total', 'manuf_turnover', 'retail_turnover']
-total manifest series: 73
+  HICP core (xEF)        ICP/M.U2.N.XEF000.4.ANR                        -> 2.3 (2025-12) HICP - All-items excluding energy and food
+  HICP services          ICP/M.U2.N.SERV00.4.ANR                        -> 3.4 (2025-12) HICP - Services
+  HICP energy            ICP/M.U2.N.NRGY00.4.ANR                        -> -1.9 (2025-12) HICP - Energy
+  5y5y infl swap         FM/B.U2.EUR.RT.MM.EURIRS5X5Y.HSTA              ->  () ERR404
+  5y5y infl ILS          FM/M.U2.EUR.RT.IL.EUR5Y5Y_R.HSTA               ->  () ERR404
+  PPI industry           STS/M.I9.N.PRIN.NS0020.3.000                   ->  () ERR404
+  PPI industry Y         STS/M.I9.Y.PRIN.NS0020.3.000                   ->  () ERR404
+  M1 growth              BSI/M.U2.Y.V.M10.X.I.U2.2300.Z01.A             -> 3.799821800387182 (2026-04) "Monetary aggregate M1
+  M1 idx                 BSI/M.U2.Y.V.M10.X.1.U2.2300.Z01.A             ->  () ERR404
+  GDP YoY                MNA/Q.Y.I9.W2.S1.S1.B.B1GQ._Z._Z._Z.EUR.LR.GY  -> 0.31547152081956575 (2026-Q1) 
+  Consumer confidence    RTD/M.S0.S.Y_BCS_CSMCI.LEVEL                   ->  () ERR404
+  Capacity util          RTD/Q.S0.S.Y_BCS_CAPUT.LEVEL                   ->  () ERR404
+  Current account        BP6/M.N.I9.W1.S1.S1.T.B.CA._Z._Z._Z.EUR._T._X.N ->  () ERR404
+  REER (broad)           EXR/M.E5.EUR.ERC0.A                            ->  () ERR404
+  EUR/CNY                EXR/D.CNY.EUR.SP00.A                           -> 7.8334 (2026-06-16) Chinese yuan renminbi/Euro ECB reference exchange 
+  EUR/JPY                EXR/D.JPY.EUR.SP00.A                           -> 185.94 (2026-06-16) Japanese yen/Euro ECB reference exchange rate
+  Bank rate NFC (MIR)    MIR/M.U2.B.A2A.A.R.A.2240.EUR.N                -> 3.54 (2026-04) Bank interest rates - loans to corporations (new b
+  APP holdings           ILM/W.U2.C.A050200.U2.EUR                      -> 13249 (2026-W24) Longer-term refinancing operations - Eurosystem
