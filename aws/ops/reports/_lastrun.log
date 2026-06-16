@@ -1,8 +1,33 @@
-invoked regime-composite; waiting...
-refreshed=True | CISS-family modules (4):
-  ECB CISS (Systemic Stress)       dim=liquidity  regime=STRESS_LOW pol=1 | CISS 0.008 — systemic stress CALM (10%ile) — easy conditions
-  CISS · Money-Market Stress       dim=liquidity  regime=STRESS_LOW pol=1 | Money market CISS 0.0115 (6%ile) — calm
-  CISS · Bond-Market Stress        dim=vol        regime=STRESS_LOW pol=1 | Bond market CISS 0.0211 (4%ile) — calm
-  CISS · Equity-Market Stress      dim=vol        regime=STRESS_LOW pol=1 | Equity market CISS 0.0118 (6%ile) — calm
+country | unemployment(LFSI) | indprod(STS excl-constr)
+  AT   | 5.7 (2026-04)    | —
+  BE   | 6.2 (2026-04)    | —
+  BG   | 2.8 (2026-04)    | —
+  HR   | 4.2 (2026-04)    | —
+  CY   | 3.2 (2026-04)    | —
+  CZ   | 3.1 (2026-04)    | —
+  DK   | 7 (2026-04)      | —
+  EE   | 6.3 (2026-04)    | —
+  FI   | 10.7 (2026-04)   | —
+  FR   | 8.2 (2026-04)    | —
+  DE   | 3.8 (2026-04)    | —
+  GR   | 9.5 (2026-04)    | —
+  HU   | 4.6 (2026-04)    | —
+  IE   | 4.9 (2026-05)    | —
+  IT   | 5.1 (2026-04)    | —
+  LV   | 6.5 (2026-04)    | —
+  LT   | 7.1 (2026-04)    | —
+  LU   | 7 (2026-04)      | —
+  MT   | 3.6 (2026-04)    | —
+  NL   | 3.9 (2026-04)    | —
+  PL   | 3 (2026-04)      | —
+  PT   | 5.7 (2026-04)    | —
+  RO   | 6.3 (2026-04)    | —
+  SK   | 5.8 (2026-04)    | —
+  SI   | 4.1 (2026-04)    | —
+  ES   | 10.3 (2026-04)   | —
+  SE   | 8.5 (2026-04)    | —
+  I8   | —                | 98.3 (2024-08)
+  I9   | 6.3 (2026-04)    | 98.1 (2025-09)
 
-manifest count: 57 | fx_claims_nonea: True | unemp_it: True | indprod_energy: True
+UNEMPLOYMENT available (28): ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'I9']
+INDPROD available (2): ['I8', 'I9']
