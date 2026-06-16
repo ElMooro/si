@@ -1,20 +1,17 @@
-invoke: {"statusCode": 200, "body": "{\"n_flashing\": 2}"}
+=== Eurostat BCS confidence — ei_bssi_m_r2 (indic codes) ===
+  industrial     BS-ICI     -> ERR HTTP Error 400: Bad Request  (n=0)
+  services       BS-SCI     -> ERR HTTP Error 400: Bad Request  (n=0)
+  consumer       BS-CSMCI   -> ERR HTTP Error 400: Bad Request  (n=0)
+  retail         BS-RCI     -> ERR HTTP Error 400: Bad Request  (n=0)
+  construction   BS-CCI     -> ERR HTTP Error 400: Bad Request  (n=0)
+  ESI            BS-ESI-I   -> ERR HTTP Error 400: Bad Request  (n=0)
+  employment EEI BS-EEI     -> ERR HTTP Error 400: Bad Request  (n=0)
 
-=== PROBLEM INDICATORS ===
-  fragmentation_stress       signal=NORMAL | spark | err=None | {"name": "Fragmentation / TPI Watch (periphery vs Bund)", "it_de_bp": 79.0, "spreads_bp": 
-  ea_unemployment            signal=NORMAL | spark | err=None | {"name": "EA Unemployment Momentum (Sahm-style)", "unemployment_rate_pct": 6.3, "chg_3m_pp
-  ea_industrial_production   signal=NORMAL | spark | err=None | {"name": "EA Industrial Production (YoY)", "ip_yoy_pct": 1.12, "as_of": "2025-09", "series
-  ea_confidence              signal=NORMAL | spark | err=None | {"name": "EA Business & Consumer Confidence", "business_conf": -6.8, "business_z": -0.33, 
-  real_m1_growth             signal=NORMAL | spark | err=None | {"name": "Real M1 Growth (M1 YoY \u2212 HICP YoY)", "m1_yoy_pct": 4.71, "hicp_yoy_pct": 1.
-  country_unemployment       signal=NORMAL | NO-spark | err=None | {"name": "Country Unemployment Momentum (DE/FR/IT/ES/CH)", "countries": {"DE": {"rate_pct"
-
-=== charts available (full history keys) ===
-  ['business_confidence', 'ciss_delta30', 'ciss_level', 'ea_unemployment', 'esi', 'eu_us_divergence', 'ip_yoy', 'it_de_spread', 'ltro_share', 'real_m1_growth', 'unemp_ch', 'unemp_de', 'unemp_es', 'unemp_fr', 'unemp_it']
-
-=== misses === {}
-n_sparks: 17
-  chart it_de_spread           1995-01-01 -> 2026-04-01 (321 pts)
-  chart ea_unemployment        2000-01 -> 2026-04 (316 pts)
-  chart ip_yoy                 2000-01 -> 2025-09 (309 pts)
-  chart real_m1_growth         1999-01 -> 2025-12 (321 pts)
-  chart business_confidence    1998-01-01 -> 2026-01-01 (321 pts)
+=== Eurostat IP by sector/MIG — sts_inpr_m (index, YoY computable) ===
+  total B-D              -> None  (n=0)
+  manufacturing C        -> None  (n=0)
+  intermediate MIG_ING   -> None  (n=0)
+  capital MIG_CAG        -> None  (n=0)
+  durable MIG_DCOG       -> None  (n=0)
+  nondurable MIG_NDCOG   -> None  (n=0)
+  energy MIG_NRG         -> None  (n=0)
