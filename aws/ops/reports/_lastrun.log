@@ -1,18 +1,12 @@
-invoking finviz-universe...
-heatmap sectors=11
-  Healthcare               n=1065 1M=+58.5% top=['ELOX', 'OTLK', 'RGNT']
-  Basic Materials          n= 282 1M=+5.3% top=['INHD', 'ALOY', 'FRD']
-  Consumer Cyclical        n= 540 1M=+4.9% top=['LESL', 'HYLN', 'NPT']
-  Utilities                n= 110 1M=-2.3% top=['PBK', 'NXXT', 'EDN']
-  Energy                   n= 252 1M=-5.3% top=['STAK', 'NCSM', 'YPF']
-
-invoking finviz-signals (slow)...
-  confluence bottom_squeeze_insider: 0 []
-  confluence bottom_insider: 5 ['BOSC', 'DGICA', 'GDTC', 'KWY', 'LSF']
-  confluence bottom_oversold: 0 []
-  confluence top_insider_sell: 1 ['NATR']
-  confluence top_overbought: 0 []
-
-invoking insider-radar...
-  finviz_buys=60 finviz_sells=60 confirm=['AAT', 'ACOG', 'ADSK', 'ADTX', 'AVGO', 'AVO', 'BLND', 'CRVO', 'CRVS', 'CTSO', 'ENPH', 'EU', 'EXE', 'FDP', 'GF', 'GGB', 'GUTS', 'GVA', 'KRMD', 'KWY', 'LODE', 'MELI', 'MSIF', 'MXF', 'NHI', 'PAR', 'PTHS', 'SXTP', 'VG', 'XRAY']
-  DIAG: finviz insider overlay: 60 buys, 60 sells, 30 confirmed both sources
+cap-weighted sector heatmap (sane now?):
+  Technology               n= 780 1M(capW)= +7.06%  median=2.78  $32.7T
+  Financial                n=6586 1M(capW)= +4.46%  median=0.58  $14.6T
+  Healthcare               n=1065 1M(capW)= +3.61%  median=-2.76  $8.5T
+  Industrials              n= 692 1M(capW)= +2.87%  median=1.92  $7.9T
+  Real Estate              n= 255 1M(capW)= +2.52%  median=1.52  $1.8T
+  Basic Materials          n= 282 1M(capW)= -0.89%  median=-4.76  $3.0T
+  Consumer Cyclical        n= 540 1M(capW)= -1.08%  median=4.69  $9.2T
+  Utilities                n= 110 1M(capW)= -1.13%  median=0.16  $1.9T
+  Consumer Defensive       n= 241 1M(capW)= -1.38%  median=-0.44  $4.5T
+  Energy                   n= 252 1M(capW)= -5.26%  median=-6.62  $4.4T
+  Communication Services   n= 261 1M(capW)= -5.78%  median=-0.31  $13.2T
