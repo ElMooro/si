@@ -162,6 +162,12 @@ footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-ali
   </div>
 
   <div class="section">
+    <h2>📈 Trend confirmation — 50/200-day MA cross</h2>
+    <p class="sub">Momentum leaders cross-referenced with Finviz golden/death-cross detection. A momentum name in a <b style="color:#00e676">golden cross</b> is a confirmed uptrend; one in a <b style="color:#ff3d5a">death cross</b> is momentum running against a broken trend — a divergence warning.</p>
+    <div class="card"><div id="ma-cross-panel"><div class="empty">Loading…</div></div></div>
+  </div>
+
+  <div class="section">
     <h2>🏆 Rankings</h2>
     <p class="sub">Switch views to see different momentum factors.</p>
 
@@ -420,8 +426,29 @@ document.querySelectorAll(".ttab").forEach(t => {
   });
 });
 
-load();
-setInterval(load, 30 * 60 * 1000);
+async function loadMACross(){
+  try{
+    const r=await fetch(`${BUCKET}/data/finviz-signals.json?t=${Date.now()}`);
+    const sig=await r.json();
+    const gc=new Set((sig.signals?.golden_cross||[]).map(x=>x.ticker));
+    const dc=new Set((sig.signals?.death_cross||[]).map(x=>x.ticker));
+    const top=(_data?.top_50_composite||[]);
+    const conf=top.filter(x=>gc.has(x.symbol)), dvg=top.filter(x=>dc.has(x.symbol));
+    const neither=top.length-conf.length-dvg.length;
+    const chip=(a,c)=>a.length?a.map(x=>`<span style="display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;margin:2px;border:1px solid ${c};border-radius:4px;color:var(--t1)">${x.symbol}</span>`).join(""):'<span style="color:var(--t3)">none in top 50</span>';
+    document.getElementById("ma-cross-panel").innerHTML=`
+      <div style="display:flex;gap:28px;margin-bottom:12px;font-size:11px;color:var(--t3)">
+        <div><b style="color:#00e676;font-size:22px">${conf.length}</b><br>golden cross<br>(confirmed uptrend)</div>
+        <div><b style="color:#ff3d5a;font-size:22px">${dvg.length}</b><br>death cross<br>(divergence)</div>
+        <div><b style="font-size:22px;color:var(--t1)">${neither}</b><br>no cross signal</div>
+      </div>
+      <div style="margin:8px 0"><b style="color:#00e676;font-family:var(--mono);font-size:11px">✓ CONFIRMED &nbsp;</b>${chip(conf,'rgba(0,230,118,.5)')}</div>
+      <div style="margin:8px 0"><b style="color:#ff3d5a;font-family:var(--mono);font-size:11px">⚠ DIVERGENCE &nbsp;</b>${chip(dvg,'rgba(255,61,90,.5)')}</div>`;
+  }catch(e){document.getElementById("ma-cross-panel").innerHTML='<div class="empty">MA-cross overlay unavailable.</div>';}
+}
+
+load().then(loadMACross);
+setInterval(()=>load().then(loadMACross), 30 * 60 * 1000);
 </script>
 </body>
 </html>
