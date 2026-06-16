@@ -1,4 +1,9 @@
-ciss_ea.json: 7690 points, latest=['2026-06-11', 0.005819100214707964]
-invoke status: 200
-master crisis score=None | components=12
-  CISS component -> {"source": "ciss_ea", "label": "Euro-area systemic stress (CISS)", "weight": 0.12, "crisis_contribution": 7.2, "age_hours": 84.4, "available": true}
+ecb-auto-updater invoke: {"message": "CISS subindices update completed", "indicators_updated": 7, "total_indicators": 167, "timestamp": "2026-06-
+
+CISS sub-indices after N-variant fix (date should now be ~2026-06):
+  ECB.CISS.D.U2.BON_CI     0.0211 @ 2026-06-15
+  ECB.CISS.D.U2.FX_CI      0.0011 @ 2026-06-15
+  ECB.CISS.D.U2.MMS_CI     0.0115 @ 2026-06-15
+  ECB.CISS.D.U2.EQU_CI     0.0118 @ 2026-06-15
+  ECB.CISS.D.U2.FII_CI     0.0194 @ 2026-06-15
+  ECB.CISS.D.U2.MAIN       0.0077 @ 2026-06-15
