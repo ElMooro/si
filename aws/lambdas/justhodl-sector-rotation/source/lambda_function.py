@@ -583,6 +583,18 @@ def lambda_handler(event, context):
         },
     }
 
+    # ── Finviz industry/cap rotation layer (144 industries + cap buckets, additive) ──
+    try:
+        _g = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/finviz-groups.json")["Body"].read())
+        _ind = sorted(_g.get("industries", []), key=lambda x: (x.get("perf_m") if x.get("perf_m") is not None else -999), reverse=True)
+        payload["finviz_rotation"] = {
+            "industries_top": _ind[:15], "industries_bottom": _ind[-15:][::-1],
+            "mktcap_buckets": _g.get("mktcaps", []), "sectors": _g.get("sectors", []),
+            "asof": _g.get("generated_at")}
+        print("  finviz rotation layer: %d industries, %d cap buckets" % (len(_ind), len(_g.get("mktcaps", []))))
+    except Exception as e:
+        print("  finviz rotation layer skipped: " + str(e)[:60])
+
     try:
         s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
             Body=json.dumps(payload, separators=(",", ":"), default=str).encode("utf-8"),
