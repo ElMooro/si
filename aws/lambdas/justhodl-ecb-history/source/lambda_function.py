@@ -78,6 +78,12 @@ SERIES = [
     ("STS/M.I9.Y.PROD.NS0080.4.000", "indprod_energy", "Industrial production — energy (index)"),
     ("STS/M.I9.Y.TOVT.NS0020.4.000", "manuf_turnover", "Industry turnover — manufacturing/total ex-construction (index)"),
     ("STS/M.I9.Y.TOVT.NS0040.4.000", "retail_turnover", "Retail trade turnover (index) — consumer demand"),
+    # ── Money, growth, credit cost, FX crosses ──
+    ("BSI/M.U2.Y.V.M10.X.I.U2.2300.Z01.A", "m1_growth", "M1 narrow money — annual growth (%) — real-economy LEAD"),
+    ("MNA/Q.Y.I9.W2.S1.S1.B.B1GQ._Z._Z._Z.EUR.LR.GY", "gdp_yoy", "Euro-area real GDP — annual growth (%)"),
+    ("MIR/M.U2.B.A2A.A.R.A.2240.EUR.N", "bank_rate_nfc", "Bank lending rate to corporations (%, new business) — policy pass-through"),
+    ("EXR/D.CNY.EUR.SP00.A", "eurcny", "EUR/CNY reference rate"),
+    ("EXR/D.JPY.EUR.SP00.A", "eurjpy", "EUR/JPY reference rate"),
 ]
 
 
@@ -156,6 +162,8 @@ def lambda_handler(event=None, context=None):
             freq = "weekly"
         elif len(_lp) == 4:
             freq = "annual"
+        elif "Q" in _lp:
+            freq = "quarterly"
         elif len(_lp) == 7:
             freq = "monthly"
         else:
