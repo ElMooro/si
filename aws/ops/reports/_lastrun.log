@@ -1,11 +1,6 @@
-MEMBERS: {'sp500': 503, 'ndx': 101, 'djia': 30, 'russell2000': 1894}
-CHANGES (first run = baseline, expect empty):
-  sp500        +0 / -0
-  ndx          +0 / -0
-  djia         +0 / -0
-  russell2000  +0 / -0
-sample sp500: ['A', 'AAPL', 'ABBV', 'ABNB', 'ABT', 'ACGL', 'ACN', 'ADBE']
-sample russell2000: ['AAMI', 'AAOI', 'AAP', 'AARD', 'AAT', 'ABAT'] ...
-
-index-inclusion availability: {'constituents': 'sp500-constituent', 'screener': True} | candidates: 0
-index-membership SLA=14h | total finviz overrides: 10
+invoked async, polling...
+finviz_truth present: True
+  n_sp500: 503 | n_russell2000: 1894
+  recon implied-R2000 but Finviz says OUT (potential adds/boundary): 40 e.g. ['AACB', 'AADX', 'AB', 'ABXL', 'ACHC', 'AD', 'ADT', 'AENT']
+  Finviz R2000 but recon ranks elsewhere (potential demote/delete): 40 e.g. ['AAOI', 'AARD', 'ACA', 'ACH', 'ACNT', 'ACR', 'ACU', 'AEIS']
+n_additions: 146 | n_deletions: 246
