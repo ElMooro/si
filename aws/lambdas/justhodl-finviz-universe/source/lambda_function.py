@@ -110,6 +110,30 @@ def lambda_handler(event=None, context=None):
     print("[finviz-universe] earnings calendar: %d days, %d reporters next 30d"
           % (len(cal), sum(c["n"] for c in cal)))
 
+    # ── ETF fund-flows layer (REAL net flows from Finviz vs the legacy volume proxy) ──
+    SECTOR_ETFS = {"XLK": "Technology", "XLF": "Financial", "XLE": "Energy", "XLV": "Healthcare",
+                   "XLY": "Consumer Cyclical", "XLP": "Consumer Defensive", "XLI": "Industrials",
+                   "XLB": "Basic Materials", "XLU": "Utilities", "XLRE": "Real Estate",
+                   "XLC": "Communication Services"}
+    def _ef(tk, r):
+        return {"ticker": tk, "name": r.get("company"), "aum": r.get("aum"),
+                "flows_1m": r.get("flows_1m"), "flows_1m_pct": r.get("flows_1m_pct"),
+                "flows_3m": r.get("flows_3m"), "flows_ytd": r.get("flows_ytd"),
+                "expense": r.get("expense_ratio"), "n_holdings": r.get("n_holdings"),
+                "ret_1y": r.get("ret_1y"), "etf_type": r.get("etf_type")}
+    _etfs = [(tk, r) for tk, r in uni.items() if r.get("aum") is not None and r.get("flows_1m") is not None]
+    sector_flows = [dict(_ef(tk, uni[tk]), sector=SECTOR_ETFS[tk]) for tk in SECTOR_ETFS if tk in uni]
+    sector_flows.sort(key=lambda x: (x.get("flows_1m") or 0), reverse=True)
+    _ranked = sorted(_etfs, key=lambda kv: (kv[1].get("flows_1m") or 0), reverse=True)
+    s3.put_object(Bucket=BUCKET, Key="data/finviz-etf-flows.json",
+                  Body=json.dumps({"generated_at": now, "n_etfs": len(_etfs),
+                                   "sector_etfs": sector_flows,
+                                   "top_inflows": [_ef(tk, r) for tk, r in _ranked[:25]],
+                                   "top_outflows": [_ef(tk, r) for tk, r in _ranked[-25:][::-1]]},
+                                  separators=(",", ":"), default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=900")
+    print("[finviz-universe] etf fund flows: %d ETFs, %d sector ETFs" % (len(_etfs), len(sector_flows)))
+
     el = round(time.time() - started, 1)
     print("[finviz-universe] %d tickers | short_float=%d float=%d rel_volume=%d | %ss"
           % (n, n_short, n_float, n_relvol, el))
