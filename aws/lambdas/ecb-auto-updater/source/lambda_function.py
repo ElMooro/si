@@ -36,37 +36,32 @@ def lambda_handler(event, context):
     # These are the actual series keys from ECB
     ciss_components = [
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.BON_CI.IDX',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_BM.CON',
             'symbol': 'ECB.CISS.D.U2.BON_CI',
             'name': 'CISS Bond Market Subindex (Euro Area Daily)'
         },
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.FX_CI.IDX',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_FX.CON',
             'symbol': 'ECB.CISS.D.U2.FX_CI',
             'name': 'CISS Foreign Exchange Market Subindex (Euro Area Daily)'
         },
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.MMS_CI.IDX',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_MM.CON',
             'symbol': 'ECB.CISS.D.U2.MMS_CI',
             'name': 'CISS Money Market Subindex (Euro Area Daily)'
         },
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.EQU_CI.IDX',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_EM.CON',
             'symbol': 'ECB.CISS.D.U2.EQU_CI',
             'name': 'CISS Equity Market Subindex (Euro Area Daily)'
         },
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.FII_CI.IDX',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_FI.CON',
             'symbol': 'ECB.CISS.D.U2.FII_CI',
             'name': 'CISS Financial Intermediaries Subindex (Euro Area Daily)'
         },
         {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.COR_CI.IDX',
-            'symbol': 'ECB.CISS.D.U2.COR_CI',
-            'name': 'CISS Cross-Subindex Correlations (Euro Area Daily)'
-        },
-        {
-            'key': 'CISS.D.U2.Z0Z.4F.EC.CISS_CI.IDX',
+            'key': 'CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX',
             'symbol': 'ECB.CISS.D.U2.MAIN',
             'name': 'Composite Indicator of Systemic Stress Main (Euro Area Daily)'
         }
@@ -76,8 +71,10 @@ def lambda_handler(event, context):
     for component in ciss_components:
         try:
             # Use the ECB SDW API with correct path
-            series_key = component['key'].replace('.', '/')
-            url = f"https://sdw-wsrest.ecb.europa.eu/service/data/{series_key}"
+            # data-api expects flow/dot-key, e.g. 'CISS/D.U2.Z0Z.4F.EC.SS_BM.CON'
+            _p = component['key'].split('.', 1)
+            series_key = _p[0] + '/' + _p[1]
+            url = f"https://data-api.ecb.europa.eu/service/data/{series_key}"
             params = "?format=jsondata&detail=dataonly&lastNObservations=250"
             full_url = url + params
             
@@ -162,7 +159,7 @@ def lambda_handler(event, context):
     # Try to fetch SovCISS (Sovereign Stress Indicator)
     try:
         print("Fetching SovCISS...")
-        url = "https://sdw-wsrest.ecb.europa.eu/service/data/CISS/M.U2.Z0Z.4F.EC.SOVCISS_CI.IDX"
+        url = "https://data-api.ecb.europa.eu/service/data/CISS/D.U2.Z0Z.4F.EC.SOV_GDPWN.IDX"
         params = "?format=jsondata&detail=dataonly&lastNObservations=120"
         
         req = urllib.request.Request(url + params, headers={'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0'})
@@ -202,10 +199,10 @@ def lambda_handler(event, context):
                         latest = historical[-1]
                         updated_data['ECB.SOVCISS'] = {
                             'symbol': 'ECB.SOVCISS',
-                            'name': 'Composite Indicator of Sovereign Stress (Euro Area Monthly)',
+                            'name': 'SovCISS — Composite Indicator of Sovereign Stress, GDP-weighted (Euro Area Daily)',
                             'value': latest['value'],
                             'date': latest['date'],
-                            'frequency': 'Monthly',
+                            'frequency': 'Daily',
                             'dataset': 'SOVCISS',
                             'observations': len(historical),
                             'historical_data': historical[-120:],
