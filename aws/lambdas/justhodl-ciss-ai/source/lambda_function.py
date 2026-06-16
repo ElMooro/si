@@ -80,7 +80,7 @@ def lambda_handler(event, context):
         % (d.get("ea_composite_date"), summary)
     )
     try:
-        raw = complete(prompt, tier="reason", max_tokens=1300, system=SYSTEM)
+        raw = complete(prompt, tier="bulk", max_tokens=1500, system=SYSTEM)
     except Exception as e:
         raw = ""
         err = repr(e)
