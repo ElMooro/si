@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-eurostat-history",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 240,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Eurostat euro-area confidence (ESI + industrial/services/consumer/retail/construction) + industrial & manufacturing production YoY (all MIG breakdowns), deep history, written into data/ecb-hist/ for the ECB hub. Output data/ecb-confidence.json + per-series.",
+  "schedule": {"rule_name": "eurostat-history-daily", "cron": "cron(20 7 * * ? *)", "description": "Eurostat confidence + IP YoY — daily 07:20 UTC"}
+}
