@@ -1,3 +1,27 @@
-finviz SLAs written: {'data/finviz-universe.json': 14, 'data/finviz-short.json': 14, 'data/finviz-heatmap.json': 14, 'data/finviz-signals.json': 10}
-total key_overrides now: 39
-finviz overrides present: {'data/finviz-universe.json': 14, 'data/finviz-short.json': 14, 'data/finviz-heatmap.json': 14, 'data/finviz-signals.json': 10}
+=== GROUPS export (sector / industry / country / market-cap aggregates) ===
+groups sector perf             http=200 rows=11 csv=True
+    cols: "No.","Name","Performance (Week)","Performance (Month)","Performance (Quarter)","Performance (Half Year)","Performance (Year)","Performance (Year To Date)","Average Volume","Relative Volume","Change","Volume"
+groups sector valuation        http=200 rows=11 csv=True
+    cols: "No.","Name","Market Cap","P/E","Forward P/E","PEG","P/S","P/B","P/C","P/Free Cash Flow","EPS growth past 5 years","EPS growth next 5 years","Sales growth past 5 years","Change","Volume"
+groups industry perf           http=200 rows=144 csv=True
+    cols: "No.","Name","Performance (Week)","Performance (Month)","Performance (Quarter)","Performance (Half Year)","Performance (Year)","Performance (Year To Date)","Average Volume","Relative Volume","Change","Volume"
+groups country perf            http=200 rows=40 csv=True
+    cols: "No.","Name","Performance (Week)","Performance (Month)","Performance (Quarter)","Performance (Half Year)","Performance (Year)","Performance (Year To Date)","Average Volume","Relative Volume","Change","Volume"
+groups mktcap perf             http=200 rows=6 csv=True
+    cols: "No.","Name","Performance (Week)","Performance (Month)","Performance (Quarter)","Performance (Half Year)","Performance (Year)","Performance (Year To Date)","Average Volume","Relative Volume","Change","Volume"
+
+=== NEWS / BLOGS export ===
+news (v=3)                     http=200 rows=100 csv=True
+    cols: "Title","Source","Date","Url","Category","Ticker"
+blogs (v=4)                    http=200 rows=100 csv=True
+    cols: "Title","Source","Date","Url","Category","Ticker"
+
+=== INSIDER detailed export (beyond screener signal) ===
+insider all                    http=404 rows=0 csv=False
+insider buys                   http=404 rows=0 csv=False
+insider o-value                http=404 rows=0 csv=False
+
+=== FUTURES / FOREX / CRYPTO ===
+futures perf                   http=404 rows=0 csv=False
+forex perf                     http=404 rows=0 csv=False
+crypto perf                    http=404 rows=0 csv=False
