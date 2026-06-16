@@ -216,6 +216,15 @@ def lambda_handler(event, context):
         r["rank"] = i + 1
     by_sym = {r["symbol"]: r for r in uni}
 
+    # Finviz GROUND-TRUTH index membership (vs the mcap-reconstructed map below)
+    fv_r2000, fv_sp500 = set(), set()
+    try:
+        _fvm = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/finviz-index-membership.json")["Body"].read()).get("members", {})
+        fv_r2000 = set(_fvm.get("russell2000", []))
+        fv_sp500 = set(_fvm.get("sp500", []))
+    except Exception:
+        pass
+
     # cumulative cap + the Russell 3000E proxy total
     cum = 0.0
     for r in uni:
@@ -246,6 +255,8 @@ def lambda_handler(event, context):
                                            <= R3000_N + 320)
         if near_1000 or near_3000:
             r["_zone"] = "boundary" if near_1000 else "lower"
+            r["fv_in_r2000"] = r["symbol"] in fv_r2000
+            r["fv_in_sp500"] = r["symbol"] in fv_sp500
             cand.append(r)
 
     # S&P 500 candidates: size-eligible US names NOT already in the S&P 500.
@@ -260,6 +271,8 @@ def lambda_handler(event, context):
                 sp_members.add(sy)
     except Exception:
         sp_members = set()
+    if fv_sp500:
+        sp_members |= fv_sp500  # Finviz ground-truth S&P 500 members
     sp_cand = [r for r in uni
                if r["market_cap"] >= SP500_MIN_CAP
                and r["symbol"] not in sp_members
@@ -387,8 +400,22 @@ def lambda_handler(event, context):
         f"forced selling. {len(sp_list)} S&P 500 inclusion candidates on "
         "watch.")
 
+    fv_truth = {}
+    if fv_r2000:
+        implied_r2000 = {r["symbol"] for r in uni if 1000 < r.get("rank", 0) <= 3000}
+        fv_truth = {
+            "source": "finviz ground-truth index membership",
+            "n_sp500": len(fv_sp500), "n_russell2000": len(fv_r2000),
+            "implied_in__truth_out": sorted(implied_r2000 - fv_r2000)[:40],
+            "truth_in__implied_out": sorted((fv_r2000 - implied_r2000) & set(by_sym))[:40],
+            "note": ("Reconciles the mcap-reconstructed Russell 2000 against Finviz's "
+                     "current membership. Discrepancies near the breakpoint are the "
+                     "highest-confidence add/delete candidates."),
+        }
+
     out = {
         "ok": True, "schema": SCHEMA,
+        "finviz_truth": fv_truth,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_s": round(time.time() - t0, 1),
         "headline": headline,
