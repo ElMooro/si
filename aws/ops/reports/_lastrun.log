@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/1778_run_eurostat.py", line 5, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/1779_run_eurostat2.py", line 5, in <module>
     print("invoke:", lam.invoke(FunctionName="justhodl-eurostat-history",InvocationType="RequestResponse")["Payload"].read().decode()[:200])
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
