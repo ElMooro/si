@@ -142,6 +142,7 @@ const SIGNAMES={ciss_acceleration:'CISS Acceleration',bank_funding_stress:'Bank 
 async function load(){
   const [ed,der,m]=await Promise.all([gj('data/ecb-detail.json'),gj('data/ecb-derived.json'),gj('data/ecb-hist/_manifest.json')]);
   if(m&&m.series)HIST=new Set(m.series.map(x=>x.id));
+  window.DERCHARTS=(der&&der.charts)?der.charts:{};Object.keys(DERCHARTS).forEach(k=>HIST.add(k));
   // headline
   let hb='';
   if(ed){hb+=`<b>${esc(ed.headline||'')}</b><br><span style="color:var(--fg-2)">${esc(ed.eurodollar_read||'')}</span>`;}
@@ -188,7 +189,7 @@ async function load(){
   }
   // dump signals
   if(der&&der.indicators){
-    const SIGHIST={ciss_acceleration:'ciss_ea',euribor_ois_stress:'euribor_ois_bp',estr_dfr_dislocation:'estr',credit_contraction:'nfc_loans_yoy',wage_persistence:'wages_negotiated',expectations_deanchoring:'spf_longterm',target2_imbalance:'t2_de_minus_it',bank_funding_stress:'ilm_mp_lending',eu_us_liquidity_divergence:'ilm_usd_claims',fragmentation_stress:'it_de_10y_bp'};
+    const SIGHIST={ciss_acceleration:'ciss_ea',euribor_ois_stress:'euribor_ois_bp',estr_dfr_dislocation:'estr',credit_contraction:'nfc_loans_yoy',wage_persistence:'wages_negotiated',expectations_deanchoring:'spf_longterm',target2_imbalance:'t2_de_minus_it',bank_funding_stress:'ltro_share',eu_us_liquidity_divergence:'eu_us_divergence',fragmentation_stress:'it_de_spread',ea_unemployment:'unemployment_ea',ea_industrial_production:'ip_yoy',ea_confidence:'business_confidence',real_m1_growth:'real_m1_growth',country_unemployment:'unemployment_ea'};
     document.getElementById('signals').innerHTML=Object.entries(der.indicators).map(([k,v])=>{
       if(!v||v.err)return '';
       if(k==='eurodollar_stress_index')return '';  // shown as the hero tile above
@@ -314,9 +315,9 @@ async function load(){
   const yoy=dd=>{if(!dd||!dd.points||dd.points.length<13)return null;const v=dd.points;const l=v[v.length-1][1];const p=v[v.length-13][1];return p?Math.round((l/p-1)*1000)/10:null;};
   const ipYoY=yoy(ipTot), mfgYoY=yoy(ipS);
   const ptiles=[];
-  if(eaBC)ptiles.push(`<div class="card hl" onclick="window.location.href='/switzerland.html'"><div class="lbl">EA Business Confidence (OECD)</div><div class="val" style="color:${eaBC.latest>=0?'var(--green)':'var(--amber)'}">${eaBC.latest}</div><div class="sub">${eaBC.pctile}th %ile · ${esc(eaBC.latest_date||'')}</div></div>`);
+  if(eaBC)ptiles.push(`<div class="card hl" onclick="openModal('business_confidence')"><div class="lbl">EA Business Confidence (OECD)</div><div class="val" style="color:${eaBC.latest>=0?'var(--green)':'var(--amber)'}">${eaBC.latest}</div><div class="sub">${eaBC.pctile}th %ile · ${esc(eaBC.latest_date||'')}</div></div>`);
   if(eaCC)ptiles.push(`<div class="card"><div class="lbl">EA Consumer Confidence (OECD)</div><div class="val" style="color:${eaCC.latest>=0?'var(--green)':'var(--amber)'}">${eaCC.latest}</div><div class="sub">${eaCC.pctile}th %ile · ${esc(eaCC.latest_date||'')}</div></div>`);
-  if(ipYoY!=null)ptiles.push(`<div class="card hl" onclick="openModal('indprod_total')"><div class="lbl">Industrial Production · YoY</div><div class="val" style="color:${ipYoY>=0?'var(--green)':'var(--red)'}">${ipYoY>0?'+':''}${ipYoY}%</div><div class="sub">incl. construction 📈</div></div>`);
+  if(ipYoY!=null)ptiles.push(`<div class="card hl" onclick="openModal('ip_yoy')"><div class="lbl">Industrial Production · YoY</div><div class="val" style="color:${ipYoY>=0?'var(--green)':'var(--red)'}">${ipYoY>0?'+':''}${ipYoY}%</div><div class="sub">incl. construction 📈</div></div>`);
   if(mfgYoY!=null)ptiles.push(`<div class="card hl" onclick="openModal('indprod_core')"><div class="lbl">Manufacturing Production · YoY</div><div class="val" style="color:${mfgYoY>=0?'var(--green)':'var(--red)'}">${mfgYoY>0?'+':''}${mfgYoY}%</div><div class="sub">excl. construction 📈</div></div>`);
   document.getElementById('prodgrid').innerHTML=ptiles.join('')||'<div class="card"><div class="sub">Sentiment/production feed pending.</div></div>';
 
@@ -357,7 +358,11 @@ let CHART=null,FULL=null,RANGE='MAX';
 const CRISES=[["2008-09-15","Lehman"],["2011-08-05","EU sovereign"],["2020-03-16","COVID"],["2023-03-13","SVB/CS"]];
 async function openModal(id){
   document.getElementById('modal').classList.add('on');document.getElementById('m-chart').innerHTML='<div class="loading">Loading history…</div>';
-  const d=await gj('data/ecb-hist/'+id+'.json');
+  let d=await gj('data/ecb-hist/'+id+'.json');
+  if((!d||!d.points)&&window.DERCHARTS&&DERCHARTS[id]&&DERCHARTS[id].points){
+    const c=DERCHARTS[id];const p=c.points;
+    d={id,points:p,label:c.label||id,first_date:c.first_date||(p[0]||[])[0],latest_date:c.latest_date||(p[p.length-1]||[])[0],n_points:c.n||p.length,freq:c.freq||'derived'};
+  }
   if(!d||!d.points){document.getElementById('m-chart').innerHTML='<div class="loading">No history.</div>';return;}
   FULL=d;RANGE='MAX';
   document.getElementById('m-title').textContent=d.label||id;
