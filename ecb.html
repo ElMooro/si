@@ -90,6 +90,13 @@ a{color:var(--cyan);text-decoration:none}
   <div class="grid" id="t2grid"></div>
   <div class="read" id="t2-read"></div>
 
+  <div class="sec" id="s-labour">👷 LABOUR & 🏭 INDUSTRY <span class="more">click for chart</span></div>
+  <div class="grid" id="labour"></div>
+
+  <div class="sec" id="s-ciss">🌡 SYSTEMIC STRESS — CISS <a class="more" href="/ciss.html">full CISS monitor (65 series) →</a></div>
+  <div class="grid" id="cissgrid"></div>
+  <div class="read" id="ciss-read"></div>
+
   <div class="sec" id="s-sig">🚨 DUMP-PREDICTOR SIGNALS <a class="more" href="/eu-dump-radar.html">full radar →</a></div>
   <div class="grid" id="signals"></div>
 
@@ -247,7 +254,29 @@ async function load(){
       return '<span class="histlink" onclick="openModal(\''+esc(s.id)+'\')">📈 '+esc(lbl)+(s.discontinued?' <span style="color:var(--amber);font-size:9px">⚠ ECB ended '+esc(s.latest_date)+'</span>':'')+'</span>';
     }).join('');
   }
-  document.getElementById('note').innerHTML=`Sources: ECB Data Portal (ILM, CISS, BLS, MIR, ICP, YC, EST, FM, BSI, STS, EWT, TGB, IRS, SPF, EXR), FRED. Hover any tile for methodology + series ID; click for full history; ⬇ CSV in the chart modal. Updated ${ed&&ed.generated_at?new Date(ed.generated_at).toLocaleString():'recently'}. Research, not advice.`;
+  // labour & industry tiles (from the manifest; click → chart modal)
+  if(m&&m.series){
+    const ms=Object.fromEntries(m.series.map(s=>[s.id,s]));
+    const want=[['unemployment_ea','Unemployment rate (%)'],['indprod_total','Industrial production · incl. construction'],['indprod_core','Industrial production · excl. construction'],['eurusd','EUR/USD reference rate']];
+    document.getElementById('labour').innerHTML=want.map(([id,lbl])=>{
+      const s=ms[id]; if(!s)return '';
+      return `<div class="card hl" onclick="openModal('${id}')"><div class="lbl">${esc(lbl)}</div><div class="val">${s.latest!=null?s.latest:'—'}</div><div class="sub">${s.percentile!=null?s.percentile+'th %ile':''} · ${esc(s.latest_date||'')} 📈</div></div>`;
+    }).join('');
+  }
+  // full CISS systemic-stress set (reads the dedicated ciss-stress feed)
+  const C=await gj('data/ciss-stress.json');
+  if(C&&C.series){
+    const reg=C.ea_regime||'—';const rc=(reg==='CRISIS'||reg==='STRESS')?'var(--red)':reg==='ELEVATED'?'var(--amber)':'var(--green)';
+    const f4=v=>v==null?'—':v.toFixed(4);
+    const subs=C.series.filter(s=>s.category==='ea_subindex');
+    const topc=C.series.filter(s=>s.category==='country_ciss'||s.category==='sovereign_country').sort((a,b)=>(b.pctile||0)-(a.pctile||0)).slice(0,4);
+    const cards=[`<div class="card" style="border-left:3px solid ${rc}"><div class="lbl">EA Composite CISS — ${esc(reg)}</div><div class="val" style="color:${rc}">${f4(C.ea_composite)}</div><div class="sub">${C.n_series} series tracked · ${esc(C.ea_composite_date||'')}</div></div>`];
+    subs.forEach(s=>cards.push(`<div class="card"><div class="lbl">${esc(s.indicator)}</div><div class="val">${f4(s.latest)}</div><div class="sub">${s.pctile!=null?s.pctile.toFixed(0)+'th %ile':''}</div></div>`));
+    topc.forEach(s=>cards.push(`<div class="card"><div class="lbl">${esc(s.country)} · ${esc(s.indicator)}</div><div class="val">${f4(s.latest)}</div><div class="sub">${s.pctile!=null?s.pctile.toFixed(0)+'th %ile':''}${s.discontinued?' · ⏸ disc.':''}</div></div>`));
+    document.getElementById('cissgrid').innerHTML=cards.join('');
+    document.getElementById('ciss-read').textContent=`Full CISS + CLIFS set (${C.n_series} series incl. United States, China, UK & all EU countries) with 1980+ history and AI interpretation on the dedicated monitor → /ciss.html`;
+  }
+  document.getElementById('note').innerHTML=`Sources: ECB Data Portal (ILM, CISS, BLS, MIR, ICP, YC, EST, FM, BSI, STS, LFSI, EWT, TGB, IRS, SPF, EXR), FRED. Hover any tile for methodology + series ID; click for full history; ⬇ CSV in the chart modal. Updated ${ed&&ed.generated_at?new Date(ed.generated_at).toLocaleString():'recently'}. Research, not advice.`;
 }
 // ── history chart modal (same as ecb-history) ──
 let CHART=null,FULL=null,RANGE='MAX';

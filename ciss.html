@@ -65,6 +65,7 @@ h1{font-size:20px;font-weight:700;}h1 .s{color:var(--fg3);font-weight:400;font-s
 <script>
 const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmtVal=v=>v==null?'—':Math.abs(v)>=100?v.toLocaleString(undefined,{maximumFractionDigits:0}):v.toFixed(4);
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 
 const CAT={ea_headline:{t:"Euro-Area Composite CISS",o:1},ea_subindex:{t:"Euro-Area Sub-Indices",o:2},
@@ -107,7 +108,7 @@ function card(s,feat){
   const col=pcol(s.pctile);
   return `<div class="card ${feat?'feat':''}" data-id="${s.id}">
     <div class="top"><div><div class="nm">${esc(s.country)}</div><div class="ind">${esc(s.indicator)} · ${s.freq==='D'?'daily':'monthly'}${s.discontinued?' · <span style="color:var(--fg3)">⏸ discontinued '+(s.latest_date||'').slice(0,7)+'</span>':''}</div></div>
-      <div class="val" style="color:${col}">${(s.latest!=null?s.latest.toFixed(4):'—')}</div></div>
+      <div class="val" style="color:${col}">${fmtVal(s.latest)}</div></div>
     <div class="row">
       <span class="pill" style="background:${col}22;color:${col}">${pband(s.pctile)} ${s.pctile!=null?s.pctile.toFixed(0)+'%ile':''}</span>
       <span>z ${s.zscore>=0?'+':''}${s.zscore}</span>
@@ -160,9 +161,28 @@ function renderAI(a){
      <div class="hg"><b>${D.n_series}</b><div class="m">stress series tracked</div></div>
      <div class="hg"><b>1980</b><div class="m">history depth</div></div>`;
   D.series.forEach(s=>SERIES[s.id]=s);
+  // ── Dollar / FX funding-stress panel: CISS FX + money-market sub-indices,
+  //    EUR/USD reference rate, and ECB USD claims on EA residents ──
+  const [eurusd, usdclaims] = await Promise.all([gj('data/ecb-hist/eurusd.json'), gj('data/ecb-hist/ilm_usd_claims.json')]);
+  function adaptHist(d, country, indicator, freq){
+    if(!d||!d.points||!d.points.length) return null;
+    const vs=d.points.map(p=>p[1]); const mx=Math.max(...vs); const look=freq==='daily'?252:52;
+    const prior=vs.length>look?vs[vs.length-1-look]:vs[0];
+    const o={id:d.id,key:d.flow_key||d.id,flow:'ECB',category:'dollar',area:'',country,indicator,freq,
+      latest:d.latest,min:d.min,max:d.max,pctile:d.percentile,zscore:d.z_score,
+      chg_1y:Math.round((d.latest-prior)*1000)/1000,pct_of_peak:mx?Math.round(d.latest/mx*1000)/10:null,
+      start_date:d.first_date,latest_date:d.latest_date,n_obs:d.n_points,points:d.points,discontinued:false};
+    SERIES[o.id]=o; return o;
+  }
+  const fx=D.series.find(s=>s.area==='U2'&&s.indicator&&s.indicator.indexOf('FX market')>=0);
+  const mm=D.series.find(s=>s.area==='U2'&&s.indicator&&s.indicator.indexOf('Money market')>=0);
+  const dollarCards=[fx,mm,adaptHist(eurusd,'Euro Area','EUR/USD reference rate','daily'),
+                     adaptHist(usdclaims,'Euro Area','USD claims on EA residents (€mn)','weekly')].filter(Boolean);
+  const dollarHtml = dollarCards.length ?
+    `<div class="sec">💵 Dollar / FX Funding Stress <span style="color:var(--fg3);text-transform:none;letter-spacing:0">· ECB FX & money-market stress + EUR/USD + USD claims (proxies; ECB doesn't publish the x-ccy basis directly)</span></div><div class="grid">${dollarCards.map(s=>card(s,false)).join('')}</div>` : '';
   const byCat={};D.series.forEach(s=>{(byCat[s.category]=byCat[s.category]||[]).push(s);});
   const cats=Object.keys(byCat).sort((a,b)=>(CAT[a]?.o||9)-(CAT[b]?.o||9));
-  let html='';
+  let html=dollarHtml;
   cats.forEach(c=>{
     const list=byCat[c].sort((a,b)=>(b.pctile||0)-(a.pctile||0));
     html+=`<div class="sec">${esc(CAT[c]?.t||c)} <span style="color:var(--fg3);text-transform:none;letter-spacing:0">· ${list.length} series</span></div>`;
