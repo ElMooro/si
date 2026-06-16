@@ -909,6 +909,29 @@ def lambda_handler(event=None, context=None):
             _ntag += 1
     DIAG.append("finviz analyst overlay: %d names tagged (recom/target/upside)" % _ntag)
 
+    # ── EV/EBITDA vs sector median (enterprise-multiple lens; complements the P/E lens) ──
+    # NOTE: the engine already computes per-row ev_ebitda from FMP — we do NOT overwrite it.
+    # This only adds a sector-relative cheap/fair/rich classification (the missing piece).
+    try:
+        from statistics import median as _median
+        _sec_ev = {}
+        for _t, _r in fv_uni.items():
+            _ev = _r.get("ev_ebitda"); _sec = _r.get("sector"); _mc = _r.get("market_cap") or 0
+            if _ev is not None and 0 < _ev < 200 and _sec and _mc >= 2000:
+                _sec_ev.setdefault(_sec, []).append(_ev)
+        _sec_ev_med = {k: _median(v) for k, v in _sec_ev.items() if len(v) >= 5}
+        _ne = 0
+        for _row in sp_table + hp_out:
+            _ev = _row.get("ev_ebitda"); _med = _sec_ev_med.get(_row.get("sector"))
+            if _ev and _med:
+                _row["sector_ev_ebitda"] = round(_med, 1)
+                _row["ev_tier"] = ("cheap" if _ev < 0.8 * _med
+                                   else ("rich" if _ev > 1.2 * _med else "fair"))
+                _ne += 1
+        DIAG.append("finviz EV/EBITDA lens: %d names tagged (vs sector median)" % _ne)
+    except Exception as _e:
+        DIAG.append("finviz EV lens fail: " + str(_e)[:50])
+
     # ── Finviz sector valuation tilt (is each name's SECTOR cheap or rich?) ──
     try:
         _grp = json.loads(S3.get_object(Bucket=BUCKET, Key="data/finviz-groups.json")["Body"].read())
