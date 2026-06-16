@@ -1,18 +1,9 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"CALM\"}"}
-ok: True | error: None
+invoked 3 async; waiting...
 
-[headline] Eurozone systemic stress at historic lows (CISS 0.0077, 10th percentile since 1980), but Belgium, Italy, and peripheral sovereigns show elevated stress pockets signaling latent fragmentation risk amid structural divergence.
+regime-composite refreshed=True | CISS module: {'label': 'ECB CISS (Systemic Stress)', 'emoji': '🌡', 'key': 'data/ciss-stress.json', 'dimension': 'liquidity', 'page': '/ciss.html', 'regime': 'STRESS_LOW', 'signal': 'CISS 0.008 — systemic stress CALM (10%ile) — easy conditions, risk-on', 'polarity': 1, 'modified': '2026-06-16T18:57:23', 'age_minutes': 30.3, 'missing': False}
+global-stress refreshed=True | gsi=35 gsi_ciss_adj=35 ciss_systemic={'regime': 'CALM', 'composite': 0.007724, 'percentile': 10.3, 'floor': 0, 'note': 'ECB euro-area systemic-stress (CISS). Floor prevents calm tape from masking systemic stress; the base global_stress_index is left intact for calibration.'}
+risk-radar refreshed=True | macro_stress={'ciss_regime': 'CALM', 'ciss_composite': 0.007724, 'ciss_percentile': 10.3, 'read': 'Systemic stress CALM — calm/easy-liquidity tape (shorts face a headwind) for short exposure.'}
 
-[regime] CALM
-
-[stress_source] Bond markets and financial intermediaries are the relative stress-carriers despite low absolute levels. Equity (0.0118, 6th pctile) and money markets (0.0115, 6th pctile) are exceptionally calm. FX stress is negligible (0.0011). The unusual negative correlation pattern suggests idiosyncratic sector or duration stress rather than broad systemic contagion.
-
-[sovereign] EA equal-weighted sovereign CISS (0.0113, 23rd pctile) sits comfortably calm, but GDP-weighted read (0.0152, 29th pctile) is slightly elevated, implying larger economies (France, Germany) carry marginally higher stress. Critically, Italy (59th pctile), Belgium (57th), and Netherlands (47th) show material dispersion, with Italy's sovereign stress percentile nearly triple the EA average—a red flag for tail fragmentation if macro shocks materialize. No acute crisis, but intra-EA sovereign dispersion is non-negligible.
-
-[cross_country] Belgium stands as the clear outlier (country CISS 0.044, 47th pctile—5.7× EA aggregate), followed by France (0.019, 29th pctile). US, China, UK all lower. This Belgium premium likely reflects banking-sector or fiscal overhang stress. The significant gap between Belgium and peers, combined with Greece, Hungary, Portugal, and Croatia showing CLIFS in the 74–88th percentile range, indicates core-periphery stress differentials and potential credit-system vulnerabilities in smaller/Eastern members despite the EA-wide calm.
-
-[risk_assets] The CALM regime with CISS at historic lows is a powerful tailwind for global risk assets (equities, IG/HY credit, EM carry) over a 3–6 month horizon: low financial-system friction supports credit availability, equity volatility should remain suppressed, and refinancing conditions remain benign. However, the negative cross-subindex correlation and elevated bond/intermediary sub-indices suggest hidden vulnerabilities—duration risk or non-linear volatility in rates/credit spreads could emerge if inflation or central-bank policy shifts. The Belgium and peripheral sovereign stress pockets are small but could amplify quickly if a macro shock (recession, fiscal shock, banking stress) breaks the current equilibrium.
-
-[liquidity] Global financial conditions remain exceptionally easy. Low CISS translates to ample intermediary balance-sheet capacity, tight credit spreads, and abundant liquidity. Money-market stress (0.0115, 6th pctile) confirms no funding constraints. This supports continued risk-on behavior and elevated asset valuations. However, the 1-year CISS decline of -236 bps may be approaching an inflection: if any of the tail stress sources (bond-market repricing, intermediary capital stress, or Belgian/Italian sovereign widening) accelerates, liquidity could reverse sharply, as the market has priced almost zero stress premium.
-
-[watch] ['Belgium CISS (currently 0.044, 47th pctile): if it breaches 0.06 (above 60th pctile) on banking or fiscal news, escalation to broader EA fragmentation risk.', 'EA bond-market CISS sub-index (currently 0.0211, 4th pctile): watch for OAT/BTP/Bund spread widening >50 bps or a >10 bps spike in the sub-index itself—early signal of duration or credit stress.', 'Financial intermediaries CISS (0.0194, 7th pctile): monitor large EU bank CDS spreads; if >100 bps or +25 bps weekly, signals intermediary balance-sheet stress breaking through.', 'Cross-subindex correlation: if it swings from -0.0572 (negative, fragmented) to +0.40+ (positive, synchronized), it will mark a regime shift to systemic stress—watch monthly CISS correlations for directional pivot.']
+ciss.html live http=200 | has AI panel=True sparkline=True detailChart=True
+  data/ciss-stress.json: justhodl.ai=404 proxy=200
+  data/ciss-ai.json: justhodl.ai=404 proxy=200
