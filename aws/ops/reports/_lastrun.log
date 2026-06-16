@@ -1,25 +1,5 @@
-elapsed=17.9s
-NET-NETS credible=29 (raw=215) classic=8
-  DOMH   Dominari Holdings Inc    disc= 51.7% mc=$74M ncav=$153M classic=True Financial
-  PLRX   Pliant Therapeutics Inc  disc= 48.7% mc=$71M ncav=$138M classic=True Healthcare
-  EHTH   eHealth Inc              disc= 47.8% mc=$55M ncav=$105M classic=True Financial
-  TIL    Instil Bio Inc           disc= 45.5% mc=$54M ncav=$99M classic=True Healthcare
-  IMA    ImageneBio Inc           disc= 39.8% mc=$65M ncav=$109M classic=True Healthcare
-  SEER   Seer Inc                 disc= 37.3% mc=$95M ncav=$151M classic=True Healthcare
-  XBIT   XBiotech Inc             disc= 36.2% mc=$72M ncav=$112M classic=True Healthcare
-  PMVP   PMV Pharmaceuticals Inc  disc= 35.2% mc=$56M ncav=$87M classic=True Healthcare
-  FBIO   Fortress Biotech Inc     disc= 32.6% mc=$95M ncav=$141M classic=False Healthcare
-  ACET   Adicet Bio Inc           disc= 31.6% mc=$76M ncav=$111M classic=False Healthcare
-
-CROSS-CHECK checked=88 clean=67 flagged=21
-  SKWD   fy2025 ['revenue +11317.9%']
-  WAFD   fy2025 ['revenue +4655.7%']
-  DCOM   fy2025 ['revenue +3568.9%']
-  CUBI   fy2020 ['revenue +3419.3%']
-  ECPG   fy2025 ['revenue +1894.1%']
-  BKNG   fy2025 ['net income +1772.1%']
-  PDFS   fy2020 ['revenue +879.2%']
-  FBNC   fy2025 ['revenue +703.2%']
-  NVDA   fy2022 ['revenue +702.3%']
-  RLX    fy2025 ['revenue +521.6%', 'net income +580.3%', 'assets +599.8%']
-clean sample: ['AUPH', 'FRSH', 'FLYW', 'SPNT', 'RAMP', 'HRMY', 'FA', 'HMN', 'GRDN', 'APPN', 'VCEL', 'NUVB', 'GRND', 'ABCL']
+elapsed=17.4s | net-nets credible=29 classic=8
+CROSS-CHECK checked=89 clean=87 CONFIRMED-flagged=0 unverified=2
+CONFIRMED FMP divergences (worth a 10-K look):
+unverified (concept/period mismatch, not errors): ['SLDE', 'BKNG']
+clean sample: ['FRSH', 'FLYW', 'HRMY', 'ECPG', 'VCEL', 'RAMP', 'HMN', 'NUVB', 'APPN', 'NTCT', 'FA', 'GRDN', 'GRND', 'PGNY']
