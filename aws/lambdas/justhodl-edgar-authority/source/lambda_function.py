@@ -113,7 +113,10 @@ def lambda_handler(event, context):
     # ── (2) NCAV net-net screen — whole market via frames ──
     ac = edgar.frames_multi(edgar.ASSETS_CURRENT, periods=INSTANT_PERIODS)
     li = edgar.frames_multi(edgar.LIABILITIES, periods=INSTANT_PERIODS)
-    net_nets = []
+    net_nets = []          # credible: US-listed, >= floor, sane NCAV/MC
+    n_all = 0              # raw count incl. foreign micro-caps / likely data errors
+    MC_FLOOR_M = 50.0      # net-nets below this are usually nano-cap traps/errors
+    NCAV_MC_CAP = 10.0     # NCAV/MC above this is almost always a units/currency error
     for tk, r in uni.items():
         cik = cmap.get(tk)
         mc_m = r.get("market_cap")  # $ millions
@@ -124,24 +127,37 @@ def lambda_handler(event, context):
             continue
         ncav = a - l
         mc = mc_m * 1e6
-        if ncav > 0 and mc < ncav:
-            net_nets.append({
-                "ticker": tk, "name": r.get("company"), "sector": r.get("sector"),
-                "market_cap_m": round(mc_m, 1), "ncav_m": round(ncav / 1e6, 1),
-                "discount_pct": round((1 - mc / ncav) * 100, 1),
-                "classic_net_net": mc < (2.0 / 3.0) * ncav,
-                "price": r.get("price"), "pb": r.get("pb"),
-            })
+        if ncav <= 0 or mc >= ncav:
+            continue
+        n_all += 1
+        country = r.get("country")
+        ratio = ncav / mc
+        # credible list: US-listed, above floor, NCAV/MC within sane bounds
+        if country != "USA" or mc_m < MC_FLOOR_M or ratio > NCAV_MC_CAP:
+            continue
+        net_nets.append({
+            "ticker": tk, "name": r.get("company"), "sector": r.get("sector"),
+            "country": country, "market_cap_m": round(mc_m, 1),
+            "ncav_m": round(ncav / 1e6, 1), "discount_pct": round((1 - mc / ncav) * 100, 1),
+            "classic_net_net": mc < (2.0 / 3.0) * ncav,
+            "price": r.get("price"), "pb": r.get("pb"),
+        })
     net_nets.sort(key=lambda x: -x["discount_pct"])
     ncav_coverage = sum(1 for tk in uni if cmap.get(tk) in ac)
 
-    # ── (1) FMP cross-check vs filing — high-potential set ──
+    # ── (1) FMP cross-check vs filing — names the system actually surfaces ──
+    targets = []
     try:
         val = json.loads(S3.get_object(Bucket=BUCKET, Key="data/stock-valuations.json")["Body"].read())
-        hp = [r.get("t") for r in (val.get("hp_out") or []) if r.get("t")]
+        targets += [r.get("t") for r in (val.get("hp") or []) if r.get("t")]
     except Exception:
-        hp = []
-    targets = [t for t in dict.fromkeys(hp) if cmap.get(t)][:80]
+        pass
+    try:
+        opp = json.loads(S3.get_object(Bucket=BUCKET, Key="data/opportunities-research.json")["Body"].read())
+        targets += list(opp.get("by_ticker", {}).keys())
+    except Exception:
+        pass
+    targets = [t for t in dict.fromkeys(targets) if cmap.get(t)][:90]
 
     def _do(tk):
         inc = _fmp("income-statement", {"symbol": tk, "period": "annual", "limit": 4})
@@ -167,8 +183,10 @@ def lambda_handler(event, context):
         "elapsed_s": round(time.time() - t0, 1),
         "net_nets": net_nets[:60],
         "n_net_nets": len(net_nets),
+        "n_net_nets_raw": n_all,
         "n_classic_net_nets": sum(1 for x in net_nets if x["classic_net_net"]),
         "ncav_coverage": ncav_coverage,
+        "net_net_filter": "US-listed, market cap >= $%.0fM, NCAV/MC <= %.0fx (excludes foreign micro-cap traps and likely units/currency reporting errors)" % (MC_FLOOR_M, NCAV_MC_CAP),
         "crosscheck": {
             "n_checked": len(checks), "n_clean": len(checks) - len(flagged),
             "n_flagged": len(flagged), "flagged": flagged, "sample_clean": [c["ticker"] for c in checks if c["match"]][:20],
