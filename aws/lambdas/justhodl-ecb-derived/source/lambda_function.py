@@ -1105,6 +1105,37 @@ def lambda_handler(event=None, context=None):
                     "points": _down(div), **_cctx(div), "thresholds": {}}
     except Exception as e:
         print(f"[v3 diverge] {str(e)[:50]}")
+    # ── COMPREHENSIVE: every DG-ECFIN confidence sector + IP YoY by MIG (Eurostat) ──
+    # Confidence balances back to ~1985; IP YoY direct via unit=PCH_SM (same-month prior year).
+    for cid, code, lbl in [
+            ("conf_industrial", "BS-ICI-BAL", "Industrial confidence (balance) — DG-ECFIN BCS"),
+            ("conf_services", "BS-SCI-BAL", "Services confidence (balance) — DG-ECFIN BCS"),
+            ("conf_consumer", "BS-CSMCI-BAL", "Consumer confidence (balance) — DG-ECFIN BCS"),
+            ("conf_retail", "BS-RCI-BAL", "Retail trade confidence (balance) — DG-ECFIN BCS"),
+            ("conf_construction", "BS-CCI-BAL", "Construction confidence (balance) — DG-ECFIN BCS"),
+            ("esi_sentiment", "BS-ESI-I", "Economic Sentiment Indicator (ESI, long-run avg=100)")]:
+        try:
+            pts_c, _s = eurostat_series("ei_bssi_m_r2", {"freq": "M", "indic": code, "s_adj": "SA"}, n=520)
+            if len(pts_c) > 30:
+                macro_series[cid] = (lbl, pts_c, {})
+        except Exception as _e:
+            print(f"[conf {cid}] {str(_e)[:50]}")
+    for cid, nace, lbl in [
+            ("ipyoy_total", "B-D", "Industrial production YoY — total industry (%)"),
+            ("ipyoy_manufacturing", "C", "Manufacturing production YoY (%)"),
+            ("ipyoy_intermediate", "MIG_ING", "IP YoY — intermediate goods (%)"),
+            ("ipyoy_capital", "MIG_CAG", "IP YoY — capital goods (%)"),
+            ("ipyoy_durable", "MIG_DCOG", "IP YoY — durable consumer goods (%)"),
+            ("ipyoy_nondurable", "MIG_NDCOG", "IP YoY — non-durable consumer goods (%)"),
+            ("ipyoy_energy", "MIG_NRG", "IP YoY — energy (%)")]:
+        try:
+            pts_i, _s = eurostat_series("sts_inpr_m", {"freq": "M", "indic_bt": "PRD",
+                        "nace_r2": nace, "s_adj": "SCA", "unit": "PCH_SM"}, n=420)
+            if len(pts_i) > 30:
+                macro_series[cid] = (lbl, pts_i, {"watch": -2, "critical": -5})
+        except Exception as _e:
+            print(f"[ipyoy {cid}] {str(_e)[:50]}")
+
     for cid, (lbl, pts_, th_) in macro_series.items():
         if len(pts_) > 30:
             charts[cid] = {"label": lbl, "points": _down(pts_), **_cctx(pts_),
