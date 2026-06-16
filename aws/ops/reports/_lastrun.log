@@ -1,32 +1,24 @@
-=== CISS sub-indices — OLD convention (ecb-history, 404-ing) vs NEW (ecb-auto-updater) ===
-  composite/CIN    OLD SS_CIN.IDX     -> 200 rows~3     | NEW SOV_EW.IDX   -> 404
-  financial-interm OLD SS_FI.CON      -> 200 rows~3     | NEW FII_CI.IDX   -> 404
-  bond             OLD SS_BO.CON      -> 404            | NEW BON_CI.IDX   -> 404
-  fx               OLD SS_FX.CON      -> 200 rows~3     | NEW FX_CI.IDX    -> 404
-  equity           OLD SS_EQ.CON      -> 404            | NEW EQU_CI.IDX   -> 404
-  money-mkt        OLD SS_MM.CON      -> 200 rows~3     | NEW MMS_CI.IDX   -> 404
+=== correct CISS bond/equity segment codes ===
+  bond    CISS/D.U2.Z0Z.4F.EC.SS_BM.CON  -> 200 rows~3
+  bond    CISS/D.U2.Z0Z.4F.EC.SS_BM.IDX  -> 404
+  bond    CISS/D.U2.Z0Z.4F.EC.SS_BD.CON  -> 404
+  equity  CISS/D.U2.Z0Z.4F.EC.SS_EM.CON  -> 200 rows~3
+  equity  CISS/D.U2.Z0Z.4F.EC.SS_EM.IDX  -> 404
+  equity  CISS/D.U2.Z0Z.4F.EC.SS_SM.CON  -> 404
+  equity  CISS/D.U2.Z0Z.4F.EC.SS_EQ.IDX  -> 404
 
-=== main CISS composite candidates ===
-  D.U2.Z0Z.4F.EC.SS_CIN.IDX      -> 200 rows~3
-  D.U2.Z0Z.4F.EC.SOV_GDPW.IDX    -> 404
-  D.U2.Z0Z.4F.EC.SS_CI.IDX       -> 200 rows~3
+=== SovCISS on the NEW host (old host sdw-wsrest is dead) ===
+  M.U2.Z0Z.4F.EC.SOVCISS_CI.IDX      -> 404
+  D.U2.Z0Z.4F.EC.SOVCISS_CI.IDX      -> 404
+  M.U2.Z0Z.4F.EC.SS_SOV.IDX          -> 404
 
-=== ILM series (ecb-derived / ecb-history) ===
-  W.U2.C.A030000.U2.Z06    -> 200 rows~3
-  W.U2.C.L060000.U4.EUR    -> 200 rows~3
-  W.U2.C.A050000.U2.EUR    -> 200 rows~3
+=== ILM banknotes (L010000) + FX-liab (L080000) variants ===
   W.U2.C.L010000.U2.EUR    -> 404
+  W.U2.C.L020000.U2.EUR    -> 200 rows~3
+  W.U2.C.L010000.U4.EUR    -> 404
   W.U2.C.L080000.U4.EUR    -> 404
-  W.U2.C.A050100.U2.EUR    -> 200 rows~3
-  W.U2.C.A050200.U2.EUR    -> 200 rows~3
-  W.U2.C.A050500.U2.EUR    -> 200 rows~3
+  W.U2.C.L070000.U4.EUR    -> 404
+  W.U2.C.A080000.U2.Z06    -> 404
 
-=== ecb-auto-updater: the SovCISS section + host (DNS-failing) ===
-   ssl_context.check_hostname = False
-   url = f"https://sdw-wsrest.ecb.europa.eu/service/data/{series_key}"
-   # Try to fetch SovCISS (Sovereign Stress Indicator)
-   print("Fetching SovCISS...")
-   url = "https://sdw-wsrest.ecb.europa.eu/service/data/CISS/M.U2.Z0Z.4F.EC.SOVCISS_CI.IDX"
-   'name': 'Composite Indicator of Sovereign Stress (Euro Area Monthly)',
-   print(f"✅ Updated SovCISS: {latest['value']:.6f}")
-   print(f"Error updating SovCISS: {str(e)}")
+=== confirm old host truly dead ===
+  sdw-wsrest.ecb.europa.eu -> ERR <urlopen error [Errno -2] Name or 
