@@ -1,6 +1,13 @@
-CISS flow: 60 total series
-  areas: {'AT': 3, 'BE': 3, 'CN': 1, 'DE': 3, 'ES': 3, 'FI': 3, 'FR': 3, 'GB': 2, 'GR': 2, 'IE': 3, 'IT': 3, 'NL': 3, 'PT': 3, 'U2': 18, 'US': 2, 'CZ': 1, 'DK': 1, 'HU': 1, 'PL': 1, 'SE': 1}
-  freqs: {'D': 41, 'M': 19}
-  fresh (2026+): 33/60
-CLIFS flow: http=200 ~28 series
-EA composite earliest obs: 1980-01-03
+invoked ciss-stress (async); polling...
+elapsed=95.2s | n_series=58 | EA regime=CALM composite=0.007724 @ 2026-06-15
+categories: {'sovereign_country': 11, 'country_ciss': 11, 'sovereign_ea': 2, 'ea_subindex': 6, 'ea_headline': 1, 'clifs': 27}
+
+sample per category (history depth + latest):
+  [sovereign_country ] Austria — Sovereign composite          2000-01-05->2026-06-15 n=6899 stored=1384 latest=0.007919 pctile=4.8 z=-0.76
+  [country_ciss      ] Austria — Composite (CISS)             1999-01-05->2026-06-15 n=7168 stored=1436 latest=0.005754 pctile=8.7 z=-0.75
+  [sovereign_ea      ] Euro Area — Sovereign (equal-weighted) 2000-01-05->2026-06-15 n=6899 stored=1384 latest=0.011314 pctile=23.3 z=-0.59
+  [ea_subindex       ] Euro Area — Bond market                1999-01-01->2026-06-15 n=7162 stored=1437 latest=0.021088 pctile=3.9 z=-1.38
+  [ea_headline       ] Euro Area — Composite (CISS)           1980-01-03->2026-06-15 n=12126 stored=2432 latest=0.007724 pctile=10.3 z=-0.74
+  [clifs             ] Austria — CLIFS — financial stress     1970-01->2026-04 n=676 stored=676 latest=0.0828 pctile=43.0 z=-0.43
+
+payload size: 1.53 MB
