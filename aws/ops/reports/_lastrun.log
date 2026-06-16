@@ -1,15 +1,13 @@
-invoking ecb-auto-updater (sync)...
-  response: {"statusCode": 200, "body": "{\"message\": \"CISS subindices update completed\", \"indicators_updated\": 7, \"total_indicators\": 167, \"timestamp\": \"2026-06-16T17:12:15.210835\"}"}
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/1743_verify_sovciss.py", line 10, in <module>
-    d=json.loads(s3.get_object(Bucket="justhodl-dashboard-live",Key="ecb_data.json")["Body"].read())
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+engine bucket: openbb-lambda-data
+
+ECB.SOVCISS -> value=0.015183037641976925 date=2026-06-15 freq=Daily obs=120
+  name: SovCISS — Composite Indicator of Sovereign Stress, GDP-weighted (Euro Area Daily)
+  last_updated: 2026-06-16T17:12:14.941791
+
+CISS subindices refreshed today:
+  ECB.CISS.D.U2.BON_CI       0.0319 @ 2025-05-02  upd=✓today
+  ECB.CISS.D.U2.FX_CI        0.0242 @ 2025-05-02  upd=✓today
+  ECB.CISS.D.U2.MMS_CI       0.0252 @ 2025-05-02  upd=✓today
+  ECB.CISS.D.U2.EQU_CI       0.0785 @ 2025-05-02  upd=✓today
+  ECB.CISS.D.U2.FII_CI       0.0805 @ 2025-05-02  upd=✓today
+  ECB.CISS.D.U2.MAIN         0.0077 @ 2026-06-15  upd=✓today
