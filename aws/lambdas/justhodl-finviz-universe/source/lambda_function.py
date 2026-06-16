@@ -48,15 +48,24 @@ def lambda_handler(event=None, context=None):
     for r in uni.values():
         if r.get("sector") and r.get("perf_m") is not None:
             secs[r["sector"]].append(r)
-    def _avg(a): return round(sum(a) / len(a), 2) if a else None
+    def _capw(rows, key):  # market-cap-weighted perf = the sector's actual move (not micro-cap-skewed mean)
+        num = den = 0.0
+        for x in rows:
+            v = x.get(key); mc = x.get("market_cap")
+            if v is not None and mc:
+                num += v * mc; den += mc
+        return round(num / den, 2) if den else None
+    def _med(a):
+        a = sorted(a); return round(a[len(a)//2], 2) if a else None
     heat = []
     for sec, rows in secs.items():
         rs = sorted(rows, key=lambda x: x.get("perf_m") or 0)
         heat.append({
             "sector": sec, "n": len(rows),
-            "avg_perf_w": _avg([x["perf_w"] for x in rows if x.get("perf_w") is not None]),
-            "avg_perf_m": _avg([x["perf_m"] for x in rows if x.get("perf_m") is not None]),
-            "avg_perf_ytd": _avg([x["perf_ytd"] for x in rows if x.get("perf_ytd") is not None]),
+            "avg_perf_w": _capw(rows, "perf_w"),
+            "avg_perf_m": _capw(rows, "perf_m"),
+            "avg_perf_ytd": _capw(rows, "perf_ytd"),
+            "median_perf_m": _med([x["perf_m"] for x in rows if x.get("perf_m") is not None]),
             "total_mktcap_b": round(sum((x.get("market_cap") or 0) for x in rows) / 1000, 1),
             "top": [{"ticker": x["ticker"], "perf_m": x.get("perf_m"), "mktcap_m": x.get("market_cap")} for x in rs[-6:][::-1]],
             "bottom": [{"ticker": x["ticker"], "perf_m": x.get("perf_m")} for x in rs[:6]],
