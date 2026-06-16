@@ -141,7 +141,8 @@ def lambda_handler(event=None, context=None):
                 "perf_m": r.get("perf_m"), "change": r.get("change"),
                 "earnings_date": r.get("earnings_date"), "mktcap_m": r.get("market_cap")}
     _surp = [(tk, r) for tk, r in uni.items()
-             if r.get("eps_surprise") is not None and (r.get("market_cap") or 0) >= 1000]
+             if r.get("eps_surprise") is not None and (r.get("market_cap") or 0) >= 1000
+             and abs(r.get("eps_surprise")) <= 100]  # exclude near-zero-base % distortions
     _by = sorted(_surp, key=lambda kv: (kv[1].get("eps_surprise") or 0), reverse=True)
     s3.put_object(Bucket=BUCKET, Key="data/finviz-earnings-surprise.json",
                   Body=json.dumps({"generated_at": now, "n": len(_surp),
