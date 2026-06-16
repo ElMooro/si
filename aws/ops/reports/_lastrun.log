@@ -1,39 +1,4 @@
-TOTAL CISS series: 60
-
-KEY                                                  FREQ AREA  INDICATOR      LATEST      KEPT?
-CISS.M.AT.Z0Z.4F.EC.SOV_CI.IDX                       M    AT    SOV_CI         2025-04     DROP
-CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX                       M    BE    SOV_CI         2025-04     DROP
-CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX                       D    CN    SS_CIN         2026-06-12  keep
-CISS.M.CZ.Z0Z.4F.EC.SOV_CI.IDX                       M    CZ    SOV_CI         2025-04     DROP
-CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX                       M    DE    SOV_CI         2025-04     DROP
-CISS.M.DK.Z0Z.4F.EC.SOV_CI.IDX                       M    DK    SOV_CI         2025-04     DROP
-CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX                       M    ES    SOV_CI         2025-04     DROP
-CISS.M.FI.Z0Z.4F.EC.SOV_CI.IDX                       M    FI    SOV_CI         2025-04     DROP
-CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX                       M    FR    SOV_CI         2025-04     DROP
-CISS.D.GB.Z0Z.4F.EC.SS_CIN.IDX                       D    GB    SS_CIN         2026-06-15  keep
-CISS.M.GB.Z0Z.4F.EC.SOV_CI.IDX                       M    GB    SOV_CI         2025-04     DROP
-CISS.D.GR.Z0Z.4F.EC.SOV_CIN.IDX                      D    GR    SOV_CIN        2026-06-15  keep
-CISS.M.GR.Z0Z.4F.EC.SOV_CI.IDX                       M    GR    SOV_CI         2025-04     DROP
-CISS.M.HU.Z0Z.4F.EC.SOV_CI.IDX                       M    HU    SOV_CI         2025-04     DROP
-CISS.M.IE.Z0Z.4F.EC.SOV_CI.IDX                       M    IE    SOV_CI         2025-04     DROP
-CISS.M.IT.Z0Z.4F.EC.SOV_CI.IDX                       M    IT    SOV_CI         2025-04     DROP
-CISS.M.NL.Z0Z.4F.EC.SOV_CI.IDX                       M    NL    SOV_CI         2025-04     DROP
-CISS.M.PL.Z0Z.4F.EC.SOV_CI.IDX                       M    PL    SOV_CI         2025-04     DROP
-CISS.M.PT.Z0Z.4F.EC.SOV_CI.IDX                       M    PT    SOV_CI         2025-04     DROP
-CISS.M.SE.Z0Z.4F.EC.SOV_CI.IDX                       M    SE    SOV_CI         2025-04     DROP
-CISS.D.U2.Z0Z.4F.EC.SS_BM.CON                        D    U2    SS_BM          2025-05-02  DROP
-CISS.D.U2.Z0Z.4F.EC.SS_CI.IDX                        D    U2    SS_CI          2025-05-02  DROP
-CISS.D.U2.Z0Z.4F.EC.SS_CO.CON                        D    U2    SS_CO          2025-05-02  DROP
-CISS.D.U2.Z0Z.4F.EC.SS_EM.CON                        D    U2    SS_EM          2025-05-02  DROP
-CISS.D.U2.Z0Z.4F.EC.SS_FI.CON                        D    U2    SS_FI          2025-05-02  DROP
-CISS.D.U2.Z0Z.4F.EC.SS_FX.CON                        D    U2    SS_FX          2025-05-02  DROP
-CISS.D.U2.Z0Z.4F.EC.SS_MM.CON                        D    U2    SS_MM          2025-05-02  DROP
-CISS.M.U2.Z0Z.4F.EC.SOV_EW.IDX                       M    U2    SOV_EW         2025-04     DROP
-CISS.M.U2.Z0Z.4F.EC.SOV_GDPW.IDX                     M    U2    SOV_GDPW       2025-04     DROP
-CISS.D.US.Z0Z.4F.EC.SS_CI.IDX                        D    US    SS_CI          2025-05-02  DROP
-CISS.D.US.Z0Z.4F.EC.SS_CIN.IDX                       D    US    SS_CIN         2026-06-15  keep
-
-KEPT=33 DROPPED=27
-US present? True | US kept? 1
-CN present? True | CN kept? 1
-areas kept: {'AT': 2, 'BE': 2, 'CN': 1, 'DE': 2, 'ES': 2, 'FI': 2, 'FR': 2, 'GB': 1, 'GR': 1, 'IE': 2, 'IT': 2, 'NL': 2, 'PT': 2, 'U2': 9, 'US': 1}
+  File "/home/runner/work/si/si/aws/ops/pending/1758_verify_full_ciss.py", line 24
+    print(f"  {want}: "+("; ".join(f\"{s['indicator']} ({s['latest_date']}{' DISC' if s.get('discontinued') else ''})\" for s in hits) or "MISSING"))
+                                     ^
+SyntaxError: unexpected character after line continuation character
