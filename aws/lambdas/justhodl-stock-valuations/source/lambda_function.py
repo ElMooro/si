@@ -905,6 +905,28 @@ def lambda_handler(event=None, context=None):
             _ntag += 1
     DIAG.append("finviz analyst overlay: %d names tagged (recom/target/upside)" % _ntag)
 
+    # ── Finviz sector valuation tilt (is each name's SECTOR cheap or rich?) ──
+    try:
+        _grp = json.loads(S3.get_object(Bucket=BUCKET, Key="data/finviz-groups.json")["Body"].read())
+        _secs = _grp.get("sectors", [])
+        _pes = sorted([s["fwd_pe"] for s in _secs if s.get("fwd_pe")])
+        def _tier(pe):
+            if not pe or len(_pes) < 6:
+                return None
+            r = sum(1 for x in _pes if x < pe) / len(_pes)
+            return "cheap" if r <= 0.34 else ("rich" if r >= 0.66 else "fair")
+        _secmap = {s["name"]: s for s in _secs}
+        _nt = 0
+        for _row in sp_table + hp_out:
+            sd = _secmap.get(_row.get("sector"))
+            if sd:
+                _row["sector_pe"] = sd.get("pe"); _row["sector_fwd_pe"] = sd.get("fwd_pe")
+                _row["sector_peg"] = sd.get("peg"); _row["sector_perf_m"] = sd.get("perf_m")
+                _row["sector_valuation"] = _tier(sd.get("fwd_pe")); _nt += 1
+        DIAG.append("finviz sector tilt: %d names tagged (sector cheap/fair/rich)" % _nt)
+    except Exception as _e:
+        DIAG.append("finviz sector tilt fail: " + str(_e)[:50])
+
     out = {"engine": "stock-valuations", "version": VERSION,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "duration_s": round(time.time() - t0, 1),
