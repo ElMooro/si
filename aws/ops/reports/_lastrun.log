@@ -1,6 +1,13 @@
-ev_tier coverage: 500/500 | dist: {'cheap': 125, 'fair': 178, 'rich': 197}
-  KO: ev_ebitda=20.21 sec=Consumer Staples med=11.4 tier=rich
-  PG: ev_ebitda=16.04 sec=Consumer Staples med=11.4 tier=rich
-  JNJ: ev_ebitda=18.21 sec=Health Care med=14.0 tier=rich
-  UNH: ev_ebitda=18.31 sec=Health Care med=14.0 tier=rich
-  CAT: ev_ebitda=28.8 sec=Industrials med=15.2 tier=rich
+FMP key from justhodl-stock-valuations (len 32)
+
+=== FMP /stable/ depth (AAPL) ===
+  annual   http=200 periods=40 earliest=1986 latest=2025
+  quarter  http=200 periods=40 earliest=2016 latest=2026
+
+=== SEC EDGAR companyfacts (AAPL CIK 0000320193) ===
+  http=200 us-gaap concepts=503 revenue datapoints=11 fy range=2018..2018
+  key line items present: ['Revenues', 'RevenueFromContractWithCustomerExcludingAssessedTax', 'NetIncomeLoss', 'Assets', 'Liabilities', 'StockholdersEquity', 'CashAndCashEquivalentsAtCarryingValue', 'OperatingIncomeLoss', 'ResearchAndDevelopmentExpense', 'EarningsPerShareDiluted']
+
+=== Finviz financial statements (re-confirm) ===
+  statement IA       http=404
+  quote financials   http=200
