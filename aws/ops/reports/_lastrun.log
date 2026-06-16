@@ -1,33 +1,4 @@
-country | unemployment(LFSI) | indprod(STS excl-constr)
-  AT   | 5.7 (2026-04)    | —
-  BE   | 6.2 (2026-04)    | —
-  BG   | 2.8 (2026-04)    | —
-  HR   | 4.2 (2026-04)    | —
-  CY   | 3.2 (2026-04)    | —
-  CZ   | 3.1 (2026-04)    | —
-  DK   | 7 (2026-04)      | —
-  EE   | 6.3 (2026-04)    | —
-  FI   | 10.7 (2026-04)   | —
-  FR   | 8.2 (2026-04)    | —
-  DE   | 3.8 (2026-04)    | —
-  GR   | 9.5 (2026-04)    | —
-  HU   | 4.6 (2026-04)    | —
-  IE   | 4.9 (2026-05)    | —
-  IT   | 5.1 (2026-04)    | —
-  LV   | 6.5 (2026-04)    | —
-  LT   | 7.1 (2026-04)    | —
-  LU   | 7 (2026-04)      | —
-  MT   | 3.6 (2026-04)    | —
-  NL   | 3.9 (2026-04)    | —
-  PL   | 3 (2026-04)      | —
-  PT   | 5.7 (2026-04)    | —
-  RO   | 6.3 (2026-04)    | —
-  SK   | 5.8 (2026-04)    | —
-  SI   | 4.1 (2026-04)    | —
-  ES   | 10.3 (2026-04)   | —
-  SE   | 8.5 (2026-04)    | —
-  I8   | —                | 98.3 (2024-08)
-  I9   | 6.3 (2026-04)    | 98.1 (2025-09)
-
-UNEMPLOYMENT available (28): ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'I9']
-INDPROD available (2): ['I8', 'I9']
+invoke: {"statusCode": 200, "body": "{\"written\": 49}"}
+unemployment series now (29): ['unemp_at', 'unemp_be', 'unemp_bg', 'unemp_cy', 'unemp_cz', 'unemp_de', 'unemp_dk', 'unemp_ea_youth', 'unemp_ee', 'unemp_es', 'unemp_fi', 'unemp_fr', 'unemp_gr', 'unemp_hr', 'unemp_hu', 'unemp_ie', 'unemp_it', 'unemp_lt', 'unemp_lu', 'unemp_lv', 'unemp_mt', 'unemp_nl', 'unemp_pl', 'unemp_pt', 'unemp_ro', 'unemp_se', 'unemp_si', 'unemp_sk', 'unemployment_ea']
+industrial/manuf series (9): ['indprod_capital', 'indprod_core', 'indprod_durable', 'indprod_energy', 'indprod_intermediate', 'indprod_nondurable', 'indprod_total', 'manuf_turnover', 'retail_turnover']
+total manifest series: 73
