@@ -19,6 +19,7 @@ import json, os, time, gzip, urllib.request
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 import boto3
+import finviz as FV
 
 S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
@@ -882,6 +883,27 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         if "ConditionalCheckFailed" not in str(e):
             DIAG.append(f"hp loop: {str(e)[:50]}")
+
+    # ── Finviz analyst overlay (additive): consensus recom + target price + upside ──
+    try:
+        fv_uni = FV.load_universe()
+    except Exception as _e:
+        fv_uni = {}; DIAG.append("finviz overlay load: " + str(_e)[:50])
+    _ntag = 0
+    for _row in sp_table + hp_out:
+        _fv = fv_uni.get((_row.get("t") or "").upper())
+        if not _fv:
+            continue
+        _rc = _fv.get("analyst_recom"); _tp = _fv.get("target_price"); _pr = _fv.get("price")
+        if _rc is not None:
+            _row["analyst_recom"] = _rc
+        if _tp is not None:
+            _row["target_price"] = _tp
+            if _pr:
+                _row["analyst_upside"] = round((_tp - _pr) / _pr * 100, 1)
+        if _rc is not None or _tp is not None:
+            _ntag += 1
+    DIAG.append("finviz analyst overlay: %d names tagged (recom/target/upside)" % _ntag)
 
     out = {"engine": "stock-valuations", "version": VERSION,
             "generated_at": datetime.now(timezone.utc).isoformat(),
