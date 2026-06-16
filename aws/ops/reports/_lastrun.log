@@ -1,28 +1,15 @@
 invoke: {"statusCode": 200, "body": "{\"ok\": false, \"regime\": \"CALM\"}"}
-ok: False | regime: CALM | model: glm-5.1 (Claude Sonnet fallback)
+ok: False
 
-[headline]
-None
+[headline] None
 
-[regime_read]
-None
+[regime] None
 
-[stress_source]
-None
+[stress_source] None
 
-[risk_assets]
-None
+[risk_assets] None
 
-[liquidity]
-None
+[liquidity] None
 
 [watch] None
-
-RAW (parse failed): 1.  **Analyze the Request:**
-    *   Role: Institutional systemic-risk strategist.
-    *   Input: ECB CISS & CLIFS snapshot (as of 2026-06-15).
-    *   Output: STRICT JSON only, no preamble or fences.
-    *   Keys required: headline, regime, regime_read, stress_source, sovereign, cross_country, risk_assets, liquidity, watch.
-
-2.  **Analyze the Data:**
-    *   EA COMPOSITE CISS = 0.0077 (CALM). Per
+RAW: 
