@@ -1,40 +1,13 @@
-=== 1) der.indicators (all dump signals) ===
-  ciss_acceleration              signal=CALM fields=['name', 'ciss_level', 'delta_30d', 'delta_30d_zscore', 'thresholds', 'spark']
-  bank_funding_stress            signal=NORMAL fields=['name', 'mro_eur_mn', 'ltro_eur_mn', 'ltro_share_pct', 'ltro_share_4w_ago_pct', 'mlf_eur_mn']
-  eu_us_liquidity_divergence     signal=NORMAL fields=['name', 'ecb_total_assets_eur_bn', 'ecb_balance_sheet_6m_chg_eur_bn', 'fed_net_liquidity_6m_chg_usd_bn', 'divergence_bn', 'thresholds']
-  bls_credit_standards           signal=TIGHTENING fields=['name', 'net_pct_tightening', 'prev_quarter', 'as_of', 'thresholds', 'spark']
-  bank_pass_through_premium      signal=NORMAL fields=['name', 'nfc_lending_rate_pct', 'dfr_pct', 'premium_pct', 'premium_3m_ago_pct', 'widening_3m_pp']
-  target2_imbalance              signal=NORMAL fields=['name', 'de_target2_eur_mn', 'it_target2_eur_mn', 'de_3m_change_eur_mn', 'de_minus_it_eur_mn', 'as_of']
-  usd_funding_stress_composite   signal=NORMAL fields=['name', 'score_0_100', 'composite_z', 'a030000_z', 'l080000_z', 'fed_swap_z']
-  eurodollar_stress_index        signal=NORMAL fields=['name', 'esi_0_100', 'tier', 'components', 'thresholds', 'spark']
-  estr_dfr_dislocation           signal=NORMAL fields=['name', 'estr_pct', 'dfr_pct', 'spread_bp', 'thresholds', 'spark']
-  euribor_ois_stress             signal=WATCH fields=['name', 'euribor_3m_pct', 'estr_3m_comp_pct', 'spread_bp', 'thresholds', 'spark']
-  expectations_deanchoring       signal=NORMAL fields=['name', 'spf_longterm_pct', 'spf_prev_q_pct', 'nominal_5y5y_fwd_pct', 'as_of', 'thresholds']
-  wage_persistence               signal=NORMAL fields=['name', 'official_yoy', 'tracker_fwd_yoy', 'tracker_ex_oneoffs_yoy', 'coverage_pct', 'as_of']
-  credit_contraction             signal=NORMAL fields=['name', 'nfc_loans_yoy', 'hh_loans_yoy', 'impulse_6m_pp', 'as_of', 'thresholds']
-  fragmentation_stress           signal=NORMAL fields=['name', 'it_de_bp', 'spreads_bp', 'as_of', 'thresholds', 'spark']
-  ea_unemployment                signal=NORMAL fields=['name', 'unemployment_rate_pct', 'chg_3m_pp', 'as_of', 'series', 'thresholds']
-  ea_industrial_production       signal=NORMAL fields=['name', 'ip_yoy_pct', 'as_of', 'series', 'thresholds', 'spark']
-  ea_confidence                  signal=NORMAL fields=['name', 'business_conf', 'business_z', 'consumer_conf', 'consumer_z', 'as_of']
-  real_m1_growth                 signal=NORMAL fields=['name', 'm1_yoy_pct', 'hicp_yoy_pct', 'real_m1_growth_pct', 'as_of', 'thresholds']
-  country_unemployment           signal=NORMAL fields=['name', 'countries', 'worst_3m_rise_pp', 'thresholds']
-
-=== 2) ecb-hist manifest series ids ===
-   78 series: balance_sheet, bank_rate_nfc, ciss_bo, ciss_ea, ciss_eq, ciss_fi, ciss_fx, ciss_mm, dfr, es_de_10y_bp, esi, estr, eurcny, euribor_3m, euribor_ois_bp, eurjpy, eurusd, excess_liquidity, fr_de_10y_bp, fx_claims_nonea, gdp_yoy, gr_de_10y_bp, hh_loans_yoy, hicp_core, hicp_energy, hicp_headline, hicp_services, ilm_eur_to_nonres, ilm_mp_lending, ilm_usd_claims, indprod_capital, indprod_core, indprod_durable, indprod_energy, indprod_intermediate, indprod_nondurable, indprod_total, it_de_10y_bp, m1_growth, m3_yoy, manuf_turnover, nfc_loans_yoy, pt_de_10y_bp, retail_turnover, spf_longterm, t2_de_minus_it, unemp_at, unemp_be, unemp_bg, unemp_cy, unemp_cz, unemp_de, unemp_dk, unemp_ea_youth, unemp_ee, unemp_es, unemp_fi, unemp_fr, unemp_gr, unemp_hr, unemp_hu, unemp_ie, unemp_it, unemp_lt, unemp_lu, unemp_lv, unemp_mt, unemp_nl, unemp_pl, unemp_pt, unemp_ro, unemp_se, unemp_si, unemp_sk, unemployment_ea, wages_negotiated, yc_1y, yc_1y1y
-
-=== 3) Eurostat ei_bssi_m_r2 — confidence indicators available (EA20) ===
-  BS-CCI-BAL     Construction confidence indicator
-  BS-ESI-I       Economic sentiment indicator
-  BS-ICI-BAL     Industrial confidence indicator
-  BS-RCI-BAL     Retail confidence indicator
-  BS-CSMCI-BAL   Consumer confidence indicator
-  BS-SCI-BAL     Services confidence indicator
-
-=== 4) Eurostat sts_inpr_m — IP YoY (PCH_SM) NACE breakdowns ===
-  NACE codes: B-D, MIG_ING_CAG, MIG_ING, MIG_NRG_X_E, MIG_NRG_X_D_E, MIG_CAG, MIG_COG, MIG_COG_X_FOOD, MIG_DCOG, MIG_NDCOG, B_C, B_C_X_MIG_NRG, B-D_X_FOOD, B_C_X_FD_MIG_NRG, B, B05, B051, B052, B06, B061, B062, B07, B071, B072, B08
-  sample (first cell): []
-
-=== 5) ECB IT-DE 10y spread underliers (govt bond yields) ===
-  IT 10y       IRS/M.IT.L.L40.CI.0000.EUR.N.Z     -> IRS.M.IT.L.L40.CI.0000.EUR.N.Z,M,IT,L,L40,CI,0000,EUR,N,Z,2026-05,3.83
-  DE 10y       IRS/M.DE.L.L40.CI.0000.EUR.N.Z     -> IRS.M.DE.L.L40.CI.0000.EUR.N.Z,M,DE,L,L40,CI,0000,EUR,N,Z,2026-05,3.04
-  IT 10y conv  FM/M.IT.EUR.RT.GBY.GBRT10Y.HSTA    -> http=404
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/1778_run_eurostat.py", line 5, in <module>
+    print("invoke:", lam.invoke(FunctionName="justhodl-eurostat-history",InvocationType="RequestResponse")["Payload"].read().decode()[:200])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceNotFoundException: An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-eurostat-history:$LATEST
