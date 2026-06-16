@@ -154,6 +154,34 @@ def lambda_handler(event=None, context=None):
                   ContentType="application/json", CacheControl="public, max-age=900")
     print("[finviz-universe] earnings surprise: %d names >= $1B" % len(_surp))
 
+    # ── index membership + change detection (S&P500/NDX/DJIA/Russell2000 ground truth) ──
+    IDX = {"S&P 500": "sp500", "NDX": "ndx", "DJIA": "djia", "RUT": "russell2000"}
+    members = {v: set() for v in IDX.values()}
+    for tk, r in uni.items():
+        im = r.get("index_membership")
+        if not im:
+            continue
+        for label, key in IDX.items():
+            if label in im:
+                members[key].add(tk)
+    try:
+        _prev = json.loads(s3.get_object(Bucket=BUCKET, Key="data/finviz-index-membership.json")["Body"].read()).get("members", {})
+    except Exception:
+        _prev = {}
+    changes = {}
+    for key, cur in members.items():
+        p = set(_prev.get(key, []))
+        changes[key] = {"n": len(cur),
+                        "additions": sorted(cur - p) if p else [],
+                        "deletions": sorted(p - cur) if p else []}
+    s3.put_object(Bucket=BUCKET, Key="data/finviz-index-membership.json",
+                  Body=json.dumps({"generated_at": now,
+                                   "members": {k: sorted(v) for k, v in members.items()},
+                                   "changes": changes}, separators=(",", ":"), default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=900")
+    print("[finviz-universe] index membership: " + ", ".join("%s=%d" % (k, len(v)) for k, v in members.items())
+          + " | changes: " + ", ".join("%s +%d/-%d" % (k, len(c["additions"]), len(c["deletions"])) for k, c in changes.items()))
+
     el = round(time.time() - started, 1)
     print("[finviz-universe] %d tickers | short_float=%d float=%d rel_volume=%d | %ss"
           % (n, n_short, n_float, n_relvol, el))

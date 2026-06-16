@@ -45,6 +45,14 @@ def lambda_handler(event=None, context=None):
             avail["constituents"] = ep
             break
     avail["constituents"] = avail.get("constituents", False)
+    if not members:  # FMP constituents unavailable -> Finviz ground-truth membership
+        try:
+            _fvm = json.loads(S3.get_object(Bucket="justhodl-dashboard-live", Key="data/finviz-index-membership.json")["Body"].read())
+            _sp = set(_fvm.get("members", {}).get("sp500", []))
+            if len(_sp) > 400:
+                members = _sp; avail["constituents"] = "finviz"
+        except Exception:
+            pass
 
     cands = None
     scr = fmp("company-screener", {"marketCapMoreThan": int(MCAP_FLOOR), "isEtf": "false",
