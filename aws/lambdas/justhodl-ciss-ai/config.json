@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-ciss-ai",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "AI interpretation over CISS stress data — regime read + global risk-asset & liquidity-cycle implications via GLM-5.1 (Claude fallback). Output data/ciss-ai.json.",
+  "inherit_env": {"from_function": "justhodl-bottleneck-research", "keys": ["ANTHROPIC_API_KEY", "ANTHROPIC_KEY", "ZAI_BASE_URL"]},
+  "schedule": {
+    "rule_name": "ciss-ai-daily",
+    "cron": "cron(40 7 * * ? *)",
+    "description": "CISS AI interpreter — daily 07:40 UTC (after ciss-stress 07:10)"
+  }
+}
