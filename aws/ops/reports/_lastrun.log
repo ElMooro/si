@@ -1,24 +1,12 @@
-  UNEMP STS I8           STS/M.I8.S.UNEH.RTT000.4.000               -> 404
-  UNEMP STS I9           STS/M.I9.S.UNEH.RTT000.4.000               -> 404
-  UNEMP LFSI I9          LFSI/M.I9.S.UNEHRT.TOTAL0.15_74.T          -> OK n=2 latest=2026-04 val=6.3
-  UNEMP LFSI I8          LFSI/M.I8.S.UNEHRT.TOTAL0.15_74.T          -> 404
-  INDPROD STS I8         STS/M.I8.Y.PROD.NS0020.4.000               -> OK n=2 latest=2024-08 val=98.3
-  INDPROD STS I9         STS/M.I9.Y.PROD.NS0020.4.000               -> OK n=2 latest=2025-09 val=98.1
-  INDPROD STS total      STS/M.I9.Y.PROD.NS0010.4.000               -> OK n=2 latest=2025-09 val=98.9
-  IND CONF BCS           BCS/M.I9.TOT.COF.BS.ZS                     -> 404
-  MANUF PROD STS         STS/M.I9.Y.PROD.NS0021.4.000               -> OK n=2 latest=2025-09 val=98.7
-  EURUSD ref             EXR/D.USD.EUR.SP00.A                       -> OK n=2 latest=2026-06-16 val=1.1594
-  USD ops ILM            ILM/W.U2.C.A050100.U2.EUR                  -> OK n=2 latest=2026-W24 val=12910
-  USD ops ILM2           ILM/W.U2.C.LT00.Z5.EUR                     -> 404
-  FM eonia               FM/D.U2.EUR.4F.MM.EONIA.HSTA               -> 404
-  ESTR                   EST/B.EU000A2X2A25.WT                      -> OK n=2 latest=2026-06-15 val=1.931
-  FX swap EURUSD         FM/D.U2.USD.DS.EURUSD.HSTA                 -> 400
+  unemployment       | title='"Unemployment rate' unit=' total"' latest=2026-04 val=6.3
+  indprod NS0010     | title='Industrial production; total including construction ' unit=' Total Industry - NACE Rev2; Eurostat; Working day and seasonally adjusted "' latest=2025-09 val=98.9
+  indprod NS0020     | title='Industrial production; total excluding construction ' unit=' Total Industry (excluding construction) - NACE Rev2; Eurostat; Working day and seasonally adjusted "' latest=2025-09 val=98.1
+  indprod NS0021     | title='"Industrial production; total excluding construction' unit='"Euro area 20 (fixed composition) as of 1 January 2023 - Industrial Production Index' latest=2025-09 val=98.7
+  USD ops A050100    | title='Main refinancing operation - Eurosystem' unit=' Eurosystem reporting sector - Main refinancing operation' latest=2026-W24 val=12910
+  EURUSD             | title='US dollar/Euro ECB reference exchange rate' unit=' US dollar/Euro' latest=2026-06-16 val=1.1594
+  ESTR               | title=' S.129"' unit='' latest=2026-06-15 val=1.931
 
---- dataflow existence check ---
-  STS: dataflow exists (http 200)
-  LFSI: 404
-  BCS: 404
-  ILM: dataflow exists (http 200)
-  EST: dataflow exists (http 200)
-  EXR: dataflow exists (http 200)
-  FM: dataflow exists (http 200)
+--- ILM USD-ops neighborhood probe ---
+  A050100: title='Main refinancing operation - Eurosystem' latest=2026-W24 val=12910
+  A050200: title='Longer-term refinancing operations - Eurosystem' latest=2026-W24 val=13249
+  A050000: title='Lending to euro area credit institutions related to MPOs denominated in euro - Eurosystem' latest=2026-W24 val=26248
