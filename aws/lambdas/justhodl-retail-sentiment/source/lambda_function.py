@@ -589,8 +589,11 @@ def lambda_handler(event, context):
             if _r.get("stealth") or (_v is not None and _v >= 1.5):
                 trends_set.add(str(_r["ticker"]).upper())
     options_set = _collect_tickers(_load_json("data/options-flow.json"))
+    _fvn = _load_json("data/finviz-news.json")
+    fvnews_set = set(str(t.get("ticker")).upper() for t in (_fvn.get("top_tickers") or []) if t.get("ticker"))
+    fvnews_set |= set(k.upper() for k in (_fvn.get("by_ticker") or {}).keys() if isinstance(k, str))
     stwt_trend_set = set((t.get("symbol") or "").upper() for t in trending if t.get("symbol"))
-    print(f"  corroboration: news={len(news_set)} trends={len(trends_set)} options={len(options_set)} stwt_trend={len(stwt_trend_set)}")
+    print(f"  corroboration: news={len(news_set)} trends={len(trends_set)} options={len(options_set)} fvnews={len(fvnews_set)} stwt_trend={len(stwt_trend_set)}")
     for e in enriched:
         tk = (e.get("ticker") or "").upper()
         srcs = ["Reddit"]
@@ -602,6 +605,8 @@ def lambda_handler(event, context):
             srcs.append("Search")
         if tk in options_set:
             srcs.append("Options")
+        if tk in fvnews_set:
+            srcs.append("FinvizNews")
         e["corroboration"] = srcs
         e["corroboration_count"] = len(srcs)
     multi_venue_confirmed = sorted(
