@@ -1,18 +1,26 @@
-  HICP core (xEF)        ICP/M.U2.N.XEF000.4.ANR                        -> 2.3 (2025-12) HICP - All-items excluding energy and food
-  HICP services          ICP/M.U2.N.SERV00.4.ANR                        -> 3.4 (2025-12) HICP - Services
-  HICP energy            ICP/M.U2.N.NRGY00.4.ANR                        -> -1.9 (2025-12) HICP - Energy
-  5y5y infl swap         FM/B.U2.EUR.RT.MM.EURIRS5X5Y.HSTA              ->  () ERR404
-  5y5y infl ILS          FM/M.U2.EUR.RT.IL.EUR5Y5Y_R.HSTA               ->  () ERR404
-  PPI industry           STS/M.I9.N.PRIN.NS0020.3.000                   ->  () ERR404
-  PPI industry Y         STS/M.I9.Y.PRIN.NS0020.3.000                   ->  () ERR404
-  M1 growth              BSI/M.U2.Y.V.M10.X.I.U2.2300.Z01.A             -> 3.799821800387182 (2026-04) "Monetary aggregate M1
-  M1 idx                 BSI/M.U2.Y.V.M10.X.1.U2.2300.Z01.A             ->  () ERR404
-  GDP YoY                MNA/Q.Y.I9.W2.S1.S1.B.B1GQ._Z._Z._Z.EUR.LR.GY  -> 0.31547152081956575 (2026-Q1) 
-  Consumer confidence    RTD/M.S0.S.Y_BCS_CSMCI.LEVEL                   ->  () ERR404
-  Capacity util          RTD/Q.S0.S.Y_BCS_CAPUT.LEVEL                   ->  () ERR404
-  Current account        BP6/M.N.I9.W1.S1.S1.T.B.CA._Z._Z._Z.EUR._T._X.N ->  () ERR404
-  REER (broad)           EXR/M.E5.EUR.ERC0.A                            ->  () ERR404
-  EUR/CNY                EXR/D.CNY.EUR.SP00.A                           -> 7.8334 (2026-06-16) Chinese yuan renminbi/Euro ECB reference exchange 
-  EUR/JPY                EXR/D.JPY.EUR.SP00.A                           -> 185.94 (2026-06-16) Japanese yen/Euro ECB reference exchange rate
-  Bank rate NFC (MIR)    MIR/M.U2.B.A2A.A.R.A.2240.EUR.N                -> 3.54 (2026-04) Bank interest rates - loans to corporations (new b
-  APP holdings           ILM/W.U2.C.A050200.U2.EUR                      -> 13249 (2026-W24) Longer-term refinancing operations - Eurosystem
+=== PPI (producer prices) candidates ===
+  STS/M.I9.N.PRIN.0000.3.000               -> no
+  STS/M.I8.N.PRIN.0000.3.000               -> no
+  STS/M.I9.N.PRIN.NS0020.3.000             -> no
+  STS/M.I9.N.PRON.NS0020.3.000             -> no
+  STS/M.I9.Y.PRIN.0000.4.000               -> no
+  STS/M.I9.N.PRIN.N000.3.000               -> no
+  STS/M.I9.N.PRIN.NSTO.3.000               -> no
+  STS/M.I9.N.PRIN.NS0010.3.000             -> no
+  STS/M.I9.N.PRIN.NS0030.3.000             -> no
+
+=== 5y5y inflation-linked swap candidates ===
+  FM/B.U2.EUR.RT.MM.EURIRS5X5Y.HSTA        -> no
+  FM/M.U2.EUR.RT.IL.EUR5Y5Y.HSTA           -> no
+  FM/B.U2.EUR.RT.IL.ILS_5Y5Y.HSTA          -> no
+  FM/B.U2.EUR.4F.IL.5Y5Y.HSTA              -> no
+  FM/B.U2.EUR.RT.MM.EURILS5Y5Y.HSTA        -> no
+  FM/M.U2.EUR.4F.ILS.5Y5Y.HSTA             -> no
+  FM/B.U2.EUR.RT.IL.EUR_5Y5Y.HSTA          -> no
+  FM/D.U2.EUR.RT.MM.EUR5Y5Y.HSTA           -> no
+
+=== inflation swap tenors (to derive 5y5y if needed) ===
+  FM/B.U2.EUR.RT.MM.EUR5YILS.HSTA          -> no
+  FM/B.U2.EUR.RT.MM.EUR10YILS.HSTA         -> no
+  ILS/M.U2.EUR.5Y                          -> no
+  FM/B.U2.EUR.RT.IL.5Y.HSTA                -> no
