@@ -1,27 +1,2 @@
-invoking finviz-universe (full 151-col pull)...
-invoke: 200 {"statusCode": 200, "body": "{\"n_tickers\": 11302, \"short_float\": 5756, \"float\": 5783, \"rel_volume\": 11269, \"elapsed_s\": 11.4}"}
-tickers=11302 | new-field coverage:
-  index_membership    11302/11302  (100%)
-  eps_surprise         4182/11302  (37%)
-  rev_surprise         3847/11302  (34%)
-  ev_ebitda            2820/11302  (24%)
-  ev_sales             4229/11302  (37%)
-  float_pct            5782/11302  (51%)
-  off_ath_pct         11269/11302  (99%)
-  income               5269/11302  (46%)
-  sales                5508/11302  (48%)
-  employees            5139/11302  (45%)
-  book_sh              5740/11302  (50%)
-  div_ttm              6311/11302  (55%)
-  eps_yoy_ttm          5086/11302  (45%)
-  aum                  5339/11302  (47%)
-  expense_ratio        5339/11302  (47%)
-  flows_1m             5339/11302  (47%)
-  n_holdings           5284/11302  (46%)
-  ret_1y               4038/11302  (35%)
-  asset_type           5339/11302  (47%)
-
-AAPL index: DJIA, NDX, S&P 500 | eps_surprise: 3.3 | ev_ebitda: 27.32
-SPY: aum=783071884104.0 expense=0.09 flows_1m=11138668710.8 holdings=505.0 type=Equities (Stocks)
-XLK: aum=120830486232.0 expense=0.08 flows_1m=12267086.15 holdings=75.0 type=Equities (Stocks)
-QQQ: aum=480534536125.0 expense=0.18 flows_1m=3261252180.5 holdings=105.0 type=Equities (Stocks)
+etf-flows.json keys: ['version', 'generated_at', 'n_etfs_analyzed', 'by_etf', 'by_category', 'heavy_inflow', 'heavy_outflow', 'unusual_vol', 'rotation_in', 'rotation_out', 'duration_s', 'data_sources']
+sample entry version : "1.0"
