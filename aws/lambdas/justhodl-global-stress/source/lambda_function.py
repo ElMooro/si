@@ -1232,12 +1232,34 @@ def lambda_handler(event, context):
                (" Stress %s." % momentum["direction"])
                if momentum and momentum["direction"] != "n/a" else ""))
 
+    # ── ECB CISS systemic-stress overlay — non-destructive (original index left
+    #    intact so the calibrator is unaffected; floored variant added alongside) ──
+    ciss_block = None
+    ciss_adj = global_stress
+    try:
+        _c = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/ciss-stress.json")["Body"].read())
+        _reg = _c.get("ea_regime"); _v = _c.get("ea_composite")
+        _pct = next((s.get("pctile") for s in _c.get("series", [])
+                     if s.get("category") == "ea_headline"), None)
+        _floor = {"CRISIS": 80, "STRESS": 60, "ELEVATED": 35, "NORMAL": 15, "CALM": 0}.get(_reg, 0)
+        if global_stress is not None:
+            ciss_adj = max(global_stress, _floor)
+        ciss_block = {
+            "regime": _reg, "composite": _v, "percentile": _pct, "floor": _floor,
+            "note": "ECB euro-area systemic-stress (CISS). Floor prevents calm tape from "
+                    "masking systemic stress; the base global_stress_index is left intact for calibration.",
+        }
+    except Exception:
+        pass
+
     out = {
         "schema_version": SCHEMA,
         "engine": "justhodl-global-stress",
         "generated_at": now.isoformat(),
         "build_seconds": round(time.time() - t0, 1),
         "global_stress_index": global_stress,
+        "global_stress_index_ciss_adj": ciss_adj,
+        "ciss_systemic": ciss_block,
         "global_stress_level": (stress_level(global_stress)
                                 if global_stress is not None else None),
         "weights": {

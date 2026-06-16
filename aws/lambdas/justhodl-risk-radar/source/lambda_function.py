@@ -473,12 +473,30 @@ def lambda_handler(event, context):
         headline = ("No S&P 500 name clears the deterioration floor - "
                     "broad fundamental health across the index.")
 
+    # ── macro systemic-stress context (ECB CISS) — risk backdrop for the short book ──
+    macro_stress = None
+    try:
+        _c = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/ciss-stress.json")["Body"].read())
+        _reg = _c.get("ea_regime"); _v = _c.get("ea_composite")
+        _pct = next((s.get("pctile") for s in _c.get("series", [])
+                     if s.get("category") == "ea_headline"), None)
+        macro_stress = {
+            "ciss_regime": _reg, "ciss_composite": _v, "ciss_percentile": _pct,
+            "read": ("Systemic stress %s — %s for short exposure."
+                     % (_reg, "supportive risk-off backdrop"
+                        if _reg in ("STRESS", "CRISIS", "ELEVATED")
+                        else "calm/easy-liquidity tape (shorts face a headwind)")),
+        }
+    except Exception:
+        pass
+
     payload = {
         "schema_version": "1.0",
         "engine": "justhodl-risk-radar",
         "generated_at": now.isoformat(),
         "build_seconds": round(time.time() - t0, 2),
         "headline": headline,
+        "macro_stress": macro_stress,
         "universe_screened": len(universe),
         "n_carried": len(carried),
         "n_short_candidates": len(shorts),

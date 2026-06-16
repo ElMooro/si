@@ -255,6 +255,13 @@ MODULES_CFG = [
         "polarity_map": POLARITY_NEWS, "dimension": "fundamentals",
         "page": "/news-velocity/",
     },
+    {
+        "label": "ECB CISS (Systemic Stress)", "emoji": "🌡", "key": "data/ciss-stress.json",
+        "regime_path": None, "signal_path": None,
+        "polarity_map": None, "dimension": "liquidity",
+        "page": "/ciss.html",
+        "derive": "ciss",
+    },
 ]
 
 
@@ -349,10 +356,34 @@ def derive_thirteenf(payload):
         return None, None, 0
 
 
+def derive_ciss(payload):
+    """ECB CISS composite (euro-area systemic stress, 0-1). Low/calm = easy
+    financial conditions = risk-on (+1); elevated/rising stress = tight
+    conditions = risk-off (-1). Uses the regime band + 1980-now percentile."""
+    try:
+        v = payload.get("ea_composite")
+        reg = payload.get("ea_regime")
+        pct = None
+        for s in payload.get("series", []):
+            if s.get("category") == "ea_headline":
+                pct = s.get("pctile"); break
+        if v is None:
+            return None, None, 0
+        ps = ("%.0f%%ile" % pct) if pct is not None else "—"
+        if reg in ("CRISIS", "STRESS") or (pct is not None and pct >= 75):
+            return "STRESS_HIGH", "CISS %.3f — euro-area systemic stress %s (%s) — tight conditions, risk-off" % (v, reg, ps), -1
+        if reg == "CALM" or (pct is not None and pct <= 25):
+            return "STRESS_LOW", "CISS %.3f — systemic stress %s (%s) — easy conditions, risk-on" % (v, reg, ps), +1
+        return "STRESS_MID", "CISS %.3f — systemic stress %s (%s)" % (v, reg, ps), 0
+    except Exception:
+        return None, None, 0
+
+
 DERIVERS = {
     "dix": derive_dix,
     "options_flow": derive_options_flow,
     "insider": derive_insider,
+    "ciss": derive_ciss,
     "thirteenf": derive_thirteenf,
 }
 
