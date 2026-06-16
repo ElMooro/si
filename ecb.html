@@ -94,6 +94,9 @@ a{color:var(--cyan);text-decoration:none}
   <div class="grid" id="cyclegrid"></div>
   <div class="read" id="cycle-read"></div>
 
+  <div class="sec" id="s-prod">🧭 SENTIMENT & PRODUCTION (YoY) <span class="more">confidence + output growth</span></div>
+  <div class="grid" id="prodgrid"></div>
+
   <div class="sec" id="s-labour">👷 LABOUR & 🏭 INDUSTRY <span class="more">click for chart</span></div>
   <div class="grid" id="labour"></div>
 
@@ -302,6 +305,20 @@ async function load(){
     `<div class="card hl" onclick="openModal('unemployment_ea')"><div class="lbl">Unemployment · LAGGING</div><div class="val" style="color:${unChg<=0?'var(--green)':'var(--red)'}">${unNow!=null?unNow+'%':'—'} ${arrow(-unChg)}</div><div class="sub">6m chg ${sgn(unChg)}pp · lagging 📈</div></div>`,
   ].join('');
   document.getElementById('cycle-read').textContent=`${phase==='—'?'':phase+' — '}${desc}${tilt} Lead → coincident → lag from ECB M1 money growth, industrial production, real GDP, retail turnover and the unemployment rate. Global cross-asset cycle read: /global-cycle.html.`;
+
+  // sentiment + production YoY: EA business/consumer confidence (OECD via feed) + IP/manufacturing YoY (computed from the index)
+  const CH=await gj('data/switzerland.json');
+  const ea=id=>CH&&CH.series?CH.series.find(s=>s.id===id):null;
+  const eaBC=ea('ea_business_confidence'), eaCC=ea('ea_consumer_confidence');
+  const ipTot=await gj('data/ecb-hist/indprod_total.json');
+  const yoy=dd=>{if(!dd||!dd.points||dd.points.length<13)return null;const v=dd.points;const l=v[v.length-1][1];const p=v[v.length-13][1];return p?Math.round((l/p-1)*1000)/10:null;};
+  const ipYoY=yoy(ipTot), mfgYoY=yoy(ipS);
+  const ptiles=[];
+  if(eaBC)ptiles.push(`<div class="card hl" onclick="window.location.href='/switzerland.html'"><div class="lbl">EA Business Confidence (OECD)</div><div class="val" style="color:${eaBC.latest>=0?'var(--green)':'var(--amber)'}">${eaBC.latest}</div><div class="sub">${eaBC.pctile}th %ile · ${esc(eaBC.latest_date||'')}</div></div>`);
+  if(eaCC)ptiles.push(`<div class="card"><div class="lbl">EA Consumer Confidence (OECD)</div><div class="val" style="color:${eaCC.latest>=0?'var(--green)':'var(--amber)'}">${eaCC.latest}</div><div class="sub">${eaCC.pctile}th %ile · ${esc(eaCC.latest_date||'')}</div></div>`);
+  if(ipYoY!=null)ptiles.push(`<div class="card hl" onclick="openModal('indprod_total')"><div class="lbl">Industrial Production · YoY</div><div class="val" style="color:${ipYoY>=0?'var(--green)':'var(--red)'}">${ipYoY>0?'+':''}${ipYoY}%</div><div class="sub">incl. construction 📈</div></div>`);
+  if(mfgYoY!=null)ptiles.push(`<div class="card hl" onclick="openModal('indprod_core')"><div class="lbl">Manufacturing Production · YoY</div><div class="val" style="color:${mfgYoY>=0?'var(--green)':'var(--red)'}">${mfgYoY>0?'+':''}${mfgYoY}%</div><div class="sub">excl. construction 📈</div></div>`);
+  document.getElementById('prodgrid').innerHTML=ptiles.join('')||'<div class="card"><div class="sub">Sentiment/production feed pending.</div></div>';
 
   // labour & industry tiles (from the manifest; click → chart modal)
   if(m&&m.series){

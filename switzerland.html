@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Switzerland Crisis Radar · JustHodl.AI</title>
+<meta name="description" content="Swiss safe-haven / crisis radar — SMI & SPI, the franc (EUR/CHF, USD/CHF) as a flight-to-safety gauge, business confidence, industrial & manufacturing production, and a composite crisis signal.">
+<meta name="theme-color" content="#0a0a0a">
+<style>
+:root{--bg:#0a0a0a;--c1:#131313;--bd:#262626;--fg:#e5e5e5;--fg2:#a3a3a3;--fg3:#666;
+--red:#ef4444;--green:#22c55e;--amber:#f59e0b;--amberw:#facc15;--blue:#3b82f6;--mono:ui-monospace,'SF Mono',Menlo,monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:13px;line-height:1.5;}
+.wrap{max-width:1400px;margin:0 auto;padding:18px;}
+.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+h1{font-size:20px;font-weight:700;}h1 .s{color:var(--fg3);font-weight:400;font-size:13px;}
+.nav a{color:var(--fg2);text-decoration:none;margin-left:14px;font-size:12px;}.nav a:hover{color:var(--red);}
+.sec{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin:22px 0 10px;border-bottom:1px solid var(--bd);padding-bottom:5px;}
+.panel{background:linear-gradient(180deg,#1a1212,#111);border:1px solid #ef444444;border-radius:14px;padding:16px 18px;margin-bottom:8px;}
+.rb{display:inline-block;font-family:var(--mono);font-weight:700;font-size:13px;padding:4px 13px;border-radius:7px;letter-spacing:1px;}
+.panel h2{font-size:15px;margin:10px 0 6px;font-weight:600;}
+.dl li{font-size:12.5px;color:var(--fg2);margin:4px 0;list-style:none;padding-left:15px;position:relative;}
+.dl li:before{content:"▸";position:absolute;left:0;color:var(--red);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;}
+.card{background:var(--c1);border:1px solid var(--bd);border-radius:11px;padding:11px 13px;cursor:pointer;transition:border-color .15s;}
+.card:hover{border-color:var(--blue);}
+.card .nm{font-weight:600;font-size:12.5px;}.card .src{color:var(--fg3);font-size:10px;font-family:var(--mono);}
+.card .val{font-family:var(--mono);font-size:18px;font-weight:700;text-align:right;}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.card .row{display:flex;gap:10px;font-family:var(--mono);font-size:10px;color:var(--fg2);margin-top:3px;flex-wrap:wrap;}
+.pill{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:4px;font-weight:700;}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+#modal .box{background:var(--c1);border:1px solid var(--blue);border-radius:14px;padding:18px;max-width:1050px;width:100%;max-height:90vh;overflow:auto;}
+#modal .x{float:right;color:var(--fg3);cursor:pointer;font-size:20px;}
+.note{color:var(--fg3);font-size:10px;font-family:var(--mono);margin-top:18px;border-top:1px solid var(--bd);padding-top:8px;}
+.loading{color:var(--fg3);font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="head">
+  <div><h1>🇨🇭 Switzerland Crisis Radar <span class="s">— safe-haven & early-warning tells</span></h1></div>
+  <div class="nav"><a href="/">← home</a><a href="/ciss.html">CISS stress</a><a href="/ecb.html">ECB hub</a></div>
+</div>
+<div id="signal" class="panel"><span class="loading">Loading Swiss crisis radar…</span></div>
+<div id="body"><span class="loading">Loading series…</span></div>
+<div class="note" id="note"></div>
+</div>
+<div id="modal"><div class="box"><span class="x" onclick="document.getElementById('modal').style.display='none'">✕</span><div id="modalBody"></div></div></div>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function fmt(v,kind){if(v==null)return '—';if(kind==='equity')return v.toLocaleString(undefined,{maximumFractionDigits:0});if(kind==='fx')return v.toFixed(4);if(kind==='yoy'||kind==='pct')return (v>0?'+':'')+v.toFixed(1)+'%';return v.toFixed(1);}
+function pcol(p){if(p==null)return 'var(--fg3)';return p>=75?'var(--green)':p>=50?'var(--amberw)':p>=25?'var(--amber)':'var(--red)';}
+function sparkline(pts,w,h,col){if(!pts||pts.length<2)return '';const vs=pts.map(p=>p[1]);const mn=Math.min(...vs),mx=Math.max(...vs),rg=(mx-mn)||1;const n=pts.length;const d=pts.map((p,i)=>`${(i/(n-1)*w).toFixed(1)},${(h-(p[1]-mn)/rg*h).toFixed(1)}`).join(' ');return `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="margin-top:7px"><polyline points="${d}" fill="none" stroke="${col}" stroke-width="1.3"/></svg>`;}
+function detailChart(s){const pts=s.points||[];const W=1000,H=360,PL=58,PR=16,PT=18,PB=34;const w=W-PL-PR,h=H-PT-PB;const vs=pts.map(p=>p[1]);const mn=Math.min(...vs),mx=Math.max(...vs),rg=(mx-mn)||1;const n=pts.length;const x=i=>PL+i/(n-1)*w,y=v=>PT+h-(v-mn)/rg*h;const line=pts.map((p,i)=>`${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ');let ticks='';const yrs={};pts.forEach((p,i)=>{const yr=p[0].slice(0,4);if(!(yr in yrs))yrs[yr]=i;});const yl=Object.keys(yrs);const step=Math.ceil(yl.length/10);yl.forEach((yr,k)=>{if(k%step===0){const px=x(yrs[yr]);ticks+=`<line x1="${px}" y1="${PT}" x2="${px}" y2="${PT+h}" stroke="#222"/><text x="${px}" y="${H-12}" fill="#666" font-size="10" text-anchor="middle">${yr}</text>`;}});const shade=[['2008-09','2009-06','GFC'],['2011-08','2011-12','EU debt'],['2015-01','2015-03','SNB floor'],['2020-02','2020-04','COVID']];let sh='';shade.forEach(([a,b,lab])=>{let ia=pts.findIndex(p=>p[0]>=a),ib=pts.findIndex(p=>p[0]>=b);if(ia>=0){if(ib<0)ib=n-1;sh+=`<rect x="${x(ia)}" y="${PT}" width="${Math.max(2,x(ib)-x(ia))}" height="${h}" fill="#ef444411"/><text x="${(x(ia)+x(ib))/2}" y="${PT+11}" fill="#ef444488" font-size="9" text-anchor="middle">${lab}</text>`;}});let gl='';for(let k=0;k<=4;k++){const v=mn+rg*k/4;const py=y(v);gl+=`<line x1="${PL}" y1="${py}" x2="${PL+w}" y2="${py}" stroke="#1a1a1a"/><text x="${PL-6}" y="${py+3}" fill="#666" font-size="10" text-anchor="end">${(Math.abs(v)>=100?v.toFixed(0):v.toFixed(2))}</text>`;}const col=pcol(s.pctile);return `<svg width="100%" viewBox="0 0 ${W} ${H}"><rect x="${PL}" y="${PT}" width="${w}" height="${h}" fill="#0d0d0d"/>${sh}${gl}${ticks}<polyline points="${line}" fill="none" stroke="${col}" stroke-width="1.5"/></svg>`;}
+let SERIES={};
+function card(s){const col=pcol(s.pctile);const showChg=s.kind!=='yoy'&&s.kind!=='pct';return `<div class="card" data-id="${s.id}"><div class="top"><div><div class="nm">${esc(s.label.split('—')[0].trim())}</div><div class="src">${esc((s.label.split('—')[1]||'').trim()||s.source)}</div></div><div class="val" style="color:${col}">${fmt(s.latest,s.kind)}</div></div><div class="row"><span class="pill" style="background:${col}22;color:${col}">${s.pctile!=null?s.pctile.toFixed(0)+'%ile':'—'}</span><span>z ${s.zscore>=0?'+':''}${s.zscore}</span>${showChg&&s.chg_3m!=null?`<span>3m ${s.chg_3m>0?'+':''}${s.chg_3m}%</span>`:''}<span>${(s.start_date||'').slice(0,4)}→</span></div>${sparkline(s.points,280,36,col)}</div>`;}
+function openModal(id){const s=SERIES[id];if(!s)return;document.getElementById('modalBody').innerHTML=`<h2 style="font-size:16px">${esc(s.label)}</h2><div style="font-family:var(--mono);font-size:11px;color:var(--fg2);margin:4px 0 10px">${esc(s.source)} · ${s.n_obs} obs · ${esc(s.start_date)} → ${esc(s.latest_date)} · latest <b style="color:${pcol(s.pctile)}">${fmt(s.latest,s.kind)}</b> · ${s.pctile}%ile · z ${s.zscore}</div>${detailChart(s)}`;document.getElementById('modal').style.display='flex';}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')document.getElementById('modal').style.display='none';});
+const GROUPS=[["📈 Swiss Equities — risk sentiment",["smi","spi"]],["🛡 The Franc — flight-to-safety gauge",["eurchf","usdchf"]],["🏭 Real Economy — confidence & production",["ch_business_confidence","ch_ip_yoy","ch_mfg_yoy","ch_unemployment"]],["🇪🇺 Euro-Area Confidence (cross-reference)",["ea_business_confidence","ea_consumer_confidence"]]];
+(async()=>{
+  const D=await gj('data/switzerland.json');
+  if(!D||!D.series){document.getElementById('signal').innerHTML='<span class="loading">Swiss data first run pending.</span>';return;}
+  D.series.forEach(s=>SERIES[s.id]=s);
+  const cs=D.crisis_signal||{};const reg=cs.regime||'—';
+  const rc={CALM:'var(--green)',WATCH:'var(--amber)',ELEVATED:'var(--amberw)','CRISIS-WATCH':'var(--red)'}[reg]||'var(--fg2)';
+  document.getElementById('signal').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span class="rb" style="background:${rc}22;color:${rc};border:1px solid ${rc}66">SWISS CRISIS SIGNAL: ${esc(reg)} · ${cs.score_0_100}/100</span><span style="font-family:var(--mono);font-size:10px;color:var(--fg3)">${esc((D.generated_at||'').slice(0,16))}</span></div><h2>Safe-haven &amp; early-warning read</h2><ul class="dl">${(cs.drivers||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul><div style="font-size:11px;color:var(--fg3);margin-top:6px">${esc(cs.note||'')}</div>`;
+  const byid={};D.series.forEach(s=>byid[s.id]=s);
+  let html='';
+  GROUPS.forEach(([title,ids])=>{const list=ids.map(i=>byid[i]).filter(Boolean);if(!list.length)return;html+=`<div class="sec">${esc(title)}</div><div class="grid">${list.map(card).join('')}</div>`;});
+  document.getElementById('body').innerHTML=html;
+  document.querySelectorAll('.card').forEach(el=>el.onclick=()=>openModal(el.dataset.id));
+  document.getElementById('note').textContent=`${D.provenance} · generated ${(D.generated_at||'').slice(0,16)} · click any tile for full history (crisis eras shaded: GFC, EU debt, 2015 SNB floor break, COVID). Note: Swiss unemployment via FRED lags; it is a lagging indicator regardless.`;
+})();
+</script>
+</body>
+</html>
