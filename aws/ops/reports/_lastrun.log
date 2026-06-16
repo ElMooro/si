@@ -1,140 +1,65 @@
+=== (A) EventBridge pause/delete actions in last 21 days (CloudTrail) ===
+  DisableRule: lookup err An error occurred (AccessDeniedException) when calling the L
+  DeleteRule: lookup err An error occurred (AccessDeniedException) when calling the L
+  RemoveTargets: lookup err An error occurred (AccessDeniedException) when calling the L
+  (no DisableRule/DeleteRule/RemoveTargets events found in window)
 
-====================== TIER 2 — scheduled but silent ======================
-
-● justhodl-ecb-detail  [state=Active mod=2026-06-04]
-    rule: ecb-detail-daily [ENABLED] cron(0 11 * * ? *)
-    rule 30d: invoked=23 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=59 err=14 | last log: 0.2 days ago
-
-● justhodl-ecb-derived  [state=Active mod=2026-06-10]
-    rule: justhodl-ecb-derived-daily [ENABLED] cron(40 14 * * ? *)
-    rule 30d: invoked=7 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=30 err=0 | last log: 0.1 days ago
-    LAST ERROR: [ecb-derived] ILM/W.U2.C.L080000.U4.EUR err: HTTP Error 404: Not Found
-
-● justhodl-ecb-history  [state=Active mod=2026-06-10]
-    rule: justhodl-ecb-history-weekly [ENABLED] cron(0 6 ? * SAT *)
-    rule 30d: invoked=1 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=7 err=0 | last log: 3.4 days ago
-    LAST ERROR: [ecb-hist] CISS/D.U2.Z0Z.4F.EC.SS_EQ.CON err: HTTP Error 404: Not Found
-
-● justhodl-euro-fragmentation  [state=Active mod=2026-06-04]
-    rule: euro-fragmentation-daily [ENABLED] cron(20 12 * * ? *)
-    rule 30d: invoked=34 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=67 err=16 | last log: 0.2 days ago
-
-● ecb-auto-updater  [state=Active mod=2026-05-22]
-    rule: ecb-weekly-update [ENABLED] cron(0 6 ? * MON *)
-    rule 30d: invoked=5 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=5 err=0 | last log: 1.4 days ago
-    LAST ERROR: Error updating SovCISS: <urlopen error [Errno -2] Name or service not known>
-
-● cftc-futures-positioning-agent  [state=Active mod=2026-05-31]
-    rule: cftc-cot-weekly-update [ENABLED] cron(0 18 ? * FRI *)
-    rule 30d: invoked=4 FAILED=0
-    invoke perms: *,events.amazonaws.com
-    fn 30d: inv=359 err=0 | last log: 0.2 days ago
-    LAST ERROR: [ERROR] Fetch https://api.polygon.io/v2/aggs/ticker/I:SPX/prev?adjusted=true&apiKey=zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d: HT
-
-● justhodl-cot-extremes-scanner  [state=Active mod=2026-05-30]
-    rule: justhodl-cot-extremes-scanner-weekly [ENABLED] cron(0 19 ? * FRI *)
-    rule 30d: invoked=4 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=4 err=0 | last log: 3.9 days ago
-
-● justhodl-backlog  [state=Active mod=2026-06-05]
-    rule: justhodl-backlog-daily [ENABLED] cron(30 11 * * ? *)
-    rule 30d: invoked=11 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=17 err=0 | last log: 0.2 days ago
-
-● justhodl-forward-orders  [state=Active mod=2026-05-31]
-    rule: forward-orders-daily [ENABLED] cron(0 11 * * ? *)
-    rule 30d: invoked=32 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=34 err=0 | last log: 0.2 days ago
-
-● justhodl-bond-trace  [state=Active mod=2026-06-04]
-    rule: bond-trace-daily [ENABLED] cron(0 21 ? * MON-FRI *)
-    rule 30d: invoked=27 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=47 err=0 | last log: 0.8 days ago
-
-● justhodl-ignition  [state=Active mod=2026-06-10]
-    rule: justhodl-ignition-daily [ENABLED] cron(30 10 * * ? *)
-    rule 30d: invoked=7 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=10 err=0 | last log: 0.3 days ago
-    LAST ERROR: [ftd] 202606a: HTTP Error 404: Not Found
-
-● justhodl-political-stocks  [state=Active mod=2026-05-31]
-    rule: political-stocks-daily [ENABLED] cron(0 14 * * ? *)
-    rule 30d: invoked=32 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=38 err=0 | last log: 0.1 days ago
-
-● justhodl-fleet-monitor  [state=Active mod=2026-05-30]
-    rule: justhodl-fleet-monitor-6h [ENABLED] rate(6 hours)
-    rule 30d: invoked=27 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=235 err=0 | last log: 0.1 days ago
-
-====================== TIER 3 — fully dormant ======================
-
-● justhodl-crypto-intel  [state=Active mod=2026-06-14]
-    rule: NONE (not scheduled)
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=1053 err=0 | last log: 1.8 days ago
-
-● justhodl-crypto-enricher  [state=Active mod=2026-05-31]
-    rule: NONE (not scheduled)
-    invoke perms: *,events.amazonaws.com
-    fn 30d: inv=31 err=0 | last log: 0.4 days ago
-    LAST ERROR: FETCH_ERR[https://api.bybit.com/v5/market/funding/history?category=lin]: HTTP Error 403: Forbidden
-
-● justhodl-crypto-funding  [state=Active mod=2026-05-31]
-    rule: NONE (not scheduled)
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=526 err=0 | last log: 8.1 days ago
-
-● justhodl-onchain-ratios  [state=Active mod=2026-05-31]
-    rule: justhodl-onchain-ratios-6h [DISABLED] rate(6 hours)
-    rule 30d: invoked=88 FAILED=0
-    invoke perms: *,events.amazonaws.com
-    fn 30d: inv=88 err=0 | last log: 8.2 days ago
-
-● bea-economic-agent  [state=Active mod=2026-05-31]
-    rule: NONE (not scheduled)
-    invoke perms: *
-    fn 30d: inv=131 err=0 | last log: 0.2 days ago
-
-● justhodl-gdelt-sentiment  [state=Active mod=2026-05-31]
-    rule: NONE (not scheduled)
-    invoke perms: *,events.amazonaws.com
-    fn 30d: inv=1052 err=0 | last log: 8.1 days ago
-
-● justhodl-aaii-sentiment  [state=Active mod=2026-05-31]
-    rule: NONE (not scheduled)
-    invoke perms: *,events.amazonaws.com
-    fn 30d: inv=32 err=0 | last log: 0.8 days ago
-
-● justhodl-buzz-velocity  [state=Active mod=2026-05-31]
-    rule: buzz-velocity-4x-daily [DISABLED] cron(0 10,14,18,22 * * ? *)
-    rule 30d: invoked=62 FAILED=0
-    invoke perms: events.amazonaws.com
-    fn 30d: inv=65 err=0 | last log: 8.3 days ago
-
-● benzinga-news-agent  [state=Active mod=2026-05-22]
-    rule: NONE (not scheduled)
-    invoke perms: *
-    fn 30d: inv=0 err=0 | last log: 49.0 days ago
-
-● eia-energy-agent  [state=Active mod=2026-05-22]
-    rule: NONE (not scheduled)
-    invoke perms: *
-    fn 30d: inv=0 err=0 | last log: 49.8 days ago
+=== (B) ALL currently DISABLED schedule rules + their lambda targets (the pause inventory) ===
+  57 disabled scheduled rules:
+   aiapi-hourly-collection                        rate(1 hour)             -> (no lambda target)
+   alpha-compass-3h                               cron(50 */3 * * ? *)     -> justhodl-alpha-compass,justhodl-alpha-compass
+   alphavantage-market-update                     cron(*/15 13-21 ? * MON-FRI *) -> alphavantage-market-agent
+   buzz-velocity-4x-daily                         cron(0 10,14,18,22 * * ? *) -> justhodl-buzz-velocity,justhodl-buzz-velocity
+   canary-grid-daily                              cron(30 */6 * * ? *)     -> justhodl-canary-grid
+   capitulation-3h                                cron(45 */3 * * ? *)     -> justhodl-capitulation
+   carry-surface-4h                               rate(4 hours)            -> justhodl-carry-surface
+   cds-proxy-tri-daily                            cron(0 13,17,21 ? * MON-FRI *) -> justhodl-cds-proxy
+   crisis-composite-hourly                        cron(15 * * * ? *)       -> justhodl-crisis-composite
+   cross-asset-confirm-3h                         rate(3 hours)            -> justhodl-cross-asset-confirm
+   crypto-opportunities-4h                        cron(0 0,4,8,12,16,20 ? * * *) -> justhodl-crypto-opportunities
+   divergence-v2-2hourly                          rate(2 hours)            -> justhodl-divergence-engine-v2
+   event-flow-monitor-hourly                      cron(0 * * * ? *)        -> justhodl-event-flow-monitor,justhodl-event-flow-monitor
+   future-intel-2x-daily                          cron(30 12,20 * * ? *)   -> justhodl-future-intelligence,justhodl-future-intelligence
+   jhk-tick-15min                                 cron(0/15 * * * ? *)     -> justhodl-scheduler
+   jhk-tick-30min                                 cron(0/30 * * * ? *)     -> justhodl-scheduler
+   jhk-tick-4hourly                               cron(0 0/4 * * ? *)      -> justhodl-scheduler
+   jhk-tick-5min                                  cron(0/5 * * * ? *)      -> justhodl-scheduler
+   jhk-tick-every_3h                              cron(0 0/3 * * ? *)      -> justhodl-scheduler
+   jhk-tick-every_6h                              cron(0 0/6 * * ? *)      -> justhodl-scheduler
+   jhk-tick-hourly                                cron(0 * * * ? *)        -> justhodl-scheduler
+   jhk-tick-hourly-orchestrate                    cron(5 * * * ? *)        -> (no lambda target)
+   justhodl-13f-positions-6h                      rate(6 hours)            -> justhodl-13f-positions
+   justhodl-anomaly-detector-hourly               cron(33 * * * ? *)       -> justhodl-anomaly-detector
+   justhodl-crisis-plumbing-refresh               rate(6 hours)            -> justhodl-crisis-plumbing
+   justhodl-crypto-cycle-risk-6h                  rate(6 hours)            -> justhodl-crypto-cycle-risk
+   justhodl-dealer-gex-hourly                     cron(7 13-21 ? * MON-FRI *) -> justhodl-dealer-gex,justhodl-dealer-gex
+   justhodl-early-movers-twice-per-hour           cron(15,45 * * * ? *)    -> justhodl-early-movers
+   justhodl-earnings-tracker-6h                   rate(6 hours)            -> justhodl-earnings-tracker
+   justhodl-edge-6h                               rate(6 hours)            -> justhodl-edge-engine
+   justhodl-engine-conflicts-6h                   rate(6 hours)            -> justhodl-engine-conflicts
+   justhodl-etf-flows-6h                          rate(6 hours)            -> justhodl-etf-flows
+   justhodl-exchange-flows-6h                     rate(6 hours)            -> justhodl-exchange-flows
+   justhodl-forensic-screen-12h                   rate(12 hours)           -> justhodl-forensic-screen
+   justhodl-macro-nowcast-6h                      rate(6 hours)            -> justhodl-macro-nowcast
+   justhodl-macro-surprise-6h                     rate(6 hours)            -> justhodl-macro-surprise
+   justhodl-narrative-vs-tape-4h                  rate(4 hours)            -> justhodl-narrative-vs-tape
+   justhodl-onchain-ratios-6h                     rate(6 hours)            -> justhodl-onchain-ratios
+   justhodl-options-flow-30m                      rate(30 minutes)         -> justhodl-options-flow
+   justhodl-portfolio-catalysts-3x-daily          cron(0 11,17,23 * * ? *) -> justhodl-portfolio-catalysts
+   justhodl-position-sizer-6h                     rate(6 hours)            -> justhodl-position-sizer
+   justhodl-system-signal-logger-6h               rate(6 hours)            -> justhodl-system-signal-logger
+   justhodl-telegram-alerts                       rate(2 hours)            -> justhodl-telegram-bot
+   justhodl-theme-cascade-twice-per-hour          cron(20,50 * * * ? *)    -> justhodl-theme-cascade
+   justhodl-ticket-ai-rationale-hourly            cron(5 * * * ? *)        -> justhodl-ticket-ai-rationale
+   justhodl-wave-signal-logger-6h                 cron(30 0,6,12,18 ? * * *) -> justhodl-wave-signal-logger
+   justhodl-yield-curve-6h                        rate(6 hours)            -> justhodl-yield-curve
+   lce-every-6h                                   rate(6 hours)            -> justhodl-liquidity-credit-engine
+   liquidity-pulse-6h                             rate(6 hours)            -> justhodl-liquidity-pulse
+   multi-agent-economic-hourly                    rate(1 hour)             -> (no lambda target)
+   multi-agent-market-15min                       cron(*/15 13-21 ? * MON-FRI *) -> (no lambda target)
+   multi-agent-orchestrator-schedule              cron(*/5 9-16 ? * MON-FRI *) -> (no lambda target)
+   near-miss-monitor-hourly                       cron(30 * * * ? *)       -> justhodl-near-miss-monitor,justhodl-near-miss-monitor
+   pairs-scanner-6hourly                          rate(6 hours)            -> justhodl-pairs-scanner
+   rotation-chain-2x-daily                        cron(0 12,20 * * ? *)    -> justhodl-rotation-chain,justhodl-rotation-chain
+   sec-filings-intel-3x-daily                     cron(0 9,15,21 * * ? *)  -> justhodl-sec-filings-intel,justhodl-sec-filings-intel
+   sector-heatmap-30m                             cron(*/30 13-21 ? * MON-FRI *) -> justhodl-sector-heatmap
