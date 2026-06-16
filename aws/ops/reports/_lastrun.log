@@ -1,21 +1,3 @@
-invoking finviz-universe (calendar)...
-  earnings calendar: 14 days, 48 reporters next 30d
-    2026-06-16: 6 — WLY, LZB, UXIN, WDH, VNCE, YQ
-    2026-06-17: 6 — PGR, JBL, KMX, SB, SWBI, DAIO
-    2026-06-18: 2 — ACN, KR
-    2026-06-22: 1 — POWW
-
-invoking sector-rotation...
-  finviz_rotation present: True | industries_top=15 cap_buckets=6
-    top industries: Computer Hardware=31.25%, Semiconductor Equipment & Materials=25.75%, Department Stores=21.26%, Staffing & Employment Services=19.97%
-
-invoking retail-sentiment...
-  names with FinvizNews corroboration (top30): 4 ['SPCX', 'NVDA', 'AMD', 'AMZN']
-
-invoking stock-valuations (async)...
-  refreshed after ~20s
-  sp_table sector_valuation tagged: 263/500
-    HPQ    sector=Technology secVal=fair secPE=28.17
-    UAL    sector=Industrials secVal=rich secPE=31.68
-    FISV   sector=Technology secVal=fair secPE=28.17
-    EG     sector=Financials secVal=None secPE=None
+sp_table sector_valuation: 500/500
+hp sector_valuation: 80/80
+tilt distribution: {'fair': 231, 'rich': 125, 'cheap': 144}
