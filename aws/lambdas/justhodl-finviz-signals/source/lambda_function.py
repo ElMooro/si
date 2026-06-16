@@ -53,10 +53,25 @@ def lambda_handler(event, context):
             signals[name] = []
             counts[name] = 0
         time.sleep(4)  # space calls to avoid Finviz 429
+    # ── confluence: multi-confirmed reversals ──
+    def _tks(name): return {x.get("ticker") for x in signals.get(name, []) if x.get("ticker")}
+    bottoms = _tks("double_bottom") | _tks("inverse_hs") | _tks("multiple_bottom")
+    tops = _tks("double_top") | _tks("head_shoulders") | _tks("multiple_top")
+    confluence = {
+        # double bottom (or inv H&S) + high short float + insider buying = high-conviction bottom
+        "bottom_squeeze_insider": sorted(bottoms & _tks("short_high") & _tks("insider_buys")),
+        "bottom_insider": sorted(bottoms & _tks("insider_buys")),
+        "bottom_oversold": sorted(bottoms & _tks("oversold")),
+        "top_insider_sell": sorted(tops & _tks("insider_sales")),
+        "top_overbought": sorted(tops & _tks("overbought")),
+    }
+    print("  confluence bottom_squeeze_insider:", confluence["bottom_squeeze_insider"])
+
     doc = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "source": "finviz-elite",
         "counts": counts,
+        "confluence": confluence,
         "signals": signals,
     }
     s3.put_object(Bucket=BUCKET, Key="data/finviz-signals.json",

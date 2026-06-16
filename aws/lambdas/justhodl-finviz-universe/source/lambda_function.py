@@ -42,6 +42,31 @@ def lambda_handler(event=None, context=None):
                         separators=(",", ":"), default=str).encode(),
         ContentType="application/json", CacheControl="public, max-age=900")
 
+    # ── sector heatmap aggregation (whole-market perf by sector) ──
+    from collections import defaultdict
+    secs = defaultdict(list)
+    for r in uni.values():
+        if r.get("sector") and r.get("perf_m") is not None:
+            secs[r["sector"]].append(r)
+    def _avg(a): return round(sum(a) / len(a), 2) if a else None
+    heat = []
+    for sec, rows in secs.items():
+        rs = sorted(rows, key=lambda x: x.get("perf_m") or 0)
+        heat.append({
+            "sector": sec, "n": len(rows),
+            "avg_perf_w": _avg([x["perf_w"] for x in rows if x.get("perf_w") is not None]),
+            "avg_perf_m": _avg([x["perf_m"] for x in rows if x.get("perf_m") is not None]),
+            "avg_perf_ytd": _avg([x["perf_ytd"] for x in rows if x.get("perf_ytd") is not None]),
+            "total_mktcap_b": round(sum((x.get("market_cap") or 0) for x in rows) / 1000, 1),
+            "top": [{"ticker": x["ticker"], "perf_m": x.get("perf_m"), "mktcap_m": x.get("market_cap")} for x in rs[-6:][::-1]],
+            "bottom": [{"ticker": x["ticker"], "perf_m": x.get("perf_m")} for x in rs[:6]],
+        })
+    heat.sort(key=lambda x: x["avg_perf_m"] if x["avg_perf_m"] is not None else -999, reverse=True)
+    s3.put_object(Bucket=BUCKET, Key="data/finviz-heatmap.json",
+                  Body=json.dumps({"generated_at": now, "n_sectors": len(heat), "sectors": heat},
+                                  separators=(",", ":"), default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=900")
+
     el = round(time.time() - started, 1)
     print("[finviz-universe] %d tickers | short_float=%d float=%d rel_volume=%d | %ss"
           % (n, n_short, n_float, n_relvol, el))
