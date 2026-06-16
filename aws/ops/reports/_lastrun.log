@@ -1,3 +1,7 @@
-  ev_ebitda  500/500  sample=[7.4, 7.19, 7.23]
-  ev_s       500/500  sample=[0.51, 1.0, 2.71]
-  ev_sales   0/500  sample=[None, None, None]
+ev_tier coverage: 263/500
+tier dist: {'cheap': 66, 'fair': 103, 'rich': 94}
+  AAPL: ev_ebitda=26.97 sector_med=22.1 tier=rich
+  XOM: ev_ebitda=10.73 sector_med=8.4 tier=rich
+  KO: ev_ebitda=20.21 sector_med=None tier=None
+  NVDA: ev_ebitda=25.78 sector_med=22.1 tier=fair
+DIAG EV: ['finviz EV/EBITDA lens: 263 names tagged (vs sector median)']
