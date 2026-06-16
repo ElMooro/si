@@ -1,11 +1,3 @@
-manifest keys: ['rules', 'exclude_prefixes', 'key_overrides', 'updated_at', 'updated_by']
-key_overrides count: 35
-sample overrides: {
-"data/sector-rotation.json": 7,
-"data/eurodollar-stress.json": 3,
-"data/ai-brief.json": 6,
-"data/auction-crisis.json": 30,
-"data/vol-surface.json": 30,
-"data/carry-surface.json": 30
-}
-has finviz overrides?: []
+finviz SLAs written: {'data/finviz-universe.json': 14, 'data/finviz-short.json': 14, 'data/finviz-heatmap.json': 14, 'data/finviz-signals.json': 10}
+total key_overrides now: 39
+finviz overrides present: {'data/finviz-universe.json': 14, 'data/finviz-short.json': 14, 'data/finviz-heatmap.json': 14, 'data/finviz-signals.json': 10}
