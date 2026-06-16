@@ -82,6 +82,8 @@ button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px
  </div>
  <div id="x-out" style="margin-top:9px;color:var(--fg2)">pick a name…</div>
 </div>
+<div class="sec">EDGAR Authority — filing-grade cross-check &amp; deep value <span id="edgarStatus" style="letter-spacing:0;text-transform:none;color:var(--amber)"></span></div>
+<div id="edgar"><span class="loading">loading SEC filing data…</span></div>
 <div class="note" id="note"></div>
 </div>
 <script>
@@ -156,6 +158,29 @@ function dl(rows,cols,name){const csv=[cols.join(',')].concat(rows.map(r=>cols.m
   document.getElementById('dlB').onclick=()=>dl(D.hp||[],['t','sector','score','metrics.ps','metrics.p_fcf','metrics.rev_yoy_pct','metrics.gross_margin_pct','metrics.dilution_yoy_pct','metrics.runway_q','metrics.cash','metrics.debt'],'justhodl-hp-scores.csv');
   document.getElementById('note').textContent=`${D.methodology} v${D.version} · ${D.generated_at}`;
 })();
+async function renderEdgar(){
+  const E=await gj('data/edgar-authority.json');const el=document.getElementById('edgar');
+  if(!E){el.innerHTML='<span class="loading">EDGAR layer first run pending</span>';return;}
+  const cc=E.crosscheck||{},nn=E.net_nets||[];
+  document.getElementById('edgarStatus').textContent=`· FMP vs SEC filings: ${cc.n_clean}/${cc.n_checked} match`;
+  let h=`<div class="card" style="margin-bottom:10px">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--fg2)">AUTHORITATIVE CROSS-CHECK <span style="color:var(--fg3)">— FMP (the system's financials source) vs the actual SEC 10-K, period-end matched on net income + total assets, US filers</span></div>
+    <div style="display:flex;gap:20px;margin-top:8px;flex-wrap:wrap">
+      <div><b style="font-family:var(--mono);font-size:20px;color:var(--green)">${cc.n_clean}/${cc.n_checked}</b><div style="font-size:10px;color:var(--fg3)">match the filing (FMP validated)</div></div>
+      <div><b style="font-family:var(--mono);font-size:20px;color:${cc.n_flagged?'var(--red)':'var(--fg3)'}">${cc.n_flagged||0}</b><div style="font-size:10px;color:var(--fg3)">flagged 5–75% — verify the 10-K</div></div>
+      <div><b style="font-family:var(--mono);font-size:20px;color:var(--fg3)">${cc.n_unverified||0}</b><div style="font-size:10px;color:var(--fg3)">unverified (period/concept)</div></div>
+    </div>
+    ${(cc.flagged||[]).length?`<div style="font-family:var(--mono);font-size:10.5px;color:var(--red);margin-top:7px">⚠ ${cc.flagged.map(c=>esc(c.ticker)+' '+(c.flags||[]).join(', ')).join(' · ')}</div>`:'<div style="font-family:var(--mono);font-size:10.5px;color:var(--green);margin-top:7px">✓ No confirmed FMP divergences — the financials source matches the filings.</div>'}
+  </div>
+  <div style="font-family:var(--mono);font-size:11px;color:var(--fg2);margin:10px 0 6px">NCAV NET-NET DEEP VALUE <span style="color:var(--fg3)">— market cap below net current asset value (current assets − total liabilities). ${E.n_net_nets} credible of ${E.n_net_nets_raw} raw · ${esc(E.net_net_filter||'')}</span></div>`;
+  if(!nn.length)h+='<span class="loading">no credible net-nets right now</span>';
+  else h+=`<div style="overflow-x:auto"><table><thead><tr><th>Ticker</th><th>Name</th><th>Sector</th><th>Mkt cap</th><th>NCAV</th><th>Discount</th><th>Type</th></tr></thead><tbody>${
+    nn.map(x=>`<tr><td class="l"><b>${esc(x.ticker)}</b></td><td class="l" style="font-size:10px">${esc(x.name)}</td><td class="l" style="font-size:9px">${esc(x.sector)}</td><td>$${x.market_cap_m}M</td><td>$${x.ncav_m}M</td><td class="hi">−${x.discount_pct}%</td><td>${x.classic_net_net?'<span class="pill pCHEAP">CLASSIC &lt;⅔</span>':'<span class="pill pFAIR">moderate</span>'}</td></tr>`).join('')
+  }</tbody></table></div>`;
+  h+=`<div style="font-family:var(--mono);font-size:9.5px;color:var(--fg3);margin-top:6px">${esc(E.note||'')} · ${esc(E.provenance||'')} · gen ${esc((E.generated_at||'').slice(0,16))}</div>`;
+  el.innerHTML=h;
+}
+renderEdgar();
 async function aiPanel(key,mount){
   const el=document.getElementById(mount);
   try{let r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now()).catch(()=>null);
