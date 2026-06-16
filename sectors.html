@@ -225,6 +225,12 @@ footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-ali
       </table>
     </div>
   </div>
+
+  <div class="section">
+    <h2>🏭 Industry &amp; cap rotation (Finviz)</h2>
+    <p class="sub">144 industries — far finer than 11 sectors — plus market-cap leadership, from Finviz group aggregates. 1-month performance.</p>
+    <div id="finviz-rot"><div class="empty">Loading…</div></div>
+  </div>
 </main>
 
 <footer>
@@ -341,8 +347,28 @@ function renderRow(s){
   </tr>`;
 }
 
+async function loadFinvizRot(){
+  let fr=null;
+  try{const r=await fetch(`${BUCKET}/data/sector-rotation.json?t=${Date.now()}`);const j=await r.json();fr=j.finviz_rotation;}catch(e){}
+  const el=document.getElementById("finviz-rot");if(!el)return;
+  if(!fr){el.innerHTML='<div class="empty">Finviz rotation unavailable.</div>';return;}
+  const pp=v=>v==null?'—':(v>0?'+':'')+v+'%',cl=v=>v>0?'up':v<0?'down':'flat';
+  const all=[...(fr.industries_top||[]),...(fr.industries_bottom||[])];
+  const mx=Math.max(...all.map(x=>Math.abs(x.perf_m||0)),1);
+  const rowH=x=>`<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t1)">${x.name}</span><span class="${cl(x.perf_m)}" style="width:62px;text-align:right">${pp(x.perf_m)}</span><div style="width:104px;height:7px;background:rgba(255,255,255,.06);border-radius:3px"><div style="height:100%;width:${Math.min(Math.abs(x.perf_m||0)/mx*100,100)}%;background:${(x.perf_m||0)>=0?'#26d07c':'#ff5577'};border-radius:3px;margin-left:${(x.perf_m||0)<0?'auto':'0'}"></div></div></div>`;
+  const caps=(fr.mktcap_buckets||[]).slice().sort((a,b)=>(b.perf_m??-999)-(a.perf_m??-999));
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-bottom:18px">
+      <div><div class="tbl-head"><h3 style="color:#26d07c">▲ Leading industries</h3></div>${(fr.industries_top||[]).slice(0,15).map(rowH).join("")}</div>
+      <div><div class="tbl-head"><h3 style="color:#ff5577">▼ Lagging industries</h3></div>${(fr.industries_bottom||[]).slice(0,15).map(rowH).join("")}</div>
+    </div>
+    <div class="tbl-head"><h3>Market-cap leadership (1M)</h3></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">${caps.map(c=>`<div style="flex:1;min-width:115px;text-align:center;padding:10px;border:1px solid #1c2433;border-radius:8px"><div style="color:var(--t3);font-size:11px">${c.name}</div><div class="${cl(c.perf_m)}" style="font-family:ui-monospace,monospace;font-size:16px;font-weight:700">${pp(c.perf_m)}</div></div>`).join("")}</div>
+    ${fr.asof?`<div style="color:var(--t3);font-size:10px;margin-top:10px">Finviz groups as of ${new Date(fr.asof).toLocaleString()}</div>`:''}`;
+}
 load();
-setInterval(load, 5 * 60 * 1000);
+loadFinvizRot();
+setInterval(()=>{load();loadFinvizRot();}, 5 * 60 * 1000);
 </script>
 
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
