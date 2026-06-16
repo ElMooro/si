@@ -1,35 +1,71 @@
-=== A) SNB API (data.snb.ch) — confirm + find cubes ===
-  cube snbpolrat      -> http=404 | HTTP Error 404: Not Found
-  cube rendoblid      -> http=200 | ﻿"CubeId";"rendoblid"
-  cube devkua         -> http=200 | ﻿"CubeId";"devkua"
-  cube devkum         -> http=200 | ﻿"CubeId";"devkum"
-  cube capchstocki    -> http=200 | ﻿"CubeId";"capchstocki"
-  cube capchstockm    -> http=404 | HTTP Error 404: Not Found
-  cube snbbipo        -> http=200 | ﻿"CubeId";"snbbipo"
-  cube zimoma         -> http=200 | ﻿"CubeId";"zimoma"
-  cube plkoba         -> http=404 | HTTP Error 404: Not Found
+=== SNB capchstocki (share price indices) — structure ===
+  ﻿"CubeId";"capchstocki"
+  "PublishingDate";"2026-05-21 09:00"
+  
+  "Date";"D0";"Value"
+  "1989-01-02";"GDR";
+  "1989-01-02";"BA";
+  "1989-01-02";"FD";
+  "1989-01-02";"VS";
+  "1989-01-02";"NGT";
+  "1989-01-02";"GW";
+  "1989-01-02";"B";
+  "1989-01-02";"F";
+  "1989-01-02";"V";
+  "1989-01-02";"NG";
+  "1989-01-02";"G";
+  "1989-01-02";"N";
+  "1989-01-02";"IPS";
+  "1989-01-02";"SMISMIDR";
+  "1989-01-03";"GDR";"954.7"
+  "1989-01-03";"BA";
+  "1989-01-03";"FD";
+  "1989-01-03";"VS";
+  "1989-01-03";"NGT";
+  "1989-01-03";"GW";
+  "1989-01-03";"B";
+  "1989-01-03";"F";
+  "1989-01-03";"V";
+  "1989-01-03";"NG";
+  "1989-01-03";"G";
+  "1989-01-03";"N";"1195.8"
+  "1989-01-03";"IPS";"844.1"
+  "1989-01-03";"SMISMIDR";"1466.2"
+  "1989-01-04";"GDR";"954.5"
+  "1989-01-04";"BA";
+  "1989-01-04";"FD";
+  "1989-01-04";"VS";
+  "1989-01-04";"NGT";
+  "1989-01-04";"GW";
+  "1989-01-04";"B";
+  "1989-01-04";"F";
 
-=== B) Yahoo — SMI / SPI indices ===
-  %5ESSMI    -> http=200 price=13761.53 (^SSMI)
-  %5ESSHI    -> http=200 price=19408.53 (^SSHI)
-  SPI.SW     -> http=404 (no data)
-  %5ESPI     -> http=200 price=None (^SPI)
+=== SNB snbbipo (balance sheet — find sight deposits) dimensions ===
+   200 <!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Datenportal der Schweizeri
 
-=== C) FRED — Swiss macro (check freshness) ===
-  unemployment LRHU  LRHUTTTTCHM156S    -> http=400 (none)
-  unemp SECO         LMUNRRTTCHM156S    -> 2.172642 (2023-12-01)
-  IP OECD            CHEPROINDMISMEI    -> http=400 (none)
-  IP prod PRINTO     PRINTO01CHQ661S    -> http=400 (none)
-  mfg PRMNTO         PRMNTO01CHQ661S    -> http=400 (none)
-  BCI OECD           BSCICP02CHM460S    -> -10.4233333333 (2026-05-01)
-  CCI OECD           CSCICP02CHM460S    -> http=400 (none)
-  CLI                CHELOLITONOSTSAM   -> 97.9672829037042 (2022-11-01)
+=== SNB rendoblid (yields) + devkua (CHF) latest sample ===
+  rendoblid: 215714 lines; tail:
+     "2025-07-31";"IKH";"1.117"
+     "2025-07-31";"AAA";"0.707"
+     "2025-07-31";"AA";"0.826"
+     "2025-07-31";"A";"1.052"
+  devkua: 1460 lines; tail:
+     "2025";"NZD1";"0.48296"
+     "2025";"SGD1";"0.63529"
+     "2025";"THB100";"2.52557"
+     "2025";"XDR1";"1.12026"
 
-=== D) KOF barometer (datenservice.kof.ethz.ch) ===
-  KOF barometer -> http=404 | HTTP Error 404: Not Found
+=== FRED Swiss unemployment + IP (find FRESH ids) ===
+  unemp q        CHEUNTOTQDSMEI     -> none
+  unemp SLU      LMUNRRTTCHQ156S    -> 2.146489 (2023-10-01)
+  IP q OECD      CHEPROINDQISMEI    -> 131.7 (2023-10-01)
+  IP PRINTO q    PRINTO01CHQ657S    -> -1.5983194833 (2026-01-01)
+  mfg PRMNTO q   PRMNTO01CHQ657S    -> -1.2013627395 (2026-01-01)
+  IP MEI         PRINTO01CHQ659S    -> -6.7509087754 (2026-01-01)
 
-=== E) ECB business/industrial confidence + production YoY ===
-  ESI sentiment              RTD/M.S0.S.Y_ESI.LEVEL             -> http=404
-  ind confidence BCS         RTD/M.S0.S.Y_BCS_BCI.LEVEL         -> http=404
-  ind conf ESI               RTD/M.S0.S.B_ICI.LEVEL             -> http=404
-  IP YoY (compute from idx)  STS/M.I9.Y.PROD.NS0020.4.000       -> 98.1 (2025-09) Industrial production; total excluding c
+=== existing ECB esi.json (what's in it?) ===
+  esi.json: {'id': 'esi', 'label': 'Eurodollar Stress Index (0-100)', 'freq': 'daily', 'latest_date': '2026-06-16'}
