@@ -1,12 +1,11 @@
-cap-weighted sector heatmap (sane now?):
-  Technology               n= 780 1M(capW)= +7.06%  median=2.78  $32.7T
-  Financial                n=6586 1M(capW)= +4.46%  median=0.58  $14.6T
-  Healthcare               n=1065 1M(capW)= +3.61%  median=-2.76  $8.5T
-  Industrials              n= 692 1M(capW)= +2.87%  median=1.92  $7.9T
-  Real Estate              n= 255 1M(capW)= +2.52%  median=1.52  $1.8T
-  Basic Materials          n= 282 1M(capW)= -0.89%  median=-4.76  $3.0T
-  Consumer Cyclical        n= 540 1M(capW)= -1.08%  median=4.69  $9.2T
-  Utilities                n= 110 1M(capW)= -1.13%  median=0.16  $1.9T
-  Consumer Defensive       n= 241 1M(capW)= -1.38%  median=-0.44  $4.5T
-  Energy                   n= 252 1M(capW)= -5.26%  median=-6.62  $4.4T
-  Communication Services   n= 261 1M(capW)= -5.78%  median=-0.31  $13.2T
+manifest keys: ['rules', 'exclude_prefixes', 'key_overrides', 'updated_at', 'updated_by']
+key_overrides count: 35
+sample overrides: {
+"data/sector-rotation.json": 7,
+"data/eurodollar-stress.json": 3,
+"data/ai-brief.json": 6,
+"data/auction-crisis.json": 30,
+"data/vol-surface.json": 30,
+"data/carry-surface.json": 30
+}
+has finviz overrides?: []
