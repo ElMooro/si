@@ -110,7 +110,7 @@ const TABS={
     {k:"major_news",t:"Major News",d:"Names carrying notable tagged news",sort:"change"},
   ],
 };
-let DATA=null, HEAT=null, cur="Trend";
+let DATA=null, HEAT=null, GROUPS=null, NEWS=null, cur="Trend", gView="sectors", nView="news";
 const fmtPct=v=>v==null?"—":(v>0?"+":"")+v.toFixed(1)+"%";
 const cls=v=>v==null?"dim":(v>0?"pos":(v<0?"neg":""));
 const fmtVol=v=>v==null?"—":(v>=1e6?(v/1e6).toFixed(1)+"M":v>=1e3?(v/1e3).toFixed(0)+"K":v);
@@ -149,27 +149,62 @@ function confluenceHTML(){
      <div style="margin:9px 0"><b style="color:var(--neg)">TOP · reversal pattern + insider sell</b><br>${chips(tis,'rgba(255,61,90,.5)')}</div>
    </div></div>`;
 }
-function heatHTML(){
-  if(!HEAT||!HEAT.sectors)return '<div class="empty">heatmap loading…</div>';
-  const bg=v=>v==null?'transparent':v>0?`rgba(0,230,118,${Math.min(Math.abs(v)/8,.45)+.08})`:`rgba(255,61,90,${Math.min(Math.abs(v)/8,.45)+.08})`;
-  const sg=v=>v==null?'dim':v>0?'pos':'neg',pp=v=>v==null?'—':(v>0?'+':'')+v+'%';
-  return `<div style="margin-bottom:10px;color:var(--text-mute);font-size:11px">Cap-weighted sector performance across the whole market — tile color is the 1-month move. Cap-weighted means the big names drive it, so this is the sector's real move, not micro-cap noise.</div>
-   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:10px">${HEAT.sectors.map(x=>`
-     <div class="card" style="background:${bg(x.avg_perf_m)}"><div style="padding:11px 13px">
-       <div style="display:flex;justify-content:space-between;align-items:baseline"><b>${x.sector}</b><b class="${sg(x.avg_perf_m)}" style="font-family:var(--font-mono);font-size:14px">${pp(x.avg_perf_m)}</b></div>
-       <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-top:4px">${x.n} names · $${(x.total_mktcap_b/1000).toFixed(1)}T · 1W ${pp(x.avg_perf_w)} · YTD ${pp(x.avg_perf_ytd)}</div>
-       <div style="font-family:var(--font-mono);font-size:10px;margin-top:6px;color:var(--text-dim)">▲ ${(x.top||[]).slice(0,3).map(t=>t.ticker).join(' ')}</div>
-     </div></div>`).join("")}</div>`;
+function groupsHTML(){
+  const G=GROUPS||{};
+  const subs=[["sectors","Sectors"],["industries","Industries"],["countries","Country"],["mktcaps","Market Cap"]];
+  const bar=`<div class="tabs" style="border:none;padding-bottom:8px;margin:0 0 12px">${subs.map(([k,l])=>`<div class="tab ${gView===k?'on':''}" data-g="${k}">${l}</div>`).join("")}</div>`;
+  const rows=(G[gView]||[]);
+  const pp=v=>v==null?'—':(v>0?'+':'')+v+'%', sg=v=>v==null?'dim':v>0?'pos':'neg';
+  let body;
+  if(!rows.length){body='<div class="empty">groups loading…</div>';}
+  else if(gView==='sectors'){
+    const bg=v=>v==null?'transparent':v>0?`rgba(0,230,118,${Math.min(Math.abs(v)/8,.45)+.08})`:`rgba(255,61,90,${Math.min(Math.abs(v)/8,.45)+.08})`;
+    body=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:10px">${rows.map(x=>`
+      <div class="card" style="background:${bg(x.perf_m)}"><div style="padding:11px 13px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><b>${x.name}</b><b class="${sg(x.perf_m)}" style="font-family:var(--font-mono);font-size:14px">${pp(x.perf_m)}</b></div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-top:4px">1W ${pp(x.perf_w)} · YTD ${pp(x.perf_ytd)}</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:5px">P/E ${x.pe??'—'} · Fwd ${x.fwd_pe??'—'} · PEG ${x.peg??'—'} · P/S ${x.ps??'—'}</div>
+      </div></div>`).join("")}</div>`;
+  } else {
+    const srt=[...rows].sort((a,b)=>(b.perf_m??-999)-(a.perf_m??-999));
+    const mx=Math.max(...srt.map(x=>Math.abs(x.perf_m||0)),1);
+    const rH=x=>`<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-family:var(--font-mono);font-size:12px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.name}</span><span class="${sg(x.perf_m)}" style="width:60px;text-align:right">${pp(x.perf_m)}</span><div style="width:100px;height:7px;background:rgba(255,255,255,.05);border-radius:3px"><div style="height:100%;width:${Math.min(Math.abs(x.perf_m||0)/mx*100,100)}%;background:${(x.perf_m||0)>=0?'var(--pos)':'var(--neg)'};border-radius:3px;margin-left:${(x.perf_m||0)<0?'auto':'0'}"></div></div></div>`;
+    const N=gView==='countries'?12:gView==='mktcaps'?6:15;
+    body=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:26px">
+       <div><div class="card-d" style="margin-bottom:6px;color:var(--pos)">▲ Leaders</div>${srt.slice(0,N).map(rH).join("")}</div>
+       <div><div class="card-d" style="margin-bottom:6px;color:var(--neg)">▼ Laggards</div>${srt.slice(-N).reverse().map(rH).join("")}</div>
+     </div>`;
+  }
+  setTimeout(()=>document.querySelectorAll("[data-g]").forEach(el=>el.onclick=()=>{gView=el.dataset.g;render();}),0);
+  return `<div style="margin-bottom:6px;color:var(--text-mute);font-size:11px">Official Finviz group aggregates — 1-month move + (sectors) valuation. Industry = 144 groups, Country = 40, Cap = mega→nano.</div>${bar}${body}`;
+}
+function newsHTML(){
+  const N=NEWS||{};
+  const subs=[["news","News"],["blogs","Blogs"]];
+  const bar=`<div class="tabs" style="border:none;padding-bottom:8px;margin:0 0 12px">${subs.map(([k,l])=>`<div class="tab ${nView===k?'on':''}" data-n="${k}">${l} ${(N[k]||[]).length}</div>`).join("")}</div>`;
+  const top=(N.top_tickers||[]).slice(0,18);
+  const tick=top.length?`<div style="margin-bottom:12px"><div class="card-d" style="margin-bottom:5px">Most-mentioned (news velocity)</div>${top.map(t=>`<span style="display:inline-block;font-family:var(--font-mono);font-size:11px;padding:2px 7px;margin:2px;border:1px solid var(--border-hi);border-radius:4px">${t.ticker} <b style="color:var(--info)">${t.n}</b></span>`).join("")}</div>`:'';
+  const items=(N[nView]||[]).slice(0,60);
+  const list=items.length?items.map(it=>`<div style="padding:7px 0;border-bottom:1px solid rgba(28,35,48,.5)">
+     <a href="${it.url}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none;font-size:12.5px">${(it.title||"").replace(/</g,'&lt;')}</a>
+     <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-top:2px">${it.ticker?`<span style="color:var(--info)">${it.ticker}</span> · `:""}${it.source} · ${it.date}</div>
+   </div>`).join(""):'<div class="empty">news loading…</div>';
+  setTimeout(()=>document.querySelectorAll("[data-n]").forEach(el=>el.onclick=()=>{nView=el.dataset.n;render();}),0);
+  return `<div style="margin-bottom:6px;color:var(--text-mute);font-size:11px">Ticker-tagged market news + blogs from Finviz, refreshed through the day.</div>${tick}${bar}<div class="scroll" style="max-height:560px">${list}</div>`;
 }
 function render(){
-  const names=Object.keys(TABS).concat(["Sectors"]);
+  const names=Object.keys(TABS).concat(["Sectors","News"]);
   document.getElementById("tabs").innerHTML=names.map(name=>{
-    const n=name==="Sectors"?((HEAT&&HEAT.sectors&&HEAT.sectors.length)||0):TABS[name].reduce((s,c)=>s+((DATA.signals[c.k]||[]).length),0);
+    let n=0;
+    if(name==="Sectors")n=(GROUPS&&GROUPS.sectors&&GROUPS.sectors.length)||(HEAT&&HEAT.sectors&&HEAT.sectors.length)||0;
+    else if(name==="News")n=(NEWS&&NEWS.n_news)||0;
+    else n=TABS[name].reduce((s,c)=>s+((DATA.signals[c.k]||[]).length),0);
     return `<div class="tab ${name===cur?'on':''}" data-t="${name}">${name} <span style="opacity:.6">${n}</span></div>`;
   }).join("");
-  document.querySelectorAll(".tab").forEach(el=>el.onclick=()=>{cur=el.dataset.t;render();});
+  document.querySelectorAll("#tabs .tab").forEach(el=>el.onclick=()=>{cur=el.dataset.t;render();});
   const view=document.getElementById("view");
-  if(cur==="Sectors"){view.innerHTML=heatHTML();return;}
+  if(cur==="Sectors"){view.innerHTML=groupsHTML();return;}
+  if(cur==="News"){view.innerHTML=newsHTML();return;}
   const banner=cur==="Patterns"?confluenceHTML():"";
   view.innerHTML=banner+`<div class="grid">${TABS[cur].map(cardHTML).join("")}</div>`;
 }
@@ -178,6 +213,8 @@ async function load(){
     const r=await fetch(PROXY+"/data/finviz-signals.json?t="+Date.now());
     DATA=await r.json();
     try{const hr=await fetch(PROXY+"/data/finviz-heatmap.json?t="+Date.now());HEAT=await hr.json();}catch(e){HEAT=null;}
+    try{const gr=await fetch(PROXY+"/data/finviz-groups.json?t="+Date.now());GROUPS=await gr.json();}catch(e){GROUPS=null;}
+    try{const nr=await fetch(PROXY+"/data/finviz-news.json?t="+Date.now());NEWS=await nr.json();}catch(e){NEWS=null;}
     const tot=Object.values(DATA.counts||{}).reduce((a,b)=>a+b,0);
     document.getElementById("m-tot").textContent=tot.toLocaleString();
     const d=new Date(DATA.generated_at);
