@@ -268,7 +268,7 @@ def lambda_handler(event=None, context=None):
     # ── #1 USD Funding Stress Composite — A030000 + L080000 (+ Fed swap lines) z-scored ──
     try:
         a030 = ecb_csv("ILM/W.U2.C.A030000.U2.Z06", last_n=260)   # USD claims on EA residents
-        l080 = ecb_csv("ILM/W.U2.C.L080000.U4.EUR", last_n=260)   # FX liabilities to non-EA
+        l080 = None   # ECB discontinued ILM/W.U2.C.L080000.U4.EUR; composite renormalizes on A030000 + Fed swaps
         swp = fred_series("SWPT")  # Fed central-bank liquidity swaps ($mn); SWPT is the current series
         def _z_last(pts):
             if not pts or len(pts) < 20: return None
@@ -289,7 +289,7 @@ def lambda_handler(event=None, context=None):
             score = round(max(0, min(100, 50 + (composite_z or 0) * 20)), 1)
             sig = "CRITICAL" if score >= 70 else "WATCH" if score >= 50 else "NORMAL"
             out["indicators"]["usd_funding_stress_composite"] = {
-                "name": "USD Funding Stress Composite (A030000 + L080000 + Fed swaps)",
+                "name": "USD Funding Stress Composite (A030000 + Fed swaps)",
                 "score_0_100": score, "composite_z": round(composite_z, 2) if composite_z is not None else None,
                 "a030000_z": round(za, 2) if za is not None else None,
                 "l080000_z": round(zl, 2) if zl is not None else None,

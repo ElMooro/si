@@ -30,12 +30,11 @@ SERIES = [
     ("ILM/W.U2.C.A030000.U2.Z06", "ilm_usd_claims", "USD claims on EA residents (€bn) — dollar-shortage signal"),
     ("ILM/W.U2.C.L060000.U4.EUR", "ilm_eur_to_nonres", "EUR liabilities to non-residents (€bn) — foreign parking"),
     ("ILM/W.U2.C.A050000.U2.EUR", "ilm_mp_lending", "Monetary policy lending to banks (€bn)"),
-    ("ILM/W.U2.C.L010000.U2.EUR", "ilm_banknotes", "Banknotes in circulation (€bn) — bank-run signal"),
     ("CISS/D.U2.Z0Z.4F.EC.SS_CIN.IDX", "ciss_ea", "CISS — Euro Area systemic stress composite"),
     ("CISS/D.U2.Z0Z.4F.EC.SS_FI.CON", "ciss_fi", "CISS — financial intermediaries sub-index"),
-    ("CISS/D.U2.Z0Z.4F.EC.SS_BO.CON", "ciss_bo", "CISS — bond market sub-index"),
+    ("CISS/D.U2.Z0Z.4F.EC.SS_BM.CON", "ciss_bo", "CISS — bond market sub-index"),
     ("CISS/D.U2.Z0Z.4F.EC.SS_FX.CON", "ciss_fx", "CISS — FX market sub-index"),
-    ("CISS/D.U2.Z0Z.4F.EC.SS_EQ.CON", "ciss_eq", "CISS — equity market sub-index"),
+    ("CISS/D.U2.Z0Z.4F.EC.SS_EM.CON", "ciss_eq", "CISS — equity market sub-index"),
     ("CISS/D.U2.Z0Z.4F.EC.SS_MM.CON", "ciss_mm", "CISS — money market sub-index"),
 ]
 
