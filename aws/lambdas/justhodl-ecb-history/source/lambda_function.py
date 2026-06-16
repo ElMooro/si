@@ -36,6 +36,10 @@ SERIES = [
     ("CISS/D.U2.Z0Z.4F.EC.SS_FXN.CON", "ciss_fx", "CISS — FX market sub-index"),
     ("CISS/D.U2.Z0Z.4F.EC.SS_EMN.CON", "ciss_eq", "CISS — equity market sub-index"),
     ("CISS/D.U2.Z0Z.4F.EC.SS_MMN.CON", "ciss_mm", "CISS — money market sub-index"),
+    ("LFSI/M.I9.S.UNEHRT.TOTAL0.15_74.T", "unemployment_ea", "Unemployment rate — Euro Area (%, ages 15-74)"),
+    ("STS/M.I9.Y.PROD.NS0010.4.000", "indprod_total", "Industrial production — total incl. construction (index, WDA+SA)"),
+    ("STS/M.I9.Y.PROD.NS0020.4.000", "indprod_core", "Industrial production — excl. construction / core industry (index, WDA+SA)"),
+    ("EXR/D.USD.EUR.SP00.A", "eurusd", "EUR/USD reference rate — dollar-strength / funding gauge"),
 ]
 
 
@@ -109,7 +113,15 @@ def lambda_handler(event=None, context=None):
             sd = statistics.pstdev(vals[-260:] if len(vals) >= 260 else vals)
             z = round((latest - mu) / sd, 2) if sd else None
         except Exception: z = None
-        freq = "weekly" if "-W" in text[:200] or flow_key.startswith("ILM") else "daily"
+        _lp = pts[-1][0]
+        if "-W" in text[:200] or flow_key.startswith("ILM"):
+            freq = "weekly"
+        elif len(_lp) == 4:
+            freq = "annual"
+        elif len(_lp) == 7:
+            freq = "monthly"
+        else:
+            freq = "daily"
         out = {"id": sid, "label": label, "freq": freq, "flow_key": flow_key,
                "generated_at": datetime.now(timezone.utc).isoformat(),
                "n_points": len(pts), "first_date": pts[0][0], "latest_date": pts[-1][0],
