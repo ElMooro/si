@@ -1,23 +1,27 @@
-=== AUDIT: current Finviz feeds in S3 ===
-  data/finviz-universe.json   10553949b  06-16 01:35
-  data/finviz-signals.json     635080b  06-16 00:54
-  data/finviz-short.json     630972b  06-16 01:35
-  data/finviz-heatmap.json       7344b  06-16 01:35
-  data/finviz-groups.json      63094b  06-16 01:17
-  data/finviz-news.json      77679b  06-16 01:21
-  data/finviz-earnings-calendar.json       7479b  06-16 01:35
+invoking finviz-universe (full 151-col pull)...
+invoke: 200 {"statusCode": 200, "body": "{\"n_tickers\": 11302, \"short_float\": 5756, \"float\": 5783, \"rel_volume\": 11269, \"elapsed_s\": 11.4}"}
+tickers=11302 | new-field coverage:
+  index_membership    11302/11302  (100%)
+  eps_surprise         4182/11302  (37%)
+  rev_surprise         3847/11302  (34%)
+  ev_ebitda            2820/11302  (24%)
+  ev_sales             4229/11302  (37%)
+  float_pct            5782/11302  (51%)
+  off_ath_pct         11269/11302  (99%)
+  income               5269/11302  (46%)
+  sales                5508/11302  (48%)
+  employees            5139/11302  (45%)
+  book_sh              5740/11302  (50%)
+  div_ttm              6311/11302  (55%)
+  eps_yoy_ttm          5086/11302  (45%)
+  aum                  5339/11302  (47%)
+  expense_ratio        5339/11302  (47%)
+  flows_1m             5339/11302  (47%)
+  n_holdings           5284/11302  (46%)
+  ret_1y               4038/11302  (35%)
+  asset_type           5339/11302  (47%)
 
-=== PROBE 1: extended custom columns (c=0..199) — anything beyond the 72 we capture? ===
-  http=200 total columns returned=151
-  NEW columns beyond our 72: 80
-  -> ['Performance (YTD)', 'After-Hours Change', 'Book/sh', 'Cash/sh', 'Dividend', 'Employees', 'EPS Next Q', 'Income', 'Index', 'Optionable', 'Prev Close', 'Sales', 'Shortable', 'Short Interest', 'Float %', 'Open', 'High', 'Low', 'Trades', 'Performance (1 Minute)', 'Performance (2 Minutes)', 'Performance (3 Minutes)', 'Performance (5 Minutes)', 'Performance (10 Minutes)', 'Performance (15 Minutes)', 'Performance (30 Minutes)', 'Performance (1 Hour)', 'Performance (2 Hours)', 'Performance (4 Hours)', 'Asset Type', 'ETF Type', 'Region', 'Single Category', 'Sector/Theme', 'Tags', 'Active/Passive', 'Net Expense Ratio', 'Total Holdings', 'Assets Under Management', 'Net Asset Value', 'Net Asset Value %', 'Net Flows (1 Month)', 'Net Flows % (1 Month)', 'Net Flows (3 Month)', 'Net Flows % (3 Month)', 'Net Flows (YTD)', 'Net Flows % (YTD)', 'Net Flows (1 Year)', 'Net Flows % (1 Year)', 'Return 1 Year', 'Return 3 Year', 'Return 5 Year', 'Return 10 Year', 'Return Since Inception', 'All-Time High', 'All-Time Low', 'EPS Surprise', 'Revenue Surprise', 'Exchange', 'Dividend TTM', 'Dividend Ex Date', 'EPS Year Over Year TTM', 'Sales Year Over Year TTM', '52-Week Range', 'News Time', 'News URL', 'News Title', 'Performance (3 Years)', 'Performance (5 Years)', 'Performance (10 Years)', 'After-Hours Volume', 'EPS Growth Past 3 Years', 'Sales Growth Past 3 Years', 'Enterprise Value', 'EV/EBITDA', 'EV/Sales', 'Dividend Growth 1 Year', 'Dividend Growth 3 Years', 'Dividend Growth 5 Years', 'Daily Digest']
-
-=== PROBE 2: index-membership filters ===
-  S&P 500      f=idx_sp500    http=200 rows=503
-  Nasdaq 100   f=idx_ndx      http=200 rows=101
-  DJIA         f=idx_dji      http=200 rows=30
-
-=== PROBE 3: financial statements export (per-ticker) ===
-  income annual    http=404 head=''
-  balance annual   http=404 head=''
-  cash annual      http=404 head=''
+AAPL index: DJIA, NDX, S&P 500 | eps_surprise: 3.3 | ev_ebitda: 27.32
+SPY: aum=783071884104.0 expense=0.09 flows_1m=11138668710.8 holdings=505.0 type=Equities (Stocks)
+XLK: aum=120830486232.0 expense=0.08 flows_1m=12267086.15 holdings=75.0 type=Equities (Stocks)
+QQQ: aum=480534536125.0 expense=0.18 flows_1m=3261252180.5 holdings=105.0 type=Equities (Stocks)
