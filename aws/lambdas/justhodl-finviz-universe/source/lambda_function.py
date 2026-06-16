@@ -134,6 +134,23 @@ def lambda_handler(event=None, context=None):
                   ContentType="application/json", CacheControl="public, max-age=900")
     print("[finviz-universe] etf fund flows: %d ETFs, %d sector ETFs" % (len(_etfs), len(sector_flows)))
 
+    # ── earnings-surprise layer (most-recent-quarter beats/misses, >= $1B to cut noise) ──
+    def _sp(tk, r):
+        return {"ticker": tk, "company": r.get("company"), "sector": r.get("sector"),
+                "eps_surprise": r.get("eps_surprise"), "rev_surprise": r.get("rev_surprise"),
+                "perf_m": r.get("perf_m"), "change": r.get("change"),
+                "earnings_date": r.get("earnings_date"), "mktcap_m": r.get("market_cap")}
+    _surp = [(tk, r) for tk, r in uni.items()
+             if r.get("eps_surprise") is not None and (r.get("market_cap") or 0) >= 1000]
+    _by = sorted(_surp, key=lambda kv: (kv[1].get("eps_surprise") or 0), reverse=True)
+    s3.put_object(Bucket=BUCKET, Key="data/finviz-earnings-surprise.json",
+                  Body=json.dumps({"generated_at": now, "n": len(_surp),
+                                   "top_beats": [_sp(tk, r) for tk, r in _by[:30]],
+                                   "top_misses": [_sp(tk, r) for tk, r in _by[-30:][::-1]]},
+                                  separators=(",", ":"), default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=900")
+    print("[finviz-universe] earnings surprise: %d names >= $1B" % len(_surp))
+
     el = round(time.time() - started, 1)
     print("[finviz-universe] %d tickers | short_float=%d float=%d rel_volume=%d | %ss"
           % (n, n_short, n_float, n_relvol, el))

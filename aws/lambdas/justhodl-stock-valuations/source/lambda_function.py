@@ -901,6 +901,10 @@ def lambda_handler(event=None, context=None):
             _row["target_price"] = _tp
             if _pr:
                 _row["analyst_upside"] = round((_tp - _pr) / _pr * 100, 1)
+        if _fv.get("eps_surprise") is not None:
+            _row["eps_surprise"] = _fv.get("eps_surprise")
+        if _fv.get("rev_surprise") is not None:
+            _row["rev_surprise"] = _fv.get("rev_surprise")
         if _rc is not None or _tp is not None:
             _ntag += 1
     DIAG.append("finviz analyst overlay: %d names tagged (recom/target/upside)" % _ntag)
