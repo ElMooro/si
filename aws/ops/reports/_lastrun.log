@@ -1,11 +1,8 @@
-=== (1) live page: valuations.html ===
-  http=200
-    OK  EDGAR Authority heading
-    OK  edgar mount div
-    OK  renderEdgar() defined+called
-    OK  fetches edgar feed
-    OK  net-net table render
-    OK  crosscheck status render
+Confirming the page's actual fetch path (gj: justhodl.ai first, then PX proxy):
 
-=== (2) live feed: data/edgar-authority.json ===
-  feed error: HTTP Error 404: Not Found
+  data/edgar-authority.json
+     justhodl.ai -> 404   PX proxy -> 200  [OK keys=13 net-nets=29 cc=89]
+  data/stock-valuations.json
+     justhodl.ai -> 404   PX proxy -> 200  [OK keys=22]
+
+VERDICT: page renders if PX proxy serves edgar-authority.json (200).
