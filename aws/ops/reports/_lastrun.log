@@ -1,13 +1,20 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/1779_run_eurostat2.py", line 5, in <module>
-    print("invoke:", lam.invoke(FunctionName="justhodl-eurostat-history",InvocationType="RequestResponse")["Payload"].read().decode()[:200])
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceNotFoundException: An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-eurostat-history:$LATEST
+invoke: {"statusCode": 200, "body": "{\"n_flashing\": 2}"}
+
+=== PROBLEM INDICATORS ===
+  fragmentation_stress       signal=NORMAL | spark | err=None | {"name": "Fragmentation / TPI Watch (periphery vs Bund)", "it_de_bp": 79.0, "spreads_bp": 
+  ea_unemployment            signal=NORMAL | spark | err=None | {"name": "EA Unemployment Momentum (Sahm-style)", "unemployment_rate_pct": 6.3, "chg_3m_pp
+  ea_industrial_production   signal=NORMAL | spark | err=None | {"name": "EA Industrial Production (YoY)", "ip_yoy_pct": 1.12, "as_of": "2025-09", "series
+  ea_confidence              signal=NORMAL | spark | err=None | {"name": "EA Business & Consumer Confidence", "business_conf": -6.8, "business_z": -0.33, 
+  real_m1_growth             signal=NORMAL | spark | err=None | {"name": "Real M1 Growth (M1 YoY \u2212 HICP YoY)", "m1_yoy_pct": 4.71, "hicp_yoy_pct": 1.
+  country_unemployment       signal=NORMAL | NO-spark | err=None | {"name": "Country Unemployment Momentum (DE/FR/IT/ES/CH)", "countries": {"DE": {"rate_pct"
+
+=== charts available (full history keys) ===
+  ['business_confidence', 'ciss_delta30', 'ciss_level', 'ea_unemployment', 'esi', 'eu_us_divergence', 'ip_yoy', 'it_de_spread', 'ltro_share', 'real_m1_growth', 'unemp_ch', 'unemp_de', 'unemp_es', 'unemp_fr', 'unemp_it']
+
+=== misses === {}
+n_sparks: 17
+  chart it_de_spread           1995-01-01 -> 2026-04-01 (321 pts)
+  chart ea_unemployment        2000-01 -> 2026-04 (316 pts)
+  chart ip_yoy                 2000-01 -> 2025-09 (309 pts)
+  chart real_m1_growth         1999-01 -> 2025-12 (321 pts)
+  chart business_confidence    1998-01-01 -> 2026-01-01 (321 pts)
