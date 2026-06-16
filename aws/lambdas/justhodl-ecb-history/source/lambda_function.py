@@ -27,7 +27,8 @@ _ctx = ssl.create_default_context(); _ctx.check_hostname = False; _ctx.verify_mo
 
 # (flow/series_key, id, human label) — the high-signal liquidity/stress series
 SERIES = [
-    ("ILM/W.U2.C.A030000.U2.Z06", "ilm_usd_claims", "USD claims on EA residents (€bn) — dollar-shortage signal"),
+    ("ILM/W.U2.C.A030000.U2.Z06", "ilm_usd_claims", "Claims on EA residents in foreign currency (€mn, weekly) — dollar-shortage"),
+    ("ILM/W.U2.C.A020000.U4.Z06", "fx_claims_nonea", "Claims on non-EA residents in foreign currency (€mn, weekly) — DXY / dollar-shortage lead"),
     ("ILM/W.U2.C.L060000.U4.EUR", "ilm_eur_to_nonres", "EUR liabilities to non-residents (€bn) — foreign parking"),
     ("ILM/W.U2.C.A050000.U2.EUR", "ilm_mp_lending", "Monetary policy lending to banks (€bn)"),
     ("CISS/D.U2.Z0Z.4F.EC.SS_CIN.IDX", "ciss_ea", "CISS — Euro Area systemic stress composite"),
@@ -40,6 +41,27 @@ SERIES = [
     ("STS/M.I9.Y.PROD.NS0010.4.000", "indprod_total", "Industrial production — total incl. construction (index, WDA+SA)"),
     ("STS/M.I9.Y.PROD.NS0020.4.000", "indprod_core", "Industrial production — excl. construction / core industry (index, WDA+SA)"),
     ("EXR/D.USD.EUR.SP00.A", "eurusd", "EUR/USD reference rate — dollar-strength / funding gauge"),
+    # ── Unemployment (LFSI): euro area total + youth + member states ──
+    ("LFSI/M.I9.S.UNEHRT.TOTAL0.15_24.T", "unemp_ea_youth", "Unemployment rate — Euro Area youth <25 (%)"),
+    ("LFSI/M.DE.S.UNEHRT.TOTAL0.15_74.T", "unemp_de", "Unemployment rate — Germany (%)"),
+    ("LFSI/M.FR.S.UNEHRT.TOTAL0.15_74.T", "unemp_fr", "Unemployment rate — France (%)"),
+    ("LFSI/M.IT.S.UNEHRT.TOTAL0.15_74.T", "unemp_it", "Unemployment rate — Italy (%)"),
+    ("LFSI/M.ES.S.UNEHRT.TOTAL0.15_74.T", "unemp_es", "Unemployment rate — Spain (%)"),
+    ("LFSI/M.NL.S.UNEHRT.TOTAL0.15_74.T", "unemp_nl", "Unemployment rate — Netherlands (%)"),
+    ("LFSI/M.GR.S.UNEHRT.TOTAL0.15_74.T", "unemp_gr", "Unemployment rate — Greece (%)"),
+    ("LFSI/M.PT.S.UNEHRT.TOTAL0.15_74.T", "unemp_pt", "Unemployment rate — Portugal (%)"),
+    ("LFSI/M.IE.S.UNEHRT.TOTAL0.15_74.T", "unemp_ie", "Unemployment rate — Ireland (%)"),
+    ("LFSI/M.AT.S.UNEHRT.TOTAL0.15_74.T", "unemp_at", "Unemployment rate — Austria (%)"),
+    ("LFSI/M.BE.S.UNEHRT.TOTAL0.15_74.T", "unemp_be", "Unemployment rate — Belgium (%)"),
+    ("LFSI/M.FI.S.UNEHRT.TOTAL0.15_74.T", "unemp_fi", "Unemployment rate — Finland (%)"),
+    # ── Industrial production by Main Industrial Grouping (STS PROD) + turnover ──
+    ("STS/M.I9.Y.PROD.NS0040.4.000", "indprod_intermediate", "Industrial production — intermediate goods (index)"),
+    ("STS/M.I9.Y.PROD.NS0050.4.000", "indprod_capital", "Industrial production — capital goods (index)"),
+    ("STS/M.I9.Y.PROD.NS0060.4.000", "indprod_durable", "Industrial production — durable consumer goods (index)"),
+    ("STS/M.I9.Y.PROD.NS0070.4.000", "indprod_nondurable", "Industrial production — non-durable consumer goods (index)"),
+    ("STS/M.I9.Y.PROD.NS0080.4.000", "indprod_energy", "Industrial production — energy (index)"),
+    ("STS/M.I9.Y.TOVT.NS0020.4.000", "manuf_turnover", "Industry turnover — manufacturing/total ex-construction (index)"),
+    ("STS/M.I9.Y.TOVT.NS0040.4.000", "retail_turnover", "Retail trade turnover (index) — consumer demand"),
 ]
 
 
