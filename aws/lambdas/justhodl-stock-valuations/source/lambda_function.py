@@ -920,9 +920,15 @@ def lambda_handler(event=None, context=None):
             if _ev is not None and 0 < _ev < 200 and _sec and _mc >= 2000:
                 _sec_ev.setdefault(_sec, []).append(_ev)
         _sec_ev_med = {k: _median(v) for k, v in _sec_ev.items() if len(v) >= 5}
+        _EVNORM = {"Financials": "Financial", "Information Technology": "Technology",
+                   "Tech": "Technology", "Consumer Discretionary": "Consumer Cyclical",
+                   "Consumer Staples": "Consumer Defensive", "Materials": "Basic Materials",
+                   "Health Care": "Healthcare", "Telecommunication Services": "Communication Services",
+                   "Telecom": "Communication Services", "Communication": "Communication Services"}
         _ne = 0
         for _row in sp_table + hp_out:
-            _ev = _row.get("ev_ebitda"); _med = _sec_ev_med.get(_row.get("sector"))
+            _ev = _row.get("ev_ebitda")
+            _med = _sec_ev_med.get(_EVNORM.get(_row.get("sector"), _row.get("sector")))
             if _ev and _med:
                 _row["sector_ev_ebitda"] = round(_med, 1)
                 _row["ev_tier"] = ("cheap" if _ev < 0.8 * _med
