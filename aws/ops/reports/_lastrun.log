@@ -1,9 +1,7 @@
-ecb-auto-updater invoke: {"message": "CISS subindices update completed", "indicators_updated": 7, "total_indicators": 167, "timestamp": "2026-06-
-
-CISS sub-indices after N-variant fix (date should now be ~2026-06):
-  ECB.CISS.D.U2.BON_CI     0.0211 @ 2026-06-15
-  ECB.CISS.D.U2.FX_CI      0.0011 @ 2026-06-15
-  ECB.CISS.D.U2.MMS_CI     0.0115 @ 2026-06-15
-  ECB.CISS.D.U2.EQU_CI     0.0118 @ 2026-06-15
-  ECB.CISS.D.U2.FII_CI     0.0194 @ 2026-06-15
-  ECB.CISS.D.U2.MAIN       0.0077 @ 2026-06-15
+ecb-history invoked (async, full-history pull); polling sub-index files...
+  ciss_ea     7692 pts  latest=['2026-06-15', 0.007724225147002948]
+  ciss_fi     7162 pts  latest=['2026-06-15', 0.01943505963426391]
+  ciss_bo     7162 pts  latest=['2026-06-15', 0.021087777694695966]
+  ciss_eq     7162 pts  latest=['2026-06-15', 0.011829548668680578]
+  ciss_mm     7162 pts  latest=['2026-06-15', 0.011498692207728457]
+  ciss_fx     7162 pts  latest=['2026-06-15', 0.0010873425944956745]
