@@ -136,14 +136,16 @@ def lambda_handler(event=None, context=None):
 
     # ── earnings-surprise layer (most-recent-quarter beats/misses, >= $1B to cut noise) ──
     def _sp(tk, r):
+        eps = r.get("eps_surprise")
         return {"ticker": tk, "company": r.get("company"), "sector": r.get("sector"),
-                "eps_surprise": r.get("eps_surprise"), "rev_surprise": r.get("rev_surprise"),
+                "eps_surprise": eps if (eps is not None and abs(eps) <= 200) else None,
+                "rev_surprise": r.get("rev_surprise"),
                 "perf_m": r.get("perf_m"), "change": r.get("change"),
                 "earnings_date": r.get("earnings_date"), "mktcap_m": r.get("market_cap")}
+    # Rank by REVENUE surprise — revenue base is stable, so the % is meaningful (EPS% distorts at low base)
     _surp = [(tk, r) for tk, r in uni.items()
-             if r.get("eps_surprise") is not None and (r.get("market_cap") or 0) >= 1000
-             and abs(r.get("eps_surprise")) <= 100]  # exclude near-zero-base % distortions
-    _by = sorted(_surp, key=lambda kv: (kv[1].get("eps_surprise") or 0), reverse=True)
+             if r.get("rev_surprise") is not None and (r.get("market_cap") or 0) >= 1000]
+    _by = sorted(_surp, key=lambda kv: (kv[1].get("rev_surprise") or 0), reverse=True)
     s3.put_object(Bucket=BUCKET, Key="data/finviz-earnings-surprise.json",
                   Body=json.dumps({"generated_at": now, "n": len(_surp),
                                    "top_beats": [_sp(tk, r) for tk, r in _by[:30]],

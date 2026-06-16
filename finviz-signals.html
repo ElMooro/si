@@ -199,8 +199,8 @@ function surpriseHTML(){
   const row=(x,c)=>`<tr><td class="l tk">${x.ticker}</td><td class="l co" title="${(x.company||'').replace(/"/g,'')}">${x.company||''}</td><td class="${c}">${pp(x.eps_surprise)}</td><td class="${(x.rev_surprise||0)<0?'neg':'pos'}">${pp(x.rev_surprise)}</td><td class="${(x.perf_m||0)<0?'neg':'pos'}">${pp(x.perf_m)}</td></tr>`;
   const tbl=(arr,c)=>`<div class="scroll" style="max-height:320px"><table><thead><tr><th class="l">Ticker</th><th class="l">Company</th><th>EPS surp</th><th>Rev surp</th><th>1M</th></tr></thead><tbody>${arr.slice(0,20).map(x=>row(x,c)).join("")}</tbody></table></div>`;
   return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-     <div class="card"><div class="card-h"><div class="card-t"><span>📈 Biggest EPS beats</span></div><div class="card-d">Most-recent-quarter surprise, ≥$1B. Pair with price reaction for drift.</div></div>${tbl(beats,'pos')}</div>
-     <div class="card"><div class="card-h"><div class="card-t"><span>📉 Biggest EPS misses</span></div><div class="card-d">Largest negative surprises, ≥$1B.</div></div>${tbl(miss,'neg')}</div>
+     <div class="card"><div class="card-h"><div class="card-t"><span>📈 Biggest beats</span></div><div class="card-d">Ranked by revenue surprise (stable); EPS surprise shown where meaningful. ≥$1B.</div></div>${tbl(beats,'pos')}</div>
+     <div class="card"><div class="card-h"><div class="card-t"><span>📉 Biggest misses</span></div><div class="card-d">Largest negative revenue surprises, ≥$1B.</div></div>${tbl(miss,'neg')}</div>
    </div>`;
 }
 function earningsHTML(){
