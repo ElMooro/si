@@ -1,13 +1,28 @@
-invoked ciss-stress (async); polling...
-elapsed=95.2s | n_series=58 | EA regime=CALM composite=0.007724 @ 2026-06-15
-categories: {'sovereign_country': 11, 'country_ciss': 11, 'sovereign_ea': 2, 'ea_subindex': 6, 'ea_headline': 1, 'clifs': 27}
+invoke: {"statusCode": 200, "body": "{\"ok\": false, \"regime\": \"CALM\"}"}
+ok: False | regime: CALM | model: glm-5.1 (Claude Sonnet fallback)
 
-sample per category (history depth + latest):
-  [sovereign_country ] Austria — Sovereign composite          2000-01-05->2026-06-15 n=6899 stored=1384 latest=0.007919 pctile=4.8 z=-0.76
-  [country_ciss      ] Austria — Composite (CISS)             1999-01-05->2026-06-15 n=7168 stored=1436 latest=0.005754 pctile=8.7 z=-0.75
-  [sovereign_ea      ] Euro Area — Sovereign (equal-weighted) 2000-01-05->2026-06-15 n=6899 stored=1384 latest=0.011314 pctile=23.3 z=-0.59
-  [ea_subindex       ] Euro Area — Bond market                1999-01-01->2026-06-15 n=7162 stored=1437 latest=0.021088 pctile=3.9 z=-1.38
-  [ea_headline       ] Euro Area — Composite (CISS)           1980-01-03->2026-06-15 n=12126 stored=2432 latest=0.007724 pctile=10.3 z=-0.74
-  [clifs             ] Austria — CLIFS — financial stress     1970-01->2026-04 n=676 stored=676 latest=0.0828 pctile=43.0 z=-0.43
+[headline]
+None
 
-payload size: 1.53 MB
+[regime_read]
+None
+
+[stress_source]
+None
+
+[risk_assets]
+None
+
+[liquidity]
+None
+
+[watch] None
+
+RAW (parse failed): 1.  **Analyze the Request:**
+    *   Role: Institutional systemic-risk strategist.
+    *   Input: ECB CISS & CLIFS snapshot (as of 2026-06-15).
+    *   Output: STRICT JSON only, no preamble or fences.
+    *   Keys required: headline, regime, regime_read, stress_source, sovereign, cross_country, risk_assets, liquidity, watch.
+
+2.  **Analyze the Data:**
+    *   EA COMPOSITE CISS = 0.0077 (CALM). Per
