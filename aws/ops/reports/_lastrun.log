@@ -1,4 +1,18 @@
-  File "/home/runner/work/si/si/aws/ops/pending/1758_verify_full_ciss.py", line 24
-    print(f"  {want}: "+("; ".join(f\"{s['indicator']} ({s['latest_date']}{' DISC' if s.get('discontinued') else ''})\" for s in hits) or "MISSING"))
-                                     ^
-SyntaxError: unexpected character after line continuation character
+invoked; polling...
+v=1.1.0 n_series=65 elapsed=85.5s
+categories: {'sovereign_country': 17, 'country_ciss': 11, 'sovereign_ea': 2, 'ea_subindex': 6, 'ea_headline': 1, 'clifs': 28}
+
+ALL areas present: ['AT', 'BE', 'BG', 'CN', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'U2', 'US']
+  US: Composite (CISS) (2026-06-15)
+  CN: Composite (CISS) (2026-06-12)
+  GB: Composite (CISS) (2026-06-15); Sovereign composite (2025-04 DISC); CLIFS — financial stress (2026-04)
+  CZ: Sovereign composite (2025-04 DISC); CLIFS — financial stress (2026-04)
+  DK: Sovereign composite (2025-04 DISC); CLIFS — financial stress (2026-04)
+  HU: Sovereign composite (2025-04 DISC); CLIFS — financial stress (2026-04)
+  PL: Sovereign composite (2025-04 DISC); CLIFS — financial stress (2026-04)
+  SE: Sovereign composite (2025-04 DISC); CLIFS — financial stress (2026-04)
+  GR: Sovereign composite (2026-06-15); CLIFS — financial stress (2026-04)
+
+country_ciss: ['Austria', 'Belgium', 'China', 'Finland', 'France', 'Ireland', 'Italy', 'Netherlands', 'Portugal', 'United Kingdom', 'United States']
+sovereign_country: ['Austria', 'Belgium', 'Czechia', 'Denmark', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy', 'Netherlands', 'Poland', 'Portugal', 'Spain', 'Sweden', 'United Kingdom']
+discontinued: 7 | payload MB: 1.58
