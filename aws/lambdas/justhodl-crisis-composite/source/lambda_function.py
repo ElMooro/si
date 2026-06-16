@@ -115,6 +115,11 @@ REGIME_META_MAP = [
 ]
 LIQ_MAP = [("CONTRACTING", 70), ("NEUTRAL", 45), ("EXPANDING", 25)]
 
+# CISS (ECB Composite Indicator of Systemic Stress) is a 0..1 index. Regime anchors
+# from its historical distribution: calm <0.04, normal ~0.1, elevated ~0.2, stress
+# ~0.3, crisis >=0.45 (GFC/COVID/EU-debt peaks ran 0.5-0.8). Mapped 0..1 -> 0..100.
+CISS_ANCHORS = [(0.0, 5), (0.04, 20), (0.1, 40), (0.2, 60), (0.3, 75), (0.45, 92), (0.6, 100)]
+
 
 def comp_eurodollar(d):
     v = dig(d, "composite_score", "score", "stress_score")
@@ -186,6 +191,28 @@ def comp_global_stress(d):
     return clamp(dig(d, "global_stress_index"))
 
 
+def comp_ciss(d):
+    # ECB CISS composite (data/ecb-hist/ciss_ea.json: {points:[[date,value],...]}).
+    # Latest 0..1 value -> 0..100 crisis score via regime anchors. A premier
+    # systemic-stress gauge; euro-area focused but a strong global risk co-indicator.
+    pts = d.get("points") or []
+    if not pts:
+        return None
+    try:
+        v = float(pts[-1][1])
+    except Exception:
+        return None
+    a = CISS_ANCHORS
+    if v <= a[0][0]:
+        return float(a[0][1])
+    if v >= a[-1][0]:
+        return 100.0
+    for (x0, y0), (x1, y1) in zip(a, a[1:]):
+        if x0 <= v <= x1:
+            return clamp(y0 + (y1 - y0) * (v - x0) / (x1 - x0))
+    return None
+
+
 # (sidecar key, weight, extractor, human label)
 COMPONENTS = [
     ("data/eurodollar-stress.json", 0.20, comp_eurodollar, "USD funding stress"),
@@ -199,6 +226,7 @@ COMPONENTS = [
     ("data/canary-grid.json",       0.15, comp_canary,     "Global early-warning canaries"),
     ("data/global-stress.json",     0.12, comp_global_stress, "Global equity & bond stress"),
     ("data/dollar-radar.json",      0.10, comp_dollar,      "Dollar squeeze pressure"),
+    ("data/ecb-hist/ciss_ea.json",  0.12, comp_ciss,        "Euro-area systemic stress (CISS)"),
 ]
 
 DEFCON = [
