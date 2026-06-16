@@ -241,12 +241,30 @@ def lambda_handler(event=None, context=None):
         if "ConditionalCheckFailed" not in str(e):
             DIAG.append(f"loop: {str(e)[:60]}")
 
+    # ── Finviz insider overlay: broad insider buy/sell breadth + cross-source confirm ──
+    fv_buys, fv_sells, fv_confirm = [], [], []
+    try:
+        _sig = json.loads(S3.get_object(Bucket=BUCKET, Key="data/finviz-signals.json")["Body"].read()).get("signals", {})
+        fv_buys = [{"ticker": x.get("ticker"), "sector": x.get("sector"),
+                    "price": x.get("price"), "perf_m": x.get("perf_m")}
+                   for x in (_sig.get("insider_buys") or []) if x.get("ticker")][:60]
+        fv_sells = [{"ticker": x.get("ticker"), "sector": x.get("sector"),
+                     "price": x.get("price"), "perf_m": x.get("perf_m")}
+                    for x in (_sig.get("insider_sales") or []) if x.get("ticker")][:60]
+        _desk = {(b.get("ticker") or b.get("symbol")) for b in buys}
+        _fv = {x["ticker"] for x in fv_buys}
+        fv_confirm = sorted(t for t in (_desk & _fv) if t)
+        DIAG.append("finviz insider overlay: %d buys, %d sells, %d confirmed both sources" % (len(fv_buys), len(fv_sells), len(fv_confirm)))
+    except Exception as _e:
+        DIAG.append("finviz insider overlay fail: " + str(_e)[:60])
+
     out = {"engine": "insider-radar", "version": VERSION,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "source_used": source, "n_raw": len(rows),
             "window_days": 30, "n_buys": len(buys), "n_sells": sells_n,
             "latest_buys": buys[:40],
             "clusters": clusters[:20],
+            "finviz_buys": fv_buys, "finviz_sells": fv_sells, "finviz_buy_confirm": fv_confirm,
             "decline_buys": decline_buys,
             "decline_clusters": decline_clusters[:10],
             "logged": logged, "diagnostics": list(DIAG),
