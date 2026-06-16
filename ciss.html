@@ -163,7 +163,7 @@ function renderAI(a){
   D.series.forEach(s=>SERIES[s.id]=s);
   // ── Dollar / FX funding-stress panel: CISS FX + money-market sub-indices,
   //    EUR/USD reference rate, and ECB USD claims on EA residents ──
-  const [eurusd, usdclaims] = await Promise.all([gj('data/ecb-hist/eurusd.json'), gj('data/ecb-hist/ilm_usd_claims.json')]);
+  const [eurusd, usdclaims, nonea] = await Promise.all([gj('data/ecb-hist/eurusd.json'), gj('data/ecb-hist/ilm_usd_claims.json'), gj('data/ecb-hist/fx_claims_nonea.json')]);
   function adaptHist(d, country, indicator, freq){
     if(!d||!d.points||!d.points.length) return null;
     const vs=d.points.map(p=>p[1]); const mx=Math.max(...vs); const look=freq==='daily'?252:52;
@@ -177,7 +177,8 @@ function renderAI(a){
   const fx=D.series.find(s=>s.area==='U2'&&s.indicator&&s.indicator.indexOf('FX market')>=0);
   const mm=D.series.find(s=>s.area==='U2'&&s.indicator&&s.indicator.indexOf('Money market')>=0);
   const dollarCards=[fx,mm,adaptHist(eurusd,'Euro Area','EUR/USD reference rate','daily'),
-                     adaptHist(usdclaims,'Euro Area','USD claims on EA residents (€mn)','weekly')].filter(Boolean);
+                     adaptHist(nonea,'Eurosystem','Claims on non-EA residents in FX (€mn) — DXY lead','weekly'),
+                     adaptHist(usdclaims,'Eurosystem','Claims on EA residents in FX (€mn)','weekly')].filter(Boolean);
   const dollarHtml = dollarCards.length ?
     `<div class="sec">💵 Dollar / FX Funding Stress <span style="color:var(--fg3);text-transform:none;letter-spacing:0">· ECB FX & money-market stress + EUR/USD + USD claims (proxies; ECB doesn't publish the x-ccy basis directly)</span></div><div class="grid">${dollarCards.map(s=>card(s,false)).join('')}</div>` : '';
   const byCat={};D.series.forEach(s=>{(byCat[s.category]=byCat[s.category]||[]).push(s);});

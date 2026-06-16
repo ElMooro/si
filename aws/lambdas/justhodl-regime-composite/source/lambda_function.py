@@ -262,6 +262,21 @@ MODULES_CFG = [
         "page": "/ciss.html",
         "derive": "ciss",
     },
+    {
+        "label": "CISS · Money-Market Stress", "emoji": "💵", "key": "data/ciss-stress.json",
+        "regime_path": None, "signal_path": None, "polarity_map": None,
+        "dimension": "liquidity", "page": "/ciss.html", "derive": "ciss_mm",
+    },
+    {
+        "label": "CISS · Bond-Market Stress", "emoji": "📉", "key": "data/ciss-stress.json",
+        "regime_path": None, "signal_path": None, "polarity_map": None,
+        "dimension": "vol", "page": "/ciss.html", "derive": "ciss_bond",
+    },
+    {
+        "label": "CISS · Equity-Market Stress", "emoji": "📊", "key": "data/ciss-stress.json",
+        "regime_path": None, "signal_path": None, "polarity_map": None,
+        "dimension": "vol", "page": "/ciss.html", "derive": "ciss_equity",
+    },
 ]
 
 
@@ -379,11 +394,37 @@ def derive_ciss(payload):
         return None, None, 0
 
 
+def _ciss_sub(payload, name):
+    """One CISS sub-index (money/bond/equity market). Low pctile = calm = +1,
+    high = elevated stress = -1, against its own 1999-now distribution."""
+    try:
+        s = next((x for x in payload.get("series", [])
+                  if x.get("area") == "U2" and name in (x.get("indicator") or "")), None)
+        if not s or s.get("pctile") is None:
+            return None, None, 0
+        pct = s["pctile"]; v = s.get("latest")
+        if pct >= 75:
+            return "STRESS_HIGH", "%s CISS %.4f (%.0f%%ile) — elevated stress, risk-off" % (name, v, pct), -1
+        if pct <= 25:
+            return "STRESS_LOW", "%s CISS %.4f (%.0f%%ile) — calm" % (name, v, pct), +1
+        return "STRESS_MID", "%s CISS %.4f (%.0f%%ile)" % (name, v, pct), 0
+    except Exception:
+        return None, None, 0
+
+
+def derive_ciss_mm(p): return _ciss_sub(p, "Money market")
+def derive_ciss_bond(p): return _ciss_sub(p, "Bond market")
+def derive_ciss_equity(p): return _ciss_sub(p, "Equity market")
+
+
 DERIVERS = {
     "dix": derive_dix,
     "options_flow": derive_options_flow,
     "insider": derive_insider,
     "ciss": derive_ciss,
+    "ciss_mm": derive_ciss_mm,
+    "ciss_bond": derive_ciss_bond,
+    "ciss_equity": derive_ciss_equity,
     "thirteenf": derive_thirteenf,
 }
 

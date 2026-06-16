@@ -97,6 +97,10 @@ a{color:var(--cyan);text-decoration:none}
   <div class="grid" id="cissgrid"></div>
   <div class="read" id="ciss-read"></div>
 
+  <div class="sec" id="s-fx">💵 DOLLAR FUNDING / FX CLAIMS <span class="more">click for chart</span></div>
+  <div class="grid" id="fxgrid"></div>
+  <div class="read" id="fx-read"></div>
+
   <div class="sec" id="s-sig">🚨 DUMP-PREDICTOR SIGNALS <a class="more" href="/eu-dump-radar.html">full radar →</a></div>
   <div class="grid" id="signals"></div>
 
@@ -257,7 +261,7 @@ async function load(){
   // labour & industry tiles (from the manifest; click → chart modal)
   if(m&&m.series){
     const ms=Object.fromEntries(m.series.map(s=>[s.id,s]));
-    const want=[['unemployment_ea','Unemployment rate (%)'],['indprod_total','Industrial production · incl. construction'],['indprod_core','Industrial production · excl. construction'],['eurusd','EUR/USD reference rate']];
+    const want=[['unemployment_ea','Unemployment · Euro Area (%)'],['unemp_ea_youth','Unemployment · EA youth <25 (%)'],['unemp_de','Unemployment · Germany (%)'],['unemp_fr','Unemployment · France (%)'],['unemp_it','Unemployment · Italy (%)'],['unemp_es','Unemployment · Spain (%)'],['indprod_total','Ind. production · incl. construction'],['indprod_core','Ind. production · excl. construction'],['indprod_capital','Ind. production · capital goods'],['indprod_intermediate','Ind. production · intermediate'],['indprod_durable','Ind. production · durable consumer'],['indprod_energy','Ind. production · energy'],['manuf_turnover','Industry turnover'],['retail_turnover','Retail turnover']];
     document.getElementById('labour').innerHTML=want.map(([id,lbl])=>{
       const s=ms[id]; if(!s)return '';
       return `<div class="card hl" onclick="openModal('${id}')"><div class="lbl">${esc(lbl)}</div><div class="val">${s.latest!=null?s.latest:'—'}</div><div class="sub">${s.percentile!=null?s.percentile+'th %ile':''} · ${esc(s.latest_date||'')} 📈</div></div>`;
@@ -275,6 +279,14 @@ async function load(){
     topc.forEach(s=>cards.push(`<div class="card"><div class="lbl">${esc(s.country)} · ${esc(s.indicator)}</div><div class="val">${f4(s.latest)}</div><div class="sub">${s.pctile!=null?s.pctile.toFixed(0)+'th %ile':''}${s.discontinued?' · ⏸ disc.':''}</div></div>`));
     document.getElementById('cissgrid').innerHTML=cards.join('');
     document.getElementById('ciss-read').textContent=`Full CISS + CLIFS set (${C.n_series} series incl. United States, China, UK & all EU countries) with 1980+ history and AI interpretation on the dedicated monitor → /ciss.html`;
+  }
+  // dollar funding / FX claims (the Eurosystem FX-asset lines — DXY / dollar-shortage leads)
+  if(m&&m.series){
+    const ms=Object.fromEntries(m.series.map(s=>[s.id,s]));
+    const want=[['fx_claims_nonea','Claims on non-EA residents in FX (€mn) — DXY lead'],['ilm_usd_claims','Claims on EA residents in FX (€mn)'],['eurusd','EUR/USD reference rate']];
+    document.getElementById('fxgrid').innerHTML=want.map(([id,lbl])=>{const s=ms[id];if(!s)return '';
+      return `<div class="card hl" onclick="openModal('${id}')"><div class="lbl">${esc(lbl)}</div><div class="val">${s.latest!=null?(Math.abs(s.latest)>=100?s.latest.toLocaleString():s.latest):'—'}</div><div class="sub">${s.percentile!=null?s.percentile+'th %ile':''} · ${esc(s.latest_date||'')} 📈</div></div>`;}).join('');
+    document.getElementById('fx-read').textContent='Eurosystem foreign-currency asset claims (weekly). Rising non-EA FX claims = dollar/FX accumulation; these balance-sheet lines lead DXY and pair with CISS FX & money-market stress.';
   }
   document.getElementById('note').innerHTML=`Sources: ECB Data Portal (ILM, CISS, BLS, MIR, ICP, YC, EST, FM, BSI, STS, LFSI, EWT, TGB, IRS, SPF, EXR), FRED. Hover any tile for methodology + series ID; click for full history; ⬇ CSV in the chart modal. Updated ${ed&&ed.generated_at?new Date(ed.generated_at).toLocaleString():'recently'}. Research, not advice.`;
 }
