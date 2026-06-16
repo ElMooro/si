@@ -79,20 +79,42 @@ def lambda_handler(event, context):
         ' "watch": ["3-4 specific, falsifiable things to watch that would flip the read"]}'
         % (d.get("ea_composite_date"), summary)
     )
-    try:
-        raw = complete(prompt, tier="bulk", max_tokens=1500, system=SYSTEM)
-    except Exception as e:
-        raw = ""
-        err = repr(e)
-    txt = (raw or "").strip()
-    txt = re.sub(r"^```(?:json)?|```$", "", txt, flags=re.MULTILINE).strip()
-    m = re.search(r"\{.*\}", txt, re.DOTALL)
-    parsed = None
-    if m:
+    def _extract_json(t):
+        t = re.sub(r"```(?:json)?", "", t or "")
+        i = t.find("{")
+        if i < 0:
+            return None
+        depth = 0
+        for j in range(i, len(t)):
+            if t[j] == "{":
+                depth += 1
+            elif t[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(t[i:j + 1])
+                    except Exception:
+                        break
         try:
-            parsed = json.loads(m.group(0))
+            return json.loads(t[i:t.rfind("}") + 1])
         except Exception:
-            parsed = None
+            return None
+
+    parsed, txt, err = None, "", ""
+    for tier, mt in (("bulk", 1500), ("reason", 4000)):
+        try:
+            r = complete(prompt, tier=tier, max_tokens=mt, system=SYSTEM)
+        except Exception as e:
+            err += "%s:%r " % (tier, e)
+            continue
+        if r and r.strip():
+            txt = r.strip()
+            parsed = _extract_json(txt)
+            if parsed:
+                break
+            err += "%s:unparseable " % tier
+        else:
+            err += "%s:empty " % tier
 
     out = {
         "engine": "ciss-ai", "version": "1.0.0", "generated_at": now,
@@ -104,6 +126,7 @@ def lambda_handler(event, context):
     }
     if not parsed:
         out["raw"] = txt[:1200]
+        out["error"] = err.strip()
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, separators=(",", ":")).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
