@@ -110,7 +110,7 @@ const TABS={
     {k:"major_news",t:"Major News",d:"Names carrying notable tagged news",sort:"change"},
   ],
 };
-let DATA=null, HEAT=null, GROUPS=null, NEWS=null, cur="Trend", gView="sectors", nView="news";
+let DATA=null, HEAT=null, GROUPS=null, NEWS=null, CAL=null, cur="Trend", gView="sectors", nView="news";
 const fmtPct=v=>v==null?"—":(v>0?"+":"")+v.toFixed(1)+"%";
 const cls=v=>v==null?"dim":(v>0?"pos":(v<0?"neg":""));
 const fmtVol=v=>v==null?"—":(v>=1e6?(v/1e6).toFixed(1)+"M":v>=1e3?(v/1e3).toFixed(0)+"K":v);
@@ -192,12 +192,25 @@ function newsHTML(){
   setTimeout(()=>document.querySelectorAll("[data-n]").forEach(el=>el.onclick=()=>{nView=el.dataset.n;render();}),0);
   return `<div style="margin-bottom:6px;color:var(--text-mute);font-size:11px">Ticker-tagged market news + blogs from Finviz, refreshed through the day.</div>${tick}${bar}<div class="scroll" style="max-height:560px">${list}</div>`;
 }
+function earningsHTML(){
+  const C=CAL||{};const days=C.calendar||[];
+  if(!days.length)return '<div class="empty">No confirmed earnings in the next 30 days (quiet between seasons — fills as companies confirm Q2 dates).</div>';
+  const cap=v=>v==null?'':v>=1e6?'$'+(v/1e6).toFixed(1)+'T':v>=1e3?'$'+(v/1e3).toFixed(0)+'B':'$'+v.toFixed(0)+'M';
+  const tcol=t=>t==='BMO'?'var(--info)':t==='AMC'?'var(--accent)':'var(--text-mute)';
+  return `<div style="margin-bottom:10px;color:var(--text-mute);font-size:11px">Upcoming reporters (next 30 days), largest first. BMO = before open, AMC = after close. Derived from Finviz earnings dates.</div>
+   ${days.map(d=>{
+     const dt=new Date(d.date+"T12:00:00");const lab=dt.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'});
+     return `<div class="card" style="margin-bottom:10px"><div class="card-h"><div class="card-t"><span>${lab}</span><span class="cnt">${d.n} reporting</span></div></div>
+       <div style="padding:8px 13px;display:flex;flex-wrap:wrap;gap:6px">${d.reporters.map(r=>`<span style="display:inline-block;font-family:var(--font-mono);font-size:11px;padding:3px 8px;border:1px solid var(--border-hi);border-radius:4px"><b>${r.ticker}</b> <span style="color:${tcol(r.time)}">${r.time||''}</span> <span style="color:var(--text-mute)">${cap(r.mktcap_m)}</span></span>`).join("")}</div></div>`;
+   }).join("")}`;
+}
 function render(){
-  const names=Object.keys(TABS).concat(["Sectors","News"]);
+  const names=Object.keys(TABS).concat(["Sectors","News","Earnings"]);
   document.getElementById("tabs").innerHTML=names.map(name=>{
     let n=0;
     if(name==="Sectors")n=(GROUPS&&GROUPS.sectors&&GROUPS.sectors.length)||(HEAT&&HEAT.sectors&&HEAT.sectors.length)||0;
     else if(name==="News")n=(NEWS&&NEWS.n_news)||0;
+    else if(name==="Earnings")n=(CAL&&CAL.n_reporters)||0;
     else n=TABS[name].reduce((s,c)=>s+((DATA.signals[c.k]||[]).length),0);
     return `<div class="tab ${name===cur?'on':''}" data-t="${name}">${name} <span style="opacity:.6">${n}</span></div>`;
   }).join("");
@@ -205,6 +218,7 @@ function render(){
   const view=document.getElementById("view");
   if(cur==="Sectors"){view.innerHTML=groupsHTML();return;}
   if(cur==="News"){view.innerHTML=newsHTML();return;}
+  if(cur==="Earnings"){view.innerHTML=earningsHTML();return;}
   const banner=cur==="Patterns"?confluenceHTML():"";
   view.innerHTML=banner+`<div class="grid">${TABS[cur].map(cardHTML).join("")}</div>`;
 }
@@ -215,6 +229,7 @@ async function load(){
     try{const hr=await fetch(PROXY+"/data/finviz-heatmap.json?t="+Date.now());HEAT=await hr.json();}catch(e){HEAT=null;}
     try{const gr=await fetch(PROXY+"/data/finviz-groups.json?t="+Date.now());GROUPS=await gr.json();}catch(e){GROUPS=null;}
     try{const nr=await fetch(PROXY+"/data/finviz-news.json?t="+Date.now());NEWS=await nr.json();}catch(e){NEWS=null;}
+    try{const cr=await fetch(PROXY+"/data/finviz-earnings-calendar.json?t="+Date.now());CAL=await cr.json();}catch(e){CAL=null;}
     const tot=Object.values(DATA.counts||{}).reduce((a,b)=>a+b,0);
     document.getElementById("m-tot").textContent=tot.toLocaleString();
     const d=new Date(DATA.generated_at);
