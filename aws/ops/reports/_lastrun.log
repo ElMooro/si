@@ -1,37 +1,19 @@
-=== UNEMPLOYMENT (LFSI) — EA youth + member states ===
-  EA total   LFSI/M.I9.S.UNEHRT.TOTAL0.15_74.T      -> 6.3 (2026-04) "Unemployment rate
-  EA youth<25 LFSI/M.I9.S.UNEHRT.TOTAL0.15_24.T      -> 14.8 (2026-04) "Unemployment rate
-  DE         LFSI/M.DE.S.UNEHRT.TOTAL0.15_74.T      -> 3.8 (2026-04) "Unemployment rate
-  FR         LFSI/M.FR.S.UNEHRT.TOTAL0.15_74.T      -> 8.2 (2026-04) "Unemployment rate
-  IT         LFSI/M.IT.S.UNEHRT.TOTAL0.15_74.T      -> 5.1 (2026-04) "Unemployment rate
-  ES         LFSI/M.ES.S.UNEHRT.TOTAL0.15_74.T      -> 10.3 (2026-04) "Unemployment rate
-  NL         LFSI/M.NL.S.UNEHRT.TOTAL0.15_74.T      -> 3.9 (2026-04) "Unemployment rate
-  GR         LFSI/M.GR.S.UNEHRT.TOTAL0.15_74.T      -> 9.5 (2026-04) "Unemployment rate
-  PT         LFSI/M.PT.S.UNEHRT.TOTAL0.15_74.T      -> 5.7 (2026-04) "Unemployment rate
-  IE         LFSI/M.IE.S.UNEHRT.TOTAL0.15_74.T      -> 4.9 (2026-05) "Unemployment rate
-  AT         LFSI/M.AT.S.UNEHRT.TOTAL0.15_74.T      -> 5.7 (2026-04) "Unemployment rate
-  BE         LFSI/M.BE.S.UNEHRT.TOTAL0.15_74.T      -> 6.2 (2026-04) "Unemployment rate
-  FI         LFSI/M.FI.S.UNEHRT.TOTAL0.15_74.T      -> 10.7 (2026-04) "Unemployment rate
+invoke: {"statusCode": 200, "body": "{\"written\": 33}"}
+  fx_claims_nonea        freq=weekly   n= 1433 latest=519958.0 2026-06-12 pctile=97.1
+  ilm_usd_claims         freq=weekly   n= 1433 latest=18804.0 2026-06-12 pctile=26.0
+  unemp_ea_youth         freq=monthly  n=  316 latest=14.8 2026-04 pctile=12.3
+  unemp_de               freq=monthly  n=  352 latest=3.8 2026-04 pctile=30.4
+  unemp_fr               freq=monthly  n=  352 latest=8.2 2026-04 pctile=29.3
+  unemp_it               freq=monthly  n=  352 latest=5.1 2026-04 pctile=0.3
+  unemp_es               freq=monthly  n=  352 latest=10.3 2026-04 pctile=13.6
+  unemp_gr               freq=monthly  n=  337 latest=9.5 2026-04 pctile=17.2
+  unemp_fi               freq=monthly  n=  352 latest=10.7 2026-04 pctile=93.2
+  indprod_intermediate   freq=monthly  n=  345 latest=88.2 2025-09 pctile=7.5
+  indprod_capital        freq=monthly  n=  345 latest=101.5 2025-09 pctile=79.7
+  indprod_durable        freq=monthly  n=  345 latest=93.2 2025-09 pctile=20.0
+  indprod_nondurable     freq=monthly  n=  345 latest=111.8 2025-09 pctile=97.4
+  indprod_energy         freq=monthly  n=  345 latest=109.5 2025-09 pctile=97.1
+  manuf_turnover         freq=monthly  n=  308 latest=114.7 2025-08 pctile=90.6
+  retail_turnover        freq=monthly  n=  308 latest=103.0 2025-08 pctile=84.7
 
-=== STS PRODUCTION activity codes (map manufacturing/MIGs/construction) ===
-  NS0010     -> 98.9 (2025-09) Industrial production; total including construction 
-  NS0011     ->  () ERR 404
-  NS0020     -> 98.1 (2025-09) Industrial production; total excluding construction 
-  NS0021     -> 98.7 (2025-09) "Industrial production; total excluding construction
-  NS0022     ->  () ERR 404
-  NS0023     ->  () ERR 404
-  NS0030     ->  () ERR 404
-  NS0040     -> 88.2 (2025-09) Industrial production; intermediate goods
-  NS0050     -> 101.5 (2025-09) Industrial production; capital goods
-  NS0060     -> 93.2 (2025-09) Industrial production; durable consumer goods
-  MIG_CAG    ->  () ERR 404
-  MIG_ING    ->  () ERR 404
-  MIG_COG    ->  () ERR 404
-  MIG_DCOG   ->  () ERR 404
-  MIG_NDCOG  ->  () ERR 404
-  MIG_NRG    ->  () ERR 404
-
---- other STS families ---
-  construction PROD  STS/M.I9.Y.PRCO.NS0030.4.000       ->  () ERR 404
-  retail turnover    STS/M.I9.Y.TOVT.NS0040.4.000       -> 103 (2025-08) 
-  manufacturing TOVT STS/M.I9.Y.TOVT.NS0020.4.000       -> 114.7 (2025-08) 
+OK=16 MISSING=0
