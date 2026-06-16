@@ -1,13 +1,4 @@
-FMP key from justhodl-stock-valuations (len 32)
-
-=== FMP /stable/ depth (AAPL) ===
-  annual   http=200 periods=40 earliest=1986 latest=2025
-  quarter  http=200 periods=40 earliest=2016 latest=2026
-
-=== SEC EDGAR companyfacts (AAPL CIK 0000320193) ===
-  http=200 us-gaap concepts=503 revenue datapoints=11 fy range=2018..2018
-  key line items present: ['Revenues', 'RevenueFromContractWithCustomerExcludingAssessedTax', 'NetIncomeLoss', 'Assets', 'Liabilities', 'StockholdersEquity', 'CashAndCashEquivalentsAtCarryingValue', 'OperatingIncomeLoss', 'ResearchAndDevelopmentExpense', 'EarningsPerShareDiluted']
-
-=== Finviz financial statements (re-confirm) ===
-  statement IA       http=404
-  quote financials   http=200
+invoked alpha-research (async); polling...
+refreshed=True | tickers=35
+financials depth (top 6 by length): [('AVGO', 15), ('NVDA', 15), ('GOOG', 15), ('GOOGL', 15), ('MU', 15), ('AMZN', 15)]
+  AVGO: 15 years -> 2011..2025
