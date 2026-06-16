@@ -103,6 +103,26 @@ COLMAP = {
     "Change from Open": ("change_open_pct", _num), "Gap": ("gap_pct", _num),
     "Earnings Date": ("earnings_date", _txt), "IPO Date": ("ipo_date", _txt),
     "After-Hours Close": ("ah_close", _num),
+    # ── extended columns (Finviz exposes 151; these are the high-value adds) ──
+    "Index": ("index_membership", _txt),
+    "EPS Surprise": ("eps_surprise", _num), "Revenue Surprise": ("rev_surprise", _num),
+    "Short Interest": ("short_interest_sh", _num), "Float %": ("float_pct", _num),
+    "All-Time High": ("off_ath_pct", _num), "All-Time Low": ("off_atl_pct", _num),
+    "Enterprise Value": ("ev", _num), "EV/EBITDA": ("ev_ebitda", _num), "EV/Sales": ("ev_sales", _num),
+    "Income": ("income", _num), "Sales": ("sales", _num),
+    "Book/sh": ("book_sh", _num), "Cash/sh": ("cash_sh", _num), "Employees": ("employees", _num),
+    "Dividend TTM": ("div_ttm", _num), "Dividend Ex Date": ("div_ex_date", _txt),
+    "EPS Year Over Year TTM": ("eps_yoy_ttm", _num), "Sales Year Over Year TTM": ("sales_yoy_ttm", _num),
+    "EPS Growth Past 3 Years": ("eps_g_3y", _num), "Sales Growth Past 3 Years": ("sales_g_3y", _num),
+    "EPS Next Q": ("eps_next_q", _num), "52-Week Range": ("range_52w", _txt), "Exchange": ("exchange", _txt),
+    "Optionable": ("optionable", _txt), "Shortable": ("shortable", _txt), "Prev Close": ("prev_close", _num),
+    "Asset Type": ("asset_type", _txt), "ETF Type": ("etf_type", _txt),
+    "Net Expense Ratio": ("expense_ratio", _num), "Total Holdings": ("n_holdings", _num),
+    "Assets Under Management": ("aum", _num), "Net Asset Value": ("nav", _num),
+    "Net Flows (1 Month)": ("flows_1m", _num), "Net Flows % (1 Month)": ("flows_1m_pct", _num),
+    "Net Flows (3 Month)": ("flows_3m", _num), "Net Flows (YTD)": ("flows_ytd", _num),
+    "Net Flows (1 Year)": ("flows_1y", _num),
+    "Return 1 Year": ("ret_1y", _num), "Return 3 Year": ("ret_3y", _num), "Return 5 Year": ("ret_5y", _num),
 }
 
 
@@ -116,7 +136,7 @@ def fetch_view(view, filt=None, timeout=60):
     return list(csv.DictReader(io.StringIO(body)))
 
 
-CUSTOM_COLS = ",".join(str(i) for i in range(72))  # full 72-column surface
+CUSTOM_COLS = ",".join(str(i) for i in range(151))  # full 151-column custom surface
 
 
 def fetch_custom(filt=None, cols=CUSTOM_COLS, timeout=90):
