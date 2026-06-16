@@ -1,23 +1,21 @@
-tickers with earnings_date: 4583
-sample raw values:
-  A      '5/27/2026 4:30:00 PM'
-  AA     '4/16/2026 4:30:00 PM'
-  AACG   '3/25/2026 4:30:00 PM'
-  AAL    '4/23/2026 8:30:00 AM'
-  AAMI   '4/30/2026 8:30:00 AM'
-  AAOI   '5/7/2026 4:30:00 PM'
-  AAON   '5/7/2026 8:30:00 AM'
-  AAP    '5/21/2026 8:30:00 AM'
-  AAPG   '3/24/2026 4:30:00 PM'
-  AAPL   '4/30/2026 4:30:00 PM'
-  AARD   '5/7/2026 8:30:00 AM'
-  AAT    '4/28/2026 4:30:00 PM'
-  AAUC   '5/14/2026 4:30:00 PM'
-  AB     '4/28/2026 8:30:00 AM'
-  ABAT   '5/11/2026 8:30:00 AM'
-  ABBV   '4/29/2026 8:30:00 AM'
-  ABCB   '4/23/2026 4:30:00 PM'
-  ABCL   '5/11/2026 4:30:00 PM'
-  ABEO   '5/13/2026 8:30:00 AM'
-  ABEV   '5/5/2026 8:30:00 AM'
-token-count distribution: {3: 4406, 1: 177}
+invoking finviz-universe (calendar)...
+  earnings calendar: 14 days, 48 reporters next 30d
+    2026-06-16: 6 — WLY, LZB, UXIN, WDH, VNCE, YQ
+    2026-06-17: 6 — PGR, JBL, KMX, SB, SWBI, DAIO
+    2026-06-18: 2 — ACN, KR
+    2026-06-22: 1 — POWW
+
+invoking sector-rotation...
+  finviz_rotation present: True | industries_top=15 cap_buckets=6
+    top industries: Computer Hardware=31.25%, Semiconductor Equipment & Materials=25.75%, Department Stores=21.26%, Staffing & Employment Services=19.97%
+
+invoking retail-sentiment...
+  names with FinvizNews corroboration (top30): 4 ['SPCX', 'NVDA', 'AMD', 'AMZN']
+
+invoking stock-valuations (async)...
+  refreshed after ~20s
+  sp_table sector_valuation tagged: 263/500
+    HPQ    sector=Technology secVal=fair secPE=28.17
+    UAL    sector=Industrials secVal=rich secPE=31.68
+    FISV   sector=Technology secVal=fair secPE=28.17
+    EG     sector=Financials secVal=None secPE=None
