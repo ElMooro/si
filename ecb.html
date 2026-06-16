@@ -90,6 +90,10 @@ a{color:var(--cyan);text-decoration:none}
   <div class="grid" id="t2grid"></div>
   <div class="read" id="t2-read"></div>
 
+  <div class="sec" id="s-cycle">📅 EURO-AREA BUSINESS CYCLE <span class="more">industrial production × labour</span></div>
+  <div class="grid" id="cyclegrid"></div>
+  <div class="read" id="cycle-read"></div>
+
   <div class="sec" id="s-labour">👷 LABOUR & 🏭 INDUSTRY <span class="more">click for chart</span></div>
   <div class="grid" id="labour"></div>
 
@@ -258,6 +262,29 @@ async function load(){
       return '<span class="histlink" onclick="openModal(\''+esc(s.id)+'\')">📈 '+esc(lbl)+(s.discontinued?' <span style="color:var(--amber);font-size:9px">⚠ ECB ended '+esc(s.latest_date)+'</span>':'')+'</span>';
     }).join('');
   }
+  // Euro-Area business cycle: industrial-production momentum × labour direction
+  const [ipS,unS,rtS]=await Promise.all([gj('data/ecb-hist/indprod_core.json'),gj('data/ecb-hist/unemployment_ea.json'),gj('data/ecb-hist/retail_turnover.json')]);
+  const mom=(d,b)=>{if(!d||!d.points||d.points.length<=b)return null;const v=d.points;const last=v[v.length-1][1];const pr=v[v.length-1-b][1];return pr?Math.round((last/pr-1)*1000)/10:null;};
+  const ipMom=mom(ipS,6), rtMom=mom(rtS,6);
+  let unChg=null,unNow=null;
+  if(unS&&unS.points&&unS.points.length>6){unNow=unS.points[unS.points.length-1][1];unChg=Math.round((unNow-unS.points[unS.points.length-7][1])*10)/10;}
+  let phase='—',pc='var(--fg-2)',desc='Insufficient data.';
+  if(ipMom!=null&&unChg!=null){
+    const grow=ipMom>0, labOk=unChg<=0;
+    if(grow&&labOk){phase='EXPANSION';pc='var(--green)';desc='Industrial output rising and unemployment falling — mid/late expansion. Risk-on, pro-cyclical.';}
+    else if(grow&&!labOk){phase='RECOVERY';pc='var(--green)';desc='Output turning up while labour is still soft — early recovery. Typically the strongest forward-return phase.';}
+    else if(!grow&&labOk){phase='SLOWDOWN';pc='var(--amber)';desc='Output rolling over but labour still firm — late-cycle slowdown. Defensive bias building.';}
+    else{phase='CONTRACTION';pc='var(--red)';desc='Output falling and unemployment rising — contraction. Risk-off, favour quality & duration.';}
+  }
+  const arrow=v=>v==null?'':v>0?'▲':v<0?'▼':'■';
+  document.getElementById('cyclegrid').innerHTML=[
+    `<div class="card" style="border-left:3px solid ${pc}"><div class="lbl">Cycle Phase</div><div class="val" style="color:${pc};font-size:22px">${phase}</div><div class="sub">IP × labour quadrant</div></div>`,
+    `<div class="card hl" onclick="openModal('indprod_core')"><div class="lbl">Industrial Production · 6m</div><div class="val" style="color:${ipMom>0?'var(--green)':'var(--red)'}">${ipMom!=null?(ipMom>0?'+':'')+ipMom+'%':'—'} ${arrow(ipMom)}</div><div class="sub">coincident growth 📈</div></div>`,
+    `<div class="card hl" onclick="openModal('unemployment_ea')"><div class="lbl">Unemployment · 6m change</div><div class="val" style="color:${unChg<=0?'var(--green)':'var(--red)'}">${unChg!=null?(unChg>0?'+':'')+unChg+'pp':'—'} ${arrow(-unChg)}</div><div class="sub">now ${unNow!=null?unNow+'%':'—'} · lagging 📈</div></div>`,
+    `<div class="card hl" onclick="openModal('retail_turnover')"><div class="lbl">Retail Turnover · 6m</div><div class="val" style="color:${rtMom>0?'var(--green)':'var(--red)'}">${rtMom!=null?(rtMom>0?'+':'')+rtMom+'%':'—'} ${arrow(rtMom)}</div><div class="sub">consumer demand 📈</div></div>`,
+  ].join('');
+  document.getElementById('cycle-read').textContent=`${phase==='—'?'':phase+' — '}${desc} Computed from ECB euro-area industrial production (excl. construction), the unemployment rate, and retail turnover. The global cross-asset cycle read lives at /global-cycle.html.`;
+
   // labour & industry tiles (from the manifest; click → chart modal)
   if(m&&m.series){
     const ms=Object.fromEntries(m.series.map(s=>[s.id,s]));
