@@ -1,4 +1,11 @@
-  data/index-inclusion.json EXISTS 5546b
-  data/index-membership.json —
-  data/finviz-index-changes.json —
-index membership token counts: {'S&P': 503, '500': 503, '-': 8893, 'RUT': 1894, 'DJIA': 30, 'NDX': 101}
+MEMBERS: {'sp500': 503, 'ndx': 101, 'djia': 30, 'russell2000': 1894}
+CHANGES (first run = baseline, expect empty):
+  sp500        +0 / -0
+  ndx          +0 / -0
+  djia         +0 / -0
+  russell2000  +0 / -0
+sample sp500: ['A', 'AAPL', 'ABBV', 'ABNB', 'ABT', 'ACGL', 'ACN', 'ADBE']
+sample russell2000: ['AAMI', 'AAOI', 'AAP', 'AARD', 'AAT', 'ABAT'] ...
+
+index-inclusion availability: {'constituents': 'sp500-constituent', 'screener': True} | candidates: 0
+index-membership SLA=14h | total finviz overrides: 10
