@@ -97,6 +97,12 @@ a{color:var(--cyan);text-decoration:none}
   <div class="sec" id="s-prod">🧭 SENTIMENT & PRODUCTION (YoY) <span class="more">confidence + output growth</span></div>
   <div class="grid" id="prodgrid"></div>
 
+  <div class="sec" id="s-conf">📊 BUSINESS & CONSUMER CONFIDENCE <span class="more">all DG-ECFIN sectors · click for history to 1983</span></div>
+  <div class="grid" id="confgrid"></div>
+
+  <div class="sec" id="s-ipyoy">🏭 INDUSTRIAL PRODUCTION · YoY BY SECTOR <span class="more">manufacturing + MIGs · click for full history</span></div>
+  <div class="grid" id="ipyoygrid"></div>
+
   <div class="sec" id="s-labour">👷 LABOUR & 🏭 INDUSTRY <span class="more">click for chart</span></div>
   <div class="grid" id="labour"></div>
 
@@ -320,6 +326,11 @@ async function load(){
   if(ipYoY!=null)ptiles.push(`<div class="card hl" onclick="openModal('ip_yoy')"><div class="lbl">Industrial Production · YoY</div><div class="val" style="color:${ipYoY>=0?'var(--green)':'var(--red)'}">${ipYoY>0?'+':''}${ipYoY}%</div><div class="sub">incl. construction 📈</div></div>`);
   if(mfgYoY!=null)ptiles.push(`<div class="card hl" onclick="openModal('indprod_core')"><div class="lbl">Manufacturing Production · YoY</div><div class="val" style="color:${mfgYoY>=0?'var(--green)':'var(--red)'}">${mfgYoY>0?'+':''}${mfgYoY}%</div><div class="sub">excl. construction 📈</div></div>`);
   document.getElementById('prodgrid').innerHTML=ptiles.join('')||'<div class="card"><div class="sub">Sentiment/production feed pending.</div></div>';
+
+  // comprehensive: every confidence sector + IP YoY by sector (charts from ecb-derived, all clickable to full history)
+  function chartTiles(ids,bySign){return ids.map(id=>{const c=DERCHARTS[id];if(!c)return '';const v=c.latest;let col=bySign?(v>=0?'var(--green)':'var(--red)'):(c.pctile==null?'var(--fg-2)':c.pctile>=66?'var(--green)':c.pctile>=33?'var(--amber)':'var(--red)');return `<div class="card hl" onclick="openModal('${id}')"><div class="lbl">${esc((c.label||id).split('—')[0].trim())}</div><div class="val" style="color:${col}">${v!=null?(bySign&&v>0?'+':'')+v+(bySign?'%':''):'—'}</div><div class="sub">${c.pctile!=null?c.pctile+'th %ile':''} · ${esc(c.latest_date||'')} 📈</div></div>`;}).filter(Boolean).join('');}
+  document.getElementById('confgrid').innerHTML=chartTiles(['conf_industrial','conf_services','conf_consumer','conf_retail','conf_construction','esi_sentiment'],false)||'<div class="card"><div class="sub">Confidence feed pending (next ecb-derived run).</div></div>';
+  document.getElementById('ipyoygrid').innerHTML=chartTiles(['ipyoy_total','ipyoy_manufacturing','ipyoy_intermediate','ipyoy_capital','ipyoy_durable','ipyoy_nondurable','ipyoy_energy'],true)||'<div class="card"><div class="sub">Production feed pending (next ecb-derived run).</div></div>';
 
   // labour & industry tiles (from the manifest; click → chart modal)
   if(m&&m.series){

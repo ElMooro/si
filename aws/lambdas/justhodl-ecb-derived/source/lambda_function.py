@@ -1120,19 +1120,21 @@ def lambda_handler(event=None, context=None):
                 macro_series[cid] = (lbl, pts_c, {})
         except Exception as _e:
             print(f"[conf {cid}] {str(_e)[:50]}")
-    for cid, nace, lbl in [
-            ("ipyoy_total", "B-D", "Industrial production YoY — total industry (%)"),
-            ("ipyoy_manufacturing", "C", "Manufacturing production YoY (%)"),
-            ("ipyoy_intermediate", "MIG_ING", "IP YoY — intermediate goods (%)"),
-            ("ipyoy_capital", "MIG_CAG", "IP YoY — capital goods (%)"),
-            ("ipyoy_durable", "MIG_DCOG", "IP YoY — durable consumer goods (%)"),
-            ("ipyoy_nondurable", "MIG_NDCOG", "IP YoY — non-durable consumer goods (%)"),
-            ("ipyoy_energy", "MIG_NRG", "IP YoY — energy (%)")]:
+    for cid, hid, lbl in [
+            ("ipyoy_total", "indprod_total", "Industrial production YoY — total incl. construction (%)"),
+            ("ipyoy_manufacturing", "indprod_core", "Manufacturing production YoY — excl. construction (%)"),
+            ("ipyoy_intermediate", "indprod_intermediate", "IP YoY — intermediate goods (%)"),
+            ("ipyoy_capital", "indprod_capital", "IP YoY — capital goods (%)"),
+            ("ipyoy_durable", "indprod_durable", "IP YoY — durable consumer goods (%)"),
+            ("ipyoy_nondurable", "indprod_nondurable", "IP YoY — non-durable consumer goods (%)"),
+            ("ipyoy_energy", "indprod_energy", "IP YoY — energy (%)")]:
         try:
-            pts_i, _s = eurostat_series("sts_inpr_m", {"freq": "M", "indic_bt": "PRD",
-                        "nace_r2": nace, "s_adj": "SCA", "unit": "PCH_SM"}, n=420)
-            if len(pts_i) > 30:
-                macro_series[cid] = (lbl, pts_i, {"watch": -2, "critical": -5})
+            idx, _l = _hist(hid)   # ECB STS production indices already stored on this platform
+            if len(idx) > 14:
+                yoy = [(idx[i][0], round((idx[i][1] / idx[i - 12][1] - 1) * 100, 2))
+                       for i in range(12, len(idx)) if idx[i - 12][1]]
+                if len(yoy) > 30:
+                    macro_series[cid] = (lbl, yoy, {"watch": -2, "critical": -5})
         except Exception as _e:
             print(f"[ipyoy {cid}] {str(_e)[:50]}")
 
