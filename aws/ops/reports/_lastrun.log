@@ -1,13 +1,23 @@
-engine bucket: openbb-lambda-data
+=== TASK 2: every euro-area (U2) CISS series + its LATEST date (find fresh sub-indices) ===
 
-ECB.SOVCISS -> value=0.015183037641976925 date=2026-06-15 freq=Daily obs=120
-  name: SovCISS — Composite Indicator of Sovereign Stress, GDP-weighted (Euro Area Daily)
-  last_updated: 2026-06-16T17:12:14.941791
+FRESH U2 series (latest >= 2026-01-01) — 9:
+   CISS.D.U2.Z0Z.4F.EC.SOV_EWN.IDX            2026-06-15  0.011313973814182823
+   CISS.D.U2.Z0Z.4F.EC.SOV_GDPWN.IDX          2026-06-15  0.015183037641976925
+   CISS.D.U2.Z0Z.4F.EC.SS_BMN.CON             2026-06-15  0.021087777694695966
+   CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX             2026-06-15  0.007724225147002948
+   CISS.D.U2.Z0Z.4F.EC.SS_CON.CON             2026-06-15  -0.057214195652861656
+   CISS.D.U2.Z0Z.4F.EC.SS_EMN.CON             2026-06-15  0.011829548668680578
+   CISS.D.U2.Z0Z.4F.EC.SS_FIN.CON             2026-06-15  0.01943505963426391
+   CISS.D.U2.Z0Z.4F.EC.SS_FXN.CON             2026-06-15  0.0010873425944956745
+   CISS.D.U2.Z0Z.4F.EC.SS_MMN.CON             2026-06-15  0.011498692207728457
 
-CISS subindices refreshed today:
-  ECB.CISS.D.U2.BON_CI       0.0319 @ 2025-05-02  upd=✓today
-  ECB.CISS.D.U2.FX_CI        0.0242 @ 2025-05-02  upd=✓today
-  ECB.CISS.D.U2.MMS_CI       0.0252 @ 2025-05-02  upd=✓today
-  ECB.CISS.D.U2.EQU_CI       0.0785 @ 2025-05-02  upd=✓today
-  ECB.CISS.D.U2.FII_CI       0.0805 @ 2025-05-02  upd=✓today
-  ECB.CISS.D.U2.MAIN         0.0077 @ 2026-06-15  upd=✓today
+STALE U2 series (latest < 2026-01-01) — 9:
+   CISS.D.U2.Z0Z.4F.EC.SS_BM.CON              2025-05-02  0.031919
+   CISS.D.U2.Z0Z.4F.EC.SS_CI.IDX              2025-05-02  0.094106
+   CISS.D.U2.Z0Z.4F.EC.SS_CO.CON              2025-05-02  -0.14613
+   CISS.D.U2.Z0Z.4F.EC.SS_EM.CON              2025-05-02  0.078493
+   CISS.D.U2.Z0Z.4F.EC.SS_FI.CON              2025-05-02  0.080498
+   CISS.D.U2.Z0Z.4F.EC.SS_FX.CON              2025-05-02  0.024171
+   CISS.D.U2.Z0Z.4F.EC.SS_MM.CON              2025-05-02  0.025156
+   CISS.M.U2.Z0Z.4F.EC.SOV_EW.IDX             2025-04  0.104025
+   CISS.M.U2.Z0Z.4F.EC.SOV_GDPW.IDX           2025-04  0.079905
