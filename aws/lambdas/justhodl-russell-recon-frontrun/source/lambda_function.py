@@ -216,8 +216,15 @@ def build_ranking(universe):
 
 def classify_membership(ranked):
     """
-    Tag each name with implied Russell membership at current ranking.
+    Tag each name with implied Russell membership at current ranking,
+    reconciled against Finviz ground-truth membership where available.
     """
+    fv_r2000 = set()
+    try:
+        _m = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/finviz-index-membership.json")["Body"].read()).get("members", {})
+        fv_r2000 = set(_m.get("russell2000", []))
+    except Exception:
+        pass
     for u in ranked:
         r = u["rank"]
         if r <= 1000:
@@ -226,6 +233,9 @@ def classify_membership(ranked):
             u["implied_index"] = "R2000"
         else:
             u["implied_index"] = "OUT"
+        if fv_r2000:
+            u["fv_in_r2000"] = u.get("symbol") in fv_r2000
+            u["recon_disagree"] = (u["implied_index"] == "R2000") != u["fv_in_r2000"]
     return ranked
 
 
