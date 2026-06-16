@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-switzerland",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Swiss safe-haven / crisis-radar: SMI/SPI, EUR-CHF & USD-CHF (flight-to-safety), business confidence, industrial & manufacturing production YoY, unemployment + euro-area confidence. Output data/switzerland.json.",
+  "schedule": {"rule_name": "switzerland-daily", "cron": "cron(30 6 * * ? *)", "description": "Swiss crisis-radar — daily 06:30 UTC"}
+}
