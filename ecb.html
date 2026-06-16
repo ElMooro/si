@@ -178,6 +178,11 @@ async function load(){
       R.marginal_lending_pct!=null?`<div class="card"><div class="lbl">Marginal Lending (ceiling)</div><div class="val">${R.marginal_lending_pct}%</div><div class="sub">corridor ${R.corridor_width_bp||'—'}bp</div></div>`:'',
     ].join('');
   }
+  // append bank lending rate to corporations (credit cost / policy pass-through) from manifest
+  if(m&&m.series){
+    const br=m.series.find(x=>x.id==='bank_rate_nfc');
+    if(br)document.getElementById('rates').innerHTML += `<div class="card hl" onclick="openModal('bank_rate_nfc')"><div class="lbl">Bank Lending Rate · Corporations</div><div class="val">${br.latest!=null?br.latest+'%':'—'}</div><div class="sub">new business · policy pass-through · ${esc(br.latest_date||'')} 📈</div></div>`;
+  }
   // dump signals
   if(der&&der.indicators){
     const SIGHIST={ciss_acceleration:'ciss_ea',euribor_ois_stress:'euribor_ois_bp',estr_dfr_dislocation:'estr',credit_contraction:'nfc_loans_yoy',wage_persistence:'wages_negotiated',expectations_deanchoring:'spf_longterm',target2_imbalance:'t2_de_minus_it',bank_funding_stress:'ilm_mp_lending',eu_us_liquidity_divergence:'ilm_usd_claims',fragmentation_stress:'it_de_10y_bp'};
@@ -262,28 +267,41 @@ async function load(){
       return '<span class="histlink" onclick="openModal(\''+esc(s.id)+'\')">📈 '+esc(lbl)+(s.discontinued?' <span style="color:var(--amber);font-size:9px">⚠ ECB ended '+esc(s.latest_date)+'</span>':'')+'</span>';
     }).join('');
   }
-  // Euro-Area business cycle: industrial-production momentum × labour direction
-  const [ipS,unS,rtS]=await Promise.all([gj('data/ecb-hist/indprod_core.json'),gj('data/ecb-hist/unemployment_ea.json'),gj('data/ecb-hist/retail_turnover.json')]);
+  // Euro-Area business cycle: LEADING (M1 money) · COINCIDENT (IP, GDP, retail) · LAGGING (unemployment)
+  const [ipS,unS,rtS,m1S,gdpS]=await Promise.all([gj('data/ecb-hist/indprod_core.json'),gj('data/ecb-hist/unemployment_ea.json'),gj('data/ecb-hist/retail_turnover.json'),gj('data/ecb-hist/m1_growth.json'),gj('data/ecb-hist/gdp_yoy.json')]);
   const mom=(d,b)=>{if(!d||!d.points||d.points.length<=b)return null;const v=d.points;const last=v[v.length-1][1];const pr=v[v.length-1-b][1];return pr?Math.round((last/pr-1)*1000)/10:null;};
+  const last=d=>d&&d.points&&d.points.length?d.points[d.points.length-1][1]:null;
+  const chg=(d,b)=>d&&d.points&&d.points.length>b?Math.round((last(d)-d.points[d.points.length-1-b][1])*10)/10:null;
   const ipMom=mom(ipS,6), rtMom=mom(rtS,6);
-  let unChg=null,unNow=null;
-  if(unS&&unS.points&&unS.points.length>6){unNow=unS.points[unS.points.length-1][1];unChg=Math.round((unNow-unS.points[unS.points.length-7][1])*10)/10;}
+  const unNow=last(unS), unChg=chg(unS,6);
+  const m1Now=last(m1S), m1Chg=chg(m1S,6);          // M1 = % YoY growth; chg = acceleration over 6m
+  const gdpNow=last(gdpS);
   let phase='—',pc='var(--fg-2)',desc='Insufficient data.';
   if(ipMom!=null&&unChg!=null){
     const grow=ipMom>0, labOk=unChg<=0;
     if(grow&&labOk){phase='EXPANSION';pc='var(--green)';desc='Industrial output rising and unemployment falling — mid/late expansion. Risk-on, pro-cyclical.';}
-    else if(grow&&!labOk){phase='RECOVERY';pc='var(--green)';desc='Output turning up while labour is still soft — early recovery. Typically the strongest forward-return phase.';}
+    else if(grow&&!labOk){phase='RECOVERY';pc='var(--green)';desc='Output turning up while labour is still soft — early recovery, historically the strongest forward-return phase.';}
     else if(!grow&&labOk){phase='SLOWDOWN';pc='var(--amber)';desc='Output rolling over but labour still firm — late-cycle slowdown. Defensive bias building.';}
-    else{phase='CONTRACTION';pc='var(--red)';desc='Output falling and unemployment rising — contraction. Risk-off, favour quality & duration.';}
+    else{phase='CONTRACTION';pc='var(--red)';desc='Output falling and unemployment rising — contraction. Risk-off; favour quality and duration.';}
+  }
+  // forward tilt from the leading money signal (real-economy lead of 6-12 months)
+  let tilt='';
+  if(m1Now!=null&&m1Chg!=null){
+    tilt = m1Chg>0.3 ? ' Leading signal: M1 money growth is ACCELERATING — points to firmer activity 6-12m out.'
+         : m1Chg<-0.3 ? ' Leading signal: M1 money growth is DECELERATING — flags softer activity ahead.'
+         : ' Leading signal: M1 money growth roughly stable.';
   }
   const arrow=v=>v==null?'':v>0?'▲':v<0?'▼':'■';
+  const sgn=v=>v==null?'—':(v>0?'+':'')+v;
   document.getElementById('cyclegrid').innerHTML=[
-    `<div class="card" style="border-left:3px solid ${pc}"><div class="lbl">Cycle Phase</div><div class="val" style="color:${pc};font-size:22px">${phase}</div><div class="sub">IP × labour quadrant</div></div>`,
-    `<div class="card hl" onclick="openModal('indprod_core')"><div class="lbl">Industrial Production · 6m</div><div class="val" style="color:${ipMom>0?'var(--green)':'var(--red)'}">${ipMom!=null?(ipMom>0?'+':'')+ipMom+'%':'—'} ${arrow(ipMom)}</div><div class="sub">coincident growth 📈</div></div>`,
-    `<div class="card hl" onclick="openModal('unemployment_ea')"><div class="lbl">Unemployment · 6m change</div><div class="val" style="color:${unChg<=0?'var(--green)':'var(--red)'}">${unChg!=null?(unChg>0?'+':'')+unChg+'pp':'—'} ${arrow(-unChg)}</div><div class="sub">now ${unNow!=null?unNow+'%':'—'} · lagging 📈</div></div>`,
-    `<div class="card hl" onclick="openModal('retail_turnover')"><div class="lbl">Retail Turnover · 6m</div><div class="val" style="color:${rtMom>0?'var(--green)':'var(--red)'}">${rtMom!=null?(rtMom>0?'+':'')+rtMom+'%':'—'} ${arrow(rtMom)}</div><div class="sub">consumer demand 📈</div></div>`,
+    `<div class="card" style="border-left:3px solid ${pc}"><div class="lbl">Cycle Phase</div><div class="val" style="color:${pc};font-size:21px">${phase}</div><div class="sub">coincident × lagging quadrant</div></div>`,
+    `<div class="card hl" onclick="openModal('m1_growth')"><div class="lbl">🔮 M1 Money Growth · LEADING</div><div class="val" style="color:${m1Chg>0?'var(--green)':'var(--red)'}">${m1Now!=null?m1Now+'%':'—'} ${arrow(m1Chg)}</div><div class="sub">YoY · 6m accel ${sgn(m1Chg)}pp · leads ~6-12m 📈</div></div>`,
+    `<div class="card hl" onclick="openModal('gdp_yoy')"><div class="lbl">GDP Growth · COINCIDENT</div><div class="val">${gdpNow!=null?sgn(Math.round(gdpNow*10)/10)+'%':'—'}</div><div class="sub">real, YoY · quarterly 📈</div></div>`,
+    `<div class="card hl" onclick="openModal('indprod_core')"><div class="lbl">Industrial Production · 6m</div><div class="val" style="color:${ipMom>0?'var(--green)':'var(--red)'}">${sgn(ipMom)}% ${arrow(ipMom)}</div><div class="sub">coincident 📈</div></div>`,
+    `<div class="card hl" onclick="openModal('retail_turnover')"><div class="lbl">Retail Turnover · 6m</div><div class="val" style="color:${rtMom>0?'var(--green)':'var(--red)'}">${sgn(rtMom)}% ${arrow(rtMom)}</div><div class="sub">coincident demand 📈</div></div>`,
+    `<div class="card hl" onclick="openModal('unemployment_ea')"><div class="lbl">Unemployment · LAGGING</div><div class="val" style="color:${unChg<=0?'var(--green)':'var(--red)'}">${unNow!=null?unNow+'%':'—'} ${arrow(-unChg)}</div><div class="sub">6m chg ${sgn(unChg)}pp · lagging 📈</div></div>`,
   ].join('');
-  document.getElementById('cycle-read').textContent=`${phase==='—'?'':phase+' — '}${desc} Computed from ECB euro-area industrial production (excl. construction), the unemployment rate, and retail turnover. The global cross-asset cycle read lives at /global-cycle.html.`;
+  document.getElementById('cycle-read').textContent=`${phase==='—'?'':phase+' — '}${desc}${tilt} Lead → coincident → lag from ECB M1 money growth, industrial production, real GDP, retail turnover and the unemployment rate. Global cross-asset cycle read: /global-cycle.html.`;
 
   // labour & industry tiles (from the manifest; click → chart modal)
   if(m&&m.series){
@@ -310,7 +328,7 @@ async function load(){
   // dollar funding / FX claims (the Eurosystem FX-asset lines — DXY / dollar-shortage leads)
   if(m&&m.series){
     const ms=Object.fromEntries(m.series.map(s=>[s.id,s]));
-    const want=[['fx_claims_nonea','Claims on non-EA residents in FX (€mn) — DXY lead'],['ilm_usd_claims','Claims on EA residents in FX (€mn)'],['eurusd','EUR/USD reference rate']];
+    const want=[['fx_claims_nonea','Claims on non-EA residents in FX (€mn) — DXY lead'],['ilm_usd_claims','Claims on EA residents in FX (€mn)'],['eurusd','EUR/USD'],['eurcny','EUR/CNY'],['eurjpy','EUR/JPY']];
     document.getElementById('fxgrid').innerHTML=want.map(([id,lbl])=>{const s=ms[id];if(!s)return '';
       return `<div class="card hl" onclick="openModal('${id}')"><div class="lbl">${esc(lbl)}</div><div class="val">${s.latest!=null?(Math.abs(s.latest)>=100?s.latest.toLocaleString():s.latest):'—'}</div><div class="sub">${s.percentile!=null?s.percentile+'th %ile':''} · ${esc(s.latest_date||'')} 📈</div></div>`;}).join('');
     document.getElementById('fx-read').textContent='Eurosystem foreign-currency asset claims (weekly). Rising non-EA FX claims = dollar/FX accumulation; these balance-sheet lines lead DXY and pair with CISS FX & money-market stress.';
