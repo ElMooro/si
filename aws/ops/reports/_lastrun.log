@@ -1,8 +1,163 @@
-Confirming the page's actual fetch path (gj: justhodl.ai first, then PX proxy):
+/home/runner/work/si/si/aws/ops/pending/1738_provider_engine_map.py:53: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  end=datetime.datetime.utcnow(); start=end-datetime.timedelta(days=30)
+Engines with external data deps: 395 | scheduled rules hit: 194 | inv data for 395 fns
 
-  data/edgar-authority.json
-     justhodl.ai -> 404   PX proxy -> 200  [OK keys=13 net-nets=29 cc=89]
-  data/stock-valuations.json
-     justhodl.ai -> 404   PX proxy -> 200  [OK keys=22]
+PROVIDER             total live dormant
+  FMP                  176   87   89
+  FRED                 105   53   52
+  Polygon               77   44   33
+  Anthropic             57   25   32
+  SEC_EDGAR             19    9   10
+  ECB                   15    6    9
+  AlphaVantage           8    4    4
+  Yahoo                  8    4    4
+  CoinGecko              8    4    4
+  CMC                   15    4   11
+  FINRA                  6    3    3
+  NYFed                  5    2    3
+  Treasury               5    2    3
+  OFR                    5    2    3
+  FedReserve             6    2    4
+  CFTC                   3    2    1
+  CBOE                   3    2    1
+  QuiverQuant            2    2    0
+  CongressData           2    2    0
+  Coinbase               2    2    0
+  GoogleTrends           3    2    1
+  Zai_GLM                3    2    1
+  Stooq                  4    1    3
+  BLS                    1    1    0
+  USASpending            1    1    0
+  OECD                   1    1    0
+  PatentsView            1    1    0
+  WhiteHouse             1    1    0
+  Stocktwits             3    1    2
+  ApeWisdom              1    1    0
+  DefiLlama              3    1    2
+  Binance                3    1    2
+  Coinmetrics            2    1    1
+  Blockchain.info        3    1    2
+  NewsAPI                6    1    5
+  Wikimedia              1    1    0
+  Finviz                 0    0    0
+  Benzinga               1    0    1
+  Nasdaq                 2    0    2
+  SqueezeMetrics         1    0    1
+  WorldGovBonds          2    0    2
+  BEA                    1    0    1
+  Census                 1    0    1
+  EIA                    1    0    1
+  DBnomics               1    0    1
+  CFR                    2    0    2
+  Reddit                 1    0    1
+  OKX                    3    0    3
+  Bybit                  2    0    2
+  AltMe_FearGreed        3    0    3
+  Coinglass              1    0    1
+  Etherscan              2    0    2
+  Mempool                1    0    1
+  GoogleNews             1    0    1
+  GDELT                  2    0    2
+  AAII                   1    0    1
+  OpenAI                 1    0    1
 
-VERDICT: page renders if PX proxy serves edgar-authority.json (200).
+=== fully DORMANT data sources (0 live consumers) ===
+  Benzinga: ['benzinga-news-agent']
+  Nasdaq: ['justhodl-earnings-tracker', 'nasdaq-datalink-agent']
+  SqueezeMetrics: ['justhodl-dix']
+  WorldGovBonds: ['fmp-stock-picks-agent', 'justhodl-email-reports-v2']
+  BEA: ['bea-economic-agent']
+  Census: ['census-economic-agent']
+  EIA: ['eia-energy-agent']
+  DBnomics: ['justhodl-canary-grid']
+  CFR: ['fmp-stock-picks-agent', 'justhodl-email-reports-v2']
+  Reddit: ['justhodl-buzz-velocity']
+  OKX: ['justhodl-crypto-enricher', 'justhodl-crypto-funding', 'justhodl-crypto-intel']
+  Bybit: ['justhodl-crypto-enricher', 'justhodl-crypto-intel']
+  AltMe_FearGreed: ['justhodl-crypto-intel', 'justhodl-edge-engine', 'justhodl-financial-secretary']
+  Coinglass: ['justhodl-crypto-enricher']
+  Etherscan: ['justhodl-crypto-intel', 'justhodl-onchain-ratios']
+  Mempool: ['justhodl-onchain-ratios']
+  GoogleNews: ['justhodl-daily-report-v3']
+  GDELT: ['justhodl-gdelt-sentiment', 'justhodl-news-velocity']
+  AAII: ['justhodl-aaii-sentiment']
+  OpenAI: ['justhodl-research-critique']
+
+=== per-provider live engine detail (top providers) ===
+
+FMP: 87 live / 176 total
+   justhodl-pump-mechanics              on-demand inv30d=360
+   justhodl-momentum-leaders            on-demand inv30d=357
+   justhodl-hedge-planner               on-demand inv30d=289
+   justhodl-sector-heatmap              SCHED-DISABLED inv30d=272
+   justhodl-telegram-bot                SCHED-DISABLED inv30d=263
+   justhodl-global-stress               on-demand inv30d=137
+   justhodl-universe-builder            on-demand inv30d=133
+   justhodl-cro-escalation              on-demand inv30d=131
+
+Polygon: 44 live / 77 total
+   justhodl-portfolio-snapshot          on-demand inv30d=785
+   justhodl-anomaly-detector            SCHED-DISABLED inv30d=625
+   justhodl-nobrainer-tracker           on-demand inv30d=526
+   justhodl-dealer-gex                  SCHED-DISABLED inv30d=272
+   justhodl-implied-prob                on-demand inv30d=133
+   justhodl-signal-logger               SCHED(0 21 *) inv30d=98
+   justhodl-short-interest              SCHED(rate(6 hours)) inv30d=94
+   justhodl-etf-flows                   SCHED-DISABLED inv30d=88
+
+FRED: 53 live / 105 total
+   justhodl-anomaly-detector            SCHED-DISABLED inv30d=625
+   justhodl-repo-monitor                on-demand inv30d=225
+   justhodl-global-stress               on-demand inv30d=137
+   justhodl-cross-asset-confirm         SCHED-DISABLED inv30d=134
+   justhodl-implied-prob                on-demand inv30d=133
+   justhodl-brain-sync                  SCHED(0 13 *) inv30d=127
+   justhodl-macro-surprise              SCHED-DISABLED inv30d=88
+   justhodl-boj-detail                  SCHED(20 11 *) inv30d=69
+
+SEC_EDGAR: 9 live / 19 total
+   justhodl-13f-positions               SCHED-DISABLED inv30d=88
+   justhodl-activist-filings-scanner    on-demand inv30d=42
+   justhodl-activist-13d                on-demand inv30d=28
+   justhodl-buyback-scanner             SCHED(0 12 ? * MON *)) inv30d=6
+   justhodl-backlog                     SCHED(30 11 *) inv30d=0
+   justhodl-bond-trace                  SCHED(0 21 ? * MON-FRI *)) inv30d=0
+   justhodl-forward-orders              SCHED(0 11 *) inv30d=0
+   justhodl-ignition                    SCHED(30 10 *) inv30d=0
+
+ECB: 6 live / 15 total
+   justhodl-chart-data                  on-demand inv30d=12
+   ecb-auto-updater                     SCHED(0 6 ? * MON *)) inv30d=0
+   justhodl-ecb-derived                 SCHED(40 14 *) inv30d=0
+   justhodl-ecb-detail                  SCHED(0 11 *) inv30d=0
+   justhodl-ecb-history                 SCHED(0 6 ? * SAT *)) inv30d=0
+   justhodl-euro-fragmentation          SCHED(20 12 *) inv30d=0
+
+CFTC: 2 live / 3 total
+   cftc-futures-positioning-agent       SCHED(0 18 ? * FRI *)) inv30d=0
+   justhodl-cot-extremes-scanner        SCHED(0 19 ? * FRI *)) inv30d=0
+
+CMC: 4 live / 15 total
+   justhodl-crypto-narratives           on-demand inv30d=89
+   justhodl-altseason                   SCHED(55 13 *) inv30d=11
+   justhodl-valuations-agent            on-demand inv30d=3
+   justhodl-fleet-monitor               SCHED(rate(6 hours)) inv30d=0
+
+Finviz: 0 live / 0 total
+
+Polygon: 44 live / 77 total
+   justhodl-portfolio-snapshot          on-demand inv30d=785
+   justhodl-anomaly-detector            SCHED-DISABLED inv30d=625
+   justhodl-nobrainer-tracker           on-demand inv30d=526
+   justhodl-dealer-gex                  SCHED-DISABLED inv30d=272
+   justhodl-implied-prob                on-demand inv30d=133
+   justhodl-signal-logger               SCHED(0 21 *) inv30d=98
+   justhodl-short-interest              SCHED(rate(6 hours)) inv30d=94
+   justhodl-etf-flows                   SCHED-DISABLED inv30d=88
+
+QuiverQuant: 2 live / 2 total
+   justhodl-lobbying-intel              SCHED(0 16 *) inv30d=33
+   justhodl-political-stocks            SCHED(0 14 *) inv30d=0
+
+NewsAPI: 1 live / 6 total
+   justhodl-forward-orders              SCHED(0 11 *) inv30d=0
