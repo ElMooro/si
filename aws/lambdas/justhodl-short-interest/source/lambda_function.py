@@ -309,6 +309,40 @@ def lambda_handler(event=None, context=None):
             "n_days_volume_data": len(h),
         }
 
+    # ── Finviz whole-market short-float overlay ──
+    # Keeps data/short-interest.json fresh fleet-wide even when FINRA/Polygon are
+    # sparse or frozen. Consumers read latest_short_pct at runtime, so this single
+    # producer fix refreshes every short-interest consumer with zero redeploys.
+    try:
+        import finviz as FV
+        fvs = FV.load_short()
+        n_new = n_enr = 0
+        for tk, d in fvs.items():
+            sf = d.get("short_float_pct")
+            if sf is None:
+                continue
+            rec = by_ticker.get(tk)
+            if rec is None:
+                by_ticker[tk] = {
+                    "ticker": tk, "latest_short_pct": sf, "short_float_pct": sf,
+                    "days_to_cover": d.get("short_ratio"),
+                    "float_shares": d.get("float_shares"),
+                    "rel_volume": d.get("rel_volume"),
+                    "short_src": "finviz", "signal": "NEUTRAL", "score": 0,
+                }
+                n_new += 1
+            else:
+                rec["short_float_pct"] = sf
+                rec["latest_short_pct"] = sf
+                if rec.get("days_to_cover") is None:
+                    rec["days_to_cover"] = d.get("short_ratio")
+                rec.setdefault("float_shares", d.get("float_shares"))
+                rec["short_src"] = "finviz"
+                n_enr += 1
+        print("[short-interest] finviz overlay: +%d new, %d enriched" % (n_new, n_enr))
+    except Exception as e:
+        print("[short-interest] finviz overlay fail: %s" % str(e)[:80])
+
     # 4. Top signals
     crowded = [v for v in by_ticker.values() if v["signal"] in ("CROWDED_SHORT_RISING", "DISTRIBUTION")]
     crowded.sort(key=lambda x: (x.get("trend_pct") or 0), reverse=True)
@@ -335,6 +369,7 @@ def lambda_handler(event=None, context=None):
         "data_sources": {
             "short_volume": "FINRA daily RegSHO files (free)",
             "short_interest": "Polygon stocks short-interest API (bi-monthly snapshots)",
+            "short_float": "Finviz Elite whole-market short float (fresh, primary for latest_short_pct)",
         },
         "signal_definitions": {
             "SQUEEZE_RISK": "high days-to-cover + falling short volume (shorts covering)",
