@@ -56,51 +56,55 @@ def _pct_diff(a, b):
     return round((a - b) / abs(b) * 100, 1)
 
 
+def _match_fmp_by_end(fmp_rows, end_date):
+    """Pick the FMP annual row whose period end aligns with the filing's end date."""
+    if not fmp_rows:
+        return None
+    if end_date:
+        ey = str(end_date)[:7]  # YYYY-MM
+        for row in fmp_rows:
+            if str(row.get("date", ""))[:7] == ey:
+                return row
+        ey4 = str(end_date)[:4]
+        for row in fmp_rows:
+            if str(row.get("date", ""))[:4] == ey4 or str(row.get("fiscalYear")) == ey4:
+                return row
+    return fmp_rows[0]
+
+
 def _crosscheck_one(tk, cik, fmp_inc, fmp_bs):
-    """Compare FMP's latest annual figures to the SEC filing for the same fiscal year."""
+    """Compare FMP's latest annual NET INCOME + TOTAL ASSETS to the SEC filing for
+    the SAME period end. Universal us-gaap concepts only (revenue is sector-variable
+    in XBRL — banks/insurers don't use 'Revenues' cleanly — so it's excluded)."""
     facts = edgar.companyfacts(cik)
     if not facts:
         return None
-    ed_rev, fy, end = edgar.cf_latest_annual(facts, edgar.REVENUE)
-    ed_ni, _, _ = edgar.cf_latest_annual(facts, edgar.NET_INCOME)
-    ed_assets, _, _ = edgar.cf_latest_annual(facts, edgar.ASSETS)
-    if ed_rev is None and ed_ni is None:
+    ed_ni, fy, end = edgar.cf_latest_annual(facts, edgar.NET_INCOME)
+    ed_assets, fya, enda = edgar.cf_latest_annual(facts, edgar.ASSETS)
+    if ed_ni is None and ed_assets is None:
         return None
-    # match FMP row to the same fiscal year as the filing
-    frow = None
-    for row in (fmp_inc or []):
-        ry = row.get("fiscalYear") or str(row.get("date", ""))[:4]
-        if str(ry) == str(fy):
-            frow = row; break
-    if frow is None and fmp_inc:
-        frow = fmp_inc[0]
-    fmp_rev = (frow or {}).get("revenue")
-    fmp_ni = (frow or {}).get("netIncome")
-    brow = None
-    for row in (fmp_bs or []):
-        ry = row.get("fiscalYear") or str(row.get("date", ""))[:4]
-        if str(ry) == str(fy):
-            brow = row; break
-    if brow is None and fmp_bs:
-        brow = fmp_bs[0]
+    irow = _match_fmp_by_end(fmp_inc, end)
+    brow = _match_fmp_by_end(fmp_bs, enda)
+    fmp_ni = (irow or {}).get("netIncome")
     fmp_assets = (brow or {}).get("totalAssets")
-
-    d_rev = _pct_diff(fmp_rev, ed_rev)
     d_ni = _pct_diff(fmp_ni, ed_ni)
     d_as = _pct_diff(fmp_assets, ed_assets)
-    flags = []
-    if d_rev is not None and abs(d_rev) > DISCREPANCY_PCT:
-        flags.append("revenue %+.1f%%" % d_rev)
-    if d_ni is not None and abs(d_ni) > DISCREPANCY_PCT:
-        flags.append("net income %+.1f%%" % d_ni)
-    if d_as is not None and abs(d_as) > DISCREPANCY_PCT:
-        flags.append("assets %+.1f%%" % d_as)
+
+    flags, unverified = [], []
+    for label, d in (("net income", d_ni), ("assets", d_as)):
+        if d is None:
+            continue
+        if 5.0 < abs(d) <= 75.0:
+            flags.append("%s %+.1f%%" % (label, d))
+        elif abs(d) > 75.0:
+            unverified.append("%s %+.1f%% (period/concept mismatch — not a confirmed error)" % (label, d))
     return {
         "ticker": tk, "fy": fy, "period_end": end,
-        "filing": {"revenue": ed_rev, "net_income": ed_ni, "assets": ed_assets},
-        "fmp": {"revenue": fmp_rev, "net_income": fmp_ni, "assets": fmp_assets},
-        "diff_pct": {"revenue": d_rev, "net_income": d_ni, "assets": d_as},
-        "flags": flags, "match": not flags,
+        "filing": {"net_income": ed_ni, "assets": ed_assets},
+        "fmp": {"net_income": fmp_ni, "assets": fmp_assets},
+        "diff_pct": {"net_income": d_ni, "assets": d_as},
+        "flags": flags, "unverified": unverified,
+        "match": not flags and not unverified,
     }
 
 
@@ -157,7 +161,8 @@ def lambda_handler(event, context):
         targets += list(opp.get("by_ticker", {}).keys())
     except Exception:
         pass
-    targets = [t for t in dict.fromkeys(targets) if cmap.get(t)][:90]
+    targets = [t for t in dict.fromkeys(targets)
+               if cmap.get(t) and uni.get(t, {}).get("country") == "USA"][:90]
 
     def _do(tk):
         inc = _fmp("income-statement", {"symbol": tk, "period": "annual", "limit": 4})
@@ -176,7 +181,9 @@ def lambda_handler(event, context):
             except Exception:
                 pass
     flagged = [c for c in checks if c["flags"]]
-    flagged.sort(key=lambda c: -max(abs(v) for v in c["diff_pct"].values() if v is not None) if any(v is not None for v in c["diff_pct"].values()) else 0)
+    unverified = [c for c in checks if c["unverified"] and not c["flags"]]
+    clean = [c for c in checks if c["match"]]
+    flagged.sort(key=lambda c: -max((abs(v) for v in c["diff_pct"].values() if v is not None), default=0))
 
     out = {
         "engine": "edgar-authority", "version": "1.0.0", "generated_at": now,
@@ -188,16 +195,20 @@ def lambda_handler(event, context):
         "ncav_coverage": ncav_coverage,
         "net_net_filter": "US-listed, market cap >= $%.0fM, NCAV/MC <= %.0fx (excludes foreign micro-cap traps and likely units/currency reporting errors)" % (MC_FLOOR_M, NCAV_MC_CAP),
         "crosscheck": {
-            "n_checked": len(checks), "n_clean": len(checks) - len(flagged),
-            "n_flagged": len(flagged), "flagged": flagged, "sample_clean": [c["ticker"] for c in checks if c["match"]][:20],
+            "n_checked": len(checks), "n_clean": len(clean),
+            "n_flagged": len(flagged), "n_unverified": len(unverified),
+            "flagged": flagged,
+            "unverified": [{"ticker": c["ticker"], "note": c["unverified"]} for c in unverified][:20],
+            "sample_clean": [c["ticker"] for c in clean][:20],
+            "method": "US filers only; SEC filing (XBRL) vs FMP, period-end matched; net income + total assets (universal concepts); confirmed flag band 5-75%, larger diffs bucketed as unverified concept/period mismatch.",
         },
         "provenance": "SEC EDGAR XBRL (frames + companyfacts); cross-check vs FMP /stable/",
-        "note": "Net-nets are typically tiny/distressed (cheap for a reason). Cross-check flags large FMP-vs-filing divergences; some may be fiscal-period timing — verify against the 10-K.",
+        "note": "Net-nets are typically clinical-stage/distressed (below net cash for a reason) — surfaced, not endorsed. Cross-check confirms FMP matches the filing on net income + assets; flags are plausible FMP divergences worth a manual look at the 10-K.",
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, separators=(",", ":"), default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=900")
     return {"statusCode": 200, "body": json.dumps({
         "net_nets": len(net_nets), "classic": out["n_classic_net_nets"],
-        "ncav_cov": ncav_coverage, "checked": len(checks), "flagged": len(flagged),
+        "ncav_cov": ncav_coverage, "checked": len(checks), "flagged": len(flagged), "unverified": len(unverified),
         "elapsed_s": out["elapsed_s"]})}
