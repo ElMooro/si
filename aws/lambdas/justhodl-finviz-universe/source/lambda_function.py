@@ -76,6 +76,40 @@ def lambda_handler(event=None, context=None):
                                   separators=(",", ":"), default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=900")
 
+    # ── earnings calendar (derived from earnings_date — zero extra API calls) ──
+    from datetime import datetime as _dt, timedelta as _td
+    _today = datetime.now(timezone.utc).date()
+    _horizon = _today + _td(days=30)
+    _bd = {}
+    for tk, r in uni.items():
+        ed = r.get("earnings_date")
+        if not ed:
+            continue
+        dt = None
+        for fmt in ("%m/%d/%Y %I:%M:%S %p", "%m/%d/%Y"):
+            try:
+                dt = _dt.strptime(str(ed).strip(), fmt); break
+            except Exception:
+                pass
+        if not dt or not (_today <= dt.date() <= _horizon):
+            continue
+        when = "AMC" if dt.hour >= 16 else ("BMO" if 0 < dt.hour < 10 else "—")
+        _bd.setdefault(dt.date().isoformat(), []).append({
+            "ticker": tk, "company": r.get("company"), "sector": r.get("sector"),
+            "time": when, "mktcap_m": r.get("market_cap"), "perf_m": r.get("perf_m"),
+            "analyst_recom": r.get("analyst_recom")})
+    cal = []
+    for d in sorted(_bd):
+        reps = sorted(_bd[d], key=lambda x: -(x.get("mktcap_m") or 0))
+        cal.append({"date": d, "n": len(reps), "reporters": reps[:60]})
+    s3.put_object(Bucket=BUCKET, Key="data/finviz-earnings-calendar.json",
+                  Body=json.dumps({"generated_at": now, "horizon_days": 30, "n_days": len(cal),
+                                   "n_reporters": sum(c["n"] for c in cal), "calendar": cal},
+                                  separators=(",", ":"), default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=900")
+    print("[finviz-universe] earnings calendar: %d days, %d reporters next 30d"
+          % (len(cal), sum(c["n"] for c in cal)))
+
     el = round(time.time() - started, 1)
     print("[finviz-universe] %d tickers | short_float=%d float=%d rel_volume=%d | %ss"
           % (n, n_short, n_float, n_relvol, el))
