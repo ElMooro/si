@@ -110,7 +110,7 @@ const TABS={
     {k:"major_news",t:"Major News",d:"Names carrying notable tagged news",sort:"change"},
   ],
 };
-let DATA=null, HEAT=null, GROUPS=null, NEWS=null, CAL=null, cur="Trend", gView="sectors", nView="news";
+let DATA=null, HEAT=null, GROUPS=null, NEWS=null, CAL=null, SURP=null, cur="Trend", gView="sectors", nView="news";
 const fmtPct=v=>v==null?"—":(v>0?"+":"")+v.toFixed(1)+"%";
 const cls=v=>v==null?"dim":(v>0?"pos":(v<0?"neg":""));
 const fmtVol=v=>v==null?"—":(v>=1e6?(v/1e6).toFixed(1)+"M":v>=1e3?(v/1e3).toFixed(0)+"K":v);
@@ -192,12 +192,24 @@ function newsHTML(){
   setTimeout(()=>document.querySelectorAll("[data-n]").forEach(el=>el.onclick=()=>{nView=el.dataset.n;render();}),0);
   return `<div style="margin-bottom:6px;color:var(--text-mute);font-size:11px">Ticker-tagged market news + blogs from Finviz, refreshed through the day.</div>${tick}${bar}<div class="scroll" style="max-height:560px">${list}</div>`;
 }
+function surpriseHTML(){
+  const S=SURP||{};const beats=S.top_beats||[],miss=S.top_misses||[];
+  if(!beats.length&&!miss.length)return "";
+  const pp=v=>v==null?'—':(v>0?'+':'')+v+'%';
+  const row=(x,c)=>`<tr><td class="l tk">${x.ticker}</td><td class="l co" title="${(x.company||'').replace(/"/g,'')}">${x.company||''}</td><td class="${c}">${pp(x.eps_surprise)}</td><td class="${(x.rev_surprise||0)<0?'neg':'pos'}">${pp(x.rev_surprise)}</td><td class="${(x.perf_m||0)<0?'neg':'pos'}">${pp(x.perf_m)}</td></tr>`;
+  const tbl=(arr,c)=>`<div class="scroll" style="max-height:320px"><table><thead><tr><th class="l">Ticker</th><th class="l">Company</th><th>EPS surp</th><th>Rev surp</th><th>1M</th></tr></thead><tbody>${arr.slice(0,20).map(x=>row(x,c)).join("")}</tbody></table></div>`;
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+     <div class="card"><div class="card-h"><div class="card-t"><span>📈 Biggest EPS beats</span></div><div class="card-d">Most-recent-quarter surprise, ≥$1B. Pair with price reaction for drift.</div></div>${tbl(beats,'pos')}</div>
+     <div class="card"><div class="card-h"><div class="card-t"><span>📉 Biggest EPS misses</span></div><div class="card-d">Largest negative surprises, ≥$1B.</div></div>${tbl(miss,'neg')}</div>
+   </div>`;
+}
 function earningsHTML(){
   const C=CAL||{};const days=C.calendar||[];
-  if(!days.length)return '<div class="empty">No confirmed earnings in the next 30 days (quiet between seasons — fills as companies confirm Q2 dates).</div>';
+  const surp=surpriseHTML();
+  if(!days.length)return surp+'<div class="empty">No confirmed earnings in the next 30 days (quiet between seasons — fills as companies confirm Q2 dates).</div>';
   const cap=v=>v==null?'':v>=1e6?'$'+(v/1e6).toFixed(1)+'T':v>=1e3?'$'+(v/1e3).toFixed(0)+'B':'$'+v.toFixed(0)+'M';
   const tcol=t=>t==='BMO'?'var(--info)':t==='AMC'?'var(--accent)':'var(--text-mute)';
-  return `<div style="margin-bottom:10px;color:var(--text-mute);font-size:11px">Upcoming reporters (next 30 days), largest first. BMO = before open, AMC = after close. Derived from Finviz earnings dates.</div>
+  return surp+`<div style="margin-bottom:10px;color:var(--text-mute);font-size:11px">Upcoming reporters (next 30 days), largest first. BMO = before open, AMC = after close. Derived from Finviz earnings dates.</div>
    ${days.map(d=>{
      const dt=new Date(d.date+"T12:00:00");const lab=dt.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'});
      return `<div class="card" style="margin-bottom:10px"><div class="card-h"><div class="card-t"><span>${lab}</span><span class="cnt">${d.n} reporting</span></div></div>
@@ -230,6 +242,7 @@ async function load(){
     try{const gr=await fetch(PROXY+"/data/finviz-groups.json?t="+Date.now());GROUPS=await gr.json();}catch(e){GROUPS=null;}
     try{const nr=await fetch(PROXY+"/data/finviz-news.json?t="+Date.now());NEWS=await nr.json();}catch(e){NEWS=null;}
     try{const cr=await fetch(PROXY+"/data/finviz-earnings-calendar.json?t="+Date.now());CAL=await cr.json();}catch(e){CAL=null;}
+    try{const sr=await fetch(PROXY+"/data/finviz-earnings-surprise.json?t="+Date.now());SURP=await sr.json();}catch(e){SURP=null;}
     const tot=Object.values(DATA.counts||{}).reduce((a,b)=>a+b,0);
     document.getElementById("m-tot").textContent=tot.toLocaleString();
     const d=new Date(DATA.generated_at);
