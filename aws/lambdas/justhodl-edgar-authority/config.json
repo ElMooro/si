@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-edgar-authority",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Filing-grade EDGAR layer: authoritative FMP cross-check (XBRL companyfacts) + NCAV/net-net deep-value screen (frames API). Output data/edgar-authority.json.",
+  "inherit_env": {"from_function": "justhodl-stock-valuations", "keys": ["FMP_KEY"]},
+  "schedule": {
+    "rule_name": "edgar-authority-daily",
+    "cron": "cron(0 13 * * ? *)",
+    "description": "EDGAR authority cross-check + net-net screen — daily 13 UTC"
+  }
+}
