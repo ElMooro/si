@@ -45,8 +45,8 @@ def num(v):
 
 def fetch_financials(tk):
     prof = fmp("profile", {"symbol": tk})
-    inc = fmp("income-statement", {"symbol": tk, "period": "annual", "limit": 10})
-    cf = fmp("cash-flow-statement", {"symbol": tk, "period": "annual", "limit": 10})
+    inc = fmp("income-statement", {"symbol": tk, "period": "annual", "limit": 15})
+    cf = fmp("cash-flow-statement", {"symbol": tk, "period": "annual", "limit": 15})
     rat = fmp("ratios-ttm", {"symbol": tk})
     earn = fmp("earnings", {"symbol": tk, "limit": 12})
     bs = fmp("balance-sheet-statement", {"symbol": tk, "period": "annual", "limit": 2})
@@ -63,7 +63,7 @@ def fetch_financials(tk):
         acq_by_year[yr] = num(row.get("acquisitionsNet"))
 
     fins = []
-    for row in (inc if isinstance(inc, list) else [])[:10]:
+    for row in (inc if isinstance(inc, list) else [])[:15]:
         yr = (row.get("calendarYear") or str(row.get("date", ""))[:4])
         rev = num(row.get("revenue")); ni = num(row.get("netIncome"))
         gp = num(row.get("grossProfit")); oi = num(row.get("operatingIncome"))
@@ -133,7 +133,7 @@ def fetch_financials(tk):
         spk = [spk[int(i * step)] for i in range(15)] + [spk[-1]]
 
     # --- valuation vs its OWN history (P/E percentile) ---
-    rat_hist = fmp("ratios", {"symbol": tk, "period": "annual", "limit": 10})
+    rat_hist = fmp("ratios", {"symbol": tk, "period": "annual", "limit": 15})
     pes = []
     for row in (rat_hist if isinstance(rat_hist, list) else []):
         pv = num(row.get("priceToEarningsRatio")) or num(row.get("peRatio"))
