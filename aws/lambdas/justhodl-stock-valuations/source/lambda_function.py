@@ -916,9 +916,15 @@ def lambda_handler(event=None, context=None):
             r = sum(1 for x in _pes if x < pe) / len(_pes)
             return "cheap" if r <= 0.34 else ("rich" if r >= 0.66 else "fair")
         _secmap = {s["name"]: s for s in _secs}
+        _SECNORM = {"Financials": "Financial", "Information Technology": "Technology",
+                    "Tech": "Technology", "Consumer Discretionary": "Consumer Cyclical",
+                    "Consumer Staples": "Consumer Defensive", "Materials": "Basic Materials",
+                    "Health Care": "Healthcare", "Telecommunication Services": "Communication Services",
+                    "Telecom": "Communication Services", "Communication": "Communication Services"}
+        def _norm(x): return _SECNORM.get(x, x)
         _nt = 0
         for _row in sp_table + hp_out:
-            sd = _secmap.get(_row.get("sector"))
+            sd = _secmap.get(_norm(_row.get("sector")))
             if sd:
                 _row["sector_pe"] = sd.get("pe"); _row["sector_fwd_pe"] = sd.get("fwd_pe")
                 _row["sector_peg"] = sd.get("peg"); _row["sector_perf_m"] = sd.get("perf_m")
