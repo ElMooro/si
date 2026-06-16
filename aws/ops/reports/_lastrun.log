@@ -1,11 +1,15 @@
-manifest series count: 37
-  unemployment_ea    OK latest=6.3 2026-04
-  indprod_total      OK latest=98.9 2025-09
-  indprod_core       OK latest=98.1 2025-09
-  eurusd             OK latest=1.159 2026-06-16
-  ciss_fx            OK latest=0.00109 2026-06-15
-  ciss_mm            OK latest=0.0115 2026-06-15
-  eurusd.json            latest=1.159 n=7028 1999-01-04->2026-06-16
-  ilm_usd_claims.json    latest=18804.0 n=1433 1999-01-01->2026-06-12
-ciss ea_subindex: ['Bond market', 'Cross-subindex correlation', 'Equity market', 'Financial intermediaries', 'FX market', 'Money market']
-ciss n_series: 65 | has US/CN: True True
+=== DOLLAR SHORTAGE — Eurosystem FX claims (titles) ===
+  EA-res FX W A030000 Z06    ILM/W.U2.C.A030000.U2.Z06      -> ('ILM.W.U2.C.A030000.U2.Z06', 'Claims on euro area residents denominated in foreign currenc', '2026-W24', '18804')
+  nonEA-res FX W A020000 Z06 ILM/W.U2.C.A020000.U2.Z06      -> ERR 404
+  nonEA-res FX W A020000 U4  ILM/W.U2.C.A020000.U4.Z06      -> ('ILM.W.U2.C.A020000.U4.Z06', 'Claims on non-euro area residents denominated in foreign cur', '2026-W24', '519958')
+
+--- ILM weekly foreign-currency items (wildcard) ---
+status OK count 2
+  ILM.W.U2.C.A030000.U2.Z06          Claims on euro area residents denominated in foreign currenc | 2026-W24 18804
+  ILM.W.U2.C.L070000.U2.Z06          Liabilities to euro area residents denominated in foreign cu | 2026-W24 16259
+
+=== UNEMPLOYMENT universe (LFSI) ===
+EA breakdowns status ERR 400 count 0
+
+=== INDUSTRIAL/MANUFACTURING universe (STS PROD, EA) ===
+STS PROD status ERR 400 count 0
