@@ -1,19 +1,8 @@
-invoke: {"statusCode": 200, "body": "{\"written\": 33}"}
-  fx_claims_nonea        freq=weekly   n= 1433 latest=519958.0 2026-06-12 pctile=97.1
-  ilm_usd_claims         freq=weekly   n= 1433 latest=18804.0 2026-06-12 pctile=26.0
-  unemp_ea_youth         freq=monthly  n=  316 latest=14.8 2026-04 pctile=12.3
-  unemp_de               freq=monthly  n=  352 latest=3.8 2026-04 pctile=30.4
-  unemp_fr               freq=monthly  n=  352 latest=8.2 2026-04 pctile=29.3
-  unemp_it               freq=monthly  n=  352 latest=5.1 2026-04 pctile=0.3
-  unemp_es               freq=monthly  n=  352 latest=10.3 2026-04 pctile=13.6
-  unemp_gr               freq=monthly  n=  337 latest=9.5 2026-04 pctile=17.2
-  unemp_fi               freq=monthly  n=  352 latest=10.7 2026-04 pctile=93.2
-  indprod_intermediate   freq=monthly  n=  345 latest=88.2 2025-09 pctile=7.5
-  indprod_capital        freq=monthly  n=  345 latest=101.5 2025-09 pctile=79.7
-  indprod_durable        freq=monthly  n=  345 latest=93.2 2025-09 pctile=20.0
-  indprod_nondurable     freq=monthly  n=  345 latest=111.8 2025-09 pctile=97.4
-  indprod_energy         freq=monthly  n=  345 latest=109.5 2025-09 pctile=97.1
-  manuf_turnover         freq=monthly  n=  308 latest=114.7 2025-08 pctile=90.6
-  retail_turnover        freq=monthly  n=  308 latest=103.0 2025-08 pctile=84.7
+invoked regime-composite; waiting...
+refreshed=True | CISS-family modules (4):
+  ECB CISS (Systemic Stress)       dim=liquidity  regime=STRESS_LOW pol=1 | CISS 0.008 — systemic stress CALM (10%ile) — easy conditions
+  CISS · Money-Market Stress       dim=liquidity  regime=STRESS_LOW pol=1 | Money market CISS 0.0115 (6%ile) — calm
+  CISS · Bond-Market Stress        dim=vol        regime=STRESS_LOW pol=1 | Bond market CISS 0.0211 (4%ile) — calm
+  CISS · Equity-Market Stress      dim=vol        regime=STRESS_LOW pol=1 | Equity market CISS 0.0118 (6%ile) — calm
 
-OK=16 MISSING=0
+manifest count: 57 | fx_claims_nonea: True | unemp_it: True | indprod_energy: True
