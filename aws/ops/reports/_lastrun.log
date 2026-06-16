@@ -1,17 +1,13 @@
-=== Eurostat BCS confidence — ei_bssi_m_r2 (indic codes) ===
-  industrial     BS-ICI     -> ERR HTTP Error 400: Bad Request  (n=0)
-  services       BS-SCI     -> ERR HTTP Error 400: Bad Request  (n=0)
-  consumer       BS-CSMCI   -> ERR HTTP Error 400: Bad Request  (n=0)
-  retail         BS-RCI     -> ERR HTTP Error 400: Bad Request  (n=0)
-  construction   BS-CCI     -> ERR HTTP Error 400: Bad Request  (n=0)
-  ESI            BS-ESI-I   -> ERR HTTP Error 400: Bad Request  (n=0)
-  employment EEI BS-EEI     -> ERR HTTP Error 400: Bad Request  (n=0)
+=== ei_bssi_m_r2 (sentiment/confidence) structure ===
+  dims: ['freq', 'indic', 's_adj', 'geo', 'time']
+    freq: M=Monthly
+    indic: BS-CCI-BAL=Construction confidenc, BS-ESI-I=Economic sentiment ind, BS-ICI-BAL=Industrial confidence , BS-RCI-BAL=Retail confidence indi, BS-CSMCI-BAL=Consumer confidence in, BS-SCI-BAL=Services confidence in
+    s_adj: NSA=Unadjusted data (i.e. , SA=Seasonally adjusted da
 
-=== Eurostat IP by sector/MIG — sts_inpr_m (index, YoY computable) ===
-  total B-D              -> None  (n=0)
-  manufacturing C        -> None  (n=0)
-  intermediate MIG_ING   -> None  (n=0)
-  capital MIG_CAG        -> None  (n=0)
-  durable MIG_DCOG       -> None  (n=0)
-  nondurable MIG_NDCOG   -> None  (n=0)
-  energy MIG_NRG         -> None  (n=0)
+=== sts_inpr_m (industrial production) structure ===
+  dims: ['freq', 'indic_bt', 'nace_r2', 's_adj', 'unit', 'geo', 'time']
+    freq: M=Monthly
+    indic_bt: PRD=Production (volume)
+    nace_r2: B-D=Mining and quarrying; , MIG_ING_CAG=MIG - intermediate and, MIG_ING=MIG - intermediate goo, MIG_NRG_X_E=MIG - energy (except s, MIG_NRG_X_D_E=MIG - energy (except s, MIG_CAG=MIG - capital goods, MIG_COG=MIG - consumer goods, MIG_COG_X_FOOD=MIG - consumer goods (, MIG_DCOG=MIG - durable consumer, MIG_NDCOG=MIG - non-durable cons, B_C=Mining and quarrying; , B_C_X_MIG_NRG=Mining and quarrying; , B-D_X_FOOD=Mining and quarrying; , B_C_X_FD_MIG_NRG=Mining and quarrying; 
+    s_adj: NSA=Unadjusted data (i.e. , CA=Calendar adjusted data, SCA=Seasonally and calenda
+    unit: I21=Index, 2021=100, I15=Index, 2015=100, I10=Index, 2010=100, PCH_PRE=Percentage change on p, PCH_SM=Percentage change comp
