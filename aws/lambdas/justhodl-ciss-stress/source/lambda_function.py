@@ -75,14 +75,40 @@ def _csv_rows(body):
 
 
 def discover(flow):
-    """All series keys in a flow with their latest date; keep only fresh ones."""
+    """List every series in a flow with its latest date (no filtering here)."""
     st, body = _get(f"{BASE}/{flow}?format=csvdata&lastNObservations=1")
     keys = {}
     if st == 200:
         for k, t, v in _csv_rows(body):
-            if t >= FRESH_CUTOFF:
-                keys[k] = t
+            keys[k] = t
     return keys
+
+
+def dedup_superseded(keys):
+    """ECB replaced several series with newer 'N' variants (e.g. SS_BM->SS_BMN,
+    SOV_CI->SOV_CIN). Keep EVERY distinct series, but when a newer N-variant
+    exists for the same (area, indicator) drop the superseded older one. Series
+    with no N-variant (e.g. UK/Czechia/Denmark/Hungary/Poland/Sweden sovereign)
+    are kept even if discontinued — they are the only CISS ECB offers for them."""
+    base_to_n = {
+        "SS_CI": "SS_CIN", "SS_BM": "SS_BMN", "SS_EM": "SS_EMN", "SS_FI": "SS_FIN",
+        "SS_FX": "SS_FXN", "SS_MM": "SS_MMN", "SS_CO": "SS_CON",
+        "SOV_CI": "SOV_CIN", "SOV_GDPW": "SOV_GDPWN", "SOV_EW": "SOV_EWN",
+    }
+    present = set()
+    for k in keys:
+        p = k.split(".")
+        if len(p) >= 2:
+            present.add((p[2], p[-2]))
+    out = {}
+    for k, t in keys.items():
+        p = k.split(".")
+        area, ind = p[2], p[-2]
+        nvar = base_to_n.get(ind)
+        if nvar and (area, nvar) in present:
+            continue  # a fresher N-variant supersedes this one -> drop the duplicate
+        out[k] = t
+    return out
 
 
 def history(key):
@@ -156,8 +182,8 @@ def categorize(key):
         return "ea_subindex", area, IND.get(ind, ind)
     if ind.startswith("SOV"):
         return ("sovereign_ea" if area == "U2" else "sovereign_country"), area, IND.get(ind, ind)
-    if ind == "SS_CIN":
-        return "country_ciss", area, IND.get(ind, ind)
+    if ind in ("SS_CIN", "SS_CI"):
+        return "country_ciss", area, IND.get(ind, "Composite (CISS)")
     return "other", area, IND.get(ind, ind)
 
 
@@ -165,7 +191,7 @@ def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc).isoformat()
     universe = {}
-    universe.update({k: ("CISS", t) for k, t in discover("CISS").items()})
+    universe.update({k: ("CISS", t) for k, t in dedup_superseded(discover("CISS")).items()})
     universe.update({k: ("CLIFS", t) for k, t in discover("CLIFS").items()})
 
     series = []
@@ -177,12 +203,18 @@ def lambda_handler(event, context):
         cat, area, ind_label = categorize(key)
         freq = key.split(".")[1] if len(key.split(".")) > 1 else "D"
         st = stats(pts)
+        ld = pts[-1][0]
+        try:
+            _ld = datetime.strptime((ld[:10] if len(ld) >= 10 else ld + "-01"), "%Y-%m-%d").date()
+            disc = (datetime.now(timezone.utc).date() - _ld).days > 120
+        except Exception:
+            disc = False
         series.append({
             "id": key.replace(".", "_"), "key": key,
             "flow": flow, "category": cat, "area": area,
             "country": COUNTRY.get(area, area), "freq": freq,
             "label": "%s — %s" % (COUNTRY.get(area, area), ind_label),
-            "indicator": ind_label,
+            "indicator": ind_label, "discontinued": disc,
             "latest_date": pts[-1][0], "start_date": pts[0][0],
             "n_obs": len(pts), "points": downsample_weekly(pts), **st,
         })
@@ -200,14 +232,14 @@ def lambda_handler(event, context):
                 "ELEVATED" if v >= 0.1 else "NORMAL" if v >= 0.04 else "CALM")
 
     out = {
-        "engine": "ciss-stress", "version": "1.0.0", "generated_at": now,
+        "engine": "ciss-stress", "version": "1.1.0", "generated_at": now,
         "elapsed_s": round(time.time() - t0, 1),
         "n_series": len(series), "categories": cats,
         "ea_composite": head["latest"] if head else None,
         "ea_composite_date": head["latest_date"] if head else None,
         "ea_regime": band,
         "frequency_note": "CISS composite & sub-indices: daily (ECB ~2-3 business-day lag). SovCISS: daily. Country CISS / CLIFS: monthly.",
-        "provenance": "ECB Data Portal (data-api.ecb.europa.eu) — CISS + CLIFS dataflows, full history.",
+        "provenance": "ECB Data Portal (data-api.ecb.europa.eu) — every distinct CISS + CLIFS series (incl. US, China, UK & non-euro countries); superseded duplicate variants dropped; discontinued series flagged.",
         "series": series,
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,

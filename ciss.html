@@ -106,7 +106,7 @@ function detailChart(s){
 function card(s,feat){
   const col=pcol(s.pctile);
   return `<div class="card ${feat?'feat':''}" data-id="${s.id}">
-    <div class="top"><div><div class="nm">${esc(s.country)}</div><div class="ind">${esc(s.indicator)} · ${s.freq==='D'?'daily':'monthly'}</div></div>
+    <div class="top"><div><div class="nm">${esc(s.country)}</div><div class="ind">${esc(s.indicator)} · ${s.freq==='D'?'daily':'monthly'}${s.discontinued?' · <span style="color:var(--fg3)">⏸ discontinued '+(s.latest_date||'').slice(0,7)+'</span>':''}</div></div>
       <div class="val" style="color:${col}">${(s.latest!=null?s.latest.toFixed(4):'—')}</div></div>
     <div class="row">
       <span class="pill" style="background:${col}22;color:${col}">${pband(s.pctile)} ${s.pctile!=null?s.pctile.toFixed(0)+'%ile':''}</span>
