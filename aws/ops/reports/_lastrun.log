@@ -1,6 +1,2 @@
-invoked async, polling...
-finviz_truth present: True
-  n_sp500: 503 | n_russell2000: 1894
-  recon implied-R2000 but Finviz says OUT (potential adds/boundary): 40 e.g. ['AACB', 'AADX', 'AB', 'ABXL', 'ACHC', 'AD', 'ADT', 'AENT']
-  Finviz R2000 but recon ranks elsewhere (potential demote/delete): 40 e.g. ['AAOI', 'AARD', 'ACA', 'ACH', 'ACNT', 'ACR', 'ACU', 'AEIS']
-n_additions: 146 | n_deletions: 246
+output has fv_in_r2000 tags: True | recon_disagree: True
+  list 'top_long_setups': 1/10 recon_disagree (rank-implied != Finviz truth)
