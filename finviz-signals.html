@@ -69,6 +69,16 @@ tr:last-child td{border-bottom:none;}
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 const TABS={
+  "Patterns":[
+    {k:"double_bottom",t:"⩗ Double Bottom",d:"Bullish reversal — bottom confirmation (W-shape)",sort:"perf_m",asc:true},
+    {k:"inverse_hs",t:"⩗ Inverse Head & Shoulders",d:"Bullish reversal — strong bottom confirmation",sort:"perf_m",asc:true},
+    {k:"multiple_bottom",t:"Multiple Bottom",d:"Bullish — repeated support holds",sort:"perf_m",asc:true},
+    {k:"channel_up",t:"Channel Up",d:"Bullish trend continuation",sort:"perf_m"},
+    {k:"double_top",t:"⩘ Double Top",d:"Bearish reversal — top confirmation (M-shape)",sort:"perf_m"},
+    {k:"head_shoulders",t:"⩘ Head & Shoulders",d:"Bearish reversal — strong top confirmation",sort:"perf_m"},
+    {k:"multiple_top",t:"Multiple Top",d:"Bearish — repeated resistance caps",sort:"perf_m"},
+    {k:"channel_down",t:"Channel Down",d:"Bearish trend continuation",sort:"perf_m",asc:true},
+  ],
   "Trend":[
     {k:"golden_cross",t:"⬆ Golden Cross",d:"50-day SMA crossed ABOVE the 200-day — bullish trend turn",sort:"perf_m"},
     {k:"death_cross",t:"⬇ Death Cross",d:"50-day SMA crossed BELOW the 200-day — bearish trend turn",sort:"perf_m",asc:true},
@@ -144,7 +154,7 @@ async function load(){
     document.getElementById("m-tot").textContent=tot.toLocaleString();
     const d=new Date(DATA.generated_at);
     document.getElementById("m-upd").textContent=isNaN(d)?"—":d.toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
-    document.getElementById("foot").innerHTML="Recom = Finviz analyst consensus (1 = strong buy → 5 = strong sell). Trend turns use the 50-day vs 200-day moving-average cross. <b>Finviz does not expose options put/call flow</b> — see the Options Flow desk (Polygon) for that. Data is a snapshot, not intraday tick; refreshed 3× per trading day.";
+    document.getElementById("foot").innerHTML="Recom = Finviz analyst consensus (1 = strong buy → 5 = strong sell). Trend turns use the 50-day vs 200-day cross. Patterns (double top/bottom, H&S) are Finviz's auto-detected formations — top/bottom <i>confirmation</i>, best paired with a momentum or volume trigger. <b>Finviz does not expose options put/call flow</b> — see the Options Flow desk (Polygon) for that. Data is a snapshot, not intraday tick; refreshed 3× per trading day.";
     render();
   }catch(e){
     document.getElementById("view").innerHTML=`<div class="empty">Could not load signals feed. ${e}</div>`;

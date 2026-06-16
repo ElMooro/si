@@ -28,6 +28,15 @@ SCREENS = [
     ("insider_buys",   "s=it_latestbuys",      100),
     ("insider_sales",  "s=it_latestsales",     100),
     ("major_news",     "s=n_majornews",         60),
+    # ── chart patterns: top/bottom confirmation (reversal) + trend continuation ──
+    ("double_bottom",  "f=ta_pattern_doublebottom",        120),  # bullish bottom
+    ("double_top",     "f=ta_pattern_doubletop",           120),  # bearish top
+    ("inverse_hs",     "f=ta_pattern_headandshouldersinv",  80),  # bullish bottom
+    ("head_shoulders", "f=ta_pattern_headandshoulders",     80),  # bearish top
+    ("multiple_bottom","f=ta_pattern_multiplebottom",      120),
+    ("multiple_top",   "f=ta_pattern_multipletop",         120),
+    ("channel_up",     "f=ta_pattern_channelup",           150),
+    ("channel_down",   "f=ta_pattern_channeldown",         150),
 ]
 
 
