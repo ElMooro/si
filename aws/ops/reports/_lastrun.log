@@ -1,70 +1,40 @@
-====== #2: CURRENT DISABLED rules (the cost-pause inventory) ======
-  57 disabled rules:
-   • aiapi-hourly-collection                    rate(1 hour)             -> ?
-   • alpha-compass-3h                           cron(50 */3 * * ? *)     -> justhodl-alpha-compass,justhodl-alpha-compass
-   • alphavantage-market-update                 cron(*/15 13-21 ? * MON-FRI *) -> alphavantage-market-agent
-   • buzz-velocity-4x-daily                     cron(0 10,14,18,22 * * ? *) -> justhodl-buzz-velocity,justhodl-buzz-velocity
-   • canary-grid-daily                          cron(30 */6 * * ? *)     -> justhodl-canary-grid
-   • capitulation-3h                            cron(45 */3 * * ? *)     -> justhodl-capitulation
-   • carry-surface-4h                           rate(4 hours)            -> justhodl-carry-surface
-   • cds-proxy-tri-daily                        cron(0 13,17,21 ? * MON-FRI *) -> justhodl-cds-proxy
-   • crisis-composite-hourly                    cron(15 * * * ? *)       -> justhodl-crisis-composite
-   • cross-asset-confirm-3h                     rate(3 hours)            -> justhodl-cross-asset-confirm
-   • crypto-opportunities-4h                    cron(0 0,4,8,12,16,20 ? * * *) -> justhodl-crypto-opportunities
-   • divergence-v2-2hourly                      rate(2 hours)            -> justhodl-divergence-engine-v2
-   • event-flow-monitor-hourly                  cron(0 * * * ? *)        -> justhodl-event-flow-monitor,justhodl-event-flow-monitor
-   • future-intel-2x-daily                      cron(30 12,20 * * ? *)   -> justhodl-future-intelligence,justhodl-future-intelligence
-   • jhk-tick-15min                             cron(0/15 * * * ? *)     -> justhodl-scheduler
-   • jhk-tick-30min                             cron(0/30 * * * ? *)     -> justhodl-scheduler
-   • jhk-tick-4hourly                           cron(0 0/4 * * ? *)      -> justhodl-scheduler
-   • jhk-tick-5min                              cron(0/5 * * * ? *)      -> justhodl-scheduler
-   • jhk-tick-every_3h                          cron(0 0/3 * * ? *)      -> justhodl-scheduler
-   • jhk-tick-every_6h                          cron(0 0/6 * * ? *)      -> justhodl-scheduler
-   • jhk-tick-hourly                            cron(0 * * * ? *)        -> justhodl-scheduler
-   • jhk-tick-hourly-orchestrate                cron(5 * * * ? *)        -> ?
-   • justhodl-13f-positions-6h                  rate(6 hours)            -> justhodl-13f-positions
-   • justhodl-anomaly-detector-hourly           cron(33 * * * ? *)       -> justhodl-anomaly-detector
-   • justhodl-crisis-plumbing-refresh           rate(6 hours)            -> justhodl-crisis-plumbing
-   • justhodl-crypto-cycle-risk-6h              rate(6 hours)            -> justhodl-crypto-cycle-risk
-   • justhodl-dealer-gex-hourly                 cron(7 13-21 ? * MON-FRI *) -> justhodl-dealer-gex,justhodl-dealer-gex
-   • justhodl-early-movers-twice-per-hour       cron(15,45 * * * ? *)    -> justhodl-early-movers
-   • justhodl-earnings-tracker-6h               rate(6 hours)            -> justhodl-earnings-tracker
-   • justhodl-edge-6h                           rate(6 hours)            -> justhodl-edge-engine
-   • justhodl-engine-conflicts-6h               rate(6 hours)            -> justhodl-engine-conflicts
-   • justhodl-etf-flows-6h                      rate(6 hours)            -> justhodl-etf-flows
-   • justhodl-exchange-flows-6h                 rate(6 hours)            -> justhodl-exchange-flows
-   • justhodl-forensic-screen-12h               rate(12 hours)           -> justhodl-forensic-screen
-   • justhodl-macro-nowcast-6h                  rate(6 hours)            -> justhodl-macro-nowcast
-   • justhodl-macro-surprise-6h                 rate(6 hours)            -> justhodl-macro-surprise
-   • justhodl-narrative-vs-tape-4h              rate(4 hours)            -> justhodl-narrative-vs-tape
-   • justhodl-onchain-ratios-6h                 rate(6 hours)            -> justhodl-onchain-ratios
-   • justhodl-options-flow-30m                  rate(30 minutes)         -> justhodl-options-flow
-   • justhodl-portfolio-catalysts-3x-daily      cron(0 11,17,23 * * ? *) -> justhodl-portfolio-catalysts
-   • justhodl-position-sizer-6h                 rate(6 hours)            -> justhodl-position-sizer
-   • justhodl-system-signal-logger-6h           rate(6 hours)            -> justhodl-system-signal-logger
-   • justhodl-telegram-alerts                   rate(2 hours)            -> justhodl-telegram-bot
-   • justhodl-theme-cascade-twice-per-hour      cron(20,50 * * * ? *)    -> justhodl-theme-cascade
-   • justhodl-ticket-ai-rationale-hourly        cron(5 * * * ? *)        -> justhodl-ticket-ai-rationale
-   • justhodl-wave-signal-logger-6h             cron(30 0,6,12,18 ? * * *) -> justhodl-wave-signal-logger
-   • justhodl-yield-curve-6h                    rate(6 hours)            -> justhodl-yield-curve
-   • lce-every-6h                               rate(6 hours)            -> justhodl-liquidity-credit-engine
-   • liquidity-pulse-6h                         rate(6 hours)            -> justhodl-liquidity-pulse
-   • multi-agent-economic-hourly                rate(1 hour)             -> ?
-   • multi-agent-market-15min                   cron(*/15 13-21 ? * MON-FRI *) -> ?
-   • multi-agent-orchestrator-schedule          cron(*/5 9-16 ? * MON-FRI *) -> ?
-   • near-miss-monitor-hourly                   cron(30 * * * ? *)       -> justhodl-near-miss-monitor,justhodl-near-miss-monitor
-   • pairs-scanner-6hourly                      rate(6 hours)            -> justhodl-pairs-scanner
-   • rotation-chain-2x-daily                    cron(0 12,20 * * ? *)    -> justhodl-rotation-chain,justhodl-rotation-chain
-   • sec-filings-intel-3x-daily                 cron(0 9,15,21 * * ? *)  -> justhodl-sec-filings-intel,justhodl-sec-filings-intel
-   • sector-heatmap-30m                         cron(*/30 13-21 ? * MON-FRI *) -> justhodl-sector-heatmap
+=== (1) ALL live CISS-flow series keys (csvdata) — scan for sovereign ===
+  CISS flow http=200 bytes=17243
+  distinct series in CISS flow: 60
+  SOVEREIGN series (32):
+     CISS.D.AT.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.BE.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.DE.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.ES.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.FI.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.FR.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.GR.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.IE.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.IT.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.NL.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.PT.Z0Z.4F.EC.SOV_CIN.IDX
+     CISS.D.U2.Z0Z.4F.EC.SOV_EWN.IDX
+     CISS.D.U2.Z0Z.4F.EC.SOV_GDPWN.IDX
+     CISS.M.AT.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.CZ.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.DK.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.FI.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.GB.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.GR.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.HU.Z0Z.4F.EC.SOV_CI.IDX
+     CISS.M.IE.Z0Z.4F.EC.SOV_CI.IDX
+  sample non-sov keys: ['CISS.D.AT.Z0Z.4F.EC.SS_CIN.IDX', 'CISS.D.BE.Z0Z.4F.EC.SS_CIN.IDX', 'CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX', 'CISS.D.DE.Z0Z.4F.EC.SS_CIN.IDX', 'CISS.D.ES.Z0Z.4F.EC.SS_CIN.IDX', 'CISS.D.FI.Z0Z.4F.EC.SS_CIN.IDX']
 
-====== #2: CloudTrail — who paused what, last 21d ======
-  DisableRule: err An error occurred (AccessDeniedException) when cal
-  RemoveTargets: err An error occurred (AccessDeniedException) when cal
-  DeleteRule: err An error occurred (AccessDeniedException) when cal
+=== (2) dataflows mentioning SOV / stress (in case SovCISS moved flows) ===
+    CISS: Composite Indicator of Systemic Stress
+    CLIFS: Country-Level Index of Financial Stress (CLIFS)
 
-====== #3: ECB host/series probe (data-api vs dead sdw-wsrest) ======
-   CISS/M.U2.Z0Z.4F.EC.SOVCISS_CI.IDX     data-api -> (404, 'HTTP Error 404: Not Found')
-   CISS/D.U2.Z0Z.4F.EC.SS_BM.CON          data-api -> (200, 916)
-   CISS/D.U2.Z0Z.4F.EC.SS_EM.CON          data-api -> (200, 873)
-   (dead host sdw-wsrest.ecb.europa.eu expected to DNS-fail — confirming swap target works)
+=== (3) test the most likely SovCISS candidates for live data ===
+    CISS/M.U2.Z0Z.4F.EC.SOV_GDPW.IDX           -> 200 latest=0
+    CISS/M.U2.Z0Z.4F.EC.SOVCISS_GDPW.IDX       -> 404 
+    CISS/D.U2.Z0Z.4F.EC.SOV_GDPW.IDX           -> 404 
+    CISS/M.U2.Z0Z.4F.EC.SS_SOV.IDX             -> 404 
