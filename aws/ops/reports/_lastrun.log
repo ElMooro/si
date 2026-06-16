@@ -1,27 +1,20 @@
-=== GROUPS export (sector / industry / country / market-cap aggregates) ===
-groups sector perf             http=200 rows=11 csv=True
-    cols: "No.","Name","Performance (Week)","Performance (Month)","Performance (Quarter)","Performance (Half Year)","Performance (Year)","Performance (Year To Date)","Average Volume","Relative Volume","Change","Volume"
-groups sector valuation        http=200 rows=11 csv=True
-    cols: "No.","Name","Market Cap","P/E","Forward P/E","PEG","P/S","P/B","P/C","P/Free Cash Flow","EPS growth past 5 years","EPS growth next 5 years","Sales growth past 5 years","Change","Volume"
-groups industry perf           http=200 rows=144 csv=True
-    cols: "No.","Name","Performance (Week)","Performance (Month)","Performance (Quarter)","Performance (Half Year)","Performance (Year)","Performance (Year To Date)","Average Volume","Relative Volume","Change","Volume"
-groups country perf            http=200 rows=40 csv=True
-    cols: "No.","Name","Performance (Week)","Performance (Month)","Performance (Quarter)","Performance (Half Year)","Performance (Year)","Performance (Year To Date)","Average Volume","Relative Volume","Change","Volume"
-groups mktcap perf             http=200 rows=6 csv=True
-    cols: "No.","Name","Performance (Week)","Performance (Month)","Performance (Quarter)","Performance (Half Year)","Performance (Year)","Performance (Year To Date)","Average Volume","Relative Volume","Change","Volume"
+counts: {'sectors': 11, 'industries': 144, 'countries': 40, 'mktcaps': 6}
 
-=== NEWS / BLOGS export ===
-news (v=3)                     http=200 rows=100 csv=True
-    cols: "Title","Source","Date","Url","Category","Ticker"
-blogs (v=4)                    http=200 rows=100 csv=True
-    cols: "Title","Source","Date","Url","Category","Ticker"
+SECTORS (perf + valuation):
+  Industrials              1M=4.56% YTD=20.32% | P/E=43.95 PEG=2.29 P/S=3.58
+  Financial                1M=4.43% YTD=1.09% | P/E=17.92 PEG=1.54 P/S=2.32
+  Technology               1M=4.01% YTD=24.67% | P/E=40.16 PEG=1.12 P/S=7.97
+  Healthcare               1M=2.9% YTD=-0.99% | P/E=29.37 PEG=2.06 P/S=1.85
+  Real Estate              1M=2.14% YTD=9.75% | P/E=33.16 PEG=3.14 P/S=4.48
+  Utilities                1M=-1.38% YTD=5.07% | P/E=20.79 PEG=1.74 P/S=2.62
+  Basic Materials          1M=-1.76% YTD=17.09% | P/E=23.33 PEG=1.24 P/S=2.47
+  Consumer Defensive       1M=-1.87% YTD=8.78% | P/E=26.63 PEG=2.94 P/S=1.44
+  Consumer Cyclical        1M=-2.29% YTD=-2.8% | P/E=29.71 PEG=1.56 P/S=1.89
+  Communication Services   1M=-5.04% YTD=3.52% | P/E=37.62 PEG=2.17 P/S=5.25
+  Energy                   1M=-5.46% YTD=24.13% | P/E=18.49 PEG=1.28 P/S=1.34
 
-=== INSIDER detailed export (beyond screener signal) ===
-insider all                    http=404 rows=0 csv=False
-insider buys                   http=404 rows=0 csv=False
-insider o-value                http=404 rows=0 csv=False
+TOP 6 INDUSTRIES (1M): Computer Hardware=31.25%, Semiconductor Equipment & Materials=25.75%, Department Stores=21.26%, Staffing & Employment Services=19.97%, Airlines=17.3%, REIT - Hotel & Motel=16.43%
+BOTTOM 4 INDUSTRIES: Chemicals=-10.4%, Other Precious Metals & Mining=-12.08%, Oil & Gas Drilling=-14.53%, Silver=-14.84%
 
-=== FUTURES / FOREX / CRYPTO ===
-futures perf                   http=404 rows=0 csv=False
-forex perf                     http=404 rows=0 csv=False
-crypto perf                    http=404 rows=0 csv=False
+TOP 5 COUNTRIES (1M): Argentina=22.9%, Australia=1.83%, Belgium=1.1%, Bermuda=-0.02%, Brazil=-5.48%
+MKTCAP buckets: Large=5.12%, Mega=-2.68%, Micro=-5.12%, Mid=4.21%, Nano=0.58%, Small=1.33%
