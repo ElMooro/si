@@ -1,0 +1,12 @@
+{
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 120,
+  "memory": 256,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "schedule": {
+    "rule_name": "finviz-groups-3x",
+    "cron": "cron(15 14,18,22 * * ? *)",
+    "description": "Finviz group aggregates (sector/industry/country/mktcap perf+valuation) 3x/day"
+  }
+}

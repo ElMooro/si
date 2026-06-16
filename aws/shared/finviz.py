@@ -203,3 +203,41 @@ def fetch_screen(qs, view="152", cols="1,2,3,6,43,46,63,65,66,67,61", timeout=40
                 rec[m[0]] = pv
         out.append(rec)
     return out
+
+
+GROUP_BASE = "https://elite.finviz.com/grp_export.ashx"
+GROUP_COLMAP = {
+    "Name": ("name", _txt),
+    "Performance (Week)": ("perf_w", _num), "Performance (Month)": ("perf_m", _num),
+    "Performance (Quarter)": ("perf_q", _num), "Performance (Half Year)": ("perf_h", _num),
+    "Performance (Year)": ("perf_y", _num), "Performance (Year To Date)": ("perf_ytd", _num),
+    "Average Volume": ("avg_volume", _num), "Relative Volume": ("rel_volume", _num),
+    "Change": ("change", _num), "Volume": ("volume", _num),
+    "Market Cap": ("mktcap", _num), "P/E": ("pe", _num), "Forward P/E": ("fwd_pe", _num),
+    "PEG": ("peg", _num), "P/S": ("ps", _num), "P/B": ("pb", _num), "P/C": ("p_cash", _num),
+    "P/Free Cash Flow": ("p_fcf", _num), "EPS growth past 5 years": ("eps_g_5y", _num),
+    "EPS growth next 5 years": ("eps_g_n5y", _num), "Sales growth past 5 years": ("sales_g_5y", _num),
+}
+
+
+def fetch_group(g, v=140, timeout=40):
+    """Finviz group aggregates. g in {sector,industry,country,capitalization}; v=140 perf / v=120 valuation.
+    Returns list of {name, ...normalized}. Space calls (Finviz 429s on rapid bursts)."""
+    url = "%s?g=%s&v=%s&auth=%s" % (GROUP_BASE, g, v, _token())
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; justhodl/1.0)"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        body = r.read().decode("utf-8", "ignore")
+    if "Name" not in body.split("\n", 1)[0]:
+        raise RuntimeError("finviz group non-CSV: " + body[:80])
+    out = []
+    for raw in csv.DictReader(io.StringIO(body)):
+        rec = {}
+        for k, val in raw.items():
+            m = GROUP_COLMAP.get(k.strip())
+            if m:
+                pv = m[1](val)
+                if pv is not None:
+                    rec[m[0]] = pv
+        if rec.get("name"):
+            out.append(rec)
+    return out
