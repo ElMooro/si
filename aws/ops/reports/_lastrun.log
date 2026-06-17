@@ -1,16 +1,15 @@
-  PDFTD-USTET    U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTECTED SECURITIES (TIPS) : DEALER FIN
-  PDFTD-UST      TREASURY INFLATION-PROTECTED SECURITIES (TIPS) : DEALER FINANCING FAILS TO DELIVER
-  PDFTD-CS       CORPORATE SECURITIES : DEALER FINANCING FAILS TO DELIVER
-  PDFTD-FGM      FEDERAL AGENCY AND GSE MBS : DEALER FINANCING FAILS TO DELIVER
-  PDFTD-FGEM     FEDERAL AGENCY AND GSE SECURITIES (EXCLUDING MBS) : DEALER FINANCING FAILS TO DELIVER
-  PDFTD-OM       OTHER MBS : DEALER FINANCING FAILS TO DELIVER
-  PDFTD-USTETC   U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTECTED SECURITIES (TIPS) : DEALER FIN
-  PDFTR-USTET    U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTECTED SECURITIES (TIPS) : DEALER FIN
-  PDFTR-CS       CORPORATE SECURITIES : DEALER FINANCING FAILS TO RECEIVE
-  PDFTR-FGM      FEDERAL AGENCY AND GSE MBS : DEALER FINANCING FAILS TO RECEIVE
+invoke: {"statusCode": 200, "body": "{\"regime\": \"ELEVATED\", \"score\": 49, \"as_of\": \"2026-06-03\", \"ust_combined_bn\": 257.3, \"ust_pctile\": 79.4, \"classes\": 6, \"total_combined_bn\": 359.89}"}
 
-PDFTD-USTET: n=688 2013-04-03..2026-06-03 | latest=128,923 min=25,531 max=456,338
-  biggest weeks: [('2016-03-09', '456,338'), ('2016-03-16', '452,464'), ('2017-12-13', '423,073'), ('2022-09-28', '421,826'), ('2016-12-14', '420,930')]
+as_of: 2026-06-03 | signal: ELEVATED 49
+  - Treasury (ex-TIPS) settlement fails $257bn combined (deliver $129bn + receive $128bn), 79%ile / z +0.5 — elevated
+  - All-asset fails $360bn combined across 6 classes
 
-PDFTR-USTET: n=688 2013-04-03..2026-06-03 | latest=128,351 min=31,028 max=448,526
-  biggest weeks: [('2022-09-28', '448,526'), ('2016-03-09', '433,636'), ('2016-03-16', '420,692'), ('2016-12-14', '411,513'), ('2017-12-13', '409,150')]
+headline: {'ftd_bn': 128.92, 'ftr_bn': 128.35, 'combined_bn': 257.3, 'z': 0.5, 'pctile': 79.4, 'max_bn': 890.0}
+classes:
+  U.S. Treasury (ex-TIPS)    FTD=128.92 FTR=128.35 comb=257.3 79.4%ile z0.5 n=688 2013-04-03..2026-06-03
+  TIPS                       FTD=12.54 FTR=12.11 comb=24.6 92.9%ile z1.36 n=688 2013-04-03..2026-06-03
+  Corporate securities       FTD=28.9 FTR=25.36 comb=54.3 83.1%ile z0.71 n=688 2013-04-03..2026-06-03
+  Agency MBS                 FTD=9.06 FTR=8.38 comb=17.4 21.4%ile z-0.57 n=688 2013-04-03..2026-06-03
+  Agency debt (ex-MBS)       FTD=0.43 FTR=0.27 comb=0.7 4.5%ile z-0.63 n=688 2013-04-03..2026-06-03
+  Other (non-agency) MBS     FTD=3.05 FTR=2.52 comb=5.6 59.0%ile z-0.05 n=688 2013-04-03..2026-06-03
+totals combined latest: ['2026-06-03', 359.89] | n: 260
