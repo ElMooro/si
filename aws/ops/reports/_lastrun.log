@@ -1,27 +1,39 @@
-=== 1) AVG INTEREST RATE on Treasury debt ===
-   {'record_date': '2026-05-31', 'security_type_desc': 'Marketable', 'security_desc': 'Treasury Bills', 'avg_interest_rate_amt': '3.690'}
-   {'record_date': '2026-05-31', 'security_type_desc': 'Marketable', 'security_desc': 'Treasury Notes', 'avg_interest_rate_amt': '3.248'}
-   {'record_date': '2026-05-31', 'security_type_desc': 'Marketable', 'security_desc': 'Treasury Bonds', 'avg_interest_rate_amt': '3.413'}
+=== TIC MFH full text (for parser) ===
 
-=== 2) MTS — deficit/receipts/outlays (mts_table_1) ===
-  fields: ['record_date', 'parent_id', 'classification_id', 'classification_desc', 'current_month_gross_rcpt_amt', 'current_month_gross_outly_amt', 'current_month_dfct_sur_amt', 'table_nbr', 'src_line_nbr', 'print_order_nbr', 'line_code_nbr', 'data_type_cd', 'record_type_cd', 'sequence_level_nbr']
-   {'record_date': '2026-05-31', 'classification_desc': 'October', 'current_month_net_rcpt_amt': None, 'current_month_net_outly_amt': None, 'current_month_dfct_sur_amt': '284332743998.37'}
-   {'record_date': '2026-05-31', 'classification_desc': 'FY 2026', 'current_month_net_rcpt_amt': None, 'current_month_net_outly_amt': None, 'current_month_dfct_sur_amt': 'null'}
-   {'record_date': '2026-05-31', 'classification_desc': 'May', 'current_month_net_rcpt_amt': None, 'current_month_net_outly_amt': None, 'current_month_dfct_sur_amt': '292648462083.74'}
-   {'record_date': '2026-05-31', 'classification_desc': 'Year-to-Date', 'current_month_net_rcpt_amt': None, 'current_month_net_outly_amt': None, 'current_month_dfct_sur_amt': '1246203266386.93'}
 
-=== 3) Debt to the Penny ===
-   {'record_date': '2026-06-15', 'debt_held_public_amt': '31662560557978.68', 'intragov_hold_amt': '7630513481375.96', 'tot_pub_debt_out_amt': '39293074039354.64', 'src_line_nbr': '1', 'record_fiscal_year': '2026', 'record_fiscal_quarter': '3', 'record_calendar_year': '2026', 'record_calendar_quarter': '2', 'record_calendar_month': '06', 'record_calendar_day': '15'}
 
-=== 4) TIC — Major Foreign Holders of US Treasuries ===
-  s://ticdata.treasury.gov/Publish/mfh.txt   http=200 len=7486 head='\r\n\r\n\r\n                                             MAJOR FOR'
-  /data-chart-center/tic/Documents/mfh.txt   http=200 len=7486 head='\r\n\r\n\r\n                                             MAJOR FOR'
-  me.treasury.gov/system/files/206/mfh.txt   http=404 HTTP Error 404: Not Found
-  FRED FDHBFIN (foreign-held federal debt, fallback):
-    [{'realtime_start': '2026-06-01', 'realtime_end': '2026-06-01', 'date': '2025-07-01', 'value': '9248.4'}, {'realtime_start': '2026-06-01', 'realtime_end': '2026-06-01', 'date': '2025-04-01', 'value': '9126.8'}]
+                                             MAJOR FOREIGN HOLDERS OF TREASURY SECURITIES
+                                                       (in billions of dollars)
+                                                     HOLDINGS 1/ AT END OF PERIOD
 
-=== 5) NY Fed AMBS + Securities Lending ===
-  ambs/all/results/summary/lastTwoWeeks.json     http=200 ['ambs'] | 
-  ambs/all/results/details/latest.json           http=200 ['ambs'] | 
-  seclending/all/results/summary/lastTwoWeeks.j  http=200 ['seclending'] | 
-  seclending/all/results/details/latest.json     http=200 ['seclending'] | 
+
+                                  Jan     Dec     Nov     Oct     Sep     Aug     Jul     Jun     May     Apr     Mar     Feb     Jan
+Country                           2023    2022    2022    2022    2022    2022    2022    2022    2022    2022    2022    2022    2022
+                                ------  ------  ------  ------  ------  ------  ------  ------  ------  ------  ------  ------  ------
+
+Japan                           1104.4  1076.3  1082.3  1064.4  1116.4  1196.0  1230.7  1232.7  1219.9  1215.0  1229.0  1303.0  1299.9
+China, Mainland                  859.4   867.1   870.2   877.9   901.7   938.6   939.2   938.8   951.8   976.0  1013.2  1028.7  1033.8
+United Kingdom                   668.3   654.5   645.8   641.3   664.8   646.5   636.6   617.3   636.5   614.3   636.5   627.0   610.7
+Belgium                          331.1   354.3   332.9   327.2   325.0   287.8   285.4   273.5   268.2   255.6   264.5   258.4   243.0
+Luxembourg                       318.2   329.4   311.1   298.4   299.9   308.4   306.5   309.3   296.5   296.2   303.2   316.4   313.0
+Switzerland                      290.5   269.7   266.5   258.4   273.3   290.6   283.1   291.5   287.1   268.0   270.7   278.0   295.4
+Cayman Islands                   285.3   283.8   283.5   291.7   301.5   308.6   293.4   302.3   295.4   292.5   293.9   275.9   272.1
+Canada                           254.1   215.1   228.7   218.2   199.9   228.2   227.9   206.2   225.5   234.7   236.5   224.1   217.6
+Ireland                          253.4   254.8   250.3   245.1   265.4   275.6   277.5   285.6   288.8   309.7   315.9   314.9   308.6
+Taiwan                           234.6   225.5   223.9   214.6   215.3   231.5   238.2   232.3   229.1   226.9   236.9   247.0   247.1
+India                            232.0   224.1   219.0   213.0   212.6   221.2   212.0   208.8   203.7   199.0   199.8   199.8   198.6
+Hong Kong                        226.8   221.0   201.0   185.0   178.7   189.8   192.8   187.3   185.6   195.0   207.7   205.4   225.6
+Brazil                           214.0   217.4   225.9   220.1   221.8   227.3   232.9   226.1
+...TRUNC...
+
+=== NY Fed AMBS details sample ===
+n= 1
+err 0 { "ambs": { "auctions": [ { "auctionStatus": "Results", "operationId": "OR 061626 26", "operationDate": "2026-06-16", "o
+
+=== NY Fed seclending details sample ===
+n= 1
+err 0 { "seclending": { "operations": [ { "operationId": "SL 061626 25", "auctionStatus": "Results", "operationType": "Securit
+
+=== seclending summary (aggregate by day?) ===
+n= 1
+err 0 { "seclending": { "operations": [ { "operationId": "SL 061626 25", "auctionStatus": "Results", "operationType": "Securit
