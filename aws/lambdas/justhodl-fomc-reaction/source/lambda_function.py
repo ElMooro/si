@@ -25,7 +25,7 @@ OUTPUTS:
   data/fomc-calibration.json  — the empirical reaction distribution (rebuilt weekly)
   data/fomc-reaction-log/{date}.json — per-meeting call, for forward self-grading
 """
-import os, json, time, statistics, urllib.request, urllib.parse, datetime, re
+import os, json, time, statistics, urllib.request, urllib.parse, urllib.error, datetime, re
 
 import boto3
 
@@ -271,8 +271,14 @@ def score_statement_tone():
         out = json.loads(m.group(0)) if m else {"raw": txt[:140]}
         out["source_url"] = stmt_url
         return out
+    except urllib.error.HTTPError as he:
+        try:
+            detail = he.read().decode("utf-8", "replace")[:240]
+        except Exception:
+            detail = ""
+        return {"error": "HTTP %s" % he.code, "detail": detail}
     except Exception as e:
-        return {"error": str(e)[:140]}
+        return {"error": str(e)[:160]}
 
 
 def todays_surprise():
