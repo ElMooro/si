@@ -1,32 +1,32 @@
-=== PD seriesbreaks ===
-   {'label': 'JAN 1998 TO JUN 2001', 'seriesbreak': 'SBP2001', 'startdate': '1998-01-28', 'enddate': '2001-06-30'}
-   {'label': 'JUL 2001 TO MAR 2013', 'seriesbreak': 'SBP2013', 'startdate': '2001-07-01', 'enddate': '2013-03-31'}
-   {'label': 'APR 2013 TO DEC 2014', 'seriesbreak': 'SBN2013', 'startdate': '2013-04-01', 'enddate': '2014-12-31'}
-   {'label': 'JAN 2015 TO DEC 2021', 'seriesbreak': 'SBN2015', 'startdate': '2015-01-01', 'enddate': '2022-01-04'}
-   {'label': 'JAN 2022 TO JUN 2024', 'seriesbreak': 'SBN2022', 'startdate': '2022-01-05', 'enddate': '2024-07-02'}
-   {'label': 'JUL 2024 AND ON', 'seriesbreak': 'SBN2024', 'startdate': '2024-07-03', 'enddate': '9999-12-31'}
+plumbing invoke: {"statusCode": 200, "body": "{\"ok\": true, \"composite_score\": 53.8, \"composite_label\": \"ELEVATED\", \"n_with_data\
+history indicators: 28 | crises: 8 | bytes: 221322
+  CISS_US            L4  n= 629 1973-01-26..2025-05-02  ECB CISS — United States
+  CISS_EA            L4  n= 558 1980-01-31..2026-06-15  ECB CISS — Euro Area
+  RMFSL              L2  n= 436 1990-01-01..2026-04-01  Retail Money Market Fund balance
+  TEMPHELPS          L3  n= 437 1990-01-01..2026-05-01  Temp Help Services Employment
+  LNS13025699        L3  n= 436 1990-01-01..2026-05-01  Job Losers Not on Layoff
+  UEMP27OV           L3  n= 436 1990-01-01..2026-05-01  Unemployed 27+ weeks
+  MCUMFN             L3  n= 437 1990-01-01..2026-05-01  Manufacturing Capacity Utilizati
+  INDPRO             L3  n= 437 1990-01-01..2026-05-01  Industrial Production Index
+  USPBS              L3  n= 437 1990-01-01..2026-05-01  Professional/Business Services E
+  BOGZ1FL663067003Q  L3  n= 145 1990-01-01..2026-01-01  Broker-Dealer Margin Loans
+  CASFRIW027SBOG     L2  n= 438 1990-01-31..2026-06-03  Cash at foreign-related banks
+  DPSFRIW027SBOG     L2  n= 438 1990-01-31..2026-06-03  Deposits at foreign-related bank
+  SBCACBW027SBOG     L2  n= 438 1990-01-31..2026-06-03  Securities in bank credit
+  DRISCFLM           L2  n= 145 1990-04-01..2026-04-01  Banks raising spreads (large/mid
+  DRISCFS            L2  n= 145 1990-04-01..2026-04-01  Banks raising spreads (small fir
+  SUBLPDCISTQNQ      L2  n= 145 1990-04-01..2026-04-01  Banks raising collateral require
+  ILM_CLAIMS_FX      L1  n= 166 1998-W53..2026-W24  ECB claims on EA in foreign curr
+  ILM_LIAB_EUR       L1  n= 166 1998-W53..2026-W24  ECB liabilities to non-EA in EUR
+  SWP1690            L1  n= 283 2002-12-25..2026-06-10  Fed Liquidity Swaps 16-90d
+  RTWEXBGS           L4  n= 245 2006-01-01..2026-05-01  Broad Dollar Index (Real)
+  RTWEXEMEGS         L4  n= 245 2006-01-01..2026-05-01  EM Dollar Index (Real)
+  RTWEXAFEGS         L4  n= 245 2006-01-01..2026-05-01  AFE Dollar Index (Real)
+  DTWEXBGS           L4  n= 246 2006-01-31..2026-06-12  Broad Dollar Index (Nominal)
+  DTWEXEMEGS         L4  n= 246 2006-01-31..2026-06-12  EM Dollar Index (Nominal)
+  DTWEXAFEGS         L4  n= 246 2006-01-31..2026-06-12  AFE Dollar Index (Nominal)
+  CISS_CN            L4  n= 237 2006-10-31..2026-06-12  ECB CISS — China
+  OFR_FAILS_DELIVER  L1  n= 159 2013-04-24..2026-06-03  PD Aggregate Fails to Deliver
+  OFR_FAILS_RECEIVE  L1  n= 159 2013-04-24..2026-06-03  PD Aggregate Fails to Receive
 
-=== fails keyids grouped by seriesbreak (headline UST/corp) ===
-   PDFTR-USTET break= SBN2024
-   PDFTR-CS break= SBN2024
-   PDFTD-USTET break= SBN2024
-   PDFTD-UST break= SBN2024
-   PDFTD-CS break= SBN2024
-   PDFTD-USTETC break= SBN2024
-   PDFTD-USTC break= SBN2024
-
-=== PDFTD-USTET full range probe ===
-  default: n=688 2013-04-03..2026-06-03
-  startPeriod=1996-01-01: n=688 2013-04-03..2026-06-03
-
-=== FRED earliest date for representative plumbing indicators ===
-  SWPT           earliest 2002-12-18
-  DTWEXBGS       earliest 2006-01-02
-  RRPONTSYD      earliest 2003-02-07
-  WALCL          earliest 2002-12-18
-  BAMLH0A0HYM2   earliest 2023-06-19
-  DRISCFLM       earliest 1990-04-01
-  TEMPHELPS      earliest 1990-01-01
-  STLFSI4        earliest 1993-12-31
-  SOFR           earliest 2018-04-03
-  WLODLL         earliest 2002-12-18
+settlement-fails ust ftd n: 688 range: 2013-04-03 .. 2026-06-03
