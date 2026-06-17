@@ -55,7 +55,7 @@ def _get(url, t=20, hdr=None):
         return None
 
 
-def yahoo(sym, rng="10y"):
+def yahoo(sym, rng="max"):
     body = _get("https://query1.finance.yahoo.com/v8/finance/chart/%s?range=%s&interval=1d"
                 % (urllib.parse.quote(sym), rng))
     pts = []
