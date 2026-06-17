@@ -1,18 +1,28 @@
-== justhodl-sovereign-fiscal ==
-  invoke: {"statusCode": 200, "body": "{\"tic_holders\": 14, \"tic_as_of\": \"2024-12\", \"deficit_months\": 135, \"ttm_deficit_bn\": 3636.2, \"debt_tn\": 39.293, \"implied_interest_bn\": 1317.0}"}
-== justhodl-fed-collateral ==
-  invoke: {"statusCode": 200, "body": "{\"seclending_days\": 166, \"seclending_latest_bn\": 31.418, \"specials\": 12, \"ambs_months\": 25}"}
+=== TIC: first 18 non-empty lines (raw, show tabs as |) ===
+   '\t\tMAJOR FOREIGN HOLDERS OF TREASURY SECURITIES\t\t\t\t\t\t\t\t\t\t\t\r'
+   '\t\t\t    (in billions of dollars)\t\t\t\t\t\t\t\t\t\t\r'
+   '\t\t\tHOLDINGS 1/ AT END OF PERIOD\t\t\t\t\t\t\t\t\t\t\r'
+   '\tDec\tNov\tOct\tSep\tAug\tJul\tJun\tMay\tApr\tMar\tFeb\tJan\t\r'
+   'Country\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t\r'
+   '\t------\t------\t------\t------\t------\t------\t------\t------\t------\t------\t------\t------\t\r'
+   'Japan\t1185.5\t1202.7\t1200\t1189.3\t1180.4\t1151.8\t1147.9\t1135\t1134.5\t1130.8\t1125.9\t1079.3\t\r'
+   'United Kingdom\t863.1\t879.8\t875.4\t862.5\t901.4\t896\t855.7\t809.4\t807.7\t779.3\t750.3\t740.2\t\r'
+   '"China, Mainland"\t683.5\t683.9\t687.7\t699.2\t699.7\t695.6\t731.4\t732.7\t743.6\t765.4\t784.3\t760.8\t'
+   'Belgium\t477.3\t481\t465.5\t463.6\t451.1\t425.4\t430.3\t415.5\t411.1\t402.1\t394.7\t377.7\t\r'
+   'Canada\t468.2\t472.4\t419.4\t476\t443.8\t381.6\t438.7\t430.1\t368.4\t426.2\t406.1\t350.8\t\r'
+   'Luxembourg\t434.2\t424.7\t418\t420.1\t409.9\t403.8\t403.2\t412.6\t410.9\t412.4\t412.4\t409.9\t\r'
+   'Cayman Islands\t421.2\t427.6\t418.7\t427\t410.7\t436.9\t441\t441.3\t446.5\t453.6\t416.1\t406.9\t\r'
+   'France\t368.9\t376.1\t390.2\t375.5\t389.1\t391\t373.8\t375.1\t360.6\t363.1\t354.1\t335.4\t\r'
+   'Ireland\t340.7\t340.3\t339.9\t340\t343.5\t323.9\t317.3\t327.3\t339.9\t329.3\t339\t329.7\t\r'
+   'Taiwan\t310.6\t312.9\t309.5\t312.6\t313.5\t308.9\t307.2\t304.8\t311.5\t308.2\t306.2\t298.6\t\r'
+   'Switzerland\t294.1\t300.4\t302\t301.8\t302.7\t302.8\t300.6\t303.7\t310.9\t311.7\t290.8\t301.2\t\r'
+   'Singapore\t278.4\t272.2\t272.4\t258.6\t260.7\t252.2\t253.2\t249.3\t247.7\t262.7\t260\t247.6\t\r'
 
-SOVEREIGN-FISCAL reads:
-  - Total foreign UST holdings up $679bn YoY (8.6%) to $8619bn
-  - Trailing-12m federal deficit $3636bn
-  - Implied annual interest on the debt ~$1317bn (avg rate 3.35%)
-  TIC as_of: 2024-12 | holders: 14 | ranking top3: [('Japan', 1061.5), ('"China, Mainland"', 759.0), ('United Kingdom', 722.8)]
-  deficit_monthly n: 135 latest: ['2026-05', 608.3] | ttm latest: ['2026-05', 3636.2]
-  avg_interest keys: ['Total Marketable', 'Total Interest-bearing Debt', 'Treasury Notes', 'Treasury Bonds'] | debt_tn: 39.293 | implied interest bn: 1317.0
+=== TIC parser run: max date + Japan tail + grand-total name ===
+  blocks parsed: 26 | countries: 57
+  Japan max date: ('2024-12', 1061.5)  n= 298
+  name candidates w/ 'Total' or 'China': ['China, Mainland', 'Grand Total']
 
-FED-COLLATERAL reads:
-  - SOMA securities-lending take-up $31.4bn (20%ile, subdued) — collateral-demand gauge
-  - 12 issues on special (largest: T 04.500 02/15/36, $3.0bn on loan)
-  - AMBS ops last month $0.1bn accepted par (QT-era reinvestment)
-  seclending days: 166 stats: {'latest_bn': 31.418, 'as_of': '2026-06-16', 'avg_bn': 35.99, 'max_bn': 53.62, 'pctile': 20.5}
+=== MTS: ALL rows for record 2026-05-31 with classification 'May' ===
+   {'parent_id': '58528591', 'table_nbr': '1', 'line_code_nbr': '230', 'current_month_dfct_sur_amt': '292648462083.74'}
+   {'parent_id': '58528532', 'table_nbr': '1', 'line_code_nbr': '90', 'current_month_dfct_sur_amt': '315651741381.91'}
