@@ -34,21 +34,17 @@ YAHOO = {  # id -> (symbol, label, kind)
     "eurchf": ("EURCHF=X", "EUR/CHF — franc safe-haven gauge", "fx"),
     "usdchf": ("CHF=X", "USD/CHF — franc vs dollar", "fx"),
 }
-FRED = {  # id -> (series_id, label, unit) — kept only where FRED is the fresh source
+FRED = {  # id -> (series_id, label, unit) — quarterly IP/mfg keep long history (1990+) & are current-quarter; EA OECD confidence lags ~5m inherently
     "ch_business_confidence": ("BSCICP02CHM460S", "Switzerland — business confidence (OECD)", "index"),
+    "ch_ip_yoy": ("PRINTO01CHQ657S", "Switzerland — industrial production YoY (%, quarterly)", "yoy"),
+    "ch_mfg_yoy": ("PRMNTO01CHQ657S", "Switzerland — manufacturing production YoY (%, quarterly)", "yoy"),
+    "ea_business_confidence": ("BSCICP02EZM460S", "Euro Area — business confidence (OECD)", "index"),
+    "ea_consumer_confidence": ("CSCICP02EZM460S", "Euro Area — consumer confidence (OECD)", "index"),
 }
 # Eurostat: id -> (dataset, query_params, label, kind, compute_yoy_from_index)
 EUROSTAT = {
     "ch_unemployment": ("une_rt_m", "geo=CH&s_adj=SA&sex=T&age=TOTAL&unit=PC_ACT",
                         "Switzerland — unemployment rate (%, ILO/harmonised)", "pct", False),
-    "ch_ip_yoy": ("sts_inpr_m", "geo=CH&nace_r2=B-D&s_adj=SCA&unit=I21",
-                  "Switzerland — industrial production YoY (%)", "yoy", True),
-    "ch_mfg_yoy": ("sts_inpr_m", "geo=CH&nace_r2=C&s_adj=SCA&unit=I21",
-                   "Switzerland — manufacturing production (NACE C) YoY (%)", "yoy", True),
-    "ea_business_confidence": ("ei_bssi_m_r2", "geo=EA20&indic=BS-ESI-I&s_adj=SA",
-                               "Euro Area — Economic Sentiment Indicator (ESI)", "index", False),
-    "ea_consumer_confidence": ("ei_bssi_m_r2", "geo=EA20&indic=BS-CSMCI-BAL&s_adj=SA",
-                               "Euro Area — consumer confidence (balance)", "index", False),
 }
 
 

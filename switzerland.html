@@ -89,7 +89,7 @@ const GROUPS=[["📈 Swiss Equities — risk sentiment",["smi","spi"]],["🛡 Th
   GROUPS.forEach(([title,ids])=>{const list=ids.map(i=>byid[i]).filter(Boolean);if(!list.length)return;html+=`<div class="sec">${esc(title)}</div><div class="grid">${list.map(card).join('')}</div>`;});
   document.getElementById('body').innerHTML=html;
   document.querySelectorAll('.card').forEach(el=>el.onclick=()=>openModal(el.dataset.id));
-  document.getElementById('note').textContent=`${D.provenance} · generated ${(D.generated_at||'').slice(0,16)} · click any tile for full history (crisis eras shaded: Asian crisis, LTCM/Russia, dot-com, GFC, euro-area debt, 2015 SNB floor break, COVID, 2022 rate shock). Note: Swiss unemployment via FRED lags; it is a lagging indicator regardless.`;
+  document.getElementById('note').textContent=`${D.provenance} · generated ${(D.generated_at||'').slice(0,16)} · click any tile for full history (crises shaded: Asian, LTCM/Russia, dot-com, GFC, euro-area debt, 2015 SNB floor break, COVID, 2022 rate shock). Freshness by cadence: equities & franc daily; CH business confidence monthly; CH unemployment monthly via Eurostat (ILO/harmonised ~5%, ~2-3m reporting lag); CH industrial & manufacturing production are quarterly (latest available quarter, long history to 1990); euro-area confidence is OECD survey data that publishes with an inherent ~5-month lag.`;
 })();
 </script>
 </body>
