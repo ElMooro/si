@@ -1,4 +1,32 @@
-invoke plumbing-aggregator: {"statusCode": 200, "body": "{\"ok\": true, \"composite_score\": 52.9, \"composite_label\": \"ELEVATED\", \"n_with_data\
-  OFR_FAILS_DELIVER: value=128.92 z=0.5 pct=78.8 n=None stress=None date=2026-06-03 err=None
-  OFR_FAILS_RECEIVE: value=128.35 z=0.2 pct=68.3 n=None stress=None date=2026-06-03 err=None
-  L1 score: 39.6 | composite: 52.9 ELEVATED
+=== PD seriesbreaks ===
+   {'label': 'JAN 1998 TO JUN 2001', 'seriesbreak': 'SBP2001', 'startdate': '1998-01-28', 'enddate': '2001-06-30'}
+   {'label': 'JUL 2001 TO MAR 2013', 'seriesbreak': 'SBP2013', 'startdate': '2001-07-01', 'enddate': '2013-03-31'}
+   {'label': 'APR 2013 TO DEC 2014', 'seriesbreak': 'SBN2013', 'startdate': '2013-04-01', 'enddate': '2014-12-31'}
+   {'label': 'JAN 2015 TO DEC 2021', 'seriesbreak': 'SBN2015', 'startdate': '2015-01-01', 'enddate': '2022-01-04'}
+   {'label': 'JAN 2022 TO JUN 2024', 'seriesbreak': 'SBN2022', 'startdate': '2022-01-05', 'enddate': '2024-07-02'}
+   {'label': 'JUL 2024 AND ON', 'seriesbreak': 'SBN2024', 'startdate': '2024-07-03', 'enddate': '9999-12-31'}
+
+=== fails keyids grouped by seriesbreak (headline UST/corp) ===
+   PDFTR-USTET break= SBN2024
+   PDFTR-CS break= SBN2024
+   PDFTD-USTET break= SBN2024
+   PDFTD-UST break= SBN2024
+   PDFTD-CS break= SBN2024
+   PDFTD-USTETC break= SBN2024
+   PDFTD-USTC break= SBN2024
+
+=== PDFTD-USTET full range probe ===
+  default: n=688 2013-04-03..2026-06-03
+  startPeriod=1996-01-01: n=688 2013-04-03..2026-06-03
+
+=== FRED earliest date for representative plumbing indicators ===
+  SWPT           earliest 2002-12-18
+  DTWEXBGS       earliest 2006-01-02
+  RRPONTSYD      earliest 2003-02-07
+  WALCL          earliest 2002-12-18
+  BAMLH0A0HYM2   earliest 2023-06-19
+  DRISCFLM       earliest 1990-04-01
+  TEMPHELPS      earliest 1990-01-01
+  STLFSI4        earliest 1993-12-31
+  SOFR           earliest 2018-04-03
+  WLODLL         earliest 2002-12-18
