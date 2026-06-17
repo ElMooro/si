@@ -424,6 +424,20 @@ def z_score_and_percentile(obs, window=1300):
     return round(z, 2), pct
 
 
+def fetch_fails_s3(side):
+    """Read data/settlement-fails.json (U.S. Treasury ex-TIPS) -> obs list.
+    side = 'ftd' (fails to deliver) | 'ftr' (fails to receive)."""
+    try:
+        body = S3.get_object(Bucket=BUCKET, Key="data/settlement-fails.json")["Body"].read()
+        d = json.loads(body)
+        head = next((c for c in d.get("classes", []) if c.get("key") == "ust_ex_tips"), None)
+        series = (head or {}).get(side) or []
+        return [{"date": p[0], "value": p[1]} for p in series if p and p[1] is not None]
+    except Exception as e:
+        print("[plumbing] fails_s3 %s: %s" % (side, e))
+        return []
+
+
 def assemble_indicator(spec):
     """Pull data for one indicator + compute stats."""
     out = dict(spec)
@@ -433,12 +447,16 @@ def assemble_indicator(spec):
     if src == "FRED":
         obs = fetch_fred(sid)
     elif src == "OFR":
-        # Map our internal IDs to OFR mnemonics
-        ofr_map = {
-            "OFR_FAILS_DELIVER": "NYPD-PD_AFtD_TOT-A",
-            "OFR_FAILS_RECEIVE": "NYPD-PD_AFtR_T-A",
+        # Primary: our reliable NY Fed PD settlement-fails feed; fallback: OFR mnemonic
+        fails_map = {
+            "OFR_FAILS_DELIVER": ("ftd", "NYPD-PD_AFtD_TOT-A"),
+            "OFR_FAILS_RECEIVE": ("ftr", "NYPD-PD_AFtR_T-A"),
         }
-        obs = fetch_ofr_series(ofr_map.get(sid, sid))
+        if sid in fails_map:
+            side, mnem = fails_map[sid]
+            obs = fetch_fails_s3(side) or fetch_ofr_series(mnem)
+        else:
+            obs = fetch_ofr_series(sid)
     elif src == "ECB_S3":
         # Direct ECB SDMX API (no S3 cache exists for these)
         if sid in ECB_SERIES_MAP:

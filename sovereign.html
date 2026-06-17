@@ -110,6 +110,9 @@ function barsH(items){
     return `<div style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11.5px"><div style="width:140px;color:var(--fg);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.country)}</div><div style="flex:1;background:#0b0b0b;border-radius:4px;overflow:hidden"><div style="width:${w}%;background:linear-gradient(90deg,#b45309,#eab308);height:18px"></div></div><div style="width:72px;text-align:right;color:var(--fg)">$${it.holdings_bn.toFixed(0)}B</div><div style="width:70px;text-align:right;color:${cc}">${chg==null?'\u2014':(chg>=0?'+':'')+chg.toFixed(0)+'B'}</div></div>`;
   }).join('')+`</div><div style="font-family:var(--mono);font-size:9px;color:var(--fg3);margin-top:6px;text-align:right">bar = holdings ($B) \u00b7 right column = 12-month net change</div>`;
 }
+function failColP(p){return p==null?'var(--fg3)':p>=95?'var(--red)':p>=80?'var(--amber)':p>=60?'var(--amberw)':'var(--green)';}
+function failBars(cls){const items=cls.map(c=>({label:c.label,v:(c.stats&&c.stats.latest)||0,p:(c.stats&&c.stats.pctile)})).sort((a,b)=>b.v-a.v);const mx=Math.max(...items.map(i=>i.v))||1;return `<div style="display:flex;flex-direction:column;gap:5px">`+items.map(it=>{const col=failColP(it.p);return `<div style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11.5px"><div style="width:150px;color:var(--fg);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.label)}</div><div style="flex:1;background:#0b0b0b;border-radius:4px;overflow:hidden"><div style="width:${(it.v/mx*100).toFixed(1)}%;background:${col};height:18px"></div></div><div style="width:66px;text-align:right;color:var(--fg)">$${it.v.toFixed(0)}B</div><div style="width:54px;text-align:right;color:${col}">${it.p==null?'\u2014':it.p.toFixed(0)+'%'}</div></div>`;}).join('')+`</div><div style="font-family:var(--mono);font-size:9px;color:var(--fg3);margin-top:6px;text-align:right">bar = combined fails ($B) \u00b7 right = historical %ile</div>`;}
+function failCard(c){const st=c.stats||{};const col=failColP(st.pctile);const pts=c.combined||[];const sp=(()=>{if(pts.length<2)return '';const vs=pts.map(p=>p[1]);const mn=Math.min(...vs),mx=Math.max(...vs),rg=(mx-mn)||1,n=pts.length;const d=pts.map((p,i)=>`${(i/(n-1)*620).toFixed(1)},${(120-(p[1]-mn)/rg*120).toFixed(1)}`).join(' ');return `<svg width="100%" height="50" viewBox="0 0 620 120" preserveAspectRatio="none" style="margin-top:8px;border-radius:6px;background:#0b0b0b"><polyline points="${d}" fill="none" stroke="${col}" stroke-width="1.6"/></svg>`;})();return `<div class="card" style="cursor:default"><div class="top"><div><div class="nm">${esc(c.label)}</div><div class="src">FTD $${(c.ftd_latest||0).toFixed(1)}B \u00b7 FTR $${(c.ftr_latest||0).toFixed(1)}B</div></div><div class="val" style="color:${col}">${fBN(st.latest||0)}</div></div><div class="row"><span class="pill" style="background:${col}22;color:${col}">${st.pctile!=null?st.pctile.toFixed(0)+'%ile':'\u2014'}</span><span>z ${st.z>=0?'+':''}${st.z}</span><span>peak ${fBN(st.max||0)}</span></div>${sp}</div>`;}
 function cbox(title,sub,svg){return `<div class="chartbox"><div class="ct">${title}</div><div class="cs">${sub}</div>${svg}</div>`;}
 
 let HOLDERS={};
@@ -124,6 +127,7 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
 (async()=>{
   const D=await gj('data/sovereign-fiscal.json');
   const C=await gj('data/fed-collateral.json');
+  const F=await gj('data/settlement-fails.json');
   if(!D){document.getElementById('reads').innerHTML='<span class="loading">Sovereign-fiscal data first run pending.</span>';return;}
   const tic=D.tic||{},fis=D.fiscal||{},ds=D.debt_service||{};
   (tic.holders||[]).forEach(h=>HOLDERS[h.country]=h);
@@ -144,6 +148,7 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
   if(ds.total_debt_latest_tn)strip+=stat('Total debt',fTN(ds.total_debt_latest_tn),'to the penny','var(--fg)');
   if(ds.implied_annual_interest_bn)strip+=stat('Interest expense',fBN(ds.implied_annual_interest_bn),(tib.length?'avg '+tib[tib.length-1][1].toFixed(2)+'%':'/yr est.'),'var(--amber)');
   if(C&&C.securities_lending&&C.securities_lending.stats)strip+=stat('Fed sec-lending',fBN1(C.securities_lending.stats.latest_bn),C.securities_lending.stats.pctile.toFixed(0)+'%ile take-up','var(--cyan)');
+  if(F&&F.headline)strip+=stat('Treasury fails',fBN(F.headline.combined_bn),F.signal.regime+' \u00b7 '+F.headline.pctile.toFixed(0)+'%ile',{CALM:'var(--green)',ELEVATED:'var(--amberw)',STRESS:'var(--amber)',CRISIS:'var(--red)'}[F.signal.regime]||'var(--fg2)');
   document.getElementById('reads').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span class="rb" style="font-family:var(--mono);font-weight:700;color:var(--gold)">SOVEREIGN DEMAND \u00b7 FISCAL \u00b7 DEBT SERVICE</span><span style="font-family:var(--mono);font-size:10px;color:var(--fg3)">${esc((D.generated_at||'').slice(0,16))}</span></div><div class="strip" style="margin-top:10px">${strip}</div><h2>The read</h2><ul class="dl">${reads.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
 
   let H='';
@@ -186,9 +191,23 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
     H+=`</div>`;
   }
 
+  // ---- Section 5: Settlement fails (deliver & receive) ----
+  if(F&&F.classes){const rc={CALM:'var(--green)',ELEVATED:'var(--amberw)',STRESS:'var(--amber)',CRISIS:'var(--red)'}[F.signal.regime]||'var(--fg2)';
+    H+=`<div class="sec">\u26a0 Settlement Fails \u2014 fails to deliver &amp; receive (as of ${esc(F.as_of)}) <span style="color:${rc};border:1px solid ${rc}66;border-radius:5px;padding:1px 8px;font-size:10px;margin-left:8px">${esc(F.signal.regime)} \u00b7 ${F.signal.score}/100</span></div>`;
+    H+=`<div class="panel" style="background:linear-gradient(180deg,#16110a,#111);border-color:${rc}55"><div style="font-size:11px;color:var(--fg3);margin-bottom:4px;font-family:var(--mono)">Settlement fails spike when a security can't be sourced \u2014 collateral squeezes, forced deleveraging, operational gridlock. A clean plumbing-stress / black-swan tell.</div><ul class="dl" style="margin:0">${F.signal.drivers.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+    const head=F.classes.find(c=>c.key==='ust_ex_tips');
+    if(head)H+=cbox('U.S. Treasury (ex-TIPS) settlement fails \u2014 deliver + receive','NY Fed Primary Dealer Statistics \u00b7 $B/wk \u00b7 spikes = collateral gridlock / plumbing stress',bigChart(head.combined,{col:rc,fmt:fBN,crises:CR_FIN,zero:true}));
+    H+=`<div class="two">`;
+    if(head)H+=cbox('Fails to deliver vs fails to receive (Treasury)','the two sides of the settlement break \u00b7 $B',multiChart([{name:'Fails to deliver',pts:head.ftd,col:'#ef4444'},{name:'Fails to receive',pts:head.ftr,col:'#22d3ee'}],{fmt:fBN,zero:true}));
+    H+=cbox('Fails by asset class \u2014 combined, latest','colored by historical percentile (red = stressed)',failBars(F.classes));
+    H+=`</div>`;
+    H+=cbox('All-asset settlement fails \u2014 total combined','sum across UST, TIPS, corporate, agency MBS, agency debt, other MBS \u00b7 $B/wk',bigChart(F.totals.combined,{col:'var(--amber)',fmt:fBN,crises:CR_FIN,zero:true}));
+    H+=`<div class="grid">${F.classes.map(failCard).join('')}</div>`;
+  }
+
   document.getElementById('body').innerHTML=H;
   document.querySelectorAll('.card[data-c]').forEach(el=>el.onclick=()=>openHolder(el.dataset.c));
-  document.getElementById('note').textContent=`Sources: U.S. Treasury TIC (Major Foreign Holders, ticdata.treasury.gov), U.S. Treasury Monthly Treasury Statement (federal deficit/receipts/outlays via FRED MTS series), U.S. Treasury fiscaldata (average interest rates + debt to the penny), NY Fed (SOMA securities lending + agency-MBS operations). Real official data only \u2014 not investment advice. Freshness by cadence: TIC publishes monthly with a ~2-month lag; MTS monthly; avg interest rate & debt daily/monthly; Fed collateral ops daily. Generated ${(D.generated_at||'').slice(0,16)} UTC.`;
+  document.getElementById('note').textContent=`Sources: U.S. Treasury TIC (Major Foreign Holders, ticdata.treasury.gov), U.S. Treasury Monthly Treasury Statement (federal deficit/receipts/outlays via FRED MTS series), U.S. Treasury fiscaldata (average interest rates + debt to the penny), NY Fed (SOMA securities lending + agency-MBS operations + Primary Dealer settlement fails / FR 2004). Real official data only \u2014 not investment advice. Freshness by cadence: TIC publishes monthly with a ~2-month lag; MTS monthly; avg interest rate & debt daily/monthly; Fed collateral ops daily. Generated ${(D.generated_at||'').slice(0,16)} UTC.`;
 })();
 </script>
 </body>
