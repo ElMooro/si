@@ -34,13 +34,21 @@ YAHOO = {  # id -> (symbol, label, kind)
     "eurchf": ("EURCHF=X", "EUR/CHF — franc safe-haven gauge", "fx"),
     "usdchf": ("CHF=X", "USD/CHF — franc vs dollar", "fx"),
 }
-FRED = {  # id -> (series_id, label, unit)
+FRED = {  # id -> (series_id, label, unit) — kept only where FRED is the fresh source
     "ch_business_confidence": ("BSCICP02CHM460S", "Switzerland — business confidence (OECD)", "index"),
-    "ch_ip_yoy": ("PRINTO01CHQ657S", "Switzerland — industrial production YoY (%)", "yoy"),
-    "ch_mfg_yoy": ("PRMNTO01CHQ657S", "Switzerland — manufacturing production YoY (%)", "yoy"),
-    "ch_unemployment": ("LMUNRRTTCHM156S", "Switzerland — unemployment rate (%, harmonised)", "pct"),
-    "ea_business_confidence": ("BSCICP02EZM460S", "Euro Area — business confidence (OECD)", "index"),
-    "ea_consumer_confidence": ("CSCICP02EZM460S", "Euro Area — consumer confidence (OECD)", "index"),
+}
+# Eurostat: id -> (dataset, query_params, label, kind, compute_yoy_from_index)
+EUROSTAT = {
+    "ch_unemployment": ("une_rt_m", "geo=CH&s_adj=SA&sex=T&age=TOTAL&unit=PC_ACT",
+                        "Switzerland — unemployment rate (%, ILO/harmonised)", "pct", False),
+    "ch_ip_yoy": ("sts_inpr_m", "geo=CH&nace_r2=B-D&s_adj=SCA&unit=I21",
+                  "Switzerland — industrial production YoY (%)", "yoy", True),
+    "ch_mfg_yoy": ("sts_inpr_m", "geo=CH&nace_r2=C&s_adj=SCA&unit=I21",
+                   "Switzerland — manufacturing production (NACE C) YoY (%)", "yoy", True),
+    "ea_business_confidence": ("ei_bssi_m_r2", "geo=EA20&indic=BS-ESI-I&s_adj=SA",
+                               "Euro Area — Economic Sentiment Indicator (ESI)", "index", False),
+    "ea_consumer_confidence": ("ei_bssi_m_r2", "geo=EA20&indic=BS-CSMCI-BAL&s_adj=SA",
+                               "Euro Area — consumer confidence (balance)", "index", False),
 }
 
 
@@ -84,6 +92,34 @@ def fred(series_id):
         except Exception as e:
             print("fred parse %s: %s" % (series_id, e))
     return pts
+
+
+def fetch_eurostat(dataset, params):
+    url = ("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/%s"
+           "?format=JSON&lang=EN&%s" % (dataset, params))
+    body = _get(url, t=45, hdr={"User-Agent": "JustHodl Research raafouis@gmail.com"})
+    pts = []
+    if body:
+        try:
+            j = json.loads(body)
+            idx = j["dimension"]["time"]["category"]["index"]; vals = j["value"]
+            inv = {p: per for per, p in idx.items()}
+            for p in sorted(int(k) for k in vals.keys()):
+                v = vals.get(str(p))
+                if v is not None:
+                    pts.append([inv[p], round(float(v), 4)])
+        except Exception as e:
+            print("eurostat %s: %s" % (dataset, e))
+    return pts
+
+
+def yoy_monthly(pts):
+    out = []
+    for i in range(12, len(pts)):
+        prev = pts[i - 12][1]
+        if prev:
+            out.append([pts[i][0], round((pts[i][1] / prev - 1) * 100, 2)])
+    return out
 
 
 def stats(pts, freq_days):
@@ -135,6 +171,15 @@ def lambda_handler(event, context):
             continue
         st = stats(pts, 3 if unit in ("yoy",) else 6)
         series.append({"id": sid, "label": label, "kind": unit, "source": "FRED/OECD",
+                       "freq": "monthly", "points": weekly(pts), **st})
+    for sid, (ds, params, label, kind, do_yoy) in EUROSTAT.items():
+        pts = fetch_eurostat(ds, params); time.sleep(0.3)
+        if do_yoy:
+            pts = yoy_monthly(pts)
+        if not pts:
+            continue
+        st = stats(pts, 3 if kind == "yoy" else 6)
+        series.append({"id": sid, "label": label, "kind": kind, "source": "Eurostat",
                        "freq": "monthly", "points": weekly(pts), **st})
 
     byid = {s["id"]: s for s in series}
