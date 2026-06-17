@@ -237,10 +237,7 @@ def load_or_build_calibration():
 
 # ---------- today's surprise ----------
 def score_statement_tone():
-    """LLM tone of the latest FOMC statement via direct Anthropic call. Robust + guarded."""
-    key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if not key:
-        return {"error": "no ANTHROPIC_API_KEY"}
+    """Tone of the latest FOMC statement via GLM (Z.ai, tier=reason) — avoids Claude credits. Guarded."""
     try:
         stmt_url = None
         try:
@@ -258,19 +255,18 @@ def score_statement_tone():
         text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))[:6000]
         prompt = ("Score this FOMC statement's monetary-policy tone on a -10..+10 scale "
                   "(-10 very dovish, +10 very hawkish). Consider rate guidance, inflation language, "
-                  'balance-of-risks. Return ONLY JSON: {"tone": <number>, "stance": '
+                  'balance-of-risks. Return ONLY JSON, no prose: {"tone": <number>, "stance": '
                   '"HAWKISH|NEUTRAL|DOVISH", "one_line": "<=18 words"}\n\n' + text)
-        body = json.dumps({"model": "claude-haiku-4-5-20251001", "max_tokens": 220,
-                           "messages": [{"role": "user", "content": prompt}]}).encode()
-        req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body,
-                                     headers={"x-api-key": key, "anthropic-version": "2023-06-01",
-                                              "content-type": "application/json"})
-        resp = json.loads(urllib.request.urlopen(req, timeout=40).read())
-        txt = "".join(b.get("text", "") for b in resp.get("content", []) if b.get("type") == "text")
-        m = re.search(r"\{.*\}", txt, re.S)
-        out = json.loads(m.group(0)) if m else {"raw": txt[:140]}
-        out["source_url"] = stmt_url
-        return out
+        try:
+            from llm_router import complete
+            raw = complete(prompt, tier="reason", max_tokens=1500)
+            m = re.search(r"\{.*\}", raw, re.S)
+            out = json.loads(m.group(0)) if m else {"raw": (raw or "")[:160]}
+            out["engine"] = "glm"
+            out["source_url"] = stmt_url
+            return out
+        except Exception as e:
+            return {"error": "glm: " + str(e)[:160], "source_url": stmt_url}
     except urllib.error.HTTPError as he:
         try:
             detail = he.read().decode("utf-8", "replace")[:240]
@@ -312,11 +308,13 @@ def todays_surprise():
         sign = "hawkish" if d2y_bp > 0 else "dovish"          # stale-2y fallback
     else:
         sign = "neutral"
+    basis = ("2y_market" if (two_y_fresh and d2y_bp and abs(d2y_bp) >= 1.0)
+             else "statement_tone" if isinstance(tone_val, (int, float)) and abs(tone_val) >= 1
+             else "stale_2y" if d2y_bp and abs(d2y_bp) >= 1.0 else "none")
+    preliminary = bool(is_decision_day and basis in ("stale_2y", "none"))
     return {"sign": sign, "d2y_bp": d2y_bp, "two_y_fresh": two_y_fresh, "as_of_2y": latest_2y_date,
-            "statement_tone": tone, "priced": priced,
-            "surprise_basis": ("2y_market" if (two_y_fresh and d2y_bp and abs(d2y_bp) >= 1.0)
-                               else "statement_tone" if isinstance(tone_val, (int, float)) and abs(tone_val) >= 1
-                               else "stale_2y" if d2y_bp and abs(d2y_bp) >= 1.0 else "none")}
+            "statement_tone": tone, "priced": priced, "surprise_basis": basis, "preliminary": preliminary,
+            "is_decision_day": is_decision_day}
 
 
 # ---------- assemble reaction map ----------
@@ -387,6 +385,7 @@ def lambda_handler(event, context):
         "surprise": {
             "label": surprise["sign"].upper(),
             "basis": surprise["surprise_basis"],
+            "preliminary": surprise["preliminary"],
             "d2y_change_bp": surprise["d2y_bp"],
             "two_y_fresh": surprise["two_y_fresh"],
             "as_of_2y": surprise["as_of_2y"],
