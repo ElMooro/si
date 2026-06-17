@@ -186,11 +186,11 @@ def lambda_handler(event=None, context=None):
         d3, p3 = _chg(pts, 3); d12, p12 = _chg(pts, 12)
         holders.append({"country": c, "points": pts[-180:], **_stats(pts),
                         "chg_3m_bn": d3, "chg_3m_pct": p3, "chg_12m_bn": d12, "chg_12m_pct": p12})
-    # all-country latest snapshot (for ranking) — exclude aggregate rows
-    skip = {"Grand Total", "Of which: For. Official", "All Other", "Of which: Foreign Official"}
+    # all-country latest snapshot (for ranking) — exclude aggregate / memo rows
+    skip_kw = ("total", "official", "t-bond", "t-bill", "treasury bill", "all other", "of which", "grand")
     latest_all = []
     for c, pts in tic.items():
-        if c in skip or len(pts) < 1:
+        if any(k in c.lower() for k in skip_kw) or len(pts) < 1:
             continue
         d12, p12 = _chg(pts, 12)
         latest_all.append({"country": c, "holdings_bn": pts[-1][1], "chg_12m_bn": d12, "as_of": pts[-1][0]})

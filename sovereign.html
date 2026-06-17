@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sovereign Demand &amp; Fiscal · JustHodl.AI</title>
+<meta name="description" content="Foreign demand for US Treasuries (TIC major foreign holders — who is buying / dumping), the federal deficit (MTS receipts vs outlays), debt service (average interest rate + implied interest expense), and NY Fed collateral operations (securities lending, AMBS).">
+<meta name="theme-color" content="#0a0a0a">
+<style>
+:root{--bg:#0a0a0a;--c1:#131313;--bd:#262626;--fg:#e5e5e5;--fg2:#a3a3a3;--fg3:#666;
+--red:#ef4444;--green:#22c55e;--amber:#f59e0b;--amberw:#facc15;--gold:#eab308;--blue:#3b82f6;--cyan:#22d3ee;--mono:ui-monospace,'SF Mono',Menlo,monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:13px;line-height:1.5;}
+.wrap{max-width:1400px;margin:0 auto;padding:18px;}
+.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+h1{font-size:20px;font-weight:700;}h1 .s{color:var(--fg3);font-weight:400;font-size:13px;}
+.nav a{color:var(--fg2);text-decoration:none;margin-left:14px;font-size:12px;}.nav a:hover{color:var(--gold);}
+.sec{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin:26px 0 10px;border-bottom:1px solid var(--bd);padding-bottom:5px;}
+.panel{background:linear-gradient(180deg,#1a1707,#111);border:1px solid #eab30844;border-radius:14px;padding:16px 18px;margin-bottom:8px;}
+.panel h2{font-size:15px;margin:10px 0 6px;font-weight:600;}
+.dl li{font-size:12.5px;color:var(--fg2);margin:4px 0;list-style:none;padding-left:15px;position:relative;}
+.dl li:before{content:"\u25b8";position:absolute;left:0;color:var(--gold);}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:6px;}
+.stat{background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:9px 12px;}
+.stat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--fg3);}
+.stat .v{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:2px;}
+.stat .d{font-family:var(--mono);font-size:10px;margin-top:1px;}
+.chartbox{background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.chartbox .ct{font-weight:600;font-size:13.5px;}.chartbox .cs{color:var(--fg3);font-size:10.5px;font-family:var(--mono);margin-bottom:4px;}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;}@media(max-width:900px){.two{grid-template-columns:1fr;}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;}
+.card{background:var(--c1);border:1px solid var(--bd);border-radius:11px;padding:11px 13px;cursor:pointer;transition:border-color .15s;}
+.card:hover{border-color:var(--gold);}
+.card .nm{font-weight:600;font-size:12.5px;}.card .src{color:var(--fg3);font-size:10px;font-family:var(--mono);}
+.card .val{font-family:var(--mono);font-size:18px;font-weight:700;text-align:right;}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.card .row{display:flex;gap:10px;font-family:var(--mono);font-size:10px;color:var(--fg2);margin-top:3px;flex-wrap:wrap;}
+.pill{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:4px;font-weight:700;}
+table.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;}
+table.t th{text-align:left;color:var(--fg3);font-weight:600;border-bottom:1px solid var(--bd);padding:5px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
+table.t td{padding:5px 8px;border-bottom:1px solid #1a1a1a;}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+#modal .box{background:var(--c1);border:1px solid var(--gold);border-radius:14px;padding:18px;max-width:1320px;width:100%;max-height:92vh;overflow:auto;}
+#modal .x{float:right;color:var(--fg3);cursor:pointer;font-size:20px;}
+.note{color:var(--fg3);font-size:10px;font-family:var(--mono);margin-top:20px;border-top:1px solid var(--bd);padding-top:8px;}
+.loading{color:var(--fg3);font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="head">
+  <div><h1>\ud83c\udfdb Sovereign Demand &amp; Fiscal <span class="s">— foreign UST demand, the deficit, debt service &amp; Fed collateral</span></h1></div>
+  <div class="nav"><a href="/">\u2190 home</a><a href="/auctions.html">auctions</a><a href="/bonds.html">bonds</a><a href="/repo.html">repo</a></div>
+</div>
+<div id="reads" class="panel"><span class="loading">Loading sovereign &amp; fiscal intelligence\u2026</span></div>
+<div id="body"></div>
+<div class="note" id="note"></div>
+</div>
+<div id="modal"><div class="box"><span class="x" onclick="document.getElementById('modal').style.display='none'">\u2715</span><div id="modalBody"></div></div></div>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const esc=s=>String(s==null?'\u2014':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+const fBN=v=>'$'+Math.round(v).toLocaleString()+'B';
+const fBN1=v=>'$'+v.toLocaleString(undefined,{maximumFractionDigits:1})+'B';
+const fTN=v=>'$'+v.toFixed(1)+'T';
+const fPC=v=>v.toFixed(2)+'%';
+const CR_FIN=[['2008-09','2009-06','GFC'],['2020-02','2020-11','COVID'],['2022-01','2022-10','rate shock']];
+
+function bigChart(pts,opt){
+  opt=opt||{};const col=opt.col||'var(--gold)';const fmtv=opt.fmt||(v=>v.toFixed(1));
+  if(!pts||pts.length<2)return '<div style="color:var(--fg3);padding:30px">No history available.</div>';
+  const W=1320,H=540,PL=84,PR=22,PT=28,PB=44,w=W-PL-PR,h=H-PT-PB;
+  const vs=pts.map(p=>p[1]);let mn=Math.min(...vs),mx=Math.max(...vs);
+  if(opt.zero)mn=Math.min(0,mn);if(mn===mx){mn-=1;mx+=1;}
+  const rg=(mx-mn)||1,n=pts.length;
+  const x=i=>PL+i/(n-1)*w,y=v=>PT+h-(v-mn)/rg*h;
+  const line=pts.map((p,i)=>`${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ');
+  const area=`${PL},${(PT+h).toFixed(1)} ${line} ${(PL+w).toFixed(1)},${(PT+h).toFixed(1)}`;
+  let ticks='';const yrs={};pts.forEach((p,i)=>{const yr=p[0].slice(0,4);if(!(yr in yrs))yrs[yr]=i;});
+  const yl=Object.keys(yrs),step=Math.max(1,Math.ceil(yl.length/16));
+  yl.forEach((yr,k)=>{if(k%step===0){const px=x(yrs[yr]);ticks+=`<line x1="${px}" y1="${PT}" x2="${px}" y2="${PT+h}" stroke="#1b1b1b"/><text x="${px}" y="${H-12}" fill="#8a8a8a" font-size="12" text-anchor="middle">${yr}</text>`;}});
+  let sh='';(opt.crises||[]).forEach(([a,b,lab])=>{let ia=pts.findIndex(p=>p[0]>=a);if(ia<0)return;let ib=pts.findIndex(p=>p[0]>=b);if(ib<0)ib=n-1;const xa=x(ia),xb=x(ib),bw=Math.max(3,xb-xa);sh+=`<rect x="${xa.toFixed(1)}" y="${PT}" width="${bw.toFixed(1)}" height="${h}" fill="rgba(239,68,68,0.12)"/><text x="${(xa+bw/2).toFixed(1)}" y="${PT-5}" fill="#f87171" font-size="10" font-weight="700" text-anchor="middle">${lab}</text>`;});
+  let gl='';for(let k=0;k<=5;k++){const v=mn+rg*k/5,py=y(v);gl+=`<line x1="${PL}" y1="${py.toFixed(1)}" x2="${PL+w}" y2="${py.toFixed(1)}" stroke="#171717"/><text x="${PL-8}" y="${(py+4).toFixed(1)}" fill="#8a8a8a" font-size="12" text-anchor="end">${fmtv(v)}</text>`;}
+  let zl='';if(mn<0&&mx>0){const py=y(0);zl=`<line x1="${PL}" y1="${py}" x2="${PL+w}" y2="${py}" stroke="#3a3a3a" stroke-dasharray="4,3"/>`;}
+  const lv=pts[n-1][1];
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}" style="display:block;width:100%"><rect x="${PL}" y="${PT}" width="${w}" height="${h}" fill="#0b0b0b"/>${sh}${gl}${zl}${ticks}<polygon points="${area}" fill="${col}" fill-opacity="0.09"/><polyline points="${line}" fill="none" stroke="${col}" stroke-width="1.9"/><circle cx="${x(n-1).toFixed(1)}" cy="${y(lv).toFixed(1)}" r="4.5" fill="${col}"/><text x="${(x(n-1)-8).toFixed(1)}" y="${(y(lv)-9).toFixed(1)}" fill="${col}" font-size="14" font-weight="700" text-anchor="end">${fmtv(lv)}</text></svg>`;
+}
+function multiChart(list,opt){
+  opt=opt||{};const fmtv=opt.fmt||(v=>v.toFixed(1));
+  const all=[].concat(...list.map(s=>s.pts.map(p=>p[1])));if(!all.length)return '';
+  let mn=Math.min(...all),mx=Math.max(...all);if(opt.zero)mn=Math.min(0,mn);const rg=(mx-mn)||1;
+  const W=1320,H=540,PL=84,PR=22,PT=28,PB=44,w=W-PL-PR,h=H-PT-PB;
+  const base=list.reduce((a,b)=>b.pts.length>a.pts.length?b:a).pts,n=base.length;
+  const idx={};base.forEach((p,i)=>idx[p[0]]=i);
+  const x=i=>PL+i/(n-1)*w,y=v=>PT+h-(v-mn)/rg*h;
+  let ticks='';const yrs={};base.forEach((p,i)=>{const yr=p[0].slice(0,4);if(!(yr in yrs))yrs[yr]=i;});
+  const yl=Object.keys(yrs),step=Math.max(1,Math.ceil(yl.length/16));
+  yl.forEach((yr,k)=>{if(k%step===0){const px=x(yrs[yr]);ticks+=`<line x1="${px}" y1="${PT}" x2="${px}" y2="${PT+h}" stroke="#1b1b1b"/><text x="${px}" y="${H-12}" fill="#8a8a8a" font-size="12" text-anchor="middle">${yr}</text>`;}});
+  let gl='';for(let k=0;k<=5;k++){const v=mn+rg*k/5,py=y(v);gl+=`<line x1="${PL}" y1="${py.toFixed(1)}" x2="${PL+w}" y2="${py.toFixed(1)}" stroke="#171717"/><text x="${PL-8}" y="${(py+4).toFixed(1)}" fill="#8a8a8a" font-size="12" text-anchor="end">${fmtv(v)}</text>`;}
+  let zl='';if(mn<0&&mx>0){const py=y(0);zl=`<line x1="${PL}" y1="${py}" x2="${PL+w}" y2="${py}" stroke="#3a3a3a" stroke-dasharray="4,3"/>`;}
+  let lines='',leg='';
+  list.forEach(s=>{const d=s.pts.map(p=>{const i=idx[p[0]];return i==null?null:`${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`;}).filter(Boolean).join(' ');lines+=`<polyline points="${d}" fill="none" stroke="${s.col}" stroke-width="2"/>`;const last=s.pts[s.pts.length-1];leg+=`<span style="color:${s.col};margin-right:16px;font-family:var(--mono);font-size:11.5px">\u25cf ${esc(s.name)} ${fmtv(last[1])}</span>`;});
+  return `<div style="margin:2px 0 6px">${leg}</div><svg width="100%" viewBox="0 0 ${W} ${H}" style="display:block;width:100%"><rect x="${PL}" y="${PT}" width="${w}" height="${h}" fill="#0b0b0b"/>${gl}${zl}${ticks}${lines}</svg>`;
+}
+function barsH(items){
+  if(!items||!items.length)return '';const mx=Math.max(...items.map(i=>i.holdings_bn));
+  return `<div style="display:flex;flex-direction:column;gap:5px">`+items.map(it=>{
+    const w=(it.holdings_bn/mx*100).toFixed(1);const chg=it.chg_12m_bn;const cc=chg==null?'var(--fg3)':chg>=0?'var(--green)':'var(--red)';
+    return `<div style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11.5px"><div style="width:140px;color:var(--fg);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.country)}</div><div style="flex:1;background:#0b0b0b;border-radius:4px;overflow:hidden"><div style="width:${w}%;background:linear-gradient(90deg,#b45309,#eab308);height:18px"></div></div><div style="width:72px;text-align:right;color:var(--fg)">$${it.holdings_bn.toFixed(0)}B</div><div style="width:70px;text-align:right;color:${cc}">${chg==null?'\u2014':(chg>=0?'+':'')+chg.toFixed(0)+'B'}</div></div>`;
+  }).join('')+`</div><div style="font-family:var(--mono);font-size:9px;color:var(--fg3);margin-top:6px;text-align:right">bar = holdings ($B) \u00b7 right column = 12-month net change</div>`;
+}
+function cbox(title,sub,svg){return `<div class="chartbox"><div class="ct">${title}</div><div class="cs">${sub}</div>${svg}</div>`;}
+
+let HOLDERS={};
+function holderCard(h){
+  const chg=h.chg_12m_bn;const cc=chg==null?'var(--fg3)':chg>=0?'var(--green)':'var(--red)';
+  const sp=(()=>{const pts=h.points||[];if(pts.length<2)return '';const vs=pts.map(p=>p[1]);const mn=Math.min(...vs),mx=Math.max(...vs),rg=(mx-mn)||1,n=pts.length;const d=pts.map((p,i)=>`${(i/(n-1)*620).toFixed(1)},${(120-(p[1]-mn)/rg*120).toFixed(1)}`).join(' ');return `<svg width="100%" height="56" viewBox="0 0 620 120" preserveAspectRatio="none" style="margin-top:8px;border-radius:6px;background:#0b0b0b"><polyline points="${d}" fill="none" stroke="${cc}" stroke-width="1.6"/></svg>`;})();
+  return `<div class="card" data-c="${esc(h.country)}"><div class="top"><div><div class="nm">${esc(h.country)}</div><div class="src">${esc(h.start_date)}\u2192${esc(h.latest_date)} \u00b7 ${h.n_obs} mo</div></div><div class="val">${fBN(h.latest)}</div></div><div class="row"><span class="pill" style="background:${cc}22;color:${cc}">12m ${chg==null?'\u2014':(chg>=0?'+':'')+chg.toFixed(0)+'B'}</span>${h.chg_3m_bn!=null?`<span>3m ${h.chg_3m_bn>=0?'+':''}${h.chg_3m_bn.toFixed(0)}B</span>`:''}<span>peak ${fBN(h.max)}</span></div>${sp}<div style="font-family:var(--mono);font-size:9px;color:var(--fg3);margin-top:3px;text-align:right">click for full history \u2192</div></div>`;
+}
+function openHolder(c){const h=HOLDERS[c];if(!h)return;document.getElementById('modalBody').innerHTML=`<h2 style="font-size:16px">${esc(c)} \u2014 holdings of US Treasuries</h2><div style="font-family:var(--mono);font-size:11px;color:var(--fg2);margin:4px 0 10px">TIC Major Foreign Holders \u00b7 ${h.n_obs} months \u00b7 ${esc(h.start_date)} \u2192 ${esc(h.latest_date)} \u00b7 latest <b style="color:var(--gold)">${fBN1(h.latest)}</b> \u00b7 12m ${h.chg_12m_bn>=0?'+':''}${h.chg_12m_bn} B (${h.chg_12m_pct}%)</div>${bigChart(h.points,{col:'var(--gold)',fmt:fBN,crises:CR_FIN})}`;document.getElementById('modal').style.display='flex';}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')document.getElementById('modal').style.display='none';});
+
+(async()=>{
+  const D=await gj('data/sovereign-fiscal.json');
+  const C=await gj('data/fed-collateral.json');
+  if(!D){document.getElementById('reads').innerHTML='<span class="loading">Sovereign-fiscal data first run pending.</span>';return;}
+  const tic=D.tic||{},fis=D.fiscal||{},ds=D.debt_service||{};
+  (tic.holders||[]).forEach(h=>HOLDERS[h.country]=h);
+  const total=tic.total||[];
+  const gt=(tic.holders||[]).find(h=>h.country==='Grand Total');
+  const china=HOLDERS['China, Mainland'],japan=HOLDERS['Japan'],uk=HOLDERS['United Kingdom'];
+  const ttm=fis.deficit_ttm||[],defm=fis.deficit_monthly||[],rcpt=fis.receipts_monthly||[],outl=fis.outlays_monthly||[];
+  const tib=(ds.avg_interest||{})['Total Interest-bearing Debt']||[];
+  const reads=(D.reads||[]).concat((C&&C.reads)||[]);
+
+  // headline reads + stat strip
+  let strip='';
+  const stat=(k,v,d,col)=>`<div class="stat"><div class="k">${k}</div><div class="v" style="color:${col||'var(--fg)'}">${v}</div><div class="d" style="color:${col||'var(--fg3)'}">${d}</div></div>`;
+  if(gt)strip+=stat('Foreign UST holdings',fBN(gt.latest),(gt.chg_12m_bn>=0?'+':'')+gt.chg_12m_bn.toFixed(0)+'B YoY',gt.chg_12m_bn>=0?'var(--green)':'var(--red)');
+  if(china)strip+=stat('China',fBN(china.latest),(china.chg_12m_bn>=0?'+':'')+china.chg_12m_bn.toFixed(0)+'B YoY',china.chg_12m_bn>=0?'var(--green)':'var(--red)');
+  if(japan)strip+=stat('Japan (largest)',fBN(japan.latest),(japan.chg_12m_bn>=0?'+':'')+japan.chg_12m_bn.toFixed(0)+'B YoY',japan.chg_12m_bn>=0?'var(--green)':'var(--red)');
+  if(ttm.length)strip+=stat('Deficit (TTM)',fBN(ttm[ttm.length-1][1]),'12-mo rolling','var(--amberw)');
+  if(ds.total_debt_latest_tn)strip+=stat('Total debt',fTN(ds.total_debt_latest_tn),'to the penny','var(--fg)');
+  if(ds.implied_annual_interest_bn)strip+=stat('Interest expense',fBN(ds.implied_annual_interest_bn),(tib.length?'avg '+tib[tib.length-1][1].toFixed(2)+'%':'/yr est.'),'var(--amber)');
+  if(C&&C.securities_lending&&C.securities_lending.stats)strip+=stat('Fed sec-lending',fBN1(C.securities_lending.stats.latest_bn),C.securities_lending.stats.pctile.toFixed(0)+'%ile take-up','var(--cyan)');
+  document.getElementById('reads').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span class="rb" style="font-family:var(--mono);font-weight:700;color:var(--gold)">SOVEREIGN DEMAND \u00b7 FISCAL \u00b7 DEBT SERVICE</span><span style="font-family:var(--mono);font-size:10px;color:var(--fg3)">${esc((D.generated_at||'').slice(0,16))}</span></div><div class="strip" style="margin-top:10px">${strip}</div><h2>The read</h2><ul class="dl">${reads.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+
+  let H='';
+  // ---- Section 1: Foreign demand ----
+  H+=`<div class="sec">\ud83c\udf0e Foreign Demand for US Treasuries \u2014 TIC (as of ${esc(tic.as_of)})</div>`;
+  H+=cbox('Total foreign holdings of US Treasuries','TIC Major Foreign Holders \u00b7 $B \u00b7 last ~15y',bigChart(total,{col:'var(--gold)',fmt:fBN,crises:CR_FIN}));
+  H+=`<div class="two">`;
+  if(japan&&china)H+=cbox('Japan vs China \u2014 the two megaholders','China selling while Japan holds = the de-dollarization divergence',multiChart([{name:'Japan',pts:japan.points,col:'#22d3ee'},{name:'China',pts:china.points,col:'#ef4444'}],{fmt:fBN}));
+  H+=cbox('Top foreign holders \u2014 latest &amp; 12-month change','green = adding Treasuries \u00b7 red = dumping',barsH((tic.ranking||[]).slice(0,15)));
+  H+=`</div>`;
+  H+=`<div class="grid">${(tic.holders||[]).filter(h=>h.country!=='Grand Total').map(holderCard).join('')}</div>`;
+
+  // ---- Section 2: Fiscal ----
+  H+=`<div class="sec">\ud83d\udcb8 Federal Fiscal Balance \u2014 MTS (as of ${esc(fis.as_of)})</div>`;
+  H+=cbox('Trailing-12-month federal deficit','Monthly Treasury Statement \u00b7 rolling 12-mo sum \u00b7 $B \u00b7 the issuance-pressure driver',bigChart(ttm,{col:'var(--red)',fmt:fBN,crises:CR_FIN}));
+  H+=`<div class="two">`;
+  H+=cbox('Receipts vs outlays (monthly)','where the gap opens \u00b7 $B/mo',multiChart([{name:'Outlays',pts:outl,col:'#ef4444'},{name:'Receipts',pts:rcpt,col:'#22c55e'}],{fmt:fBN,zero:true}));
+  H+=cbox('Monthly deficit / surplus','+ve = deficit \u00b7 $B \u00b7 note seasonal April tax surplus',bigChart(defm,{col:'var(--amberw)',fmt:fBN}));
+  H+=`</div>`;
+
+  // ---- Section 3: Debt service ----
+  H+=`<div class="sec">\ud83e\uddfe Debt Service \u2014 the interest-expense trajectory (as of ${esc(ds.debt_as_of||'')})</div>`;
+  H+=`<div class="two">`;
+  H+=cbox('Average interest rate on the debt','U.S. Treasury \u00b7 weighted avg coupon on total interest-bearing debt \u00b7 %',bigChart(tib,{col:'var(--amber)',fmt:fPC}));
+  H+=cbox('Total public debt outstanding','Debt to the Penny \u00b7 $T',bigChart(ds.total_debt_tn||[],{col:'var(--blue)',fmt:fTN}));
+  H+=`</div>`;
+  if((ds.avg_interest||{})['Treasury Notes']&&(ds.avg_interest||{})['Treasury Bonds'])
+    H+=cbox('Average rate by instrument','notes vs bonds \u00b7 %',multiChart([{name:'Bonds',pts:ds.avg_interest['Treasury Bonds'],col:'#a78bfa'},{name:'Notes',pts:ds.avg_interest['Treasury Notes'],col:'#22d3ee'},{name:'Total IB debt',pts:tib,col:'#f59e0b'}],{fmt:fPC}));
+
+  // ---- Section 4: Fed collateral ----
+  if(C){const sl=C.securities_lending||{},am=C.ambs||{};
+    H+=`<div class="sec">\ud83d\udd17 NY Fed Collateral Operations (as of ${esc((sl.stats||{}).as_of||'')})</div>`;
+    H+=cbox('SOMA securities-lending take-up','daily total accepted par \u00b7 $B \u00b7 high = collateral scarcity / specials pressure',bigChart(sl.daily_total_bn||[],{col:'var(--cyan)',fmt:fBN1,zero:true}));
+    H+=`<div class="two">`;
+    let sp='<table class="t"><tr><th>Security</th><th style="text-align:right">On loan</th><th style="text-align:right">Rate</th></tr>';
+    (sl.top_specials||[]).forEach(s=>{sp+=`<tr><td>${esc(s.security)}</td><td style="text-align:right;color:var(--cyan)">${fBN1(s.outstanding_loans_bn)}</td><td style="text-align:right;color:var(--fg2)">${s.rate}%</td></tr>`;});
+    sp+='</table>';
+    H+=cbox('Issues on special \u2014 most-borrowed from SOMA','collateral the market is short of',sp||'<div style="color:var(--fg3)">none</div>');
+    H+=cbox('Agency MBS operations','accepted par by month \u00b7 $B \u00b7 QT-era reinvestment',bigChart(am.monthly_accepted_bn||[],{col:'var(--green)',fmt:fBN1,zero:true}));
+    H+=`</div>`;
+  }
+
+  document.getElementById('body').innerHTML=H;
+  document.querySelectorAll('.card[data-c]').forEach(el=>el.onclick=()=>openHolder(el.dataset.c));
+  document.getElementById('note').textContent=`Sources: U.S. Treasury TIC (Major Foreign Holders, ticdata.treasury.gov), U.S. Treasury Monthly Treasury Statement (federal deficit/receipts/outlays via FRED MTS series), U.S. Treasury fiscaldata (average interest rates + debt to the penny), NY Fed (SOMA securities lending + agency-MBS operations). Real official data only \u2014 not investment advice. Freshness by cadence: TIC publishes monthly with a ~2-month lag; MTS monthly; avg interest rate & debt daily/monthly; Fed collateral ops daily. Generated ${(D.generated_at||'').slice(0,16)} UTC.`;
+})();
+</script>
+</body>
+</html>
