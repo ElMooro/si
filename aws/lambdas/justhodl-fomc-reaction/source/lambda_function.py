@@ -237,26 +237,42 @@ def load_or_build_calibration():
 
 # ---------- today's surprise ----------
 def score_statement_tone():
-    """LLM tone of the latest FOMC statement (explanatory colour only). Guarded."""
+    """LLM tone of the latest FOMC statement via direct Anthropic call. Robust + guarded."""
+    key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not key:
+        return {"error": "no ANTHROPIC_API_KEY"}
     try:
-        xml = http_get(FED_PRESS_FEED).decode("utf-8", "replace")
-        links = re.findall(r"<link>(https?://[^<]+)</link>", xml)
-        stmt_url = next((u for u in links if "monetary" in u and u.endswith(".htm")), None)
+        stmt_url = None
+        try:
+            xml = http_get(FED_PRESS_FEED).decode("utf-8", "replace")
+            for u in re.findall(r"<link>(https?://[^<]+)</link>", xml):
+                if "monetary" in u and u.endswith(".htm"):
+                    stmt_url = u
+                    break
+        except Exception:
+            pass
         if not stmt_url:
-            return None
+            ds = datetime.date.today().strftime("%Y%m%d")
+            stmt_url = "https://www.federalreserve.gov/newsevents/pressreleases/monetary%sa.htm" % ds
         html = http_get(stmt_url).decode("utf-8", "replace")
-        text = re.sub(r"<[^>]+>", " ", html)
-        text = re.sub(r"\s+", " ", text)[:6000]
-        from llm_router import complete
+        text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))[:6000]
         prompt = ("Score this FOMC statement's monetary-policy tone on a -10..+10 scale "
-                  "(-10 very dovish, +10 very hawkish). Return ONLY JSON: "
-                  '{"tone": <num>, "stance": "HAWKISH|NEUTRAL|DOVISH", "one_line": "<=18 words"}\n\n' + text)
-        raw = complete(prompt, tier="reason", max_tokens=200)
-        m = re.search(r"\{.*\}", raw, re.S)
-        return json.loads(m.group(0)) if m else None
+                  "(-10 very dovish, +10 very hawkish). Consider rate guidance, inflation language, "
+                  'balance-of-risks. Return ONLY JSON: {"tone": <number>, "stance": '
+                  '"HAWKISH|NEUTRAL|DOVISH", "one_line": "<=18 words"}\n\n' + text)
+        body = json.dumps({"model": "claude-haiku-4-5-20251001", "max_tokens": 220,
+                           "messages": [{"role": "user", "content": prompt}]}).encode()
+        req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body,
+                                     headers={"x-api-key": key, "anthropic-version": "2023-06-01",
+                                              "content-type": "application/json"})
+        resp = json.loads(urllib.request.urlopen(req, timeout=40).read())
+        txt = "".join(b.get("text", "") for b in resp.get("content", []) if b.get("type") == "text")
+        m = re.search(r"\{.*\}", txt, re.S)
+        out = json.loads(m.group(0)) if m else {"raw": txt[:140]}
+        out["source_url"] = stmt_url
+        return out
     except Exception as e:
-        print("[fomc] tone scoring skipped: %s" % e)
-        return None
+        return {"error": str(e)[:140]}
 
 
 def todays_surprise():
