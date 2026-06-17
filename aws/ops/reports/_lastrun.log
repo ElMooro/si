@@ -1,15 +1,4 @@
-invoke: {"statusCode": 200, "body": "{\"regime\": \"ELEVATED\", \"score\": 49, \"as_of\": \"2026-06-03\", \"ust_combined_bn\": 257.3, \"ust_pctile\": 79.4, \"classes\": 6, \"total_combined_bn\": 359.89}"}
-
-as_of: 2026-06-03 | signal: ELEVATED 49
-  - Treasury (ex-TIPS) settlement fails $257bn combined (deliver $129bn + receive $128bn), 79%ile / z +0.5 — elevated
-  - All-asset fails $360bn combined across 6 classes
-
-headline: {'ftd_bn': 128.92, 'ftr_bn': 128.35, 'combined_bn': 257.3, 'z': 0.5, 'pctile': 79.4, 'max_bn': 890.0}
-classes:
-  U.S. Treasury (ex-TIPS)    FTD=128.92 FTR=128.35 comb=257.3 79.4%ile z0.5 n=688 2013-04-03..2026-06-03
-  TIPS                       FTD=12.54 FTR=12.11 comb=24.6 92.9%ile z1.36 n=688 2013-04-03..2026-06-03
-  Corporate securities       FTD=28.9 FTR=25.36 comb=54.3 83.1%ile z0.71 n=688 2013-04-03..2026-06-03
-  Agency MBS                 FTD=9.06 FTR=8.38 comb=17.4 21.4%ile z-0.57 n=688 2013-04-03..2026-06-03
-  Agency debt (ex-MBS)       FTD=0.43 FTR=0.27 comb=0.7 4.5%ile z-0.63 n=688 2013-04-03..2026-06-03
-  Other (non-agency) MBS     FTD=3.05 FTR=2.52 comb=5.6 59.0%ile z-0.05 n=688 2013-04-03..2026-06-03
-totals combined latest: ['2026-06-03', 359.89] | n: 260
+invoke plumbing-aggregator: {"statusCode": 200, "body": "{\"ok\": true, \"composite_score\": 52.9, \"composite_label\": \"ELEVATED\", \"n_with_data\
+  OFR_FAILS_DELIVER: value=128.92 z=0.5 pct=78.8 n=None stress=None date=2026-06-03 err=None
+  OFR_FAILS_RECEIVE: value=128.35 z=0.2 pct=68.3 n=None stress=None date=2026-06-03 err=None
+  L1 score: 39.6 | composite: 52.9 ELEVATED
