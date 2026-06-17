@@ -132,13 +132,101 @@ def parse(text):
         return []
 
 
+# ── External + derived history: Eurostat EA confidence suite, production YoY, real M1 ──
+EUROSTAT = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/ei_bssi_m_r2"
+_UA = {"User-Agent": "JustHodl Research raafouis@gmail.com"}
+EUROSTAT_CONF = [
+    ("conf_esi",          "Euro-area Economic Sentiment Indicator (ESI, long-run avg=100)", "BS-ESI-I"),
+    ("conf_industrial",   "Euro-area industrial confidence (balance, %)",                   "BS-ICI-BAL"),
+    ("conf_services",     "Euro-area services confidence (balance, %)",                     "BS-SCI-BAL"),
+    ("conf_consumer",     "Euro-area consumer confidence (balance, %)",                     "BS-CSMCI-BAL"),
+    ("conf_retail",       "Euro-area retail trade confidence (balance, %)",                 "BS-RCI-BAL"),
+    ("conf_construction", "Euro-area construction confidence (balance, %)",                 "BS-CCI-BAL"),
+]
+PROD_YOY = {  # base index id -> YoY label
+    "indprod_total":        "Industrial production — total incl. construction · YoY (%)",
+    "indprod_core":         "Manufacturing production (excl. construction) · YoY (%)",
+    "indprod_intermediate": "Industrial production — intermediate goods · YoY (%)",
+    "indprod_capital":      "Industrial production — capital goods · YoY (%)",
+    "indprod_durable":      "Industrial production — consumer durables · YoY (%)",
+    "indprod_nondurable":   "Industrial production — consumer non-durables · YoY (%)",
+    "indprod_energy":       "Industrial production — energy · YoY (%)",
+}
+CAPTURE = set(PROD_YOY) | {"m1_growth", "hicp_headline"}
+
+
+def fetch_eurostat(indic, geo="EA20"):
+    url = "%s?format=JSON&lang=EN&geo=%s&indic=%s&s_adj=SA" % (EUROSTAT, geo, indic)
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers=_UA), timeout=45) as r:
+            j = json.loads(r.read().decode("utf-8", "ignore"))
+        idx = j["dimension"]["time"]["category"]["index"]; vals = j["value"]
+        inv = {p: per for per, p in idx.items()}
+        out = []
+        for p in sorted(int(k) for k in vals.keys()):
+            v = vals.get(str(p))
+            if v is not None:
+                out.append([inv[p], round(float(v), 2)])
+        return out
+    except Exception as e:
+        print("eurostat %s: %s" % (indic, e)); return []
+
+
+def yoy_series(pts):
+    out = []
+    for i in range(12, len(pts)):
+        prev = pts[i - 12][1]
+        if prev:
+            out.append([pts[i][0], round((pts[i][1] / prev - 1) * 100, 2)])
+    return out
+
+
+def _round(v):
+    if v is None: return None
+    a = abs(v)
+    if a == 0: return 0.0
+    if a < 1: return round(v, 5)
+    if a < 100: return round(v, 3)
+    return round(v, 1)
+
+
+def _stats_write(sid, label, freq, pts, source):
+    """Stats + S3 write + manifest entry for a derived/external series (mirrors main loop)."""
+    vals = [p[1] for p in pts]; latest = vals[-1]; n = len(vals)
+    pctl = round(100 * sum(1 for v in vals if v <= latest) / n, 1)
+    try:
+        seg = vals[-260:] if n >= 260 else vals
+        sd = statistics.pstdev(seg)
+        z = round((latest - statistics.mean(seg)) / sd, 2) if sd else None
+    except Exception:
+        z = None
+    try:
+        ld = pts[-1][0]; ld10 = (ld + "-01")[:10] if len(ld) == 7 else ld[:10]
+        stale = (datetime.now(timezone.utc).date() - datetime.strptime(ld10, "%Y-%m-%d").date()).days
+    except Exception:
+        stale = None
+    out = {"id": sid, "label": label, "freq": freq, "flow_key": source,
+           "generated_at": datetime.now(timezone.utc).isoformat(),
+           "n_points": n, "first_date": pts[0][0], "latest_date": pts[-1][0],
+           "latest": _round(latest), "min": _round(min(vals)), "max": _round(max(vals)),
+           "percentile": pctl, "z_score": z, "points": pts}
+    s3.put_object(Bucket=BUCKET, Key="data/ecb-hist/%s.json" % sid,
+                  Body=json.dumps(out, default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=43200")
+    return {"id": sid, "label": label, "freq": freq, "latest": _round(latest),
+            "percentile": pctl, "z_score": z, "first_date": pts[0][0],
+            "latest_date": pts[-1][0], "n_points": n,
+            "stale_days": stale, "discontinued": bool(stale and stale > 120)}
+
+
 def lambda_handler(event=None, context=None):
-    t0 = time.time(); written = []; manifest = []
+    t0 = time.time(); written = []; manifest = []; captured = {}
     for flow_key, sid, label in SERIES:
         text = fetch_csv(flow_key)
         if not text: continue
         pts = parse(text)
         if len(pts) < 20: continue
+        if sid in CAPTURE: captured[sid] = pts
         vals = [p[1] for p in pts]
         latest = vals[-1]
         # Smart rounding: small-range indices (CISS 0-1) need more decimals than
@@ -200,6 +288,33 @@ def lambda_handler(event=None, context=None):
                          "first_date": pts[0][0], "latest_date": pts[-1][0], "n_points": len(pts),
                          "discontinued": bool(_stale_days and _stale_days > 120), "stale_days": _stale_days})
         time.sleep(0.4)
+    # ── Eurostat: euro-area Business & Consumer Survey confidence suite (history to 1980) ──
+    for sid, label, ic in EUROSTAT_CONF:
+        ep = fetch_eurostat(ic)
+        if len(ep) >= 20:
+            manifest.append(_stats_write(sid, label, "monthly", ep, "Eurostat ei_bssi_m_r2"))
+            written.append(sid)
+        time.sleep(0.3)
+    # ── computed YoY for every production breakdown (full history from the index) ──
+    for base, ylabel in PROD_YOY.items():
+        bp = captured.get(base)
+        if bp:
+            yp = yoy_series(bp)
+            if len(yp) >= 20:
+                manifest.append(_stats_write(base + "_yoy", ylabel, "monthly", yp,
+                                             "computed YoY from ECB STS index"))
+                written.append(base + "_yoy")
+    # ── real M1 growth = nominal M1 YoY − HICP YoY (money-supply lead, inflation-adjusted) ──
+    m1 = captured.get("m1_growth"); hp = captured.get("hicp_headline")
+    if m1 and hp:
+        hy = {d: v for d, v in yoy_series(hp)}
+        rp = [[d, round(v - hy[d], 2)] for d, v in m1 if d in hy]
+        if len(rp) >= 20:
+            manifest.append(_stats_write("real_m1_growth",
+                                         "Real M1 growth (nominal M1 YoY − HICP YoY, %)",
+                                         "monthly", rp, "computed real M1"))
+            written.append("real_m1_growth")
+
     # HEAL-FROM-FILES: the manifest is rebuilt from EVERY data/ecb-hist/*.json on S3,
     # not just this builder's own list. Files written by any past or sibling writer
     # (hub v3 series, esi accumulator, ...) stay visible with full stats; nothing a
