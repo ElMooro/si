@@ -1,18 +1,17 @@
 invoke: {"statusCode": 200, "body": "{\"n_flashing\": 2}"}
-
-=== NEW confidence + IP-YoY charts ===
-  conf_industrial        1983-02→2026-05 (321pts) latest=-8.0 pctile=34.4
-  conf_services          1995-04→2026-05 (321pts) latest=2.2 pctile=21.1
-  conf_consumer          1985-01→2026-05 (321pts) latest=-19.0 pctile=5.0
-  conf_retail            1985-01→2026-05 (321pts) latest=-10.9 pctile=32.6
-  conf_construction      1983-02→2026-05 (321pts) latest=-3.6 pctile=73.1
-  esi_sentiment          1983-02→2026-05 (321pts) latest=93.5 pctile=24.4
-  ipyoy_total            MISSING
-  ipyoy_manufacturing    MISSING
-  ipyoy_intermediate     MISSING
-  ipyoy_capital          MISSING
-  ipyoy_durable          MISSING
-  ipyoy_nondurable       MISSING
-  ipyoy_energy           MISSING
-
-total charts: 21
+=== IP YoY by sector ===
+  ipyoy_total            1998-01→2025-09 latest=1.12% pctile=53.2
+  ipyoy_manufacturing    1998-01→2025-09 latest=1.45% pctile=52.0
+  ipyoy_intermediate     1998-01→2025-09 latest=0.34% pctile=47.7
+  ipyoy_capital          1998-01→2025-09 latest=1.5% pctile=43.8
+  ipyoy_durable          1998-01→2025-09 latest=-3.12% pctile=24.9
+  ipyoy_nondurable       1998-01→2025-09 latest=1.91% pctile=63.7
+  ipyoy_energy           1998-01→2025-09 latest=1.39% pctile=54.4
+=== confidence (recap) ===
+  conf_industrial        latest=-8.0 pctile=34.4
+  conf_services          latest=2.2 pctile=21.1
+  conf_consumer          latest=-19.0 pctile=5.0
+  conf_retail            latest=-10.9 pctile=32.6
+  conf_construction      latest=-3.6 pctile=73.1
+  esi_sentiment          latest=93.5 pctile=24.4
+total charts: 28
