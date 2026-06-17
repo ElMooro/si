@@ -1,11 +1,12 @@
-generated_at: 2026-06-17T01:20:15 | n_series: 10
-  smi                      1990-11-30→2026-06-16  n=428  first_pt=['1990-11-30', 1383.1]
-  spi                      2013-03-31→2026-06-16  n=160  first_pt=['2013-03-31', 7424.8799]
-  eurchf                   2003-02-01→2026-06-17  n=282  first_pt=['2003-02-01', 1.4597]
-  usdchf                   2003-09-30→2026-06-17  n=274  first_pt=['2003-09-30', 1.3382]
-  ch_business_confidence   1990-01-01→2026-05-01  n=437  first_pt=['1990-01-01', 5.7333]
-  ch_ip_yoy                1990-01-01→2026-01-01  n=145  first_pt=['1990-01-01', 7.494]
-  ch_mfg_yoy               2004-04-01→2026-01-01  n=88  first_pt=['2004-04-01', -0.1457]
-  ch_unemployment          1990-01-01→2023-12-01  n=408  first_pt=['1990-01-01', 0.452]
-  ea_business_confidence   1990-01-01→2026-01-01  n=433  first_pt=['1990-01-01', 4.4]
-  ea_consumer_confidence   1990-01-01→2026-01-01  n=433  first_pt=['1990-01-01', -0.8]
+generated_at: 2026-06-17T01:20:15 | today: 2026-06-17
+series                   latest_date  days_old  freq     verdict
+  smi                    2026-06-16          1  daily    FRESH
+  spi                    2026-06-16          1  daily    FRESH
+  eurchf                 2026-06-17          0  daily    FRESH
+  usdchf                 2026-06-17          0  daily    FRESH
+  ch_business_confidence 2026-05-01         47  monthly  FRESH
+  ch_ip_yoy              2026-01-01        167  quarterly STALE
+  ch_mfg_yoy             2026-01-01        167  quarterly STALE
+  ch_unemployment        2023-12-01        929  monthly  STALE
+  ea_business_confidence 2026-01-01        167  monthly  STALE
+  ea_consumer_confidence 2026-01-01        167  monthly  STALE
