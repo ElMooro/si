@@ -1,17 +1,38 @@
-invoke: {"statusCode": 200, "body": "{\"n_flashing\": 2}"}
-=== IP YoY by sector ===
-  ipyoy_total            1998-01→2025-09 latest=1.12% pctile=53.2
-  ipyoy_manufacturing    1998-01→2025-09 latest=1.45% pctile=52.0
-  ipyoy_intermediate     1998-01→2025-09 latest=0.34% pctile=47.7
-  ipyoy_capital          1998-01→2025-09 latest=1.5% pctile=43.8
-  ipyoy_durable          1998-01→2025-09 latest=-3.12% pctile=24.9
-  ipyoy_nondurable       1998-01→2025-09 latest=1.91% pctile=63.7
-  ipyoy_energy           1998-01→2025-09 latest=1.39% pctile=54.4
-=== confidence (recap) ===
-  conf_industrial        latest=-8.0 pctile=34.4
-  conf_services          latest=2.2 pctile=21.1
-  conf_consumer          latest=-19.0 pctile=5.0
-  conf_retail            latest=-10.9 pctile=32.6
-  conf_construction      latest=-3.6 pctile=73.1
-  esi_sentiment          latest=93.5 pctile=24.4
-total charts: 28
+=== A) ecb-derived.json signals ===
+  ciss_acceleration              signal=CALM       value=  keys=['name', 'ciss_level', 'delta_30d', 'delta_30d_zscore', 'signal', 'interpretation']
+  bank_funding_stress            signal=NORMAL     value=  keys=['name', 'mro_eur_mn', 'ltro_eur_mn', 'ltro_share_pct', 'ltro_share_4w_ago_pct', 'mlf_eur_mn']
+  eu_us_liquidity_divergence     signal=NORMAL     value=  keys=['name', 'ecb_total_assets_eur_bn', 'ecb_balance_sheet_6m_chg_eur_bn', 'fed_net_liquidity_6m_chg_usd_bn', 'divergence_bn', 'signal']
+  bls_credit_standards           signal=TIGHTENING value=  keys=['name', 'net_pct_tightening', 'prev_quarter', 'as_of', 'signal', 'interpretation']
+  bank_pass_through_premium      signal=NORMAL     value=  keys=['name', 'nfc_lending_rate_pct', 'dfr_pct', 'premium_pct', 'premium_3m_ago_pct', 'widening_3m_pp']
+  target2_imbalance              signal=NORMAL     value=  keys=['name', 'de_target2_eur_mn', 'it_target2_eur_mn', 'de_3m_change_eur_mn', 'de_minus_it_eur_mn', 'as_of']
+  usd_funding_stress_composite   signal=NORMAL     value=  keys=['name', 'score_0_100', 'composite_z', 'a030000_z', 'l080000_z', 'fed_swap_z']
+  eurodollar_stress_index        signal=NORMAL     value=  keys=['name', 'esi_0_100', 'tier', 'components', 'signal', 'interpretation']
+  estr_dfr_dislocation           signal=NORMAL     value=  keys=['name', 'estr_pct', 'dfr_pct', 'spread_bp', 'signal', 'interpretation']
+  euribor_ois_stress             signal=WATCH      value=  keys=['name', 'euribor_3m_pct', 'estr_3m_comp_pct', 'spread_bp', 'signal', 'interpretation']
+  expectations_deanchoring       signal=NORMAL     value=  keys=['name', 'spf_longterm_pct', 'spf_prev_q_pct', 'nominal_5y5y_fwd_pct', 'as_of', 'signal']
+  wage_persistence               signal=NORMAL     value=  keys=['name', 'official_yoy', 'tracker_fwd_yoy', 'tracker_ex_oneoffs_yoy', 'coverage_pct', 'as_of']
+  credit_contraction             signal=NORMAL     value=  keys=['name', 'nfc_loans_yoy', 'hh_loans_yoy', 'impulse_6m_pp', 'as_of', 'signal']
+  fragmentation_stress           signal=NORMAL     value=  keys=['name', 'it_de_bp', 'spreads_bp', 'as_of', 'signal', 'interpretation']
+  ea_unemployment                signal=NORMAL     value=  keys=['name', 'unemployment_rate_pct', 'chg_3m_pp', 'as_of', 'series', 'signal']
+  ea_industrial_production       signal=NORMAL     value=  keys=['name', 'ip_yoy_pct', 'as_of', 'series', 'signal', 'interpretation']
+  ea_confidence                  signal=NORMAL     value=  keys=['name', 'business_conf', 'business_z', 'consumer_conf', 'consumer_z', 'as_of']
+  real_m1_growth                 signal=NORMAL     value=  keys=['name', 'm1_yoy_pct', 'hicp_yoy_pct', 'real_m1_growth_pct', 'as_of', 'signal']
+  country_unemployment           signal=NORMAL     value=  keys=['name', 'countries', 'worst_3m_rise_pp', 'signal', 'interpretation', 'thresholds']
+  (non-signal keys: [] )
+
+=== B) ecb-hist manifest series ids ===
+  count: 78
+  ids: balance_sheet, bank_rate_nfc, ciss_bo, ciss_ea, ciss_eq, ciss_fi, ciss_fx, ciss_mm, dfr, es_de_10y_bp, esi, estr, eurcny, euribor_3m, euribor_ois_bp, eurjpy, eurusd, excess_liquidity, fr_de_10y_bp, fx_claims_nonea, gdp_yoy, gr_de_10y_bp, hh_loans_yoy, hicp_core, hicp_energy, hicp_headline, hicp_services, ilm_eur_to_nonres, ilm_mp_lending, ilm_usd_claims, indprod_capital, indprod_core, indprod_durable, indprod_energy, indprod_intermediate, indprod_nondurable, indprod_total, it_de_10y_bp, m1_growth, m3_yoy, manuf_turnover, nfc_loans_yoy, pt_de_10y_bp, retail_turnover, spf_longterm, t2_de_minus_it, unemp_at, unemp_be, unemp_bg, unemp_cy, unemp_cz, unemp_de, unemp_dk, unemp_ea_youth, unemp_ee, unemp_es, unemp_fi, unemp_fr, unemp_gr, unemp_hr, unemp_hu, unemp_ie, unemp_it, unemp_lt, unemp_lu, unemp_lv, unemp_mt, unemp_nl, unemp_pl, unemp_pt, unemp_ro, unemp_se, unemp_si, unemp_sk, unemployment_ea, wages_negotiated, yc_1y, yc_1y1y
+
+=== C) ECB dataflow catalog — find survey/confidence/sentiment flows ===
+  catalog ok (39226 bytes, 102 flows). Survey/confidence matches:
+    ECB_BKN1     Bank Lending Survey Statistics
+    ECB_CCP1     Consumer Expectations Survey
+    ECB_GST1     Indices of Consumer Prices
+    ECB_ICO1     Indices of Consumer prices
+    ECB_MIR1     Money Market Survey
+    ECB_RTD1     Survey on the Access to Finance of SMEs
+    ECB_SEE1     Survey on credit terms and conditions in euro-denominated securities f
+    NA_SEC       Survey of Professional Forecasters
+    ECB_BOP1     Short-Term Business Statistics
+    ECB_SUP1     Opinion Surveys
