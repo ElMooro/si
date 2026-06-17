@@ -1,34 +1,29 @@
-### ARRAY NUMERIC FIELDS (for bars value selection) ###
-13f-positions.json consensus_holds: n=30 dateKeys=[] numFields={'cusip': 37833100.0, 'n_funds_holding': 16.0, 'total_value': 94042850454.0, 'n_funds_adding': 6.0, 'n_funds_trimming': 7.0, 'n_funds_new_position': 2.0, 'n_funds_exiting': 0.0, 'net_action_score': 3.0}
-momentum-scanner.json rankings.composite_top_50: n=50 dateKeys=[] numFields={'last_close': 1991.55, 'ret_1m': 41.48, 'ret_3m': 176.54, 'ret_6m': 865.93, 'ret_12m': 4586.0, 'mom_12_1': 3212.02, 'vol_60d': 95.19, 'vol_adj_mom_3m': 1.855}
-vol-regime.json tickers: n=8 dateKeys=[] numFields={'spot_price': 509.7, 'rv_5d': 19.64, 'rv_20d': 12.08, 'rv_z': 0.02, 'rv_90d': 14.33, 'iv_atm_30d': 15.26, 'iv_rv_ratio': 1.26}
-dislocations.json top_dislocations: n=120 dateKeys=[] numFields={'market_cap': 1184936670.0, 'gross_margin': 75.928, 'op_margin': 9.09, 'net_margin': 4.672, 'ps': 0.24, 'pe': 5.149, 'ev_ebitda': 1.514, 'ev_sales': 0.184}
-buyback-scanner.json top_opportunities: n=8 dateKeys=[] numFields={'days_since_announcement': 7.0, 'price': 11.2, 'market_cap': 791372714.0, 'authorization_usd': 100000000.0, 'pct_of_mcap': 12.64, 'size_confidence': 0.6, 'insider_net_buys_usd': 0.0, 'insider_n_buyers': 0.0}
-earnings-whisper.json top_setups: n=5 dateKeys=['time'] numFields={'days_to_earnings': -7.0, 'eps_consensus': 1.58, 'n_estimates': 11.0, 'whisper_score': 23.0}
-implied-prob.json earnings_implied: n=3 dateKeys=[] numFields={'days_to': 2.0}
-sizing.json engine_table: n=53 dateKeys=[] numFields={'n': 315.0, 'win_rate': 62.5, 'median_win_pct': 6.24, 'median_loss_pct': 4.24, 'payoff_eff': 1.47, 'kelly_pct': 30.0, 'quarter_kelly_w_pct': 7.5, 'avg_claimed_conf': 0.63}
-stock-valuations.json sp_table: n=500 dateKeys=['t'] numFields={'pe': 9.12, 'pb': -161.61, 'ps': 0.4, 'ev_ebitda': 7.4, 'p_fcf': 6.11, 'ev_fcf': 7.69, 'ev_s': 0.51, 'div_y': 0.047}
-insider-radar.json latest_buys: n=40 dateKeys=['date'] numFields={'shares': 1250000.0, 'price': 20.0, 'value': 25000000.0, 'w': 1.8, 'score': 90.0}
-historical-analogs.json analogs: n=15 dateKeys=['date'] numFields={'distance': 0.629, 'similarity': 0.874, 'forward_5d_pct': 1.46, 'forward_21d_pct': -0.08, 'forward_63d_pct': -4.43, 'forward_126d_pct': 9.35}
-catalyst-calendar.json events: n=8 dateKeys=['date', 'time'] numFields={'size_billions': 0.0, 'days_to': 0.0}
-market-map.json tiles: n=498 dateKeys=['t'] numFields={'mc': 26110694980.65, 'c': -1.99, 'w': -13.06, 'hi': -13.06, 'ps': 6.05}
 
-### STRUCTURE PROBE (bespoke pages) ###
-confluence-meta.json: today_confluence{2026-06-15,2026-06-16,2026-06-17,2026-06-14} | confluence_curves_net{≤-3,-2..-1,0,+1..+2} | net_today{date,net,up_engines,down_engines} nums=['net'] | fade_index[1]{engine,n_scored,hit_rate,inverted_expectancy_hit}
-regime.json: current{quadrant,as_of_month,months_in_regime,previous_quadrant} nums=['months_in_regime', 'growth_6m_momentum', 'inflation_6m_momentum'] | playbook{spx,ust10y_yield,usd,wti} | transition_matrix_3m{GOLDILOCKS,REFLATION,STAGFLATION,DEFLATION-BUST} | regime_strip[364][[str..]]
-crisis-plumbing.json: composite{composite_stress_score,consensus_count,agreement_signal,n_indices_available} nums=['composite_stress_score', 'consensus_count', 'n_indices_available'] | crisis_indices{STLFSI4,NFCI,ANFCI,KCFSI} | plumbing_tier2{DPSACBW027SBOG,BUSLOANS,RRPONTSYD,TGA} | funding_credit_signals{SOFR_IORB_SPREAD,HY_OAS,IG_BBB_OAS,T10YIE} | xcc_basis_proxy{rate_diff_jpy_3m,rate_diff_eur_3m,broad_dollar_index,obfr_iorb_spread} | yield_curve{T10Y2Y,T10Y3M} | data_sources{fred_api,license}
-crisis-canaries.json: availability{sofr_tail,ofr_repo,discount_window,bank_deposits} | canaries{sofr_tail,ofr_repo,discount_window,bank_deposits} | alerts[1] | families{labor,real_economy,credit,rates_regime} | known_gaps[1]
-basket-var.json: basket[14]
-vol-surface.json: skew{value,pctile_252d,regime,tail_mult} nums=['value', 'pctile_252d', 'tail_mult'] | vvix{value,pctile_252d,regime,source} nums=['value', 'pctile_252d'] | term_structure{spot,back,ratio_30d_3m,slope_30d_3m_yearized} nums=['spot', 'back', 'ratio_30d_3m'] | cross_asset{spots,ndx_vix_ratio,djia_vix_ratio,rut_vix_ratio} nums=['ndx_vix_ratio', 'djia_vix_ratio', 'rut_vix_ratio'] | equity_dispersion{available,names,mean,std} nums=['mean', 'std', 'coef_var'] | underlyings{VIX_30D,VIX_3M,NDX_VOL,RUT_VOL} | stress_components{skew_pctile,vvix_pctile,oil_dominant} nums=['skew_pctile', 'vvix_pctile', 'oil_dominant'] | alerts[1] | data_freshness{latest_fred_date,latest_skew_date,latest_vvix_date}
-rotation-radar.json: crypto{available,event_study,live,diagnostics} | equity{definition,ratios} | diagnostics[4] | scores{crypto_altseason,equity_rotation} nums=['crypto_altseason', 'equity_rotation'] | ai_brief{error}
-global-tide.json: fed{net_liquidity_usd_bn,fed_bs_usd_bn,rrp_usd_bn,tga_usd_bn} nums=['net_liquidity_usd_bn', 'fed_bs_usd_bn', 'rrp_usd_bn'] | ecb{bs_eur_bn,bs_usd_bn,chg_6m_pct,qt_pace} nums=['bs_eur_bn', 'bs_usd_bn', 'chg_6m_pct'] | boj{injection_score,stance,bs_jpy_tn,usdjpy} nums=['injection_score', 'bs_jpy_tn', 'usdjpy'] | china{injection_score,stance,m2_yoy_pct,m1_yoy_pct} nums=['m2_yoy_pct', 'm1_yoy_pct', 'usdcny'] | gli{g4_stock_usd_tn,n_cb_measured,impulse_score,regime} nums=['g4_stock_usd_tn', 'n_cb_measured', 'impulse_score'] | risk{global_risk_0_100,tier,components} nums=['global_risk_0_100'] | indicators{}
-forward-returns.json: macro_inputs{y10,y30,y2,y3m} nums=['y10', 'y30', 'y2'] | assets{SPY,QQQ,IWM,EFA} | rankings{by_forward_er,by_sharpe,by_opportunity_percentile} | benchmark_portfolios{all_cash,60_40,all_weather,all_stocks} | headlines[2] | methodology{stocks_er,bonds_er,tips_er,credit_er}
-signal-backtest.json: overall{n,avg,median,win_rate} nums=['n', 'avg', 'median'] | by_verdict{STRONG OPPORTUNITY,OPPORTUNITY,HIGH RISK,FAIR VALUE} | by_compounder_bucket{compounder_80+,compounder_<70,compounder_70-80} | by_cap_bucket{large,mega,mid,small} | by_revision{revision_FLAT} | by_valuation_vs_peer{} | by_cheap_x_improving{}
-auction-crisis.json: issuance_anomaly{score,pct_above_baseline} nums=['score', 'pct_above_baseline'] | freshness{latest_auction_date,latest_cusip,hours_since_latest_auction,previous_latest_cusip} nums=['hours_since_latest_auction', 'n_total_auctions_pulled'] | recent_auctions[10]{auction_date,issue_date,security_type,security_term} | indicator_aggregate_14d{tail_stress} | historical_reference[10]{date,regime,btc,low_rate} | tenor_decomposition{bills_lt_90d,bills_gte_90d,coupons_lt_3y,coupons_gt_3y} | forward_calendar[10]{auction_date,issue_date,security_type,security_term} | historical_analog{current_vector,vector_labels,top_matches,all_matches} | cross_signals{repo_stress,dollar_strength,curve_slope,inflation_expectations} | composite_history{series,change_points,current,min_composite} nums=['min_composite', 'max_composite']
-alpha-compass.json: regime{label,color,regime} | top_calls[3]{rank,subject,ticker,direction} | watchlist[3]{rank,subject,ticker,direction} | coverage{miss_summary_30d_totals,top_recurring_misses} | source_feeds{conviction,magnitude_distributions,scorecard,sizer}
-episode-compass.json: reading{top_minus_bottom,tails_n,interpretation} nums=['top_minus_bottom', 'tails_n'] | today_vector{curve_10y3m,credit_baa10y,real_10y,cpi_6m_mom} | classes{TOP,BOTTOM,BLACK_SWAN} | class_scores{TOP,BOTTOM,BLACK_SWAN} nums=['TOP', 'BOTTOM', 'BLACK_SWAN'] | ai_brief{error}
-event-study.json: horizons_trading_days[5] | studies{fed_first_cut,fed_first_hike,yield_curve_inverts,yield_curve_steepens} | data_sources{all}
-alert-sentinel.json: changes[9] | snapshot{breakouts,insider_decline,insider_src,thrusts} nums=['semis_off_low', 'smallcap_vs_high', 'breadth_capwtd'] | diagnostics[1]
-journal-graded.json: track_record{}
-dealer-survey.json: latest_survey{source_url,fomc_date,discovered_at,note} | history[1]{source_url,fomc_date,discovered_at,note}
-funding-plumbing.json: signals{balance_sheet,reserves,rrp_cushion,sofr_iorb} | top_drivers[4]{signal,note}
+=== crisis-canaries.json ===
+  availability: scalars={} subdicts=[]
+  canaries: scalars={} subdicts=['sofr_tail', 'ofr_repo', 'discount_window', 'bank_deposits', 'auction_slope', 'revision_nowcast']
+  families: scalars={} subdicts=['labor', 'real_economy', 'credit', 'rates_regime', 'global_fx', 'internals']
+
+=== funding-plumbing.json ===
+  signals: scalars={} subdicts=['balance_sheet', 'reserves', 'rrp_cushion', 'sofr_iorb', 'sofr_effr', 'sofr_tail']
+  top_drivers[4] keys=['signal', 'note'] nums=[]
+
+=== insider-radar.json ===
+  latest_buys[40] keys=['ticker', 'date', 'insider', 'title', 'type', 'shares', 'price', 'value', 'w', 'score'] nums=['shares', 'price', 'value', 'w', 'score']
+  clusters[3] keys=['ticker', 'n_insiders', 'n_buys', 'total_value', 'span_days', 'first', 'last', 'max_rank_w', 'ret_60d_pct', 'names', 'ps_ttm'] nums=['n_insiders', 'n_buys', 'total_value', 'span_days', 'max_rank_w', 'ret_60d_pct', 'ps_ttm']
+  finviz_buys[60] keys=['ticker', 'sector', 'price', 'perf_m'] nums=['price', 'perf_m']
+  finviz_sells[60] keys=['ticker', 'sector', 'price', 'perf_m'] nums=['price', 'perf_m']
+  decline_buys[6] keys=['ticker', 'date', 'insider', 'title', 'type', 'shares', 'price', 'value', 'w', 'score', 'ret_60d_pct', 'ps_ttm'] nums=['shares', 'price', 'value', 'w', 'score', 'ret_60d_pct', 'ps_ttm']
+
+=== dislocations.json ===
+  buy_the_laggard[40] keys=['ticker', 'name', 'sector', 'industry', 'cap_bucket', 'market_cap', 'revenue', 'rev_growth_pct', 'eps_growth_pct', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales', 'growth_adj_ev_sales', 'rule_of_40', 'roic', 'roe', 'debt_to_equity', 'interest_coverage', 'piotroski', 'altman_z', 'inst_own_pct', 'insider_cluster', 'beat_streak', 'cohort', 'cohort_size', 'cheapness', 'quality', 'moat_score', 'risk_penalty', 'dislocation_score', 'cohort_median', 'caveats', 'momentum', 'cheap_and_inflecting', 'dislocated_vs'] nums=['market_cap', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales']
+  cheap_and_inflecting[25] keys=['ticker', 'name', 'sector', 'industry', 'cap_bucket', 'market_cap', 'revenue', 'rev_growth_pct', 'eps_growth_pct', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales', 'growth_adj_ev_sales', 'rule_of_40', 'roic', 'roe', 'debt_to_equity', 'interest_coverage', 'piotroski', 'altman_z', 'inst_own_pct', 'insider_cluster', 'beat_streak', 'cohort', 'cohort_size', 'cheapness', 'quality', 'moat_score', 'risk_penalty', 'dislocation_score', 'cohort_median', 'caveats', 'momentum', 'cheap_and_inflecting', 'dislocated_vs'] nums=['market_cap', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales']
+  top_dislocations[120] keys=['ticker', 'name', 'sector', 'industry', 'cap_bucket', 'market_cap', 'revenue', 'rev_growth_pct', 'eps_growth_pct', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales', 'growth_adj_ev_sales', 'rule_of_40', 'roic', 'roe', 'debt_to_equity', 'interest_coverage', 'piotroski', 'altman_z', 'inst_own_pct', 'insider_cluster', 'beat_streak', 'cohort', 'cohort_size', 'cheapness', 'quality', 'moat_score', 'risk_penalty', 'dislocation_score', 'cohort_median', 'caveats', 'momentum', 'cheap_and_inflecting', 'dislocated_vs'] nums=['market_cap', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales']
+
+=== implied-prob.json ===
+  fed: scalars={'target_upper': 3.75, 'target_lower': 3.5, 'current_rate': 3.625, 'ffer_recent': 3.63, 'bill_3m': 3.78, 'bill_6m': 3.78, 'bill_1y': 3.82, 'implied_3m_change_bp': 15.0, 'implied_6m_change_bp': 15.0, 'implied_1y_change_bp': 19.0} subdicts=['next_meeting']
+  recession: scalars={'ny_fed_12m_prob_pct': 0.44, 'ny_fed_12m_delta_pct': -0.08, 'yield_curve_10y3m_bp': 77.0, 'days_inverted_current': 0.0, 'hy_spread_bp': 274.0, 'hy_spread_percentile_10y': 9.8, 'hy_spread_z': -1.06, 'composite_score_0_100': 5.3} subdicts=[]
+  spy: scalars={'spot': 737.55, 'iv_30d': 15.4, 'iv_90d': 19.23} subdicts=['moves_30d', 'moves_90d']
+  qqq: scalars={'spot': 705.06, 'iv_30d': 23.22, 'iv_90d': 23.22} subdicts=['moves_30d', 'moves_90d']
+  btc: scalars={'spot': 34.14, 'iv_30d': 34.39, 'iv_90d': 51.98} subdicts=['moves_30d', 'moves_90d']
+  earnings_implied[3] keys=['ticker', 'name', 'earnings_date', 'days_to', 'spot', 'iv_pct', 'expected_move_pct', 'note'] nums=['days_to']
