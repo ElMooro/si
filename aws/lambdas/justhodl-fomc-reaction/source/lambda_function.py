@@ -265,6 +265,12 @@ def todays_surprise():
     d2y_bp = None
     if len(dd) >= 2:
         d2y_bp = round((dgs2[dd[-1]] - dgs2[dd[-2]]) * 100.0, 1)
+    latest_2y_date = dd[-1] if dd else None
+    today_str = datetime.date.today().isoformat()
+    is_decision_day = today_str in FOMC_DATES
+    # On decision day the 2y often hasn't posted yet (FRED H.15 lags ~1 business day),
+    # so a same-day 2y read can't reflect the decision → prefer the statement tone.
+    two_y_fresh = (latest_2y_date == today_str)
     fw = gj("data/fedwatch.json") or {}
     priced = None
     try:
@@ -274,16 +280,21 @@ def todays_surprise():
     except Exception:
         pass
     tone = score_statement_tone()
-    # market verdict dominates; tone is tie-breaker when 2y is flat
+    tone_val = tone.get("tone") if isinstance(tone, dict) else None
     sign = None
-    if d2y_bp is not None and abs(d2y_bp) >= 1.0:
-        sign = "hawkish" if d2y_bp > 0 else "dovish"
-    elif tone and isinstance(tone.get("tone"), (int, float)):
-        sign = "hawkish" if tone["tone"] > 1 else "dovish" if tone["tone"] < -1 else "neutral"
+    if d2y_bp is not None and two_y_fresh and abs(d2y_bp) >= 1.0:
+        sign = "hawkish" if d2y_bp > 0 else "dovish"          # market verdict (preferred once posted)
+    elif isinstance(tone_val, (int, float)) and abs(tone_val) >= 1:
+        sign = "hawkish" if tone_val > 0 else "dovish"        # statement tone (decision-day, pre-2y)
+    elif d2y_bp is not None and abs(d2y_bp) >= 1.0:
+        sign = "hawkish" if d2y_bp > 0 else "dovish"          # stale-2y fallback
     else:
         sign = "neutral"
-    return {"sign": sign, "d2y_bp": d2y_bp, "statement_tone": tone, "priced": priced,
-            "as_of_2y": dd[-1] if dd else None}
+    return {"sign": sign, "d2y_bp": d2y_bp, "two_y_fresh": two_y_fresh, "as_of_2y": latest_2y_date,
+            "statement_tone": tone, "priced": priced,
+            "surprise_basis": ("2y_market" if (two_y_fresh and d2y_bp and abs(d2y_bp) >= 1.0)
+                               else "statement_tone" if isinstance(tone_val, (int, float)) and abs(tone_val) >= 1
+                               else "stale_2y" if d2y_bp and abs(d2y_bp) >= 1.0 else "none")}
 
 
 # ---------- assemble reaction map ----------
@@ -353,11 +364,14 @@ def lambda_handler(event, context):
         "meeting_date": today if is_decision_day else next_fomc,
         "surprise": {
             "label": surprise["sign"].upper(),
+            "basis": surprise["surprise_basis"],
             "d2y_change_bp": surprise["d2y_bp"],
+            "two_y_fresh": surprise["two_y_fresh"],
+            "as_of_2y": surprise["as_of_2y"],
             "statement_tone": surprise["statement_tone"],
             "priced_in": surprise["priced"],
-            "driver_note": "2-year Treasury move is the market's real-time verdict on the policy surprise; "
-                           "statement tone is explanatory colour, not an override.",
+            "driver_note": "2-year Treasury move is the market's real-time verdict on the policy surprise once it "
+                           "posts (FRED lags ~1 business day); on decision day before it posts, the statement tone leads.",
         },
         "reaction_map": rmap,
         "calibration": {
