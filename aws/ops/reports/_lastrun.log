@@ -1,18 +1,9 @@
-
-crisis-canaries.json.canaries: 42 members
-  sofr_tail: nums={'tail_bp': 9.0, 'z': -0.23, 'vol_bn': 3147.0} strKeys=['as_of']
-  ofr_repo: nums={'level': 2275256776203.04, 'z': 0.04} strKeys=['mnemonic', 'as_of']
-  discount_window: nums={'level_mn': 6606.0, 'wow_chg': 534.0, 'z': 1.19, 'wow_z': 0.62} strKeys=['series', 'as_of']
-  TOPLEVEL nums: {'duration_s': 15.4, 'composite_score': 16.4, 'signals_logged': 0.0, 'red_count': 1.0, 'n_global': 30.0, 'global_score': 8.9, 'grid_score_ingested': 37.4, 'composite_v3': 17.2}
-
-crisis-canaries.json.families: 7 members
-  labor: nums={'n': 5.0, 'red': 1.0, 'amber': 0.0, 'green': 4.0, 'score': 20.0} strKeys=[]
-  real_economy: nums={'n': 5.0, 'red': 0.0, 'amber': 1.0, 'green': 4.0, 'score': 10.0} strKeys=[]
-  credit: nums={'n': 5.0, 'red': 0.0, 'amber': 2.0, 'green': 3.0, 'score': 20.0} strKeys=[]
-  TOPLEVEL nums: {'duration_s': 15.4, 'composite_score': 16.4, 'signals_logged': 0.0, 'red_count': 1.0, 'n_global': 30.0, 'global_score': 8.9, 'grid_score_ingested': 37.4, 'composite_v3': 17.2}
-
-funding-plumbing.json.signals: 9 members
-  balance_sheet: nums={'latest_usd_t': 6.73, 'chg_8wk_usd_b': 20.0} strKeys=['direction', 'note']
-  reserves: nums={'reserves_usd_t': 3.08, 'lclor_usd_t': 3.0, 'ratio': 1.03} strKeys=['note']
-  rrp_cushion: nums={'rrp_usd_b': 10.7} strKeys=['note']
-  TOPLEVEL nums: {'version': 1.0, 'duration_s': 2.2, 'plumbing_stress_score': 56.4}
+jh-enhance.js: HTTP 200 | 10461b | has render funcs: True
+  carry.html: HTTP 200 | jh-enhance wired: True
+  forensic.html: HTTP 200 | jh-enhance wired: True
+  regime.html: HTTP 200 | jh-enhance wired: True
+  global-tide.html: HTTP 200 | jh-enhance wired: True
+  auctions.html: HTTP 200 | jh-enhance wired: True
+  canaries.html: HTTP 200 | jh-enhance wired: False
+  dislocations.html: HTTP 200 | jh-enhance wired: True
+  13f.html: HTTP 200 | jh-enhance wired: True
