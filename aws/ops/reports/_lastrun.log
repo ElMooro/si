@@ -1,28 +1,14 @@
-=== TIC: first 18 non-empty lines (raw, show tabs as |) ===
-   '\t\tMAJOR FOREIGN HOLDERS OF TREASURY SECURITIES\t\t\t\t\t\t\t\t\t\t\t\r'
-   '\t\t\t    (in billions of dollars)\t\t\t\t\t\t\t\t\t\t\r'
-   '\t\t\tHOLDINGS 1/ AT END OF PERIOD\t\t\t\t\t\t\t\t\t\t\r'
-   '\tDec\tNov\tOct\tSep\tAug\tJul\tJun\tMay\tApr\tMar\tFeb\tJan\t\r'
-   'Country\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t2025\t\r'
-   '\t------\t------\t------\t------\t------\t------\t------\t------\t------\t------\t------\t------\t\r'
-   'Japan\t1185.5\t1202.7\t1200\t1189.3\t1180.4\t1151.8\t1147.9\t1135\t1134.5\t1130.8\t1125.9\t1079.3\t\r'
-   'United Kingdom\t863.1\t879.8\t875.4\t862.5\t901.4\t896\t855.7\t809.4\t807.7\t779.3\t750.3\t740.2\t\r'
-   '"China, Mainland"\t683.5\t683.9\t687.7\t699.2\t699.7\t695.6\t731.4\t732.7\t743.6\t765.4\t784.3\t760.8\t'
-   'Belgium\t477.3\t481\t465.5\t463.6\t451.1\t425.4\t430.3\t415.5\t411.1\t402.1\t394.7\t377.7\t\r'
-   'Canada\t468.2\t472.4\t419.4\t476\t443.8\t381.6\t438.7\t430.1\t368.4\t426.2\t406.1\t350.8\t\r'
-   'Luxembourg\t434.2\t424.7\t418\t420.1\t409.9\t403.8\t403.2\t412.6\t410.9\t412.4\t412.4\t409.9\t\r'
-   'Cayman Islands\t421.2\t427.6\t418.7\t427\t410.7\t436.9\t441\t441.3\t446.5\t453.6\t416.1\t406.9\t\r'
-   'France\t368.9\t376.1\t390.2\t375.5\t389.1\t391\t373.8\t375.1\t360.6\t363.1\t354.1\t335.4\t\r'
-   'Ireland\t340.7\t340.3\t339.9\t340\t343.5\t323.9\t317.3\t327.3\t339.9\t329.3\t339\t329.7\t\r'
-   'Taiwan\t310.6\t312.9\t309.5\t312.6\t313.5\t308.9\t307.2\t304.8\t311.5\t308.2\t306.2\t298.6\t\r'
-   'Switzerland\t294.1\t300.4\t302\t301.8\t302.7\t302.8\t300.6\t303.7\t310.9\t311.7\t290.8\t301.2\t\r'
-   'Singapore\t278.4\t272.2\t272.4\t258.6\t260.7\t252.2\t253.2\t249.3\t247.7\t262.7\t260\t247.6\t\r'
+HEADER at line 5 months= ['Dec', 'Nov', 'Oct', 'Sep', 'Aug', 'Jul', 'Jun', 'May', 'Apr', 'Mar', 'Feb', 'Jan']
+year row line 6 years= ['2025', '2025', '2025', '2025', '2025', '2025', '2025', '2025', '2025', '2025', '2025', '2025']
+dates= ['2025-12', '2025-11', '2025-10', '2025-09', '2025-08', '2025-07', '2025-06', '2025-05', '2025-04', '2025-03', '2025-02', '2025-01']
+  row:  vals= ['------', '------', '------']
+  row:  vals= ['', '', '']
+  row: Japan vals= ['1185.5', '1202.7', '1200']
+  row: United Kingdom vals= ['863.1', '879.8', '875.4']
+  row: China, Mainland vals= ['683.5', '683.9', '687.7']
+  row: Belgium vals= ['477.3', '481', '465.5']
 
-=== TIC parser run: max date + Japan tail + grand-total name ===
-  blocks parsed: 26 | countries: 57
-  Japan max date: ('2024-12', 1061.5)  n= 298
-  name candidates w/ 'Total' or 'China': ['China, Mainland', 'Grand Total']
-
-=== MTS: ALL rows for record 2026-05-31 with classification 'May' ===
-   {'parent_id': '58528591', 'table_nbr': '1', 'line_code_nbr': '230', 'current_month_dfct_sur_amt': '292648462083.74'}
-   {'parent_id': '58528532', 'table_nbr': '1', 'line_code_nbr': '90', 'current_month_dfct_sur_amt': '315651741381.91'}
+=== FRED MTS clean series check ===
+  deficit MTSDS  MTSDS133FMS  -> -292648.46208374 (2026-05-01), 215024.14019777 (2026-04-01)
+  receipts MTSR  MTSR133FMS   -> 335512.18322742 (2026-05-01), 837340.12424853 (2026-04-01)
+  outlays MTSO   MTSO133FMS   -> 628160.64531116 (2026-05-01), 622315.98405076 (2026-04-01)
