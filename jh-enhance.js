@@ -24,6 +24,7 @@
   var COLOR = ME.getAttribute("data-color") || "#eab308";
   var MAXN = parseInt(ME.getAttribute("data-max") || "20", 10);
   var CRISIS = ME.getAttribute("data-crisis") === "1";
+  var METRICS = ME.getAttribute("data-metrics");
   var PX = "https://justhodl-data-proxy.raafouis.workers.dev";
   var S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
   var CRISES = [["1997-07","1998-10","Asian/LTCM"],["2000-03","2002-10","Dot-com"],["2007-08","2009-06","GFC"],["2011-07","2012-07","Euro debt"],["2015-08","2016-02","China/oil"],["2020-02","2020-05","COVID"],["2022-01","2022-10","Rate shock"],["2023-03","2023-05","SVB"]];
@@ -52,10 +53,10 @@
     document.body.insertBefore(c, document.body.firstChild);
   }
 
-  function renderBars(body, items){
+  function renderBars(body, items, keepOrder){
     items=items.filter(function(x){return x.v!=null;});
-    items.sort(function(a,b){return Math.abs(b.v)-Math.abs(a.v);});
-    items=items.slice(0,MAXN);
+    if(!keepOrder){ items.sort(function(a,b){return Math.abs(b.v)-Math.abs(a.v);}); items=items.slice(0,MAXN); }
+    if(!items.length){ body.innerHTML='<div style="color:#777;font-size:11px">No data.</div>'; return; }
     var mx=Math.max.apply(null, items.map(function(i){return Math.abs(i.v);}))||1;
     var anyNeg=items.some(function(i){return i.v<0;});
     var html='<div style="display:flex;flex-direction:column;gap:4px">';
@@ -67,7 +68,7 @@
         +'<div style="flex:1;background:#0b0b0b;border-radius:4px;overflow:hidden;'+(anyNeg?'display:flex;justify-content:'+(it.v<0?'flex-end':'flex-start'):'')+'"><div style="width:'+w+'%;height:17px;background:linear-gradient(90deg,'+col+'55,'+col+')"></div></div>'
         +'<div style="width:74px;text-align:right;color:#e5e5e5">'+fmt(it.v)+'</div></div>';
     });
-    html+='</div><div style="font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#666;margin-top:6px;text-align:right">top '+items.length+' by magnitude · live data</div>';
+    html+='</div><div style="font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#666;margin-top:6px;text-align:right">'+(keepOrder?'live data':'top '+items.length+' by magnitude · live data')+'</div>';
     body.innerHTML=html;
   }
 
@@ -103,6 +104,7 @@
     var c=card(); mount(c); var body=document.getElementById("jhviz-body");
     try{
       if(LINE){ var pts=toSeries(dig(data,LINE)); if(pts&&pts.length>1){ renderLine(body,pts); return; } body.innerHTML='<div style="color:#777;font-size:11px">No time-series available.</div>'; return; }
+      if(METRICS){ var mi=METRICS.split("|").map(function(seg){ var i=seg.indexOf(":"); return {label:seg.slice(i+1), v:num(dig(data,seg.slice(0,i)))}; }); renderBars(body, mi, true); return; }
       if(BARS){ var sp=BARS.split(":"); var arr=dig(data,sp[0]); if(!Array.isArray(arr)){ body.innerHTML='<div style="color:#777;font-size:11px">No data.</div>'; return; }
         var items=arr.map(function(o){ return {label:String(dig(o,sp[1])!=null?dig(o,sp[1]):o[sp[1]]), v:num(dig(o,sp[2]))}; });
         renderBars(body,items); return; }
