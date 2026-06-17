@@ -7,6 +7,7 @@
   "timeout": 300,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "inherit_env": true,
   "description": "FOMC decision-day Reaction Map — measures the policy surprise (Δ2y market verdict + LLM statement tone) and maps it to per-asset short/long reaction ranges calibrated on JustHodl's own FOMC-day history; logs each call for forward self-grading. Output data/fomc-reaction.json + data/fomc-calibration.json.",
   "schedule": {"rule_name": "fomc-reaction-daily", "cron": "cron(35 21 * * ? *)", "description": "FOMC reaction map daily 21:35 UTC (post-close; logs on decision days, refreshes calibration weekly)"}
 }
