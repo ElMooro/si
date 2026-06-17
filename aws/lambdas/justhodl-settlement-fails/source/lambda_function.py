@@ -111,7 +111,7 @@ def lambda_handler(event=None, context=None):
             ftr_all.append(ftr)
         classes.append({
             "key": key, "label": label,
-            "ftd": ftd[-260:], "ftr": ftr[-260:], "combined": comb[-260:],
+            "ftd": ftd[-720:], "ftr": ftr[-720:], "combined": comb[-720:],
             "ftd_latest": (ftd[-1][1] if ftd else None),
             "ftr_latest": (ftr[-1][1] if ftr else None),
             "stats": stats(comb if comb else ftd),
@@ -160,7 +160,7 @@ def lambda_handler(event=None, context=None):
                      "z": z, "pctile": pct, "max_bn": hs.get("max"),
                      "combined": (head["combined"] if head else [])},
         "classes": classes,
-        "totals": {"ftd": total_ftd[-260:], "ftr": total_ftr[-260:], "combined": total_comb[-260:]},
+        "totals": {"ftd": total_ftd[-720:], "ftr": total_ftr[-720:], "combined": total_comb[-720:]},
         "source": "NY Fed Primary Dealer Statistics (FR 2004) \u2014 dealer financing settlement fails, weekly, $bn par",
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,

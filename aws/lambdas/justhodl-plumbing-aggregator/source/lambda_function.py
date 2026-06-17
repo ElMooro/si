@@ -578,6 +578,73 @@ def generate_alerts(indicators):
 
 
 # ─── Main handler ────────────────────────────────────────────────────────────
+# ─── Deep monthly history for charting (back to ~1990 where the series exists) ─
+CRISES = [
+    ["1997-07", "1998-10", "Asian / LTCM"],
+    ["2000-03", "2002-10", "Dot-com"],
+    ["2007-08", "2009-06", "GFC"],
+    ["2011-07", "2012-07", "Euro debt"],
+    ["2015-08", "2016-02", "China / oil"],
+    ["2020-02", "2020-05", "COVID"],
+    ["2022-01", "2022-10", "Rate shock"],
+    ["2023-03", "2023-05", "SVB / banks"],
+]
+
+
+def fetch_fred_deep(series_id, start="1990-01-01"):
+    qs = urllib.parse.urlencode({"series_id": series_id, "api_key": FRED_KEY,
+                                 "file_type": "json", "observation_start": start, "sort_order": "asc"})
+    body = http_get(f"https://api.stlouisfed.org/fred/series/observations?{qs}")
+    out = []
+    if body:
+        try:
+            for o in json.loads(body).get("observations", []):
+                v = o.get("value")
+                if v and v != ".":
+                    try:
+                        out.append([o["date"], float(v)])
+                    except ValueError:
+                        pass
+        except Exception:
+            pass
+    return out
+
+
+def downsample_monthly(obs):
+    m = {}
+    for o in obs:
+        if isinstance(o, dict):
+            d, v = o.get("date"), o.get("value")
+        else:
+            d, v = o[0], o[1]
+        if d and v is not None:
+            m[d[:7]] = [d, round(float(v), 4)]
+    return [m[k] for k in sorted(m)]
+
+
+def build_history(specs):
+    hist = {}
+    for spec in specs:
+        sid, src = spec["id"], spec["source"]
+        pts = []
+        try:
+            if src == "FRED":
+                pts = downsample_monthly(fetch_fred_deep(sid))
+            elif src == "ECB_S3" and sid in ECB_SERIES_MAP:
+                dataset, key = ECB_SERIES_MAP[sid]
+                pts = downsample_monthly(fetch_ecb_series(dataset, key))
+            elif src == "OFR":
+                side = "ftd" if sid == "OFR_FAILS_DELIVER" else "ftr"
+                pts = downsample_monthly(fetch_fails_s3(side))
+        except Exception as e:
+            print("[plumbing] hist %s: %s" % (sid, e))
+        if pts:
+            hist[sid] = {"label": spec.get("label"), "layer": spec.get("layer"),
+                         "polarity": spec.get("polarity"), "interp": spec.get("interp"),
+                         "history": pts, "start": pts[0][0], "end": pts[-1][0], "n": len(pts)}
+    return hist
+
+
 def lambda_handler(event, context):
     started = time.time()
 
@@ -633,6 +700,17 @@ def lambda_handler(event, context):
         Bucket=BUCKET, Key=OUTPUT_KEY, Body=body_bytes,
         ContentType="application/json", CacheControl="max-age=600",
     )
+    # ---- deep monthly history for charting (separate file, loaded by the page) ----
+    try:
+        hist = build_history(INDICATORS)
+        hbody = json.dumps({"generated_at": payload["as_of"], "crises": CRISES,
+                            "indicators": hist}, default=str).encode("utf-8")
+        S3.put_object(Bucket=BUCKET, Key="data/plumbing-history.json", Body=hbody,
+                      ContentType="application/json", CacheControl="max-age=3600")
+        print("[plumbing] history file: %d indicators with deep history" % len(hist))
+    except Exception as e:
+        print("[plumbing] history build failed: %s" % e)
+
     print(f"[plumbing] DONE in {payload['duration_s']}s · "
           f"{payload['n_with_data']}/{payload['n_indicators']} with data · "
           f"composite={composite} ({label}) · {len(alerts)} alerts")
