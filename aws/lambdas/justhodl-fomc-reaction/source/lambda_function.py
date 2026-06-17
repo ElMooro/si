@@ -252,7 +252,17 @@ def score_statement_tone():
             ds = datetime.date.today().strftime("%Y%m%d")
             stmt_url = "https://www.federalreserve.gov/newsevents/pressreleases/monetary%sa.htm" % ds
         html = http_get(stmt_url).decode("utf-8", "replace")
-        text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))[:6000]
+        clean = re.sub(r"(?is)<script.*?</script>|<style.*?</style>", " ", html)
+        text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", clean)).strip()
+        low = text.lower()
+        anchors = ["recent indicators", "economic activity", "the committee decided",
+                   "target range for the federal funds rate", "federal funds rate", "the committee"]
+        hits = [low.find(a) for a in anchors if low.find(a) >= 0]
+        if hits:
+            pos = min(hits)
+            text = text[max(0, pos - 200): pos + 5000]
+        else:
+            text = text[:6000]
         prompt = ("Score this FOMC statement's monetary-policy tone on a -10..+10 scale "
                   "(-10 very dovish, +10 very hawkish). Consider rate guidance, inflation language, "
                   'balance-of-risks. Return ONLY JSON, no prose: {"tone": <number>, "stance": '
