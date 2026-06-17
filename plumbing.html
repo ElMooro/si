@@ -126,6 +126,12 @@
     .layers { grid-template-columns: repeat(2, 1fr); }
     table { font-size: 10px; } th, td { padding: 4px 5px; }
   }
+  .cmodal{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .cbox{background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:18px 20px;max-width:1240px;width:100%;max-height:93vh;overflow:auto;position:relative;}
+  .cx{position:absolute;top:12px;right:16px;color:var(--text-dim);cursor:pointer;font-size:20px;line-height:1;}
+  .cx:hover{color:var(--accent);}
+  tr.ind-clickable{cursor:pointer;}
+  tr.ind-clickable:hover td{background:#1a1a1a;}
 </style>
 <script src="/liquidity-pulse.js" defer></script>
 </head>
@@ -354,7 +360,7 @@ function renderIndicators() {
   const thead = cols.map(c => {
     const cls = c.k === SORT.col ? `sort-${SORT.dir}` : '';
     return `<th data-col="${c.k}" class="${cls}">${c.label}</th>`;
-  }).join('');
+  }).join('') + '<th>History (click \u2192 chart)</th>';
 
   document.getElementById('indPanelTitle').textContent =
     ACTIVE_LAYER === 'ALL' ? 'All Indicators' : `${ACTIVE_LAYER} Indicators`;
@@ -362,7 +368,7 @@ function renderIndicators() {
     `${rows.length} ${ACTIVE_LAYER === 'ALL' ? 'total' : 'in ' + ACTIVE_LAYER}`;
 
   const tbody = rows.map(r => `
-    <tr>
+    <tr class="ind-clickable" onclick="openChart('${r.id}')">
       <td><span class="ind-id">${r.id}</span></td>
       <td>
         <div class="ind-label">${r.label || '—'}</div>
@@ -374,6 +380,7 @@ function renderIndicators() {
       <td>${fmtZ(r.z_score)}</td>
       <td>${fmtPct(r.percentile)}</td>
       <td><span class="stress-cell ${stressCellClass(r.stress_score)}">${r.stress_score !== null && r.stress_score !== undefined ? Number(r.stress_score).toFixed(0) : '—'}</span></td>
+      <td>${miniSpark(r.id)}</td>
     </tr>
   `).join('');
 
@@ -390,11 +397,62 @@ function renderIndicators() {
   });
 }
 
+let HIST = null;
+const HIST_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/plumbing-history.json';
+async function loadHistory(){ try{ const r=await fetch(HIST_URL+'?_='+Date.now()); if(r.ok) HIST=await r.json(); }catch(e){ console.warn('history load failed',e); } }
+
+function miniSpark(id){
+  const h=HIST&&HIST.indicators&&HIST.indicators[id];
+  if(!h||!h.history||h.history.length<2) return '<span style="color:var(--text-muted);font-size:10px">—</span>';
+  const pts=h.history, vs=pts.map(p=>p[1]), mn=Math.min(...vs), mx=Math.max(...vs), rg=(mx-mn)||1, n=pts.length, W=140, H=30;
+  const d=pts.map((p,i)=>`${(i/(n-1)*W).toFixed(1)},${(H-(p[1]-mn)/rg*H).toFixed(1)}`).join(' ');
+  let sh='';(HIST.crises||[]).forEach(([a,b])=>{let ia=pts.findIndex(p=>p[0].slice(0,7)>=a);if(ia<0)return;let ib=pts.findIndex(p=>p[0].slice(0,7)>=b);if(ib<0)ib=n-1;const xa=ia/(n-1)*W,xb=ib/(n-1)*W;sh+=`<rect x="${xa.toFixed(1)}" y="0" width="${Math.max(1,xb-xa).toFixed(1)}" height="${H}" fill="rgba(239,68,68,0.18)"/>`;});
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="vertical-align:middle;background:#0b0b0b;border-radius:4px">${sh}<polyline points="${d}" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>`;
+}
+function fmtTick(v){const a=Math.abs(v);return a>=1000?(v/1000).toFixed(1)+'k':a>=100?v.toFixed(0):a>=1?v.toFixed(1):v.toFixed(2);}
+function fmtVal(v){const a=Math.abs(v);return a>=1000?v.toLocaleString(undefined,{maximumFractionDigits:0}):a>=1?v.toFixed(2):v.toFixed(3);}
+
+function openChart(id){
+  const h=HIST&&HIST.indicators&&HIST.indicators[id];
+  if(!h||!h.history||h.history.length<2){ return; }
+  const pts=h.history;
+  const W=1180,H=520,PL=80,PR=26,PT=34,PB=46,w=W-PL-PR,hh=H-PT-PB;
+  const vs=pts.map(p=>p[1]); let mn=Math.min(...vs),mx=Math.max(...vs); if(mn===mx){mn-=1;mx+=1;} const rg=mx-mn,n=pts.length;
+  const X=i=>PL+i/(n-1)*w, Y=v=>PT+hh-(v-mn)/rg*hh;
+  const line=pts.map((p,i)=>`${X(i).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(' ');
+  const area=`${PL},${(PT+hh).toFixed(1)} ${line} ${(PL+w).toFixed(1)},${(PT+hh).toFixed(1)}`;
+  let sh='';(HIST.crises||[]).forEach(([a,b,lab])=>{let ia=pts.findIndex(p=>p[0].slice(0,7)>=a);if(ia<0)return;let ib=pts.findIndex(p=>p[0].slice(0,7)>=b);if(ib<0)ib=n-1;const xa=X(ia),xb=X(ib),bw=Math.max(2,xb-xa);sh+=`<rect x="${xa.toFixed(1)}" y="${PT}" width="${bw.toFixed(1)}" height="${hh}" fill="rgba(239,68,68,0.13)"/><text x="${(xa+bw/2).toFixed(1)}" y="${PT-5}" fill="#f87171" font-size="9.5" font-weight="700" text-anchor="middle">${lab}</text>`;});
+  let xt='';const ys={};pts.forEach((p,i)=>{const y=p[0].slice(0,4);if(!(y in ys))ys[y]=i;});const yl=Object.keys(ys),step=Math.max(1,Math.ceil(yl.length/16));yl.forEach((y,k)=>{if(k%step===0){const px=X(ys[y]);xt+=`<line x1="${px}" y1="${PT}" x2="${px}" y2="${PT+hh}" stroke="#1b1b1b"/><text x="${px}" y="${H-14}" fill="#888" font-size="11" text-anchor="middle">${y}</text>`;}});
+  let yt='';for(let k=0;k<=5;k++){const v=mn+rg*k/5,py=Y(v);yt+=`<line x1="${PL}" y1="${py.toFixed(1)}" x2="${PL+w}" y2="${py.toFixed(1)}" stroke="#171717"/><text x="${PL-8}" y="${(py+4).toFixed(1)}" fill="#888" font-size="11" text-anchor="end">${fmtTick(v)}</text>`;}
+  const svg=`<svg id="bigSvg" width="100%" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;cursor:crosshair"><rect x="${PL}" y="${PT}" width="${w}" height="${hh}" fill="#0b0b0b"/>${sh}${yt}${xt}<polygon points="${area}" fill="var(--accent)" fill-opacity="0.08"/><polyline points="${line}" fill="none" stroke="var(--accent)" stroke-width="1.7"/><line id="chX" y1="${PT}" y2="${PT+hh}" stroke="#facc15" stroke-width="1" stroke-dasharray="3,3" style="display:none"/><circle id="chDot" r="4" fill="#facc15" style="display:none"/><rect id="chOv" x="${PL}" y="${PT}" width="${w}" height="${hh}" fill="transparent"/></svg><div id="chTip" style="position:absolute;display:none;background:#1c1c1c;border:1px solid var(--accent);border-radius:6px;padding:5px 9px;font-family:ui-monospace,monospace;font-size:11px;color:#eee;pointer-events:none;white-space:nowrap;z-index:5"></div>`;
+  const pol = h.polarity===1?'higher = more stress':h.polarity===-1?'lower = more stress':'';
+  document.getElementById('chartHead').innerHTML=`<div style="font-size:15px;font-weight:600">${h.label||id} <span style="color:var(--text-dim);font-size:12px">· ${id} · ${h.layer}</span></div><div style="font-family:ui-monospace,monospace;font-size:11px;color:var(--text-dim);margin:3px 0 8px">${pts.length} mo · ${pts[0][0]} → ${pts[pts.length-1][0]}${pol?' · '+pol:''}${h.interp?' · '+h.interp:''}</div>`;
+  document.getElementById('chartWrap').innerHTML=svg;
+  document.getElementById('chartFoot').innerHTML=`<div style="font-family:ui-monospace,monospace;font-size:10px;color:var(--text-muted);margin-top:8px">Red bands = historical crises (Asian/LTCM, dot-com, GFC, euro debt, China/oil, COVID, rate shock, SVB). Move your mouse over the chart to read the exact date &amp; value. Monthly sampling; series shown from its earliest available date.</div>`;
+  document.getElementById('chartModal').style.display='flex';
+  const svgEl=document.getElementById('bigSvg'), ov=document.getElementById('chOv');
+  ov.addEventListener('mousemove',function(ev){
+    const r=svgEl.getBoundingClientRect(), ratio=W/r.width, sx=(ev.clientX-r.left)*ratio;
+    let i=Math.round((sx-PL)/w*(n-1)); i=Math.max(0,Math.min(n-1,i));
+    const p=pts[i], px=X(i), py=Y(p[1]);
+    const cx=document.getElementById('chX'), dot=document.getElementById('chDot'), tip=document.getElementById('chTip');
+    cx.setAttribute('x1',px); cx.setAttribute('x2',px); cx.style.display='block';
+    dot.setAttribute('cx',px); dot.setAttribute('cy',py); dot.style.display='block';
+    const wrap=document.getElementById('chartWrap');
+    tip.style.display='block'; tip.innerHTML=`<b>${p[0]}</b> &nbsp; ${fmtVal(p[1])}`;
+    tip.style.left=Math.min(wrap.clientWidth-140,Math.max(0,(px/W)*wrap.clientWidth+10))+'px';
+    tip.style.top=Math.max(0,(py/H)*wrap.clientHeight-12)+'px';
+  });
+  svgEl.addEventListener('mouseleave',function(){['chX','chDot','chTip'].forEach(x=>{const el=document.getElementById(x);if(el)el.style.display='none';});});
+}
+function closeChart(){document.getElementById('chartModal').style.display='none';}
+
 async function load() {
   try {
     const r = await fetch(URL + '?_=' + Date.now());
     if (!r.ok) throw new Error('HTTP ' + r.status);
     DATA = await r.json();
+    if (!HIST) await loadHistory();
     document.getElementById('metaLine').innerHTML =
       `As of <strong>${new Date(DATA.as_of).toLocaleString()}</strong> · ` +
       `${DATA.n_with_data}/${DATA.n_indicators} indicators with data · ${DATA.duration_s}s`;
@@ -417,5 +475,6 @@ setInterval(load, 5*60*1000);
 <div style="max-width:1500px; margin:18px auto; padding:0 18px;">
   <div id="liquidity-pulse-panel"></div>
 </div>
+<div id="chartModal" class="cmodal" onclick="if(event.target===this)closeChart()"><div class="cbox"><span class="cx" onclick="closeChart()">✕</span><div id="chartHead"></div><div id="chartWrap" style="position:relative"></div><div id="chartFoot"></div></div></div>
 </body>
 </html>

@@ -66,6 +66,7 @@ const fBN1=v=>'$'+v.toLocaleString(undefined,{maximumFractionDigits:1})+'B';
 const fTN=v=>'$'+v.toFixed(1)+'T';
 const fPC=v=>v.toFixed(2)+'%';
 const CR_FIN=[['2008-09','2009-06','GFC'],['2020-02','2020-11','COVID'],['2022-01','2022-10','rate shock']];
+const CR_FAILS=[['2016-02','2016-04','settle crunch'],['2019-09','2019-10','repo spike'],['2020-02','2020-11','COVID'],['2022-01','2022-10','rate shock'],['2023-03','2023-05','SVB']];
 
 function bigChart(pts,opt){
   opt=opt||{};const col=opt.col||'var(--gold)';const fmtv=opt.fmt||(v=>v.toFixed(1));
@@ -194,14 +195,14 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
   // ---- Section 5: Settlement fails (deliver & receive) ----
   if(F&&F.classes){const rc={CALM:'var(--green)',ELEVATED:'var(--amberw)',STRESS:'var(--amber)',CRISIS:'var(--red)'}[F.signal.regime]||'var(--fg2)';
     H+=`<div class="sec">\u26a0 Settlement Fails \u2014 fails to deliver &amp; receive (as of ${esc(F.as_of)}) <span style="color:${rc};border:1px solid ${rc}66;border-radius:5px;padding:1px 8px;font-size:10px;margin-left:8px">${esc(F.signal.regime)} \u00b7 ${F.signal.score}/100</span></div>`;
-    H+=`<div class="panel" style="background:linear-gradient(180deg,#16110a,#111);border-color:${rc}55"><div style="font-size:11px;color:var(--fg3);margin-bottom:4px;font-family:var(--mono)">Settlement fails spike when a security can't be sourced \u2014 collateral squeezes, forced deleveraging, operational gridlock. A clean plumbing-stress / black-swan tell.</div><ul class="dl" style="margin:0">${F.signal.drivers.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+    H+=`<div class="panel" style="background:linear-gradient(180deg,#16110a,#111);border-color:${rc}55"><div style="font-size:11px;color:var(--fg3);margin-bottom:4px;font-family:var(--mono)">Settlement fails spike when a security can't be sourced \u2014 collateral squeezes, forced deleveraging, operational gridlock. A clean plumbing-stress / black-swan tell. (NY Fed FR2004 consistent series begins 2013.)</div><ul class="dl" style="margin:0">${F.signal.drivers.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
     const head=F.classes.find(c=>c.key==='ust_ex_tips');
-    if(head)H+=cbox('U.S. Treasury (ex-TIPS) settlement fails \u2014 deliver + receive','NY Fed Primary Dealer Statistics \u00b7 $B/wk \u00b7 spikes = collateral gridlock / plumbing stress',bigChart(head.combined,{col:rc,fmt:fBN,crises:CR_FIN,zero:true}));
+    if(head)H+=cbox('U.S. Treasury (ex-TIPS) settlement fails \u2014 deliver + receive','NY Fed Primary Dealer Statistics \u00b7 $B/wk \u00b7 spikes = collateral gridlock / plumbing stress',bigChart(head.combined,{col:rc,fmt:fBN,crises:CR_FAILS,zero:true}));
     H+=`<div class="two">`;
     if(head)H+=cbox('Fails to deliver vs fails to receive (Treasury)','the two sides of the settlement break \u00b7 $B',multiChart([{name:'Fails to deliver',pts:head.ftd,col:'#ef4444'},{name:'Fails to receive',pts:head.ftr,col:'#22d3ee'}],{fmt:fBN,zero:true}));
     H+=cbox('Fails by asset class \u2014 combined, latest','colored by historical percentile (red = stressed)',failBars(F.classes));
     H+=`</div>`;
-    H+=cbox('All-asset settlement fails \u2014 total combined','sum across UST, TIPS, corporate, agency MBS, agency debt, other MBS \u00b7 $B/wk',bigChart(F.totals.combined,{col:'var(--amber)',fmt:fBN,crises:CR_FIN,zero:true}));
+    H+=cbox('All-asset settlement fails \u2014 total combined','sum across UST, TIPS, corporate, agency MBS, agency debt, other MBS \u00b7 $B/wk',bigChart(F.totals.combined,{col:'var(--amber)',fmt:fBN,crises:CR_FAILS,zero:true}));
     H+=`<div class="grid">${F.classes.map(failCard).join('')}</div>`;
   }
 
