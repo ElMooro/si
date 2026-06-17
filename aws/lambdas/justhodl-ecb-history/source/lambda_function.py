@@ -305,7 +305,14 @@ def lambda_handler(event=None, context=None):
                                              "computed YoY from ECB STS index"))
                 written.append(base + "_yoy")
     # ── real M1 growth = nominal M1 YoY − HICP YoY (money-supply lead, inflation-adjusted) ──
-    m1 = captured.get("m1_growth"); hp = captured.get("hicp_headline")
+    def _pts(sid):
+        if sid in captured:
+            return captured[sid]
+        try:
+            return json.loads(s3.get_object(Bucket=BUCKET, Key="data/ecb-hist/%s.json" % sid)["Body"].read()).get("points")
+        except Exception:
+            return None
+    m1 = _pts("m1_growth"); hp = _pts("hicp_headline")
     if m1 and hp:
         hy = {d: v for d, v in yoy_series(hp)}
         rp = [[d, round(v - hy[d], 2)] for d, v in m1 if d in hy]

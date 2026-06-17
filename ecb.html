@@ -195,7 +195,7 @@ async function load(){
   }
   // dump signals
   if(der&&der.indicators){
-    const SIGHIST={ciss_acceleration:'ciss_ea',euribor_ois_stress:'euribor_ois_bp',estr_dfr_dislocation:'estr',credit_contraction:'nfc_loans_yoy',wage_persistence:'wages_negotiated',expectations_deanchoring:'spf_longterm',target2_imbalance:'t2_de_minus_it',bank_funding_stress:'ltro_share',eu_us_liquidity_divergence:'eu_us_divergence',fragmentation_stress:'it_de_spread',ea_unemployment:'unemployment_ea',ea_industrial_production:'ip_yoy',ea_confidence:'business_confidence',real_m1_growth:'real_m1_growth',country_unemployment:'unemployment_ea'};
+    const SIGHIST={ciss_acceleration:'ciss_ea',euribor_ois_stress:'euribor_ois_bp',estr_dfr_dislocation:'estr',credit_contraction:'nfc_loans_yoy',wage_persistence:'wages_negotiated',expectations_deanchoring:'spf_longterm',target2_imbalance:'t2_de_minus_it',bank_funding_stress:'ilm_mp_lending',eu_us_liquidity_divergence:'ilm_usd_claims',fragmentation_stress:'it_de_10y_bp',bls_credit_standards:'nfc_loans_yoy',bank_pass_through_premium:'bank_rate_nfc',usd_funding_stress_composite:'ilm_usd_claims',eurodollar_stress_index:'esi',ea_unemployment:'unemployment_ea',ea_industrial_production:'indprod_total_yoy',ea_confidence:'conf_esi',real_m1_growth:'real_m1_growth',country_unemployment:'unemployment_ea'};
     document.getElementById('signals').innerHTML=Object.entries(der.indicators).map(([k,v])=>{
       if(!v||v.err)return '';
       if(k==='eurodollar_stress_index')return '';  // shown as the hero tile above
@@ -313,24 +313,13 @@ async function load(){
   ].join('');
   document.getElementById('cycle-read').textContent=`${phase==='—'?'':phase+' — '}${desc}${tilt} Lead → coincident → lag from ECB M1 money growth, industrial production, real GDP, retail turnover and the unemployment rate. Global cross-asset cycle read: /global-cycle.html.`;
 
-  // sentiment + production YoY: EA business/consumer confidence (OECD via feed) + IP/manufacturing YoY (computed from the index)
-  const CH=await gj('data/switzerland.json');
-  const ea=id=>CH&&CH.series?CH.series.find(s=>s.id===id):null;
-  const eaBC=ea('ea_business_confidence'), eaCC=ea('ea_consumer_confidence');
-  const ipTot=await gj('data/ecb-hist/indprod_total.json');
-  const yoy=dd=>{if(!dd||!dd.points||dd.points.length<13)return null;const v=dd.points;const l=v[v.length-1][1];const p=v[v.length-13][1];return p?Math.round((l/p-1)*1000)/10:null;};
-  const ipYoY=yoy(ipTot), mfgYoY=yoy(ipS);
-  const ptiles=[];
-  if(eaBC)ptiles.push(`<div class="card hl" onclick="openModal('business_confidence')"><div class="lbl">EA Business Confidence (OECD)</div><div class="val" style="color:${eaBC.latest>=0?'var(--green)':'var(--amber)'}">${eaBC.latest}</div><div class="sub">${eaBC.pctile}th %ile · ${esc(eaBC.latest_date||'')}</div></div>`);
-  if(eaCC)ptiles.push(`<div class="card"><div class="lbl">EA Consumer Confidence (OECD)</div><div class="val" style="color:${eaCC.latest>=0?'var(--green)':'var(--amber)'}">${eaCC.latest}</div><div class="sub">${eaCC.pctile}th %ile · ${esc(eaCC.latest_date||'')}</div></div>`);
-  if(ipYoY!=null)ptiles.push(`<div class="card hl" onclick="openModal('ip_yoy')"><div class="lbl">Industrial Production · YoY</div><div class="val" style="color:${ipYoY>=0?'var(--green)':'var(--red)'}">${ipYoY>0?'+':''}${ipYoY}%</div><div class="sub">incl. construction 📈</div></div>`);
-  if(mfgYoY!=null)ptiles.push(`<div class="card hl" onclick="openModal('indprod_core')"><div class="lbl">Manufacturing Production · YoY</div><div class="val" style="color:${mfgYoY>=0?'var(--green)':'var(--red)'}">${mfgYoY>0?'+':''}${mfgYoY}%</div><div class="sub">excl. construction 📈</div></div>`);
-  document.getElementById('prodgrid').innerHTML=ptiles.join('')||'<div class="card"><div class="sub">Sentiment/production feed pending.</div></div>';
-
-  // comprehensive: every confidence sector + IP YoY by sector (charts from ecb-derived, all clickable to full history)
-  function chartTiles(ids,bySign){return ids.map(id=>{const c=DERCHARTS[id];if(!c)return '';const v=c.latest;let col=bySign?(v>=0?'var(--green)':'var(--red)'):(c.pctile==null?'var(--fg-2)':c.pctile>=66?'var(--green)':c.pctile>=33?'var(--amber)':'var(--red)');return `<div class="card hl" onclick="openModal('${id}')"><div class="lbl">${esc((c.label||id).split('—')[0].trim())}</div><div class="val" style="color:${col}">${v!=null?(bySign&&v>0?'+':'')+v+(bySign?'%':''):'—'}</div><div class="sub">${c.pctile!=null?c.pctile+'th %ile':''} · ${esc(c.latest_date||'')} 📈</div></div>`;}).filter(Boolean).join('');}
-  document.getElementById('confgrid').innerHTML=chartTiles(['conf_industrial','conf_services','conf_consumer','conf_retail','conf_construction','esi_sentiment'],false)||'<div class="card"><div class="sub">Confidence feed pending (next ecb-derived run).</div></div>';
-  document.getElementById('ipyoygrid').innerHTML=chartTiles(['ipyoy_total','ipyoy_manufacturing','ipyoy_intermediate','ipyoy_capital','ipyoy_durable','ipyoy_nondurable','ipyoy_energy'],true)||'<div class="card"><div class="sub">Production feed pending (next ecb-derived run).</div></div>';
+  // ── Sentiment & production (YoY) — native ECB/Eurostat manifest series; every tile → full-history chart ──
+  const MS=Object.fromEntries((m&&m.series||[]).map(s=>[s.id,s]));
+  const isYoY=id=>id.endsWith('_yoy')||id==='real_m1_growth';
+  function mtile(id,short){const t=MS[id];if(!t)return '';const v=t.latest;const yo=isYoY(id);const col=yo?(v>=0?'var(--green)':'var(--red)'):(v==null?'var(--fg-2)':v>=0?'var(--green)':'var(--amber)');const disp=v==null?'\u2014':(yo?((v>0?'+':'')+v+'%'):v);return `<div class="card hl" onclick="openModal('${id}')" title="full history \u2192 click"><div class="lbl">${esc(short)}</div><div class="val" style="color:${col}">${disp}</div><div class="sub">${t.first_date?t.first_date.slice(0,4)+'\u2192':''}${esc(t.latest_date||'')}${t.percentile!=null?' \u00b7 '+t.percentile+'%ile':''} \ud83d\udcc8</div></div>`;}
+  document.getElementById('prodgrid').innerHTML=[mtile('conf_esi','Economic Sentiment (ESI)'),mtile('indprod_total_yoy','Industrial Production \u00b7 YoY'),mtile('indprod_core_yoy','Manufacturing \u00b7 YoY'),mtile('real_m1_growth','Real M1 Growth')].filter(Boolean).join('')||'<div class="card"><div class="sub">Pending next history run.</div></div>';
+  document.getElementById('confgrid').innerHTML=[mtile('conf_esi','Economic Sentiment Indicator'),mtile('conf_industrial','Industrial Confidence'),mtile('conf_services','Services Confidence'),mtile('conf_consumer','Consumer Confidence'),mtile('conf_retail','Retail Trade Confidence'),mtile('conf_construction','Construction Confidence')].filter(Boolean).join('')||'<div class="card"><div class="sub">Confidence feed pending (next history run).</div></div>';
+  document.getElementById('ipyoygrid').innerHTML=[mtile('indprod_total_yoy','Total (incl. construction)'),mtile('indprod_core_yoy','Manufacturing (excl. construction)'),mtile('indprod_intermediate_yoy','Intermediate Goods'),mtile('indprod_capital_yoy','Capital Goods'),mtile('indprod_durable_yoy','Consumer Durables'),mtile('indprod_nondurable_yoy','Consumer Non-durables'),mtile('indprod_energy_yoy','Energy')].filter(Boolean).join('')||'<div class="card"><div class="sub">Production feed pending (next history run).</div></div>';
 
   // labour & industry tiles (from the manifest; click → chart modal)
   if(m&&m.series){
