@@ -1,8 +1,20 @@
-=== datastructure ECB_SUP1 (dimensions + codelists) ===
-  http 200 bytes 1310558
-  dimensions: []
-  0 codes total; survey-relevant:
+structure http 200 bytes 1310558
+Dimension tags: []
+Code tags: []
+dimensions: []
+0 codes; survey hits:
 
-=== try serieskeysonly on SUP flowRef (sample keys) ===
-  SUP: http=404 lines=1
-  ECB_SUP1: http=404 lines=1
+=== try data queries (find working flowRef + key) ===
+   ECB_SUP1/M.U2.S.ESI.....     -> http=TypeError 
+   SUP/M.U2...                  -> http=TypeError 
+   RTD/M.S0.S.Y_ESI_.LEVEL      -> http=TypeError 
+   ECB_SUP1/.....               -> http=TypeError 
+   ESI/M.U2.....                -> http=TypeError 
+   ICS/M.U2.....                -> http=TypeError 
+
+=== FRED/OECD EA confidence components (fallback availability) ===
+   ESI proxy BCI    BSCICP02EZM460S    none
+   consumer CCI     CSCICP02EZM460S    none
+   ind conf         BSCURT02EZM460S    none
+   ind conf2        BSCICP03EZM665S    none
+   serv conf        BVCICP02EZM460S    none
