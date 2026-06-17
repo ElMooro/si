@@ -1,10 +1,12 @@
-CH unemployment (une_rt_m, SA, total):
-   5.0 (2026-03)  n=9 start=2025-09
-CH industrial production (sts_inpr_m, NACE B-D, SCA, index):
-   108.2 (2026-03)  n=11 start=2025-06
-CH manufacturing production (sts_inpr_m, NACE C, SCA, index):
-   110.8 (2026-03)  n=11 start=2025-06
-EA business confidence (ei_bssi_m_r2 industrial BS-ICI-BAL):
-   -9.0 (2025-12)  n=6 start=2025-12
-EA consumer confidence (ei_bssi_m_r2 BS-CSMCI-BAL):
-   -13.1 (2025-12)  n=6 start=2025-12
+invoke: {"statusCode": 200, "body": "{\"n_series\": 10, \"regime\": \"ELEVATED\", \"score\": 45}"}
+regime: ELEVATED 45
+  smi                      Yahoo Finance 2026-06-16       1d latest=13761.5303 (1990-11-30→)
+  spi                      Yahoo Finance 2026-06-16       1d latest=19408.5293 (2013-03-31→)
+  eurchf                   Yahoo Finance 2026-06-17       0d latest=0.9204 (2003-02-01→)
+  usdchf                   Yahoo Finance 2026-06-17       0d latest=0.7927 (2003-09-30→)
+  ch_business_confidence   FRED/OECD    2026-05-01      47d latest=-10.4233 (1990-01-01→)
+  ch_unemployment          Eurostat     2026-03        108d latest=5.0 (2010-01→)
+  ch_ip_yoy                Eurostat     2026-03        108d latest=-13.09 (2011-10→)
+  ch_mfg_yoy               Eurostat     2026-03        108d latest=-14.24 (2011-10→)
+  ea_business_confidence   Eurostat     2025-12        198d latest=96.7 (1980-01→)
+  ea_consumer_confidence   Eurostat     2025-12        198d latest=-13.1 (1985-01→)
