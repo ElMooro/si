@@ -1,33 +1,12 @@
-MANIFEST n= 91
-balance_sheet, bank_rate_nfc, ciss_bo, ciss_ea, ciss_eq, ciss_fi, ciss_fx, ciss_mm, conf_construction, conf_consumer, conf_esi, conf_industrial, conf_retail, conf_services, dfr, es_de_10y_bp, esi, estr, eurcny, euribor_3m, euribor_ois_bp, eurjpy, eurusd, excess_liquidity, fr_de_10y_bp, fx_claims_nonea, gdp_yoy, gr_de_10y_bp, hh_loans_yoy, hicp_core, hicp_energy, hicp_headline, hicp_services, ilm_eur_to_nonres, ilm_mp_lending, ilm_usd_claims, indprod_capital, indprod_capital_yoy, indprod_core, indprod_core_yoy, indprod_durable, indprod_durable_yoy, indprod_energy, indprod_energy_yoy, indprod_intermediate, indprod_intermediate_yoy, indprod_nondurable, indprod_nondurable_yoy, indprod_total, indprod_total_yoy, it_de_10y_bp, m1_growth, m3_yoy, manuf_turnover, nfc_loans_yoy, pt_de_10y_bp, retail_turnover, spf_longterm, t2_de_minus_it, unemp_at, unemp_be, unemp_bg, unemp_cy, unemp_cz, unemp_de, unemp_dk, unemp_ea_youth, unemp_ee, unemp_es, unemp_fi, unemp_fr, unemp_gr, unemp_hr, unemp_hu, unemp_ie, unemp_it, unemp_lt, unemp_lu, unemp_lv, unemp_mt, unemp_nl, unemp_pl, unemp_pt, unemp_ro, unemp_se, unemp_si, unemp_sk, unemployment_ea, wages_negotiated, yc_1y, yc_1y1y
+=== m1_growth ===  freq=monthly n=352 range=1997-01→2026-04
+  head: [['1997-01', 8.416176840886136], ['1997-02', 8.900815141922514], ['1997-03', 8.49833956653232]]
+  tail: [['2026-02', 4.812583627019151], ['2026-03', 4.704628109893205], ['2026-04', 3.799821800387182]]
+  date sample formats: ['1997-01', '1997-02'] ... ['2026-03', '2026-04']
+=== hicp_headline ===  freq=monthly n=348 range=1997-01-01→2025-12-01
+  head: [['1997-01-01', 2.0], ['1997-02-01', 1.8], ['1997-03-01', 1.6]]
+  tail: [['2025-10-01', 2.1], ['2025-11-01', 2.1], ['2025-12-01', 1.9]]
+  date sample formats: ['1997-01-01', '1997-02-01'] ... ['2025-11-01', '2025-12-01']
 
-=== SIGHIST targets present? + file check ===
-  it_de_10y_bp           inManifest=True  file=OK 1995-01-01→2026-04-01 n=376
-  unemployment_ea        inManifest=True  file=OK 2000-01→2026-04 n=316
-  indprod_total_yoy      inManifest=True  file=OK 1998-01→2025-09 n=333
-  indprod_core_yoy       inManifest=True  file=OK 1998-01→2025-09 n=333
-  conf_esi               inManifest=True  file=OK 1980-01→2025-12 n=552
-  real_m1_growth         inManifest=False file=MISSING NoSuchKey
-
-=== ecb-derived.json indicator keys (dump signals shown) ===
-  ciss_acceleration              signal=CALM
-  bank_funding_stress            signal=NORMAL
-  eu_us_liquidity_divergence     signal=NORMAL
-  bls_credit_standards           signal=TIGHTENING
-  bank_pass_through_premium      signal=NORMAL
-  target2_imbalance              signal=NORMAL
-  usd_funding_stress_composite   signal=NORMAL
-  eurodollar_stress_index        signal=NORMAL
-  estr_dfr_dislocation           signal=NORMAL
-  euribor_ois_stress             signal=WATCH
-  expectations_deanchoring       signal=NORMAL
-  wage_persistence               signal=NORMAL
-  credit_contraction             signal=NORMAL
-  fragmentation_stress           signal=NORMAL
-  ea_unemployment                signal=NORMAL
-  ea_industrial_production       signal=NORMAL
-  ea_confidence                  signal=NORMAL
-  real_m1_growth                 signal=NORMAL
-  country_unemployment           signal=NORMAL
-
-has der.charts keys: ['ciss_level', 'ciss_delta30', 'esi', 'it_de_spread', 'ltro_share', 'eu_us_divergence', 'ea_unemployment', 'ip_yoy', 'business_confidence', 'real_m1_growth', 'unemp_de', 'unemp_fr', 'unemp_it', 'unemp_es', 'unemp_ch', 'conf_industrial', 'conf_services', 'conf_consumer', 'conf_retail', 'conf_construction']
+m1 dates ex: ['1997-01', '1997-02', '1997-03'] ['2026-02', '2026-03', '2026-04']
+hicp-yoy dates ex: ['1998-01-01', '1998-02-01', '1998-03-01'] ['2025-10-01', '2025-11-01', '2025-12-01']
+OVERLAP count: 0 | sample: [] NONE
