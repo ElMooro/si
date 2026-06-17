@@ -1,14 +1,16 @@
-HEADER at line 5 months= ['Dec', 'Nov', 'Oct', 'Sep', 'Aug', 'Jul', 'Jun', 'May', 'Apr', 'Mar', 'Feb', 'Jan']
-year row line 6 years= ['2025', '2025', '2025', '2025', '2025', '2025', '2025', '2025', '2025', '2025', '2025', '2025']
-dates= ['2025-12', '2025-11', '2025-10', '2025-09', '2025-08', '2025-07', '2025-06', '2025-05', '2025-04', '2025-03', '2025-02', '2025-01']
-  row:  vals= ['------', '------', '------']
-  row:  vals= ['', '', '']
-  row: Japan vals= ['1185.5', '1202.7', '1200']
-  row: United Kingdom vals= ['863.1', '879.8', '875.4']
-  row: China, Mainland vals= ['683.5', '683.9', '687.7']
-  row: Belgium vals= ['477.3', '481', '465.5']
+invoke: {"statusCode": 200, "body": "{\"tic_holders\": 15, \"tic_as_of\": \"2025-12\", \"deficit_months\": 260, \"ttm_deficit_bn\": 1657.2, \"debt_tn\": 39.293, \"implied_interest_bn\": 1317.0}"}
 
-=== FRED MTS clean series check ===
-  deficit MTSDS  MTSDS133FMS  -> -292648.46208374 (2026-05-01), 215024.14019777 (2026-04-01)
-  receipts MTSR  MTSR133FMS   -> 335512.18322742 (2026-05-01), 837340.12424853 (2026-04-01)
-  outlays MTSO   MTSO133FMS   -> 628160.64531116 (2026-05-01), 622315.98405076 (2026-04-01)
+reads:
+  - Total foreign UST holdings up $648bn YoY (7.5%) to $9267bn
+  - China cut $76bn YoY to $684bn (de-dollarization watch)
+  - Trailing-12m federal deficit $1657bn
+  - Implied annual interest on the debt ~$1317bn (avg rate 3.35%)
+
+TIC as_of: 2025-12
+ranking top6: [('For. Official', 3877.6, 85.1), ('T-Bonds & Notes', 3489.1, 3.5), ('Japan', 1185.5, 124.0), ('United Kingdom', 863.1, 140.3), ('China, Mainland', 683.5, -75.5), ('Belgium', 477.3, 102.7)]
+  Grand Total      latest=9267.2 12m_chg=647.9 (7.5%) n=310 range=2000-03..2025-12
+  Japan            latest=1185.5 12m_chg=124.0 (11.7%) n=310 range=2000-03..2025-12
+  China, Mainland  latest=683.5 12m_chg=-75.5 (-9.9%) n=310 range=2000-03..2025-12
+
+deficit latest: ['2026-05', 292.6] | TTM: ['2026-05', 1657.2] | receipts: ['2026-05', 335.5] | outlays: ['2026-05', 628.2] | n_months: 180
+debt_tn: 39.293 | implied interest bn: 1317.0 | avg-int TIB latest: ['2026-05', 3.353]
