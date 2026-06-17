@@ -1,12 +1,13 @@
-zip bytes: 43271
-inherited env keys: ['CMC_KEY']
-CREATED new function
-schedule wired: arn:aws:events:us-east-1:857687956942:rule/fomc-reaction-daily
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"surprise\": \"DOVISH\", \"meeting\": \"2026-06-17\"}"}
-
-meeting: 2026-06-17 decision_day: True
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/1819_create_fomc.py", line 63, in <module>
-    print("SURPRISE:",d["surprise"]["label"],"Δ2y_bp:",d["surprise"]["d2y_bp"],"tone:",d["surprise"]["statement_tone"])
-                                                       ~~~~~~~~~~~~~^^^^^^^^^^
-KeyError: 'd2y_bp'
+  File "/home/runner/work/si/si/aws/ops/pending/1820_patch_run.py", line 16, in <module>
+    lam.update_function_code(FunctionName=FN,ZipFile=buf.getvalue()); lam.get_waiter("function_updated").wait(FunctionName=FN)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-fomc-reaction
