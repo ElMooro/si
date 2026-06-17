@@ -68,4 +68,5 @@ async function load(){
   document.getElementById('note').innerHTML=`${esc(d.methodology)}<br>Universe: ${esc(d.universe_source)} (${d.scored_n}/${d.universe_n} scored) · FRED series live: ${(d.fred_used||[]).join(', ')}${(d.fred_failed||[]).length?' · failed: '+(d.fred_failed||[]).join(', '):''} · ${d.signals_logged} calls logged (regime ${esc(d.regime_at_log)}) · v${esc(d.version)} · ${esc(d.generated_at)} · Research, not advice.`;
 }
 load();
-</script></body></html>
+</script>  <script src="/jh-enhance.js" data-feed="data/bottleneck-boom.json" data-bars="ranks:ticker:mkt_cap" data-title="Bottleneck-boom — ranked names (market cap)" data-sub="supply-bottleneck beneficiaries" ></script>
+</body></html>
