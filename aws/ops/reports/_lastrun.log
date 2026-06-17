@@ -1,20 +1,11 @@
-structure http 200 bytes 1310558
-Dimension tags: []
-Code tags: []
-dimensions: []
-0 codes; survey hits:
+=== Eurostat ei_bssi_m_r2 — EA20 confidence suite (latest) ===
+  ESI           BS-ESI-I       -> 96.7 (2025-12)  start? n_periods=8
+  industrial    BS-ICI-BAL     -> -9.0 (2025-12)  start? n_periods=8
+  services      BS-SCI-BAL     -> 5.6 (2025-12)  start? n_periods=8
+  consumer      BS-CSMCI-BAL   -> -13.1 (2025-12)  start? n_periods=8
+  retail        BS-RCI-BAL     -> -6.9 (2025-12)  start? n_periods=8
+  construction  BS-CCI-BAL     -> -1.3 (2025-12)  start? n_periods=8
 
-=== try data queries (find working flowRef + key) ===
-   ECB_SUP1/M.U2.S.ESI.....     -> http=TypeError 
-   SUP/M.U2...                  -> http=TypeError 
-   RTD/M.S0.S.Y_ESI_.LEVEL      -> http=TypeError 
-   ECB_SUP1/.....               -> http=TypeError 
-   ESI/M.U2.....                -> http=TypeError 
-   ICS/M.U2.....                -> http=TypeError 
+  ESI history: 1980-01 -> 2026-05 (557 months)
 
-=== FRED/OECD EA confidence components (fallback availability) ===
-   ESI proxy BCI    BSCICP02EZM460S    none
-   consumer CCI     CSCICP02EZM460S    none
-   ind conf         BSCURT02EZM460S    none
-   ind conf2        BSCICP03EZM665S    none
-   serv conf        BVCICP02EZM460S    none
+working: ['BS-ESI-I', 'BS-ICI-BAL', 'BS-SCI-BAL', 'BS-CSMCI-BAL', 'BS-RCI-BAL', 'BS-CCI-BAL']
