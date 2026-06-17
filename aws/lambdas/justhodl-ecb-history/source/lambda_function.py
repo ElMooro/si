@@ -314,11 +314,12 @@ def lambda_handler(event=None, context=None):
             return None
     m1 = _pts("m1_growth"); hp = _pts("hicp_headline")
     if m1 and hp:
-        hy = {d: v for d, v in yoy_series(hp)}
-        rp = [[d, round(v - hy[d], 2)] for d, v in m1 if d in hy]
+        # hicp_headline is ALREADY a YoY inflation rate (%); align on YYYY-MM (m1 is YYYY-MM, hicp YYYY-MM-DD)
+        hicp = {d[:7]: v for d, v in hp}
+        rp = [[d[:7], round(v - hicp[d[:7]], 2)] for d, v in m1 if d[:7] in hicp]
         if len(rp) >= 20:
             manifest.append(_stats_write("real_m1_growth",
-                                         "Real M1 growth (nominal M1 YoY − HICP YoY, %)",
+                                         "Real M1 growth (nominal M1 YoY − HICP inflation, %)",
                                          "monthly", rp, "computed real M1"))
             written.append("real_m1_growth")
 
