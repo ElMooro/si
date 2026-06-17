@@ -1,4 +1,3 @@
-fed-speak key present: True prefix: sk-ant- len: 108
 invoke: {"statusCode": 200, "body": "{\"ok\": true, \"surprise\": \"DOVISH\", \"meeting\": \"2026-06-17\"}"}
-SURPRISE: DOVISH | basis: stale_2y
-TONE: {"error": "HTTP 400", "detail": "{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011Cc9Qw5T4kidS466VpNaZh\"}"}
+SURPRISE: DOVISH | basis: stale_2y | preliminary: True
+TONE: {"tone": 0, "stance": "NEUTRAL", "one_line": "No FOMC statement text provided; only website boilerplate.", "engine": "glm", "source_url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm"}
