@@ -25,6 +25,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-fiscal.json"
 FD = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
 UA = {"User-Agent": "JustHodl Research raafouis@gmail.com", "Accept": "application/json, text/plain, */*"}
+FRED_KEY = "2f057499936072679d8843d7fce99989"
 MON = {"Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", "Jun": "06",
        "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"}
 FEATURED = ["Grand Total", "Japan", "China, Mainland", "United Kingdom", "Belgium",
@@ -61,35 +62,35 @@ def _chg(pts, k):
 
 # ---------------------------------------------------------------- TIC
 def fetch_tic():
+    """Single-pass parse of the tab-separated MFH history (blocks newest-first,
+    blank line between the dashes row and the first country in some blocks)."""
     body = _get("https://ticdata.treasury.gov/Publish/mfhhis01.txt")
     if not body:
         return {}
     lines = body.split("\n")
     series = {}
-    i = 0
-    while i < len(lines):
-        cells = [c.strip() for c in lines[i].split("\t")]
+    dates = []
+    for k, ln in enumerate(lines):
+        cells = [c.strip() for c in ln.split("\t")]
         months = [c for c in cells if c in MON]
-        if len(months) >= 6 and i + 1 < len(lines):
-            yrs = [c.strip() for c in lines[i + 1].split("\t")]
-            years = [c for c in yrs if c.isdigit() and len(c) == 4]
-            dates = [f"{y}-{MON[m]}" for m, y in zip(months, years)] if len(years) == len(months) else []
-            i += 2
-            while i < len(lines):
-                row = lines[i]
-                rc = [c.strip() for c in row.split("\t")]
-                if not row.strip() or len([c for c in rc if c in MON]) >= 6:
+        if len(months) >= 6:                                  # month header → set the date window
+            years = []
+            for look in range(k + 1, min(k + 3, len(lines))):  # year row is within the next 1-2 lines
+                cand = [c.strip() for c in lines[look].split("\t") if c.strip().isdigit() and len(c.strip()) == 4]
+                if len(cand) >= 6:
+                    years = cand
                     break
-                name = rc[0]
-                if name and len(name) > 1 and dates:
-                    for d, v in zip(dates, rc[1:1 + len(dates)]):
-                        try:
-                            series.setdefault(name, {})[d] = float(v.replace(",", ""))
-                        except Exception:
-                            pass
-                i += 1
-        else:
-            i += 1
+            dates = [f"{years[x]}-{MON[months[x]]}" for x in range(min(len(months), len(years)))] if years else []
+            continue
+        if dates and len([c for c in cells if c.isdigit() and len(c) == 4]) >= 6:
+            continue                                           # skip the year row itself
+        name = cells[0].strip().strip('"') if cells else ""
+        if name and len(name) > 1 and dates and not name.startswith("-"):
+            for d, v in zip(dates, cells[1:1 + len(dates)]):
+                try:
+                    series.setdefault(name, {})[d] = float(v.replace(",", ""))
+                except Exception:
+                    pass
     out = {}
     for c, dd in series.items():
         pts = sorted(([d, v] for d, v in dd.items()), key=lambda x: x[0])
@@ -118,33 +119,28 @@ def fiscaldata(path, params, pages=8, size=1000):
     return rows
 
 
+def _fred(sid, start="2004-10-01"):
+    body = _get("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s"
+                "&file_type=json&observation_start=%s" % (sid, FRED_KEY, start))
+    pts = []
+    if body:
+        try:
+            for o in json.loads(body).get("observations", []):
+                v = o.get("value")
+                if v not in (".", "", None):
+                    pts.append([o["date"][:7], float(v)])
+        except Exception as e:
+            print("fred %s: %s" % (sid, e))
+    return pts
+
+
 def fetch_mts():
-    """Monthly deficit/surplus, receipts, outlays from mts_table_1 (month rows)."""
-    rows = fiscaldata("/v1/accounting/mts/mts_table_1",
-                      "sort=-record_date&fields=record_date,classification_desc,"
-                      "current_month_gross_rcpt_amt,current_month_gross_outly_amt,current_month_dfct_sur_amt",
-                      pages=10, size=1000)
-    dfc, rcpt, outl = {}, {}, {}
-    for r in rows:
-        rd = r.get("record_date") or ""
-        if len(rd) < 7:
-            continue
-        mon_name = calendar.month_name[int(rd[5:7])]   # report month full name
-        if (r.get("classification_desc") or "").strip() != mon_name:
-            continue
-        ym = rd[:7]
-        for fld, store in (("current_month_dfct_sur_amt", dfc),
-                           ("current_month_gross_rcpt_amt", rcpt),
-                           ("current_month_gross_outly_amt", outl)):
-            v = r.get(fld)
-            try:
-                if v not in (None, "null", ""):
-                    store[ym] = round(float(v) / 1e9, 1)   # $bn
-            except Exception:
-                pass
-    def srt(d):
-        return sorted(([k, v] for k, v in d.items()), key=lambda x: x[0])
-    return srt(dfc), srt(rcpt), srt(outl)
+    """Monthly deficit/receipts/outlays from FRED MTS series (clean, unambiguous).
+    MTSDS is signed (negative = deficit); store deficit as positive $bn."""
+    dfc = [[d, round(-v / 1000.0, 1)] for d, v in _fred("MTSDS133FMS")]   # +ve = deficit ($bn)
+    rcpt = [[d, round(v / 1000.0, 1)] for d, v in _fred("MTSR133FMS")]
+    outl = [[d, round(v / 1000.0, 1)] for d, v in _fred("MTSO133FMS")]
+    return dfc, rcpt, outl
 
 
 def fetch_avg_interest():
