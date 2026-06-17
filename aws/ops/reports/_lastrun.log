@@ -1,9 +1,7 @@
-env ANTHROPIC present: True | keys: ['ANTHROPIC_API_KEY', 'CMC_KEY', 'S3_BUCKET']
 invoke: {"statusCode": 200, "body": "{\"ok\": true, \"surprise\": \"DOVISH\", \"meeting\": \"2026-06-17\"}"}
 
 SURPRISE: DOVISH | basis: stale_2y | Δ2y_bp: -2.0 2y_fresh: False
-tone: None
-calib: {'hawkish': 26, 'dovish': 30, 'neutral': 12} n= 68
+tone: {"error": "HTTP Error 400: Bad Request"}
 
 REACTION MAP (DOVISH):
   S&P 500 (SPY)            5d -0.037% [-1.27..+1.91] up48.3% n29             63d +4.088% [+1.629..+8.359] up75.9% n29
