@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FOMC Reaction Map · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0a0a;--c1:#131313;--bd:#262626;--fg:#e5e5e5;--fg2:#a3a3a3;--fg3:#666;
+--red:#ef4444;--green:#22c55e;--amber:#f59e0b;--gold:#eab308;--blue:#3b82f6;--cyan:#22d3ee;
+--mono:ui-monospace,'SF Mono',Menlo,monospace;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:13px;line-height:1.5;padding:18px;max-width:1180px;margin:0 auto;}
+.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+h1{font-size:20px;font-weight:700;}h1 .s{color:var(--fg3);font-weight:400;font-size:13px;}
+.nav a{color:var(--fg2);text-decoration:none;margin-left:14px;font-size:12px;}.nav a:hover{color:var(--gold);}
+.sec{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin:24px 0 10px;border-bottom:1px solid var(--bd);padding-bottom:5px;}
+.hero{border-radius:14px;padding:18px 20px;margin-bottom:8px;border:1px solid var(--bd);background:linear-gradient(180deg,#15110a,#111);}
+.hero .lab{font-size:30px;font-weight:800;letter-spacing:.5px;}
+.hero .meta{font-family:var(--mono);font-size:11px;color:var(--fg2);margin-top:4px;}
+.hero .one{font-size:13.5px;color:var(--fg);margin-top:10px;max-width:760px;}
+.badge{display:inline-block;font-family:var(--mono);font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.5px;margin-right:6px;}
+.drv{font-size:11.5px;color:var(--fg3);margin-top:10px;max-width:820px;border-top:1px solid var(--bd);padding-top:8px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px;}
+.card{background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;}
+.card .nm{font-weight:600;font-size:13px;display:flex;justify-content:space-between;align-items:baseline;}
+.card .nm .u{font-family:var(--mono);font-size:9.5px;color:var(--fg3);}
+.hz{margin-top:10px;}
+.hz .lbl{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--fg3);}
+.bar{position:relative;height:16px;margin:5px 0 3px;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:4px;overflow:hidden;}
+.bar .zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#3a3a3a;}
+.bar .span{position:absolute;top:2px;bottom:2px;border:1px solid;border-radius:3px;}
+.bar .tick{position:absolute;top:-1px;bottom:-1px;width:2px;}
+.brow{font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;gap:9px;flex-wrap:wrap;align-items:baseline;}
+.brow b{font-size:13px;}.brow .n{color:var(--fg3);}
+.nodata{font-family:var(--mono);font-size:10.5px;color:var(--fg3);padding:6px 0;}
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:8px;}
+.stat{background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:9px 12px;}
+.stat .k{font-family:var(--mono);font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--fg3);}
+.stat .v{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:2px;}
+.note{color:var(--fg3);font-size:10.5px;font-family:var(--mono);margin-top:20px;border-top:1px solid var(--bd);padding-top:8px;line-height:1.7;}
+.flip{background:#1a1407;border:1px solid #eab30833;border-radius:10px;padding:11px 14px;font-size:12.5px;color:var(--fg2);margin-bottom:8px;}
+.flip b{color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>FOMC Reaction Map <span class="s">· surprise-conditioned, self-calibrated</span></h1>
+  <div class="nav"><a href="/">← home</a><a href="/fed-speak.html">fed-speak</a><a href="/sovereign.html">sovereign</a><a href="/bonds.html">bonds</a><a href="/directory.html">all pages</a></div>
+</div>
+
+<div id="hero" class="hero"><div class="lab" style="color:var(--fg3)">loading…</div></div>
+
+<div class="sec">Expected reaction by asset · short (5 trading days) vs long (63 trading days)</div>
+<div id="map" class="grid"></div>
+
+<div class="sec">Context</div>
+<div id="flip" class="flip"></div>
+<div id="stats" class="statrow"></div>
+
+<div id="note" class="note"></div>
+
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const S3='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com';
+async function getJSON(path){
+  for(const u of [`https://justhodl.ai/${path}`,`${PX}/${path}`,`${S3}/${path}`]){
+    try{const r=await fetch(u,{cache:'no-store'});if(r.ok)return await r.json();}catch(e){}
+  }
+  throw new Error('fetch failed: '+path);
+}
+const GROUPS=[
+  ['Equities',['S&P 500 (SPY)','Nasdaq 100 (QQQ)','Small caps (IWM)']],
+  ['Rates & bonds',['2Y yield','10Y yield','20y+ Treasuries (TLT)']],
+  ['Risk assets',['HY credit (HYG)','Gold (GLD)','US dollar (UUP)','Bitcoin']],
+];
+const fmt=(v,u)=>v==null?'—':(v>=0?'+':'')+(+v).toFixed(u==='bp'?0:2)+(u==='bp'?'bp':'%');
+function bar(o,u){
+  if(!o||o.median==null) return '<div class="nodata">insufficient history</div>';
+  const D=Math.max(Math.abs(o.p25||0),Math.abs(o.p75||0),Math.abs(o.median),u==='bp'?5:0.5)*1.15;
+  const x=v=>Math.max(0,Math.min(100,50+50*(v/D)));
+  const lo=Math.min(o.p25,o.p75),hi=Math.max(o.p25,o.p75);
+  const col=o.median>=0?'var(--green)':'var(--red)';
+  return `<div class="bar"><div class="zero"></div>
+    <div class="span" style="left:${x(lo)}%;width:${Math.max(1.5,x(hi)-x(lo))}%;background:${col}26;border-color:${col}99"></div>
+    <div class="tick" style="left:${x(o.median)}%;background:${col}"></div></div>
+    <div class="brow"><b style="color:${col}">${fmt(o.median,u)}</b><span>[${fmt(o.p25,u)} … ${fmt(o.p75,u)}]</span><span>up ${o.prob_up_pct}%</span><span class="n">n=${o.n}</span></div>`;
+}
+(async()=>{
+  let d; try{d=await getJSON('data/fomc-reaction.json');}catch(e){
+    document.getElementById('hero').innerHTML='<div class="lab" style="color:var(--red)">data unavailable</div>';return;}
+  const sp=d.surprise||{}, lab=(sp.label||'—');
+  const col=lab==='HAWKISH'?'var(--red)':lab==='DOVISH'?'var(--green)':'var(--fg2)';
+  const basis={'2y_market':'2-year Treasury move (market verdict)','statement_tone':'statement tone (GLM)','stale_2y':'stale 2y — preliminary','none':'no signal yet'}[sp.basis]||sp.basis||'';
+  const tone=sp.statement_tone||{};
+  document.getElementById('hero').innerHTML=
+    `<div class="lab" style="color:${col}">${lab}${d.is_decision_day?' SURPRISE':''}</div>
+     <div class="meta">${d.is_decision_day?'Decision day':'Next meeting'} · ${d.meeting_date||''} · basis: ${basis}
+       ${sp.d2y_change_bp!=null?' · Δ2y '+(sp.d2y_change_bp>=0?'+':'')+sp.d2y_change_bp+'bp':''}</div>
+     <div style="margin-top:9px">
+       ${sp.preliminary?'<span class="badge" style="background:#f59e0b22;color:var(--amber);border:1px solid #f59e0b55">preliminary — confirms at next 2y close</span>':'<span class="badge" style="background:#22c55e1a;color:var(--green);border:1px solid #22c55e44">confirmed read</span>'}
+       <span class="badge" style="background:#3b82f61a;color:var(--blue);border:1px solid #3b82f644">calibrated on ${d.calibration?.n_events||'?'} own FOMC days</span>
+     </div>
+     ${tone.one_line?`<div class="one">"${tone.one_line}"${tone.tone!=null?` <span style="color:var(--fg3);font-family:var(--mono);font-size:11px">(tone ${tone.tone>=0?'+':''}${tone.tone}/10)</span>`:''}</div>`:''}
+     <div class="drv">${(sp.driver_note||'')}</div>`;
+
+  const map=document.getElementById('map');
+  for(const [g,assets] of GROUPS){
+    let html=`<div style="grid-column:1/-1" class="sec">${g}</div>`;
+    for(const a of assets){
+      const v=(d.reaction_map||{})[a]; if(!v) continue;
+      html+=`<div class="card"><div class="nm">${a}<span class="u">${v.unit}</span></div>
+        <div class="hz"><div class="lbl">Short · ${v.short_horizon_d||5}d</div>${bar(v.short,v.unit)}</div>
+        <div class="hz"><div class="lbl">Long · ${v.long_horizon_d||63}d</div>${bar(v.long,v.unit)}</div></div>`;
+    }
+    map.insertAdjacentHTML('beforeend',html);
+  }
+
+  document.getElementById('flip').innerHTML=`<b>What flips this:</b> ${d.what_flips_it||''}`;
+  const cal=d.calibration||{}, eb=cal.events_by_sign||{}, sg=d.self_grading||{};
+  document.getElementById('stats').innerHTML=
+    `<div class="stat"><div class="k">Calibration events</div><div class="v">${cal.n_events||'—'}</div></div>
+     <div class="stat"><div class="k">Hawkish / Dovish / Neutral</div><div class="v">${eb.hawkish||0} / ${eb.dovish||0} / ${eb.neutral||0}</div></div>
+     <div class="stat"><div class="k">Regime</div><div class="v" style="font-size:13px">${(d.regime_context||{}).quadrant||'—'}</div></div>
+     <div class="stat"><div class="k">Self-grade (5d dir.)</div><div class="v">${sg.directional_accuracy_pct!=null?sg.directional_accuracy_pct+'%':'building'}</div></div>`;
+
+  document.getElementById('note').innerHTML=
+    `Anchored on JustHodl's own FOMC-day history (${cal.anchored_on||''}); each meeting is classified by the 2-year Treasury move (the market's real-time verdict on the policy surprise) and forward asset moves are bucketed by sign. ETF figures are % returns, yields are basis-point changes. Ranges are p25–p75 with the median marked — <b>empirical distributions conditioned on the surprise, not point forecasts</b>; realized FOMC-day dispersion is wide.<br>${d.honesty||''}<br>Calibration built ${cal.built_at||''} · generated ${d.generated_at||''} · self-correcting as each meeting is logged.`;
+})();
+</script>
+</body>
+</html>
