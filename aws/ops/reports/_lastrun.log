@@ -1,3 +1,15 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"surprise\": \"DOVISH\", \"meeting\": \"2026-06-17\"}"}
-SURPRISE: DOVISH | basis: stale_2y | preliminary: True
-TONE: {"tone": 0, "stance": "NEUTRAL", "one_line": "No FOMC statement text provided; only website boilerplate.", "engine": "glm", "source_url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm"}
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"surprise\": \"HAWKISH\", \"meeting\": \"2026-06-17\"}"}
+SURPRISE: HAWKISH | basis: statement_tone | preliminary: False
+TONE: {"tone": 6, "stance": "HAWKISH", "one_line": "Rates held steady amid solid growth and elevated inflation, with strong price stability commitments.", "engine": "glm", "source_url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm"}
+
+REACTION MAP (HAWKISH):
+  S&P 500 (SPY)            5d -0.7% [-1.457..+0.247] up30.8% n26             63d +2.324% [-2.282..+6.105] up68.0% n25
+  Nasdaq 100 (QQQ)         5d -0.835% [-2.446..+1.125] up38.5% n26           63d +3.107% [-4.475..+8.763] up64.0% n25
+  Small caps (IWM)         5d -0.489% [-1.595..+1.361] up38.5% n26           63d -0.147% [-3.411..+5.226] up48.0% n25
+  20y+ Treasuries (TLT)    5d -0.294% [-1.796..+0.953] up46.2% n26           63d -1.447% [-4.347..+3.356] up36.0% n25
+  HY credit (HYG)          5d -0.123% [-0.998..+0.056] up42.3% n26           63d +0.21% [-1.417..+0.721] up56.0% n25
+  Gold (GLD)               5d +0.426% [-2.086..+1.811] up57.7% n26           63d +5.285% [-1.921..+10.64] up64.0% n25
+  US dollar (UUP)          5d +0.019% [-0.491..+1.074] up50.0% n26           63d +1.1% [-0.597..+3.07] up64.0% n25
+  Bitcoin                  5d -2.248% [-3.81..+4.398] up38.5% n26            63d -3.513% [-20.48..+27.788] up44.0% n25
+  2Y yield                 5d -0.5bp [-4.75..+3.75] up42.3% n26              63d -1bp [-36.5..+29.75] up45.8% n24
+  10Y yield                5d +2.5bp [-6.75..+9.75] up53.8% n26              63d +8bp [-27..+30.25] up54.2% n24
