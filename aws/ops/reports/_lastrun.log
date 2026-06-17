@@ -1,1 +1,12 @@
-MISSING: ResourceNotFoundException
+zip bytes: 43271
+inherited env keys: ['CMC_KEY']
+CREATED new function
+schedule wired: arn:aws:events:us-east-1:857687956942:rule/fomc-reaction-daily
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"surprise\": \"DOVISH\", \"meeting\": \"2026-06-17\"}"}
+
+meeting: 2026-06-17 decision_day: True
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/1819_create_fomc.py", line 63, in <module>
+    print("SURPRISE:",d["surprise"]["label"],"Δ2y_bp:",d["surprise"]["d2y_bp"],"tone:",d["surprise"]["statement_tone"])
+                                                       ~~~~~~~~~~~~~^^^^^^^^^^
+KeyError: 'd2y_bp'
