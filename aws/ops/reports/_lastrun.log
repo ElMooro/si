@@ -1,7 +1,8 @@
-total fails series: 0
-breakdown: {}
-
-Treasury-complex fails keys (TD side):
-
-=== sample series PDST10F-TD (10yr UST fails to deliver) ===
-  n obs: 688 | first: {'asofdate': '2013-04-03', 'keyid': 'PDST10F-TD', 'value': '*'} | last: {'asofdate': '2026-06-03', 'keyid': 'PDST10F-TD', 'value': '*'}
+fail series in list: 0
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/1800_fails_live.py", line 14, in <module>
+    L=json.loads(get(NY+"/latest.json"))
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/json/__init__.py", line 339, in loads
+    raise TypeError(f'the JSON object must be str, bytes or bytearray, '
+TypeError: the JSON object must be str, bytes or bytearray, not NoneType
