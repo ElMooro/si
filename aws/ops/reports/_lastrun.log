@@ -1,16 +1,10 @@
-invoke: {"statusCode": 200, "body": "{\"tic_holders\": 15, \"tic_as_of\": \"2025-12\", \"deficit_months\": 260, \"ttm_deficit_bn\": 1657.2, \"debt_tn\": 39.293, \"implied_interest_bn\": 1317.0}"}
-
-reads:
-  - Total foreign UST holdings up $648bn YoY (7.5%) to $9267bn
-  - China cut $76bn YoY to $684bn (de-dollarization watch)
-  - Trailing-12m federal deficit $1657bn
-  - Implied annual interest on the debt ~$1317bn (avg rate 3.35%)
-
-TIC as_of: 2025-12
-ranking top6: [('For. Official', 3877.6, 85.1), ('T-Bonds & Notes', 3489.1, 3.5), ('Japan', 1185.5, 124.0), ('United Kingdom', 863.1, 140.3), ('China, Mainland', 683.5, -75.5), ('Belgium', 477.3, 102.7)]
-  Grand Total      latest=9267.2 12m_chg=647.9 (7.5%) n=310 range=2000-03..2025-12
-  Japan            latest=1185.5 12m_chg=124.0 (11.7%) n=310 range=2000-03..2025-12
-  China, Mainland  latest=683.5 12m_chg=-75.5 (-9.9%) n=310 range=2000-03..2025-12
-
-deficit latest: ['2026-05', 292.6] | TTM: ['2026-05', 1657.2] | receipts: ['2026-05', 335.5] | outlays: ['2026-05', 628.2] | n_months: 180
-debt_tn: 39.293 | implied interest bn: 1317.0 | avg-int TIB latest: ['2026-05', 3.353]
+ranking top8 (should be clean countries):
+   Japan 1185.5 124.0
+   United Kingdom 863.1 140.3
+   China, Mainland 683.5 -75.5
+   Belgium 477.3 102.7
+   Canada 468.2 89.4
+   Luxembourg 434.2 10.3
+   Cayman Islands 421.2 -1.8
+   France 368.9 36.6
+tic as_of: 2025-12 | holders: 15
