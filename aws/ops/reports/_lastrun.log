@@ -1,11 +1,16 @@
-=== Eurostat ei_bssi_m_r2 — EA20 confidence suite (latest) ===
-  ESI           BS-ESI-I       -> 96.7 (2025-12)  start? n_periods=8
-  industrial    BS-ICI-BAL     -> -9.0 (2025-12)  start? n_periods=8
-  services      BS-SCI-BAL     -> 5.6 (2025-12)  start? n_periods=8
-  consumer      BS-CSMCI-BAL   -> -13.1 (2025-12)  start? n_periods=8
-  retail        BS-RCI-BAL     -> -6.9 (2025-12)  start? n_periods=8
-  construction  BS-CCI-BAL     -> -1.3 (2025-12)  start? n_periods=8
-
-  ESI history: 1980-01 -> 2026-05 (557 months)
-
-working: ['BS-ESI-I', 'BS-ICI-BAL', 'BS-SCI-BAL', 'BS-CSMCI-BAL', 'BS-RCI-BAL', 'BS-CCI-BAL']
+invoke: {"statusCode": 200, "body": "{\"written\": 67}"}
+manifest count: 91
+  conf_esi                   OK 96.7 (2025-12) n=552 1980
+  conf_industrial            OK -9.0 (2025-12) n=552 1980
+  conf_services              OK 5.6 (2025-12) n=369 1995
+  conf_consumer              OK -13.1 (2025-12) n=492 1985
+  conf_retail                OK -6.9 (2025-12) n=492 1985
+  conf_construction          OK -1.3 (2025-12) n=552 1980
+  indprod_total_yoy          OK 1.12 (2025-09) n=333 1998
+  indprod_core_yoy           OK 1.45 (2025-09) n=333 1998
+  indprod_intermediate_yoy   OK 0.34 (2025-09) n=333 1998
+  indprod_capital_yoy        OK 1.5 (2025-09) n=333 1998
+  indprod_durable_yoy        OK -3.12 (2025-09) n=333 1998
+  indprod_nondurable_yoy     OK 1.91 (2025-09) n=333 1998
+  indprod_energy_yoy         OK 1.39 (2025-09) n=333 1998
+  real_m1_growth             MISSING
