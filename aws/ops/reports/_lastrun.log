@@ -1,29 +1,18 @@
 
-=== crisis-canaries.json ===
-  availability: scalars={} subdicts=[]
-  canaries: scalars={} subdicts=['sofr_tail', 'ofr_repo', 'discount_window', 'bank_deposits', 'auction_slope', 'revision_nowcast']
-  families: scalars={} subdicts=['labor', 'real_economy', 'credit', 'rates_regime', 'global_fx', 'internals']
+crisis-canaries.json.canaries: 42 members
+  sofr_tail: nums={'tail_bp': 9.0, 'z': -0.23, 'vol_bn': 3147.0} strKeys=['as_of']
+  ofr_repo: nums={'level': 2275256776203.04, 'z': 0.04} strKeys=['mnemonic', 'as_of']
+  discount_window: nums={'level_mn': 6606.0, 'wow_chg': 534.0, 'z': 1.19, 'wow_z': 0.62} strKeys=['series', 'as_of']
+  TOPLEVEL nums: {'duration_s': 15.4, 'composite_score': 16.4, 'signals_logged': 0.0, 'red_count': 1.0, 'n_global': 30.0, 'global_score': 8.9, 'grid_score_ingested': 37.4, 'composite_v3': 17.2}
 
-=== funding-plumbing.json ===
-  signals: scalars={} subdicts=['balance_sheet', 'reserves', 'rrp_cushion', 'sofr_iorb', 'sofr_effr', 'sofr_tail']
-  top_drivers[4] keys=['signal', 'note'] nums=[]
+crisis-canaries.json.families: 7 members
+  labor: nums={'n': 5.0, 'red': 1.0, 'amber': 0.0, 'green': 4.0, 'score': 20.0} strKeys=[]
+  real_economy: nums={'n': 5.0, 'red': 0.0, 'amber': 1.0, 'green': 4.0, 'score': 10.0} strKeys=[]
+  credit: nums={'n': 5.0, 'red': 0.0, 'amber': 2.0, 'green': 3.0, 'score': 20.0} strKeys=[]
+  TOPLEVEL nums: {'duration_s': 15.4, 'composite_score': 16.4, 'signals_logged': 0.0, 'red_count': 1.0, 'n_global': 30.0, 'global_score': 8.9, 'grid_score_ingested': 37.4, 'composite_v3': 17.2}
 
-=== insider-radar.json ===
-  latest_buys[40] keys=['ticker', 'date', 'insider', 'title', 'type', 'shares', 'price', 'value', 'w', 'score'] nums=['shares', 'price', 'value', 'w', 'score']
-  clusters[3] keys=['ticker', 'n_insiders', 'n_buys', 'total_value', 'span_days', 'first', 'last', 'max_rank_w', 'ret_60d_pct', 'names', 'ps_ttm'] nums=['n_insiders', 'n_buys', 'total_value', 'span_days', 'max_rank_w', 'ret_60d_pct', 'ps_ttm']
-  finviz_buys[60] keys=['ticker', 'sector', 'price', 'perf_m'] nums=['price', 'perf_m']
-  finviz_sells[60] keys=['ticker', 'sector', 'price', 'perf_m'] nums=['price', 'perf_m']
-  decline_buys[6] keys=['ticker', 'date', 'insider', 'title', 'type', 'shares', 'price', 'value', 'w', 'score', 'ret_60d_pct', 'ps_ttm'] nums=['shares', 'price', 'value', 'w', 'score', 'ret_60d_pct', 'ps_ttm']
-
-=== dislocations.json ===
-  buy_the_laggard[40] keys=['ticker', 'name', 'sector', 'industry', 'cap_bucket', 'market_cap', 'revenue', 'rev_growth_pct', 'eps_growth_pct', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales', 'growth_adj_ev_sales', 'rule_of_40', 'roic', 'roe', 'debt_to_equity', 'interest_coverage', 'piotroski', 'altman_z', 'inst_own_pct', 'insider_cluster', 'beat_streak', 'cohort', 'cohort_size', 'cheapness', 'quality', 'moat_score', 'risk_penalty', 'dislocation_score', 'cohort_median', 'caveats', 'momentum', 'cheap_and_inflecting', 'dislocated_vs'] nums=['market_cap', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales']
-  cheap_and_inflecting[25] keys=['ticker', 'name', 'sector', 'industry', 'cap_bucket', 'market_cap', 'revenue', 'rev_growth_pct', 'eps_growth_pct', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales', 'growth_adj_ev_sales', 'rule_of_40', 'roic', 'roe', 'debt_to_equity', 'interest_coverage', 'piotroski', 'altman_z', 'inst_own_pct', 'insider_cluster', 'beat_streak', 'cohort', 'cohort_size', 'cheapness', 'quality', 'moat_score', 'risk_penalty', 'dislocation_score', 'cohort_median', 'caveats', 'momentum', 'cheap_and_inflecting', 'dislocated_vs'] nums=['market_cap', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales']
-  top_dislocations[120] keys=['ticker', 'name', 'sector', 'industry', 'cap_bucket', 'market_cap', 'revenue', 'rev_growth_pct', 'eps_growth_pct', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales', 'growth_adj_ev_sales', 'rule_of_40', 'roic', 'roe', 'debt_to_equity', 'interest_coverage', 'piotroski', 'altman_z', 'inst_own_pct', 'insider_cluster', 'beat_streak', 'cohort', 'cohort_size', 'cheapness', 'quality', 'moat_score', 'risk_penalty', 'dislocation_score', 'cohort_median', 'caveats', 'momentum', 'cheap_and_inflecting', 'dislocated_vs'] nums=['market_cap', 'gross_margin', 'op_margin', 'net_margin', 'ps', 'pe', 'ev_ebitda', 'ev_sales']
-
-=== implied-prob.json ===
-  fed: scalars={'target_upper': 3.75, 'target_lower': 3.5, 'current_rate': 3.625, 'ffer_recent': 3.63, 'bill_3m': 3.78, 'bill_6m': 3.78, 'bill_1y': 3.82, 'implied_3m_change_bp': 15.0, 'implied_6m_change_bp': 15.0, 'implied_1y_change_bp': 19.0} subdicts=['next_meeting']
-  recession: scalars={'ny_fed_12m_prob_pct': 0.44, 'ny_fed_12m_delta_pct': -0.08, 'yield_curve_10y3m_bp': 77.0, 'days_inverted_current': 0.0, 'hy_spread_bp': 274.0, 'hy_spread_percentile_10y': 9.8, 'hy_spread_z': -1.06, 'composite_score_0_100': 5.3} subdicts=[]
-  spy: scalars={'spot': 737.55, 'iv_30d': 15.4, 'iv_90d': 19.23} subdicts=['moves_30d', 'moves_90d']
-  qqq: scalars={'spot': 705.06, 'iv_30d': 23.22, 'iv_90d': 23.22} subdicts=['moves_30d', 'moves_90d']
-  btc: scalars={'spot': 34.14, 'iv_30d': 34.39, 'iv_90d': 51.98} subdicts=['moves_30d', 'moves_90d']
-  earnings_implied[3] keys=['ticker', 'name', 'earnings_date', 'days_to', 'spot', 'iv_pct', 'expected_move_pct', 'note'] nums=['days_to']
+funding-plumbing.json.signals: 9 members
+  balance_sheet: nums={'latest_usd_t': 6.73, 'chg_8wk_usd_b': 20.0} strKeys=['direction', 'note']
+  reserves: nums={'reserves_usd_t': 3.08, 'lclor_usd_t': 3.0, 'ratio': 1.03} strKeys=['note']
+  rrp_cushion: nums={'rrp_usd_b': 10.7} strKeys=['note']
+  TOPLEVEL nums: {'version': 1.0, 'duration_s': 2.2, 'plumbing_stress_score': 56.4}
