@@ -1,13 +1,18 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/1820_patch_run.py", line 16, in <module>
-    lam.update_function_code(FunctionName=FN,ZipFile=buf.getvalue()); lam.get_waiter("function_updated").wait(FunctionName=FN)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-fomc-reaction
+env ANTHROPIC present: True | keys: ['ANTHROPIC_API_KEY', 'CMC_KEY', 'S3_BUCKET']
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"surprise\": \"DOVISH\", \"meeting\": \"2026-06-17\"}"}
+
+SURPRISE: DOVISH | basis: stale_2y | Δ2y_bp: -2.0 2y_fresh: False
+tone: None
+calib: {'hawkish': 26, 'dovish': 30, 'neutral': 12} n= 68
+
+REACTION MAP (DOVISH):
+  S&P 500 (SPY)            5d -0.037% [-1.27..+1.91] up48.3% n29             63d +4.088% [+1.629..+8.359] up75.9% n29
+  Nasdaq 100 (QQQ)         5d +0.725% [-1.035..+2.474] up55.2% n29           63d +6.175% [+1.091..+11.209] up75.9% n29
+  Small caps (IWM)         5d -0.687% [-2.433..+1.718] up44.8% n29           63d +1.778% [-2.857..+6.083] up62.1% n29
+  20y+ Treasuries (TLT)    5d -0.174% [-1.764..+1.949] up48.3% n29           63d +0.697% [-3.844..+5.342] up55.2% n29
+  HY credit (HYG)          5d -0.211% [-0.54..+0.236] up41.4% n29            63d +0.126% [-1.413..+1.181] up51.7% n29
+  Gold (GLD)               5d -0.427% [-1.246..+0.25] up34.5% n29            63d +5.569% [-3.124..+10.024] up69.0% n29
+  US dollar (UUP)          5d +0.526% [-0.358..+1.234] up69.0% n29           63d +1.541% [-0.655..+3.08] up58.6% n29
+  Bitcoin                  5d -0.667% [-4.627..+1.356] up37.9% n29           63d +3.452% [-14.005..+20.943] up58.6% n29
+  2Y yield                 5d +0bp [-5..+2] up41.4% n29                      63d +3bp [-30..+26] up51.7% n29
+  10Y yield                5d -1bp [-7..+6] up41.4% n29                      63d -2bp [-25..+21] up48.3% n29
