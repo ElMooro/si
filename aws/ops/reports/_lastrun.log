@@ -1,6 +1,11 @@
-invoke: {"statusCode": 200, "body": "{\"written\": 68}"}
-manifest n: 92 | real_m1_growth in manifest: True
-  real_m1_growth FILE OK: 1997-01→2025-12 n=348 latest=2.81
-  head: [['1997-01', 6.42], ['1997-02', 7.1]] tail: [['2025-11', 2.88], ['2025-12', 2.81]]
-
-DUMP SIGNALS still un-chartable: NONE — all 19 now resolve to a live history series
+invoke: {"statusCode": 200, "body": "{\"n_series\": 10, \"regime\": \"ELEVATED\", \"score\": 45}"}
+  smi                      1990-11-30 -> 2026-06-16  n=428
+  spi                      2013-03-31 -> 2026-06-16  n=160
+  eurchf                   2003-02-01 -> 2026-06-17  n=282
+  usdchf                   2003-09-30 -> 2026-06-17  n=274
+  ch_business_confidence   1990-01-01 -> 2026-05-01  n=437
+  ch_ip_yoy                1990-01-01 -> 2026-01-01  n=145
+  ch_mfg_yoy               2004-04-01 -> 2026-01-01  n=88
+  ch_unemployment          1990-01-01 -> 2023-12-01  n=408
+  ea_business_confidence   1990-01-01 -> 2026-01-01  n=433
+  ea_consumer_confidence   1990-01-01 -> 2026-01-01  n=433
