@@ -1,41 +1,14 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 89.3, \"verdict\": \"FUNCTIONING\"}"}
+zip 41431
+CREATED
+scheduled
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"hk_funding\": \"WATCH\", \"agg_balance_bn\": 53.88, \"n\": 1200}"}
 
-VERDICT: FUNCTIONING | health: 89.3 | gen: 2026-06-18T13:52:47Z
-
-AI state: FUNCTIONING
-AI summary: The eurodollar market is functioning smoothly, evidenced by benign repo tails, tight credit spreads, and near-zero Fed swap line usage indicating no offshore USD stress. While the depleted ON RRP facility and localized settlement fails in TIPS and corporates flash yellow, core domestic and offshore funding plumbing remains clear.
-AI short_term: Direction is stable but warrants caution over the next 1-4 weeks as the exhaustion of the ON RRP buffer removes a key liquidity sponge and may introduce modest repo volatility. Watch for HKD pushing further toward the 7.85 weak-side peg as an early trigger for offshore funding tightness.
-key_drivers: ['Fed central-bank liquidity swaps: Near-zero usage confirms offshore eurodollar funding is well-supplied and devoid of systemic stress.', "ON RRP balances: Approaching zero removes the market's liquidity shock absorber, bringing the system closer to the threshold where reserves might become scarce.", 'Hong Kong USD/HKD: Trading near the weak side of the band hints at marginal offshore USD demand or capital outflow pressure in Asia.', 'Fails · Corporate securities & Fails · TIPS: Yellow-flagged fails point to localized settlement bottlenecks rather than broad cash shortages.', 'SOFR − IORB & SOFR 99th pct: Benign spreads show repo is trading rich to reserves with no tail stress, confirming ample domestic cash.']
-
-red_flags: [] | yellow: ['ON RRP balances', 'Fails · TIPS', 'Fails · Corporate securities', 'Hong Kong USD/HKD (band 7.75–7.85)']
-
-LAYERS:
-  [US money-market core]
-    green       SOFR − IORB (repo richness)                -2.0bp
-    green       SOFR 99th pct − IORB (repo tail)           6.0bp
-    yellow      ON RRP balances                            6.8$bn
-    info        Bank reserve balances                      3.08$tn
-    info        Treasury General Account                   0.83$tn
-    green       EFFR − IORB                                -2.0bp
-  [Bank & short-term funding]
-    green       3M financial CP − SOFR                     13.0bp
-    green       3M nonfinancial CP − SOFR                  6.0bp
-    green       SOFR − 3M T-bill                           -1.0bp
-  [Credit backdrop]
-    green       HY credit OAS                              271.0bp p8.3
-    green       IG credit OAS                              75.0bp p6.9
-  [Central-bank backstops]
-    green       Fed central-bank liquidity swaps           0.03$bn
-  [Settlement plumbing]
-    green       Treasury settlement fails (UST ex-TIPS)    257.0$bn p79.4
-    yellow      Fails · TIPS                               25.0$bn p92.9
-    yellow      Fails · Corporate securities               54.0$bn p83.1
-    green       Fails · Agency MBS                         17.0$bn p21.4
-    green       Fails · Agency debt (ex-MBS)               1.0$bn p4.5
-    green       Fails · Other (non-agency) MBS             6.0$bn p59.0
-  [FX & offshore strain]
-    green       Broad trade-weighted USD                   119.51idx p38.7
-    unavailable Cross-currency basis (EUR/JPY/GBP…)        n/a
-  [Country hubs]
-    yellow      Hong Kong USD/HKD (band 7.75–7.85)         7.8372
-    info        USD/JPY (hedging-cost context)             160.86
+hk_funding: WATCH | reds: [] | yellows: ['USD/HKD vs 7.85 weak side', '3M HIBOR − SOFR']
+Aggregate Balance: 53.88 HK$bn (pctile 46.7, 30d -0.1, n=1200 from 2021-08-05)
+HIBOR: 2.4 O/N | 2.94452 1M | 2.82708 3M | curve keys: ['overnight', '1m', '3m', '6m', '12m']
+USD/HKD: 7.83708 dist_to_weak% 0.165 | HIBOR-SOFR: -80.3 bp | base_rate: 4.0
+   green Aggregate Balance = 53.88 HK$bn
+   yellow USD/HKD vs 7.85 weak side = 7.83708 
+   yellow 3M HIBOR − SOFR = -80.3 bp
+   info Overnight HIBOR = 2.4 %
+   info Discount Window Base Rate = 4.0 %
