@@ -1,28 +1,300 @@
-[CONTROL-fresh] justhodl-eurodollar-plumbing     mod=2026-06-18 lastInvDay=06-17
-      inv/err: 06-17=11/0
-[10d] justhodl-universe-builder        mod=2026-06-04 lastInvDay=06-07
-      inv/err: 06-04=6/0 06-05=6/0 06-06=6/0 06-07=5/0
-[10d] justhodl-macro-nowcast           mod=2026-06-04 lastInvDay=06-07
-      inv/err: 06-04=28/0 06-05=28/0 06-06=28/0 06-07=23/0
-[10d] justhodl-dealer-gex              mod=2026-05-30 lastInvDay=06-07
-      inv/err: 06-04=18/0 06-05=8/0 06-07=2/0
-[10d] justhodl-yield-curve             mod=2026-06-04 lastInvDay=06-07
-      inv/err: 06-04=4/0 06-05=4/0 06-06=4/0 06-07=4/0
-[10d] justhodl-insider-trades          mod=2026-05-31 lastInvDay=06-07
-      inv/err: 06-04=48/0 06-05=48/0 06-06=48/0 06-07=39/0
-[10d] justhodl-news-wire               mod=2026-05-30 lastInvDay=06-07
-      inv/err: 06-04=96/0 06-05=96/0 06-06=96/0 06-07=79/0
-[8.6d] justhodl-reports-builder         mod=2026-05-30 lastInvDay=06-07
-      inv/err: 06-04=24/0 06-05=24/0 06-06=24/0 06-07=19/0
-[8.6d] justhodl-daily-report-v3         mod=2026-06-04 lastInvDay=06-17
-      inv/err: 06-04=2/0 06-05=2/0 06-06=2/0 06-07=2/0 06-08=2/0 06-09=2/0 06-10=2/0 06-11=2/0 06-12=2/0 06-13=2/0 06-14=2/0 06-15=2/0 06-16=2/0 06-17=2/0
-[8.6d] justhodl-desk-allocator          mod=2026-05-30 lastInvDay=06-17
-      inv/err: 06-04=1/0 06-05=1/0 06-06=1/0 06-07=1/0 06-08=1/0 06-09=1/0 06-10=1/0 06-11=1/0 06-12=1/0 06-13=1/0 06-14=1/0 06-15=1/0 06-16=1/0 06-17=1/0
-[orch] justhodl-scheduler               mod=2026-05-28 lastInvDay=06-17
-      inv/err: 06-04=482/0 06-05=482/0 06-06=483/0 06-07=397/0 06-08=8/0 06-09=8/0 06-10=8/0 06-11=8/0 06-12=8/0 06-13=9/0 06-14=8/0 06-15=8/0 06-16=8/0 06-17=8/0
-[orch] justhodl-event-coordinator       mod=2026-05-31 lastInvDay=06-17
-      inv/err: 06-04=110/0 06-05=104/0 06-06=118/0 06-07=183/0 06-08=22/0 06-09=25/0 06-10=25/0 06-11=24/0 06-12=30/0 06-13=25/0 06-14=102/0 06-15=31/0 06-16=24/0 06-17=26/0
-[orch] justhodl-ultimate-orchestrator   mod=2026-05-30 lastInvDay=06-17
-      inv/err: 06-04=4/0 06-05=3/0 06-06=4/0 06-07=4/0 06-08=6/0 06-09=6/0 06-10=5/0 06-11=5/0 06-12=9/0 06-13=6/0 06-14=6/0 06-15=4/0 06-16=4/0 06-17=1/0
-[orch] multi-agent-orchestrator         mod=2026-05-22 lastInvDay=NEVER
-      inv/err: (no datapoints in 14d)
+total EB rules=258  scheduled=257
+
+=== ALL SCHEDULED RULES (state / schedule / name) ===
+  [DISABLED] rate(1 hour)               aiapi-hourly-collection
+  [DISABLED] cron(50 */3 * * ? *)       alpha-compass-3h
+  [DISABLED] cron(*/15 13-21 ? * MON-FRI *) alphavantage-market-update
+  [DISABLED] cron(0 10,14,18,22 * * ? *) buzz-velocity-4x-daily
+  [DISABLED] cron(45 */3 * * ? *)       capitulation-3h
+  [DISABLED] rate(4 hours)              carry-surface-4h
+  [DISABLED] cron(0 13,17,21 ? * MON-FRI *) cds-proxy-tri-daily
+  [DISABLED] rate(3 hours)              cross-asset-confirm-3h
+  [DISABLED] cron(0 0,4,8,12,16,20 ? * * *) crypto-opportunities-4h
+  [DISABLED] rate(2 hours)              divergence-v2-2hourly
+  [DISABLED] cron(0 * * * ? *)          event-flow-monitor-hourly
+  [DISABLED] cron(30 12,20 * * ? *)     future-intel-2x-daily
+  [DISABLED] cron(0/15 * * * ? *)       jhk-tick-15min
+  [DISABLED] cron(0/30 * * * ? *)       jhk-tick-30min
+  [DISABLED] cron(0 0/4 * * ? *)        jhk-tick-4hourly
+  [DISABLED] cron(0/5 * * * ? *)        jhk-tick-5min
+  [DISABLED] cron(0 0/3 * * ? *)        jhk-tick-every_3h
+  [DISABLED] cron(0 0/6 * * ? *)        jhk-tick-every_6h
+  [DISABLED] cron(0 * * * ? *)          jhk-tick-hourly
+  [DISABLED] cron(5 * * * ? *)          jhk-tick-hourly-orchestrate
+  [DISABLED] rate(6 hours)              justhodl-13f-positions-6h
+  [DISABLED] cron(33 * * * ? *)         justhodl-anomaly-detector-hourly
+  [DISABLED] rate(6 hours)              justhodl-crisis-plumbing-refresh
+  [DISABLED] rate(6 hours)              justhodl-crypto-cycle-risk-6h
+  [DISABLED] cron(7 13-21 ? * MON-FRI *) justhodl-dealer-gex-hourly
+  [DISABLED] cron(15,45 * * * ? *)      justhodl-early-movers-twice-per-hour
+  [DISABLED] rate(6 hours)              justhodl-earnings-tracker-6h
+  [DISABLED] rate(6 hours)              justhodl-edge-6h
+  [DISABLED] rate(6 hours)              justhodl-engine-conflicts-6h
+  [DISABLED] rate(6 hours)              justhodl-etf-flows-6h
+  [DISABLED] rate(6 hours)              justhodl-exchange-flows-6h
+  [DISABLED] rate(12 hours)             justhodl-forensic-screen-12h
+  [DISABLED] rate(6 hours)              justhodl-macro-nowcast-6h
+  [DISABLED] rate(6 hours)              justhodl-macro-surprise-6h
+  [DISABLED] rate(4 hours)              justhodl-narrative-vs-tape-4h
+  [DISABLED] rate(6 hours)              justhodl-onchain-ratios-6h
+  [DISABLED] rate(30 minutes)           justhodl-options-flow-30m
+  [DISABLED] cron(0 11,17,23 * * ? *)   justhodl-portfolio-catalysts-3x-daily
+  [DISABLED] rate(6 hours)              justhodl-position-sizer-6h
+  [DISABLED] rate(6 hours)              justhodl-system-signal-logger-6h
+  [DISABLED] rate(2 hours)              justhodl-telegram-alerts
+  [DISABLED] cron(20,50 * * * ? *)      justhodl-theme-cascade-twice-per-hour
+  [DISABLED] cron(5 * * * ? *)          justhodl-ticket-ai-rationale-hourly
+  [DISABLED] cron(30 0,6,12,18 ? * * *) justhodl-wave-signal-logger-6h
+  [DISABLED] rate(6 hours)              justhodl-yield-curve-6h
+  [DISABLED] rate(6 hours)              lce-every-6h
+  [DISABLED] rate(6 hours)              liquidity-pulse-6h
+  [DISABLED] rate(1 hour)               multi-agent-economic-hourly
+  [DISABLED] cron(*/15 13-21 ? * MON-FRI *) multi-agent-market-15min
+  [DISABLED] cron(*/5 9-16 ? * MON-FRI *) multi-agent-orchestrator-schedule
+  [DISABLED] cron(30 * * * ? *)         near-miss-monitor-hourly
+  [DISABLED] rate(6 hours)              pairs-scanner-6hourly
+  [DISABLED] cron(0 12,20 * * ? *)      rotation-chain-2x-daily
+  [DISABLED] cron(0 9,15,21 * * ? *)    sec-filings-intel-3x-daily
+  [DISABLED] cron(*/30 13-21 ? * MON-FRI *) sector-heatmap-30m
+  [ENABLED ] cron(0 2 * * ? *)          aiapi-daily-training
+  [ENABLED ] cron(45 14 * * ? *)        alert-sentinel-daily
+  [ENABLED ] cron(45 11 ? * MON-FRI *)  analyst-consensus-daily
+  [ENABLED ] cron(0 6 * * ? *)          ark-holdings-daily
+  [ENABLED ] cron(20 21 * * ? *)        backtest-harness-weekly
+  [ENABLED ] cron(0 12 ? * SUN *)       bagger-engine-weekly
+  [ENABLED ] cron(0 15 ? * MON-FRI *)   bank-stress-daily
+  [ENABLED ] cron(20 11 * * ? *)        boj-detail-daily
+  [ENABLED ] cron(0 21 ? * MON-FRI *)   bond-trace-daily
+  [ENABLED ] cron(30 */6 * * ? *)       canary-grid-daily
+  [ENABLED ] cron(0 13 * * ? *)         cb-injection-daily
+  [ENABLED ] cron(0 13 * * ? *)         cds-monitor-daily
+  [ENABLED ] cron(0 18 ? * FRI *)       cftc-cot-weekly-update
+  [ENABLED ] cron(0 16 ? * MON-FRI *)   chart-vision-daily
+  [ENABLED ] cron(30 14 ? * MON-FRI *)  china-liquidity-daily
+  [ENABLED ] cron(40 7 * * ? *)         ciss-ai-daily
+  [ENABLED ] cron(10 7 * * ? *)         ciss-stress-daily
+  [ENABLED ] cron(0 13 ? * MON-FRI *)   coffee-can-daily
+  [ENABLED ] cron(0 11 ? * * *)         construction-housing-daily
+  [ENABLED ] cron(40 12 * * ? *)        consumer-pulse-daily
+  [ENABLED ] cron(0 9 * * ? *)          cost-anomaly-daily
+  [ENABLED ] cron(15 * * * ? *)         crisis-composite-hourly
+  [ENABLED ] cron(45 22 ? * MON-FRI *)  cross-asset-rv-daily
+  [ENABLED ] cron(0 11 * * ? *)         ecb-detail-daily
+  [ENABLED ] cron(0 6 ? * MON *)        ecb-weekly-update
+  [ENABLED ] cron(0 14 ? * MON *)       economyapi-weekly-update
+  [ENABLED ] cron(0 13 * * ? *)         edgar-authority-daily
+  [ENABLED ] cron(0 9 * * ? *)          engine-signal-map-daily
+  [ENABLED ] cron(0 10 ? * * *)         episode-reference-daily
+  [ENABLED ] cron(30 12 ? * MON-FRI *)  esi-daily
+  [ENABLED ] cron(40 13 ? * MON-FRI *)  estrev-daily-am
+  [ENABLED ] cron(40 17 ? * MON-FRI *)  estrev-daily-pm
+  [ENABLED ] cron(20 12 * * ? *)        euro-fragmentation-daily
+  [ENABLED ] cron(0 12 * * ? *)         eurodollar-plumbing-daily
+  [ENABLED ] cron(20 7 * * ? *)         eurostat-history-daily
+  [ENABLED ] cron(0 15 ? * MON-FRI *)   failure-library-daily
+  [ENABLED ] cron(40 12 * * ? *)        fed-collateral-daily
+  [ENABLED ] cron(0 8 ? * TUE,SAT *)    fed-liquidity-update
+  [ENABLED ] cron(30 13 * * ? *)        fed-nlp-6h
+  [ENABLED ] cron(15 14,18,22 * * ? *)  finviz-groups-3x
+  [ENABLED ] cron(30 12,15,18,21 * * ? *) finviz-news-4x
+  [ENABLED ] cron(0 14,18,21 * * ? *)   finviz-signals-3x
+  [ENABLED ] rate(30 minutes)           fleet-freshness-monitor-30min
+  [ENABLED ] cron(35 21 * * ? *)        fomc-reaction-daily
+  [ENABLED ] cron(0 11 * * ? *)         forward-orders-daily
+  [ENABLED ] cron(0 3 ? * SUN *)        forward-returns-weekly
+  [ENABLED ] cron(0 14 ? * MON-FRI *)   global-liquidity-daily
+  [ENABLED ] cron(30 12 ? * SUN *)      hiring-velocity-weekly
+  [ENABLED ] cron(0 9 * * ? *)          hkma-monitor-daily
+  [ENABLED ] cron(0 9 ? * MON,WED,FRI *) ice-bofa-update-schedule
+  [ENABLED ] cron(30 22 ? * MON-FRI *)  insider-aggregate-daily
+  [ENABLED ] cron(40 14 * * ? *)        insider-radar-daily
+  [ENABLED ] cron(25 13 ? * MON-FRI *)  intraday-arm-daily
+  [ENABLED ] rate(1 minute)             intraday-pulse-minute
+  [ENABLED ] cron(0 6 * * ? *)          jhk-tick-daily-06utc
+  [ENABLED ] cron(0 7 * * ? *)          jhk-tick-daily-07utc
+  [ENABLED ] cron(0 8 * * ? *)          jhk-tick-daily-08utc
+  [ENABLED ] cron(0 15 * * ? *)         jhk-tick-daily-15utc
+  [ENABLED ] cron(0 16 * * ? *)         jhk-tick-daily-16utc
+  [ENABLED ] cron(0 17 * * ? *)         jhk-tick-daily-17utc
+  [ENABLED ] cron(0 22 * * ? *)         jhk-tick-daily-eve
+  [ENABLED ] cron(0 11 * * ? *)         jhk-tick-daily-morn
+  [ENABLED ] cron(0 12 1 * ? *)         jhk-tick-monthly
+  [ENABLED ] cron(0 12 ? * SUN *)       jhk-tick-weekly-sun
+  [ENABLED ] cron(5 0,4,8,12,16,20 ? * * *) justhodl-ai-brief-4h
+  [ENABLED ] cron(0 12 * * ? *)         justhodl-alert-backtester-daily
+  [ENABLED ] cron(0 21 * * ? *)         justhodl-alerts-digest-close-daily
+  [ENABLED ] cron(0 9 * * ? *)          justhodl-alerts-digest-daily
+  [ENABLED ] rate(6 hours)              justhodl-alpha-research-6h
+  [ENABLED ] cron(7 * * * ? *)          justhodl-alpha-score-hourly
+  [ENABLED ] cron(55 13 * * ? *)        justhodl-altseason-daily
+  [ENABLED ] cron(0 9 * * ? *)          justhodl-analytics-snapshot-nightly
+  [ENABLED ] rate(3 hours)              justhodl-apex-fusion-3h
+  [ENABLED ] cron(0/15 14-22 ? * MON-FRI *) justhodl-auction-crisis-active
+  [ENABLED ] cron(5 13 * * ? *)         justhodl-auction-crisis-backstop
+  [ENABLED ] cron(30 11 * * ? *)        justhodl-backlog-daily
+  [ENABLED ] cron(30 22 * * ? *)        justhodl-backtest-engine-6h
+  [ENABLED ] cron(0 22 * * ? *)         justhodl-backtest-harness-daily
+  [ENABLED ] cron(10 14 * * ? *)        justhodl-basket-var-daily
+  [ENABLED ] cron(10 * * * ? *)         justhodl-best-setups-hourly
+  [ENABLED ] cron(45 12 * * ? *)        justhodl-bottleneck-boom-daily
+  [ENABLED ] cron(0 13 * * ? *)         justhodl-brain-sync-15min
+  [ENABLED ] cron(30 21 * * ? *)        justhodl-breadth-thrust-daily
+  [ENABLED ] cron(30 21 * * ? *)        justhodl-breadth-thrust-sched
+  [ENABLED ] cron(0 12 ? * MON *)       justhodl-buyback-scanner-sched
+  [ENABLED ] cron(0 12 ? * MON *)       justhodl-buyback-scanner-weekly
+  [ENABLED ] cron(30 16 * * ? *)        justhodl-capital-flow-daily
+  [ENABLED ] cron(0 13 * * ? *)         justhodl-carry-surface-sched
+  [ENABLED ] cron(0 23 * * ? *)         justhodl-cascade-recalibrator-daily
+  [ENABLED ] cron(30 22 * * ? *)        justhodl-cascade-validator-daily
+  [ENABLED ] cron(0 12 * * ? *)         justhodl-catalyst-calendar-daily
+  [ENABLED ] cron(50 11 * * ? *)        justhodl-confluence-meta-daily
+  [ENABLED ] cron(0 19 ? * FRI *)       justhodl-cot-extremes-scanner-weekly
+  [ENABLED ] cron(40 11 * * ? *)        justhodl-crisis-canaries-daily
+  [ENABLED ] cron(0 17 * * ? *)         justhodl-deep-value-overlap-daily
+  [ENABLED ] cron(0 14 * * ? *)         justhodl-devils-advocate-6h
+  [ENABLED ] cron(15 15 * * ? *)        justhodl-dislocation-ai-daily
+  [ENABLED ] cron(30 14 * * ? *)        justhodl-dislocation-detector-daily
+  [ENABLED ] cron(40 14 * * ? *)        justhodl-ecb-derived-daily
+  [ENABLED ] cron(0 6 ? * SAT *)        justhodl-ecb-history-weekly
+  [ENABLED ] cron(10 13 * * ? *)        justhodl-episode-compass-daily
+  [ENABLED ] cron(0 8 * * ? *)          justhodl-equity-prewarm-nightly
+  [ENABLED ] cron(45 22 * * ? *)        justhodl-etf-constituents-daily
+  [ENABLED ] cron(0 22 * * ? *)         justhodl-etf-fund-flows-daily
+  [ENABLED ] cron(45 15 * * ? *)        justhodl-etf-true-flows-daily
+  [ENABLED ] cron(10 0/2 * * ? *)       justhodl-eurodollar-stress-2h
+  [ENABLED ] cron(15 11 * * ? *)        justhodl-executive-intel-daily
+  [ENABLED ] rate(6 hours)              justhodl-fleet-error-6h
+  [ENABLED ] rate(1 hour)               justhodl-fleet-freshness-hourly
+  [ENABLED ] rate(1 hour)               justhodl-fleet-freshness-monitor-sched
+  [ENABLED ] rate(6 hours)              justhodl-fleet-monitor-6h
+  [ENABLED ] rate(6 hours)              justhodl-fleet-monitor-sched
+  [ENABLED ] cron(0 23 * * ? *)         justhodl-flow-anomaly-detector-daily
+  [ENABLED ] cron(30 22 * * ? *)        justhodl-flows-ai-analysis-daily
+  [ENABLED ] rate(30 minutes)           justhodl-freshness-30m
+  [ENABLED ] cron(30 10 * * ? *)        justhodl-frontrun-skill-daily
+  [ENABLED ] cron(15 13 * * ? *)        justhodl-funding-plumbing-daily
+  [ENABLED ] cron(0 12 * * ? *)         justhodl-gbc-daily
+  [ENABLED ] cron(30 11 * * ? *)        justhodl-global-tide-daily
+  [ENABLED ] cron(30 10 * * ? *)        justhodl-ignition-daily
+  [ENABLED ] cron(0 13 ? * MON *)       justhodl-index-inclusion-weekly
+  [ENABLED ] cron(0 10 * * ? *)         justhodl-insider-buys-enriched-daily
+  [ENABLED ] cron(0 10 * * ? *)         justhodl-insider-buys-enriched-sched
+  [ENABLED ] cron(0 14 * * ? *)         justhodl-journal-grader-daily
+  [ENABLED ] cron(0 12 * * ? *)         justhodl-kb-matcher-daily
+  [ENABLED ] rate(10 minutes)           justhodl-kill-switch-check
+  [ENABLED ] cron(15 11 * * ? *)        justhodl-liquidity-inflection-daily
+  [ENABLED ] cron(55 12 * * ? *)        justhodl-ma-reversion-daily
+  [ENABLED ] cron(15 22 * * ? *)        justhodl-macro-regime-daily
+  [ENABLED ] cron(0 16 ? * MON-FRI *)   justhodl-margin-lending-weekday-16
+  [ENABLED ] cron(40 12 * * ? *)        justhodl-market-internals-daily
+  [ENABLED ] cron(25 14 * * ? *)        justhodl-market-map-daily
+  [ENABLED ] cron(20 13 * * ? *)        justhodl-move-index-daily
+  [ENABLED ] cron(30 13 * * ? *)        justhodl-my-brief-daily
+  [ENABLED ] cron(0 11 * * ? *)         justhodl-opex-calendar-daily
+  [ENABLED ] cron(0 11 * * ? *)         justhodl-opex-calendar-sched
+  [ENABLED ] cron(30 14 * * ? *)        justhodl-opportunities-research-daily
+  [ENABLED ] cron(30 14 * * ? *)        justhodl-opportunity-ranker-4h
+  [ENABLED ] cron(20 1/4 * * ? *)       justhodl-outcome-checker-4h
+  [ENABLED ] cron(0 23 * * ? *)         justhodl-outcome-checker-daily
+  [ENABLED ] cron(30 11 * * ? *)        justhodl-political-ai-investigation-daily
+  [ENABLED ] cron(0 11 * * ? *)         justhodl-political-intel-daily
+  [ENABLED ] cron(30 12 * * ? *)        justhodl-prepump-alerts-router-30min
+  [ENABLED ] cron(20 13 * * ? *)        justhodl-refining-stress-daily
+  [ENABLED ] cron(5 13 * * ? *)         justhodl-regime-engine-daily
+  [ENABLED ] cron(30 14 * * ? *)        justhodl-regime-playbook-daily
+  [ENABLED ] cron(0 16 ? * MON-FRI *)   justhodl-repo-lending-daily
+  [ENABLED ] cron(0 11 * * ? *)         justhodl-research-backtest-daily
+  [ENABLED ] cron(0,30 * ? * * *)       justhodl-retail-sentiment-30min
+  [ENABLED ] cron(45 13 * * ? *)        justhodl-rotation-radar-daily
+  [ENABLED ] cron(30 12 * * ? *)        justhodl-russell-recon-daily
+  [ENABLED ] cron(30 12 * * ? *)        justhodl-russell-recon-frontrun-sched
+  [ENABLED ] cron(30 14 * * ? *)        justhodl-rv-iv-scanner-daily
+  [ENABLED ] cron(30 14 * * ? *)        justhodl-rv-iv-scanner-sched
+  [ENABLED ] cron(15 1/6 * * ? *)       justhodl-sector-rotation-6h
+  [ENABLED ] cron(38 * * * ? *)         justhodl-sector-rotation-hourly
+  [ENABLED ] cron(0 11 * * ? *)         justhodl-self-improvement-daily
+  [ENABLED ] cron(45 12 * * ? *)        justhodl-setups-push-daily
+  [ENABLED ] rate(6 hours)              justhodl-short-interest-6h
+  [ENABLED ] cron(0 16 * * ? *)         justhodl-signal-backtest-daily
+  [ENABLED ] cron(0 21 * * ? *)         justhodl-signal-logger-6h
+  [ENABLED ] cron(10 14 * * ? *)        justhodl-sizing-engine-daily
+  [ENABLED ] rate(1 hour)               justhodl-smart-wake-hourly
+  [ENABLED ] cron(0 14 * * ? *)         justhodl-stablecoin-flow-daily
+  [ENABLED ] cron(0 14 * * ? *)         justhodl-stablecoin-flow-sched
+  [ENABLED ] cron(45 22 * * ? *)        justhodl-theme-cascade-backtest-daily
+  [ENABLED ] cron(0 13 * * ? *)         justhodl-track-record-daily
+  [ENABLED ] cron(35 13 * * ? *)        justhodl-upside-radar-daily
+  [ENABLED ] cron(0 12 * * ? *)         justhodl-uptime-monitor-hourly
+  [ENABLED ] cron(20 12 * * ? *)        justhodl-us-cycle-daily
+  [ENABLED ] cron(0 13 * * ? *)         justhodl-vintage-fred-daily
+  [ENABLED ] cron(30 13 * * ? *)        justhodl-vol-surface-daily
+  [ENABLED ] cron(30 13 * * ? *)        justhodl-vol-surface-sched
+  [ENABLED ] cron(0 14 ? * SUN *)       justhodl-weekly-ai-review-sunday
+  [ENABLED ] cron(30 22 ? * MON-FRI *)  leading-markets-daily
+  [ENABLED ] cron(0 22 ? * FRI *)       liquidity-profile-fri
+  [ENABLED ] cron(0 16 * * ? *)         lobbying-intel-daily
+  [ENABLED ] cron(30 7 * * ? *)         magnitude-distributions-daily
+  [ENABLED ] cron(15 21 ? * MON-FRI *)  market-internals-hourly
+  [ENABLED ] cron(50 21 * * ? *)        meta-labeler-daily
+  [ENABLED ] cron(15 9 ? * MON *)       miss-calibrator-weekly
+  [ENABLED ] cron(0 1 * * ? *)          miss-detector-nightly
+  [ENABLED ] cron(0 8 ? * MON,THU *)    nyfed-data-update-schedule
+  [ENABLED ] cron(0 14 * * ? *)         opportunity-engine-daily
+  [ENABLED ] cron(0 17 * * ? *)         patent-velocity-daily
+  [ENABLED ] cron(0 14 ? * MON-FRI *)   pm-decision-daily
+  [ENABLED ] cron(0 14 * * ? *)         political-stocks-daily
+  [ENABLED ] cron(5 15 * * ? *)         research-papers-daily
+  [ENABLED ] cron(0 11 ? * MON *)       seasonality-monday
+  [ENABLED ] cron(0 14 ? * MON,WED,FRI *) sellside-views-mwf
+  [ENABLED ] cron(30 21 * * ? *)        settlement-fails-daily
+  [ENABLED ] cron(15 */3 * * ? *)       signal-board-3h
+  [ENABLED ] cron(0 6 ? * MON *)        signal-halflife-weekly
+  [ENABLED ] cron(30 10 * * ? *)        signal-scorecard-daily
+  [ENABLED ] cron(40 11 * * ? *)        snb-detail-daily
+  [ENABLED ] cron(10 7 * * ? *)         sovereign-fiscal-daily
+  [ENABLED ] cron(50 14 * * ? *)        stock-valuations-daily
+  [ENABLED ] cron(30 6 * * ? *)         switzerland-daily
+  [ENABLED ] cron(0 12 * * ? *)         systemic-stress-daily
+  [ENABLED ] cron(0 22 ? * THU *)       tic-flows-thu
+  [ENABLED ] cron(0 13,21 * * ? *)      ticker-trends-2x-daily
+  [ENABLED ] cron(0 12 * * ? *)         yen-carry-daily
+
+=== rules whose target is justhodl-scheduler ===
+  [DISABLED] cron(0/15 * * * ? *)   jhk-tick-15min             tick={"tick": "15min"}
+  [DISABLED] cron(0/30 * * * ? *)   jhk-tick-30min             tick={"tick": "30min"}
+  [DISABLED] cron(0 0/4 * * ? *)    jhk-tick-4hourly           tick={"tick": "4hourly"}
+  [DISABLED] cron(0/5 * * * ? *)    jhk-tick-5min              tick={"tick": "5min"}
+  [ENABLED ] cron(0 6 * * ? *)      jhk-tick-daily-06utc       tick={"tick": "daily-06utc"}
+  [ENABLED ] cron(0 7 * * ? *)      jhk-tick-daily-07utc       tick={"tick": "daily-07utc"}
+  [ENABLED ] cron(0 8 * * ? *)      jhk-tick-daily-08utc       tick={"tick": "daily-08utc"}
+  [ENABLED ] cron(0 15 * * ? *)     jhk-tick-daily-15utc       tick={"tick": "daily-15utc"}
+  [ENABLED ] cron(0 16 * * ? *)     jhk-tick-daily-16utc       tick={"tick": "daily-16utc"}
+  [ENABLED ] cron(0 17 * * ? *)     jhk-tick-daily-17utc       tick={"tick": "daily-17utc"}
+  [ENABLED ] cron(0 22 * * ? *)     jhk-tick-daily-eve         tick={"tick": "daily-eve"}
+  [ENABLED ] cron(0 11 * * ? *)     jhk-tick-daily-morn        tick={"tick": "daily-morn"}
+  [DISABLED] cron(0 0/3 * * ? *)    jhk-tick-every_3h          tick={"tick": "every_3h"}
+  [DISABLED] cron(0 0/6 * * ? *)    jhk-tick-every_6h          tick={"tick": "every_6h"}
+  [DISABLED] cron(0 * * * ? *)      jhk-tick-hourly            tick={"tick": "hourly"}
+  [ENABLED ] cron(0 12 1 * ? *)     jhk-tick-monthly           tick={"tick": "monthly"}
+  [ENABLED ] cron(0 12 ? * SUN *)   jhk-tick-weekly-sun        tick={"tick": "weekly-sun"}
+
+=== manifest engine counts per tick ===
+  1min         0
+  5min         2
+  15min        7
+  30min        12
+  hourly       30
+  4hourly      16
+  daily-morn   94
+  daily-eve    35
+  weekly-sun   15
+  monthly      2
+  daily-06utc  5
+  every_6h     4
+  every_3h     4
+  daily-08utc  4
+  daily-16utc  2
+  daily-15utc  2
+  daily-07utc  1
+  daily-17utc  1
+  TOTAL registered=236  disabled-list=0
