@@ -34,15 +34,21 @@ CAP_BOOST = {"nano": 35, "micro": 28, "small": 20, "mid": 8, "large": 3, "mega":
 SMALL_BUCKETS = {"nano", "micro", "small"}
 
 # strong deal-win language (must hit at least one)
-DEAL_POS = (
-    "awarded", "awards", "wins contract", "win contract", "wins order", "secures contract",
-    "secures order", "secures a", "selected to", "selected as", "selected by", "signs agreement",
-    "signed a", "signs a", "contract worth", "contract valued", "order worth", "order valued",
-    "purchase order", "supply agreement", "supply contract", "multi-year", "multiyear",
-    "letter of intent", "memorandum of understanding", " mou ", "design win", "framework agreement",
-    "definitive agreement to supply", "to supply", "to provide", "to deliver", "lands contract",
-    "wins deal", "secures deal", "tender", "procurement contract", "awarded contract",
-    "receives order", "receives purchase", "bookings", "new contract", "strategic supply",
+# STRONG terms qualify on their own (high-confidence contract/order/supply wins)
+STRONG_DEAL = (
+    "awarded a contract", "awarded the contract", "awarded contract", "wins contract",
+    "win contract", "wins a contract", "wins bid", "won bid", "wins order", "secures contract",
+    "secures order", "secures a contract", "purchase order", "supply agreement", "supply contract",
+    "contract worth", "contract valued", "order worth", "order valued", "design win",
+    "receives order", "receives purchase order", "new contract", "contract award", "wins deal",
+    "lands contract", "selected to supply", "selected as supplier", "selected as the supplier",
+    "framework agreement", "procurement contract", "wins $", "awarded $", "bookings worth",
+)
+# WEAK terms qualify ONLY if a deal size is parsed (a sized partnership/MOU is real; a bare one is noise)
+WEAK_DEAL = (
+    "partnership", "collaboration", "agreement", "memorandum of understanding", " mou ",
+    "letter of intent", "multi-year", "multiyear", "to supply", "to provide", "to deliver",
+    "secures", "selected to", "joint venture", "supply", "strategic agreement",
 )
 # hard exclusions (financing/governance/earnings PRs are not deal wins)
 DEAL_NEG = (
@@ -54,6 +60,9 @@ DEAL_NEG = (
     "to sell", "sell its", "sale of", "to acquire", "to be acquired", "divest", "to merge",
     "innovation award", "wins award", "awards for", "best places", "named to the", "brand ambassador",
     "sponsorship", "wins two", "ranked ", "recognized as", "voucher",
+    "credit facility", "loan agreement", "term loan", "senior notes", "notes due", "convertible note",
+    "acquires", "acquisition", "provides update", "update on", "ongoing operations", "training",
+    "education program", "feasibility", "to evaluate", "explores",
 )
 SIZE_RE = re.compile(r'\$\s?([\d][\d,]*(?:\.\d+)?)\s*(trillion|billion|bn|million|mn|b|m)\b', re.I)
 MULT = {"trillion": 1e12, "billion": 1e9, "bn": 1e9, "b": 1e9,
@@ -109,12 +118,16 @@ def parse_value(title, text):
     return (xv if xv > 0 else None), xs
 
 
-def is_deal(title, text):
+def is_deal(title, text, value):
     t = (title or "").lower()
     if any(k in t for k in DEAL_NEG):
         return False
-    blob = t + " " + (text or "")[:400].lower()
-    return any(k in blob for k in DEAL_POS)
+    blob = t + " " + (text or "")[:300].lower()
+    if any(k in blob for k in STRONG_DEAL):
+        return True
+    if value and any(k in blob for k in WEAK_DEAL):
+        return True
+    return False
 
 
 def revenue_and_cap(symbol, uni):
@@ -172,9 +185,9 @@ def lambda_handler(event, context):
         if k in seen:
             continue
         seen.add(k)
-        if not is_deal(title, pr.get("text")):
-            continue
         val, vstr = parse_value(title, pr.get("text"))
+        if not is_deal(title, pr.get("text"), val):
+            continue
         try:
             pub = datetime.fromisoformat(pr.get("publishedDate").replace(" ", "T")).replace(tzinfo=timezone.utc)
             age_h = round((now - pub).total_seconds() / 3600.0, 1)
