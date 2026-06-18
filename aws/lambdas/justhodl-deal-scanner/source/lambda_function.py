@@ -165,6 +165,17 @@ def bucket_of(mc):
     return "mega"
 
 
+def highlight_tier(materiality_pct, vs_mc_pct, val):
+    """GREEN = deal is BIG vs revenue or market cap (transformative). YELLOW = moderate."""
+    if not val:
+        return None
+    big = (materiality_pct is not None and materiality_pct >= 25) or \
+          (vs_mc_pct is not None and vs_mc_pct >= 10)
+    mod = (materiality_pct is not None and materiality_pct >= 10) or \
+          (vs_mc_pct is not None and vs_mc_pct >= 4)
+    return "green" if big else "yellow" if mod else None
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     try:
@@ -220,11 +231,15 @@ def lambda_handler(event, context):
             materiality = round(val / rev * 100, 1)
         elif val and (rev == 0 or rev is None):
             materiality = 9999.0  # pre-revenue / first major contract
+        vs_mc = round(val / mc * 100, 2) if (val and mc) else None
+        hl = highlight_tier(materiality, vs_mc, val)
         cb = CAP_BOOST.get(bkt, 5)
         rec = 0 if d["age_h"] is None else max(0, 30 - d["age_h"] / 8.0)
         mat_score = 0 if materiality is None else min(materiality, 300) / 3.0
+        mc_score = 0 if vs_mc is None else min(vs_mc, 50) * 1.5
         size_score = 0 if not val else min(val / 1e7, 40)
-        score = round(mat_score + cb + rec + size_score + (8 if d["multi_year"] else 0), 1)
+        focus = 60 if hl == "green" else 25 if hl == "yellow" else 0   # spotlight big-vs-size deals
+        score = round(mat_score + mc_score + cb + rec + size_score + focus + (8 if d["multi_year"] else 0), 1)
         why_bits = []
         if d["deal_value_str"]:
             why_bits.append(f"{d['deal_value_str']}{' multi-year' if d['multi_year'] else ''} deal")
@@ -234,13 +249,18 @@ def lambda_handler(event, context):
             why_bits.append("pre-revenue / first major contract — transformative")
         elif materiality is not None:
             why_bits.append(f"{materiality}% of annual revenue (${rev/1e6:.0f}M) — not yet in reported numbers")
+        if vs_mc is not None:
+            why_bits.append(f"{vs_mc}% of market cap")
         if small:
             why_bits.append(f"{bkt}-cap — single contract moves the needle")
         deals.append({**d, "name": (mu or {}).get("name"), "cap_bucket": bkt, "market_cap": mc,
                       "is_small_cap": small, "revenue_fy": rev, "materiality_pct": materiality,
+                      "vs_market_cap_pct": vs_mc, "highlight": hl,
                       "score": score, "why": "; ".join(why_bits)})
 
     deals.sort(key=lambda x: x["score"], reverse=True)
+    green = [d for d in deals if d["highlight"] == "green"]
+    yellow = [d for d in deals if d["highlight"] == "yellow"]
     small_deals = [d for d in deals if d["is_small_cap"]]
     sized = [d for d in deals if d["deal_value_usd"]]
     high_mat = [d for d in deals if d["materiality_pct"] and d["materiality_pct"] >= 25]
@@ -252,6 +272,8 @@ def lambda_handler(event, context):
         "summary": {
             "n_prs_scanned": len(prs), "n_deals": len(deals), "n_with_size": len(sized),
             "n_small_cap": len(small_deals), "n_high_materiality": len(high_mat),
+            "n_green": len(green), "n_yellow": len(yellow),
+            "green_highlights": green, "yellow_highlights": yellow[:20],
             "top_deals": deals[:20],
             "top_smallcap_deals": small_deals[:15],
             "top_high_materiality": sorted(high_mat, key=lambda x: x["materiality_pct"], reverse=True)[:15],
