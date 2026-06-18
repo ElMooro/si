@@ -1,174 +1,28 @@
-CANONICAL LIVE OUTPUTS (data/*.json, dateless): 553
-
-=== LIVE-OUTPUT FRESHNESS ===
-  0 FRESH(<26h)    372
-  1 DAY(26-50h)    5
-  2 2-4d           21
-  3 4-8d           22
-  4 8-21d          119
-  5 DEAD(>21d)     14
-
-=== 155 LIVE outputs >4 DAYS old (stale; some may be legit weekly/quarterly) ===
-   111.5d     19557B  khalid-config.json
-    53.2d     19557B  ka-config.json
-    45.2d       466B  feedback-summary.json
-    43.0d       130B  history-api-url.json
-    42.1d       603B  user-watchlist.json
-    42.1d        90B  user-trades-stats.json
-    42.1d        79B  user-trades.json
-    29.1d      2351B  vix-backwardation-trigger.json
-    29.1d      9199B  vol-target-unwind.json
-    27.2d      3300B  _freshness-status.json
-    25.2d    173824B  eventbridge-audit.json
-    23.4d     25274B  system-audit.json
-    21.0d      9099B  fred-cache-secretary.json
-    21.0d    135388B  secretary-latest.json
-    19.3d     11948B  ka-metrics.json
-    19.3d     11078B  ka-analysis.json
-    18.1d    123534B  forward-orders.json
-    18.0d     55024B  congress-party-map.json
-    15.9d     40171B  polygon-options-flow.json
-    15.9d      1517B  polygon-fx-regime.json
-    15.9d       897B  polygon-futures-curves.json
-    15.6d       729B  cascade-calibration.json
-    15.6d      3148B  trade-monitor-snapshots.json
-    15.1d      8720B  trade-tickets.json
-    14.6d       673B  _probe_shares.json
-    10.5d    120111B  forensic-screen.json
-    10.4d     44129B  frontrun-sniffer-history.json
-    10.4d     13534B  frontrun-sniffer.json
-    10.4d    237786B  sec-filings-intel.json
-    10.4d      7899B  crisis-plumbing.json
-    10.3d     28802B  pairs-scanner.json
-    10.3d       259B  engine-conflicts.json
-    10.3d      2949B  narrative-vs-tape.json
-    10.3d       993B  position-sizing.json
-    10.3d    127297B  buzz-velocity.json
-    10.3d     11505B  exchange-flows.json
-    10.3d  14838936B  13f-positions.json
-    10.3d     13938B  cross-asset-confirm.json
-    10.3d      6521B  liquidity-pulse.json
-    10.3d     28305B  liquidity-credit-engine.json
-    10.3d      4187B  crypto-cycle-risk.json
-    10.3d     23984B  earnings-tracker.json
-    10.3d      6666B  allocator.json
-    10.3d      6956B  sector-tilt.json
-    10.3d    160766B  vix-curve-history.json
-    10.3d      1466B  vix-curve.json
-    10.3d    452330B  universe.json
-    10.3d      3466B  cb-stance.json
-    10.3d      3850B  crypto-narratives.json
-    10.3d      3434B  auction-tenor-signals.json
-    10.3d       117B  divergence-interpreted-state.json
-    10.3d      3609B  divergence-interpreted.json
-    10.3d    109173B  10kq-filings.json
-    10.3d     12226B  rotation-chains.json
-    10.3d     25680B  global-markets.json
-    10.3d      7319B  conviction.json
-    10.3d      3457B  implied-prob.json
-    10.3d      3143B  portfolio-manager-brief.json
-    10.2d     11284B  macro-surprise.json
-    10.2d     31388B  etf-flows.json
-    10.2d      5720B  yield-curve.json
-    10.2d    132010B  future-intelligence.json
-    10.2d       408B  onchain-ratios.json
-    10.2d      9280B  capitulation-history.json
-    10.2d      1097B  capitulation.json
-    10.2d     84096B  divergence-v2.json
-    10.2d     27259B  history-index.json
-    10.2d     17563B  auction-grades.json
-    10.2d      1594B  compound-signals-state.json
-    10.2d     37799B  compound-signals.json
-    10.2d     28708B  khalid-adaptive-history.json
-    10.2d      2415B  khalid-adaptive.json
-    10.2d      5507B  crypto-funding.json
-    10.2d     16692B  reversal-radar-history.json
-    10.2d       662B  reversal-radar.json
-    10.2d     16618B  stress-scenarios.json
-    10.2d     23744B  macro-nowcast.json
-    10.2d      4019B  event-flow-health.json
-    10.2d      3685B  vol-regime.json
-    10.2d      6669B  trade-tickets-ai-rationale.json
-    10.2d     44517B  dealer-gex-history.json
-    10.2d     35672B  dealer-gex.json
-    10.2d      4849B  news-velocity.json
-    10.2d    157162B  8k-filings.json
-    10.2d      7270B  gdelt-news.json
-    10.2d     55053B  alert-history.json
-    10.2d       649B  redflag-alerts.json
-    10.2d       645B  history-snapshotter-status.json
-    10.2d      4505B  options-gamma.json
-    10.2d     48123B  calibration-snapshot.json
-    10.2d    107582B  insider-trades.json
-    10.2d      1115B  near-misses-by-signal.json
-    10.2d    200684B  sector-heatmap.json
-    10.2d     18836B  early-movers.json
-    10.2d    195611B  news-wire-state.json
-    10.2d     25654B  news-wire.json
-    10.2d      6192B  synthetic-monitor.json
-    10.2d      2670B  price-redundancy.json
-    10.2d     16885B  theme-cascade.json
-     8.7d    342085B  spx-history-deep.json
-     8.6d     14590B  lce-decisive-call.json
-     8.6d     13800B  retail-edges-decisive-call.json
-     8.6d     14563B  defcon-decisive-call.json
-     8.6d     14979B  systemic-stress-decisive-call.json
-     8.6d     14535B  bonds-decisive-call.json
-     8.6d     14914B  eurodollar-decisive-call.json
-     8.6d     14264B  vix-curve-decisive-call.json
-     8.6d     14619B  compass-decisive-call.json
-     8.6d     14889B  bond-vol-decisive-call.json
-     8.6d     15962B  dollar-decisive-call.json
-     8.6d     15473B  risk-radar-decisive-call.json
-     8.6d     16242B  yield-curve-decisive-call.json
-     8.6d     12127B  baggers-names.json
-     8.6d     15562B  liquidity-decisive-call.json
-     8.6d     14939B  macro-data-decisive-call.json
-     8.6d     15786B  crisis-decisive-call.json
-     8.6d     14281B  trend-engine-decisive-call.json
-     8.6d     15777B  divergence-decisive-call.json
-     8.6d       517B  activist-13d-names.json
-     8.6d     15453B  fundamentals-decisive-call.json
-     8.6d     16304B  regime-decisive-call.json
-     8.6d     14679B  valuations-decisive-call.json
-     8.6d     15694B  conviction-decisive-call.json
-     8.6d     16442B  consumer-pulse-decisive-call.json
-     8.6d     16686B  auction-decisive-call.json
-     8.6d     12294B  eps-velocity-names.json
-     8.6d     12075B  smart-money-names.json
-     8.6d     12527B  deep-value-names.json
-     8.6d      8524B  desk-consensus.json
-     8.6d     12444B  insider-clusters-names.json
-     8.6d     17094B  momentum-names.json
-     8.6d     22188B  macro-frontrun-sniffer.json
-     8.6d     57719B  macro-frontrun-sniffer-history.json
-     7.9d      2332B  market-internals-history.json
-     6.8d      1237B  backtest-summary.json
-     5.9d     77230B  engine-manifest.json
-     5.2d     13364B  brain-history.json
-     4.6d     11193B  beneish.json
-     4.5d     35940B  factor-decomposition.json
-     4.4d     15267B  gsi-calibration.json
-     4.4d      5933B  gsi-horizons.json
-     4.3d      3435B  signal-orthogonality.json
-     4.3d      5299B  alpha-brief.json
-     4.3d     11742B  khalid-analysis.json
-     4.3d       196B  meta-improver-state.json
-     4.3d      1432B  opportunity-calibration.json
-     4.3d      3067B  stress-factor-loadings.json
-     4.3d       823B  behavior-mirror.json
-     4.3d       244B  causality-discoveries.json
-     4.3d     24919B  forward-returns.json
-     4.3d     31049B  engine-contributions.json
-     4.3d    399584B  bagger-engine.json
-     4.2d     81004B  hiring-velocity.json
-     4.2d      2600B  weekly-review-latest.json
-     4.2d     58050B  ma-target-predictor.json
-
-=== 6 tiny live outputs (<120B) ===
-    42.1d 90B  user-trades-stats.json
-    42.1d 79B  user-trades.json
-    10.3d 117B  divergence-interpreted-state.json
-     1.0d 113B  askdesk-config.json
-     0.3d 70B  activist-filings-state.json
-     0.2d 66B  coffee-can-holdings.json
+[CONTROL-fresh] justhodl-eurodollar-plumbing     mod=2026-06-18 lastInvDay=06-17
+      inv/err: 06-17=11/0
+[10d] justhodl-universe-builder        mod=2026-06-04 lastInvDay=06-07
+      inv/err: 06-04=6/0 06-05=6/0 06-06=6/0 06-07=5/0
+[10d] justhodl-macro-nowcast           mod=2026-06-04 lastInvDay=06-07
+      inv/err: 06-04=28/0 06-05=28/0 06-06=28/0 06-07=23/0
+[10d] justhodl-dealer-gex              mod=2026-05-30 lastInvDay=06-07
+      inv/err: 06-04=18/0 06-05=8/0 06-07=2/0
+[10d] justhodl-yield-curve             mod=2026-06-04 lastInvDay=06-07
+      inv/err: 06-04=4/0 06-05=4/0 06-06=4/0 06-07=4/0
+[10d] justhodl-insider-trades          mod=2026-05-31 lastInvDay=06-07
+      inv/err: 06-04=48/0 06-05=48/0 06-06=48/0 06-07=39/0
+[10d] justhodl-news-wire               mod=2026-05-30 lastInvDay=06-07
+      inv/err: 06-04=96/0 06-05=96/0 06-06=96/0 06-07=79/0
+[8.6d] justhodl-reports-builder         mod=2026-05-30 lastInvDay=06-07
+      inv/err: 06-04=24/0 06-05=24/0 06-06=24/0 06-07=19/0
+[8.6d] justhodl-daily-report-v3         mod=2026-06-04 lastInvDay=06-17
+      inv/err: 06-04=2/0 06-05=2/0 06-06=2/0 06-07=2/0 06-08=2/0 06-09=2/0 06-10=2/0 06-11=2/0 06-12=2/0 06-13=2/0 06-14=2/0 06-15=2/0 06-16=2/0 06-17=2/0
+[8.6d] justhodl-desk-allocator          mod=2026-05-30 lastInvDay=06-17
+      inv/err: 06-04=1/0 06-05=1/0 06-06=1/0 06-07=1/0 06-08=1/0 06-09=1/0 06-10=1/0 06-11=1/0 06-12=1/0 06-13=1/0 06-14=1/0 06-15=1/0 06-16=1/0 06-17=1/0
+[orch] justhodl-scheduler               mod=2026-05-28 lastInvDay=06-17
+      inv/err: 06-04=482/0 06-05=482/0 06-06=483/0 06-07=397/0 06-08=8/0 06-09=8/0 06-10=8/0 06-11=8/0 06-12=8/0 06-13=9/0 06-14=8/0 06-15=8/0 06-16=8/0 06-17=8/0
+[orch] justhodl-event-coordinator       mod=2026-05-31 lastInvDay=06-17
+      inv/err: 06-04=110/0 06-05=104/0 06-06=118/0 06-07=183/0 06-08=22/0 06-09=25/0 06-10=25/0 06-11=24/0 06-12=30/0 06-13=25/0 06-14=102/0 06-15=31/0 06-16=24/0 06-17=26/0
+[orch] justhodl-ultimate-orchestrator   mod=2026-05-30 lastInvDay=06-17
+      inv/err: 06-04=4/0 06-05=3/0 06-06=4/0 06-07=4/0 06-08=6/0 06-09=6/0 06-10=5/0 06-11=5/0 06-12=9/0 06-13=6/0 06-14=6/0 06-15=4/0 06-16=4/0 06-17=1/0
+[orch] multi-agent-orchestrator         mod=2026-05-22 lastInvDay=NEVER
+      inv/err: (no datapoints in 14d)
