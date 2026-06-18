@@ -1,72 +1,40 @@
+deployed v2 (mem512/to300)
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_hot_themes\": 10, \"n_laggards\": 84, \"n_smallcap_laggards\": 77, \"n_big_orders\": 120, \"n_smallcap_big_orders\": 79, \"n_top_picks\": 44}"}
+COUNTS: {'n_hot_themes': 10, 'n_infrastructure': 100, 'n_laggards': 84, 'n_smallcap_laggards': 77, 'n_big_orders': 120, 'n_smallcap_big_orders': 79, 'n_top_picks': 44} fetched= 550
+CAP DISTRIBUTION (all surfaced): {'micro': 50, 'small': 104, 'mid': 33, 'nano': 64, 'large': 8, 'mega': 45}
 
-## data/microcap-float-squeeze.json (0.9d)
-  schema_version         int
-  method                 str
-  generated_at           str
-  duration_s             float
-  stats                  {n_universe, n_evaluated, n_filtered_out, n_tier_s, n_tier_a, n_tier_b, n_finra_tickers}
-  summary                {top_25_overall, tier_s}
-  all_qualifying         [228] e0={symbol, score, tier, flags, metrics}
-  >>> sample all_qualifying[0]: {"symbol": "SEDG", "score": 77.0, "tier": "TIER_S_PARABOLIC_SETUP", "flags": ["FLOAT_HEAVY_TURNOVER", "SHORT_PCT_50%+", "SHORT_RISING_5PP+", "BASE_FORMING_SETUP"], "metrics": {"price": 63.17, "market_cap": 3841885820, "float_shares": 48654561, "shares_outstanding": 60818201, "avg_vol_30d": 4352857, 
+TOP PICKS (small-cap tilted):
+  POET   small   buckets=['big_order', 'laggard'] r1m=-16.5% sigs=['FLOAT_SQUEEZE'] conv=46
+  SKYT   small   buckets=['big_order', 'laggard'] r1m=4.4% sigs=['FLOAT_SQUEEZE'] conv=46
+  AIP    small   buckets=['big_order', 'infrastructure'] r1m=29.9% sigs=['FLOAT_SQUEEZE'] conv=46
+  AMBQ   small   buckets=['big_order', 'infrastructure'] r1m=20.5% sigs=['FLOAT_SQUEEZE'] conv=46
+  VPG    small   buckets=['big_order', 'infrastructure'] r1m=33.2% sigs=['FLOAT_SQUEEZE'] conv=46
+  GLOB   small   buckets=['big_order', 'laggard'] r1m=-21.1% sigs=['FLOAT_SQUEEZE'] conv=46
+  PAYO   small   buckets=['big_order', 'infrastructure'] r1m=46.6% sigs=['FLOAT_SQUEEZE'] conv=46
+  ACMR   mid     buckets=['big_order', 'infrastructure'] r1m=70.4% sigs=['FLOAT_SQUEEZE'] conv=36
+  PLAB   small   buckets=['big_order'] r1m=-29.8% sigs=['FLOAT_SQUEEZE'] conv=36
+  UCTT   mid     buckets=['big_order', 'infrastructure'] r1m=45.0% sigs=['FLOAT_SQUEEZE'] conv=36
+  CTS    small   buckets=['big_order'] r1m=18.5% sigs=['FLOAT_SQUEEZE'] conv=36
+  ALG    small   buckets=['big_order'] r1m=7.1% sigs=['FLOAT_SQUEEZE'] conv=36
 
-## data/finra-short.json (0.9d)
-  generated_at           str
-  generated_at_unix      int
-  version                str
-  data_date              str
-  elapsed_seconds        float
-  config                 {universe, history_days, squeeze_thresholds}
-  market_composite       {regime, volume_weighted_svr, volume_weighted_svr_pct, median_svr_pct, p10_svr_pct, p90_svr_pct, p99_svr_pct, n_analyzed
-  squeeze_candidates     [27] e0={symbol, name, sector, svr_pct, z_score, momentum_pct, days_to_cover, squeeze_score, squeeze_flags, price_streng
-  top_svr                [30] e0={symbol, name, sector, svr_pct, z_score, short_volume, total_volume}
-  top_zscore             [30] e0={symbol, name, sector, svr_pct, z_score, momentum_pct, short_volume}
-  sectors                {Utilities, Materials, Consumer Discretionary, Industrials, Communication Services, Financials, Health Care, Real Estate
-  tickers                {BG, PM, IBM, PCAR, SHW, TMUS, VTR, PNW, CRM, PKG, WAT, PSX, APO, CRH}
-  >>> sample squeeze_candidates[0]: {"symbol": "SYF", "name": "Synchrony Financial", "sector": "Financials", "svr_pct": 75.19, "z_score": 2.69, "momentum_pct": 11.51, "days_to_cover": 8.66, "squeeze_score": 90, "squeeze_flags": ["SVR_HEAVY_ABNORMAL", "HIGH_DAYS_TO_COVER", "MOMENTUM_EXTREME", "PRICE_STRENGTH"], "price_strength": {"last
-
-## data/short-interest.json (0.0d)
-  version                str
-  generated_at           str
-  watchlist_size         int
-  n_tickers_with_data    int
-  n_tickers_finra        int
-  n_tickers_polygon      int
-  by_ticker              {AAPL, MSFT, GOOGL, GOOG, AMZN, NVDA, META, TSLA, AVGO, TSM, JPM, WMT, LLY, V}
-  top_crowded_shorts     [15] e0={ticker, latest_short_pct, trend_pct, recent_5d_avg, prior_9d_avg, days_to_cover, si_change_pct, short_interest,
-  top_squeeze_risk       [0] e0=
-  top_high_dtc           [0] e0=
-  top_covering           [0] e0=
-  duration_s             float
-  data_sources           {short_volume, short_interest, short_float}
-  signal_definitions     {SQUEEZE_RISK, CROWDED_SHORT_RISING, DISTRIBUTION, COVERING, HIGH_DAYS_TO_COVER, NEUTRAL}
-  >>> sample top_crowded_shorts[0]: {"ticker": "MDT", "latest_short_pct": 1.31, "trend_pct": 58.8, "recent_5d_avg": 40.86, "prior_9d_avg": 25.73, "days_to_cover": 1.72, "si_change_pct": null, "short_interest": null, "settlement_date": null, "signal": "DISTRIBUTION", "score": 65, "n_days_volume_data": 14, "short_float_pct": 1.31, "floa
-
-## data/volatility-squeeze.json (0.3d)
-  schema_version         int
-  method                 str
-  generated_at           str
-  duration_s             float
-  stats                  {n_universe, n_evaluated, n_no_data, n_tier_s, n_tier_a, n_tier_b, n_watch}
-  summary                {top_25_overall, tier_s, tier_a}
-  all_qualifying         [21] e0={symbol, score, tier, n_signals_firing, flags, metrics}
-  >>> sample all_qualifying[0]: {"symbol": "BRK-A", "score": 47.0, "tier": "WATCH", "n_signals_firing": 2, "flags": ["NR7_CLUSTER", "VCP_PATTERN", "LONG_BASE_90D", "VOL_DRYING"], "metrics": {"today_close": 737300.0, "bb_width_percentile": 63.5, "ttm_squeezing": false, "nr7_count_30d": 3, "vcp_qualifies": true, "vol_contraction": 0
-
-## data/revenue-acceleration.json (0.3d)
-  schema_version         int
-  method                 str
-  generated_at           str
-  duration_s             float
-  stats                  {n_universe, n_evaluated, n_no_data, n_tier_s, n_tier_a, n_tier_b, n_microcap_picks}
-  summary                {top_25_overall, tier_s, microcap_picks}
-  all_qualifying         [10] e0={symbol, score, tier, flags, consec_accel_quarters, metrics, yoy_growth_history, acceleration_history}
-  >>> sample all_qualifying[0]: {"symbol": "NVDA", "score": 67.0, "tier": "TIER_A_ACCELERATING", "flags": ["ACCEL_5PP+", "ACCEL_3Q_STREAK", "GROWTH_50%+", "GM_EXPAND_2PP+", "OP_LEVERAGE_20PP+", "EPS_ACCELERATING"], "consec_accel_quarters": 3, "metrics": {"latest_yoy_growth_pct": 85.2, "latest_acceleration_pp": 12.0, "seq_growth_pc
-
-## data/pre-pump-signals.json (0.3d)
-  schema_version         int
-  method                 str
-  generated_at           str
-  duration_s             float
-  stats                  {n_universe, n_evaluated, n_tier_a, n_tier_b, n_no_history, n_no_signal}
-  summary                {top_25_overall, tier_a}
-  all_qualifying         [89] e0={symbol, score, tier, flags, metrics}
-  >>> sample all_qualifying[0]: {"symbol": "CSCO", "score": 70.0, "tier": "TIER_A_BREAKING", "flags": ["OBV_STRONG_ACCUM", "UPTREND_NOT_PARABOLIC", "CALM_RECENT"], "metrics": {"today_close": 117.33, "range_position_180d_pct": 79.7, "vol_compression": 0.81, "obv_slope_norm": 0.432, "liq_30v60": 1.06, "liq_30v120": 1.05, "ret_5d_pct
+SAMPLE small-cap laggards & big-orders:
+ THEME SOXX (iShares Semiconductor):
+    LAG-small GSIT   micro   gap=40.4pp r1m=-16.6%
+    LAG-small POET   small   gap=40.3pp r1m=-16.5%
+    BIG-small SKYT   small   sigs=['FLOAT_SQUEEZE']
+    BIG-small PLAB   small   sigs=['FLOAT_SQUEEZE']
+ THEME PSI (Invesco Dynamic Semis):
+    LAG-small REFR   nano    gap=50.5pp r1m=-18.6%
+    LAG-small GSIT   micro   gap=48.5pp r1m=-16.6%
+    BIG-small SKYT   small   sigs=['FLOAT_SQUEEZE']
+    BIG-small PLAB   small   sigs=['FLOAT_SQUEEZE']
+ THEME MTUM (iShares MSCI Momentum):
+    LAG-small INSG   micro   gap=32.1pp r1m=-22.8%
+    LAG-small FKWL   nano    gap=26.7pp r1m=-17.4%
+    BIG-small SKYT   small   sigs=['FLOAT_SQUEEZE']
+    BIG-small PLAB   small   sigs=['FLOAT_SQUEEZE']
+ THEME BLOK (Amplify Transformational Data):
+    LAG-small PROP   nano    gap=47.9pp r1m=-24.1%
+    LAG-small DTST   nano    gap=39.8pp r1m=-16.0%
+    BIG-small SKYT   small   sigs=['FLOAT_SQUEEZE']
+    BIG-small PLAB   small   sigs=['FLOAT_SQUEEZE']
