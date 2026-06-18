@@ -1,96 +1,72 @@
-source: aws/lambdas/justhodl-theme-second-wave/source/lambda_function.py
-CREATED arn:aws:lambda:us-east-1:857687956942:function:justhodl-theme-second-wave
-RULE wired (daily 14:00 UTC)
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_hot_themes\": 10, \"n_laggards\": 41, \"n_infrastructure\": 23, \"n_big_orders\": 41, \"n_top_picks\": 17}"}
-COUNTS: {'n_hot_themes': 10, 'n_infrastructure': 23, 'n_laggards': 41, 'n_big_orders': 41, 'n_smallcap_big_orders': 0, 'n_top_picks': 17}
-TOP PICKS: [
- {
-  "symbol": "CDNA",
-  "name": "CareDx, Inc",
-  "theme": "ARK Genomic Revolution",
-  "cap_bucket": "small",
-  "is_small_cap": true,
-  "buckets": [
-   "infrastructure",
-   "laggard"
-  ],
-  "big_order_signals": [],
-  "conviction": 30
- },
- {
-  "symbol": "NVDA",
-  "name": "NVIDIA Corporation",
-  "theme": "iShares Semiconductor",
-  "cap_bucket": "mega",
-  "is_small_cap": false,
-  "buckets": [
-   "big_order",
-   "laggard"
-  ],
-  "big_order_signals": [
-   "OPTIONS_UOA"
-  ],
-  "conviction": 20
- },
- {
-  "symbol": "AVGO",
-  "name": "Broadcom Inc.",
-  "theme": "iShares Semiconductor",
-  "cap_bucket": "mega",
-  "is_small_cap": false,
-  "buckets": [
-   "big_order",
-   "laggard"
-  ],
-  "big_order_signals": [
-   "OPTIONS_UOA"
-  ],
-  "conviction": 20
- },
- {
-  "symbol": "AMD",
-  "name": "Advanced Micro Devices, Inc.",
-  "theme": "iShares Semiconductor",
-  "cap_bucket": "mega",
-  "is_small_cap": false,
-  "buckets": [
-   "big_order",
-   "laggard"
-  ],
-  "big_order_signals": [
-   "OPTIONS_UOA"
-  ],
-  "conviction": 20
- },
- {
-  "symbol": "MKSI",
-  "name": "MKS Inc.",
-  "theme": "Invesco Dynamic Semis"
 
-THEME SOXX (iShares Semiconductor) med=23.8% breadth={'n_constituents_checked': 15, 'outperforming_spy_20d': 10, 'breadth_outperform_pct': 66.7, 'n_above_ma50': 12, 'breadth_above_ma50_pct': 80.0} infra=0 lag=7 big=6
-   LAG NVDA   gap=31.0pp r20=-7.2% small=False sigs=['OPTIONS_UOA']
-   LAG AVGO   gap=28.2pp r20=-4.4% small=False sigs=['OPTIONS_UOA']
-   LAG MPWR   gap=25.2pp r20=-1.4% small=False sigs=[]
-   BIG LRCX   small=False sigs=['SHORT_COVERING', 'SHORT_COVERING']
-   BIG MU     small=False sigs=['OPTIONS_UOA']
-   BIG AMD    small=False sigs=['OPTIONS_UOA']
+## data/microcap-float-squeeze.json (0.9d)
+  schema_version         int
+  method                 str
+  generated_at           str
+  duration_s             float
+  stats                  {n_universe, n_evaluated, n_filtered_out, n_tier_s, n_tier_a, n_tier_b, n_finra_tickers}
+  summary                {top_25_overall, tier_s}
+  all_qualifying         [228] e0={symbol, score, tier, flags, metrics}
+  >>> sample all_qualifying[0]: {"symbol": "SEDG", "score": 77.0, "tier": "TIER_S_PARABOLIC_SETUP", "flags": ["FLOAT_HEAVY_TURNOVER", "SHORT_PCT_50%+", "SHORT_RISING_5PP+", "BASE_FORMING_SETUP"], "metrics": {"price": 63.17, "market_cap": 3841885820, "float_shares": 48654561, "shares_outstanding": 60818201, "avg_vol_30d": 4352857, 
 
-THEME PSI (Invesco Dynamic Semis) med=31.9% breadth={'n_constituents_checked': 15, 'outperforming_spy_20d': 13, 'breadth_outperform_pct': 86.7, 'n_above_ma50': 14, 'breadth_above_ma50_pct': 93.3} infra=1 lag=6 big=4
-   LAG NVDA   gap=39.1pp r20=-7.2% small=False sigs=['OPTIONS_UOA']
-   LAG ADI    gap=31.9pp r20=0.0% small=False sigs=[]
-   LAG INTC   gap=22.6pp r20=9.3% small=False sigs=[]
-   INF MKSI   Hardware, Equipment & Part +26.3%
-   BIG LRCX   small=False sigs=['SHORT_COVERING', 'SHORT_COVERING']
-   BIG MU     small=False sigs=['OPTIONS_UOA']
-   BIG AMD    small=False sigs=['OPTIONS_UOA']
+## data/finra-short.json (0.9d)
+  generated_at           str
+  generated_at_unix      int
+  version                str
+  data_date              str
+  elapsed_seconds        float
+  config                 {universe, history_days, squeeze_thresholds}
+  market_composite       {regime, volume_weighted_svr, volume_weighted_svr_pct, median_svr_pct, p10_svr_pct, p90_svr_pct, p99_svr_pct, n_analyzed
+  squeeze_candidates     [27] e0={symbol, name, sector, svr_pct, z_score, momentum_pct, days_to_cover, squeeze_score, squeeze_flags, price_streng
+  top_svr                [30] e0={symbol, name, sector, svr_pct, z_score, short_volume, total_volume}
+  top_zscore             [30] e0={symbol, name, sector, svr_pct, z_score, momentum_pct, short_volume}
+  sectors                {Utilities, Materials, Consumer Discretionary, Industrials, Communication Services, Financials, Health Care, Real Estate
+  tickers                {BG, PM, IBM, PCAR, SHW, TMUS, VTR, PNW, CRM, PKG, WAT, PSX, APO, CRH}
+  >>> sample squeeze_candidates[0]: {"symbol": "SYF", "name": "Synchrony Financial", "sector": "Financials", "svr_pct": 75.19, "z_score": 2.69, "momentum_pct": 11.51, "days_to_cover": 8.66, "squeeze_score": 90, "squeeze_flags": ["SVR_HEAVY_ABNORMAL", "HIGH_DAYS_TO_COVER", "MOMENTUM_EXTREME", "PRICE_STRENGTH"], "price_strength": {"last
 
-THEME MTUM (iShares MSCI Momentum) med=9.3% breadth={'n_constituents_checked': 15, 'outperforming_spy_20d': 11, 'breadth_outperform_pct': 73.3, 'n_above_ma50': 11, 'breadth_above_ma50_pct': 73.3} infra=5 lag=7 big=6
-   LAG XOM    gap=22.7pp r20=-13.4% small=False sigs=[]
-   LAG WMT    gap=21.3pp r20=-12.0% small=False sigs=['OPTIONS_UOA']
-   LAG GOOGL  gap=15.5pp r20=-6.2% small=False sigs=['OPTIONS_UOA']
-   INF WDC    Computer Hardware          +56.2%
-   INF STX    Computer Hardware          +45.4%
-   INF CAT    Agricultural - Machinery   +11.1%
-   BIG LRCX   small=False sigs=['SHORT_COVERING', 'SHORT_COVERING']
-   BIG MU     small=False sigs=['OPTIONS_UOA']
-   BIG AMD    small=False sigs=['OPTIONS_UOA']
+## data/short-interest.json (0.0d)
+  version                str
+  generated_at           str
+  watchlist_size         int
+  n_tickers_with_data    int
+  n_tickers_finra        int
+  n_tickers_polygon      int
+  by_ticker              {AAPL, MSFT, GOOGL, GOOG, AMZN, NVDA, META, TSLA, AVGO, TSM, JPM, WMT, LLY, V}
+  top_crowded_shorts     [15] e0={ticker, latest_short_pct, trend_pct, recent_5d_avg, prior_9d_avg, days_to_cover, si_change_pct, short_interest,
+  top_squeeze_risk       [0] e0=
+  top_high_dtc           [0] e0=
+  top_covering           [0] e0=
+  duration_s             float
+  data_sources           {short_volume, short_interest, short_float}
+  signal_definitions     {SQUEEZE_RISK, CROWDED_SHORT_RISING, DISTRIBUTION, COVERING, HIGH_DAYS_TO_COVER, NEUTRAL}
+  >>> sample top_crowded_shorts[0]: {"ticker": "MDT", "latest_short_pct": 1.31, "trend_pct": 58.8, "recent_5d_avg": 40.86, "prior_9d_avg": 25.73, "days_to_cover": 1.72, "si_change_pct": null, "short_interest": null, "settlement_date": null, "signal": "DISTRIBUTION", "score": 65, "n_days_volume_data": 14, "short_float_pct": 1.31, "floa
+
+## data/volatility-squeeze.json (0.3d)
+  schema_version         int
+  method                 str
+  generated_at           str
+  duration_s             float
+  stats                  {n_universe, n_evaluated, n_no_data, n_tier_s, n_tier_a, n_tier_b, n_watch}
+  summary                {top_25_overall, tier_s, tier_a}
+  all_qualifying         [21] e0={symbol, score, tier, n_signals_firing, flags, metrics}
+  >>> sample all_qualifying[0]: {"symbol": "BRK-A", "score": 47.0, "tier": "WATCH", "n_signals_firing": 2, "flags": ["NR7_CLUSTER", "VCP_PATTERN", "LONG_BASE_90D", "VOL_DRYING"], "metrics": {"today_close": 737300.0, "bb_width_percentile": 63.5, "ttm_squeezing": false, "nr7_count_30d": 3, "vcp_qualifies": true, "vol_contraction": 0
+
+## data/revenue-acceleration.json (0.3d)
+  schema_version         int
+  method                 str
+  generated_at           str
+  duration_s             float
+  stats                  {n_universe, n_evaluated, n_no_data, n_tier_s, n_tier_a, n_tier_b, n_microcap_picks}
+  summary                {top_25_overall, tier_s, microcap_picks}
+  all_qualifying         [10] e0={symbol, score, tier, flags, consec_accel_quarters, metrics, yoy_growth_history, acceleration_history}
+  >>> sample all_qualifying[0]: {"symbol": "NVDA", "score": 67.0, "tier": "TIER_A_ACCELERATING", "flags": ["ACCEL_5PP+", "ACCEL_3Q_STREAK", "GROWTH_50%+", "GM_EXPAND_2PP+", "OP_LEVERAGE_20PP+", "EPS_ACCELERATING"], "consec_accel_quarters": 3, "metrics": {"latest_yoy_growth_pct": 85.2, "latest_acceleration_pp": 12.0, "seq_growth_pc
+
+## data/pre-pump-signals.json (0.3d)
+  schema_version         int
+  method                 str
+  generated_at           str
+  duration_s             float
+  stats                  {n_universe, n_evaluated, n_tier_a, n_tier_b, n_no_history, n_no_signal}
+  summary                {top_25_overall, tier_a}
+  all_qualifying         [89] e0={symbol, score, tier, flags, metrics}
+  >>> sample all_qualifying[0]: {"symbol": "CSCO", "score": 70.0, "tier": "TIER_A_BREAKING", "flags": ["OBV_STRONG_ACCUM", "UPTREND_NOT_PARABOLIC", "CALM_RECENT"], "metrics": {"today_close": 117.33, "range_position_180d_pct": 79.7, "vol_compression": 0.81, "obv_slope_norm": 0.432, "liq_30v60": 1.06, "liq_30v120": 1.05, "ret_5d_pct
