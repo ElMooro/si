@@ -1,4 +1,45 @@
-  deals page attempt 1 code=200
-  deals page attempt 2 code=200
-OK  deals page https://justhodl.ai/deal-scanner.html (200) marker 'AI Deals' present
-OK  index nav  https://justhodl.ai/index.html (200) marker 'deal-scanner.html' present
+deployed deal-scanner
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 1900, \"n_deals\": 12, \"n_small_cap\": 5, \"n_high_materiality\": 6}"}
+DEAL-SCANNER: items=1900 deals=12 ai=2 green=7 | sources=8
+  deal publishers: {'Benzinga': 2, 'The Motley Fool': 3, 'Newsfile Corp': 1, 'Business Wire': 1, 'GlobeNewswire Inc.': 1, 'PRNewsWire': 2, 'GlobeNewsWire': 2}
+   REFI    Benzinga  [G] Chicago Atlantic Real Estate Finance, Inc. and
+   SPCX    The Motle [G] SpaceX Has Successfully Completed Its IPO. Her
+   AAPL    Benzinga  [AIY] After Nvidia And Tesla, Trump Confirms Apple H
+   AMMX    Newsfile  [G] AmeraMex International Wins Bid Worth $5 Milli
+   NFLX    The Motle [G] Here's What Fox Buying Roku Means for Netflix 
+   P-PLYR  Business  [G] Polymarket and Splash Sports Announce Strategi
+   DAIO    GlobeNews [G] Data I/O Announces Closing of $9 Million Inves
+   QMCO    PRNewsWir [AIG] Quantum Computing Inc. Announces Framework Agr
+
+=== EXISTING ETF-FLOW / SECTOR ENGINE FRESHNESS ===
+  data/etf-fund-flows.json           MISSING (An error occurred (404) when c)
+  data/etf-flows.json                LastModified 2026-06-08 12:18  (248h ago) STALE
+  data/etf-true-flows.json           LastModified 2026-06-18 15:45  (4h ago) FRESH
+  data/flow-anomaly-detector.json    MISSING (An error occurred (404) when c)
+  data/flow-anomalies.json           MISSING (An error occurred (404) when c)
+  data/sector-rotation.json          LastModified 2026-06-18 19:38  (1h ago) FRESH
+  data/capital-flow.json             LastModified 2026-06-18 16:30  (4h ago) FRESH
+  data/rotation-radar.json           LastModified 2026-06-18 13:46  (6h ago) FRESH
+  -- other flow/sector outputs present --
+     data/capital-flow.json                   4h
+     data/etf-flows.json                      248h STALE
+     data/etf-true-flows.json                 4h
+     data/event-flow-health.json              247h STALE
+     data/exchange-flows.json                 250h STALE
+     data/finviz-etf-flows.json               66h STALE
+     data/gold-equity-rotation.json           21h
+     data/liquidity-flow.json                 22h
+     data/options-flow.json                   22h
+     data/polygon-options-flow.json           384h STALE
+     data/rotation-chains.json                248h STALE
+     data/rotation-radar.json                 6h
+     data/sector-earnings-diffusion-state.json 9h
+     data/sector-earnings-diffusion.json      9h
+     data/sector-groups.json                  6h
+     data/sector-heatmap.json                 247h STALE
+     data/sector-rotation.json                1h
+     data/sector-tilt.json                    248h STALE
+     data/stablecoin-flow.json                6h
+     data/theme-rotation-state.json           9h
+     data/theme-rotation.json                 9h
+     data/tic-flows.json                      22h
