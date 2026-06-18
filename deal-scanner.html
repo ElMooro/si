@@ -4,13 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deal Scanner · Big Orders & Big Deals · JustHodl.AI</title>
-<meta name="description" content="Fresh contract & order wins the tape hasn't priced in yet — focus-ranked and green-highlighted by deal size vs market cap and revenue. Small-cap weighted.">
+<meta name="description" content="Fresh contract & order wins the tape hasn't priced in yet — AI deals first, green-highlighted by deal size vs market cap and revenue. Small/mid-cap weighted.">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#07090f;--bg-sunken:#0a0e17;--bg-raised:#11161f;--bg-elevated:#1a212f;
-  --fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;--fg-4:#3d4759;
-  --border:#1c2433;
+  --fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;--fg-4:#3d4759;--border:#1c2433;
   --cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.32);
   --green:#38ffa8;--green-dim:rgba(56,255,168,.32);--green-bg:rgba(56,255,168,.06);
   --amber:#ffb13d;--amber-dim:rgba(255,177,61,.32);--amber-bg:rgba(255,177,61,.05);
@@ -31,16 +30,17 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--violet)}
 .nav-back{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase}
 .nav-back:hover{color:var(--cyan)}
 .hero{background:linear-gradient(135deg,var(--green-bg),rgba(0,212,255,.03),transparent);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:10px;padding:18px 22px;margin-bottom:22px}
-.hero p{margin:0;color:var(--fg-2);font-size:13.5px;max-width:880px}
+.hero p{margin:0;color:var(--fg-2);font-size:13.5px;max-width:900px}
 .hero p b{color:var(--fg-1)}
 .statbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px}
-.stat{flex:1;min-width:120px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:12px 16px}
+.stat{flex:1;min-width:110px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:12px 16px}
 .stat .n{font-family:var(--font-mono);font-size:26px;font-weight:700;line-height:1}
 .stat .l{font-family:var(--font-mono);font-size:9.5px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase;margin-top:6px}
-.stat.green .n{color:var(--green)}.stat.amber .n{color:var(--amber)}
+.stat.green .n{color:var(--green)}.stat.amber .n{color:var(--amber)}.stat.cyan .n{color:var(--cyan)}
 .sec-hdr{display:flex;align-items:center;gap:10px;margin:30px 0 14px}
-.sec-hdr h2{margin:0;font-family:var(--font-mono);font-size:12px;letter-spacing:1.6px;text-transform:uppercase;font-weight:600}
+.sec-hdr h2{margin:0;font-family:var(--font-mono);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;font-weight:600}
 .sec-hdr .dot{width:9px;height:9px;border-radius:50%}
+.sec-hdr .dot.c{background:var(--cyan);box-shadow:0 0 10px var(--cyan-dim)}
 .sec-hdr .dot.g{background:var(--green);box-shadow:0 0 10px var(--green-dim)}
 .sec-hdr .dot.y{background:var(--amber);box-shadow:0 0 10px var(--amber-dim)}
 .sec-hdr .dot.o{background:var(--fg-4)}
@@ -48,24 +48,28 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--violet)}
 .card{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:11px;border-left:4px solid var(--border)}
 .card.green{border-left-color:var(--green);background:linear-gradient(100deg,var(--green-bg),var(--bg-raised) 42%)}
 .card.yellow{border-left-color:var(--amber);background:linear-gradient(100deg,var(--amber-bg),var(--bg-raised) 42%)}
-.card .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card.ai{border-left-color:var(--cyan);background:linear-gradient(100deg,rgba(0,212,255,.06),var(--bg-raised) 42%)}
+.card.aimega{border-left-color:var(--violet);background:linear-gradient(100deg,rgba(167,139,250,.10),rgba(0,212,255,.05) 40%,var(--bg-raised) 72%);box-shadow:0 0 22px rgba(167,139,250,.08)}
+.card .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .sym{font-family:var(--font-mono);font-size:18px;font-weight:700;letter-spacing:.4px}
-.co{color:var(--fg-2);font-size:12.5px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.co{color:var(--fg-2);font-size:12.5px;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cap{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:var(--bg-sunken);border:1px solid var(--border);color:var(--fg-2)}
 .cap.nano,.cap.micro,.cap.small{color:var(--cyan);border-color:var(--cyan-dim)}
-.pill{margin-left:auto;font-family:var(--font-mono);font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:3px 10px;border-radius:3px}
+.badge{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:3px}
+.badge.bil{background:rgba(167,139,250,.16);color:var(--violet);border:1px solid var(--violet-dim)}
+.pill{margin-left:auto;font-family:var(--font-mono);font-size:9.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;padding:3px 10px;border-radius:3px}
 .pill.green{background:rgba(56,255,168,.16);color:var(--green);border:1px solid var(--green-dim)}
 .pill.yellow{background:rgba(255,177,61,.16);color:var(--amber);border:1px solid var(--amber-dim)}
+.pill.ai{background:rgba(0,212,255,.16);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.pill.mega{background:linear-gradient(90deg,rgba(167,139,250,.24),rgba(0,212,255,.2));color:#fff;border:1px solid var(--violet-dim)}
 .pill.other{background:var(--bg-sunken);color:var(--fg-3);border:1px solid var(--border)}
 .headline{display:block;color:var(--fg-1);font-size:13.5px;margin:11px 0 13px;font-weight:500}
 .headline:hover{color:var(--cyan)}
 .metrics{display:flex;gap:9px;flex-wrap:wrap}
-.metric{background:var(--bg-sunken);border:1px solid var(--border);border-radius:6px;padding:7px 13px;min-width:96px}
+.metric{background:var(--bg-sunken);border:1px solid var(--border);border-radius:6px;padding:7px 13px;min-width:94px}
 .metric .mv{font-family:var(--font-mono);font-size:16px;font-weight:700;line-height:1}
 .metric .ml{font-family:var(--font-mono);font-size:8.5px;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;margin-top:5px}
-.metric.hot .mv{color:var(--green)}
-.metric.warm .mv{color:var(--amber)}
-.metric.size .mv{color:var(--fg-1)}
+.metric.hot .mv{color:var(--green)}.metric.warm .mv{color:var(--amber)}.metric.size .mv{color:var(--fg-1)}
 .foot{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3)}
 .foot .my{color:var(--violet)}
 .why{color:var(--fg-3);font-size:11.5px;margin-top:9px;font-style:italic}
@@ -78,7 +82,7 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--violet)}
 .note code{font-family:var(--font-mono);color:var(--cyan);background:var(--bg-sunken);padding:1px 5px;border-radius:3px}
 .empty{color:var(--fg-3);font-style:italic;padding:14px 2px;font-size:12.5px}
 .loading{text-align:center;color:var(--fg-3);font-family:var(--font-mono);padding:80px 0;font-size:13px}
-@media(max-width:640px){.wrap{padding:18px 16px 60px}.co{max-width:160px}.page-hdr h1{font-size:20px}}
+@media(max-width:640px){.wrap{padding:18px 16px 60px}.co{max-width:150px}.page-hdr h1{font-size:20px}}
 </style>
 </head>
 <body>
@@ -90,13 +94,14 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--violet)}
     <div class="meta" id="meta">loading…</div>
   </div>
   <div class="hero">
-    <p><b>Fresh contract, order &amp; supply wins the tape hasn't priced in yet.</b> A deal only matters
-    if it's big relative to the company — so the board is <b style="color:var(--green)">green-highlighted</b>
-    and focus-ranked by deal size vs <b>market cap</b> and <b>revenue</b>. Small-caps weighted hardest:
-    one contract can be the whole company.</p>
+    <p><b>Fresh contract, order &amp; supply wins the tape hasn't priced in yet</b> — scanning company PRs
+    <i>and</i> third-party news. <b style="color:var(--cyan)">AI deals surface first</b>; everything is
+    focus-ranked and <b style="color:var(--green)">green-highlighted</b> by deal size vs <b>market cap</b>
+    and <b>revenue</b>. The thesis: AI small/mid-caps landing deals that are a large % of their market cap —
+    one contract can re-rate the whole company.</p>
   </div>
   <div class="statbar" id="statbar"></div>
-  <div id="content"><div class="loading">⟳ loading fresh deal wins…</div></div>
+  <div id="content"><div class="loading">⟳ scanning fresh deal wins…</div></div>
   <div class="note" id="note"></div>
 </div>
 <script>
@@ -111,14 +116,18 @@ const matTxt=m=>m==null?null:m===9999?"pre-rev":Math.round(m)+"%";
 const mcTxt=v=>v==null?null:(v>=100?Math.round(v):v.toFixed(1))+"%";
 function metric(cls,val,lbl){return val==null?"":`<div class="metric ${cls}"><div class="mv">${val}</div><div class="ml">${lbl}</div></div>`;}
 function card(d){
-  const hl=d.highlight||"other";
-  const pill=hl==="green"?'<span class="pill green">🟢 Big Deal</span>':hl==="yellow"?'<span class="pill yellow">🟡 Notable</span>':'<span class="pill other">win</span>';
+  const cls=d.ai_megadeal?"aimega":d.ai_relevant?"ai":(d.highlight||"other");
+  const pill=d.ai_megadeal?'<span class="pill mega">🤖 AI MEGA-DEAL</span>'
+    :d.ai_relevant?'<span class="pill ai">🤖 AI Deal</span>'
+    :d.highlight==="green"?'<span class="pill green">🟢 Big Deal</span>'
+    :d.highlight==="yellow"?'<span class="pill yellow">🟡 Notable</span>':'<span class="pill other">win</span>';
   const mt=matTxt(d.materiality_pct), mc=mcTxt(d.vs_market_cap_pct);
   const mtCls=(d.materiality_pct>=25||d.materiality_pct===9999)?"hot":d.materiality_pct>=10?"warm":"size";
   const mcCls=(d.vs_market_cap_pct>=10)?"hot":d.vs_market_cap_pct>=4?"warm":"size";
-  return `<div class="card ${hl}">
+  return `<div class="card ${cls}">
     <div class="top">
       <span class="sym">${esc(d.symbol)}</span>
+      ${d.is_billion?'<span class="badge bil">💰 $1B+</span>':""}
       ${d.cap_bucket?`<span class="cap ${d.cap_bucket}">${d.cap_bucket}</span>`:""}
       ${d.name?`<span class="co">${esc(d.name)}</span>`:""}
       ${pill}
@@ -135,17 +144,23 @@ function card(d){
 }
 function render(j){
   const s=j.summary||{}, deals=j.deals||[];
-  const green=deals.filter(d=>d.highlight==="green"), yellow=deals.filter(d=>d.highlight==="yellow"), other=deals.filter(d=>!d.highlight);
+  const ai=deals.filter(d=>d.ai_relevant);
+  const green=deals.filter(d=>!d.ai_relevant&&d.highlight==="green");
+  const yellow=deals.filter(d=>!d.ai_relevant&&d.highlight==="yellow");
+  const other=deals.filter(d=>!d.ai_relevant&&!d.highlight);
   const gen=j.generated_at?new Date(j.generated_at):null;
-  document.getElementById("meta").innerHTML=`scanned <b>${s.n_prs_scanned||0}</b> PRs · updated <b>${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}</b>`;
+  document.getElementById("meta").innerHTML=`scanned <b>${s.n_prs_scanned||0}</b> items · updated <b>${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}</b>`;
   document.getElementById("statbar").innerHTML=
     `<div class="stat"><div class="n">${s.n_deals||0}</div><div class="l">Deal Wins</div></div>
-     <div class="stat green"><div class="n">${green.length}</div><div class="l">🟢 Big vs Size</div></div>
-     <div class="stat amber"><div class="n">${yellow.length}</div><div class="l">🟡 Notable</div></div>
+     <div class="stat cyan"><div class="n">${s.n_ai||0}</div><div class="l">🤖 AI Deals</div></div>
+     <div class="stat green"><div class="n">${s.n_green||0}</div><div class="l">🟢 Big vs Size</div></div>
+     <div class="stat amber"><div class="n">${s.n_yellow||0}</div><div class="l">🟡 Notable</div></div>
      <div class="stat"><div class="n">${s.n_small_cap||0}</div><div class="l">Small-Cap</div></div>`;
   let h="";
-  h+=`<div class="sec-hdr"><span class="dot g"></span><h2>Focus — Big Deals vs Market Cap &amp; Revenue</h2><span class="ct">${green.length} flagged</span></div>`;
-  h+= green.length?green.map(card).join(""):'<div class="empty">No green-tier deals in the current window — nothing large enough vs market cap or revenue right now.</div>';
+  h+=`<div class="sec-hdr"><span class="dot c"></span><h2>🤖 AI Deals — small/mid-caps landing AI contracts</h2><span class="ct">${ai.length}${s.n_ai_mega?` · ${s.n_ai_mega} mega`:""}</span></div>`;
+  h+= ai.length?ai.map(card).join(""):'<div class="empty">No AI-tagged deal in the current window. A real AI mega-deal (e.g. a billion-dollar GPU/compute supply agreement) will land here and jump to the top the moment it\'s announced.</div>';
+  h+=`<div class="sec-hdr"><span class="dot g"></span><h2>Big Deals vs Market Cap &amp; Revenue</h2><span class="ct">${green.length}</span></div>`;
+  h+= green.length?green.map(card).join(""):'<div class="empty">No other green-tier deals right now.</div>';
   if(yellow.length){h+=`<div class="sec-hdr"><span class="dot y"></span><h2>Notable</h2><span class="ct">${yellow.length}</span></div>`+yellow.map(card).join("");}
   if(other.length){
     h+=`<div class="sec-hdr"><span class="dot o"></span><h2>Other Wins <span style="color:var(--fg-4);font-weight:400">(no disclosed size)</span></h2><span class="ct">${other.length}</span></div>`;
@@ -155,10 +170,10 @@ function render(j){
   }
   document.getElementById("content").innerHTML=h;
   document.getElementById("note").innerHTML=
-    `<b style="color:var(--fg-2)">How the highlight works.</b> 🟢 <b style="color:var(--green)">Green</b> = deal ≥25% of annual revenue <i>or</i> ≥10% of market cap (transformative).
-     🟡 <b style="color:var(--amber)">Yellow</b> = ≥10% of revenue or ≥4% of market cap. Green deals get a focus boost so they rank first.
-     Source: company press releases via <code>${esc((j.sources||["FMP"])[0]||"FMP")}</code>, cross-referenced to latest-FY revenue and market cap.
-     Deal size is parsed from the release and may be approximate; "not yet in revenue" is inferred from announcement freshness — a fresh award lags reported numbers by quarters. Real data, research only — not investment advice.`;
+    `<b style="color:var(--fg-2)">How it works.</b> 🤖 <b style="color:var(--cyan)">AI Deals</b> = the company or deal is AI-relevant (keywords + the AI-infra-stack universe); an <b style="color:var(--violet)">AI MEGA-DEAL</b> is AI + ≥20% of market cap or a billion-dollar deal.
+     🟢 <b style="color:var(--green)">Green</b> = deal ≥25% of revenue <i>or</i> ≥10% of market cap; 🟡 <b style="color:var(--amber)">Yellow</b> = ≥10% of revenue or ≥4% of market cap.
+     Sources: company press releases <i>and</i> third-party financial news via <code>FMP</code>, cross-referenced to latest-FY revenue and market cap. Direct X/Twitter scanning needs an X API key (not yet wired).
+     Deal size is parsed from the release and may be approximate; "not yet in revenue" is inferred from announcement freshness. Real data, research only — not investment advice.`;
 }
 load(DATA).then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load deal data. <a href="javascript:location.reload()">Retry</a></div>';});
 setTimeout(()=>location.reload(),600000);
