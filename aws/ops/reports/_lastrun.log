@@ -1,18 +1,5 @@
-eurodollar-plumbing: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 88.1, \"verdict\": \"FUNCTIONING\"}"}
-  health=88.1 verdict=FUNCTIONING | composite_score=11.9 score=11.9 stress_score=11.9 severity=ABUNDANT stress_regime=ABUNDANT_LIQUIDITY
-
-plumbing-aggregator: {"statusCode": 200, "body": "{\"ok\": true, \"composite_score\": 53.5, \"composite_label\": \"ELEVATED\", \"n_with_data\": 31, \"n_alerts\": 13, \"dur
-  composite=53.5 | L4 score=48.0 | HK contributors in L4: 3
-    HK · Aggregate Balance = 53.88 (stress 18.0, pctile 46.7)
-    HK · USD/HKD vs 7.85 weak side = 7.83708 (stress 55.0, pctile None)
-    HK · 3M HIBOR − SOFR = -80.3 (stress 55.0, pctile None)
-
-justhodl-crisis-composite: {"statusCode": 200, "body": "{\"ok\": true, \"master_crisis_score\": 26.8, \"defcon_level\": 4, \"defcon_name\": \"NORMAL\", \"trend\": \"stable\"}"}
-
-justhodl-vol-radar: {"statusCode": 200, "body": "{\"ok\": true, \"posture\": \"CALM\", \"spike_risk\": 0, \"exhaustion\": 21, \"vix\": 21.51, \"vix_percentile\": 67.0, \"
-
-justhodl-tail-hedge: {"statusCode": 200, "body": "{\"ok\": true, \"hedge_posture\": \"UNHEDGED -- NOT REQUIRED\", \"severity\": 0, \"scenario_class\": \"EQUITY_CRASH\", \"
-
-justhodl-canary-grid: {"statusCode": 200, "body": "{\"ok\": true, \"early_warning_level\": 29.8, \"band\": \"WATCH\", \"n_available\": 8, \"n_total\": 9}"}
-
-justhodl-sovereign-stress: INVOKE ERR: An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-e
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/1835_sovereign.py", line 4, in <module>
+    fn=j.load(open("aws/lambdas/justhodl-sovereign-stress/config.json")).get("function_name","justhodl-sovereign-stress")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'aws/lambdas/justhodl-sovereign-stress/config.json'
