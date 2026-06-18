@@ -144,6 +144,30 @@ def ofr_fsi():
     return {}
 
 
+def ecb_ilm(key, n=8):
+    """ECB ILM weekly series via SDMX CSV (data-api.ecb.europa.eu). Returns [(period, value_EUR_mn)]
+    oldest→newest, or []. Same API path the platform already uses for ECB CISS."""
+    try:
+        txt = http_get("https://data-api.ecb.europa.eu/service/data/ILM/%s?format=csvdata&lastNObservations=%d"
+                       % (key, n)).decode("utf-8", "ignore")
+    except Exception as e:
+        print("[ed] ecb ilm %s: %s" % (key, e))
+        return []
+    lines = [l for l in txt.splitlines() if l.strip()]
+    if len(lines) < 2:
+        return []
+    hdr = lines[0].split(",")
+    if "TIME_PERIOD" not in hdr or "OBS_VALUE" not in hdr:
+        return []
+    di, vi = hdr.index("TIME_PERIOD"), hdr.index("OBS_VALUE")
+    out = []
+    for ln in lines[1:]:
+        c = ln.split(",")
+        if len(c) > max(di, vi) and num(c[vi]) is not None:
+            out.append((c[di], num(c[vi])))
+    return out
+
+
 def gj(key):
     try:
         return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
@@ -268,6 +292,15 @@ def build_layers():
                             flag(srb, 5, 50), "Total Fed repo lending incl. the Standing Repo Facility. ~0 in normal "
                             "times; a spike = domestic repo stress / dealers tapping the backstop (Sept-2019 hit $100bn+).",
                             asof=srd))
+    ecb_usd = ecb_ilm("W.U2.C.A030000.U2.Z06")  # Eurosystem FX(USD) claims on EA residents = ECB USD lending to EA banks
+    if ecb_usd:
+        ep, ev = ecb_usd[-1]
+        evb = round(ev / 1000.0, 1)  # €mn → €bn
+        back.append(metric("ecb_usd_provision", "ECB USD lending to euro-area banks", evb, "€bn",
+                            flag(evb, 40, 100), "Eurosystem foreign-currency (mostly USD) claims on euro-area residents — "
+                            "dollars the ECB has lent to euro-area banks via its USD operations (funded by the Fed swap "
+                            "line). Near-zero in calm times; balloons when euro-area banks can't source dollars in the "
+                            "market (~€130bn in Mar-2020). The euro-area mirror of the Fed swap-line tell.", asof=ep))
     layers["backstops"] = {"title": "Central-bank backstops", "metrics": back}
 
     # ---- Layer 5: settlement plumbing (reuse fails engine) ----
