@@ -46,6 +46,9 @@ AI_PHRASES = (
     "ai server", "ai workload", "supercomputer", "foundation model", "ai data center",
 )
 
+PUB_BLOCK = ("motley fool", "seeking alpha", "investorplace", "zacks", "tipranks",
+             "24/7 wall", "247wall", "247 wall", "insider monkey", "simply wall", "benzinga insights")
+
 # strong deal-win language (must hit at least one)
 # STRONG terms qualify on their own (high-confidence contract/order/supply wins)
 STRONG_DEAL = (
@@ -81,6 +84,8 @@ DEAL_NEG = (
     "?", "can it", "could ", "why ", "selloff", "sell-off", "amasses", "cash reserve",
     "stock", "shares", "analyst", "upgrade", "downgrade", "price target", "should you",
     "is it ", "what to know", " vs ", "approval", "yesterday", "rating", "earnings",
+    "here's what", "here's why", "means for", "could mean", "going public", " ipo", "to ipo",
+    "investment", "closing of", "buying", "to buy", "what it means",
 )
 SIZE_RE = re.compile(r'\$\s?([\d][\d,]*(?:\.\d+)?)\s*(billion|bn|million|mn|b|m)\b', re.I)
 MULT = {"billion": 1e9, "bn": 1e9, "b": 1e9, "million": 1e6, "mn": 1e6, "m": 1e6}
@@ -111,7 +116,11 @@ def fetch_news(pages=8, limit=100):
     def one(args):
         feed, p = args
         d = _fmp(f"news/{feed}?page={p}&limit={limit}")
-        return d if isinstance(d, list) else []
+        items = d if isinstance(d, list) else []
+        tr = "pr" if feed == "press-releases-latest" else "news"
+        for it in items:
+            it["trust"] = tr
+        return items
     tasks = [("press-releases-latest", p) for p in range(pages)] + \
             [("stock-latest", p) for p in range(pages)]
     with ThreadPoolExecutor(max_workers=10) as ex:
@@ -145,7 +154,7 @@ def fetch_polygon(limit=100, pages=3):
                         "text": a.get("description") or "",
                         "publishedDate": (a.get("published_utc") or "").replace("T", " ")[:19],
                         "publisher": (a.get("publisher") or {}).get("name") or "Polygon",
-                        "url": a.get("article_url")})
+                        "url": a.get("article_url"), "trust": "news"})
         nu = j.get("next_url")
         if not nu:
             break
@@ -173,7 +182,8 @@ def fetch_benzinga(pagesize=100, pages=2):
                 pub = ""
             out.append({"symbol": sym, "title": a.get("title"),
                         "text": a.get("teaser") or a.get("body") or "",
-                        "publishedDate": pub, "publisher": "Benzinga", "url": a.get("url")})
+                        "publishedDate": pub, "publisher": "Benzinga", "url": a.get("url"),
+                        "trust": "news"})
     return out
 
 
@@ -199,14 +209,15 @@ def parse_value(title, text):
     return (xv if xv > 0 else None), xs
 
 
-def is_deal(title, text, value):
+def is_deal(title, text, value, trust="pr"):
     t = (title or "").lower()
     if any(k in t for k in DEAL_NEG):
         return False
     blob = t + " " + (text or "")[:300].lower()
     if any(k in blob for k in STRONG_DEAL):
         return True
-    if value and any(k in blob for k in WEAK_DEAL):
+    # soft partnership/agreement language only trusted from actual PR wires, with a size
+    if trust == "pr" and value and any(k in blob for k in WEAK_DEAL):
         return True
     return False
 
@@ -306,8 +317,11 @@ def lambda_handler(event, context):
         if k in seen:
             continue
         seen.add(k)
+        pub = (pr.get("publisher") or "").lower()
+        if any(b in pub for b in PUB_BLOCK):
+            continue
         val, vstr = parse_value(title, pr.get("text"))
-        if not is_deal(title, pr.get("text"), val):
+        if not is_deal(title, pr.get("text"), val, pr.get("trust", "pr")):
             continue
         try:
             pub = datetime.fromisoformat(pr.get("publishedDate").replace(" ", "T")).replace(tzinfo=timezone.utc)
