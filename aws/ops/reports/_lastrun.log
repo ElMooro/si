@@ -1,21 +1,40 @@
+CREATED arn:aws:lambda:us-east-1:857687956942:function:justhodl-deal-scanner
+RULE wired (daily 22:00 UTC)
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 800, \"n_deals\": 49, \"n_small_cap\": 28, \"n_high_materiality\": 5}"}
+SUMMARY: prs=800 deals=49 sized=9 small=28 highmat=5
 
-### /stable/news/press-releases-latest?page=0&limit=5
-   LIST[5] e0keys=['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url'] e0={"symbol": "CNC", "publishedDate": "2026-06-18 14:48:00", "publisher": "PRNewsWire", "title": "Modesto Residents Will Gain Access to More Affordable Homes Due to $4 Million Health Net Investment", "image": "https://images.financialmodelingprep.com/news/modesto
+TOP DEALS:
+  THCX   nano    mat=9999.0% val=$10.5 million age=11.5h score=164.6
+        "IM Cannabis Corp. Enters into Letter of Intent to Sell its European Activities, Expects to Sign"
+  DNLI   mid     mat=9999.0% val=$195 Million age=11.1h score=156.1
+        "Denali Therapeutics Enters Agreement to Sell Rare Pediatric Disease Priority Review Voucher for"
+  PMEC   nano    mat=62.1% val=$46.2 million age=10.3h score=89.0
+        "Primech Holdings Secures Approximately US$36.1 Million in New Social Services and Public Sector"
+  CTXXF  micro   mat=58.2% val=$26.2 Million age=26.1h score=76.8
+        "CEMATRIX Announces $5.1 Million in New Contract Awards"
+  AMMX   nano    mat=35.6% val=$5 Million age=10.6h score=76.0
+        "AmeraMex International Wins Bid Worth $5 Million"
+  BN     large   mat=0.9% val=$650 million age=12.3h score=71.8
+        "Brookfield to sell Multiplex to Obayashi for $650 million"
+  EQ     micro   mat=None% val=None age=11.1h score=64.6
+        "EQ Works Expands Multi-Year Partnership with Leading Canadian Publisher to Include SaaS License"
+  WCUFF  nano    mat=None% val=None age=6.0h score=64.2
+        "Dove Announces Official Partnership with Tori Penso, the First American Woman Ever Selected to "
 
-### /stable/news/stock-latest?page=0&limit=5
-   LIST[5] e0keys=['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url'] e0={"symbol": "CNC", "publishedDate": "2026-06-18 14:48:00", "publisher": "PRNewsWire", "title": "Modesto Residents Will Gain Access to More Affordable Homes Due to $4 Million Health Net Investment", "image": "https://images.financialmodelingprep.com/news/modesto
-
-### /stable/news/general-latest?page=0&limit=5
-   LIST[5] e0keys=['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url'] e0={"symbol": null, "publishedDate": "2026-06-18 14:29:30", "publisher": "CNBC Television", "title": "AI borrowing spree: Why tech investors should watch the bond market", "image": "https://images.financialmodelingprep.com/news/ai-borrowing-spree-why-tech-investo
-
-### /stable/press-releases?symbol=NVDA&limit=3
-   ERR HTTP Error 404: Not Found []
-
-### /stable/news/press-releases?symbol=NVDA&limit=3
-   LIST[3] e0keys=['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url'] e0={"symbol": "AAPL", "publishedDate": "2026-06-17 09:00:00", "publisher": "Business Wire", "title": "Addigy Expands Identity for Apple Fleets: IdP-Native Login, FileVault Single Sign-In, and Multi-Tenant Support \u2013 Included at No Extra Cost", "image": "https
-
-### /stable/news/stock?symbols=NVDA&limit=3
-   LIST[3] e0keys=['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url'] e0={"symbol": "NVDA", "publishedDate": "2026-06-18 14:47:06", "publisher": "247 Wallst", "title": "The Magnificent 7 Debt Binge is Sending a Crystal Clear Message to Wall Street. But Are Investors Paying Attention?", "image": null, "site": "247wallst.com", "text"
-
-### /stable/income-statement?symbol=AIP&limit=1
-   LIST[1] e0keys=['date', 'symbol', 'reportedCurrency', 'cik', 'filingDate', 'acceptedDate', 'fiscalYear', 'period', 'revenue', 'costOfRevenue', 'grossProfit', 'researchAndDevelopmentExpenses', 'generalAndAdministrativeExpenses', 'sellingAndMarketingExpenses', 'sellingGeneralAndAdministrativeExpenses', 'otherExpenses', 'operatingExpenses', 'costAndExpenses', 'netInterestIncome', 'interestIncome', 'interestExpense', 'depreciationAndAmortization', 'ebitda', 'ebit', 'nonOperatingIncomeExcludingInterest', 'operatingIncome', 'totalOtherIncomeExpensesNet', 'incomeBeforeTax', 'incomeTaxExpense', 'netIncomeFromContinuingOperations', 'netIncomeFromDiscontinuedOperations', 'otherAdjustmentsToNetIncome', 'netIncome', 'netIncomeDeductions', 'bottomLineNetIncome', 'eps', 'epsDiluted', 'weightedAverageShsOut', 'weightedAverageShsOutDil'] e0={"date": "2025-12-31", "symbol": "AIP", "reportedCurrency": "USD", "cik": "0001667011", "filingDate": "2026-02-12", "acceptedDate": "2026-02-12 16:43:19", "fiscalYear": "2025", "period": "FY", "revenue": 70579000, "costOfRevenue": 6895000, "grossProfit": 63684
+TOP SMALL-CAP DEALS:
+  THCX   nano    mat=9999.0% val=$10.5 million rev=n/a
+        "IM Cannabis Corp. Enters into Letter of Intent to Sell its European Activities, Expects to Sign"
+  PMEC   nano    mat=62.1% val=$46.2 million rev=$74M
+        "Primech Holdings Secures Approximately US$36.1 Million in New Social Services and Public Sector"
+  CTXXF  micro   mat=58.2% val=$26.2 Million rev=$45M
+        "CEMATRIX Announces $5.1 Million in New Contract Awards"
+  AMMX   nano    mat=35.6% val=$5 Million rev=$14M
+        "AmeraMex International Wins Bid Worth $5 Million"
+  EQ     micro   mat=None% val=None rev=n/a
+        "EQ Works Expands Multi-Year Partnership with Leading Canadian Publisher to Include SaaS License"
+  WCUFF  nano    mat=None% val=None rev=n/a
+        "Dove Announces Official Partnership with Tori Penso, the First American Woman Ever Selected to "
+  LGHL   nano    mat=None% val=None rev=$1M
+        "Lion Group Holding Ltd. Signs Non-Binding Memorandum of Understanding to Acquire Aquila Hash, I"
+  GTLL   nano    mat=None% val=None rev=$3M
+        "Regions Private Wealth Management Wins Two Global Private Banking Innovation Awards for Second "
