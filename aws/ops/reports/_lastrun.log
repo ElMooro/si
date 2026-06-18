@@ -1,4 +1,5 @@
+live fn LastModified: 2026-06-18T15:02:27  CodeSize: 43049
 invoke: {"statusCode": 200, "body": "{\"ok\": true, \"composite\": 30.1, \"regime\": \"CALM\", \"fragmentation\": \"MILD DISPERSION\", \"errors\": 0}"}
-composite: {'score_0_100': 30.1, 'regime': 'CALM', 'read': "Composite systemic-&-sovereign stress 30/100 — calm. Stress is contained; the ECB's official indices are not corroborating an acute systemic event."}
-eurodollar in payload: {'eurodollar_verdict': 'FUNCTIONING', 'eurodollar_health': 88.1, 'eurodollar_funding_stress': 11.9}
-headline: Systemic stress CALM. Composite 30/100 — euro-area CISS calm (5th pct); euro sovereign fragmentation mild dispersion.
+composite score: None
+payload mentions 'eurodollar': True
+cross.eurodollar_verdict: FUNCTIONING | cross.eurodollar_funding_stress: 11.9 | cross.eurodollar_health: 88.1
