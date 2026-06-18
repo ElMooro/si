@@ -1,217 +1,96 @@
-
-### theme-rotation all_themes[0]
-{
- "ticker": "ARKG",
- "name": "ARK Genomic Revolution",
- "category": "GENOMICS",
- "today_close": 35.04,
- "ret_3d": 4.69,
- "ret_5d": 6.67,
- "ret_20d": 24.61,
- "ret_60d": 31.58,
- "rs_5d": 4.53,
- "rs_20d": 23.62,
- "rs_60d": 18.52,
- "rs_acceleration": 35.79,
- "vol_ratio_20v60": 1.2,
- "money_flow_ratio": 2.04,
- "range_pos_60d": 89.3,
- "above_ma20": true,
- "above_ma50": true,
- "above_ma100": true,
- "momentum_score": 100,
- "rs_rank_20d": 2,
- "rs_rank_delta": 0
-}
-
-### theme-rotation summary.top_10_momentum[0]
-{
- "ticker": "ARKG",
- "name": "ARK Genomic Revolution",
- "category": "GENOMICS",
- "momentum_score": 100,
- "rs_5d": 4.53,
- "rs_20d": 23.62,
- "rs_60d": 18.52,
- "rs_acceleration": 35.79,
- "vol_ratio": 1.2,
- "rank_delta": 0,
- "breadth_pct": 100.0
-}
-
-### breadth_details['ROBO'] keys: ['breadth', 'constituents_perf']
-
-### breadth_details['ROBO'] constituent[0]
-{
- "symbol": "IPGP",
- "ret_20d": 0.27353745698404097,
- "above_ma50": false,
- "weight": 1.85246431
-}
-
-### beta-laggards groups[0] (minus laggards list)
-{
- "sector": "Technology",
- "sector_3m_median_pct": 22.3,
- "sector_breadth_pct": 67.0,
- "leader": {
-  "symbol": "DELL",
-  "name": "Dell Technologies Inc.",
-  "r3m": 181.0,
-  "r1m": 76.2
- },
- "n_laggards": 14
-}
-
-### beta-laggards groups[0].laggards[0]
-{
- "symbol": "APP",
- "name": "AppLovin Corporation",
- "beta": 2.455,
- "r1m": -2.6179,
- "r3m": 8.34218,
- "gap_vs_leader_pp": 172.7,
- "catch_up_score": 92.7,
- "price": 496.77,
- "price_target": 682.5,
- "upside_pct": 32.8,
- "fundamental_note": "EPS still growing 11026%; analysts rate it buy; Altman-Z 22.5 (financially sound)",
- "why": "Technology is working  the sector is up a median 22% over 3 months with 67% of names participating. The leader DELL has already run +181%, but APP is up only +8%  a 173-point gap. With a beta of 2.46 and healthy fundamentals (EPS still growing 11026%; analysts rate it buy; Altman-Z 22.5 (financially sound)), it is the kind of high-beta laggard that tends to close the gap once rotation broadens. Analyst target $682.50 (+33%).",
- "risk": "High beta cuts both ways  if Technology rolls over, this name falls faster than the leader. Catch-up is a rotation tendency, 
-
-### beta-laggards top_candidates[0]
-{
- "symbol": "APP",
- "name": "AppLovin Corporation",
- "beta": 2.455,
- "r1m": -2.6179,
- "r3m": 8.34218,
- "gap_vs_leader_pp": 172.7,
- "catch_up_score": 92.7,
- "price": 496.77,
- "price_target": 682.5,
- "upside_pct": 32.8,
- "fundamental_note": "EPS still growing 11026%; analysts rate it buy; Altman-Z 22.5 (financially sound)",
- "why": "Technology is working  the sector is up a median 22% over 3 months with 67% of names participating. The leader DELL has already run +181%, but APP is up only +8%  a 173-point gap. With a beta of 2.46 and healthy fundamentals (EPS still growing 11026%; analysts rate it buy; Altman-Z 22.5 (financially sound)), it is the kind of high-beta laggard that tends to close the gap once rotation broadens. Analyst target $682.50 (+33%).",
- "risk": "High beta cuts both ways  if Technology rolls over, this name falls faster than the leader. Catch-up is a rotation tendency, 
-
-### sympathetic top_setups[0]
-{
- "peer_group": "uranium",
- "leader": "UEC",
- "laggard": "URNM",
- "leader_5d_pct": 21.23,
- "laggard_5d_pct": 10.9,
- "divergence_sigma": 2.48,
- "correlation_90d": 0.86,
- "laggard_rsi14": 42.0,
- "score": 0.712,
- "expected_catchup_pct": 6.0,
- "trade_ticket": {
-  "ticker": "URNM",
-  "side": "LONG",
-  "rationale": "Peer UEC +21.2%, URNM lags by 2.5sigma in uranium",
-  "target_pct": 6.0,
-  "stop_pct": -3.5,
-  "holding_days": "5-15",
-  "size_pct_portfolio": 1.5
- }
-}
-
-### supply-chain entries[0] keys: ['ticker', 'company_name', 'sector', 'n_customers', 'n_suppliers', 'customers', 'suppliers', 'geographic_concentration_pct', 'concentration_flags', 'n_high_severity_flags', 'centrality_score', 'is_systemic_hub', 'narrative']
-
-### supply-chain entries[0].suppliers
-[]
-
-### supply-chain entries[0].customers
-[]
-
-### options-flow all_qualifying[0]
-{
- "symbol": "AVGO",
- "score": 78.0,
- "tier": "TIER_A_BULLISH_FLOW",
- "flags": [
-  "CPR_SURGING",
-  "CALL_VOL_3X",
-  "ABS_CPR_3X"
- ],
- "metrics": {
-  "spot": 392.9,
-  "n_call_contracts": 10,
-  "n_put_contracts": 10,
-  "avg_cpr_recent_5d": 3.2,
-  "avg_cpr_older": 0.77,
-  "cpr_change_pct": 313.8,
-  "total_call_vol_5d": 88104,
-  "total_put_vol_5d": 37670,
-  "call_vol_surge": 18.23,
-  "short_metrics": {
-   "recent_avg_short_pct": 43.9,
-   "older_avg_short_pct": 38.0,
-   "short_pct_change": 5.92,
-   "avg_total_vol_5d": 9764609,
-   "n_finra_days": 20
-  }
- }
-}
-
-### stealth top_smart_money_only[0]
-{
- "ticker": "PEP",
- "strength": 54,
- "pattern": "",
- "n_funds_buying": 0,
- "score": 81.7,
- "evidence": " (0 funds)"
-}
-
-### stealth top_options_flow_only[0]
-"EMPTY"
-
-### universe cap_buckets
-[
+source: aws/lambdas/justhodl-theme-second-wave/source/lambda_function.py
+CREATED arn:aws:lambda:us-east-1:857687956942:function:justhodl-theme-second-wave
+RULE wired (daily 14:00 UTC)
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_hot_themes\": 10, \"n_laggards\": 41, \"n_infrastructure\": 23, \"n_big_orders\": 41, \"n_top_picks\": 17}"}
+COUNTS: {'n_hot_themes': 10, 'n_infrastructure': 23, 'n_laggards': 41, 'n_big_orders': 41, 'n_smallcap_big_orders': 0, 'n_top_picks': 17}
+TOP PICKS: [
  {
-  "name": "nano",
-  "low": 5000000,
-  "high": 50000000
+  "symbol": "CDNA",
+  "name": "CareDx, Inc",
+  "theme": "ARK Genomic Revolution",
+  "cap_bucket": "small",
+  "is_small_cap": true,
+  "buckets": [
+   "infrastructure",
+   "laggard"
+  ],
+  "big_order_signals": [],
+  "conviction": 30
  },
  {
-  "name": "micro",
-  "low": 50000000,
-  "high": 300000000
+  "symbol": "NVDA",
+  "name": "NVIDIA Corporation",
+  "theme": "iShares Semiconductor",
+  "cap_bucket": "mega",
+  "is_small_cap": false,
+  "buckets": [
+   "big_order",
+   "laggard"
+  ],
+  "big_order_signals": [
+   "OPTIONS_UOA"
+  ],
+  "conviction": 20
  },
  {
-  "name": "small",
-  "low": 300000000,
-  "high": 2000000000
+  "symbol": "AVGO",
+  "name": "Broadcom Inc.",
+  "theme": "iShares Semiconductor",
+  "cap_bucket": "mega",
+  "is_small_cap": false,
+  "buckets": [
+   "big_order",
+   "laggard"
+  ],
+  "big_order_signals": [
+   "OPTIONS_UOA"
+  ],
+  "conviction": 20
  },
  {
-  "name": "mid",
-  "low": 2000000000,
-  "high": 10000000000
+  "symbol": "AMD",
+  "name": "Advanced Micro Devices, Inc.",
+  "theme": "iShares Semiconductor",
+  "cap_bucket": "mega",
+  "is_small_cap": false,
+  "buckets": [
+   "big_order",
+   "laggard"
+  ],
+  "big_order_signals": [
+   "OPTIONS_UOA"
+  ],
+  "conviction": 20
  },
  {
-  "name": "large",
-  "low": 10000000000,
-  "high": 200000000000
- },
- {
-  "name": "mega",
-  "low": 200000000000,
-  "high": 100000000000000
- }
-]
+  "symbol": "MKSI",
+  "name": "MKS Inc.",
+  "theme": "Invesco Dynamic Semis"
 
-### universe stocks[0]
-{
- "symbol": "NVDA",
- "name": "NVIDIA Corporation",
- "sector": "Technology",
- "industry": "Semiconductors",
- "exchange": "NASDAQ Global Select",
- "market_cap": 4967727100000,
- "price": 205.1,
- "cap_bucket": "mega",
- "source": "screener"
-}
+THEME SOXX (iShares Semiconductor) med=23.8% breadth={'n_constituents_checked': 15, 'outperforming_spy_20d': 10, 'breadth_outperform_pct': 66.7, 'n_above_ma50': 12, 'breadth_above_ma50_pct': 80.0} infra=0 lag=7 big=6
+   LAG NVDA   gap=31.0pp r20=-7.2% small=False sigs=['OPTIONS_UOA']
+   LAG AVGO   gap=28.2pp r20=-4.4% small=False sigs=['OPTIONS_UOA']
+   LAG MPWR   gap=25.2pp r20=-1.4% small=False sigs=[]
+   BIG LRCX   small=False sigs=['SHORT_COVERING', 'SHORT_COVERING']
+   BIG MU     small=False sigs=['OPTIONS_UOA']
+   BIG AMD    small=False sigs=['OPTIONS_UOA']
+
+THEME PSI (Invesco Dynamic Semis) med=31.9% breadth={'n_constituents_checked': 15, 'outperforming_spy_20d': 13, 'breadth_outperform_pct': 86.7, 'n_above_ma50': 14, 'breadth_above_ma50_pct': 93.3} infra=1 lag=6 big=4
+   LAG NVDA   gap=39.1pp r20=-7.2% small=False sigs=['OPTIONS_UOA']
+   LAG ADI    gap=31.9pp r20=0.0% small=False sigs=[]
+   LAG INTC   gap=22.6pp r20=9.3% small=False sigs=[]
+   INF MKSI   Hardware, Equipment & Part +26.3%
+   BIG LRCX   small=False sigs=['SHORT_COVERING', 'SHORT_COVERING']
+   BIG MU     small=False sigs=['OPTIONS_UOA']
+   BIG AMD    small=False sigs=['OPTIONS_UOA']
+
+THEME MTUM (iShares MSCI Momentum) med=9.3% breadth={'n_constituents_checked': 15, 'outperforming_spy_20d': 11, 'breadth_outperform_pct': 73.3, 'n_above_ma50': 11, 'breadth_above_ma50_pct': 73.3} infra=5 lag=7 big=6
+   LAG XOM    gap=22.7pp r20=-13.4% small=False sigs=[]
+   LAG WMT    gap=21.3pp r20=-12.0% small=False sigs=['OPTIONS_UOA']
+   LAG GOOGL  gap=15.5pp r20=-6.2% small=False sigs=['OPTIONS_UOA']
+   INF WDC    Computer Hardware          +56.2%
+   INF STX    Computer Hardware          +45.4%
+   INF CAT    Agricultural - Machinery   +11.1%
+   BIG LRCX   small=False sigs=['SHORT_COVERING', 'SHORT_COVERING']
+   BIG MU     small=False sigs=['OPTIONS_UOA']
+   BIG AMD    small=False sigs=['OPTIONS_UOA']
