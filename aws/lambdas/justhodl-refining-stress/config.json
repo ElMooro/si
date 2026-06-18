@@ -1,0 +1,16 @@
+{
+  "name": "justhodl-refining-stress",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 256,
+  "timeout_s": 120,
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Refining-margin / physical-energy stress: 3:2:1 crack, product cracks, Brent-WTI, Cushing stocks (EIA v2). Writes data/refining-stress.json daily.",
+  "env_keys": ["EIA_API_KEY", "DASH_BUCKET"],
+  "architectures": ["x86_64"],
+  "schedule": {
+    "rule_name": "justhodl-refining-stress-daily",
+    "cron": "cron(20 13 * * ? *)",
+    "description": "Daily refining-margin / physical-energy stress refresh 13:20 UTC"
+  }
+}
