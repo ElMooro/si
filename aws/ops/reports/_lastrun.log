@@ -1,2 +1,13 @@
-OK 200 https://justhodl-data-proxy.raafouis.workers.dev  surprise=HAWKISH basis=statement_tone assets=10
-OK 200 https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com  surprise=HAWKISH basis=statement_tone assets=10
+zip 43006
+CREATED
+scheduled
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 85.2, \"verdict\": \"FUNCTIONING\"}"}
+HEALTH 85.2 VERDICT FUNCTIONING | reds: ['Bank reserve balances'] | yellows: ['ON RRP balances', 'Hong Kong USD/HKD (band 7.75–7.85)']
+AI: {"error": "no json", "raw": "```json\n{\n  \"state\": \"FUNCTIONING\",\n  \"summary\": \"The eurodollar market is functioning normally, evidenced by well-anchored domestic repo rates, tight credit sp"}
+  us_core : SOFR − IORB=-2.0bp[green], SOFR 99th pct − IORB=6.0bp[green], ON RRP balances=6.8$bn[yellow], Bank reserve balances=3080.7$tn[red], Treasury General Account=828.12$tn[info], EFFR − IORB=-2.0bp[green]
+  bank_funding : 3M financial CP − SOFR=13.0bp[green], 3M nonfinancial CP − SOFR=6.0bp[green], SOFR − 3M T-bill=-1.0bp[green]
+  credit : HY credit OAS=3.0bp[green], IG credit OAS=1.0bp[green]
+  backstops : Fed central-bank liquidity swaps=0.03$bn[green]
+  settlement : 
+  fx : Broad trade-weighted USD=119.51idx[green], Cross-currency basis=Nonebp[unavailable]
+  hubs : Hong Kong USD/HKD=7.8374[yellow], USD/JPY=160.84[info]
