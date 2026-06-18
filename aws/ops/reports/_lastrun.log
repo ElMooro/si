@@ -1,77 +1,11 @@
-=== CL_BS_ITEM len=97291 ===
-  ITEM A78    = Remaining assets - o/w claims/capital injections into non-resident bra
-  ITEM A80    = External assets (net)
-  ITEM AT9    = Loans and securities [AT2] and net external assets [A80]
-  ITEM AXG    = External assets
-  ITEM L20    = Deposit liabilities
-  ITEM L20CP  = Deposit liabilities - o/w notional cash-pooling
-  ITEM L4Y    = Debt security issued excluding the non-resident holdings for maturity 
-  ITEM L78    = Remaining liabilities - o/w liability to non-resident branches/offices
-  ITEM LXG    = External liabilities
-=== CL_AREA len=155540 (rest-of-world candidates) ===
-  AREA D0    = Extra-EU (changing composition)
-  AREA D09   = Extra-EU (changing composition) not allocated
-  AREA D1    = Extra-EU 12 (fixed composition) as of 1 November 1993
-  AREA D2    = Extra-EU 15 (fixed composition) as of 1 January 1995
-  AREA D3    = Extra-EU 25 (fixed composition) as of 1 May 2004
-  AREA D4    = Extra-EU 27 (fixed composition) as of 1 January 2007
-  AREA D5    = Extra-EU 28 (fixed composition) as of 1 July 2013
-  AREA D5A   = Extra-EU 28 (fixed composition) excluding BR, CA, CN, IN, JP, RU, CH, 
-  AREA D5B   = Extra-EU 28 (fixed composition) excluding CA, CN, HK, JP, CH, US, R12,
-  AREA D5C   = Extra-EU 28 (fixed composition) excluding CA, RU, CH, TR, US, F2, E4, 
-  AREA D5D   = Extra-EU 28 (fixed composition), as of 1 July 2013 excluding BR, CA, C
-  AREA D6    = Extra-EU 27 (fixed composition) as of 31 January 2020 (brexit)
-  AREA D6A   = Extra-EU 27 (fixed composition), as of 31 January 2020 (brexit), exclu
-  AREA D6B   = Extra-EU 27 (fixed composition), as of 31 January 2020 (brexit), exclu
-  AREA D6C   = Extra-EU 27 (fixed composition), as of 31 January 2020 (brexit), exclu
-  AREA D6D   = Extra-EU 27 (fixed composition), as of 31 January 2020 (brexit), exclu
-  AREA G1    = Extra European Economic Area (EEA)
-  AREA J1    = Extra-Euro area 11 (fixed composition) as of 1 January 1999
-  AREA J10   = Extra-Euro area 21 (fixed composition) as of 1 January 2026
-  AREA J109  = Extra-Euro area 21 (fixed composition) not allocated as of 1 January 2
-  AREA J19   = Extra-Euro area 11 (fixed composition) not allocated as of 1 January 1
-  AREA J2    = Extra-Euro area 12 (fixed composition) as of 1 January 2001
-  AREA J29   = Extra-Euro area 12 (fixed composition) not allocated as of 1 January 2
-  AREA J3    = Extra-Euro area 13 (fixed composition) as of 1 January 2007
-  AREA J39   = Extra-Euro area 13 (fixed composition) not allocated as of 1 January 2
-  AREA J4    = Extra-Euro area 15 (fixed composition) as of 1 January 2008
-  AREA J49   = Extra-Euro area 15 (fixed composition) not allocated as of 1 January 2
-  AREA J5    = Extra-Euro area 16 (fixed composition) as of 1 January 2009
-  AREA J59   = Extra-Euro area 16 (fixed composition) not allocated as of 1 January 2
-  AREA J6    = Extra-Euro area 17 (fixed composition) as of 1 January 2011
-  AREA J69   = Extra-Euro area 17 (fixed composition) not allocated as of 1 January 2
-  AREA J7    = Extra-Euro area 18 (fixed composition) as of 1 January 2014
-  AREA J79   = Extra-Euro area 18 (fixed composition) not allocated as of 1 January 2
-  AREA J8    = Extra-Euro area 19 (fixed composition) as of 1 January 2015
-  AREA J89   = Extra-Euro area 19 (fixed composition) not allocated as of 1 January 2
-  AREA J9    = Extra-Euro area 20 (fixed composition) as of 1 January 2023
-  AREA J99   = Extra-Euro area 20 (fixed composition) not allocated as of 1 January 2
-  AREA Q1    = EU 27 member states, outside the euro area 13, excluding DK, SE, GB (C
-  AREA Q2    = EU 27 member states, outside the euro area 15, excluding DK, SE, GB (C
-  AREA Q3    = EU 27 member states, outside the euro area 16, excluding DK, SE, GB (C
-  AREA Q4    = EU 27 member states, outside the euro area 17, excluding DK, SE, GB (C
-  AREA Q5    = EU 28 member states, outside the euro area 17, excluding DK, SE, GB (C
-  AREA Q6    = EU 28 member states, outside the euro area 18, excluding DK, SE, GB (C
-  AREA Q7    = EU 28 member states, outside the euro area 19, excluding DK, SE, GB (C
-  AREA Q8    = EU 27 member states, outside the euro area 20, excluding DK, SE (CZ,HU
-  AREA Q9    = EU 27 member states, outside the euro area 21, excluding DK, SE (CZ,HU
-  AREA U3    = Intra EU Extra Euro Area (EU Member States and institutions not belong
-  AREA U30   = Intra EU Extra Euro Area (changing composition) excluding EU instituti
-  AREA U31   = Intra EU Extra Euro Area (EU member states and institutions not belong
-  AREA U39   = Intra EU Extra Euro Area (changing composition) not allocated
-  AREA U4    = Extra Euro area (changing composition)
-  AREA U49   = Extra-Euro area (changing composition) not allocated
-  AREA W08   = Domestic vis-a-vis world plus rest of the world vis-a-vis domestic
-  AREA W1    = Rest of the World
-  AREA W10   = Rest of the world excluding International Organisations
-  AREA W11   = Rest of the World excluding EU countries
-  AREA W12   = Rest of the World excluding IO and not allocated
-  AREA W19   = Rest of the World (non allocated geographically)
-  AREA W190  = Rest of the World (non allocated geographically) plus IO
-  AREA W1X1  = Rest of the World excluding IMF
-  AREA W29   = Non-resident in the economic territory
-=== serieskeysonly probes ===
-  [M.U2.N.A.A80.A.1.U4.0000.USD.E] -> ERR HTTPError :: HTTP Error 404: Not Found :: {"type":"/service/data/BSI/M.U2.N.A.A80.A.1.U4.0000.USD.E","title":"Not Found","status":404,"detail":"No results found.","instance":"/
-  [M.U2.N.A.L80.A.1.U4.0000.USD.E] -> ERR HTTPError :: HTTP Error 404: Not Found :: {"type":"/service/data/BSI/M.U2.N.A.L80.A.1.U4.0000.USD.E","title":"Not Found","status":404,"detail":"No results found.","instance":"/
-  [M.U2.N.A.A80.A.1.W0.0000.USD.E] -> ERR HTTPError :: HTTP Error 404: Not Found :: {"type":"/service/data/BSI/M.U2.N.A.A80.A.1.W0.0000.USD.E","title":"Not Found","status":404,"detail":"No results found.","instance":"/
-  [M.U2.N.A.A80.A.4.U4.0000.USD.E] -> ERR HTTPError :: HTTP Error 404: Not Found :: {"type":"/service/data/BSI/M.U2.N.A.A80.A.4.U4.0000.USD.E","title":"Not Found","status":404,"detail":"No results found.","instance":"/
+=== DSD len=33021 ===
+dimension order: []
+=== serieskeysonly trials ===
+  [M.U2...AXG.....USD.] -> ERR HTTPError HTTP Error 404: Not Found {"type":"/service/data/BSI/M.U2...AXG.....USD.","title":"Not Found","status":404,"detail":"No results found.","instance"
+  [M.U2...LXG.....USD.] -> ERR HTTPError HTTP Error 404: Not Found {"type":"/service/data/BSI/M.U2...LXG.....USD.","title":"Not Found","status":404,"detail":"No results found.","instance"
+  [M.U2..A.AXG....USD.] -> ERR HTTPError HTTP Error 400: Bad Request <html lang="en"><head><title>European Central Bank</title><style type="text/css"> body{ font-family: "Droid Sans", san
+  [M.U2..U.AXG....USD.] -> ERR HTTPError HTTP Error 400: Bad Request <html lang="en"><head><title>European Central Bank</title><style type="text/css"> body{ font-family: "Droid Sans", san
+  [M.U2...AXG.....USD] -> ERR HTTPError HTTP Error 400: Bad Request <html lang="en"><head><title>European Central Bank</title><style type="text/css"> body{ font-family: "Droid Sans", san
+  [M.U2.N.A.AXG.A.1.U4..USD.E] -> ERR HTTPError HTTP Error 404: Not Found {"type":"/service/data/BSI/M.U2.N.A.AXG.A.1.U4..USD.E","title":"Not Found","status":404,"detail":"No results found.","in
+  [M.U2...AXG....USD.] -> ERR HTTPError HTTP Error 400: Bad Request <html lang="en"><head><title>European Central Bank</title><style type="text/css"> body{ font-family: "Droid Sans", san
+  [M.U2...AXG......USD.] -> ERR HTTPError HTTP Error 400: Bad Request <html lang="en"><head><title>European Central Bank</title><style type="text/css"> body{ font-family: "Droid Sans", san
