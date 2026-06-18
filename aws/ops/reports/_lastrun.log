@@ -1,11 +1,7 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 89.4, \"verdict\": \"FUNCTIONING\"}"}
-health=89.4 verdict=FUNCTIONING composite_score=10.6
-country-hub metrics (7):
-  [green] HK Aggregate Balance = 53.88HK$bn (asof 2026-06-18)
-  [yellow] HK USD/HKD vs 7.85 weak side = 7.83708 (asof 2026-06-18)
-  [yellow] HK HIBOR − SOFR = -80.3bp (asof 2026-06-18)
-  [green] Offshore yuan CNH−CNY (escape valve) = 19.0pips (asof None)
-  [green] CNH HIBOR overnight (offshore-yuan funding) = 1.452% (asof 17/06/2026)
-  [green] CNH HIBOR 3-month (term offshore-yuan) = 1.63% (asof 17/06/2026)
-  [info] USD/JPY (hedging-cost context) = 161.09 (asof None)
-CNH HIBOR legs present: 2 -> LIVE FETCH OK
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 88.2, \"verdict\": \"FUNCTIONING\"}"}
+health=88.2 verdict=FUNCTIONING composite_score=11.8
+FX/offshore-strain metrics:
+  [green] Broad trade-weighted USD = 119.51idx — A surging dollar tightens offshore funding; proxy for c
+  [yellow] Fed custody of USTs for foreign central banks (13wk Δ) = -3.41% — FRBNY-held Treasuries for foreign official accounts (le
+  [unavailable] Cross-currency basis (EUR/JPY/GBP…) = Nonebp — True basis needs an FX forward/swap-points feed (not in
+foreign-custody indicator present: True -> -3.41
