@@ -1,4 +1,12 @@
-JSON: deals=7 green=3 yellow=1  has_highlight_field=True has_vs_mc=True
-GREEN: [('AMMX', 196.93, 35.6), ('P-PLYR', None, 9999.0), ('QMCO', 10.31, 3.6)]
-  attempt 1: code=404
-PAGE LIVE: https://justhodl.ai/deal-scanner.html (200) bytes=13342  contains green-tier logic=True
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/1864_dealscanner_ai.py", line 7, in <module>
+    lam.update_function_code(FunctionName=FN,ZipFile=buf.getvalue())
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-deal-scanner
