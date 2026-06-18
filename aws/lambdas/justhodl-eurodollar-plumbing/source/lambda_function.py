@@ -114,6 +114,36 @@ def cnh_hibor():
     return out
 
 
+def ofr_fsi():
+    """OFR Financial Stress Index (financialresearch.gov, free daily CSV, no key). Columns:
+    Date, OFR FSI, Credit, Equity valuation, Safe assets, Funding, Volatility, United States,
+    Other advanced economies, Emerging markets. Returns {date, fsi, funding, other_adv, em} from
+    the last row, or {}. FSI is signed (>0 = above-average stress); category cols are contributions."""
+    try:
+        txt = http_get("https://www.financialresearch.gov/financial-stress-index/data/fsi.csv").decode("utf-8", "ignore")
+    except Exception as e:
+        print("[ed] ofr fsi: %s" % e)
+        return {}
+    lines = [l for l in txt.splitlines() if l.strip()]
+    if len(lines) < 2:
+        return {}
+    hdr = [h.strip().lower() for h in lines[0].split(",")]
+    def idx(name):
+        return hdr.index(name) if name in hdr else None
+    i_fsi, i_fund = idx("ofr fsi"), idx("funding")
+    i_oa, i_em = idx("other advanced economies"), idx("emerging markets")
+    for ln in reversed(lines[1:]):
+        c = ln.split(",")
+        if i_fund is None or len(c) <= i_fund:
+            continue
+        if num(c[i_fund]) is not None:
+            return {"date": c[0], "fsi": num(c[i_fsi]) if i_fsi is not None else None,
+                    "funding": num(c[i_fund]),
+                    "other_adv": num(c[i_oa]) if (i_oa is not None and len(c) > i_oa) else None,
+                    "em": num(c[i_em]) if (i_em is not None and len(c) > i_em) else None}
+    return {}
+
+
 def gj(key):
     try:
         return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
@@ -190,6 +220,17 @@ def build_layers():
     if bv is not None and sv2 is not None:
         bank.append(metric("bill_ois", "SOFR − 3M T-bill", round((sv2 - bv) * 100, 1), "bp",
                             flag(round((sv2 - bv) * 100, 1), 20, 45), "Wide spread = flight-to-bills / collateral scramble", asof=bd))
+    fsi = ofr_fsi()
+    if fsi.get("funding") is not None:
+        fc = round(fsi["funding"], 3)
+        st = "green" if fc <= 0 else "yellow" if fc <= 0.5 else "red"
+        bank.append(metric("ofr_fsi_funding", "OFR FSI — funding stress contribution", fc, "σ", st,
+                           "Office of Financial Research daily stress index, funding category — its signed contribution "
+                           "to total stress (>0 = above-average funding stress). Independent 33-variable cross-check; "
+                           "headline OFR FSI %s, other-advanced %s, EM %s."
+                           % (("%.2f" % fsi["fsi"]) if fsi.get("fsi") is not None else "n/a",
+                              ("%.2f" % fsi["other_adv"]) if fsi.get("other_adv") is not None else "n/a",
+                              ("%.2f" % fsi["em"]) if fsi.get("em") is not None else "n/a"), asof=fsi.get("date")))
     layers["bank_funding"] = {"title": "Bank & short-term funding", "metrics": bank}
 
     # ---- Layer 3: credit backdrop ----
@@ -211,6 +252,22 @@ def build_layers():
         swvb = round(swv / 1000, 2)  # millions → $bn
         back.append(metric("fed_swaps", "Fed central-bank liquidity swaps", swvb, "$bn",
                             flag(swvb, 1, 10), "Dollars lent to ECB/BoE/BoJ/SNB/BoC. ~0 normally; ANY sustained rise = offshore dollar shortage (peaked ~$450bn in 2020)", asof=swd))
+    fima = fred("H41RESPPALGTRFNWW")  # FIMA: Fed repo lending to foreign official accounts (H.4.1, weekly, $mn)
+    fimd, fimv = latest(fima)
+    if fimv is not None:
+        fimb = round(fimv / 1000, 2)  # $mn → $bn
+        back.append(metric("fima_repo", "Fed FIMA repo (foreign-official $ borrowing)", fimb, "$bn",
+                            flag(fimb, 1, 10), "Foreign central banks borrowing dollars from the Fed against their USTs "
+                            "rather than selling them. ~0 normally; ANY sustained use = offshore dollar shortage (the "
+                            "quieter alternative to dumping custody holdings).", asof=fimd))
+    srf = fred("WORAL")  # total Fed repo lending incl Standing Repo Facility take-up (H.4.1, weekly, $mn)
+    srd, srv = latest(srf)
+    if srv is not None:
+        srb = round(srv / 1000, 2)
+        back.append(metric("fed_repo_srf", "Fed repo / SRF take-up", srb, "$bn",
+                            flag(srb, 5, 50), "Total Fed repo lending incl. the Standing Repo Facility. ~0 in normal "
+                            "times; a spike = domestic repo stress / dealers tapping the backstop (Sept-2019 hit $100bn+).",
+                            asof=srd))
     layers["backstops"] = {"title": "Central-bank backstops", "metrics": back}
 
     # ---- Layer 5: settlement plumbing (reuse fails engine) ----
@@ -252,6 +309,17 @@ def build_layers():
                          "FRBNY-held Treasuries for foreign official accounts (level $%.2ftn). A sharp DROP = foreign "
                          "central banks selling/repo-ing USTs to raise scarce dollars — the classic dollar-shortage "
                          "tell (fell hard in 2015-16, 2018-19, Mar-2020, 2022)." % (cv2 / 1e6), asof=cd2))
+    netdue = fred("NDFACBW027SBOG")  # Net due to related foreign offices, all commercial banks (H.8, weekly, $bn)
+    ndd, ndv = latest(netdue)
+    if ndv is not None and len(netdue) > 13 and netdue[-14][1] is not None:
+        sw = round(ndv - netdue[-14][1], 0)  # 13-week $bn swing
+        st = "green" if abs(sw) < 80 else "yellow" if abs(sw) < 160 else "red"
+        direction = "inflow to US offices" if sw > 0 else "outflow — foreign offices pulling dollar funding"
+        fx.append(metric("net_due_foreign", "Net due to related foreign offices (13wk swing)", sw, "$bn", st,
+                         "Net dollars US-located banks (incl. foreign branches) owe their foreign parents — the "
+                         "balance-sheet footprint of eurodollar interbank funding. Level $%.0fbn; %+.0f$bn over 13wk "
+                         "(%s). Large rapid swings = cross-border dollar repositioning/stress." % (ndv, sw, direction),
+                         asof=ndd))
     fx.append(metric("xccy_basis", "Cross-currency basis (EUR/JPY/GBP…)", None, "bp", "unavailable",
                      "True basis needs an FX forward/swap-points feed (not in current data entitlements). Proxied above by broad-dollar strain; a dedicated CIP feed is the upgrade path."))
     layers["fx"] = {"title": "FX & offshore strain", "metrics": fx}
