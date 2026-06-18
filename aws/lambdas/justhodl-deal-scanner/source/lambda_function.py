@@ -33,6 +33,16 @@ s3 = boto3.client("s3", region_name="us-east-1")
 CAP_BOOST = {"nano": 35, "micro": 28, "small": 20, "mid": 8, "large": 3, "mega": 0}
 SMALL_BUCKETS = {"nano", "micro", "small"}
 
+AI_RE = re.compile(r'\bAI\b')
+AI_PHRASES = (
+    "a.i.", "artificial intelligence", "gpu", "gpus", "data center", "datacenter", "data-center",
+    "inference", "hyperscaler", "hyperscale", "nvidia", "large language model", "llm",
+    "machine learning", "accelerator", "high-performance computing", " hpc ", "neocloud",
+    "gpu cloud", "cloud compute", "compute capacity", "h100", "h200", "gb200", "blackwell",
+    "model training", "ai cluster", "ai infrastructure", "ai chip", "ai compute", "generative ai",
+    "ai server", "ai workload", "supercomputer", "foundation model", "ai data center",
+)
+
 # strong deal-win language (must hit at least one)
 # STRONG terms qualify on their own (high-confidence contract/order/supply wins)
 STRONG_DEAL = (
@@ -87,14 +97,19 @@ def _fmp(path):
         return None
 
 
-def fetch_prs(pages=8, limit=100):
+def fetch_news(pages=8, limit=100):
+    """Scan BOTH official company PRs and third-party financial news (catches widely-reported
+    billion-dollar deals that aren't self-announced)."""
     out = []
 
-    def one(p):
-        d = _fmp(f"news/press-releases-latest?page={p}&limit={limit}")
+    def one(args):
+        feed, p = args
+        d = _fmp(f"news/{feed}?page={p}&limit={limit}")
         return d if isinstance(d, list) else []
-    with ThreadPoolExecutor(max_workers=8) as ex:
-        for r in ex.map(one, range(pages)):
+    tasks = [("press-releases-latest", p) for p in range(pages)] + \
+            [("stock-latest", p) for p in range(pages)]
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        for r in ex.map(one, tasks):
             out.extend(r)
     return out
 
@@ -176,6 +191,32 @@ def highlight_tier(materiality_pct, vs_mc_pct, val):
     return "green" if big else "yellow" if mod else None
 
 
+def load_ai_universe():
+    try:
+        d = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/ai-infra-stack.json")["Body"].read())
+        return {n.get("symbol") for layer in d.get("stack", []) for n in layer.get("names", []) if n.get("symbol")}
+    except Exception:
+        return set()
+
+
+def ai_tag(symbol, title, text, ai_universe):
+    blob = (title or "") + " " + (text or "")
+    low = blob.lower()
+    kws = []
+    if AI_RE.search(blob):
+        kws.append("AI")
+    for p in AI_PHRASES:
+        if p.strip() in low:
+            kws.append(p.strip())
+    if symbol in ai_universe:
+        kws.append("ai-infra-name")
+    seen = []
+    for k in kws:
+        if k not in seen:
+            seen.append(k)
+    return (len(seen) > 0), seen[:5]
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     try:
@@ -186,7 +227,8 @@ def lambda_handler(event, context):
     except Exception:
         uni = {}
 
-    prs = fetch_prs(pages=8, limit=100)
+    prs = fetch_news(pages=8, limit=100)
+    ai_universe = load_ai_universe()
     now = datetime.now(timezone.utc)
     # dedupe + filter deals, keep freshest per (symbol,title)
     seen, deals_raw = set(), []
@@ -210,7 +252,8 @@ def lambda_handler(event, context):
         deals_raw.append({"symbol": sym, "title": title.strip(), "publisher": pr.get("publisher"),
                           "url": pr.get("url"), "published": pr.get("publishedDate"), "age_h": age_h,
                           "deal_value_usd": val, "deal_value_str": vstr,
-                          "multi_year": ("multi-year" in title.lower() or "multiyear" in title.lower())})
+                          "multi_year": ("multi-year" in title.lower() or "multiyear" in title.lower()),
+                          "text_snippet": (pr.get("text") or "")[:300]})
 
     # cross-ref revenue + cap for unique tickers (bounded)
     tickers = list({d["symbol"] for d in deals_raw})[:300]
@@ -222,6 +265,7 @@ def lambda_handler(event, context):
 
     deals = []
     for d in deals_raw:
+        txt = d.get("text_snippet", "")
         rev, mc, mu = info.get(d["symbol"], (None, None, uni.get(d["symbol"], {})))
         bkt = uni.get(d["symbol"], {}).get("cap_bucket") or bucket_of(mc)
         small = bkt in SMALL_BUCKETS
@@ -233,13 +277,19 @@ def lambda_handler(event, context):
             materiality = 9999.0  # pre-revenue / first major contract
         vs_mc = round(val / mc * 100, 2) if (val and mc) else None
         hl = highlight_tier(materiality, vs_mc, val)
+        ai_rel, ai_kws = ai_tag(d["symbol"], d["title"], txt, ai_universe)
+        is_billion = bool(val and val >= 1e9)
+        ai_mega = bool(ai_rel and ((vs_mc is not None and vs_mc >= 20) or is_billion))
         cb = CAP_BOOST.get(bkt, 5)
         rec = 0 if d["age_h"] is None else max(0, 30 - d["age_h"] / 8.0)
         mat_score = 0 if materiality is None else min(materiality, 300) / 3.0
         mc_score = 0 if vs_mc is None else min(vs_mc, 50) * 1.5
         size_score = 0 if not val else min(val / 1e7, 40)
         focus = 60 if hl == "green" else 25 if hl == "yellow" else 0   # spotlight big-vs-size deals
-        score = round(mat_score + mc_score + cb + rec + size_score + focus + (8 if d["multi_year"] else 0), 1)
+        ai_boost = 90 if ai_mega else 35 if ai_rel else 0              # AI thesis: float AI deals up
+        bil_boost = 45 if is_billion else 0                           # billion-dollar deals
+        score = round(mat_score + mc_score + cb + rec + size_score + focus + ai_boost + bil_boost
+                      + (8 if d["multi_year"] else 0), 1)
         why_bits = []
         if d["deal_value_str"]:
             why_bits.append(f"{d['deal_value_str']}{' multi-year' if d['multi_year'] else ''} deal")
@@ -251,16 +301,25 @@ def lambda_handler(event, context):
             why_bits.append(f"{materiality}% of annual revenue (${rev/1e6:.0f}M) — not yet in reported numbers")
         if vs_mc is not None:
             why_bits.append(f"{vs_mc}% of market cap")
+        if ai_mega:
+            why_bits.append("🤖 AI mega-deal — billions / large vs market cap")
+        elif ai_rel:
+            why_bits.append("🤖 AI-relevant")
         if small:
             why_bits.append(f"{bkt}-cap — single contract moves the needle")
-        deals.append({**d, "name": (mu or {}).get("name"), "cap_bucket": bkt, "market_cap": mc,
-                      "is_small_cap": small, "revenue_fy": rev, "materiality_pct": materiality,
-                      "vs_market_cap_pct": vs_mc, "highlight": hl,
-                      "score": score, "why": "; ".join(why_bits)})
+        deals.append({k: v for k, v in d.items() if k != "text_snippet"} | {
+            "name": (mu or {}).get("name"), "cap_bucket": bkt, "market_cap": mc,
+            "is_small_cap": small, "revenue_fy": rev, "materiality_pct": materiality,
+            "vs_market_cap_pct": vs_mc, "highlight": hl, "ai_relevant": ai_rel,
+            "ai_keywords": ai_kws, "is_billion": is_billion, "ai_megadeal": ai_mega,
+            "score": score, "why": "; ".join(why_bits)})
 
     deals.sort(key=lambda x: x["score"], reverse=True)
     green = [d for d in deals if d["highlight"] == "green"]
     yellow = [d for d in deals if d["highlight"] == "yellow"]
+    ai_deals = [d for d in deals if d["ai_relevant"]]
+    ai_mega = sorted([d for d in deals if d["ai_megadeal"]],
+                     key=lambda x: (x["vs_market_cap_pct"] or 0, x["deal_value_usd"] or 0), reverse=True)
     small_deals = [d for d in deals if d["is_small_cap"]]
     sized = [d for d in deals if d["deal_value_usd"]]
     high_mat = [d for d in deals if d["materiality_pct"] and d["materiality_pct"] >= 25]
@@ -273,6 +332,8 @@ def lambda_handler(event, context):
             "n_prs_scanned": len(prs), "n_deals": len(deals), "n_with_size": len(sized),
             "n_small_cap": len(small_deals), "n_high_materiality": len(high_mat),
             "n_green": len(green), "n_yellow": len(yellow),
+            "n_ai": len(ai_deals), "n_ai_mega": len(ai_mega),
+            "ai_megadeals": ai_mega, "ai_deals": ai_deals[:25],
             "green_highlights": green, "yellow_highlights": yellow[:20],
             "top_deals": deals[:20],
             "top_smallcap_deals": small_deals[:15],
@@ -289,7 +350,7 @@ def lambda_handler(event, context):
             "caveat": "size parsed from PR text (may misparse); 'not yet in revenue' inferred from announcement "
                       "freshness — a fresh award lags reported revenue by quarters",
         },
-        "sources": ["FMP news/press-releases-latest", "FMP income-statement", "universe", "FMP profile"],
+        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "FMP income-statement", "universe", "FMP profile", "ai-infra-stack (AI universe)"],
         "disclaimer": "Announcement-driven forward-revenue signal. Real data, research only — not advice.",
         "elapsed_s": round(time.time() - t0, 2),
     }
