@@ -1,7 +1,22 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 88.2, \"verdict\": \"FUNCTIONING\"}"}
-health=88.2 verdict=FUNCTIONING composite_score=11.8
-FX/offshore-strain metrics:
-  [green] Broad trade-weighted USD = 119.51idx — A surging dollar tightens offshore funding; proxy for c
-  [yellow] Fed custody of USTs for foreign central banks (13wk Δ) = -3.41% — FRBNY-held Treasuries for foreign official accounts (le
-  [unavailable] Cross-currency basis (EUR/JPY/GBP…) = Nonebp — True basis needs an FX forward/swap-points feed (not in
-foreign-custody indicator present: True -> -3.41
+=== 1) FRED Net Due to Related Foreign Offices NDFACBW027SBOG ===
+  latest: [('2026-06-03', '414.3631'), ('2026-05-27', '417.7233'), ('2026-05-20', '381.2537')]
+  units: Billions of U.S. Dollars | freq: Weekly, Ending Wednesday
+=== 2) FRED search: H.4.1 repo (FIMA foreign-official + Fed repo asset) ===
+  q='repurchase agreements foreign official':
+    WLRRAFOIAL | Weekly, As of Wednesday | Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: F
+    H41RESPPALGTRFNWW | Weekly, Ending Wednesday | Assets: Other: Repurchase Agreements - Foreign Official: Wednesday Lev
+    WREPOFOR | Weekly, Ending Wednesday | Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: F
+    H41RESPPALGTRFXAWNWW | Weekly, Ending Wednesday | Assets: Other: Repurchase Agreements - Foreign Official: Week Average
+    WLRRA | Weekly, As of Wednesday | Liabilities: Reverse Repurchase Agreements (DISCONTINUED)
+    RESPPLLRFXAWXCH1NWW | Weekly, Ending Wednesday | Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: F
+  q='assets repurchase agreements wednesday':
+    WORAL | Weekly, As of Wednesday | Assets: Other: Repurchase Agreements: Wednesday Level
+    H41RESPPALGTRFNWW | Weekly, Ending Wednesday | Assets: Other: Repurchase Agreements - Foreign Official: Wednesday Lev
+    WSRLL | Weekly, As of Wednesday | Assets: Other: Securities, Premiums, Discounts, Repurchase Agreements,
+    RATPRA | Weekly, Ending Wednesday | Resources and Assets: Tri-Party Repo Agreements, Repurchase Agreements
+    H41RESPPALGTRONWW | Weekly, Ending Wednesday | Assets: Other: Repurchase Agreements - Others: Wednesday Level
+    REP1690 | Weekly, As of Wednesday | Assets: Other: Repurchase Agreements: Maturing in 16 Days to 90 Days: 
+=== 3) OFR FSI endpoint discovery ===
+  OK https://www.financialresearch.gov/financial-stress-index/data/fsi.csv -> first120: Date,OFR FSI,Credit,Equity valuation,Safe assets,Funding,Volatility,United States,Other advanced economies,Emerging mark
+  OK https://www.financialresearch.gov/financial-stress-index/data/fsi.json -> first120: {   "OFRFSI": {     "name": "FSI",     "data": [       [         946857600000,         2.14       ],       [         946
+  OFR API stress search first200: []
