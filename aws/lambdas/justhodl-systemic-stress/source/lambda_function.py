@@ -284,6 +284,12 @@ def lambda_handler(event, context):
         else "Sovereign-stress data partial.")
 
     # ── 5. COMPOSITE STRESS SCORE (0-100) ──
+    # Offshore-USD funding stress (eurodollar plumbing) is a core systemic channel — a
+    # seizing dollar-funding system IS a systemic event — so it feeds the composite directly.
+    euro = read_existing("data/eurodollar-plumbing.json") or {}
+    euro_stress = euro.get("composite_score")
+    if euro_stress is None and isinstance(euro.get("plumbing_health"), (int, float)):
+        euro_stress = round(100 - euro["plumbing_health"], 1)
     parts, wts = [], []
     if ea_pct is not None:
         parts.append(ea_pct); wts.append(0.30)
@@ -296,6 +302,8 @@ def lambda_handler(event, context):
             worst_sov_pct = max(sov[c]["percentile"] for c in cand)
             parts.append(worst_sov_pct); wts.append(0.25)
     parts.append(frag_score); wts.append(0.20)
+    if isinstance(euro_stress, (int, float)):
+        parts.append(euro_stress); wts.append(0.20)   # offshore-USD funding (eurodollar plumbing)
     composite = (round(sum(p * w for p, w in zip(parts, wts)) / sum(wts), 1)
                  if parts else None)
     if composite is None:
@@ -334,6 +342,9 @@ def lambda_handler(event, context):
                       or (vixc.get("front") or {}).get("value")),
         "canary_grid_state": (cgrid.get("state") or cgrid.get("regime")
                               or cgrid.get("posture")),
+        "eurodollar_verdict": euro.get("verdict"),
+        "eurodollar_health": euro.get("plumbing_health"),
+        "eurodollar_funding_stress": euro_stress,
     }
 
     headline = (
