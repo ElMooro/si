@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-ai-infra-stack",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "AI-infrastructure stack map: silicon->equipment->memory->foundry->networking->optical->power/grid->cooling->datacenter buildout->datacenter REITs. Curated seeds + universe expansion, all-caps, small-cap tilt, momentum+flow+bottleneck overlay.",
+  "schedule": {
+    "rule_name": "ai-infra-stack-daily",
+    "cron": "cron(45 13 * * ? *)",
+    "description": "Daily AI-infra stack scan at 13:45 UTC"
+  }
+}
