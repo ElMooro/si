@@ -1,12 +1,5 @@
-  sector-flow attempt 1 code=404
-OK  sector-flow  live (200) marker present
-OK  index nav    live (200) marker present
-
-sector-rotation: risk_appetite={'score': 72.5, 'label': 'STRONG RISK-ON', 'components': 4}
-  macro_context type=dict sample={"macro_stress_score": 32.3, "regime_label": "NORMAL", "cycle_phase": "EXPANSION-MID", "expected_leaders": ["XLK", "XLF", "XLE", "XLI", "XLB
-  rotation_alerts type=dict len=-
-  summary={"n_sectors_analyzed": 11, "n_rotating_in": 1, "n_rotating_out": 0, "top_3_leaders": [{"sym": "XLK", "score": 89.8}, {"sym": "XLI", "score": 69.9}, {"sym": "XLF", "score": 66.6}], "bottom_3_laggards":
-
-etf-true-flows: n_inflows_nonzero=3 n_outflows=20
-  category_rotation type=list sample=[{"category": "DIVIDEND_VALUE", "net_flow_5d_usd": 1384840521.0, "n_etfs": 5}, {"category": "VOLATILITY", "net_flow_5d_usd": 0.0, "n_etfs": 3}, {"category": "RA
-  top inflow: {"ticker": "EWJ", "category": "INTERNATIONAL", "shares_outstanding": 239692165.0, "price": 96.19, "aum_est_b": 23.06, "net_flow_1d_usd": 475256129.0, "net_flow_
+  attempt 1 code=200
+OK sector-flow live w/ category rotation section
+rotation_alerts keys: ['rotating_in', 'rotating_out']
+  rotating_in: list len=1 e0={"sym": "XLU", "score": 48.1, "flags": ["RS_ACCELERATING", "VOLUME_THRUST", "MFI_BULLISH"]}
+  rotating_out: list = []
