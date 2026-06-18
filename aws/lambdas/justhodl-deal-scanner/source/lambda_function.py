@@ -51,6 +51,9 @@ DEAL_NEG = (
     "annual meeting", "appoints", "names new", "names ceo", "share repurchase", "buyback",
     "investor day", "to report", "schedules", "to participate", "completes offering", "registered direct",
     "reverse split", "regains compliance", "files for", "prospectus",
+    "to sell", "sell its", "sale of", "to acquire", "to be acquired", "divest", "to merge",
+    "innovation award", "wins award", "awards for", "best places", "named to the", "brand ambassador",
+    "sponsorship", "wins two", "ranked ", "recognized as", "voucher",
 )
 SIZE_RE = re.compile(r'\$\s?([\d][\d,]*(?:\.\d+)?)\s*(trillion|billion|bn|million|mn|b|m)\b', re.I)
 MULT = {"trillion": 1e12, "billion": 1e9, "bn": 1e9, "b": 1e9,
@@ -86,17 +89,24 @@ def fetch_prs(pages=8, limit=100):
     return out
 
 
-def parse_value(title, text):
+def _largest(blob):
     best, bstr = 0.0, None
-    for blob in (title or "", (text or "")[:600]):
-        for m in SIZE_RE.finditer(blob):
-            val = _num(m.group(1).replace(",", ""))
-            if val is None:
-                continue
-            val *= MULT.get(m.group(2).lower(), 1)
-            if val > best:
-                best, bstr = val, m.group(0).strip()
-    return (best if best > 0 else None), bstr
+    for m in SIZE_RE.finditer(blob or ""):
+        val = _num(m.group(1).replace(",", ""))
+        if val is None:
+            continue
+        val *= MULT.get(m.group(2).lower(), 1)
+        if val > best:
+            best, bstr = val, m.group(0).strip()
+    return best, bstr
+
+
+def parse_value(title, text):
+    tv, ts = _largest(title)          # prefer the figure in the headline
+    if tv > 0:
+        return tv, ts
+    xv, xs = _largest((text or "")[:600])
+    return (xv if xv > 0 else None), xs
 
 
 def is_deal(title, text):
