@@ -184,29 +184,23 @@ def build_layers():
     # ---- Layer 5: settlement plumbing (reuse fails engine) ----
     fails = gj("data/settlement-fails.json") or {}
     plumb = []
-
-    def _find_pctile(obj):
-        if isinstance(obj, dict):
-            if "percentile" in obj and isinstance(obj.get("percentile"), (int, float)):
-                return (obj.get("latest") or obj.get("value") or obj.get("level") or obj.get("total"),
-                        obj.get("percentile"))
-            for v in obj.values():
-                r = _find_pctile(v)
-                if r:
-                    return r
-        elif isinstance(obj, list):
-            for v in obj:
-                r = _find_pctile(v)
-                if r:
-                    return r
-        return None
-
-    fp = _find_pctile(fails)
-    if fp:
-        val, pct = fp
-        plumb.append(metric("ust_fails", "Treasury settlement fails", round(val, 0) if isinstance(val, (int, float)) else None,
-                            "$bn", flag(pct, 80, 95),
-                            "Fails-to-deliver/receive; collateral becomes hard to source when this spikes", round(pct, 1)))
+    hl = fails.get("headline") or {}
+    sig = fails.get("signal") or {}
+    val = hl.get("combined_bn")
+    pct = hl.get("pctile")
+    if val is not None and pct is not None:
+        plumb.append(metric("ust_fails", "Treasury settlement fails (UST ex-TIPS)",
+                            round(val, 0), "$bn", flag(pct, 80, 95),
+                            "Fails-to-deliver + receive; collateral becomes hard to source when this spikes (NY Fed FR2004 regime: %s)"
+                            % sig.get("regime", "?"),
+                            round(pct, 1), asof=fails.get("as_of")))
+    # per-class FTD/FTR detail (corporates + agency MBS are the secondary tells)
+    for cls in (fails.get("classes") or []):
+        lab = cls.get("label", "")
+        st = cls.get("stats") or {}
+        if lab and lab != hl.get("label") and st.get("latest") is not None and st.get("pctile") is not None:
+            plumb.append(metric("fails_%s" % lab[:6], "Fails · %s" % lab, round(st["latest"], 0), "$bn",
+                                flag(st["pctile"], 80, 95), "Secondary collateral-sourcing tell", round(st["pctile"], 1)))
     layers["settlement"] = {"title": "Settlement plumbing", "metrics": plumb}
 
     # ---- Layer 6: FX / offshore strain ----
