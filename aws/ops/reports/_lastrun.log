@@ -1,15 +1,4 @@
-deployed; last_modified=2026-06-18T20:03:36.000+0000 codesize=6423
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 1600, \"n_deals\": 6, \"n_small_cap\": 3, \"n_high_materiality\": 2}"}
-SUMMARY: items=1600 deals=6 green=3 ai=1 ai_mega=0
-opinion-noise (NBIS/GSK present?): NONE (clean)
-
-=== ALL DEALS ===
-  AMMX    nano   mc=197%    val=$5 Million    [G   ] AmeraMex International Wins Bid Worth $5 Milli
-  P-PLYR  ?      mc=n/a     val=$21 Million   [G   ] Polymarket and Splash Sports Announce Strategi
-  QMCO    micro  mc=10%     val=$10 million   [AIG ] Quantum Computing Inc. Announces Framework Agr
-  ULCC    small  mc=n/a     val=—             [-   ] Eos Energy Enterprises Announces First Purchas
-  APU     ?      mc=n/a     val=—             [-   ] Odysight.ai® Receives Purchase Order from Hone
-  OKLO    large  mc=n/a     val=—             [-   ] Oklo, Centrus Sign Letter of Intent to Purchas
-
-AI-RELEVANT: [('QMCO', '$10 million', ['AI'])]
-AI MEGA: none in window
+  deals page attempt 1 code=200
+  deals page attempt 2 code=200
+OK  deals page https://justhodl.ai/deal-scanner.html (200) marker 'AI Deals' present
+OK  index nav  https://justhodl.ai/index.html (200) marker 'deal-scanner.html' present
