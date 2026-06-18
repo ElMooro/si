@@ -1,8 +1,5 @@
-
-== USD x counterpart U4  key=M.U2......U4..USD. ==
-   ERR HTTP Error 404: Not Found {"type":"/service/data/BSI/M.U2......U4..USD.","title":"Not Found","status":404,"detail":"No results found.","instance":
-  BS_ITEMs available in USD vs U4: []
-
-== USD x counterpart W1  key=M.U2......W1..USD. ==
-   ERR HTTP Error 404: Not Found {"type":"/service/data/BSI/M.U2......W1..USD.","title":"Not Found","status":404,"detail":"No results found.","instance":
-  BS_ITEMs available in USD vs W1: []
+exists -> code updated
+scheduled: arn:aws:events:us-east-1:857687956942:rule/justhodl-refining-stress-daily
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"HEALTHY\", \"metrics\": 0, \"errors\": [\"RWTC HTTPError\", \"RBRTE HTTPError\", \"EER_EPMRU_PF4_Y35NY_DPG HTTPError\", \"EER_EPD2DXL0_PF4_Y35NY_DPG HTTPError\", \"W_EPC0_SAX_YCUOK_MBBL HTTPError\"]}"}
+REGIME=HEALTHY  | Refining margins firm (3:2:1 crack $n/a/bbl).
+errors: ['RWTC HTTPError', 'RBRTE HTTPError', 'EER_EPMRU_PF4_Y35NY_DPG HTTPError', 'EER_EPD2DXL0_PF4_Y35NY_DPG HTTPError', 'W_EPC0_SAX_YCUOK_MBBL HTTPError']
