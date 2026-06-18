@@ -1,12 +1,39 @@
-FUNCTION EXISTS: justhodl-eurodollar-plumbing | last_mod: 2026-06-18T13:35:01 | has ZAI/ANTHROPIC: False
-
-LIVE JSON: verdict=FUNCTIONING health=92.4 gen=2026-06-18T13:35:49Z
-AI: {"state": "FUNCTIONING", "summary": "The eurodollar market is working smoothly, evidenced by negligible central bank swap usage and well-contained funding spreads. Repo and commercial paper rates are stable relative to benchmarks, showing no signs of systemic stress. The only minor frictions are a rapidly depleting ON RRP facility and a slightly soft HKD, neither of which are currently disruptive.
-red_flags: [] | yellow_flags: ['ON RRP balances', 'Hong Kong USD/HKD (band 7.75–7.85)']
-  layer us_core        US money-market core         metrics=6 with_value=6
-  layer bank_funding   Bank & short-term funding    metrics=3 with_value=3
-  layer credit         Credit backdrop              metrics=2 with_value=2
-  layer backstops      Central-bank backstops       metrics=1 with_value=1
-  layer settlement     Settlement plumbing          metrics=0 with_value=0
-  layer fx             FX & offshore strain         metrics=2 with_value=1
-  layer hubs           Country hubs                 metrics=2 with_value=2
+TOP KEYS: ['engine', 'version', 'generated_at', 'as_of', 'signal', 'headline', 'classes', 'totals', 'source']
+signal: dict(3)
+  regime = ELEVATED
+  score = 49
+  drivers: list(2)
+    [0]:
+headline: dict(8)
+  label = U.S. Treasury (ex-TIPS)
+  combined_bn = 257.3
+  z = 0.5
+  pctile = 79.4
+  combined: list(688)
+    [0]:
+      [0]:
+classes: list(6)
+  [0]:
+    label = U.S. Treasury (ex-TIPS)
+    ftd: list(688)
+      [0]:
+    ftr: list(688)
+      [0]:
+    combined: list(688)
+      [0]:
+    ftd_latest = 128.92
+    ftr_latest = 128.35
+    stats: dict(11)
+      latest = 257.3
+      z = 0.5
+      pctile = 79.4
+totals: dict(3)
+  ftd: list(688)
+    [0]:
+      [0]:
+  ftr: list(688)
+    [0]:
+      [0]:
+  combined: list(688)
+    [0]:
+      [0]:
