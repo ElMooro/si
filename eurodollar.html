@@ -1,201 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Eurodollar &amp; Dollar Funding Stress · JustHodl.AI</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>💵</text></svg>">
+<title>Eurodollar Funding Plumbing · JustHodl.AI</title>
 <style>
-:root{
-  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
-  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
-  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
-}
-*{box-sizing:border-box}
-body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
-.container{max-width:1180px;margin:0 auto;padding:24px}
-header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
-h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
-h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
-.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
-nav.crumbs{margin-top:10px}
-nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
-nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
-.elq{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px;margin-bottom:14px}
-.elq .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
-.elq .num{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1.05;margin:4px 0}
-.elq .reg{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px}
-.elq .rd{color:var(--mute);font-size:12.5px;margin-top:9px;line-height:1.6}
-.gauge{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red));position:relative;margin:14px 0 4px}
-.gauge .mk{position:absolute;top:-5px;width:3px;height:21px;background:var(--txt);border-radius:2px;box-shadow:0 0 7px rgba(0,0,0,.9)}
-.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin-bottom:14px}
-.cell{background:var(--panel);border:1px solid var(--line);border-top-width:3px;border-radius:7px;padding:12px}
-.cell .cc{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.4px;color:var(--txt)}
-.cell .pct{font-family:var(--mono);font-size:21px;font-weight:700;margin:5px 0 1px}
-.cell .pl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;color:var(--dim);text-transform:uppercase}
-.cell .val{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:4px}
-.cell .dt{font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-top:4px}
-.cell .desc{font-size:10.5px;color:var(--dim);margin-top:7px;line-height:1.45}
-.panel{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:16px;margin-bottom:12px}
-.panel .t{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
-.panel .r{color:var(--mute);font-size:12.5px;margin-top:7px;line-height:1.6}
-.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.pill{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:5px;border:1px solid var(--line)}
-.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
-.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
-.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
-.err{color:var(--red);font-family:var(--mono);font-size:12px;padding:20px;text-align:center}
+:root{--bg:#0a0a0a;--c1:#131313;--bd:#262626;--fg:#e5e5e5;--fg2:#a3a3a3;--fg3:#666;
+--red:#ef4444;--green:#22c55e;--amber:#f59e0b;--gold:#eab308;--blue:#3b82f6;--cyan:#22d3ee;
+--mono:ui-monospace,'SF Mono',Menlo,monospace;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:13px;line-height:1.5;padding:18px;max-width:1180px;margin:0 auto;}
+.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+h1{font-size:20px;font-weight:700;}h1 .s{color:var(--fg3);font-weight:400;font-size:13px;}
+.nav a{color:var(--fg2);text-decoration:none;margin-left:14px;font-size:12px;}.nav a:hover{color:var(--gold);}
+.sec{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin:22px 0 10px;border-bottom:1px solid var(--bd);padding-bottom:5px;}
+.hero{border-radius:14px;padding:18px 20px;margin-bottom:10px;border:1px solid var(--bd);background:linear-gradient(180deg,#0e1512,#111);}
+.hero .lab{font-size:30px;font-weight:800;letter-spacing:.5px;}
+.hero .meta{font-family:var(--mono);font-size:11px;color:var(--fg2);margin-top:4px;}
+.gauge{height:10px;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:6px;overflow:hidden;margin:12px 0 4px;max-width:560px;}
+.gauge .fill{height:100%;border-radius:6px;}
+.hero .sum{font-size:13.5px;color:var(--fg);margin-top:12px;max-width:840px;}
+.hero .stl{font-size:12.5px;color:var(--fg2);margin-top:8px;max-width:840px;border-left:2px solid var(--gold);padding-left:10px;}
+.flags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.fl{font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;}
+.fl.red{background:#ef44441a;color:var(--red);border:1px solid #ef444455;}
+.fl.yellow{background:#f59e0b1a;color:var(--amber);border:1px solid #f59e0b55;}
+.fl.ok{background:#22c55e1a;color:var(--green);border:1px solid #22c55e44;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;}
+.card{background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;}
+.card h3{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.6px;color:var(--cyan);margin-bottom:8px;}
+.row{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-top:1px solid #1c1c1c;}
+.row:first-of-type{border-top:none;}
+.dot{width:9px;height:9px;border-radius:50%;margin-top:4px;flex:0 0 auto;}
+.dot.green{background:var(--green);}.dot.yellow{background:var(--amber);}.dot.red{background:var(--red);}
+.dot.info,.dot.unknown{background:#555;}
+.row .body{flex:1;}
+.row .nm{font-size:12.5px;font-weight:600;display:flex;justify-content:space-between;gap:8px;}
+.row .v{font-family:var(--mono);font-weight:700;white-space:nowrap;}
+.row .v.green{color:var(--green);}.row .v.yellow{color:var(--amber);}.row .v.red{color:var(--red);}.row .v.info,.row .v.unknown{color:var(--fg2);}
+.row .dt{font-size:11px;color:var(--fg3);margin-top:2px;}
+.row .px{font-family:var(--mono);font-size:9.5px;color:var(--fg3);}
+.drv{background:#0e1512;border:1px solid #22c55e22;border-radius:10px;padding:11px 14px;margin-bottom:8px;}
+.drv li{font-size:12px;color:var(--fg2);margin:3px 0 3px 16px;}
+.note{color:var(--fg3);font-size:10.5px;font-family:var(--mono);margin-top:18px;border-top:1px solid var(--bd);padding-top:8px;line-height:1.7;}
+.err{color:var(--red);font-family:var(--mono);font-size:12px;}
 </style>
-<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
-<div class="container">
-  <header>
-    <h1>💵 Eurodollar &amp; Dollar Funding Stress</h1>
-    <p class="subtitle">The <b>eurodollar system</b> is the offshore market for US dollars — the plumbing that funds global trade and leverage outside US borders. When dollars get scarce offshore, the whole system seizes: EM currencies dump, credit spreads blow out, and risk assets fall together. This composite scores <b>8 FRED-sourced funding-stress signals</b> on a 0–100 scale (percentile-ranked over 5 years), refreshed hourly. Higher = more dollar-funding stress. The 30Y-below-10Y inversion is the Hugh Hendry "catastrophe trigger."</p>
-    <nav class="crumbs">
-      <a href="/index.html">desk</a>
-      <a href="/systemic-stress.html">systemic stress</a>
-      <a href="/cb-injection.html">cb injection</a>
-      <a href="/ecb-detail.html">ecb detail</a>
-      <a href="/yen-carry.html">yen carry</a>
-      <a href="/dollar.html">dollar radar</a>
-    </nav>
-  </header>
-
-  <div id="hero"><div class="loading">LOADING DOLLAR FUNDING STRESS…</div></div>
-
-  <h2>The 8 Funding-Stress Signals</h2>
-  <div class="grid" id="sigGrid"></div>
-
-  <div id="context"></div>
-
-  <p class="note" id="note"></p>
-  <p class="timestamp" id="ts"></p>
+<div class="head">
+  <h1>Eurodollar Funding Plumbing <span class="s">· is the offshore dollar working or seizing?</span></h1>
+  <div class="nav"><a href="/">← home</a><a href="/plumbing.html">plumbing</a><a href="/sovereign.html">sovereign</a><a href="/repo.html">repo</a><a href="/directory.html">all pages</a></div>
 </div>
 
+<div id="hero" class="hero"><div class="lab" style="color:var(--fg3)">loading…</div></div>
+
+<div class="sec">AI desk read · key drivers</div>
+<div id="drivers" class="drv"></div>
+
+<div class="sec">The funding board · green normal · yellow watch · red stress</div>
+<div id="layers" class="grid"></div>
+
+<div id="note" class="note"></div>
+
 <script>
-const S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
-const J = (k) => fetch(S3 + k + "?_=" + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null);
-const num = (v, d = 1) => v == null ? "—" : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
-
-function scoreColor(s) {
-  if (s == null) return "var(--dim)";
-  if (s >= 85) return "var(--red)";
-  if (s >= 70) return "var(--orange)";
-  if (s >= 50) return "var(--yellow)";
-  if (s >= 30) return "var(--cyan)";
-  return "var(--green)";
-}
-function sevColor(sev) {
-  sev = (sev || "").toUpperCase();
-  if (/CRITICAL|CRISIS/.test(sev)) return "var(--red)";
-  if (/ELEVATED|STRESS/.test(sev)) return "var(--orange)";
-  if (/MODERATE|WATCH/.test(sev)) return "var(--yellow)";
-  if (/CALM|LOW|NORMAL/.test(sev)) return "var(--green)";
-  return "var(--cyan)";
-}
-
-function renderHero(d) {
-  const el = document.getElementById("hero");
-  const c = d.composite_score;
-  const col = scoreColor(c);
-  const pos = Math.max(0, Math.min(100, c == null ? 0 : c));
-  el.innerHTML = `
-    <div class="elq" style="border-left-color:${col}">
-      <div class="lab">Composite Dollar-Funding Stress</div>
-      <div class="num" style="color:${col}">${num(c)}<span style="font-size:18px;color:var(--dim)"> / 100</span></div>
-      <div class="reg" style="color:${sevColor(d.severity)}">${(d.severity || "—")} · ${(d.regime || "")}</div>
-      <div class="gauge"><div class="mk" style="left:calc(${pos}% - 1.5px)"></div></div>
-      <div class="gscale"><span>0 CALM</span><span>30</span><span>50 MODERATE</span><span>70 ELEVATED</span><span>85 CRITICAL</span><span>100</span></div>
-      <div class="rd">${d.n_signals_used}/${d.n_signals_total} signals live. Composite is the mean of all available signal scores, each percentile-ranked over a 5-year rolling window. ${d.n_failures > 0 ? `<span style="color:var(--orange)">${d.n_failures} signal(s) temporarily unavailable.</span>` : ""}</div>
-    </div>`;
-}
-
-function renderSignals(d) {
-  const grid = document.getElementById("sigGrid");
-  if (!d.signals || !d.signals.length) {
-    grid.innerHTML = `<div class="err">No signal data available</div>`;
-    return;
+const PX='https://justhodl-data-proxy.raafouis.workers.dev';
+const S3='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com';
+async function getJSON(path){
+  for(const u of [`https://justhodl.ai/${path}`,`${PX}/${path}`,`${S3}/${path}`]){
+    try{const r=await fetch(u,{cache:'no-store'});if(r.ok)return await r.json();}catch(e){}
   }
-  // Sort by score descending (most stressed first)
-  const sorted = [...d.signals].sort((a, b) => (b.score_0_100 || 0) - (a.score_0_100 || 0));
-  grid.innerHTML = sorted.map(s => {
-    const col = scoreColor(s.score_0_100);
-    return `
-      <div class="cell" style="border-top-color:${col}">
-        <div class="cc">${s.label}</div>
-        <div class="pct" style="color:${col}">${num(s.score_0_100)}</div>
-        <div class="pl">stress score · ${s.fred_series}</div>
-        <div class="val">value: ${num(s.value, 2)}</div>
-        <div class="dt">as of ${s.as_of || "—"}</div>
-        <div class="desc">${s.description || ""}</div>
-      </div>`;
-  }).join("");
+  throw new Error('fetch failed: '+path);
 }
+const VCOL={'FUNCTIONING':'var(--green)','MILD STRAIN':'var(--gold)','STRAINED':'var(--amber)','SEIZING':'var(--red)'};
+(async()=>{
+  let d; try{d=await getJSON('data/eurodollar-plumbing.json');}catch(e){
+    document.getElementById('hero').innerHTML='<div class="err">Could not load eurodollar-plumbing.json — the daily engine may not have run yet.</div>';return;}
+  const v=d.verdict||'—', col=VCOL[v]||'var(--fg2)', h=d.plumbing_health;
+  const ai=d.ai||{};
+  document.getElementById('hero').innerHTML=
+    `<div class="lab" style="color:${col}">${v}</div>
+     <div class="meta">Offshore U.S. dollar funding · plumbing-health ${h}/100 · ${(d.generated_at||'').replace('T',' ').replace('Z',' UTC')}</div>
+     <div class="gauge"><div class="fill" style="width:${Math.max(2,h)}%;background:${col}"></div></div>
+     ${ai.summary?`<div class="sum">${ai.summary}</div>`:''}
+     ${ai.short_term?`<div class="stl"><b style="color:var(--gold)">Short-term (1–4wk):</b> ${ai.short_term}</div>`:''}
+     <div class="flags">
+       ${(d.red_flags||[]).map(f=>`<span class="fl red">● ${f}</span>`).join('')}
+       ${(d.yellow_flags||[]).map(f=>`<span class="fl yellow">● ${f}</span>`).join('')}
+       ${(!d.red_flags?.length&&!d.yellow_flags?.length)?'<span class="fl ok">● all layers normal</span>':''}
+     </div>`;
 
-function renderContext(d) {
-  const el = document.getElementById("context");
-  let html = "";
-  if (d.hot_signals && d.hot_signals.length) {
-    html += `
-      <div class="panel" style="border-left-color:var(--red)">
-        <div class="t" style="color:var(--red)">⚠ Hot Signals (≥70 — active stress)</div>
-        <div class="pills">${d.hot_signals.map(s => `<span class="pill" style="border-color:var(--orange);color:var(--orange)">${s.label}: ${num(s.score)}</span>`).join("")}</div>
-        <div class="r">These funding indicators are in the top tertile of their 5-year stress range right now. Multiple hot signals firing together is the classic eurodollar-squeeze precondition.</div>
-      </div>`;
+  const drv=document.getElementById('drivers');
+  if(Array.isArray(ai.key_drivers)&&ai.key_drivers.length){
+    drv.innerHTML='<ul>'+ai.key_drivers.map(x=>`<li>${x}</li>`).join('')+'</ul>';
+  } else { drv.innerHTML='<div style="color:var(--fg3);font-family:var(--mono);font-size:11px">AI driver detail unavailable this run — board below is authoritative.</div>'; }
+
+  const wrap=document.getElementById('layers');
+  for(const [lk,lv] of Object.entries(d.layers||{})){
+    if(!lv.metrics||!lv.metrics.length) continue;
+    let rows='';
+    for(const m of lv.metrics){
+      const val=(m.value===null||m.value===undefined)?'n/a':m.value+(m.unit?(' '+m.unit):'');
+      rows+=`<div class="row"><div class="dot ${m.status}"></div><div class="body">
+        <div class="nm"><span>${m.label}</span><span class="v ${m.status}">${val}</span></div>
+        <div class="dt">${m.detail||''}</div>
+        ${(m.pctile!=null||m.asof)?`<div class="px">${m.pctile!=null?('pctile '+m.pctile+' · '):''}${m.asof||''}</div>`:''}
+      </div></div>`;
+    }
+    wrap.insertAdjacentHTML('beforeend',`<div class="card"><h3>${lv.title}</h3>${rows}</div>`);
   }
-  if (d.cold_signals && d.cold_signals.length) {
-    html += `
-      <div class="panel" style="border-left-color:var(--green)">
-        <div class="t" style="color:var(--green)">✓ Calm Signals (≤30 — abundant liquidity)</div>
-        <div class="pills">${d.cold_signals.map(s => `<span class="pill" style="border-color:var(--green);color:var(--green)">${s.label}: ${num(s.score)}</span>`).join("")}</div>
-        <div class="r">These indicators show dollars are flowing freely — a buffer against systemic seize-up.</div>
-      </div>`;
-  }
-  el.innerHTML = html;
-}
 
-(async function () {
-  const d = await J("eurodollar-stress.json");
-  if (!d) {
-    document.getElementById("hero").innerHTML = `<div class="err">Could not load eurodollar-stress.json — the hourly engine may not have run yet. Check back shortly.</div>`;
-    return;
-  }
-  renderHero(d);
-  renderSignals(d);
-  renderContext(d);
-  document.getElementById("note").innerHTML = `<b>Why this matters:</b> Most dollars exist <i>outside</i> the US banking system — banks, corporates, and governments worldwide borrow and lend USD they can't print. When that offshore funding tightens (strong dollar, widening credit spreads, repo dysfunction, collapsing bill yields from flight-to-safety), it acts like a margin call on the entire world. This is the mechanism behind 1997 Asia, 2008, and March 2020. Signals are percentile-ranked over 5 years; composite ≥70 = elevated risk of a broad de-risking event. <b>Source:</b> FRED (St. Louis Fed FSI, ICE BofA OAS, VIX, broad dollar index, T-bills, 10Y vol, SOFR–Fed Funds). Not investment advice.`;
-  document.getElementById("ts").textContent = "Updated " + (d.as_of ? new Date(d.as_of).toLocaleString() : "—") + " · refreshes hourly";
-})();
-</script>
-
-<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
-<script src="/interp-kit.js"></script>
-<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['DTWEXBGS','DEXUSEU','STLFSI4','NFCI','VIXCLS']);});</script>
-
-<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><div id="ai-decisive-call"></div><div id="jh-bl"></div><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">What This Means for Markets &amp; Risk Assets</h2><div id="jh-mtx"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">INTERPRETING…</div></div></div>
-<script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","eurodollar-decisive-call");</script>
-<script src="/interp-kit.js"></script>
-<script>
-(async function(){
-  var DATA_URL="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/eurodollar-stress.json";
-  var REGIME_PATHS=["severity", "regime", "composite_score"];
-  var BASE={"CALM": {"lead": "Stress is at calm-market levels \u2014 the risk-friendly default. Liquidity is flowing, spreads are tight, vol is suppressed.", "eq": ["BULLISH", "Low stress + ample liquidity supports multiple expansion."], "credit": ["BULLISH", "Tight spreads, easy refinancing."], "crypto": ["BULLISH", "Risk-on liquidity backdrop favors high-beta."], "gold": ["MIXED", "No haven urgency; depends on real rates."], "usd": ["BEARISH", "Risk-on rotates out of the dollar."], "dur": ["MIXED", "No flight-to-safety bid."]}, "LOW": {"lead": "Stress is low \u2014 calm market backdrop.", "eq": ["BULLISH", "Calm supports risk."], "credit": ["BULLISH", "Tight spreads."], "crypto": ["BULLISH", "Risk-on backdrop."], "gold": ["MIXED", "No haven urgency."], "usd": ["BEARISH", "Risk-on rotation."], "dur": ["MIXED", "No haven bid."]}, "NORMAL": {"lead": "Stress is at normal/median levels \u2014 no acute signal either way.", "eq": ["NEUTRAL", "No directional edge from stress alone."], "credit": ["NEUTRAL", "Spreads in normal range."], "crypto": ["NEUTRAL", "No clear regime signal."], "gold": ["NEUTRAL", "Balanced."], "usd": ["NEUTRAL", "Balanced."], "dur": ["NEUTRAL", "Range-bound."]}, "MODERATE": {"lead": "Stress is moderate \u2014 early cracks visible but not yet systemic. The market is starting to price in some risk.", "eq": ["MIXED", "Multiples vulnerable to further stress; defensives outperform."], "credit": ["CAUTION", "Spreads starting to widen; monitor HY closely."], "crypto": ["CAUTION", "High-beta begins to bleed before equities."], "gold": ["BULLISH", "Haven demand awakening."], "usd": ["MIXED", "Tug-of-war between rate-differential and haven flows."], "dur": ["BULLISH", "Flight-to-quality bid emerging."]}, "ELEVATED": {"lead": "Stress is elevated \u2014 material risk-off pressure. Forced de-risking is underway; correlations rising; liquidity thinning.", "eq": ["CAUTION", "De-risking pressure on equities; multiple compression."], "credit": ["BEARISH", "Spreads widening; refinancing risk rising."], "crypto": ["BEARISH", "Highest beta to liquidity tightening; first sold."], "gold": ["BULLISH", "Classic haven bid kicks in."], "usd": ["BULLISH", "King-dollar dynamics on global stress."], "dur": ["BULLISH", "Flight to Treasuries supports duration."]}, "HIGH": {"lead": "Stress is high \u2014 active de-risking, fear regime.", "eq": ["BEARISH", "Risk-off across equities."], "credit": ["BEARISH", "Spreads blowing wider."], "crypto": ["BEARISH", "Sold aggressively."], "gold": ["BULLISH", "Strong haven bid."], "usd": ["BULLISH", "Dollar safe-haven."], "dur": ["BULLISH", "Treasuries bid."]}, "CRITICAL": {"lead": "Stress is at CRITICAL levels \u2014 systemic-risk territory, the kind of reading seen during 2008, March 2020 and other crisis episodes. Liquidity may be impaired; correlations near 1.", "eq": ["BEARISH", "Crisis-level conditions; capitulation typically still ahead."], "credit": ["BEARISH", "Credit market dysfunction; widest spreads."], "crypto": ["BEARISH", "Total liquidation pressure; worst drawdowns."], "gold": ["BULLISH", "Pure haven demand."], "usd": ["BULLISH", "Global dollar squeeze drives USD strength."], "dur": ["BULLISH", "Flight-to-Treasuries is the strongest signal."]}, "RED": {"lead": "Stress is at RED/CRISIS levels \u2014 systemic-risk territory.", "eq": ["BEARISH", "Crisis-level."], "credit": ["BEARISH", "Dysfunction."], "crypto": ["BEARISH", "Capitulation pressure."], "gold": ["BULLISH", "Pure haven."], "usd": ["BULLISH", "Dollar squeeze."], "dur": ["BULLISH", "Treasury flight."]}, "EXTREME": {"lead": "Stress is EXTREME \u2014 extreme crisis conditions.", "eq": ["BEARISH", "Extreme."], "credit": ["BEARISH", "Maximum widening."], "crypto": ["BEARISH", "Forced liquidation."], "gold": ["BULLISH", "Haven."], "usd": ["BULLISH", "Haven."], "dur": ["BULLISH", "Haven."]}};
-  var TITLE="Dollar-Funding Regime → Risk-Asset Read";
-  var PRIMARY="DTWEXBGS";
-  var ref=null;try{ref=await JHKit.loadRef();}catch{}
-  var d=null;try{var r=await fetch(DATA_URL+"?t="+Date.now());if(r.ok)d=await r.json();}catch{}
-  if(!d){document.getElementById("jh-mtx").innerHTML="<div style=\"text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px\">data unavailable</div>";return;}
-  var regime="";
-  for(var i=0;i<REGIME_PATHS.length;i++){var v=d[REGIME_PATHS[i]];if(v!=null&&v!==""){regime=String(v).toUpperCase();break;}}
-  if(!regime||!BASE[regime]){var keys=Object.keys(BASE);regime=keys.find(function(k){return Object.keys(d).some(function(dk){return String(d[dk]).toUpperCase()===k;});})||keys[0];}
-  var pind=ref&&ref.indicators&&ref.indicators[PRIMARY]||{};var ne=pind.nearest_episode||{};
-  var baseR=BASE[regime]||BASE[Object.keys(BASE)[0]];
-  JHKit.renderBottomLine("jh-bl",{ref:ref,primary:PRIMARY,regimeRead:"Current regime is <b>"+regime+"</b>: "+(baseR.lead||""),net:""});
-  JHKit.renderAssetMatrix("jh-mtx",{regime:regime,baseMatrix:BASE,ref:ref,title:TITLE});
+  document.getElementById('note').innerHTML=
+    `${d.methodology||''}<br>${d.honesty||''}<br>Engine: ${d.engine} ${d.version} · generated ${d.generated_at||''}.`;
 })();
 </script>
 </body>
