@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-eurodollar-plumbing",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Offshore U.S. dollar funding monitor — 7 layers (US money-market core, bank funding, credit, central-bank swap-line backstops, settlement fails, FX strain, country hubs) graded green/yellow/red → composite plumbing-health 0-100 + GLM functioning/strained/seizing verdict & short-term lean. Output data/eurodollar-plumbing.json.",
+  "schedule": {"rule_name": "eurodollar-plumbing-daily", "cron": "cron(0 12 * * ? *)", "description": "Eurodollar funding plumbing daily 12:00 UTC"}
+}
