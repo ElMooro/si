@@ -1,30 +1,12 @@
-deployed
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 1900, \"n_deals\": 6, \"n_small_cap\": 3, \"n_high_materiality\": 2}"}
-DEAL-SCANNER: items=1900 deals=6 ai=1 green=3
-opinion-noise still present: NONE (clean)
-   AMMX    Newsfile C [G] AmeraMex International Wins Bid Worth $5 Milli
-   P-PLYR  Business W [G] Polymarket and Splash Sports Announce Strategi
-   QMCO    PRNewsWire [AIG] Quantum Computing Inc. Announces Framework Agr
-   ULCC    GlobeNewsW [] Eos Energy Enterprises Announces First Purchas
-   APU     GlobeNewsW [] Odysight.ai® Receives Purchase Order from Hone
-   OKLO    PRNewsWire [] Oklo, Centrus Sign Letter of Intent to Purchas
+  sector-flow attempt 1 code=404
+OK  sector-flow  live (200) marker present
+OK  index nav    live (200) marker present
 
-=== ALREADY-BUILT: ETF-TRUE-FLOWS (data/etf-true-flows.json) ===
-  keys: ['engine', 'version', 'generated_at', 'duration_s', 'n_etfs', 'maturity', 'method', 'inflows', 'outflows', 'category_rotation', 'by_etf']
-  [inflows] sample:
-     {'ticker': 'VTV', 'category': 'DIVIDEND_VALUE', 'shares_outstanding': 1122926024.0, 'price': 216.9, 'aum_est_b': 243.56, 'net_flow_1d_usd': 0.0}
-     {'ticker': 'IWM', 'category': 'BROAD_EQUITY_US', 'shares_outstanding': 281750266.0, 'price': 293.415, 'aum_est_b': 82.67, 'net_flow_1d_usd': 0.0}
-     {'ticker': 'EWJ', 'category': 'INTERNATIONAL', 'shares_outstanding': 239692165.0, 'price': 96.19, 'aum_est_b': 23.06, 'net_flow_1d_usd': 475256129.0}
-     {'ticker': 'AGG', 'category': 'CREDIT', 'shares_outstanding': 1396739148.0, 'price': 98.995, 'aum_est_b': 138.27, 'net_flow_1d_usd': 0.0}
-     {'ticker': 'RSP', 'category': 'BROAD_EQUITY_US', 'shares_outstanding': 436699524.0, 'price': 210.48, 'aum_est_b': 91.92, 'net_flow_1d_usd': 0.0}
-     {'ticker': 'XLI', 'category': 'SECTOR_EQUITY', 'shares_outstanding': 177428787.0, 'price': 181.4498, 'aum_est_b': 32.19, 'net_flow_1d_usd': 0.0}
+sector-rotation: risk_appetite={'score': 72.5, 'label': 'STRONG RISK-ON', 'components': 4}
+  macro_context type=dict sample={"macro_stress_score": 32.3, "regime_label": "NORMAL", "cycle_phase": "EXPANSION-MID", "expected_leaders": ["XLK", "XLF", "XLE", "XLI", "XLB
+  rotation_alerts type=dict len=-
+  summary={"n_sectors_analyzed": 11, "n_rotating_in": 1, "n_rotating_out": 0, "top_3_leaders": [{"sym": "XLK", "score": 89.8}, {"sym": "XLI", "score": 69.9}, {"sym": "XLF", "score": 66.6}], "bottom_3_laggards":
 
-=== ALREADY-BUILT: SECTOR-ROTATION (data/sector-rotation.json) ===
-  keys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'macro_context', 'risk_appetite', 'summary', 'sectors', 'ratios', 'rotation_alerts', 'finviz_rotation']
-  [sectors] sample:
-     {'symbol': 'XLI', 'name': 'Industrials', 'current_price': 180.69, 'cycle_fit_phases': ['EXPANSION-MID'], 'in_current_cycle': True, 'rotation_score': 69.3}
-     {'symbol': 'XLF', 'name': 'Financials', 'current_price': 53.61, 'cycle_fit_phases': ['EXPANSION-EARLY', 'EXPANSION-MID'], 'in_current_cycle': True, 'rotation_score': 66.2}
-     {'symbol': 'XLK', 'name': 'Technology', 'current_price': 191.43, 'cycle_fit_phases': ['EXPANSION-EARLY', 'EXPANSION-MID'], 'in_current_cycle': True, 'rotation_score': 64.3}
-     {'symbol': 'XLB', 'name': 'Materials', 'current_price': 51.85, 'cycle_fit_phases': ['EXPANSION-MID', 'EXPANSION-LATE'], 'in_current_cycle': True, 'rotation_score': 64.2}
-     {'symbol': 'XLY', 'name': 'Consumer Discretionary', 'current_price': 116.84, 'cycle_fit_phases': ['EXPANSION-EARLY'], 'in_current_cycle': False, 'rotation_score': 54.8}
-     {'symbol': 'XLC', 'name': 'Communications', 'current_price': 109.58, 'cycle_fit_phases': ['EXPANSION-EARLY', 'EXPANSION-MID'], 'in_current_cycle': True, 'rotation_score': 50.0}
+etf-true-flows: n_inflows_nonzero=3 n_outflows=20
+  category_rotation type=list sample=[{"category": "DIVIDEND_VALUE", "net_flow_5d_usd": 1384840521.0, "n_etfs": 5}, {"category": "VOLATILITY", "net_flow_5d_usd": 0.0, "n_etfs": 3}, {"category": "RA
+  top inflow: {"ticker": "EWJ", "category": "INTERNATIONAL", "shares_outstanding": 239692165.0, "price": 96.19, "aum_est_b": 23.06, "net_flow_1d_usd": 475256129.0, "net_flow_
