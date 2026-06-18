@@ -1,9 +1,11 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 88.6, \"verdict\": \"FUNCTIONING\"}"}
-health=88.6 verdict=FUNCTIONING composite_score=11.4
-country-hub metrics:
-  [green] HK Aggregate Balance = 53.88HK$bn — Sum of banks' HKMA clearing balances — the HK liquidity buff
-  [yellow] HK USD/HKD vs 7.85 weak side = 7.83708 — Band 7.75–7.85. At 7.85 the HKMA sells USD/buys HKD → Aggreg
-  [yellow] HK HIBOR − SOFR = -80.3bp — Offshore HKD funding cost vs USD risk-free. Deeply negative 
-  [green] Offshore yuan CNH−CNY (escape valve) = 11.0pips — Offshore (CNH 6.7716) minus onshore (CNY 6.7705) USD/RMB, in
-  [info] USD/JPY (hedging-cost context) = 160.99 — Japan is the largest offshore dollar borrower; basis/hedge c
-CNH escape-valve present: True
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 89.4, \"verdict\": \"FUNCTIONING\"}"}
+health=89.4 verdict=FUNCTIONING composite_score=10.6
+country-hub metrics (7):
+  [green] HK Aggregate Balance = 53.88HK$bn (asof 2026-06-18)
+  [yellow] HK USD/HKD vs 7.85 weak side = 7.83708 (asof 2026-06-18)
+  [yellow] HK HIBOR − SOFR = -80.3bp (asof 2026-06-18)
+  [green] Offshore yuan CNH−CNY (escape valve) = 19.0pips (asof None)
+  [green] CNH HIBOR overnight (offshore-yuan funding) = 1.452% (asof 17/06/2026)
+  [green] CNH HIBOR 3-month (term offshore-yuan) = 1.63% (asof 17/06/2026)
+  [info] USD/JPY (hedging-cost context) = 161.09 (asof None)
+CNH HIBOR legs present: 2 -> LIVE FETCH OK
