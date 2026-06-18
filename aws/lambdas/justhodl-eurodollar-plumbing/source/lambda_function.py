@@ -243,6 +243,15 @@ def build_layers():
         dh = [v for _, v in dollar]
         fx.append(metric("broad_dollar", "Broad trade-weighted USD", round(dv, 2), "idx",
                          flag(pctile(dv, dh), 75, 90), "A surging dollar tightens offshore funding; proxy for cross-currency strain", pctile(dv, dh), dd))
+    cust = fred("WMTSECL1")  # FRBNY custody of marketable USTs held for foreign official/intl accounts (weekly)
+    cd2, cv2 = latest(cust)
+    if cv2 is not None and len(cust) > 13 and cust[-14][1]:
+        chg = round((cv2 / cust[-14][1] - 1) * 100, 2)  # ~13-week % change
+        st = "green" if chg >= -1 else "yellow" if chg >= -4 else "red"
+        fx.append(metric("foreign_custody", "Fed custody of USTs for foreign central banks (13wk Δ)", chg, "%", st,
+                         "FRBNY-held Treasuries for foreign official accounts (level $%.2ftn). A sharp DROP = foreign "
+                         "central banks selling/repo-ing USTs to raise scarce dollars — the classic dollar-shortage "
+                         "tell (fell hard in 2015-16, 2018-19, Mar-2020, 2022)." % (cv2 / 1e6), asof=cd2))
     fx.append(metric("xccy_basis", "Cross-currency basis (EUR/JPY/GBP…)", None, "bp", "unavailable",
                      "True basis needs an FX forward/swap-points feed (not in current data entitlements). Proxied above by broad-dollar strain; a dedicated CIP feed is the upgrade path."))
     layers["fx"] = {"title": "FX & offshore strain", "metrics": fx}
