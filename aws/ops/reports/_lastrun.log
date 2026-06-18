@@ -1,8 +1,120 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"HEALTHY\", \"metrics\": 4, \"errors\": [], \"dq\": \"FMP front-month vs FRED spot diverge -10.9% \\u2014 FRED likely lagged to 2026-06-15\"}"}
-REGIME=HEALTHY | Refining margins firm (3:2:1 crack $48.09/bbl).
-data_quality: {"fmp_wti": 75.41, "fred_wti": 84.65, "fred_asof": "2026-06-15", "deviation_pct": -10.9, "note": "FMP front-month vs FRED spot diverge -10.9% \u2014 FRED likely lagged to 2026-06-15"}
-errors: []
-  [green] 3:2:1 crack spread (refining margin)     = 48.09$/bbl  (pctile 92.0, asof 2026-06-18)
-  [green] Gasoline crack (RBOB - WTI)              = 44.84$/bbl  (pctile 94.8, asof 2026-06-18)
-  [green] Distillate crack (heating oil - WTI)     = 54.6$/bbl  (pctile 84.3, asof 2026-06-18)
-  [green] Brent - WTI spread                       = 2.88$/bbl  (pctile 27.9, asof 2026-06-18)
+TOTAL .json objects in bucket: 33665
+
+=== objects by top-level prefix ===
+  data                   29535
+  archive                2586
+  equity-research-history 830
+  etf-flows              128
+  errors                 65
+  equity-research        62
+  edgar-insiders         55
+  13f-cache              50
+  equity-critique        50
+  screener               43
+  calibration            37
+  transcripts            37
+
+=== FRESHNESS DISTRIBUTION (all .json) ===
+  0 FRESH(<26h)    924
+  1 DAY(26-50h)    442
+  2 WEEK(2-8d)     1854
+  3 MONTH(8-32d)   3947
+  4 DEAD(>32d)     26498
+
+=== 30445 outputs >8 DAYS old (stale/dead candidates) ===
+   120.6d      264B  manifest.json
+   120.5d    29819B  archive/2026-02-17.json
+   120.2d    60635B  archive/2026-02-18.json
+   120.2d    60635B  data.json
+   119.0d   564376B  data/archive/report_20260219_1900.json
+   119.0d   622345B  data/archive/report_20260219_1906.json
+   119.0d   282471B  data/archive/report_20260219_1911.json
+   118.9d   282494B  data/archive/report_20260219_1916.json
+   118.9d   777678B  data/archive/report_20260219_1919.json
+   118.9d   996602B  data/archive/report_20260219_1940.json
+   118.9d  1004556B  data/archive/report_20260219_1955.json
+   118.9d  1099462B  data/archive/report_20260219_2015.json
+   118.9d  1686906B  data/archive/report_20260219_2050.json
+   118.9d  1687500B  data/archive/report_20260219_2059.json
+   118.9d  1698045B  data/archive/report_20260219_2119.json
+   118.9d  1676576B  data/archive/report_20260219_2132.json
+   118.8d  1686455B  data/archive/report_20260219_2247.json
+   118.8d  1692295B  data/archive/report_20260219_2303.json
+   118.2d  1640167B  data/archive/report_20260220_1311.json
+   118.2d  1690722B  data/archive/report_20260220_1316.json
+   117.9d  1708212B  data/archive/report_20260220_1936.json
+   117.8d  1722412B  data/archive/report_20260220_2303.json
+   117.2d  1650914B  data/archive/report_20260221_1305.json
+   117.2d  1720612B  data/archive/report_20260221_1308.json
+   116.5d  1715883B  data/archive/report_20260222_0551.json
+   116.5d  1718594B  data/archive/report_20260222_0556.json
+   116.5d  1687941B  data/archive/report_20260222_0602.json
+   116.5d  1715430B  data/archive/report_20260222_0606.json
+   116.5d  1717959B  data/archive/report_20260222_0611.json
+   116.5d  1708627B  data/archive/report_20260222_0616.json
+   116.5d  1714537B  data/archive/report_20260222_0621.json
+   116.5d  1718075B  data/archive/report_20260222_0626.json
+   116.5d  1715889B  data/archive/report_20260222_0631.json
+   116.5d  1715970B  data/archive/report_20260222_0636.json
+   116.5d  1692267B  data/archive/report_20260222_0642.json
+   116.5d  1718078B  data/archive/report_20260222_0646.json
+   116.5d  1718763B  data/archive/report_20260222_0651.json
+   116.5d  1716253B  data/archive/report_20260222_0656.json
+   116.5d  1717762B  data/archive/report_20260222_0701.json
+   116.5d  1700010B  data/archive/report_20260222_0706.json
+   116.5d  1717713B  data/archive/report_20260222_0711.json
+   116.4d  1708599B  data/archive/report_20260222_0716.json
+   116.4d  1717096B  data/archive/report_20260222_0721.json
+   116.4d  1714277B  data/archive/report_20260222_0726.json
+   116.4d  1718737B  data/archive/report_20260222_0731.json
+   116.4d  1712972B  data/archive/report_20260222_0736.json
+   116.4d  1696700B  data/archive/report_20260222_0742.json
+   116.4d  1717015B  data/archive/report_20260222_0746.json
+   116.4d  1719543B  data/archive/report_20260222_0751.json
+   116.4d  1717277B  data/archive/report_20260222_0756.json
+   116.4d  1717224B  data/archive/report_20260222_0801.json
+   116.4d  1712884B  data/archive/report_20260222_0807.json
+   116.4d  1705778B  data/archive/report_20260222_0813.json
+   116.4d  1714777B  data/archive/report_20260222_0816.json
+   116.4d  1708262B  data/archive/report_20260222_0821.json
+   116.4d  1710957B  data/archive/report_20260222_0826.json
+   116.4d  1713289B  data/archive/report_20260222_0832.json
+   116.4d  1660155B  data/archive/report_20260222_0837.json
+   116.4d  1697350B  data/archive/report_20260222_0841.json
+   116.4d  1710485B  data/archive/report_20260222_0846.json
+   116.4d  1713023B  data/archive/report_20260222_0851.json
+   116.4d  1693107B  data/archive/report_20260222_0857.json
+   116.4d  1713279B  data/archive/report_20260222_0901.json
+   116.4d  1710740B  data/archive/report_20260222_0907.json
+   116.4d  1703702B  data/archive/report_20260222_0913.json
+   116.4d  1702374B  data/archive/report_20260222_0916.json
+   116.4d  1713646B  data/archive/report_20260222_0921.json
+   116.4d  1708300B  data/archive/report_20260222_0926.json
+   116.4d  1713433B  data/archive/report_20260222_0931.json
+   116.4d  1697869B  data/archive/report_20260222_0937.json
+   116.3d  1704802B  data/archive/report_20260222_0942.json
+   116.3d  1711085B  data/archive/report_20260222_0946.json
+   116.3d  1713308B  data/archive/report_20260222_0951.json
+   116.3d  1710798B  data/archive/report_20260222_0956.json
+   116.3d  1713507B  data/archive/report_20260222_1001.json
+   116.3d  1707200B  data/archive/report_20260222_1006.json
+   116.3d  1710562B  data/archive/report_20260222_1012.json
+   116.3d  1700856B  data/archive/report_20260222_1016.json
+   116.3d  1713440B  data/archive/report_20260222_1021.json
+   116.3d  1711368B  data/archive/report_20260222_1026.json
+   116.3d  1713458B  data/archive/report_20260222_1031.json
+   116.3d  1707047B  data/archive/report_20260222_1037.json
+   116.3d  1692652B  data/archive/report_20260222_1043.json
+   116.3d  1700469B  data/archive/report_20260222_1047.json
+   116.3d  1712837B  data/archive/report_20260222_1052.json
+   116.3d  1713319B  data/archive/report_20260222_1056.json
+   116.3d  1713335B  data/archive/report_20260222_1101.json
+   116.3d  1710566B  data/archive/report_20260222_1106.json
+   116.3d  1713317B  data/archive/report_20260222_1111.json
+   116.3d  1702869B  data/archive/report_20260222_1116.json
+
+=== 4 FRESH-but-TINY (<60B, possible broken write) ===
+   165.1h 44B  data/_alerts/convergence-radar-alerted.json
+    79.0h 44B  data/estimate-revisions/2026-06-15.json
+    55.0h 44B  data/estimate-revisions/2026-06-16.json
+     4.8h 53B  data/funding-plumbing-prev.json
