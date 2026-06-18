@@ -1,25 +1,18 @@
 redeployed
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 800, \"n_deals\": 41, \"n_small_cap\": 23, \"n_high_materiality\": 2}"}
-SUMMARY: prs=800 deals=41 sized=6 small=23 highmat=2
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 800, \"n_deals\": 12, \"n_small_cap\": 6, \"n_high_materiality\": 6}"}
+SUMMARY: prs=800 deals=12 sized=9 small=6 highmat=6
+prior-noise still present: NONE (clean)
 
-TOP DEALS (post-tighten):
-  PMEC   nano    mat=48.6% val=$36.1 Million age=10.4h score=83.5
-        "Primech Holdings Secures Approximately US$36.1 Million in New Social Services and Public Sec"
-  AMMX   nano    mat=35.6% val=$5 Million age=10.6h score=76.0
-        "AmeraMex International Wins Bid Worth $5 Million"
-  EQ     micro   mat=None% val=None age=11.1h score=64.6
-        "EQ Works Expands Multi-Year Partnership with Leading Canadian Publisher to Include SaaS Lice"
-  WCUFF  nano    mat=None% val=None age=6.0h score=64.2
-        "Dove Announces Official Partnership with Tori Penso, the First American Woman Ever Selected "
-  NUWE   nano    mat=None% val=None age=10.6h score=63.7
-        "Nuwellis Expands Critical Care Education with Aquadex Training at University of Minnesota Cr"
-  AGMH   nano    mat=None% val=None age=10.7h score=63.7
-        "Sparton Acquires Option to Past Producing Silver Property and Strengthens Board at AGM"
-  TPET   nano    mat=None% val=None age=11.1h score=63.6
-        "Trio Petroleum Corp Provides Update on Acquisition Strategy and Ongoing Operations"
-  LTUM   nano    mat=None% val=None age=26.1h score=61.7
-        "PMET Advances On-Site Lithium Refining Strategy Through Technology Collaboration MOU with Mi"
-  CTXXF  micro   mat=11.3% val=$5.1 Million age=26.1h score=59.0
-        "CEMATRIX Announces $5.1 Million in New Contract Awards"
-  QMCO   micro   mat=3.6% val=$10 million age=10.6h score=58.9
-        "Quantum Computing Inc. Announces Framework Agreement with Planck Dynamics to Deploy NeuraWav"
+ALL DEALS (post precision-2):
+  C      mega    mat=20677.1% val=$34.8 trillion age=13.2h sc=168.3 | Citi and CREATE-Research Report: Innovation in Asset Management Pivots
+  DNRSF  nano    mat=422.7% val=$7 MILLION age=12.2h sc=164.2 | DENARIUS METALS ANNOUNCES US$7 MILLION UPSIZING OF ITS PREPAYMENT FACI
+  MTX    mid     mat=241.2% val=$5 billion age=10.7h sc=157.1 | Ucore Rare Metals Welcomes Canada's G7 Critical Minerals Leadership an
+  P-PLYR ?       mat=9999.0% val=$21 Million age=10.2h sc=135.8 | Polymarket and Splash Sports Announce Strategic Partnership, Launching
+  PMEC   nano    mat=48.6% val=$36.1 Million age=10.5h sc=83.5 | Primech Holdings Secures Approximately US$36.1 Million in New Social S
+  AMMX   nano    mat=35.6% val=$5 Million age=10.7h sc=76.0 | AmeraMex International Wins Bid Worth $5 Million
+  CTXXF  micro   mat=11.3% val=$5.1 Million age=26.2h sc=59.0 | CEMATRIX Announces $5.1 Million in New Contract Awards
+  QMCO   micro   mat=3.6% val=$10 million age=10.7h sc=58.9 | Quantum Computing Inc. Announces Framework Agreement with Planck Dynam
+  ULCC   small   mat=None% val=None age=10.7h sc=48.7 | Eos Energy Enterprises Announces First Purchase Order Under Frontier P
+  ELAN   large   mat=0.5% val=$25 Million age=11.8h sc=42.2 | Elanco to Launch Elanco Ventures with $25 Million Multi-Year Commitmen
+  APU    ?       mat=None% val=None age=10.1h sc=33.7 | Odysight.ai® Receives Purchase Order from Honeywell Aerospace APU Divi
+  OKLO   large   mat=None% val=None age=12.3h sc=31.5 | Oklo, Centrus Sign Letter of Intent to Purchase Nuclear Fuel for Auror
