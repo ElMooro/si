@@ -1,176 +1,217 @@
 
-## data/theme-rotation.json  (0.3d old, 100028B)
-   schema_version           int
-   method                   'theme_rotation_engine_v1'
-   generated_at             '2026-06-18T11:01:33+00:00'
-   duration_s               float
-   spy_ret_20d              float
-   stats                    {n_themes_evaluated, n_with_breadth, n_alerts, n_rotation_deltas}
-   summary                  {top_10_momentum, bottom_10_momentum, category_summary, rotators_in, rotators_out, convergent_breadth, alerts}
-   all_themes               [114] e0={ticker, name, category, today_close, ret_3d, ret_5d, ret_20d, ret_60d, rs_5d, rs_20d, rs_60d, rs_acceleration, vol_ratio_20v60, mo
-   breadth_details          {ROBO, SOXX, PSI, DRIV, SMH, MTUM, BLOK, AIQ, ARKG, XBI, CHAT, KOMP, BITQ, BLCN}
+### theme-rotation all_themes[0]
+{
+ "ticker": "ARKG",
+ "name": "ARK Genomic Revolution",
+ "category": "GENOMICS",
+ "today_close": 35.04,
+ "ret_3d": 4.69,
+ "ret_5d": 6.67,
+ "ret_20d": 24.61,
+ "ret_60d": 31.58,
+ "rs_5d": 4.53,
+ "rs_20d": 23.62,
+ "rs_60d": 18.52,
+ "rs_acceleration": 35.79,
+ "vol_ratio_20v60": 1.2,
+ "money_flow_ratio": 2.04,
+ "range_pos_60d": 89.3,
+ "above_ma20": true,
+ "above_ma50": true,
+ "above_ma100": true,
+ "momentum_score": 100,
+ "rs_rank_20d": 2,
+ "rs_rank_delta": 0
+}
 
-## data/theme-cascade.json  (10.2d old, 16885B)
-   schema_version           '2.0'
-   generated_at             '2026-06-08T13:50:24.829282+00:00'
-   elapsed_s                float
-   macro_regime             'FLIGHT_TO_QUALITY'
-   n_themes_tracked         int
-   n_tickers_mapped         int
-   n_total_ranked           int
-   n_alert_tier             int
-   n_medium_tier            int
-   n_watch_tier             int
-   top_hot_themes           [15] e0={etf, name, category, multiplier, factors, momentum_score, rs_rank_20d, rs_acceleration, breadth_outperform_pct}
-   alert_tier               [2] e0={ticker, tier, base_score, theme_multiplier, flow_multiplier, combined_score, industry, industry_label, hot_etf, hot_etf_name, hot_et
-   medium_tier              [0] e0=
-   watch_tier               [0] e0=
-   laggards_hot_themes      [9] e0={ticker, tier, is_laggard, perf_5d_pct, perf_20d_pct, perf_60d_pct, industry_label, hot_etf, hot_etf_name, hot_etf_category, theme_rs
-   n_laggards_hot_themes    int
+### theme-rotation summary.top_10_momentum[0]
+{
+ "ticker": "ARKG",
+ "name": "ARK Genomic Revolution",
+ "category": "GENOMICS",
+ "momentum_score": 100,
+ "rs_5d": 4.53,
+ "rs_20d": 23.62,
+ "rs_60d": 18.52,
+ "rs_acceleration": 35.79,
+ "vol_ratio": 1.2,
+ "rank_delta": 0,
+ "breadth_pct": 100.0
+}
 
-## data/themes.json  (0.0d old, 2551B)
-   schema_version           '1.0'
-   generated_at             '2026-06-18T18:00:43.486240+00:00'
-   elapsed_sec              float
-   n_momentum_leaders       int
-   n_active_themes          int
-   n_classified             int
-   n_unknown                int
-   min_tickers_for_theme    int
-   themes                   {Semiconductors, Software - Application, Hardware, Equipment & Parts, Industrial - Machinery}
-   ticker_to_theme          {MU, AMAT, LRCX, ASML, TXN, SNOW, CDNS, DDOG, APH, GLW, KEYS, CMI, PH, JCI}
-   unclassified             [0] e0=
-   all_industries_seen      [15] e0='Aerospace & Defense'
-   metadata                 {top_n_leaders_used, cache_ttl_days, n_profiles_fetched, n_profiles_cached}
+### breadth_details['ROBO'] keys: ['breadth', 'constituents_perf']
 
-## data/beta-laggards.json  (0.3d old, 38899B)
-   schema_version           '1.0'
-   method                   'sector_dispersion_catch_up'
-   generated_at             '2026-06-18T11:00:13.651860+00:00'
-   elapsed_s                float
-   ok                       bool
-   headline                 '19 high-beta catch-up candidates across
-   how_to_read              "Each group is a sector that is genuinel
-   n_working_sectors        int
-   n_candidates             int
-   groups                   [5] e0={sector, sector_3m_median_pct, sector_breadth_pct, leader, n_laggards, laggards}
-   top_candidates           [19] e0={symbol, name, beta, r1m, r3m, gap_vs_leader_pp, catch_up_score, price, price_target, upside_pct, fundamental_note, why, risk, secto
-   universe_with_returns    int
-   disclaimer               'Rotation is a tendency, not a certainty
+### breadth_details['ROBO'] constituent[0]
+{
+ "symbol": "IPGP",
+ "ret_20d": 0.27353745698404097,
+ "above_ma50": false,
+ "weight": 1.85246431
+}
 
-## data/sympathetic-momentum.json  (0.8d old, 24786B)
-   engine                   'sympathetic-momentum'
-   version                  '1.0.0'
-   as_of                    '2026-06-17T23:30:10Z'
-   state                    'CATCHUP_RICH'
-   signal_strength          float
-   n_setups                 int
-   n_peer_groups_scanned    int
-   n_tickers_in_universe    int
-   top_setups               [15] e0={peer_group, leader, laggard, leader_5d_pct, laggard_5d_pct, divergence_sigma, correlation_90d, laggard_rsi14, score, expected_catch
-   all_setups               [26] e0={peer_group, leader, laggard, leader_5d_pct, laggard_5d_pct, divergence_sigma, correlation_90d, laggard_rsi14, score, expected_catch
-   methodology              'Peer groups (25 sub-industry buckets, 9
-   sources                  [1] e0='FMP /stable/historical-price-eod/light'
-   why_now                  '26 setups across 25 peer groups; state=
-   run_seconds              float
+### beta-laggards groups[0] (minus laggards list)
+{
+ "sector": "Technology",
+ "sector_3m_median_pct": 22.3,
+ "sector_breadth_pct": 67.0,
+ "leader": {
+  "symbol": "DELL",
+  "name": "Dell Technologies Inc.",
+  "r3m": 181.0,
+  "r1m": 76.2
+ },
+ "n_laggards": 14
+}
 
-## data/stealth-accumulation.json  (0.8d old, 4790B)
-   engine                   'stealth-accumulation'
-   version                  '1.0'
-   as_of                    '2026-06-17T23:00:38.652620Z'
-   state                    'QUIET'
-   previous_state           'UNKNOWN'
-   state_description        'No cross-confirmed stealth-accumulation
-   signal_strength          int
-   summary                  {n_insider_tickers, n_smart_money_tickers, n_short_covering_tickers, n_options_flow_tickers, n_convergence_2plus, n_convergence_3plus, n_con
-   current_readings         {top_convergence_tickers, n_signals_distribution}
-   convergence              [0] e0=
-   top_insider_only         [0] e0=
-   top_smart_money_only     [10] e0={ticker, strength, pattern, n_funds_buying, score, evidence}
-   top_short_covering_only  [3] e0={ticker, strength, z_score, category, evidence}
-   top_options_flow_only    [0] e0=
-   trigger_conditions       [5] e0={name, current, threshold, satisfied, weight}
-   forward_expectations     {1m, 3m, 6m, wr, basis}
+### beta-laggards groups[0].laggards[0]
+{
+ "symbol": "APP",
+ "name": "AppLovin Corporation",
+ "beta": 2.455,
+ "r1m": -2.6179,
+ "r3m": 8.34218,
+ "gap_vs_leader_pp": 172.7,
+ "catch_up_score": 92.7,
+ "price": 496.77,
+ "price_target": 682.5,
+ "upside_pct": 32.8,
+ "fundamental_note": "EPS still growing 11026%; analysts rate it buy; Altman-Z 22.5 (financially sound)",
+ "why": "Technology is working  the sector is up a median 22% over 3 months with 67% of names participating. The leader DELL has already run +181%, but APP is up only +8%  a 173-point gap. With a beta of 2.46 and healthy fundamentals (EPS still growing 11026%; analysts rate it buy; Altman-Z 22.5 (financially sound)), it is the kind of high-beta laggard that tends to close the gap once rotation broadens. Analyst target $682.50 (+33%).",
+ "risk": "High beta cuts both ways  if Technology rolls over, this name falls faster than the leader. Catch-up is a rotation tendency, 
 
-## data/stock-exposure-lookup.json  ERR An error occurred (NoSuchKey) when calling the GetObject operation: Th
+### beta-laggards top_candidates[0]
+{
+ "symbol": "APP",
+ "name": "AppLovin Corporation",
+ "beta": 2.455,
+ "r1m": -2.6179,
+ "r3m": 8.34218,
+ "gap_vs_leader_pp": 172.7,
+ "catch_up_score": 92.7,
+ "price": 496.77,
+ "price_target": 682.5,
+ "upside_pct": 32.8,
+ "fundamental_note": "EPS still growing 11026%; analysts rate it buy; Altman-Z 22.5 (financially sound)",
+ "why": "Technology is working  the sector is up a median 22% over 3 months with 67% of names participating. The leader DELL has already run +181%, but APP is up only +8%  a 173-point gap. With a beta of 2.46 and healthy fundamentals (EPS still growing 11026%; analysts rate it buy; Altman-Z 22.5 (financially sound)), it is the kind of high-beta laggard that tends to close the gap once rotation broadens. Analyst target $682.50 (+33%).",
+ "risk": "High beta cuts both ways  if Technology rolls over, this name falls faster than the leader. Catch-up is a rotation tendency, 
 
-## data/supply-chain-linkage.json  (0.1d old, 25737B)
-   engine                   'supply-chain-linkage'
-   version                  '1.0.0'
-   generated_at             '2026-06-18T15:01:24.650747+00:00'
-   universe_size            int
-   n_systemic_hubs          int
-   n_with_high_severity_flags int
-   max_degree_in_universe   int
-   entries                  [49] e0={ticker, company_name, sector, n_customers, n_suppliers, customers, suppliers, geographic_concentration_pct, concentration_flags, n_
-   geographic_risk_tiers    {China, Mainland China, CN, Russia, Iran, Belarus, Venezuela, Taiwan, TW, Saudi Arabia, UAE, Mexico, Brazil, India}
-   methodology              {framework, philosophy, layer_1, layer_2, layer_3, layer_4, concentration_flags}
-   academic_basis           [2] e0='Cohen & Frazzini (2008). Economic links
-   duration_seconds         float
+### sympathetic top_setups[0]
+{
+ "peer_group": "uranium",
+ "leader": "UEC",
+ "laggard": "URNM",
+ "leader_5d_pct": 21.23,
+ "laggard_5d_pct": 10.9,
+ "divergence_sigma": 2.48,
+ "correlation_90d": 0.86,
+ "laggard_rsi14": 42.0,
+ "score": 0.712,
+ "expected_catchup_pct": 6.0,
+ "trade_ticket": {
+  "ticker": "URNM",
+  "side": "LONG",
+  "rationale": "Peer UEC +21.2%, URNM lags by 2.5sigma in uranium",
+  "target_pct": 6.0,
+  "stop_pct": -3.5,
+  "holding_days": "5-15",
+  "size_pct_portfolio": 1.5
+ }
+}
 
-## data/universe.json  (10.3d old, 452330B)
-   schema_version           int
-   method                   'universe_builder_v3_multicap'
-   generated_at             '2026-06-08T12:00:10+00:00'
-   duration_s               float
-   stats                    {total_stocks, by_cap_bucket, by_sector_top_10, n_curated_seed_added}
-   cap_buckets              [6] e0={name, low, high}
-   stocks                   [1859] e0={symbol, name, sector, industry, exchange, market_cap, price, cap_bucket, source}
+### supply-chain entries[0] keys: ['ticker', 'company_name', 'sector', 'n_customers', 'n_suppliers', 'customers', 'suppliers', 'geographic_concentration_pct', 'concentration_flags', 'n_high_severity_flags', 'centrality_score', 'is_systemic_hub', 'narrative']
 
-## data/options-flow.json  (0.8d old, 11176B)
-   schema_version           int
-   method                   'options_flow_scanner_v1'
-   generated_at             '2026-06-17T22:00:34+00:00'
-   duration_s               float
-   stats                    {n_universe, n_evaluated, n_no_data, n_tier_a, n_tier_b, n_finra_tickers}
-   summary                  {top_25_overall, tier_a}
-   all_qualifying           [15] e0={symbol, score, tier, flags, metrics}
+### supply-chain entries[0].suppliers
+[]
 
-## data/short-pressure.json  (0.3d old, 5362B)
-   schema_version           '1.0'
-   method                   'polygon_short_volume_vs_baseline'
-   generated_at             '2026-06-18T11:00:18.118181+00:00'
-   elapsed_s                float
-   universe_source          'master-ranker top tickers'
-   n_covered                int
-   n_failed                 int
-   n_pressure_building      int
-   n_shorts_covering        int
-   names                    [25] e0={ticker, ok, short_ratio_latest, short_ratio_5d, baseline_20d, delta_vs_baseline, z_score, state, as_of}
-   note                     "Daily short-volume ratio vs each name's
+### supply-chain entries[0].customers
+[]
 
-## data/dix.json  (0.8d old, 2763B)
-   generated_at             '2026-06-17T22:00:27.430739+00:00'
-   generated_at_unix        int
-   version                  '1.0.0'
-   source                   'squeezemetrics.com/monitor/static/DIX.c
-   data_date                '2026-06-17'
-   elapsed_seconds          float
-   current                  {date, price, dix, dix_pct, gex, gex_billions}
-   moving_averages          {dix_5d_pct, dix_20d_pct, dix_60d_pct, dix_252d_pct, gex_5d, gex_20d, gex_60d}
-   statistics               {dix_z_score_60d, dix_percentile_1y, dix_percentile_5y, dix_percentile_all_time}
-   sustained_signals        {n_last_5d_above_47, n_last_20d_above_47, n_last_5d_below_40, n_last_20d_below_40}
-   day_over_day             {dix_change_pp, gex_change, price_change_pct}
-   dix_regime               'ACCUMULATION'
-   gex_regime               'POSITIVE'
-   combined_regime          'BULLISH_STABILIZED'
-   combined_signal          'Institutions accumulating into positive
-   regime_changed_from_prior bool
+### options-flow all_qualifying[0]
+{
+ "symbol": "AVGO",
+ "score": 78.0,
+ "tier": "TIER_A_BULLISH_FLOW",
+ "flags": [
+  "CPR_SURGING",
+  "CALL_VOL_3X",
+  "ABS_CPR_3X"
+ ],
+ "metrics": {
+  "spot": 392.9,
+  "n_call_contracts": 10,
+  "n_put_contracts": 10,
+  "avg_cpr_recent_5d": 3.2,
+  "avg_cpr_older": 0.77,
+  "cpr_change_pct": 313.8,
+  "total_call_vol_5d": 88104,
+  "total_put_vol_5d": 37670,
+  "call_vol_surge": 18.23,
+  "short_metrics": {
+   "recent_avg_short_pct": 43.9,
+   "older_avg_short_pct": 38.0,
+   "short_pct_change": 5.92,
+   "avg_total_vol_5d": 9764609,
+   "n_finra_days": 20
+  }
+ }
+}
 
-## data/velocity-acceleration.json  (0.2d old, 3241B)
-   schema_version           '1.1'
-   generated_at             '2026-06-18T13:30:18.705002+00:00'
-   elapsed_sec              float
-   trading_date             '2026-06-18'
-   new_session              bool
-   universe_size            int
-   n_fired                  int
-   n_emerging               int
-   n_watch                  int
-   n_fresh                  int
-   n_confirmed_today        int
-   n_aging                  int
-   n_expired_today          int
-   n_actionable             int
-   fresh_fires              [0] e0=
-   confirmed_today          [0] e0=
+### stealth top_smart_money_only[0]
+{
+ "ticker": "PEP",
+ "strength": 54,
+ "pattern": "",
+ "n_funds_buying": 0,
+ "score": 81.7,
+ "evidence": " (0 funds)"
+}
+
+### stealth top_options_flow_only[0]
+"EMPTY"
+
+### universe cap_buckets
+[
+ {
+  "name": "nano",
+  "low": 5000000,
+  "high": 50000000
+ },
+ {
+  "name": "micro",
+  "low": 50000000,
+  "high": 300000000
+ },
+ {
+  "name": "small",
+  "low": 300000000,
+  "high": 2000000000
+ },
+ {
+  "name": "mid",
+  "low": 2000000000,
+  "high": 10000000000
+ },
+ {
+  "name": "large",
+  "low": 10000000000,
+  "high": 200000000000
+ },
+ {
+  "name": "mega",
+  "low": 200000000000,
+  "high": 100000000000000
+ }
+]
+
+### universe stocks[0]
+{
+ "symbol": "NVDA",
+ "name": "NVIDIA Corporation",
+ "sector": "Technology",
+ "industry": "Semiconductors",
+ "exchange": "NASDAQ Global Select",
+ "market_cap": 4967727100000,
+ "price": 205.1,
+ "cap_bucket": "mega",
+ "source": "screener"
+}
