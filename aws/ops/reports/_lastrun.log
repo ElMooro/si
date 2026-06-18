@@ -1,7 +1,48 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 91.1, \"verdict\": \"FUNCTIONING\"}"}
-health=91.1 verdict=FUNCTIONING composite_score=8.9
-Backstops layer (4 metrics):
-  [green] Fed central-bank liquidity swaps = 0.03$bn
-  [green] Fed FIMA repo (foreign-official $ borrowing) = 0.0$bn
-  [green] Fed repo / SRF take-up = 0.01$bn
-  [green] ECB USD lending to euro-area banks = 18.8€bn
+HEALTH=91.1  VERDICT=FUNCTIONING  composite_score=8.9
+
+== L:us_core  (US money-market core)  [6 metrics] ==
+   [green] SOFR − IORB (repo richness)                    = -2.0bp
+   [green] SOFR 99th pct − IORB (repo tail)               = 6.0bp
+   [yellow] ON RRP balances                                = 6.8$bn
+   [info] Bank reserve balances                          = 3.08$tn
+   [info] Treasury General Account                       = 0.83$tn
+   [green] EFFR − IORB                                    = -2.0bp
+
+== L:bank_funding  (Bank & short-term funding)  [4 metrics] ==
+   [green] 3M financial CP − SOFR                         = 13.0bp
+   [green] 3M nonfinancial CP − SOFR                      = 6.0bp
+   [green] SOFR − 3M T-bill                               = -1.0bp
+   [green] OFR FSI — funding stress contribution          = -0.068σ
+
+== L:credit  (Credit backdrop)  [2 metrics] ==
+   [green] HY credit OAS                                  = 263.0bp
+   [green] IG credit OAS                                  = 74.0bp
+
+== L:backstops  (Central-bank backstops)  [4 metrics] ==
+   [green] Fed central-bank liquidity swaps               = 0.03$bn
+   [green] Fed FIMA repo (foreign-official $ borrowing)   = 0.0$bn
+   [green] Fed repo / SRF take-up                         = 0.01$bn
+   [green] ECB USD lending to euro-area banks             = 18.8€bn
+
+== L:settlement  (Settlement plumbing)  [6 metrics] ==
+   [green] Treasury settlement fails (UST ex-TIPS)        = 257.0$bn
+   [yellow] Fails · TIPS                                   = 25.0$bn
+   [yellow] Fails · Corporate securities                   = 54.0$bn
+   [green] Fails · Agency MBS                             = 17.0$bn
+   [green] Fails · Agency debt (ex-MBS)                   = 1.0$bn
+   [green] Fails · Other (non-agency) MBS                 = 6.0$bn
+
+== L:fx  (FX & offshore strain)  [4 metrics] ==
+   [green] Broad trade-weighted USD                       = 119.51idx
+   [yellow] Fed custody of USTs for foreign central banks  = -3.41%
+   [green] Net due to related foreign offices (13wk swing = 24.0$bn
+   [unavailable] Cross-currency basis (EUR/JPY/GBP…)            = Nonebp
+
+== L:hubs  (Country hubs)  [7 metrics] ==
+   [green] HK Aggregate Balance                           = 53.88HK$bn
+   [yellow] HK USD/HKD vs 7.85 weak side                   = 7.83708
+   [yellow] HK HIBOR − SOFR                                = -80.3bp
+   [green] Offshore yuan CNH−CNY (escape valve)           = 59.0pips
+   [green] CNH HIBOR overnight (offshore-yuan funding)    = 1.452%
+   [green] CNH HIBOR 3-month (term offshore-yuan)         = 1.63%
+   [info] USD/JPY (hedging-cost context)                 = 161.41
