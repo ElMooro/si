@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-deal-scanner",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Scans company press releases for fresh contract/order/supply wins, parses deal size, cross-references revenue to flag un-recognized forward revenue. Small-cap weighted (one contract is transformative).",
+  "schedule": {
+    "rule_name": "deal-scanner-daily",
+    "cron": "cron(0 22 * * ? *)",
+    "description": "Daily deal-win scan at 22:00 UTC (captures the day's press releases)"
+  }
+}
