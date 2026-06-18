@@ -1,5 +1,2 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/1835_sovereign.py", line 4, in <module>
-    fn=j.load(open("aws/lambdas/justhodl-sovereign-stress/config.json")).get("function_name","justhodl-sovereign-stress")
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: 'aws/lambdas/justhodl-sovereign-stress/config.json'
+matching functions: [('justhodl-sovereign-fiscal', '2026-06-17T03:11:53'), ('justhodl-systemic-stress', '2026-05-30T18:41:18')]
+no sovereign-stress.json: An error occurred (404) when calling the HeadObject operation: Not Found
