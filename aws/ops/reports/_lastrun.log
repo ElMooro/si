@@ -1,13 +1,20 @@
 redeployed
 INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 800, \"n_deals\": 7, \"n_small_cap\": 4, \"n_high_materiality\": 2}"}
-SUMMARY: prs=800 deals=7 sized=4 small=4 highmat=2
-macro-misparse still present: NONE (clean)
+SUMMARY: deals=7 green=3 yellow=1 small=4
 
-ALL DEALS (post precision-3):
-  P-PLYR  ?       mat=9999.0  val=$21 Million  sc=135.8 | Polymarket and Splash Sports Announce Strategic Partnership, Lau
-  AMMX    nano    mat=35.6    val=$5 Million   sc=76.0  | AmeraMex International Wins Bid Worth $5 Million
-  CTXXF   micro   mat=11.3    val=$5.1 Million sc=59.0  | CEMATRIX Announces $5.1 Million in New Contract Awards
-  QMCO    micro   mat=3.6     val=$10 million  sc=58.8  | Quantum Computing Inc. Announces Framework Agreement with Planck
-  ULCC    small   mat=None    val=None         sc=48.6  | Eos Energy Enterprises Announces First Purchase Order Under Fron
-  APU     ?       mat=None    val=None         sc=33.7  | Odysight.ai® Receives Purchase Order from Honeywell Aerospace AP
-  OKLO    large   mat=None    val=None         sc=31.5  | Oklo, Centrus Sign Letter of Intent to Purchase Nuclear Fuel for
+=== GREEN HIGHLIGHTS (big vs market cap / revenue) ===
+  AMMX    nano    val=$5 Million   rev=36%     mc=196.9%  | AmeraMex International Wins Bid Worth $5 Million
+  P-PLYR  ?       val=$21 Million  rev=PRE-REV mc=n/a     | Polymarket and Splash Sports Announce Strategic Part
+  QMCO    micro   val=$10 million  rev=4%      mc=10.3%   | Quantum Computing Inc. Announces Framework Agreement
+
+=== YELLOW ===
+  CTXXF   micro   val=$5.1 Million rev=11%     mc=9.8%    | CEMATRIX Announces $5.1 Million in New Contract Awar
+
+=== TOP (green floats up via focus boost) ===
+  [green] AMMX    sc=211.0  AmeraMex International Wins Bid Worth $5 Million
+  [green] P-PLYR  sc=195.8  Polymarket and Splash Sports Announce Strategic Pa
+  [green] QMCO    sc=134.3  Quantum Computing Inc. Announces Framework Agreeme
+  [yello] CTXXF   sc=98.6   CEMATRIX Announces $5.1 Million in New Contract Aw
+  [---- ] ULCC    sc=48.6   Eos Energy Enterprises Announces First Purchase Or
+  [---- ] APU     sc=33.7   Odysight.ai® Receives Purchase Order from Honeywel
+  [---- ] OKLO    sc=31.4   Oklo, Centrus Sign Letter of Intent to Purchase Nu
