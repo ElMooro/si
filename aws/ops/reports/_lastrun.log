@@ -1,22 +1,7 @@
-  [A020000.U4.Z06 (claims on NON-residents, FX)]
-     ILM/W.U2.C.A020000.U4.Z06 | rows=2 | 2026-W24=519958 | title=Claims on non-euro area residents denominated in foreign currency - Eurosys
-  [A020000.U4.EUR (claims on NON-residents, EUR)]
-     ILM/W.U2.C.A020000.U4.EUR -> ERR: HTTP Error 404: Not Found
-  [A030000.U2.Z06 (claims on EA-residents, FX) [known]]
-     ILM/W.U2.C.A030000.U2.Z06 | rows=2 | 2026-W24=18804 | title=Claims on euro area residents denominated in foreign currency - Eurosystem
-  [L060000.U4.Z06 (liab to NON-residents, FX)]
-     ILM/W.U2.C.L060000.U4.Z06 -> ERR: HTTP Error 404: Not Found
-  [L060000.U4.EUR (liab to NON-residents, EUR) [known]]
-     ILM/W.U2.C.L060000.U4.EUR | rows=2 | 2026-W24=154916 | title=Liabilities to non-euro area residents denominated in euro - Eurosystem
-  [L080000.U4.Z06 (ext liab FX, maybe discont.)]
-     ILM/W.U2.C.L080000.U4.Z06 | rows=2 | 2026-W24=3377 | title=Liabilities to non-euro area residents denominated in foreign currency - Eu
-
---- WILDCARD: all ILM weekly items, NON-resident (U4) foreign-currency (Z06) ---
-KEY,FREQ,REF_AREA,BS_REP_SECTOR,BS_ITEM,COUNT_AREA,CURRENCY_TRANS
-ILM.W.U2.C.A020000.U4.Z06,W,U2,C,A020000,U4,Z06
-ILM.W.U2.C.A020100.U4.Z06,W,U2,C,A020100,U4,Z06
-ILM.W.U2.C.A020200.U4.Z06,W,U2,C,A020200,U4,Z06
-ILM.W.U2.C.L080000.U4.Z06,W,U2,C,L080000,U4,Z06
-ILM.W.U2.C.L080100.U4.Z06,W,U2,C,L080100,U4,Z06
-ILM.W.U2.C.L080200.U4.Z06,W,U2,C,L080200,U4,Z06
-
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 91.1, \"verdict\": \"FUNCTIONING\"}"}
+health=91.1 verdict=FUNCTIONING composite_score=8.9
+Backstops layer (4 metrics):
+  [green] Fed central-bank liquidity swaps = 0.03$bn
+  [green] Fed FIMA repo (foreign-official $ borrowing) = 0.0$bn
+  [green] Fed repo / SRF take-up = 0.01$bn
+  [green] ECB USD lending to euro-area banks = 18.8€bn
