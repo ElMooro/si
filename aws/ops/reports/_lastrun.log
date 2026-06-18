@@ -1,58 +1,21 @@
-CREATED arn:aws:lambda:us-east-1:857687956942:function:justhodl-ai-infra-stack
-RULE wired (daily 13:45 UTC)
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_layers\": 10, \"n_names\": 140, \"n_small_cap\": 28}"}
-SUMMARY: layers=10 names=140 small=28
-HOTTEST LAYERS: [('Memory / HBM', 36.7), ('Foundry / Fab', 27.5), ('Semi Equipment / WFE', 26.0), ('Silicon / Compute', 23.5), ('Power / Grid', 21.3)]
 
-STACK (per layer: n / small / heat):
-  Silicon / Compute      n=59  small=11  heat=23.5%
-       MRVL   mega    1m=90.6% sigs=['OBV_ACCUMULATION']
-       ARM    mega    1m=100.5% sigs=['OBV_ACCUMULATION']
-       VSH    mid     1m=72.2% sigs=[]
-  Semi Equipment / WFE   n=9   small=1   heat=26.0%
-       VECO   mid     1m=46.2% sigs=[]
-       COHU   mid     1m=57.6% sigs=[]
-       KOPN   small   1m=-1.5% sigs=[]
-  Memory / HBM           n=5   small=0   heat=36.7%
-       WDC    large   1m=62.4% sigs=['OBV_ACCUMULATION']
-       STX    large   1m=42.4% sigs=['OBV_ACCUMULATION']
-       SIMO   large   1m=34.5% sigs=[]
-  Foundry / Fab          n=2   small=0   heat=27.5%
-       UMC    large   1m=38.5% sigs=[]
-       TSM    mega    1m=16.5% sigs=[]
-  Networking / Interconnect n=13  small=5   heat=20.5%
-       OCC    micro   1m=106.6% sigs=[]
-       CRDO   large   1m=68.8% sigs=[]
-       EXTR   mid     1m=31.0% sigs=[]
-  Optical / Photonics    n=4   small=1   heat=-5.5%
-       EMKR   nano    1m=-0.2% sigs=[]
-       COHR   large   1m=6.7% sigs=[]
-       LASR   mid     1m=-10.1% sigs=[]
-  Power / Grid           n=27  small=7   heat=21.3%
-       STI    micro   1m=263.1% sigs=[]
-       FCEL   small   1m=28.9% sigs=[]
-       TE     small   1m=29.8% sigs=['FLOAT_SQUEEZE']
-  Cooling / Thermal      n=6   small=1   heat=5.2%
-       KULR   micro   1m=-4.8% sigs=[]
-       MOD    large   1m=18.7% sigs=[]
-       AAON   large   1m=2.0% sigs=[]
-  Datacenter Build-out   n=12  small=2   heat=10.7%
-       VATE   micro   1m=95.1% sigs=[]
-       STRL   large   1m=11.7% sigs=[]
-       MYRG   mid     1m=0.7% sigs=[]
-  Datacenter REITs       n=3   small=0   heat=1.8%
-       IRM    large   1m=2.7% sigs=[]
-       EQIX   large   1m=3.1% sigs=[]
-       DLR    large   1m=-0.5% sigs=[]
+### /stable/news/press-releases-latest?page=0&limit=5
+   LIST[5] e0keys=['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url'] e0={"symbol": "CNC", "publishedDate": "2026-06-18 14:48:00", "publisher": "PRNewsWire", "title": "Modesto Residents Will Gain Access to More Affordable Homes Due to $4 Million Health Net Investment", "image": "https://images.financialmodelingprep.com/news/modesto
 
-TOP SMALL-CAP PICKS across stack:
-  STI    micro   power_grid           1m=263.1% comp=276.6 sigs=[]
-  VATE   micro   datacenter_buildout  1m=95.1% comp=221.7 sigs=[]
-  OCC    micro   networking           1m=106.6% comp=162.5 sigs=[]
-  AMBQ   small   silicon              1m=20.4% comp=112.1 sigs=['FLOAT_SQUEEZE']
-  FCEL   small   power_grid           1m=28.9% comp=109.3 sigs=[]
-  AIP    small   silicon              1m=30.1% comp=101.7 sigs=['FLOAT_SQUEEZE']
-  CEVA   small   silicon              1m=33.0% comp=89.9 sigs=[]
-  MX     micro   silicon              1m=41.8% comp=87.2 sigs=[]
-  AOSL   small   silicon              1m=21.9% comp=70.0 sigs=[]
-  NVEC   small   silicon              1m=30.2% comp=59.2 sigs=[]
+### /stable/news/stock-latest?page=0&limit=5
+   LIST[5] e0keys=['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url'] e0={"symbol": "CNC", "publishedDate": "2026-06-18 14:48:00", "publisher": "PRNewsWire", "title": "Modesto Residents Will Gain Access to More Affordable Homes Due to $4 Million Health Net Investment", "image": "https://images.financialmodelingprep.com/news/modesto
+
+### /stable/news/general-latest?page=0&limit=5
+   LIST[5] e0keys=['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url'] e0={"symbol": null, "publishedDate": "2026-06-18 14:29:30", "publisher": "CNBC Television", "title": "AI borrowing spree: Why tech investors should watch the bond market", "image": "https://images.financialmodelingprep.com/news/ai-borrowing-spree-why-tech-investo
+
+### /stable/press-releases?symbol=NVDA&limit=3
+   ERR HTTP Error 404: Not Found []
+
+### /stable/news/press-releases?symbol=NVDA&limit=3
+   LIST[3] e0keys=['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url'] e0={"symbol": "AAPL", "publishedDate": "2026-06-17 09:00:00", "publisher": "Business Wire", "title": "Addigy Expands Identity for Apple Fleets: IdP-Native Login, FileVault Single Sign-In, and Multi-Tenant Support \u2013 Included at No Extra Cost", "image": "https
+
+### /stable/news/stock?symbols=NVDA&limit=3
+   LIST[3] e0keys=['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url'] e0={"symbol": "NVDA", "publishedDate": "2026-06-18 14:47:06", "publisher": "247 Wallst", "title": "The Magnificent 7 Debt Binge is Sending a Crystal Clear Message to Wall Street. But Are Investors Paying Attention?", "image": null, "site": "247wallst.com", "text"
+
+### /stable/income-statement?symbol=AIP&limit=1
+   LIST[1] e0keys=['date', 'symbol', 'reportedCurrency', 'cik', 'filingDate', 'acceptedDate', 'fiscalYear', 'period', 'revenue', 'costOfRevenue', 'grossProfit', 'researchAndDevelopmentExpenses', 'generalAndAdministrativeExpenses', 'sellingAndMarketingExpenses', 'sellingGeneralAndAdministrativeExpenses', 'otherExpenses', 'operatingExpenses', 'costAndExpenses', 'netInterestIncome', 'interestIncome', 'interestExpense', 'depreciationAndAmortization', 'ebitda', 'ebit', 'nonOperatingIncomeExcludingInterest', 'operatingIncome', 'totalOtherIncomeExpensesNet', 'incomeBeforeTax', 'incomeTaxExpense', 'netIncomeFromContinuingOperations', 'netIncomeFromDiscontinuedOperations', 'otherAdjustmentsToNetIncome', 'netIncome', 'netIncomeDeductions', 'bottomLineNetIncome', 'eps', 'epsDiluted', 'weightedAverageShsOut', 'weightedAverageShsOutDil'] e0={"date": "2025-12-31", "symbol": "AIP", "reportedCurrency": "USD", "cik": "0001667011", "filingDate": "2026-02-12", "acceptedDate": "2026-02-12 16:43:19", "fiscalYear": "2025", "period": "FY", "revenue": 70579000, "costOfRevenue": 6895000, "grossProfit": 63684
