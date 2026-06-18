@@ -1,30 +1,10 @@
-=== route meta petroleum/pri/spt [403] ===
-{
-  "error": {
-    "code": "API_KEY_INVALID",
-    "message": "An invalid api_key was supplied. Get one at https://api.eia.gov:443"
-  }
-}
-
-=== data facet=series [403] === {
-  "error": {
-    "code": "API_KEY_INVALID",
-    "message": "An invalid api_key was supplied. Get one at https://api.eia.gov:443"
-  }
-}
-
-=== data facet=seriesId [403] === {
-  "error": {
-    "code": "API_KEY_INVALID",
-    "message": "An invalid api_key was supplied. Get one at https://api.eia.gov:443"
-  }
-}
-
-=== data facet=product [403] === {
-  "error": {
-    "code": "API_KEY_INVALID",
-    "message": "An invalid api_key was supplied. Get one at https://api.eia.gov:443"
-  }
-}
-
-=== route meta petroleum/stoc/wstk [403] ===
+eia-energy-agent live EIA_API_KEY: len=40 head=trvQ (dead-fallback head=trvQ)
+  EIA test with live key [403]: {   "error": {     "code": "API_KEY_INVALID",     "message": "An invalid api_key was supplied. Get one at https://api.eia.gov:443"   } }
+  FMP CLUSD [200] price=75.44
+  FMP BZUSD [200] price=78.35
+  FMP RBUSD [200] price=2.8526
+  FMP HOUSD [200] price=3.0934
+  FMP NGUSD [200] price=3.217
+  FRED WCESTUS1 [400] -> None
+  FRED W_EPC0_SAX_YCUOK_MBBL [400] -> None
+  FRED DCOILWTICO [200] -> {'realtime_start': '2026-06-17', 'realtime_end': '2026-06-17', 'date': '2026-06-15', 'value': '84.65'}
