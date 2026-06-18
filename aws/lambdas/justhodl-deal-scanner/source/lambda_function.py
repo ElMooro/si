@@ -21,6 +21,7 @@ import urllib.request
 import urllib.parse
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from email.utils import parsedate_to_datetime
 
 import boto3
 
@@ -28,6 +29,8 @@ VERSION = "1.0.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/deal-scanner.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+BENZINGA_KEY = "bzMJ62WO2YP2OKVIE2YSF4ZWVSVOJ6CTNP"
 s3 = boto3.client("s3", region_name="us-east-1")
 
 CAP_BOOST = {"nano": 35, "micro": 28, "small": 20, "mid": 8, "large": 3, "mega": 0}
@@ -114,6 +117,63 @@ def fetch_news(pages=8, limit=100):
     with ThreadPoolExecutor(max_workers=10) as ex:
         for r in ex.map(one, tasks):
             out.extend(r)
+    return out
+
+
+def _http_json(url, timeout=15):
+    try:
+        raw = urllib.request.urlopen(urllib.request.Request(
+            url, headers={"User-Agent": "jh-deal", "Accept": "application/json"}), timeout=timeout).read()
+        return json.loads(raw)
+    except Exception:
+        return None
+
+
+def fetch_polygon(limit=100, pages=3):
+    """Polygon news — wide third-party coverage, multi-ticker tagged."""
+    out, url = [], (f"https://api.polygon.io/v2/reference/news?limit={limit}"
+                    f"&order=desc&sort=published_utc&apiKey={POLYGON_KEY}")
+    for _ in range(pages):
+        j = _http_json(url)
+        if not isinstance(j, dict):
+            break
+        for a in j.get("results", []) or []:
+            tks = a.get("tickers") or []
+            if not tks:
+                continue
+            out.append({"symbol": tks[0], "title": a.get("title"),
+                        "text": a.get("description") or "",
+                        "publishedDate": (a.get("published_utc") or "").replace("T", " ")[:19],
+                        "publisher": (a.get("publisher") or {}).get("name") or "Polygon",
+                        "url": a.get("article_url")})
+        nu = j.get("next_url")
+        if not nu:
+            break
+        url = nu + f"&apiKey={POLYGON_KEY}"
+    return out
+
+
+def fetch_benzinga(pagesize=100, pages=2):
+    """Benzinga news — fast deal/PR coverage, ticker-tagged."""
+    out = []
+    for p in range(pages):
+        j = _http_json(f"https://api.benzinga.com/api/v2/news?token={BENZINGA_KEY}"
+                       f"&pageSize={pagesize}&page={p}&displayOutput=full")
+        items = j if isinstance(j, list) else (j.get("data") if isinstance(j, dict) else None)
+        if not isinstance(items, list) or not items:
+            break
+        for a in items:
+            stocks = a.get("stocks") or []
+            sym = stocks[0].get("name") if (stocks and isinstance(stocks[0], dict)) else None
+            if not sym:
+                continue
+            try:
+                pub = parsedate_to_datetime(a.get("created")).strftime("%Y-%m-%d %H:%M:%S")
+            except Exception:
+                pub = ""
+            out.append({"symbol": sym, "title": a.get("title"),
+                        "text": a.get("teaser") or a.get("body") or "",
+                        "publishedDate": pub, "publisher": "Benzinga", "url": a.get("url")})
     return out
 
 
@@ -231,6 +291,8 @@ def lambda_handler(event, context):
         uni = {}
 
     prs = fetch_news(pages=8, limit=100)
+    prs += fetch_polygon(limit=100, pages=3)   # wider third-party AI-deal coverage
+    prs += fetch_benzinga(pagesize=100, pages=2)
     ai_universe = load_ai_universe()
     now = datetime.now(timezone.utc)
     # dedupe + filter deals, keep freshest per (symbol,title)
@@ -353,7 +415,7 @@ def lambda_handler(event, context):
             "caveat": "size parsed from PR text (may misparse); 'not yet in revenue' inferred from announcement "
                       "freshness — a fresh award lags reported revenue by quarters",
         },
-        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "FMP income-statement", "universe", "FMP profile", "ai-infra-stack (AI universe)"],
+        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "Polygon news", "Benzinga news", "FMP income-statement", "universe", "FMP profile", "ai-infra-stack (AI universe)"],
         "disclaimer": "Announcement-driven forward-revenue signal. Real data, research only — not advice.",
         "elapsed_s": round(time.time() - t0, 2),
     }
