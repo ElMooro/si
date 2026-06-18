@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-theme-second-wave",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Second-wave layer: for hot themes, surface infrastructure (picks-and-shovels gaining momentum), un-pumped laggards, and big-order accumulation (small-cap boosted). Pure synthesis of existing S3 outputs.",
+  "schedule": {
+    "rule_name": "theme-second-wave-daily",
+    "cron": "cron(0 14 * * ? *)",
+    "description": "Daily second-wave scan at 14:00 UTC, after theme-rotation/laggards/flow inputs refresh"
+  }
+}
