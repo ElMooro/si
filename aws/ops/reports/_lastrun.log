@@ -1,11 +1,15 @@
-=== DSD len=33021 ===
-dimension order: []
-=== serieskeysonly trials ===
-  [M.U2...AXG.....USD.] -> ERR HTTPError HTTP Error 404: Not Found {"type":"/service/data/BSI/M.U2...AXG.....USD.","title":"Not Found","status":404,"detail":"No results found.","instance"
-  [M.U2...LXG.....USD.] -> ERR HTTPError HTTP Error 404: Not Found {"type":"/service/data/BSI/M.U2...LXG.....USD.","title":"Not Found","status":404,"detail":"No results found.","instance"
-  [M.U2..A.AXG....USD.] -> ERR HTTPError HTTP Error 400: Bad Request <html lang="en"><head><title>European Central Bank</title><style type="text/css"> body{ font-family: "Droid Sans", san
-  [M.U2..U.AXG....USD.] -> ERR HTTPError HTTP Error 400: Bad Request <html lang="en"><head><title>European Central Bank</title><style type="text/css"> body{ font-family: "Droid Sans", san
-  [M.U2...AXG.....USD] -> ERR HTTPError HTTP Error 400: Bad Request <html lang="en"><head><title>European Central Bank</title><style type="text/css"> body{ font-family: "Droid Sans", san
-  [M.U2.N.A.AXG.A.1.U4..USD.E] -> ERR HTTPError HTTP Error 404: Not Found {"type":"/service/data/BSI/M.U2.N.A.AXG.A.1.U4..USD.E","title":"Not Found","status":404,"detail":"No results found.","in
-  [M.U2...AXG....USD.] -> ERR HTTPError HTTP Error 400: Bad Request <html lang="en"><head><title>European Central Bank</title><style type="text/css"> body{ font-family: "Droid Sans", san
-  [M.U2...AXG......USD.] -> ERR HTTPError HTTP Error 400: Bad Request <html lang="en"><head><title>European Central Bank</title><style type="text/css"> body{ font-family: "Droid Sans", san
+
+== AXG: 16 series (key=M.U2...AXG......) ==
+  USD-denominated: 0
+  currencies present (dim10): ['0000']
+  counterpart areas (dim8): ['1', '4', 'I']
+
+== LXG: 16 series (key=M.U2...LXG......) ==
+  USD-denominated: 0
+  currencies present (dim10): ['0000']
+  counterpart areas (dim8): ['1', '4', 'I']
+
+== A80: 7 series (key=M.U2...A80......) ==
+  USD-denominated: 0
+  currencies present (dim10): ['0000']
+  counterpart areas (dim8): ['1', '4', 'Q', 'S']
