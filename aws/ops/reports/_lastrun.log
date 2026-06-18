@@ -1,40 +1,58 @@
-deployed v2 (mem512/to300)
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_hot_themes\": 10, \"n_laggards\": 84, \"n_smallcap_laggards\": 77, \"n_big_orders\": 120, \"n_smallcap_big_orders\": 79, \"n_top_picks\": 44}"}
-COUNTS: {'n_hot_themes': 10, 'n_infrastructure': 100, 'n_laggards': 84, 'n_smallcap_laggards': 77, 'n_big_orders': 120, 'n_smallcap_big_orders': 79, 'n_top_picks': 44} fetched= 550
-CAP DISTRIBUTION (all surfaced): {'micro': 50, 'small': 104, 'mid': 33, 'nano': 64, 'large': 8, 'mega': 45}
+CREATED arn:aws:lambda:us-east-1:857687956942:function:justhodl-ai-infra-stack
+RULE wired (daily 13:45 UTC)
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_layers\": 10, \"n_names\": 140, \"n_small_cap\": 28}"}
+SUMMARY: layers=10 names=140 small=28
+HOTTEST LAYERS: [('Memory / HBM', 36.7), ('Foundry / Fab', 27.5), ('Semi Equipment / WFE', 26.0), ('Silicon / Compute', 23.5), ('Power / Grid', 21.3)]
 
-TOP PICKS (small-cap tilted):
-  POET   small   buckets=['big_order', 'laggard'] r1m=-16.5% sigs=['FLOAT_SQUEEZE'] conv=46
-  SKYT   small   buckets=['big_order', 'laggard'] r1m=4.4% sigs=['FLOAT_SQUEEZE'] conv=46
-  AIP    small   buckets=['big_order', 'infrastructure'] r1m=29.9% sigs=['FLOAT_SQUEEZE'] conv=46
-  AMBQ   small   buckets=['big_order', 'infrastructure'] r1m=20.5% sigs=['FLOAT_SQUEEZE'] conv=46
-  VPG    small   buckets=['big_order', 'infrastructure'] r1m=33.2% sigs=['FLOAT_SQUEEZE'] conv=46
-  GLOB   small   buckets=['big_order', 'laggard'] r1m=-21.1% sigs=['FLOAT_SQUEEZE'] conv=46
-  PAYO   small   buckets=['big_order', 'infrastructure'] r1m=46.6% sigs=['FLOAT_SQUEEZE'] conv=46
-  ACMR   mid     buckets=['big_order', 'infrastructure'] r1m=70.4% sigs=['FLOAT_SQUEEZE'] conv=36
-  PLAB   small   buckets=['big_order'] r1m=-29.8% sigs=['FLOAT_SQUEEZE'] conv=36
-  UCTT   mid     buckets=['big_order', 'infrastructure'] r1m=45.0% sigs=['FLOAT_SQUEEZE'] conv=36
-  CTS    small   buckets=['big_order'] r1m=18.5% sigs=['FLOAT_SQUEEZE'] conv=36
-  ALG    small   buckets=['big_order'] r1m=7.1% sigs=['FLOAT_SQUEEZE'] conv=36
+STACK (per layer: n / small / heat):
+  Silicon / Compute      n=59  small=11  heat=23.5%
+       MRVL   mega    1m=90.6% sigs=['OBV_ACCUMULATION']
+       ARM    mega    1m=100.5% sigs=['OBV_ACCUMULATION']
+       VSH    mid     1m=72.2% sigs=[]
+  Semi Equipment / WFE   n=9   small=1   heat=26.0%
+       VECO   mid     1m=46.2% sigs=[]
+       COHU   mid     1m=57.6% sigs=[]
+       KOPN   small   1m=-1.5% sigs=[]
+  Memory / HBM           n=5   small=0   heat=36.7%
+       WDC    large   1m=62.4% sigs=['OBV_ACCUMULATION']
+       STX    large   1m=42.4% sigs=['OBV_ACCUMULATION']
+       SIMO   large   1m=34.5% sigs=[]
+  Foundry / Fab          n=2   small=0   heat=27.5%
+       UMC    large   1m=38.5% sigs=[]
+       TSM    mega    1m=16.5% sigs=[]
+  Networking / Interconnect n=13  small=5   heat=20.5%
+       OCC    micro   1m=106.6% sigs=[]
+       CRDO   large   1m=68.8% sigs=[]
+       EXTR   mid     1m=31.0% sigs=[]
+  Optical / Photonics    n=4   small=1   heat=-5.5%
+       EMKR   nano    1m=-0.2% sigs=[]
+       COHR   large   1m=6.7% sigs=[]
+       LASR   mid     1m=-10.1% sigs=[]
+  Power / Grid           n=27  small=7   heat=21.3%
+       STI    micro   1m=263.1% sigs=[]
+       FCEL   small   1m=28.9% sigs=[]
+       TE     small   1m=29.8% sigs=['FLOAT_SQUEEZE']
+  Cooling / Thermal      n=6   small=1   heat=5.2%
+       KULR   micro   1m=-4.8% sigs=[]
+       MOD    large   1m=18.7% sigs=[]
+       AAON   large   1m=2.0% sigs=[]
+  Datacenter Build-out   n=12  small=2   heat=10.7%
+       VATE   micro   1m=95.1% sigs=[]
+       STRL   large   1m=11.7% sigs=[]
+       MYRG   mid     1m=0.7% sigs=[]
+  Datacenter REITs       n=3   small=0   heat=1.8%
+       IRM    large   1m=2.7% sigs=[]
+       EQIX   large   1m=3.1% sigs=[]
+       DLR    large   1m=-0.5% sigs=[]
 
-SAMPLE small-cap laggards & big-orders:
- THEME SOXX (iShares Semiconductor):
-    LAG-small GSIT   micro   gap=40.4pp r1m=-16.6%
-    LAG-small POET   small   gap=40.3pp r1m=-16.5%
-    BIG-small SKYT   small   sigs=['FLOAT_SQUEEZE']
-    BIG-small PLAB   small   sigs=['FLOAT_SQUEEZE']
- THEME PSI (Invesco Dynamic Semis):
-    LAG-small REFR   nano    gap=50.5pp r1m=-18.6%
-    LAG-small GSIT   micro   gap=48.5pp r1m=-16.6%
-    BIG-small SKYT   small   sigs=['FLOAT_SQUEEZE']
-    BIG-small PLAB   small   sigs=['FLOAT_SQUEEZE']
- THEME MTUM (iShares MSCI Momentum):
-    LAG-small INSG   micro   gap=32.1pp r1m=-22.8%
-    LAG-small FKWL   nano    gap=26.7pp r1m=-17.4%
-    BIG-small SKYT   small   sigs=['FLOAT_SQUEEZE']
-    BIG-small PLAB   small   sigs=['FLOAT_SQUEEZE']
- THEME BLOK (Amplify Transformational Data):
-    LAG-small PROP   nano    gap=47.9pp r1m=-24.1%
-    LAG-small DTST   nano    gap=39.8pp r1m=-16.0%
-    BIG-small SKYT   small   sigs=['FLOAT_SQUEEZE']
-    BIG-small PLAB   small   sigs=['FLOAT_SQUEEZE']
+TOP SMALL-CAP PICKS across stack:
+  STI    micro   power_grid           1m=263.1% comp=276.6 sigs=[]
+  VATE   micro   datacenter_buildout  1m=95.1% comp=221.7 sigs=[]
+  OCC    micro   networking           1m=106.6% comp=162.5 sigs=[]
+  AMBQ   small   silicon              1m=20.4% comp=112.1 sigs=['FLOAT_SQUEEZE']
+  FCEL   small   power_grid           1m=28.9% comp=109.3 sigs=[]
+  AIP    small   silicon              1m=30.1% comp=101.7 sigs=['FLOAT_SQUEEZE']
+  CEVA   small   silicon              1m=33.0% comp=89.9 sigs=[]
+  MX     micro   silicon              1m=41.8% comp=87.2 sigs=[]
+  AOSL   small   silicon              1m=21.9% comp=70.0 sigs=[]
+  NVEC   small   silicon              1m=30.2% comp=59.2 sigs=[]
