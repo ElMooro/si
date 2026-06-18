@@ -15,7 +15,8 @@ LAYERS (all real, free, authoritative — FRED/NY Fed/FMP):
   5. Settlement plumbing     Treasury fails percentile (reuses data/settlement-fails.json)
   6. FX / offshore strain    broad dollar trend (true cross-currency basis needs an FX-swap
                              forward feed not in entitlements — flagged, not fabricated)
-  7. Country hubs            Hong Kong USD/HKD peg-band position, USD/JPY (FMP spot)
+  7. Country hubs            HK USD/HKD peg + HKMA funding; offshore-yuan CNH-CNY escape-valve
+                             + CNH HIBOR (TMA) overnight/3M; USD/JPY context
 
 Each metric → green/yellow/red vs institutional thresholds → composite plumbing-health
 0-100. GLM (tier=reason; Claude credits exhausted) scans the board → FUNCTIONING /
@@ -80,6 +81,37 @@ def fmp_fx(symbol):
     except Exception as e:
         print("[ed] fmp %s: %s" % (symbol, e))
         return None
+
+
+TMA_CNH_URL = "https://www.tma.org.hk/en_market_more_ib.aspx"
+
+
+def cnh_hibor():
+    """Latest CNH HIBOR fixings (offshore-yuan funding rate, TMA-administered) scraped from
+    the TMA benchmark page, which server-renders a table of the last ~5 business days x 8
+    tenors. We take the most-recent column. Returns {date, on, m1, m3} in %, or {} on failure.
+    A spiking overnight CNH HIBOR is the PBoC-squeeze tell (2016 hit >60%); paired with a wide
+    CNH-CNY spot gap it confirms a deliberate offshore-liquidity drain."""
+    import re
+    try:
+        req = urllib.request.Request(TMA_CNH_URL, headers={"User-Agent":
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"})
+        html = urllib.request.urlopen(req, timeout=25).read().decode("utf-8", "ignore")
+    except Exception as e:
+        print("[ed] cnh hibor fetch: %s" % e)
+        return {}
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))  # strip tags → token stream
+    out = {}
+    md = re.search(r"(\d{2}/\d{2}/\d{4})", text)
+    if md:
+        out["date"] = md.group(1)
+    for key, label in (("on", "ON"), ("m1", "1M"), ("m3", "3M")):
+        m = re.search(r"\b%s\b\s+([0-9]+\.[0-9]+)" % re.escape(label), text)
+        if m:
+            v = float(m.group(1))
+            if 0 < v < 200:  # sanity (CNH HIBOR can spike to 60%+ but not beyond)
+                out[key] = v
+    return out
 
 
 def gj(key):
@@ -249,6 +281,22 @@ def build_layers():
     elif usdcnh is not None:
         hubs.append(metric("cnh", "Offshore yuan USD/CNH", round(usdcnh, 4), "", "info",
                             "Offshore yuan spot; onshore CNY unavailable from FMP this run, so the CNH−CNY escape-valve gap could not be computed"))
+    # CNH funding leg: overnight + 3M HIBOR (TMA). The spot escape-valve gap above + a CNH
+    # funding spike here = the squeeze signature; overnight is the most squeeze-sensitive tenor.
+    ch = cnh_hibor()
+    if ch.get("on") is not None:
+        on = round(ch["on"], 3)
+        st = "green" if on <= 5 else "yellow" if on <= 15 else "red"
+        hubs.append(metric("cnh_hibor_on", "CNH HIBOR overnight (offshore-yuan funding)", on, "%", st,
+                            "Offshore-yuan overnight funding cost. Routine 1-3%; a spike (quarter-ends, or a deliberate "
+                            "PBoC squeeze — Jan-2016 drove it past 60%) drains offshore liquidity. Paired with a wide "
+                            "CNH-CNY gap above, it confirms a squeeze rather than drift.", asof=ch.get("date")))
+    if ch.get("m3") is not None:
+        m3 = round(ch["m3"], 3)
+        st3 = "green" if m3 <= 4 else "yellow" if m3 <= 8 else "red"
+        hubs.append(metric("cnh_hibor_3m", "CNH HIBOR 3-month (term offshore-yuan)", m3, "%", st3,
+                            "Term offshore-yuan funding cost. Elevated 3M alongside an overnight spike = sustained "
+                            "(not one-day) offshore liquidity stress.", asof=ch.get("date")))
     jpy = fmp_fx("USDJPY")
     if jpy is not None:
         hubs.append(metric("jpy", "USD/JPY (hedging-cost context)", round(jpy, 2), "", "info",
