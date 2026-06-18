@@ -233,6 +233,22 @@ def build_layers():
             st = "green" if hkd <= 7.82 else "yellow" if hkd <= 7.848 else "red"
             hubs.append(metric("hk_peg", "Hong Kong USD/HKD (band 7.75–7.85)", round(hkd, 4), "", st,
                                 "At the weak-side 7.85, HKMA sells USD/buys HKD → Aggregate Balance shrinks, HIBOR jumps"))
+    # China hub: offshore-yuan (CNH) vs onshore (CNY) escape-valve. 3/4 of CNH trades in HK,
+    # so it sits with the HK plumbing. CNH weaker than CNY = offshore-USD demand / yuan-depreciation
+    # pressure — the canonical squeeze tell (2015-16: 3M CNH-CNY blew out ~700bp and Jan-2016 o/n
+    # CNH HIBOR was driven >60% as the PBoC made offshore yuan scarce to crush shorts; Aug-2023 redux).
+    usdcnh = fmp_fx("USDCNH"); usdcny = fmp_fx("USDCNY")
+    if usdcnh is not None and usdcny is not None:
+        gap_pips = round((usdcnh - usdcny) * 10000, 0)
+        st = "red" if gap_pips >= 600 else "yellow" if gap_pips >= 200 else "green"
+        hubs.append(metric("cnh_cny", "Offshore yuan CNH−CNY (escape valve)", gap_pips, "pips", st,
+                            "Offshore (CNH %.4f) minus onshore (CNY %.4f) USD/RMB, in pips. Positive = offshore "
+                            "yuan weaker = offshore-USD demand / depreciation pressure; a persistent wide gap "
+                            "alongside a CNH funding spike is the PBoC-squeeze / dollar-stress signature."
+                            % (usdcnh, usdcny)))
+    elif usdcnh is not None:
+        hubs.append(metric("cnh", "Offshore yuan USD/CNH", round(usdcnh, 4), "", "info",
+                            "Offshore yuan spot; onshore CNY unavailable from FMP this run, so the CNH−CNY escape-valve gap could not be computed"))
     jpy = fmp_fx("USDJPY")
     if jpy is not None:
         hubs.append(metric("jpy", "USD/JPY (hedging-cost context)", round(jpy, 2), "", "info",
