@@ -75,6 +75,9 @@ DEAL_NEG = (
     "education program", "feasibility", "to evaluate", "explores",
     "report", "facility", "prepayment", "welcomes", "leadership", "summit", "survey",
     "white paper", "outlook", "research report", "index report", "ventures",
+    "?", "can it", "could ", "why ", "selloff", "sell-off", "amasses", "cash reserve",
+    "stock", "shares", "analyst", "upgrade", "downgrade", "price target", "should you",
+    "is it ", "what to know", " vs ", "approval", "yesterday", "rating", "earnings",
 )
 SIZE_RE = re.compile(r'\$\s?([\d][\d,]*(?:\.\d+)?)\s*(billion|bn|million|mn|b|m)\b', re.I)
 MULT = {"billion": 1e9, "bn": 1e9, "b": 1e9, "million": 1e6, "mn": 1e6, "m": 1e6}
