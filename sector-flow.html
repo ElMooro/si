@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sector Flow · Early Momentum · JustHodl.AI</title>
+<meta name="description" content="Unusual sector-ETF capital inflows + sector rotation scores — pick up momentum early. Real fund-flow and rotation data.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;--bg-sunken:#0a0e17;--bg-raised:#11161f;--bg-elevated:#1a212f;
+  --fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;--fg-4:#3d4759;--border:#1c2433;
+  --cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.32);
+  --green:#38ffa8;--green-dim:rgba(56,255,168,.32);--green-bg:rgba(56,255,168,.06);
+  --amber:#ffb13d;--amber-dim:rgba(255,177,61,.32);
+  --red:#ff5c7a;--red-dim:rgba(255,92,122,.4);--red-bg:rgba(255,92,122,.05);
+  --violet:#a78bfa;--violet-dim:rgba(167,139,250,.32);
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg-1);font-family:var(--font-sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--violet)}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 32px 80px}
+.page-hdr{display:flex;align-items:baseline;gap:22px;flex-wrap:wrap;padding-bottom:18px;margin-bottom:22px;border-bottom:1px solid var(--border)}
+.page-hdr .title{font-family:var(--font-mono);font-size:11.5px;letter-spacing:1.6px;color:var(--cyan);font-weight:600;text-transform:uppercase}
+.page-hdr h1{margin:2px 0 0;font-size:24px;font-weight:600;letter-spacing:-.2px;width:100%}
+.page-hdr .meta{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--fg-3)}
+.page-hdr .meta b{color:var(--fg-1)}
+.nav-back{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase}
+.nav-back:hover{color:var(--cyan)}
+.hero{background:linear-gradient(135deg,rgba(0,212,255,.05),rgba(56,255,168,.03),transparent);border:1px solid var(--border);border-left:4px solid var(--cyan);border-radius:10px;padding:16px 22px;margin-bottom:18px}
+.hero p{margin:0;color:var(--fg-2);font-size:13.5px;max-width:900px}
+.hero p b{color:var(--fg-1)}
+.banner{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;font-family:var(--font-mono);font-size:11.5px}
+.chip{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:7px 13px;color:var(--fg-2)}
+.chip b{color:var(--cyan);text-transform:uppercase;letter-spacing:.5px}
+.statbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px}
+.stat{flex:1;min-width:120px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:12px 16px}
+.stat .n{font-family:var(--font-mono);font-size:23px;font-weight:700;line-height:1.05}
+.stat .l{font-family:var(--font-mono);font-size:9.5px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase;margin-top:6px}
+.stat .n.cy{color:var(--cyan)}.stat .n.gr{color:var(--green)}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin:30px 0 14px}
+.sec-hdr h2{margin:0;font-family:var(--font-mono);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;font-weight:600}
+.sec-hdr .dot{width:9px;height:9px;border-radius:50%}
+.sec-hdr .dot.c{background:var(--cyan);box-shadow:0 0 10px var(--cyan-dim)}
+.sec-hdr .dot.g{background:var(--green);box-shadow:0 0 10px var(--green-dim)}
+.sec-hdr .dot.r{background:var(--red)}
+.sec-hdr .dot.v{background:var(--violet)}
+.sec-hdr .ct{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3)}
+.rows{display:flex;flex-direction:column;gap:7px}
+.row{display:flex;align-items:center;gap:14px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:11px 16px}
+.row .sym{font-family:var(--font-mono);font-size:15px;font-weight:700;min-width:54px}
+.row .nm{color:var(--fg-2);font-size:12.5px;min-width:150px;flex:0 0 auto}
+.row .cat{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.5px;color:var(--fg-3);text-transform:uppercase}
+.bar-wrap{flex:1;min-width:80px;height:8px;background:var(--bg-sunken);border-radius:4px;overflow:hidden}
+.bar{height:100%;border-radius:4px}
+.row .val{font-family:var(--font-mono);font-size:14px;font-weight:700;text-align:right;min-width:78px}
+.row .ph{font-family:var(--font-mono);font-size:9px;letter-spacing:.5px;color:var(--violet);text-transform:uppercase}
+.flow-pos .val{color:var(--green)}.flow-neg .val{color:var(--red)}
+.flow-neg{border-left:3px solid var(--red-dim)}
+.alerts{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.alerts li{background:var(--bg-raised);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:6px;padding:9px 14px;font-size:12.5px;color:var(--fg-2)}
+.alerts li b{color:var(--amber);font-family:var(--font-mono)}
+.note{margin-top:34px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--fg-3);line-height:1.7}
+.note code{font-family:var(--font-mono);color:var(--cyan);background:var(--bg-sunken);padding:1px 5px;border-radius:3px}
+.empty{color:var(--fg-3);font-style:italic;padding:12px 2px;font-size:12.5px}
+.loading{text-align:center;color:var(--fg-3);font-family:var(--font-mono);padding:80px 0;font-size:13px}
+@media(max-width:640px){.wrap{padding:18px 16px 60px}.row .nm{min-width:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.page-hdr h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="page-hdr">
+    <a href="/" class="nav-back">← JustHodl.AI</a>
+    <div class="title">Sector Flow</div>
+    <h1>Early Momentum — Sector Rotation &amp; ETF Inflows</h1>
+    <div class="meta" id="meta">loading…</div>
+  </div>
+  <div class="hero">
+    <p><b>Catch capital rotating into a sector before price fully moves.</b> Sector-rotation scores are the
+    continuous read (which sectors money favors in this cycle phase); <b>true ETF net flows</b> — real
+    creation/redemption dollars via shares-outstanding deltas — are the hard-money confirmation when they fire.</p>
+  </div>
+  <div class="banner" id="banner"></div>
+  <div class="statbar" id="statbar"></div>
+  <div id="content"><div class="loading">⟳ loading flows &amp; rotation…</div></div>
+  <div class="note" id="note"></div>
+</div>
+<script>
+const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
+  `https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,
+  `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}return null;}
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money=v=>{v=+v||0;const a=Math.abs(v);const s=v<0?"-":"+";return a>=1e9?s+"$"+(a/1e9).toFixed(2)+"B":a>=1e6?s+"$"+(a/1e6).toFixed(0)+"M":a>=1e3?s+"$"+(a/1e3).toFixed(0)+"K":s+"$"+a.toFixed(0);};
+const scoreColor=s=>s>=65?"var(--green)":s>=50?"var(--cyan)":s>=35?"var(--amber)":"var(--fg-4)";
+function asText(x){if(x==null)return"";if(typeof x==="string"||typeof x==="number")return String(x);
+  return x.regime||x.label||x.phase||x.state||x.name||x.value||JSON.stringify(x).slice(0,80);}
+function render(etf,sec){
+  if(!etf&&!sec){document.getElementById("content").innerHTML='<div class="loading">Could not load flow data. <a href="javascript:location.reload()">Retry</a></div>';return;}
+  const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
+  const inflows=((etf||{}).inflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)>0).sort((a,b)=>(b.net_flow_1d_usd||0)-(a.net_flow_1d_usd||0));
+  const outflows=((etf||{}).outflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)<0).sort((a,b)=>(a.net_flow_1d_usd||0)-(b.net_flow_1d_usd||0));
+  const alerts=((sec||{}).rotation_alerts)||[];
+  const topSec=sectors[0];
+  const gen=(sec||etf||{}).generated_at?new Date((sec||etf).generated_at):null;
+  document.getElementById("meta").innerHTML=`updated <b>${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}</b>`;
+  // banner
+  let bn="";
+  const ra=(sec||{}).risk_appetite, mc=(sec||{}).macro_context;
+  if(ra!=null)bn+=`<span class="chip"><b>Risk Appetite</b> ${esc(asText(ra))}</span>`;
+  if(mc!=null)bn+=`<span class="chip"><b>Macro</b> ${esc(asText(mc))}</span>`;
+  document.getElementById("banner").innerHTML=bn;
+  // stats
+  document.getElementById("statbar").innerHTML=
+    `<div class="stat"><div class="n cy">${topSec?esc(topSec.symbol):"—"}</div><div class="l">Top Sector (${topSec?Math.round(topSec.rotation_score):"?"})</div></div>
+     <div class="stat"><div class="n">${sectors.length}</div><div class="l">Sectors Ranked</div></div>
+     <div class="stat"><div class="n gr">${inflows.length?esc(inflows[0].ticker):"—"}</div><div class="l">Biggest ETF Inflow</div></div>
+     <div class="stat"><div class="n">${(etf||{}).n_etfs||((etf||{}).inflows||[]).length+((etf||{}).outflows||[]).length||"—"}</div><div class="l">ETFs Tracked</div></div>`;
+  let h="";
+  // sector rotation
+  h+=`<div class="sec-hdr"><span class="dot c"></span><h2>Sector Rotation — where money favors this cycle</h2><span class="ct">${sectors.length}</span></div>`;
+  if(sectors.length){
+    h+=`<div class="rows">`+sectors.map(s=>{
+      const sc=s.rotation_score||0, col=scoreColor(sc);
+      const ph=(s.cycle_fit_phases||[]).join(" · ");
+      return `<div class="row"><span class="sym" style="color:${col}">${esc(s.symbol)}</span>
+        <span class="nm">${esc(s.name||"")}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${Math.max(3,Math.min(100,sc))}%;background:${col}"></div></div>
+        <span class="ph">${esc(ph)}${s.in_current_cycle?"":" · off-cycle"}</span>
+        <span class="val" style="color:${col}">${Math.round(sc)}</span></div>`;
+    }).join("")+`</div>`;
+  } else h+='<div class="empty">Sector rotation data unavailable.</div>';
+  // unusual ETF inflows
+  h+=`<div class="sec-hdr"><span class="dot g"></span><h2>🌊 Unusual ETF Inflows <span style="color:var(--fg-4);font-weight:400">(true net creation $, 1-day)</span></h2><span class="ct">${inflows.length}</span></div>`;
+  if(inflows.length){
+    h+=`<div class="rows">`+inflows.slice(0,15).map(x=>`<div class="row flow-pos"><span class="sym">${esc(x.ticker)}</span>
+      <span class="cat">${esc(x.category||"")}</span><div class="bar-wrap"></div>
+      ${x.aum_est_b?`<span class="ph" style="color:var(--fg-3)">$${(+x.aum_est_b).toFixed(0)}B AUM</span>`:""}
+      <span class="val">${money(x.net_flow_1d_usd)}</span></div>`).join("")+`</div>`;
+  } else h+='<div class="empty">No net ETF creations today — true 1-day flows are sparse (only register on share-creation days). Sector-rotation scores above are the continuous read.</div>';
+  // outflows
+  if(outflows.length){
+    h+=`<div class="sec-hdr"><span class="dot r"></span><h2>ETF Outflows</h2><span class="ct">${outflows.length}</span></div>`;
+    h+=`<div class="rows">`+outflows.slice(0,8).map(x=>`<div class="row flow-neg"><span class="sym">${esc(x.ticker)}</span>
+      <span class="cat">${esc(x.category||"")}</span><div class="bar-wrap"></div>
+      <span class="val">${money(x.net_flow_1d_usd)}</span></div>`).join("")+`</div>`;
+  }
+  // rotation alerts (defensive)
+  if(Array.isArray(alerts)&&alerts.length){
+    h+=`<div class="sec-hdr"><span class="dot v"></span><h2>⚡ Rotation Alerts</h2><span class="ct">${alerts.length}</span></div>`;
+    h+=`<ul class="alerts">`+alerts.slice(0,12).map(a=>{
+      if(typeof a==="string")return `<li>${esc(a)}</li>`;
+      const head=esc(a.symbol||a.sector||a.name||a.ticker||"");
+      const body=esc(a.message||a.alert||a.signal||a.type||a.note||asText(a));
+      return `<li><b>${head}</b> ${body}${a.score!=null?` · ${esc(a.score)}`:""}</li>`;
+    }).join("")+`</ul>`;
+  }
+  document.getElementById("content").innerHTML=h;
+  document.getElementById("note").innerHTML=
+    `<b style="color:var(--fg-2)">Reading it.</b> <b style="color:var(--cyan)">Rotation score</b> ranks the 11 SPDR sectors by how strongly capital favors them in the current cycle phase — the continuous early-momentum signal.
+     <b style="color:var(--green)">Unusual ETF inflows</b> are <i>true</i> net creation dollars (shares-outstanding × price), the hard-money confirmation; they're sparse day-to-day because they only register when an ETF actually creates/redeems shares.
+     Sources: <code>sector-rotation</code> + <code>etf-true-flows</code> engines. Real data, research only — not investment advice.`;
+}
+Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json")]).then(([etf,sec])=>render(etf,sec));
+setTimeout(()=>location.reload(),600000);
+</script>
+</body>
+</html>
