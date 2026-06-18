@@ -161,9 +161,10 @@ function render(etf,sec){
     h+=`<div class="sec-hdr"><span class="dot v"></span><h2>⚡ Rotation Alerts</h2><span class="ct">${alertItems.length}</span></div>`;
     h+=`<ul class="alerts">`+alertItems.slice(0,12).map(a=>{
       if(typeof a==="string")return `<li>${esc(a)}</li>`;
-      const head=esc(a.symbol||a.sector||a.name||a.ticker||a._group||"");
-      const body=esc(a.message||a.alert||a.signal||a.type||a.note||a.direction||"");
-      return `<li><b>${head}</b> ${body}${a.score!=null?` · ${esc(a.score)}`:""}</li>`;
+      const head=esc(a.sym||a.symbol||a.sector||a.name||a.ticker||"");
+      const grp=a._group?esc(String(a._group).replace(/_/g," ")):"";
+      const fl=Array.isArray(a.flags)?a.flags.map(x=>esc(x)).join(", "):esc(a.message||a.alert||a.signal||a.type||a.note||a.direction||"");
+      return `<li><b>${head}</b> ${grp}${grp&&fl?" · ":""}${fl}${a.score!=null?` · score ${esc(Math.round(a.score))}`:""}</li>`;
     }).join("")+`</ul>`;
   }
   document.getElementById("content").innerHTML=h;

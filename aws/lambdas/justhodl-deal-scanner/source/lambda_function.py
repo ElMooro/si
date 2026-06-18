@@ -291,12 +291,42 @@ def ai_tag(symbol, title, text, ai_universe):
     return (len(seen) > 0), seen[:5]
 
 
+SECTOR_TO_SPDR = {
+    "technology": "XLK", "information technology": "XLK",
+    "financial services": "XLF", "financials": "XLF", "financial": "XLF",
+    "healthcare": "XLV", "health care": "XLV",
+    "industrials": "XLI", "industrial": "XLI", "energy": "XLE",
+    "basic materials": "XLB", "materials": "XLB",
+    "consumer defensive": "XLP", "consumer staples": "XLP",
+    "consumer cyclical": "XLY", "consumer discretionary": "XLY",
+    "utilities": "XLU", "real estate": "XLRE",
+    "communication services": "XLC", "communications": "XLC",
+}
+
+
+def load_sector_signal():
+    """Sector rotation scores + which SPDR sectors are rotating IN (early-momentum tailwind)."""
+    try:
+        d = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/sector-rotation.json")["Body"].read())
+    except Exception:
+        return {}, set()
+    scores = {x.get("symbol"): x.get("rotation_score") for x in d.get("sectors", []) if x.get("symbol")}
+    rin = set()
+    ra = d.get("rotation_alerts") or {}
+    if isinstance(ra, dict):
+        for it in ra.get("rotating_in", []) or []:
+            if isinstance(it, dict) and it.get("sym"):
+                rin.add(it["sym"])
+    return scores, rin
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     try:
         universe = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/universe.json")["Body"].read())
         uni = {s["symbol"]: {"name": s.get("name"), "industry": s.get("industry"),
-                             "market_cap": s.get("market_cap"), "cap_bucket": s.get("cap_bucket")}
+                             "sector": s.get("sector"), "market_cap": s.get("market_cap"),
+                             "cap_bucket": s.get("cap_bucket")}
                for s in universe.get("stocks", []) if s.get("symbol")}
     except Exception:
         uni = {}
@@ -305,6 +335,7 @@ def lambda_handler(event, context):
     prs += fetch_polygon(limit=100, pages=3)   # wider third-party AI-deal coverage
     prs += fetch_benzinga(pagesize=100, pages=2)
     ai_universe = load_ai_universe()
+    sector_scores, sector_rotating_in = load_sector_signal()
     now = datetime.now(timezone.utc)
     # dedupe + filter deals, keep freshest per (symbol,title)
     seen, deals_raw = set(), []
@@ -359,6 +390,12 @@ def lambda_handler(event, context):
         ai_rel, ai_kws = ai_tag(d["symbol"], d["title"], txt, ai_universe)
         is_billion = bool(val and val >= 1e9)
         ai_mega = bool(ai_rel and ((vs_mc is not None and vs_mc >= 20) or is_billion))
+        sector = (uni.get(d["symbol"], {}) or {}).get("sector") or ""
+        sec_etf = SECTOR_TO_SPDR.get(sector.lower()) if sector else None
+        sec_score = sector_scores.get(sec_etf) if sec_etf else None
+        sec_rot_in = bool(sec_etf and sec_etf in sector_rotating_in)
+        sector_tailwind = bool(sec_rot_in or (sec_score is not None and sec_score >= 65))
+        sec_boost = (30 if ai_rel else 18) if sector_tailwind else (8 if (sec_score is not None and sec_score >= 50) else 0)
         cb = CAP_BOOST.get(bkt, 5)
         rec = 0 if d["age_h"] is None else max(0, 30 - d["age_h"] / 8.0)
         mat_score = 0 if materiality is None else min(materiality, 300) / 3.0
@@ -368,7 +405,7 @@ def lambda_handler(event, context):
         ai_boost = 90 if ai_mega else 35 if ai_rel else 0              # AI thesis: float AI deals up
         bil_boost = 45 if is_billion else 0                           # billion-dollar deals
         score = round(mat_score + mc_score + cb + rec + size_score + focus + ai_boost + bil_boost
-                      + (8 if d["multi_year"] else 0), 1)
+                      + sec_boost + (8 if d["multi_year"] else 0), 1)
         why_bits = []
         if d["deal_value_str"]:
             why_bits.append(f"{d['deal_value_str']}{' multi-year' if d['multi_year'] else ''} deal")
@@ -384,6 +421,8 @@ def lambda_handler(event, context):
             why_bits.append("🤖 AI mega-deal — billions / large vs market cap")
         elif ai_rel:
             why_bits.append("🤖 AI-relevant")
+        if sector_tailwind:
+            why_bits.append(f"🌊 sector {sec_etf} rotating in" + (f" (score {round(sec_score)})" if sec_score is not None else ""))
         if small:
             why_bits.append(f"{bkt}-cap — single contract moves the needle")
         deals.append({k: v for k, v in d.items() if k != "text_snippet"} | {
@@ -391,6 +430,8 @@ def lambda_handler(event, context):
             "is_small_cap": small, "revenue_fy": rev, "materiality_pct": materiality,
             "vs_market_cap_pct": vs_mc, "highlight": hl, "ai_relevant": ai_rel,
             "ai_keywords": ai_kws, "is_billion": is_billion, "ai_megadeal": ai_mega,
+            "sector": sector, "sector_etf": sec_etf, "sector_rotation_score": sec_score,
+            "sector_rotating_in": sec_rot_in, "sector_tailwind": sector_tailwind,
             "score": score, "why": "; ".join(why_bits)})
 
     deals.sort(key=lambda x: x["score"], reverse=True)
@@ -429,7 +470,7 @@ def lambda_handler(event, context):
             "caveat": "size parsed from PR text (may misparse); 'not yet in revenue' inferred from announcement "
                       "freshness — a fresh award lags reported revenue by quarters",
         },
-        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "Polygon news", "Benzinga news", "FMP income-statement", "universe", "FMP profile", "ai-infra-stack (AI universe)"],
+        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "Polygon news", "Benzinga news", "FMP income-statement", "universe", "FMP profile", "ai-infra-stack (AI universe)", "sector-rotation (sector tailwind)"],
         "disclaimer": "Announcement-driven forward-revenue signal. Real data, research only — not advice.",
         "elapsed_s": round(time.time() - t0, 2),
     }
