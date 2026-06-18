@@ -1,14 +1,11 @@
-zip 41431
-CREATED
-scheduled
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"hk_funding\": \"WATCH\", \"agg_balance_bn\": 53.88, \"n\": 1200}"}
+EURODOLLAR: verdict FUNCTIONING health 88.1
+HK hub metrics (4):
+    green HK Aggregate Balance = 53.88 HK$bn
+    yellow HK USD/HKD vs 7.85 weak side = 7.83708 
+    yellow HK HIBOR − SOFR = -80.3 bp
+    info USD/JPY (hedging-cost context) = 160.89 
+AI short_term: Direction is stable to slightly deteriorating as the ON RRP buffer nears depletion and HKD tests the weak side of its peg. Watch for a sustained breach of USD/HKD above 7.85 or a sudden spike in SOFR tail rates as triggers for broader liquidity friction.
 
-hk_funding: WATCH | reds: [] | yellows: ['USD/HKD vs 7.85 weak side', '3M HIBOR − SOFR']
-Aggregate Balance: 53.88 HK$bn (pctile 46.7, 30d -0.1, n=1200 from 2021-08-05)
-HIBOR: 2.4 O/N | 2.94452 1M | 2.82708 3M | curve keys: ['overnight', '1m', '3m', '6m', '12m']
-USD/HKD: 7.83708 dist_to_weak% 0.165 | HIBOR-SOFR: -80.3 bp | base_rate: 4.0
-   green Aggregate Balance = 53.88 HK$bn
-   yellow USD/HKD vs 7.85 weak side = 7.83708 
-   yellow 3M HIBOR − SOFR = -80.3 bp
-   info Overnight HIBOR = 2.4 %
-   info Discount Window Base Rate = 4.0 %
+signal-board invoke: {"statusCode": 200, "body": "{\"ok\": true, \"composite_posture\": \"NEUTRAL / MIXED\", \"composite_signal\": 0.04, \"n_
+Eurodollar in signal-board: [{'engine': 'Eurodollar Plumbing', 'category': 'macro', 'signal': 1, 'signal_label': 'RISK-ON', 'read': 'Eurodollar funding FUNCTIONING (health 88.1/100)', 'as_of': '2026-06-18T14:32:12Z', 'stale': False}]
+composite posture: None | macro category: {'signal': -0.18, 'n': 17}
