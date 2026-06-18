@@ -127,14 +127,15 @@ def build_layers():
                             "Cash parked at the Fed; a drained RRP (→0) removes the liquidity buffer above reserves", asof=rd))
     wd, wv = latest(res)
     if wv is not None:
-        res_hist = [v for _, v in res]
-        core.append(metric("reserves", "Bank reserve balances", round(wv / 1000, 1), "$tn",
-                            flag(pctile(wv, res_hist), 40, 20, higher_is_worse=False),
-                            "System reserves; scarcity is what turns RRP drain into repo spikes", pctile(wv, res_hist), wd))
+        trend = ""
+        if len(res) > 66 and res[-66][1]:
+            trend = " (%+.0f$bn over 13wk)" % ((wv - res[-66][1]) / 1e3)
+        core.append(metric("reserves", "Bank reserve balances", round(wv / 1e6, 2), "$tn", "info",
+                            "System reserves%s; scarcity — not level — is the signal, and SOFR-IORB above is still the cleanest tell" % trend, asof=wd))
     td, tv = latest(tga)
     if tv is not None:
-        core.append(metric("tga", "Treasury General Account", round(tv / 1000, 2), "$tn", "info",
-                            "A rising TGA (e.g. post-debt-ceiling rebuild) drains reserves dollar-for-dollar", asof=td))
+        core.append(metric("tga", "Treasury General Account", round(tv / 1e6, 2), "$tn", "info",
+                            "A rising TGA (e.g. post-debt-ceiling rebuild) drains bank reserves dollar-for-dollar", asof=td))
     if effr and obfr and iv is not None:
         ed, ev = latest(effr)
         core.append(metric("effr_iorb", "EFFR − IORB", round((ev - iv) * 100, 1), "bp",
@@ -165,7 +166,8 @@ def build_layers():
     for sid, lab, ser, gy, yy in [("hy_oas", "HY credit OAS", hy, 400, 600), ("ig_oas", "IG credit OAS", ig, 120, 175)]:
         dd, vv = latest(ser)
         if vv is not None:
-            credit.append(metric(sid, lab, round(vv, 0), "bp", flag(vv, gy, yy),
+            bps = round(vv * 100, 0)  # FRED OAS series are in percent
+            credit.append(metric(sid, lab, bps, "bp", flag(bps, gy, yy),
                                   "Credit risk premium; funding stress and credit stress reinforce", pctile(vv, [v for _, v in ser]), dd))
     layers["credit"] = {"title": "Credit backdrop", "metrics": credit}
 
@@ -182,15 +184,29 @@ def build_layers():
     # ---- Layer 5: settlement plumbing (reuse fails engine) ----
     fails = gj("data/settlement-fails.json") or {}
     plumb = []
-    try:
-        f = (fails.get("headline") or fails.get("ust_ex_tips") or {})
-        pct = f.get("percentile") or (fails.get("regime") or {}).get("percentile")
-        val = f.get("latest") or f.get("value")
-        if pct is not None:
-            plumb.append(metric("ust_fails", "Treasury settlement fails", round(val, 0) if val else None, "$bn",
-                                 flag(pct, 80, 95), "Fails-to-deliver/receive; collateral hard to source when this spikes", round(pct, 1)))
-    except Exception:
-        pass
+
+    def _find_pctile(obj):
+        if isinstance(obj, dict):
+            if "percentile" in obj and isinstance(obj.get("percentile"), (int, float)):
+                return (obj.get("latest") or obj.get("value") or obj.get("level") or obj.get("total"),
+                        obj.get("percentile"))
+            for v in obj.values():
+                r = _find_pctile(v)
+                if r:
+                    return r
+        elif isinstance(obj, list):
+            for v in obj:
+                r = _find_pctile(v)
+                if r:
+                    return r
+        return None
+
+    fp = _find_pctile(fails)
+    if fp:
+        val, pct = fp
+        plumb.append(metric("ust_fails", "Treasury settlement fails", round(val, 0) if isinstance(val, (int, float)) else None,
+                            "$bn", flag(pct, 80, 95),
+                            "Fails-to-deliver/receive; collateral becomes hard to source when this spikes", round(pct, 1)))
     layers["settlement"] = {"title": "Settlement plumbing", "metrics": plumb}
 
     # ---- Layer 6: FX / offshore strain ----
@@ -262,12 +278,13 @@ def ai_scan(layers, health, verdict, reds, yellows):
               % (health, verdict, ", ".join(reds) or "none", ", ".join(yellows) or "none", board))
     try:
         from llm_router import complete
-        raw = complete(prompt, tier="reason", max_tokens=1500)
+        raw = complete(prompt, tier="reason", max_tokens=3500)
         import re
-        m = re.search(r"\{.*\}", raw, re.S)
-        return json.loads(m.group(0)) if m else {"error": "no json", "raw": (raw or "")[:160]}
+        txt = (raw or "").replace("```json", "").replace("```", "")
+        m = re.search(r"\{.*\}", txt, re.S)
+        return json.loads(m.group(0)) if m else {"error": "no json", "raw": (raw or "")[:200]}
     except Exception as e:
-        return {"error": str(e)[:160]}
+        return {"error": str(e)[:200]}
 
 
 def lambda_handler(event, context):
