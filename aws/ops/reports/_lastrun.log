@@ -1,11 +1,3 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 92.4, \"verdict\": \"FUNCTIONING\"}"}
-HEALTH 92.4 VERDICT FUNCTIONING | reds: [] | yellows: ['ON RRP balances', 'Hong Kong USD/HKD (band 7.75–7.85)']
-AI state: FUNCTIONING | summary: The eurodollar market is working smoothly, evidenced by negligible central bank swap usage and well-contained funding spreads. Repo and commercial paper rates are stable relative to benchmarks, showing no signs of systemic stress. The only minor frictions are a rapidly depleting ON RRP facility and a slightly soft HKD, neither of which are currently disruptive.
-    short_term: Direction is stable but risks slight deterioration over the next 1-4 weeks as the ON RRP liquidity buffer nears total depletion. The primary trigger to watch is HKD pushing toward the 7.85 weak-side convertibility limit, which would signal tightening offshore USD conditions.
-  us_core : SOFR − IORB=-2.0bp[green], SOFR 99th pct − IORB=6.0bp[green], ON RRP balances=6.8$bn[yellow], Bank reserve balances=3.08$tn[info], Treasury General Account=0.83$tn[info], EFFR − IORB=-2.0bp[green]
-  bank_funding : 3M financial CP − SOFR=13.0bp[green], 3M nonfinancial CP − SOFR=6.0bp[green], SOFR − 3M T-bill=-1.0bp[green]
-  credit : HY credit OAS=271.0bp[green], IG credit OAS=75.0bp[green]
-  backstops : Fed central-bank liquidity swaps=0.03$bn[green]
-  settlement : 
-  fx : Broad trade-weighted USD=119.51idx[green], Cross-currency basis=Nonebp[unavailable]
-  hubs : Hong Kong USD/HKD=7.8371[yellow], USD/JPY=160.81[info]
+PAGE 200 | board:False | fetches json:False | bytes=17920
+JSON 200 justhodl-data-prox verdict=FUNCTIONING health=92.4 ai_state=FUNCTIONING layers=7
+JSON 200 justhodl-dashboard verdict=FUNCTIONING health=92.4 ai_state=FUNCTIONING layers=7
