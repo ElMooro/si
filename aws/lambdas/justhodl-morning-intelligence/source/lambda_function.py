@@ -166,6 +166,7 @@ def load_all():
         "auction_crisis":"data/auction-crisis.json",
         "correlation_breaks":"data/correlation-breaks.json",
         "crisis_plumbing":"data/crisis-plumbing.json",
+        "eurodollar":"data/eurodollar-plumbing.json",
         "risk_recommendations":"risk/recommendations.json",
         # ─── Earnings tracker (#3) ────────────────────────────────
         "earnings":"data/earnings-tracker.json",
@@ -310,6 +311,11 @@ def extract_metrics(data,weights):
         "bond_regime":(data.get("bond_regime") or {}).get("regime","UNKNOWN"),
         "bond_regime_strength":(data.get("bond_regime") or {}).get("regime_strength"),
         "bond_extreme_count":(data.get("bond_regime") or {}).get("indicators_extreme",0),
+        # ─── Offshore-USD funding (eurodollar plumbing) — added 2026-06-18 ───
+        "eurodollar_verdict":(data.get("eurodollar") or {}).get("verdict","N/A"),
+        "eurodollar_health":(data.get("eurodollar") or {}).get("plumbing_health"),
+        "eurodollar_short_term":((data.get("eurodollar") or {}).get("ai") or {}).get("short_term"),
+        "eurodollar_red_flags":(data.get("eurodollar") or {}).get("red_flags",[]),
         "bond_total_count":(data.get("bond_regime") or {}).get("indicators_total",0),
         "bond_n_off":(data.get("bond_regime") or {}).get("n_risk_off",0),
         "bond_n_on":(data.get("bond_regime") or {}).get("n_risk_on",0),

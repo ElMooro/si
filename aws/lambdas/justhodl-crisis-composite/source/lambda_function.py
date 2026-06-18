@@ -215,7 +215,7 @@ def comp_ciss(d):
 
 # (sidecar key, weight, extractor, human label)
 COMPONENTS = [
-    ("data/eurodollar-stress.json", 0.20, comp_eurodollar, "USD funding stress"),
+    ("data/eurodollar-plumbing.json", 0.20, comp_eurodollar, "USD funding stress (plumbing)"),
     ("data/crisis-plumbing.json",   0.20, comp_plumbing,   "Crisis plumbing / XCC basis"),
     ("data/credit-stress.json",     0.15, comp_credit,     "Credit spreads"),
     ("data/regime-composite.json",  0.15, comp_regime,     "15-module meta-regime"),

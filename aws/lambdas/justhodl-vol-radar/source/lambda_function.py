@@ -84,7 +84,7 @@ def lambda_handler(event, context):
     volreg = read_json("data/vol-regime.json") or {}
     dix = read_json("data/dix.json") or {}
     credit = read_json("data/credit-stress.json") or {}
-    euro = read_json("data/eurodollar-stress.json") or {}
+    euro = read_json("data/eurodollar-plumbing.json") or {}
     capit = read_json("data/capitulation.json") or {}
 
     cur = vc.get("current") or {}

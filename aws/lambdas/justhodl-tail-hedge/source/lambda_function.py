@@ -83,7 +83,7 @@ ENGINES = {
     "factor-risk": "data/factor-risk.json",
     "firm-book": "data/firm-book.json",
     "firm-risk-board": "data/firm-risk-board.json",
-    "eurodollar-stress": "data/eurodollar-stress.json",
+    "eurodollar-stress": "data/eurodollar-plumbing.json",
     "canary-grid": "data/canary-grid.json",
 }
 # the three feeds the overlay cannot run without

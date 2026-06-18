@@ -300,6 +300,20 @@ def lambda_handler(event, context):
         "engine": "justhodl-eurodollar-plumbing", "version": "1.0",
         "generated_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
         "plumbing_health": health, "verdict": verdict,
+        # --- compatibility adapter: mirror the legacy data/eurodollar-stress.json schema in
+        #     STRESS polarity (composite_score = 100 - health) so migrated crisis/risk consumers
+        #     read composite_score/score/stress_score with zero inversion risk ---
+        "composite_score": (round(100 - health, 1) if health is not None else None),
+        "score": (round(100 - health, 1) if health is not None else None),
+        "stress_score": (round(100 - health, 1) if health is not None else None),
+        "severity": (("CRITICAL" if health <= 15 else "ELEVATED" if health <= 30 else "MODERATE"
+                      if health <= 50 else "CALM" if health <= 70 else "ABUNDANT")
+                     if health is not None else "UNKNOWN"),
+        "stress_regime": (("ELEVATED_STRESS" if health <= 30 else "MODERATE_STRESS" if health <= 50
+                           else "CALM" if health <= 70 else "ABUNDANT_LIQUIDITY")
+                          if health is not None else "UNKNOWN"),
+        "compat_note": "composite_score/score/stress_score = 100 - plumbing_health (stress polarity); "
+                       "mirrors the legacy eurodollar-stress.json so consumers migrate without inverting.",
         "red_flags": reds, "yellow_flags": yellows,
         "ai": ai,
         "layers": layers,

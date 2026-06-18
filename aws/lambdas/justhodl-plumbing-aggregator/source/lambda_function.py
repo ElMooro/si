@@ -498,6 +498,35 @@ def assemble_indicator(spec):
 
 
 # ─── Composite calculator ────────────────────────────────────────────────────
+def hk_funding_indicators():
+    """HK funding sub-layer (offshore-USD/Asia tell) from data/hkma.json, injected into
+    the L4 cross-border layer. Reuses the HKMA monitor's own green/yellow/red grading →
+    stress_score so it scores into the composite AND renders on plumbing.html."""
+    try:
+        hk = json.loads(S3.get_object(Bucket=BUCKET, Key="data/hkma.json")["Body"].read())
+    except Exception as e:
+        print("[plumbing] hkma feed unavailable: %s" % e)
+        return []
+    status_stress = {"green": 18.0, "yellow": 55.0, "red": 85.0}
+    out = []
+    for m in (hk.get("metrics") or []):
+        if m.get("id") not in ("agg_balance", "usd_hkd", "hibor_sofr"):
+            continue
+        ss = status_stress.get(m.get("status"))
+        out.append({
+            "id": "HK_" + str(m.get("id", "")).upper(),
+            "label": "HK · " + m.get("label", ""),
+            "source": "HKMA", "layer": "L4", "polarity": +1, "weight_in_layer": 0.06,
+            "value": m.get("value"), "date": hk.get("as_of"),
+            "z_score": None, "percentile": m.get("pctile"),
+            "stress_score_0_100": ss,
+            "interp": "HK funding (offshore-USD/Asia): " + (m.get("detail", "")[:90]),
+        })
+    if out:
+        print("[plumbing] HK funding sub-layer: %d contributors (funding=%s)" % (len(out), hk.get("hk_funding")))
+    return out
+
+
 def compute_composite(indicators):
     layers = {}
     for layer_id in ("L1", "L2", "L3", "L4"):
@@ -661,6 +690,9 @@ def lambda_handler(event, context):
                 sid = futures[fut]
                 print(f"[plumbing] {sid} fatal: {e}")
                 enriched.append({"id": sid, "err": str(e)[:100]})
+
+    # HK funding sub-layer (offshore-USD/Asia) from the HKMA monitor → L4 cross-border
+    enriched.extend(hk_funding_indicators())
 
     composite, label, layers = compute_composite(enriched)
     alerts = generate_alerts(enriched)

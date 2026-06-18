@@ -271,7 +271,7 @@ def ingest_eurodollar():
             "unit": "0-100 composite"}
     try:
         d = json.loads(s3.get_object(Bucket=S3_BUCKET,
-                       Key="data/eurodollar-stress.json")["Body"].read())
+                       Key="data/eurodollar-plumbing.json")["Body"].read())
         score = d.get("composite_score")
         if score is None:
             return {**base, "available": False, "reason": "no composite_score"}
