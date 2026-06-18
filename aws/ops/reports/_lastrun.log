@@ -1,10 +1,9 @@
-eia-energy-agent live EIA_API_KEY: len=40 head=trvQ (dead-fallback head=trvQ)
-  EIA test with live key [403]: {   "error": {     "code": "API_KEY_INVALID",     "message": "An invalid api_key was supplied. Get one at https://api.eia.gov:443"   } }
-  FMP CLUSD [200] price=75.44
-  FMP BZUSD [200] price=78.35
-  FMP RBUSD [200] price=2.8526
-  FMP HOUSD [200] price=3.0934
-  FMP NGUSD [200] price=3.217
-  FRED WCESTUS1 [400] -> None
-  FRED W_EPC0_SAX_YCUOK_MBBL [400] -> None
-  FRED DCOILWTICO [200] -> {'realtime_start': '2026-06-17', 'realtime_end': '2026-06-17', 'date': '2026-06-15', 'value': '84.65'}
+/home/runner/work/si/si/aws/ops/pending/1850_fmp_fresh.py:10: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  now=int(datetime.datetime.utcnow().timestamp())
+  CLUSD price=75.34 chg=-0.67 ts=1781804962 age_h=0.0
+  WTIUSD parse err list index out of range :: []
+  BZUSD price=78.22 chg=-1.33 ts=1781804963 age_h=0.0
+  RBUSD price=2.8575 chg=0.0242 ts=1781804361 age_h=0.2
+  HOUSD price=3.0923 chg=-0.0515 ts=1781804962 age_h=0.0
+  FRED DCOILWTICO date=2026-06-15 val=84.65
+  FRED DCOILBRENTEU date=2026-06-15 val=84.36
