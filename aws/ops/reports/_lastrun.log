@@ -1,9 +1,8 @@
-/home/runner/work/si/si/aws/ops/pending/1850_fmp_fresh.py:10: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  now=int(datetime.datetime.utcnow().timestamp())
-  CLUSD price=75.34 chg=-0.67 ts=1781804962 age_h=0.0
-  WTIUSD parse err list index out of range :: []
-  BZUSD price=78.22 chg=-1.33 ts=1781804963 age_h=0.0
-  RBUSD price=2.8575 chg=0.0242 ts=1781804361 age_h=0.2
-  HOUSD price=3.0923 chg=-0.0515 ts=1781804962 age_h=0.0
-  FRED DCOILWTICO date=2026-06-15 val=84.65
-  FRED DCOILBRENTEU date=2026-06-15 val=84.36
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"HEALTHY\", \"metrics\": 4, \"errors\": [], \"dq\": \"FMP front-month vs FRED spot diverge -10.9% \\u2014 FRED likely lagged to 2026-06-15\"}"}
+REGIME=HEALTHY | Refining margins firm (3:2:1 crack $48.09/bbl).
+data_quality: {"fmp_wti": 75.41, "fred_wti": 84.65, "fred_asof": "2026-06-15", "deviation_pct": -10.9, "note": "FMP front-month vs FRED spot diverge -10.9% \u2014 FRED likely lagged to 2026-06-15"}
+errors: []
+  [green] 3:2:1 crack spread (refining margin)     = 48.09$/bbl  (pctile 92.0, asof 2026-06-18)
+  [green] Gasoline crack (RBOB - WTI)              = 44.84$/bbl  (pctile 94.8, asof 2026-06-18)
+  [green] Distillate crack (heating oil - WTI)     = 54.6$/bbl  (pctile 84.3, asof 2026-06-18)
+  [green] Brent - WTI spread                       = 2.88$/bbl  (pctile 27.9, asof 2026-06-18)
