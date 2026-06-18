@@ -1,11 +1,18 @@
-EURODOLLAR: verdict FUNCTIONING health 88.1
-HK hub metrics (4):
-    green HK Aggregate Balance = 53.88 HK$bn
-    yellow HK USD/HKD vs 7.85 weak side = 7.83708 
-    yellow HK HIBOR − SOFR = -80.3 bp
-    info USD/JPY (hedging-cost context) = 160.89 
-AI short_term: Direction is stable to slightly deteriorating as the ON RRP buffer nears depletion and HKD tests the weak side of its peg. Watch for a sustained breach of USD/HKD above 7.85 or a sudden spike in SOFR tail rates as triggers for broader liquidity friction.
+eurodollar-plumbing: {"statusCode": 200, "body": "{\"ok\": true, \"health\": 88.1, \"verdict\": \"FUNCTIONING\"}"}
+  health=88.1 verdict=FUNCTIONING | composite_score=11.9 score=11.9 stress_score=11.9 severity=ABUNDANT stress_regime=ABUNDANT_LIQUIDITY
 
-signal-board invoke: {"statusCode": 200, "body": "{\"ok\": true, \"composite_posture\": \"NEUTRAL / MIXED\", \"composite_signal\": 0.04, \"n_
-Eurodollar in signal-board: [{'engine': 'Eurodollar Plumbing', 'category': 'macro', 'signal': 1, 'signal_label': 'RISK-ON', 'read': 'Eurodollar funding FUNCTIONING (health 88.1/100)', 'as_of': '2026-06-18T14:32:12Z', 'stale': False}]
-composite posture: None | macro category: {'signal': -0.18, 'n': 17}
+plumbing-aggregator: {"statusCode": 200, "body": "{\"ok\": true, \"composite_score\": 53.5, \"composite_label\": \"ELEVATED\", \"n_with_data\": 31, \"n_alerts\": 13, \"dur
+  composite=53.5 | L4 score=48.0 | HK contributors in L4: 3
+    HK · Aggregate Balance = 53.88 (stress 18.0, pctile 46.7)
+    HK · USD/HKD vs 7.85 weak side = 7.83708 (stress 55.0, pctile None)
+    HK · 3M HIBOR − SOFR = -80.3 (stress 55.0, pctile None)
+
+justhodl-crisis-composite: {"statusCode": 200, "body": "{\"ok\": true, \"master_crisis_score\": 26.8, \"defcon_level\": 4, \"defcon_name\": \"NORMAL\", \"trend\": \"stable\"}"}
+
+justhodl-vol-radar: {"statusCode": 200, "body": "{\"ok\": true, \"posture\": \"CALM\", \"spike_risk\": 0, \"exhaustion\": 21, \"vix\": 21.51, \"vix_percentile\": 67.0, \"
+
+justhodl-tail-hedge: {"statusCode": 200, "body": "{\"ok\": true, \"hedge_posture\": \"UNHEDGED -- NOT REQUIRED\", \"severity\": 0, \"scenario_class\": \"EQUITY_CRASH\", \"
+
+justhodl-canary-grid: {"statusCode": 200, "body": "{\"ok\": true, \"early_warning_level\": 29.8, \"band\": \"WATCH\", \"n_available\": 8, \"n_total\": 9}"}
+
+justhodl-sovereign-stress: INVOKE ERR: An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-e
