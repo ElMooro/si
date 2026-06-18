@@ -215,14 +215,24 @@ def build_layers():
                      "True basis needs an FX forward/swap-points feed (not in current data entitlements). Proxied above by broad-dollar strain; a dedicated CIP feed is the upgrade path."))
     layers["fx"] = {"title": "FX & offshore strain", "metrics": fx}
 
-    # ---- Layer 7: country hubs ----
+    # ---- Layer 7: country hubs (HK funding plumbing from HKMA Open API) ----
     hubs = []
-    hkd = fmp_fx("USDHKD")
-    if hkd is not None:
-        # peg band 7.75 (strong) – 7.85 (weak). Near 7.85 = HKD weak, liquidity tightening.
-        st = "green" if hkd <= 7.82 else "yellow" if hkd <= 7.848 else "red"
-        hubs.append(metric("hk_peg", "Hong Kong USD/HKD (band 7.75–7.85)", round(hkd, 4), "", st,
-                            "At the weak-side 7.85, HKMA sells USD/buys HKD → Aggregate Balance shrinks, HIBOR jumps"))
+    hk = gj("data/hkma.json") or {}
+    by_id = {m.get("id"): m for m in (hk.get("metrics") or [])}
+    if by_id:
+        for mid, lab in (("agg_balance", "HK Aggregate Balance"),
+                         ("usd_hkd", "HK USD/HKD vs 7.85 weak side"),
+                         ("hibor_sofr", "HK HIBOR − SOFR")):
+            m = by_id.get(mid)
+            if m and m.get("value") is not None:
+                hubs.append(metric("hk_" + mid, lab, m["value"], m.get("unit", ""), m.get("status", "info"),
+                                    m.get("detail", ""), m.get("pctile"), m.get("asof")))
+    else:
+        hkd = fmp_fx("USDHKD")
+        if hkd is not None:
+            st = "green" if hkd <= 7.82 else "yellow" if hkd <= 7.848 else "red"
+            hubs.append(metric("hk_peg", "Hong Kong USD/HKD (band 7.75–7.85)", round(hkd, 4), "", st,
+                                "At the weak-side 7.85, HKMA sells USD/buys HKD → Aggregate Balance shrinks, HIBOR jumps"))
     jpy = fmp_fx("USDJPY")
     if jpy is not None:
         hubs.append(metric("jpy", "USD/JPY (hedging-cost context)", round(jpy, 2), "", "info",
