@@ -1,45 +1,30 @@
-deployed deal-scanner
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 1900, \"n_deals\": 12, \"n_small_cap\": 5, \"n_high_materiality\": 6}"}
-DEAL-SCANNER: items=1900 deals=12 ai=2 green=7 | sources=8
-  deal publishers: {'Benzinga': 2, 'The Motley Fool': 3, 'Newsfile Corp': 1, 'Business Wire': 1, 'GlobeNewswire Inc.': 1, 'PRNewsWire': 2, 'GlobeNewsWire': 2}
-   REFI    Benzinga  [G] Chicago Atlantic Real Estate Finance, Inc. and
-   SPCX    The Motle [G] SpaceX Has Successfully Completed Its IPO. Her
-   AAPL    Benzinga  [AIY] After Nvidia And Tesla, Trump Confirms Apple H
-   AMMX    Newsfile  [G] AmeraMex International Wins Bid Worth $5 Milli
-   NFLX    The Motle [G] Here's What Fox Buying Roku Means for Netflix 
-   P-PLYR  Business  [G] Polymarket and Splash Sports Announce Strategi
-   DAIO    GlobeNews [G] Data I/O Announces Closing of $9 Million Inves
-   QMCO    PRNewsWir [AIG] Quantum Computing Inc. Announces Framework Agr
+deployed
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 1900, \"n_deals\": 6, \"n_small_cap\": 3, \"n_high_materiality\": 2}"}
+DEAL-SCANNER: items=1900 deals=6 ai=1 green=3
+opinion-noise still present: NONE (clean)
+   AMMX    Newsfile C [G] AmeraMex International Wins Bid Worth $5 Milli
+   P-PLYR  Business W [G] Polymarket and Splash Sports Announce Strategi
+   QMCO    PRNewsWire [AIG] Quantum Computing Inc. Announces Framework Agr
+   ULCC    GlobeNewsW [] Eos Energy Enterprises Announces First Purchas
+   APU     GlobeNewsW [] Odysight.ai® Receives Purchase Order from Hone
+   OKLO    PRNewsWire [] Oklo, Centrus Sign Letter of Intent to Purchas
 
-=== EXISTING ETF-FLOW / SECTOR ENGINE FRESHNESS ===
-  data/etf-fund-flows.json           MISSING (An error occurred (404) when c)
-  data/etf-flows.json                LastModified 2026-06-08 12:18  (248h ago) STALE
-  data/etf-true-flows.json           LastModified 2026-06-18 15:45  (4h ago) FRESH
-  data/flow-anomaly-detector.json    MISSING (An error occurred (404) when c)
-  data/flow-anomalies.json           MISSING (An error occurred (404) when c)
-  data/sector-rotation.json          LastModified 2026-06-18 19:38  (1h ago) FRESH
-  data/capital-flow.json             LastModified 2026-06-18 16:30  (4h ago) FRESH
-  data/rotation-radar.json           LastModified 2026-06-18 13:46  (6h ago) FRESH
-  -- other flow/sector outputs present --
-     data/capital-flow.json                   4h
-     data/etf-flows.json                      248h STALE
-     data/etf-true-flows.json                 4h
-     data/event-flow-health.json              247h STALE
-     data/exchange-flows.json                 250h STALE
-     data/finviz-etf-flows.json               66h STALE
-     data/gold-equity-rotation.json           21h
-     data/liquidity-flow.json                 22h
-     data/options-flow.json                   22h
-     data/polygon-options-flow.json           384h STALE
-     data/rotation-chains.json                248h STALE
-     data/rotation-radar.json                 6h
-     data/sector-earnings-diffusion-state.json 9h
-     data/sector-earnings-diffusion.json      9h
-     data/sector-groups.json                  6h
-     data/sector-heatmap.json                 247h STALE
-     data/sector-rotation.json                1h
-     data/sector-tilt.json                    248h STALE
-     data/stablecoin-flow.json                6h
-     data/theme-rotation-state.json           9h
-     data/theme-rotation.json                 9h
-     data/tic-flows.json                      22h
+=== ALREADY-BUILT: ETF-TRUE-FLOWS (data/etf-true-flows.json) ===
+  keys: ['engine', 'version', 'generated_at', 'duration_s', 'n_etfs', 'maturity', 'method', 'inflows', 'outflows', 'category_rotation', 'by_etf']
+  [inflows] sample:
+     {'ticker': 'VTV', 'category': 'DIVIDEND_VALUE', 'shares_outstanding': 1122926024.0, 'price': 216.9, 'aum_est_b': 243.56, 'net_flow_1d_usd': 0.0}
+     {'ticker': 'IWM', 'category': 'BROAD_EQUITY_US', 'shares_outstanding': 281750266.0, 'price': 293.415, 'aum_est_b': 82.67, 'net_flow_1d_usd': 0.0}
+     {'ticker': 'EWJ', 'category': 'INTERNATIONAL', 'shares_outstanding': 239692165.0, 'price': 96.19, 'aum_est_b': 23.06, 'net_flow_1d_usd': 475256129.0}
+     {'ticker': 'AGG', 'category': 'CREDIT', 'shares_outstanding': 1396739148.0, 'price': 98.995, 'aum_est_b': 138.27, 'net_flow_1d_usd': 0.0}
+     {'ticker': 'RSP', 'category': 'BROAD_EQUITY_US', 'shares_outstanding': 436699524.0, 'price': 210.48, 'aum_est_b': 91.92, 'net_flow_1d_usd': 0.0}
+     {'ticker': 'XLI', 'category': 'SECTOR_EQUITY', 'shares_outstanding': 177428787.0, 'price': 181.4498, 'aum_est_b': 32.19, 'net_flow_1d_usd': 0.0}
+
+=== ALREADY-BUILT: SECTOR-ROTATION (data/sector-rotation.json) ===
+  keys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'macro_context', 'risk_appetite', 'summary', 'sectors', 'ratios', 'rotation_alerts', 'finviz_rotation']
+  [sectors] sample:
+     {'symbol': 'XLI', 'name': 'Industrials', 'current_price': 180.69, 'cycle_fit_phases': ['EXPANSION-MID'], 'in_current_cycle': True, 'rotation_score': 69.3}
+     {'symbol': 'XLF', 'name': 'Financials', 'current_price': 53.61, 'cycle_fit_phases': ['EXPANSION-EARLY', 'EXPANSION-MID'], 'in_current_cycle': True, 'rotation_score': 66.2}
+     {'symbol': 'XLK', 'name': 'Technology', 'current_price': 191.43, 'cycle_fit_phases': ['EXPANSION-EARLY', 'EXPANSION-MID'], 'in_current_cycle': True, 'rotation_score': 64.3}
+     {'symbol': 'XLB', 'name': 'Materials', 'current_price': 51.85, 'cycle_fit_phases': ['EXPANSION-MID', 'EXPANSION-LATE'], 'in_current_cycle': True, 'rotation_score': 64.2}
+     {'symbol': 'XLY', 'name': 'Consumer Discretionary', 'current_price': 116.84, 'cycle_fit_phases': ['EXPANSION-EARLY'], 'in_current_cycle': False, 'rotation_score': 54.8}
+     {'symbol': 'XLC', 'name': 'Communications', 'current_price': 109.58, 'cycle_fit_phases': ['EXPANSION-EARLY', 'EXPANSION-MID'], 'in_current_cycle': True, 'rotation_score': 50.0}
