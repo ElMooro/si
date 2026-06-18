@@ -63,10 +63,11 @@ DEAL_NEG = (
     "credit facility", "loan agreement", "term loan", "senior notes", "notes due", "convertible note",
     "acquires", "acquisition", "provides update", "update on", "ongoing operations", "training",
     "education program", "feasibility", "to evaluate", "explores",
+    "report", "facility", "prepayment", "welcomes", "leadership", "summit", "survey",
+    "white paper", "outlook", "research report", "index report", "ventures",
 )
-SIZE_RE = re.compile(r'\$\s?([\d][\d,]*(?:\.\d+)?)\s*(trillion|billion|bn|million|mn|b|m)\b', re.I)
-MULT = {"trillion": 1e12, "billion": 1e9, "bn": 1e9, "b": 1e9,
-        "million": 1e6, "mn": 1e6, "m": 1e6}
+SIZE_RE = re.compile(r'\$\s?([\d][\d,]*(?:\.\d+)?)\s*(billion|bn|million|mn|b|m)\b', re.I)
+MULT = {"billion": 1e9, "bn": 1e9, "b": 1e9, "million": 1e6, "mn": 1e6, "m": 1e6}
 
 
 def _num(x):
@@ -105,6 +106,8 @@ def _largest(blob):
         if val is None:
             continue
         val *= MULT.get(m.group(2).lower(), 1)
+        if val > 1e11:        # >$100B: macro/industry figure misparse, not a single deal
+            continue
         if val > best:
             best, bstr = val, m.group(0).strip()
     return best, bstr
