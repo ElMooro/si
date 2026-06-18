@@ -1,5 +1,11 @@
-  attempt 1 code=200
-OK sector-flow live w/ category rotation section
-rotation_alerts keys: ['rotating_in', 'rotating_out']
-  rotating_in: list len=1 e0={"sym": "XLU", "score": 48.1, "flags": ["RS_ACCELERATING", "VOLUME_THRUST", "MFI_BULLISH"]}
-  rotating_out: list = []
+deployed deal-scanner
+universe stock keys: ['symbol', 'name', 'sector', 'industry', 'exchange', 'market_cap', 'price', 'cap_bucket', 'source']  sector_sample='Technology'
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 1900, \"n_deals\": 6, \"n_small_cap\": 3, \"n_high_materiality\": 2}"}
+deals=6 sector_mapped=2 sector_tailwind=2 ai=1
+   AMMX    sec=?                      etf=-     score=None  tail=False [G] AmeraMex International Wins Bid Worth $5
+   P-PLYR  sec=?                      etf=-     score=None  tail=False [G] Polymarket and Splash Sports Announce St
+   QMCO    sec=?                      etf=-     score=None  tail=False [AIG] Quantum Computing Inc. Announces Framewo
+   ULCC    sec=Industrials            etf=XLI   score=69.9  tail=True [] Eos Energy Enterprises Announces First P
+   OKLO    sec=Utilities              etf=XLU   score=48.1  tail=True [] Oklo, Centrus Sign Letter of Intent to P
+   APU     sec=?                      etf=-     score=None  tail=False [] Odysight.ai® Receives Purchase Order fro
+page check skip HTTP Error 403: Forbidden
