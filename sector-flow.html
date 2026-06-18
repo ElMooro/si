@@ -102,15 +102,18 @@ function render(etf,sec){
   const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
   const inflows=((etf||{}).inflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)>0).sort((a,b)=>(b.net_flow_1d_usd||0)-(a.net_flow_1d_usd||0));
   const outflows=((etf||{}).outflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)<0).sort((a,b)=>(a.net_flow_1d_usd||0)-(b.net_flow_1d_usd||0));
-  const alerts=((sec||{}).rotation_alerts)||[];
+  let alertItems=[]; const _al=(sec||{}).rotation_alerts;
+  if(Array.isArray(_al))alertItems=_al;
+  else if(_al&&typeof _al==="object"){for(const k of Object.keys(_al)){const v=_al[k];if(Array.isArray(v))v.forEach(it=>alertItems.push(typeof it==="object"?Object.assign({_group:k},it):{_group:k,message:it}));}}
   const topSec=sectors[0];
   const gen=(sec||etf||{}).generated_at?new Date((sec||etf).generated_at):null;
   document.getElementById("meta").innerHTML=`updated <b>${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}</b>`;
   // banner
   let bn="";
   const ra=(sec||{}).risk_appetite, mc=(sec||{}).macro_context;
-  if(ra!=null)bn+=`<span class="chip"><b>Risk Appetite</b> ${esc(asText(ra))}</span>`;
-  if(mc!=null)bn+=`<span class="chip"><b>Macro</b> ${esc(asText(mc))}</span>`;
+  if(ra!=null)bn+=`<span class="chip"><b>Risk Appetite</b> ${esc((ra&&ra.label)||asText(ra))}${ra&&ra.score!=null?` (${Math.round(ra.score)})`:""}</span>`;
+  if(mc&&typeof mc==="object")bn+=`<span class="chip"><b>Regime</b> ${esc(mc.regime_label||"")}${mc.cycle_phase?` · ${esc(mc.cycle_phase)}`:""}${mc.macro_stress_score!=null?` · stress ${Math.round(mc.macro_stress_score)}`:""}</span>`;
+  else if(mc!=null)bn+=`<span class="chip"><b>Macro</b> ${esc(asText(mc))}</span>`;
   document.getElementById("banner").innerHTML=bn;
   // stats
   document.getElementById("statbar").innerHTML=
@@ -147,13 +150,19 @@ function render(etf,sec){
       <span class="cat">${esc(x.category||"")}</span><div class="bar-wrap"></div>
       <span class="val">${money(x.net_flow_1d_usd)}</span></div>`).join("")+`</div>`;
   }
-  // rotation alerts (defensive)
-  if(Array.isArray(alerts)&&alerts.length){
-    h+=`<div class="sec-hdr"><span class="dot v"></span><h2>⚡ Rotation Alerts</h2><span class="ct">${alerts.length}</span></div>`;
-    h+=`<ul class="alerts">`+alerts.slice(0,12).map(a=>{
+  // category rotation — 5-day net flows (less sparse than 1d)
+  const catRot=((etf||{}).category_rotation||[]).slice().filter(c=>(+c.net_flow_5d_usd||0)!==0).sort((a,b)=>(b.net_flow_5d_usd||0)-(a.net_flow_5d_usd||0));
+  if(catRot.length){
+    h+=`<div class="sec-hdr"><span class="dot c"></span><h2>🔀 Category Rotation <span style="color:var(--fg-4);font-weight:400">(true net flows, 5-day)</span></h2><span class="ct">${catRot.length}</span></div>`;
+    h+=`<div class="rows">`+catRot.slice(0,12).map(c=>{const v=+c.net_flow_5d_usd||0;const pos=v>=0;return `<div class="row ${pos?"flow-pos":"flow-neg"}"><span class="cat" style="min-width:160px;font-size:11px">${esc(c.category||"")}</span>${c.n_etfs?`<span class="ph" style="color:var(--fg-3)">${c.n_etfs} ETFs</span>`:""}<div class="bar-wrap"></div><span class="val">${money(v)}</span></div>`;}).join("")+`</div>`;
+  }
+  // rotation alerts (dict or list)
+  if(alertItems.length){
+    h+=`<div class="sec-hdr"><span class="dot v"></span><h2>⚡ Rotation Alerts</h2><span class="ct">${alertItems.length}</span></div>`;
+    h+=`<ul class="alerts">`+alertItems.slice(0,12).map(a=>{
       if(typeof a==="string")return `<li>${esc(a)}</li>`;
-      const head=esc(a.symbol||a.sector||a.name||a.ticker||"");
-      const body=esc(a.message||a.alert||a.signal||a.type||a.note||asText(a));
+      const head=esc(a.symbol||a.sector||a.name||a.ticker||a._group||"");
+      const body=esc(a.message||a.alert||a.signal||a.type||a.note||a.direction||"");
       return `<li><b>${head}</b> ${body}${a.score!=null?` · ${esc(a.score)}`:""}</li>`;
     }).join("")+`</ul>`;
   }
