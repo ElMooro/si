@@ -1,21 +1,16 @@
-fn active; last_modified=2026-06-18T19:57:23.000+0000
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 1600, \"n_deals\": 9, \"n_small_cap\": 4, \"n_high_materiality\": 3}"}
-SUMMARY: items=1600 deals=9 green=4 ai=2 ai_mega=1 elapsed=1.41
+active; last_modified=2026-06-18T19:57:23.000+0000
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 1600, \"n_deals\": 8, \"n_small_cap\": 3, \"n_high_materiality\": 3}"}
+SUMMARY: items=1600 deals=8 green=4 ai=2 ai_mega=1
+opinion-noise check (NBIS/GSK present?): ['GSK', 'NBIS']
 
-=== AI MEGA-DEALS (AI + big vs mkt-cap / billions) ===
-  NBIS    large  val=$9.3B         mc=17%     bil=True kw=['AI']
-        Nebius Amasses $9.3B Cash Reserve: Can It Accelerate AI Buildout?
+=== ALL DEALS ===
+  NBIS    large  mc=17%     val=$9.3B         [AI$BG] Nebius Amasses $9.3B Cash Reserve: Can It Accele
+  AMMX    nano   mc=197%    val=$5 Million    [G] AmeraMex International Wins Bid Worth $5 Million
+  P-PLYR  ?      mc=n/a     val=$21 Million   [G] Polymarket and Splash Sports Announce Strategic 
+  QMCO    micro  mc=10%     val=$10 million   [AIG] Quantum Computing Inc. Announces Framework Agree
+  ULCC    small  mc=n/a     val=None          [-] Eos Energy Enterprises Announces First Purchase 
+  GSK     large  mc=0%      val=$50m          [-] Spero Therapeutics: Yesterday's Selloff On Utebz
+  APU     ?      mc=n/a     val=None          [-] Odysight.ai® Receives Purchase Order from Honeyw
+  OKLO    large  mc=n/a     val=None          [-] Oklo, Centrus Sign Letter of Intent to Purchase 
 
-=== AI-RELEVANT (top 10) ===
-  NBIS    large  val=$9.3B         mc=17%     kw=['AI'] | Nebius Amasses $9.3B Cash Reserve: Can It Acce
-  QMCO    micro  val=$10 million   mc=10%     kw=['AI'] | Quantum Computing Inc. Announces Framework Agr
-
-=== TOP OVERALL ===
-  NBIS    sc=392.4  [AI$BG] Nebius Amasses $9.3B Cash Reserve: Can It Accelerate
-  AMMX    sc=210.9  [G] AmeraMex International Wins Bid Worth $5 Million
-  P-PLYR  sc=195.7  [G] Polymarket and Splash Sports Announce Strategic Part
-  QMCO    sc=169.1  [AIG] Quantum Computing Inc. Announces Framework Agreement
-  CTXXF   sc=98.6   [Y] CEMATRIX Announces $5.1 Million in New Contract Awar
-  ULCC    sc=48.6   [-] Eos Energy Enterprises Announces First Purchase Orde
-  GSK     sc=37.6   [-] Spero Therapeutics: Yesterday's Selloff On Utebzi Ap
-  APU     sc=33.6   [-] Odysight.ai® Receives Purchase Order from Honeywell 
+AI MEGA: [('NBIS', '$9.3B')]
