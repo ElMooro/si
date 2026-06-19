@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-attention-signals",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Pre-pump attention layer: Finnhub insider-sentiment + analyst recommendation momentum + Stocktwits retail attention + GDELT theme narrative tone, fused per ticker.",
+  "schedule": { "rule_name": "attention-signals-daily", "cron": "cron(45 14 * * ? *)", "description": "Daily attention signals at 14:45 UTC" }
+}
