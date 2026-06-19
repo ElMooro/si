@@ -101,32 +101,40 @@ def universe_from_stack(stack_doc):
 
 
 def fundamentals(symbol):
-    """latest + prior revenue (trailing growth) and forward 2yr revenue CAGR."""
-    inc = _fmp(f"income-statement?symbol={urllib.parse.quote(symbol)}&limit=2")
+    """Revenue: latest + trailing growth (reliable). Forward estimate best-effort (endpoint flaky)."""
+    inc = _fmp(f"income-statement?symbol={urllib.parse.quote(symbol)}&limit=3")
     if not (isinstance(inc, list) and inc):
         return None
     latest_rev = _num(inc[0].get("revenue"))
     if not latest_rev or latest_rev <= 0:
         return None
     trailing_growth = None
-    if len(inc) >= 2 and _num(inc[1].get("revenue")):
-        prev = _num(inc[1].get("revenue"))
-        if prev and prev > 0:
-            trailing_growth = latest_rev / prev - 1
-    est = _fmp(f"analyst-estimates?symbol={urllib.parse.quote(symbol)}&limit=10")
+    p1 = _num(inc[1].get("revenue")) if len(inc) >= 2 else None
+    if p1 and p1 > 0:
+        trailing_growth = latest_rev / p1 - 1
+    trailing_cagr2 = None
+    p2 = _num(inc[2].get("revenue")) if len(inc) >= 3 else None
+    if p2 and p2 > 0:
+        trailing_cagr2 = (latest_rev / p2) ** 0.5 - 1
     fwd_growth = None
+    est = _fmp(f"analyst-estimates?symbol={urllib.parse.quote(symbol)}&limit=10")
     if isinstance(est, list) and est:
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         fut = sorted([e for e in est if (e.get("date") or "") > today and _num(e.get("revenueAvg"))],
                      key=lambda e: e["date"])
         if fut:
-            r1 = _num(fut[0]["revenueAvg"])
             if len(fut) >= 2 and _num(fut[1].get("revenueAvg")):
-                r2 = _num(fut[1]["revenueAvg"])
-                fwd_growth = (r2 / latest_rev) ** 0.5 - 1     # 2yr forward CAGR
-            elif r1:
-                fwd_growth = r1 / latest_rev - 1
-    return {"latest_rev": latest_rev, "trailing_growth": trailing_growth, "fwd_growth": fwd_growth}
+                fwd_growth = (_num(fut[1]["revenueAvg"]) / latest_rev) ** 0.5 - 1
+            elif _num(fut[0].get("revenueAvg")):
+                fwd_growth = _num(fut[0]["revenueAvg"]) / latest_rev - 1
+    if fwd_growth is not None:
+        growth, basis = fwd_growth, "forward"
+    elif trailing_cagr2 is not None:
+        growth, basis = trailing_cagr2, "trailing_2y"
+    else:
+        growth, basis = trailing_growth, "trailing_1y"
+    return {"latest_rev": latest_rev, "trailing_growth": trailing_growth, "fwd_growth": fwd_growth,
+            "growth": growth, "growth_basis": basis}
 
 
 def regress(pts):
@@ -174,15 +182,17 @@ def lambda_handler(event, context):
     pts = []
     for s in syms:
         u, fd = uni[s], fund.get(s)
-        if not fd or fd.get("fwd_growth") is None or not u.get("market_cap"):
+        if not fd or fd.get("growth") is None or not u.get("market_cap"):
             continue
         ev_sales = u["market_cap"] / fd["latest_rev"]
         if ev_sales <= 0 or ev_sales > 80:   # drop garbage/outliers
             continue
         u["_ev_sales"] = ev_sales
-        u["_fwd_growth"] = fd["fwd_growth"]
+        u["_growth"] = fd["growth"]
+        u["_growth_basis"] = fd.get("growth_basis")
+        u["_fwd_growth"] = fd.get("fwd_growth")
         u["_trailing_growth"] = fd.get("trailing_growth")
-        pts.append((s, fd["fwd_growth"], ev_sales))
+        pts.append((s, fd["growth"], ev_sales))
 
     reg = regress(pts)
     a = b = None
@@ -196,7 +206,7 @@ def lambda_handler(event, context):
         if "_ev_sales" not in u:
             continue
         evs = u["_ev_sales"]
-        fg = u["_fwd_growth"]
+        fg = u["_growth"]
         tg = u["_trailing_growth"]
         zz = z.get(s)
         implied = (a + b * fg) if (a is not None) else None
@@ -219,7 +229,7 @@ def lambda_handler(event, context):
         cap_pts = CAP_BOOST.get(bkt, 5)
         composite = round(unpriced_pts + laggard_pts + infl_pts + accum_pts + bn_pts + cap_pts, 1)
         why = []
-        why.append(f"{fg*100:.0f}% fwd rev growth on {evs:.1f}x EV/Sales"
+        why.append(f"{fg*100:.0f}% rev growth on {evs:.1f}x EV/Sales"
                    + (f" vs ~{implied:.1f}x growth-implied ({discount_pct:.0f}% below)" if discount_pct is not None else ""))
         if lag_gap and lag_gap > 0:
             why.append(f"lags {u['layer']} peers by {lag_gap:.0f}pp")
@@ -229,7 +239,9 @@ def lambda_handler(event, context):
         rows.append({
             "symbol": s, "name": u["name"], "layer": u["layer"], "cap_bucket": bkt,
             "market_cap": u["market_cap"], "is_small_mid": bkt in SMALL_MID,
-            "fwd_growth_pct": round(fg * 100, 1), "trailing_growth_pct": round(tg * 100, 1) if tg is not None else None,
+            "growth_pct": round(fg * 100, 1), "growth_basis": u.get("_growth_basis"),
+            "fwd_growth_pct": round(u["_fwd_growth"] * 100, 1) if u.get("_fwd_growth") is not None else None,
+            "trailing_growth_pct": round(tg * 100, 1) if tg is not None else None,
             "ev_sales": round(evs, 2), "ev_sales_implied": round(implied, 2) if implied else None,
             "discount_to_implied_pct": discount_pct, "unpriced_z": round(zz, 2) if zz is not None else None,
             "laggard_gap_pp": lag_gap, "ret_3m_pct": u["ret_3m"],
