@@ -1,24 +1,24 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"n_complexes\": 36, \"pump_setups\": 11, \"party_over\": 10}"}
-n_complexes: 36
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 5, \"n_tier_3_plus\": 66, \"n_tier_5_plus\":
+top_tickers: 25
 
-LEVERAGED RISK APPETITE: RISK_ON | agg bull-lev inflow $1134.0M | agg bear-lev inflow $373.0M
+TOP 12 with capital-flow overlay:
+  FDX    score=134.1  cf_mult=1.12  📈BOOST
+  STX    score=131.8  cf_mult=1.0   —
+  NVDA   score=113.7  cf_mult=1.0   —
+  GOOGL  score=113.6  cf_mult=1.0   —
+  SNDK   score=113.2  cf_mult=1.0   —
+  FITB   score=105.6  cf_mult=1.0   —
+  GOOG   score=105.4  cf_mult=1.0   —
+  PWR    score=103.6  cf_mult=1.12  📈BOOST
+  NKE    score=102.2  cf_mult=0.85  📉PENALTY
+  NEM    score=102.1  cf_mult=0.82  📉PENALTY
+  OXY    score=100.9  cf_mult=0.85  📉PENALTY
+  SPG    score=100.8  cf_mult=1.12  📈BOOST
 
-MOST BULLISH leveraged positioning:
-  sp500            net $488.9M (bull $409.0M / bear $-79.9M) ['SPXL', 'SPXS', 'UPRO', 'SPXU', 'SSO', 'SDS', 'SH']
-  qqq              net $275.1M (bull $346.5M / bear $71.3M) ['TQQQ', 'SQQQ', 'QLD', 'QID']
-  crude            net $228.0M (bull $17.9M / bear $-210.2M) ['UCO', 'SCO']
-  nvda             net $182.3M (bull $180.6M / bear $-1.6M) ['NVDL', 'NVDS']
-  smallcap         net $74.2M (bull $53.3M / bear $-20.9M) ['TNA', 'TZA', 'UWM', 'TWM']
-  goldminers       net $35.6M (bull $19.4M / bear $-16.2M) ['NUGT', 'DUST']
-
-MOST BEARISH leveraged positioning:
-  semi             net $-1734.0M (bull $-1462.8M / bear $271.2M) ['SOXL', 'SOXS']
-  financials       net $-85.1M (bull $-87.2M / bear $-2.1M) ['FAS', 'FAZ']
-  vol              net $-63.3M (bull $-68.7M / bear $-5.4M) ['UVXY', 'SVXY']
-  biotech          net $-59.7M (bull $-45.5M / bear $14.2M) ['LABU', 'LABD']
-  treasury         net $-49.6M (bull $-51.5M / bear $-1.9M) ['TMF', 'TMV']
-  silver           net $-38.8M (bull $-39.4M / bear $-0.6M) ['AGQ', 'ZSL']
-
-PUMP SETUPS: [('Infrastructure', 100), ('Cybersecurity', 96.0), ('Real Estate', 95.0), ('S&P 500 (broad)', 94.0), ('Copper/Mining', 88.0), ('Transports', 81.0), ('Materials', 81.0), ('Industrials', 73.0), ('Retail', 73.0), ('Aerospace & Defense', 65.0), ('Nasdaq 100 (broad)', 63.0)]
-PARTY OVER: ['Energy', 'Financials', 'Consumer Discretionary', 'Healthcare', 'Clean Energy', 'Uranium', 'Innovation/ARK', 'Gold Miners', 'Technology', 'Semiconductors']
-CASCADE: [('FCX', 'Copper/Mining'), ('FCX', 'Materials'), ('AMZN', 'Retail')]
+9 of top-25 had a capital-flow adjustment
+  FDX    cf_mult=1.12 | ] · legends: DURATION · theme T-2 Transports · sector capital ACCELERATING IN (Transports)
+  PWR    cf_mult=1.12 | ee (compound=103.6) [future_intel, pead] · sector capital ACCELERATING IN (Infrastructure)
+  NKE    cf_mult=0.85 | compound=102.2) [compound, pead, smart_money] · sector party-over (Consumer Discretionary)
+  NEM    cf_mult=0.82 | 2.1) [asymmetric, compound, pead] · capital OUTFLOW vs price · distribution in Gold Miners
+  OXY    cf_mult=0.85 | ound=100.9) [compound, pead, smart_money] · legends: DURATION · sector party-over (Energy)
+  SPG    cf_mult=1.12 | 1 systems agree (compound=100.8) [pead] · sector capital ACCELERATING IN (Real Estate)
