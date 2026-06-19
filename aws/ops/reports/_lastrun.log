@@ -1,52 +1,183 @@
-new key received via secret (len 32)
-SSM /justhodl/massive-api-key  stored + readback match: True
-NEW KEY entitlements @ api.massive.com:
-  [UNLOCKED] stocks           HTTP 200
-  [UNLOCKED] options          HTTP 200
-  [UNLOCKED] fx               HTTP 200
-  [UNLOCKED] futures          HTTP 200
-  [UNLOCKED] etf-fund-flows   HTTP 200
-  [NO/LIMITED] etf-constituents HTTP 403
-OLD key (zvEY...): HTTP 200 -> STILL LIVE
-files still hardcoding OLD key: 148
-aws/ops/historical/_backfill_directional_signals.py
-aws/ops/historical/_backfill_screener_calibration.py
-aws/ops/historical/_create_correlation_surface.py
-aws/ops/historical/_create_etf_flows.py
-aws/ops/historical/_create_momentum_scanner.py
-aws/ops/historical/_create_options_gamma.py
-aws/ops/historical/_create_sector_rotation.py
-aws/ops/historical/_create_signal_portfolio.py
-aws/ops/historical/_create_skew_engine.py
-aws/ops/historical/_create_wave_signal_logger.py
-aws/ops/historical/_debug_polygon_options.py
-aws/ops/historical/_debug_polygon_options2.py
-aws/ops/historical/_inspect_wave3_inputs.py
-aws/ops/historical/_phase_x1_options_polygon_capability_probe.py
-aws/ops/historical/_phase_x2_ship_options_flow_scanner.py
-aws/ops/historical/_phase_x4_ship_narrative_density.py
-aws/ops/historical/_phase_x4b_probe_polygon_news.py
-aws/ops/historical/_ship_calls_backtest.py
-aws/ops/historical/_ship_nobrainer_tracker.py
-aws/ops/historical/_ship_supply_inflection_scanner.py
-aws/ops/historical/_ship_theme_detector.py
-aws/ops/historical/_ship_theme_tier_classifier.py
-aws/ops/history/2026-04-24-fix_signal_logger_baseline.py
-aws/ops/history/2026-04-24-price_endpoint_test.py
-aws/ops/history/2026-04-24-price_fetch_investigation.py
-aws/ops/history/2026-04-25-loop2-137-pnl_tracker.py
-aws/ops/history/2026-05-03-probe_alt_earnings.py
-aws/ops/history/2026-05-04-create_short_interest.py
-aws/ops/history/2026-05-04-probe_earnings_v2.py
-aws/ops/pending/1591_upside.py
-aws/ops/pending/1592_upside_clean.py
-aws/ops/pending/1593_upside_clean2.py
-aws/ops/pending/1594_rotation.py
-aws/ops/pending/1595_crypto_fix.py
-aws/ops/pending/1596_fwd_guard.py
-aws/ops/pending/1597_altseason.py
-aws/ops/pending/1599_regime_split.py
-aws/ops/pending/1601_sizing.py
-aws/ops/pending/1602_sizing_prudence.py
-aws/ops/pending/1603_btcd_total2.py
+=== EXISTING LAMBDAS (options/flow/etf/vol/rotation) ===
+  justhodl-bond-vol                          mod=2026-06-06  NO SCHEDULE
+  justhodl-capital-flow                      mod=2026-06-04  sched:justhodl-capital-flow-daily
+  justhodl-catalyst-skew-premove             mod=2026-05-30  NO SCHEDULE
+  justhodl-correlation-break-trade-router    mod=2026-05-30  NO SCHEDULE
+  justhodl-correlation-breaks                mod=2026-06-04  NO SCHEDULE
+  justhodl-correlation-surface               mod=2026-05-30  NO SCHEDULE
+  justhodl-crypto-etf-arb                    mod=2026-05-30  NO SCHEDULE
+  justhodl-dealer-gex                        mod=2026-05-30  sched:justhodl-dealer-gex-hourly
+  justhodl-etf-constituents                  mod=2026-06-02  sched:justhodl-etf-constituents-daily
+  justhodl-etf-flows                         mod=2026-05-30  sched:justhodl-etf-flows-6h
+  justhodl-etf-fund-flows                    mod=2026-06-02  sched:justhodl-etf-fund-flows-daily
+  justhodl-etf-true-flows                    mod=2026-06-04  sched:justhodl-etf-true-flows-daily
+  justhodl-event-flow-monitor                mod=2026-05-31  sched:event-flow-monitor-hourly
+  justhodl-exchange-flows                    mod=2026-05-31  sched:justhodl-exchange-flows-6h
+  justhodl-flow-anomaly-detector             mod=2026-06-02  sched:justhodl-flow-anomaly-detector-daily
+  justhodl-flows-ai-analysis                 mod=2026-06-14  sched:justhodl-flows-ai-analysis-daily
+  justhodl-gold-equity-rotation              mod=2026-05-30  NO SCHEDULE
+  justhodl-liquidity-flow                    mod=2026-06-04  NO SCHEDULE
+  justhodl-momentum-breakout                 mod=2026-05-30  NO SCHEDULE
+  justhodl-momentum-leaders                  mod=2026-06-01  NO SCHEDULE
+  justhodl-momentum-scanner                  mod=2026-05-30  NO SCHEDULE
+  justhodl-options-flow                      mod=2026-06-04  sched:justhodl-options-flow-30m
+  justhodl-options-flow-scanner              mod=2026-05-30  NO SCHEDULE
+  justhodl-options-gamma                     mod=2026-05-31  NO SCHEDULE
+  justhodl-polygon-options-flow              mod=2026-06-02  NO SCHEDULE
+  justhodl-precatalyst-vol-expansion         mod=2026-05-30  NO SCHEDULE
+  justhodl-rotation-chain                    mod=2026-05-31  sched:rotation-chain-2x-daily
+  justhodl-rotation-radar                    mod=2026-06-12  sched:justhodl-rotation-radar-daily
+  justhodl-sector-rotation                   mod=2026-06-16  sched:justhodl-sector-rotation-6h,justhodl-sector-rotation-hourly
+  justhodl-skew-tail-hedging                 mod=2026-06-04  NO SCHEDULE
+  justhodl-stablecoin-flow                   mod=2026-05-30  sched:justhodl-stablecoin-flow-daily,justhodl-stablecoin-flow-sched
+  justhodl-sympathetic-momentum              mod=2026-05-30  NO SCHEDULE
+  justhodl-theme-rotation                    mod=2026-06-19  sched:theme-rotation-daily
+  justhodl-theme-rotation-engine             mod=2026-05-30  NO SCHEDULE
+  justhodl-tic-flows                         mod=2026-06-04  sched:tic-flows-thu
+  justhodl-vol-radar                         mod=2026-06-18  NO SCHEDULE
+  justhodl-vol-regime                        mod=2026-05-30  NO SCHEDULE
+  justhodl-vol-surface                       mod=2026-06-04  sched:justhodl-vol-surface-daily,justhodl-vol-surface-sched
+  justhodl-vol-target-unwind                 mod=2026-05-30  NO SCHEDULE
+  justhodl-volatility-squeeze-hunter         mod=2026-05-30  NO SCHEDULE
+  volatility-monitor-agent                   mod=2026-05-31  NO SCHEDULE
+total matched lambdas: 41
 
+=== RELATED S3 DATA OUTPUTS (freshness) ===
+  data/_archive/skew.json                         0.3KB  STALE 32d
+  data/_streaming/vol_radar_last.json             0.3KB  FRESH
+  data/archive/correlation-breaks/20260426.json   23.3KB  STALE 53d
+  data/archive/correlation-breaks/20260427.json   23.3KB  STALE 52d
+  data/archive/correlation-breaks/20260428.json   23.3KB  STALE 51d
+  data/archive/correlation-breaks/20260429.json   23.3KB  STALE 50d
+  data/archive/correlation-breaks/20260430.json   23.3KB  STALE 49d
+  data/archive/correlation-breaks/20260501.json   23.3KB  STALE 48d
+  data/archive/correlation-breaks/20260502.json   23.3KB  STALE 47d
+  data/archive/correlation-breaks/20260503.json   23.3KB  STALE 46d
+  data/archive/correlation-breaks/20260504.json   23.3KB  STALE 45d
+  data/archive/correlation-breaks/20260505.json   23.3KB  STALE 44d
+  data/archive/correlation-breaks/20260506.json   23.3KB  STALE 43d
+  data/archive/correlation-breaks/20260507.json   23.3KB  STALE 42d
+  data/archive/correlation-breaks/20260508.json   23.3KB  STALE 41d
+  data/archive/correlation-breaks/20260510.json   23.3KB  STALE 39d
+  data/archive/correlation-breaks/20260511.json   23.3KB  STALE 38d
+  data/archive/correlation-breaks/20260512.json   23.3KB  STALE 37d
+  data/archive/correlation-breaks/20260513.json   23.4KB  STALE 36d
+  data/archive/correlation-breaks/20260514.json   23.4KB  STALE 35d
+  data/archive/correlation-breaks/20260515.json   23.4KB  STALE 34d
+  data/archive/correlation-breaks/20260516.json   23.4KB  STALE 33d
+  data/archive/correlation-breaks/20260517.json   23.4KB  STALE 32d
+  data/archive/correlation-breaks/20260518.json   23.4KB  STALE 31d
+  data/archive/correlation-breaks/20260519.json   23.4KB  STALE 30d
+  data/archive/correlation-breaks/20260520.json   23.4KB  STALE 29d
+  data/archive/correlation-breaks/20260521.json   22.8KB  STALE 28d
+  data/archive/correlation-breaks/20260522.json   23.4KB  STALE 27d
+  data/archive/correlation-breaks/20260523.json   23.4KB  STALE 26d
+  data/archive/correlation-breaks/20260524.json   23.4KB  STALE 25d
+  data/archive/correlation-breaks/20260525.json   23.4KB  STALE 24d
+  data/archive/correlation-breaks/20260526.json   23.4KB  STALE 23d
+  data/archive/correlation-breaks/20260527.json   23.4KB  STALE 22d
+  data/archive/correlation-breaks/20260528.json   22.8KB  STALE 21d
+  data/archive/correlation-breaks/20260529.json   23.4KB  STALE 20d
+  data/archive/correlation-breaks/20260530.json   19.5KB  STALE 19d
+  data/archive/correlation-breaks/20260604.json   23.4KB  STALE 14d
+  data/archive/correlation-breaks/20260605.json   23.4KB  STALE 13d
+  data/archive/correlation-breaks/20260606.json   23.4KB  STALE 12d
+  data/archive/correlation-breaks/20260607.json   23.4KB  STALE 11d
+  data/archive/correlation-breaks/20260608.json   23.4KB  STALE 10d
+  data/archive/correlation-breaks/20260609.json   23.4KB  STALE 9d
+  data/archive/correlation-breaks/20260610.json   23.4KB  STALE 8d
+  data/archive/correlation-breaks/20260611.json   23.4KB  STALE 7d
+  data/archive/correlation-breaks/20260612.json   23.4KB  STALE 6d
+  data/archive/correlation-breaks/20260613.json   23.4KB  STALE 5d
+  data/archive/correlation-breaks/20260614.json   23.4KB  STALE 4d
+  data/archive/correlation-breaks/20260615.json   23.4KB  STALE 3d
+  data/archive/correlation-breaks/20260616.json   23.4KB  FRESH
+  data/archive/correlation-breaks/20260617.json   23.4KB  FRESH
+  data/archive/correlation-breaks/20260618.json   23.4KB  FRESH
+  data/bond-vol-decisive-call.json               14.5KB  STALE 9d
+  data/bond-vol-history.json                      0.9KB  FRESH
+  data/bond-vol.json                              6.7KB  FRESH
+  data/capital-flow.json                        132.6KB  FRESH
+  data/catalyst-skew-premove.json                 2.0KB  FRESH
+  data/correlation-break-trades.json              2.5KB  FRESH
+  data/correlation-breaks.json                   23.4KB  FRESH
+  data/correlation-surface.json                  39.2KB  FRESH
+  data/crypto-etf-arb.json                       32.6KB  FRESH
+  data/dealer-gex-history.json                   43.5KB  STALE 11d
+  data/dealer-gex.json                           34.8KB  STALE 11d
+  data/etf-flows.json                            30.7KB  STALE 11d
+  data/etf-shares-history.json                   25.7KB  FRESH
+  data/etf-shares-snapshots/latest.json           1.6KB  FRESH
+  data/etf-true-flows.json                       29.9KB  FRESH
+  data/event-flow-health.json                     3.9KB  STALE 11d
+  data/exchange-flows.json                       11.2KB  STALE 11d
+  data/finviz-etf-flows.json                     15.5KB  STALE 3d
+  data/gold-equity-rotation.json                  1.3KB  FRESH
+  data/liquidity-flow.json                       15.0KB  FRESH
+  data/options-flow.json                         15.7KB  FRESH
+  data/options-gamma.json                         4.4KB  STALE 11d
+  data/polygon-options-flow.json                 39.2KB  STALE 16d
+  data/precatalyst-vol-expansion.json             1.2KB  FRESH
+  data/rotation-chains.json                      11.9KB  STALE 11d
+  data/rotation-radar.json                        7.2KB  FRESH
+  data/sector-rotation.json                      33.9KB  FRESH
+  data/skew-tail-hedging.json                     1.4KB  FRESH
+  data/snapshots/data_correlation-surface-2026-05-04.json   37.8KB  STALE 46d
+  data/snapshots/data_correlation-surface-2026-05-05.json   41.9KB  STALE 45d
+  data/snapshots/data_correlation-surface-2026-05-06.json   41.4KB  STALE 44d
+  data/snapshots/data_correlation-surface-2026-05-07.json   41.9KB  STALE 43d
+  data/snapshots/data_correlation-surface-2026-05-08.json   40.2KB  STALE 42d
+  data/snapshots/data_correlation-surface-2026-05-09.json   40.3KB  STALE 41d
+  data/snapshots/data_correlation-surface-2026-05-10.json   40.3KB  STALE 40d
+  data/snapshots/data_correlation-surface-2026-05-11.json   41.6KB  STALE 39d
+  data/snapshots/data_correlation-surface-2026-05-12.json   41.9KB  STALE 38d
+  data/snapshots/data_correlation-surface-2026-05-13.json   42.5KB  STALE 37d
+  data/snapshots/data_correlation-surface-2026-05-14.json   41.3KB  STALE 36d
+  data/snapshots/data_correlation-surface-2026-05-15.json   42.9KB  STALE 35d
+  data/snapshots/data_correlation-surface-2026-05-16.json   42.9KB  STALE 34d
+  data/snapshots/data_correlation-surface-2026-05-17.json   42.9KB  STALE 33d
+  data/snapshots/data_correlation-surface-2026-05-18.json   42.9KB  STALE 32d
+  data/snapshots/data_correlation-surface-2026-05-19.json   42.4KB  STALE 31d
+  data/snapshots/data_correlation-surface-2026-05-20.json   41.4KB  STALE 30d
+  data/snapshots/data_correlation-surface-2026-05-21.json   42.9KB  STALE 29d
+  data/snapshots/data_correlation-surface-2026-05-22.json   42.9KB  STALE 28d
+  data/snapshots/data_correlation-surface-2026-05-23.json   42.9KB  STALE 27d
+  data/snapshots/data_correlation-surface-2026-05-24.json   42.9KB  STALE 26d
+  data/snapshots/data_correlation-surface-2026-05-25.json   42.9KB  STALE 25d
+  data/snapshots/data_correlation-surface-2026-05-26.json   43.4KB  STALE 24d
+  data/snapshots/data_correlation-surface-2026-05-27.json   41.5KB  STALE 23d
+  data/snapshots/data_correlation-surface-2026-05-28.json   40.2KB  STALE 22d
+  data/snapshots/data_correlation-surface-2026-05-29.json   42.6KB  STALE 21d
+  data/snapshots/data_correlation-surface-2026-05-30.json   42.4KB  STALE 19d
+  data/snapshots/data_correlation-surface-2026-05-31.json   42.4KB  STALE 19d
+  data/snapshots/data_correlation-surface-2026-06-01.json   43.2KB  STALE 18d
+  data/snapshots/data_correlation-surface-2026-06-02.json   42.9KB  STALE 17d
+  data/snapshots/data_correlation-surface-2026-06-03.json   43.1KB  STALE 16d
+  data/snapshots/data_correlation-surface-2026-06-04.json   43.1KB  STALE 15d
+  data/snapshots/data_correlation-surface-2026-06-05.json   43.1KB  STALE 14d
+  data/snapshots/data_correlation-surface-2026-06-06.json   43.6KB  STALE 13d
+  data/snapshots/data_correlation-surface-2026-06-07.json   43.6KB  STALE 12d
+  data/snapshots/data_correlation-surface-2026-06-08.json   43.4KB  STALE 11d
+  data/snapshots/data_correlation-surface-2026-06-09.json   39.6KB  STALE 10d
+  data/snapshots/data_correlation-surface-2026-06-10.json   43.8KB  STALE 9d
+  data/snapshots/data_correlation-surface-2026-06-11.json   43.0KB  STALE 8d
+  data/snapshots/data_correlation-surface-2026-06-12.json   44.4KB  STALE 7d
+  data/snapshots/data_correlation-surface-2026-06-13.json   44.4KB  STALE 6d
+  data/snapshots/data_correlation-surface-2026-06-14.json   44.4KB  STALE 5d
+  data/snapshots/data_correlation-surface-2026-06-15.json   44.7KB  STALE 4d
+  data/snapshots/data_correlation-surface-2026-06-16.json   43.6KB  STALE 3d
+  data/snapshots/data_correlation-surface-2026-06-17.json   43.3KB  FRESH
+  data/snapshots/data_correlation-surface-2026-06-18.json   40.0KB  FRESH
+  data/snapshots/data_correlation-surface-2026-06-19.json   39.2KB  FRESH
+  data/stablecoin-flow.json                      45.8KB  FRESH
+  data/theme-rotation-state.json                  6.2KB  FRESH
+  data/theme-rotation.json                       21.8KB  FRESH
+  data/tic-flows.json                             0.6KB  FRESH
+  data/vol-radar-history.json                     5.4KB  FRESH
+  data/vol-radar.json                             3.7KB  FRESH
+  data/vol-regime.json                            3.6KB  STALE 11d
+  data/vol-surface-history.json                   6.1KB  FRESH
+  data/vol-surface.json                           3.3KB  FRESH
+  data/vol-target-unwind.json                     9.0KB  STALE 30d
+  data/volatility-squeeze.json                    5.4KB  FRESH
+total matched data files: 137
