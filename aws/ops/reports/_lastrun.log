@@ -1,20 +1,8 @@
-deployed
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_layers\": 12, \"n_names\": 162, \"n_small_cap\": 32}"}
+justhodl-ai-rerating-radar INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_priced\": 119, \"n_candidates\": 15}"}
+justhodl-deal-scanner INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 1900, \"n_deals\": 5, \"n_small_cap\": 3, \"n_high_materiality\": 2}"}
 
-LAYERS now: [('silicon', 42), ('equipment', 25), ('memory', 7), ('foundry', 3), ('networking', 11), ('optical', 11), ('power_grid', 29), ('cooling', 7), ('datacenter_buildout', 12), ('neocloud', 2), ('miners_to_ai', 10), ('datacenter_reits', 3)]
-  MU     -> memory
-  SNDK   -> memory
-  WDC    -> memory
-  CRWV   -> neocloud
-  NBIS   -> neocloud
-  IREN   -> miners_to_ai
-  CORZ   -> miners_to_ai
-  RIOT   -> miners_to_ai
-  CLSK   -> miners_to_ai
-  APLD   -> miners_to_ai
-  HUT    -> miners_to_ai
-  BTDR   -> miners_to_ai
+RE-RATING universe=126 candidates=15
+smart-money-backed setups: [('TSM', 'foundry', 95.1), ('CLSK', 'miners_to_ai', 58.5)]
+NEW-layer names now scored: [('BTBT', 'miners_to_ai', 47.0), ('CLSK', 'miners_to_ai', 58.5)]
 
-miners_to_ai names: ['CIFR', 'HUT', 'BTDR', 'RIOT', 'WULF', 'CLSK', 'CORZ', 'BTBT', 'APLD', 'IREN']
-neocloud names: ['NBIS', 'CRWV']
-memory names: ['MU', 'SNDK', 'WDC', 'STX', 'SIMO', 'NTAP', 'PSTG']
+DEAL-SCANNER smart-money-backed deals: none in current deals
