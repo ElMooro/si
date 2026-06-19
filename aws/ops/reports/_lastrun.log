@@ -1,8 +1,11 @@
-  ai-funds page try 1 code=404
-  ai-funds page try 2 code=404
-  ai-funds page try 3 code=404
-  ai-funds page try 4 code=404
-  ai-funds page try 5 code=404
-  ai-funds page try 6 code=404
-OK  ai-funds page  live (200), marker present
-OK  index nav      live (200), marker present
+FINNHUB KEY CHECK (key valid if quote returns 200 with a 'c' price field)
+
+  [DENIED] quote (price)          HTTP 401  {"error":"Invalid API key."}
+  [DENIED] insider-sentiment      HTTP 401  {"error":"Invalid API key"}
+  [DENIED] insider-transactions   HTTP 401  {"error":"Invalid API key"}
+  [DENIED] recommendation-trends  HTTP 401  {"error":"Invalid API key"}
+  [DENIED] earnings-surprise      HTTP 401  {"error":"Invalid API key"}
+  [DENIED] company-news           HTTP 401  {"error":"Invalid API key"}
+  [DENIED] general-news           HTTP 401  {"error":"Invalid API key"}
+  [DENIED] social-sentiment       HTTP 401  {"error":"Invalid API key"}
+  [DENIED] price-target           HTTP 401  {"error":"Invalid API key"}
