@@ -1,34 +1,12 @@
-  update OK attempt 0
-state: Active Successful size: 4723
-invoke: {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': '{"ok": true, "elapsed_s": 0.8, "fx_roro_score": -4.0, "fx_roro_regime": "NEUTRAL", "n_signals": 1, "tells": ["RISK-ON: CHF haven (USDCHF) (+1.63% 5d)", "RISK-ON: Gold haven (-3.24% 5d)", "RISK-OFF: NZD risk currency (-2.25
-
-version: 2.0.0 | source: Massive FX (entitled, daily) | n_pairs: 19
-FX RORO score: -4.0 | regime: NEUTRAL
-em_basket_5d: 1.128 | gold/silver chg: 4.629 | havens_bid: 0
-
-Drivers (contribution, + = risk-on):
-  Gold/Silver ratio        5d=+4.63%  contrib=-1.54  w=0.07
-  NZD risk currency        5d=-2.25%  contrib=-1.50  w=0.07
-  CHF haven (USDCHF)       5d=+1.63%  contrib=+1.35  w=0.1
-  Gold haven               5d=-3.24%  contrib=+1.29  w=0.1
-  AUD risk currency        5d=-1.07%  contrib=-0.71  w=0.1
-  EM FX basket             5d=+1.13%  contrib=-0.63  w=0.15
-  JPY haven (USDJPY)       5d=+0.84%  contrib=+0.56  w=0.15
-  AUD/JPY carry cross      5d=-0.42%  contrib=-0.21  w=0.18
-  EUR/JPY cross            5d=-0.32%  contrib=-0.16  w=0.08
-
-Tells:
-  • RISK-ON: CHF haven (USDCHF) (+1.63% 5d)
-  • RISK-ON: Gold haven (-3.24% 5d)
-  • RISK-OFF: NZD risk currency (-2.25% 5d)
-  • RISK-OFF: Gold/Silver ratio (+4.63% 5d)
-
-Key pairs (latest, 5d%):
-  USD_JPY  161.303  5d=0.844
-  USD_CHF  0.8068  5d=1.626
-  AUD_JPY  112.685  5d=-0.422
-  XAU_USD  4154.72  5d=-3.237
-  USD_MXN  17.3293  5d=0.95
-  AUD_USD  0.69991  5d=-1.066
-
-DONE 1940
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/1941_create_risk_regime.py", line 56, in <module>
+    lam.update_function_configuration(FunctionName=FN, Timeout=cfg["timeout"],
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-risk-regime
