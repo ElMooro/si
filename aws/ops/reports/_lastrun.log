@@ -1,16 +1,15 @@
+justhodl-position-sizer -> {"statusCode": 200, "body": "{\"n\": 4}"}
+justhodl-tail-hedge -> {"statusCode": 200, "body": "{\"ok\": true, \"hedge_posture\": \"UNHEDGED -- NOT REQUIRED\", \"severity\": 0, \"scenario
+justhodl-hedge-planner -> {"statusCode": 200, "body": "{\"ok\": true, \"action\": \"NONE\", \"side\": \"NO TRADE\", \"ticket_premium_pct\": 0.0, \
 
-data/vol-surface.json
-  keys: ['generated_at', 'elapsed_s', 'version', 'data_source', 'fred_alive', 'fred_failed', 'skew', 'vvix', 'term_structure', 'cross_asset', 'equity_dispersion', 'underlyings', 'composite_stress_score', 'stress_components', 'regime', 'alerts', 'data_freshness']
-   composite_stress_score = 21.8
-   regime = "NORMAL"
-   term_structure = {"spot": 18.44, "back": 20.62, "ratio_30d_3m": 0.894, "slope_30d_3m_yearized": 0.1326, "inverted": false, "regime": "NORMAL_CONTANGO"}
-   skew = {"value": 146.72, "pctile_252d": 64.6, "regime": "EXTREME_TAIL_HEDGING", "tail_mult": 106.911, "source": "yahoo"}
+--- position-sizer: gamma in sizing multiplier? ---
+  regime: {"bond_vol": "NORMAL", "plumbing": "TIGHTENING", "gamma_regime": "ALL_NEGATIVE_GAMMA", "vol_surface_regime": "NORMAL", "term_inverted": false, "gamma_vol_mult": 0.8, "combined_mult": 0.68}
+  top sized sample: {"ticker": "OTIS", "verdict": "TRIPLE THREAT", "conviction": 78.7, "suggested_size_pct": 2.4, "size_band": "1.5\u20132.4%", "rationale": "conv 78.7 \u00d7 aggressive posture (1.3\u00d7) \u00d7 regime NORMAL/TIGHTENING/gamma (0.68\u00d7)"}
 
-data/skew-tail-hedging.json
-  keys: ['engine', 'version', 'as_of', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
+--- tail-hedge: real options cost read? ---
+  stance: None
+  vol_cost_context: {}
 
-data/catalyst-skew-premove.json
-  keys: ['engine', 'version', 'as_of', 'state', 'state_description', 'signal_strength', 'summary', 'bull_skew_setups', 'bear_skew_setups', 'balanced_setups', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'historical_episodes', 'why_now_explainer', 'methodology', 'sources', 'schedule', 'run_duration_seconds']
-   summary = {"n_events_in_window": 7, "n_with_options_data": 0, "n_directional_setups": 0, "n_bull_skew": 0, "n_bear_skew": 0, "n_balanced": 0}
-
-dealer-gex market_composite: {"spy_regime": "NEGATIVE_GAMMA", "spy_gex_billions": -2.287, "spy_flip_level": null, "spy_spot": 746.74, "spy_pct_to_flip": null, "spy_trading_bias": "Trend follow \u00b7 expect vol expansion \u00b7 dealers buy strength / sell weakness", "qqq_regime": "NEGATIVE_GAMMA", "iwm_regime": "NEGATIVE_GAMMA"
+--- hedge-planner: options-surface cost context? ---
+  action: NONE | vol_timing: {"posture": "CALM", "spike_risk": 0.0, "exhaustion": 14.0, "timing_bias": "NEUTR
+  vol_cost_context: {"skew_pctile_252d": 64.6, "skew_regime": "EXTREME_TAIL_HEDGING", "vix_term_ratio_30d_3m": 0.894, "term_inverted": false, "vol_surface_regime": "NORMAL", "gamma_regime": "ALL_NEGATIVE_GAMMA", "hedge_cost_read": "FAIR", "note": "Actual cost level of tail protection from the options surface (skew percentile + VIX term structure + dealer gamma) -- Massive options data."}
