@@ -1,8 +1,9 @@
-ai-infra-stack: layers=10 total_names=94
-name[0] keys=['symbol', 'name', 'layer', 'cap_bucket', 'market_cap', 'is_small_cap', 'ret_1m_pct', 'ret_3m_pct', 'flow_signals', 'bottleneck', 'rev_accel', 'source', 'composite']
-  sample: {"symbol": "MRVL", "market_cap": 230483556000, "ret_1m_pct": 90.6, "ret_3m_pct": 267.5, "cap_bucket": "mega", "flow_signals": ["OBV_ACCUMULATION"]}
-names with market_cap: 93/94
-  NVDA  inc=list[2] latest_rev=215938000000 est_type=DICT ['_err'] n_future=0 fwd_growth=None
-  MU    inc=list[2] latest_rev=37378000000 est_type=DICT ['_err'] n_future=0 fwd_growth=None
-  CRDO  inc=list[2] latest_rev=1335116000 est_type=DICT ['_err'] n_future=0 fwd_growth=None
-  STX   inc=list[2] latest_rev=9097000000 est_type=DICT ['_err'] n_future=0 fwd_growth=None
+single est err: HTTP Error 400: Bad Request
+redeployed (throttled)
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_priced\": 0, \"n_candidates\": 0}"}
+REGRESSION: EV/Sales = 0.00 + 0.000*growth (n=0) elapsed=2.44
+priced=0 candidates=0 small_mid=0
+
+=== TOP RE-RATING SETUPS ===
+
+=== DEEPEST DISCOUNTS (most underpriced for growth) ===
