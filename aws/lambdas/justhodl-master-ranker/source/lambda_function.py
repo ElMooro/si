@@ -75,13 +75,45 @@ SSM = boto3.client("ssm", region_name=REGION)
 # ─────────────────────────────────────────────────────────────────────────────
 # DATA LOADING
 # ─────────────────────────────────────────────────────────────────────────────
-def fetch_json(key, default=None):
+_FEED_HEALTH = []   # [{key, age_h, stale, used}] — transparency for every load
+
+def _doc_age_hours(doc):
+    """Hours since a feed was generated, read from its timestamp; None if absent."""
+    if not isinstance(doc, dict):
+        return None
+    ts = (doc.get("generated_at") or doc.get("updated_at") or doc.get("as_of")
+          or doc.get("generated") or doc.get("timestamp") or doc.get("last_updated"))
+    if not ts:
+        return None
+    try:
+        t = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+        if t.tzinfo is None:
+            t = t.replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - t).total_seconds() / 3600.0
+    except Exception:
+        return None
+
+
+def fetch_json(key, default=None, max_age_h=None):
+    """Load a feed. If max_age_h is set and the feed is older, treat it as ABSENT
+    (return default) so stale data never silently contaminates a decision. Every
+    load is recorded in _FEED_HEALTH for transparency. Feeds with no max_age_h are
+    age-tracked but never auto-excluded (cadence may legitimately be slow)."""
     try:
         obj = S3.get_object(Bucket=BUCKET, Key=key)
-        return json.loads(obj["Body"].read())
+        doc = json.loads(obj["Body"].read())
     except Exception as e:
         print(f"[master-ranker] fetch_json({key}) failed: {e}")
+        _FEED_HEALTH.append({"key": key, "age_h": None, "stale": None, "used": False, "missing": True})
         return default
+    age = _doc_age_hours(doc)
+    stale = (max_age_h is not None and age is not None and age > max_age_h)
+    _FEED_HEALTH.append({"key": key, "age_h": round(age, 1) if age is not None else None,
+                         "stale": bool(stale), "used": not stale})
+    if stale:
+        print(f"[master-ranker] STALE {key}: {age:.1f}h > {max_age_h}h -> excluded from decision")
+        return default
+    return doc
 
 
 def load_calibration_weights():
@@ -118,7 +150,7 @@ def build_ticker_index():
         "deep_value":       fetch_json("data/deep-value.json"),
         "pead":             fetch_json("data/pead-signals.json"),
         "nobrainers":       fetch_json("data/nobrainers.json"),
-        "options_flow":     fetch_json("data/options-flow.json"),
+        "options_flow":     fetch_json("data/options-flow.json", max_age_h=72),
         "momentum_breakout": fetch_json("data/momentum-breakout.json"),
         "volatility_squeeze": fetch_json("data/volatility-squeeze.json"),
         # Forward-looking (added 2026-05-31)
@@ -126,9 +158,9 @@ def build_ticker_index():
         "supply_inflection": fetch_json("data/supply-inflection.json"),
         "pre_pump":         fetch_json("data/pre-pump-signals.json"),
         "revenue_accel":    fetch_json("data/revenue-acceleration.json"),
-        "massive":          fetch_json("data/massive-signals.json"),
-        "capital_flow":     fetch_json("data/capital-flow-radar.json"),
-        "risk_regime":      fetch_json("data/risk-regime.json"),
+        "massive":          fetch_json("data/massive-signals.json", max_age_h=72),
+        "capital_flow":     fetch_json("data/capital-flow-radar.json", max_age_h=60),
+        "risk_regime":      fetch_json("data/risk-regime.json", max_age_h=48),
     }
 
     # Index: ticker → {system_name: {score, details}}
@@ -495,7 +527,7 @@ def collect_macro_signals():
             })
 
     # Cross-asset regime
-    car = fetch_json("data/cross-asset-regime.json")
+    car = fetch_json("data/cross-asset-regime.json", max_age_h=72)
     if car:
         regime = car.get("regime") or car.get("dominant_regime")
         if regime:
@@ -578,7 +610,7 @@ REGIME_FORWARDS = {
 
 
 def get_regime_context():
-    nowcast = fetch_json("data/macro-nowcast.json") or {}
+    nowcast = fetch_json("data/macro-nowcast.json", max_age_h=96) or {}
     regime = nowcast.get("regime") or "UNKNOWN"
     fwds = REGIME_FORWARDS.get(regime, {})
 
@@ -766,6 +798,9 @@ def lambda_handler(event, context):
             }
             for name, data in feeds.items()
         },
+        "feed_freshness": sorted(_FEED_HEALTH, key=lambda f: -(f.get("age_h") or 0)),
+        "stale_feeds_excluded": [f["key"] for f in _FEED_HEALTH if f.get("stale")],
+        "missing_feeds": [f["key"] for f in _FEED_HEALTH if f.get("missing")],
         "calibration_weights": calibration,
         "duration_s": round(time.time() - started, 2),
     }
