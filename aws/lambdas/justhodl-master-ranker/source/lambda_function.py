@@ -128,6 +128,7 @@ def build_ticker_index():
         "revenue_accel":    fetch_json("data/revenue-acceleration.json"),
         "massive":          fetch_json("data/massive-signals.json"),
         "capital_flow":     fetch_json("data/capital-flow-radar.json"),
+        "risk_regime":      fetch_json("data/risk-regime.json"),
     }
 
     # Index: ticker → {system_name: {score, details}}
@@ -647,6 +648,41 @@ def lambda_handler(event, context):
                     cf_map[_s] = {"pump_probability": _pp, "regime": _c.get("regime"),
                                   "complex": _c.get("complex"), "divergence": _c.get("flow_price_divergence")}
 
+    # ── Risk-On/Risk-Off regime overlay (cross-asset RORO synthesizer) ──
+    _rr = feeds.get("risk_regime") or {}
+    _rr_score = _rr.get("risk_regime_score")
+    _rr_regime = _rr.get("risk_regime") or "NEUTRAL"
+    HIGH_BETA_SECTORS = {"Technology", "Consumer Cyclical", "Energy", "Financial Services",
+                         "Basic Materials", "Communication Services", "Industrials"}
+    DEFENSIVE_SECTORS = {"Utilities", "Consumer Defensive", "Healthcare", "Real Estate"}
+
+    def _ticker_sector(systems_dict):
+        for v in systems_dict.values():
+            if isinstance(v, dict) and v.get("sector"):
+                return v["sector"]
+        return None
+
+    def _roro_overlay(sector, base_score):
+        if not isinstance(_rr_score, (int, float)) or not sector:
+            return base_score, 1.0, None
+        hb, dfn = sector in HIGH_BETA_SECTORS, sector in DEFENSIVE_SECTORS
+        if not (hb or dfn):
+            return base_score, 1.0, None
+        if _rr_score >= 35:
+            m = 1.08 if hb else 0.96
+        elif _rr_score >= 12:
+            m = 1.04 if hb else 0.98
+        elif _rr_score > -12:
+            m = 1.0
+        elif _rr_score > -35:
+            m = 0.93 if hb else 1.04
+        else:
+            m = 0.85 if hb else 1.08
+        if m == 1.0:
+            return base_score, 1.0, None
+        tag = "risk-on tilt" if m > 1 else "risk-off de-risk"
+        return round(base_score * m, 1), m, f"RORO {_rr_regime} {tag} ({sector})"
+
     def _cf_overlay(tk, base_score):
         cf = cf_map.get(tk)
         if not cf:
@@ -671,9 +707,13 @@ def lambda_handler(event, context):
         score, contributions = compute_conviction(systems_dict, calibration)
         n_sys = len(systems_dict)
         score, cf_mult, cf_note = _cf_overlay(ticker, score)
+        _sector = _ticker_sector(systems_dict)
+        score, roro_mult, roro_note = _roro_overlay(_sector, score)
         rationale = synthesize_rationale(ticker, systems_dict, score)
         if cf_note:
             rationale += " · " + cf_note
+        if roro_note:
+            rationale += " · " + roro_note
         ticker_ranks.append({
             "ticker": ticker,
             "score": score,
@@ -681,6 +721,7 @@ def lambda_handler(event, context):
             "systems": sorted(systems_dict.keys()),
             "contributions": contributions,
             "capital_flow_mult": cf_mult,
+            "risk_regime_mult": roro_mult,
             "rationale": rationale,
             "details": systems_dict,
         })
@@ -702,6 +743,11 @@ def lambda_handler(event, context):
         "method": "master_signal_ranker_v1",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "regime_context": regime_ctx,
+        "risk_regime": {
+            "score": _rr_score, "regime": _rr_regime,
+            "posture": _rr.get("posture"),
+            "tells": (_rr.get("tells") or [])[:5],
+        },
         "n_tickers_total": len(ticker_idx),
         "n_macro_signals": len(macro_signals),
         "alerts": {

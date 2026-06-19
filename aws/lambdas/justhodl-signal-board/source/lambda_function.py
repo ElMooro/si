@@ -997,6 +997,16 @@ def n_estimate_revisions(d):
                   f"{b.get('down',0)}dn (aging in) · fwd-growth live")
 
 
+def n_risk_regime(d):
+    """Authoritative cross-asset Risk-On/Risk-Off synthesizer (Massive FX+options
+    + FRED VIX/credit). + = risk-on, - = risk-off."""
+    s = d.get("risk_regime_score")
+    if not isinstance(s, (int, float)):
+        return 0, "RORO n/a"
+    sig = 2 if s >= 35 else 1 if s >= 12 else 0 if s > -12 else -1 if s > -35 else -2
+    return sig, f"RORO {d.get('risk_regime', '?')} ({s:+.0f})"
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1090,6 +1100,7 @@ FEEDS = [
     ("Meta-Labeler",           "meta",             "data/meta-labeler.json",         n_meta_labeler),
     ("Intraday Pulse",         "tape",             "data/intraday-pulse.json",       n_intraday_pulse),
     ("Estimate Revisions",     "equity tactical",  "data/estimate-revisions.json",   n_estimate_revisions),
+    ("Risk Regime (RORO)",     "cross-asset",      "data/risk-regime.json",          n_risk_regime),
 ]
 
 
