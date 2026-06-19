@@ -35,6 +35,12 @@ import boto3
 VERSION = "1.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/ai-rerating-radar.json"
+LAYER_ETF = {  # map AI-infra layer -> sector ETF in etf-flows universe (real ETF Global $ flows)
+    "silicon":"XLK","semiconductors":"XLK","memory":"XLK","optics":"XLK","networking":"XLK",
+    "ai_software":"XLK","software":"XLK","compute":"XLK","neocloud":"XLK","hyperscaler":"XLK",
+    "miners_to_ai":"XLK","cooling":"XLI","infrastructure":"XLI","industrial":"XLI",
+    "power":"XLU","power_grid":"XLU","electrons":"XLU","grid":"XLU","energy":"XLE",
+}
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -200,6 +206,11 @@ def lambda_handler(event, context):
     for _r in (_read("data/attention-signals.json") or {}).get("tickers", []) or []:
         if _r.get("symbol"):
             attn[_r["symbol"]] = _r
+    etf_flow = {}
+    for _m in (_read("etf-flows/daily.json") or {}).get("metrics", []) or []:
+        if _m.get("ticker") and not _m.get("error"):
+            etf_flow[_m["ticker"]] = _m
+    iwm_z = (etf_flow.get("IWM") or {}).get("flow_zscore_90d")
     # AI-infra layer leaders (largest mkt-cap per layer) + which are revising up
     leaders, _lb = {}, {}
     for _s, _u in uni.items():
@@ -282,7 +293,12 @@ def lambda_handler(event, context):
         _att = attn.get(s, {})
         ins_buy = (_att.get("insider_mspr") or 0) >= 30
         anl_up = (_att.get("analyst_upgrade_mom") or 0) > 0.03
-        kick_pts = (10 if sq else 0) + (12 if deal else 0) + (14 if smbk else 0) + (12 if ins_buy else 0) + (10 if anl_up else 0)
+        _sec_etf = LAYER_ETF.get((u["layer"] or "").lower(), "XLK")
+        _efz = (etf_flow.get(_sec_etf) or {}).get("flow_zscore_90d")
+        etf_in = _efz is not None and _efz >= 1.0
+        etf_out = _efz is not None and _efz <= -1.5
+        smallcap_bid = (iwm_z is not None and iwm_z >= 1.0 and bkt in SMALL_MID)
+        kick_pts = (10 if sq else 0) + (12 if deal else 0) + (14 if smbk else 0) + (12 if ins_buy else 0) + (10 if anl_up else 0) + (8 if etf_in else 0) + (-6 if etf_out else 0) + (6 if smallcap_bid else 0)
         composite = round(unpriced_pts + laggard_pts + infl_pts + rev_pts + accum_pts
                           + bn_pts + cap_pts + contagion_pts + kick_pts, 1)
         why = []
@@ -309,6 +325,12 @@ def lambda_handler(event, context):
             why.append("insider buying")
         if anl_up:
             why.append("analyst upgrades accelerating")
+        if etf_in:
+            why.append(f"sector ETF inflow ({_sec_etf} {_efz:+.1f}z, real $)")
+        elif etf_out:
+            why.append(f"! sector ETF outflow ({_sec_etf})")
+        if smallcap_bid:
+            why.append("small-caps catching bids (IWM inflow)")
         rows.append({
             "symbol": s, "name": u["name"], "layer": u["layer"], "cap_bucket": bkt,
             "market_cap": u["market_cap"], "is_small_mid": bkt in SMALL_MID,
@@ -318,6 +340,7 @@ def lambda_handler(event, context):
             "ev_sales": round(evs, 2), "ev_sales_implied": round(implied, 2) if implied else None,
             "discount_to_implied_pct": discount_pct, "unpriced_z": round(zz, 2) if zz is not None else None,
             "laggard_gap_pp": lag_gap, "ret_3m_pct": u["ret_3m"],
+            "etf_sector": _sec_etf, "etf_sector_flow_z": _efz, "smallcap_bid": smallcap_bid,
             "accelerating": accel_flag, "bottleneck": u["bottleneck"],
             "flow_signals": u["flow_signals"], "is_candidate": is_candidate,
             "revision_velocity": round(ev["vel"], 1) if ev.get("vel") else None,
