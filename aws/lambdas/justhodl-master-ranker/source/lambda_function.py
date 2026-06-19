@@ -126,6 +126,7 @@ def build_ticker_index():
         "supply_inflection": fetch_json("data/supply-inflection.json"),
         "pre_pump":         fetch_json("data/pre-pump-signals.json"),
         "revenue_accel":    fetch_json("data/revenue-acceleration.json"),
+        "massive":          fetch_json("data/massive-signals.json"),
     }
 
     # Index: ticker → {system_name: {score, details}}
@@ -325,6 +326,19 @@ def build_ticker_index():
                 "thesis":             r.get("thesis"),
             }
 
+    # 16. massive-signals — unified Massive data (gamma squeeze + unusual options flow)
+    if feeds["massive"]:
+        for _sym, _t in (feeds["massive"].get("tickers") or {}).items():
+            if not _sym or not _t.get("prepump_score"):
+                continue
+            idx.setdefault(_sym, {})["massive"] = {
+                "score": _t.get("prepump_score"),
+                "gamma_squeeze": _t.get("gamma_squeeze_score"),
+                "bullish_flow": _t.get("bullish_flow"),
+                "otm_sweep": _t.get("otm_call_sweep"),
+                "why": _t.get("massive_why"),
+            }
+
     return idx, feeds
 
 
@@ -405,6 +419,8 @@ def synthesize_rationale(ticker, systems_dict, score):
         theme = systems_dict["theme_tiers"].get("theme")
         if tier in (1, 2):
             highlights.append(f"theme T-{tier} {theme}")
+    if "massive" in systems_dict and systems_dict["massive"].get("why"):
+        highlights.append("options: " + systems_dict["massive"]["why"])
 
     parts = [f"{n} systems agree (compound={score})"]
     if sys_str:
