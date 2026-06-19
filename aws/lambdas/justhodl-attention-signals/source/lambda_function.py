@@ -33,9 +33,19 @@ OUT_KEY = "data/attention-signals.json"
 FINNHUB = "d8qlt5pr01qrf6e278d0d8qlt5pr01qrf6e278dg"
 UA = {"User-Agent": "Mozilla/5.0 jh-attention"}
 MAX_TICKERS = 42
-THEMES = ["AI data center", "HBM memory", "AI power grid", "nuclear power data center",
-          "liquid cooling data center", "Bitcoin miner AI datacenter", "GPU cloud",
-          "AI capex", "optical transceiver AI", "semiconductor foundry"]
+WIKI_THEMES = {
+    "Artificial intelligence": "Artificial_intelligence",
+    "AI data centers": "Data_center",
+    "HBM / memory": "High_Bandwidth_Memory",
+    "GPUs": "Graphics_processing_unit",
+    "Cloud computing": "Cloud_computing",
+    "Nuclear / SMR power": "Small_modular_reactor",
+    "Semiconductor fabs": "Semiconductor_device_fabrication",
+    "Datacenter cooling": "Computer_cooling",
+    "Bitcoin mining (->AI)": "Bitcoin_mining",
+    "Nuclear power": "Nuclear_power",
+}
+WIKI_UA = {"User-Agent": "JustHodl/1.0 (research@justhodl.ai)"}
 s3 = boto3.client("s3", region_name="us-east-1")
 
 
@@ -137,22 +147,23 @@ def analyst_trend(sym):
     return (round(cur, 2) if cur is not None else None), mom
 
 
-def gdelt_theme(theme):
-    c, b = _get(f"https://api.gdeltproject.org/api/v2/doc/doc?query={urllib.parse.quote('\"'+theme+'\"')}&mode=timelinetone&format=json&timespan=3months")
-    if c != 200 or not b.strip().startswith("{"):
-        return None
+def wiki_attention(label, article):
+    frm = (datetime.now(timezone.utc) - timedelta(days=50)).strftime("%Y%m%d00")
+    to = datetime.now(timezone.utc).strftime("%Y%m%d00")
+    url = ("https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/"
+           "en.wikipedia/all-access/all-agents/%s/daily/%s/%s" % (article, frm, to))
     try:
-        series = json.loads(b).get("timeline", [])
-        pts = series[0].get("data", []) if series else []
-        vals = [p.get("value") for p in pts if isinstance(p.get("value"), (int, float))]
+        r = urllib.request.urlopen(urllib.request.Request(url, headers=WIKI_UA), timeout=14)
+        items = json.loads(r.read().decode("utf-8", "ignore")).get("items", [])
     except Exception:
         return None
-    if len(vals) < 6:
+    vals = [it.get("views") for it in items if isinstance(it.get("views"), (int, float))]
+    if len(vals) < 14:
         return None
-    recent = sum(vals[-7:]) / len(vals[-7:])
-    prior = sum(vals[-21:-7]) / len(vals[-21:-7]) if len(vals) >= 21 else sum(vals[:-7]) / max(1, len(vals[:-7]))
-    return {"theme": theme, "tone_recent": round(recent, 2), "tone_prior": round(prior, 2),
-            "tone_trend": round(recent - prior, 2)}
+    rec = sum(vals[-7:]) / 7.0
+    pri = sum(vals[-21:-7]) / 14.0 if len(vals) >= 21 else sum(vals[:-7]) / max(1, len(vals[:-7]))
+    return {"theme": label, "article": article, "views_recent": round(rec), "views_prior": round(pri),
+            "attention_trend_pct": round((rec / pri - 1) * 100, 1) if pri else None}
 
 
 def lambda_handler(event, context):
@@ -184,14 +195,14 @@ def lambda_handler(event, context):
 
     # GDELT theme narrative (SERIAL, 1 per 5.2s)
     theme_pulse = []
-    for th in THEMES:
-        if time.time() - t0 > 275:
+    for label, art in WIKI_THEMES.items():
+        if time.time() - t0 > 285:
             break
-        g = gdelt_theme(th)
+        g = wiki_attention(label, art)
         if g:
             theme_pulse.append(g)
-        time.sleep(5.2)
-    theme_pulse.sort(key=lambda x: x["tone_trend"], reverse=True)
+        time.sleep(0.3)
+    theme_pulse.sort(key=lambda x: (x["attention_trend_pct"] if x["attention_trend_pct"] is not None else -999), reverse=True)
 
     # score each ticker
     rows = []
@@ -231,7 +242,7 @@ def lambda_handler(event, context):
         "engine": "attention-signals", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": "Fuse insider accumulation (Finnhub) + analyst upgrade momentum + retail attention "
-                  "(Stocktwits) + theme narrative tone (GDELT) into a pre-pump attention read.",
+                  "(Stocktwits) + theme attention momentum (Wikipedia pageviews) into a pre-pump read.",
         "n_tickers": len(rows), "n_with_insider": sum(1 for r in rows if r["insider_mspr"] is not None),
         "stocktwits_trending": trending[:25],
         "top_attention": rows[:25],
@@ -239,9 +250,9 @@ def lambda_handler(event, context):
         "analyst_upgrading": [r for r in rows if (r["analyst_upgrade_mom"] or 0) > 0.03][:15],
         "theme_pulse": theme_pulse,
         "tickers": rows,
-        "sources": ["Finnhub insider-sentiment + recommendation (free)", "Stocktwits (free)", "GDELT tone (free)"],
+        "sources": ["Finnhub insider-sentiment + recommendation (free)", "Stocktwits (free)", "Wikipedia pageviews (free)"],
         "caveats": "Insider MSPR & analyst trends lag filings; retail attention can be noise or a pump-in-progress "
-                   "(late, not early); GDELT tone is theme-level sentiment, not a price signal. Confirmation layer, "
+                   "(late, not early); Wikipedia pageviews is a theme-level attention proxy, not a price signal. Confirmation layer, "
                    "not a standalone trigger. Real data, research only — not investment advice.",
         "elapsed_s": round(time.time() - t0, 2),
     }
