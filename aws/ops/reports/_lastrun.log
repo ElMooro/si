@@ -1,24 +1,10 @@
-=== theme-rotation ===
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"themes\": 38, \"rotating_in\": 29, \"leading\": 21}"}
-market_context: {"smallcap_bid": true, "gamma_regime": "ALL_NEGATIVE_GAMMA", "strongest_inflow_sector": "XLRE", "strongest_outflow_sector": "XLK", "note": "smallcap_bid/sector $ flows from the unified Massive layer (ETF Global flows)."}
-themes with real $ flow: 7 / 38
-CONFIRMED (price+money agree): ['Biotech(XBI,z0.8)']
-DIVERGENT (price up, money out): ['Semiconductors(SMH,z-5.0)']
-top 5 by combined_score: ['Genomics(rot106→107 flowNEUTRAL)', 'Airlines / Travel(rot89→89 flowNEUTRAL)', 'Homebuilders(rot73→73 flowNEUTRAL)', 'Biotech(rot46→48 flowCONFIRMED)', 'Retail(rot45→45 flowNEUTRAL)']
 
-=== sector-rotation (may take ~2min) ===
-invoke: {"statusCode": 200, "body": "{\"success\": true, \"version\": \"1.0.0\", \"n_sectors\": 11, \"n_ratios\": 14, \"n_rotati
-sectors with real $ flow: 11 / 11
-real_money_flow ranking: [{"sym": "XLRE", "z": 1.36, "signal": "INFLOW", "confirm": "STRONG_INFLOW"}, {"sym": "XLU", "z": 0.36, "signal": "NEUTRAL", "confirm": "NEUTRAL"}, {"sym": "XLP", "z": -0.32, "signal": "NEUTRAL", "confirm": "NEUTRAL"}, {"sym": "XLC", "z": -0.63, "signal": "NEUTRAL", "confirm": "NEUTRAL"}, {"sym": "XLB", "z": -0.75, "signal": "NEUTRAL", "confirm": "NEUTRAL"}, {"sym": "XLI", "z": -0.87, "signal": "NEUTRAL", "confirm": "NEUTRAL"}, {"sym": "XLY", "z": -1.25, "signal": "OUTFLOW", "confirm": "STRONG_OUTFLOW"}, {"sym": "XLE", "z": -1.5, "signal": "OUTFLOW", "confirm": "STRONG_OUTFLOW"}, {"sym": "XLV", "z": -2.16, "signal": "STRONG_OUTFLOW", "confirm": "STRONG_OUTFLOW"}, {"sym": "XLF", "z": -2.39, "signal": "STRONG_OUTFLOW", "confirm": "STRONG_OUTFLOW"}, {"sym": "XLK", "z": -6.01, "signal": "STRONG_OUTFLOW", "confirm": "STRONG_OUTFLOW"}]
-per-sector (rank, score pre→post flow, confirm):
-  #1  XLK   score 89.8→79.8  z=-6.01  STRONG_OUTFLOW
-  #2  XLI   score 69.9→66.4  z=-0.87  NEUTRAL
-  #3  XLB   score 64.5→61.5  z=-0.75  NEUTRAL
-  #4  XLF   score 66.6→57.0  z=-2.39  STRONG_OUTFLOW
-  #5  XLY   score 55.6→50.6  z=-1.25  STRONG_OUTFLOW
-  #6  XLU   score 48.1→49.5  z=0.36  NEUTRAL
-  #7  XLC   score 50.9→48.4  z=-0.63  NEUTRAL
-  #8  XLRE  score 27.1→32.5  z=1.36  STRONG_INFLOW
-  #9  XLP   score 25.0→23.7  z=-0.32  NEUTRAL
-  #10 XLV   score 28.9→20.3  z=-2.16  STRONG_OUTFLOW
-  #11 XLE   score 22.4→16.4  z=-1.5  STRONG_OUTFLOW
+data/polygon-fx-regime.json
+  keys: ['generated_at', 'elapsed_s', 'n_pairs', 'regime_signals', 'regime_metrics', 'pair_data']
+  generated_at: 2026-06-19T17:43:54.959195+00:00
+  signals: None
+
+data/polygon-futures-curves.json
+  keys: ['generated_at', 'elapsed_s', 'n_products', 'n_products_with_data', 'signals', 'product_data']
+  generated_at: 2026-06-19T17:43:56.195330+00:00
+  signals: ['SILVER_BREAKOUT (+24.7% 20d)']
