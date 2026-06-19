@@ -1,19 +1,16 @@
-=== REVIVED ENGINE HEALTH (output freshness) ===
-  justhodl-dealer-gex            FRESH ✓
-  justhodl-options-gamma         FRESH ✓
-  justhodl-etf-flows             FRESH ✓
-  justhodl-polygon-options-flow  FRESH ✓
-  justhodl-vol-regime            FRESH ✓
-  justhodl-rotation-chain        FRESH ✓
-  justhodl-exchange-flows        FRESH ✓
-  justhodl-event-flow-monitor    FRESH ✓
-  justhodl-bond-vol              FRESH ✓
-  justhodl-vol-target-unwind     FRESH ✓
+MASSIVE-DATA / CONSUMER OUTPUT FRESHNESS:
+  data/polygon-fx-regime.json                     1.5KB  STALE 406h
+  data/polygon-futures-curves.json                0.9KB  STALE 406h
+  data/polygon-options-flow.json                 40.9KB  FRESH
+  data/dealer-gex.json                           31.0KB  FRESH
+  data/options-flow.json                         15.7KB  FRESH
+  data/options-gamma.json                         5.3KB  FRESH
+  etf-flows/composite.json                        0.8KB  FRESH
+  etf-flows/rotation.json                        20.2KB  FRESH
+  etf-flows/per-ticker-context.json               4.8KB  FRESH
+  etf-flows/daily.json                           36.7KB  FRESH
+  data/activist-13d.json                          3.7KB  FRESH
+  data/insider-clusters.json                     19.5KB  FRESH
+  data/squeeze-pretrigger.json                    2.7KB  FRESH
 
-=== DIAGNOSTICS for not-yet-fresh (CloudWatch tail) ===
-
-=== ETF FUND-FLOW OUTPUT (the $99 data) ===
-
-=== SAMPLES ===
-  dealer-gex (GEX) keys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'calculation_config', 'market_composite', 'squeeze_candidates', 'underlyings']
-  options-gamma keys: ['generated_at', 'underlying', 'spot', 'vix', 'regime', 'interpretation', 'total_gex', 'by_expiry', 'by_strike', 'zero_gamma_strike']
+ETF per-ticker-context: 0 sectors, regime=None
