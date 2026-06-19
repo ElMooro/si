@@ -375,6 +375,68 @@ ETF_UNIVERSE = {
     "AMZD": {"category": "leveraged", "subcategory": "1x_amzn_bear", "smart_money": False, "region": "US", "ref_sector": None},
     "MSFD": {"category": "leveraged", "subcategory": "1x_msft_bear", "smart_money": False, "region": "US", "ref_sector": None},
     "CONI": {"category": "leveraged", "subcategory": "1x_coin_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    # ─── EXPANSION (ops 1937): coverage-verified leveraged/inverse/thematic ───
+    # Single-stock leverage — new names + completed bull/bear legs
+    "MUU":  {"category": "leveraged", "subcategory": "2x_mu_bull",    "smart_money": False, "region": "US", "ref_sector": None},
+    "MUD":  {"category": "leveraged", "subcategory": "2x_mu_bear",    "smart_money": False, "region": "US", "ref_sector": None},
+    "NFXL": {"category": "leveraged", "subcategory": "2x_nflx_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "NFXS": {"category": "leveraged", "subcategory": "2x_nflx_bear",  "smart_money": False, "region": "US", "ref_sector": None},
+    "BABX": {"category": "leveraged", "subcategory": "2x_baba_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "TSMX": {"category": "leveraged", "subcategory": "2x_tsm_bull",   "smart_money": False, "region": "US", "ref_sector": None},
+    "BRKU": {"category": "leveraged", "subcategory": "2x_brk_bull",   "smart_money": False, "region": "US", "ref_sector": None},
+    "CRWL": {"category": "leveraged", "subcategory": "2x_crwd_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "HOOX": {"category": "leveraged", "subcategory": "2x_hood_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "AVL":  {"category": "leveraged", "subcategory": "2x_avgo_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "AAPB": {"category": "leveraged", "subcategory": "2x_aapl_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "NVDD": {"category": "leveraged", "subcategory": "2x_nvda_bear",  "smart_money": False, "region": "US", "ref_sector": None},
+    "SMCX": {"category": "leveraged", "subcategory": "2x_smci_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "PLTD": {"category": "leveraged", "subcategory": "2x_pltr_bear",  "smart_money": False, "region": "US", "ref_sector": None},
+    "COII": {"category": "leveraged", "subcategory": "2x_coin_bear",  "smart_money": False, "region": "US", "ref_sector": None},
+    "AMUU": {"category": "leveraged", "subcategory": "2x_amzn_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "TSLZ": {"category": "leveraged", "subcategory": "2x_tsla_bear",  "smart_money": False, "region": "US", "ref_sector": None},
+    # Broad index leverage gaps
+    "URTY": {"category": "leveraged", "subcategory": "3x_r2000_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "SRTY": {"category": "leveraged", "subcategory": "3x_r2000_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "UMDD": {"category": "leveraged", "subcategory": "3x_midcap_bull","smart_money": False, "region": "US", "ref_sector": None},
+    "SMDD": {"category": "leveraged", "subcategory": "3x_midcap_bear","smart_money": False, "region": "US", "ref_sector": None},
+    "QQQU": {"category": "leveraged", "subcategory": "2x_qqq_bull",   "smart_money": False, "region": "US", "ref_sector": None},
+    "TTT":  {"category": "leveraged", "subcategory": "3x_20y_bear",   "smart_money": False, "region": "US", "ref_sector": None},
+    "XLG":  {"category": "broad",     "subcategory": "us_megacap",    "smart_money": True,  "region": "US", "ref_sector": None},
+    "FTEC": {"category": "sector",    "subcategory": "technology",    "smart_money": True,  "region": "US", "ref_sector": "Technology"},
+    # ProShares Ultra/UltraShort 2x sector pair completion
+    "RXD":  {"category": "leveraged", "subcategory": "2x_health_bear",     "smart_money": False, "region": "US", "ref_sector": None},
+    "SDP":  {"category": "leveraged", "subcategory": "2x_utilities_bear",  "smart_money": False, "region": "US", "ref_sector": None},
+    "SIJ":  {"category": "leveraged", "subcategory": "2x_industrials_bear","smart_money": False, "region": "US", "ref_sector": None},
+    "UGE":  {"category": "leveraged", "subcategory": "2x_staples_bull",    "smart_money": False, "region": "US", "ref_sector": None},
+    "SZK":  {"category": "leveraged", "subcategory": "2x_staples_bear",    "smart_money": False, "region": "US", "ref_sector": None},
+    "SCC":  {"category": "leveraged", "subcategory": "2x_discretionary_bear","smart_money": False, "region": "US", "ref_sector": None},
+    "XSD":  {"category": "sector",    "subcategory": "semiconductors",     "smart_money": True,  "region": "US", "ref_sector": "Technology"},
+    # Treasury 2x/3x long & short pairs
+    "TBT":  {"category": "leveraged", "subcategory": "2x_20y_bear",   "smart_money": False, "region": "US", "ref_sector": None},
+    "UBT":  {"category": "leveraged", "subcategory": "2x_20y_bull",   "smart_money": False, "region": "US", "ref_sector": None},
+    "TBF":  {"category": "leveraged", "subcategory": "1x_20y_bear",   "smart_money": False, "region": "US", "ref_sector": None},
+    "PST":  {"category": "leveraged", "subcategory": "2x_7-10y_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "UST":  {"category": "leveraged", "subcategory": "2x_7-10y_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    # Gold miners 2x long & short
+    "GDXU": {"category": "leveraged", "subcategory": "2x_goldminers_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "GDXD": {"category": "leveraged", "subcategory": "2x_goldminers_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    # Crypto leverage gaps
+    "BTCL": {"category": "leveraged", "subcategory": "2x_btc_bull",   "smart_money": False, "region": "US", "ref_sector": None},
+    "ETU":  {"category": "leveraged", "subcategory": "2x_eth_bull",   "smart_money": False, "region": "US", "ref_sector": None},
+    "ETHD": {"category": "leveraged", "subcategory": "2x_eth_bear",   "smart_money": False, "region": "US", "ref_sector": None},
+    # China leverage gaps
+    "CHAU": {"category": "leveraged", "subcategory": "2x_china_bull", "smart_money": False, "region": "CN", "ref_sector": None},
+    "XPP":  {"category": "leveraged", "subcategory": "2x_china_bull", "smart_money": False, "region": "CN", "ref_sector": None},
+    "FXP":  {"category": "leveraged", "subcategory": "2x_china_bear", "smart_money": False, "region": "CN", "ref_sector": None},
+    # High-value thematic 1x — breadth for complexes
+    "BUG":  {"category": "sector", "subcategory": "cybersecurity", "smart_money": True, "region": "US", "ref_sector": "Technology"},
+    "QTUM": {"category": "sector", "subcategory": "quantum",       "smart_money": True, "region": "US", "ref_sector": "Technology"},
+    "ROBO": {"category": "sector", "subcategory": "robotics",      "smart_money": True, "region": "US", "ref_sector": "Technology"},
+    "MSOS": {"category": "sector", "subcategory": "cannabis",      "smart_money": True, "region": "US", "ref_sector": "Healthcare"},
+    "NLR":  {"category": "sector", "subcategory": "nuclear",       "smart_money": True, "region": "US", "ref_sector": "Utilities"},
+    "PPA":  {"category": "sector", "subcategory": "defense",       "smart_money": True, "region": "US", "ref_sector": "Industrials"},
+    "ARKX": {"category": "sector", "subcategory": "space",         "smart_money": True, "region": "US", "ref_sector": "Industrials"},
+    "PHO":  {"category": "sector", "subcategory": "water",         "smart_money": True, "region": "US", "ref_sector": "Utilities"},
 }
 
 
