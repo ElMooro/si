@@ -71,6 +71,17 @@ DEPRECATE_N = 25       # need this many scored outcomes before we kill a signal
 PROMOTE_LB = 0.57      # Wilson LB to earn PROMOTED
 DEPRECATE_LB = 0.45    # Wilson LB below this (with enough n) -> DEPRECATED
 
+# ── Alpha attribution (benchmark-relative edge) ──
+# Directional hit-rate rewards beta in a melt-up. The honest edge of an engine
+# is the forward EXCESS return of its picks over SPY. We compute it from the
+# prices already stored on every outcome row + a SPY daily-history lookup, so
+# the entire historical ledger becomes alpha-gradable with no migration.
+BENCH = "SPY"
+MIN_ALPHA_N = 20       # min scored excess observations to test an engine for alpha
+FDR_Q = 0.10           # Benjamini-Hochberg false-discovery rate across engines
+ALPHA_SSM_PARAM = "/justhodl/calibration/alpha"
+ALPHA_S3_KEY = "data/engine-alpha.json"
+
 # predicted_dir buckets — a prediction only scores if it made a directional call
 UP_DIRS = {"UP", "OUTPERFORM", "LONG", "BULLISH"}
 DOWN_DIRS = {"DOWN", "UNDERPERFORM", "SHORT", "BEARISH"}
@@ -106,6 +117,99 @@ def wilson_lower(hits, n, z=1.96):
     centre = p + z * z / (2 * n)
     margin = z * math.sqrt((p * (1 - p) + z * z / (4 * n)) / n)
     return max(0.0, (centre - margin) / denom)
+
+
+def norm_sf(z):
+    """One-sided upper-tail of the standard normal (survival function)."""
+    return 0.5 * math.erfc(z / math.sqrt(2.0))
+
+
+def bh_fdr(pairs, q=FDR_Q):
+    """Benjamini-Hochberg. pairs = [(key, p_value), ...].
+    Returns the set of keys whose null is rejected controlling FDR at q."""
+    m = len(pairs)
+    if m == 0:
+        return set()
+    ordered = sorted(pairs, key=lambda kv: kv[1])
+    k_max = 0
+    for i, (_, p) in enumerate(ordered, start=1):
+        if p <= (i / m) * q:
+            k_max = i
+    return {ordered[i][0] for i in range(k_max)}
+
+
+def alpha_stats(excess):
+    """Distribution of forward excess returns (%, vs SPY) -> edge statistics.
+    Returns dict or None if too few observations."""
+    n = len(excess)
+    if n < MIN_ALPHA_N:
+        return None
+    mean = sum(excess) / n
+    var = sum((x - mean) ** 2 for x in excess) / (n - 1) if n > 1 else 0.0
+    sd = math.sqrt(var)
+    se = sd / math.sqrt(n) if sd > 0 else 0.0
+    t = mean / se if se > 0 else 0.0
+    ir = mean / sd if sd > 0 else 0.0          # per-observation information ratio
+    p_one = norm_sf(t) if t > 0 else (1.0 - norm_sf(-t))  # H1: mean > 0
+    hit = sum(1 for x in excess if x > 0) / n   # share of picks that beat SPY
+    return {"alpha_n": n, "alpha_mean_excess_pct": round(mean, 3),
+            "alpha_sd_pct": round(sd, 3), "alpha_t_stat": round(t, 2),
+            "info_ratio": round(ir, 3), "alpha_hit_rate": round(hit, 3),
+            "alpha_p_value": round(p_one, 5)}
+
+
+def _spy_history():
+    """SPY daily closes -> {YYYY-MM-DD: close} over ~420 days. FMP /stable/ then Polygon."""
+    import datetime as _dt
+    start = (datetime.now(timezone.utc) - _dt.timedelta(days=430)).strftime("%Y-%m-%d")
+    out = {}
+    fmp = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    try:
+        u = (f"https://financialmodelingprep.com/stable/historical-price-eod/full"
+             f"?symbol={BENCH}&from={start}&apikey={fmp}")
+        d = json.loads(request.urlopen(request.Request(u, headers={"User-Agent": "jh-sc"}), timeout=25).read())
+        rows = d if isinstance(d, list) else d.get("historical", [])
+        for r in rows:
+            dt, c = r.get("date"), r.get("adjClose", r.get("close"))
+            if dt and c is not None:
+                out[str(dt)[:10]] = float(c)
+    except Exception as e:
+        print(f"[scorecard] FMP SPY history failed: {e}")
+    if len(out) < 30:
+        try:
+            pk = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            u = (f"https://api.polygon.io/v2/aggs/ticker/{BENCH}/range/1/day/{start}/{today}"
+                 f"?adjusted=true&sort=asc&limit=500&apiKey={pk}")
+            d = json.loads(request.urlopen(request.Request(u, headers={"User-Agent": "jh-sc"}), timeout=25).read())
+            for r in (d.get("results") or []):
+                dt = datetime.fromtimestamp(r["t"] / 1000, timezone.utc).strftime("%Y-%m-%d")
+                out[dt] = float(r["c"])
+        except Exception as e:
+            print(f"[scorecard] Polygon SPY history failed: {e}")
+    print(f"[scorecard] SPY history points: {len(out)}")
+    return out
+
+
+def _spy_on(hist, iso):
+    """SPY close on the date of an ISO timestamp; walk back up to 6 days to the
+    nearest prior trading day."""
+    if not iso:
+        return None
+    import datetime as _dt
+    try:
+        d = datetime.fromisoformat(str(iso).replace("Z", "+00:00")).date()
+    except Exception:
+        try:
+            d = _dt.date.fromisoformat(str(iso)[:10])
+        except Exception:
+            return None
+    for _ in range(7):
+        k = d.isoformat()
+        if k in hist:
+            return hist[k]
+        d -= _dt.timedelta(days=1)
+    return None
 
 
 def num(v):
@@ -214,6 +318,8 @@ def lambda_handler(event, context):
     outcomes = scan_outcomes()
     print(f"[signal-scorecard] scanned {len(outcomes)} outcome records")
 
+    spy_hist = _spy_history()   # for benchmark-relative (alpha) attribution
+
     # group by signal_type, classifying every outcome
     by_sig = {}
     for o in outcomes:
@@ -222,7 +328,7 @@ def lambda_handler(event, context):
             continue
         g = by_sig.setdefault(st, {"n": 0, "n_neutral": 0, "n_legacy": 0,
                                    "n_unresolved": 0, "n_scored": 0, "hits": 0,
-                                   "stored_agree": 0, "rets": [], "windows": {},
+                                   "stored_agree": 0, "rets": [], "excess": [], "windows": {},
                                    "by_regime": {}})
         g["n"] += 1
         pd = predicted_dir(o)
@@ -253,6 +359,23 @@ def lambda_handler(event, context):
             r = num(oc.get("excess_return"))
         if r is not None:
             g["rets"].append(r)
+
+        # ── benchmark-relative excess (alpha) ──────────────────────────────
+        # excess = asset_return - SPY_return over the SAME window, computed from
+        # the prices already stored on the outcome row. Signed by the call so a
+        # correct short scores positive alpha too.
+        sx = None
+        p_sig = num(oc.get("price_at_signal"))
+        p_chk = num(oc.get("price_at_check"))
+        if p_sig and p_chk and p_sig > 0:
+            spy0 = _spy_on(spy_hist, o.get("logged_at"))
+            spy1 = _spy_on(spy_hist, oc.get("checked_at") or o.get("checked_at"))
+            if spy0 and spy1 and spy0 > 0:
+                asset_ret = (p_chk / p_sig - 1.0) * 100.0
+                spy_ret = (spy1 / spy0 - 1.0) * 100.0
+                ex = asset_ret - spy_ret
+                sx = ex if pd in UP_DIRS else -ex
+                g["excess"].append(sx)
         wk = o.get("window_key") or "all"
         w = g["windows"].setdefault(wk, {"n": 0, "hits": 0})
         w["n"] += 1
@@ -260,12 +383,14 @@ def lambda_handler(event, context):
             w["hits"] += 1
         # regime-conditioned tally (institutional: edges are not stationary)
         rg = str(o.get("regime_at_log") or "UNKNOWN")
-        rgd = g["by_regime"].setdefault(rg, {"n": 0, "hits": 0, "rets": []})
+        rgd = g["by_regime"].setdefault(rg, {"n": 0, "hits": 0, "rets": [], "excess": []})
         rgd["n"] += 1
         if correct:
             rgd["hits"] += 1
         if r is not None:
             rgd["rets"].append(r)
+        if sx is not None:
+            rgd["excess"].append(sx)
 
     scorecard = []
     for st, g in by_sig.items():
@@ -277,11 +402,12 @@ def lambda_handler(event, context):
         grade = grade_for(lb, n_scored)
         status = status_for(lb, n_scored)
         agree = round(g["stored_agree"] / n_scored, 3) if n_scored else None
+        astats = alpha_stats(g["excess"])
         windows = {wk: {"n": w["n"],
                         "hit_rate": round(w["hits"] / w["n"], 3) if w["n"] else None,
                         "wilson_lb": round(wilson_lower(w["hits"], w["n"]), 3)}
                    for wk, w in g["windows"].items()}
-        scorecard.append({
+        row = {
             "signal_type": st,
             "n_total": g["n"],
             "n_scored": n_scored,
@@ -297,18 +423,54 @@ def lambda_handler(event, context):
             "grade": grade,
             "status": status,
             "performance_multiplier": MULTIPLIER[status],
+            # alpha (benchmark-relative) — populated when MIN_ALPHA_N met
+            "alpha_status": "INSUFFICIENT",
+            "alpha_n": (astats or {}).get("alpha_n", len(g["excess"])),
+            "alpha_mean_excess_pct": (astats or {}).get("alpha_mean_excess_pct"),
+            "alpha_t_stat": (astats or {}).get("alpha_t_stat"),
+            "info_ratio": (astats or {}).get("info_ratio"),
+            "alpha_hit_rate": (astats or {}).get("alpha_hit_rate"),
+            "alpha_p_value": (astats or {}).get("alpha_p_value"),
             "by_window": windows,
             "by_regime": {rg: {"n": v["n"],
                                "hit_rate": round(v["hits"] / v["n"], 3) if v["n"] else None,
                                "wilson_lb": round(wilson_lower(v["hits"], v["n"]), 3),
-                               "avg_return_pct": round(sum(v["rets"]) / len(v["rets"]), 2) if v["rets"] else None}
+                               "avg_return_pct": round(sum(v["rets"]) / len(v["rets"]), 2) if v["rets"] else None,
+                               "alpha_mean_excess_pct": round(sum(v["excess"]) / len(v["excess"]), 2) if len(v["excess"]) >= 5 else None}
                           for rg, v in sorted(g["by_regime"].items(), key=lambda kv: -kv[1]["n"])[:6]
                           if v["n"] >= 3},
-        })
+        }
+        scorecard.append(row)
 
-    # rank: promoted first, then by Wilson lower bound
+    # ── Multiple-testing control: Benjamini-Hochberg FDR across all engines ──
+    # Testing ~100+ engines at once, some clear any single threshold by chance.
+    # We control the false-discovery rate on the alpha t-stats. Two one-sided
+    # families: proven POSITIVE alpha and proven NEGATIVE (value-destroying) alpha.
+    alpha_rows = [r for r in scorecard
+                  if r["alpha_t_stat"] is not None and r["alpha_n"] >= MIN_ALPHA_N]
+    proven_pos = bh_fdr([(r["signal_type"], norm_sf(r["alpha_t_stat"])) for r in alpha_rows], FDR_Q)
+    proven_neg = bh_fdr([(r["signal_type"], norm_sf(-r["alpha_t_stat"])) for r in alpha_rows], FDR_Q)
+    for r in scorecard:
+        if r["alpha_t_stat"] is None or r["alpha_n"] < MIN_ALPHA_N:
+            r["alpha_status"] = "INSUFFICIENT"
+        elif r["signal_type"] in proven_pos:
+            r["alpha_status"] = "ALPHA_PROVEN"        # FDR-significant edge over SPY
+        elif r["signal_type"] in proven_neg:
+            r["alpha_status"] = "ALPHA_NEGATIVE"      # FDR-significant value destruction
+        else:
+            r["alpha_status"] = "NO_ALPHA"            # tested, indistinguishable from beta
+
+    alpha_proven = [r["signal_type"] for r in scorecard if r["alpha_status"] == "ALPHA_PROVEN"]
+    alpha_negative = [r["signal_type"] for r in scorecard if r["alpha_status"] == "ALPHA_NEGATIVE"]
+    alpha_tested = sum(1 for r in scorecard if r["alpha_status"] in
+                       ("ALPHA_PROVEN", "ALPHA_NEGATIVE", "NO_ALPHA"))
+
+    # rank: proven alpha first (by t-stat), then directional status, then Wilson LB
     order = {"PROMOTED": 0, "ACTIVE": 1, "INSUFFICIENT": 2, "DEPRECATED": 3}
-    scorecard.sort(key=lambda r: (order[r["status"]], -r["wilson_lb"]))
+    a_order = {"ALPHA_PROVEN": 0, "NO_ALPHA": 1, "INSUFFICIENT": 1, "ALPHA_NEGATIVE": 2}
+    scorecard.sort(key=lambda r: (a_order.get(r["alpha_status"], 1),
+                                  -(r["alpha_t_stat"] or -99),
+                                  order[r["status"]], -r["wilson_lb"]))
 
     promoted = [r["signal_type"] for r in scorecard if r["status"] == "PROMOTED"]
     deprecated = [r["signal_type"] for r in scorecard if r["status"] == "DEPRECATED"]
@@ -347,6 +509,23 @@ def lambda_handler(event, context):
         "avg_graded_wilson_lb": portfolio_lb,
         "promoted_signals": promoted,
         "deprecated_signals": deprecated,
+        "alpha": {
+            "benchmark": BENCH,
+            "method": "forward excess return vs SPY over each pick's window; Benjamini-Hochberg FDR across engines",
+            "fdr_q": FDR_Q,
+            "min_alpha_n": MIN_ALPHA_N,
+            "n_engines_tested": alpha_tested,
+            "n_alpha_proven": len(alpha_proven),
+            "n_alpha_negative": len(alpha_negative),
+            "alpha_proven_signals": alpha_proven,
+            "alpha_negative_signals": alpha_negative,
+            "leaderboard": sorted(
+                [{"signal_type": r["signal_type"], "alpha_status": r["alpha_status"],
+                  "mean_excess_pct": r["alpha_mean_excess_pct"], "t_stat": r["alpha_t_stat"],
+                  "info_ratio": r["info_ratio"], "alpha_hit_rate": r["alpha_hit_rate"], "n": r["alpha_n"]}
+                 for r in scorecard if r["alpha_t_stat"] is not None and r["alpha_n"] >= MIN_ALPHA_N],
+                key=lambda x: -(x["t_stat"] or -99))[:25],
+        },
         "data_quality_flags": dq_flags,
         "scorecard": scorecard,
         "thresholds": {"min_sample": MIN_SAMPLE, "deprecate_n": DEPRECATE_N,
@@ -381,6 +560,30 @@ def lambda_handler(event, context):
         print(f"[signal-scorecard] SSM {SSM_PARAM} updated ({len(multipliers)} signals)")
     except Exception as e:
         print(f"[signal-scorecard] SSM write failed: {e}")
+
+    # publish the per-engine ALPHA map (benchmark-relative truth) for the
+    # calibrator / best-setups / master-ranker to consume.
+    alpha_map = {r["signal_type"]: {"alpha_status": r["alpha_status"],
+                                    "t_stat": r["alpha_t_stat"],
+                                    "mean_excess_pct": r["alpha_mean_excess_pct"],
+                                    "info_ratio": r["info_ratio"],
+                                    "alpha_n": r["alpha_n"]}
+                 for r in scorecard if r["alpha_t_stat"] is not None}
+    alpha_doc = {"generated_at": out["generated_at"], "benchmark": BENCH, "fdr_q": FDR_Q,
+                 "n_alpha_proven": len(alpha_proven), "n_alpha_negative": len(alpha_negative),
+                 "alpha_proven_signals": alpha_proven, "alpha_negative_signals": alpha_negative,
+                 "engines": alpha_map}
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=ALPHA_S3_KEY,
+                      Body=json.dumps(alpha_doc, default=str).encode("utf-8"),
+                      ContentType="application/json", CacheControl="public, max-age=3600")
+        ssm.put_parameter(Name=ALPHA_SSM_PARAM, Type="String", Overwrite=True,
+                          Value=json.dumps({"updated_at": out["generated_at"],
+                                            "alpha_proven": alpha_proven,
+                                            "alpha_negative": alpha_negative}))
+        print(f"[signal-scorecard] alpha map -> {ALPHA_S3_KEY} ({len(alpha_proven)} proven, {len(alpha_negative)} negative)")
+    except Exception as e:
+        print(f"[signal-scorecard] alpha map write failed: {e}")
 
     # alert on newly deprecated / promoted vs last run
     prior = {}
