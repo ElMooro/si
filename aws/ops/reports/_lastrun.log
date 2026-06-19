@@ -1,26 +1,16 @@
-justhodl-massive-signals -> {"statusCode": 200, "body": "{\"ok\": true, \"tickers\": 30, \"top_prepump\": 23}"}
-justhodl-eurodollar-stress -> {"statusCode": 200, "body": "{\"composite_score\": 34.94, \"severity\": \"CALM\", \"regime\": \"CALM\", \"n_si
-justhodl-crisis-composite -> {"statusCode": 200, "body": "{\"ok\": true, \"master_crisis_score\": 28.1, \"defcon_level\": 4, \"defcon_name\
-justhodl-eurodollar-plumbing -> async dispatched
-justhodl-carry-surface -> async dispatched
-waiting 75s for async...
 
---- massive-signals: FX now populated? ---
-  market.fx_signals: ['CARRY_TRADE_FAVORABLE (USDJPY +1.1%)'] | futures: ['SILVER_BREAKOUT (+24.7% 20d)']
+data/vol-surface.json
+  keys: ['generated_at', 'elapsed_s', 'version', 'data_source', 'fred_alive', 'fred_failed', 'skew', 'vvix', 'term_structure', 'cross_asset', 'equity_dispersion', 'underlyings', 'composite_stress_score', 'stress_components', 'regime', 'alerts', 'data_freshness']
+   composite_stress_score = 21.8
+   regime = "NORMAL"
+   term_structure = {"spot": 18.44, "back": 20.62, "ratio_30d_3m": 0.894, "slope_30d_3m_yearized": 0.1326, "inverted": false, "regime": "NORMAL_CONTANGO"}
+   skew = {"value": 146.72, "pctile_252d": 64.6, "regime": "EXTREME_TAIL_HEDGING", "tail_mult": 106.911, "source": "yahoo"}
 
---- eurodollar-stress: real-time FX in composite? ---
-  composite_score: 34.94 severity: CALM n_signals_used: 9
-  usd_momentum_rt signal: {"id": "usd_momentum_rt", "label": "USD Momentum (real-time FX, 20d)", "fred_series": "MASSIVE:polygon-fx-regime", "value": 1.019, "score_0_100": 48.2, "polarity": 1, "as_of": "2026-06-19T17:43:54.959195+00:00", "description": "Broad synthetic USD 20-day % change from live Massive FX majors; fast dollar strengthening = offshore funding strain (leads FRED broad-dollar).", "source": "massive"}
+data/skew-tail-hedging.json
+  keys: ['engine', 'version', 'as_of', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
 
---- eurodollar-plumbing: massive_fx + AI verdict? ---
-  plumbing_health: 91.1 verdict: FUNCTIONING
-  massive_fx: {"regime_signals": ["CARRY_TRADE_FAVORABLE (USDJPY +1.1%)"], "usd_synthetic_20d_pct": 1.019, "em_fx_mean_20d_pct": 0.349, "usdjpy": 161.307, "usdjpy_20d_pct": 1.095, "eurusd": 1.14741, "usdcnh": 6.78298, "asof": "2026-06-19T17:43:54.959195+
-  ai.short_term: The 1-4 week direction is stable but vulnerable to slight deterioration as the depleted ON RRP buffer leaves reserves directly exposed to dr
+data/catalyst-skew-premove.json
+  keys: ['engine', 'version', 'as_of', 'state', 'state_description', 'signal_strength', 'summary', 'bull_skew_setups', 'bear_skew_setups', 'balanced_setups', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'historical_episodes', 'why_now_explainer', 'methodology', 'sources', 'schedule', 'run_duration_seconds']
+   summary = {"n_events_in_window": 7, "n_with_options_data": 0, "n_directional_setups": 0, "n_bull_skew": 0, "n_bear_skew": 0, "n_balanced": 0}
 
---- crisis-composite: massive_cross_asset? ---
-  defcon: 4 NORMAL score: 28.1
-  massive_cross_asset: {"fx_signals": ["CARRY_TRADE_FAVORABLE (USDJPY +1.1%)"], "usd_synthetic_20d_pct": 1.019, "usdjpy": 161.307, "futures_signals": ["SILVER_BREAKOUT (+24.7% 20d)"], "note": "Live Massive FX + futures context (surfaced for the desk; not weighted
-
---- carry-surface: massive_fx majors? ---
-  n_assets: 80 | massive_fx.regime_signals: ['CARRY_TRADE_FAVORABLE (USDJPY +1.1%)'] | usd20d: 1.019
-  majors: {"USD_JPY": {"price": 161.307, "ret_20d_pct": 1.095, "vol_20d_pct": 2.47}, "EUR_USD": {"price": 1.14741, "ret_20d_pct": -1.233, "vol_20d_pct": 5.06}, "GBP_USD": {"price": 1.32354, "ret_20d_pct": -1.34
+dealer-gex market_composite: {"spy_regime": "NEGATIVE_GAMMA", "spy_gex_billions": -2.287, "spy_flip_level": null, "spy_spot": 746.74, "spy_pct_to_flip": null, "spy_trading_bias": "Trend follow \u00b7 expect vol expansion \u00b7 dealers buy strength / sell weakness", "qqq_regime": "NEGATIVE_GAMMA", "iwm_regime": "NEGATIVE_GAMMA"
