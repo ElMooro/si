@@ -86,7 +86,7 @@ POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 POLYGON_BASE = "https://api.polygon.io"
 ETF_FLOWS_ENDPOINT = f"{POLYGON_BASE}/etf-global/v1/fund-flows"
 FETCH_TIMEOUT = 15
-MAX_WORKERS = 8
+MAX_WORKERS = 12
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -307,6 +307,74 @@ ETF_UNIVERSE = {
     "MSTZ": {"category": "leveraged", "subcategory": "1x_mstr_bear",  "smart_money": False, "region": "US", "ref_sector": None},
     "SMCL": {"category": "leveraged", "subcategory": "2x_smci_bull",  "smart_money": False, "region": "US", "ref_sector": None},
     "AVGX": {"category": "leveraged", "subcategory": "2x_avgo_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    # ═══ EXPANSION v3 — maximal leveraged/inverse positioning coverage ═══
+    # ── FANG+ / mega-cap tech 3x (the cleanest read on Big-Tech conviction) ──
+    "FNGU": {"category": "leveraged", "subcategory": "3x_fangplus_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "FNGD": {"category": "leveraged", "subcategory": "3x_fangplus_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "BULZ": {"category": "leveraged", "subcategory": "3x_fang_innovation_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "BERZ": {"category": "leveraged", "subcategory": "3x_fang_innovation_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    # ── Broad market 1x/2x/3x (full risk-positioning ladder) ──
+    "DDM":  {"category": "leveraged", "subcategory": "2x_dow_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "DXD":  {"category": "leveraged", "subcategory": "2x_dow_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "DOG":  {"category": "leveraged", "subcategory": "1x_dow_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "PSQ":  {"category": "leveraged", "subcategory": "1x_qqq_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "SPUU": {"category": "leveraged", "subcategory": "2x_sp500_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "HIBL": {"category": "leveraged", "subcategory": "3x_highbeta_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "HIBS": {"category": "leveraged", "subcategory": "3x_highbeta_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "MIDU": {"category": "leveraged", "subcategory": "3x_midcap_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "MVV":  {"category": "leveraged", "subcategory": "2x_midcap_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "MZZ":  {"category": "leveraged", "subcategory": "2x_midcap_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "RWM":  {"category": "leveraged", "subcategory": "1x_smallcap_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "SAA":  {"category": "leveraged", "subcategory": "2x_smallcap_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    # ── 2x sector (ProShares Ultra/UltraShort — granular sector lever read) ──
+    "ROM":  {"category": "leveraged", "subcategory": "2x_tech_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "REW":  {"category": "leveraged", "subcategory": "2x_tech_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "USD":  {"category": "leveraged", "subcategory": "2x_semi_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "SSG":  {"category": "leveraged", "subcategory": "2x_semi_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "UYG":  {"category": "leveraged", "subcategory": "2x_financials_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "SKF":  {"category": "leveraged", "subcategory": "2x_financials_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "DIG":  {"category": "leveraged", "subcategory": "2x_energy_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "DUG":  {"category": "leveraged", "subcategory": "2x_energy_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "RXL":  {"category": "leveraged", "subcategory": "2x_healthcare_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "BIB":  {"category": "leveraged", "subcategory": "2x_biotech_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "BIS":  {"category": "leveraged", "subcategory": "2x_biotech_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "UXI":  {"category": "leveraged", "subcategory": "2x_industrials_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "UCC":  {"category": "leveraged", "subcategory": "2x_discretionary_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "URE":  {"category": "leveraged", "subcategory": "2x_realestate_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "SRS":  {"category": "leveraged", "subcategory": "2x_realestate_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "UYM":  {"category": "leveraged", "subcategory": "2x_materials_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "SMN":  {"category": "leveraged", "subcategory": "2x_materials_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "UPW":  {"category": "leveraged", "subcategory": "2x_utilities_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    # ── Region leveraged (global risk-on/off positioning) ──
+    "EDC":  {"category": "leveraged", "subcategory": "3x_em_bull", "smart_money": False, "region": "EM", "ref_sector": None},
+    "EDZ":  {"category": "leveraged", "subcategory": "3x_em_bear", "smart_money": False, "region": "EM", "ref_sector": None},
+    "EURL": {"category": "leveraged", "subcategory": "3x_europe_bull", "smart_money": False, "region": "Intl", "ref_sector": None},
+    "INDL": {"category": "leveraged", "subcategory": "2x_india_bull", "smart_money": False, "region": "EM", "ref_sector": None},
+    "BRZU": {"category": "leveraged", "subcategory": "2x_brazil_bull", "smart_money": False, "region": "EM", "ref_sector": None},
+    "KORU": {"category": "leveraged", "subcategory": "3x_korea_bull", "smart_money": False, "region": "EM", "ref_sector": None},
+    "MEXX": {"category": "leveraged", "subcategory": "3x_mexico_bull", "smart_money": False, "region": "EM", "ref_sector": None},
+    "TPOR": {"category": "leveraged", "subcategory": "3x_transports_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    # ── FX / dollar positioning (independent dollar-tide cross-check) ──
+    "UUP":  {"category": "fx", "subcategory": "usd_bull", "smart_money": True, "region": "US", "ref_sector": None},
+    "UDN":  {"category": "fx", "subcategory": "usd_bear", "smart_money": True, "region": "US", "ref_sector": None},
+    "EUO":  {"category": "fx", "subcategory": "2x_euro_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "ULE":  {"category": "fx", "subcategory": "2x_euro_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "YCS":  {"category": "fx", "subcategory": "2x_yen_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    # ── Crypto leveraged ──
+    "BITU": {"category": "leveraged", "subcategory": "2x_bitcoin_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "SBIT": {"category": "leveraged", "subcategory": "2x_bitcoin_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "ETHT": {"category": "leveraged", "subcategory": "2x_ethereum_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "MSTX": {"category": "leveraged", "subcategory": "2x_mstr_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    # ── Single-stock leveraged additions (bull + bear legs on hot names) ──
+    "TSLR": {"category": "leveraged", "subcategory": "2x_tsla_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "TSLS": {"category": "leveraged", "subcategory": "2x_tsla_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "NVDX": {"category": "leveraged", "subcategory": "2x_nvda_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "NVDU": {"category": "leveraged", "subcategory": "2x_nvda_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "GGLS": {"category": "leveraged", "subcategory": "1x_googl_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "METD": {"category": "leveraged", "subcategory": "1x_meta_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "AMZD": {"category": "leveraged", "subcategory": "1x_amzn_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "MSFD": {"category": "leveraged", "subcategory": "1x_msft_bear", "smart_money": False, "region": "US", "ref_sector": None},
+    "CONI": {"category": "leveraged", "subcategory": "1x_coin_bear", "smart_money": False, "region": "US", "ref_sector": None},
 }
 
 
