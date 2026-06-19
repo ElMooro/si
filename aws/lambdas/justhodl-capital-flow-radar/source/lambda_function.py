@@ -46,49 +46,76 @@ s3 = boto3.client("s3", region_name="us-east-1")
 # `primary` is used for the price-vs-flow divergence read. Members not yet in the
 # flow universe are simply skipped (and auto-activate once added). `stocks` ride the flow.
 COMPLEXES = {
+    # ── Broad-market positioning ──
+    "S&P 500 (broad)": {"core": ["SPY", "VOO", "IVV"], "bull": ["SPXL", "UPRO", "SSO"], "bear": ["SPXS", "SPXU", "SDS", "SH"], "primary": "SPY", "stocks": []},
+    "Nasdaq 100 (broad)": {"core": ["QQQ"], "bull": ["TQQQ", "QLD"], "bear": ["SQQQ", "QID"], "primary": "QQQ", "stocks": []},
+    "Small Caps": {"core": ["IWM"], "bull": ["TNA", "UWM"], "bear": ["TZA", "TWM"], "primary": "IWM", "stocks": []},
+    # ── Sectors / themes ──
     "Semiconductors": {"core": ["SMH", "SOXX"], "bull": ["SOXL"], "bear": ["SOXS"], "primary": "SMH",
                        "stocks": ["NVDA", "AMD", "AVGO", "MU", "TSM", "LRCX", "AMAT", "KLAC", "MRVL", "ON", "ARM", "SMCI"]},
-    "Technology": {"core": ["XLK", "QQQ", "VGT"], "bull": ["TQQQ"], "bear": ["SQQQ"], "primary": "XLK",
+    "Technology": {"core": ["XLK", "VGT"], "bull": ["TECL"], "bear": ["TECS"], "primary": "XLK",
                    "stocks": ["AAPL", "MSFT", "NVDA", "AVGO", "ORCL", "CRM", "ADBE", "AMD"]},
-    "Software": {"core": ["IGV", "WCLD"], "bull": [], "bear": [], "primary": "IGV",
-                 "stocks": ["MSFT", "CRM", "NOW", "ADBE", "SNOW", "PLTR", "DDOG", "NET"]},
+    "Software": {"core": ["IGV", "WCLD", "SKYY"], "bull": [], "bear": [], "primary": "IGV",
+                 "stocks": ["MSFT", "CRM", "NOW", "ADBE", "SNOW", "PLTR", "DDOG", "NET", "PANW"]},
+    "Cybersecurity": {"core": ["HACK", "CIBR"], "bull": [], "bear": [], "primary": "CIBR",
+                      "stocks": ["PANW", "CRWD", "ZS", "FTNT", "NET", "S", "OKTA"]},
+    "Robotics/AI": {"core": ["BOTZ"], "bull": [], "bear": [], "primary": "BOTZ",
+                    "stocks": ["NVDA", "ISRG", "ABB", "ROK"]},
     "Biotech": {"core": ["XBI", "IBB"], "bull": ["LABU"], "bear": ["LABD"], "primary": "XBI",
                 "stocks": ["VRTX", "REGN", "GILD", "AMGN", "MRNA", "BIIB", "ALNY"]},
-    "Energy": {"core": ["XLE", "XOP"], "bull": ["ERX"], "bear": ["ERY"], "primary": "XLE",
-               "stocks": ["XOM", "CVX", "COP", "SLB", "EOG", "OXY", "FANG", "PSX"]},
-    "Financials": {"core": ["XLF", "KRE"], "bull": ["FAS"], "bear": ["FAZ"], "primary": "XLF",
-                   "stocks": ["JPM", "BAC", "WFC", "GS", "MS", "C", "SCHW"]},
-    "Clean Energy": {"core": ["ICLN", "TAN"], "bull": [], "bear": [], "primary": "TAN",
-                     "stocks": ["FSLR", "ENPH", "SEDG", "RUN", "NEE", "STEM"]},
-    "China": {"core": ["KWEB", "FXI", "MCHI"], "bull": ["YINN"], "bear": ["YANG"], "primary": "KWEB",
-              "stocks": ["BABA", "PDD", "JD", "BIDU", "NIO", "LI", "XPEV"]},
-    "Innovation/ARK": {"core": ["ARKK", "ARKW", "ARKG"], "bull": [], "bear": [], "primary": "ARKK",
-                       "stocks": ["TSLA", "COIN", "ROKU", "HOOD", "PLTR", "RBLX"]},
-    "Crypto": {"core": ["IBIT", "FBTC", "BITO", "ETHA"], "bull": [], "bear": [], "primary": "IBIT",
-               "stocks": ["COIN", "MSTR", "MARA", "RIOT", "CLSK", "HUT"]},
-    "Gold/Metals": {"core": ["GLD", "IAU", "SLV"], "bull": ["GDX"], "bear": [], "primary": "GLD",
-                    "stocks": ["NEM", "GOLD", "AEM", "WPM", "FNV"]},
-    "Homebuilders": {"core": ["ITB", "XHB"], "bull": [], "bear": [], "primary": "ITB",
-                     "stocks": ["DHI", "LEN", "PHM", "NVR", "TOL", "KBH"]},
-    "Small Caps": {"core": ["IWM"], "bull": ["TNA"], "bear": ["TZA"], "primary": "IWM",
-                   "stocks": []},
-    # GICS sectors (single core each) for full breadth
-    "Industrials": {"core": ["XLI"], "bull": [], "bear": [], "primary": "XLI",
-                    "stocks": ["CAT", "DE", "GE", "HON", "UNP", "BA"]},
-    "Materials": {"core": ["XLB"], "bull": [], "bear": [], "primary": "XLB",
-                  "stocks": ["LIN", "FCX", "NEM", "SHW", "APD"]},
-    "Healthcare": {"core": ["XLV"], "bull": [], "bear": [], "primary": "XLV",
+    "Healthcare": {"core": ["XLV"], "bull": ["CURE"], "bear": [], "primary": "XLV",
                    "stocks": ["UNH", "JNJ", "LLY", "ABBV", "MRK", "PFE"]},
-    "Consumer Discretionary": {"core": ["XLY"], "bull": [], "bear": [], "primary": "XLY",
+    "Energy": {"core": ["XLE", "XOP"], "bull": ["ERX", "GUSH"], "bear": ["ERY", "DRIP"], "primary": "XLE",
+               "stocks": ["XOM", "CVX", "COP", "SLB", "EOG", "OXY", "FANG", "PSX"]},
+    "Oil Services": {"core": ["OIH"], "bull": [], "bear": [], "primary": "OIH",
+                     "stocks": ["SLB", "HAL", "BKR", "NOV"]},
+    "Financials": {"core": ["XLF", "KBE"], "bull": ["FAS"], "bear": ["FAZ"], "primary": "XLF",
+                   "stocks": ["JPM", "BAC", "WFC", "GS", "MS", "C", "SCHW"]},
+    "Regional Banks": {"core": ["KRE"], "bull": ["DPST"], "bear": [], "primary": "KRE",
+                       "stocks": ["RF", "KEY", "CFG", "HBAN", "FITB", "ZION"]},
+    "Industrials": {"core": ["XLI"], "bull": ["DUSL"], "bear": [], "primary": "XLI",
+                    "stocks": ["CAT", "DE", "GE", "HON", "UNP", "BA"]},
+    "Aerospace & Defense": {"core": ["ITA"], "bull": ["DFEN"], "bear": [], "primary": "ITA",
+                            "stocks": ["LMT", "RTX", "NOC", "GD", "BA", "LHX", "HWM"]},
+    "Transports": {"core": ["IYT"], "bull": [], "bear": [], "primary": "IYT",
+                   "stocks": ["UPS", "FDX", "UNP", "CSX", "NSC", "ODFL"]},
+    "Infrastructure": {"core": ["PAVE"], "bull": [], "bear": [], "primary": "PAVE",
+                       "stocks": ["ETN", "PWR", "VMC", "MLM", "URI"]},
+    "Materials": {"core": ["XLB"], "bull": [], "bear": [], "primary": "XLB",
+                  "stocks": ["LIN", "FCX", "SHW", "APD", "NUE"]},
+    "Gold/Silver (metal)": {"core": ["GLD", "IAU", "SLV"], "bull": ["UGL", "AGQ"], "bear": ["GLL", "ZSL"], "primary": "GLD", "stocks": []},
+    "Gold Miners": {"core": ["GDX", "GDXJ"], "bull": ["NUGT", "JNUG"], "bear": ["DUST", "JDST"], "primary": "GDX",
+                    "stocks": ["NEM", "GOLD", "AEM", "WPM", "FNV", "KGC"]},
+    "Copper/Mining": {"core": ["COPX", "XME"], "bull": [], "bear": [], "primary": "COPX",
+                      "stocks": ["FCX", "SCCO", "TECK", "VALE"]},
+    "Uranium": {"core": ["URA", "URNM"], "bull": [], "bear": [], "primary": "URA",
+                "stocks": ["CCJ", "UEC", "DNN", "NXE", "UUUU"]},
+    "Clean Energy": {"core": ["ICLN", "TAN"], "bull": [], "bear": [], "primary": "TAN",
+                     "stocks": ["FSLR", "ENPH", "SEDG", "RUN", "NEE"]},
+    "Lithium/EV Materials": {"core": ["LIT"], "bull": [], "bear": [], "primary": "LIT",
+                             "stocks": ["ALB", "SQM", "LAC"]},
+    "Electric Vehicles": {"core": ["KARS"], "bull": [], "bear": [], "primary": "KARS",
+                          "stocks": ["TSLA", "RIVN", "LCID", "NIO", "LI"]},
+    "Homebuilders": {"core": ["ITB", "XHB"], "bull": ["NAIL"], "bear": [], "primary": "ITB",
+                     "stocks": ["DHI", "LEN", "PHM", "NVR", "TOL", "KBH"]},
+    "Retail": {"core": ["XRT"], "bull": ["RETL"], "bear": [], "primary": "XRT",
+               "stocks": ["AMZN", "HD", "LOW", "TJX", "COST", "TGT"]},
+    "Consumer Discretionary": {"core": ["XLY"], "bull": ["WANT"], "bear": [], "primary": "XLY",
                                "stocks": ["AMZN", "TSLA", "HD", "MCD", "NKE", "LOW"]},
     "Consumer Staples": {"core": ["XLP"], "bull": [], "bear": [], "primary": "XLP",
                          "stocks": ["PG", "KO", "PEP", "COST", "WMT"]},
-    "Utilities": {"core": ["XLU"], "bull": [], "bear": [], "primary": "XLU",
+    "Utilities": {"core": ["XLU"], "bull": ["UTSL"], "bear": [], "primary": "XLU",
                   "stocks": ["NEE", "DUK", "SO", "D", "AEP"]},
-    "Real Estate": {"core": ["XLRE"], "bull": [], "bear": [], "primary": "XLRE",
+    "Real Estate": {"core": ["XLRE"], "bull": ["DRN"], "bear": ["DRV"], "primary": "XLRE",
                     "stocks": ["PLD", "AMT", "EQIX", "SPG", "O"]},
     "Communications": {"core": ["XLC"], "bull": [], "bear": [], "primary": "XLC",
                        "stocks": ["GOOGL", "META", "NFLX", "DIS", "TMUS"]},
+    "China": {"core": ["KWEB", "FXI", "MCHI"], "bull": ["YINN", "CWEB"], "bear": ["YANG"], "primary": "KWEB",
+              "stocks": ["BABA", "PDD", "JD", "BIDU", "NIO", "LI", "XPEV"]},
+    "Innovation/ARK": {"core": ["ARKK", "ARKW", "ARKG"], "bull": ["WEBL"], "bear": ["WEBS"], "primary": "ARKK",
+                       "stocks": ["TSLA", "COIN", "ROKU", "HOOD", "PLTR", "RBLX"]},
+    "Crypto": {"core": ["IBIT", "FBTC", "BITO", "ETHA", "ARKB"], "bull": ["BITX", "ETHU"], "bear": ["BITI"], "primary": "IBIT",
+               "stocks": ["COIN", "MSTR", "MARA", "RIOT", "CLSK", "HUT"]},
 }
 
 
@@ -115,6 +142,55 @@ def _massive_price_5d(etf, key):
     except Exception:
         pass
     return None
+
+
+def compute_leveraged_sentiment(fmap):
+    """Net leveraged ETF flows per theme = where investors are aggressively long vs short."""
+    themes = {}
+    agg_bull = agg_bear = 0.0
+    for tkr, m in fmap.items():
+        if m.get("category") != "leveraged":
+            continue
+        sub = m.get("subcategory") or ""
+        f5 = m.get("flow_5d_usd") or 0
+        if "bull" in sub or "_long" in sub or sub.endswith("treasury"):
+            direction = "bull"
+        elif "bear" in sub or "_short" in sub:
+            direction = "bear"
+        else:
+            continue
+        parts = sub.split("_")
+        if parts and parts[0][:-1].isdigit() and parts[0].endswith("x"):
+            parts = parts[1:]
+        if parts and parts[-1] in ("bull", "bear", "long", "short"):
+            parts = parts[:-1]
+        theme = "_".join(parts) or "other"
+        t = themes.setdefault(theme, {"bull": 0.0, "bear": 0.0, "etfs": []})
+        if direction == "bull":
+            t["bull"] += f5
+            agg_bull += max(0.0, f5)
+        else:
+            t["bear"] += f5
+            agg_bear += max(0.0, f5)
+        t["etfs"].append(tkr)
+    rows = []
+    for th, v in themes.items():
+        net = v["bull"] - v["bear"]
+        rows.append({"theme": th, "bull_lev_flow_5d": round(v["bull"], 0), "bear_lev_flow_5d": round(v["bear"], 0),
+                     "net_leveraged_flow_5d": round(net, 0),
+                     "positioning": "BULLISH" if net > 0 else "BEARISH" if net < 0 else "NEUTRAL",
+                     "etfs": v["etfs"]})
+    rows.sort(key=lambda x: -x["net_leveraged_flow_5d"])
+    return {
+        "most_bullish_positioning": rows[:10],
+        "most_bearish_positioning": [r for r in rows[::-1] if r["net_leveraged_flow_5d"] < 0][:10],
+        "by_theme": rows,
+        "aggregate_bull_lev_inflow_5d": round(agg_bull, 0),
+        "aggregate_bear_lev_inflow_5d": round(agg_bear, 0),
+        "risk_appetite": ("RISK_ON" if agg_bull > agg_bear * 1.2 else "RISK_OFF" if agg_bear > agg_bull * 1.2 else "BALANCED"),
+        "note": "Net leveraged-ETF flow (bull-lev inflow minus bear-lev inflow) per theme — where investors are "
+                "aggressively positioned long vs short. Extremes are a contrarian tell.",
+    }
 
 
 def lambda_handler(event, context):
@@ -252,6 +328,7 @@ def lambda_handler(event, context):
             "top_conviction_stocks": top_conviction,
         })
 
+    leveraged_sentiment = compute_leveraged_sentiment(fmap)
     out_complexes.sort(key=lambda x: -x["pump_probability"])
     pump_setups = [c for c in out_complexes if "PUMP SETUP" in c["regime"]]
     party_over = [c for c in out_complexes if ("PARTY OVER" in c["regime"] or "TOP WARNING" in c["regime"])]
@@ -268,6 +345,7 @@ def lambda_handler(event, context):
         "thesis": "Real dollars into/out of a sector's ETF complex lead the sector's stocks. Accelerating inflow = "
                   "pump setup; flow reversal / outflow = party over. The dollar is the tide underneath.",
         "dollar_tide": dollar_tide,
+        "leveraged_sentiment": leveraged_sentiment,
         "n_complexes": len(out_complexes),
         "pump_setups": pump_setups,
         "party_over_alerts": party_over,
