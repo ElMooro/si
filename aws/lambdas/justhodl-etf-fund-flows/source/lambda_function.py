@@ -294,6 +294,19 @@ ETF_UNIVERSE = {
     "HACK": {"category": "thematic", "subcategory": "cybersecurity", "smart_money": False, "region": "US", "ref_sector": "Technology"},
     "CIBR": {"category": "thematic", "subcategory": "cybersecurity", "smart_money": False, "region": "US", "ref_sector": "Technology"},
     "ARKB": {"category": "thematic", "subcategory": "bitcoin", "smart_money": False, "region": "US", "ref_sector": None},
+    # ── Single-stock leveraged — direct read on mega-cap / AI-leader positioning ──
+    "AMDL": {"category": "leveraged", "subcategory": "2x_amd_bull",   "smart_money": False, "region": "US", "ref_sector": None},
+    "AMDD": {"category": "leveraged", "subcategory": "1x_amd_bear",   "smart_money": False, "region": "US", "ref_sector": None},
+    "GGLL": {"category": "leveraged", "subcategory": "2x_googl_bull", "smart_money": False, "region": "US", "ref_sector": None},
+    "AAPU": {"category": "leveraged", "subcategory": "2x_aapl_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "AAPD": {"category": "leveraged", "subcategory": "1x_aapl_bear",  "smart_money": False, "region": "US", "ref_sector": None},
+    "METU": {"category": "leveraged", "subcategory": "2x_meta_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "AMZU": {"category": "leveraged", "subcategory": "2x_amzn_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "MSFU": {"category": "leveraged", "subcategory": "2x_msft_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "PLTU": {"category": "leveraged", "subcategory": "2x_pltr_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "MSTZ": {"category": "leveraged", "subcategory": "1x_mstr_bear",  "smart_money": False, "region": "US", "ref_sector": None},
+    "SMCL": {"category": "leveraged", "subcategory": "2x_smci_bull",  "smart_money": False, "region": "US", "ref_sector": None},
+    "AVGX": {"category": "leveraged", "subcategory": "2x_avgo_bull",  "smart_money": False, "region": "US", "ref_sector": None},
 }
 
 
