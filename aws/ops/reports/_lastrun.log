@@ -1,183 +1,162 @@
-=== EXISTING LAMBDAS (options/flow/etf/vol/rotation) ===
-  justhodl-bond-vol                          mod=2026-06-06  NO SCHEDULE
-  justhodl-capital-flow                      mod=2026-06-04  sched:justhodl-capital-flow-daily
-  justhodl-catalyst-skew-premove             mod=2026-05-30  NO SCHEDULE
-  justhodl-correlation-break-trade-router    mod=2026-05-30  NO SCHEDULE
-  justhodl-correlation-breaks                mod=2026-06-04  NO SCHEDULE
-  justhodl-correlation-surface               mod=2026-05-30  NO SCHEDULE
-  justhodl-crypto-etf-arb                    mod=2026-05-30  NO SCHEDULE
-  justhodl-dealer-gex                        mod=2026-05-30  sched:justhodl-dealer-gex-hourly
-  justhodl-etf-constituents                  mod=2026-06-02  sched:justhodl-etf-constituents-daily
-  justhodl-etf-flows                         mod=2026-05-30  sched:justhodl-etf-flows-6h
-  justhodl-etf-fund-flows                    mod=2026-06-02  sched:justhodl-etf-fund-flows-daily
-  justhodl-etf-true-flows                    mod=2026-06-04  sched:justhodl-etf-true-flows-daily
-  justhodl-event-flow-monitor                mod=2026-05-31  sched:event-flow-monitor-hourly
-  justhodl-exchange-flows                    mod=2026-05-31  sched:justhodl-exchange-flows-6h
-  justhodl-flow-anomaly-detector             mod=2026-06-02  sched:justhodl-flow-anomaly-detector-daily
-  justhodl-flows-ai-analysis                 mod=2026-06-14  sched:justhodl-flows-ai-analysis-daily
-  justhodl-gold-equity-rotation              mod=2026-05-30  NO SCHEDULE
-  justhodl-liquidity-flow                    mod=2026-06-04  NO SCHEDULE
-  justhodl-momentum-breakout                 mod=2026-05-30  NO SCHEDULE
-  justhodl-momentum-leaders                  mod=2026-06-01  NO SCHEDULE
-  justhodl-momentum-scanner                  mod=2026-05-30  NO SCHEDULE
-  justhodl-options-flow                      mod=2026-06-04  sched:justhodl-options-flow-30m
-  justhodl-options-flow-scanner              mod=2026-05-30  NO SCHEDULE
-  justhodl-options-gamma                     mod=2026-05-31  NO SCHEDULE
-  justhodl-polygon-options-flow              mod=2026-06-02  NO SCHEDULE
-  justhodl-precatalyst-vol-expansion         mod=2026-05-30  NO SCHEDULE
-  justhodl-rotation-chain                    mod=2026-05-31  sched:rotation-chain-2x-daily
-  justhodl-rotation-radar                    mod=2026-06-12  sched:justhodl-rotation-radar-daily
-  justhodl-sector-rotation                   mod=2026-06-16  sched:justhodl-sector-rotation-6h,justhodl-sector-rotation-hourly
-  justhodl-skew-tail-hedging                 mod=2026-06-04  NO SCHEDULE
-  justhodl-stablecoin-flow                   mod=2026-05-30  sched:justhodl-stablecoin-flow-daily,justhodl-stablecoin-flow-sched
-  justhodl-sympathetic-momentum              mod=2026-05-30  NO SCHEDULE
-  justhodl-theme-rotation                    mod=2026-06-19  sched:theme-rotation-daily
-  justhodl-theme-rotation-engine             mod=2026-05-30  NO SCHEDULE
-  justhodl-tic-flows                         mod=2026-06-04  sched:tic-flows-thu
-  justhodl-vol-radar                         mod=2026-06-18  NO SCHEDULE
-  justhodl-vol-regime                        mod=2026-05-30  NO SCHEDULE
-  justhodl-vol-surface                       mod=2026-06-04  sched:justhodl-vol-surface-daily,justhodl-vol-surface-sched
-  justhodl-vol-target-unwind                 mod=2026-05-30  NO SCHEDULE
-  justhodl-volatility-squeeze-hunter         mod=2026-05-30  NO SCHEDULE
-  volatility-monitor-agent                   mod=2026-05-31  NO SCHEDULE
-total matched lambdas: 41
+=== SCHEDULE NORMALIZATION (everything -> daily, all enabled) ===
+total scheduled rules: 271
+converted intraday -> daily: 83
+re-enabled (were disabled): 55
+left as-is (already daily/weekly + enabled): 187
+errors: 0
 
-=== RELATED S3 DATA OUTPUTS (freshness) ===
-  data/_archive/skew.json                         0.3KB  STALE 32d
-  data/_streaming/vol_radar_last.json             0.3KB  FRESH
-  data/archive/correlation-breaks/20260426.json   23.3KB  STALE 53d
-  data/archive/correlation-breaks/20260427.json   23.3KB  STALE 52d
-  data/archive/correlation-breaks/20260428.json   23.3KB  STALE 51d
-  data/archive/correlation-breaks/20260429.json   23.3KB  STALE 50d
-  data/archive/correlation-breaks/20260430.json   23.3KB  STALE 49d
-  data/archive/correlation-breaks/20260501.json   23.3KB  STALE 48d
-  data/archive/correlation-breaks/20260502.json   23.3KB  STALE 47d
-  data/archive/correlation-breaks/20260503.json   23.3KB  STALE 46d
-  data/archive/correlation-breaks/20260504.json   23.3KB  STALE 45d
-  data/archive/correlation-breaks/20260505.json   23.3KB  STALE 44d
-  data/archive/correlation-breaks/20260506.json   23.3KB  STALE 43d
-  data/archive/correlation-breaks/20260507.json   23.3KB  STALE 42d
-  data/archive/correlation-breaks/20260508.json   23.3KB  STALE 41d
-  data/archive/correlation-breaks/20260510.json   23.3KB  STALE 39d
-  data/archive/correlation-breaks/20260511.json   23.3KB  STALE 38d
-  data/archive/correlation-breaks/20260512.json   23.3KB  STALE 37d
-  data/archive/correlation-breaks/20260513.json   23.4KB  STALE 36d
-  data/archive/correlation-breaks/20260514.json   23.4KB  STALE 35d
-  data/archive/correlation-breaks/20260515.json   23.4KB  STALE 34d
-  data/archive/correlation-breaks/20260516.json   23.4KB  STALE 33d
-  data/archive/correlation-breaks/20260517.json   23.4KB  STALE 32d
-  data/archive/correlation-breaks/20260518.json   23.4KB  STALE 31d
-  data/archive/correlation-breaks/20260519.json   23.4KB  STALE 30d
-  data/archive/correlation-breaks/20260520.json   23.4KB  STALE 29d
-  data/archive/correlation-breaks/20260521.json   22.8KB  STALE 28d
-  data/archive/correlation-breaks/20260522.json   23.4KB  STALE 27d
-  data/archive/correlation-breaks/20260523.json   23.4KB  STALE 26d
-  data/archive/correlation-breaks/20260524.json   23.4KB  STALE 25d
-  data/archive/correlation-breaks/20260525.json   23.4KB  STALE 24d
-  data/archive/correlation-breaks/20260526.json   23.4KB  STALE 23d
-  data/archive/correlation-breaks/20260527.json   23.4KB  STALE 22d
-  data/archive/correlation-breaks/20260528.json   22.8KB  STALE 21d
-  data/archive/correlation-breaks/20260529.json   23.4KB  STALE 20d
-  data/archive/correlation-breaks/20260530.json   19.5KB  STALE 19d
-  data/archive/correlation-breaks/20260604.json   23.4KB  STALE 14d
-  data/archive/correlation-breaks/20260605.json   23.4KB  STALE 13d
-  data/archive/correlation-breaks/20260606.json   23.4KB  STALE 12d
-  data/archive/correlation-breaks/20260607.json   23.4KB  STALE 11d
-  data/archive/correlation-breaks/20260608.json   23.4KB  STALE 10d
-  data/archive/correlation-breaks/20260609.json   23.4KB  STALE 9d
-  data/archive/correlation-breaks/20260610.json   23.4KB  STALE 8d
-  data/archive/correlation-breaks/20260611.json   23.4KB  STALE 7d
-  data/archive/correlation-breaks/20260612.json   23.4KB  STALE 6d
-  data/archive/correlation-breaks/20260613.json   23.4KB  STALE 5d
-  data/archive/correlation-breaks/20260614.json   23.4KB  STALE 4d
-  data/archive/correlation-breaks/20260615.json   23.4KB  STALE 3d
-  data/archive/correlation-breaks/20260616.json   23.4KB  FRESH
-  data/archive/correlation-breaks/20260617.json   23.4KB  FRESH
-  data/archive/correlation-breaks/20260618.json   23.4KB  FRESH
-  data/bond-vol-decisive-call.json               14.5KB  STALE 9d
-  data/bond-vol-history.json                      0.9KB  FRESH
-  data/bond-vol.json                              6.7KB  FRESH
-  data/capital-flow.json                        132.6KB  FRESH
-  data/catalyst-skew-premove.json                 2.0KB  FRESH
-  data/correlation-break-trades.json              2.5KB  FRESH
-  data/correlation-breaks.json                   23.4KB  FRESH
-  data/correlation-surface.json                  39.2KB  FRESH
-  data/crypto-etf-arb.json                       32.6KB  FRESH
-  data/dealer-gex-history.json                   43.5KB  STALE 11d
-  data/dealer-gex.json                           34.8KB  STALE 11d
-  data/etf-flows.json                            30.7KB  STALE 11d
-  data/etf-shares-history.json                   25.7KB  FRESH
-  data/etf-shares-snapshots/latest.json           1.6KB  FRESH
-  data/etf-true-flows.json                       29.9KB  FRESH
-  data/event-flow-health.json                     3.9KB  STALE 11d
-  data/exchange-flows.json                       11.2KB  STALE 11d
-  data/finviz-etf-flows.json                     15.5KB  STALE 3d
-  data/gold-equity-rotation.json                  1.3KB  FRESH
-  data/liquidity-flow.json                       15.0KB  FRESH
-  data/options-flow.json                         15.7KB  FRESH
-  data/options-gamma.json                         4.4KB  STALE 11d
-  data/polygon-options-flow.json                 39.2KB  STALE 16d
-  data/precatalyst-vol-expansion.json             1.2KB  FRESH
-  data/rotation-chains.json                      11.9KB  STALE 11d
-  data/rotation-radar.json                        7.2KB  FRESH
-  data/sector-rotation.json                      33.9KB  FRESH
-  data/skew-tail-hedging.json                     1.4KB  FRESH
-  data/snapshots/data_correlation-surface-2026-05-04.json   37.8KB  STALE 46d
-  data/snapshots/data_correlation-surface-2026-05-05.json   41.9KB  STALE 45d
-  data/snapshots/data_correlation-surface-2026-05-06.json   41.4KB  STALE 44d
-  data/snapshots/data_correlation-surface-2026-05-07.json   41.9KB  STALE 43d
-  data/snapshots/data_correlation-surface-2026-05-08.json   40.2KB  STALE 42d
-  data/snapshots/data_correlation-surface-2026-05-09.json   40.3KB  STALE 41d
-  data/snapshots/data_correlation-surface-2026-05-10.json   40.3KB  STALE 40d
-  data/snapshots/data_correlation-surface-2026-05-11.json   41.6KB  STALE 39d
-  data/snapshots/data_correlation-surface-2026-05-12.json   41.9KB  STALE 38d
-  data/snapshots/data_correlation-surface-2026-05-13.json   42.5KB  STALE 37d
-  data/snapshots/data_correlation-surface-2026-05-14.json   41.3KB  STALE 36d
-  data/snapshots/data_correlation-surface-2026-05-15.json   42.9KB  STALE 35d
-  data/snapshots/data_correlation-surface-2026-05-16.json   42.9KB  STALE 34d
-  data/snapshots/data_correlation-surface-2026-05-17.json   42.9KB  STALE 33d
-  data/snapshots/data_correlation-surface-2026-05-18.json   42.9KB  STALE 32d
-  data/snapshots/data_correlation-surface-2026-05-19.json   42.4KB  STALE 31d
-  data/snapshots/data_correlation-surface-2026-05-20.json   41.4KB  STALE 30d
-  data/snapshots/data_correlation-surface-2026-05-21.json   42.9KB  STALE 29d
-  data/snapshots/data_correlation-surface-2026-05-22.json   42.9KB  STALE 28d
-  data/snapshots/data_correlation-surface-2026-05-23.json   42.9KB  STALE 27d
-  data/snapshots/data_correlation-surface-2026-05-24.json   42.9KB  STALE 26d
-  data/snapshots/data_correlation-surface-2026-05-25.json   42.9KB  STALE 25d
-  data/snapshots/data_correlation-surface-2026-05-26.json   43.4KB  STALE 24d
-  data/snapshots/data_correlation-surface-2026-05-27.json   41.5KB  STALE 23d
-  data/snapshots/data_correlation-surface-2026-05-28.json   40.2KB  STALE 22d
-  data/snapshots/data_correlation-surface-2026-05-29.json   42.6KB  STALE 21d
-  data/snapshots/data_correlation-surface-2026-05-30.json   42.4KB  STALE 19d
-  data/snapshots/data_correlation-surface-2026-05-31.json   42.4KB  STALE 19d
-  data/snapshots/data_correlation-surface-2026-06-01.json   43.2KB  STALE 18d
-  data/snapshots/data_correlation-surface-2026-06-02.json   42.9KB  STALE 17d
-  data/snapshots/data_correlation-surface-2026-06-03.json   43.1KB  STALE 16d
-  data/snapshots/data_correlation-surface-2026-06-04.json   43.1KB  STALE 15d
-  data/snapshots/data_correlation-surface-2026-06-05.json   43.1KB  STALE 14d
-  data/snapshots/data_correlation-surface-2026-06-06.json   43.6KB  STALE 13d
-  data/snapshots/data_correlation-surface-2026-06-07.json   43.6KB  STALE 12d
-  data/snapshots/data_correlation-surface-2026-06-08.json   43.4KB  STALE 11d
-  data/snapshots/data_correlation-surface-2026-06-09.json   39.6KB  STALE 10d
-  data/snapshots/data_correlation-surface-2026-06-10.json   43.8KB  STALE 9d
-  data/snapshots/data_correlation-surface-2026-06-11.json   43.0KB  STALE 8d
-  data/snapshots/data_correlation-surface-2026-06-12.json   44.4KB  STALE 7d
-  data/snapshots/data_correlation-surface-2026-06-13.json   44.4KB  STALE 6d
-  data/snapshots/data_correlation-surface-2026-06-14.json   44.4KB  STALE 5d
-  data/snapshots/data_correlation-surface-2026-06-15.json   44.7KB  STALE 4d
-  data/snapshots/data_correlation-surface-2026-06-16.json   43.6KB  STALE 3d
-  data/snapshots/data_correlation-surface-2026-06-17.json   43.3KB  FRESH
-  data/snapshots/data_correlation-surface-2026-06-18.json   40.0KB  FRESH
-  data/snapshots/data_correlation-surface-2026-06-19.json   39.2KB  FRESH
-  data/stablecoin-flow.json                      45.8KB  FRESH
-  data/theme-rotation-state.json                  6.2KB  FRESH
-  data/theme-rotation.json                       21.8KB  FRESH
-  data/tic-flows.json                             0.6KB  FRESH
-  data/vol-radar-history.json                     5.4KB  FRESH
-  data/vol-radar.json                             3.7KB  FRESH
-  data/vol-regime.json                            3.6KB  STALE 11d
-  data/vol-surface-history.json                   6.1KB  FRESH
-  data/vol-surface.json                           3.3KB  FRESH
-  data/vol-target-unwind.json                     9.0KB  STALE 30d
-  data/volatility-squeeze.json                    5.4KB  FRESH
-total matched data files: 137
+-- intraday -> daily (all) --
+  aiapi-hourly-collection                        rate(1 hour)           -> cron(6 21 * * ? *)
+  alpha-compass-3h                               cron(50 */3 * * ? *)   -> cron(50 18 * * ? *)
+  alphavantage-market-update                     cron(*/15 13-21 ? * MON-FRI *) -> cron(45 11 * * ? *)
+  buzz-velocity-4x-daily                         cron(0 10,14,18,22 * * ? *) -> cron(49 14 * * ? *)
+  canary-grid-daily                              cron(30 */6 * * ? *)   -> cron(34 12 * * ? *)
+  capitulation-3h                                cron(45 */3 * * ? *)   -> cron(31 17 * * ? *)
+  carry-surface-4h                               rate(4 hours)          -> cron(9 21 * * ? *)
+  cds-proxy-tri-daily                            cron(0 13,17,21 ? * MON-FRI *) -> cron(13 18 * * ? *)
+  crisis-composite-hourly                        cron(15 * * * ? *)     -> cron(5 17 * * ? *)
+  cross-asset-confirm-3h                         rate(3 hours)          -> cron(10 15 * * ? *)
+  crypto-opportunities-4h                        cron(0 0,4,8,12,16,20 ? * * *) -> cron(42 15 * * ? *)
+  divergence-v2-2hourly                          rate(2 hours)          -> cron(0 17 * * ? *)
+  event-flow-monitor-hourly                      cron(0 * * * ? *)      -> cron(53 12 * * ? *)
+  finviz-groups-3x                               cron(15 14,18,22 * * ? *) -> cron(15 19 * * ? *)
+  finviz-news-4x                                 cron(30 12,15,18,21 * * ? *) -> cron(38 20 * * ? *)
+  finviz-signals-3x                              cron(0 14,18,21 * * ? *) -> cron(45 16 * * ? *)
+  fleet-freshness-monitor-30min                  rate(30 minutes)       -> cron(12 12 * * ? *)
+  future-intel-2x-daily                          cron(30 12,20 * * ? *) -> cron(40 16 * * ? *)
+  intraday-pulse-minute                          rate(1 minute)         -> cron(13 12 * * ? *)
+  jhk-tick-15min                                 cron(0/15 * * * ? *)   -> cron(53 17 * * ? *)
+  jhk-tick-30min                                 cron(0/30 * * * ? *)   -> cron(55 14 * * ? *)
+  jhk-tick-4hourly                               cron(0 0/4 * * ? *)    -> cron(6 18 * * ? *)
+  jhk-tick-5min                                  cron(0/5 * * * ? *)    -> cron(24 21 * * ? *)
+  jhk-tick-every_3h                              cron(0 0/3 * * ? *)    -> cron(17 19 * * ? *)
+  jhk-tick-every_6h                              cron(0 0/6 * * ? *)    -> cron(22 16 * * ? *)
+  jhk-tick-hourly                                cron(0 * * * ? *)      -> cron(51 17 * * ? *)
+  jhk-tick-hourly-orchestrate                    cron(5 * * * ? *)      -> cron(32 16 * * ? *)
+  justhodl-13f-positions-6h                      rate(6 hours)          -> cron(11 21 * * ? *)
+  justhodl-ai-brief-4h                           cron(5 0,4,8,12,16,20 ? * * *) -> cron(23 17 * * ? *)
+  justhodl-alpha-research-6h                     rate(6 hours)          -> cron(52 21 * * ? *)
+  justhodl-alpha-score-hourly                    cron(7 * * * ? *)      -> cron(38 11 * * ? *)
+  justhodl-anomaly-detector-hourly               cron(33 * * * ? *)     -> cron(24 19 * * ? *)
+  justhodl-apex-fusion-3h                        rate(3 hours)          -> cron(21 12 * * ? *)
+  justhodl-auction-crisis-active                 cron(0/15 14-22 ? * MON-FRI *) -> cron(50 19 * * ? *)
+  justhodl-best-setups-hourly                    cron(10 * * * ? *)     -> cron(14 15 * * ? *)
+  justhodl-crisis-plumbing-refresh               rate(6 hours)          -> cron(54 14 * * ? *)
+  justhodl-crypto-cycle-risk-6h                  rate(6 hours)          -> cron(2 16 * * ? *)
+  justhodl-early-movers-twice-per-hour           cron(15,45 * * * ? *)  -> cron(46 19 * * ? *)
+  justhodl-earnings-tracker-6h                   rate(6 hours)          -> cron(30 11 * * ? *)
+  justhodl-edge-6h                               rate(6 hours)          -> cron(41 21 * * ? *)
+  justhodl-engine-conflicts-6h                   rate(6 hours)          -> cron(48 12 * * ? *)
+  justhodl-etf-flows-6h                          rate(6 hours)          -> cron(35 11 * * ? *)
+  justhodl-eurodollar-stress-2h                  cron(10 0/2 * * ? *)   -> cron(16 21 * * ? *)
+  justhodl-exchange-flows-6h                     rate(6 hours)          -> cron(10 15 * * ? *)
+  justhodl-fleet-error-6h                        rate(6 hours)          -> cron(13 13 * * ? *)
+  justhodl-fleet-freshness-hourly                rate(1 hour)           -> cron(52 19 * * ? *)
+  justhodl-fleet-freshness-monitor-sched         rate(1 hour)           -> cron(10 20 * * ? *)
+  justhodl-fleet-monitor-6h                      rate(6 hours)          -> cron(36 19 * * ? *)
+  justhodl-fleet-monitor-sched                   rate(6 hours)          -> cron(38 14 * * ? *)
+  justhodl-forensic-screen-12h                   rate(12 hours)         -> cron(26 17 * * ? *)
+  justhodl-freshness-30m                         rate(30 minutes)       -> cron(56 17 * * ? *)
+  justhodl-kill-switch-check                     rate(10 minutes)       -> cron(56 20 * * ? *)
+  justhodl-macro-nowcast-6h                      rate(6 hours)          -> cron(43 18 * * ? *)
+  justhodl-macro-surprise-6h                     rate(6 hours)          -> cron(49 21 * * ? *)
+  justhodl-narrative-vs-tape-4h                  rate(4 hours)          -> cron(23 21 * * ? *)
+  justhodl-onchain-ratios-6h                     rate(6 hours)          -> cron(31 15 * * ? *)
+  justhodl-options-flow-30m                      rate(30 minutes)       -> cron(33 15 * * ? *)
+  justhodl-outcome-checker-4h                    cron(20 1/4 * * ? *)   -> cron(29 21 * * ? *)
+  justhodl-portfolio-catalysts-3x-daily          cron(0 11,17,23 * * ? *) -> cron(5 14 * * ? *)
+  justhodl-position-sizer-6h                     rate(6 hours)          -> cron(9 13 * * ? *)
+  justhodl-retail-sentiment-30min                cron(0,30 * ? * * *)   -> cron(10 19 * * ? *)
+  justhodl-sector-rotation-6h                    cron(15 1/6 * * ? *)   -> cron(12 18 * * ? *)
+  justhodl-sector-rotation-hourly                cron(38 * * * ? *)     -> cron(58 16 * * ? *)
+  justhodl-short-interest-6h                     rate(6 hours)          -> cron(20 12 * * ? *)
+  justhodl-smart-wake-hourly                     rate(1 hour)           -> cron(10 11 * * ? *)
+  justhodl-system-signal-logger-6h               rate(6 hours)          -> cron(26 12 * * ? *)
+  justhodl-telegram-alerts                       rate(2 hours)          -> cron(44 11 * * ? *)
+  justhodl-theme-cascade-twice-per-hour          cron(20,50 * * * ? *)  -> cron(54 13 * * ? *)
+  justhodl-ticket-ai-rationale-hourly            cron(5 * * * ? *)      -> cron(16 11 * * ? *)
+  justhodl-wave-signal-logger-6h                 cron(30 0,6,12,18 ? * * *) -> cron(23 12 * * ? *)
+  justhodl-yield-curve-6h                        rate(6 hours)          -> cron(52 13 * * ? *)
+  lce-every-6h                                   rate(6 hours)          -> cron(22 18 * * ? *)
+  liquidity-pulse-6h                             rate(6 hours)          -> cron(3 16 * * ? *)
+  multi-agent-economic-hourly                    rate(1 hour)           -> cron(21 15 * * ? *)
+  multi-agent-market-15min                       cron(*/15 13-21 ? * MON-FRI *) -> cron(39 17 * * ? *)
+  multi-agent-orchestrator-schedule              cron(*/5 9-16 ? * MON-FRI *) -> cron(29 14 * * ? *)
+  near-miss-monitor-hourly                       cron(30 * * * ? *)     -> cron(58 21 * * ? *)
+  pairs-scanner-6hourly                          rate(6 hours)          -> cron(42 14 * * ? *)
+  rotation-chain-2x-daily                        cron(0 12,20 * * ? *)  -> cron(50 15 * * ? *)
+  sec-filings-intel-3x-daily                     cron(0 9,15,21 * * ? *) -> cron(7 21 * * ? *)
+  sector-heatmap-30m                             cron(*/30 13-21 ? * MON-FRI *) -> cron(18 19 * * ? *)
+  signal-board-3h                                cron(15 */3 * * ? *)   -> cron(17 16 * * ? *)
+  ticker-trends-2x-daily                         cron(0 13,21 * * ? *)  -> cron(2 17 * * ? *)
+
+-- re-enabled (all) --
+  aiapi-hourly-collection                        (was DISABLED)
+  alpha-compass-3h                               (was DISABLED)
+  alphavantage-market-update                     (was DISABLED)
+  buzz-velocity-4x-daily                         (was DISABLED)
+  capitulation-3h                                (was DISABLED)
+  carry-surface-4h                               (was DISABLED)
+  cds-proxy-tri-daily                            (was DISABLED)
+  cross-asset-confirm-3h                         (was DISABLED)
+  crypto-opportunities-4h                        (was DISABLED)
+  divergence-v2-2hourly                          (was DISABLED)
+  event-flow-monitor-hourly                      (was DISABLED)
+  future-intel-2x-daily                          (was DISABLED)
+  jhk-tick-15min                                 (was DISABLED)
+  jhk-tick-30min                                 (was DISABLED)
+  jhk-tick-4hourly                               (was DISABLED)
+  jhk-tick-5min                                  (was DISABLED)
+  jhk-tick-every_3h                              (was DISABLED)
+  jhk-tick-every_6h                              (was DISABLED)
+  jhk-tick-hourly                                (was DISABLED)
+  jhk-tick-hourly-orchestrate                    (was DISABLED)
+  justhodl-13f-positions-6h                      (was DISABLED)
+  justhodl-anomaly-detector-hourly               (was DISABLED)
+  justhodl-crisis-plumbing-refresh               (was DISABLED)
+  justhodl-crypto-cycle-risk-6h                  (was DISABLED)
+  justhodl-dealer-gex-hourly                     (was DISABLED)
+  justhodl-early-movers-twice-per-hour           (was DISABLED)
+  justhodl-earnings-tracker-6h                   (was DISABLED)
+  justhodl-edge-6h                               (was DISABLED)
+  justhodl-engine-conflicts-6h                   (was DISABLED)
+  justhodl-etf-flows-6h                          (was DISABLED)
+  justhodl-exchange-flows-6h                     (was DISABLED)
+  justhodl-forensic-screen-12h                   (was DISABLED)
+  justhodl-macro-nowcast-6h                      (was DISABLED)
+  justhodl-macro-surprise-6h                     (was DISABLED)
+  justhodl-narrative-vs-tape-4h                  (was DISABLED)
+  justhodl-onchain-ratios-6h                     (was DISABLED)
+  justhodl-options-flow-30m                      (was DISABLED)
+  justhodl-portfolio-catalysts-3x-daily          (was DISABLED)
+  justhodl-position-sizer-6h                     (was DISABLED)
+  justhodl-system-signal-logger-6h               (was DISABLED)
+  justhodl-telegram-alerts                       (was DISABLED)
+  justhodl-theme-cascade-twice-per-hour          (was DISABLED)
+  justhodl-ticket-ai-rationale-hourly            (was DISABLED)
+  justhodl-wave-signal-logger-6h                 (was DISABLED)
+  justhodl-yield-curve-6h                        (was DISABLED)
+  lce-every-6h                                   (was DISABLED)
+  liquidity-pulse-6h                             (was DISABLED)
+  multi-agent-economic-hourly                    (was DISABLED)
+  multi-agent-market-15min                       (was DISABLED)
+  multi-agent-orchestrator-schedule              (was DISABLED)
+  near-miss-monitor-hourly                       (was DISABLED)
+  pairs-scanner-6hourly                          (was DISABLED)
+  rotation-chain-2x-daily                        (was DISABLED)
+  sec-filings-intel-3x-daily                     (was DISABLED)
+  sector-heatmap-30m                             (was DISABLED)
+
+=== REFRESH STALE ENGINES NOW (async) ===
+  invoked justhodl-dealer-gex
+  invoked justhodl-options-gamma
+  invoked justhodl-etf-flows
+  invoked justhodl-polygon-options-flow
+  invoked justhodl-vol-regime
+  invoked justhodl-rotation-chain
+  invoked justhodl-exchange-flows
+  invoked justhodl-event-flow-monitor
+  invoked justhodl-bond-vol
+  invoked justhodl-vol-target-unwind
+  invoked justhodl-etf-fund-flows
+async-invoked 11/11
