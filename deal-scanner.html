@@ -57,6 +57,7 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--violet)}
 .cap.nano,.cap.micro,.cap.small{color:var(--cyan);border-color:var(--cyan-dim)}
 .badge{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:3px}
 .badge.bil{background:rgba(167,139,250,.16);color:var(--violet);border:1px solid var(--violet-dim)}
+.badge.flow{background:rgba(0,212,255,.16);color:var(--cyan);border:1px solid var(--cyan-dim)}
 .pill{margin-left:auto;font-family:var(--font-mono);font-size:9.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;padding:3px 10px;border-radius:3px}
 .pill.green{background:rgba(56,255,168,.16);color:var(--green);border:1px solid var(--green-dim)}
 .pill.yellow{background:rgba(255,177,61,.16);color:var(--amber);border:1px solid var(--amber-dim)}
@@ -124,10 +125,12 @@ function card(d){
   const mt=matTxt(d.materiality_pct), mc=mcTxt(d.vs_market_cap_pct);
   const mtCls=(d.materiality_pct>=25||d.materiality_pct===9999)?"hot":d.materiality_pct>=10?"warm":"size";
   const mcCls=(d.vs_market_cap_pct>=10)?"hot":d.vs_market_cap_pct>=4?"warm":"size";
+  const flowBadge=(d.sector_tailwind&&d.sector_etf)?`<span class="badge flow">🌊 ${esc(d.sector_etf)}${d.sector_rotating_in?" ROTATING IN":(d.sector_rotation_score!=null?" "+Math.round(d.sector_rotation_score):"")}</span>`:"";
   return `<div class="card ${cls}">
     <div class="top">
       <span class="sym">${esc(d.symbol)}</span>
       ${d.is_billion?'<span class="badge bil">💰 $1B+</span>':""}
+      ${flowBadge}
       ${d.cap_bucket?`<span class="cap ${d.cap_bucket}">${d.cap_bucket}</span>`:""}
       ${d.name?`<span class="co">${esc(d.name)}</span>`:""}
       ${pill}
