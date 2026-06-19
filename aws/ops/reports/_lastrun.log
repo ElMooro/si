@@ -1,9 +1,27 @@
-single est err: HTTP Error 400: Bad Request
-redeployed (throttled)
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_priced\": 0, \"n_candidates\": 0}"}
-REGRESSION: EV/Sales = 0.00 + 0.000*growth (n=0) elapsed=2.44
-priced=0 candidates=0 small_mid=0
+redeployed
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_priced\": 90, \"n_candidates\": 10}"}
+REGRESSION: EV/Sales = 10.26 + -0.029*growth (n=90) elapsed=2.67
+priced=90 candidates=10 small_mid=3
+growth_basis dist: {'trailing_2y': 89, 'trailing_1y': 1}
 
-=== TOP RE-RATING SETUPS ===
+=== TOP RE-RATING SETUPS (cheap for their growth, lagged) ===
+  SMCI   large  cooling   G=75.6 %(trai) EV/S=1.14  impl=10.24 disc=88.9%  lag=43.5pp  
+  ACMR   mid    silicon   G=27.1 %(trai) EV/S=5.43  impl=10.26 disc=47.1%  lag=34.5pp  
+  AMRC   small  datacente G=18.6 %(trai) EV/S=0.78  impl=10.26 disc=92.4%  lag=17.9pp  
+  PRIM   mid    datacente G=15.1 %(trai) EV/S=0.87  impl=10.26 disc=91.5%  lag=50.6pp  
+  TSM    mega   foundry   G=33.4 %(trai) EV/S=0.62  impl=10.25 disc=93.9%  lag=119.1pp 
+  EME    large  datacente G=16.2 %(trai) EV/S=2.14  impl=10.26 disc=79.1%  lag=10.2pp  
+  IESC   large  datacente G=19.1 %(trai) EV/S=4.16  impl=10.26 disc=59.5%  lag=-35.0pp 
+  PWR    large  datacente G=16.5 %(trai) EV/S=3.68  impl=10.26 disc=64.1%  lag=0.0pp   
+  FIX    large  datacente G=32.2 %(trai) EV/S=7.13  impl=10.25 disc=30.5%  lag=-13.3pp 
+  NVT    large  power_gri G=20.8 %(trai) EV/S=6.77  impl=10.26 disc=34.0%  lag=-6.0pp  
 
-=== DEEPEST DISCOUNTS (most underpriced for growth) ===
+=== DEEPEST DISCOUNTS ===
+  TSM    mega   33% rev growth on 0.6x EV/Sales vs ~10.3x growth-implied (94% below); lags foundry peers by 119pp;
+  AMRC   small  19% rev growth on 0.8x EV/Sales vs ~10.3x growth-implied (92% below); lags datacenter_buildout pee
+  PRIM   mid    15% rev growth on 0.9x EV/Sales vs ~10.3x growth-implied (92% below); lags datacenter_buildout pee
+  SMCI   large  76% rev growth on 1.1x EV/Sales vs ~10.2x growth-implied (89% below); lags cooling peers by 44pp; 
+  EME    large  16% rev growth on 2.1x EV/Sales vs ~10.3x growth-implied (79% below); lags datacenter_buildout pee
+  PWR    large  17% rev growth on 3.7x EV/Sales vs ~10.3x growth-implied (64% below); growth intact
+  IESC   large  19% rev growth on 4.2x EV/Sales vs ~10.3x growth-implied (60% below); forward > trailing growth
+  ACMR   mid    27% rev growth on 5.4x EV/Sales vs ~10.3x growth-implied (47% below); lags silicon peers by 34pp; 
