@@ -1,16 +1,16 @@
-LIVE & FRESH (0h old). universe=94 priced=90 candidates=10 small_mid=3
-regression: {'intercept': 10.264, 'slope_evsales_per_growth': -0.029, 'n_points': 90, 'reading': 'EV/Sales predicted from forward growth; large negative residual = cheap for the growth'}
+deployed
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_priced\": 90, \"n_candidates\": 10}"}
+universe=94 priced=90 candidates=10 rising=10 contagion=1
 
-TOP SETUPS (cheap for their growth):
-  SMCI    large  growth=75.6   ev/s=1.14  z=-0.68  disc=88.9   lag=43.5  | Super Micro Computer, 
-  ACMR    mid    growth=27.1   ev/s=5.43  z=-0.36  disc=47.1   lag=34.5  | ACM Research, Inc.
-  AMRC    small  growth=18.6   ev/s=0.78  z=-0.71  disc=92.4   lag=17.9  | Ameresco, Inc.
-  PRIM    mid    growth=15.1   ev/s=0.87  z=-0.7   disc=91.5   lag=50.6  | Primoris Services Corp
-  TSM     mega   growth=33.4   ev/s=0.62  z=-0.72  disc=93.9   lag=119.1 | 
-  EME     large  growth=16.2   ev/s=2.14  z=-0.61  disc=79.1   lag=10.2  | EMCOR Group, Inc.
-  IESC    large  growth=19.1   ev/s=4.16  z=-0.46  disc=59.5   lag=-35.0 | 
-  PWR     large  growth=16.5   ev/s=3.68  z=-0.49  disc=64.1   lag=0.0   | Quanta Services, Inc.
-  FIX     large  growth=32.2   ev/s=7.13  z=-0.23  disc=30.5   lag=-13.3 | Comfort Systems USA, I
-  NVT     large  growth=20.8   ev/s=6.77  z=-0.26  disc=34.0   lag=-6.0  | nVent Electric plc
+TOP SETUPS (now with revision-velocity + contagion):
+  ACMR    mid    g=27.1  ev/s=5.43  z=-0.36  rising=False vel=None  contag=True  | 27% rev growth on 5.4x EV/Sales vs ~10.3x grow
+  SMCI    large  g=75.6  ev/s=1.14  z=-0.68  rising=False vel=None  contag=False | 76% rev growth on 1.1x EV/Sales vs ~10.2x grow
+  AMRC    small  g=18.6  ev/s=0.78  z=-0.71  rising=False vel=None  contag=False | 19% rev growth on 0.8x EV/Sales vs ~10.3x grow
+  PRIM    mid    g=15.1  ev/s=0.87  z=-0.7   rising=False vel=None  contag=False | 15% rev growth on 0.9x EV/Sales vs ~10.3x grow
+  TSM     mega   g=33.4  ev/s=0.62  z=-0.72  rising=False vel=None  contag=False | 33% rev growth on 0.6x EV/Sales vs ~10.3x grow
+  EME     large  g=16.2  ev/s=2.14  z=-0.61  rising=False vel=None  contag=False | 16% rev growth on 2.1x EV/Sales vs ~10.3x grow
+  IESC    large  g=19.1  ev/s=4.16  z=-0.46  rising=False vel=None  contag=False | 19% rev growth on 4.2x EV/Sales vs ~10.3x grow
+  PWR     large  g=16.5  ev/s=3.68  z=-0.49  rising=False vel=None  contag=False | 17% rev growth on 3.7x EV/Sales vs ~10.3x grow
 
-has revision-velocity field? False | has contagion field? False
+★ CONTAGION CANDIDATES (layer leader rising, this laggard hasn't):
+  ACMR    mid    layer=silicon        leader=MU     g=27.1  ev/s=5.43  | ACM Research, Inc.
