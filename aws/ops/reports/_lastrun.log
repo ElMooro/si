@@ -1,21 +1,62 @@
-etf-flows/daily.json: 84 ETFs
-  sample metric keys: ['ticker', 'processed_date', 'category', 'subcategory', 'smart_money', 'region', 'ref_sector', 'daily_flow_usd', 'flow_5d_usd', 'flow_21d_usd', 'pct_aum_daily', 'pct_aum_5d', 'pct_aum_21d', 'aum_usd', 'flow_zscore_90d', 'persistence_days', 'signal_label', 'n_history_points']
-  ALL tickers: ['AGG', 'ARKG', 'ARKK', 'ARKW', 'BIL', 'BITO', 'CPER', 'DBA', 'DBC', 'DIA', 'EEM', 'EFA', 'EMB', 'ETHA', 'EWA', 'EWC', 'EWG', 'EWJ', 'EWT', 'EWU', 'EWY', 'EWZ', 'FBTC', 'FXI', 'GLD', 'GOVT', 'HYG', 'IAU', 'IBB', 'IBIT', 'ICLN', 'IEF', 'INDA', 'IVV', 'IWD', 'IWF', 'IWM', 'JNK', 'KRE', 'KWEB', 'LIT', 'LQD', 'MCHI', 'MTUM', 'QQQ', 'QUAL', 'SHY', 'SLV', 'SMH', 'SOXL', 'SOXS', 'SOXX', 'SPLV', 'SPY', 'SQQQ', 'SVXY', 'TAN', 'TIP', 'TLT', 'TMF', 'TQQQ', 'UNG', 'USMV', 'USO', 'UVXY', 'VEA', 'VLUE', 'VOO', 'VTI', 'VTV', 'VUG', 'VWO', 'XBI', 'XLB', 'XLC', 'XLE', 'XLF', 'XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY']
-  Semis: have ['SMH', 'SOXX', 'SOXL', 'SOXS'] | MISSING ['XSD', 'PSI']
-  Tech: have ['XLK', 'QQQ', 'TQQQ', 'SQQQ'] | MISSING ['VGT']
-  Biotech: have ['XBI', 'IBB'] | MISSING ['LABU', 'LABD']
-  Energy: have ['XLE'] | MISSING ['XOP', 'ERX', 'ERY']
-  Financials: have ['XLF', 'KRE'] | MISSING ['FAS', 'FAZ']
+bundled massive.py
+UPDATED
+SCHEDULED 22:30 UTC
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_complexes\": 19, \"pump_setups\": 6, \"party_over\": 7}"}
 
-etf-flows/composite.json keys: ['generated_at', 'universe_size', 'n_ok', 'n_failed', 'elapsed_s', 'schema_version', 'composite']
+DOLLAR TIDE: {"usd_synthetic_20d_pct": 1.019, "regime": "USD_NEUTRAL", "fx_signals": ["CARRY_TRADE_FAVORABLE (USDJPY +1.1%)"], "note": "Broad USD 20d momentum (Massive FX). Strong/strengthening USD drains global risk liquidity (headwind for inflows); weakening USD is a tailwind."}
 
-etf-flows/rotation.json keys: ['generated_at', 'universe_size', 'n_ok', 'n_failed', 'elapsed_s', 'schema_version', 'by_category']
+>>> SEMICONDUCTORS (your example):
+{
+ "complex": "Semiconductors",
+ "members_present": [
+  "SMH",
+  "SOXX",
+  "SOXL",
+  "SOXS"
+ ],
+ "primary": "SMH",
+ "net_flow_5d_usd": -959294992.0,
+ "net_flow_21d_usd": 945537613.0,
+ "net_flow_daily_usd": -7878243024.0,
+ "pct_aum_5d": -0.607,
+ "velocity_ratio": -4.26,
+ "acceleration_usd_per_day": -236884599.0,
+ "accelerating": false,
+ "breadth": 0.25,
+ "persistence_days": 1,
+ "flow_zscore_90d": -3.57,
+ "leveraged_positioning": "crowded_bear",
+ "bull_lev_flow_5d": -1462792800.0,
+ "bear_lev_flow_5d": 271223150.0,
+ "price_5d_pct": 8.27,
+ "flow_price_divergence": true,
+ "pump_probability": 0,
+ "regime": "DIVERGENCE \u2014 TOP WARNING",
+ "verdict": "Price is rising while real money leaves the complex \u2014 classic distribution into strength; the party is ending.",
+ "ref_stocks": [
+  "NVDA",
+  "AMD",
+  "AVGO",
+  "MU",
+  "TSM",
+  "LRCX",
+  "AMAT",
+  "KLAC",
+  "MRVL",
+  "ON",
+  "ARM",
+  "SMCI"
 
-etf-flows/per-ticker-context.json keys: ['generated_at', 'universe_size', 'n_ok', 'n_failed', 'elapsed_s', 'schema_version', 'context']
-   generated_at: "2026-06-19T17:28:18.772691+00:00"
-   universe_size: 84
+TOP COMPLEXES BY PUMP PROBABILITY:
+  Real Estate              pump=91.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$88.2M acc=True breadth=1.0 z=1.36 div=False
+  Industrials              pump=81.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$768.5M acc=True breadth=1.0 z=-0.87 div=False
+  Materials                pump=81.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$350.5M acc=True breadth=1.0 z=-0.75 div=False
+  Gold/Metals              pump=75.0  STEADY_INFLOW — TREND INTACT           net5d=$320.6M acc=True breadth=0.33 z=1.3 div=False
+  Biotech                  pump=73.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$415.1M acc=True breadth=0.5 z=0.55 div=False
+  Crypto                   pump=73.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$11.6M acc=True breadth=0.75 z=0.01 div=False
+  Small Caps               pump=68.0  INFLOW_DECELERATING — LATE             net5d=$347.9M acc=False breadth=1.0 z=1.42 div=False
+  Technology               pump=55.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$2889.3M acc=True breadth=0.5 z=-3.9 div=False
 
-data/capital-flow.json keys: ['engine', 'version', 'generated_at', 'duration_s', 'sources', 'methodology', 'accumulating', 'distributing', 'etf_flows_in', 'etf_flows_out', 'category_rotation', 'by_ticker']
-history etf-flows/history.json: none
-history data/etf-flow-history.json: none
-history etf-flows/flow-history.json: none
+PARTY-OVER ALERTS: ['Financials', 'Consumer Discretionary', 'Healthcare', 'Energy', 'Clean Energy', 'Innovation/ARK', 'Semiconductors']
+PUMP SETUPS: ['Real Estate', 'Industrials', 'Materials', 'Biotech', 'Crypto', 'Technology']
+CASCADE (sector inflow + options agree): [{"symbol": "FCX", "complex": "Materials", "pump_probability": 81.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}, {"symbol": "AAPL", "complex": "Technology", "pump_probability": 55.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}, {"symbol": "AVGO", "complex": "Technology", "pump_probability": 55.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}, {"symbol": "CRM", "complex": "Technology", "pump_probability": 55.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}, {"symbol": "AMD", "complex": "Technology", "pump_probability": 55.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}]
