@@ -1,12 +1,20 @@
-scheduled: cron(45 12 ? * MON-FRI *)
-invoke: {'statusCode': 200, 'body': '{"ok": true, "risk_regime_score": 24.0, "risk_regime": "MILD_RISK_ON", "blocks": ["fx", "options", "vix", "credit"], "tells": ["RISK-ON: CHF haven (USDCHF) (+1.63% 5d)", "RISK-ON: Gold haven (-3.24% 5d)", "RISK-OFF: NZD risk currency (-2.25% 5d)", "RISK-OFF: Gold/Silver 
+  justhodl-signal-board: update OK (attempt 0)
+  justhodl-master-ranker: update OK (attempt 1)
 
-=== RISK REGIME ===
-score: 24.0 | regime: MILD_RISK_ON | posture: {'beta_tilt': 'neutral_to_long', 'size_mult': 1.05, 'hedge': 'normal'}
-blocks_used: [{'block': 'fx', 'weight': 0.35, 'score': -0.04}, {'block': 'options', 'weight': 0.2, 'score': 0.06}, {'block': 'vix', 'weight': 0.25, 'score': 0.391}, {'block': 'credit', 'weight': 0.2, 'score': 0.723}]
-  fx: {"score": -0.04, "fx_roro_score": -4.0, "regime": "NEUTRAL"}
-  options: {"SPY": {"put_call_ratio": 1.03, "skew_25d": 0.0083, "n_contracts": 750}, "HYG": {"put_call_ratio": 2.85, "skew_25d": 0.0443, "n_contracts": 750}, "score": 0.06}
-  vix: {"vix": 18.44, "vix_3m": 20.62, "term_structure": -2.18, "level_score": 0.07, "ts_score": 0.87}
-  credit: {"hy_oas": 2.63, "pctile": 0.02, "chg_5d_bp": -17.0}
-tells: ['RISK-ON: CHF haven (USDCHF) (+1.63% 5d)', 'RISK-ON: Gold haven (-3.24% 5d)', 'RISK-OFF: NZD risk currency (-2.25% 5d)', 'RISK-OFF: Gold/Silver ratio (+4.63% 5d)']
-DONE 1943
+=== signal-board ===
+invoke: {'statusCode': 200, 'body': '{"ok": true, "composite_posture": "NEUTRAL / MIXED", "composite_signal": 0.03, "n_live": 73, "n_stale": 11}'}
+RORO feed present: True
+  RORO entry: {"name": null, "category": "cross-asset", "signal": 1, "note": null, "value": null, "state": null}
+
+=== master-ranker ===
+invoke: {'statusCode': 200, 'body': '{"ok": true, "n_tickers": 25, "n_macro": 5, "n_tier_3_plus": 66, "n_tier_5_plus": 20, "regime": "SLOWING", "duration_s": 3.01}'}
+top-level risk_regime: {"score": 24.0, "regime": "MILD_RISK_ON", "posture": {"beta_tilt": "neutral_to_long", "size_mult": 1.05, "hedge": "normal"}, "tells": ["RISK-ON: CHF haven (USDCHF) (+1.63% 5d)", "RISK-ON: Gold haven (-3.24% 5d)", "RISK-OFF: NZD risk currenc
+top_tickers: 25 | with RORO tilt != 1.0: 3
+  NEM    score=137.3 roro_mult=1.04 cf_mult=1.06
+       … RORO MILD_RISK_ON risk-on tilt (Basic Materials)
+  NVDA   score=125.3 roro_mult=1.04 cf_mult=1.06
+       … RORO MILD_RISK_ON risk-on tilt (Technology)
+  FOXA   score=104.0 roro_mult=1.04 cf_mult=1.0
+       … RORO MILD_RISK_ON risk-on tilt (Communication Services)
+
+DONE 1944
