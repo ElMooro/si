@@ -1,62 +1,26 @@
-bundled massive.py
-UPDATED
-SCHEDULED 22:30 UTC
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_complexes\": 19, \"pump_setups\": 6, \"party_over\": 7}"}
+invoke (3s): {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"ok\": true, \"elapsed_s\": 1.4, \"n_etfs_ok
 
-DOLLAR TIDE: {"usd_synthetic_20d_pct": 1.019, "regime": "USD_NEUTRAL", "fx_signals": ["CARRY_TRADE_FAVORABLE (USDJPY +1.1%)"], "note": "Broad USD 20d momentum (Massive FX). Strong/strengthening USD drains global risk liquidity (headwind for inflows); weakening USD is a tailwind."}
+total ETFs in universe output: 174 | with flow data: 174
 
->>> SEMICONDUCTORS (your example):
-{
- "complex": "Semiconductors",
- "members_present": [
-  "SMH",
-  "SOXX",
-  "SOXL",
-  "SOXS"
- ],
- "primary": "SMH",
- "net_flow_5d_usd": -959294992.0,
- "net_flow_21d_usd": 945537613.0,
- "net_flow_daily_usd": -7878243024.0,
- "pct_aum_5d": -0.607,
- "velocity_ratio": -4.26,
- "acceleration_usd_per_day": -236884599.0,
- "accelerating": false,
- "breadth": 0.25,
- "persistence_days": 1,
- "flow_zscore_90d": -3.57,
- "leveraged_positioning": "crowded_bear",
- "bull_lev_flow_5d": -1462792800.0,
- "bear_lev_flow_5d": 271223150.0,
- "price_5d_pct": 8.27,
- "flow_price_divergence": true,
- "pump_probability": 0,
- "regime": "DIVERGENCE \u2014 TOP WARNING",
- "verdict": "Price is rising while real money leaves the complex \u2014 classic distribution into strength; the party is ending.",
- "ref_stocks": [
-  "NVDA",
-  "AMD",
-  "AVGO",
-  "MU",
-  "TSM",
-  "LRCX",
-  "AMAT",
-  "KLAC",
-  "MRVL",
-  "ON",
-  "ARM",
-  "SMCI"
+LEVERAGED POSITIONING (5d $ flow, bull vs bear) — what investors are betting on:
+  S&P500      SPXL/SPXS: $373.9M bull(SPXL) vs $-15.8M bear(SPXS) -> net $389.7M NET BULLISH
+  Nasdaq      TQQQ/SQQQ: $156.6M bull(TQQQ) vs $50.7M bear(SQQQ) -> net $105.8M NET BULLISH
+  Semis       SOXL/SOXS: $-1462.8M bull(SOXL) vs $271.2M bear(SOXS) -> net $-1734.0M NET BEARISH
+  SmallCap    TNA/TZA: $30.8M bull(TNA) vs $-10.8M bear(TZA) -> net $41.6M NET BULLISH
+  Financials  FAS/FAZ: $-87.2M bull(FAS) vs $-2.1M bear(FAZ) -> net $-85.1M NET BEARISH
+  Energy      ERX/ERY: $0.0M bull(ERX) vs $-4.9M bear(ERY) -> net $4.9M NET BULLISH
+  Biotech     LABU/LABD: $-45.5M bull(LABU) vs $14.2M bear(LABD) -> net $-59.7M NET BEARISH
+  Tech        TECL/TECS: $-0.3M bull(TECL) vs $5.3M bear(TECS) -> net $-5.5M NET BEARISH
+  China       YINN/YANG: $0.0M bull(YINN) vs $0.0M bear(YANG) -> net $0.0M NET BEARISH
+  GoldMiners  NUGT/DUST: $19.4M bull(NUGT) vs $-16.2M bear(DUST) -> net $35.6M NET BULLISH
+  Internet    WEBL/WEBS: $-1.2M bull(WEBL) vs $0.0M bear(WEBS) -> net $-1.2M NET BEARISH
 
-TOP COMPLEXES BY PUMP PROBABILITY:
-  Real Estate              pump=91.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$88.2M acc=True breadth=1.0 z=1.36 div=False
-  Industrials              pump=81.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$768.5M acc=True breadth=1.0 z=-0.87 div=False
-  Materials                pump=81.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$350.5M acc=True breadth=1.0 z=-0.75 div=False
-  Gold/Metals              pump=75.0  STEADY_INFLOW — TREND INTACT           net5d=$320.6M acc=True breadth=0.33 z=1.3 div=False
-  Biotech                  pump=73.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$415.1M acc=True breadth=0.5 z=0.55 div=False
-  Crypto                   pump=73.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$11.6M acc=True breadth=0.75 z=0.01 div=False
-  Small Caps               pump=68.0  INFLOW_DECELERATING — LATE             net5d=$347.9M acc=False breadth=1.0 z=1.42 div=False
-  Technology               pump=55.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$2889.3M acc=True breadth=0.5 z=-3.9 div=False
+SINGLE-STOCK LEVERAGED (retail conviction):
+  NVDL  flow_5d=$180.6M z=0.36
+  TSLL  flow_5d=$4.4M z=-0.02
+  CONL  flow_5d=$17.4M z=0.19
+  MSTU  flow_5d=$30.5M z=-0.18
+  NVDS  flow_5d=$-1.6M z=0.09
+  TSLQ  flow_5d=$-22.3M z=-0.27
 
-PARTY-OVER ALERTS: ['Financials', 'Consumer Discretionary', 'Healthcare', 'Energy', 'Clean Energy', 'Innovation/ARK', 'Semiconductors']
-PUMP SETUPS: ['Real Estate', 'Industrials', 'Materials', 'Biotech', 'Crypto', 'Technology']
-CASCADE (sector inflow + options agree): [{"symbol": "FCX", "complex": "Materials", "pump_probability": 81.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}, {"symbol": "AAPL", "complex": "Technology", "pump_probability": 55.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}, {"symbol": "AVGO", "complex": "Technology", "pump_probability": 55.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}, {"symbol": "CRM", "complex": "Technology", "pump_probability": 55.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}, {"symbol": "AMD", "complex": "Technology", "pump_probability": 55.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}]
+NEW SUB-SECTOR coverage: ['VGT', 'IGV', 'XOP', 'OIH', 'GDX', 'GDXJ', 'URA', 'ITB', 'JETS', 'ITA', 'HACK', 'ARKB']
