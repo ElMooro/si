@@ -1,16 +1,8 @@
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"tickers\": 30, \"top_prepump\": 23}"}
-gamma_regime=ALL_NEGATIVE_GAMMA smallcap_bid=True n_tickers=30 top_prepump=23
-
-TOP PRE-PUMP (unified gamma + options flow):
-  FCX    score=48.0   | bullish call flow; smart-money blocks
-  BB     score=48.0   | bullish call flow; smart-money blocks
-  GOOGL  score=48.0   | bullish call flow; smart-money blocks
-  F      score=48.0   | bullish call flow; smart-money blocks
-  AVGO   score=48.0   | bullish call flow; smart-money blocks
-  JNJ    score=48.0   | bullish call flow; smart-money blocks
-  AMD    score=38.0   | bullish call flow; smart-money blocks
-  CVX    score=38.0   | bullish call flow; smart-money blocks
-  GOOG   score=38.0   | bullish call flow; smart-money blocks
-  AMZN   score=38.0   | bullish call flow; smart-money blocks
-  ABBV   score=30.0   | bullish call flow
-  CMI    score=30.0   | bullish call flow
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 5, \"n_tier_3_plus\": 66, \"n_tier_5_plus\":
+master-ranker top_tickers=25 | with massive system=6
+  GOOGL  score=113.6 | 6 systems agree (compound=113.6) [compound, future_intel, massive, pea
+  AVGO   score=113.6 | 6 systems agree (compound=113.6) [compound, eps_velocity, future_intel
+  GOOG   score=105.4 | 6 systems agree (compound=105.4) [compound, future_intel, massive, pea
+  INTC   score=96.8 | 5 systems agree (compound=96.8) [compound, eps_velocity, future_intel,
+  CVX    score=95.8 | 5 systems agree (compound=95.8) [compound, future_intel, massive, pead
+  AMD    score=95.1 | 4 systems agree (compound=95.1) [compound, eps_velocity, future_intel,
