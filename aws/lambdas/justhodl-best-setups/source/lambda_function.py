@@ -59,6 +59,7 @@ SIGNAL_PRIORS = {
     "GOV_CONTRACT":         0.58,   # material federal contract award
     "EXECUTIVE_BUY":        0.72,   # executive-branch proximity
     "OPTIONS_EXTREME":      0.70,   # extreme smart-money call flow
+    "GAMMA_SQUEEZE":        0.68,   # dealer short-gamma + call-heavy (Massive GEX) — pre-pump fuel
     "CASCADE_ALERT":        0.65,   # theme cascade alert tier
     "CONVERGENCE":          0.60,   # multi-engine convergence
     "POLITICIAN_BUY":       0.55,   # congress buy w/o committee edge
@@ -144,6 +145,7 @@ def lambda_handler(event, context):
     opportunities = read_json("data/opportunities.json") or {}
     capital_flow = read_json("data/capital-flow.json") or {}
     bond_vol = read_json("data/bond-vol.json") or {}
+    massive = read_json("data/massive-signals.json") or {}
     # ── The Brain: Khalid's pinned principles + watched tickers. We flag setups
     # that align with what's on his mind so the board surfaces HIS theses. ──
     brain = read_json("data/brain.json") or {}
@@ -197,6 +199,14 @@ def lambda_handler(event, context):
         if not any(s["key"] == key for s in rec["signals"]):
             rec["signals"].append({"key": key, "strength": round(strength, 3),
                                    "weight": weights.get(key, 0.5), "detail": detail})
+
+    # 0. Gamma squeeze — dealer short-gamma + call-heavy (Massive options/GEX). The matrix gap:
+    #    best-setups already had options FLOW but not dealer GAMMA. Dormant until squeezes appear.
+    for _sym, _t in ((massive.get("tickers") or {}).items()):
+        _gs = _t.get("gamma_squeeze_score")
+        if _gs:
+            add(_sym, None, "GAMMA_SQUEEZE", normalize(_gs, 50, 95),
+                f"dealer gamma squeeze {round(_gs)}" + (f" · {_t.get('massive_why')}" if _t.get("massive_why") else ""))
 
     # 1. Cascade
     for c in (cascade.get("alert_tier") or []):
