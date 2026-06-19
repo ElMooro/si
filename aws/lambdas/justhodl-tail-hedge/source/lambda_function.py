@@ -283,7 +283,41 @@ def lambda_handler(event, context):
                     if regime_inputs else None)
 
     # protection costs more when vol is already bid.
+    # REAL hedge-cost read from the options surface (Massive vol-surface + dealer gamma).
+    # The engine's own doctrine says protection is cheapest in calm regimes; this measures that
+    # from actual skew + VIX term structure instead of inferring it only from macro stress.
+    try:
+        _vs = read_json("data/vol-surface.json")[0] or {}
+    except Exception:
+        _vs = {}
+    try:
+        _dg = read_json("data/dealer-gex.json")[0] or {}
+    except Exception:
+        _dg = {}
+    _skew = _vs.get("skew") or {}
+    _ts = _vs.get("term_structure") or {}
+    skew_pctile = num(_skew.get("pctile_252d"))
+    term_ratio = num(_ts.get("ratio_30d_3m"))
+    term_inverted = bool(_ts.get("inverted"))
+    gamma_regime = (_dg.get("market_composite") or {}).get("composite_regime") or "UNKNOWN"
+    if skew_pctile is not None:
+        hedge_cost_read = ("EXPENSIVE" if (skew_pctile >= 80 or term_inverted)
+                           else "CHEAP" if (skew_pctile <= 35 and not term_inverted) else "FAIR")
+    else:
+        hedge_cost_read = "UNKNOWN"
+    vol_cost_context = {
+        "skew_pctile_252d": skew_pctile, "skew_regime": _skew.get("regime"),
+        "vix_term_ratio_30d_3m": term_ratio, "term_inverted": term_inverted,
+        "vol_surface_regime": _vs.get("regime"), "gamma_regime": gamma_regime,
+        "hedge_cost_read": hedge_cost_read,
+        "note": ("Real options-surface read of how cheap/expensive tail protection is right now "
+                 "(skew percentile + VIX term structure + dealer gamma) -- Massive options data."),
+    }
+
     rs_for_cost = regime_score if regime_score is not None else 40.0
+    # blend the macro-stress proxy with the actual options-surface cost (skew percentile)
+    if skew_pctile is not None:
+        rs_for_cost = round(0.5 * rs_for_cost + 0.5 * skew_pctile, 1)
     carry_multiplier = round(1.0 + rs_for_cost / 100.0, 2)
 
     board_red = (board_posture or "").upper() == "RED"
@@ -603,6 +637,7 @@ def lambda_handler(event, context):
             "firm_posture": board_posture,
             "carry_multiplier": carry_multiplier,
             "stance": stance,
+            "vol_cost_context": vol_cost_context,
             "rationale": stance_reason,
         },
 

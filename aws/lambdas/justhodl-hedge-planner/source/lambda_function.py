@@ -653,6 +653,32 @@ def lambda_handler(event, context):
                       3)),
         }
 
+    # Real options-surface protection-cost read (Massive vol-surface skew + dealer gamma) --
+    # complements the vol-radar turning-point timing with the actual cost level of protection.
+    try:
+        _vs = read_json("data/vol-surface.json")[0] or {}
+    except Exception:
+        _vs = {}
+    try:
+        _dg = read_json("data/dealer-gex.json")[0] or {}
+    except Exception:
+        _dg = {}
+    _skew = _vs.get("skew") or {}
+    _ts = _vs.get("term_structure") or {}
+    _skp = num(_skew.get("pctile_252d"))
+    _tinv = bool(_ts.get("inverted"))
+    vol_cost_context = {
+        "skew_pctile_252d": _skp, "skew_regime": _skew.get("regime"),
+        "vix_term_ratio_30d_3m": num(_ts.get("ratio_30d_3m")), "term_inverted": _tinv,
+        "vol_surface_regime": _vs.get("regime"),
+        "gamma_regime": (_dg.get("market_composite") or {}).get("composite_regime") or "UNKNOWN",
+        "hedge_cost_read": ("EXPENSIVE" if (_skp is not None and (_skp >= 80 or _tinv))
+                            else "CHEAP" if (_skp is not None and _skp <= 35 and not _tinv)
+                            else "FAIR" if _skp is not None else "UNKNOWN"),
+        "note": ("Actual cost level of tail protection from the options surface (skew percentile + "
+                 "VIX term structure + dealer gamma) -- Massive options data."),
+    }
+
     out = {
         "schema_version": SCHEMA,
         "engine": "justhodl-hedge-planner",
@@ -669,6 +695,7 @@ def lambda_handler(event, context):
         "hedge_required": hedge_required,
         "scenario_class": use_class,
         "vol_timing": vol_timing,
+        "vol_cost_context": vol_cost_context,
 
         "ticket": {
             "side_summary": side_summary,
