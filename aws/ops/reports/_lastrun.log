@@ -1,17 +1,36 @@
-attention-signals: tickers=40 themes=10 (Wikipedia)
-THEME PULSE (Wikipedia pageview momentum):
-   Bitcoin mining (->AI)      recent=43       trend=-4.6%
-   Semiconductor fabs         recent=517      trend=-7.2%
-   GPUs                       recent=1083     trend=-8.0%
-   Nuclear / SMR power        recent=696      trend=-8.0%
-   Artificial intelligence    recent=27439    trend=-13.5%
-   Nuclear power              recent=907      trend=-13.7%
-   AI data centers            recent=2735     trend=-16.6%
-   HBM / memory               recent=696      trend=-22.9%
-   Cloud computing            recent=2020     trend=-25.2%
-   Datacenter cooling         recent=158      trend=-26.9%
+=== SEC EDGAR full-text search (13D/13G) ===
+  search-index forms=SC 13D: HTTP 200 head={"took":1171,"timed_out":false,"_shards":{"total":50,"successful":50,"skipped":0,"failed":0},"hits":{"total":{"value":10
+  search-index dated: HTTP 200 head={"took":1195,"timed_out":false,"_shards":{"total":50,"successful":50,"skipped":0,"failed":0},"hits":{"total":{"value":0,
+  browse-edgar getcurrent SC 13D atom: HTTP 200 head=<?xml version="1.0" encoding="ISO-8859-1" ?> <feed xmlns="http://www.w3.org/2005/Atom"> <title>Latest Filings - Fri, 19 Jun 2026 1
+  data.sec.gov submissions AAPL: HTTP 200 (recent forms present=True)
+  company_tickers.json (CIK<->ticker map): HTTP 200 len=798068
 
-  attention page try 1 code=404
-  attention page try 2 code=404
-OK  attention page live (200), marker present
-OK  index nav      live (200), marker present
+=== FINNHUB calendars (free?) ===
+  earnings-calendar  HTTP 200 head={"earningsCalendar":[{"symbol":"AMBK","date":"2026-07-10","hour":"","quarter":2,"year":2026,"epsEstimate":null
+  ipo-calendar       HTTP 200 head={"ipoCalendar":[{"date":"2026-06-18","exchange":"NASDAQ Global","name":"Texas Ventures Acquisition IV Corp","n
+
+=== FMP calendars (/stable/) ===
+  earnings-cal   HTTP 200 head=[   {     "symbol": "3498.T",     "date": "2026-07-03",     "epsActual": null,     "epsEstimated": null,     "
+  ipo-cal        HTTP 200 head=[   {     "symbol": "FSTB",     "date": "2026-06-18",     "daa": "2026-06-18T04:00:00.000Z",     "company": "F
+  econ-cal       HTTP 200 head=[   {     "date": "2026-06-26 22:00:00",     "country": "SV",     "event": "Current Account (Q1)",     "curren
+
+=== GOOGLE TRENDS (unofficial) ===
+  dailytrends: HTTP 404 head=<!doctype html><meta charset="utf-8"><meta name=viewport content="width=device-width, init
+UPDATED
+SCHEDULED 13:30 UTC
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"themes\": 38, \"rotating_in\": 29, \"leading\": 21}"}
+themes=38 axis=75d counts={'LEADING': 21, 'IMPROVING': 8, 'WEAKENING': 1, 'LAGGING': 8}
+
+ROTATING IN (early money):
+  Nuclear / Uranium              IMPROVING  rs_ratio=-0.54   rs_mom=18.77   score=33.2
+  Gold Miners                    IMPROVING  rs_ratio=-3.29   rs_mom=15.72   score=25.0
+  Silver Miners                  IMPROVING  rs_ratio=-4.96   rs_mom=11.6    score=15.9
+  Fintech                        IMPROVING  rs_ratio=-0.88   rs_mom=10.43   score=17.9
+  Digital Infra REITs            IMPROVING  rs_ratio=-2.01   rs_mom=6.06    score=8.9
+  Lithium / Battery              IMPROVING  rs_ratio=-1.32   rs_mom=3.52    score=5.0
+  Shipping                       IMPROVING  rs_ratio=-3.76   rs_mom=0.98    score=-2.0
+  Agriculture                    IMPROVING  rs_ratio=-6.78   rs_mom=0.04    score=-6.7
+
+LEADING: [('Genomics', 106.4), ('Airlines / Travel', 89.2), ('Homebuilders', 73.1), ('Biotech', 46.5), ('Retail', 45.2), ('Quantum Computing', 39.1)]
+WEAKENING (rotating out): ['Cybersecurity']
+harvester picks (rotating-in seeds): ['CCJ', 'LEU', 'OKLO', 'SMR', 'UEC', 'NEM', 'GOLD', 'AEM', 'PAAS', 'WPM', 'AG', 'SQ', 'PYPL', 'AFRM']
