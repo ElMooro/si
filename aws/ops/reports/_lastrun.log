@@ -1,18 +1,11 @@
-OUTPUT LIVE (0.8 min old): tickers=40 with_insider=37 trending=25 themes=0 elapsed=214.39s
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_priced\": 119, \"n_candidates\": 15}"}
+re-rating candidates with insider_buying: ['BTBT', 'NVT']
+re-rating candidates analyst_upgrading: ['PRIM']
 
-TOP ATTENTION:
-  EOSE   score=56.0   mspr=38.6   buy%=0.5   upg=0.033   retail=0.86  trend=False | insiders buying (MSPR 38.6); analyst upg
-  BTBT   score=52.0   mspr=33.3   buy%=0.92  upg=0.0     retail=1.0   trend=False | insiders buying (MSPR 33.3); 92% analyst
-  NVT    score=52.0   mspr=44.9   buy%=0.89  upg=0.0     retail=1.0   trend=False | insiders buying (MSPR 44.9); 89% analyst
-  MX     score=52.0   mspr=100.0  buy%=0.89  upg=0.0     retail=1.0   trend=False | insiders buying (MSPR 100.0); 89% analys
-  ATOM   score=52.0   mspr=50.3   buy%=0.86  upg=0.0     retail=1.0   trend=False | insiders buying (MSPR 50.3); 86% analyst
-  ASYS   score=52.0   mspr=43.7   buy%=0.86  upg=0.0     retail=1.0   trend=False | insiders buying (MSPR 43.7); 86% analyst
-  ENVX   score=52.0   mspr=53.3   buy%=0.76  upg=-0.013  retail=1.0   trend=False | insiders buying (MSPR 53.3); 76% analyst
-  PRIM   score=42.0   mspr=-13.2  buy%=0.76  upg=0.048   retail=1.0   trend=False | 76% analyst buy-rated; analyst upgrades 
-  FCEL   score=40.0   mspr=50.2   buy%=0.0   upg=0.0     retail=0.85  trend=False | insiders buying (MSPR 50.2); retail 85% 
-  ENR    score=40.0   mspr=100.0  buy%=0.4   upg=0.0     retail=1.0   trend=False | insiders buying (MSPR 100.0); retail 100
-
-INSIDER BUYING: ['EOSE', 'BTBT', 'NVT', 'MX', 'ATOM', 'ASYS', 'ENVX', 'FCEL', 'ENR']
-ANALYST UPGRADING: ['EOSE', 'PRIM']
-THEME PULSE: []
-STOCKTWITS TRENDING: ['DJT', 'CHIP.X', 'SHIB.X', 'XLE', 'UCO', 'ANTHZZX.P', 'WRD', 'TSM', 'BFLY', 'HHIS.TSX', 'ABBV', 'NIGHT.X']
+TOP 6 setups (note new kickers in why):
+  BTBT   comp=91.6   | 59% rev growth on 6.7x EV/Sales vs ~12.6x growth-implied (47% below); lags miners_to_ai pe
+  PPSI   comp=86.9   | 58% rev growth on 1.7x EV/Sales vs ~12.6x growth-implied (87% below); forward > trailing g
+  LEU    comp=82.7   | 18% rev growth on 8.1x EV/Sales vs ~12.6x growth-implied (36% below); lags power_grid peer
+  TSM    comp=66.8   | 33% rev growth on 0.6x EV/Sales vs ~12.6x growth-implied (95% below); lags foundry peers b
+  PRIM   comp=64.4   | 15% rev growth on 0.9x EV/Sales vs ~12.6x growth-implied (93% below); lags datacenter_buil
+  SMCI   comp=62.1   | 76% rev growth on 1.1x EV/Sales vs ~12.6x growth-implied (91% below); lags cooling peers b
