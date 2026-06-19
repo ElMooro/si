@@ -79,6 +79,7 @@ DEPRECATE_LB = 0.45    # Wilson LB below this (with enough n) -> DEPRECATED
 BENCH = "SPY"
 MIN_ALPHA_N = 20       # min scored excess observations to test an engine for alpha
 FDR_Q = 0.10           # Benjamini-Hochberg false-discovery rate across engines
+COST_RT_PCT = 0.30     # assumed round-trip transaction cost per pick (spread+slippage), %
 ALPHA_SSM_PARAM = "/justhodl/calibration/alpha"
 ALPHA_S3_KEY = "data/engine-alpha.json"
 
@@ -403,6 +404,9 @@ def lambda_handler(event, context):
         status = status_for(lb, n_scored)
         agree = round(g["stored_agree"] / n_scored, 3) if n_scored else None
         astats = alpha_stats(g["excess"])
+        # net-of-cost: subtract a round-trip transaction cost from every pick's
+        # excess so "proven" alpha must survive trading frictions.
+        astats_net = alpha_stats([x - COST_RT_PCT for x in g["excess"]])
         windows = {wk: {"n": w["n"],
                         "hit_rate": round(w["hits"] / w["n"], 3) if w["n"] else None,
                         "wilson_lb": round(wilson_lower(w["hits"], w["n"]), 3)}
@@ -431,6 +435,10 @@ def lambda_handler(event, context):
             "info_ratio": (astats or {}).get("info_ratio"),
             "alpha_hit_rate": (astats or {}).get("alpha_hit_rate"),
             "alpha_p_value": (astats or {}).get("alpha_p_value"),
+            # net-of-cost (after a round-trip transaction cost)
+            "net_alpha_mean_excess_pct": (astats_net or {}).get("alpha_mean_excess_pct"),
+            "net_alpha_t_stat": (astats_net or {}).get("alpha_t_stat"),
+            "net_info_ratio": (astats_net or {}).get("info_ratio"),
             "by_window": windows,
             "by_regime": {rg: {"n": v["n"],
                                "hit_rate": round(v["hits"] / v["n"], 3) if v["n"] else None,
@@ -444,19 +452,20 @@ def lambda_handler(event, context):
 
     # ── Multiple-testing control: Benjamini-Hochberg FDR across all engines ──
     # Testing ~100+ engines at once, some clear any single threshold by chance.
-    # We control the false-discovery rate on the alpha t-stats. Two one-sided
-    # families: proven POSITIVE alpha and proven NEGATIVE (value-destroying) alpha.
+    # We control the false-discovery rate on the NET-of-cost alpha t-stats, so a
+    # "proven" engine must beat SPY after transaction costs AND survive multiple
+    # testing. Two one-sided families: proven positive and proven negative alpha.
     alpha_rows = [r for r in scorecard
-                  if r["alpha_t_stat"] is not None and r["alpha_n"] >= MIN_ALPHA_N]
-    proven_pos = bh_fdr([(r["signal_type"], norm_sf(r["alpha_t_stat"])) for r in alpha_rows], FDR_Q)
-    proven_neg = bh_fdr([(r["signal_type"], norm_sf(-r["alpha_t_stat"])) for r in alpha_rows], FDR_Q)
+                  if r["net_alpha_t_stat"] is not None and r["alpha_n"] >= MIN_ALPHA_N]
+    proven_pos = bh_fdr([(r["signal_type"], norm_sf(r["net_alpha_t_stat"])) for r in alpha_rows], FDR_Q)
+    proven_neg = bh_fdr([(r["signal_type"], norm_sf(-r["net_alpha_t_stat"])) for r in alpha_rows], FDR_Q)
     for r in scorecard:
-        if r["alpha_t_stat"] is None or r["alpha_n"] < MIN_ALPHA_N:
+        if r["net_alpha_t_stat"] is None or r["alpha_n"] < MIN_ALPHA_N:
             r["alpha_status"] = "INSUFFICIENT"
         elif r["signal_type"] in proven_pos:
-            r["alpha_status"] = "ALPHA_PROVEN"        # FDR-significant edge over SPY
+            r["alpha_status"] = "ALPHA_PROVEN"        # FDR-sig net edge over SPY
         elif r["signal_type"] in proven_neg:
-            r["alpha_status"] = "ALPHA_NEGATIVE"      # FDR-significant value destruction
+            r["alpha_status"] = "ALPHA_NEGATIVE"      # FDR-sig net value destruction
         else:
             r["alpha_status"] = "NO_ALPHA"            # tested, indistinguishable from beta
 
@@ -465,11 +474,11 @@ def lambda_handler(event, context):
     alpha_tested = sum(1 for r in scorecard if r["alpha_status"] in
                        ("ALPHA_PROVEN", "ALPHA_NEGATIVE", "NO_ALPHA"))
 
-    # rank: proven alpha first (by t-stat), then directional status, then Wilson LB
+    # rank: proven alpha first (by net t-stat), then directional status, then Wilson LB
     order = {"PROMOTED": 0, "ACTIVE": 1, "INSUFFICIENT": 2, "DEPRECATED": 3}
     a_order = {"ALPHA_PROVEN": 0, "NO_ALPHA": 1, "INSUFFICIENT": 1, "ALPHA_NEGATIVE": 2}
     scorecard.sort(key=lambda r: (a_order.get(r["alpha_status"], 1),
-                                  -(r["alpha_t_stat"] or -99),
+                                  -(r["net_alpha_t_stat"] or -99),
                                   order[r["status"]], -r["wilson_lb"]))
 
     promoted = [r["signal_type"] for r in scorecard if r["status"] == "PROMOTED"]
@@ -511,9 +520,10 @@ def lambda_handler(event, context):
         "deprecated_signals": deprecated,
         "alpha": {
             "benchmark": BENCH,
-            "method": "forward excess return vs SPY over each pick's window; Benjamini-Hochberg FDR across engines",
+            "method": "forward excess vs SPY per pick window, NET of round-trip cost; Benjamini-Hochberg FDR across engines",
             "fdr_q": FDR_Q,
             "min_alpha_n": MIN_ALPHA_N,
+            "round_trip_cost_pct": COST_RT_PCT,
             "n_engines_tested": alpha_tested,
             "n_alpha_proven": len(alpha_proven),
             "n_alpha_negative": len(alpha_negative),
@@ -521,10 +531,11 @@ def lambda_handler(event, context):
             "alpha_negative_signals": alpha_negative,
             "leaderboard": sorted(
                 [{"signal_type": r["signal_type"], "alpha_status": r["alpha_status"],
-                  "mean_excess_pct": r["alpha_mean_excess_pct"], "t_stat": r["alpha_t_stat"],
-                  "info_ratio": r["info_ratio"], "alpha_hit_rate": r["alpha_hit_rate"], "n": r["alpha_n"]}
-                 for r in scorecard if r["alpha_t_stat"] is not None and r["alpha_n"] >= MIN_ALPHA_N],
-                key=lambda x: -(x["t_stat"] or -99))[:25],
+                  "gross_excess_pct": r["alpha_mean_excess_pct"], "net_excess_pct": r["net_alpha_mean_excess_pct"],
+                  "net_t_stat": r["net_alpha_t_stat"], "net_info_ratio": r["net_info_ratio"],
+                  "alpha_hit_rate": r["alpha_hit_rate"], "n": r["alpha_n"]}
+                 for r in scorecard if r["net_alpha_t_stat"] is not None and r["alpha_n"] >= MIN_ALPHA_N],
+                key=lambda x: -(x["net_t_stat"] or -99))[:25],
         },
         "data_quality_flags": dq_flags,
         "scorecard": scorecard,
@@ -566,6 +577,8 @@ def lambda_handler(event, context):
     alpha_map = {r["signal_type"]: {"alpha_status": r["alpha_status"],
                                     "t_stat": r["alpha_t_stat"],
                                     "mean_excess_pct": r["alpha_mean_excess_pct"],
+                                    "net_t_stat": r["net_alpha_t_stat"],
+                                    "net_mean_excess_pct": r["net_alpha_mean_excess_pct"],
                                     "info_ratio": r["info_ratio"],
                                     "alpha_n": r["alpha_n"]}
                  for r in scorecard if r["alpha_t_stat"] is not None}

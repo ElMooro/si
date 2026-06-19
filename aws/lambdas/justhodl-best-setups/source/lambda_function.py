@@ -126,6 +126,34 @@ def normalize(value, lo, hi):
     return max(0.0, min(1.0, (v - lo) / (hi - lo)))
 
 
+# ── Factor-family map for correlation-adjusted confluence ──
+# Signals in the SAME family echo one underlying factor, so they must NOT each
+# count as an independent confirmation. Cross-family agreement is the real edge.
+SIGNAL_FAMILY = {
+    "COMPOUNDER": "value_quality", "DEEP_VALUE_OVERLAP": "value_quality", "BUYBACK": "value_quality",
+    "CAPEX_ACCEL": "growth",
+    "REVISION_UP": "revision", "EARNINGS_FRESH": "revision",
+    "CAPITAL_FLOW": "flow", "SECTOR_CAPITAL_FLOW": "flow", "CASCADE_ALERT": "flow",
+    "CASCADE_LAGGARD": "flow", "CONVERGENCE": "flow", "EARLY_MOVER": "flow",
+    "DISLOCATION": "mean_reversion",
+    "OPTIONS_BULLISH": "positioning", "OPTIONS_EXTREME": "positioning",
+    "GAMMA_SQUEEZE": "positioning", "SHORT_SQUEEZE": "positioning",
+    "INSIDER_CLUSTER": "smart_money", "EXECUTIVE_BUY": "smart_money",
+    "POLITICIAN_BUY": "political", "POLITICIAN_COMMITTEE": "political",
+    "FDA_CATALYST": "catalyst", "GOV_CONTRACT": "catalyst",
+}
+WITHIN_FAMILY_WEIGHT = 0.25   # an extra same-family signal adds only a quarter-bet
+
+
+def effective_bets(signal_keys):
+    """Effective number of INDEPENDENT bets: distinct factor families count
+    fully; extra signals within an already-represented family are discounted."""
+    fams = [SIGNAL_FAMILY.get(k, k) for k in signal_keys]
+    n, n_fam = len(fams), len(set(fams))
+    n_eff = n_fam + WITHIN_FAMILY_WEIGHT * (n - n_fam)
+    return n_eff, n_fam, sorted(set(fams))
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     cascade = read_json("data/theme-cascade.json") or {}
@@ -470,7 +498,9 @@ def lambda_handler(event, context):
         if not signals:
             continue
         n = len(signals)
-        confluence = 1.0 + 0.22 * (n - 1)
+        # ── correlation-adjusted confluence: reward INDEPENDENT bets, not echoes ──
+        n_eff, n_fam, fam_list = effective_bets([s["key"] for s in signals])
+        confluence = 1.0 + 0.26 * (n_eff - 1.0)
         confluence = min(confluence, 2.2)
         sector = rec.get("sector") or rec.get("industry")
         cap = opp_cap.get(tk)
@@ -487,10 +517,12 @@ def lambda_handler(event, context):
         if _rr_mult != 1.0:
             composite = round(min(100.0, composite * _rr_mult), 1)
 
-        # Verdict from composite + confluence
-        if composite >= 55 and n >= 3:
+        # Verdict from composite + confluence. STRONG BUY now requires genuine
+        # cross-family independence (>= 2.5 effective bets), so three echoes of
+        # one factor can no longer manufacture top conviction.
+        if composite >= 55 and n >= 3 and n_eff >= 2.5:
             verdict = "STRONG BUY"
-        elif composite >= 35 and n >= 2:
+        elif composite >= 35 and n >= 2 and n_eff >= 1.75:
             verdict = "BUY"
         elif composite >= 18:
             verdict = "WATCH"
@@ -584,6 +616,10 @@ def lambda_handler(event, context):
             "value_lenses": sorted(value_signals),
             "flow_lenses": sorted(flow_signals),
             "n_signals": n,
+            "n_independent_bets": round(n_eff, 2),
+            "n_factor_families": n_fam,
+            "factor_families": fam_list,
+            "confluence_mult": round(confluence, 3),
             "signals": sorted(signals, key=lambda s: -s["strength"] * s["weight"]),
             "signal_keys": [s["key"] for s in signals],
             "entry": tt.get("entry"),
