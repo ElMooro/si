@@ -1,8 +1,16 @@
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"tickers\": 30, \"top_prepump\": 23}"}
+gamma_regime=ALL_NEGATIVE_GAMMA smallcap_bid=True n_tickers=30 top_prepump=23
 
-data/polygon-options-flow.json top-level keys: ['generated_at', 'elapsed_s', 'n_scanned', 'n_extreme', 'n_bullish', 'n_notable', 'extreme_call_flow', 'bullish_call_flow', 'notable_flow', 'all_results']
-
-data/dealer-gex.json top-level keys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'calculation_config', 'market_composite', 'squeeze_candidates', 'underlyings']
-   squeeze_candidates: 0
-   market_composite keys: ['spy_regime', 'spy_gex_billions', 'spy_flip_level', 'spy_spot', 'spy_pct_to_flip', 'spy_trading_bias', 'qqq_regime', 'iwm_regime', 'index_gex_signs', 'composite_regime', 'composite_signal']
-
-data/options-flow.json top-level keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
+TOP PRE-PUMP (unified gamma + options flow):
+  FCX    score=48.0   | bullish call flow; smart-money blocks
+  BB     score=48.0   | bullish call flow; smart-money blocks
+  GOOGL  score=48.0   | bullish call flow; smart-money blocks
+  F      score=48.0   | bullish call flow; smart-money blocks
+  AVGO   score=48.0   | bullish call flow; smart-money blocks
+  JNJ    score=48.0   | bullish call flow; smart-money blocks
+  AMD    score=38.0   | bullish call flow; smart-money blocks
+  CVX    score=38.0   | bullish call flow; smart-money blocks
+  GOOG   score=38.0   | bullish call flow; smart-money blocks
+  AMZN   score=38.0   | bullish call flow; smart-money blocks
+  ABBV   score=30.0   | bullish call flow
+  CMI    score=30.0   | bullish call flow
