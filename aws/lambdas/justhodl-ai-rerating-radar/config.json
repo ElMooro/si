@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-ai-rerating-radar",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "AI Re-Rating Radar: finds AI-infra names with high forward growth on a low multiple (cross-sectional EV/Sales-vs-growth residual) that haven't priced in AI-driven growth — before they re-rate. Value-trap guarded, small/mid tilted.",
+  "schedule": {
+    "rule_name": "ai-rerating-radar-daily",
+    "cron": "cron(15 14 * * ? *)",
+    "description": "Daily AI re-rating scan at 14:15 UTC"
+  }
+}
