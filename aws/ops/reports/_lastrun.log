@@ -1,25 +1,16 @@
-CREATED function
-SCHEDULED daily 23:15 UTC
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 124, \"written\": 871, \"scanned\": 430}"}
+UPDATED
+SCHEDULED 12:30 UTC
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_engines\": 67, \"counts\": {\"PROMOTED\": 8, \"ACTIVE\": 11, \"INSUFFICIENT\": 3, \"DEPRECATED\": 20, \"WARMING\": 25}, \"regime\": \"SLOWING\"}"}
 
-SUMMARY:
-  n_engine_outputs_scanned   430
-  n_engines_with_picks       124
-  n_harvested                902
-  n_written                  871
-  n_skipped_no_price         31
-  regime_at_log              SLOWING
-  elapsed_s                  48.24
+REGISTRY: engines=67 harvested=0 regime=SLOWING
+counts: {'PROMOTED': 8, 'ACTIVE': 11, 'INSUFFICIENT': 3, 'DEPRECATED': 20, 'WARMING': 25}
 
-LEDGER CHECK: harvested 'eng:' pending signals in sample scan=43 across 39 distinct engines
-   eng:convergence-radar              2
-   eng:index-inclusion                2
-   eng:ai-infra-stack                 2
-   eng:crisis-decisive-call           2
-   eng:factor-decomposition           1
-   eng:capital-return                 1
-   eng:eps-velocity-names             1
-   eng:forensic-screen                1
-   eng:cascade-validation-log         1
-   eng:gf-value                       1
-sample: {'signal_type': 'eng:factor-decomposition', 'measure_against': 'NVDA', 'predicted_direction': 'UP', 'baseline_price': '210.69', 'confidence': '0.6', 'regime_at_log': 'SLOWING', 'check_windows': "['7', '14', '30']"}
+Most-trusted right now (matured + above 0.55 LB):
+  ml_risk                    status=PROMOTED  n=92   LB=0.96   eff_trust=1.25
+  crisis_dfii10_vs_gld       status=PROMOTED  n=246  LB=0.883  eff_trust=1.25
+  momentum_top_pick          status=PROMOTED  n=18   LB=0.824  eff_trust=1.25
+  macro_composite_z          status=PROMOTED  n=223  LB=0.707  eff_trust=1.25
+  carry_risk                 status=PROMOTED  n=317  LB=0.704  eff_trust=1.25
+  momentum_spy               status=PROMOTED  n=327  LB=0.684  eff_trust=1.25
+
+Demoted (proven below coinflip): ['sustained_target_equity', 'apex_fusion', 'crypto_fear_greed', 'edge_regime', 'correlation_break', 'crisis_sofr_iorb', 'momentum_gld', 'corr_break_composite_vs_spy']
