@@ -1,59 +1,33 @@
-======================================================================
-(A) data/engine-alpha.json
-======================================================================
-generated_at: 2026-06-19T23:38:26.564728+00:00 | benchmark: SPY | fdr_q: 0.1
-n_alpha_proven: 3 | n_alpha_negative: 28
-PROVEN  : ['crypto_risk_score', 'squeeze_risk', 'crisis_dfii10_vs_gld']
-NEGATIVE: ['correlation_break', 'ml_risk', 'edge_regime', 'crisis_sofr_iorb', 'crypto_fear_greed', 'momentum_gld', 'etf_rotation', 'corr_break_composite_vs_vxx', 'plumbing_stress', 'divergence_extreme', 'crisis_rate_diff_eur_3m', 'corr_break_top_pair', 'corr_break_composite_vs_spy', 'sustained_target_equity', 'macro_frontrun_sniffer_setup', 'momentum_spy', 'crisis_rate_diff_jpy_3m', 'crisis_broad_dollar_vs_spy', 'market_phase', 'carry_risk', 'crisis_broad_dollar_vs_eem', 'macro_composite_z', 'apex_fusion', 'crisis_obfr_iorb', 'eurodollar_stress', 'crisis_dfii10_vs_spy', 'analog_signal', 'sector_breadth']
+diverg* functions: ['justhodl-divergence-interpreter', 'justhodl-divergence-scanner', 'justhodl-dxy-equity-divergence', 'justhodl-credit-equity-divergence', 'justhodl-13f-price-divergence', 'justhodl-divergence-engine-v2', 'justhodl-breadth-divergence']
 
-  top/bottom by NET t-stat (signal | net_t | net_excess% | n | status):
-   + ('crisis_dfii10_vs_gld', 29.44, 5.121, 250, 'ALPHA_PROVEN')
-   + ('crypto_risk_score', 6.19, 2.102, 236, 'ALPHA_PROVEN')
-   + ('squeeze_risk', 3.26, 1.397, 843, 'ALPHA_PROVEN')
-   + ('momentum_uso', 0.13, 0.04, 462, 'NO_ALPHA')
-   + ('equity_convergence_fingerprint', 0.02, 0.01, 21, 'NO_ALPHA')
-   + ('khalid_index', -0.22, -0.025, 70, 'NO_ALPHA')
-   - ('crisis_rate_diff_jpy_3m', -10.67, -0.424, 270, 'ALPHA_NEGATIVE')
-   - ('corr_break_composite_vs_vxx', -12.54, -4.144, 294, 'ALPHA_NEGATIVE')
-   - ('momentum_gld', -13.8, -1.278, 380, 'ALPHA_NEGATIVE')
-   - ('crypto_fear_greed', -14.0, -3.431, 589, 'ALPHA_NEGATIVE')
-   - ('correlation_break', -20.77, -1.641, 1910, 'ALPHA_NEGATIVE')
-   - ('ml_risk', -68.58, -0.306, 92, 'ALPHA_NEGATIVE')
+================================================================
+FEED pairs-scanner  ->  justhodl-pairs-scanner
+================================================================
+  rule targets: [('pairs-scanner-6hourly', 'ENABLED', 'cron(42 14 * * ? *)', '1', 'arn:aws:lambda:us-east-1:857687956942:function:justhodl-pairs-scanner')]
+  events invoke permission present: True  (policy SIDs: ['pairs-scanner-6hourly-invoke'])
+  data/pairs-scanner.json LastModified BEFORE: 2026-06-08 09:55:25+00:00
+  test invoke: StatusCode=200 FunctionError=None
+  payload head: b'{"statusCode": 200, "body": "{\\"ok\\": true, \\"n_pairs\\": 37, \\"n_analyzed\\": 37, \\"n_extreme\\": 0, \\"n_extended\\": 3, \\"top_5\\": [\\"20Y Treasury vs 7-10Y Treasury\\", \\"Russell 2000 vs S&P 500\\", \\"Apple vs Microsoft\\", \\"ConocoPhillips vs E'
+  data/pairs-scanner.json LastModified AFTER : 2026-06-19 23:57:57+00:00   -> refreshed: True
 
-======================================================================
-(B) data/meta-labeler.json
-======================================================================
-status: warming_up | n_training_rows: 40 | min_rows_to_activate: 300
-uplift_pp: None | brier: 0.1927 | generated_at: 2026-06-19T23:39:01.130901+00:00
+================================================================
+FEED future-intelligence  ->  justhodl-future-intelligence
+================================================================
+  rule targets: [('future-intel-2x-daily', 'ENABLED', 'cron(40 16 * * ? *)', '1', 'arn:aws:lambda:us-east-1:857687956942:function:justhodl-future-intelligence'), ('future-intel-2x-daily', 'ENABLED', 'cron(40 16 * * ? *)', 'target1', 'arn:aws:lambda:us-east-1:857687956942:function:justhodl-future-intelligence')]
+  events invoke permission present: True  (policy SIDs: ['EventBridge-future-intel-2x-daily'])
+  data/future-intelligence.json LastModified BEFORE: 2026-06-08 12:30:12+00:00
+  test invoke: StatusCode=200 FunctionError=None
+  payload head: b'{"statusCode": 200, "body": "{\\"ok\\": true, \\"n_scored\\": 242, \\"top_ticker\\": \\"GEV\\", \\"top_score\\": 67.6, \\"duration_s\\": 0.6}"}'
+  data/future-intelligence.json LastModified AFTER : 2026-06-19 23:58:15+00:00   -> refreshed: True
 
-======================================================================
-(C) data/signal-scorecard.json  -> alpha block
-======================================================================
-n_engines_tested: 37 | proven: 3 | negative: 28 | cost%: 0.3
-    {'signal_type': 'crisis_dfii10_vs_gld', 'alpha_status': 'ALPHA_PROVEN', 'gross_excess_pct': 5.421, 'net_excess_pct': 5.121, 'net_t_stat': 29.44, 'net_info_ratio': 1.862, 'alpha_hit_rate': 0.992, 'n': 250}
-    {'signal_type': 'crypto_risk_score', 'alpha_status': 'ALPHA_PROVEN', 'gross_excess_pct': 2.402, 'net_excess_pct': 2.102, 'net_t_stat': 6.19, 'net_info_ratio': 0.403, 'alpha_hit_rate': 0.589, 'n': 236}
-    {'signal_type': 'squeeze_risk', 'alpha_status': 'ALPHA_PROVEN', 'gross_excess_pct': 1.697, 'net_excess_pct': 1.397, 'net_t_stat': 3.26, 'net_info_ratio': 0.112, 'alpha_hit_rate': 0.504, 'n': 843}
-    {'signal_type': 'momentum_uso', 'alpha_status': 'NO_ALPHA', 'gross_excess_pct': 0.34, 'net_excess_pct': 0.04, 'net_t_stat': 0.13, 'net_info_ratio': 0.006, 'alpha_hit_rate': 0.511, 'n': 462}
-    {'signal_type': 'equity_convergence_fingerprint', 'alpha_status': 'NO_ALPHA', 'gross_excess_pct': 0.31, 'net_excess_pct': 0.01, 'net_t_stat': 0.02, 'net_info_ratio': 0.005, 'alpha_hit_rate': 0.524, 'n': 21}
+================================================================
+FEED divergence-v2  ->  justhodl-divergence-engine-v2
+================================================================
+  rule targets: [('divergence-v2-2hourly', 'ENABLED', 'cron(0 17 * * ? *)', '1', 'arn:aws:lambda:us-east-1:857687956942:function:justhodl-divergence-engine-v2')]
+  events invoke permission present: True  (policy SIDs: ['divergence-v2-2hourly-invoke'])
+  data/divergence-v2.json LastModified BEFORE: 2026-06-08 12:48:53+00:00
+  test invoke: StatusCode=200 FunctionError=None
+  payload head: b'{"statusCode": 200, "body": "{\\"ok\\": true, \\"n_relationships\\": 71, \\"n_flagged\\": 14, \\"n_extreme\\": 9, \\"composite_index\\": 32.4, \\"duration_s\\": 3.0}"}'
+  data/divergence-v2.json LastModified AFTER : 2026-06-19 23:58:37+00:00   -> refreshed: True
 
-======================================================================
-(D) STALE-FEED SCHEDULE PROBE
-======================================================================
-
---- feed: data/pairs-scanner.json ---
-  lambda: justhodl-pairs-scanner  | last_modified: 2026-05-30T18:45:25.000+0000  | state: Active
-  rule: pairs-scanner-6hourly  state=ENABLED  sched=cron(42 14 * * ? *)
-  last log event: 278.0h ago
-    (no obvious errors in newest stream)
-
---- feed: data/future-intelligence.json ---
-  lambda: justhodl-future-intelligence  | last_modified: 2026-05-31T15:03:25.000+0000  | state: Active
-  rule: future-intel-2x-daily  state=ENABLED  sched=cron(40 16 * * ? *)
-  rule: future-intel-2x-daily  state=ENABLED  sched=cron(40 16 * * ? *)
-  last log event: 275.4h ago
-    (no obvious errors in newest stream)
-
---- feed: data/divergence-v2.json ---
-  no lambda found among ['justhodl-divergence-v2', 'justhodl-divergence', 'justhodl-divergence-v2-engine']
-
-DONE 1952
+DONE 1953
