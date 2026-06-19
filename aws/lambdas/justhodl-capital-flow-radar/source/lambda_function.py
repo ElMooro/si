@@ -1,32 +1,19 @@
 """
-justhodl-capital-flow-radar — INSTITUTIONAL CAPITAL FLOW RADAR
-==============================================================
-Thesis (the operator's): real dollars moving into/out of a sector's ETF complex
-lead the sector's stocks. Accelerating inflow = a pump setting up; a sharp
-outflow / flow reversal = the party is over. The dollar is the tide underneath
-it all — a strengthening USD drains global risk liquidity.
+justhodl-capital-flow-radar — INSTITUTIONAL CAPITAL FLOW RADAR  (v2)
+====================================================================
+Thesis: real dollars into/out of a sector's ETF complex lead the sector's stocks.
+Accelerating inflow = a pump setting up; a sharp outflow / flow reversal = the
+party is over. The dollar is the tide underneath. Leveraged 2x/3x bull-vs-bear
+ETF flows reveal what leveraged money (retail + tactical institutional) is
+positioned long/short on.
 
-This turns the rich per-ETF ETF-Global flow data (etf-flows/daily.json: daily/5d/
-21d $ flow, %-of-AUM, 90d z-score, persistence) into SECTOR-COMPLEX flow regimes:
+v2 adds, on top of the sector-complex flow regime + pump/dump verdict:
+  • full leveraged membership per complex (3x/2x bull AND bear)
+  • a LEVERAGED POSITIONING board: net bull-lev minus bear-lev flow per theme AND
+    per single-stock mega-cap (NVDA/TSLA/AAPL/META/AMZN/MSFT/AMD/MSTR/COIN/…),
+    ranked most-bullish / most-bearish, plus an aggregate RISK_ON / RISK_OFF read.
 
-  For each complex (e.g. Semiconductors = SMH + SOXX + SOXL[3x bull] - SOXS[3x bear]):
-    • net $ flow (core + leveraged-bull - leveraged-bear), 5d & 21d
-    • velocity   — recent flow pace vs the 21d pace (accelerating?)
-    • acceleration (2nd derivative of money)
-    • breadth    — how many ETFs in the complex are taking money
-    • persistence — consecutive days of one-way flow (sticky vs blip)
-    • % of AUM   — size-normalised conviction
-    • leveraged positioning — bull-lev vs bear-lev (retail-leverage extreme)
-    • price-vs-flow DIVERGENCE — price up while money leaves = distribution/top
-    • DOLLAR TIDE overlay (Massive FX synthetic USD)
-  -> pump_probability 0-100 and a regime verdict:
-     ACCELERATING_INFLOW (PUMP SETUP) · STEADY_INFLOW · DECELERATING (LATE) ·
-     FLOW_REVERSAL / DISTRIBUTION (PARTY OVER) · DIVERGENCE (TOP WARNING) · OUTFLOW
-  -> constituent cascade: the stocks that ride the sector flow, cross-referenced
-     with the Massive options layer (gamma squeeze + unusual call flow) for the
-     highest-conviction individual plays.
-
-OUTPUT data/capital-flow-radar.json   SCHEDULE daily 22:30 UTC (after etf-fund-flows + massive-signals).
+OUTPUT data/capital-flow-radar.json   SCHEDULE daily 22:30 UTC.
 Real ETF Global + Massive FX data, research only — not advice.
 """
 import json
@@ -37,69 +24,65 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/capital-flow-radar.json"
 s3 = boto3.client("s3", region_name="us-east-1")
 
-# Sector / theme COMPLEXES. core = unlevered ETFs; bull/bear = leveraged sentiment.
-# `primary` is used for the price-vs-flow divergence read. Members not yet in the
-# flow universe are simply skipped (and auto-activate once added). `stocks` ride the flow.
+# Sector / theme COMPLEXES. core = unlevered; bull/bear = leveraged sentiment legs.
 COMPLEXES = {
-    # ── Broad-market positioning ──
-    "S&P 500 (broad)": {"core": ["SPY", "VOO", "IVV"], "bull": ["SPXL", "UPRO", "SSO"], "bear": ["SPXS", "SPXU", "SDS", "SH"], "primary": "SPY", "stocks": []},
-    "Nasdaq 100 (broad)": {"core": ["QQQ"], "bull": ["TQQQ", "QLD"], "bear": ["SQQQ", "QID"], "primary": "QQQ", "stocks": []},
-    "Small Caps": {"core": ["IWM"], "bull": ["TNA", "UWM"], "bear": ["TZA", "TWM"], "primary": "IWM", "stocks": []},
-    # ── Sectors / themes ──
     "Semiconductors": {"core": ["SMH", "SOXX"], "bull": ["SOXL"], "bear": ["SOXS"], "primary": "SMH",
                        "stocks": ["NVDA", "AMD", "AVGO", "MU", "TSM", "LRCX", "AMAT", "KLAC", "MRVL", "ON", "ARM", "SMCI"]},
-    "Technology": {"core": ["XLK", "VGT"], "bull": ["TECL"], "bear": ["TECS"], "primary": "XLK",
+    "Technology": {"core": ["XLK", "QQQ", "VGT"], "bull": ["TQQQ", "TECL"], "bear": ["SQQQ", "TECS"], "primary": "XLK",
                    "stocks": ["AAPL", "MSFT", "NVDA", "AVGO", "ORCL", "CRM", "ADBE", "AMD"]},
     "Software": {"core": ["IGV", "WCLD", "SKYY"], "bull": [], "bear": [], "primary": "IGV",
-                 "stocks": ["MSFT", "CRM", "NOW", "ADBE", "SNOW", "PLTR", "DDOG", "NET", "PANW"]},
-    "Cybersecurity": {"core": ["HACK", "CIBR"], "bull": [], "bear": [], "primary": "CIBR",
-                      "stocks": ["PANW", "CRWD", "ZS", "FTNT", "NET", "S", "OKTA"]},
-    "Robotics/AI": {"core": ["BOTZ"], "bull": [], "bear": [], "primary": "BOTZ",
-                    "stocks": ["NVDA", "ISRG", "ABB", "ROK"]},
+                 "stocks": ["MSFT", "CRM", "NOW", "ADBE", "SNOW", "PLTR", "DDOG", "NET"]},
     "Biotech": {"core": ["XBI", "IBB"], "bull": ["LABU"], "bear": ["LABD"], "primary": "XBI",
                 "stocks": ["VRTX", "REGN", "GILD", "AMGN", "MRNA", "BIIB", "ALNY"]},
-    "Healthcare": {"core": ["XLV"], "bull": ["CURE"], "bear": [], "primary": "XLV",
-                   "stocks": ["UNH", "JNJ", "LLY", "ABBV", "MRK", "PFE"]},
-    "Energy": {"core": ["XLE", "XOP"], "bull": ["ERX", "GUSH"], "bear": ["ERY", "DRIP"], "primary": "XLE",
+    "Energy": {"core": ["XLE", "XOP", "OIH"], "bull": ["ERX", "GUSH"], "bear": ["ERY", "DRIP"], "primary": "XLE",
                "stocks": ["XOM", "CVX", "COP", "SLB", "EOG", "OXY", "FANG", "PSX"]},
-    "Oil Services": {"core": ["OIH"], "bull": [], "bear": [], "primary": "OIH",
-                     "stocks": ["SLB", "HAL", "BKR", "NOV"]},
-    "Financials": {"core": ["XLF", "KBE"], "bull": ["FAS"], "bear": ["FAZ"], "primary": "XLF",
+    "Oil": {"core": ["USO"], "bull": ["UCO"], "bear": ["SCO"], "primary": "USO", "stocks": []},
+    "Natural Gas": {"core": ["UNG"], "bull": ["BOIL"], "bear": ["KOLD"], "primary": "UNG", "stocks": []},
+    "Financials": {"core": ["XLF", "KRE", "KBE"], "bull": ["FAS", "DPST"], "bear": ["FAZ"], "primary": "XLF",
                    "stocks": ["JPM", "BAC", "WFC", "GS", "MS", "C", "SCHW"]},
-    "Regional Banks": {"core": ["KRE"], "bull": ["DPST"], "bear": [], "primary": "KRE",
-                       "stocks": ["RF", "KEY", "CFG", "HBAN", "FITB", "ZION"]},
-    "Industrials": {"core": ["XLI"], "bull": ["DUSL"], "bear": [], "primary": "XLI",
-                    "stocks": ["CAT", "DE", "GE", "HON", "UNP", "BA"]},
-    "Aerospace & Defense": {"core": ["ITA"], "bull": ["DFEN"], "bear": [], "primary": "ITA",
-                            "stocks": ["LMT", "RTX", "NOC", "GD", "BA", "LHX", "HWM"]},
-    "Transports": {"core": ["IYT"], "bull": [], "bear": [], "primary": "IYT",
-                   "stocks": ["UPS", "FDX", "UNP", "CSX", "NSC", "ODFL"]},
-    "Infrastructure": {"core": ["PAVE"], "bull": [], "bear": [], "primary": "PAVE",
-                       "stocks": ["ETN", "PWR", "VMC", "MLM", "URI"]},
-    "Materials": {"core": ["XLB"], "bull": [], "bear": [], "primary": "XLB",
-                  "stocks": ["LIN", "FCX", "SHW", "APD", "NUE"]},
-    "Gold/Silver (metal)": {"core": ["GLD", "IAU", "SLV"], "bull": ["UGL", "AGQ"], "bear": ["GLL", "ZSL"], "primary": "GLD", "stocks": []},
+    "Clean Energy": {"core": ["ICLN", "TAN"], "bull": [], "bear": [], "primary": "TAN",
+                     "stocks": ["FSLR", "ENPH", "SEDG", "RUN", "NEE", "STEM"]},
+    "China": {"core": ["KWEB", "FXI", "MCHI"], "bull": ["YINN", "CWEB"], "bear": ["YANG"], "primary": "KWEB",
+              "stocks": ["BABA", "PDD", "JD", "BIDU", "NIO", "LI", "XPEV"]},
+    "Innovation/ARK": {"core": ["ARKK", "ARKW", "ARKG"], "bull": [], "bear": [], "primary": "ARKK",
+                       "stocks": ["TSLA", "COIN", "ROKU", "HOOD", "PLTR", "RBLX"]},
+    "Crypto": {"core": ["IBIT", "FBTC", "BITO", "ETHA", "ARKB"], "bull": ["BITX", "ETHU"], "bear": ["BITI"], "primary": "IBIT",
+               "stocks": ["COIN", "MSTR", "MARA", "RIOT", "CLSK", "HUT"]},
+    "Gold": {"core": ["GLD", "IAU"], "bull": ["UGL"], "bear": ["GLL"], "primary": "GLD",
+             "stocks": ["NEM", "GOLD", "AEM", "WPM", "FNV"]},
     "Gold Miners": {"core": ["GDX", "GDXJ"], "bull": ["NUGT", "JNUG"], "bear": ["DUST", "JDST"], "primary": "GDX",
-                    "stocks": ["NEM", "GOLD", "AEM", "WPM", "FNV", "KGC"]},
-    "Copper/Mining": {"core": ["COPX", "XME"], "bull": [], "bear": [], "primary": "COPX",
-                      "stocks": ["FCX", "SCCO", "TECK", "VALE"]},
+                    "stocks": ["NEM", "GOLD", "AEM", "WPM", "AU"]},
+    "Silver": {"core": ["SLV"], "bull": ["AGQ"], "bear": ["ZSL"], "primary": "SLV", "stocks": ["PAAS", "AG", "HL"]},
+    "Copper/Mining": {"core": ["COPX", "XME", "CPER"], "bull": [], "bear": [], "primary": "XME",
+                      "stocks": ["FCX", "SCCO", "TECK", "VALE", "RIO"]},
     "Uranium": {"core": ["URA", "URNM"], "bull": [], "bear": [], "primary": "URA",
                 "stocks": ["CCJ", "UEC", "DNN", "NXE", "UUUU"]},
-    "Clean Energy": {"core": ["ICLN", "TAN"], "bull": [], "bear": [], "primary": "TAN",
-                     "stocks": ["FSLR", "ENPH", "SEDG", "RUN", "NEE"]},
-    "Lithium/EV Materials": {"core": ["LIT"], "bull": [], "bear": [], "primary": "LIT",
-                             "stocks": ["ALB", "SQM", "LAC"]},
-    "Electric Vehicles": {"core": ["KARS"], "bull": [], "bear": [], "primary": "KARS",
-                          "stocks": ["TSLA", "RIVN", "LCID", "NIO", "LI"]},
     "Homebuilders": {"core": ["ITB", "XHB"], "bull": ["NAIL"], "bear": [], "primary": "ITB",
                      "stocks": ["DHI", "LEN", "PHM", "NVR", "TOL", "KBH"]},
     "Retail": {"core": ["XRT"], "bull": ["RETL"], "bear": [], "primary": "XRT",
-               "stocks": ["AMZN", "HD", "LOW", "TJX", "COST", "TGT"]},
+               "stocks": ["AMZN", "WMT", "COST", "TGT", "HD", "LOW"]},
+    "Small Caps": {"core": ["IWM"], "bull": ["TNA", "UWM"], "bear": ["TZA", "TWM"], "primary": "IWM", "stocks": []},
+    "S&P 500 Broad": {"core": ["SPY", "VOO", "IVV"], "bull": ["SPXL", "UPRO", "SSO"], "bear": ["SPXS", "SPXU", "SDS", "SH"],
+                      "primary": "SPY", "stocks": []},
+    "Nasdaq Broad": {"core": ["QQQ"], "bull": ["TQQQ", "QLD"], "bear": ["SQQQ", "QID"], "primary": "QQQ", "stocks": []},
+    "Dow": {"core": ["DIA"], "bull": ["UDOW"], "bear": ["SDOW"], "primary": "DIA", "stocks": []},
+    "Industrials": {"core": ["XLI", "PAVE"], "bull": ["DUSL"], "bear": [], "primary": "XLI",
+                    "stocks": ["CAT", "DE", "GE", "HON", "UNP", "BA"]},
+    "Aerospace/Defense": {"core": ["ITA"], "bull": ["DFEN"], "bear": [], "primary": "ITA",
+                          "stocks": ["RTX", "LMT", "NOC", "GD", "BA", "LHX"]},
+    "Transports": {"core": ["IYT"], "bull": [], "bear": [], "primary": "IYT",
+                   "stocks": ["UPS", "FDX", "UNP", "CSX", "NSC", "ODFL"]},
+    "Airlines": {"core": ["JETS"], "bull": [], "bear": [], "primary": "JETS",
+                 "stocks": ["DAL", "UAL", "AAL", "LUV", "ALK"]},
+    "Materials": {"core": ["XLB"], "bull": [], "bear": [], "primary": "XLB",
+                  "stocks": ["LIN", "FCX", "NEM", "SHW", "APD"]},
+    "Healthcare": {"core": ["XLV"], "bull": ["CURE"], "bear": [], "primary": "XLV",
+                   "stocks": ["UNH", "JNJ", "LLY", "ABBV", "MRK", "PFE"]},
     "Consumer Discretionary": {"core": ["XLY"], "bull": ["WANT"], "bear": [], "primary": "XLY",
                                "stocks": ["AMZN", "TSLA", "HD", "MCD", "NKE", "LOW"]},
     "Consumer Staples": {"core": ["XLP"], "bull": [], "bear": [], "primary": "XLP",
@@ -108,14 +91,25 @@ COMPLEXES = {
                   "stocks": ["NEE", "DUK", "SO", "D", "AEP"]},
     "Real Estate": {"core": ["XLRE"], "bull": ["DRN"], "bear": ["DRV"], "primary": "XLRE",
                     "stocks": ["PLD", "AMT", "EQIX", "SPG", "O"]},
-    "Communications": {"core": ["XLC"], "bull": [], "bear": [], "primary": "XLC",
-                       "stocks": ["GOOGL", "META", "NFLX", "DIS", "TMUS"]},
-    "China": {"core": ["KWEB", "FXI", "MCHI"], "bull": ["YINN", "CWEB"], "bear": ["YANG"], "primary": "KWEB",
-              "stocks": ["BABA", "PDD", "JD", "BIDU", "NIO", "LI", "XPEV"]},
-    "Innovation/ARK": {"core": ["ARKK", "ARKW", "ARKG"], "bull": ["WEBL"], "bear": ["WEBS"], "primary": "ARKK",
-                       "stocks": ["TSLA", "COIN", "ROKU", "HOOD", "PLTR", "RBLX"]},
-    "Crypto": {"core": ["IBIT", "FBTC", "BITO", "ETHA", "ARKB"], "bull": ["BITX", "ETHU"], "bear": ["BITI"], "primary": "IBIT",
-               "stocks": ["COIN", "MSTR", "MARA", "RIOT", "CLSK", "HUT"]},
+    "Communications/Internet": {"core": ["XLC"], "bull": ["WEBL"], "bear": ["WEBS"], "primary": "XLC",
+                                "stocks": ["GOOGL", "META", "NFLX", "DIS", "TMUS"]},
+}
+
+# Single-stock leveraged — direct leveraged-positioning read per mega-cap (board only).
+SINGLE_STOCK_LEV = {
+    "NVDA": {"bull": ["NVDL"], "bear": ["NVDS"]},
+    "TSLA": {"bull": ["TSLL"], "bear": ["TSLQ"]},
+    "AAPL": {"bull": ["AAPU"], "bear": ["AAPD"]},
+    "META": {"bull": ["METU"], "bear": []},
+    "AMZN": {"bull": ["AMZU"], "bear": []},
+    "MSFT": {"bull": ["MSFU"], "bear": []},
+    "AMD": {"bull": ["AMDL"], "bear": ["AMDD"]},
+    "GOOGL": {"bull": ["GGLL"], "bear": []},
+    "MSTR": {"bull": ["MSTU"], "bear": ["MSTZ"]},
+    "COIN": {"bull": ["CONL"], "bear": []},
+    "PLTR": {"bull": ["PLTU"], "bear": []},
+    "SMCI": {"bull": ["SMCL"], "bear": []},
+    "AVGO": {"bull": ["AVGX"], "bear": []},
 }
 
 
@@ -127,7 +121,6 @@ def _read(key):
 
 
 def _massive_price_5d(etf, key):
-    """5-day % return of an ETF from Massive daily aggregates (for price-vs-flow divergence)."""
     try:
         to = datetime.now(timezone.utc).date()
         frm = to - timedelta(days=12)
@@ -144,110 +137,6 @@ def _massive_price_5d(etf, key):
     return None
 
 
-def compute_leveraged_sentiment(fmap):
-    """Net leveraged ETF flows per theme = where investors are aggressively long vs short."""
-    themes = {}
-    agg_bull = agg_bear = 0.0
-    for tkr, m in fmap.items():
-        if m.get("category") != "leveraged":
-            continue
-        sub = m.get("subcategory") or ""
-        f5 = m.get("flow_5d_usd") or 0
-        if "bull" in sub or "_long" in sub or sub.endswith("treasury"):
-            direction = "bull"
-        elif "bear" in sub or "_short" in sub:
-            direction = "bear"
-        else:
-            continue
-        parts = sub.split("_")
-        if parts and parts[0][:-1].isdigit() and parts[0].endswith("x"):
-            parts = parts[1:]
-        if parts and parts[-1] in ("bull", "bear", "long", "short"):
-            parts = parts[:-1]
-        theme = "_".join(parts) or "other"
-        t = themes.setdefault(theme, {"bull": 0.0, "bear": 0.0, "etfs": []})
-        if direction == "bull":
-            t["bull"] += f5
-            agg_bull += max(0.0, f5)
-        else:
-            t["bear"] += f5
-            agg_bear += max(0.0, f5)
-        t["etfs"].append(tkr)
-    rows = []
-    for th, v in themes.items():
-        net = v["bull"] - v["bear"]
-        rows.append({"theme": th, "bull_lev_flow_5d": round(v["bull"], 0), "bear_lev_flow_5d": round(v["bear"], 0),
-                     "net_leveraged_flow_5d": round(net, 0),
-                     "positioning": "BULLISH" if net > 0 else "BEARISH" if net < 0 else "NEUTRAL",
-                     "etfs": v["etfs"]})
-    rows.sort(key=lambda x: -x["net_leveraged_flow_5d"])
-    return {
-        "most_bullish_positioning": rows[:10],
-        "most_bearish_positioning": [r for r in rows[::-1] if r["net_leveraged_flow_5d"] < 0][:10],
-        "by_theme": rows,
-        "aggregate_bull_lev_inflow_5d": round(agg_bull, 0),
-        "aggregate_bear_lev_inflow_5d": round(agg_bear, 0),
-        "risk_appetite": ("RISK_ON" if agg_bull > agg_bear * 1.2 else "RISK_OFF" if agg_bear > agg_bull * 1.2 else "BALANCED"),
-        "note": "Net leveraged-ETF flow (bull-lev inflow minus bear-lev inflow) per theme — where investors are "
-                "aggressively positioned long vs short. Extremes are a contrarian tell.",
-    }
-
-
-STATE_KEY = "data/capital-flow-radar-state.json"
-
-
-def _fmt_m(v):
-    if v is None:
-        return "—"
-    a = abs(v)
-    sign = "-" if v < 0 else "+"
-    return sign + "$%.1fB" % (a / 1e9) if a >= 1e9 else sign + "$%dM" % (a / 1e6)
-
-
-def _send_telegram(msg):
-    import os
-    import urllib.parse
-    import urllib.request
-    tok = os.environ.get("TELEGRAM_TOKEN", "")
-    chat = os.environ.get("TELEGRAM_CHAT_ID", "")
-    if not tok or not chat:
-        return
-    try:
-        body = urllib.parse.urlencode({"chat_id": chat, "text": msg, "parse_mode": "HTML",
-                                       "disable_web_page_preview": "true"}).encode()
-        urllib.request.urlopen(urllib.request.Request("https://api.telegram.org/bot%s/sendMessage" % tok, data=body), timeout=10)
-    except Exception as e:
-        print("[capital-flow-radar] telegram err", str(e)[:80])
-
-
-def _alert_transitions(pumps, over, dt, ls):
-    """Fire Telegram only on NEW pump setups / NEW party-over sectors vs the prior run."""
-    cur_p = [c["complex"] for c in pumps]
-    cur_o = [c["complex"] for c in over]
-    prior = _read(STATE_KEY)
-    s3.put_object(Bucket=S3_BUCKET, Key=STATE_KEY,
-                  Body=json.dumps({"pump": cur_p, "over": cur_o,
-                                   "ts": datetime.now(timezone.utc).isoformat()}).encode(),
-                  ContentType="application/json")
-    if not prior:
-        return  # first run — seed state silently, no alert spam
-    new_p = [c for c in pumps if c["complex"] not in (prior.get("pump") or [])]
-    new_o = [c for c in over if c["complex"] not in (prior.get("over") or [])]
-    if not new_p and not new_o:
-        return
-    lines = ["⚡ <b>CAPITAL FLOW RADAR</b>"]
-    if new_p:
-        lines.append("🟢 <b>NEW pump setups</b> (capital accelerating in):")
-        for c in new_p[:6]:
-            lines.append("  • %s — pump %d · net5d %s" % (c["complex"], round(c["pump_probability"]), _fmt_m(c.get("net_flow_5d_usd"))))
-    if new_o:
-        lines.append("🔴 <b>NEW party-over</b> (capital leaving / distribution):")
-        for c in new_o[:6]:
-            lines.append("  • %s — %s · net5d %s" % (c["complex"], (c.get("regime") or "").split("—")[-1].strip(), _fmt_m(c.get("net_flow_5d_usd"))))
-    lines.append("💵 Dollar: %s · ⚖️ Leveraged risk: %s" % (dt.get("regime", "?"), ls.get("risk_appetite", "?")))
-    _send_telegram("\n".join(lines))
-
-
 def lambda_handler(event, context):
     t0 = time.time()
     flows = _read("etf-flows/daily.json") or {}
@@ -255,7 +144,7 @@ def lambda_handler(event, context):
     massive = _read("data/massive-signals.json") or {}
     prepump = {x.get("symbol") for x in (massive.get("top_prepump") or []) if x.get("symbol")}
 
-    # ── Dollar tide (Massive FX synthetic USD) ──
+    # ── Dollar tide ──
     fx = _read("data/polygon-fx-regime.json") or {}
     usd_20d = (fx.get("regime_metrics") or {}).get("usd_synthetic_20d_pct")
     if usd_20d is None:
@@ -271,7 +160,7 @@ def lambda_handler(event, context):
                    "note": "Broad USD 20d momentum (Massive FX). Strong/strengthening USD drains global risk "
                            "liquidity (headwind for inflows); weakening USD is a tailwind."}
 
-    # ── price for divergence (primary ETF of each complex), parallel ──
+    # ── price for divergence (primary ETF of each complex) ──
     key = None
     try:
         from massive import get_massive_key
@@ -281,10 +170,13 @@ def lambda_handler(event, context):
     price_5d = {}
     if key:
         primaries = list({c["primary"] for c in COMPLEXES.values() if c["primary"] in fmap})
-        with ThreadPoolExecutor(max_workers=10) as ex:
+        with ThreadPoolExecutor(max_workers=12) as ex:
             fut = {ex.submit(_massive_price_5d, p, key): p for p in primaries}
             for f in as_completed(fut):
                 price_5d[fut[f]] = f.result()
+
+    def flow5(etf):
+        return (fmap.get(etf) or {}).get("flow_5d_usd") or 0.0
 
     def s_flow(etfs, field):
         vals = [fmap[e].get(field) for e in etfs if e in fmap and fmap[e].get(field) is not None]
@@ -302,30 +194,23 @@ def lambda_handler(event, context):
         net_daily = s_flow(core, "daily_flow_usd") + s_flow(bull, "daily_flow_usd") - s_flow(bear, "daily_flow_usd")
         aum = s_flow(core, "aum_usd") + s_flow(bull, "aum_usd") + s_flow(bear, "aum_usd")
         pct_aum_5d = round(net_5d / aum * 100, 3) if aum else None
-
-        pace_5d = net_5d / 5.0
-        pace_21d = net_21d / 21.0
+        pace_5d, pace_21d = net_5d / 5.0, net_21d / 21.0
         velocity_ratio = round(pace_5d / pace_21d, 2) if abs(pace_21d) > 1 else None
-        acceleration = round(pace_5d - pace_21d, 0)               # $/day 2nd derivative
+        acceleration = round(pace_5d - pace_21d, 0)
         accelerating = acceleration > 0 and net_5d > 0
         z = [fmap[e].get("flow_zscore_90d") for e in core_present if fmap[e].get("flow_zscore_90d") is not None]
         z_mean = round(sum(z) / len(z), 2) if z else None
         persist = [fmap[e].get("persistence_days") for e in core_present if fmap[e].get("persistence_days") is not None]
         persistence = max(persist) if persist else 0
-        # breadth: inflow across core+bull, plus bear OUTflow counts as bullish breadth
         bull_set = [e for e in core + bull if e in fmap]
-        n_bull = sum(1 for e in bull_set if (fmap[e].get("flow_5d_usd") or 0) > 0)
-        n_bull += sum(1 for e in bear if e in fmap and (fmap[e].get("flow_5d_usd") or 0) < 0)
+        n_bull = sum(1 for e in bull_set if flow5(e) > 0) + sum(1 for e in bear if e in fmap and flow5(e) < 0)
         breadth = round(n_bull / max(1, len(bull_set) + len([e for e in bear if e in fmap])), 2)
-        # leveraged positioning
-        bull_flow = s_flow(bull, "flow_5d_usd")
-        bear_flow = s_flow(bear, "flow_5d_usd")
+        bull_flow, bear_flow = s_flow(bull, "flow_5d_usd"), s_flow(bear, "flow_5d_usd")
         lev_positioning = ("crowded_bull" if bull_flow > 0 and bear_flow < 0
                            else "crowded_bear" if bear_flow > 0 and bull_flow < 0 else "mixed")
         p5 = price_5d.get(c["primary"])
-        divergence = bool(p5 is not None and p5 > 3.0 and net_5d < 0)        # price up, money leaving
+        divergence = bool(p5 is not None and p5 > 3.0 and net_5d < 0)
 
-        # ── pump probability 0-100 ──
         score = 50.0
         if accelerating:
             score += 15
@@ -343,10 +228,8 @@ def lambda_handler(event, context):
             score -= 20
         if divergence:
             score -= 25
-        score *= usd_mult
-        score = max(0, min(100, round(score, 1)))
+        score = max(0, min(100, round(score * usd_mult, 1)))
 
-        # ── regime verdict ──
         if divergence:
             regime = "DIVERGENCE — TOP WARNING"
             verdict = "Price is rising while real money leaves the complex — classic distribution into strength; the party is ending."
@@ -366,9 +249,7 @@ def lambda_handler(event, context):
             regime = "STEADY_INFLOW — TREND INTACT"
             verdict = "Steady positive flow — the sector uptrend is funded but not accelerating."
 
-        # ── constituent cascade: stocks that ride the flow, flagged if Massive options agree ──
         top_conviction = [s for s in c.get("stocks", []) if s in prepump]
-
         out_complexes.append({
             "complex": name, "members_present": present, "primary": c["primary"],
             "net_flow_5d_usd": round(net_5d, 0), "net_flow_21d_usd": round(net_21d, 0),
@@ -379,28 +260,71 @@ def lambda_handler(event, context):
             "bull_lev_flow_5d": round(bull_flow, 0), "bear_lev_flow_5d": round(bear_flow, 0),
             "price_5d_pct": p5, "flow_price_divergence": divergence,
             "pump_probability": score, "regime": regime, "verdict": verdict,
-            "ref_stocks": c.get("stocks", []),
-            "top_conviction_stocks": top_conviction,
+            "ref_stocks": c.get("stocks", []), "top_conviction_stocks": top_conviction,
         })
 
-    leveraged_sentiment = compute_leveraged_sentiment(fmap)
     out_complexes.sort(key=lambda x: -x["pump_probability"])
     pump_setups = [c for c in out_complexes if "PUMP SETUP" in c["regime"]]
     party_over = [c for c in out_complexes if ("PARTY OVER" in c["regime"] or "TOP WARNING" in c["regime"])]
-    # highest-conviction single names: pump-setup sector AND Massive options agree
     cascade = []
     for c in pump_setups:
         for s in c["top_conviction_stocks"]:
             cascade.append({"symbol": s, "complex": c["complex"], "pump_probability": c["pump_probability"],
                             "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"})
 
+    # ── LEVERAGED POSITIONING BOARD ──
+    def lev_entry(label, kind, bull, bear):
+        present_legs = [e for e in bull + bear if e in fmap]
+        if not present_legs:
+            return None
+        bull_in = sum(flow5(e) for e in bull if e in fmap)
+        bear_in = sum(flow5(e) for e in bear if e in fmap)
+        net = bull_in - bear_in   # bull inflow + bear outflow = bullish; bear inflow = bearish
+        stance = ("BULLISH" if net > 5e6 else "BEARISH" if net < -5e6 else "NEUTRAL")
+        return {"name": label, "kind": kind, "net_lev_positioning_5d": round(net, 0),
+                "bull_lev_flow_5d": round(bull_in, 0), "bear_lev_flow_5d": round(bear_in, 0),
+                "stance": stance, "legs": present_legs}
+
+    board = []
+    for name, c in COMPLEXES.items():
+        e = lev_entry(name, "sector", c.get("bull", []), c.get("bear", []))
+        if e:
+            board.append(e)
+    for sym, c in SINGLE_STOCK_LEV.items():
+        e = lev_entry(sym, "single_stock", c.get("bull", []), c.get("bear", []))
+        if e:
+            board.append(e)
+    board.sort(key=lambda x: -x["net_lev_positioning_5d"])
+    agg_bull = sum(flow5(e) for c in COMPLEXES.values() for e in c.get("bull", []) if e in fmap)
+    agg_bull += sum(flow5(e) for c in SINGLE_STOCK_LEV.values() for e in c.get("bull", []) if e in fmap)
+    agg_bear = sum(flow5(e) for c in COMPLEXES.values() for e in c.get("bear", []) if e in fmap)
+    agg_bear += sum(flow5(e) for c in SINGLE_STOCK_LEV.values() for e in c.get("bear", []) if e in fmap)
+    if agg_bull > agg_bear * 1.3 and agg_bull > 0:
+        risk_appetite = "RISK_ON — leveraged money is net positioning long"
+    elif agg_bear > agg_bull * 1.3 and agg_bear > 0:
+        risk_appetite = "RISK_OFF — leveraged money is hedging / positioning short"
+    else:
+        risk_appetite = "BALANCED"
+    leveraged_board = {
+        "risk_appetite": risk_appetite,
+        "aggregate_bull_lev_inflow_5d": round(agg_bull, 0),
+        "aggregate_bear_lev_inflow_5d": round(agg_bear, 0),
+        "most_bullish_positioning": [b for b in board if b["stance"] == "BULLISH"][:8],
+        "most_bearish_positioning": [b for b in board[::-1] if b["stance"] == "BEARISH"][:8],
+        "all": board,
+        "note": "Net = bull-leverage inflow minus bear-leverage inflow (bear-ETF inflow is a bearish vote). "
+                "Reads what leveraged money — retail + tactical institutions — is positioned long/short on. "
+                "Extreme one-sided positioning is also a contrarian flag.",
+    }
+
     out = {
         "engine": "capital-flow-radar", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": "Real dollars into/out of a sector's ETF complex lead the sector's stocks. Accelerating inflow = "
-                  "pump setup; flow reversal / outflow = party over. The dollar is the tide underneath.",
+                  "pump setup; flow reversal / outflow = party over. Dollar is the tide; leveraged bull-vs-bear "
+                  "flows reveal long/short positioning.",
         "dollar_tide": dollar_tide,
-        "leveraged_sentiment": leveraged_sentiment,
+        "leveraged_positioning": leveraged_board,
         "n_complexes": len(out_complexes),
         "pump_setups": pump_setups,
         "party_over_alerts": party_over,
@@ -408,25 +332,23 @@ def lambda_handler(event, context):
         "complexes": out_complexes,
         "methodology": {
             "net_flow": "core ETF $ flow + leveraged-bull flow - leveraged-bear flow (ETF Global creations/redemptions)",
-            "velocity": "5d flow pace vs 21d flow pace (ratio > 1 with positive flow = accelerating inflow)",
+            "velocity": "5d flow pace vs 21d flow pace (>1 with positive flow = accelerating inflow)",
             "acceleration": "5d pace minus 21d pace ($/day) — the 2nd derivative of money",
             "breadth": "share of the complex's ETFs taking money (bear-lev outflow counts as bullish)",
             "divergence": "primary ETF price up >3% (5d) while net flow is negative = distribution / top",
             "dollar_tide": "broad USD 20d momentum scales the score (strong USD = liquidity headwind)",
-            "pump_probability": "0-100 from velocity + z-score + breadth + persistence + %AUM + leverage, "
-                                "penalised for outflow / divergence, scaled by the dollar tide",
+            "leveraged_positioning": "bull-lev inflow minus bear-lev inflow per theme & single stock = long/short read",
         },
-        "caveats": "ETF flows are daily (T+1) and are a positioning/conviction signal, not a timing trigger — flow "
-                   "can persist past a top and reverse before a bottom. Leveraged-ETF flow is a sentiment proxy, not "
-                   "1:1 underlying buying. Real ETF Global + Massive FX data; research only, not advice.",
-        "sources": ["etf-flows/daily.json (ETF Global creations/redemptions via Massive)",
+        "caveats": "ETF flows are daily (T+1) and are a positioning/conviction signal, not a timing trigger — flow can "
+                   "persist past a top and reverse before a bottom. Leveraged-ETF flow is a sentiment proxy (with daily "
+                   "rebalance decay), not 1:1 underlying buying. Real ETF Global + Massive FX data; research only.",
+        "sources": ["etf-flows/daily.json (186 ETFs incl full 2x/3x bull+bear suite — ETF Global via Massive)",
                     "polygon-fx-regime (Massive FX / synthetic USD)", "massive-signals (Massive options overlay)",
                     "Massive daily aggregates (ETF price for divergence)"],
         "elapsed_s": round(time.time() - t0, 2),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(), ContentType="application/json")
-    _alert_transitions(pump_setups, party_over, dollar_tide, leveraged_sentiment)
-    print("[capital-flow-radar] complexes=%d pump_setups=%d party_over=%d usd_regime=%s %.1fs"
-          % (len(out_complexes), len(pump_setups), len(party_over), usd_regime, out["elapsed_s"]))
+    print("[capital-flow-radar v2] complexes=%d pumps=%d party_over=%d risk=%s lev_board=%d %.1fs"
+          % (len(out_complexes), len(pump_setups), len(party_over), risk_appetite.split(" ")[0], len(board), out["elapsed_s"]))
     return {"statusCode": 200, "body": json.dumps({"ok": True, "n_complexes": len(out_complexes),
-            "pump_setups": len(pump_setups), "party_over": len(party_over)})}
+            "pump_setups": len(pump_setups), "party_over": len(party_over), "risk_appetite": risk_appetite})}
