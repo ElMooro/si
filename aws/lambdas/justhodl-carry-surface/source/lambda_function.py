@@ -708,6 +708,27 @@ def maybe_send_telegram(payload):
 # MAIN HANDLER
 # ──────────────────────────────────────────────────────────────────────
 
+def _carry_massive_fx():
+    import boto3 as _b
+    _c = _b.client("s3", "us-east-1")
+    try:
+        fx = json.loads(_c.get_object(Bucket=BUCKET, Key="data/polygon-fx-regime.json")["Body"].read())
+    except Exception as e:
+        return {"error": str(e)[:80]}
+    pd = fx.get("pair_data") or {}; rm = fx.get("regime_metrics") or {}
+    majors = {p: {"price": (pd.get(p) or {}).get("latest_price"),
+                  "ret_20d_pct": (pd.get(p) or {}).get("return_20d_pct"),
+                  "vol_20d_pct": (pd.get(p) or {}).get("realized_vol_20d_pct")}
+              for p in ("USD_JPY", "EUR_USD", "GBP_USD", "AUD_USD", "USD_CNH", "USD_MXN") if p in pd}
+    return {
+        "regime_signals": fx.get("regime_signals") or [],
+        "usd_synthetic_20d_pct": rm.get("usd_synthetic_20d_pct"),
+        "majors": majors,
+        "note": "Live Massive FX majors (spot, 20d momentum, realized vol) — corroborates the FRED-rate FX carry leg.",
+        "source": "Massive polygon-fx-regime",
+    }
+
+
 def lambda_handler(event=None, context=None):
     started = time.time()
     run_ts = datetime.now(timezone.utc)
@@ -773,6 +794,7 @@ def lambda_handler(event=None, context=None):
         'cross_asset_bottom': bottom10,
         'risk_adjusted_leaders': risk_adjusted[:10],
         'regime_summary': regime,
+        'massive_fx': _carry_massive_fx(),
         'methodology': {
             'equity': 'div_yield + buyback_yield - financing_cost (FRED DFF)',
             'fx': 'long_currency_3M_rate - USD_3M_rate (FRED IR3TIB01 series)',

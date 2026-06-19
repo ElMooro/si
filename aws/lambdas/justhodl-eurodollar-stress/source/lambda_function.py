@@ -246,6 +246,26 @@ def lambda_handler(event=None, context=None):
             failures.append({"signal": sig_id, "reason": str(e)})
             print(f"[eurodollar-stress] {sig_id:14s}: ✗ ERROR: {e}")
 
+    # 9th signal — REAL-TIME FX from Massive (polygon-fx-regime): broad USD 20d momentum.
+    # A fast-strengthening dollar squeezes offshore funding (this engine's core thesis) and
+    # leads the weekly/monthly FRED series. Custom-scored (not a FRED percentile).
+    try:
+        _fx = json.loads(S3.get_object(Bucket=BUCKET, Key="data/polygon-fx-regime.json")["Body"].read())
+        _usd = (_fx.get("regime_metrics") or {}).get("usd_synthetic_20d_pct")
+        if _usd is not None:
+            _sc = max(0.0, min(100.0, 35.0 + _usd * 13.0))
+            signals_out.append({
+                "id": "usd_momentum_rt", "label": "USD Momentum (real-time FX, 20d)",
+                "fred_series": "MASSIVE:polygon-fx-regime", "value": round(_usd, 3),
+                "score_0_100": round(_sc, 1), "polarity": +1, "as_of": _fx.get("generated_at"),
+                "description": "Broad synthetic USD 20-day % change from live Massive FX majors; fast "
+                               "dollar strengthening = offshore funding strain (leads FRED broad-dollar).",
+                "source": "massive",
+            })
+            print(f"[eurodollar-stress] usd_momentum_rt: usd20d={_usd:.3f}% score={_sc:.1f}/100 (Massive FX)")
+    except Exception as _e:
+        print("[eurodollar-stress] massive FX signal skipped: " + str(_e)[:80])
+
     # Composite = mean of all successful signal scores
     if signals_out:
         scores = [s["score_0_100"] for s in signals_out]
@@ -270,7 +290,7 @@ def lambda_handler(event=None, context=None):
         "severity": severity,
         "regime": regime,
         "n_signals_used": len(signals_out),
-        "n_signals_total": len(SIGNALS),
+        "n_signals_total": len(SIGNALS) + 1,
         "n_failures": len(failures),
         "signals": signals_out,
         "hot_signals": [{"id": s["id"], "label": s["label"], "score": s["score_0_100"], "value": s["value"]} for s in hot_signals[:5]],

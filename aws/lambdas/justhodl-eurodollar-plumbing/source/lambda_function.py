@@ -438,13 +438,36 @@ def composite(layers):
     return health, verdict, reds, yellows
 
 
-def ai_scan(layers, health, verdict, reds, yellows):
+def _massive_fx_block():
+    try:
+        fx = json.loads(S3.get_object(Bucket=BUCKET, Key="data/polygon-fx-regime.json")["Body"].read())
+        pd = fx.get("pair_data") or {}
+        rm = fx.get("regime_metrics") or {}
+        g = lambda p, k: (pd.get(p) or {}).get(k)
+        return {
+            "regime_signals": fx.get("regime_signals") or [],
+            "usd_synthetic_20d_pct": rm.get("usd_synthetic_20d_pct"),
+            "em_fx_mean_20d_pct": rm.get("em_fx_mean_20d_pct"),
+            "usdjpy": g("USD_JPY", "latest_price"), "usdjpy_20d_pct": g("USD_JPY", "return_20d_pct"),
+            "eurusd": g("EUR_USD", "latest_price"), "usdcnh": g("USD_CNH", "latest_price"),
+            "asof": fx.get("generated_at"), "source": "Massive polygon-fx-regime (live FX majors)",
+        }
+    except Exception as e:
+        return {"error": str(e)[:80]}
+
+
+def ai_scan(layers, health, verdict, reds, yellows, fx_context=None):
     rows = []
     for lk, lv in layers.items():
         for m in lv["metrics"]:
             if m["value"] is not None:
                 rows.append("%s: %s%s [%s]" % (m["label"], m["value"], m["unit"], m["status"]))
     board = "\n".join(rows)
+    if fx_context and not fx_context.get("error"):
+        board += ("\n\nLIVE FX (Massive): broad USD 20d %s%% · USDJPY %s (%s%% 20d) · EURUSD %s · CNH %s · signals: %s"
+                  % (fx_context.get("usd_synthetic_20d_pct"), fx_context.get("usdjpy"),
+                     fx_context.get("usdjpy_20d_pct"), fx_context.get("eurusd"), fx_context.get("usdcnh"),
+                     ", ".join(fx_context.get("regime_signals") or []) or "none"))
     prompt = ("You are a money-market desk strategist. Below is today's offshore U.S. dollar "
               "funding board (green=normal, yellow=watch, red=stress; the Fed central-bank liquidity "
               "swap line is the key backstop tell — near zero is healthy). Composite plumbing-health "
@@ -469,7 +492,8 @@ def lambda_handler(event, context):
     t0 = time.time()
     layers = build_layers()
     health, verdict, reds, yellows = composite(layers)
-    ai = ai_scan(layers, health, verdict, reds, yellows)
+    massive_fx = _massive_fx_block()
+    ai = ai_scan(layers, health, verdict, reds, yellows, fx_context=massive_fx)
     payload = {
         "engine": "justhodl-eurodollar-plumbing", "version": "1.0",
         "generated_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
@@ -489,6 +513,7 @@ def lambda_handler(event, context):
         "compat_note": "composite_score/score/stress_score = 100 - plumbing_health (stress polarity); "
                        "mirrors the legacy eurodollar-stress.json so consumers migrate without inverting.",
         "red_flags": reds, "yellow_flags": yellows,
+        "massive_fx": massive_fx,
         "ai": ai,
         "layers": layers,
         "methodology": "Offshore dollar funding plumbing across 7 layers from FRED/NY Fed/FMP. Each metric "

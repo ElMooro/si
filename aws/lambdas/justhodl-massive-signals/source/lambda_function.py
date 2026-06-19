@@ -102,7 +102,7 @@ def lambda_handler(event, context):
     # ── FX + futures market signals ──
     fxd = _read("data/polygon-fx-regime.json") or {}
     futd = _read("data/polygon-futures-curves.json") or {}
-    fx_signals = fxd.get("signals") or []
+    fx_signals = fxd.get("regime_signals") or fxd.get("signals") or []
     futures_signals = futd.get("signals") or []
 
     # ── per-ticker prepump score (gamma + flow) ──

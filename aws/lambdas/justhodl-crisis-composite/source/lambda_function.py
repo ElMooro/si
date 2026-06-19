@@ -250,6 +250,26 @@ DEFCON = [
 ]
 
 
+def _massive_cross_asset():
+    import boto3 as _b
+    _c = _b.client("s3", "us-east-1")
+    def _r(k):
+        try:
+            return json.loads(_c.get_object(Bucket=S3_BUCKET, Key=k)["Body"].read())
+        except Exception:
+            return {}
+    fx = _r("data/polygon-fx-regime.json"); fut = _r("data/polygon-futures-curves.json")
+    rm = fx.get("regime_metrics") or {}; pd = fx.get("pair_data") or {}
+    return {
+        "fx_signals": fx.get("regime_signals") or [],
+        "usd_synthetic_20d_pct": rm.get("usd_synthetic_20d_pct"),
+        "usdjpy": (pd.get("USD_JPY") or {}).get("latest_price"),
+        "futures_signals": fut.get("signals") or [],
+        "note": "Live Massive FX + futures context (surfaced for the desk; not weighted into the crisis score).",
+        "source": "Massive polygon-fx-regime + polygon-futures-curves",
+    }
+
+
 def to_defcon(score):
     for thresh, level, name, color, play in DEFCON:
         if score >= thresh:
@@ -327,6 +347,7 @@ def lambda_handler(event, context):
         "components_available": int(round(weight_avail / sum(c[1] for c in COMPONENTS) * len(COMPONENTS))),
         "components": components,
         "primary_drivers": top_drivers or ["no single component in stress territory"],
+        "massive_cross_asset": _massive_cross_asset(),
         "scale": {
             "DEFCON 5": "0-20  all clear / risk-on",
             "DEFCON 4": "20-40 normal",
