@@ -1,19 +1,17 @@
-justhodl-finnhub-signals -> {"statusCode": 200, "body": "{\"ok\": true, \"n\": 58, \"insider_buying\": 5, \"upgrade_momentum\": 9}"}
-justhodl-gdelt-buzz -> {"statusCode": 200, "body": "{\"ok\": true, \"themes\": 1, \"heating\": 0}"}
-justhodl-stocktwits -> {"statusCode": 200, "body": "{\"ok\": true, \"trending\": 20, \"gauged\": 34, \"buzz\": 34}"}
+=== FINNHUB (new key) ===
+  [OK            ] quote                HTTP 200  {"c":210.73,"d":6.08,"dp":2.9709,"h":211.39,"l":206.5,"o":207.34,"pc":204.65,"t":178181280
+  [OK            ] insider-transactions HTTP 200  {"data":[{"name":"GAWEL SCOTT","share":59509,"change":13866,"filingDate":"2026-06-10","tra
+  [OK            ] insider-sentiment    HTTP 200  {"data":[{"symbol":"NVDA","year":2025,"month":1,"change":-36695,"mspr":-100},{"symbol":"NV
+  [OK            ] recommendation       HTTP 200  [{"symbol":"NVDA","period":"2026-06-01","strongBuy":24,"buy":39,"hold":4,"sell":1,"strongS
+  [OK            ] earnings-surprise    HTTP 200  [{"symbol":"NVDA","estimate":1.7922,"actual":1.87,"period":"2026-06-30","surprise":0.0778,
+  [OK            ] company-news         HTTP 200  [{"category":"company","datetime":1781876756,"headline":"“They Forgot to Protect Our Indus
+  [PREMIUM/DENIED] social-sentiment     HTTP 403  {"error":"You don't have access to this resource."}
+  [PREMIUM/DENIED] price-target         HTTP 403  {"error":"You don't have access to this resource."}
 
-FINNHUB names=58
-   UMC    acc=47.0   mspr=None   rec_mom=0.289  surp=48.7  | analyst buy-side rising; last EPS beat
-   NVT    acc=41.5   mspr=44.9   rec_mom=-0.05  surp=14.7  | insiders net buying (mspr 44.9); analy
-   GFS    acc=30.5   mspr=-41.2  rec_mom=0.1    surp=17.6  | insiders selling (mspr -41.2); analyst
-   BTBT   acc=26.7   mspr=33.3   rec_mom=0.0    surp=-978.4 | insiders net buying (mspr 33.3)
-   LEU    acc=25.3   mspr=-19.0  rec_mom=-0.033 surp=88.4  | analyst buy-side falling; last EPS bea
-   CRDO   acc=25.1   mspr=-38.4  rec_mom=0.009  surp=10.5  | last EPS beat +10.5%
-   CLSK   acc=23.3   mspr=21.2   rec_mom=0.0    surp=-164.0 | insiders net buying (mspr 21.2)
-   VSH    acc=22.6   mspr=2.3    rec_mom=0.0    surp=65.0  | last EPS beat +65.0%
-   insider-buying: [('FCEL', 50.2), ('NVT', 44.9), ('BTBT', 33.3), ('CLSK', 21.2), ('AMRC', 17.9)]
+=== STOCKTWITS (no key) ===
+  [OK ] trending       HTTP 200  {"symbols":[{"id":9617,"symbol":"DJT","symbol_mic":"DJT.XNAS","symbol_display":"DJT","exchange":"NASDAQ","regi
+  [OK ] symbol-stream  HTTP 200  {"symbol":{"id":2925,"symbol":"NVDA","symbol_mic":"NVDA.XNAS","symbol_display":"NVDA","exchange":"NASDAQ","reg
 
-GDELT themes: [('AI capex spending', -100.0, 'cooling')]
-
-STOCKTWITS trending: ['DJT', 'XLE', 'UCO', 'WRD', 'TSM', 'BFLY', 'ABBV', 'RGNX', 'KR', 'IBIT', 'ALB', 'TER']
-   bullish buzz: [('WRD', 100.0, 30), ('TSM', 100.0, 30), ('ABBV', 100.0, 30), ('RGNX', 100.0, 30), ('ALB', 100.0, 30), ('TER', 100.0, 30)]
+=== GDELT (no key) ===
+  [CHK] tone-timeline  HTTP 429  Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger queries.  
+  [CHK] artlist        HTTP 429  Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger queries.  
