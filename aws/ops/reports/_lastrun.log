@@ -1,27 +1,33 @@
-redeployed
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_priced\": 90, \"n_candidates\": 10}"}
-REGRESSION: EV/Sales = 10.26 + -0.029*growth (n=90) elapsed=2.67
-priced=90 candidates=10 small_mid=3
-growth_basis dist: {'trailing_2y': 89, 'trailing_1y': 1}
 
-=== TOP RE-RATING SETUPS (cheap for their growth, lagged) ===
-  SMCI   large  cooling   G=75.6 %(trai) EV/S=1.14  impl=10.24 disc=88.9%  lag=43.5pp  
-  ACMR   mid    silicon   G=27.1 %(trai) EV/S=5.43  impl=10.26 disc=47.1%  lag=34.5pp  
-  AMRC   small  datacente G=18.6 %(trai) EV/S=0.78  impl=10.26 disc=92.4%  lag=17.9pp  
-  PRIM   mid    datacente G=15.1 %(trai) EV/S=0.87  impl=10.26 disc=91.5%  lag=50.6pp  
-  TSM    mega   foundry   G=33.4 %(trai) EV/S=0.62  impl=10.25 disc=93.9%  lag=119.1pp 
-  EME    large  datacente G=16.2 %(trai) EV/S=2.14  impl=10.26 disc=79.1%  lag=10.2pp  
-  IESC   large  datacente G=19.1 %(trai) EV/S=4.16  impl=10.26 disc=59.5%  lag=-35.0pp 
-  PWR    large  datacente G=16.5 %(trai) EV/S=3.68  impl=10.26 disc=64.1%  lag=0.0pp   
-  FIX    large  datacente G=32.2 %(trai) EV/S=7.13  impl=10.25 disc=30.5%  lag=-13.3pp 
-  NVT    large  power_gri G=20.8 %(trai) EV/S=6.77  impl=10.26 disc=34.0%  lag=-6.0pp  
+===== data/estimate-revisions.json  (8h) =====
+  top keys: ['engine', 'version', 'generated_at', 'duration_s', 'coverage', 'universe', 'with_revisions', 'breadth', 'movers_up', 'movers_down', 'tickers', 'diagnostics', 'methodology']
+  dict 'tickers' keyed by ticker? sample[A]={"eps_fy1": 6.59358, "rev_fy1": 7884665593.0, "n_analysts": 12, "fy1": "2027", "asof": "2026-06-18", "est_g_pct": 10.5}
 
-=== DEEPEST DISCOUNTS ===
-  TSM    mega   33% rev growth on 0.6x EV/Sales vs ~10.3x growth-implied (94% below); lags foundry peers by 119pp;
-  AMRC   small  19% rev growth on 0.8x EV/Sales vs ~10.3x growth-implied (92% below); lags datacenter_buildout pee
-  PRIM   mid    15% rev growth on 0.9x EV/Sales vs ~10.3x growth-implied (92% below); lags datacenter_buildout pee
-  SMCI   large  76% rev growth on 1.1x EV/Sales vs ~10.2x growth-implied (89% below); lags cooling peers by 44pp; 
-  EME    large  16% rev growth on 2.1x EV/Sales vs ~10.3x growth-implied (79% below); lags datacenter_buildout pee
-  PWR    large  17% rev growth on 3.7x EV/Sales vs ~10.3x growth-implied (64% below); growth intact
-  IESC   large  19% rev growth on 4.2x EV/Sales vs ~10.3x growth-implied (60% below); forward > trailing growth
-  ACMR   mid    27% rev growth on 5.4x EV/Sales vs ~10.3x growth-implied (47% below); lags silicon peers by 34pp; 
+===== data/eps-revision-velocity.json  (14h) =====
+  top keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
+  main list 'all_qualifying' len=59  sample fields:
+    {'symbol': 'AMD', 'company': 'Advanced Micro Devices, Inc.', 'score': 86.5, 'flag': 'HIGH_VELOCITY_TIER_B', 'status': 'ok', 'fundamentals': {'price': 512.48, 'market_cap': 835649888000, 'sector': '', 'industry': '', 'pct_from_52w_high': -8.2}, 'estimates': {'fy1_year': '2026', 'fy1_eps_avg': 7.46763, 'fy1_rev_avg': 49875836285, 'fy1_n_estimates': 30, 'fy2_year': '2027', 'fy2_eps_avg': 13.26677, 'fy2_lift_pct': 77.7, 'fwd_rev_growth_pct': 53.6, 'dispersion': 0.205}, 'ratings_breadth': {'n_recent_90d': 30, 'n_upgrades': 3, 'n_downgrades': 0, 'upgrade_pct': 0.1}, 'rationale': 'AMD (): EPS estimate FY27 vs FY26 = +78% forward revenue growth +54%.'}
+
+===== data/stock-valuations.json  (11h) =====
+  top keys: ['engine', 'version', 'generated_at', 'duration_s', 'sp_table', 'sp_coverage', 'sp_universe', 'hist_coverage', 'n_deep_discount', 'sp_asof', 'hp', 'hp_coverage', 'hp_universe', 'heatmap']
+  dict 'industries' keyed by ticker? sample[Internet Content & Information]=[{"t": "OPRA", "underlooked": 86.1, "hp_score": 65.0, "class": "TURNAROUND", "industry": "Internet Content & Information", "sector": "Communication Services", "
+
+===== data/fundamentals.json  (14h) =====
+  top keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'universe_source', 'n_covered', 'n_failed', 'failed_tickers', 'summary', 'companies', 'note']
+  main list 'companies' len=25  sample fields:
+    {'ticker': 'VLO', 'price': 239.77, 'dcf': 363.92, 'dcf_gap_pct': 51.8, 'valuation_label': 'UNDERVALUED', 'altman_z': 4.88, 'piotroski': 8, 'quality_label': 'STRONG', 'top_region': 'UNITED STATES', 'top_region_pct': 74.7, 'n_regions': 4, 'geo_mix': {'CANADA': 6.9, 'Other Countries': 4.9, 'UNITED STATES': 74.7, 'United Kingdom And Ireland': 13.5}, 'top_product': 'Refining', 'top_product_pct': 92.3, 'n_products': 3, 'product_mix': {'Ethanol': 4.0, 'Refining': 92.3, 'Renewable Diesel': 3.8}, 'fiscal_year': 2025, 'ok': True}
+
+===== data/finra-short.json  (3h) =====
+  top keys: ['generated_at', 'generated_at_unix', 'version', 'data_date', 'elapsed_seconds', 'config', 'market_composite', 'squeeze_candidates', 'top_svr', 'top_zscore', 'sectors', 'tickers']
+  main list 'squeeze_candidates' len=30  sample fields:
+    {'symbol': 'DTE', 'name': 'DTE Energy', 'sector': 'Utilities', 'svr_pct': 75.04, 'z_score': 2.8, 'momentum_pct': 2.27, 'days_to_cover': 10.79, 'squeeze_score': 90, 'squeeze_flags': ['SVR_HEAVY_ABNORMAL', 'HIGH_DAYS_TO_COVER', 'MOMENTUM_EXTREME', 'PRICE_STRENGTH'], 'price_strength': {'last_close': 147.56, 'ma20': 144.9, 'above_ma20': True, 'pct_vs_ma20': 1.84, 'ret_5d': 0.09, 'ret_20d': 2.65}, 'short_volume': 356200.259, 'total_volume': 474705.276}
+
+===== data/analyst-consensus.json  (14h) =====
+  top keys: ['schema_version', 'method', 'generated_at', 'universe_size', 'n_with_data', 'top_consensus_25', 'strongest_upgrades_30d', 'weakest_downgrades_30d', 'beat_kings', 'all_tickers', 'duration_s']
+  main list 'top_consensus_25' len=25  sample fields:
+    {'ticker': 'FANG', 'composite_score': 70.8, 'price': 185.48, 'target_median': 236, 'upside_pct': 27.24, 'rec': 'Buy', 'total_analysts': 51, 'net_buy_pct': 90.2, 'upgrades_30d': 0, 'downgrades_30d': 0, 'beat_pct_8q': None}
+
+===== data/forward-orders.json  (441h STALE) =====
+  top keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'n_universe', 'n_with_rpo', 'weights', 'top_25_by_score', 'all_results', 'notes']
+  main list 'top_25_by_score' len=25  sample fields:
+    {'ticker': 'ORCL', 'name': 'Oracle Corporation', 'sector': 'Technology', 'industry': 'Software - Infrastructure', 'market_cap': 649439947260, 'composite': 69.2, 'subscores': {'rpo_yield': 90, 'rpo_growth': 100, 'rpo_acceleration': 15, 'contracts': 0, 'book_to_bill': 100, 'peer_percentile': 100}, 'data': {'rpo_latest_usd': 552600000000, 'rpo_yield_pct': 85.1, 'rpo_growth_yoy_pct': 324.4, 'rpo_qoq_acceleration_pp': -9.3, 'rpo_quarters_available': 4, 'book_to_bill_spread_pct': 316.0, 'peer_percentile': 94.7, 'rpo_tag': 'RevenueRemainingPerformanceObligation', 'rpo_as_of': '2026-02-28', 'rpo_history': [{'value': 552600000000, 'end': '2026-02-28', 'fy': 2026, 'fp': 'Q3', 'form': '10-Q', 'tag': 'RevenueRemainingPerformanceObligation'}, {'value': 523300000000, 'end': '2025-11-30', 'fy': 2026, 'fp': 'Q2', 'form': '10-Q', 'tag': 'RevenueRemainingPerformanceObligation'}, {'value': 455300000000, 'end': '2025-08-31', 'fy': 2026, 'fp': 'Q1', 'form': '10-Q', 'tag': 'RevenueRemainingPerformanceObligation'}, {'value': 137800000000, 'end': '2025-05-31', 'fy': 2025, 'fp': 'FY', 'form': '10-K', 'tag': 'RevenueRemainingPerformanceObligation'}, {'value': 130200000000, 'end': '2025-02-28', 'fy': 2025, 'fp': 'Q3', 'form': '10-Q', 'tag': 'RevenueRemainingPerformanceObligation'}, {'value': 97300000000, 'end': '2024-11-30', 'fy': 2025, 'fp': 'Q2', 'form': '10-Q', 'tag': 'RevenueRemainingPerformanceObligation'}], 'revenue_history': [{'value': 57399000000, 'end': '2025-05-31', 'fy': 2025}, {'value': 52961000000, 'end': '2024-05-31', 'fy': 2024}, {'value': 49954000000, 'end': '2023-05-31', 'fy': 2023}]}, 'contracts': {'n': 0, 'total_usd': 0, 'headlines': [], 'err': ''}, 'thesis': 'RPO $552.6B = 85% of mcap · RPO growing +324% YoY · RPO outpacing revenue → future accel · top-0% peer'}
