@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-engine-trust",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Auto-demotion gate: regime-conditioned trust registry (data/engine-trust.json) derived from signal-scorecard. effective_trust multiplies signal weight; WARMING=1.0 until ledger matures. Served fleet-wide via aws/shared/engine_trust.py.",
+  "schedule": { "rule_name": "engine-trust-daily", "cron": "cron(30 12 * * ? *)", "description": "Daily trust-gate refresh at 12:30 UTC after scorecard" }
+}

@@ -37,7 +37,16 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 
-VERSION = "1.0.0"
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from engine_trust import trust as _trust   # auto-demotion gate (consumer side)
+except Exception:
+    def _trust(_st, default=1.0):
+        return default
+
+VERSION = "1.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
 SIGNALS_TABLE = "justhodl-signals"
 SEEN_KEY = "data/_harvest/seen.json"
@@ -243,16 +252,18 @@ def lambda_handler(event, context):
             price = prices.get(sym)
             if not price:
                 continue  # skip rather than poison the ledger with baseline_price=None
+            tw = _trust(f"eng:{engine}")           # regime-conditioned trust gate
+            conf = max(0.05, min(0.95, conf_from_score(sc) * tw))
             sid = str(uuid.uuid4())
             item = {
                 "signal_id": sid, "signal_type": f"eng:{engine}", "signal_value": str(round(sc, 3)) if sc is not None else "PICK",
-                "predicted_direction": "UP", "confidence": f2d(conf_from_score(sc)),
+                "predicted_direction": "UP", "confidence": f2d(conf),
                 "measure_against": sym, "baseline_price": f2d(price),
                 "baseline_benchmark_price": None, "benchmark": None,
                 "check_windows": [str(d) for d in WINDOWS], "check_timestamps": ts,
                 "outcomes": {}, "accuracy_scores": {}, "logged_at": now.isoformat(),
                 "logged_epoch": int(now.timestamp()), "status": "pending",
-                "metadata": f2d({"engine": engine, "raw_score": sc, "harvested": True}),
+                "metadata": f2d({"engine": engine, "raw_score": sc, "harvested": True, "trust_weight": tw}),
                 "ttl": int((now + timedelta(days=365)).timestamp()), "schema_version": "2",
                 "predicted_magnitude_pct": None, "predicted_target_price": None,
                 "horizon_days_primary": max(WINDOWS), "regime_at_log": regime,
