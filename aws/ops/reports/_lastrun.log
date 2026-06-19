@@ -1,27 +1,32 @@
-=== best-setups (sector gate fix) ===
-  justhodl-best-setups: code update OK (attempt 1)
-  invoke: {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': '{"ok": true, "n_setups": 395, "strong_buy": 5, "buy": 6, "weig
-  setups=50  with RORO tilt!=1.0=50  (was 0 before fix)
-    NVDA   conv=81.2 roro_mult=1.03 verdict=STRONG BUY
-    OTIS   conv=81.1 roro_mult=1.03 verdict=TRIPLE THREAT
-    MU     conv=69.5 roro_mult=1.03 verdict=STRONG BUY
-    CRWD   conv=68.7 roro_mult=1.03 verdict=STRONG BUY
-    PANW   conv=61.2 roro_mult=1.03 verdict=STRONG BUY
-    WDC    conv=57.7 roro_mult=1.03 verdict=TRIPLE THREAT
-    AMD    conv=57.3 roro_mult=1.03 verdict=STRONG BUY
-    BKNG   conv=54.1 roro_mult=1.03 verdict=BUY
+=== deploy signal-scorecard ===
+  justhodl-signal-scorecard: code update OK (attempt 0)
+=== invoke (full ledger scan + alpha + FDR) ===
+  invoke: {'statusCode': 200, 'body': '{"ok": true, "n_signals_tracked": 67, "n_signals_graded": 39, "n_promoted": 8, "n_deprecated": 21, "n_insufficient": 28, "avg_graded_wilson_lb": 0.404, "n_outcomes_scored"
 
-=== hedge-planner (RORO sleeve bias) ===
-  justhodl-hedge-planner: code update OK (attempt 0)
-  invoke: {'statusCode': 200, 'body': '{"ok": true, "action": "NONE", "side": "NO TRADE", "ticket_premium_pct": 0.0, "standing_after_pct": 0.0, "n_che
-  roro_overlay present: True
-    regime: MILD_RISK_ON score: 24.0
-    budget_bias_mult: 0.96 urgency: relaxed — trim toward lower band
-    budget pre->post: 0.0 -> 0.0
-    note: Cross-asset RORO is MILD_RISK_ON (+24/100) — hedge urgency relaxed — trim toward lower band; tail-desk budget tilted ×0.96.
+=== ALPHA ATTRIBUTION (vs SPY, FDR-controlled) ===
+  schema: 2.1 | outcomes scanned: 31350 | scored: 19928
+  benchmark: SPY | fdr_q: 0.1 | min_n: 20
+  engines tested for alpha: 37 | ALPHA_PROVEN: 6 | ALPHA_NEGATIVE: 9
 
-=== risk-regime.html (live page) ===
-  attempt 0: 200 OK len=11294 title=True fx_section=True loads_json=True
-  PAGE LIVE
+  TOP ALPHA LEADERBOARD (by t-stat):
+    crisis_dfii10_vs_gld               ALPHA_PROVEN   excess=5.421%  t=31.16  IR=1.971  beat-SPY=0.992  n=250
+    crypto_risk_score                  ALPHA_PROVEN   excess=2.402%  t=7.07  IR=0.46  beat-SPY=0.589  n=236
+    squeeze_risk                       ALPHA_PROVEN   excess=1.697%  t=3.96  IR=0.136  beat-SPY=0.504  n=843
+    eurodollar_stress                  ALPHA_PROVEN   excess=0.189%  t=3.0  IR=0.204  beat-SPY=0.38  n=216
+    momentum_spy                       ALPHA_PROVEN   excess=0.073%  t=2.65  IR=0.147  beat-SPY=0.358  n=327
+    khalid_index                       ALPHA_PROVEN   excess=0.275%  t=2.45  IR=0.293  beat-SPY=0.5  n=70
+    carry_risk                         NO_ALPHA       excess=0.087%  t=2.02  IR=0.113  beat-SPY=0.349  n=321
+    momentum_uso                       NO_ALPHA       excess=0.34%  t=1.14  IR=0.053  beat-SPY=0.511  n=462
+    macro_composite_z                  NO_ALPHA       excess=0.054%  t=0.97  IR=0.065  beat-SPY=0.341  n=223
+    equity_convergence_fingerprint     NO_ALPHA       excess=0.31%  t=0.71  IR=0.154  beat-SPY=0.524  n=21
+    frontrun_sniffer_setup             NO_ALPHA       excess=0.169%  t=0.66  IR=0.051  beat-SPY=0.521  n=167
+    crisis_obfr_iorb                   NO_ALPHA       excess=0.031%  t=0.5  IR=0.039  beat-SPY=0.362  n=160
+    yc_regime                          NO_ALPHA       excess=0.082%  t=0.36  IR=0.036  beat-SPY=0.444  n=99
+    earnings_pead                      NO_ALPHA       excess=0.019%  t=0.07  IR=0.002  beat-SPY=0.501  n=1097
+    macro_frontrun_sniffer_setup       NO_ALPHA       excess=-0.027%  t=-0.21  IR=-0.016  beat-SPY=0.484  n=188
 
-DONE 1947
+  PROVEN positive-alpha engines: ['khalid_index', 'crypto_risk_score', 'squeeze_risk', 'momentum_spy', 'crisis_dfii10_vs_gld', 'eurodollar_stress']
+  PROVEN value-destroying engines: ['correlation_break', 'crypto_fear_greed', 'momentum_gld', 'corr_break_composite_vs_vxx', 'divergence_extreme', 'crisis_rate_diff_eur_3m', 'corr_break_top_pair', 'crisis_rate_diff_jpy_3m', 'analog_signal']
+  engine-alpha.json: get_object() only accepts keyword arguments.
+
+DONE 1948
