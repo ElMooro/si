@@ -1,11 +1,16 @@
-FINNHUB KEY CHECK (key valid if quote returns 200 with a 'c' price field)
+===== FINNHUB (new key) =====
+  [OK] quote                  {"c":210.73,"d":6.08,"dp":2.9709,"h":211.39,"l":206.5,"o":207.34,"pc":204.65,"t":1781812800}
+  [OK] insider-sentiment      {"data":[{"symbol":"NVDA","year":2025,"month":1,"change":-36695,"mspr":-100},{"symbol":"NVDA","year":2025,"month":2,"change":-64080,"mspr":-
+  [OK] insider-transactions   {"data":[{"name":"GAWEL SCOTT","share":59509,"change":13866,"filingDate":"2026-06-10","transactionDate":"2026-06-08","transactionCode":"A","
+  [OK] recommendation         [{"symbol":"NVDA","period":"2026-06-01","strongBuy":24,"buy":39,"hold":4,"sell":1,"strongSell":0},{"symbol":"NVDA","period":"2026-05-01","st
+  [OK] earnings-surprise      [{"symbol":"NVDA","estimate":1.7922,"actual":1.87,"period":"2026-06-30","surprise":0.0778,"surprisePercent":4.341,"year":2027,"quarter":1},{
+  [OK] company-news           [{"category":"company","datetime":1781876756,"headline":"“They Forgot to Protect Our Industries With TARIFFS!” — Does a Trump Trade War 2.0 
 
-  [DENIED] quote (price)          HTTP 401  {"error":"Invalid API key."}
-  [DENIED] insider-sentiment      HTTP 401  {"error":"Invalid API key"}
-  [DENIED] insider-transactions   HTTP 401  {"error":"Invalid API key"}
-  [DENIED] recommendation-trends  HTTP 401  {"error":"Invalid API key"}
-  [DENIED] earnings-surprise      HTTP 401  {"error":"Invalid API key"}
-  [DENIED] company-news           HTTP 401  {"error":"Invalid API key"}
-  [DENIED] general-news           HTTP 401  {"error":"Invalid API key"}
-  [DENIED] social-sentiment       HTTP 401  {"error":"Invalid API key"}
-  [DENIED] price-target           HTTP 401  {"error":"Invalid API key"}
+===== GDELT DOC 2.0 (no key) =====
+  [OK] timelinevol AI-datacenter  {"query_details": {"title": "\"AI datacenter\"", "date_resolution": "day"}, "timeline": [ { "series": "Volume Intensity", "data": [ { "date": "20260606T000000Z"
+  [429] tonechart Micron           Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger queries.  
+  [429] artlist SanDisk            Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger queries.  
+
+===== STOCKTWITS (no key) =====
+  [OK] trending             {"symbols":[{"id":30023,"symbol":"CHIP.X","symbol_mic":"CHIP.X","symbol_display":"CHIP","exchange":"CRYPTO","region":"X","logo_url":"https://logos.stocktwits-cd
+  [OK] symbol-stream NVDA   {"symbol":{"id":2925,"symbol":"NVDA","symbol_mic":"NVDA.XNAS","symbol_display":"NVDA","exchange":"NASDAQ","region":"US","logo_url":"https://logos.stocktwits-cdn
