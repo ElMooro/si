@@ -146,6 +146,33 @@ def lambda_handler(event, context):
     opportunities = read_json("data/opportunities.json") or {}
     capital_flow = read_json("data/capital-flow.json") or {}
     capital_flow_radar = read_json("data/capital-flow-radar.json") or {}
+    risk_regime = read_json("data/risk-regime.json") or {}
+    _rr_score = risk_regime.get("risk_regime_score")
+    _rr_regime = risk_regime.get("risk_regime") or "NEUTRAL"
+    RR_HIGH_BETA = {"Technology", "Consumer Cyclical", "Energy", "Financial Services",
+                    "Basic Materials", "Communication Services", "Industrials"}
+    RR_DEFENSIVE = {"Utilities", "Consumer Defensive", "Healthcare", "Real Estate"}
+
+    def _roro_scalar(sector):
+        """Regime gate: don't fight a risk-off tape; lean into risk-on. + on high-beta
+        in risk-on, haircut high-beta in risk-off. Returns (mult, note|None)."""
+        if not isinstance(_rr_score, (int, float)):
+            return 1.0, None
+        hb, dfn = sector in RR_HIGH_BETA, sector in RR_DEFENSIVE
+        if _rr_score >= 35:
+            m = 1.06 if hb else (0.97 if dfn else 1.02)
+        elif _rr_score >= 12:
+            m = 1.03 if hb else (0.99 if dfn else 1.0)
+        elif _rr_score > -12:
+            m = 1.0
+        elif _rr_score > -35:
+            m = 0.90 if hb else (1.03 if dfn else 0.95)
+        else:
+            m = 0.80 if hb else (1.05 if dfn else 0.88)
+        if m == 1.0:
+            return 1.0, None
+        return m, f"RORO {_rr_regime} {'tailwind' if m > 1 else 'haircut'}"
+
     bond_vol = read_json("data/bond-vol.json") or {}
     massive = read_json("data/massive-signals.json") or {}
     # ── The Brain: Khalid's pinned principles + watched tickers. We flag setups
@@ -430,6 +457,11 @@ def lambda_handler(event, context):
             raw += s["strength"] * cw
         composite = round(min(100.0, raw * confluence * 22), 1)
 
+        # ── RORO regime gate (sector-aware): scale conviction by risk-on/off tape ──
+        _rr_mult, _rr_note = _roro_scalar(sector)
+        if _rr_mult != 1.0:
+            composite = round(min(100.0, composite * _rr_mult), 1)
+
         # Verdict from composite + confluence
         if composite >= 55 and n >= 3:
             verdict = "STRONG BUY"
@@ -508,6 +540,8 @@ def lambda_handler(event, context):
                 why_text += f" {n} independent signals agree, which is the strongest form of confluence."
             if bv_regime in ("ELEVATED", "CRISIS"):
                 why_text += f" Note: bond-vol regime is {bv_regime} — size accordingly."
+            if _rr_note:
+                why_text += f" Cross-asset RORO is {_rr_regime} — {_rr_note.split('RORO ')[-1]} applied."
         else:
             why_text = None
 
@@ -516,6 +550,7 @@ def lambda_handler(event, context):
             "ticker": tk,
             "name": rec["name"],
             "conviction": round(composite, 1),
+            "risk_regime_mult": _rr_mult,
             "quad_threat": quad_threat,
             "verdict": verdict,
             "triple_threat": triple_threat,

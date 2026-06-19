@@ -228,6 +228,8 @@ def load_all():
         "dollar_radar":"data/dollar-radar.json",
         # ─── Global Stress Matrix (world equity & bond stress · 2026-05-19) ──
         "global_stress":"data/global-stress.json",
+        # ─── Cross-asset Risk-On/Risk-Off synthesizer (Massive FX+options + FRED VIX/credit) ──
+        "risk_regime":"data/risk-regime.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -666,6 +668,14 @@ def extract_metrics(data,weights):
             "global_bond_stress": gs.get("bond_stress"),
             "global_worst_market": (gs.get("worst_market") or {}).get("market"),
             "global_flashing_red": gs.get("flashing_red") or [],
+        })(),
+        # Cross-asset Risk-On/Risk-Off synthesizer (risk-regime)
+        **(lambda rr=data.get("risk_regime", {}): {
+            "roro_score": rr.get("risk_regime_score"),
+            "roro_regime": rr.get("risk_regime"),
+            "roro_posture": (rr.get("posture") or {}).get("beta_tilt"),
+            "roro_size_mult": (rr.get("posture") or {}).get("size_mult"),
+            "roro_tells": (rr.get("tells") or [])[:4],
         })(),
         # Crisis KB (#2) — top active patterns
         **(lambda k=data.get("crisis_kb", {}): {
@@ -1173,6 +1183,7 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "DOLLAR_RADAR: Dollar Pressure "+str(m.get("dollar_pressure") if m.get("dollar_pressure") is not None else "?")+"/±100 — regime "+str(m.get("dollar_regime") or "?")+" ("+str(m.get("dollar_canaries_pump") or 0)+" pump vs "+str(m.get("dollar_canaries_dump") or 0)+" dump canaries firing). Positive = USD squeeze/PUMP (risk-off, tighter global dollar liquidity); negative = DUMP (Fed QE/repo liquidity flood, risk-on)."+(" Dollar index double-top — reversal-lower risk." if m.get("dollar_double_top") else "")+(" Dollar index double-bottom — reversal-higher risk." if m.get("dollar_double_bottom") else ""),
         # ═══ Global Stress Matrix — world equity & bond stress (2026-05-19)
         "GLOBAL_STRESS: world-markets stress index "+str(m.get("global_stress_index") if m.get("global_stress_index") is not None else "?")+"/100 ("+str(m.get("global_stress_level") or "?")+") — equity stress "+str(m.get("global_equity_stress") if m.get("global_equity_stress") is not None else "?")+", bond stress "+str(m.get("global_bond_stress") if m.get("global_bond_stress") is not None else "?")+". Most stressed: "+str(m.get("global_worst_market") or "none")+((". Flashing red (ACUTE): "+"; ".join(m.get("global_flashing_red"))) if m.get("global_flashing_red") else ". Nothing flashing red.")+"",
+        "RISK_REGIME(RORO): "+str(m.get("roro_score") if m.get("roro_score") is not None else "?")+"/100 ("+str(m.get("roro_regime") or "?")+") — cross-asset risk-on/off from Massive FX+options + FRED VIX/credit. Posture: "+str(m.get("roro_posture") or "?")+" size×"+str(m.get("roro_size_mult") or "?")+". Tells: "+("; ".join(m.get("roro_tells") or []) or "none")+"",
         # ═══ Crisis KB (#2) ════════════════════════════════════════════
         "ACTIVE_CRISIS_PATTERNS: "+(", ".join(m.get("active_crisis_patterns") or []) or "none currently"),
         "TOP TRUSTED SIGNALS:",
