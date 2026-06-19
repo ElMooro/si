@@ -1,43 +1,19 @@
-=== etf-fund-flows deploy ===
+=== etf-fund-flows ===
   update OK (justhodl-etf-fund-flows) attempt 0
-  state: Active Successful size: 13878
-  invoking (sync, populates 299 ETFs)...
-  n_etfs_ok: 299 | regime: TRANSITION | elapsed: 1.9
+  n_etfs_ok: 300
+  IJH present: True | IJH flow_5d: 937895875.55
 
-  daily.json total metrics: 299 | with flow: 299
-  NEW tickers populated: 53/53
-  ETF Global latest processed_date: 2026-06-18 (freshness)
+=== capital-flow-radar ===
+  update OK (justhodl-capital-flow-radar) attempt 0
+  invoke: {'statusCode': 200, 'body': '{"ok": true, "n_complexes": 46, "pump_setups": 12, "party_over": 11, "risk_appetite": "BALANCED"}'}
+  version: 3.0.0 | n_complexes: 46
+  Mid Caps present: True
+    Mid Caps: net5d=$935M regime=STEADY_INFLOW — TREND INTACT members=['IJH', 'MIDU', 'MVV', 'UMDD', 'MZZ', 'SMDD']
 
-=== capital-flow-radar v3 deploy ===
-  conflict 0 on justhodl-capital-flow-radar, retry...
-  update OK (justhodl-capital-flow-radar) attempt 1
-  state: Active Successful size: 9508
-  invoking radar...
-  invoke: {'statusCode': 200, 'body': '{"ok": true, "n_complexes": 45, "pump_setups": 12, "party_over": 11, "risk_appetite": "BALANCED"}'}
+=== harvester ingestion proof ===
+  radar top_pick_cascade symbols (6): ['FCX', 'AMZN', 'AAPL', 'AVGO', 'CRM', 'AMD']
+  harvester invoke: {'statusCode': 200, 'body': '{"ok": true, "engines": 117, "written": 544, "scanned": 439}'}
+  DDB rows signal_type=eng:capital-flow-radar: 1
+    AMD    score=70.0 conf=0.804 logged=2026-06-19 status=pending
 
-  version: 3.0.0 | n_complexes: 45
-  single-stock board names: 20
-    NVDA    net=$169M  BULLISH  legs=NVDL,NVDX,NVDU,NVDS,NVDD
-    MU      net=$145M  BULLISH  legs=MUU,MUD
-    AMD     net=$133M  BULLISH  legs=AMDL,AMDD
-    SMCI    net=$70M  BULLISH  legs=SMCL,SMCX
-    MSFT    net=$62M  BULLISH  legs=MSFU,MSFD
-    MSTR    net=$42M  BULLISH  legs=MSTU,MSTX,MSTZ
-    NFLX    net=$27M  BULLISH  legs=NFXL,NFXS
-    TSLA    net=$25M  BULLISH  legs=TSLL,TSLR,TSLQ,TSLS,TSLZ
-    GOOGL   net=$22M  BULLISH  legs=GGLL,GGLS
-    META    net=$22M  BULLISH  legs=METU,METD
-    TSM     net=$22M  BULLISH  legs=TSMX
-    COIN    net=$18M  BULLISH  legs=CONL,CONI,COII
-    AMZN    net=$17M  BULLISH  legs=AMZU,AMUU,AMZD
-    PLTR    net=$1M  NEUTRAL  legs=PLTU,PLTD
-    BABA    net=$-2M  NEUTRAL  legs=BABX
-    CRWD    net=$-3M  NEUTRAL  legs=CRWL
-    BRK     net=$-4M  NEUTRAL  legs=BRKU
-    HOOD    net=$-5M  NEUTRAL  legs=HOOX
-    AAPL    net=$-11M  BEARISH  legs=AAPU,AAPB,AAPD
-    AVGO    net=$-23M  BEARISH  legs=AVGX,AVL
-  risk_appetite: BALANCED
-  new complexes live: ['Quantum Computing', 'Cybersecurity', 'Cannabis', 'Long Treasuries (20Y)', 'Intermediate Treasuries (7-10Y)', 'Robotics/AI']
-
-DONE 1937
+DONE 1938 | item 3 (ledger feed) PROVEN
