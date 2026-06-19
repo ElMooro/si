@@ -1,10 +1,13 @@
+FX regime_signals: ["CARRY_TRADE_FAVORABLE (USDJPY +1.1%)"]
+FX regime_metrics: {"usd_synthetic_20d_pct": 1.019, "em_fx_mean_20d_pct": 0.349}
+FX pair_data keys: ['EUR_USD', 'USD_JPY', 'GBP_USD', 'USD_CNH', 'USD_BRL', 'AUD_USD', 'NZD_USD', 'USD_CAD', 'USD_MXN']
+  EUR_USD: {"latest_price": 1.14741, "return_1d_pct": 0.141, "return_5d_pct": -1.109, "return_20d_pct": -1.233, "realized_vol_20d_pct": 5.06}
+  USD_JPY: {"latest_price": 161.307, "return_1d_pct": 0.007, "return_5d_pct": 0.846, "return_20d_pct": 1.095, "realized_vol_20d_pct": 2.47}
+  GBP_USD: {"latest_price": 1.32354, "return_1d_pct": 0.259, "return_5d_pct": -1.591, "return_20d_pct": -1.343, "realized_vol_20d_pct": 5.53}
 
-data/polygon-fx-regime.json
-  keys: ['generated_at', 'elapsed_s', 'n_pairs', 'regime_signals', 'regime_metrics', 'pair_data']
-  generated_at: 2026-06-19T17:43:54.959195+00:00
-  signals: None
-
-data/polygon-futures-curves.json
-  keys: ['generated_at', 'elapsed_s', 'n_products', 'n_products_with_data', 'signals', 'product_data']
-  generated_at: 2026-06-19T17:43:56.195330+00:00
-  signals: ['SILVER_BREAKOUT (+24.7% 20d)']
+FUT signals: ['SILVER_BREAKOUT (+24.7% 20d)']
+FUT product_data keys: ['VIX', 'CRUDE', 'GOLD', 'SILVER', 'COPPER', 'NATGAS', 'S&P', 'NDX']
+  VIX: []
+  CRUDE: [{"latest_price": 89.48, "return_1d_pct": -1.21, "return_5d_pct": 0.1, "return_20d_pct": -0.96, "n_bars": 21, "ticker": "CL"}]
+  GOLD: []
+  SILVER: [{"latest_price": 18.55, "return_1d_pct": 3.23, "return_5d_pct": -1.12, "return_20d_pct": 24.66, "n_bars": 21, "ticker": "SI"}]
