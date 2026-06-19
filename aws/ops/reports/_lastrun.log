@@ -1,13 +1,26 @@
-FX regime_signals: ["CARRY_TRADE_FAVORABLE (USDJPY +1.1%)"]
-FX regime_metrics: {"usd_synthetic_20d_pct": 1.019, "em_fx_mean_20d_pct": 0.349}
-FX pair_data keys: ['EUR_USD', 'USD_JPY', 'GBP_USD', 'USD_CNH', 'USD_BRL', 'AUD_USD', 'NZD_USD', 'USD_CAD', 'USD_MXN']
-  EUR_USD: {"latest_price": 1.14741, "return_1d_pct": 0.141, "return_5d_pct": -1.109, "return_20d_pct": -1.233, "realized_vol_20d_pct": 5.06}
-  USD_JPY: {"latest_price": 161.307, "return_1d_pct": 0.007, "return_5d_pct": 0.846, "return_20d_pct": 1.095, "realized_vol_20d_pct": 2.47}
-  GBP_USD: {"latest_price": 1.32354, "return_1d_pct": 0.259, "return_5d_pct": -1.591, "return_20d_pct": -1.343, "realized_vol_20d_pct": 5.53}
+justhodl-massive-signals -> {"statusCode": 200, "body": "{\"ok\": true, \"tickers\": 30, \"top_prepump\": 23}"}
+justhodl-eurodollar-stress -> {"statusCode": 200, "body": "{\"composite_score\": 34.94, \"severity\": \"CALM\", \"regime\": \"CALM\", \"n_si
+justhodl-crisis-composite -> {"statusCode": 200, "body": "{\"ok\": true, \"master_crisis_score\": 28.1, \"defcon_level\": 4, \"defcon_name\
+justhodl-eurodollar-plumbing -> async dispatched
+justhodl-carry-surface -> async dispatched
+waiting 75s for async...
 
-FUT signals: ['SILVER_BREAKOUT (+24.7% 20d)']
-FUT product_data keys: ['VIX', 'CRUDE', 'GOLD', 'SILVER', 'COPPER', 'NATGAS', 'S&P', 'NDX']
-  VIX: []
-  CRUDE: [{"latest_price": 89.48, "return_1d_pct": -1.21, "return_5d_pct": 0.1, "return_20d_pct": -0.96, "n_bars": 21, "ticker": "CL"}]
-  GOLD: []
-  SILVER: [{"latest_price": 18.55, "return_1d_pct": 3.23, "return_5d_pct": -1.12, "return_20d_pct": 24.66, "n_bars": 21, "ticker": "SI"}]
+--- massive-signals: FX now populated? ---
+  market.fx_signals: ['CARRY_TRADE_FAVORABLE (USDJPY +1.1%)'] | futures: ['SILVER_BREAKOUT (+24.7% 20d)']
+
+--- eurodollar-stress: real-time FX in composite? ---
+  composite_score: 34.94 severity: CALM n_signals_used: 9
+  usd_momentum_rt signal: {"id": "usd_momentum_rt", "label": "USD Momentum (real-time FX, 20d)", "fred_series": "MASSIVE:polygon-fx-regime", "value": 1.019, "score_0_100": 48.2, "polarity": 1, "as_of": "2026-06-19T17:43:54.959195+00:00", "description": "Broad synthetic USD 20-day % change from live Massive FX majors; fast dollar strengthening = offshore funding strain (leads FRED broad-dollar).", "source": "massive"}
+
+--- eurodollar-plumbing: massive_fx + AI verdict? ---
+  plumbing_health: 91.1 verdict: FUNCTIONING
+  massive_fx: {"regime_signals": ["CARRY_TRADE_FAVORABLE (USDJPY +1.1%)"], "usd_synthetic_20d_pct": 1.019, "em_fx_mean_20d_pct": 0.349, "usdjpy": 161.307, "usdjpy_20d_pct": 1.095, "eurusd": 1.14741, "usdcnh": 6.78298, "asof": "2026-06-19T17:43:54.959195+
+  ai.short_term: The 1-4 week direction is stable but vulnerable to slight deterioration as the depleted ON RRP buffer leaves reserves directly exposed to dr
+
+--- crisis-composite: massive_cross_asset? ---
+  defcon: 4 NORMAL score: 28.1
+  massive_cross_asset: {"fx_signals": ["CARRY_TRADE_FAVORABLE (USDJPY +1.1%)"], "usd_synthetic_20d_pct": 1.019, "usdjpy": 161.307, "futures_signals": ["SILVER_BREAKOUT (+24.7% 20d)"], "note": "Live Massive FX + futures context (surfaced for the desk; not weighted
+
+--- carry-surface: massive_fx majors? ---
+  n_assets: 80 | massive_fx.regime_signals: ['CARRY_TRADE_FAVORABLE (USDJPY +1.1%)'] | usd20d: 1.019
+  majors: {"USD_JPY": {"price": 161.307, "ret_20d_pct": 1.095, "vol_20d_pct": 2.47}, "EUR_USD": {"price": 1.14741, "ret_20d_pct": -1.233, "vol_20d_pct": 5.06}, "GBP_USD": {"price": 1.32354, "ret_20d_pct": -1.34
