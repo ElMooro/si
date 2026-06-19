@@ -1,8 +1,3 @@
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 5, \"n_tier_3_plus\": 66, \"n_tier_5_plus\":
-master-ranker top_tickers=25 | with massive system=6
-  GOOGL  score=113.6 | 6 systems agree (compound=113.6) [compound, future_intel, massive, pea
-  AVGO   score=113.6 | 6 systems agree (compound=113.6) [compound, eps_velocity, future_intel
-  GOOG   score=105.4 | 6 systems agree (compound=105.4) [compound, future_intel, massive, pea
-  INTC   score=96.8 | 5 systems agree (compound=96.8) [compound, eps_velocity, future_intel,
-  CVX    score=95.8 | 5 systems agree (compound=95.8) [compound, future_intel, massive, pead
-  AMD    score=95.1 | 4 systems agree (compound=95.1) [compound, eps_velocity, future_intel,
+INVOKE: {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"n_setups\": 376, \"strong
+best-setups: total=50 | GAMMA_SQUEEZE prior in code=False | gamma setups today=0
+  (engine produced 50 setups — no breakage; gamma dormant until dealer squeezes appear)
