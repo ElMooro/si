@@ -1,6 +1,52 @@
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"activist\": 1, \"clusters\": 1}"}
-activist=1 (w/ticker 1) clusters=1
-RECENT ACTIVIST (should be June 2026):
-   GNK    SC 13D/A 2026-06-17  SC 13D/A - GENCO SHIPPING & TRADING LTD (00013
-FORM4 CLUSTERS: [('TSM', 31)]
-picks: ['GNK', 'TSM']
+new key received via secret (len 32)
+SSM /justhodl/massive-api-key  stored + readback match: True
+NEW KEY entitlements @ api.massive.com:
+  [UNLOCKED] stocks           HTTP 200
+  [UNLOCKED] options          HTTP 200
+  [UNLOCKED] fx               HTTP 200
+  [UNLOCKED] futures          HTTP 200
+  [UNLOCKED] etf-fund-flows   HTTP 200
+  [NO/LIMITED] etf-constituents HTTP 403
+OLD key (zvEY...): HTTP 200 -> STILL LIVE
+files still hardcoding OLD key: 148
+aws/ops/historical/_backfill_directional_signals.py
+aws/ops/historical/_backfill_screener_calibration.py
+aws/ops/historical/_create_correlation_surface.py
+aws/ops/historical/_create_etf_flows.py
+aws/ops/historical/_create_momentum_scanner.py
+aws/ops/historical/_create_options_gamma.py
+aws/ops/historical/_create_sector_rotation.py
+aws/ops/historical/_create_signal_portfolio.py
+aws/ops/historical/_create_skew_engine.py
+aws/ops/historical/_create_wave_signal_logger.py
+aws/ops/historical/_debug_polygon_options.py
+aws/ops/historical/_debug_polygon_options2.py
+aws/ops/historical/_inspect_wave3_inputs.py
+aws/ops/historical/_phase_x1_options_polygon_capability_probe.py
+aws/ops/historical/_phase_x2_ship_options_flow_scanner.py
+aws/ops/historical/_phase_x4_ship_narrative_density.py
+aws/ops/historical/_phase_x4b_probe_polygon_news.py
+aws/ops/historical/_ship_calls_backtest.py
+aws/ops/historical/_ship_nobrainer_tracker.py
+aws/ops/historical/_ship_supply_inflection_scanner.py
+aws/ops/historical/_ship_theme_detector.py
+aws/ops/historical/_ship_theme_tier_classifier.py
+aws/ops/history/2026-04-24-fix_signal_logger_baseline.py
+aws/ops/history/2026-04-24-price_endpoint_test.py
+aws/ops/history/2026-04-24-price_fetch_investigation.py
+aws/ops/history/2026-04-25-loop2-137-pnl_tracker.py
+aws/ops/history/2026-05-03-probe_alt_earnings.py
+aws/ops/history/2026-05-04-create_short_interest.py
+aws/ops/history/2026-05-04-probe_earnings_v2.py
+aws/ops/pending/1591_upside.py
+aws/ops/pending/1592_upside_clean.py
+aws/ops/pending/1593_upside_clean2.py
+aws/ops/pending/1594_rotation.py
+aws/ops/pending/1595_crypto_fix.py
+aws/ops/pending/1596_fwd_guard.py
+aws/ops/pending/1597_altseason.py
+aws/ops/pending/1599_regime_split.py
+aws/ops/pending/1601_sizing.py
+aws/ops/pending/1602_sizing_prudence.py
+aws/ops/pending/1603_btcd_total2.py
+
