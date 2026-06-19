@@ -1,162 +1,19 @@
-=== SCHEDULE NORMALIZATION (everything -> daily, all enabled) ===
-total scheduled rules: 271
-converted intraday -> daily: 83
-re-enabled (were disabled): 55
-left as-is (already daily/weekly + enabled): 187
-errors: 0
+=== REVIVED ENGINE HEALTH (output freshness) ===
+  justhodl-dealer-gex            FRESH ✓
+  justhodl-options-gamma         FRESH ✓
+  justhodl-etf-flows             FRESH ✓
+  justhodl-polygon-options-flow  FRESH ✓
+  justhodl-vol-regime            FRESH ✓
+  justhodl-rotation-chain        FRESH ✓
+  justhodl-exchange-flows        FRESH ✓
+  justhodl-event-flow-monitor    FRESH ✓
+  justhodl-bond-vol              FRESH ✓
+  justhodl-vol-target-unwind     FRESH ✓
 
--- intraday -> daily (all) --
-  aiapi-hourly-collection                        rate(1 hour)           -> cron(6 21 * * ? *)
-  alpha-compass-3h                               cron(50 */3 * * ? *)   -> cron(50 18 * * ? *)
-  alphavantage-market-update                     cron(*/15 13-21 ? * MON-FRI *) -> cron(45 11 * * ? *)
-  buzz-velocity-4x-daily                         cron(0 10,14,18,22 * * ? *) -> cron(49 14 * * ? *)
-  canary-grid-daily                              cron(30 */6 * * ? *)   -> cron(34 12 * * ? *)
-  capitulation-3h                                cron(45 */3 * * ? *)   -> cron(31 17 * * ? *)
-  carry-surface-4h                               rate(4 hours)          -> cron(9 21 * * ? *)
-  cds-proxy-tri-daily                            cron(0 13,17,21 ? * MON-FRI *) -> cron(13 18 * * ? *)
-  crisis-composite-hourly                        cron(15 * * * ? *)     -> cron(5 17 * * ? *)
-  cross-asset-confirm-3h                         rate(3 hours)          -> cron(10 15 * * ? *)
-  crypto-opportunities-4h                        cron(0 0,4,8,12,16,20 ? * * *) -> cron(42 15 * * ? *)
-  divergence-v2-2hourly                          rate(2 hours)          -> cron(0 17 * * ? *)
-  event-flow-monitor-hourly                      cron(0 * * * ? *)      -> cron(53 12 * * ? *)
-  finviz-groups-3x                               cron(15 14,18,22 * * ? *) -> cron(15 19 * * ? *)
-  finviz-news-4x                                 cron(30 12,15,18,21 * * ? *) -> cron(38 20 * * ? *)
-  finviz-signals-3x                              cron(0 14,18,21 * * ? *) -> cron(45 16 * * ? *)
-  fleet-freshness-monitor-30min                  rate(30 minutes)       -> cron(12 12 * * ? *)
-  future-intel-2x-daily                          cron(30 12,20 * * ? *) -> cron(40 16 * * ? *)
-  intraday-pulse-minute                          rate(1 minute)         -> cron(13 12 * * ? *)
-  jhk-tick-15min                                 cron(0/15 * * * ? *)   -> cron(53 17 * * ? *)
-  jhk-tick-30min                                 cron(0/30 * * * ? *)   -> cron(55 14 * * ? *)
-  jhk-tick-4hourly                               cron(0 0/4 * * ? *)    -> cron(6 18 * * ? *)
-  jhk-tick-5min                                  cron(0/5 * * * ? *)    -> cron(24 21 * * ? *)
-  jhk-tick-every_3h                              cron(0 0/3 * * ? *)    -> cron(17 19 * * ? *)
-  jhk-tick-every_6h                              cron(0 0/6 * * ? *)    -> cron(22 16 * * ? *)
-  jhk-tick-hourly                                cron(0 * * * ? *)      -> cron(51 17 * * ? *)
-  jhk-tick-hourly-orchestrate                    cron(5 * * * ? *)      -> cron(32 16 * * ? *)
-  justhodl-13f-positions-6h                      rate(6 hours)          -> cron(11 21 * * ? *)
-  justhodl-ai-brief-4h                           cron(5 0,4,8,12,16,20 ? * * *) -> cron(23 17 * * ? *)
-  justhodl-alpha-research-6h                     rate(6 hours)          -> cron(52 21 * * ? *)
-  justhodl-alpha-score-hourly                    cron(7 * * * ? *)      -> cron(38 11 * * ? *)
-  justhodl-anomaly-detector-hourly               cron(33 * * * ? *)     -> cron(24 19 * * ? *)
-  justhodl-apex-fusion-3h                        rate(3 hours)          -> cron(21 12 * * ? *)
-  justhodl-auction-crisis-active                 cron(0/15 14-22 ? * MON-FRI *) -> cron(50 19 * * ? *)
-  justhodl-best-setups-hourly                    cron(10 * * * ? *)     -> cron(14 15 * * ? *)
-  justhodl-crisis-plumbing-refresh               rate(6 hours)          -> cron(54 14 * * ? *)
-  justhodl-crypto-cycle-risk-6h                  rate(6 hours)          -> cron(2 16 * * ? *)
-  justhodl-early-movers-twice-per-hour           cron(15,45 * * * ? *)  -> cron(46 19 * * ? *)
-  justhodl-earnings-tracker-6h                   rate(6 hours)          -> cron(30 11 * * ? *)
-  justhodl-edge-6h                               rate(6 hours)          -> cron(41 21 * * ? *)
-  justhodl-engine-conflicts-6h                   rate(6 hours)          -> cron(48 12 * * ? *)
-  justhodl-etf-flows-6h                          rate(6 hours)          -> cron(35 11 * * ? *)
-  justhodl-eurodollar-stress-2h                  cron(10 0/2 * * ? *)   -> cron(16 21 * * ? *)
-  justhodl-exchange-flows-6h                     rate(6 hours)          -> cron(10 15 * * ? *)
-  justhodl-fleet-error-6h                        rate(6 hours)          -> cron(13 13 * * ? *)
-  justhodl-fleet-freshness-hourly                rate(1 hour)           -> cron(52 19 * * ? *)
-  justhodl-fleet-freshness-monitor-sched         rate(1 hour)           -> cron(10 20 * * ? *)
-  justhodl-fleet-monitor-6h                      rate(6 hours)          -> cron(36 19 * * ? *)
-  justhodl-fleet-monitor-sched                   rate(6 hours)          -> cron(38 14 * * ? *)
-  justhodl-forensic-screen-12h                   rate(12 hours)         -> cron(26 17 * * ? *)
-  justhodl-freshness-30m                         rate(30 minutes)       -> cron(56 17 * * ? *)
-  justhodl-kill-switch-check                     rate(10 minutes)       -> cron(56 20 * * ? *)
-  justhodl-macro-nowcast-6h                      rate(6 hours)          -> cron(43 18 * * ? *)
-  justhodl-macro-surprise-6h                     rate(6 hours)          -> cron(49 21 * * ? *)
-  justhodl-narrative-vs-tape-4h                  rate(4 hours)          -> cron(23 21 * * ? *)
-  justhodl-onchain-ratios-6h                     rate(6 hours)          -> cron(31 15 * * ? *)
-  justhodl-options-flow-30m                      rate(30 minutes)       -> cron(33 15 * * ? *)
-  justhodl-outcome-checker-4h                    cron(20 1/4 * * ? *)   -> cron(29 21 * * ? *)
-  justhodl-portfolio-catalysts-3x-daily          cron(0 11,17,23 * * ? *) -> cron(5 14 * * ? *)
-  justhodl-position-sizer-6h                     rate(6 hours)          -> cron(9 13 * * ? *)
-  justhodl-retail-sentiment-30min                cron(0,30 * ? * * *)   -> cron(10 19 * * ? *)
-  justhodl-sector-rotation-6h                    cron(15 1/6 * * ? *)   -> cron(12 18 * * ? *)
-  justhodl-sector-rotation-hourly                cron(38 * * * ? *)     -> cron(58 16 * * ? *)
-  justhodl-short-interest-6h                     rate(6 hours)          -> cron(20 12 * * ? *)
-  justhodl-smart-wake-hourly                     rate(1 hour)           -> cron(10 11 * * ? *)
-  justhodl-system-signal-logger-6h               rate(6 hours)          -> cron(26 12 * * ? *)
-  justhodl-telegram-alerts                       rate(2 hours)          -> cron(44 11 * * ? *)
-  justhodl-theme-cascade-twice-per-hour          cron(20,50 * * * ? *)  -> cron(54 13 * * ? *)
-  justhodl-ticket-ai-rationale-hourly            cron(5 * * * ? *)      -> cron(16 11 * * ? *)
-  justhodl-wave-signal-logger-6h                 cron(30 0,6,12,18 ? * * *) -> cron(23 12 * * ? *)
-  justhodl-yield-curve-6h                        rate(6 hours)          -> cron(52 13 * * ? *)
-  lce-every-6h                                   rate(6 hours)          -> cron(22 18 * * ? *)
-  liquidity-pulse-6h                             rate(6 hours)          -> cron(3 16 * * ? *)
-  multi-agent-economic-hourly                    rate(1 hour)           -> cron(21 15 * * ? *)
-  multi-agent-market-15min                       cron(*/15 13-21 ? * MON-FRI *) -> cron(39 17 * * ? *)
-  multi-agent-orchestrator-schedule              cron(*/5 9-16 ? * MON-FRI *) -> cron(29 14 * * ? *)
-  near-miss-monitor-hourly                       cron(30 * * * ? *)     -> cron(58 21 * * ? *)
-  pairs-scanner-6hourly                          rate(6 hours)          -> cron(42 14 * * ? *)
-  rotation-chain-2x-daily                        cron(0 12,20 * * ? *)  -> cron(50 15 * * ? *)
-  sec-filings-intel-3x-daily                     cron(0 9,15,21 * * ? *) -> cron(7 21 * * ? *)
-  sector-heatmap-30m                             cron(*/30 13-21 ? * MON-FRI *) -> cron(18 19 * * ? *)
-  signal-board-3h                                cron(15 */3 * * ? *)   -> cron(17 16 * * ? *)
-  ticker-trends-2x-daily                         cron(0 13,21 * * ? *)  -> cron(2 17 * * ? *)
+=== DIAGNOSTICS for not-yet-fresh (CloudWatch tail) ===
 
--- re-enabled (all) --
-  aiapi-hourly-collection                        (was DISABLED)
-  alpha-compass-3h                               (was DISABLED)
-  alphavantage-market-update                     (was DISABLED)
-  buzz-velocity-4x-daily                         (was DISABLED)
-  capitulation-3h                                (was DISABLED)
-  carry-surface-4h                               (was DISABLED)
-  cds-proxy-tri-daily                            (was DISABLED)
-  cross-asset-confirm-3h                         (was DISABLED)
-  crypto-opportunities-4h                        (was DISABLED)
-  divergence-v2-2hourly                          (was DISABLED)
-  event-flow-monitor-hourly                      (was DISABLED)
-  future-intel-2x-daily                          (was DISABLED)
-  jhk-tick-15min                                 (was DISABLED)
-  jhk-tick-30min                                 (was DISABLED)
-  jhk-tick-4hourly                               (was DISABLED)
-  jhk-tick-5min                                  (was DISABLED)
-  jhk-tick-every_3h                              (was DISABLED)
-  jhk-tick-every_6h                              (was DISABLED)
-  jhk-tick-hourly                                (was DISABLED)
-  jhk-tick-hourly-orchestrate                    (was DISABLED)
-  justhodl-13f-positions-6h                      (was DISABLED)
-  justhodl-anomaly-detector-hourly               (was DISABLED)
-  justhodl-crisis-plumbing-refresh               (was DISABLED)
-  justhodl-crypto-cycle-risk-6h                  (was DISABLED)
-  justhodl-dealer-gex-hourly                     (was DISABLED)
-  justhodl-early-movers-twice-per-hour           (was DISABLED)
-  justhodl-earnings-tracker-6h                   (was DISABLED)
-  justhodl-edge-6h                               (was DISABLED)
-  justhodl-engine-conflicts-6h                   (was DISABLED)
-  justhodl-etf-flows-6h                          (was DISABLED)
-  justhodl-exchange-flows-6h                     (was DISABLED)
-  justhodl-forensic-screen-12h                   (was DISABLED)
-  justhodl-macro-nowcast-6h                      (was DISABLED)
-  justhodl-macro-surprise-6h                     (was DISABLED)
-  justhodl-narrative-vs-tape-4h                  (was DISABLED)
-  justhodl-onchain-ratios-6h                     (was DISABLED)
-  justhodl-options-flow-30m                      (was DISABLED)
-  justhodl-portfolio-catalysts-3x-daily          (was DISABLED)
-  justhodl-position-sizer-6h                     (was DISABLED)
-  justhodl-system-signal-logger-6h               (was DISABLED)
-  justhodl-telegram-alerts                       (was DISABLED)
-  justhodl-theme-cascade-twice-per-hour          (was DISABLED)
-  justhodl-ticket-ai-rationale-hourly            (was DISABLED)
-  justhodl-wave-signal-logger-6h                 (was DISABLED)
-  justhodl-yield-curve-6h                        (was DISABLED)
-  lce-every-6h                                   (was DISABLED)
-  liquidity-pulse-6h                             (was DISABLED)
-  multi-agent-economic-hourly                    (was DISABLED)
-  multi-agent-market-15min                       (was DISABLED)
-  multi-agent-orchestrator-schedule              (was DISABLED)
-  near-miss-monitor-hourly                       (was DISABLED)
-  pairs-scanner-6hourly                          (was DISABLED)
-  rotation-chain-2x-daily                        (was DISABLED)
-  sec-filings-intel-3x-daily                     (was DISABLED)
-  sector-heatmap-30m                             (was DISABLED)
+=== ETF FUND-FLOW OUTPUT (the $99 data) ===
 
-=== REFRESH STALE ENGINES NOW (async) ===
-  invoked justhodl-dealer-gex
-  invoked justhodl-options-gamma
-  invoked justhodl-etf-flows
-  invoked justhodl-polygon-options-flow
-  invoked justhodl-vol-regime
-  invoked justhodl-rotation-chain
-  invoked justhodl-exchange-flows
-  invoked justhodl-event-flow-monitor
-  invoked justhodl-bond-vol
-  invoked justhodl-vol-target-unwind
-  invoked justhodl-etf-fund-flows
-async-invoked 11/11
+=== SAMPLES ===
+  dealer-gex (GEX) keys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'calculation_config', 'market_composite', 'squeeze_candidates', 'underlyings']
+  options-gamma keys: ['generated_at', 'underlying', 'spot', 'vix', 'regime', 'interpretation', 'total_gex', 'by_expiry', 'by_strike', 'zero_gamma_strike']
