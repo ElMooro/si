@@ -1,20 +1,12 @@
-  justhodl-signal-board: update OK (attempt 0)
-  justhodl-master-ranker: update OK (attempt 1)
+  justhodl-best-setups: update OK (attempt 0)
+  justhodl-morning-intelligence: update OK (attempt 0)
+morning-intel LastModified: 2026-06-19T22:11:12.000+0000 size: 21721
 
-=== signal-board ===
-invoke: {'statusCode': 200, 'body': '{"ok": true, "composite_posture": "NEUTRAL / MIXED", "composite_signal": 0.03, "n_live": 73, "n_stale": 11}'}
-RORO feed present: True
-  RORO entry: {"name": null, "category": "cross-asset", "signal": 1, "note": null, "value": null, "state": null}
+=== best-setups ===
+invoke: {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': '{"ok": true, "n_setups": 395, "strong_buy": 5, "buy": 6, "weight_source": "prior-o
+setups: 50 | with RORO mult != 1.0: 0
 
-=== master-ranker ===
-invoke: {'statusCode': 200, 'body': '{"ok": true, "n_tickers": 25, "n_macro": 5, "n_tier_3_plus": 66, "n_tier_5_plus": 20, "regime": "SLOWING", "duration_s": 3.01}'}
-top-level risk_regime: {"score": 24.0, "regime": "MILD_RISK_ON", "posture": {"beta_tilt": "neutral_to_long", "size_mult": 1.05, "hedge": "normal"}, "tells": ["RISK-ON: CHF haven (USDCHF) (+1.63% 5d)", "RISK-ON: Gold haven (-3.24% 5d)", "RISK-OFF: NZD risk currenc
-top_tickers: 25 | with RORO tilt != 1.0: 3
-  NEM    score=137.3 roro_mult=1.04 cf_mult=1.06
-       … RORO MILD_RISK_ON risk-on tilt (Basic Materials)
-  NVDA   score=125.3 roro_mult=1.04 cf_mult=1.06
-       … RORO MILD_RISK_ON risk-on tilt (Technology)
-  FOXA   score=104.0 roro_mult=1.04 cf_mult=1.0
-       … RORO MILD_RISK_ON risk-on tilt (Communication Services)
+=== morning-intelligence RORO line (offline render from live data) ===
+  RISK_REGIME(RORO): 24.0/100 (MILD_RISK_ON) — cross-asset risk-on/off from Massive FX+options + FRED VIX/credit. Posture: neutral_to_long size×1.05. Tells: RISK-ON: CHF haven (USDCHF) (+1.63% 5d); RISK-ON: Gold haven (-3.24% 5d); RISK-OFF: NZD risk currency (-2.25% 5d); RISK-OFF: Gold/Silver ratio (+4.63% 5d)
 
-DONE 1944
+DONE 1945
