@@ -26,6 +26,7 @@ import json
 import time
 import urllib.request
 import urllib.parse
+import urllib.error
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -50,14 +51,22 @@ def _num(x):
         return None
 
 
-def _fmp(path):
+def _fmp(path, tries=4):
     url = f"https://financialmodelingprep.com/stable/{path}{'&' if '?' in path else '?'}apikey={FMP}"
-    try:
-        raw = urllib.request.urlopen(
-            urllib.request.Request(url, headers={"User-Agent": "jh-rerate"}), timeout=15).read()
-        return json.loads(raw)
-    except Exception:
-        return None
+    for i in range(tries):
+        try:
+            raw = urllib.request.urlopen(
+                urllib.request.Request(url, headers={"User-Agent": "jh-rerate"}), timeout=15).read()
+            return json.loads(raw)
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 502, 503):      # rate-limited / transient -> backoff
+                time.sleep(1.2 * (i + 1))
+                continue
+            return None
+        except Exception:
+            time.sleep(0.4)
+            continue
+    return None
 
 
 def _read(key):
@@ -154,7 +163,7 @@ def lambda_handler(event, context):
 
     syms = list(uni.keys())[:220]
     fund = {}
-    with ThreadPoolExecutor(max_workers=18) as ex:
+    with ThreadPoolExecutor(max_workers=6) as ex:
         fut = {ex.submit(fundamentals, s): s for s in syms}
         for f in as_completed(fut):
             r = f.result()
