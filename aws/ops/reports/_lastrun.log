@@ -1,24 +1,59 @@
-justhodl-master-ranker: code update OK (attempt 0)
-invoke: {'statusCode': 200, 'body': '{"ok": true, "n_tickers": 25, "n_macro": 5, "n_tier_3_plus": 66, "n_tier_5_plus": 20, "regime": "SLOWING", "duration_s": 2.26}'}
+======================================================================
+(A) data/engine-alpha.json
+======================================================================
+generated_at: 2026-06-19T23:38:26.564728+00:00 | benchmark: SPY | fdr_q: 0.1
+n_alpha_proven: 3 | n_alpha_negative: 28
+PROVEN  : ['crypto_risk_score', 'squeeze_risk', 'crisis_dfii10_vs_gld']
+NEGATIVE: ['correlation_break', 'ml_risk', 'edge_regime', 'crisis_sofr_iorb', 'crypto_fear_greed', 'momentum_gld', 'etf_rotation', 'corr_break_composite_vs_vxx', 'plumbing_stress', 'divergence_extreme', 'crisis_rate_diff_eur_3m', 'corr_break_top_pair', 'corr_break_composite_vs_spy', 'sustained_target_equity', 'macro_frontrun_sniffer_setup', 'momentum_spy', 'crisis_rate_diff_jpy_3m', 'crisis_broad_dollar_vs_spy', 'market_phase', 'carry_risk', 'crisis_broad_dollar_vs_eem', 'macro_composite_z', 'apex_fusion', 'crisis_obfr_iorb', 'eurodollar_stress', 'crisis_dfii10_vs_spy', 'analog_signal', 'sector_breadth']
 
-top_tickers=25 | as_of=2026-06-19T23:46:05+00:00
-stale_feeds_excluded: []
-missing_feeds: []
+  top/bottom by NET t-stat (signal | net_t | net_excess% | n | status):
+   + ('crisis_dfii10_vs_gld', 29.44, 5.121, 250, 'ALPHA_PROVEN')
+   + ('crypto_risk_score', 6.19, 2.102, 236, 'ALPHA_PROVEN')
+   + ('squeeze_risk', 3.26, 1.397, 843, 'ALPHA_PROVEN')
+   + ('momentum_uso', 0.13, 0.04, 462, 'NO_ALPHA')
+   + ('equity_convergence_fingerprint', 0.02, 0.01, 21, 'NO_ALPHA')
+   + ('khalid_index', -0.22, -0.025, 70, 'NO_ALPHA')
+   - ('crisis_rate_diff_jpy_3m', -10.67, -0.424, 270, 'ALPHA_NEGATIVE')
+   - ('corr_break_composite_vs_vxx', -12.54, -4.144, 294, 'ALPHA_NEGATIVE')
+   - ('momentum_gld', -13.8, -1.278, 380, 'ALPHA_NEGATIVE')
+   - ('crypto_fear_greed', -14.0, -3.431, 589, 'ALPHA_NEGATIVE')
+   - ('correlation_break', -20.77, -1.641, 1910, 'ALPHA_NEGATIVE')
+   - ('ml_risk', -68.58, -0.306, 92, 'ALPHA_NEGATIVE')
 
-feed freshness (oldest first):
-  data/pairs-scanner.json                age=277.8h  ok
-  data/future-intelligence.json          age=275.3h  ok
-  data/divergence-v2.json                age=275.0h  ok
-  data/supply-inflection.json            age=16.8h  ok
-  data/pead-signals.json                 age=15.8h  ok
-  data/theme-tiers.json                  age=15.7h  ok
-  data/asymmetric-scorer.json            age=12.8h  ok
-  data/eps-revision-velocity.json        age=12.8h  ok
-  data/deep-value.json                   age=12.8h  ok
-  data/nobrainers.json                   age=12.8h  ok
-  data/momentum-breakout.json            age=12.8h  ok
-  data/volatility-squeeze.json           age=12.8h  ok
-  data/pre-pump-signals.json             age=12.8h  ok
-  data/revenue-acceleration.json         age=12.8h  ok
+======================================================================
+(B) data/meta-labeler.json
+======================================================================
+status: warming_up | n_training_rows: 40 | min_rows_to_activate: 300
+uplift_pp: None | brier: 0.1927 | generated_at: 2026-06-19T23:39:01.130901+00:00
 
-DONE 1951
+======================================================================
+(C) data/signal-scorecard.json  -> alpha block
+======================================================================
+n_engines_tested: 37 | proven: 3 | negative: 28 | cost%: 0.3
+    {'signal_type': 'crisis_dfii10_vs_gld', 'alpha_status': 'ALPHA_PROVEN', 'gross_excess_pct': 5.421, 'net_excess_pct': 5.121, 'net_t_stat': 29.44, 'net_info_ratio': 1.862, 'alpha_hit_rate': 0.992, 'n': 250}
+    {'signal_type': 'crypto_risk_score', 'alpha_status': 'ALPHA_PROVEN', 'gross_excess_pct': 2.402, 'net_excess_pct': 2.102, 'net_t_stat': 6.19, 'net_info_ratio': 0.403, 'alpha_hit_rate': 0.589, 'n': 236}
+    {'signal_type': 'squeeze_risk', 'alpha_status': 'ALPHA_PROVEN', 'gross_excess_pct': 1.697, 'net_excess_pct': 1.397, 'net_t_stat': 3.26, 'net_info_ratio': 0.112, 'alpha_hit_rate': 0.504, 'n': 843}
+    {'signal_type': 'momentum_uso', 'alpha_status': 'NO_ALPHA', 'gross_excess_pct': 0.34, 'net_excess_pct': 0.04, 'net_t_stat': 0.13, 'net_info_ratio': 0.006, 'alpha_hit_rate': 0.511, 'n': 462}
+    {'signal_type': 'equity_convergence_fingerprint', 'alpha_status': 'NO_ALPHA', 'gross_excess_pct': 0.31, 'net_excess_pct': 0.01, 'net_t_stat': 0.02, 'net_info_ratio': 0.005, 'alpha_hit_rate': 0.524, 'n': 21}
+
+======================================================================
+(D) STALE-FEED SCHEDULE PROBE
+======================================================================
+
+--- feed: data/pairs-scanner.json ---
+  lambda: justhodl-pairs-scanner  | last_modified: 2026-05-30T18:45:25.000+0000  | state: Active
+  rule: pairs-scanner-6hourly  state=ENABLED  sched=cron(42 14 * * ? *)
+  last log event: 278.0h ago
+    (no obvious errors in newest stream)
+
+--- feed: data/future-intelligence.json ---
+  lambda: justhodl-future-intelligence  | last_modified: 2026-05-31T15:03:25.000+0000  | state: Active
+  rule: future-intel-2x-daily  state=ENABLED  sched=cron(40 16 * * ? *)
+  rule: future-intel-2x-daily  state=ENABLED  sched=cron(40 16 * * ? *)
+  last log event: 275.4h ago
+    (no obvious errors in newest stream)
+
+--- feed: data/divergence-v2.json ---
+  no lambda found among ['justhodl-divergence-v2', 'justhodl-divergence', 'justhodl-divergence-v2-engine']
+
+DONE 1952
