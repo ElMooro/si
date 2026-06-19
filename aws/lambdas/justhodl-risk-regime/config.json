@@ -1,0 +1,12 @@
+{
+  "timeout": 120,
+  "memory": 512,
+  "environment": {
+    "FRED_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "schedule": {
+    "expression": "cron(45 12 * * MON-FRI *)",
+    "name": "justhodl-risk-regime-daily",
+    "description": "Daily 8:45am ET — authoritative cross-asset RORO synthesizer (after fx-regime)"
+  }
+}
