@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-massive-signals",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Unified Massive-data layer: gamma squeeze + unusual options flow per ticker + market context (gamma regime, ETF sector $ flows, small-cap bid, FX, futures).",
+  "schedule": { "rule_name": "massive-signals-daily", "cron": "cron(0 22 * * ? *)", "description": "Daily Massive signals 22:00 UTC (after producers, before harvester)" }
+}
