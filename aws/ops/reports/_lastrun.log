@@ -1,43 +1,6 @@
-=== MASSIVE (Polygon) KEY — WHAT'S UNLOCKED ===
--- Stocks (paid: Stocks Starter) --
-  [UNLOCKED] stock prev             HTTP 200  OK results=1
-  [UNLOCKED] stock 1m bars          HTTP 200  OK results=5
--- Options (paid: Options Starter $29) --
-  [UNLOCKED] opt contracts          HTTP 200  OK results=3
-  [UNLOCKED] opt chain snapshot     HTTP 200  OK results=3
-  [UNLOCKED] opt contract bars      HTTP 200  OK results=2
--- Currencies / FX (paid: Currencies Starter $49) --
-  [UNLOCKED] fx EURUSD bars         HTTP 200  OK results=5
-  [UNLOCKED] fx prev USDJPY         HTTP 200  OK results=1
-  [NO/LIMITED] fx last quote          HTTP 200  success
--- Indices (paid: Indices Basic $0) --
-  [NO/LIMITED] idx SPX bars           HTTP 403  {"status":"NOT_AUTHORIZED","request_id":"e506841f4091b3940f35da3eb3844
-  [NO/LIMITED] idx snapshot           HTTP 403  {"status":"NOT_AUTHORIZED","request_id":"f3b7c5ed0761a3ced33b0f893a56d
--- Futures (paid: Futures Starter $29) --
-  [NO/LIMITED] fut contracts          HTTP 404  404 page not found
-  [NO/LIMITED] fut products           HTTP 404  404 page not found
-  [UNLOCKED] fut aggs ES            HTTP 200  OK results=3
-
-=== CURRENT POLYGON USAGE IN CODEBASE (what we actually call) ===
-(none)
-lambdas referencing polygon/massive: 0
-
--- endpoint CLASSES used --
-   stock aggs       used in 0 lambdas
-   FX (C:)          used in 0 lambdas
-   options (O:)     used in 0 lambdas
-   indices (I:)     used in 0 lambdas
-   futures          used in 0 lambdas
-
-=== EURODOLLAR / DOLLAR-SHORTAGE ENGINES — do they use FX? ===
-justhodl-eurodollar-plumbing: NO direct FX (FRED proxies only)
-justhodl-eurodollar-stress: NO direct FX (FRED proxies only)
-justhodl-sovereign-fiscal: NO direct FX (FRED proxies only)
-
-UPDATED
-SCHEDULED 12:00 UTC
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"activist\": 60, \"clusters\": 1}"}
-activist=60 (w/ticker 30) clusters=1 scanned=55
-ACTIVIST w/ticker: [('NEGG', 'SC 13D', '2024-12-17'), ('KARX', 'SC 13D', '2024-12-17'), ('MNPR', 'SC 13D', '2024-12-17'), ('FXNC', 'SC 13D', '2024-12-17'), ('OMCC', 'SC 13D', '2024-12-17'), ('BRIA', 'SC 13D', '2024-12-17'), ('RCUS', 'SC 13D', '2024-12-17'), ('STIM', 'SC 13D', '2024-12-17')]
-FORM4 CLUSTERS: [('TSM', 31, 6281)]
-picks: ['NEGG', 'KARX', 'MNPR', 'FXNC', 'OMCC', 'BRIA', 'RCUS', 'STIM', 'NAMSW', 'AIM', 'NC', 'ZSTK', 'VTS', 'BETRW']
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"activist\": 1, \"clusters\": 1}"}
+activist=1 (w/ticker 1) clusters=1
+RECENT ACTIVIST (should be June 2026):
+   GNK    SC 13D/A 2026-06-17  SC 13D/A - GENCO SHIPPING & TRADING LTD (00013
+FORM4 CLUSTERS: [('TSM', 31)]
+picks: ['GNK', 'TSM']
