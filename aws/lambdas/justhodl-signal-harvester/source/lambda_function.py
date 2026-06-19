@@ -71,9 +71,10 @@ LIST_KEYS = [
     "rising_and_cheap", "squeeze_candidates", "top_candidates", "all_qualifying", "candidates",
     "top_setups", "setups", "picks", "top_25_by_score", "top_consensus_25", "ai_deals",
     "top_smart_money_only", "best_setups", "top_ideas", "qualifying", "names", "deals",
+    "top_pick_cascade",
 ]
 SYM_KEYS = ("symbol", "ticker", "t", "sym")
-SCORE_KEYS = ("score", "composite", "squeeze_score", "rotation_score", "underlooked",
+SCORE_KEYS = ("score", "composite", "squeeze_score", "rotation_score", "pump_probability", "underlooked",
               "momentum_score", "conviction", "rank_score", "attractiveness", "unpriced_z")
 # infra / non-opportunity outputs to skip
 SKIP_SUBSTR = ("universe", "manifest", "schedule", "history", "snapshot", "state", "ledger",

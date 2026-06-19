@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Capital Flow Radar · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#111722;--panel2:#0d131c;--line:#1e2836;--txt:#d6e0ee;--dim:#7c8aa0;--grn:#16c784;--red:#ea3943;--amb:#f0a020;--cyan:#3fb6dc;--blu:#4d7cfe}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:13px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;padding:18px 14px 60px}
+a{color:var(--cyan);text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:20px;letter-spacing:.5px;font-weight:700}
+.sub{color:var(--dim);font-size:12px;margin-top:3px}
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+.tide{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;font-size:12px}
+.chip b{color:#fff}
+.chip.on{border-color:var(--grn);color:var(--grn)} .chip.off{border-color:var(--red);color:var(--red)} .chip.neu{border-color:var(--amb);color:var(--amb)}
+.statbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.stat .v{font-size:21px;font-weight:700;color:#fff} .stat .l{color:var(--dim);font-size:11px;margin-top:2px}
+h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:22px 0 10px;border-left:3px solid var(--blu);padding-left:9px}
+h2.g{border-color:var(--grn)} h2.r{border-color:var(--red)} h2.a{border-color:var(--amb)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 13px;position:relative;overflow:hidden}
+.card.pump{border-left:4px solid var(--grn)} .card.over{border-left:4px solid var(--red)}
+.card .nm{font-size:15px;font-weight:700;color:#fff}
+.card .rg{font-size:11px;margin:3px 0 8px} .pump .rg{color:var(--grn)} .over .rg{color:var(--red)}
+.pp{position:absolute;top:11px;right:12px;font-size:22px;font-weight:800}
+.pump .pp{color:var(--grn)} .over .pp{color:var(--red)}
+.row{display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0;border-top:1px dashed var(--line)}
+.row .k{color:var(--dim)}
+.flowpos{color:var(--grn)} .flowneg{color:var(--red)}
+.stocks{margin-top:8px;font-size:11px;color:var(--cyan);word-spacing:2px}
+.verdict{font-size:11px;color:var(--dim);margin-top:7px;font-style:italic;line-height:1.45}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:680px){.cols{grid-template-columns:1fr}}
+.lev{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:6px 0}
+.lev .h{padding:8px 13px;font-weight:700;border-bottom:1px solid var(--line)}
+.lev .h.g{color:var(--grn)} .lev .h.r{color:var(--red)}
+.lev .li{display:flex;justify-content:space-between;padding:6px 13px;font-size:12px;border-bottom:1px solid var(--panel2)}
+.lev .li .th{color:var(--txt);text-transform:capitalize}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--dim);font-weight:600;text-transform:uppercase;font-size:10.5px;letter-spacing:.5px;cursor:pointer;position:sticky;top:0;background:var(--bg)}
+td:first-child,th:first-child{text-align:left}
+tr:hover td{background:var(--panel2)}
+.tag{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700}
+.tag.pump{background:rgba(22,199,132,.15);color:var(--grn)} .tag.over{background:rgba(234,57,67,.15);color:var(--red)}
+.tag.steady{background:rgba(63,182,220,.13);color:var(--cyan)} .tag.late{background:rgba(240,160,32,.14);color:var(--amb)} .tag.out{background:rgba(234,57,67,.1);color:var(--red)}
+.div{color:var(--red);font-weight:700}
+.loading{color:var(--dim);padding:40px;text-align:center}
+.foot{color:var(--dim);font-size:11px;margin-top:22px;border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
+.cascade .card{border-left:4px solid var(--cyan)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1>⚡ Capital Flow Radar</h1>
+      <div class="sub">Real dollars into/out of each sector's ETF complex · accelerating inflow = pump setup · outflow/reversal = party over</div>
+    </div>
+    <div class="tide" id="tide"></div>
+  </div>
+  <div class="statbar" id="statbar"></div>
+  <div id="content"><div class="loading">⟳ tracking capital flows…</div></div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
+  `https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,
+  `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}throw new Error("sources failed");}
+const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=v=>{if(v==null)return"—";const a=Math.abs(v);const s=v<0?"-":"+";if(a>=1e9)return s+"$"+(a/1e9).toFixed(2)+"B";if(a>=1e6)return s+"$"+(a/1e6).toFixed(0)+"M";if(a>=1e3)return s+"$"+(a/1e3).toFixed(0)+"K";return s+"$"+a.toFixed(0);};
+const cls=v=>v==null?"":v>=0?"flowpos":"flowneg";
+function tagFor(rg){rg=rg||"";if(rg.includes("PUMP SETUP"))return'<span class="tag pump">PUMP SETUP</span>';if(rg.includes("PARTY OVER")||rg.includes("TOP WARNING"))return'<span class="tag over">PARTY OVER</span>';if(rg.includes("LATE"))return'<span class="tag late">LATE</span>';if(rg.includes("OUTFLOW"))return'<span class="tag out">OUTFLOW</span>';return'<span class="tag steady">STEADY</span>';}
+
+function card(c,kind){
+  const div=c.flow_price_divergence?` <span class="div">⚠ DIVERGENCE</span>`:"";
+  const st=(c.ref_stocks||[]).slice(0,8).join(" ");
+  const conv=(c.top_conviction_stocks||[]);
+  return `<div class="card ${kind}">
+    <div class="pp">${Math.round(c.pump_probability)}</div>
+    <div class="nm">${esc(c.complex)}</div>
+    <div class="rg">${esc((c.regime||"").split("—")[1]||c.regime)}${div}</div>
+    <div class="row"><span class="k">Net flow 5d</span><span class="${cls(c.net_flow_5d_usd)}">${fmt(c.net_flow_5d_usd)}</span></div>
+    <div class="row"><span class="k">Acceleration/day</span><span class="${cls(c.acceleration_usd_per_day)}">${fmt(c.acceleration_usd_per_day)}</span></div>
+    <div class="row"><span class="k">Breadth · persist</span><span>${(c.breadth*100||0).toFixed(0)}% · ${c.persistence_days||0}d</span></div>
+    <div class="row"><span class="k">Flow z · price5d</span><span>${c.flow_zscore_90d??"—"} · ${c.price_5d_pct==null?"—":c.price_5d_pct+"%"}</span></div>
+    <div class="row"><span class="k">Lev positioning</span><span>${esc(c.leveraged_positioning||"—")}</span></div>
+    ${conv.length?`<div class="stocks">★ ${conv.join(" ")} <span style="color:var(--dim)">(options agree)</span></div>`:(st?`<div class="stocks">${st}</div>`:"")}
+    <div class="verdict">${esc(c.verdict||"")}</div>
+  </div>`;
+}
+
+function render(d){
+  // dollar tide + risk appetite
+  const dt=d.dollar_tide||{}, ls=d.leveraged_sentiment||{};
+  const ra=ls.risk_appetite||"—";
+  const raC=ra==="RISK_ON"?"on":ra==="RISK_OFF"?"off":"neu";
+  const usd=dt.regime||"—"; const usdC=usd.includes("WEAKENING")?"on":usd.includes("STRENGTHENING")?"off":"neu";
+  document.getElementById("tide").innerHTML=
+    `<div class="chip ${usdC}">💵 Dollar: <b>${esc(usd)}</b> (${dt.usd_synthetic_20d_pct??"?"}% 20d)</div>`+
+    `<div class="chip ${raC}">📊 Leveraged risk: <b>${esc(ra)}</b></div>`;
+  // statbar
+  const pumps=d.pump_setups||[], over=d.party_over_alerts||[];
+  document.getElementById("statbar").innerHTML=
+    `<div class="stat"><div class="v" style="color:var(--grn)">${pumps.length}</div><div class="l">PUMP SETUPS (money in)</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--red)">${over.length}</div><div class="l">PARTY OVER (money out)</div></div>`+
+    `<div class="stat"><div class="v">${d.n_complexes||0}</div><div class="l">SECTOR COMPLEXES</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--cyan)">${fmt(ls.aggregate_bull_lev_inflow_5d)}</div><div class="l">BULL-LEV INFLOW 5D</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--amb)">${fmt(ls.aggregate_bear_lev_inflow_5d)}</div><div class="l">BEAR-LEV INFLOW 5D</div></div>`;
+
+  let h="";
+  if(pumps.length){h+=`<h2 class="g">🟢 Pump Setups — capital accelerating in</h2><div class="cards">${pumps.map(c=>card(c,"pump")).join("")}</div>`;}
+  if(over.length){h+=`<h2 class="r">🔴 Party Over — capital leaving / distribution</h2><div class="cards">${over.map(c=>card(c,"over")).join("")}</div>`;}
+
+  // leveraged positioning board
+  const mb=ls.most_bullish_positioning||[], mr=ls.most_bearish_positioning||[];
+  const li=r=>`<div class="li"><span class="th">${esc(r.theme.replace(/_/g," "))}</span><span class="${cls(r.net_leveraged_flow_5d)}">${fmt(r.net_leveraged_flow_5d)}</span></div>`;
+  h+=`<h2 class="a">⚖️ Leveraged Positioning — what investors are betting on (2x/3x bull vs bear flows)</h2>
+    <div class="cols">
+      <div class="lev"><div class="h g">▲ Most bullish leveraged</div>${mb.map(li).join("")}</div>
+      <div class="lev"><div class="h r">▼ Most bearish leveraged</div>${mr.map(li).join("")}</div>
+    </div>`;
+
+  // cascade
+  const cas=d.top_pick_cascade||[];
+  if(cas.length){h+=`<h2 class="g">🎯 Top Cascade — pump-setup sector + Massive options agree</h2><div class="cards cascade">`+
+    cas.map(x=>`<div class="card"><div class="nm">${esc(x.symbol)}</div><div class="rg" style="color:var(--cyan)">${esc(x.complex)} · pump ${Math.round(x.pump_probability)}</div><div class="verdict">${esc(x.why)}</div></div>`).join("")+`</div>`;}
+
+  // full table
+  const all=(d.complexes||[]).slice();
+  h+=`<h2>📋 All Sector Complexes</h2><div style="overflow-x:auto"><table id="tbl"><thead><tr>
+    <th>Complex</th><th>Pump</th><th>Regime</th><th>Net 5d</th><th>Net 21d</th><th>%AUM</th><th>Accel/d</th><th>Breadth</th><th>Persist</th><th>Flow z</th><th>Px 5d</th>
+    </tr></thead><tbody>`+
+    all.map(c=>`<tr>
+      <td>${esc(c.complex)}</td><td><b>${Math.round(c.pump_probability)}</b></td><td style="text-align:left">${tagFor(c.regime)}${c.flow_price_divergence?' <span class="div">⚠</span>':''}</td>
+      <td class="${cls(c.net_flow_5d_usd)}">${fmt(c.net_flow_5d_usd)}</td><td class="${cls(c.net_flow_21d_usd)}">${fmt(c.net_flow_21d_usd)}</td>
+      <td>${c.pct_aum_5d==null?"—":c.pct_aum_5d+"%"}</td><td class="${cls(c.acceleration_usd_per_day)}">${fmt(c.acceleration_usd_per_day)}</td>
+      <td>${(c.breadth*100||0).toFixed(0)}%</td><td>${c.persistence_days||0}d</td><td>${c.flow_zscore_90d??"—"}</td><td>${c.price_5d_pct==null?"—":c.price_5d_pct+"%"}</td>
+    </tr>`).join("")+`</tbody></table></div>`;
+
+  document.getElementById("content").innerHTML=h;
+  document.getElementById("foot").innerHTML=
+    `Data: ETF Global creations/redemptions (via Massive) + Massive FX/options · generated ${esc((d.generated_at||"").replace("T"," ").slice(0,16))} UTC · updates daily 22:30 UTC.<br>`+
+    esc(d.caveats||"")+" Research only — not investment advice.";
+}
+load("data/capital-flow-radar.json").then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load capital-flow-radar.json — '+esc(e.message)+'</div>';});
+setInterval(()=>load("data/capital-flow-radar.json").then(render).catch(()=>{}),300000);
+</script>
+</body>
+</html>

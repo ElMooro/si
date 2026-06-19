@@ -193,6 +193,61 @@ def compute_leveraged_sentiment(fmap):
     }
 
 
+STATE_KEY = "data/capital-flow-radar-state.json"
+
+
+def _fmt_m(v):
+    if v is None:
+        return "—"
+    a = abs(v)
+    sign = "-" if v < 0 else "+"
+    return sign + "$%.1fB" % (a / 1e9) if a >= 1e9 else sign + "$%dM" % (a / 1e6)
+
+
+def _send_telegram(msg):
+    import os
+    import urllib.parse
+    import urllib.request
+    tok = os.environ.get("TELEGRAM_TOKEN", "")
+    chat = os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not tok or not chat:
+        return
+    try:
+        body = urllib.parse.urlencode({"chat_id": chat, "text": msg, "parse_mode": "HTML",
+                                       "disable_web_page_preview": "true"}).encode()
+        urllib.request.urlopen(urllib.request.Request("https://api.telegram.org/bot%s/sendMessage" % tok, data=body), timeout=10)
+    except Exception as e:
+        print("[capital-flow-radar] telegram err", str(e)[:80])
+
+
+def _alert_transitions(pumps, over, dt, ls):
+    """Fire Telegram only on NEW pump setups / NEW party-over sectors vs the prior run."""
+    cur_p = [c["complex"] for c in pumps]
+    cur_o = [c["complex"] for c in over]
+    prior = _read(STATE_KEY)
+    s3.put_object(Bucket=S3_BUCKET, Key=STATE_KEY,
+                  Body=json.dumps({"pump": cur_p, "over": cur_o,
+                                   "ts": datetime.now(timezone.utc).isoformat()}).encode(),
+                  ContentType="application/json")
+    if not prior:
+        return  # first run — seed state silently, no alert spam
+    new_p = [c for c in pumps if c["complex"] not in (prior.get("pump") or [])]
+    new_o = [c for c in over if c["complex"] not in (prior.get("over") or [])]
+    if not new_p and not new_o:
+        return
+    lines = ["⚡ <b>CAPITAL FLOW RADAR</b>"]
+    if new_p:
+        lines.append("🟢 <b>NEW pump setups</b> (capital accelerating in):")
+        for c in new_p[:6]:
+            lines.append("  • %s — pump %d · net5d %s" % (c["complex"], round(c["pump_probability"]), _fmt_m(c.get("net_flow_5d_usd"))))
+    if new_o:
+        lines.append("🔴 <b>NEW party-over</b> (capital leaving / distribution):")
+        for c in new_o[:6]:
+            lines.append("  • %s — %s · net5d %s" % (c["complex"], (c.get("regime") or "").split("—")[-1].strip(), _fmt_m(c.get("net_flow_5d_usd"))))
+    lines.append("💵 Dollar: %s · ⚖️ Leveraged risk: %s" % (dt.get("regime", "?"), ls.get("risk_appetite", "?")))
+    _send_telegram("\n".join(lines))
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     flows = _read("etf-flows/daily.json") or {}
@@ -370,6 +425,7 @@ def lambda_handler(event, context):
         "elapsed_s": round(time.time() - t0, 2),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(), ContentType="application/json")
+    _alert_transitions(pump_setups, party_over, dollar_tide, leveraged_sentiment)
     print("[capital-flow-radar] complexes=%d pump_setups=%d party_over=%d usd_regime=%s %.1fs"
           % (len(out_complexes), len(pump_setups), len(party_over), usd_regime, out["elapsed_s"]))
     return {"statusCode": 200, "body": json.dumps({"ok": True, "n_complexes": len(out_complexes),
