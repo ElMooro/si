@@ -234,7 +234,10 @@ def revenue_and_cap(symbol, uni):
         if isinstance(prof, list) and prof:
             mc = _num(prof[0].get("marketCap"))
             if not mu.get("name"):
-                mu = {"name": prof[0].get("companyName"), "industry": prof[0].get("industry")}
+                mu = {"name": prof[0].get("companyName"), "industry": prof[0].get("industry"),
+                      "sector": prof[0].get("sector")}
+            elif not mu.get("sector"):
+                mu = dict(mu, sector=prof[0].get("sector"))
     return rev, mc, mu
 
 
@@ -390,7 +393,7 @@ def lambda_handler(event, context):
         ai_rel, ai_kws = ai_tag(d["symbol"], d["title"], txt, ai_universe)
         is_billion = bool(val and val >= 1e9)
         ai_mega = bool(ai_rel and ((vs_mc is not None and vs_mc >= 20) or is_billion))
-        sector = (uni.get(d["symbol"], {}) or {}).get("sector") or ""
+        sector = (mu or {}).get("sector") or (uni.get(d["symbol"], {}) or {}).get("sector") or ""
         sec_etf = SECTOR_TO_SPDR.get(sector.lower()) if sector else None
         sec_score = sector_scores.get(sec_etf) if sec_etf else None
         sec_rot_in = bool(sec_etf and sec_etf in sector_rotating_in)
