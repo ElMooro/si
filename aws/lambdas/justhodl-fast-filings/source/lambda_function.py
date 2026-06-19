@@ -57,27 +57,34 @@ def cik_ticker_map():
     return m
 
 
-def fts(form, days=16):
-    """EDGAR full-text search for a form type; recent filings."""
-    end = datetime.now(timezone.utc).date()
-    start = end - timedelta(days=days)
-    url = ("https://efts.sec.gov/LATEST/search-index?forms=" + urllib.parse.quote(form)
-           + f"&startdt={start}&enddt={end}")
+def getcurrent(form_type, cmap, count=100):
+    """EDGAR 'latest filings' atom feed for a form type — strictly recent, chronological."""
+    import re, html
+    url = ("https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type="
+           + urllib.parse.quote_plus(form_type) + f"&output=atom&count={count}&owner=include")
     c, b = _get(url, SEC_UA, 16)
-    hits = []
-    if c == 200 and b:
-        try:
-            hits = (json.loads(b).get("hits", {}) or {}).get("hits", []) or []
-        except Exception:
-            hits = []
-    if not hits:  # fallback: no date filter (relevance/recent)
-        c, b = _get("https://efts.sec.gov/LATEST/search-index?forms=" + urllib.parse.quote(form), SEC_UA, 16)
-        if c == 200 and b:
+    out = []
+    if c != 200 or not b:
+        return out
+    for e in re.findall(r"<entry>(.*?)</entry>", b, re.S):
+        tm = re.search(r"<title>(.*?)</title>", e, re.S)
+        title = html.unescape(tm.group(1)).strip() if tm else ""
+        um = re.search(r"<updated>(.*?)</updated>", e)
+        date = um.group(1)[:10] if um else None
+        ciks = re.findall(r"CIK=(\d+)", e) + re.findall(r"\((\d{7,10})\)", title)
+        tkr = None
+        for ck in ciks:
             try:
-                hits = (json.loads(b).get("hits", {}) or {}).get("hits", []) or []
+                t = cmap.get(int(ck))
             except Exception:
-                hits = []
-    return hits
+                t = None
+            if t:
+                tkr = t
+                break
+        form = title.split(" - ")[0].strip() if " - " in title else form_type
+        role = "Subject" if "(Subject)" in title else ("Filer" if "(Filer)" in title else None)
+        out.append({"form": form, "date": date, "title": title, "subject_ticker": tkr, "role": role})
+    return out
 
 
 def finnhub_clusters(sym):
@@ -131,34 +138,20 @@ def lambda_handler(event, context):
     # --- 13D / 13G activist crossings ---
     activist = []
     seen = set()
-    for form in ("SC 13D", "SC 13D/A", "SC 13G"):
-        for h in fts(form, 16):
-            src = h.get("_source", {}) or {}
-            fdate = src.get("file_date")
-            ciks = src.get("ciks", []) or []
-            names = src.get("display_names", []) or []
-            tkr = None
-            for ck in ciks:
-                try:
-                    t = cmap.get(int(ck))
-                except Exception:
-                    t = None
-                if t:
-                    tkr = t
-                    break
-            key = (form, fdate, tuple(ciks))
+    for form_type in ("SC 13D", "SC 13G"):
+        for h in getcurrent(form_type, cmap, 100):
+            key = (h["form"], h["date"], h["title"])
             if key in seen:
                 continue
             seen.add(key)
             activist.append({
-                "form": form, "date": fdate, "subject_ticker": tkr,
-                "filer": names[0] if names else None,
-                "parties": names[:3],
-                "is_activist": form.startswith("SC 13D"),
+                "form": h["form"], "date": h["date"], "subject_ticker": h["subject_ticker"],
+                "filer": h["title"], "role": h["role"],
+                "is_activist": h["form"].startswith("SC 13D"),
             })
-        time.sleep(0.4)
+        time.sleep(0.5)
     activist.sort(key=lambda x: (x.get("date") or ""), reverse=True)
-    activist = activist[:60]
+    activist = activist[:80]
 
     # --- Form 4 cluster buys over the universe ---
     universe, names = build_universe()
