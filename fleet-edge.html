@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleet Edge · The Truth Layer · JustHodl.AI</title>
+<meta name="description" content="The platform grading itself: per-engine real hit-rate and Wilson-lower-bound trust (auto-demotion gate) plus the lead-lag causal graph — who moves before whom, and live leader→follower predictions.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;--bg-sunken:#0a0e17;--bg-raised:#11161f;--border:#1c2433;
+  --fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;
+  --cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.3);
+  --green:#38ffa8;--green-dim:rgba(56,255,168,.3);--green-bg:rgba(56,255,168,.06);
+  --amber:#ffb13d;--amber-dim:rgba(255,177,61,.3);
+  --red:#ff5c7a;--red-dim:rgba(255,92,122,.35);
+  --teal:#2dd4bf;--teal-dim:rgba(45,212,191,.3);--teal-bg:rgba(45,212,191,.06);
+  --gray:#5b6678;
+  --fs:'IBM Plex Sans',system-ui,sans-serif;--fm:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg-1);font-family:var(--fs);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--teal)}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 32px 80px}
+.hdr{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.hdr .title{font-family:var(--fm);font-size:11.5px;letter-spacing:1.6px;color:var(--teal);font-weight:600;text-transform:uppercase}
+.hdr h1{margin:2px 0 0;font-size:24px;font-weight:600;letter-spacing:-.2px;width:100%}
+.hdr .meta{margin-left:auto;font-family:var(--fm);font-size:11px;color:var(--fg-3)}
+.back{font-family:var(--fm);font-size:11px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase}.back:hover{color:var(--cyan)}
+.hero{background:linear-gradient(135deg,var(--teal-bg),rgba(0,212,255,.03),transparent);border:1px solid var(--border);border-left:4px solid var(--teal);border-radius:10px;padding:15px 22px;margin-bottom:18px}
+.hero p{margin:0;color:var(--fg-2);font-size:13.5px;max-width:940px}.hero b{color:var(--fg-1)}
+.statbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:26px}
+.stat{flex:1;min-width:104px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:11px 15px}
+.stat .n{font-family:var(--fm);font-size:22px;font-weight:700;line-height:1}
+.stat .l{font-family:var(--fm);font-size:9px;letter-spacing:1.1px;color:var(--fg-3);text-transform:uppercase;margin-top:6px}
+.n.gr{color:var(--green)}.n.cy{color:var(--cyan)}.n.rd{color:var(--red)}.n.am{color:var(--amber)}.n.te{color:var(--teal)}
+.sec{display:flex;align-items:center;gap:10px;margin:30px 0 13px}
+.sec h2{margin:0;font-family:var(--fm);font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600}
+.sec .sub{font-family:var(--fs);font-size:11.5px;color:var(--fg-3);font-weight:400;text-transform:none;letter-spacing:0}
+.sec .dot{width:9px;height:9px;border-radius:50%}.dot.te{background:var(--teal);box-shadow:0 0 9px var(--teal-dim)}.dot.cy{background:var(--cyan)}.dot.gr{background:var(--green)}
+.pred{background:linear-gradient(100deg,var(--teal-bg),var(--bg-raised) 50%);border:1px solid var(--border);border-left:4px solid var(--teal);border-radius:9px;padding:13px 17px;margin-bottom:9px}
+.pred .lead{font-family:var(--fm);font-size:15px;font-weight:700}
+.pred .mv{font-family:var(--fm);font-weight:700;margin-left:7px}
+.pred .arrow{color:var(--fg-3);margin:0 4px}
+.pred .flw{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap}
+.fchip{font-family:var(--fm);font-size:11px;background:var(--bg-sunken);border:1px solid var(--border);border-radius:5px;padding:3px 9px}
+.fchip b{color:var(--fg-1)}.fchip .d{color:var(--green)}.fchip .lg{color:var(--fg-3)}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}
+.lchip{font-family:var(--fm);font-size:11px;background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:5px 11px;color:var(--fg-2)}
+.lchip b{color:var(--cyan)}
+.edges{columns:2;column-gap:18px;font-family:var(--fm);font-size:12px;color:var(--fg-2)}
+.edges div{padding:3px 0;break-inside:avoid}.edges .a{color:var(--fg-1);font-weight:600}.edges .meta{color:var(--fg-3)}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{font-family:var(--fm);font-size:9px;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;text-align:right;padding:8px 9px;border-bottom:1px solid var(--border);cursor:pointer}
+.tbl th:first-child{text-align:left}
+.tbl td{padding:8px 9px;border-bottom:1px solid var(--border);color:var(--fg-2);text-align:right;font-family:var(--fm)}
+.tbl td:first-child{text-align:left;color:var(--fg-1);font-weight:500}
+.tbl tr:hover td{background:var(--bg-raised)}
+.pill{font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:3px}
+.pill.PROMOTED{background:rgba(56,255,168,.16);color:var(--green);border:1px solid var(--green-dim)}
+.pill.ACTIVE{background:rgba(0,212,255,.14);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.pill.WARMING{background:rgba(91,102,120,.18);color:var(--gray);border:1px solid #2a3343}
+.pill.INSUFFICIENT{background:rgba(91,102,120,.14);color:var(--gray);border:1px solid #2a3343}
+.pill.DEPRECATED{background:rgba(255,92,122,.13);color:var(--red);border:1px solid var(--red-dim)}
+.tw.up{color:var(--green)}.tw.dn{color:var(--red)}
+.note{margin-top:32px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--fg-3);line-height:1.7}
+.note code{font-family:var(--fm);color:var(--cyan);background:var(--bg-sunken);padding:1px 5px;border-radius:3px}
+.empty{color:var(--fg-3);font-style:italic;padding:10px 2px;font-size:12.5px}
+.loading{text-align:center;color:var(--fg-3);font-family:var(--fm);padding:70px 0}
+@media(max-width:640px){.wrap{padding:18px 16px 60px}.edges{columns:1}.hdr h1{font-size:19px}.tbl th:nth-child(n+5),.tbl td:nth-child(n+5){display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a href="/" class="back">← JustHodl.AI</a>
+    <div class="title">Fleet Edge · The Truth Layer</div>
+    <h1>The Platform Grading Itself</h1>
+    <div class="meta" id="meta">loading…</div>
+  </div>
+  <div class="hero"><p><b>Every engine is now on the record.</b> The truth layer scores each engine's picks against
+   realised forward returns and reports its honest hit-rate and Wilson lower-bound — then the gate boosts what
+   beats a coinflip and demotes what doesn't, conditioned on the current regime. Below that, the
+   <b style="color:var(--teal)">lead-lag graph</b> maps who moves before whom and flags live leader→follower setups.</p></div>
+  <div class="statbar" id="statbar"></div>
+  <div id="content"><div class="loading">⟳ loading fleet telemetry…</div></div>
+  <div class="note" id="note"></div>
+</div>
+<script>
+const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
+  `https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,
+  `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}return null;}
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct=v=>v==null?"—":(v>0?"+":"")+v+"%";
+const hr=v=>v==null?"—":Math.round(v*100)+"%";
+let TRUST=[],SORTK="status";
+function trustTable(){
+  const order={PROMOTED:0,ACTIVE:1,WARMING:2,INSUFFICIENT:3,DEPRECATED:4};
+  let rows=[...TRUST];
+  if(SORTK==="status")rows.sort((a,b)=>(order[a.status]-order[b.status])||((b.wilson_lb||0)-(a.wilson_lb||0)));
+  else rows.sort((a,b)=>((b[SORTK]||0)-(a[SORTK]||0)));
+  return `<table class="tbl"><thead><tr>
+    <th onclick="setSort('status')">Engine / Signal</th>
+    <th onclick="setSort('status')">Status</th>
+    <th onclick="setSort('n_scored')">Scored</th>
+    <th onclick="setSort('hit_rate')">Hit&nbsp;%</th>
+    <th onclick="setSort('wilson_lb')">Wilson&nbsp;LB</th>
+    <th onclick="setSort('edge_vs_coinflip_pct')">Edge vs 50%</th>
+    <th onclick="setSort('effective_trust')">Trust ×</th></tr></thead><tbody>`+
+    rows.map(e=>`<tr>
+      <td>${esc(e.signal_type)}${e.harvested?' <span style="color:var(--teal);font-size:9px">⚙ harvested</span>':''}</td>
+      <td><span class="pill ${e.status}">${e.status}</span></td>
+      <td>${e.n_scored??"—"}</td><td>${hr(e.hit_rate)}</td>
+      <td>${e.wilson_lb??"—"}</td>
+      <td class="${(e.edge_vs_coinflip_pct||0)>=0?'tw up':'tw dn'}">${e.edge_vs_coinflip_pct==null?"—":pct(e.edge_vs_coinflip_pct)}</td>
+      <td style="color:${e.effective_trust>1?'var(--green)':e.effective_trust<1?'var(--red)':'var(--fg-2)'};font-weight:600">${e.effective_trust==null?"—":e.effective_trust+"×"}</td>
+    </tr>`).join("")+`</tbody></table>`;
+}
+window.setSort=k=>{SORTK=k;document.getElementById("trustwrap").innerHTML=trustTable();};
+function render(trust,ll){
+  const c=document.getElementById("content");
+  if(!trust&&!ll){c.innerHTML='<div class="loading">Could not load fleet data. <a href="javascript:location.reload()">Retry</a></div>';return;}
+  const tc=(trust&&trust.counts)||{};
+  TRUST=(trust&&trust.engines)||[];
+  const live=(ll&&ll.live_predictions)||[];
+  const gen=trust&&trust.generated_at?new Date(trust.generated_at):(ll&&ll.generated_at?new Date(ll.generated_at):null);
+  document.getElementById("meta").innerHTML=`regime <b>${esc((trust&&trust.current_regime)||"—")}</b> · ${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}`;
+  document.getElementById("statbar").innerHTML=
+    `<div class="stat"><div class="n gr">${tc.PROMOTED||0}</div><div class="l">Promoted</div></div>
+     <div class="stat"><div class="n cy">${tc.ACTIVE||0}</div><div class="l">Active</div></div>
+     <div class="stat"><div class="n am">${tc.WARMING||0}</div><div class="l">Warming</div></div>
+     <div class="stat"><div class="n rd">${tc.DEPRECATED||0}</div><div class="l">Demoted</div></div>
+     <div class="stat"><div class="n te">${(ll&&ll.n_edges)||0}</div><div class="l">Lead-Lag Edges</div></div>
+     <div class="stat"><div class="n te">${live.length}</div><div class="l">Live Setups</div></div>`;
+  let h="";
+  // Live lead-lag predictions
+  h+=`<div class="sec"><span class="dot te"></span><h2>🔮 Live Lead-Lag Setups <span class="sub">a leader just moved — followers expected to follow within the lag</span></h2></div>`;
+  h+= live.length? live.map(p=>{
+    const up=p.leader_move_2d_pct>0;
+    return `<div class="pred"><span class="lead">${esc(p.leader)}</span>
+      <span class="mv ${up?'tw up':'tw dn'}">${pct(p.leader_move_2d_pct)} <span style="color:var(--fg-3);font-weight:400">2d</span></span>
+      <span class="arrow">→ expect:</span>
+      <div class="flw">${(p.followers_expected||[]).map(f=>`<span class="fchip"><b>${esc(f.symbol)}</b> <span class="d">${esc(f.expected_dir)}</span> <span class="lg">${f.lag_days}d · r${f.lead_corr}</span></span>`).join("")}</div>
+    </div>`;}).join("") : '<div class="empty">No leader made a threshold move in the last 2 days — quiet tape. Setups appear when a graph leader moves sharply.</div>';
+  // Leaders + edges
+  const leaders=(ll&&ll.top_leaders)||[], edges=(ll&&ll.edges)||[];
+  if(leaders.length){
+    h+=`<div class="sec"><span class="dot cy"></span><h2>🥇 Graph Leaders &amp; Strongest Edges <span class="sub">who leads, and the directed links</span></h2></div>`;
+    h+=`<div class="chips">`+leaders.slice(0,12).map(n=>`<span class="lchip"><b>${esc(n.symbol)}</b> leads ${n.out_degree} · str ${n.lead_strength}</span>`).join("")+`</div>`;
+    h+=`<div class="edges">`+edges.slice(0,16).map(e=>`<div><span class="a">${esc(e.from)}</span> → <span class="a">${esc(e.to)}</span> <span class="meta">${e.lag_days}d · r=${e.lead_corr} · asym ${e.asymmetry}</span></div>`).join("")+`</div>`;
+  }
+  // Fleet edge trust table
+  h+=`<div class="sec"><span class="dot gr"></span><h2>📋 Fleet Edge — Engine Trust <span class="sub">real hit-rate &amp; Wilson lower-bound; the auto-demotion gate</span></h2></div>`;
+  h+=`<div id="trustwrap">`+(TRUST.length?trustTable():'<div class="empty">Trust registry warming up.</div>')+`</div>`;
+  c.innerHTML=h;
+  document.getElementById("note").innerHTML=
+    `<b style="color:var(--fg-2)">How to read this.</b> <b style="color:var(--green)">Trust ×</b> multiplies a signal's weight: &gt;1 boosts proven engines, &lt;1 demotes ones below a coinflip, conditioned on the current regime. <code>WARMING</code> = not enough scored outcomes yet, so trust is held at neutral 1.0 until the harvested ledger matures (~7–30 days) — the gate is deliberately a no-op until it has earned the right to judge.
+     <b style="color:var(--teal)">Lead-lag</b> edges are asymmetric lagged correlations (A leads B beats B leads A) — a hypothesis generator the ledger itself will grade over time, not proven causation. Sources: <code>engine-trust</code>, <code>signal-scorecard</code>, <code>lead-lag-graph</code>.
+     <b style="color:var(--amber)">Caveat:</b> short lookback, regime-dependent, spurious edges survive; predictions are probabilistic. Real data, research only — not investment advice.`;
+}
+Promise.all([load("data/engine-trust.json"),load("data/lead-lag-graph.json")]).then(([t,l])=>render(t,l));
+setTimeout(()=>location.reload(),600000);
+</script>
+</body>
+</html>
