@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Risk Regime (RORO) · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#111722;--panel2:#0d131c;--line:#1e2836;--txt:#d6e0ee;--dim:#7c8aa0;--grn:#16c784;--red:#ea3943;--amb:#f0a020;--cyan:#3fb6dc;--blu:#4d7cfe}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:13px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;padding:18px 14px 60px}
+a{color:var(--cyan);text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:20px;letter-spacing:.5px;font-weight:700}
+.sub{color:var(--dim);font-size:12px;margin-top:3px}
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;font-size:12px}
+.chip b{color:#fff}
+.chip.on{border-color:var(--grn);color:var(--grn)} .chip.off{border-color:var(--red);color:var(--red)} .chip.neu{border-color:var(--amb);color:var(--amb)}
+.statbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.stat .v{font-size:21px;font-weight:700;color:#fff} .stat .l{color:var(--dim);font-size:11px;margin-top:2px}
+h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:22px 0 10px;border-left:3px solid var(--blu);padding-left:9px}
+/* gauge */
+.gauge{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 16px 14px;margin-bottom:8px}
+.gauge .track{position:relative;height:26px;border-radius:13px;background:linear-gradient(90deg,var(--red) 0%,var(--amb) 38%,#26323f 50%,var(--amb) 62%,var(--grn) 100%);opacity:.92}
+.gauge .mid{position:absolute;left:50%;top:-5px;bottom:-5px;width:2px;background:var(--dim);transform:translateX(-1px)}
+.gauge .needle{position:absolute;top:-7px;bottom:-7px;width:4px;border-radius:2px;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.65);transform:translateX(-2px);transition:left .5s ease}
+.gauge .scale{display:flex;justify-content:space-between;color:var(--dim);font-size:10.5px;margin-top:7px}
+.gauge .lab{display:flex;justify-content:space-between;font-size:11px;margin-top:2px}
+.gauge .lab .off{color:var(--red)} .gauge .lab .on{color:var(--grn)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 13px;position:relative;border-left:4px solid var(--line)}
+.card.pos{border-left-color:var(--grn)} .card.neg{border-left-color:var(--red)} .card.flat{border-left-color:var(--amb)}
+.card .nm{font-size:14px;font-weight:700;color:#fff;display:flex;justify-content:space-between;align-items:baseline}
+.card .nm .sc{font-size:18px;font-weight:800}
+.card.pos .sc{color:var(--grn)} .card.neg .sc{color:var(--red)} .card.flat .sc{color:var(--amb)}
+.card .wt{font-size:10.5px;color:var(--dim);margin:2px 0 8px}
+.row{display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;border-top:1px dashed var(--line)}
+.row .k{color:var(--dim)} .row .vv{color:var(--txt)}
+.tells{list-style:none;margin-top:4px}
+.tells li{padding:6px 11px;border-left:3px solid var(--line);background:var(--panel);border-radius:0 7px 7px 0;margin-bottom:6px;font-size:12px}
+.tells li.on{border-left-color:var(--grn)} .tells li.off{border-left-color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--dim);font-weight:600;text-transform:uppercase;font-size:10.5px;letter-spacing:.5px}
+td:first-child,th:first-child{text-align:left}
+tr:hover td{background:var(--panel2)}
+.pos{color:var(--grn)} .neg{color:var(--red)}
+.loading{color:var(--dim);padding:40px;text-align:center}
+.foot{color:var(--dim);font-size:11px;margin-top:22px;border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1>Risk Regime · RORO</h1>
+      <div class="sub">Cross-asset Risk-On / Risk-Off synthesizer — Massive FX + options, FRED VIX &amp; HY credit. <a href="/directory.html">all dashboards →</a></div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div id="content"><div class="loading">Loading risk-regime.json …</div></div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
+  `https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,
+  `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}return null;}
+const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const num=v=>(typeof v==="number"&&isFinite(v))?v:null;
+const f1=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(1);
+const sgn=v=>num(v)===null?"flat":(v>0.02?"pos":(v<-0.02?"neg":"flat"));
+const cls=r=>{const u=(r||"").toUpperCase();if(u.includes("RISK_ON")||u.includes("RISK-ON"))return"on";if(u.includes("RISK_OFF")||u.includes("FLIGHT"))return"off";return"neu";};
+
+function gauge(score){
+  const s=num(score)??0, pct=Math.max(0,Math.min(100,(s+100)/2));
+  return `<div class="gauge">
+    <div class="track"><div class="mid"></div><div class="needle" style="left:${pct}%"></div></div>
+    <div class="scale"><span>-100</span><span>-50</span><span>0</span><span>+50</span><span>+100</span></div>
+    <div class="lab"><span class="off">◀ RISK-OFF / flight to quality</span><span class="on">RISK-ON / risk appetite ▶</span></div>
+  </div>`;
+}
+
+function blockCard(b,comp){
+  const sc=num(b.score), c=sc===null?"flat":(sc>0.02?"pos":(sc<-0.02?"neg":"flat"));
+  const detail=comp[b.block]||{};
+  let rows="";
+  const show={
+    fx:[["FX RORO score","fx_roro_score"],["FX regime","regime"]],
+    options:[],
+    vix:[["VIX","vix"],["VIX 3M","vix_3m"],["Term structure","term_structure"]],
+    credit:[["HY OAS %","hy_oas"],["OAS percentile","pctile"],["5d chg (bp)","chg_5d_bp"]]
+  }[b.block]||[];
+  show.forEach(([k,kk])=>{let v=detail[kk];if(v!==undefined&&v!==null)rows+=`<div class="row"><span class="k">${k}</span><span class="vv">${typeof v==="number"?(Math.abs(v)<2?v.toFixed(2):v.toFixed(1)):esc(String(v))}</span></div>`;});
+  if(b.block==="options"){
+    ["SPY","HYG"].forEach(u=>{const o=detail[u];if(o)rows+=`<div class="row"><span class="k">${u} put/call · skew</span><span class="vv">${num(o.put_call_ratio)?o.put_call_ratio.toFixed(2):"—"} · ${num(o.skew_25d)?o.skew_25d.toFixed(3):"—"}</span></div>`;});
+  }
+  const nm={fx:"FX (haven/carry/EM)",options:"Options (put-call · skew)",vix:"VIX (level · term)",credit:"Credit (HY OAS)"}[b.block]||b.block;
+  return `<div class="card ${c}"><div class="nm"><span>${nm}</span><span class="sc">${f1(sc===null?null:sc*100/1)}</span></div>
+    <div class="wt">weight ${(num(b.weight)??0).toFixed(2)} · block score ${sc===null?"—":sc.toFixed(2)} (−1..+1)</div>${rows}</div>`;
+}
+
+function render(rr,fx){
+  if(!rr){document.getElementById("content").innerHTML='<div class="loading">risk-regime.json unavailable.</div>';return;}
+  const score=rr.risk_regime_score, regime=rr.risk_regime||"—", post=rr.posture||{}, comp=rr.components||{};
+  const ch=cls(regime);
+  document.getElementById("chips").innerHTML=
+    `<span class="chip ${ch}"><b>${esc(regime)}</b></span>`+
+    `<span class="chip ${ch}">${f1(score)}/100</span>`+
+    `<span class="chip">tilt: <b>${esc(post.beta_tilt||"—")}</b></span>`+
+    `<span class="chip">size ×<b>${num(post.size_mult)??"—"}</b></span>`+
+    `<span class="chip">hedge: <b>${esc(post.hedge||"—")}</b></span>`;
+
+  let html=gauge(score);
+  html+=`<div class="statbar">
+    <div class="stat"><div class="v">${f1(score)}</div><div class="l">RORO score (−100..+100)</div></div>
+    <div class="stat"><div class="v" style="font-size:15px;color:${ch==='on'?'var(--grn)':ch==='off'?'var(--red)':'var(--amb)'}">${esc(regime)}</div><div class="l">regime</div></div>
+    <div class="stat"><div class="v" style="font-size:15px">${esc(post.beta_tilt||"—")}</div><div class="l">beta posture</div></div>
+    <div class="stat"><div class="v">×${num(post.size_mult)??"—"}</div><div class="l">size multiplier</div></div>
+    <div class="stat"><div class="v" style="font-size:15px">${esc(post.hedge||"—")}</div><div class="l">hedge stance</div></div>
+  </div>`;
+
+  html+=`<h2>Block contributions</h2><div class="cards">`;
+  (rr.blocks_used||[]).forEach(b=>{html+=blockCard(b,comp);});
+  html+=`</div>`;
+
+  const tells=rr.tells||[];
+  if(tells.length){
+    html+=`<h2>Tells</h2><ul class="tells">`;
+    tells.forEach(t=>{const u=t.toUpperCase();const c=u.startsWith("RISK-ON")?"on":(u.startsWith("RISK-OFF")?"off":"");html+=`<li class="${c}">${esc(t)}</li>`;});
+    html+=`</ul>`;
+  }
+
+  // FX driver detail from polygon-fx-regime.json
+  const drivers=(fx&&fx.fx_roro&&fx.fx_roro.drivers)||[];
+  if(drivers.length){
+    html+=`<h2>FX RORO drivers — ${num((fx.fx_roro||{}).fx_roro_score)??"—"}/100 (${esc((fx.fx_roro||{}).fx_roro_regime||"—")})</h2>`;
+    html+=`<table><thead><tr><th>Driver</th><th>5d return %</th><th>weight</th><th>contribution</th></tr></thead><tbody>`;
+    drivers.sort((a,b)=>Math.abs(num(b.contribution)||0)-Math.abs(num(a.contribution)||0));
+    drivers.forEach(d=>{const c=num(d.contribution);html+=`<tr><td>${esc(d.driver||"")}</td><td class="${sgn(d.ret_5d_pct)}">${f1(d.ret_5d_pct)}</td><td>${num(d.weight)??"—"}</td><td class="${sgn(c)}">${c===null?"—":(c>0?"+":"")+c.toFixed(2)}</td></tr>`;});
+    html+=`</tbody></table>`;
+  }
+
+  document.getElementById("content").innerHTML=html;
+  document.getElementById("foot").innerHTML=
+    `Synthesizer <b>${esc(rr.version||"")}</b> · generated ${esc(rr.generated_at||"")}`+
+    (fx?` · FX source ${esc(fx.version||"")} (${num(fx.n_pairs)??"?"} pairs, ${esc(fx.generated_at||"")})`:"")+
+    `<br>${esc(rr.methodology||"FX 0.35 · VIX 0.25 · Options 0.20 · Credit 0.20, each normalized −1..+1, weighted over live inputs. Positive = risk-on.")}`+
+    `<br>Consumed by master-ranker (sector tilt), best-setups (conviction gate), signal-board, hedge-planner (sleeve bias) and the morning brief.`;
+}
+
+function go(){Promise.all([load("data/risk-regime.json"),load("data/polygon-fx-regime.json")]).then(([rr,fx])=>render(rr,fx));}
+go(); setInterval(go,300000);
+</script>
+</body>
+</html>

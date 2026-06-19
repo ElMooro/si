@@ -57,6 +57,7 @@ ENGINES = {
     "firm-book": "data/firm-book.json",
     "firm-risk-board": "data/firm-risk-board.json",
     "vol-radar": "data/vol-radar.json",
+    "risk-regime": "data/risk-regime.json",
 }
 
 # Per-scenario-class leg breakdown. The Tail Hedge Overlay owns "how
@@ -283,6 +284,49 @@ def lambda_handler(event, context):
     if net_exp is None and isinstance(fb.get("firm"), dict):
         net_exp = num(fb["firm"].get("net_exposure_pct"))
         gross_exp = num(fb["firm"].get("gross_exposure_pct"))
+
+    # ---- RORO hedge-bias overlay -----------------------------------------
+    # The tail desk owns HOW MUCH (target_budget); vol-radar owns vol TIMING.
+    # The cross-asset RORO read owns the real-time LEAN: in a risk-off / flight-
+    # to-quality tape lean INTO the sleeve (bias to the upper band, treat
+    # placement as urgent, resist decay); in a clean risk-on tape allow a trim
+    # to the lower band. A tight, clamped multiplier so it tilts but never
+    # overrides the tail-desk sizing, and never breaches the hard spend cap.
+    rr = feeds.get("risk-regime", {}) if isinstance(feeds.get("risk-regime"), dict) else {}
+    rr_score = num(rr.get("risk_regime_score"))
+    rr_regime = rr.get("risk_regime") or "UNKNOWN"
+    rr_posture = rr.get("posture", {}) if isinstance(rr.get("posture"), dict) else {}
+    rr_hedge_stance = (rr_posture.get("hedge") or "normal")
+    roro_bias = 1.0
+    roro_urgency = "normal"
+    if rr_score is not None:
+        if rr_score <= -35:        # RISK_OFF / FLIGHT_TO_QUALITY
+            roro_bias, roro_urgency = 1.18, "elevated — lean into protection"
+        elif rr_score <= -12:      # MILD_RISK_OFF
+            roro_bias, roro_urgency = 1.10, "raised — keep sleeve full"
+        elif rr_score < 12:        # NEUTRAL
+            roro_bias, roro_urgency = 1.0, "normal"
+        elif rr_score < 35:        # MILD_RISK_ON
+            roro_bias, roro_urgency = 0.96, "relaxed — trim toward lower band"
+        else:                      # RISK_ON
+            roro_bias, roro_urgency = 0.88, "low — protection is cheap insurance, trim to floor"
+    pre_roro_budget = target_budget
+    if roro_bias != 1.0 and target_budget:
+        target_budget = round(min(MAX_HEDGE_SPEND_PCT, target_budget * roro_bias), 4)
+    roro_overlay = {
+        "risk_regime": rr_regime,
+        "risk_regime_score": rr_score,
+        "hedge_stance": rr_hedge_stance,
+        "budget_bias_mult": roro_bias,
+        "urgency": roro_urgency,
+        "target_budget_pre_roro_pct": pre_roro_budget,
+        "target_budget_post_roro_pct": target_budget,
+        "note": (f"Cross-asset RORO is {rr_regime}"
+                 + (f" ({rr_score:+.0f}/100)" if isinstance(rr_score, (int, float)) else "")
+                 + f" — hedge urgency {roro_urgency}; tail-desk budget "
+                 + (f"tilted ×{roro_bias}" if roro_bias != 1.0 else "untilted")
+                 + "."),
+    }
 
     # ---- standing sleeve state -------------------------------------------
     state, _ = read_json(STATE_KEY)
@@ -740,6 +784,8 @@ def lambda_handler(event, context):
 
         "pre_trade_checks": checks,
         "n_checks_flagged": n_fail,
+
+        "roro_overlay": roro_overlay,
 
         "book": {
             "notional_usd_assumed": BOOK_NOTIONAL_USD,

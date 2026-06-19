@@ -147,11 +147,35 @@ def lambda_handler(event, context):
     capital_flow = read_json("data/capital-flow.json") or {}
     capital_flow_radar = read_json("data/capital-flow-radar.json") or {}
     risk_regime = read_json("data/risk-regime.json") or {}
+    _screener_doc = read_json("screener/data.json") or {}
     _rr_score = risk_regime.get("risk_regime_score")
     _rr_regime = risk_regime.get("risk_regime") or "NEUTRAL"
     RR_HIGH_BETA = {"Technology", "Consumer Cyclical", "Energy", "Financial Services",
                     "Basic Materials", "Communication Services", "Industrials"}
     RR_DEFENSIVE = {"Utilities", "Consumer Defensive", "Healthcare", "Real Estate"}
+
+    # Build a robust ticker->sector lookup. The per-signal records do NOT carry a
+    # sector (add()'s 2nd arg is `name`), so without this the regime gate silently
+    # no-ops. Harvest every {ticker/symbol -> sector} pair across the screener output
+    # and the already-loaded feeds (defensive recursive walk).
+    def _harvest_sectors(*docs):
+        m = {}
+        def walk(o):
+            if isinstance(o, dict):
+                t = o.get("ticker") or o.get("symbol") or o.get("t")
+                s = o.get("sector") or o.get("sectorName")
+                if isinstance(t, str) and isinstance(s, str) and t and s:
+                    m.setdefault(t.upper(), s)
+                for v in o.values():
+                    walk(v)
+            elif isinstance(o, list):
+                for v in o:
+                    walk(v)
+        for d in docs:
+            walk(d)
+        return m
+    _sector_map = _harvest_sectors(_screener_doc, opportunities, dislocations,
+                                   overlap, capital_flow_radar)
 
     def _roro_scalar(sector):
         """Regime gate: don't fight a risk-off tape; lean into risk-on. + on high-beta
@@ -458,7 +482,8 @@ def lambda_handler(event, context):
         composite = round(min(100.0, raw * confluence * 22), 1)
 
         # ── RORO regime gate (sector-aware): scale conviction by risk-on/off tape ──
-        _rr_mult, _rr_note = _roro_scalar(sector)
+        _eff_sector = _sector_map.get(tk) or sector
+        _rr_mult, _rr_note = _roro_scalar(_eff_sector)
         if _rr_mult != 1.0:
             composite = round(min(100.0, composite * _rr_mult), 1)
 
