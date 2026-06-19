@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-smart-money-13f",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Smart-money thematic 13F tracker: pulls Aschenbrenner/AI-infra conviction funds' latest 13F from SEC EDGAR (free), maps longs to bottleneck layers + puts (what they short), and flags confluence with the re-rating radar's cheap names.",
+  "schedule": { "rule_name": "smart-money-13f-weekly", "cron": "cron(0 11 ? * MON *)", "description": "Weekly 13F smart-money refresh Mon 11:00 UTC" }
+}
