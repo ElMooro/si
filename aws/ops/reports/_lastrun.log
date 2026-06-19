@@ -1,69 +1,43 @@
-key source: POLYGON_KEY | len: 32
+=== etf-fund-flows deploy ===
+  update OK (justhodl-etf-fund-flows) attempt 0
+  state: Active Successful size: 13878
+  invoking (sync, populates 299 ETFs)...
+  n_etfs_ok: 299 | regime: TRANSITION | elapsed: 1.9
 
-=== CONFIRMED (54) — real ETF Global coverage ===
-  BUG     Cybersec                 flow=-171500300.0  aum=1005776200.0  asof=2026-05-11
-  MUU     2x MU long               flow=40688850.0  aum=3232874037.8669996  asof=2026-05-11
-  XSD     Semis EW                 flow=27694195.15  aum=3048449659.2999997  asof=2026-05-11
-  QTUM    Quantum                  flow=21646500.0  aum=4838328000.0  asof=2026-05-11
-  MUD     2x MU short              flow=20092600.0  aum=54832453.0182  asof=2026-05-11
-  TSLZ    2x TSLA short alt        flow=9150084.0  aum=41034950.187  asof=2026-05-11
-  MSOS    Cannabis                 flow=-5602875.0  aum=1041041919.9999999  asof=2026-05-11
-  SRTY    3x Russell2000 short     flow=5233680.0  aum=76167870.3936  asof=2026-05-11
-  SMCX    2x SMCI long             flow=-5110000.0  aum=140376305.26  asof=2026-05-11
-  AVL     2x AVGO long             flow=4623450.0  aum=186596011.17900002  asof=2026-05-11
-  TSMX    2x TSM long              flow=-4112450.0  aum=547673779.373  asof=2026-05-11
-  BABX    2x BABA long             flow=3904776.98  aum=128384700.450488  asof=2026-05-11
-  BRKU    2x BRK long              flow=-3185400.0  aum=63042546.553  asof=2026-05-11
-  CRWL    2x CRWD long             flow=-2303204.68  aum=54118482.971313  asof=2026-05-11
-  MSTY    MSTR income              flow=2004000.0  aum=1432097761.43  asof=2026-05-11
-  CHAU    2x China long            flow=-1208250.0  aum=107176500.0  asof=2026-05-11
-  PLTD    2x PLTR short            flow=195150.0  aum=34584007.86  asof=2026-05-11
-  URTY    3x Russell2000 long      flow=0.0  aum=353117620.0  asof=2026-05-11
-  SIJ     2x Industrials short     flow=0.0  aum=6127008.963599999  asof=2026-05-11
-  FXP     2x China short           flow=0.0  aum=5538985.2796  asof=2026-05-11
-  UGE     2x Staples long          flow=0.0  aum=12445620.0  asof=2026-05-11
-  UMDD    3x MidCap long           flow=0.0  aum=32857146.000000004  asof=2026-05-11
-  TBT     2x 20Y short             flow=0.0  aum=301826072.8176  asof=2026-05-11
-  SCC     2x ConsDisc short        flow=0.0  aum=6081657.7035  asof=2026-05-11
-  RXD     2x Health short          flow=0.0  aum=5767685.132  asof=2026-05-11
-  UBT     2x 20Y long              flow=0.0  aum=64671687.49999999  asof=2026-05-11
-  SMDD    3x MidCap short          flow=0.0  aum=1905936.7040000001  asof=2026-05-11
-  SDP     2x Utilities short       flow=0.0  aum=4929068.856799999  asof=2026-05-11
-  SZK     2x Staples short         flow=0.0  aum=4788217.5576  asof=2026-05-11
-  TTT     3x 20Y Treasury short    flow=0.0  aum=18873847.4705  asof=2026-05-11
-  XPP     2x China long            flow=0.0  aum=11689130.5  asof=2026-05-11
-  ETU     2x Ether long            flow=0.0  aum=14105200.0  asof=2026-05-11
-  UST     2x 7-10Y long            flow=0.0  aum=15565863.0  asof=2026-05-11
-  BTCL    2x Bitcoin long          flow=0.0  aum=42827800.0  asof=2026-05-11
-  ETHD    2x Ether short           flow=0.0  aum=76198935.99249999  asof=2026-05-11
-  GDXU    2x GoldMiners long       flow=0.0  aum=1899049030.5  asof=2026-05-11
-  TBF     1x 20Y short             flow=0.0  aum=84659895.0  asof=2026-05-11
-  GDXD    2x GoldMiners short      flow=0.0  aum=73616192.5  asof=2026-05-11
-  PST     2x 7-10Y short           flow=0.0  aum=11379350.0  asof=2026-05-11
-  NVDD    2x NVDA short            flow=0.0  aum=22155897.3267  asof=2026-05-11
-  COII    2x COIN short alt        flow=0.0  aum=3228000.0  asof=2026-05-11
-  AAPB    2x AAPL long             flow=0.0  aum=18486722.991322  asof=2026-05-11
-  NFXL    2x NFLX long             flow=0.0  aum=145993673.08200002  asof=2026-05-11
-  NFXS    2x NFLX short            flow=0.0  aum=5476218.254000001  asof=2026-05-11
-  QQQU    2x QQQ long alt          flow=0.0  aum=109017060.565  asof=2026-05-11
-  HOOX    2x HOOD long             flow=0.0  aum=18741337.54  asof=2026-05-11
-  ROBO    Robotics                 flow=0.0  aum=1914239250.0  asof=2026-05-11
-  AMUU    2x AMZN long alt         flow=0.0  aum=118900998.168  asof=2026-05-11
-  XLG     MegaCap                  flow=0.0  aum=11082307894.6365  asof=2026-05-11
-  PHO     Water                    flow=0.0  aum=2055129282.3999999  asof=2026-05-11
-  PPA     Defense                  flow=0.0  aum=8006146312.5  asof=2026-05-11
-  ARKX    Space                    flow=0.0  aum=949444097.6  asof=2026-05-11
-  NLR     Nuclear                  flow=0.0  aum=5292727969.231999  asof=2026-05-11
-  FTEC    Tech                     flow=0.0  aum=19793808000.0  asof=2026-05-11
+  daily.json total metrics: 299 | with flow: 299
+  NEW tickers populated: 53/53
+  ETF Global latest processed_date: 2026-06-18 (freshness)
 
-=== DEAD (8) — no coverage / not a real ETF ===
-  CHAD    3x China short           reason=OK
-  DELL2   lev DELL                 reason=OK
-  DGP     2x Gold long             reason=OK
-  DZZ     2x Gold short            reason=OK
-  GGLU    2x GOOGL long alt        reason=OK
-  IRBO    AI/Robotics              reason=OK
-  JPNL    3x Japan long            reason=OK
-  MARA2   lev MARA                 reason=OK
+=== capital-flow-radar v3 deploy ===
+  conflict 0 on justhodl-capital-flow-radar, retry...
+  update OK (justhodl-capital-flow-radar) attempt 1
+  state: Active Successful size: 9508
+  invoking radar...
+  invoke: {'statusCode': 200, 'body': '{"ok": true, "n_complexes": 45, "pump_setups": 12, "party_over": 11, "risk_appetite": "BALANCED"}'}
 
-CONFIRMED_LIST: AAPB AMUU ARKX AVL BABX BRKU BTCL BUG CHAU COII CRWL ETHD ETU FTEC FXP GDXD GDXU HOOX MSOS MSTY MUD MUU NFXL NFXS NLR NVDD PHO PLTD PPA PST QQQU QTUM ROBO RXD SCC SDP SIJ SMCX SMDD SRTY SZK TBF TBT TSLZ TSMX TTT UBT UGE UMDD URTY UST XLG XPP XSD
+  version: 3.0.0 | n_complexes: 45
+  single-stock board names: 20
+    NVDA    net=$169M  BULLISH  legs=NVDL,NVDX,NVDU,NVDS,NVDD
+    MU      net=$145M  BULLISH  legs=MUU,MUD
+    AMD     net=$133M  BULLISH  legs=AMDL,AMDD
+    SMCI    net=$70M  BULLISH  legs=SMCL,SMCX
+    MSFT    net=$62M  BULLISH  legs=MSFU,MSFD
+    MSTR    net=$42M  BULLISH  legs=MSTU,MSTX,MSTZ
+    NFLX    net=$27M  BULLISH  legs=NFXL,NFXS
+    TSLA    net=$25M  BULLISH  legs=TSLL,TSLR,TSLQ,TSLS,TSLZ
+    GOOGL   net=$22M  BULLISH  legs=GGLL,GGLS
+    META    net=$22M  BULLISH  legs=METU,METD
+    TSM     net=$22M  BULLISH  legs=TSMX
+    COIN    net=$18M  BULLISH  legs=CONL,CONI,COII
+    AMZN    net=$17M  BULLISH  legs=AMZU,AMUU,AMZD
+    PLTR    net=$1M  NEUTRAL  legs=PLTU,PLTD
+    BABA    net=$-2M  NEUTRAL  legs=BABX
+    CRWD    net=$-3M  NEUTRAL  legs=CRWL
+    BRK     net=$-4M  NEUTRAL  legs=BRKU
+    HOOD    net=$-5M  NEUTRAL  legs=HOOX
+    AAPL    net=$-11M  BEARISH  legs=AAPU,AAPB,AAPD
+    AVGO    net=$-23M  BEARISH  legs=AVGX,AVL
+  risk_appetite: BALANCED
+  new complexes live: ['Quantum Computing', 'Cybersecurity', 'Cannabis', 'Long Treasuries (20Y)', 'Intermediate Treasuries (7-10Y)', 'Robotics/AI']
+
+DONE 1937
