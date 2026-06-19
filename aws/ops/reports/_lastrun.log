@@ -1,44 +1,24 @@
-UPDATED radar v2
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_complexes\": 34, \"pump_setups\": 10, \"party_over\": 10, \"risk_appetite\": \"RISK_OFF \\u2014 leveraged money is hedging / positioning short\"}"}
+best-setups deployed 6s ago
+best-setups: {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"n_setups\": 390, \"strong
+SECTOR_CAPITAL_FLOW signals in best-setups: 17
+   UNP    sector capital ACCELERATING in · Industrials (pump 98.0)
+   CAT    sector capital ACCELERATING in · Industrials (pump 98.0)
+   GE     sector capital ACCELERATING in · Industrials (pump 98.0)
+   BA     sector capital ACCELERATING in · Industrials (pump 98.0)
+   AMZN   sector capital ACCELERATING in · Retail (pump 73.0)
+   DE     sector capital ACCELERATING in · Industrials (pump 98.0)
+   COST   sector capital ACCELERATING in · Retail (pump 73.0)
+   HD     sector capital ACCELERATING in · Retail (pump 73.0)
+   SCCO   sector capital ACCELERATING in · Copper/Mining (pump 80.0)
+   HON    sector capital ACCELERATING in · Industrials (pump 98.0)
 
-========== LEVERAGED POSITIONING BOARD ==========
-RISK APPETITE: RISK_OFF — leveraged money is hedging / positioning short
-agg bull-lev inflow 5d: $-238M | agg bear-lev inflow 5d: $1M
+master-ranker: {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 5, \"n_tier_3_plus\": 66, \"n_tier_5_plus\":
 
-MOST BULLISH leveraged positioning:
-  S&P 500 Broad          sector       net=$488.9M (bull $409.0M / bear $-79.9M) legs=['SPXL', 'UPRO', 'SSO', 'SPXS', 'SPXU', 'SDS', 'SH']
-  Nasdaq Broad           sector       net=$275.1M (bull $346.5M / bear $71.3M) legs=['TQQQ', 'QLD', 'SQQQ', 'QID']
-  Oil                    sector       net=$228.0M (bull $17.9M / bear $-210.2M) legs=['UCO', 'SCO']
-  NVDA                   single_stock net=$182.3M (bull $180.6M / bear $-1.6M) legs=['NVDL', 'NVDS']
-  AMD                    single_stock net=$133.0M (bull $123.6M / bear $-9.4M) legs=['AMDL', 'AMDD']
-  Technology             sector       net=$100.3M (bull $156.3M / bear $56.0M) legs=['TQQQ', 'TECL', 'SQQQ', 'TECS']
-  Small Caps             sector       net=$74.2M (bull $53.3M / bear $-20.9M) legs=['TNA', 'UWM', 'TZA', 'TWM']
-  MSFT                   single_stock net=$59.9M (bull $59.9M / bear $0.0M) legs=['MSFU']
-
-MOST BEARISH leveraged positioning:
-  Semiconductors         sector       net=$-1734.0M (bull $-1462.8M / bear $271.2M) legs=['SOXL', 'SOXS']
-  Financials             sector       net=$-118.0M (bull $-120.1M / bear $-2.1M) legs=['FAS', 'DPST', 'FAZ']
-  Biotech                sector       net=$-59.7M (bull $-45.5M / bear $14.2M) legs=['LABU', 'LABD']
-  Silver                 sector       net=$-38.8M (bull $-39.4M / bear $-0.6M) legs=['AGQ', 'ZSL']
-  Homebuilders           sector       net=$-36.8M (bull $-36.8M / bear $0.0M) legs=['NAIL']
-  AVGO                   single_stock net=$-23.0M (bull $-23.0M / bear $0.0M) legs=['AVGX']
-  Aerospace/Defense      sector       net=$-15.4M (bull $-15.4M / bear $0.0M) legs=['DFEN']
-  AAPL                   single_stock net=$-10.4M (bull $-12.0M / bear $-1.6M) legs=['AAPU', 'AAPD']
-
-========== 34 COMPLEXES — TOP 12 BY PUMP PROBABILITY ==========
-  Industrials              pump=98.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$954.3M acc=True
-  Real Estate              pump=95.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$95.2M acc=True
-  S&P 500 Broad            pump=94.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$24025.6M acc=True
-  Transports               pump=81.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$68.3M acc=True
-  Materials                pump=81.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$350.5M acc=True
-  Copper/Mining            pump=80.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$110.8M acc=True
-  Gold                     pump=75.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$471.2M acc=True
-  Biotech                  pump=73.0  STEADY_INFLOW — TREND INTACT           net5d=$355.3M acc=True
-  Retail                   pump=73.0  ACCELERATING_INFLOW — PUMP SETUP       net5d=$182.5M acc=True
-  Small Caps               pump=72.0  INFLOW_DECELERATING — LATE             net5d=$422.1M acc=False
-  Oil                      pump=70.0  INFLOW_DECELERATING — LATE             net5d=$392.4M acc=False
-  Software                 pump=65.0  STEADY_INFLOW — TREND INTACT           net5d=$65.9M acc=True
-
-PUMP SETUPS: ['Industrials', 'Real Estate', 'S&P 500 Broad', 'Transports', 'Materials', 'Copper/Mining', 'Gold', 'Retail', 'Aerospace/Defense', 'Nasdaq Broad']
-PARTY OVER: ['Financials', 'Consumer Discretionary', 'Healthcare', 'Clean Energy', 'Natural Gas', 'Innovation/ARK', 'Uranium', 'Airlines', 'Gold Miners', 'Semiconductors']
-CASCADE: [{"symbol": "FCX", "complex": "Materials", "pump_probability": 81.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}, {"symbol": "FCX", "complex": "Copper/Mining", "pump_probability": 80.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}, {"symbol": "AMZN", "complex": "Retail", "pump_probability": 73.0, "why": "sector capital inflow accelerating + Massive options flag (gamma/calls)"}]
+TOP-25: 7 repriced by capital-flow overlay (v2):
+   #1  NEM    score=139.4  cf_mult=1.12  ymmetric, compound, pead] · sector capital ACCELERATING IN (Materials)
+   #2  FDX    score=134.1  cf_mult=1.12  N · theme T-2 Transports · sector capital ACCELERATING IN (Transports)
+   #13 NKE    score=102.2  cf_mult=0.85  pound, pead, smart_money] · sector party-over (Consumer Discretionary)
+   #14 SPG    score=100.8  cf_mult=1.12  (compound=100.8) [pead] · sector capital ACCELERATING IN (Real Estate)
+   #18 FCX    score=98.9   cf_mult=1.12   flow; smart-money blocks · sector capital ACCELERATING IN (Materials)
+   #19 GE     score=97.6   cf_mult=1.12  ey] · legends: DURATION · sector capital ACCELERATING IN (Industrials)
+   #22 CAT    score=95.9   cf_mult=1.12  velocity, future_intel] · sector capital ACCELERATING IN (Industrials)
