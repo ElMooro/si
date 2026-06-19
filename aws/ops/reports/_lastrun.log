@@ -1,39 +1,30 @@
-=== #4 best-setups (correlation-adjusted confluence) ===
-  justhodl-best-setups: code update OK (attempt 1)
-  invoke: {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': '{"ok": true, "n_setups": 395, "strong_buy": 4, "buy"
-  setups=50 | with confluence haircut (eff<raw)=29
-    NVDA   raw_signals=5 indep_bets=3.5 families=3 conf×1.65 verdict=STRONG BUY
-    PANW   raw_signals=5 indep_bets=4.25 families=4 conf×1.845 verdict=STRONG BUY
-    OTIS   raw_signals=4 indep_bets=3.25 families=3 conf×1.585 verdict=TRIPLE THREAT
-    MU     raw_signals=4 indep_bets=3.25 families=3 conf×1.585 verdict=STRONG BUY
-    WDC    raw_signals=4 indep_bets=4.0 families=4 conf×1.78 verdict=TRIPLE THREAT
-    BKNG   raw_signals=4 indep_bets=4.0 families=4 conf×1.78 verdict=STRONG BUY
-  verdict distribution: {'TRIPLE THREAT': 2, 'STRONG BUY': 4, 'BUY': 6, 'WATCH': 38}
+justhodl-engine-trust: code update OK (attempt 0)
+invoke: {'statusCode': 200, 'body': '{"ok": true, "n_engines": 67, "counts": {"PROMOTED": 8, "ACTIVE": 10, "INSUFFICIENT": 3, "DEPRECATED": 21, "WARMING": 25}, "regime"
 
-=== #6 signal-scorecard (NET-of-cost alpha + FDR) ===
-  justhodl-signal-scorecard: code update OK (attempt 0)
-  invoke: {'statusCode': 200, 'body': '{"ok": true, "n_signals_tracked": 67, "n_signals_graded": 39, "n_promoted": 8, "n_deprecated": 21, "n_insufficient": 28, 
-  round_trip_cost=0.3% | tested=37 | PROVEN(net)=3 | NEGATIVE(net)=28
-  NET-of-cost leaderboard:
-    crisis_dfii10_vs_gld           ALPHA_PROVEN   gross=5.421% net=5.121%  net_t=29.44  net_IR=1.862  n=250
-    crypto_risk_score              ALPHA_PROVEN   gross=2.402% net=2.102%  net_t=6.19  net_IR=0.403  n=236
-    squeeze_risk                   ALPHA_PROVEN   gross=1.697% net=1.397%  net_t=3.26  net_IR=0.112  n=843
-    momentum_uso                   NO_ALPHA       gross=0.34% net=0.04%  net_t=0.13  net_IR=0.006  n=462
-    equity_convergence_fingerprint NO_ALPHA       gross=0.31% net=0.01%  net_t=0.02  net_IR=0.005  n=21
-    khalid_index                   NO_ALPHA       gross=0.275% net=-0.025%  net_t=-0.22  net_IR=-0.026  n=70
-    frontrun_sniffer_setup         NO_ALPHA       gross=0.169% net=-0.131%  net_t=-0.51  net_IR=-0.039  n=167
-    yc_regime                      NO_ALPHA       gross=0.082% net=-0.218%  net_t=-0.94  net_IR=-0.094  n=99
-    earnings_pead                  NO_ALPHA       gross=0.019% net=-0.281%  net_t=-0.98  net_IR=-0.03  n=1097
-    sustained_target_equity        ALPHA_NEGATIVE gross=-0.315% net=-0.615%  net_t=-1.74  net_IR=-0.151  n=134
-    eurodollar_stress              ALPHA_NEGATIVE gross=0.189% net=-0.111%  net_t=-1.77  net_IR=-0.12  n=216
-    apex_fusion                    ALPHA_NEGATIVE gross=-0.786% net=-1.086%  net_t=-2.09  net_IR=-0.185  n=127
-  PROVEN after costs: ['crypto_risk_score', 'squeeze_risk', 'crisis_dfii10_vs_gld']
+regime=SLOWING | engines=67 | counts={'PROMOTED': 8, 'ACTIVE': 10, 'INSUFFICIENT': 3, 'DEPRECATED': 21, 'WARMING': 25}
 
-=== #5 meta-labeler (status + uplift) ===
-  invoke: {'statusCode': 200, 'body': '{"uplift_pp": null}'}
-  status: warming_up | n_training_rows: 40 (activates at 300)
-  uplift_pp: None | take_precision: None% vs base 25.0% | take_rate: 0.0% | brier: 0.1927
-  avg_excess taken vs all: None% vs -9.28% | pending gated: 0/4145 TAKE
-  -> still warming or no uplift; leave advisory
+ALPHA-BOOSTED (proven, x1.20):
+  crisis_dfii10_vs_gld           net_t=29.44 net_excess=5.121% -> trust=1.5
+  crypto_risk_score              net_t=6.19 net_excess=2.102% -> trust=1.2
+  squeeze_risk                   net_t=3.26 net_excess=1.397% -> trust=1.2
 
-DONE 1949
+ALPHA-DEMOTED (value-destroying, x0.40):
+  macro_composite_z              net_t=-4.42 net_excess=-0.246% -> trust=0.5
+  carry_risk                     net_t=-4.97 net_excess=-0.213% -> trust=0.5
+  momentum_spy                   net_t=-8.28 net_excess=-0.227% -> trust=0.5
+  plumbing_stress                net_t=-9.23 net_excess=-0.334% -> trust=0.5
+  ml_risk                        net_t=-68.58 net_excess=-0.306% -> trust=0.5
+  eurodollar_stress              net_t=-1.77 net_excess=-0.111% -> trust=0.4
+  macro_frontrun_sniffer_setup   net_t=-2.62 net_excess=-0.327% -> trust=0.4
+  etf_rotation                   net_t=-3.44 net_excess=-0.442% -> trust=0.4
+  analog_signal                  net_t=-5.44 net_excess=-0.484% -> trust=0.4
+  sustained_target_equity        net_t=-1.74 net_excess=-0.615% -> trust=0.0
+  apex_fusion                    net_t=-2.09 net_excess=-1.086% -> trust=0.0
+  crisis_broad_dollar_vs_eem     net_t=-2.98 net_excess=-0.575% -> trust=0.0
+  sector_breadth                 net_t=-4.06 net_excess=-0.409% -> trust=0.0
+  crisis_obfr_iorb               net_t=-4.32 net_excess=-0.269% -> trust=0.0
+  edge_regime                    net_t=-4.74 net_excess=-0.34% -> trust=0.0
+
+total demoted on alpha: 28 | boosted: 3
+
+DONE 1950
