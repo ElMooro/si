@@ -19,31 +19,50 @@ Real ETF Global + Massive FX data, research only — not advice.
 import json
 import time
 import urllib.request
+import urllib.parse
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/capital-flow-radar.json"
+STATE_KEY = "data/capital-flow-radar-state.json"
 s3 = boto3.client("s3", region_name="us-east-1")
+
+TELEGRAM_TOKEN = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_CHAT = "8678089260"
+
+
+def send_telegram(text):
+    try:
+        data = urllib.parse.urlencode({
+            "chat_id": TELEGRAM_CHAT, "text": text,
+            "parse_mode": "HTML", "disable_web_page_preview": "true"}).encode()
+        req = urllib.request.Request(
+            "https://api.telegram.org/bot%s/sendMessage" % TELEGRAM_TOKEN, data=data)
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return r.status == 200
+    except Exception as e:
+        print("[telegram] err", str(e)[:120])
+        return False
 
 # Sector / theme COMPLEXES. core = unlevered; bull/bear = leveraged sentiment legs.
 COMPLEXES = {
-    "Semiconductors": {"core": ["SMH", "SOXX"], "bull": ["SOXL"], "bear": ["SOXS"], "primary": "SMH",
+    "Semiconductors": {"core": ["SMH", "SOXX"], "bull": ["SOXL", "USD"], "bear": ["SOXS", "SSG"], "primary": "SMH",
                        "stocks": ["NVDA", "AMD", "AVGO", "MU", "TSM", "LRCX", "AMAT", "KLAC", "MRVL", "ON", "ARM", "SMCI"]},
-    "Technology": {"core": ["XLK", "QQQ", "VGT"], "bull": ["TQQQ", "TECL"], "bear": ["SQQQ", "TECS"], "primary": "XLK",
+    "Technology": {"core": ["XLK", "QQQ", "VGT"], "bull": ["TQQQ", "TECL", "ROM"], "bear": ["SQQQ", "TECS", "REW"], "primary": "XLK",
                    "stocks": ["AAPL", "MSFT", "NVDA", "AVGO", "ORCL", "CRM", "ADBE", "AMD"]},
     "Software": {"core": ["IGV", "WCLD", "SKYY"], "bull": [], "bear": [], "primary": "IGV",
                  "stocks": ["MSFT", "CRM", "NOW", "ADBE", "SNOW", "PLTR", "DDOG", "NET"]},
-    "Biotech": {"core": ["XBI", "IBB"], "bull": ["LABU"], "bear": ["LABD"], "primary": "XBI",
+    "Biotech": {"core": ["XBI", "IBB"], "bull": ["LABU", "BIB"], "bear": ["LABD", "BIS"], "primary": "XBI",
                 "stocks": ["VRTX", "REGN", "GILD", "AMGN", "MRNA", "BIIB", "ALNY"]},
-    "Energy": {"core": ["XLE", "XOP", "OIH"], "bull": ["ERX", "GUSH"], "bear": ["ERY", "DRIP"], "primary": "XLE",
+    "Energy": {"core": ["XLE", "XOP", "OIH"], "bull": ["ERX", "GUSH", "DIG"], "bear": ["ERY", "DRIP", "DUG"], "primary": "XLE",
                "stocks": ["XOM", "CVX", "COP", "SLB", "EOG", "OXY", "FANG", "PSX"]},
     "Oil": {"core": ["USO"], "bull": ["UCO"], "bear": ["SCO"], "primary": "USO", "stocks": []},
     "Natural Gas": {"core": ["UNG"], "bull": ["BOIL"], "bear": ["KOLD"], "primary": "UNG", "stocks": []},
-    "Financials": {"core": ["XLF", "KRE", "KBE"], "bull": ["FAS", "DPST"], "bear": ["FAZ"], "primary": "XLF",
+    "Financials": {"core": ["XLF", "KRE", "KBE"], "bull": ["FAS", "DPST", "UYG"], "bear": ["FAZ", "SKF"], "primary": "XLF",
                    "stocks": ["JPM", "BAC", "WFC", "GS", "MS", "C", "SCHW"]},
     "Clean Energy": {"core": ["ICLN", "TAN"], "bull": [], "bear": [], "primary": "TAN",
                      "stocks": ["FSLR", "ENPH", "SEDG", "RUN", "NEE", "STEM"]},
@@ -51,7 +70,7 @@ COMPLEXES = {
               "stocks": ["BABA", "PDD", "JD", "BIDU", "NIO", "LI", "XPEV"]},
     "Innovation/ARK": {"core": ["ARKK", "ARKW", "ARKG"], "bull": [], "bear": [], "primary": "ARKK",
                        "stocks": ["TSLA", "COIN", "ROKU", "HOOD", "PLTR", "RBLX"]},
-    "Crypto": {"core": ["IBIT", "FBTC", "BITO", "ETHA", "ARKB"], "bull": ["BITX", "ETHU"], "bear": ["BITI"], "primary": "IBIT",
+    "Crypto": {"core": ["IBIT", "FBTC", "BITO", "ETHA", "ARKB"], "bull": ["BITX", "ETHU", "BITU", "ETHT"], "bear": ["BITI", "SBIT"], "primary": "IBIT",
                "stocks": ["COIN", "MSTR", "MARA", "RIOT", "CLSK", "HUT"]},
     "Gold": {"core": ["GLD", "IAU"], "bull": ["UGL"], "bear": ["GLL"], "primary": "GLD",
              "stocks": ["NEM", "GOLD", "AEM", "WPM", "FNV"]},
@@ -66,47 +85,54 @@ COMPLEXES = {
                      "stocks": ["DHI", "LEN", "PHM", "NVR", "TOL", "KBH"]},
     "Retail": {"core": ["XRT"], "bull": ["RETL"], "bear": [], "primary": "XRT",
                "stocks": ["AMZN", "WMT", "COST", "TGT", "HD", "LOW"]},
-    "Small Caps": {"core": ["IWM"], "bull": ["TNA", "UWM"], "bear": ["TZA", "TWM"], "primary": "IWM", "stocks": []},
-    "S&P 500 Broad": {"core": ["SPY", "VOO", "IVV"], "bull": ["SPXL", "UPRO", "SSO"], "bear": ["SPXS", "SPXU", "SDS", "SH"],
+    "Small Caps": {"core": ["IWM"], "bull": ["TNA", "UWM", "SAA"], "bear": ["TZA", "TWM", "RWM"], "primary": "IWM", "stocks": []},
+    "S&P 500 Broad": {"core": ["SPY", "VOO", "IVV"], "bull": ["SPXL", "UPRO", "SSO", "SPUU"], "bear": ["SPXS", "SPXU", "SDS", "SH"],
                       "primary": "SPY", "stocks": []},
-    "Nasdaq Broad": {"core": ["QQQ"], "bull": ["TQQQ", "QLD"], "bear": ["SQQQ", "QID"], "primary": "QQQ", "stocks": []},
-    "Dow": {"core": ["DIA"], "bull": ["UDOW"], "bear": ["SDOW"], "primary": "DIA", "stocks": []},
-    "Industrials": {"core": ["XLI", "PAVE"], "bull": ["DUSL"], "bear": [], "primary": "XLI",
+    "Nasdaq Broad": {"core": ["QQQ"], "bull": ["TQQQ", "QLD"], "bear": ["SQQQ", "QID", "PSQ"], "primary": "QQQ", "stocks": []},
+    "Dow": {"core": ["DIA"], "bull": ["UDOW", "DDM"], "bear": ["SDOW", "DXD", "DOG"], "primary": "DIA", "stocks": []},
+    "Industrials": {"core": ["XLI", "PAVE"], "bull": ["DUSL", "UXI"], "bear": [], "primary": "XLI",
                     "stocks": ["CAT", "DE", "GE", "HON", "UNP", "BA"]},
     "Aerospace/Defense": {"core": ["ITA"], "bull": ["DFEN"], "bear": [], "primary": "ITA",
                           "stocks": ["RTX", "LMT", "NOC", "GD", "BA", "LHX"]},
-    "Transports": {"core": ["IYT"], "bull": [], "bear": [], "primary": "IYT",
+    "Transports": {"core": ["IYT"], "bull": ["TPOR"], "bear": [], "primary": "IYT",
                    "stocks": ["UPS", "FDX", "UNP", "CSX", "NSC", "ODFL"]},
     "Airlines": {"core": ["JETS"], "bull": [], "bear": [], "primary": "JETS",
                  "stocks": ["DAL", "UAL", "AAL", "LUV", "ALK"]},
-    "Materials": {"core": ["XLB"], "bull": [], "bear": [], "primary": "XLB",
+    "Materials": {"core": ["XLB"], "bull": ["UYM"], "bear": ["SMN"], "primary": "XLB",
                   "stocks": ["LIN", "FCX", "NEM", "SHW", "APD"]},
-    "Healthcare": {"core": ["XLV"], "bull": ["CURE"], "bear": [], "primary": "XLV",
+    "Healthcare": {"core": ["XLV"], "bull": ["CURE", "RXL"], "bear": [], "primary": "XLV",
                    "stocks": ["UNH", "JNJ", "LLY", "ABBV", "MRK", "PFE"]},
-    "Consumer Discretionary": {"core": ["XLY"], "bull": ["WANT"], "bear": [], "primary": "XLY",
+    "Consumer Discretionary": {"core": ["XLY"], "bull": ["WANT", "UCC"], "bear": [], "primary": "XLY",
                                "stocks": ["AMZN", "TSLA", "HD", "MCD", "NKE", "LOW"]},
     "Consumer Staples": {"core": ["XLP"], "bull": [], "bear": [], "primary": "XLP",
                          "stocks": ["PG", "KO", "PEP", "COST", "WMT"]},
-    "Utilities": {"core": ["XLU"], "bull": ["UTSL"], "bear": [], "primary": "XLU",
+    "Utilities": {"core": ["XLU"], "bull": ["UTSL", "UPW"], "bear": [], "primary": "XLU",
                   "stocks": ["NEE", "DUK", "SO", "D", "AEP"]},
-    "Real Estate": {"core": ["XLRE"], "bull": ["DRN"], "bear": ["DRV"], "primary": "XLRE",
+    "Real Estate": {"core": ["XLRE"], "bull": ["DRN", "URE"], "bear": ["DRV", "SRS"], "primary": "XLRE",
                     "stocks": ["PLD", "AMT", "EQIX", "SPG", "O"]},
     "Communications/Internet": {"core": ["XLC"], "bull": ["WEBL"], "bear": ["WEBS"], "primary": "XLC",
                                 "stocks": ["GOOGL", "META", "NFLX", "DIS", "TMUS"]},
+    # ── EXPANSION v3 — new complexes (FANG+ mega-cap tech + global regions) ──
+    "Mega-Cap Tech (FANG+)": {"core": ["QQQ"], "bull": ["FNGU", "BULZ"], "bear": ["FNGD", "BERZ"], "primary": "QQQ",
+                              "stocks": ["AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "NFLX", "AVGO", "TSLA"]},
+    "Europe": {"core": ["EFA", "VEA", "EWG", "EWU"], "bull": ["EURL"], "bear": [], "primary": "EFA", "stocks": []},
+    "Emerging Markets": {"core": ["EEM", "VWO"], "bull": ["EDC"], "bear": ["EDZ"], "primary": "EEM", "stocks": []},
+    "India": {"core": ["INDA"], "bull": ["INDL"], "bear": [], "primary": "INDA", "stocks": []},
+    "Brazil": {"core": ["EWZ"], "bull": ["BRZU"], "bear": [], "primary": "EWZ", "stocks": ["VALE", "PBR", "ITUB", "NU"]},
 }
 
 # Single-stock leveraged — direct leveraged-positioning read per mega-cap (board only).
 SINGLE_STOCK_LEV = {
-    "NVDA": {"bull": ["NVDL"], "bear": ["NVDS"]},
-    "TSLA": {"bull": ["TSLL"], "bear": ["TSLQ"]},
+    "NVDA": {"bull": ["NVDL", "NVDX", "NVDU"], "bear": ["NVDS"]},
+    "TSLA": {"bull": ["TSLL", "TSLR"], "bear": ["TSLQ", "TSLS"]},
     "AAPL": {"bull": ["AAPU"], "bear": ["AAPD"]},
-    "META": {"bull": ["METU"], "bear": []},
-    "AMZN": {"bull": ["AMZU"], "bear": []},
-    "MSFT": {"bull": ["MSFU"], "bear": []},
+    "META": {"bull": ["METU"], "bear": ["METD"]},
+    "AMZN": {"bull": ["AMZU"], "bear": ["AMZD"]},
+    "MSFT": {"bull": ["MSFU"], "bear": ["MSFD"]},
     "AMD": {"bull": ["AMDL"], "bear": ["AMDD"]},
-    "GOOGL": {"bull": ["GGLL"], "bear": []},
-    "MSTR": {"bull": ["MSTU"], "bear": ["MSTZ"]},
-    "COIN": {"bull": ["CONL"], "bear": []},
+    "GOOGL": {"bull": ["GGLL"], "bear": ["GGLS"]},
+    "MSTR": {"bull": ["MSTU", "MSTX"], "bear": ["MSTZ"]},
+    "COIN": {"bull": ["CONL"], "bear": ["CONI"]},
     "PLTR": {"bull": ["PLTU"], "bear": []},
     "SMCI": {"bull": ["SMCL"], "bear": []},
     "AVGO": {"bull": ["AVGX"], "bear": []},
@@ -342,12 +368,57 @@ def lambda_handler(event, context):
         "caveats": "ETF flows are daily (T+1) and are a positioning/conviction signal, not a timing trigger — flow can "
                    "persist past a top and reverse before a bottom. Leveraged-ETF flow is a sentiment proxy (with daily "
                    "rebalance decay), not 1:1 underlying buying. Real ETF Global + Massive FX data; research only.",
-        "sources": ["etf-flows/daily.json (186 ETFs incl full 2x/3x bull+bear suite — ETF Global via Massive)",
+        "sources": ["etf-flows/daily.json (246 ETFs incl full 2x/3x bull+bear suite + FANG+ 3x, 2x sector, region, FX, single-stock — ETF Global via Massive)",
                     "polygon-fx-regime (Massive FX / synthetic USD)", "massive-signals (Massive options overlay)",
                     "Massive daily aggregates (ETF price for divergence)"],
         "elapsed_s": round(time.time() - t0, 2),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(), ContentType="application/json")
+
+    # ── TRANSITION ALERTS: fire Telegram only on NEW pump-setups / party-over / risk flip ──
+    try:
+        prior = _read(STATE_KEY) or {}
+        first_run = not prior.get("generated_at")
+        prev_pumps = set(prior.get("pump_setups", []))
+        prev_party = set(prior.get("party_over", []))
+        prev_risk = prior.get("risk_appetite_short")
+        cur_pump_map = {c["complex"]: c for c in pump_setups}
+        cur_party_map = {c["complex"]: c for c in party_over}
+        cur_pumps = set(cur_pump_map)
+        cur_party = set(cur_party_map)
+        new_pumps = [cur_pump_map[n] for n in (cur_pumps - prev_pumps)]
+        new_party = [cur_party_map[n] for n in (cur_party - prev_party)]
+        risk_short = risk_appetite.split(" ")[0]
+        lines = []
+        if new_pumps:
+            lines.append("🟢 <b>NEW PUMP SETUPS</b> (accelerating capital inflow)")
+            for c in sorted(new_pumps, key=lambda x: -x["pump_probability"]):
+                stks = ", ".join((c.get("top_conviction_stocks") or c.get("ref_stocks") or [])[:4])
+                lines.append("• <b>%s</b> — pump %s · net5d $%.0fM%s"
+                             % (c["complex"], c["pump_probability"], c["net_flow_5d_usd"]/1e6,
+                                (" · " + stks) if stks else ""))
+        if new_party:
+            lines.append("🔴 <b>PARTY OVER / TOP WARNING</b> (capital leaving into strength)")
+            for c in sorted(new_party, key=lambda x: x["pump_probability"]):
+                lines.append("• <b>%s</b> — net5d $%.0fM · %s"
+                             % (c["complex"], c["net_flow_5d_usd"]/1e6,
+                                "DIVERGENCE" if c.get("flow_price_divergence") else "outflow"))
+        if prev_risk and risk_short != prev_risk:
+            lines.append("⚖️ Leveraged risk appetite flipped: <b>%s → %s</b>" % (prev_risk, risk_short))
+        if lines and not first_run:
+            header = "📡 <b>Capital Flow Radar</b>\n"
+            send_telegram(header + "\n".join(lines)
+                          + "\n\nhttps://justhodl.ai/capital-flow-radar.html")
+        s3.put_object(Bucket=S3_BUCKET, Key=STATE_KEY,
+                      Body=json.dumps({
+                          "pump_setups": sorted(cur_pumps),
+                          "party_over": sorted(cur_party),
+                          "risk_appetite_short": risk_short,
+                          "generated_at": out["generated_at"],
+                      }).encode(), ContentType="application/json")
+    except Exception as e:
+        print("[capital-flow-radar] alert/state err", str(e)[:160])
+
     print("[capital-flow-radar v2] complexes=%d pumps=%d party_over=%d risk=%s lev_board=%d %.1fs"
           % (len(out_complexes), len(pump_setups), len(party_over), risk_appetite.split(" ")[0], len(board), out["elapsed_s"]))
     return {"statusCode": 200, "body": json.dumps({"ok": True, "n_complexes": len(out_complexes),
