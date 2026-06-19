@@ -257,6 +257,28 @@ def lambda_handler(event, context):
                         "a full read needs a stress episode in the window.")
     cro_note = " ".join(cro_bits)
 
+    # Massive risk-environment context — is the carry being bled justified by current crash risk?
+    _dg = read_json("data/dealer-gex.json") or {}
+    _vs = read_json("data/vol-surface.json") or {}
+    _gr = (_dg.get("market_composite") or {}).get("composite_regime") or "UNKNOWN"
+    _vsr = _vs.get("regime") or "NORMAL"
+    _vss = num(_vs.get("composite_stress_score"))
+    _neg_gamma = "NEGATIVE" in str(_gr).upper()
+    _vol_stress = (_vsr or "").upper() in ("STRESS", "ELEVATED", "HIGH", "CRISIS") or (_vss is not None and _vss >= 50)
+    carry_justification = ("ELEVATED crash risk -- carry is well-justified right now (negative dealer gamma "
+                           "/ stressed vol surface raise the odds the convex leg pays)."
+                           if (_neg_gamma or _vol_stress) else
+                           "CALM tape (positive/neutral gamma, low vol-surface stress) -- carry is mostly pure "
+                           "drag for now; the sleeve earns its keep only when the regime turns.")
+    massive_risk_context = {
+        "gamma_regime": _gr, "spy_gamma_regime": (_dg.get("market_composite") or {}).get("spy_regime"),
+        "vol_surface_regime": _vsr, "vol_surface_stress": _vss,
+        "skew_pctile_252d": num((_vs.get("skew") or {}).get("pctile_252d")),
+        "carry_justification": carry_justification,
+        "note": ("Reads current crash-risk environment (dealer gamma + vol surface) to judge whether the "
+                 "hedge's carry bleed is justified -- Massive options data."),
+    }
+
     out = {
         "schema_version": SCHEMA,
         "engine": "justhodl-hedge-pnl",
@@ -268,6 +290,7 @@ def lambda_handler(event, context):
         "verdict": verdict,
         "verdict_color": vcolor,
         "headline": headline,
+        "massive_risk_context": massive_risk_context,
         "cro_note": cro_note,
 
         "track": {

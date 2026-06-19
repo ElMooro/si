@@ -416,12 +416,33 @@ def lambda_handler(event, context):
     div_ranked = sorted(div_scores.items(),
                           key=lambda x: -(x[1] if x[1] is not None else 0))
 
+    # Massive risk-environment context — correlations spike in negative dealer gamma / vol stress,
+    # so crowded-trade (cluster) concentration risk is more dangerous in those regimes.
+    def _rd(k):
+        try:
+            return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=k)["Body"].read())
+        except Exception:
+            return {}
+    _dg = _rd("data/dealer-gex.json"); _vs = _rd("data/vol-surface.json")
+    _gr = (_dg.get("market_composite") or {}).get("composite_regime") or "UNKNOWN"
+    _neg = "NEGATIVE" in str(_gr).upper()
+    _vsr = (_vs.get("regime") or "NORMAL")
+    risk_environment = {
+        "gamma_regime": _gr, "vol_surface_regime": _vsr,
+        "vol_surface_stress": _vs.get("composite_stress_score"),
+        "skew_pctile_252d": (_vs.get("skew") or {}).get("pctile_252d"),
+        "concentration_warning": bool(_neg or _vsr.upper() in ("STRESS", "ELEVATED", "HIGH", "CRISIS")),
+        "note": ("In negative dealer gamma / stressed vol, cross-stock correlations spike -- clusters that look "
+                 "diversified in calm tape converge in a selloff, so concentration risk is amplified. Massive options data."),
+    }
+
     output = {
         "schema_version": "1.0",
         "generated_at":   datetime.now(timezone.utc).isoformat(),
         "elapsed_sec":    round(time.time() - t0, 2),
         "lookback_days":  LOOKBACK_DAYS,
         "n_candidates":   len(tickers),
+        "risk_environment": risk_environment,
 
         "correlations": {
             "matrix":                matrix,
