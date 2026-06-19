@@ -1,16 +1,32 @@
 UPDATED
-SCHEDULED 12:30 UTC
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_engines\": 67, \"counts\": {\"PROMOTED\": 8, \"ACTIVE\": 11, \"INSUFFICIENT\": 3, \"DEPRECATED\": 20, \"WARMING\": 25}, \"regime\": \"SLOWING\"}"}
+SCHEDULED 13:00 UTC
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"nodes\": 82, \"edges\": 35, \"live\": 16, \"with_history\": 82}"}
 
-REGISTRY: engines=67 harvested=0 regime=SLOWING
-counts: {'PROMOTED': 8, 'ACTIVE': 11, 'INSUFFICIENT': 3, 'DEPRECATED': 20, 'WARMING': 25}
+GRAPH: universe=85 with_history=82 nodes=82 edges=35 axis=75d
 
-Most-trusted right now (matured + above 0.55 LB):
-  ml_risk                    status=PROMOTED  n=92   LB=0.96   eff_trust=1.25
-  crisis_dfii10_vs_gld       status=PROMOTED  n=246  LB=0.883  eff_trust=1.25
-  momentum_top_pick          status=PROMOTED  n=18   LB=0.824  eff_trust=1.25
-  macro_composite_z          status=PROMOTED  n=223  LB=0.707  eff_trust=1.25
-  carry_risk                 status=PROMOTED  n=317  LB=0.704  eff_trust=1.25
-  momentum_spy               status=PROMOTED  n=327  LB=0.684  eff_trust=1.25
+TOP LEADERS (move before others):
+  SIMO    out=4   in=2   lead_strength=1.64   recent2d=0.75%
+  INTC    out=4   in=0   lead_strength=1.62   recent2d=9.32%
+  EXTR    out=3   in=2   lead_strength=1.07   recent2d=1.93%
+  STRL    out=3   in=3   lead_strength=0.96   recent2d=3.35%
+  ANET    out=2   in=0   lead_strength=0.76   recent2d=8.11%
+  PRIM    out=2   in=1   lead_strength=0.75   recent2d=7.24%
+  GNRC    out=2   in=1   lead_strength=0.68   recent2d=4.96%
+  DLR     out=2   in=0   lead_strength=0.61   recent2d=1.13%
 
-Demoted (proven below coinflip): ['sustained_target_equity', 'apex_fusion', 'crypto_fear_greed', 'edge_regime', 'correlation_break', 'crisis_sofr_iorb', 'momentum_gld', 'corr_break_composite_vs_spy']
+STRONGEST EDGES (A leads B):
+  SIMO    -> PWR     lag=1d corr=0.53 asym=0.53
+  INTC    -> EXTR    lag=3d corr=0.49 asym=0.49
+  SIMO    -> MYRG    lag=1d corr=0.50 asym=0.47
+  INTC    -> SIMO    lag=3d corr=0.46 asym=0.45
+  INTC    -> GNRC    lag=3d corr=0.42 asym=0.42
+  AMBQ    -> CSCO    lag=2d corr=0.44 asym=0.41
+  ANET    -> AOSL    lag=1d corr=0.45 asym=0.41
+  AAON    -> AMBQ    lag=3d corr=0.43 asym=0.38
+
+LIVE PREDICTIONS:
+  AMD moved 12.04% 2d -> expect: SIMO(UP,3d)
+  SMR moved 11.18% 2d -> expect: CEVA(UP,2d)
+  INTC moved 9.32% 2d -> expect: EXTR(UP,3d), SIMO(UP,3d), GNRC(UP,3d), BE(UP,3d)
+  AEIS moved 8.89% 2d -> expect: PRIM(UP,1d)
+  ANET moved 8.11% 2d -> expect: AOSL(UP,1d), ETN(UP,1d)
