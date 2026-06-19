@@ -47,5 +47,9 @@ def dollar_tide():
     return _load().get("dollar_tide", {}) or {}
 
 
+def leveraged_positioning_board():
+    return _load().get("leveraged_positioning", {}) or {}
+
+
 def leveraged_risk_appetite():
-    return (_load().get("leveraged_sentiment") or {}).get("risk_appetite")
+    return leveraged_positioning_board().get("risk_appetite")

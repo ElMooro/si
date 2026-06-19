@@ -48,6 +48,7 @@ SIGNAL_PRIORS = {
     "POLITICIAN_COMMITTEE": 0.85,   # committee jurisdiction edge — strongest
     "DEEP_VALUE_OVERLAP":   0.84,   # cheap on multiple lenses + catalysts + inflection
     "CAPITAL_FLOW":         0.82,   # institutions + capital accumulating (13F+inst+ETF)
+    "SECTOR_CAPITAL_FLOW":  0.72,   # sector ETF-complex capital ACCELERATING in (radar pump-setup)
     "COMPOUNDER":           0.80,   # durable quality growth (ROIC+margin+growth)
     "REVISION_UP":          0.78,   # analyst estimate-revision momentum
     "DISLOCATION":          0.78,   # relative-value buy-the-laggard
@@ -144,6 +145,7 @@ def lambda_handler(event, context):
     dislocations = read_json("data/dislocations.json") or {}
     opportunities = read_json("data/opportunities.json") or {}
     capital_flow = read_json("data/capital-flow.json") or {}
+    capital_flow_radar = read_json("data/capital-flow-radar.json") or {}
     bond_vol = read_json("data/bond-vol.json") or {}
     massive = read_json("data/massive-signals.json") or {}
     # ── The Brain: Khalid's pinned principles + watched tickers. We flag setups
@@ -323,6 +325,15 @@ def lambda_handler(event, context):
         add(c.get("ticker"), c.get("sector"), "CAPITAL_FLOW",
             normalize(c.get("flow_score"), 8, 60),
             "institutions accumulating · " + " · ".join(c.get("lenses") or []))
+
+    # 7d2. Sector capital-flow radar — stocks riding an ACCELERATING sector ETF-complex inflow
+    #      (real ETF Global creations/redemptions; the pump-setup window before the sector runs).
+    for cx in (capital_flow_radar.get("pump_setups") or []):
+        pp = cx.get("pump_probability")
+        cxn = cx.get("complex")
+        for s in (cx.get("ref_stocks") or []):
+            add(s, None, "SECTOR_CAPITAL_FLOW", normalize(pp, 65, 100),
+                "sector capital ACCELERATING in · " + (cxn or "") + " (pump " + str(pp) + ")")
 
     # 7e. FINRA short-squeeze setups (elevated short-volume z-score + price strength)
     for r in (finra_short.get("squeeze_candidates") or [])[:25]:
