@@ -1,82 +1,34 @@
-/home/runner/work/si/si/aws/ops/pending/1939_massive_roro_coverage_probe.py:49: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
-  datetime.utcfromtimestamp(r0.get("t", 0)/1000).strftime("%Y-%m-%d") if r0.get("t") else "?")
-massive key len: 32
+  update OK attempt 0
+state: Active Successful size: 4723
+invoke: {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': '{"ok": true, "elapsed_s": 0.8, "fx_roro_score": -4.0, "fx_roro_regime": "NEUTRAL", "n_signals": 1, "tells": ["RISK-ON: CHF haven (USDCHF) (+1.63% 5d)", "RISK-ON: Gold haven (-3.24% 5d)", "RISK-OFF: NZD risk currency (-2.25
 
-========== FX (havens / carry / EM) ==========
-  OK  C:USDCHF    0.8068  2026-06-19  api.massive.com
-  OK  C:CHFUSD    1.2340  2026-06-19  api.massive.com
-  OK  C:USDJPY    161.3030  2026-06-19  api.massive.com
-  OK  C:AUDJPY    112.6850  2026-06-19  api.massive.com
-  OK  C:EURJPY    184.9900  2026-06-19  api.massive.com
-  OK  C:NZDJPY    92.5300  2026-06-19  api.massive.com
-  OK  C:AUDUSD    0.6999  2026-06-19  api.massive.com
-  OK  C:NZDUSD    0.5721  2026-06-19  api.massive.com
-  OK  C:USDMXN    17.3293  2026-06-19  api.massive.com
-  OK  C:USDZAR    16.3921  2026-06-19  api.massive.com
-  OK  C:USDTRY    46.4297  2026-06-19  api.massive.com
-  OK  C:USDBRL    5.1509  2026-06-19  api.massive.com
-  OK  C:USDCNH    6.7842  2026-06-19  api.massive.com
-  OK  C:USDKRW    1526.7100  2026-06-19  api.massive.com
-  OK  C:USDSEK    9.5791  2026-06-19  api.massive.com
-  OK  C:USDNOK    9.6899  2026-06-19  api.massive.com
-  OK  C:XAUUSD    4154.7200  2026-06-19  api.massive.com
-  OK  C:XAGUSD    64.7732  2026-06-19  api.massive.com
+version: 2.0.0 | source: Massive FX (entitled, daily) | n_pairs: 19
+FX RORO score: -4.0 | regime: NEUTRAL
+em_basket_5d: 1.128 | gold/silver chg: 4.629 | havens_bid: 0
 
-========== INDEX (vol family / rates / breadth) ==========
-  DEAD I:VIX     None  HTTP403  
-  DEAD I:VIX1D   None  HTTP403  
-  DEAD I:VIX9D   None  HTTP403  
-  DEAD I:VIX3M   None  HTTP403  
-  DEAD I:VIX6M   None  HTTP403  
-  DEAD I:VVIX    None  HTTP403  
-  DEAD I:VXN     None  HTTP403  
-  DEAD I:RVX     None  HTTP403  
-  DEAD I:MOVE    None  None  
-  DEAD I:SKEW    None  HTTP403  
-  DEAD I:SPX     None  HTTP403  
-  OK  I:NDX     30406.19381139064  2026-06-18  api.massive.com
-  DEAD I:RUT     None  HTTP403  
-  DEAD I:TNX     None  HTTP403  
-  DEAD I:DXY     None  None  
-  DEAD I:OVX     None  HTTP403  
-  DEAD I:GVZ     None  HTTP403  
+Drivers (contribution, + = risk-on):
+  Gold/Silver ratio        5d=+4.63%  contrib=-1.54  w=0.07
+  NZD risk currency        5d=-2.25%  contrib=-1.50  w=0.07
+  CHF haven (USDCHF)       5d=+1.63%  contrib=+1.35  w=0.1
+  Gold haven               5d=-3.24%  contrib=+1.29  w=0.1
+  AUD risk currency        5d=-1.07%  contrib=-0.71  w=0.1
+  EM FX basket             5d=+1.13%  contrib=-0.63  w=0.15
+  JPY haven (USDJPY)       5d=+0.84%  contrib=+0.56  w=0.15
+  AUD/JPY carry cross      5d=-0.42%  contrib=-0.21  w=0.18
+  EUR/JPY cross            5d=-0.32%  contrib=-0.16  w=0.08
 
-========== FUTURES (aggs format) ==========
-  DEAD GC1!      None  None  
-  DEAD CL1!      None  None  
-  DEAD HG1!      None  None  
-  DEAD SI1!      None  None  
-  DEAD ES1!      None  None  
-  DEAD NQ1!      None  None  
-  DEAD RTY1!     None  None  
-  DEAD ZN1!      None  None  
-  DEAD ZB1!      None  None  
-  DEAD 6J1!      None  None  
-  DEAD VX1!      None  None  
-  DEAD F:GCZ4    None  HTTP404  
-  DEAD F:CLZ4    None  HTTP404  
+Tells:
+  • RISK-ON: CHF haven (USDCHF) (+1.63% 5d)
+  • RISK-ON: Gold haven (-3.24% 5d)
+  • RISK-OFF: NZD risk currency (-2.25% 5d)
+  • RISK-OFF: Gold/Silver ratio (+4.63% 5d)
 
-========== FUTURES (snapshot format) ==========
-  DEAD GC    None  
-  DEAD CL    None  
-  DEAD HG    None  
-  DEAD SI    None  
-  DEAD ES    None  
-  DEAD NQ    None  
-  DEAD RTY   None  
-  DEAD ZN    None  
-  DEAD ZB    None  
-  DEAD VX    None  
-  DEAD 6J    None  
+Key pairs (latest, 5d%):
+  USD_JPY  161.303  5d=0.844
+  USD_CHF  0.8068  5d=1.626
+  AUD_JPY  112.685  5d=-0.422
+  XAU_USD  4154.72  5d=-3.237
+  USD_MXN  17.3293  5d=0.95
+  AUD_USD  0.69991  5d=-1.066
 
-========== OPTIONS (snapshot — for put/call) ==========
-  OK  SPY  n_contracts_sample=10  api.massive.com
-  OK  QQQ  n_contracts_sample=10  api.massive.com
-  OK  HYG  n_contracts_sample=10  api.massive.com
-  OK  TLT  n_contracts_sample=10  api.massive.com
-
-=== SUMMARY ===
-FX OK: ['C:USDCHF', 'C:CHFUSD', 'C:USDJPY', 'C:AUDJPY', 'C:EURJPY', 'C:NZDJPY', 'C:AUDUSD', 'C:NZDUSD', 'C:USDMXN', 'C:USDZAR', 'C:USDTRY', 'C:USDBRL', 'C:USDCNH', 'C:USDKRW', 'C:USDSEK', 'C:USDNOK', 'C:XAUUSD', 'C:XAGUSD']
-IDX OK: ['I:NDX']
-FUT_AGG OK: []
-FUT_SNAP OK: []
+DONE 1940
