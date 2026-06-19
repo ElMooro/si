@@ -32,7 +32,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/ai-rerating-radar.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -169,6 +169,38 @@ def lambda_handler(event, context):
         if isinstance(q, dict) and q.get("symbol"):
             accel[q["symbol"]] = q.get("tier") or "ACCEL"
 
+    # --- revision-velocity inflection (timing trigger) + contagion inputs ---
+    erv = {}
+    for r in (_read("data/eps-revision-velocity.json") or {}).get("all_qualifying", []) or []:
+        est = r.get("estimates", {}) or {}; rb = r.get("ratings_breadth", {}) or {}
+        if r.get("symbol"):
+            erv[r["symbol"]] = {"vel": _num(r.get("score")), "fy2_lift": _num(est.get("fy2_lift_pct")),
+                                "ups": rb.get("n_upgrades") or 0, "downs": rb.get("n_downgrades") or 0}
+    revising_up = set(erv.keys())
+    for m in (_read("data/estimate-revisions.json") or {}).get("movers_up", []) or []:
+        sym = (m.get("symbol") or m.get("ticker")) if isinstance(m, dict) else m
+        if sym:
+            revising_up.add(sym)
+    for r in (_read("data/analyst-consensus.json") or {}).get("strongest_upgrades_30d", []) or []:
+        if isinstance(r, dict) and r.get("ticker"):
+            revising_up.add(r["ticker"])
+    shrt = {}
+    for r in (_read("data/finra-short.json") or {}).get("squeeze_candidates", []) or []:
+        if isinstance(r, dict) and r.get("symbol"):
+            shrt[r["symbol"]] = _num(r.get("squeeze_score"))
+    ai_deal_syms = {x.get("symbol") for x in
+                    ((_read("data/deal-scanner.json") or {}).get("summary", {}) or {}).get("ai_deals", []) or []
+                    if isinstance(x, dict)}
+    # AI-infra layer leaders (largest mkt-cap per layer) + which are revising up
+    leaders, _lb = {}, {}
+    for _s, _u in uni.items():
+        _lk, _mc = _u["layer"], _u.get("market_cap") or 0
+        if _lk not in _lb or _mc > _lb[_lk][1]:
+            _lb[_lk] = (_s, _mc)
+    for _lk, (_ls, _m) in _lb.items():
+        leaders[_lk] = _ls
+    layer_hot = {lk: (leaders[lk] in revising_up) for lk in leaders}
+
     syms = list(uni.keys())[:220]
     fund = {}
     with ThreadPoolExecutor(max_workers=6) as ex:
@@ -216,10 +248,14 @@ def lambda_handler(event, context):
         lag_gap = None
         if u["ret_3m"] is not None:
             lag_gap = round((layer_median.get(u["layer"]) or 0) - u["ret_3m"], 1)
-        # value-trap guard
+        # value-trap guard + revision-velocity inflection (the timing trigger)
         not_decel = accel_flag or (tg is None) or (fg >= 0.7 * tg)
         underpriced = (zz is not None and zz < -0.2)
-        is_candidate = (fg >= MIN_FWD_GROWTH) and underpriced and not_decel
+        ev = erv.get(s, {})
+        rising = s in revising_up
+        falling = ((ev.get("downs") or 0) > (ev.get("ups") or 0)) and (ev.get("ups") or 0) == 0
+        contagion = bool(layer_hot.get(u["layer"]) and (not rising) and fg >= MIN_FWD_GROWTH and underpriced)
+        is_candidate = (fg >= MIN_FWD_GROWTH) and underpriced and not_decel and not falling
         # pillar points
         unpriced_pts = max(0.0, -(zz or 0)) * 20
         laggard_pts = max(0.0, min(lag_gap or 0, 60)) * 0.6
@@ -227,7 +263,15 @@ def lambda_handler(event, context):
         accum_pts = min(len(u["flow_signals"]) * 8, 32)
         bn_pts = 10 if u["bottleneck"] else 0
         cap_pts = CAP_BOOST.get(bkt, 5)
-        composite = round(unpriced_pts + laggard_pts + infl_pts + accum_pts + bn_pts + cap_pts, 1)
+        rev_pts = (min(ev["vel"], 100) * 0.30) if ev.get("vel") else (16 if rising else 0)
+        if falling:
+            rev_pts = -12                       # estimates being cut -> re-rating DOWN
+        contagion_pts = 24 if contagion else 0  # upstream leader rising, this laggard hasn't
+        sq = (shrt.get(s) or 0) >= 70
+        deal = s in ai_deal_syms
+        kick_pts = (10 if sq else 0) + (12 if deal else 0)
+        composite = round(unpriced_pts + laggard_pts + infl_pts + rev_pts + accum_pts
+                          + bn_pts + cap_pts + contagion_pts + kick_pts, 1)
         why = []
         why.append(f"{fg*100:.0f}% rev growth on {evs:.1f}x EV/Sales"
                    + (f" vs ~{implied:.1f}x growth-implied ({discount_pct:.0f}% below)" if discount_pct is not None else ""))
@@ -236,6 +280,16 @@ def lambda_handler(event, context):
         why.append("revenue accelerating" if accel_flag else ("forward > trailing growth" if (tg is not None and fg > tg) else "growth intact"))
         if u["flow_signals"]:
             why.append("accumulation: " + ", ".join(u["flow_signals"][:2]))
+        if rising:
+            why.append("estimates revising UP" + (f" (velocity {ev['vel']:.0f})" if ev.get("vel") else ""))
+        elif falling:
+            why.append("⚠ estimates being cut")
+        else:
+            why.append("estimates still flat — not yet re-rated")
+        if contagion:
+            why.append(f"★ contagion: {leaders[u['layer']]} (layer leader) revising up, this hasn't")
+        if deal:
+            why.append("fresh AI deal")
         rows.append({
             "symbol": s, "name": u["name"], "layer": u["layer"], "cap_bucket": bkt,
             "market_cap": u["market_cap"], "is_small_mid": bkt in SMALL_MID,
@@ -247,6 +301,11 @@ def lambda_handler(event, context):
             "laggard_gap_pp": lag_gap, "ret_3m_pct": u["ret_3m"],
             "accelerating": accel_flag, "bottleneck": u["bottleneck"],
             "flow_signals": u["flow_signals"], "is_candidate": is_candidate,
+            "revision_velocity": round(ev["vel"], 1) if ev.get("vel") else None,
+            "estimates_rising": rising, "estimates_falling": falling,
+            "fy2_eps_lift_pct": ev.get("fy2_lift"), "contagion": contagion,
+            "layer_leader": leaders.get(u["layer"]), "layer_leader_rising": layer_hot.get(u["layer"]),
+            "short_squeeze": sq, "ai_deal": deal,
             "composite": composite, "why": "; ".join(why),
         })
 
@@ -268,6 +327,12 @@ def lambda_handler(event, context):
             "top_small_mid_setups": [r for r in candidates if r["is_small_mid"]][:15],
             "deepest_discounts": sorted([r for r in candidates if r["discount_to_implied_pct"] is not None],
                                         key=lambda x: x["discount_to_implied_pct"], reverse=True)[:15],
+            "contagion_candidates": sorted([r for r in rows if r["contagion"]],
+                                           key=lambda x: x["composite"], reverse=True)[:20],
+            "rising_and_cheap": [r for r in candidates if r["estimates_rising"]][:20],
+            "n_contagion": sum(1 for r in rows if r["contagion"]),
+            "n_rising": sum(1 for r in rows if r["estimates_rising"]),
+            "layer_leaders": leaders, "layer_leader_rising": layer_hot,
         },
         "all_ranked": rows[:120],
         "methodology": {
@@ -275,10 +340,12 @@ def lambda_handler(event, context):
                     "negative residual (z<-0.2) = priced below its growth-implied multiple",
             "value_trap_guard": f"candidate requires fwd growth >= {int(MIN_FWD_GROWTH*100)}% AND not decelerating "
                                 "(accelerating, or fwd >= 0.7x trailing) — cheap+shrinking is excluded",
-            "composite": "unpriced residual (35%) + laggard gap + inflection + accumulation + bottleneck + small/mid cap tilt",
+            "composite": "unpriced residual + laggard gap + revision-velocity inflection + revision contagion + accumulation + bottleneck + kickers(short/AI-deal) + small/mid cap tilt",
+            "inflection_trigger": "eps-revision-velocity (analyst estimate-revision velocity + FY2 lift + upgrades): rising estimates BOOST, estimates being cut DISQUALIFY (re-rating down) — separates value-trap from re-rating",
+            "contagion": "AI-infra layer leader (largest mkt-cap) revising up while a layer laggard's estimates are still flat — the upstream to downstream revision-lag window",
             "ev_sales": "marketCap / latest-FY revenue (clean; FMP TTM ev/sales endpoint is unreliable)",
         },
-        "sources": ["ai-infra-stack", "revenue-acceleration", "FMP analyst-estimates", "FMP income-statement"],
+        "sources": ["ai-infra-stack", "revenue-acceleration", "eps-revision-velocity", "estimate-revisions", "analyst-consensus", "finra-short", "deal-scanner", "FMP analyst-estimates", "FMP income-statement"],
         "disclaimer": "Pre-re-rating screen. Real data, research only — not investment advice. "
                       "Estimates can be wrong and cheap can stay cheap; the guard reduces but does not remove value-trap risk.",
         "elapsed_s": round(time.time() - t0, 2),
