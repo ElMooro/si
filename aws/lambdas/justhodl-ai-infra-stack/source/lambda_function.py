@@ -54,7 +54,7 @@ LAYERS = [
       "AMKR", "AEHR", "ASYS", "CCMP", "KOPN"],
      ["Semiconductor Equipment & Materials"]),
     ("memory", "Memory / HBM", "DRAM, NAND, HBM, controllers — the AI memory wall.",
-     ["MU", "WDC", "STX", "SIMO", "NTAP", "PSTG"], []),
+     ["MU", "SNDK", "WDC", "STX", "SIMO", "NTAP", "PSTG"], []),
     ("foundry", "Foundry / Fab", "Wafer fabrication capacity.",
      ["TSM", "GFS", "UMC"], []),
     ("networking", "Networking / Interconnect", "Switches, NICs, fabric — moving the bits in the datacenter.",
@@ -71,6 +71,10 @@ LAYERS = [
     ("datacenter_buildout", "Datacenter Build-out", "Electrical/mechanical EPC building the datacenters.",
      ["PWR", "MYRG", "PRIM", "EME", "STRL", "IESC", "FIX", "APG", "ROAD"],
      ["Engineering & Construction"]),
+    ("neocloud", "Neoclouds / GPU Cloud", "GPU-as-a-service clouds renting out AI compute — the new compute landlords.",
+     ["CRWV", "NBIS"], []),
+    ("miners_to_ai", "Miners → AI Datacenters", "Bitcoin miners repurposing power + sites into AI/HPC datacenters — the crossover re-rate Aschenbrenner rode.",
+     ["IREN", "CORZ", "RIOT", "CLSK", "HUT", "BTDR", "CIFR", "WULF", "BTBT", "APLD"], []),
     ("datacenter_reits", "Datacenter REITs", "Colocation / hyperscale real estate.",
      ["EQIX", "DLR", "IRM"], ["REIT - Specialty"]),
 ]
@@ -211,17 +215,20 @@ def lambda_handler(event, context):
     rev_set = {q.get("symbol") for q in (_read("data/revenue-acceleration.json") or {}).get("all_qualifying", []) or []
                if isinstance(q, dict)}
 
-    # 1) assemble candidate -> primary layer (first layer wins)
+    # 1) assemble candidate -> primary layer.
+    #    Pass 1: ALL canonical seeds across every layer FIRST — seeds always beat industry
+    #    discovery, so memory names (MU, SNDK, WDC) are never vacuumed into silicon by the
+    #    shared "Semiconductors" keyword. Pass 2: industry-keyword discovery fills non-seeds.
     primary, layer_of = {}, {}
     for key, label, desc, seeds, kws in LAYERS:
         for s in seeds:
             if s not in layer_of:
                 layer_of[s] = key
                 primary.setdefault(key, set()).add(s)
+    for key, label, desc, seeds, kws in LAYERS:
         for kw in kws:
             for sym in by_ind.get(kw, []):
                 if sym not in layer_of:
-                    # discovered (non-seed) — only if signal-backed (checked later); tag candidate
                     layer_of[sym] = key
                     primary.setdefault(key, set()).add(("disc", sym))
 
