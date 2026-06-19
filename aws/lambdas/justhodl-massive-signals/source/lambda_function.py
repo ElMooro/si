@@ -47,8 +47,7 @@ def lambda_handler(event, context):
 
     # ── gamma squeeze candidates (dealer-gex) ──
     gex = _read("data/dealer-gex.json") or {}
-    gamma_regime = ((gex.get("market_composite") or {}).get("regime")
-                    or (gex.get("market_composite") or {}).get("net_regime"))
+    gamma_regime = (gex.get("market_composite") or {}).get("composite_regime")
     for c in gex.get("squeeze_candidates", []) or []:
         sym = c.get("symbol")
         if not sym:
@@ -62,9 +61,9 @@ def lambda_handler(event, context):
 
     # ── unusual options flow (polygon-options-flow: rich per-ticker) ──
     pof = _read("data/polygon-options-flow.json") or {}
-    rows = pof.get("results") or pof.get("tickers") or pof.get("flows") or []
-    if isinstance(rows, dict):
-        rows = list(rows.values())
+    rows = pof.get("all_results") or (
+        (pof.get("extreme_call_flow") or []) + (pof.get("bullish_call_flow") or [])
+        + (pof.get("notable_flow") or []))
     for r in rows:
         sym = r.get("ticker") or r.get("symbol")
         if not sym:
@@ -85,7 +84,8 @@ def lambda_handler(event, context):
 
     # ── simple-majors flow (options-flow, 8 names) for market read ──
     of = _read("data/options-flow.json") or {}
-    majors = {f.get("ticker"): f.get("sentiment") for f in (of.get("flows") or []) if f.get("ticker")}
+    majors = {f.get("ticker"): f.get("sentiment") for f in (of.get("all_qualifying") or [])
+              if isinstance(f, dict) and f.get("ticker")}
 
     # ── ETF $ flows (sector + small-cap bid) ──
     etf = {}
