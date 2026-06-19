@@ -1,36 +1,43 @@
-=== SEC EDGAR full-text search (13D/13G) ===
-  search-index forms=SC 13D: HTTP 200 head={"took":1171,"timed_out":false,"_shards":{"total":50,"successful":50,"skipped":0,"failed":0},"hits":{"total":{"value":10
-  search-index dated: HTTP 200 head={"took":1195,"timed_out":false,"_shards":{"total":50,"successful":50,"skipped":0,"failed":0},"hits":{"total":{"value":0,
-  browse-edgar getcurrent SC 13D atom: HTTP 200 head=<?xml version="1.0" encoding="ISO-8859-1" ?> <feed xmlns="http://www.w3.org/2005/Atom"> <title>Latest Filings - Fri, 19 Jun 2026 1
-  data.sec.gov submissions AAPL: HTTP 200 (recent forms present=True)
-  company_tickers.json (CIK<->ticker map): HTTP 200 len=798068
+=== MASSIVE (Polygon) KEY — WHAT'S UNLOCKED ===
+-- Stocks (paid: Stocks Starter) --
+  [UNLOCKED] stock prev             HTTP 200  OK results=1
+  [UNLOCKED] stock 1m bars          HTTP 200  OK results=5
+-- Options (paid: Options Starter $29) --
+  [UNLOCKED] opt contracts          HTTP 200  OK results=3
+  [UNLOCKED] opt chain snapshot     HTTP 200  OK results=3
+  [UNLOCKED] opt contract bars      HTTP 200  OK results=2
+-- Currencies / FX (paid: Currencies Starter $49) --
+  [UNLOCKED] fx EURUSD bars         HTTP 200  OK results=5
+  [UNLOCKED] fx prev USDJPY         HTTP 200  OK results=1
+  [NO/LIMITED] fx last quote          HTTP 200  success
+-- Indices (paid: Indices Basic $0) --
+  [NO/LIMITED] idx SPX bars           HTTP 403  {"status":"NOT_AUTHORIZED","request_id":"e506841f4091b3940f35da3eb3844
+  [NO/LIMITED] idx snapshot           HTTP 403  {"status":"NOT_AUTHORIZED","request_id":"f3b7c5ed0761a3ced33b0f893a56d
+-- Futures (paid: Futures Starter $29) --
+  [NO/LIMITED] fut contracts          HTTP 404  404 page not found
+  [NO/LIMITED] fut products           HTTP 404  404 page not found
+  [UNLOCKED] fut aggs ES            HTTP 200  OK results=3
 
-=== FINNHUB calendars (free?) ===
-  earnings-calendar  HTTP 200 head={"earningsCalendar":[{"symbol":"AMBK","date":"2026-07-10","hour":"","quarter":2,"year":2026,"epsEstimate":null
-  ipo-calendar       HTTP 200 head={"ipoCalendar":[{"date":"2026-06-18","exchange":"NASDAQ Global","name":"Texas Ventures Acquisition IV Corp","n
+=== CURRENT POLYGON USAGE IN CODEBASE (what we actually call) ===
+(none)
+lambdas referencing polygon/massive: 0
 
-=== FMP calendars (/stable/) ===
-  earnings-cal   HTTP 200 head=[   {     "symbol": "3498.T",     "date": "2026-07-03",     "epsActual": null,     "epsEstimated": null,     "
-  ipo-cal        HTTP 200 head=[   {     "symbol": "FSTB",     "date": "2026-06-18",     "daa": "2026-06-18T04:00:00.000Z",     "company": "F
-  econ-cal       HTTP 200 head=[   {     "date": "2026-06-26 22:00:00",     "country": "SV",     "event": "Current Account (Q1)",     "curren
+-- endpoint CLASSES used --
+   stock aggs       used in 0 lambdas
+   FX (C:)          used in 0 lambdas
+   options (O:)     used in 0 lambdas
+   indices (I:)     used in 0 lambdas
+   futures          used in 0 lambdas
 
-=== GOOGLE TRENDS (unofficial) ===
-  dailytrends: HTTP 404 head=<!doctype html><meta charset="utf-8"><meta name=viewport content="width=device-width, init
+=== EURODOLLAR / DOLLAR-SHORTAGE ENGINES — do they use FX? ===
+justhodl-eurodollar-plumbing: NO direct FX (FRED proxies only)
+justhodl-eurodollar-stress: NO direct FX (FRED proxies only)
+justhodl-sovereign-fiscal: NO direct FX (FRED proxies only)
+
 UPDATED
-SCHEDULED 13:30 UTC
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"themes\": 38, \"rotating_in\": 29, \"leading\": 21}"}
-themes=38 axis=75d counts={'LEADING': 21, 'IMPROVING': 8, 'WEAKENING': 1, 'LAGGING': 8}
-
-ROTATING IN (early money):
-  Nuclear / Uranium              IMPROVING  rs_ratio=-0.54   rs_mom=18.77   score=33.2
-  Gold Miners                    IMPROVING  rs_ratio=-3.29   rs_mom=15.72   score=25.0
-  Silver Miners                  IMPROVING  rs_ratio=-4.96   rs_mom=11.6    score=15.9
-  Fintech                        IMPROVING  rs_ratio=-0.88   rs_mom=10.43   score=17.9
-  Digital Infra REITs            IMPROVING  rs_ratio=-2.01   rs_mom=6.06    score=8.9
-  Lithium / Battery              IMPROVING  rs_ratio=-1.32   rs_mom=3.52    score=5.0
-  Shipping                       IMPROVING  rs_ratio=-3.76   rs_mom=0.98    score=-2.0
-  Agriculture                    IMPROVING  rs_ratio=-6.78   rs_mom=0.04    score=-6.7
-
-LEADING: [('Genomics', 106.4), ('Airlines / Travel', 89.2), ('Homebuilders', 73.1), ('Biotech', 46.5), ('Retail', 45.2), ('Quantum Computing', 39.1)]
-WEAKENING (rotating out): ['Cybersecurity']
-harvester picks (rotating-in seeds): ['CCJ', 'LEU', 'OKLO', 'SMR', 'UEC', 'NEM', 'GOLD', 'AEM', 'PAAS', 'WPM', 'AG', 'SQ', 'PYPL', 'AFRM']
+SCHEDULED 12:00 UTC
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"activist\": 60, \"clusters\": 1}"}
+activist=60 (w/ticker 30) clusters=1 scanned=55
+ACTIVIST w/ticker: [('NEGG', 'SC 13D', '2024-12-17'), ('KARX', 'SC 13D', '2024-12-17'), ('MNPR', 'SC 13D', '2024-12-17'), ('FXNC', 'SC 13D', '2024-12-17'), ('OMCC', 'SC 13D', '2024-12-17'), ('BRIA', 'SC 13D', '2024-12-17'), ('RCUS', 'SC 13D', '2024-12-17'), ('STIM', 'SC 13D', '2024-12-17')]
+FORM4 CLUSTERS: [('TSM', 31, 6281)]
+picks: ['NEGG', 'KARX', 'MNPR', 'FXNC', 'OMCC', 'BRIA', 'RCUS', 'STIM', 'NAMSW', 'AIM', 'NC', 'ZSTK', 'VTS', 'BETRW']
