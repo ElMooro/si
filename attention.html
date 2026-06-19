@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Pump Attention · JustHodl.AI</title>
+<meta name="description" content="Where accumulation + attention line up before the crowd: insider buying (Finnhub), analyst upgrade momentum, retail attention (Stocktwits), and theme attention (Wikipedia).">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090f;--bg-sunken:#0a0e17;--bg-raised:#11161f;--border:#1c2433;--fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;
+--orange:#ff9540;--orange-dim:rgba(255,149,64,.3);--orange-bg:rgba(255,149,64,.07);
+--green:#38ffa8;--green-dim:rgba(56,255,168,.3);--cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.3);
+--violet:#a78bfa;--red:#ff5c7a;--fs:'IBM Plex Sans',system-ui,sans-serif;--fm:'IBM Plex Mono',monospace;}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg-1);font-family:var(--fs);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--orange)}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 32px 80px}
+.hdr{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.hdr .title{font-family:var(--fm);font-size:11.5px;letter-spacing:1.6px;color:var(--orange);font-weight:600;text-transform:uppercase}
+.hdr h1{margin:2px 0 0;font-size:24px;font-weight:600;letter-spacing:-.2px;width:100%}
+.hdr .meta{margin-left:auto;font-family:var(--fm);font-size:11px;color:var(--fg-3)}
+.back{font-family:var(--fm);font-size:11px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase}.back:hover{color:var(--cyan)}
+.hero{background:linear-gradient(135deg,var(--orange-bg),rgba(0,212,255,.03),transparent);border:1px solid var(--border);border-left:4px solid var(--orange);border-radius:10px;padding:15px 22px;margin-bottom:18px}
+.hero p{margin:0;color:var(--fg-2);font-size:13.5px;max-width:940px}.hero b{color:var(--fg-1)}
+.sec{display:flex;align-items:center;gap:10px;margin:30px 0 13px}
+.sec h2{margin:0;font-family:var(--fm);font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600}
+.sec .sub{font-family:var(--fs);font-size:11.5px;color:var(--fg-3);font-weight:400;text-transform:none;letter-spacing:0}
+.sec .dot{width:9px;height:9px;border-radius:50%}.dot.or{background:var(--orange);box-shadow:0 0 9px var(--orange-dim)}.dot.gr{background:var(--green)}.dot.cy{background:var(--cyan)}.dot.vi{background:var(--violet)}
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:14px 17px;margin-bottom:10px;border-left:4px solid var(--orange)}
+.card .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sym{font-family:var(--fm);font-size:16px;font-weight:700}
+.layer{font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:var(--bg-sunken);border:1px solid var(--border);color:var(--violet)}
+.score{margin-left:auto;font-family:var(--fm);font-size:15px;font-weight:700;color:var(--orange)}
+.badges{display:flex;gap:5px;flex-wrap:wrap}
+.b{font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:3px}
+.b.ins{background:rgba(56,255,168,.15);color:var(--green);border:1px solid var(--green-dim)}
+.b.anl{background:rgba(0,212,255,.14);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.b.ret{background:rgba(167,139,250,.15);color:var(--violet);border:1px solid rgba(167,139,250,.3)}
+.b.trd{background:rgba(255,149,64,.16);color:var(--orange);border:1px solid var(--orange-dim)}
+.metrics{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.metric{background:var(--bg-sunken);border:1px solid var(--border);border-radius:6px;padding:6px 12px;min-width:84px}
+.metric .mv{font-family:var(--fm);font-size:14px;font-weight:700}.metric .ml{font-family:var(--fm);font-size:8px;letter-spacing:.7px;color:var(--fg-3);text-transform:uppercase;margin-top:4px}
+.why{color:var(--fg-3);font-size:11.5px;margin-top:9px;font-style:italic}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:var(--fm);font-size:12px;font-weight:600;background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:5px 11px;color:var(--fg-1)}
+.themes{display:flex;flex-direction:column;gap:6px}
+.th{display:flex;align-items:center;gap:12px;font-family:var(--fm);font-size:12.5px}
+.th .nm{flex:1;color:var(--fg-2)}.th .tr{font-weight:700;width:64px;text-align:right}.th .vw{color:var(--fg-3);width:90px;text-align:right;font-size:11px}
+.note{margin-top:30px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--fg-3);line-height:1.7}
+.note code{font-family:var(--fm);color:var(--cyan);background:var(--bg-sunken);padding:1px 5px;border-radius:3px}
+.empty{color:var(--fg-3);font-style:italic;padding:10px 2px;font-size:12.5px}
+.loading{text-align:center;color:var(--fg-3);font-family:var(--fm);padding:70px 0}
+@media(max-width:640px){.wrap{padding:18px 16px 60px}.hdr h1{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a href="/" class="back">← JustHodl.AI</a>
+    <div class="title">Pre-Pump Attention</div>
+    <h1>Accumulation Meets Attention</h1>
+    <div class="meta" id="meta">loading…</div>
+  </div>
+  <div class="hero"><p><b>Stocks move when informed accumulation and attention line up before the crowd.</b>
+   This fuses <b style="color:var(--green)">insider buying</b> (Finnhub MSPR), <b style="color:var(--cyan)">analyst upgrade momentum</b>,
+   <b style="color:var(--violet)">retail attention</b> (Stocktwits), and <b style="color:var(--orange)">theme attention</b> (Wikipedia pageviews)
+   into one read — the confirmation layer beneath the re-rating radar.</p></div>
+  <div id="content"><div class="loading">⟳ loading attention signals…</div></div>
+  <div class="note" id="note"></div>
+</div>
+<script>
+const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,`https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,`https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}return null;}
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function badges(r){let b="";if((r.insider_mspr||0)>=30)b+='<span class="b ins">👤 INSIDER BUY</span>';if((r.analyst_upgrade_mom||0)>0.03)b+='<span class="b anl">📈 ANALYST ↑</span>';if(r.retail_bull_pct!=null&&r.retail_bull_pct>=0.65)b+='<span class="b ret">💬 RETAIL</span>';if(r.trending)b+='<span class="b trd">🔥 TRENDING</span>';return b;}
+function card(r){return `<div class="card"><div class="top"><span class="sym">${esc(r.symbol)}</span>${r.layer?`<span class="layer">${esc(r.layer)}</span>`:""}<span class="badges">${badges(r)}</span><span class="score">${r.attention_score}</span></div>
+  <div class="metrics">
+   <div class="metric"><div class="mv" style="color:${(r.insider_mspr||0)>0?'var(--green)':'var(--fg-2)'}">${r.insider_mspr==null?"—":r.insider_mspr}</div><div class="ml">Insider MSPR</div></div>
+   <div class="metric"><div class="mv">${r.analyst_buy_pct==null?"—":Math.round(r.analyst_buy_pct*100)+"%"}</div><div class="ml">Analyst Buy</div></div>
+   <div class="metric"><div class="mv">${r.analyst_upgrade_mom==null?"—":(r.analyst_upgrade_mom>0?"+":"")+r.analyst_upgrade_mom}</div><div class="ml">Upgrade Mom.</div></div>
+   <div class="metric"><div class="mv">${r.retail_bull_pct==null?"—":Math.round(r.retail_bull_pct*100)+"%"}</div><div class="ml">Retail Bull (${r.retail_msgs||0})</div></div>
+  </div>${r.why?`<div class="why">${esc(r.why)}</div>`:""}</div>`;}
+function render(d){
+  if(!d){document.getElementById("content").innerHTML='<div class="loading">Could not load attention data. <a href="javascript:location.reload()">Retry</a></div>';return;}
+  const gen=d.generated_at?new Date(d.generated_at):null;
+  document.getElementById("meta").innerHTML=`${d.n_tickers||0} names · ${d.n_with_insider||0} w/ insider data · ${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}`;
+  let h="";
+  h+=`<div class="sec"><span class="dot or"></span><h2>🔥 Top Pre-Pump Attention <span class="sub">insider + analyst + retail, fused</span></h2></div>`;
+  const top=d.top_attention||[];
+  h+= top.length? top.slice(0,14).map(card).join("") : '<div class="empty">No attention signals yet.</div>';
+  const ib=d.insider_buying||[], au=d.analyst_upgrading||[];
+  h+=`<div class="sec"><span class="dot gr"></span><h2>👤 Insider Buying <span class="sub">informed money accumulating (Finnhub MSPR ≥ 30)</span></h2></div>`;
+  h+= ib.length?`<div class="chips">`+ib.map(r=>`<span class="chip" style="border-color:var(--green-dim)">${esc(r.symbol)} <span style="color:var(--green)">${r.insider_mspr}</span></span>`).join("")+`</div>`:'<div class="empty">No strong insider buying in the tracked set right now.</div>';
+  h+=`<div class="sec"><span class="dot cy"></span><h2>📈 Analyst Upgrades Accelerating</h2></div>`;
+  h+= au.length?`<div class="chips">`+au.map(r=>`<span class="chip" style="border-color:var(--cyan-dim)">${esc(r.symbol)} <span style="color:var(--cyan)">+${r.analyst_upgrade_mom}</span></span>`).join("")+`</div>`:'<div class="empty">No accelerating upgrades in the tracked set.</div>';
+  const tr=d.stocktwits_trending||[];
+  h+=`<div class="sec"><span class="dot or"></span><h2>🔥 Trending on Stocktwits <span class="sub">retail attention surge</span></h2></div>`;
+  h+= tr.length?`<div class="chips">`+tr.slice(0,20).map(t=>`<span class="chip">${esc(t)}</span>`).join("")+`</div>`:'<div class="empty">Trending list unavailable.</div>';
+  const tp=d.theme_pulse||[];
+  h+=`<div class="sec"><span class="dot vi"></span><h2>📡 Theme Attention <span class="sub">Wikipedia pageview momentum — narrative heat</span></h2></div>`;
+  h+= tp.length?`<div class="themes">`+tp.map(t=>{const up=(t.attention_trend_pct||0)>=0;return `<div class="th"><span class="nm">${esc(t.theme)}</span><span class="vw">${(t.views_recent||0).toLocaleString()}/wk</span><span class="tr" style="color:${up?'var(--green)':'var(--red)'}">${t.attention_trend_pct==null?"—":(up?"+":"")+t.attention_trend_pct+"%"}</span></div>`;}).join("")+`</div>`:'<div class="empty">Theme attention populating on next run.</div>';
+  document.getElementById("content").innerHTML=h;
+  document.getElementById("note").innerHTML=`<b style="color:var(--fg-2)">How to read this.</b> <b style="color:var(--green)">Insider MSPR</b> is Finnhub's monthly share-purchase ratio (positive = insiders net buying). <b style="color:var(--cyan)">Upgrade momentum</b> is the month-over-month change in analyst buy-lean. <b style="color:var(--violet)">Retail</b> is Stocktwits bullish %. <b style="color:var(--orange)">Theme attention</b> is Wikipedia pageview trend (recent 7d vs prior 14d). These feed the re-rating radar as kickers. Sources: <code>Finnhub</code>, <code>Stocktwits</code>, <code>Wikipedia pageviews</code> (all free). <b style="color:var(--orange)">Caveat:</b> insider/analyst data lags filings; retail attention can be a pump-in-progress (late, not early). Confirmation layer, not a standalone trigger. Research only, not investment advice.`;
+}
+load("data/attention-signals.json").then(render);
+setTimeout(()=>location.reload(),900000);
+</script>
+</body>
+</html>
