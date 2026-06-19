@@ -1,11 +1,8 @@
-UPDATED
-SCHEDULED 22:00 UTC
-INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"tickers\": 0, \"top_prepump\": 0}"}
 
-MARKET: gamma_regime=None smallcap_bid=True(IWM 1.42) strongest_in=XLRE strongest_out=XLK
-sector_flows: {'XLK': -6.01, 'XLF': -2.39, 'XLE': -1.5, 'XLV': -2.16, 'XLP': -0.32, 'XLY': -1.25, 'XLI': -0.87, 'XLB': -0.75, 'XLU': 0.36, 'XLRE': 1.36, 'XLC': -0.63}
-fx_signals: []
-futures_signals: ['SILVER_BREAKOUT (+24.7% 20d)']
+data/polygon-options-flow.json top-level keys: ['generated_at', 'elapsed_s', 'n_scanned', 'n_extreme', 'n_bullish', 'n_notable', 'extreme_call_flow', 'bullish_call_flow', 'notable_flow', 'all_results']
 
-TOP PRE-PUMP (gamma + flow):
-n_tickers=0
+data/dealer-gex.json top-level keys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'calculation_config', 'market_composite', 'squeeze_candidates', 'underlyings']
+   squeeze_candidates: 0
+   market_composite keys: ['spy_regime', 'spy_gex_billions', 'spy_flip_level', 'spy_spot', 'spy_pct_to_flip', 'spy_trading_bias', 'qqq_regime', 'iwm_regime', 'index_gex_signs', 'composite_regime', 'composite_signal']
+
+data/options-flow.json top-level keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
