@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-leadlag-graph",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Lead-lag causal graph: asymmetric lagged-correlation directed graph of who moves before whom across the liquid universe; live predictions when a leader moves. Generalises the re-rating contagion feature fleet-wide.",
+  "schedule": { "rule_name": "leadlag-graph-daily", "cron": "cron(0 13 * * ? *)", "description": "Daily lead-lag graph at 13:00 UTC" }
+}
