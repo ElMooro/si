@@ -1,18 +1,37 @@
+estimate-revisions: universe=580 with_revisions=0 breadth={"up": 0, "down": 0, "flat": 0}
 
-estimate-revisions     7h  top-keys=['engine', 'version', 'generated_at', 'duration_s', 'coverage', 'universe', 'with_revisions', 'breadth', 'movers_up', 'movers_down']
-   (no obvious record list among ['upgrades', 'all_qualifying', 'revisions', 'top', 'up', 'accelerating'])
+-- valuation/fundamentals/growth data keys present --
+   data/_value/state.json                       10h
+   data/ai-commentary/fundamentals.json         386h
+   data/ai-commentary/history/fundamentals/2026-06-02.json 386h
+   data/deep-value-names.json                   214h
+   data/deep-value-overlap.json                 8h
+   data/deep-value.json                         14h
+   data/estimate-revisions-latest.json          11h
+   data/estimate-revisions.json                 7h
+   data/estimate-revisions/2026-06-14.json      99h
+   data/estimate-revisions/2026-06-15.json      86h
+   data/estimate-revisions/2026-06-16.json      62h
+   data/estimate-revisions/2026-06-17.json      38h
+   data/estimate-revisions/2026-06-18.json      14h
+   data/fundamentals-decisive-call.json         214h
+   data/fundamentals.json                       14h
+   data/gf-value.json                           3h
+   data/stock-valuations.json                   10h
+   data/valuations-decisive-call.json           214h
 
-revenue-acceleration   14h  top-keys=['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
-   [all_qualifying] n=10 record_fields=['symbol', 'score', 'tier', 'flags', 'consec_accel_quarters', 'metrics', 'yoy_growth_history', 'acceleration_history']
-   sample: {"symbol": "NVDA", "score": 67.0, "tier": "TIER_A_ACCELERATING", "flags": ["ACCEL_5PP+", "ACCEL_3Q_STREAK", "GROWTH_50%+", "GM_EXPAND_2PP+", "OP_LEVERAGE_20PP+", "EPS_ACCELERATING"], "consec_accel_quarters": 3, "metrics": {"latest_yoy_growt
-
-forward-orders         440h  top-keys=['schema_version', 'method', 'generated_at', 'duration_s', 'n_universe', 'n_with_rpo', 'weights', 'top_25_by_score', 'all_results', 'notes']
-   (no obvious record list among ['all_qualifying', 'top', 'names'])
-
-valuations             MISSING (An error occurred (404) when calling the)
-
-fundamentals-xray      MISSING (An error occurred (404) when calling the)
-
-ai-infra-stack         6h  top-keys=['engine', 'version', 'generated_at', 'thesis', 'summary', 'stack', 'methodology', 'sources', 'disclaimer', 'elapsed_s']
-   [stack] n=10 record_fields=['layer', 'label', 'description', 'n_names', 'layer_heat_1m_pct', 'n_small_cap', 'names']
-   sample: {"layer": "silicon", "label": "Silicon / Compute", "description": "GPUs, accelerators, custom ASICs, analog/RF \u2014 the brains.", "n_names": 59, "layer_heat_1m_pct": 23.5, "n_small_cap": 11, "names": [{"symbol": "MRVL", "name": "Marvell T
+-- FMP /stable probes (MU) for growth + valuation --
+  /stable/analyst-estimates
+     LIST[3] e0keys=['symbol', 'date', 'revenueLow', 'revenueHigh', 'revenueAvg', 'ebitdaLow', 'ebitdaHigh', 'ebitdaAvg', 'ebitLow', 'ebitHigh', 'ebitAvg', 'netIncomeLow', 'netIncomeHigh', 'netIncomeAvg', 'sgaExpenseLow', 'sgaExpenseHigh'] e0={"symbol": "MU", "date": "2030-08-28", "revenueLow": 196061996549, "revenueHigh": 332413026787, "revenueAvg": 278062000000, "ebitdaLow": 98030998274, "ebitdaHigh": 166206513393, "ebitdaAvg": 139031000000, "ebitLow": 64700458861, "ebitHigh": 109696298839, "ebitAvg": 91760460000, "netIncomeLow": 99013
+  /stable/analyst-estimates
+     ERR 400 Query Error: Invalid or missing query parameter - period
+  /stable/ratios-ttm
+     LIST[1] e0keys=['symbol', 'grossProfitMarginTTM', 'ebitMarginTTM', 'ebitdaMarginTTM', 'operatingProfitMarginTTM', 'pretaxProfitMarginTTM', 'continuousOperationsProfitMarginTTM', 'netProfitMarginTTM', 'bottomLineProfitMarginTTM', 'receivablesTurnoverTTM', 'payablesTurnoverTTM', 'inventoryTurnoverTTM', 'fixedAssetTurnoverTTM', 'assetTurnoverTTM', 'currentRatioTTM', 'quickRatioTTM'] e0={"symbol": "MU", "grossProfitMarginTTM": 0.5843699994838177, "ebitMarginTTM": 0.488050379394002, "ebitdaMarginTTM": 0.6390509127823948, "operatingProfitMarginTTM": 0.4852457888126086, "pretaxProfitMarginTTM": 0.4814088336000275, "continuousOperationsProfitMarginTTM": 0.4149245513515374, "netProfitMa
+  /stable/key-metrics-ttm
+     LIST[1] e0keys=['symbol', 'marketCap', 'enterpriseValueTTM', 'evToSalesTTM', 'evToOperatingCashFlowTTM', 'evToFreeCashFlowTTM', 'evToEBITDATTM', 'netDebtToEBITDATTM', 'currentRatioTTM', 'incomeQualityTTM', 'grahamNumberTTM', 'grahamNetNetTTM', 'taxBurdenTTM', 'interestBurdenTTM', 'workingCapitalTTM', 'investedCapitalTTM'] e0={"symbol": "MU", "marketCap": 1278834542700, "enterpriseValueTTM": 1277092542700, "evToSalesTTM": 21.973752863951546, "evToOperatingCashFlowTTM": 41.66288920170946, "evToFreeCashFlowTTM": 124.21870855947866, "evToEBITDATTM": 34.3849800140007, "netDebtToEBITDATTM": -0.04690234511725586, "currentRatio
+  /stable/ratios
+     LIST[1] e0keys=['symbol', 'date', 'fiscalYear', 'period', 'reportedCurrency', 'grossProfitMargin', 'ebitMargin', 'ebitdaMargin', 'operatingProfitMargin', 'pretaxProfitMargin', 'continuousOperationsProfitMargin', 'netProfitMargin', 'bottomLineProfitMargin', 'receivablesTurnover', 'payablesTurnover', 'inventoryTurnover'] e0={"symbol": "MU", "date": "2025-08-28", "fiscalYear": "2025", "period": "FY", "reportedCurrency": "USD", "grossProfitMargin": 0.39790786023864305, "ebitMargin": 0.2712825726363101, "ebitdaMargin": 0.49472952003852533, "operatingProfitMargin": 0.26405907218149716, "pretaxProfitMargin": 0.2585210551661
+  /stable/financial-growth
+     LIST[1] e0keys=['symbol', 'date', 'fiscalYear', 'period', 'reportedCurrency', 'revenueGrowth', 'grossProfitGrowth', 'ebitgrowth', 'operatingIncomeGrowth', 'netIncomeGrowth', 'epsgrowth', 'epsdilutedGrowth', 'weightedAverageSharesGrowth', 'weightedAverageSharesDilutedGrowth', 'dividendsPerShareGrowth', 'operatingCashFlowGrowth'] e0={"symbol": "MU", "date": "2025-08-28", "fiscalYear": "2025", "period": "FY", "reportedCurrency": "USD", "revenueGrowth": 0.48851101111066864, "grossProfitGrowth": 1.6497416711206128, "ebitgrowth": 7.138041733547351, "operatingIncomeGrowth": 6.569018404907975, "netIncomeGrowth": 9.975578406169666, "e
+  /stable/key-metrics
+     LIST[1] e0keys=['symbol', 'date', 'fiscalYear', 'period', 'reportedCurrency', 'marketCap', 'enterpriseValue', 'evToSales', 'evToOperatingCashFlow', 'evToFreeCashFlow', 'evToEBITDA', 'netDebtToEBITDA', 'currentRatio', 'incomeQuality', 'grahamNumber', 'grahamNetNet'] e0={"symbol": "MU", "date": "2025-08-28", "fiscalYear": "2025", "period": "FY", "reportedCurrency": "USD", "marketCap": 136152000000, "enterpriseValue": 141788000000, "evToSales": 3.793354379581572, "evToOperatingCashFlow": 8.090613409415122, "evToFreeCashFlow": 85.00479616306954, "evToEBITDA": 7.66753
