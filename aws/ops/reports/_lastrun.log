@@ -1,32 +1,39 @@
-=== deploy signal-scorecard ===
+=== #4 best-setups (correlation-adjusted confluence) ===
+  justhodl-best-setups: code update OK (attempt 1)
+  invoke: {'statusCode': 200, 'headers': {'Content-Type': 'application/json'}, 'body': '{"ok": true, "n_setups": 395, "strong_buy": 4, "buy"
+  setups=50 | with confluence haircut (eff<raw)=29
+    NVDA   raw_signals=5 indep_bets=3.5 families=3 conf×1.65 verdict=STRONG BUY
+    PANW   raw_signals=5 indep_bets=4.25 families=4 conf×1.845 verdict=STRONG BUY
+    OTIS   raw_signals=4 indep_bets=3.25 families=3 conf×1.585 verdict=TRIPLE THREAT
+    MU     raw_signals=4 indep_bets=3.25 families=3 conf×1.585 verdict=STRONG BUY
+    WDC    raw_signals=4 indep_bets=4.0 families=4 conf×1.78 verdict=TRIPLE THREAT
+    BKNG   raw_signals=4 indep_bets=4.0 families=4 conf×1.78 verdict=STRONG BUY
+  verdict distribution: {'TRIPLE THREAT': 2, 'STRONG BUY': 4, 'BUY': 6, 'WATCH': 38}
+
+=== #6 signal-scorecard (NET-of-cost alpha + FDR) ===
   justhodl-signal-scorecard: code update OK (attempt 0)
-=== invoke (full ledger scan + alpha + FDR) ===
-  invoke: {'statusCode': 200, 'body': '{"ok": true, "n_signals_tracked": 67, "n_signals_graded": 39, "n_promoted": 8, "n_deprecated": 21, "n_insufficient": 28, "avg_graded_wilson_lb": 0.404, "n_outcomes_scored"
+  invoke: {'statusCode': 200, 'body': '{"ok": true, "n_signals_tracked": 67, "n_signals_graded": 39, "n_promoted": 8, "n_deprecated": 21, "n_insufficient": 28, 
+  round_trip_cost=0.3% | tested=37 | PROVEN(net)=3 | NEGATIVE(net)=28
+  NET-of-cost leaderboard:
+    crisis_dfii10_vs_gld           ALPHA_PROVEN   gross=5.421% net=5.121%  net_t=29.44  net_IR=1.862  n=250
+    crypto_risk_score              ALPHA_PROVEN   gross=2.402% net=2.102%  net_t=6.19  net_IR=0.403  n=236
+    squeeze_risk                   ALPHA_PROVEN   gross=1.697% net=1.397%  net_t=3.26  net_IR=0.112  n=843
+    momentum_uso                   NO_ALPHA       gross=0.34% net=0.04%  net_t=0.13  net_IR=0.006  n=462
+    equity_convergence_fingerprint NO_ALPHA       gross=0.31% net=0.01%  net_t=0.02  net_IR=0.005  n=21
+    khalid_index                   NO_ALPHA       gross=0.275% net=-0.025%  net_t=-0.22  net_IR=-0.026  n=70
+    frontrun_sniffer_setup         NO_ALPHA       gross=0.169% net=-0.131%  net_t=-0.51  net_IR=-0.039  n=167
+    yc_regime                      NO_ALPHA       gross=0.082% net=-0.218%  net_t=-0.94  net_IR=-0.094  n=99
+    earnings_pead                  NO_ALPHA       gross=0.019% net=-0.281%  net_t=-0.98  net_IR=-0.03  n=1097
+    sustained_target_equity        ALPHA_NEGATIVE gross=-0.315% net=-0.615%  net_t=-1.74  net_IR=-0.151  n=134
+    eurodollar_stress              ALPHA_NEGATIVE gross=0.189% net=-0.111%  net_t=-1.77  net_IR=-0.12  n=216
+    apex_fusion                    ALPHA_NEGATIVE gross=-0.786% net=-1.086%  net_t=-2.09  net_IR=-0.185  n=127
+  PROVEN after costs: ['crypto_risk_score', 'squeeze_risk', 'crisis_dfii10_vs_gld']
 
-=== ALPHA ATTRIBUTION (vs SPY, FDR-controlled) ===
-  schema: 2.1 | outcomes scanned: 31350 | scored: 19928
-  benchmark: SPY | fdr_q: 0.1 | min_n: 20
-  engines tested for alpha: 37 | ALPHA_PROVEN: 6 | ALPHA_NEGATIVE: 9
+=== #5 meta-labeler (status + uplift) ===
+  invoke: {'statusCode': 200, 'body': '{"uplift_pp": null}'}
+  status: warming_up | n_training_rows: 40 (activates at 300)
+  uplift_pp: None | take_precision: None% vs base 25.0% | take_rate: 0.0% | brier: 0.1927
+  avg_excess taken vs all: None% vs -9.28% | pending gated: 0/4145 TAKE
+  -> still warming or no uplift; leave advisory
 
-  TOP ALPHA LEADERBOARD (by t-stat):
-    crisis_dfii10_vs_gld               ALPHA_PROVEN   excess=5.421%  t=31.16  IR=1.971  beat-SPY=0.992  n=250
-    crypto_risk_score                  ALPHA_PROVEN   excess=2.402%  t=7.07  IR=0.46  beat-SPY=0.589  n=236
-    squeeze_risk                       ALPHA_PROVEN   excess=1.697%  t=3.96  IR=0.136  beat-SPY=0.504  n=843
-    eurodollar_stress                  ALPHA_PROVEN   excess=0.189%  t=3.0  IR=0.204  beat-SPY=0.38  n=216
-    momentum_spy                       ALPHA_PROVEN   excess=0.073%  t=2.65  IR=0.147  beat-SPY=0.358  n=327
-    khalid_index                       ALPHA_PROVEN   excess=0.275%  t=2.45  IR=0.293  beat-SPY=0.5  n=70
-    carry_risk                         NO_ALPHA       excess=0.087%  t=2.02  IR=0.113  beat-SPY=0.349  n=321
-    momentum_uso                       NO_ALPHA       excess=0.34%  t=1.14  IR=0.053  beat-SPY=0.511  n=462
-    macro_composite_z                  NO_ALPHA       excess=0.054%  t=0.97  IR=0.065  beat-SPY=0.341  n=223
-    equity_convergence_fingerprint     NO_ALPHA       excess=0.31%  t=0.71  IR=0.154  beat-SPY=0.524  n=21
-    frontrun_sniffer_setup             NO_ALPHA       excess=0.169%  t=0.66  IR=0.051  beat-SPY=0.521  n=167
-    crisis_obfr_iorb                   NO_ALPHA       excess=0.031%  t=0.5  IR=0.039  beat-SPY=0.362  n=160
-    yc_regime                          NO_ALPHA       excess=0.082%  t=0.36  IR=0.036  beat-SPY=0.444  n=99
-    earnings_pead                      NO_ALPHA       excess=0.019%  t=0.07  IR=0.002  beat-SPY=0.501  n=1097
-    macro_frontrun_sniffer_setup       NO_ALPHA       excess=-0.027%  t=-0.21  IR=-0.016  beat-SPY=0.484  n=188
-
-  PROVEN positive-alpha engines: ['khalid_index', 'crypto_risk_score', 'squeeze_risk', 'momentum_spy', 'crisis_dfii10_vs_gld', 'eurodollar_stress']
-  PROVEN value-destroying engines: ['correlation_break', 'crypto_fear_greed', 'momentum_gld', 'corr_break_composite_vs_vxx', 'divergence_extreme', 'crisis_rate_diff_eur_3m', 'corr_break_top_pair', 'crisis_rate_diff_jpy_3m', 'analog_signal']
-  engine-alpha.json: get_object() only accepts keyword arguments.
-
-DONE 1948
+DONE 1949
