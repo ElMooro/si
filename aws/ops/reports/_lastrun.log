@@ -1,10 +1,21 @@
-justhodl-hedge-pnl -> {"statusCode": 200, "body": "{\"ok\": true, \"maturity\": \"WARMING\", \"verdict\": \"WARMING\", \"n_days\": 0
-justhodl-portfolio-analytics -> {"statusCode": 200, "body": "{\"status\": \"ok\", \"elapsed_sec\": 0.96, \"n_candidates\": 20, \"n_clusters\":
+etf-flows/daily.json: 84 ETFs
+  sample metric keys: ['ticker', 'processed_date', 'category', 'subcategory', 'smart_money', 'region', 'ref_sector', 'daily_flow_usd', 'flow_5d_usd', 'flow_21d_usd', 'pct_aum_daily', 'pct_aum_5d', 'pct_aum_21d', 'aum_usd', 'flow_zscore_90d', 'persistence_days', 'signal_label', 'n_history_points']
+  ALL tickers: ['AGG', 'ARKG', 'ARKK', 'ARKW', 'BIL', 'BITO', 'CPER', 'DBA', 'DBC', 'DIA', 'EEM', 'EFA', 'EMB', 'ETHA', 'EWA', 'EWC', 'EWG', 'EWJ', 'EWT', 'EWU', 'EWY', 'EWZ', 'FBTC', 'FXI', 'GLD', 'GOVT', 'HYG', 'IAU', 'IBB', 'IBIT', 'ICLN', 'IEF', 'INDA', 'IVV', 'IWD', 'IWF', 'IWM', 'JNK', 'KRE', 'KWEB', 'LIT', 'LQD', 'MCHI', 'MTUM', 'QQQ', 'QUAL', 'SHY', 'SLV', 'SMH', 'SOXL', 'SOXS', 'SOXX', 'SPLV', 'SPY', 'SQQQ', 'SVXY', 'TAN', 'TIP', 'TLT', 'TMF', 'TQQQ', 'UNG', 'USMV', 'USO', 'UVXY', 'VEA', 'VLUE', 'VOO', 'VTI', 'VTV', 'VUG', 'VWO', 'XBI', 'XLB', 'XLC', 'XLE', 'XLF', 'XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY']
+  Semis: have ['SMH', 'SOXX', 'SOXL', 'SOXS'] | MISSING ['XSD', 'PSI']
+  Tech: have ['XLK', 'QQQ', 'TQQQ', 'SQQQ'] | MISSING ['VGT']
+  Biotech: have ['XBI', 'IBB'] | MISSING ['LABU', 'LABD']
+  Energy: have ['XLE'] | MISSING ['XOP', 'ERX', 'ERY']
+  Financials: have ['XLF', 'KRE'] | MISSING ['FAS', 'FAZ']
 
---- hedge-pnl ---
-  verdict: WARMING
-  massive_risk_context: {"gamma_regime": "ALL_NEGATIVE_GAMMA", "spy_gamma_regime": "NEGATIVE_GAMMA", "vol_surface_regime": "NORMAL", "vol_surface_stress": 21.8, "skew_pctile_252d": 64.6, "carry_justification": "ELEVATED crash risk -- carry is well-justified right now (negative dealer gamma / stressed vol surface raise the odds the convex leg pays).", "note": "Reads current crash-risk environment (dealer gamma + vol surface) to judge whether the hedge's carry bleed is justified -- Massive options data."}
+etf-flows/composite.json keys: ['generated_at', 'universe_size', 'n_ok', 'n_failed', 'elapsed_s', 'schema_version', 'composite']
 
---- portfolio-analytics ---
-  n_candidates: 20
-  risk_environment: {"gamma_regime": "ALL_NEGATIVE_GAMMA", "vol_surface_regime": "NORMAL", "vol_surface_stress": 21.8, "skew_pctile_252d": 64.6, "concentration_warning": true, "note": "In negative dealer gamma / stressed vol, cross-stock correlations spike -- clusters that look diversified in calm tape converge in a selloff, so concentration risk is amplified. Massive options data."}
+etf-flows/rotation.json keys: ['generated_at', 'universe_size', 'n_ok', 'n_failed', 'elapsed_s', 'schema_version', 'by_category']
+
+etf-flows/per-ticker-context.json keys: ['generated_at', 'universe_size', 'n_ok', 'n_failed', 'elapsed_s', 'schema_version', 'context']
+   generated_at: "2026-06-19T17:28:18.772691+00:00"
+   universe_size: 84
+
+data/capital-flow.json keys: ['engine', 'version', 'generated_at', 'duration_s', 'sources', 'methodology', 'accumulating', 'distributing', 'etf_flows_in', 'etf_flows_out', 'category_rotation', 'by_ticker']
+history etf-flows/history.json: none
+history data/etf-flow-history.json: none
+history etf-flows/flow-history.json: none
