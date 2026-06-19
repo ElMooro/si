@@ -127,6 +127,7 @@ def build_ticker_index():
         "pre_pump":         fetch_json("data/pre-pump-signals.json"),
         "revenue_accel":    fetch_json("data/revenue-acceleration.json"),
         "massive":          fetch_json("data/massive-signals.json"),
+        "capital_flow":     fetch_json("data/capital-flow-radar.json"),
     }
 
     # Index: ticker → {system_name: {score, details}}
@@ -634,18 +635,53 @@ def lambda_handler(event, context):
     ticker_idx, feeds = build_ticker_index()
     print(f"[master-ranker] {len(ticker_idx)} unique tickers indexed")
 
+    # Capital-flow sector overlay (boost sectors with money accelerating in, penalize party-over /
+    # price-vs-flow divergence). Kept OUT of systems_dict so it does not inflate n_systems.
+    cf_map = {}
+    if feeds.get("capital_flow"):
+        for _c in (feeds["capital_flow"].get("complexes") or []):
+            _pp = _c.get("pump_probability")
+            for _s in (_c.get("ref_stocks") or []):
+                _s = (_s or "").upper()
+                if _s not in cf_map or (_pp or 0) > (cf_map[_s].get("pump_probability") or 0):
+                    cf_map[_s] = {"pump_probability": _pp, "regime": _c.get("regime"),
+                                  "complex": _c.get("complex"), "divergence": _c.get("flow_price_divergence")}
+
+    def _cf_overlay(tk, base_score):
+        cf = cf_map.get(tk)
+        if not cf:
+            return base_score, 1.0, None
+        pp = cf.get("pump_probability")
+        cx = cf.get("complex") or ""
+        if cf.get("divergence"):
+            return round(base_score * 0.82, 1), 0.82, "capital OUTFLOW vs price · distribution in " + cx
+        if "PARTY OVER" in (cf.get("regime") or "") or "TOP WARNING" in (cf.get("regime") or ""):
+            return round(base_score * 0.85, 1), 0.85, "sector party-over (" + cx + ")"
+        if pp is not None and pp >= 80:
+            return round(base_score * 1.12, 1), 1.12, "sector capital ACCELERATING IN (" + cx + ")"
+        if pp is not None and pp >= 65:
+            return round(base_score * 1.06, 1), 1.06, "sector inflow (" + cx + ")"
+        if pp is not None and pp <= 25:
+            return round(base_score * 0.90, 1), 0.90, "weak sector flow (" + cx + ")"
+        return base_score, 1.0, None
+
     # Compute conviction for every ticker
     ticker_ranks = []
     for ticker, systems_dict in ticker_idx.items():
         score, contributions = compute_conviction(systems_dict, calibration)
         n_sys = len(systems_dict)
+        score, cf_mult, cf_note = _cf_overlay(ticker, score)
+        rationale = synthesize_rationale(ticker, systems_dict, score)
+        if cf_note:
+            rationale += " · " + cf_note
         ticker_ranks.append({
             "ticker": ticker,
             "score": score,
             "n_systems": n_sys,
             "systems": sorted(systems_dict.keys()),
             "contributions": contributions,
-            "rationale": synthesize_rationale(ticker, systems_dict, score),
+            "capital_flow_mult": cf_mult,
+            "rationale": rationale,
             "details": systems_dict,
         })
     ticker_ranks.sort(key=lambda r: r["score"], reverse=True)
