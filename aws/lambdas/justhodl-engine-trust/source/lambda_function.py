@@ -93,13 +93,21 @@ def lambda_handler(event, context):
             elif delta >= 0.04:
                 regime_factor = 1.08
 
-        # WARMING gate: not enough scored outcomes -> neutral, never demote on noise
+        # alpha conditioning: net-of-cost, FDR-controlled benchmark-relative edge.
+        # An engine can be directionally fine yet DESTROY value vs SPY after costs
+        # (pure beta in a melt-up). This is the decisive edge gate.
+        alpha_status = r.get("alpha_status") or "INSUFFICIENT"
+        alpha_factor = {"ALPHA_PROVEN": 1.20, "NO_ALPHA": 1.0,
+                        "INSUFFICIENT": 1.0, "ALPHA_NEGATIVE": 0.40}.get(alpha_status, 1.0)
+
+        # WARMING gate: not enough scored outcomes -> neutral on direction, but
+        # alpha carries its own n-gate so a proven/destructive alpha still applies.
         if n < WARMING_N:
             disp_status = "WARMING"
-            effective = 1.0
+            effective = round(1.0 * alpha_factor, 3)
         else:
             disp_status = base_status
-            effective = round(base_mult * regime_factor, 3)
+            effective = round(base_mult * regime_factor * alpha_factor, 3)
         counts[disp_status] = counts.get(disp_status, 0) + 1
 
         engines.append({
@@ -114,6 +122,10 @@ def lambda_handler(event, context):
             "regime_wilson_lb": regime_lb,
             "regime_n": regime_n,
             "regime_factor": regime_factor,
+            "alpha_status": alpha_status,
+            "alpha_factor": alpha_factor,
+            "net_alpha_t_stat": r.get("net_alpha_t_stat"),
+            "net_alpha_excess_pct": r.get("net_alpha_mean_excess_pct"),
             "effective_trust": effective,
         })
 
@@ -123,6 +135,12 @@ def lambda_handler(event, context):
 
     trusted = [e for e in engines if e["status"] in ("PROMOTED", "ACTIVE") and (e["wilson_lb"] or 0) >= 0.55][:30]
     demoted = [e for e in engines if e["status"] == "DEPRECATED"]
+    alpha_demoted = [{"signal_type": e["signal_type"], "net_t": e["net_alpha_t_stat"],
+                      "net_excess_pct": e["net_alpha_excess_pct"], "effective_trust": e["effective_trust"]}
+                     for e in engines if e["alpha_status"] == "ALPHA_NEGATIVE"]
+    alpha_boosted = [{"signal_type": e["signal_type"], "net_t": e["net_alpha_t_stat"],
+                      "net_excess_pct": e["net_alpha_excess_pct"], "effective_trust": e["effective_trust"]}
+                     for e in engines if e["alpha_status"] == "ALPHA_PROVEN"]
     out = {
         "engine": "engine-trust", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -130,8 +148,11 @@ def lambda_handler(event, context):
         "n_engines": len(engines),
         "n_harvested_engines": sum(1 for e in engines if e["harvested"]),
         "counts": counts,
-        "thesis": "Regime-conditioned auto-demotion gate. effective_trust multiplies a signal's "
-                  "weight; <1 = down-weight, >1 = lift, WARMING=1.0 until the ledger matures.",
+        "alpha_gate": {"proven_boosted": alpha_boosted, "negative_demoted": alpha_demoted,
+                       "note": "effective_trust now folds net-of-cost FDR-controlled alpha: "
+                               "ALPHA_PROVEN x1.20, ALPHA_NEGATIVE x0.40."},
+        "thesis": "Regime-conditioned + alpha-conditioned auto-demotion gate. effective_trust multiplies a "
+                  "signal's weight; <1 = down-weight, >1 = lift, WARMING=1.0 until the ledger matures.",
         "trusted": trusted,
         "demoted": demoted,
         "engines": engines,
