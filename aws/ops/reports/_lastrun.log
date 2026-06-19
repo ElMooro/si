@@ -1,3 +1,25 @@
-  rerating page attempt 1 code=404
-OK  rerating page live (200) marker present
-OK  index nav     live (200) marker present
+CREATED function
+SCHEDULED daily 23:15 UTC
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 124, \"written\": 871, \"scanned\": 430}"}
+
+SUMMARY:
+  n_engine_outputs_scanned   430
+  n_engines_with_picks       124
+  n_harvested                902
+  n_written                  871
+  n_skipped_no_price         31
+  regime_at_log              SLOWING
+  elapsed_s                  48.24
+
+LEDGER CHECK: harvested 'eng:' pending signals in sample scan=43 across 39 distinct engines
+   eng:convergence-radar              2
+   eng:index-inclusion                2
+   eng:ai-infra-stack                 2
+   eng:crisis-decisive-call           2
+   eng:factor-decomposition           1
+   eng:capital-return                 1
+   eng:eps-velocity-names             1
+   eng:forensic-screen                1
+   eng:cascade-validation-log         1
+   eng:gf-value                       1
+sample: {'signal_type': 'eng:factor-decomposition', 'measure_against': 'NVDA', 'predicted_direction': 'UP', 'baseline_price': '210.69', 'confidence': '0.6', 'regime_at_log': 'SLOWING', 'check_windows': "['7', '14', '30']"}
