@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-signal-harvester",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Universal signal harvester: snapshots every engine's published top picks point-in-time into justhodl-signals so the existing outcome-checker/scorecard/confluence/fade/conviction pipeline computes per-engine edge across the full fleet (not just the ~47 that hand-log). De-duped 6d, point-in-time baseline price, skip-on-no-price.",
+  "schedule": {
+    "rule_name": "signal-harvester-daily",
+    "cron": "cron(15 23 * * ? *)",
+    "description": "Daily universal signal harvest at 23:15 UTC"
+  }
+}
