@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Conviction Funds · Thematic 13F · JustHodl.AI</title>
+<meta name="description" content="Track the AGI/AI-infrastructure conviction funds that have the edge — Aschenbrenner's Situational Awareness book mapped to bottleneck layers, what they short, and confluence with your cheap-for-growth names.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090f;--bg-sunken:#0a0e17;--bg-raised:#11161f;--border:#1c2433;--fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;
+--gold:#fbbf24;--gold-dim:rgba(251,191,36,.3);--gold-bg:rgba(251,191,36,.06);
+--green:#38ffa8;--green-dim:rgba(56,255,168,.3);--green-bg:rgba(56,255,168,.06);
+--red:#ff5c7a;--red-dim:rgba(255,92,122,.35);--red-bg:rgba(255,92,122,.06);
+--cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.3);--fs:'IBM Plex Sans',system-ui,sans-serif;--fm:'IBM Plex Mono',monospace;}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg-1);font-family:var(--fs);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--gold)}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 32px 80px}
+.hdr{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.hdr .title{font-family:var(--fm);font-size:11.5px;letter-spacing:1.6px;color:var(--gold);font-weight:600;text-transform:uppercase}
+.hdr h1{margin:2px 0 0;font-size:24px;font-weight:600;letter-spacing:-.2px;width:100%}
+.hdr .meta{margin-left:auto;font-family:var(--fm);font-size:11px;color:var(--fg-3)}
+.back{font-family:var(--fm);font-size:11px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase}.back:hover{color:var(--cyan)}
+.hero{background:linear-gradient(135deg,var(--gold-bg),rgba(0,212,255,.03),transparent);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:10px;padding:15px 22px;margin-bottom:16px}
+.hero p{margin:0;color:var(--fg-2);font-size:13.5px;max-width:940px}.hero b{color:var(--fg-1)}
+.fundbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:24px;font-family:var(--fm);font-size:11.5px}
+.fundbar .nm{font-family:var(--fs);font-size:15px;font-weight:600;color:var(--fg-1)}
+.chip{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:6px 12px;color:var(--fg-2)}.chip b{color:var(--gold)}
+.sec{display:flex;align-items:center;gap:10px;margin:30px 0 13px}
+.sec h2{margin:0;font-family:var(--fm);font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600}
+.sec .sub{font-family:var(--fs);font-size:11.5px;color:var(--fg-3);font-weight:400;text-transform:none;letter-spacing:0}
+.sec .dot{width:9px;height:9px;border-radius:50%}.dot.gd{background:var(--gold);box-shadow:0 0 9px var(--gold-dim)}.dot.gr{background:var(--green)}.dot.rd{background:var(--red)}.dot.cy{background:var(--cyan)}
+.conf{background:linear-gradient(100deg,var(--green-bg),var(--bg-raised) 50%);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:9px;padding:13px 17px;margin-bottom:9px}
+.conf .t{font-family:var(--fm);font-size:16px;font-weight:700}.conf .det{color:var(--fg-2);font-size:12.5px;margin-top:5px}.conf .det b{color:var(--green)}
+.layers{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.lcard{background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:12px 15px}
+.lcard .lh{font-family:var(--fm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:8px}
+.lcard .names{display:flex;gap:5px;flex-wrap:wrap}
+.tk{font-family:var(--fm);font-size:12px;font-weight:600;background:var(--bg-sunken);border:1px solid var(--border);border-radius:5px;padding:3px 9px;color:var(--fg-1)}
+.tk.sm{border-color:var(--green-dim);color:var(--green)}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{font-family:var(--fm);font-size:9px;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;text-align:right;padding:8px 9px;border-bottom:1px solid var(--border)}
+.tbl th:first-child,.tbl th:nth-child(2),.tbl th:nth-child(3){text-align:left}
+.tbl td{padding:8px 9px;border-bottom:1px solid var(--border);color:var(--fg-2);text-align:right;font-family:var(--fm)}
+.tbl td:first-child,.tbl td:nth-child(2),.tbl td:nth-child(3){text-align:left}
+.tbl td .s{font-weight:600;color:var(--fg-1)}.tbl tr:hover td{background:var(--bg-raised)}
+.puts{display:flex;gap:7px;flex-wrap:wrap}
+.put{font-family:var(--fm);font-size:12.5px;font-weight:600;background:var(--red-bg);border:1px solid var(--red-dim);border-radius:6px;padding:5px 12px;color:var(--red)}
+.note{margin-top:32px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--fg-3);line-height:1.7}
+.note code{font-family:var(--fm);color:var(--cyan);background:var(--bg-sunken);padding:1px 5px;border-radius:3px}
+.empty{color:var(--fg-3);font-style:italic;padding:10px 2px;font-size:12.5px}
+.loading{text-align:center;color:var(--fg-3);font-family:var(--fm);padding:70px 0}
+@media(max-width:640px){.wrap{padding:18px 16px 60px}.hdr h1{font-size:19px}.tbl th:nth-child(n+4),.tbl td:nth-child(n+4){display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a href="/" class="back">← JustHodl.AI</a>
+    <div class="title">AI Conviction Funds · Thematic 13F</div>
+    <h1>Track The Investors Who Have The Edge</h1>
+    <div class="meta" id="meta">loading…</div>
+  </div>
+  <div class="hero"><p><b>The most direct way to ride the AI buildout is to watch where the proven thematic capital actually goes.</b>
+   This tracks the AGI/AI-infrastructure conviction funds via their public SEC filings, maps each long to its bottleneck layer,
+   shows <b style="color:var(--red)">what they're shorting</b>, and flags where their longs overlap the names your own re-rating
+   radar independently calls cheap — <b style="color:var(--green)">the highest-conviction confluence</b>.</p></div>
+  <div class="fundbar" id="fundbar"></div>
+  <div id="content"><div class="loading">⟳ pulling latest 13F from SEC EDGAR…</div></div>
+  <div class="note" id="note"></div>
+</div>
+<script>
+const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,`https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,`https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}return null;}
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const usd=v=>{if(v==null)return"—";v=+v;if(v>=1e9)return"$"+(v/1e9).toFixed(2)+"B";if(v>=1e6)return"$"+(v/1e6).toFixed(0)+"M";return"$"+v.toFixed(0);};
+const LL={power_grid:"⚡ Power / Grid",memory:"🧠 Memory / HBM",silicon:"🔲 Silicon",foundry:"🏭 Foundry",optical:"💡 Optical",networking:"🔗 Networking",cooling:"❄️ Cooling",datacenter_buildout:"🏗️ DC Build-out",datacenter_reits:"🏢 DC REITs",neocloud:"☁️ Neoclouds",miners_to_ai:"⛏️→🤖 Miners → AI",equipment:"🛠️ Equipment",unmapped:"• Other"};
+function render(d){
+  if(!d||!d.funds){document.getElementById("content").innerHTML='<div class="loading">Could not load 13F data. <a href="javascript:location.reload()">Retry</a></div>';return;}
+  const f=d.funds[0]||{},conf=d.confluence_cheap_and_backed||[],byLayer=d.smart_money_long_by_layer||{},smset=new Set(conf.map(c=>c.ticker));
+  document.getElementById("meta").innerHTML=`13F ${esc(f.report_date||"—")} · filed ${esc(f.filing_date||"—")}`;
+  document.getElementById("fundbar").innerHTML=`<span class="nm">${esc(f.fund||"—")}</span><span class="chip">${esc(f.manager||"")}</span><span class="chip"><b>${f.n_longs||0}</b> longs</span><span class="chip"><b>${f.n_puts||0}</b> puts</span><span class="chip">SEC EDGAR · CIK ${esc(f.cik||"")}</span>`;
+  let h="";
+  h+=`<div class="sec"><span class="dot gr"></span><h2>★ Confluence <span class="sub">their longs that your re-rating radar also calls cheap — copy-the-thesis</span></h2></div>`;
+  h+= conf.length? conf.map(c=>`<div class="conf"><span class="t">${esc(c.ticker)}</span><span class="det"> &nbsp;${esc(LL[c.layer]||c.layer||"")} · smart money is long <b>and</b> your radar shows <b>${c.your_discount_pct!=null?Math.round(c.your_discount_pct)+"% below fair multiple":"cheap"}</b>${c.your_growth_pct!=null?" at "+Math.round(c.your_growth_pct)+"% growth":""}</span></div>`).join("") : '<div class="empty">No overlap this run — their longs aren\'t in the radar\'s cheap top_setups right now.</div>';
+  h+=`<div class="sec"><span class="dot gd"></span><h2>The Book, By Bottleneck Layer <span class="sub">green = also a confluence pick</span></h2></div>`;
+  const order=["power_grid","memory","silicon","foundry","optical","networking","cooling","neocloud","miners_to_ai","datacenter_buildout","datacenter_reits","equipment","unmapped"];
+  const lk=Object.keys(byLayer).sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+  h+= lk.length?`<div class="layers">`+lk.map(k=>`<div class="lcard"><div class="lh">${esc(LL[k]||k)}</div><div class="names">${(byLayer[k]||[]).map(x=>`<span class="tk ${smset.has(x.ticker)?'sm':''}">${esc(x.ticker)}</span>`).join("")}</div></div>`).join("")+`</div>`:'<div class="empty">Layer map unavailable.</div>';
+  h+=`<div class="sec"><span class="dot cy"></span><h2>Top Longs <span class="sub">largest disclosed positions</span></h2></div>`;
+  const longs=(f.top_longs||[]).filter(x=>x.put_call!=="PUT");
+  h+= longs.length?`<table class="tbl"><thead><tr><th>Ticker</th><th>Issuer</th><th>Layer</th><th>Value</th></tr></thead><tbody>`+longs.slice(0,18).map(x=>`<tr><td><span class="s">${esc(x.ticker||"?")}</span></td><td>${esc((x.issuer||"").slice(0,30))}</td><td>${esc(LL[x.layer]||x.layer||"—")}</td><td>${usd(x.value)}</td></tr>`).join("")+`</tbody></table>`:'<div class="empty">No longs parsed.</div>';
+  h+=`<div class="sec"><span class="dot rd"></span><h2>What They're Shorting <span class="sub">the overpriced side — put options in the 13F</span></h2></div>`;
+  const puts=(f.puts||[]).map(x=>x.ticker||x.issuer).filter(Boolean);
+  h+= puts.length?`<div class="puts">`+puts.slice(0,20).map(p=>`<span class="put">${esc(p)}</span>`).join("")+`</div>`:'<div class="empty">No put positions in the latest filing.</div>';
+  document.getElementById("content").innerHTML=h;
+  document.getElementById("note").innerHTML=`<b style="color:var(--fg-2)">How to read this.</b> Longs map to the buildout's <b style="color:var(--gold)">bottleneck layers</b>; <b style="color:var(--red)">puts</b> are the overpriced names they're fading (currently mega-cap AI chips). <b style="color:var(--green)">★ Confluence</b> is where their capital and your re-rating radar agree a name is cheap. Source: <code>SEC EDGAR Form 13F-HR</code> (free). <b style="color:var(--gold)">Caveat:</b> 13F is stale up to 45 days, shows only long equity + listed options (no short stock, no strikes/expiries), and a copycat sees the book late. Idea-generation, not entry timing — past positioning isn't predictive. Research only, not investment advice.`;
+}
+load("data/smart-money-13f.json").then(render);
+setTimeout(()=>location.reload(),900000);
+</script>
+</body>
+</html>
