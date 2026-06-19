@@ -402,6 +402,7 @@ ETF_UNIVERSE = {
     "QQQU": {"category": "leveraged", "subcategory": "2x_qqq_bull",   "smart_money": False, "region": "US", "ref_sector": None},
     "TTT":  {"category": "leveraged", "subcategory": "3x_20y_bear",   "smart_money": False, "region": "US", "ref_sector": None},
     "XLG":  {"category": "broad",     "subcategory": "us_megacap",    "smart_money": True,  "region": "US", "ref_sector": None},
+    "IJH":  {"category": "broad",     "subcategory": "us_mid_cap",    "smart_money": True,  "region": "US", "ref_sector": None},
     "FTEC": {"category": "sector",    "subcategory": "technology",    "smart_money": True,  "region": "US", "ref_sector": "Technology"},
     # ProShares Ultra/UltraShort 2x sector pair completion
     "RXD":  {"category": "leveraged", "subcategory": "2x_health_bear",     "smart_money": False, "region": "US", "ref_sector": None},

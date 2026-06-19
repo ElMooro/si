@@ -124,7 +124,7 @@ COMPLEXES = {
     "Intermediate Treasuries (7-10Y)": {"core": ["IEF"], "bull": ["TYD", "UST"], "bear": ["TYO", "PST"], "primary": "IEF", "stocks": []},
     "Cybersecurity": {"core": ["CIBR", "HACK", "BUG"], "bull": [], "bear": [], "primary": "CIBR",
                       "stocks": ["PANW", "CRWD", "ZS", "FTNT", "NET", "S", "OKTA"]},
-    "Mid Caps": {"core": [], "bull": ["MIDU", "MVV", "UMDD"], "bear": ["MZZ", "SMDD"], "primary": "MVV", "stocks": []},
+    "Mid Caps": {"core": ["IJH"], "bull": ["MIDU", "MVV", "UMDD"], "bear": ["MZZ", "SMDD"], "primary": "IJH", "stocks": []},
     "Cannabis": {"core": ["MSOS"], "bull": [], "bear": [], "primary": "MSOS",
                  "stocks": ["TLRY", "CGC", "CRON", "GTBIF", "CURLF"]},
     "Quantum Computing": {"core": ["QTUM"], "bull": [], "bear": [], "primary": "QTUM",
