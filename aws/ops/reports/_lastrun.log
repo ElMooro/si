@@ -1,30 +1,24 @@
-justhodl-engine-trust: code update OK (attempt 0)
-invoke: {'statusCode': 200, 'body': '{"ok": true, "n_engines": 67, "counts": {"PROMOTED": 8, "ACTIVE": 10, "INSUFFICIENT": 3, "DEPRECATED": 21, "WARMING": 25}, "regime"
+justhodl-master-ranker: code update OK (attempt 0)
+invoke: {'statusCode': 200, 'body': '{"ok": true, "n_tickers": 25, "n_macro": 5, "n_tier_3_plus": 66, "n_tier_5_plus": 20, "regime": "SLOWING", "duration_s": 2.26}'}
 
-regime=SLOWING | engines=67 | counts={'PROMOTED': 8, 'ACTIVE': 10, 'INSUFFICIENT': 3, 'DEPRECATED': 21, 'WARMING': 25}
+top_tickers=25 | as_of=2026-06-19T23:46:05+00:00
+stale_feeds_excluded: []
+missing_feeds: []
 
-ALPHA-BOOSTED (proven, x1.20):
-  crisis_dfii10_vs_gld           net_t=29.44 net_excess=5.121% -> trust=1.5
-  crypto_risk_score              net_t=6.19 net_excess=2.102% -> trust=1.2
-  squeeze_risk                   net_t=3.26 net_excess=1.397% -> trust=1.2
+feed freshness (oldest first):
+  data/pairs-scanner.json                age=277.8h  ok
+  data/future-intelligence.json          age=275.3h  ok
+  data/divergence-v2.json                age=275.0h  ok
+  data/supply-inflection.json            age=16.8h  ok
+  data/pead-signals.json                 age=15.8h  ok
+  data/theme-tiers.json                  age=15.7h  ok
+  data/asymmetric-scorer.json            age=12.8h  ok
+  data/eps-revision-velocity.json        age=12.8h  ok
+  data/deep-value.json                   age=12.8h  ok
+  data/nobrainers.json                   age=12.8h  ok
+  data/momentum-breakout.json            age=12.8h  ok
+  data/volatility-squeeze.json           age=12.8h  ok
+  data/pre-pump-signals.json             age=12.8h  ok
+  data/revenue-acceleration.json         age=12.8h  ok
 
-ALPHA-DEMOTED (value-destroying, x0.40):
-  macro_composite_z              net_t=-4.42 net_excess=-0.246% -> trust=0.5
-  carry_risk                     net_t=-4.97 net_excess=-0.213% -> trust=0.5
-  momentum_spy                   net_t=-8.28 net_excess=-0.227% -> trust=0.5
-  plumbing_stress                net_t=-9.23 net_excess=-0.334% -> trust=0.5
-  ml_risk                        net_t=-68.58 net_excess=-0.306% -> trust=0.5
-  eurodollar_stress              net_t=-1.77 net_excess=-0.111% -> trust=0.4
-  macro_frontrun_sniffer_setup   net_t=-2.62 net_excess=-0.327% -> trust=0.4
-  etf_rotation                   net_t=-3.44 net_excess=-0.442% -> trust=0.4
-  analog_signal                  net_t=-5.44 net_excess=-0.484% -> trust=0.4
-  sustained_target_equity        net_t=-1.74 net_excess=-0.615% -> trust=0.0
-  apex_fusion                    net_t=-2.09 net_excess=-1.086% -> trust=0.0
-  crisis_broad_dollar_vs_eem     net_t=-2.98 net_excess=-0.575% -> trust=0.0
-  sector_breadth                 net_t=-4.06 net_excess=-0.409% -> trust=0.0
-  crisis_obfr_iorb               net_t=-4.32 net_excess=-0.269% -> trust=0.0
-  edge_regime                    net_t=-4.74 net_excess=-0.34% -> trust=0.0
-
-total demoted on alpha: 28 | boosted: 3
-
-DONE 1950
+DONE 1951
