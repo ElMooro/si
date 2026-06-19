@@ -1,3 +1,9 @@
-INVOKE: {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"n_setups\": 376, \"strong
-best-setups: total=50 | GAMMA_SQUEEZE prior in code=False | gamma setups today=0
-  (engine produced 50 setups — no breakage; gamma dormant until dealer squeezes appear)
+deployed justhodl-pump-mechanics
+deployed justhodl-alpha-score
+deployed justhodl-convergence-radar
+conv: {"statusCode": 200, "body": "{\"status\": \"ok\", \"elapsed_sec\": 1.62, \"n_tickers\": 16
+convergence-radar: massive-flow source registered=True | tickers flagged by massive-flow=8 ['AMD', 'AVGO', 'AMZN', 'GOOG', 'INTC', 'GOOGL', 'CVX', 'AAPL']
+pump: {"statusCode": 200, "body": "{\"status\": \"ok\", \"elapsed_sec\": 0.59, \"n_candidates\":
+pump-mechanics: n_candidates=12 | gamma-boosted=0 [] (dormant if squeeze list empty)
+alpha-score: async triggered
+alpha-score: REFRESHED n=503 | options_flow comp for massive names=[('GOOGL', 68), ('AVGO', 78), ('AMD', 48), ('FCX', 25)]
