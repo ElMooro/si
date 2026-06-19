@@ -497,6 +497,24 @@ def lambda_handler(event, context):
                 print(f"[enrich] {cand['ticker']}: {e}")
                 enriched.append({**cand, "err": str(e)[:120]})
 
+    # ── Massive layer: dealer gamma squeeze boosts the squeeze proxy (the matrix gap) ──
+    try:
+        _massive_t = (json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/massive-signals.json")["Body"].read()).get("tickers") or {})
+    except Exception:
+        _massive_t = {}
+    for _r in enriched:
+        _sp = _r.get("squeeze_profile")
+        if not isinstance(_sp, dict):
+            continue
+        _mt = _massive_t.get((_r.get("ticker") or "").upper()) or {}
+        _gs = _mt.get("gamma_squeeze_score")
+        if _gs:
+            _sp["squeeze_proxy_score"] = min(100, (_sp.get("squeeze_proxy_score") or 0) + min(20, _gs * 0.25))
+            _sp["massive_gamma_squeeze"] = round(_gs, 1)
+            _sp.setdefault("concentration_signals", []).append(f"Dealer gamma squeeze (Massive GEX {round(_gs)})")
+        if _mt.get("otm_call_sweep"):
+            _sp.setdefault("concentration_signals", []).append("OTM call sweep (gamma trigger)")
+
     # Sort by squeeze proxy score descending (highest pump+squeeze potential first)
     enriched.sort(key=lambda r: -(r.get("squeeze_profile", {}).get("squeeze_proxy_score", 0) or 0))
 

@@ -154,6 +154,14 @@ ENGINE_EXTRACTORS = {
         "domain": "options",
         "extra":  ["tier", "flags"],
     },
+    "massive-flow": {
+        "key":    "data/massive-signals.json",
+        "path":   "top_prepump",
+        "ticker": "symbol",
+        "score":  "prepump_score",
+        "domain": "options",
+        "extra":  ["gamma_squeeze_score", "bullish_flow", "otm_call_sweep", "massive_why"],
+    },
     "sympathetic-momentum": {
         "key":    "data/sympathetic-momentum.json",
         "path":   "top_proxies",

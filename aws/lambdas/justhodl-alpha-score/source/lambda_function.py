@@ -58,6 +58,17 @@ SCREENER_KEY = "screener/data.json"
 SENTIMENT_KEY = "sentiment/data.json"
 SMART_MONEY_KEY = "screener/smart-money-holdings.json"
 OPTIONS_FLOW_KEY = "data/options-flow.json"
+MASSIVE_KEY = "data/massive-signals.json"
+_MASSIVE_CACHE = {}
+def _massive_tickers():
+    """Unified Massive layer (gamma squeeze + unusual options flow), cached per run."""
+    if "t" not in _MASSIVE_CACHE:
+        try:
+            import json as _j
+            _MASSIVE_CACHE["t"] = (_j.loads(s3.get_object(Bucket=S3_BUCKET, Key=MASSIVE_KEY)["Body"].read()).get("tickers") or {})
+        except Exception:
+            _MASSIVE_CACHE["t"] = {}
+    return _MASSIVE_CACHE["t"]
 ALPHA_WEIGHTS_KEY = "screener/alpha-weights.json"   # optional override from calibrator (#1)
 OUTPUT_KEY = "screener/alpha-score.json"
 
@@ -698,6 +709,13 @@ def lambda_handler(event, context):
         an_score, an_cov = score_analysts(s)
         i_score, i_cov = score_insiders(s)
         of_score, of_cov = score_options_flow(s, of_entry)
+        # Massive layer: dealer gamma squeeze + unusual call flow lift the options factor
+        _mt = _massive_tickers().get(sym) or {}
+        if _mt.get("gamma_squeeze_score") or _mt.get("bullish_flow") or _mt.get("otm_call_sweep"):
+            _mb = min(100, (_mt.get("gamma_squeeze_score") or 0) * 0.6
+                     + (25 if _mt.get("bullish_flow") else 0) + (25 if _mt.get("otm_call_sweep") else 0))
+            if _mb > 0:
+                of_score = max(of_score or 0, _mb); of_cov = max(of_cov or 0, 0.5)
 
         components = {
             "quality":      round(q_score) if q_score is not None else None,
