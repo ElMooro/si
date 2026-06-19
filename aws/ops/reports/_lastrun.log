@@ -1,14 +1,11 @@
-SCHEDULED + refreshed: justhodl-polygon-fx-regime -> cron(10 13 * * ? *)
-SCHEDULED + refreshed: justhodl-polygon-futures-curves -> cron(20 13 * * ? *)
+UPDATED
+SCHEDULED 22:00 UTC
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"tickers\": 0, \"top_prepump\": 0}"}
 
-RADAR INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_priced\": 119, \"n_candidates\": 15}"}
-IWM small-cap bid active: True
-candidates with sector ETF inflow: none currently
+MARKET: gamma_regime=None smallcap_bid=True(IWM 1.42) strongest_in=XLRE strongest_out=XLK
+sector_flows: {'XLK': -6.01, 'XLF': -2.39, 'XLE': -1.5, 'XLV': -2.16, 'XLP': -0.32, 'XLY': -1.25, 'XLI': -0.87, 'XLB': -0.75, 'XLU': 0.36, 'XLRE': 1.36, 'XLC': -0.63}
+fx_signals: []
+futures_signals: ['SILVER_BREAKOUT (+24.7% 20d)']
 
-TOP 6 (note ETF flow in why):
-  PPSI   comp=92.9   etf=XLU(0.36) | 58% rev growth on 1.7x EV/Sales vs ~12.6x growth-implied (87% below); forward 
-  BTBT   comp=91.6   etf=XLK(-6.01) | 59% rev growth on 6.7x EV/Sales vs ~12.6x growth-implied (47% below); lags min
-  LEU    comp=88.7   etf=XLU(0.36) | 18% rev growth on 8.1x EV/Sales vs ~12.6x growth-implied (36% below); lags pow
-  PRIM   comp=64.4   etf=XLK(-6.01) | 15% rev growth on 0.9x EV/Sales vs ~12.6x growth-implied (93% below); lags dat
-  SMCI   comp=62.1   etf=XLI(-0.87) | 76% rev growth on 1.1x EV/Sales vs ~12.6x growth-implied (91% below); lags coo
-  ACMR   comp=61.7   etf=XLK(-6.01) | 27% rev growth on 5.4x EV/Sales vs ~12.6x growth-implied (57% below); forward 
+TOP PRE-PUMP (gamma + flow):
+n_tickers=0
