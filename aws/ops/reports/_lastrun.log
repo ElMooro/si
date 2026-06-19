@@ -1,24 +1,6 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 5, \"n_tier_3_plus\": 66, \"n_tier_5_plus\":
-top_tickers: 25
-
-TOP 12 with capital-flow overlay:
-  FDX    score=134.1  cf_mult=1.12  📈BOOST
-  STX    score=131.8  cf_mult=1.0   —
-  NVDA   score=113.7  cf_mult=1.0   —
-  GOOGL  score=113.6  cf_mult=1.0   —
-  SNDK   score=113.2  cf_mult=1.0   —
-  FITB   score=105.6  cf_mult=1.0   —
-  GOOG   score=105.4  cf_mult=1.0   —
-  PWR    score=103.6  cf_mult=1.12  📈BOOST
-  NKE    score=102.2  cf_mult=0.85  📉PENALTY
-  NEM    score=102.1  cf_mult=0.82  📉PENALTY
-  OXY    score=100.9  cf_mult=0.85  📉PENALTY
-  SPG    score=100.8  cf_mult=1.12  📈BOOST
-
-9 of top-25 had a capital-flow adjustment
-  FDX    cf_mult=1.12 | ] · legends: DURATION · theme T-2 Transports · sector capital ACCELERATING IN (Transports)
-  PWR    cf_mult=1.12 | ee (compound=103.6) [future_intel, pead] · sector capital ACCELERATING IN (Infrastructure)
-  NKE    cf_mult=0.85 | compound=102.2) [compound, pead, smart_money] · sector party-over (Consumer Discretionary)
-  NEM    cf_mult=0.82 | 2.1) [asymmetric, compound, pead] · capital OUTFLOW vs price · distribution in Gold Miners
-  OXY    cf_mult=0.85 | ound=100.9) [compound, pead, smart_money] · legends: DURATION · sector party-over (Energy)
-  SPG    cf_mult=1.12 | 1 systems agree (compound=100.8) [pead] · sector capital ACCELERATING IN (Real Estate)
+13f-positions has TELEGRAM_TOKEN: False | CHAT: True
+radar current env keys: []
+radar env now has telegram: True
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"n_complexes\": 36, \"pump_setups\": 11, \"party_over\": 10}"}
+state seeded: pump=11 over=10
+PAGE https://justhodl.ai/capital-flow-radar.html -> 12275 bytes, markers present: True
