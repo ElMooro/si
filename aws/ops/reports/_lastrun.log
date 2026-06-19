@@ -1,4 +1,10 @@
-regime.stance: ACCUMULATE
-regime.vol_cost_context: {"skew_pctile_252d": 64.6, "skew_regime": "EXTREME_TAIL_HEDGING", "vix_term_ratio_30d_3m": 0.894, "term_inverted": false, "vol_surface_regime": "NORMAL", "gamma_regime": "ALL_NEGATIVE_GAMMA", "hedge_cost_read": "FAIR", "note": "Real options-surface read of how cheap/expensive tail protection is right now (skew percentile + VIX term structure + dealer gamma) -- Massive options data."}
-cost_benefit: {"annualised_carry_pct": 0.0, "tail_loss_averted_pct": 0.0, "insurance_ratio": null, "return_drag_pct": 0.0}
-generated_at: 2026-06-19T19:03:07.926198+00:00
+justhodl-hedge-pnl -> {"statusCode": 200, "body": "{\"ok\": true, \"maturity\": \"WARMING\", \"verdict\": \"WARMING\", \"n_days\": 0
+justhodl-portfolio-analytics -> {"statusCode": 200, "body": "{\"status\": \"ok\", \"elapsed_sec\": 0.96, \"n_candidates\": 20, \"n_clusters\":
+
+--- hedge-pnl ---
+  verdict: WARMING
+  massive_risk_context: {"gamma_regime": "ALL_NEGATIVE_GAMMA", "spy_gamma_regime": "NEGATIVE_GAMMA", "vol_surface_regime": "NORMAL", "vol_surface_stress": 21.8, "skew_pctile_252d": 64.6, "carry_justification": "ELEVATED crash risk -- carry is well-justified right now (negative dealer gamma / stressed vol surface raise the odds the convex leg pays).", "note": "Reads current crash-risk environment (dealer gamma + vol surface) to judge whether the hedge's carry bleed is justified -- Massive options data."}
+
+--- portfolio-analytics ---
+  n_candidates: 20
+  risk_environment: {"gamma_regime": "ALL_NEGATIVE_GAMMA", "vol_surface_regime": "NORMAL", "vol_surface_stress": 21.8, "skew_pctile_252d": 64.6, "concentration_warning": true, "note": "In negative dealer gamma / stressed vol, cross-stock correlations spike -- clusters that look diversified in calm tape converge in a selloff, so concentration risk is amplified. Massive options data."}
