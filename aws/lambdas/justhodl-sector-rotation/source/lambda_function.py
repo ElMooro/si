@@ -529,6 +529,37 @@ def lambda_handler(event, context):
             print(f"  sector {sym} err: {str(e)[:120]}")
             sectors_out.append({"symbol": sym, "err": str(e)[:120]})
 
+    # ── Real ETF $ flows (ETF Global / Massive) — actual dollars per sector ETF, ──
+    # ── folded into rotation_score so the ranking reflects real money, not just price. ──
+    try:
+        _fr = (json.loads(s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/daily.json")["Body"].read()) or {}).get("metrics", []) or []
+        _flow = {m.get("ticker"): m for m in _fr if m.get("ticker") and not m.get("error")}
+    except Exception as e:
+        _flow = {}; print("  etf-flows load failed: " + str(e)[:80])
+    for _s in sectors_out:
+        _m = _flow.get(_s.get("symbol"))
+        if not _m or _s.get("err"):
+            continue
+        _z = _m.get("flow_zscore_90d")
+        _s["etf_flow_z"] = _z
+        _s["etf_flow_signal"] = _m.get("signal_label")
+        _s["etf_flow_5d_usd"] = _m.get("flow_5d_usd")
+        if _z is not None:
+            _base = _s.get("rotation_score") or 0
+            _s["rotation_score_preflow"] = _base
+            _s["rotation_score"] = round(max(0, min(100, _base + max(-10.0, min(10.0, _z * 4.0)))), 1)
+            if _s.get("rotating_in") and _z <= -0.5:
+                _s["etf_flow_confirm"] = "DIVERGENT"        # price rotating in but real $ leaving
+            elif _s.get("rotating_in") and _z >= 0.5:
+                _s["etf_flow_confirm"] = "CONFIRMED"        # price + real money agree
+            elif _z >= 1.0:
+                _s["etf_flow_confirm"] = "STRONG_INFLOW"
+            elif _z <= -1.0:
+                _s["etf_flow_confirm"] = "STRONG_OUTFLOW"
+            else:
+                _s["etf_flow_confirm"] = "NEUTRAL"
+    print("  real ETF $ flows applied to %d sectors" % sum(1 for _s in sectors_out if _s.get("etf_flow_z") is not None))
+
     valid = [s for s in sectors_out if not s.get("err")]
     valid.sort(key=lambda s: -(s.get("rotation_score") or 0))
     for i, s in enumerate(valid): s["rank"] = i + 1
@@ -572,6 +603,10 @@ def lambda_handler(event, context):
             "top_3_leaders": [{"sym": s["symbol"], "score": s["rotation_score"]} for s in leaders],
             "bottom_3_laggards": [{"sym": s["symbol"], "score": s["rotation_score"]} for s in laggards],
             "leadership_alignment": leadership_alignment,
+            "real_money_flow": sorted(
+                [{"sym": s["symbol"], "z": s.get("etf_flow_z"), "signal": s.get("etf_flow_signal"),
+                  "confirm": s.get("etf_flow_confirm")} for s in valid if s.get("etf_flow_z") is not None],
+                key=lambda x: -(x["z"] if x["z"] is not None else -999)),
         },
         "sectors": valid,
         "ratios": ratios,

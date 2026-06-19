@@ -29,6 +29,13 @@ import boto3
 VERSION = "1.0.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/theme-rotation.json"
+
+
+def _read_s3_json(key):
+    try:
+        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return None
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
 POLYGON = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
 BENCH = "SPY"
@@ -166,6 +173,15 @@ def lambda_handler(event, context):
     spy_3m = ret(closes[BENCH], dates, min(63, len(dates) - 2))
     spy_prev = ret_window(closes[BENCH], dates, 42, 21)
 
+    # Real ETF $ flows (ETF Global, Massive) — confirm price-based rotation with actual money.
+    _flow_rows = (_read_s3_json("etf-flows/daily.json") or {}).get("metrics", []) or []
+    flow_map = {m.get("ticker"): m for m in _flow_rows if m.get("ticker") and not m.get("error")}
+    try:
+        from massive_signals import massive_market
+        _mkt = massive_market()
+    except Exception:
+        _mkt = {}
+
     def theme_series(etf, seeds):
         if etf and etf in closes:
             return closes[etf]
@@ -205,13 +221,27 @@ def lambda_handler(event, context):
             else:
                 q = "LAGGING"
         score = round(rs_ratio + 1.8 * (rs_mom or 0), 1)
+        # Real ETF $-flow confirmation (only for themes backed by a tradable ETF)
+        fz = flab = None
+        flow_confirm = "NEUTRAL"
+        combined = score
+        if etf and etf in flow_map:
+            fz = flow_map[etf].get("flow_zscore_90d")
+            flab = flow_map[etf].get("signal_label")
+            if fz is not None:
+                combined = round(score + max(-6.0, min(6.0, fz * 2.0)), 1)   # $-flow kicker
+                if q in ("IMPROVING", "LEADING") and fz >= 0.5:
+                    flow_confirm = "CONFIRMED"          # price rotating in AND real money following
+                elif q in ("IMPROVING", "LEADING") and fz <= -0.5:
+                    flow_confirm = "DIVERGENT"          # price up but money leaving — suspect
         rows.append({
             "theme": theme, "etf": etf or "(basket)", "is_basket": etf is None,
             "ret_1m_pct": round(r1 * 100, 1), "ret_3m_pct": round(r3 * 100, 1) if r3 is not None else None,
             "rs_ratio": rs_ratio, "rs_momentum": rs_mom, "quadrant": q,
-            "rotation_score": score, "seeds": seeds,
+            "rotation_score": score, "flow_z": fz, "flow_label": flab,
+            "flow_confirm": flow_confirm, "combined_score": combined, "seeds": seeds,
         })
-    rows.sort(key=lambda x: x["rotation_score"], reverse=True)
+    rows.sort(key=lambda x: x.get("combined_score", x["rotation_score"]), reverse=True)
 
     improving = [r for r in rows if r["quadrant"] == "IMPROVING"]
     improving.sort(key=lambda x: (x["rs_momentum"] or 0), reverse=True)
@@ -235,6 +265,13 @@ def lambda_handler(event, context):
         "thesis": "Relative-Rotation-Graph across 40+ themes. IMPROVING = money rotating in (early); "
                   "WEAKENING = rotating out. Seeds of rotating-in themes feed the ledger.",
         "benchmark": BENCH, "n_themes": len(rows), "axis_days": len(dates),
+        "market_context": {
+            "smallcap_bid": _mkt.get("smallcap_bid"),
+            "gamma_regime": _mkt.get("gamma_regime"),
+            "strongest_inflow_sector": _mkt.get("strongest_inflow_sector"),
+            "strongest_outflow_sector": _mkt.get("strongest_outflow_sector"),
+            "note": "smallcap_bid/sector $ flows from the unified Massive layer (ETF Global flows).",
+        },
         "summary": {
             "rotating_in": rotating_in[:12],
             "leading": leading[:10],
