@@ -191,6 +191,11 @@ def lambda_handler(event, context):
     ai_deal_syms = {x.get("symbol") for x in
                     ((_read("data/deal-scanner.json") or {}).get("summary", {}) or {}).get("ai_deals", []) or []
                     if isinstance(x, dict)}
+    sm_long = set()
+    for _f in (_read("data/smart-money-13f.json") or {}).get("funds", []) or []:
+        for _h in _f.get("top_longs", []) or []:
+            if _h.get("ticker"):
+                sm_long.add(_h["ticker"])
     # AI-infra layer leaders (largest mkt-cap per layer) + which are revising up
     leaders, _lb = {}, {}
     for _s, _u in uni.items():
@@ -269,7 +274,8 @@ def lambda_handler(event, context):
         contagion_pts = 24 if contagion else 0  # upstream leader rising, this laggard hasn't
         sq = (shrt.get(s) or 0) >= 70
         deal = s in ai_deal_syms
-        kick_pts = (10 if sq else 0) + (12 if deal else 0)
+        smbk = s in sm_long
+        kick_pts = (10 if sq else 0) + (12 if deal else 0) + (14 if smbk else 0)
         composite = round(unpriced_pts + laggard_pts + infl_pts + rev_pts + accum_pts
                           + bn_pts + cap_pts + contagion_pts + kick_pts, 1)
         why = []
@@ -290,6 +296,8 @@ def lambda_handler(event, context):
             why.append(f"★ contagion: {leaders[u['layer']]} (layer leader) revising up, this hasn't")
         if deal:
             why.append("fresh AI deal")
+        if smbk:
+            why.append("★ smart money long (13F)")
         rows.append({
             "symbol": s, "name": u["name"], "layer": u["layer"], "cap_bucket": bkt,
             "market_cap": u["market_cap"], "is_small_mid": bkt in SMALL_MID,
@@ -305,7 +313,7 @@ def lambda_handler(event, context):
             "estimates_rising": rising, "estimates_falling": falling,
             "fy2_eps_lift_pct": ev.get("fy2_lift"), "contagion": contagion,
             "layer_leader": leaders.get(u["layer"]), "layer_leader_rising": layer_hot.get(u["layer"]),
-            "short_squeeze": sq, "ai_deal": deal,
+            "short_squeeze": sq, "ai_deal": deal, "smart_money_backed": smbk,
             "composite": composite, "why": "; ".join(why),
         })
 

@@ -377,6 +377,14 @@ def lambda_handler(event, context):
             info[fut[f]] = f.result()
 
     deals = []
+    sm_long = set()
+    try:
+        for _f in json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/smart-money-13f.json")["Body"].read()).get("funds", []) or []:
+            for _h in _f.get("top_longs", []) or []:
+                if _h.get("ticker"):
+                    sm_long.add(_h["ticker"])
+    except Exception:
+        pass
     for d in deals_raw:
         txt = d.get("text_snippet", "")
         rev, mc, mu = info.get(d["symbol"], (None, None, uni.get(d["symbol"], {})))
@@ -407,8 +415,10 @@ def lambda_handler(event, context):
         focus = 60 if hl == "green" else 25 if hl == "yellow" else 0   # spotlight big-vs-size deals
         ai_boost = 90 if ai_mega else 35 if ai_rel else 0              # AI thesis: float AI deals up
         bil_boost = 45 if is_billion else 0                           # billion-dollar deals
+        smbk = d["symbol"] in sm_long
+        sm_boost = 22 if smbk else 0                                  # proven thematic 13F money is long this name
         score = round(mat_score + mc_score + cb + rec + size_score + focus + ai_boost + bil_boost
-                      + sec_boost + (8 if d["multi_year"] else 0), 1)
+                      + sec_boost + sm_boost + (8 if d["multi_year"] else 0), 1)
         why_bits = []
         if d["deal_value_str"]:
             why_bits.append(f"{d['deal_value_str']}{' multi-year' if d['multi_year'] else ''} deal")
@@ -428,6 +438,8 @@ def lambda_handler(event, context):
             why_bits.append(f"🌊 sector {sec_etf} rotating in" + (f" (score {round(sec_score)})" if sec_score is not None else ""))
         if small:
             why_bits.append(f"{bkt}-cap — single contract moves the needle")
+        if smbk:
+            why_bits.append("★ smart money long (13F)")
         deals.append({k: v for k, v in d.items() if k != "text_snippet"} | {
             "name": (mu or {}).get("name"), "cap_bucket": bkt, "market_cap": mc,
             "is_small_cap": small, "revenue_fy": rev, "materiality_pct": materiality,
@@ -435,6 +447,7 @@ def lambda_handler(event, context):
             "ai_keywords": ai_kws, "is_billion": is_billion, "ai_megadeal": ai_mega,
             "sector": sector, "sector_etf": sec_etf, "sector_rotation_score": sec_score,
             "sector_rotating_in": sec_rot_in, "sector_tailwind": sector_tailwind,
+            "smart_money_backed": smbk,
             "score": score, "why": "; ".join(why_bits)})
 
     deals.sort(key=lambda x: x["score"], reverse=True)
