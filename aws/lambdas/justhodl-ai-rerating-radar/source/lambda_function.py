@@ -196,6 +196,10 @@ def lambda_handler(event, context):
         for _h in _f.get("top_longs", []) or []:
             if _h.get("ticker"):
                 sm_long.add(_h["ticker"])
+    attn = {}
+    for _r in (_read("data/attention-signals.json") or {}).get("tickers", []) or []:
+        if _r.get("symbol"):
+            attn[_r["symbol"]] = _r
     # AI-infra layer leaders (largest mkt-cap per layer) + which are revising up
     leaders, _lb = {}, {}
     for _s, _u in uni.items():
@@ -275,7 +279,10 @@ def lambda_handler(event, context):
         sq = (shrt.get(s) or 0) >= 70
         deal = s in ai_deal_syms
         smbk = s in sm_long
-        kick_pts = (10 if sq else 0) + (12 if deal else 0) + (14 if smbk else 0)
+        _att = attn.get(s, {})
+        ins_buy = (_att.get("insider_mspr") or 0) >= 30
+        anl_up = (_att.get("analyst_upgrade_mom") or 0) > 0.03
+        kick_pts = (10 if sq else 0) + (12 if deal else 0) + (14 if smbk else 0) + (12 if ins_buy else 0) + (10 if anl_up else 0)
         composite = round(unpriced_pts + laggard_pts + infl_pts + rev_pts + accum_pts
                           + bn_pts + cap_pts + contagion_pts + kick_pts, 1)
         why = []
@@ -298,6 +305,10 @@ def lambda_handler(event, context):
             why.append("fresh AI deal")
         if smbk:
             why.append("★ smart money long (13F)")
+        if ins_buy:
+            why.append("insider buying")
+        if anl_up:
+            why.append("analyst upgrades accelerating")
         rows.append({
             "symbol": s, "name": u["name"], "layer": u["layer"], "cap_bucket": bkt,
             "market_cap": u["market_cap"], "is_small_mid": bkt in SMALL_MID,
@@ -314,6 +325,7 @@ def lambda_handler(event, context):
             "fy2_eps_lift_pct": ev.get("fy2_lift"), "contagion": contagion,
             "layer_leader": leaders.get(u["layer"]), "layer_leader_rising": layer_hot.get(u["layer"]),
             "short_squeeze": sq, "ai_deal": deal, "smart_money_backed": smbk,
+            "insider_buying": ins_buy, "analyst_upgrading": anl_up,
             "composite": composite, "why": "; ".join(why),
         })
 
