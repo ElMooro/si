@@ -1,5 +1,22 @@
-  fleet-edge page try 1 code=404
-  fleet-edge page try 2 code=404
-  fleet-edge page try 3 code=404
-OK  fleet-edge page live (200), marker present
-OK  index nav       live (200), marker present
+CREATED
+SCHEDULED weekly Mon 11:00 UTC
+INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"funds\": 1, \"total_longs\": 31, \"confluence\": 1, \"n_shorts\": 10}"}
+
+Situational Awareness LP (Leopold Aschenbrenner) — 13F report 2026-03-31, filed 2026-05-18 — longs=31 puts=11
+  TOP LONGS:
+    BE      BLOOM ENERGY CORP          layer=power_grid    val=878707930.0
+    SNDK    SANDISK CORP               layer=-             val=724363205.0
+    CRWV    COREWEAVE INC              layer=-             val=556073385.0
+    MU      MICRON TECHNOLOGY INC      layer=silicon       val=422300000.0
+    IREN    IREN LIMITED               layer=-             val=401036064.0
+    CORZ    CORE SCIENTIFIC INC NEW    layer=-             val=389086756.0
+    SNDK    SANDISK CORP               layer=-             val=388764546.0
+    TSM     TAIWAN SEMICONDUCTOR MANUF layer=foundry       val=354847500.0
+    APLD    APPLIED DIGITAL CORP       layer=-             val=319978118.0
+    RIOT    RIOT PLATFORMS INC         layer=-             val=142166413.0
+  PUTS (shorting): ['SMH', 'NVDA', 'ORCL', 'AVGO', 'AMD', 'MU', 'TSM', 'ASML', 'INTC', 'GLW', 'INFOSYS LT']
+
+LONG BY LAYER: {'power_grid': ['BE'], 'unmapped': ['SNDK', 'CRWV', 'IREN', 'CORZ', 'APLD', 'RIOT', 'CLSK', 'SEI', 'BTDR'], 'silicon': ['MU', 'AMD'], 'foundry': ['TSM']}
+
+CONFLUENCE (smart money long + your radar calls cheap):
+  TSM     layer=foundry      your_discount=93.9% growth=33.4%
