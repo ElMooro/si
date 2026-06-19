@@ -1,70 +1,50 @@
-update_function_code OK
-state: Active Successful codesize: 13079
-async invoke fired 2026-06-19T20:25:17.182422+00:00
-daily.json refreshed: 2026-06-19T20:25:20+00:00
+conflict 0
+update OK
+state: Active Successful size: 9008
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"n_complexes\": 39, \"pump_setups\": 12, \"party_over\": 10, \"risk_appetite\": \"BALANCED\"}"}
 
-TOTAL metrics in daily.json: 246
+version: 2.1.0 | n_complexes: 39 | pumps: 12 | party_over: 0
 
-NEW tickers WITH data: 60/60
-  FNGD  n=77  flow5d=$-490.1M   3x_fangplus_bear
-  BULZ  n=77  flow5d=$0.0M      3x_fang_innovation_bull
-  BERZ  n=77  flow5d=$0.0M      3x_fang_innovation_bear
-  SPUU  n=77  flow5d=$0.0M      2x_sp500_bull
-  HIBL  n=77  flow5d=$0.0M      3x_highbeta_bull
-  HIBS  n=77  flow5d=$0.9M      3x_highbeta_bear
-  MIDU  n=77  flow5d=$0.0M      3x_midcap_bull
-  EDC   n=77  flow5d=$5.3M      3x_em_bull
-  EDZ   n=77  flow5d=$-0.7M     3x_em_bear
-  EURL  n=77  flow5d=$0.0M      3x_europe_bull
-  INDL  n=77  flow5d=$0.0M      2x_india_bull
-  BRZU  n=77  flow5d=$0.0M      2x_brazil_bull
-  KORU  n=77  flow5d=$0.0M      3x_korea_bull
-  MEXX  n=77  flow5d=$0.0M      3x_mexico_bull
-  TPOR  n=77  flow5d=$0.0M      3x_transports_bull
-  EUO   n=77  flow5d=$-1.5M     2x_euro_bear
-  ULE   n=77  flow5d=$0.0M      2x_euro_bull
-  YCS   n=77  flow5d=$0.0M      2x_yen_bear
-  MSTX  n=77  flow5d=$8.7M      2x_mstr_bull
-  TSLS  n=77  flow5d=$1.3M      2x_tsla_bear
-  NVDX  n=77  flow5d=$-11.1M    2x_nvda_bull
-  NVDU  n=77  flow5d=$-6.4M     2x_nvda_bull
-  GGLS  n=77  flow5d=$-4.7M     1x_googl_bear
-  METD  n=77  flow5d=$-1.7M     1x_meta_bear
-  AMZD  n=77  flow5d=$2.8M      1x_amzn_bear
-  MSFD  n=77  flow5d=$-1.8M     1x_msft_bear
-  TSLR  n=75  flow5d=$-1.6M     2x_tsla_bull
-  CONI  n=75  flow5d=$-1.1M     1x_coin_bear
-  UUP   n=74  flow5d=$21.0M     usd_bull
-  UDN   n=74  flow5d=$-1.8M     usd_bear
-  DDM   n=72  flow5d=$3.2M      2x_dow_bull
-  DXD   n=72  flow5d=$-7.2M     2x_dow_bear
-  DOG   n=72  flow5d=$11.3M     1x_dow_bear
-  PSQ   n=72  flow5d=$-48.9M    1x_qqq_bear
-  MVV   n=72  flow5d=$-2.2M     2x_midcap_bull
-  MZZ   n=72  flow5d=$0.3M      2x_midcap_bear
-  RWM   n=72  flow5d=$-17.3M    1x_smallcap_bear
-  SAA   n=72  flow5d=$0.0M      2x_smallcap_bull
-  ROM   n=72  flow5d=$1.4M      2x_tech_bull
-  REW   n=72  flow5d=$-0.4M     2x_tech_bear
-  USD   n=72  flow5d=$10.8M     2x_semi_bull
-  SSG   n=72  flow5d=$-4.9M     2x_semi_bear
-  UYG   n=72  flow5d=$-2.1M     2x_financials_bull
-  SKF   n=72  flow5d=$0.0M      2x_financials_bear
-  DIG   n=72  flow5d=$-2.9M     2x_energy_bull
-  DUG   n=72  flow5d=$0.0M      2x_energy_bear
-  RXL   n=72  flow5d=$0.5M      2x_healthcare_bull
-  BIB   n=72  flow5d=$0.0M      2x_biotech_bull
-  BIS   n=72  flow5d=$0.0M      2x_biotech_bear
-  UXI   n=72  flow5d=$0.0M      2x_industrials_bull
-  UCC   n=72  flow5d=$0.0M      2x_discretionary_bull
-  URE   n=72  flow5d=$0.0M      2x_realestate_bull
-  SRS   n=72  flow5d=$0.0M      2x_realestate_bear
-  UYM   n=72  flow5d=$0.0M      2x_materials_bull
-  SMN   n=72  flow5d=$0.0M      2x_materials_bear
-  UPW   n=72  flow5d=$-0.2M     2x_utilities_bull
-  BITU  n=72  flow5d=$-1.1M     2x_bitcoin_bull
-  SBIT  n=72  flow5d=$-11.0M    2x_bitcoin_bear
-  ETHT  n=72  flow5d=$2.5M      2x_ethereum_bull
-  FNGU  n=71  flow5d=$0.0M      3x_fangplus_bull
+NEW complexes:
+  Mega-Cap Tech (FANG+)  pump=55.0  net5d=$3673     M bull=$0      M bear=$-490   M STEADY_INFLOW — TREND INTACT
+  Europe                 pump=80.0  net5d=$1087     M bull=$0      M bear=$0      M ACCELERATING_INFLOW — PUMP S
+  Emerging Markets       pump=69.0  net5d=$13       M bull=$5      M bear=$-1     M INFLOW_DECELERATING — LATE
+  India                  pump=50.0  net5d=$0        M bull=$0      M bear=$0      M STEADY_INFLOW — TREND INTACT
+  Brazil                 pump=50.0  net5d=$0        M bull=$0      M bear=$0      M STEADY_INFLOW — TREND INTACT
 
-NEW tickers MISSING/empty: 0 -> 
+risk_appetite: BALANCED
+MOST BULLISH leveraged positioning:
+  Mega-Cap Tech (FANG+)  sector  net=$490M legs=FNGU,BULZ,FNGD,BERZ
+  S&P 500 Broad          sector  net=$489M legs=SPXL,UPRO,SSO,SPUU,SPXS,SPXU,SDS,SH
+  Nasdaq Broad           sector  net=$324M legs=TQQQ,QLD,SQQQ,QID,PSQ
+  Oil                    sector  net=$228M legs=UCO,SCO
+  NVDA                   single_stock net=$165M legs=NVDL,NVDX,NVDU,NVDS
+  AMD                    single_stock net=$133M legs=AMDL,AMDD
+  Technology             sector  net=$102M legs=TQQQ,TECL,ROM,SQQQ,TECS,REW
+  Small Caps             sector  net=$92M legs=TNA,UWM,SAA,TZA,TWM,RWM
+MOST BEARISH leveraged positioning:
+  Semiconductors         sector  net=$-1718M legs=SOXL,USD,SOXS,SSG
+  Financials             sector  net=$-120M legs=FAS,DPST,UYG,FAZ,SKF
+  Biotech                sector  net=$-60M legs=LABU,BIB,LABD,BIS
+  Silver                 sector  net=$-39M legs=AGQ,ZSL
+  Homebuilders           sector  net=$-37M legs=NAIL
+  AVGO                   single_stock net=$-23M legs=AVGX
+  Aerospace/Defense      sector  net=$-15M legs=DFEN
+  AAPL                   single_stock net=$-10M legs=AAPU,AAPD
+
+SINGLE-STOCK leveraged board (13 names):
+  NVDA    net=$165     M stance=BULLISH  legs=NVDL,NVDX,NVDU,NVDS
+  AMD     net=$133     M stance=BULLISH  legs=AMDL,AMDD
+  MSFT    net=$62      M stance=BULLISH  legs=MSFU,MSFD
+  MSTR    net=$42      M stance=BULLISH  legs=MSTU,MSTX,MSTZ
+  TSLA    net=$24      M stance=BULLISH  legs=TSLL,TSLR,TSLQ,TSLS
+  GOOGL   net=$22      M stance=BULLISH  legs=GGLL,GGLS
+  META    net=$22      M stance=BULLISH  legs=METU,METD
+  COIN    net=$18      M stance=BULLISH  legs=CONL,CONI
+  AMZN    net=$17      M stance=BULLISH  legs=AMZU,AMZD
+  SMCI    net=$16      M stance=BULLISH  legs=SMCL
+  PLTR    net=$2       M stance=NEUTRAL  legs=PLTU
+  AAPL    net=$-10     M stance=BEARISH  legs=AAPU,AAPD
+  AVGO    net=$-23     M stance=BEARISH  legs=AVGX
+
+state seeded: True | pumps tracked: 12
