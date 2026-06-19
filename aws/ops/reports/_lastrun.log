@@ -1,22 +1,14 @@
-=== justhodl-polygon-fx-regime ===
-  schedule: NO RULE TARGETING IT
-  last log: 
+SCHEDULED + refreshed: justhodl-polygon-fx-regime -> cron(10 13 * * ? *)
+SCHEDULED + refreshed: justhodl-polygon-futures-curves -> cron(20 13 * * ? *)
 
-=== justhodl-polygon-futures-curves ===
-  schedule: NO RULE TARGETING IT
-  last log: 
+RADAR INVOKE: {"statusCode": 200, "body": "{\"ok\": true, \"n_priced\": 119, \"n_candidates\": 15}"}
+IWM small-cap bid active: True
+candidates with sector ETF inflow: none currently
 
-INVOKE justhodl-polygon-fx-regime -> {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"elapsed_s\": 0.3, \"n_signals\": 1, \"signals\": [\"CARRY_TRADE_FAVORABLE (USDJPY +1.1%)\"], \"usd_synth_
-INVOKE justhodl-polygon-futures-curves -> {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"elapsed_s\": 0.8, \"n_products_with_data\": 5, \"n_signals\": 1, \"signals\": [\"SILVER_BREAKOUT (+24.7% 
-
-=== etf-flows/daily.json universe + rotation structure ===
-daily.json: 84 ETFs tracked
-  sample tickers: ['SPY', 'VOO', 'IVV', 'QQQ', 'IWM', 'VTI', 'DIA', 'XLK', 'XLF', 'XLE', 'XLV', 'XLP', 'XLY', 'XLI', 'XLB', 'XLU', 'XLRE', 'XLC', 'MTUM', 'VLUE']
-  with data: 84
-   SPY    label=STRONG_INFLOW  z90=3.67 flow5d=-12414863948.849998
-   VOO    label=NEUTRAL        z90=-0.44 flow5d=2139233545.94
-   IVV    label=NEUTRAL        z90=0.48 flow5d=33812368924.399998
-   QQQ    label=OUTFLOW        z90=-1.8 flow5d=3183174038.5
-   IWM    label=INFLOW         z90=1.42 flow5d=347864822.29999995
-rotation.json keys: ['generated_at', 'universe_size', 'n_ok', 'n_failed', 'elapsed_s', 'schema_version', 'by_category']
-  categories: ['broad', 'broad.us_large_cap', 'broad.us_megacap_tech', 'broad.us_small_cap', 'broad.us_total', 'broad.us_dow', 'sector', 'sector.technology', 'sector.financials', 'sector.energy', 'sector.healthcare', 'sector.staples']
+TOP 6 (note ETF flow in why):
+  PPSI   comp=92.9   etf=XLU(0.36) | 58% rev growth on 1.7x EV/Sales vs ~12.6x growth-implied (87% below); forward 
+  BTBT   comp=91.6   etf=XLK(-6.01) | 59% rev growth on 6.7x EV/Sales vs ~12.6x growth-implied (47% below); lags min
+  LEU    comp=88.7   etf=XLU(0.36) | 18% rev growth on 8.1x EV/Sales vs ~12.6x growth-implied (36% below); lags pow
+  PRIM   comp=64.4   etf=XLK(-6.01) | 15% rev growth on 0.9x EV/Sales vs ~12.6x growth-implied (93% below); lags dat
+  SMCI   comp=62.1   etf=XLI(-0.87) | 76% rev growth on 1.1x EV/Sales vs ~12.6x growth-implied (91% below); lags coo
+  ACMR   comp=61.7   etf=XLK(-6.01) | 27% rev growth on 5.4x EV/Sales vs ~12.6x growth-implied (57% below); forward 
