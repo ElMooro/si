@@ -1,18 +1,8 @@
-n_recent: 30  n_pead: 10  generated: 2026-06-20T03:05:59.277103+00:00
-data_sources: {'upcoming': 'Nasdaq earnings calendar API (free)', 'actuals': 'Polygon stocks-financials API', 'returns': 'Polygon aggregates API'}
-benzinga-sourced=30  qoq-proxy=0  other=0
+data/etf-fund-flows.json ERR An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
 
-recent w/ surprise (ticker|date|eps_surprise%|rev%|imp|1d|label|score|src):
-  HMC   2026-05-14   eps=-14233.33 rev=-0.02   imp=4   1d=1.99  MISS_BUT_ROSE           55  benzinga
-  CLSK  2026-05-11   eps=-560.87  rev=-2.03   imp=3   1d=-5.8  NEGATIVE_DRIFT          22  benzinga
-  SNOW  2026-05-27   eps=178.57   rev=5.18    imp=5   1d=36.48 STRONG_POSITIVE_DRIFT   84  benzinga
-  MARA  2026-05-11   eps=-35.56   rev=-6.07   imp=3   1d=-5.0  NEGATIVE_DRIFT          22  benzinga
-  PDD   2026-05-27   eps=-35.21   rev=-3.39   imp=5   1d=-4.13 NEGATIVE_DRIFT          16  benzinga
-  ZS    2026-05-26   eps=35.0     rev=1.79    imp=4   1d=-31.52BEAT_BUT_FELL           45  benzinga
-  CRM   2026-05-27   eps=31.08    rev=0.69    imp=5   1d=-0.75 BEAT_BUT_FELL           44  benzinga
-  TGT   2026-05-20   eps=26.67    rev=4.54    imp=5   1d=3.12  STRONG_POSITIVE_DRIFT   84  benzinga
-  DOCU  2026-06-04   eps=25.29    rev=0.66    imp=3   1d=-7.22 BEAT_BUT_FELL           45  benzinga
-  CRWD  2026-06-03   eps=25.0     rev=1.7     imp=5   1d=-3.81 BEAT_BUT_FELL           44  benzinga
+============================================================
+data/capital-flow-radar.json
+============================================================
+top keys: ['engine', 'version', 'generated_at', 'thesis', 'dollar_tide', 'leveraged_positioning', 'n_complexes', 'pump_setups', 'party_over_alerts', 'top_pick_cascade', 'complexes', 'methodology', 'caveats', 'sources', 'elapsed_s']
 
-sample pead_signals[0]: {"ticker": "SNOW", "filing_date": "2026-05-27", "period_end": "Q1 2027", "eps_actual": 0.39, "eps_estimate": 0.14, "eps_surprise_pct": 178.57, "revenue_actual": 1391000000.0, "revenue_surprise_pct": 5.18, "importance": 5, "returns": {"1d": 36.48, "5d": 37.67, "20d": null}, "pead_label": "STRONG_POSITIVE_DRIFT", "pead_score": 84, "surprise_source": "benzinga"}
-DONE 1961
+DONE 1962
