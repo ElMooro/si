@@ -1,20 +1,18 @@
 ================================================================
-ENGINE-MANIFEST MERGE
+EARNINGS-TRACKER FEED DIAGNOSIS
 ================================================================
-manifest top-level type: dict
-  ADDED: ['justhodl-analyst-actions', 'justhodl-estimate-revisions', 'justhodl-flow-lookthrough', 'justhodl-boom-radar']
-  sample entry schema keys: ['engine', 'keys', 'page', 'on_board', 'name', 'desc']
+  as_of: 2026-06-20T11:30:42.884039+00:00
+  top-level keys: ['aggregate_stats', 'data_sources', 'duration_s', 'forward_calendar', 'generated_at', 'n_forward_calendar', 'n_pead', 'n_recent', 'n_upcoming', 'pead_signals', 'recent_results_30d', 'upcoming_14d', 'version', 'watchlist_size']
+  forward_calendar: 38  n_forward_calendar=38
+    sample: {'ticker': 'FRVO', 'date': '2026-06-22', 'session': 'BMO', 'importance': 4, 'estimated_eps': -0.09}
+  upcoming_14d: 4  sample keys: ['ticker', 'name', 'earnings_date', 'time', 'eps_consensus', 'n_estimates', 'fiscal_quarter_ending', 'last_year_eps', 'market_cap']
+  lambda LastModified: 2026-06-20T10:46:40.000+0000 State: Active
+
+  re-invoking catalyst-calendar after earnings refresh…
+  catalyst EARNINGS now: 0 (Benzinga=0)  by_source={'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
 
 ================================================================
-VERIFY catalyst-calendar (Benzinga earnings)
+FIX RAG MANIFEST ENTRIES
 ================================================================
-  invoke: 200 {'AUCTION': 7, 'BANK_EARNINGS': 1, 'FOMC': 1}
-  EARNINGS: 0 total | Benzinga=0 FMP-supplement=0
-  by_source: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
-
-================================================================
-VERIFY dossier page live (Pages may lag)
-================================================================
-  BOOM CONVERGENCE card present: True
-  analyst-actions feed referenced: True
-DONE 1994
+  fixed entries: ['justhodl-analyst-actions', 'justhodl-estimate-revisions', 'justhodl-flow-lookthrough', 'justhodl-boom-radar']
+DONE 1995
