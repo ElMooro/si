@@ -1,23 +1,27 @@
-================================================================
-A) FINRA bulk latest-settlement via dateRangeFilter (NO sort)
-================================================================
-HTTP 200 bytes 2115559
-rows: 5000
-FIELDS: ['accountingYearMonthNumber', 'averageDailyVolumeQuantity', 'changePercent', 'changePreviousNumber', 'currentShortPositionQuantity', 'daysToCoverQuantity', 'issueName', 'issuerServicesGroupExchangeCode', 'marketClassCode', 'previousShortPositionQuantity', 'revisionFlag', 'settlementDate', 'stockSplitFlag', 'symbolCode']
-settlementDates: {'2026-05-29': 5000}
-AAPL: {'settlementDate': '2026-05-29', 'currentShortPositionQuantity': 155886024, 'previousShortPositionQuantity': 138782718, 'daysToCoverQuantity': 3.38, 'averageDailyVolumeQuantity': 46064146}
-sample row: {'accountingYearMonthNumber': 20260529, 'averageDailyVolumeQuantity': 3286847, 'changePercent': -5.16, 'changePreviousNumber': -283761, 'currentShortPositionQuantity': 5218592, 'daysToCoverQuantity': 1.59, 'issueName': 'Agilent Technologies Inc.', 'issuerServicesGroupExchangeCode': 'A', 'marketClassCode': 'NYSE', 'previousShortPositionQuantity': 5502353, 'revisionFlag': None, 'settlementDate': '2026-05-29', 'stockSplitFlag': None, 'symbolCode': 'A'}
+create new
+fn active: arn:aws:lambda:us-east-1:857687956942:function:justhodl-squeeze-fuel
+scheduled: justhodl-squeeze-fuel-daily
+invoking (may take ~30-60s)…
+status: 200
+payload: {"statusCode": 200, "body": "{\"ok\": true, \"n_scored\": 330, \"n_picks\": 3, \"settlement\": \"2026-05-29\", \"distribution\": {\"n_loaded\": 0, \"n_building\": 114, \"n_elevated\": 101}, \"top\": [[\"TAVHF\", 68.0, \"BUILDING\"], [\"SQLT\", 68.0, \"BUILDING\"], [\"USCL\", 68.0, \"BUILDING\"], [\"CMECF\", 68.0, \"BUILDING\"], [\"NJOGF\", 68.0, \"BUILDING\"], [\"ICOIF\", 68.0, \"BUILDING\"], [\"OKRIF\", 68.0, \"BUILDING\"], [\"OCDB\", 68.0, \"BUILDING\"]]}"}
 
-================================================================
-B) SEC FTD — real url from index page
-================================================================
- index https://www.sec.gov/data/foiadocsfailsdatahtm -> HTTP 200
-   cnsfails links found: 406
-     /files/data/fails-deliver-data/cnsfails202605b.zip
-     /files/data/fails-deliver-data/cnsfails202605a.zip
-     /files/data/fails-deliver-data/cnsfails202604b.zip
-   fetch cnsfails202605b.zip HTTP 200 bytes 1269388
-    cnsfails202605b.txt 55391 lines | header: SETTLEMENT DATE|CUSIP|SYMBOL|QUANTITY (FAILS)|DESCRIPTION|PRICE
-      20260515|B38564108|CMBT|1357|CMB.TECH NV (BEL)|14.90
-      20260515|B5950S113|MDXH|95290|MDXHEALTH SA SHS NEW(BELGIUM) |0.98
-DONE 2006
+ok: True settlement: 2026-05-29 ftd: cnsfails202605b.zip
+n_finra_universe: 21989 n_scored: 330 dist: {'n_loaded': 0, 'n_building': 114, 'n_elevated': 101}
+top_picks: 3
+
+TOP BOARD:
+  TAVHF  fuel=68.0  BUILDING  %flt=None dtc=103.63 siΔ=1150200 | DTC 103.63d (no float) · 103.63d to cover
+  SQLT   fuel=68.0  BUILDING  %flt=None dtc=336.15 siΔ=999950 | DTC 336.15d (no float) · 336.15d to cover
+  USCL   fuel=68.0  BUILDING  %flt=None dtc=55.09 siΔ=146628.12 | DTC 55.09d (no float) · 55.09d to cover
+  CMECF  fuel=68.0  BUILDING  %flt=None dtc=999.99 siΔ=53120 | DTC 999.99d (no float) · 999.99d to cover
+  NJOGF  fuel=68.0  BUILDING  %flt=None dtc=999.99 siΔ=26400 | DTC 999.99d (no float) · 999.99d to cover
+  ICOIF  fuel=68.0  BUILDING  %flt=None dtc=999.99 siΔ=15428.57 | DTC 999.99d (no float) · 999.99d to cover
+  OKRIF  fuel=68.0  BUILDING  %flt=None dtc=999.99 siΔ=13189 | DTC 999.99d (no float) · 999.99d to cover
+  OCDB   fuel=68.0  BUILDING  %flt=None dtc=22.03 siΔ=20860 | DTC 22.03d (no float) · 22.03d to cover
+  ROYUY  fuel=68.0  BUILDING  %flt=None dtc=999.99 siΔ=9900 | DTC 999.99d (no float) · 999.99d to cover
+  FIGIF  fuel=68.0  BUILDING  %flt=None dtc=999.99 siΔ=9643.33 | DTC 999.99d (no float) · 999.99d to cover
+  DNKGF  fuel=68.0  BUILDING  %flt=None dtc=999.99 siΔ=8520 | DTC 999.99d (no float) · 999.99d to cover
+  CGSBF  fuel=68.0  BUILDING  %flt=None dtc=999.99 siΔ=5300 | DTC 999.99d (no float) · 999.99d to cover
+
+PICKS: [('USCL', 68.0, 'BUILDING'), ('LUMB', 63.7, 'BUILDING'), ('NCT', 60.0, 'BUILDING')]
+DONE 2007
