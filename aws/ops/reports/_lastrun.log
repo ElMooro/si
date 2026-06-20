@@ -1,21 +1,15 @@
 ============================================================
-1) EXACT FMP endpoint the engine uses
+rotation-chain.json (the supplier-lag alpha)
 ============================================================
-  /stable/supply-chain-by-symbol: HTTP 404 []
-  /stable/supply-chain: HTTP 404 []
-  /stable/stock-supply-chain: HTTP 404 []
-  v4/supply-chain: 403 {
-  "Error Message": "Legacy Endpoint : Due to Legacy endpoints being no longer 
+  data/rotation-chain.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+  data/rotation-chains.json: gen=2026-06-20T15:51:03+00:00
+   keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'n_chains', 'n_tickers', 'lag_candidates', 'chains', 'top_next_up', 'notes']
+   sample chain: {"AI": {"chain": "AI", "current_leader_tier": 2, "leader_perf_30d_pct": 39.49, "leader_breadth_pct": 100.0, "leader_volume_ratio": 1.07, "rotation_confidence": 75, "next_tier": 3, "next_tier_perf_30d": -5.03, "next_tier_breadth": 33.3, "next_tier_volume": 1.0, "expected_catchup_pct": 44.52, "next_up_tickers": [{"ticker": "VST", "own_30d_pct": 3.45, "own_60d_pct": 7.22, "leader_30d_pct": 39.49, "la
 
 ============================================================
-2) live data/supply-chain-linkage.json — populated or empty?
+supply-chain-linkage entries — suppliers/customers empty?
 ============================================================
-  generated_at: 2026-06-20T15:01:22.564633+00:00
-  top keys: ['engine', 'version', 'generated_at', 'universe_size', 'n_systemic_hubs', 'n_with_high_severity_flags', 'max_degree_in_universe', 'entries', 'geographic_risk_tiers', 'methodology', 'academic_basis', 'duration_seconds']
-
-============================================================
-3) dep-graph.html — what data does it read?
-============================================================
-  fetches: ['data/dependency-graph.json', 'data/synthetic-monitor.json']
-  has d3/force graph: False
-DONE 2033
+  universe_size: 49 entries: 49 systemic_hubs: 0
+  entries w/ suppliers: 0 | w/ customers: 0 (of 49 checked)
+  sample entry: {"ticker": "AAPL", "company_name": "Apple Inc.", "sector": "Technology", "n_customers": 0, "n_suppliers": 0, "customers": [], "suppliers": [], "geographic_concentration_pct": {"fiscalYear": 100.0}, "concentration_flags": [{"type": "GEO_CONCENTRATION", "country": "fiscalYear", "pct_revenue": 100.0, "severity": 80}], "n_high_severity_flags": 1, "centrality_score": 0, "is_systemic_hub": false, "narra
+DONE 2034
