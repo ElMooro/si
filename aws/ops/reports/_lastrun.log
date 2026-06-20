@@ -1,20 +1,23 @@
 ================================================================
-A) FINRA consolidatedShortInterest — POST filter by symbol+latest
+A) FINRA bulk latest-settlement via dateRangeFilter (NO sort)
 ================================================================
-POST AAPL: 400
-  parse: Expecting property name enclosed in double quotes: line 1 column 301 (char 300) | raw: b'{"statusCode":400,"statusDescription":"Bad Request","requestId":"fc521dbb-eae6-475b-9a22-94c39efa209f","message":"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Pa'
-  latest err Expecting property name enclosed in double quotes: line 1 column 301 (char 300)
-  GME err Expecting property name enclosed in double quotes: line 1 column 301 (char 300)
+HTTP 200 bytes 2115559
+rows: 5000
+FIELDS: ['accountingYearMonthNumber', 'averageDailyVolumeQuantity', 'changePercent', 'changePreviousNumber', 'currentShortPositionQuantity', 'daysToCoverQuantity', 'issueName', 'issuerServicesGroupExchangeCode', 'marketClassCode', 'previousShortPositionQuantity', 'revisionFlag', 'settlementDate', 'stockSplitFlag', 'symbolCode']
+settlementDates: {'2026-05-29': 5000}
+AAPL: {'settlementDate': '2026-05-29', 'currentShortPositionQuantity': 155886024, 'previousShortPositionQuantity': 138782718, 'daysToCoverQuantity': 3.38, 'averageDailyVolumeQuantity': 46064146}
+sample row: {'accountingYearMonthNumber': 20260529, 'averageDailyVolumeQuantity': 3286847, 'changePercent': -5.16, 'changePreviousNumber': -283761, 'currentShortPositionQuantity': 5218592, 'daysToCoverQuantity': 1.59, 'issueName': 'Agilent Technologies Inc.', 'issuerServicesGroupExchangeCode': 'A', 'marketClassCode': 'NYSE', 'previousShortPositionQuantity': 5502353, 'revisionFlag': None, 'settlementDate': '2026-05-29', 'stockSplitFlag': None, 'symbolCode': 'A'}
 
 ================================================================
-B) SEC FTD with proper UA
+B) SEC FTD — real url from index page
 ================================================================
-  cnsfails202605b.zip: HTTP 404 bytes=300
-  cnsfails202605a.zip: HTTP 404 bytes=300
-  cnsfails202604b.zip: HTTP 404 bytes=300
-
-================================================================
-C) Polygon SI with order=desc (current snapshot)
-================================================================
-  AAPL recent: [('2017-12-29', 45746430, 1.91), ('2018-01-12', 46689117, 1.99), ('2018-01-31', 42078657, 1.13)]
-DONE 2005
+ index https://www.sec.gov/data/foiadocsfailsdatahtm -> HTTP 200
+   cnsfails links found: 406
+     /files/data/fails-deliver-data/cnsfails202605b.zip
+     /files/data/fails-deliver-data/cnsfails202605a.zip
+     /files/data/fails-deliver-data/cnsfails202604b.zip
+   fetch cnsfails202605b.zip HTTP 200 bytes 1269388
+    cnsfails202605b.txt 55391 lines | header: SETTLEMENT DATE|CUSIP|SYMBOL|QUANTITY (FAILS)|DESCRIPTION|PRICE
+      20260515|B38564108|CMBT|1357|CMB.TECH NV (BEL)|14.90
+      20260515|B5950S113|MDXH|95290|MDXHEALTH SA SHS NEW(BELGIUM) |0.98
+DONE 2006
