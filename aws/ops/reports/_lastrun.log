@@ -1,16 +1,22 @@
 {
   "page": {
-    "err": "HTTPError: HTTP Error 404: Not Found"
+    "status": 200,
+    "len": 9790,
+    "has_title": true,
+    "has_loader": true,
+    "has_them": true
   },
   "dir": {
     "status": 200,
-    "len": 47507,
-    "has_title": false,
-    "has_loader": false,
-    "dir_link": false
+    "len": 47723,
+    "dir_link": true
   },
-  "feed": {
-    "err": "HTTPError: HTTP Error 404: Not Found"
+  "feed_s3": {
+    "status": 200,
+    "len": 69235,
+    "n_names": 3398,
+    "n_thematic": 25,
+    "top_inflow": "NVDA"
   }
 }
-DONE 1972
+DONE 1973
