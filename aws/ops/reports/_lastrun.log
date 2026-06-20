@@ -1,13 +1,28 @@
-fleet: 64 fresh | consensus RISK-OFF | model glm-reason
+manifested engines with a primary key: 292
 
-=== STRATEGIST READ ===
-DRIVER: growth deceleration with leading indicators rolling while coincident data still looks fine
-MECHANISM: housing/construction contraction leads the cycle by 3-6 months; stablecoin outflows confirm risk capital withdrawing; sector-tilt and short-pressure slowing confirm internal market deterioration; low MOVE at 14.8 pct signals complacent pricing that hasn't adjusted to the decelera
-CONFIRMING: ['construction-housing CONTRACTION', 'stablecoin-flow CONTRACTING', 'sector-tilt SLOWING', 'short-pressure SLOWING', 'alpha-daily-brief SLOWING', 'risk-regime score=24', 'crisis_dfii10_vs_gld at 78% (gold flight)', 'crypto_risk_score only 16%', 'regime-playbook NORMAL but regime-score 24 (suppressed risk appetite)', 'liquidity-credit-engine WATCH']
-CONTRADICTING: [{"tension": "activity-nowcast EXPANDING vs construction-housing CONTRACTION + stablecoin-flow CONTRACTING + sector-tilt SLOWING", "resolution": "activity-nowcast is coincident/lagging \u2014 housing starts and stablecoin flows are leading; the nowcast will revise down within weeks as the housing signal feeds through; trust the leading indicators and fade the nowcast"}, {"tension": "most-backed na
-2ND-ORDER: ['MOVE at 14.8 pct with fundamental deterioration = premium selling opportunity; long vol via OTM puts is asymmetrically attractive', 'Gold already bid per crisis_dfii10_vs_gld at 78% means smart money is ahead of the consensus slowdown narrative', 'Stablecoin contraction = crypto liquidity evaporating; combined with crypto_risk_score 16% suggests a crypto deleveraging episode ahead', "Cross-asset-regime MIXED while risk-regime is 24 means equities haven't fully synced to the macro deterioration — gap risk is elevated", "CEF discount QUIET and bond-trace CALM while credit-equity-divergence NEUTRAL means credit hasn't repriced yet — another shoe to drop"]
-CALL: Defensive risk-off: overweight duration (long treasuries), gold, and quality factor (OTIS as anchor); underweight cyclicals, small caps, and crypto. Begin building long-vol exposure via cheap OTM equity puts given MOVE at 14.8 pct. The activity-nowcast is a lagging trap — position for the deceleration that leading indicators are already screaming about.
-CONVICTION: 72 | FALSIFIERS: ['activity-nowcast revisions turn positive and housing permits inflect upward within 2 weeks', 'MOVE index breaks above 30th percentile confirming vol repricing has occurred', 'stablecoin-flow reverses to EXPANDING with sustained inflows', 'risk-regime score recovers above 40', 'crisis_dfii10_vs_gld drops below 50% (gold losing safe-haven bid)']
-CLAIMS: [{"claim": "activity-nowcast will revise downward within 15 days as housing signal feeds through", "horizon_days": 15}, {"claim": "MOVE index will rise from 14.8 pct to above 30 pct within 30 days as complacency breaks", "horizon_days": 30}, {"claim": "gold (GLD) outperforms SPY by at least 3 pct ov
-CLAIM LOG: 5 claims logged for grading
-DONE 2049
+COVERAGE BUCKETS: {'NOVIEW': 204, 'MISSING': 16, 'VERDICT': 61, 'STALE': 11}
+  VERDICT (fresh, has a directional read — IN the Strategist): 61
+  NOVIEW  (fresh but no extractable verdict): 204
+  STALE   (>10d old): 11
+  MISSING (key absent): 16
+
+--- SAMPLE of NOVIEW (fresh, no verdict) — are these raw-data feeds or missed opinions? ---
+  13f-positions.json                 keys=['generated_at', 'as_of_quarter', 'funds_total', 'funds_parsed', 'funds_failed', 'fund_errors', 'by_fund', 'aggregate_by_ticker']
+  aaii-sentiment.json                keys=['generated_at', 'latest', 'historical_avg', 'z_scores', 'extremes', 'interpretation', 'history_26w', 'fetch_duration_s']
+  ab-test-results.json               keys=['as_of', 'challenger_signals_today', 'leaderboard', 'winner', 'n_variants_tracked', 'summary_used_for_challengers', 'duration_s']
+  activist-filings.json              keys=['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_filings']
+  episode-reference.json             keys=['version', 'generated_at', 'duration_s', 'description', 'episodes', 'recessions', 'indicators', 'n_indicators']
+  ai-brief.json                      keys=['version', 'generated_at', 'duration_s', 'snapshot', 'brief_md', 'error']
+  ai-website-synthesis.json          keys=['schema_version', 'generated_at', 'status', 'error', 'snapshots']
+  alert-backtests.json               keys=['engine', 'version', 'generated_at', 'spy_span', 'n_rules', 'horizons_days', 'rearm_days', 'rules']
+  alert-sentinel.json                keys=['engine', 'version', 'generated_at', 'first_run', 'message_sent', 'state_saved', 'n_changes', 'buffer_n']
+  allocator.json                     keys=['version', 'generated_at', 'duration_s', 'regime_headline', 'n_rules_applied', 'n_rules_total', 'asset_scores', 'recommended_weights_pct']
+  calibration-latest.json            keys=['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'alpha_model_version_observed', 'config', 'summary', 'current_weights']
+  options-flow.json                  keys=['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
+  altseason.json                     keys=['engine', 'version', 'generated_at', 'composite', 'votes', 'ethbtc', 'btc_consolidation', 'histories']
+  analyst-consensus.json             keys=['schema_version', 'method', 'generated_at', 'universe_size', 'n_with_data', 'top_consensus_25', 'strongest_upgrades_30d', 'weakest_downgrades_30d']
+  apex-fusion.json                   keys=['engine', 'version', 'generated_at', 'weights_used', 'weight_sources', 'tier_inversion', 'n_universe', 'n_scored']
+  ark-holdings-prev.json             keys=['generated_at', 'holdings_by_fund']
+  nobrainers.json                    keys=['schema_version', 'method', 'generated_at', 'duration_s', 'layers_loaded', 'n_candidates_scored', 'n_unique_tickers', 'summary']
+  8k-filings.json                    keys=['generated_at', 'window_days', 'stats', 'item_labels', 'by_item_counts', 'red_flags', 'high_impact', 'filings']
+DONE 2050
