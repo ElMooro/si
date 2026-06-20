@@ -1,11 +1,19 @@
-PermissionsBoundary: NONE
-inline policies: ['api-keys-admin-permissions', 'ddb-push-subscriptions', 'ddb-websocket-connections', 'execute-api-manage-connections', 'fleet-monitor-perms', 'HealthMonitorEventBridgeRead', 'HealthMonitorTelegramSSM', 'justhodl-dlq-send', 'justhodl-fleet-monitor-perm', 'justhodl-schedule-selfheal', 'lambda-describe-self-and-peers', 'lambda-publish-events', 'SESPolicy', 'signal-registry-ddb-write', 'smartwake-events', 'ssm-ai-chat-auth-read', 'ssm-justhodl-alerts-read', 'ssm-justhodl-nowcast-state', 'ssm-push-vapid']
-selfheal policy present, actions: [['events:PutRule', 'events:PutTargets', 'events:EnableRule', 'events:RemoveTargets'], ['lambda:AddPermission', 'lambda:RemovePermission', 'lambda:GetPolicy']]
+updated justhodl-schedule-liveness
+scheduled: cron(30 13 * * ? *)
+invoking watchdog (sync)...
+StatusCode: 200 FunctionError: None
+payload: b'{"statusCode": 200, "body": "{\\"checked\\": 268, \\"healthy\\": 182, \\"revived\\": 0, \\"genuine_failures\\": 0, \\"no_feed\\": 75}"}'
 
-re-simulate after propagation:
-  events:PutRule         allowed
-  lambda:AddPermission   implicitDeny
- no-resource:
-  events:PutRule         implicitDeny
-  lambda:AddPermission   implicitDeny
-DONE 1970
+checked=268 assessable=182 healthy=182 REVIVED=0 genuine_fail=0 no_feed=75
+
+revived this run:
+
+genuine failures:
+
+oldest healthy (sanity):
+  justhodl-insider-buys-enriched     age=23.7h cad=24.0h
+  justhodl-insider-buys-enriched     age=23.7h cad=24.0h
+  justhodl-ignition                  age=23.2h cad=24.0h
+  justhodl-construction-housing      age=22.7h cad=24.0h
+  justhodl-episode-reference         age=22.7h cad=24.0h
+DONE 1971
