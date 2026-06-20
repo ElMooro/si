@@ -1,8 +1,13 @@
-invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"n_feeds\": 66, \"n_fresh\": 64, \"consensus\": \"RISK-OFF\", \"dominant_driver\": null, \"conviction\": null}"}
+fleet: 64 fresh | consensus RISK-OFF | model glm-reason
 
-FLEET: feeds_read 66 fresh 64 | consensus RISK-OFF | +/-/neu 1 7 56 | model glm-reason
-INTERP RAW (parse failed but preserved):
- {"dominant_driver":"...","mechanism":"...","confirming":["..."],"contradicting":[{"tension":"...","resolution":"..."}],"second_order":["..."],"decisive_call":"posture + what to favor/avoid","conviction":0-100,"falsifiers":["..."],"key_claims":[{"claim":"...","horizon_days":N}]}
-
-no claim log (raw/parse fail): An error occurred (NoSuchKey) when calling the GetObject ope
-DONE 2048
+=== STRATEGIST READ ===
+DRIVER: growth deceleration with leading indicators rolling while coincident data still looks fine
+MECHANISM: housing/construction contraction leads the cycle by 3-6 months; stablecoin outflows confirm risk capital withdrawing; sector-tilt and short-pressure slowing confirm internal market deterioration; low MOVE at 14.8 pct signals complacent pricing that hasn't adjusted to the decelera
+CONFIRMING: ['construction-housing CONTRACTION', 'stablecoin-flow CONTRACTING', 'sector-tilt SLOWING', 'short-pressure SLOWING', 'alpha-daily-brief SLOWING', 'risk-regime score=24', 'crisis_dfii10_vs_gld at 78% (gold flight)', 'crypto_risk_score only 16%', 'regime-playbook NORMAL but regime-score 24 (suppressed risk appetite)', 'liquidity-credit-engine WATCH']
+CONTRADICTING: [{"tension": "activity-nowcast EXPANDING vs construction-housing CONTRACTION + stablecoin-flow CONTRACTING + sector-tilt SLOWING", "resolution": "activity-nowcast is coincident/lagging \u2014 housing starts and stablecoin flows are leading; the nowcast will revise down within weeks as the housing signal feeds through; trust the leading indicators and fade the nowcast"}, {"tension": "most-backed na
+2ND-ORDER: ['MOVE at 14.8 pct with fundamental deterioration = premium selling opportunity; long vol via OTM puts is asymmetrically attractive', 'Gold already bid per crisis_dfii10_vs_gld at 78% means smart money is ahead of the consensus slowdown narrative', 'Stablecoin contraction = crypto liquidity evaporating; combined with crypto_risk_score 16% suggests a crypto deleveraging episode ahead', "Cross-asset-regime MIXED while risk-regime is 24 means equities haven't fully synced to the macro deterioration — gap risk is elevated", "CEF discount QUIET and bond-trace CALM while credit-equity-divergence NEUTRAL means credit hasn't repriced yet — another shoe to drop"]
+CALL: Defensive risk-off: overweight duration (long treasuries), gold, and quality factor (OTIS as anchor); underweight cyclicals, small caps, and crypto. Begin building long-vol exposure via cheap OTM equity puts given MOVE at 14.8 pct. The activity-nowcast is a lagging trap — position for the deceleration that leading indicators are already screaming about.
+CONVICTION: 72 | FALSIFIERS: ['activity-nowcast revisions turn positive and housing permits inflect upward within 2 weeks', 'MOVE index breaks above 30th percentile confirming vol repricing has occurred', 'stablecoin-flow reverses to EXPANDING with sustained inflows', 'risk-regime score recovers above 40', 'crisis_dfii10_vs_gld drops below 50% (gold losing safe-haven bid)']
+CLAIMS: [{"claim": "activity-nowcast will revise downward within 15 days as housing signal feeds through", "horizon_days": 15}, {"claim": "MOVE index will rise from 14.8 pct to above 30 pct within 30 days as complacency breaks", "horizon_days": 30}, {"claim": "gold (GLD) outperforms SPY by at least 3 pct ov
+CLAIM LOG: 5 claims logged for grading
+DONE 2049
