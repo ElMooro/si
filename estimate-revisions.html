@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estimate Revisions · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#111722;--panel2:#0d131c;--line:#1e2836;--txt:#d6e0ee;--dim:#7c8aa0;--grn:#16c784;--red:#ea3943;--amb:#f0a020;--cyan:#3fb6dc;--blu:#4d7cfe}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font:13px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;padding:18px 14px 60px;margin:0}
+a{color:var(--cyan);text-decoration:none}
+h1{font-size:20px;margin:0}
+.sub{color:var(--dim);font-size:12px;margin-top:3px;max-width:700px}
+.topbar{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+.banner{background:var(--panel);border:1px solid var(--amb);border-radius:8px;padding:10px 13px;margin-bottom:12px;color:var(--amb);font-size:12px}
+.banner.live{border-color:var(--grn);color:var(--grn)}
+.statbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-bottom:6px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.stat .v{font-size:20px;font-weight:700;color:#fff}.stat .l{color:var(--dim);font-size:11px;margin-top:2px}
+h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:24px 0 10px;border-left:3px solid var(--blu);padding-left:9px}
+h2.g{border-color:var(--grn)}h2.r{border-color:var(--red)}
+h2 small{text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400;font-size:11px}
+.pick{display:inline-flex;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px;font-size:12px;margin:0 6px 6px 0}
+.pick b{color:#fff}.pick .s{color:var(--grn)}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--dim);font-weight:600;text-transform:uppercase;font-size:10.5px;letter-spacing:.5px;position:sticky;top:0;background:var(--bg)}
+td.l,th.l{text-align:left}
+tr:hover td{background:var(--panel2)}
+.flowpos{color:var(--grn)}.flowneg{color:var(--red)}
+.chk{color:var(--grn)}
+.loading{color:var(--dim);padding:40px;text-align:center}
+.foot{color:var(--dim);font-size:11px;margin-top:24px;border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>🔀 Estimate Revisions</h1>
+  <div class="sub">Consensus EPS &amp; revenue estimates revised <b>up</b> into a print tend to drift positively (and vice versa). The raw feed only shows the current estimate, so this engine snapshots forward consensus daily and diffs it — building revision momentum the feed can't show on its own.</div>
+</div>
+<div id="banner"></div>
+<div class="statbar" id="statbar"></div>
+<div id="content"><div class="loading">⟳ loading estimate revisions…</div></div>
+<div class="foot" id="foot"></div>
+<script>
+const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
+  `https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,
+  `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}throw new Error("sources failed");}
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct=v=>v==null?"—":(v>=0?"+":"")+(+v).toFixed(2)+"%";
+const num=v=>v==null?"—":(+v).toLocaleString(undefined,{maximumFractionDigits:3});
+
+function revTbl(rows){
+  return `<div style="overflow-x:auto"><table><thead><tr>
+    <th class="l">Ticker</th><th>EPS revision</th><th>Base→Now</th><th>Rev revision</th><th>Conf</th><th>Earnings</th><th>Days</th><th>Imp</th>
+    </tr></thead><tbody>`+
+    rows.map(s=>`<tr>
+      <td class="l"><b>${esc(s.ticker)}</b></td>
+      <td class="${(s.eps_rev_pct||0)>=0?'flowpos':'flowneg'}"><b>${pct(s.eps_rev_pct)}</b></td>
+      <td>${num(s.baseline_eps_est)}→${num(s.current_eps_est)}</td>
+      <td class="${(s.rev_rev_pct||0)>=0?'flowpos':'flowneg'}">${pct(s.rev_rev_pct)}</td>
+      <td>${s.revenue_confirms?'<span class="chk">✓</span>':'—'}</td>
+      <td style="color:var(--dim)">${esc(s.earnings_date||"")} ${esc(s.session||"")}</td>
+      <td>${s.days_to_earnings==null?"—":s.days_to_earnings+"d"}</td>
+      <td>${s.importance||""}</td></tr>`).join("")+`</tbody></table></div>`;
+}
+
+function render(d){
+  const live=d.status==="LIVE"||d.status==="PARTIAL";
+  document.getElementById("banner").innerHTML = d.status==="WARMING"
+    ? `<div class="banner">⏳ WARMING — baseline snapshot recorded for ${d.n_tracked||0} names. Revisions appear after the next daily snapshot (12:00 UTC) gives a prior value to diff against.</div>`
+    : `<div class="banner live">✓ ${esc(d.status)} — tracking revisions across ${d.n_with_history||0} names with history.</div>`;
+  document.getElementById("statbar").innerHTML=
+    `<div class="stat"><div class="v">${d.n_tracked||0}</div><div class="l">FORWARD NAMES</div></div>`+
+    `<div class="stat"><div class="v">${d.n_with_history||0}</div><div class="l">WITH HISTORY</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--grn)">${(d.upward_revisions||[]).length}</div><div class="l">REVISED UP</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--red)">${(d.downward_revisions||[]).length}</div><div class="l">REVISED DOWN</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--cyan)">${(d.top_picks||[]).length}</div><div class="l">TRACKED PICKS</div></div>`;
+
+  let h="";
+  const picks=d.top_picks||[];
+  if(picks.length){
+    h+=`<h2 class="g">🎯 Tracked Picks <small>— upward-revised, near earnings, revenue-confirmed; logged as eng:estimate-revisions and graded vs SPY before any engine trusts them</small></h2><div>`+
+      picks.map(p=>`<span class="pick"><b>${esc(p.ticker)}</b> <span class="s">${pct(p.score)}</span> ${p.days_to_earnings==null?"":p.days_to_earnings+"d"}</span>`).join("")+`</div>`;
+  }
+  const up=d.upward_revisions||[],dn=d.downward_revisions||[];
+  if(up.length) h+=`<h2 class="g">🟢 Upward Revisions <small>— consensus EPS lifted since baseline</small></h2>${revTbl(up.slice(0,30))}`;
+  if(dn.length) h+=`<h2 class="r">🔴 Downward Revisions <small>— consensus EPS cut since baseline</small></h2>${revTbl(dn.slice(0,25))}`;
+  if(!up.length&&!dn.length) h+=`<div class="loading">No revisions yet — the engine is building its baseline. Check back after the next daily snapshot.</div>`;
+
+  document.getElementById("content").innerHTML=h;
+  document.getElementById("foot").innerHTML=
+    `Source: ${esc(d.data_source||"Benzinga consensus (via Massive)")} · generated ${esc((d.generated_at||"").replace("T"," ").slice(0,16))} UTC · updates daily 12:00 UTC.<br>`+
+    (Array.isArray(d.caveats)?esc(d.caveats.join(" ")):esc(d.caveats||""))+" Research only — not investment advice.";
+}
+load("data/estimate-revisions.json").then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load estimate-revisions.json — '+esc(e.message)+'</div>';});
+setInterval(()=>load("data/estimate-revisions.json").then(render).catch(()=>{}),300000);
+</script>
+</body>
+</html>
