@@ -1,27 +1,18 @@
-create
-active: arn:aws:lambda:us-east-1:857687956942:function:justhodl-options-analytics
-scheduled: justhodl-options-analytics-daily
-invoking (chains for ~58 names, ~60-120s)…
-status: 200  payload: {"statusCode": 200, "body": "{\"ok\": true, \"n_analyzed\": 58, \"n_picks\": 1, \"distribution\": {\"short_gamma\": 18, \"long_gamma\": 40, \"squeeze_setups\": 7, \"downside_hedging\": 0}, \"top\": [[\"NFLX\", 73.7, \"GAMMA_SQUEEZE_SETUP\", -37.22], [\"META\", 59.3, \"GAMMA_SQUEEZE_SETUP\", -29.73], [\"MSFT\", 55.0, \"PINNED\", 26.37], [\"QQQ\", 55.0, \"PINNED\", 1292.25], [\"SPY\", 55.0, \"PINNED\", 3484.87], [\"ORCL\", 46.1, \"NEUTRAL\", -23.01], [\"INTC\", 46.0, \"PINNED\", 44.5], [\"RIOT\", 
+options-analytics invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"n_analyzed\": 58, \"n_picks\": 7, \"distribution\": {\"short_gamma\": 18, \"long_gamma\": 40, \"squeeze_setups\": 7, \"downside_hedging\": 0}, \"top\": [[\"NFLX\", 73.7, \"GAMMA_SQUEEZE_SETUP\", -37.22], [\"META\",
+picks now: 7 → [('NFLX', 73.7, 'GAMMA_SQUEEZE_SETUP'), ('META', 59.3, 'GAMMA_SQUEEZE_SETUP'), ('CRM', 33.7, 'GAMMA_SQUEEZE_SETUP'), ('CVX', 32.8, 'GAMMA_SQUEEZE_SETUP'), ('IWM', 30.0, 'SQUEEZE_PRIMED'), ('LCID', 29.8, 'GAMMA_SQUEEZE_SETUP'), ('XOM', 26.6, 'GAMMA_SQUEEZE_SETUP')]
 
-ok: True | analyzed: 58 | dist: {'short_gamma': 18, 'long_gamma': 40, 'squeeze_setups': 7, 'downside_hedging': 0} | picks: 1
+invoking signal-harvester…
+ harvester: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 24, \"written\": 13, \"scanned\": 444}"}
 
-TOP BOARD (by ignition score):
-  NFLX   sc=73.7  GAMMA_SQUEEZE_SETUP  SHORT_GAMMA GEX=  -37.22M flip=None ATM_IV=0.4537 skew=-0.0243 pcr=0.403 unu=2
-  META   sc=59.3  GAMMA_SQUEEZE_SETUP  SHORT_GAMMA GEX=  -29.73M flip=None ATM_IV=0.3501 skew=-0.0419 pcr=0.47 unu=5
-  MSFT   sc=55.0  PINNED               LONG_GAMMA  GEX=   26.37M flip=477.5 ATM_IV=0.3057 skew=-0.0251 pcr=0.299 unu=5
-  QQQ    sc=55.0  PINNED               LONG_GAMMA  GEX= 1292.25M flip=749.5 ATM_IV=0.2457 skew=0.257 pcr=0.391 unu=5
-  SPY    sc=55.0  PINNED               LONG_GAMMA  GEX= 3484.87M flip=719.5 ATM_IV=0.1619 skew=0.122 pcr=0.068 unu=8
-  ORCL   sc=46.1  NEUTRAL              SHORT_GAMMA GEX=  -23.01M flip=None ATM_IV=0.5233 skew=-0.0273 pcr=0.354 unu=0
-  INTC   sc=46.0  PINNED               LONG_GAMMA  GEX=    44.5M flip=96.25 ATM_IV=0.8836 skew=-0.0257 pcr=0.217 unu=2
-  RIOT   sc=45.4  NEUTRAL              LONG_GAMMA  GEX=    3.58M flip=20.5 ATM_IV=0.8986 skew=0.0105 pcr=0.16 unu=0
-  NKE    sc=45.4  NEUTRAL              LONG_GAMMA  GEX=    2.27M flip=51.25 ATM_IV=0.584 skew=0.0022 pcr=0.242 unu=0
-  AMC    sc=44.4  NEUTRAL              LONG_GAMMA  GEX=    0.49M flip=None ATM_IV=1.2568 skew=-0.3696 pcr=0.099 unu=1
-  RBLX   sc=41.7  NEUTRAL              LONG_GAMMA  GEX=    1.24M flip=48.75 ATM_IV=0.7037 skew=0.0084 pcr=0.243 unu=0
-  WMT    sc=41.3  NEUTRAL              SHORT_GAMMA GEX=  -18.26M flip=None ATM_IV=0.256 skew=0.0018 pcr=0.383 unu=0
+eng:options-analytics rows in justhodl-signals: 7
+   ('09e828e5-445e-48b8-9715-93b10533ae17', '59.3')
+   ('d60fccbf-b99c-434a-9a32-6d23eb39f599', '32.8')
+   ('641f85af-cac6-4bc6-8a44-3aa95253f463', '26.6')
+   ('df3c1fb8-c070-4038-8039-a77bf30583e9', '33.7')
+   ('ec1e5794-d79a-4ebb-a964-6c37d99bc1e3', '29.8')
+   ('e0fba8d0-5aaa-4159-be43-e24d7a4f0999', '73.7')
+   ('3b756613-a1f7-47ec-b928-6dceb9109ce8', '30.0')
 
-SQUEEZE SETUPS: [('NFLX', 'GAMMA_SQUEEZE_SETUP', -37.22), ('META', 'GAMMA_SQUEEZE_SETUP', -29.73), ('CRM', 'GAMMA_SQUEEZE_SETUP', -13.51), ('CVX', 'GAMMA_SQUEEZE_SETUP', -2.48), ('IWM', 'SQUEEZE_PRIMED', -626.58), ('LCID', 'GAMMA_SQUEEZE_SETUP', -0.04), ('XOM', 'GAMMA_SQUEEZE_SETUP', -5.58)]
-PICKS: [('IWM', 30.0, 'SQUEEZE_PRIMED')]
-MOST UNUSUAL: [('SPY', 8, 0.068), ('META', 5, 0.47), ('MSFT', 5, 0.299), ('QQQ', 5, 0.391), ('MU', 3, 0.675), ('ADBE', 3, 0.956)]
-RICHEST IV(VRP): [('RIOT', 0.2324), ('NFLX', 0.2294), ('NKE', 0.229), ('LCID', 0.1328), ('UNH', 0.1119), ('RBLX', 0.1097)]
-DONE 2014
+page check:
+  https://justhodl.ai/options-analytics.html -> HTTP 200 bytes=7881
+DONE 2015
