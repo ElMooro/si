@@ -1,28 +1,7 @@
-manifested engines with a primary key: 292
+NEW COVERAGE: {'NOVIEW': 198, 'MISSING': 16, 'COVERED': 67, 'STALE': 11} | COVERED(fresh w/ read): 67 of 292
 
-COVERAGE BUCKETS: {'NOVIEW': 204, 'MISSING': 16, 'VERDICT': 61, 'STALE': 11}
-  VERDICT (fresh, has a directional read — IN the Strategist): 61
-  NOVIEW  (fresh but no extractable verdict): 204
-  STALE   (>10d old): 11
-  MISSING (key absent): 16
-
---- SAMPLE of NOVIEW (fresh, no verdict) — are these raw-data feeds or missed opinions? ---
-  13f-positions.json                 keys=['generated_at', 'as_of_quarter', 'funds_total', 'funds_parsed', 'funds_failed', 'fund_errors', 'by_fund', 'aggregate_by_ticker']
-  aaii-sentiment.json                keys=['generated_at', 'latest', 'historical_avg', 'z_scores', 'extremes', 'interpretation', 'history_26w', 'fetch_duration_s']
-  ab-test-results.json               keys=['as_of', 'challenger_signals_today', 'leaderboard', 'winner', 'n_variants_tracked', 'summary_used_for_challengers', 'duration_s']
-  activist-filings.json              keys=['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_filings']
-  episode-reference.json             keys=['version', 'generated_at', 'duration_s', 'description', 'episodes', 'recessions', 'indicators', 'n_indicators']
-  ai-brief.json                      keys=['version', 'generated_at', 'duration_s', 'snapshot', 'brief_md', 'error']
-  ai-website-synthesis.json          keys=['schema_version', 'generated_at', 'status', 'error', 'snapshots']
-  alert-backtests.json               keys=['engine', 'version', 'generated_at', 'spy_span', 'n_rules', 'horizons_days', 'rearm_days', 'rules']
-  alert-sentinel.json                keys=['engine', 'version', 'generated_at', 'first_run', 'message_sent', 'state_saved', 'n_changes', 'buffer_n']
-  allocator.json                     keys=['version', 'generated_at', 'duration_s', 'regime_headline', 'n_rules_applied', 'n_rules_total', 'asset_scores', 'recommended_weights_pct']
-  calibration-latest.json            keys=['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'alpha_model_version_observed', 'config', 'summary', 'current_weights']
-  options-flow.json                  keys=['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
-  altseason.json                     keys=['engine', 'version', 'generated_at', 'composite', 'votes', 'ethbtc', 'btc_consolidation', 'histories']
-  analyst-consensus.json             keys=['schema_version', 'method', 'generated_at', 'universe_size', 'n_with_data', 'top_consensus_25', 'strongest_upgrades_30d', 'weakest_downgrades_30d']
-  apex-fusion.json                   keys=['engine', 'version', 'generated_at', 'weights_used', 'weight_sources', 'tier_inversion', 'n_universe', 'n_scored']
-  ark-holdings-prev.json             keys=['generated_at', 'holdings_by_fund']
-  nobrainers.json                    keys=['schema_version', 'method', 'generated_at', 'duration_s', 'layers_loaded', 'n_candidates_scored', 'n_unique_tickers', 'summary']
-  8k-filings.json                    keys=['generated_at', 'window_days', 'stats', 'item_labels', 'by_item_counts', 'red_flags', 'high_impact', 'filings']
-DONE 2050
+ENGINE NOW: fresh 70 | consensus MIXED | +/-/neu 5 8 57
+DRIVER: Risk regime collapse to 24 with 7-of-7 risk desks firing capital-concentration alerts — a late-cycle liquidity squeeze masquerading as calm
+CALL: Defensive. Reduce equity beta aggressively. Favor short-duration quality and cash. Avoid crowded AI/tech longs (NVDA GOOGL AVGO) that are the epicenter of capital concentration. Keep crisis_dfii10_vs_
+CONVICTION: 68 | claims: 5
+DONE 2051
