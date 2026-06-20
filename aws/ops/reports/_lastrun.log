@@ -1,22 +1,27 @@
-TOTAL top-level data/*.json feeds: 596
+create
+active
+scheduled
+invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"n_feeds\": 52, \"n_fresh\": 51, \"consensus\": \"RISK-OFF\", \"dominant_driver\": null, \"conviction\": null}"}
 
-HEADLINE FIELD FREQUENCY (top, across 120 feeds):
-  regime               14
-  state                8
-  status               6
-  composite_score      2
-  signal               1
-  composite_signal     1
+FLEET: feeds_read 52 fresh 51 | consensus RISK-OFF | risk-on wt 0.3 vs risk-off 2.0 | +/-/neu 1 6 44
+model: glm-reason
 
-feeds w/ top_picks: 7 | feeds w/ score: 2
+LOUDEST (top 12):
+  construction-housing       CONTRACTION                dir -1 t0.5 ext0.8
+  stablecoin-flow            CONTRACTING                dir -1 t0.5 ext0.8
+  activity-nowcast           EXPANDING                  dir 1 t0.5 ext0.7
+  move-index                 percentile=14.8            dir -1 t0.5 ext0.7
+  alpha-daily-brief          SLOWING                    dir -1 t0.5 ext0.6
+  sector-tilt                SLOWING                    dir -1 t0.5 ext0.6
+  risk-regime                risk_regime_score=24.0     dir -1 t0.5 ext0.52
+  regime-composite           composite_score=54.7       dir 0 t0.5 ext0.09
+  funding-plumbing           score=53.5                 dir 0 t0.5 ext0.07
+  prepump-alerts-router      QUIET                      dir 0 t0.5 ext0.0
+  sequence-alpha-detector    QUIET                      dir 0 t0.5 ext0.0
+  wave-signal-logger         CALM                       dir 0 t0.5 ext0.0
 
-SAMPLE headline extractions:
-  13f-price-divergence.json    {'state': 'QUIET'}
-  52wk-quality-breakout.json   {'state': 'QUIET'}
-  activist-13d.json            {'state': 'QUIET'}
-  activity-nowcast.json        {'regime': 'EXPANDING'}
-  ai-website-synthesis.json    {'status': 'error'}
-  alpha-brief.json             {'regime': 'SLOWING'}
-  alpha-compass.json           {'regime': "{'label': 'Unknown', 'color': "}
-  alpha-prev-state.json        {'status': "{'NVDA': 5, 'AVGO': 5, 'GOOGL'"}
-DONE 2046
+CONTRADICTIONS: ['activity-nowcast (EXPANDING) vs construction-housing (CONTRACTION)', 'activity-nowcast (EXPANDING) vs stablecoin-flow (CONTRACTING)', 'activity-nowcast (EXPANDING) vs move-index (percentile=14.8)', 'activity-nowcast (EXPANDING) vs alpha-daily-brief (SLOWING)', 'activity-nowcast (EXPANDING) vs sector-tilt (SLOWING)']
+MOST-BACKED: ['OTIS', 'NVDA', 'PANW', 'BKNG', 'MU', 'NRSN', 'COE', 'FISV', 'VST', 'GEV']
+
+INTERP ERROR: reasoning model unavailable: Expecting ',' delimiter: line 19 column 6 (char 2067)
+DONE 2047
