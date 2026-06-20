@@ -1,51 +1,14 @@
-============================================================
-A) dark-pool quiet picks
-============================================================
-picks (should exclude +20-30% movers):
-  AXTA   sc=90.6  dark%=33.9   wkRet=2.53%
-  CZR    sc=82.4  dark%=19.64  wkRet=2.36%
-  RVTY   sc=81.8  dark%=38.98  wkRet=7.97%
-  NCNO   sc=77.2  dark%=31.14  wkRet=5.58%
-  LBTYK  sc=76.7  dark%=27.5   wkRet=3.23%
-  RVMD   sc=73.2  dark%=27.61  wkRet=1.67%
-  PKG    sc=69.0  dark%=28.39  wkRet=0.2%
-  LINE   sc=68.3  dark%=33.42  wkRet=6.47%
-  BURL   sc=67.7  dark%=30.83  wkRet=-0.84%
-  H      sc=64.1  dark%=31.91  wkRet=1.02%
-  COLD   sc=61.3  dark%=22.11  wkRet=5.59%
-  DRS    sc=61.0  dark%=32.58  wkRet=6.46%
-  NLY    sc=59.5  dark%=11.51  wkRet=1.11%
-  PATH   sc=57.5  dark%=13.46  wkRet=5.68%
-
-============================================================
-B) FRED Treasury data probe for #3
-============================================================
-Latest CMT curve:
-  DGS1MO   3.68  (2026-06-17)
-  DGS3MO   3.83  (2026-06-17)
-  DGS6MO   3.91  (2026-06-17)
-  DGS1     3.98  (2026-06-17)
-  DGS2     4.2  (2026-06-17)
-  DGS3     4.23  (2026-06-17)
-  DGS5     4.27  (2026-06-17)
-  DGS7     4.37  (2026-06-17)
-  DGS10    4.49  (2026-06-17)
-  DGS20    4.95  (2026-06-17)
-  DGS30    4.93  (2026-06-17)
-
-Funding-stress series:
-  DTB3   3.68 (2026-06-17)
-  DFF    3.63 (2026-06-17)
-  SOFR   3.63 (2026-06-17)
-  DGS3MO 3.83 (2026-06-17)
-
-History depth (DGS10 obs over ~2y):
-  earliest 2024 sample: [{'realtime_start': '2026-06-20', 'realtime_end': '2026-06-20', 'date': '2024-01-01', 'value': '.'}, {'realtime_start': '2026-06-20', 'realtime_end': '2026-06-20', 'date': '2024-01-02', 'value': '3.95'}]
-
-SVB-week CMT (2023-03-13) to confirm dislocation potential:
-  DGS1MO   4.62
-  DGS3MO   4.87
-  DGS1     4.30
-  DGS2     4.03
-  DGS10    3.55
-DONE 2024
+update
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2025_create_treasury_noise.py", line 16, in <module>
+    print("update"); lam.update_function_code(FunctionName=FN,ZipFile=zb)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. The resource arn:aws:lambda:us-east-1:857687956942:function:justhodl-treasury-noise is currently in the following state: 'Pending'. StateReasonCode: 'Creating'
