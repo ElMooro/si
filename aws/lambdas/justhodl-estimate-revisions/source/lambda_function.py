@@ -189,14 +189,19 @@ def lambda_handler(event=None, context=None):
 
     up = sorted([s for s in signals if s["direction"] == "UP"], key=lambda s: s["eps_rev_pct"], reverse=True)
     down = sorted([s for s in signals if s["direction"] == "DOWN"], key=lambda s: s["eps_rev_pct"])
-    strength_leaders = sorted(strength_rows, key=lambda s: s["estimate_strength"], reverse=True)[:40]
-
-    # picks: strong estimates near earnings (immediate via FMP), upgraded if revision-confirmed
-    picks = []
+    # dedup strength rows by ticker (a name can have multiple fiscal periods); keep strongest
+    best_by_tk = {}
     for s in sorted(strength_rows, key=lambda s: s["estimate_strength"], reverse=True):
+        best_by_tk.setdefault(s["ticker"], s)
+    dedup = list(best_by_tk.values())
+    strength_leaders = sorted(dedup, key=lambda s: s["estimate_strength"], reverse=True)[:40]
+
+    # picks: strong estimates within ~2mo of earnings (immediate via FMP), revision-confirmed when warmed
+    picks = []
+    for s in strength_leaders:
         if s["estimate_strength"] < 62:
             break
-        if (s.get("importance") or 0) >= 2 and (s.get("days_to_earnings") or 999) <= 45:
+        if (s.get("importance") or 0) >= 2 and (s.get("days_to_earnings") or 999) <= 60:
             picks.append(s)
         if len(picks) >= 15:
             break
