@@ -1,5 +1,11 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2035_verify_scg.py", line 11, in <module>
-    print("state:",c.get("State"),c.get("LastUpdateStatus"))
-                   ^
-NameError: name 'c' is not defined
+create
+active
+scheduled
+invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"n_nodes\": 46, \"n_edges\": 64, \"booming_hubs\": [\"ACLS\", \"AMAT\", \"AMD\", \"AMKR\", \"ASML\", \"CRDO\", \"DELL\", \"ENTG\", \"KLAC\", \"LRCX\"], \"top_laggards\": [[\"NVDA\", \"DELL\", -4.5, 74.06, 78.6]]}"}
+
+nodes: 46 edges: 64 booming_hubs: ['ACLS', 'AMAT', 'AMD', 'AMKR', 'ASML', 'CRDO', 'DELL', 'ENTG', 'KLAC', 'LRCX', 'MRVL', 'MU', 'STM', 'TER']
+LAGGARDS (suppliers of booming hubs, not yet moved):
+  NVDA   (AI Compute) GPUs→DELL | own -4.5% vs cust 74.06% gap 78.6
+harvester: {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 29, \"written\": 17, \"scanned\": 448}"}
+eng:supply-chain-graph rows: 1
+DONE 2036
