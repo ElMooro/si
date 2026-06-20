@@ -1,13 +1,29 @@
-zip built: 3696 bytes
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/1960_create_benzinga_earnings.py", line 23, in <module>
-    lam.create_function(FunctionName=FN, Runtime="python3.12", Role=ROLE,
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the CreateFunction operation: Function already exist: justhodl-benzinga-earnings
+key present: True len: 32
+
+================================================================
+(A) BENZINGA EARNINGS
+================================================================
+
+  [/benzinga/v1/earnings @api.polygon.io] HTTP 200
+   top keys: ['status', 'request_id', 'results', 'next_url']
+   n_results: 3
+   sample record fields: ['currency', 'date_status', 'estimated_eps', 'previous_eps', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'estimated_revenue', 'previous_revenue', 'ticker', 'last_updated', 'date', 'time']
+   sample[0]: {"currency": "USD", "date_status": "projected", "estimated_eps": 2.01, "previous_eps": 1.85, "benzinga_id": "69030cfb619d3a00015b72a3", "importance": 5, "company_name": "Apple", "fiscal_period": "Q4", "fiscal_year": 2026, "estimated_revenue": 114244156504.0, "previous_revenue": 102466000000.0, "ticker": "AAPL", "last_updated": "2026-06-19T23:30:04Z", "date": "2026-10-29", "time": "16:00:00"}
+
+  [/benzinga/v1/earnings @api.massive.com] HTTP 200
+   top keys: ['status', 'request_id', 'results', 'next_url']
+   n_results: 3
+   sample record fields: ['currency', 'date_status', 'estimated_eps', 'previous_eps', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'estimated_revenue', 'previous_revenue', 'ticker', 'last_updated', 'date', 'time']
+   sample[0]: {"currency": "USD", "date_status": "projected", "estimated_eps": 2.01, "previous_eps": 1.85, "benzinga_id": "69030cfb619d3a00015b72a3", "importance": 5, "company_name": "Apple", "fiscal_period": "Q4", "fiscal_year": 2026, "estimated_revenue": 114244156504.0, "previous_revenue": 102466000000.0, "ticker": "AAPL", "last_updated": "2026-06-19T23:30:04Z", "date": "2026-10-29", "time": "16:00:00"}
+
+================================================================
+(B) ETF GLOBAL CONSTITUENTS
+================================================================
+
+  [/etf-global/v1/constituents (ticker=SPY) @api.polygon.io] HTTP 200
+   top keys: ['status', 'request_id', 'results', 'next_url']
+   n_results: 5
+   sample record fields: ['processed_date', 'composite_ticker', 'constituent_ticker', 'constituent_name', 'market_value', 'shares_held', 'currency_traded', 'constituent_rank', 'effective_date']
+   sample[0]: {"processed_date": "2024-12-03", "composite_ticker": "193966", "constituent_ticker": "DCRF5 Curncy", "constituent_name": "CME Ether Future  Jan25", "market_value": -344379.379994, "shares_held": 284.0, "currency_traded": "USD", "constituent_rank": 3, "effective_date": "2024-12-03"}
+
+DONE 1957
