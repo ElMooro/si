@@ -265,6 +265,16 @@ def lambda_handler(event, context):
     thematic = sorted(
         [r for r in rows if r["flow_type"] == "THEMATIC_ROTATION" and r["flow_bps_mcap"] is not None],
         key=lambda r: abs(r["flow_bps_mcap"]), reverse=True)[:25]
+    # harvestable bullish signal = positive thematic-rotation pressure, mcap-normalised.
+    # Routed to the signal-harvester ledger so the alpha/FDR pipeline MEASURES its
+    # forward excess-vs-SPY before any decision engine trusts it (measure-before-trust).
+    top_picks = sorted(
+        [r for r in rows if r["flow_type"] == "THEMATIC_ROTATION"
+         and r["net_flow_5d_usd"] > 0 and r["flow_bps_mcap"] is not None],
+        key=lambda r: r["flow_bps_mcap"], reverse=True)[:15]
+    top_picks = [{"ticker": r["ticker"], "score": r["flow_bps_mcap"],
+                  "net_flow_5d_usd": r["net_flow_5d_usd"], "flow_type": r["flow_type"]}
+                 for r in top_picks]
 
     out = {
         "engine": "justhodl-flow-lookthrough",
@@ -277,6 +287,7 @@ def lambda_handler(event, context):
         "flows_asof": flows.get("generated_at"),
         "n_etfs_used": len(constit),
         "n_names": len(rows),
+        "top_picks": top_picks,
         "inflow_leaders": inflow,
         "outflow_leaders": outflow,
         "thematic_rotation_leaders": thematic,
