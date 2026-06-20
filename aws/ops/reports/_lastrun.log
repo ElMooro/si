@@ -1,32 +1,22 @@
 ====================================================================
-POLYGON OPTIONS SNAPSHOT — full field inventory (AAPL)
+1) SPOT price source (need underlying spot for GEX/moneyness)
 ====================================================================
-HTTP 200
-contracts returned: 3
-TOP-LEVEL KEYS: ['day', 'details', 'greeks', 'implied_volatility', 'open_interest', 'underlying_asset']
-greeks: {'delta': 0.9577056438654238, 'gamma': 0.0017787612886614903, 'theta': -1.066523206968636, 'vega': 0.02033563224929369}
-implied_volatility: 2.206070622678371
-open_interest: 17
-day: {"change": 0, "change_percent": 0, "close": 73.62, "high": 73.62, "last_updated": 1781755200000000000, "low": 73.62, "open": 73.62, "previous_close": 73.62, "volume": 16, "vwap": 73.62}
-last_quote: null
-last_trade: null
-details: {"contract_type": "call", "exercise_style": "american", "expiration_date": "2026-06-22", "shares_per_contract": 100, "strike_price": 225, "ticker": "O:AAPL260622C00225000"}
-underlying_asset: {"ticker": "AAPL"}
+AAPL /prev: 200 close= 298.01
 
 ====================================================================
-POLYGON — full chain depth + a single contract aggs
+2) snapshot with strike+expiry+type FILTERS + pagination
 ====================================================================
-chain page: 250 contracts | with greeks=194 | with IV=194 | with OI=250
-option contract aggs O:AAPL260622C00225000: HTTP 200 bars=2
+AAPL filtered strikes[238,358] exp<=2026-09-30: HTTP 200 contracts=250 next_url=YES
+ expiries present: 4 ['2026-06-22', '2026-06-24', '2026-06-26', '2026-06-29']
+ greeks=196/250 IV=196/250
+ mid sample: {'strike': 260, 'type': 'put', 'exp': '2026-06-24', 'iv': 0.5463994719716226, 'gamma': 0.001404177436332208, 'oi': 8, 'vol': 5}
+ contract_type=put filter: 200 n= 250
 
 ====================================================================
-ALPHAVANTAGE options — real data or premium nag?
+3) SIZE high-options names (cost sizing)
 ====================================================================
-
-REALTIME_OPTIONS HTTP 200:
-  {     "endpoint": "Realtime Options",     "message": "This is a premium endpoint. ***THE SAMPLE DATA SCHEMA BELOW IS ARTIFICIAL AND FOR ILLUSTRATION PURPOSES ONLY***. To access the actual data, please subscribe to either the 600 requests pe
-
-HISTORICAL_OPTIONS HTTP 200:
-  {     "Information": "Thank you for using Alpha Vantage! Please consider spreading out your free API requests more sparingly (1 request per second). You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to li
-
-DONE 2012
+ NVDA: spot=210.69 contracts(±20%,<=Sep)=250 next=Y
+ TSLA: spot=400.49 contracts(±20%,<=Sep)=250 next=Y
+ SPY: spot=746.74 contracts(±20%,<=Sep)=250 next=Y
+ GME: spot=21.52 contracts(±20%,<=Sep)=248 next=n
+DONE 2013
