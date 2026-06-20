@@ -1,17 +1,29 @@
-engines type: dict n: 37
-sample engine key: crisis_dfii10_vs_gld 
- dict: {"alpha_status": "ALPHA_PROVEN", "t_stat": 31.16, "mean_excess_pct": 5.421, "net_t_stat": 29.44, "net_mean_excess_pct": 5.121, "info_ratio": 1.971, "alpha_n": 250}
+create
+active
+scheduled
+invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"n_engines\": 3, \"n_weeks\": 11, \"sharpe_by_method\": {\"equal_weight\": 1.42, \"inverse_vol\": 4.47, \"risk_parity\": 4.43, \"max_sharpe\": 11.15, \"hrp\": 7.71}, \"hrp_weights\": {\"crypto_risk_score\": 0.155, \"crisis_dfii10_vs_gld\": 0.7785, \"momentum_uso\": 0.0665}}"}
 
- proven dicts:
-  crypto_risk_score → keys: ['alpha_n', 'alpha_status', 'info_ratio', 'mean_excess_pct', 'net_mean_excess_pct', 'net_t_stat', 't_stat']
-     net: {'net_t_stat': 6.19, 'net_mean_excess_pct': 2.102}
-     by_regime keys: []
+proven_set: ['crypto_risk_score', 'squeeze_risk', 'crisis_dfii10_vs_gld']
+candidate_set: ['crypto_risk_score', 'crisis_dfii10_vs_gld', 'momentum_uso']
+history: 2026-W15 → 2026-W25 | 11 weeks | 3 engines
 
-============================================================
-outcomes schema
-============================================================
-scanned: 2500 
-ALL KEYS: ['backfilled_at', 'checked_at', 'correct', 'is_legacy', 'legacy_reason', 'logged_at', 'outcome', 'outcome_id', 'predicted_dir', 'regime_at_log', 'signal_id', 'signal_type', 'signal_value', 'ttl', 'window_key']
+PER-ENGINE:
+  crisis_dfii10_vs_gld       ALPHA_PROVEN   net_t 29.44 net_exc 5.121% IR 1.971 | wk_vol 0.61% n_wk 8 n_pick 258 | VERY_HIGH (liquid ETF/futures expression)
+  crypto_risk_score          ALPHA_PROVEN   net_t 6.19 net_exc 2.102% IR 0.46 | wk_vol 1.52% n_wk 10 n_pick 243 | LOW (concentrated / few names)
+  momentum_uso               NO_ALPHA       net_t 0.13 net_exc 0.04% IR 0.053 | wk_vol 2.09% n_wk 9 n_pick 513 | VERY_HIGH (liquid ETF/futures expression)
 
-top signal_type: [('screener_top_pick', 588), ('correlation_break', 164), ('etf_rotation', 142), ('crypto_fear_greed', 116), ('crypto_risk_score', 88), ('plumbing_stress', 88), ('earnings_pead', 88), ('edge_composite', 73), ('squeeze_risk', 69), ('ml_risk', 66), ('khalid_index', 63), ('momentum_uso', 55), ('edge_regime', 52), ('momentum_gld', 49), ('momentum_spy', 47), ('market_phase', 42)]
-DONE 2042
+CORRELATION (labels): ['crypto_risk_score', 'crisis_dfii10_vs_gld', 'momentum_uso']
+   crypto_risk_score  [1.0, 0.36, 0.38]
+   crisis_dfii10_vs_g [0.36, 1.0, 0.54]
+   momentum_uso       [0.38, 0.54, 1.0]
+
+WEIGHTINGS (Sharpe / annRet / annVol / maxDD / Calmar / divRatio / effBets):
+  equal_weight  Sharpe 1.42 | ret 11.62% vol 8.17% maxDD -3.12% Calmar 3.72 | divR 1.3 effBets 2.32
+  inverse_vol   Sharpe 4.47 | ret 27.45% vol 6.15% maxDD -1.55% Calmar 17.66 | divR 1.33 effBets 3.0
+  risk_parity   Sharpe 4.43 | ret 27.32% vol 6.17% maxDD -1.55% Calmar 17.63 | divR 1.34 effBets 3.0
+  max_sharpe    Sharpe 11.15 | ret 49.2% vol 4.41% maxDD 0.0% Calmar None | divR 1.0 effBets 1.0
+  hrp           Sharpe 7.71 | ret 38.56% vol 5.0% maxDD -0.7% Calmar 55.02 | divR 1.28 effBets 2.06
+
+RECOMMENDED (HRP) weights: {'crypto_risk_score': 0.155, 'crisis_dfii10_vs_gld': 0.7785, 'momentum_uso': 0.0665}
+SSM strategy-weights written: {"method": "hrp", "weights": {"crypto_risk_score": 0.155, "crisis_dfii10_vs_gld": 0.7785, "momentum_uso": 0.0665}, "as_o
+DONE 2043
