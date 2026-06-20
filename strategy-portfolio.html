@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strategy Portfolio · Combined Proven-Alpha Book · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#9b8cff;--gold:#ffd24a;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.45}
+.wrap{max-width:1040px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:14px;max-width:780px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:18px}
+h2{font-size:14px;color:var(--fg-1);margin:26px 0 10px;text-transform:uppercase;letter-spacing:.05em}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.rec{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.rec .big{font-family:var(--mono);font-size:30px;color:var(--green)}
+.allocbar{display:flex;height:30px;border-radius:7px;overflow:hidden;border:1px solid var(--border);min-width:260px;flex:1}
+.allocbar>div{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:#06121f;font-weight:700;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:right;padding:8px 9px;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--fg-2);font-size:10px;text-transform:uppercase;letter-spacing:.03em}
+td.mono,.mono{font-family:var(--mono)}
+tr.rec-row{background:rgba(63,214,140,.08)}
+.tag{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:5px}
+.PROVEN{background:rgba(63,214,140,.16);color:var(--green)}.NO_ALPHA{background:rgba(124,139,160,.16);color:var(--fg-2)}.NEG{background:rgba(255,92,108,.16);color:var(--red)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--fg-1);font-family:var(--mono);margin:6px 0}
+.legend i{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle}
+.note{color:var(--fg-3);font-size:11px;line-height:1.6;margin-top:14px}
+.loading{padding:50px;text-align:center;color:var(--fg-2)}
+.hm td{font-family:var(--mono);font-size:11px;text-align:center;padding:7px;border:1px solid var(--bg)}
+a{color:var(--cyan)}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Loading the combined proven-alpha book…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const COLORS={equal_weight:"#7c8ba0",inverse_vol:"#46c8ff",risk_parity:"#9b8cff",max_sharpe:"#f5b343",hrp:"#3fd68c"};
+const NAMES={equal_weight:"Equal",inverse_vol:"Inverse-Vol",risk_parity:"Risk-Parity",max_sharpe:"Max-Sharpe",hrp:"HRP ★"};
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function corrColor(v){if(v>=0)return `rgba(70,200,255,${0.12+0.7*v})`;return `rgba(255,92,108,${0.12+0.7*Math.abs(v)})`;}
+function palette(i){return ["#3fd68c","#46c8ff","#9b8cff","#f5b343","#ff5c6c","#7c8ba0","#ffd24a","#5ad1c5"][i%8];}
+function curve(weeks,series,W,H){
+  const all=[];Object.values(series).forEach(s=>s.forEach(v=>all.push(v)));
+  const mn=Math.min(0,...all),mx=Math.max(...all),pad=18;
+  const x=i=>pad+ i/(weeks.length-1)*(W-2*pad);
+  const y=v=>H-pad-(v-mn)/((mx-mn)||1)*(H-2*pad);
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-height:280px">`;
+  g+=`<line x1="${pad}" y1="${y(0)}" x2="${W-pad}" y2="${y(0)}" stroke="#24303f"/>`;
+  g+=`<text x="${pad}" y="${y(mx)-3}" fill="#536074" font-size="9" font-family="monospace">${mx.toFixed(0)}%</text>`;
+  g+=`<text x="${pad}" y="${y(mn)+10}" fill="#536074" font-size="9" font-family="monospace">${mn.toFixed(0)}%</text>`;
+  for(const[k,s]of Object.entries(series)){
+    let d=s.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+    g+=`<path d="${d}" fill="none" stroke="${COLORS[k]||'#888'}" stroke-width="${k==='hrp'?2.4:1.3}" opacity="${k==='hrp'?1:.85}"/>`;
+  }
+  g+=`</svg>`;return g;
+}
+(async function(){
+  const d=await gj('data/strategy-portfolio.json');const w=document.getElementById('wrap');
+  if(!d){w.innerHTML='<h1>Strategy Portfolio</h1><div class="loading">No data yet.</div>';return;}
+  if(!d.ok){w.innerHTML=`<h1>Strategy Portfolio</h1><div class="card">Not enough matured history yet: ${esc(d.reason||'')}<br><span class="note">Candidates: ${esc((d.candidates||d.candidate_set||[]).join(', '))}</span></div>`;return;}
+  const rec=d.recommended, recw=rec.weights, recStats=d.weightings[rec.method];
+  let h=`<h1>📊 Strategy Portfolio — Combined Proven-Alpha Book</h1>`;
+  h+=`<div class="sub">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="meta">${esc(d.benchmark)} · ${d.n_engines} engines · ${d.n_weeks} weeks (${esc(d.history_from)}→${esc(d.history_to)}) · ${(d.generated_at||'').slice(0,10)}</div>`;
+  // recommended allocation
+  const order=Object.keys(recw).sort((a,b)=>recw[b]-recw[a]);
+  let bar='';order.forEach((e,i)=>{const pct=(recw[e]*100);bar+=`<div style="width:${pct}%;background:${palette(i)}" title="${esc(e)} ${pct.toFixed(1)}%">${pct>=9?esc(e.split('_')[0])+' '+pct.toFixed(0)+'%':''}</div>`;});
+  h+=`<h2>Recommended allocation — ${esc(rec.method.toUpperCase())}</h2><div class="card"><div class="rec">
+     <div><div class="big">${recStats.sharpe!=null?recStats.sharpe:'—'}</div><div style="color:var(--fg-2);font-size:11px">Sharpe (ann.)</div></div>
+     <div class="allocbar">${bar}</div></div>
+     <div class="note">${esc(rec.why)}</div></div>`;
+  // weightings comparison
+  h+=`<h2>Weighting methods compared</h2><div class="card"><table><thead><tr>
+     <th>Method</th><th>Sharpe</th><th>Sortino</th><th>Ann.Ret</th><th>Ann.Vol</th><th>Max DD</th><th>Calmar</th><th>Div.Ratio</th><th>Eff.Bets</th></tr></thead><tbody>`;
+  for(const k of ["equal_weight","inverse_vol","risk_parity","max_sharpe","hrp"]){const v=d.weightings[k];if(!v)continue;
+    h+=`<tr class="${k===rec.method?'rec-row':''}"><td><b style="color:${COLORS[k]}">${NAMES[k]}</b></td>
+      <td class="mono">${v.sharpe??'—'}</td><td class="mono">${v.sortino??'—'}</td><td class="mono">${v.ann_return_pct}%</td>
+      <td class="mono">${v.ann_vol_pct}%</td><td class="mono">${v.max_drawdown_pct}%</td><td class="mono">${v.calmar??'—'}</td>
+      <td class="mono">${v.diversification_ratio??'—'}</td><td class="mono">${v.effective_bets??'—'}</td></tr>`;}
+  h+=`</tbody></table></div>`;
+  // equity curves
+  h+=`<h2>Combined equity curves (cumulative net-of-cost)</h2><div class="card">${curve(d.equity_curves.weeks,d.equity_curves.series,940,260)}
+     <div class="legend">${Object.keys(d.equity_curves.series).map(k=>`<span><i style="background:${COLORS[k]}"></i>${NAMES[k]}</span>`).join('')}</div></div>`;
+  // correlation heatmap
+  const L=d.correlation_matrix.labels,M=d.correlation_matrix.matrix;
+  h+=`<h2>Cross-engine correlation</h2><div class="card" style="overflow-x:auto"><table class="hm"><thead><tr><th></th>${L.map(l=>`<th style="text-align:center;font-size:9px">${esc(l.split('_')[0])}</th>`).join('')}</tr></thead><tbody>`;
+  M.forEach((row,i)=>{h+=`<tr><td style="text-align:left;color:var(--fg-2);font-size:10px">${esc(L[i])}</td>${row.map(v=>`<td style="background:${corrColor(v)}">${v.toFixed(2)}</td>`).join('')}</tr>`;});
+  h+=`</tbody></table><div class="note">Lower correlation between edges = more diversification benefit. This is what individual engine scorecards cannot show.</div></div>`;
+  // per-engine
+  h+=`<h2>Engines in the book</h2><div class="card"><table><thead><tr>
+     <th>Engine</th><th>Status</th><th>Net t-stat</th><th>Net excess</th><th>Info Ratio</th><th>Wk Vol</th><th>Weeks</th><th>Picks</th><th>HRP wt</th><th>Capacity</th></tr></thead><tbody>`;
+  d.per_engine.forEach(e=>{const cls=e.alpha_status==='ALPHA_PROVEN'?'PROVEN':(e.alpha_status==='ALPHA_NEGATIVE'?'NEG':'NO_ALPHA');
+    h+=`<tr><td><b>${esc(e.engine)}</b></td><td><span class="tag ${cls}">${esc((e.alpha_status||'').replace('ALPHA_',''))}</span></td>
+      <td class="mono">${e.net_t_stat??'—'}</td><td class="mono">${e.net_mean_excess_pct??'—'}%</td><td class="mono">${e.info_ratio??'—'}</td>
+      <td class="mono">${e.weekly_vol_pct}%</td><td class="mono">${e.n_weeks}</td><td class="mono">${e.n_picks}</td>
+      <td class="mono" style="color:var(--green)">${recw[e.engine]!=null?(recw[e.engine]*100).toFixed(1)+'%':'—'}</td>
+      <td style="text-align:left;color:var(--fg-3);font-size:10px">${esc(e.capacity_tier)}</td></tr>`;});
+  h+=`</tbody></table></div>`;
+  h+=`<div class="note"><b>Read me:</b><br>${(d.caveats||[]).map(c=>'• '+esc(c)).join('<br>')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
