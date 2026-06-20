@@ -1,17 +1,3 @@
-updated justhodl-estimate-revisions
-scheduled justhodl-estimate-revisions-daily
-
---- run #1 (baseline) ---
-{'statusCode': 200, 'body': '{"status": "WARMING", "n_tracked": 425, "n_with_history": 0, "n_up": 0, "n_down": 0, "n_picks": 0, "elapsed_s": 0.6}'}
-
---- inject synthetic 10d-old snapshot (eps*0.95 → expect +5.26% revision) for: ['VFS|Q2|2026', 'AMBQ|Q2|2026', 'ZUMZ|Q2|2026']
-
---- run #2 (should detect revisions) ---
-{'statusCode': 200, 'body': '{"status": "LIVE", "n_tracked": 425, "n_with_history": 356, "n_up": 1, "n_down": 2, "n_picks": 1, "elapsed_s": 0.2}'}
-status: LIVE n_with_history: 356 n_up: 1
-  ZUMZ   eps_rev=5.26% (base 0.0475→0.05) d2e=75 conf=True
-  injected names detected: [('ZUMZ', 5.26)]
-
---- cleanup: delete state, run #3 for clean real baseline ---
-{'statusCode': 200, 'body': '{"status": "WARMING", "n_tracked": 425, "n_with_history": 0, "n_up": 0, "n_down": 0, "n_picks": 0, "elapsed_s": 0.2}'}
-DONE 1982
+engine output: status WARMING n_tracked 425 n_with_history 0 n_state_keys 356
+live check: {"page": {"err": "HTTP Error 404: Not Found"}, "dir": {"status": 200, "len": 47931, "title": false, "link": false}}
+DONE 1983
