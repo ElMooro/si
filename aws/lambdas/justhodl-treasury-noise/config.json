@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-treasury-noise",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Treasury curve dislocation (Nelson-Siegel fit residual on CMT) + funding stress (bill-SOFR). Composite treasury_stress 0-100 + regime. Documented PROXY for Hu-Pan-Wang noise (CMT-based, free). Feeds crisis composites/canaries.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-treasury-noise-daily",
+    "cron": "cron(30 13 ? * TUE-SAT *)",
+    "description": "Daily 13:30 UTC Tue-Sat — after FRED CMT update"
+  }
+}
