@@ -1,19 +1,16 @@
-updated justhodl-schedule-liveness
-scheduled: cron(30 13 * * ? *)
-invoking watchdog (sync)...
-StatusCode: 200 FunctionError: None
-payload: b'{"statusCode": 200, "body": "{\\"checked\\": 268, \\"healthy\\": 182, \\"revived\\": 0, \\"genuine_failures\\": 0, \\"no_feed\\": 75}"}'
-
-checked=268 assessable=182 healthy=182 REVIVED=0 genuine_fail=0 no_feed=75
-
-revived this run:
-
-genuine failures:
-
-oldest healthy (sanity):
-  justhodl-insider-buys-enriched     age=23.7h cad=24.0h
-  justhodl-insider-buys-enriched     age=23.7h cad=24.0h
-  justhodl-ignition                  age=23.2h cad=24.0h
-  justhodl-construction-housing      age=22.7h cad=24.0h
-  justhodl-episode-reference         age=22.7h cad=24.0h
-DONE 1971
+{
+  "page": {
+    "err": "HTTPError: HTTP Error 404: Not Found"
+  },
+  "dir": {
+    "status": 200,
+    "len": 47507,
+    "has_title": false,
+    "has_loader": false,
+    "dir_link": false
+  },
+  "feed": {
+    "err": "HTTPError: HTTP Error 404: Not Found"
+  }
+}
+DONE 1972
