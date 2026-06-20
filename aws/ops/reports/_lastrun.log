@@ -1,34 +1,20 @@
 ================================================================
-1) SEC CNS FAILS-TO-DELIVER (per-name FTD)
+A) FINRA consolidatedShortInterest — POST filter by symbol+latest
 ================================================================
-  cnsfails202605b.zip: HTTP 403  bytes=200
-  cnsfails202605a.zip: HTTP 403  bytes=200
-  cnsfails202604b.zip: HTTP 403  bytes=200
-  cnsfails202604a.zip: HTTP 403  bytes=200
-  -> FTD usable: False
+POST AAPL: 400
+  parse: Expecting property name enclosed in double quotes: line 1 column 301 (char 300) | raw: b'{"statusCode":400,"statusDescription":"Bad Request","requestId":"fc521dbb-eae6-475b-9a22-94c39efa209f","message":"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Pa'
+  latest err Expecting property name enclosed in double quotes: line 1 column 301 (char 300)
+  GME err Expecting property name enclosed in double quotes: line 1 column 301 (char 300)
 
 ================================================================
-2) OFFICIAL BI-MONTHLY SHORT INTEREST — free candidates
+B) SEC FTD with proper UA
 ================================================================
-  Nasdaq AAPL: HTTP 200 usable=True 
-  Nasdaq GME: HTTP 200 usable=False {"data":null,"message":"Short interest is not available. Short interest is only supported for Nasdaq Listed stocks","status":{"rCode":200,"bCodeMessage":null,"d
-  FMP /stable/short-interest: HTTP 404 b'[]'
-  FMP /stable/shares-float: HTTP 200 [
-  {
-    "symbol": "AAPL",
-    "date": "2026-06-18 17:14:10",
-    "freeFloat": 99.83099999754891,
-    "floatShares": 14662534368,
-    "outstandingShares": 1468
-  FMP /stable/stock-short-interest: HTTP 404 b'[]'
-  Polygon short-interest: HTTP 200 {"status":"OK","request_id":"771138ea12874e579f8a9693913a04a5","results":[{"settlement_date":"2017-12-29","ticker":"AAPL","short_interest":45746430,"avg_daily_v
-  FINRA api consolidatedShortInterest: HTTP 200 accountingYearMonthNumber,symbolCode,issueName,issuerServicesGroupExchangeCode,marketClassCode,currentShortPositionQuant
+  cnsfails202605b.zip: HTTP 404 bytes=300
+  cnsfails202605a.zip: HTTP 404 bytes=300
+  cnsfails202604b.zip: HTTP 404 bytes=300
 
 ================================================================
-3) EXISTING finra-short.json freshness + shape
+C) Polygon SI with order=desc (current snapshot)
 ================================================================
-  age=20.6h  top keys=['config', 'data_date', 'elapsed_seconds', 'generated_at', 'generated_at_unix', 'market_composite', 'sectors', 'squeeze_candidates', 'tickers', 'top_svr', 'top_zscore', 'version']
-    tickers: 501
-    squeeze_candidates: 30
-  short-interest.json age=6.3h keys=['by_ticker', 'data_sources', 'duration_s', 'generated_at', 'n_tickers_finra', 'n_tickers_polygon', 'n_tickers_with_data', 'signal_definitions', 'top_covering', 'top_crowded_shorts', 'top_high_dtc', 'top_squeeze_risk']
-DONE 2004
+  AAPL recent: [('2017-12-29', 45746430, 1.91), ('2018-01-12', 46689117, 1.99), ('2018-01-31', 42078657, 1.13)]
+DONE 2005
