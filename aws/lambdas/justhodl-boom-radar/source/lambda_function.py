@@ -92,34 +92,45 @@ def lambda_handler(event=None, context=None):
         if tk and tk not in dims["ESTIMATE"] and isinstance(rv, (int, float)):
             dims["ESTIMATE"][tk] = (_clamp(0.5 + rv / 20, 0.3, 1.0), f"EPS est revised +{rv}%")
 
-    # FLOW
+    # FLOW (widen to all published flow lists for real coverage)
     fl = getj("data/flow-lookthrough.json") or {}
     for s in fl.get("actual_accumulation", []) or []:
         tk = _tk(s); bps = s.get("delta_bps_mcap")
         if tk and isinstance(bps, (int, float)) and bps > 0:
-            dims["FLOW"][tk] = (_clamp(bps / 300, 0.3, 1.0), f"ETF accumulation {round(bps,0)}bps")
+            dims["FLOW"][tk] = (_clamp(bps / 300, 0.4, 1.0), f"ETF accumulation {round(bps,0)}bps")
+    for s in fl.get("thematic_rotation_leaders", []) or []:
+        tk = _tk(s); bps = s.get("flow_bps_mcap")
+        if tk and tk not in dims["FLOW"] and isinstance(bps, (int, float)) and bps > 0:
+            dims["FLOW"][tk] = (_clamp(bps / 250, 0.35, 0.95), f"thematic inflow {round(bps,0)}bps")
+    for s in fl.get("inflow_leaders", []) or []:
+        tk = _tk(s); bps = s.get("flow_bps_mcap")
+        if tk and tk not in dims["FLOW"] and isinstance(bps, (int, float)) and bps > 0:
+            dims["FLOW"][tk] = (_clamp(bps / 200, 0.25, 0.85), f"ETF inflow {round(bps,0)}bps")
     for s in fl.get("top_picks", []) or []:
         tk = _tk(s)
         if tk and tk not in dims["FLOW"]:
             dims["FLOW"][tk] = (0.6, "ETF flow pick")
 
-    # SQUEEZE (proven-alpha anchor)
+    # SQUEEZE (squeeze-pretrigger is a market-regime engine; use per-name setups when present,
+    # and surface regime strength as context)
     sq = getj("data/squeeze-pretrigger.json") or {}
-    for lk in ("top_squeeze_risk", "top_squeeze_tickers", "top_covering"):
+    squeeze_regime_strength = sq.get("signal_strength")
+    squeeze_state = sq.get("state")
+    for lk in ("imminent_setups", "pretrigger_setups", "early_setups",
+               "top_squeeze_risk", "top_squeeze_tickers", "top_covering", "top_crowded_shorts"):
         for s in sq.get(lk, []) or []:
             tk = _tk(s)
             if tk and tk not in dims["SQUEEZE"]:
-                sc = s.get("score") or s.get("squeeze_score") if isinstance(s, dict) else None
-                dims["SQUEEZE"][tk] = (_clamp((sc or 70) / 100, 0.4, 1.0), "squeeze pressure")
+                dims["SQUEEZE"][tk] = (0.8, f"squeeze {lk.replace('_', ' ')}")
 
-    # BREAKOUT
+    # BREAKOUT (52wk-quality-breakout publishes under 'picks')
     bo = getj("data/52wk-quality-breakout.json") or {}
-    bo_list = bo if isinstance(bo, list) else (bo.get("breakouts") or bo.get("top_picks")
-              or bo.get("results") or bo.get("candidates") or [])
+    bo_list = bo if isinstance(bo, list) else (bo.get("picks") or bo.get("breakouts")
+              or bo.get("top_picks") or bo.get("results") or bo.get("candidates") or [])
     for s in bo_list or []:
         tk = _tk(s)
         if tk and tk not in dims["BREAKOUT"]:
-            dims["BREAKOUT"][tk] = (0.6, "52wk quality breakout")
+            dims["BREAKOUT"][tk] = (0.7, "52wk quality breakout")
 
     dims_present = {d: len(v) for d, v in dims.items() if v}
     # aggregate per ticker
@@ -161,6 +172,7 @@ def lambda_handler(event=None, context=None):
                   "one name. Fuses earnings beats, analyst guidance/PT, estimate strength, "
                   "ETF accumulation, squeeze pressure (proven alpha), and breakouts.",
         "dimensions_loaded": dims_present,
+        "squeeze_regime": {"state": squeeze_state, "signal_strength": squeeze_regime_strength},
         "n_scanned": len(agg),
         "n_2way": sum(1 for c in cands if c["convergence"] >= 2),
         "n_3way": len(high_conviction),
