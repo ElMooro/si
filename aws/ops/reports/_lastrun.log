@@ -1,12 +1,28 @@
-tail-risk: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"system_tail_gauge\": 42.8, \"regime\": \"WATCH\", \"valuation\": \"WARMING\", \"indices\": [[\"IWM\", 42.3, 0.0487, 111.7, -0.0342], [\"QQQ\", 61.9, 0.092
-  valuation now: WARMING (should be WARMING on cold history)
+================================================================
+A) weeklySummary dataset — field discovery (no filter)
+================================================================
+HTTP 200
+FIELDS: ['MPID', 'firmCRDNumber', 'initialPublishedDate', 'issueName', 'issueSymbolIdentifier', 'lastReportedDate', 'lastUpdateDate', 'marketParticipantName', 'productTypeCode', 'summaryStartDate', 'summaryTypeCode', 'tierDescription', 'tierIdentifier', 'totalNotionalSum', 'totalWeeklyShareQuantity', 'totalWeeklyTradeCount', 'weekStartDate']
+  row: {'totalWeeklyShareQuantity': 6489206414, 'issueSymbolIdentifier': None, 'issueName': None, 'lastUpdateDate': '2023-12-11', 'lastReportedDate': '2023-11-10', 'tierDescription': 'Not Applicable', 'initialPublishedDate': '2023-12-11', 'tierIdentifier': 'NMS', 'summaryStartDate': '2023-11-06', 'totalNotionalSum': 347503970963}
+  row: {'totalWeeklyShareQuantity': 21779, 'issueSymbolIdentifier': 'BRKR', 'issueName': 'Bruker Corporation Common Stock', 'lastUpdateDate': '2023-11-27', 'lastReportedDate': '2023-11-10', 'tierDescription': 'NMS Tier 1', 'initialPublishedDate': '2023-11-27', 'tierIdentifier': 'NMS', 'summaryStartDate': '2023-11-06', 'totalNotionalSum': 1257506}
 
-invoking implied-prob (wire check)…
-  implied-prob: 200
-  tail_risk block: {'system_tail_gauge': 42.8, 'tail_regime': 'WATCH', 'tail_valuation': 'WARMING', 'generated_at': '2026-06-20T20:23:56.797547+00:00'}
-  SPY log-normal p_down_10: 2.5
-  SPY DENSITY moves_30d: {'p_down_10': 2.43, 'p_down_20': 0.87, 'skew_index': 117.8, 'risk_reversal_25': -0.0272, 'rn_skew': -1.78, 'method': 'Breeden-Litzenberger risk-neutral density (fat-tailed; supersedes log-normal p_down)'}
+================================================================
+B) distinct summaryTypeCode values present
+================================================================
+summaryTypeCode seen: {'ATS_W_VOL_STATS': 1, 'ATS_W_SMBL_FIRM': 49}
+weekStartDates seen: ['2023-11-06']
 
-page check:
-  tail-risk.html HTTP 200 bytes 6225
-DONE 2019
+================================================================
+C) per-symbol ATS + OTC for AAPL latest weeks
+================================================================
+
+ ATS_W_SMBL AAPL: HTTP 200 rows=3
+    {'weekStartDate': '2026-05-11', 'issueSymbolIdentifier': 'AAPL', 'totalWeeklyShareQuantity': 35992742, 'totalWeeklyTradeCount': 666232, 'summaryTypeCode': 'ATS_W_SMBL'}
+    {'weekStartDate': '2026-05-25', 'issueSymbolIdentifier': 'AAPL', 'totalWeeklyShareQuantity': 26731490, 'totalWeeklyTradeCount': 480489, 'summaryTypeCode': 'ATS_W_SMBL'}
+    {'weekStartDate': '2026-05-18', 'issueSymbolIdentifier': 'AAPL', 'totalWeeklyShareQuantity': 25921606, 'totalWeeklyTradeCount': 485168, 'summaryTypeCode': 'ATS_W_SMBL'}
+
+ OTC_W_SMBL AAPL: HTTP 200 rows=3
+    {'weekStartDate': '2026-05-11', 'issueSymbolIdentifier': 'AAPL', 'totalWeeklyShareQuantity': 93784304.717756, 'totalWeeklyTradeCount': 1764147, 'summaryTypeCode': 'OTC_W_SMBL'}
+    {'weekStartDate': '2026-05-25', 'issueSymbolIdentifier': 'AAPL', 'totalWeeklyShareQuantity': 64518394.314051, 'totalWeeklyTradeCount': 1145225, 'summaryTypeCode': 'OTC_W_SMBL'}
+    {'weekStartDate': '2026-05-18', 'issueSymbolIdentifier': 'AAPL', 'totalWeeklyShareQuantity': 62478259.917756, 'totalWeeklyTradeCount': 1372463, 'summaryTypeCode': 'OTC_W_SMBL'}
+DONE 2020
