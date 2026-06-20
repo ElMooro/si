@@ -1,22 +1,27 @@
-====================================================================
-1) SPOT price source (need underlying spot for GEX/moneyness)
-====================================================================
-AAPL /prev: 200 close= 298.01
+create
+active: arn:aws:lambda:us-east-1:857687956942:function:justhodl-options-analytics
+scheduled: justhodl-options-analytics-daily
+invoking (chains for ~58 names, ~60-120s)…
+status: 200  payload: {"statusCode": 200, "body": "{\"ok\": true, \"n_analyzed\": 58, \"n_picks\": 1, \"distribution\": {\"short_gamma\": 18, \"long_gamma\": 40, \"squeeze_setups\": 7, \"downside_hedging\": 0}, \"top\": [[\"NFLX\", 73.7, \"GAMMA_SQUEEZE_SETUP\", -37.22], [\"META\", 59.3, \"GAMMA_SQUEEZE_SETUP\", -29.73], [\"MSFT\", 55.0, \"PINNED\", 26.37], [\"QQQ\", 55.0, \"PINNED\", 1292.25], [\"SPY\", 55.0, \"PINNED\", 3484.87], [\"ORCL\", 46.1, \"NEUTRAL\", -23.01], [\"INTC\", 46.0, \"PINNED\", 44.5], [\"RIOT\", 
 
-====================================================================
-2) snapshot with strike+expiry+type FILTERS + pagination
-====================================================================
-AAPL filtered strikes[238,358] exp<=2026-09-30: HTTP 200 contracts=250 next_url=YES
- expiries present: 4 ['2026-06-22', '2026-06-24', '2026-06-26', '2026-06-29']
- greeks=196/250 IV=196/250
- mid sample: {'strike': 260, 'type': 'put', 'exp': '2026-06-24', 'iv': 0.5463994719716226, 'gamma': 0.001404177436332208, 'oi': 8, 'vol': 5}
- contract_type=put filter: 200 n= 250
+ok: True | analyzed: 58 | dist: {'short_gamma': 18, 'long_gamma': 40, 'squeeze_setups': 7, 'downside_hedging': 0} | picks: 1
 
-====================================================================
-3) SIZE high-options names (cost sizing)
-====================================================================
- NVDA: spot=210.69 contracts(±20%,<=Sep)=250 next=Y
- TSLA: spot=400.49 contracts(±20%,<=Sep)=250 next=Y
- SPY: spot=746.74 contracts(±20%,<=Sep)=250 next=Y
- GME: spot=21.52 contracts(±20%,<=Sep)=248 next=n
-DONE 2013
+TOP BOARD (by ignition score):
+  NFLX   sc=73.7  GAMMA_SQUEEZE_SETUP  SHORT_GAMMA GEX=  -37.22M flip=None ATM_IV=0.4537 skew=-0.0243 pcr=0.403 unu=2
+  META   sc=59.3  GAMMA_SQUEEZE_SETUP  SHORT_GAMMA GEX=  -29.73M flip=None ATM_IV=0.3501 skew=-0.0419 pcr=0.47 unu=5
+  MSFT   sc=55.0  PINNED               LONG_GAMMA  GEX=   26.37M flip=477.5 ATM_IV=0.3057 skew=-0.0251 pcr=0.299 unu=5
+  QQQ    sc=55.0  PINNED               LONG_GAMMA  GEX= 1292.25M flip=749.5 ATM_IV=0.2457 skew=0.257 pcr=0.391 unu=5
+  SPY    sc=55.0  PINNED               LONG_GAMMA  GEX= 3484.87M flip=719.5 ATM_IV=0.1619 skew=0.122 pcr=0.068 unu=8
+  ORCL   sc=46.1  NEUTRAL              SHORT_GAMMA GEX=  -23.01M flip=None ATM_IV=0.5233 skew=-0.0273 pcr=0.354 unu=0
+  INTC   sc=46.0  PINNED               LONG_GAMMA  GEX=    44.5M flip=96.25 ATM_IV=0.8836 skew=-0.0257 pcr=0.217 unu=2
+  RIOT   sc=45.4  NEUTRAL              LONG_GAMMA  GEX=    3.58M flip=20.5 ATM_IV=0.8986 skew=0.0105 pcr=0.16 unu=0
+  NKE    sc=45.4  NEUTRAL              LONG_GAMMA  GEX=    2.27M flip=51.25 ATM_IV=0.584 skew=0.0022 pcr=0.242 unu=0
+  AMC    sc=44.4  NEUTRAL              LONG_GAMMA  GEX=    0.49M flip=None ATM_IV=1.2568 skew=-0.3696 pcr=0.099 unu=1
+  RBLX   sc=41.7  NEUTRAL              LONG_GAMMA  GEX=    1.24M flip=48.75 ATM_IV=0.7037 skew=0.0084 pcr=0.243 unu=0
+  WMT    sc=41.3  NEUTRAL              SHORT_GAMMA GEX=  -18.26M flip=None ATM_IV=0.256 skew=0.0018 pcr=0.383 unu=0
+
+SQUEEZE SETUPS: [('NFLX', 'GAMMA_SQUEEZE_SETUP', -37.22), ('META', 'GAMMA_SQUEEZE_SETUP', -29.73), ('CRM', 'GAMMA_SQUEEZE_SETUP', -13.51), ('CVX', 'GAMMA_SQUEEZE_SETUP', -2.48), ('IWM', 'SQUEEZE_PRIMED', -626.58), ('LCID', 'GAMMA_SQUEEZE_SETUP', -0.04), ('XOM', 'GAMMA_SQUEEZE_SETUP', -5.58)]
+PICKS: [('IWM', 30.0, 'SQUEEZE_PRIMED')]
+MOST UNUSUAL: [('SPY', 8, 0.068), ('META', 5, 0.47), ('MSFT', 5, 0.299), ('QQQ', 5, 0.391), ('MU', 3, 0.675), ('ADBE', 3, 0.956)]
+RICHEST IV(VRP): [('RIOT', 0.2324), ('NFLX', 0.2294), ('NKE', 0.229), ('LCID', 0.1328), ('UNH', 0.1119), ('RBLX', 0.1097)]
+DONE 2014
