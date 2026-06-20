@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-options-analytics",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Per-name options analytics on Polygon options entitlement: dealer GEX (net/flip/walls), IV term structure + 25-delta skew + IV-vs-realized VRP, unusual options activity (vol/OI, put-call, net premium), composite gamma-regime signal. top_picks -> signal-harvester (eng:options-analytics) measure-before-trust; NOT in decision engines until alpha-proven.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-options-analytics-daily",
+    "cron": "cron(0 13 ? * TUE-SAT *)",
+    "description": "Daily 13:00 UTC Tue-Sat (8am ET) — captures prior trading day settled OI + greeks"
+  }
+}
