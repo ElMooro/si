@@ -1,8 +1,20 @@
-data/etf-fund-flows.json ERR An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+generated_at: 2026-06-19T22:00:25.032748+00:00 universe: 300 n_ok: 300 metrics: 300
 
-============================================================
-data/capital-flow-radar.json
-============================================================
-top keys: ['engine', 'version', 'generated_at', 'thesis', 'dollar_tide', 'leveraged_positioning', 'n_complexes', 'pump_setups', 'party_over_alerts', 'top_pick_cascade', 'complexes', 'methodology', 'caveats', 'sources', 'elapsed_s']
+per-ETF record fields: ['ticker', 'processed_date', 'category', 'subcategory', 'smart_money', 'region', 'ref_sector', 'daily_flow_usd', 'flow_5d_usd', 'flow_21d_usd', 'pct_aum_daily', 'pct_aum_5d', 'pct_aum_21d', 'aum_usd', 'flow_zscore_90d', 'persistence_days', 'signal_label', 'n_history_points']
 
-DONE 1962
+ticker | daily_flow$M | 5d$M | 21d$M | aum$M | category | subcategory
+  SPY    17375.9  None      None      776399.8   broad/us_large_cap
+  VOO    -819.5   None      None      1027792.1  broad/us_large_cap
+  IVV    3192.8   None      None      841155.2   broad/us_large_cap
+  QQQ    -3356.7  None      None      481248.1   broad/us_megacap_tech
+  IWM    1260.2   None      None      82632.7    broad/us_small_cap
+  VTI    182.4    None      None      655778.4   broad/us_total
+  DIA    -180.7   None      None      44646.5    broad/us_dow
+  XLK    -8981.9  None      None      124455.8   sector/technology
+  XLF    -940.6   None      None      50588.5    sector/financials
+  XLE    -426.5   None      None      36082.1    sector/energy
+  XLV    -542.6   None      None      37533.1    sector/healthcare
+  XLP    -92.1    None      None      13631.1    sector/staples
+
+  ETFs with usable 5d flow: 300/300
+DONE 1963
