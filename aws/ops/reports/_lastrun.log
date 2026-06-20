@@ -1,0 +1,41 @@
+justhodl-forward-orders            rules_rebuilt=1 async_fired
+justhodl-forensic-screen           rules_rebuilt=1 async_fired
+justhodl-crisis-plumbing           rules_rebuilt=2 async_fired
+justhodl-engine-conflicts          rules_rebuilt=1 async_fired
+justhodl-buzz-velocity             rules_rebuilt=1 async_fired
+justhodl-cross-asset-confirm       rules_rebuilt=2 async_fired
+justhodl-liquidity-pulse           rules_rebuilt=1 async_fired
+justhodl-crypto-cycle-risk         rules_rebuilt=1 async_fired
+justhodl-earnings-tracker          rules_rebuilt=1 async_fired
+justhodl-yield-curve               rules_rebuilt=1 async_fired
+justhodl-onchain-ratios            rules_rebuilt=1 async_fired
+justhodl-theme-cascade             rules_rebuilt=1 async_fired
+justhodl-forward-returns           rules_rebuilt=2 async_fired
+justhodl-bagger-engine             rules_rebuilt=2 async_fired
+justhodl-hiring-velocity           rules_rebuilt=1 async_fired
+justhodl-signal-halflife           rules_rebuilt=1 async_fired
+justhodl-buyback-scanner           rules_rebuilt=2 async_fired
+justhodl-index-inclusion           rules_rebuilt=1 async_fired
+
+sleeping 75s for async engines to write...
+  data/forward-orders.json                   age_h= -0.0 FRESH
+  data/forensic-screen.json                  age_h= -0.0 FRESH
+  data/crisis-plumbing.json                  age_h= -0.0 FRESH
+  data/engine-conflicts.json                 age_h= -0.0 FRESH
+  data/buzz-velocity.json                    age_h=  0.0 FRESH
+  data/cross-asset-confirm.json              age_h= -0.0 FRESH
+  data/liquidity-pulse.json                  age_h= -0.0 FRESH
+  data/crypto-cycle-risk.json                age_h= -0.0 FRESH
+  data/earnings-tracker.json                 age_h= -0.0 FRESH
+  data/yield-curve.json                      age_h= -0.0 FRESH
+  data/onchain-ratios.json                   age_h= -0.0 FRESH
+  data/theme-cascade.json                    age_h= -0.0 FRESH
+  data/forward-returns.json                  age_h= -0.0 FRESH
+  data/bagger-engine.json                    age_h=  0.0 FRESH
+  data/hiring-velocity.json                  age_h=131.8 still-stale
+  data/signal-halflife.json                  age_h= -0.0 FRESH
+  data/buyback-scanner.json                  age_h= -0.0 FRESH
+  data/index-inclusion.json                  age_h= -0.0 FRESH
+
+fresh after revive: 17/18  (rules rebuilt regardless; slow engines refresh on next scheduled tick)
+DONE 1956
