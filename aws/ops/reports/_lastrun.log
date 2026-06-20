@@ -1,47 +1,20 @@
-================================================================
-(A) CONSTITUENTS via composite_ticker
-================================================================
+=== bound freshness: newest processed_date in each recent window (SPY) ===
+  2026-05-01..2026-06-20: rows=1000 min_pd=2026-05-01 max_pd=2026-06-18
+  2026-01-01..2026-06-20: rows=1000 min_pd=2026-01-02 max_pd=2026-06-18
+  2025-01-01..2025-12-31: rows=1000 min_pd=2025-01-02 max_pd=2025-12-31
+  2023-01-01..2023-12-31: rows=1000 min_pd=2023-01-03 max_pd=2023-12-29
+  2020-01-01..2020-12-31: rows=1000 min_pd=2020-01-02 max_pd=2020-12-31
+  2018-01-01..2018-12-31: rows=1000 min_pd=2018-01-02 max_pd=2018-12-31
 
-  SPY: latest processed_date=2017-04-04  rows_total=600  holdings_in_snapshot=93
-     #1: AAPL         APPLE INC                  mv=8819905228.9 sh=60923570.0
-     #3: AMZN         AMAZON.COM INC             mv=4171746272.46 sh=4600362.0
-     #7: BRK/B        BERKSHIRE HATHAWAY INC-CL  mv=3681022538.7 sh=22060545.0
-     #14: BAC          BANK OF AMERICA CORP       mv=2729088493.6 sh=116428690.0
-     #26: C            CITIGROUP INC              mv=1919787373.92 sh=32168019.0
-     #34: AMGN         AMGEN INC                  mv=1405706650.88 sh=8552608.0
+=== if recent window has data, show CURRENT top SPY holdings ===
+  newest snapshot 2026-06-18: 8 holdings
+    #4: AAPL     APPLE INC                mv=52141452666.15
+    #52: ABBV     ABBVIE INC               mv=4692841817.46
+    #144: ABT      ABBOTT LABORATORIES COMM mv=1847301387.0
+    #234: ACN      ACCENTURE PLC-CL A       mv=1152038995.92
+    #278: ADBE     ADOBE SYSTEMS INC        mv=966767522.28
+    #394: ABNB     AIRBNB INC               mv=713560650.12
+    #564: A        AGILENT TECHNOLOGIES INC mv=420626417.85
+    #578: ACGL     ARCH CAPITAL GROUP CO    mv=395297599.74
 
-  XLK: latest processed_date=2017-04-12  rows_total=600  holdings_in_snapshot=60
-     #1: AAPL         APPLE INC                  mv=None sh=17843046.0
-     #2: MSFT         MICROSOFT CORP             mv=None sh=26280686.0
-     #3: FB           Facebook Inc.              mv=None sh=8009778.0
-     #4: GOOGL        ALPHABET INC-CL A          mv=None sh=1010528.0
-     #6: GOOG         ALPHABET INC-CL C          mv=None sh=1005000.0
-     #7: INTC         INTEL CORP                 mv=None sh=16143400.0
-
-  QQQ: latest processed_date=2017-04-10  rows_total=600  holdings_in_snapshot=60
-     #1: AAPL         APPLE INC                  mv=5633115565.14 sh=39345642.0
-     #3: AMZN         AMAZON.COM INC             mv=3245814521.76 sh=3578469.0
-     #4: FB           Facebook Inc.              mv=2491083457.92 sh=17662248.0
-     #5: GOOG         ALPHABET INC-CL C          mv=2145789936.57 sh=2601809.0
-     #6: GOOGL        ALPHABET INC-CL A          mv=1875467523.0 sh=2228190.0
-     #7: CMCSA        COMCAST CORP-CLASS A       mv=1336994262.94 sh=35492282.0
-
-================================================================
-(B) BENZINGA REPORTED EARNINGS (actual+surprise)
-================================================================
-
-  ticker=AAPL&date.lte=2026-06-20&order=desc&sort=date&limit=3 -> HTTP 200
-    fields: ['currency', 'date_status', 'actual_eps', 'estimated_eps', 'previous_eps', 'eps_surprise', 'eps_surprise_percent', 'eps_method', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'actual_revenue', 'estimated_revenue', 'previous_revenue', 'revenue_surprise', 'revenue_surprise_percent', 'revenue_method', 'ticker', 'last_updated', 'date', 'time']
-    rec: {"ticker": "AAPL", "date": "2026-04-30", "date_status": "confirmed", "eps": null, "eps_est": null, "eps_surprise_percent": 0.0361, "estimated_eps": 1.94, "revenue": null, "revenue_surprise_percent": 0.0138, "fiscal_period": "Q2", "fiscal_year": 2026}
-    fields: ['currency', 'date_status', 'actual_eps', 'estimated_eps', 'previous_eps', 'eps_surprise', 'eps_surprise_percent', 'eps_method', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'actual_revenue', 'estimated_revenue', 'previous_revenue', 'revenue_surprise', 'revenue_surprise_percent', 'revenue_method', 'ticker', 'last_updated', 'date', 'time']
-    rec: {"ticker": "AAPL", "date": "2026-01-29", "date_status": "confirmed", "eps": null, "eps_est": null, "eps_surprise_percent": 0.0677, "estimated_eps": 2.66, "revenue": null, "revenue_surprise_percent": 0.0409, "fiscal_period": "Q1", "fiscal_year": 2026}
-    fields: ['currency', 'date_status', 'actual_eps', 'estimated_eps', 'previous_eps', 'eps_surprise', 'eps_surprise_percent', 'eps_method', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'actual_revenue', 'estimated_revenue', 'previous_revenue', 'revenue_surprise', 'revenue_surprise_percent', 'revenue_method', 'ticker', 'last_updated', 'date', 'time']
-    rec: {"ticker": "AAPL", "date": "2025-10-30", "date_status": "confirmed", "eps": null, "eps_est": null, "eps_surprise_percent": 0.0571, "estimated_eps": 1.75, "revenue": null, "revenue_surprise_percent": 0.0062, "fiscal_period": "Q4", "fiscal_year": 2025}
-
-  ticker=NVDA&date.lte=2026-06-20&order=desc&sort=date&limit=2 -> HTTP 200
-    fields: ['currency', 'date_status', 'actual_eps', 'estimated_eps', 'previous_eps', 'eps_surprise', 'eps_surprise_percent', 'eps_method', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'actual_revenue', 'estimated_revenue', 'previous_revenue', 'revenue_surprise', 'revenue_surprise_percent', 'revenue_method', 'ticker', 'last_updated', 'date', 'time']
-    rec: {"ticker": "NVDA", "date": "2026-05-20", "date_status": "confirmed", "eps": null, "eps_est": null, "eps_surprise_percent": 0.0625, "estimated_eps": 1.76, "revenue": null, "revenue_surprise_percent": 0.0325, "fiscal_period": "Q1", "fiscal_year": 2027}
-    fields: ['currency', 'date_status', 'actual_eps', 'estimated_eps', 'previous_eps', 'eps_surprise', 'eps_surprise_percent', 'eps_method', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'actual_revenue', 'estimated_revenue', 'previous_revenue', 'revenue_surprise', 'revenue_surprise_percent', 'revenue_method', 'ticker', 'last_updated', 'date', 'time']
-    rec: {"ticker": "NVDA", "date": "2026-02-25", "date_status": "confirmed", "eps": null, "eps_est": null, "eps_surprise_percent": 0.08, "estimated_eps": 1.5, "revenue": null, "revenue_surprise_percent": 0.0338, "fiscal_period": "Q4", "fiscal_year": 2026}
-
-DONE 1958
+DONE 1959
