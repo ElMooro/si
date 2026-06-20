@@ -1,20 +1,11 @@
-=== bound freshness: newest processed_date in each recent window (SPY) ===
-  2026-05-01..2026-06-20: rows=1000 min_pd=2026-05-01 max_pd=2026-06-18
-  2026-01-01..2026-06-20: rows=1000 min_pd=2026-01-02 max_pd=2026-06-18
-  2025-01-01..2025-12-31: rows=1000 min_pd=2025-01-02 max_pd=2025-12-31
-  2023-01-01..2023-12-31: rows=1000 min_pd=2023-01-03 max_pd=2023-12-29
-  2020-01-01..2020-12-31: rows=1000 min_pd=2020-01-02 max_pd=2020-12-31
-  2018-01-01..2018-12-31: rows=1000 min_pd=2018-01-02 max_pd=2018-12-31
+invoking justhodl-earnings-tracker (sync)...
+StatusCode: 200 FunctionError: None
+payload: b'{"statusCode": 200, "body": "{\\"n_upcoming\\": 4, \\"n_recent\\": 30, \\"n_pead\\": 10, \\"duration_s\\": 38.53}"}'
 
-=== if recent window has data, show CURRENT top SPY holdings ===
-  newest snapshot 2026-06-18: 8 holdings
-    #4: AAPL     APPLE INC                mv=52141452666.15
-    #52: ABBV     ABBVIE INC               mv=4692841817.46
-    #144: ABT      ABBOTT LABORATORIES COMM mv=1847301387.0
-    #234: ACN      ACCENTURE PLC-CL A       mv=1152038995.92
-    #278: ADBE     ADOBE SYSTEMS INC        mv=966767522.28
-    #394: ABNB     AIRBNB INC               mv=713560650.12
-    #564: A        AGILENT TECHNOLOGIES INC mv=420626417.85
-    #578: ACGL     ARCH CAPITAL GROUP CO    mv=395297599.74
+recent_results: 0
+  benzinga-sourced: 0  | qoq-proxy-fallback: 0
 
-DONE 1959
+  sample Benzinga-sourced PEAD records (ticker | surprise% | rev% | imp | 1d | label | score):
+
+  top-level keys: ['version', 'generated_at', 'watchlist_size', 'upcoming_14d', 'n_upcoming', 'recent_results_30d', 'n_recent', 'pead_signals', 'n_pead', 'aggregate_stats', 'duration_s', 'data_sources']
+DONE 1960
