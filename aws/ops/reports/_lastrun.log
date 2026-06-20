@@ -1,4 +1,59 @@
-crisis-composite: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"master_crisis_score\": 26.2, \"defcon_level\": 4, \"defcon_name\": \"NORMAL\", \"trend\": \"stable\"}"}
-master: None defcon/level: None
-treasury-noise component present: True -> [{'source': 'treasury-noise', 'label': 'Treasury funding stress (bill-SOFR/repo/CP)', 'weight': 0.12, 'crisis_contribution': 19.1, 'age_hours': 0.2, 'available': True}]
-DONE 2031
+================================================================
+1) FMP relationship endpoints (peers / supply-chain guesses)
+================================================================
+  /stable/stock-peers: HTTP 200 [
+  {
+    "symbol": "AAPL",
+    "companyName": "Apple Inc.",
+    "price": 298.01,
+    "mktCap": 4376978961560
+  },
+  {
+    "symbol": "ADI",
+    "companyName": "
+  /stable/supply-chain: HTTP 404 []
+  /stable/company-supply-chain: HTTP 404 []
+  /stable/key-customers: HTTP 404 []
+  /stable/stock-peers: HTTP 200 [
+  {
+    "symbol": "GOOGL",
+    "companyName": "Alphabet Inc.",
+    "price": 368.03,
+    "mktCap": 4451275113933
+  },
+  {
+    "symbol": "META",
+    "companyNam
+
+================================================================
+2) SEC EDGAR full-text search — find filers naming a company as customer
+================================================================
+
+  FTS q=%22NVIDIA%22: HTTP 200
+   total: 304 | sample filers:
+      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
+      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
+      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
+      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
+      ['Benchmark 2023-B40 Mortgage Trust  (CIK 0001991192)']
+      ['BANK5 2024-5YR5  (CIK 0002006016)']
+
+  FTS q=%22Apple+Inc%22: HTTP 200
+   total: 124 | sample filers:
+      ['Apple Inc.  (AAPL)  (CIK 0000320193)']
+      ['Apple Inc.  (AAPL)  (CIK 0000320193)']
+      ['Apple Inc.  (AAPL)  (CIK 0000320193)']
+      ['Apple Inc.  (AAPL)  (CIK 0000320193)']
+      ['Globalstar, Inc.  (GSAT)  (CIK 0001366868)']
+      ['Globalstar, Inc.  (GSAT)  (CIK 0001366868)']
+
+NOTE: precision question — does a 10-K mentioning 'NVIDIA' = NVIDIA is THEIR customer? Need 'customer'/'% of revenue' co-text.
+
+  refined q='NVIDIA'+'of our revenue': total 526
+      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
+      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
+      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
+      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
+      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
+      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
+DONE 2032
