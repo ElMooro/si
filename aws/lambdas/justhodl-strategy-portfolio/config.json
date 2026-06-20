@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-strategy-portfolio",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Strategy-of-strategies: combined proven-alpha book. Reconstructs each engine's weekly net-of-cost excess-vs-SPY stream from justhodl-outcomes, builds correlation matrix, combines via equal/inverse-vol/risk-parity/max-Sharpe/HRP. Outputs Sharpe/Sortino/maxDD/Calmar/capacity + recommended HRP weights -> SSM /justhodl/calibration/strategy-weights. data/strategy-portfolio.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-strategy-portfolio-weekly",
+    "cron": "cron(20 12 ? * SUN *)",
+    "description": "Weekly Sun 12:20 UTC"
+  }
+}
