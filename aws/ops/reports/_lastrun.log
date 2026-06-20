@@ -1,7 +1,4 @@
-crisis-plumbing invoke: 200 | {"statusCode": 200, "body": "{\"status\": \"ok\", \"elapsed_sec\": 2.9, \"composite_signal\": \"NORMAL\", \"composite_score\": 28.2, \"n_indices\": 4, \"n_flagged\": 0, \"s3_key\": \"data/crisis-plumb
-
-generated_at: 2026-06-20T21:26:46.485276+00:00
-xcc_basis_3m_eur: None
-xcc_basis_3m_jpy: None
-   xcc_basis_proxy = {'rate_diff_jpy_3m': {'available': True, 'latest_date': '2026-06-17', 'current_pct': 2.588, 'mean_1y_pct': 2.95, 'std_1y_pct': 0.484, 'z_score_1y': -0.75, 'delta_30d': 0.15, 'signal': 'NORMAL', 'n_observations': 272, 'interpretation': 'Rate differential within 1Y normal range', 'method': 'USD 3M T-Bill (DGS3MO) minus Japan 3M Interbank (IR3TIB01JPM156N), 1Y z-score', 'caveat': 'Approximates CIP deviation; true basis requires forward FX (not on FRED)'}, 'rate_diff_eur_3m': {'available': True, 'latest_date': '2026-06-17', 'current_pct': 1.648, 'mean_1y_pct': 2.003, 'std_1y_pct': 0.276, 'z_score_1y': -1.29, 'delta_30d': -0.101, 'signal': 'WATCH', 'n_observations': 272, 'interpretation': 'Rate differential elevated relative to 1Y norm', 'method': 'USD 3M T-Bill (DGS3MO) minus EUR ESTR overnight (ECBESTRVOLWGTTRMDMNRT), 1Y z-score', 'caveat': 'Tenor mismatch (USD 3M vs EUR overnight); z-score of differential is what matters, not the level'}, 'broad_dollar_index': {'available': True, 'latest_date': '2026-06-12', 'level': 119.51, 'z_score_1y': -0.31, 'delta_30d_pct': 0.87, 'signal': 'NORMAL', 'interpretation': 'USD within 1Y normal range'}, 'obfr_iorb_spread': {'available': True, 'latest_date': '2026-06-17', 'spread_bps': -2.0, 'obfr_pct': 3.63, 'iorb_pct': 3.65, 'z_score_1y': 0.62, 'signal': 'NORMAL', 'interpretation': 'Unsecured plumbing functioning normally', 'note': 'Parallels SOFR-IORB but for unsecured side; combined picture of repo + fed funds'}}
-DONE 2030
+crisis-composite: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"master_crisis_score\": 26.2, \"defcon_level\": 4, \"defcon_name\": \"NORMAL\", \"trend\": \"stable\"}"}
+master: None defcon/level: None
+treasury-noise component present: True -> [{'source': 'treasury-noise', 'label': 'Treasury funding stress (bill-SOFR/repo/CP)', 'weight': 0.12, 'crisis_contribution': 19.1, 'age_hours': 0.2, 'available': True}]
+DONE 2031
