@@ -106,6 +106,18 @@ def extract(d):
                 verdict = f"{k}={round(v, 1)}"
                 break
     picks = []
+    if verdict is None:
+        # one level deep — many feeds nest the verdict (e.g. summary.regime, composite.signal)
+        for v in d.values():
+            if isinstance(v, dict):
+                for k in VERDICT_KEYS:
+                    if k in v:
+                        c = classify(v[k])
+                        if c:
+                            direction, extremity, verdict = c[0], c[1], f"{v[k]}"
+                            break
+                if verdict:
+                    break
     for k in PICK_KEYS:
         arr = d.get(k)
         if isinstance(arr, list):
@@ -122,6 +134,31 @@ def extract(d):
     if verdict is None and not picks:
         return None
     return {"verdict": verdict, "direction": direction, "extremity": round(extremity, 2), "picks": picks}
+
+
+def _parse_json(raw):
+    """Tolerant extraction of the JSON object GLM returns (it often malforms slightly)."""
+    txt = (raw or "").strip()
+    txt = re.sub(r"^```[a-z]*", "", txt).strip("`").strip()
+    i = txt.find("{")
+    if i < 0:
+        return None, txt
+    depth, end = 0, -1
+    for j in range(i, len(txt)):
+        if txt[j] == "{":
+            depth += 1
+        elif txt[j] == "}":
+            depth -= 1
+            if depth == 0:
+                end = j + 1
+                break
+    cand = txt[i:end] if end > 0 else txt[i:]
+    for attempt in (cand, re.sub(r",\s*([}\]])", r"\1", cand)):
+        try:
+            return json.loads(attempt), None
+        except Exception:
+            continue
+    return None, cand
 
 
 def load(key):
@@ -243,7 +280,9 @@ def lambda_handler(event=None, context=None):
            "state of your ENTIRE signal fleet (~430 engines), each engine's verdict weighted by the "
            "track-record trust it has earned, plus the fleet consensus, contradictions, and your "
            "proven-alpha book. Reason across the WHOLE board like a top PM — do not fixate on one "
-           "engine. Be decisive and honest; name the real tension. Respond ONLY with JSON: "
+           "engine. Be decisive and honest; name the real tension. "
+           "Output ONLY a single valid minified JSON object — no markdown, no prose, no trailing "
+           "commas, and escape any double-quotes inside string values. Schema: "
            '{"dominant_driver":"...","mechanism":"...","confirming":["..."],'
            '"contradicting":[{"tension":"...","resolution":"..."}],"second_order":["..."],'
            '"decisive_call":"posture + what to favor/avoid","conviction":0-100,'
@@ -253,13 +292,14 @@ def lambda_handler(event=None, context=None):
     model_used = None
     try:
         from llm_router import complete
-        raw = complete(briefing, tier="reason", max_tokens=1600, system=SYS)
+        raw = complete(briefing, tier="reason", max_tokens=2400, system=SYS)
         model_used = "glm-reason"
-        txt = raw.strip()
-        if txt.startswith("```"):
-            txt = re.sub(r"^```[a-z]*", "", txt).strip("`").strip()
-        m = re.search(r"\{.*\}", txt, re.S)
-        reasoning = json.loads(m.group(0) if m else txt)
+        parsed, raw_fallback = _parse_json(raw)
+        if parsed:
+            reasoning = parsed
+        else:
+            reasoning = {"raw": (raw_fallback or raw or "")[:1800],
+                         "parse_note": "model returned malformed JSON; raw read preserved"}
     except Exception as ex:
         print(f"[strat] reasoning err {str(ex)[:120]}")
         reasoning = {"error": f"reasoning model unavailable: {str(ex)[:80]}",
