@@ -1,11 +1,12 @@
-create
-active
-scheduled
-invoking…
-status: 200  payload: {"statusCode": 200, "body": "{\"ok\": true, \"system_tail_gauge\": 42.8, \"regime\": \"WATCH\", \"valuation\": \"EXPENSIVE\", \"indices\": [[\"IWM\", 42.3, 0.0487, 111.7, -0.0342], [\"SPY\", 32.5, 0.0243, 117.8, -0.0272], [\"QQQ\", 61.9, 0.0921, 110.8, -0.0522]]}"}
+tail-risk: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"system_tail_gauge\": 42.8, \"regime\": \"WATCH\", \"valuation\": \"WARMING\", \"indices\": [[\"IWM\", 42.3, 0.0487, 111.7, -0.0342], [\"QQQ\", 61.9, 0.092
+  valuation now: WARMING (should be WARMING on cold history)
 
-system_tail: 42.8 regime: WATCH valuation: EXPENSIVE
-  IWM: stress=42.3 ATM_IV=0.2129 put10=0.2771 skew_slope=0.0642 RR25=-0.0342 RRterm=0.0076 P(drop10%)=0.0487 P(20%)=0.0142 RNskew=-1.173 SKEWidx=111.7
-  SPY: stress=32.5 ATM_IV=0.1598 put10=0.2014 skew_slope=0.0416 RR25=-0.0272 RRterm=-0.0038 P(drop10%)=0.0243 P(20%)=0.0087 RNskew=-1.78 SKEWidx=117.8
-  QQQ: stress=61.9 ATM_IV=0.2371 put10=0.325 skew_slope=0.0879 RR25=-0.0522 RRterm=0.0074 P(drop10%)=0.0921 P(20%)=0.0241 RNskew=-1.081 SKEWidx=110.8
-DONE 2018
+invoking implied-prob (wire check)…
+  implied-prob: 200
+  tail_risk block: {'system_tail_gauge': 42.8, 'tail_regime': 'WATCH', 'tail_valuation': 'WARMING', 'generated_at': '2026-06-20T20:23:56.797547+00:00'}
+  SPY log-normal p_down_10: 2.5
+  SPY DENSITY moves_30d: {'p_down_10': 2.43, 'p_down_20': 0.87, 'skew_index': 117.8, 'risk_reversal_25': -0.0272, 'rn_skew': -1.78, 'method': 'Breeden-Litzenberger risk-neutral density (fat-tailed; supersedes log-normal p_down)'}
+
+page check:
+  tail-risk.html HTTP 200 bytes 6225
+DONE 2019
