@@ -1,18 +1,9 @@
-================================================================
-EARNINGS-TRACKER FEED DIAGNOSIS
-================================================================
-  as_of: 2026-06-20T11:30:42.884039+00:00
-  top-level keys: ['aggregate_stats', 'data_sources', 'duration_s', 'forward_calendar', 'generated_at', 'n_forward_calendar', 'n_pead', 'n_recent', 'n_upcoming', 'pead_signals', 'recent_results_30d', 'upcoming_14d', 'version', 'watchlist_size']
-  forward_calendar: 38  n_forward_calendar=38
-    sample: {'ticker': 'FRVO', 'date': '2026-06-22', 'session': 'BMO', 'importance': 4, 'estimated_eps': -0.09}
-  upcoming_14d: 4  sample keys: ['ticker', 'name', 'earnings_date', 'time', 'eps_consensus', 'n_estimates', 'fiscal_quarter_ending', 'last_year_eps', 'market_cap']
-  lambda LastModified: 2026-06-20T10:46:40.000+0000 State: Active
-
-  re-invoking catalyst-calendar after earnings refresh…
-  catalyst EARNINGS now: 0 (Benzinga=0)  by_source={'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
-
-================================================================
-FIX RAG MANIFEST ENTRIES
-================================================================
-  fixed entries: ['justhodl-analyst-actions', 'justhodl-estimate-revisions', 'justhodl-flow-lookthrough', 'justhodl-boom-radar']
-DONE 1995
+today 2026-06-20 cutoff 2026-08-19
+NEW-logic forward_calendar would pass: 38/38  drops={}
+OLD-logic upcoming_14d would pass: 4/4  dates=['2026-06-23', '2026-06-24', '2026-06-30', '2026-07-09']
+DEPLOYED code has forward_calendar: True | Benzinga(via Massive): True | code bytes: 20393
+re-deployed; LastModified: 2026-06-20T17:54:30.000+0000
+invoke status: 200
+  handler body by_type: {'AUCTION': 7, 'BANK_EARNINGS': 1, 'FOMC': 1}
+AFTER redeploy catalyst EARNINGS: 0 (Benzinga=0) by_source={'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
+DONE 1996
