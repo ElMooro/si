@@ -1,26 +1,17 @@
-redeployed: 2026-06-20T18:54:09.000+0000
-invoke: 200 {"statusCode": 200, "body": "{\"ok\": true, \"n_scored\": 329, \"n_picks\": 20, \"settlement\": \"2026-05-29\", \"distribution\": {\"n_loaded\": 3, \"n_building\": 104, \"n_elevated\": 96}, \"top\": [[\"TIC\", 75.7, \"LOADED\"], [\"XPOF\", 71.6, \"LOADED\"], [\"VSTM\", 71.5, \"LOADED\"], [\"TYRA\", 
+invoking signal-harvester…
+ status: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 27, \"written\": 12, \"scanned\": 443}"}
 
-settlement: 2026-05-29 | liquid universe: 3032 | scored: 329 | dist: {'n_loaded': 3, 'n_building': 104, 'n_elevated': 96} | picks: 20
+eng:squeeze-fuel rows in justhodl-signals: 8
+   ('b7224510-706b-4bcb-9052-0690102c91bf', '65.1')
+   ('c2abf99b-5986-40b6-bd5f-caecf257c1fe', '64.0')
+   ('4e8f3819-ae2f-491e-9c29-6f36da635531', '67.3')
+   ('8e859b15-495c-4c78-9407-a67661bb5981', '64.5')
+   ('df8673b8-a3c8-41b6-b754-7b115994537b', '67.2')
+   ('d3045e82-7377-47f3-9c30-47c3e5edee21', '71.6')
+   ('bfbd64ba-b27b-4c42-abc0-85246e9e0802', '69.2')
+   ('07d856cd-56d8-47ef-9c0b-1247bf237a4c', '64.9')
 
-TOP BOARD (liquid only):
-  TIC    fuel=75.7  LOADED    %flt=21.06 dtc=10.42 siΔ%=25.58 | 21.06% of float short · 10.42d to cover · SI +26% vs prior
-  XPOF   fuel=71.6  LOADED    %flt=27.32 dtc=8.56 siΔ%=31.48 | 27.32% of float short · 8.56d to cover · SI +31% vs prior
-  VSTM   fuel=71.5  LOADED    %flt=40.04 dtc=10.13 siΔ%=18.71 | 40.04% of float short · 10.13d to cover · SI +19% vs prior
-  TYRA   fuel=69.3  BUILDING  %flt=21.01 dtc=13.12 siΔ%=15.08 | 21.01% of float short · 13.12d to cover · SI +15% vs prior
-  IPSC   fuel=69.2  BUILDING  %flt=25.63 dtc=13.53 siΔ%=2.11 | 25.63% of float short · 13.53d to cover
-  GPGI   fuel=67.3  BUILDING  %flt=35.6 dtc=15.77 siΔ%=-3.23 | 35.6% of float short · 15.77d to cover
-  SVRA   fuel=67.2  BUILDING  %flt=28.31 dtc=21.81 siΔ%=8.19 | 28.31% of float short · 21.81d to cover
-  REAX   fuel=65.6  BUILDING  %flt=17.09 dtc=8.18 siΔ%=36.41 | 17.09% of float short · 8.18d to cover · SI +36% vs prior
-  PALI   fuel=65.5  BUILDING  %flt=18.37 dtc=10.79 siΔ%=14.44 | 18.37% of float short · 10.79d to cover · SI +14% vs prior
-  HURA   fuel=65.1  BUILDING  %flt=23.72 dtc=14.75 siΔ%=5.73 | 23.72% of float short · 14.75d to cover
-  IEP    fuel=65.0  BUILDING  %flt=44.94 dtc=13.77 siΔ%=7.4 | 44.94% of float short · 13.77d to cover
-  TNGX   fuel=64.9  BUILDING  %flt=40.83 dtc=13.01 siΔ%=5.28 | 40.83% of float short · 13.01d to cover
-  BEAM   fuel=64.5  BUILDING  %flt=22.88 dtc=11.73 siΔ%=-19.08 | 22.88% of float short · 11.73d to cover · SI -19% (covering)
-  GLUE   fuel=64.2  BUILDING  %flt=37.98 dtc=19.21 siΔ%=6.97 | 37.98% of float short · 19.21d to cover
-  EYPT   fuel=64.0  BUILDING  %flt=21.43 dtc=15.09 siΔ%=6.68 | 21.43% of float short · 15.09d to cover
-
-PICKS: [('XPOF', 71.6, 'LOADED', 27.32), ('IPSC', 69.2, 'BUILDING', 25.63), ('GPGI', 67.3, 'BUILDING', 35.6), ('SVRA', 67.2, 'BUILDING', 28.31), ('HURA', 65.1, 'BUILDING', 23.72), ('TNGX', 64.9, 'BUILDING', 40.83), ('BEAM', 64.5, 'BUILDING', 22.88), ('EYPT', 64.0, 'BUILDING', 21.43), ('CRSP', 63.9, 'BUILDING', 22.57), ('AVBP', 63.7, 'BUILDING', 25.89), ('CHH', 63.5, 'BUILDING', 29.45), ('MRNA', 63.0, 'BUILDING', 15.62), ('NUVB', 62.9, 'BUILDING', 21.16), ('DNTH', 62.9, 'BUILDING', 22.94), ('APGE', 62.7, 'BUILDING', 18.47), ('ABEO', 62.2, 'BUILDING', 39.47), ('NRIX', 62.2, 'BUILDING', 22.3), ('AMLX', 62.0, 'BUILDING', 27.07), ('VYX', 61.9, 'BUILDING', 22.42), ('SPRY', 61.7, 'BUILDING', 39.53)]
-
-remaining dtc>40 (should be none): []
-DONE 2008
+page check:
+  https://justhodl.ai/squeeze-fuel.html -> HTTP 200 bytes=6778
+  https://justhodl.ai/data/squeeze-fuel.json -> HTTP Error 404: Not Found
+DONE 2009
