@@ -1,12 +1,12 @@
-redeployed flow-lookthrough
-top_picks: [('CNC', 31.36), ('FFIV', 19.51), ('AKAM', 18.42), ('AES', 17.81), ('LDOS', 16.07), ('CAG', 14.34), ('CPB', 12.32), ('AMCR', 10.6), ('ARE', 10.3), ('LYB', 9.97), ('VMC', 4.33), ('VZ', 3.43), ('MRSH', 1.54), ('WAB', 1.48), ('XYL', 1.4)]
+extractor would yield from top_picks: ['CNC', 'FFIV', 'AKAM', 'AES', 'LDOS', 'CAG', 'CPB', 'AMCR', 'ARE', 'LYB', 'VMC', 'VZ', 'MRSH', 'WAB', 'XYL']
 
-invoking signal-harvester...
-harvester StatusCode: 200 err: None
-payload: b'{"statusCode": 200, "body": "{\\"ok\\": true, \\"engines\\": 31, \\"written\\": 44, \\"scanned\\": 440}"}'
-
-harvest summary keys: ['engine', 'version', 'generated_at', 'regime_at_log', 'n_engine_outputs_scanned', 'n_engines_with_picks', 'n_harvested', 'n_written', 'n_skipped_no_price', 'dedup_days']
-flow-lookthrough in summary: checking DDB...
-
-DDB justhodl-signals rows for eng:flow-lookthrough: 0
-DONE 1966
+eng:flow-lookthrough rows in justhodl-signals: 8 (scanned 21 pages)
+   AKAM UP base= 124.91 conf= 0.58 logged= 2026-06-20
+   AES UP base= 14.62 conf= 0.577 logged= 2026-06-20
+   AMCR UP base= 41.08 conf= 0.546 logged= 2026-06-20
+   FFIV UP base= 385.49 conf= 0.585 logged= 2026-06-20
+   CPB UP base= 21.15 conf= 0.554 logged= 2026-06-20
+   CNC UP base= 61.02 conf= 0.636 logged= 2026-06-20
+   LDOS UP base= 107.07 conf= 0.57 logged= 2026-06-20
+   CAG UP base= 13.2 conf= 0.562 logged= 2026-06-20
+DONE 1967
