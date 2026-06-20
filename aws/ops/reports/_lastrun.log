@@ -1,18 +1,15 @@
-invoke: 200 None | b'{"statusCode": 200, "body": "{\\"status\\": \\"LIVE\\", \\"n_tracked\\": 425, \\"n_fmp_enriched\\": 238, \\"n_with_history\\": 356, \\"n_up\\": 0, \\"n_down\\": 0, \\"n_strength_leaders\\": 40, \\"n_picks\\": 0, \\"elapsed_s\\": 3.6}"}'
+--- estimate-revisions patched; invoke ---
+b'{"statusCode": 200, "body": "{\\"status\\": \\"LIVE\\", \\"n_tracked\\": 425, \\"n_fmp_enriched\\": 238, \\"n_with_history\\": 425, \\"n_up\\": 0, \\"n_down\\": 0, \\"n_strength_leaders\\": 40, \\"n_picks\\": 15, \\"elapsed_s\\": 4.0}"}'
+updated justhodl-boom-radar
+scheduled justhodl-boom-radar-daily
 
-v 2.0.0 status: LIVE n_tracked: 425 n_fmp_enriched: 238
+--- boom-radar invoke ---
+invoke: 200 None | b'{"statusCode": 200, "body": "{\\"dimensions_loaded\\": {\\"BEAT\\": 6, \\"ANALYST\\": 73, \\"ESTIMATE\\": 40, \\"FLOW\\": 34}, \\"n_scanned\\": 151, \\"n_2way\\": 2, \\"n_3way\\": 0, \\"n_4way_plus\\": 0, \\"n_picks\\": 0, \\"top\\": [[\\"ACN\\", 2, 1.96], [\\"LRCX\\", 2, 1.96], [\\"JBL\\", 1, 1.1], [\\"NEXN\\", 1, 1.1], [\\"VNCE\\", 1, 1.1], [\\"LOVE\\", 1, 1.1], [\\"ZVIA\\", 1, 1.1], [\\"RH\\", 1, 1.1]], \\"elapsed_s\\": 0.4}"}'
 
-★ ESTIMATE-STRENGTH LEADERS (immediate, FMP fwd-growth fused):
-  SNDK   strength=82.8 fwdEPSgrowth=187.1% nA=11 d2e=54 imp5
-  IQ     strength=82.2 fwdEPSgrowth=1230.4% nA=9 d2e=60 imp2
-  HSAI   strength=82.2 fwdEPSgrowth=67.8% nA=9 d2e=54 imp3
-  CBRS   strength=81.2 fwdEPSgrowth=180.7% nA=5 d2e=60 imp5
-  AAPG   strength=81.2 fwdEPSgrowth=61.8% nA=5 d2e=60 imp2
-  AAPG   strength=81.2 fwdEPSgrowth=61.8% nA=5 d2e=60 imp2
-  KLAR   strength=81.2 fwdEPSgrowth=276.6% nA=5 d2e=59 imp3
-  BTDR   strength=81.2 fwdEPSgrowth=66.3% nA=5 d2e=58 imp3
-  ABEO   strength=81.2 fwdEPSgrowth=91.0% nA=5 d2e=54 imp2
-  CELC   strength=81.2 fwdEPSgrowth=88.0% nA=5 d2e=54 imp3
+dimensions loaded: {'BEAT': 6, 'ANALYST': 73, 'ESTIMATE': 40, 'FLOW': 34}
+scanned=151 2way=2 3way=0 4way+=0
 
-★ TOP PICKS (strong+near-earnings → harvester): []
-DONE 1987
+★ HIGH-CONVICTION BOOM CANDIDATES (>=3 independent signals):
+
+★ TOP PICKS → harvester: []
+DONE 1988
