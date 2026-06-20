@@ -1,30 +1,31 @@
-invoke: 200 None | b'{"statusCode": 200, "body": "{\\"n_upcoming\\": 4, \\"n_recent\\": 30, \\"n_pead\\": 10, \\"duration_s\\": 31.81}"}'
-version: 1.2 | n_recent: 30 | n_forward_calendar: 38
-data_sources: {'surprises_and_calendar': 'Benzinga Earnings (via Massive) — actual/estimate EPS+revenue, importance, AMC/BMO', 'upcoming_watchlist': 'Nasdaq earnings calendar API (free)', 'returns': 'Polygon aggregates API'}
+=== updated.gte = recently-revised rows (last 7d), sorted by last_updated ===
+rows=12 next_url=y 
+  ZBAO   upd=2026-06-20T07:04 date=2026-11-03 imp1 estEPS=None status=projected fp=FY2026
+  YSWY   upd=2026-06-20T07:04 date=2027-06-01 imp2 estEPS=0.16 status=projected fp=Q12027
+  YTRA   upd=2026-06-20T07:04 date=2027-05-21 imp1 estEPS=None status=projected fp=Q12027
+  XE     upd=2026-06-20T07:04 date=2027-04-28 imp3 estEPS=None status=projected fp=Q12027
+  VSA    upd=2026-06-20T07:04 date=2027-02-10 imp1 estEPS=None status=projected fp=Q12027
+  TNMG   upd=2026-06-20T07:03 date=2026-10-21 imp1 estEPS=None status=projected fp=H12026
+  TGIFF  upd=2026-06-20T07:03 date=2027-03-30 imp1 estEPS=None status=projected fp=Q22027
+  SUJA   upd=2026-06-20T07:03 date=2027-06-08 imp1 estEPS=0.06 status=projected fp=Q12027
+  SGAPY  upd=2026-06-20T07:03 date=2027-05-20 imp4 estEPS=None status=projected fp=FY2024
+  SGHC   upd=2026-06-20T07:03 date=2027-02-22 imp3 estEPS=0.21 status=projected fp=Q42026
 
-★ MARKET-WIDE FORWARD CALENDAR (38 names imp>=2, next 14d):
-  2026-06-22 BMO  FRVO   imp4 estEPS=-0.09 Fervo Energy
-  2026-06-23 AMC  CBRS   imp5 estEPS=-0.17 Cerebras Systems
-  2026-06-23 AMC  FDX    imp5 estEPS=5.94 FedEx
-  2026-06-23 BMO  CCL    imp4 estEPS=0.34 Carnival
-  2026-06-23 AMC  ICLR   imp4 estEPS=2.5 Icon
-  2026-06-23 AMC  WOR    imp3 estEPS=1.06 Worthington Enterprise
-  2026-06-23 AMC  KBH    imp3 estEPS=0.46 KB Home
-  2026-06-23 BMO  KFY    imp3 estEPS=1.38 Korn Ferry
-  2026-06-24 AMC  MU     imp5 estEPS=19.92 Micron Technology
-  2026-06-24 BMO  PAYX   imp4 estEPS=1.31 Paychex
-  2026-06-24 AMC  JEF    imp4 estEPS=1.13 Jefferies Financial Gr
-  2026-06-24 AMC  TCOM   imp4 estEPS=0.79 Trip.com Group
+=== multiple rows for ONE ticker+period? (estimate history within feed) ===
+  NVDA fp=Q12028 date=2027-05-19 estEPS=2.66 actual=None upd=2026-06-05T23:30
+  NVDA fp=Q42027 date=2027-02-24 estEPS=2.47 actual=None upd=2026-06-05T23:30
+  NVDA fp=Q32027 date=2026-11-18 estEPS=2.32 actual=None upd=2026-06-05T23:30
+  NVDA fp=Q22027 date=2026-08-26 estEPS=2.06 actual=None upd=2026-06-05T23:30
+  NVDA fp=Q12027 date=2026-05-20 estEPS=1.76 actual=1.87 upd=2026-05-20T20:20
+  NVDA fp=Q42026 date=2026-02-25 estEPS=1.5 actual=1.62 upd=2026-02-25T22:35
+  NVDA fp=Q32026 date=2025-11-19 estEPS=1.22 actual=1.3 upd=2025-11-19T23:31
+  NVDA fp=Q22026 date=2025-08-27 estEPS=0.98 actual=1.04 upd=2025-08-27T20:27
 
-★ PEAD now with revenue confirmation (label | eps% | rev% | score):
-  SNOW   STRONG_POSITIVE_DRIFT  eps=178.57   rev=5.18     score=88
-  TGT    STRONG_POSITIVE_DRIFT  eps=26.67    rev=4.54     score=88
-  CSCO   STRONG_POSITIVE_DRIFT  eps=6.0      rev=1.78     score=88
-  OKTA   STRONG_POSITIVE_DRIFT  eps=22.97    rev=1.77     score=85
-  DLTR   STRONG_POSITIVE_DRIFT  eps=11.54    rev=0.13     score=85
-  HD     DOUBLE_BEAT_DRIFT      eps=0.59     rev=0.55     score=69
-  HMC    MISS_BUT_ROSE          eps=-14233.33 rev=-0.02    score=56
-  ACN    MIXED                  eps=2.43     rev=-0.28    score=50
-
-DOUBLE_BEAT_DRIFT names (beat both lines): ['HD']
-DONE 1976
+=== probe candidate native consensus/estimate endpoints ===
+  /benzinga/v1/consensus-eps    -> HTTP404
+  /benzinga/v1/estimates        -> HTTP404
+  /benzinga/v1/consensus        -> HTTP404
+  /benzinga/v1/analyst-insights -> OK results
+  /benzinga/v1/ratings          -> OK results
+  /benzinga/v1/guidance         -> OK results
+DONE 1977
