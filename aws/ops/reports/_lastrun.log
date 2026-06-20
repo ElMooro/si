@@ -1,19 +1,21 @@
-redeployed: 2026-06-20T18:01:58.000+0000
-invoke status: 200
-payload: {"statusCode": 200, "body": "{\"ok\": true, \"n_events\": 48, \"high_impact_next_7d\": 12, \"by_type\": {\"AUCTION\": 7, \"EARNINGS\": 39, \"BANK_EARNINGS\": 1, \"FOMC\": 1}, \"duration_s\": 0.9}"}
-
-EARNINGS total=39  Benzinga=38  FMP-supplement=1
-by_source: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 39, 'FDA': 0, 'GOV_CONTRACT': 12}
-
-Top Benzinga earnings by importance:
-  2026-06-23 CBRS   imp=5 HIGH   AMC  cons=-0.17
-  2026-06-23 FDX    imp=5 HIGH   AMC  cons=5.94
-  2026-06-24 MU     imp=5 HIGH   AMC  cons=19.92
-  2026-06-30 NKE    imp=5 HIGH   AMC  cons=0.12
-  2026-06-22 FRVO   imp=4 HIGH   BMO  cons=-0.09
-  2026-06-23 CCL    imp=4 HIGH   BMO  cons=0.34
-  2026-06-23 ICLR   imp=4 HIGH   AMC  cons=2.5
-  2026-06-24 PAYX   imp=4 HIGH   BMO  cons=1.31
-
-high_impact_next_7d: 12 next_30d: 16
-DONE 1998
+=== SECTION DATA CHECK ===
+  boom-radar: high_conviction=0 candidates=4
+    ACN    n=None score=2.1 dims=None
+    LRCX   n=None score=2.1 dims=None
+    MU     n=None score=1.89 dims=None
+    CSCO   n=None score=1.68 dims=None
+  analyst-actions: guidance_raises=30 guidance_cuts=13
+    raises: ['ACN', 'JBL', 'NEXN', 'VNCE', 'LOVE', 'ZVIA']
+  catalyst big-earnings-7d: 12 -> ['CBRS', 'FDX', 'MU', 'FRVO', 'CCL', 'ICLR']
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/1999_brief_boom_telegram.py", line 34, in <module>
+    lam.update_function_code(FunctionName=FN,ZipFile=buf.read())
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-morning-brief-tg
