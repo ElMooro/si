@@ -1,47 +1,20 @@
-================================================================
-(1) ETF CONSTITUENTS via composite_ticker
-================================================================
 
-SPY: HTTP 200 | n=200 | composite_ticker_field=SPY | latest_effective=2023-05-19
-   top8 holdings: ['1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D']
-   sample: {"processed_date": "2017-04-03", "composite_ticker": "SPY", "constituent_ticker": "1479997D", "constituent_name": "L3 TECHNOLOGIES INC", "weight": 0.0008273085, "market_value": 198259351.29, "us_code": "52729N308", "isin": "US52729N3089", "figi": "BBG000BGRKT6
+HTTP 400 https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&order=desc&sort=effective_date&limit=50&
+    n=0 {"_err": "{\"status\":\"ERROR\",\"request_id\":\"77c826905e9e424aaa9adfb7120fce8b\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [composite_tick
 
-QQQ: HTTP 200 | n=200 | composite_ticker_field=QQQ | latest_effective=2018-01-17
-   top8 holdings: ['1LGC', '1LGC', '1LGC', '1LGC', '1LGC', '1LGC', '1LGC', '1LGC']
-   sample: {"processed_date": "2017-04-03", "composite_ticker": "QQQ", "constituent_ticker": "1LGC", "constituent_name": "LIBERTY GLOBAL PLC-SERIES C", "weight": 0.0034409734, "market_value": 161919872.0, "isin": "GB00B8W67B19", "figi": "BBG000FSN559", "sedol": "BB2C204"
+HTTP 200 https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&order=desc&sort=processed_date&limit=50&
+    n=50 max_eff=2017-04-03 max_proc=2017-04-03 top=['1479997D', '9876590D', 'A', 'AAL', 'AAP', 'AAPL']
 
-XLK: HTTP 200 | n=200 | composite_ticker_field=XLK | latest_effective=2025-02-20
-   top8 holdings: ['1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D']
-   sample: {"processed_date": "2017-04-03", "composite_ticker": "XLK", "constituent_ticker": "1479997D", "constituent_name": "L3 TECHNOLOGIES INC", "weight": 0.0034997605, "market_value": 59539899.51, "us_code": "52729N308", "isin": "US52729N3089", "figi": "BBG000BGRKT6"
+HTTP 200 https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&effective_date.gte=2026-01-01&limit=50&
+    n=50 max_eff=2026-03-17 max_proc=2026-03-17 top=['A', 'A', 'A', 'A', 'A', 'A']
 
-================================================================
-(2) BENZINGA EARNINGS — reported rows w/ actuals?
-================================================================
-AAPL earnings rows: 62 total | 58 with date<2026-06-20
-  most-recent REPORTED row ALL fields:
-     currency: USD
-     date_status: confirmed
-     actual_eps: 2.01
-     estimated_eps: 1.94
-     previous_eps: 1.65
-     eps_surprise: 0.07
-     eps_surprise_percent: 0.0361
-     eps_method: gaap
-     benzinga_id: 68131c04a17ecf0001790658
-     importance: 5
-     company_name: Apple
-     fiscal_period: Q2
-     fiscal_year: 2026
-     actual_revenue: 111184000000.0
-     estimated_revenue: 109675147200.0
-     previous_revenue: 95359000000.0
-     revenue_surprise: 1508852736.0
-     revenue_surprise_percent: 0.0138
-     revenue_method: gaap
-     ticker: AAPL
-     last_updated: 2026-04-30T20:30:35Z
-     date: 2026-04-30
-     time: 16:30:00
-  EPS/revenue/surprise-related fields seen: ['actual_eps', 'actual_revenue', 'eps_method', 'eps_surprise', 'eps_surprise_percent', 'estimated_eps', 'estimated_revenue', 'previous_eps', 'previous_revenue', 'revenue_method', 'revenue_surprise', 'revenue_surprise_percent']
+HTTP 200 https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&processed_date.gte=2026-05-01&limit=50&
+    n=50 max_eff=2026-06-17 max_proc=2026-06-18 top=['A', 'A', 'A', 'A', 'A', 'A']
 
-DONE 1958
+HTTP 400 https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&sort=effective_date.desc&limit=50&
+    n=0 {"_err": "{\"status\":\"ERROR\",\"request_id\":\"1e711eb97c50462c8d4f14febb3a0f4d\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [composite_tick
+
+--- walking pagination to find newest (up to 6 hops) ---
+   after 6 hops, newest effective_date seen = 2025-02-20
+
+DONE 1959
