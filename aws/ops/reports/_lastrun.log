@@ -1,6 +1,17 @@
-alpha_proven_signals: ["crypto_risk_score", "squeeze_risk", "crisis_dfii10_vs_gld"]
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2041_probe_outcomes2.py", line 7, in <module>
-    print("\nengines[0] full:",json.dumps(a["engines"][0],default=str)[:600])
-                                          ~~~~~~~~~~~~^^^
-KeyError: 0
+engines type: dict n: 37
+sample engine key: crisis_dfii10_vs_gld 
+ dict: {"alpha_status": "ALPHA_PROVEN", "t_stat": 31.16, "mean_excess_pct": 5.421, "net_t_stat": 29.44, "net_mean_excess_pct": 5.121, "info_ratio": 1.971, "alpha_n": 250}
+
+ proven dicts:
+  crypto_risk_score → keys: ['alpha_n', 'alpha_status', 'info_ratio', 'mean_excess_pct', 'net_mean_excess_pct', 'net_t_stat', 't_stat']
+     net: {'net_t_stat': 6.19, 'net_mean_excess_pct': 2.102}
+     by_regime keys: []
+
+============================================================
+outcomes schema
+============================================================
+scanned: 2500 
+ALL KEYS: ['backfilled_at', 'checked_at', 'correct', 'is_legacy', 'legacy_reason', 'logged_at', 'outcome', 'outcome_id', 'predicted_dir', 'regime_at_log', 'signal_id', 'signal_type', 'signal_value', 'ttl', 'window_key']
+
+top signal_type: [('screener_top_pick', 588), ('correlation_break', 164), ('etf_rotation', 142), ('crypto_fear_greed', 116), ('crypto_risk_score', 88), ('plumbing_stress', 88), ('earnings_pead', 88), ('edge_composite', 73), ('squeeze_risk', 69), ('ml_risk', 66), ('khalid_index', 63), ('momentum_uso', 55), ('edge_regime', 52), ('momentum_gld', 49), ('momentum_spy', 47), ('market_phase', 42)]
+DONE 2042
