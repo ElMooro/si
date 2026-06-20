@@ -1,16 +1,20 @@
-================================================================
-ALPHAVANTAGE ENTITLEMENT + RATE-LIMIT AUDIT (key EOLGK…)
-================================================================
-1. GLOBAL_QUOTE AAPL (core): HTTP 200 OK | keys present: ['Global Quote'] | payload 385B
-2. NEWS_SENTIMENT (ticker sentiment — potentially unique): HTTP 200 OK | keys present: ['feed', 'sentiment_score_definition', 'items'] | payload 129600B
-     sample article sentiment: {'overall_sentiment_label': 'Neutral', 'overall_sentiment_score': 0.049714} | ticker_sentiment[0]: {'ticker': 'AAPL', 'relevance_score': '0.342502', 'ticker_sentiment_score': '0.028193', 'ticker_sentiment_label': 'Neutral'}
-3. LISTING_STATUS delisted (survivorship-bias universe — possibly unique): HTTP 200 non-json symbol,name,exchange,assetType,ipoDate,delistingDate,status
-AA-W,Alcoa Corporation When Issued,NYSE,Stock,2016-10-18,20
-     LISTING_STATUS raw head: {}
-4. INSIDER_TRANSACTIONS AAPL (redundant w/ FMP?): HTTP 200 OK | keys present: ['data'] | payload 2536467B
-5. EARNINGS_CALENDAR (redundant w/ FMP/Benzinga?): HTTP 200 non-json symbol,name,reportDate,fiscalDateEnding,estimate,currency,timeOfTheDay
-EBF,ENNIS INCORPORATED,2026-06-22,2026-05-31,,US
-6. REAL_GDP (redundant w/ FRED?): HTTP 200 OK | keys present: ['data'] | payload 8557B
-7. HISTORICAL_OPTIONS AAPL (memory says PREMIUM): ⚠️ Information: Thank you for using Alpha Vantage! This is a premium endpoint. You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly unlock all premium
-8. ANALYTICS_FIXED_WINDOW (corr/stats — premium?): HTTP 200 OK | keys present: ['payload'] | payload 623B
-DONE 2039
+============================================================
+engine-alpha.json — proven set + structure
+============================================================
+top keys: ['generated_at', 'benchmark', 'fdr_q', 'n_alpha_proven', 'n_alpha_negative', 'alpha_proven_signals', 'alpha_negative_signals', 'engines']
+n engines: 37
+
+ALPHA_PROVEN: 3
+   (None, 'ALPHA_PROVEN', 250, None, None)
+   (None, 'ALPHA_PROVEN', 236, None, None)
+   (None, 'ALPHA_PROVEN', 843, None, None)
+
+Top positive-mean-excess (n>=20), candidate set:
+
+============================================================
+justhodl-outcomes — sample eng:* rows (date field? excess?)
+============================================================
+scanned: 2400 | distinct eng: types seen: 0
+
+ top eng counts (in sample): []
+DONE 2040
