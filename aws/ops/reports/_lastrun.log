@@ -1,29 +1,7 @@
-============================================================
-1) Polygon FX spot (baseline) + any forward/futures
-============================================================
-C:EURUSD spot: 200
-C:USDJPY spot: 200
-fx ref: 200
-futures ref: 404 404 page not found
+crisis-plumbing invoke: 200 | {"statusCode": 200, "body": "{\"status\": \"ok\", \"elapsed_sec\": 2.9, \"composite_signal\": \"NORMAL\", \"composite_score\": 28.2, \"n_indices\": 4, \"n_flagged\": 0, \"s3_key\": \"data/crisis-plumb
 
-============================================================
-2) FMP forex / forward
-============================================================
-  /stable/forex/EURUSD: HTTP 404 []
-  /stable/quote/EURUSD: HTTP 404 []
-  /stable/forex-forward: HTTP 404 []
-  /stable/historical-price-eod/forex: HTTP 404 []
-
-============================================================
-3) FRED — spot FX + any forward/basis/OIS series
-============================================================
-  DEXUSEU: 2026-06-12=1.1573
-  DEXJPUS: 2026-06-12=160.24
-  DTB3: 2026-06-17=3.68
-  SOFR: 2026-06-17=3.63
-  IORB: 2026-06-22=3.65
-  ECBESTRVOLWGTTRMDMNRT: 2026-06-18=2.18
-  IR3TIB01EZM156N: 2026-01-01=2.0277272727
-
-  CIP inputs needed: USD 3M (SOFR/bill) ✓, foreign 3M rate ✓(FRED), FX spot ✓, FX FORWARD ← the gating item
-DONE 2029
+generated_at: 2026-06-20T21:26:46.485276+00:00
+xcc_basis_3m_eur: None
+xcc_basis_3m_jpy: None
+   xcc_basis_proxy = {'rate_diff_jpy_3m': {'available': True, 'latest_date': '2026-06-17', 'current_pct': 2.588, 'mean_1y_pct': 2.95, 'std_1y_pct': 0.484, 'z_score_1y': -0.75, 'delta_30d': 0.15, 'signal': 'NORMAL', 'n_observations': 272, 'interpretation': 'Rate differential within 1Y normal range', 'method': 'USD 3M T-Bill (DGS3MO) minus Japan 3M Interbank (IR3TIB01JPM156N), 1Y z-score', 'caveat': 'Approximates CIP deviation; true basis requires forward FX (not on FRED)'}, 'rate_diff_eur_3m': {'available': True, 'latest_date': '2026-06-17', 'current_pct': 1.648, 'mean_1y_pct': 2.003, 'std_1y_pct': 0.276, 'z_score_1y': -1.29, 'delta_30d': -0.101, 'signal': 'WATCH', 'n_observations': 272, 'interpretation': 'Rate differential elevated relative to 1Y norm', 'method': 'USD 3M T-Bill (DGS3MO) minus EUR ESTR overnight (ECBESTRVOLWGTTRMDMNRT), 1Y z-score', 'caveat': 'Tenor mismatch (USD 3M vs EUR overnight); z-score of differential is what matters, not the level'}, 'broad_dollar_index': {'available': True, 'latest_date': '2026-06-12', 'level': 119.51, 'z_score_1y': -0.31, 'delta_30d_pct': 0.87, 'signal': 'NORMAL', 'interpretation': 'USD within 1Y normal range'}, 'obfr_iorb_spread': {'available': True, 'latest_date': '2026-06-17', 'spread_bps': -2.0, 'obfr_pct': 3.63, 'iorb_pct': 3.65, 'z_score_1y': 0.62, 'signal': 'NORMAL', 'interpretation': 'Unsecured plumbing functioning normally', 'note': 'Parallels SOFR-IORB but for unsecured side; combined picture of repo + fed funds'}}
+DONE 2030
