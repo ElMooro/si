@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Boom Radar · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#111722;--panel2:#0d131c;--line:#1e2836;--txt:#d6e0ee;--dim:#7c8aa0;--grn:#16c784;--red:#ea3943;--amb:#f0a020;--cyan:#3fb6dc;--blu:#4d7cfe;--mag:#b46bd6}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font:13px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;padding:18px 14px 60px;margin:0}
+a{color:var(--cyan);text-decoration:none}
+h1{font-size:20px;margin:0}
+.sub{color:var(--dim);font-size:12px;margin-top:3px;max-width:720px}
+.topbar{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+.statbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px;margin-bottom:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.stat .v{font-size:20px;font-weight:700;color:#fff}.stat .l{color:var(--dim);font-size:11px;margin-top:2px}
+.regime{display:inline-block;font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid var(--line);color:var(--dim);margin-left:8px}
+h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:22px 0 10px;border-left:3px solid var(--blu);padding-left:9px}
+h2.g{border-color:var(--grn)}h2.m{border-color:var(--mag)}
+h2 small{text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400;font-size:11px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:11px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px;border-left:4px solid var(--mag)}
+.card .hdr{display:flex;justify-content:space-between;align-items:baseline}
+.card .tk{font-size:17px;font-weight:700;color:#fff}
+.card .sc{font-size:13px;color:var(--mag);font-weight:700}
+.dimrow{margin:7px 0 4px}
+.dim{display:inline-block;font-size:10px;padding:2px 7px;border-radius:5px;margin:0 4px 4px 0;background:var(--panel2);border:1px solid var(--line)}
+.dim.BEAT{color:var(--grn);border-color:var(--grn)}
+.dim.ANALYST{color:var(--cyan);border-color:var(--cyan)}
+.dim.ESTIMATE{color:var(--blu);border-color:var(--blu)}
+.dim.FLOW{color:var(--amb);border-color:var(--amb)}
+.dim.SQUEEZE{color:var(--red);border-color:var(--red)}
+.dim.BREAKOUT{color:var(--mag);border-color:var(--mag)}
+.reasons{font-size:10.5px;color:var(--dim);line-height:1.6;margin-top:5px;border-top:1px dashed var(--line);padding-top:5px}
+.conv{font-size:11px;color:var(--dim)}
+.conv b{color:#fff}
+.loading{color:var(--dim);padding:40px;text-align:center}
+.foot{color:var(--dim);font-size:11px;margin-top:24px;border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>🚀 Boom Radar <span class="regime" id="regime"></span></h1>
+  <div class="sub">Booms come from <b>convergence</b> — independent bullish signals stacking on one name. Fuses six dimensions: earnings <b>beats</b>, analyst <b>guidance/PT</b> moves, <b>estimate</b> strength, ETF <b>flow</b> accumulation, <b>squeeze</b> pressure, and technical <b>breakouts</b>. The more independent signals agree, the higher the boom probability.</div>
+</div>
+<div class="statbar" id="statbar"></div>
+<div id="content"><div class="loading">⟳ scanning for convergence…</div></div>
+<div class="foot" id="foot"></div>
+<script>
+const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
+  `https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,
+  `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}throw new Error("sources failed");}
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const DIMS=["BEAT","ANALYST","ESTIMATE","FLOW","SQUEEZE","BREAKOUT"];
+
+function card(c){
+  const dims=(c.dimensions||[]).map(d=>`<span class="dim ${d}">${d}</span>`).join("");
+  const reasons=(c.reasons||[]).map(r=>`• ${esc(r)}`).join("<br>");
+  return `<div class="card">
+    <div class="hdr"><span class="tk">${esc(c.ticker)}</span><span class="sc">${c.boom_score}</span></div>
+    <div class="conv"><b>${c.convergence}</b> independent signals</div>
+    <div class="dimrow">${dims}</div>
+    <div class="reasons">${reasons}</div>
+  </div>`;
+}
+
+function render(d){
+  const reg=d.squeeze_regime||{};
+  document.getElementById("regime").textContent = reg.state? `squeeze regime: ${reg.state}` : "";
+  const dl=d.dimensions_loaded||{};
+  document.getElementById("statbar").innerHTML=
+    `<div class="stat"><div class="v">${d.n_scanned||0}</div><div class="l">NAMES SCANNED</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--mag)">${d.n_4way_plus||0}</div><div class="l">4+ SIGNALS</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--grn)">${d.n_3way||0}</div><div class="l">3+ SIGNALS</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--cyan)">${d.n_2way||0}</div><div class="l">2+ SIGNALS</div></div>`+
+    DIMS.map(dn=>`<div class="stat"><div class="v" style="font-size:14px">${dl[dn]||0}</div><div class="l">${dn}</div></div>`).join("");
+
+  let h="";
+  const hc=d.high_conviction||[], cand=d.boom_candidates||[];
+  if(hc.length){
+    h+=`<h2 class="g">🔥 High-Conviction Booms <small>— 3+ independent signals converging</small></h2><div class="cards">${hc.slice(0,18).map(card).join("")}</div>`;
+  }
+  const twoway=cand.filter(c=>c.convergence===2);
+  if(twoway.length){
+    h+=`<h2 class="m">⚡ Boom Candidates <small>— 2 independent signals (strongest first)</small></h2><div class="cards">${twoway.slice(0,24).map(card).join("")}</div>`;
+  }
+  if(!hc.length&&!twoway.length) h+=`<div class="loading">No multi-signal convergence right now. The market regime is quiet — check back as catalysts develop.</div>`;
+  document.getElementById("content").innerHTML=h;
+
+  document.getElementById("foot").innerHTML=
+    `Dimensions: BEAT (earnings surprise) · ANALYST (guidance/PT/upgrades) · ESTIMATE (forward EPS strength) · FLOW (ETF accumulation) · SQUEEZE (short pressure) · BREAKOUT (52wk).<br>`+
+    `generated ${esc((d.generated_at||"").replace("T"," ").slice(0,16))} UTC · updates daily 14:30 UTC. `+
+    (Array.isArray(d.caveats)?esc(d.caveats.join(" ")):"")+" Research only — not investment advice.";
+}
+load("data/boom-radar.json").then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load boom-radar.json — '+esc(e.message)+'</div>';});
+setInterval(()=>load("data/boom-radar.json").then(render).catch(()=>{}),300000);
+</script>
+</body>
+</html>

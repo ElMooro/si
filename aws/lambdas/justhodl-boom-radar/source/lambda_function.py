@@ -154,16 +154,11 @@ def lambda_handler(event=None, context=None):
 
     boom_candidates = [c for c in cands if c["convergence"] >= 2][:60]
     high_conviction = [c for c in cands if c["convergence"] >= 3]
+    # picks: prefer >=3-way; in quiet regimes fall back to strong 2-way (score floor)
+    pick_pool = high_conviction or [c for c in cands if c["convergence"] >= 2 and c["boom_score"] >= 1.6]
     top_picks = [{"ticker": c["ticker"], "score": c["boom_score"],
                   "convergence": c["convergence"], "dimensions": c["dimensions"]}
-                 for c in cands if c["convergence"] >= 4][:20]
-    if len(top_picks) < 8:  # fall back to 3-way convergence if few 4-way
-        for c in high_conviction:
-            if len(top_picks) >= 12:
-                break
-            if not any(p["ticker"] == c["ticker"] for p in top_picks):
-                top_picks.append({"ticker": c["ticker"], "score": c["boom_score"],
-                                  "convergence": c["convergence"], "dimensions": c["dimensions"]})
+                 for c in pick_pool][:15]
 
     out = {
         "engine": "justhodl-boom-radar", "version": "1.0.0",
