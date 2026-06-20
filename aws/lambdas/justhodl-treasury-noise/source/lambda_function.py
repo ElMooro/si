@@ -39,6 +39,10 @@ S3 = boto3.client("s3", region_name=REGION)
 CMT = [("DGS1MO", 1 / 12), ("DGS3MO", 0.25), ("DGS6MO", 0.5), ("DGS1", 1.0),
        ("DGS2", 2.0), ("DGS3", 3.0), ("DGS5", 5.0), ("DGS7", 7.0),
        ("DGS10", 10.0), ("DGS20", 20.0), ("DGS30", 30.0)]
+# Fit on liquid benchmarks only. EXCLUDE 20Y (structurally cheap kink no 3-factor
+# Nelson-Siegel can fit → dominates RMS and masks genuine dislocation) and 1MO
+# (driven by bill-supply / debt-ceiling technicals, not curve stress).
+FIT_CMT = [(s, m) for s, m in CMT if s not in ("DGS1MO", "DGS20")]
 
 
 def fred_series(sid, start):
@@ -119,12 +123,12 @@ def lambda_handler(event=None, context=None):
     dtb3 = fred_series("DTB3", start)
     sofr = fred_series("SOFR", start)
 
-    # common dates with a full CMT curve
-    dates = sorted(set.intersection(*[set(cmt_data[sid].keys()) for sid, _ in CMT])) if all(cmt_data[sid] for sid, _ in CMT) else []
+    # common dates with a full (fit-set) CMT curve
+    dates = sorted(set.intersection(*[set(cmt_data[sid].keys()) for sid, _ in FIT_CMT])) if all(cmt_data[sid] for sid, _ in FIT_CMT) else []
     noise_series = []   # (date, rms_bps)
+    mats = [m for _, m in FIT_CMT]
     for d in dates:
-        ys = [cmt_data[sid][d] for sid, _ in CMT]
-        mats = [m for _, m in CMT]
+        ys = [cmt_data[sid][d] for sid, _ in FIT_CMT]
         rms = fit_ns_rms(mats, ys)
         if rms is not None:
             noise_series.append((d, round(rms * 100, 3)))   # bps
