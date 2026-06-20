@@ -25,9 +25,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Benzinga earnings (estimates + actuals + surprises) via Massive — bundled shared module
 try:
-    from benzinga import fetch_recent_reported as bz_recent_reported
+    from benzinga import fetch_recent_reported as bz_recent_reported, fetch_calendar as bz_calendar
 except Exception:  # defensive if shared bundle missing
     bz_recent_reported = None
+    bz_calendar = None
 from datetime import datetime, timedelta, timezone
 
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -181,16 +182,16 @@ def fetch_polygon_aggs(ticker, from_date, to_date):
 
 
 # ────────────────────────── Recent results + post-earnings drift ──────────────────────────
-def compute_pead_signal(eps_actual, eps_estimate, returns, surprise_pct=None, importance=None):
+def compute_pead_signal(eps_actual, eps_estimate, returns, surprise_pct=None, importance=None,
+                        rev_surprise_pct=None):
     """Score PEAD signal 0-100.
 
     PEAD is drift relative to the *consensus surprise*. When an authoritative
     surprise_pct is supplied (Benzinga actual-vs-estimate), use it directly.
-    Otherwise fall back to computing it from (actual, estimate). Passing the
-    prior-quarter EPS as `eps_estimate` is QoQ growth, NOT a surprise — callers
-    should supply a real estimate or surprise_pct.
-    `importance` (Benzinga 1-5) sharpens conviction: high-importance prints get
-    a small score nudge away from 50 (more signal), low-importance toward 50.
+    Otherwise fall back to computing it from (actual, estimate).
+    `importance` (Benzinga 1-5) sharpens conviction. `rev_surprise_pct` adds a
+    quality check: a beat confirmed on BOTH EPS and revenue drifts harder than an
+    EPS-only beat (which is often cost-cutting, not demand).
     """
     if surprise_pct is None:
         if eps_actual is None or eps_estimate is None or eps_estimate == 0:
@@ -213,13 +214,23 @@ def compute_pead_signal(eps_actual, eps_estimate, returns, surprise_pct=None, im
         label, score = "MISS_BUT_ROSE", 55
     else:
         label, score = "MIXED", 50
-    # Importance weighting: scale the deviation from neutral (50) by 0.7..1.15
+    # Importance weighting: scale deviation from neutral by 0.7..1.15
     if importance is not None and score != 50:
         try:
-            w = 0.7 + 0.1125 * (float(importance) - 1.0)  # imp1->0.70, imp5->1.15
+            w = 0.7 + 0.1125 * (float(importance) - 1.0)
             score = int(round(50 + (score - 50) * max(0.5, min(1.2, w))))
         except (TypeError, ValueError):
             pass
+    # Revenue confirmation: quality beat (both lines same direction) drifts harder
+    if rev_surprise_pct is not None and score != 50:
+        try:
+            same = (surprise_pct >= 0) == (float(rev_surprise_pct) >= 0)
+            score = int(round(50 + (score - 50) * (1.12 if same else 0.80)))
+            if same and surprise_pct > 0 and float(rev_surprise_pct) > 0 and label == "POSITIVE_DRIFT":
+                label = "DOUBLE_BEAT_DRIFT"
+        except (TypeError, ValueError):
+            pass
+    score = max(0, min(100, score))
     return surprise_pct, label, score
 
 
@@ -290,6 +301,7 @@ def build_recent_result(ticker):
                 pead_surprise, pead_label, pead_score = compute_pead_signal(
                     rep.get("actual_eps"), rep.get("estimated_eps"), returns,
                     surprise_pct=surprise_pct, importance=rep.get("importance"),
+                    rev_surprise_pct=rep.get("revenue_surprise_pct"),
                 )
                 return {
                     "ticker": ticker,
@@ -414,6 +426,17 @@ def lambda_handler(event=None, context=None):
     upcoming = collect_upcoming_earnings(days_ahead=14)
     print(f"[earnings] upcoming: {len(upcoming)} reports in next 14d")
 
+    # Market-wide forward calendar (Benzinga) — every company reporting in 14d
+    # with consensus estimate + importance + AMC/BMO timing (untapped breadth).
+    forward_calendar = []
+    if bz_calendar is not None:
+        try:
+            forward_calendar = bz_calendar(days_ahead=14, min_importance=2) or []
+            forward_calendar.sort(key=lambda x: (x.get("date") or "", -(x.get("importance") or 0)))
+        except Exception as e:
+            print(f"[earnings] bz_calendar failed: {e}")
+    print(f"[earnings] forward calendar (mkt-wide imp>=2): {len(forward_calendar)}")
+
     recent = collect_recent_results()
     print(f"[earnings] recent: {len(recent)} reports in past 35d")
 
@@ -423,11 +446,13 @@ def lambda_handler(event=None, context=None):
     print(f"[earnings] PEAD top: {len(pead)}")
 
     out = {
-        "version": "1.1",
+        "version": "1.2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "watchlist_size": len(WATCHLIST),
         "upcoming_14d": upcoming,
         "n_upcoming": len(upcoming),
+        "forward_calendar": forward_calendar,
+        "n_forward_calendar": len(forward_calendar),
         "recent_results_30d": recent,
         "n_recent": len(recent),
         "pead_signals": pead,
@@ -435,8 +460,8 @@ def lambda_handler(event=None, context=None):
         "aggregate_stats": stats,
         "duration_s": round(time.time() - started, 2),
         "data_sources": {
-            "upcoming": "Nasdaq earnings calendar API (free)",
-            "actuals": "Polygon stocks-financials API",
+            "surprises_and_calendar": "Benzinga Earnings (via Massive) — actual/estimate EPS+revenue, importance, AMC/BMO",
+            "upcoming_watchlist": "Nasdaq earnings calendar API (free)",
             "returns": "Polygon aggregates API",
         },
     }

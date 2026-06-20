@@ -118,3 +118,45 @@ def fetch_upcoming(ticker, limit=2):
             "fiscal_year": r.get("fiscal_year"),
         })
     return out
+
+
+def fetch_calendar(days_ahead=14, min_importance=0, limit=1000):
+    """Market-wide forward earnings calendar (no ticker filter): every company
+    reporting in the next N days with consensus estimate + importance + AMC/BMO
+    timing. This is the untapped breadth of the Benzinga Earnings feed."""
+    from datetime import timedelta
+    today = date.today()
+    j = _get("earnings", {
+        "date.gte": today.isoformat(),
+        "date.lte": (today + timedelta(days=days_ahead)).isoformat(),
+        "order": "asc",
+        "sort": "date",
+        "limit": str(limit),
+    })
+    out = []
+    for r in (j or {}).get("results", []) or []:
+        imp = r.get("importance") or 0
+        if imp < min_importance:
+            continue
+        t = (r.get("time") or "")
+        # Benzinga time HH:MM:SS -> session bucket
+        session = "—"
+        try:
+            hh = int(t.split(":")[0])
+            session = "BMO" if hh < 12 else "AMC"
+        except Exception:
+            pass
+        out.append({
+            "ticker": r.get("ticker"),
+            "company": r.get("company_name"),
+            "date": r.get("date"),
+            "session": session,
+            "date_status": r.get("date_status"),
+            "estimated_eps": r.get("estimated_eps"),
+            "previous_eps": r.get("previous_eps"),
+            "estimated_revenue": r.get("estimated_revenue"),
+            "importance": imp,
+            "fiscal_period": r.get("fiscal_period"),
+            "fiscal_year": r.get("fiscal_year"),
+        })
+    return out
