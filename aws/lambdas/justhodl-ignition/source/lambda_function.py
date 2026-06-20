@@ -108,12 +108,20 @@ def load_ftd():
     return out, [t for t, _ in files]
 
 
-# ── P4: FINRA ATS (probe) ───────────────────────────────────────────
+# ── P4: dark-pool ATS share (from justhodl-dark-pool engine) ─────────
 def load_dark():
-    """FINRA anonymous tier returns symbol-stripped stale aggregates — require
-    real symbols + recent dates before claiming availability."""
+    """Read per-name ATS (dark-pool) weekly shares from justhodl-dark-pool's dark_map
+    (FINRA ATS transparency, equity-filtered). Falls back to a direct FINRA query."""
+    try:
+        dp = json.loads(S3.get_object(Bucket=BUCKET, Key="data/dark-pool.json")["Body"].read())
+        dm = dp.get("dark_map") or {}
+        if dm:
+            return {k: int(v) for k, v in dm.items() if v}
+    except Exception as e:
+        print(f"[dark] dark-pool.json unavailable ({str(e)[:60]}); falling back to direct FINRA")
+    # fallback: direct FINRA ATS_W_SMBL query (filtered correctly this time)
     url = ("https://api.finra.org/data/group/otcMarket/name/weeklySummary"
-           "?limit=5000&fields=issueSymbolIdentifier,totalWeeklyShareQuantity,summaryTypeCode")
+           "?limit=5000&fields=issueSymbolIdentifier,totalWeeklyShareQuantity,summaryTypeCode,summaryStartDate")
     j = http_json(url, headers={**UA, "Accept": "application/json"}, timeout=30)
     if not isinstance(j, list) or not j:
         return None
@@ -121,10 +129,8 @@ def load_dark():
     fresh = (datetime.now(timezone.utc) - timedelta(days=45)).date().isoformat()
     for r in j:
         sym = r.get("issueSymbolIdentifier")
-        if sym and str(r.get("summaryStartDate", "")) >= fresh:
+        if sym and r.get("summaryTypeCode") == "ATS_W_SMBL" and str(r.get("summaryStartDate", "")) >= fresh:
             out[sym] = out.get(sym, 0) + int(r.get("totalWeeklyShareQuantity") or 0)
-    if not out:
-        print("[dark] FINRA anonymous tier: symbols null / stale — free API key required (KHALID_ACTIONS)")
     return out or None
 
 

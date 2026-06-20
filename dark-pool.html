@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dark-Pool Accumulation · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#9b8cff;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.45}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:14px;max-width:760px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:13px}
+.card .k{color:var(--fg-2);font-size:11px;text-transform:uppercase;letter-spacing:.04em}.card .v{font-family:var(--mono);font-size:22px;margin-top:4px}
+h2{font-size:14px;margin:24px 0 9px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--border);white-space:nowrap}
+th{color:var(--fg-2);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em}
+td.num{font-family:var(--mono);text-align:right}.sym{font-weight:700}
+.pill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:10.5px;font-family:var(--mono)}
+.ACCUMULATION{background:rgba(63,214,140,.16);color:var(--green)}.DISTRIBUTION{background:rgba(255,92,108,.16);color:var(--red)}.NEUTRAL{background:rgba(124,139,160,.12);color:var(--fg-2)}
+.scroll{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+.note{color:var(--fg-3);font-size:11px;margin-top:20px;line-height:1.6}.loading{color:var(--fg-2);padding:40px 0;text-align:center}a{color:var(--cyan)}
+.bar{height:5px;background:var(--bg-2);border-radius:3px;overflow:hidden;min-width:60px}.bar>i{display:block;height:100%;background:var(--green)}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Loading dark-pool accumulation…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function n(v,d){return v==null?'—':(typeof v==='number'?v.toFixed(d==null?2:d):v);}
+function sh(v){if(v==null)return '—';if(v>=1e6)return (v/1e6).toFixed(1)+'M';if(v>=1e3)return (v/1e3).toFixed(0)+'K';return v;}
+(async function(){
+  const d=await gj('data/dark-pool.json');const w=document.getElementById('wrap');
+  if(!d||!d.ok){w.innerHTML='<h1>Dark-Pool Accumulation</h1><div class="loading">No data yet — runs weekly (FINRA ATS lags ~2-3wk).</div>';return;}
+  const ds=d.distribution||{};
+  let h=`<h1>🌑 Dark-Pool Accumulation</h1><div class="sub">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="meta">week of ${esc(d.latest_week)} · ${n(d.n_scored,0)} names · ${esc((d.generated_at||'').slice(0,16))}Z</div>`;
+  h+=`<div class="cards">
+    <div class="card"><div class="k">Accumulation</div><div class="v" style="color:var(--green)">${n(ds.accumulation,0)}</div></div>
+    <div class="card"><div class="k">Distribution</div><div class="v" style="color:var(--red)">${n(ds.distribution,0)}</div></div>
+    <div class="card"><div class="k">Names scored</div><div class="v">${n(d.n_scored,0)}</div></div>
+  </div>`;
+  const board=(d.top_accumulation&&d.top_accumulation.length)?d.top_accumulation:(d.board||[]);
+  h+=`<h2>Top Accumulation <span style="color:var(--fg-3);font-weight:400">dark-pool share rising while price holds — quiet institutional build</span></h2>`;
+  h+=`<div class="scroll"><table><thead><tr><th>Ticker</th><th>State</th><th class="num">Score</th><th class="num">Dark %</th><th class="num">Off-exch %</th><th class="num">Accel</th><th class="num">Wk ret</th><th class="num">ATS shares</th></tr></thead><tbody>`;
+  board.slice(0,40).forEach(r=>{
+    h+=`<tr><td class="sym">${esc(r.ticker)}</td>
+      <td><span class="pill ${esc(r.state)}">${esc(r.state)}</span></td>
+      <td class="num">${n(r.score,1)}</td>
+      <td class="num">${n(r.dark_pool_pct,1)}%</td>
+      <td class="num">${n(r.offex_pct,1)}%</td>
+      <td class="num" style="color:${(r.dark_accel||0)>0?'var(--green)':'var(--fg-1)'}">${r.dark_accel==null?'—':(r.dark_accel>0?'+':'')+(r.dark_accel*100).toFixed(0)+'%'}</td>
+      <td class="num" style="color:${(r.week_return_pct||0)<0?'var(--red)':'var(--fg-1)'}">${r.week_return_pct==null?'—':(r.week_return_pct>0?'+':'')+n(r.week_return_pct,1)+'%'}</td>
+      <td class="num">${sh(r.ats_shares_wk)}</td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  if((d.top_distribution||[]).length){
+    h+=`<h2>Off-Exchange Distribution <span style="color:var(--fg-3);font-weight:400">dark share rising into falling price</span></h2><div style="font-family:var(--mono);font-size:12px;color:var(--fg-1)">`;
+    h+=(d.top_distribution||[]).map(r=>`${esc(r.ticker)} (${n(r.dark_pool_pct,1)}%, ${n(r.week_return_pct,1)}%)`).join(' · ');
+    h+=`</div>`;
+  }
+  h+=`<div class="note">${(d.caveats||[]).map(c=>'• '+esc(c)).join('<br>')}<br><br>Dark % = ATS (dark-pool) share of total weekly volume. Off-exch % = ATS + non-ATS wholesaler/internalizer share. Accel = latest-week ATS vs trailing-4wk average.<br>Data: ${esc(d.data_source||'')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>

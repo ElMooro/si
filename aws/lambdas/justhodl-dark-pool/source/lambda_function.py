@@ -129,9 +129,13 @@ def lambda_handler(event=None, context=None):
     latest_week = all_weeks[-1]
     prior_weeks = all_weeks[-5:-1]   # up to 4 prior weeks
     vol, closes = fetch_total_volume(week_trading_days(latest_week))
+    equity_set = fetch_equity_set()   # real common stocks + ADRs only (drop ETFs/funds)
+    print(f"[dark-pool] equity_set={len(equity_set)} symbols")
 
     rows = []
     for sym, wk in offex.items():
+        if equity_set and sym not in equity_set:
+            continue   # exclude ETFs/ETNs/funds — structural off-exchange %, not alpha
         lw = wk.get(latest_week)
         if not lw:
             continue
