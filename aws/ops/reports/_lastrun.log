@@ -1,37 +1,30 @@
-v2 deployed; invoking (first run builds v2 constituent cache, may take ~2min)...
-StatusCode: 200 FunctionError: None
-payload: b'{"statusCode": 200, "body": "{\\"n_names\\": 2614, \\"n_etfs_used\\": 55, \\"n_with_delta\\": 55, \\"top_accum\\": \\"KLAC\\", \\"n_index_events\\": 30, \\"n_confirmed_picks\\": 15, \\"elapsed_s\\": 3.6}"}'
+invoke: 200 None | b'{"statusCode": 200, "body": "{\\"n_upcoming\\": 4, \\"n_recent\\": 30, \\"n_pead\\": 10, \\"duration_s\\": 31.81}"}'
+version: 1.2 | n_recent: 30 | n_forward_calendar: 38
+data_sources: {'surprises_and_calendar': 'Benzinga Earnings (via Massive) — actual/estimate EPS+revenue, importance, AMC/BMO', 'upcoming_watchlist': 'Nasdaq earnings calendar API (free)', 'returns': 'Polygon aggregates API'}
 
-v2.0.0: names=2614 etfs=55 with_delta=55 elapsed=3.6
+★ MARKET-WIDE FORWARD CALENDAR (38 names imp>=2, next 14d):
+  2026-06-22 BMO  FRVO   imp4 estEPS=-0.09 Fervo Energy
+  2026-06-23 AMC  CBRS   imp5 estEPS=-0.17 Cerebras Systems
+  2026-06-23 AMC  FDX    imp5 estEPS=5.94 FedEx
+  2026-06-23 BMO  CCL    imp4 estEPS=0.34 Carnival
+  2026-06-23 AMC  ICLR   imp4 estEPS=2.5 Icon
+  2026-06-23 AMC  WOR    imp3 estEPS=1.06 Worthington Enterprise
+  2026-06-23 AMC  KBH    imp3 estEPS=0.46 KB Home
+  2026-06-23 BMO  KFY    imp3 estEPS=1.38 Korn Ferry
+  2026-06-24 AMC  MU     imp5 estEPS=19.92 Micron Technology
+  2026-06-24 BMO  PAYX   imp4 estEPS=1.31 Paychex
+  2026-06-24 AMC  JEF    imp4 estEPS=1.13 Jefferies Financial Gr
+  2026-06-24 AMC  TCOM   imp4 estEPS=0.79 Trip.com Group
 
-★ ACTUAL ACCUMULATION (real share-count buying, mcap-normalised):
-  KLAC   delta=$ 17423.3M  513.87 bps  flow5d=$58M  ✓conf
-  CVNA   delta=$  2650.8M  363.15 bps  flow5d=$21M  ✓conf
-  BKNG   delta=$  4782.0M  359.25 bps  flow5d=$74M  ✓conf
-  DVN    delta=$   840.1M  320.96 bps  flow5d=$14M  ✓conf
-  LDOS   delta=$   113.6M  84.38 bps  flow5d=$14M  ✓conf
-  MPWR   delta=$   495.7M  64.52 bps  flow5d=$-13M  
-  ADI    delta=$  1321.4M  62.44 bps  flow5d=$161M  ✓conf
-  NXPI   delta=$   450.3M  56.94 bps  flow5d=$-2M  
+★ PEAD now with revenue confirmation (label | eps% | rev% | score):
+  SNOW   STRONG_POSITIVE_DRIFT  eps=178.57   rev=5.18     score=88
+  TGT    STRONG_POSITIVE_DRIFT  eps=26.67    rev=4.54     score=88
+  CSCO   STRONG_POSITIVE_DRIFT  eps=6.0      rev=1.78     score=88
+  OKTA   STRONG_POSITIVE_DRIFT  eps=22.97    rev=1.77     score=85
+  DLTR   STRONG_POSITIVE_DRIFT  eps=11.54    rev=0.13     score=85
+  HD     DOUBLE_BEAT_DRIFT      eps=0.59     rev=0.55     score=69
+  HMC    MISS_BUT_ROSE          eps=-14233.33 rev=-0.02    score=56
+  ACN    MIXED                  eps=2.43     rev=-0.28    score=50
 
-★ ACTUAL DISTRIBUTION (real selling):
-  ATO    delta=$  -333.7M  -117.53 bps
-  HAL    delta=$  -211.7M  -72.56 bps
-  LULU   delta=$   -46.7M  -36.76 bps
-  FTNT   delta=$  -275.5M  -25.98 bps
-  NTAP   delta=$   -58.2M  -18.6 bps
-
-★ INDEX EVENTS (reconstitution add/drop):
-  FDXF-W ADDED    by IVV,SPY,IWD
-  FIS    ADDED    by IVV,VOO,VLUE
-  EPAM   DROPPED  by IVV,SPY,XLK
-  FOX    ADDED    by SPY,VOO
-  CTRA   DROPPED  by SPY,IWD
-  ABVC   ADDED    by VTI
-  ALMR   ADDED    by VTI
-  ARXS   ADDED    by VTI
-  ASTI   ADDED    by VTI
-  AVEX   ADDED    by VTI
-
-★ CONFIRMED top_picks (flow + actual buying agree): [('FFIV', True), ('AKAM', True), ('GEN', True), ('LDOS', True), ('MLM', True), ('NUE', True), ('STLD', True), ('VMC', True), ('IFF', True), ('MOS', True), ('IP', True), ('PKG', True), ('PPG', True), ('NOC', True), ('SNPS', True)]
-DONE 1975
+DOUBLE_BEAT_DRIFT names (beat both lines): ['HD']
+DONE 1976
