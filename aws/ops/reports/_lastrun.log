@@ -1,3 +1,22 @@
-HTTP 200 bytes 9733 | reads json: True | heatmap: True | curves: True
-PAGE_LIVE
-DONE 2045
+TOTAL top-level data/*.json feeds: 596
+
+HEADLINE FIELD FREQUENCY (top, across 120 feeds):
+  regime               14
+  state                8
+  status               6
+  composite_score      2
+  signal               1
+  composite_signal     1
+
+feeds w/ top_picks: 7 | feeds w/ score: 2
+
+SAMPLE headline extractions:
+  13f-price-divergence.json    {'state': 'QUIET'}
+  52wk-quality-breakout.json   {'state': 'QUIET'}
+  activist-13d.json            {'state': 'QUIET'}
+  activity-nowcast.json        {'regime': 'EXPANDING'}
+  ai-website-synthesis.json    {'status': 'error'}
+  alpha-brief.json             {'regime': 'SLOWING'}
+  alpha-compass.json           {'regime': "{'label': 'Unknown', 'color': "}
+  alpha-prev-state.json        {'status': "{'NVDA': 5, 'AVGO': 5, 'GOOGL'"}
+DONE 2046
