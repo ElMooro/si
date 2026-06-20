@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-flow-lookthrough",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 600,
+  "memory": 1024,
+  "description": "Single-name flow-pressure board via ETF constituent look-through",
+  "environment": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "name": "justhodl-flow-lookthrough-daily",
+    "expression": "cron(15 23 * * ? *)",
+    "description": "18:15 ET daily — after etf-flows (22:00) + capital-flow-radar (22:30)"
+  },
+  "tags": {"Project": "JustHodl", "Component": "flow-intelligence", "Tier": "lookthrough"}
+}
