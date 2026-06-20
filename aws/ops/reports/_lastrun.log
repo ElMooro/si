@@ -1,16 +1,7 @@
-invoke: 200 None
-b'{"statusCode": 200, "body": "{\\"dimensions_loaded\\": {\\"BEAT\\": 6, \\"ANALYST\\": 73, \\"ESTIMATE\\": 40, \\"FLOW\\": 64}, \\"n_scanned\\": 179, \\"n_2way\\": 4, \\"n_3way\\": 0, \\"n_4way_plus\\": 0, \\"n_picks\\": 0, \\"top\\": [[\\"ACN\\", 2, 2.1], [\\"LRCX\\", 2, 2.1], [\\"MU\\", 2, 1.89], [\\"CSCO\\", 2, 1.68], [\\"JBL\\", 1, 1.1], [\\"NEXN\\", 1, 1.1], [\\"VNCE\\", 1, 1.1], [\\"LOVE\\", 1, 1.1]], \\"elapsed_s\\": 0.4}"}'
-
-dims: {'BEAT': 6, 'ANALYST': 73, 'ESTIMATE': 40, 'FLOW': 64} | squeeze_regime: {'state': 'QUIET', 'signal_strength': 0}
-scanned=179 2way=4 3way=0 4way+=0
-
-★ HIGH-CONVICTION (>=3 independent signals):
-
-★ Strong 2-way sample:
-  ACN    score=2.1 [ANALYST, FLOW]
-  LRCX   score=2.1 [ANALYST, FLOW]
-  MU     score=1.89 [ANALYST, FLOW]
-  CSCO   score=1.68 [BEAT, FLOW]
-
-★ TOP PICKS → harvester: []
-DONE 1990
+boom-radar invoke: 200 None
+  2way=4 3way=0 picks=4
+  TOP PICKS: [('ACN', 2, 2.1, 'ANALYST+FLOW'), ('LRCX', 2, 2.1, 'ANALYST+FLOW'), ('MU', 2, 1.89, 'ANALYST+FLOW'), ('CSCO', 2, 1.68, 'BEAT+FLOW')]
+harvester: 200 None
+   {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 30, \"written\": 26, \"scanned\": 442}"}
+  boom-radar mentioned: False
+DONE 1991
