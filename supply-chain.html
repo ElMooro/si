@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supply-Chain Graph · JustHodl</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#9b8cff;--gold:#ffd24a;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);overflow:hidden}
+.top{padding:12px 16px;border-bottom:1px solid var(--border)}
+h1{font-size:17px;margin:0}.sub{color:var(--fg-2);font-size:12px;margin-top:2px}
+#wrap{display:flex;height:calc(100vh - 58px)}
+#graph{flex:1;position:relative}
+#side{width:280px;border-left:1px solid var(--border);padding:14px;overflow-y:auto;background:var(--bg-1);font-size:12.5px}
+#side h3{margin:0 0 8px;font-size:15px;font-family:var(--mono)}
+.row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(36,48,63,.5)}
+.row .l{color:var(--fg-2)}.row .r{font-family:var(--mono)}
+.chip{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;margin:2px 3px 2px 0;background:var(--bg-2);border:1px solid var(--border);cursor:pointer}
+.legend{position:absolute;bottom:12px;left:12px;background:rgba(18,24,34,.9);border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:11px;color:var(--fg-1)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.hint{position:absolute;top:12px;left:12px;color:var(--fg-3);font-size:11px}
+.loading{padding:40px;color:var(--fg-2)}
+.tooltip{position:absolute;pointer-events:none;background:#0d1320;border:1px solid var(--border);border-radius:7px;padding:7px 9px;font-size:12px;font-family:var(--mono);opacity:0;transition:opacity .1s}
+text{font-family:var(--mono);fill:var(--fg-0);font-size:10px;pointer-events:none}
+a{color:var(--cyan)}
+</style></head><body>
+<div class="top"><h1>🕸️ Supply-Chain Graph <span style="color:var(--fg-3);font-size:12px">SPLC-style</span></h1>
+<div class="sub" id="sub">Loading the supplier↔customer network…</div></div>
+<div id="wrap"><div id="graph"><div class="tooltip" id="tt"></div></div>
+<div id="side"><div class="loading">Click a company to see its suppliers & customers.</div></div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function perfColor(p){if(p==null)return '#5a6678';if(p>=25)return '#2fe08a';if(p>=8)return '#7fd6a0';if(p>=-3)return '#9aa7b8';if(p>=-12)return '#ff9d7c';return '#ff5c6c';}
+(async function(){
+  const d=await gj('data/supply-chain-graph.json');
+  const sub=document.getElementById('sub');
+  if(!d||!d.ok){sub.textContent='No data yet — engine runs daily 13:45 UTC.';return;}
+  sub.innerHTML=`${d.n_nodes} companies · ${d.n_edges} relationships · booming hubs gold-ringed · node colour = 30d return · ${(d.generated_at||'').slice(0,10)} — <b style="color:var(--amber)">${(d.supply_chain_laggards||[]).length} supplier laggards</b>`;
+  const W=document.getElementById('graph').clientWidth, H=document.getElementById('graph').clientHeight;
+  const nodes=d.nodes.map(n=>({...n,id:n.ticker}));
+  const links=d.edges.map(e=>({source:e.supplier,target:e.customer,rel:e.relationship}));
+  const supMap={},cusMap={};
+  d.edges.forEach(e=>{(cusMap[e.supplier]=cusMap[e.supplier]||[]).push(e);(supMap[e.customer]=supMap[e.customer]||[]).push(e);});
+  const deg={};links.forEach(l=>{deg[l.source]=(deg[l.source]||0)+1;deg[l.target]=(deg[l.target]||0)+1;});
+  const svg=d3.select('#graph').append('svg').attr('width',W).attr('height',H);
+  svg.append('defs').append('marker').attr('id','arrow').attr('viewBox','0 -5 10 10').attr('refX',20).attr('refY',0)
+    .attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto').append('path').attr('d','M0,-5L10,0L0,5').attr('fill','#3a4658');
+  const g=svg.append('g');
+  svg.call(d3.zoom().scaleExtent([0.3,3]).on('zoom',ev=>g.attr('transform',ev.transform)));
+  const link=g.append('g').selectAll('line').data(links).join('line')
+    .attr('stroke','#2a3647').attr('stroke-width',1).attr('marker-end','url(#arrow)');
+  const node=g.append('g').selectAll('g').data(nodes).join('g').style('cursor','pointer')
+    .call(d3.drag().on('start',(ev,n)=>{if(!ev.active)sim.alphaTarget(.3).restart();n.fx=n.x;n.fy=n.y;})
+      .on('drag',(ev,n)=>{n.fx=ev.x;n.fy=ev.y;}).on('end',(ev,n)=>{if(!ev.active)sim.alphaTarget(0);n.fx=null;n.fy=null;}));
+  node.append('circle').attr('r',n=>6+Math.sqrt((deg[n.id]||1))*2.2)
+    .attr('fill',n=>perfColor(n.perf_30d)).attr('stroke',n=>n.is_boom?'#ffd24a':'#0a0e14').attr('stroke-width',n=>n.is_boom?2.5:1);
+  node.append('text').text(n=>n.ticker).attr('x',n=>8+Math.sqrt((deg[n.id]||1))*2.2).attr('y',3);
+  const tt=document.getElementById('tt');
+  node.on('mousemove',(ev,n)=>{tt.style.opacity=1;tt.style.left=(ev.offsetX+14)+'px';tt.style.top=(ev.offsetY+10)+'px';
+    tt.innerHTML=`<b>${n.ticker}</b> · ${n.theme}<br>30d ${n.perf_30d==null?'—':n.perf_30d+'%'} · 5d ${n.perf_5d==null?'—':n.perf_5d+'%'}${n.is_boom?'<br><span style="color:#ffd24a">● BOOMING</span>':''}`;})
+   .on('mouseleave',()=>tt.style.opacity=0).on('click',(ev,n)=>focus(n));
+  const sim=d3.forceSimulation(nodes)
+    .force('link',d3.forceLink(links).id(n=>n.id).distance(70).strength(.5))
+    .force('charge',d3.forceManyBody().strength(-260))
+    .force('center',d3.forceCenter(W/2,H/2)).force('collide',d3.forceCollide(26))
+    .on('tick',()=>{link.attr('x1',l=>l.source.x).attr('y1',l=>l.source.y).attr('x2',l=>l.target.x).attr('y2',l=>l.target.y);
+      node.attr('transform',n=>`translate(${n.x},${n.y})`);});
+  function focus(n){
+    const nb=new Set([n.id]);links.forEach(l=>{if(l.source.id===n.id)nb.add(l.target.id);if(l.target.id===n.id)nb.add(l.source.id);});
+    node.style('opacity',x=>nb.has(x.id)?1:.12);
+    link.style('opacity',l=>(l.source.id===n.id||l.target.id===n.id)?.9:.04).attr('stroke',l=>(l.source.id===n.id||l.target.id===n.id)?'#46c8ff':'#2a3647');
+    const sups=(supMap[n.id]||[]),cuss=(cusMap[n.id]||[]);
+    document.getElementById('side').innerHTML=`<h3>${n.ticker} <span style="color:var(--fg-3);font-size:12px">${n.theme}</span></h3>
+      <div class="row"><span class="l">30d return</span><span class="r" style="color:${perfColor(n.perf_30d)}">${n.perf_30d==null?'—':n.perf_30d+'%'}</span></div>
+      <div class="row"><span class="l">5d return</span><span class="r">${n.perf_5d==null?'—':n.perf_5d+'%'}</span></div>
+      <div class="row"><span class="l">status</span><span class="r" style="color:${n.is_boom?'var(--gold)':'var(--fg-1)'}">${n.is_boom?'BOOMING':'—'}</span></div>
+      <div style="margin-top:12px;color:var(--fg-2);font-size:11px;text-transform:uppercase;letter-spacing:.04em">⬆ Suppliers (${sups.length})</div>
+      <div>${sups.length?sups.map(e=>`<span class="chip" data-t="${e.supplier}">${e.supplier} · ${e.relationship}</span>`).join(''):'<span style="color:var(--fg-3)">none in map</span>'}</div>
+      <div style="margin-top:12px;color:var(--fg-2);font-size:11px;text-transform:uppercase;letter-spacing:.04em">⬇ Customers (${cuss.length})</div>
+      <div>${cuss.length?cuss.map(e=>`<span class="chip" data-t="${e.customer}">${e.customer} · ${e.relationship}</span>`).join(''):'<span style="color:var(--fg-3)">none in map</span>'}</div>`;
+    document.querySelectorAll('#side .chip').forEach(c=>c.onclick=()=>{const t=nodes.find(x=>x.id===c.dataset.t);if(t)focus(t);});
+  }
+  document.getElementById('graph').addEventListener('dblclick',()=>{node.style('opacity',1);link.style('opacity',1).attr('stroke','#2a3647');});
+  // legend
+  const lg=document.createElement('div');lg.className='legend';
+  lg.innerHTML=`<div><i style="background:#2fe08a"></i>+25%+ &nbsp;<i style="background:#9aa7b8"></i>flat &nbsp;<i style="background:#ff5c6c"></i>down</div><div style="margin-top:4px"><span style="color:var(--gold)">◯</span> gold ring = booming hub · size = connectivity</div>`;
+  document.getElementById('graph').appendChild(lg);
+  const hint=document.createElement('div');hint.className='hint';hint.textContent='drag to move · scroll to zoom · click a node to focus · double-click to reset';
+  document.getElementById('graph').appendChild(hint);
+})();
+</script></body></html>
