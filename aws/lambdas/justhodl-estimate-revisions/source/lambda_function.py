@@ -1,138 +1,175 @@
+"""justhodl-estimate-revisions — pre-earnings consensus estimate-revision momentum.
+
+The Benzinga earnings feed exposes the *current* consensus estimate per upcoming
+(ticker, fiscal period) but no history. This engine builds that history itself:
+each day it snapshots forward consensus EPS + revenue estimates and diffs them
+against its stored snapshots, producing revision momentum — estimates drifting
+UP into a print (a documented pre-earnings anomaly) vs drifting DOWN.
+
+State lives in S3 (estimate-revisions/state.json): per (ticker,period) a short
+history of [date, eps_est, rev_est]. First run = baseline only (WARMING); signals
+appear once prior snapshots exist.
+
+Bullish upward-revision names (importance-weighted, revenue-confirmed) are logged
+to the signal-harvester as eng:estimate-revisions (MEASURE-BEFORE-TRUST).
 """
-justhodl-estimate-revisions v1.0 — analyst estimates + proprietary revisions
-============================================================================
-FMP /stable/analyst-estimates gives current-snapshot estimates per fiscal
-year. Revisions are OURS: we snapshot per name, and when a fresh fetch
-differs from a >=7-day-old prior, the delta becomes eps/revenue revision %.
-Day-one value even before revisions age in: forward growth (fy2 eps / fy1).
-Universe: valuations S&P 500 + HP 400 (~900 names), daily budget+cursor.
-Output: data/estimate-revisions.json {tickers, movers_up/down, breadth}.
-"""
-import json, os, time, urllib.request
-from datetime import datetime, timezone
+import json
+import time
+from datetime import datetime, timezone, date as dtdate
+
 import boto3
+
+from benzinga import fetch_calendar
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
-FMP = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-STATE_KEY = "data/_estrev/state.json"
 OUT_KEY = "data/estimate-revisions.json"
-BUDGET_S = 240
-MIN_AGE_D = 7
-VERSION = "1.0.0"
-DIAG = []
+STATE_KEY = "estimate-revisions/state.json"
+
+HORIZON_DAYS = 75       # track names reporting within this window
+MIN_IMPORTANCE = 2
+MAX_OBS = 10            # history depth per name
+MAX_KEYS = 1200         # bound state size
+REV_THRESHOLD_PCT = 1.0  # |revision| below this = noise/affirmed
 
 
-def jget(url, timeout=12):
-    req = urllib.request.Request(url, headers={"User-Agent": "JustHodl admin@justhodl.ai"})
-    return json.loads(urllib.request.urlopen(req, timeout=timeout).read())
-
-
-def f(x):
+def getj(key):
     try:
-        return float(x) if x is not None else None
+        return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
     except Exception:
         return None
 
 
-def fetch_est(sym):
-    j = jget(f"https://financialmodelingprep.com/stable/analyst-estimates"
-              f"?symbol={sym}&period=annual&limit=4&apikey={FMP}")
-    rows = j if isinstance(j, list) else []
-    rows = sorted((r for r in rows if r.get("date")), key=lambda r: r["date"])
-    today = datetime.now(timezone.utc).date().isoformat()
-    fut = [r for r in rows if r["date"] >= today[:4]]
-    if not fut:
-        fut = rows[-2:]
-    out = {}
-    for i, r in enumerate(fut[:2]):
-        out[f"fy{i+1}"] = {"eps": f(r.get("epsAvg") or r.get("estimatedEpsAvg")),
-                            "rev": f(r.get("revenueAvg") or r.get("estimatedRevenueAvg")),
-                            "nA": r.get("numAnalystsEps") or r.get("numberAnalystsEstimatedEps"),
-                            "y": r.get("date", "")[:4]}
-    return out or None
+def _num(v):
+    return v if isinstance(v, (int, float)) else None
+
+
+def _days_between(d1, d2):
+    try:
+        return (dtdate.fromisoformat(d1) - dtdate.fromisoformat(d2)).days
+    except Exception:
+        return None
 
 
 def lambda_handler(event=None, context=None):
     t0 = time.time()
-    DIAG.clear()
-    sv = json.loads(S3.get_object(Bucket=BUCKET, Key="data/stock-valuations.json")["Body"].read())
-    uni = sorted({r["t"] for r in (sv.get("sp_table") or [])}
-                  | {x["t"] for x in (sv.get("hp") or [])})
-    try:
-        st = json.loads(S3.get_object(Bucket=BUCKET, Key=STATE_KEY)["Body"].read())
-    except Exception:
-        st = {"est": {}, "cursor": 0}
-    est = st.get("est") or {}
-    cur_i = st.get("cursor", 0) % max(1, len(uni))
     today = datetime.now(timezone.utc).date().isoformat()
-    n_fetched = n_rolled = 0
-    i = cur_i
-    while time.time() - t0 < BUDGET_S and n_fetched < len(uni):
-        sym = uni[i % len(uni)]
-        i += 1
-        n_fetched += 1
-        try:
-            new = fetch_est(sym)
-        except Exception:
+
+    rows = fetch_calendar(days_ahead=HORIZON_DAYS, min_importance=MIN_IMPORTANCE, limit=1000) or []
+    print(f"[revisions] forward calendar rows={len(rows)}")
+
+    state = getj(STATE_KEY) or {"keys": {}}
+    keys = state.get("keys", {})
+
+    signals = []
+    n_with_history = 0
+    for r in rows:
+        tk = r.get("ticker")
+        fp, fy = r.get("fiscal_period"), r.get("fiscal_year")
+        if not tk or not fp:
             continue
-        if not new or not (new.get("fy1") or {}).get("eps"):
+        cur_eps = _num(r.get("estimated_eps"))
+        cur_rev = _num(r.get("estimated_revenue"))
+        if cur_eps is None and cur_rev is None:
             continue
-        slot = est.get(sym) or {}
-        cur = slot.get("cur")
-        if cur and slot.get("cur_date") and (
-                datetime.fromisoformat(today) - datetime.fromisoformat(slot["cur_date"])
-        ).days >= MIN_AGE_D and json.dumps(cur) != json.dumps(new):
-            slot["prev"], slot["prev_date"] = cur, slot["cur_date"]
-            n_rolled += 1
-        slot["cur"], slot["cur_date"] = new, today
-        est[sym] = slot
-    st = {"est": est, "cursor": i % max(1, len(uni))}
-    S3.put_object(Bucket=BUCKET, Key=STATE_KEY, Body=json.dumps(st).encode(),
+        key = f"{tk}|{fp}|{fy}"
+        rec = keys.get(key) or {"t": tk, "fp": fp, "fy": fy, "obs": []}
+        obs = rec["obs"]
+
+        eps_rev_pct = eps_rev_recent = None
+        rev_rev_pct = None
+        baseline_date = None
+        if obs:
+            n_with_history += 1
+            base = obs[0]            # oldest stored
+            last = obs[-1]           # most recent stored
+            baseline_date = base[0]
+            b_eps, l_eps = base[1], last[1]
+            b_rev = base[2]
+            if cur_eps is not None and isinstance(b_eps, (int, float)) and b_eps:
+                eps_rev_pct = round((cur_eps - b_eps) / abs(b_eps) * 100, 2)
+            if cur_eps is not None and isinstance(l_eps, (int, float)) and l_eps:
+                eps_rev_recent = round((cur_eps - l_eps) / abs(l_eps) * 100, 2)
+            if cur_rev is not None and isinstance(b_rev, (int, float)) and b_rev:
+                rev_rev_pct = round((cur_rev - b_rev) / abs(b_rev) * 100, 2)
+
+        # append today's observation (one per day)
+        if not obs or obs[-1][0] != today:
+            obs.append([today, cur_eps, cur_rev])
+            rec["obs"] = obs[-MAX_OBS:]
+        keys[key] = rec
+
+        if eps_rev_pct is not None and abs(eps_rev_pct) >= REV_THRESHOLD_PCT:
+            d2e = _days_between(r.get("date"), today)
+            same_dir = (rev_rev_pct is not None
+                        and (eps_rev_pct > 0) == (rev_rev_pct > 0))
+            signals.append({
+                "ticker": tk, "company": r.get("company"),
+                "earnings_date": r.get("date"), "session": r.get("session"),
+                "days_to_earnings": d2e, "fiscal_period": fp, "fiscal_year": fy,
+                "importance": r.get("importance"),
+                "current_eps_est": cur_eps, "baseline_eps_est": obs[0][1] if obs else None,
+                "eps_rev_pct": eps_rev_pct, "eps_rev_recent_pct": eps_rev_recent,
+                "rev_rev_pct": rev_rev_pct, "revenue_confirms": same_dir,
+                "baseline_date": baseline_date,
+                "n_obs": len(obs),
+                "direction": "UP" if eps_rev_pct > 0 else "DOWN",
+            })
+
+    # prune reported / overflow
+    live = {k: v for k, v in keys.items()
+            if not v["obs"] or (_days_between(today, v["obs"][-1][0]) or 0) <= 5}
+    # keep names whose latest earnings still ahead by capping to MAX_KEYS most-recently-seen
+    if len(live) > MAX_KEYS:
+        live = dict(sorted(live.items(), key=lambda kv: kv[1]["obs"][-1][0], reverse=True)[:MAX_KEYS])
+    state = {"updated": datetime.now(timezone.utc).isoformat(), "keys": live}
+    S3.put_object(Bucket=BUCKET, Key=STATE_KEY, Body=json.dumps(state).encode(),
                   ContentType="application/json")
-    tickers = {}
-    ups, downs, flat = [], [], 0
-    for sym, slot in est.items():
-        cur = slot.get("cur") or {}
-        fy1, fy2 = cur.get("fy1") or {}, cur.get("fy2") or {}
-        row = {"eps_fy1": fy1.get("eps"), "rev_fy1": fy1.get("rev"),
-                "n_analysts": fy1.get("nA"), "fy1": fy1.get("y"),
-                "asof": slot.get("cur_date")}
-        if fy1.get("eps") and fy2.get("eps") and fy1["eps"] > 0:
-            row["est_g_pct"] = round((fy2["eps"] / fy1["eps"] - 1) * 100, 1)
-        prev = slot.get("prev") or {}
-        p1 = (prev.get("fy1") or {})
-        if p1.get("eps") and fy1.get("eps") and abs(p1["eps"]) > 0.01:
-            rv = round((fy1["eps"] / p1["eps"] - 1) * 100, 1)
-            row["eps_rev_pct"] = rv
-            row["rev_window_d"] = (datetime.fromisoformat(slot["cur_date"])
-                                     - datetime.fromisoformat(slot["prev_date"])).days
-            if rv >= 1:
-                ups.append({"t": sym, "rv": rv, "eps_fy1": fy1["eps"]})
-            elif rv <= -1:
-                downs.append({"t": sym, "rv": rv, "eps_fy1": fy1["eps"]})
-            else:
-                flat += 1
-        tickers[sym] = row
-    ups.sort(key=lambda x: -x["rv"])
-    downs.sort(key=lambda x: x["rv"])
-    out = {"engine": "estimate-revisions", "version": VERSION,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "duration_s": round(time.time() - t0, 1),
-            "coverage": len(tickers), "universe": len(uni),
-            "with_revisions": len(ups) + len(downs) + flat,
-            "breadth": {"up": len(ups), "down": len(downs), "flat": flat},
-            "movers_up": ups[:20], "movers_down": downs[:20],
-            "tickers": tickers, "diagnostics": list(DIAG) + [
-                f"fetched {n_fetched} this run, rolled {n_rolled} prior snapshots"],
-            "methodology": ("Analyst consensus snapshots (FMP analyst-estimates, annual "
-                             "fy1/fy2). Revisions are proprietary: computed only when our "
-                             "own prior snapshot is >=7 days old and differs — they age in "
-                             "over the first weeks. est_g_pct = fy2/fy1 EPS growth, "
-                             "available immediately. Feeds the HP rerating pillar, S&P "
-                             "table and heatmap. Research, not advice.")}
+
+    up = sorted([s for s in signals if s["direction"] == "UP"],
+                key=lambda s: s["eps_rev_pct"], reverse=True)
+    down = sorted([s for s in signals if s["direction"] == "DOWN"],
+                  key=lambda s: s["eps_rev_pct"])
+    # harvestable: upward revision, importance>=2, reporting within 40d, revenue-confirmed
+    picks = [s for s in up if (s.get("importance") or 0) >= 2
+             and (s.get("days_to_earnings") or 999) <= 40
+             and s.get("revenue_confirms")][:15]
+    if len(picks) < 8:
+        picks += [s for s in up if s not in picks
+                  and (s.get("importance") or 0) >= 2][:8 - len(picks)]
+    top_picks = [{"ticker": s["ticker"], "score": s["eps_rev_pct"],
+                  "earnings_date": s["earnings_date"], "days_to_earnings": s["days_to_earnings"],
+                  "revenue_confirms": s["revenue_confirms"]} for s in picks]
+
+    status = ("WARMING" if n_with_history == 0 else
+              "LIVE" if n_with_history >= 30 else "PARTIAL")
+    out = {
+        "engine": "justhodl-estimate-revisions",
+        "version": "1.0.0",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "status": status,
+        "thesis": "Consensus EPS/revenue estimates revised UP into a print tend to "
+                  "drift positively (and vice versa). Built by snapshotting forward "
+                  "consensus daily and diffing — revision momentum the raw feed can't show.",
+        "horizon_days": HORIZON_DAYS,
+        "n_tracked": len(rows),
+        "n_with_history": n_with_history,
+        "n_state_keys": len(live),
+        "upward_revisions": up[:40],
+        "downward_revisions": down[:30],
+        "top_picks": top_picks,
+        "data_source": "Benzinga earnings consensus (via Massive) — self-built history",
+        "caveats": [
+            "First runs are WARMING — revisions appear once prior daily snapshots exist.",
+            "eps_rev_pct is cumulative since the oldest stored snapshot for that name.",
+            "Tiny-estimate names can show large % swings; importance + revenue confirm filter.",
+            "Picks logged to the harvester and graded vs SPY before any engine trusts them.",
+        ],
+        "elapsed_s": round(time.time() - t0, 1),
+    }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
-                  ContentType="application/json", CacheControl="public, max-age=1800")
-    print(f"[estrev] cov {len(tickers)}/{len(uni)} · rev {out['with_revisions']} · "
-           f"{out['duration_s']}s")
-    return {"statusCode": 200, "body": json.dumps({"coverage": len(tickers)})}
+                  ContentType="application/json", CacheControl="public, max-age=900")
+    return {"statusCode": 200, "body": json.dumps({
+        "status": status, "n_tracked": len(rows), "n_with_history": n_with_history,
+        "n_up": len(up), "n_down": len(down), "n_picks": len(top_picks),
+        "elapsed_s": out["elapsed_s"]})}
