@@ -96,6 +96,10 @@ def build_brief():
     # Phase E: Fed-speak sentiment + Global-macro per-country regime
     fed_speak = fetch_json("data/fed-speak.json") or {}
     global_macro = fetch_json("data/global-macro.json") or {}
+    # Equity alpha: boom convergence + Benzinga guidance + earnings catalysts
+    boom = fetch_json("data/boom-radar.json") or {}
+    analyst_act = fetch_json("data/analyst-actions.json") or {}
+    catalysts = fetch_json("data/catalyst-calendar.json") or {}
 
     lines = []
     lines.append(f"*🌅 JustHodl Morning Brief — {now.strftime('%Y-%m-%d')}*")
@@ -106,6 +110,53 @@ def build_brief():
     regime = morning.get("regime") or "—"
     lines.append(f"*Regime:* `{md_escape(regime)}`  *Khalid Index:* `{fmt_num(khalid, 1)}`")
     lines.append("")
+
+    # ── 🚀 Equity Boom Watch (catalyst convergence) ──
+    hc = (boom.get("high_conviction") or [])
+    bc = (boom.get("boom_candidates") or [])
+    if hc or bc:
+        lines.append("*🚀 Equity Boom Watch*")
+        shown = hc[:6] if hc else sorted(bc, key=lambda x: -(x.get("n") or 0))[:6]
+        for b in shown:
+            tk = b.get("ticker", "?")
+            n = b.get("n") or b.get("convergence") or len(b.get("dims") or [])
+            sc = b.get("boom_score")
+            reasons = b.get("reasons") or b.get("dims") or []
+            head = f"  🔥 `{tk}` `{n}`\\-way"
+            if sc is not None:
+                head += f"  score=`{fmt_num(sc, 1)}`"
+            lines.append(head)
+            if reasons:
+                lines.append(f"      _{md_escape(' · '.join(str(x) for x in reasons[:3]))}_")
+        lines.append("")
+
+    # ── 📊 Guidance Moves (Benzinga) ──
+    g_up = (analyst_act.get("guidance_raises") or [])[:6]
+    g_dn = (analyst_act.get("guidance_cuts") or [])[:4]
+    if g_up or g_dn:
+        lines.append("*📊 Guidance Moves* \\(Benzinga\\)")
+        if g_up:
+            ups = " · ".join(f"`{md_escape(g.get('ticker','?'))}`" for g in g_up)
+            lines.append(f"  ⬆ Raised: {ups}")
+        if g_dn:
+            dns = " · ".join(f"`{md_escape(g.get('ticker','?'))}`" for g in g_dn)
+            lines.append(f"  ⬇ Cut: {dns}")
+        lines.append("")
+
+    # ── 📅 Big Earnings next 7d (Benzinga importance) ──
+    if catalysts:
+        ern = [e for e in (catalysts.get("events") or [])
+               if e.get("type") == "EARNINGS" and e.get("impact") == "HIGH"
+               and 0 <= (e.get("days_to") if e.get("days_to") is not None else 99) <= 7]
+        ern = sorted(ern, key=lambda x: -(x.get("importance") or 0))[:6]
+        if ern:
+            lines.append("*📅 Big Earnings* \\(next 7d\\)")
+            for e in ern:
+                tk = md_escape(e.get("ticker", "?"))
+                dt = md_escape((e.get("date") or "")[5:])
+                sess = md_escape(e.get("session") or "")
+                lines.append(f"  • `{tk}` {dt} {sess}")
+            lines.append("")
 
     # Macro layer
     if macro:
