@@ -934,6 +934,46 @@ def check_crisis_composite(state: dict) -> List[str]:
 # MAIN HANDLER
 # ═════════════════════════════════════════════════════════════════════
 
+def check_boom_radar(state: dict) -> List[str]:
+    """Catalyst-convergence boom candidates — independent bullish signals stacking on
+    one name. Alerts >=3-way high-conviction; in quiet regimes, strong 2-way (score>=1.8)."""
+    br = _read_json("data/boom-radar.json")
+    if not br:
+        return []
+    cands = br.get("high_conviction") or []
+    if not cands:
+        cands = [c for c in (br.get("boom_candidates") or [])
+                 if (c.get("convergence") or 0) >= 2 and (c.get("boom_score") or 0) >= 1.8]
+    new = []
+    for c in cands[:8]:
+        ticker = c.get("ticker")
+        if not ticker:
+            continue
+        if not _is_new(state, "boom_radar_convergence", ticker):
+            continue
+        new.append(c)
+        _mark_alerted(state, "boom_radar_convergence", ticker)
+    if not new:
+        return []
+    lines = ["<b>🚀 BOOM RADAR — CATALYST CONVERGENCE</b>",
+             f"<i>{len(new)} name(s) with independent signals stacking</i>", ""]
+    for c in new[:5]:
+        ticker_raw = c.get("ticker")
+        ticker = _html_escape(ticker_raw)
+        conv = c.get("convergence") or 0
+        score = c.get("boom_score") or 0
+        dims = _html_escape(" + ".join(c.get("dimensions") or []))
+        lines.append(f"<b>{ticker}</b> · <code>{conv}</code> independent signals · score <code>{score}</code>")
+        lines.append(f"  {dims}")
+        for r in (c.get("reasons") or [])[:3]:
+            lines.append(f"  • {_html_escape(r)}")
+        ticket_lines = _format_trade_ticket(ticker_raw)
+        if ticket_lines:
+            lines.extend(ticket_lines)
+    lines.append("")
+    return lines
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print(f"[prepump-router] starting at {datetime.now(timezone.utc).isoformat()}")
@@ -948,6 +988,7 @@ def lambda_handler(event, context):
         ("cascade_laggards", check_cascade_laggards),
         ("velocity_transitions", check_velocity_transitions),
         ("convergence_radar", check_convergence_radar),
+        ("boom_radar", check_boom_radar),
         ("early_movers", check_early_movers),
         ("flow_anomalies", check_flow_anomalies),
         ("macro_regime", check_macro_regime),
