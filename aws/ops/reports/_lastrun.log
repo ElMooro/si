@@ -1,18 +1,34 @@
-flow-lookthrough index_events: 30 n_index_events field: None
-    {'ticker': 'FDXF-W', 'event': 'ADDED', 'etfs': ['IVV', 'SPY', 'IWD', 'XLI', 'VLUE']}
-    {'ticker': 'FIS', 'event': 'ADDED', 'etfs': ['IVV', 'VOO', 'VLUE']}
-    {'ticker': 'EPAM', 'event': 'DROPPED', 'etfs': ['IVV', 'SPY', 'XLK']}
-    {'ticker': 'FOX', 'event': 'ADDED', 'etfs': ['SPY', 'VOO']}
-    {'ticker': 'CTRA', 'event': 'DROPPED', 'etfs': ['SPY', 'IWD']}
-    {'ticker': 'ABVC', 'event': 'ADDED', 'etfs': ['VTI']}
-    {'ticker': 'ALMR', 'event': 'ADDED', 'etfs': ['VTI']}
-    {'ticker': 'ARXS', 'event': 'ADDED', 'etfs': ['VTI']}
+================================================================
+1) SEC CNS FAILS-TO-DELIVER (per-name FTD)
+================================================================
+  cnsfails202605b.zip: HTTP 403  bytes=200
+  cnsfails202605a.zip: HTTP 403  bytes=200
+  cnsfails202604b.zip: HTTP 403  bytes=200
+  cnsfails202604a.zip: HTTP 403  bytes=200
+  -> FTD usable: False
 
-=== CROSS-CONFIRM (after key fix) ===
-  n_events_observed: 30
-  n_additions_confirmed: 0
-  n_graduations_confirmed: 0
-  n_deletions_confirmed: 1
-  n_demotions_confirmed: 1
-  confirmed_tickers: ['AFCG', 'EPAM']
-DONE 2003
+================================================================
+2) OFFICIAL BI-MONTHLY SHORT INTEREST — free candidates
+================================================================
+  Nasdaq AAPL: HTTP 200 usable=True 
+  Nasdaq GME: HTTP 200 usable=False {"data":null,"message":"Short interest is not available. Short interest is only supported for Nasdaq Listed stocks","status":{"rCode":200,"bCodeMessage":null,"d
+  FMP /stable/short-interest: HTTP 404 b'[]'
+  FMP /stable/shares-float: HTTP 200 [
+  {
+    "symbol": "AAPL",
+    "date": "2026-06-18 17:14:10",
+    "freeFloat": 99.83099999754891,
+    "floatShares": 14662534368,
+    "outstandingShares": 1468
+  FMP /stable/stock-short-interest: HTTP 404 b'[]'
+  Polygon short-interest: HTTP 200 {"status":"OK","request_id":"771138ea12874e579f8a9693913a04a5","results":[{"settlement_date":"2017-12-29","ticker":"AAPL","short_interest":45746430,"avg_daily_v
+  FINRA api consolidatedShortInterest: HTTP 200 accountingYearMonthNumber,symbolCode,issueName,issuerServicesGroupExchangeCode,marketClassCode,currentShortPositionQuant
+
+================================================================
+3) EXISTING finra-short.json freshness + shape
+================================================================
+  age=20.6h  top keys=['config', 'data_date', 'elapsed_seconds', 'generated_at', 'generated_at_unix', 'market_composite', 'sectors', 'squeeze_candidates', 'tickers', 'top_svr', 'top_zscore', 'version']
+    tickers: 501
+    squeeze_candidates: 30
+  short-interest.json age=6.3h keys=['by_ticker', 'data_sources', 'duration_s', 'generated_at', 'n_tickers_finra', 'n_tickers_polygon', 'n_tickers_with_data', 'signal_definitions', 'top_covering', 'top_crowded_shorts', 'top_high_dtc', 'top_squeeze_risk']
+DONE 2004
