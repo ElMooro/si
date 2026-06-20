@@ -1,7 +1,11 @@
-attached inline policy justhodl-schedule-selfheal to lambda-execution-role
-  events:PutRule               implicitDeny
-  events:PutTargets            implicitDeny
-  lambda:AddPermission         implicitDeny
-  lambda:RemovePermission      implicitDeny
-  lambda:GetPolicy             implicitDeny
-DONE 1969
+PermissionsBoundary: NONE
+inline policies: ['api-keys-admin-permissions', 'ddb-push-subscriptions', 'ddb-websocket-connections', 'execute-api-manage-connections', 'fleet-monitor-perms', 'HealthMonitorEventBridgeRead', 'HealthMonitorTelegramSSM', 'justhodl-dlq-send', 'justhodl-fleet-monitor-perm', 'justhodl-schedule-selfheal', 'lambda-describe-self-and-peers', 'lambda-publish-events', 'SESPolicy', 'signal-registry-ddb-write', 'smartwake-events', 'ssm-ai-chat-auth-read', 'ssm-justhodl-alerts-read', 'ssm-justhodl-nowcast-state', 'ssm-push-vapid']
+selfheal policy present, actions: [['events:PutRule', 'events:PutTargets', 'events:EnableRule', 'events:RemoveTargets'], ['lambda:AddPermission', 'lambda:RemovePermission', 'lambda:GetPolicy']]
+
+re-simulate after propagation:
+  events:PutRule         allowed
+  lambda:AddPermission   implicitDeny
+ no-resource:
+  events:PutRule         implicitDeny
+  lambda:AddPermission   implicitDeny
+DONE 1970
