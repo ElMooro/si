@@ -1,5 +1,11 @@
-SPY spot=746.74 exp=2026-07-17 win[627.26,821.41] contracts=250 next=Y w/IV+Δ=250
-   put10Δ=(-0.099, 0.2013, 698) put25Δ=(-0.251, 0.1597, 727) atmP=(-0.338, 0.1482, 736) call25Δ=(0.247, 0.1325, 767) call10Δ=(0.103, 0.1203, 780)
-QQQ spot=740.62 exp=2026-07-17 win[622.12,814.68] contracts=244 next=n w/IV+Δ=244
-   put10Δ=(-0.101, 0.325, 665) put25Δ=(-0.251, 0.2736, 707) atmP=(-0.504, 0.237, 743) call25Δ=(0.251, 0.2214, 773) call10Δ=(0.096, 0.2101, 800)
-DONE 2017
+create
+active
+scheduled
+invoking…
+status: 200  payload: {"statusCode": 200, "body": "{\"ok\": true, \"system_tail_gauge\": 42.8, \"regime\": \"WATCH\", \"valuation\": \"EXPENSIVE\", \"indices\": [[\"IWM\", 42.3, 0.0487, 111.7, -0.0342], [\"SPY\", 32.5, 0.0243, 117.8, -0.0272], [\"QQQ\", 61.9, 0.0921, 110.8, -0.0522]]}"}
+
+system_tail: 42.8 regime: WATCH valuation: EXPENSIVE
+  IWM: stress=42.3 ATM_IV=0.2129 put10=0.2771 skew_slope=0.0642 RR25=-0.0342 RRterm=0.0076 P(drop10%)=0.0487 P(20%)=0.0142 RNskew=-1.173 SKEWidx=111.7
+  SPY: stress=32.5 ATM_IV=0.1598 put10=0.2014 skew_slope=0.0416 RR25=-0.0272 RRterm=-0.0038 P(drop10%)=0.0243 P(20%)=0.0087 RNskew=-1.78 SKEWidx=117.8
+  QQQ: stress=61.9 ATM_IV=0.2371 put10=0.325 skew_slope=0.0879 RR25=-0.0522 RRterm=0.0074 P(drop10%)=0.0921 P(20%)=0.0241 RNskew=-1.081 SKEWidx=110.8
+DONE 2018
