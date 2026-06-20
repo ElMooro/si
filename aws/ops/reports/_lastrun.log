@@ -1,4 +1,20 @@
-SSM bot-token: __MISSING__ (ParameterNotFound)
-SSM chat_id: 8678089260
-TEST SEND ERROR: HTTP Error 403: Forbidden
-DONE 1993
+================================================================
+ENGINE-MANIFEST MERGE
+================================================================
+manifest top-level type: dict
+  ADDED: ['justhodl-analyst-actions', 'justhodl-estimate-revisions', 'justhodl-flow-lookthrough', 'justhodl-boom-radar']
+  sample entry schema keys: ['engine', 'keys', 'page', 'on_board', 'name', 'desc']
+
+================================================================
+VERIFY catalyst-calendar (Benzinga earnings)
+================================================================
+  invoke: 200 {'AUCTION': 7, 'BANK_EARNINGS': 1, 'FOMC': 1}
+  EARNINGS: 0 total | Benzinga=0 FMP-supplement=0
+  by_source: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
+
+================================================================
+VERIFY dossier page live (Pages may lag)
+================================================================
+  BOOM CONVERGENCE card present: True
+  analyst-actions feed referenced: True
+DONE 1994
