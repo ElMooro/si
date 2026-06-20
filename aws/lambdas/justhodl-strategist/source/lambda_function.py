@@ -58,10 +58,27 @@ NEU = {"NEUTRAL", "MIXED", "QUIET", "CALM", "NORMAL", "HOLD", "FUNCTIONING", "ST
 
 VERDICT_KEYS = ["regime", "posture", "composite_signal", "signal", "verdict", "stance", "call",
                 "bias", "recommendation", "defcon_name", "risk_regime", "gamma_regime",
-                "overall_signal", "reading", "label", "state", "level", "status", "alpha_status"]
+                "overall_signal", "reading", "label", "state", "level", "status", "alpha_status",
+                "regime_headline", "headline", "outlook", "tilt", "conclusion", "assessment",
+                "takeaway", "winner", "direction", "trend", "phase", "mode", "classification",
+                "sentiment", "stress_regime", "risk_level", "alert_level", "consensus"]
+TEXT_KEYS = ["interpretation", "summary", "headline", "brief_md", "narrative", "thesis",
+             "commentary", "note", "regime_headline", "takeaway", "read"]
+# distinctive phrases only — safe to substring-scan inside narrative text
+TEXT_POS = {"RISK ON": 1, "RISK-ON": 1, "BULLISH": .7, "REFLATION": .8, "EXPANDING": .6,
+            "EXPANSION": .6, "ACCUMULATION": .7, "OVERWEIGHT": .7, "GOLDILOCKS": .8, "MELT-UP": .9}
+TEXT_NEG = {"RISK OFF": 1, "RISK-OFF": 1, "BEARISH": .7, "RECESSION": .9, "CONTRACTING": .7,
+            "CONTRACTION": .7, "SLOWDOWN": .6, "SLOWING": .6, "DISTRIBUTION": .7, "UNDERWEIGHT": .7,
+            "DETERIORATING": .7, "STRESSED": .8, "FLIGHT TO QUALITY": 1, "DELEVERAGING": .8,
+            "STAGFLATION": .8, "DEFENSIVE": .6}
 SCORE_KEYS = ["risk_regime_score", "composite_score", "master_crisis_score", "treasury_stress",
-              "plumbing_health", "score", "gauge", "z_score", "z", "net", "percentile"]
-PICK_KEYS = ["top_picks", "picks", "top_setups", "board", "top_next_up"]
+              "plumbing_health", "composite", "score", "gauge", "z_score", "z", "net", "percentile"]
+PICK_KEYS = ["top_picks", "picks", "top_setups", "board", "top_next_up", "top_consensus_25",
+             "strongest_upgrades_30d", "high_impact", "leaderboard", "all_qualifying", "candidates",
+             "red_flags", "recommended_weights_pct", "asset_scores", "top_names", "winners", "longs"]
+CONTAINERS = ["summary", "snapshot", "latest", "composite", "interpretation", "headline", "current",
+              "today", "overall", "verdict", "result", "stats"]
+_TICK = re.compile(r"^[A-Z]{1,6}([.\-/][A-Z]{1,4})?$")
 
 
 def classify(val):
@@ -77,63 +94,112 @@ def classify(val):
     return None
 
 
+def scan_text(s):
+    """Direction from distinctive macro phrases inside a narrative string."""
+    if not isinstance(s, str) or len(s) < 8:
+        return None
+    u = " " + s.upper() + " "
+    p = sum(u.count(w) * wt for w, wt in TEXT_POS.items())
+    n = sum(u.count(w) * wt for w, wt in TEXT_NEG.items())
+    if p == 0 and n == 0:
+        return None
+    if p > n:
+        return (1, min(1.0, 0.3 + (p - n) / 4.0), "bullish-lean")
+    if n > p:
+        return (-1, min(1.0, 0.3 + (n - p) / 4.0), "bearish-lean")
+    return (0, 0.2, "mixed-lean")
+
+
+def _verdict_from(obj):
+    """Find a verdict in a dict via short-string classify or long-string text-scan."""
+    if not isinstance(obj, dict):
+        return None
+    for k in VERDICT_KEYS:
+        if k in obj and isinstance(obj[k], str):
+            s = obj[k]
+            c = classify(s) if len(s) <= 24 else scan_text(s)
+            if c:
+                return (c[0], c[1], f"{s[:40]}")
+    for k in TEXT_KEYS:
+        if k in obj and isinstance(obj[k], str) and len(obj[k]) > 24:
+            c = scan_text(obj[k])
+            if c:
+                return (c[0], c[1], c[2])
+    return None
+
+
+def _ticks(val):
+    out = []
+    if isinstance(val, list):
+        for it in val[:6]:
+            t = None
+            if isinstance(it, dict):
+                t = it.get("ticker") or it.get("symbol") or it.get("name") or it.get("t")
+            elif isinstance(it, str):
+                t = it
+            if t and _TICK.match(str(t).upper()):
+                out.append(str(t).upper())
+    elif isinstance(val, dict):
+        for k in list(val.keys())[:8]:
+            if _TICK.match(str(k).upper()):
+                out.append(str(k).upper())
+    return out[:5]
+
+
 def extract(d):
-    """Distill a feed dict to {verdict, direction, extremity, picks}."""
+    """Distill a feed dict to {verdict, direction, extremity, picks} — full-fleet coverage."""
     if not isinstance(d, dict):
         return None
     verdict = None
     direction = 0
     extremity = 0.0
-    for k in VERDICT_KEYS:
-        if k in d:
-            c = classify(d[k])
-            if c:
-                direction, extremity, verdict = c[0], c[1], f"{d[k]}"
-                break
-    # numeric extremity (boost / fallback)
+    v = _verdict_from(d)
+    if v:
+        direction, extremity, verdict = v
+    # numeric score fallback
     if verdict is None:
         for k in SCORE_KEYS:
             if k in d and isinstance(d[k], (int, float)):
-                v = float(d[k])
+                val = float(d[k])
                 if k in ("z", "z_score"):
-                    extremity = min(1.0, abs(v) / 3.0)
-                    direction = 1 if v > 0 else (-1 if v < 0 else 0)
-                elif 0 <= v <= 100:
-                    extremity = abs(v - 50) / 50.0
-                    direction = 1 if v > 55 else (-1 if v < 45 else 0)
+                    extremity = min(1.0, abs(val) / 3.0)
+                    direction = 1 if val > 0 else (-1 if val < 0 else 0)
+                elif 0 <= val <= 100:
+                    extremity = abs(val - 50) / 50.0
+                    direction = 1 if val > 55 else (-1 if val < 45 else 0)
                 else:
-                    extremity = min(1.0, abs(v) / 100.0)
-                verdict = f"{k}={round(v, 1)}"
+                    extremity = min(1.0, abs(val) / 100.0)
+                verdict = f"{k}={round(val, 1)}"
                 break
-    picks = []
+    # nested containers (summary/snapshot/composite/…)
     if verdict is None:
-        # one level deep — many feeds nest the verdict (e.g. summary.regime, composite.signal)
-        for v in d.values():
-            if isinstance(v, dict):
-                for k in VERDICT_KEYS:
-                    if k in v:
-                        c = classify(v[k])
-                        if c:
-                            direction, extremity, verdict = c[0], c[1], f"{v[k]}"
-                            break
-                if verdict:
-                    break
+        for ck in CONTAINERS:
+            sub = d.get(ck)
+            v = _verdict_from(sub)
+            if v:
+                direction, extremity, verdict = v
+                break
+    # picks — lists and ticker/weight maps, ticker-filtered
+    picks = []
     for k in PICK_KEYS:
-        arr = d.get(k)
-        if isinstance(arr, list):
-            for it in arr[:5]:
-                t = it.get("ticker") if isinstance(it, dict) else it
-                if t:
-                    picks.append(str(t).upper())
+        if k in d:
+            picks = _ticks(d[k])
             if picks:
                 break
-        elif isinstance(arr, dict):
-            picks = [str(x).upper() for x in list(arr.keys())[:5]]
+    if not picks:
+        for ck in CONTAINERS:
+            sub = d.get(ck)
+            if isinstance(sub, dict):
+                for k in PICK_KEYS:
+                    if k in sub:
+                        picks = _ticks(sub[k])
+                        if picks:
+                            break
             if picks:
                 break
     if verdict is None and not picks:
         return None
-    return {"verdict": verdict, "direction": direction, "extremity": round(extremity, 2), "picks": picks}
+    return {"verdict": verdict or "picks", "direction": direction, "extremity": round(extremity, 2), "picks": picks}
 
 
 def _parse_json(raw):
