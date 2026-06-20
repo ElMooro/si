@@ -1,0 +1,20 @@
+{
+  "function_name": "justhodl-squeeze-fuel",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Per-name short-squeeze FUEL gauge from 100% free authoritative data: FINRA consolidated short interest (official bi-monthly) + SEC fails-to-deliver + daily short-volume (finra-short.json) + FMP float/price. Transparent 0-100 squeeze-fuel score (crowding/exit-difficulty/building/ftd/ignition). top_picks -> signal-harvester for measure-before-trust grading; NOT wired into decision engines until alpha-proven.",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-finra-short", "keys": ["FMP_KEY"]}
+  ],
+  "schedule": {
+    "rule_name": "justhodl-squeeze-fuel-daily",
+    "cron": "cron(30 13 ? * TUE-SAT *)",
+    "description": "Daily 13:30 UTC Tue-Sat — after finra-short daily refresh; picks up new bi-monthly SI + semi-monthly FTD as they publish"
+  }
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Squeeze Fuel · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#9b8cff;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.45}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:18px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:14px}
+.card .k{color:var(--fg-2);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.card .v{font-family:var(--mono);font-size:24px;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border)}
+th{color:var(--fg-2);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;background:var(--bg)}
+td.num{font-family:var(--mono);text-align:right}
+.sym{font-weight:700}.nm{color:var(--fg-3);font-size:11px}
+.pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:11px;font-family:var(--mono)}
+.LOADED{background:rgba(63,214,140,.16);color:var(--green)}.BUILDING{background:rgba(245,179,67,.16);color:var(--amber)}
+.ELEVATED{background:rgba(70,200,255,.14);color:var(--cyan)}.LOW{background:rgba(124,139,160,.14);color:var(--fg-2)}.COVERING{background:rgba(155,140,255,.16);color:var(--violet)}
+.bar{display:inline-block;height:7px;border-radius:4px;background:linear-gradient(90deg,var(--amber),var(--red));vertical-align:middle}
+.reasons{color:var(--fg-2);font-size:11px}
+.picks{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:22px}
+.picks h2{font-size:14px;margin:0 0 10px}.pick{display:inline-block;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:7px 11px;margin:0 7px 7px 0;font-family:var(--mono);font-size:12px}
+.note{color:var(--fg-3);font-size:11px;margin-top:18px;line-height:1.6}
+.loading{color:var(--fg-2);padding:40px 0;text-align:center}
+a{color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap"><div class="loading">Loading squeeze-fuel board…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function n(v,d){return v==null?'—':(typeof v==='number'?(d===0?Math.round(v):v.toFixed(d==null?1:d)):v);}
+function pct(v){return v==null?'—':(v>=0?'+':'')+n(v,1)+'%';}
+(async function(){
+  const d=await gj('data/squeeze-fuel.json');
+  const w=document.getElementById('wrap');
+  if(!d||!d.ok){w.innerHTML='<h1>Squeeze Fuel</h1><div class="loading">No data yet — the engine runs daily after the FINRA short-volume refresh. Check back shortly.</div>';return;}
+  const dist=d.distribution||{};
+  let h=`<h1>🔥 Squeeze Fuel</h1><div class="sub">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="meta">SI settlement ${esc(d.si_settlement_date)} · FTD ${esc(d.ftd_file||'—')} · ${n(d.n_finra_universe,0)} FINRA names · ${n(d.n_scored,0)} scored · ${esc((d.generated_at||'').slice(0,16))}Z</div>`;
+  h+=`<div class="cards">
+    <div class="card"><div class="k">Loaded ≥70</div><div class="v" style="color:var(--green)">${n(dist.n_loaded,0)}</div></div>
+    <div class="card"><div class="k">Building 55-69</div><div class="v" style="color:var(--amber)">${n(dist.n_building,0)}</div></div>
+    <div class="card"><div class="k">Elevated 35-54</div><div class="v" style="color:var(--cyan)">${n(dist.n_elevated,0)}</div></div>
+    <div class="card"><div class="k">Lit-fuse picks</div><div class="v">${(d.top_picks||[]).length}</div></div>
+  </div>`;
+  if((d.top_picks||[]).length){
+    h+=`<div class="picks"><h2>⚡ Top Picks — high fuel + price confirmation (logged for forward grading)</h2>`;
+    h+=(d.top_picks||[]).map(p=>`<span class="pick"><b>${esc(p.ticker)}</b> ${n(p.score,0)} <span class="pill ${esc(p.state)}">${esc(p.state)}</span>${p.pct_of_float!=null?` · ${n(p.pct_of_float,1)}% flt`:''}${p.days_to_cover!=null?` · ${n(p.days_to_cover,1)}d`:''}</span>`).join('');
+    h+=`</div>`;
+  }
+  const maxS=Math.max(...(d.board||[]).map(r=>r.score),1);
+  h+=`<table><thead><tr><th>#</th><th>Ticker</th><th>State</th><th class="num">Fuel</th><th class="num">% Float</th><th class="num">DTC</th><th class="num">SI Δ</th><th>Why</th></tr></thead><tbody>`;
+  (d.board||[]).forEach((r,i)=>{
+    h+=`<tr>
+      <td class="num" style="color:var(--fg-3)">${i+1}</td>
+      <td><span class="sym">${esc(r.ticker)}</span><div class="nm">${esc((r.name||'').slice(0,28))}</div></td>
+      <td><span class="pill ${esc(r.state)}">${esc(r.state)}</span></td>
+      <td class="num"><span class="bar" style="width:${Math.round(r.score/maxS*70)}px"></span> ${n(r.score,0)}</td>
+      <td class="num">${r.pct_of_float!=null?n(r.pct_of_float,1):'—'}</td>
+      <td class="num">${r.days_to_cover!=null?n(r.days_to_cover,1):'—'}</td>
+      <td class="num" style="color:${(r.si_change_pct||0)>=0?'var(--red)':'var(--green)'}">${pct(r.si_change_pct)}</td>
+      <td class="reasons">${esc((r.reasons||[]).slice(0,2).join(' · '))}</td>
+    </tr>`;
+  });
+  h+=`</tbody></table>`;
+  h+=`<div class="note">${(d.caveats||[]).map(c=>'• '+esc(c)).join('<br>')}<br><br>Data: ${Object.values(d.data_sources||{}).map(esc).join(' · ')}</div>`;
+  w.innerHTML=h;
+})();
+</script>
+</body>
+</html>
