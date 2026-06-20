@@ -1,17 +1,26 @@
-invoking signal-harvester…
- status: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 27, \"written\": 12, \"scanned\": 443}"}
+invoking justhodl-short-interest (FINRA SI pull, ~30s)…
+ status: 200  body: {"statusCode": 200, "body": "{\"n_tickers\": 5756, \"n_squeeze_risk\": 2, \"n_crowded\": 63, \"duration_s\": 7.44}"}
 
-eng:squeeze-fuel rows in justhodl-signals: 8
-   ('b7224510-706b-4bcb-9052-0690102c91bf', '65.1')
-   ('c2abf99b-5986-40b6-bd5f-caecf257c1fe', '64.0')
-   ('4e8f3819-ae2f-491e-9c29-6f36da635531', '67.3')
-   ('8e859b15-495c-4c78-9407-a67661bb5981', '64.5')
-   ('df8673b8-a3c8-41b6-b754-7b115994537b', '67.2')
-   ('d3045e82-7377-47f3-9c30-47c3e5edee21', '71.6')
-   ('bfbd64ba-b27b-4c42-abc0-85246e9e0802', '69.2')
-   ('07d856cd-56d8-47ef-9c0b-1247bf237a4c', '64.9')
+data_sources.short_interest: FINRA Consolidated Short Interest API (official bi-monthly settlement; replaced dead Polygon feed)
+n_tickers_short_interest: 153 | n_tickers_finra(vol): 153 | n_with_data: 5756
 
-page check:
-  https://justhodl.ai/squeeze-fuel.html -> HTTP 200 bytes=6778
-  https://justhodl.ai/data/squeeze-fuel.json -> HTTP Error 404: Not Found
-DONE 2009
+names with REAL official SI (settlement+DTC+shares): 153
+  GME    SI=  58,930,916 DTC=11.99 chg=1.72% settle=2026-05-29 sig=HIGH_DAYS_TO_COVER
+  MO     SI=  52,490,415 DTC=6.85 chg=1.72% settle=2026-05-29 sig=HIGH_DAYS_TO_COVER
+  ITW    SI=   9,631,212 DTC=6.14 chg=2.6% settle=2026-05-29 sig=HIGH_DAYS_TO_COVER
+  LYFT   SI=  89,536,371 DTC=6.11 chg=1.85% settle=2026-05-29 sig=CROWDED_SHORT_RISING
+  ADP    SI=  15,328,126 DTC=5.85 chg=-6.88% settle=2026-05-29 sig=SQUEEZE_RISK
+  DOCU   SI=  16,308,490 DTC=5.62 chg=3.62% settle=2026-05-29 sig=SQUEEZE_RISK
+  EOG    SI=  19,612,568 DTC=5.59 chg=9.28% settle=2026-05-29 sig=HIGH_DAYS_TO_COVER
+  FANG   SI=  10,531,856 DTC=5.43 chg=-1.17% settle=2026-05-29 sig=CROWDED_SHORT_RISING
+  AMGN   SI=  11,852,360 DTC=4.98 chg=-3.56% settle=2026-05-29 sig=NEUTRAL
+  PFE    SI= 162,659,281 DTC=4.96 chg=3.3% settle=2026-05-29 sig=CROWDED_SHORT_RISING
+  ACN    SI=  25,841,895 DTC=4.87 chg=7.01% settle=2026-05-29 sig=NEUTRAL
+  TMUS   SI=  19,947,133 DTC=4.66 chg=6.61% settle=2026-05-29 sig=DISTRIBUTION
+
+settlement dates present: ['2026-05-29']
+top_squeeze_risk: [('ADP', 5.85, -16.95), ('DOCU', 5.62, -8.56)]
+top_high_dtc: [('GME', 11.99), ('MO', 6.85), ('ITW', 6.14), ('EOG', 5.59)]
+
+AAPL: {'short_interest': 155886024, 'days_to_cover': 3.38, 'si_change_pct': 12.32, 'settlement_date': '2026-05-29', 'signal': 'NEUTRAL'}
+DONE 2010
