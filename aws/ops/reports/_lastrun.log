@@ -1,69 +1,32 @@
-keys: base_poly=zvEY_K massive=ch6CGK(SSM/env) fmp=wwVpi3 cmc=17ba8e
+====================================================================
+POLYGON OPTIONS SNAPSHOT — full field inventory (AAPL)
+====================================================================
+HTTP 200
+contracts returned: 3
+TOP-LEVEL KEYS: ['day', 'details', 'greeks', 'implied_volatility', 'open_interest', 'underlying_asset']
+greeks: {'delta': 0.9577056438654238, 'gamma': 0.0017787612886614903, 'theta': -1.066523206968636, 'vega': 0.02033563224929369}
+implied_volatility: 2.206070622678371
+open_interest: 17
+day: {"change": 0, "change_percent": 0, "close": 73.62, "high": 73.62, "last_updated": 1781755200000000000, "low": 73.62, "open": 73.62, "previous_close": 73.62, "volume": 16, "vwap": 73.62}
+last_quote: null
+last_trade: null
+details: {"contract_type": "call", "exercise_style": "american", "expiration_date": "2026-06-22", "shares_per_contract": 100, "strike_price": 225, "ticker": "O:AAPL260622C00225000"}
+underlying_asset: {"ticker": "AAPL"}
 
-======================================================================
-POLYGON — base stocks-only tier  vs  MASSIVE add-on key
-======================================================================
--- OPTIONS (I assumed gated except SPY/QQQ/HYG/TLT) --
-  [200]✅options contracts ref [base]: status=OK n=2
-  [200]✅options contracts ref [MASSIVE]: status=OK n=2
-  [200]✅options chain snapshot AAPL [base]: status=OK n=2
-  [200]✅options chain snapshot AAPL [MASSIVE]: status=OK n=2
-  [200]✅options chain NVDA [MASSIVE]: status=OK n=2
--- INDICES (I assumed 403 → I use FRED for VIX) --
-  [403] indices snapshot VIX/SPX/NDX [base]: {"status":"NOT_AUTHORIZED","request_id":"2a29055b3f5e88348b966bb045183f8f","message":"You 
-  [403] indices snapshot VIX/SPX/NDX [MASSIVE]: {"status":"NOT_AUTHORIZED","request_id":"06406dde6d601877189bb341e00f0f73","message":"You 
-  [403] index aggs I:VIX daily [MASSIVE]: {"status":"NOT_AUTHORIZED","request_id":"fb93a55fd819a69e85af719190e9bed3","message":"You 
--- TICK DATA trades/quotes (I assumed top-tier only) --
-  [403] trades AAPL [base]: {"status":"NOT_AUTHORIZED","request_id":"299e3b81c2decd03f8a8d5c569bcfe1b","message":"You 
-  [403] trades AAPL [MASSIVE]: {"status":"NOT_AUTHORIZED","request_id":"c754a58cb80b6146064b30d54cd8c7c2","message":"You 
-  [403] NBBO quotes AAPL [MASSIVE]: {"status":"NOT_AUTHORIZED","request_id":"833d38238ef61335a0ed225c3d440451","message":"You 
--- OTHER --
-  [200]✅technical RSI AAPL [base]: status=OK n=2
-  [200]✅forex aggs EURUSD [MASSIVE]: status=OK n=3
-  [200]✅crypto aggs BTCUSD [base]: status=OK n=3
-  [404] futures snapshot [MASSIVE]: 404 page not found
-  [200]✅financials AAPL [base]: status=OK n=1
-  [200]✅ticker news AAPL [base]: status=OK n=1
+====================================================================
+POLYGON — full chain depth + a single contract aggs
+====================================================================
+chain page: 250 contracts | with greeks=194 | with IV=194 | with OI=250
+option contract aggs O:AAPL260622C00225000: HTTP 200 bars=2
 
-======================================================================
-MASSIVE / BENZINGA — beyond earnings/ratings/guidance
-======================================================================
-  [403] benzinga news: {"status":"NOT_AUTHORIZED","request_id":"44f4f781cef5ec86224b5b1f8cf45295","message":"You 
-  [200]✅benzinga analyst-insights: status=OK n=1
-  [200]✅etf-global fund-flows: status=OK n=1
+====================================================================
+ALPHAVANTAGE options — real data or premium nag?
+====================================================================
 
-======================================================================
-FMP /stable/ — premium-sounding endpoints I route around
-======================================================================
-  [200]✅FMP senate-trades: list n=100
-  [200]✅FMP insider-trading/latest: list n=100
-  [404] FMP institutional-ownership/symbol-ownership: []
-  [200]✅FMP earning-call-transcript: list n=1
-  [200]✅FMP discounted-cash-flow: list n=1
-  [200]✅FMP price-target-consensus: list n=1
-  [200]✅FMP commitment-of-traders-report: list n=9
-  [200]✅FMP treasury-rates: list n=64
-  [200]✅FMP economic-indicators: list n=3
-  [200]✅FMP esg-disclosures: list n=129
-  [200]✅FMP earnings-transcript-list: list n=10897
-  [200]✅FMP historical-market-capitalization: list n=1
-  [400] FMP analyst-estimates: Query Error: Invalid or missing query parameter - period
+REALTIME_OPTIONS HTTP 200:
+  {     "endpoint": "Realtime Options",     "message": "This is a premium endpoint. ***THE SAMPLE DATA SCHEMA BELOW IS ARTIFICIAL AND FOR ILLUSTRATION PURPOSES ONLY***. To access the actual data, please subscribe to either the 600 requests pe
 
-======================================================================
-CMC — OHLCV + others (I assumed OHLCV gated)
-======================================================================
-  [200]✅CMC listings latest: status={'timestamp': '2026-06-20T19:28:13.249Z', 'error_code': 0, 'error_message': None, 'elapsed': 5, 'credit_count': 1, 'total_count': 8094, 'notice': None}
-  [403] CMC OHLCV latest: {"status":{"timestamp":"2026-06-20T19:28:13.348Z","error_code":1006,"error_message":"Your 
-  [403] CMC OHLCV historical: {"status":{"timestamp":"2026-06-20T19:28:13.443Z","error_code":1006,"error_message":"Your 
-  [200]✅CMC quotes latest: status={'timestamp': '2026-06-20T19:28:13.542Z', 'error_code': 0, 'error_message': None, 'elapsed': 9, 'credit_count': 1, 'notice': None}
-  [200]✅CMC global metrics: status={'timestamp': '2026-06-20T19:28:13.647Z', 'error_code': 0, 'error_message': None, 'elapsed': 11, 'credit_count': 1, 'notice': None}
+HISTORICAL_OPTIONS HTTP 200:
+  {     "Information": "Thank you for using Alpha Vantage! Please consider spreading out your free API requests more sparingly (1 request per second). You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to li
 
-======================================================================
-ALPHAVANTAGE — premium-sounding (free tier?)
-======================================================================
-  [200]✅AV NEWS_SENTIMENT: status=None
-  [200]✅AV INSIDER_TRANSACTIONS: status=None
-  [200]✅AV HISTORICAL_OPTIONS: status=None
-  [200]✅AV REALTIME_OPTIONS: status=None
-  [200]✅AV EARNINGS_CALL_TRANSCRIPT: status=None
-DONE 2011
+DONE 2012
