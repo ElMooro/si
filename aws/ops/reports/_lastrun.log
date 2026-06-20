@@ -1,9 +1,27 @@
-today 2026-06-20 cutoff 2026-08-19
-NEW-logic forward_calendar would pass: 38/38  drops={}
-OLD-logic upcoming_14d would pass: 4/4  dates=['2026-06-23', '2026-06-24', '2026-06-30', '2026-07-09']
-DEPLOYED code has forward_calendar: True | Benzinga(via Massive): True | code bytes: 20393
-re-deployed; LastModified: 2026-06-20T17:54:30.000+0000
-invoke status: 200
-  handler body by_type: {'AUCTION': 7, 'BANK_EARNINGS': 1, 'FOMC': 1}
-AFTER redeploy catalyst EARNINGS: 0 (Benzinga=0) by_source={'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
-DONE 1996
+=== invoking justhodl-catalyst-calendar (sync) ===
+status: 200
+payload[:800]: {"statusCode": 200, "body": "{\"ok\": true, \"n_events\": 9, \"high_impact_next_7d\": 0, \"by_type\": {\"AUCTION\": 7, \"BANK_EARNINGS\": 1, \"FOMC\": 1}, \"duration_s\": 1.0}"}
+
+===== STREAM 2026/06/20/[$LATEST]6d6aacb1c2bd468386af42671a55afa1 =====
+[catalyst] Aggregating sources…
+[catalyst] Source EARNINGS failed: '>=' not supported between instances of 'str' and 'int'
+[catalyst] fetch err https://financialmodelingprep.com/stable/fda-cal: HTTP Error 404: Not Found
+[catalyst] fetch err https://financialmodelingprep.com/stable/pharma-: HTTP Error 404: Not Found
+[catalyst] DONE in 0.9s · 9 events · 0 high-impact next 7d · sources: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
+
+===== STREAM 2026/06/20/[$LATEST]afa2f4d3a8f349b78f73ab8849316d76 =====
+[catalyst] Aggregating sources…
+[catalyst] Source EARNINGS failed: '>=' not supported between instances of 'str' and 'int'
+[catalyst] fetch err https://financialmodelingprep.com/stable/fda-cal: HTTP Error 404: Not Found
+[catalyst] fetch err https://financialmodelingprep.com/stable/pharma-: HTTP Error 404: Not Found
+[catalyst] DONE in 0.9s · 9 events · 0 high-impact next 7d · sources: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
+[catalyst] Aggregating sources…
+[catalyst] Source EARNINGS failed: '>=' not supported between instances of 'str' and 'int'
+[catalyst] fetch err https://financialmodelingprep.com/stable/fda-cal: HTTP Error 404: Not Found
+[catalyst] fetch err https://financialmodelingprep.com/stable/pharma-: HTTP Error 404: Not Found
+[catalyst] DONE in 0.8s · 9 events · 0 high-impact next 7d · sources: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
+[catalyst] Aggregating sources…
+[catalyst] Source EARNINGS failed: '>=' not supported between instances of 'str' and 'int'
+[catalyst] fetch err https://financialmodelingprep.com/stable/fda-cal: HTTP Error 404: Not Found
+[catalyst] fetch err https://financialmodelingprep.com/stable/pharma-: HTTP Error 404: Not Found
+[catalyst] DONE in 0.8s · 9 events · 0 high-impact next 7d · sources: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
