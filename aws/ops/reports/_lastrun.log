@@ -1,20 +1,13 @@
-
-HTTP 400 https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&order=desc&sort=effective_date&limit=50&
-    n=0 {"_err": "{\"status\":\"ERROR\",\"request_id\":\"77c826905e9e424aaa9adfb7120fce8b\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [composite_tick
-
-HTTP 200 https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&order=desc&sort=processed_date&limit=50&
-    n=50 max_eff=2017-04-03 max_proc=2017-04-03 top=['1479997D', '9876590D', 'A', 'AAL', 'AAP', 'AAPL']
-
-HTTP 200 https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&effective_date.gte=2026-01-01&limit=50&
-    n=50 max_eff=2026-03-17 max_proc=2026-03-17 top=['A', 'A', 'A', 'A', 'A', 'A']
-
-HTTP 200 https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&processed_date.gte=2026-05-01&limit=50&
-    n=50 max_eff=2026-06-17 max_proc=2026-06-18 top=['A', 'A', 'A', 'A', 'A', 'A']
-
-HTTP 400 https://api.polygon.io/etf-global/v1/constituents?composite_ticker=SPY&sort=effective_date.desc&limit=50&
-    n=0 {"_err": "{\"status\":\"ERROR\",\"request_id\":\"1e711eb97c50462c8d4f14febb3a0f4d\",\"error\":\"Invalid query parameter: 'sort'. Expected one of [composite_tick
-
---- walking pagination to find newest (up to 6 hops) ---
-   after 6 hops, newest effective_date seen = 2025-02-20
-
-DONE 1959
+zip built: 3696 bytes
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/1960_create_benzinga_earnings.py", line 23, in <module>
+    lam.create_function(FunctionName=FN, Runtime="python3.12", Role=ROLE,
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the CreateFunction operation: Function already exist: justhodl-benzinga-earnings
