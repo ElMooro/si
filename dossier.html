@@ -70,16 +70,26 @@ async function load(){
   if(!T){return;}
   document.getElementById('sym').value=T;
   document.getElementById('wrap').innerHTML='<div class="loading">Building dossier for '+esc(T)+'…</div>';
-  const [bs,fund,backlog,deepval,asym,si,f13,brain,redflag,earn]=await Promise.all([
+  const [bs,fund,backlog,deepval,asym,si,f13,brain,redflag,earn,aa,er,br,fl]=await Promise.all([
     gj('data/best-setups.json'),gj('data/fundamentals.json'),gj('data/backlog.json'),gj('data/deep-value-overlap.json'),
     gj('data/asymmetric-scorer.json'),gj('data/short-interest.json'),gj('data/13f-positions.json'),gj('data/brain.json'),
-    gj('data/redflag-alerts.json'),gj('data/earnings-tracker.json')]);
+    gj('data/redflag-alerts.json'),gj('data/earnings-tracker.json'),
+    gj('data/analyst-actions.json'),gj('data/estimate-revisions.json'),gj('data/boom-radar.json'),gj('data/flow-lookthrough.json')]);
   // resolve per-ticker records
   const setup=(bs&&bs.top_setups||[]).find(s=>s.ticker===T);
   let fu=null; const fc=fund&&fund.companies; if(fc){fu=Array.isArray(fc)?findIn(fc,T):(fc[T]||null);}
   let bk=null; const bt=backlog&&backlog.by_ticker; if(bt){bk=Array.isArray(bt)?findIn(bt,T):(bt[T]||null);}
   const dv=(deepval&&deepval.board||[]).find(x=>x.ticker===T);
   const asyS=(asym&&asym.top_setups||[]).find(x=>x.ticker===T);
+  // Benzinga precision + boom-convergence + ETF-flow per-ticker slices
+  const aaRoll=findIn((aa&&aa.most_bullish||[]).concat(aa&&aa.most_bearish||[]),T);
+  const aaGuidUp=(aa&&aa.guidance_raises||[]).filter(x=>(x.ticker||x.symbol)===T);
+  const aaGuidDn=(aa&&aa.guidance_cuts||[]).filter(x=>(x.ticker||x.symbol)===T);
+  const aaPT=[].concat(aa&&aa.pt_raises||[],aa&&aa.pt_cuts||[]).filter(x=>(x.ticker||x.symbol)===T);
+  const erRec=findIn((er&&er.estimate_strength_leaders||[]).concat(er&&er.upward_revisions||[],er&&er.downward_revisions||[]),T);
+  const brRec=findIn((br&&br.high_conviction||[]).concat(br&&br.boom_candidates||[]),T);
+  const flRec=findIn((fl&&fl.actual_accumulation||[]).concat(fl&&fl.thematic_rotation_leaders||[],fl&&fl.inflow_leaders||[],fl&&fl.outflow_leaders||[],fl&&fl.top_picks||[]),T);
+  const hasNew=!!(aaRoll||erRec||brRec||flRec||aaGuidUp.length||aaGuidDn.length||aaPT.length);
   const name=(dv&&dv.name)||(setup&&setup.name)||T;
   const px=fu&&fu.price;
   // verdict
@@ -104,7 +114,7 @@ async function load(){
   if(setup&&setup.brain_aligned)tags.push('🧠 brain-aligned');
   h+=`<div class="tags">${tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`;
 
-  if(!setup&&!fu&&!bk&&!dv){
+  if(!setup&&!fu&&!bk&&!dv&&!hasNew){
     h+=`<div class="card wide"><div class="empty">No structured data found for ${esc(T)} in the current engine outputs. It may be outside the covered universe, or the engines haven't scored it yet. Try a large-cap US name (e.g. NVDA, MU, AOS, MSFT).</div></div>`;
     document.getElementById('wrap').innerHTML=h; return;
   }
@@ -121,6 +131,42 @@ async function load(){
   }
   if(setup&&setup.entry){h+=`<div style="margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--fg-2)">Levels: entry ${setup.entry} · stop ${setup.stop||'—'} · target ${setup.tp3||'—'}${setup.rr?' · '+setup.rr+'R':''} · horizon ${setup.horizon_days||'—'}d</div>`;}
   h+=`</div>`;
+
+  // ANALYST · ESTIMATES · BOOM · FLOW (Benzinga precision + convergence)
+  if(hasNew){
+    h+=`<div class="card wide"><h2>⚡ ANALYST · ESTIMATES · BOOM · FLOW</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px">`;
+    if(brRec){
+      const n=brRec.n||brRec.convergence||(brRec.dims&&brRec.dims.length)||0;
+      const bc=n>=3?'var(--green)':n>=2?'var(--amber)':'var(--fg-2)';
+      h+=`<div><div class="sig-k">🚀 BOOM CONVERGENCE</div><div style="font-family:var(--mono);font-size:22px;color:${bc}">${n}-way${brRec.boom_score!=null?` · ${num(brRec.boom_score,1)}`:''}</div>`;
+      const rs=(brRec.reasons&&brRec.reasons.length?brRec.reasons:(brRec.dims||[]));
+      if(rs&&rs.length)h+=`<div style="font-size:11px;color:var(--fg-2);margin-top:4px">${rs.map(esc).join(' · ')}</div>`;
+      h+=`</div>`;
+    }
+    if(aaRoll){
+      const ns=aaRoll.net_score,nc=ns>0?'var(--green)':ns<0?'var(--red)':'var(--fg-2)';
+      h+=`<div><div class="sig-k">🎓 ANALYST NET</div><div style="font-family:var(--mono);font-size:22px;color:${nc}">${ns>0?'+':''}${num(ns,1)}</div><div style="font-size:11px;color:var(--fg-2)">${num(aaRoll.n_up,0)} up · ${num(aaRoll.n_down,0)} down</div>`;
+      if(aaRoll.signals&&aaRoll.signals.length)h+=`<div style="font-size:11px;color:var(--fg-2);margin-top:4px">${aaRoll.signals.slice(0,3).map(esc).join(' · ')}</div>`;
+      h+=`</div>`;
+    }
+    if(aaGuidUp.length||aaGuidDn.length){
+      const raised=aaGuidUp.length>0,g=(raised?aaGuidUp:aaGuidDn)[0];
+      h+=`<div><div class="sig-k">📊 GUIDANCE</div><div style="font-family:var(--mono);font-size:18px;color:${raised?'var(--green)':'var(--red)'}">${raised?'RAISED':'CUT'}</div><div style="font-size:11px;color:var(--fg-2)">${esc((g.fiscal_period||'')+(g.fiscal_year||''))} ${esc(g.firm||g.company||'')}</div></div>`;
+    }
+    if(aaPT.length){
+      const p=aaPT[0],pp=p.pt_pct!=null?p.pt_pct:p.price_percent_change;
+      h+=`<div><div class="sig-k">🎯 PRICE TARGET</div><div style="font-family:var(--mono);font-size:16px">${p.previous_price_target?'$'+num(p.previous_price_target,0)+'→':''}${p.price_target?'$'+num(p.price_target,0):'—'}</div><div style="font-size:11px;color:${(pp||0)>=0?'var(--green)':'var(--red)'}">${pp!=null?pct(pp):''} ${esc(p.firm||'')}</div></div>`;
+    }
+    if(erRec){
+      const stv=erRec.estimate_strength,sc=stv>=70?'var(--green)':stv>=50?'var(--amber)':'var(--fg-2)';
+      h+=`<div><div class="sig-k">📈 ESTIMATE STRENGTH</div><div style="font-family:var(--mono);font-size:22px;color:${sc}">${num(stv,0)}</div><div style="font-size:11px;color:var(--fg-2)">fwd EPS ${pct(erRec.fwd_eps_growth_pct)} · ${num(erRec.n_analysts,0)} analysts</div></div>`;
+    }
+    if(flRec){
+      const fb=flRec.flow_bps_mcap!=null?flRec.flow_bps_mcap:flRec.score,fcl=(fb||0)>=0?'var(--green)':'var(--red)';
+      h+=`<div><div class="sig-k">🌊 ETF FLOW PRESSURE</div><div style="font-family:var(--mono);font-size:16px;color:${fcl}">${esc(flRec.flow_type||((flRec.net_flow_5d_usd||0)>0?'INFLOW':'OUTFLOW'))}</div><div style="font-size:11px;color:var(--fg-2)">${fb!=null?num(fb,0)+' bps/mcap':''}${flRec.confirmed?' · ✓':''}</div></div>`;
+    }
+    h+=`</div><div style="font-size:10px;color:var(--fg-3);margin-top:10px">Benzinga earnings/guidance/price-targets + FMP estimates + ETF-Global constituent flow + boom convergence. Discovery layer — measure-before-trust.</div></div>`;
+  }
 
   // OPPORTUNITY DNA — the visual fingerprint of WHAT KIND of setup this is
   if(setup){
