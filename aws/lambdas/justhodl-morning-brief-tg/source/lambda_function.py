@@ -116,12 +116,12 @@ def build_brief():
     bc = (boom.get("boom_candidates") or [])
     if hc or bc:
         lines.append("*🚀 Equity Boom Watch*")
-        shown = hc[:6] if hc else sorted(bc, key=lambda x: -(x.get("n") or 0))[:6]
+        shown = (hc or bc)[:6]
         for b in shown:
             tk = b.get("ticker", "?")
-            n = b.get("n") or b.get("convergence") or len(b.get("dims") or [])
+            n = b.get("convergence") or len(b.get("dimensions") or [])
             sc = b.get("boom_score")
-            reasons = b.get("reasons") or b.get("dims") or []
+            reasons = b.get("reasons") or b.get("dimensions") or []
             head = f"  🔥 `{tk}` `{n}`\\-way"
             if sc is not None:
                 head += f"  score=`{fmt_num(sc, 1)}`"

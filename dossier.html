@@ -136,10 +136,10 @@ async function load(){
   if(hasNew){
     h+=`<div class="card wide"><h2>⚡ ANALYST · ESTIMATES · BOOM · FLOW</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px">`;
     if(brRec){
-      const n=brRec.n||brRec.convergence||(brRec.dims&&brRec.dims.length)||0;
+      const n=brRec.convergence||(brRec.dimensions&&brRec.dimensions.length)||0;
       const bc=n>=3?'var(--green)':n>=2?'var(--amber)':'var(--fg-2)';
       h+=`<div><div class="sig-k">🚀 BOOM CONVERGENCE</div><div style="font-family:var(--mono);font-size:22px;color:${bc}">${n}-way${brRec.boom_score!=null?` · ${num(brRec.boom_score,1)}`:''}</div>`;
-      const rs=(brRec.reasons&&brRec.reasons.length?brRec.reasons:(brRec.dims||[]));
+      const rs=(brRec.reasons&&brRec.reasons.length?brRec.reasons:(brRec.dimensions||[]));
       if(rs&&rs.length)h+=`<div style="font-size:11px;color:var(--fg-2);margin-top:4px">${rs.map(esc).join(' · ')}</div>`;
       h+=`</div>`;
     }
