@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-supply-chain-graph",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Named supplier-customer graph (curated AI/semis/power/Apple/EV hubs) + live perf/boom colouring + supplier-laggard alpha (suppliers of booming hubs that haven't moved). Powers supply-chain.html SPLC-style visual. top_picks -> signal-harvester (eng:supply-chain-graph) measure-before-trust. Supersedes empty supply-chain-linkage (FMP supply-chain dead).",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-supply-chain-graph-daily",
+    "cron": "cron(45 13 ? * TUE-SAT *)",
+    "description": "Daily 13:45 UTC Tue-Sat"
+  }
+}
