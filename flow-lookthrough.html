@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flow Look-Through · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#111722;--panel2:#0d131c;--line:#1e2836;--txt:#d6e0ee;--dim:#7c8aa0;--grn:#16c784;--red:#ea3943;--amb:#f0a020;--cyan:#3fb6dc;--blu:#4d7cfe}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font:13px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;padding:18px 14px 60px;margin:0}
+a{color:var(--cyan);text-decoration:none}
+h1{font-size:20px;margin:0}
+.sub{color:var(--dim);font-size:12px;margin-top:3px;max-width:680px}
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+.statbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-bottom:6px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.stat .v{font-size:20px;font-weight:700;color:#fff}.stat .l{color:var(--dim);font-size:11px;margin-top:2px}
+h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:24px 0 10px;border-left:3px solid var(--blu);padding-left:9px}
+h2.g{border-color:var(--grn)}h2.r{border-color:var(--red)}h2.c{border-color:var(--cyan)}
+h2 small{text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400;font-size:11px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 13px;border-left:4px solid var(--cyan)}
+.card .tk{font-size:16px;font-weight:700;color:#fff}
+.card .big{font-size:18px;font-weight:700;margin:4px 0}
+.card .row{display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0;border-top:1px dashed var(--line)}
+.card .row .k{color:var(--dim)}
+.card .drv{font-size:10.5px;color:var(--dim);margin-top:6px;word-spacing:1px}
+.flowpos{color:var(--grn)}.flowneg{color:var(--red)}
+.pick{display:inline-flex;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px;font-size:12px;margin:0 6px 6px 0}
+.pick b{color:#fff}.pick .s{color:var(--cyan)}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--dim);font-weight:600;text-transform:uppercase;font-size:10.5px;letter-spacing:.5px;position:sticky;top:0;background:var(--bg)}
+td.l,th.l{text-align:left}
+tr:hover td{background:var(--panel2)}
+.tag{font-size:10px;padding:2px 7px;border-radius:5px}
+.tag.them{background:rgba(63,182,220,.15);color:var(--cyan)}
+.tag.broad{background:rgba(77,124,254,.14);color:var(--blu)}
+.tag.mix{background:rgba(240,160,32,.14);color:var(--amb)}
+.loading{color:var(--dim);padding:40px;text-align:center}
+.foot{color:var(--dim);font-size:11px;margin-top:24px;border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <h1>🔎 Flow Look-Through</h1>
+    <div class="sub">ETF creations/redemptions force mechanical buying/selling of underlying holdings. Each ETF's net flow is attributed across its current constituents by weight — revealing which single names are being mechanically bid or sold, split into broad-market <b>beta</b> vs sector/thematic <b>rotation</b> (the tradeable part).</div>
+  </div>
+</div>
+<div class="statbar" id="statbar"></div>
+<div id="content"><div class="loading">⟳ computing single-name flow pressure…</div></div>
+<div class="foot" id="foot"></div>
+<script>
+const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
+  `https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,
+  `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}throw new Error("sources failed");}
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=v=>{if(v==null)return"—";const a=Math.abs(v),s=v<0?"-":"+";if(a>=1e9)return s+"$"+(a/1e9).toFixed(2)+"B";if(a>=1e6)return s+"$"+(a/1e6).toFixed(0)+"M";if(a>=1e3)return s+"$"+(a/1e3).toFixed(0)+"K";return s+"$"+a.toFixed(0);};
+const cls=v=>v==null?"":v>=0?"flowpos":"flowneg";
+const typeTag=t=>{const m={THEMATIC_ROTATION:["them","THEMATIC"],BROAD_BETA:["broad","BETA"],MIXED:["mix","MIXED"]};const x=m[t]||["mix",esc(t||"—")];return `<span class="tag ${x[0]}">${x[1]}</span>`;};
+const drv=d=>(d||[]).slice(0,3).map(x=>`${esc(x.etf)}${x.broad?"":"*"}`).join(" ");
+
+function themCard(r){
+  return `<div class="card">
+    <div class="tk">${esc(r.ticker)} ${typeTag(r.flow_type)}</div>
+    <div class="big ${cls(r.net_flow_5d_usd)}">${fmt(r.net_flow_5d_usd)} <span style="font-size:11px;color:var(--dim)">5d</span></div>
+    <div class="row"><span class="k">Thematic share</span><span>${fmt(r.thematic_flow_5d_usd)}</span></div>
+    <div class="row"><span class="k">Flow / mcap</span><span class="${cls(r.flow_bps_mcap)}">${r.flow_bps_mcap==null?"—":r.flow_bps_mcap+" bps"}</span></div>
+    <div class="row"><span class="k">Vehicles</span><span>${r.n_etfs||0} ETFs</span></div>
+    <div class="drv">via ${drv(r.drivers)||"—"}</div>
+  </div>`;
+}
+function tbl(rows){
+  return `<div style="overflow-x:auto"><table><thead><tr>
+    <th class="l">Name</th><th>Type</th><th>Net 5d</th><th>Daily</th><th>bps mcap</th><th>Thematic</th><th>Broad</th><th>ETFs</th><th class="l">Top drivers</th>
+    </tr></thead><tbody>`+
+    rows.map(r=>`<tr>
+      <td class="l"><b>${esc(r.ticker)}</b></td>
+      <td>${typeTag(r.flow_type)}</td>
+      <td class="${cls(r.net_flow_5d_usd)}">${fmt(r.net_flow_5d_usd)}</td>
+      <td class="${cls(r.net_flow_daily_usd)}">${fmt(r.net_flow_daily_usd)}</td>
+      <td class="${cls(r.flow_bps_mcap)}">${r.flow_bps_mcap==null?"—":r.flow_bps_mcap}</td>
+      <td class="${cls(r.thematic_flow_5d_usd)}">${fmt(r.thematic_flow_5d_usd)}</td>
+      <td>${fmt(r.broad_flow_5d_usd)}</td>
+      <td>${r.n_etfs||0}</td>
+      <td class="l" style="color:var(--dim);font-size:11px">${drv(r.drivers)}</td>
+    </tr>`).join("")+`</tbody></table></div>`;
+}
+
+function render(d){
+  const inN=d.inflow_leaders||[],outN=d.outflow_leaders||[],them=d.thematic_rotation_leaders||[],picks=d.top_picks||[];
+  document.getElementById("statbar").innerHTML=
+    `<div class="stat"><div class="v">${d.n_names||0}</div><div class="l">NAMES SCORED</div></div>`+
+    `<div class="stat"><div class="v">${d.n_etfs_used||0}</div><div class="l">EQUITY ETFs USED</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--grn)">${inN[0]?esc(inN[0].ticker):"—"}</div><div class="l">TOP INFLOW</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--red)">${outN[0]?esc(outN[0].ticker):"—"}</div><div class="l">TOP OUTFLOW</div></div>`+
+    `<div class="stat"><div class="v" style="color:var(--cyan)">${them.length}</div><div class="l">ROTATION NAMES</div></div>`;
+
+  let h="";
+  // hero: thematic rotation (the alpha view)
+  h+=`<h2 class="c">🌀 Thematic Rotation Leaders <small>— disproportionate sector/thematic demand, normalised by market cap (the alpha-relevant view)</small></h2>`;
+  h+= them.length?`<div class="cards">${them.slice(0,12).map(themCard).join("")}</div>`:`<div class="loading">no thematic-rotation names today</div>`;
+
+  // harvested picks
+  if(picks.length){
+    h+=`<h2 class="g">🎯 Tracked Picks <small>— logged to the signal ledger as eng:flow-lookthrough; graded vs SPY before any engine trusts them (measure-before-trust)</small></h2><div>`+
+      picks.map(p=>`<span class="pick"><b>${esc(p.ticker)}</b> <span class="s">${p.score==null?"":p.score+" bps"}</span> ${fmt(p.net_flow_5d_usd)}</span>`).join("")+`</div>`;
+  }
+  // gross inflow / outflow tables
+  h+=`<h2 class="g">🟢 Inflow Leaders <small>— gross mechanical buying ($, mega-caps dominate via broad index flows)</small></h2>${tbl(inN.slice(0,25))}`;
+  h+=`<h2 class="r">🔴 Outflow Leaders <small>— gross mechanical selling</small></h2>${tbl(outN.slice(0,20))}`;
+
+  document.getElementById("content").innerHTML=h;
+  const m=d.methodology||{};
+  document.getElementById("foot").innerHTML=
+    `<b>Method:</b> ${esc(m.attribution||"")} · weight = ${esc(m.weight||"")} · ${esc(m.equity_filter||"")}.<br>`+
+    `<b>Drivers</b> marked <code>*</code> are non-broad (thematic) ETFs. `+
+    `Flows as-of ${esc((d.flows_asof||"").replace("T"," ").slice(0,16))} UTC · generated ${esc((d.generated_at||"").replace("T"," ").slice(0,16))} UTC · updates daily 23:15 UTC.<br>`+
+    (Array.isArray(d.caveats)?esc(d.caveats.join(" ")):esc(d.caveats||""))+" Research only — not investment advice.";
+}
+load("data/flow-lookthrough.json").then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load flow-lookthrough.json — '+esc(e.message)+'</div>';});
+setInterval(()=>load("data/flow-lookthrough.json").then(render).catch(()=>{}),300000);
+</script>
+</body>
+</html>
