@@ -1,10 +1,19 @@
-morning-brief state: Active Successful 2026-06-20T18:06:09.000+0000
-token present: True chat_id: 8678089260
+state: Active Successful 2026-06-16T03:04:50.000+0000
+invoke: 200 {"statusCode": 200, "body": "{\"ok\": true, \"n_universe\": 3610, \"additions\": 153, \"demotions\": 88, \"deletions\": 233, \"graduations\": 121, \"sp500_candidates\": 60}"}
 
-=== TELEGRAM ===
-getMe: 200 {"ok":true,"result":{"id":8679881066,"is_bot":true,"first_name":"#FREEVPN VPN \u0411\u042b\u0421\u0422\u0420\u042b\u0419 \u0411\u0415\u041b\u042b\u0415 \u0421\u041f\u0418\u0421\u041a\u0418 @vpn38_bot","username":"Justhodl_bot","can_join_groups":true,"can_read_all_group_messages":false,"supports_inline_queries":false,"supports_guest_queries":false,"can_connect_to_business":false,"has_main_web_app":
-sendMessage: 403 {"ok":false,"error_code":403,"description":"Forbidden: bot can't initiate conversation with a user"}
+=== CROSS-CONFIRM ===
+  n_events_observed: None
+  n_additions_confirmed: None
+  n_graduations_confirmed: None
+  n_deletions_confirmed: None
+  n_demotions_confirmed: None
+  confirmed_tickers: None
 
-=== INVOKE BRIEF ===
-status 200 payload {"statusCode": 500, "body": "{\"ok\": false, \"info\": \"plain_retry_fail: HTTP Error 403: Forbidden\"}"}
-DONE 2000
+  additions: 40 | sample flow_confirmed flags:
+    NAUT   conf=None etfs=None
+    FRAF   conf=None etfs=None
+    AENT   conf=None etfs=None
+    CBNA   conf=None etfs=None
+    ZNTL   conf=None etfs=None
+    ARMP   conf=None etfs=None
+DONE 2001
