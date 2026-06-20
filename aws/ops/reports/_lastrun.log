@@ -1,26 +1,51 @@
-dark-pool: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"latest_week\": \"2026-05-25\", \"n_scored\": 911, \"n_accumulation\": 37, \"n_picks\": 20, \"top\": [[\"AXTA\", 90.6, \"ACCUMULATION\", 33.9, 2.086], [\"CZR\", 82.4, \"ACCUMULATION\", 19.64, 3.469], [\"RVTY\", 81.8, \"ACCUMULATION\", 38.98, 0.616], [\"SN
-scored: 911 accum: 37
-TOP15: ['AXTA', 'CZR', 'RVTY', 'SNX', 'BRKR', 'ESTC', 'NCNO', 'LBTYK', 'RVMD', 'OKTA', 'DLTR', 'UHAL.B', 'MDB', 'NTAP', 'SNOW']
-ETF leakage in top15: NONE ✓
-  AXTA   sc=90.6  dark%=33.9   accel=2.086 wkRet=2.53%
-  CZR    sc=82.4  dark%=19.64  accel=3.469 wkRet=2.36%
-  RVTY   sc=81.8  dark%=38.98  accel=0.616 wkRet=7.97%
-  SNX    sc=78.1  dark%=35.03  accel=0.581 wkRet=8.87%
-  BRKR   sc=77.5  dark%=35.65  accel=0.546 wkRet=25.51%
-  ESTC   sc=77.3  dark%=33.26  accel=0.722 wkRet=18.91%
-  NCNO   sc=77.2  dark%=31.14  accel=0.445 wkRet=5.58%
-  LBTYK  sc=76.7  dark%=27.5   accel=0.465 wkRet=3.23%
-  RVMD   sc=73.2  dark%=27.61  accel=0.369 wkRet=1.67%
-  OKTA   sc=73.0  dark%=27.87  accel=0.975 wkRet=31.4%
-  DLTR   sc=72.8  dark%=30.53  accel=0.537 wkRet=24.27%
-  UHAL.B sc=72.1  dark%=30.55  accel=0.699 wkRet=12.18%
-PICKS: ['AXTA', 'CZR', 'RVTY', 'SNX', 'BRKR', 'ESTC', 'NCNO', 'LBTYK', 'RVMD', 'OKTA', 'DLTR', 'UHAL.B', 'MDB', 'NTAP', 'SNOW', 'BBY', 'PKG', 'LINE', 'BURL', 'CLF']
+============================================================
+A) dark-pool quiet picks
+============================================================
+picks (should exclude +20-30% movers):
+  AXTA   sc=90.6  dark%=33.9   wkRet=2.53%
+  CZR    sc=82.4  dark%=19.64  wkRet=2.36%
+  RVTY   sc=81.8  dark%=38.98  wkRet=7.97%
+  NCNO   sc=77.2  dark%=31.14  wkRet=5.58%
+  LBTYK  sc=76.7  dark%=27.5   wkRet=3.23%
+  RVMD   sc=73.2  dark%=27.61  wkRet=1.67%
+  PKG    sc=69.0  dark%=28.39  wkRet=0.2%
+  LINE   sc=68.3  dark%=33.42  wkRet=6.47%
+  BURL   sc=67.7  dark%=30.83  wkRet=-0.84%
+  H      sc=64.1  dark%=31.91  wkRet=1.02%
+  COLD   sc=61.3  dark%=22.11  wkRet=5.59%
+  DRS    sc=61.0  dark%=32.58  wkRet=6.46%
+  NLY    sc=59.5  dark%=11.51  wkRet=1.11%
+  PATH   sc=57.5  dark%=13.46  wkRet=5.68%
 
-harvester…
-  {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 24, \"written\": 6, \"scanned\": 446}"}
- eng:dark-pool rows: 13
+============================================================
+B) FRED Treasury data probe for #3
+============================================================
+Latest CMT curve:
+  DGS1MO   3.68  (2026-06-17)
+  DGS3MO   3.83  (2026-06-17)
+  DGS6MO   3.91  (2026-06-17)
+  DGS1     3.98  (2026-06-17)
+  DGS2     4.2  (2026-06-17)
+  DGS3     4.23  (2026-06-17)
+  DGS5     4.27  (2026-06-17)
+  DGS7     4.37  (2026-06-17)
+  DGS10    4.49  (2026-06-17)
+  DGS20    4.95  (2026-06-17)
+  DGS30    4.93  (2026-06-17)
 
-ignition dark wire…
- ignition: 200
- probes.dark: True  board rows w/ dark_to_adv: 0  sample: []
-DONE 2023
+Funding-stress series:
+  DTB3   3.68 (2026-06-17)
+  DFF    3.63 (2026-06-17)
+  SOFR   3.63 (2026-06-17)
+  DGS3MO 3.83 (2026-06-17)
+
+History depth (DGS10 obs over ~2y):
+  earliest 2024 sample: [{'realtime_start': '2026-06-20', 'realtime_end': '2026-06-20', 'date': '2024-01-01', 'value': '.'}, {'realtime_start': '2026-06-20', 'realtime_end': '2026-06-20', 'date': '2024-01-02', 'value': '3.95'}]
+
+SVB-week CMT (2023-03-13) to confirm dislocation potential:
+  DGS1MO   4.62
+  DGS3MO   4.87
+  DGS1     4.30
+  DGS2     4.03
+  DGS10    3.55
+DONE 2024
