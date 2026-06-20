@@ -1,19 +1,20 @@
-state: Active Successful 2026-06-16T03:04:50.000+0000
+LastModified BEFORE: 2026-06-20T18:14:20.000+0000
+source has cross_confirm: True | flow_idx: True
+LastModified AFTER: 2026-06-20T18:16:20.000+0000
 invoke: 200 {"statusCode": 200, "body": "{\"ok\": true, \"n_universe\": 3610, \"additions\": 153, \"demotions\": 88, \"deletions\": 233, \"graduations\": 121, \"sp500_candidates\": 60}"}
 
 === CROSS-CONFIRM ===
-  n_events_observed: None
-  n_additions_confirmed: None
-  n_graduations_confirmed: None
-  n_deletions_confirmed: None
-  n_demotions_confirmed: None
-  confirmed_tickers: None
+  n_events_observed: 0
+  n_additions_confirmed: 0
+  n_graduations_confirmed: 0
+  n_deletions_confirmed: 0
+  n_demotions_confirmed: 0
+  confirmed_tickers: []
 
-  additions: 40 | sample flow_confirmed flags:
-    NAUT   conf=None etfs=None
-    FRAF   conf=None etfs=None
-    AENT   conf=None etfs=None
-    CBNA   conf=None etfs=None
-    ZNTL   conf=None etfs=None
-    ARMP   conf=None etfs=None
-DONE 2001
+  additions=40 flow_confirmed=0; sample tags:
+    NAUT   conf=False etfs=None
+    FRAF   conf=False etfs=None
+    AENT   conf=False etfs=None
+    CBNA   conf=False etfs=None
+    ZNTL   conf=False etfs=None
+DONE 2002
