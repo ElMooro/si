@@ -1,27 +1,19 @@
-=== invoking justhodl-catalyst-calendar (sync) ===
-status: 200
-payload[:800]: {"statusCode": 200, "body": "{\"ok\": true, \"n_events\": 9, \"high_impact_next_7d\": 0, \"by_type\": {\"AUCTION\": 7, \"BANK_EARNINGS\": 1, \"FOMC\": 1}, \"duration_s\": 1.0}"}
+redeployed: 2026-06-20T18:01:58.000+0000
+invoke status: 200
+payload: {"statusCode": 200, "body": "{\"ok\": true, \"n_events\": 48, \"high_impact_next_7d\": 12, \"by_type\": {\"AUCTION\": 7, \"EARNINGS\": 39, \"BANK_EARNINGS\": 1, \"FOMC\": 1}, \"duration_s\": 0.9}"}
 
-===== STREAM 2026/06/20/[$LATEST]6d6aacb1c2bd468386af42671a55afa1 =====
-[catalyst] Aggregating sources…
-[catalyst] Source EARNINGS failed: '>=' not supported between instances of 'str' and 'int'
-[catalyst] fetch err https://financialmodelingprep.com/stable/fda-cal: HTTP Error 404: Not Found
-[catalyst] fetch err https://financialmodelingprep.com/stable/pharma-: HTTP Error 404: Not Found
-[catalyst] DONE in 0.9s · 9 events · 0 high-impact next 7d · sources: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
+EARNINGS total=39  Benzinga=38  FMP-supplement=1
+by_source: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 39, 'FDA': 0, 'GOV_CONTRACT': 12}
 
-===== STREAM 2026/06/20/[$LATEST]afa2f4d3a8f349b78f73ab8849316d76 =====
-[catalyst] Aggregating sources…
-[catalyst] Source EARNINGS failed: '>=' not supported between instances of 'str' and 'int'
-[catalyst] fetch err https://financialmodelingprep.com/stable/fda-cal: HTTP Error 404: Not Found
-[catalyst] fetch err https://financialmodelingprep.com/stable/pharma-: HTTP Error 404: Not Found
-[catalyst] DONE in 0.9s · 9 events · 0 high-impact next 7d · sources: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
-[catalyst] Aggregating sources…
-[catalyst] Source EARNINGS failed: '>=' not supported between instances of 'str' and 'int'
-[catalyst] fetch err https://financialmodelingprep.com/stable/fda-cal: HTTP Error 404: Not Found
-[catalyst] fetch err https://financialmodelingprep.com/stable/pharma-: HTTP Error 404: Not Found
-[catalyst] DONE in 0.8s · 9 events · 0 high-impact next 7d · sources: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
-[catalyst] Aggregating sources…
-[catalyst] Source EARNINGS failed: '>=' not supported between instances of 'str' and 'int'
-[catalyst] fetch err https://financialmodelingprep.com/stable/fda-cal: HTTP Error 404: Not Found
-[catalyst] fetch err https://financialmodelingprep.com/stable/pharma-: HTTP Error 404: Not Found
-[catalyst] DONE in 0.8s · 9 events · 0 high-impact next 7d · sources: {'FOMC': 1, 'AUCTION': 7, 'WITCHING': 0, 'REBALANCE': 0, 'BANK_EARNINGS': 1, 'EARNINGS': 0, 'FDA': 0, 'GOV_CONTRACT': 12}
+Top Benzinga earnings by importance:
+  2026-06-23 CBRS   imp=5 HIGH   AMC  cons=-0.17
+  2026-06-23 FDX    imp=5 HIGH   AMC  cons=5.94
+  2026-06-24 MU     imp=5 HIGH   AMC  cons=19.92
+  2026-06-30 NKE    imp=5 HIGH   AMC  cons=0.12
+  2026-06-22 FRVO   imp=4 HIGH   BMO  cons=-0.09
+  2026-06-23 CCL    imp=4 HIGH   BMO  cons=0.34
+  2026-06-23 ICLR   imp=4 HIGH   AMC  cons=2.5
+  2026-06-24 PAYX   imp=4 HIGH   BMO  cons=1.31
+
+high_impact_next_7d: 12 next_30d: 16
+DONE 1998
