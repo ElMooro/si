@@ -1,39 +1,16 @@
-invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"n_nodes\": 134, \"n_edges\": 182, \"n_themes\": 17, \"booming_hubs\": [\"ACLS\", \"AEHR\", \"AMAT\", \"AMD\", \"AMKR\", \"APH\", \"ARM\", \"ASML\", \"CAMT\", \"CRDO\", \"DELL\", \"ENTG\"], \"top_laggards\": [[\"NVDA\", \"DELL\", -4.5, 74.06, 78.6], [\"MPWR\", \"DELL\", 6.51, 74.06, 67.5], [\"SNPS\", \"AMD\", -7.77, 29.78, 37.5], [\"COHR\", \"ASML\", 10.16, 32.22, 22.1], [\"CDNS\", \"AMD\", 14.57, 29.78, 15.2]]}"}
-
-version: 1.1.0 nodes: 134 edges: 182 themes: 17
-themes: ['AI Compute', 'Aero/Defense', 'Apple/Analog', 'Auto/EV/Materials', 'Automation/Power-semi', 'EDA/IP', 'Energy', 'Foundry', 'Healthcare/Biopharma', 'Hyperscaler', 'Machinery/Rail', 'Memory/Packaging', 'Networking/Optical', 'Power/Cooling/Grid', 'Semicap', 'Servers/EMS', 'Storage']
-nodes with perf: 132/134
-booming hubs: 27 -> ['ACLS', 'AEHR', 'AMAT', 'AMD', 'AMKR', 'APH', 'ARM', 'ASML', 'CAMT', 'CRDO', 'DELL', 'ENTG', 'FORM', 'GE']
-
-SUPPLY-CHAIN LAGGARDS (suppliers of booming hubs, not yet moved):
-  NVDA   (AI Compute) GPUs→DELL | own -4.5% vs cust 74.06% gap 78.6
-  MPWR   (Automation/Power-semi) power mgmt→DELL | own 6.51% vs cust 74.06% gap 67.5
-  SNPS   (EDA/IP) EDA→AMD | own -7.77% vs cust 29.78% gap 37.5
-  COHR   (Networking/Optical) optics/lasers→ASML | own 10.16% vs cust 32.22% gap 22.1
-  CDNS   (EDA/IP) EDA→AMD | own 14.57% vs cust 29.78% gap 15.2
-
-harvester…
-  {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 23, \"written\": 4, \"scanned\": 448}"}
- eng:supply-chain-graph rows: 5
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2038_verify_scg_v11.py", line 32, in <module>
-    with urllib.request.urlopen("https://justhodl.ai/supply-chain.html?t="+str(int(time.time())),timeout=15) as rp:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 215, in urlopen
-    return opener.open(url, data, timeout)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 521, in open
-    response = meth(req, response)
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 630, in http_response
-    response = self.parent.error(
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 559, in error
-    return self._call_chain(*args)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 492, in _call_chain
-    result = func(*args)
-             ^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 639, in http_error_default
-    raise HTTPError(req.full_url, code, msg, hdrs, fp)
-urllib.error.HTTPError: HTTP Error 403: Forbidden
+================================================================
+ALPHAVANTAGE ENTITLEMENT + RATE-LIMIT AUDIT (key EOLGK…)
+================================================================
+1. GLOBAL_QUOTE AAPL (core): HTTP 200 OK | keys present: ['Global Quote'] | payload 385B
+2. NEWS_SENTIMENT (ticker sentiment — potentially unique): HTTP 200 OK | keys present: ['feed', 'sentiment_score_definition', 'items'] | payload 129600B
+     sample article sentiment: {'overall_sentiment_label': 'Neutral', 'overall_sentiment_score': 0.049714} | ticker_sentiment[0]: {'ticker': 'AAPL', 'relevance_score': '0.342502', 'ticker_sentiment_score': '0.028193', 'ticker_sentiment_label': 'Neutral'}
+3. LISTING_STATUS delisted (survivorship-bias universe — possibly unique): HTTP 200 non-json symbol,name,exchange,assetType,ipoDate,delistingDate,status
+AA-W,Alcoa Corporation When Issued,NYSE,Stock,2016-10-18,20
+     LISTING_STATUS raw head: {}
+4. INSIDER_TRANSACTIONS AAPL (redundant w/ FMP?): HTTP 200 OK | keys present: ['data'] | payload 2536467B
+5. EARNINGS_CALENDAR (redundant w/ FMP/Benzinga?): HTTP 200 non-json symbol,name,reportDate,fiscalDateEnding,estimate,currency,timeOfTheDay
+EBF,ENNIS INCORPORATED,2026-06-22,2026-05-31,,US
+6. REAL_GDP (redundant w/ FRED?): HTTP 200 OK | keys present: ['data'] | payload 8557B
+7. HISTORICAL_OPTIONS AAPL (memory says PREMIUM): ⚠️ Information: Thank you for using Alpha Vantage! This is a premium endpoint. You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly unlock all premium
+8. ANALYTICS_FIXED_WINDOW (corr/stats — premium?): HTTP 200 OK | keys present: ['payload'] | payload 623B
+DONE 2039
