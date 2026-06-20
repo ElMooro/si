@@ -131,6 +131,11 @@ def comp_plumbing(d):
     return clamp(v)
 
 
+def comp_treasury(d):
+    # justhodl-treasury-noise: clean funding-stress composite (bill-SOFR / SOFR-EFFR / CP-bill)
+    return clamp(dig(d, "treasury_stress", "funding_stress"))
+
+
 def comp_credit(d):
     # prefer a numeric composite if present, else map the regime label
     v = dig(d, "composite_stress_score", "composite_score")
@@ -217,6 +222,7 @@ def comp_ciss(d):
 COMPONENTS = [
     ("data/eurodollar-plumbing.json", 0.20, comp_eurodollar, "USD funding stress (plumbing)"),
     ("data/crisis-plumbing.json",   0.20, comp_plumbing,   "Crisis plumbing / XCC basis"),
+    ("data/treasury-noise.json",    0.12, comp_treasury,   "Treasury funding stress (bill-SOFR/repo/CP)"),
     ("data/credit-stress.json",     0.15, comp_credit,     "Credit spreads"),
     ("data/regime-composite.json",  0.15, comp_regime,     "15-module meta-regime"),
     ("data/vol-surface.json",       0.10, comp_vol,        "Volatility surface"),
