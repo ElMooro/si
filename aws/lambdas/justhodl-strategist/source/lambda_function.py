@@ -276,27 +276,32 @@ def lambda_handler(event=None, context=None):
     briefing = "\n".join(brief)
 
     # 5. reason
-    SYS = ("You are the Chief Investment Officer of a quant macro fund. Below is the DISTILLED "
-           "state of your ENTIRE signal fleet (~430 engines), each engine's verdict weighted by the "
-           "track-record trust it has earned, plus the fleet consensus, contradictions, and your "
-           "proven-alpha book. Reason across the WHOLE board like a top PM — do not fixate on one "
-           "engine. Be decisive and honest; name the real tension. "
-           "Output ONLY a single valid minified JSON object — no markdown, no prose, no trailing "
-           "commas, and escape any double-quotes inside string values. Schema: "
-           '{"dominant_driver":"...","mechanism":"...","confirming":["..."],'
-           '"contradicting":[{"tension":"...","resolution":"..."}],"second_order":["..."],'
-           '"decisive_call":"posture + what to favor/avoid","conviction":0-100,'
-           '"falsifiers":["specific observable that would prove this read wrong"],'
-           '"key_claims":[{"claim":"testable directional claim","horizon_days":N}]}')
+    SYS = ("You are the Chief Investment Officer of a quant macro fund. You reason across the ENTIRE "
+           "signal fleet at once — never fixating on one engine. You are decisive and intellectually "
+           "honest: you name the real tension rather than papering over it. Output ONLY one valid "
+           "minified JSON object and nothing else.")
+    ask = (briefing + "\n\n---\nAnalyze the fleet state above and return your CIO read as a JSON object "
+           "with these keys, FILLED WITH YOUR REAL ANALYSIS (do not echo these descriptions):\n"
+           "  dominant_driver: string — the single biggest force moving markets per the fleet right now\n"
+           "  mechanism: string — why that driver matters, the causal chain\n"
+           "  confirming: array of strings — engines/evidence that corroborate\n"
+           "  contradicting: array of objects {tension, resolution} — where high-trust engines disagree and how you resolve it\n"
+           "  second_order: array of strings — non-obvious knock-on implications most would miss\n"
+           "  decisive_call: string — posture + what to favor and what to avoid\n"
+           "  conviction: integer 0 to 100\n"
+           "  falsifiers: array of strings — specific observables that would prove this read wrong\n"
+           "  key_claims: array of objects {claim, horizon_days} — testable directional claims for grading")
     reasoning = None
     model_used = None
     try:
         from llm_router import complete
-        raw = complete(briefing, tier="reason", max_tokens=2400, system=SYS)
+        raw = complete(ask, tier="reason", max_tokens=2400, system=SYS)
         model_used = "glm-reason"
         parsed, raw_fallback = _parse_json(raw)
-        if parsed:
+        if parsed and parsed.get("dominant_driver") and "..." not in str(parsed.get("dominant_driver")):
             reasoning = parsed
+        elif parsed:
+            reasoning = {"raw": json.dumps(parsed)[:1800], "parse_note": "model echoed template; restore stronger model"}
         else:
             reasoning = {"raw": (raw_fallback or raw or "")[:1800],
                          "parse_note": "model returned malformed JSON; raw read preserved"}
