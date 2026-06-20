@@ -144,82 +144,74 @@ def collect_short_volume_history(days_back=14):
     return history
 
 
-# ────────────────────────── Polygon short interest snapshot ──────────────────────────
-def fetch_polygon_short_interest(ticker):
-    """Get latest short interest snapshot from Polygon.
+# ────────────────────────── FINRA consolidated short interest ──────────────────────────
+def fetch_finra_short_interest(symbols):
+    """Official bi-monthly consolidated short interest from FINRA (free, no auth).
 
-    BUGFIX 2026-05-21 (ops 1012 surfaced): the endpoint without explicit
-    order parameter defaulted to ascending settlement_date, so results[0]
-    was the OLDEST snapshot. With limit=2 + AAPL having SI history back to
-    2017, the engine silently returned 2017-12-29 data for every ticker
-    for years. Fix: add order=desc to get latest-first, raise limit to
-    survive future schema variations, and explicitly sort in-code by
-    settlement_date desc as a defense-in-depth backstop.
+    REPLACES the dead Polygon stocks/v1/short-interest endpoint. On the current
+    entitlement Polygon returns only stale 2017-18 snapshots and ignores the
+    order/sort params, so the prior 180-day freshness guard correctly dropped
+    ~everything — leaving days_to_cover / si_change_pct effectively None and the
+    SQUEEZE_RISK / HIGH_DAYS_TO_COVER classifications (which need real DTC) inert.
+
+    FINRA's consolidatedShortInterest gives the current settlement directly and
+    is in fact richer than Polygon ever was: official daysToCoverQuantity and an
+    official change-vs-prior-settlement, no client-side computation needed.
+
+    One bulk POST per page (dateRangeFilter on settlementDate, NO sortFields —
+    FINRA rejects sorting unless partition keys are EQUAL-filtered), indexed to
+    the watchlist. Returns {sym: {settlement_date, short_interest,
+    avg_daily_volume, days_to_cover, prev_short_interest, si_change_pct}}.
     """
-    url = (f"https://api.polygon.io/stocks/v1/short-interest"
-           f"?ticker={urllib.parse.quote(ticker)}"
-           f"&order=desc&sort=settlement_date&limit=10"
-           f"&apiKey={POLYGON_KEY}")
-    try:
-        d = http_get(url, timeout=12)
-        results = d.get("results") or []
-        if not results:
-            return None
-        # Defense-in-depth: re-sort locally by settlement_date desc in case
-        # the API ignores order params or returns unsorted results.
-        try:
-            results = sorted(
-                results,
-                key=lambda r: (r.get("settlement_date") or ""),
-                reverse=True)
-        except Exception:
-            pass
-        latest = results[0]
-        prev = results[1] if len(results) > 1 else None
-        si = latest.get("short_interest")
-        avg_vol = latest.get("avg_daily_volume")
-        # FRESHNESS GUARD: Polygon's short-interest endpoint sometimes only has
-        # very old snapshots for a ticker (e.g. 2018). Showing that as "current"
-        # is worse than showing nothing. Drop snapshots older than ~180 days.
-        sd = latest.get("settlement_date") or ""
-        try:
-            from datetime import datetime as _dt
-            age_days = (_dt.now().date() - _dt.fromisoformat(sd).date()).days
-            if age_days > 180:
-                return None
-        except Exception:
-            pass
-        days_to_cover = None
-        if si and avg_vol and avg_vol > 0:
-            days_to_cover = round(si / avg_vol, 2)
-        si_change = None
-        if prev and prev.get("short_interest") and si:
-            si_change = round(((si - prev["short_interest"]) /
-                                prev["short_interest"]) * 100, 2)
-        return {
-            "settlement_date": latest.get("settlement_date"),
-            "short_interest": si,
-            "avg_daily_volume": avg_vol,
-            "days_to_cover": days_to_cover,
-            "prev_settlement": prev.get("settlement_date") if prev else None,
-            "prev_short_interest": prev.get("short_interest")
-                if prev else None,
-            "si_change_pct": si_change,
-        }
-    except Exception:
-        return None
-
-
-def fetch_polygon_short_interest_parallel(tickers, max_workers=10):
-    """Parallel fetch short interest for tickers."""
+    from datetime import date as _date
+    url = "https://api.finra.org/data/group/otcMarket/name/consolidatedShortInterest"
+    end = _date.today()
+    start = end - timedelta(days=30)
+    want = set(symbols)
     out = {}
-    with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futures = {ex.submit(fetch_polygon_short_interest, t): t for t in tickers}
-        for fut in as_completed(futures):
-            t = futures[fut]
-            res = fut.result()
-            if res:
-                out[t] = res
+    offset = 0
+    for _ in range(6):  # paginate the full latest-settlement snapshot (~22k rows)
+        payload = {
+            "limit": 5000, "offset": offset,
+            "dateRangeFilters": [{"fieldName": "settlementDate",
+                                  "startDate": start.isoformat(),
+                                  "endDate": end.isoformat()}],
+        }
+        try:
+            req = urllib.request.Request(
+                url, data=json.dumps(payload).encode(),
+                headers={"User-Agent": "JustHodl Research raafouis@gmail.com",
+                         "Content-Type": "application/json",
+                         "Accept": "application/json"},
+                method="POST")
+            with urllib.request.urlopen(req, timeout=30) as r:
+                rows = json.loads(r.read())
+        except Exception as e:
+            print(f"[short-interest] FINRA SI fetch fail @offset {offset}: {type(e).__name__}: {e}")
+            break
+        if isinstance(rows, dict):
+            rows = rows.get("data") or rows.get("results") or []
+        if not rows:
+            break
+        for r in rows:
+            sym = (r.get("symbolCode") or "").upper().strip()
+            if sym not in want:
+                continue
+            sd = r.get("settlementDate")
+            prev = out.get(sym)
+            if prev is None or (sd and sd >= (prev.get("settlement_date") or "")):
+                out[sym] = {
+                    "settlement_date": sd,
+                    "short_interest": r.get("currentShortPositionQuantity"),
+                    "avg_daily_volume": r.get("averageDailyVolumeQuantity"),
+                    "days_to_cover": r.get("daysToCoverQuantity"),
+                    "prev_short_interest": r.get("previousShortPositionQuantity"),
+                    "si_change_pct": r.get("changePercent"),
+                }
+        if len(rows) < 5000:
+            break
+        offset += 5000
+    print(f"[short-interest] FINRA SI: {len(out)}/{len(want)} watchlist names from official settlement")
     return out
 
 
@@ -278,9 +270,9 @@ def lambda_handler(event=None, context=None):
     history = collect_short_volume_history(days_back=14)
     print(f"[short-interest] FINRA: {len(history)} tickers w/ short volume data")
 
-    # 2. Polygon short interest snapshot
-    si_data = fetch_polygon_short_interest_parallel(WATCHLIST, max_workers=10)
-    print(f"[short-interest] Polygon: {len(si_data)} tickers w/ short interest snapshot")
+    # 2. Official short interest snapshot — FINRA consolidated (replaces dead Polygon)
+    si_data = fetch_finra_short_interest(WATCHLIST_SET)
+    print(f"[short-interest] FINRA SI: {len(si_data)} tickers w/ official short interest")
 
     # 3. Combine + classify
     by_ticker = {}
@@ -360,6 +352,7 @@ def lambda_handler(event=None, context=None):
         "n_tickers_with_data": len(by_ticker),
         "n_tickers_finra": len(history),
         "n_tickers_polygon": len(si_data),
+        "n_tickers_short_interest": len(si_data),
         "by_ticker": by_ticker,
         "top_crowded_shorts": crowded[:15],
         "top_squeeze_risk": squeeze_risk[:10],
@@ -368,7 +361,7 @@ def lambda_handler(event=None, context=None):
         "duration_s": round(time.time() - started, 2),
         "data_sources": {
             "short_volume": "FINRA daily RegSHO files (free)",
-            "short_interest": "Polygon stocks short-interest API (bi-monthly snapshots)",
+            "short_interest": "FINRA Consolidated Short Interest API (official bi-monthly settlement; replaced dead Polygon feed)",
             "short_float": "Finviz Elite whole-market short float (fresh, primary for latest_short_pct)",
         },
         "signal_definitions": {
