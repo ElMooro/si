@@ -1,33 +1,5 @@
-created justhodl-analyst-actions
-scheduled justhodl-analyst-actions-daily
-invoke: 200 None | b'{"statusCode": 200, "body": "{\\"upgrades\\": 37, \\"downgrades\\": 57, \\"pt_raises\\": 268, \\"guidance_raises\\": 57, \\"guidance_cuts\\": 13, \\"n_picks\\": 20, \\"top_pick\\": \\"JBL\\", \\"elapsed_s\\": 0.6}"}'
-
-v 1.0.0 counts: {"ratings_7d": 632, "guidance_21d": 222, "insights_7d": 214, "upgrades": 37, "downgrades": 57, "pt_raises": 268, "pt_cuts": 111, "guidance_raises": 57, "guidance_cuts": 13}
-
-★ UPGRADES (sample):
-  ASR    neutral→buy (UBS) imp3
-  ALB    neutral→buy (Citigroup) imp4
-  CODA   hold→buy (Freedom Broker) imp1
-  ENPH   underweight→equal-weight (Barclays) imp3
-  QURE   equal-weight→overweight (Barclays) imp3
-★ PT RAISES (top by %):
-  QURE   14.0→46.0 (+228.6%) Goldman Sachs
-  MU     550.0→1500.0 (+172.7%) Stifel
-  QURE   25.0→65.0 (+160.0%) Barclays
-  MU     550.0→1300.0 (+136.4%) Wedbush
-  MU     525.0→1200.0 (+128.6%) RBC Capital
-★ GUIDANCE RAISES:
-  ACN    FY2026 eps 13.375→13.440000000000001 rev_dir=None
-  JBL    FY2026 eps 12.25→12.7 rev_dir=RAISE
-  NEXN   FY2026 eps None→None rev_dir=RAISE
-  VNCE   FY2026 eps None→None rev_dir=RAISE
-  LOVE   Q22027 eps -0.33999999999999997→-0.33999999999999997 rev_dir=AFFIRM
-★ MOST BULLISH (net analyst score):
-  JBL    score=20.4 [PT RAISE 395.0→450.0 (JP Morgan), PT RAISE 384.0→482.0 (Goldman Sachs)]
-  MU     score=16.8 [PT RAISE 600.0→1200.0 (Rosenblatt), PT RAISE 550.0→1500.0 (Stifel)]
-  KMX    score=12.95 [PT RAISE 37.0→38.0 (JP Morgan), PT RAISE 47.0→50.0 (Truist Securities)]
-  HNGE   score=11.47 [PT RAISE 55.0→65.0 (Baird), PT RAISE 70.0→80.0 (Raymond James)]
-  QURE   score=10.0 [UPGRADE equal-weight→overweight (Barclays), PT RAISE 25.0→65.0 (Barclays)]
-  DDOG   score=9.6 [PT RAISE 225.0→275.0 (Scotiabank), PT RAISE 218.0→270.0 (Citigroup)]
-★ TOP PICKS (corroborated → harvester): [('JBL', 20.4), ('HNGE', 11.47), ('QURE', 10.0), ('DDOG', 9.6), ('DT', 8.84), ('MAC', 8.62), ('NEXN', 8.04), ('FIVE', 7.2), ('HPE', 7.2), ('PAYX', 6.29)]
-DONE 1980
+harvester invoke: 200 None | b'{"statusCode": 200, "body": "{\\"ok\\": true, \\"engines\\": 61, \\"written\\": 111, \\"scanned\\": 441}"}'
+scanned 12000 signal rows; eng:analyst-actions matches=3
+  sample: [('?', '?'), ('?', '?'), ('?', '?')]
+live check: {"page": {"status": 200, "len": 9897, "has_title": true, "link": false}, "dir": {"status": 200, "len": 47931, "has_title": true, "link": true}}
+DONE 1981
