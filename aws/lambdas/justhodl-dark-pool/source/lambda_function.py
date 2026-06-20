@@ -65,6 +65,26 @@ def poly_get(url):
         return None
 
 
+def fetch_equity_set():
+    """Polygon reference → set of real common stocks + ADRs (CS, ADRC). Excludes ETFs/ETNs/
+    funds/warrants/units, which structurally have huge off-exchange % (not alpha-relevant)."""
+    eq = set()
+    for typ in ("CS", "ADRC"):
+        url = (f"https://api.polygon.io/v3/reference/tickers?type={typ}&market=stocks"
+               f"&active=true&limit=1000&apiKey={POLY}")
+        for _ in range(8):
+            j = poly_get(url)
+            for r in (j or {}).get("results") or []:
+                t = r.get("ticker")
+                if t:
+                    eq.add(t.upper())
+            nxt = (j or {}).get("next_url")
+            if not nxt:
+                break
+            url = nxt + f"&apiKey={POLY}"
+    return eq
+
+
 def fetch_offexchange(weeks_back=45):
     """Pull ATS_W_SMBL + OTC_W_SMBL for the last ~6 weeks; index {sym: {week: {ats, otc}}}."""
     end = date.today()
