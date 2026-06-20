@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Treasury & Funding Stress · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#9b8cff;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.45}
+.wrap{max-width:920px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:16px;max-width:740px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:18px}
+.hero{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+.gauge{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:18px 22px;min-width:200px}
+.gauge .k{color:var(--fg-2);font-size:11px;text-transform:uppercase;letter-spacing:.05em}.gauge .v{font-family:var(--mono);font-size:34px;margin-top:4px}.gauge .s{font-size:13px;margin-top:4px}
+.pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:13px;font-family:var(--mono)}
+.CALM{background:rgba(63,214,140,.16);color:var(--green)}.WATCH{background:rgba(245,179,67,.16);color:var(--amber)}.ELEVATED{background:rgba(255,140,90,.18);color:#ff9d5c}.STRESSED{background:rgba(255,92,108,.18);color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border)}
+th{color:var(--fg-2);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em}
+td.num{font-family:var(--mono);text-align:right}
+.barwrap{display:flex;align-items:center;gap:8px}.bar{height:6px;width:90px;background:var(--bg-2);border-radius:3px;overflow:hidden}.bar>i{display:block;height:100%}
+.diag{background:var(--bg-1);border:1px dashed var(--border);border-radius:10px;padding:14px;margin-top:18px}
+.diag h3{margin:0 0 6px;font-size:13px;color:var(--fg-1)}
+.note{color:var(--fg-3);font-size:11px;margin-top:18px;line-height:1.6}.loading{color:var(--fg-2);padding:40px 0;text-align:center}a{color:var(--cyan)}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Loading Treasury & funding stress…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function n(v){return v==null?'—':v}
+function pctbar(p){const c=p>=70?'var(--red)':p>=40?'var(--amber)':'var(--green)';return `<div class="barwrap"><div class="bar"><i style="width:${Math.max(2,Math.min(100,p||0))}%;background:${c}"></i></div><span style="font-family:var(--mono);color:${c}">${p==null?'—':p}</span></div>`;}
+(async function(){
+  const d=await gj('data/treasury-noise.json');const w=document.getElementById('wrap');
+  if(!d||!d.ok){w.innerHTML='<h1>Treasury & Funding Stress</h1><div class="loading">No data yet — runs daily 13:30 UTC.</div>';return;}
+  const sp=d.spreads||{};const diag=d.curve_shape_diagnostic||{};const itp=d.interpretation||{};
+  let h=`<h1>💵 Treasury & Funding Stress</h1><div class="sub">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="meta">as of ${esc(d.as_of_date)} · ${esc((d.generated_at||'').slice(0,16))}Z</div>`;
+  h+=`<div class="hero">
+    <div class="gauge"><div class="k">Treasury Stress</div><div class="v">${n(d.treasury_stress)}</div><div class="s"><span class="pill ${esc(d.regime)}">${esc(d.regime)}</span></div></div>
+  </div>`;
+  h+=`<table><thead><tr><th>Funding spread</th><th class="num">Level</th><th>Stress percentile</th><th>Reads</th></tr></thead><tbody>`;
+  const rows=[
+    ["bill − SOFR", sp.bill_sofr_bps, sp.bill_sofr_stress_pctile, itp.bill_sofr_bps],
+    ["SOFR − EFFR", sp.sofr_effr_bps, sp.sofr_effr_stress_pctile, itp.sofr_effr_bps],
+    ["CP − bill", sp.cp_bill_bps, sp.cp_bill_stress_pctile, itp.cp_bill_bps],
+  ];
+  rows.forEach(r=>{ h+=`<tr><td><b>${r[0]}</b></td><td class="num">${r[1]==null?'—':r[1]+' bps'}</td><td>${pctbar(r[2])}</td><td style="color:var(--fg-3);font-size:11px">${esc((r[3]||'').split(';')[0])}</td></tr>`; });
+  h+=`</tbody></table>`;
+  h+=`<div class="diag"><h3>⚗️ Curve-shape diagnostic — experimental (NOT in stress score)</h3>
+    <div style="font-family:var(--mono);font-size:13px">Nelson-Siegel residual: ${n(diag.ns_residual_bps)} bps · pctile ${n(diag.pctile)}</div>
+    <div style="color:var(--fg-3);font-size:11px;margin-top:6px">${esc(diag.note||'')}</div></div>`;
+  h+=`<div class="note">${(d.caveats||[]).map(c=>'• '+esc(c)).join('<br>')}<br><br>Data: ${esc(d.data_source||'')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
