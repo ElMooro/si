@@ -1,52 +1,33 @@
-=== RATINGS rows WITH a price_target_action — find PT numeric fields ===
-  59 of 60 rows have price_target_action
-  --- DDOG raises (Scotiabank) ---
-      price_target_action: raises
-      adjusted_price_target: 275.0
-      previous_adjusted_price_target: 225.0
-      price_target: 275.0
-      previous_price_target: 225.0
-      price_percent_change: 22.219999313354492
-  --- COST announces (Citigroup) ---
-      price_target_action: announces
-      adjusted_price_target: 1020.0
-      price_target: 1020.0
-  --- ALB maintains (Citigroup) ---
-      price_target_action: maintains
-      adjusted_price_target: 225.0
-      previous_adjusted_price_target: 225.0
-      price_target: 225.0
-      previous_price_target: 225.0
-  --- FTI raises (Citigroup) ---
-      price_target_action: raises
-      adjusted_price_target: 80.0
-      previous_adjusted_price_target: 76.0
-      price_target: 80.0
-      previous_price_target: 76.0
-      price_percent_change: 5.260000228881836
-  all PT-related keys seen: ['adjusted_price_target', 'previous_adjusted_price_target', 'previous_price_target', 'price_percent_change', 'price_target', 'price_target_action']
+created justhodl-analyst-actions
+scheduled justhodl-analyst-actions-daily
+invoke: 200 None | b'{"statusCode": 200, "body": "{\\"upgrades\\": 37, \\"downgrades\\": 57, \\"pt_raises\\": 268, \\"guidance_raises\\": 57, \\"guidance_cuts\\": 13, \\"n_picks\\": 20, \\"top_pick\\": \\"JBL\\", \\"elapsed_s\\": 0.6}"}'
 
-=== GUIDANCE rows — find EPS guidance field names ===
-  all guidance keys: ['benzinga_id', 'company_name', 'currency', 'date', 'eps_method', 'estimated_eps_guidance', 'estimated_revenue_guidance', 'fiscal_period', 'fiscal_year', 'importance', 'last_updated', 'max_eps_guidance', 'max_revenue_guidance', 'min_eps_guidance', 'min_revenue_guidance', 'notes', 'positioning', 'previous_max_eps_guidance', 'previous_max_revenue_guidance', 'previous_min_eps_guidance', 'previous_min_revenue_guidance', 'release_type', 'revenue_method', 'ticker', 'time']
-  39 rows carry non-null EPS guidance
-  --- KR FY2026 ---
-      estimated_eps_guidance: 5.27
-      max_eps_guidance: 5.3
-      min_eps_guidance: 5.1
-      previous_max_eps_guidance: 5.3
-      previous_min_eps_guidance: 5.1
-      eps_method: adj
-  --- DLX FY2026 ---
-      estimated_eps_guidance: 3.68
-      max_eps_guidance: 4.0
-      min_eps_guidance: 3.6
-      previous_max_eps_guidance: 4.0
-      previous_min_eps_guidance: 3.6
-      eps_method: adj
-  --- ACN FY2026 ---
-      max_eps_guidance: 13.5
-      min_eps_guidance: 13.38
-      previous_max_eps_guidance: 13.5
-      previous_min_eps_guidance: 13.25
-      eps_method: gaap
-DONE 1979
+v 1.0.0 counts: {"ratings_7d": 632, "guidance_21d": 222, "insights_7d": 214, "upgrades": 37, "downgrades": 57, "pt_raises": 268, "pt_cuts": 111, "guidance_raises": 57, "guidance_cuts": 13}
+
+★ UPGRADES (sample):
+  ASR    neutral→buy (UBS) imp3
+  ALB    neutral→buy (Citigroup) imp4
+  CODA   hold→buy (Freedom Broker) imp1
+  ENPH   underweight→equal-weight (Barclays) imp3
+  QURE   equal-weight→overweight (Barclays) imp3
+★ PT RAISES (top by %):
+  QURE   14.0→46.0 (+228.6%) Goldman Sachs
+  MU     550.0→1500.0 (+172.7%) Stifel
+  QURE   25.0→65.0 (+160.0%) Barclays
+  MU     550.0→1300.0 (+136.4%) Wedbush
+  MU     525.0→1200.0 (+128.6%) RBC Capital
+★ GUIDANCE RAISES:
+  ACN    FY2026 eps 13.375→13.440000000000001 rev_dir=None
+  JBL    FY2026 eps 12.25→12.7 rev_dir=RAISE
+  NEXN   FY2026 eps None→None rev_dir=RAISE
+  VNCE   FY2026 eps None→None rev_dir=RAISE
+  LOVE   Q22027 eps -0.33999999999999997→-0.33999999999999997 rev_dir=AFFIRM
+★ MOST BULLISH (net analyst score):
+  JBL    score=20.4 [PT RAISE 395.0→450.0 (JP Morgan), PT RAISE 384.0→482.0 (Goldman Sachs)]
+  MU     score=16.8 [PT RAISE 600.0→1200.0 (Rosenblatt), PT RAISE 550.0→1500.0 (Stifel)]
+  KMX    score=12.95 [PT RAISE 37.0→38.0 (JP Morgan), PT RAISE 47.0→50.0 (Truist Securities)]
+  HNGE   score=11.47 [PT RAISE 55.0→65.0 (Baird), PT RAISE 70.0→80.0 (Raymond James)]
+  QURE   score=10.0 [UPGRADE equal-weight→overweight (Barclays), PT RAISE 25.0→65.0 (Barclays)]
+  DDOG   score=9.6 [PT RAISE 225.0→275.0 (Scotiabank), PT RAISE 218.0→270.0 (Citigroup)]
+★ TOP PICKS (corroborated → harvester): [('JBL', 20.4), ('HNGE', 11.47), ('QURE', 10.0), ('DDOG', 9.6), ('DT', 8.84), ('MAC', 8.62), ('NEXN', 8.04), ('FIVE', 7.2), ('HPE', 7.2), ('PAYX', 6.29)]
+DONE 1980
