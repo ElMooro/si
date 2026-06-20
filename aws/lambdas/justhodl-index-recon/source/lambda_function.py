@@ -413,9 +413,59 @@ def lambda_handler(event, context):
                      "highest-confidence add/delete candidates."),
         }
 
+    # ── Cross-confirm projections with REAL ETF-Global reconstitution events ──
+    # flow-lookthrough observes ACTUAL constituent add/drops in ETF-Global
+    # snapshots — corroborating a finviz/market-cap projection with a real
+    # ETF rebalance is the highest-confidence reconstitution signal.
+    flow_idx = {}
+    try:
+        _fl = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/flow-lookthrough.json")["Body"].read())
+        for ev in (_fl.get("index_events_agg") or []):
+            tk = (ev.get("ticker") or "").upper().strip()
+            if tk:
+                flow_idx[tk] = {"event": ev.get("event"), "etfs": ev.get("etfs") or []}
+    except Exception as e:
+        print(f"[index-recon] flow-lookthrough cross-confirm unavailable: {e}")
+
+    def _tag(records, expect_set):
+        n = 0
+        for r in records:
+            fe = flow_idx.get((r.get("symbol") or "").upper())
+            if fe and fe.get("event") in expect_set:
+                r["flow_confirmed"] = True
+                r["confirming_etfs"] = fe.get("etfs")
+                n += 1
+            else:
+                r["flow_confirmed"] = False
+        return n
+
+    n_conf_add = _tag(adds, {"ADDED"})
+    n_conf_grad = _tag(promotions, {"ADDED", "DROPPED"})
+    n_conf_del = _tag(deletes, {"DROPPED"})
+    n_conf_dem = _tag(demotions, {"ADDED", "DROPPED"})
+    _tag(sp_list, {"ADDED"})
+    confirmed_tickers = sorted({
+        r["symbol"] for r in (adds + promotions + deletes + demotions)
+        if r.get("flow_confirmed")
+    })
+    cross_confirm = {
+        "source": "justhodl-flow-lookthrough (ETF-Global actual constituent add/drops)",
+        "n_events_observed": len(flow_idx),
+        "n_additions_confirmed": n_conf_add,
+        "n_graduations_confirmed": n_conf_grad,
+        "n_deletions_confirmed": n_conf_del,
+        "n_demotions_confirmed": n_conf_dem,
+        "confirmed_tickers": confirmed_tickers,
+        "note": ("flow_confirmed=True means a projected reconstitution event is "
+                 "corroborated by an ACTUAL ETF constituent add/drop seen in "
+                 "ETF-Global snapshots — highest-confidence signal vs the "
+                 "market-cap projection alone."),
+    }
+
     out = {
         "ok": True, "schema": SCHEMA,
         "finviz_truth": fv_truth,
+        "cross_confirm": cross_confirm,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_s": round(time.time() - t0, 1),
         "headline": headline,
