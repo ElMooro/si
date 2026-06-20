@@ -1,8 +1,9 @@
-invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"treasury_stress\": 65.0, \"regime\": \"ELEVATED\", \"curve_noise_bps\": 6.07, \"curve_noise_pctile\": 99.7, \"bill_sofr_spread_bps\": 5.0, \"history_points\": 648}"}
+invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"treasury_stress\": 19.1, \"regime\": \"CALM\", \"spreads\": {\"bill_sofr\": 5.0, \"sofr_effr\": 0.0, \"cp_bill\": -1.0}, \"ns_diagnostic_bps\": 6.07}"}
 
-stress: 65.0 regime: ELEVATED
-curve_noise: 6.07 bps | PCTILE: 99.7 | z: 3.87
-bill-SOFR: 5.0 bps | funding stress pct: 0.6
-highest noise days (stress eras should rank high): [('2026-05-22', 6.255), ('2026-06-05', 6.164), ('2026-06-17', 6.07), ('2026-06-08', 5.55), ('2026-05-19', 5.42)]
-60d trail: min=1.294 max=6.255 mean=3.13 latest=6.07
-DONE 2027
+version: 1.1.0 treasury_stress: 19.1 regime: CALM (expect CALM/WATCH on a calm day)
+SPREADS:
+  bill-SOFR: 5.0 bps  stress pctile: 0.6
+  SOFR-EFFR: 0.0 bps  stress pctile: 53.6
+  CP-bill: -1.0 bps  stress pctile: 3.1
+NS diagnostic (experimental, NOT in score): 6.07 bps pctile 99.7
+DONE 2028
