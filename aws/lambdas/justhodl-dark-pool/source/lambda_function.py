@@ -202,8 +202,11 @@ def lambda_handler(event=None, context=None):
     distribution = [r for r in rows if r["state"] == "DISTRIBUTION"]
     top_picks = [{"ticker": r["ticker"], "score": r["score"], "direction": "long",
                   "state": r["state"], "dark_pool_pct": r["dark_pool_pct"],
-                  "dark_accel": r["dark_accel"], "offex_pct": r["offex_pct"]}
-                 for r in accumulation if r["score"] >= 45][:20]
+                  "dark_accel": r["dark_accel"], "offex_pct": r["offex_pct"],
+                  "week_return_pct": r["week_return_pct"]}
+                 for r in accumulation
+                 if r["score"] >= 45
+                 and r["week_return_pct"] is not None and -2.0 <= r["week_return_pct"] <= 8.0][:20]
 
     # ── dark map for justhodl-ignition (fixes its dead P4 dark-share dimension) ──
     # {ticker: latest-week ATS shares} so ignition can compute dark_to_adv.
