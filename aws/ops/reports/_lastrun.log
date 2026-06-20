@@ -1,17 +1,16 @@
-============================================================
-data/squeeze-pretrigger.json
-  top-level keys: ['engine', 'version', 'as_of', 'state', 'previous_state', 'state_description', 'signal_strength', 'summary', 'current_readings', 'imminent_setups', 'pretrigger_setups', 'early_setups', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'historical_episodes', 'why_now_explainer', 'methodology', 'sources', 'schedule', 'run_duration_seconds']
-    [trigger_conditions] len=4 sample={"name": "Imminent setups (5/5)", "current": 0, "threshold": ">=1", "satisfied": false, "weight": 0.35}
-    [historical_episodes] len=3 sample={"period": "GME Jan 2021", "outcome": "5/5 pre-trigger 14d before squeeze -> +1700% over 28d"}
-    [sources] len=4 sample=data/finra-short.json (utilization, days-to-cover, z-score)
-============================================================
-data/52wk-quality-breakout.json
-  top-level keys: ['engine', 'version', 'as_of', 'state', 'signal_strength', 'summary', 'picks', 'forward_expectations', 'methodology', 'sources', 'why_now', 'run_seconds']
-    [sources] len=6 sample=FMP /stable/historical-price-eod
-============================================================
-DIMENSION TICKER OVERLAP
-  ANALYST=73 ESTIMATE=40 FLOW=34
-  A∩E=0 A∩F=2 E∩F=0 A∩E∩F=0
-  A∩F sample: ['ACN', 'LRCX']
-  E∩F sample: []
-DONE 1989
+invoke: 200 None
+b'{"statusCode": 200, "body": "{\\"dimensions_loaded\\": {\\"BEAT\\": 6, \\"ANALYST\\": 73, \\"ESTIMATE\\": 40, \\"FLOW\\": 64}, \\"n_scanned\\": 179, \\"n_2way\\": 4, \\"n_3way\\": 0, \\"n_4way_plus\\": 0, \\"n_picks\\": 0, \\"top\\": [[\\"ACN\\", 2, 2.1], [\\"LRCX\\", 2, 2.1], [\\"MU\\", 2, 1.89], [\\"CSCO\\", 2, 1.68], [\\"JBL\\", 1, 1.1], [\\"NEXN\\", 1, 1.1], [\\"VNCE\\", 1, 1.1], [\\"LOVE\\", 1, 1.1]], \\"elapsed_s\\": 0.4}"}'
+
+dims: {'BEAT': 6, 'ANALYST': 73, 'ESTIMATE': 40, 'FLOW': 64} | squeeze_regime: {'state': 'QUIET', 'signal_strength': 0}
+scanned=179 2way=4 3way=0 4way+=0
+
+★ HIGH-CONVICTION (>=3 independent signals):
+
+★ Strong 2-way sample:
+  ACN    score=2.1 [ANALYST, FLOW]
+  LRCX   score=2.1 [ANALYST, FLOW]
+  MU     score=1.89 [ANALYST, FLOW]
+  CSCO   score=1.68 [BEAT, FLOW]
+
+★ TOP PICKS → harvester: []
+DONE 1990
