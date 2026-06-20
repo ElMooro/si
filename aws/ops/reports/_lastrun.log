@@ -1,29 +1,18 @@
-======================================================================
-EARNINGS SURPRISE HISTORY (AAPL)
-======================================================================
-  FMP:      rows=164 (w/estimate=110)  span 1985-09-30 → 2026-07-30  (40.8y)
-    fields: ['date', 'epsActual', 'epsEstimated', 'lastUpdated', 'revenueActual', 'revenueEstimated', 'symbol']
-  BENZINGA: rows=62 (reported=58)  span 2012-01-24 → 2027-04-29  (15.3y)  next_url=n
+invoke: 200 None | b'{"statusCode": 200, "body": "{\\"status\\": \\"LIVE\\", \\"n_tracked\\": 425, \\"n_fmp_enriched\\": 238, \\"n_with_history\\": 356, \\"n_up\\": 0, \\"n_down\\": 0, \\"n_strength_leaders\\": 40, \\"n_picks\\": 0, \\"elapsed_s\\": 3.6}"}'
 
-======================================================================
-ANALYST ESTIMATES / REVISIONS (AAPL)
-======================================================================
-  FMP analyst-estimates: rows=28  span 1996-09-26 → 2030-09-27 (34.0y)
-    fields: ['date', 'ebitAvg', 'ebitHigh', 'ebitLow', 'ebitdaAvg', 'ebitdaHigh', 'ebitdaLow', 'epsAvg', 'epsHigh', 'epsLow', 'netIncomeAvg', 'netIncomeHigh', 'netIncomeLow', 'numAnalystsEps', 'numAnalystsRevenue', 'revenueAvg', 'revenueHigh', 'revenueLow', 'sgaExpenseAvg', 'sgaExpenseHigh', 'sgaExpenseLow', 'symbol']
-  BENZINGA: no historical consensus endpoint — current estimate only per period
-            (revision history must be self-built via daily snapshots = my estimate-revisions)
+v 2.0.0 status: LIVE n_tracked: 425 n_fmp_enriched: 238
 
-======================================================================
-ANALYST RATINGS / PRICE TARGETS (AAPL)
-======================================================================
-  FMP /grades-historical: rows=90 span 2018-12-01 → 2026-06-01 (7.5y)  fields=['analystRatingsBuy', 'analystRatingsHold', 'analystRatingsSell', 'analystRatingsStrongBuy', 'analystRatingsStrongSell', 'date', 'symbol']
-  FMP /grades: rows=1768 span 2012-02-08 → 2026-06-09 (14.3y)  fields=['action', 'date', 'gradingCompany', 'newGrade', 'previousGrade', 'symbol']
-  FMP /price-target-summary: rows=1 span — → — (0y)  fields=['allTimeAvgPriceTarget', 'allTimeCount', 'lastMonthAvgPriceTarget', 'lastMonthCount', 'lastQuarterAvgPriceTarget', 'lastQuarterCount', 'lastYearAvgPriceTarget', 'lastYearCount']
-  BENZINGA ratings: rows=400 span 2023-06-23 → 2026-06-18 (3.0y) next_url=y
+★ ESTIMATE-STRENGTH LEADERS (immediate, FMP fwd-growth fused):
+  SNDK   strength=82.8 fwdEPSgrowth=187.1% nA=11 d2e=54 imp5
+  IQ     strength=82.2 fwdEPSgrowth=1230.4% nA=9 d2e=60 imp2
+  HSAI   strength=82.2 fwdEPSgrowth=67.8% nA=9 d2e=54 imp3
+  CBRS   strength=81.2 fwdEPSgrowth=180.7% nA=5 d2e=60 imp5
+  AAPG   strength=81.2 fwdEPSgrowth=61.8% nA=5 d2e=60 imp2
+  AAPG   strength=81.2 fwdEPSgrowth=61.8% nA=5 d2e=60 imp2
+  KLAR   strength=81.2 fwdEPSgrowth=276.6% nA=5 d2e=59 imp3
+  BTDR   strength=81.2 fwdEPSgrowth=66.3% nA=5 d2e=58 imp3
+  ABEO   strength=81.2 fwdEPSgrowth=91.0% nA=5 d2e=54 imp2
+  CELC   strength=81.2 fwdEPSgrowth=88.0% nA=5 d2e=54 imp3
 
-======================================================================
-COVERAGE BREADTH (mkt-wide calendar, next 14d)
-======================================================================
-  FMP earnings-calendar rows=1051
-  BENZINGA earnings rows=53
-DONE 1986
+★ TOP PICKS (strong+near-earnings → harvester): []
+DONE 1987
