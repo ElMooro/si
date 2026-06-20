@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Options Analytics · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#9b8cff;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:14px;max-width:760px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:22px}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:13px}
+.card .k{color:var(--fg-2);font-size:11px;text-transform:uppercase;letter-spacing:.04em}.card .v{font-family:var(--mono);font-size:22px;margin-top:4px}
+h2{font-size:14px;margin:24px 0 9px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--border);white-space:nowrap}
+th{color:var(--fg-2);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;position:sticky;top:0;background:var(--bg)}
+td.num{font-family:var(--mono);text-align:right}.sym{font-weight:700}
+.pill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:10.5px;font-family:var(--mono)}
+.SHORT_GAMMA{background:rgba(255,92,108,.16);color:var(--red)}.LONG_GAMMA{background:rgba(63,214,140,.14);color:var(--green)}
+.GAMMA_SQUEEZE_SETUP,.SQUEEZE_PRIMED{background:rgba(245,179,67,.18);color:var(--amber)}.PINNED{background:rgba(70,200,255,.14);color:var(--cyan)}
+.DOWNSIDE_HEDGING{background:rgba(155,140,255,.16);color:var(--violet)}.NEUTRAL{background:rgba(124,139,160,.12);color:var(--fg-2)}
+.tag{font-size:10px;color:var(--fg-3);font-family:var(--mono)}
+.scroll{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+.note{color:var(--fg-3);font-size:11px;margin-top:20px;line-height:1.6}
+.loading{color:var(--fg-2);padding:40px 0;text-align:center}a{color:var(--cyan)}
+.chips span{display:inline-block;background:var(--bg-2);border:1px solid var(--border);border-radius:7px;padding:5px 9px;margin:0 6px 6px 0;font-family:var(--mono);font-size:11.5px}
+</style></head>
+<body><div class="wrap" id="wrap"><div class="loading">Loading options analytics…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function n(v,d){return v==null?'—':(typeof v==='number'?(d===0?Math.round(v):v.toFixed(d==null?2:d)):v);}
+function ivp(v){return v==null?'—':(v*100).toFixed(1)+'%';}
+function gex(v){if(v==null)return '—';const a=Math.abs(v);const s=v<0?'-':'';return s+'$'+(a>=1000?(a/1000).toFixed(2)+'B':a.toFixed(1)+'M');}
+(async function(){
+  const d=await gj('data/options-analytics.json');const w=document.getElementById('wrap');
+  if(!d||!d.ok){w.innerHTML='<h1>Options Analytics</h1><div class="loading">No data yet — engine runs daily 13:00 UTC. Check back shortly.</div>';return;}
+  const ds=d.distribution||{};
+  let h=`<h1>📈 Options Analytics</h1><div class="sub">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="meta">${n(d.n_analyzed,0)} names · Polygon options (greeks·IV·OI·volume) · ${esc((d.generated_at||'').slice(0,16))}Z</div>`;
+  h+=`<div class="cards">
+    <div class="card"><div class="k">Short γ (amplify)</div><div class="v" style="color:var(--red)">${n(ds.short_gamma,0)}</div></div>
+    <div class="card"><div class="k">Long γ (pin)</div><div class="v" style="color:var(--green)">${n(ds.long_gamma,0)}</div></div>
+    <div class="card"><div class="k">Squeeze setups</div><div class="v" style="color:var(--amber)">${n(ds.squeeze_setups,0)}</div></div>
+    <div class="card"><div class="k">Downside hedging</div><div class="v" style="color:var(--violet)">${n(ds.downside_hedging,0)}</div></div>
+  </div>`;
+  // squeeze setups chips
+  if((d.squeeze_setups||[]).length){
+    h+=`<h2>⚡ Gamma Squeeze Setups <span class="tag">short gamma + call-heavy flow → logged for forward grading</span></h2><div class="chips">`;
+    h+=(d.squeeze_setups||[]).map(r=>`<span><b>${esc(r.ticker)}</b> ${esc(r.signal==='SQUEEZE_PRIMED'?'PRIMED':'SETUP')} · GEX ${gex(r.net_gex_musd_per_1pct)} · pcr ${n(r.pcr_vol)}${r.n_unusual?` · ${r.n_unusual}⚡`:''}</span>`).join('');
+    h+=`</div>`;
+  }
+  // main board
+  h+=`<h2>Full Board</h2><div class="scroll"><table><thead><tr>
+    <th>Ticker</th><th>Signal</th><th>Gamma</th><th class="num">Net GEX/1%</th><th class="num">Flip</th><th class="num">Call wall</th><th class="num">Put wall</th><th class="num">ATM IV</th><th>Term</th><th class="num">25Δ skew</th><th class="num">VRP</th><th class="num">P/C vol</th><th class="num">⚡</th></tr></thead><tbody>`;
+  (d.board||[]).forEach(r=>{
+    h+=`<tr>
+      <td><span class="sym">${esc(r.ticker)}</span> <span class="tag">${n(r.spot)}</span></td>
+      <td><span class="pill ${esc(r.signal)}">${esc(r.signal.replace(/_/g,' '))}</span></td>
+      <td><span class="pill ${esc(r.gamma_regime)}">${esc(r.gamma_regime==='SHORT_GAMMA'?'SHORT':'LONG')}</span></td>
+      <td class="num" style="color:${(r.net_gex_musd_per_1pct||0)<0?'var(--red)':'var(--green)'}">${gex(r.net_gex_musd_per_1pct)}</td>
+      <td class="num">${n(r.gamma_flip_strike)}</td><td class="num">${n(r.call_wall)}</td><td class="num">${n(r.put_wall)}</td>
+      <td class="num">${ivp(r.atm_iv_front)}</td>
+      <td><span class="tag">${esc(r.term_structure)}</span></td>
+      <td class="num" style="color:${(r.skew_25d||0)>0.04?'var(--violet)':'var(--fg-1)'}">${r.skew_25d==null?'—':(r.skew_25d*100).toFixed(1)}</td>
+      <td class="num" style="color:${(r.vrp||0)>0?'var(--amber)':'var(--fg-1)'}">${r.vrp==null?'—':(r.vrp*100).toFixed(1)}</td>
+      <td class="num">${n(r.pcr_vol)}</td><td class="num">${r.n_unusual||''}</td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  // most unusual
+  if((d.most_unusual||[]).length){
+    h+=`<h2>🔥 Most Unusual Activity <span class="tag">volume/OI ≥ 2 (fresh positioning)</span></h2><div class="chips">`;
+    h+=(d.most_unusual||[]).map(r=>`<span><b>${esc(r.ticker)}</b> ${r.n_unusual}⚡ · pcr ${n(r.pcr_vol)} · net $${(r.net_premium_usd/1e6).toFixed(1)}M</span>`).join('');
+    h+=`</div>`;
+  }
+  h+=`<div class="note">${(d.caveats||[]).map(c=>'• '+esc(c)).join('<br>')}<br><br>Net GEX = $ dealer gamma per 1% move (calls +, puts −). Short gamma = dealers amplify moves (squeeze-prone); long gamma = dealers dampen (pinning). 25Δ skew in IV pts (put−call); VRP = ATM IV − 20d realized, in vol pts.<br>Data: ${esc(d.data_source||'')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>

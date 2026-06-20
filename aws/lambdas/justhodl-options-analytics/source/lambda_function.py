@@ -364,10 +364,9 @@ def lambda_handler(event=None, context=None):
     top_picks = [{"ticker": r["ticker"], "score": r["score"], "direction": "long",
                   "signal": r["signal"], "gamma_regime": r["gamma_regime"],
                   "net_gex_musd": r["net_gex_musd_per_1pct"], "pcr_vol": r["pcr_vol"],
-                  "reasons": r["reasons"]}
+                  "price_confirm": r["price_confirm"], "reasons": r["reasons"]}
                  for r in rows
-                 if r["signal"] in ("GAMMA_SQUEEZE_SETUP", "SQUEEZE_PRIMED")
-                 and r["price_confirm"]][:20]
+                 if r["signal"] in ("GAMMA_SQUEEZE_SETUP", "SQUEEZE_PRIMED")][:20]
 
     payload = {
         "engine": "justhodl-options-analytics", "version": "1.0.0", "ok": True,
