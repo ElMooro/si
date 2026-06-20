@@ -22,6 +22,12 @@ import boto3
 import urllib.request
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Benzinga earnings (estimates + actuals + surprises) via Massive — bundled shared module
+try:
+    from benzinga import fetch_recent_reported as bz_recent_reported
+except Exception:  # defensive if shared bundle missing
+    bz_recent_reported = None
 from datetime import datetime, timedelta, timezone
 
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -175,27 +181,46 @@ def fetch_polygon_aggs(ticker, from_date, to_date):
 
 
 # ────────────────────────── Recent results + post-earnings drift ──────────────────────────
-def compute_pead_signal(eps_actual, eps_estimate, returns):
-    """Score PEAD signal 0-100."""
-    if eps_actual is None or eps_estimate is None or eps_estimate == 0:
-        return None, "INSUFFICIENT_DATA", 50
-    surprise_pct = (eps_actual - eps_estimate) / abs(eps_estimate) * 100
+def compute_pead_signal(eps_actual, eps_estimate, returns, surprise_pct=None, importance=None):
+    """Score PEAD signal 0-100.
+
+    PEAD is drift relative to the *consensus surprise*. When an authoritative
+    surprise_pct is supplied (Benzinga actual-vs-estimate), use it directly.
+    Otherwise fall back to computing it from (actual, estimate). Passing the
+    prior-quarter EPS as `eps_estimate` is QoQ growth, NOT a surprise — callers
+    should supply a real estimate or surprise_pct.
+    `importance` (Benzinga 1-5) sharpens conviction: high-importance prints get
+    a small score nudge away from 50 (more signal), low-importance toward 50.
+    """
+    if surprise_pct is None:
+        if eps_actual is None or eps_estimate is None or eps_estimate == 0:
+            return None, "INSUFFICIENT_DATA", 50
+        surprise_pct = (eps_actual - eps_estimate) / abs(eps_estimate) * 100
     r1d = returns.get("1d", 0) or 0
     if surprise_pct > 5 and r1d > 2:
-        return surprise_pct, "STRONG_POSITIVE_DRIFT", 80
-    if surprise_pct > 0 and r1d > 0:
-        return surprise_pct, "POSITIVE_DRIFT", 65
-    if surprise_pct < -5 and r1d < -2:
-        return surprise_pct, "NEGATIVE_DRIFT", 20
-    if surprise_pct < 0 and r1d < 0:
-        return surprise_pct, "MODERATE_NEGATIVE_DRIFT", 35
-    if abs(surprise_pct) < 2 and abs(r1d) < 1:
-        return surprise_pct, "INLINE_NO_DRIFT", 50
-    if surprise_pct > 0 and r1d < 0:
-        return surprise_pct, "BEAT_BUT_FELL", 45
-    if surprise_pct < 0 and r1d > 0:
-        return surprise_pct, "MISS_BUT_ROSE", 55
-    return surprise_pct, "MIXED", 50
+        label, score = "STRONG_POSITIVE_DRIFT", 80
+    elif surprise_pct > 0 and r1d > 0:
+        label, score = "POSITIVE_DRIFT", 65
+    elif surprise_pct < -5 and r1d < -2:
+        label, score = "NEGATIVE_DRIFT", 20
+    elif surprise_pct < 0 and r1d < 0:
+        label, score = "MODERATE_NEGATIVE_DRIFT", 35
+    elif abs(surprise_pct) < 2 and abs(r1d) < 1:
+        label, score = "INLINE_NO_DRIFT", 50
+    elif surprise_pct > 0 and r1d < 0:
+        label, score = "BEAT_BUT_FELL", 45
+    elif surprise_pct < 0 and r1d > 0:
+        label, score = "MISS_BUT_ROSE", 55
+    else:
+        label, score = "MIXED", 50
+    # Importance weighting: scale the deviation from neutral (50) by 0.7..1.15
+    if importance is not None and score != 50:
+        try:
+            w = 0.7 + 0.1125 * (float(importance) - 1.0)  # imp1->0.70, imp5->1.15
+            score = int(round(50 + (score - 50) * max(0.5, min(1.2, w))))
+        except (TypeError, ValueError):
+            pass
+    return surprise_pct, label, score
 
 
 def compute_returns(bars, anchor_date):
@@ -232,8 +257,57 @@ def compute_returns(bars, anchor_date):
 
 
 def build_recent_result(ticker):
-    """For a single ticker, find recent earnings + compute drift."""
+    """For a single ticker, find recent earnings + compute drift.
+
+    Primary surprise source = Benzinga (true actual-vs-consensus + importance).
+    Polygon aggregates supply the post-earnings drift bars. Falls back to the
+    prior Polygon-financials path (QoQ-growth proxy, lower confidence) only when
+    Benzinga has no recent reported quarter.
+    """
     try:
+        # ---- Primary: Benzinga authoritative surprise ----
+        if bz_recent_reported is not None:
+            try:
+                bz = bz_recent_reported(ticker, limit=4) or []
+            except Exception:
+                bz = []
+            for rep in bz:
+                rdate = rep.get("date")
+                if not rdate:
+                    continue
+                try:
+                    rdt = datetime.fromisoformat(rdate)
+                except Exception:
+                    continue
+                if (datetime.now() - rdt).days > 40 or (datetime.now() - rdt).days < 0:
+                    continue
+                surprise_pct = rep.get("eps_surprise_pct")
+                if surprise_pct is None and rep.get("actual_eps") is None:
+                    continue
+                to_d = (rdt + timedelta(days=35)).date().isoformat()
+                bars = fetch_polygon_aggs(ticker, rdate, to_d)
+                returns = compute_returns(bars, rdate)
+                pead_surprise, pead_label, pead_score = compute_pead_signal(
+                    rep.get("actual_eps"), rep.get("estimated_eps"), returns,
+                    surprise_pct=surprise_pct, importance=rep.get("importance"),
+                )
+                return {
+                    "ticker": ticker,
+                    "filing_date": rdate,
+                    "period_end": f"{rep.get('fiscal_period') or ''} {rep.get('fiscal_year') or ''}".strip(),
+                    "eps_actual": rep.get("actual_eps"),
+                    "eps_estimate": rep.get("estimated_eps"),
+                    "eps_surprise_pct": surprise_pct,
+                    "revenue_actual": rep.get("actual_revenue"),
+                    "revenue_surprise_pct": rep.get("revenue_surprise_pct"),
+                    "importance": rep.get("importance"),
+                    "returns": returns,
+                    "pead_label": pead_label,
+                    "pead_score": pead_score,
+                    "surprise_source": "benzinga",
+                }
+
+        # ---- Fallback: Polygon financials (QoQ-growth proxy) ----
         fins = fetch_polygon_financials(ticker, limit=2)
         if not fins:
             return None
@@ -254,9 +328,7 @@ def build_recent_result(ticker):
             to_d = (datetime.now() + timedelta(days=2)).date().isoformat()
         bars = fetch_polygon_aggs(ticker, from_d, to_d)
         returns = compute_returns(bars, filing_date)
-        prev_eps = None
-        if len(fins) > 1:
-            prev_eps = fins[1].get("eps_actual")
+        prev_eps = fins[1].get("eps_actual") if len(fins) > 1 else None
         eps_actual = latest.get("eps_actual")
         eps_yoy_pct = None
         if eps_actual is not None and prev_eps is not None and prev_eps != 0:
@@ -275,6 +347,7 @@ def build_recent_result(ticker):
             "returns": returns,
             "pead_label": pead_label,
             "pead_score": pead_score,
+            "surprise_source": "polygon_qoq_proxy",
         }
     except Exception:
         return None
