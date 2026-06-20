@@ -1,11 +1,8 @@
-state: Active Successful mem 512 timeout 180
-scheduled
-invoking…
-status: 200  payload: {"statusCode": 200, "body": "{\"ok\": true, \"treasury_stress\": 65.0, \"regime\": \"ELEVATED\", \"curve_noise_bps\": 8.538, \"curve_noise_pctile\": 99.7, \"bill_sofr_spread_bps\": 5.0, \"history_points\": 648}"}
+invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"treasury_stress\": 65.0, \"regime\": \"ELEVATED\", \"curve_noise_bps\": 6.07, \"curve_noise_pctile\": 99.7, \"bill_sofr_spread_bps\": 5.0, \"history_points\": 648}"}
 
-ok: True stress: 65.0 regime: ELEVATED
-curve_noise: 8.538 bps | pct: 99.7 | z: 3.68
+stress: 65.0 regime: ELEVATED
+curve_noise: 6.07 bps | PCTILE: 99.7 | z: 3.87
 bill-SOFR: 5.0 bps | funding stress pct: 0.6
-history pts: 648 | as_of: 2026-06-17
-highest noise days: [{'date': '2025-06-26', 'noise_bps': 9.972}, {'date': '2025-06-12', 'noise_bps': 8.843}, {'date': '2026-06-17', 'noise_bps': 8.538}, {'date': '2025-06-27', 'noise_bps': 8.184}, {'date': '2025-06-18', 'noise_bps': 8.0}]
-DONE 2026
+highest noise days (stress eras should rank high): [('2026-05-22', 6.255), ('2026-06-05', 6.164), ('2026-06-17', 6.07), ('2026-06-08', 5.55), ('2026-05-19', 5.42)]
+60d trail: min=1.294 max=6.255 mean=3.13 latest=6.07
+DONE 2027
