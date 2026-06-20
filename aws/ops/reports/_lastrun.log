@@ -1,15 +1,5 @@
-============================================================
-rotation-chain.json (the supplier-lag alpha)
-============================================================
-  data/rotation-chain.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
-  data/rotation-chains.json: gen=2026-06-20T15:51:03+00:00
-   keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'n_chains', 'n_tickers', 'lag_candidates', 'chains', 'top_next_up', 'notes']
-   sample chain: {"AI": {"chain": "AI", "current_leader_tier": 2, "leader_perf_30d_pct": 39.49, "leader_breadth_pct": 100.0, "leader_volume_ratio": 1.07, "rotation_confidence": 75, "next_tier": 3, "next_tier_perf_30d": -5.03, "next_tier_breadth": 33.3, "next_tier_volume": 1.0, "expected_catchup_pct": 44.52, "next_up_tickers": [{"ticker": "VST", "own_30d_pct": 3.45, "own_60d_pct": 7.22, "leader_30d_pct": 39.49, "la
-
-============================================================
-supply-chain-linkage entries — suppliers/customers empty?
-============================================================
-  universe_size: 49 entries: 49 systemic_hubs: 0
-  entries w/ suppliers: 0 | w/ customers: 0 (of 49 checked)
-  sample entry: {"ticker": "AAPL", "company_name": "Apple Inc.", "sector": "Technology", "n_customers": 0, "n_suppliers": 0, "customers": [], "suppliers": [], "geographic_concentration_pct": {"fiscalYear": 100.0}, "concentration_flags": [{"type": "GEO_CONCENTRATION", "country": "fiscalYear", "pct_revenue": 100.0, "severity": 80}], "n_high_severity_flags": 1, "centrality_score": 0, "is_systemic_hub": false, "narra
-DONE 2034
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2035_verify_scg.py", line 11, in <module>
+    print("state:",c.get("State"),c.get("LastUpdateStatus"))
+                   ^
+NameError: name 'c' is not defined
