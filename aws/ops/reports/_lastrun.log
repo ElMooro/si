@@ -1,77 +1,52 @@
+=== RATINGS rows WITH a price_target_action — find PT numeric fields ===
+  59 of 60 rows have price_target_action
+  --- DDOG raises (Scotiabank) ---
+      price_target_action: raises
+      adjusted_price_target: 275.0
+      previous_adjusted_price_target: 225.0
+      price_target: 275.0
+      previous_price_target: 225.0
+      price_percent_change: 22.219999313354492
+  --- COST announces (Citigroup) ---
+      price_target_action: announces
+      adjusted_price_target: 1020.0
+      price_target: 1020.0
+  --- ALB maintains (Citigroup) ---
+      price_target_action: maintains
+      adjusted_price_target: 225.0
+      previous_adjusted_price_target: 225.0
+      price_target: 225.0
+      previous_price_target: 225.0
+  --- FTI raises (Citigroup) ---
+      price_target_action: raises
+      adjusted_price_target: 80.0
+      previous_adjusted_price_target: 76.0
+      price_target: 80.0
+      previous_price_target: 76.0
+      price_percent_change: 5.260000228881836
+  all PT-related keys seen: ['adjusted_price_target', 'previous_adjusted_price_target', 'previous_price_target', 'price_percent_change', 'price_target', 'price_target_action']
 
-====================================================================
-benzinga/v1/ratings {'date.gte': '2026-06-13', 'order': 'desc', 'sort': 'date', 'limit': '8'}
-====================================================================
-  rows=8 next_url=y status=OK
-  ALL fields on row[0]:
-    rating_action: upgrades
-    price_target_action: 
-    benzinga_firm_id: 6065c3e6a93f970001f2c6ab
-    firm: UBS
-    analyst: Alberto Valerio
-    benzinga_analyst_id: 639b1be3b8e36d0001d6a3ae
-    currency: USD
-    benzinga_id: 6a344b0ca5d7f200013d2dcd
-    importance: 3
-    company_name: Grupo Aeroportuario
-    rating: buy
-    previous_rating: neutral
-    ticker: ASR
-    last_updated: 2026-06-18T19:49:48Z
-    benzinga_calendar_url: https://www.benzinga.com/quote/ASR/analyst-ratings
-    benzinga_news_url: https://www.benzinga.com/stock-articles/ASR/analyst-ratings
-    date: 2026-06-18
-    time: 15:46:20
-  recency: newest=2026-06-18 oldest=2026-06-18
-  action types: {'upgrades': 2, 'maintains': 5, 'reinstates': 1}
-  sample PT changes: [('ASR', None, None, None), ('DDOG', None, None, None), ('COST', None, None, None), ('ALB', None, None, None), ('FTI', None, None, None)]
-
-====================================================================
-benzinga/v1/guidance {'date.gte': '2026-06-13', 'order': 'desc', 'sort': 'date', 'limit': '8'}
-====================================================================
-  rows=8 next_url=y status=OK
-  ALL fields on row[0]:
-    currency: USD
-    benzinga_id: 6a344f501c26a50001d97746
-    importance: 1
-    company_name: Leifras Co
-    fiscal_period: FY
-    fiscal_year: 2026
-    release_type: official
-    positioning: primary
-    max_revenue_guidance: 95700000.0
-    min_revenue_guidance: 82900000.0
-    previous_max_revenue_guidance: 95700000.0
-    previous_min_revenue_guidance: 82900000.0
-    revenue_method: gaap
-    ticker: LFS
-    date: 2026-06-18
-    time: 16:40:44
-    last_updated: 2026-06-18T20:05:18
-  recency: newest=2026-06-18 oldest=2026-06-17
-  sample guidance: [('LFS', None, None, None), ('SAGT', None, None, None), ('KR', None, None, None), ('DLX', None, None, None), ('ACN', None, None, None)]
-
-====================================================================
-benzinga/v1/analyst-insights {'date.gte': '2026-06-13', 'order': 'desc', 'sort': 'date', 'limit': '5'}
-====================================================================
-  rows=5 next_url=y status=OK
-  ALL fields on row[0]:
-    rating_action: maintains
-    insight: Oppenheimer maintained their Outperform rating on SpaceX's stock with a price target of $2
-    date: 2026-06-18
-    firm: Oppenheimer
-    price_target: 250.0
-    rating: outperform
-    last_updated: 2026-06-18T17:09:53Z
-    company_name: SpaceX
-    ticker: SPCX
-    benzinga_firm_id: 6065c12ea93f970001f2c651
-    benzinga_rating_id: 6a34261231172d000130b5cc
-    benzinga_id: 6a34265bba73b8fa0b14d7c9
-  recency: newest=2026-06-18 oldest=2026-06-18
-
---- ticker filter test (ratings?ticker=NVDA) ---
-  NVDA 2026-06-05 Jack Zhou None->None PT None->None
-  NVDA 2026-06-02 N. Quinn Bolton None->None PT None->None
-  NVDA 2026-06-01 Gil Luria None->None PT None->None
-DONE 1978
+=== GUIDANCE rows — find EPS guidance field names ===
+  all guidance keys: ['benzinga_id', 'company_name', 'currency', 'date', 'eps_method', 'estimated_eps_guidance', 'estimated_revenue_guidance', 'fiscal_period', 'fiscal_year', 'importance', 'last_updated', 'max_eps_guidance', 'max_revenue_guidance', 'min_eps_guidance', 'min_revenue_guidance', 'notes', 'positioning', 'previous_max_eps_guidance', 'previous_max_revenue_guidance', 'previous_min_eps_guidance', 'previous_min_revenue_guidance', 'release_type', 'revenue_method', 'ticker', 'time']
+  39 rows carry non-null EPS guidance
+  --- KR FY2026 ---
+      estimated_eps_guidance: 5.27
+      max_eps_guidance: 5.3
+      min_eps_guidance: 5.1
+      previous_max_eps_guidance: 5.3
+      previous_min_eps_guidance: 5.1
+      eps_method: adj
+  --- DLX FY2026 ---
+      estimated_eps_guidance: 3.68
+      max_eps_guidance: 4.0
+      min_eps_guidance: 3.6
+      previous_max_eps_guidance: 4.0
+      previous_min_eps_guidance: 3.6
+      eps_method: adj
+  --- ACN FY2026 ---
+      max_eps_guidance: 13.5
+      min_eps_guidance: 13.38
+      previous_max_eps_guidance: 13.5
+      previous_min_eps_guidance: 13.25
+      eps_method: gaap
+DONE 1979
