@@ -1,7 +1,7 @@
-boom-radar invoke: 200 None
-  2way=4 3way=0 picks=4
-  TOP PICKS: [('ACN', 2, 2.1, 'ANALYST+FLOW'), ('LRCX', 2, 2.1, 'ANALYST+FLOW'), ('MU', 2, 1.89, 'ANALYST+FLOW'), ('CSCO', 2, 1.68, 'BEAT+FLOW')]
-harvester: 200 None
-   {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 30, \"written\": 26, \"scanned\": 442}"}
-  boom-radar mentioned: False
-DONE 1991
+router code updated; invoking (will dedup-send any NEW boom alerts)...
+invoke: 200 None
+{"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"elapsed_s\": 1.8, \"n_messages_sent\": 1, \"counts\": {\"boom_radar\": 4}, \"first_result_status\": null}"}
+
+counts.boom_radar: 4
+messages sent: 1
+DONE 1992
