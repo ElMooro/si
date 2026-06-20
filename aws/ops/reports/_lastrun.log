@@ -1,12 +1,35 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/1964_create_flow_lookthrough.py", line 25, in <module>
-    lam.create_function(FunctionName=FN, Runtime="python3.12", Role=ROLE,
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the CreateFunction operation: Function already exist: justhodl-flow-lookthrough
+code+config updated; mem 1024 timeout 600
+schedule: ENABLED cron(15 23 * * ? *)
+invoking (sync)...
+StatusCode: 200 FunctionError: None
+payload: b'{"statusCode": 200, "body": "{\\"n_names\\": 3398, \\"n_etfs_used\\": 59, \\"top_inflow\\": \\"NVDA\\", \\"top_outflow\\": \\"V\\", \\"elapsed_s\\": 4.4}"}'
+
+output: n_names= 3398 n_etfs_used= 59 flows_asof= 2026-06-19T22:00:25.032748+00:00 elapsed= 4.4
+
+TOP INFLOW (ticker | net5d$M | type | bps_mcap | n_etfs | top driver):
+  NVDA      2891.1 BROAD_BETA        5.67     5 IVV
+  AAPL      2553.5 BROAD_BETA        5.83     5 IVV
+  MSFT      1625.2 BROAD_BETA        5.77     5 IVV
+  AMZN      1333.9 BROAD_BETA        5.07     5 IVV
+  GOOGL     1250.9 BROAD_BETA        2.81     5 IVV
+  AVGO      1159.9 BROAD_BETA        5.93     5 IVV
+  GOOG       952.8 BROAD_BETA        2.14     5 IVV
+  MU         775.7 BROAD_BETA        6.07     5 IVV
+
+TOP OUTFLOW:
+  V         -143.9 BROAD_BETA
+  IQMM      -128.7 THEMATIC_ROTATION
+  SPCX      -114.9 THEMATIC_ROTATION
+  XOM        -96.3 THEMATIC_ROTATION
+  TEM        -88.6 THEMATIC_ROTATION
+
+THEMATIC ROTATION LEADERS (mcap-normalised, the alpha view):
+  CNC    net5d=$    94.5M bps_mcap=31.36 thematic=$75.2M
+  FFIV   net5d=$    42.4M bps_mcap=19.51 thematic=$32.4M
+  AKAM   net5d=$    33.4M bps_mcap=18.42 thematic=$24.8M
+  AES    net5d=$    18.6M bps_mcap=17.81 thematic=$13.8M
+  LDOS   net5d=$    21.6M bps_mcap=16.07 thematic=$14.7M
+  CAG    net5d=$     9.1M bps_mcap=14.34 thematic=$6.0M
+  CPB    net5d=$     7.8M bps_mcap=12.32 thematic=$5.8M
+  COIN   net5d=$   -47.2M bps_mcap=-10.97 thematic=$-66.2M
+DONE 1965
