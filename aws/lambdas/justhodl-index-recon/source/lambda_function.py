@@ -420,7 +420,7 @@ def lambda_handler(event, context):
     flow_idx = {}
     try:
         _fl = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/flow-lookthrough.json")["Body"].read())
-        for ev in (_fl.get("index_events_agg") or []):
+        for ev in (_fl.get("index_events") or _fl.get("index_events_agg") or []):
             tk = (ev.get("ticker") or "").upper().strip()
             if tk:
                 flow_idx[tk] = {"event": ev.get("event"), "etfs": ev.get("etfs") or []}
