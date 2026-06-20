@@ -1,29 +1,26 @@
-dark-pool: 200 | {"errorMessage": "name 'fetch_equity_set' is not defined", "errorType": "NameError", "requestId": "7fd0c915-2dda-43f6-b72f-0dd4dca4a4de", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 132, in lambda_handler\n    equity_set = fetch_equity_set()   # real common stocks + ADRs only (drop ETFs/funds)\n"]}
-
-scored: 1439 accum: 103 picks: 20
-TOP ACCUMULATION (should be single stocks, no ETFs):
-  HIMU   sc=100.0 dark%=51.15  accel=5.771 wkRet=0.66%
+dark-pool: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"latest_week\": \"2026-05-25\", \"n_scored\": 911, \"n_accumulation\": 37, \"n_picks\": 20, \"top\": [[\"AXTA\", 90.6, \"ACCUMULATION\", 33.9, 2.086], [\"CZR\", 82.4, \"ACCUMULATION\", 19.64, 3.469], [\"RVTY\", 81.8, \"ACCUMULATION\", 38.98, 0.616], [\"SN
+scored: 911 accum: 37
+TOP15: ['AXTA', 'CZR', 'RVTY', 'SNX', 'BRKR', 'ESTC', 'NCNO', 'LBTYK', 'RVMD', 'OKTA', 'DLTR', 'UHAL.B', 'MDB', 'NTAP', 'SNOW']
+ETF leakage in top15: NONE ✓
   AXTA   sc=90.6  dark%=33.9   accel=2.086 wkRet=2.53%
-  HYD    sc=85.8  dark%=26.82  accel=0.513 wkRet=0.71%
-  IBTG   sc=84.1  dark%=18.84  accel=1.543 wkRet=0.07%
   CZR    sc=82.4  dark%=19.64  accel=3.469 wkRet=2.36%
-  VGSH   sc=82.3  dark%=16.39  accel=1.201 wkRet=0.12%
-  SUSB   sc=82.1  dark%=16.12  accel=18.988 wkRet=0.3%
   RVTY   sc=81.8  dark%=38.98  accel=0.616 wkRet=7.97%
-  XOVR   sc=81.5  dark%=15.4   accel=1.104 wkRet=3.97%
-  URTH   sc=81.3  dark%=15.8   accel=0.688 wkRet=0.46%
-  IUSB   sc=81.3  dark%=15.02  accel=20.71 wkRet=0.35%
-  EFG    sc=80.8  dark%=14.43  accel=1.238 wkRet=0.32%
-PICKS: ['HIMU', 'AXTA', 'HYD', 'IBTG', 'CZR', 'VGSH', 'SUSB', 'RVTY', 'XOVR', 'URTH', 'IUSB', 'EFG', 'BCI', 'SCHE', 'IEMG', 'JQUA', 'RONB', 'QUAL', 'TLH', 'SNX']
+  SNX    sc=78.1  dark%=35.03  accel=0.581 wkRet=8.87%
+  BRKR   sc=77.5  dark%=35.65  accel=0.546 wkRet=25.51%
+  ESTC   sc=77.3  dark%=33.26  accel=0.722 wkRet=18.91%
+  NCNO   sc=77.2  dark%=31.14  accel=0.445 wkRet=5.58%
+  LBTYK  sc=76.7  dark%=27.5   accel=0.465 wkRet=3.23%
+  RVMD   sc=73.2  dark%=27.61  accel=0.369 wkRet=1.67%
+  OKTA   sc=73.0  dark%=27.87  accel=0.975 wkRet=31.4%
+  DLTR   sc=72.8  dark%=30.53  accel=0.537 wkRet=24.27%
+  UHAL.B sc=72.1  dark%=30.55  accel=0.699 wkRet=12.18%
+PICKS: ['AXTA', 'CZR', 'RVTY', 'SNX', 'BRKR', 'ESTC', 'NCNO', 'LBTYK', 'RVMD', 'OKTA', 'DLTR', 'UHAL.B', 'MDB', 'NTAP', 'SNOW', 'BBY', 'PKG', 'LINE', 'BURL', 'CLF']
 
-invoking signal-harvester…
- harvester: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 25, \"written\": 18, \"scanned\": 446}"}
-eng:dark-pool rows in justhodl-signals: 8
+harvester…
+  {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 24, \"written\": 6, \"scanned\": 446}"}
+ eng:dark-pool rows: 13
 
-invoking ignition (P4 dark wire check)…
+ignition dark wire…
  ignition: 200
- ignition probes.dark: True | sample dark_to_adv on board: []
-
-page:
-  dark-pool.html HTTP 200 bytes 6440
-DONE 2022
+ probes.dark: True  board rows w/ dark_to_adv: 0  sample: []
+DONE 2023
