@@ -122,6 +122,8 @@ def lambda_handler(event=None, context=None):
     cmt_data = {sid: fred_series(sid, start) for sid, _ in CMT}
     dtb3 = fred_series("DTB3", start)
     sofr = fred_series("SOFR", start)
+    dff = fred_series("DFF", start)          # effective fed funds (unsecured o/n)
+    cp3m = fred_series("DCPN3M", start)      # 3M AA nonfinancial commercial paper
 
     # common dates with a full (fit-set) CMT curve
     dates = sorted(set.intersection(*[set(cmt_data[sid].keys()) for sid, _ in FIT_CMT])) if all(cmt_data[sid] for sid, _ in FIT_CMT) else []
@@ -148,22 +150,29 @@ def lambda_handler(event=None, context=None):
     noise_z = round((latest_noise - mean_n) / sd_n, 2) if sd_n else None
 
     # funding stress: bill - SOFR (bps), percentile of the NEGATIVE (more negative = more stress)
-    fund_series = []
-    for d in sorted(set(dtb3) & set(sofr)):
-        fund_series.append((d, round((dtb3[d] - sofr[d]) * 100, 1)))
-    fund_spread = fund_series[-1][1] if fund_series else None
-    fund_vals = [v for _, v in fund_series]
-    # stress when bill richens below SOFR → low/negative spread → low percentile
-    fund_low_pct = pctile(fund_vals, fund_spread) if fund_spread is not None else None
-    fund_stress_pct = round(100 - fund_low_pct, 1) if fund_low_pct is not None else None
+    # ── clean, stress-sensitive funding/liquidity spreads (the reliable signal) ──
+    def spread_series(a, b):
+        return [(d, round((a[d] - b[d]) * 100, 1)) for d in sorted(set(a) & set(b))]
 
-    # composite 0-100
-    parts, wts = [], []
-    if noise_pct is not None:
-        parts.append(noise_pct); wts.append(0.65)
-    if fund_stress_pct is not None:
-        parts.append(fund_stress_pct); wts.append(0.35)
-    treasury_stress = round(sum(p * w for p, w in zip(parts, wts)) / sum(wts), 1) if parts else None
+    # bill−SOFR: bills bid below repo = flight-to-quality / collateral scarcity (stress = LOW/neg)
+    bs = spread_series(dtb3, sofr)
+    bill_sofr = bs[-1][1] if bs else None
+    bill_sofr_stress = round(100 - pctile([v for _, v in bs], bill_sofr), 1) if bill_sofr is not None else None
+    # SOFR−EFFR: secured repo over unsecured funds = repo squeeze (stress = HIGH)
+    se = spread_series(sofr, dff)
+    sofr_effr = se[-1][1] if se else None
+    sofr_effr_stress = pctile([v for _, v in se], sofr_effr) if sofr_effr is not None else None
+    # CP−bill: commercial-paper premium over bills = credit/funding stress (stress = HIGH)
+    cb = spread_series(cp3m, dtb3)
+    cp_bill = cb[-1][1] if cb else None
+    cp_bill_stress = pctile([v for _, v in cb], cp_bill) if cp_bill is not None else None
+
+    fparts = [p for p in (bill_sofr_stress, sofr_effr_stress, cp_bill_stress) if p is not None]
+    funding_stress = round(sum(fparts) / len(fparts), 1) if fparts else None
+
+    # composite = funding stress (clean). curve-noise is a labeled DIAGNOSTIC ONLY (drift-prone
+    # on CMT — it tracks curve-shape regime, not arbitrage scarcity — so it is NOT in the score).
+    treasury_stress = funding_stress
     if treasury_stress is None:
         regime = "n/a"
     elif treasury_stress >= 80:
@@ -174,6 +183,7 @@ def lambda_handler(event=None, context=None):
         regime = "WATCH"
     else:
         regime = "CALM"
+    fund_spread = bill_sofr  # back-compat field
 
     # accrue history (light; FRED is the real history but keep a trail)
     try:
@@ -196,38 +206,54 @@ def lambda_handler(event=None, context=None):
     spike_days = sorted(noise_series, key=lambda x: x[1], reverse=True)[:5]
 
     payload = {
-        "engine": "justhodl-treasury-noise", "version": "1.0.0", "ok": True,
+        "engine": "justhodl-treasury-noise", "version": "1.1.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(), "as_of_date": latest_date,
-        "thesis": ("Treasury curve dislocation (Nelson-Siegel fit residual on CMT par yields) "
-                   "+ funding stress (bill−SOFR). Rising noise/funding tightness = arbitrage-"
-                   "capital scarcity / Treasury-market illiquidity — a systemic-stress canary."),
+        "thesis": ("Treasury & funding stress: clean, stress-sensitive money-market spreads "
+                   "(bill−SOFR flight-to-quality, SOFR−EFFR repo squeeze, CP−bill credit premium) "
+                   "drive the score; a Nelson-Siegel curve-shape residual is reported as an "
+                   "experimental diagnostic only. Rising funding tightness = arbitrage-capital "
+                   "scarcity / collateral stress — a systemic canary."),
         "treasury_stress": treasury_stress, "regime": regime,
-        "curve_noise_bps": latest_noise, "curve_noise_pctile": noise_pct, "curve_noise_z": noise_z,
-        "bill_sofr_spread_bps": fund_spread, "funding_stress_pctile": fund_stress_pct,
-        "history_points": len(noise_series),
-        "noise_trail_60d": trail,
-        "highest_noise_days": [{"date": d, "noise_bps": v} for d, v in spike_days],
-        "interpretation": {
-            "curve_noise_bps": "RMS deviation of CMT yields from a smooth Nelson-Siegel fit; "
-                               "higher = more curve dislocation (front-end humps, benchmark rich/cheap)",
-            "bill_sofr_spread_bps": "3M T-bill minus SOFR; deeply negative = bills bid in flight-to-quality / collateral scarcity",
-            "treasury_stress": "0-100 composite (65% curve-noise percentile, 35% funding-stress percentile)",
+        "funding_stress": funding_stress,
+        "spreads": {
+            "bill_sofr_bps": bill_sofr, "bill_sofr_stress_pctile": bill_sofr_stress,
+            "sofr_effr_bps": sofr_effr, "sofr_effr_stress_pctile": sofr_effr_stress,
+            "cp_bill_bps": cp_bill, "cp_bill_stress_pctile": cp_bill_stress,
         },
-        "data_source": "FRED CMT par yields (DGS1MO–DGS30) + DTB3 + SOFR; Nelson-Siegel grid-τ + OLS",
+        "curve_shape_diagnostic": {
+            "ns_residual_bps": latest_noise, "pctile": noise_pct, "z": noise_z,
+            "note": ("EXPERIMENTAL — NOT in the stress score. On CMT (pre-smoothed) the 3-factor "
+                     "Nelson-Siegel residual tracks curve-SHAPE regime (e.g. front-end repricing "
+                     "for Fed cuts), not arbitrage scarcity, so it drifts and is unreliable as a "
+                     "stand-alone stress gauge. Faithful Hu-Pan-Wang noise needs per-CUSIP "
+                     "secondary yields (no free source)."),
+            "trail_60d": trail,
+        },
+        "bill_sofr_spread_bps": fund_spread,  # back-compat
+        "interpretation": {
+            "treasury_stress": "0-100 = average percentile of three funding spreads in their stress direction",
+            "bill_sofr_bps": "3M T-bill − SOFR; deeply negative = bills bid in flight-to-quality / collateral scarcity",
+            "sofr_effr_bps": "SOFR − effective fed funds; high = secured repo over unsecured = repo squeeze",
+            "cp_bill_bps": "3M nonfinancial CP − 3M bill; high = credit/funding premium (the modern TED-spread)",
+        },
+        "data_source": "FRED: DTB3, SOFR, DFF (EFFR), DCPN3M, CMT (DGS) — funding spreads + Nelson-Siegel diagnostic",
         "caveats": [
-            "PROXY for Hu-Pan-Wang noise: CMT is pre-smoothed by Treasury, so this understates "
-            "the bond-level measure (which needs hundreds of individual CUSIP yields — no free source). "
-            "Still spikes in real dislocations (SVB Mar-2023 front-end hump).",
-            "Risk/regime signal — feeds crisis composites/canaries, not stock selection.",
-            "Percentiles vs ~2.5y FRED history; recomputed statelessly each run.",
+            "Funding-spread composite is the reliable signal (these spreads genuinely spike in "
+            "funding crises: Sep-2019 repo, Mar-2020, SVB).",
+            "The Nelson-Siegel curve residual is intentionally EXCLUDED from the score — on CMT it "
+            "is drift-prone (curve-shape regime, not stress). True Hu-Pan-Wang needs bond-level "
+            "(per-CUSIP) yields, which have no free source.",
+            "Risk/regime signal — feeds crisis composites/canaries, not stock selection. "
+            "Percentiles vs ~2.5y FRED history, recomputed statelessly.",
         ],
         "elapsed_s": round(time.time() - t0, 1),
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(payload, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
-    print(f"[treasury-noise] stress={treasury_stress} regime={regime} noise={latest_noise}bps "
-          f"pct={noise_pct} fund={fund_spread}bps hist={len(noise_series)} in {payload['elapsed_s']}s")
+    print(f"[treasury-noise] stress={treasury_stress} regime={regime} "
+          f"bill_sofr={bill_sofr} sofr_effr={sofr_effr} cp_bill={cp_bill} "
+          f"ns_diag={latest_noise}bps in {payload['elapsed_s']}s")
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "treasury_stress": treasury_stress, "regime": regime,
-        "curve_noise_bps": latest_noise, "curve_noise_pctile": noise_pct,
-        "bill_sofr_spread_bps": fund_spread, "history_points": len(noise_series)})}
+        "spreads": {"bill_sofr": bill_sofr, "sofr_effr": sofr_effr, "cp_bill": cp_bill},
+        "ns_diagnostic_bps": latest_noise})}
