@@ -118,15 +118,31 @@ def fetch_finra_si():
                 continue
             if latest_settlement is None or (sd and sd > latest_settlement):
                 latest_settlement = sd
-            # keep the most recent settlement per symbol
+            cur = r.get("currentShortPositionQuantity")
+            adv = r.get("averageDailyVolumeQuantity")
+            dtc = r.get("daysToCoverQuantity")
+            # ── LIQUIDITY / QUALITY GATE ──
+            # Raw FINRA SI spans ~22k names, most illiquid OTC/foreign where DTC
+            # and %-change are near-zero-volume artifacts (DTC sentinel 999.99,
+            # huge % on tiny base). Real squeeze candidates are liquid + materially
+            # shorted. Gate: ADV ≥ 500k shares, SI ≥ 1M shares, sane DTC ≤ 40.
+            try:
+                if not (adv and float(adv) >= 500_000):
+                    continue
+                if not (cur and float(cur) >= 1_000_000):
+                    continue
+                if dtc is None or not (0.3 <= float(dtc) <= 40):
+                    continue
+            except (TypeError, ValueError):
+                continue
             prev = out.get(sym)
             if prev is None or (sd and sd >= prev.get("settlementDate", "")):
                 out[sym] = {
                     "settlementDate": sd,
-                    "short_interest": r.get("currentShortPositionQuantity"),
+                    "short_interest": cur,
                     "prev_short_interest": r.get("previousShortPositionQuantity"),
-                    "days_to_cover": r.get("daysToCoverQuantity"),
-                    "avg_daily_vol": r.get("averageDailyVolumeQuantity"),
+                    "days_to_cover": dtc,
+                    "avg_daily_vol": adv,
                     "si_change_pct": r.get("changePercent"),
                     "exchange": r.get("marketClassCode"),
                     "name": r.get("issueName"),
