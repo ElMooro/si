@@ -1,20 +1,6 @@
-============================================================
-engine-alpha.json — proven set + structure
-============================================================
-top keys: ['generated_at', 'benchmark', 'fdr_q', 'n_alpha_proven', 'n_alpha_negative', 'alpha_proven_signals', 'alpha_negative_signals', 'engines']
-n engines: 37
-
-ALPHA_PROVEN: 3
-   (None, 'ALPHA_PROVEN', 250, None, None)
-   (None, 'ALPHA_PROVEN', 236, None, None)
-   (None, 'ALPHA_PROVEN', 843, None, None)
-
-Top positive-mean-excess (n>=20), candidate set:
-
-============================================================
-justhodl-outcomes — sample eng:* rows (date field? excess?)
-============================================================
-scanned: 2400 | distinct eng: types seen: 0
-
- top eng counts (in sample): []
-DONE 2040
+alpha_proven_signals: ["crypto_risk_score", "squeeze_risk", "crisis_dfii10_vs_gld"]
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2041_probe_outcomes2.py", line 7, in <module>
+    print("\nengines[0] full:",json.dumps(a["engines"][0],default=str)[:600])
+                                          ~~~~~~~~~~~~^^^
+KeyError: 0
