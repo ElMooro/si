@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-tail-risk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Option-implied crash probability & tail index (SPY/QQQ/IWM): put-skew slope, 25/10-delta risk reversal + term structure, Breeden-Litzenberger risk-neutral density -> implied P(drop>=10/20%), RN skewness -> SKEW-style index. System tail gauge + regime + tail valuation (cheap/expensive). Feeds tail-hedge timing, risk-regime, crisis composites; upgrades implied-prob SPY crash probs from log-normal to true density.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-tail-risk-daily",
+    "cron": "cron(0 13 ? * TUE-SAT *)",
+    "description": "Daily 13:00 UTC Tue-Sat — EOD-settled option smile"
+  }
+}
