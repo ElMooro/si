@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-strategist",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "The Strategist: whole-fleet interpretation. Distills all ~430 manifested feeds to trust-weighted verdicts, computes fleet consensus + contradictions, reasons across the entire board (llm_router tier=reason→GLM, upgrades to Sonnet when Claude credits return), logs testable claims for forward grading. data/strategist.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-strategist-daily",
+    "cron": "cron(0 14 ? * MON-FRI *)",
+    "description": "Weekday 14:00 UTC after morning feeds land"
+  }
+}
