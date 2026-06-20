@@ -1,41 +1,51 @@
-justhodl-forward-orders            rules_rebuilt=1 async_fired
-justhodl-forensic-screen           rules_rebuilt=1 async_fired
-justhodl-crisis-plumbing           rules_rebuilt=2 async_fired
-justhodl-engine-conflicts          rules_rebuilt=1 async_fired
-justhodl-buzz-velocity             rules_rebuilt=1 async_fired
-justhodl-cross-asset-confirm       rules_rebuilt=2 async_fired
-justhodl-liquidity-pulse           rules_rebuilt=1 async_fired
-justhodl-crypto-cycle-risk         rules_rebuilt=1 async_fired
-justhodl-earnings-tracker          rules_rebuilt=1 async_fired
-justhodl-yield-curve               rules_rebuilt=1 async_fired
-justhodl-onchain-ratios            rules_rebuilt=1 async_fired
-justhodl-theme-cascade             rules_rebuilt=1 async_fired
-justhodl-forward-returns           rules_rebuilt=2 async_fired
-justhodl-bagger-engine             rules_rebuilt=2 async_fired
-justhodl-hiring-velocity           rules_rebuilt=1 async_fired
-justhodl-signal-halflife           rules_rebuilt=1 async_fired
-justhodl-buyback-scanner           rules_rebuilt=2 async_fired
-justhodl-index-inclusion           rules_rebuilt=1 async_fired
+key present: True | len: 32
+================================================================
+ETF GLOBAL CONSTITUENTS candidates
+================================================================
 
-sleeping 75s for async engines to write...
-  data/forward-orders.json                   age_h= -0.0 FRESH
-  data/forensic-screen.json                  age_h= -0.0 FRESH
-  data/crisis-plumbing.json                  age_h= -0.0 FRESH
-  data/engine-conflicts.json                 age_h= -0.0 FRESH
-  data/buzz-velocity.json                    age_h=  0.0 FRESH
-  data/cross-asset-confirm.json              age_h= -0.0 FRESH
-  data/liquidity-pulse.json                  age_h= -0.0 FRESH
-  data/crypto-cycle-risk.json                age_h= -0.0 FRESH
-  data/earnings-tracker.json                 age_h= -0.0 FRESH
-  data/yield-curve.json                      age_h= -0.0 FRESH
-  data/onchain-ratios.json                   age_h= -0.0 FRESH
-  data/theme-cascade.json                    age_h= -0.0 FRESH
-  data/forward-returns.json                  age_h= -0.0 FRESH
-  data/bagger-engine.json                    age_h=  0.0 FRESH
-  data/hiring-velocity.json                  age_h=131.8 still-stale
-  data/signal-halflife.json                  age_h= -0.0 FRESH
-  data/buyback-scanner.json                  age_h= -0.0 FRESH
-  data/index-inclusion.json                  age_h= -0.0 FRESH
+[constituents?ticker=SPY] HTTP 200  https://api.polygon.io/etf-global/v1/constituents?ticker=SPY&apiKey=***
+  top keys: ['status', 'request_id', 'results', 'next_url']
+  results: 100 items | first item keys: ['processed_date', 'composite_ticker', 'constituent_ticker', 'constituent_name', 'market_value', 'shares_held', 'currency_traded', 'constituent_rank', 'effective_date']
+  sample[0]: {"processed_date": "2024-12-03", "composite_ticker": "193966", "constituent_ticker": "DCRF5 Curncy", "constituent_name": "CME Ether Future  Jan25", "market_value": -344379.379994, "shares_held": 284.0, "currency_traded": "USD", "constituent_rank": 3, "effective_date": "2024-12-03"}
+  has next_url (paginated)
 
-fresh after revive: 17/18  (rules rebuilt regardless; slow engines refresh on next scheduled tick)
-DONE 1956
+[holdings?ticker=SPY] HTTP 404  https://api.polygon.io/etf-global/v1/holdings?ticker=SPY&apiKey=***
+  non-JSON body head: 404 page not found
+
+[constituents list] HTTP 200  https://api.polygon.io/etf-global/v1/constituents?limit=2&apiKey=***
+  top keys: ['status', 'request_id', 'results', 'next_url']
+  results: 2 items | first item keys: ['processed_date', 'composite_ticker', 'constituent_ticker', 'constituent_name', 'market_value', 'shares_held', 'currency_traded', 'constituent_rank', 'effective_date']
+  sample[0]: {"processed_date": "2024-12-03", "composite_ticker": "193966", "constituent_ticker": "DCRF5 Curncy", "constituent_name": "CME Ether Future  Jan25", "market_value": -344379.379994, "shares_held": 284.0, "currency_traded": "USD", "constituent_rank": 3, "effective_date": "2024-12-03"}
+  has next_url (paginated)
+
+[etf-constituents?ticker=SPY] HTTP 404  https://api.polygon.io/etf-global/v1/etf-constituents?ticker=SPY&apiKey=***
+  non-JSON body head: 404 page not found
+
+================================================================
+BENZINGA EARNINGS candidates
+================================================================
+
+[earnings?ticker=AAPL] HTTP 200  https://api.polygon.io/benzinga/v1/earnings?ticker=AAPL&apiKey=***
+  top keys: ['status', 'request_id', 'results']
+  results: 62 items | first item keys: ['currency', 'date_status', 'estimated_eps', 'previous_eps', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'estimated_revenue', 'previous_revenue', 'ticker', 'last_updated', 'date', 'time']
+  sample[0]: {"currency": "USD", "date_status": "projected", "estimated_eps": 2.01, "previous_eps": 1.85, "benzinga_id": "69030cfb619d3a00015b72a3", "importance": 5, "company_name": "Apple", "fiscal_period": "Q4", "fiscal_year": 2026, "estimated_revenue": 114244156504.0, "previous_revenue": 102466000000.0, "ticker": "AAPL", "last_updated": "2026-06-19T23:30:04Z", "date": "2026-10-29", "time": "16:00:00"}
+
+[earnings list] HTTP 200  https://api.polygon.io/benzinga/v1/earnings?limit=2&apiKey=***
+  top keys: ['status', 'request_id', 'results', 'next_url']
+  results: 2 items | first item keys: ['currency', 'date_status', 'estimated_eps', 'previous_eps', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'previous_revenue', 'ticker', 'last_updated', 'date', 'time']
+  sample[0]: {"currency": "USD", "date_status": "projected", "estimated_eps": -0.01, "previous_eps": -0.01, "benzinga_id": "6a0422890dba150001140ba1", "importance": 1, "company_name": "Solitario Zinc", "fiscal_period": "Q1", "fiscal_year": 2027, "previous_revenue": 0.0, "ticker": "XPL", "last_updated": "2026-06-19T23:30:53Z", "date": "2027-05-05", "time": "09:00:00"}
+  has next_url (paginated)
+
+[earnings date filter] HTTP 200  https://api.polygon.io/benzinga/v1/earnings?date.gte=2026-06-01&limit=2&apiKey=***
+  top keys: ['status', 'request_id', 'results', 'next_url']
+  results: 2 items | first item keys: ['currency', 'date_status', 'estimated_eps', 'previous_eps', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'previous_revenue', 'ticker', 'last_updated', 'date', 'time']
+  sample[0]: {"currency": "USD", "date_status": "projected", "estimated_eps": -0.01, "previous_eps": -0.01, "benzinga_id": "6a0422890dba150001140ba1", "importance": 1, "company_name": "Solitario Zinc", "fiscal_period": "Q1", "fiscal_year": 2027, "previous_revenue": 0.0, "ticker": "XPL", "last_updated": "2026-06-19T23:30:53Z", "date": "2027-05-05", "time": "09:00:00"}
+  has next_url (paginated)
+
+[ratings (namespace check)] HTTP 200  https://api.polygon.io/benzinga/v1/ratings?ticker=AAPL&limit=2&apiKey=***
+  top keys: ['status', 'request_id', 'results', 'next_url']
+  results: 2 items | first item keys: ['rating_action', 'price_target_action', 'adjusted_price_target', 'previous_adjusted_price_target', 'benzinga_firm_id', 'firm', 'analyst', 'benzinga_analyst_id', 'currency', 'benzinga_id', 'importance', 'company_name', 'price_target', 'previous_price_target', 'rating', 'previous_rating', 'ticker', 'last_updated', 'benzinga_calendar_url', 'benzinga_news_url', 'date', 'time']
+  sample[0]: {"rating_action": "reiterates", "price_target_action": "maintains", "adjusted_price_target": 380.0, "previous_adjusted_price_target": 380.0, "benzinga_firm_id": "5e17143f7da4190001b2eaa6", "firm": "B of A Securities", "analyst": "Wamsi Mohan", "benzinga_analyst_id": "64ec818c31f02c000175f1e1", "currency": "USD", "benzinga_id": "6a34287e31172d000130b8bc", "importance": 5, "company_name": "Apple", "price_target": 380.0, "previous_price_target": 380.0, "rating": "buy", "previous_rating": "buy", "ti
+  has next_url (paginated)
+
+DONE 1957
