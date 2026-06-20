@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tail Risk · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#9b8cff;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.45}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:16px;max-width:760px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:18px}
+.hero{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+.gauge{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:18px 22px;flex:1;min-width:200px}
+.gauge .k{color:var(--fg-2);font-size:11px;text-transform:uppercase;letter-spacing:.05em}.gauge .v{font-family:var(--mono);font-size:34px;margin-top:4px}.gauge .s{font-size:13px;margin-top:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:16px}
+.card h3{margin:0 0 10px;font-size:16px;font-family:var(--mono)}
+.row{display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;border-bottom:1px solid rgba(36,48,63,.5)}
+.row .l{color:var(--fg-2)}.row .r{font-family:var(--mono)}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;font-family:var(--mono)}
+.CALM{background:rgba(63,214,140,.16);color:var(--green)}.WATCH{background:rgba(245,179,67,.16);color:var(--amber)}.ELEVATED{background:rgba(255,140,90,.18);color:#ff9d5c}.STRESSED{background:rgba(255,92,108,.18);color:var(--red)}
+.CHEAP{background:rgba(63,214,140,.16);color:var(--green)}.EXPENSIVE{background:rgba(255,92,108,.16);color:var(--red)}.FAIR,.WARMING{background:rgba(124,139,160,.14);color:var(--fg-2)}
+.note{color:var(--fg-3);font-size:11px;margin-top:20px;line-height:1.6}.loading{color:var(--fg-2);padding:40px 0;text-align:center}a{color:var(--cyan)}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Loading tail-risk…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function ivp(v){return v==null?'—':(v*100).toFixed(1)+'%';}
+function prob(v){return v==null?'—':(v*100).toFixed(1)+'%';}
+function pts(v){return v==null?'—':(v*100>=0?'+':'')+(v*100).toFixed(1);}
+(async function(){
+  const d=await gj('data/tail-risk.json');const w=document.getElementById('wrap');
+  if(!d||!d.ok){w.innerHTML='<h1>Tail Risk</h1><div class="loading">No data yet — runs daily 13:00 UTC.</div>';return;}
+  let h=`<h1>🛡️ Tail Risk</h1><div class="sub">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="meta">${esc((d.generated_at||'').slice(0,16))}Z · ${esc(d.data_source||'')}</div>`;
+  h+=`<div class="hero">
+    <div class="gauge"><div class="k">System Tail Gauge</div><div class="v">${d.system_tail_gauge==null?'—':d.system_tail_gauge}</div><div class="s"><span class="pill ${esc(d.tail_regime)}">${esc(d.tail_regime)}</span></div></div>
+    <div class="gauge"><div class="k">Tail Valuation</div><div class="v" style="font-size:24px"><span class="pill ${esc(d.tail_valuation)}">${esc(d.tail_valuation)}</span></div><div class="s" style="color:var(--fg-3)">crash protection vs own history</div></div>
+  </div>`;
+  h+=`<div class="cards">`;
+  (d.indices||[]).forEach(r=>{
+    h+=`<div class="card"><h3>${esc(r.ticker)} <span style="color:var(--fg-3);font-size:12px">${r.spot}</span></h3>
+      <div class="row"><span class="l">Tail stress</span><span class="r">${r.tail_stress==null?'—':r.tail_stress}</span></div>
+      <div class="row"><span class="l">ATM IV (30d)</span><span class="r">${ivp(r.atm_iv)}</span></div>
+      <div class="row"><span class="l">Put-skew slope (10Δ−ATM)</span><span class="r">${pts(r.put_skew_slope)} pts</span></div>
+      <div class="row"><span class="l">Risk reversal 25Δ</span><span class="r" style="color:${(r.risk_reversal_25||0)<0?'var(--red)':'var(--green)'}">${pts(r.risk_reversal_25)} pts</span></div>
+      <div class="row"><span class="l">RR term (60d−30d)</span><span class="r">${pts(r.rr_term_slope)} pts</span></div>
+      <div class="row"><span class="l">P(drop ≥10% / 30d)</span><span class="r" style="color:var(--amber)">${prob(r.p_drop_10)}</span></div>
+      <div class="row"><span class="l">P(drop ≥20% / 30d)</span><span class="r">${prob(r.p_drop_20)}</span></div>
+      <div class="row"><span class="l">SKEW index</span><span class="r">${r.skew_index==null?'—':r.skew_index}</span></div>
+      <div class="row"><span class="l">RN skew</span><span class="r">${r.rn_skew==null?'—':r.rn_skew}</span></div>
+    </div>`;
+  });
+  h+=`</div>`;
+  const itp=d.interpretation||{};
+  h+=`<div class="note"><b>Reading it:</b> ${esc(itp.system_tail_gauge||'')}. ${esc(itp.tail_valuation||'')}. ${esc(itp.risk_reversal_25||'')}. ${esc(itp.p_drop_10||'')}.<br><br>${(d.caveats||[]).map(c=>'• '+esc(c)).join('<br>')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>

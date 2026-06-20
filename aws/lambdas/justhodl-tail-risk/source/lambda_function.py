@@ -308,8 +308,9 @@ def lambda_handler(event=None, context=None):
     # tail valuation (cheap/expensive) from SPY crash-prob percentile
     spy = rows_by.get("SPY") or {}
     cp_pct = spy.get("crash_prob_pctile")
-    if cp_pct is None:
-        valuation = "n/a"
+    spy_hist_n = len(hist.get("SPY") or [])
+    if cp_pct is None or spy_hist_n < 15:
+        valuation = "WARMING"     # percentile needs ~15+ daily points to be meaningful
     elif cp_pct <= 30:
         valuation = "CHEAP"        # crash protection underpriced vs own history → good to hedge
     elif cp_pct >= 70:

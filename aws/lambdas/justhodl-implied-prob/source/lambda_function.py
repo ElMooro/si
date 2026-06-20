@@ -495,6 +495,30 @@ def lambda_handler(event, context):
         except Exception as e:
             print(f"[implied] earnings section failed: {e}")
 
+    # ── Real fat-tailed crash probabilities from justhodl-tail-risk ──
+    # Breeden-Litzenberger risk-neutral density supersedes the log-normal p_down above.
+    tail_blk = None
+    try:
+        tr = json.loads(S3.get_object(Bucket=BUCKET, Key="data/tail-risk.json")["Body"].read())
+        tail_blk = {"system_tail_gauge": tr.get("system_tail_gauge"),
+                    "tail_regime": tr.get("tail_regime"),
+                    "tail_valuation": tr.get("tail_valuation"),
+                    "generated_at": tr.get("generated_at")}
+        tr_idx = {r["ticker"]: r for r in (tr.get("indices") or [])}
+        for blk, tk in ((spy, "SPY"), (qqq, "QQQ")):
+            ri = tr_idx.get(tk)
+            if blk and ri:
+                blk["density_moves_30d"] = {
+                    "p_down_10": round((ri.get("p_drop_10") or 0) * 100, 2) if ri.get("p_drop_10") is not None else None,
+                    "p_down_20": round((ri.get("p_drop_20") or 0) * 100, 2) if ri.get("p_drop_20") is not None else None,
+                    "skew_index": ri.get("skew_index"),
+                    "risk_reversal_25": ri.get("risk_reversal_25"),
+                    "rn_skew": ri.get("rn_skew"),
+                    "method": "Breeden-Litzenberger risk-neutral density (fat-tailed; supersedes log-normal p_down)",
+                }
+    except Exception as e:
+        print(f"[implied] tail-risk enrich skipped: {e}")
+
     payload = {
         "schema_version": "2.0",
         "method": "implied_prob_v2_fred",
@@ -504,6 +528,7 @@ def lambda_handler(event, context):
         "spy": spy,
         "qqq": qqq,
         "btc": btc,
+        "tail_risk": tail_blk,
         "earnings_implied": earnings,
         "duration_s": round(time.time() - started, 1),
     }
