@@ -1,9 +1,29 @@
-invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"treasury_stress\": 19.1, \"regime\": \"CALM\", \"spreads\": {\"bill_sofr\": 5.0, \"sofr_effr\": 0.0, \"cp_bill\": -1.0}, \"ns_diagnostic_bps\": 6.07}"}
+============================================================
+1) Polygon FX spot (baseline) + any forward/futures
+============================================================
+C:EURUSD spot: 200
+C:USDJPY spot: 200
+fx ref: 200
+futures ref: 404 404 page not found
 
-version: 1.1.0 treasury_stress: 19.1 regime: CALM (expect CALM/WATCH on a calm day)
-SPREADS:
-  bill-SOFR: 5.0 bps  stress pctile: 0.6
-  SOFR-EFFR: 0.0 bps  stress pctile: 53.6
-  CP-bill: -1.0 bps  stress pctile: 3.1
-NS diagnostic (experimental, NOT in score): 6.07 bps pctile 99.7
-DONE 2028
+============================================================
+2) FMP forex / forward
+============================================================
+  /stable/forex/EURUSD: HTTP 404 []
+  /stable/quote/EURUSD: HTTP 404 []
+  /stable/forex-forward: HTTP 404 []
+  /stable/historical-price-eod/forex: HTTP 404 []
+
+============================================================
+3) FRED — spot FX + any forward/basis/OIS series
+============================================================
+  DEXUSEU: 2026-06-12=1.1573
+  DEXJPUS: 2026-06-12=160.24
+  DTB3: 2026-06-17=3.68
+  SOFR: 2026-06-17=3.63
+  IORB: 2026-06-22=3.65
+  ECBESTRVOLWGTTRMDMNRT: 2026-06-18=2.18
+  IR3TIB01EZM156N: 2026-01-01=2.0277272727
+
+  CIP inputs needed: USD 3M (SOFR/bill) ✓, foreign 3M rate ✓(FRED), FX spot ✓, FX FORWARD ← the gating item
+DONE 2029
