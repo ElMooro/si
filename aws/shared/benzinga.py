@@ -160,3 +160,123 @@ def fetch_calendar(days_ahead=14, min_importance=0, limit=1000):
             "fiscal_year": r.get("fiscal_year"),
         })
     return out
+
+
+# ---------------------------------------------------------------------------
+# Benzinga ratings / guidance / analyst-insights (entitled via Massive add-on).
+# ---------------------------------------------------------------------------
+_RATING_RANK = {
+    "strong sell": 0, "sell": 1, "underperform": 1, "underweight": 1, "reduce": 1,
+    "negative": 1, "neutral": 2, "hold": 2, "market perform": 2, "sector perform": 2,
+    "equal-weight": 2, "equal weight": 2, "in-line": 2, "peer perform": 2,
+    "buy": 3, "outperform": 3, "overweight": 3, "accumulate": 3, "positive": 3,
+    "sector outperform": 3, "add": 3, "strong buy": 4, "conviction buy": 4,
+}
+
+
+def _rank(rating):
+    return _RATING_RANK.get((rating or "").strip().lower())
+
+
+def _back_window(days_back):
+    from datetime import timedelta
+    return (date.today() - timedelta(days=days_back)).isoformat()
+
+
+def fetch_ratings(days_back=7, min_importance=0, limit=1000):
+    """Recent analyst rating actions with price-target changes. Returns normalized
+    rows: rating transition direction + PT direction + % PT change."""
+    j = _get("ratings", {"date.gte": _back_window(days_back), "order": "desc",
+                         "sort": "date", "limit": str(limit)})
+    out = []
+    for r in (j or {}).get("results", []) or []:
+        imp = r.get("importance") or 0
+        if imp < min_importance:
+            continue
+        rnew, rprev = _rank(r.get("rating")), _rank(r.get("previous_rating"))
+        if rnew is not None and rprev is not None and rnew != rprev:
+            rdir = "UPGRADE" if rnew > rprev else "DOWNGRADE"
+        elif (r.get("rating_action") or "").lower() in ("upgrades",):
+            rdir = "UPGRADE"
+        elif (r.get("rating_action") or "").lower() in ("downgrades",):
+            rdir = "DOWNGRADE"
+        else:
+            rdir = "REITERATE"
+        pta = (r.get("price_target_action") or "").lower()
+        pt_dir = ("RAISE" if pta == "raises" else "CUT" if pta == "lowers"
+                  else "INIT" if pta in ("announces", "initiates") else "AFFIRM")
+        out.append({
+            "ticker": r.get("ticker"), "company": r.get("company_name"),
+            "firm": r.get("firm"), "analyst": r.get("analyst"),
+            "date": r.get("date"), "time": r.get("time"), "importance": imp,
+            "rating": r.get("rating"), "previous_rating": r.get("previous_rating"),
+            "rating_dir": rdir, "rating_action": r.get("rating_action"),
+            "pt": r.get("price_target"), "pt_prev": r.get("previous_price_target"),
+            "pt_pct": r.get("price_percent_change"), "pt_dir": pt_dir,
+        })
+    return out
+
+
+def _mid(lo, hi):
+    vals = [v for v in (lo, hi) if isinstance(v, (int, float))]
+    return sum(vals) / len(vals) if vals else None
+
+
+def fetch_guidance(days_back=21, min_importance=0, limit=1000):
+    """Recent company guidance with raise/cut detection vs previous guidance,
+    for both EPS and revenue (midpoint comparison)."""
+    j = _get("guidance", {"date.gte": _back_window(days_back), "order": "desc",
+                         "sort": "date", "limit": str(limit)})
+    out = []
+    for r in (j or {}).get("results", []) or []:
+        imp = r.get("importance") or 0
+        if imp < min_importance:
+            continue
+        eps_now = _mid(r.get("min_eps_guidance"), r.get("max_eps_guidance"))
+        eps_prev = _mid(r.get("previous_min_eps_guidance"), r.get("previous_max_eps_guidance"))
+        rev_now = _mid(r.get("min_revenue_guidance"), r.get("max_revenue_guidance"))
+        rev_prev = _mid(r.get("previous_min_revenue_guidance"), r.get("previous_max_revenue_guidance"))
+
+        def _dir(now, prev):
+            if now is None:
+                return None
+            if prev is None:
+                return "INIT"
+            if now > prev * 1.001:
+                return "RAISE"
+            if now < prev * 0.999:
+                return "CUT"
+            return "AFFIRM"
+
+        eps_dir, rev_dir = _dir(eps_now, eps_prev), _dir(rev_now, rev_prev)
+        eps_pct = ((eps_now / eps_prev - 1) * 100) if (eps_now and eps_prev) else None
+        rev_pct = ((rev_now / rev_prev - 1) * 100) if (rev_now and rev_prev) else None
+        # overall: a raise on either line (no cut on the other) is bullish
+        dirs = [d for d in (eps_dir, rev_dir) if d in ("RAISE", "CUT")]
+        overall = ("RAISE" if "RAISE" in dirs and "CUT" not in dirs else
+                   "CUT" if "CUT" in dirs and "RAISE" not in dirs else
+                   "MIXED" if dirs else (eps_dir or rev_dir or "AFFIRM"))
+        out.append({
+            "ticker": r.get("ticker"), "company": r.get("company_name"),
+            "fiscal_period": r.get("fiscal_period"), "fiscal_year": r.get("fiscal_year"),
+            "date": r.get("date"), "importance": imp, "release_type": r.get("release_type"),
+            "eps_mid": eps_now, "eps_prev": eps_prev, "eps_dir": eps_dir, "eps_pct": eps_pct,
+            "rev_mid": rev_now, "rev_prev": rev_prev, "rev_dir": rev_dir, "rev_pct": rev_pct,
+            "overall_dir": overall,
+        })
+    return out
+
+
+def fetch_analyst_insights(days_back=7, limit=500):
+    """Analyst commentary rows carrying numeric price target + rating."""
+    j = _get("analyst-insights", {"date.gte": _back_window(days_back), "order": "desc",
+                                  "sort": "date", "limit": str(limit)})
+    out = []
+    for r in (j or {}).get("results", []) or []:
+        out.append({
+            "ticker": r.get("ticker"), "company": r.get("company_name"),
+            "firm": r.get("firm"), "date": r.get("date"),
+            "rating": r.get("rating"), "rating_action": r.get("rating_action"),
+            "price_target": r.get("price_target"), "insight": r.get("insight"),
+        })
+    return out
