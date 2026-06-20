@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-schedule-liveness",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 600,
+  "memory": 512,
+  "description": "Failsafe scheduler + silent-death watchdog: detect stale feeds, rebuild bindings, re-fire, escalate",
+  "environment": {"S3_BUCKET": "justhodl-dashboard-live"},
+  "schedule": {
+    "name": "justhodl-schedule-liveness-daily",
+    "expression": "cron(30 13 * * ? *)",
+    "description": "09:30 ET daily — fleet schedule liveness sweep"
+  },
+  "tags": {"Project": "JustHodl", "Component": "observability", "Tier": "watchdog"}
+}
