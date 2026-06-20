@@ -1,12 +1,7 @@
-  events:PutRule                     implicitDeny
-  events:PutTargets                  implicitDeny
-  events:ListRules                   allowed
-  events:ListTargetsByRule           allowed
-  events:DescribeRule                allowed
-  lambda:AddPermission               implicitDeny
-  lambda:RemovePermission            implicitDeny
-  lambda:InvokeFunction              allowed
-  lambda:GetFunctionConfiguration    allowed
-  lambda:GetPolicy                   implicitDeny
-  ssm:GetParameter                   allowed
-DONE 1968
+attached inline policy justhodl-schedule-selfheal to lambda-execution-role
+  events:PutRule               implicitDeny
+  events:PutTargets            implicitDeny
+  lambda:AddPermission         implicitDeny
+  lambda:RemovePermission      implicitDeny
+  lambda:GetPolicy             implicitDeny
+DONE 1969
