@@ -1,22 +1,71 @@
-{
-  "page": {
-    "status": 200,
-    "len": 9790,
-    "has_title": true,
-    "has_loader": true,
-    "has_them": true
-  },
-  "dir": {
-    "status": 200,
-    "len": 47723,
-    "dir_link": true
-  },
-  "feed_s3": {
-    "status": 200,
-    "len": 69235,
-    "n_names": 3398,
-    "n_thematic": 25,
-    "top_inflow": "NVDA"
-  }
-}
-DONE 1973
+==================================================================
+BENZINGA EARNINGS — full surface
+==================================================================
+ALL fields on a reported row:
+   currency: USD
+   date_status: confirmed
+   actual_eps: 1.87
+   estimated_eps: 1.76
+   previous_eps: 0.78
+   eps_surprise: 0.11
+   eps_surprise_percent: 0.0625
+   eps_method: adj
+   benzinga_id: 6836b54378fca100018f8c67
+   importance: 5
+   company_name: NVIDIA
+   fiscal_period: Q1
+   fiscal_year: 2027
+   actual_revenue: 81615000000.0
+   estimated_revenue: 79042567736.0
+   previous_revenue: 44062000000.0
+   revenue_surprise: 2572432384.0
+   revenue_surprise_percent: 0.0325
+   revenue_method: gaap
+   ticker: NVDA
+   last_updated: 2026-05-20T20:20:38Z
+   date: 2026-05-20
+   time: 16:20:00
+
+Forward 14d CALENDAR (no ticker filter): 53 rows, next_url=no
+  importance distribution: {1: 15, 2: 9, 3: 14, 4: 11, 5: 4}
+  sample upcoming high-importance: [('GIS', '2026-07-01', 4, 0.8), ('STZ', '2026-06-30', 4, 3.26), ('NKE', '2026-06-30', 5, 0.12), ('MKC', '2026-06-25', 4, 0.7), ('SNX', '2026-06-25', 4, 4.08), ('DRI', '2026-06-25', 4, 3.64)]
+
+updated.gte supported? True 
+
+==================================================================
+ETF CONSTITUENTS — full surface
+==================================================================
+ALL fields on a constituent row:
+   processed_date: 2026-05-21
+   composite_ticker: XLK
+   constituent_ticker: AAPL
+   constituent_name: APPLE INC
+   weight: 0.1218916822
+   market_value: 14082532951.5
+   us_code: 037833100
+   isin: US0378331005
+   figi: BBG000B9XRY4
+   sedol: 2046251
+   country_of_exchange: US
+   exchange: NASDAQ/NGS (GLOBAL SELECT MARKET)
+   shares_held: 46592334.0
+   asset_class: Equity
+   security_type: Common Stock
+   currency_traded: USD
+   constituent_rank: 26
+   effective_date: 2026-05-20
+
+XLK snapshots: new=2026-06-18(71) vs old=2026-05-26(72)
+  ADDITIONS (new holdings): []
+  DELETIONS (dropped): ['EPAM']
+  largest SHARE-COUNT changes (ETF actually bought/sold the name):
+    KLAC   +978.6% shares (+9,897,578)
+    FFIV   +8.0% shares (+34,722)
+    TYL    +8.0% shares (+26,578)
+    AAPL   +7.9% shares (+3,655,492)
+    ACN    +7.9% shares (+372,945)
+    ADBE   +7.9% shares (+249,252)
+    ADI    +7.9% shares (+296,290)
+    ADSK   +7.9% shares (+128,738)
+
+DONE 1974
