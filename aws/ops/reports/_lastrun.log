@@ -1,12 +1,12 @@
-extractor would yield from top_picks: ['CNC', 'FFIV', 'AKAM', 'AES', 'LDOS', 'CAG', 'CPB', 'AMCR', 'ARE', 'LYB', 'VMC', 'VZ', 'MRSH', 'WAB', 'XYL']
-
-eng:flow-lookthrough rows in justhodl-signals: 8 (scanned 21 pages)
-   AKAM UP base= 124.91 conf= 0.58 logged= 2026-06-20
-   AES UP base= 14.62 conf= 0.577 logged= 2026-06-20
-   AMCR UP base= 41.08 conf= 0.546 logged= 2026-06-20
-   FFIV UP base= 385.49 conf= 0.585 logged= 2026-06-20
-   CPB UP base= 21.15 conf= 0.554 logged= 2026-06-20
-   CNC UP base= 61.02 conf= 0.636 logged= 2026-06-20
-   LDOS UP base= 107.07 conf= 0.57 logged= 2026-06-20
-   CAG UP base= 13.2 conf= 0.562 logged= 2026-06-20
-DONE 1967
+  events:PutRule                     implicitDeny
+  events:PutTargets                  implicitDeny
+  events:ListRules                   allowed
+  events:ListTargetsByRule           allowed
+  events:DescribeRule                allowed
+  lambda:AddPermission               implicitDeny
+  lambda:RemovePermission            implicitDeny
+  lambda:InvokeFunction              allowed
+  lambda:GetFunctionConfiguration    allowed
+  lambda:GetPolicy                   implicitDeny
+  ssm:GetParameter                   allowed
+DONE 1968
