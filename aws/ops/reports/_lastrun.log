@@ -1,11 +1,2 @@
-create
-active
-scheduled
-invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"n_nodes\": 46, \"n_edges\": 64, \"booming_hubs\": [\"ACLS\", \"AMAT\", \"AMD\", \"AMKR\", \"ASML\", \"CRDO\", \"DELL\", \"ENTG\", \"KLAC\", \"LRCX\"], \"top_laggards\": [[\"NVDA\", \"DELL\", -4.5, 74.06, 78.6]]}"}
-
-nodes: 46 edges: 64 booming_hubs: ['ACLS', 'AMAT', 'AMD', 'AMKR', 'ASML', 'CRDO', 'DELL', 'ENTG', 'KLAC', 'LRCX', 'MRVL', 'MU', 'STM', 'TER']
-LAGGARDS (suppliers of booming hubs, not yet moved):
-  NVDA   (AI Compute) GPUs→DELL | own -4.5% vs cust 74.06% gap 78.6
-harvester: {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 29, \"written\": 17, \"scanned\": 448}"}
-eng:supply-chain-graph rows: 1
-DONE 2036
+https://justhodl.ai/supply-chain.html HTTP 200 bytes 9283 | has d3: True | reads graph json: True
+DONE 2037
