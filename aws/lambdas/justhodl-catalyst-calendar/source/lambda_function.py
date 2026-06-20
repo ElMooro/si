@@ -288,81 +288,98 @@ def earnings_events(window_days):
     seen = set()
 
     def _imp(importance):
-        importance = importance or 0
+        try:
+            importance = float(importance or 0)
+        except (ValueError, TypeError):
+            importance = 0
         if importance >= 4:
             return "HIGH"
         if importance == 3:
             return "MEDIUM"
         return "LOW"
 
+    def _num(v):
+        try:
+            return float(v or 0)
+        except (ValueError, TypeError):
+            return 0.0
+
     # 1) Benzinga forward calendar — precise importance + session timing
     for u in (d.get("forward_calendar") or []):
-        ed_str = (u.get("date") or "")[:10]
-        if not ed_str:
-            continue
         try:
-            ed = datetime.strptime(ed_str, "%Y-%m-%d").date()
-        except ValueError:
+            ed_str = (u.get("date") or "")[:10]
+            if not ed_str:
+                continue
+            try:
+                ed = datetime.strptime(ed_str, "%Y-%m-%d").date()
+            except ValueError:
+                continue
+            if ed < today or ed > cutoff:
+                continue
+            tk = u.get("ticker")
+            key = (tk, ed_str)
+            if key in seen:
+                continue
+            seen.add(key)
+            sess = u.get("session") or ""
+            fp = f"{u.get('fiscal_period', '')}{u.get('fiscal_year', '')}".strip()
+            events.append({
+                "date": ed_str,
+                "time": "12:30" if sess == "BMO" else ("21:00" if sess == "AMC" else None),
+                "type": "EARNINGS",
+                "title": f"{tk or '?'} earnings",
+                "subtitle": ((u.get("company") or "")[:70]) + (f" · {sess}" if sess and sess != "—" else ""),
+                "impact": _imp(u.get("importance")),
+                "source": "Benzinga (via Massive)",
+                "url": None,
+                "size_billions": None,
+                "ticker": tk,
+                "session": sess or None,
+                "importance": int(_num(u.get("importance"))),
+                "consensus": u.get("estimated_eps"),
+                "fiscal_period": fp or None,
+            })
+        except Exception as e:
+            print(f"[catalyst] earnings row (bz) skipped: {e}")
             continue
-        if ed < today or ed > cutoff:
-            continue
-        tk = u.get("ticker")
-        key = (tk, ed_str)
-        if key in seen:
-            continue
-        seen.add(key)
-        sess = u.get("session") or ""
-        fp = f"{u.get('fiscal_period', '')}{u.get('fiscal_year', '')}".strip()
-        events.append({
-            "date": ed_str,
-            "time": "12:30" if sess == "BMO" else ("21:00" if sess == "AMC" else None),
-            "type": "EARNINGS",
-            "title": f"{tk or '?'} earnings",
-            "subtitle": ((u.get("company") or "")[:70]) + (f" · {sess}" if sess and sess != "—" else ""),
-            "impact": _imp(u.get("importance")),
-            "source": "Benzinga (via Massive)",
-            "url": None,
-            "size_billions": None,
-            "ticker": tk,
-            "session": sess or None,
-            "importance": u.get("importance") or 0,
-            "consensus": u.get("estimated_eps"),
-            "fiscal_period": fp or None,
-        })
 
     # 2) FMP upcoming_14d — breadth supplement for unrated names
     for u in (d.get("upcoming_14d") or []):
-        ed_str = (u.get("earnings_date", "") or "")[:10]
-        if not ed_str:
-            continue
         try:
-            ed = datetime.strptime(ed_str, "%Y-%m-%d").date()
-        except ValueError:
+            ed_str = (u.get("earnings_date", "") or "")[:10]
+            if not ed_str:
+                continue
+            try:
+                ed = datetime.strptime(ed_str, "%Y-%m-%d").date()
+            except ValueError:
+                continue
+            if ed < today or ed > cutoff:
+                continue
+            tk = u.get("ticker")
+            key = (tk, ed_str)
+            if key in seen:
+                continue
+            seen.add(key)
+            mcap = _num(u.get("market_cap"))
+            impact = "HIGH" if mcap >= 100_000_000_000 else ("MEDIUM" if mcap >= 10_000_000_000 else "LOW")
+            events.append({
+                "date": ed_str,
+                "time": (u.get("time") or "").upper() if u.get("time") else None,
+                "type": "EARNINGS",
+                "title": f"{tk or '?'} earnings",
+                "subtitle": (u.get("name") or "")[:80],
+                "impact": impact,
+                "source": "FMP",
+                "url": None,
+                "size_billions": None,
+                "ticker": tk,
+                "consensus": u.get("eps_consensus"),
+                "n_estimates": u.get("n_estimates"),
+                "market_cap": mcap,
+            })
+        except Exception as e:
+            print(f"[catalyst] earnings row (fmp) skipped: {e}")
             continue
-        if ed < today or ed > cutoff:
-            continue
-        tk = u.get("ticker")
-        key = (tk, ed_str)
-        if key in seen:
-            continue
-        seen.add(key)
-        mcap = u.get("market_cap") or 0
-        impact = "HIGH" if mcap >= 100_000_000_000 else ("MEDIUM" if mcap >= 10_000_000_000 else "LOW")
-        events.append({
-            "date": ed_str,
-            "time": (u.get("time") or "").upper() if u.get("time") else None,
-            "type": "EARNINGS",
-            "title": f"{tk or '?'} earnings",
-            "subtitle": (u.get("name") or "")[:80],
-            "impact": impact,
-            "source": "FMP",
-            "url": None,
-            "size_billions": None,
-            "ticker": tk,
-            "consensus": u.get("eps_consensus"),
-            "n_estimates": u.get("n_estimates"),
-            "market_cap": mcap,
-        })
     return events
 
 
