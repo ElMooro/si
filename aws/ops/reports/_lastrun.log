@@ -1,18 +1,7 @@
-options-analytics invoke: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"n_analyzed\": 58, \"n_picks\": 7, \"distribution\": {\"short_gamma\": 18, \"long_gamma\": 40, \"squeeze_setups\": 7, \"downside_hedging\": 0}, \"top\": [[\"NFLX\", 73.7, \"GAMMA_SQUEEZE_SETUP\", -37.22], [\"META\",
-picks now: 7 → [('NFLX', 73.7, 'GAMMA_SQUEEZE_SETUP'), ('META', 59.3, 'GAMMA_SQUEEZE_SETUP'), ('CRM', 33.7, 'GAMMA_SQUEEZE_SETUP'), ('CVX', 32.8, 'GAMMA_SQUEEZE_SETUP'), ('IWM', 30.0, 'SQUEEZE_PRIMED'), ('LCID', 29.8, 'GAMMA_SQUEEZE_SETUP'), ('XOM', 26.6, 'GAMMA_SQUEEZE_SETUP')]
-
-invoking signal-harvester…
- harvester: 200 | {"statusCode": 200, "body": "{\"ok\": true, \"engines\": 24, \"written\": 13, \"scanned\": 444}"}
-
-eng:options-analytics rows in justhodl-signals: 7
-   ('09e828e5-445e-48b8-9715-93b10533ae17', '59.3')
-   ('d60fccbf-b99c-434a-9a32-6d23eb39f599', '32.8')
-   ('641f85af-cac6-4bc6-8a44-3aa95253f463', '26.6')
-   ('df3c1fb8-c070-4038-8039-a77bf30583e9', '33.7')
-   ('ec1e5794-d79a-4ebb-a964-6c37d99bc1e3', '29.8')
-   ('e0fba8d0-5aaa-4159-be43-e24d7a4f0999', '73.7')
-   ('3b756613-a1f7-47ec-b928-6dceb9109ce8', '30.0')
-
-page check:
-  https://justhodl.ai/options-analytics.html -> HTTP 200 bytes=7881
-DONE 2015
+SPY spot=746.74 exp=2026-07-17 dte=27 contracts=250 next=Y | puts w/IV+delta=55 min_put_delta=-0.04203950133004454 (need ~-0.10) max=-0.0017393032018675314
+   put10Δ=(-0.042, 0.2492, 667) put25Δ=(-0.042, 0.2492, 667) atm_put=(-0.042, 0.2492, 667) call25Δ=(0.247, 0.1325, 767) call10Δ=(0.103, 0.1203, 780)
+QQQ spot=740.62 exp=2026-07-17 dte=27 contracts=250 next=Y | puts w/IV+delta=36 min_put_delta=-0.015972199643070895 (need ~-0.10) max=-0.003372771966323007
+   put10Δ=(-0.016, 0.4769, 567) put25Δ=(-0.016, 0.4769, 567) atm_put=(-0.016, 0.4769, 567) call25Δ=(0.251, 0.2214, 773) call10Δ=(0.096, 0.2101, 800)
+IWM spot=295.59 exp=2026-07-17 dte=27 contracts=212 next=n | puts w/IV+delta=103 min_put_delta=-0.9210832702828644 (need ~-0.10) max=-0.0018787513413566171
+   put10Δ=(-0.103, 0.2771, 270) put25Δ=(-0.252, 0.2405, 284) atm_put=(-0.489, 0.2129, 296) call25Δ=(0.248, 0.2063, 308) call10Δ=(0.075, 0.1973, 320)
+DONE 2016
