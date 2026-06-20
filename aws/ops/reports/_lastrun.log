@@ -1,29 +1,47 @@
-key present: True len: 32
-
 ================================================================
-(A) BENZINGA EARNINGS
+(A) CONSTITUENTS via composite_ticker
 ================================================================
 
-  [/benzinga/v1/earnings @api.polygon.io] HTTP 200
-   top keys: ['status', 'request_id', 'results', 'next_url']
-   n_results: 3
-   sample record fields: ['currency', 'date_status', 'estimated_eps', 'previous_eps', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'estimated_revenue', 'previous_revenue', 'ticker', 'last_updated', 'date', 'time']
-   sample[0]: {"currency": "USD", "date_status": "projected", "estimated_eps": 2.01, "previous_eps": 1.85, "benzinga_id": "69030cfb619d3a00015b72a3", "importance": 5, "company_name": "Apple", "fiscal_period": "Q4", "fiscal_year": 2026, "estimated_revenue": 114244156504.0, "previous_revenue": 102466000000.0, "ticker": "AAPL", "last_updated": "2026-06-19T23:30:04Z", "date": "2026-10-29", "time": "16:00:00"}
+  SPY: latest processed_date=2017-04-04  rows_total=600  holdings_in_snapshot=93
+     #1: AAPL         APPLE INC                  mv=8819905228.9 sh=60923570.0
+     #3: AMZN         AMAZON.COM INC             mv=4171746272.46 sh=4600362.0
+     #7: BRK/B        BERKSHIRE HATHAWAY INC-CL  mv=3681022538.7 sh=22060545.0
+     #14: BAC          BANK OF AMERICA CORP       mv=2729088493.6 sh=116428690.0
+     #26: C            CITIGROUP INC              mv=1919787373.92 sh=32168019.0
+     #34: AMGN         AMGEN INC                  mv=1405706650.88 sh=8552608.0
 
-  [/benzinga/v1/earnings @api.massive.com] HTTP 200
-   top keys: ['status', 'request_id', 'results', 'next_url']
-   n_results: 3
-   sample record fields: ['currency', 'date_status', 'estimated_eps', 'previous_eps', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'estimated_revenue', 'previous_revenue', 'ticker', 'last_updated', 'date', 'time']
-   sample[0]: {"currency": "USD", "date_status": "projected", "estimated_eps": 2.01, "previous_eps": 1.85, "benzinga_id": "69030cfb619d3a00015b72a3", "importance": 5, "company_name": "Apple", "fiscal_period": "Q4", "fiscal_year": 2026, "estimated_revenue": 114244156504.0, "previous_revenue": 102466000000.0, "ticker": "AAPL", "last_updated": "2026-06-19T23:30:04Z", "date": "2026-10-29", "time": "16:00:00"}
+  XLK: latest processed_date=2017-04-12  rows_total=600  holdings_in_snapshot=60
+     #1: AAPL         APPLE INC                  mv=None sh=17843046.0
+     #2: MSFT         MICROSOFT CORP             mv=None sh=26280686.0
+     #3: FB           Facebook Inc.              mv=None sh=8009778.0
+     #4: GOOGL        ALPHABET INC-CL A          mv=None sh=1010528.0
+     #6: GOOG         ALPHABET INC-CL C          mv=None sh=1005000.0
+     #7: INTC         INTEL CORP                 mv=None sh=16143400.0
+
+  QQQ: latest processed_date=2017-04-10  rows_total=600  holdings_in_snapshot=60
+     #1: AAPL         APPLE INC                  mv=5633115565.14 sh=39345642.0
+     #3: AMZN         AMAZON.COM INC             mv=3245814521.76 sh=3578469.0
+     #4: FB           Facebook Inc.              mv=2491083457.92 sh=17662248.0
+     #5: GOOG         ALPHABET INC-CL C          mv=2145789936.57 sh=2601809.0
+     #6: GOOGL        ALPHABET INC-CL A          mv=1875467523.0 sh=2228190.0
+     #7: CMCSA        COMCAST CORP-CLASS A       mv=1336994262.94 sh=35492282.0
 
 ================================================================
-(B) ETF GLOBAL CONSTITUENTS
+(B) BENZINGA REPORTED EARNINGS (actual+surprise)
 ================================================================
 
-  [/etf-global/v1/constituents (ticker=SPY) @api.polygon.io] HTTP 200
-   top keys: ['status', 'request_id', 'results', 'next_url']
-   n_results: 5
-   sample record fields: ['processed_date', 'composite_ticker', 'constituent_ticker', 'constituent_name', 'market_value', 'shares_held', 'currency_traded', 'constituent_rank', 'effective_date']
-   sample[0]: {"processed_date": "2024-12-03", "composite_ticker": "193966", "constituent_ticker": "DCRF5 Curncy", "constituent_name": "CME Ether Future  Jan25", "market_value": -344379.379994, "shares_held": 284.0, "currency_traded": "USD", "constituent_rank": 3, "effective_date": "2024-12-03"}
+  ticker=AAPL&date.lte=2026-06-20&order=desc&sort=date&limit=3 -> HTTP 200
+    fields: ['currency', 'date_status', 'actual_eps', 'estimated_eps', 'previous_eps', 'eps_surprise', 'eps_surprise_percent', 'eps_method', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'actual_revenue', 'estimated_revenue', 'previous_revenue', 'revenue_surprise', 'revenue_surprise_percent', 'revenue_method', 'ticker', 'last_updated', 'date', 'time']
+    rec: {"ticker": "AAPL", "date": "2026-04-30", "date_status": "confirmed", "eps": null, "eps_est": null, "eps_surprise_percent": 0.0361, "estimated_eps": 1.94, "revenue": null, "revenue_surprise_percent": 0.0138, "fiscal_period": "Q2", "fiscal_year": 2026}
+    fields: ['currency', 'date_status', 'actual_eps', 'estimated_eps', 'previous_eps', 'eps_surprise', 'eps_surprise_percent', 'eps_method', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'actual_revenue', 'estimated_revenue', 'previous_revenue', 'revenue_surprise', 'revenue_surprise_percent', 'revenue_method', 'ticker', 'last_updated', 'date', 'time']
+    rec: {"ticker": "AAPL", "date": "2026-01-29", "date_status": "confirmed", "eps": null, "eps_est": null, "eps_surprise_percent": 0.0677, "estimated_eps": 2.66, "revenue": null, "revenue_surprise_percent": 0.0409, "fiscal_period": "Q1", "fiscal_year": 2026}
+    fields: ['currency', 'date_status', 'actual_eps', 'estimated_eps', 'previous_eps', 'eps_surprise', 'eps_surprise_percent', 'eps_method', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'actual_revenue', 'estimated_revenue', 'previous_revenue', 'revenue_surprise', 'revenue_surprise_percent', 'revenue_method', 'ticker', 'last_updated', 'date', 'time']
+    rec: {"ticker": "AAPL", "date": "2025-10-30", "date_status": "confirmed", "eps": null, "eps_est": null, "eps_surprise_percent": 0.0571, "estimated_eps": 1.75, "revenue": null, "revenue_surprise_percent": 0.0062, "fiscal_period": "Q4", "fiscal_year": 2025}
 
-DONE 1957
+  ticker=NVDA&date.lte=2026-06-20&order=desc&sort=date&limit=2 -> HTTP 200
+    fields: ['currency', 'date_status', 'actual_eps', 'estimated_eps', 'previous_eps', 'eps_surprise', 'eps_surprise_percent', 'eps_method', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'actual_revenue', 'estimated_revenue', 'previous_revenue', 'revenue_surprise', 'revenue_surprise_percent', 'revenue_method', 'ticker', 'last_updated', 'date', 'time']
+    rec: {"ticker": "NVDA", "date": "2026-05-20", "date_status": "confirmed", "eps": null, "eps_est": null, "eps_surprise_percent": 0.0625, "estimated_eps": 1.76, "revenue": null, "revenue_surprise_percent": 0.0325, "fiscal_period": "Q1", "fiscal_year": 2027}
+    fields: ['currency', 'date_status', 'actual_eps', 'estimated_eps', 'previous_eps', 'eps_surprise', 'eps_surprise_percent', 'eps_method', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'actual_revenue', 'estimated_revenue', 'previous_revenue', 'revenue_surprise', 'revenue_surprise_percent', 'revenue_method', 'ticker', 'last_updated', 'date', 'time']
+    rec: {"ticker": "NVDA", "date": "2026-02-25", "date_status": "confirmed", "eps": null, "eps_est": null, "eps_surprise_percent": 0.08, "estimated_eps": 1.5, "revenue": null, "revenue_surprise_percent": 0.0338, "fiscal_period": "Q4", "fiscal_year": 2026}
+
+DONE 1958
