@@ -1,51 +1,47 @@
-key present: True | len: 32
 ================================================================
-ETF GLOBAL CONSTITUENTS candidates
-================================================================
-
-[constituents?ticker=SPY] HTTP 200  https://api.polygon.io/etf-global/v1/constituents?ticker=SPY&apiKey=***
-  top keys: ['status', 'request_id', 'results', 'next_url']
-  results: 100 items | first item keys: ['processed_date', 'composite_ticker', 'constituent_ticker', 'constituent_name', 'market_value', 'shares_held', 'currency_traded', 'constituent_rank', 'effective_date']
-  sample[0]: {"processed_date": "2024-12-03", "composite_ticker": "193966", "constituent_ticker": "DCRF5 Curncy", "constituent_name": "CME Ether Future  Jan25", "market_value": -344379.379994, "shares_held": 284.0, "currency_traded": "USD", "constituent_rank": 3, "effective_date": "2024-12-03"}
-  has next_url (paginated)
-
-[holdings?ticker=SPY] HTTP 404  https://api.polygon.io/etf-global/v1/holdings?ticker=SPY&apiKey=***
-  non-JSON body head: 404 page not found
-
-[constituents list] HTTP 200  https://api.polygon.io/etf-global/v1/constituents?limit=2&apiKey=***
-  top keys: ['status', 'request_id', 'results', 'next_url']
-  results: 2 items | first item keys: ['processed_date', 'composite_ticker', 'constituent_ticker', 'constituent_name', 'market_value', 'shares_held', 'currency_traded', 'constituent_rank', 'effective_date']
-  sample[0]: {"processed_date": "2024-12-03", "composite_ticker": "193966", "constituent_ticker": "DCRF5 Curncy", "constituent_name": "CME Ether Future  Jan25", "market_value": -344379.379994, "shares_held": 284.0, "currency_traded": "USD", "constituent_rank": 3, "effective_date": "2024-12-03"}
-  has next_url (paginated)
-
-[etf-constituents?ticker=SPY] HTTP 404  https://api.polygon.io/etf-global/v1/etf-constituents?ticker=SPY&apiKey=***
-  non-JSON body head: 404 page not found
-
-================================================================
-BENZINGA EARNINGS candidates
+(1) ETF CONSTITUENTS via composite_ticker
 ================================================================
 
-[earnings?ticker=AAPL] HTTP 200  https://api.polygon.io/benzinga/v1/earnings?ticker=AAPL&apiKey=***
-  top keys: ['status', 'request_id', 'results']
-  results: 62 items | first item keys: ['currency', 'date_status', 'estimated_eps', 'previous_eps', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'estimated_revenue', 'previous_revenue', 'ticker', 'last_updated', 'date', 'time']
-  sample[0]: {"currency": "USD", "date_status": "projected", "estimated_eps": 2.01, "previous_eps": 1.85, "benzinga_id": "69030cfb619d3a00015b72a3", "importance": 5, "company_name": "Apple", "fiscal_period": "Q4", "fiscal_year": 2026, "estimated_revenue": 114244156504.0, "previous_revenue": 102466000000.0, "ticker": "AAPL", "last_updated": "2026-06-19T23:30:04Z", "date": "2026-10-29", "time": "16:00:00"}
+SPY: HTTP 200 | n=200 | composite_ticker_field=SPY | latest_effective=2023-05-19
+   top8 holdings: ['1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D']
+   sample: {"processed_date": "2017-04-03", "composite_ticker": "SPY", "constituent_ticker": "1479997D", "constituent_name": "L3 TECHNOLOGIES INC", "weight": 0.0008273085, "market_value": 198259351.29, "us_code": "52729N308", "isin": "US52729N3089", "figi": "BBG000BGRKT6
 
-[earnings list] HTTP 200  https://api.polygon.io/benzinga/v1/earnings?limit=2&apiKey=***
-  top keys: ['status', 'request_id', 'results', 'next_url']
-  results: 2 items | first item keys: ['currency', 'date_status', 'estimated_eps', 'previous_eps', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'previous_revenue', 'ticker', 'last_updated', 'date', 'time']
-  sample[0]: {"currency": "USD", "date_status": "projected", "estimated_eps": -0.01, "previous_eps": -0.01, "benzinga_id": "6a0422890dba150001140ba1", "importance": 1, "company_name": "Solitario Zinc", "fiscal_period": "Q1", "fiscal_year": 2027, "previous_revenue": 0.0, "ticker": "XPL", "last_updated": "2026-06-19T23:30:53Z", "date": "2027-05-05", "time": "09:00:00"}
-  has next_url (paginated)
+QQQ: HTTP 200 | n=200 | composite_ticker_field=QQQ | latest_effective=2018-01-17
+   top8 holdings: ['1LGC', '1LGC', '1LGC', '1LGC', '1LGC', '1LGC', '1LGC', '1LGC']
+   sample: {"processed_date": "2017-04-03", "composite_ticker": "QQQ", "constituent_ticker": "1LGC", "constituent_name": "LIBERTY GLOBAL PLC-SERIES C", "weight": 0.0034409734, "market_value": 161919872.0, "isin": "GB00B8W67B19", "figi": "BBG000FSN559", "sedol": "BB2C204"
 
-[earnings date filter] HTTP 200  https://api.polygon.io/benzinga/v1/earnings?date.gte=2026-06-01&limit=2&apiKey=***
-  top keys: ['status', 'request_id', 'results', 'next_url']
-  results: 2 items | first item keys: ['currency', 'date_status', 'estimated_eps', 'previous_eps', 'benzinga_id', 'importance', 'company_name', 'fiscal_period', 'fiscal_year', 'previous_revenue', 'ticker', 'last_updated', 'date', 'time']
-  sample[0]: {"currency": "USD", "date_status": "projected", "estimated_eps": -0.01, "previous_eps": -0.01, "benzinga_id": "6a0422890dba150001140ba1", "importance": 1, "company_name": "Solitario Zinc", "fiscal_period": "Q1", "fiscal_year": 2027, "previous_revenue": 0.0, "ticker": "XPL", "last_updated": "2026-06-19T23:30:53Z", "date": "2027-05-05", "time": "09:00:00"}
-  has next_url (paginated)
+XLK: HTTP 200 | n=200 | composite_ticker_field=XLK | latest_effective=2025-02-20
+   top8 holdings: ['1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D', '1479997D']
+   sample: {"processed_date": "2017-04-03", "composite_ticker": "XLK", "constituent_ticker": "1479997D", "constituent_name": "L3 TECHNOLOGIES INC", "weight": 0.0034997605, "market_value": 59539899.51, "us_code": "52729N308", "isin": "US52729N3089", "figi": "BBG000BGRKT6"
 
-[ratings (namespace check)] HTTP 200  https://api.polygon.io/benzinga/v1/ratings?ticker=AAPL&limit=2&apiKey=***
-  top keys: ['status', 'request_id', 'results', 'next_url']
-  results: 2 items | first item keys: ['rating_action', 'price_target_action', 'adjusted_price_target', 'previous_adjusted_price_target', 'benzinga_firm_id', 'firm', 'analyst', 'benzinga_analyst_id', 'currency', 'benzinga_id', 'importance', 'company_name', 'price_target', 'previous_price_target', 'rating', 'previous_rating', 'ticker', 'last_updated', 'benzinga_calendar_url', 'benzinga_news_url', 'date', 'time']
-  sample[0]: {"rating_action": "reiterates", "price_target_action": "maintains", "adjusted_price_target": 380.0, "previous_adjusted_price_target": 380.0, "benzinga_firm_id": "5e17143f7da4190001b2eaa6", "firm": "B of A Securities", "analyst": "Wamsi Mohan", "benzinga_analyst_id": "64ec818c31f02c000175f1e1", "currency": "USD", "benzinga_id": "6a34287e31172d000130b8bc", "importance": 5, "company_name": "Apple", "price_target": 380.0, "previous_price_target": 380.0, "rating": "buy", "previous_rating": "buy", "ti
-  has next_url (paginated)
+================================================================
+(2) BENZINGA EARNINGS — reported rows w/ actuals?
+================================================================
+AAPL earnings rows: 62 total | 58 with date<2026-06-20
+  most-recent REPORTED row ALL fields:
+     currency: USD
+     date_status: confirmed
+     actual_eps: 2.01
+     estimated_eps: 1.94
+     previous_eps: 1.65
+     eps_surprise: 0.07
+     eps_surprise_percent: 0.0361
+     eps_method: gaap
+     benzinga_id: 68131c04a17ecf0001790658
+     importance: 5
+     company_name: Apple
+     fiscal_period: Q2
+     fiscal_year: 2026
+     actual_revenue: 111184000000.0
+     estimated_revenue: 109675147200.0
+     previous_revenue: 95359000000.0
+     revenue_surprise: 1508852736.0
+     revenue_surprise_percent: 0.0138
+     revenue_method: gaap
+     ticker: AAPL
+     last_updated: 2026-04-30T20:30:35Z
+     date: 2026-04-30
+     time: 16:30:00
+  EPS/revenue/surprise-related fields seen: ['actual_eps', 'actual_revenue', 'eps_method', 'eps_surprise', 'eps_surprise_percent', 'estimated_eps', 'estimated_revenue', 'previous_eps', 'previous_revenue', 'revenue_method', 'revenue_surprise', 'revenue_surprise_percent']
 
-DONE 1957
+DONE 1958
