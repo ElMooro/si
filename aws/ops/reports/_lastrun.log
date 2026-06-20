@@ -1,59 +1,21 @@
-================================================================
-1) FMP relationship endpoints (peers / supply-chain guesses)
-================================================================
-  /stable/stock-peers: HTTP 200 [
-  {
-    "symbol": "AAPL",
-    "companyName": "Apple Inc.",
-    "price": 298.01,
-    "mktCap": 4376978961560
-  },
-  {
-    "symbol": "ADI",
-    "companyName": "
+============================================================
+1) EXACT FMP endpoint the engine uses
+============================================================
+  /stable/supply-chain-by-symbol: HTTP 404 []
   /stable/supply-chain: HTTP 404 []
-  /stable/company-supply-chain: HTTP 404 []
-  /stable/key-customers: HTTP 404 []
-  /stable/stock-peers: HTTP 200 [
-  {
-    "symbol": "GOOGL",
-    "companyName": "Alphabet Inc.",
-    "price": 368.03,
-    "mktCap": 4451275113933
-  },
-  {
-    "symbol": "META",
-    "companyNam
+  /stable/stock-supply-chain: HTTP 404 []
+  v4/supply-chain: 403 {
+  "Error Message": "Legacy Endpoint : Due to Legacy endpoints being no longer 
 
-================================================================
-2) SEC EDGAR full-text search — find filers naming a company as customer
-================================================================
+============================================================
+2) live data/supply-chain-linkage.json — populated or empty?
+============================================================
+  generated_at: 2026-06-20T15:01:22.564633+00:00
+  top keys: ['engine', 'version', 'generated_at', 'universe_size', 'n_systemic_hubs', 'n_with_high_severity_flags', 'max_degree_in_universe', 'entries', 'geographic_risk_tiers', 'methodology', 'academic_basis', 'duration_seconds']
 
-  FTS q=%22NVIDIA%22: HTTP 200
-   total: 304 | sample filers:
-      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
-      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
-      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
-      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
-      ['Benchmark 2023-B40 Mortgage Trust  (CIK 0001991192)']
-      ['BANK5 2024-5YR5  (CIK 0002006016)']
-
-  FTS q=%22Apple+Inc%22: HTTP 200
-   total: 124 | sample filers:
-      ['Apple Inc.  (AAPL)  (CIK 0000320193)']
-      ['Apple Inc.  (AAPL)  (CIK 0000320193)']
-      ['Apple Inc.  (AAPL)  (CIK 0000320193)']
-      ['Apple Inc.  (AAPL)  (CIK 0000320193)']
-      ['Globalstar, Inc.  (GSAT)  (CIK 0001366868)']
-      ['Globalstar, Inc.  (GSAT)  (CIK 0001366868)']
-
-NOTE: precision question — does a 10-K mentioning 'NVIDIA' = NVIDIA is THEIR customer? Need 'customer'/'% of revenue' co-text.
-
-  refined q='NVIDIA'+'of our revenue': total 526
-      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
-      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
-      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
-      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
-      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
-      ['NVIDIA CORP  (NVDA)  (CIK 0001045810)']
-DONE 2032
+============================================================
+3) dep-graph.html — what data does it read?
+============================================================
+  fetches: ['data/dependency-graph.json', 'data/synthetic-monitor.json']
+  has d3/force graph: False
+DONE 2033
