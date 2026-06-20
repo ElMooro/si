@@ -1,8 +1,9 @@
-================================================================
-RATINGS (analyst up/downgrades + PT changes)
-================================================================
-  results=5 next_url=y
-  ALL fields on row 0:
+
+====================================================================
+benzinga/v1/ratings {'date.gte': '2026-06-13', 'order': 'desc', 'sort': 'date', 'limit': '8'}
+====================================================================
+  rows=8 next_url=y status=OK
+  ALL fields on row[0]:
     rating_action: upgrades
     price_target_action: 
     benzinga_firm_id: 6065c3e6a93f970001f2c6ab
@@ -21,14 +22,15 @@ RATINGS (analyst up/downgrades + PT changes)
     benzinga_news_url: https://www.benzinga.com/stock-articles/ASR/analyst-ratings
     date: 2026-06-18
     time: 15:46:20
-  recency (date of latest 5): ['2026-06-18', '2026-06-18', '2026-06-18', '2026-06-18', '2026-06-18']
-  sample tickers: ['ASR', 'DDOG', 'COST', 'ALB', 'FTI']
+  recency: newest=2026-06-18 oldest=2026-06-18
+  action types: {'upgrades': 2, 'maintains': 5, 'reinstates': 1}
+  sample PT changes: [('ASR', None, None, None), ('DDOG', None, None, None), ('COST', None, None, None), ('ALB', None, None, None), ('FTI', None, None, None)]
 
-================================================================
-GUIDANCE (company forward guidance raises/cuts)
-================================================================
-  results=5 next_url=y
-  ALL fields on row 0:
+====================================================================
+benzinga/v1/guidance {'date.gte': '2026-06-13', 'order': 'desc', 'sort': 'date', 'limit': '8'}
+====================================================================
+  rows=8 next_url=y status=OK
+  ALL fields on row[0]:
     currency: USD
     benzinga_id: 6a344f501c26a50001d97746
     importance: 1
@@ -46,20 +48,16 @@ GUIDANCE (company forward guidance raises/cuts)
     date: 2026-06-18
     time: 16:40:44
     last_updated: 2026-06-18T20:05:18
-  recency (date of latest 5): ['2026-06-18', '2026-06-18', '2026-06-18', '2026-06-18', '2026-06-18']
-  sample tickers: ['LFS', 'SAGT', 'KR', 'DLX', 'ACN']
+  recency: newest=2026-06-18 oldest=2026-06-17
+  sample guidance: [('LFS', None, None, None), ('SAGT', None, None, None), ('KR', None, None, None), ('DLX', None, None, None), ('ACN', None, None, None)]
 
-================================================================
-ANALYST-INSIGHTS
-================================================================
-  results=5 next_url=y
-  ALL fields on row 0:
+====================================================================
+benzinga/v1/analyst-insights {'date.gte': '2026-06-13', 'order': 'desc', 'sort': 'date', 'limit': '5'}
+====================================================================
+  rows=5 next_url=y status=OK
+  ALL fields on row[0]:
     rating_action: maintains
-    insight: Oppenheimer maintained their Outperform rating on SpaceX's stock with a price target of $250.00.  
-
- - **Strong Revenue Growth Potential**: SpaceX's revenue is expected to significantly increase due to its strategic focus on launching reusable rockets and deploying the Starlink satellite constellation, which provides a cost-effective solution for mobile broadband. The model indicates that the company can achieve a rapid payback period on satellites while efficiently utilizing its existing infrastructure to broaden service offerings.
-
-- **Vertical Integration and Market Leadership**: SpaceX's acquisition of xAI and its ownership of essential components across the AI stack position it uniquely in the market. By controlling everything from compute to applications, SpaceX enhances its competitive edge, reduces costs, and captures a larger share of the growing demand for AI-driven services, reinforcing its long-term growth outlook and justifying the Outperform rating.
+    insight: Oppenheimer maintained their Outperform rating on SpaceX's stock with a price target of $2
     date: 2026-06-18
     firm: Oppenheimer
     price_target: 250.0
@@ -70,11 +68,10 @@ ANALYST-INSIGHTS
     benzinga_firm_id: 6065c12ea93f970001f2c651
     benzinga_rating_id: 6a34261231172d000130b5cc
     benzinga_id: 6a34265bba73b8fa0b14d7c9
-  recency (date of latest 5): ['2026-06-18', '2026-06-18', '2026-06-18', '2026-06-18', '2026-06-18']
-  sample tickers: ['SPCX', 'SMWB', 'RLJ', 'ODTX', 'DRI']
+  recency: newest=2026-06-18 oldest=2026-06-18
 
-=== ratings for AAPL (confirm ticker filter works) ===
-  2026-06-18 AAPL / rating ?->? PT ?->? [B of A Securities]
-  2026-06-09 AAPL / rating ?->? PT ?->? [TD Cowen]
-  2026-06-09 AAPL / rating ?->? PT ?->? [Maxim Group]
+--- ticker filter test (ratings?ticker=NVDA) ---
+  NVDA 2026-06-05 Jack Zhou None->None PT None->None
+  NVDA 2026-06-02 N. Quinn Bolton None->None PT None->None
+  NVDA 2026-06-01 Gil Luria None->None PT None->None
 DONE 1978
