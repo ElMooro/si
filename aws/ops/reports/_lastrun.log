@@ -1,71 +1,37 @@
-==================================================================
-BENZINGA EARNINGS — full surface
-==================================================================
-ALL fields on a reported row:
-   currency: USD
-   date_status: confirmed
-   actual_eps: 1.87
-   estimated_eps: 1.76
-   previous_eps: 0.78
-   eps_surprise: 0.11
-   eps_surprise_percent: 0.0625
-   eps_method: adj
-   benzinga_id: 6836b54378fca100018f8c67
-   importance: 5
-   company_name: NVIDIA
-   fiscal_period: Q1
-   fiscal_year: 2027
-   actual_revenue: 81615000000.0
-   estimated_revenue: 79042567736.0
-   previous_revenue: 44062000000.0
-   revenue_surprise: 2572432384.0
-   revenue_surprise_percent: 0.0325
-   revenue_method: gaap
-   ticker: NVDA
-   last_updated: 2026-05-20T20:20:38Z
-   date: 2026-05-20
-   time: 16:20:00
+v2 deployed; invoking (first run builds v2 constituent cache, may take ~2min)...
+StatusCode: 200 FunctionError: None
+payload: b'{"statusCode": 200, "body": "{\\"n_names\\": 2614, \\"n_etfs_used\\": 55, \\"n_with_delta\\": 55, \\"top_accum\\": \\"KLAC\\", \\"n_index_events\\": 30, \\"n_confirmed_picks\\": 15, \\"elapsed_s\\": 3.6}"}'
 
-Forward 14d CALENDAR (no ticker filter): 53 rows, next_url=no
-  importance distribution: {1: 15, 2: 9, 3: 14, 4: 11, 5: 4}
-  sample upcoming high-importance: [('GIS', '2026-07-01', 4, 0.8), ('STZ', '2026-06-30', 4, 3.26), ('NKE', '2026-06-30', 5, 0.12), ('MKC', '2026-06-25', 4, 0.7), ('SNX', '2026-06-25', 4, 4.08), ('DRI', '2026-06-25', 4, 3.64)]
+v2.0.0: names=2614 etfs=55 with_delta=55 elapsed=3.6
 
-updated.gte supported? True 
+★ ACTUAL ACCUMULATION (real share-count buying, mcap-normalised):
+  KLAC   delta=$ 17423.3M  513.87 bps  flow5d=$58M  ✓conf
+  CVNA   delta=$  2650.8M  363.15 bps  flow5d=$21M  ✓conf
+  BKNG   delta=$  4782.0M  359.25 bps  flow5d=$74M  ✓conf
+  DVN    delta=$   840.1M  320.96 bps  flow5d=$14M  ✓conf
+  LDOS   delta=$   113.6M  84.38 bps  flow5d=$14M  ✓conf
+  MPWR   delta=$   495.7M  64.52 bps  flow5d=$-13M  
+  ADI    delta=$  1321.4M  62.44 bps  flow5d=$161M  ✓conf
+  NXPI   delta=$   450.3M  56.94 bps  flow5d=$-2M  
 
-==================================================================
-ETF CONSTITUENTS — full surface
-==================================================================
-ALL fields on a constituent row:
-   processed_date: 2026-05-21
-   composite_ticker: XLK
-   constituent_ticker: AAPL
-   constituent_name: APPLE INC
-   weight: 0.1218916822
-   market_value: 14082532951.5
-   us_code: 037833100
-   isin: US0378331005
-   figi: BBG000B9XRY4
-   sedol: 2046251
-   country_of_exchange: US
-   exchange: NASDAQ/NGS (GLOBAL SELECT MARKET)
-   shares_held: 46592334.0
-   asset_class: Equity
-   security_type: Common Stock
-   currency_traded: USD
-   constituent_rank: 26
-   effective_date: 2026-05-20
+★ ACTUAL DISTRIBUTION (real selling):
+  ATO    delta=$  -333.7M  -117.53 bps
+  HAL    delta=$  -211.7M  -72.56 bps
+  LULU   delta=$   -46.7M  -36.76 bps
+  FTNT   delta=$  -275.5M  -25.98 bps
+  NTAP   delta=$   -58.2M  -18.6 bps
 
-XLK snapshots: new=2026-06-18(71) vs old=2026-05-26(72)
-  ADDITIONS (new holdings): []
-  DELETIONS (dropped): ['EPAM']
-  largest SHARE-COUNT changes (ETF actually bought/sold the name):
-    KLAC   +978.6% shares (+9,897,578)
-    FFIV   +8.0% shares (+34,722)
-    TYL    +8.0% shares (+26,578)
-    AAPL   +7.9% shares (+3,655,492)
-    ACN    +7.9% shares (+372,945)
-    ADBE   +7.9% shares (+249,252)
-    ADI    +7.9% shares (+296,290)
-    ADSK   +7.9% shares (+128,738)
+★ INDEX EVENTS (reconstitution add/drop):
+  FDXF-W ADDED    by IVV,SPY,IWD
+  FIS    ADDED    by IVV,VOO,VLUE
+  EPAM   DROPPED  by IVV,SPY,XLK
+  FOX    ADDED    by SPY,VOO
+  CTRA   DROPPED  by SPY,IWD
+  ABVC   ADDED    by VTI
+  ALMR   ADDED    by VTI
+  ARXS   ADDED    by VTI
+  ASTI   ADDED    by VTI
+  AVEX   ADDED    by VTI
 
-DONE 1974
+★ CONFIRMED top_picks (flow + actual buying agree): [('FFIV', True), ('AKAM', True), ('GEN', True), ('LDOS', True), ('MLM', True), ('NUE', True), ('STLD', True), ('VMC', True), ('IFF', True), ('MOS', True), ('IP', True), ('PKG', True), ('PPG', True), ('NOC', True), ('SNPS', True)]
+DONE 1975
