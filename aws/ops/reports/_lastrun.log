@@ -1,14 +1,18 @@
-REBALANCED: fresh 88 | + 8 / - 12 / ~ 68 | risk-on wt 2.4 vs risk-off 3.6 | CONSENSUS MIXED
-risk-ON regime engines now in read:
-  trend-engine       dir 1  Trend regime: BROAD TREND 
-  master-ranker      (not in top-55)
-  market-internals   (not in top-55)
-  activity-nowcast   dir 1  EXPANDING
-  regime-composite   dir 0  composite_score=54.7
-risk-OFF engines:
-  construction-housing dir -1  CONTRACTION
-  stablecoin-flow    dir -1  CONTRACTING
-  move-index         dir -1  percentile=8.0
-  sector-tilt        dir -1  SLOWING
-most-backed: ['NVDA', 'GOOGL', 'GOOG', 'AVGO', 'SNDK', 'STX', 'AAPL', 'BSX', 'OTIS', 'DELL']
-DONE 2056
+=== Oct 1 2025 → Jun 2026 ===
+  SPY (cap-weight S&P)       +11.7%   (low -5% from Oct, maxDD -9%)
+  RSP (EQUAL-weight S&P)     +10.4%   (low -4% from Oct, maxDD -8%)
+  QQQ (Nasdaq/AI-heavy)      +22.8%   (low -7% from Oct, maxDD -12%)
+  IWM (small caps)           +21.9%   (low -6% from Oct, maxDD -11%)
+  NVDA                       +12.5%   (low -12% from Oct, maxDD -20%)
+  MAGS (Mag-7 ETF)            +0.4%   (low -15% from Oct, maxDD -20%)
+  XLK (tech)                 +34.5%   (low -10% from Oct, maxDD -16%)
+  BTC                        -45.9%   (low -49% from Oct, maxDD -51%)
+  ETH                        -60.0%   (low -64% from Oct, maxDD -67%)
+
+=== BIFURCATION TEST ===
+SPY − RSP concentration spread: +1.3 pts  (broad)
+SPY − IWM (large vs small): -10.2 pts
+NVDA vs small caps: NVDA +13% vs IWM +22%
+Crypto BTC: -46% (Khalid said ~−75%; trough -49% from Oct)
+VERDICT: NOT clearly bifurcated — recheck
+DONE 2057
