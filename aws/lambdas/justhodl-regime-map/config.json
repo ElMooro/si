@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-regime-map",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Risk Map: cross-asset dispersion — what's booming (risk-on) vs getting destroyed (risk-off) across ~38 sleeves (equity breadth/size/style, 11 sectors, factors, crypto, rates/credit, commodities/havens, intl) + regime classifier (broad/narrow/bifurcated). data/regime-map.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-regime-map-daily",
+    "cron": "cron(0 13,21 * * ? *)",
+    "description": "13:00 + 21:00 UTC daily (pre-open + post-close; crypto runs weekends too)"
+  }
+}
