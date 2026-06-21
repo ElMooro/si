@@ -1,6 +1,6 @@
-created
-scheduled
-invoke: 200 {"statusCode": 200, "body": "{\"ok\": true, \"status\": \"WARMING\", \"resolved\": 0, \"pending\": 11, \"hit_rate\": null}"}
-
-STATUS: WARMING | graded 0 resolved 0 pending-horizon 11 | hit_rate None
-DONE 2060
+run1 (sets baseline): 200
+run2 (diffs vs baseline): 200
+regime: BIFURCATED | regime_changed: False | prev_regime: BIFURCATED | n_transitions: 0
+transitions sample: none (stable since baseline — expected on same-day re-run)
+prev snapshot persisted: True | n states: 38
+DONE 2061
