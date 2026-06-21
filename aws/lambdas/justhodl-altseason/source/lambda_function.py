@@ -234,16 +234,29 @@ def lambda_handler(event=None, context=None):
                      "ma200": round(ma200, 6) if ma200 else None}
 
     # ── per-date alt aggregates → histories ──
-    hist = {"alt_index": [], "breadth_90dma": [], "high90": [], "vol_share": []}
+    hist = {"alt_index": [], "breadth_90dma": [], "breadth_200dma": [], "high90": [], "vol_share": []}
     basket_usd = {}
     raw_share = []
+    # rolling 200DMA per alt (for per-coin 200DMA-reclaim breadth)
+    alt_sma200 = {}
+    for sym, h in alts.items():
+        hd = sorted(h)
+        cl = [h[dd][0] for dd in hd]
+        sm, run = {}, 0.0
+        for ii in range(len(hd)):
+            run += cl[ii]
+            if ii >= 200:
+                run -= cl[ii - 200]
+            if ii >= 199:
+                sm[hd[ii]] = run / 200
+        alt_sma200[sym] = sm
     for d in dates:
         i = bidx[d]
         if i < 90:
             continue
         d90 = dates[i - 90]
         btc_r90 = bclose[i] / bclose[i - 90] - 1
-        beat = above = hi = avail = 0
+        beat = above = hi = avail = above200 = avail200 = 0
         altdv = 0.0
         bk = []
         for sym, h in alts.items():
@@ -251,6 +264,11 @@ def lambda_handler(event=None, context=None):
                 continue
             c, v = h[d]
             altdv += c * v
+            sma2 = alt_sma200.get(sym, {}).get(d)
+            if sma2:
+                avail200 += 1
+                if c > sma2:
+                    above200 += 1
             if d90 in h:
                 avail += 1
                 if c / h[d90][0] - 1 > btc_r90:
@@ -267,6 +285,8 @@ def lambda_handler(event=None, context=None):
             hist["breadth_90dma"].append((d, round(100 * above / avail, 1)))
             hist["high90"].append((d, round(100 * hi / avail, 1)))
             basket_usd[d] = sum(bk) / len(bk)
+        if avail200 >= 8:
+            hist["breadth_200dma"].append((d, round(100 * above200 / avail200, 1)))
         tot = altdv + bclose[i] * btc[d][1] + (eth[d][0] * eth[d][1] if d in eth else 0)
         if tot and altdv:
             raw_share.append((d, 100 * altdv / tot))
@@ -470,6 +490,42 @@ def lambda_handler(event=None, context=None):
     ai_now = ai_v[-1] if ai_v else None
     br_now = hist["breadth_90dma"][-1][1] if hist["breadth_90dma"] else None
     hi_now = hist["high90"][-1][1] if hist["high90"] else None
+    b200_now = hist["breadth_200dma"][-1][1] if hist["breadth_200dma"] else None
+    # ── event-study the 200DMA-reclaim breadth threshold BEFORE it earns a weight ──
+    b200_study = {"n_high": 0, "n_low": 0, "fwd90_high_med": None, "fwd90_low_med": None,
+                  "edge_pp": None, "threshold_confirm": 50, "threshold_reject": 20}
+    try:
+        ks = sorted(basket_usd)
+        kpos = {d: i for i, d in enumerate(ks)}
+        def _fwd90(d):
+            i = kpos.get(d)
+            if i is None or i + 90 >= len(ks):
+                return None
+            a = basket_usd[d]
+            return (basket_usd[ks[i + 90]] / a - 1) * 100 if a else None
+        hi_r, lo_r = [], []
+        for d, val in hist["breadth_200dma"]:
+            f = _fwd90(d)
+            if f is None:
+                continue
+            if val >= 50:
+                hi_r.append(f)
+            elif val <= 20:
+                lo_r.append(f)
+        def _med(x):
+            x = sorted(x)
+            n = len(x)
+            return round((x[n // 2] if n % 2 else (x[n // 2 - 1] + x[n // 2]) / 2), 1) if x else None
+        b200_study["n_high"], b200_study["n_low"] = len(hi_r), len(lo_r)
+        b200_study["fwd90_high_med"], b200_study["fwd90_low_med"] = _med(hi_r), _med(lo_r)
+        if hi_r and lo_r:
+            b200_study["edge_pp"] = round(b200_study["fwd90_high_med"] - b200_study["fwd90_low_med"], 1)
+    except Exception as e:
+        b200_study["error"] = str(e)[:80]
+    out["breadth_200dma_study"] = b200_study
+    # weight is DATA-DRIVEN: scaled by the measured forward edge, not asserted
+    _edge = b200_study.get("edge_pp")
+    b200_w = 14 if (_edge is not None and _edge >= 8) else (10 if (_edge is not None and _edge >= 3) else 6)
     V = []
     def vote(name, value, conf, rej, w, note):
         v = "CONFIRM" if conf else "REJECT" if rej else "NEUTRAL"
@@ -486,6 +542,12 @@ def lambda_handler(event=None, context=None):
           ai_now is not None and ai_now <= 30, 20, "canonical ≥70% = season")
     vote("Alt breadth > 90DMA", br_now, br_now is not None and br_now >= 60,
           br_now is not None and br_now <= 25, 10, "participation")
+    vote("Alt 200DMA reclaim breadth", f"{b200_now}%" if b200_now is not None else None,
+          b200_now is not None and b200_now >= 50,
+          b200_now is not None and b200_now <= 20, b200_w,
+          (f"% of alts back above own 200DMA — broad trend reclaim. Backtest: fwd90 basket "
+           f"{b200_study.get('fwd90_high_med')}% when ≥50 vs {b200_study.get('fwd90_low_med')}% when ≤20 "
+           f"(edge {b200_study.get('edge_pp')}pp, n{b200_study.get('n_high')}/{b200_study.get('n_low')})"))
     vote("Alt 90d-high breadth", hi_now, hi_now is not None and hi_now >= 25,
           False, 8, "leadership expansion")
     vote("Alt volume share (1y pctile)", vs_pct, vs_pct is not None and vs_pct >= 70,
@@ -576,41 +638,33 @@ def lambda_handler(event=None, context=None):
              "IGNITION/CONFIRMED with REJECTED overlay; first CONFIRMED cross logs "
              "to the closed loop at sequel-table confidence.")}
     out["duration_s"] = round(time.time() - t0, 1)
-    # AI tribunal
+    # AI tribunal — routed through llm_router (tier=reason → GLM). Direct Claude 400s while Anthropic credits are out.
     ai = {"error": None}
     try:
-        if ANTHROPIC_KEY:
-            compact = {"composite": composite, "votes": V,
-                        "alt_index_now": ai_now, "event_study_stats":
-                          {k: {kk: v.get(kk) for kk in ("fwd_30", "fwd_90")}
-                           for k, v in study.items()},
-                        "gates": out["gates"], "btc": btc_cons,
-                        "ethbtc_thrust": ts}
-            prompt = ("You are the ALTSEASON TRIBUNAL — a cross-asset judge. Using ONLY "
-                       "the votes and measured tables below, return JSON keys: verdict "
-                       "(<=160 chars, name the phase and score), confirmations (what is "
-                       "voting CONFIRM and why it matters), rejections (what vetoes), "
-                       "phase_read (where in DORMANT→SETUP→IGNITION→CONFIRMED we are and "
-                       "the single next domino), what_flips_confirmed (exact numeric "
-                       "triggers), what_invalidates, watch_next (array of 3 short "
-                       "strings). Cite n from event-study stats — especially the regime-conditioned by_regime splits (favorable=GOLDILOCKS/REFLATION vs adverse) — when referencing "
-                       "thresholds. <380 words. JSON only.\n\nDATA:\n"
-                       + json.dumps(compact, default=str))
-            req = urllib.request.Request(
-                "https://api.anthropic.com/v1/messages",
-                data=json.dumps({"model": "claude-haiku-4-5-20251001", "max_tokens": 2100,
-                                  "messages": [{"role": "user", "content": prompt}]}).encode(),
-                headers={"x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01",
-                         "content-type": "application/json"})
-            rj = json.loads(urllib.request.urlopen(req, timeout=90).read())
-            txt = "".join(b.get("text", "") for b in rj.get("content", [])
-                           if b.get("type") == "text")
-            txt = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", " ", txt)
-            ai.update(json.loads(txt[txt.find("{"):txt.rfind("}") + 1]))
-        else:
-            ai["error"] = "no ANTHROPIC_API_KEY"
+        compact = {"composite": composite, "votes": V,
+                    "alt_index_now": ai_now, "breadth_200dma_study": b200_study,
+                    "event_study_stats":
+                      {k: {kk: v.get(kk) for kk in ("fwd_30", "fwd_90")}
+                       for k, v in study.items()},
+                    "gates": out["gates"], "btc": btc_cons,
+                    "ethbtc_thrust": ts}
+        prompt = ("You are the ALTSEASON TRIBUNAL — a cross-asset judge. Using ONLY "
+                   "the votes and measured tables below, return JSON keys: verdict "
+                   "(<=160 chars, name the phase and score), confirmations (what is "
+                   "voting CONFIRM and why it matters), rejections (what vetoes), "
+                   "phase_read (where in DORMANT→SETUP→IGNITION→CONFIRMED we are and "
+                   "the single next domino), what_flips_confirmed (exact numeric "
+                   "triggers), what_invalidates, watch_next (array of 3 short "
+                   "strings). Cite n from event-study stats (incl breadth_200dma_study) when referencing "
+                   "thresholds. <380 words. JSON only.\n\nDATA:\n"
+                   + json.dumps(compact, default=str))
+        from llm_router import complete as _llm_complete
+        txt = _llm_complete(prompt, tier="reason", max_tokens=2100,
+                            system="You are a disciplined crypto-rotation analyst. Output one minified JSON object only — no preamble, no markdown fences.")
+        txt = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", " ", txt)
+        ai.update(json.loads(txt[txt.find("{"):txt.rfind("}") + 1]))
     except Exception as e:
-        ai["error"] = str(e)[:120]
+        ai["error"] = str(e)[:140]
     out["ai_brief"] = ai
     # NaN/Infinity are valid to Python's json but fatal to browser JSON.parse —
     # scrub by round-tripping with parse_constant→None before publishing.
