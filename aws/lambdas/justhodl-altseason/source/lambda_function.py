@@ -506,18 +506,29 @@ def lambda_handler(event=None, context=None):
     br_now = hist["breadth_90dma"][-1][1] if hist["breadth_90dma"] else None
     hi_now = hist["high90"][-1][1] if hist["high90"] else None
     b200_now = hist["breadth_200dma"][-1][1] if hist["breadth_200dma"] else None
+    # ── CLEAN backtest target: equal-weight, per-window basket fwd-90d return.
+    # Replaces the inception-anchored basket_usd index, which was dominated by a few
+    # alts' 2021 blowoff and contaminated every event study against it (period bias).
+    def ew_fwd90(d):
+        i = bidx.get(d)
+        if i is None or i + 90 >= len(dates):
+            return None
+        d2 = dates[i + 90]
+        rs = []
+        for _sym, _h in alts.items():
+            p0 = _h.get(d)
+            p1 = _h.get(d2)
+            if p0 and p1 and p0[0]:
+                rs.append((p1[0] / p0[0] - 1) * 100)
+        return sum(rs) / len(rs) if len(rs) >= 5 else None
+
     # ── event-study the 200DMA-reclaim breadth threshold BEFORE it earns a weight ──
     b200_study = {"n_high": 0, "n_low": 0, "fwd90_high_med": None, "fwd90_low_med": None,
                   "edge_pp": None, "threshold_confirm": 50, "threshold_reject": 20}
     try:
         ks = sorted(basket_usd)
         kpos = {d: i for i, d in enumerate(ks)}
-        def _fwd90(d):
-            i = kpos.get(d)
-            if i is None or i + 90 >= len(ks):
-                return None
-            a = basket_usd[d]
-            return (basket_usd[ks[i + 90]] / a - 1) * 100 if a else None
+        _fwd90 = ew_fwd90
         hi_r, lo_r = [], []
         for d, val in hist["breadth_200dma"]:
             f = _fwd90(d)
@@ -571,12 +582,7 @@ def lambda_handler(event=None, context=None):
         ks = sorted(basket_usd)
         kpos = {d: i for i, d in enumerate(ks)}
         sdi = {d: i for i, d in enumerate(stbl_dates)}
-        def _fwd90(d):
-            i = kpos.get(d)
-            if i is None or i + 90 >= len(ks):
-                return None
-            a = basket_usd[d]
-            return (basket_usd[ks[i + 90]] / a - 1) * 100 if a else None
+        _fwd90 = ew_fwd90
         def _chg_at(d):
             i = sdi.get(d)
             if i is None or i < 30:
