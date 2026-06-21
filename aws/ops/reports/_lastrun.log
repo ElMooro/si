@@ -1,19 +1,14 @@
-index.html: 200 | Command Center band: True
+fn timeout: 900 s
+invoke: 200 {"errorMessage": "cannot access local variable 'out' where it is not associated with a value", "errorType": "UnboundLocalError", "requestId": "515e0a1b-cbc5-476
 
-flagship links present in band + page resolves 200:
-  ✓ strategist.html                  in-band=True http=200 bytes=8279
-  ✓ regime-map.html                  in-band=True http=200 bytes=9103
-  ✓ sector-emergence.html            in-band=True http=200 bytes=5565
-  ✓ crypto-emergence.html            in-band=True http=200 bytes=8163
-  ✓ strategy-portfolio.html          in-band=True http=200 bytes=9733
-  ✓ paper-book.html                  in-band=True http=200 bytes=6560
-  ✓ edge-discovery.html              in-band=True http=200 bytes=5876
-  ✓ interpretation-scorecard.html    in-band=True http=200 bytes=5883
-  ✓ risk-regime.html                 in-band=True http=200 bytes=11294
-  ✓ directory.html                   in-band=True http=200 bytes=52687
-  paper-book.html reads data/paper-book.json: True
-  edge-discovery.html reads data/edge-discovery.json: True
-  interpretation-scorecard.html reads data/interpretation-scorecard.json: True
+phase: DORMANT score 4.1
 
-ALL_FLAGSHIPS_OK
-DONE 2075
+NEW VOTE — Alt 200DMA reclaim breadth:
+  MISSING
+
+BACKTEST: fwd90 None% when ≥50 vs None% when ≤20 | edge Nonepp | n None/None
+
+AI TRIBUNAL: error = HTTP Error 400: Bad Request
+  verdict: None
+
+DONE 2076
