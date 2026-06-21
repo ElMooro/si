@@ -1,26 +1,6 @@
-created
-scheduled
-invoke: 200 {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"BIFURCATED\", \"n\": 38, \"equity_avg\": 34.5, \"crypto_avg\": -54.7}"}
-
-=== REGIME: BIFURCATED ===
-Two regimes at once: equities broadly risk-on (avg +34.5) while crypto is risk-off (avg -54.7). The index strength is real and broad — it is NOT masking weak breadth.
-
-stats: eq_avg 34.5 | crypto -54.7 | rates -19.0 | commod 7.8 | breadth 86% | conc-spread 4.6pts
-
-🔥 BOOMING:
-   VLUE   Value                  ro +100  BOOMING   (3m +38%)
-   MTUM   Momentum               ro  +95  BOOMING   (3m +37%)
-   XLK    Technology             ro  +91  BOOMING   (3m +38%)
-   EEM    Emerging Mkts          ro  +75  BOOMING   (3m +23%)
-   IWM    Small caps             ro  +61  BOOMING   (3m +19%)
-   IWD    Large Value            ro  +51  BOOMING   (3m +13%)
-💀 DESTROYED:
-   ETH    Ethereum               ro  -64  DESTROYED (3m -24%)
-   SOL    Solana                 ro  -51  DESTROYED (3m -11%)
-   BTC    Bitcoin                ro  -49  DESTROYED (3m -13%)
-   FXI    China                  ro  -46  DESTROYED (3m -8%)
-   XLC    Communications         ro  -35  RISK-OFF  (3m -3%)
-   TIP    TIPS / Inflation       ro  -27  RISK-OFF  (3m -2%)
-
-n_instruments: 38
-DONE 2058
+regime-map.html: 200 bytes 7545 | reads json: True | banner: True | booming: True
+index.html card: True | fetches regime-map: True
+directory link: True | 294: True
+feed: regime BIFURCATED | n 38 | booming0 VLUE | destroyed0 ETH
+PAGES_OK
+DONE 2059
