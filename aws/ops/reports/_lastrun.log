@@ -1,11 +1,20 @@
-ETF flow predictive test | 55 non-overlapping events across 11 sectors
-per-sector events: {'XLK': 5, 'XLF': 5, 'XLE': 5, 'XLV': 5, 'XLP': 5, 'XLY': 5, 'XLI': 5, 'XLU': 5, 'XLB': 5, 'XLC': 5, 'XLRE': 5}
+created
+scheduled
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"emerging\": [], \"n_sectors\": 11}"}
 
-signal = trailing 21d net flow as % of AUM | forward = 21d excess vs SPY
-  Information Coefficient (corr signal→fwd excess): +0.629
-  TOP quintile (biggest INFLOWS, n11):  fwd excess mean +0.86% median -1.13%  win 45%
-  BOTTOM quintile (biggest OUTFLOWS, n11): fwd excess mean -1.25% median -1.20%  win 18%
-  SPREAD (inflows − outflows): +2.11% mean
+SECTOR EMERGENCE | regime: BIFURCATED
+sector                stage       score  rs/trend/breadth  signals
+  Industrials         CONFIRMED    85.4  72/100/92   reclaimed rising 150d MA, base breakout, golden cross
+  Materials           CONFIRMED    78.8  44/100/100  reclaimed rising 150d MA, base breakout, golden cross
+  Financials          TRANSITION   71.6  60/60/100  base breakout, breadth thrust (+33pt), 83% of names > 50d MA
+  Technology          TRANSITION   69.8  100/90/18   RS inflecting up, reclaimed rising 150d MA, golden cross
+  Real Estate         TRANSITION   57.2  44/90/18   reclaimed rising 150d MA, golden cross, early momentum, not extended
+  Cons. Staples       TRANSITION   56.6  44/90/28   reclaimed rising 150d MA, golden cross, early momentum, not extended
+  Utilities           BASING       50.8  32/66/37   golden cross, early momentum, not extended
+  Health Care         BASING       48.9  32/46/60   early momentum, not extended
+  Cons. Discretionary DECLINING    42.9  32/16/48   golden cross, early momentum, not extended
+  Energy              DECLINING    32.2  4/90/0    reclaimed rising 150d MA, golden cross
+  Communications      DECLINING    19.2  0/0/48   
 
-  >0 / IC>0 = inflows predict OUTPERFORMANCE (claim supported). <0 = inflows FADE (claim wrong).
-DONE 2068
+EMERGING now: ['XLU', 'XLV'] | top_picks: []
+DONE 2069
