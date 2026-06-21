@@ -1,3 +1,19 @@
-index.html: 200 | emergence-card present: True | reads crypto-emergence: True | reads sector-emergence: True
-crypto-emergence.html: 200 | MVRV chip: True
-DONE 2074
+index.html: 200 | Command Center band: True
+
+flagship links present in band + page resolves 200:
+  ✓ strategist.html                  in-band=True http=200 bytes=8279
+  ✓ regime-map.html                  in-band=True http=200 bytes=9103
+  ✓ sector-emergence.html            in-band=True http=200 bytes=5565
+  ✓ crypto-emergence.html            in-band=True http=200 bytes=8163
+  ✓ strategy-portfolio.html          in-band=True http=200 bytes=9733
+  ✓ paper-book.html                  in-band=True http=200 bytes=6560
+  ✓ edge-discovery.html              in-band=True http=200 bytes=5876
+  ✓ interpretation-scorecard.html    in-band=True http=200 bytes=5883
+  ✓ risk-regime.html                 in-band=True http=200 bytes=11294
+  ✓ directory.html                   in-band=True http=200 bytes=52687
+  paper-book.html reads data/paper-book.json: True
+  edge-discovery.html reads data/edge-discovery.json: True
+  interpretation-scorecard.html reads data/interpretation-scorecard.json: True
+
+ALL_FLAGSHIPS_OK
+DONE 2075
