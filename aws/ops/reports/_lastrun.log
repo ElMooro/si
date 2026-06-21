@@ -1,16 +1,10 @@
-invoke: 200 {"statusCode": 200, "body": "{\"phase\": \"DORMANT\", \"score\": 3.9}"}
+invoke: 200 {"statusCode": 200, "body": "{\"phase\": \"DORMANT\", \"score\": 4.1}"}
 
-phase: DORMANT | score 3.9 | generated 2026-06-21T21:09:55
+phase DORMANT score 4.1
 
-NEW VOTE — Alt 200DMA reclaim breadth:
-  value 6.2% | vote REJECT | weight 6
-  note: % of alts back above own 200DMA — broad trend reclaim. Backtest: fwd90 basket -15.7% when ≥50 vs -0.1% when ≤20 (edge -15.6pp, n568/991)
+200DMA vote: value 6.2% | vote REJECT | WEIGHT 0 (0=diagnostic, excluded from score)
+study verdict: REJECTED_DIAGNOSTIC | edge -15.6pp
+score-affecting weight total: 122 | 200dma contributes: 0
 
-BACKTEST: fwd90 -15.7% (≥50) vs -0.1% (≤20) | edge -15.6pp | n 568/991
-
-AI TRIBUNAL: error = None
-  verdict: DORMANT — score 3.9/10; reject overlay 51% vetoes rotation
-  watch_next: ['ETH/BTC 200DMA reclaim attempt', 'Altseason Index crossing >40', 'Breadth_200dma climbing toward 20%']
-
-breadth_200dma history points: 500 | latest: ['2026-06-21', 6.2]
-DONE 2077
+AI tribunal error: None | verdict: DORMANT (4.1) — Stagflation and anemic breadth veto rotation; crisis calm is the only green light.
+DONE 2078
