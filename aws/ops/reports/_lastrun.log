@@ -1,33 +1,174 @@
-/home/runner/work/si/si/aws/ops/pending/2053_strategist_balance_audit.py:61: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
-  d0=datetime.utcfromtimestamp(res[0]["t"]/1000).strftime("%Y-%m-%d")
-/home/runner/work/si/si/aws/ops/pending/2053_strategist_balance_audit.py:62: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
-  d1=datetime.utcfromtimestamp(res[-1]["t"]/1000).strftime("%Y-%m-%d")
-FLEET READ: 67 fresh w/ view | +5 / -7 / ~55 neutral
-  pos engines: ['activity-nowcast', 'pm-decision', 'credit-stress', 'crypto-narratives', 'risk-monitor']
-  neg engines: ['alpha-daily-brief', 'leading-markets', 'construction-housing', 'live-pulse', 'sector-tilt', 'move-index', 'stablecoin-flow']
 
-RISK-ON / TREND / BREADTH ENGINES — read & direction (MISSING = no extractable view):
-  momentum             MISSING (NOVIEW/stale)
-  breadth-thrust       MISSING (NOVIEW/stale)
-  market-internals     MISSING (NOVIEW/stale)
-  ath                  MISSING (NOVIEW/stale)
-  trend-engine         MISSING (NOVIEW/stale)
-  rotation-radar       MISSING (NOVIEW/stale)
-  smart-beta           MISSING (NOVIEW/stale)
-  sector-tilt          dir -1  SLOWING
-  ma-reversion         MISSING (NOVIEW/stale)
-  master-rank          MISSING (NOVIEW/stale)
-  master-ranker        MISSING (NOVIEW/stale)
-  best-setups          MISSING (NOVIEW/stale)
-  signal-board         dir 0  QUIET
-  altseason            MISSING (NOVIEW/stale)
-  boom-radar           MISSING (NOVIEW/stale)
-  capital-flow-radar   MISSING (NOVIEW/stale)
-  upside-radar         MISSING (NOVIEW/stale)
-  activity-nowcast     dir 1  EXPANDING
-  regime-composite     MISSING (NOVIEW/stale)
-  risk-regime          MISSING (NOVIEW/stale)
+=== momentum (data/momentum-scanner.json) topkeys: ['version', 'generated_at', 'duration_s', 'summary', 'rankings', 'by_sector']
+    version = 1.0
+    generated_at = 2026-06-21T11:00:18.441521+00:00
+    duration_s = 2.21
+    summary = {dict keys=['n_universe', 'n_with_data', 'top_composite', 'top_composite_score', 'best_sector', 'worst_sector']}
+    rankings = {dict keys=['composite_top_50', 'mom_12_1_top_20', 'accelerating_top_20', 'vol_adjusted_top_20', 'near_52w_high_top_20', 'bottom_50_composite']}
+    by_sector = {dict keys=['Technology', 'Basic Materials', 'Industrials', 'Financial Services', 'Real Estate', 'Consumer Cyclical', 'Energy', 'Utilities']}
 
-SPY ACTUAL 2025-10-01→2026-06-18: open 668 → last 747 = +11.7% | range 632-760 | maxDD -9.1%
-VERDICT ON THE READ: SPY ROSE +11.7% — a persistent risk-off lean would have MISSED this melt-up
-DONE 2053
+=== momentum2 (data/momentum.json) ERR An error occurred (NoSuchKey) when calling the Get
+
+=== breadth-thrust (data/breadth-thrust.json) topkeys: ['engine', 'version', 'as_of', 'state', 'prev_state', 'state_since', 'state_transition', 'signal_strength', 'cooldown_until', 'current_readings', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'why_now_explainer']
+    engine = breadth-thrust
+    version = 1.0
+    as_of = 2026-06-20T21:30:27.261428+00:00
+    state = NULL
+    prev_state = NULL
+    state_since = 2026-06-10T01:00:11.328386+00:00
+    signal_strength = 25
+    current_readings = {dict keys=['zweig_10d_ema', 'zweig_window_min', 'zweig_window_max', 'zweig_thresholds', 'n_breadth_days_cached', 'newly_fetched_this_run', 'whaley', 'coppock']}
+    trigger_conditions = [list n=2] sample0={"name": "10d EMA recently <= 0.40 (oversold)", "current": "min 0.4259", "satisfied": fals
+    forward_expectations = {dict keys=['1m', '3m', '6m', '12m']}
+    recommended_trade = {dict keys=['primary']}
+    why_now_explainer = **NULL -- no setup.** Breadth EMA is in normal ran
+
+=== market-internals (data/market-internals.json) topkeys: ['engine', 'version', 'generated_at', 'duration_s', 'sessions', 'fetched_this_run', 'brain_audit_source', 'latest', 'mcclellan', 'zweig_thrust', 'ad_line_tail', 'oscillator_tail']
+    engine = market-internals
+    version = 1.0.0
+    generated_at = 2026-06-21T12:40:39.351396+00:00
+    duration_s = 0.2
+    sessions = 152
+    fetched_this_run = 1
+    brain_audit_source = ops-1580
+    latest = {dict keys=['date', 'advancers', 'decliners', 'rana']}
+    mcclellan = {dict keys=['oscillator', 'summation', 'state', 'spec']}
+    zweig_thrust = {dict keys=['fired', 'date', 'ema10_pct_adv', 'spec']}
+    ad_line_tail = [list n=152] sample0=["2025-11-10", 1763]
+    oscillator_tail = [list n=152] sample0=["2025-11-10", 0.0]
+
+=== trend-engine (data/trend-engine.json) topkeys: ['schema_version', 'engine', 'generated_at', 'build_seconds', 'headline', 'summary', 'positions', 'by_class', 'strongest_long', 'strongest_short', 'how_to_read', 'methodology', 'disclaimer']
+    schema_version = 1.0
+    engine = justhodl-trend-engine
+    generated_at = 2026-06-20T23:50:33.795431+00:00
+    build_seconds = 1.9
+    headline = Trend regime: BROAD TREND (67% of the universe tre
+    summary = {dict keys=['universe_count', 'scored', 'n_long', 'n_short', 'n_flat', 'trend_breadth_pct', 'regime', 'portfolio_gross_pct']}
+    positions = [list n=21] sample0={"symbol": "QQQ", "name": "Nasdaq 100", "asset_class": "Equities", "price": 740.62, "direc
+    by_class = [list n=6] sample0={"asset_class": "Equities", "stance": "NET LONG", "net_weight_pct": 39.5, "gross_weight_pc
+    strongest_long = {dict keys=['symbol', 'name', 'asset_class', 'price', 'direction', 'blended_tstat', 'conviction', 'mom_63d']}
+    strongest_short = {dict keys=['symbol', 'name', 'asset_class', 'price', 'direction', 'blended_tstat', 'conviction', 'mom_63d']}
+    how_to_read = Each instrument carries a risk-adjusted momentum t
+    methodology = Time-series (absolute) momentum on real daily clos
+    disclaimer = Research, not investment advice. Trend-following e
+
+=== master-ranker (data/master-ranker.json) topkeys: ['schema_version', 'method', 'as_of', 'regime_context', 'risk_regime', 'n_tickers_total', 'n_macro_signals', 'alerts', 'top_tickers', 'top_macro', 'feed_health', 'feed_freshness', 'stale_feeds_excluded', 'missing_feeds']
+    schema_version = 1.0
+    method = master_signal_ranker_v1
+    as_of = 2026-06-20T17:51:44+00:00
+    regime_context = {dict keys=['regime', 'regime_color', 'composite_z', 'coverage_pct', 'spy_fwd_6m', 'spy_fwd_12m', 'defcon_level', 'defcon_name']}
+    risk_regime = {dict keys=['score', 'regime', 'posture', 'tells']}
+    n_tickers_total = 368
+    n_macro_signals = 8
+    alerts = {dict keys=['n_tier_3_plus_systems', 'n_tier_5_plus_systems', 'n_extreme_macro', 'calibration_active']}
+    top_tickers = [list n=25] sample0={"ticker": "STX", "score": 131.8, "n_systems": 3, "systems": ["compound", "eps_velocity", 
+    top_macro = [list n=8] sample0={"type": "divergence", "name": "Brazil (EWZ) vs Copper", "category": "em", "z": -4.976, "a
+    feed_health = {dict keys=['compound', 'asymmetric', 'theme_tiers', 'eps_velocity', 'insider', 'smart_money', 'deep_value', 'pead']}
+    feed_freshness = [list n=31] sample0={"key": "data/sector-tilt.json", "age_h": 23.8, "stale": false, "used": true}
+    stale_feeds_excluded = [list n=0] sample0=
+    missing_feeds = [list n=0] sample0=
+
+=== best-setups (data/best-setups.json) topkeys: ['schema_version', 'engine', 'generated_at', 'duration_s', 'weight_source', 'bond_vol_regime', 'methodology', 'stats', 'top_setups', 'quad_threats', 'triple_threats', 'buildout_threats', 'brain_aligned', 'by_verdict']
+    schema_version = 1.0
+    engine = best-setups (unified conviction)
+    generated_at = 2026-06-20T15:14:07+00:00
+    duration_s = 3.1
+    weight_source = prior-only
+    bond_vol_regime = {dict keys=['regime', 'composite_z', 'risk_posture', 'conviction_multiplier']}
+    methodology = conviction = Σ(signal_strength × learned_weight) ×
+    stats = {dict keys=['n_setups', 'strong_buy', 'buy', 'watch']}
+    top_setups = [list n=50] sample0={"why": "NVDA screens as a strong buy because it's a durable quality grower (high ROIC + m
+    quad_threats = [list n=0] sample0=
+    triple_threats = [list n=1] sample0={"why": "OTIS screens as a triple threat because it's trading cheap vs its peers (cheap vs
+    buildout_threats = [list n=0] sample0=
+    brain_aligned = [list n=25] sample0={"why": "MSFT screens as a buy because it's recently bought by members of Congress (5 cong
+    by_verdict = {dict keys=['STRONG BUY', 'TRIPLE THREAT', 'BUY', 'WATCH']}
+
+=== boom-radar (data/boom-radar.json) topkeys: ['engine', 'version', 'generated_at', 'thesis', 'dimensions_loaded', 'squeeze_regime', 'n_scanned', 'n_2way', 'n_3way', 'n_4way_plus', 'boom_candidates', 'high_conviction', 'top_picks', 'methodology']
+    engine = justhodl-boom-radar
+    version = 1.0.0
+    generated_at = 2026-06-21T14:30:19.745465+00:00
+    thesis = Booms come from CONVERGENCE — independent bullish 
+    dimensions_loaded = {dict keys=['BEAT', 'ANALYST', 'ESTIMATE', 'FLOW']}
+    squeeze_regime = {dict keys=['state', 'signal_strength']}
+    n_scanned = 181
+    n_2way = 4
+    n_3way = 0
+    n_4way_plus = 0
+    boom_candidates = [list n=4] sample0={"ticker": "ACN", "boom_score": 2.1, "convergence": 2, "dimensions": ["ANALYST", "FLOW"], 
+    high_conviction = [list n=0] sample0=
+    top_picks = [list n=4] sample0={"ticker": "ACN", "score": 2.1, "convergence": 2, "dimensions": ["ANALYST", "FLOW"]}
+    methodology = {dict keys=['convergence', 'boom_score', 'dimensions']}
+
+=== upside-radar (data/upside-radar.json) topkeys: ['engine', 'version', 'generated_at', 'state', 'scans', 'anatomy', 'signals_logged', 'methodology', 'duration_s']
+    engine = upside-radar
+    version = 1.0.1
+    generated_at = 2026-06-21T13:35:21.963015+00:00
+    state = {dict keys=['sessions_seen', 'rings', 'fetched_this_run', 'warm', 'as_of']}
+    scans = {dict keys=['breakout', 'rs_leaders', 'coiled', 'footprint', 'universe_n']}
+    anatomy = [list n=22] sample0={"ticker": "STX", "rev_growth_pct": 38.9, "share_chg_4y_pct": -11.4, "gross_margin_now": 3
+    signals_logged = 3
+    methodology = Full-market state machine: one grouped bar per ses
+    duration_s = 5.0
+
+=== rotation-radar (data/rotation-radar.json) topkeys: ['engine', 'version', 'generated_at', 'crypto', 'equity', 'diagnostics', 'scores', 'signals_logged', 'ai_brief', 'methodology', 'duration_s']
+    engine = rotation-radar
+    version = 1.2.1
+    generated_at = 2026-06-21T13:45:08.022024+00:00
+    crypto = {dict keys=['available', 'event_study', 'live', 'diagnostics']}
+    equity = {dict keys=['definition', 'ratios']}
+    diagnostics = [list n=4] sample0="coinbase ETH-BTC: 3673 pts"
+    scores = {dict keys=['crypto_altseason', 'equity_rotation']}
+    signals_logged = 0
+    ai_brief = {dict keys=['error']}
+    methodology = Season-starter doctrine, measured: bottom→thrust e
+    duration_s = 25.4
+
+=== smart-beta (data/smart-beta.json) topkeys: ['ok', 'version', 'generated_at', 'n_universe', 'n_analyzed', 'n_valid', 'n_diversified_leaders', 'factor_regime', 'leading_factor', 'lagging_factor', 'factor_medians', 'factor_spread_points', 'sector_breakdown', 'top_25_diversified']
+    ok = True
+    version = 1.0.1
+    generated_at = 2026-06-21T00:15:11.666010+00:00
+    n_universe = 50
+    n_analyzed = 50
+    n_valid = 50
+    n_diversified_leaders = 0
+    factor_regime = BALANCED_MULTI_FACTOR
+    leading_factor = value
+    lagging_factor = value
+    factor_medians = {dict keys=['value', 'quality', 'momentum', 'low_vol']}
+    factor_spread_points = 0.0
+    sector_breakdown = {dict keys=['Technology', 'Communication Services', 'Consumer Cyclical', 'Financial Services', 'Healthcare', 'Energy', 'Consumer Defensive', 'Basic Materials']}
+    top_25_diversified = [list n=25] sample0={"ticker": "JNJ", "sector": "Healthcare", "composite": 75.2, "n_factors_valid": 4, "value_
+
+=== ath (data/ath.json) topkeys: ['SPY', 'QQQ', 'DIA', 'IWM', 'VTI', 'VOO', 'RSP', 'MDY', 'XLF', 'XLE', 'XLK', 'XLV', 'XLI', 'XLU']
+    SPY = {dict keys=['ath_price', 'ath_date', 'source']}
+    QQQ = {dict keys=['ath_price', 'ath_date', 'source']}
+    DIA = {dict keys=['ath_price', 'ath_date', 'source']}
+    IWM = {dict keys=['ath_price', 'ath_date', 'source']}
+    VTI = {dict keys=['ath_price', 'ath_date', 'source']}
+    VOO = {dict keys=['ath_price', 'ath_date', 'source']}
+    RSP = {dict keys=['ath_price', 'ath_date', 'source']}
+    MDY = {dict keys=['ath_price', 'ath_date', 'source']}
+    XLF = {dict keys=['ath_price', 'ath_date', 'source', 'bars_checked']}
+    XLE = {dict keys=['ath_price', 'ath_date', 'source']}
+    XLK = {dict keys=['ath_price', 'ath_date', 'source']}
+    XLV = {dict keys=['ath_price', 'ath_date', 'source', 'bars_checked']}
+    XLI = {dict keys=['ath_price', 'ath_date', 'source']}
+    XLU = {dict keys=['ath_price', 'ath_date', 'source']}
+
+=== market-map (data/market-map.json) topkeys: ['engine', 'version', 'generated_at', 'as_of_session', 'size_mode', 'n_tiles', 'tiles', 'sector_agg', 'cheap_candidates', 'ps_logged', 'ps_coverage', 'breadth', 'diagnostics', 'methodology']
+    engine = market-map
+    version = 1.2.2
+    generated_at = 2026-06-21T14:25:12.089692+00:00
+    as_of_session = 2026-06-18
+    size_mode = market_cap
+    n_tiles = 498
+    tiles = [list n=498] sample0={"t": "FDXF", "s": "Industrials", "mc": 24249367993.149998, "c": 0.59, "w": -9.53, "hi": -
+    sector_agg = {dict keys=['Industrials', 'Health Care', 'Consumer Discretionary', 'Technology', 'Materials', 'Financials', 'Communication Services', 'Energy']}
+    cheap_candidates = [list n=25] sample0={"t": "CNC", "s": "Health Care", "ps": 0.15, "sector_ps_median": 3.27, "discount_pct": 95.
+    ps_logged = [list n=1] sample0="CNC"
+    ps_coverage = 498
+    breadth = {dict keys=['advancers', 'decliners', 'mcap_weighted_chg']}
+    diagnostics = [list n=5] sample0="sp500 constituents: 500"
+    methodology = S&P 500 treemap: area = real market cap (Polygon r
+DONE 2054
