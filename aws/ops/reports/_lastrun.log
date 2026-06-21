@@ -1,20 +1,23 @@
-created
+updated
 scheduled
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"emerging\": [], \"n_sectors\": 11}"}
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"complex_stage\": \"BEAR / DECLINING\", \"breadth50\": 0, \"emerging\": []}"}
 
-SECTOR EMERGENCE | regime: BIFURCATED
-sector                stage       score  rs/trend/breadth  signals
-  Industrials         CONFIRMED    85.4  72/100/92   reclaimed rising 150d MA, base breakout, golden cross
-  Materials           CONFIRMED    78.8  44/100/100  reclaimed rising 150d MA, base breakout, golden cross
-  Financials          TRANSITION   71.6  60/60/100  base breakout, breadth thrust (+33pt), 83% of names > 50d MA
-  Technology          TRANSITION   69.8  100/90/18   RS inflecting up, reclaimed rising 150d MA, golden cross
-  Real Estate         TRANSITION   57.2  44/90/18   reclaimed rising 150d MA, golden cross, early momentum, not extended
-  Cons. Staples       TRANSITION   56.6  44/90/28   reclaimed rising 150d MA, golden cross, early momentum, not extended
-  Utilities           BASING       50.8  32/66/37   golden cross, early momentum, not extended
-  Health Care         BASING       48.9  32/46/60   early momentum, not extended
-  Cons. Discretionary DECLINING    42.9  32/16/48   golden cross, early momentum, not extended
-  Energy              DECLINING    32.2  4/90/0    reclaimed rising 150d MA, golden cross
-  Communications      DECLINING    19.2  0/0/48   
+CRYPTO COMPLEX: BEAR / DECLINING
+  Crypto is in a downtrend — BTC below a falling 200-day and breadth washed out. This is where you build a watch-list and wait for the trigger, not chase.
+  breadth >50d 0% | >200d 0% | BTC>200d False (200d rising False) | ETH/BTC 2m -5.8% | cycle_risk None
+  TRIGGER: BTC reclaims its 200-day (~76,734) and HOLDS, breadth >50% of coins above 50d (now 0%), and ETH/BTC turns up (alts joining).
+  BTC 64,092 vs 200d 76,734 (-16.5%) | alt-season: BTC-dominant / alts still weak vs BTC
 
-EMERGING now: ['XLU', 'XLV'] | top_picks: []
-DONE 2069
+coin          sector      stage       score  rs/trend  signals
+  Solana      L1 Alts     DECLINING    35.5  100/0   gaining vs BTC
+  Litecoin    Payments    DECLINING    35.5  100/0   gaining vs BTC
+  XRP         Payments    DECLINING    29.0  74/0   gaining vs BTC
+  Chainlink   DeFi/Oracle DECLINING    29.0  74/0   gaining vs BTC
+  Dogecoin    Meme        DECLINING    21.0  42/0   
+  Ethereum    Large-cap   DECLINING    18.5  32/0   
+  Avalanche   L1 Alts     DECLINING    18.5  32/0   
+  Bitcoin     Large-cap   DECLINING    15.0  18/0   
+  Cardano     L1 Alts     DECLINING    10.5  0/0   
+  Polkadot    L1 Alts     DECLINING    10.5  0/0   
+  Bitcoin CashPayments    DECLINING    10.5  0/0   
+DONE 2070
