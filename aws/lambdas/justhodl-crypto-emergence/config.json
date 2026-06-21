@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-crypto-emergence",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Crypto emergence detector: early-innings bull detection for crypto (RS-vs-BTC alt-strength, 200d reclaim, coin-universe breadth, cycle/funding context) + complex stage + concrete trigger/invalidation levels. data/crypto-emergence.json.",
+  "environment": {},
+  "schedule": {"rule_name": "justhodl-crypto-emergence-daily", "cron": "cron(0 13,23 * * ? *)", "description": "13:00 + 23:00 UTC daily (crypto 24/7)"}
+}
