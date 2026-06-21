@@ -522,7 +522,6 @@ def lambda_handler(event=None, context=None):
             b200_study["edge_pp"] = round(b200_study["fwd90_high_med"] - b200_study["fwd90_low_med"], 1)
     except Exception as e:
         b200_study["error"] = str(e)[:80]
-    out["breadth_200dma_study"] = b200_study
     # weight is DATA-DRIVEN: scaled by the measured forward edge, not asserted
     _edge = b200_study.get("edge_pp")
     b200_w = 14 if (_edge is not None and _edge >= 8) else (10 if (_edge is not None and _edge >= 3) else 6)
@@ -638,6 +637,7 @@ def lambda_handler(event=None, context=None):
              "IGNITION/CONFIRMED with REJECTED overlay; first CONFIRMED cross logs "
              "to the closed loop at sequel-table confidence.")}
     out["duration_s"] = round(time.time() - t0, 1)
+    out["breadth_200dma_study"] = b200_study
     # AI tribunal — routed through llm_router (tier=reason → GLM). Direct Claude 400s while Anthropic credits are out.
     ai = {"error": None}
     try:
