@@ -1,16 +1,3 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"complex_stage\": \"BEAR / DECLINING\", \"breadth50\": 0, \"emerging\": []}"}
-
-complex: BEAR / DECLINING
-read: Crypto is in a downtrend — BTC below a falling 200-day and breadth washed out. This is where you build a watch-list and wait for the trigger, not chase. But this reads as an ACCUMULATION-zone bear, not a euphoric top — MVRV 0.69 (undervalued), dump-risk 34 (low), funding -2.0% ann. (negative = washed out). That's the setup that precedes early innings; watch the trigger.
-
-context now populated → MVRV 0.69 | dump-risk 33.7 (LOW) | market funding ann -2.04%
-accumulation_context: ['MVRV 0.69 (undervalued)', 'dump-risk 34 (low)', 'funding -2.0% ann. (negative = washed out)']
-
-per-coin funding sample:
-  Solana       DECLINING   funding 1.0% | gaining vs BTC
-  XRP          DECLINING   funding -15.1% | gaining vs BTC, funding negative (squeeze fuel)
-  Chainlink    DECLINING   funding 8.4% | gaining vs BTC
-  Litecoin     DECLINING   funding None% | 
-  Dogecoin     DECLINING   funding 5.2% | 
-  Ethereum     DECLINING   funding -3.6% | 
-DONE 2073
+index.html: 200 | emergence-card present: True | reads crypto-emergence: True | reads sector-emergence: True
+crypto-emergence.html: 200 | MVRV chip: True
+DONE 2074
