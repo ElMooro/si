@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-paper-book",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Paper book: systematic portfolio trading the system's read (overweight Risk Map booming sleeves, avoid destroyed, regime tilt), 5bps slippage, marked to market daily vs SPY. data/paper-book.json. $100k paper, long-only, 25% cap, weekly+regime-change rebalance.",
+  "environment": {},
+  "schedule": {"rule_name": "justhodl-paper-book-daily", "cron": "cron(30 21 * * ? *)", "description": "daily 21:30 UTC (after close + regime-map 21:00)"}
+}
