@@ -265,24 +265,35 @@ def lambda_handler(event, context):
         if s is None:
             return "UNKNOWN", "—"
         if s >= 70:
-            return "DRY-POWDER LOADED", "Max sidelined cash + fear — historical accumulation/bottom zone. Contrarian risk-ON setup."
+            return "DRY-POWDER LOADED", ("Stablecoin dry powder near a 2-year high vs BTC and sentiment fearful — "
+                                          "lots of sidelined cash. Whether that state has historically led price is the backtest's job, below.")
         if s >= 57:
-            return "ACCUMULATION", "Cash building on the sidelines, sentiment cautious — leaning risk-on/early."
+            return "ACCUMULATION", "Cash building on the sidelines, sentiment cautious."
         if s >= 43:
-            return "NEUTRAL", "Liquidity and sentiment balanced — no decisive dry-powder edge."
+            return "NEUTRAL", "Liquidity and sentiment balanced — no decisive dry-powder reading."
         if s >= 30:
-            return "DEPLOYMENT", "Cash being deployed, greed rising — leaning risk-off/late."
-        return "FULLY DEPLOYED", "Powder spent + greed — historical distribution/top zone. Contrarian risk-OFF setup."
+            return "DEPLOYMENT", "Cash being deployed, greed rising."
+        return "FULLY DEPLOYED", "Powder spent and greed elevated — little sidelined cash left."
     regime_label, regime_read = regime(liquidity_score)
 
-    # directional read for forward grading (measure-before-trust). Tradeable proxy = IBIT.
+    # directional read for forward grading — GATED on the backtest actually supporting it.
+    # SSR was INCONCLUSIVE and F&G INVERTED on this sample, so the contrarian read is NOT
+    # a validated timing signal; we surface the state but log no pick unless a study CONFIRMS.
+    forecast_supported = (ssr_w >= 11) or (fng_w >= 11)
     top_picks = []
     directional = None
-    if liquidity_score is not None and (liquidity_score >= 70 or liquidity_score <= 30):
+    if forecast_supported and liquidity_score is not None and (liquidity_score >= 70 or liquidity_score <= 30):
         directional = "UP" if liquidity_score >= 70 else "DOWN"
         top_picks = [{"ticker": "IBIT", "direction": directional,
                       "reason": f"crypto-liquidity {regime_label} (score {liquidity_score})",
                       "conviction": "high" if (liquidity_score >= 78 or liquidity_score <= 22) else "moderate"}]
+    forecast_support = (
+        f"Backtest SUPPORTS a directional lean (SSR study {ssr_verdict}, F&G study {fng_verdict}); pick logged forward."
+        if forecast_supported else
+        "NOT a validated timing signal. Over 2018–2026 on this sample, low SSR showed ~0 forward edge and "
+        "extreme fear INVERTED (it preceded lower 90d BTC returns, behaving as momentum not contrarian — see "
+        "backtests below). This gauge reports the dry-powder STATE; it is liquidity context, not a buy/sell. "
+        "No directional pick is logged.")
 
     falsifier = ("Thesis breaks if SSR pushes to a NEW multi-year high while F&G stays in greed and "
                  "BTC keeps falling — i.e. cash scarce AND price weak (no dry-powder cushion). "
@@ -293,7 +304,8 @@ def lambda_handler(event, context):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "liquidity_score": liquidity_score, "regime": regime_label, "regime_read": regime_read,
-        "directional_read": directional,
+        "directional_read": directional, "forecast_supported": forecast_supported,
+        "forecast_support": forecast_support,
         "ssr": {"value": round(ssr_now, 2) if ssr_now else None, "percentile_2y": ssr_pctile,
                 "interpretation": ("dry powder LARGE vs BTC (bullish)" if (ssr_pctile or 50) <= 35
                                    else "powder scarce vs BTC (bearish)" if (ssr_pctile or 50) >= 65

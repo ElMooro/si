@@ -78,7 +78,7 @@ function studyTable(s,lowLabel,highLabel){
     <div class="chip"><b>Stablecoin supply</b>$${sup.total_usd==null?'—':(sup.total_usd/1e9).toFixed(0)+'B'}<small>30d ${sup.chg_30d_pct==null?'—':(sup.chg_30d_pct>0?'+':'')+sup.chg_30d_pct+'%'} (context)</small></div>
     ${sup.total_crypto_mcap_usd?`<div class="chip"><b>Total crypto mcap</b>$${(sup.total_crypto_mcap_usd/1e12).toFixed(2)}T</div>`:''}
   </div>`;
-  if(d.directional_read){h+=`<div class="banner">Decisive read: <b style="color:${d.directional_read==='UP'?'var(--green)':'var(--red)'}">${d.directional_read==='UP'?'risk-ON / accumulate':'risk-OFF / distribute'}</b> — logged forward (proxy IBIT) so this call is graded against reality, not asserted.</div>`;}
+  h+=`<div class="banner">${d.forecast_supported?`Decisive read: <b style="color:${d.directional_read==='UP'?'var(--green)':'var(--red)'}">${d.directional_read==='UP'?'risk-ON / accumulate':'risk-OFF / distribute'}</b> — logged forward (proxy IBIT), graded against reality.`:`<b style="color:var(--amber)">⚠ State, not signal.</b> ${esc(d.forecast_support||'')}`}</div>`;
   // SSR chart
   h+=`<h2>Stablecoin Supply Ratio (BTC mcap ÷ stablecoin supply)</h2><div class="curvebox">${line(d.histories&&d.histories.ssr,'#46c8ff',v=>v.toFixed(1))}</div><div class="note">Lower = more stablecoin dry powder relative to BTC (historically bullish/bottom). Higher = powder deployed (top).</div>`;
   // F&G chart
