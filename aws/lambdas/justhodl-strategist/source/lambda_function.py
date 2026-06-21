@@ -42,7 +42,8 @@ S3 = boto3.client("s3", REGION)
 CORE = ["data/risk-regime.json", "data/regime-composite.json", "data/crisis-composite.json",
         "data/strategy-portfolio.json", "data/engine-alpha.json", "data/best-setups.json",
         "data/signal-board.json", "data/eurodollar-plumbing.json", "data/capital-flow-radar.json",
-        "data/tail-risk.json", "data/master-ranker.json", "data/crisis-canaries.json"]
+        "data/tail-risk.json", "data/master-ranker.json", "data/crisis-canaries.json",
+        "data/regime-map.json"]
 
 # verdict vocabulary → (direction, extremity)
 POS = {"RISK_ON": 1.0, "BULLISH": .7, "BULL": .7, "BUY": .7, "STRONG_BUY": 1.0, "EXPANDING": .7,
@@ -329,6 +330,18 @@ def lambda_handler(event=None, context=None):
         if sp.get("ok"):
             rw = sp.get("recommended", {}).get("weights", {})
             brief.append("PROVEN-ALPHA BOOK (HRP): " + ", ".join(f"{k} {round(v*100)}%" for k, v in rw.items()))
+    except Exception:
+        pass
+    # cross-asset dispersion (the breadth axis — distinguishes broad / narrow / bifurcated)
+    try:
+        rmp = json.loads(S3.get_object(Bucket=BUCKET, Key="data/regime-map.json")["Body"].read())
+        rg = rmp.get("regime", {})
+        if rg:
+            brief.append(f"DISPERSION MAP: {rg.get('label')} — {rg.get('summary')} "
+                         f"(equities {rg.get('equity_avg')}, crypto {rg.get('crypto_avg')}, "
+                         f"breadth {rg.get('equity_breadth_pct')}%). "
+                         f"Booming: {', '.join(x['ticker'] for x in rmp.get('booming', [])[:5])}; "
+                         f"Destroyed: {', '.join(x['ticker'] for x in rmp.get('destroyed', [])[:5])}.")
     except Exception:
         pass
     brief.append("\nLOUDEST ENGINES (verdict · trust · age_h):")
