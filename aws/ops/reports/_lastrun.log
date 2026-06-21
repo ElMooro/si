@@ -1,12 +1,13 @@
-invoke: 200 {"statusCode": 200, "body": "{\"phase\": \"DORMANT\", \"score\": 4.1}"}
+=== alternative.me Fear & Greed (full history) ===
+points: 3059 | keys: ['value', 'value_classification', 'timestamp', 'time_until_update']
+latest: {"value": "23", "value_classification": "Extreme Fear", "timestamp": "1782000000", "time_until_update": "4861"}
+oldest: {"value": "30", "value_classification": "Fear", "timestamp": "1517443200"}
+span: 2018-02-01 -> 2026-06-21
 
-phase DORMANT score 4.1
+=== CoinGecko /global (current total mcap + stablecoin share) ===
+total crypto mcap: $2272B
+btc.d: 56.18923693815381 | eth.d: 9.115355829295225 | usdt.d: 8.198659627879053 | usdc.d: 3.292443411155012
 
-[200DMA breadth] CLEAN target: fwd90 EW-basket -20.3% when ≥50 vs -1.2% when ≤20 | edge -19.1pp | n 568/991 | verdict REJECTED_DIAGNOSTIC | weight 0
-[stablecoin]     CLEAN target: fwd90 EW-basket -9.7% expanding vs 2.8% contracting | edge -12.5pp | n 1025/193 | verdict REJECTED_DIAGNOSTIC | weight 0
-
-vote 'Stablecoin supply trend (dry powder)': REJECT weight 0 | $313B · 30d -2.3%
-
-score-weight total: 122
-AI error: None
-DONE 2081
+=== CoinGecko BTC mcap history free-tier depth check (days=365) ===
+btc mcap points (365d req): 366 | latest $1274B
+DONE 2082
