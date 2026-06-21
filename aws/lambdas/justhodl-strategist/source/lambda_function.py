@@ -43,7 +43,8 @@ CORE = ["data/risk-regime.json", "data/regime-composite.json", "data/crisis-comp
         "data/strategy-portfolio.json", "data/engine-alpha.json", "data/best-setups.json",
         "data/signal-board.json", "data/eurodollar-plumbing.json", "data/capital-flow-radar.json",
         "data/tail-risk.json", "data/master-ranker.json", "data/crisis-canaries.json",
-        "data/regime-map.json"]
+        "data/regime-map.json",
+        "data/sector-emergence.json", "data/crypto-emergence.json"]
 
 # verdict vocabulary → (direction, extremity)
 POS = {"RISK_ON": 1.0, "BULLISH": .7, "BULL": .7, "BUY": .7, "STRONG_BUY": 1.0, "EXPANDING": .7,
