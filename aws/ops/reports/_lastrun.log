@@ -1,13 +1,12 @@
 invoke: 200 {"statusCode": 200, "body": "{\"phase\": \"DORMANT\", \"score\": 4.1}"}
 
-phase DORMANT score 4.1 | gen 2026-06-21T21:42:04
+phase DORMANT score 4.1
 
-stablecoin supply: $313B | 30d -2.3% | 90d -0.3% | >90DMA False
-BACKTEST: fwd90 -15.1% expanding vs 6.9% contracting | edge -22.0pp | n 1025/193 | verdict REJECTED_DIAGNOSTIC | weight 0
+[200DMA breadth] CLEAN target: fwd90 EW-basket -20.3% when ≥50 vs -1.2% when ≤20 | edge -19.1pp | n 568/991 | verdict REJECTED_DIAGNOSTIC | weight 0
+[stablecoin]     CLEAN target: fwd90 EW-basket -9.7% expanding vs 2.8% contracting | edge -12.5pp | n 1025/193 | verdict REJECTED_DIAGNOSTIC | weight 0
 
-NEW VOTE: value $313B · 30d -2.3% | vote REJECT | weight 0
-  note: aggregate USD-stablecoin circulating = capital entering(+)/leaving(−) crypto. DIAGNOSTIC (weight 0) — backtest did NOT support: fwd90 basket -15.1% when expanding (30d≥+2%) vs 6.9% contracting (edge -
+vote 'Stablecoin supply trend (dry powder)': REJECT weight 0 | $313B · 30d -2.3%
 
-AI tribunal error: None
-diag: ['stablecoin supply: 3127d, latest $313B']
-DONE 2080
+score-weight total: 122
+AI error: None
+DONE 2081
