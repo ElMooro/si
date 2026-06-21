@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper Book · Live Systematic Track Record · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:12px;max-width:820px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+h2{font-size:12px;color:var(--fg-2);margin:22px 0 9px;text-transform:uppercase;letter-spacing:.06em}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{background:var(--bg-1);border:1px solid var(--border);border-radius:9px;padding:9px 13px;font-family:var(--mono);font-size:14px;font-weight:700}
+.chip b{display:block;font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;font-weight:600}
+.curvebox{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}th{text-align:left;color:var(--fg-3);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--border)}
+td{padding:6px 8px;border-bottom:1px solid var(--bg-2);font-family:var(--mono)}
+.tk{font-weight:700}.pos{color:var(--green)}.neg{color:var(--red)}
+.note{color:var(--fg-3);font-size:11px;margin-top:18px;line-height:1.6}a{color:var(--cyan)}
+.loading{padding:50px;text-align:center;color:var(--fg-2)}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Marking the book to market…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function sgn(v){return v>0?'pos':v<0?'neg':'';}
+function curve(hist){
+  if(!hist||hist.length<2)return '<div style="color:var(--fg-3);font-size:12px;padding:20px;text-align:center">Equity curve builds as days accrue — '+(hist?hist.length:0)+' day(s) so far.</div>';
+  const W=900,H=220,pad=8;
+  const navs=hist.map(h=>h.nav),bens=hist.map(h=>h.bench);
+  const lo=Math.min(...navs,...bens),hi=Math.max(...navs,...bens),rng=hi-lo||1;
+  const x=i=>pad+i*(W-2*pad)/(hist.length-1),y=v=>H-pad-(v-lo)/rng*(H-2*pad);
+  const path=arr=>arr.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">
+    <path d="${path(bens)}" fill="none" stroke="#536074" stroke-width="2" stroke-dasharray="4 3"/>
+    <path d="${path(navs)}" fill="none" stroke="#3fd68c" stroke-width="2.5"/>
+    <text x="${pad}" y="14" fill="#3fd68c" font-size="11" font-family="monospace">— Book</text>
+    <text x="${pad+60}" y="14" fill="#536074" font-size="11" font-family="monospace">--- SPY</text></svg>`;
+}
+(async function(){
+  const d=await gj('data/paper-book.json');const w=document.getElementById('wrap');
+  if(!d||!d.ok){w.innerHTML='<h1>Paper Book</h1><div class="loading">No book yet — updates daily 21:30 UTC.</div>';return;}
+  let h=`<h1>💼 Paper Book <span style="color:var(--fg-3);font-size:13px">live systematic track record</span></h1>`;
+  h+=`<div class="sub">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="meta">inception ${esc(d.inception)} · day ${d.n_days} · last rebalance ${esc(d.last_rebalance||'—')} · regime ${esc(d.regime_at_last_rebalance||'—')} · ${(d.generated_at||'').slice(0,16).replace('T',' ')}Z</div>`;
+  h+=`<div class="chips">
+    <div class="chip"><b>NAV</b>$${(d.nav||0).toLocaleString()}</div>
+    <div class="chip"><b>Total return</b><span class="${sgn(d.total_return_pct)}">${d.total_return_pct>0?'+':''}${d.total_return_pct}%</span></div>
+    <div class="chip"><b>vs SPY</b><span class="${sgn(d.excess_vs_spy_pct)}">${d.excess_vs_spy_pct>0?'+':''}${d.excess_vs_spy_pct}%</span></div>
+    <div class="chip"><b>SPY b&amp;h</b>${d.benchmark_return_pct>0?'+':''}${d.benchmark_return_pct}%</div>
+    <div class="chip"><b>Sharpe</b>${d.sharpe==null?'—':d.sharpe}</div>
+    <div class="chip"><b>Max DD</b><span class="neg">${d.max_drawdown_pct}%</span></div>
+    <div class="chip"><b>Cash</b>${d.cash_pct}%</div>
+  </div>`;
+  h+=`<div class="curvebox">${curve(d.history)}</div>`;
+  h+=`<h2>Positions</h2><table><tr><th>Ticker</th><th>Weight</th><th>Shares</th><th>Px</th></tr>`;
+  for(const p of (d.positions||[])){h+=`<tr><td class="tk">${esc(p.ticker)}</td><td>${p.weight_pct}%</td><td>${p.shares}</td><td>$${p.px}</td></tr>`;}
+  h+=`</table>`;
+  if((d.recent_trades||[]).length){h+=`<h2>Recent trades</h2><table><tr><th>Date</th><th>Side</th><th>Ticker</th><th>Notional</th><th>Px</th></tr>`;
+    for(const t of d.recent_trades){h+=`<tr><td>${esc(t.date)}</td><td class="${t.side==='BUY'?'pos':'neg'}">${esc(t.side)}</td><td class="tk">${esc(t.ticker)}</td><td>$${(t.notional||0).toLocaleString()}</td><td>$${t.px}</td></tr>`;}
+    h+=`</table>`;}
+  h+=`<div class="note">${esc(d.note||'')} This is a PAPER portfolio — the systematic, rules-based expression of the system's read (overweight Risk Map booming sleeves, avoid destroyed, regime tilt), marked to market daily against SPY buy-and-hold. Early stats are preliminary; the track record earns trust as it accrues. Not investment advice.</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>

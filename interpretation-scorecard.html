@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interpretation Scorecard · Grading the Strategist · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:12px;max-width:840px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:14px}
+h2{font-size:12px;color:var(--fg-2);margin:22px 0 9px;text-transform:uppercase;letter-spacing:.06em}
+.statusband{border-radius:11px;padding:13px 16px;margin-bottom:14px;border:1px solid var(--border);font-size:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{background:var(--bg-1);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--mono);font-size:13px;font-weight:700}
+.chip b{display:block;font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;color:var(--fg-3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--border)}
+td{padding:6px 8px;border-bottom:1px solid var(--bg-2);vertical-align:top}
+.v-TRUE{color:var(--green);font-weight:700}.v-FALSE{color:var(--red);font-weight:700}.v-PARTIAL{color:var(--amber);font-weight:700}.v-UNRESOLVABLE{color:var(--fg-3)}
+.note{color:var(--fg-3);font-size:11px;margin-top:18px;line-height:1.6}a{color:var(--cyan)}
+.loading{padding:50px;text-align:center;color:var(--fg-2)}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Grading the calls…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+(async function(){
+  const d=await gj('data/interpretation-scorecard.json');const w=document.getElementById('wrap');
+  if(!d||!d.ok){w.innerHTML='<h1>Interpretation Scorecard</h1><div class="loading">No data yet — updates daily 15:00 UTC.</div>';return;}
+  const s=d.stats||{},cal=s.calibration||{};
+  const warm=d.status==='WARMING';const c=warm?'var(--amber)':'var(--green)';
+  let h=`<h1>⚖️ Interpretation Scorecard <span style="color:var(--fg-3);font-size:13px">measure-before-trust, on judgment</span></h1>`;
+  h+=`<div class="sub">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z</div>`;
+  h+=`<div class="statusband" style="border-left:4px solid ${c}"><b style="color:${c}">${esc(d.status)}</b> — ${warm?'the Strategist logs dated claims daily with 15–30 day horizons; this activates once ~15 have matured. The scaffold is live and grading forward.':'enough claims have matured to read a forward hit-rate.'}</div>`;
+  h+=`<div class="chips">
+    <div class="chip"><b>Claims logged</b>${s.n_claims_graded||0}</div>
+    <div class="chip"><b>Resolved</b>${s.n_resolved||0}</div>
+    <div class="chip"><b>Pending horizon</b>${s.n_pending_horizon||0}</div>
+    <div class="chip"><b>Hit rate</b>${s.hit_rate_pct==null?'—':s.hit_rate_pct+'%'}</div>
+    <div class="chip"><b>Decisive-call hit</b>${s.decisive_call_hit_pct==null?'—':s.decisive_call_hit_pct+'%'}</div>
+  </div>`;
+  if(cal.high_conviction_hit_pct!=null||cal.low_conviction_hit_pct!=null){
+    h+=`<div class="chips"><div class="chip"><b>High-conviction hit</b>${cal.high_conviction_hit_pct==null?'—':cal.high_conviction_hit_pct+'%'}</div><div class="chip"><b>Low-conviction hit</b>${cal.low_conviction_hit_pct==null?'—':cal.low_conviction_hit_pct+'%'}</div><div class="chip"><b>Well-calibrated?</b>${cal.well_calibrated==null?'—':(cal.well_calibrated?'yes':'no')}</div></div>`;}
+  if((d.recent||[]).length){h+=`<h2>Recently graded claims</h2><table><tr><th>Date</th><th>Claim</th><th>Verdict</th><th>Note</th></tr>`;
+    for(const g of d.recent){h+=`<tr><td style="font-family:var(--mono);white-space:nowrap">${esc(g.date)}</td><td>${esc(g.claim)}</td><td class="v-${esc(g.verdict)}">${esc(g.verdict)}</td><td style="color:var(--fg-3)">${esc(g.note||'')}</td></tr>`;}
+    h+=`</table>`;}
+  else{h+=`<h2>Recently graded claims</h2><div style="color:var(--fg-3);font-size:12px;padding:14px">No claims have matured yet — today's logged claims need 15–30 days. Check back as horizons elapse.</div>`;}
+  h+=`<div class="note">${esc(d.note||'')} Claims are graded by an LLM judge against actual Polygon market outcomes over each claim's exact window — so the grade is anchored to facts, not opinion. Research, not investment advice.</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
