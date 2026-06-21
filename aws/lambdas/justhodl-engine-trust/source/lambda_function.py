@@ -44,6 +44,11 @@ def _read(key):
 
 
 def current_regime():
+    d = _read("data/regime-map.json")
+    if isinstance(d, dict):
+        lab = (d.get("regime") or {}).get("label")
+        if lab:
+            return str(lab)
     for key in ("data/khalid-index.json", "data/regime-read.json", "data/macro-nowcast.json"):
         d = _read(key)
         if isinstance(d, dict):
@@ -59,6 +64,8 @@ def lambda_handler(event, context):
     sc = _read(SCORECARD_KEY) or {}
     rows = sc.get("scorecard", []) or []
     regime = current_regime()
+    cond = _read("data/regime-conditional-trust.json") or {}
+    cond_engines = cond.get("engines", {}) if isinstance(cond, dict) else {}
 
     engines = []
     counts = {"PROMOTED": 0, "ACTIVE": 0, "INSUFFICIENT": 0, "DEPRECATED": 0, "WARMING": 0}
@@ -93,6 +100,20 @@ def lambda_handler(event, context):
             elif delta >= 0.04:
                 regime_factor = 1.08
 
+        # PREFER the learned dispersion-regime conditioning (Risk Map as the switch): each engine's
+        # net-of-cost excess-vs-SPY bucketed by the regime live when it fired. Authoritative when present.
+        regime_source = "scorecard"
+        ce = cond_engines.get(st)
+        if isinstance(ce, dict) and ce.get("current_regime_status") not in (None, "NO_REGIME_DATA"):
+            cf = ce.get("current_regime_factor")
+            if cf is not None:
+                regime_factor = float(cf)
+                regime_source = "risk-map-dispersion"
+                cr = (ce.get("by_regime") or {}).get(regime) or {}
+                if cr.get("wilson_lb") is not None:
+                    regime_lb = cr.get("wilson_lb")
+                    regime_n = cr.get("n") or regime_n
+
         # alpha conditioning: net-of-cost, FDR-controlled benchmark-relative edge.
         # An engine can be directionally fine yet DESTROY value vs SPY after costs
         # (pure beta in a melt-up). This is the decisive edge gate.
@@ -122,6 +143,7 @@ def lambda_handler(event, context):
             "regime_wilson_lb": regime_lb,
             "regime_n": regime_n,
             "regime_factor": regime_factor,
+            "regime_source": regime_source,
             "alpha_status": alpha_status,
             "alpha_factor": alpha_factor,
             "net_alpha_t_stat": r.get("net_alpha_t_stat"),
