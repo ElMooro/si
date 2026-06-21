@@ -1,5 +1,33 @@
-strategist.html: 200 bytes 8279 | reads json: True | hero: True | conviction: True | contradictions: True
-directory link present: True | count 293: True
-data/strategist.json: ok True | fresh 70 | consensus MIXED | driver set: True
-PAGE_OK
-DONE 2052
+/home/runner/work/si/si/aws/ops/pending/2053_strategist_balance_audit.py:61: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+  d0=datetime.utcfromtimestamp(res[0]["t"]/1000).strftime("%Y-%m-%d")
+/home/runner/work/si/si/aws/ops/pending/2053_strategist_balance_audit.py:62: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+  d1=datetime.utcfromtimestamp(res[-1]["t"]/1000).strftime("%Y-%m-%d")
+FLEET READ: 67 fresh w/ view | +5 / -7 / ~55 neutral
+  pos engines: ['activity-nowcast', 'pm-decision', 'credit-stress', 'crypto-narratives', 'risk-monitor']
+  neg engines: ['alpha-daily-brief', 'leading-markets', 'construction-housing', 'live-pulse', 'sector-tilt', 'move-index', 'stablecoin-flow']
+
+RISK-ON / TREND / BREADTH ENGINES — read & direction (MISSING = no extractable view):
+  momentum             MISSING (NOVIEW/stale)
+  breadth-thrust       MISSING (NOVIEW/stale)
+  market-internals     MISSING (NOVIEW/stale)
+  ath                  MISSING (NOVIEW/stale)
+  trend-engine         MISSING (NOVIEW/stale)
+  rotation-radar       MISSING (NOVIEW/stale)
+  smart-beta           MISSING (NOVIEW/stale)
+  sector-tilt          dir -1  SLOWING
+  ma-reversion         MISSING (NOVIEW/stale)
+  master-rank          MISSING (NOVIEW/stale)
+  master-ranker        MISSING (NOVIEW/stale)
+  best-setups          MISSING (NOVIEW/stale)
+  signal-board         dir 0  QUIET
+  altseason            MISSING (NOVIEW/stale)
+  boom-radar           MISSING (NOVIEW/stale)
+  capital-flow-radar   MISSING (NOVIEW/stale)
+  upside-radar         MISSING (NOVIEW/stale)
+  activity-nowcast     dir 1  EXPANDING
+  regime-composite     MISSING (NOVIEW/stale)
+  risk-regime          MISSING (NOVIEW/stale)
+
+SPY ACTUAL 2025-10-01→2026-06-18: open 668 → last 747 = +11.7% | range 632-760 | maxDD -9.1%
+VERDICT ON THE READ: SPY ROSE +11.7% — a persistent risk-off lean would have MISSED this melt-up
+DONE 2053
