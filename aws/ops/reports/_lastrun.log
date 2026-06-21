@@ -1,9 +1,13 @@
-=== probe: stablecoins.llama.fi/stablecoincharts/all ===
-type: list | points: 3127
-first point keys: ['date', 'totalCirculating', 'totalCirculatingUSD']
-sample first: {"date": "1511913600", "totalCirculating": {"peggedUSD": 109970}, "totalCirculatingUSD": {"peggedUSD": 110105}}
-sample last: {"date": "1782000000", "totalCirculating": {"peggedUSD": 313339698713.55, "peggedVAR": 88332640.88, "peggedEUR": 594259584.42, "peggedJPY": 4401429403.77, "peggedCNY": 20527519, "peggedUAH": 140064.48, "peggedARS": 6893045073.65, "peggedGBP": 24035316.77, "peggedCAD": 3688559.79, "peggedCHF": 388613
-span: 2017-11-29 -> 2026-06-21
-latest total stablecoin mcap: $313.4B
-30d change: -2.3%
-DONE 2079
+invoke: 200 {"statusCode": 200, "body": "{\"phase\": \"DORMANT\", \"score\": 4.1}"}
+
+phase DORMANT score 4.1 | gen 2026-06-21T21:42:04
+
+stablecoin supply: $313B | 30d -2.3% | 90d -0.3% | >90DMA False
+BACKTEST: fwd90 -15.1% expanding vs 6.9% contracting | edge -22.0pp | n 1025/193 | verdict REJECTED_DIAGNOSTIC | weight 0
+
+NEW VOTE: value $313B · 30d -2.3% | vote REJECT | weight 0
+  note: aggregate USD-stablecoin circulating = capital entering(+)/leaving(−) crypto. DIAGNOSTIC (weight 0) — backtest did NOT support: fwd90 basket -15.1% when expanding (30d≥+2%) vs 6.9% contracting (edge -
+
+AI tribunal error: None
+diag: ['stablecoin supply: 3127d, latest $313B']
+DONE 2080
