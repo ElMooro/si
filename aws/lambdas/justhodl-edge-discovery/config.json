@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-edge-discovery",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Autonomous edge discovery / research factory: hypothesize cross-asset feature->target signals, backtest OOS, Deflated-Sharpe (Bailey-LdP) + Benjamini-Hochberg FDR multiple-testing correction, graduate survivors / retire decayed. data/edge-discovery.json + graduated.json. Honest by construction.",
+  "environment": {},
+  "schedule": {"rule_name": "justhodl-edge-discovery-weekly", "cron": "cron(0 11 ? * SUN *)", "description": "weekly Sun 11:00 UTC"}
+}
