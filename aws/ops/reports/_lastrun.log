@@ -1,6 +1,10 @@
-run1 (sets baseline): 200
-run2 (diffs vs baseline): 200
-regime: BIFURCATED | regime_changed: False | prev_regime: BIFURCATED | n_transitions: 0
-transitions sample: none (stable since baseline — expected on same-day re-run)
-prev snapshot persisted: True | n states: 38
-DONE 2061
+created
+scheduled
+init run: {"statusCode": 200, "body": "{\"ok\": true, \"nav\": 99950, \"excess_vs_spy_pct\": -0.05, \"n_days\": 1, \"rebalanced\": true}"}
+
+PAPER BOOK INITIALIZED:
+  inception 2026-06-21 | NAV $99950 | rebalanced into 10 positions | cash -0.1%
+  regime at rebal: BIFURCATED
+  top positions: ['VLUE 16.0%', 'MTUM 15.2%', 'XLK 14.6%', 'EEM 12.0%', 'IWM 9.8%', 'XLI 8.0%', 'XLB 7.5%', 'SPY 7.4%']
+  trades logged: 10
+DONE 2062
