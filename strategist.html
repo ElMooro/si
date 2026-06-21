@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Strategist · Whole-Fleet Interpretation · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#9b8cff;--gold:#ffd24a;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.5}
+.wrap{max-width:920px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:12px;max-width:760px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:18px}
+h2{font-size:12px;color:var(--fg-2);margin:24px 0 9px;text-transform:uppercase;letter-spacing:.06em}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.hero{border-left:3px solid var(--cyan)}
+.hero .driver{font-size:18px;font-weight:600;margin-bottom:7px}
+.hero .mech{color:var(--fg-1);font-size:14px}
+.callcard{border-left:3px solid var(--green)}
+.callbig{font-size:15px;line-height:1.55}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.gauge{text-align:center}.gauge .v{font-family:var(--mono);font-size:30px}.gauge .k{color:var(--fg-2);font-size:10px;text-transform:uppercase}
+.pill{display:inline-block;padding:3px 12px;border-radius:20px;font-family:var(--mono);font-size:13px}
+.RISKOFF{background:rgba(255,92,108,.16);color:var(--red)}.RISKON{background:rgba(63,214,140,.16);color:var(--green)}.MIXED{background:rgba(245,179,67,.16);color:var(--amber)}
+.consbar{display:flex;height:26px;border-radius:7px;overflow:hidden;border:1px solid var(--border);flex:1;min-width:240px;font-family:var(--mono);font-size:11px}
+.consbar>div{display:flex;align-items:center;justify-content:center;color:#06121f;font-weight:700}
+ul{margin:4px 0;padding-left:18px}li{margin:4px 0;color:var(--fg-1);font-size:13.5px}
+.tension{background:var(--bg-2);border-radius:9px;padding:11px 13px;margin:8px 0}
+.tension .t{color:var(--amber);font-size:13px;font-weight:600;margin-bottom:4px}
+.tension .r{color:var(--fg-1);font-size:13px}.tension .r b{color:var(--green)}
+.fals li{color:var(--fg-2)}
+.claim{font-family:var(--mono);font-size:12px;color:var(--fg-1);background:var(--bg-2);border-radius:7px;padding:7px 10px;margin:5px 0;display:flex;justify-content:space-between;gap:10px}
+.claim .h{color:var(--cyan);white-space:nowrap}
+.engtag{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:6px;margin:2px 3px 2px 0;background:var(--bg-2);border:1px solid var(--border)}
+.up{color:var(--green)}.dn{color:var(--red)}.fl{color:var(--fg-2)}
+.note{color:var(--fg-3);font-size:11px;line-height:1.6;margin-top:16px}
+.loading{padding:50px;text-align:center;color:var(--fg-2)}a{color:var(--cyan)}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Convening the Strategist over the full fleet…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function arr(x){return Array.isArray(x)?x:(x?[x]:[]);}
+(async function(){
+  const d=await gj('data/strategist.json');const w=document.getElementById('wrap');
+  if(!d||!d.ok){w.innerHTML='<h1>The Strategist</h1><div class="loading">No read yet — runs weekdays 14:00 UTC.</div>';return;}
+  const fl=d.fleet, it=d.interpretation||{};
+  const consClass=(fl.consensus||'').replace('-','');
+  let h=`<h1>🧠 The Strategist <span style="color:var(--fg-3);font-size:13px">whole-fleet read</span></h1>`;
+  h+=`<div class="sub">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="meta">${fl.n_fresh} fresh engines surveyed · ${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · model ${esc(d.model||'—')}</div>`;
+  // consensus + conviction
+  const onW=fl.risk_on_weight||0, offW=fl.risk_off_weight||0, tot=onW+offW||1;
+  h+=`<div class="row">
+    <div><span class="pill ${consClass}">${esc(fl.consensus)}</span></div>
+    <div class="consbar"><div style="width:${onW/tot*100}%;background:var(--green)">on ${onW}</div><div style="width:${offW/tot*100}%;background:var(--red)">off ${offW}</div></div>
+    ${it.conviction!=null?`<div class="gauge"><div class="v" style="color:${it.conviction>=66?'var(--green)':it.conviction>=40?'var(--amber)':'var(--fg-2)'}">${it.conviction}</div><div class="k">conviction</div></div>`:''}
+  </div>`;
+  if(it.raw||it.error){
+    h+=`<div class="card"><b style="color:var(--amber)">Reasoning unavailable right now</b><div class="note">${esc(it.parse_note||it.error||'')}</div><pre style="white-space:pre-wrap;color:var(--fg-2);font-size:12px">${esc(String(it.raw||'').slice(0,800))}</pre></div>`;
+  } else {
+    h+=`<div class="card hero"><div class="driver">${esc(it.dominant_driver)}</div><div class="mech">${esc(it.mechanism)}</div></div>`;
+    if(it.decisive_call){h+=`<div class="card callcard"><h2 style="margin-top:0">Decisive call</h2><div class="callbig">${esc(it.decisive_call)}</div></div>`;}
+    if(arr(it.contradicting).length){h+=`<h2>Contradictions resolved</h2><div class="card">${arr(it.contradicting).map(c=>typeof c==='object'?`<div class="tension"><div class="t">⚔ ${esc(c.tension)}</div><div class="r"><b>→</b> ${esc(c.resolution)}</div></div>`:`<div class="tension"><div class="r">${esc(c)}</div></div>`).join('')}</div>`;}
+    if(arr(it.second_order).length){h+=`<h2>Second-order implications</h2><div class="card"><ul>${arr(it.second_order).map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>`;}
+    if(arr(it.confirming).length){h+=`<h2>Confirming evidence</h2><div class="card"><ul>${arr(it.confirming).map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>`;}
+    if(arr(it.falsifiers).length){h+=`<h2>What would prove this wrong (falsifiers)</h2><div class="card fals"><ul>${arr(it.falsifiers).map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>`;}
+    if(arr(it.key_claims).length){h+=`<h2>Testable claims — logged for forward grading</h2><div class="card">${arr(it.key_claims).map(c=>`<div class="claim"><span>${esc(typeof c==='object'?c.claim:c)}</span><span class="h">${typeof c==='object'&&c.horizon_days?c.horizon_days+'d':''}</span></div>`).join('')}<div class="note">These are scored forward — the interpretation scorecard (measure-before-trust applied to judgment).</div></div>`;}
+  }
+  // fleet detail
+  if(arr(d.contradictions).length){h+=`<h2>Raw fleet contradictions (pre-reasoning)</h2><div class="card"><ul>${arr(d.contradictions).map(c=>`<li style="font-family:var(--mono);font-size:12px">${esc(c)}</li>`).join('')}</ul></div>`;}
+  if(arr(d.most_backed_names).length){h+=`<h2>Most-backed names (trust-weighted across fleet)</h2><div class="card">${arr(d.most_backed_names).map(n=>`<span class="engtag">${esc(n.ticker)} · ${n.trust_weight}</span>`).join('')}</div>`;}
+  h+=`<h2>Loudest engines surveyed</h2><div class="card">${arr(d.loudest_engines).slice(0,40).map(e=>`<span class="engtag ${e.direction>0?'up':e.direction<0?'dn':'fl'}">${esc(e.engine)}: ${esc(String(e.verdict).slice(0,18))}</span>`).join('')}</div>`;
+  h+=`<div class="note"><b>Read me:</b><br>${arr(d.caveats).map(c=>'• '+esc(c)).join('<br>')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
