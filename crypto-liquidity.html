@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crypto Liquidity · SSR Dry-Powder Oscillator · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#a78bfa;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:10px;max-width:880px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+h2{font-size:12px;color:var(--fg-2);margin:24px 0 9px;text-transform:uppercase;letter-spacing:.06em}
+.regimeband{border-radius:12px;padding:15px 18px;margin-bottom:16px;border:1px solid var(--border)}
+.regimeband .lbl{font-size:19px;font-weight:800;margin-bottom:3px}
+.regimeband .rd{font-size:13px;color:var(--fg-1)}
+.gauge{height:8px;border-radius:5px;background:linear-gradient(90deg,#ff5c6c,#f5b343,#3fd68c);position:relative;margin:10px 0 4px}
+.gauge .pin{position:absolute;top:-4px;width:3px;height:16px;background:#fff;border-radius:2px;box-shadow:0 0 6px rgba(255,255,255,.6)}
+.gscale{display:flex;justify-content:space-between;font-size:9.5px;color:var(--fg-3);font-family:var(--mono)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.chip{background:var(--bg-1);border:1px solid var(--border);border-radius:9px;padding:9px 13px;font-family:var(--mono);font-size:14px;font-weight:700;min-width:96px}
+.chip b{display:block;font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;font-weight:600}
+.chip small{display:block;font-size:9.5px;color:var(--fg-3);font-weight:500;margin-top:2px}
+.curvebox{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;color:var(--fg-3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--border)}
+td{padding:6px 8px;border-bottom:1px solid var(--bg-2);font-family:var(--mono)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.v-CONFIRMED_STRONG,.v-CONFIRMED{color:var(--green);font-weight:700}.v-INVERTED_DIAGNOSTIC{color:var(--red);font-weight:700}.v-INCONCLUSIVE,.v-INSUFFICIENT{color:var(--amber);font-weight:700}
+.note{color:var(--fg-3);font-size:11px;margin-top:8px;line-height:1.6}a{color:var(--cyan)}
+.loading{padding:54px;text-align:center;color:var(--fg-2)}
+.banner{background:var(--bg-1);border:1px solid var(--border);border-left:3px solid var(--violet);border-radius:9px;padding:11px 14px;font-size:12px;color:var(--fg-1);margin-bottom:14px}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Measuring dry powder…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function sl(v){return v==null?'':(v>0?'pos':v<0?'neg':'');}
+function line(series,color,fmt){
+  if(!series||series.length<2)return '';
+  const W=980,H=150,pad=6;
+  const vals=series.map(p=>p[1]);
+  const lo=Math.min(...vals),hi=Math.max(...vals),rng=(hi-lo)||1;
+  const x=i=>pad+i*(W-2*pad)/(series.length-1),y=v=>H-pad-(v-lo)/rng*(H-2*pad);
+  const d=series.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p[1]).toFixed(1)).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2"/>
+    <text x="${pad}" y="13" fill="${color}" font-size="11" font-family="monospace">${fmt(hi)}</text>
+    <text x="${pad}" y="${H-3}" fill="#536074" font-size="11" font-family="monospace">${fmt(lo)}</text></svg>`;
+}
+function studyTable(s,lowLabel,highLabel){
+  if(!s)return '';
+  let h=`<table><tr><th>Horizon</th><th>${lowLabel} → fwd BTC (med)</th><th>hit%</th><th>${highLabel} → fwd BTC (med)</th><th>hit%</th><th>edge (low−high)</th><th>n</th></tr>`;
+  for(const hz of ['fwd30d','fwd90d','fwd180d']){const r=s[hz];if(!r)continue;
+    h+=`<tr><td>${hz.replace('fwd','').replace('d','')}d</td><td class="${sl(r.low_median)}">${r.low_median==null?'—':(r.low_median>0?'+':'')+r.low_median+'%'}</td><td>${r.low_hit_pct==null?'—':r.low_hit_pct+'%'}</td><td class="${sl(r.high_median)}">${r.high_median==null?'—':(r.high_median>0?'+':'')+r.high_median+'%'}</td><td>${r.high_hit_pct==null?'—':r.high_hit_pct+'%'}</td><td class="${sl(r.edge_low_minus_high_pp)}"><b>${r.edge_low_minus_high_pp==null?'—':(r.edge_low_minus_high_pp>0?'+':'')+r.edge_low_minus_high_pp+'pp</b>'}</td><td>${r.n_low}/${r.n_high}</td></tr>`;}
+  h+=`</table><div class="note">Verdict: <span class="v-${esc(s.verdict)}">${esc(s.verdict).replace(/_/g,' ')}</span> (standing weight ${s.weight}). A positive 90d edge means the LOW state preceded higher forward BTC returns — the dry-powder thesis holding.</div>`;
+  return h;
+}
+(async function(){
+  const d=await gj('data/crypto-liquidity.json');const w=document.getElementById('wrap');
+  if(!d||!d.liquidity_score==null){w.innerHTML='<h1>Crypto Liquidity</h1><div class="loading">No data yet — updates 12:00 & 22:00 UTC.</div>';return;}
+  const RC={'DRY-POWDER LOADED':'var(--green)','ACCUMULATION':'#7fe0a8','NEUTRAL':'var(--fg-1)','DEPLOYMENT':'#ffb066','FULLY DEPLOYED':'var(--red)','UNKNOWN':'var(--fg-2)'};
+  const c=RC[d.regime]||'var(--fg-1)';
+  let h=`<h1>💧 Crypto Liquidity <span style="color:var(--fg-3);font-size:13px">dry-powder &amp; risk-on/off — SSR oscillator</span></h1>`;
+  h+=`<div class="sub">The metrics that actually mark cycle tops &amp; bottoms: Stablecoin Supply Ratio (BTC mcap ÷ stablecoin supply), stablecoin dominance, and Fear &amp; Greed — each event-studied against forward BTC return, point-in-time.</div>`;
+  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · ${esc((d.diagnostics||[]).filter(x=>x.includes('stablecoin supply')||x.includes('fear')).join(' · '))}</div>`;
+  // regime band
+  h+=`<div class="regimeband" style="border-left:4px solid ${c}">
+    <div class="lbl" style="color:${c}">${esc(d.regime)} · ${d.liquidity_score}</div>
+    <div class="rd">${esc(d.regime_read)}</div>
+    <div class="gauge"><div class="pin" style="left:${Math.max(0,Math.min(100,d.liquidity_score))}%"></div></div>
+    <div class="gscale"><span>0 · deployed / top</span><span>50 · neutral</span><span>100 · dry-powder / bottom</span></div>
+  </div>`;
+  // chips
+  const ssr=d.ssr||{},dom=d.stablecoin_dominance||{},fg=d.fear_greed||{},sup=d.stablecoin_supply||{};
+  const fgc=fg.value<=25?'var(--green)':fg.value>=75?'var(--red)':'var(--fg-1)';
+  h+=`<div class="chips">
+    <div class="chip"><b>SSR</b>${ssr.value==null?'—':ssr.value}<small>${ssr.percentile_2y==null?'':'pctile '+ssr.percentile_2y+' · '+esc(ssr.interpretation)}</small></div>
+    <div class="chip"><b>Stablecoin dom.</b>${dom.live_coingecko_pct==null?(dom.now_pct==null?'—':dom.now_pct+'%'):dom.live_coingecko_pct+'%'}<small>${dom.percentile_2y==null?'':'pctile '+dom.percentile_2y+' (vs complex)'}</small></div>
+    <div class="chip"><b>Fear &amp; Greed</b><span style="color:${fgc}">${fg.value==null?'—':fg.value}</span><small>${esc(fg.classification||'')}</small></div>
+    <div class="chip"><b>Stablecoin supply</b>$${sup.total_usd==null?'—':(sup.total_usd/1e9).toFixed(0)+'B'}<small>30d ${sup.chg_30d_pct==null?'—':(sup.chg_30d_pct>0?'+':'')+sup.chg_30d_pct+'%'} (context)</small></div>
+    ${sup.total_crypto_mcap_usd?`<div class="chip"><b>Total crypto mcap</b>$${(sup.total_crypto_mcap_usd/1e12).toFixed(2)}T</div>`:''}
+  </div>`;
+  if(d.directional_read){h+=`<div class="banner">Decisive read: <b style="color:${d.directional_read==='UP'?'var(--green)':'var(--red)'}">${d.directional_read==='UP'?'risk-ON / accumulate':'risk-OFF / distribute'}</b> — logged forward (proxy IBIT) so this call is graded against reality, not asserted.</div>`;}
+  // SSR chart
+  h+=`<h2>Stablecoin Supply Ratio (BTC mcap ÷ stablecoin supply)</h2><div class="curvebox">${line(d.histories&&d.histories.ssr,'#46c8ff',v=>v.toFixed(1))}</div><div class="note">Lower = more stablecoin dry powder relative to BTC (historically bullish/bottom). Higher = powder deployed (top).</div>`;
+  // F&G chart
+  h+=`<h2>Crypto Fear &amp; Greed</h2><div class="curvebox">${line(d.histories&&d.histories.fear_greed,'#a78bfa',v=>v.toFixed(0))}</div>`;
+  // event studies
+  h+=`<h2>Backtest — does low SSR precede higher BTC returns?</h2>${studyTable(d.event_study_ssr,'SSR ≤20th %ile','SSR ≥80th %ile')}`;
+  h+=`<h2>Backtest — does extreme fear precede higher BTC returns?</h2>${studyTable(d.event_study_fear_greed,'F&G ≤25 (fear)','F&G ≥75 (greed)')}`;
+  h+=`<div class="note" style="margin-top:18px"><b>Falsifier:</b> ${esc(d.falsifier||'')}<br><br>${esc(d.methodology||'')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>

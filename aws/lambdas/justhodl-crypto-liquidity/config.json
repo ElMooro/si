@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-crypto-liquidity",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Crypto Liquidity / Dry-Powder regime: Stablecoin Supply Ratio (SSR = BTC mcap / stablecoin supply) oscillator + stablecoin dominance + Fear & Greed, event-studied point-in-time vs forward BTC return for cycle tops/bottoms. data/crypto-liquidity.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-crypto-liquidity-daily",
+    "cron": "cron(0 12,22 * * ? *)",
+    "description": "12:00 + 22:00 UTC daily (crypto trades weekends)"
+  }
+}
