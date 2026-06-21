@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-interpretation-grader",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Interpretation scorecard: grades the Strategist's logged claims forward (LLM-as-judge w/ Polygon ground-truth) once horizons elapse. Immutable ledger + rolling hit-rate + conviction calibration. data/interpretation-scorecard.json. WARMING until ~15 claims mature.",
+  "environment": {},
+  "schedule": {"rule_name": "justhodl-interp-grader-daily", "cron": "cron(0 15 * * ? *)", "description": "daily 15:00 UTC (after Strategist 14:00)"}
+}
