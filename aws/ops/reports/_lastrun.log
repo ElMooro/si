@@ -1,10 +1,29 @@
-created
-scheduled
-invoke: 200 {"statusCode": 200, "body": "{\"ok\": true, \"current_regime\": \"BIFURCATED\", \"n_engines\": 50, \"n_best\": 0, \"n_worst\": 0}"}
+invoke: {"statusCode": 200, "body": "{\"ok\": true, \"current_regime\": \"BIFURCATED\", \"n_engines\": 50, \"n_best\": 12, \"n_worst\": 12}"}
 
-REGIME-CONDITIONAL TRUST:
-  current_regime: BIFURCATED | engines measured: 50
-  reconstructed regime distribution (weekly): {}
-  BEST suited to current regime:
-  WORST suited to current regime:
-DONE 2064
+current_regime: BIFURCATED | engines: 50
+regime distribution (weekly reconstructed): {'BROAD RISK-ON': 100, 'MIXED / ROTATIONAL': 110, 'NARROW / CONCENTRATED': 35, 'BIFURCATED': 141, 'BROAD RISK-OFF': 30}
+
+BEST suited to current regime ( BIFURCATED ):
+   momentum_top_pick                  excess 17.901% n18 factor 1.0
+   nobrainer_SMH                      excess 13.708% n8 factor 0.55
+   crisis_dfii10_vs_gld               excess 4.98% n208 factor 1.0
+   nobrainer_PICK                     excess 4.876% n5 factor 1.0
+   nobrainer_SOXX                     excess 4.032% n9 factor 0.8
+   nobrainer_SLX                      excess 4.001% n8 factor 1.0
+   nobrainer_ROBO                     excess 3.702% n5 factor 1.0
+   crypto_risk_score                  excess 1.931% n245 factor 1.0
+WORST suited:
+   nobrainer_SIL                      excess -26.441% n7 factor 1.0
+   nobrainer_XOP                      excess -11.045% n7 factor 1.0
+   nobrainer_REMX                     excess -6.619% n7 factor 1.0
+   nobrainer_AIQ                      excess -4.635% n8 factor 1.0
+   crypto_fear_greed                  excess -3.239% n518 factor 1.0
+   corr_break_composite_vs_vxx        excess -3.076% n221 factor 1.08
+   divergence_extreme                 excess -1.983% n409 factor 1.0
+   correlation_break                  excess -1.415% n1550 factor 1.0
+
+sample engines with multi-regime track records:
+   correlation_break: NARROW / CONCENTRATED:n420/lb0.158/exc-2.391, BIFURCATED:n1550/lb0.248/exc-1.415
+   edge_regime: BIFURCATED:n127/lb0.219/exc-0.35, NARROW / CONCENTRATED:n8/lb0.215/exc0.275
+   cot_extreme: BIFURCATED:n208/lb0.485/exc-0.036, NARROW / CONCENTRATED:n56/lb0.441/exc0.444
+DONE 2065
