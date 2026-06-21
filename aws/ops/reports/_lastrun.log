@@ -1,15 +1,11 @@
-Quarter-end rebalancing study | 18 quarter-ends 2010-2026 | 9 SPDR sectors
-Forward EXCESS-vs-SPY of the quarter's WINNERS (rebalancers SELL) vs LOSERS (rebalancers BUY):
+ETF flow predictive test | 55 non-overlapping events across 11 sectors
+per-sector events: {'XLK': 5, 'XLF': 5, 'XLE': 5, 'XLV': 5, 'XLP': 5, 'XLY': 5, 'XLI': 5, 'XLU': 5, 'XLB': 5, 'XLC': 5, 'XLRE': 5}
 
-horizon                 WINNERS avg  LOSERS avg  spread(W-L)  W>L freq
-+5d (rebal window)           +0.15%      +0.61%       -0.46%       39%
-+21d (next month)            -0.34%      +1.39%       -1.72%       28%
-+63d (next quarter)          -1.71%      +1.31%       -3.01%       33%
+signal = trailing 21d net flow as % of AUM | forward = 21d excess vs SPY
+  Information Coefficient (corr signal→fwd excess): +0.629
+  TOP quintile (biggest INFLOWS, n11):  fwd excess mean +0.86% median -1.13%  win 45%
+  BOTTOM quintile (biggest OUTFLOWS, n11): fwd excess mean -1.25% median -1.20%  win 18%
+  SPREAD (inflows − outflows): +2.11% mean
 
-medians (robust):
-  +5d (rebal window)     winners -0.18%  losers +0.45%  spread -0.63%
-  +21d (next month)      winners -0.07%  losers +1.33%  spread -1.40%
-  +63d (next quarter)    winners -1.53%  losers +0.88%  spread -2.41%
-
-INTERPRETATION: spread>0 = momentum persists (winners keep winning); spread<0 = REBALANCING REVERSAL (the quarter's losers outperform — institutions buying the laggards).
-DONE 2067
+  >0 / IC>0 = inflows predict OUTPERFORMANCE (claim supported). <0 = inflows FADE (claim wrong).
+DONE 2068
