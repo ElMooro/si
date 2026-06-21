@@ -152,14 +152,14 @@ def lambda_handler(event=None, context=None):
         series = dict(ex.map(fetch, ALLTK))
     if not series.get("SPY"):
         return {"statusCode": 500, "body": "no SPY"}
-    common = set(series["SPY"].keys())
-    for t in ALLTK:
-        if series.get(t):
-            common &= set(series[t].keys())
+    iso_series = {t: _iso_close(series[t]) for t in ALLTK if series.get(t)}
+    if "SPY" not in iso_series:
+        return {"statusCode": 500, "body": "no SPY"}
+    common = set(iso_series["SPY"].keys())
+    for t, m in iso_series.items():
+        common &= set(m.keys())
     dates = sorted(common)
-    regimes_ts = reconstruct_regimes(series, dates)
-    regimes_iso = {datetime.fromtimestamp(ms / 1000, timezone.utc).strftime("%Y-%m-%d"): lab
-                   for ms, lab in regimes_ts.items()}
+    regimes_iso = reconstruct_regimes(iso_series, dates)   # keyed by iso date string
     reg_dates = sorted(regimes_iso)
 
     def regime_on(date_str):
@@ -183,7 +183,7 @@ def lambda_handler(event=None, context=None):
         kw["ExclusiveStartKey"] = r["LastEvaluatedKey"]
 
     # iso-date SPY map for excess
-    spy_iso = _iso_close(series["SPY"])
+    spy_iso = iso_series["SPY"]
 
     def spy_on(date_str):
         # find SPY close on/just after date_str
@@ -274,7 +274,7 @@ def lambda_handler(event=None, context=None):
         "thesis": "Learns each engine's conditional edge per dispersion regime from real outcomes; the live "
                   "Risk Map selects the regime, and engine-trust leans on the engines suited to it.",
         "current_regime": current, "n_engines": len(engines_out),
-        "regime_distribution": _regime_hist(regimes_ts),
+        "regime_distribution": _regime_hist(regimes_iso),
         "best_suited_to_current_regime": best, "worst_suited_to_current_regime": worst,
         "engines": engines_out,
         "method": "Risk-Map classifier reconstructed weekly over price history; per-engine net-of-cost "
