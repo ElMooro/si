@@ -522,9 +522,21 @@ def lambda_handler(event=None, context=None):
             b200_study["edge_pp"] = round(b200_study["fwd90_high_med"] - b200_study["fwd90_low_med"], 1)
     except Exception as e:
         b200_study["error"] = str(e)[:80]
-    # weight is DATA-DRIVEN: scaled by the measured forward edge, not asserted
+    # weight is DATA-DRIVEN: scaled by the measured forward edge, not asserted.
+    # If the backtest REJECTS the hypothesis (negative edge), keep it as a weight-0
+    # DIAGNOSTIC so it informs without injecting a backwards vote into the score.
     _edge = b200_study.get("edge_pp")
-    b200_w = 14 if (_edge is not None and _edge >= 8) else (10 if (_edge is not None and _edge >= 3) else 6)
+    if _edge is not None and _edge >= 8:
+        b200_w = 14
+    elif _edge is not None and _edge >= 3:
+        b200_w = 10
+    elif _edge is not None and _edge <= -3:
+        b200_w = 0
+    else:
+        b200_w = 6
+    b200_study["weight_assigned"] = b200_w
+    b200_study["verdict"] = ("CONFIRMS_HYPOTHESIS" if b200_w >= 10 else
+                             "REJECTED_DIAGNOSTIC" if b200_w == 0 else "INCONCLUSIVE")
     V = []
     def vote(name, value, conf, rej, w, note):
         v = "CONFIRM" if conf else "REJECT" if rej else "NEUTRAL"
@@ -542,11 +554,17 @@ def lambda_handler(event=None, context=None):
     vote("Alt breadth > 90DMA", br_now, br_now is not None and br_now >= 60,
           br_now is not None and br_now <= 25, 10, "participation")
     vote("Alt 200DMA reclaim breadth", f"{b200_now}%" if b200_now is not None else None,
-          b200_now is not None and b200_now >= 50,
+          b200_now is not None and b200_now >= 50 and b200_w > 0,
           b200_now is not None and b200_now <= 20, b200_w,
-          (f"% of alts back above own 200DMA — broad trend reclaim. Backtest: fwd90 basket "
-           f"{b200_study.get('fwd90_high_med')}% when ≥50 vs {b200_study.get('fwd90_low_med')}% when ≤20 "
-           f"(edge {b200_study.get('edge_pp')}pp, n{b200_study.get('n_high')}/{b200_study.get('n_low')})"))
+          (f"% of alts back above own 200DMA. "
+           + (f"DIAGNOSTIC (weight 0) — backtest did NOT support this as a bullish lead: fwd90 basket "
+              f"{b200_study.get('fwd90_high_med')}% when ≥50 vs {b200_study.get('fwd90_low_med')}% when ≤20 "
+              f"(edge {b200_study.get('edge_pp')}pp, n{b200_study.get('n_high')}/{b200_study.get('n_low')}) → "
+              f"high reclaim-breadth ran LATE/contrarian here (sample dominated by past blowoff tops; "
+              f"inception-anchored basket inflates magnitude). Shown for context, excluded from score."
+              if b200_w == 0 else
+              f"Backtest: fwd90 {b200_study.get('fwd90_high_med')}% when ≥50 vs {b200_study.get('fwd90_low_med')}% "
+              f"when ≤20 (edge {b200_study.get('edge_pp')}pp, n{b200_study.get('n_high')}/{b200_study.get('n_low')})")))
     vote("Alt 90d-high breadth", hi_now, hi_now is not None and hi_now >= 25,
           False, 8, "leadership expansion")
     vote("Alt volume share (1y pctile)", vs_pct, vs_pct is not None and vs_pct >= 70,
