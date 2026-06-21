@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-regime-conditional-trust",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Regime-conditional engine trust: reconstructs historical dispersion regime (Risk Map classifier over price history), buckets each engine's net-of-cost excess-vs-SPY outcomes by regime-at-signal, computes per-engine conditional Wilson-LB + current-regime factor. data/regime-conditional-trust.json. Consumed by engine-trust.",
+  "environment": {},
+  "schedule": {"rule_name": "justhodl-regime-cond-trust-daily", "cron": "cron(0 12 * * ? *)", "description": "daily 12:00 UTC (before engine-trust 12:30)"}
+}
