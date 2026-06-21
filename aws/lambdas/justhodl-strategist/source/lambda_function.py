@@ -47,12 +47,12 @@ CORE = ["data/risk-regime.json", "data/regime-composite.json", "data/crisis-comp
 # verdict vocabulary → (direction, extremity)
 POS = {"RISK_ON": 1.0, "BULLISH": .7, "BULL": .7, "BUY": .7, "STRONG_BUY": 1.0, "EXPANDING": .7,
        "FAVOR": .7, "FAVOR-NOW": 1.0, "ACCUMULATION": .7, "GREED": .6, "EXTREME_GREED": 1.0,
-       "LONG": .6, "OVERWEIGHT": .7, "POSITIVE": .6, "UPTREND": .7, "RISK-ON": 1.0, "EXPANSION": .7}
+       "LONG": .6, "OVERWEIGHT": .7, "POSITIVE": .6, "UPTREND": .7, "RISK-ON": 1.0, "EXPANSION": .7, "BROAD_TREND": .7, "NET_LONG": .6, "TRENDING_UP": .7, "LEADERS": .5}
 NEG = {"RISK_OFF": 1.0, "BEARISH": .7, "BEAR": .7, "SELL": .7, "STRONG_SELL": 1.0, "SLOWING": .6,
        "CONTRACTING": .8, "CONTRACTION": .8, "AVOID": .7, "DISTRIBUTION": .7, "FEAR": .6,
        "EXTREME_FEAR": 1.0, "SHORT": .6, "UNDERWEIGHT": .7, "NEGATIVE": .6, "DOWNTREND": .7,
        "STRESSED": .9, "ELEVATED": .6, "CRISIS": 1.0, "SEIZING": 1.0, "STRAINED": .8,
-       "RISK-OFF": 1.0, "FLIGHT_TO_QUALITY": 1.0, "DETERIORATING": .7}
+       "RISK-OFF": 1.0, "FLIGHT_TO_QUALITY": 1.0, "DETERIORATING": .7, "NET_SHORT": .6, "BROAD_DOWNTREND": .8, "NO_TREND": .0}
 NEU = {"NEUTRAL", "MIXED", "QUIET", "CALM", "NORMAL", "HOLD", "FUNCTIONING", "STABLE", "WATCH",
        "UNKNOWN", "MILD", "OK", "FLAT", "RANGE", "BALANCED"}
 
@@ -66,16 +66,16 @@ TEXT_KEYS = ["interpretation", "summary", "headline", "brief_md", "narrative", "
              "commentary", "note", "regime_headline", "takeaway", "read"]
 # distinctive phrases only — safe to substring-scan inside narrative text
 TEXT_POS = {"RISK ON": 1, "RISK-ON": 1, "BULLISH": .7, "REFLATION": .8, "EXPANDING": .6,
-            "EXPANSION": .6, "ACCUMULATION": .7, "OVERWEIGHT": .7, "GOLDILOCKS": .8, "MELT-UP": .9}
+            "EXPANSION": .6, "ACCUMULATION": .7, "OVERWEIGHT": .7, "GOLDILOCKS": .8, "MELT-UP": .9, "BROAD TREND": .7, "NET LONG": .6, "RISK ON": 1.0}
 TEXT_NEG = {"RISK OFF": 1, "RISK-OFF": 1, "BEARISH": .7, "RECESSION": .9, "CONTRACTING": .7,
             "CONTRACTION": .7, "SLOWDOWN": .6, "SLOWING": .6, "DISTRIBUTION": .7, "UNDERWEIGHT": .7,
             "DETERIORATING": .7, "STRESSED": .8, "FLIGHT TO QUALITY": 1, "DELEVERAGING": .8,
-            "STAGFLATION": .8, "DEFENSIVE": .6}
+            "STAGFLATION": .8, "DEFENSIVE": .6, "BROAD TREND": .0}
 SCORE_KEYS = ["risk_regime_score", "composite_score", "master_crisis_score", "treasury_stress",
               "plumbing_health", "composite", "score", "gauge", "z_score", "z", "net", "percentile"]
 PICK_KEYS = ["top_picks", "picks", "top_setups", "board", "top_next_up", "top_consensus_25",
              "strongest_upgrades_30d", "high_impact", "leaderboard", "all_qualifying", "candidates",
-             "red_flags", "recommended_weights_pct", "asset_scores", "top_names", "winners", "longs"]
+             "red_flags", "recommended_weights_pct", "asset_scores", "top_names", "winners", "longs", "top_tickers"]
 CONTAINERS = ["summary", "snapshot", "latest", "composite", "interpretation", "headline", "current",
               "today", "overall", "verdict", "result", "stats"]
 _TICK = re.compile(r"^[A-Z]{1,6}([.\-/][A-Z]{1,4})?$")
@@ -173,12 +173,12 @@ def extract(d):
                 break
     # nested containers (summary/snapshot/composite/…)
     if verdict is None:
-        for ck in CONTAINERS:
-            sub = d.get(ck)
-            v = _verdict_from(sub)
-            if v:
-                direction, extremity, verdict = v
-                break
+        for sub in list(d.values())[:25]:
+            if isinstance(sub, dict):
+                v = _verdict_from(sub)
+                if v:
+                    direction, extremity, verdict = v
+                    break
     # picks — lists and ticker/weight maps, ticker-filtered
     picks = []
     for k in PICK_KEYS:
@@ -187,8 +187,7 @@ def extract(d):
             if picks:
                 break
     if not picks:
-        for ck in CONTAINERS:
-            sub = d.get(ck)
+        for sub in list(d.values())[:25]:
             if isinstance(sub, dict):
                 for k in PICK_KEYS:
                     if k in sub:
