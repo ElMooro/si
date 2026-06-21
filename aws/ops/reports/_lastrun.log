@@ -1,10 +1,17 @@
 created
 scheduled
-init run: {"statusCode": 200, "body": "{\"ok\": true, \"nav\": 99950, \"excess_vs_spy_pct\": -0.05, \"n_days\": 1, \"rebalanced\": true}"}
+invoke: 200 {"statusCode": 200, "body": "{\"ok\": true, \"tested\": 160, \"graduated\": 0, \"live\": 0, \"retired\": 0}"}
 
-PAPER BOOK INITIALIZED:
-  inception 2026-06-21 | NAV $99950 | rebalanced into 10 positions | cash -0.1%
-  regime at rebal: BIFURCATED
-  top positions: ['VLUE 16.0%', 'MTUM 15.2%', 'XLK 14.6%', 'EEM 12.0%', 'IWM 9.8%', 'XLI 8.0%', 'XLB 7.5%', 'SPY 7.4%']
-  trades logged: 10
-DONE 2062
+RESEARCH FACTORY: tested 160 candidates | history 753d
+  multiple-testing: null per-trade SR 0.6847 | FDR survivors 0 | graduated 0
+  TOP candidates by Deflated-Sharpe (most will fail the bar — that's the discipline):
+    em_eem            ->XLE  H21 dir+1 | OOS Sharpe +2.13 DSR 0.413 hit 76.9% n13 | grad=False
+    credit_hyg_ief    ->GLD  H21 dir-1 | OOS Sharpe +1.85 DSR 0.312 hit 66.7% n12 | grad=False
+    duration_tlt      ->XLF  H10 dir-1 | OOS Sharpe +2.77 DSR 0.298 hit 69.2% n13 | grad=False
+    concentration     ->TLT  H21 dir+1 | OOS Sharpe +1.81 DSR 0.287 hit 73.3% n15 | grad=False
+    em_eem            ->XLF  H21 dir-1 | OOS Sharpe +1.52 DSR 0.185 hit 53.8% n13 | grad=False
+    credit_hyg_ief    ->XLF  H21 dir-1 | OOS Sharpe +1.35 DSR 0.178 hit 75.0% n12 | grad=False
+    oil_uso           ->GLD  H21 dir-1 | OOS Sharpe +1.18 DSR 0.117 hit 61.5% n13 | grad=False
+    credit_hyg_ief    ->EEM  H21 dir-1 | OOS Sharpe +0.98 DSR 0.106 hit 66.7% n12 | grad=False
+  graduated_live: 0 | retired: 0
+DONE 2063
