@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Risk Map · What's Booming vs Getting Destroyed · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:14px;max-width:820px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+h2{font-size:12px;color:var(--fg-2);margin:24px 0 10px;text-transform:uppercase;letter-spacing:.06em}
+.banner{border-radius:13px;padding:16px 18px;margin-bottom:14px;border:1px solid var(--border)}
+.banner .lab{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.banner .sm{color:var(--fg-1);font-size:14px;margin-top:5px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.chip{background:var(--bg-1);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--mono);font-size:12px}
+.chip b{display:block;font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.cols{grid-template-columns:1fr}}
+.col{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.col h3{margin:0 0 8px;font-size:13px}.col.b h3{color:var(--green)}.col.d h3{color:var(--red)}
+.row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bg-2)}
+.row:last-child{border:none}.row .tk{font-family:var(--mono);font-weight:700;width:52px}
+.row .nm{color:var(--fg-1);font-size:12.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .ro{font-family:var(--mono);font-size:12px;width:46px;text-align:right}
+.row .rr{font-family:var(--mono);font-size:11px;color:var(--fg-3);width:54px;text-align:right}
+.sleeve{margin-bottom:14px}.sleeve .st{font-size:12px;color:var(--fg-1);font-weight:600;margin-bottom:6px}
+.grid{display:flex;flex-wrap:wrap;gap:6px}
+.cell{border-radius:8px;padding:7px 9px;min-width:96px;border:1px solid var(--border)}
+.cell .ct{font-family:var(--mono);font-weight:700;font-size:12px}
+.cell .cs{font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+.cell .cr{font-family:var(--mono);font-size:10.5px;color:var(--fg-2);margin-top:2px}
+.note{color:var(--fg-3);font-size:11px;margin-top:18px;line-height:1.6}a{color:var(--cyan)}
+.loading{padding:50px;text-align:center;color:var(--fg-2)}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Mapping the tape…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function col(ro){const a=Math.min(1,Math.abs(ro)/100);if(ro>0)return`background:rgba(63,214,140,${.10+.45*a});border-color:rgba(63,214,140,${.3+.4*a})`;if(ro<0)return`background:rgba(255,92,108,${.10+.45*a});border-color:rgba(255,92,108,${.3+.4*a})`;return'background:var(--bg-2)';}
+function txt(ro){return ro>0?'var(--green)':ro<0?'var(--red)':'var(--fg-1)'}
+const REG={'BIFURCATED':'--amber','BROAD RISK-ON':'--green','BROAD RISK-OFF':'--red','NARROW / CONCENTRATED':'--amber','MIXED / ROTATIONAL':'--fg-2'};
+(async function(){
+  const d=await gj('data/regime-map.json');const w=document.getElementById('wrap');
+  if(!d||!d.ok){w.innerHTML='<h1>Risk Map</h1><div class="loading">No read yet — updates 13:00 & 21:00 UTC.</div>';return;}
+  const r=d.regime, c=`var(${REG[r.label]||'--fg-2'})`;
+  let h=`<h1>🗺️ Risk Map <span style="color:var(--fg-3);font-size:13px">booming vs getting destroyed</span></h1>`;
+  h+=`<div class="sub">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="meta">${d.n_instruments} instruments · ${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · ${esc(d.windows||'')}</div>`;
+  h+=`<div class="banner" style="border-left:4px solid ${c}"><div class="lab" style="color:${c}">${esc(r.label)}</div><div class="sm">${esc(r.summary)}</div></div>`;
+  h+=`<div class="chips">
+    <div class="chip"><b>Equities</b><span style="color:${txt(r.equity_avg)}">${r.equity_avg>0?'+':''}${r.equity_avg}</span></div>
+    <div class="chip"><b>Crypto</b><span style="color:${txt(r.crypto_avg)}">${r.crypto_avg>0?'+':''}${r.crypto_avg}</span></div>
+    <div class="chip"><b>Rates/Credit</b><span style="color:${txt(r.rates_avg)}">${r.rates_avg>0?'+':''}${r.rates_avg}</span></div>
+    <div class="chip"><b>Commod/Haven</b><span style="color:${txt(r.commodities_avg)}">${r.commodities_avg>0?'+':''}${r.commodities_avg}</span></div>
+    <div class="chip"><b>Equity Breadth</b><span>${r.equity_breadth_pct}%</span></div>
+    <div class="chip"><b>Concentration</b><span>${r.concentration_spread_3m>0?'+':''}${r.concentration_spread_3m}pts</span></div>
+  </div>`;
+  const rowHtml=x=>`<div class="row"><span class="tk" style="color:${txt(x.risk_on)}">${esc(x.ticker)}</span><span class="nm">${esc(x.name)}</span><span class="ro" style="color:${txt(x.risk_on)}">${x.risk_on>0?'+':''}${x.risk_on}</span><span class="rr">${x.r3m>0?'+':''}${x.r3m}%</span></div>`;
+  h+=`<div class="cols"><div class="col b"><h3>🔥 Booming · risk-on</h3>${(d.booming||[]).map(rowHtml).join('')}</div>
+    <div class="col d"><h3>💀 Getting destroyed · risk-off</h3>${(d.destroyed||[]).map(rowHtml).join('')}</div></div>`;
+  h+=`<h2>Full map — every sleeve</h2>`;
+  for(const[sl,items] of Object.entries(d.sleeves||{})){
+    h+=`<div class="sleeve"><div class="st">${esc(sl)}</div><div class="grid">`;
+    for(const x of items){h+=`<div class="cell" style="${col(x.risk_on)}"><div class="ct" style="color:${txt(x.risk_on)}">${esc(x.ticker)} ${x.risk_on>0?'+':''}${x.risk_on}</div><div class="cs" style="color:${txt(x.risk_on)}">${esc(x.state)}</div><div class="cr">${esc(x.name)} · ${x.r3m>0?'+':''}${x.r3m}%</div></div>`;}
+    h+=`</div></div>`;
+  }
+  h+=`<div class="note">risk-on score (−100..+100) blends multi-window momentum (1m/3m/6m) with trend vs 50/200-day moving averages. Regime classifier reads the dispersion: cap-weight vs equal-weight concentration spread, equity breadth %, and the equity-vs-crypto split — so it can tell a <b>broad</b> rally from a <b>narrow</b> megacap-led one from a <b>bifurcated</b> tape. Research, not investment advice.</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>

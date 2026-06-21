@@ -1037,6 +1037,8 @@ table.tbl tr:last-child td{border-bottom: none}
   <div id="ai-frontrun-history" style="margin-bottom:18px"></div>
   <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-frontrun-history","frontrun-sniffer-history");</script>
 
+  <!-- Risk Map (cross-asset dispersion) -->
+  <div id="risk-map-card" style="background:var(--bg-card,#121822);border:1px solid var(--border,#24303f);border-radius:12px;padding:13px 16px;margin-bottom:14px"></div>
   <!-- ────────── TOP STRIP ────────── -->
   <div class="strip" id="strip">
     <div id="home-regime-ribbon" style="margin:0 0 8px"></div><div class="strip-cell" data-cell="regime">
@@ -3106,5 +3108,24 @@ setInterval(loadAll, 5 * 60 * 1000);  // 5-min auto-refresh
 <script>window.addEventListener("load",function(){if(window.Affiliates)Affiliates.renderFooterBar();});</script>
 <script src="/regime-ribbon.js"></script>
 <script>window.addEventListener("load",function(){if(window.RegimeRibbon)RegimeRibbon.mount({target:"home-regime-ribbon",position:"inline"});});</script>
+<script>
+(function(){
+ var PX="https://justhodl-data-proxy.raafouis.workers.dev";
+ function gj(p){return fetch("https://justhodl.ai/"+p+"?t="+Date.now()).then(function(r){if(r.ok)return r.json();throw 0;}).catch(function(){return fetch(PX+"/"+p+"?t="+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});});}
+ function tx(v){return v>0?"#3fd68c":v<0?"#ff5c6c":"#aebccd";}
+ var RC={"BIFURCATED":"#f5b343","BROAD RISK-ON":"#3fd68c","BROAD RISK-OFF":"#ff5c6c","NARROW / CONCENTRATED":"#f5b343","MIXED / ROTATIONAL":"#7c8ba0"};
+ gj("data/regime-map.json").then(function(d){
+   var el=document.getElementById("risk-map-card"); if(!el||!d||!d.ok)return;
+   var r=d.regime, c=RC[r.label]||"#7c8ba0";
+   function chips(a){return (a||[]).slice(0,5).map(function(x){return '<span style="font-family:monospace;font-size:11px;margin-right:8px;color:'+tx(x.risk_on)+'">'+x.ticker+' '+(x.risk_on>0?'+':'')+x.risk_on+'</span>';}).join('');}
+   el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:7px">'
+     +'<div><span style="font-size:10px;letter-spacing:.05em;color:#7c8ba0">RISK MAP</span> <b style="color:'+c+';font-size:15px;margin-left:5px">'+r.label+'</b> <span style="font-size:10.5px;color:#536074;font-family:monospace">eq '+(r.equity_avg>0?'+':'')+r.equity_avg+' · crypto '+(r.crypto_avg>0?'+':'')+r.crypto_avg+' · breadth '+r.equity_breadth_pct+'%</span></div>'
+     +'<a href="/regime-map.html" style="font-size:11px;color:#46c8ff;text-decoration:none">full board &rarr;</a></div>'
+     +'<div style="font-size:12px;color:#aebccd;margin-bottom:8px;line-height:1.45">'+r.summary+'</div>'
+     +'<div style="font-size:11px"><span style="color:#3fd68c;font-weight:600">BOOMING </span>'+chips(d.booming)+'</div>'
+     +'<div style="font-size:11px;margin-top:4px"><span style="color:#ff5c6c;font-weight:600">DESTROYED </span>'+chips(d.destroyed)+'</div>';
+ });
+})();
+</script>
 </body>
 </html>
