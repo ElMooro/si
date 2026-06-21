@@ -1,23 +1,6 @@
-updated
-scheduled
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"complex_stage\": \"BEAR / DECLINING\", \"breadth50\": 0, \"emerging\": []}"}
-
-CRYPTO COMPLEX: BEAR / DECLINING
-  Crypto is in a downtrend — BTC below a falling 200-day and breadth washed out. This is where you build a watch-list and wait for the trigger, not chase.
-  breadth >50d 0% | >200d 0% | BTC>200d False (200d rising False) | ETH/BTC 2m -5.8% | cycle_risk None
-  TRIGGER: BTC reclaims its 200-day (~76,734) and HOLDS, breadth >50% of coins above 50d (now 0%), and ETH/BTC turns up (alts joining).
-  BTC 64,092 vs 200d 76,734 (-16.5%) | alt-season: BTC-dominant / alts still weak vs BTC
-
-coin          sector      stage       score  rs/trend  signals
-  Solana      L1 Alts     DECLINING    35.5  100/0   gaining vs BTC
-  Litecoin    Payments    DECLINING    35.5  100/0   gaining vs BTC
-  XRP         Payments    DECLINING    29.0  74/0   gaining vs BTC
-  Chainlink   DeFi/Oracle DECLINING    29.0  74/0   gaining vs BTC
-  Dogecoin    Meme        DECLINING    21.0  42/0   
-  Ethereum    Large-cap   DECLINING    18.5  32/0   
-  Avalanche   L1 Alts     DECLINING    18.5  32/0   
-  Bitcoin     Large-cap   DECLINING    15.0  18/0   
-  Cardano     L1 Alts     DECLINING    10.5  0/0   
-  Polkadot    L1 Alts     DECLINING    10.5  0/0   
-  Bitcoin CashPayments    DECLINING    10.5  0/0   
-DONE 2070
+sector-emergence.html: 200 | has 'sector-emergence.json': True
+crypto-emergence.html: 200 | has 'crypto-emergence.json': True
+crypto-risk.html: 200 | has 'crypto-emergence.html': True
+directory: sector-emergence True | crypto-emergence True | 296 True
+feeds: sector-emergence ok True emerging ['XLU', 'XLV'] | crypto-emergence BEAR / DECLINING
+DONE 2071
