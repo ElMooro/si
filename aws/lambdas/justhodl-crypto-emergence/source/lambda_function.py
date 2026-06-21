@@ -72,17 +72,20 @@ def lambda_handler(event=None, context=None):
             return {}
     cyc = _read("data/crypto-cycle-risk.json")
     fund = _read("data/crypto-funding.json")
-    # best-effort context scalars
-    cyc_risk = None
-    for k in ("risk_score", "cycle_risk", "score", "composite"):
-        v = cyc.get(k) if isinstance(cyc, dict) else None
-        if isinstance(v, (int, float)):
-            cyc_risk = float(v); break
-    funding_hot = None
-    for k in ("avg_funding", "funding_score", "score", "aggregate_funding"):
-        v = fund.get(k) if isinstance(fund, dict) else None
-        if isinstance(v, (int, float)):
-            funding_hot = float(v); break
+    cyc_risk = cyc.get("dump_risk_score") if isinstance(cyc, dict) else None
+    cyc_risk = float(cyc_risk) if isinstance(cyc_risk, (int, float)) else None
+    risk_level = cyc.get("risk_level") if isinstance(cyc, dict) else None
+    try:
+        mvrv = float(((cyc.get("factors") or {}).get("mvrv_extension") or {}).get("mvrv"))
+    except Exception:
+        mvrv = None
+    mc = (fund.get("market_composite") or {}) if isinstance(fund, dict) else {}
+    market_funding = mc.get("vw_funding_annualized_pct")
+    market_funding = float(market_funding) if isinstance(market_funding, (int, float)) else None
+    coin_funding = {}
+    for cn, cv in ((fund.get("by_coin") or {}) if isinstance(fund, dict) else {}).items():
+        if isinstance(cv, dict) and isinstance(cv.get("annualized_pct"), (int, float)):
+            coin_funding[cn] = float(cv["annualized_pct"])
 
     # ── complex-level breadth & BTC trend ──
     above50 = above200 = ncoins = 0
@@ -148,7 +151,12 @@ def lambda_handler(event=None, context=None):
             mom_score = 38
         ctx = 50.0
         if cyc_risk is not None:
-            ctx += -15 if cyc_risk >= 70 else (12 if cyc_risk <= 35 else 0)   # high cycle-risk = late
+            ctx += -15 if cyc_risk >= 70 else (12 if cyc_risk <= 35 else 0)   # high dump-risk = late
+        if mvrv is not None:
+            ctx += 12 if mvrv < 1.0 else (-12 if mvrv > 3.0 else 0)            # undervalued vs euphoric
+        cf = coin_funding.get(t.replace("USD", ""))
+        if cf is not None:
+            ctx += 6 if cf < 0 else (-10 if cf > 30 else 0)                    # negative funding = washed-out fuel; very hot = crowded
         ctx = clamp(ctx + (8 if breadth50 > 50 else -6))
 
         emergence = round(0.25 * rs_score + 0.30 * trend_score + 0.18 * (breadth50 * 0.6 + breadth200 * 0.4)
@@ -176,9 +184,12 @@ def lambda_handler(event=None, context=None):
             sigs.append("base breakout")
         if m3 > 0 and dist_low < 0.6:
             sigs.append("early momentum")
+        if cf is not None and cf < -5:
+            sigs.append("funding negative (squeeze fuel)")
         out.append({"ticker": t.replace("USD", ""), "name": name, "sector": sect, "emergence_score": emergence,
                     "stage": stage, "rs_score": round(rs_score), "trend_score": round(trend_score),
                     "rs_vs_btc_slope_pct": rs_slope, "ret_3m_pct": round(m3 * 100, 1),
+                    "funding_annualized_pct": round(cf, 1) if cf is not None else None,
                     "dist_from_low_pct": round(dist_low * 100), "price": round(price, 4),
                     "ma200": round(m200, 4), "signals": sigs, "falsifier": falsifier})
     out.sort(key=lambda x: -x["emergence_score"])
@@ -201,6 +212,28 @@ def lambda_handler(event=None, context=None):
     else:
         complex_stage = "TRANSITION"
         complex_read = "Mixed — no clean complex regime; trade coins individually on their own stage."
+
+    # accumulation-vs-euphoria context — distinguishes a bottoming bear from a euphoric top
+    acc = []
+    if mvrv is not None and mvrv < 1.0:
+        acc.append(f"MVRV {mvrv:.2f} (undervalued)")
+    if cyc_risk is not None and cyc_risk <= 40:
+        acc.append(f"dump-risk {cyc_risk:.0f} ({(risk_level or 'low').lower()})")
+    if market_funding is not None and market_funding < 0:
+        acc.append(f"funding {market_funding:+.1f}% ann. (negative = washed out)")
+    euph = []
+    if mvrv is not None and mvrv > 3.0:
+        euph.append(f"MVRV {mvrv:.2f} (euphoric)")
+    if cyc_risk is not None and cyc_risk >= 70:
+        euph.append(f"dump-risk {cyc_risk:.0f} (high)")
+    if market_funding is not None and market_funding > 25:
+        euph.append(f"funding {market_funding:+.0f}% ann. (frothy)")
+    if complex_stage.startswith("BEAR") and len(acc) >= 2:
+        complex_read += (" But this reads as an ACCUMULATION-zone bear, not a euphoric top — "
+                         + ", ".join(acc) + ". That's the setup that precedes early innings; watch the trigger.")
+    elif euph and complex_stage in ("CONFIRMED BULL",):
+        complex_read += " ⚠ Froth building: " + ", ".join(euph) + "."
+
     triggers = {
         "early_bull_confirms_when": f"BTC reclaims its 200-day (~{btc_ma200:,.0f}) and HOLDS, breadth >50% of coins above 50d "
                                     f"(now {breadth50}%), and ETH/BTC turns up (alts joining).",
@@ -223,7 +256,9 @@ def lambda_handler(event=None, context=None):
         "complex_stage": complex_stage, "complex_read": complex_read,
         "breadth_pct_above_50d": breadth50, "breadth_pct_above_200d": breadth200,
         "btc_above_200d": btc_above_200, "btc_200d_rising": btc_200_up,
-        "ethbtc_2m_trend_pct": ethbtc_trend, "cycle_risk": cyc_risk, "funding_context": funding_hot,
+        "ethbtc_2m_trend_pct": ethbtc_trend, "cycle_risk": cyc_risk, "risk_level": risk_level,
+        "mvrv": mvrv, "market_funding_annualized_pct": market_funding,
+        "accumulation_context": acc, "euphoria_context": euph,
         "triggers": triggers, "coins": out, "top_picks": top_picks,
         "legend": {"DECLINING": "downtrend — avoid", "BASING": "bottoming — watch", "EMERGING": "early Stage-2 — the target",
                    "CONFIRMED": "uptrend underway", "EXTENDED": "late / top-risk", "TRANSITION": "mixed"},

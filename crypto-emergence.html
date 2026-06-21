@@ -48,6 +48,9 @@ const SC={EMERGING:'var(--green)',CONFIRMED:'var(--cyan)','CONFIRMED BULL':'var(
     <div class="chip"><b>Breadth &gt;200d</b><span>${d.breadth_pct_above_200d}%</span></div>
     <div class="chip"><b>ETH/BTC 2m</b><span style="color:${(d.ethbtc_2m_trend_pct||0)>=0?'var(--green)':'var(--red)'}">${d.ethbtc_2m_trend_pct>0?'+':''}${d.ethbtc_2m_trend_pct}%</span></div>
     <div class="chip"><b>Alt-season</b><span style="font-size:10px">${esc(tr.alt_season||'—')}</span></div>
+    ${d.mvrv!=null?`<div class="chip"><b>MVRV</b><span style="color:${d.mvrv<1?'var(--green)':d.mvrv>3?'var(--red)':'var(--fg-1)'}">${d.mvrv}</span></div>`:''}
+    ${d.cycle_risk!=null?`<div class="chip"><b>Dump-risk</b><span style="color:${d.cycle_risk>=70?'var(--red)':d.cycle_risk<=40?'var(--green)':'var(--amber)'}">${d.cycle_risk} ${esc(d.risk_level||'')}</span></div>`:''}
+    ${d.market_funding_annualized_pct!=null?`<div class="chip"><b>Funding ann.</b><span style="color:${d.market_funding_annualized_pct<0?'var(--green)':d.market_funding_annualized_pct>25?'var(--red)':'var(--fg-1)'}">${d.market_funding_annualized_pct>0?'+':''}${d.market_funding_annualized_pct}%</span></div>`:''}
   </div>`;
   h+=`<div class="trigger"><h3>⚑ What marks the early innings — the trigger to watch</h3>
     <div class="row">✅ <b>Confirms when:</b> ${esc(tr.early_bull_confirms_when||'')}</div>
@@ -59,7 +62,7 @@ const SC={EMERGING:'var(--green)',CONFIRMED:'var(--cyan)','CONFIRMED BULL':'var(
       <span class="tk" style="color:${cc}">${esc(o.ticker)}</span><span class="nm">${esc(o.name)}</span><span class="sct">${esc(o.sector)}</span>
       <span class="badge" style="color:${cc};background:${cc}1a;border:1px solid ${cc}">${esc(o.stage)}</span>
       <span class="score" style="color:${cc}">${o.emergence_score}</span></div>
-      <div class="det">RS ${o.rs_score} · Trend ${o.trend_score} · vs-BTC ${o.rs_vs_btc_slope_pct>0?'+':''}${o.rs_vs_btc_slope_pct}% · 3m ${o.ret_3m_pct>0?'+':''}${o.ret_3m_pct}% ${(o.signals||[]).length?'· ':''}${(o.signals||[]).map(s=>`<span class="sig">${esc(s)}</span>`).join('')}</div></div>`;
+      <div class="det">RS ${o.rs_score} · Trend ${o.trend_score} · vs-BTC ${o.rs_vs_btc_slope_pct>0?'+':''}${o.rs_vs_btc_slope_pct}% · 3m ${o.ret_3m_pct>0?'+':''}${o.ret_3m_pct}%${o.funding_annualized_pct!=null?' · fund '+(o.funding_annualized_pct>0?'+':'')+o.funding_annualized_pct+'%':''} ${(o.signals||[]).length?'· ':''}${(o.signals||[]).map(s=>`<span class="sig">${esc(s)}</span>`).join('')}</div></div>`;
   }
   h+=`<div class="note">Crypto is scored against <b>BITCOIN</b> internally — an alt gaining on BTC (RS-vs-BTC up) is risk rotating down the curve (alt-season). The <b>200-day reclaim</b> is the decisive trend trigger; breadth across coins separates a real broad bull from a BTC-only bounce. EMERGING coins are logged and graded forward. Research, not investment advice.</div>`;
   w.innerHTML=h;
