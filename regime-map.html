@@ -59,6 +59,14 @@ const REG={'BIFURCATED':'--amber','BROAD RISK-ON':'--green','BROAD RISK-OFF':'--
   const rowHtml=x=>`<div class="row"><span class="tk" style="color:${txt(x.risk_on)}">${esc(x.ticker)}</span><span class="nm">${esc(x.name)}</span><span class="ro" style="color:${txt(x.risk_on)}">${x.risk_on>0?'+':''}${x.risk_on}</span><span class="rr">${x.r3m>0?'+':''}${x.r3m}%</span></div>`;
   h+=`<div class="cols"><div class="col b"><h3>🔥 Booming · risk-on</h3>${(d.booming||[]).map(rowHtml).join('')}</div>
     <div class="col d"><h3>💀 Getting destroyed · risk-off</h3>${(d.destroyed||[]).map(rowHtml).join('')}</div></div>`;
+  // turns & transitions
+  if(d.regime_changed){h+=`<div class="banner" style="border-left:4px solid var(--amber);margin-top:12px"><b style="color:var(--amber)">⚠ REGIME CHANGE</b> — shifted from <b>${esc(d.prev_regime)}</b> to <b>${esc(r.label)}</b> since the last run.</div>`;}
+  if((d.transitions||[]).length){
+    const KC={'BOTTOMING / RECOVERING':'var(--green)','ACCELERATING':'var(--green)','FLIPPED RISK-ON':'var(--green)','STRENGTHENING':'var(--green)','ROLLING OVER':'var(--red)','CAPITULATING':'var(--red)','FLIPPED RISK-OFF':'var(--red)','WEAKENING':'var(--amber)'};
+    h+=`<h2>⟳ Turns & transitions <span style="color:var(--fg-3);font-weight:400;text-transform:none">— where the tape is changing (alpha is in the turn)</span></h2><div class="col">`;
+    for(const t of d.transitions){const kc=KC[t.kind]||'var(--fg-2)';h+=`<div class="row"><span class="tk" style="color:${txt(t.delta)}">${esc(t.ticker)}</span><span class="nm">${esc(t.name)}</span><span style="font-family:var(--mono);font-size:11px;color:var(--fg-2)">${esc(t.from)}→${esc(t.to)}</span><span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${kc};width:140px;text-align:right">${esc(t.kind)}</span><span class="ro" style="color:${txt(t.delta)}">${t.delta>0?'+':''}${t.delta}</span></div>`;}
+    h+=`</div>`;
+  } else { h+=`<h2>⟳ Turns & transitions</h2><div class="note" style="margin-top:0">No state changes since the prior run — the map is stable. Transitions populate as sleeves cross between BOOMING / RISK-ON / NEUTRAL / RISK-OFF / DESTROYED.</div>`; }
   h+=`<h2>Full map — every sleeve</h2>`;
   for(const[sl,items] of Object.entries(d.sleeves||{})){
     h+=`<div class="sleeve"><div class="st">${esc(sl)}</div><div class="grid">`;

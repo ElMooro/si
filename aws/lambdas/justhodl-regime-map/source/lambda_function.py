@@ -97,6 +97,11 @@ def state_of(ro):
 
 def lambda_handler(event=None, context=None):
     t0 = time.time()
+    # prior snapshot for transition detection
+    try:
+        prev = json.loads(S3.get_object(Bucket=BUCKET, Key="data/regime-map-prev.json")["Body"].read())
+    except Exception:
+        prev = None
     all_tk = [(t, nm, sleeve) for sleeve, lst in UNIVERSE.items() for (t, nm) in lst]
     with ThreadPoolExecutor(max_workers=20) as ex:
         closes = dict(ex.map(fetch, [t for t, _, _ in all_tk]))
@@ -154,6 +159,51 @@ def lambda_handler(event=None, context=None):
         summary = (f"No dominant regime — equities mixed (avg {eq_avg:+}, breadth {eq_breadth_pct}%), "
                    f"crypto {crypto_avg:+}, rates {rates_avg:+}. A rotational, stock-picker's tape.")
 
+    # ── TRANSITIONS: where the tape is TURNING (the alpha is in the turn, not the trend) ──
+    RANK = {"DESTROYED": 0, "RISK-OFF": 1, "NEUTRAL": 2, "RISK-ON": 3, "BOOMING": 4}
+    transitions = []
+    if prev and prev.get("states"):
+        ps = prev["states"]
+        for it in ranked:
+            tk = it["ticker"]
+            p = ps.get(tk)
+            if not p:
+                continue
+            d_ro = it["risk_on"] - p.get("risk_on", 0)
+            if it["state"] == p.get("state") and abs(d_ro) < 18:
+                continue
+            pr, cr = RANK.get(p.get("state"), 2), RANK[it["state"]]
+            if cr > pr and cr >= 2 and pr <= 1:
+                kind = "BOTTOMING / RECOVERING"
+            elif cr >= 4 and pr < 4:
+                kind = "ACCELERATING"
+            elif cr < pr and pr >= 3 and cr <= 2:
+                kind = "ROLLING OVER"
+            elif cr == 0 and pr > 0:
+                kind = "CAPITULATING"
+            elif p.get("risk_on", 0) <= 0 < it["risk_on"]:
+                kind = "FLIPPED RISK-ON"
+            elif p.get("risk_on", 0) >= 0 > it["risk_on"]:
+                kind = "FLIPPED RISK-OFF"
+            elif d_ro >= 18:
+                kind = "STRENGTHENING"
+            else:
+                kind = "WEAKENING"
+            transitions.append({"ticker": tk, "name": it["name"], "sleeve": it["sleeve"],
+                                "from": p.get("state"), "to": it["state"], "delta": d_ro, "kind": kind})
+        transitions.sort(key=lambda x: -abs(x["delta"]))
+    prev_label = (prev or {}).get("label")
+    regime_changed = bool(prev_label and prev_label != label)
+
+    # persist current snapshot for next run's diff
+    try:
+        S3.put_object(Bucket=BUCKET, Key="data/regime-map-prev.json",
+                      Body=json.dumps({"generated_at": datetime.now(timezone.utc).isoformat(), "label": label,
+                                       "states": {it["ticker"]: {"risk_on": it["risk_on"], "state": it["state"]}
+                                                  for it in ranked}}).encode(), ContentType="application/json")
+    except Exception:
+        pass
+
     payload = {
         "engine": "justhodl-regime-map", "version": "1.0.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -162,6 +212,10 @@ def lambda_handler(event=None, context=None):
         "regime": {"label": label, "summary": summary, "concentration_spread_3m": conc,
                    "equity_breadth_pct": eq_breadth_pct, "equity_avg": eq_avg, "crypto_avg": crypto_avg,
                    "rates_avg": rates_avg, "commodities_avg": commod_avg, "intl_avg": intl_avg},
+        "regime_changed": regime_changed,
+        "prev_regime": prev_label,
+        "transitions": transitions[:14],
+        "n_transitions": len(transitions),
         "booming": ranked[:6],
         "destroyed": list(reversed(ranked[-6:])),
         "sleeves": sleeves,
@@ -173,6 +227,7 @@ def lambda_handler(event=None, context=None):
     S3.put_object(Bucket=BUCKET, Key="data/regime-map.json", Body=json.dumps(payload).encode(),
                   ContentType="application/json", CacheControl="public, max-age=900")
     print(f"[regime-map] {len(ranked)} instruments | regime={label} | eq {eq_avg:+} crypto {crypto_avg:+} "
-          f"breadth {eq_breadth_pct}% conc {conc:+} | {payload['elapsed_s']}s")
+          f"breadth {eq_breadth_pct}% conc {conc:+} | transitions={len(transitions)} regime_changed={regime_changed} "
+          f"| {payload['elapsed_s']}s")
     return {"statusCode": 200, "body": json.dumps({"ok": True, "regime": label, "n": len(ranked),
             "equity_avg": eq_avg, "crypto_avg": crypto_avg})}
