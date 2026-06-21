@@ -1,12 +1,7 @@
-function EXISTS | state Active | timeout 300 | mem 512
-invoke: 200 {"statusCode": 200, "body": "{\"regime\": \"DRY-POWDER LOADED\", \"score\": 87.0, \"ssr_verdict\": \"INCONCLUSIVE\", \"fng_verdict\": \"INVERTED_DIAGNOSTIC\"}"}
+regime: DRY-POWDER LOADED score 87.0
+forecast_supported: False
+directional_read: None | top_picks: []
+forecast_support: NOT a validated timing signal. Over 2018–2026 on this sample, low SSR showed ~0 forward edge and extreme fear INVERTED (it preceded lower 90d BTC returns, behaving as momentum not contrarian — see backtests below). This 
 
-REGIME: DRY-POWDER LOADED · score 87.0 · Max sidelined cash + fear — historical accumulation/bottom zone. Contrarian risk-ON setup.
-SSR 3.89 | pctile2y 1.8 | dry powder LARGE vs BTC (bullish)
-F&G 23 (Extreme Fear) | stbl dom 11.51%
-
-SSR BACKTEST 90d: low(≤20%ile)→0.7% (hit 50.5%) vs high(≥80%ile)→2.03% | EDGE -1.3pp | n1655/499 | INCONCLUSIVE (w5)
-F&G BACKTEST 90d: fear(≤25)→-5.49% (hit 43.5%) vs greed(≥75)→9.62% | EDGE -15.1pp | n662/330 | INVERTED_DIAGNOSTIC (w0)
-directional_read: UP | top_picks: [{'ticker': 'IBIT', 'direction': 'UP', 'reason': 'crypto-liquidity DRY-POWDER LOADED (score 87.0)', 'conviction': 'high'}]
-CREATED_OK
-DONE 2083
+crypto-liquidity.html: 200 | reads feed: True
+DONE 2084
