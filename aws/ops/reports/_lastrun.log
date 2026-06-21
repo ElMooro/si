@@ -1,13 +1,12 @@
-=== alternative.me Fear & Greed (full history) ===
-points: 3059 | keys: ['value', 'value_classification', 'timestamp', 'time_until_update']
-latest: {"value": "23", "value_classification": "Extreme Fear", "timestamp": "1782000000", "time_until_update": "4861"}
-oldest: {"value": "30", "value_classification": "Fear", "timestamp": "1517443200"}
-span: 2018-02-01 -> 2026-06-21
+function EXISTS | state Active | timeout 300 | mem 512
+invoke: 200 {"statusCode": 200, "body": "{\"regime\": \"DRY-POWDER LOADED\", \"score\": 87.0, \"ssr_verdict\": \"INCONCLUSIVE\", \"fng_verdict\": \"INVERTED_DIAGNOSTIC\"}"}
 
-=== CoinGecko /global (current total mcap + stablecoin share) ===
-total crypto mcap: $2272B
-btc.d: 56.18923693815381 | eth.d: 9.115355829295225 | usdt.d: 8.198659627879053 | usdc.d: 3.292443411155012
+REGIME: DRY-POWDER LOADED · score 87.0 · Max sidelined cash + fear — historical accumulation/bottom zone. Contrarian risk-ON setup.
+SSR 3.89 | pctile2y 1.8 | dry powder LARGE vs BTC (bullish)
+F&G 23 (Extreme Fear) | stbl dom 11.51%
 
-=== CoinGecko BTC mcap history free-tier depth check (days=365) ===
-btc mcap points (365d req): 366 | latest $1274B
-DONE 2082
+SSR BACKTEST 90d: low(≤20%ile)→0.7% (hit 50.5%) vs high(≥80%ile)→2.03% | EDGE -1.3pp | n1655/499 | INCONCLUSIVE (w5)
+F&G BACKTEST 90d: fear(≤25)→-5.49% (hit 43.5%) vs greed(≥75)→9.62% | EDGE -15.1pp | n662/330 | INVERTED_DIAGNOSTIC (w0)
+directional_read: UP | top_picks: [{'ticker': 'IBIT', 'direction': 'UP', 'reason': 'crypto-liquidity DRY-POWDER LOADED (score 87.0)', 'conviction': 'high'}]
+CREATED_OK
+DONE 2083
