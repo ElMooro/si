@@ -219,6 +219,21 @@ def lambda_handler(event=None, context=None):
     DIAG.append(f"coins: BTC {len(btc)} · ETH {len(eth)} · alts {len(alts)}/16")
     firsts = {sym: h[min(h)][0] for sym, h in alts.items()}
 
+    # ── stablecoin supply (DefiLlama, free/no-auth) = dry powder entering/leaving crypto ──
+    stbl = {}
+    try:
+        _sreq = urllib.request.Request("https://stablecoins.llama.fi/stablecoincharts/all",
+                                        headers={"User-Agent": "justhodl/1.0"})
+        for row in json.loads(urllib.request.urlopen(_sreq, timeout=45).read()):
+            t = row.get("date")
+            v = (row.get("totalCirculatingUSD") or {}).get("peggedUSD")
+            if t and isinstance(v, (int, float)):
+                dd = datetime.fromtimestamp(int(t), tz=timezone.utc).date().isoformat()
+                stbl[dd] = float(v)
+        DIAG.append(f"stablecoin supply: {len(stbl)}d, latest ${stbl[max(stbl)] / 1e9:.0f}B" if stbl else "stablecoin: empty")
+    except Exception as e:
+        DIAG.append(f"stablecoin fetch failed: {str(e)[:60]}")
+
     dates = sorted(btc)
     bidx = {d: i for i, d in enumerate(dates)}
     bclose = [btc[d][0] for d in dates]
@@ -537,6 +552,69 @@ def lambda_handler(event=None, context=None):
     b200_study["weight_assigned"] = b200_w
     b200_study["verdict"] = ("CONFIRMS_HYPOTHESIS" if b200_w >= 10 else
                              "REJECTED_DIAGNOSTIC" if b200_w == 0 else "INCONCLUSIVE")
+    # ── stablecoin supply trend (dry powder) — EVENT-STUDIED before it earns a weight ──
+    stbl_dates = sorted(stbl)
+    stbl_now = stbl[stbl_dates[-1]] if stbl_dates else None
+    def _stbl_chg(days):
+        if len(stbl_dates) <= days:
+            return None
+        a = stbl[stbl_dates[-1 - days]]
+        return round((stbl_now / a - 1) * 100, 1) if a else None
+    stbl_30 = _stbl_chg(30)
+    stbl_90 = _stbl_chg(90)
+    stbl_90dma = (sum(stbl[d] for d in stbl_dates[-90:]) / 90) if len(stbl_dates) >= 90 else None
+    stbl_above_90dma = bool(stbl_90dma and stbl_now and stbl_now > stbl_90dma)
+    stbl_study = {"n_expand": 0, "n_contract": 0, "fwd90_expand_med": None,
+                  "fwd90_contract_med": None, "edge_pp": None,
+                  "threshold_expand_pct": 2.0, "threshold_contract_pct": -2.0}
+    try:
+        ks = sorted(basket_usd)
+        kpos = {d: i for i, d in enumerate(ks)}
+        sdi = {d: i for i, d in enumerate(stbl_dates)}
+        def _fwd90(d):
+            i = kpos.get(d)
+            if i is None or i + 90 >= len(ks):
+                return None
+            a = basket_usd[d]
+            return (basket_usd[ks[i + 90]] / a - 1) * 100 if a else None
+        def _chg_at(d):
+            i = sdi.get(d)
+            if i is None or i < 30:
+                return None
+            a = stbl[stbl_dates[i - 30]]
+            return (stbl[d] / a - 1) * 100 if a else None
+        ex, ct = [], []
+        for d in ks:
+            chg = _chg_at(d)
+            f = _fwd90(d)
+            if chg is None or f is None:
+                continue
+            if chg >= 2:
+                ex.append(f)
+            elif chg <= -2:
+                ct.append(f)
+        def _med(x):
+            x = sorted(x)
+            n = len(x)
+            return round((x[n // 2] if n % 2 else (x[n // 2 - 1] + x[n // 2]) / 2), 1) if x else None
+        stbl_study["n_expand"], stbl_study["n_contract"] = len(ex), len(ct)
+        stbl_study["fwd90_expand_med"], stbl_study["fwd90_contract_med"] = _med(ex), _med(ct)
+        if ex and ct:
+            stbl_study["edge_pp"] = round(stbl_study["fwd90_expand_med"] - stbl_study["fwd90_contract_med"], 1)
+    except Exception as e:
+        stbl_study["error"] = str(e)[:80]
+    _se = stbl_study.get("edge_pp")
+    if _se is not None and _se >= 8:
+        stbl_w = 12
+    elif _se is not None and _se >= 3:
+        stbl_w = 8
+    elif _se is not None and _se <= -3:
+        stbl_w = 0
+    else:
+        stbl_w = 5
+    stbl_study["weight_assigned"] = stbl_w
+    stbl_study["verdict"] = ("CONFIRMS_HYPOTHESIS" if stbl_w >= 8 else
+                             "REJECTED_DIAGNOSTIC" if stbl_w == 0 else "INCONCLUSIVE")
     V = []
     def vote(name, value, conf, rej, w, note):
         v = "CONFIRM" if conf else "REJECT" if rej else "NEUTRAL"
@@ -553,18 +631,19 @@ def lambda_handler(event=None, context=None):
           ai_now is not None and ai_now <= 30, 20, "canonical ≥70% = season")
     vote("Alt breadth > 90DMA", br_now, br_now is not None and br_now >= 60,
           br_now is not None and br_now <= 25, 10, "participation")
-    vote("Alt 200DMA reclaim breadth", f"{b200_now}%" if b200_now is not None else None,
-          b200_now is not None and b200_now >= 50 and b200_w > 0,
-          b200_now is not None and b200_now <= 20, b200_w,
-          (f"% of alts back above own 200DMA. "
-           + (f"DIAGNOSTIC (weight 0) — backtest did NOT support this as a bullish lead: fwd90 basket "
-              f"{b200_study.get('fwd90_high_med')}% when ≥50 vs {b200_study.get('fwd90_low_med')}% when ≤20 "
-              f"(edge {b200_study.get('edge_pp')}pp, n{b200_study.get('n_high')}/{b200_study.get('n_low')}) → "
-              f"high reclaim-breadth ran LATE/contrarian here (sample dominated by past blowoff tops; "
-              f"inception-anchored basket inflates magnitude). Shown for context, excluded from score."
-              if b200_w == 0 else
-              f"Backtest: fwd90 {b200_study.get('fwd90_high_med')}% when ≥50 vs {b200_study.get('fwd90_low_med')}% "
-              f"when ≤20 (edge {b200_study.get('edge_pp')}pp, n{b200_study.get('n_high')}/{b200_study.get('n_low')})")))
+    vote("Stablecoin supply trend (dry powder)",
+          (f"${stbl_now/1e9:.0f}B · 30d {stbl_30:+.1f}%" if stbl_now and stbl_30 is not None else None),
+          stbl_30 is not None and stbl_30 >= 1.5 and stbl_above_90dma and stbl_w > 0,
+          stbl_30 is not None and stbl_30 <= -1.5, stbl_w,
+          (f"aggregate USD-stablecoin circulating = capital entering(+)/leaving(−) crypto. "
+           + (f"DIAGNOSTIC (weight 0) — backtest did NOT support: fwd90 basket "
+              f"{stbl_study.get('fwd90_expand_med')}% when expanding (30d≥+2%) vs "
+              f"{stbl_study.get('fwd90_contract_med')}% contracting (edge {stbl_study.get('edge_pp')}pp, "
+              f"n{stbl_study.get('n_expand')}/{stbl_study.get('n_contract')}). Excluded from score."
+              if stbl_w == 0 else
+              f"Backtest: fwd90 basket {stbl_study.get('fwd90_expand_med')}% when supply expanding (30d≥+2%) "
+              f"vs {stbl_study.get('fwd90_contract_med')}% contracting "
+              f"(edge {stbl_study.get('edge_pp')}pp, n{stbl_study.get('n_expand')}/{stbl_study.get('n_contract')})")))
     vote("Alt 90d-high breadth", hi_now, hi_now is not None and hi_now >= 25,
           False, 8, "leadership expansion")
     vote("Alt volume share (1y pctile)", vs_pct, vs_pct is not None and vs_pct >= 70,
@@ -656,11 +735,15 @@ def lambda_handler(event=None, context=None):
              "to the closed loop at sequel-table confidence.")}
     out["duration_s"] = round(time.time() - t0, 1)
     out["breadth_200dma_study"] = b200_study
+    out["stablecoin_supply"] = {"total_usd": stbl_now, "chg_30d_pct": stbl_30,
+                                "chg_90d_pct": stbl_90, "above_90dma": stbl_above_90dma}
+    out["stablecoin_study"] = stbl_study
     # AI tribunal — routed through llm_router (tier=reason → GLM). Direct Claude 400s while Anthropic credits are out.
     ai = {"error": None}
     try:
         compact = {"composite": composite, "votes": V,
                     "alt_index_now": ai_now, "breadth_200dma_study": b200_study,
+                    "stablecoin_supply": out["stablecoin_supply"], "stablecoin_study": stbl_study,
                     "event_study_stats":
                       {k: {kk: v.get(kk) for kk in ("fwd_30", "fwd_90")}
                        for k, v in study.items()},
