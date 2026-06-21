@@ -1,18 +1,26 @@
-=== Oct 1 2025 → Jun 2026 ===
-  SPY (cap-weight S&P)       +11.7%   (low -5% from Oct, maxDD -9%)
-  RSP (EQUAL-weight S&P)     +10.4%   (low -4% from Oct, maxDD -8%)
-  QQQ (Nasdaq/AI-heavy)      +22.8%   (low -7% from Oct, maxDD -12%)
-  IWM (small caps)           +21.9%   (low -6% from Oct, maxDD -11%)
-  NVDA                       +12.5%   (low -12% from Oct, maxDD -20%)
-  MAGS (Mag-7 ETF)            +0.4%   (low -15% from Oct, maxDD -20%)
-  XLK (tech)                 +34.5%   (low -10% from Oct, maxDD -16%)
-  BTC                        -45.9%   (low -49% from Oct, maxDD -51%)
-  ETH                        -60.0%   (low -64% from Oct, maxDD -67%)
+created
+scheduled
+invoke: 200 {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"BIFURCATED\", \"n\": 38, \"equity_avg\": 34.5, \"crypto_avg\": -54.7}"}
 
-=== BIFURCATION TEST ===
-SPY − RSP concentration spread: +1.3 pts  (broad)
-SPY − IWM (large vs small): -10.2 pts
-NVDA vs small caps: NVDA +13% vs IWM +22%
-Crypto BTC: -46% (Khalid said ~−75%; trough -49% from Oct)
-VERDICT: NOT clearly bifurcated — recheck
-DONE 2057
+=== REGIME: BIFURCATED ===
+Two regimes at once: equities broadly risk-on (avg +34.5) while crypto is risk-off (avg -54.7). The index strength is real and broad — it is NOT masking weak breadth.
+
+stats: eq_avg 34.5 | crypto -54.7 | rates -19.0 | commod 7.8 | breadth 86% | conc-spread 4.6pts
+
+🔥 BOOMING:
+   VLUE   Value                  ro +100  BOOMING   (3m +38%)
+   MTUM   Momentum               ro  +95  BOOMING   (3m +37%)
+   XLK    Technology             ro  +91  BOOMING   (3m +38%)
+   EEM    Emerging Mkts          ro  +75  BOOMING   (3m +23%)
+   IWM    Small caps             ro  +61  BOOMING   (3m +19%)
+   IWD    Large Value            ro  +51  BOOMING   (3m +13%)
+💀 DESTROYED:
+   ETH    Ethereum               ro  -64  DESTROYED (3m -24%)
+   SOL    Solana                 ro  -51  DESTROYED (3m -11%)
+   BTC    Bitcoin                ro  -49  DESTROYED (3m -13%)
+   FXI    China                  ro  -46  DESTROYED (3m -8%)
+   XLC    Communications         ro  -35  RISK-OFF  (3m -3%)
+   TIP    TIPS / Inflation       ro  -27  RISK-OFF  (3m -2%)
+
+n_instruments: 38
+DONE 2058
