@@ -1,16 +1,15 @@
-invoke: {"statusCode": 200, "body": "{\"ok\": true, \"n_engines\": 67, \"counts\": {\"PROMOTED\": 8, \"ACTIVE\": 9, \"INSUFFICIENT\": 5, \"DEPRECATED\": 22, \"WARMING\": 23}, \"regime\": \"BIFURCATED\"}"}
+Quarter-end rebalancing study | 18 quarter-ends 2010-2026 | 9 SPDR sectors
+Forward EXCESS-vs-SPY of the quarter's WINNERS (rebalancers SELL) vs LOSERS (rebalancers BUY):
 
-current_regime in engine-trust: BIFURCATED
-engines now conditioned on Risk Map dispersion: 47 / 67
-examples (effective_trust reflects regime fit):
-   eurodollar_stress              regime_factor 1.2 eff_trust 0.0 (n_regime 156)
-   nobrainer_OIH                  regime_factor 1.08 eff_trust 1.08 (n_regime 6)
-   corr_break_composite_vs_vxx    regime_factor 1.08 eff_trust 0.0 (n_regime 221)
-   crisis_dfii10_vs_gld           regime_factor 1.0 eff_trust 1.5 (n_regime 208)
-   momentum_top_pick              regime_factor 1.0 eff_trust 1.25 (n_regime 18)
-   nobrainer_SMH                  regime_factor 0.55 eff_trust 0.55 (n_regime 8)
-   squeeze_risk                   regime_factor 0.8 eff_trust 0.96 (n_regime 615)
-   nobrainer_SOXX                 regime_factor 0.8 eff_trust 0.8 (n_regime 9)
-   crisis_dfii10_vs_spy           regime_factor 0.8 eff_trust 0.0 (n_regime 208)
-   corr_break_composite_vs_spy    regime_factor 0.8 eff_trust 0.0 (n_regime 221)
-DONE 2066
+horizon                 WINNERS avg  LOSERS avg  spread(W-L)  W>L freq
++5d (rebal window)           +0.15%      +0.61%       -0.46%       39%
++21d (next month)            -0.34%      +1.39%       -1.72%       28%
++63d (next quarter)          -1.71%      +1.31%       -3.01%       33%
+
+medians (robust):
+  +5d (rebal window)     winners -0.18%  losers +0.45%  spread -0.63%
+  +21d (next month)      winners -0.07%  losers +1.33%  spread -1.40%
+  +63d (next quarter)    winners -1.53%  losers +0.88%  spread -2.41%
+
+INTERPRETATION: spread>0 = momentum persists (winners keep winning); spread<0 = REBALANCING REVERSAL (the quarter's losers outperform — institutions buying the laggards).
+DONE 2067
