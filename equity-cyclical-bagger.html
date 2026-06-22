@@ -29,7 +29,12 @@ function stg(s){return s==='EARLY'?'var(--green)':s==='CONFIRMING'?'var(--cyan)'
 function bar(label,v,col){return `<div class="mini"><b>${label}</b><div class="track"><i style="width:${Math.round(v*100)}%;background:${col||'var(--cyan)'}"></i></div></div>`;}
 function card(r){
   let h=`<div class="card"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> `;
-  if(r.twenty_x_shape)h+=`<span class="tag" style="color:var(--violet);border-color:var(--violet)">20x shape</span> `;
+  if(r.full_20x)h+=`<span class="tag" style="color:#0a0e14;background:var(--violet);border-color:var(--violet);font-weight:700">FULL 20x</span> `;
+  else if(r.twenty_x_shape)h+=`<span class="tag" style="color:var(--violet);border-color:var(--violet)">20x shape</span> `;
+  if(r.secular_class==='cycle+secular')h+=`<span class="tag" style="color:var(--amber);border-color:var(--amber)">cycle+secular</span> `;
+  else if(r.secular_class==='cyclical-only')h+=`<span class="tag" style="color:var(--fg-3);border-color:var(--fg-3)">cyclical-only · ~2-5x</span> `;
+  if(r.survived===false)h+=`<span class="tag" style="color:var(--red);border-color:var(--red)">FRAGILE</span> `;
+  else if(r.survived===true)h+=`<span class="tag" style="color:var(--green);border-color:var(--green)">survives</span> `;
   h+=`<span class="tag" style="color:${stg(r.stage)};border-color:${stg(r.stage)}">${esc(r.stage)}</span> <span class="tag">${esc(r.cap_bucket||'')}</span></div><span class="score" style="color:${sc(r.cyclical_20x_score)}">${r.cyclical_20x_score}</span></div>`;
   h+=`<div class="bars">${bar('coil',r.coil_score,'var(--violet)')}${bar('violence',r.violence_score,'var(--red)')}${bar('accel',r.acceleration_score)}${bar('catalyst',r.secular_catalyst_score,'var(--amber)')}${bar('cheap',r.cheap_score,'var(--green)')}${bar('room',r.room_score)}</div>`;
   h+=`<div class="detail">op-margin <b>${r.om_trough}%</b> → <b>${r.om_now}%</b> (<span style="color:var(--red)">+${r.om_swing_pp}pp snapback</span>) · EPS ${r.eps_neg_to_pos?'<span style="color:var(--green)">turned neg→pos</span>':'positive'} · rev ${r.rev_scaling_x}× off trough${r.run_from_trough_x?` · price ${r.run_from_trough_x}× off trough`:''}</div>`;
@@ -48,17 +53,25 @@ function card(r){
     <div class="calib">${Object.entries(c).map(([k,v])=>`<span class="cb" style="border-color:${v>=80?'var(--violet)':'var(--fg-3)'};color:${v>=80?'var(--violet)':'var(--fg-2)'}">${esc(k)} +${v}pp${v>=80?' ✅':' ❌'}</span>`).join('')}</div>
     <span style="color:var(--fg-3)">Gate: ${esc(d.discriminator&&d.discriminator.gate)}</span></div>`;
   const s=d.stats||{};
-  h+=`<div class="counts"><div class="cpill"><b>Evaluated</b><span>${s.evaluated||0}</span></div><div class="cpill"><b>20x shape</b><span style="color:var(--violet)">${s.twenty_x_shape||0}</span></div><div class="cpill"><b>Early/Confirming</b><span style="color:var(--green)">${s.shape_early_confirming||0}</span></div></div>`;
-  const book=d.twenty_x_shape_book||[];
-  if(book.length){
-    h+=`<h2>🌀 20x-shape book — deep trough + violent snapback, caught early</h2>`;
-    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:6px">Names structurally shaped like MU/SNDK before they ran — coiled out of a loss-making trough with a violent operating-leverage recovery. EARLY = price hasn't run yet. Most still won't 20x; this is the window, not a promise.</div>`;
-    for(const r of book)h+=card(r);
+  h+=`<div class="counts"><div class="cpill"><b>Evaluated</b><span>${s.evaluated||0}</span></div><div class="cpill"><b>FULL 20x</b><span style="color:var(--violet)">${s.full_20x||0}</span></div><div class="cpill"><b>Cyclical-only</b><span style="color:var(--fg-2)">${s.cyclical_only||0}</span></div><div class="cpill"><b>20x shape</b><span style="color:var(--fg-2)">${s.twenty_x_shape||0}</span></div></div>`;
+  const full=d.full_20x_book||[], cyc=d.cyclical_only_book||[];
+  // FULL 20x book — the real ones: shape + survives + secular overlay
+  h+=`<h2>🌀 FULL 20x book — shape + survives + secular overlay</h2>`;
+  if(full.length){
+    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:6px">The true MU-class setup: deep loss-making trough, violent operating-leverage snapback, a balance sheet that survives to the recovery, AND a secular demand driver on top. EARLY = price hasn't run yet. Even these mostly won't 20x — this is the window, not a promise.</div>`;
+    for(const r of full)h+=card(r);
   } else {
-    h+=`<h2>🌀 20x-shape book</h2><div class="detail">No names currently match the full MU/SNDK signature in an EARLY/CONFIRMING stage. That's normal — the deep-trough + violent-snapback pattern is rare. Showing the closest below.</div>`;
+    h+=`<div class="banner" style="border-left-color:var(--amber)">No name currently has the <b>full</b> MU signature (deep trough + violent snapback + survives + secular overlay) in an early stage. That's the honest read — the memory 20x already fired, and nothing else is sitting in that exact confluence right now. The deep-trough snapbacks that <i>do</i> exist lack the secular driver — they're below.</div>`;
+  }
+  // cyclical-only — deep snapback but no secular driver (or fragile) -> likely 2-5x, not 20x
+  if(cyc.length){
+    h+=`<h2>↩︎ Cyclical-only — deep snapback, no secular overlay</h2>`;
+    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:6px">Real coiled-spring turnarounds, but a cyclical recovery <i>alone</i> is typically a 2-5x normal-cycle bounce, not a 20x. The 20x needs a secular demand explosion on top (MU = memory cycle + AI wall). Honest tier — don't mistake these for the next MU.</div>`;
+    for(const r of cyc)h+=card(r);
   }
   h+=`<h2>All ranked (incl. partials)</h2>`;
-  for(const r of (d.all_ranked||[]).slice(0,20))if(!book.find(b=>b.ticker===r.ticker))h+=card(r);
+  const shown=new Set([...full,...cyc].map(r=>r.ticker));
+  for(const r of (d.all_ranked||[]).slice(0,20))if(!shown.has(r.ticker))h+=card(r);
   h+=`<div class="note">${esc(d.methodology)}<br><br>${esc(d.disclaimer)}</div>`;
   w.innerHTML=h;
 })();
