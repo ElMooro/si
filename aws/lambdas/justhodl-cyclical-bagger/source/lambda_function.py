@@ -78,6 +78,28 @@ def profile(sym):
     return None, ""
 
 
+def survival(sym):
+    """Balance-sheet survival gate — does the company survive TO the snapback?
+    A deep trough is also where companies go bankrupt. Mirrors bagger-engine's
+    survival logic: net cash OR (D/E<1.5 AND current>1.2). Returns (survived, detail)."""
+    bs = _gj(f"https://financialmodelingprep.com/stable/balance-sheet-statement?symbol={sym}&period=quarter&limit=1&apikey={FMP}")
+    if not isinstance(bs, list) or not bs:
+        return None, {}
+    b = bs[0]
+    cash = (b.get("cashAndCashEquivalents") or 0) + (b.get("shortTermInvestments") or 0)
+    debt = b.get("totalDebt") or ((b.get("shortTermDebt") or 0) + (b.get("longTermDebt") or 0))
+    tca = b.get("totalCurrentAssets") or 0
+    tcl = b.get("totalCurrentLiabilities") or 0
+    eq = b.get("totalStockholdersEquity") or b.get("totalEquity") or 0
+    net_cash = cash - debt
+    current_ratio = (tca / tcl) if tcl else None
+    de = (debt / eq) if eq and eq > 0 else (99 if debt > 0 else 0)
+    survived = bool(net_cash > 0 or (de < 1.5 and (current_ratio or 0) > 1.2))
+    detail = {"net_cash_$M": round(net_cash / 1e6, 0), "debt_to_equity": round(de, 2) if de < 90 else None,
+              "current_ratio": round(current_ratio, 2) if current_ratio else None}
+    return survived, detail
+
+
 def discriminators(sym):
     """Deep-trough + snapback-violence from FMP quarterly financials + price stage."""
     inc = _gj(f"https://financialmodelingprep.com/stable/income-statement?symbol={sym}&period=quarter&limit=12&apikey={FMP}")
@@ -255,6 +277,15 @@ def lambda_handler(event, context):
         not_mega = cap_bucket != "mega" and not (isinstance(mcap, (int, float)) and mcap > 5e11)
         twenty_x_shape = bool(coil_deep and violent and d["eps_neg_to_pos"] and not_mega and real_business)
 
+        # ---- survival gate + secular-strength split (only for shape candidates: efficiency) ----
+        # "not the fails": a deep trough is where companies go bankrupt — the spring
+        # only pays if it survives to snap back. "not the shallow": a cyclical snapback
+        # ALONE is ~2-5x; the 20x needs a SECULAR demand overlay on top (MU = cycle + AI wall).
+        survived, surv_detail, secular_class = None, {}, None
+        if twenty_x_shape:
+            survived, surv_detail = survival(sym)
+            secular_class = "cycle+secular" if catalyst >= 0.30 else "cyclical-only"
+
         # ---- stage via price run off trough ----
         last, p_tr, run_x = price_stage(sym, d.get("trough_date"))
         if run_x is None: stage = "UNKNOWN"
@@ -268,17 +299,29 @@ def lambda_handler(event, context):
         composite = 100 * (spring + confirm) * (0.55 + 0.45 * room) * (0.7 + 0.5 * cheap if twenty_x_shape else 0.5)
         # demote LATE (already run) — we want pre-boom
         if stage == "LATE": composite *= 0.45
+        # survival + secular adjustments
+        if survived is False: composite *= 0.55          # fragile balance sheet = fail risk
+        if secular_class == "cycle+secular": composite *= 1.15   # the real 20x multiplier
+        elif secular_class == "cyclical-only": composite *= 0.80  # honest: likely 2-5x, not 20x
         composite = round(min(100, composite), 1)
+
+        # the TRUE 20x candidate: shape AND survives AND has a secular overlay
+        full_20x = bool(twenty_x_shape and survived and secular_class == "cycle+secular")
 
         reasons = []
         if coil_deep: reasons.append(f"deep trough (om {d['om_trough']}%, gm {d['gm_trough']}%)")
         if violent: reasons.append(f"violent snapback (+{d['om_swing_pp']}pp op-margin)")
         if d["eps_neg_to_pos"]: reasons.append("EPS turned negative->positive")
         if catalyst > 0.3: reasons.append(f"secular catalyst {themes[:2]} ({cat})")
+        elif twenty_x_shape: reasons.append("cyclical-only (no secular overlay — likely 2-5x not 20x)")
+        if survived is False: reasons.append(f"FRAGILE balance sheet (fail risk: D/E {surv_detail.get('debt_to_equity')}, curr {surv_detail.get('current_ratio')})")
+        elif survived is True: reasons.append("survives the trough (balance sheet OK)")
         if cheap > 0.5: reasons.append(f"cheap vs growth ({disc}% below fair)")
         return {
             "ticker": sym, "cap_bucket": cap_bucket, "market_cap": mcap,
             "cyclical_20x_score": composite, "twenty_x_shape": twenty_x_shape, "stage": stage,
+            "full_20x": full_20x, "survived": survived, "secular_class": secular_class,
+            "survival_detail": surv_detail,
             "coil_score": round(coil, 2), "violence_score": round(violence, 2),
             "acceleration_score": round(accel, 2), "secular_catalyst_score": round(catalyst, 2),
             "cheap_score": round(cheap, 2), "room_score": round(room, 2),
@@ -304,6 +347,9 @@ def lambda_handler(event, context):
     results.sort(key=lambda r: r["cyclical_20x_score"], reverse=True)
     shape_book = [r for r in results if r["twenty_x_shape"] and r["stage"] in ("EARLY", "CONFIRMING")]
     shape_book.sort(key=lambda r: (r["stage"] != "EARLY", -r["cyclical_20x_score"]))
+    # the TRUE 20x book: shape AND survives AND secular overlay (not fragile, not cyclical-only)
+    full_book = [r for r in shape_book if r.get("full_20x")]
+    cyclical_only = [r for r in shape_book if r["twenty_x_shape"] and not r.get("full_20x")]
 
     # ---- FDR gate (forward-grading auto-activation, like confluence) ----
     ea = _read("data/engine-alpha.json") or {}
@@ -320,11 +366,14 @@ def lambda_handler(event, context):
         "discriminator": {
             "killer_metric": "operating-margin swing off trough",
             "calibration": {"MU": 114.6, "SNDK": 100.9, "AVGO": 31.6, "AMD": 16.1, "TXN": 4.9, "KLAC": 6.2},
-            "gate": "coil(om_trough<-10 OR gm_trough<5) AND violence(om_swing>=40pp) AND eps_neg_to_pos AND not_mega",
+            "gate": "coil(om_trough<-10 OR gm_trough<5) AND violence(40-350pp) AND eps_neg_to_pos AND not_mega AND real_business(rev>=$40M); FULL 20x also requires survives_trough AND secular_overlay",
         },
         "stats": {"pool": len(pool), "evaluated": len(results),
                   "twenty_x_shape": sum(1 for r in results if r["twenty_x_shape"]),
-                  "shape_early_confirming": len(shape_book)},
+                  "shape_early_confirming": len(shape_book),
+                  "full_20x": len(full_book), "cyclical_only": len(cyclical_only)},
+        "full_20x_book": full_book[:25],
+        "cyclical_only_book": cyclical_only[:25],
         "twenty_x_shape_book": shape_book[:25],
         "all_ranked": results[:60],
         "auto_activation": {"rule": "logs top_picks; FDR-graded forward vs SPY; flips PROVEN when scorecard proves it",
@@ -339,9 +388,10 @@ def lambda_handler(event, context):
             "leverage; logged to the harvester for forward FDR grading. Research, not investment advice."),
         "disclaimer": "Most names with the 20x SHAPE still will not 20x — this filters out the structurally impossible and the shallow, and flags the window. Not investment advice.",
         "diagnostics": diag[-10:],
-        # harvester picks the NEW discriminator (forward-graded)
+        # harvester picks the NEW discriminator (forward-graded) — full-20x first
         "top_picks": [{"ticker": r["ticker"], "score": r["cyclical_20x_score"], "stage": r["stage"],
-                       "twenty_x_shape": r["twenty_x_shape"]} for r in shape_book[:15]],
+                       "full_20x": r.get("full_20x"), "secular_class": r.get("secular_class")}
+                      for r in (full_book + cyclical_only)[:15]],
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache, max-age=0")
@@ -352,9 +402,9 @@ def lambda_handler(event, context):
             print("   %s: score=%s shape=%s stage=%s swing=%spp eps_n2p=%s run=%sx" % (
                 r["ticker"], r["cyclical_20x_score"], r["twenty_x_shape"], r["stage"], r["om_swing_pp"],
                 r["eps_neg_to_pos"], r["run_from_trough_x"]))
-    if shape_book:
-        print("  20x-shape book (early/confirming):")
-        for r in shape_book[:10]:
-            print("   %s %s score=%s swing=%spp run=%sx cap=%s" % (
-                r["ticker"], r["stage"], r["cyclical_20x_score"], r["om_swing_pp"], r["run_from_trough_x"], r["cap_bucket"]))
+    print("  FULL 20x book (shape + survives + secular overlay):", [(r["ticker"], r["cyclical_20x_score"]) for r in full_book[:8]] or "(none — honest: nothing has cycle+secular+survival right now)")
+    print("  cyclical-only (deep snapback but no secular overlay -> likely 2-5x):")
+    for r in cyclical_only[:8]:
+        print("   %s %s score=%s swing=%spp survived=%s secular=%s cap=%s" % (
+            r["ticker"], r["stage"], r["cyclical_20x_score"], r["om_swing_pp"], r.get("survived"), r.get("secular_class"), r["cap_bucket"]))
     return {"statusCode": 200, "body": json.dumps({"mode": mode, "shape": out["stats"]["twenty_x_shape"]})}
