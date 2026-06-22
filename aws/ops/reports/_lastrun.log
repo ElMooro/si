@@ -1,23 +1,17 @@
-invoke: {"statusCode": 200, "body": "{\"resilient\": 186, \"about_to_boom\": 48, \"top\": [\"CNTA\", \"DVA\", \"CDNL\", \"DOCN\", \"SPHR\", \"UFPT\", \"CHEF\", \"IMVT\"]}"} (47s)
-counts: {'absorbing': 135, 'coiled': 21, 'igniting': 30} | universe 2013
-CAST still in boom list?: False
 
-🚀 ABOUT TO BOOM (clean):
-  CNTA   IGNITING  res 86.4 | +1.77%/adv (75% held, n20) | asym 4.82 | 20d 0.7%
-  DVA    COILED    res 83.7 | +1.5%/adv (63% held, n19) | asym 1.29 | 20d 5.6%
-  CDNL   IGNITING  res 75.8 | +0.84%/adv (63% held, n27) | asym 2.15 | 20d 56.2%
-  DOCN   COILED    res 75.6 | +1.24%/adv (57% held, n35) | asym 0.68 | 20d 8.2%
-  SPHR   IGNITING  res 75.4 | +0.84%/adv (57% held, n23) | asym 2.6 | 20d 17.1%
-  UFPT   IGNITING  res 75.3 | +1.21%/adv (57% held, n21) | asym 2.12 | 20d 6.5%
-  CHEF   IGNITING  res 75.2 | +0.51%/adv (67% held, n21) | asym 1.89 | 20d 23.4%
-  IMVT   COILED    res 75.0 | +0.74%/adv (57% held, n23) | asym 2.89 | 20d -0.6%
-  SYRE   IGNITING  res 74.5 | +0.85%/adv (64% held, n28) | asym 3.54 | 20d 22.8%
-  AVNS   IGNITING  res 74.4 | +0.31%/adv (65% held, n23) | asym 2.02 | 20d 0.8%
-  MNST   COILED    res 73.9 | +0.57%/adv (61% held, n18) | asym 1.12 | 20d 5.1%
-  ROIV   COILED    res 73.9 | +0.79%/adv (68% held, n22) | asym 2.51 | 20d -3.0%
+[data/analyst-actions.json] top keys: ['engine', 'version', 'generated_at', 'thesis', 'counts', 'upgrades', 'downgrades', 'pt_raises', 'pt_cuts', 'guidance_raises', 'guidance_cuts', 'most_bullish', 'most_bearish', 'top_picks', 'data_source', 'caveats', 'elapsed_s']
+   .top_picks[0] keys: ['ticker', 'score', 'signals', 'company']
+   .top_picks[0] sample: {"ticker": "JBL", "score": 20.4, "signals": ["PT RAISE 395.0\u2192450.0 (JP Morgan)", "PT RAISE 384.0\u2192482.0 (Goldman Sachs)", "PT RAISE 304.0\u2192426.0 (Barclays)", "PT RAISE 380.0\u2192430.0 (UBS)"], "company": "Jabil"}
 
-top_picks: ['CNTA', 'DVA', 'CDNL', 'DOCN', 'SPHR', 'UFPT', 'CHEF', 'IMVT', 'SYRE', 'AVNS', 'MNST', 'ROIV', 'GKOS', 'FTDR', 'CPRX']
+[data/estimate-revisions.json] top keys: ['engine', 'version', 'generated_at', 'status', 'thesis', 'horizon_days', 'n_tracked', 'n_fmp_enriched', 'n_with_history', 'n_state_keys', 'estimate_strength_leaders', 'upward_revisions', 'downward_revisions', 'top_picks', 'data_source', 'caveats', 'elapsed_s']
+   .top_picks[0] keys: ['ticker', 'score', 'eps_rev_pct', 'fwd_eps_growth_pct', 'earnings_date', 'days_to_earnings', 'revenue_confirms']
+   .top_picks[0] sample: {"ticker": "SNDK", "score": 82.8, "eps_rev_pct": 0.0, "fwd_eps_growth_pct": 187.1, "earnings_date": "2026-08-13", "days_to_earnings": 53, "revenue_confirms": true}
 
-resilience.html: 200 | reads feed: True
-directory lists resilience: True
-DONE 2093
+[data/earnings-tracker.json] top keys: ['version', 'generated_at', 'watchlist_size', 'upcoming_14d', 'n_upcoming', 'forward_calendar', 'n_forward_calendar', 'recent_results_30d', 'n_recent', 'pead_signals', 'n_pead', 'aggregate_stats', 'duration_s', 'data_sources']
+
+[data/sector-emergence.json] present keys: ['engine', 'version', 'ok', 'generated_at', 'thesis', 'regime_context', 'emerging_now', 'sectors', 'top_picks', 'legend', 'note', 'elapsed_s']
+
+[data/equity-universe.json] MISSING
+
+[data/ticker-sectors.json] MISSING
+DONE 2094
