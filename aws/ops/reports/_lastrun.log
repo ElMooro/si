@@ -1,40 +1,31 @@
-=== analyst-actions negative arrays ===
-  downgrades: n=40 | item0: {"ticker": "ARM", "company": "ARM Holdings", "firm": "New Street Research", "analyst": "Pierre Ferragu", "date": "2026-06-18", "time": "12:15:12", "importance": 5, "rating": "neutral", "previous_rating": "buy", "rating_dir": "DOWNGRADE", "r
-  pt_cuts: n=30 | item0: {"ticker": "EDBL", "company": "Edible Garden", "firm": "Maxim Group", "analyst": "Anthony Vendetti", "date": "2026-06-15", "time": "09:12:33", "importance": 1, "rating": "buy", "previous_rating": "buy", "rating_dir": "REITERATE", "rating_ac
-  guidance_cuts: n=13 | item0: {"ticker": "SNWV", "company": "SANUWAVE Health", "fiscal_period": "Q2", "fiscal_year": 2026, "date": "2026-06-16", "importance": 1, "release_type": "preliminary", "eps_mid": null, "eps_prev": null, "eps_dir": null, "eps_pct": null, "rev_mid
+invoke: {"statusCode": 200, "body": "{\"resilient\": 137, \"boom\": 37, \"idio\": 0}"} (47s)
+version: 2.0 | basis: 2-factor residual vs [SPY, best-fit sector ETF]
+diagnostics:
+   calendar 130 days 2025-12-11->2026-06-18
+   CS/ADRC 5675
+   matrix 5671 tickers
+   catalysts: 3 miss, 40 dg, 30 ptcut, 13 gcut; 61 tickers
+   liquid universe 2013
 
-=== earnings-tracker dated results ===
-  recent_results_30d: n=28
-    keys: ['ticker', 'filing_date', 'period_end', 'eps_actual', 'eps_estimate', 'eps_surprise_pct', 'revenue_actual', 'revenue_surprise_pct', 'importance', 'returns', 'pead_label', 'pead_score', 'surprise_source'] 
-    item0: {"ticker": "ACN", "filing_date": "2026-06-18", "period_end": "Q3 2026", "eps_actual": 3.8, "eps_estimate": 3.71, "eps_surprise_pct": 2.43, "revenue_actual": 18700000000.0, "revenue_surprise_pct": -0.28, "importance": 5, "returns": {"1d": null, "5d": null, "20d": null}, "pead_label": "MIXED", "pead_score": 50, "surprise_source": "benzinga"
-  pead_signals: n=10
-    keys: ['ticker', 'filing_date', 'period_end', 'eps_actual', 'eps_estimate', 'eps_surprise_pct', 'revenue_actual', 'revenue_surprise_pct', 'importance', 'returns', 'pead_label', 'pead_score', 'surprise_source'] 
-    item0: {"ticker": "SNOW", "filing_date": "2026-05-27", "period_end": "Q1 2027", "eps_actual": 0.39, "eps_estimate": 0.14, "eps_surprise_pct": 178.57, "revenue_actual": 1391000000.0, "revenue_surprise_pct": 5.18, "importance": 5, "returns": {"1d": 36.48, "5d": 37.67, "20d": null}, "pead_label": "STRONG_POSITIVE_DRIFT", "pead_score": 88, "surprise
+counts: {'absorbing': 100, 'coiled': 13, 'igniting': 24, 'with_idiosyncratic_evidence': 0}
 
-=== Polygon reference: does it carry sic/sector? ===
-  reference fields: ['ticker', 'name', 'market', 'locale', 'primary_exchange', 'type', 'active', 'currency_name', 'cik', 'composite_figi', 'share_class_figi', 'last_updated_utc']
-  sample: {"ticker": "A", "sic_code": null, "sic_description": null, "type": "CS"}
+🚀 ABOUT TO BOOM (idio-evidence first):
+  CNTA   IGNITING  res 81.0 | SPY+XLY    +1.24%/adv (65% held,n23) | dom SECTOR_ROUT 
+  UFPT   IGNITING  res 76.2 | SPY+XLY    +1.35%/adv (57% held,n23) | dom SECTOR_ROUT 
+  IMVT   COILED    res 74.6 | SPY+XLY    +0.69%/adv (56% held,n25) | dom SECTOR_ROUT 
+  GKOS   COILED    res 73.8 | SPY+XLI    +0.55%/adv (62% held,n29) | dom GAP_DOWN 
+  AIR    IGNITING  res 72.5 | SPY+XLI    +0.44%/adv (68% held,n25) | dom GAP_DOWN 
+  MNST   COILED    res 71.8 | SPY+XLP    +0.22%/adv (62% held,n21) | dom MARKET_ROUT 
+  ROIV   COILED    res 71.3 | SPY+XLI    +0.49%/adv (65% held,n26) | dom GAP_DOWN 
+  CHEF   IGNITING  res 71.2 | SPY+XLY    +0.05%/adv (62% held,n24) | dom SECTOR_ROUT 
+  COMP   IGNITING  res 70.6 | SPY+XLY    +0.26%/adv (59% held,n34) | dom GAP_DOWN 
+  RPM    COILED    res 70.5 | SPY+XLB    +0.42%/adv (64% held,n28) | dom SECTOR_ROUT 
+  DOCN   COILED    res 69.6 | SPY+XLK    +0.26%/adv (62% held,n42) | dom GAP_DOWN 
+  FUL    IGNITING  res 69.0 | SPY+XLB    +0.29%/adv (55% held,n29) | dom GAP_DOWN 
+  BMA    IGNITING  res 68.4 | SPY+XLY    +0.4%/adv (58% held,n31) | dom GAP_DOWN 
+  JAZZ   COILED    res 67.9 | SPY+XLV    +0.15%/adv (67% held,n21) | dom MARKET_ROUT 
 
-=== sector SPDR ETFs present in grouped-daily? ===
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2095_probe_typing_detail.py", line 33, in <module>
-    gd=json.loads(urllib.request.urlopen(urllib.request.Request(f"https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{d}?adjusted=true&apiKey={POLY}",headers={"User-Agent":"jh"}),timeout=30).read())
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 215, in urlopen
-    return opener.open(url, data, timeout)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 521, in open
-    response = meth(req, response)
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 630, in http_response
-    response = self.parent.error(
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 559, in error
-    return self._call_chain(*args)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 492, in _call_chain
-    result = func(*args)
-             ^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 639, in http_error_default
-    raise HTTPError(req.full_url, code, msg, hdrs, fp)
-urllib.error.HTTPError: HTTP Error 403: Forbidden
+names WITH idiosyncratic evidence (held through real catalyst):
+
+top_picks: [('CNTA', 'SECTOR_ROUT', ''), ('UFPT', 'SECTOR_ROUT', ''), ('IMVT', 'SECTOR_ROUT', ''), ('GKOS', 'GAP_DOWN', ''), ('AIR', 'GAP_DOWN', ''), ('MNST', 'MARKET_ROUT', ''), ('ROIV', 'GAP_DOWN', ''), ('CHEF', 'SECTOR_ROUT', ''), ('COMP', 'GAP_DOWN', ''), ('RPM', 'SECTOR_ROUT', ''), ('DOCN', 'GAP_DOWN', ''), ('FUL', 'GAP_DOWN', ''), ('BMA', 'GAP_DOWN', ''), ('JAZZ', 'MARKET_ROUT', ''), ('RL', 'SECTOR_ROUT', '')]
+DONE 2096
