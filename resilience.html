@@ -36,11 +36,17 @@ async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function scoreColor(s){return s>=70?'var(--green)':s>=62?'var(--cyan)':'var(--amber)';}
 function card(r){
-  let h=`<div class="card ${esc(r.stage)}"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> <span class="stg ${esc(r.stage)}">${esc(r.stage)}</span>${r.has_idiosyncratic_evidence?' <span class="stg" style="color:var(--violet);border-color:var(--violet)">⭐ held real bad news</span>':''}</div><span class="score" style="color:${scoreColor(r.resilience)}">${r.resilience}</span></div>`;
+  let h=`<div class="card ${esc(r.stage)}"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> <span class="stg ${esc(r.stage)}">${esc(r.stage)}</span>${r.has_idiosyncratic_evidence?' <span class="stg" style="color:var(--violet);border-color:var(--violet)">⭐ held real bad news</span>':''}${r.flow_confirmed?' <span class="stg" style="color:var(--green);border-color:var(--green)">📥 flow-confirmed</span>':''}</div><span class="score" style="color:${scoreColor(r.resilience)}">${r.resilience}</span></div>`;
   h+=`<div class="detail">Held <b class="pos">+${r.mean_abnormal_on_adverse_pct}%</b> abnormal (vs <b>${esc(r.abnormal_basis||'SPY')}</b>) across <b>${r.n_adverse_days}</b> adverse days (${r.adverse_hit_rate_pct}% held). Dominant adverse type: <b>${esc((r.dominant_adverse_type||'').replace(/_/g,' '))}</b>. `;
   if(r.events_shrugged&&r.events_shrugged.length){h+=`Shrugged: ${r.events_shrugged.slice(0,3).map(e=>`<span class="cat">${esc(e.type.replace(/_/g,' '))} ${esc(e.date)} (held ${e.day_return_pct>0?'+':''}${e.day_return_pct}%)</span>`).join('')}`;}
   h+=`</div>`;
-  h+=`<div class="kv"><span>β <b>${r.beta}</b></span><span>down-β <b>${r.downside_beta}</b> / up-β <b>${r.upside_beta}</b> <span style="color:${r.beta_asymmetry>0?'var(--green)':'var(--red)'}">(${r.beta_asymmetry>0?'+':''}${r.beta_asymmetry} asym)</span></span><span>adv vol-z <b>${r.adverse_volume_z}</b></span><span>${r.pct_of_60d_high}% of 60d high</span><span>coil <b>${r.coil}</b></span><span>${r.above_50d?'>50d':'<50d'} ${r.above_200d?'· >200d':''}</span></div>`;
+  if(r.ignition){h+=`<div class="detail" style="color:var(--green)">🚀 <b>Ignition</b>: broke above ${r.ignition.broke_above} ${r.ignition.bars_ago} session(s) ago on ${r.ignition.vol_z>=1?`<b>${r.ignition.vol_z}σ volume</b>`:''}${r.ignition.range_x>=1.3?` ${r.ignition.vol_z>=1?'+ ':''}<b>${r.ignition.range_x}× range</b>`:''}${r.ignition.on_catalyst?' — <b>on a catalyst day</b>':''}.</div>`;}
+  let flowbits=[];
+  if(r.dark_pool_state)flowbits.push(`dark-pool <b>${esc(r.dark_pool_state)}</b>`);
+  if(typeof r.obv_net_w==='number')flowbits.push(`OBV ${r.obv_net_w>0?'+':''}${r.obv_net_w}`);
+  if(typeof r.ad_net_w==='number')flowbits.push(`A/D ${r.ad_net_w>0?'+':''}${r.ad_net_w}`);
+  if(r.stealth_accumulation)flowbits.push(`<b style="color:var(--green)">stealth accumulation</b>`);
+  h+=`<div class="kv"><span>β <b>${r.beta}</b></span><span>down-β <b>${r.downside_beta}</b> / up-β <b>${r.upside_beta}</b> <span style="color:${r.beta_asymmetry>0?'var(--green)':'var(--red)'}">(${r.beta_asymmetry>0?'+':''}${r.beta_asymmetry} asym)</span></span><span>flow <b>${r.flow_score??'–'}</b></span>${flowbits.length?`<span>${flowbits.join(' · ')}</span>`:''}<span>${r.pct_of_60d_high}% of 60d high</span><span>coil <b>${r.coil}</b></span><span>${r.above_50d?'>50d':'<50d'} ${r.above_200d?'· >200d':''}</span></div>`;
   h+=`<div class="fals">⚠ ${esc(r.falsifier)}</div></div>`;
   return h;
 }

@@ -30,7 +30,7 @@ guards. Picks -> harvester for forward excess-vs-SPY grading (measure-before-tru
 import json, time, urllib.request, urllib.parse
 from datetime import datetime, timezone, timedelta
 
-VERSION = "2.0"
+VERSION = "2.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/resilience.json"
 POLY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
@@ -216,6 +216,18 @@ def lambda_handler(event, context):
         n_miss, len(aa.get("downgrades") or []), len(aa.get("pt_cuts") or []),
         len(aa.get("guidance_cuts") or []), len(catalysts)))
 
+    # ── Lever 3 corroboration: dark-pool institutional flow (where covered) ──
+    dpj = _read("data/dark-pool.json") or {}
+    dark_pool = {}
+    for arr in ("board", "top_accumulation", "top_distribution", "top_picks"):
+        for it in (dpj.get(arr) or []):
+            tk = it.get("ticker")
+            if tk and tk not in dark_pool:
+                dark_pool[tk] = {"state": it.get("state"), "score": it.get("score"),
+                                 "dark_pool_pct": it.get("dark_pool_pct"), "dark_accel": it.get("dark_accel")}
+    DIAG.append("dark-pool coverage %d (%d accum)" % (
+        len(dark_pool), sum(1 for v in dark_pool.values() if v.get("state") == "ACCUMULATION")))
+
     recent = days[-20:]
     universe = []
     for T, sd in bars.items():
@@ -356,22 +368,66 @@ def lambda_handler(event, context):
         dominant_type = (max(by_type.items(), key=lambda kv: TYPE_W.get(kv[0], 1) * kv[1]["n"])[0]
                          if by_type else None)
 
-        breaking = last >= hi60 * 0.995
-        coiled = coil >= 0.20 and near_high >= 0.90
+        # ── Lever 3: FLOW CONFIRMATION (who is absorbing — flow, not just price) ──
+        highs = [sd[d][1] for d in ds]; lows = [sd[d][2] for d in ds]
+        win = min(30, len(closes) - 1)
+        obv = [0.0]
+        for i in range(1, len(closes)):
+            step = vols[i] if closes[i] > closes[i - 1] else (-vols[i] if closes[i] < closes[i - 1] else 0)
+            obv.append(obv[-1] + step)
+        vol_win = sum(vols[-win:]) or 1
+        obv_net = (obv[-1] - obv[-win]) / vol_win                 # net signed-volume fraction over window
+        ad = [0.0]
+        for i in range(1, len(closes)):
+            rng = highs[i] - lows[i]
+            mfm = (((closes[i] - lows[i]) - (highs[i] - closes[i])) / rng) if rng > 0 else 0.0
+            ad.append(ad[-1] + mfm * vols[i])
+        ad_net = (ad[-1] - ad[-win]) / vol_win
+        price_chg = closes[-1] / closes[-win] - 1
+        stealth = obv_net > 0.12 and ad_net > 0.10 and abs(price_chg) < 0.12   # flow rising while price flat
+        dp = dark_pool.get(T)
+        dp_state = dp["state"] if dp else None
+        dp_accum = dp_state == "ACCUMULATION"; dp_distrib = dp_state == "DISTRIBUTION"
+        flow_score = clamp(50 + obv_net * 110 + ad_net * 90 + (16 if dp_accum else (-20 if dp_distrib else 0)))
+        flow_confirmed = (obv_net > 0.10 and ad_net > 0.05) or dp_accum or stealth
+
+        # ── Lever 5: IGNITION TRIGGER (volume-thrust breakout through the absorption ceiling) ──
+        atr = None
+        if len(closes) > 21:
+            trs = [max(highs[i] - lows[i], abs(highs[i] - closes[i - 1]), abs(lows[i] - closes[i - 1]))
+                   for i in range(-20, 0)]
+            atr = sum(trs) / len(trs)
+        ceiling = max(closes[-43:-3]) if len(closes) > 46 else hi60   # consolidation high, last 3 bars excluded
+        ignition = None
+        for j in (-1, -2, -3):
+            if abs(j) >= len(closes):
+                break
+            if closes[j] > ceiling * 1.005:                            # broke above the ceiling
+                vz = (vols[j] - vmean) / vstd
+                rx = ((highs[j] - lows[j]) / atr) if atr else 0.0
+                if vz >= 1.0 or rx >= 1.3:                             # real thrust, not a drift
+                    ignition = {"bars_ago": -j, "vol_z": round(vz, 2), "range_x": round(rx, 2),
+                                "broke_above": round(ceiling, 2),
+                                "on_catalyst": (ds[j] in cats)}
+                    break
+
         consistent = hit >= 0.55
         blowoff = ret20 > 0.60
+        coiled_setup = coil >= 0.20 and near_high >= 0.90
         if blowoff:
             stage = "WATCH"
-        elif resilience >= 62 and breaking and consistent:
-            stage = "IGNITING"
-        elif resilience >= 60 and coiled and consistent:
-            stage = "COILED"
+        elif ignition and resilience >= 60 and consistent:
+            stage = "IGNITING"                                         # the TRIGGER fired
+        elif coiled_setup and resilience >= 60 and consistent:
+            stage = "COILED"                                           # the SETUP — spring loaded, no thrust yet
         elif resilience >= 57 and hit >= 0.50:
             stage = "ABSORBING"
         else:
             stage = "WATCH"
         if stage == "WATCH":
             continue
+        if flow_confirmed and stage in ("COILED", "IGNITING"):         # price + flow agree → conviction bump
+            resilience = round(min(100, resilience + 3), 1)
 
         type_breakdown = {t: {"n": v["n"], "held_pct": round(100 * v["held"] / v["n"]),
                               "mean_abn_pct": round(100 * v["sum_resid"] / v["n"], 2)}
@@ -390,6 +446,10 @@ def lambda_handler(event, context):
             "downside_beta": round(downbeta, 2) if downbeta else None,
             "upside_beta": round(upbeta, 2) if upbeta else None, "beta_asymmetry": round(asym, 2),
             "adverse_volume_z": round(volz, 2),
+            "flow_score": round(flow_score, 1), "flow_confirmed": flow_confirmed,
+            "obv_net_w": round(obv_net, 3), "ad_net_w": round(ad_net, 3),
+            "stealth_accumulation": stealth, "dark_pool_state": dp_state,
+            "ignition": ignition,
             "above_50d": above50, "above_200d": above200,
             "pct_above_60d_low": round(dist_low * 100), "pct_of_60d_high": round(near_high * 100),
             "coil": round(coil, 2),
@@ -398,7 +458,8 @@ def lambda_handler(event, context):
 
     results.sort(key=lambda x: x["resilience"], reverse=True)
     booming = [r for r in results if r["stage"] in ("IGNITING", "COILED") and r["resilience"] >= 62]
-    booming.sort(key=lambda r: (r["has_idiosyncratic_evidence"], r["resilience"]), reverse=True)
+    booming.sort(key=lambda r: (r.get("flow_confirmed", False), r["has_idiosyncratic_evidence"], r["resilience"]),
+                 reverse=True)
 
     # "held the line on bad news" — purest expression of the signal, deduped to best per name
     best = {}
@@ -410,10 +471,14 @@ def lambda_handler(event, context):
     top_picks = [{"ticker": r["ticker"], "direction": "UP", "resilience": r["resilience"],
                   "stage": r["stage"], "dominant_adverse_type": r["dominant_adverse_type"],
                   "has_idiosyncratic_evidence": r["has_idiosyncratic_evidence"],
-                  "reason": ("held +%s%% abnormal (%s) on %s adverse days, dominant %s"
+                  "flow_confirmed": r.get("flow_confirmed", False),
+                  "reason": ("held +%s%% abnormal (%s) on %s adverse days, dominant %s%s"
                              % (r["mean_abnormal_on_adverse_pct"], r["abnormal_basis"],
-                                r["n_adverse_days"], r["dominant_adverse_type"])),
-                  "conviction": "high" if (r["resilience"] >= 70 or r["has_idiosyncratic_evidence"]) else "moderate"}
+                                r["n_adverse_days"], r["dominant_adverse_type"],
+                                "; flow-confirmed" if r.get("flow_confirmed") else "")),
+                  "conviction": ("high" if ((r["resilience"] >= 70 and r.get("flow_confirmed"))
+                                            or (r["has_idiosyncratic_evidence"] and r.get("flow_confirmed")))
+                                 else "moderate")}
                  for r in booming[:15]]
 
     out = {
@@ -431,6 +496,8 @@ def lambda_handler(event, context):
         "counts": {"absorbing": sum(1 for r in results if r["stage"] == "ABSORBING"),
                    "coiled": sum(1 for r in results if r["stage"] == "COILED"),
                    "igniting": sum(1 for r in results if r["stage"] == "IGNITING"),
+                   "flow_confirmed": sum(1 for r in results if r.get("flow_confirmed")),
+                   "ignition_on_catalyst": sum(1 for r in results if r.get("ignition") and r["ignition"].get("on_catalyst")),
                    "with_idiosyncratic_evidence": sum(1 for r in results if r["has_idiosyncratic_evidence"])},
         "methodology": (
             "Abnormal return = residual of a 2-factor OLS on [SPY, best-fit SPDR sector ETF] (sector chosen by "
@@ -441,14 +508,23 @@ def lambda_handler(event, context):
             "= 0.30*type-weighted abnormal-on-adverse + 0.18*hit-rate + 0.16*beta-asymmetry + 0.12*volume "
             "absorption + 0.14*structure + 0.10*coil, with an idiosyncratic-evidence boost. Guards: positive mean "
             "abnormal, >5% above 60d low, 20d>-18%, exclude blow-offs (20d>60%), hit>=55% for COILED/IGNITING. "
-            "Picks logged WITH dominant adverse type for forward excess-vs-SPY grading. Research, not advice."),
+            "Picks logged WITH dominant adverse type for forward excess-vs-SPY grading. "
+            "FLOW CONFIRMATION (Lever 3): OBV slope + Chaikin A/D slope over ~30d (rising flow while price flat = "
+            "stealth accumulation), corroborated by the dark-pool engine's ACCUMULATION state where covered; "
+            "flow_confirmed names get a conviction bump and rank first. IGNITION TRIGGER (Lever 5): COILED = the "
+            "SETUP (absorption complete, volatility contracted, riding the ceiling, no thrust yet); IGNITING = the "
+            "TRIGGER (close broke above the consolidation ceiling in the last ~3 sessions on a volume thrust, "
+            "vol-z>=1 or range>1.3x ATR), flagged when it lands on a catalyst day. Research, not advice."),
         "diagnostics": DIAG,
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache, max-age=0")
-    print("[resilience v2] universe %d | resilient %d | boom %d | idio %d | shrugged-recent %d | top: %s" % (
-        len(universe), len(results), len(booming), out["counts"]["with_idiosyncratic_evidence"], len(shrugged),
-        ", ".join("%s(%s,%s,%s%s)" % (r["ticker"], r["resilience"], r["stage"], r["dominant_adverse_type"],
-                                      "*" if r["has_idiosyncratic_evidence"] else "") for r in booming[:8])))
+    print("[resilience v2.2] universe %d | resilient %d | boom %d | flow-conf %d | idio %d | shrugged %d | top: %s" % (
+        len(universe), len(results), len(booming), out["counts"]["flow_confirmed"],
+        out["counts"]["with_idiosyncratic_evidence"], len(shrugged),
+        ", ".join("%s(%s,%s%s%s)" % (r["ticker"], r["resilience"], r["stage"],
+                                     "+F" if r.get("flow_confirmed") else "",
+                                     "*" if r["has_idiosyncratic_evidence"] else "") for r in booming[:8])))
     return {"statusCode": 200, "body": json.dumps({"resilient": len(results), "boom": len(booming),
+                                                    "flow_confirmed": out["counts"]["flow_confirmed"],
                                                     "idio": out["counts"]["with_idiosyncratic_evidence"]})}
