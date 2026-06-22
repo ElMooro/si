@@ -1,14 +1,36 @@
-=== data/ files that could be a bulk pre-filter (universe/finviz/screener/financials) ===
-  data/_cache/ticker-profiles.json  (12KB)
-  data/ai-commentary/fundamentals.json  (1KB)
-  data/ai-commentary/history/fundamentals/2026-06-02.json  (1KB)
-  data/ai-commentary/history/screener/2026-06-02.json  (1KB)
-  data/ai-commentary/screener.json  (1KB)
+invoke: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"chokepoints\": 243, \"cheap\": 11}"} (10s)
+scope: broad_v2 | stats: {'pool': 621, 'evaluated': 587, 'chokepoints': 243, 'hidden': 197, 'cheap': 11, 'discovered': 156, 'industries': 29}
+diag: ['centrality_nodes=108', 'bulk_universe=17638', 'funnel_candidates=694 -> deep-dive 380', 'pool=621 (v1=241 + funnel=380)', 'evaluated=587']
 
+🛰️ NEWLY DISCOVERED chokepoints (broad scan found, curated missed) — the v2 payoff:
+  EXEL    84.5  96.5%GM ±0.2  mid    Exelixis, Inc.             Biotechnology
+  ESTC    82.2  73.8%GM ±1.9  small  Elastic N.V.               Software - Application
+  QLYS    80.5  79.1%GM ±1.9  small  Qualys, Inc.               Software - Infrastructure
+  PEGA    79.7  71.1%GM ±3.1  small  Pegasystems Inc.           Software - Application
+  INCY    77.4  94.2%GM ±0.9  mid    Incyte Corporation         Biotechnology
+  IOT     77.2  71.3%GM ±5.3  mid    Samsara Inc.               Software - Infrastructure
+  DOCS    74.3  88.0%GM ±1.6  small  Doximity, Inc.             Medical - Healthcare Infor
+  ADSK    73.7  89.2%GM ±2.6  mid    Autodesk, Inc.             Software - Application
+  INDV    73.0  84.3%GM ±2.9  small  Indivior Pharmaceuticals I Drug Manufacturers - Speci
+  GDDY    72.8  64.3%GM ±1.3  small  GoDaddy Inc.               Software - Infrastructure
+  HALO    72.6  82.1%GM ±5.5  small  Halozyme Therapeutics, Inc Biotechnology
+  DBX     72.3  75.0%GM ±8.5  small  Dropbox, Inc.              Software - Infrastructure
+  UTHR    72.1  91.3%GM ±2.5  mid    United Therapeutics Corpor Biotechnology
+  APPF    71.8  60.7%GM ±1.3  small  AppFolio, Inc.             Software - Application
+  NBIX    71.4  98.8%GM ±0.6  mid    Neurocrine Biosciences, In Biotechnology
+  MANH    71.2  54.4%GM ±1.8  small  Manhattan Associates, Inc. Software - Application
+  FFIV    70.6  81.8%GM ±1.6  mid    F5, Inc.                   Software - Infrastructure
+  DUOL    70.4  71.6%GM ±0.8  small  Duolingo, Inc.             Software - Application
 
-=== FMP BULK endpoint probe (one call -> margins for thousands?) ===
-  stable/profile-bulk: 30272599 bytes | head: "symbol","price","marketCap","beta","lastDividend","range","change","changePercentage","volume","averageVolume","companyName","currency","cik","isin","cusip","e
-  v4/ratios-bulk: FAILED/empty
-  v4/key-metrics-bulk: FAILED/empty
-  stable/company-screener: 8944 bytes | head: [   {     "symbol": "EW",     "companyName": "Edwards Lifesciences Corporation",     "marketCap": 50301888000,     "sector": "Healthcare",     "industry": "Medi
-DONE 2119
+💰 cheap among discovered/all:
+  TSM     71.4  95.0% below  disc=False  Taiwan Semiconductor Manuf
+  JNPR    59.6  79.1% below  disc=False  Juniper Networks, Inc.
+  EXTR    53.9  71.2% below  disc=False  Extreme Networks, Inc.
+  NTAP    68.5  64.1% below  disc=False  NetApp, Inc.
+  DGII    50.6  51.8% below  disc=False  Digi International Inc.
+  ACLS    51.1  45.4% below  disc=False  Axcelis Technologies, Inc.
+  MKSI    51.4  44.5% below  disc=False  MKS Inc.
+  PSTG    63.3  38.2% below  disc=False  Everpure, Inc
+
+page: 200
+DONE 2120
