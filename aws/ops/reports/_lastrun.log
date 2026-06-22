@@ -1,11 +1,14 @@
 invoke: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"shape\": 3}"} (4s)
-stats: {'pool': 114, 'evaluated': 111, 'twenty_x_shape': 3, 'shape_early_confirming': 3} | mode: PROVISIONAL
+stats: {'pool': 114, 'evaluated': 111, 'twenty_x_shape': 3, 'shape_early_confirming': 3, 'full_20x': 0, 'cyclical_only': 3} | mode: PROVISIONAL
 
-🌀 20x-SHAPE BOOK (clean — real businesses at deep troughs):
-  sym   stage       score     cap  op-margin trough→now (swing)   eps_n2p  run  themes
-  SMG   EARLY        66.6   small  -111.1%→28.2% (+139.3pp)  True   1.3x  ['COPX', 'PICK']
-  IPI   EARLY        61.3   micro  -83.7%→5.7% (+89.4pp)  True   1.61x  ['COPX', 'PICK']
-  GNK   CONFIRMING   40.6   micro  -36.4%→13.6% (+50.0pp)  True   2.07x  ['PICK', 'GRID']
+=== FULL 20x book (shape + survives + secular overlay) — the real ones ===
+  (empty — honest: no full MU-shaped confluence right now)
 
-harvester top_picks (forward-graded): [('SMG', 66.6, 'EARLY'), ('IPI', 61.3, 'EARLY'), ('GNK', 40.6, 'CONFIRMING')]
-DONE 2115
+=== CYCLICAL-ONLY book (deep snapback, no secular -> ~2-5x not 20x) ===
+  IPI   EARLY      score=49.0  om -83.7%->5.7% (+89.4pp) survived=True secular=cyclical-only {'net_cash_$M': 96.0, 'debt_to_equity': 0.01, 'current_ratio': 5.26}
+  SMG   EARLY      score=29.3  om -111.1%->28.2% (+139.3pp) survived=False secular=cyclical-only {'net_cash_$M': -2342.0, 'debt_to_equity': None, 'current_ratio': 1.27}
+  GNK   CONFIRMING score=32.5  om -36.4%->13.6% (+50.0pp) survived=True secular=cyclical-only {'net_cash_$M': 49154.0, 'debt_to_equity': 0.01, 'current_ratio': 2.98}
+
+harvester top_picks: [('IPI', 49.0, 'cyclical-only'), ('SMG', 29.3, 'cyclical-only'), ('GNK', 32.5, 'cyclical-only')]
+page: 200
+DONE 2116
