@@ -1,18 +1,7 @@
-=== INPUT ENGINE FRESHNESS (fusion sources) ===
-  revenue-acceleration.json    asof=2026-06-22T11:00  (a list has 9)
-  supply-inflection.json       asof=2026-06-22T07:00  (a list has ?)
-  bagger-engine.json           asof=2026-06-21T12:05  (a list has 100)
-  ai-rerating-radar.json       asof=2026-06-22T14:15  (a list has 117)
-
-=== DISCRIMINATOR CALIBRATION ===
-sym    gm_trough  gm_now om_trough  om_now om_swing   epsTr  epsNow neg2pos  revX  verdict
-MU         -17.8    74.4     -46.9    67.6    114.6   -4.16   21.46    True  6.36  [POS] CYCLICAL-20x SHAPE
-SNDK       -12.3    78.4     -31.8    69.1    100.9  -12.01   30.49    True  3.88  [POS] CYCLICAL-20x SHAPE
-AVGO        61.7    67.2      17.4    49.0     31.6     0.8    6.19   False   2.5  [NEG] no-coil (secular/stable)
-AMD         39.8    52.8      -1.7    14.4     16.1    0.02    3.08   False  1.91  [NEG] no-coil (secular/stable)
-TXN         55.9    58.0      32.5    37.5      4.9    1.89    5.89   False  1.32  [NEG] no-coil (secular/stable)
-KLAC        59.1    61.1      35.0    41.2      6.2       5   35.52   False  1.45  [NEG] no-coil (secular/stable)
-
-RULE BEING TESTED: coil(gm_trough<5 OR om_trough<-10) AND violence(om_swing>=40pp) AND eps_neg_to_pos
-PASS if MU/SNDK=CYCLICAL-20x SHAPE and AVGO/AMD/TXN/KLAC do NOT
-DONE 2112
+get_function: EXISTS
+invoke: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"shape\": 0}"} (2s)
+mode: PROVISIONAL | stats: {'pool': 24, 'evaluated': 24, 'twenty_x_shape': 0, 'shape_early_confirming': 0}
+  SELF-CHECK MU: 20x_shape=False swing=114.6pp eps_n2p=True stage=LATE score=11.8
+  SELF-CHECK SNDK: 20x_shape=False swing=100.9pp eps_n2p=True stage=LATE score=10.1
+  20x-shape book (early/confirming):
+DONE 2113
