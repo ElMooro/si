@@ -1,76 +1,21 @@
-════════ WHERE ARE WE IN THE CYCLE? ════════
+function EXISTS | state Active
+invoke: {"statusCode": 200, "body": "{\"phase\": \"LATE CYCLE\", \"quadrant\": \"STAGFLATION\", \"squeeze_risk\": 32.4, \"level\": \"LOW \\u00b7 WATCH\"}"}
 
-[US CYCLE]
-  cycle_score: {'score_0_100': 54.6, 'level': 'WATCH', 'components': [{'id': 'sahm', 'z': 0.4, 'w': 0.2}, {'id': 'sloos', 'z': 0.54, 'w': 0.15}, {'id': 'claims', 'z': -0.65, 'w': 0.12}, {'id': 'quits', 'z': 0.0, 'w': 0.1}, {'id': 'copper_gold', 'z': 0, 'w': 0.12}, {'id': 'real_10y', 'z': 1.45, 'w': 0.08}, {'id': 'term_premium', 'z': 0.86, 'w': 0.05}, {'id': 'buffett', 'z': 1.07, 'w': 0.08}, {'id': 'margin', 'z': 1.52, 'w': 0.05}, {'id': 'semis', 'z': -3, 'w': 0.05}], 'coverage_pillars': 10}
-  sahm: {}
-  sloos: {}
-  claims: {}
-  quits: {}
-  copper_gold: {}
-  term_premium: {}
-  real_10y: {}
-  infl_5y5y: {}
-  buffett: {}
-  margin_debt: {}
-  semis_leadership: {}
-  alerts: []
+VERDICT: LATE CYCLE (stagflation, growth slowing, inflation rising, valuation/leverage froth) — liquidity flat/easy with mild draining flickers, squeeze risk LOW · WATCH (32.4). Real divergence to watch: GROWTH SPLIT.
 
-[GLOBAL BUSINESS CYCLE]
-  aggregate: {'global_phase': 'GLOBAL_EXPANSION', 'global_avg_cli': 109.9, 'global_phase_mix_pct': {'EXPANSION': 90.2, 'AT_RISK': 3.4, 'RECESSION': 1.5, 'RECOVERY': 4.3, 'UNKNOWN': 0.6}, 'global_phase_mix_weight': {'EXPANSION': 76.09999999999998, 'RECOVERY': 3.6, 'AT_RISK': 2.9, 'RECESSION': 1.3, 'UNKNOWN': 0.5}, 'total_weight_covered': 84.4, 'classified_weight_covered': 83.9, 'classification_coverage_pct': 99.4, 'expansion_breadth_pct': 95.0, 'contraction_breadth_pct': 5.0, 'by_region': {'North America': {'phase_mix': {'EXPANSION': 27.0}, 'n_countries': 2, 'total_weight': 27.0, 'classified_weight': 27.0, 'avg_cli': 119.12, 'countries': ['USA', 'CAN'], 'phase_mix_pct': {'EXPANSION': 100.0}}, 'Asia-Pacific': {'phase_mix': {'EXPANSION': 25.6, 'RECOVERY': 3.6, 'RECESSION': 1.3}, 'n_countries': 7, 'total_weight': 30.500000000000004, 'classified_weight': 30.500000000000004, 'avg_cli': 105.13, 'countries': ['CHN', 'JPN', 'IND', 'KOR', 'AUS', 'IDN', 'NZL'], 'phase_mix_pct': {'EXPANSION': 83.9, 'RECOVERY': 11.8, 'RECESSION': 4.3}}, 'Europe': {'phase_mix': {'EXPANSION': 21.200000000000003, 'AT_RISK': 0.5, 'UNKNOWN': 0.5}, 'n_countries': 20, 'total_weight': 22.200000000000003, 'classified_weight': 21.700000000000003, 'avg_cli': 106.31, 'countries': ['DEU', 'GBR', 'FRA', 'ITA', 'ESP', 'NLD', 'TUR', 'CHE', 'POL', 'BEL', 'SWE', 'IRL', 'AUT', 'NOR', 'DNK', 'FIN', 'CZE', 'HUN', 'PRT', 'GRC'], 'phase_mix_pct': {'EXPANSION': 95.5, 'AT_RISK': 2.3, 'UNKNOWN': 2.3}}, 'Latin America': {'phase_mix': {'AT_RISK': 1.9, 'EXPANSION': 1.8}, 'n_countries': 3, 'total_weight': 3.6999999999999997, 'classified_weight': 3.6999999999999997, 'avg_cli': 103.66, 'countries': ['BRA', 'MEX', 'CHL'], 'phase_mix_pct': {'AT_RISK': 51.4, 'EXPANSION': 48.6}}, 'Africa': {'phase_mix': {'AT_RISK': 0.5}, 'n_countries': 1, 'total_weight': 0.5, 'classified_weight': 0.5, 'avg_cli': 102.43, 'countries': ['ZAF'], 'phase_mix_pct': {'AT_RISK': 100.0}}, 'Middle East': {'phase_mix': {'EXPANSION': 0.5}, 'n_countries': 1, 'total_weight': 0.5, 'classified_weight': 0.5, 'avg_cli': 112.52, 'countries': ['ISR'], 'phase_mix_pct': {'EXPANSION': 100.0}}}}
-  interpretation: {'decisive_call': 'GLOBAL EXPANSION · 95% of world GDP in expansion+recovery (avg CLI 109.9). Maximum cyclical risk exposure justified — overweight equity (especially EM + small caps), commodities, and HY credit. Underweight long duration and USD.', 'cross_asset': {'us_large_equity': {'signal': 2, '
+CYCLE: LATE CYCLE (phase_n 3, STAGFLATION) | growth slowing infl rising | conf high | froth ['real_10y z+1.45', 'term_premium z+0.86', 'buffett z+1.07', 'margin z+1.52']
+  US 54.6/WATCH · global GLOBAL_EXPANSION CLI 109.9 · nowcast SLOWING
 
-[MACRO NOWCAST]
-  normalized_score: -0.3606
-  regime: SLOWING
-  regime_color: amber
-  regime_spy_performance: {'SLOWING': {'n_obs': 42, 'horizons': {'1m': {'n': 41, 'mean_pct': 1.59, 'median_pct': 1.49, 'hit_rate_pct': 73.2, 'min_pct': -3.47, 'max_pct': 6.55}, '3m': {'n': 39, 'mean_pct': 4.99, 'median_pct': 4.59, 'hit_rate_pct': 89.7, 'min_pct': -2.9, 'max_pct': 11.37}, '6m': {'n': 36, 'mean_pct': 9.01, 'median_pct': 9.94, 'hit_rate_pct': 91.7, 'min_pct': -11.06, 'max_pct': 21.13}, '12m': {'n': 34, 'mean_pct': 17.9, 'median_pct': 18.19, 'hit_rate_pct': 94.1, 'min_pct': -5.41, 'max_pct': 32.09}}}, 'MUDDLE': {'n_obs': 55, 'horizons': {'1m': {'n': 55, 'mean_pct': 0.7, 'median_pct': 1.53, 'hit_rate_pct': 65.5, 'min_pct': -7.99, 'max_pct': 8.22}, '3m': {'n': 55, 'mean_pct': 1.81, 'median_pct': 3.23, 'hit_rate_pct': 69.1, 'min_pct': -16.51, 'max_pct': 17.26}, '6m': {'n': 55, 'mean_pct': 5.32, 'median_pct': 5.64, 'hit_rate_pct': 78.2, 'min_pct': -15.15, 'max_pct': 25.44}, '12m': {'n': 51, 'mean_pct': 12.73, 'median_pct': 14.02, 'hit_rate_pct': 90.2, 'min_pct': -13.41, 'max_pct': 35.67}}}, 'EXPANSION': {'n_obs': 11, 'horizons': {'1m': {'n': 11, 'mean_pct': -0.82, 'median_pct': 0.34, 'hit_rate_pct': 63.6, 'min_pct': -19.07, 'max_pct': 4.63}, '3m': {'n': 11, 'mean_pct': -0.98, 'median_pct': 2.22, 'hit_rate_pct': 54.5, 'min_pct': -10.91, 'max_pct': 5.79}, '6m': {'n': 11, 'mean_pct': -2.71, 'median_pct': -1.22, 'hit_rate_pct': 36.4, 'min_pct': -16.6, 'max_pct': 4.81}, '12m': {'n': 11, 'mean_pct': -5.15, 'median_pct': -8.03, 'hit_rate_pct': 36.4, 'min_pct': -16.47, 'max_pct': 18.49}}}, 'CONTRACTION RISK': {'n_obs': 7, 'horizons': {'1m': {'n': 7, 'mean_pct': 3.75, 'median_pct': 4.13, 'hit_rate_pct': 85.7, 'min_pct': -0.77, 'max_pct': 6.34}, '3m': {'n': 7, 'mean_pct': 10.37, 'median_pct': 8.4, 'hit_rate_pct': 100.0, 'min_pct': 3.62, 'max_pct': 17.05}, '6m': {'n': 7, 'mean_pct': 18.46, 'median_pct': 19.02, 'hit_rate_pct': 100.0, 'min_pct': 5.18, 'max_pct': 26.89}, '12m': {'n': 7, 'mean_pct': 37.57, 'median_pct': 36.52, 'hit_rate_pct': 100.0, 'min_pct': 18.96, 'max_pct': 49.94}}}, 'STRONG EXPANSION': {'n_obs': 4, 'horizons': {'1m': {'n': 4, 'mean_pct': 2.8, 'median_pct': 2.32, 'hit_rate_pct': 100.0, 'min_pct': 0.64, 'max_pct': 5.9}, '3m': {'n': 4, 'mean_pct': 6.38, 'median_pct': 6.12, 'hit_rate_pct': 100.0, 'min_pct': 4.88, 'max_pct': 8.39}, '6m': {'n': 4, 'mean_pct': 10.92, 'median_pct': 11.14, 'hit_rate_pct': 100.0, 'min_pct': 7.72, 'max_pct': 13.68}, '12m': {'n': 4, 'mean_pct': 1.82, 'median_pct': 1.49, 'hit_rate_pct': 50.0, 'min_pct': -8.01, 'max_pct': 12.29}}}}
+SQUEEZE RISK: 32.4 = LOW · WATCH | aggregate liq NEUTRAL
+  flickers: ['credit-engine liquidity pillar DRAINING', 'plumbing fingerprint TIGHTENING', 'global stress 68th pctile (elevated)']
 
-[MACRO REGIME]
-  current: {'quadrant': 'STAGFLATION', 'as_of_month': '2026-05', 'months_in_regime': 3, 'previous_quadrant': 'DEFLATION-BUST', 'growth_6m_momentum': -0.0, 'inflation_6m_momentum': 1.28, 'liquidity_nfci': -0.5, 'liquidity_state': 'EASY', 'next_3m_probabilities': {'GOLDILOCKS': 6.3, 'REFLATION': 17.5, 'STAGFLATION': 51.9, 'DEFLATION-BUST': 24.3}, 'history_share_pct': {'GOLDILOCKS': 21.1, 'REFLATION': 27.5, 'STAGFLATION': 25.5, 'DEFLATION-BUST': 26.0}}
+DIVERGENCES (4):
+  • GROWTH SPLIT: global business cycle reads GLOBAL_EXPANSION (CLI 109.9, 95.0% breadth) while the US macro regime is STAGFLATION — global growth engines
+  • LIQUIDITY SPLIT: aggregate central-bank liquidity is NEUTRAL/flat, but the credit-engine liquidity pillar is DRAINING — a draining flicker under a cal
+  • CROSS-ASSET SPLIT: Risk Map BIFURCATED — equities broadly risk-on while crypto is risk-off.
+  • COUNTERINTUITIVE: growth nowcast is SLOWING, but historically SLOWING preceded SPY +4.59% median over 3m — slowing has not meant down for equities.
 
-[REGIME PLAYBOOK]
-  regime_key: NORMAL|TIGHTENING|UNKNOWN
-  current_fingerprint: {'bond_vol': 'NORMAL', 'plumbing': 'TIGHTENING', 'balance_sheet': 'UNKNOWN', 'crypto_risk': 'LOW', 'date': '2026-06-21'}
-
-════════ IS THERE A LIQUIDITY SQUEEZE? ════════
-
-[GLOBAL LIQUIDITY]
-  global_liquidity_index: {'total_usd_bn': 17983.2, 'total_usd_trillions': 17.98, 'components_usd_bn': {'Fed': 6736.4, 'ECB': 7100.8, 'BOJ': 4146.0}, 'change_13w_pct': 0.38, 'change_52w_
-  fed_net_liquidity: {'value_usd_bn': 5848.9, 'value_usd_trillions': 5.85, 'change_13w_pct': 0.8, 'formula': 'Fed balance sheet - TGA - Overnight Reverse Repo', 'as_of': '2026-06-17
-  regime: NEUTRAL
-  regime_read: Global liquidity is roughly flat. Liquidity is neither a tailwind nor a headwind — earnings and rates dominate.
-  global_impulse_13w_pct: 0.38
-
-[LIQUIDITY FLOW]
-  regime: stable
-  interpretation: Net liquidity is roughly stable (-22B over 30 days).
-  deltas: {'1d': {'walcl': 11.0, 'tga': 52.6, 'rrp': -6.6, 'net': -35.0}, '1w': {'walcl': 11.0, 'tga': 52.6, 'rrp': -0.2, 'net': -41.4}, '1m': {'walcl': 7.9, 'tga': 42.1, 'rrp': -12.7, 'net': -21.5}, '3m': {'walcl': 80.5, 'tga': 27.7, 'rrp': -0.6, 'net': 53.4}}
-
-[LIQUIDITY & CREDIT ENGINE]
-  regime: WATCH
-  composite: {'score': 18.1, 'n_firing': 0, 'by_category': {}}
-  interpretation: {'as_of': '2026-06-21T18:22:27.573772+00:00', 'regime': 'WATCH', 'composite_score': 18.1, 'overall_posture': 'BALANCED_CAUTIOUS', 'confidence': 'HIGH', 'pillars': {'liquidity': {'state': 'DRAINING', 'rank': 1, 'narrative
-
-[CRISIS COMPOSITE]
-  master_crisis_score: 26.5
-  defcon_level: 4
-  defcon_name: NORMAL
-  trend: stable
-  primary_drivers: ['no single component in stress territory']
-
-[CRISIS CANARIES]
-  composite_score: 6.7
-  level: CALM
-  red_count: 1
-  level_v3: CALM
-
-[GLOBAL STRESS]
-  global_stress_index: 43
-  global_stress_level: ELEVATED
-  stress_momentum: {'direction': 'STABLE', 'change_5_runs': 0, 'change_20_runs': 8, 'percentile': 68, 'runs_tracked': 149}
-
-[SYSTEMIC STRESS]
-  headline: Systemic stress CALM. Composite 30/100 — euro-area CISS calm (5th pct); euro sovereign fragmentation mild dispersion.
-  composite: {'score_0_100': 29.6, 'regime': 'CALM', 'read': "Composite systemic-&-sovereign stress 30/100 — calm. Stress is contained; the ECB's official indices are not corroborating an acute systemic event."}
-
-DONE 2087
+availability: {'us_cycle': 'ok (0.5d)', 'global_cycle': 'ok (0.5d)', 'nowcast': 'ok (0.2d)', 'macro_regime': 'ok (0.5d)', 'regime_playbook': 'ok (0.4d)', 'global_liquidity': 'ok (0.6d)', 'liquidity_flow': 'ok (0.1d)', 'liquidity_credit': 'ok (0.2d)', 'plumbing': 'ok (0.5d)', 'treasury_noise': 'ok (1.1d)', 'crisis_composite': 'ok (0.0d)', 'crisis_canaries': 'ok (0.5d)', 'global_stress': 'ok (0.2d)', 'systemic_stress': 'ok (0.5d)', 'risk_map': 'ok (0.1d)'}
+stale: []
+CREATED_OK
+DONE 2088
