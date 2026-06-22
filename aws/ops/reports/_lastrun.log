@@ -1,12 +1,30 @@
+invoke: {"statusCode": 200, "body": "{\"resilient\": 137, \"boom\": 28, \"flow_confirmed\": 27, \"idio\": 0}"} (49s)
+v 2.2 | counts: {'absorbing': 109, 'coiled': 19, 'igniting': 9, 'flow_confirmed': 27, 'ignition_on_catalyst': 0, 'with_idiosyncratic_evidence': 0}
+  DIAG: catalysts: 3 miss, 40 dg, 30 ptcut, 13 gcut; 61 tickers
+  DIAG: dark-pool coverage 61 (33 accum)
+  DIAG: liquid universe 2013
 
-[data/dark-pool.json] v=1.0.0 gen=2026-06-20T20:50 keys=['engine', 'version', 'ok', 'generated_at', 'thesis', 'latest_week', 'n_scored', 'distribution', 'board', 'top_picks', 'top_accumulation', 'top_distribution', 'dark_map', 'data_source', 'caveats', 'elapsed_s']
-   .top_picks[0] keys: ['ticker', 'score', 'direction', 'state', 'dark_pool_pct', 'dark_accel', 'offex_pct', 'week_return_pct']
-   .top_picks[0]: {"ticker": "AXTA", "score": 90.6, "direction": "long", "state": "ACCUMULATION", "dark_pool_pct": 33.9, "dark_accel": 2.086, "offex_pct": 52.57, "week_return_pct": 2.53}
-   .distribution (dict, 2 keys) e.g. accumulation: 37
-   list 'board' n=60 sample signal-fields: ['state=DISTRIBUTION', 'state=ACCUMULATION', 'state=NEUTRAL']
-   list 'top_picks' n=15 sample signal-fields: ['direction=long', 'state=ACCUMULATION']
-   list 'top_accumulation' n=20 sample signal-fields: ['state=ACCUMULATION']
-   list 'top_distribution' n=12 sample signal-fields: ['state=DISTRIBUTION']
+🚀 ABOUT TO BOOM (flow-confirmed + idio first):
+  CNTA  📥F  COILED    res84.0 flow96.6 | SPY+XLY   OBV0.235 AD0.23 dp:None | 
+  IMVT  📥F  COILED    res77.6 flow100.0 | SPY+XLY   OBV0.259 AD0.272 dp:None | 
+  MNST  📥F  COILED    res74.8 flow88.0 | SPY+XLP   OBV0.269 AD0.094 dp:None | 
+  CHEF  📥F  IGNITING  res74.2 flow94.9 | SPY+XLY   OBV0.293 AD0.14 dp:None | IGNITE 1d ago volz1.43 rx1.56
+  NHC   📥F  IGNITING  res67.3 flow70.9 | SPY+XLP   OBV0.12 AD0.087 dp:None | IGNITE 1d ago volz7.38 rx2.09
+  PRMB  📥F  COILED    res66.8 flow86.3 | SPY+XLY   OBV0.234 AD0.117 dp:None | 
+  CXW   📥F  IGNITING  res66.7 flow100.0 | SPY       OBV0.366 AD0.184 dp:None | IGNITE 1d ago volz2.66 rx1.06
+  UFPT      COILED    res76.2 flow60.4 | SPY+XLY   OBV-0.007 AD0.124 dp:None | 
+  GKOS      COILED    res73.8 flow38.3 | SPY+XLI   OBV-0.126 AD0.024 dp:None | 
+  ROIV      COILED    res71.3 flow54.0 | SPY+XLI   OBV0.018 AD0.022 dp:None | 
+  COMP      COILED    res70.6 flow49.8 | SPY+XLY   OBV0.079 AD-0.098 dp:None | 
+  RPM       COILED    res70.5 flow52.9 | SPY+XLB   OBV0.147 AD-0.148 dp:None | 
+  DOCN      COILED    res69.6 flow71.0 | SPY+XLK   OBV0.041 AD0.184 dp:None | 
+  FUL       COILED    res69.0 flow73.4 | SPY+XLB   OBV0.272 AD-0.072 dp:None | 
 
-[data/signal-harvester.json] An error occurred (NoSuchKey) when calling the GetObject ope
-DONE 2099
+=== VALIDATION ===
+IGNITING 8: all have ignition trigger? True
+COILED 18: all WITHOUT ignition (pure setup)? True
+flow-confirmed in boom: 7 / 20
+names with dark-pool join: 1 e.g. [('TXRH', 'NEUTRAL')]
+
+resilience.html: 200 | flow badge code: True | ignition code: True
+DONE 2100
