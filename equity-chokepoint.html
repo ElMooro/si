@@ -25,6 +25,7 @@ function sc(v){return v>=65?'var(--violet)':v>=55?'var(--cyan)':v>=50?'var(--amb
 function card(r){
   let h=`<div class="card"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> <span class="nm">${esc(r.name||'')}</span></div><span class="score" style="color:${sc(r.criticality)}">${r.criticality}</span></div>`;
   h+=`<div style="margin-top:5px">`;
+  if(r.discovered)h+=`<span class="tag" style="color:#0a0e14;background:var(--cyan);border-color:var(--cyan);font-weight:700">DISCOVERED</span> `;
   if(r.cheap_chokepoint)h+=`<span class="tag" style="color:var(--green);border-color:var(--green)">CHEAP chokepoint</span> `;
   if(r.hidden_chokepoint)h+=`<span class="tag" style="color:var(--amber);border-color:var(--amber)">hidden · ${esc(r.cap_bucket)}</span> `;
   if(r.industry)h+=`<span class="tag">${esc(r.industry)}</span>`;
@@ -41,7 +42,13 @@ function card(r){
   const cal=d.scoring&&d.scoring.calibration||{};
   h+=`<div class="banner"><b>Criticality:</b> ${esc(d.scoring&&d.scoring.formula)}.<br><span style="color:var(--fg-3)">Calibrated: chokepoints avg ${cal.chokepoints_avg} vs commodity avg ${cal.commodity_avg} (clean gap ${esc(cal.clean_gap)}). The standout proxy — <b style="color:var(--cyan)">margin stability</b> — is the fingerprint of irreplaceable pricing power.</span></div>`;
   const s=d.stats||{};
-  h+=`<div class="counts"><div class="cpill"><b>Chokepoints</b><span style="color:var(--violet)">${s.chokepoints||0}</span></div><div class="cpill"><b>Cheap</b><span style="color:var(--green)">${s.cheap||0}</span></div><div class="cpill"><b>Hidden</b><span style="color:var(--amber)">${s.hidden||0}</span></div><div class="cpill"><b>Industries</b><span>${s.industries||0}</span></div></div>`;
+  h+=`<div class="counts"><div class="cpill"><b>Chokepoints</b><span style="color:var(--violet)">${s.chokepoints||0}</span></div><div class="cpill"><b>Discovered</b><span style="color:var(--cyan)">${s.discovered||0}</span></div><div class="cpill"><b>Cheap</b><span style="color:var(--green)">${s.cheap||0}</span></div><div class="cpill"><b>Hidden</b><span style="color:var(--amber)">${s.hidden||0}</span></div><div class="cpill"><b>Industries</b><span>${s.industries||0}</span></div></div>`;
+  // DISCOVERED — the v2 payoff: chokepoints the broad scan found that the curated seed missed
+  if((d.discovered_chokepoint_book||[]).length){
+    h+=`<h2>🛰️ Newly discovered — broad scan found, curated seed missed</h2>`;
+    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:4px">The whole-universe funnel surfaced these indispensable niche names that weren't in any existing list — the real point of v2.</div>`;
+    for(const r of d.discovered_chokepoint_book)h+=card(r);
+  }
   // CHEAP chokepoints — the actionable edge
   h+=`<h2>💰 Cheap chokepoints — indispensable, on sale</h2>`;
   if((d.cheap_chokepoint_book||[]).length){

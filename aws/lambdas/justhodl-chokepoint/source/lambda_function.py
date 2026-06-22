@@ -33,7 +33,7 @@ chokepoint seed + existing engine universes. v2 = broad-universe scan for hidden
 small-cap sole-suppliers. Cheap-chokepoint picks logged to the harvester (the
 gradeable edge); pure criticality is a quality screen, not a timing signal.
 """
-import json, time, statistics, urllib.request
+import json, time, statistics, urllib.request, csv, io
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
@@ -79,7 +79,49 @@ def _gj(url, tries=2):
 def clamp(v, lo=0.0, hi=1.0): return max(lo, min(hi, v))
 
 
-def evaluate(sym, centrality, rerate_lookup):
+# chokepoint-prone industries (where structural pricing power / sole-supplier dynamics live).
+# substring match, lowercase — a commodity industry (autos, airlines, steel) never qualifies.
+CHOKE_INDUSTRIES = [
+    "software", "semiconductor", "medical", "diagnostic", "instrument", "scientific",
+    "specialty chemical", "specialty industrial", "aerospace", "defense", "electronic",
+    "communication equipment", "computer hardware", "information technology", "biotechnology",
+    "drug manufacturer", "security & protection", "life sciences", "technology hardware",
+    "capital markets", "financial data", "exchange", "consumer electronics", "data",
+]
+
+def _gj_bytes(url, tries=2):
+    for _ in range(tries):
+        try:
+            with urllib.request.urlopen(url, timeout=60) as r: return r.read()
+        except Exception: time.sleep(1)
+    return None
+
+def fetch_bulk_universe():
+    """One call -> {SYMBOL: profile} for the whole market (Stage-1 of the funnel)."""
+    raw = _gj_bytes(f"https://financialmodelingprep.com/stable/profile-bulk?part=0&apikey={FMP}")
+    if not raw: return {}
+    out = {}
+    try:
+        rdr = csv.DictReader(io.StringIO(raw.decode("utf-8", "replace")))
+        for row in rdr:
+            sym = (row.get("symbol") or "").upper()
+            if not sym or "." in sym or "-" in sym: continue   # skip foreign/preferred share classes
+            try: mc = float(row.get("marketCap") or 0)
+            except Exception: mc = 0
+            out[sym] = {
+                "market_cap": mc, "sector": row.get("sector"), "industry": row.get("industry"),
+                "name": row.get("companyName"),
+                "exchange": row.get("exchangeShortName") or row.get("exchange"),
+                "active": str(row.get("isActivelyTrading")).lower() in ("true", "1"),
+                "is_etf": str(row.get("isEtf")).lower() in ("true", "1"),
+                "is_fund": str(row.get("isFund")).lower() in ("true", "1"),
+            }
+    except Exception:
+        pass
+    return out
+
+
+def evaluate(sym, centrality, rerate_lookup, bulk):
     inc = _gj(f"https://financialmodelingprep.com/stable/income-statement?symbol={sym}&period=annual&limit=10&apikey={FMP}")
     if not isinstance(inc, list) or len(inc) < 4: return None
     gms, oms, rds = [], [], []
@@ -105,12 +147,14 @@ def evaluate(sym, centrality, rerate_lookup):
     if isinstance(roic, (int, float)):
         roic = roic * 100 if abs(roic) < 3 else roic
 
-    # profile: cap + sector + industry + name
-    prof = _gj(f"https://financialmodelingprep.com/stable/profile?symbol={sym}&apikey={FMP}")
-    mcap = sector = industry = name = None
-    if isinstance(prof, list) and prof:
-        mcap = prof[0].get("marketCap"); sector = prof[0].get("sector")
-        industry = prof[0].get("industry"); name = prof[0].get("companyName")
+    # profile from the bulk universe (no per-name profile call); fallback for names not in bulk
+    bp = bulk.get(sym) or {}
+    mcap = bp.get("market_cap"); sector = bp.get("sector"); industry = bp.get("industry"); name = bp.get("name")
+    if not mcap:
+        prof = _gj(f"https://financialmodelingprep.com/stable/profile?symbol={sym}&apikey={FMP}")
+        if isinstance(prof, list) and prof:
+            mcap = prof[0].get("marketCap"); sector = sector or prof[0].get("sector")
+            industry = industry or prof[0].get("industry"); name = name or prof[0].get("companyName")
     cap_bucket = None
     if isinstance(mcap, (int, float)):
         cap_bucket = ("nano" if mcap < 3e8 else "micro" if mcap < 2e9 else "small" if mcap < 1e10 else
@@ -170,29 +214,49 @@ def lambda_handler(event, context):
     rerate = _read("data/ai-rerating-radar.json") or {}
     rerate_lookup = {r["symbol"].upper(): r for r in rerate.get("all_ranked", []) if r.get("symbol")}
 
-    # ---- curated v1 pool: seed + hubs + existing engine universes ----
-    pool = set(CURATED_SEED) | set(centrality.keys())
+    # ---- v1 curated pool: seed + hubs + existing engine universes ----
+    v1_pool = set(CURATED_SEED) | set(centrality.keys())
     for r in rerate.get("all_ranked", []):
-        if r.get("symbol"): pool.add(r["symbol"].upper())
+        if r.get("symbol"): v1_pool.add(r["symbol"].upper())
     mr = _read("data/master-ranker.json") or {}
     for r in (mr.get("top_tickers") or [])[:25]:
         s = r.get("ticker") or r.get("symbol")
-        if s: pool.add(s.upper())
+        if s: v1_pool.add(s.upper())
     bag = _read("data/bagger-engine.json") or {}
     for r in (bag.get("candidates") or bag.get("all_ranked") or [])[:30]:
         s = r.get("symbol") or r.get("ticker")
-        if s: pool.add(s.upper())
-    pool = list(pool)[:200]
-    diag.append("pool=%d" % len(pool))
+        if s: v1_pool.add(s.upper())
+
+    # ---- v2 funnel: one bulk call -> high-margin-prone small/mid discovery candidates ----
+    bulk = fetch_bulk_universe()
+    diag.append("bulk_universe=%d" % len(bulk))
+    funnel = []
+    for sym, p in bulk.items():
+        if sym in v1_pool: continue
+        if p["is_etf"] or p["is_fund"] or not p["active"]: continue
+        if (p.get("exchange") or "") not in ("NASDAQ", "NYSE", "AMEX"): continue
+        mc = p["market_cap"]
+        if not (8e8 <= mc <= 5e10): continue                       # $0.8B-$50B established small/mid
+        ind = (p.get("industry") or "").lower()
+        if not any(w in ind for w in CHOKE_INDUSTRIES): continue
+        funnel.append((sym, mc))
+    funnel.sort(key=lambda x: -x[1])                               # established niche leaders first
+    funnel_syms = [s for s, _ in funnel[:380]]
+    diag.append("funnel_candidates=%d -> deep-dive %d" % (len(funnel), len(funnel_syms)))
+
+    pool = list(v1_pool) + funnel_syms
+    diag.append("pool=%d (v1=%d + funnel=%d)" % (len(pool), len(v1_pool), len(funnel_syms)))
 
     results = []
-    with ThreadPoolExecutor(max_workers=14) as ex:
-        futs = {ex.submit(evaluate, s, centrality, rerate_lookup): s for s in pool}
+    with ThreadPoolExecutor(max_workers=18) as ex:
+        futs = {ex.submit(evaluate, s, centrality, rerate_lookup, bulk): s for s in pool}
         for f in as_completed(futs):
             try:
                 r = f.result()
                 if r: results.append(r)
             except Exception: pass
+    for r in results:
+        r["discovered"] = r["ticker"] not in v1_pool      # found by the broad scan, not the curated seed
     diag.append("evaluated=%d" % len(results))
 
     results.sort(key=lambda r: r["criticality"], reverse=True)
@@ -200,6 +264,9 @@ def lambda_handler(event, context):
     hidden = [r for r in chokepoints if r["hidden_chokepoint"]]
     cheap = [r for r in chokepoints if r["cheap_chokepoint"]]
     cheap.sort(key=lambda r: (r.get("discount_to_fair_pct") or 0), reverse=True)
+    # the v2 payoff: chokepoints the broad scan found that the curated seed/engines missed
+    discovered = [r for r in chokepoints if r.get("discovered")]
+    discovered.sort(key=lambda r: -r["criticality"])
 
     # per-industry "make-it-or-break-it" leader
     by_industry = {}
@@ -216,7 +283,7 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "chokepoint", "version": VERSION, "generated_at": datetime.now(timezone.utc).isoformat(),
-        "duration_s": round(time.time() - t0, 1), "mode": mode, "scope": "curated_v1",
+        "duration_s": round(time.time() - t0, 1), "mode": mode, "scope": "broad_v2",
         "thesis": ("Industry-criticality: the make-it-or-break-it companies their industry can't route around. "
                    "Criticality is a quality attribute the market usually prices; the edge is in HIDDEN chokepoints "
                    "(small sole-suppliers) and CHEAP chokepoints (indispensable on sale)."),
@@ -225,28 +292,33 @@ def lambda_handler(event, context):
                     "standout_proxy": "margin stability = the fingerprint of irreplaceable pricing power",
                     "threshold": CHOKE_THRESHOLD},
         "stats": {"pool": len(pool), "evaluated": len(results), "chokepoints": len(chokepoints),
-                  "hidden": len(hidden), "cheap": len(cheap), "industries": len(industry_leaders)},
+                  "hidden": len(hidden), "cheap": len(cheap), "discovered": len(discovered),
+                  "industries": len(industry_leaders)},
+        "discovered_chokepoint_book": discovered[:30],
         "cheap_chokepoint_book": cheap[:20],
         "hidden_chokepoint_book": hidden[:25],
         "industry_leaders": industry_leaders[:40],
         "all_chokepoints": chokepoints[:80],
-        "methodology": ("Pool = curated chokepoint seed + supply-chain-graph hubs + rerating-radar/master-ranker/"
-                        "bagger universes. Per name: 10y margins (level + STABILITY), ROIC, R&D intensity (FMP), "
-                        "supply-chain centrality (curated graph). Calibrated vs known chokepoints AND commodity "
-                        "controls. Centrality covers only graph sectors (semis/AI) in v1; v2 broadens the universe "
-                        "for hidden small-cap sole-suppliers. Cheap-chokepoint picks graded forward; pure criticality "
-                        "is a quality screen, not a timing signal. Research, not investment advice."),
+        "methodology": ("TWO-STAGE FUNNEL. Stage 1: one FMP profile-bulk call returns the whole universe; "
+                        "filter to actively-trading US small/mid-caps ($0.8-50B) in chokepoint-prone industries "
+                        "(commodity industries never qualify). Stage 2: deep-dive survivors + curated seed + engine "
+                        "universes for 10y margins (level + STABILITY), ROIC, R&D, supply-chain centrality. "
+                        "Calibrated vs known chokepoints AND commodity controls. 'discovered' = found by the broad "
+                        "scan, not the curated seed. Cheap-chokepoint picks graded forward; pure criticality is a "
+                        "quality screen, not a timing signal. Research, not investment advice."),
         "disclaimer": "Criticality measures business indispensability, not stock cheapness — most chokepoints are expensive. Not investment advice.",
-        "next": "v2: broad-universe scan (~600-1000 names) for hidden small-cap sole-suppliers the market underwatches.",
+        "next": "v2.1: multi-part bulk pagination + LLM irreplaceability pass on the discovered names.",
         "diagnostics": diag,
         "top_picks": [{"ticker": r["ticker"], "score": r["criticality"], "cheap": True,
                        "discount_pct": r.get("discount_to_fair_pct")} for r in cheap[:12]],
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache, max-age=0")
-    print("[chokepoint v1] pool=%d eval=%d chokepoints=%d hidden=%d cheap=%d industries=%d" % (
-        len(pool), len(results), len(chokepoints), len(hidden), len(cheap), len(industry_leaders)))
-    print("  top criticality:", [(r["ticker"], r["criticality"]) for r in results[:12]])
-    if cheap: print("  CHEAP chokepoints (the edge):", [(r["ticker"], r["criticality"], f"{r.get('discount_to_fair_pct')}%") for r in cheap[:8]])
+    print("[chokepoint v2] pool=%d eval=%d chokepoints=%d hidden=%d cheap=%d DISCOVERED=%d industries=%d" % (
+        len(pool), len(results), len(chokepoints), len(hidden), len(cheap), len(discovered), len(industry_leaders)))
+    print("  top criticality:", [(r["ticker"], r["criticality"]) for r in results[:10]])
+    if discovered: print("  NEWLY DISCOVERED (broad scan found, curated missed):",
+                         [(r["ticker"], r["criticality"], r["cap_bucket"], (r.get("industry") or "")[:18]) for r in discovered[:12]])
+    if cheap: print("  CHEAP chokepoints:", [(r["ticker"], r["criticality"], f"{r.get('discount_to_fair_pct')}%") for r in cheap[:6]])
     if hidden: print("  HIDDEN chokepoints:", [(r["ticker"], r["criticality"], r["cap_bucket"]) for r in hidden[:8]])
     return {"statusCode": 200, "body": json.dumps({"mode": mode, "chokepoints": len(chokepoints), "cheap": len(cheap)})}
