@@ -1,26 +1,11 @@
-invoke: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"shape\": 4}"} (3s)
-stats: {'pool': 114, 'evaluated': 111, 'twenty_x_shape': 4, 'shape_early_confirming': 4} mode: PROVISIONAL
+invoke: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"shape\": 3}"} (4s)
+stats: {'pool': 114, 'evaluated': 111, 'twenty_x_shape': 3, 'shape_early_confirming': 3} | mode: PROVISIONAL
 
-20x-SHAPE BOOK (early/confirming — the real hunt):
-  SMG   EARLY      score=58.5  om -111.1%→28.2% (+139.3pp) eps_n2p=True run=1.3x cap=None []
-  RUN   EARLY      score=53.8  om -628.0%→-6.0% (+622.0pp) eps_n2p=True run=1.24x cap=None []
-  IPI   EARLY      score=51.4  om -83.7%→5.7% (+89.4pp) eps_n2p=True run=1.61x cap=None []
-  GNK   CONFIRMING score=34.0  om -36.4%→13.6% (+50.0pp) eps_n2p=True run=2.07x cap=None []
+🌀 20x-SHAPE BOOK (clean — real businesses at deep troughs):
+  sym   stage       score     cap  op-margin trough→now (swing)   eps_n2p  run  themes
+  SMG   EARLY        66.6   small  -111.1%→28.2% (+139.3pp)  True   1.3x  ['COPX', 'PICK']
+  IPI   EARLY        61.3   micro  -83.7%→5.7% (+89.4pp)  True   1.61x  ['COPX', 'PICK']
+  GNK   CONFIRMING   40.6   micro  -36.4%→13.6% (+50.0pp)  True   2.07x  ['PICK', 'GRID']
 
-TOP 12 ALL-RANKED (incl partials):
-  SMG   EARLY      score=58.5  shape=True swing=+139.3pp coil=1.0 viol=1.0 cap=None
-  RUN   EARLY      score=53.8  shape=True swing=+622.0pp coil=1.0 viol=1.0 cap=None
-  IPI   EARLY      score=51.4  shape=True swing=+89.4pp coil=1.0 viol=0.87 cap=None
-  GNK   CONFIRMING score=34.0  shape=True swing=+50.0pp coil=0.73 viol=0.38 cap=None
-  UUUU  CONFIRMING score=30.7  shape=Falseswing=+3046.7pp coil=1.0 viol=1.0 cap=None
-  BTBT  EARLY      score=30.2  shape=Falseswing=+130.4pp coil=1.0 viol=1.0 cap=small
-  MP    CONFIRMING score=29.7  shape=Falseswing=+151.7pp coil=1.0 viol=1.0 cap=None
-  SGML  CONFIRMING score=28.8  shape=Falseswing=+166.0pp coil=1.0 viol=1.0 cap=None
-  UEC   CONFIRMING score=28.7  shape=Falseswing=+10425.0pp coil=1.0 viol=1.0 cap=None
-  PLUG  EARLY      score=27.5  shape=Falseswing=+615.2pp coil=1.0 viol=1.0 cap=mid
-  SEDG  CONFIRMING score=27.2  shape=Falseswing=+401.2pp coil=1.0 viol=1.0 cap=None
-  CLSK  EARLY      score=27.2  shape=Falseswing=+157.3pp coil=1.0 viol=1.0 cap=mid
-
-MU/SNDK (should be LATE/mega, correctly retired):
-page: 200
-DONE 2114
+harvester top_picks (forward-graded): [('SMG', 66.6, 'EARLY'), ('IPI', 61.3, 'EARLY'), ('GNK', 40.6, 'CONFIRMING')]
+DONE 2115
