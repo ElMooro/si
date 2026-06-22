@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-equity-confluence",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "schedule": {
+    "rule_name": "justhodl-equity-confluence-daily",
+    "cron": "cron(30 0 * * ? *)"
+  }
+}

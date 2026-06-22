@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Confluence Radar · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg-1:#c9d1d9;--fg-2:#9aa5b1;--fg-3:#6b7480;--bd:#1f2730;--card:#0f141b;--green:#34d399;--red:#f87171;--cyan:#38bdf8;--amber:#fbbf24;--violet:#a78bfa;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:22px 0 8px;color:var(--fg-1)}
+.sub{color:var(--fg-2);font-size:13px;margin-bottom:6px}.meta{color:var(--fg-3);font-size:12px;margin-bottom:12px}
+.banner{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--cyan);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--fg-1);margin:10px 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;margin:10px 0}
+.row1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tk{font-weight:700;font-size:16px}.score{font-weight:700;font-size:18px}
+.stg{font-size:10px;text-transform:uppercase;letter-spacing:.4px;border:1px solid var(--fg-3);border-radius:5px;padding:1px 6px;color:var(--fg-2)}
+.fam{display:inline-block;font-size:11px;border-radius:5px;padding:2px 7px;margin:3px 4px 0 0;border:1px solid var(--bd)}
+.detail{font-size:12.5px;color:var(--fg-2);margin-top:7px}
+.counts{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.cpill{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--fg-2)}
+.cpill b{display:block;color:var(--fg-3);font-size:10px;text-transform:uppercase}.cpill span{font-size:17px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0}th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--bd)}th{color:var(--fg-3);font-weight:600;font-size:11px;text-transform:uppercase}
+.note{color:var(--fg-3);font-size:11.5px;margin-top:18px;line-height:1.5}.loading{color:var(--fg-3);padding:30px 0}
+.bar{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin-top:5px}.bar>i{display:block;height:100%}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Stacking edges…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+const SUPCOL={technical:'var(--cyan)',flow:'var(--green)',fundamental:'var(--amber)',structural:'var(--violet)'};
+const FAMSUP={absorption:'technical',squeeze:'technical',catalyst:'technical',flow_micro:'flow',flow_macro:'flow',revision:'fundamental',pead:'fundamental',options:'structural',linkage:'structural'};
+function stColor(s){return s==='PROVEN'?'var(--green)':s==='NEGATIVE'?'var(--red)':'var(--fg-3)';}
+function compColor(c){return c>=60?'var(--green)':c>=40?'var(--cyan)':'var(--amber)';}
+function card(b){
+  let h=`<div class="card"><div class="row1"><div><span class="tk">${esc(b.ticker)}</span> <span class="stg" style="color:${compColor(b.composite)};border-color:${compColor(b.composite)}">${b.n_super_families} independent ${b.n_super_families>1?'edges':'edge'}</span></div><span class="score" style="color:${compColor(b.composite)}">${b.composite}</span></div>`;
+  h+=`<div style="margin-top:6px">`;
+  for(const sup of b.super_families)h+=`<span class="fam" style="border-color:${SUPCOL[sup]};color:${SUPCOL[sup]}">${esc(sup)}</span>`;
+  h+=`</div>`;
+  h+=`<div class="detail">Lit by: ${b.engines.map(e=>`<span class="fam" style="border-color:${stColor(e.family_status)};color:${e.family_status==='PROVEN'?'var(--green)':'var(--fg-2)'}" title="${esc(e.family)} · ${esc(e.family_status)}">${esc(e.engine)}${e.family_status==='PROVEN'?' ✓':''}</span>`).join('')}</div>`;
+  h+=`<div class="detail">${b.n_families} engines across <b>${b.n_super_families}</b> independent families · effective bets <b>${b.n_eff}</b> · avg strength ${b.avg_strength}${b.proven_super_families_hit.length?` · <span style="color:var(--green)">${b.proven_super_families_hit.length} PROVEN</span>`:' · <span style="color:var(--fg-3)">none proven yet</span>'}</div>`;
+  h+=`<div class="bar"><i style="width:${Math.min(100,b.composite)}%;background:${compColor(b.composite)}"></i></div></div>`;
+  return h;
+}
+(async function(){
+  const d=await gj('data/equity-confluence.json');const w=document.getElementById('wrap');
+  if(!d||!d.confluence_book){w.innerHTML='<h1>Confluence Radar</h1><div class="loading">No scan yet — updates daily 00:30 UTC.</div>';return;}
+  const proven=d.mode==='PROVEN';
+  let h=`<h1>🔗 Confluence Radar <span class="stg" style="color:${proven?'var(--green)':'var(--amber)'};border-color:${proven?'var(--green)':'var(--amber)'}">${esc(d.mode)}</span></h1>`;
+  h+=`<div class="sub">${esc(d.thesis)}</div>`;
+  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}</div>`;
+  // auto-activation status
+  const aa=d.auto_activation||{};
+  h+=`<div class="banner" style="border-left-color:${proven?'var(--green)':'var(--amber)'}">
+    <b>${proven?'✅ PROVEN MODE ACTIVE':'⏳ Provisional — research only'}.</b> ${esc(aa.note||'')}
+    <br>Gate: <b>${esc(aa.rule||'')}</b>. Proven so far: <b>${(aa.current_proven_super_families||[]).join(', ')||'none'}</b> (${aa.n_proven||0}/${aa.needed||2}).</div>`;
+  // super-family status row
+  h+=`<div style="margin:10px 0">`;
+  for(const sup of ['technical','flow','fundamental','structural']){
+    const ss=(d.super_family_status||{})[sup]||{};
+    h+=`<span class="fam" style="border-color:${stColor(ss.status)};color:${ss.status==='PROVEN'?'var(--green)':'var(--fg-2)'}">${esc(sup)}: ${esc(ss.status||'?')}</span>`;
+  }
+  h+=`</div>`;
+  const c=d.counts||{};
+  h+=`<div class="counts">
+    <div class="cpill"><b>Any signal</b><span>${c.names_with_any_signal||0}</span></div>
+    <div class="cpill"><b>2+ families</b><span style="color:var(--cyan)">${c.names_2plus_families||0}</span></div>
+    <div class="cpill"><b>3+ independent</b><span style="color:var(--green)">${c.names_3plus_super_families||0}</span></div>
+    <div class="cpill"><b>Proven book</b><span style="color:${proven?'var(--green)':'var(--fg-3)'}">${c.proven_book_size||0}</span></div>
+  </div>`;
+  if(proven&&(d.proven_book||[]).length){
+    h+=`<h2>✅ Proven confluence book — stacked edges that cleared FDR</h2>`;
+    for(const b of d.proven_book)h+=card(b);
+  }
+  h+=`<h2>🔬 Provisional confluence — multiple independent reads, none proven yet</h2>`;
+  h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:6px">Ranked by independent factor-family breadth (correlation-adjusted), not by signal count. A name lit across technical + flow + fundamental is a real 3-way stack; three momentum engines are one bet. None of these is a proven edge until the scorecard says so — this is research.</div>`;
+  for(const b of (d.confluence_book||[]))h+=card(b);
+  h+=`<div class="note">${esc(d.methodology)}<br><br>${esc(d.disclaimer)}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
