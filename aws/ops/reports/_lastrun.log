@@ -1,35 +1,23 @@
-thesis: Find AI-infra names with high forward growth on a low multiple — not yet repriced for the AI-driven growth — before the market re-rates them (the MU setup).
-universe=128 priced=119 candidates=14 small_mid_candidates=5
+=== NOK across the system ===
+[resilience.json] — NOK absent
+[dark-pool.json] — NOK absent
+[best-setups.json] — NOK absent
+[master-ranker.json] — NOK absent
+[boom-radar.json] — NOK absent
+[squeeze-fuel.json] — NOK absent
+[options-analytics.json] — NOK absent
+[analyst-actions.json] — NOK absent
+[estimate-revisions.json] — NOK absent
+[capital-flow.json] — NOK absent
+[flow-lookthrough.json] — NOK absent
+[supply-chain-graph.json] — NOK absent
+[equity-confluence.json] — NOK absent
+[ai-rerating-radar.json] — NOK absent
+[ai-infra-stack.json] — NOK absent
+[signal-board.json] — NOK absent
 
-=== SMALL/MID-CAP 'MU SETUP' CANDIDATES (10x arithmetically possible) ===
-{"sym": "BTBT", "layer": "miners_to_ai", "cap": "small", "mcap_$B": 0.8, "growth%": 59.0, "fwd_growth%": null, "ev_sales": 6.67, "ev_sales_fair": 15.39, "disc_to_fair%": 56.7, "unpriced_z": -0.69, "ret_3m%": 40.0, "small_mid": true, "accel": false, "est_rising": false, "ai_deal": false, "insider_buy": true, "smart_money": false, "why": "59% rev growth on 6.7x EV/Sales vs ~15.4x growth-implied (57% below); lags miners_to_ai peers by 52pp; forward > trailin"}
-{"sym": "PRIM", "layer": "datacenter_buildout", "cap": "mid", "mcap_$B": 5.5, "growth%": 15.1, "fwd_growth%": null, "ev_sales": 0.73, "ev_sales_fair": 12.08, "disc_to_fair%": 94.0, "unpriced_z": -0.9, "ret_3m%": -27.0, "small_mid": true, "accel": false, "est_rising": false, "ai_deal": false, "insider_buy": false, "smart_money": false, "why": "15% rev growth on 0.7x EV/Sales vs ~12.1x growth-implied (94% below); lags datacenter_buildout peers by 53pp; growth int"}
-{"sym": "CLSK", "layer": "miners_to_ai", "cap": "mid", "mcap_$B": 4.4, "growth%": 113.3, "fwd_growth%": null, "ev_sales": 5.77, "ev_sales_fair": 19.5, "disc_to_fair%": 70.4, "unpriced_z": -1.09, "ret_3m%": 83.4, "small_mid": true, "accel": false, "est_rising": false, "ai_deal": false, "insider_buy": false, "smart_money": true, "why": "113% rev growth on 5.8x EV/Sales vs ~19.5x growth-implied (70% below); lags miners_to_ai peers by 8pp; forward > trailin"}
-{"sym": "LEU", "layer": "power_grid", "cap": "mid", "mcap_$B": 3.6, "growth%": 18.4, "fwd_growth%": null, "ev_sales": 8.08, "ev_sales_fair": 12.33, "disc_to_fair%": 34.4, "unpriced_z": -0.34, "ret_3m%": 2.5, "small_mid": true, "accel": false, "est_rising": false, "ai_deal": false, "insider_buy": false, "smart_money": false, "why": "18% rev growth on 8.1x EV/Sales vs ~12.3x growth-implied (34% below); lags power_grid peers by 28pp; forward > trailing "}
-{"sym": "ACMR", "layer": "equipment", "cap": "mid", "mcap_$B": 7.0, "growth%": 27.1, "fwd_growth%": null, "ev_sales": 7.82, "ev_sales_fair": 12.99, "disc_to_fair%": 39.8, "unpriced_z": -0.41, "ret_3m%": 152.3, "small_mid": true, "accel": false, "est_rising": false, "ai_deal": false, "insider_buy": false, "smart_money": false, "why": "27% rev growth on 7.8x EV/Sales vs ~13.0x growth-implied (40% below); forward > trailing growth; estimates still flat \u2014 "}
+NOK in ai-infra-stack universe: NO
+NOK in ai-rerating-radar: NO (not in scored universe)
 
-=== LARGE/MEGA candidates (re-rate maybe, but NOT a 10x — too big) ===
-{"sym": "CRWV", "layer": "neocloud", "cap": "large", "mcap_$B": 63.6, "growth%": 373.4, "disc_to_fair%": 68.3, "why": "373% rev growth on 12.4x EV/Sales vs ~39.1x growth-implied (68% below); lags neocloud peers by 99pp; forward > trailing "}
-{"sym": "SMCI", "layer": "cooling", "cap": "large", "mcap_$B": 18.4, "growth%": 75.6, "disc_to_fair%": 95.0, "why": "76% rev growth on 0.8x EV/Sales vs ~16.6x growth-implied (95% below); forward > trailing growth; estimates still flat \u2014 "}
-{"sym": "TSM", "layer": "foundry", "cap": "mega", "mcap_$B": 2396.8, "growth%": 33.4, "disc_to_fair%": 95.4, "why": "33% rev growth on 0.6x EV/Sales vs ~13.5x growth-implied (95% below); lags foundry peers by 59pp; forward > trailing gro"}
-{"sym": "EME", "layer": "datacenter_buildout", "cap": "large", "mcap_$B": 37.3, "growth%": 16.2, "disc_to_fair%": 82.0, "why": "16% rev growth on 2.2x EV/Sales vs ~12.2x growth-implied (82% below); lags datacenter_buildout peers by 11pp; growth int"}
-{"sym": "IESC", "layer": "datacenter_buildout", "cap": "large", "mcap_$B": 14.2, "growth%": 19.1, "disc_to_fair%": 66.0, "why": "19% rev growth on 4.2x EV/Sales vs ~12.4x growth-implied (66% below); forward > trailing growth; estimates still flat \u2014 "}
-{"sym": "FIX", "layer": "datacenter_buildout", "cap": "large", "mcap_$B": 69.3, "growth%": 32.2, "disc_to_fair%": 43.1, "why": "32% rev growth on 7.6x EV/Sales vs ~13.4x growth-implied (43% below); forward > trailing growth; estimates still flat \u2014 "}
-{"sym": "PWR", "layer": "datacenter_buildout", "cap": "large", "mcap_$B": 105.4, "growth%": 16.5, "disc_to_fair%": 69.5, "why": "17% rev growth on 3.7x EV/Sales vs ~12.2x growth-implied (70% below); growth intact; estimates revising UP (velocity 52)"}
-{"sym": "POWL", "layer": "power_grid", "cap": "large", "mcap_$B": 10.8, "growth%": 25.7, "disc_to_fair%": 23.9, "why": "26% rev growth on 9.8x EV/Sales vs ~12.9x growth-implied (24% below); forward > trailing growth; estimates still flat \u2014 "}
-{"sym": "NVT", "layer": "power_grid", "cap": "large", "mcap_$B": 28.6, "growth%": 20.8, "disc_to_fair%": 41.2, "why": "21% rev growth on 7.4x EV/Sales vs ~12.5x growth-implied (41% below); growth intact; estimates still flat \u2014 not yet re-r"}
-
-=== LAYER HEAT (1m) — where the money's moving ===
-  memory                 33.7%  (7 names, 0 small-cap)
-  equipment              25.9%  (25 names, 3 small-cap)
-  neocloud               20.0%  (2 names, 0 small-cap)
-  foundry                16.7%  (3 names, 0 small-cap)
-  networking             15.5%  (14 names, 4 small-cap)
-  miners_to_ai           15.4%  (10 names, 1 small-cap)
-  silicon                10.5%  (38 names, 7 small-cap)
-  datacenter_buildout    10.4%  (11 names, 1 small-cap)
-  power_grid              6.3%  (23 names, 3 small-cap)
-  cooling                 5.9%  (7 names, 1 small-cap)
-  optical                 1.2%  (11 names, 4 small-cap)
-  datacenter_reits       -0.5%  (3 names, 0 small-cap)
-DONE 2109
+any_hit: False
+DONE 2110
