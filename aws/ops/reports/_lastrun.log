@@ -1,30 +1,15 @@
-invoke: {"statusCode": 200, "body": "{\"resilient\": 137, \"boom\": 28, \"flow_confirmed\": 27, \"idio\": 0}"} (49s)
-v 2.2 | counts: {'absorbing': 109, 'coiled': 19, 'igniting': 9, 'flow_confirmed': 27, 'ignition_on_catalyst': 0, 'with_idiosyncratic_evidence': 0}
-  DIAG: catalysts: 3 miss, 40 dg, 30 ptcut, 13 gcut; 61 tickers
-  DIAG: dark-pool coverage 61 (33 accum)
-  DIAG: liquid universe 2013
 
-🚀 ABOUT TO BOOM (flow-confirmed + idio first):
-  CNTA  📥F  COILED    res84.0 flow96.6 | SPY+XLY   OBV0.235 AD0.23 dp:None | 
-  IMVT  📥F  COILED    res77.6 flow100.0 | SPY+XLY   OBV0.259 AD0.272 dp:None | 
-  MNST  📥F  COILED    res74.8 flow88.0 | SPY+XLP   OBV0.269 AD0.094 dp:None | 
-  CHEF  📥F  IGNITING  res74.2 flow94.9 | SPY+XLY   OBV0.293 AD0.14 dp:None | IGNITE 1d ago volz1.43 rx1.56
-  NHC   📥F  IGNITING  res67.3 flow70.9 | SPY+XLP   OBV0.12 AD0.087 dp:None | IGNITE 1d ago volz7.38 rx2.09
-  PRMB  📥F  COILED    res66.8 flow86.3 | SPY+XLY   OBV0.234 AD0.117 dp:None | 
-  CXW   📥F  IGNITING  res66.7 flow100.0 | SPY       OBV0.366 AD0.184 dp:None | IGNITE 1d ago volz2.66 rx1.06
-  UFPT      COILED    res76.2 flow60.4 | SPY+XLY   OBV-0.007 AD0.124 dp:None | 
-  GKOS      COILED    res73.8 flow38.3 | SPY+XLI   OBV-0.126 AD0.024 dp:None | 
-  ROIV      COILED    res71.3 flow54.0 | SPY+XLI   OBV0.018 AD0.022 dp:None | 
-  COMP      COILED    res70.6 flow49.8 | SPY+XLY   OBV0.079 AD-0.098 dp:None | 
-  RPM       COILED    res70.5 flow52.9 | SPY+XLB   OBV0.147 AD-0.148 dp:None | 
-  DOCN      COILED    res69.6 flow71.0 | SPY+XLK   OBV0.041 AD0.184 dp:None | 
-  FUL       COILED    res69.0 flow73.4 | SPY+XLB   OBV0.272 AD-0.072 dp:None | 
+[data/engine-alpha.json] keys: ['generated_at', 'benchmark', 'fdr_q', 'n_alpha_proven', 'n_alpha_negative', 'alpha_proven_signals', 'alpha_negative_signals', 'engines']
+   .alpha_proven_signals n=3 item0keys=str
+   resilience rows: []
+   .engines dict keys sample: ['crisis_dfii10_vs_gld', 'crypto_risk_score', 'squeeze_risk', 'momentum_uso', 'equity_convergence_fingerprint', 'khalid_index', 'frontrun_sniffer_setup', 'yc_regime']
+   resilience key present: []
 
-=== VALIDATION ===
-IGNITING 8: all have ignition trigger? True
-COILED 18: all WITHOUT ignition (pure setup)? True
-flow-confirmed in boom: 7 / 20
-names with dark-pool join: 1 e.g. [('TXRH', 'NEUTRAL')]
+[data/signal-scorecard.json] keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'n_outcomes_scanned', 'n_outcomes_scored', 'n_outcomes_neutral', 'n_outcomes_legacy', 'n_outcomes_unresolved', 'n_signals_tracked', 'n_signals_graded', 'n_promoted', 'n_deprecated', 'n_insufficient', 'avg_graded_wilson_lb', 'promoted_signals', 'deprecated_signals', 'alpha', 'data_quality_flags', 'scorecard', 'thresholds', 'interpretation']
+   .scorecard n=67 item0keys=['signal_type', 'n_total', 'n_scored', 'n_neutral', 'n_legacy', 'n_unresolved', 'hits', 'hit_rate', 'wilson_lb', 'edge_vs_coinflip_pct', 'avg_return_pct', 'stored_flag_agreement', 'grade', 'status', 'performance_multiplier', 'alpha_status', 'alpha_n', 'alpha_mean_excess_pct', 'alpha_t_stat', 'info_ratio', 'alpha_hit_rate', 'alpha_p_value', 'net_alpha_mean_excess_pct', 'net_alpha_t_stat', 'net_info_ratio', 'by_window', 'by_regime']
+   resilience rows: []
 
-resilience.html: 200 | flow badge code: True | ignition code: True
-DONE 2100
+[data/signal-board.json] mentions 'resilience': False
+
+[data/best-setups.json] mentions 'resilience': False
+DONE 2101
