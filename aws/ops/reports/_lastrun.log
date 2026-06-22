@@ -1,41 +1,18 @@
+=== INPUT ENGINE FRESHNESS (fusion sources) ===
+  revenue-acceleration.json    asof=2026-06-22T11:00  (a list has 9)
+  supply-inflection.json       asof=2026-06-22T07:00  (a list has ?)
+  bagger-engine.json           asof=2026-06-21T12:05  (a list has 100)
+  ai-rerating-radar.json       asof=2026-06-22T14:15  (a list has 117)
 
-============================================================
-MU  — earnings-inflection study
-============================================================
-  qtr_end        rev_$M  gross%   oper%     EPS  ttmEPS    price     P/E
-  2022-12-01       4085    21.9    -5.1   -0.17    0.00     0.00     0.0
-  2023-03-02       3693   -32.7   -62.4   -2.13    0.00     0.00     0.0
-  2023-06-01       3752   -17.8   -46.9   -1.73    0.00     0.00     0.0
-  2023-08-31       4010   -10.8   -36.7   -1.31   -5.34    70.39     0.0
-  2023-11-30       4726    -0.7   -23.9   -1.12   -6.29    74.29     0.0
-  2024-02-29       5824    18.5     3.3    0.72   -3.44    95.77     0.0
-  2024-05-30       6811    26.9    10.6    0.30   -1.41   128.17     0.0
-  2024-08-29       7750    35.3    19.6    0.80    0.70    96.24   137.5
-  2024-11-28       8709    38.4    25.0    1.68    3.50    98.55    28.2
-  2025-02-27       8053    36.8    22.0    1.42    4.20    90.54    21.6
-  2025-05-29       9301    37.7    23.3    1.69    5.59    98.18    17.6
-  2025-08-28      11315    44.7    33.2    2.86    7.65   119.01    15.6
-  2025-11-27      13643    56.1    45.0    4.66   10.63   240.46    22.6
-  2026-02-26      23860    74.4    67.6   12.25   21.46   412.67    19.2
-  >> trough ttmEPS was negative (-6.29) at 2023-11-30 -> swung positive
-  >> price 3y: low 60.65 -> high 1211.38 (20.0x); last 1211.38
+=== DISCRIMINATOR CALIBRATION ===
+sym    gm_trough  gm_now om_trough  om_now om_swing   epsTr  epsNow neg2pos  revX  verdict
+MU         -17.8    74.4     -46.9    67.6    114.6   -4.16   21.46    True  6.36  [POS] CYCLICAL-20x SHAPE
+SNDK       -12.3    78.4     -31.8    69.1    100.9  -12.01   30.49    True  3.88  [POS] CYCLICAL-20x SHAPE
+AVGO        61.7    67.2      17.4    49.0     31.6     0.8    6.19   False   2.5  [NEG] no-coil (secular/stable)
+AMD         39.8    52.8      -1.7    14.4     16.1    0.02    3.08   False  1.91  [NEG] no-coil (secular/stable)
+TXN         55.9    58.0      32.5    37.5      4.9    1.89    5.89   False  1.32  [NEG] no-coil (secular/stable)
+KLAC        59.1    61.1      35.0    41.2      6.2       5   35.52   False  1.45  [NEG] no-coil (secular/stable)
 
-============================================================
-SNDK  — earnings-inflection study
-============================================================
-  qtr_end        rev_$M  gross%   oper%     EPS  ttmEPS    price     P/E
-  2023-09-29       1533   -12.3   -31.8   -3.60    0.00     0.00     0.0
-  2023-12-28       1665     9.7   -14.7   -2.08    0.00     0.00     0.0
-  2024-03-31       1705    27.2     3.8    0.19    0.00     0.00     0.0
-  2024-06-30       1760    36.1    11.3    0.83   -4.66     0.00     0.0
-  2024-09-30       1883    38.6    16.6    1.46    0.40     0.00     0.0
-  2024-12-27       1876    32.3    10.4    0.72    3.20     0.00     0.0
-  2025-03-28       1695    22.5    -2.5  -13.33  -10.32    48.11     0.0
-  2025-06-27       1901    26.2     0.9   -0.16  -11.31    44.96     0.0
-  2025-10-03       2308    29.8     8.3    0.76  -12.01   120.95     0.0
-  2026-01-02       3025    50.9    35.5    5.46   -7.27   349.63     0.0
-  2026-04-03       5950    78.4    69.1   24.43   30.49   710.80    23.3
-  >> trough ttmEPS was negative (-12.01) at 2025-10-03 -> swung positive
-  >> price 3y: low 29.62 -> high 2273.73 (76.8x); last 2273.73
-
-DONE 2111
+RULE BEING TESTED: coil(gm_trough<5 OR om_trough<-10) AND violence(om_swing>=40pp) AND eps_neg_to_pos
+PASS if MU/SNDK=CYCLICAL-20x SHAPE and AVGO/AMD/TXN/KLAC do NOT
+DONE 2112
