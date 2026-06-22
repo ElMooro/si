@@ -281,11 +281,15 @@ def lambda_handler(event, context):
         # ── stage ──
         breaking = last >= hi60 * 0.995
         coiled = coil >= 0.20 and near_high >= 0.90
-        if resilience >= 62 and breaking:
+        consistent = hit >= 0.55          # genuine, repeated absorption — not a few lucky spike days
+        blowoff = ret20 > 0.60            # already parabolic = post-boom, not a pre-breakout setup
+        if blowoff:
+            stage = "WATCH"               # excluded: it already ran
+        elif resilience >= 62 and breaking and consistent:
             stage = "IGNITING"
-        elif resilience >= 60 and coiled:
+        elif resilience >= 60 and coiled and consistent:
             stage = "COILED"
-        elif resilience >= 57:
+        elif resilience >= 57 and hit >= 0.50:
             stage = "ABSORBING"
         else:
             stage = "WATCH"
