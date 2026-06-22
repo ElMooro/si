@@ -230,6 +230,8 @@ def lambda_handler(event, context):
     DIAG.append("liquid universe %d" % len(universe))
 
     results = []
+    shrugged_recent_all = []          # held the line on a FRESH dated catalyst (last ~12 sessions)
+    recent12 = set(days[-12:])
     for T in universe:
         sd = bars[T]
         ds = [d for d in days if d in sd]
@@ -302,6 +304,13 @@ def lambda_handler(event, context):
             if typ in IDIO_TYPES and rs[i] > -0.01:
                 events_shrugged.append({"type": typ, "date": d1, "day_return_pct": round(rs[i] * 100, 1),
                                         "abnormal_pct": round(resid[i] * 100, 2)})
+                # fresh, liquid hold on a real dated catalyst → first-class "held the line" lane
+                if d1 in recent12 and resid[i] > 0 and rs[i] <= 0.12:
+                    shrugged_recent_all.append({"ticker": T, "price": round(closes[-1], 2),
+                                                "type": typ, "date": d1,
+                                                "day_return_pct": round(rs[i] * 100, 1),
+                                                "abnormal_pct": round(resid[i] * 100, 2),
+                                                "basis": basis})
 
         n_adv = len(adverse)
         if n_adv < 5:
@@ -391,6 +400,13 @@ def lambda_handler(event, context):
     booming = [r for r in results if r["stage"] in ("IGNITING", "COILED") and r["resilience"] >= 62]
     booming.sort(key=lambda r: (r["has_idiosyncratic_evidence"], r["resilience"]), reverse=True)
 
+    # "held the line on bad news" — purest expression of the signal, deduped to best per name
+    best = {}
+    for s in shrugged_recent_all:
+        if s["ticker"] not in best or s["abnormal_pct"] > best[s["ticker"]]["abnormal_pct"]:
+            best[s["ticker"]] = s
+    shrugged = sorted(best.values(), key=lambda x: x["abnormal_pct"], reverse=True)[:18]
+
     top_picks = [{"ticker": r["ticker"], "direction": "UP", "resilience": r["resilience"],
                   "stage": r["stage"], "dominant_adverse_type": r["dominant_adverse_type"],
                   "has_idiosyncratic_evidence": r["has_idiosyncratic_evidence"],
@@ -411,6 +427,7 @@ def lambda_handler(event, context):
         "abnormal_basis": "2-factor residual vs [SPY, best-fit sector ETF]",
         "type_weights_provisional": TYPE_W,
         "about_to_boom": booming[:20], "all_resilient": results[:60], "top_picks": top_picks,
+        "shrugged_off_bad_news_recent": shrugged,
         "counts": {"absorbing": sum(1 for r in results if r["stage"] == "ABSORBING"),
                    "coiled": sum(1 for r in results if r["stage"] == "COILED"),
                    "igniting": sum(1 for r in results if r["stage"] == "IGNITING"),
@@ -429,8 +446,8 @@ def lambda_handler(event, context):
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache, max-age=0")
-    print("[resilience v2] universe %d | resilient %d | boom %d | idio %d | top: %s" % (
-        len(universe), len(results), len(booming), out["counts"]["with_idiosyncratic_evidence"],
+    print("[resilience v2] universe %d | resilient %d | boom %d | idio %d | shrugged-recent %d | top: %s" % (
+        len(universe), len(results), len(booming), out["counts"]["with_idiosyncratic_evidence"], len(shrugged),
         ", ".join("%s(%s,%s,%s%s)" % (r["ticker"], r["resilience"], r["stage"], r["dominant_adverse_type"],
                                       "*" if r["has_idiosyncratic_evidence"] else "") for r in booming[:8])))
     return {"statusCode": 200, "body": json.dumps({"resilient": len(results), "boom": len(booming),

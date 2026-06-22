@@ -36,9 +36,9 @@ async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function scoreColor(s){return s>=70?'var(--green)':s>=62?'var(--cyan)':'var(--amber)';}
 function card(r){
-  let h=`<div class="card ${esc(r.stage)}"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> <span class="stg ${esc(r.stage)}">${esc(r.stage)}</span></div><span class="score" style="color:${scoreColor(r.resilience)}">${r.resilience}</span></div>`;
-  h+=`<div class="detail">Held <b class="pos">+${r.mean_abnormal_on_adverse_pct}%</b> abnormal return across <b>${r.n_adverse_days}</b> adverse days (${r.adverse_hit_rate_pct}% held). `;
-  if(r.negative_catalysts_shrugged&&r.negative_catalysts_shrugged.length){h+=`Shrugged off: ${r.negative_catalysts_shrugged.map(c=>`<span class="cat">${esc(c)}</span>`).join('')}`;}
+  let h=`<div class="card ${esc(r.stage)}"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> <span class="stg ${esc(r.stage)}">${esc(r.stage)}</span>${r.has_idiosyncratic_evidence?' <span class="stg" style="color:var(--violet);border-color:var(--violet)">⭐ held real bad news</span>':''}</div><span class="score" style="color:${scoreColor(r.resilience)}">${r.resilience}</span></div>`;
+  h+=`<div class="detail">Held <b class="pos">+${r.mean_abnormal_on_adverse_pct}%</b> abnormal (vs <b>${esc(r.abnormal_basis||'SPY')}</b>) across <b>${r.n_adverse_days}</b> adverse days (${r.adverse_hit_rate_pct}% held). Dominant adverse type: <b>${esc((r.dominant_adverse_type||'').replace(/_/g,' '))}</b>. `;
+  if(r.events_shrugged&&r.events_shrugged.length){h+=`Shrugged: ${r.events_shrugged.slice(0,3).map(e=>`<span class="cat">${esc(e.type.replace(/_/g,' '))} ${esc(e.date)} (held ${e.day_return_pct>0?'+':''}${e.day_return_pct}%)</span>`).join('')}`;}
   h+=`</div>`;
   h+=`<div class="kv"><span>β <b>${r.beta}</b></span><span>down-β <b>${r.downside_beta}</b> / up-β <b>${r.upside_beta}</b> <span style="color:${r.beta_asymmetry>0?'var(--green)':'var(--red)'}">(${r.beta_asymmetry>0?'+':''}${r.beta_asymmetry} asym)</span></span><span>adv vol-z <b>${r.adverse_volume_z}</b></span><span>${r.pct_of_60d_high}% of 60d high</span><span>coil <b>${r.coil}</b></span><span>${r.above_50d?'>50d':'<50d'} ${r.above_200d?'· >200d':''}</span></div>`;
   h+=`<div class="fals">⚠ ${esc(r.falsifier)}</div></div>`;
@@ -50,7 +50,16 @@ function card(r){
   let h=`<h1>🛡️ Resilience Radar <span style="color:var(--fg-3);font-size:13px">price refusing to fall on bad news</span></h1>`;
   h+=`<div class="sub">${esc(d.thesis)}</div>`;
   h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · universe ${d.universe_size} liquid common stocks</div>`;
-  h+=`<div class="banner">The signal is <b>conditional</b>: not "price up" (that's momentum) but "price up <b>when it should have fallen</b>" — measured as the market-model abnormal return on adverse days. High asymmetry = supply absorbed, spring loaded. Names below are logged and graded forward vs SPY — unproven until the scorecard says otherwise.</div>`;
+  h+=`<div class="banner">The signal is <b>conditional</b>: not "price up" (that's momentum) but "price up <b>when it should have fallen</b>" — abnormal return on adverse days, now measured as the residual after stripping out <b>both market and sector</b> (2-factor), and <b>typed</b> by the kind of bad news (earnings miss, downgrade, PT cut, guidance cut vs. tape). Names are logged and graded forward vs SPY — unproven until the scorecard says otherwise.</div>`;
+  // PUREST LANE — held the line on a fresh, dated, real catalyst
+  const sh=d.shrugged_off_bad_news_recent||[];
+  if(sh.length){
+    h+=`<h2>🛡️ Held the line on bad news — last 2 weeks</h2>`;
+    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:8px">Stocks that <b>rose or held</b> on the exact day they took a real hit (downgrade / PT-cut / guidance-cut / earnings miss) — the freshest, highest-information instance of refusing to fall. Ranked by abnormal return on the catalyst day.</div>`;
+    h+=`<table><tr><th>Ticker</th><th>Bad news</th><th>Date</th><th>Day move</th><th>Abnormal</th><th>Price</th></tr>`;
+    for(const s of sh)h+=`<tr><td class="tk" style="font-size:13px">${esc(s.ticker)}</td><td><span class="cat">${esc((s.type||'').replace(/_/g,' '))}</span></td><td>${esc(s.date)}</td><td class="${s.day_return_pct>=0?'pos':''}">${s.day_return_pct>0?'+':''}${s.day_return_pct}%</td><td class="pos">+${s.abnormal_pct}%</td><td>$${s.price}</td></tr>`;
+    h+=`</table>`;
+  }
   const c=d.counts||{};
   h+=`<div class="counts">
     <div class="cpill"><b>Igniting</b><span style="color:var(--green)">${c.igniting||0}</span></div>
