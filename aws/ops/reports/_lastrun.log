@@ -1,54 +1,48 @@
-=== AI-RERATING-RADAR ===
-thesis: Find AI-infra names with high forward growth on a low multiple — not yet repriced for the AI-driven growth — before the market re-rates them (the MU setup).
-summary: {"n_universe": 128, "n_priced": 119, "n_candidates": 14, "n_small_mid_candidates": 5, "top_setups": [{"symbol": "CRWV", "name": "CoreWeave, Inc. Class A Common Stock", "layer": "neocloud", "cap_bucket": "large", "market_cap": 63578046447.465, "is_small_mid": false, "growth_pct": 373.4, "growth_basis": "trailing_2y", "fwd_growth_pct": null, "trailing_growth_pct": 167.9, "ev_sales": 12.39, "ev_sales
-regression: {"intercept": 10.939, "slope_evsales_per_growth": 7.55, "n_points": 119, "reading": "EV/Sales predicted from forward growth; large negative residual = cheap for the growth"}
 
-all_ranked n=119 — item keys: ['symbol', 'name', 'layer', 'cap_bucket', 'market_cap', 'is_small_mid', 'growth_pct', 'growth_basis', 'fwd_growth_pct', 'trailing_growth_pct', 'ev_sales', 'ev_sales_implied', 'discount_to_implied_pct', 'unpriced_z', 'laggard_gap_pp', 'ret_3m_pct', 'etf_sector', 'etf_sector_flow_z', 'smallcap_bid', 'accelerating', 'bottleneck', 'flow_signals', 'is_candidate', 'revision_velocity', 'estimates_rising', 'estimates_falling', 'fy2_eps_lift_pct', 'contagion', 'layer_leader', 'layer_leader_rising', 'short_squeeze', 'ai_deal', 'smart_money_backed', 'insider_buying', 'analyst_upgrading', 'composite', 'why']
+[squeeze-fuel.json] keys=['engine', 'version', 'ok', 'generated_at', 'thesis', 'si_settlement_date', 'ftd_file', 'n_finra_universe', 'n_scored', 'distribution', 'board', 'top_picks', 'data_sources', 'caveats', 'elapsed_s']
+   .top_picks n=20 hasTicker=Y keys=['ticker', 'score', 'direction', 'state', 'pct_of_float', 'days_to_cover', 'reasons']
+      sample: {"ticker": "XPOF", "score": 71.6, "direction": "long", "state": "LOADED", "pct_of_float": 27.32, "days_to_cover": 8.56, "reasons": ["27.32% of float short", "8.56d to cover", "SI +31% vs prior"]}
+   .board n=60 hasTicker=Y keys=['score', 'state', 'price_confirm', 'pct_of_float', 'days_to_cover', 'short_interest', 'si_change_pct', 'components']
+      sample: {"score": 75.7, "state": "LOADED", "price_confirm": false, "pct_of_float": 21.06, "days_to_cover": 10.42, "short_interest": 20416598, "si_change_pct": 25.58}
 
--- YOUR 7 in the rerating radar --
+[boom-radar.json] keys=['engine', 'version', 'generated_at', 'thesis', 'dimensions_loaded', 'squeeze_regime', 'n_scanned', 'n_2way', 'n_3way', 'n_4way_plus', 'boom_candidates', 'high_conviction', 'top_picks', 'methodology', 'caveats', 'elapsed_s']
+   .top_picks n=4 hasTicker=Y keys=['ticker', 'score', 'convergence', 'dimensions']
+      sample: {"ticker": "ACN", "score": 2.1, "convergence": 2, "dimensions": ["ANALYST", "FLOW"]}
 
--- TOP 15 ranked (whatever the radar's sort is) --
-    {"symbol": "CRWV", "name": "CoreWeave, Inc. Class A Common Stock", "layer": "neocloud", "cap_bucket": "large", "market_cap": 63578046447.465, "is_small_mid": false, "growth_pct": 373.4, "growth_basis": "trailing_2y"}
-    {"symbol": "NVDA", "name": "NVIDIA Corporation", "layer": "silicon", "cap_bucket": "mega", "market_cap": 5103122490000, "is_small_mid": false, "growth_pct": 88.3, "growth_basis": "trailing_2y"}
-    {"symbol": "AVGO", "name": "Broadcom Inc.", "layer": "silicon", "cap_bucket": "mega", "market_cap": 1957030533000, "is_small_mid": false, "growth_pct": 33.6, "growth_basis": "trailing_2y"}
-    {"symbol": "BTBT", "name": null, "layer": "miners_to_ai", "cap_bucket": "small", "market_cap": 757742300.0, "is_small_mid": true, "growth_pct": 59.0, "growth_basis": "trailing_2y"}
-    {"symbol": "PRIM", "name": "Primoris Services Corporation", "layer": "datacenter_buildout", "cap_bucket": "mid", "market_cap": 5496021370, "is_small_mid": true, "growth_pct": 15.1, "growth_basis": "trailing_2y"}
-    {"symbol": "SMCI", "name": "Super Micro Computer, Inc.", "layer": "cooling", "cap_bucket": "large", "market_cap": 18439490658, "is_small_mid": false, "growth_pct": 75.6, "growth_basis": "trailing_2y"}
-    {"symbol": "MX", "name": "Magnachip Semiconductor Corporation", "layer": "silicon", "cap_bucket": "micro", "market_cap": 215729855.68, "is_small_mid": true, "growth_pct": -11.6, "growth_basis": "trailing_2y"}
-    {"symbol": "AVNW", "name": "Aviat Networks, Inc.", "layer": "networking", "cap_bucket": "micro", "market_cap": 258659865.36999997, "is_small_mid": true, "growth_pct": 12.3, "growth_basis": "trailing_2y"}
-    {"symbol": "CLSK", "name": "CleanSpark, Inc.", "layer": "miners_to_ai", "cap_bucket": "mid", "market_cap": 4423932367, "is_small_mid": true, "growth_pct": 113.3, "growth_basis": "trailing_2y"}
-    {"symbol": "TSM", "name": null, "layer": "foundry", "cap_bucket": "mega", "market_cap": 2396776137600.0, "is_small_mid": false, "growth_pct": 33.4, "growth_basis": "trailing_2y"}
-    {"symbol": "ASML", "name": "ASML Holding N.V.", "layer": "equipment", "cap_bucket": "mega", "market_cap": 743733388872.88, "is_small_mid": false, "growth_pct": 8.9, "growth_basis": "trailing_2y"}
-    {"symbol": "EME", "name": "EMCOR Group, Inc.", "layer": "datacenter_buildout", "cap_bucket": "large", "market_cap": 37255503572.89, "is_small_mid": false, "growth_pct": 16.2, "growth_basis": "trailing_2y"}
-    {"symbol": "EOSE", "name": "Eos Energy Enterprises, Inc.", "layer": "power_grid", "cap_bucket": "small", "market_cap": 1994641431, "is_small_mid": true, "growth_pct": 164.1, "growth_basis": "trailing_2y"}
-    {"symbol": "COMM", "name": null, "layer": "networking", "cap_bucket": "mid", "market_cap": 3947997959.0, "is_small_mid": true, "growth_pct": -35.0, "growth_basis": "trailing_2y"}
-    {"symbol": "MU", "name": "Micron Technology, Inc.", "layer": "memory", "cap_bucket": "mega", "market_cap": 1246141650000, "is_small_mid": false, "growth_pct": 55.1, "growth_basis": "trailing_2y"}
+[options-analytics.json] keys=['engine', 'version', 'ok', 'generated_at', 'thesis', 'universe_size', 'n_analyzed', 'distribution', 'board', 'top_picks', 'squeeze_setups', 'most_unusual', 'richest_iv_vrp', 'data_source', 'caveats', 'elapsed_s']
+   .top_picks n=7 hasTicker=Y keys=['ticker', 'score', 'direction', 'signal', 'gamma_regime', 'net_gex_musd', 'pcr_vol', 'price_confirm']
+      sample: {"ticker": "NFLX", "score": 73.7, "direction": "long", "signal": "GAMMA_SQUEEZE_SETUP", "gamma_regime": "SHORT_GAMMA", "net_gex_musd": -37.22, "pcr_vol": 0.403}
+   .board n=58 hasTicker=Y keys=['ticker', 'spot', 'signal', 'score', 'price_confirm', 'gamma_regime', 'net_gex_musd_per_1pct', 'gamma_flip_strike']
+      sample: {"ticker": "NFLX", "spot": 77.38, "signal": "GAMMA_SQUEEZE_SETUP", "score": 73.7, "price_confirm": false, "gamma_regime": "SHORT_GAMMA", "net_gex_musd_per_1pct": -37.22}
 
-=== miners_to_ai layer detail ===
-    {"layer": "memory", "layer_heat_1m_pct": 33.7, "n_names": 7, "n_small_cap": 0, "top_names": null, "leaders": null, "names": [{"symbol": "MU", "name": "Micron Technology, Inc.", "layer": "memory", "cap_bucket": "mega", "market_cap": 1246141650000, "is_small_cap
-    {"layer": "power_grid", "layer_heat_1m_pct": 6.3, "n_names": 23, "n_small_cap": 3, "top_names": null, "leaders": null, "names": [{"symbol": "PLPC", "name": "Preformed Line Products Company", "layer": "power_grid", "cap_bucket": "small", "market_cap": 187831637
-    {"layer": "neocloud", "layer_heat_1m_pct": 20.0, "n_names": 2, "n_small_cap": 0, "top_names": null, "leaders": null, "names": [{"symbol": "NBIS", "name": "Nebius Group N.V.", "layer": "neocloud", "cap_bucket": "large", "market_cap": 68805600000, "is_small_cap"
-    {"layer": "miners_to_ai", "layer_heat_1m_pct": 15.4, "n_names": 10, "n_small_cap": 1, "top_names": null, "leaders": null, "names": [{"symbol": "HUT", "name": null, "layer": "miners_to_ai", "cap_bucket": "large", "market_cap": 14011211297.0, "is_small_cap": fal
+[capital-flow.json] keys=['engine', 'version', 'generated_at', 'duration_s', 'sources', 'methodology', 'accumulating', 'distributing', 'etf_flows_in', 'etf_flows_out', 'category_rotation', 'by_ticker']
 
-=== MASTER-RANKER keys + top ===
-keys: ['schema_version', 'method', 'as_of', 'regime_context', 'risk_regime', 'n_tickers_total', 'n_macro_signals', 'alerts', 'top_tickers', 'top_macro', 'feed_health', 'feed_freshness', 'stale_feeds_excluded', 'missing_feeds', 'calibration_weights', 'duration_s']
-  using .top_tickers (n=25): top 15:
-    #1 STX {"score": 131.8}
-    #2 FDX {"score": 125.2}
-    #3 NVDA {"score": 125.1}
-    #4 NEM {"score": 121.8}
-    #5 OXY {"score": 118.7}
-    #6 AVGO {"score": 113.6}
-    #7 GOOGL {"score": 112.8}
-    #8 SNDK {"score": 112.1}
-    #9 ORCL {"score": 110.0}
-    #10 PLTR {"score": 107.1}
-    #11 FITB {"score": 105.6}
-    #12 NKE {"score": 103.0}
-    #13 GOOG {"score": 102.7}
-    #14 SPG {"score": 100.8}
-    #15 AMD {"score": 100.4}
+[flow-lookthrough.json] keys=['engine', 'version', 'generated_at', 'thesis', 'flows_asof', 'n_etfs_used', 'n_etfs_with_delta', 'n_names', 'top_picks', 'inflow_leaders', 'outflow_leaders', 'thematic_rotation_leaders', 'actual_accumulation', 'actual_distribution', 'index_events', 'methodology']
+   .top_picks n=15 hasTicker=Y keys=['ticker', 'score', 'net_flow_5d_usd', 'flow_type', 'confirmed']
+      sample: {"ticker": "FFIV", "score": 17.15, "net_flow_5d_usd": 37298705.0, "flow_type": "THEMATIC_ROTATION", "confirmed": true}
 
-=== CEG resilience verify ===
-   CEG in all_resilient: False
-DONE 2105
+[supply-chain-graph.json] keys=['engine', 'version', 'ok', 'generated_at', 'thesis', 'n_nodes', 'n_edges', 'n_themes', 'themes', 'booming_hubs', 'nodes', 'edges', 'supply_chain_laggards', 'top_picks', 'data_source', 'caveats']
+   .supply_chain_laggards n=5 hasTicker=Y keys=['ticker', 'theme', 'supplies_to', 'relationship', 'customer_perf_30d', 'own_perf_30d', 'lag_gap_pct']
+      sample: {"ticker": "NVDA", "theme": "AI Compute", "supplies_to": "DELL", "relationship": "GPUs", "customer_perf_30d": 74.06, "own_perf_30d": -4.5, "lag_gap_pct": 78.6}
+   .top_picks n=5 hasTicker=Y keys=['ticker', 'direction', 'score', 'supplies_to', 'own_perf_30d', 'customer_perf_30d', 'lag_gap_pct']
+      sample: {"ticker": "NVDA", "direction": "long", "score": 78.6, "supplies_to": "DELL", "own_perf_30d": -4.5, "customer_perf_30d": 74.06, "lag_gap_pct": 78.6}
+
+[estimate-revisions.json] keys=['engine', 'version', 'generated_at', 'status', 'thesis', 'horizon_days', 'n_tracked', 'n_fmp_enriched', 'n_with_history', 'n_state_keys', 'estimate_strength_leaders', 'upward_revisions', 'downward_revisions', 'top_picks', 'data_source', 'caveats']
+   .top_picks n=15 hasTicker=Y keys=['ticker', 'score', 'eps_rev_pct', 'fwd_eps_growth_pct', 'earnings_date', 'days_to_earnings', 'revenue_confirms']
+      sample: {"ticker": "SNDK", "score": 82.8, "eps_rev_pct": 0.0, "fwd_eps_growth_pct": 187.1, "earnings_date": "2026-08-13", "days_to_earnings": 53, "revenue_confirms": true}
+   .upward_revisions n=1 hasTicker=Y keys=['ticker', 'company', 'earnings_date', 'session', 'days_to_earnings', 'fiscal_period', 'fiscal_year', 'importance']
+      sample: {"ticker": "BHP", "company": "BHP Group", "earnings_date": "2026-08-17", "session": "AMC", "days_to_earnings": 57, "fiscal_period": "FY", "fiscal_year": 2026}
+   .estimate_strength_leaders n=40 hasTicker=Y keys=['ticker', 'company', 'earnings_date', 'session', 'days_to_earnings', 'fiscal_period', 'fiscal_year', 'importance']
+      sample: {"ticker": "SNDK", "company": "SanDisk", "earnings_date": "2026-08-13", "session": "AMC", "days_to_earnings": 53, "fiscal_period": "Q4", "fiscal_year": 2026}
+
+[earnings-tracker.json] keys=['version', 'generated_at', 'watchlist_size', 'upcoming_14d', 'n_upcoming', 'forward_calendar', 'n_forward_calendar', 'recent_results_30d', 'n_recent', 'pead_signals', 'n_pead', 'aggregate_stats', 'duration_s', 'data_sources']
+   .pead_signals n=10 hasTicker=Y keys=['ticker', 'filing_date', 'period_end', 'eps_actual', 'eps_estimate', 'eps_surprise_pct', 'revenue_actual', 'revenue_surprise_pct']
+      sample: {"ticker": "SNOW", "filing_date": "2026-05-27", "period_end": "Q1 2027", "eps_actual": 0.39, "eps_estimate": 0.14, "eps_surprise_pct": 178.57, "revenue_actual": 1391000000.0}
+
+
+=== SCORECARD signal_type naming (so gating maps correctly) ===
+equity-roster-ish signal_types: ['squeeze_risk', 'earnings_pead', 'etf_flow_extreme']
+sample alpha_status rows: [('crisis_dfii10_vs_gld', 'ALPHA_PROVEN', 1.877), ('crypto_risk_score', 'ALPHA_PROVEN', 0.38), ('squeeze_risk', 'ALPHA_PROVEN', 0.142), ('momentum_uso', 'NO_ALPHA', 0.006), ('equity_convergence_fingerprint', 'NO_ALPHA', -0.009), ('khalid_index', 'NO_ALPHA', -0.024)]
+alpha_proven_signals: ['crypto_risk_score', 'squeeze_risk', 'crisis_dfii10_vs_gld']
+engines keys sample: ['crisis_dfii10_vs_gld', 'crypto_risk_score', 'squeeze_risk', 'momentum_uso', 'equity_convergence_fingerprint', 'khalid_index', 'frontrun_sniffer_setup', 'yc_regime', 'earnings_pead', 'eurodollar_stress', 'sustained_target_equity', 'apex_fusion', 'macro_frontrun_sniffer_setup', 'crisis_broad_dollar_vs_eem', 'etf_rotation', 'sector_breadth', 'crisis_obfr_iorb', 'macro_composite_z', 'edge_regime', 'carry_risk']
+DONE 2106
