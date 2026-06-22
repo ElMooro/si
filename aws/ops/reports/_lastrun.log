@@ -1,17 +1,40 @@
+=== analyst-actions negative arrays ===
+  downgrades: n=40 | item0: {"ticker": "ARM", "company": "ARM Holdings", "firm": "New Street Research", "analyst": "Pierre Ferragu", "date": "2026-06-18", "time": "12:15:12", "importance": 5, "rating": "neutral", "previous_rating": "buy", "rating_dir": "DOWNGRADE", "r
+  pt_cuts: n=30 | item0: {"ticker": "EDBL", "company": "Edible Garden", "firm": "Maxim Group", "analyst": "Anthony Vendetti", "date": "2026-06-15", "time": "09:12:33", "importance": 1, "rating": "buy", "previous_rating": "buy", "rating_dir": "REITERATE", "rating_ac
+  guidance_cuts: n=13 | item0: {"ticker": "SNWV", "company": "SANUWAVE Health", "fiscal_period": "Q2", "fiscal_year": 2026, "date": "2026-06-16", "importance": 1, "release_type": "preliminary", "eps_mid": null, "eps_prev": null, "eps_dir": null, "eps_pct": null, "rev_mid
 
-[data/analyst-actions.json] top keys: ['engine', 'version', 'generated_at', 'thesis', 'counts', 'upgrades', 'downgrades', 'pt_raises', 'pt_cuts', 'guidance_raises', 'guidance_cuts', 'most_bullish', 'most_bearish', 'top_picks', 'data_source', 'caveats', 'elapsed_s']
-   .top_picks[0] keys: ['ticker', 'score', 'signals', 'company']
-   .top_picks[0] sample: {"ticker": "JBL", "score": 20.4, "signals": ["PT RAISE 395.0\u2192450.0 (JP Morgan)", "PT RAISE 384.0\u2192482.0 (Goldman Sachs)", "PT RAISE 304.0\u2192426.0 (Barclays)", "PT RAISE 380.0\u2192430.0 (UBS)"], "company": "Jabil"}
+=== earnings-tracker dated results ===
+  recent_results_30d: n=28
+    keys: ['ticker', 'filing_date', 'period_end', 'eps_actual', 'eps_estimate', 'eps_surprise_pct', 'revenue_actual', 'revenue_surprise_pct', 'importance', 'returns', 'pead_label', 'pead_score', 'surprise_source'] 
+    item0: {"ticker": "ACN", "filing_date": "2026-06-18", "period_end": "Q3 2026", "eps_actual": 3.8, "eps_estimate": 3.71, "eps_surprise_pct": 2.43, "revenue_actual": 18700000000.0, "revenue_surprise_pct": -0.28, "importance": 5, "returns": {"1d": null, "5d": null, "20d": null}, "pead_label": "MIXED", "pead_score": 50, "surprise_source": "benzinga"
+  pead_signals: n=10
+    keys: ['ticker', 'filing_date', 'period_end', 'eps_actual', 'eps_estimate', 'eps_surprise_pct', 'revenue_actual', 'revenue_surprise_pct', 'importance', 'returns', 'pead_label', 'pead_score', 'surprise_source'] 
+    item0: {"ticker": "SNOW", "filing_date": "2026-05-27", "period_end": "Q1 2027", "eps_actual": 0.39, "eps_estimate": 0.14, "eps_surprise_pct": 178.57, "revenue_actual": 1391000000.0, "revenue_surprise_pct": 5.18, "importance": 5, "returns": {"1d": 36.48, "5d": 37.67, "20d": null}, "pead_label": "STRONG_POSITIVE_DRIFT", "pead_score": 88, "surprise
 
-[data/estimate-revisions.json] top keys: ['engine', 'version', 'generated_at', 'status', 'thesis', 'horizon_days', 'n_tracked', 'n_fmp_enriched', 'n_with_history', 'n_state_keys', 'estimate_strength_leaders', 'upward_revisions', 'downward_revisions', 'top_picks', 'data_source', 'caveats', 'elapsed_s']
-   .top_picks[0] keys: ['ticker', 'score', 'eps_rev_pct', 'fwd_eps_growth_pct', 'earnings_date', 'days_to_earnings', 'revenue_confirms']
-   .top_picks[0] sample: {"ticker": "SNDK", "score": 82.8, "eps_rev_pct": 0.0, "fwd_eps_growth_pct": 187.1, "earnings_date": "2026-08-13", "days_to_earnings": 53, "revenue_confirms": true}
+=== Polygon reference: does it carry sic/sector? ===
+  reference fields: ['ticker', 'name', 'market', 'locale', 'primary_exchange', 'type', 'active', 'currency_name', 'cik', 'composite_figi', 'share_class_figi', 'last_updated_utc']
+  sample: {"ticker": "A", "sic_code": null, "sic_description": null, "type": "CS"}
 
-[data/earnings-tracker.json] top keys: ['version', 'generated_at', 'watchlist_size', 'upcoming_14d', 'n_upcoming', 'forward_calendar', 'n_forward_calendar', 'recent_results_30d', 'n_recent', 'pead_signals', 'n_pead', 'aggregate_stats', 'duration_s', 'data_sources']
-
-[data/sector-emergence.json] present keys: ['engine', 'version', 'ok', 'generated_at', 'thesis', 'regime_context', 'emerging_now', 'sectors', 'top_picks', 'legend', 'note', 'elapsed_s']
-
-[data/equity-universe.json] MISSING
-
-[data/ticker-sectors.json] MISSING
-DONE 2094
+=== sector SPDR ETFs present in grouped-daily? ===
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2095_probe_typing_detail.py", line 33, in <module>
+    gd=json.loads(urllib.request.urlopen(urllib.request.Request(f"https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{d}?adjusted=true&apiKey={POLY}",headers={"User-Agent":"jh"}),timeout=30).read())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 215, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 521, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 630, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 559, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 492, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 639, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 403: Forbidden
