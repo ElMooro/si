@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cyclical 20x Radar · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg-1:#c9d1d9;--fg-2:#9aa5b1;--fg-3:#6b7480;--bd:#1f2730;--card:#0f141b;--green:#34d399;--red:#f87171;--cyan:#38bdf8;--amber:#fbbf24;--violet:#a78bfa;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:22px 0 8px;color:var(--fg-1)}
+.sub{color:var(--fg-2);font-size:13px;margin-bottom:6px}.meta{color:var(--fg-3);font-size:12px;margin-bottom:12px}
+.banner{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--violet);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--fg-1);margin:10px 0}
+.calib{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.cb{border:1px solid var(--bd);border-radius:6px;padding:4px 9px;font-size:11.5px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;margin:10px 0}
+.row1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tk{font-weight:700;font-size:16px}.score{font-weight:700;font-size:18px}
+.tag{font-size:10px;text-transform:uppercase;letter-spacing:.4px;border:1px solid var(--fg-3);border-radius:5px;padding:1px 6px;color:var(--fg-2)}
+.bars{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.mini{flex:1;min-width:74px}.mini b{display:block;font-size:9px;color:var(--fg-3);text-transform:uppercase;margin-bottom:2px}
+.track{height:5px;background:var(--bd);border-radius:3px;overflow:hidden}.track>i{display:block;height:100%}
+.detail{font-size:12.5px;color:var(--fg-2);margin-top:8px}
+.counts{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.cpill{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--fg-2)}.cpill b{display:block;color:var(--fg-3);font-size:10px;text-transform:uppercase}.cpill span{font-size:17px;font-weight:700}
+.note{color:var(--fg-3);font-size:11.5px;margin-top:18px;line-height:1.5}.loading{color:var(--fg-3);padding:30px 0}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Hunting coiled springs…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function sc(v){return v>=60?'var(--green)':v>=40?'var(--cyan)':'var(--amber)';}
+function stg(s){return s==='EARLY'?'var(--green)':s==='CONFIRMING'?'var(--cyan)':s==='LATE'?'var(--fg-3)':'var(--amber)';}
+function bar(label,v,col){return `<div class="mini"><b>${label}</b><div class="track"><i style="width:${Math.round(v*100)}%;background:${col||'var(--cyan)'}"></i></div></div>`;}
+function card(r){
+  let h=`<div class="card"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> `;
+  if(r.twenty_x_shape)h+=`<span class="tag" style="color:var(--violet);border-color:var(--violet)">20x shape</span> `;
+  h+=`<span class="tag" style="color:${stg(r.stage)};border-color:${stg(r.stage)}">${esc(r.stage)}</span> <span class="tag">${esc(r.cap_bucket||'')}</span></div><span class="score" style="color:${sc(r.cyclical_20x_score)}">${r.cyclical_20x_score}</span></div>`;
+  h+=`<div class="bars">${bar('coil',r.coil_score,'var(--violet)')}${bar('violence',r.violence_score,'var(--red)')}${bar('accel',r.acceleration_score)}${bar('catalyst',r.secular_catalyst_score,'var(--amber)')}${bar('cheap',r.cheap_score,'var(--green)')}${bar('room',r.room_score)}</div>`;
+  h+=`<div class="detail">op-margin <b>${r.om_trough}%</b> → <b>${r.om_now}%</b> (<span style="color:var(--red)">+${r.om_swing_pp}pp snapback</span>) · EPS ${r.eps_neg_to_pos?'<span style="color:var(--green)">turned neg→pos</span>':'positive'} · rev ${r.rev_scaling_x}× off trough${r.run_from_trough_x?` · price ${r.run_from_trough_x}× off trough`:''}</div>`;
+  if(r.reasons&&r.reasons.length)h+=`<div class="detail" style="color:var(--fg-3)">${r.reasons.map(esc).join(' · ')}</div>`;
+  h+=`</div>`;return h;
+}
+(async function(){
+  const d=await gj('data/cyclical-bagger.json');const w=document.getElementById('wrap');
+  if(!d||!d.all_ranked){w.innerHTML='<h1>Cyclical 20x Radar</h1><div class="loading">No scan yet — updates daily 15:00 UTC.</div>';return;}
+  let h=`<h1>🌀 Cyclical 20x Radar <span class="tag" style="color:${d.mode==='PROVEN'?'var(--green)':'var(--amber)'};border-color:${d.mode==='PROVEN'?'var(--green)':'var(--amber)'}">${esc(d.mode)}</span></h1>`;
+  h+=`<div class="sub">${esc(d.thesis)}</div>`;
+  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')} · sibling to the secular Bagger Engine</div>`;
+  // calibration proof
+  const c=d.discriminator&&d.discriminator.calibration||{};
+  h+=`<div class="banner"><b>Discriminator:</b> ${esc(d.discriminator&&d.discriminator.killer_metric)}. Calibrated so the real 20x pass and secular growers are rejected:
+    <div class="calib">${Object.entries(c).map(([k,v])=>`<span class="cb" style="border-color:${v>=80?'var(--violet)':'var(--fg-3)'};color:${v>=80?'var(--violet)':'var(--fg-2)'}">${esc(k)} +${v}pp${v>=80?' ✅':' ❌'}</span>`).join('')}</div>
+    <span style="color:var(--fg-3)">Gate: ${esc(d.discriminator&&d.discriminator.gate)}</span></div>`;
+  const s=d.stats||{};
+  h+=`<div class="counts"><div class="cpill"><b>Evaluated</b><span>${s.evaluated||0}</span></div><div class="cpill"><b>20x shape</b><span style="color:var(--violet)">${s.twenty_x_shape||0}</span></div><div class="cpill"><b>Early/Confirming</b><span style="color:var(--green)">${s.shape_early_confirming||0}</span></div></div>`;
+  const book=d.twenty_x_shape_book||[];
+  if(book.length){
+    h+=`<h2>🌀 20x-shape book — deep trough + violent snapback, caught early</h2>`;
+    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:6px">Names structurally shaped like MU/SNDK before they ran — coiled out of a loss-making trough with a violent operating-leverage recovery. EARLY = price hasn't run yet. Most still won't 20x; this is the window, not a promise.</div>`;
+    for(const r of book)h+=card(r);
+  } else {
+    h+=`<h2>🌀 20x-shape book</h2><div class="detail">No names currently match the full MU/SNDK signature in an EARLY/CONFIRMING stage. That's normal — the deep-trough + violent-snapback pattern is rare. Showing the closest below.</div>`;
+  }
+  h+=`<h2>All ranked (incl. partials)</h2>`;
+  for(const r of (d.all_ranked||[]).slice(0,20))if(!book.find(b=>b.ticker===r.ticker))h+=card(r);
+  h+=`<div class="note">${esc(d.methodology)}<br><br>${esc(d.disclaimer)}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
