@@ -1,15 +1,16 @@
+invoke: {"statusCode": 200, "body": "{\"resilient\": 137, \"boom\": 28, \"flow_confirmed\": 27, \"idio\": 0}"} (48s)
+v 2.3 | JSON size 157.4 KB
+transitions: {'new_ignitions': [], 'new_coiled': ['RNST'], 'tg': None}
 
-[data/engine-alpha.json] keys: ['generated_at', 'benchmark', 'fdr_q', 'n_alpha_proven', 'n_alpha_negative', 'alpha_proven_signals', 'alpha_negative_signals', 'engines']
-   .alpha_proven_signals n=3 item0keys=str
-   resilience rows: []
-   .engines dict keys sample: ['crisis_dfii10_vs_gld', 'crypto_risk_score', 'squeeze_risk', 'momentum_uso', 'equity_convergence_fingerprint', 'khalid_index', 'frontrun_sniffer_setup', 'yc_regime']
-   resilience key present: []
+boom 20 — chart+narrative check (first 5):
+  CNTA   COILED    chart:70closes/11adv (held 7/fell 4) | top_holds:3 e.g. {'date': '2026-03-26', 'type': 'SECTOR_ROUT', 'day_return_pct': 4.2, 'abnormal_pct': 6.77}
+  IMVT   COILED    chart:70closes/13adv (held 5/fell 8) | top_holds:3 e.g. {'date': '2025-12-12', 'type': 'MARKET_ROUT', 'day_return_pct': 6.5, 'abnormal_pct': 6.58}
+  MNST   COILED    chart:70closes/11adv (held 7/fell 4) | top_holds:3 e.g. {'date': '2026-01-20', 'type': 'MARKET_ROUT', 'day_return_pct': 4.2, 'abnormal_pct': 4.79}
+  CHEF   IGNITING  chart:70closes/11adv (held 6/fell 5) | top_holds:3 e.g. {'date': '2026-02-12', 'type': 'MARKET_ROUT', 'day_return_pct': 5.7, 'abnormal_pct': 6.27}
+  NHC    IGNITING  chart:70closes/12adv (held 8/fell 4) | top_holds:3 e.g. {'date': '2026-02-05', 'type': 'MARKET_ROUT', 'day_return_pct': 5.6, 'abnormal_pct': 5.8}
 
-[data/signal-scorecard.json] keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'n_outcomes_scanned', 'n_outcomes_scored', 'n_outcomes_neutral', 'n_outcomes_legacy', 'n_outcomes_unresolved', 'n_signals_tracked', 'n_signals_graded', 'n_promoted', 'n_deprecated', 'n_insufficient', 'avg_graded_wilson_lb', 'promoted_signals', 'deprecated_signals', 'alpha', 'data_quality_flags', 'scorecard', 'thresholds', 'interpretation']
-   .scorecard n=67 item0keys=['signal_type', 'n_total', 'n_scored', 'n_neutral', 'n_legacy', 'n_unresolved', 'hits', 'hit_rate', 'wilson_lb', 'edge_vs_coinflip_pct', 'avg_return_pct', 'stored_flag_agreement', 'grade', 'status', 'performance_multiplier', 'alpha_status', 'alpha_n', 'alpha_mean_excess_pct', 'alpha_t_stat', 'info_ratio', 'alpha_hit_rate', 'alpha_p_value', 'net_alpha_mean_excess_pct', 'net_alpha_t_stat', 'net_info_ratio', 'by_window', 'by_regime']
-   resilience rows: []
+size-control: all_resilient has _chart/chart? False (should be False)
+boom has chart? True (should be True)
 
-[data/signal-board.json] mentions 'resilience': False
-
-[data/best-setups.json] mentions 'resilience': False
-DONE 2101
+resilience.html: 200 | sparkline fn: True | trackRecord: True | star/localStorage: True | transitions: True
+DONE 2102
