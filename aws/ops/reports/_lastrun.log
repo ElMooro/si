@@ -1,53 +1,76 @@
+════════ WHERE ARE WE IN THE CYCLE? ════════
 
-=== data/us-cycle.json === gen=2026-06-21T12:20
-  top keys: ['engine', 'version', 'generated_at', 'duration_s', 'pillars', 'charts', 'alerts', 'cycle_score', 'signals_logged', 'brain_audit_source', 'methodology']
+[US CYCLE]
+  cycle_score: {'score_0_100': 54.6, 'level': 'WATCH', 'components': [{'id': 'sahm', 'z': 0.4, 'w': 0.2}, {'id': 'sloos', 'z': 0.54, 'w': 0.15}, {'id': 'claims', 'z': -0.65, 'w': 0.12}, {'id': 'quits', 'z': 0.0, 'w': 0.1}, {'id': 'copper_gold', 'z': 0, 'w': 0.12}, {'id': 'real_10y', 'z': 1.45, 'w': 0.08}, {'id': 'term_premium', 'z': 0.86, 'w': 0.05}, {'id': 'buffett', 'z': 1.07, 'w': 0.08}, {'id': 'margin', 'z': 1.52, 'w': 0.05}, {'id': 'semis', 'z': -3, 'w': 0.05}], 'coverage_pillars': 10}
+  sahm: {}
+  sloos: {}
+  claims: {}
+  quits: {}
+  copper_gold: {}
+  term_premium: {}
+  real_10y: {}
+  infl_5y5y: {}
+  buffett: {}
+  margin_debt: {}
+  semis_leadership: {}
+  alerts: []
 
-=== data/global-business-cycle.json === gen=2026-06-21T12:00
-  top keys: ['schema_version', 'engine_type', 'generated_at', 'elapsed_sec', 'countries_with_fresh_data', 'countries_total', 'methodology', 'by_country', 'aggregate', 'interpretation']
+[GLOBAL BUSINESS CYCLE]
+  aggregate: {'global_phase': 'GLOBAL_EXPANSION', 'global_avg_cli': 109.9, 'global_phase_mix_pct': {'EXPANSION': 90.2, 'AT_RISK': 3.4, 'RECESSION': 1.5, 'RECOVERY': 4.3, 'UNKNOWN': 0.6}, 'global_phase_mix_weight': {'EXPANSION': 76.09999999999998, 'RECOVERY': 3.6, 'AT_RISK': 2.9, 'RECESSION': 1.3, 'UNKNOWN': 0.5}, 'total_weight_covered': 84.4, 'classified_weight_covered': 83.9, 'classification_coverage_pct': 99.4, 'expansion_breadth_pct': 95.0, 'contraction_breadth_pct': 5.0, 'by_region': {'North America': {'phase_mix': {'EXPANSION': 27.0}, 'n_countries': 2, 'total_weight': 27.0, 'classified_weight': 27.0, 'avg_cli': 119.12, 'countries': ['USA', 'CAN'], 'phase_mix_pct': {'EXPANSION': 100.0}}, 'Asia-Pacific': {'phase_mix': {'EXPANSION': 25.6, 'RECOVERY': 3.6, 'RECESSION': 1.3}, 'n_countries': 7, 'total_weight': 30.500000000000004, 'classified_weight': 30.500000000000004, 'avg_cli': 105.13, 'countries': ['CHN', 'JPN', 'IND', 'KOR', 'AUS', 'IDN', 'NZL'], 'phase_mix_pct': {'EXPANSION': 83.9, 'RECOVERY': 11.8, 'RECESSION': 4.3}}, 'Europe': {'phase_mix': {'EXPANSION': 21.200000000000003, 'AT_RISK': 0.5, 'UNKNOWN': 0.5}, 'n_countries': 20, 'total_weight': 22.200000000000003, 'classified_weight': 21.700000000000003, 'avg_cli': 106.31, 'countries': ['DEU', 'GBR', 'FRA', 'ITA', 'ESP', 'NLD', 'TUR', 'CHE', 'POL', 'BEL', 'SWE', 'IRL', 'AUT', 'NOR', 'DNK', 'FIN', 'CZE', 'HUN', 'PRT', 'GRC'], 'phase_mix_pct': {'EXPANSION': 95.5, 'AT_RISK': 2.3, 'UNKNOWN': 2.3}}, 'Latin America': {'phase_mix': {'AT_RISK': 1.9, 'EXPANSION': 1.8}, 'n_countries': 3, 'total_weight': 3.6999999999999997, 'classified_weight': 3.6999999999999997, 'avg_cli': 103.66, 'countries': ['BRA', 'MEX', 'CHL'], 'phase_mix_pct': {'AT_RISK': 51.4, 'EXPANSION': 48.6}}, 'Africa': {'phase_mix': {'AT_RISK': 0.5}, 'n_countries': 1, 'total_weight': 0.5, 'classified_weight': 0.5, 'avg_cli': 102.43, 'countries': ['ZAF'], 'phase_mix_pct': {'AT_RISK': 100.0}}, 'Middle East': {'phase_mix': {'EXPANSION': 0.5}, 'n_countries': 1, 'total_weight': 0.5, 'classified_weight': 0.5, 'avg_cli': 112.52, 'countries': ['ISR'], 'phase_mix_pct': {'EXPANSION': 100.0}}}}
+  interpretation: {'decisive_call': 'GLOBAL EXPANSION · 95% of world GDP in expansion+recovery (avg CLI 109.9). Maximum cyclical risk exposure justified — overweight equity (especially EM + small caps), commodities, and HY credit. Underweight long duration and USD.', 'cross_asset': {'us_large_equity': {'signal': 2, '
 
-=== data/global-liquidity.json === gen=2026-06-21T11:01
-  top keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'fred_failed', 'global_liquidity_index', 'fed_net_liquidity', 'broad_money', 'regime', 'regime_read', 'global_impulse_13w_pct', 'history_points', 'net_liq_points']
+[MACRO NOWCAST]
+  normalized_score: -0.3606
+  regime: SLOWING
+  regime_color: amber
+  regime_spy_performance: {'SLOWING': {'n_obs': 42, 'horizons': {'1m': {'n': 41, 'mean_pct': 1.59, 'median_pct': 1.49, 'hit_rate_pct': 73.2, 'min_pct': -3.47, 'max_pct': 6.55}, '3m': {'n': 39, 'mean_pct': 4.99, 'median_pct': 4.59, 'hit_rate_pct': 89.7, 'min_pct': -2.9, 'max_pct': 11.37}, '6m': {'n': 36, 'mean_pct': 9.01, 'median_pct': 9.94, 'hit_rate_pct': 91.7, 'min_pct': -11.06, 'max_pct': 21.13}, '12m': {'n': 34, 'mean_pct': 17.9, 'median_pct': 18.19, 'hit_rate_pct': 94.1, 'min_pct': -5.41, 'max_pct': 32.09}}}, 'MUDDLE': {'n_obs': 55, 'horizons': {'1m': {'n': 55, 'mean_pct': 0.7, 'median_pct': 1.53, 'hit_rate_pct': 65.5, 'min_pct': -7.99, 'max_pct': 8.22}, '3m': {'n': 55, 'mean_pct': 1.81, 'median_pct': 3.23, 'hit_rate_pct': 69.1, 'min_pct': -16.51, 'max_pct': 17.26}, '6m': {'n': 55, 'mean_pct': 5.32, 'median_pct': 5.64, 'hit_rate_pct': 78.2, 'min_pct': -15.15, 'max_pct': 25.44}, '12m': {'n': 51, 'mean_pct': 12.73, 'median_pct': 14.02, 'hit_rate_pct': 90.2, 'min_pct': -13.41, 'max_pct': 35.67}}}, 'EXPANSION': {'n_obs': 11, 'horizons': {'1m': {'n': 11, 'mean_pct': -0.82, 'median_pct': 0.34, 'hit_rate_pct': 63.6, 'min_pct': -19.07, 'max_pct': 4.63}, '3m': {'n': 11, 'mean_pct': -0.98, 'median_pct': 2.22, 'hit_rate_pct': 54.5, 'min_pct': -10.91, 'max_pct': 5.79}, '6m': {'n': 11, 'mean_pct': -2.71, 'median_pct': -1.22, 'hit_rate_pct': 36.4, 'min_pct': -16.6, 'max_pct': 4.81}, '12m': {'n': 11, 'mean_pct': -5.15, 'median_pct': -8.03, 'hit_rate_pct': 36.4, 'min_pct': -16.47, 'max_pct': 18.49}}}, 'CONTRACTION RISK': {'n_obs': 7, 'horizons': {'1m': {'n': 7, 'mean_pct': 3.75, 'median_pct': 4.13, 'hit_rate_pct': 85.7, 'min_pct': -0.77, 'max_pct': 6.34}, '3m': {'n': 7, 'mean_pct': 10.37, 'median_pct': 8.4, 'hit_rate_pct': 100.0, 'min_pct': 3.62, 'max_pct': 17.05}, '6m': {'n': 7, 'mean_pct': 18.46, 'median_pct': 19.02, 'hit_rate_pct': 100.0, 'min_pct': 5.18, 'max_pct': 26.89}, '12m': {'n': 7, 'mean_pct': 37.57, 'median_pct': 36.52, 'hit_rate_pct': 100.0, 'min_pct': 18.96, 'max_pct': 49.94}}}, 'STRONG EXPANSION': {'n_obs': 4, 'horizons': {'1m': {'n': 4, 'mean_pct': 2.8, 'median_pct': 2.32, 'hit_rate_pct': 100.0, 'min_pct': 0.64, 'max_pct': 5.9}, '3m': {'n': 4, 'mean_pct': 6.38, 'median_pct': 6.12, 'hit_rate_pct': 100.0, 'min_pct': 4.88, 'max_pct': 8.39}, '6m': {'n': 4, 'mean_pct': 10.92, 'median_pct': 11.14, 'hit_rate_pct': 100.0, 'min_pct': 7.72, 'max_pct': 13.68}, '12m': {'n': 4, 'mean_pct': 1.82, 'median_pct': 1.49, 'hit_rate_pct': 50.0, 'min_pct': -8.01, 'max_pct': 12.29}}}}
 
-=== data/liquidity-pulse.json === gen=2026-06-21T16:03
-  top keys: ['schema_version', 'generated_at', 'elapsed_sec', 'series', 'fetch_errors', 'composites', 'summary', 'transitions', 'n_series', 'n_series_ok']
+[MACRO REGIME]
+  current: {'quadrant': 'STAGFLATION', 'as_of_month': '2026-05', 'months_in_regime': 3, 'previous_quadrant': 'DEFLATION-BUST', 'growth_6m_momentum': -0.0, 'inflation_6m_momentum': 1.28, 'liquidity_nfci': -0.5, 'liquidity_state': 'EASY', 'next_3m_probabilities': {'GOLDILOCKS': 6.3, 'REFLATION': 17.5, 'STAGFLATION': 51.9, 'DEFLATION-BUST': 24.3}, 'history_share_pct': {'GOLDILOCKS': 21.1, 'REFLATION': 27.5, 'STAGFLATION': 25.5, 'DEFLATION-BUST': 26.0}}
 
-=== data/liquidity-inflection.json === gen=2026-06-21T11:15
-  top keys: ['engine', 'version', 'generated_at', 'duration_s', 'availability', 'usd', 'us_money', 'eur', 'china', 'stablecoin', 'stablecoin_schema_hint', 'event_study_after_flips', 'lead_estimates', 'signals_logged', 'methodology']
+[REGIME PLAYBOOK]
+  regime_key: NORMAL|TIGHTENING|UNKNOWN
+  current_fingerprint: {'bond_vol': 'NORMAL', 'plumbing': 'TIGHTENING', 'balance_sheet': 'UNKNOWN', 'crypto_risk': 'LOW', 'date': '2026-06-21'}
 
-=== data/liquidity-flow.json === gen=2026-06-21T22:00
-  top keys: ['generated_at', 'as_of', 'current', 'deltas', 'regime', 'interpretation', 'history_180d', 'fetch_errors', 'fetch_duration_s']
+════════ IS THERE A LIQUIDITY SQUEEZE? ════════
 
-=== data/liquidity-credit-engine.json === gen=2026-06-21T18:22
-  top keys: ['schema_version', 'generated_at', 'elapsed_sec', 'regime', 'composite', 'series', 'by_category', 'reference', 'transitions', 'interpretation']
+[GLOBAL LIQUIDITY]
+  global_liquidity_index: {'total_usd_bn': 17983.2, 'total_usd_trillions': 17.98, 'components_usd_bn': {'Fed': 6736.4, 'ECB': 7100.8, 'BOJ': 4146.0}, 'change_13w_pct': 0.38, 'change_52w_
+  fed_net_liquidity: {'value_usd_bn': 5848.9, 'value_usd_trillions': 5.85, 'change_13w_pct': 0.8, 'formula': 'Fed balance sheet - TGA - Overnight Reverse Repo', 'as_of': '2026-06-17
+  regime: NEUTRAL
+  regime_read: Global liquidity is roughly flat. Liquidity is neither a tailwind nor a headwind — earnings and rates dominate.
+  global_impulse_13w_pct: 0.38
 
-=== data/liquidity-capacity.json === gen=2026-06-21T02:00
-  top keys: ['schema_version', 'engine', 'generated_at', 'build_seconds', 'headline', 'liquidity_posture', 'liquidity_score', 'firm', 'tiers', 'least_liquid_names', 'trapped_names', 'by_desk', 'by_sector', 'parameters', 'how_to_read', 'methodology', 'disclaimer']
+[LIQUIDITY FLOW]
+  regime: stable
+  interpretation: Net liquidity is roughly stable (-22B over 30 days).
+  deltas: {'1d': {'walcl': 11.0, 'tga': 52.6, 'rrp': -6.6, 'net': -35.0}, '1w': {'walcl': 11.0, 'tga': 52.6, 'rrp': -0.2, 'net': -41.4}, '1m': {'walcl': 7.9, 'tga': 42.1, 'rrp': -12.7, 'net': -21.5}, '3m': {'walcl': 80.5, 'tga': 27.7, 'rrp': -0.6, 'net': 53.4}}
 
-=== data/global-stress.json === gen=2026-06-21T19:35
-  top keys: ['schema_version', 'engine', 'generated_at', 'build_seconds', 'global_stress_index', 'global_stress_index_ciss_adj', 'ciss_systemic', 'global_stress_level', 'weights', 'gsi_by_horizon', 'market_stress_index', 'equity_stress', 'bond_stress', 'implied_vol', 'credit_spreads', 'rates', 'sovereign', 'funding', 'contagion', 'breadth', 'safe_haven', 'stress_momentum']
+[LIQUIDITY & CREDIT ENGINE]
+  regime: WATCH
+  composite: {'score': 18.1, 'n_firing': 0, 'by_category': {}}
+  interpretation: {'as_of': '2026-06-21T18:22:27.573772+00:00', 'regime': 'WATCH', 'composite_score': 18.1, 'overall_posture': 'BALANCED_CAUTIOUS', 'confidence': 'HIGH', 'pillars': {'liquidity': {'state': 'DRAINING', 'rank': 1, 'narrative
 
-=== data/crisis-composite.json === gen=2026-06-21T23:15
-  top keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'master_crisis_score', 'defcon_level', 'defcon_name', 'defcon_color', 'playbook', 'trend', 'components_available', 'components', 'primary_drivers', 'massive_cross_asset', 'scale', 'methodology']
+[CRISIS COMPOSITE]
+  master_crisis_score: 26.5
+  defcon_level: 4
+  defcon_name: NORMAL
+  trend: stable
+  primary_drivers: ['no single component in stress territory']
 
-=== data/regime.json === gen=2026-06-21T13:05
-  top keys: ['engine', 'version', 'generated_at', 'duration_s', 'current', 'playbook', 'transition_matrix_3m', 'regime_strip', 'n_months_classified', 'first_month', 'signals_logged', 'methodology']
+[CRISIS CANARIES]
+  composite_score: 6.7
+  level: CALM
+  red_count: 1
+  level_v3: CALM
 
-=== data/regime-playbook.json === gen=2026-06-21T14:30
-  top keys: ['engine', 'version', 'generated_at', 'duration_s', 'current_fingerprint', 'regime_key', 'current_playbook', 'proven_signal_leaders', 'days_in_history', 'note']
+[GLOBAL STRESS]
+  global_stress_index: 43
+  global_stress_level: ELEVATED
+  stress_momentum: {'direction': 'STABLE', 'change_5_runs': 0, 'change_20_runs': 8, 'percentile': 68, 'runs_tracked': 149}
 
-=== data/crisis-canaries.json === gen=2026-06-21T11:40
-  top keys: ['engine', 'version', 'generated_at', 'duration_s', 'availability', 'canaries', 'composite_score', 'level', 'alerts', 'signals_logged', 'families', 'red_count', 'n_global', 'global_score', 'grid_score_ingested', 'composite_v3', 'level_v3', 'known_gaps', 'methodology']
+[SYSTEMIC STRESS]
+  headline: Systemic stress CALM. Composite 30/100 — euro-area CISS calm (5th pct); euro sovereign fragmentation mild dispersion.
+  composite: {'score_0_100': 29.6, 'regime': 'CALM', 'read': "Composite systemic-&-sovereign stress 30/100 — calm. Stress is contained; the ECB's official indices are not corroborating an acute systemic event."}
 
-=== data/macro-nowcast.json === gen=2026-06-21T18:43
-  top keys: ['v', 'generated_at', 'duration_s', 'raw_score', 'normalized_score', 'regime', 'regime_color', 'coverage_pct', 'n_components_used', 'n_components_failed', 'components', 'historical_scores', 'historical_summary', 'regime_spy_performance', 'regime_spy_horizons', 'thresholds', 'data_sources', 'methodology']
-
-=== data/global-macro.json === gen=
-  top keys: ['schema_version', 'method', 'as_of', 'n_countries', 'n_with_data', 'regime_counts', 'global_avg_composite', 'global_regime', 'countries', 'rankings', 'duration_s']
-
-=== data/cross-asset-regime.json === gen=2026-06-21T11:00
-  top keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'asset_universe', 'stats', 'regime_5d', 'regime_20d', 'regime_60d', 'regime_change', 'correlation_matrix_30d', 'correlation_matrix_90d', 'correlation_breaks', 'alerts']
-
-=== data/systemic-stress.json === gen=2026-06-21T12:00
-  top keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'composite', 'systemic_stress', 'sovereign_stress', 'cross_reference', 'sources', 'errors']
-
-DONE 2086
+DONE 2087
