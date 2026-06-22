@@ -70,6 +70,14 @@ def _gj(url, tries=2):
 def clamp(v, lo=0.0, hi=1.0): return max(lo, min(hi, v))
 
 
+def profile(sym):
+    """Market cap + sector from FMP (fixes cap gate, room, and theme mapping)."""
+    p = _gj(f"https://financialmodelingprep.com/stable/profile?symbol={sym}&apikey={FMP}")
+    if isinstance(p, list) and p:
+        return p[0].get("marketCap"), str(p[0].get("sector") or p[0].get("industry") or "")
+    return None, ""
+
+
 def discriminators(sym):
     """Deep-trough + snapback-violence from FMP quarterly financials + price stage."""
     inc = _gj(f"https://financialmodelingprep.com/stable/income-statement?symbol={sym}&period=quarter&limit=12&apikey={FMP}")
@@ -95,6 +103,7 @@ def discriminators(sym):
         "ttmEPS_trough": round(min(ttm_eps), 2), "ttmEPS_now": round(ttm_eps[-1], 2),
         "eps_neg_to_pos": bool(min(ttm_eps) < 0 and ttm_eps[-1] > 0),
         "rev_scaling_x": round(rev[-1] / max(min(rev), 1), 2),
+        "rev_now": rev[-1],
         "trough_date": dates[trough_idx] if trough_idx < len(dates) else None,
         "gm_rising_streak": sum(1 for i in range(len(gm) - 1, 0, -1) if gm[i] > gm[i - 1]) if len(gm) > 1 else 0,
     }
@@ -198,8 +207,8 @@ def lambda_handler(event, context):
     pool = list(pool)[:150]
     diag.append("pool=%d" % len(pool))
 
-    def theme_catalyst(sym):
-        rrr = rr.get(sym, {}); sector = str(rrr.get("sector") or racc_meta.get(sym, {}).get("metrics", {}).get("sector") or "").lower()
+    def theme_catalyst(sym, sector=""):
+        sector = (sector or str(rr.get(sym, {}).get("sector") or racc_meta.get(sym, {}).get("metrics", {}).get("sector") or "")).lower()
         themes = []
         for kw, th in SECTOR_THEME.items():
             if kw in sector: themes += th
@@ -219,12 +228,17 @@ def lambda_handler(event, context):
         eps_turn = 1.0 if d["eps_neg_to_pos"] else (0.4 if d["ttmEPS_now"] > d["ttmEPS_trough"] else 0.0)
         scaling = clamp((d["rev_scaling_x"] - 1.2) / 4.0)
         accel = clamp((racc_meta.get(sym, {}).get("score", 0)) / 100.0)
-        cat, themes = theme_catalyst(sym)
-        catalyst = clamp(cat / 100.0)
         rrr = rr.get(sym, {})
+        mcap = rrr.get("market_cap") or racc_meta.get(sym, {}).get("metrics", {}).get("market_cap")
+        sector = rrr.get("sector") or ""
+        if mcap is None or not sector:
+            pm, psec = profile(sym)
+            mcap = mcap if mcap is not None else pm
+            sector = sector or psec
+        cat, themes = theme_catalyst(sym, sector)
+        catalyst = clamp(cat / 100.0)
         disc = rrr.get("discount_to_implied_pct")
         cheap = clamp((disc or 0) / 100.0) if isinstance(disc, (int, float)) else 0.4
-        mcap = rrr.get("market_cap") or racc_meta.get(sym, {}).get("metrics", {}).get("market_cap")
         cap_bucket = rrr.get("cap_bucket")
         if not cap_bucket and isinstance(mcap, (int, float)):
             cap_bucket = ("nano" if mcap < 3e8 else "micro" if mcap < 2e9 else "small" if mcap < 1e10 else
@@ -232,10 +246,14 @@ def lambda_handler(event, context):
         room = {"nano": 1.0, "micro": 0.95, "small": 0.85, "mid": 0.65, "large": 0.4, "mega": 0.1}.get(cap_bucket, 0.6)
 
         # ---- the 20x-SHAPE gate (calibrated: MU/SNDK pass, AVGO/AMD/TXN/KLAC fail) ----
+        # revenue floor: margin% is only meaningful on a real revenue base. The MU
+        # pattern is a real business at a trough, not a pre-revenue lottery ticket.
+        # swing sanity cap: >350pp swings are tiny-denominator / writedown artifacts.
+        real_business = (d.get("rev_now") or 0) >= 40e6
         coil_deep = (d["om_trough"] < -10) or (d["gm_trough"] < 5)
-        violent = d["om_swing_pp"] >= 40
+        violent = 40 <= d["om_swing_pp"] <= 350
         not_mega = cap_bucket != "mega" and not (isinstance(mcap, (int, float)) and mcap > 5e11)
-        twenty_x_shape = bool(coil_deep and violent and d["eps_neg_to_pos"] and not_mega)
+        twenty_x_shape = bool(coil_deep and violent and d["eps_neg_to_pos"] and not_mega and real_business)
 
         # ---- stage via price run off trough ----
         last, p_tr, run_x = price_stage(sym, d.get("trough_date"))
