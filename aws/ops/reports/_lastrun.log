@@ -1,31 +1,71 @@
-invoke: {"statusCode": 200, "body": "{\"resilient\": 137, \"boom\": 37, \"idio\": 0}"} (47s)
-version: 2.0 | basis: 2-factor residual vs [SPY, best-fit sector ETF]
-diagnostics:
-   calendar 130 days 2025-12-11->2026-06-18
-   CS/ADRC 5675
-   matrix 5671 tickers
-   catalysts: 3 miss, 40 dg, 30 ptcut, 13 gcut; 61 tickers
-   liquid universe 2013
+total catalysts: 86
+grouped days available: ['2026-06-11', '2026-06-12', '2026-06-15', '2026-06-16', '2026-06-17', '2026-06-18']
 
-counts: {'absorbing': 100, 'coiled': 13, 'igniting': 24, 'with_idiosyncratic_evidence': 0}
+ticker | type | catdate | mapped | day_return | liquid?
+  ARM    DOWNGRADE     2026-06-18 -> 2026-06-18 | +4.9% | liq | HELD
+  PLD    DOWNGRADE     2026-06-18 -> 2026-06-18 | -0.3% | liq | HELD
+  JEF    DOWNGRADE     2026-06-18 -> 2026-06-18 | +0.4% | liq | HELD
+  PAYO   DOWNGRADE     2026-06-18 -> 2026-06-18 | +0.0% | liq | HELD
+  TRAW   DOWNGRADE     2026-06-18 -> 2026-06-18 | +6.5% | thin | HELD
+  CURB   DOWNGRADE     2026-06-18 -> 2026-06-18 | -0.5% | liq | HELD
+  CEG    DOWNGRADE     2026-06-18 -> 2026-06-18 | +2.6% | liq | HELD
+  EGP    DOWNGRADE     2026-06-18 -> 2026-06-18 | +1.2% | liq | HELD
+  INTU   DOWNGRADE     2026-06-18 -> 2026-06-18 | -0.8% | liq | HELD
+  WELL   DOWNGRADE     2026-06-17 -> 2026-06-17 | -3.3% | liq | fell
+  DOC    DOWNGRADE     2026-06-17 -> 2026-06-17 | -3.4% | liq | fell
+  REXR   DOWNGRADE     2026-06-17 -> 2026-06-17 | -5.7% | liq | fell
+  SBRA   DOWNGRADE     2026-06-17 -> 2026-06-17 | -2.7% | liq | fell
+  CTRE   DOWNGRADE     2026-06-17 -> 2026-06-17 | -1.8% | liq | fell
+  IQV    DOWNGRADE     2026-06-17 -> 2026-06-17 | -4.7% | liq | fell
+  RMD    DOWNGRADE     2026-06-17 -> 2026-06-17 | -3.9% | liq | fell
+  SLP    DOWNGRADE     2026-06-17 -> 2026-06-17 | +0.1% | liq | HELD
+  LDOS   DOWNGRADE     2026-06-17 -> 2026-06-17 | -4.3% | liq | fell
+  EFC    DOWNGRADE     2026-06-17 -> 2026-06-17 | -1.8% | liq | fell
+  DOMO   DOWNGRADE     2026-06-16 -> 2026-06-16 | -37.1% | liq | fell
+  ROKU   DOWNGRADE     2026-06-16 -> 2026-06-16 | -2.1% | liq | fell
+  ROKU   DOWNGRADE     2026-06-16 -> 2026-06-16 | -2.1% | liq | fell
+  ROKU   DOWNGRADE     2026-06-16 -> 2026-06-16 | -2.1% | liq | fell
+  ROKU   DOWNGRADE     2026-06-16 -> 2026-06-16 | -2.1% | liq | fell
+  ROKU   DOWNGRADE     2026-06-16 -> 2026-06-16 | -2.1% | liq | fell
+  ROKU   DOWNGRADE     2026-06-16 -> 2026-06-16 | -2.1% | liq | fell
+  PLAY   DOWNGRADE     2026-06-16 -> 2026-06-16 | -6.2% | liq | fell
+  PAYO   DOWNGRADE     2026-06-16 -> 2026-06-16 | -0.1% | liq | HELD
+  ROKU   DOWNGRADE     2026-06-16 -> 2026-06-16 | -2.1% | liq | fell
+  ROKU   DOWNGRADE     2026-06-16 -> 2026-06-16 | -2.1% | liq | fell
+  SKT    DOWNGRADE     2026-06-16 -> 2026-06-16 | -0.6% | liq | HELD
+  CSR    DOWNGRADE     2026-06-16 -> 2026-06-16 | -0.1% | thin | HELD
+  RKT    DOWNGRADE     2026-06-16 -> 2026-06-16 | +0.1% | liq | HELD
+  ROKU   DOWNGRADE     2026-06-15 -> 2026-06-15 | -1.9% | liq | fell
+  PAYO   DOWNGRADE     2026-06-15 -> 2026-06-15 | +4.1% | liq | HELD
+  KLAC   PT_CUT        2026-06-15 -> 2026-06-15 | +0.7% | liq | HELD
+  NMRA   PT_CUT        2026-06-16 -> 2026-06-16 | +70.6% | liq | HELD
+  UWMC   PT_CUT        2026-06-16 -> 2026-06-16 | +3.4% | liq | HELD
+  DOMO   PT_CUT        2026-06-16 -> 2026-06-16 | -37.1% | liq | fell
+  OXBR   PT_CUT        2026-06-17 -> 2026-06-17 | +10.8% | thin | HELD
+  NYXH   PT_CUT        2026-06-17 -> 2026-06-17 | +0.6% | thin | HELD
+  BLSH   PT_CUT        2026-06-16 -> 2026-06-16 | -9.2% | liq | fell
+  LDOS   PT_CUT        2026-06-17 -> 2026-06-17 | -4.3% | liq | fell
+  DOMO   PT_CUT        2026-06-16 -> 2026-06-16 | -37.1% | liq | fell
+  NMRA   PT_CUT        2026-06-16 -> 2026-06-16 | +70.6% | liq | HELD
+  DOMO   PT_CUT        2026-06-16 -> 2026-06-16 | -37.1% | liq | fell
+  PFSI   PT_CUT        2026-06-16 -> 2026-06-16 | +1.4% | liq | HELD
+  ACN    PT_CUT        2026-06-18 -> 2026-06-18 | -18.0% | liq | fell
+  WIX    PT_CUT        2026-06-18 -> 2026-06-18 | +1.0% | liq | HELD
+  NU     PT_CUT        2026-06-15 -> 2026-06-15 | +2.0% | liq | HELD
+  TSCO   PT_CUT        2026-06-16 -> 2026-06-16 | -2.2% | liq | fell
+  INTU   PT_CUT        2026-06-18 -> 2026-06-18 | -0.8% | liq | HELD
+  ACN    PT_CUT        2026-06-15 -> 2026-06-15 | -2.9% | liq | fell
+  PAYO   PT_CUT        2026-06-16 -> 2026-06-16 | -0.1% | liq | HELD
+  AOMR   PT_CUT        2026-06-17 -> 2026-06-17 | -0.6% | thin | HELD
+  RMD    PT_CUT        2026-06-15 -> 2026-06-15 | -1.0% | liq | fell
+  THO    PT_CUT        2026-06-15 -> 2026-06-15 | -1.5% | liq | fell
+  RMD    PT_CUT        2026-06-17 -> 2026-06-17 | -3.9% | liq | fell
+  SNWV   GUIDANCE_CUT  2026-06-16 -> 2026-06-16 | -42.0% | thin | fell
+  ADBE   GUIDANCE_CUT  2026-06-11 -> 2026-06-11 | -6.2% | liq | fell
+  LOVE   GUIDANCE_CUT  2026-06-11 -> 2026-06-11 | -1.1% | thin | fell
+  OXM    GUIDANCE_CUT  2026-06-10 -> 2026-06-10 | +0.3% | liq | HELD
+  CHWY   GUIDANCE_CUT  2026-06-10 -> 2026-06-10 | -2.1% | liq | fell
 
-🚀 ABOUT TO BOOM (idio-evidence first):
-  CNTA   IGNITING  res 81.0 | SPY+XLY    +1.24%/adv (65% held,n23) | dom SECTOR_ROUT 
-  UFPT   IGNITING  res 76.2 | SPY+XLY    +1.35%/adv (57% held,n23) | dom SECTOR_ROUT 
-  IMVT   COILED    res 74.6 | SPY+XLY    +0.69%/adv (56% held,n25) | dom SECTOR_ROUT 
-  GKOS   COILED    res 73.8 | SPY+XLI    +0.55%/adv (62% held,n29) | dom GAP_DOWN 
-  AIR    IGNITING  res 72.5 | SPY+XLI    +0.44%/adv (68% held,n25) | dom GAP_DOWN 
-  MNST   COILED    res 71.8 | SPY+XLP    +0.22%/adv (62% held,n21) | dom MARKET_ROUT 
-  ROIV   COILED    res 71.3 | SPY+XLI    +0.49%/adv (65% held,n26) | dom GAP_DOWN 
-  CHEF   IGNITING  res 71.2 | SPY+XLY    +0.05%/adv (62% held,n24) | dom SECTOR_ROUT 
-  COMP   IGNITING  res 70.6 | SPY+XLY    +0.26%/adv (59% held,n34) | dom GAP_DOWN 
-  RPM    COILED    res 70.5 | SPY+XLB    +0.42%/adv (64% held,n28) | dom SECTOR_ROUT 
-  DOCN   COILED    res 69.6 | SPY+XLK    +0.26%/adv (62% held,n42) | dom GAP_DOWN 
-  FUL    IGNITING  res 69.0 | SPY+XLB    +0.29%/adv (55% held,n29) | dom GAP_DOWN 
-  BMA    IGNITING  res 68.4 | SPY+XLY    +0.4%/adv (58% held,n31) | dom GAP_DOWN 
-  JAZZ   COILED    res 67.9 | SPY+XLV    +0.15%/adv (67% held,n21) | dom MARKET_ROUT 
-
-names WITH idiosyncratic evidence (held through real catalyst):
-
-top_picks: [('CNTA', 'SECTOR_ROUT', ''), ('UFPT', 'SECTOR_ROUT', ''), ('IMVT', 'SECTOR_ROUT', ''), ('GKOS', 'GAP_DOWN', ''), ('AIR', 'GAP_DOWN', ''), ('MNST', 'MARKET_ROUT', ''), ('ROIV', 'GAP_DOWN', ''), ('CHEF', 'SECTOR_ROUT', ''), ('COMP', 'GAP_DOWN', ''), ('RPM', 'SECTOR_ROUT', ''), ('DOCN', 'GAP_DOWN', ''), ('FUL', 'GAP_DOWN', ''), ('BMA', 'GAP_DOWN', ''), ('JAZZ', 'MARKET_ROUT', ''), ('RL', 'SECTOR_ROUT', '')]
-DONE 2096
+SUMMARY: held(>-1%) 28 | fell 47 | nodata 11
+=> if some HELD on liquid names, the idio path is valid (just rare/very recent); if all fell, idio=0 is reality
+DONE 2097
