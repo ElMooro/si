@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-cycle-clock",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Cycle & Liquidity Clock: meta-synthesizer placing us on the investment-clock (cycle phase) + calibrated liquidity-squeeze-risk gauge from the stress stack, with divergences surfaced. Reads cycle/liquidity/stress engine outputs. data/cycle-clock.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-cycle-clock-daily",
+    "cron": "cron(30 23 * * ? *)",
+    "description": "23:30 UTC daily (after upstream cycle/liquidity/stress engines have run)"
+  }
+}

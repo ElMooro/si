@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cycle &amp; Liquidity Clock · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#a78bfa;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:10px;max-width:880px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+h2{font-size:12px;color:var(--fg-2);margin:24px 0 9px;text-transform:uppercase;letter-spacing:.06em}
+.verdict{background:linear-gradient(180deg,#141b27,#10151e);border:1px solid #2b3a4f;border-radius:12px;padding:15px 18px;margin-bottom:18px;font-size:15px;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+.panel{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:16px}
+.panel h3{margin:0 0 10px;font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.06em}
+.big{font-size:22px;font-weight:800;margin-bottom:2px}
+.gauge{height:9px;border-radius:5px;background:linear-gradient(90deg,#3fd68c,#f5b343,#ff5c6c);position:relative;margin:12px 0 4px}
+.gauge .pin{position:absolute;top:-4px;width:3px;height:17px;background:#fff;border-radius:2px;box-shadow:0 0 6px rgba(255,255,255,.6)}
+.gscale{display:flex;justify-content:space-between;font-size:9.5px;color:var(--fg-3);font-family:var(--mono)}
+.flick{font-size:12px;color:var(--amber);font-family:var(--mono);margin:4px 0 0;padding-left:14px;position:relative}
+.flick:before{content:'▸';position:absolute;left:0;color:var(--fg-3)}
+.diverge{background:var(--bg-1);border:1px solid var(--border);border-left:3px solid var(--violet);border-radius:9px;padding:11px 14px;margin-bottom:9px;font-size:12.5px;color:var(--fg-1)}
+.diverge b{color:var(--violet)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}th{text-align:left;color:var(--fg-3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--border)}
+td{padding:6px 8px;border-bottom:1px solid var(--bg-2);font-family:var(--mono)}
+.note{color:var(--fg-3);font-size:11px;margin-top:18px;line-height:1.6}a{color:var(--cyan)}
+.loading{padding:54px;text-align:center;color:var(--fg-2)}
+.tag{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid var(--border);color:var(--fg-2);margin-left:6px}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Reading the clock…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+// 4-quadrant investment clock SVG; phase 1=early(bottom) → 2=mid(right) → 3=late(top) → 4=downturn(left)
+function clock(phaseN){
+  const segs=[{n:1,lbl:'EARLY',sub:'reflation',a0:90,a1:180,col:'#3fd68c'},
+              {n:2,lbl:'MID',sub:'goldilocks',a0:0,a1:90,col:'#46c8ff'},
+              {n:3,lbl:'LATE',sub:'stagflation',a0:270,a1:360,col:'#f5b343'},
+              {n:4,lbl:'DOWNTURN',sub:'deflation',a0:180,a1:270,col:'#ff5c6c'}];
+  const cx=130,cy=130,r=104;
+  function pt(a,rr){const rad=(a-90)*Math.PI/180;return [cx+rr*Math.cos(rad),cy+rr*Math.sin(rad)];}
+  function arc(a0,a1,rr){const[x0,y0]=pt(a0,rr),[x1,y1]=pt(a1,rr);return `M ${cx} ${cy} L ${x0.toFixed(1)} ${y0.toFixed(1)} A ${rr} ${rr} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z`;}
+  let cur=Math.round(phaseN||0);if(phaseN===2.5)cur=2;
+  let s=`<svg viewBox="0 0 260 260" style="width:100%;max-width:300px;height:auto" xmlns="http://www.w3.org/2000/svg">`;
+  for(const sg of segs){
+    const active=sg.n===cur;
+    s+=`<path d="${arc(sg.a0,sg.a1,r)}" fill="${sg.col}" fill-opacity="${active?0.32:0.07}" stroke="${sg.col}" stroke-opacity="${active?1:0.35}" stroke-width="${active?2:1}"/>`;
+    const mid=(sg.a0+sg.a1)/2;const[lx,ly]=pt(mid,r*0.62);
+    s+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="${sg.col}" fill-opacity="${active?1:0.5}" font-size="13" font-weight="700" font-family="sans-serif" text-anchor="middle">${sg.lbl}</text>`;
+    s+=`<text x="${lx.toFixed(1)}" y="${(ly+13).toFixed(1)}" fill="${sg.col}" fill-opacity="${active?0.8:0.4}" font-size="9" font-family="monospace" text-anchor="middle">${sg.sub}</text>`;
+  }
+  // pointer to active segment mid
+  const active=segs.find(x=>x.n===cur);
+  if(active){const[px,py]=pt((active.a0+active.a1)/2,r*0.92);
+    s+=`<line x1="${cx}" y1="${cy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="#fff" stroke-width="2.5"/><circle cx="${cx}" cy="${cy}" r="5" fill="#fff"/>`;}
+  s+=`</svg>`;return s;
+}
+(async function(){
+  const d=await gj('data/cycle-clock.json');const w=document.getElementById('wrap');
+  if(!d||!d.cycle){w.innerHTML='<h1>Cycle &amp; Liquidity Clock</h1><div class="loading">No data yet — updates 23:30 UTC.</div>';return;}
+  const cy=d.cycle,lq=d.liquidity;
+  const PC={'EARLY CYCLE':'#3fd68c','MID CYCLE':'#46c8ff','LATE-MID CYCLE':'#7fc4ff','LATE CYCLE':'#f5b343','DOWNTURN':'#ff5c6c','UNKNOWN':'#7c8ba0'};
+  const SC={'LOW':'#3fd68c','LOW · WATCH':'#7fe0a8','RISING':'#f5b343','ELEVATED':'#ffb066','HIGH':'#ff7a5c','ACUTE':'#ff5c6c','UNKNOWN':'#7c8ba0'};
+  let h=`<h1>🕐 Cycle &amp; Liquidity Clock <span class="tag">meta-synthesis</span></h1>`;
+  h+=`<div class="sub">One verdict on where we are in the cycle and how much liquidity-squeeze risk is building — fused from your cycle, liquidity and stress engines, with divergences surfaced, not averaged away.</div>`;
+  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z${d.stale&&d.stale.length?' · ⚠ stale inputs: '+esc(d.stale.join(', ')):''}</div>`;
+  h+=`<div class="verdict">${esc(d.verdict)}</div>`;
+  h+=`<div class="grid2">`;
+  // cycle panel
+  h+=`<div class="panel"><h3>Cycle position</h3>
+    ${clock(cy.phase_n)}
+    <div class="big" style="color:${PC[cy.phase]||'#fff'};margin-top:8px">${esc(cy.phase)}</div>
+    <div style="font-size:12.5px;color:var(--fg-1)">${esc(cy.quadrant||'')} quadrant · ${esc(cy.description||'')}</div>
+    <div style="font-size:12px;color:var(--fg-2);margin-top:8px;font-family:var(--mono)">growth ${esc(cy.growth_direction)} · inflation ${esc(cy.inflation_direction)} · confidence ${esc(cy.confidence)}</div>
+    ${cy.froth_markers&&cy.froth_markers.length?`<div style="font-size:12px;color:var(--amber);margin-top:6px;font-family:var(--mono)">froth: ${esc(cy.froth_markers.join(' · '))}</div>`:''}
+    <div style="font-size:11.5px;color:var(--fg-3);margin-top:8px">US cycle ${cy.us_cycle_score} (${esc(cy.us_cycle_level)}) · global ${esc(cy.global_phase)} CLI ${cy.global_avg_cli} · nowcast ${esc(cy.nowcast_regime)}</div>
+  </div>`;
+  // liquidity panel
+  h+=`<div class="panel"><h3>Liquidity-squeeze risk</h3>
+    <div class="big" style="color:${SC[lq.level]||'#fff'}">${lq.squeeze_risk_score==null?'—':lq.squeeze_risk_score} · ${esc(lq.level)}</div>
+    <div class="gauge"><div class="pin" style="left:${Math.max(0,Math.min(100,lq.squeeze_risk_score||0))}%"></div></div>
+    <div class="gscale"><span>0 · ample</span><span>50 · tightening</span><span>100 · acute</span></div>
+    <div style="font-size:12.5px;color:var(--fg-1);margin-top:10px">aggregate liquidity: <b>${esc(lq.aggregate_liquidity_regime||'—')}</b> · ${esc(lq.aggregate_liquidity_read||'')}</div>
+    ${lq.flickers&&lq.flickers.length?`<div style="margin-top:8px"><div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em">draining flickers</div>${lq.flickers.map(f=>`<div class="flick">${esc(f)}</div>`).join('')}</div>`:`<div style="font-size:12px;color:var(--green);margin-top:8px">no draining flickers</div>`}
+  </div></div>`;
+  // divergences
+  if(d.divergences&&d.divergences.length){
+    h+=`<h2>Divergences — what disagrees (and why that matters)</h2>`;
+    for(const dv of d.divergences){const parts=esc(dv).split(':');h+=`<div class="diverge"><b>${parts[0]}:</b>${parts.slice(1).join(':')}</div>`;}
+  }
+  // component table
+  h+=`<h2>Under the hood — stress stack</h2><table><tr><th>Component</th><th>Reading</th></tr>`;
+  const C=lq.components||{};
+  const rows=[['Global stress index',C.global_stress+' ('+esc(C.global_stress_level||'')+')'],
+              ['Crisis composite',C.crisis_composite+' (DEFCON '+C.crisis_defcon+')'],
+              ['Eurodollar plumbing health',C.plumbing_health],
+              ['Funding / treasury stress',C.funding_stress],
+              ['Systemic stress',C.systemic_stress],
+              ['Crisis canaries',C.crisis_canaries],
+              ['Liquidity impulse 13w',lq.impulse_13w_pct+'%'],
+              ['Net liquidity 30d',lq.net_30d_bn+'B']];
+  for(const [k,v] of rows)h+=`<tr><td style="color:var(--fg-2)">${k}</td><td>${esc(String(v))}</td></tr>`;
+  h+=`</table>`;
+  h+=`<div class="note"><b>Falsifier:</b> ${esc(d.falsifier||'')}<br><br>${esc(d.methodology||'')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
