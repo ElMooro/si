@@ -35,56 +35,127 @@ const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function scoreColor(s){return s>=70?'var(--green)':s>=62?'var(--cyan)':'var(--amber)';}
+const TYPE_LABEL={EARNINGS_MISS:'earnings miss',GUIDANCE_CUT:'guidance cut',DOWNGRADE:'downgrade',PT_CUT:'PT cut',GAP_DOWN:'gap down',SECTOR_ROUT:'sector rout',MARKET_ROUT:'market rout'};
+const IDIO=new Set(['EARNINGS_MISS','GUIDANCE_CUT','DOWNGRADE','PT_CUT']);
+
+// ── the killer visual: price line + a dot on every adverse day (green=held, red=fell) ──
+function sparkline(ch){
+  if(!ch||!ch.closes||ch.closes.length<5)return '';
+  const W=620,H=120,pad=6;const cs=ch.closes,ds=ch.dates;
+  const lo=Math.min(...cs),hi=Math.max(...cs),rng=(hi-lo)||1;
+  const x=i=>pad+i*(W-2*pad)/(cs.length-1);
+  const y=v=>H-pad-(v-lo)/rng*(H-2*pad);
+  let path='';for(let i=0;i<cs.length;i++)path+=(i?'L':'M')+x(i).toFixed(1)+' '+y(cs[i]).toFixed(1)+' ';
+  const area=`M${x(0).toFixed(1)} ${(H-pad).toFixed(1)} `+cs.map((v,i)=>`L${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ')+` L${x(cs.length-1).toFixed(1)} ${(H-pad).toFixed(1)} Z`;
+  const idx={};ds.forEach((d,i)=>idx[d]=i);
+  let dots='';for(const a of (ch.adverse||[])){const i=idx[a.date];if(i==null)continue;const held=a.abn>0;const big=IDIO.has(a.type);
+    dots+=`<circle cx="${x(i).toFixed(1)}" cy="${y(cs[i]).toFixed(1)}" r="${big?4.2:2.8}" fill="${held?'var(--green)':'var(--red)'}" fill-opacity="${big?0.95:0.6}" stroke="${big?'#fff':'none'}" stroke-width="${big?0.8:0}"><title>${esc(TYPE_LABEL[a.type]||a.type)} ${esc(a.date)}: day ${a.ret>0?'+':''}${a.ret}%, abnormal ${a.abn>0?'+':''}${a.abn}%</title></circle>`;}
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:88px;display:block;margin:6px 0">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--cyan)" stop-opacity="0.18"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#g)"/><path d="${path}" fill="none" stroke="var(--cyan)" stroke-width="1.4"/>${dots}</svg>`;
+}
+function narrative(r){
+  const ev=(r.events_shrugged||[]).filter(e=>e.day_return_pct>-1).slice(0,2);
+  if(ev.length)return 'Held '+ev.map(e=>`<b class="pos">${e.day_return_pct>0?'+':''}${e.day_return_pct}%</b> the day it took a <b>${esc(TYPE_LABEL[e.type]||e.type)}</b> (${esc(e.date)})`).join('; ')+'.';
+  const th=(r.top_holds||[]).slice(0,2);
+  if(th.length)return 'Strongest holds: '+th.map(e=>`<b class="pos">+${e.abnormal_pct}%</b> abnormal on a <b>${esc(TYPE_LABEL[e.type]||e.type)}</b> day (${esc(e.date)})`).join('; ')+'.';
+  return '';
+}
+function starBtn(t){const on=STARS.has(t);return `<span onclick="toggleStar('${t}')" style="cursor:pointer;font-size:15px;color:${on?'var(--amber)':'var(--fg-3)'}" title="watchlist">${on?'★':'☆'}</span>`;}
 function card(r){
-  let h=`<div class="card ${esc(r.stage)}"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> <span class="stg ${esc(r.stage)}">${esc(r.stage)}</span>${r.has_idiosyncratic_evidence?' <span class="stg" style="color:var(--violet);border-color:var(--violet)">⭐ held real bad news</span>':''}${r.flow_confirmed?' <span class="stg" style="color:var(--green);border-color:var(--green)">📥 flow-confirmed</span>':''}</div><span class="score" style="color:${scoreColor(r.resilience)}">${r.resilience}</span></div>`;
-  h+=`<div class="detail">Held <b class="pos">+${r.mean_abnormal_on_adverse_pct}%</b> abnormal (vs <b>${esc(r.abnormal_basis||'SPY')}</b>) across <b>${r.n_adverse_days}</b> adverse days (${r.adverse_hit_rate_pct}% held). Dominant adverse type: <b>${esc((r.dominant_adverse_type||'').replace(/_/g,' '))}</b>. `;
-  if(r.events_shrugged&&r.events_shrugged.length){h+=`Shrugged: ${r.events_shrugged.slice(0,3).map(e=>`<span class="cat">${esc(e.type.replace(/_/g,' '))} ${esc(e.date)} (held ${e.day_return_pct>0?'+':''}${e.day_return_pct}%)</span>`).join('')}`;}
-  h+=`</div>`;
+  let h=`<div class="card ${esc(r.stage)}"><div class="row1"><div>${starBtn(r.ticker)} <span class="tk">${esc(r.ticker)}</span> <span class="stg ${esc(r.stage)}">${esc(r.stage)}</span>${r.has_idiosyncratic_evidence?' <span class="stg" style="color:var(--violet);border-color:var(--violet)">⭐ held real bad news</span>':''}${r.flow_confirmed?' <span class="stg" style="color:var(--green);border-color:var(--green)">📥 flow</span>':''} <span class="stg" style="color:var(--fg-3);border-color:var(--fg-3)" title="No forward grade yet — graded vs SPY once ~3wk of picks mature">provisional</span></div><span class="score" style="color:${scoreColor(r.resilience)}">${r.resilience}</span></div>`;
+  const nar=narrative(r);if(nar)h+=`<div class="detail" style="color:var(--fg-1)">${nar}</div>`;
+  h+=sparkline(r.chart);
+  h+=`<div class="detail">Held <b class="pos">+${r.mean_abnormal_on_adverse_pct}%</b> abnormal (vs <b>${esc(r.abnormal_basis||'SPY')}</b>) across <b>${r.n_adverse_days}</b> adverse days (${r.adverse_hit_rate_pct}% held). Dominant: <b>${esc((TYPE_LABEL[r.dominant_adverse_type]||r.dominant_adverse_type||''))}</b>. <span style="color:var(--fg-3)">● green = held that day · ● red = fell · large dot = real idiosyncratic news</span></div>`;
   if(r.ignition){h+=`<div class="detail" style="color:var(--green)">🚀 <b>Ignition</b>: broke above ${r.ignition.broke_above} ${r.ignition.bars_ago} session(s) ago on ${r.ignition.vol_z>=1?`<b>${r.ignition.vol_z}σ volume</b>`:''}${r.ignition.range_x>=1.3?` ${r.ignition.vol_z>=1?'+ ':''}<b>${r.ignition.range_x}× range</b>`:''}${r.ignition.on_catalyst?' — <b>on a catalyst day</b>':''}.</div>`;}
   let flowbits=[];
   if(r.dark_pool_state)flowbits.push(`dark-pool <b>${esc(r.dark_pool_state)}</b>`);
   if(typeof r.obv_net_w==='number')flowbits.push(`OBV ${r.obv_net_w>0?'+':''}${r.obv_net_w}`);
   if(typeof r.ad_net_w==='number')flowbits.push(`A/D ${r.ad_net_w>0?'+':''}${r.ad_net_w}`);
   if(r.stealth_accumulation)flowbits.push(`<b style="color:var(--green)">stealth accumulation</b>`);
-  h+=`<div class="kv"><span>β <b>${r.beta}</b></span><span>down-β <b>${r.downside_beta}</b> / up-β <b>${r.upside_beta}</b> <span style="color:${r.beta_asymmetry>0?'var(--green)':'var(--red)'}">(${r.beta_asymmetry>0?'+':''}${r.beta_asymmetry} asym)</span></span><span>flow <b>${r.flow_score??'–'}</b></span>${flowbits.length?`<span>${flowbits.join(' · ')}</span>`:''}<span>${r.pct_of_60d_high}% of 60d high</span><span>coil <b>${r.coil}</b></span><span>${r.above_50d?'>50d':'<50d'} ${r.above_200d?'· >200d':''}</span></div>`;
+  h+=`<div class="kv"><span>$${r.price}</span><span>β <b>${r.beta}</b></span><span>up/down-β <span style="color:${r.beta_asymmetry>0?'var(--green)':'var(--red)'}">${r.beta_asymmetry>0?'+':''}${r.beta_asymmetry}</span></span><span>flow <b>${r.flow_score??'–'}</b></span>${flowbits.length?`<span>${flowbits.join(' · ')}</span>`:''}<span>${r.pct_of_60d_high}% of 60d high</span><span>coil <b>${r.coil}</b></span></div>`;
   h+=`<div class="fals">⚠ ${esc(r.falsifier)}</div></div>`;
   return h;
 }
-(async function(){
-  const d=await gj('data/resilience.json');const w=document.getElementById('wrap');
-  if(!d||!d.about_to_boom){w.innerHTML='<h1>Resilience Radar</h1><div class="loading">No scan yet — updates 22:45 UTC weekdays.</div>';return;}
-  let h=`<h1>🛡️ Resilience Radar <span style="color:var(--fg-3);font-size:13px">price refusing to fall on bad news</span></h1>`;
+
+let D=null,SC=null,PROVEN=false;
+let STARS=new Set();try{STARS=new Set(JSON.parse(localStorage.getItem('jh_resil_stars')||'[]'));}catch(e){}
+const STATE={view:'boom',flowOnly:false,idioOnly:false,starredOnly:false,sort:'resilience'};
+function toggleStar(t){STARS.has(t)?STARS.delete(t):STARS.add(t);try{localStorage.setItem('jh_resil_stars',JSON.stringify([...STARS]));}catch(e){}render();}
+function setState(k,v){STATE[k]=v;render();}
+function btn(label,active,onclick){return `<button onclick="${onclick}" style="background:${active?'var(--cyan)':'transparent'};color:${active?'#001014':'var(--fg-2)'};border:1px solid ${active?'var(--cyan)':'var(--bd)'};border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer;margin:0 4px 6px 0">${label}</button>`;}
+
+function trackRecord(){
+  // reads the live forward scorecard; honest "warming" until eng:resilience matures (~3wk)
+  let row=null;
+  if(SC&&Array.isArray(SC.scorecard))row=SC.scorecard.find(x=>String(x.signal_type||'').toLowerCase().includes('resil'));
+  let h=`<h2>📊 Forward track record</h2>`;
+  if(!row){h+=`<div class="banner" style="border-color:var(--amber)"><b>Warming.</b> Picks are being logged now and graded forward vs SPY (net of cost) once ~3 weeks of outcomes mature — measure-before-trust. Until a positive, statistically significant record exists, every name here is <b>provisional research, not a proven edge</b>. This panel auto-fills the moment the scorecard has graded resilience picks.</div>`;return h;}
+  const g=v=>v==null?'–':v;
+  h+=`<div class="banner" style="border-color:${PROVEN?'var(--green)':'var(--amber)'}">Status <b>${esc(row.alpha_status||row.status||'—')}</b> · graded <b>${g(row.alpha_n||row.n_scored)}</b> picks · net excess-vs-SPY <b class="${(row.net_alpha_mean_excess_pct||0)>0?'pos':''}">${g(row.net_alpha_mean_excess_pct)}%</b> · info-ratio <b>${g(row.net_info_ratio||row.info_ratio)}</b> · hit <b>${g(row.alpha_hit_rate||row.hit_rate)}%</b> · t-stat <b>${g(row.net_alpha_t_stat||row.alpha_t_stat)}</b>. ${PROVEN?'<b style="color:var(--green)">ALPHA PROVEN.</b>':'Not yet FDR-significant — keep treating as provisional.'}</div>`;
+  return h;
+}
+
+function render(){
+  const w=document.getElementById('wrap');const d=D;
+  let h=`<h1>🛡️ Resilience Radar <span style="color:var(--fg-3);font-size:13px">price refusing to fall on bad news</span> ${PROVEN?'<span class="stg" style="color:var(--green);border-color:var(--green)">alpha proven</span>':'<span class="stg" style="color:var(--amber);border-color:var(--amber)">provisional</span>'}</h1>`;
   h+=`<div class="sub">${esc(d.thesis)}</div>`;
-  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · universe ${d.universe_size} liquid common stocks</div>`;
-  h+=`<div class="banner">The signal is <b>conditional</b>: not "price up" (that's momentum) but "price up <b>when it should have fallen</b>" — abnormal return on adverse days, now measured as the residual after stripping out <b>both market and sector</b> (2-factor), and <b>typed</b> by the kind of bad news (earnings miss, downgrade, PT cut, guidance cut vs. tape). Names are logged and graded forward vs SPY — unproven until the scorecard says otherwise.</div>`;
-  // PUREST LANE — held the line on a fresh, dated, real catalyst
+  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · universe ${d.universe_size} liquid common stocks · v${esc(d.version||'')}</div>`;
+  // transition banner — the only time-sensitive event
+  const tr=d.transitions||{};
+  if((tr.new_ignitions||[]).length){h+=`<div class="banner" style="border-color:var(--green);background:rgba(52,211,153,0.08)">🚀 <b>Newly ignited today:</b> ${tr.new_ignitions.map(x=>`${esc(x.ticker)}${x.flow_confirmed?' 📥':''}`).join(', ')} — a spring fired (broke its ceiling on volume after absorbing). The actionable moment.</div>`;}
+  else if((tr.new_coiled||[]).length){h+=`<div class="banner">🟦 Newly coiled (setup complete, watching for ignition): ${tr.new_coiled.map(esc).join(', ')}.</div>`;}
+  h+=`<div class="banner">The signal is <b>conditional</b>: not "price up" (momentum) but "price up <b>when it should have fallen</b>" — abnormal return on adverse days, residualized against <b>market and sector</b> (2-factor) and <b>typed</b> by the kind of bad news. <b>COILED</b> = absorption complete (the setup); <b>IGNITING</b> = a real volume-thrust breakout through the ceiling (the trigger). Graded forward vs SPY — provisional until proven.</div>`;
+
+  // shrugged lane
   const sh=d.shrugged_off_bad_news_recent||[];
   if(sh.length){
-    h+=`<h2>🛡️ Held the line on bad news — last 2 weeks</h2>`;
-    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:8px">Stocks that <b>rose or held</b> on the exact day they took a real hit (downgrade / PT-cut / guidance-cut / earnings miss) — the freshest, highest-information instance of refusing to fall. Ranked by abnormal return on the catalyst day.</div>`;
-    h+=`<table><tr><th>Ticker</th><th>Bad news</th><th>Date</th><th>Day move</th><th>Abnormal</th><th>Price</th></tr>`;
-    for(const s of sh)h+=`<tr><td class="tk" style="font-size:13px">${esc(s.ticker)}</td><td><span class="cat">${esc((s.type||'').replace(/_/g,' '))}</span></td><td>${esc(s.date)}</td><td class="${s.day_return_pct>=0?'pos':''}">${s.day_return_pct>0?'+':''}${s.day_return_pct}%</td><td class="pos">+${s.abnormal_pct}%</td><td>$${s.price}</td></tr>`;
+    h+=`<h2>🛡️ Held the line on bad news — last 2 weeks</h2><div style="font-size:12px;color:var(--fg-2);margin-bottom:8px">Rose or held on the exact day they took a real hit — freshest, highest-information instance of refusing to fall.</div>`;
+    h+=`<table><tr><th></th><th>Ticker</th><th>Bad news</th><th>Date</th><th>Day move</th><th>Abnormal</th><th>Price</th></tr>`;
+    for(const s of sh)h+=`<tr><td>${starBtn(s.ticker)}</td><td class="tk" style="font-size:13px">${esc(s.ticker)}</td><td><span class="cat">${esc(TYPE_LABEL[s.type]||s.type)}</span></td><td>${esc(s.date)}</td><td class="${s.day_return_pct>=0?'pos':''}">${s.day_return_pct>0?'+':''}${s.day_return_pct}%</td><td class="pos">+${s.abnormal_pct}%</td><td>$${s.price}</td></tr>`;
     h+=`</table>`;
   }
   const c=d.counts||{};
-  h+=`<div class="counts">
-    <div class="cpill"><b>Igniting</b><span style="color:var(--green)">${c.igniting||0}</span></div>
-    <div class="cpill"><b>Coiled</b><span style="color:var(--cyan)">${c.coiled||0}</span></div>
-    <div class="cpill"><b>Absorbing</b><span style="color:var(--amber)">${c.absorbing||0}</span></div>
+  h+=`<div class="counts"><div class="cpill"><b>Igniting</b><span style="color:var(--green)">${c.igniting||0}</span></div><div class="cpill"><b>Coiled</b><span style="color:var(--cyan)">${c.coiled||0}</span></div><div class="cpill"><b>Absorbing</b><span style="color:var(--amber)">${c.absorbing||0}</span></div><div class="cpill"><b>Flow-confirmed</b><span style="color:var(--green)">${c.flow_confirmed||0}</span></div></div>`;
+
+  // controls
+  h+=`<div style="margin:14px 0 4px">
+    ${btn('Coiled + Igniting',STATE.view==='boom',"setState('view','boom')")}${btn('Igniting only',STATE.view==='igniting',"setState('view','igniting')")}${btn('Coiled only',STATE.view==='coiled',"setState('view','coiled')")}${btn('Absorbing',STATE.view==='absorbing',"setState('view','absorbing')")}${btn('★ Watchlist',STATE.view==='starred',"setState('view','starred')")}
+    <span style="margin-left:10px"></span>${btn('📥 Flow only',STATE.flowOnly,"setState('flowOnly',!STATE.flowOnly)")}${btn('⭐ Idio only',STATE.idioOnly,"setState('idioOnly',!STATE.idioOnly)")}
+    <span style="margin-left:10px"></span>${btn('Sort: resilience',STATE.sort==='resilience',"setState('sort','resilience')")}${btn('Sort: flow',STATE.sort==='flow_score',"setState('sort','flow_score')")}
   </div>`;
-  if(d.about_to_boom.length){
-    h+=`<h2>🚀 About to boom — coiled &amp; igniting</h2>`;
-    for(const r of d.about_to_boom)h+=card(r);
-  } else {
-    h+=`<h2>About to boom</h2><div style="color:var(--fg-3);font-size:12.5px;padding:10px">No COILED/IGNITING names clear the bar right now — absorption is forming but no spring is fully loaded. Check the absorbing list.</div>`;
-  }
-  const absorbing=(d.all_resilient||[]).filter(r=>r.stage==='ABSORBING');
-  if(absorbing.length){
-    h+=`<h2>Absorbing — building, not yet coiled</h2><table><tr><th>Ticker</th><th>Resilience</th><th>Abn/adv day</th><th>Held%</th><th>n adv</th><th>asym</th><th>20d</th></tr>`;
-    for(const r of absorbing.slice(0,25))h+=`<tr><td class="tk" style="font-size:13px">${esc(r.ticker)}</td><td style="color:${scoreColor(r.resilience)}">${r.resilience}</td><td class="pos">+${r.mean_abnormal_on_adverse_pct}%</td><td>${r.adverse_hit_rate_pct}%</td><td>${r.n_adverse_days}</td><td>${r.beta_asymmetry>0?'+':''}${r.beta_asymmetry}</td><td class="${r.ret_20d_pct>0?'pos':''}">${r.ret_20d_pct>0?'+':''}${r.ret_20d_pct}%</td></tr>`;
+
+  // build working list
+  let list=(d.all_resilient||[]).slice();
+  const boomMap={};(d.about_to_boom||[]).forEach(r=>boomMap[r.ticker]=r); // boom carries chart
+  list=list.map(r=>boomMap[r.ticker]||r);
+  if(STATE.view==='boom')list=list.filter(r=>r.stage==='IGNITING'||r.stage==='COILED');
+  else if(STATE.view==='igniting')list=list.filter(r=>r.stage==='IGNITING');
+  else if(STATE.view==='coiled')list=list.filter(r=>r.stage==='COILED');
+  else if(STATE.view==='absorbing')list=list.filter(r=>r.stage==='ABSORBING');
+  else if(STATE.view==='starred')list=list.filter(r=>STARS.has(r.ticker));
+  if(STATE.flowOnly)list=list.filter(r=>r.flow_confirmed);
+  if(STATE.idioOnly)list=list.filter(r=>r.has_idiosyncratic_evidence);
+  list.sort((a,b)=>(b[STATE.sort]||0)-(a[STATE.sort]||0));
+
+  if(STATE.view==='absorbing'){
+    h+=`<table><tr><th></th><th>Ticker</th><th>Resilience</th><th>Abn/adv</th><th>Held%</th><th>flow</th><th>20d</th></tr>`;
+    for(const r of list.slice(0,40))h+=`<tr><td>${starBtn(r.ticker)}</td><td class="tk" style="font-size:13px">${esc(r.ticker)}</td><td style="color:${scoreColor(r.resilience)}">${r.resilience}</td><td class="pos">+${r.mean_abnormal_on_adverse_pct}%</td><td>${r.adverse_hit_rate_pct}%</td><td>${r.flow_confirmed?'📥':''} ${r.flow_score??''}</td><td class="${r.ret_20d_pct>0?'pos':''}">${r.ret_20d_pct>0?'+':''}${r.ret_20d_pct}%</td></tr>`;
     h+=`</table>`;
+  } else {
+    if(!list.length)h+=`<div style="color:var(--fg-3);font-size:12.5px;padding:10px">Nothing matches this filter right now.</div>`;
+    for(const r of list)h+=card(r);
   }
+  h+=trackRecord();
   h+=`<div class="note">${esc(d.methodology)}</div>`;
   w.innerHTML=h;
+}
+(async function(){
+  D=await gj('data/resilience.json');const w=document.getElementById('wrap');
+  if(!D||!D.about_to_boom){w.innerHTML='<h1>Resilience Radar</h1><div class="loading">No scan yet — updates 22:45 UTC weekdays.</div>';return;}
+  SC=await gj('data/signal-scorecard.json');
+  const ea=await gj('data/engine-alpha.json');
+  if(ea&&Array.isArray(ea.alpha_proven_signals))PROVEN=ea.alpha_proven_signals.some(s=>String(s).toLowerCase().includes('resil'));
+  render();
 })();
 </script></body></html>

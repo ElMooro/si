@@ -30,7 +30,7 @@ guards. Picks -> harvester for forward excess-vs-SPY grading (measure-before-tru
 import json, time, urllib.request, urllib.parse
 from datetime import datetime, timezone, timedelta
 
-VERSION = "2.2"
+VERSION = "2.3"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/resilience.json"
 POLY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
@@ -227,6 +227,13 @@ def lambda_handler(event, context):
                                  "dark_pool_pct": it.get("dark_pool_pct"), "dark_accel": it.get("dark_accel")}
     DIAG.append("dark-pool coverage %d (%d accum)" % (
         len(dark_pool), sum(1 for v in dark_pool.values() if v.get("state") == "ACCUMULATION")))
+
+    # prior run → day-over-day stage transitions (COILED→IGNITING is the only time-sensitive event)
+    prev = _read(OUT_KEY) or {}
+    prev_stage = {}
+    for r in ((prev.get("all_resilient") or []) + (prev.get("about_to_boom") or [])):
+        if r.get("ticker"):
+            prev_stage[r["ticker"]] = r.get("stage")
 
     recent = days[-20:]
     universe = []
@@ -454,12 +461,34 @@ def lambda_handler(event, context):
             "pct_above_60d_low": round(dist_low * 100), "pct_of_60d_high": round(near_high * 100),
             "coil": round(coil, 2),
             "falsifier": "breaks below 60d low %s on rising volume -> supply wins." % round(lo60, 2),
+            "top_holds": [{"date": a[3], "type": a[0], "day_return_pct": round(a[4], 1),
+                           "abnormal_pct": round(a[1] * 100, 2)}
+                          for a in sorted(adverse, key=lambda x: x[1], reverse=True)[:3] if a[1] > 0],
+            "_chart": {"dates": ds[-70:], "closes": [round(c, 2) for c in closes[-70:]],
+                       "adverse": [{"date": a[3], "type": a[0], "abn": round(a[1] * 100, 2),
+                                    "ret": round(a[4], 1)} for a in adverse if a[3] in set(ds[-70:])]},
         })
 
     results.sort(key=lambda x: x["resilience"], reverse=True)
     booming = [r for r in results if r["stage"] in ("IGNITING", "COILED") and r["resilience"] >= 62]
     booming.sort(key=lambda r: (r.get("flow_confirmed", False), r["has_idiosyncratic_evidence"], r["resilience"]),
                  reverse=True)
+
+    # day-over-day transitions (the actionable moment a spring fires)
+    new_ignitions = [{"ticker": r["ticker"], "resilience": r["resilience"], "flow_confirmed": r.get("flow_confirmed"),
+                      "ignition": r.get("ignition")} for r in results
+                     if r["stage"] == "IGNITING" and prev_stage.get(r["ticker"]) in ("COILED", "ABSORBING")]
+    new_coiled = [r["ticker"] for r in results
+                  if r["stage"] == "COILED" and prev_stage.get(r["ticker"]) in ("ABSORBING", None)]
+    transitions = {"new_ignitions": new_ignitions, "new_coiled": new_coiled[:15],
+                   "telegram_pending": (("🚀 IGNITED: " + ", ".join(x["ticker"] for x in new_ignitions))
+                                        if new_ignitions else None)}
+
+    # charts: keep only on the boom list (size control); strip the temp key elsewhere
+    boom_out = []
+    for r in booming[:20]:
+        rr = dict(r); rr["chart"] = rr.pop("_chart", None); boom_out.append(rr)
+    all_clean = [{k: v for k, v in r.items() if k != "_chart"} for r in results[:60]]
 
     # "held the line on bad news" — purest expression of the signal, deduped to best per name
     best = {}
@@ -491,8 +520,9 @@ def lambda_handler(event, context):
                    "asymmetry P(holds | bad news), typed by the kind of bad news, is the tell."),
         "abnormal_basis": "2-factor residual vs [SPY, best-fit sector ETF]",
         "type_weights_provisional": TYPE_W,
-        "about_to_boom": booming[:20], "all_resilient": results[:60], "top_picks": top_picks,
+        "about_to_boom": boom_out, "all_resilient": all_clean, "top_picks": top_picks,
         "shrugged_off_bad_news_recent": shrugged,
+        "transitions": transitions,
         "counts": {"absorbing": sum(1 for r in results if r["stage"] == "ABSORBING"),
                    "coiled": sum(1 for r in results if r["stage"] == "COILED"),
                    "igniting": sum(1 for r in results if r["stage"] == "IGNITING"),
@@ -519,7 +549,7 @@ def lambda_handler(event, context):
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache, max-age=0")
-    print("[resilience v2.2] universe %d | resilient %d | boom %d | flow-conf %d | idio %d | shrugged %d | top: %s" % (
+    print("[resilience v2.3] universe %d | resilient %d | boom %d | flow-conf %d | idio %d | shrugged %d | top: %s" % (
         len(universe), len(results), len(booming), out["counts"]["flow_confirmed"],
         out["counts"]["with_idiosyncratic_evidence"], len(shrugged),
         ", ".join("%s(%s,%s%s%s)" % (r["ticker"], r["resilience"], r["stage"],
