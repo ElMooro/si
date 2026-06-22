@@ -1,14 +1,22 @@
-invoke: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"shape\": 3}"} (4s)
-stats: {'pool': 114, 'evaluated': 111, 'twenty_x_shape': 3, 'shape_early_confirming': 3, 'full_20x': 0, 'cyclical_only': 3} | mode: PROVISIONAL
+centrality hubs found: {'NVDA': 9, 'TSM': 6, 'VRT': 5, 'ASML': 3, 'AMAT': 3, 'LRCX': 3, 'SNPS': 3, 'CDNS': 3, 'ARM': 3, 'AMD': 3, 'AVGO': 3, 'ANET': 3}
 
-=== FULL 20x book (shape + survives + secular overlay) — the real ones ===
-  (empty — honest: no full MU-shaped confluence right now)
+sym     crit  gm_lvl  gm_std  om_lvl   roic   rd%  ctr  [class]
+CDNS    74.6    88.0     1.4    24.1   None  37.7    3  [CHOKEPOINT]
+NVDA    74.3    64.5     5.9    37.7   None  18.9    9  [CHOKEPOINT]
+SNPS    74.3    78.3     1.6    17.1   None  34.6    3  [CHOKEPOINT]
+KLAC    64.2    60.8     1.8    36.1   None  13.9    2  [CHOKEPOINT]
+TSM     60.7    53.0     4.3    42.3   None   7.8    6  [CHOKEPOINT]
+ASML    59.7    48.8     3.1    29.9   None  15.0    3  [CHOKEPOINT]
+V       56.5    80.7     1.0    63.1   None   0.0    0  [CHOKEPOINT]
+MA      54.6    77.9     2.3    54.4   None   0.0    0  [CHOKEPOINT]
+F       34.0    13.9     2.2     1.9   None   5.0    0  [commodity]
+GT      32.7    20.8     3.3     5.6   None   1.0    0  [commodity]
+DOW     27.7    14.7     5.4     8.6   None   2.0    0  [commodity]
+X       21.7    11.4     7.6     4.5   None   0.0    0  [commodity]
+UAL     16.1    23.6    23.5     2.4   None   0.0    0  [commodity]
+GNK     11.8    13.5    23.9   -12.6   None   0.0    0  [commodity]
+CCL      9.2     7.5    56.9   -45.8   None   0.0    0  [commodity]
 
-=== CYCLICAL-ONLY book (deep snapback, no secular -> ~2-5x not 20x) ===
-  IPI   EARLY      score=49.0  om -83.7%->5.7% (+89.4pp) survived=True secular=cyclical-only {'net_cash_$M': 96.0, 'debt_to_equity': 0.01, 'current_ratio': 5.26}
-  SMG   EARLY      score=29.3  om -111.1%->28.2% (+139.3pp) survived=False secular=cyclical-only {'net_cash_$M': -2342.0, 'debt_to_equity': None, 'current_ratio': 1.27}
-  GNK   CONFIRMING score=32.5  om -36.4%->13.6% (+50.0pp) survived=True secular=cyclical-only {'net_cash_$M': 49154.0, 'debt_to_equity': 0.01, 'current_ratio': 2.98}
-
-harvester top_picks: [('IPI', 49.0, 'cyclical-only'), ('SMG', 29.3, 'cyclical-only'), ('GNK', 32.5, 'cyclical-only')]
-page: 200
-DONE 2116
+SEPARATION: chokepoints avg=64.9 (min 54.6)  vs  commodity avg=21.9 (max 34.0)
+VIABLE if chokepoint min > commodity max (clean separation)
+DONE 2117
