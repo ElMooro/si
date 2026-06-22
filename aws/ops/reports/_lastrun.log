@@ -1,39 +1,23 @@
-invoke (46s): {"statusCode": 200, "body": "{\"resilient\": 257, \"about_to_boom\": 97, \"top\": [\"CNTA\", \"DVA\", \"CDNL\", \"DOCN\", \"SPHR\", \"UFPT\", \"CHEF\", \"IMVT\"]}"}
+invoke: {"statusCode": 200, "body": "{\"resilient\": 186, \"about_to_boom\": 48, \"top\": [\"CNTA\", \"DVA\", \"CDNL\", \"DOCN\", \"SPHR\", \"UFPT\", \"CHEF\", \"IMVT\"]}"} (47s)
+counts: {'absorbing': 135, 'coiled': 21, 'igniting': 30} | universe 2013
+CAST still in boom list?: False
 
-diagnostics:
-   calendar: 130 trading days 2025-12-11→2026-06-18
-   reference CS/ADRC tickers: 5675
-   grouped-daily matrix: 5659 tickers
-   liquid universe: 2013
-   event overlay: 0 tickers with recent negative catalyst
+🚀 ABOUT TO BOOM (clean):
+  CNTA   IGNITING  res 86.4 | +1.77%/adv (75% held, n20) | asym 4.82 | 20d 0.7%
+  DVA    COILED    res 83.7 | +1.5%/adv (63% held, n19) | asym 1.29 | 20d 5.6%
+  CDNL   IGNITING  res 75.8 | +0.84%/adv (63% held, n27) | asym 2.15 | 20d 56.2%
+  DOCN   COILED    res 75.6 | +1.24%/adv (57% held, n35) | asym 0.68 | 20d 8.2%
+  SPHR   IGNITING  res 75.4 | +0.84%/adv (57% held, n23) | asym 2.6 | 20d 17.1%
+  UFPT   IGNITING  res 75.3 | +1.21%/adv (57% held, n21) | asym 2.12 | 20d 6.5%
+  CHEF   IGNITING  res 75.2 | +0.51%/adv (67% held, n21) | asym 1.89 | 20d 23.4%
+  IMVT   COILED    res 75.0 | +0.74%/adv (57% held, n23) | asym 2.89 | 20d -0.6%
+  SYRE   IGNITING  res 74.5 | +0.85%/adv (64% held, n28) | asym 3.54 | 20d 22.8%
+  AVNS   IGNITING  res 74.4 | +0.31%/adv (65% held, n23) | asym 2.02 | 20d 0.8%
+  MNST   COILED    res 73.9 | +0.57%/adv (61% held, n18) | asym 1.12 | 20d 5.1%
+  ROIV   COILED    res 73.9 | +0.79%/adv (68% held, n22) | asym 2.51 | 20d -3.0%
 
-counts: {'absorbing': 148, 'coiled': 44, 'igniting': 65} | universe 2013
+top_picks: ['CNTA', 'DVA', 'CDNL', 'DOCN', 'SPHR', 'UFPT', 'CHEF', 'IMVT', 'SYRE', 'AVNS', 'MNST', 'ROIV', 'GKOS', 'FTDR', 'CPRX']
 
-🚀 ABOUT TO BOOM (coiled/igniting):
-  CNTA   IGNITING  res 86.4 | +1.77%/adv (75% held, n20) | asym 4.82 | 100% of 60d hi | 20d 0.7% | cats []
-  DVA    COILED    res 83.7 | +1.5%/adv (63% held, n19) | asym 1.29 | 99% of 60d hi | 20d 5.6% | cats []
-  CDNL   IGNITING  res 75.8 | +0.84%/adv (63% held, n27) | asym 2.15 | 100% of 60d hi | 20d 56.2% | cats []
-  DOCN   COILED    res 75.6 | +1.24%/adv (57% held, n35) | asym 0.68 | 96% of 60d hi | 20d 8.2% | cats []
-  SPHR   IGNITING  res 75.4 | +0.84%/adv (57% held, n23) | asym 2.6 | 100% of 60d hi | 20d 17.1% | cats []
-  UFPT   IGNITING  res 75.3 | +1.21%/adv (57% held, n21) | asym 2.12 | 100% of 60d hi | 20d 6.5% | cats []
-  CHEF   IGNITING  res 75.2 | +0.51%/adv (67% held, n21) | asym 1.89 | 100% of 60d hi | 20d 23.4% | cats []
-  IMVT   COILED    res 75.0 | +0.74%/adv (57% held, n23) | asym 2.89 | 99% of 60d hi | 20d -0.6% | cats []
-  SYRE   IGNITING  res 74.5 | +0.85%/adv (64% held, n28) | asym 3.54 | 100% of 60d hi | 20d 22.8% | cats []
-  AVNS   IGNITING  res 74.4 | +0.31%/adv (65% held, n23) | asym 2.02 | 100% of 60d hi | 20d 0.8% | cats []
-  MNST   COILED    res 73.9 | +0.57%/adv (61% held, n18) | asym 1.12 | 98% of 60d hi | 20d 5.1% | cats []
-  ROIV   COILED    res 73.9 | +0.79%/adv (68% held, n22) | asym 2.51 | 97% of 60d hi | 20d -3.0% | cats []
-  CAST   IGNITING  res 73.9 | +4.46%/adv (44% held, n32) | asym 10.25 | 100% of 60d hi | 20d 480.6% | cats []
-  GKOS   COILED    res 73.3 | +0.56%/adv (58% held, n26) | asym 1.26 | 91% of 60d hi | 20d -9.1% | cats []
-
-top ABSORBING:
-  ATEX   res 75.2 +1.56%/adv n21 asym 1.09
-  TSEM   res 74.0 +1.16%/adv n30 asym 1.6
-  DGXX   res 73.8 +1.28%/adv n41 asym 1.68
-  VSEC   res 71.6 +0.31%/adv n25 asym 3.49
-  HEI    res 71.6 +0.29%/adv n20 asym 1.46
-  INOD   res 71.5 +0.32%/adv n42 asym 1.16
-  INBX   res 71.5 +0.39%/adv n28 asym 4.47
-  UNIT   res 71.2 +0.67%/adv n24 asym 1.12
-
-top_picks→harvester: ['CNTA', 'DVA', 'CDNL', 'DOCN', 'SPHR', 'UFPT', 'CHEF', 'IMVT', 'SYRE', 'AVNS', 'MNST', 'ROIV', 'CAST', 'GKOS', 'FTDR']
-DONE 2092
+resilience.html: 200 | reads feed: True
+directory lists resilience: True
+DONE 2093
