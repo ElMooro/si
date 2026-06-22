@@ -153,24 +153,49 @@ def lambda_handler(event, context):
         s = r.get("symbol")
         if s: rr[s.upper()] = r
 
-    # ---- candidate pool: names where something is inflecting OR cheap-for-growth ----
-    pool = set()
+    # ---- candidate pool ----
+    # The next MU is NOT in an "accelerating" screen yet — it's still in the deep
+    # trough. So the pool = depressed CYCLICAL universe (where trough->snapback 20x
+    # happens) UNION names already inflecting (revenue-acceleration) UNION cheap
+    # (rerating) UNION small-caps (bagger). The engine filters for the deep-trough
+    # + violent-snapback signature within that broad pool.
+    CYCLICAL_UNIVERSE = [
+        # solar (deep trough)
+        "FSLR","ENPH","SEDG","RUN","ARRY","SHLS","MAXN","CSIQ","JKS","NOVA","FLNC","BE","PLUG",
+        # lithium / battery materials (deep trough)
+        "ALB","SQM","LAC","LTHM","PLL","MP","SGML","LILM",
+        # oil services / E&P (cyclical)
+        "HAL","SLB","BKR","NOV","FTI","RIG","VAL","NE","HP","PTEN","LBRT","WFRD","TDW","CHX",
+        # chemicals (cyclical trough)
+        "DOW","LYB","CE","OLN","WLK","CC","HUN","ASIX","TROX","KRO",
+        # metals / miners
+        "FCX","AA","CLF","X","STLD","NUE","CMC","MT","VALE","TECK","HBM",
+        # uranium
+        "CCJ","UEC","UUUU","DNN","NXE","LEU",
+        # shipping (deep cyclical)
+        "ZIM","SBLK","GNK","EGLE","INSW","STNG","DAC","GSL","NMM",
+        # ag / fertilizer (cyclical)
+        "MOS","CF","NTR","IPI","SMG",
+        # memory / storage / semicap stragglers
+        "WDC","STX","ACMR","UCTT","ICHR","COHU","FORM","AEHR","PLAB",
+        # other deep cyclicals
+        "GT","DAN","AXL","REAL","WOLF","ON","MTSI",
+    ]
+    pool = set(CYCLICAL_UNIVERSE)
     racc_meta = {}
     summ = racc.get("summary", {})
-    for r in (summ.get("top_25_overall", []) or []):
-        s = r.get("symbol")
-        if s: pool.add(s.upper()); racc_meta[s.upper()] = r
-    for r in (summ.get("microcap_picks", []) or []):
-        s = r.get("symbol")
-        if s: pool.add(s.upper()); racc_meta.setdefault(s.upper(), r)
-    for r in (racc.get("all_qualifying", []) or [])[:80]:
-        s = r.get("symbol")
-        if s: pool.add(s.upper()); racc_meta.setdefault(s.upper(), r)
+    for lst in (summ.get("top_25_overall", []), summ.get("microcap_picks", []), racc.get("all_qualifying", [])[:80]):
+        for r in (lst or []):
+            s = r.get("symbol")
+            if s: pool.add(s.upper()); racc_meta.setdefault(s.upper(), r)
     for r in rerate.get("all_ranked", []):
         if r.get("is_candidate") and r.get("symbol"): pool.add(r["symbol"].upper())
-    # always include the two reference names as a live self-check
-    pool.update(["MU", "SNDK"])
-    pool = list(pool)[:120]
+    bag = _read("data/bagger-engine.json") or {}
+    for r in (bag.get("candidates") or bag.get("top") or bag.get("all_ranked") or [])[:40]:
+        s = r.get("symbol") or r.get("ticker")
+        if s: pool.add(s.upper())
+    pool.update(["MU", "SNDK"])   # reference self-check
+    pool = list(pool)[:150]
     diag.append("pool=%d" % len(pool))
 
     def theme_catalyst(sym):
