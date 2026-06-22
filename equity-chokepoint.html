@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chokepoint Radar · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg-1:#c9d1d9;--fg-2:#9aa5b1;--fg-3:#6b7480;--bd:#1f2730;--card:#0f141b;--green:#34d399;--red:#f87171;--cyan:#38bdf8;--amber:#fbbf24;--violet:#a78bfa;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:24px 0 6px;color:var(--fg-1)}
+.sub{color:var(--fg-2);font-size:13px;margin-bottom:6px}.meta{color:var(--fg-3);font-size:12px;margin-bottom:12px}
+.banner{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--violet);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--fg-1);margin:10px 0}
+.counts{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.cpill{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--fg-2)}.cpill b{display:block;color:var(--fg-3);font-size:10px;text-transform:uppercase}.cpill span{font-size:17px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:11px 13px;margin:8px 0}
+.row1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.tk{font-weight:700;font-size:15px}.nm{color:var(--fg-3);font-size:11.5px;font-weight:400}
+.score{font-weight:700;font-size:17px}.tag{font-size:9.5px;text-transform:uppercase;letter-spacing:.3px;border:1px solid var(--fg-3);border-radius:5px;padding:1px 6px;color:var(--fg-2)}
+.detail{font-size:12px;color:var(--fg-2);margin-top:6px}.reasons{font-size:11.5px;color:var(--fg-3);margin-top:4px}
+.ind{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bd);font-size:12.5px}
+.ind .il{color:var(--fg-2)}.ind .ir{color:var(--fg)}
+.note{color:var(--fg-3);font-size:11.5px;margin-top:18px;line-height:1.5}.loading{color:var(--fg-3);padding:30px 0}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Mapping the chokepoints…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function sc(v){return v>=65?'var(--violet)':v>=55?'var(--cyan)':v>=50?'var(--amber)':'var(--fg-2)';}
+function card(r){
+  let h=`<div class="card"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> <span class="nm">${esc(r.name||'')}</span></div><span class="score" style="color:${sc(r.criticality)}">${r.criticality}</span></div>`;
+  h+=`<div style="margin-top:5px">`;
+  if(r.cheap_chokepoint)h+=`<span class="tag" style="color:var(--green);border-color:var(--green)">CHEAP chokepoint</span> `;
+  if(r.hidden_chokepoint)h+=`<span class="tag" style="color:var(--amber);border-color:var(--amber)">hidden · ${esc(r.cap_bucket)}</span> `;
+  if(r.industry)h+=`<span class="tag">${esc(r.industry)}</span>`;
+  h+=`</div>`;
+  h+=`<div class="detail">${r.gm_level}% gross margin · stability ±${r.gm_stability}pp${r.roic?` · ${r.roic}% ROIC`:''}${r.centrality?` · hub ${r.centrality}`:''}${r.rd_intensity>=10?` · ${r.rd_intensity}% R&D`:''}</div>`;
+  if(r.reasons&&r.reasons.length)h+=`<div class="reasons">${r.reasons.map(esc).join(' · ')}</div>`;
+  return h+`</div>`;
+}
+(async function(){
+  const d=await gj('data/chokepoint.json');const w=document.getElementById('wrap');
+  if(!d||!d.all_chokepoints){w.innerHTML='<h1>Chokepoint Radar</h1><div class="loading">No scan yet — updates daily 15:30 UTC.</div>';return;}
+  let h=`<h1>⛓️ Chokepoint Radar <span class="tag" style="color:var(--violet);border-color:var(--violet)">${esc(d.scope||'')}</span></h1>`;
+  h+=`<div class="sub">${esc(d.thesis)}</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}</div>`;
+  const cal=d.scoring&&d.scoring.calibration||{};
+  h+=`<div class="banner"><b>Criticality:</b> ${esc(d.scoring&&d.scoring.formula)}.<br><span style="color:var(--fg-3)">Calibrated: chokepoints avg ${cal.chokepoints_avg} vs commodity avg ${cal.commodity_avg} (clean gap ${esc(cal.clean_gap)}). The standout proxy — <b style="color:var(--cyan)">margin stability</b> — is the fingerprint of irreplaceable pricing power.</span></div>`;
+  const s=d.stats||{};
+  h+=`<div class="counts"><div class="cpill"><b>Chokepoints</b><span style="color:var(--violet)">${s.chokepoints||0}</span></div><div class="cpill"><b>Cheap</b><span style="color:var(--green)">${s.cheap||0}</span></div><div class="cpill"><b>Hidden</b><span style="color:var(--amber)">${s.hidden||0}</span></div><div class="cpill"><b>Industries</b><span>${s.industries||0}</span></div></div>`;
+  // CHEAP chokepoints — the actionable edge
+  h+=`<h2>💰 Cheap chokepoints — indispensable, on sale</h2>`;
+  if((d.cheap_chokepoint_book||[]).length){
+    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:4px">High criticality AND trading below fair value — the rare overlap where a make-it-or-break-it business is actually cheap. This is the edge; the rest is a quality watchlist.</div>`;
+    for(const r of d.cheap_chokepoint_book)h+=card(r);
+  } else h+=`<div class="detail">None right now — chokepoints are usually expensive (the market prices indispensability). When one troughs, it lands here.</div>`;
+  // HIDDEN chokepoints
+  if((d.hidden_chokepoint_book||[]).length){
+    h+=`<h2>🔦 Hidden chokepoints — small sole-suppliers</h2>`;
+    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:4px">High criticality at small/mid cap — the indispensable niche names the market underwatches.</div>`;
+    for(const r of d.hidden_chokepoint_book)h+=card(r);
+  }
+  // per-industry leaders
+  h+=`<h2>🏭 Make-it-or-break-it by industry</h2>`;
+  for(const i of (d.industry_leaders||[]))h+=`<div class="ind"><span class="il">${esc(i.ticker)} · ${esc(i.name||'')}</span><span class="ir">${i.criticality} <span style="color:var(--fg-3)">(${i.gm_level}% GM, ±${i.gm_stability})</span></span></div>`;
+  // all chokepoints
+  h+=`<h2>All chokepoints (by criticality)</h2>`;
+  const shown=new Set([...(d.cheap_chokepoint_book||[]),...(d.hidden_chokepoint_book||[])].map(r=>r.ticker));
+  for(const r of (d.all_chokepoints||[]))if(!shown.has(r.ticker))h+=card(r);
+  h+=`<div class="note">${esc(d.methodology)}<br><br><b>Next:</b> ${esc(d.next||'')}<br><br>${esc(d.disclaimer)}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
