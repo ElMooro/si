@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resilience Radar · Price Refusing to Fall on Bad News · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#a78bfa;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:10px;max-width:900px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+h2{font-size:12px;color:var(--fg-2);margin:24px 0 9px;text-transform:uppercase;letter-spacing:.06em}
+.counts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.cpill{background:var(--bg-1);border:1px solid var(--border);border-radius:9px;padding:7px 12px;font-family:var(--mono);font-size:13px;font-weight:700}
+.cpill b{display:block;font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;font-weight:600}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:11px;padding:13px 15px;margin-bottom:10px}
+.card.IGNITING{border-left:3px solid var(--green)}.card.COILED{border-left:3px solid var(--cyan)}.card.ABSORBING{border-left:3px solid var(--amber)}
+.row1{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.tk{font-size:17px;font-weight:800}
+.stg{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;border:1px solid var(--border)}
+.stg.IGNITING{color:var(--green)}.stg.COILED{color:var(--cyan)}.stg.ABSORBING{color:var(--amber)}
+.score{font-family:var(--mono);font-size:20px;font-weight:800}
+.detail{font-size:12px;color:var(--fg-1);margin-top:6px;line-height:1.55}
+.kv{font-family:var(--mono);font-size:11.5px;color:var(--fg-2);margin-top:5px;display:flex;gap:14px;flex-wrap:wrap}
+.kv b{color:var(--fg-1);font-weight:600}
+.cat{display:inline-block;font-family:var(--mono);font-size:10px;color:var(--red);background:rgba(255,92,108,.1);border:1px solid rgba(255,92,108,.3);border-radius:4px;padding:1px 6px;margin-right:5px}
+.fals{font-size:11px;color:var(--fg-3);margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}th{text-align:left;color:var(--fg-3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--border)}
+td{padding:5px 8px;border-bottom:1px solid var(--bg-2);font-family:var(--mono)}
+.pos{color:var(--green)}.note{color:var(--fg-3);font-size:11px;margin-top:18px;line-height:1.6}a{color:var(--cyan)}
+.loading{padding:54px;text-align:center;color:var(--fg-2)}
+.banner{background:var(--bg-1);border:1px solid var(--border);border-left:3px solid var(--violet);border-radius:9px;padding:11px 14px;font-size:12px;color:var(--fg-1);margin-bottom:14px}
+</style></head><body><div class="wrap" id="wrap"><div class="loading">Scanning for absorption…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function scoreColor(s){return s>=70?'var(--green)':s>=62?'var(--cyan)':'var(--amber)';}
+function card(r){
+  let h=`<div class="card ${esc(r.stage)}"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> <span class="stg ${esc(r.stage)}">${esc(r.stage)}</span></div><span class="score" style="color:${scoreColor(r.resilience)}">${r.resilience}</span></div>`;
+  h+=`<div class="detail">Held <b class="pos">+${r.mean_abnormal_on_adverse_pct}%</b> abnormal return across <b>${r.n_adverse_days}</b> adverse days (${r.adverse_hit_rate_pct}% held). `;
+  if(r.negative_catalysts_shrugged&&r.negative_catalysts_shrugged.length){h+=`Shrugged off: ${r.negative_catalysts_shrugged.map(c=>`<span class="cat">${esc(c)}</span>`).join('')}`;}
+  h+=`</div>`;
+  h+=`<div class="kv"><span>β <b>${r.beta}</b></span><span>down-β <b>${r.downside_beta}</b> / up-β <b>${r.upside_beta}</b> <span style="color:${r.beta_asymmetry>0?'var(--green)':'var(--red)'}">(${r.beta_asymmetry>0?'+':''}${r.beta_asymmetry} asym)</span></span><span>adv vol-z <b>${r.adverse_volume_z}</b></span><span>${r.pct_of_60d_high}% of 60d high</span><span>coil <b>${r.coil}</b></span><span>${r.above_50d?'>50d':'<50d'} ${r.above_200d?'· >200d':''}</span></div>`;
+  h+=`<div class="fals">⚠ ${esc(r.falsifier)}</div></div>`;
+  return h;
+}
+(async function(){
+  const d=await gj('data/resilience.json');const w=document.getElementById('wrap');
+  if(!d||!d.about_to_boom){w.innerHTML='<h1>Resilience Radar</h1><div class="loading">No scan yet — updates 22:45 UTC weekdays.</div>';return;}
+  let h=`<h1>🛡️ Resilience Radar <span style="color:var(--fg-3);font-size:13px">price refusing to fall on bad news</span></h1>`;
+  h+=`<div class="sub">${esc(d.thesis)}</div>`;
+  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · universe ${d.universe_size} liquid common stocks</div>`;
+  h+=`<div class="banner">The signal is <b>conditional</b>: not "price up" (that's momentum) but "price up <b>when it should have fallen</b>" — measured as the market-model abnormal return on adverse days. High asymmetry = supply absorbed, spring loaded. Names below are logged and graded forward vs SPY — unproven until the scorecard says otherwise.</div>`;
+  const c=d.counts||{};
+  h+=`<div class="counts">
+    <div class="cpill"><b>Igniting</b><span style="color:var(--green)">${c.igniting||0}</span></div>
+    <div class="cpill"><b>Coiled</b><span style="color:var(--cyan)">${c.coiled||0}</span></div>
+    <div class="cpill"><b>Absorbing</b><span style="color:var(--amber)">${c.absorbing||0}</span></div>
+  </div>`;
+  if(d.about_to_boom.length){
+    h+=`<h2>🚀 About to boom — coiled &amp; igniting</h2>`;
+    for(const r of d.about_to_boom)h+=card(r);
+  } else {
+    h+=`<h2>About to boom</h2><div style="color:var(--fg-3);font-size:12.5px;padding:10px">No COILED/IGNITING names clear the bar right now — absorption is forming but no spring is fully loaded. Check the absorbing list.</div>`;
+  }
+  const absorbing=(d.all_resilient||[]).filter(r=>r.stage==='ABSORBING');
+  if(absorbing.length){
+    h+=`<h2>Absorbing — building, not yet coiled</h2><table><tr><th>Ticker</th><th>Resilience</th><th>Abn/adv day</th><th>Held%</th><th>n adv</th><th>asym</th><th>20d</th></tr>`;
+    for(const r of absorbing.slice(0,25))h+=`<tr><td class="tk" style="font-size:13px">${esc(r.ticker)}</td><td style="color:${scoreColor(r.resilience)}">${r.resilience}</td><td class="pos">+${r.mean_abnormal_on_adverse_pct}%</td><td>${r.adverse_hit_rate_pct}%</td><td>${r.n_adverse_days}</td><td>${r.beta_asymmetry>0?'+':''}${r.beta_asymmetry}</td><td class="${r.ret_20d_pct>0?'pos':''}">${r.ret_20d_pct>0?'+':''}${r.ret_20d_pct}%</td></tr>`;
+    h+=`</table>`;
+  }
+  h+=`<div class="note">${esc(d.methodology)}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
