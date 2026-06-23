@@ -206,15 +206,19 @@ def render_email_html(out):
 def send_email(out):
     import os
     to = os.getenv("SES_DIGEST_TO", SES_RECIPIENT)
-    try:
-        ses = boto3.client("ses", region_name="us-east-1")
-        ses.send_email(Source=SES_SENDER, Destination={"ToAddresses": [to]},
-                       Message={"Subject": {"Data": "Retail Flow Brief · %s · top: %s" % (
-                           out["generated_at"][:10], ", ".join(h["ticker"] for h in out["hot_stocks"][:4]))},
-                                "Body": {"Html": {"Data": render_email_html(out)}}})
-        return to
-    except Exception as e:
-        print("[email] failed:", str(e)[:80]); return None
+    msg = {"Subject": {"Data": "Retail Flow Brief · %s · top: %s" % (
+               out["generated_at"][:10], ", ".join(h["ticker"] for h in out["hot_stocks"][:4]))},
+           "Body": {"Html": {"Data": render_email_html(out)}}}
+    ses = boto3.client("ses", region_name="us-east-1")
+    # try the configured recipient; if SES sandbox rejects it (unverified), fall back to the
+    # verified sender inbox so the brief is always delivered somewhere.
+    for dest in ([to] if to == SES_SENDER else [to, SES_SENDER]):
+        try:
+            ses.send_email(Source=SES_SENDER, Destination={"ToAddresses": [dest]}, Message=msg)
+            return dest
+        except Exception as e:
+            print("[email] to %s failed: %s" % (dest, str(e)[:90]))
+    return None
 
 
 def lambda_handler(event, context):
