@@ -1,24 +1,45 @@
-premortem invoked async; polling kill-theses output for fresh real theses...
-  t+10s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+20s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+30s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+40s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+50s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+60s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+70s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+80s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+90s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+100s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+110s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+120s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+130s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+140s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+150s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+160s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+170s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+180s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+190s: theses=15 real=0 generated=2026-06-22T11:00:16
-  t+200s: theses=15 real=0 generated=2026-06-22T11:00:16
-
-REAL kill-theses: 0
-DONE 2131
+fresh async invoke sent; waiting 75s for it to run + log...
+  [INFO]	2026-06-23T03:45:43.229Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	selected 15 targets for pre-mortem
+  [WARNING]	2026-06-23T03:46:40.526Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	parse_fail symbol=NEM response_head=The user wants me to act as an adversarial portfolio manager and identify 5 specific kill conditions for a trade on Newmont Corporat
+  [WARNING]	2026-06-23T03:47:12.034Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	parse_fail symbol=AAPL response_head=The user wants me to act as an adversarial portfolio manager and analyze a trade on AAPL.
+I need to assume the trade has already lo
+  [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet[llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet
+  [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet[llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet
+  [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet
+  [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [WARNING]	2026-06-23T03:47:16.301Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	claude_fail symbol=GOOGL err=HTTP Error 400: Bad Request
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [WARNING]	2026-06-23T03:47:16.386Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	claude_fail symbol=NVDA err=HTTP Error 400: Bad Request
+  [WARNING]	2026-06-23T03:47:16.405Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	claude_fail symbol=GOOG err=HTTP Error 400: Bad Request
+  [WARNING]	2026-06-23T03:47:16.442Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	claude_fail symbol=AVGO err=HTTP Error 400: Bad Request
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [WARNING]	2026-06-23T03:47:19.220Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	claude_fail symbol=MCD err=HTTP Error 400: Bad Request
+  [WARNING]	2026-06-23T03:47:19.374Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	claude_fail symbol=INTU err=HTTP Error 400: Bad Request
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [llm_router] GLM failed (<HTTPError 429: 'Too Many Requests'>); falling back to Sonnet
+  [WARNING]	2026-06-23T03:47:21.895Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	claude_fail symbol=JNJ err=HTTP Error 400: Bad Request
+  [WARNING]	2026-06-23T03:48:07.718Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	parse_fail symbol=CVX response_head=The user wants me to act as an adversarial portfolio manager and analyze a specific trade (CVX - Chevron).
+The premise is that the t
+  [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet
+  [WARNING]	2026-06-23T03:48:45.921Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	parse_fail symbol=AOS response_head={
+  "thesis_summary": "AOS loses 50% because its high-margin China water treatment business implodes due to an escalating geopolitic
+  [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet
+  [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet
+  [WARNING]	2026-06-23T03:48:46.060Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	claude_fail symbol=LLY err=HTTP Error 400: Bad Request
+  [WARNING]	2026-06-23T03:48:46.130Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	claude_fail symbol=V err=HTTP Error 400: Bad Request
+  [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet
+  [WARNING]	2026-06-23T03:48:48.974Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	claude_fail symbol=CRM err=HTTP Error 400: Bad Request
+  [WARNING]	2026-06-23T03:49:36.623Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	parse_fail symbol=MSFT response_head=The user wants me to act as an adversarial portfolio manager and analyze a trade on MSFT (Microsoft).
+The trade details:
+- Symbol: 
+  [ERROR]	2026-06-23T03:49:37.215Z	dde282c2-ee12-469e-8ce6-5ff05362d63f	telegram_fail: HTTP Error 403: Forbidden
+  [INFO]	2026-06-23T03:54:22.710Z	f07685c2-d8fd-462b-87b8-4b1c78dbadfc	selected 15 targets for pre-mortem
+  [WARNING]	2026-06-23T03:55:11.180Z	f07685c2-d8fd-462b-87b8-4b1c78dbadfc	parse_fail symbol=NVDA response_head=The user wants me to act as an adversarial portfolio manager and analyze a specific trade (NVDA) under the assumption that it has a
+DONE 2132
