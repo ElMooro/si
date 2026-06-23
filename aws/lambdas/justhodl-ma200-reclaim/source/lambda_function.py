@@ -189,10 +189,10 @@ def lambda_handler(event=None, context=None):
                 "ma200_slope_pct": round(slope, 2) if slope is not None else None,
                 "ma50_above_ma200": gc}
 
-        # 1) fresh crosses
-        if ba is not None and ba <= FRESH:
+        # 1) fresh crosses — intact only (price still on the breakout side, not a same-week reversal)
+        if ba is not None and ba <= FRESH and c0 > m0:
             r = dict(base); r["bars_since_cross"] = ba; above.append(r)
-        if bb is not None and bb <= FRESH:
+        if bb is not None and bb <= FRESH and c0 < m0:
             r = dict(base); r["bars_since_cross"] = bb; below.append(r)
 
         # 2) retest of a prior break ABOVE (within lookback)
@@ -206,6 +206,7 @@ def lambda_handler(event=None, context=None):
                     break
             if touch_i is not None:
                 r = dict(base); r["bars_since_cross"] = ba
+                r["retest_age"] = n - 1 - touch_i
                 r["retest_low_pct"] = round((px[touch_i] - ma[touch_i]) / ma[touch_i] * 100, 2)
                 if c0 > m0 and abs(dist) <= RETEST_BAND * 100:
                     r["state"] = "RETESTING"; retesting.append(r)
@@ -218,9 +219,14 @@ def lambda_handler(event=None, context=None):
     # quality ranks: prefer rising MA + golden-cross alignment
     def q(x):
         return ((x.get("ma200_slope_pct") or -99) + (8 if x.get("ma50_above_ma200") else 0))
+
+    def hq(x):   # held: rising MA + golden cross, fresher retest, not over-extended
+        return (q(x) - 0.25 * (x.get("retest_age") or 0)
+                - 0.10 * max(0.0, abs(x.get("dist_pct") or 0) - 8))
     above.sort(key=q, reverse=True)
     below.sort(key=lambda x: (x.get("ma200_slope_pct") or 99))
-    held.sort(key=q, reverse=True)
+    held.sort(key=hq, reverse=True)
+    retesting.sort(key=q, reverse=True)
 
     out["counts"] = {"fresh_above": len(above), "fresh_below": len(below),
                      "retest_held": len(held), "retest_failed": len(failed),
