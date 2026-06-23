@@ -1,7 +1,6 @@
-exists; ensuring shared bundled
-invoke: {"errorMessage": "'str' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "025de242-3737-4172-8fa1-0bb6ad032077", "stackTrace": ["  File \"/var/task/lambda_function.py\", lin (1s)
+invoke: {"errorMessage": "'str' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "a5ae3591-b805-4a93-bea6-74ff75348ed6", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 201, in lambda_han (1s)
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2137_run_hot_stocks.py", line 31, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/2138_rerun_hot_stocks.py", line 11, in <module>
     d=json.loads(s3.get_object(Bucket="justhodl-dashboard-live",Key="data/hot-stocks-digest.json")["Body"].read())
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
