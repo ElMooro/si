@@ -1,11 +1,15 @@
-exists (deploy pipeline created)
-invoke: {"statusCode": 200, "body": "{\"proven_engines\": 3, \"proven_alerts\": 0, \"decaying\": 0, \"improved\": 0, \"stable\": 0, \"proven_decay_alerts\": 0, \"backtest_pass_archetypes\": 0}"}
-stats: {"proven_engines": 3, "proven_alerts": 0, "decaying": 0, "improved": 0, "stable": 0, "proven_decay_alerts": 0, "backtest_pass_archetypes": 0} | regime: None | baseline_ready: False
-
-PROVEN-ENGINE GUARD:
-   crisis_dfii10_vs_gld       excess=5.42% hit=92.9% worst_regime=None(None) -> HEALTHY — still beating SPY
-   crypto_risk_score          excess=2.193% hit=57.8% worst_regime=None(None) -> HEALTHY — still beating SPY
-   squeeze_risk               excess=2.74% hit=59.5% worst_regime=None(None) -> HEALTHY — still beating SPY
-
-BACKTEST-vs-LIVE: 0 deployable archetypes
-DONE 2136
+exists; ensuring shared bundled
+invoke: {"errorMessage": "'str' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "025de242-3737-4172-8fa1-0bb6ad032077", "stackTrace": ["  File \"/var/task/lambda_function.py\", lin (1s)
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2137_run_hot_stocks.py", line 31, in <module>
+    d=json.loads(s3.get_object(Bucket="justhodl-dashboard-live",Key="data/hot-stocks-digest.json")["Body"].read())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
