@@ -164,29 +164,18 @@ def select_targets(best_ideas):
 
 
 def call_claude(payload, max_retries=2):
-    """Anthropic API call with retry."""
-    if not ANTHROPIC_KEY:
-        return None, "no_api_key"
-    req_body = {
-        "model": ANTHROPIC_MODEL,
-        "max_tokens": 2000,
-        "messages": [{"role": "user", "content": payload}],
-    }
+    """Routed LLM call via llm_router (GLM-5.1; Anthropic credits are out). Keeps the
+    (content, error) signature so call sites are unchanged."""
+    try:
+        from llm_router import complete
+    except Exception as e:
+        return None, "no_llm_router:" + str(e)[:40]
     for attempt in range(max_retries + 1):
         try:
-            req = urllib.request.Request(
-                ANTHROPIC_URL,
-                data=json.dumps(req_body).encode(),
-                headers={
-                    "x-api-key": ANTHROPIC_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "Content-Type": "application/json",
-                },
-            )
-            r = urllib.request.urlopen(req, timeout=60)
-            response = json.loads(r.read())
-            content = response.get("content", [{}])[0].get("text", "")
-            return content, None
+            txt = complete(payload, tier="reason", max_tokens=2000)
+            if txt and txt.strip():
+                return txt, None
+            raise ValueError("empty")
         except Exception as e:
             if attempt < max_retries:
                 time.sleep(1.5 * (attempt + 1))
