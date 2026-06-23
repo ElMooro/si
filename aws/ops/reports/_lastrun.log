@@ -1,17 +1,41 @@
-invoke: {"statusCode": 200, "body": "{\"hot\": 12, \"narrative\": false, \"emailed\": \"reports@justhodl.ai\"}"} (180s)
-narrative: False | hot: 12
-MARKET READ: Retail sentiment summary unavailable this run.
+invoke: {"statusCode": 200, "body": "{\"hot\": 12, \"narrative\": false, \"emailed\": \"reports@justhodl.ai\"}"} (73s)
+llm_narrative: False (if False, deterministic fallback shown)
+MARKET READ: Retail chatter rising vs prior (342.6%). Risk appetite elevated — watch for crowding.
 
-BRIEF:
-  INTC   heat=81 ven=4 bull%=None | NET: —
-  GETY   heat=80 ven=4 bull%=None | NET: —
-  KEEL   heat=78 ven=4 bull%=None | NET: —
-  AMZN   heat=76 ven=4 bull%=None | NET: —
-  GOOG   heat=74 ven=4 bull%=None | NET: —
-  TTWO   heat=72 ven=4 bull%=None | NET: —
-  GOOGL  heat=70 ven=3 bull%=None | NET: —
-  SPCX   heat=63 ven=3 bull%=None | NET: —
+MORNING BRIEF (institutional):
+  INTC   heat=81 ven=4 | NET: crowded / fade risk [rule]
+        why: confirmed across 4 venues
+        + rising mentions across 4 venues
+        - flagged crowded/fading — late-cycle chase risk
+  GETY   heat=80 ven=4 | NET: watch [rule]
+        why: confirmed across 4 venues
+        + rising mentions across 4 venues
+        - no price/news confirmation yet
+  KEEL   heat=78 ven=4 | NET: crowded / fade risk [rule]
+        why: confirmed across 4 venues
+        + rising mentions across 4 venues
+        - flagged crowded/fading — late-cycle chase risk
+  AMZN   heat=76 ven=4 | NET: crowded / fade risk [rule]
+        why: confirmed across 4 venues
+        + rising mentions across 4 venues
+        - flagged crowded/fading — late-cycle chase risk
+  GOOG   heat=74 ven=4 | NET: crowded / fade risk [rule]
+        why: confirmed across 4 venues
+        + rising mentions across 4 venues
+        - flagged crowded/fading — late-cycle chase risk
+  TTWO   heat=72 ven=4 | NET: crowded / fade risk [rule]
+        why: confirmed across 4 venues
+        + rising mentions across 4 venues
+        - flagged crowded/fading — late-cycle chase risk
+  GOOGL  heat=70 ven=3 | NET: crowded / fade risk [rule]
+        why: confirmed across 3 venues
+        + rising mentions across 3 venues
+        - flagged crowded/fading — late-cycle chase risk
+  SPCX   heat=63 ven=3 | NET: watch [rule]
+        why: confirmed across 3 venues
+        + rising mentions across 3 venues
+        - no price/news confirmation yet
 
 warnings: ['INTC', 'DTE', 'KEEL', 'NOK', 'IWM', 'CXAI', 'MS', 'ET']
-page hot-stocks.html: 200 | email sent via SES to reports@justhodl.ai
-DONE 2139
+emailed: reports@justhodl.ai | page: https://justhodl.ai/hot-stocks.html
+DONE 2140
