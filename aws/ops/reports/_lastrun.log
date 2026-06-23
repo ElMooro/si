@@ -1,2 +1,11 @@
-premortem TOP_N env -> 6 (fewer GLM calls/run => reliably completes within timeout, fewer 429s)
-DONE 2134
+exists (deploy pipeline created)
+invoke: {"statusCode": 200, "body": "{\"proven_engines\": 3, \"proven_alerts\": 0, \"decaying\": 0, \"improved\": 0, \"stable\": 0, \"proven_decay_alerts\": 0, \"backtest_pass_archetypes\": 0}"}
+stats: {"proven_engines": 3, "proven_alerts": 0, "decaying": 0, "improved": 0, "stable": 0, "proven_decay_alerts": 0, "backtest_pass_archetypes": 0} | regime: None | baseline_ready: False
+
+PROVEN-ENGINE GUARD:
+   crisis_dfii10_vs_gld       excess=5.42% hit=92.9% worst_regime=None(None) -> HEALTHY — still beating SPY
+   crypto_risk_score          excess=2.193% hit=57.8% worst_regime=None(None) -> HEALTHY — still beating SPY
+   squeeze_risk               excess=2.74% hit=59.5% worst_regime=None(None) -> HEALTHY — still beating SPY
+
+BACKTEST-vs-LIVE: 0 deployable archetypes
+DONE 2136
