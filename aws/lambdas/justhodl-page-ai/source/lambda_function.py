@@ -44,7 +44,7 @@ def _parse_json(txt):
     return {}
 
 def _norm(s):
-    return str(s).lower().replace("eng:", "").replace("justhodl-", "").replace(".json", "").strip()
+    return str(s).lower().replace("eng:", "").replace("justhodl-", "").replace(".json", "").replace("-", "").replace("_", "").strip()
 
 
 def build_scorecard_lookup():
