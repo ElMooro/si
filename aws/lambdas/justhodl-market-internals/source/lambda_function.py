@@ -68,6 +68,18 @@ def lambda_handler(event=None, context=None):
         if d.weekday() < 5:
             cands.append(d.isoformat())
     cands = [c for c in reversed(cands) if c not in have]
+    # Always re-fetch the 3 most recent trading days so the volume/index/rotation
+    # fields refresh onto existing rows (upserted below), not just brand-new dates.
+    rd = today
+    refreshed = 0
+    while refreshed < 3:
+        rd -= timedelta(days=1)
+        if rd.weekday() < 5:
+            iso = rd.isoformat()
+            if iso not in cands:
+                cands.append(iso)
+            refreshed += 1
+    cands = sorted(set(cands))
 
     prev_map = None
     if hist["rows"]:
@@ -121,7 +133,10 @@ def lambda_handler(event=None, context=None):
         prev_map = cur
 
     if new_rows:
-        hist["rows"] = sorted(hist["rows"] + new_rows, key=lambda r: r["date"])[-420:]
+        by_date = {r["date"]: r for r in hist["rows"]}
+        for r in new_rows:
+            by_date[r["date"]] = r        # upsert — refreshed row wins
+        hist["rows"] = sorted(by_date.values(), key=lambda r: r["date"])[-420:]
         S3.put_object(Bucket=BUCKET, Key=HIST_KEY, Body=json.dumps(hist).encode(),
                       ContentType="application/json")
 
