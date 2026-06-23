@@ -1,10 +1,13 @@
-alpha_trust_wiring:
-  proven_squeeze_lift (eff_trust): 1.296
-  n_signals_lifted: 4 | n_signals_pruned: 0
-  lifted sample: [{'ticker': 'META', 'signal': 'GAMMA_SQUEEZE', 'engine': 'squeeze_risk', 'mult': 1.296}, {'ticker': 'GOOGL', 'signal': 'GAMMA_SQUEEZE', 'engine': 'squeeze_risk', 'mult': 1.296}, {'ticker': 'AMZN', 'signal': 'GAMMA_SQUEEZE', 'engine': 'squeeze_risk', 'mult': 1.296}, {'ticker': 'MSFT', 'signal': 'GAMMA_SQUEEZE', 'engine': 'squeeze_risk', 'mult': 1.296}]
-  pruned sample: []
-  e.g. META: GAMMA_SQUEEZE -> {'engine': 'squeeze_risk', 'status': 'ALPHA_PROVEN', 'effective_trust': 1.296, 'weight_mult': 1.296}
-  e.g. MSFT: GAMMA_SQUEEZE -> {'engine': 'squeeze_risk', 'status': 'ALPHA_PROVEN', 'effective_trust': 1.296, 'weight_mult': 1.296}
-  e.g. GOOGL: GAMMA_SQUEEZE -> {'engine': 'squeeze_risk', 'status': 'ALPHA_PROVEN', 'effective_trust': 1.296, 'weight_mult': 1.296}
-  e.g. AMZN: GAMMA_SQUEEZE -> {'engine': 'squeeze_risk', 'status': 'ALPHA_PROVEN', 'effective_trust': 1.296, 'weight_mult': 1.296}
-DONE 2145
+  FEED data/equity-confluence.json: book_size=22 mode=PROVISIONAL
+  FEED data/resilience.json: book_size=15 mode=-
+  FEED data/strategist.json: book_size=0 mode=-
+
+orphan_meta_wiring: {"n_cross_family_confluence": 19, "n_resilient": 2, "n_strategist": 0, "note": "equity-confluence, resilience and strategist were islands feeding nothing; they now corroborate best-setups picks \u2014 a name independently confirmed by the cross-family synthesizer and the resilience radar carries that weight."}
+   CONFLUENCE NVDA   conv=81.1 {'composite': 41.4, 'super': None, 'family': None, 'proven': False}
+   CONFLUENCE META   conv=63.0 {'composite': 39.4, 'super': None, 'family': None, 'proven': False}
+   CONFLUENCE ANET   conv=40.9 {'composite': 25.0, 'super': None, 'family': None, 'proven': False}
+   CONFLUENCE MU     conv=36.9 {'composite': 38.2, 'super': None, 'family': None, 'proven': False}
+   CONFLUENCE COST   conv=26.7 {'composite': 25.0, 'super': None, 'family': None, 'proven': False}
+   RESILIENT  MNST   conv=8.4 flags=['about-to-boom', 'resilient-top']
+   RESILIENT  WAB    conv=0.0 flags=['about-to-boom']
+DONE 2146
