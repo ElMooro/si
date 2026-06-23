@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-ma200-reclaim",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1536,
+  "timeout": 900,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "env": { "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d" },
+  "schedule": {
+    "rule_name": "justhodl-ma200-reclaim-daily",
+    "cron": "cron(30 21 ? * MON-FRI *)",
+    "description": "Daily 200-DMA reclaim/retest scan after market close"
+  }
+}
