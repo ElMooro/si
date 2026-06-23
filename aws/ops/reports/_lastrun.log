@@ -1,12 +1,11 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2127_pageai_hourly.py", line 3, in <module>
-    ev.put_rule(Name="justhodl-page-ai-wave",ScheduleExpression="cron(15 * * * ? *)",State="ENABLED")
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.LimitExceededException: An error occurred (LimitExceededException) when calling the PutRule operation: The requested resource exceeds the maximum number allowed.
+  FEED data/kill-theses.json: theses/conflicts/predictions=15 mode=- gsi=-
+  FEED data/engine-conflicts.json: theses/conflicts/predictions=0 mode=- gsi=-
+  FEED data/lead-lag-graph.json: theses/conflicts/predictions=7 mode=- gsi=-
+  FEED data/signal-orthogonality.json: theses/conflicts/predictions=0 mode=- gsi=-
+
+best-setups invoke: {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"n_setups\": 628, \"strong (4s)
+meta_intelligence: {"n_with_kill_thesis": 0, "n_contested": 0, "n_lead_lag_tailwind": 2, "signal_independence_gsi": null, "orthogonality_mode": null, "note": "Each pick now carries its premortem failure mode; contested picks show both sides; lead-lag tailwinds flag picks whose leader already moved."}
+contested_picks: 0 | with_kill_thesis: 0 | lead_lag_tailwinds: 2
+   TAILWIND CSCO   leader AMBQ moved 10.27%
+   TAILWIND EOSE   leader AAON moved 4.64%
+DONE 2128
