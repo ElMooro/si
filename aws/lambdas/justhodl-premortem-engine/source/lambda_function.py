@@ -52,7 +52,7 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 # How many ideas to red-team per run
 TOP_N = int(os.environ.get("TOP_N", "8"))
 # Max parallel Claude calls
-MAX_PARALLEL = 8
+MAX_PARALLEL = 2
 
 s3 = boto3.client("s3", region_name=REGION)
 
@@ -172,7 +172,7 @@ def call_claude(payload, max_retries=1):
         return None, "no_llm_router:" + str(e)[:40]
     for attempt in range(max_retries + 1):
         try:
-            txt = complete(payload, tier="reason", max_tokens=2000)
+            txt = complete(payload, tier="reason", max_tokens=4000)
             if txt and txt.strip():
                 return txt, None
             raise ValueError("empty")
