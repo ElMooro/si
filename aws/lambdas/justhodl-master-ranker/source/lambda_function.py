@@ -760,6 +760,26 @@ def lambda_handler(event, context):
     ticker_ranks.sort(key=lambda r: r["score"], reverse=True)
     top_tickers = ticker_ranks[:25]
 
+    # ── Structural-chokepoint overlay: flag ranked names the chokepoint engine marks as
+    #    structurally indispensable (curated / LLM-confirmed / supply-chain hub). Context for
+    #    durability, not a score change — a top rank on a chokepoint is a higher-quality rank.
+    _ck = fetch_json("data/chokepoint.json") or {}
+    _structural = _ck.get("structural_names") or {}
+    _hiconv = {r.get("ticker") for r in (_ck.get("highest_conviction_book") or [])}
+    n_structural = 0
+    for t in top_tickers:
+        sn = _structural.get(t["ticker"])
+        if not sn:
+            continue
+        n_structural += 1
+        t["structural_chokepoint"] = True
+        t["criticality"] = sn.get("criticality")
+        note = "structural chokepoint (crit %s)" % sn.get("criticality")
+        if t["ticker"] in _hiconv:
+            t["highest_conviction"] = True
+            note += " AT a trough/cheap — system's highest-quality setup"
+        t["rationale"] = (t.get("rationale") or "") + " · " + note
+
     print("[master-ranker] Collecting macro signals…")
     macro_signals = collect_macro_signals()
 
@@ -787,6 +807,7 @@ def lambda_handler(event, context):
             "n_tier_5_plus_systems": n_tier_5_plus,
             "n_extreme_macro": n_extreme_macro,
             "calibration_active": bool(calibration),
+            "n_structural_chokepoints": n_structural,
         },
         "top_tickers": top_tickers,
         "top_macro": macro_signals,

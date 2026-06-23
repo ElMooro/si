@@ -175,6 +175,7 @@ def lambda_handler(event, context):
     capital_flow = read_json("data/capital-flow.json") or {}
     capital_flow_radar = read_json("data/capital-flow-radar.json") or {}
     risk_regime = read_json("data/risk-regime.json") or {}
+    chokepoint = read_json("data/chokepoint.json") or {}
     _screener_doc = read_json("screener/data.json") or {}
     _rr_score = risk_regime.get("risk_regime_score")
     _rr_regime = risk_regime.get("risk_regime") or "NEUTRAL"
@@ -648,6 +649,28 @@ def lambda_handler(event, context):
             s["bond_vol_adjusted"] = True
         setups.sort(key=lambda s: -s["conviction"])
 
+    # ── Structural-chokepoint overlay ──
+    # Tag setups the chokepoint engine marks as structurally indispensable (curated /
+    # LLM-confirmed / supply-chain hub). This is durability CONTEXT, not an alpha boost:
+    # a given setup is more robust on a name its industry can't route around. When a
+    # structural name is ALSO at a cyclical trough or cheap, it's the system's best setup.
+    _structural = chokepoint.get("structural_names") or {}
+    _hiconv = {r.get("ticker"): r for r in (chokepoint.get("highest_conviction_book") or [])}
+    for s in setups:
+        sn = _structural.get(s.get("ticker"))
+        if not sn:
+            continue
+        s["structural_chokepoint"] = True
+        s["criticality"] = sn.get("criticality")
+        hc = _hiconv.get(s.get("ticker"))
+        if hc:
+            s["structural_setup"] = hc.get("setup_type")
+        if s.get("why"):
+            note = "a structural chokepoint its industry can't route around"
+            if hc:
+                note += " — and " + str(hc.get("setup_type", "")).lower().replace("_", " ") + ", the system's highest-quality setup"
+            s["why"] = s["why"].rstrip(".") + f". Note: {s['ticker']} is {note}."
+
     by_verdict = defaultdict(list)
     for s in setups:
         by_verdict[s["verdict"]].append(s["ticker"])
@@ -678,6 +701,8 @@ def lambda_handler(event, context):
         "triple_threats": [s for s in setups if s.get("triple_threat")][:20],
         "buildout_threats": [s for s in setups if s.get("buildout_threat")][:20],
         "brain_aligned": [s for s in setups if s.get("brain_aligned")][:25],
+        "structural_chokepoints": [s for s in setups if s.get("structural_chokepoint")][:30],
+        "structural_at_trough": [s for s in setups if s.get("structural_setup")][:15],
         "by_verdict": dict(by_verdict),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,

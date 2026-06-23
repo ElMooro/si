@@ -356,6 +356,52 @@ def lambda_handler(event, context):
     rejected_hi_margin = [r for r in discovered if r.get("irreplaceability") == "NOT"]
     diag.append("verified=%d confirmed=%d rejected=%d" % (len(verdicts), len(confirmed), len(rejected_hi_margin)))
 
+    # ---- STRUCTURAL set: the names the decision engines should treat as chokepoints ----
+    # verified-structural = curated genuine chokepoint OR LLM-confirmed discovery OR supply-chain hub.
+    # (High-criticality-but-unverified discoveries like high-margin SaaS/biotech are excluded.)
+    for r in results:
+        r["curated"] = r["ticker"] in CURATED_SEED
+        r["structural"] = bool(r["is_chokepoint"] and (
+            r["curated"] or r.get("irreplaceability") == "CHOKEPOINT" or (r.get("centrality") or 0) >= 3))
+    structural = [r for r in chokepoints if r["structural"]]
+    structural.sort(key=lambda r: -r["criticality"])
+    structural_names = {r["ticker"]: {"criticality": r["criticality"], "curated": r["curated"],
+                                      "confirmed": r.get("irreplaceability") == "CHOKEPOINT",
+                                      "hub": r.get("centrality", 0)} for r in structural}
+
+    # ---- FUSION: a structural chokepoint AT a cyclical trough (or cheap) = the highest-quality setup ----
+    cyc = _read("data/cyclical-bagger.json") or {}
+    trough_map = {}
+    for v in cyc.values():
+        if isinstance(v, list):
+            for rr in v:
+                if isinstance(rr, dict) and rr.get("twenty_x_shape") and rr.get("stage") in ("EARLY", "CONFIRMING"):
+                    tk = (rr.get("ticker") or "").upper()
+                    if tk: trough_map[tk] = {"om_trough": rr.get("om_trough"), "om_swing_pp": rr.get("om_swing_pp"),
+                                             "stage": rr.get("stage"), "cyc_score": rr.get("cyclical_20x_score")}
+    structural_set = {r["ticker"] for r in structural}
+    highest_conviction = []
+    for r in structural:
+        at_trough = r["ticker"] in trough_map
+        is_cheap = bool(r.get("cheap_chokepoint"))
+        if not (at_trough or is_cheap): continue
+        setup_type = "TROUGH+CHEAP" if (at_trough and is_cheap) else ("AT_CYCLICAL_TROUGH" if at_trough else "CHEAP")
+        highest_conviction.append({
+            "ticker": r["ticker"], "name": r.get("name"), "criticality": r["criticality"],
+            "setup_type": setup_type, "confirmed": r.get("irreplaceability") == "CHOKEPOINT",
+            "curated": r["curated"], "discount_to_fair_pct": r.get("discount_to_fair_pct"),
+            "trough": trough_map.get(r["ticker"]),
+            "why": ("A structurally indispensable chokepoint " + (
+                "at a cyclical trough AND trading cheap" if setup_type == "TROUGH+CHEAP" else
+                "at a cyclical-earnings trough (deep-trough + snapback shape)" if at_trough else
+                "trading below fair value")) + " — the rarest, highest-quality setup the system expresses.",
+        })
+    # trough fusion first (rarer), then cheap
+    order = {"TROUGH+CHEAP": 0, "AT_CYCLICAL_TROUGH": 1, "CHEAP": 2}
+    highest_conviction.sort(key=lambda x: (order.get(x["setup_type"], 9), -x["criticality"]))
+    diag.append("structural=%d trough_names=%d highest_conviction=%d" % (
+        len(structural), len(trough_map), len(highest_conviction)))
+
     # per-industry "make-it-or-break-it" leader
     by_industry = {}
     for r in chokepoints:
@@ -381,8 +427,11 @@ def lambda_handler(event, context):
                     "threshold": CHOKE_THRESHOLD},
         "stats": {"pool": len(pool), "evaluated": len(results), "chokepoints": len(chokepoints),
                   "hidden": len(hidden), "cheap": len(cheap), "discovered": len(discovered),
-                  "verified": len(verdicts), "confirmed": len(confirmed),
+                  "verified": len(verdicts), "confirmed": len(confirmed), "structural": len(structural),
+                  "highest_conviction": len(highest_conviction),
                   "rejected_high_margin": len(rejected_hi_margin), "industries": len(industry_leaders)},
+        "highest_conviction_book": highest_conviction[:25],
+        "structural_names": structural_names,
         "confirmed_chokepoint_book": confirmed[:30],
         "discovered_chokepoint_book": discovered[:30],
         "rejected_high_margin_sample": [{"ticker": r["ticker"], "name": r.get("name"),
@@ -417,5 +466,12 @@ def lambda_handler(event, context):
         print("  REJECTED (high-margin but NOT chokepoints):", [(r["ticker"], r["criticality"]) for r in rejected_hi_margin[:12]])
     if not verdicts:
         print("  (verification did not run — LLM unavailable; criticality still output)")
+    print("  STRUCTURAL names exported for decision engines: %d" % len(structural))
+    if highest_conviction:
+        print("  ⭐ HIGHEST-CONVICTION (structural chokepoint at trough/cheap):")
+        for r in highest_conviction[:10]:
+            print("   %s %s crit=%s [%s]" % (r["ticker"], (r.get("name") or "")[:22], r["criticality"], r["setup_type"]))
+    else:
+        print("  ⭐ HIGHEST-CONVICTION: empty — no structural chokepoint is currently at a cyclical trough or cheap (these are rare; the machinery surfaces them when one appears)")
     if hidden: print("  HIDDEN chokepoints:", [(r["ticker"], r["criticality"], r["cap_bucket"]) for r in hidden[:8]])
     return {"statusCode": 200, "body": json.dumps({"mode": mode, "chokepoints": len(chokepoints), "cheap": len(cheap)})}

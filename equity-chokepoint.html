@@ -45,7 +45,23 @@ function card(r){
   const cal=d.scoring&&d.scoring.calibration||{};
   h+=`<div class="banner"><b>Criticality:</b> ${esc(d.scoring&&d.scoring.formula)}.<br><span style="color:var(--fg-3)">Calibrated: chokepoints avg ${cal.chokepoints_avg} vs commodity avg ${cal.commodity_avg} (clean gap ${esc(cal.clean_gap)}). The standout proxy — <b style="color:var(--cyan)">margin stability</b> — is the fingerprint of irreplaceable pricing power.</span></div>`;
   const s=d.stats||{};
-  h+=`<div class="counts"><div class="cpill"><b>Chokepoints</b><span style="color:var(--violet)">${s.chokepoints||0}</span></div><div class="cpill"><b>✓ Confirmed</b><span style="color:var(--green)">${s.confirmed||0}</span></div><div class="cpill"><b>Discovered</b><span style="color:var(--cyan)">${s.discovered||0}</span></div><div class="cpill"><b>Cheap</b><span style="color:var(--green)">${s.cheap||0}</span></div><div class="cpill"><b>Industries</b><span>${s.industries||0}</span></div></div>`;
+  h+=`<div class="counts"><div class="cpill"><b>Chokepoints</b><span style="color:var(--violet)">${s.chokepoints||0}</span></div><div class="cpill"><b>✓ Confirmed</b><span style="color:var(--green)">${s.confirmed||0}</span></div><div class="cpill"><b>Structural</b><span style="color:var(--cyan)">${s.structural||0}</span></div><div class="cpill"><b>⭐ Hi-Conv</b><span style="color:var(--amber)">${s.highest_conviction||0}</span></div><div class="cpill"><b>Industries</b><span>${s.industries||0}</span></div></div>`;
+  // ⭐ HIGHEST CONVICTION — structural chokepoint AT a cyclical trough (or cheap): the rarest, best setup
+  if((d.highest_conviction_book||[]).length){
+    h+=`<h2>⭐ Highest conviction — structural chokepoint at a trough / on sale</h2>`;
+    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:6px">An indispensable chokepoint that's ALSO at a cyclical-earnings bottom (or trading cheap) — quality the industry can't route around, bought at a low. The rarest and highest-quality setup the whole system can express.</div>`;
+    for(const r of d.highest_conviction_book){
+      h+=`<div class="card" style="border-left:3px solid var(--amber)"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> <span class="nm">${esc(r.name||'')}</span></div><span class="score" style="color:var(--amber)">${r.criticality}</span></div>`;
+      h+=`<div style="margin-top:5px"><span class="tag" style="color:#0a0e14;background:var(--amber);border-color:var(--amber);font-weight:700">${esc(r.setup_type)}</span>${r.confirmed?' <span class="tag" style="color:var(--green);border-color:var(--green)">✓ LLM-verified</span>':''}${r.curated?' <span class="tag">curated</span>':''}</div>`;
+      h+=`<div class="detail">${esc(r.why)}</div>`;
+      if(r.trough)h+=`<div class="reasons">trough: op-margin ${r.trough.om_trough}% → swing +${r.trough.om_swing_pp}pp · stage ${esc(r.trough.stage)}</div>`;
+      if(r.discount_to_fair_pct)h+=`<div class="reasons">${r.discount_to_fair_pct}% below fair value</div>`;
+      h+=`</div>`;
+    }
+  } else {
+    h+=`<h2>⭐ Highest conviction — structural chokepoint at a trough / on sale</h2>`;
+    h+=`<div class="detail" style="margin-bottom:6px">Empty right now — no structural chokepoint is currently at a cyclical trough or trading cheap. These are rare by nature; the fusion surfaces them the moment one appears (e.g. a Dolby/Veeva/Illumina-type name hitting a cyclical bottom).</div>`;
+  }
   // CONFIRMED — discovered + LLM-verified the industry can't route around them
   if((d.confirmed_chokepoint_book||[]).length){
     h+=`<h2>✅ Confirmed true chokepoints — discovered & LLM-verified</h2>`;
