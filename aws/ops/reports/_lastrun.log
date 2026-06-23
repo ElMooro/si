@@ -1,12 +1,40 @@
+exists (deploy pipeline created it) — updating code to ensure shared bundled
+invoke: {"statusCode": 200, "body": "{\"processed\": 7, \"errors\": 0, \"with_outlook\": 0, \"cursor\": 7, \"total_pages\": 331}"} (202s)
 
-[engine-alpha] data/engine-alpha.json top-keys: ['generated_at', 'benchmark', 'fdr_q', 'n_alpha_proven', 'n_alpha_negative', 'alpha_proven_signals', 'alpha_negative_signals', 'engines']
-  proven_signals: ['crypto_risk_score', 'squeeze_risk', 'crisis_dfii10_vs_gld']
-  other alpha keys: ['n_alpha_proven', 'n_alpha_negative', 'alpha_proven_signals', 'alpha_negative_signals']
+cursor now: {'i': 7, 'updated': '2026-06-23T01:41:41.309265+00:00'}
 
-[scorecard?] data/signal-scorecard.json top-keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'n_outcomes_scanned', 'n_outcomes_scored', 'n_outcomes_neutral', 'n_outcomes_legacy', 'n_outcomes_unresolved', 'n_signals_tracked', 'n_signals_graded', 'n_promoted', 'n_deprecated', 'n_insufficient', 'avg_graded_wilson_lb', 'promoted_signals']
-  scorecard sample row [scorecard]: {"signal_type": "crisis_dfii10_vs_gld", "n_total": 266, "n_scored": 266, "n_neutral": 0, "n_legacy": 0, "n_unresolved": 0, "hits": 247, "hit_rate": 0.929, "wilson_lb": 0.891, "edge_vs_coinflip_pct": 39.1, "avg_return_pct": -4.11, "stored_flag_agreement": 0.932, "grade": "A", "status": "PROMOTED", "performance_multiplier": 1.25, "alpha_status": "ALPHA_PROVEN", "alpha_n": 266, "alpha_mean_excess_pct": 5.42, "alpha_t_st
+--- 13f ---
+  what_it_is: This page displays the latest 13F filings from major institutional investors, detailing their portfolio holdings, position values, and quarter-over-qu
+  what_it_does: The engine parses SEC 13F filings to track smart money capital flows, flagging significant accumulation or distribution by comparing current and prior
+  analysis: Berkshire Hathaway's latest filing reveals a sharp rotation away from financials and legacy tech, with AXP (-18.24%), BAC (-11.99%), CVX (-12.00%), and AAPL (-6.65%) experiencing notable trims. Capita
+  pick_read: GOOGL is the standout new conviction pick, with Berkshire boosting its position value by 179.28% to $15.6B, making it a top-five holding at 5.93% of the portfol
+  OUTLOOK: status=UNGRADED grade=None mean_excess_vs_spy=None% hit=None% n=0 matched=None
+           confidence: BUILDING — this engine's picks are still being graded forward
 
-existing ai-commentary pages in S3: 10 -> ['13f', 'crisis', 'fundamentals', 'liquidity', 'portfolio', 'pre-pump-radar', 'risk-desk', 'screener', 'signal-board', 'signals']
+--- about ---
+  what_it_is: This is the informational overview page for JustHodl.AI, detailing the platform's mission and methodology.
+  what_it_does: It explains the AI-driven scoring engine and systematic framework used to evaluate crypto assets based on momentum, sentiment, and fundamental metrics
+  analysis: As a static About page, there is no live data feed, current metrics, or real-time signals to evaluate. The content serves as a qualitative trust anchor outlining the analytical infrastructure rather t
+  pick_read: no single-name picks on this page
+  OUTLOOK: status=UNGRADED grade=None mean_excess_vs_spy=None% hit=None% n=0 matched=None
+           confidence: BUILDING — this engine's picks are still being graded forward
 
-uploaded data/page-ai-manifest.json: 331 pages
-DONE 2124
+--- accuracy ---
+  what_it_is: 
+  what_it_does: 
+  analysis: 
+  pick_read: 
+  OUTLOOK: status=UNGRADED grade=None mean_excess_vs_spy=None% hit=None% n=0 matched=None
+           confidence: BUILDING — this engine's picks are still being graded forward
+
+--- ai-rerating ---
+  what_it_is: This page displays the AI Re-Rating Radar, which identifies AI infrastructure stocks trading below their growth-implied valuations before the market r
+  what_it_does: The engine regresses EV/Sales against forward growth across 117 priced AI-infra names, flagging stocks with large negative residuals that are cheap re
+  analysis: The radar currently flags 13 candidates out of 126 names, with 5 in small/mid-cap. BTBT leads at composite 87.6, posting 59% trailing 2-year growth at 7.2x EV/Sales versus 12.6x growth-implied—a 43% d
+  pick_read: BTBT is the top pick at composite 87.6: 59% revenue growth at a 43% discount to growth-implied EV/Sales, confirmed insider buying, and a 42pp lag to miners-to-A
+  OUTLOOK: status=UNGRADED grade=None mean_excess_vs_spy=None% hit=None% n=0 matched=None
+           confidence: BUILDING — this engine's picks are still being graded forward
+  altseason: not generated this wave (An error occurred (NoSuchKey) when calli)
+  apex: not generated this wave (An error occurred (NoSuchKey) when calli)
+
+DONE 2125
