@@ -1,23 +1,59 @@
-counts: {"names": 77, "multi_engine": 18, "squeeze_fuel": 14, "bullish_flow": 11, "bearish_flow": 8, "coiled": 0, "bullish_lean": 25, "bearish_lean": 6}
 
-MULTI-ENGINE CONFLUENCE (>=2 options engines agree):
-   AMZN   BULLISH_FLOW  score=+2.50 engines=3 (dealer-gex,options-analytics,polygon-options-flow) ['bullish call flow']
-   AAPL   BULLISH_FLOW  score=+1.80 engines=3 (dealer-gex,options-analytics,polygon-options-flow) []
-   GOOGL  SQUEEZE_FUEL  score=+1.70 engines=3 (dealer-gex,options-analytics,polygon-options-flow) ['dealers short gamma', 'bullish call flow']
-   IWM    BEARISH_FLOW  score=-1.90 engines=2 (dealer-gex,options-analytics) ['dealers short gamma', 'squeeze setup']
-   INTC   BULLISH_FLOW  score=+1.80 engines=2 (options-analytics,polygon-options-flow) []
-   CVX    BULLISH_FLOW  score=+1.80 engines=2 (options-analytics,polygon-options-flow) ['bullish call flow']
-   AMD    BULLISH_FLOW  score=+1.80 engines=2 (options-analytics,polygon-options-flow) ['bullish call flow']
-   F      BULLISH_FLOW  score=+1.70 engines=2 (options-analytics,polygon-options-flow) ['bullish call flow']
-   TSLA   SQUEEZE_FUEL  score=+1.40 engines=2 (dealer-gex,options-analytics) ['dealers short gamma']
-   NVDA   BULLISH_FLOW  score=+1.40 engines=2 (dealer-gex,options-analytics) []
-   MSFT   BULLISH_FLOW  score=+1.40 engines=2 (dealer-gex,options-analytics) []
-   AVGO   SQUEEZE_FUEL  score=+1.30 engines=2 (options-analytics,polygon-options-flow) ['dealers short gamma', 'bullish call flow']
+dark-pool [data/dark-pool.json] keys: ['engine', 'version', 'ok', 'generated_at', 'thesis', 'latest_week', 'n_scored', 'distribution', 'board', 'top_picks', 'top_accumulation', 'top_distribution', 'dark_map']
+   list 'board' n=60 item-keys=['ticker', 'state', 'score', 'dark_pool_pct', 'offex_pct', 'dark_accel', 'week_return_pct', 'ats_shares_wk', 'offex_shares_wk', 'total_vol_wk']
+   list 'top_picks' n=15 item-keys=['ticker', 'score', 'direction', 'state', 'dark_pool_pct', 'dark_accel', 'offex_pct', 'week_return_pct']
+   list 'top_accumulation' n=20 item-keys=['ticker', 'state', 'score', 'dark_pool_pct', 'offex_pct', 'dark_accel', 'week_return_pct', 'ats_shares_wk', 'offex_shares_wk', 'total_vol_wk']
+   list 'top_distribution' n=12 item-keys=['ticker', 'state', 'score', 'dark_pool_pct', 'offex_pct', 'dark_accel', 'week_return_pct', 'ats_shares_wk', 'offex_shares_wk', 'total_vol_wk']
 
-by_posture sample:
-   SQUEEZE_FUEL: ['GOOGL', 'TSLA', 'AVGO', 'META', 'CRM', 'NFLX', 'NKE', 'COIN']
-   BULLISH_FLOW: ['AMZN', 'AAPL', 'INTC', 'CVX', 'AMD', 'F', 'NVDA', 'MSFT']
-   BEARISH_FLOW: ['IWM', 'IONQ', 'LCID', 'MSTR', 'DIS', 'ADBE', 'CVNA', 'PLTR']
-   BULLISH_LEAN: ['SMCI', 'ASML', 'GOOG', 'AMAT', 'APH', 'FCX', 'BB', 'ABBV']
-   BEARISH_LEAN: ['ARM', 'ADI', 'GE', 'CAH', 'IBKR', 'SNAP']
-DONE 2149
+smart-money-clusters [data/smart-money-clusters.json] keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'as_of_quarter', 'stats', 'clusters']
+   list 'clusters' n=83 item-keys=['ticker', 'name', 'score', 'flag', 'signal_types', 'n_funds_holding', 'n_buyers', 'n_sellers', 'n_new', 'legend_buyers', 'quant_buyers']
+
+13f-positions [data/13f-positions.json] keys: ['generated_at', 'as_of_quarter', 'funds_total', 'funds_parsed', 'funds_failed', 'fund_errors', 'by_fund', 'aggregate_by_ticker', 'most_bought', 'most_sold', 'consensus_holds', 'rare_picks', 'fetch_duration_s']
+   MAP 'aggregate_by_ticker' n=8250 val-keys=['ticker', 'cusip', 'name', 'n_funds_holding', 'total_value', 'n_funds_adding', 'n_funds_trimming', 'n_funds_new_position', 'n_funds_exiting']
+   list 'most_bought' n=25 item-keys=['ticker', 'cusip', 'name', 'n_funds_holding', 'total_value', 'n_funds_adding', 'n_funds_trimming', 'n_funds_new_position', 'n_funds_exiting', 'fund_actions', 'net_action_score']
+   list 'most_sold' n=25 item-keys=['ticker', 'cusip', 'name', 'n_funds_holding', 'total_value', 'n_funds_adding', 'n_funds_trimming', 'n_funds_new_position', 'n_funds_exiting', 'fund_actions', 'net_action_score']
+   list 'consensus_holds' n=30 item-keys=['ticker', 'cusip', 'name', 'n_funds_holding', 'total_value', 'n_funds_adding', 'n_funds_trimming', 'n_funds_new_position', 'n_funds_exiting', 'fund_actions', 'net_action_score']
+   list 'rare_picks' n=20 item-keys=['ticker', 'cusip', 'name', 'n_funds_holding', 'total_value', 'n_funds_adding', 'n_funds_trimming', 'n_funds_new_position', 'n_funds_exiting', 'fund_actions', 'net_action_score']
+
+institutional-positions [data/institutional-positions.json] keys: ['generated_at', 'tracked_funds', 'filings_seen', 'fetch_errors', 'new_filings', 'by_fund', 'fetch_duration_s']
+
+finra-short [data/finra-short.json] keys: ['generated_at', 'generated_at_unix', 'version', 'data_date', 'elapsed_seconds', 'config', 'market_composite', 'squeeze_candidates', 'top_svr', 'top_zscore', 'sectors', 'tickers']
+   list 'squeeze_candidates' n=21 item-keys=['symbol', 'name', 'sector', 'svr_pct', 'z_score', 'momentum_pct', 'days_to_cover', 'squeeze_score', 'squeeze_flags', 'price_strength', 'short_volume']
+   list 'top_svr' n=30 item-keys=['symbol', 'name', 'sector', 'svr_pct', 'z_score', 'short_volume', 'total_volume']
+   list 'top_zscore' n=30 item-keys=['symbol', 'name', 'sector', 'svr_pct', 'z_score', 'momentum_pct', 'short_volume']
+   MAP 'tickers' n=501 val-keys=['symbol', 'svr', 'svr_pct', 'short_volume', 'total_volume', 'short_exempt', 'svr_5d_avg', 'svr_20d_avg', 'svr_60d_mean']
+
+short-interest [data/short-interest.json] keys: ['version', 'generated_at', 'watchlist_size', 'n_tickers_with_data', 'n_tickers_finra', 'n_tickers_polygon', 'n_tickers_short_interest', 'by_ticker', 'top_crowded_shorts', 'top_squeeze_risk', 'top_high_dtc', 'top_covering', 'duration_s']
+   MAP 'by_ticker' n=5756 val-keys=['ticker', 'latest_short_pct', 'trend_pct', 'recent_5d_avg', 'prior_9d_avg', 'days_to_cover', 'si_change_pct', 'short_interest', 'settlement_date']
+   list 'top_crowded_shorts' n=15 item-keys=['ticker', 'latest_short_pct', 'trend_pct', 'recent_5d_avg', 'prior_9d_avg', 'days_to_cover', 'si_change_pct', 'short_interest', 'settlement_date', 'signal', 'score']
+   list 'top_squeeze_risk' n=1 item-keys=['ticker', 'latest_short_pct', 'trend_pct', 'recent_5d_avg', 'prior_9d_avg', 'days_to_cover', 'si_change_pct', 'short_interest', 'settlement_date', 'signal', 'score']
+   list 'top_high_dtc' n=5 item-keys=['ticker', 'latest_short_pct', 'trend_pct', 'recent_5d_avg', 'prior_9d_avg', 'days_to_cover', 'si_change_pct', 'short_interest', 'settlement_date', 'signal', 'score']
+   list 'top_covering' n=7 item-keys=['ticker', 'latest_short_pct', 'trend_pct', 'recent_5d_avg', 'prior_9d_avg', 'days_to_cover', 'si_change_pct', 'short_interest', 'settlement_date', 'signal', 'score']
+
+capital-flow [data/capital-flow.json] keys: ['engine', 'version', 'generated_at', 'duration_s', 'sources', 'methodology', 'accumulating', 'distributing', 'etf_flows_in', 'etf_flows_out', 'category_rotation', 'by_ticker']
+   list 'accumulating' n=40 item-keys=['ticker', 'name', 'flow_score', 'lenses', 'detail', 'sector']
+   list 'distributing' n=25 item-keys=['ticker', 'name', 'flow_score', 'lenses', 'detail', 'sector']
+   list 'etf_flows_in' n=25 item-keys=['ticker', 'name', 'category', 'net_flow_5d_usd', 'net_flow_20d_usd', 'shares_chg_5d_pct', 'aum_est_b', 'true_flow']
+   list 'etf_flows_out' n=15 item-keys=['ticker', 'name', 'category', 'net_flow_5d_usd', 'net_flow_20d_usd', 'shares_chg_5d_pct', 'aum_est_b', 'true_flow']
+   list 'category_rotation' n=11 item-keys=['category', 'net_flow_5d_usd', 'n_etfs', 'signal']
+   MAP 'by_ticker' n=300 val-keys=['ticker', 'name', 'flow_score', 'lenses', 'detail', 'sector']
+
+flow-lookthrough [data/flow-lookthrough.json] keys: ['engine', 'version', 'generated_at', 'thesis', 'flows_asof', 'n_etfs_used', 'n_etfs_with_delta', 'n_names', 'top_picks', 'inflow_leaders', 'outflow_leaders', 'thematic_rotation_leaders', 'actual_accumulation']
+   list 'top_picks' n=15 item-keys=['ticker', 'score', 'net_flow_5d_usd', 'flow_type', 'confirmed']
+   list 'inflow_leaders' n=40 item-keys=['ticker', 'shares_delta_usd', 'drivers', 'net_flow_5d_usd', 'net_flow_daily_usd', 'broad_flow_5d_usd', 'thematic_flow_5d_usd', 'n_etfs', 'flow_bps_mcap', 'delta_bps_mcap', 'market_cap_usd']
+   list 'outflow_leaders' n=40 item-keys=['ticker', 'shares_delta_usd', 'drivers', 'net_flow_5d_usd', 'net_flow_daily_usd', 'broad_flow_5d_usd', 'thematic_flow_5d_usd', 'n_etfs', 'flow_bps_mcap', 'delta_bps_mcap', 'market_cap_usd']
+   list 'thematic_rotation_leaders' n=25 item-keys=['ticker', 'shares_delta_usd', 'drivers', 'net_flow_5d_usd', 'net_flow_daily_usd', 'broad_flow_5d_usd', 'thematic_flow_5d_usd', 'n_etfs', 'flow_bps_mcap', 'delta_bps_mcap', 'market_cap_usd']
+   list 'actual_accumulation' n=20 item-keys=['ticker', 'shares_delta_usd', 'drivers', 'net_flow_5d_usd', 'net_flow_daily_usd', 'broad_flow_5d_usd', 'thematic_flow_5d_usd', 'n_etfs', 'flow_bps_mcap', 'delta_bps_mcap', 'market_cap_usd']
+   list 'actual_distribution' n=20 item-keys=['ticker', 'shares_delta_usd', 'drivers', 'net_flow_5d_usd', 'net_flow_daily_usd', 'broad_flow_5d_usd', 'thematic_flow_5d_usd', 'n_etfs', 'flow_bps_mcap', 'delta_bps_mcap', 'market_cap_usd']
+   list 'index_events' n=30 item-keys=['ticker', 'event', 'etfs']
+
+stealth-accumulation [data/stealth-accumulation.json] keys: ['engine', 'version', 'as_of', 'state', 'previous_state', 'state_description', 'signal_strength', 'summary', 'current_readings', 'convergence', 'top_insider_only', 'top_smart_money_only', 'top_short_covering_only']
+   list 'convergence' n=1 item-keys=['ticker', 'signals_fired', 'n_signals', 'composite_score', 'signal_breakdown', 'trade_ticket', 'rank']
+   list 'top_smart_money_only' n=10 item-keys=['ticker', 'strength', 'pattern', 'n_funds_buying', 'score', 'evidence']
+   list 'top_short_covering_only' n=3 item-keys=['ticker', 'strength', 'z_score', 'category', 'evidence']
+   list 'trigger_conditions' n=5 item-keys=['name', 'current', 'threshold', 'satisfied', 'weight']
+   list 'historical_episodes' n=3 item-keys=['period', 'outcome']
+flow-anomaly: MISSING An error occurred (NoSuchKey) when calling th
+13f-aggregate: MISSING An error occurred (NoSuchKey) when calling th
+
+DONE 2150
