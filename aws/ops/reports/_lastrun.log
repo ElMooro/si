@@ -1,4 +1,13 @@
-risk_regime: MILD_RISK_ON score 14.2
-posture: {"beta_tilt": "neutral_to_long", "size_mult": 1.05, "hedge": "normal"}
-participation: {"confirmation": "NEUTRAL", "rotation_state": "ALIGNED", "mcclellan_osc": -4.4, "mcclellan_state": "NEUTRAL", "pct_advancers": 0.4511, "ad_ratio": 0.82, "vol_ratio": 0.95, "funded": false, "note": "Breadth roughly aligned with the cross-asset read."}
-DONE 2158
+exists — updating code
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2159_create_bootstrap_ma200.py", line 11, in <module>
+    lam.update_function_code(FunctionName=FN,ZipFile=buf.getvalue())
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. The resource arn:aws:lambda:us-east-1:857687956942:function:justhodl-ma200-reclaim is currently in the following state: 'Pending'. StateReasonCode: 'Creating'
