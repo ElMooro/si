@@ -1,25 +1,22 @@
-exists
-counts: {"names": 234, "multi_engine": 45, "short_squeeze_setup": 3, "accumulation": 14, "distribution": 25, "stealth_accumulation": 1, "accumulation_lean": 25, "distribution_lean": 19}
+synthesizer_wiring: {"n_options_tagged": 59, "n_flow_tagged": 140, "n_aligned_bullish": 11, "n_conflicted": 12, "note": "The options-confluence and flow-confluence synthesizers (which fuse the fragmented 21-engine options and 35-engine flow clusters) now annotate every pick. ALIGNED_BULLISH = positioning and institutional money agree; CONFLICTED = they disagree (e.g. bullish options flow but institutions distributing)."}
 
-MULTI-ENGINE FLOW CONFLUENCE (>=2 flow engines agree):
-   BSX    DISTRIBUTION         score=-1.80 engines=4 (capital-flow,dark-pool,short-interest,smart-money)
-   PEP    ACCUMULATION         score=+1.80 engines=3 (13f,smart-money,stealth)
-   HUM    ACCUMULATION         score=+1.80 engines=3 (13f,smart-money,stealth)
-   VZ     ACCUMULATION         score=+1.80 engines=3 (13f,smart-money,stealth)
-   HCA    SHORT_SQUEEZE_SETUP  score=+1.10 engines=3 (short-interest,smart-money,stealth)
-   BKNG   DISTRIBUTION_LEAN    score=-0.50 engines=3 (capital-flow,etf-lookthrough,smart-money)
-   MA     MIXED                score=-0.20 engines=3 (etf-lookthrough,short-interest,smart-money)
-   V      MIXED                score=-0.10 engines=3 (short-interest,smart-money,stealth)
-   GS     MIXED                score=+0.10 engines=3 (capital-flow,short-interest,smart-money)
-   AMP    ACCUMULATION         score=+1.30 engines=2 (13f,smart-money)
-   AMZN   DISTRIBUTION         score=-1.30 engines=2 (13f,smart-money)
-   MSFT   DISTRIBUTION         score=-1.30 engines=2 (13f,smart-money)
+ALIGNED BULLISH (options + flow agree):
+   NVDA   conv=81.1 options=BULLISH_FLOW flow=ACCUMULATION
+   META   conv=63.0 options=SQUEEZE_FUEL flow=STEALTH_ACCUMULATION
+   ANET   conv=40.9 options=BULLISH_LEAN flow=SHORT_SQUEEZE_SETUP
+   GOOGL  conv=36.5 options=SQUEEZE_FUEL flow=ACCUMULATION_LEAN
+   AVGO   conv=24.8 options=SQUEEZE_FUEL flow=ACCUMULATION_LEAN
+   INTC   conv=23.4 options=BULLISH_FLOW flow=ACCUMULATION_LEAN
+   CVX    conv=18.0 options=BULLISH_FLOW flow=ACCUMULATION_LEAN
+   JNJ    conv=15.6 options=BULLISH_LEAN flow=ACCUMULATION_LEAN
 
-by_posture:
-   SHORT_SQUEEZE_SETUP: ['HCA', 'EOG', 'ANET']
-   ACCUMULATION: ['PEP', 'HUM', 'VZ', 'AMP', 'PFE', 'MCD', 'NVDA', 'T']
-   DISTRIBUTION: ['BSX', 'AMZN', 'MSFT', 'ADBE', 'LLY', 'AXP', 'QCOM', 'DE']
-   STEALTH_ACCUMULATION: ['META']
-   ACCUMULATION_LEAN: ['PM', 'AXTA', 'CZR', 'RVTY', 'SNX', 'BRKR', 'ESTC', 'NCNO']
-   DISTRIBUTION_LEAN: ['BKNG', 'DASH', 'CCI', 'MET', 'GPC', 'CSGP', 'CPT', 'UAL']
-DONE 2151
+CONFLICTED (positioning vs institutional money):
+   MSFT   conv=50.5 options=BULLISH_FLOW flow=DISTRIBUTION
+   AMZN   conv=36.0 options=BULLISH_FLOW flow=DISTRIBUTION
+   FCX    conv=28.5 options=BULLISH_LEAN flow=DISTRIBUTION
+   ORCL   conv=23.9 options=SQUEEZE_FUEL flow=DISTRIBUTION
+   GOOG   conv=22.6 options=BULLISH_LEAN flow=DISTRIBUTION
+   GE     conv=13.5 options=BEARISH_LEAN flow=ACCUMULATION
+   TSLA   conv=12.8 options=SQUEEZE_FUEL flow=DISTRIBUTION
+   LLY    conv=10.2 options=BULLISH_LEAN flow=DISTRIBUTION
+DONE 2152
