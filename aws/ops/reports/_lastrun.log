@@ -1,6 +1,49 @@
-exists
-invoke: {"statusCode": 200, "body": "{\"names\": 6, \"multi_engine\": 0, \"squeeze_fuel\": 0, \"bullish_flow\": 0, \"bearish_flow\": 0, \"coiled\": 0, \"bullish_lean\": 6, \"bearish_lean\": 0}"} (2s)
-counts: {"names": 6, "multi_engine": 0, "squeeze_fuel": 0, "bullish_flow": 0, "bearish_flow": 0, "coiled": 0, "bullish_lean": 6, "bearish_lean": 0}
 
-MULTI-ENGINE CONFLUENCE (cross-engine agreement):
-DONE 2147
+options-analytics [data/options-analytics.json] top-keys: ['engine', 'version', 'ok', 'generated_at', 'thesis', 'universe_size', 'n_analyzed', 'distribution', 'board', 'top_picks', 'squeeze_setups', 'most_unusual', 'richest_iv_vrp', 'data_source']
+   dict 'distribution' n=4 sample-keys=['short_gamma', 'long_gamma', 'squeeze_setups', 'downside_hedging']
+   list 'board' n=58 item-keys=['ticker', 'spot', 'signal', 'score', 'price_confirm', 'gamma_regime', 'net_gex_musd_per_1pct', 'gamma_flip_strike', 'call_wall', 'put_wall']
+   list 'top_picks' n=6 item-keys=['ticker', 'score', 'direction', 'signal', 'gamma_regime', 'net_gex_musd', 'pcr_vol', 'price_confirm', 'reasons']
+   list 'squeeze_setups' n=6 item-keys=['ticker', 'spot', 'signal', 'score', 'price_confirm', 'gamma_regime', 'net_gex_musd_per_1pct', 'gamma_flip_strike', 'call_wall', 'put_wall']
+   list 'most_unusual' n=11 item-keys=['ticker', 'n_unusual', 'pcr_vol', 'net_premium_usd', 'unusual']
+   list 'richest_iv_vrp' n=12 item-keys=['ticker', 'vrp', 'atm_iv', 'hv20']
+   list 'caveats' n=3 of str: ['Discovery engine — MEASURE-BEFORE-TRUST. top_picks logged to signal-harvester 
+
+dealer-gex [data/dealer-gex.json] top-keys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'calculation_config', 'market_composite', 'squeeze_candidates', 'underlyings']
+   dict 'calculation_config' n=4 sample-keys=['risk_free_rate', 'expiry_horizon_days', 'contract_multiplier', 'n_underlyings']
+   dict 'market_composite' n=11 sample-keys=['spy_regime', 'spy_gex_billions', 'spy_flip_level', 'spy_spot', 'spy_pct_to_flip']
+   dict 'underlyings' n=10 sample-keys=['IWM', 'NVDA', 'SPY', 'TSLA', 'AAPL'] (map? first-val-keys=['symbol', 'spot', 'n_contracts_modeled', 'total_call_oi', 'total_put_oi', 'total_call_volume'])
+
+put-call-extreme [data/put-call-extreme.json] top-keys: ['version', 'generated_at', 'state', 'signal_strength', 'composite_z', 'dispersion', 'divergence_flag', 'n_valid_signals', 'n_total_signals', 'why_now', 'actions', 'signals', 'thresholds', 'edge_basis']
+   list 'signals' n=5 item-keys=['id', 'ok', 'cadence', 'latest_date', 'latest_value', 'z_raw', 'z_stress', 'flipped', 'weight_base', 'freshness_mult']
+   dict 'thresholds' n=6 sample-keys=['panic_rich', 'panic_active', 'neutral_band', 'euphoria_active', 'euphoria_rich']
+   list 'sources' n=5 of str: ['FRED VIXCLS (daily, equity vol)', 'FRED VXNCLS (daily, NDX vol)', 'FRED USEPUI
+
+options-flow [data/options-flow.json] top-keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
+   dict 'stats' n=6 sample-keys=['n_universe', 'n_evaluated', 'n_no_data', 'n_tier_a', 'n_tier_b']
+   dict 'summary' n=2 sample-keys=['top_25_overall', 'tier_a']
+   list 'all_qualifying' n=14 item-keys=['symbol', 'score', 'tier', 'flags', 'metrics']
+
+volatility-squeeze [data/volatility-squeeze.json] top-keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
+   dict 'stats' n=7 sample-keys=['n_universe', 'n_evaluated', 'n_no_data', 'n_tier_s', 'n_tier_a']
+   dict 'summary' n=3 sample-keys=['top_25_overall', 'tier_s', 'tier_a']
+   list 'all_qualifying' n=17 item-keys=['symbol', 'score', 'tier', 'n_signals_firing', 'flags', 'metrics']
+
+polygon-options-flow [data/polygon-options-flow.json] top-keys: ['generated_at', 'elapsed_s', 'n_scanned', 'n_extreme', 'n_bullish', 'n_notable', 'extreme_call_flow', 'bullish_call_flow', 'notable_flow', 'all_results']
+   list 'extreme_call_flow' n=7 item-keys=['ticker', 'n_contracts', 'call_vol', 'put_vol', 'total_vol', 'total_oi', 'cv_pv_ratio', 'vol_oi_ratio', 'mean_iv', 'max_iv']
+   list 'bullish_call_flow' n=8 item-keys=['ticker', 'n_contracts', 'call_vol', 'put_vol', 'total_vol', 'total_oi', 'cv_pv_ratio', 'vol_oi_ratio', 'mean_iv', 'max_iv']
+   list 'notable_flow' n=12 item-keys=['ticker', 'n_contracts', 'call_vol', 'put_vol', 'total_vol', 'total_oi', 'cv_pv_ratio', 'vol_oi_ratio', 'mean_iv', 'max_iv']
+   list 'all_results' n=30 item-keys=['ticker', 'n_contracts', 'call_vol', 'put_vol', 'total_vol', 'total_oi', 'cv_pv_ratio', 'vol_oi_ratio', 'mean_iv', 'max_iv']
+
+options-gamma [data/options-gamma.json] top-keys: ['generated_at', 'underlying', 'spot', 'vix', 'regime', 'interpretation', 'total_gex', 'by_expiry', 'by_strike', 'zero_gamma_strike', 'contracts_analyzed', 'fetch_duration_s']
+   dict 'by_expiry' n=6 sample-keys=['2026-06-24', '2026-06-25', '2026-06-26', '2026-06-29', '2026-06-30']
+   dict 'by_strike' n=45 sample-keys=['505', '520', '555', '565', '590'] (map? first-val-keys=['call_gex', 'put_gex', 'net_gex', 'oi_call', 'oi_put'])
+
+catalyst-skew-premove [data/catalyst-skew-premove.json] top-keys: ['engine', 'version', 'as_of', 'state', 'state_description', 'signal_strength', 'summary', 'bull_skew_setups', 'bear_skew_setups', 'balanced_setups', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'historical_episodes']
+   dict 'summary' n=6 sample-keys=['n_events_in_window', 'n_with_options_data', 'n_directional_setups', 'n_bull_skew', 'n_bear_skew']
+   list 'trigger_conditions' n=3 item-keys=['name', 'current', 'threshold', 'satisfied', 'weight']
+   dict 'forward_expectations' n=4 sample-keys=['1w', '1m', 'wr', 'basis']
+   dict 'recommended_trade' n=1 sample-keys=['ticket'] (map? first-val-keys=['strategy'])
+   list 'historical_episodes' n=2 item-keys=['period', 'outcome']
+   list 'sources' n=3 of str: ['data/catalyst-calendar.json', 'data/options-flow.json', 'data/earnings-iv-crus
+
+DONE 2148
