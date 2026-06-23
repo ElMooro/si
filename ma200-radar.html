@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>200-DMA Reclaim & Retest Radar · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;
+--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8;--vio:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:24px 16px 90px}
+.hd{border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:16px}
+h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font-size:12.5px}.meta{color:var(--fg3);font-size:11.5px;margin-top:3px}
+.thesis{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--vio);border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--fg2);line-height:1.5;margin-bottom:14px}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:5px 10px;font-size:11.5px;color:var(--fg2)}
+.chip b{color:var(--fg);font-size:13px}
+.sec{margin:22px 0 8px;font-size:13.5px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+.sec .n{color:var(--fg3);font-weight:400;font-size:11.5px}.hero{border-left:3px solid var(--grn);padding-left:9px}
+.secnote{color:var(--fg3);font-size:11px;margin:-4px 0 8px;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:9px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:10px 12px}
+.r1{display:flex;justify-content:space-between;align-items:baseline}
+.tk{font-weight:700;font-size:15.5px}
+.dist{font-size:13px;font-weight:600}
+.l2{font-size:11px;color:var(--fg3);margin-top:3px}
+.tags{margin-top:5px;display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:9px;border:1px solid var(--bd);border-radius:4px;padding:1px 5px;color:var(--fg3)}
+.tag.gc{color:var(--amb);border-color:rgba(251,191,36,.4)}
+.tag.up{color:var(--grn)}.tag.dn{color:var(--red)}
+.foot{color:var(--fg3);font-size:11px;margin-top:24px;line-height:1.5}.loading{color:var(--fg3);padding:40px 0}
+</style></head><body><div class="wrap" id="w"><div class="loading">Loading 200-DMA radar…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function card(r,dir){const d=r.dist_pct;const dc=d>=0?'var(--grn)':'var(--red)';
+  const tags=[];
+  if(r.ma50_above_ma200)tags.push('<span class="tag gc">50&gt;200 golden</span>');
+  if(r.ma200_slope_pct!=null)tags.push(`<span class="tag ${r.ma200_slope_pct>=0?'up':'dn'}">MA slope ${r.ma200_slope_pct>=0?'+':''}${r.ma200_slope_pct}%</span>`);
+  if(r.bars_since_cross!=null)tags.push(`<span class="tag">${r.bars_since_cross}d since cross</span>`);
+  if(r.retest_age!=null)tags.push(`<span class="tag">retest ${r.retest_age}d ago</span>`);
+  return `<div class="card"><div class="r1"><span class="tk">${esc(r.ticker)}</span><span class="dist" style="color:${dc}">${d>=0?'+':''}${d}%</span></div>`
+    +`<div class="l2">px ${r.price} vs 200-DMA ${r.ma200}${r.state?' · '+esc(r.state):''}</div>`
+    +`<div class="tags">${tags.join('')}</div></div>`;}
+function section(h,title,note,arr,cls,dir){if(!arr||!arr.length)return h;
+  return h+`<div class="sec ${cls||''}">${title} <span class="n">— ${arr.length}</span></div>`
+    +(note?`<div class="secnote">${note}</div>`:'')+`<div class="grid">${arr.map(r=>card(r,dir)).join('')}</div>`;}
+(async function(){
+  const d=await gj('data/ma200-reclaim.json');const w=document.getElementById('w');
+  if(!d){w.innerHTML='<div class="hd"><h1>200-DMA Radar</h1></div><div class="loading">No data yet.</div>';return;}
+  const c=d.counts||{};
+  if(d.status&&!c.fresh_above){w.innerHTML=`<div class="hd"><h1>📡 200-DMA Reclaim & Retest Radar</h1></div><div class="loading">${esc(d.status)}</div>`;return;}
+  let h=`<div class="hd"><h1>📡 200-DMA Reclaim & Retest Radar</h1><div class="sub">Every liquid US asset that just crossed its 200-day moving average — and which reclaims successfully retested the line.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · ${d.universe||0} names · ${d.buffer_sessions||0} sessions · v${esc(d.version||'')}</div></div>`;
+  h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="counts"><span class="chip" style="color:var(--grn)"><b>${c.retest_held||0}</b> retest held</span><span class="chip" style="color:var(--amb)"><b>${c.retesting_now||0}</b> retesting now</span><span class="chip" style="color:var(--grn)"><b>${c.fresh_above||0}</b> broke above</span><span class="chip" style="color:var(--red)"><b>${c.fresh_below||0}</b> broke below</span><span class="chip"><b>${c.retest_failed||0}</b> failed</span></div>`;
+  h=section(h,'✅ Retest held — confirmed polarity flip','Reclaimed the 200-DMA, pulled back to it, and held above. The high-probability continuation book (graded vs SPY). Sorted: rising MA + golden cross + fresh, near-the-line retests first.',d.retest_held,'hero','up');
+  h=section(h,'⏳ Retesting now — at the line','Reclaimed earlier, currently back within ±1.5% of the 200-DMA. Watch for hold vs fail.',d.retesting_now,'','up');
+  h=section(h,'🟢 Just broke above the 200-DMA','Fresh upside cross, still intact (price above the line).',d.fresh_breakouts_above,'','up');
+  h=section(h,'🔴 Just broke below the 200-DMA','Fresh downside cross, still intact (price below the line).',d.fresh_breakdowns_below,'','dn');
+  h=section(h,'⚠️ Failed reclaims — bull traps','Broke above, then closed back below the 200-DMA. The breakout failed.',d.retest_failed,'','dn');
+  h+=`<div class="foot">Universe: top ${d.universe||0} liquid US equities/ETFs by dollar volume (px ≥ $${(d.params||{}).min_px}, ≥ $${(((d.params||{}).min_dollar_vol||0)/1e6)}M/day). 200-DMA = simple moving average. Retest-held longs + fresh breakdowns are logged to the scorecard and graded on forward excess-vs-SPY before being trusted.</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
