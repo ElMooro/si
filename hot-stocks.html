@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Retail Flow &amp; Sentiment Brief · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8;--vio:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:920px;margin:0 auto;padding:24px 16px 90px}
+.hd{border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:16px}
+h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font-size:12.5px}.meta{color:var(--fg3);font-size:11.5px;margin-top:3px}
+.read{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--vio);border-radius:8px;padding:12px 14px;font-size:13.5px;line-height:1.55;margin-bottom:8px}
+.read b{color:var(--fg)}
+.ctx{color:var(--fg3);font-size:11.5px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:13px 15px;margin:9px 0}
+.r1{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tk{font-weight:700;font-size:17px}.heat{font-size:11px;color:var(--fg3)}
+.net{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-radius:5px;padding:2px 8px}
+.why{color:var(--cyan);font-size:12.5px;margin-top:5px}
+.bb{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:9px}
+.bull,.bear{font-size:12px;line-height:1.45;padding:8px 10px;border-radius:7px}
+.bull{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2)}.bear{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2)}
+.bull .lbl{color:var(--grn)}.bear .lbl{color:var(--red)}.lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;display:block;margin-bottom:3px}
+.news{margin-top:7px;font-size:11px;color:var(--fg3)}.news a{color:var(--fg2);text-decoration:none}.news a:hover{color:var(--cyan)}
+.ven{display:inline-block;font-size:9px;color:var(--fg3);border:1px solid var(--bd);border-radius:4px;padding:0 5px;margin-right:3px}
+.warn{background:var(--card);border:1px solid rgba(248,113,113,.25);border-radius:9px;padding:11px 13px;margin-top:18px;font-size:12.5px;color:var(--fg2)}
+.warn b{color:var(--red)}
+.foot{color:var(--fg3);font-size:11px;margin-top:20px;line-height:1.5}
+.loading{color:var(--fg3);padding:40px 0}@media(max-width:560px){.bb{grid-template-columns:1fr}}
+</style></head><body><div class="wrap" id="w"><div class="loading">Loading the morning brief…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function netColor(n){n=(n||'').toLowerCase();if(n.includes('early')||n.includes('long')||n.includes('buy'))return['var(--grn)','rgba(52,211,153,.13)'];if(n.includes('fade')||n.includes('short')||n.includes('avoid')||n.includes('crowded'))return['var(--red)','rgba(248,113,113,.13)'];return['var(--amb)','rgba(251,191,36,.12)'];}
+(async function(){
+  const d=await gj('data/hot-stocks-digest.json');const w=document.getElementById('w');
+  if(!d||!d.hot_stocks){w.innerHTML='<div class="hd"><h1>Retail Flow &amp; Sentiment Brief</h1></div><div class="loading">No brief generated yet — runs each morning ~12:30 UTC.</div>';return;}
+  let h=`<div class="hd"><h1>📡 Retail Flow &amp; Sentiment Brief</h1><div class="sub">What\u2019s heating up across Reddit, StockTwits &amp; the wires — with the bull and bear case per name.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}${d.llm_narrative?'':' · narrative unavailable this run'}</div></div>`;
+  h+=`<div class="read"><b>Market read:</b> ${esc(d.market_read)}</div>`;
+  if(d.market_context)h+=`<div class="ctx">${esc(d.market_context)}</div>`;
+  for(const s of d.hot_stocks){
+    const a=s.analyst||{};const[nc,nb]=netColor(a.net);
+    h+=`<div class="card"><div class="r1"><div><span class="tk">${esc(s.ticker)}</span> <span class="heat">heat ${Math.round(s.score)} · ${s.venue_count||0} venues${s.bull_pct!=null?' · '+s.bull_pct+'% bull':''}${s.velocity!=null?' · vel '+s.velocity:''}</span></div>${a.net?`<span class="net" style="color:${nc};background:${nb}">${esc(a.net)}</span>`:''}</div>`;
+    if(a.why_hot||(s.why&&s.why.length))h+=`<div class="why">${esc(a.why_hot||s.why[0])}</div>`;
+    h+=`<div style="margin-top:6px">${(s.venues||[]).map(v=>`<span class="ven">${esc(v)}</span>`).join('')}</div>`;
+    if(a.bull||a.bear)h+=`<div class="bb"><div class="bull"><span class="lbl">Bull case</span>${esc(a.bull||'—')}</div><div class="bear"><span class="lbl">Bear case</span>${esc(a.bear||'—')}</div></div>`;
+    if((s.good_news&&s.good_news.length)||(s.bad_news&&s.bad_news.length)){
+      h+=`<div class="news">`;
+      for(const n of (s.good_news||[]).slice(0,2))h+=`<div>🟢 ${n.url?`<a href="${esc(n.url)}" target="_blank">${esc(n.title)}</a>`:esc(n.title)}</div>`;
+      for(const n of (s.bad_news||[]).slice(0,2))h+=`<div>🔴 ${n.url?`<a href="${esc(n.url)}" target="_blank">${esc(n.title)}</a>`:esc(n.title)}</div>`;
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  }
+  if(d.warnings&&d.warnings.length){
+    const seen=new Set();const ws=d.warnings.filter(x=>x.ticker&&!seen.has(x.ticker)&&seen.add(x.ticker));
+    h+=`<div class="warn"><b>⚠️ Crowded / fading — handle with care:</b> ${ws.slice(0,10).map(x=>`${esc(x.ticker)} <span style="color:var(--fg3)">(${esc(x.flag)})</span>`).join(' · ')}</div>`;
+  }
+  h+=`<div class="foot">Sources: ${(d.sources||[]).map(esc).join(' · ')}. ${esc(d.note||'')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
