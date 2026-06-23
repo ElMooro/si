@@ -269,12 +269,45 @@ def lambda_handler(event, context):
     else:
         posture = {"beta_tilt": "defensive_low_vol_quality", "size_mult": 0.75, "hedge": "max"}
 
+    # ── participation / breadth overlay (market-internals; confirmation, not core score) ──
+    bi = _read("data/market-internals.json") or {}
+    rot = bi.get("rotation") or {}
+    mc = bi.get("mcclellan") or {}
+    participation = None
+    if rot:
+        rstate = rot.get("state")
+        risk_on = score >= 12
+        risk_off = score <= -12
+        if rstate == "GREAT_ROTATION":
+            conf = "ROTATION"
+            pnote = ("Breadth broadly positive while the cap-weighted index is red — leadership rotating "
+                     "out of mega-caps. Index-level RORO understates the broad market's strength.")
+        elif risk_on and rstate == "NARROW_MEGACAP":
+            conf = "DIVERGENT"
+            pnote = ("Risk-on by cross-asset tells, but breadth is narrow (mega-cap-led). Fragile advance — "
+                     "discounting conviction.")
+            posture = dict(posture)
+            posture["size_mult"] = round(posture["size_mult"] * 0.95, 3)
+            posture["participation_warning"] = "narrow_breadth"
+        elif risk_on and rstate == "BROAD_RALLY":
+            conf = "CONFIRMED"; pnote = "Risk-on confirmed by broad participation."
+        elif risk_off and rstate == "BROAD_SELLOFF":
+            conf = "CONFIRMED"; pnote = "Risk-off confirmed by broad-based selling."
+        else:
+            conf = "NEUTRAL"; pnote = "Breadth roughly aligned with the cross-asset read."
+        participation = {"confirmation": conf, "rotation_state": rstate,
+                         "mcclellan_osc": mc.get("oscillator"), "mcclellan_state": mc.get("state"),
+                         "pct_advancers": rot.get("pct_advancers"), "ad_ratio": rot.get("ad_ratio"),
+                         "vol_ratio": rot.get("vol_ratio"), "funded": rot.get("funded"), "note": pnote}
+        all_tells.append(f"Breadth: {rstate} ({conf})")
+
     out = {
         "engine": "risk-regime", "version": "1.0.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "risk_regime_score": score, "risk_regime": regime,
         "scale": "-100 = risk-off / flight-to-quality .. +100 = risk-on",
         "posture": posture,
+        "participation": participation,
         "blocks_used": [{"block": b, "weight": w, "score": round(s, 3)} for b, w, s in blocks],
         "components": results,
         "tells": all_tells,
