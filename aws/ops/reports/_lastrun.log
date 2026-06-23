@@ -1,13 +1,6 @@
-  FEED data/equity-confluence.json: book_size=22 mode=PROVISIONAL
-  FEED data/resilience.json: book_size=15 mode=-
-  FEED data/strategist.json: book_size=0 mode=-
+exists
+invoke: {"statusCode": 200, "body": "{\"names\": 6, \"multi_engine\": 0, \"squeeze_fuel\": 0, \"bullish_flow\": 0, \"bearish_flow\": 0, \"coiled\": 0, \"bullish_lean\": 6, \"bearish_lean\": 0}"} (2s)
+counts: {"names": 6, "multi_engine": 0, "squeeze_fuel": 0, "bullish_flow": 0, "bearish_flow": 0, "coiled": 0, "bullish_lean": 6, "bearish_lean": 0}
 
-orphan_meta_wiring: {"n_cross_family_confluence": 19, "n_resilient": 2, "n_strategist": 0, "note": "equity-confluence, resilience and strategist were islands feeding nothing; they now corroborate best-setups picks \u2014 a name independently confirmed by the cross-family synthesizer and the resilience radar carries that weight."}
-   CONFLUENCE NVDA   conv=81.1 {'composite': 41.4, 'super': None, 'family': None, 'proven': False}
-   CONFLUENCE META   conv=63.0 {'composite': 39.4, 'super': None, 'family': None, 'proven': False}
-   CONFLUENCE ANET   conv=40.9 {'composite': 25.0, 'super': None, 'family': None, 'proven': False}
-   CONFLUENCE MU     conv=36.9 {'composite': 38.2, 'super': None, 'family': None, 'proven': False}
-   CONFLUENCE COST   conv=26.7 {'composite': 25.0, 'super': None, 'family': None, 'proven': False}
-   RESILIENT  MNST   conv=8.4 flags=['about-to-boom', 'resilient-top']
-   RESILIENT  WAB    conv=0.0 flags=['about-to-boom']
-DONE 2146
+MULTI-ENGINE CONFLUENCE (cross-engine agreement):
+DONE 2147
