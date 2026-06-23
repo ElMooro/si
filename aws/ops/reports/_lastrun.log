@@ -1,40 +1,51 @@
-exists (deploy pipeline created it) — updating code to ensure shared bundled
-invoke: {"statusCode": 200, "body": "{\"processed\": 7, \"errors\": 0, \"with_outlook\": 0, \"cursor\": 7, \"total_pages\": 331}"} (202s)
+scorecard graded signals: 67
+   crisis_dfii10_vs_gld         ALPHA_PROVEN     excess=5.42% hit=92.9% n=266
+   crypto_risk_score            ALPHA_PROVEN     excess=2.193% hit=57.8% n=249
+   squeeze_risk                 ALPHA_PROVEN     excess=2.74% hit=59.5% n=875
+   momentum_uso                 NO_ALPHA         excess=0.34% hit=50.4% n=462
+   khalid_index                 NO_ALPHA         excess=0.281% hit=31.1% n=74
+   equity_convergence_fingerprint NO_ALPHA         excess=0.147% hit=42.3% n=26
+   frontrun_sniffer_setup       NO_ALPHA         excess=0.162% hit=59.1% n=176
+   yc_regime                    NO_ALPHA         excess=0.08% hit=29.4% n=102
+   earnings_pead                NO_ALPHA         excess=-0.012% hit=53.1% n=1151
+   momentum_top_pick            INSUFFICIENT     excess=None% hit=100.0% n=18
+   screener_top_pick            INSUFFICIENT     excess=None% hit=59.7% n=0
+   nobrainer_SOXX               INSUFFICIENT     excess=None% hit=75.0% n=16
+   nobrainer_SMH                INSUFFICIENT     excess=None% hit=92.9% n=14
+   nobrainer_BOTZ               INSUFFICIENT     excess=None% hit=88.9% n=9
+   nobrainer_SLX                INSUFFICIENT     excess=None% hit=83.3% n=12
+   etf_flow_extreme             INSUFFICIENT     excess=None% hit=100.0% n=3
+   nobrainer_OIH                INSUFFICIENT     excess=None% hit=66.7% n=12
+   nobrainer_ROBO               INSUFFICIENT     excess=None% hit=62.5% n=8
+   nobrainer_LIT                INSUFFICIENT     excess=None% hit=66.7% n=6
+   nobrainer_PICK               INSUFFICIENT     excess=None% hit=54.5% n=11
+   nobrainer_REMX               INSUFFICIENT     excess=None% hit=50.0% n=8
+   momentum_uup                 INSUFFICIENT     excess=None% hit=33.3% n=6
+   nobrainer_AIQ                INSUFFICIENT     excess=None% hit=27.3% n=11
+   nobrainer_XOP                INSUFFICIENT     excess=None% hit=7.7% n=13
+   momentum_tlt                 INSUFFICIENT     excess=None% hit=0% n=5
+   cot_extreme                  INSUFFICIENT     excess=None% hit=0% n=11
+   crisis_index_stlfsi4         INSUFFICIENT     excess=None% hit=0% n=0
+   edge_composite               INSUFFICIENT     excess=None% hit=0% n=0
+   crisis_ig_bbb_oas            INSUFFICIENT     excess=None% hit=0% n=0
+   crisis_index_kcfsi           INSUFFICIENT     excess=None% hit=0% n=0
+   crisis_t10yie_extreme        INSUFFICIENT     excess=None% hit=0% n=0
+   crisis_hy_oas_vs_spy         INSUFFICIENT     excess=None% hit=0% n=0
+   crisis_index_anfci           INSUFFICIENT     excess=None% hit=0% n=0
+   crisis_hy_oas_vs_hyg         INSUFFICIENT     excess=None% hit=0% n=0
+   crisis_index_nfci            INSUFFICIENT     excess=None% hit=0% n=0
+   nobrainer_SIL                INSUFFICIENT     excess=None% hit=0% n=9
+   nobrainer_XLE                INSUFFICIENT     excess=None% hit=0% n=3
+   nobrainer_URA                INSUFFICIENT     excess=None% hit=0% n=1
+   nobrainer_COPX               INSUFFICIENT     excess=None% hit=0% n=3
+   eurodollar_stress            ALPHA_NEGATIVE   excess=0.186% hit=51.1% n=219
 
-cursor now: {'i': 7, 'updated': '2026-06-23T01:41:41.309265+00:00'}
+wave 1: {"statusCode": 200, "body": "{\"processed\": 32, \"with_outlook\": 1, \"errors\": 0, \"cursor\": 39, \"total_pages\": 331}"} (249s)
 
---- 13f ---
-  what_it_is: This page displays the latest 13F filings from major institutional investors, detailing their portfolio holdings, position values, and quarter-over-qu
-  what_it_does: The engine parses SEC 13F filings to track smart money capital flows, flagging significant accumulation or distribution by comparing current and prior
-  analysis: Berkshire Hathaway's latest filing reveals a sharp rotation away from financials and legacy tech, with AXP (-18.24%), BAC (-11.99%), CVX (-12.00%), and AAPL (-6.65%) experiencing notable trims. Capita
-  pick_read: GOOGL is the standout new conviction pick, with Berkshire boosting its position value by 179.28% to $15.6B, making it a top-five holding at 5.93% of the portfol
-  OUTLOOK: status=UNGRADED grade=None mean_excess_vs_spy=None% hit=None% n=0 matched=None
-           confidence: BUILDING — this engine's picks are still being graded forward
+wave 2: {"statusCode": 200, "body": "{\"processed\": 42, \"with_outlook\": 0, \"errors\": 0, \"cursor\": 81, \"total_pages\": 331}"} (254s)
 
---- about ---
-  what_it_is: This is the informational overview page for JustHodl.AI, detailing the platform's mission and methodology.
-  what_it_does: It explains the AI-driven scoring engine and systematic framework used to evaluate crypto assets based on momentum, sentiment, and fundamental metrics
-  analysis: As a static About page, there is no live data feed, current metrics, or real-time signals to evaluate. The content serves as a qualitative trust anchor outlining the analytical infrastructure rather t
-  pick_read: no single-name picks on this page
-  OUTLOOK: status=UNGRADED grade=None mean_excess_vs_spy=None% hit=None% n=0 matched=None
-           confidence: BUILDING — this engine's picks are still being graded forward
+page-ai files generated: 79 | with REAL grounded outlook (scorecard-matched): 1
+   apex                   ALPHA_NEGATIVE mean_excess_vs_SPY=-0.725% hit=44.4% n=189 [justhodl-apex-fusion]
 
---- accuracy ---
-  what_it_is: 
-  what_it_does: 
-  analysis: 
-  pick_read: 
-  OUTLOOK: status=UNGRADED grade=None mean_excess_vs_spy=None% hit=None% n=0 matched=None
-           confidence: BUILDING — this engine's picks are still being graded forward
-
---- ai-rerating ---
-  what_it_is: This page displays the AI Re-Rating Radar, which identifies AI infrastructure stocks trading below their growth-implied valuations before the market r
-  what_it_does: The engine regresses EV/Sales against forward growth across 117 priced AI-infra names, flagging stocks with large negative residuals that are cheap re
-  analysis: The radar currently flags 13 candidates out of 126 names, with 5 in small/mid-cap. BTBT leads at composite 87.6, posting 59% trailing 2-year growth at 7.2x EV/Sales versus 12.6x growth-implied—a 43% d
-  pick_read: BTBT is the top pick at composite 87.6: 59% revenue growth at a 43% discount to growth-implied EV/Sales, confirmed insider buying, and a 42pp lag to miners-to-A
-  OUTLOOK: status=UNGRADED grade=None mean_excess_vs_spy=None% hit=None% n=0 matched=None
-           confidence: BUILDING — this engine's picks are still being graded forward
-  altseason: not generated this wave (An error occurred (NoSuchKey) when calli)
-  apex: not generated this wave (An error occurred (NoSuchKey) when calli)
-
-DONE 2125
+jh-page-ai.js live: 200
+DONE 2126
