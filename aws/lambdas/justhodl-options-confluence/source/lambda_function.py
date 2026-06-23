@@ -101,47 +101,83 @@ def lambda_handler(event, context):
     def touch(tk):
         return acc.setdefault(tk, {"ticker": tk, "score": 0.0, "engines": set(),
                                    "neg_gamma": False, "coiled": False, "tags": []})
+    def add(tk, eng, dscore=0.0, neg_gamma=False, coiled=False, tag=None):
+        if not tk or len(tk) > 6: return
+        a = touch(tk); a["engines"].add(eng); a["score"] += dscore
+        if neg_gamma: a["neg_gamma"] = True
+        if coiled: a["coiled"] = True
+        if tag and tag not in a["tags"]: a["tags"].append(tag)
 
-    # ---- directional flow engines ----
-    for fk, key in [("options-analytics", "data/options-analytics.json"),
-                    ("polygon-options-flow", "data/polygon-options-flow.json"),
-                    ("options-flow-scanner", "data/options-flow.json"),
-                    ("put-call-extreme", "data/put-call-extreme.json"),
-                    ("catalyst-skew-premove", "data/catalyst-skew-premove.json")]:
-        inc, lift = gated(fk)
-        if not inc: continue
-        for it in _rows(_read(key)):
-            tk = _tk(it)
-            if not tk or len(tk) > 6: continue
-            d, mag = _dir_from(it)
-            if d == 0.0: continue
-            a = touch(tk); a["score"] += d * (0.4 + 0.6 * mag) * lift; a["engines"].add(fk)
+    # 1. options-analytics — the richest source: board(58)+top_picks+squeeze_setups+most_unusual
+    inc, lift = gated("options-analytics")
+    if inc:
+        oa = _read("data/options-analytics.json")
+        for bk in ("board", "top_picks", "squeeze_setups", "most_unusual"):
+            for it in (oa.get(bk) or []):
+                if not isinstance(it, dict): continue
+                tk = _tk(it)
+                gr = (it.get("gamma_regime") or "").lower()
+                ng = it.get("net_gex_musd"); ng = it.get("net_gex_musd_per_1pct") if ng is None else ng
+                neg = ("short" in gr) or (isinstance(ng, (int, float)) and ng < 0)
+                d = 0.0
+                dirf = (it.get("direction") or "").lower()
+                if "bull" in dirf or "long" in dirf: d += 0.6
+                elif "bear" in dirf or "short" in dirf: d -= 0.6
+                pcr = it.get("pcr_vol")
+                if isinstance(pcr, (int, float)) and pcr > 0:
+                    d += 0.4 if pcr < 0.9 else (-0.4 if pcr > 1.1 else 0.0)
+                npx = it.get("net_premium_usd")
+                if isinstance(npx, (int, float)) and npx: d += 0.3 if npx > 0 else -0.3
+                add(tk, "options-analytics", d * lift, neg_gamma=neg, coiled=(bk == "squeeze_setups"),
+                    tag=("squeeze setup" if bk == "squeeze_setups" else ("dealers short gamma" if neg else None)))
 
-    # ---- dealer gamma (neg gamma = squeeze fuel) ----
-    for fk, key in [("dealer-gex", "data/dealer-gex.json"), ("options-gamma", "data/options-gamma.json")]:
+    # 2. dealer-gex — underlyings MAP + squeeze_candidates
+    inc, _ = gated("dealer-gex")
+    if inc:
+        dg = _read("data/dealer-gex.json")
+        und = dg.get("underlyings") or {}
+        if isinstance(und, dict):
+            for sym, v in und.items():
+                if not isinstance(v, dict): continue
+                g = v.get("net_gex"); g = v.get("net_gex_billions") if g is None else g
+                g = v.get("total_gex") if g is None else g
+                neg = isinstance(g, (int, float)) and g < 0
+                add(str(sym).upper(), "dealer-gex", 0.0, neg_gamma=neg,
+                    tag="dealers short gamma" if neg else None)
+        for it in (dg.get("squeeze_candidates") or []):
+            if isinstance(it, dict): add(_tk(it), "dealer-gex", 0.2, neg_gamma=True, tag="GEX squeeze candidate")
+
+    # 3. polygon-options-flow — bullish/extreme call-flow lists (+) + all_results cv_pv_ratio
+    inc, _ = gated("polygon-options-flow")
+    if inc:
+        pf = _read("data/polygon-options-flow.json")
+        for bk, w in [("extreme_call_flow", 0.7), ("bullish_call_flow", 0.6)]:
+            for it in (pf.get(bk) or []):
+                if isinstance(it, dict): add(_tk(it), "polygon-options-flow", w, tag="bullish call flow")
+        for it in (pf.get("all_results") or []):
+            if not isinstance(it, dict): continue
+            r = it.get("cv_pv_ratio")
+            if isinstance(r, (int, float)) and r > 0:
+                add(_tk(it), "polygon-options-flow", 0.4 if r >= 1.3 else (-0.4 if r <= 0.7 else 0.0))
+
+    # 4. catalyst-skew-premove — directional pre-catalyst skew books
+    inc, _ = gated("catalyst-skew-premove")
+    if inc:
+        cs = _read("data/catalyst-skew-premove.json")
+        for it in (cs.get("bull_skew_setups") or []):
+            if isinstance(it, dict): add(_tk(it), "catalyst-skew", 0.6, tag="pre-catalyst bull skew")
+        for it in (cs.get("bear_skew_setups") or []):
+            if isinstance(it, dict): add(_tk(it), "catalyst-skew", -0.6, tag="pre-catalyst bear skew")
+
+    # 5. options-flow scanner + volatility-squeeze — COILED (vol compression, tier S/A)
+    for fk, key in [("options-flow-scanner", "data/options-flow.json"),
+                    ("volatility-squeeze", "data/volatility-squeeze.json")]:
         inc, _ = gated(fk)
         if not inc: continue
-        for it in _rows(_read(key)):
-            tk = _tk(it)
-            if not tk or len(tk) > 6: continue
-            g = it.get("net_gex"); g = it.get("gex") if g is None else g
-            if isinstance(g, (int, float)):
-                a = touch(tk); a["engines"].add(fk)
-                if g < 0: a["neg_gamma"] = True; a["tags"].append("dealers short gamma")
-
-    # ---- vol compression / coiled ----
-    for fk, key in [("volatility-squeeze", "data/volatility-squeeze.json"),
-                    ("precatalyst-vol-expansion", "data/precatalyst-vol-expansion.json")]:
-        inc, lift = gated(fk)
-        if not inc: continue
-        for it in _rows(_read(key)):
-            tk = _tk(it)
-            if not tk or len(tk) > 6: continue
-            tier = (it.get("tier") or "").upper()
-            sc = it.get("score")
-            if tier in ("S", "A") or (isinstance(sc, (int, float)) and sc >= 60):
-                a = touch(tk); a["engines"].add(fk); a["coiled"] = True
-                if "coiled (vol compression)" not in a["tags"]: a["tags"].append("coiled (vol compression)")
+        for it in (_read(key).get("all_qualifying") or []):
+            if not isinstance(it, dict): continue
+            if (it.get("tier") or "").upper() in ("S", "A"):
+                add(_tk(it), fk, 0.0, coiled=True, tag="coiled (vol compression)")
 
     # ---- classify posture ----
     book = []
