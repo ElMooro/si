@@ -206,14 +206,20 @@ def _parse_json_array(txt):
     a, b = t.find("["), t.rfind("]")
     if a >= 0 and b > a:
         try: return json.loads(t[a:b + 1])
-        except Exception: return []
-    return []
+        except Exception: pass
+    # per-object fallback: one malformed entry shouldn't kill the batch
+    out = []
+    for m in re.finditer(r"\{[^{}]*\}", t):
+        try: out.append(json.loads(m.group(0)))
+        except Exception: continue
+    return out
 
 
-def verify_irreplaceability(candidates, max_n=48):
+def verify_irreplaceability(candidates, max_n=56, budget_s=190):
     """LLM judgment: is each a TRUE chokepoint the industry can't route around, or just a
     high-margin business? Margins alone can't tell ADSK (CAD standard) from DUOL (a high-margin
-    app). Cached in S3 (only uncached names judged); fault-tolerant (LLM down -> verdicts skipped)."""
+    app). Cached in S3 (only uncached names judged); fault-tolerant (LLM down -> verdicts skipped).
+    Small batches + retry + wall-clock budget so it converges in ONE run, not over several days."""
     cache_key = "data/_cache/chokepoint-irreplaceability.json"
     cache = _read(cache_key) or {}
     todo = [c for c in candidates[:max_n] if c["ticker"] not in cache]
@@ -230,25 +236,33 @@ def verify_irreplaceability(candidates, max_n=48):
            "Synopsys = the EDA duopsony chip designers must use). A company is NOT a chokepoint merely because it "
            "has high margins — most software and single-drug biotech businesses have high margins BY DEFAULT yet "
            "face real substitutes (Duolingo, Dropbox, an ordinary SaaS app, a one-drug biotech). Be strict.")
-    judged = 0
-    for i in range(0, len(todo), 16):
-        batch = todo[i:i + 16]
+
+    def judge_batch(batch):
         lst = "\n".join(f"- {c['ticker']} {c.get('name') or ''} ({c.get('industry') or ''})" for c in batch)
         prompt = ("Classify each company. verdict = CHOKEPOINT (its industry cannot route around it), "
                   "NOT (real substitutes exist / ordinary high-margin business), or UNCERTAIN (you do not know it "
                   "well enough). When in doubt use NOT or UNCERTAIN. Return ONLY a JSON array, no prose:\n"
                   '[{"ticker":"X","verdict":"CHOKEPOINT|NOT|UNCERTAIN","reason":"<=8 words"}]\n\nCompanies:\n' + lst)
         try:
-            txt = complete(prompt, tier="reason", max_tokens=1600, system=SYS)
-            for o in _parse_json_array(txt):
-                tk = str(o.get("ticker", "")).upper()
-                v = str(o.get("verdict", "")).upper()
-                if tk and v in ("CHOKEPOINT", "NOT", "UNCERTAIN"):
-                    cache[tk] = {"verdict": v, "reason": str(o.get("reason", ""))[:60],
-                                 "judged_at": datetime.now(timezone.utc).isoformat()[:10]}
-                    judged += 1
+            return _parse_json_array(complete(prompt, tier="reason", max_tokens=1200, system=SYS))
         except Exception as e:
-            print("[verify] batch failed:", str(e)[:70])
+            print("[verify] batch error:", str(e)[:70]); return []
+
+    deadline = time.time() + budget_s
+    judged = 0
+    for i in range(0, len(todo), 8):
+        if time.time() > deadline:
+            print("[verify] budget reached; %d names left for next run (cached)" % (len(todo) - i)); break
+        batch = todo[i:i + 8]
+        arr = judge_batch(batch) or judge_batch(batch)   # one retry on empty
+        got = set()
+        for o in arr:
+            tk = str(o.get("ticker", "")).upper()
+            v = str(o.get("verdict", "")).upper()
+            if tk and v in ("CHOKEPOINT", "NOT", "UNCERTAIN"):
+                cache[tk] = {"verdict": v, "reason": str(o.get("reason", ""))[:60],
+                             "judged_at": datetime.now(timezone.utc).isoformat()[:10]}
+                got.add(tk); judged += 1
     if judged:
         try:
             s3.put_object(Bucket=BUCKET, Key=cache_key, Body=json.dumps(cache).encode(), ContentType="application/json")
@@ -331,7 +345,7 @@ def lambda_handler(event, context):
     # v2.1: LLM irreplaceability filter — separate TRUE chokepoints from "just high-margin"
     verdicts = {}
     try:
-        verdicts = verify_irreplaceability(discovered, max_n=48)
+        verdicts = verify_irreplaceability(discovered)
     except Exception as e:
         diag.append("verify_failed:%s" % str(e)[:40])
     for r in results:
