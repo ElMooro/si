@@ -681,7 +681,7 @@ def lambda_handler(event, context):
     # so a setup carries its OWN failure mode and any internal disagreement, eyes-open.
     kill_by = {}
     for t in (kill_theses.get("theses") or []):
-        tk = (t.get("ticker") or "").upper()
+        tk = (t.get("symbol") or t.get("ticker") or "").upper()
         if not tk or t.get("error"): continue
         kc = sorted((t.get("kill_conditions") or []), key=lambda k: -(k.get("severity") or 0))
         kill_by[tk] = {"failure_mode": t.get("thesis_summary"), "top_kill": kc[0] if kc else None}
