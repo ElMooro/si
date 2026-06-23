@@ -144,6 +144,16 @@ SIGNAL_FAMILY = {
 }
 WITHIN_FAMILY_WEIGHT = 0.25   # an extra same-family signal adds only a quarter-bet
 
+# ── #3: map best-setups signal keys -> rigorously alpha-graded engine signal_types ──
+# Only correspondences we're confident in. squeeze_risk is the single ALPHA_PROVEN
+# equity-relevant engine, so squeeze signals here inherit its proven lift. Most equity
+# tiers self-calibrate via cascade-calibration and aren't independently alpha-graded;
+# the 28 chronic ALPHA_NEGATIVE engines are macro signals this equity board does not
+# ingest, so the hard-prune rarely fires here by design (it lives in the macro boards).
+SIGNAL_TRUST_MAP = {
+    "SHORT_SQUEEZE": "squeeze_risk", "GAMMA_SQUEEZE": "squeeze_risk",
+}
+
 
 def effective_bets(signal_keys):
     """Effective number of INDEPENDENT bets: distinct factor families count
@@ -176,6 +186,13 @@ def lambda_handler(event, context):
     capital_flow_radar = read_json("data/capital-flow-radar.json") or {}
     risk_regime = read_json("data/risk-regime.json") or {}
     chokepoint = read_json("data/chokepoint.json") or {}
+    et_doc = read_json("data/engine-trust.json") or {}
+    trust_by = {}
+    for e in (et_doc.get("engines") or []):
+        st = e.get("signal_type")
+        if st:
+            trust_by[st] = {"effective_trust": e.get("effective_trust"),
+                            "alpha_status": e.get("alpha_status"), "status": e.get("status")}
     kill_theses = read_json("data/kill-theses.json") or {}
     engine_conflicts = read_json("data/engine-conflicts.json") or {}
     lead_lag = read_json("data/lead-lag-graph.json") or {}
@@ -498,8 +515,32 @@ def lambda_handler(event, context):
 
     # ── Fuse ──
     setups = []
+    pruned_signals = []   # (#3) dropped: engine is chronically ALPHA_NEGATIVE
+    lifted_signals = []   # (#3) lifted: engine is ALPHA_PROVEN
     for tk, rec in sig.items():
         signals = rec["signals"]
+        if not signals:
+            continue
+        # ── #3: fold proven-alpha trust into weights; hard-prune chronic losers ──
+        kept = []
+        for s in signals:
+            mapped = SIGNAL_TRUST_MAP.get(s["key"])
+            tinfo = trust_by.get(mapped) if mapped else None
+            if tinfo:
+                if tinfo.get("alpha_status") == "ALPHA_NEGATIVE":
+                    pruned_signals.append({"ticker": tk, "signal": s["key"], "engine": mapped})
+                    continue
+                et = tinfo.get("effective_trust")
+                if isinstance(et, (int, float)):
+                    mult = max(0.5, min(1.35, et))
+                    s["weight"] = round(s["weight"] * mult, 3)
+                    s["alpha_trust"] = {"engine": mapped, "status": tinfo.get("alpha_status"),
+                                        "effective_trust": et, "weight_mult": round(mult, 3)}
+                    if tinfo.get("alpha_status") == "ALPHA_PROVEN":
+                        lifted_signals.append({"ticker": tk, "signal": s["key"], "engine": mapped, "mult": round(mult, 3)})
+            kept.append(s)
+        signals = kept
+        rec["signals"] = kept
         if not signals:
             continue
         n = len(signals)
@@ -748,6 +789,15 @@ def lambda_handler(event, context):
                                    for s in setups if s.get("kill_thesis")][:25],
         "lead_lag_tailwinds": [{"ticker": s["ticker"], "conviction": s.get("conviction"),
                                 "lead_lag": s.get("lead_lag_tailwind")} for s in setups if s.get("lead_lag_tailwind")][:15],
+        "alpha_trust_wiring": {
+            "n_signals_lifted": len(lifted_signals), "n_signals_pruned": len(pruned_signals),
+            "lifted_sample": lifted_signals[:10], "pruned_sample": pruned_signals[:10],
+            "proven_squeeze_lift": trust_by.get("squeeze_risk", {}).get("effective_trust"),
+            "note": ("squeeze signals inherit the ALPHA_PROVEN squeeze_risk lift (effective_trust folded into "
+                     "weight); any signal mapping to an ALPHA_NEGATIVE engine is hard-pruned before confluence. "
+                     "The 28 chronic-negative engines are macro signals this equity board does not ingest, so "
+                     "pruning rarely fires here by design — the macro-board enforcement lives in the synthesizers."),
+        },
         "meta_intelligence": {"n_with_kill_thesis": n_kill, "n_contested": n_conf, "n_lead_lag_tailwind": n_tail,
                               "signal_independence_gsi": orthogonality.get("gsi_total") or orthogonality.get("gsi"),
                               "orthogonality_mode": orthogonality.get("mode"),
