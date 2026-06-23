@@ -1,4 +1,41 @@
-invoke ok (67s); emailed -> raafouis@gmail.com
+engine-trust top keys: ['engine', 'version', 'generated_at', 'current_regime', 'n_engines', 'n_harvested_engines', 'counts', 'alpha_gate', 'thesis', 'trusted', 'demoted', 'engines', 'consumption', 'caveats', 'elapsed_s']
+n engines: 67
+alpha_status dist: {'ALPHA_PROVEN': 3, 'INSUFFICIENT': 30, 'ALPHA_NEGATIVE': 28, 'NO_ALPHA': 6}
 
-*** VERIFIED *** — your gmail IS verified in SES; the brief just went to raafouis@gmail.com
-DONE 2143
+ALPHA_PROVEN (lift):
+   crisis_dfii10_vs_gld eff_trust 1.5 status PROMOTED
+   squeeze_risk eff_trust 1.296 status ACTIVE
+   crypto_risk_score eff_trust 1.2 status ACTIVE
+
+ALPHA_NEGATIVE (prune candidates):
+   macro_composite_z eff_trust 0.5
+   carry_risk eff_trust 0.5
+   momentum_spy eff_trust 0.5
+   plumbing_stress eff_trust 0.5
+   ml_risk eff_trust 0.5
+   analog_signal eff_trust 0.432
+   etf_rotation eff_trust 0.4
+   divergence_extreme eff_trust 0.4
+   eurodollar_stress eff_trust 0.0
+   apex_fusion eff_trust 0.0
+   sustained_target_equity eff_trust 0.0
+   macro_frontrun_sniffer_setup eff_trust 0.0
+   crisis_broad_dollar_vs_eem eff_trust 0.0
+   sector_breadth eff_trust 0.0
+   crisis_obfr_iorb eff_trust 0.0
+   edge_regime eff_trust 0.0
+   corr_break_composite_vs_spy eff_trust 0.0
+   crisis_dfii10_vs_spy eff_trust 0.0
+   crisis_sofr_iorb eff_trust 0.0
+   corr_break_top_pair eff_trust 0.0
+   crisis_rate_diff_eur_3m eff_trust 0.0
+   market_phase eff_trust 0.0
+   crisis_broad_dollar_vs_spy eff_trust 0.0
+   crisis_rate_diff_jpy_3m eff_trust 0.0
+   corr_break_composite_vs_vxx eff_trust 0.0
+   crypto_fear_greed eff_trust 0.0
+   momentum_gld eff_trust 0.0
+   correlation_break eff_trust 0.0
+
+ALL signal_types (first 60): ['crisis_dfii10_vs_gld', 'momentum_top_pick', 'screener_top_pick', 'nobrainer_SMH', 'macro_composite_z', 'carry_risk', 'momentum_spy', 'plumbing_stress', 'ml_risk', 'squeeze_risk', 'crypto_risk_score', 'momentum_uso', 'frontrun_sniffer_setup', 'earnings_pead', 'nobrainer_SOXX', 'nobrainer_OIH', 'analog_signal', 'etf_rotation', 'divergence_extreme', 'nobrainer_BOTZ', 'etf_flow_extreme', 'nobrainer_ROBO', 'nobrainer_LIT', 'nobrainer_PICK', 'nobrainer_REMX', 'momentum_uup', 'nobrainer_AIQ', 'momentum_tlt', 'cot_extreme', 'crisis_index_stlfsi4', 'edge_composite', 'crisis_ig_bbb_oas', 'crisis_index_kcfsi', 'crisis_t10yie_extreme', 'crisis_hy_oas_vs_spy', 'crisis_index_anfci', 'crisis_hy_oas_vs_hyg', 'crisis_index_nfci', 'nobrainer_SIL', 'nobrainer_XLE', 'nobrainer_URA', 'nobrainer_COPX', 'nobrainer_XOP', 'nobrainer_SLX', 'khalid_index', 'equity_convergence_fingerprint', 'yc_regime', 'eurodollar_stress', 'apex_fusion', 'sustained_target_equity', 'macro_frontrun_sniffer_setup', 'crisis_broad_dollar_vs_eem', 'sector_breadth', 'crisis_obfr_iorb', 'edge_regime', 'corr_break_composite_vs_spy', 'crisis_dfii10_vs_spy', 'crisis_sofr_iorb', 'corr_break_top_pair', 'crisis_rate_diff_eur_3m']
+DONE 2144
