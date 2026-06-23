@@ -176,6 +176,10 @@ def lambda_handler(event, context):
     capital_flow_radar = read_json("data/capital-flow-radar.json") or {}
     risk_regime = read_json("data/risk-regime.json") or {}
     chokepoint = read_json("data/chokepoint.json") or {}
+    kill_theses = read_json("data/kill-theses.json") or {}
+    engine_conflicts = read_json("data/engine-conflicts.json") or {}
+    lead_lag = read_json("data/lead-lag-graph.json") or {}
+    orthogonality = read_json("data/signal-orthogonality.json") or {}
     _screener_doc = read_json("screener/data.json") or {}
     _rr_score = risk_regime.get("risk_regime_score")
     _rr_regime = risk_regime.get("risk_regime") or "NEUTRAL"
@@ -671,6 +675,42 @@ def lambda_handler(event, context):
                 note += " — and " + str(hc.get("setup_type", "")).lower().replace("_", " ") + ", the system's highest-quality setup"
             s["why"] = s["why"].rstrip(".") + f". Note: {s['ticker']} is {note}."
 
+    # ── Meta-intelligence overlay: brains you built but never wired into decisions ──
+    # premortem kill-theses (failure mode per pick), engine-conflicts (the system arguing
+    # with itself), lead-lag (a pick whose leader already moved). Each annotates the pick
+    # so a setup carries its OWN failure mode and any internal disagreement, eyes-open.
+    kill_by = {}
+    for t in (kill_theses.get("theses") or []):
+        tk = (t.get("ticker") or "").upper()
+        if not tk or t.get("error"): continue
+        kc = sorted((t.get("kill_conditions") or []), key=lambda k: -(k.get("severity") or 0))
+        kill_by[tk] = {"failure_mode": t.get("thesis_summary"), "top_kill": kc[0] if kc else None}
+    conflict_by = {(c.get("ticker") or "").upper(): c for c in (engine_conflicts.get("conflicts") or [])}
+    leadlag_by = {}
+    for lp in (lead_lag.get("live_predictions") or []):
+        for f in (lp.get("followers_expected") or []):
+            sym = (f.get("symbol") or "").upper()
+            if sym and sym not in leadlag_by:
+                leadlag_by[sym] = {"leader": lp.get("leader"), "expected_dir": f.get("expected_dir"),
+                                   "lag_days": f.get("lag_days"), "lead_corr": f.get("lead_corr"),
+                                   "leader_move_2d_pct": lp.get("leader_move_2d_pct")}
+    n_kill = n_conf = n_tail = 0
+    for s in setups:
+        tk = (s.get("ticker") or "").upper()
+        k = kill_by.get(tk)
+        if k:
+            s["kill_thesis"] = k["failure_mode"]; s["kill_condition"] = k["top_kill"]; n_kill += 1
+            if s.get("why"): s["why"] = s["why"].rstrip(".") + f". Kill-thesis: {k['failure_mode']}"
+        c = conflict_by.get(tk)
+        if c:
+            s["conflict"] = {"type": c.get("type"), "bull": c.get("bull"), "bear": c.get("bear"), "resolution": c.get("resolution")}
+            s["contested"] = True; n_conf += 1
+            if s.get("why"): s["why"] = s["why"].rstrip(".") + f". CONTESTED ({c.get('type')}) — {c.get('bear')}"
+        ll = leadlag_by.get(tk)
+        if ll and ll.get("expected_dir") == "UP":
+            s["lead_lag_tailwind"] = ll; n_tail += 1
+            if s.get("why"): s["why"] = s["why"].rstrip(".") + f". Lead-lag tailwind: {ll.get('leader')} moved {ll.get('leader_move_2d_pct')}% ({ll.get('lag_days')}d lead)."
+
     by_verdict = defaultdict(list)
     for s in setups:
         by_verdict[s["verdict"]].append(s["ticker"])
@@ -702,6 +742,16 @@ def lambda_handler(event, context):
         "buildout_threats": [s for s in setups if s.get("buildout_threat")][:20],
         "brain_aligned": [s for s in setups if s.get("brain_aligned")][:25],
         "structural_chokepoints": [s for s in setups if s.get("structural_chokepoint")][:30],
+        "contested_picks": [s for s in setups if s.get("contested")][:20],
+        "picks_with_kill_thesis": [{"ticker": s["ticker"], "conviction": s.get("conviction"),
+                                    "failure_mode": s.get("kill_thesis"), "kill_condition": s.get("kill_condition")}
+                                   for s in setups if s.get("kill_thesis")][:25],
+        "lead_lag_tailwinds": [{"ticker": s["ticker"], "conviction": s.get("conviction"),
+                                "lead_lag": s.get("lead_lag_tailwind")} for s in setups if s.get("lead_lag_tailwind")][:15],
+        "meta_intelligence": {"n_with_kill_thesis": n_kill, "n_contested": n_conf, "n_lead_lag_tailwind": n_tail,
+                              "signal_independence_gsi": orthogonality.get("gsi_total") or orthogonality.get("gsi"),
+                              "orthogonality_mode": orthogonality.get("mode"),
+                              "note": "Each pick now carries its premortem failure mode; contested picks show both sides; lead-lag tailwinds flag picks whose leader already moved."},
         "structural_at_trough": [s for s in setups if s.get("structural_setup")][:15],
         "by_verdict": dict(by_verdict),
     }
