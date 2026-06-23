@@ -190,6 +190,10 @@ def lambda_handler(event, context):
     equity_conf = read_json("data/equity-confluence.json") or {}
     resilience_doc = read_json("data/resilience.json") or {}
     strategist_doc = read_json("data/strategist.json") or {}
+    options_confl = read_json("data/options-confluence.json") or {}
+    flow_confl = read_json("data/flow-confluence.json") or {}
+    opt_map = options_confl.get("ticker_map") or {}
+    flow_map = flow_confl.get("ticker_map") or {}
     trust_by = {}
     for e in (et_doc.get("engines") or []):
         st = e.get("signal_type")
@@ -781,6 +785,7 @@ def lambda_handler(event, context):
             if r.get("score") is not None: res_by[tk]["score"] = r.get("score")
     strat_by = {(r.get("ticker") or "").upper(): r for r in (strategist_doc.get("picks") or []) if isinstance(r, dict)}
     n_ec = n_res = n_strat = 0
+    n_opt = n_flow = n_aligned = n_conflict = 0
     for s in setups:
         tk = (s.get("ticker") or "").upper()
         if tk in ec_by:
@@ -791,6 +796,25 @@ def lambda_handler(event, context):
             if s.get("why"): s["why"] = s["why"].rstrip(".") + f". Resilience radar: {', '.join(res_by[tk]['flags'][:2])}."
         if tk in strat_by:
             s["strategist"] = {"verdict": strat_by[tk].get("verdict"), "conviction": strat_by[tk].get("conviction")}; n_strat += 1
+        # ── #4b: options & flow synthesizers (the fused cluster postures) ──
+        op = opt_map.get(tk); fp = flow_map.get(tk)
+        if op:
+            s["options_posture"] = op.get("posture"); s["options_confluence"] = op; n_opt += 1
+            if s.get("why"): s["why"] = s["why"].rstrip(".") + f". Options: {op.get('posture')} ({op.get('n_engines')} engines)."
+        if fp:
+            s["flow_posture"] = fp.get("posture"); s["flow_confluence"] = fp; n_flow += 1
+            if s.get("why"): s["why"] = s["why"].rstrip(".") + f". Flow: {fp.get('posture')} ({fp.get('n_engines')} engines)."
+        if op and fp:
+            obull = op.get("posture") in ("SQUEEZE_FUEL", "BULLISH_FLOW", "BULLISH_LEAN")
+            obear = op.get("posture") in ("BEARISH_FLOW", "BEARISH_LEAN")
+            fbull = fp.get("posture") in ("ACCUMULATION", "STEALTH_ACCUMULATION", "SHORT_SQUEEZE_SETUP", "ACCUMULATION_LEAN")
+            fbear = fp.get("posture") in ("DISTRIBUTION", "DISTRIBUTION_LEAN")
+            if obull and fbull:
+                s["synth_corroboration"] = "ALIGNED_BULLISH"; n_aligned += 1
+                if s.get("why"): s["why"] = s["why"].rstrip(".") + " Options + flow ALIGNED BULLISH."
+            elif (obull and fbear) or (obear and fbull):
+                s["synth_corroboration"] = "CONFLICTED"; n_conflict += 1
+                if s.get("why"): s["why"] = s["why"].rstrip(".") + " Options/flow CONFLICTED — positioning vs institutional money disagree."
 
     by_verdict = defaultdict(list)
     for s in setups:
@@ -833,6 +857,18 @@ def lambda_handler(event, context):
                                   "meta_confluence": s.get("meta_confluence")} for s in setups if s.get("meta_confluence")][:25],
         "resilient_setups": [{"ticker": s["ticker"], "conviction": s.get("conviction"),
                               "resilience": s.get("resilience")} for s in setups if s.get("resilience")][:25],
+        "synth_aligned_bullish": [{"ticker": s["ticker"], "conviction": s.get("conviction"),
+                                   "options": s.get("options_posture"), "flow": s.get("flow_posture")}
+                                  for s in setups if s.get("synth_corroboration") == "ALIGNED_BULLISH"][:25],
+        "synth_conflicted": [{"ticker": s["ticker"], "conviction": s.get("conviction"),
+                              "options": s.get("options_posture"), "flow": s.get("flow_posture")}
+                             for s in setups if s.get("synth_corroboration") == "CONFLICTED"][:25],
+        "synthesizer_wiring": {"n_options_tagged": n_opt, "n_flow_tagged": n_flow,
+                               "n_aligned_bullish": n_aligned, "n_conflicted": n_conflict,
+                               "note": ("The options-confluence and flow-confluence synthesizers (which fuse the "
+                                        "fragmented 21-engine options and 35-engine flow clusters) now annotate every "
+                                        "pick. ALIGNED_BULLISH = positioning and institutional money agree; CONFLICTED "
+                                        "= they disagree (e.g. bullish options flow but institutions distributing).")},
         "orphan_meta_wiring": {"n_cross_family_confluence": n_ec, "n_resilient": n_res, "n_strategist": n_strat,
                                "note": ("equity-confluence, resilience and strategist were islands feeding nothing; "
                                         "they now corroborate best-setups picks — a name independently confirmed by the "
