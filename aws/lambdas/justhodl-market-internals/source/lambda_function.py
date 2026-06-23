@@ -95,6 +95,7 @@ def lambda_handler(event=None, context=None):
                 prev_map = cur
                 continue
         adv = dec = 0
+        up_vol = down_vol = 0.0
         for t, (c, v) in cur.items():
             p = prev_map.get(t)
             if not p:
@@ -103,14 +104,20 @@ def lambda_handler(event=None, context=None):
             if c < 3 or v < 100_000 or pc <= 0:
                 continue
             if c > pc:
-                adv += 1
+                adv += 1; up_vol += c * v          # dollar up-volume
             elif c < pc:
-                dec += 1
+                dec += 1; down_vol += c * v        # dollar down-volume
         tot = adv + dec
         if tot > 800:
+            def _ret(sym):
+                a, b = cur.get(sym), prev_map.get(sym)
+                return round((a[0] / b[0] - 1) * 100, 2) if (a and b and b[0] > 0) else None
             new_rows.append({"date": ds, "adv": adv, "dec": dec,
                               "rana": round((adv - dec) / tot * 1000, 1),
-                              "pct_adv": round(adv / tot, 4)})
+                              "pct_adv": round(adv / tot, 4),
+                              "up_vol": round(up_vol, 0), "down_vol": round(down_vol, 0),
+                              "vol_ratio": round(up_vol / down_vol, 2) if down_vol > 0 else None,
+                              "spy_ret": _ret("SPY"), "qqq_ret": _ret("QQQ")})
         prev_map = cur
 
     if new_rows:
@@ -155,7 +162,10 @@ def lambda_handler(event=None, context=None):
                   else "OVERBOUGHT" if osc_now >= 70 else "NEUTRAL")
         out.update({
             "latest": {"date": latest["date"], "advancers": latest["adv"],
-                        "decliners": latest["dec"], "rana": latest["rana"]},
+                        "decliners": latest["dec"], "rana": latest["rana"],
+                        "ad_ratio": round(latest["adv"] / latest["dec"], 2) if latest["dec"] else None,
+                        "vol_ratio": latest.get("vol_ratio"),
+                        "spy_ret_pct": latest.get("spy_ret"), "qqq_ret_pct": latest.get("qqq_ret")},
             "mcclellan": {"oscillator": osc_now, "summation": summ[-1], "state": state,
                            "spec": "±70 stretch, ±100 washout/blowoff (brain: breadth "
                                    "narrows ahead of corrections)"},
@@ -164,6 +174,42 @@ def lambda_handler(event=None, context=None):
                               "spec": "<0.40→>0.615 in ≤10 sessions = rare bull thrust"},
             "ad_line_tail": ad_line[-180:],
             "oscillator_tail": [[rows[i]["date"], osc[i]] for i in range(max(0, len(osc) - 180), len(osc))]})
+
+        # ── breadth-vs-index ROTATION divergence (the "great rotation" detector) ──
+        sp, qq, pa = latest.get("spy_ret"), latest.get("qqq_ret"), latest["pct_adv"]
+        vr = latest.get("vol_ratio")
+        idx = qq if qq is not None else sp          # mega-cap-heavy index as the reference
+        if idx is not None:
+            if idx < -0.3 and pa >= 0.58:
+                rot = "GREAT_ROTATION"
+                rnote = ("Index red while breadth is broadly green — mega-caps are dragging the "
+                         "cap-weighted index lower while the broad market advances. Classic rotation "
+                         "out of mega-cap leadership; the index is not the market.")
+            elif idx > 0.3 and pa < 0.45:
+                rot = "NARROW_MEGACAP"
+                rnote = ("Index green on weak breadth — a handful of mega-caps masking broad weakness. "
+                         "Fragile, narrow advance prone to reversal.")
+            elif idx > 0.2 and pa >= 0.55:
+                rot = "BROAD_RALLY"
+                rnote = "Index and breadth both advancing — healthy, broadly-participated rally."
+            elif idx < -0.2 and pa <= 0.42:
+                rot = "BROAD_SELLOFF"
+                rnote = "Index and breadth both falling — broad-based selling, no rotation cushion underneath."
+            else:
+                rot = "ALIGNED"
+                rnote = "Index and breadth roughly in agreement — no notable divergence."
+        else:
+            rot = "UNKNOWN"
+            rnote = "Index return unavailable this session (SPY/QQQ not in grouped feed)."
+        funded = (vr is not None and vr >= 1.5)
+        out["volume"] = {"up_dollar_vol": latest.get("up_vol"), "down_dollar_vol": latest.get("down_vol"),
+                         "ratio": vr, "funded_advance": funded,
+                         "spec": "dollar up-vol / down-vol; >1.5 = advance is funded (your '2:1 buying')"}
+        out["rotation"] = {"state": rot, "spy_ret_pct": sp, "qqq_ret_pct": qq,
+                            "ad_ratio": out["latest"]["ad_ratio"], "pct_advancers": round(pa, 4),
+                            "vol_ratio": vr, "funded": funded, "note": rnote,
+                            "spec": ("breadth-vs-index divergence — GREAT_ROTATION = index red + breadth green; "
+                                     "NARROW_MEGACAP = index green + breadth weak; consumed by risk-regime/sector-emergence")}
 
         # closed loop: washout (contrarian UP) or fresh thrust (UP)
         sig = None
