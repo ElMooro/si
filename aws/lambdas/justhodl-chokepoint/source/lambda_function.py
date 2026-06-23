@@ -196,6 +196,66 @@ def evaluate(sym, centrality, rerate_lookup, bulk):
     }
 
 
+def _parse_json_array(txt):
+    if not txt: return []
+    import re
+    t = txt.strip()
+    if "```" in t:
+        m = re.search(r"```(?:json)?\s*(.*?)```", t, re.S)
+        if m: t = m.group(1).strip()
+    a, b = t.find("["), t.rfind("]")
+    if a >= 0 and b > a:
+        try: return json.loads(t[a:b + 1])
+        except Exception: return []
+    return []
+
+
+def verify_irreplaceability(candidates, max_n=48):
+    """LLM judgment: is each a TRUE chokepoint the industry can't route around, or just a
+    high-margin business? Margins alone can't tell ADSK (CAD standard) from DUOL (a high-margin
+    app). Cached in S3 (only uncached names judged); fault-tolerant (LLM down -> verdicts skipped)."""
+    cache_key = "data/_cache/chokepoint-irreplaceability.json"
+    cache = _read(cache_key) or {}
+    todo = [c for c in candidates[:max_n] if c["ticker"] not in cache]
+    if not todo:
+        return cache
+    try:
+        from llm_router import complete
+    except Exception:
+        return cache
+    SYS = ("You are a hedge-fund analyst judging STRUCTURAL industry criticality. A CHOKEPOINT is a company "
+           "its industry genuinely cannot route around: a sole or dominant provider of something essential where "
+           "switching away is impossible or prohibitively costly (ASML = only EUV litho; TSMC = leading-edge "
+           "foundry; Visa/Mastercard = payment rails; Autodesk = the CAD/AEC standard with deep lock-in; Cadence/"
+           "Synopsys = the EDA duopsony chip designers must use). A company is NOT a chokepoint merely because it "
+           "has high margins — most software and single-drug biotech businesses have high margins BY DEFAULT yet "
+           "face real substitutes (Duolingo, Dropbox, an ordinary SaaS app, a one-drug biotech). Be strict.")
+    judged = 0
+    for i in range(0, len(todo), 16):
+        batch = todo[i:i + 16]
+        lst = "\n".join(f"- {c['ticker']} {c.get('name') or ''} ({c.get('industry') or ''})" for c in batch)
+        prompt = ("Classify each company. verdict = CHOKEPOINT (its industry cannot route around it), "
+                  "NOT (real substitutes exist / ordinary high-margin business), or UNCERTAIN (you do not know it "
+                  "well enough). When in doubt use NOT or UNCERTAIN. Return ONLY a JSON array, no prose:\n"
+                  '[{"ticker":"X","verdict":"CHOKEPOINT|NOT|UNCERTAIN","reason":"<=8 words"}]\n\nCompanies:\n' + lst)
+        try:
+            txt = complete(prompt, tier="reason", max_tokens=1600, system=SYS)
+            for o in _parse_json_array(txt):
+                tk = str(o.get("ticker", "")).upper()
+                v = str(o.get("verdict", "")).upper()
+                if tk and v in ("CHOKEPOINT", "NOT", "UNCERTAIN"):
+                    cache[tk] = {"verdict": v, "reason": str(o.get("reason", ""))[:60],
+                                 "judged_at": datetime.now(timezone.utc).isoformat()[:10]}
+                    judged += 1
+        except Exception as e:
+            print("[verify] batch failed:", str(e)[:70])
+    if judged:
+        try:
+            s3.put_object(Bucket=BUCKET, Key=cache_key, Body=json.dumps(cache).encode(), ContentType="application/json")
+        except Exception: pass
+    return cache
+
+
 def lambda_handler(event, context):
     t0 = time.time(); diag = []
 
@@ -268,6 +328,20 @@ def lambda_handler(event, context):
     discovered = [r for r in chokepoints if r.get("discovered")]
     discovered.sort(key=lambda r: -r["criticality"])
 
+    # v2.1: LLM irreplaceability filter — separate TRUE chokepoints from "just high-margin"
+    verdicts = {}
+    try:
+        verdicts = verify_irreplaceability(discovered, max_n=48)
+    except Exception as e:
+        diag.append("verify_failed:%s" % str(e)[:40])
+    for r in results:
+        v = verdicts.get(r["ticker"])
+        if v:
+            r["irreplaceability"] = v["verdict"]; r["irreplaceability_reason"] = v.get("reason")
+    confirmed = [r for r in discovered if r.get("irreplaceability") == "CHOKEPOINT"]
+    rejected_hi_margin = [r for r in discovered if r.get("irreplaceability") == "NOT"]
+    diag.append("verified=%d confirmed=%d rejected=%d" % (len(verdicts), len(confirmed), len(rejected_hi_margin)))
+
     # per-industry "make-it-or-break-it" leader
     by_industry = {}
     for r in chokepoints:
@@ -293,8 +367,13 @@ def lambda_handler(event, context):
                     "threshold": CHOKE_THRESHOLD},
         "stats": {"pool": len(pool), "evaluated": len(results), "chokepoints": len(chokepoints),
                   "hidden": len(hidden), "cheap": len(cheap), "discovered": len(discovered),
-                  "industries": len(industry_leaders)},
+                  "verified": len(verdicts), "confirmed": len(confirmed),
+                  "rejected_high_margin": len(rejected_hi_margin), "industries": len(industry_leaders)},
+        "confirmed_chokepoint_book": confirmed[:30],
         "discovered_chokepoint_book": discovered[:30],
+        "rejected_high_margin_sample": [{"ticker": r["ticker"], "name": r.get("name"),
+                                         "criticality": r["criticality"], "reason": r.get("irreplaceability_reason")}
+                                        for r in rejected_hi_margin[:15]],
         "cheap_chokepoint_book": cheap[:20],
         "hidden_chokepoint_book": hidden[:25],
         "industry_leaders": industry_leaders[:40],
@@ -314,11 +393,15 @@ def lambda_handler(event, context):
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache, max-age=0")
-    print("[chokepoint v2] pool=%d eval=%d chokepoints=%d hidden=%d cheap=%d DISCOVERED=%d industries=%d" % (
-        len(pool), len(results), len(chokepoints), len(hidden), len(cheap), len(discovered), len(industry_leaders)))
-    print("  top criticality:", [(r["ticker"], r["criticality"]) for r in results[:10]])
-    if discovered: print("  NEWLY DISCOVERED (broad scan found, curated missed):",
-                         [(r["ticker"], r["criticality"], r["cap_bucket"], (r.get("industry") or "")[:18]) for r in discovered[:12]])
-    if cheap: print("  CHEAP chokepoints:", [(r["ticker"], r["criticality"], f"{r.get('discount_to_fair_pct')}%") for r in cheap[:6]])
+    print("[chokepoint v2.1] pool=%d eval=%d chokepoints=%d discovered=%d verified=%d CONFIRMED=%d rejected=%d" % (
+        len(pool), len(results), len(chokepoints), len(discovered), len(verdicts), len(confirmed), len(rejected_hi_margin)))
+    if confirmed:
+        print("  CONFIRMED true chokepoints (LLM: industry can't route around):")
+        for r in confirmed[:14]:
+            print("   %s %s crit=%s  %s" % (r["ticker"], (r.get("name") or "")[:24], r["criticality"], r.get("irreplaceability_reason", "")))
+    if rejected_hi_margin:
+        print("  REJECTED (high-margin but NOT chokepoints):", [(r["ticker"], r["criticality"]) for r in rejected_hi_margin[:12]])
+    if not verdicts:
+        print("  (verification did not run — LLM unavailable; criticality still output)")
     if hidden: print("  HIDDEN chokepoints:", [(r["ticker"], r["criticality"], r["cap_bucket"]) for r in hidden[:8]])
     return {"statusCode": 200, "body": json.dumps({"mode": mode, "chokepoints": len(chokepoints), "cheap": len(cheap)})}

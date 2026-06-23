@@ -25,12 +25,15 @@ function sc(v){return v>=65?'var(--violet)':v>=55?'var(--cyan)':v>=50?'var(--amb
 function card(r){
   let h=`<div class="card"><div class="row1"><div><span class="tk">${esc(r.ticker)}</span> <span class="nm">${esc(r.name||'')}</span></div><span class="score" style="color:${sc(r.criticality)}">${r.criticality}</span></div>`;
   h+=`<div style="margin-top:5px">`;
+  if(r.irreplaceability==='CHOKEPOINT')h+=`<span class="tag" style="color:#0a0e14;background:var(--green);border-color:var(--green);font-weight:700">✓ TRUE CHOKEPOINT</span> `;
+  else if(r.irreplaceability==='NOT')h+=`<span class="tag" style="color:var(--fg-3);border-color:var(--fg-3)">high-margin, not a chokepoint</span> `;
   if(r.discovered)h+=`<span class="tag" style="color:#0a0e14;background:var(--cyan);border-color:var(--cyan);font-weight:700">DISCOVERED</span> `;
   if(r.cheap_chokepoint)h+=`<span class="tag" style="color:var(--green);border-color:var(--green)">CHEAP chokepoint</span> `;
   if(r.hidden_chokepoint)h+=`<span class="tag" style="color:var(--amber);border-color:var(--amber)">hidden · ${esc(r.cap_bucket)}</span> `;
   if(r.industry)h+=`<span class="tag">${esc(r.industry)}</span>`;
   h+=`</div>`;
   h+=`<div class="detail">${r.gm_level}% gross margin · stability ±${r.gm_stability}pp${r.roic?` · ${r.roic}% ROIC`:''}${r.centrality?` · hub ${r.centrality}`:''}${r.rd_intensity>=10?` · ${r.rd_intensity}% R&D`:''}</div>`;
+  if(r.irreplaceability_reason&&r.irreplaceability==='CHOKEPOINT')h+=`<div class="reasons" style="color:var(--green)">✓ ${esc(r.irreplaceability_reason)}</div>`;
   if(r.reasons&&r.reasons.length)h+=`<div class="reasons">${r.reasons.map(esc).join(' · ')}</div>`;
   return h+`</div>`;
 }
@@ -42,11 +45,15 @@ function card(r){
   const cal=d.scoring&&d.scoring.calibration||{};
   h+=`<div class="banner"><b>Criticality:</b> ${esc(d.scoring&&d.scoring.formula)}.<br><span style="color:var(--fg-3)">Calibrated: chokepoints avg ${cal.chokepoints_avg} vs commodity avg ${cal.commodity_avg} (clean gap ${esc(cal.clean_gap)}). The standout proxy — <b style="color:var(--cyan)">margin stability</b> — is the fingerprint of irreplaceable pricing power.</span></div>`;
   const s=d.stats||{};
-  h+=`<div class="counts"><div class="cpill"><b>Chokepoints</b><span style="color:var(--violet)">${s.chokepoints||0}</span></div><div class="cpill"><b>Discovered</b><span style="color:var(--cyan)">${s.discovered||0}</span></div><div class="cpill"><b>Cheap</b><span style="color:var(--green)">${s.cheap||0}</span></div><div class="cpill"><b>Hidden</b><span style="color:var(--amber)">${s.hidden||0}</span></div><div class="cpill"><b>Industries</b><span>${s.industries||0}</span></div></div>`;
-  // DISCOVERED — the v2 payoff: chokepoints the broad scan found that the curated seed missed
-  if((d.discovered_chokepoint_book||[]).length){
-    h+=`<h2>🛰️ Newly discovered — broad scan found, curated seed missed</h2>`;
-    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:4px">The whole-universe funnel surfaced these indispensable niche names that weren't in any existing list — the real point of v2.</div>`;
+  h+=`<div class="counts"><div class="cpill"><b>Chokepoints</b><span style="color:var(--violet)">${s.chokepoints||0}</span></div><div class="cpill"><b>✓ Confirmed</b><span style="color:var(--green)">${s.confirmed||0}</span></div><div class="cpill"><b>Discovered</b><span style="color:var(--cyan)">${s.discovered||0}</span></div><div class="cpill"><b>Cheap</b><span style="color:var(--green)">${s.cheap||0}</span></div><div class="cpill"><b>Industries</b><span>${s.industries||0}</span></div></div>`;
+  // CONFIRMED — discovered + LLM-verified the industry can't route around them
+  if((d.confirmed_chokepoint_book||[]).length){
+    h+=`<h2>✅ Confirmed true chokepoints — discovered & LLM-verified</h2>`;
+    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:4px">The broad scan found these AND an irreplaceability check confirmed their industry genuinely can't route around them — separating real chokepoints from companies that merely have high margins.</div>`;
+    for(const r of d.confirmed_chokepoint_book)h+=card(r);
+  } else if((d.discovered_chokepoint_book||[]).length){
+    h+=`<h2>🛰️ Discovered candidates <span style="font-size:11px;color:var(--amber)">(verification ${s.verified?'ran':'pending — LLM unavailable'})</span></h2>`;
+    h+=`<div style="font-size:12px;color:var(--fg-2);margin-bottom:4px">High-criticality names the broad scan surfaced. Note: pure margins over-include high-margin software/biotech — the irreplaceability filter${s.verified?' rejected '+(s.rejected_high_margin||0)+' as non-chokepoints':' couldn\u2019t run this cycle'}.</div>`;
     for(const r of d.discovered_chokepoint_book)h+=card(r);
   }
   // CHEAP chokepoints — the actionable edge
