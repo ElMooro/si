@@ -187,6 +187,9 @@ def lambda_handler(event, context):
     risk_regime = read_json("data/risk-regime.json") or {}
     chokepoint = read_json("data/chokepoint.json") or {}
     et_doc = read_json("data/engine-trust.json") or {}
+    equity_conf = read_json("data/equity-confluence.json") or {}
+    resilience_doc = read_json("data/resilience.json") or {}
+    strategist_doc = read_json("data/strategist.json") or {}
     trust_by = {}
     for e in (et_doc.get("engines") or []):
         st = e.get("signal_type")
@@ -752,6 +755,43 @@ def lambda_handler(event, context):
             s["lead_lag_tailwind"] = ll; n_tail += 1
             if s.get("why"): s["why"] = s["why"].rstrip(".") + f". Lead-lag tailwind: {ll.get('leader')} moved {ll.get('leader_move_2d_pct')}% ({ll.get('lag_days')}d lead)."
 
+    # ── #4a: wire the orphaned meta-engines (were islands feeding nothing) ──
+    # equity-confluence = cross-family confluence synthesizer; resilience = absorption/
+    # ignition radar; strategist = strategic verdict. A best-setups name independently
+    # confirmed by these carries real corroboration, so we annotate it.
+    ec_by = {}
+    for r in (equity_conf.get("confluence_book") or []):
+        r = r if isinstance(r, dict) else {}
+        tk = (r.get("ticker") or "").upper()
+        if tk: ec_by[tk] = {"composite": r.get("composite"), "super": r.get("super"),
+                            "family": r.get("family"), "proven": False}
+    for r in (equity_conf.get("proven_book") or []):
+        r = r if isinstance(r, dict) else {}
+        tk = (r.get("ticker") or "").upper()
+        if tk: ec_by.setdefault(tk, {}); ec_by[tk]["proven"] = True; ec_by[tk]["composite"] = r.get("composite")
+    res_by = {}
+    for book, flag in [("about_to_boom", "about-to-boom"), ("igniting", "igniting"), ("coiled", "coiled"),
+                       ("top_picks", "resilient-top"), ("flow_confirmed", "flow-confirmed")]:
+        for r in (resilience_doc.get(book) or []):
+            r = r if isinstance(r, dict) else {}
+            tk = (r.get("ticker") or "").upper()
+            if not tk: continue
+            res_by.setdefault(tk, {"flags": [], "score": None})
+            res_by[tk]["flags"].append(flag)
+            if r.get("score") is not None: res_by[tk]["score"] = r.get("score")
+    strat_by = {(r.get("ticker") or "").upper(): r for r in (strategist_doc.get("picks") or []) if isinstance(r, dict)}
+    n_ec = n_res = n_strat = 0
+    for s in setups:
+        tk = (s.get("ticker") or "").upper()
+        if tk in ec_by:
+            s["meta_confluence"] = ec_by[tk]; n_ec += 1
+            if s.get("why"): s["why"] = s["why"].rstrip(".") + f". Cross-family confluence (composite {ec_by[tk].get('composite')}, {ec_by[tk].get('super')})."
+        if tk in res_by:
+            s["resilience"] = res_by[tk]; n_res += 1
+            if s.get("why"): s["why"] = s["why"].rstrip(".") + f". Resilience radar: {', '.join(res_by[tk]['flags'][:2])}."
+        if tk in strat_by:
+            s["strategist"] = {"verdict": strat_by[tk].get("verdict"), "conviction": strat_by[tk].get("conviction")}; n_strat += 1
+
     by_verdict = defaultdict(list)
     for s in setups:
         by_verdict[s["verdict"]].append(s["ticker"])
@@ -789,6 +829,14 @@ def lambda_handler(event, context):
                                    for s in setups if s.get("kill_thesis")][:25],
         "lead_lag_tailwinds": [{"ticker": s["ticker"], "conviction": s.get("conviction"),
                                 "lead_lag": s.get("lead_lag_tailwind")} for s in setups if s.get("lead_lag_tailwind")][:15],
+        "meta_confluence_book": [{"ticker": s["ticker"], "conviction": s.get("conviction"),
+                                  "meta_confluence": s.get("meta_confluence")} for s in setups if s.get("meta_confluence")][:25],
+        "resilient_setups": [{"ticker": s["ticker"], "conviction": s.get("conviction"),
+                              "resilience": s.get("resilience")} for s in setups if s.get("resilience")][:25],
+        "orphan_meta_wiring": {"n_cross_family_confluence": n_ec, "n_resilient": n_res, "n_strategist": n_strat,
+                               "note": ("equity-confluence, resilience and strategist were islands feeding nothing; "
+                                        "they now corroborate best-setups picks — a name independently confirmed by the "
+                                        "cross-family synthesizer and the resilience radar carries that weight.")},
         "alpha_trust_wiring": {
             "n_signals_lifted": len(lifted_signals), "n_signals_pruned": len(pruned_signals),
             "lifted_sample": lifted_signals[:10], "pruned_sample": pruned_signals[:10],
