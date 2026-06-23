@@ -150,15 +150,31 @@ def analyst_pass(market_ctx, hot, nbt):
            '"briefs":[{"ticker":"X","why_hot":"<12w>","bull":"<20w>","bear":"<20w>","net":"<10w, e.g. crowded long / early / fade>"}]}')
     prompt = "RETAIL SENTIMENT CONTEXT: %s\n\nHOT NAMES (heat, venues, sentiment, news):\n%s" % (
         market_ctx, "\n".join(lines))
-    for _ in range(2):
+    for _ in range(1):
         r = {}
         try:
-            r = _parse_json(complete(prompt, tier="reason", max_tokens=3500, system=sys))
+            r = _parse_json(complete(prompt, tier="reason", max_tokens=2500, system=sys))
         except Exception:
             r = {}
         if r.get("briefs"):
             return r
     return {}
+
+
+def _fallback_brief(h, warned):
+    """Deterministic analyst read when the LLM is unavailable — the brief is never empty."""
+    tk = h["ticker"]; bp = h.get("bull_pct"); vc = h.get("venue_count", 0)
+    gn = len(h.get("good_news", [])); bn = len(h.get("bad_news", []))
+    why = ("confirmed across %d venues" % vc) if vc >= 3 else "retail mention spike"
+    if tk in warned: net = "crowded / fade risk"
+    elif bp and bp >= 70 and gn >= bn: net = "crowd bullish"
+    elif bn > gn and bn: net = "news cutting against it"
+    else: net = "watch"
+    bull = (("%s%% bullish on StockTwits; " % bp) if bp else "") + (
+        ("%d supportive headline(s)" % gn) if gn else ("rising mentions across %d venues" % vc))
+    bear = (("%d negative headline(s); " % bn) if bn else "") + (
+        "flagged crowded/fading — late-cycle chase risk" if tk in warned else "no price/news confirmation yet")
+    return {"ticker": tk, "why_hot": why, "bull": bull, "bear": bear, "net": net, "rule_based": True}
 
 
 def render_email_html(out):
@@ -221,8 +237,13 @@ def lambda_handler(event, context):
         rd.get("total_mentions"), rd.get("delta_pct"), (retail or {}).get("regime"))
     ai = analyst_pass(market_ctx, hot, nbt)
     briefs = {b.get("ticker", "").upper(): b for b in (ai.get("briefs") or [])}
+    warned = set()
+    ranked0 = (retail or {}).get("ranked") or {}
+    for key in ("crowded_exhaustion", "fading", "peaking"):
+        for r in (ranked0.get(key) or [])[:6]:
+            warned.add(_tk(r))
     for h in hot:
-        h["analyst"] = briefs.get(h["ticker"])
+        h["analyst"] = briefs.get(h["ticker"]) or _fallback_brief(h, warned)
 
     ranked = (retail or {}).get("ranked") or {}
     warnings = []
@@ -230,10 +251,15 @@ def lambda_handler(event, context):
         for r in (ranked.get(key) or [])[:5]:
             warnings.append({"ticker": _tk(r), "flag": label})
 
+    _delta = rd.get("delta_pct")
+    _mkt_fb = ("Retail chatter %s vs prior (%s%%). %s" % (
+        ("rising" if (_delta or 0) > 5 else "cooling" if (_delta or 0) < -5 else "steady"),
+        _delta, "Risk appetite elevated — watch for crowding." if (_delta or 0) > 15 else
+        "Mixed retail flow." )) if rd else "Retail sentiment summary building."
     out = {"engine": "hot-stocks-digest", "version": VERSION, "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1),
            "title": "Retail Flow & Sentiment Brief",
-           "market_read": ai.get("market_read") or "Retail sentiment summary unavailable this run.",
+           "market_read": ai.get("market_read") or _mkt_fb,
            "market_context": market_ctx,
            "hot_stocks": hot, "warnings": warnings,
            "sources": ["Reddit/ApeWisdom", "StockTwits", "buzz-velocity", "news-wire", "GDELT"],
