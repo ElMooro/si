@@ -50,9 +50,9 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 # How many ideas to red-team per run
-TOP_N = int(os.environ.get("TOP_N", "15"))
+TOP_N = int(os.environ.get("TOP_N", "8"))
 # Max parallel Claude calls
-MAX_PARALLEL = 4
+MAX_PARALLEL = 8
 
 s3 = boto3.client("s3", region_name=REGION)
 
@@ -163,7 +163,7 @@ def select_targets(best_ideas):
     return unique[:TOP_N]
 
 
-def call_claude(payload, max_retries=2):
+def call_claude(payload, max_retries=1):
     """Routed LLM call via llm_router (GLM-5.1; Anthropic credits are out). Keeps the
     (content, error) signature so call sites are unchanged."""
     try:
