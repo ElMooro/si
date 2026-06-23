@@ -1,0 +1,57 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Options Confluence · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;
+--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8;--vio:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 90px}
+.hd{border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:16px}
+h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font-size:12.5px}.meta{color:var(--fg3);font-size:11.5px;margin-top:3px}
+.thesis{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--vio);border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--fg2);line-height:1.5;margin-bottom:14px}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:5px 10px;font-size:11.5px;color:var(--fg2)}
+.chip b{color:var(--fg);font-size:13px}
+.sec{margin:20px 0 8px;font-size:13px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+.sec .n{color:var(--fg3);font-weight:400;font-size:11.5px}
+.hero{border-left:3px solid var(--cyan)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:9px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:10px 12px}
+.r1{display:flex;justify-content:space-between;align-items:baseline}
+.tk{font-weight:700;font-size:15.5px}.sc{font-size:11px;color:var(--fg3)}
+.badge{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-radius:5px;padding:2px 7px;white-space:nowrap}
+.eng{margin-top:6px}.echip{display:inline-block;font-size:9px;color:var(--fg3);border:1px solid var(--bd);border-radius:4px;padding:0 5px;margin:0 3px 3px 0}
+.tags{margin-top:4px;font-size:10.5px;color:var(--cyan)}
+.foot{color:var(--fg3);font-size:11px;margin-top:22px;line-height:1.5}.loading{color:var(--fg3);padding:40px 0}
+</style></head><body><div class="wrap" id="w"><div class="loading">Loading options confluence…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+const POS={SQUEEZE_FUEL:['var(--vio)','rgba(167,139,250,.14)','⚡ Squeeze fuel'],
+BULLISH_FLOW:['var(--grn)','rgba(52,211,153,.14)','Bullish flow'],
+BEARISH_FLOW:['var(--red)','rgba(248,113,113,.14)','Bearish flow'],
+COILED:['var(--amb)','rgba(251,191,36,.13)','Coiled'],
+BULLISH_LEAN:['var(--grn)','rgba(52,211,153,.07)','Bullish lean'],
+BEARISH_LEAN:['var(--red)','rgba(248,113,113,.07)','Bearish lean'],
+MIXED:['var(--fg3)','rgba(154,165,177,.08)','Mixed']};
+function card(b){const[c,bgc,lbl]=POS[b.posture]||POS.MIXED;
+  return `<div class="card"><div class="r1"><span class="tk">${esc(b.ticker)}</span><span class="badge" style="color:${c};background:${bgc}">${lbl}</span></div>`
+    +`<div class="sc">score ${b.score>=0?'+':''}${b.score} · ${b.n_engines} engine${b.n_engines==1?'':'s'}</div>`
+    +`<div class="eng">${(b.engines||[]).map(e=>`<span class="echip">${esc(e)}</span>`).join('')}</div>`
+    +((b.tags&&b.tags.length)?`<div class="tags">${b.tags.map(esc).join(' · ')}</div>`:'')+`</div>`;}
+(async function(){
+  const d=await gj('data/options-confluence.json');const w=document.getElementById('w');
+  if(!d||!d.by_posture){w.innerHTML='<div class="hd"><h1>Options Confluence</h1></div><div class="loading">No data yet — runs hourly.</div>';return;}
+  const c=d.counts||{};
+  let h=`<div class="hd"><h1>⚡ Options Confluence</h1><div class="sub">The 21-engine options/dealer cluster, fused into one net posture per name. Cross-engine agreement is the signal.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}</div></div>`;
+  h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="counts"><span class="chip"><b>${c.names||0}</b> names</span><span class="chip"><b>${c.multi_engine||0}</b> multi-engine</span><span class="chip" style="color:var(--vio)"><b>${c.squeeze_fuel||0}</b> squeeze-fuel</span><span class="chip" style="color:var(--grn)"><b>${c.bullish_flow||0}</b> bullish</span><span class="chip" style="color:var(--red)"><b>${c.bearish_flow||0}</b> bearish</span></div>`;
+  const multi=d.multi_engine_confluence||[];
+  if(multi.length){h+=`<div class="sec hero">🎯 Multi-engine confluence <span class="n">— ${multi.length} names where ≥2 options engines agree</span></div><div class="grid">${multi.map(card).join('')}</div>`;}
+  const order=['SQUEEZE_FUEL','BULLISH_FLOW','BEARISH_FLOW','COILED','BULLISH_LEAN','BEARISH_LEAN'];
+  for(const p of order){const arr=(d.by_posture||{})[p]||[];if(!arr.length)continue;
+    h+=`<div class="sec">${(POS[p]||[])[2]||p} <span class="n">— ${arr.length}</span></div><div class="grid">${arr.map(card).join('')}</div>`;}
+  h+=`<div class="foot">${esc(d.alpha_gate||'')} ${esc(d.note||'')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
