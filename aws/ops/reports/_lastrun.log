@@ -1,36 +1,29 @@
-invoke 1: buffer_sessions=231 status=READY fetched=240 dur=145.3s
+counts: {"fresh_above": 61, "fresh_below": 75, "retest_held": 53, "retest_failed": 122, "retesting_now": 31}
 
-universe: 1200 | counts: {"fresh_above": 99, "fresh_below": 104, "retest_held": 53, "retest_failed": 122, "retesting_now": 31}
+FRESH ABOVE (must now all be +dist):
+   FIVE   +1.08% slope 3.72% bars=2
+   CCJ    +3.83% slope 3.31% bars=4
+   BBIO   +1.9% slope 2.87% bars=0
+   MDGL   +3.87% slope 2.29% bars=4
+   SHEL   +0.23% slope 1.59% bars=0
+   NEE    +0.24% slope 1.57% bars=1
+FRESH BELOW (must now all be -dist):
+   SFM    -5.92% slope -7.06% bars=5
+   FLY    -2.17% slope -2.22% bars=0
+   ANF    -4.15% slope -1.77% bars=3
+   KHC    -8.55% slope -1.7% bars=4
+   STZ    -3.01% slope -1.6% bars=3
+   CCI    -7.11% slope -1.35% bars=4
+RETEST-HELD (fresher/near-line first):
+   MDGL   RETEST_HELD     +3.87% slope 2.29% retest_age=2 gc=True
+   INCY   RETEST_HELD     +7.0% slope 1.82% retest_age=1 gc=True
+   ITT    RETEST_HELD     +5.39% slope 1.39% retest_age=2 gc=True
+   TFC    RETEST_HELD     +1.81% slope 0.86% retest_age=4 gc=True
+   PH     RETEST_HELD     +9.67% slope 1.74% retest_age=7 gc=True
+   CAH    RETEST_HELD     +12.7% slope 3.2% retest_age=14 gc=True
+   ALLY   RETEST_HELD     +9.04% slope 1.07% retest_age=7 gc=True
+   L      RETEST_HELD     +2.79% slope 1.16% retest_age=9 gc=True
 
-RETEST-HELD (reclaimed→pulled back→held): 53
-   BTCZ   RETEST_HELD      px 5.58 vs ma200 4.24 (+31.41%) slope 6.25% gc=True bars=23
-   CAH    RETEST_HELD      px 222.74 vs ma200 197.64 (+12.7%) slope 3.2% gc=True bars=25
-   OKTA   RETEST_HELD      px 115.94 vs ma200 87.35 (+32.73%) slope 2.75% gc=True bars=23
-   ARGX   RETEST_HELD      px 903.75 vs ma200 812.19 (+11.27%) slope 2.41% gc=True bars=22
-   MDGL   RETEST_HELD      px 512.88 vs ma200 493.77 (+3.87%) slope 2.29% gc=True bars=4
-   BCS    RETEST_HELD      px 27.29 vs ma200 23.15 (+17.88%) slope 2.25% gc=True bars=23
-   UPS    RETEST_HELD      px 107.24 vs ma200 99.64 (+7.62%) slope 2.08% gc=True bars=21
-   ANET   RETEST_HELD      px 174.56 vs ma200 142.35 (+22.62%) slope 1.99% gc=True bars=27
-
-FRESH BREAKOUTS ABOVE: 70
-   AG                      px 17.72 vs ma200 18.13 (-2.27%) slope 6.14% gc=True bars=4
-   SLV                     px 58.91 vs ma200 61.86 (-4.77%) slope 5.22% gc=True bars=5
-   PSLV                    px 20.61 vs ma200 22.3 (-7.59%) slope 4.7% gc=True bars=4
-   B                       px 40.14 vs ma200 40.64 (-1.23%) slope 4.36% gc=True bars=4
-   PAAS                    px 48.91 vs ma200 49.7 (-1.6%) slope 4.24% gc=True bars=4
-   AU                      px 86.23 vs ma200 89.48 (-3.63%) slope 4.17% gc=True bars=4
-   FIVE                    px 193.45 vs ma200 191.39 (+1.08%) slope 3.72% gc=True bars=2
-   NEM                     px 101.8 vs ma200 102.62 (-0.8%) slope 3.64% gc=True bars=4
-
-FRESH BREAKDOWNS BELOW: 70
-   SFM                     px 80.84 vs ma200 85.92 (-5.92%) slope -7.06% gc=False bars=5
-   SNPS                    px 464.58 vs ma200 458.83 (+1.25%) slope -2.89% gc=True bars=1
-   FLY                     px 28.96 vs ma200 29.6 (-2.17%) slope -2.22% gc=True bars=0
-   ANF                     px 86.07 vs ma200 89.8 (-4.15%) slope -1.77% gc=False bars=3
-   KHC                     px 22.03 vs ma200 24.09 (-8.55%) slope -1.7% gc=False bars=4
-   STZ                     px 141.51 vs ma200 145.91 (-3.01%) slope -1.6% gc=True bars=3
-   CCI                     px 83.12 vs ma200 89.49 (-7.11%) slope -1.35% gc=False bars=4
-   NWSA                    px 24.61 vs ma200 26.09 (-5.67%) slope -1.25% gc=True bars=5
-
-signals_logged: 25
-DONE 2161
+--- attaching to an existing post-close rule ---
+ATTACHED ma200-reclaim to existing rule 'aiapi-hourly-collection' (cron(6 21 * * ? *), had 0 targets)
+DONE 2162
