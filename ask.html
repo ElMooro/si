@@ -63,4 +63,5 @@ document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter'&&
 document.querySelectorAll('#sugg span').forEach(s=>s.onclick=()=>{document.getElementById('q').value=s.textContent;ask();});
 (async()=>{CFG=await gj('data/askdesk-config.json');
   if(!CFG){document.getElementById('feed').innerHTML='<span class="think">endpoint config pending first deploy…</span>';}})();
-</script></body></html>
+</script>  <script src="/jh-page-ai.js" defer></script>
+</body></html>

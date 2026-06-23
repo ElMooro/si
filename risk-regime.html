@@ -154,5 +154,6 @@ function render(rr,fx){
 function go(){Promise.all([load("data/risk-regime.json"),load("data/polygon-fx-regime.json")]).then(([rr,fx])=>render(rr,fx));}
 go(); setInterval(go,300000);
 </script>
+  <script src="/jh-page-ai.js" defer></script>
 </body>
 </html>

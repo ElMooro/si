@@ -80,4 +80,5 @@ function gex(v){if(v==null)return '—';const a=Math.abs(v);const s=v<0?'-':'';r
   h+=`<div class="note">${(d.caveats||[]).map(c=>'• '+esc(c)).join('<br>')}<br><br>Net GEX = $ dealer gamma per 1% move (calls +, puts −). Short gamma = dealers amplify moves (squeeze-prone); long gamma = dealers dampen (pinning). 25Δ skew in IV pts (put−call); VRP = ATM IV − 20d realized, in vol pts.<br>Data: ${esc(d.data_source||'')}</div>`;
   w.innerHTML=h;
 })();
-</script></body></html>
+</script>  <script src="/jh-page-ai.js" defer></script>
+</body></html>

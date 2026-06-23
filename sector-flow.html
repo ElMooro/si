@@ -176,5 +176,6 @@ function render(etf,sec){
 Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json")]).then(([etf,sec])=>render(etf,sec));
 setTimeout(()=>location.reload(),600000);
 </script>
+  <script src="/jh-page-ai.js" defer></script>
 </body>
 </html>

@@ -61,4 +61,5 @@ function sh(v){if(v==null)return '—';if(v>=1e6)return (v/1e6).toFixed(1)+'M';i
   h+=`<div class="note">${(d.caveats||[]).map(c=>'• '+esc(c)).join('<br>')}<br><br>Dark % = ATS (dark-pool) share of total weekly volume. Off-exch % = ATS + non-ATS wholesaler/internalizer share. Accel = latest-week ATS vs trailing-4wk average.<br>Data: ${esc(d.data_source||'')}</div>`;
   w.innerHTML=h;
 })();
-</script></body></html>
+</script>  <script src="/jh-page-ai.js" defer></script>
+</body></html>

@@ -25,4 +25,5 @@ footer{color:var(--fg3);font-size:11px;padding:26px 22px;border-top:1px solid va
 <script>document.getElementById('q').addEventListener('input',e=>{const v=e.target.value.toLowerCase();
 document.querySelectorAll('.it').forEach(x=>x.style.display=x.dataset.s.includes(v)?'':'none');
 document.querySelectorAll('.cat').forEach(c=>c.style.display=[...c.querySelectorAll('.it')].some(x=>x.style.display!=='none')?'':'none');});</script>
+  <script src="/jh-page-ai.js" defer></script>
 </body></html>

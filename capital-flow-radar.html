@@ -152,5 +152,6 @@ function render(d){
 load("data/capital-flow-radar.json").then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load capital-flow-radar.json — '+esc(e.message)+'</div>';});
 setInterval(()=>load("data/capital-flow-radar.json").then(render).catch(()=>{}),300000);
 </script>
+  <script src="/jh-page-ai.js" defer></script>
 </body>
 </html>

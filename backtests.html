@@ -86,4 +86,5 @@ function spark(c){if(!c||c.length<2)return'';const w=110,h=26,mn=Math.min(...c),
   document.getElementById('mt').innerHTML=(M.per_type_test||[]).map(r=>`<tr><td><b>${esc(r.type)}</b></td><td>${r.n_test}</td><td>${r.base_hit}%</td><td class="${(r.gated_hit||0)>r.base_hit?'hi':''}">${r.gated_hit??'—'}%</td><td style="color:var(--fg3)">${r.take_rate}%</td></tr>`).join('');
   document.getElementById('mg').innerHTML=(M.gates||[]).slice(0,60).map(g=>`<tr><td>${esc(g.type)}</td><td><b>${esc(g.ticker)}</b></td><td>${g.conf}</td><td>${g.meta_p}</td><td><span class="pill ${g.verdict==='TAKE'?'pP':'pF'}">${g.verdict}</span></td></tr>`).join('');
 })();
-</script></body></html>
+</script>  <script src="/jh-page-ai.js" defer></script>
+</body></html>
