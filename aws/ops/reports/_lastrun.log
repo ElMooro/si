@@ -1,26 +1,23 @@
-invoke: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"chokepoints\": 243, \"cheap\": 11}"} (101s)
-stats: {'pool': 621, 'evaluated': 587, 'chokepoints': 243, 'hidden': 197, 'cheap': 11, 'discovered': 156, 'verified': 16, 'confirmed': 4, 'rejected_high_margin': 12, 'industries': 29}
-diag: ['centrality_nodes=108', 'bulk_universe=17638', 'funnel_candidates=694 -> deep-dive 380', 'pool=621 (v1=241 + funnel=380)', 'evaluated=587', 'verified=16 confirmed=4 rejected=12']
+invoke: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"chokepoints\": 243, \"cheap\": 11}"} (206s)
+stats: {'pool': 621, 'evaluated': 586, 'chokepoints': 243, 'hidden': 197, 'cheap': 11, 'discovered': 156, 'verified': 41, 'confirmed': 5, 'rejected_high_margin': 36, 'industries': 29}
+cache total judged: 41 verdict split: {'NOT': 36, 'CHOKEPOINT': 5}
 
-✅ CONFIRMED true chokepoints (discovered + LLM-verified industry can't route around):
-  DLB     69.1  Dolby Laboratories, Inc.   Information Technology → Dominant audio codec standard; impossible to route around
-  CLBT    69.0  Cellebrite DI Ltd.         Software - Infrastruct → Dominant law enforcement forensics; hard to substitute
-  VEEV    68.3  Veeva Systems Inc.         Medical - Healthcare I → Pharma CRM standard; deep industry lock-in
-  ILMN    67.8  Illumina, Inc.             Medical - Diagnostics  → Dominant NGS sequencing; no viable substitutes
+✅ CONFIRMED true chokepoints:
+  ADSK    73.7  Autodesk, Inc.           Software - Applicati → CAD/AEC industry standard with deep lock-in.
+  DLB     69.1  Dolby Laboratories, Inc. Information Technolo → Dominant audio codec standard; impossible to route around
+  CLBT    69.0  Cellebrite DI Ltd.       Software - Infrastru → Dominant law enforcement forensics; hard to substitute
+  VEEV    68.3  Veeva Systems Inc.       Medical - Healthcare → Pharma CRM standard; deep industry lock-in
+  ILMN    67.8  Illumina, Inc.           Medical - Diagnostic → Dominant NGS sequencing; no viable substitutes
 
-❌ REJECTED (high-margin but NOT chokepoints — the false positives filtered out):
-  FFIV    70.6  F5, Inc.                 Competitive ADC market; real substitutes exist
-  DUOL    70.4  Duolingo, Inc.           High margin app; many language substitutes
-  ALKS    69.7  Alkermes plc             Single drug biotech; real therapeutic alternatives
-  DXCM    69.6  DexCom, Inc.             CGM leader, but Abbott/rivals offer substitutes
-  DOCU    69.4  DocuSign, Inc.           E-signature leader but real substitutes exist
-  KRYS    69.3  Krystal Biotech, Inc.    Single drug biotech; ordinary high-margin profile
-  BSY     69.0  Bentley Systems, Incorpo CAD/AEC duopoly with Autodesk, not sole provider
-  CORT    68.9  Corcept Therapeutics Inc Single drug biotech; real therapeutic alternatives
-  CHKP    68.7  Check Point Software Tec Enterprise firewall leader but real substitutes exist
-  PAYC    68.2  Paycom Software, Inc.    HR SaaS; competitive market with real substitutes
-  PTC     67.9  PTC Inc.                 CAD/PLM leader but Siemens/Dassault provide substitutes
-  BOX     67.7  Box, Inc.                Cloud storage; commodity with real substitutes
-
-page: 200
-DONE 2121
+❌ REJECTED sample:
+  EXEL   Exelixis, Inc.         Single-drug biotech with therapeutic substitutes.
+  ESTC   Elastic N.V.           OpenSearch fork and Splunk offer substitutes.
+  QLYS   Qualys, Inc.           Tenable and Rapid7 offer viable substitutes.
+  PEGA   Pegasystems Inc.       Salesforce, Appian, Camunda offer real alternatives.
+  INCY   Incyte Corporation     Single-drug biotech with therapeutic substitutes.
+  IOT    Samsara Inc.           Geotab and Motive offer fleet substitutes.
+  DOCS   Doximity, Inc.         Doctors can use Epic, fax, or rivals.
+  FFIV   F5, Inc.               Competitive ADC market; real substitutes exist
+  DUOL   Duolingo, Inc.         High margin app; many language substitutes
+  ALKS   Alkermes plc           Single drug biotech; real therapeutic alternatives
+DONE 2122
