@@ -1,4 +1,12 @@
-  hot-stocks.html -> 200  renders=True
-  options-confluence.html -> 200  renders=True
-  flow-confluence.html -> 200  renders=True
-DONE 2155
+=== MARKET-INTERNALS ===  sessions: 153
+latest: {"date": "2026-06-22", "advancers": 2279, "decliners": 2773, "rana": -97.8, "ad_ratio": 0.82, "vol_ratio": null, "spy_ret_pct": null, "qqq_ret_pct": null}
+volume: {"up_dollar_vol": null, "down_dollar_vol": null, "ratio": null, "funded_advance": false, "spec": "dollar up-vol / down-vol; >1.5 = advance is funded (your '2:1 buying')"}
+rotation: {"state": "UNKNOWN", "spy_ret_pct": null, "qqq_ret_pct": null, "ad_ratio": 0.82, "pct_advancers": 0.4511, "vol_ratio": null, "funded": false, "note": "Index return unavailable this session (SPY/QQQ not in grouped feed).", "spec": "breadth-vs-index divergence \u2014 GREAT_ROTATION = index red + breadth green; NARROW_MEGACAP = index green + breadth weak; consumed by risk-regime/sector-emergence"}
+mcclellan: {"oscillator": -4.4, "summation": -3388.0, "state": "NEUTRAL", "spec": "\u00b170 stretch, \u00b1100 washout/blowoff (brain: breadth narrows ahead of corrections)"}
+
+=== BREADTH-THRUST ===
+schedule rule: cron(0 22 ? * MON-FRI *) ENABLED
+invoke status: 200
+state: NULL | zweig: {}
+keys: ['engine', 'version', 'as_of', 'state', 'prev_state', 'state_since', 'state_transition', 'signal_strength', 'cooldown_until', 'current_readings', 'trigger_conditions', 'forward_expectations']
+DONE 2156
