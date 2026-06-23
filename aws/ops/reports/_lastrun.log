@@ -1,28 +1,36 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2160_bootstrap_ma200.py", line 8, in <module>
-    ev.describe_rule(Name="justhodl-ma200-reclaim-daily"); print("schedule present")
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceNotFoundException: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-ma200-reclaim-daily does not exist on EventBus default.
+invoke 1: buffer_sessions=231 status=READY fetched=240 dur=145.3s
 
-During handling of the above exception, another exception occurred:
+universe: 1200 | counts: {"fresh_above": 99, "fresh_below": 104, "retest_held": 53, "retest_failed": 122, "retesting_now": 31}
 
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2160_bootstrap_ma200.py", line 11, in <module>
-    ev.put_rule(Name=rule,ScheduleExpression="cron(30 21 ? * MON-FRI *)",State="ENABLED")
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.LimitExceededException: An error occurred (LimitExceededException) when calling the PutRule operation: The requested resource exceeds the maximum number allowed.
+RETEST-HELD (reclaimed→pulled back→held): 53
+   BTCZ   RETEST_HELD      px 5.58 vs ma200 4.24 (+31.41%) slope 6.25% gc=True bars=23
+   CAH    RETEST_HELD      px 222.74 vs ma200 197.64 (+12.7%) slope 3.2% gc=True bars=25
+   OKTA   RETEST_HELD      px 115.94 vs ma200 87.35 (+32.73%) slope 2.75% gc=True bars=23
+   ARGX   RETEST_HELD      px 903.75 vs ma200 812.19 (+11.27%) slope 2.41% gc=True bars=22
+   MDGL   RETEST_HELD      px 512.88 vs ma200 493.77 (+3.87%) slope 2.29% gc=True bars=4
+   BCS    RETEST_HELD      px 27.29 vs ma200 23.15 (+17.88%) slope 2.25% gc=True bars=23
+   UPS    RETEST_HELD      px 107.24 vs ma200 99.64 (+7.62%) slope 2.08% gc=True bars=21
+   ANET   RETEST_HELD      px 174.56 vs ma200 142.35 (+22.62%) slope 1.99% gc=True bars=27
+
+FRESH BREAKOUTS ABOVE: 70
+   AG                      px 17.72 vs ma200 18.13 (-2.27%) slope 6.14% gc=True bars=4
+   SLV                     px 58.91 vs ma200 61.86 (-4.77%) slope 5.22% gc=True bars=5
+   PSLV                    px 20.61 vs ma200 22.3 (-7.59%) slope 4.7% gc=True bars=4
+   B                       px 40.14 vs ma200 40.64 (-1.23%) slope 4.36% gc=True bars=4
+   PAAS                    px 48.91 vs ma200 49.7 (-1.6%) slope 4.24% gc=True bars=4
+   AU                      px 86.23 vs ma200 89.48 (-3.63%) slope 4.17% gc=True bars=4
+   FIVE                    px 193.45 vs ma200 191.39 (+1.08%) slope 3.72% gc=True bars=2
+   NEM                     px 101.8 vs ma200 102.62 (-0.8%) slope 3.64% gc=True bars=4
+
+FRESH BREAKDOWNS BELOW: 70
+   SFM                     px 80.84 vs ma200 85.92 (-5.92%) slope -7.06% gc=False bars=5
+   SNPS                    px 464.58 vs ma200 458.83 (+1.25%) slope -2.89% gc=True bars=1
+   FLY                     px 28.96 vs ma200 29.6 (-2.17%) slope -2.22% gc=True bars=0
+   ANF                     px 86.07 vs ma200 89.8 (-4.15%) slope -1.77% gc=False bars=3
+   KHC                     px 22.03 vs ma200 24.09 (-8.55%) slope -1.7% gc=False bars=4
+   STZ                     px 141.51 vs ma200 145.91 (-3.01%) slope -1.6% gc=True bars=3
+   CCI                     px 83.12 vs ma200 89.49 (-7.11%) slope -1.35% gc=False bars=4
+   NWSA                    px 24.61 vs ma200 26.09 (-5.67%) slope -1.25% gc=True bars=5
+
+signals_logged: 25
+DONE 2161
