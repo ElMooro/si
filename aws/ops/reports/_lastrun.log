@@ -1,10 +1,4 @@
-S3 key 'hot-stocks.html': An error occurred (404) when calling the Head
-S3 key 'options-confluence.html': EXISTS 5495b ct=text/html; charset=utf-8
-S3 key 'flow-confluence.html': EXISTS 5643b ct=text/html; charset=utf-8
-
-sample .html keys in bucket root:
-   ['archive/2026-02-17.html']
-  justhodl.ai/hot-stocks.html -> 200  server=cloudflare cf=DYNAMIC
-  justhodl.ai/options-confluence.html -> HTTP Error 404: Not Found  server=None cf=None
-  justhodl.ai/flow-confluence.html -> HTTP Error 404: Not Found  server=None cf=None
-DONE 2154
+  hot-stocks.html -> 200  renders=True
+  options-confluence.html -> 200  renders=True
+  flow-confluence.html -> 200  renders=True
+DONE 2155
