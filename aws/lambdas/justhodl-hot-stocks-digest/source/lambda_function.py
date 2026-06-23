@@ -53,7 +53,15 @@ def _parse_json(txt):
     return {}
 
 def _tk(x):
-    return (x.get("ticker") or x.get("symbol") or "").upper()
+    if isinstance(x, str): return x.strip().upper()
+    if isinstance(x, dict): return (x.get("ticker") or x.get("symbol") or "").upper()
+    return ""
+
+def _d(x):
+    """Normalize a feed item to a dict — some feeds list bare ticker strings."""
+    if isinstance(x, dict): return x
+    if isinstance(x, str): return {"ticker": x}
+    return {}
 
 
 def build_hot_list(retail, stwt, buzz):
@@ -69,26 +77,28 @@ def build_hot_list(retail, stwt, buzz):
 
     ranked = (retail or {}).get("ranked") or {}
     for i, r in enumerate((ranked.get("hottest") or [])[:25]):
-        bump(_tk(r), 30 - i*0.8, mentions=r.get("mentions"), velocity=r.get("mention_velocity") or r.get("velocity"),
-             bull_pct=r.get("bull_pct")); heat.get(_tk(r), {}).get("venues", set()).add("reddit/stwt")
+        r = _d(r); tk = _tk(r)
+        bump(tk, 30 - i*0.8, mentions=r.get("mentions"), velocity=r.get("mention_velocity") or r.get("velocity"),
+             bull_pct=r.get("bull_pct"))
+        if tk in heat: heat[tk]["venues"].add("reddit/stwt")
     for r in (ranked.get("biggest_velocity_surges") or [])[:15]:
-        h = heat.get(_tk(r)); bump(_tk(r), 18, velocity=r.get("mention_velocity") or r.get("velocity"))
-        if _tk(r) in heat: heat[_tk(r)]["why"].append("mention velocity surging"); heat[_tk(r)]["venues"].add("velocity")
+        r = _d(r); tk = _tk(r); bump(tk, 18, velocity=r.get("mention_velocity") or r.get("velocity"))
+        if tk in heat: heat[tk]["why"].append("mention velocity surging"); heat[tk]["venues"].add("velocity")
     for r in (ranked.get("biggest_rank_climbers") or [])[:15]:
-        bump(_tk(r), 16, rank_climb=r.get("rank_velocity") or r.get("rank_delta"))
-        if _tk(r) in heat: heat[_tk(r)]["why"].append("climbing the mention ranks fast"); heat[_tk(r)]["venues"].add("climber")
+        r = _d(r); tk = _tk(r); bump(tk, 16, rank_climb=r.get("rank_velocity") or r.get("rank_delta"))
+        if tk in heat: heat[tk]["why"].append("climbing the mention ranks fast"); heat[tk]["venues"].add("climber")
     for r in (ranked.get("igniting") or [])[:12]:
-        bump(_tk(r), 14)
-        if _tk(r) in heat: heat[_tk(r)]["why"].append("igniting (early)"); heat[_tk(r)]["venues"].add("igniting")
+        r = _d(r); tk = _tk(r); bump(tk, 14)
+        if tk in heat: heat[tk]["why"].append("igniting (early)"); heat[tk]["venues"].add("igniting")
     for r in (ranked.get("most_bullish_stwt") or [])[:12]:
-        bump(_tk(r), 8, bull_pct=r.get("bull_pct"))
-        if _tk(r) in heat: heat[_tk(r)]["venues"].add("stwt-bull")
+        r = _d(r); tk = _tk(r); bump(tk, 8, bull_pct=r.get("bull_pct"))
+        if tk in heat: heat[tk]["venues"].add("stwt-bull")
     for i, r in enumerate(((stwt or {}).get("trending_equities") or [])[:20]):
-        bump(_tk(r), 12 - i*0.4, bull_pct=r.get("bull_pct"))
-        if _tk(r) in heat: heat[_tk(r)]["venues"].add("stwt-trending")
+        r = _d(r); tk = _tk(r); bump(tk, 12 - i*0.4, bull_pct=r.get("bull_pct"))
+        if tk in heat: heat[tk]["venues"].add("stwt-trending")
     for r in ((buzz or {}).get("all_results") or [])[:20]:
-        bump(_tk(r), min(10, (r.get("velocity") or r.get("score") or 0)))
-        if _tk(r) in heat: heat[_tk(r)]["venues"].add("buzz")
+        r = _d(r); tk = _tk(r); bump(tk, min(10, (r.get("velocity") or r.get("score") or 0)))
+        if tk in heat: heat[tk]["venues"].add("buzz")
 
     # multi-venue confirmation bonus
     for tk, h in heat.items():
@@ -103,6 +113,7 @@ def news_by_ticker(newswire, gdelt):
     items = (newswire or {}).get("scored_headlines") or (newswire or {}).get("items") or \
             (newswire or {}).get("headlines") or []
     for it in items:
+        it = _d(it)
         tks = it.get("tickers") or ([it.get("fmp_symbol_hint")] if it.get("fmp_symbol_hint") else []) or \
               ([it.get("symbol")] if it.get("symbol") else [])
         sent = it.get("sentiment")
@@ -113,7 +124,7 @@ def news_by_ticker(newswire, gdelt):
                "sentiment": sent if isinstance(sent, (int, float)) else 0,
                "source": it.get("origin") or it.get("source")}
         for tk in tks:
-            if tk: nbt.setdefault(tk.upper(), []).append(rec)
+            if tk and isinstance(tk, str): nbt.setdefault(tk.upper(), []).append(rec)
     return nbt
 
 
