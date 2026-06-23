@@ -1,28 +1,12 @@
-chokepoint: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"chokepoints\": 243, \"cheap\": 11}"} (83s)
-  structural names exported: 56 | highest_conviction: 3
-  structural_names sample: [('NVDA', {'criticality': 88.2, 'curated': True, 'confirmed': False, 'hub': 9}), ('ADBE', {'criticality': 81.4, 'curated': True, 'confirmed': False, 'hub': 0}), ('ANET', {'criticality': 80.5, 'curated': False, 'confirmed': False, 'hub': 3}), ('KLAC', {'criticality': 78.2, 'curated': True, 'confirmed': False, 'hub': 2}), ('CDNS', {'criticality': 78.0, 'curated': True, 'confirmed': False, 'hub': 3}), ('ASML', {'criticality': 73.7, 'curated': True, 'confirmed': False, 'hub': 3})]
-  ⭐ HIGHEST CONVICTION:
-     TSM    crit=71.4 [CHEAP] Taiwan Semiconductor Man
-     ENTG   crit=55.4 [CHEAP] Entegris, Inc.
-     ACLS   crit=51.1 [CHEAP] Axcelis Technologies, In
 
-best-setups: {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"n_setups\": 628, \"strong_buy\": 8, \"buy\":  (5s)
-  setups tagged structural_chokepoint: 30 | structural_at_trough: 2
-     NVDA   conv=100.0 crit=88.2 STRONG BUY
-     ANET   conv=72.6 crit=80.5 STRONG BUY
-     AMD    conv=63.4 crit=50.7 STRONG BUY
-     PANW   conv=59.9 crit=66.4 STRONG BUY
-     LRCX   conv=53.7 crit=73.1 BUY
-  example why: NVDA screens as a strong buy because it's a durable quality grower (high ROIC + margins + growth) (compounder 100.0); ramping capex into an AI/power buildout (self-funding demand) (capex +86.7% — surging capex (+86.7%) in a buildout sector)
+[engine-alpha] data/engine-alpha.json top-keys: ['generated_at', 'benchmark', 'fdr_q', 'n_alpha_proven', 'n_alpha_negative', 'alpha_proven_signals', 'alpha_negative_signals', 'engines']
+  proven_signals: ['crypto_risk_score', 'squeeze_risk', 'crisis_dfii10_vs_gld']
+  other alpha keys: ['n_alpha_proven', 'n_alpha_negative', 'alpha_proven_signals', 'alpha_negative_signals']
 
-master-ranker: {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 9, \"n_tier_3_plus\": 66, \"n_tier_5_plus\": 17, \"regime\": \"S (4s)
-  n_structural_chokepoints in top_tickers: 4
-     NVDA   score=125.1 crit=88.2 hiconv=False
-       rationale: ...OS, SCION · sector inflow (Technology) · RORO MILD_RISK_ON risk-on tilt (Technology) · structural chokepoint (crit 88.2)
-     AVGO   score=115.0 crit=63.6 hiconv=False
-       rationale: ...GLOBAL · options: bullish call flow; smart-money blocks · sector inflow (Technology) · structural chokepoint (crit 63.6)
-     ORCL   score=109.7 crit=60.3 hiconv=False
-       rationale: ....7) [compound, eps_velocity, future_intel, smart_money] · sector inflow (Technology) · structural chokepoint (crit 60.3)
-     AMD    score=100.6 crit=50.7 hiconv=False
-       rationale: ...ssive] · options: bullish call flow; smart-money blocks · sector inflow (Technology) · structural chokepoint (crit 50.7)
-DONE 2123
+[scorecard?] data/signal-scorecard.json top-keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'n_outcomes_scanned', 'n_outcomes_scored', 'n_outcomes_neutral', 'n_outcomes_legacy', 'n_outcomes_unresolved', 'n_signals_tracked', 'n_signals_graded', 'n_promoted', 'n_deprecated', 'n_insufficient', 'avg_graded_wilson_lb', 'promoted_signals']
+  scorecard sample row [scorecard]: {"signal_type": "crisis_dfii10_vs_gld", "n_total": 266, "n_scored": 266, "n_neutral": 0, "n_legacy": 0, "n_unresolved": 0, "hits": 247, "hit_rate": 0.929, "wilson_lb": 0.891, "edge_vs_coinflip_pct": 39.1, "avg_return_pct": -4.11, "stored_flag_agreement": 0.932, "grade": "A", "status": "PROMOTED", "performance_multiplier": 1.25, "alpha_status": "ALPHA_PROVEN", "alpha_n": 266, "alpha_mean_excess_pct": 5.42, "alpha_t_st
+
+existing ai-commentary pages in S3: 10 -> ['13f', 'crisis', 'fundamentals', 'liquidity', 'portfolio', 'pre-pump-radar', 'risk-desk', 'screener', 'signal-board', 'signals']
+
+uploaded data/page-ai-manifest.json: 331 pages
+DONE 2124
