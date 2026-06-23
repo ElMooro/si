@@ -1,14 +1,17 @@
-invoke: {"errorMessage": "'str' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "a5ae3591-b805-4a93-bea6-74ff75348ed6", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 201, in lambda_han (1s)
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2138_rerun_hot_stocks.py", line 11, in <module>
-    d=json.loads(s3.get_object(Bucket="justhodl-dashboard-live",Key="data/hot-stocks-digest.json")["Body"].read())
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+invoke: {"statusCode": 200, "body": "{\"hot\": 12, \"narrative\": false, \"emailed\": \"reports@justhodl.ai\"}"} (180s)
+narrative: False | hot: 12
+MARKET READ: Retail sentiment summary unavailable this run.
+
+BRIEF:
+  INTC   heat=81 ven=4 bull%=None | NET: —
+  GETY   heat=80 ven=4 bull%=None | NET: —
+  KEEL   heat=78 ven=4 bull%=None | NET: —
+  AMZN   heat=76 ven=4 bull%=None | NET: —
+  GOOG   heat=74 ven=4 bull%=None | NET: —
+  TTWO   heat=72 ven=4 bull%=None | NET: —
+  GOOGL  heat=70 ven=3 bull%=None | NET: —
+  SPCX   heat=63 ven=3 bull%=None | NET: —
+
+warnings: ['INTC', 'DTE', 'KEEL', 'NOK', 'IWM', 'CXAI', 'MS', 'ET']
+page hot-stocks.html: 200 | email sent via SES to reports@justhodl.ai
+DONE 2139
