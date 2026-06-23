@@ -1,23 +1,28 @@
-invoke: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"chokepoints\": 243, \"cheap\": 11}"} (206s)
-stats: {'pool': 621, 'evaluated': 586, 'chokepoints': 243, 'hidden': 197, 'cheap': 11, 'discovered': 156, 'verified': 41, 'confirmed': 5, 'rejected_high_margin': 36, 'industries': 29}
-cache total judged: 41 verdict split: {'NOT': 36, 'CHOKEPOINT': 5}
+chokepoint: {"statusCode": 200, "body": "{\"mode\": \"PROVISIONAL\", \"chokepoints\": 243, \"cheap\": 11}"} (83s)
+  structural names exported: 56 | highest_conviction: 3
+  structural_names sample: [('NVDA', {'criticality': 88.2, 'curated': True, 'confirmed': False, 'hub': 9}), ('ADBE', {'criticality': 81.4, 'curated': True, 'confirmed': False, 'hub': 0}), ('ANET', {'criticality': 80.5, 'curated': False, 'confirmed': False, 'hub': 3}), ('KLAC', {'criticality': 78.2, 'curated': True, 'confirmed': False, 'hub': 2}), ('CDNS', {'criticality': 78.0, 'curated': True, 'confirmed': False, 'hub': 3}), ('ASML', {'criticality': 73.7, 'curated': True, 'confirmed': False, 'hub': 3})]
+  ⭐ HIGHEST CONVICTION:
+     TSM    crit=71.4 [CHEAP] Taiwan Semiconductor Man
+     ENTG   crit=55.4 [CHEAP] Entegris, Inc.
+     ACLS   crit=51.1 [CHEAP] Axcelis Technologies, In
 
-✅ CONFIRMED true chokepoints:
-  ADSK    73.7  Autodesk, Inc.           Software - Applicati → CAD/AEC industry standard with deep lock-in.
-  DLB     69.1  Dolby Laboratories, Inc. Information Technolo → Dominant audio codec standard; impossible to route around
-  CLBT    69.0  Cellebrite DI Ltd.       Software - Infrastru → Dominant law enforcement forensics; hard to substitute
-  VEEV    68.3  Veeva Systems Inc.       Medical - Healthcare → Pharma CRM standard; deep industry lock-in
-  ILMN    67.8  Illumina, Inc.           Medical - Diagnostic → Dominant NGS sequencing; no viable substitutes
+best-setups: {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"n_setups\": 628, \"strong_buy\": 8, \"buy\":  (5s)
+  setups tagged structural_chokepoint: 30 | structural_at_trough: 2
+     NVDA   conv=100.0 crit=88.2 STRONG BUY
+     ANET   conv=72.6 crit=80.5 STRONG BUY
+     AMD    conv=63.4 crit=50.7 STRONG BUY
+     PANW   conv=59.9 crit=66.4 STRONG BUY
+     LRCX   conv=53.7 crit=73.1 BUY
+  example why: NVDA screens as a strong buy because it's a durable quality grower (high ROIC + margins + growth) (compounder 100.0); ramping capex into an AI/power buildout (self-funding demand) (capex +86.7% — surging capex (+86.7%) in a buildout sector)
 
-❌ REJECTED sample:
-  EXEL   Exelixis, Inc.         Single-drug biotech with therapeutic substitutes.
-  ESTC   Elastic N.V.           OpenSearch fork and Splunk offer substitutes.
-  QLYS   Qualys, Inc.           Tenable and Rapid7 offer viable substitutes.
-  PEGA   Pegasystems Inc.       Salesforce, Appian, Camunda offer real alternatives.
-  INCY   Incyte Corporation     Single-drug biotech with therapeutic substitutes.
-  IOT    Samsara Inc.           Geotab and Motive offer fleet substitutes.
-  DOCS   Doximity, Inc.         Doctors can use Epic, fax, or rivals.
-  FFIV   F5, Inc.               Competitive ADC market; real substitutes exist
-  DUOL   Duolingo, Inc.         High margin app; many language substitutes
-  ALKS   Alkermes plc           Single drug biotech; real therapeutic alternatives
-DONE 2122
+master-ranker: {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 9, \"n_tier_3_plus\": 66, \"n_tier_5_plus\": 17, \"regime\": \"S (4s)
+  n_structural_chokepoints in top_tickers: 4
+     NVDA   score=125.1 crit=88.2 hiconv=False
+       rationale: ...OS, SCION · sector inflow (Technology) · RORO MILD_RISK_ON risk-on tilt (Technology) · structural chokepoint (crit 88.2)
+     AVGO   score=115.0 crit=63.6 hiconv=False
+       rationale: ...GLOBAL · options: bullish call flow; smart-money blocks · sector inflow (Technology) · structural chokepoint (crit 63.6)
+     ORCL   score=109.7 crit=60.3 hiconv=False
+       rationale: ....7) [compound, eps_velocity, future_intel, smart_money] · sector inflow (Technology) · structural chokepoint (crit 60.3)
+     AMD    score=100.6 crit=50.7 hiconv=False
+       rationale: ...ssive] · options: bullish call flow; smart-money blocks · sector inflow (Technology) · structural chokepoint (crit 50.7)
+DONE 2123
