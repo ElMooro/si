@@ -1,16 +1,9 @@
-TOTAL RULES (default bus): 300
-  managed(AWS): 0 | healthy: 292
-  EMPTY scheduled rules (0 targets): 7
-  DANGLING scheduled rules (all targets→deleted lambda): 1
-  empty event-pattern rules (left alone): 0
-   deleted EMPTY: aiapi-daily-training
-   deleted EMPTY: economyapi-weekly-update
-   deleted EMPTY: fed-liquidity-update
-   deleted EMPTY: ice-bofa-update-schedule
-   deleted EMPTY: multi-agent-economic-hourly
-   deleted EMPTY: multi-agent-market-15min
-   deleted EMPTY: nyfed-data-update-schedule
-   deleted DANGLING: eurostat-history-daily
-
-FREED 8 rule slots. New total ~292/300
-DONE 2165
+GROUPED crypto: OK pairs=434 usd=410
+    X:BTCUSD c 62658.4 $vol 778.1 M
+    X:ETHUSD c 1665.29 $vol 252.4 M
+    X:USDTUSD c 0.99871 $vol 242.1 M
+    X:XRPUSD c 1.1089 $vol 100.5 M
+    X:SOLUSD c 69.63 $vol 93.6 M
+    X:USDCUSD c 1.001 $vol 88.5 M
+PER-TICKER X:BTCUSD: OK status=OK bars=30
+DONE 2166
