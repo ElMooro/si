@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-crypto-ma200",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 900,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "env": { "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d" },
+  "schedule": {
+    "rule_name": "justhodl-crypto-ma200-daily",
+    "cron": "cron(45 0 * * ? *)",
+    "description": "Daily crypto 200-DMA reclaim/retest scan (00:45 UTC, after the crypto daily close)"
+  }
+}
