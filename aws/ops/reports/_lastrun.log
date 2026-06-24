@@ -1,9 +1,10 @@
-GROUPED crypto: OK pairs=434 usd=410
-    X:BTCUSD c 62658.4 $vol 778.1 M
-    X:ETHUSD c 1665.29 $vol 252.4 M
-    X:USDTUSD c 0.99871 $vol 242.1 M
-    X:XRPUSD c 1.1089 $vol 100.5 M
-    X:SOLUSD c 69.63 $vol 93.6 M
-    X:USDCUSD c 1.001 $vol 88.5 M
-PER-TICKER X:BTCUSD: OK status=OK bars=30
-DONE 2166
+created proper rule justhodl-ma200-reclaim-daily -> ma200-reclaim
+retired orphan rule aiapi-hourly-collection (+1 slot freed)
+crypto rule present (deploy made it)
+invoke 1: days=235 status=READY fetched=238 dur=13.8s
+
+crypto universe: 31 | counts: {"fresh_above": 0, "fresh_below": 1, "retest_held": 0, "retest_failed": 6, "retesting_now": 1}
+
+FRESH BELOW: 1
+   ONDO                    px 0.3145 vs ma200 0.3272 (-3.9%) slope -4.67% gc=True
+DONE 2167
