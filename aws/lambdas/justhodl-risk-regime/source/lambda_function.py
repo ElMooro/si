@@ -301,6 +301,44 @@ def lambda_handler(event, context):
                          "vol_ratio": rot.get("vol_ratio"), "funded": rot.get("funded"), "note": pnote}
         all_tells.append(f"Breadth: {rstate} ({conf})")
 
+    # ── cross-border flow overlay (hot-money; capital-flight confirmation, not core score) ──
+    hm = _read("data/hot-money.json") or {}
+    cross_border = None
+    if hm.get("inflow_leaders") is not None:
+        EMR = {"LatAm", "Asia", "MEA"}
+        infl = [c for c in hm.get("inflow_leaders", []) if c.get("region") in EMR
+                and c.get("conviction") in ("TWIN_ENGINE", "CONFIRMED_INFLOW", "EARLY_ACCUMULATION")]
+        outfl = [c for c in hm.get("outflow_leaders", []) if c.get("region") in EMR
+                 and c.get("conviction") in ("CONFIRMED_OUTFLOW", "OUTFLOW")]
+        em_debt_sig = (hm.get("em_debt_flows") or {}).get("signal") or ""
+        seek = len(infl) - len(outfl) + (1 if em_debt_sig.startswith("INFLOW") else
+                                         -1 if em_debt_sig.startswith("OUTFLOW") else 0)
+        flow_state = "RISK_SEEKING" if seek >= 2 else "RISK_AVERSE" if seek <= -2 else "MIXED"
+        risk_on = score >= 12; risk_off = score <= -12
+        if risk_on and flow_state == "RISK_AVERSE":
+            cconf = "DIVERGENT"
+            cnote = ("Cross-asset tells say risk-on, but cross-border capital is leaving EM/high-beta "
+                     "(equity + bond outflows). Foreign money not confirming — discount conviction.")
+            posture = dict(posture)
+            posture["size_mult"] = round(posture["size_mult"] * 0.97, 3)
+            posture["crossborder_warning"] = "em_capital_outflow"
+        elif risk_off and flow_state == "RISK_SEEKING":
+            cconf = "DIVERGENT"
+            cnote = "Risk-off tells, yet capital still chasing EM inflows — early bottoming or complacency."
+        elif risk_on and flow_state == "RISK_SEEKING":
+            cconf = "CONFIRMED"; cnote = "Risk-on confirmed — capital flowing into EM/high-beta (equity + debt)."
+        elif risk_off and flow_state == "RISK_AVERSE":
+            cconf = "CONFIRMED"; cnote = "Risk-off confirmed — cross-border capital flight from EM."
+        else:
+            cconf = "NEUTRAL"; cnote = "Cross-border flows roughly aligned with the cross-asset read."
+        cross_border = {"confirmation": cconf, "flow_state": flow_state,
+                        "em_inflow_countries": len(infl), "em_outflow_countries": len(outfl),
+                        "em_debt_signal": em_debt_sig,
+                        "top_inflows": [c["country"] for c in hm.get("inflow_leaders", [])[:3]],
+                        "top_outflows": [c["country"] for c in hm.get("outflow_leaders", [])[:3]],
+                        "note": cnote}
+        all_tells.append(f"Cross-border: {flow_state} ({cconf})")
+
     out = {
         "engine": "risk-regime", "version": "1.0.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -308,6 +346,7 @@ def lambda_handler(event, context):
         "scale": "-100 = risk-off / flight-to-quality .. +100 = risk-on",
         "posture": posture,
         "participation": participation,
+        "cross_border": cross_border,
         "blocks_used": [{"block": b, "weight": w, "score": round(s, 3)} for b, w, s in blocks],
         "components": results,
         "tells": all_tells,
