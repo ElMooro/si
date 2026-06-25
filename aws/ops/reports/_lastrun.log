@@ -1,27 +1,7 @@
-
-buyback-yield-ranking (flow-confluence buyback): keys=['engine', 'version', 'as_of', 'state', 'signal_strength', 'n_qualified', 'n_strong', 'n_medium', 'universe_size', 'top_20_ranked', 'all_ranked', 'trade_tickets']
-    headline={"state": "BUYBACK_RICH", "signal_strength": 0.85}
-    'top_20_ranked' n=20 keys=['ticker', 'name', 'price', 'market_cap_usd', 'pe', 'ttm_buyback_yield_gross_pct', 'ttm_buyback_yield_net_pct', 'ttm_buybacks_gross_usd'] scoreish=['ttm_buyback_yield_gross_pct', 'ttm_buyback_yield_net_pct', 'ttm_buybacks_gross_usd', 'ttm_buybacks_net_usd', 'quarters_with_buybacks', 'composite_score']
-    'all_ranked' n=106 keys=['ticker', 'name', 'price', 'market_cap_usd', 'pe', 'ttm_buyback_yield_gross_pct', 'ttm_buyback_yield_net_pct', 'ttm_buybacks_gross_usd'] scoreish=['ttm_buyback_yield_gross_pct', 'ttm_buyback_yield_net_pct', 'ttm_buybacks_gross_usd', 'ttm_buybacks_net_usd', 'quarters_with_buybacks', 'composite_score']
-    'trade_tickets' n=20 keys=['ticker', 'side', 'rationale', 'holding_period', 'size_pct_portfolio', 'expected_alpha_pct_yr'] scoreish=['side', 'size_pct_portfolio', 'expected_alpha_pct_yr']
-
-earnings-iv-crush (options-confluence): keys=['engine', 'version', 'as_of', 'state', 'previous_state', 'state_description', 'signal_strength', 'summary', 'current_readings', 'top_rich', 'top_cheap', 'fair_priced']
-    headline={"state": "QUIET", "previous_state": "UNKNOWN", "state_description": "Few earnings within window", "signal_strength": 0}
-
-carry-surface (hot-money carry axis): keys=['version', 'generated_at', 'elapsed_s', 'n_assets', 'financing_rate_pct', 'by_class', 'all_assets', 'cross_asset_top', 'cross_asset_bottom', 'risk_adjusted_leaders', 'regime_summary', 'massive_fx']
-    dict 'by_class' subkeys=['equity', 'fx', 'fixed_income', 'commodity', 'crypto']
-    'all_assets' n=80 keys=['symbol', 'asset_class', 'long_currency', 'short_currency', 'long_rate_pct', 'short_rate_pct', 'carry_pct', 'realized_vol_pct'] scoreish=['short_currency', 'long_rate_pct', 'short_rate_pct', 'carry_pct', 'realized_vol_pct', 'carry_pct_z']
-    'cross_asset_top' n=10 keys=['symbol', 'asset_class', 'long_currency', 'short_currency', 'long_rate_pct', 'short_rate_pct', 'carry_pct', 'realized_vol_pct'] scoreish=['short_currency', 'long_rate_pct', 'short_rate_pct', 'carry_pct', 'realized_vol_pct', 'carry_pct_z']
-    'cross_asset_bottom' n=10 keys=['symbol', 'asset_class', 'structural_carry_pct', 'spot_etf_basis_pct', 'carry_pct', 'realized_vol_pct', 'carry_per_vol', 'price'] scoreish=['structural_carry_pct', 'spot_etf_basis_pct', 'carry_pct', 'realized_vol_pct', 'carry_per_vol', 'carry_pct_z']
-    'risk_adjusted_leaders' n=10 keys=['symbol', 'asset_class', 'div_yield_pct', 'buyback_yield_pct', 'financing_pct', 'carry_pct', 'realized_vol_pct', 'carry_per_vol'] scoreish=['div_yield_pct', 'buyback_yield_pct', 'financing_pct', 'carry_pct', 'realized_vol_pct', 'carry_per_vol']
-    dict 'regime_summary' subkeys=['equity', 'fx', 'fixed_income', 'commodity']
-    dict 'massive_fx' subkeys=['regime_signals', 'usd_synthetic_20d_pct', 'majors', 'note', 'source']
-    dict 'methodology' subkeys=['equity', 'fx', 'fixed_income', 'commodity', 'crypto', 'z_score', 'carry_per_vol', 'carry_momentum']
-
-short-interest (accumulation-radar squeeze fuel): keys=['version', 'generated_at', 'watchlist_size', 'n_tickers_with_data', 'n_tickers_finra', 'n_tickers_polygon', 'n_tickers_short_interest', 'by_ticker', 'top_crowded_shorts', 'top_squeeze_risk', 'top_high_dtc', 'top_covering']
-    'top_crowded_shorts' n=15 keys=['ticker', 'latest_short_pct', 'trend_pct', 'recent_5d_avg', 'prior_9d_avg', 'days_to_cover', 'si_change_pct', 'short_interest'] scoreish=['latest_short_pct', 'trend_pct', 'si_change_pct', 'short_interest', 'signal', 'score']
-    'top_squeeze_risk' n=1 keys=['ticker', 'latest_short_pct', 'trend_pct', 'recent_5d_avg', 'prior_9d_avg', 'days_to_cover', 'si_change_pct', 'short_interest'] scoreish=['latest_short_pct', 'trend_pct', 'si_change_pct', 'short_interest', 'signal', 'score']
-    'top_high_dtc' n=4 keys=['ticker', 'latest_short_pct', 'trend_pct', 'recent_5d_avg', 'prior_9d_avg', 'days_to_cover', 'si_change_pct', 'short_interest'] scoreish=['latest_short_pct', 'trend_pct', 'si_change_pct', 'short_interest', 'signal', 'score']
-    'top_covering' n=7 keys=['ticker', 'latest_short_pct', 'trend_pct', 'recent_5d_avg', 'prior_9d_avg', 'days_to_cover', 'si_change_pct', 'short_interest'] scoreish=['latest_short_pct', 'trend_pct', 'si_change_pct', 'short_interest', 'signal', 'score']
-
-DONE 2207
+flow-confluence buyback-tagged (multi-engine): 17
+  AAPL posture ACCUMULATION tags=['buyback yield 1.8%']
+  BKNG posture ACCUMULATION tags=['buyback yield 6.0%']
+  WFC posture ACCUMULATION tags=['buyback yield 8.0%']
+  GE posture ACCUMULATION tags=['buyback yield 2.1%']
+accumulation-radar squeeze_fuel names: 0
+DONE 2208
