@@ -161,6 +161,11 @@ def build_ticker_index():
         "massive":          fetch_json("data/massive-signals.json", max_age_h=72),
         "capital_flow":     fetch_json("data/capital-flow-radar.json", max_age_h=60),
         "risk_regime":      fetch_json("data/risk-regime.json", max_age_h=48),
+        # fused confluence synthesizers (added — rank should weight multi-engine-confirmed names)
+        "options_confluence":  fetch_json("data/options-confluence.json", max_age_h=72),
+        "flow_confluence":     fetch_json("data/flow-confluence.json", max_age_h=72),
+        "equity_confluence":   fetch_json("data/equity-confluence.json", max_age_h=72),
+        "earnings_confluence": fetch_json("data/earnings-confluence.json", max_age_h=120),
     }
 
     # Index: ticker → {system_name: {score, details}}
@@ -245,6 +250,30 @@ def build_ticker_index():
                 "n_funds": r.get("n_funds_holding"),
                 "legend_buyers": r.get("legend_buyers"),
             }
+
+    # 6b. fused confluence synthesizers — a name confirmed by a synthesizer (several
+    #     independent engines stacked) is higher-quality than one raw-engine flag.
+    for _key in ("options_confluence", "flow_confluence"):
+        if feeds.get(_key):
+            for r in (feeds[_key].get("multi_engine_confluence") or []):
+                sym = r.get("ticker")
+                if not sym:
+                    continue
+                idx.setdefault(sym, {})[_key] = {
+                    "score": r.get("score"),
+                    "n_engines": r.get("n_engines"),
+                    "posture": r.get("posture"),
+                }
+    for _key in ("equity_confluence", "earnings_confluence"):
+        if feeds.get(_key):
+            for r in (feeds[_key].get("confluence_book") or []):
+                sym = r.get("ticker")
+                if not sym:
+                    continue
+                idx.setdefault(sym, {})[_key] = {
+                    "score": r.get("composite"),
+                    "n_families": r.get("n_super_families") or r.get("n_dimensions"),
+                }
 
     # 7. deep value
     if feeds["deep_value"]:
