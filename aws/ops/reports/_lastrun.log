@@ -1,37 +1,10 @@
-
-earnings-whisper (gen ): keys=['schema_version', 'method', 'as_of', 'n_upcoming', 'tier_counts', 'feed_health', 'top_setups', 'all_setups', 'duration_s']
-    'top_setups' n=3 keys=['ticker', 'name', 'earnings_date', 'time', 'days_to_earnings', 'eps_consensus', 'n_estimates', 'market_cap', 'whisper_score'] | scoreish=['whisper_score']
-    'all_setups' n=3 keys=['ticker', 'name', 'earnings_date', 'time', 'days_to_earnings', 'eps_consensus', 'n_estimates', 'market_cap', 'whisper_score'] | scoreish=['whisper_score']
-
-earnings-tone-velocity (gen ): keys=['schema_version', 'method', 'as_of', 'summary', 'top_positive_velocity', 'top_negative_velocity', 'guidance_red_alerts', 'guidance_green_alerts', 'per_ticker_velocity_full', 'upstream_as_of']
-
-earnings-iv-crush (gen ): keys=['engine', 'version', 'as_of', 'state', 'previous_state', 'state_description', 'signal_strength', 'summary', 'current_readings', 'top_rich']
-
-earnings-nlp (gen 2026-06-25): keys=['generated_at', 'generated_at_unix', 'version', 'model', 'source', 'elapsed_seconds', 'universe', 'n_tickers', 'n_with_data', 'n_with_err']
-earnings-sentiment: ERR An error occurred (NoSuchKey) when calling th
-pead-detector: ERR An error occurred (NoSuchKey) when calling th
-
-post-earnings-mean-rev (gen ): keys=['engine', 'version', 'as_of', 'state', 'signal_strength', 'n_setups', 'n_high_conviction', 'n_long_setups', 'n_short_setups', 'universe_size']
-
-pump-earnings-nlp (gen 2026-06-25): keys=['schema_version', 'generated_at', 'status', 'error']
-
-sector-earnings-diffusion (gen 2026-06-25): keys=['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_sectors', 'all_industries']
-
-earnings-cascade (gen 2026-06-25): keys=['engine', 'version', 'generated_at', 'state', 'state_description', 'n_titans', 'n_strong', 'n_emerging', 'titans', 'strong_cascades']
-    'titans' n=2 keys=['ticker', 'company', 'sector', 'market_cap_usd', 'cascade_score', 'band', 'breakdown', 'pead_detail', 'predictability_detail'] | scoreish=['cascade_score', 'pead_detail', 'tone_detail']
-    'strong_cascades' n=3 keys=['ticker', 'company', 'sector', 'market_cap_usd', 'cascade_score', 'band', 'breakdown', 'pead_detail', 'predictability_detail'] | scoreish=['cascade_score', 'pead_detail', 'tone_detail']
-    'all_evaluated_with_cascade' n=5 keys=['ticker', 'company', 'sector', 'market_cap_usd', 'cascade_score', 'band', 'breakdown', 'pead_detail', 'predictability_detail'] | scoreish=['cascade_score', 'pead_detail', 'tone_detail']
-
-earnings-quality (gen ): keys=['engine', 'version', 'as_of', 'state', 'signal_strength', 'n_qualified', 'n_high_quality', 'n_low_quality', 'n_mid_quality', 'universe_size']
-    'top_20_high_quality' n=20 keys=['ticker', 'name', 'price', 'market_cap_usd', 'pe', 'ttm_ni_usd', 'ttm_ocf_usd', 'ttm_fcf_usd', 'sloan_accruals_pct_assets'] | scoreish=['quality_score']
-    'top_10_low_quality_avoid' n=1 keys=['ticker', 'name', 'price', 'market_cap_usd', 'pe', 'ttm_ni_usd', 'ttm_ocf_usd', 'ttm_fcf_usd', 'sloan_accruals_pct_assets'] | scoreish=['quality_score']
-    'all_ranked' n=120 keys=['ticker', 'name', 'price', 'market_cap_usd', 'pe', 'ttm_ni_usd', 'ttm_ocf_usd', 'ttm_fcf_usd', 'sloan_accruals_pct_assets'] | scoreish=['quality_score']
-    'trade_tickets' n=11 keys=['ticker', 'side', 'rationale', 'holding_period', 'size_pct_portfolio', 'expected_alpha_pct_yr'] | scoreish=['size_pct_portfolio']
-
-earnings-tracker (gen 2026-06-25): keys=['version', 'generated_at', 'watchlist_size', 'upcoming_14d', 'n_upcoming', 'forward_calendar', 'n_forward_calendar', 'recent_results_30d', 'n_recent', 'pead_signals']
-    'upcoming_14d' n=7 keys=['ticker', 'name', 'earnings_date', 'time', 'eps_consensus', 'n_estimates', 'fiscal_quarter_ending', 'last_year_eps', 'market_cap'] | scoreish=[]
-    'forward_calendar' n=97 keys=['ticker', 'company', 'date', 'session', 'date_status', 'estimated_eps', 'previous_eps', 'estimated_revenue', 'importance'] | scoreish=[]
-    'recent_results_30d' n=27 keys=['ticker', 'filing_date', 'period_end', 'eps_actual', 'eps_estimate', 'eps_surprise_pct', 'revenue_actual', 'revenue_surprise_pct', 'importance'] | scoreish=['eps_surprise_pct', 'revenue_surprise_pct', 'pead_label', 'pead_score', 'surprise_source']
-    'pead_signals' n=10 keys=['ticker', 'filing_date', 'period_end', 'eps_actual', 'eps_estimate', 'eps_surprise_pct', 'revenue_actual', 'revenue_surprise_pct', 'importance'] | scoreish=['eps_surprise_pct', 'revenue_surprise_pct', 'pead_label', 'pead_score', 'surprise_source']
-
-DONE 2198
+exists via deploy-lambdas
+schedule OK
+counts: {"bullish_any": 36, "bullish_multi": 0, "bearish_any": 2, "bearish_multi": 0}
+sources_bull ok: ['earnings-whisper', 'earnings-cascade', 'earnings-tracker', 'earnings-quality', 'earnings-tone-velocity']
+  (single) GOOGL  ['drift'] comp 41.0
+  (single) GOOG   ['drift'] comp 41.0
+  (single) SNOW   ['pead'] comp 40.4
+  (single) TGT    ['pead'] comp 40.4
+  (single) OKTA   ['pead'] comp 39.5
+DONE 2199
