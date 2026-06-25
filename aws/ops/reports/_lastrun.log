@@ -1,8 +1,3 @@
-crypto signals in ledger: 2
-
-  cma200-DOWN#ONDO#2026-06-24      log_date=2026-06-24 logged=2026-06-25 gap=1d status=pending outcomes=[]
-  cma200-UP#TON#2025-11-03         log_date=2025-11-03 logged=2026-06-25 gap=234d status=graded outcomes=['day_5', 'day_21', 'day_63'] <-- STALE log_date (logged during buffer bug)
-
-BAD (stale log_date) to purge: 1
-    cma200-UP#TON#2025-11-03
-DONE 2174
+purged stale signal cma200-UP#TON#2025-11-03
+clean scorecard: signals 1 graded 0 pending 1 by_type {}
+DONE 2175
