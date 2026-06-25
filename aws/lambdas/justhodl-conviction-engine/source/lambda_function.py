@@ -155,6 +155,38 @@ def n_opportunity(d):
     return sig, f"{pos} bargains vs {neg} expensive/avoid (S&P 500 scan)"
 
 
+def n_risk_regime(d):
+    """Authoritative cross-asset RORO synthesizer -> -2..+2, surfacing its overlays."""
+    s = d.get("risk_regime_score")
+    lab = (d.get("risk_regime") or "").upper()
+    if isinstance(s, (int, float)):
+        sig = 2 if s >= 40 else 1 if s >= 12 else -2 if s <= -40 else -1 if s <= -12 else 0
+    else:
+        sig = {"RISK_ON": 2, "RISK-ON": 2, "MILD_RISK_ON": 1, "NEUTRAL": 0,
+               "MILD_RISK_OFF": -1, "RISK_OFF": -2, "RISK-OFF": -2}.get(lab, 0)
+    extra = []
+    cb = (d.get("cross_border") or {}).get("confirmation")
+    ss = (d.get("systemic_stress") or {}).get("level")
+    if cb and cb not in ("NEUTRAL", "ALIGNED"):
+        extra.append(f"cross-border {cb}")
+    if ss and ss != "CALM":
+        extra.append(f"stress {ss}")
+    note = f"Risk regime {lab or s}" + (f" — {', '.join(extra)}" if extra else "")
+    return sig, note
+
+
+def n_best_setups(d):
+    """Flagship per-ticker conviction board -> -2..+2 from the verdict mix."""
+    ts = d.get("top_setups") or []
+    if not ts:
+        return 0, "no setups today"
+    up = sum(1 for s in ts if str(s.get("verdict", "")).upper().startswith("STRONG"))
+    buy = sum(1 for s in ts if str(s.get("verdict", "")).upper() == "BUY")
+    av = sum(1 for s in ts if any(w in str(s.get("verdict", "")).upper() for w in ("AVOID", "SELL")))
+    sig = 2 if up >= 3 else 1 if (up >= 1 or buy >= 4) else -1 if av > buy else 0
+    return sig, f"{up} strong-buy / {buy} buy of {len(ts)} top setups"
+
+
 # (engine, subject, family, s3_key, normaliser)
 FEEDS = [
     ("PM Decision",        "Broad risk / equity beta", "desk-posture",
@@ -179,6 +211,10 @@ FEEDS = [
      "data/short-pressure.json",       n_short_pressure),
     ("Crypto Narratives",  "Crypto",                   "crypto",
      "data/crypto-narratives.json",    n_crypto_narratives),
+    ("Risk Regime",        "Broad risk / equity beta", "roro-synth",
+     "data/risk-regime.json",          n_risk_regime),
+    ("Best Setups",        "US equity — value tilt",   "setups-synth",
+     "data/best-setups.json",          n_best_setups),
 ]
 
 # per-subject invalidation tells
