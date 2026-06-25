@@ -191,6 +191,18 @@ def lambda_handler(event, context):
         b = accum.get(_book) or {}
         for r in (b.get("stocks") or []) + (b.get("etfs") or []):
             cycle_map.setdefault(r.get("ticker"), r)
+    # ── red-flag gate: names insiders are dumping / failing Beneish M-score / low earnings quality ──
+    _beneish = read_json("data/beneish.json") or {}
+    _insider_sell = read_json("data/insider-sell-cluster.json") or {}
+    _eq = read_json("data/earnings-quality.json") or {}
+    red_flag_map = {}
+    for r in (_beneish.get("red_flags") or []):
+        red_flag_map.setdefault(r.get("ticker"), []).append("fails Beneish manipulation test")
+    for r in (_insider_sell.get("top_clusters") or []):
+        red_flag_map.setdefault(r.get("ticker"), []).append("cluster of insider selling")
+    for r in (_eq.get("top_10_low_quality_avoid") or []):
+        red_flag_map.setdefault(r.get("ticker"), []).append("low earnings quality (accruals)")
+    red_flag_map.pop(None, None)
     risk_regime = read_json("data/risk-regime.json") or {}
     chokepoint = read_json("data/chokepoint.json") or {}
     et_doc = read_json("data/engine-trust.json") or {}
@@ -589,6 +601,12 @@ def lambda_handler(event, context):
                     composite = round(composite * 0.93, 1)
                     _cyc_warning = "likely_top_bearish_divergence"
 
+        # ── RED-FLAG gate: a BUY board should not surface names being dumped by insiders,
+        # flagged for accounting manipulation, or with poor earnings quality. Haircut + tag. ──
+        _rf = red_flag_map.get(tk)
+        if _rf:
+            composite = round(composite * 0.80, 1)
+
         # Verdict from composite + confluence. STRONG BUY now requires genuine
         # cross-family independence (>= 2.5 effective bets), so three echoes of
         # one factor can no longer manufacture top conviction.
@@ -675,6 +693,8 @@ def lambda_handler(event, context):
                 why_text += (f" Caution: the accumulation-radar has {tk} "
                              f"{'at a likely top with bearish volume divergence' if _cyc_warning == 'likely_top_bearish_divergence' else 'under distribution'} — "
                              "watch for a better entry.")
+            if _rf:
+                why_text += f" ⚠️ Red flag: {tk} {'; '.join(_rf)} — conviction discounted."
         else:
             why_text = None
 
@@ -687,6 +707,7 @@ def lambda_handler(event, context):
             "cycle_phase": (_cyc or {}).get("phase"),
             "cycle_flag": (_cyc or {}).get("flag"),
             "cycle_warning": _cyc_warning,
+            "red_flags": _rf,
             "quad_threat": quad_threat,
             "verdict": verdict,
             "triple_threat": triple_threat,

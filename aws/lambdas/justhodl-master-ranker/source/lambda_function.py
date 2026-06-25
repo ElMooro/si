@@ -740,6 +740,15 @@ def lambda_handler(event, context):
         _b = _accum.get(_bk) or {}
         for _r in (_b.get("stocks") or []) + (_b.get("etfs") or []):
             _cycle_map.setdefault(_r.get("ticker"), _r)
+    # red-flag map: insider dumping / Beneish manipulation / low earnings quality
+    _redflag = {}
+    for _r in (fetch_json("data/beneish.json") or {}).get("red_flags") or []:
+        _redflag.setdefault(_r.get("ticker"), []).append("fails Beneish manipulation test")
+    for _r in (fetch_json("data/insider-sell-cluster.json") or {}).get("top_clusters") or []:
+        _redflag.setdefault(_r.get("ticker"), []).append("cluster of insider selling")
+    for _r in (fetch_json("data/earnings-quality.json") or {}).get("top_10_low_quality_avoid") or []:
+        _redflag.setdefault(_r.get("ticker"), []).append("low earnings quality")
+    _redflag.pop(None, None)
 
     # Compute conviction for every ticker
     ticker_ranks = []
@@ -758,6 +767,10 @@ def lambda_handler(event, context):
                 score = round(score * 0.93, 2); _cyc_warn = "likely_top_bearish_divergence"
             elif _cyc.get("flag") == "LIKELY_TOP" or _cyc_phase == "DISTRIBUTION":
                 _cyc_warn = "distribution_at_top"
+        # red-flag gate: dumping / manipulation / poor quality => demote + tag
+        _rf = _redflag.get(ticker)
+        if _rf:
+            score = round(score * 0.80, 2)
         rationale = synthesize_rationale(ticker, systems_dict, score)
         if cf_note:
             rationale += " · " + cf_note
@@ -765,6 +778,8 @@ def lambda_handler(event, context):
             rationale += " · " + roro_note
         if _cyc_warn:
             rationale += " · cycle: " + _cyc_warn
+        if _rf:
+            rationale += " · ⚠️ red flag: " + "; ".join(_rf)
         ticker_ranks.append({
             "ticker": ticker,
             "score": score,
@@ -775,6 +790,7 @@ def lambda_handler(event, context):
             "risk_regime_mult": roro_mult,
             "cycle_phase": _cyc_phase,
             "cycle_warning": _cyc_warn,
+            "red_flags": _rf,
             "rationale": rationale,
             "details": systems_dict,
         })

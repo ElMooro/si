@@ -339,6 +339,54 @@ def lambda_handler(event, context):
                         "note": cnote}
         all_tells.append(f"Cross-border: {flow_state} ({cconf})")
 
+    # ── secondary risk overlay: aggregate the vol-structure / credit / stress engines
+    #    (these alpha-graded islands fed nothing; they now corroborate the RORO read) ──
+    RISK_CHECKS = [
+        ("data/systemic-stress.json", "regime", {"ELEVATED", "STRESSED", "CRISIS"}, "systemic stress"),
+        ("data/tail-risk.json", "regime", {"ELEVATED", "STRESSED"}, "tail risk elevated"),
+        ("data/vix9d-vix-inversion.json", "state",
+         {"FULL_INVERSION_ACTIVE", "FULL_INVERSION_RICH", "PARTIAL_INVERSION"}, "VIX term-structure inverted"),
+        ("data/credit-equity-divergence.json", "state",
+         {"CREDIT_BEAR_ACTIVE", "CREDIT_BEAR_RICH"}, "credit leading equities lower"),
+        ("data/vix-backwardation-trigger.json", "state", {"FIRED", "ARMED"}, "VIX backwardation"),
+        ("data/vvix-vov-regime.json", "state", {"HIGH", "ELEVATED", "STRESS", "EXTREME", "RISK_OFF"}, "vol-of-vol elevated"),
+        ("data/vol-target-unwind.json", "signal", {"UNWIND", "WARNING", "ELEVATED", "RISK_OFF"}, "vol-target unwind risk"),
+        ("data/cds-monitor.json", "regime", {"WIDENING", "STRESS", "STRESSED", "ELEVATED", "RISK_OFF"}, "CDS widening"),
+        ("data/breadth-divergence.json", "state", {"BEARISH", "DIVERGENT", "WARNING"}, "breadth divergence"),
+        ("data/correlation-breaks.json", "state", {"BREAK", "ELEVATED", "WARNING", "STRESSED"}, "correlation breakdown"),
+    ]
+    fired, available = [], 0
+    for key, field, riskvals, label in RISK_CHECKS:
+        doc = _read(key)
+        if not doc:
+            continue
+        available += 1
+        val = str(doc.get(field) or doc.get("regime") or doc.get("state") or doc.get("signal") or "").upper()
+        if val in {v.upper() for v in riskvals}:
+            fired.append(label)
+    secondary_risk = None
+    if available:
+        n = len(fired)
+        risk_on = score >= 12
+        risk_off = score <= -12
+        if risk_on and n >= 2:
+            sconf = "DIVERGENT"
+            snote = (f"Cross-asset RORO reads risk-on, but {n} vol/credit/stress gauges are flashing "
+                     f"({', '.join(fired[:4])}). Underlying plumbing not confirming — discount conviction.")
+            posture = dict(posture)
+            posture["size_mult"] = round(posture["size_mult"] * 0.95, 3)
+            posture["secondary_risk_warning"] = "vol_credit_stress_firing"
+        elif risk_off and n >= 2:
+            sconf = "CONFIRMED"; snote = f"Risk-off corroborated by {n} vol/credit/stress gauges firing."
+        elif n >= 3:
+            sconf = "STRESS_BUILDING"; snote = f"{n} secondary risk gauges firing ({', '.join(fired[:4])}) — watch."
+        else:
+            sconf = "QUIET"; snote = f"Secondary risk gauges quiet ({n}/{available} firing)."
+        secondary_risk = {"confirmation": sconf, "n_firing": n, "n_available": available,
+                          "firing": fired, "note": snote}
+        if n:
+            all_tells.append(f"Secondary risk: {n} firing ({sconf})")
+
     out = {
         "engine": "risk-regime", "version": "1.0.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -347,6 +395,7 @@ def lambda_handler(event, context):
         "posture": posture,
         "participation": participation,
         "cross_border": cross_border,
+        "secondary_risk": secondary_risk,
         "blocks_used": [{"block": b, "weight": w, "score": round(s, 3)} for b, w, s in blocks],
         "components": results,
         "tells": all_tells,
