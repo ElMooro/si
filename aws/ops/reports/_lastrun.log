@@ -1,25 +1,23 @@
-fx-regime pairs: ['AUD_JPY', 'AUD_USD', 'EUR_JPY', 'EUR_USD', 'GBP_USD', 'NZD_JPY', 'NZD_USD', 'USD_BRL', 'USD_CAD', 'USD_CHF', 'USD_CNH', 'USD_JPY', 'USD_KRW', 'USD_MXN', 'USD_NOK', 'USD_TRY', 'USD_ZAR', 'XAG_USD', 'XAU_USD']
+v 1.2.0 dur 17.1 s
 
-Polygon FX EM crosses (25d bars):
-  C:USDIDR: status=OK bars=26
-  C:USDTWD: status=OK bars=26
-  C:USDPHP: status=OK bars=26
-  C:USDINR: status=OK bars=26
-  C:USDKRW: status=OK bars=26
-  C:USDTHB: status=OK bars=26
-  C:USDMYR: status=OK bars=26
-  C:USDZAR: status=OK bars=26
+FX COVERAGE: 30/36 countries now have currency strength
+  Indonesia     score +1.09 EARLY_ACCUMULATION fx -0.45
+  Australia     score +0.92 EARLY_ACCUMULATION fx -3.42
+  India         score +0.55 PRICE_LED          fx 1.18
+  Asia ex-Japan score +0.49 PRICE_LED          fx None
+  Taiwan        score +0.48 PRICE_LED          fx -1.48
+  Italy         score +0.28 PRICE_LED          fx -2.25
+  Philippines   score +0.24 PRICE_LED          fx 0.87
+  Netherlands   score +0.18 PRICE_LED          fx -2.25
 
-FMP quote foreign listings:
-  BBCA.JK: price=6025 chg%=1.68776
-  BHP.AX: price=58.52 chg%=-1.64706
-  BMRI.JK: price=4000 chg%=0.75567
-  TLKM.JK: price=2500 chg%=0
+  DRILL Indonesia stocks w/ momentum: BBCA.JK(1.69%), BBRI.JK(1.42%), BMRI.JK(0.76%), TLKM.JK(0%), ASII.JK(6.03%), BBNI.JK(0.9%)
 
-Polygon etf-global flows EM-debt:
-  EMB: status=OK n=100
-  EMLC: status=OK n=100
-  PCY: status=OK n=100
-  EMHY: status=OK n=100
-  VWOB: status=OK n=100
-DONE 2180
+  DRILL Australia stocks w/ momentum: BHP.AX(-1.65%), CBA.AX(-1.27%), WBC.AX(-2.01%), NAB.AX(-3.35%), ANZ.AX(-2.19%), WES.AX(2.52%)
+
+EM-DEBT: net_flow_5d $-3567418 signal=OUTFLOW — capital leaving EM debt (risk-off / rate stress)
+  VWOB   USD EM govt        ret20 0.6876962176707968% flow5d $6672746.699999999
+  EMLC   local-ccy EM govt  ret20 0.019630938358861094% flow5d $0.0
+  PCY    USD EM sovereign   ret20 1.1655011655011593% flow5d $0.0
+  EMHY   EM high-yield      ret20 0.40760869565219515% flow5d $0.0
+  EMB    USD EM sovereign   ret20 0.6772244217545298% flow5d $-10240165.099999994
+DONE 2181
