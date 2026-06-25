@@ -1,24 +1,8 @@
-countries=36 dur=9.8s
+crypto signals in ledger: 2
 
-INFLOW LEADERS (now with REAL flow):
-  #1  Indonesia      score +1.33  flow5d $+19M  rel_mom -7.09%
-  #2  Australia      score +1.05  flow5d $+86M  rel_mom -2.36%
-  #3  Taiwan         score +0.69  flow5d n/a  rel_mom 3.31%
-  #4  India          score +0.63  flow5d n/a  rel_mom 2.95%
-  #5  Asia ex-Japan  score +0.43  flow5d n/a  rel_mom 1.01%
-  #7  Japan          score +0.36  flow5d $-68M  rel_mom 2.33%
-  #9  Italy          score +0.27  flow5d n/a  rel_mom 0.86%
-  #10 Argentina      score +0.27  flow5d $-5M  rel_mom -4.13%
-  #11 South Korea    score +0.21  flow5d $-563M  rel_mom 4.05%
-  #12 Philippines    score +0.20  flow5d n/a  rel_mom 0.1%
+  cma200-DOWN#ONDO#2026-06-24      log_date=2026-06-24 logged=2026-06-25 gap=1d status=pending outcomes=[]
+  cma200-UP#TON#2025-11-03         log_date=2025-11-03 logged=2026-06-25 gap=234d status=graded outcomes=['day_5', 'day_21', 'day_63'] <-- STALE log_date (logged during buffer bug)
 
-OUTFLOW (real redemptions):
-  Turkey         score -1.13  flow5d $-20M
-  LatAm          score -1.12  flow5d $-251M
-  Mexico         score -0.80  flow5d $-78M
-  Israel         score -0.68  flow5d $-6M
-  Brazil         score -0.64  flow5d $-229M
-  Sweden         score -0.54  flow5d n/a
-
-countries with real flow data: 19/36
-DONE 2176
+BAD (stale log_date) to purge: 1
+    cma200-UP#TON#2025-11-03
+DONE 2174
