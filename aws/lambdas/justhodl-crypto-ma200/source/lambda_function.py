@@ -108,6 +108,13 @@ def lambda_handler(event=None, context=None):
             series[T][idx] = round(c, 6)
 
     newest = sorted(new.keys())[-1] if new else (dates[-1] if dates else None)
+    # guarantee chronological order — later backfills can append dates out of order,
+    # and the grader/compute walk `dates` assuming ascending.
+    if dates != sorted(dates):
+        order = sorted(range(len(dates)), key=lambda i: dates[i])
+        dates = [dates[i] for i in order]
+        for T in series:
+            series[T] = [series[T][i] for i in order]
     if newest and newest in new:
         liq = sorted(((c * v, T) for T, (c, v) in new[newest].items() if c * v >= MIN_DVOL),
                      reverse=True)[:MAX_NAMES]
