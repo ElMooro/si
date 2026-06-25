@@ -1,21 +1,23 @@
-ran justhodl-ma200-reclaim
-ran justhodl-crypto-ma200
-equity buffer: 233 days, sorted=True, range 2025-07-22..2026-06-24
-crypto buffer: 235 days, sorted=True, range 2025-11-02..2026-06-24
+etf-fund-flows: MISSING An error occurred (NoSuchKey) when calli
 
-EQUITY counts: {"fresh_above": 67, "fresh_below": 52, "retest_held": 63, "retest_failed": 94, "retesting_now": 24}
-  fresh_above all +dist: True
-  fresh_below all -dist: True
-   HELD BBIO   +2.3% slope 2.76% age=1
-   HELD GSK    +1.67% slope 2.56% age=3
-   HELD MDGL   +3.07% slope 2.08% age=4
-   HELD NEE    +1.84% slope 1.54% age=2
-   HELD WMT    +1.94% slope 1.7% age=3
+etf-true-flows [data/etf-true-flows.json] keys: ['engine', 'version', 'generated_at', 'duration_s', 'n_etfs', 'maturity', 'method', 'inflows', 'outflows', 'category_rotation', 'by_etf']
+   list 'inflows' n=25 item-keys=['ticker', 'category', 'shares_outstanding', 'price', 'aum_est_b', 'net_flow_1d_usd', 'net_flow_5d_usd', 'net_flow_20d_usd', 'shares_chg_5d_pct']
+   list 'outflows' n=20 item-keys=['ticker', 'category', 'shares_outstanding', 'price', 'aum_est_b', 'net_flow_1d_usd', 'net_flow_5d_usd', 'net_flow_20d_usd', 'shares_chg_5d_pct']
+   list 'category_rotation' n=11 item-keys=['category', 'net_flow_5d_usd', 'n_etfs']
+   map 'by_etf' n=80 sample-key=VOO val-keys=['ticker', 'category', 'shares_outstanding', 'price', 'aum_est_b', 'net_flow_1d_usd', 'net_flow_5d_usd', 'net_flow_20d_usd', 'shares_chg_5d_pct']
 
-CRYPTO excess-vs-BTC (now-sorted, 21/63d real bars):
-   ETH: 21d excess -5.6% | 63d excess -9.7%
-   SOL: 21d excess -0.2% | 63d excess +0.3%
-   XRP: 21d excess -5.9% | 63d excess -3.0%
+global-markets [data/global-markets.json] keys: ['generated_at', 'generated_at_unix', 'version', 'source', 'elapsed_seconds', 'n_etfs', 'n_with_data', 'n_with_err', 'by_sym', 'composite', 'composite_regime', 'composite_signal']
+   map 'by_sym' n=15 sample-key=VEU val-keys=['sym', 'name', 'kind', 'region', 'current', 'change_1d_pct', 'ret_5d', 'ret_20d', 'ret_60d']
+   map 'history_60d' n=15 sample-key=VEU val-keys=['dates', 'closes']
+fx-regime: MISSING An error occurred (NoSuchKey) when calli
 
-crypto-scorecard: signals 2 graded 1 pending 1
-DONE 2173
+fx-regime2 [data/polygon-fx-regime.json] keys: ['engine', 'version', 'generated_at', 'elapsed_s', 'n_pairs', 'fx_roro', 'regime_signals', 'regime_metrics', 'pair_data', 'source']
+   map 'pair_data' n=19 sample-key=EUR_USD val-keys=['latest_price', 'return_1d_pct', 'return_5d_pct', 'return_20d_pct', 'realized_vol_20d_pct']
+
+--- FMP /stable/ ETF drill-down (EWZ Brazil) ---
+  etf/holdings?symbol=EWZ: OK list n=53 keys=['symbol', 'asset', 'name', 'isin', 'securityCusip', 'sharesNumber', 'weightPercentage', 'marketValue']
+  etf-holdings?symbol=EWZ: ERR HTTP Error 404: Not Found
+  etf/sector-weightings?symbol=EWZ: OK list n=11 keys=['symbol', 'sector', 'weightPercentage']
+  etf/info?symbol=EWZ: OK list n=1 keys=['symbol', 'name', 'description', 'isin', 'assetClass', 'securityCusip', 'domicile', 'website']
+  etf/country-weightings?symbol=EWZ: OK list n=4 keys=['country', 'weightPercentage']
+DONE 2174
