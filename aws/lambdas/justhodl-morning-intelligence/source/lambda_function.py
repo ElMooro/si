@@ -230,6 +230,8 @@ def load_all():
         "global_stress":"data/global-stress.json",
         # ─── Cross-asset Risk-On/Risk-Off synthesizer (Massive FX+options + FRED VIX/credit) ──
         "risk_regime":"data/risk-regime.json",
+        "hot_money":"data/hot-money.json",
+        "accum_radar":"data/accumulation-radar.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -262,10 +264,29 @@ def extract_metrics(data,weights):
     # has 0 scored outcomes today.
     _cal = get_calibration() if _CALIBRATION_AVAILABLE else None
     kw = _cal.weight("khalid_index") if _cal is not None else 1.0
+    # cross-border + cycle + leadership facts (hot-money + accumulation-radar)
+    hotm = data.get("hot_money", {}) or {}
+    accr = data.get("accum_radar", {}) or {}
+    hm_in = [f"{c.get('country')} [{c.get('conviction')}]" for c in (hotm.get("inflow_leaders") or [])[:5]]
+    hm_out = [c.get("country") for c in (hotm.get("outflow_leaders") or [])[:4]]
+    accum_bottoms = [f"{r.get('ticker')}({r.get('label') or r.get('class')})"
+                     for cl in ("countries", "stocks", "etfs")
+                     for r in ((accr.get("bottoms", {}) or {}).get(cl) or [])[:3]]
+    dist_tops = [f"{r.get('ticker')}({r.get('label') or r.get('class')})"
+                 for cl in ("countries", "stocks", "etfs")
+                 for r in ((accr.get("tops", {}) or {}).get(cl) or [])[:3]]
+    mkt_leaders = [f"{r.get('ticker')} (RS6m {r.get('rs_126d')})" for r in (accr.get("market_leaders") or [])[:6]]
     picks=[s.get("symbol","?")+"(P:"+str(s.get("piotroskiScore","?"))+")" for s in data.get("screener",{}).get("stocks",[])[:5]]
     alerts=[str((a.get("message",a) if isinstance(a, dict) else a))[:80] for a in (edge.get("alerts",[]) or [])[:3]]
     top_w=sorted([(k,v) for k,v in weights.items()],key=lambda x:x[1],reverse=True)[:5]
     return {
+        "hot_money_inflows": hm_in,
+        "hot_money_outflows": hm_out,
+        "hot_money_em_debt": (hotm.get("em_debt_flows") or {}).get("signal"),
+        "cycle_bottoms": accum_bottoms,
+        "cycle_tops": dist_tops,
+        "market_leaders": mkt_leaders,
+        "leaders_fading": [r.get("ticker") for r in (accr.get("leaders_fading") or [])[:5]],
         "khalid_raw":ki,
         "khalid_weight":kw,
         "khalid_adj":round(float(ki["score"] if isinstance(ki, dict) else ki)*kw,1) if ki else 0,
@@ -1184,6 +1205,10 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         # ═══ Global Stress Matrix — world equity & bond stress (2026-05-19)
         "GLOBAL_STRESS: world-markets stress index "+str(m.get("global_stress_index") if m.get("global_stress_index") is not None else "?")+"/100 ("+str(m.get("global_stress_level") or "?")+") — equity stress "+str(m.get("global_equity_stress") if m.get("global_equity_stress") is not None else "?")+", bond stress "+str(m.get("global_bond_stress") if m.get("global_bond_stress") is not None else "?")+". Most stressed: "+str(m.get("global_worst_market") or "none")+((". Flashing red (ACUTE): "+"; ".join(m.get("global_flashing_red"))) if m.get("global_flashing_red") else ". Nothing flashing red.")+"",
         "RISK_REGIME(RORO): "+str(m.get("roro_score") if m.get("roro_score") is not None else "?")+"/100 ("+str(m.get("roro_regime") or "?")+") — cross-asset risk-on/off from Massive FX+options + FRED VIX/credit. Posture: "+str(m.get("roro_posture") or "?")+" size×"+str(m.get("roro_size_mult") or "?")+". Tells: "+("; ".join(m.get("roro_tells") or []) or "none")+"",
+        # ═══ Cross-border hot money + market leaders + cycle radar ═════
+        "CROSS_BORDER_HOT_MONEY: inflows → "+(", ".join(m.get("hot_money_inflows") or []) or "none")+" | outflows → "+(", ".join(m.get("hot_money_outflows") or []) or "none")+" | EM-debt: "+str(m.get("hot_money_em_debt") or "?")+". TWIN_ENGINE conviction = currency + equity + flow all rising (strongest genuine foreign inflow); PRICE_LED = rally without confirmed foreign buying.",
+        "MARKET_LEADERS (relative strength vs SPY + accumulation): "+(", ".join(m.get("market_leaders") or []) or "none")+((" | LEADERS FADING (rolling over): "+", ".join(m.get("leaders_fading"))) if m.get("leaders_fading") else ""),
+        "CYCLE_RADAR (Wyckoff accumulation/distribution): likely BOTTOMS → "+(", ".join(m.get("cycle_bottoms") or []) or "none")+" | likely TOPS → "+(", ".join(m.get("cycle_tops") or []) or "none"),
         # ═══ Crisis KB (#2) ════════════════════════════════════════════
         "ACTIVE_CRISIS_PATTERNS: "+(", ".join(m.get("active_crisis_patterns") or []) or "none currently"),
         "TOP TRUSTED SIGNALS:",

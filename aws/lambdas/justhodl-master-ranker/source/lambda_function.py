@@ -733,6 +733,14 @@ def lambda_handler(event, context):
             return round(base_score * 0.90, 1), 0.90, "weak sector flow (" + cx + ")"
         return base_score, 1.0, None
 
+    # cycle overlay map (accumulation-radar): distribution-at-top is a lower-quality rank
+    _accum = fetch_json("data/accumulation-radar.json") or {}
+    _cycle_map = {}
+    for _bk in ("tops", "distributing", "bottoms", "accumulating"):
+        _b = _accum.get(_bk) or {}
+        for _r in (_b.get("stocks") or []) + (_b.get("etfs") or []):
+            _cycle_map.setdefault(_r.get("ticker"), _r)
+
     # Compute conviction for every ticker
     ticker_ranks = []
     for ticker, systems_dict in ticker_idx.items():
@@ -741,11 +749,22 @@ def lambda_handler(event, context):
         score, cf_mult, cf_note = _cf_overlay(ticker, score)
         _sector = _ticker_sector(systems_dict)
         score, roro_mult, roro_note = _roro_overlay(_sector, score)
+        # cycle gate — tag phase; haircut only the strongest distribution-at-top tell
+        _cyc = _cycle_map.get(ticker)
+        _cyc_phase = (_cyc or {}).get("phase")
+        _cyc_warn = None
+        if _cyc:
+            if _cyc.get("flag") == "LIKELY_TOP" and _cyc.get("divergence") == "bearish":
+                score = round(score * 0.93, 2); _cyc_warn = "likely_top_bearish_divergence"
+            elif _cyc.get("flag") == "LIKELY_TOP" or _cyc_phase == "DISTRIBUTION":
+                _cyc_warn = "distribution_at_top"
         rationale = synthesize_rationale(ticker, systems_dict, score)
         if cf_note:
             rationale += " · " + cf_note
         if roro_note:
             rationale += " · " + roro_note
+        if _cyc_warn:
+            rationale += " · cycle: " + _cyc_warn
         ticker_ranks.append({
             "ticker": ticker,
             "score": score,
@@ -754,6 +773,8 @@ def lambda_handler(event, context):
             "contributions": contributions,
             "capital_flow_mult": cf_mult,
             "risk_regime_mult": roro_mult,
+            "cycle_phase": _cyc_phase,
+            "cycle_warning": _cyc_warn,
             "rationale": rationale,
             "details": systems_dict,
         })
