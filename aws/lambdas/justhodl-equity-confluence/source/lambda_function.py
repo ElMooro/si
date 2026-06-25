@@ -51,6 +51,7 @@ FAMILY_SUPER = {
     "value":       ("fundamental", ["deep_value", "eng:deep-value-overlap", "value_overlap"]),
     "options":     ("structural",  ["eng:options-analytics", "options_analytics"]),
     "linkage":     ("structural",  ["eng:supply-chain-graph", "supply_chain_laggards"]),
+    "convexity":   ("structural",  ["eng:convexity-scorer", "convexity", "right_tail"]),
     "insider":     ("flow",        ["insider_cluster", "eng:insider-clusters", "insider_buying"]),
 }
 SUPERS = ["technical", "flow", "fundamental", "structural"]
@@ -71,6 +72,7 @@ SOURCES = [
     # ── added independent dimensions: a valuation edge (fundamental) + insider buying (flow) ──
     ("deep-value-overlap.json","value",      ["prime_setups", "elite_setups"],              "overlap_score", 10, None),
     ("insider-clusters.json",  "insider",    ["clusters"],                                  "n_insiders",  6,   None),
+    ("convexity-scores.json",  "convexity",  ["scores"],                                    "convexity_score", 100, ("classification", "POSITIVE_GAMMA")),
 ]
 
 

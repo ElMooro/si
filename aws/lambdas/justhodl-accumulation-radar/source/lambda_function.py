@@ -235,6 +235,20 @@ def lambda_handler(event=None, context=None):
             t = (_it.get("ticker") or "").upper()
             if t and t not in si_map:
                 si_map[t] = {"short_pct": _it.get("latest_short_pct"), "dtc": _it.get("days_to_cover")}
+    # capitulation (market washout gauge) — bottoms are more reliable when the tape is capitulating
+    _cap = _read("data/capitulation.json") or {}
+    _cap_sig = str(_cap.get("signal") or "").upper()
+    _cap_score = _cap.get("capitulation_score")
+    market_washout = ("CAPITUL" in _cap_sig or "WASHOUT" in _cap_sig
+                      or (isinstance(_cap_score, (int, float)) and _cap_score >= 65))
+    # consensus-bottom — independent bottom engine; cross-confirm our LIKELY_BOTTOM names
+    _cb = _read("data/consensus-bottom.json") or {}
+    cb_set = set()
+    for _bk in ("qualified", "near_qualified"):
+        for _it in (_cb.get(_bk) or []):
+            t = (_it.get("ticker") or _it.get("symbol") or "").upper() if isinstance(_it, dict) else str(_it).upper()
+            if t:
+                cb_set.add(t)
     rows = []
     for tk in buf["universe"]:
         rec = buf["tickers"].get(tk)
@@ -281,6 +295,12 @@ def lambda_handler(event=None, context=None):
             if bottom_score > 20 or (pct200 or 0) < 0:
                 bottom_score = min(100.0, bottom_score + min(15.0, _sd["short_pct"] * 0.5))
                 squeeze_fuel = True
+        # consensus-bottom cross-confirmation + market washout context
+        cons_bottom = tk in cb_set
+        if cons_bottom and bottom_score > 15:
+            bottom_score = min(100.0, bottom_score + 10.0)
+        if market_washout and bottom_score > 25:
+            bottom_score = min(100.0, bottom_score + 6.0)
         # phase + flags
         if over_up and (distributing or bearish_div):
             phase = "DISTRIBUTION"; flag = "LIKELY_TOP"
@@ -320,7 +340,7 @@ def lambda_handler(event=None, context=None):
             "range_pos_pct": round(rng_pos, 0), "cmf": round(cmf, 3),
             "obv_trend": round(obv_chg20, 1),
             "short_pct": (_sd or {}).get("short_pct"), "days_to_cover": (_sd or {}).get("dtc"),
-            "squeeze_fuel": squeeze_fuel,
+            "squeeze_fuel": squeeze_fuel, "consensus_bottom_confirm": cons_bottom,
             "divergence": ("bearish" if bearish_div else "bullish" if bullish_div else None),
             "vol_surge": round(vol_surge, 2) if vol_surge else None,
             "top_score": round(top_score, 1), "bottom_score": round(bottom_score, 1),
@@ -369,6 +389,10 @@ def lambda_handler(event=None, context=None):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1), "buffer_days": len(buf["dates"]),
         "n_scored": len(rows), "days_added": added,
+        "market_context": {"capitulation_signal": _cap.get("signal"), "capitulation_score": _cap_score,
+                           "market_washout": market_washout, "consensus_bottom_names": len(cb_set),
+                           "note": ("Tape is capitulating — bottoms are more reliable here." if market_washout
+                                    else "No broad capitulation; treat single-name bottoms on their own merit.")},
         "thesis": ("Wyckoff cycle radar — OBV + Chaikin money flow + RSI + position vs moving averages + "
                    "price/volume divergence classify each stock, ETF and country into accumulation, markup, "
                    "distribution or markdown, and flag the names most likely at a top or a bottom."),
