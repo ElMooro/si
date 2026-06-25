@@ -1,19 +1,22 @@
-  EIDO   rows=26 latest_date=2026-05-18 5d_sum=18954369.299999997 nav=13.828509 sh_out=21050000.0
-  EWA    rows=26 latest_date=2026-05-18 5d_sum=85984272.6 nav=28.670955 sh_out=46800000.0
-  EWT    rows=26 latest_date=2026-05-18 5d_sum=0.0 nav=91.699005 sh_out=105100000.0
-  INDA   rows=26 latest_date=2026-05-18 5d_sum=0.0 nav=47.701176 sh_out=139650000.0
-  FXI    rows=26 latest_date=2026-05-18 5d_sum=-147355487.1 nav=36.334352 sh_out=164400000.0
-  EWJ    rows=26 latest_date=2026-05-18 5d_sum=-68319585.75 nav=90.505885 sh_out=231150000.0
-  EWZ    rows=26 latest_date=2026-05-18 5d_sum=-228909008.4 nav=36.740231 sh_out=291800000.0
-  EWW    rows=26 latest_date=2026-05-18 5d_sum=-77739663.5 nav=77.920359 sh_out=27700000.0
-  EWI    rows=26 latest_date=2026-05-18 5d_sum=0.0 nav=58.457235 sh_out=11100000.0
-  EWN    rows=26 latest_date=2026-05-18 5d_sum=0.0 nav=64.394936 sh_out=7700000.0
-  AAXJ   rows=26 latest_date=2026-05-18 5d_sum=0.0 nav=112.543351 sh_out=35200000.0
-  INDY   rows=26 latest_date=2026-05-18 5d_sum=0.0 nav=42.341576 sh_out=13250000.0
 
-etf-true-flows generated: 2026-06-25T15:45:19.647700+00:00 n_etf: 80
-   INDA in true-flows: {"ticker": "INDA", "category": "INTERNATIONAL", "shares_outstanding": 197098638.0, "price": 49.555, "aum_est_b": 9.77, "
-   EWT in true-flows: {}
-   EWI in true-flows: {}
-   EWN in true-flows: {}
-DONE 2178
+=== justhodl-pairs-scanner ===
+  output data/pairs-scanner.json: generated_at=2026-06-25T14:42:48 age=2h
+  rule pairs-scanner-6hourly: cron(42 14 * * ? *) state=ENABLED
+
+=== justhodl-future-intelligence ===
+  output data/buzz-velocity.json: generated_at=2026-06-25T14:53:21 age=2h
+  rule future-intel-2x-daily: cron(40 16 * * ? *) state=ENABLED
+
+=== justhodl-divergence-engine-v2 ===
+  output data/divergence-v2.json: generated_at=2026-06-25T17:00:38 age=0h
+  rule divergence-v2-2hourly: cron(0 17 * * ? *) state=ENABLED
+
+=== justhodl-divergence-scanner ===
+  output data/report.json: generated_at=2026-06-25T11:07:13 age=6h
+  schedule: NO RULE targets this function (dormant)
+
+=== justhodl-breadth-divergence ===
+  output data/breadth-divergence.json: generated_at=2026-06-24T22:00:38 age=19h
+  schedule: NO RULE targets this function (dormant)
+
+DONE 2177
