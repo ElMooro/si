@@ -1,3 +1,6 @@
-ticker_map size: 258
-engine occurrence counts: {}
-DONE 2205
+buyback-scanner keys: ['engine', 'version', 'as_of', 'state', 'state_description', 'signal_strength', 'n_total_candidates_8k', 'n_unique_tickers', 'n_enriched_opportunities', 'n_fresh_last_7d', 'annual_buyback_auth_usd_bn', 'lookback_days']
+  list 'trigger_conditions' n=4 item-keys=['name', 'current', 'threshold', 'satisfied', 'weight']
+insider/buyback appearances in flow-confluence: [('BZFD', 'insider cluster (4)'), ('KARD', 'insider cluster (3)'), ('FCBM', 'insider cluster (5)'), ('FMBM', 'insider'), ('BZFD', 'insider'), ('NONE', 'insider'), ('LILA', 'insider'), ('FMBM', 'insider cluster (7)'), ('KARD', 'insider'), ('NONE', 'insider cluster (3)')]
+insider tickers: ['LILA', 'CNTM', 'BORR', 'KMX', 'PWRL', 'BZUN', 'ONMD', 'KARD']
+of those in flow ticker_map: ['LILA', 'CNTM', 'BORR', 'KMX', 'PWRL', 'BZUN', 'ONMD', 'KARD']
+DONE 2206
