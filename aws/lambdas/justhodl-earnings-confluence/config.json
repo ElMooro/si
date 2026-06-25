@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-earnings-confluence",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "env": {},
+  "schedule": {
+    "rule_name": "justhodl-earnings-confluence-daily",
+    "cron": "cron(30 22 ? * MON-FRI *)",
+    "description": "Daily earnings synthesizer fusing whisper/cascade/PEAD/quality/tone into one per-ticker earnings edge"
+  }
+}
