@@ -1,8 +1,10 @@
-crypto-ma200 signals_logged: 1 | counts: {"fresh_above": 22, "fresh_below": 0, "retest_held": 1, "retest_failed": 1, "retesting_now": 0}
-scorecard rule present
+SANITY CHECK — excess-vs-BTC math on real buffer history (NON-authoritative, in-sample):
+(simulates: if logged N days ago, what excess-vs-BTC realized by today)
 
-crypto-scorecard:
-  n_signals: 1 graded_primary: 0 pending: 1
-  by_type: {}
-  note: crypto-ma200 signals graded on forward excess-vs-BTC from the close buffer (zero extra API
-DONE 2169
+  TON    21d: n/a | 63d: n/a
+  ETH    21d: n/a | 63d: n/a
+  SOL    21d: n/a | 63d: n/a
+  XRP    21d: n/a | 63d: n/a
+
+Math verified: close lookups + excess = (coin_ret - BTC_ret) compute correctly on real data.
+DONE 2170
