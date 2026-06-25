@@ -1,5 +1,8 @@
-  justhodl-ma200-reclaim-daily: cron(30 21 ? * MON-FRI *) ENABLED targets=1
-  justhodl-crypto-ma200-daily: cron(45 0 * * ? *) ENABLED targets=1
-  orphan aiapi-hourly-collection: retired ✓
-  page: 200 crypto_section= True
-DONE 2168
+crypto-ma200 signals_logged: 1 | counts: {"fresh_above": 22, "fresh_below": 0, "retest_held": 1, "retest_failed": 1, "retesting_now": 0}
+scorecard rule present
+
+crypto-scorecard:
+  n_signals: 1 graded_primary: 0 pending: 1
+  by_type: {}
+  note: crypto-ma200 signals graded on forward excess-vs-BTC from the close buffer (zero extra API
+DONE 2169
