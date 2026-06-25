@@ -235,7 +235,17 @@ def lambda_handler(event=None, context=None):
                      "(resistance→support) confirmed; raw crosses are noise, doubly so in crypto. "
                      "Quality rises with a turning-up MA slope and 50>200 alignment.")
 
-    # closed loop — log retest-held (UP) + fresh breakdowns (DOWN), graded on forward excess-vs-BTC
+    # consume crypto alpha-status (set by crypto-scorecard once matured; mirrors equity effective_trust)
+    try:
+        cet = json.loads(S3.get_object(Bucket=BUCKET, Key="data/crypto-engine-trust.json")["Body"].read())
+        amap = cet.get("alpha") or {}
+    except Exception:
+        amap = {}
+    out["alpha_status"] = {"retest": amap.get("crypto_ma200_retest", "WARMING"),
+                           "breakdown": amap.get("crypto_ma200_breakdown", "WARMING")}
+
+    # closed loop — log retest-held (UP) + fresh breakdowns (DOWN), graded on forward excess-vs-BTC.
+    # Hard-prune: once a family is proven to have no edge (ALPHA_NEGATIVE), stop logging/trusting it.
     try:
         bs = [x for x in (series.get("BTC") or []) if x is not None]
         btc_base = bs[-1] if bs else None
@@ -244,8 +254,10 @@ def lambda_handler(event=None, context=None):
             log_date = dates[-1]
             nowt = datetime.now(timezone.utc)
             logged = 0
-            for grp, dr, st, cf in ((held[:12], "UP", "crypto_ma200_retest", 0.58),
-                                    (below[:8], "DOWN", "crypto_ma200_breakdown", 0.55)):
+            for grp, dr, st, cf, akey in ((held[:12], "UP", "crypto_ma200_retest", 0.58, "retest"),
+                                          (below[:8], "DOWN", "crypto_ma200_breakdown", 0.55, "breakdown")):
+                if out["alpha_status"].get(akey) == "ALPHA_NEGATIVE":
+                    continue
                 for r in grp:
                     tbl.put_item(Item={
                         "signal_id": f"cma200-{dr}#{r['ticker']}#{log_date}",

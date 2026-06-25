@@ -68,7 +68,8 @@ function section(h,title,note,arr,cls,dir){if(!arr||!arr.length)return h;
     h=section(h,'🟢 Crypto just broke above','Fresh upside cross, intact.',cd.fresh_breakouts_above,'','up');
     h=section(h,'🔴 Crypto just broke below','Fresh downside cross, intact.',cd.fresh_breakdowns_below,'','dn');
     h=section(h,'⚠️ Crypto failed reclaims','Broke above then closed back below.',cd.retest_failed,'','dn');
-    h+=`<div class="foot">Crypto universe: liquid USD-quoted coins with ≥200 days of history (stablecoins excluded), via Polygon's grouped crypto feed (24/7). Not yet scorecard-graded — crypto needs an excess-vs-BTC benchmark path.</div>`;
+    const as_=cd.alpha_status||{};
+    h+=`<div class="foot">Crypto universe: liquid USD-quoted coins with ≥200 days of history (stablecoins excluded), via Polygon's grouped crypto feed (24/7). Graded on forward excess-vs-BTC — retest: <b style="color:var(--fg)">${esc(as_.retest||'WARMING')}</b>, breakdown: <b style="color:var(--fg)">${esc(as_.breakdown||'WARMING')}</b> (WARMING until ~20 signals mature at the 21-day horizon).</div>`;
   }
   w.innerHTML=h;
 })();
