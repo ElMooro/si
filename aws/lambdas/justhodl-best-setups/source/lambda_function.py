@@ -213,6 +213,8 @@ def lambda_handler(event, context):
     flow_confl = read_json("data/flow-confluence.json") or {}
     opt_map = options_confl.get("ticker_map") or {}
     flow_map = flow_confl.get("ticker_map") or {}
+    earn_confl = read_json("data/earnings-confluence.json") or {}
+    earn_map = {r.get("ticker"): r for r in (earn_confl.get("confluence_book") or []) if r.get("ticker")}
     trust_by = {}
     for e in (et_doc.get("engines") or []):
         st = e.get("signal_type")
@@ -851,6 +853,11 @@ def lambda_handler(event, context):
         if fp:
             s["flow_posture"] = fp.get("posture"); s["flow_confluence"] = fp; n_flow += 1
             if s.get("why"): s["why"] = s["why"].rstrip(".") + f". Flow: {fp.get('posture')} ({fp.get('n_engines')} engines)."
+        ec = earn_map.get(tk)
+        if ec and (ec.get("n_dimensions") or 0) >= 2:
+            s["earnings_confluence"] = {"composite": ec.get("composite"), "n_dimensions": ec.get("n_dimensions"),
+                                        "dimensions": ec.get("dimensions")}
+            if s.get("why"): s["why"] = s["why"].rstrip(".") + f". Earnings confluence: {ec.get('n_dimensions')} dims {ec.get('dimensions')}."
         if op and fp:
             obull = op.get("posture") in ("SQUEEZE_FUEL", "BULLISH_FLOW", "BULLISH_LEAN")
             obear = op.get("posture") in ("BEARISH_FLOW", "BEARISH_LEAN")
