@@ -1,10 +1,10 @@
-buffer: 235 days  range 2025-11-07 -> 2025-11-03
-BTC in series: True | sample keys: ['BTC', 'NEAR', 'ONDO', 'ADA', 'AVAX', 'XLM', 'SOL', 'XAUT']
-
-excess-vs-BTC math on real buffer bars (index-based, NON-authoritative in-sample):
-  TON    21d TON +16.8% vs BTC +68.9% = excess -52.1% | 63d TON +54.1% vs BTC +37.7% = excess +16.4%
-  ETH    21d ETH +113.2% vs BTC +68.9% = excess +44.3% | 63d ETH +56.4% vs BTC +37.7% = excess +18.7%
-  SOL    21d SOL +148.5% vs BTC +68.9% = excess +79.6% | 63d SOL +95.8% vs BTC +37.7% = excess +58.1%
-  XRP    21d XRP +97.4% vs BTC +68.9% = excess +28.5% | 63d XRP +64.8% vs BTC +37.7% = excess +27.1%
-  DOGE   21d DOGE +93.8% vs BTC +68.9% = excess +24.9% | 63d DOGE +69.1% vs BTC +37.7% = excess +31.4%
-DONE 2171
+len: 235
+min: 2025-10-30 max: 2026-06-24
+first5: ['2025-11-07', '2025-11-08', '2025-11-09', '2025-11-10', '2025-11-11']
+last5: ['2025-10-31', '2026-06-24', '2025-11-01', '2025-11-02', '2025-11-03']
+is_sorted_ascending: False
+has_duplicates: False
+2026 dates: 175 | 2025 dates: 60
+BTC series len: 235 vs dates len: 235
+BTC non-null: 235
+DONE 2172
