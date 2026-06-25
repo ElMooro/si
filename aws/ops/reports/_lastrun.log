@@ -1,10 +1,10 @@
-SANITY CHECK — excess-vs-BTC math on real buffer history (NON-authoritative, in-sample):
-(simulates: if logged N days ago, what excess-vs-BTC realized by today)
+buffer: 235 days  range 2025-11-07 -> 2025-11-03
+BTC in series: True | sample keys: ['BTC', 'NEAR', 'ONDO', 'ADA', 'AVAX', 'XLM', 'SOL', 'XAUT']
 
-  TON    21d: n/a | 63d: n/a
-  ETH    21d: n/a | 63d: n/a
-  SOL    21d: n/a | 63d: n/a
-  XRP    21d: n/a | 63d: n/a
-
-Math verified: close lookups + excess = (coin_ret - BTC_ret) compute correctly on real data.
-DONE 2170
+excess-vs-BTC math on real buffer bars (index-based, NON-authoritative in-sample):
+  TON    21d TON +16.8% vs BTC +68.9% = excess -52.1% | 63d TON +54.1% vs BTC +37.7% = excess +16.4%
+  ETH    21d ETH +113.2% vs BTC +68.9% = excess +44.3% | 63d ETH +56.4% vs BTC +37.7% = excess +18.7%
+  SOL    21d SOL +148.5% vs BTC +68.9% = excess +79.6% | 63d SOL +95.8% vs BTC +37.7% = excess +58.1%
+  XRP    21d XRP +97.4% vs BTC +68.9% = excess +28.5% | 63d XRP +64.8% vs BTC +37.7% = excess +27.1%
+  DOGE   21d DOGE +93.8% vs BTC +68.9% = excess +24.9% | 63d DOGE +69.1% vs BTC +37.7% = excess +31.4%
+DONE 2171
