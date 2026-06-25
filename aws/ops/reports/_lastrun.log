@@ -1,7 +1,8 @@
-
-options-confluence: keys=['engine', 'version', 'generated_at', 'duration_s', 'thesis', 'alpha_gate', 'counts', 'multi_engine_confluence', 'by_posture', 'ticker_map', 'note']
-    'multi_engine_confluence' n=18 keys=['ticker', 'score', 'engines', 'neg_gamma', 'coiled', 'tags', 'n_engines', 'posture'] scoreish=['score', 'n_engines', 'posture']
-
-flow-confluence: keys=['engine', 'version', 'generated_at', 'duration_s', 'thesis', 'alpha_gate', 'counts', 'multi_engine_confluence', 'by_posture', 'ticker_map', 'note']
-    'multi_engine_confluence' n=40 keys=['ticker', 'score', 'engines', 'heavy_short', 'covering', 'stealth', 'tags', 'n_engines'] scoreish=['score', 'n_engines', 'posture']
-DONE 2200
+top_tickers=25 | with a confluence system: 6
+  GOOGL  score 115.1 n_systems 9 confluences=['earnings_confluence', 'equity_confluence', 'options_confluence']
+  SNDK   score 108.6 n_systems 5 confluences=['equity_confluence']
+  GOOG   score 103.5 n_systems 6 confluences=['earnings_confluence']
+  ORCL   score 99.1 n_systems 5 confluences=['earnings_confluence']
+  AVGO   score 96.1 n_systems 6 confluences=['options_confluence']
+  QCOM   score 96.0 n_systems 5 confluences=['flow_confluence']
+DONE 2201
