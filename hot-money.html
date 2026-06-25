@@ -65,7 +65,13 @@ function drill(cn,v){
     h+=`<div class="sec">Inside the hot countries <span class="n">— sectors & stocks the money is buying</span></div>`;
     for(const [cn,v] of Object.entries(dd)) h+=drill(cn,v);
   }
-  h+=`<div class="foot">Composite z-score: real ETF creation/redemption flow (0.40) + relative momentum vs ${d.world_benchmark} (0.30) + volume surge (0.15) + currency strength (0.15), weights renormalize when a signal is missing. Conviction separates genuine foreign inflow from local rallies; flow velocity flags acceleration. Top inflow-country ETFs are scorecard-graded on forward excess-vs-${d.world_benchmark}.</div>`;
+  const em=d.em_debt_flows;
+  if(em&&em.by_etf&&em.by_etf.length){
+    h+=`<div class="sec">EM-debt channel — bond carry <span class="n">— ${esc(em.signal||'')}</span></div>`;
+    h+=`<div class="grid">`+em.by_etf.map(e=>{const fc=(e.flow_5d_usd||0)>=0?'var(--grn)':'var(--red)';
+      return `<div class="card"><div class="r1"><span class="ct">${esc(e.etf)}</span><span class="sc" style="color:${fc}">${usd(e.flow_5d_usd)}</span></div><div class="l2">${esc(e.name||'')} · 20d ${e.ret_20d_pct==null?'—':(e.ret_20d_pct>0?'+':'')+(Math.round(e.ret_20d_pct*10)/10)+'%'}</div></div>`;}).join('')+`</div>`;
+  }
+  h+=`<div class="foot">Composite z-score: real ETF creation/redemption flow (0.30) + flow acceleration (0.13) + relative momentum vs ${d.world_benchmark} (0.27) + volume surge (0.15) + currency strength (0.15), weights renormalize when a signal is missing. Conviction separates genuine foreign inflow from local rallies; flow velocity flags acceleration. EM-debt ETF flows track the fixed-income (carry) channel. Top inflow-country ETFs are scorecard-graded on forward excess-vs-${d.world_benchmark}.</div>`;
   w.innerHTML=h;
 })();
 </script></body></html>
