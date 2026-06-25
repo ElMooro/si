@@ -1,22 +1,27 @@
+hot-money.json: generated 2026-06-25T17:00 (0.3h ago)
+  n_countries=36 method=composite z-score (flow 0.40 / rel-mom 0.30 / vol 0.15 / FX  signals_logged=6
+  INFLOW LEADERS:
+    #1 Indonesia     score +1.336 rel_mom -6.89 flow5d $18954369 etfs=['EIDO']
+    #2 Australia     score +1.055 rel_mom -2.28 flow5d $85984273 etfs=['EWA']
+    #3 Taiwan        score +0.658 rel_mom 3.08 flow5d $0 etfs=['EWT']
+    #4 India         score +0.643 rel_mom 3.15 flow5d $0 etfs=['INDA', 'INDY']
+    #6 Asia ex-Japan score +0.403 rel_mom 0.88 flow5d $0 etfs=['AAXJ']
+    #7 Japan         score +0.358 rel_mom 2.34 flow5d $-68319586 etfs=['EWJ']
+    #9 Italy         score +0.278 rel_mom 1.06 flow5d $0 etfs=['EWI']
+    #10 Argentina     score +0.248 rel_mom -4.23 flow5d $-5216400 etfs=['ARGT']
+  OUTFLOW LEADERS:
+    Turkey        score -1.124 rel_mom 3.65
+    LatAm         score -1.121 rel_mom -3.86
+    Mexico        score -0.8 rel_mom -4.49
+    Israel        score -0.682 rel_mom -11.97
+    Brazil        score -0.648 rel_mom -3.95
+  DRILLDOWNS: ['Indonesia', 'Australia', 'Taiwan', 'India', 'Asia ex-Japan', 'Japan']
+    Indonesia: sectors=[Financial Services 42.5%, Basic Materials 12.8%, Communication Services 10.2%, Energy 9.2%]
+          stocks=[BBCA.JK(?%), BBRI.JK(?%), BMRI.JK(?%), TLKM.JK(?%), ASII.JK(?%), BBNI.JK(?%)]
+    Australia: sectors=[Financial Services 41.4%, Basic Materials 26.4%, Consumer Cyclical 6.5%, Real Estate 5.1%]
+          stocks=[BHP.AX(?%), CBA.AX(?%), WBC.AX(?%), NAB.AX(?%), ANZ.AX(?%), WES.AX(?%)]
+  input data/etf-true-flows.json: 1.5h ago  keys=['engine', 'version', 'generated_at', 'duration_s', 'n_etfs', 'maturity']
+  input data/polygon-fx-regime.json: 4.1h ago  keys=['engine', 'version', 'generated_at', 'elapsed_s', 'n_pairs', 'fx_roro']
 
-=== justhodl-pairs-scanner ===
-  output data/pairs-scanner.json: generated_at=2026-06-25T14:42:48 age=2h
-  rule pairs-scanner-6hourly: cron(42 14 * * ? *) state=ENABLED
-
-=== justhodl-future-intelligence ===
-  output data/buzz-velocity.json: generated_at=2026-06-25T14:53:21 age=2h
-  rule future-intel-2x-daily: cron(40 16 * * ? *) state=ENABLED
-
-=== justhodl-divergence-engine-v2 ===
-  output data/divergence-v2.json: generated_at=2026-06-25T17:00:38 age=0h
-  rule divergence-v2-2hourly: cron(0 17 * * ? *) state=ENABLED
-
-=== justhodl-divergence-scanner ===
-  output data/report.json: generated_at=2026-06-25T11:07:13 age=6h
-  schedule: NO RULE targets this function (dormant)
-
-=== justhodl-breadth-divergence ===
-  output data/breadth-divergence.json: generated_at=2026-06-24T22:00:38 age=19h
-  schedule: NO RULE targets this function (dormant)
-
+Polygon ETF-global fund-flows EWZ: status=OK n=100 sample=[{'processed_date': '2017-04-03', 'effective_date': '2017-04-03', 'composite_ticker': 'EWZ', 'shares_outstanding': 15050
 DONE 2177
