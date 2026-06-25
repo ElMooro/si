@@ -1,8 +1,17 @@
-top_tickers=25 | with a confluence system: 6
-  GOOGL  score 115.1 n_systems 9 confluences=['earnings_confluence', 'equity_confluence', 'options_confluence']
-  SNDK   score 108.6 n_systems 5 confluences=['equity_confluence']
-  GOOG   score 103.5 n_systems 6 confluences=['earnings_confluence']
-  ORCL   score 99.1 n_systems 5 confluences=['earnings_confluence']
-  AVGO   score 96.1 n_systems 6 confluences=['options_confluence']
-  QCOM   score 96.0 n_systems 5 confluences=['flow_confluence']
-DONE 2201
+best-setups OK: top_setups=50 (earnings-confluence wired, tags appear in earnings season)
+
+=== LIQUIDITY CLUSTER schemas ===
+  global-liquidity: keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'fred_failed', 'global_liquidity_index', 'fed_net_liquidity', 'broad_money']
+      headline={"regime": "NEUTRAL", "regime_read": "Global liquidity is roughly flat. Liquidity is neither a tailwind nor a headwind \u2014 earnings and rates domin
+  china-liquidity: keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'fred_failed', 'series_resolved', 'regime', 'regime_read']
+      headline={"regime": "NEUTRAL", "regime_read": "China liquidity is roughly steady \u2014 no strong forward push or pull on commodities and global cyclicals from
+  crypto-liquidity: keys=['engine', 'version', 'generated_at', 'duration_s', 'liquidity_score', 'regime', 'regime_read', 'directional_read']
+      headline={"liquidity_score": 90.7, "regime": "DRY-POWDER LOADED", "regime_read": "Stablecoin dry powder near a 2-year high vs BTC and sentiment fearful \u2014 
+  liquidity-inflection: keys=['engine', 'version', 'generated_at', 'duration_s', 'availability', 'usd', 'us_money', 'eur']
+      headline={"signals_logged": 0}
+  repo-lending: keys=['schema_version', 'method', 'generated_at', 'composite_leverage_stress', 'regime', 'margin_debt', 'repo', 'securities_lending']
+      headline={"regime": "ABUNDANT_LIQUIDITY"}
+  cb-injection: keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'global_injection_impulse', 'central_banks']
+  cb-stance: keys=['generated_at', 'generated_at_unix', 'version', 'model', 'elapsed_seconds', 'n_fomc_statements_scored', 'fed', 'regime_changed_from_prior']
+      headline={"n_fomc_statements_scored": 4, "regime_changed_from_prior": false, "new_statement_since_last_run": false}
+DONE 2202
