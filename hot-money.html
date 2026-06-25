@@ -1,0 +1,71 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hot Money Radar · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;
+--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8;--vio:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1060px;margin:0 auto;padding:24px 16px 90px}
+.hd{border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:14px}
+h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font-size:12.5px}.meta{color:var(--fg3);font-size:11.5px;margin-top:3px}
+.thesis{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--vio);border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--fg2);line-height:1.5;margin-bottom:12px}
+.regime{display:inline-block;background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 11px;font-size:12px;color:var(--fg2);margin-bottom:16px}
+.regime b{color:var(--fg)}
+.sec{margin:22px 0 8px;font-size:14px;font-weight:700;letter-spacing:.3px}.sec .n{color:var(--fg3);font-weight:400;font-size:11.5px}
+.in{border-left:3px solid var(--grn);padding-left:9px}.out{border-left:3px solid var(--red);padding-left:9px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:9px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:10px 12px}
+.r1{display:flex;justify-content:space-between;align-items:baseline}
+.ct{font-weight:700;font-size:15px}.sc{font-size:13px;font-weight:600}
+.l2{font-size:11px;color:var(--fg3);margin-top:4px;line-height:1.5}
+.badges{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
+.b{font-size:9px;font-weight:700;letter-spacing:.3px;border-radius:4px;padding:2px 6px;text-transform:uppercase}
+.accel{color:var(--grn);border:1px solid rgba(52,211,153,.35)}.decel{color:var(--fg3);border:1px solid var(--bd)}
+.dd{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:12px 14px;margin-bottom:9px}
+.ddh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.ddc{font-weight:700;font-size:14.5px}.ddm{font-size:11px;color:var(--fg3)}
+.row{font-size:11.5px;color:var(--fg2);margin:2px 0}.row .k{color:var(--fg3)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.chip{font-size:10px;border:1px solid var(--bd);border-radius:4px;padding:1px 6px;color:var(--fg2)}
+.foot{color:var(--fg3);font-size:11px;margin-top:22px;line-height:1.5}.loading{color:var(--fg3);padding:40px 0}
+</style></head><body><div class="wrap" id="w"><div class="loading">Loading hot-money radar…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function usd(n){if(n==null)return '—';const a=Math.abs(n);const s=n<0?'-':'+';if(a>=1e9)return s+'$'+(a/1e9).toFixed(1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(0)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+a.toFixed(0);}
+const CONV={CONFIRMED_INFLOW:['var(--grn)','Confirmed inflow'],EARLY_ACCUMULATION:['var(--cyan)','Early accumulation'],
+PRICE_LED:['var(--amb)','Price-led (check)'],CONFIRMED_OUTFLOW:['var(--red)','Confirmed outflow'],
+OUTFLOW:['var(--red)','Outflow'],MIXED:['var(--fg3)','Mixed']};
+function card(c){const sc=c.hot_money_score;const scc=sc>=0?'var(--grn)':'var(--red)';
+  const cv=CONV[c.conviction]||CONV.MIXED;
+  const vel=c.flow_velocity?`<span class="b ${c.flow_velocity==='ACCELERATING'?'accel':'decel'}">${c.flow_velocity==='ACCELERATING'?'▲ accel':'▼ decel'}</span>`:'';
+  return `<div class="card"><div class="r1"><span class="ct">${c.rank?'#'+c.rank+' ':''}${esc(c.country)}</span><span class="sc" style="color:${scc}">${sc>=0?'+':''}${sc}</span></div>`
+   +`<div class="badges"><span class="b" style="color:${cv[0]};border:1px solid ${cv[0]}55">${cv[1]}</span>${vel}</div>`
+   +`<div class="l2">flow 5d <b style="color:${(c.net_flow_5d_usd||0)>=0?'var(--grn)':'var(--red)'}">${usd(c.net_flow_5d_usd)}</b> · rel-mom ${c.rel_mom_20d==null?'—':(c.rel_mom_20d>0?'+':'')+c.rel_mom_20d+'%'}${c.fx_strength!=null?' · fx '+c.fx_strength:''}</div>`
+   +`<div class="chips">${(c.etfs||[]).map(e=>`<span class="chip">${esc(e)}</span>`).join('')}</div></div>`;}
+function drill(cn,v){
+  const secs=(v.top_sectors||[]).map(s=>`<span class="chip">${esc(s.sector)} ${s.weight_pct}%</span>`).join('');
+  const st=(v.top_holdings||[]).slice(0,10).map(h=>`<span class="chip">${esc(h.ticker)}${h.day_chg_pct!=null?' '+(h.day_chg_pct>0?'+':'')+h.day_chg_pct+'%':''}</span>`).join('');
+  return `<div class="dd"><div class="ddh"><span class="ddc">${esc(cn)}</span><span class="ddm">${esc(v.etf)} · score ${v.hot_money_score} · flow ${usd(v.net_flow_5d_usd)}</span></div>`
+   +`<div class="row"><span class="k">Sectors the money is in:</span><div class="chips">${secs||'<span class="chip">—</span>'}</div></div>`
+   +`<div class="row" style="margin-top:6px"><span class="k">Stocks (ETF top holdings):</span><div class="chips">${st||'<span class="chip">—</span>'}</div></div></div>`;}
+(async function(){
+  const d=await gj('data/hot-money.json');const w=document.getElementById('w');
+  if(!d||!d.inflow_leaders){w.innerHTML='<div class="hd"><h1>Hot Money Radar</h1></div><div class="loading">No data yet — runs daily after close.</div>';return;}
+  let h=`<div class="hd"><h1>🌍 Hot Money Radar</h1><div class="sub">Which countries cross-border speculative capital is rotating into — then the sectors and stocks inside them.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · ${d.n_countries} countries · vs ${d.world_benchmark} · v${esc(d.version||'')}</div></div>`;
+  h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
+  const rg=d.risk_regime;
+  if(rg&&rg.risk_regime)h+=`<div class="regime">Global risk regime: <b>${esc(rg.risk_regime)}</b> (${rg.score}) — hot money floods EM in risk-on, flees in risk-off.</div>`;
+  h+=`<div class="sec in">Capital flowing IN <span class="n">— ranked by hot-money score; conviction = is the inflow genuine foreign (flow+price+FX aligned) or price-led/local</span></div>`;
+  h+=`<div class="grid">${(d.inflow_leaders||[]).map(card).join('')}</div>`;
+  h+=`<div class="sec out">Capital flowing OUT <span class="n">— ${(d.outflow_leaders||[]).length}</span></div>`;
+  h+=`<div class="grid">${(d.outflow_leaders||[]).map(card).join('')}</div>`;
+  const dd=d.drilldowns||{};
+  if(Object.keys(dd).length){
+    h+=`<div class="sec">Inside the hot countries <span class="n">— sectors & stocks the money is buying</span></div>`;
+    for(const [cn,v] of Object.entries(dd)) h+=drill(cn,v);
+  }
+  h+=`<div class="foot">Composite z-score: real ETF creation/redemption flow (0.40) + relative momentum vs ${d.world_benchmark} (0.30) + volume surge (0.15) + currency strength (0.15), weights renormalize when a signal is missing. Conviction separates genuine foreign inflow from local rallies; flow velocity flags acceleration. Top inflow-country ETFs are scorecard-graded on forward excess-vs-${d.world_benchmark}.</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
