@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Accumulation / Distribution Radar · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;
+--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8;--vio:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 90px}
+.hd{border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:14px}
+h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font-size:12.5px}.meta{color:var(--fg3);font-size:11.5px;margin-top:3px}
+.thesis{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--vio);border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--fg2);line-height:1.5;margin-bottom:8px}
+.sec{margin:22px 0 4px;font-size:15px;font-weight:700;letter-spacing:.3px}
+.sec.top{color:var(--red)}.sec.bot{color:var(--grn)}.sec .n{color:var(--fg3);font-weight:400;font-size:11.5px}
+.grp{font-size:11px;color:var(--fg3);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:9px 11px;position:relative;overflow:hidden}
+.card.t{border-left:3px solid var(--red)}.card.b{border-left:3px solid var(--grn)}
+.card.acc{border-left:3px solid var(--cyan)}.card.dist{border-left:3px solid var(--amb)}
+.r1{display:flex;justify-content:space-between;align-items:baseline}
+.tk{font-weight:700;font-size:14.5px}.lb{color:var(--fg3);font-size:11px;font-weight:400}
+.ph{font-size:9px;font-weight:700;letter-spacing:.3px;border-radius:4px;padding:2px 6px;text-transform:uppercase}
+.l2{font-size:11px;color:var(--fg2);margin-top:5px;line-height:1.55}
+.k{color:var(--fg3)}
+.div-b{color:var(--red);font-weight:600}.div-u{color:var(--grn);font-weight:600}
+.bar{height:4px;border-radius:2px;background:#1a212b;margin-top:7px;overflow:hidden}
+.bar>span{display:block;height:100%}
+.foot{color:var(--fg3);font-size:11px;margin-top:24px;line-height:1.55}.loading{color:var(--fg3);padding:40px 0}
+.tabs{display:flex;gap:6px;margin:6px 0 0}.tab{font-size:12px;color:var(--fg3);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;cursor:pointer}.tab.on{color:var(--fg);border-color:var(--fg3);background:var(--card)}
+</style></head><body><div class="wrap" id="w"><div class="loading">Loading accumulation / distribution radar…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+const PHC={ACCUMULATION:'var(--cyan)',MARKUP:'var(--grn)',DISTRIBUTION:'var(--amb)',MARKDOWN:'var(--red)',NEUTRAL:'var(--fg3)'};
+function metric(r){
+  const div=r.divergence==='bearish'?'<span class="div-b">bearish div</span>':r.divergence==='bullish'?'<span class="div-u">bullish div</span>':'';
+  return `<span class="k">RSI</span> ${r.rsi==null?'—':r.rsi} · <span class="k">vs200</span> ${r.pct_vs_200dma==null?'—':(r.pct_vs_200dma>0?'+':'')+r.pct_vs_200dma+'%'} · <span class="k">range</span> ${r.range_pos_pct==null?'—':r.range_pos_pct+'%'}<br><span class="k">CMF</span> ${r.cmf} · <span class="k">OBV</span> ${r.obv_trend>0?'+':''}${r.obv_trend}${div?' · '+div:''}`;
+}
+function card(r,kind){
+  const ph=PHC[r.phase]||'var(--fg3)';
+  const sv=kind==='t'?r.top_score:kind==='b'?r.bottom_score:(r.phase==='DISTRIBUTION'?r.top_score:r.bottom_score);
+  const sc=kind==='t'||r.phase==='DISTRIBUTION'?'var(--red)':'var(--grn)';
+  return `<div class="card ${kind}"><div class="r1"><span class="tk">${esc(r.ticker)} ${r.label?'<span class="lb">'+esc(r.label)+'</span>':''}</span>`
+   +`<span class="ph" style="color:${ph};border:1px solid ${ph}55">${esc(r.phase)}</span></div>`
+   +`<div class="l2">${metric(r)}</div>`
+   +`<div class="bar"><span style="width:${Math.min(100,sv)}%;background:${sc}"></span></div></div>`;
+}
+function block(book,kind){
+  let h='';
+  for(const [cl,name] of [['countries','Countries'],['etfs','ETFs'],['stocks','Stocks']]){
+    const xs=(book[cl]||[]);if(!xs.length)continue;
+    h+=`<div class="grp">${name} <span style="color:var(--fg3)">(${xs.length})</span></div><div class="grid">${xs.map(r=>card(r,kind)).join('')}</div>`;
+  }
+  return h||'<div class="grp" style="color:var(--fg3)">none flagged today</div>';
+}
+(async function(){
+  const d=await gj('data/accumulation-radar.json');const w=document.getElementById('w');
+  if(!d||!d.tops){w.innerHTML='<div class="hd"><h1>Accumulation / Distribution Radar</h1></div><div class="loading">No data yet — runs daily after close.</div>';return;}
+  let h=`<div class="hd"><h1>🔄 Accumulation / Distribution Radar</h1><div class="sub">Wyckoff cycle across stocks, ETFs &amp; countries — who's being accumulated vs distributed, and what's most likely at a top or a bottom.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · ${d.n_scored} names scored · ${d.buffer_days}d history · v${esc(d.version||'')}</div></div>`;
+  h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="sec top">⚠️ Likely TOPS <span class="n">— over-extended + distribution / bearish divergence</span></div>`+block(d.tops,'t');
+  h+=`<div class="sec bot">✅ Likely BOTTOMS <span class="n">— oversold + accumulation / bullish divergence</span></div>`+block(d.bottoms,'b');
+  h+=`<div class="sec" style="color:var(--cyan)">Under accumulation <span class="n">— buying pressure in a base</span></div>`+block(d.accumulating,'acc');
+  h+=`<div class="sec" style="color:var(--amb)">Under distribution <span class="n">— selling pressure near highs</span></div>`+block(d.distributing,'dist');
+  h+=`<div class="foot">Per name: OBV (volume confirmation), Chaikin Money Flow 20d (intrabar buying/selling), RSI(14), price vs 50/200-DMA, position in the 200-day range, and price-vs-OBV divergence — combined into a Wyckoff phase and top/bottom composites. LIKELY_BOTTOM (UP) and LIKELY_TOP (DOWN) calls are logged and graded on forward excess-vs-benchmark (SPY for stocks/ETFs, ACWX for countries) — measure-before-trust.</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
