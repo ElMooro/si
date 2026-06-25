@@ -1,4 +1,24 @@
-top_setups=50 cycle-tagged=2 cycle_warning=2
-  MRVL   BUY            conv 35.0 | phase DISTRIBUTION flag LIKELY_TOP warn distribution_at_top
-  APGE   WATCH          conv 26.3 | phase DISTRIBUTION flag LIKELY_TOP warn distribution_at_top
-DONE 2190
+v1.2.0 market_leaders=25 leaders_fading=12
+
+TOP MARKET LEADERS (relative strength + accumulation):
+  MU     lead 100.0 RS126 339.0 | 1m 37.7% 3m 223.0% 6m 346.2% | MARKUP cmf 0.099 spark_pts 30
+  SNDK   lead 100.0 RS126 850.8 | 1m 45.3% 3m 240.6% 6m 857.9% | MARKUP cmf 0.027 spark_pts 30
+  SOXL   lead 100.0 RS126 488.5 | 1m 14.1% 3m 351.7% 6m 495.6% | NEUTRAL cmf 0.031 spark_pts 30
+  AMD    lead 100.0 RS126 138.8 | 1m 4.9% 3m 140.0% 6m 146.0% | MARKUP cmf 0.167 spark_pts 30
+  MRVL   lead 100.0 RS126 225.3 | 1m 35.4% 3m 186.4% 6m 232.5% | DISTRIBUTION cmf -0.066 spark_pts 30
+  SPCX   lead 100.0 RS126 481.1 | 1m 596.7% 3m 597.6% 6m 488.2% | DISTRIBUTION cmf -0.109 spark_pts 30
+  AMAT   lead 100.0 RS126 146.1 | 1m 44.2% 3m 77.6% 6m 153.2% | MARKUP cmf 0.036 spark_pts 30
+  WDC    lead 100.0 RS126 275.7 | 1m 29.0% 3m 128.5% 6m 282.8% | DISTRIBUTION cmf -0.174 spark_pts 30
+  MUU    lead 100.0 RS126 1167.8 | 1m 64.5% 3m 673.3% 6m 1175.0% | MARKUP cmf 0.06 spark_pts 30
+  GLW    lead 100.0 RS126 147.0 | 1m 14.5% 3m 53.5% 6m 154.1% | MARKUP cmf 0.18 spark_pts 30
+  TSM    lead 100.0 RS126 43.5 | 1m 7.2% 3m 27.1% 6m 50.7% | MARKUP cmf -0.045 spark_pts 30
+  LRCX   lead 100.0 RS126 118.7 | 1m 22.6% 3m 69.5% 6m 125.8% | MARKUP cmf 0.0 spark_pts 30
+
+LEADERS FADING (was strong, now rolling over):
+  SPCX   RS126 481.1 DISTRIBUTION vs50 211.9% obv 4.9
+  KORU   RS126 426.0 DISTRIBUTION vs50 5.4% obv -4.6
+  MXL    RS126 425.3 DISTRIBUTION vs50 23.9% obv -1.9
+  AXTI   RS126 347.1 DISTRIBUTION vs50 -29.0% obv -3.4
+  WDC    RS126 275.7 DISTRIBUTION vs50 33.6% obv 5.4
+  STX    RS126 255.9 DISTRIBUTION vs50 27.9% obv 6.8
+DONE 2191
