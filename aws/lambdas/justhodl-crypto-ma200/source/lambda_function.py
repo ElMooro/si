@@ -14,6 +14,7 @@ applies before treating the retest as a proven edge.
 """
 import os, json, time, urllib.request
 from datetime import datetime, timezone, timedelta
+from decimal import Decimal
 import boto3
 
 S3 = boto3.client("s3", "us-east-1")
@@ -226,6 +227,38 @@ def lambda_handler(event=None, context=None):
     out["thesis"] = ("Crypto 200-DMA reclaim & retest. The retest-held book is the polarity flip "
                      "(resistance→support) confirmed; raw crosses are noise, doubly so in crypto. "
                      "Quality rises with a turning-up MA slope and 50>200 alignment.")
+
+    # closed loop — log retest-held (UP) + fresh breakdowns (DOWN), graded on forward excess-vs-BTC
+    try:
+        bs = [x for x in (series.get("BTC") or []) if x is not None]
+        btc_base = bs[-1] if bs else None
+        if btc_base and dates:
+            tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
+            log_date = dates[-1]
+            nowt = datetime.now(timezone.utc)
+            logged = 0
+            for grp, dr, st, cf in ((held[:12], "UP", "crypto_ma200_retest", 0.58),
+                                    (below[:8], "DOWN", "crypto_ma200_breakdown", 0.55)):
+                for r in grp:
+                    tbl.put_item(Item={
+                        "signal_id": f"cma200-{dr}#{r['ticker']}#{log_date}",
+                        "signal_type": st, "predicted_direction": dr,
+                        "signal_value": str(r.get("dist_pct")),
+                        "confidence": Decimal(str(cf)), "measure_against": "ticker_vs_btc",
+                        "baseline_price": str(r["price"]), "benchmark": "BTC",
+                        "check_windows": ["day_5", "day_21", "day_63"],
+                        "outcomes": {}, "accuracy_scores": {}, "status": "pending",
+                        "logged_at": nowt.isoformat(), "logged_epoch": int(nowt.timestamp()),
+                        "horizon_days_primary": 21, "schema_version": "2",
+                        "ttl": int(nowt.timestamp()) + 120 * 86400,
+                        "metadata": {"engine": "crypto-ma200", "v": VERSION, "state": r.get("state"),
+                                     "log_date": log_date, "btc_baseline": str(round(btc_base, 4))},
+                        "rationale": f"{r['ticker']} {r.get('state', dr)} 200-DMA vs BTC (dist {r.get('dist_pct')}%)"})
+                    logged += 1
+            out["signals_logged"] = logged
+    except Exception as e:
+        print(f"[loop] {str(e)[:70]}")
+
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[crypto-ma200] sess={n} uni={len(series)} above={len(above)} below={len(below)} "
