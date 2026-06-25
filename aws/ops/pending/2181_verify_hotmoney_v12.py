@@ -26,3 +26,4 @@ print(f"\nEM-DEBT: net_flow_5d ${em.get('net_flow_5d_usd')} signal={em.get('sign
 for e in (em.get("by_etf") or []):
     print(f"  {e['etf']:<6} {e.get('name','')[:18]:<18} ret20 {e.get('ret_20d_pct')}% flow5d ${e.get('flow_5d_usd')}")
 print("DONE 2181")
+# retrigger 1782409414
