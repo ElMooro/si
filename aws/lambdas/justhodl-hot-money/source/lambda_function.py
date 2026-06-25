@@ -33,7 +33,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/hot-money.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 FMP = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 WORLD = "ACWX"          # world ex-US benchmark for relative momentum
 N_DRILL = 6             # how many top inflow countries to drill into sectors/stocks
 
@@ -221,10 +221,12 @@ def lambda_handler(event=None, context=None):
     for r in rows:
         c = countries.setdefault(r["country"], {"country": r["country"], "region": r["region"],
                                                  "etfs": [], "scores": [], "rel_moms": [], "flows": [],
-                                                 "flows21": [], "fxs": []})
+                                                 "flows21": [], "fxs": [], "ret20s": []})
         c["etfs"].append(r["etf"]); c["scores"].append(r["score"])
         if r["rel_mom"] is not None:
             c["rel_moms"].append(r["rel_mom"])
+        if r.get("ret_20d") is not None:
+            c["ret20s"].append(r["ret_20d"])
         if r["flow_5d_usd"] is not None:
             c["flows"].append(r["flow_5d_usd"])
         if r.get("flow_21d_usd") is not None:
@@ -240,6 +242,22 @@ def lambda_handler(event=None, context=None):
         c["net_flow_21d_usd"] = nf21
         fxavg = round(sum(c["fxs"]) / len(c["fxs"]), 2) if c["fxs"] else None
         c["fx_strength"] = fxavg
+        # ── USD-return decomposition (the foreign-investor experience: equity + FX) ──
+        usd_ret = round(sum(c["ret20s"]) / len(c["ret20s"]), 2) if c["ret20s"] else None
+        c["usd_return_20d"] = usd_ret
+        loc_eq = round(usd_ret - fxavg, 2) if (usd_ret is not None and fxavg is not None) else None
+        c["local_equity_20d"] = loc_eq
+        if usd_ret is not None and fxavg is not None and loc_eq is not None:
+            if loc_eq > 1 and fxavg > 0.5:
+                c["return_driver"] = "TWIN_ENGINE"      # equity AND currency both lifting USD returns
+            elif fxavg > abs(loc_eq):
+                c["return_driver"] = "FX_DRIVEN"
+            elif loc_eq > abs(fxavg):
+                c["return_driver"] = "EQUITY_DRIVEN"    # FX flat/against — often exporter/local money
+            else:
+                c["return_driver"] = "MIXED"
+        else:
+            c["return_driver"] = None
         # flow VELOCITY — 5d daily run-rate vs 21d daily run-rate (the acceleration tell)
         f5, mom = c["net_flow_5d_usd"], c["rel_mom_20d"]
         if f5 is not None and nf21 is not None and abs(nf21) > 0:
@@ -247,12 +265,14 @@ def lambda_handler(event=None, context=None):
             c["flow_velocity"] = "ACCELERATING" if accel > 0 else "DECELERATING"
         else:
             c["flow_velocity"] = None
-        # CONVICTION — alignment of flow + momentum + currency (genuine foreign vs local rally)
+        # CONVICTION — the reflexive twin-engine (currency + equity + flow aligned) ranks highest
         fpos = (f5 or 0) > 0
         fneg = (f5 or 0) < 0
         mpos = (mom or 0) > 0
         fxpos = (fxavg or 0) > 0
-        if fpos and mpos and (fxpos or fxavg is None):
+        if fpos and c["return_driver"] == "TWIN_ENGINE":
+            conv = "TWIN_ENGINE"               # flow in + equity up + currency up = reflexive hot-money loop
+        elif fpos and mpos and (fxpos or fxavg is None):
             conv = "CONFIRMED_INFLOW"          # money in, price up, currency firm — genuine foreign
         elif fpos and not mpos:
             conv = "EARLY_ACCUMULATION"         # money arriving before price — early or value
@@ -265,7 +285,8 @@ def lambda_handler(event=None, context=None):
         else:
             conv = "MIXED"
         c["conviction"] = conv
-        c.pop("scores"); c.pop("rel_moms"); c.pop("flows"); c.pop("flows21"); c.pop("fxs")
+        for k in ("scores", "rel_moms", "flows", "flows21", "fxs", "ret20s"):
+            c.pop(k, None)
         clist.append(c)
     clist.sort(key=lambda x: x["hot_money_score"], reverse=True)
     for rank, c in enumerate(clist, 1):
@@ -357,7 +378,9 @@ def lambda_handler(event=None, context=None):
                       "the world + volume surge + currency strength rank which countries capital is rotating "
                       "INTO, then ETF holdings drill into the sectors and stocks inside the hot countries."),
            "method": "composite z-score (flow 0.40 / rel-mom 0.30 / vol 0.15 / FX 0.15), weights renormalize when a signal is missing",
-           "legend": {"CONFIRMED_INFLOW": "flow + price + currency aligned (genuine foreign hot money)",
+           "legend": {"TWIN_ENGINE": "flow in + local equity up + currency up — the reflexive hot-money loop (highest conviction)",
+                      "CONFIRMED_INFLOW": "flow + price + currency aligned (genuine foreign hot money)",
+                      "return_driver": "TWIN_ENGINE / FX_DRIVEN / EQUITY_DRIVEN — what is lifting the USD return",
                       "EARLY_ACCUMULATION": "money arriving before price moves (early / value)",
                       "PRICE_LED": "price up without confirmed foreign flow (possibly local money)",
                       "flow_velocity": "ACCELERATING = 5d flow run-rate above the 21d run-rate"},
