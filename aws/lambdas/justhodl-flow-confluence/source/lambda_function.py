@@ -128,11 +128,14 @@ def lambda_handler(event, context):
         if isinstance(it, dict):
             ni = it.get("n_insiders") or 0
             add(_tk(it), "insider", min(0.9, 0.4 + 0.1 * ni), tag=f"insider cluster ({ni})")
-    # 9. corporate buybacks — a company buying its own stock is a flow tailwind
-    bb = _read("data/buyback-scanner.json")
-    for bk in ("top_buybacks", "accelerating", "top_picks", "buybacks", "all_buybacks", "board"):
+    # 9. corporate buybacks — a company buying its own stock is a flow tailwind (net buyback yield)
+    bb = _read("data/buyback-yield-ranking.json")
+    for bk in ("top_20_ranked", "all_ranked"):
         for it in (bb.get(bk) or []):
-            if isinstance(it, dict): add(_tk(it), "buyback", 0.6, tag="buyback")
+            if isinstance(it, dict):
+                ny = it.get("ttm_buyback_yield_net_pct") or 0
+                if ny > 1:
+                    add(_tk(it), "buyback", min(0.7, 0.3 + 0.05 * ny), tag=f"buyback yield {ny:.1f}%")
     # 10. insider + buyback confluence — both at once is the strongest corporate-flow tell
     ibc = _read("data/insider-buyback-confluence.json")
     for bk in ("top_confluences", "all_confluences", "high_conviction"):

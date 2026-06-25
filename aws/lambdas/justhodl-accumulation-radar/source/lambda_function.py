@@ -227,6 +227,14 @@ def lambda_handler(event=None, context=None):
     hm_conv = {c.get("country"): c.get("conviction") for c in (hm.get("all_countries") or [])}
     INFLOW_CONV = {"TWIN_ENGINE", "CONFIRMED_INFLOW", "EARLY_ACCUMULATION"}
     OUTFLOW_CONV = {"CONFIRMED_OUTFLOW", "OUTFLOW"}
+    # short-interest map — a bottom with crowded shorts has squeeze fuel (bigger bounce)
+    _si = _read("data/short-interest.json") or {}
+    si_map = {}
+    for _bk in ("top_squeeze_risk", "top_crowded_shorts", "top_high_dtc"):
+        for _it in (_si.get(_bk) or []):
+            t = (_it.get("ticker") or "").upper()
+            if t and t not in si_map:
+                si_map[t] = {"short_pct": _it.get("latest_short_pct"), "dtc": _it.get("days_to_cover")}
     rows = []
     for tk in buf["universe"]:
         rec = buf["tickers"].get(tk)
@@ -266,6 +274,13 @@ def lambda_handler(event=None, context=None):
         bottom_score = max(0.0, min(100.0,
             max(0, -(pct200 or 0)) * 1.4 + max(0, 45 - (rsi or 100)) * 1.2 + max(0, 40 - rng_pos) * 0.8
             + (18 if accumulating else 0) + (22 if bullish_div else 0)))
+        # squeeze fuel — a name accumulated at a bottom with crowded shorts bounces harder
+        _sd = si_map.get(tk)
+        squeeze_fuel = False
+        if _sd and isinstance(_sd.get("short_pct"), (int, float)) and _sd["short_pct"] >= 15:
+            if bottom_score > 20 or (pct200 or 0) < 0:
+                bottom_score = min(100.0, bottom_score + min(15.0, _sd["short_pct"] * 0.5))
+                squeeze_fuel = True
         # phase + flags
         if over_up and (distributing or bearish_div):
             phase = "DISTRIBUTION"; flag = "LIKELY_TOP"
@@ -304,6 +319,8 @@ def lambda_handler(event=None, context=None):
             "pct_vs_200dma": round(pct200, 1) if pct200 is not None else None,
             "range_pos_pct": round(rng_pos, 0), "cmf": round(cmf, 3),
             "obv_trend": round(obv_chg20, 1),
+            "short_pct": (_sd or {}).get("short_pct"), "days_to_cover": (_sd or {}).get("dtc"),
+            "squeeze_fuel": squeeze_fuel,
             "divergence": ("bearish" if bearish_div else "bullish" if bullish_div else None),
             "vol_surge": round(vol_surge, 2) if vol_surge else None,
             "top_score": round(top_score, 1), "bottom_score": round(bottom_score, 1),
