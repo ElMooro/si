@@ -48,8 +48,10 @@ FAMILY_SUPER = {
     "flow_macro":  ("flow",        ["etf_flow_extreme", "etf_rotation", "eng:capital-flow"]),
     "revision":    ("fundamental", ["eng:estimate-revisions", "estimate_revisions", "eng:analyst-actions"]),
     "pead":        ("fundamental", ["earnings_pead", "eng:earnings-tracker"]),
+    "value":       ("fundamental", ["deep_value", "eng:deep-value-overlap", "value_overlap"]),
     "options":     ("structural",  ["eng:options-analytics", "options_analytics"]),
     "linkage":     ("structural",  ["eng:supply-chain-graph", "supply_chain_laggards"]),
+    "insider":     ("flow",        ["insider_cluster", "eng:insider-clusters", "insider_buying"]),
 }
 SUPERS = ["technical", "flow", "fundamental", "structural"]
 
@@ -66,6 +68,9 @@ SOURCES = [
     ("earnings-tracker.json",  "pead",       ["pead_signals"],                              "pead_score", 100, ("_eps_pos", True)),
     ("options-analytics.json", "options",    ["top_picks"],                                 "score",      100, ("direction", "long")),
     ("supply-chain-graph.json","linkage",    ["top_picks"],                                 "score",      100, ("direction", "long")),
+    # ── added independent dimensions: a valuation edge (fundamental) + insider buying (flow) ──
+    ("deep-value-overlap.json","value",      ["prime_setups", "elite_setups"],              "overlap_score", 10, None),
+    ("insider-clusters.json",  "insider",    ["clusters"],                                  "n_insiders",  6,   None),
 ]
 
 
