@@ -35,7 +35,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/accumulation-radar.json"
 BUF_KEY = "data/_cycle/pv.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 MAXDAYS = 200          # buffer depth
 MIN_PTS = 60           # minimum history to score a name
 N_STOCKS = 420         # liquid US stocks in the universe (+ ETFs below)
@@ -211,6 +211,17 @@ def lambda_handler(event=None, context=None):
 
     # ── score each name ──
     SPY = buf["tickers"].get("SPY", {})
+    spy_c = SPY.get("c") or []
+
+    def exret(c, n):
+        """Excess return vs SPY over n sessions (relative strength)."""
+        if len(c) > n and len(spy_c) > n and c[-1 - n] and spy_c[-1 - n]:
+            return round((c[-1] / c[-1 - n] - 1) * 100 - (spy_c[-1] / spy_c[-1 - n] - 1) * 100, 1)
+        return None
+
+    def absret(c, n):
+        return round((c[-1] / c[-1 - n] - 1) * 100, 1) if len(c) > n and c[-1 - n] else None
+
     # hot-money cross-corroboration: country -> conviction (so accumulation + foreign flow can agree)
     hm = _read("data/hot-money.json") or {}
     hm_conv = {c.get("country"): c.get("conviction") for c in (hm.get("all_countries") or [])}
@@ -271,6 +282,21 @@ def lambda_handler(event=None, context=None):
         else:
             phase = "NEUTRAL"; flag = None
         label = COUNTRY_ETF.get(tk) or SECTOR_ETF.get(tk) or ""
+        # ── relative strength + leadership (market-leader tracking) ──
+        rs21, rs63, rs126 = exret(c, 21), exret(c, 63), exret(c, 126)
+        rs_vals = [x for x in (rs21, rs63, rs126) if x is not None]
+        rs_blend = sum(rs_vals) / len(rs_vals) if rs_vals else None
+        lead = 50.0
+        if rs_blend is not None:
+            lead += max(-40, min(40, rs_blend * 1.5))      # relative strength dominates
+        lead += 6 if (pct50 or 0) > 0 else -6
+        lead += 6 if (pct200 or 0) > 0 else -6
+        lead += 4 if (ma50 and ma200 and ma50 > ma200) else -4
+        lead += (rng_pos - 50) * 0.12                       # leaders make/hold new highs
+        lead += 8 if cmf > 0.05 else (-8 if cmf < -0.05 else 0)
+        lead = round(max(0.0, min(100.0, lead)), 1)
+        is_leader = (lead >= 70 and (pct200 or 0) > 0 and rng_pos >= 60
+                     and (cmf > 0 or obv_chg20 > 0))
         row = {
             "ticker": tk, "class": cls.get(tk, "stock"), "label": label, "price": round(px, 2),
             "phase": phase, "flag": flag,
@@ -280,7 +306,10 @@ def lambda_handler(event=None, context=None):
             "obv_trend": round(obv_chg20, 1),
             "divergence": ("bearish" if bearish_div else "bullish" if bullish_div else None),
             "vol_surge": round(vol_surge, 2) if vol_surge else None,
-            "top_score": round(top_score, 1), "bottom_score": round(bottom_score, 1)}
+            "top_score": round(top_score, 1), "bottom_score": round(bottom_score, 1),
+            "rs_21d": rs21, "rs_63d": rs63, "rs_126d": rs126,
+            "ret_21d": absret(c, 21), "ret_63d": absret(c, 63), "ret_126d": absret(c, 126),
+            "leadership_score": lead, "is_leader": is_leader}
         # cross-engine: for countries, does cross-border flow corroborate the cycle phase?
         if cls.get(tk) == "country" and label in hm_conv:
             conv = hm_conv[label]
@@ -301,6 +330,22 @@ def lambda_handler(event=None, context=None):
         xs = [r for r in rows if r["class"] == cl and (flag is None or r["flag"] == flag)]
         xs.sort(key=lambda r: -r[key])
         return xs[:n]
+
+    # ── market leaders: highest relative-strength names under accumulation, near highs ──
+    def spark(tk):
+        c = (buf["tickers"].get(tk) or {}).get("c") or []
+        return [round(x, 2) for x in c[-60:][::2]]      # ~30-pt sparkline for the chart
+
+    def enrich(r):
+        d = dict(r); d["spark"] = spark(r["ticker"]); return d
+
+    market_leaders = [enrich(r) for r in sorted(
+        [r for r in rows if r["class"] in ("stock", "etf") and r["is_leader"]],
+        key=lambda r: -r["leadership_score"])[:25]]
+    leaders_fading = [enrich(r) for r in sorted(
+        [r for r in rows if r["class"] == "stock" and (r.get("rs_126d") or 0) > 5
+         and (r["phase"] == "DISTRIBUTION" or ((r.get("pct_vs_50dma") or 0) < 0 and r["obv_trend"] < 0))],
+        key=lambda r: -(r.get("rs_126d") or 0))[:12]]
 
     out = {
         "engine": "accumulation-radar", "version": VERSION,
@@ -326,6 +371,8 @@ def lambda_handler(event=None, context=None):
         "distributing": {"stocks": [r for r in by("stock", "top_score") if r["phase"] == "DISTRIBUTION"][:15],
                          "etfs": [r for r in by("etf", "top_score") if r["phase"] == "DISTRIBUTION"][:12],
                          "countries": [r for r in by("country", "top_score") if r["phase"] == "DISTRIBUTION"][:12]},
+        "market_leaders": market_leaders,
+        "leaders_fading": leaders_fading,
     }
 
     # ── closed loop: log LIKELY_BOTTOM (UP) + LIKELY_TOP (DOWN), graded vs benchmark ──
