@@ -33,7 +33,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/hot-money.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 FMP = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 WORLD = "ACWX"          # world ex-US benchmark for relative momentum
 N_DRILL = 6             # how many top inflow countries to drill into sectors/stocks
 
@@ -98,6 +98,33 @@ def fund_flow(tk, days=30):
     aum = (nav * sh) if (nav and sh) else None
     return {"flow_5d_usd": (sum(flows[:5]) if flows else None),
             "flow_21d_usd": (sum(flows[:21]) if flows else None), "aum_usd": aum}
+
+
+COUNTRY_CCY = {
+    "Brazil": "BRL", "Mexico": "MXN", "Argentina": "ARS", "Chile": "CLP", "Colombia": "COP",
+    "India": "INR", "China": "CNH", "Hong Kong": None, "Taiwan": "TWD", "South Korea": "KRW",
+    "Japan": "JPY", "Singapore": "SGD", "Thailand": "THB", "Indonesia": "IDR", "Philippines": "PHP",
+    "Vietnam": "VND", "Malaysia": "MYR", "Germany": "EUR", "UK": "GBP", "France": "EUR",
+    "Italy": "EUR", "Spain": "EUR", "Switzerland": "CHF", "Netherlands": "EUR", "Sweden": "SEK",
+    "Poland": "PLN", "Greece": "EUR", "Turkey": "TRY", "South Africa": "ZAR", "Egypt": "EGP",
+    "Saudi Arabia": None, "Israel": "ILS", "Australia": "AUD", "Canada": "CAD",
+}
+_FX_CACHE = {}
+
+
+def fx_strength_20d(country):
+    """Local-currency 20d strength vs USD (%, + = strengthening → inflow tell). Polygon FX, cached per ccy.
+    Pegged currencies (HKD, SAR) return None — no meaningful signal."""
+    ccy = COUNTRY_CCY.get(country)
+    if not ccy:
+        return None
+    if ccy in _FX_CACHE:
+        return _FX_CACHE[ccy]
+    tkr, sign = (f"C:{ccy}USD", 1) if ccy in ("EUR", "GBP", "AUD", "NZD") else (f"C:USD{ccy}", -1)
+    cl = [r.get("c") for r in aggs(tkr, days=40) if r.get("c")]
+    val = round(sign * (cl[-1] / cl[-22] - 1) * 100, 2) if (len(cl) > 21 and cl[-22]) else None
+    _FX_CACHE[ccy] = val
+    return val
 
 
 def _ret(closes, n):
@@ -166,23 +193,28 @@ def lambda_handler(event=None, context=None):
     zflow = _z([r["flow_norm_pct"] for r in rows])
     zmom = _z([r["rel_mom"] for r in rows])
     zvol = _z([r["vol_surge"] for r in rows])
+    # flow ACCELERATION per ETF — 5d daily run-rate minus 21d daily run-rate (the leading edge of hot money)
+    accel_raw = []
+    for r in rows:
+        f5, f21 = r.get("flow_5d_usd"), r.get("flow_21d_usd")
+        accel_raw.append((f5 / 5.0 - f21 / 21.0) if (f5 is not None and f21 is not None) else None)
+    zacc = _z(accel_raw)
     for i, r in enumerate(rows):
-        # fx strength for the country
-        fxz = None
-        cf = COUNTRY_FX.get(r["country"])
-        if cf and cf[0] in fx:
-            ret20 = fx[cf[0]].get("return_20d_pct")
-            if ret20 is not None:
-                fxz = ret20 * cf[1] / 3.0     # scale ~ vol; sign-adjusted
+        # widened FX: local-currency 20d strength via Polygon FX (every country, not just the 19 majors)
+        fxs = fx_strength_20d(r["country"])
+        fxz = (fxs / 3.0) if fxs is not None else None
         have_flow = r["flow_norm_pct"] is not None
-        w_flow, w_mom, w_vol, w_fx = 0.40, 0.30, 0.15, 0.15
+        have_acc = accel_raw[i] is not None
+        w_flow, w_acc, w_mom, w_vol, w_fx = 0.30, 0.13, 0.27, 0.15, 0.15
         if not have_flow:
             w_mom += w_flow * 0.6; w_vol += w_flow * 0.4; w_flow = 0.0
+        if not have_acc:
+            w_mom += w_acc * 0.6; w_vol += w_acc * 0.4; w_acc = 0.0
         if fxz is None:
             w_mom += w_fx * 0.7; w_vol += w_fx * 0.3; w_fx = 0.0
-        r["score"] = round(w_flow * zflow[i] + w_mom * zmom[i] + w_vol * zvol[i]
-                           + w_fx * (fxz or 0.0), 3)
-        r["fx_strength"] = round(fxz, 2) if fxz is not None else None
+        r["score"] = round(w_flow * zflow[i] + w_acc * zacc[i] + w_mom * zmom[i]
+                           + w_vol * zvol[i] + w_fx * (fxz or 0.0), 3)
+        r["fx_strength"] = fxs
 
     # aggregate to country
     countries = {}
@@ -263,18 +295,52 @@ def lambda_handler(event=None, context=None):
             for h in sorted(holds, key=lambda x: -float(x.get("weightPercentage") or 0))[:15]:
                 names.append({"ticker": h.get("asset"), "name": (h.get("name") or "")[:30],
                               "weight_pct": round(float(h.get("weightPercentage") or 0), 2)})
-        # momentum for US-priced holdings via one batched snapshot
-        us = [n["ticker"] for n in names if n["ticker"] and n["ticker"].isalpha() and len(n["ticker"]) <= 5]
+        # momentum for holdings: US via Polygon snapshot, foreign listings via FMP quote
+        us = [n["ticker"] for n in names if n["ticker"] and "." not in n["ticker"]
+              and n["ticker"].isalpha() and len(n["ticker"]) <= 5]
+        foreign = [n["ticker"] for n in names if n["ticker"] and "." in n["ticker"]]
+        chg = {}
         if us:
             snap = _get("https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
                         f"?tickers={','.join(us)}&apiKey={POLY}")
-            chg = {t["ticker"]: t.get("todaysChangePerc") for t in (snap.get("tickers") or [])} if isinstance(snap, dict) else {}
-            for n in names:
-                if n["ticker"] in chg:
-                    n["day_chg_pct"] = round(chg[n["ticker"]], 2)
+            if isinstance(snap, dict):
+                for t in (snap.get("tickers") or []):
+                    chg[t["ticker"]] = t.get("todaysChangePerc")
+        for sym in foreign[:12]:
+            if time.time() - t0 > 740:
+                break
+            q = _get(f"https://financialmodelingprep.com/stable/quote?symbol={sym}&apikey={FMP}")
+            if isinstance(q, list) and q and q[0].get("changePercentage") is not None:
+                chg[sym] = q[0]["changePercentage"]
+        for n in names:
+            if n["ticker"] in chg and chg[n["ticker"]] is not None:
+                n["day_chg_pct"] = round(chg[n["ticker"]], 2)
         drill[c["country"]] = {"etf": etf, "hot_money_score": c["hot_money_score"],
                                "rel_mom_20d": c["rel_mom_20d"], "net_flow_5d_usd": c["net_flow_5d_usd"],
                                "top_sectors": sectors, "top_holdings": names}
+
+    # ── EM-DEBT channel — sovereign + local-currency bond ETF flows (hot money the equity ETFs miss) ──
+    em_debt = []
+    for tk in ("EMB", "EMLC", "PCY", "EMHY", "VWOB"):
+        if time.time() - t0 > 760:
+            break
+        res2 = aggs(tk)
+        if len(res2) < 25:
+            continue
+        cl = [r["c"] for r in res2]
+        ff2 = fund_flow(tk)
+        em_debt.append({"etf": tk, "name": {"EMB": "USD EM sovereign", "EMLC": "local-ccy EM govt",
+                        "PCY": "USD EM sovereign", "EMHY": "EM high-yield", "VWOB": "USD EM govt"}.get(tk, tk),
+                        "price": round(cl[-1], 2), "ret_20d_pct": _ret(cl, 20),
+                        "flow_5d_usd": ff2.get("flow_5d_usd"), "flow_21d_usd": ff2.get("flow_21d_usd")})
+    net5 = sum(x["flow_5d_usd"] for x in em_debt if x.get("flow_5d_usd") is not None) if em_debt else None
+    em_debt_block = {
+        "thesis": "EM sovereign / local-currency bond ETF flows — the fixed-income channel of cross-border hot money (carry trades).",
+        "net_flow_5d_usd": round(net5) if net5 is not None else None,
+        "signal": (None if net5 is None else
+                   ("INFLOW — hot money into EM fixed income (carry / risk-on)" if net5 > 0
+                    else "OUTFLOW — capital leaving EM debt (risk-off / rate stress)")),
+        "by_etf": sorted(em_debt, key=lambda x: -(x.get("flow_5d_usd") or 0))}
 
     # risk-regime overlay — hot money into EM is a risk-on behaviour; context matters
     rr = _read("data/risk-regime.json")
@@ -296,7 +362,7 @@ def lambda_handler(event=None, context=None):
                       "PRICE_LED": "price up without confirmed foreign flow (possibly local money)",
                       "flow_velocity": "ACCELERATING = 5d flow run-rate above the 21d run-rate"},
            "inflow_leaders": inflow[:15], "outflow_leaders": list(reversed(outflow))[:15],
-           "all_countries": clist, "drilldowns": drill}
+           "all_countries": clist, "drilldowns": drill, "em_debt_flows": em_debt_block}
 
     # closed loop — log top inflow-country ETFs, graded on forward excess-vs-ACWX
     try:
