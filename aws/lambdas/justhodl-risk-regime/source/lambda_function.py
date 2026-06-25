@@ -388,6 +388,51 @@ def lambda_handler(event, context):
                            "n_elevated": n_elev, "readings": sr, "note": snote}
         all_tells.append(f"Systemic stress: {stress_level} ({sconf})")
 
+    # ── liquidity overlay (wires the liquidity cluster; core RORO driver, confirmation not core score) ──
+    def _tilt(regime, pos, neg):
+        r = str(regime or "").upper()
+        if any(w in r for w in pos):
+            return 1
+        if any(w in r for w in neg):
+            return -1
+        return 0
+    POSL = ("EXPAND", "EASING", "EASE", "ABUNDANT", "AMPLE", "TAILWIND", "RISING", "LOADED", "INJECT")
+    NEGL = ("TIGHT", "CONTRACT", "DRAIN", "SCARCE", "STRESS", "HEADWIND", "FALLING")
+    lr = {}
+    _gl = _read("data/global-liquidity.json") or {}
+    lr["global"] = _tilt(_gl.get("regime"), POSL, NEGL)
+    _chl = _read("data/china-liquidity.json") or {}
+    lr["china"] = _tilt(_chl.get("regime"), POSL, NEGL)
+    _rl = _read("data/repo-lending.json") or {}
+    lr["repo_funding"] = _tilt(_rl.get("regime"), POSL, NEGL)
+    _cbi = _read("data/cb-injection.json") or {}
+    _imp = _cbi.get("global_injection_impulse")
+    lr["cb_injection"] = (1 if _imp > 0 else -1 if _imp < 0 else 0) if isinstance(_imp, (int, float)) else 0
+    _cl = _read("data/crypto-liquidity.json") or {}
+    lr["crypto_drypowder"] = _tilt(_cl.get("regime"), POSL, NEGL)
+    lr = {k: v for k, v in lr.items() if k in lr}
+    net_liq = sum(lr.values())
+    liquidity = None
+    if any(_read("data/" + f + ".json") for f in ("global-liquidity", "repo-lending")):
+        liq_state = "EXPANSIONARY" if net_liq >= 2 else "CONTRACTIONARY" if net_liq <= -2 else "NEUTRAL"
+        risk_on = score >= 12; risk_off = score <= -12
+        if risk_on and liq_state == "CONTRACTIONARY":
+            lconf = "DIVERGENT"
+            lnote = "Risk-on tape without liquidity support (tightening) — advances on contracting liquidity are fragile; trimming."
+            posture = dict(posture)
+            posture["size_mult"] = round(posture["size_mult"] * 0.97, 3)
+            posture["liquidity_warning"] = "contracting"
+        elif risk_off and liq_state == "EXPANSIONARY":
+            lconf = "DIVERGENT"; lnote = "Risk-off tells, but liquidity is expansionary — a cushion that often precedes a turn."
+        elif risk_on and liq_state == "EXPANSIONARY":
+            lconf = "CONFIRMED"; lnote = "Risk-on supported by expanding liquidity — the durable kind of advance."
+        elif risk_off and liq_state == "CONTRACTIONARY":
+            lconf = "CONFIRMED"; lnote = "Risk-off reinforced by contracting liquidity."
+        else:
+            lconf = "ALIGNED"; lnote = f"Liquidity {liq_state.lower()} (net tilt {net_liq:+d})."
+        liquidity = {"state": liq_state, "confirmation": lconf, "net_tilt": net_liq, "readings": lr, "note": lnote}
+        all_tells.append(f"Liquidity: {liq_state} ({lconf})")
+
     # ── secondary risk overlay: aggregate the vol-structure / credit / stress engines
     #    (these alpha-graded islands fed nothing; they now corroborate the RORO read) ──
     RISK_CHECKS = [
@@ -445,6 +490,7 @@ def lambda_handler(event, context):
         "participation": participation,
         "cross_border": cross_border,
         "systemic_stress": systemic_stress,
+        "liquidity": liquidity,
         "secondary_risk": secondary_risk,
         "blocks_used": [{"block": b, "weight": w, "score": round(s, 3)} for b, w, s in blocks],
         "components": results,
