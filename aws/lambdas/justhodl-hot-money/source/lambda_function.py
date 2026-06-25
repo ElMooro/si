@@ -233,6 +233,16 @@ def lambda_handler(event=None, context=None):
             c["flows21"].append(r["flow_21d_usd"])
         if r.get("fx_strength") is not None:
             c["fxs"].append(r["fx_strength"])
+    # carry axis — rate/carry differential is a primary driver of cross-border hot money
+    _cs = _read("data/carry-surface.json") or {}
+    ccy_carry = {}
+    for a in (_cs.get("all_assets") or []):
+        if a.get("asset_class") == "fx" and isinstance(a.get("carry_pct"), (int, float)):
+            lc, sc = a.get("long_currency"), a.get("short_currency")
+            if sc == "USD" and lc and lc not in ccy_carry:
+                ccy_carry[lc] = a["carry_pct"]                 # long local vs USD
+            elif lc == "USD" and sc and sc not in ccy_carry:
+                ccy_carry[sc] = -a["carry_pct"]                # invert USD-base quote
     clist = []
     for c in countries.values():
         c["hot_money_score"] = round(sum(c["scores"]) / len(c["scores"]), 3)
@@ -242,6 +252,11 @@ def lambda_handler(event=None, context=None):
         c["net_flow_21d_usd"] = nf21
         fxavg = round(sum(c["fxs"]) / len(c["fxs"]), 2) if c["fxs"] else None
         c["fx_strength"] = fxavg
+        # carry: rate differential of holding the local currency vs USD (a hot-money pull)
+        _carry = ccy_carry.get(COUNTRY_CCY.get(c["country"]))
+        c["carry_pct"] = round(_carry, 2) if isinstance(_carry, (int, float)) else None
+        c["carry_signal"] = (None if _carry is None else
+                             "HIGH_CARRY" if _carry >= 3 else "NEGATIVE_CARRY" if _carry < 0 else "MODERATE_CARRY")
         # ── USD-return decomposition (the foreign-investor experience: equity + FX) ──
         usd_ret = round(sum(c["ret20s"]) / len(c["ret20s"]), 2) if c["ret20s"] else None
         c["usd_return_20d"] = usd_ret

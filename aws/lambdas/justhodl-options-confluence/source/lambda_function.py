@@ -179,6 +179,16 @@ def lambda_handler(event, context):
             if (it.get("tier") or "").upper() in ("S", "A"):
                 add(_tk(it), fk, 0.0, coiled=True, tag="coiled (vol compression)")
 
+    # earnings IV — options pricing into earnings is vol context for the options posture
+    ivc = _read("data/earnings-iv-crush.json")
+    for L, ds, tg in (("top_rich", -0.1, "rich IV into earnings (crush risk)"),
+                      ("top_cheap", 0.15, "cheap IV into earnings (catalyst)")):
+        for it in (ivc.get(L) or []):
+            if isinstance(it, dict):
+                _tk = (it.get("ticker") or it.get("symbol") or "").upper()
+                if _tk:
+                    add(_tk, "earnings-iv", ds, tag=tg)
+
     # ---- classify posture ----
     book = []
     for tk, a in acc.items():
