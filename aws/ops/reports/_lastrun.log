@@ -1,5 +1,6 @@
-engines_seen families: ['absorption', 'catalyst', 'flow_macro', 'flow_micro', 'insider', 'linkage', 'options', 'pead', 'revision', 'squeeze', 'value']
-has value family: True | has insider family: True
-board size: 0 | names with value: 0 | names with insider: 0
-diag tail: []
-DONE 2195
+top keys: ['engine', 'version', 'generated_at', 'duration_s', 'mode', 'thesis', 'auto_activation', 'family_status', 'super_family_status', 'sources', 'confluence_book', 'proven_book', 'counts', 'methodology', 'disclaimer', 'diagnostics']
+  book 'sources' n=13 sample-keys=['engine', 'family', 'asof']
+  book 'confluence_book' n=15 sample-keys=['ticker', 'n_super_families', 'n_families', 'n_eff', 'composite', 'super_families', 'families', 'avg_strength']
+    NVDA: families=["flow_micro", "linkage", "value"]
+super_status: {}
+DONE 2196
