@@ -82,6 +82,24 @@ def aggs(tk, days=80):
     return j.get("results") or []
 
 
+def fund_flow(tk, days=30):
+    """Real creation/redemption flow from Polygon's ETF Global feed (the $99/mo edge)."""
+    end = datetime.now(timezone.utc).date()
+    start = end - timedelta(days=days + 10)
+    j = _get(f"https://api.polygon.io/etf-global/v1/fund-flows?composite_ticker={tk}"
+             f"&processed_date.gte={start.isoformat()}&processed_date.lte={end.isoformat()}"
+             f"&order=desc&sort=processed_date&limit=40&apiKey={POLY}")
+    res = j.get("results") or []
+    if not res:
+        return {}
+    flows = [r.get("fund_flow") for r in res if r.get("fund_flow") is not None]
+    latest = res[0]
+    nav, sh = latest.get("nav"), latest.get("shares_outstanding")
+    aum = (nav * sh) if (nav and sh) else None
+    return {"flow_5d_usd": (sum(flows[:5]) if flows else None),
+            "flow_21d_usd": (sum(flows[:21]) if flows else None), "aum_usd": aum}
+
+
 def _ret(closes, n):
     if len(closes) <= n:
         return None
@@ -128,10 +146,15 @@ def lambda_handler(event=None, context=None):
         vol5 = sum(vols[-5:]) / 5 if len(vols) >= 5 else 0
         vol60 = sum(vols[-60:]) / min(60, len(vols)) if vols else 0
         vsurge = (vol5 / vol60) if vol60 else None
-        fl = flows.get(tk) or {}
-        nf5 = fl.get("net_flow_5d_usd")
-        aum = (fl.get("aum_est_b") or 0) * 1e9
-        flow_norm = (nf5 / aum * 100) if (nf5 is not None and aum) else fl.get("shares_chg_5d_pct")
+        ff = fund_flow(tk)                              # real creation/redemption flow
+        nf5 = ff.get("flow_5d_usd")
+        aum = ff.get("aum_usd")
+        flow_norm = (nf5 / aum * 100) if (nf5 is not None and aum) else None
+        if flow_norm is None:                           # fallback: FMP Δshares×price
+            fl = flows.get(tk) or {}
+            nf5 = fl.get("net_flow_5d_usd")
+            a2 = (fl.get("aum_est_b") or 0) * 1e9
+            flow_norm = (nf5 / a2 * 100) if (nf5 is not None and a2) else fl.get("shares_chg_5d_pct")
         rows.append({"etf": tk, "country": country, "region": region,
                      "price": round(closes[-1], 2), "ret_5d": _ret(closes, 5), "ret_20d": r20,
                      "rel_mom": (r20 - world_20) if r20 is not None else None,
