@@ -1,10 +1,7 @@
-exists via deploy-lambdas
-schedule OK
-counts: {"bullish_any": 36, "bullish_multi": 0, "bearish_any": 2, "bearish_multi": 0}
-sources_bull ok: ['earnings-whisper', 'earnings-cascade', 'earnings-tracker', 'earnings-quality', 'earnings-tone-velocity']
-  (single) GOOGL  ['drift'] comp 41.0
-  (single) GOOG   ['drift'] comp 41.0
-  (single) SNOW   ['pead'] comp 40.4
-  (single) TGT    ['pead'] comp 40.4
-  (single) OKTA   ['pead'] comp 39.5
-DONE 2199
+
+options-confluence: keys=['engine', 'version', 'generated_at', 'duration_s', 'thesis', 'alpha_gate', 'counts', 'multi_engine_confluence', 'by_posture', 'ticker_map', 'note']
+    'multi_engine_confluence' n=18 keys=['ticker', 'score', 'engines', 'neg_gamma', 'coiled', 'tags', 'n_engines', 'posture'] scoreish=['score', 'n_engines', 'posture']
+
+flow-confluence: keys=['engine', 'version', 'generated_at', 'duration_s', 'thesis', 'alpha_gate', 'counts', 'multi_engine_confluence', 'by_posture', 'ticker_map', 'note']
+    'multi_engine_confluence' n=40 keys=['ticker', 'score', 'engines', 'heavy_short', 'covering', 'stealth', 'tags', 'n_engines'] scoreish=['score', 'n_engines', 'posture']
+DONE 2200
