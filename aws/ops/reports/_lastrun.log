@@ -1,8 +1,23 @@
-regime: NEUTRAL score 0.8
-SYSTEMIC-STRESS OVERLAY (7 islands wired in):
-  level=CALM confirmation=ALIGNED elevated=1/6
-  readings: {"bank_funding": "CALM", "crisis_canaries": "CALM", "funding_plumbing": "ELEVATED", "credit_equity_div": "CALM", "correlation_breaks": "CALM", "cross_asset": "CALM"}
-  note: Systemic stress CALM (1 of 6 gauges elevated).
-  size_mult: 1.0 stress_warning: None
-tells: ['Cross-border: RISK_AVERSE (NEUTRAL)', 'Systemic stress: CALM (ALIGNED)']
-DONE 2193
+
+quality-on-sale: top-keys=['engine', 'version', 'generated_at', 'regime', 'regime_description', 'n_qualified_5_of_5', 'n_near_qualified_4_of_5', 'universe_size', 'thresholds', 'qualified_5_of_5', 'near_qualified_4_of_5', 'all_evaluated']
+    list 'near_qualified_4_of_5' (n=1) item-keys=['ticker', 'qualifies', 'n_conditions_fired', 'conditions', 'predictability_detail', 'eva_detail', 'smart_beta_detail', 'drawdown_detail', 'beneish_detail']
+    list 'all_evaluated' (n=1) item-keys=['ticker', 'qualifies', 'n_conditions_fired', 'conditions', 'predictability_detail', 'eva_detail', 'smart_beta_detail', 'drawdown_detail', 'beneish_detail']
+
+deep-value: top-keys=['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
+    list 'all_qualifying' (n=17) item-keys=['symbol', 'company', 'score', 'flag', 'status', 'fundamentals', 'rationale']
+
+deep-value-overlap: top-keys=['engine', 'version', 'generated_at', 'duration_s', 'n_scored', 'prime_setups', 'elite_setups', 'board', 'method', 'legend']
+    list 'prime_setups' (n=12) item-keys=['ticker', 'name', 'sector', 'cap_bucket', 'overlap_score', 'n_value_lenses', 'value_lenses', 'n_catalysts', 'catalysts', 'n_inflection']
+    list 'board' (n=87) item-keys=['ticker', 'name', 'sector', 'cap_bucket', 'overlap_score', 'n_value_lenses', 'value_lenses', 'n_catalysts', 'catalysts', 'n_inflection']
+
+insider-clusters: top-keys=['schema_version', 'method', 'generated_at', 'lookback_days', 'duration_s', 'stats', 'thresholds', 'clusters']
+    list 'clusters' (n=27) item-keys=['ticker', 'company', 'cik', 'n_insiders', 'n_transactions', 'total_shares', 'total_value', 'avg_price', 'first_buy', 'last_buy']
+
+insider-buyback-confluence: top-keys=['engine', 'version', 'as_of', 'state', 'signal_strength', 'n_confluences', 'n_high_conviction', 'feeders', 'top_confluences', 'all_confluences', 'methodology', 'sources']
+
+consensus-bottom: top-keys=['engine', 'version', 'generated_at', 'state', 'state_description', 'n_qualified', 'n_near_qualified_2_of_3', 'n_bullish_divergence_total', 'n_pred_5star_universe', 'qualified', 'near_qualified', 'feeds_available']
+
+convexity-scores: top-keys=['schema_version', 'engine', 'generated_at', 'elapsed_seconds', 'universe_size', 'summary', 'scores', 'rankings', 'methodology']
+    list 'scores' (n=80) item-keys=['symbol', 'right_tail', 'left_tail', 'drivers_right', 'drivers_left', 'convexity_score', 'allocator_multiplier', 'classification']
+
+DONE 2194
