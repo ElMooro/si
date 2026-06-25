@@ -1,19 +1,8 @@
-bank-stress: gen 2026-06-25T15:00 keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'fred_failed', 'series_resolved', 'bank_stress_score', 'regime']
-    headline: {"bank_stress_score": 27.7, "regime": "TIGHTENING", "regime_read": "Reserves are in the scarcity zone (below 10.5% of GDP) \u2014 the pre-condition for repo/fun
-systemic-stress: gen 2026-06-25T12:00 keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'composite', 'systemic_stress']
-credit-equity-divergence: gen  keys=['engine', 'version', 'as_of', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets']
-    headline: {"state": "NEUTRAL", "signal_strength": 0.2, "regime_explanation": "No significant credit-equity divergence"}
-crisis-canaries: gen 2026-06-25T11:40 keys=['engine', 'version', 'generated_at', 'duration_s', 'availability', 'canaries', 'composite_score', 'level']
-    headline: {"composite_score": 7.1, "level": "CALM", "signals_logged": 0, "global_score": 8.9, "grid_score_ingested": 28.3, "level_v3": "CALM"}
-cross-asset-confirm: gen 2026-06-25T15:10 keys=['version', 'generated_at', 'elapsed_s', 'regime', 'composite_score', 'components', 'signal_overlays', 'overlay_summary']
-    headline: {"regime": "NEUTRAL", "composite_score": 0}
-concentration-liquidity: gen 2026-06-25T11:00 keys=['version', 'generated_at', 'n_positions', 'total_nav', 'positions', 'sector_exposure_pct', 'factor_exposure_pct', 'alerts']
-cds-monitor: gen 2026-06-25T13:00 keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'global_credit_stress', 'alarm_board']
-correlation-breaks: gen 2026-06-24T22:00 keys=['schema_version', 'generated_at', 'fetch_time_sec', 'elapsed_sec', 'n_instruments', 'n_dates_aligned', 'instruments', 'labels']
-    headline: {"frobenius_z_score_1y": 0.42, "signal": "NORMAL"}
-plumbing-stress: gen  keys=['schema_version', 'method', 'as_of', 'n_indicators', 'n_with_data', 'composite_score', 'composite_label', 'layers']
-    headline: {"composite_score": 53.3, "composite_label": "ELEVATED"}
-firm-stress: gen 2026-06-25T03:00 keys=['schema', 'engine', 'generated_at', 'build_seconds', 'firm_book_asof', 'posture', 'headline', 'loss_limits']
-liquidity-inflection: gen 2026-06-25T11:15 keys=['engine', 'version', 'generated_at', 'duration_s', 'availability', 'usd', 'us_money', 'eur']
-    headline: {"signals_logged": 0}
-DONE 2192
+regime: NEUTRAL score 0.8
+SYSTEMIC-STRESS OVERLAY (7 islands wired in):
+  level=CALM confirmation=ALIGNED elevated=1/6
+  readings: {"bank_funding": "CALM", "crisis_canaries": "CALM", "funding_plumbing": "ELEVATED", "credit_equity_div": "CALM", "correlation_breaks": "CALM", "cross_asset": "CALM"}
+  note: Systemic stress CALM (1 of 6 gauges elevated).
+  size_mult: 1.0 stress_warning: None
+tells: ['Cross-border: RISK_AVERSE (NEUTRAL)', 'Systemic stress: CALM (ALIGNED)']
+DONE 2193
