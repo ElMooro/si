@@ -184,6 +184,13 @@ def lambda_handler(event, context):
     opportunities = read_json("data/opportunities.json") or {}
     capital_flow = read_json("data/capital-flow.json") or {}
     capital_flow_radar = read_json("data/capital-flow-radar.json") or {}
+    # ── cycle overlay: accumulation-radar phase per ticker (distribution-at-top caution) ──
+    accum = read_json("data/accumulation-radar.json") or {}
+    cycle_map = {}
+    for _book in ("tops", "distributing", "bottoms", "accumulating"):
+        b = accum.get(_book) or {}
+        for r in (b.get("stocks") or []) + (b.get("etfs") or []):
+            cycle_map.setdefault(r.get("ticker"), r)
     risk_regime = read_json("data/risk-regime.json") or {}
     chokepoint = read_json("data/chokepoint.json") or {}
     et_doc = read_json("data/engine-trust.json") or {}
@@ -570,6 +577,18 @@ def lambda_handler(event, context):
         if _rr_mult != 1.0:
             composite = round(min(100.0, composite * _rr_mult), 1)
 
+        # ── CYCLE gate (accumulation-radar): a buy signal on a name distributing at a
+        # top is lower quality. Tag the phase; gently haircut only the strongest tell
+        # (LIKELY_TOP + bearish OBV divergence). Confirmation only, proven math otherwise intact. ──
+        _cyc = cycle_map.get(tk)
+        _cyc_warning = None
+        if _cyc:
+            if _cyc.get("flag") == "LIKELY_TOP" or _cyc.get("phase") == "DISTRIBUTION":
+                _cyc_warning = "distribution_at_top"
+                if _cyc.get("flag") == "LIKELY_TOP" and _cyc.get("divergence") == "bearish":
+                    composite = round(composite * 0.93, 1)
+                    _cyc_warning = "likely_top_bearish_divergence"
+
         # Verdict from composite + confluence. STRONG BUY now requires genuine
         # cross-family independence (>= 2.5 effective bets), so three echoes of
         # one factor can no longer manufacture top conviction.
@@ -652,6 +671,10 @@ def lambda_handler(event, context):
                 why_text += f" Note: bond-vol regime is {bv_regime} — size accordingly."
             if _rr_note:
                 why_text += f" Cross-asset RORO is {_rr_regime} — {_rr_note.split('RORO ')[-1]} applied."
+            if _cyc_warning:
+                why_text += (f" Caution: the accumulation-radar has {tk} "
+                             f"{'at a likely top with bearish volume divergence' if _cyc_warning == 'likely_top_bearish_divergence' else 'under distribution'} — "
+                             "watch for a better entry.")
         else:
             why_text = None
 
@@ -661,6 +684,9 @@ def lambda_handler(event, context):
             "name": rec["name"],
             "conviction": round(composite, 1),
             "risk_regime_mult": _rr_mult,
+            "cycle_phase": (_cyc or {}).get("phase"),
+            "cycle_flag": (_cyc or {}).get("flag"),
+            "cycle_warning": _cyc_warning,
             "quad_threat": quad_threat,
             "verdict": verdict,
             "triple_threat": triple_threat,

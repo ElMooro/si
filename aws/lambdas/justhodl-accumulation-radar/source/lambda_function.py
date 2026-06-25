@@ -35,7 +35,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/accumulation-radar.json"
 BUF_KEY = "data/_cycle/pv.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 MAXDAYS = 200          # buffer depth
 MIN_PTS = 60           # minimum history to score a name
 N_STOCKS = 420         # liquid US stocks in the universe (+ ETFs below)
@@ -211,6 +211,11 @@ def lambda_handler(event=None, context=None):
 
     # ── score each name ──
     SPY = buf["tickers"].get("SPY", {})
+    # hot-money cross-corroboration: country -> conviction (so accumulation + foreign flow can agree)
+    hm = _read("data/hot-money.json") or {}
+    hm_conv = {c.get("country"): c.get("conviction") for c in (hm.get("all_countries") or [])}
+    INFLOW_CONV = {"TWIN_ENGINE", "CONFIRMED_INFLOW", "EARLY_ACCUMULATION"}
+    OUTFLOW_CONV = {"CONFIRMED_OUTFLOW", "OUTFLOW"}
     rows = []
     for tk in buf["universe"]:
         rec = buf["tickers"].get(tk)
@@ -266,7 +271,7 @@ def lambda_handler(event=None, context=None):
         else:
             phase = "NEUTRAL"; flag = None
         label = COUNTRY_ETF.get(tk) or SECTOR_ETF.get(tk) or ""
-        rows.append({
+        row = {
             "ticker": tk, "class": cls.get(tk, "stock"), "label": label, "price": round(px, 2),
             "phase": phase, "flag": flag,
             "rsi": rsi, "pct_vs_50dma": round(pct50, 1) if pct50 is not None else None,
@@ -275,7 +280,22 @@ def lambda_handler(event=None, context=None):
             "obv_trend": round(obv_chg20, 1),
             "divergence": ("bearish" if bearish_div else "bullish" if bullish_div else None),
             "vol_surge": round(vol_surge, 2) if vol_surge else None,
-            "top_score": round(top_score, 1), "bottom_score": round(bottom_score, 1)})
+            "top_score": round(top_score, 1), "bottom_score": round(bottom_score, 1)}
+        # cross-engine: for countries, does cross-border flow corroborate the cycle phase?
+        if cls.get(tk) == "country" and label in hm_conv:
+            conv = hm_conv[label]
+            row["hot_money_conviction"] = conv
+            acc_side = phase == "ACCUMULATION" or flag == "LIKELY_BOTTOM"
+            dist_side = phase == "DISTRIBUTION" or flag == "LIKELY_TOP"
+            if acc_side and conv in INFLOW_CONV:
+                row["flow_confirm"] = "FLOW_CONFIRMED"     # accumulation + foreign buying
+            elif dist_side and conv in OUTFLOW_CONV:
+                row["flow_confirm"] = "FLOW_CONFIRMED"     # distribution + foreign selling
+            elif (acc_side and conv in OUTFLOW_CONV) or (dist_side and conv in INFLOW_CONV):
+                row["flow_confirm"] = "FLOW_DIVERGENT"
+            else:
+                row["flow_confirm"] = None
+        rows.append(row)
 
     def by(cl, key, flag=None, n=20):
         xs = [r for r in rows if r["class"] == cl and (flag is None or r["flag"] == flag)]
