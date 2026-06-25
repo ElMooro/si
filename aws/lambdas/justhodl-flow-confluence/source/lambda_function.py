@@ -123,6 +123,22 @@ def lambda_handler(event, context):
         for it in (sa.get(bk) or []):
             if isinstance(it, dict): add(_tk(it), "stealth", 0.5, stealth=True, tag="stealth accumulation")
 
+    # 8. insider buying clusters — corporate insiders buying is independent positioning flow
+    for it in (_read("data/insider-clusters.json").get("clusters") or []):
+        if isinstance(it, dict):
+            ni = it.get("n_insiders") or 0
+            add(_tk(it), "insider", min(0.9, 0.4 + 0.1 * ni), tag=f"insider cluster ({ni})")
+    # 9. corporate buybacks — a company buying its own stock is a flow tailwind
+    bb = _read("data/buyback-scanner.json")
+    for bk in ("top_buybacks", "accelerating", "top_picks", "buybacks", "all_buybacks", "board"):
+        for it in (bb.get(bk) or []):
+            if isinstance(it, dict): add(_tk(it), "buyback", 0.6, tag="buyback")
+    # 10. insider + buyback confluence — both at once is the strongest corporate-flow tell
+    ibc = _read("data/insider-buyback-confluence.json")
+    for bk in ("top_confluences", "all_confluences", "high_conviction"):
+        for it in (ibc.get(bk) or []):
+            if isinstance(it, dict): add(_tk(it), "insider-buyback", 0.8, tag="insider+buyback confluence")
+
     # ---- classify posture ----
     book = []
     for tk, a in acc.items():
