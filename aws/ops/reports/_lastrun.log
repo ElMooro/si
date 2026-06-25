@@ -1,43 +1,24 @@
-exists
-rule present
+countries=36 dur=9.8s
 
-n_countries=36 world ACWX ret20=-0.56% dur=4.8s signals=6
+INFLOW LEADERS (now with REAL flow):
+  #1  Indonesia      score +1.33  flow5d $+19M  rel_mom -7.09%
+  #2  Australia      score +1.05  flow5d $+86M  rel_mom -2.36%
+  #3  Taiwan         score +0.69  flow5d n/a  rel_mom 3.31%
+  #4  India          score +0.63  flow5d n/a  rel_mom 2.95%
+  #5  Asia ex-Japan  score +0.43  flow5d n/a  rel_mom 1.01%
+  #7  Japan          score +0.36  flow5d $-68M  rel_mom 2.33%
+  #9  Italy          score +0.27  flow5d n/a  rel_mom 0.86%
+  #10 Argentina      score +0.27  flow5d $-5M  rel_mom -4.13%
+  #11 South Korea    score +0.21  flow5d $-563M  rel_mom 4.05%
+  #12 Philippines    score +0.20  flow5d n/a  rel_mom 0.1%
 
-=== HOT MONEY INFLOW LEADERS (worldwide) ===
-  #1  South Korea    score +1.04  rel_mom20 3.96%  flow5d $0M  etfs=['EWY']
-  #2  Taiwan         score +0.92  rel_mom20 3.35%  flow5d $0M  etfs=['EWT']
-  #4  India          score +0.63  rel_mom20 2.93%  flow5d $0M  etfs=['INDA', 'INDY']
-  #5  Argentina      score +0.48  rel_mom20 -4.29%  flow5d $0M  etfs=['ARGT']
-  #6  Asia ex-Japan  score +0.48  rel_mom20 0.99%  flow5d $0M  etfs=['AAXJ']
-  #7  Italy          score +0.37  rel_mom20 0.82%  flow5d $0M  etfs=['EWI']
-  #8  Indonesia      score +0.27  rel_mom20 -7.13%  flow5d $0M  etfs=['EIDO']
-  #9  Singapore      score +0.23  rel_mom20 1.66%  flow5d $0M  etfs=['EWS']
-  #10 Greece         score +0.23  rel_mom20 2.58%  flow5d $0M  etfs=['GREK']
-  #11 Japan          score +0.22  rel_mom20 2.29%  flow5d $-0M  etfs=['EWJ']
+OUTFLOW (real redemptions):
+  Turkey         score -1.13  flow5d $-20M
+  LatAm          score -1.12  flow5d $-251M
+  Mexico         score -0.80  flow5d $-78M
+  Israel         score -0.68  flow5d $-6M
+  Brazil         score -0.64  flow5d $-229M
+  Sweden         score -0.54  flow5d n/a
 
-=== OUTFLOW (capital leaving) ===
-  Sweden         score -1.14 rel_mom20 -5.94%
-  Israel         score -1.04 rel_mom20 -12.04%
-  Thailand       score -0.77 rel_mom20 -4.45%
-  Malaysia       score -0.71 rel_mom20 -7.73%
-  Hong Kong      score -0.71 rel_mom20 -7.51%
-  China          score -0.60 rel_mom20 -6.51%
-
-=== DRILL-DOWN (hot country -> sectors -> stocks) ===
-
-  South Korea [EWY] score 1.043
-    sectors: Technology 61.4%, Industrials 13.8%, Financial Services 8.9%, Consumer Cyclical 5.1%
-    stocks: 000660.KS(26.9%), 005930.KS(22.1%), 402340.KS(4.72%), 009150.KS(3.39%), 005380.KS(1.84%), 105560.KS(1.56%), 055550.KS(1.24%), 028260.KS(1.19%)
-
-  Taiwan [EWT] score 0.921
-    sectors: Technology 76.9%, Financial Services 11.9%, Industrials 3.1%, Basic Materials 2.9%
-    stocks: 2330.TW(21.07%), 2454.TW(6.95%), 2308.TW(4.47%), 2317.TW(3.45%), 3711.TW(2.95%), 2327.TW(2.81%), 2303.TW(2.54%), 2383.TW(2.49%)
-
-  India [INDA] score 0.631
-    sectors: Financial Services 28.9%, Consumer Cyclical 12.0%, Industrials 10.6%, Energy 9.1%
-    stocks: HDFCBANK.BO(6.34%), RELIANCE.BO(6.13%), ICICIBANK.BO(5.44%), BHARTIARTL.BO(4.0%), (2.8%), INFY.BO(2.4%), AXISBANK.BO(2.35%), LT.BO(2.16%)
-
-  Argentina [ARGT] score 0.481
-    sectors: Consumer Cyclical 23.4%, Energy 22.5%, Financial Services 16.0%, Basic Materials 13.1%
-    stocks: MELI(22.78% -1.02%), YPF(8.81% 1.18%), GGAL(6.6% 0.97%), VIST(5.9% 2.55%), BMA(5.16% 0.26%), PAM(4.24% 0.78%), TGS(3.91% 1.2%), BBAR(3.84% 0.13%)
-DONE 2175
+countries with real flow data: 19/36
+DONE 2176
