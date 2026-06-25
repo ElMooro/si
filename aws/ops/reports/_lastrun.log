@@ -1,6 +1,6 @@
-top keys: ['engine', 'version', 'generated_at', 'duration_s', 'mode', 'thesis', 'auto_activation', 'family_status', 'super_family_status', 'sources', 'confluence_book', 'proven_book', 'counts', 'methodology', 'disclaimer', 'diagnostics']
-  book 'sources' n=13 sample-keys=['engine', 'family', 'asof']
-  book 'confluence_book' n=15 sample-keys=['ticker', 'n_super_families', 'n_families', 'n_eff', 'composite', 'super_families', 'families', 'avg_strength']
-    NVDA: families=["flow_micro", "linkage", "value"]
-super_status: {}
-DONE 2196
+Risk Regime ingested: True
+Best Setups ingested: True
+  subject 'Broad risk / equity beta' score 24: includes ['Risk Regime']
+  subject 'US equity — value tilt' score 7: includes ['Best Setups']
+top keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'book_posture', 'book_net_signal', 'headline_call', 'n_setups', 'n_actionable', 'setups', 'single_names', 'n_engines']
+DONE 2197
