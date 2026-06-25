@@ -1,5 +1,4 @@
-function EXISTS via deploy-lambdas: Active
-code refreshed
-ready: Active Successful
-schedule rule OK: justhodl-accumulation-radar-daily
-DONE 2184
+bootstrap invoke #1 (backfilling grouped-daily, may take minutes)...
+invoke1: 200 in 103 s | {"statusCode": 200, "body": "{\"scored\": 485, \"tops\": 25, \"bottoms\": 17}"}
+buffer days: 192 universe: 494
+DONE 2185
