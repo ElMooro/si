@@ -33,7 +33,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/hot-money.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 FMP = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 WORLD = "ACWX"          # world ex-US benchmark for relative momentum
 N_DRILL = 6             # how many top inflow countries to drill into sectors/stocks
 
@@ -148,6 +148,7 @@ def lambda_handler(event=None, context=None):
         vsurge = (vol5 / vol60) if vol60 else None
         ff = fund_flow(tk)                              # real creation/redemption flow
         nf5 = ff.get("flow_5d_usd")
+        nf21 = ff.get("flow_21d_usd")
         aum = ff.get("aum_usd")
         flow_norm = (nf5 / aum * 100) if (nf5 is not None and aum) else None
         if flow_norm is None:                           # fallback: FMP Δshares×price
@@ -159,7 +160,7 @@ def lambda_handler(event=None, context=None):
                      "price": round(closes[-1], 2), "ret_5d": _ret(closes, 5), "ret_20d": r20,
                      "rel_mom": (r20 - world_20) if r20 is not None else None,
                      "vol_surge": round(vsurge, 2) if vsurge else None,
-                     "flow_5d_usd": nf5, "flow_norm_pct": flow_norm})
+                     "flow_5d_usd": nf5, "flow_21d_usd": nf21, "flow_norm_pct": flow_norm})
 
     # z-score components across ETFs
     zflow = _z([r["flow_norm_pct"] for r in rows])
@@ -187,18 +188,52 @@ def lambda_handler(event=None, context=None):
     countries = {}
     for r in rows:
         c = countries.setdefault(r["country"], {"country": r["country"], "region": r["region"],
-                                                 "etfs": [], "scores": [], "rel_moms": [], "flows": []})
+                                                 "etfs": [], "scores": [], "rel_moms": [], "flows": [],
+                                                 "flows21": [], "fxs": []})
         c["etfs"].append(r["etf"]); c["scores"].append(r["score"])
         if r["rel_mom"] is not None:
             c["rel_moms"].append(r["rel_mom"])
         if r["flow_5d_usd"] is not None:
             c["flows"].append(r["flow_5d_usd"])
+        if r.get("flow_21d_usd") is not None:
+            c["flows21"].append(r["flow_21d_usd"])
+        if r.get("fx_strength") is not None:
+            c["fxs"].append(r["fx_strength"])
     clist = []
     for c in countries.values():
         c["hot_money_score"] = round(sum(c["scores"]) / len(c["scores"]), 3)
         c["rel_mom_20d"] = round(sum(c["rel_moms"]) / len(c["rel_moms"]), 2) if c["rel_moms"] else None
         c["net_flow_5d_usd"] = round(sum(c["flows"])) if c["flows"] else None
-        c.pop("scores"); c.pop("rel_moms"); c.pop("flows")
+        nf21 = round(sum(c["flows21"])) if c["flows21"] else None
+        c["net_flow_21d_usd"] = nf21
+        fxavg = round(sum(c["fxs"]) / len(c["fxs"]), 2) if c["fxs"] else None
+        c["fx_strength"] = fxavg
+        # flow VELOCITY — 5d daily run-rate vs 21d daily run-rate (the acceleration tell)
+        f5, mom = c["net_flow_5d_usd"], c["rel_mom_20d"]
+        if f5 is not None and nf21 is not None and abs(nf21) > 0:
+            accel = (f5 / 5.0) - (nf21 / 21.0)
+            c["flow_velocity"] = "ACCELERATING" if accel > 0 else "DECELERATING"
+        else:
+            c["flow_velocity"] = None
+        # CONVICTION — alignment of flow + momentum + currency (genuine foreign vs local rally)
+        fpos = (f5 or 0) > 0
+        fneg = (f5 or 0) < 0
+        mpos = (mom or 0) > 0
+        fxpos = (fxavg or 0) > 0
+        if fpos and mpos and (fxpos or fxavg is None):
+            conv = "CONFIRMED_INFLOW"          # money in, price up, currency firm — genuine foreign
+        elif fpos and not mpos:
+            conv = "EARLY_ACCUMULATION"         # money arriving before price — early or value
+        elif mpos and not fpos:
+            conv = "PRICE_LED"                  # price up without confirmed foreign flow — may be local
+        elif fneg and not mpos:
+            conv = "CONFIRMED_OUTFLOW"
+        elif fneg:
+            conv = "OUTFLOW"
+        else:
+            conv = "MIXED"
+        c["conviction"] = conv
+        c.pop("scores"); c.pop("rel_moms"); c.pop("flows"); c.pop("flows21"); c.pop("fxs")
         clist.append(c)
     clist.sort(key=lambda x: x["hot_money_score"], reverse=True)
     for rank, c in enumerate(clist, 1):
@@ -241,14 +276,25 @@ def lambda_handler(event=None, context=None):
                                "rel_mom_20d": c["rel_mom_20d"], "net_flow_5d_usd": c["net_flow_5d_usd"],
                                "top_sectors": sectors, "top_holdings": names}
 
+    # risk-regime overlay — hot money into EM is a risk-on behaviour; context matters
+    rr = _read("data/risk-regime.json")
+    regime = {"risk_regime": rr.get("risk_regime"), "score": rr.get("risk_regime_score"),
+              "note": ("Hot money floods EM/high-beta in risk-on and flees in risk-off — read these "
+                       "inflows through the prevailing regime.")} if rr else None
+
     out = {"engine": "hot-money", "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1), "world_benchmark": WORLD,
            "world_ret_20d_pct": round(world_20, 2), "n_countries": len(clist),
+           "risk_regime": regime,
            "thesis": ("Cross-border hot money funnel: real ETF creation/redemption flow + relative momentum vs "
                       "the world + volume surge + currency strength rank which countries capital is rotating "
                       "INTO, then ETF holdings drill into the sectors and stocks inside the hot countries."),
            "method": "composite z-score (flow 0.40 / rel-mom 0.30 / vol 0.15 / FX 0.15), weights renormalize when a signal is missing",
+           "legend": {"CONFIRMED_INFLOW": "flow + price + currency aligned (genuine foreign hot money)",
+                      "EARLY_ACCUMULATION": "money arriving before price moves (early / value)",
+                      "PRICE_LED": "price up without confirmed foreign flow (possibly local money)",
+                      "flow_velocity": "ACCELERATING = 5d flow run-rate above the 21d run-rate"},
            "inflow_leaders": inflow[:15], "outflow_leaders": list(reversed(outflow))[:15],
            "all_countries": clist, "drilldowns": drill}
 
