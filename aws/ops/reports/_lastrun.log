@@ -1,10 +1,21 @@
-len: 235
-min: 2025-10-30 max: 2026-06-24
-first5: ['2025-11-07', '2025-11-08', '2025-11-09', '2025-11-10', '2025-11-11']
-last5: ['2025-10-31', '2026-06-24', '2025-11-01', '2025-11-02', '2025-11-03']
-is_sorted_ascending: False
-has_duplicates: False
-2026 dates: 175 | 2025 dates: 60
-BTC series len: 235 vs dates len: 235
-BTC non-null: 235
-DONE 2172
+ran justhodl-ma200-reclaim
+ran justhodl-crypto-ma200
+equity buffer: 233 days, sorted=True, range 2025-07-22..2026-06-24
+crypto buffer: 235 days, sorted=True, range 2025-11-02..2026-06-24
+
+EQUITY counts: {"fresh_above": 67, "fresh_below": 52, "retest_held": 63, "retest_failed": 94, "retesting_now": 24}
+  fresh_above all +dist: True
+  fresh_below all -dist: True
+   HELD BBIO   +2.3% slope 2.76% age=1
+   HELD GSK    +1.67% slope 2.56% age=3
+   HELD MDGL   +3.07% slope 2.08% age=4
+   HELD NEE    +1.84% slope 1.54% age=2
+   HELD WMT    +1.94% slope 1.7% age=3
+
+CRYPTO excess-vs-BTC (now-sorted, 21/63d real bars):
+   ETH: 21d excess -5.6% | 63d excess -9.7%
+   SOL: 21d excess -0.2% | 63d excess +0.3%
+   XRP: 21d excess -5.9% | 63d excess -3.0%
+
+crypto-scorecard: signals 2 graded 1 pending 1
+DONE 2173
