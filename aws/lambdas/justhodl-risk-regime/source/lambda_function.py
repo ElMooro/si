@@ -339,6 +339,55 @@ def lambda_handler(event, context):
                         "note": cnote}
         all_tells.append(f"Cross-border: {flow_state} ({cconf})")
 
+    # ── systemic-stress overlay (wires 7 stress/liquidity/credit islands; confirmation, not core score) ──
+    def _lvl_from_score(s, hi, mid):
+        if not isinstance(s, (int, float)):
+            return None
+        return "STRESSED" if s >= hi else "ELEVATED" if s >= mid else "CALM"
+    _LMAP = {"CALM": "CALM", "NORMAL": "CALM", "LOW": "CALM", "WATCH": "ELEVATED", "ELEVATED": "ELEVATED",
+             "MILD": "ELEVATED", "WARNING": "STRESSED", "CRISIS": "STRESSED", "STRESSED": "STRESSED",
+             "BREAKING": "STRESSED", "BREAK": "STRESSED", "TIGHTENING": "ELEVATED"}
+    sr = {}
+    _bs = _read("data/bank-stress.json") or {}
+    sr["bank_funding"] = _lvl_from_score(_bs.get("bank_stress_score"), 55, 30)
+    _cc = _read("data/crisis-canaries.json") or {}
+    sr["crisis_canaries"] = _LMAP.get(str(_cc.get("level") or _cc.get("level_v3") or "").upper())
+    _pl = _read("data/plumbing-stress.json") or {}
+    sr["funding_plumbing"] = _LMAP.get(str(_pl.get("composite_label") or "").upper()) or _lvl_from_score(_pl.get("composite_score"), 66, 40)
+    _cds = _read("data/cds-monitor.json") or {}
+    _gcs = _cds.get("global_credit_stress")
+    sr["credit_cds"] = _lvl_from_score(_gcs, 55, 30) if isinstance(_gcs, (int, float)) else _LMAP.get(str(_gcs).upper())
+    _ced = _read("data/credit-equity-divergence.json") or {}
+    _css = _ced.get("signal_strength")
+    sr["credit_equity_div"] = ("STRESSED" if (_css or 0) >= 0.6 else "ELEVATED" if (_css or 0) >= 0.3 else "CALM") if _ced.get("state") else None
+    _cor = _read("data/correlation-breaks.json") or {}
+    sr["correlation_breaks"] = _LMAP.get(str(_cor.get("signal") or "").upper())
+    _cax = _read("data/cross-asset-confirm.json") or {}
+    _car = str(_cax.get("regime") or "").upper()
+    sr["cross_asset"] = "STRESSED" if ("OFF" in _car or "STRESS" in _car) else ("CALM" if _car else None)
+    sr = {k: v for k, v in sr.items() if v}
+    systemic_stress = None
+    if sr:
+        n_stressed = sum(1 for v in sr.values() if v == "STRESSED")
+        n_elev = sum(1 for v in sr.values() if v in ("ELEVATED", "STRESSED"))
+        stress_level = "STRESSED" if n_stressed >= 2 else "ELEVATED" if n_elev >= 2 else "CALM"
+        risk_on = score >= 12; risk_off = score <= -12
+        if risk_on and stress_level in ("ELEVATED", "STRESSED"):
+            sconf = "DIVERGENT"
+            snote = (f"{n_elev} systemic-stress gauges elevated while the cross-asset tape reads risk-on — "
+                     "fragile advance; trimming size.")
+            posture = dict(posture)
+            posture["size_mult"] = round(posture["size_mult"] * 0.96, 3)
+            posture["stress_warning"] = stress_level.lower()
+        elif risk_off and stress_level == "STRESSED":
+            sconf = "CONFIRMED"; snote = "Risk-off confirmed by broad systemic-stress gauges."
+        else:
+            sconf = "ALIGNED" if stress_level == "CALM" else "WATCH"
+            snote = f"Systemic stress {stress_level} ({n_elev} of {len(sr)} gauges elevated)."
+        systemic_stress = {"level": stress_level, "confirmation": sconf, "n_gauges": len(sr),
+                           "n_elevated": n_elev, "readings": sr, "note": snote}
+        all_tells.append(f"Systemic stress: {stress_level} ({sconf})")
+
     # ── secondary risk overlay: aggregate the vol-structure / credit / stress engines
     #    (these alpha-graded islands fed nothing; they now corroborate the RORO read) ──
     RISK_CHECKS = [
@@ -395,6 +444,7 @@ def lambda_handler(event, context):
         "posture": posture,
         "participation": participation,
         "cross_border": cross_border,
+        "systemic_stress": systemic_stress,
         "secondary_risk": secondary_risk,
         "blocks_used": [{"block": b, "weight": w, "score": round(s, 3)} for b, w, s in blocks],
         "components": results,
