@@ -1,6 +1,8 @@
-master-ranker: 25 top_tickers, 4 cycle-tagged, 4 warned
-  STX    score 131.8 phase DISTRIBUTION warn distribution_at_top
-  SPCX   score 108.6 phase DISTRIBUTION warn distribution_at_top
-  FIX    score 100.0 phase DISTRIBUTION warn distribution_at_top
-  MRVL   score 98.4 phase DISTRIBUTION warn distribution_at_top
-DONE 2191
+risk-regime: regime=NEUTRAL score=-0.1
+  SECONDARY RISK: QUIET 0/10 firing: []
+
+best-setups: 50 setups, 1 red-flagged
+  NVDA   conv 80.0 flags=['fails Beneish manipulation test', 'low earnings quality (accruals)']
+
+master-ranker: 25 ranks, 0 red-flagged
+DONE 2192
