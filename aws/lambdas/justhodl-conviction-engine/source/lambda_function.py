@@ -205,6 +205,22 @@ def n_crypto_confluence(d):
     return sig, f"crypto confluence: {multi} multi-dim coins, backdrop {reg}"
 
 
+def n_scarcity_radar(d):
+    """Next-shortage synthesizer -> -2..+2 from PRIME/CANDIDATE supply-shortage setups firing.
+    Long-only thesis (a shortage is a squeeze up), so it floors at 0 rather than going negative."""
+    cnt = d.get("counts") or {}
+    prime = cnt.get("prime") or 0
+    cand = cnt.get("candidates") or 0   # candidates count includes PRIME
+    vt = cnt.get("verticals_tightening") or 0
+    if prime >= 2:
+        sig = 2
+    elif prime >= 1 or cand >= 3:
+        sig = 1
+    else:
+        sig = 0
+    return sig, f"{prime} PRIME / {cand} candidate shortage setups, {vt} verticals tightening"
+
+
 # (engine, subject, family, s3_key, normaliser)
 FEEDS = [
     ("PM Decision",        "Broad risk / equity beta", "desk-posture",
@@ -235,6 +251,8 @@ FEEDS = [
      "data/risk-regime.json",          n_risk_regime),
     ("Best Setups",        "US equity — value tilt",   "setups-synth",
      "data/best-setups.json",          n_best_setups),
+    ("Scarcity Radar",     "Supply shortage / scarcity", "scarcity-synth",
+     "data/scarcity-radar.json",       n_scarcity_radar),
 ]
 
 # per-subject invalidation tells
@@ -252,6 +270,9 @@ INVALIDATION = {
         "short pressure flips from covering back to building",
     "Crypto":
         "crypto narratives flip to RISK-OFF",
+    "Supply shortage / scarcity":
+        "the underlying spot/PPI tightening rolls over (vertical phase turns EXTENDED/COOLING) "
+        "or the cheap window closes as the names re-rate",
 }
 
 
@@ -370,12 +391,10 @@ def build_setup(subject, members):
 
 
 def single_names():
-    """Highest-conviction single names from the Opportunity Engine."""
-    d, _ = read_json("data/opportunities.json")
-    if not d:
-        return []
-    rows = d.get("top_opportunities") or d.get("opportunities") or []
+    """Highest-conviction single names: Opportunity Engine + next-shortage radar PRIME names."""
     out = []
+    d, _ = read_json("data/opportunities.json")
+    rows = (d.get("top_opportunities") or d.get("opportunities") or []) if d else []
     for r in rows[:6]:
         if not isinstance(r, dict):
             continue
@@ -385,7 +404,27 @@ def single_names():
             "verdict": r.get("verdict"),
             "score": r.get("opportunity_score") or r.get("score"),
             "upside_pct": r.get("under_pct") or r.get("upside_pct"),
+            "source": "opportunity",
         })
+    # next-shortage radar: surface PRIME setups (fall back to strongest CANDIDATEs when none PRIME)
+    sr, _ = read_json("data/scarcity-radar.json")
+    if sr:
+        board = sr.get("stealth_shortage_board") or []
+        picks = [r for r in board if r.get("tier") == "PRIME"] or \
+                [r for r in board if r.get("tier") == "CANDIDATE"]
+        seen = {x.get("ticker") for x in out}
+        for r in picks[:4]:
+            tk = r.get("ticker")
+            if not tk or tk in seen:
+                continue
+            out.append({
+                "ticker": tk,
+                "company": r.get("vertical"),
+                "verdict": f"SHORTAGE {r.get('tier')}",
+                "score": r.get("composite"),
+                "upside_pct": None,
+                "source": "scarcity-radar",
+            })
     return [x for x in out if x.get("ticker")]
 
 

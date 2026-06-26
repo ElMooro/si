@@ -166,6 +166,7 @@ def build_ticker_index():
         "flow_confluence":     fetch_json("data/flow-confluence.json", max_age_h=72),
         "equity_confluence":   fetch_json("data/equity-confluence.json", max_age_h=72),
         "earnings_confluence": fetch_json("data/earnings-confluence.json", max_age_h=120),
+        "scarcity_radar":      fetch_json("data/scarcity-radar.json", max_age_h=72),
     }
 
     # Index: ticker → {system_name: {score, details}}
@@ -274,6 +275,24 @@ def build_ticker_index():
                     "score": r.get("composite"),
                     "n_families": r.get("n_super_families") or r.get("n_dimensions"),
                 }
+
+    # 6c. scarcity-radar — the next-shortage synthesizer. A PRIME/CANDIDATE name is a
+    #     real supply tightening + capture + pricing-power + still-cheap setup; surface it
+    #     in the master rank so the next shortage trade appears here, not only on its page.
+    if feeds.get("scarcity_radar"):
+        for r in (feeds["scarcity_radar"].get("stealth_shortage_board") or []):
+            if r.get("tier") not in ("PRIME", "CANDIDATE"):
+                continue
+            sym = r.get("ticker")
+            if not sym:
+                continue
+            idx.setdefault(sym, {})["scarcity_radar"] = {
+                "score": r.get("composite"),
+                "tier": r.get("tier"),
+                "scarcity": r.get("scarcity"),
+                "stealth": r.get("stealth"),
+                "vertical": r.get("vertical"),
+            }
 
     # 7. deep value
     if feeds["deep_value"]:
@@ -484,6 +503,10 @@ def synthesize_rationale(ticker, systems_dict, score):
             highlights.append(f"theme T-{tier} {theme}")
     if "massive" in systems_dict and systems_dict["massive"].get("why"):
         highlights.append("options: " + systems_dict["massive"]["why"])
+    if "scarcity_radar" in systems_dict:
+        sr = systems_dict["scarcity_radar"]
+        vert = sr.get("vertical") or "supply"
+        highlights.append(f"shortage {sr.get('tier')}: {vert} (scarcity {sr.get('scarcity')}×stealth {sr.get('stealth')})")
 
     parts = [f"{n} systems agree (compound={score})"]
     if sys_str:
