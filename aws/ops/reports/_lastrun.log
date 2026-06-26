@@ -1,15 +1,9 @@
-MASTER-RANKER: top_tickers 25 | names carrying scarcity_radar: 0
-   scarcity_radar present in any top_ticker systems: False
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2234_verify_wiring.py", line 27, in <module>
-    cv=json.loads(s3.get_object(Bucket="justhodl-dashboard-live",Key="data/conviction-engine.json")["Body"].read())
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+MR feed loaded: True | counts in feed: {'names': 136, 'prime': 0, 'candidates': 1, 'verticals_tightening': 13}
+MR index names carrying scarcity_radar: 1
+   TSM: tier=CANDIDATE comp=51.6 vertical=Semiconductors / memory | total_systems_on_name=2
+
+CONVICTION setups: ['Crypto', 'US macro / housing cycle', 'US equity — positioning', 'Broad risk / equity beta', 'US equity — value tilt', 'Cross-asset relative value', 'Supply shortage / scarcity']
+scarcity subject: [('Supply shortage / scarcity', 'NEUTRAL / MIXED', 'None')]
+single_names from scarcity-radar: [('TSM', 'SHORTAGE CANDIDATE', 51.6)]
+Scarcity Radar engine read: []
+DONE 2235
