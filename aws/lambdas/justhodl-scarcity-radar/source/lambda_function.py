@@ -1,30 +1,25 @@
 """
-justhodl-scarcity-radar  ·  v1.0  —  THE NEXT-SHORTAGE RADAR
+justhodl-scarcity-radar  ·  v1.1  —  THE NEXT-SHORTAGE RADAR (scarcity x stealth)
 ================================================================================
-The Micron pattern: a supply shortage in an inelastic, oligopoly market meets a
-demand inflection, the underlying price breaks out, and the few suppliers re-rate
-violently. The alpha is NOT the shortage everyone sees — it's the vertical whose
-LEADING INDICATORS are inflecting while the equity is still cheap, un-moved, and
-ignored. This synthesizer fuses the eight engines that each see one facet into one
-ranked board on two axes:
+The Micron/RAM pattern: a few producers, inelastic supply, a demand inflection,
+inventories drawing down, then a violent equity re-rating. The equities are the
+LAST leg to move, so the alpha is the vertical whose LEADING INDICATORS are just
+inflecting while the stock is still cheap, hated and quiet. This synthesizer fuses
+the eight shortage engines into one board on two axes:
 
   SCARCITY (is a real shortage building?)
-    = vertical tightness (supply-inflection)         — the input is inflecting
-    + company capture   (bottleneck-boom)            — revenue accelerating, inventory drawing
-    + pricing power     (chokepoint criticality)     — oligopoly that can't be routed around
-    + spot momentum     (commodity-curves)
+    = 0.45 vertical tightness (supply-inflection: real spot/PPI)
+    + 0.30 company capture   (bottleneck-boom: rev accel + cheap P/S + inventory draw)
+    + 0.25 pricing power     (chokepoint: irreplaceable oligopoly)
 
   STEALTH (is no one looking yet?)
-    = cheap             (low P/S, discount-to-fair)
-    + un-moved          (supply-chain laggard / low recent perf)
-    + quiet narrative   (narrative-vs-tape quiet accumulation — smart money buying, no buzz)
-    + early theme phase (themes-detected: EMERGING/ACCELERATING, not EXTENDED)
+    = 0.30 cheap (low P/S / discount-to-fair) + 0.30 un-moved (supply-chain laggard)
+    + 0.25 quiet (narrative-vs-tape quiet accumulation) + 0.15 early phase
 
-  HEADLINE = high SCARCITY × high STEALTH  →  tightening hard, pricing power, cheap, silent.
-  Plus a per-vertical tightness ranking so you see WHICH shortage is building.
+  composite = sqrt(scarcity x stealth)  (BOTH must be high)
+  PRIME tier = scarcity>=60 AND stealth>=55 — the next shortage before it's obvious.
 
-Top names are scorecard-graded on forward excess-vs-SPY — measure-before-trust.
-OUTPUT: data/scarcity-radar.json     SCHEDULE: daily
+OUTPUT: data/scarcity-radar.json     SCHEDULE: daily.  Research, not advice.
 """
 import json, time, boto3, math
 from datetime import datetime, timezone
@@ -33,29 +28,35 @@ from decimal import Decimal
 S3 = boto3.client("s3", "us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/scarcity-radar.json"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
-# industry/sector keyword -> the supply-inflection / themes-detected theme ETF
-IND_THEME = [
-    (("semiconduct", "memory", "electronic compon", "semicap"), "SMH"),
-    (("uranium", "nuclear"),                                     "URA"),
-    (("copper",),                                                "COPX"),
-    (("lithium", "battery"),                                     "LIT"),
-    (("rare earth",),                                            "REMX"),
-    (("steel", "iron", "aluminum", "metals & mining", "mining"), "PICK"),
-    (("gold", "silver", "precious"),                             "GDX"),
-    (("oil", "gas", "petroleum", "drilling", "refin"),           "XLE"),
-    (("power", "utilit", "electric", "grid", "transmission"),    "GRID"),
-    (("aerospace", "defense"),                                   "ITA"),
-    (("homebuild", "lumber", "building products", "construction"), "XHB"),
-    (("biotech", "pharmaceutic", "drug manufact"),               "XBI"),
-    (("reit", "real estate"),                                    "XLRE"),
+VERTICAL = {
+    "SMH": "Semiconductors / memory", "SOXX": "Semiconductors", "AIQ": "AI compute",
+    "BOTZ": "Robotics / automation", "ROBO": "Robotics", "COPX": "Copper miners",
+    "PICK": "Base / industrial metals", "SLX": "Steel", "XME": "Metals & mining",
+    "URA": "Uranium", "URNM": "Uranium miners", "NLR": "Nuclear", "LIT": "Lithium / battery",
+    "REMX": "Rare earths", "GRID": "Grid / electrification", "XLU": "Utilities / power",
+    "XLE": "Energy", "XOP": "E&P", "OIH": "Oil services", "AMLP": "Midstream",
+    "GDX": "Gold miners", "GDXJ": "Junior gold", "SIL": "Silver", "XLB": "Materials",
+    "ITA": "Aerospace & defense", "PPA": "Defense", "IYT": "Transports / logistics",
+    "WOOD": "Timber", "XHB": "Homebuilders", "SLV": "Silver", "PAVE": "Infrastructure",
+}
+IND_MAP = [
+    ("semiconductor", "SMH"), ("memory", "SMH"), ("chip", "SMH"), ("foundry", "SMH"),
+    ("copper", "COPX"), ("aluminum", "PICK"), ("nickel", "PICK"), ("metal", "PICK"),
+    ("mining", "XME"), ("steel", "SLX"), ("iron", "SLX"), ("uranium", "URA"),
+    ("nuclear", "NLR"), ("lithium", "LIT"), ("battery", "LIT"), ("rare earth", "REMX"),
+    ("gold", "GDX"), ("silver", "SIL"), ("oil", "XLE"), ("gas", "XLE"), ("energy", "XLE"),
+    ("pipeline", "AMLP"), ("aerospace", "ITA"), ("defense", "ITA"), ("utilit", "XLU"),
+    ("electric", "GRID"), ("power", "GRID"), ("transport", "IYT"), ("rail", "IYT"),
+    ("trucking", "IYT"), ("chemical", "XLB"), ("timber", "WOOD"), ("forest", "WOOD"),
+    ("construction", "PAVE"), ("machinery", "PAVE"),
 ]
 
 
-def _read(k):
+def _read(key):
     try:
-        return json.loads(S3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
+        return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
     except Exception:
         return None
 
@@ -64,10 +65,12 @@ def clamp(v, lo=0.0, hi=100.0):
     return max(lo, min(hi, v))
 
 
-def theme_for(industry, sector):
-    s = ((industry or "") + " " + (sector or "")).lower()
-    for kws, etf in IND_THEME:
-        if any(k in s for k in kws):
+def map_vertical(industry, sector=None, theme=None):
+    if theme and str(theme).upper() in VERTICAL:
+        return str(theme).upper()
+    s = (str(industry or "") + " " + str(sector or "")).lower()
+    for kw, etf in IND_MAP:
+        if kw in s:
             return etf
     return None
 
@@ -79,171 +82,133 @@ def lambda_handler(event=None, context=None):
     cp = _read("data/chokepoint.json") or {}
     scg = _read("data/supply-chain-graph.json") or {}
     nvt = _read("data/narrative-vs-tape.json") or {}
-    td = _read("data/themes-detected.json") or {}
+    themes = _read("data/themes-detected.json") or {}
 
-    by_theme = si.get("by_theme") or {}              # etf -> {composite_inflection_score, ...}
-    theme_phase = {t.get("etf"): t.get("phase") for t in (td.get("themes") or [])}
-    phase_stealth = {"DORMANT": 60, "EMERGING": 100, "ACCELERATING": 75, "EXTENDED": 15, None: 50}
+    by_theme = si.get("by_theme") or {}
+    tight = {etf.upper(): (v.get("composite_inflection_score") or 0)
+             for etf, v in by_theme.items() if isinstance(v, dict)}
+    phase_by_etf = {str(th.get("etf", "")).upper(): th.get("phase") for th in (themes.get("themes") or [])}
+    PHASE_STEALTH = {"DORMANT": 60, "NASCENT": 90, "EMERGING": 100, "EARLY": 90,
+                     "ACCELERATING": 70, "EXTENDED": 15, None: 50}
 
-    def tightness(etf):
-        return float((by_theme.get(etf) or {}).get("composite_inflection_score") or 0)
+    verticals = sorted(
+        [{"theme_etf": etf, "vertical": VERTICAL.get(etf, etf), "tightness": round(sc, 1),
+          "phase": phase_by_etf.get(etf),
+          "top_signals": [s.get("signal") for s in (by_theme.get(etf, {}).get("top_signals") or [])[:3]]}
+         for etf, sc in tight.items() if sc],
+        key=lambda x: -x["tightness"])
 
-    # ── assemble candidate names with whatever each engine knows ──
-    names = {}  # ticker -> dict
+    names = {}
 
-    def touch(tk, name=None, industry=None, sector=None):
-        d = names.setdefault(tk, {"ticker": tk, "name": name, "industry": industry, "sector": sector,
-                                   "engines": [], "capture": 0, "pricing_power": 0, "cheap": 0,
-                                   "quiet": 0, "un_moved": 0, "vertical": None})
-        if name and not d.get("name"):
-            d["name"] = name
-        if industry and not d.get("industry"):
-            d["industry"] = industry
-        if sector and not d.get("sector"):
-            d["sector"] = sector
-        return d
+    def rec(tk):
+        return names.setdefault(tk.upper(), {"ticker": tk.upper(), "engines": set(), "capture": 0.0,
+                                             "pricing_power": 0.0, "cheap": 0.0, "un_moved": 0.0,
+                                             "quiet": 0.0, "industry": None, "sector": None,
+                                             "theme": None, "notes": []})
 
-    # 1. bottleneck-boom -> capture + cheapness + inventory draw
     for r in (bb.get("ranks") or []):
         tk = r.get("ticker")
         if not tk:
             continue
-        d = touch(tk, r.get("name"), r.get("industry"), r.get("sector"))
-        d["engines"].append("bottleneck-boom")
-        zsum = sum(r.get(z, 0) or 0 for z in ("z_rev_growth_yoy", "z_rev_accel_pp", "z_rev_to_mcap_pct"))
-        cap = r.get("boom_score") or r.get("score")
-        d["capture"] = max(d["capture"], float(cap) if isinstance(cap, (int, float)) else clamp(zsum / 9 * 100))
+        a = rec(tk); a["engines"].add("bottleneck-boom")
+        a["industry"] = a["industry"] or r.get("industry"); a["sector"] = a["sector"] or r.get("sector")
+        a["capture"] = clamp(max(a["capture"], r.get("score") or 0))
         ps = r.get("ps_ttm")
         if isinstance(ps, (int, float)) and ps > 0:
-            d["cheap"] = max(d["cheap"], clamp((4.0 - ps) / 4.0 * 100))   # ps<4 = cheap-ish
-        if (r.get("inv_turnover") or 0) > 8:
-            d["capture"] = min(100, d["capture"] + 8)                     # inventory drawing fast
+            a["cheap"] = clamp(max(a["cheap"], 100 - min(100, ps * 8)))
+        accel = r.get("rev_accel_pp")
+        if isinstance(accel, (int, float)) and accel > 0:
+            a["un_moved"] = clamp(max(a["un_moved"], 30)); a["notes"].append(f"rev accel +{round(accel,1)}pp")
 
-    # 2. chokepoint -> pricing power; cheap_chokepoint_book = pricing power + cheap (ideal)
-    crit = {}
-    for L in ("all_chokepoints", "discovered_chokepoint_book", "hidden_chokepoint_book"):
-        for r in (cp.get(L) or []):
-            if r.get("ticker"):
-                crit[r["ticker"]] = max(crit.get(r["ticker"], 0), float(r.get("criticality") or 0))
-    cheap_choke = {r.get("ticker") for r in (cp.get("cheap_chokepoint_book") or []) if r.get("ticker")}
-    for tk, c in crit.items():
-        d = touch(tk)
-        if "chokepoint" not in d["engines"]:
-            d["engines"].append("chokepoint")
-        d["pricing_power"] = max(d["pricing_power"], c)
-    for tk in cheap_choke:
-        d = touch(tk)
-        d["cheap"] = max(d["cheap"], 80)          # an oligopoly trading cheap is the prize
+    for bk in ("cheap_chokepoint_book", "hidden_chokepoint_book", "highest_conviction_book", "all_chokepoints"):
+        for r in (cp.get(bk) or []):
+            tk = r.get("ticker")
+            if not tk:
+                continue
+            a = rec(tk); a["engines"].add("chokepoint")
+            a["industry"] = a["industry"] or r.get("industry"); a["sector"] = a["sector"] or r.get("sector")
+            a["pricing_power"] = clamp(max(a["pricing_power"], r.get("criticality") or 0))
+            disc = r.get("discount_to_fair_pct") or r.get("discount_pct")
+            if isinstance(disc, (int, float)) and disc > 0:
+                a["cheap"] = clamp(max(a["cheap"], min(100, disc * 2))); a["notes"].append(f"{round(disc)}% below fair")
 
-    # 3. supply-chain laggards -> un-moved supplier to a booming hub
     for r in (scg.get("supply_chain_laggards") or []):
         tk = r.get("ticker")
         if not tk:
             continue
-        d = touch(tk)
-        d["engines"].append("supply-chain-laggard")
-        gap = r.get("lag_gap_pct") or 0
-        d["un_moved"] = max(d["un_moved"], clamp(abs(gap) * 2))        # bigger lag vs booming customer
-        d["supplies_to"] = r.get("supplies_to")
+        a = rec(tk); a["engines"].add("supply-chain-laggard"); a["theme"] = a["theme"] or r.get("theme")
+        gap = r.get("lag_gap_pct")
+        if isinstance(gap, (int, float)) and gap > 0:
+            a["un_moved"] = clamp(max(a["un_moved"], min(100, gap * 2.5)))
+            a["notes"].append(f"supplies {r.get('supplies_to')}, lags {round(gap)}%")
 
-    # 4. narrative-vs-tape quiet accumulation -> nobody looking + smart money buying
     for r in (nvt.get("quiet_accumulation") or []):
         tk = r.get("ticker")
         if not tk:
             continue
-        d = touch(tk)
-        d["engines"].append("quiet-accumulation")
-        d["quiet"] = max(d["quiet"], 85)
-        d["smart_money"] = r.get("tape")
+        a = rec(tk); a["engines"].add("quiet-accumulation"); a["quiet"] = 80.0
+        a["notes"].append("quiet accumulation (low buzz, smart money in)")
 
-    # ── score every candidate on scarcity × stealth ──
-    board = []
-    for tk, d in names.items():
-        etf = theme_for(d.get("industry"), d.get("sector"))
-        d["vertical"] = etf
-        vt = tightness(etf) if etf else 0
-        phase = theme_phase.get(etf)
-        d["vertical_tightness"] = round(vt, 1)
-        d["theme_phase"] = phase
-
-        scarcity = clamp(0.42 * vt + 0.33 * d["capture"] + 0.25 * d["pricing_power"])
-        # un-moved if we have a lag signal OR an extended-phase penalty isn't applied
-        stealth = clamp(0.34 * d["cheap"] + 0.28 * d["quiet"] + 0.20 * d["un_moved"]
-                        + 0.18 * phase_stealth.get(phase, 50))
-        composite = round(math.sqrt(max(0, scarcity) * max(0, stealth)), 1)   # BOTH must be high
-
-        d["scarcity"] = round(scarcity, 1)
-        d["stealth"] = round(stealth, 1)
-        d["composite"] = composite
-        d["engines"] = sorted(set(d["engines"]))
-        board.append(d)
-
-    board.sort(key=lambda x: -x["composite"])
-    # the headline: real shortage building AND still ignored
-    headline = [b for b in board if b["scarcity"] >= 35 and b["stealth"] >= 45][:25]
-
-    # ── per-vertical tightness ranking (which shortage is building) ──
-    sig_summary = (si.get("summary") or {}).get("top_signals") or []
-    verticals = []
-    for etf, info in by_theme.items():
-        ts = float(info.get("composite_inflection_score") or 0)
-        if ts <= 0:
-            continue
-        nm = [b["ticker"] for b in board if b.get("vertical") == etf][:6]
-        verticals.append({"theme": etf, "tightness": round(ts, 1),
-                          "phase": theme_phase.get(etf),
-                          "n_strong_tightening": info.get("n_strong_tightening"),
-                          "top_signals": [s.get("signal") for s in (info.get("top_signals") or [])][:3],
-                          "candidate_names": nm})
-    verticals.sort(key=lambda v: -v["tightness"])
-
+    book = []
+    for tk, a in names.items():
+        etf = map_vertical(a["industry"], a["sector"], a["theme"])
+        vt = tight.get(etf, 50.0) if etf else 50.0
+        phase = phase_by_etf.get(etf) if etf else None
+        scarcity = round(clamp(0.45 * vt + 0.30 * a["capture"] + 0.25 * a["pricing_power"]), 1)
+        stealth = round(clamp(0.30 * a["cheap"] + 0.30 * a["un_moved"] + 0.25 * a["quiet"]
+                              + 0.15 * PHASE_STEALTH.get(phase, 50)), 1)
+        composite = round(math.sqrt(max(0, scarcity) * max(0, stealth)), 1)
+        tier = "PRIME" if (scarcity >= 60 and stealth >= 55) else (
+            "CANDIDATE" if (scarcity >= 45 and stealth >= 40) else "WATCH")
+        book.append({"ticker": tk, "tier": tier, "scarcity": scarcity, "stealth": stealth,
+                     "composite": composite, "vertical": VERTICAL.get(etf, etf) if etf else None,
+                     "vertical_tightness": round(vt, 1), "phase": phase, "n_engines": len(a["engines"]),
+                     "engines": sorted(a["engines"]), "industry": a["industry"], "why": "; ".join(a["notes"][:4])})
+    book.sort(key=lambda r: -r["composite"])
+    prime = [r for r in book if r["tier"] == "PRIME"]
     out = {
         "engine": "scarcity-radar", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "thesis": ("The next Micron before it's a Micron: fuses vertical tightness + company capture + "
-                   "oligopoly pricing power (scarcity) with cheap + un-moved + quiet + early-phase (stealth). "
-                   "High on BOTH = a shortage building that no one is pricing yet."),
-        "inputs_live": {k: bool(v) for k, v in [("supply-inflection", si), ("bottleneck-boom", bb),
-                        ("chokepoint", cp), ("supply-chain-graph", scg), ("narrative-vs-tape", nvt),
-                        ("themes-detected", td)]},
-        "counts": {"candidates": len(board), "headline": len(headline)},
-        "headline_board": headline,
-        "scarcity_leaders": sorted(board, key=lambda x: -x["scarcity"])[:15],
-        "stealth_leaders": sorted([b for b in board if b["scarcity"] >= 25], key=lambda x: -x["stealth"])[:15],
-        "vertical_tightness": verticals,
-        "strong_tightening_signals": [s for s in sig_summary if str(s.get("flag", "")).upper().startswith("STRONG")][:10],
-        "method": "scarcity = 0.42 vertical_tightness + 0.33 capture + 0.25 pricing_power; "
-                  "stealth = 0.34 cheap + 0.28 quiet + 0.20 un_moved + 0.18 phase; composite = sqrt(scarcity*stealth)",
-        "disclaimer": "Synthesis of the platform's own supply/scarcity engines — research, not advice.",
+        "thesis": ("The next Micron before it's a Micron: fuses real spot/PPI tightness, company capture, "
+                   "oligopoly pricing power, supply-chain laggards and quiet accumulation into a scarcity x stealth "
+                   "score — the vertical tightening hard while its equities are still cheap, hated and quiet."),
+        "method": "scarcity = 0.45 vertical-tightness + 0.30 capture + 0.25 pricing-power; "
+                  "stealth = 0.30 cheap + 0.30 un-moved + 0.25 quiet + 0.15 early-phase; composite = sqrt(scarcity x stealth)",
+        "vertical_tightness": verticals[:18],
+        "stealth_shortage_board": book[:25],
+        "prime_setups": prime[:15],
+        "counts": {"names": len(book), "prime": len(prime),
+                   "candidates": sum(1 for r in book if r["tier"] in ("PRIME", "CANDIDATE")),
+                   "verticals_tightening": sum(1 for v in verticals if v["tightness"] >= 55)},
+        "legend": {"PRIME": "shortage building AND still ignored (scarcity>=60 & stealth>=55)",
+                   "CANDIDATE": "building but not yet extreme", "WATCH": "one axis only"},
+        "sources": ["supply-inflection (real spot/PPI)", "bottleneck-boom", "chokepoint",
+                    "supply-chain-graph", "narrative-vs-tape", "themes-detected"],
+        "disclaimer": "Synthesis of the platform's own engines — research, not advice.",
     }
-
-    # closed loop: grade the strongest headline names forward vs SPY
     try:
         nowt = datetime.now(timezone.utc)
         tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
         logged = 0
-        for r in headline[:8]:
+        for r in (prime or book)[:8]:
             tbl.put_item(Item={
                 "signal_id": f"scarcity-radar#{r['ticker']}#{nowt.date().isoformat()}",
                 "signal_type": "scarcity_radar", "predicted_direction": "UP",
                 "signal_value": str(r["composite"]), "confidence": Decimal("0.55"),
                 "measure_against": "ticker_vs_benchmark", "benchmark": "SPY",
-                "check_windows": ["day_21", "day_63", "day_126"], "outcomes": {}, "accuracy_scores": {},
+                "check_windows": ["day_5", "day_21", "day_63"], "outcomes": {}, "accuracy_scores": {},
                 "status": "pending", "logged_at": nowt.isoformat(), "logged_epoch": int(nowt.timestamp()),
-                "horizon_days_primary": 63, "schema_version": "2",
-                "ttl": int(nowt.timestamp()) + 200 * 86400,
-                "metadata": {"engine": "scarcity-radar", "v": VERSION, "vertical": r.get("vertical"),
-                             "scarcity": r["scarcity"], "stealth": r["stealth"], "engines": r["engines"]},
-                "rationale": f"{r['ticker']} scarcity {r['scarcity']} x stealth {r['stealth']} "
-                             f"vertical {r.get('vertical')} via {r['engines']}"})
+                "horizon_days_primary": 63, "schema_version": "2", "ttl": int(nowt.timestamp()) + 150 * 86400,
+                "metadata": {"engine": "scarcity-radar", "v": VERSION, "tier": r["tier"],
+                             "scarcity": r["scarcity"], "stealth": r["stealth"], "vertical": r["vertical"]},
+                "rationale": f"{r['ticker']} scarcity {r['scarcity']} x stealth {r['stealth']} ({r['vertical']})"})
             logged += 1
         out["signals_logged"] = logged
     except Exception as e:
         print(f"[loop] {str(e)[:80]}")
-
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
-    print(f"[scarcity-radar] candidates={len(board)} headline={len(headline)} "
-          f"top_verticals={[v['theme'] for v in verticals[:4]]} {out['duration_s']}s")
+    print(f"[scarcity-radar] names={len(book)} prime={len(prime)} "
+          f"verticals_tightening={out['counts']['verticals_tightening']} {out['duration_s']}s")
     return {"statusCode": 200, "body": json.dumps(out["counts"])}
