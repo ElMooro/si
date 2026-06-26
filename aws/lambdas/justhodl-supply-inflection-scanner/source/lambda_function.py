@@ -221,6 +221,57 @@ INFLECTION_SIGNALS = {
         "description": "10y TIPS real yield — gold/risk-asset driver",
         "category": "macro_rates",
     },
+    # ══ TRUE LEADING INDICATORS (v1.1) — real spot / PPI / lead-time data that LEADS the equities,
+    #    replacing the ETF-proxy tells above (an ETF IS the equity, so it lags) ══
+    "COPPER_SPOT": {
+        "src": "fred", "symbol": "PCOPPUSDM", "direction": "up_is_tight",
+        "themes": ["COPX", "PICK", "GRID"],
+        "description": "IMF global copper spot price (real underlying, leads COPX)", "category": "spot_base"},
+    "URANIUM_SPOT": {
+        "src": "fred", "symbol": "PURANUSDM", "direction": "up_is_tight",
+        "themes": ["URA", "URNM", "NLR"],
+        "description": "IMF global uranium spot price (U3O8 proxy, leads URA)", "category": "spot_nuclear"},
+    "ALUMINUM_SPOT": {
+        "src": "fred", "symbol": "PALUMUSDM", "direction": "up_is_tight",
+        "themes": ["PICK", "GRID"],
+        "description": "IMF global aluminum spot price", "category": "spot_base"},
+    "NICKEL_SPOT": {
+        "src": "fred", "symbol": "PNICKUSDM", "direction": "up_is_tight",
+        "themes": ["LIT", "REMX", "PICK"],
+        "description": "IMF global nickel spot price (battery + stainless)", "category": "spot_battery"},
+    "IRON_ORE_SPOT": {
+        "src": "fred", "symbol": "PIORECRUSDM", "direction": "up_is_tight",
+        "themes": ["SLX", "PICK"],
+        "description": "IMF global iron ore spot price (steel feed)", "category": "spot_base"},
+    "NATGAS_SPOT_REAL": {
+        "src": "fred", "symbol": "MHHNGSP", "direction": "up_is_tight",
+        "themes": ["XLE", "AMLP"],
+        "description": "Henry Hub natural gas spot (real, monthly)", "category": "spot_energy"},
+    "PPI_SEMIS": {
+        "src": "fred", "symbol": "PCU33443344", "direction": "up_is_tight",
+        "themes": ["SMH", "SOXX"],
+        "description": "PPI semiconductors — producer pricing power, leads chip equities", "category": "ppi_tech"},
+    "PPI_STEEL": {
+        "src": "fred", "symbol": "WPU101", "direction": "up_is_tight",
+        "themes": ["SLX", "PICK"],
+        "description": "PPI metals & metal products (steel pricing)", "category": "ppi_base"},
+    "PPI_GRID_EQUIPMENT": {
+        "src": "fred", "symbol": "WPU117409", "direction": "up_is_tight",
+        "themes": ["GRID", "XLU"],
+        "description": "PPI electrical/power machinery (transformer & grid-gear shortage tell)", "category": "ppi_grid"},
+    # ── the earliest tells: lead times stretching + prices paid (regional Fed diffusion) ──
+    "DELIVERY_TIME_NY": {
+        "src": "fred", "symbol": "DTCDISA066MSFRBNY", "direction": "up_is_tight",
+        "themes": ["INDS", "PICK", "GRID", "XHB"],
+        "description": "Empire State supplier delivery-time diffusion — lead times stretching = supply tightening EARLY", "category": "lead_time"},
+    "PRICES_PAID_PHILLY": {
+        "src": "fred", "symbol": "PPCDFSA066MSFRBPHI", "direction": "up_is_tight",
+        "themes": ["INDS", "PICK", "XLB"],
+        "description": "Philadelphia Fed current prices-paid diffusion — broad input-cost tightening", "category": "prices_paid"},
+    "PRICES_PAID_NY": {
+        "src": "fred", "symbol": "PPCDISA066MSFRBNY", "direction": "up_is_tight",
+        "themes": ["INDS", "PICK", "XLB"],
+        "description": "Empire State current prices-paid diffusion", "category": "prices_paid"},
 }
 
 
