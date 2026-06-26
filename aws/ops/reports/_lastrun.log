@@ -1,21 +1,3 @@
-generated 141s
-
-ANALYST ESTIMATES (was null):
-   2025-01-02 rev_avg= 16429599999.0 eps_avg= 10.11113
-   2026-01-02 rev_avg= 17277360577.0 eps_avg= 11.84143
-   2027-01-02 rev_avg= 18233492111.0 eps_avg= 12.33148
-   2028-01-02 rev_avg= 19102629050.0 eps_avg= 13.13637
-
-INDUSTRY COMPARISON:
-  industry: Information Technology Services | industry_pe: 11.5 | sector_pe: 50.2 | as_of: 2026-06-26
-  company pe: 9.13 | pe_vs_industry: -20.6 % | pe_vs_sector: -81.8 %
-  industry_comparison_assessment: Within the Information Technology Services industry (FMP industry P/E 11.5x), LDOS at 9.1x P/E trades at a 20.6% discount. Against the broader Technology sector (P/E 50.2x), LDOS is 81.8% cheaper, which is appropriate given that sector incl
-
-FORWARD MODEL present: True
-  summary: The forward model anchors to analyst consensus ($17.3B FY2026 revenue, $11.84 EPS) and assumes 4-5% organic revenue growth for FY2027-2028 (consensus range $17.8-$19.1B), plus $200-$300M annual Entrust contribution starting 2026 (2-3% of to
-  revenue_projections: [('FY2026', 17275000000, 5.2), ('FY2027', 18096000000, 4.8), ('FY2028', 18954000000, 4.7)]
-  eps_projections: [('FY2026', 11.84, 28.4), ('FY2027', 12.45, 5.2), ('FY2028', 13.24, 6.3)]
-  price_model: fwd_pe= 12.0 fair_base= 149.4 bull= 261.0 bear= 92.0 upside= 48.3 %
-  dcf_cross_check: DCF estimate of $656 (551.8% upside) is almost certainly too high and reflects either aggressive terminal margin (15%+) or perpetual 5%+ growth assumptions. Aud
-  confidence: MEDIUM. The model relies on 12-month analyst consensus (high visibility) but extends 24-36 months where visibility deteriorates. Entrust integration risk is material; Defense Tech ramps are speculative (AGM-190A LRIP not yet awarded, ALPS production pace uncertain). DHMSM recompete outcome is binary. Budget forecasting (IC 4-5% growth) assumes no major political/appropriations shifts. The model is most confident in FY2026 (consensus-driven); progressively less confident in FY2027-2028. Recommend revisiting at each earnings release to calibrate Entrust ramp and Defense Tech awards.
-DONE 2258
+why.html -> 200 | renderForwardModel: True | renderIndustryComparison: True | AI Forward Model: True | Industry Comparison hdr: True
+LDOS data -> 200 | forward_model: True | industry_pe: 11.5 | pe_vs_industry: -20.6
+DONE 2259
