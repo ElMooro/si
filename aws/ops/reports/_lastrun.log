@@ -1,12 +1,42 @@
+===== SECTOR LAYER: FRED inventories-to-sales ratios =====
 
-data/tic-flows.json: generated_at=2026-06-25T22:01:05.503923+00:00
-  top-level keys: ['schema_version', 'method', 'generated_at', 'composite_tic_stress', 'regime', 'top_reasons', 'total_foreign_holdings', 'net_purchases', 'top_holders', 'individual', 'interpretation', 'duration_s']
-  regime: "STRONG_FOREIGN_DEMAND"
+'inventories to sales ratio':
+    MSACSR | Monthly Supply of New Houses in the United Sta | M 2026-05-01
+    ISRATIO | Total Business: Inventories to Sales Ratio | M 2026-04-01
+    RETAILIRSA | Retailers: Inventories to Sales Ratio | M 2026-04-01
+    AISRSA | Auto Inventory/Sales Ratio | M 2026-05-01
+    MNFCTRIRSA | Manufacturers: Inventories to Sales Ratio | M 2026-04-01
+    WHLSLRIRSA | Merchant Wholesalers: Inventories to Sales Rat | M 2026-04-01
 
-data/capital-inflows.json: generated_at=2026-06-26T01:12:22.165462+00:00
-  top-level keys: ['engine', 'version', 'ok', 'generated_at', 'duration_s', 'data_asof', 'thesis', 'headline', 'by_asset_class', 'regime', 'regime_interpretation', 'flags', 'history_12mo_rolling_b', 'sources']
-  regime: "STEADY_INFLOW"
-  headline: {"foreign_net_into_us_lt_12mo_b": 1824.9, "net_cross_border_lt_12mo_b": 1349.4, "latest_month_b": 206.0, "run_rate_3mo_annualized_b": 1611.1, "yoy_change_12mo_b
+'manufacturers inventories sales':
+    BUSINV | Total Business Inventories | M 2026-04-01
+    ISRATIO | Total Business: Inventories to Sales Ratio | M 2026-04-01
+    RETAILIRSA | Retailers: Inventories to Sales Ratio | M 2026-04-01
+    MNFCTRIRSA | Manufacturers: Inventories to Sales Ratio | M 2026-04-01
+    RETAILIMSA | Retailers Inventories | M 2026-04-01
+    WHLSLRIRSA | Merchant Wholesalers: Inventories to Sales Rat | M 2026-04-01
 
-RULE: justhodl-ticket-ai-rationale-hourly cron(16 11 * * ? *) ENABLED
+'retailers inventories sales':
+    RETAILIRSA | Retailers: Inventories to Sales Ratio | M 2026-04-01
+    RETAILIMSA | Retailers Inventories | M 2026-04-01
+    RETAILSMSA | Retailers Sales | M 2026-04-01
+    RETAILSMNSA | Retailers Sales | M 2026-04-01
+    MRTSIR448USS | Retail Inventories/Sales Ratio: Clothing and C | M 2026-04-01
+    MRTSIR4400AUSS | Retail Inventories/Sales Ratio: Retail Trade,  | M 2026-04-01
+
+-- test key ratios (falling = inventory drawdown = bullish shortage) --
+   ISRATIO: latest 2026-04-01=1.310 | 3mo=-1.5% | 12mo=-5.1%
+   RETAILIRSA: latest 2026-04-01=1.260 | 3mo=-0.8% | 12mo=-2.3%
+   MNFCTRIRSA: latest 2026-04-01=1.500 | 3mo=-1.3% | 12mo=-5.1%
+   WHLSLRIRSA: latest 2026-04-01=1.190 | 3mo=-3.3% | 12mo=-8.5%
+   MRTSIR4400XUSS: ERRHTTP Error 400: Bad Reque
+   AISRSA: latest 2026-05-01=1.450 | 3mo=+6.3% | 12mo=+3.1%
+
+===== STOCK LAYER: FMP /stable/ inventory + COGS (DIO) =====
+
+balance-sheet-statement: 6 quarters | relevant fields: ['date', 'filingDate', 'acceptedDate', 'period', 'inventory', 'deferredRevenue', 'deferredRevenueNonCurrent']
+   latest: {'date': '2026-05-28', 'filingDate': '2026-06-25', 'acceptedDate': '2026-06-24 18:59:46', 'period': 'Q3', 'inventory': 8567000000, 'deferredRevenue': 0, 'deferredRevenueNonCurrent': 1020000000}
+
+income-statement: 6 quarters | relevant fields: ['date', 'filingDate', 'acceptedDate', 'period', 'revenue', 'costOfRevenue', 'grossProfit', 'costAndExpenses']
+   latest: {'date': '2026-05-28', 'filingDate': '2026-06-25', 'acceptedDate': '2026-06-24 18:59:46', 'period': 'Q3', 'revenue': 41456000000, 'costOfRevenue': 6400000000, 'grossProfit': 35056000000, 'costAndExpenses': 8123000000}
 DONE 2236
