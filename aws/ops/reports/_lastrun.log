@@ -1,14 +1,3 @@
-exists via deploy
-schedule FAIL: An error occurred (LimitExceededException) when calling the PutRule op
-counts: {"bullish_any": 12, "bullish_multi": 0, "bearish_any": 6}
-sources ok: ['crypto-ma200', 'crypto-emergence', 'crypto-opportunities', 'crypto-funding']
-market_context: regime=NEUTRAL tilt=0 liq=DRY-POWDER LOADED dump_risk=44.5 stablecoin=CONTRACTING
-  XPL    dims=1 ['momentum'] comp 44.0
-  DATA   dims=1 ['momentum'] comp 38.3
-  TON    dims=1 ['trend'] comp 33.5
-  XLM    dims=1 ['trend'] comp 33.5
-  GUN    dims=1 ['momentum'] comp 32.9
-  XRP    dims=1 ['funding'] comp 29.0
-  ETH    dims=1 ['funding'] comp 29.0
-  SOL    dims=1 ['funding'] comp 29.0
-DONE 2213
+Crypto Confluence ingested: True
+  subject 'Crypto' score 39: crypto-confluence present
+DONE 2214
