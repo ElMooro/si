@@ -1,5 +1,19 @@
-why.html -> 200 | renders devils_advocate: True | kill points: True | bulls underestimate: True | non-destructive 502: True
-LDOS via proxy -> 200 | verdict: BUY A- | devils_advocate: True | title: The Stalled Growth Story With Leverage Anchor
-  kill_points: 4 | has bulls-underestimate: True
-  core sections present: {'executive_summary': True, 'investment_thesis': True, 'risk_factors': True, 'devils_advocate': True, 'valuation_assessment': True, 'scenarios': True, 'verdict': True}
-DONE 2256
+===== INDUSTRY / SECTOR P/E endpoints (/stable) =====
+OK  sector-pe-snapshot?date=2026-06-25&excha   -> 11 rows; sample: {"date": "2026-06-25", "sector": "Basic Materials", "exchange": "NYSE", "pe": 24.422173097321494}
+OK  industry-pe-snapshot?date=2026-06-25&exc   -> 135 rows; sample: {"date": "2026-06-25", "industry": "Advertising Agencies", "exchange": "NYSE", "pe": 7.2200745116476055}
+OK  sector-pe-snapshot?date=2026-06-25         -> 11 rows; sample: {"date": "2026-06-25", "sector": "Basic Materials", "exchange": "NASDAQ", "pe": 30.826643921023326}
+OK  industry-pe-snapshot?date=2026-06-25       -> 131 rows; sample: {"date": "2026-06-25", "industry": "Advertising Agencies", "exchange": "NASDAQ", "pe": 24.966371900695652}
+OK  historical-sector-pe?sector=Technology     -> 21 rows; sample: {"date": "2024-03-01", "sector": "Technology", "exchange": "NASDAQ", "pe": 0.7743098908040464}
+OK  historical-industry-pe?industry=Informat   -> 21 rows; sample: {"date": "2024-03-01", "industry": "Information Technology Services", "exchange": "NASDAQ", "pe": 0.03286456574613236}
+
+===== ANALYST ESTIMATES (forward projection raw material) =====
+5 rows; fields: ['symbol', 'date', 'revenueLow', 'revenueHigh', 'revenueAvg', 'ebitdaLow', 'ebitdaHigh', 'ebitdaAvg', 'ebitLow', 'ebitHigh', 'ebitAvg', 'netIncomeLow', 'netIncomeHigh', 'netIncomeAvg', 'sgaExpenseLow', 'sgaExpenseHigh', 'sgaExpenseAvg', 'epsAvg', 'epsHigh', 'epsLow', 'numAnalystsRevenue', 'numAnalystsEps']
+   {'date': '2029-01-02', 'revenueAvg': 20024874623, 'revenueLow': 20024860911, 'revenueHigh': 20024888334, 'epsAvg': 14.51367, 'ebitdaAvg': 3702928726, 'netIncomeAvg': 1885364784, 'numAnalystsRevenue': 9}
+   {'date': '2028-01-02', 'revenueAvg': 19102629050, 'revenueLow': 18656495462, 'revenueHigh': 19396671641, 'epsAvg': 13.13637, 'ebitdaAvg': 3532390348, 'netIncomeAvg': 1734688933, 'numAnalystsRevenue': 11}
+   {'date': '2027-01-02', 'revenueAvg': 18233492111, 'revenueLow': 17949544514, 'revenueHigh': 18456593794, 'epsAvg': 12.33148, 'ebitdaAvg': 3371672631, 'netIncomeAvg': 1628825622, 'numAnalystsRevenue': 11}
+   {'date': '2026-01-02', 'revenueAvg': 17277360577, 'revenueLow': 17247260645, 'revenueHigh': 17327527129, 'epsAvg': 11.84143, 'ebitdaAvg': 3194868182, 'netIncomeAvg': 1562603536.5, 'numAnalystsRevenue': 9}
+
+===== what the LDOS doc already stores for analyst_estimates + peer_comparison =====
+analyst_estimates: [{"date": "2029-01-02", "revenue_avg": null, "eps_avg": null, "num_analysts_rev": null, "num_analysts_eps": null}, {"date": "2028-01-02", "revenue_avg": null, "eps_avg": null, "num_analysts_rev": null, "num_analysts_eps": null}, {"date": "2027-01-02", "revenue_avg": null, "eps_avg": null, "num_analysts_rev": null, "num_analysts_eps": null}]
+peer_comparison keys: ['sector', 'industry', 'rows', 'summary', 'relative'] | median: null
+DONE 2257
