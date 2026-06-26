@@ -1910,6 +1910,7 @@ def lambda_handler(event, context):
         "executive_summary":   claude_synthesis.get("executive_summary"),
         "investment_thesis":   claude_synthesis.get("investment_thesis"),
         "risk_factors":        claude_synthesis.get("risk_factors"),
+        "devils_advocate":     claude_synthesis.get("devils_advocate"),
         "valuation_assessment":claude_synthesis.get("valuation_assessment"),
         "peer_comparison_assessment": claude_synthesis.get("peer_comparison_assessment"),
         "earnings_track_record_assessment": claude_synthesis.get("earnings_track_record_assessment"),
