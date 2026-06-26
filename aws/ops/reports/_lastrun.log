@@ -1,42 +1,9 @@
-===== SECTOR LAYER: FRED inventories-to-sales ratios =====
-
-'inventories to sales ratio':
-    MSACSR | Monthly Supply of New Houses in the United Sta | M 2026-05-01
-    ISRATIO | Total Business: Inventories to Sales Ratio | M 2026-04-01
-    RETAILIRSA | Retailers: Inventories to Sales Ratio | M 2026-04-01
-    AISRSA | Auto Inventory/Sales Ratio | M 2026-05-01
-    MNFCTRIRSA | Manufacturers: Inventories to Sales Ratio | M 2026-04-01
-    WHLSLRIRSA | Merchant Wholesalers: Inventories to Sales Rat | M 2026-04-01
-
-'manufacturers inventories sales':
-    BUSINV | Total Business Inventories | M 2026-04-01
-    ISRATIO | Total Business: Inventories to Sales Ratio | M 2026-04-01
-    RETAILIRSA | Retailers: Inventories to Sales Ratio | M 2026-04-01
-    MNFCTRIRSA | Manufacturers: Inventories to Sales Ratio | M 2026-04-01
-    RETAILIMSA | Retailers Inventories | M 2026-04-01
-    WHLSLRIRSA | Merchant Wholesalers: Inventories to Sales Rat | M 2026-04-01
-
-'retailers inventories sales':
-    RETAILIRSA | Retailers: Inventories to Sales Ratio | M 2026-04-01
-    RETAILIMSA | Retailers Inventories | M 2026-04-01
-    RETAILSMSA | Retailers Sales | M 2026-04-01
-    RETAILSMNSA | Retailers Sales | M 2026-04-01
-    MRTSIR448USS | Retail Inventories/Sales Ratio: Clothing and C | M 2026-04-01
-    MRTSIR4400AUSS | Retail Inventories/Sales Ratio: Retail Trade,  | M 2026-04-01
-
--- test key ratios (falling = inventory drawdown = bullish shortage) --
-   ISRATIO: latest 2026-04-01=1.310 | 3mo=-1.5% | 12mo=-5.1%
-   RETAILIRSA: latest 2026-04-01=1.260 | 3mo=-0.8% | 12mo=-2.3%
-   MNFCTRIRSA: latest 2026-04-01=1.500 | 3mo=-1.3% | 12mo=-5.1%
-   WHLSLRIRSA: latest 2026-04-01=1.190 | 3mo=-3.3% | 12mo=-8.5%
-   MRTSIR4400XUSS: ERRHTTP Error 400: Bad Reque
-   AISRSA: latest 2026-05-01=1.450 | 3mo=+6.3% | 12mo=+3.1%
-
-===== STOCK LAYER: FMP /stable/ inventory + COGS (DIO) =====
-
-balance-sheet-statement: 6 quarters | relevant fields: ['date', 'filingDate', 'acceptedDate', 'period', 'inventory', 'deferredRevenue', 'deferredRevenueNonCurrent']
-   latest: {'date': '2026-05-28', 'filingDate': '2026-06-25', 'acceptedDate': '2026-06-24 18:59:46', 'period': 'Q3', 'inventory': 8567000000, 'deferredRevenue': 0, 'deferredRevenueNonCurrent': 1020000000}
-
-income-statement: 6 quarters | relevant fields: ['date', 'filingDate', 'acceptedDate', 'period', 'revenue', 'costOfRevenue', 'grossProfit', 'costAndExpenses']
-   latest: {'date': '2026-05-28', 'filingDate': '2026-06-25', 'acceptedDate': '2026-06-24 18:59:46', 'period': 'Q3', 'revenue': 41456000000, 'costOfRevenue': 6400000000, 'grossProfit': 35056000000, 'costAndExpenses': 8123000000}
-DONE 2236
+Lambda MISSING: get_function() only accepts keyword arguments.
+SET FRED_API_KEY on inventory-drawdown from global-liquidity
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2237_check_invdraw.py", line 23, in <module>
+    cc=lam.get_function("justhodl-inventory-drawdown")["Configuration"]
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 602, in _api_call
+    raise TypeError(
+TypeError: get_function() only accepts keyword arguments.
