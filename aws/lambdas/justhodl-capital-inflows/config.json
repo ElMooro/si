@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-capital-inflows",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "env": {},
+  "schedule": {
+    "rule_name": "justhodl-capital-inflows-weekly",
+    "cron": "cron(0 22 ? * THU *)",
+    "description": "US net capital inflows tracker (TIC net foreign transactions, by asset class, with sudden-stop detector)"
+  }
+}
