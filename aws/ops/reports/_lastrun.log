@@ -1,11 +1,18 @@
-why.html -> 200 | renderRelationships: True | Customer & Partner Map: True
-attempt 1: TimeoutError (checking S3)
-attempt 2: TimeoutError (checking S3)
+fired regen for LDOS, ACN, NOC; polling for a populated relationships block...
+t+156s ACN regenerated | AI_ok=True | customers=6 partners=7
 
-LDOS gen: 2026-06-26T21:22:59.028978+00:00 | AI ok: True
-relationships present: False
-  summary: None
-  customers (0): []
-  partners (0): []
-  suppliers (0): []
-DONE 2269
+=== ACN RELATIONSHIPS (grounded) ===
+summary: Accenture maintains a diversified client and partner ecosystem with no single named customer >10% of revenue. Key partnerships disclosed include advanced AI/data ecosystem partners (Anthropic, Databricks, Gemini, Mistral
+  [customers] BT Group | Large AI transformation program across operations; | conc=None | src=earnings_call
+  [customers] Mitsubishi Chemical | AI-focused engagement; major announced win | conc=None | src=earnings_call
+  [customers] Stellantis | Large AI manufacturing program across their manufa | conc=None | src=earnings_call
+  [customers] Vodafone | AI-focused engagement; significant bookings | conc=None | src=earnings_call
+  [customers] NSK, Piraeus, TEPCO, Women's Tennis Association | AI and digital transformation programs announced;  | conc=None | src=earnings_call
+  [customers] Undisclosed large managed-services customers | Two large managed-services opportunities pushed to | conc=material but unquantified | src=earnings_call
+  [partners] Anthropic | AI partner; bookings on track to double vs FY2025 | conc=None | src=earnings_call
+  [partners] Databricks | AI/data partner; part of emerging ecosystem with a | conc=None | src=earnings_call
+  [partners] OpenAI | Flagship AI partner; deep partnership expansion an | conc=None | src=earnings_call
+  [partners] Nvidia | Key AI infrastructure partner; bookings expanding | conc=None | src=earnings_call
+  [partners] Palantir | Data/analytics partner in AI ecosystem | conc=None | src=earnings_call
+  [partners] Snowflake | Cloud data platform partner; part of emerging AI/d | conc=None | src=earnings_call
+DONE 2270
