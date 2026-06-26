@@ -1,12 +1,11 @@
-attempt 1: TimeoutError The read operation timed out (checking S3 anyway)
-attempt 2: sync ok in 150s
+why.html -> 200 | renderRelationships: True | Customer & Partner Map: True
+attempt 1: TimeoutError (checking S3)
+attempt 2: TimeoutError (checking S3)
 
-LDOS gen now: 2026-06-26T21:22:59.028978+00:00 (was 2026-06-26T19:39:58.306139+00:00 )
-business_mix segments: {'National Security Solutions': 9875000000, 'Defense Solution Segment': 2179000000, 'Civil Segment': 5053000000}
-business_mix geography: {'United States': 15770000000, 'Non-US': 1404000000}
-price_history pts: 161
-margins op latest: {'date': '2026-01-02', 'value': 12.27}
-forward_model price_model: {'forward_pe_applied': 14.8, 'fair_value_base': 175, 'target_eps_year': 'FY2027'}
-key_assumptions[0] type: dict
-AI exec ok: True | model: claude-haiku-4-5-20251001
-DONE 2268
+LDOS gen: 2026-06-26T21:22:59.028978+00:00 | AI ok: True
+relationships present: False
+  summary: None
+  customers (0): []
+  partners (0): []
+  suppliers (0): []
+DONE 2269
