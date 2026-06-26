@@ -1,6 +1,37 @@
-INPUT SIGNALS (n=18), by score:
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2228_signals_and_rule.py", line 6, in <module>
-    if sigs and isinstance(sigs[0],dict):
-                           ~~~~^^^
-KeyError: 0
+signals type: dict
+INPUT SIGNALS (n=18):
+  sample item keys: ['name', 'src', 'symbol', 'category', 'direction', 'themes', 'description', 'metrics', 'score', 'flag']
+   MEMORY_DEMAND          score=84.9 dir=up_is_tight chg90=None etfs=['SMH', 'SOXX', 'AIQ', 'BOTZ']
+   NATGAS                 score=46.4 dir=up_is_tight chg90=None etfs=['XLE', 'AMLP']
+   AI_POWER_PROXY         score=42.8 dir=up_is_tight chg90=None etfs=['NLR', 'GRID', 'XLU']
+   TREASURY_10Y           score=37.9 dir=down_is_tight chg90=None etfs=['XLRE', 'REZ', 'REM', 'INDS', 'XHB', 'XBI', 'ARKK']
+   LITHIUM                score=24.3 dir=up_is_tight chg90=None etfs=['LIT', 'REMX']
+   STEEL_BASKET           score=24.2 dir=up_is_tight chg90=None etfs=['SLX', 'PICK']
+   AI_INFRA_PROXY         score=23.1 dir=up_is_tight chg90=None etfs=['AIQ', 'BOTZ', 'ROBO', 'SMH']
+   OIL_WTI                score=21.4 dir=up_is_tight chg90=None etfs=['XLE', 'XOP', 'OIH', 'AMLP']
+   OIL_BRENT              score=20.9 dir=up_is_tight chg90=None etfs=['XLE', 'XOP']
+   RARE_EARTH             score=20.1 dir=up_is_tight chg90=None etfs=['REMX', 'ITA']
+   LUMBER                 score=18.0 dir=up_is_tight chg90=None etfs=['WOOD', 'XHB']
+   COPPER                 score=17.5 dir=up_is_tight chg90=None etfs=['COPX', 'PICK', 'GRID']
+   DEFENSE_DEMAND         score=16.9 dir=up_is_tight chg90=None etfs=['ITA', 'PPA']
+   SILVER                 score=13.3 dir=up_is_tight chg90=None etfs=['SIL']
+   GOLD                   score=10.1 dir=up_is_tight chg90=None etfs=['GDX', 'GDXJ']
+   DOLLAR_INDEX           score=9.8 dir=down_is_tight chg90=None etfs=['GDX', 'GDXJ', 'REMX', 'EEM', 'USO']
+   URANIUM                score=7.9 dir=up_is_tight chg90=None etfs=['URA', 'URNM', 'NLR']
+   REAL_RATES             score=0.5 dir=down_is_tight chg90=None etfs=['GDX', 'GDXJ', 'ARKK', 'XBI']
+
+by_theme keys: ['LIT', 'REMX', 'ITA', 'URA', 'URNM', 'NLR', 'XLE', 'XOP', 'OIH', 'AMLP', 'COPX', 'PICK', 'GRID', 'XLRE', 'REZ']
+   LIT: {"composite_inflection_score": 24.3, "max_signal_score": 24.3, "avg_signal_score": 24.3, "n_signals": 1, "n_strong_tight
+   REMX: {"composite_inflection_score": 21.8, "max_signal_score": 24.3, "avg_signal_score": 18.1, "n_signals": 3, "n_strong_tight
+   ITA: {"composite_inflection_score": 19.5, "max_signal_score": 20.1, "avg_signal_score": 18.5, "n_signals": 2, "n_strong_tight
+   URA: {"composite_inflection_score": 7.9, "max_signal_score": 7.9, "avg_signal_score": 7.9, "n_signals": 1, "n_strong_tighteni
+   URNM: {"composite_inflection_score": 7.9, "max_signal_score": 7.9, "avg_signal_score": 7.9, "n_signals": 1, "n_strong_tighteni
+   NLR: {"composite_inflection_score": 35.8, "max_signal_score": 42.8, "avg_signal_score": 25.3, "n_signals": 2, "n_strong_tight
+
+PIGGYBACK candidates (ENABLED scheduled, <5 targets):
+   ark-holdings-daily | cron(0 6 * * ? *) | targets=2
+   ecb-weekly-update | cron(0 6 ? * MON *) | targets=1
+   jhk-tick-daily-06utc | cron(0 6 * * ? *) | targets=1
+   jhk-tick-daily-07utc | cron(0 7 * * ? *) | targets=1
+   jhk-tick-daily-08utc | cron(0 8 * * ? *) | targets=1
+DONE 2229
