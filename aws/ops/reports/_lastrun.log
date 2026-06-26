@@ -1,21 +1,11 @@
-function exists: justhodl-supply-inflection-scanner | last mod: 2026-06-04 | state: Active
-schedule rules: NONE
-invoke result: {"statusCode": 200, "body": "{\"n_signals\": 18, \"n_strong_tightening\": 1, \"n_tightening\": 1, \"top_signals\": [\"MEMORY_DEMAND\", \"NATGAS\", \"AI_POWER_PROXY\", \"TREASURY_10Y\", \"LITHIUM\"], \"top_inflecting_themes\": [\"SOXX\", \"AIQ\", \"BOTZ\", \"SMH\", \"XLU\"], \"duration_s\": 0.6}"}
+schedule FAIL: An error occurred (LimitExceededException) when calling the PutRule operation: T
 
-chokepoint.confirmed_chokepoint_book (n=5) keys=['ticker', 'name', 'sector', 'industry', 'criticality', 'is_chokepoint', 'cap_bucket', 'market_cap', 'gm_level']
-    ADSK {'name': 'Autodesk, Inc.', 'sector': 'Technology', 'industry': 'Software - Application', 'criticality': 73.7}
-    DLB {'name': 'Dolby Laboratories, Inc.', 'sector': 'Technology', 'industry': 'Information Technology Services', 'criticality': 69.1}
-    CLBT {'name': 'Cellebrite DI Ltd.', 'sector': 'Technology', 'industry': 'Software - Infrastructure', 'criticality': 69.0}
-    VEEV {'name': 'Veeva Systems Inc.', 'sector': 'Healthcare', 'industry': 'Medical - Healthcare Information Services', 'criticality': 68.3}
+supply-inflection.json keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'fetch_stats', 'summary', 'signals', 'by_theme', 'schema']
 
-narrative-vs-tape.quiet_accumulation (n=15) keys=['ticker', 'buzz', 'sentiment', 'tape', 'edge']
-    LMT {'buzz': 0, 'sentiment': 0, 'tape': 'institutions accumulating', 'edge': 'Unloved by the narrative but smart money is buying — contrarian setup.'}
-    AEE {'buzz': 0, 'sentiment': 0, 'tape': 'institutions accumulating', 'edge': 'Unloved by the narrative but smart money is buying — contrarian setup.'}
-    DTE {'buzz': 0, 'sentiment': 0, 'tape': 'institutions accumulating', 'edge': 'Unloved by the narrative but smart money is buying — contrarian setup.'}
-    FE {'buzz': 0, 'sentiment': 0, 'tape': 'institutions accumulating', 'edge': 'Unloved by the narrative but smart money is buying — contrarian setup.'}
-
-revenue-acceleration.all_qualifying (n=3) keys=['symbol', 'score', 'tier', 'flags', 'consec_accel_quarters', 'metrics', 'yoy_growth_history', 'acceleration_history']
-    NVDA {'score': 67.0, 'tier': 'TIER_A_ACCELERATING', 'flags': ['ACCEL_5PP+', 'ACCEL_3Q_STREAK', 'GROWTH_50%+', 'GM_EXPAND_2PP+', 'OP_LEVERAGE_20PP+', 'EPS_ACCELERATING'], 'consec_accel_quarters': 3}
-    GOOGL {'score': 43.0, 'tier': 'WATCH', 'flags': ['ACCEL_3Q_STREAK', 'GM_EXPAND_2PP+', 'EPS_ACCELERATING'], 'consec_accel_quarters': 3}
-    AAPL {'score': 35.0, 'tier': 'WATCH', 'flags': ['ACCEL_2Q_STREAK', 'GM_EXPAND_2PP+', 'EPS_ACCELERATING'], 'consec_accel_quarters': 2}
-DONE 2225
+bottleneck-boom keys: ['engine', 'version', 'generated_at', 'duration_s', 'industry_pressure', 'fred_used', 'fred_failed', 'universe_source', 'universe_n', 'scored_n', 'signals_logged', 'regime_at_log', 'top_calls', 'ranks', 'methodology']
+  candidate list 'ranks' n=40 keys=['ticker', 'name', 'sector', 'industry', 'mkt_cap', 'rev_growth_yoy', 'rev_accel_pp', 'ps_ttm']
+     VST {'name': 'Vistra Corp.', 'sector': 'Utilities', 'industry': 'Independent Power Producers', 'mkt_cap': 54916908563}
+     LDOS {'name': 'Leidos Holdings, Inc.', 'sector': 'Technology', 'industry': 'Information Technology Services', 'mkt_cap': 13121939813}
+     CEG {'name': 'Constellation Energy Corporation', 'sector': 'Utilities', 'industry': 'Renewable Utilities', 'mkt_cap': 96228568299}
+     NRG {'name': 'NRG Energy, Inc.', 'sector': 'Utilities', 'industry': 'Independent Power Producers', 'mkt_cap': 30004385899}
+DONE 2226
