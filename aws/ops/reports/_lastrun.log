@@ -1,43 +1,14 @@
-
-crypto-ma200: keys=['engine', 'version', 'generated_at', 'buffer_sessions', 'universe', 'fetched_this_run', 'duration_s', 'params', 'counts', 'fresh_breakouts_above', 'fresh_breakdowns_below']
-    headline={"signals_logged": 1}
-    'fresh_breakdowns_below' n=1 id=['ticker'] scoreish=[]
-    'retest_failed' n=6 id=['ticker'] scoreish=['retest_age', 'retest_low_pct', 'state']
-    'retesting_now' n=2 id=['ticker'] scoreish=['retest_age', 'retest_low_pct', 'state']
-
-crypto-emergence: keys=['engine', 'version', 'ok', 'generated_at', 'thesis', 'complex_stage', 'complex_read', 'breadth_pct_above_50d', 'breadth_pct_above_200d', 'btc_above_200d', 'btc_200d_rising']
-    headline={"cycle_risk": 44.5, "risk_level": "LOW"}
-    'coins' n=11 id=['ticker', 'name'] scoreish=['emergence_score', 'rs_score', 'trend_score', 'ret_3m_pct', 'funding_annualized_pct', 'signals']
-
-crypto-funding: keys=['generated_at', 'generated_at_unix', 'version', 'source', 'elapsed_seconds', 'config', 'market_composite', 'composite_regime', 'composite_signal', 'regime_changed_from_prior', 'squeeze_candidates']
-    headline={"composite_regime": "BALANCED", "composite_signal": "Funding balanced across coins \u00b7 no major positioning tilt", "
-    'squeeze_candidates' n=5 id=['coin'] scoreish=['z_score', 'change_24h_pct']
-
-crypto-narratives: keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'stance', 'read', 'narrative_breadth_pct', 'n_categories', 'fear_greed', 'hot', 'cold']
-    'hot' n=12 id=['name'] scoreish=['avg_price_change_24h', 'market_cap_change_24h', 'volume_change_24h']
-    'cold' n=8 id=['name'] scoreish=['avg_price_change_24h', 'market_cap_change_24h', 'volume_change_24h']
-
-onchain-ratios: keys=['generated_at', 'btc', 'eth', 'interpretation', 'fetch_duration_s']
-
-crypto-opportunities: keys=['engine', 'version', 'as_of', 'state', 'previous_state', 'state_transition', 'state_description', 'signal_strength', 'summary', 'current_readings', 'top_volume_surge']
-    headline={"state": "NORMAL", "previous_state": "ACTIVE", "state_transition": true, "state_description": "Modest setup density. Wa
-    'top_volume_surge' n=5 id=['ticker', 'name'] scoreish=['rank', 'vol_change_24h_pct', 'pct_change_1h', 'pct_change_24h', 'pct_change_7d', 'signal_strength']
-    'trigger_conditions' n=5 id=['name'] scoreish=[]
-
-altseason: keys=['engine', 'version', 'generated_at', 'composite', 'votes', 'ethbtc', 'btc_consolidation', 'histories', 'global_metrics', 'btc_d_history', 'total2_history']
-    headline={"signals_logged": 0}
-
-crypto-cycle-risk: keys=['engine', 'version', 'generated_at', 'duration_s', 'dump_risk_score', 'risk_level', 'action', 'factors', 'top_drivers', 'methodology', 'honesty_note']
-    headline={"dump_risk_score": 44.5, "risk_level": "LOW"}
-
-crypto-liquidity: keys=['engine', 'version', 'generated_at', 'duration_s', 'liquidity_score', 'regime', 'regime_read', 'directional_read', 'forecast_supported', 'forecast_support', 'ssr']
-    headline={"liquidity_score": 90.7, "regime": "DRY-POWDER LOADED", "regime_read": "Stablecoin dry powder near a 2-year high vs BTC
-
-stablecoin-flow: keys=['engine', 'version', 'as_of', 'state', 'previous_state', 'state_transition', 'state_description', 'signal_strength', 'aggregate', 'trigger_conditions', 'forward_expectations']
-    headline={"state": "CONTRACTING", "previous_state": "CONTRACTING", "state_transition": false, "state_description": "Net stablecoi
-    'trigger_conditions' n=5 id=['name'] scoreish=[]
-    'top_stablecoins_by_mcap' n=15 id=['symbol', 'name'] scoreish=[]
-    'top_5_minters_30d' n=5 id=['symbol', 'name'] scoreish=[]
-    'top_3_burners_30d' n=3 id=['symbol', 'name'] scoreish=[]
-
-DONE 2212
+exists via deploy
+schedule FAIL: An error occurred (LimitExceededException) when calling the PutRule op
+counts: {"bullish_any": 12, "bullish_multi": 0, "bearish_any": 6}
+sources ok: ['crypto-ma200', 'crypto-emergence', 'crypto-opportunities', 'crypto-funding']
+market_context: regime=NEUTRAL tilt=0 liq=DRY-POWDER LOADED dump_risk=44.5 stablecoin=CONTRACTING
+  XPL    dims=1 ['momentum'] comp 44.0
+  DATA   dims=1 ['momentum'] comp 38.3
+  TON    dims=1 ['trend'] comp 33.5
+  XLM    dims=1 ['trend'] comp 33.5
+  GUN    dims=1 ['momentum'] comp 32.9
+  XRP    dims=1 ['funding'] comp 29.0
+  ETH    dims=1 ['funding'] comp 29.0
+  SOL    dims=1 ['funding'] comp 29.0
+DONE 2213
