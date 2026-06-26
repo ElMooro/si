@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crypto Confluence · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;
+--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8;--vio:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 90px}
+.hd{border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:16px}
+h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font-size:12.5px}.meta{color:var(--fg3);font-size:11.5px;margin-top:3px}
+.thesis{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--cyan);border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--fg2);line-height:1.5;margin-bottom:14px}
+.ctx{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:11px 14px;margin-bottom:14px}
+.ctx .reg{font-size:13px;font-weight:700;letter-spacing:.3px}
+.ctx .row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.ctx .m{font-size:11px;color:var(--fg2);border:1px solid var(--bd);border-radius:6px;padding:3px 8px}
+.ctx .m b{color:var(--fg)}.ctx .note{color:var(--fg3);font-size:11.5px;margin-top:8px;line-height:1.45}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:5px 10px;font-size:11.5px;color:var(--fg2)}
+.chip b{color:var(--fg);font-size:13px}
+.sec{margin:20px 0 8px;font-size:13px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+.sec .n{color:var(--fg3);font-weight:400;font-size:11.5px}.hero{border-left:3px solid var(--grn);padding-left:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:9px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:10px 12px}
+.r1{display:flex;justify-content:space-between;align-items:baseline}
+.tk{font-weight:700;font-size:15.5px}.sc{font-size:11px;color:var(--fg3)}
+.badge{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-radius:5px;padding:2px 7px;white-space:nowrap}
+.eng{margin-top:6px}.echip{display:inline-block;font-size:9px;color:var(--fg3);border:1px solid var(--bd);border-radius:4px;padding:0 5px;margin:0 3px 3px 0}
+.foot{color:var(--fg3);font-size:11px;margin-top:22px;line-height:1.5}.loading{color:var(--fg3);padding:40px 0}
+</style></head><body><div class="wrap" id="w"><div class="loading">Loading crypto confluence…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+const DIM={trend:'📈 Trend',emergence:'🌱 Emergence',momentum:'⚡ Momentum',funding:'💵 Funding',onchain:'⛓ On-chain'};
+const REG={RISK_ON:['var(--grn)','rgba(52,211,153,.14)','Risk-on backdrop'],
+NEUTRAL:['var(--amb)','rgba(251,191,36,.13)','Neutral backdrop'],
+RISK_OFF:['var(--red)','rgba(248,113,113,.14)','Risk-off backdrop']};
+function badge(n){if(n>=3)return['var(--grn)','rgba(52,211,153,.14)',n+' dimensions'];
+  if(n===2)return['var(--cyan)','rgba(56,189,248,.13)','2 dimensions'];
+  return['var(--fg3)','rgba(154,165,177,.08)','1 dimension'];}
+function card(b,bear){const[c,bgc,lbl]=bear?['var(--red)','rgba(248,113,113,.12)','breakdown']:badge(b.n_dimensions);
+  return `<div class="card"><div class="r1"><span class="tk">${esc(b.coin)}</span><span class="badge" style="color:${c};background:${bgc}">${lbl}</span></div>`
+    +`<div class="sc">composite ${b.composite} · ${b.n_dimensions} dim${b.n_dimensions==1?'':'s'}${b.avg_strength?' · avg '+b.avg_strength:''}</div>`
+    +`<div class="eng">${(b.dimensions||[]).map(e=>`<span class="echip">${esc(DIM[e]||e)}</span>`).join('')}</div></div>`;}
+(async function(){
+  const d=await gj('data/crypto-confluence.json');const w=document.getElementById('w');
+  if(!d||!d.confluence_book){w.innerHTML='<div class="hd"><h1>Crypto Confluence</h1></div><div class="loading">No data yet — runs daily.</div>';return;}
+  const c=d.counts||{},ctx=d.market_context||{};
+  let h=`<div class="hd"><h1>🪙 Crypto Confluence</h1><div class="sub">The crypto-engine cluster — trend, emergence, momentum, funding, on-chain — fused into one per-coin edge scored on independent-dimension breadth.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}</div></div>`;
+  h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
+  const[rc,rbg,rlbl]=REG[ctx.regime]||REG.NEUTRAL;
+  h+=`<div class="ctx"><span class="reg" style="color:${rc}">${rlbl}${ctx.tilt!=null?` (tilt ${ctx.tilt>=0?'+':''}${ctx.tilt})`:''}</span>`
+    +`<div class="row">`
+    +(ctx.liquidity?`<span class="m">liquidity <b>${esc(ctx.liquidity)}</b></span>`:'')
+    +(ctx.dump_risk!=null?`<span class="m">dump-risk <b>${esc(ctx.dump_risk)}</b> ${esc(ctx.dump_risk_level||'')}</span>`:'')
+    +(ctx.stablecoin_flow?`<span class="m">stablecoins <b>${esc(ctx.stablecoin_flow)}</b></span>`:'')
+    +(ctx.altseason_composite!=null?`<span class="m">altseason <b>${esc(ctx.altseason_composite)}</b></span>`:'')
+    +(ctx.narrative_stance?`<span class="m">narratives <b>${esc(ctx.narrative_stance)}</b></span>`:'')
+    +`</div><div class="note">${esc(ctx.note||'')}</div></div>`;
+  h+=`<div class="counts"><span class="chip" style="color:var(--grn)"><b>${c.bullish_multi||0}</b> multi-dimension</span><span class="chip"><b>${c.bullish_any||0}</b> bullish</span><span class="chip" style="color:var(--red)"><b>${c.bearish_any||0}</b> deteriorating</span></div>`;
+  const multi=d.multi_dimension_bullish||[];
+  if(multi.length){h+=`<div class="sec hero">🎯 Multi-dimension confluence <span class="n">— ${multi.length} coins lit by ≥2 independent crypto signals</span></div><div class="grid">${multi.map(b=>card(b,false)).join('')}</div>`;}
+  const book=(d.confluence_book||[]).filter(b=>b.n_dimensions<2);
+  if(book.length){h+=`<div class="sec">Single-signal bullish <span class="n">— ${book.length} coins, one dimension only</span></div><div class="grid">${book.map(b=>card(b,false)).join('')}</div>`;}
+  const bear=d.deteriorating_book||[];
+  if(bear.length){h+=`<div class="sec" style="border-left:3px solid var(--red);padding-left:8px">📉 Deteriorating <span class="n">— ${bear.length} coins breaking down</span></div><div class="grid">${bear.map(b=>card(b,true)).join('')}</div>`;}
+  h+=`<div class="foot">${esc(d.method||'')} · ${esc(d.disclaimer||'')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
