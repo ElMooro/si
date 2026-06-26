@@ -1,18 +1,18 @@
-fired regen for LDOS, ACN, NOC; polling for a populated relationships block...
-t+156s ACN regenerated | AI_ok=True | customers=6 partners=7
+=== ANALYST RECOMMENDATIONS / RATINGS MOMENTUM (Bloomberg ANR) ===
+OK grades                   {"symbol": "AAPL", "date": "2026-06-22", "gradingCompany": "KGI Securities", "previousGrade": "Outperform", "newGrade": "Hold", "action": "downgrade"}
+OK grades-consensus         {"symbol": "AAPL", "strongBuy": 1, "buy": 69, "hold": 34, "sell": 7, "strongSell": 0, "consensus": "Buy"}
+OK grades-historical        {"symbol": "AAPL", "date": "2026-06-01", "analystRatingsStrongBuy": 7, "analystRatingsBuy": 23, "analystRatingsHold": 15, "analystRatingsSell": 1, "an
+OK price-target-news        {"symbol": "AAPL", "publishedDate": "2026-06-22T10:54:16.000Z", "newsURL": "https://thefly.com/ajax/news_get.php?id=4373254", "newsTitle": "Apple down
+OK price-target-summary     {"symbol": "AAPL", "lastMonthCount": 4, "lastMonthAvgPriceTarget": 337.5, "lastQuarterCount": 14, "lastQuarterAvgPriceTarget": 326.86, "lastYearCount"
 
-=== ACN RELATIONSHIPS (grounded) ===
-summary: Accenture maintains a diversified client and partner ecosystem with no single named customer >10% of revenue. Key partnerships disclosed include advanced AI/data ecosystem partners (Anthropic, Databricks, Gemini, Mistral
-  [customers] BT Group | Large AI transformation program across operations; | conc=None | src=earnings_call
-  [customers] Mitsubishi Chemical | AI-focused engagement; major announced win | conc=None | src=earnings_call
-  [customers] Stellantis | Large AI manufacturing program across their manufa | conc=None | src=earnings_call
-  [customers] Vodafone | AI-focused engagement; significant bookings | conc=None | src=earnings_call
-  [customers] NSK, Piraeus, TEPCO, Women's Tennis Association | AI and digital transformation programs announced;  | conc=None | src=earnings_call
-  [customers] Undisclosed large managed-services customers | Two large managed-services opportunities pushed to | conc=material but unquantified | src=earnings_call
-  [partners] Anthropic | AI partner; bookings on track to double vs FY2025 | conc=None | src=earnings_call
-  [partners] Databricks | AI/data partner; part of emerging ecosystem with a | conc=None | src=earnings_call
-  [partners] OpenAI | Flagship AI partner; deep partnership expansion an | conc=None | src=earnings_call
-  [partners] Nvidia | Key AI infrastructure partner; bookings expanding | conc=None | src=earnings_call
-  [partners] Palantir | Data/analytics partner in AI ecosystem | conc=None | src=earnings_call
-  [partners] Snowflake | Cloud data platform partner; part of emerging AI/d | conc=None | src=earnings_call
-DONE 2270
+=== OPTIONS-IMPLIED EXPECTATIONS (Bloomberg OMON) — Polygon ===
+OK options-snapshot   {"day": {"change": 0, "change_percent": 0, "close": 189.64, "high": 189.64, "last_updated": 1782187200000000000, "low": 189.64, "open": 189.64, "previous_close": 189.64, "volume": 1, "vwap": 189.64}, 
+OK contracts          {"cfi": "OCASPS", "contract_type": "call", "exercise_style": "american", "expiration_date": "2026-06-26", "primary_exchange": "BATO", "shares_per_contract": 100, "strike_price": 110, "ticker": "O:AAPL
+
+=== EVENTS CALENDAR (Bloomberg EVTS) ===
+OK earnings     {"symbol": "AAPL", "date": "2026-07-30", "epsActual": null, "epsEstimated": 1.88, "revenueActual": null, "revenueEstimated": 108856200000, "
+OK dividends    {"symbol": "AAPL", "date": "2026-05-11", "recordDate": "2026-05-11", "paymentDate": "2026-05-14", "declarationDate": "2026-04-30", "adjDivid
+
+=== ESG (Refinitiv/Bloomberg ESG) ===
+esg-disclosures: {"date": "2026-03-28", "acceptedDate": "2026-04-30", "symbol": "AAPL", "cik": "0000320193", "companyName": "Apple Inc.", "formType": "8-K", 
+DONE 2271
