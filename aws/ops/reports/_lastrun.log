@@ -1,8 +1,4 @@
-cold CDN check GGG: status=403 0.5s cached=False
-   (already cached, from_cache= None gen= None )
-FRESH generate GGG via Lambda URL (cold path the user hit)...
-   status=200 time=1.6s len=40602
-   top keys: ['schema_version', 'ticker', 'generated_at', 'from_cache', 'regime_at_generation', 'company', 'quote', 'verdict', 'executive_summary', 'investment_thesis', 'risk_factors', 'valuation_assessment', 'peer_comparison_assessment', 'earnings_track_record_assessment', 'capital_allocation_assessment', 'institutional_activity_assessment', 'earnings_call_sentiment', 'financial_health_summary', 'competitive_position', 'catalysts_12m']
-   section fill: {"valuation": "populated", "verdict": "populated"}
-   from_cache: False | has error field: None
-DONE 2245
+proxy WMS.json -> status=200 2.7s ACAO='*' json_ok=True verdict=HOLD gen=2026-06-26T17:43:32.905814+00:00
+proxy RPM.json -> status=200 1.6s ACAO='*' json_ok=True verdict=HOLD gen=2026-06-26T17:43:34.373912+00:00
+proxy AOS.json -> status=200 2.1s ACAO='*' json_ok=True verdict=HOLD gen=2026-06-26T17:43:36.642523+00:00
+DONE 2246
