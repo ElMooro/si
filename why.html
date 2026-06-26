@@ -534,11 +534,14 @@ function renderReport(d){
   }
   let html = "";
   html += renderHero(d);
+  html += renderPriceChart(d);          // price history + PT / fair-value bands
   html += renderScenarios(d);
   html += renderExecSummary(d);
   html += renderBullBear(d);
+  html += renderBusinessMix(d);         // revenue by segment + geography
   html += renderValuation(d);
   html += renderForwardModel(d);       // AI forward projections + price model
+  html += renderSensitivity(d);        // fair-value heatmap: forward P/E × EPS
   html += renderPeerComparison(d);
   html += renderIndustryComparison(d); // company vs real industry/sector P/E
   html += renderFinancialHealth(d);
@@ -910,6 +913,122 @@ function renderPeerComparison(d){
     </section>`;
 }
 
+function renderPriceChart(d){
+  const ph = Array.isArray(d.price_history) ? d.price_history : [];
+  if(ph.length < 10) return "";
+  const q = d.quote || {};
+  const v = d.valuation || {};
+  const pm = (d.forward_model || {}).price_model || {};
+  const W = 720, H = 280, padL = 50, padR = 70, padT = 14, padB = 26;
+  const closes = ph.map(p => p.close);
+  const cur = q.price || closes[closes.length - 1];
+  const refs = [];
+  if(v.analyst_pt_median) refs.push({y: v.analyst_pt_median, label: 'Analyst PT', color: 'var(--amber)'});
+  if(pm.fair_value_base)  refs.push({y: pm.fair_value_base,  label: 'Fair value', color: 'var(--cyan)'});
+  if(pm.fair_value_bull)  refs.push({y: pm.fair_value_bull,  label: 'Bull',       color: 'var(--green-bright)'});
+  if(pm.fair_value_bear)  refs.push({y: pm.fair_value_bear,  label: 'Bear',       color: 'var(--red)'});
+  const allY = closes.concat(refs.map(r => r.y)).concat([cur]);
+  let minY = Math.min(...allY), maxY = Math.max(...allY);
+  const padY = (maxY - minY) * 0.06 || 1; minY -= padY; maxY += padY;
+  const x = i => padL + (i / (ph.length - 1)) * (W - padL - padR);
+  const y = val => padT + (1 - (val - minY) / (maxY - minY)) * (H - padT - padB);
+  const linePts = ph.map((p, i) => `${x(i).toFixed(1)},${y(p.close).toFixed(1)}`).join(' ');
+  const areaPts = `${padL},${y(minY).toFixed(1)} ${linePts} ${x(ph.length - 1).toFixed(1)},${y(minY).toFixed(1)}`;
+  const lineColor = closes[closes.length - 1] >= closes[0] ? 'var(--green-bright)' : 'var(--red)';
+  const xticks = [0, Math.floor(ph.length / 2), ph.length - 1].map(i =>
+    `<text x="${x(i)}" y="${H - 7}" fill="var(--text-muted)" font-size="10" text-anchor="middle">${esc(ph[i].date.slice(0, 7))}</text>`).join('');
+  const ygrid = [minY, (minY + maxY) / 2, maxY].map(val =>
+    `<line x1="${padL}" y1="${y(val).toFixed(1)}" x2="${W - padR}" y2="${y(val).toFixed(1)}" stroke="rgba(255,255,255,.05)"/><text x="${padL - 6}" y="${(y(val) + 3).toFixed(1)}" fill="var(--text-muted)" font-size="10" text-anchor="end">$${fmtNum(val, 0)}</text>`).join('');
+  const refLines = refs.map(r => (r.y < minY || r.y > maxY) ? '' :
+    `<line x1="${padL}" y1="${y(r.y).toFixed(1)}" x2="${W - padR}" y2="${y(r.y).toFixed(1)}" stroke="${r.color}" stroke-width="1" stroke-dasharray="4 3" opacity="0.85"/><text x="${W - padR + 4}" y="${(y(r.y) + 3).toFixed(1)}" fill="${r.color}" font-size="9.5">${r.label} $${fmtNum(r.y, 0)}</text>`).join('');
+  return `
+    <section class="block">
+      <h3><span class="ico">📈</span> Price &amp; Targets <span class="pill">${ph.length > 200 ? '10y ' : ''}history · PT / fair-value bands</span></h3>
+      <div style="overflow-x:auto">
+      <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%; min-width:520px; height:auto">
+        ${ygrid}
+        <polygon points="${areaPts}" fill="${lineColor}" opacity="0.07"/>
+        <polyline points="${linePts}" fill="none" stroke="${lineColor}" stroke-width="1.6"/>
+        <circle cx="${x(ph.length - 1).toFixed(1)}" cy="${y(closes[closes.length - 1]).toFixed(1)}" r="3" fill="${lineColor}"/>
+        ${refLines}${xticks}
+      </svg></div>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:6px; font-size:11px; color:var(--text-muted)">
+        <span>now <b style="color:var(--text)">${fmtPrice(cur)}</b></span>
+        ${q.year_high ? `<span>52w high ${fmtPrice(q.year_high)}</span>` : ''}
+        ${q.year_low ? `<span>52w low ${fmtPrice(q.year_low)}</span>` : ''}
+        ${v.analyst_pt_median ? `<span style="color:var(--amber)">analyst PT ${fmtPrice(v.analyst_pt_median)}</span>` : ''}
+        ${pm.fair_value_base ? `<span style="color:var(--cyan)">fair value ${fmtPrice(pm.fair_value_base)}</span>` : ''}
+      </div>
+    </section>`;
+}
+
+function renderBusinessMix(d){
+  const bm = d.business_mix || {};
+  const segEntries = Object.entries(bm.segments || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const geoEntries = Object.entries(bm.geography || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  if(!segEntries.length && !geoEntries.length) return "";
+  const palette = ['var(--accent)', 'var(--cyan)', 'var(--violet)', 'var(--blue)', 'var(--amber)', 'var(--green)'];
+  const bars = (entries) => {
+    const total = entries.reduce((s, [, v]) => s + v, 0);
+    return entries.map(([k, v], i) => {
+      const pct = total ? v / total * 100 : 0;
+      return `<div style="margin-bottom:9px">
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px">
+          <span style="color:var(--text-dim)">${esc(k)}</span>
+          <span style="font-weight:600">${fmt$(v, 1)} <span style="color:var(--text-muted); font-weight:400">${fmtNum(pct, 0)}%</span></span>
+        </div>
+        <div style="height:9px; background:rgba(255,255,255,.05); border-radius:5px; overflow:hidden">
+          <div style="height:100%; width:${pct.toFixed(1)}%; background:${palette[i % palette.length]}; border-radius:5px"></div>
+        </div></div>`;
+    }).join('');
+  };
+  return `
+    <section class="block">
+      <h3><span class="ico">🧩</span> Business Mix <span class="pill">revenue composition${bm.segments_as_of ? ' · ' + esc(bm.segments_as_of) : ''}</span></h3>
+      ${d.business_mix_assessment ? `<p class="lead">${esc(d.business_mix_assessment)}</p>` : ''}
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:24px; margin-top:14px">
+        ${segEntries.length ? `<div><div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:8px">By segment</div>${bars(segEntries)}</div>` : ''}
+        ${geoEntries.length ? `<div><div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:8px">By geography</div>${bars(geoEntries)}</div>` : ''}
+      </div>
+    </section>`;
+}
+
+function renderSensitivity(d){
+  const fm = d.forward_model || {};
+  const pm = fm.price_model || {};
+  const eps = Array.isArray(fm.eps_projections) ? fm.eps_projections : [];
+  const cur = (d.quote || {}).price;
+  const basePe = pm.forward_pe_applied;
+  let baseEps = null;
+  if(pm.target_eps_year && eps.length){
+    const m = eps.find(e => String(e.year) === String(pm.target_eps_year));
+    baseEps = m ? m.eps_est : null;
+  }
+  if(baseEps == null && eps.length) baseEps = eps[eps.length - 1].eps_est;
+  if(!basePe || !baseEps || !cur) return "";
+  const peStep = Math.max(1, basePe * 0.12);
+  const peRow = [-2, -1, 0, 1, 2].map(k => +(basePe + k * peStep).toFixed(1)).filter(p => p > 0);
+  const epsCol = [-0.1, -0.05, 0, 0.05, 0.1].map(k => +(baseEps * (1 + k)).toFixed(2));
+  const cell = (pe, e) => {
+    const px = pe * e;
+    const up = (px / cur - 1) * 100;
+    const g = Math.max(-1, Math.min(1, up / 60));
+    const bg = g >= 0 ? `rgba(34,197,94,${(0.10 + g * 0.32).toFixed(2)})` : `rgba(239,68,68,${(0.10 + (-g) * 0.32).toFixed(2)})`;
+    const isBase = Math.abs(pe - basePe) < 1e-6 && Math.abs(e - baseEps) < 1e-6;
+    return `<td style="text-align:center; padding:7px 6px; background:${bg}; ${isBase ? 'outline:2px solid var(--text); outline-offset:-2px;' : ''}font-variant-numeric:tabular-nums">
+      <div style="font-weight:600">${fmtPrice(px)}</div>
+      <div style="font-size:9.5px; color:var(--text-muted)">${up >= 0 ? '+' : ''}${fmtNum(up, 0)}%</div></td>`;
+  };
+  const header = `<tr><th style="font-size:10px; color:var(--text-muted); text-align:right; padding:4px 6px">P/E ＼ EPS →</th>${epsCol.map(e => `<th style="font-size:11px; padding:4px 6px">$${fmtNum(e, 2)}</th>`).join('')}</tr>`;
+  const rows = peRow.map(pe => `<tr><th style="font-size:11px; text-align:right; padding:4px 6px; color:var(--text-dim)">${fmtNum(pe, 1)}x</th>${epsCol.map(e => cell(pe, e)).join('')}</tr>`).join('');
+  return `
+    <section class="block">
+      <h3><span class="ico">🎚️</span> Fair-Value Sensitivity <span class="pill">forward P/E × ${esc(pm.target_eps_year || 'projected EPS')}</span></h3>
+      <p style="font-size:12px; color:var(--text-dim); margin-bottom:10px">Implied price = forward P/E × projected EPS. Outlined cell is the model's base (${fmtNum(basePe, 1)}x × $${fmtNum(baseEps, 2)}). Green = upside vs current ${fmtPrice(cur)}.</p>
+      <div class="table-wrap"><table style="width:100%; border-collapse:collapse">${header}${rows}</table></div>
+    </section>`;
+}
+
 function renderForwardModel(d){
   const fm = d.forward_model || {};
   if(!fm) return "";
@@ -964,7 +1083,14 @@ function renderForwardModel(d){
       ${pm.dcf_cross_check ? `<p style="font-size:12px; color:var(--text-dim)"><b>DCF cross-check:</b> ${esc(pm.dcf_cross_check)}</p>` : ''}
       ${(Array.isArray(fm.key_assumptions) && fm.key_assumptions.length) ? `<div style="margin-top:12px">
         <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:6px">Key assumptions</div>
-        <ul style="margin:0; padding-left:18px; font-size:12px; color:var(--text-dim)">${fm.key_assumptions.map(a => `<li style="margin-bottom:4px">${esc(a)}</li>`).join('')}</ul></div>` : ''}
+        <ul style="margin:0; padding-left:18px; font-size:12px; color:var(--text-dim)">${fm.key_assumptions.map(a => {
+          if(a && typeof a === 'object'){
+            const txt = a.assumption || a.text || a.point || Object.values(a)[0] || '';
+            const num = a.number || a.value || a.evidence || a.metric || '';
+            return `<li style="margin-bottom:5px">${esc(txt)}${num ? ` <span style="color:var(--text-muted)">— ${esc(num)}</span>` : ''}</li>`;
+          }
+          return `<li style="margin-bottom:4px">${esc(a)}</li>`;
+        }).join('')}</ul></div>` : ''}
       ${fm.confidence ? `<p style="font-size:11.5px; color:var(--text-muted); margin-top:12px; border-left:3px solid var(--accent); padding-left:10px"><b>Confidence:</b> ${esc(fm.confidence)}</p>` : ''}
     </section>`;
 }
