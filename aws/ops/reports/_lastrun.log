@@ -1,64 +1,13 @@
-=== SEARCHES (true leading inputs) ===
-
-'PPI semiconductors':
-    ('PCU33443344', 'Producer Price Index by Industry: Semiconductor an', 'M', '2026-05-01')
-    ('PCU334413334413A', 'Producer Price Index by Industry: Semiconductor an', 'M', '2026-05-01')
-    ('PCU3344133441', 'Producer Price Index by Industry: Semiconductor an', 'M', '2026-05-01')
-    ('PCU334413334413', 'Producer Price Index by Industry: Semiconductor an', 'M', '2026-05-01')
-    ('PCU333242333242', 'Producer Price Index by Industry: Semiconductor Ma', 'M', '2026-05-01')
-
-'global price uranium':
-    ('PURANUSDM', 'Global price of Uranium', 'M', '2026-05-01')
-    ('PURANUSDA', 'Global price of Uranium', 'A', '2025-01-01')
-    ('PURANUSDQ', 'Global price of Uranium', 'Q', '2026-01-01')
-
-'global price lithium':
-
-'global price copper':
-    ('PCOPPUSDM', 'Global price of Copper', 'M', '2026-05-01')
-    ('PCOPPUSDQ', 'Global price of Copper', 'Q', '2026-01-01')
-    ('PCOPPUSDA', 'Global price of Copper', 'A', '2025-01-01')
-
-'ISM manufacturing prices':
-
-'ISM supplier deliveries':
-
-'PPI iron steel':
-    ('WPU101', 'Producer Price Index by Commodity: Metals and Meta', 'M', '2026-05-01')
-    ('WPU1012', 'Producer Price Index by Commodity: Metals and Meta', 'M', '2026-05-01')
-    ('WPS101', 'Producer Price Index by Commodity: Metals and Meta', 'M', '2026-05-01')
-    ('PCU3312103312100', 'Producer Price Index by Industry: Iron and Steel P', 'M', '2026-05-01')
-    ('PCU33121033121002', 'Producer Price Index by Industry: Iron and Steel P', 'M', '2026-02-01')
-
-'memory chips price':
-
-'global price natural gas':
-    ('PNGASEUUSDM', 'Global price of Natural gas, EU', 'M', '2026-05-01')
-    ('PNGASUSUSDM', 'Global price of Natural Gas, US Henry Hub Gas', 'M', '2026-05-01')
-    ('PNGASEUUSDQ', 'Global price of Natural gas, EU', 'Q', '2026-01-01')
-    ('PNGASUSUSDQ', 'Global price of Natural Gas, US Henry Hub Gas', 'Q', '2026-01-01')
-    ('PNGASEUUSDA', 'Global price of Natural gas, EU', 'A', '2025-01-01')
-
-'producer price index computer storage':
-    ('PCU334112334112', 'Producer Price Index by Industry: Computer Storage', 'M', '2026-05-01')
-    ('PCU3341123341121', 'Producer Price Index by Industry: Computer Storage', 'M', '2026-05-01')
-    ('WPU1152', 'Producer Price Index by Commodity: Machinery and E', 'M', '2026-05-01')
-    ('PCU334112334112P', 'Producer Price Index by Industry: Computer Storage', 'M', '2026-05-01')
-    ('PCU3341123341124', 'Producer Price Index by Industry: Computer Storage', 'M', '2015-03-01')
-
-=== TEST likely IMF/PPI ids ===
-  PCOPPUSDM: ('2026-05-01', '13483.75153846154')
-  PALUMUSDM: ('2026-05-01', '3654.015384615385')
-  PNICKUSDM: ('2026-05-01', '18879.23461538462')
-  PURANUSDM: ('2026-05-01', '69.10176456')
-  PIORECRUSDM: ('2026-05-01', '111.6461538461538')
-  PLEAD: ERRHTTP Error 400: Bad 
-  PNGASEUUSDM: ('2026-05-01', '15.9')
-  WPU117: ('2026-05-01', '160.031')
-  WPU101: ('2026-05-01', '357.108')
-  PCU334413334413: ('2026-05-01', '30.104')
-  WPS1178: ('2026-05-01', '87.223')
-  NAPMPRI: ERRHTTP Error 400: Bad 
-  NAPMSDI: ERRHTTP Error 400: Bad 
-  WPU10: ('2026-05-01', '380.938')
-DONE 2226
+total signals: 18
+new real-data signals present + their tightness:
+  SEMI_PPI           MISSING
+  MEMORY_STORAGE_PPI MISSING
+  COPPER_SPOT        MISSING
+  URANIUM_SPOT       MISSING
+  NICKEL_SPOT        MISSING
+  ALUMINUM_SPOT      MISSING
+  IRON_ORE_SPOT      MISSING
+  STEEL_PPI          MISSING
+  NATGAS_SPOT        MISSING
+top tightening themes: [('XLE', None), ('XOP', None), ('OIH', None), ('AMLP', None), ('URA', None), ('URNM', None), ('NLR', None), ('COPX', None)]
+DONE 2227
