@@ -239,6 +239,8 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
         "key_metrics_ttm":  ("key-metrics-ttm", {"symbol": ticker}),
         "growth":           ("financial-growth", {"symbol": ticker, "period": "annual", "limit": 10}),
         "estimates":        ("analyst-estimates", {"symbol": ticker, "period": "annual", "limit": 5}),
+        "rev_product_seg":  ("revenue-product-segmentation", {"symbol": ticker, "period": "annual"}),
+        "rev_geo_seg":      ("revenue-geographic-segmentation", {"symbol": ticker, "period": "annual"}),
         "pt_consensus":     ("price-target-consensus", {"symbol": ticker}),
         "dcf":              ("discounted-cash-flow", {"symbol": ticker}),
         "scores":           ("financial-scores", {"symbol": ticker}),
@@ -350,17 +352,86 @@ def compute_fcf_cagr(cf_annual: list) -> dict:
 
 
 def compute_margin_trend(income_annual: list, n: int = 10) -> dict:
-    """Pull margin time-series for the last n years."""
+    """Margin time-series for the last n years. /stable/ income statements don't carry
+    the *Ratio fields, so compute each margin from raw revenue + profit lines."""
     if not isinstance(income_annual, list):
         return {"gross_trend": [], "operating_trend": [], "net_trend": []}
     rows = income_annual[:n]
+
+    def margin(r, num_key):
+        rev = _safe_num(r, "revenue")
+        num = _safe_num(r, num_key)
+        if rev and num is not None and rev != 0:
+            return round(num / rev * 100, 2)
+        return None
+
     return {
-        "gross_trend":     [{"date": r.get("date"), "value": _pct(_safe_num(r, "grossProfitRatio"))}
+        "gross_trend":     [{"date": r.get("date"), "value": margin(r, "grossProfit")}
                               for r in rows if r.get("date")],
-        "operating_trend": [{"date": r.get("date"), "value": _pct(_safe_num(r, "operatingIncomeRatio"))}
+        "operating_trend": [{"date": r.get("date"), "value": margin(r, "operatingIncome")}
                               for r in rows if r.get("date")],
-        "net_trend":       [{"date": r.get("date"), "value": _pct(_safe_num(r, "netIncomeRatio"))}
+        "net_trend":       [{"date": r.get("date"), "value": margin(r, "netIncome")}
                               for r in rows if r.get("date")],
+    }
+
+
+def compact_price_series(prices_eod: list, max_points: int = 160) -> list:
+    """Downsample the 10y EOD series to ~max_points (date, close) for the price chart."""
+    if not isinstance(prices_eod, list) or not prices_eod:
+        return []
+    pts = []
+    for p in sorted(prices_eod, key=lambda x: x.get("date") or ""):
+        c = _safe_num(p, "price")
+        if c is None:
+            c = _safe_num(p, "close")
+        d = p.get("date")
+        if d and c is not None:
+            pts.append({"date": d, "close": round(c, 2)})
+    if len(pts) <= max_points:
+        return pts
+    step = len(pts) / float(max_points)
+    sampled = [pts[int(i * step)] for i in range(max_points)]
+    if sampled[-1]["date"] != pts[-1]["date"]:
+        sampled.append(pts[-1])      # always include the latest close
+    return sampled
+
+
+def build_business_mix(prod_seg: list, geo_seg: list, latest_revenue) -> dict:
+    """Revenue composition — by product/operating segment and by geography — plus a
+    multi-year segment trend. Real FMP segmentation data (the honest 'business mix')."""
+    def latest(seg):
+        if not isinstance(seg, list) or not seg:
+            return {}, None
+        rows = sorted([s for s in seg if s.get("date")], key=lambda s: s.get("date"))
+        return (rows[-1].get("data") or {}), rows[-1].get("date")
+
+    prod_data, prod_date = latest(prod_seg)
+    geo_data, geo_date = latest(geo_seg)
+
+    seg = {k: v for k, v in prod_data.items() if isinstance(v, (int, float)) and v}
+    geo = {k: v for k, v in geo_data.items() if isinstance(v, (int, float)) and v}
+
+    # If geography only discloses a non-US figure, derive domestic from total revenue.
+    if geo and latest_revenue:
+        non_us = sum(v for k, v in geo.items()
+                     if any(t in k.lower() for t in ("non-us", "non us", "international", "foreign", "rest of world")))
+        has_domestic = any(t in k.lower() for k in geo for t in ("united states", "u.s.", "domestic", "us "))
+        if non_us and not has_domestic and latest_revenue > non_us:
+            geo = {"United States": round(latest_revenue - non_us), **geo}
+
+    trend = []
+    if isinstance(prod_seg, list):
+        for s in sorted([x for x in prod_seg if x.get("date")], key=lambda x: x.get("date"))[-6:]:
+            dd = {k: v for k, v in (s.get("data") or {}).items() if isinstance(v, (int, float)) and v}
+            if dd:
+                trend.append({"date": s.get("date"), "data": dd})
+
+    return {
+        "segments":         seg,
+        "segments_as_of":   prod_date,
+        "geography":        geo,
+        "geography_as_of":  geo_date,
+        "segment_trend":    trend,
     }
 
 
@@ -1314,6 +1385,7 @@ Schema:
   "valuation_assessment": "150 words on whether the stock is cheap/fair/expensive given P/E vs 5yr avg, DCF gap, peer multiples, and FCF yield. Be specific.",
   "peer_comparison_assessment": "100 words on how the subject's valuation multiples compare to the peer-median (which functions as the industry P/E benchmark). Reference SPECIFIC peer ticker(s) where helpful. Frame as: 'trading at X% premium/discount to peer median P/E of Y'.",
   "industry_comparison_assessment": "90 words using the REAL industry_comparison block (FMP industry & sector P/E snapshot). State the company P/E vs the industry P/E and sector P/E explicitly with the percentages, then judge whether that premium/discount is JUSTIFIED by the company's fundamentals (growth, margins, ROE, leverage) or whether it signals mispricing. A discount is only cheap if the business isn't structurally inferior; a premium is only warranted by superior growth/returns. Be decisive.",
+  "business_mix_assessment": "90 words on the revenue composition in the business_mix block: which segment(s) and geograph(ies) drive revenue and how concentrated that is, whether the mix is shifting over the trend, and — importantly for customer concentration — who the key customers are IF that is evident from the company description, segments, or earnings-call excerpt (e.g. a single dominant government/enterprise customer). If customer detail isn't in the provided data, say 'specific customer concentration not disclosed in the provided data' rather than guessing. Frame the concentration as a risk or a strength.",
   "earnings_track_record_assessment": "80 words on the company's earnings consistency. Cite the EPS beat rate, current streak, magnitude trend, and revenue surprise. Hedge fund framing: 'beats 7 of 8 quarters but with shrinking magnitude = deteriorating quality' is more useful than just 'beats consensus regularly'.",
   "capital_allocation_assessment": "80 words on management's capital allocation. Cite total capital returned 10y, shareholder yield, dividend vs buyback mix, payout ratio sustainability, and capex intensity trend. Frame as 'cash-cow returning $X to shareholders' vs 'reinvesting heavily into capex' — both can be good, depends on ROIC.",
   "institutional_activity_assessment": "60 words on recent SEC 13D/13G beneficial-ownership filings (institutional positions crossing 5% threshold). If filings are stale (>24mo old) or absent, say so plainly. If recent clustering by notable institutions (Berkshire, Vanguard, Blackrock, Wellington), call it out as 'smart money accumulation'.",
@@ -1932,12 +2004,18 @@ def lambda_handler(event, context):
         "pe_vs_sector_pct":   _rel_pct(valuation.get("pe_ttm"), ind_bench.get("sector_pe")),
     }
 
+    # ── Business mix (segment + geographic revenue) and price history (for the chart)
+    _latest_rev = _safe_num(income_annual[0], "revenue") if income_annual else None
+    business_mix = build_business_mix(raw.get("rev_product_seg"), raw.get("rev_geo_seg"), _latest_rev)
+    price_history = compact_price_series(prices_eod)
+
     payload = {
         "ticker":          ticker,
         "company":         company_block,
         "quote":           quote_block,
         "valuation":       valuation,
         "industry_comparison": industry_comparison,
+        "business_mix":    business_mix,
         "growth":          {**growth_metrics, **fcf_metrics, **qty_consistency},
         "margins":         margin_trend,
         "balance_quality": balance_qual,
@@ -2004,6 +2082,7 @@ def lambda_handler(event, context):
         "valuation_assessment":claude_synthesis.get("valuation_assessment"),
         "peer_comparison_assessment": claude_synthesis.get("peer_comparison_assessment"),
         "industry_comparison_assessment": claude_synthesis.get("industry_comparison_assessment"),
+        "business_mix_assessment": claude_synthesis.get("business_mix_assessment"),
         "earnings_track_record_assessment": claude_synthesis.get("earnings_track_record_assessment"),
         "capital_allocation_assessment": claude_synthesis.get("capital_allocation_assessment"),
         "institutional_activity_assessment": claude_synthesis.get("institutional_activity_assessment"),
@@ -2014,6 +2093,8 @@ def lambda_handler(event, context):
         "invalidation_triggers": claude_synthesis.get("invalidation_triggers") or [],
         "forward_model":       claude_synthesis.get("forward_model"),
         "industry_comparison": industry_comparison,
+        "business_mix":        business_mix,
+        "price_history":       price_history,
         "scenarios":           _enrich_scenarios(
             claude_synthesis.get("scenarios"), current_price
         ),
