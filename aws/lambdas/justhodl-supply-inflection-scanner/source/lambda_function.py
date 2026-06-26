@@ -61,6 +61,71 @@ S3 = boto3.client("s3", region_name=REGION)
 #
 # To add new signals, just append. Lambda auto-handles them.
 INFLECTION_SIGNALS = {
+    # ── TRUE LEADING INPUTS (FRED real spot / producer prices — these lead the equities,
+    #    unlike the ETF proxies below which ARE the equities and therefore lag) ──
+    "SEMI_PPI": {
+        "src": "fred", "symbol": "PCU33443344",
+        "direction": "up_is_tight",
+        "themes": ["SMH", "SOXX", "AIQ"],
+        "description": "Semiconductor producer price index — the real chip price (DRAM/memory tightness tell)",
+        "category": "tech_semis",
+    },
+    "MEMORY_STORAGE_PPI": {
+        "src": "fred", "symbol": "PCU334112334112",
+        "direction": "up_is_tight",
+        "themes": ["SMH", "SOXX"],
+        "description": "Computer storage device PPI — memory/storage producer price",
+        "category": "tech_semis",
+    },
+    "COPPER_SPOT": {
+        "src": "fred", "symbol": "PCOPPUSDM",
+        "direction": "up_is_tight",
+        "themes": ["COPX", "PICK", "GRID"],
+        "description": "Global copper spot (IMF) — real underlying, leads COPX",
+        "category": "commodity_base",
+    },
+    "URANIUM_SPOT": {
+        "src": "fred", "symbol": "PURANUSDM",
+        "direction": "up_is_tight",
+        "themes": ["URA", "URNM", "NLR"],
+        "description": "Global uranium spot (IMF) — real U3O8, leads URA",
+        "category": "commodity_nuclear",
+    },
+    "NICKEL_SPOT": {
+        "src": "fred", "symbol": "PNICKUSDM",
+        "direction": "up_is_tight",
+        "themes": ["LIT", "REMX"],
+        "description": "Global nickel spot (IMF) — battery-cathode input",
+        "category": "commodity_battery",
+    },
+    "ALUMINUM_SPOT": {
+        "src": "fred", "symbol": "PALUMUSDM",
+        "direction": "up_is_tight",
+        "themes": ["PICK", "XME"],
+        "description": "Global aluminum spot (IMF)",
+        "category": "commodity_base",
+    },
+    "IRON_ORE_SPOT": {
+        "src": "fred", "symbol": "PIORECRUSDM",
+        "direction": "up_is_tight",
+        "themes": ["SLX", "PICK"],
+        "description": "Global iron-ore spot (IMF) — steel input",
+        "category": "commodity_steel",
+    },
+    "STEEL_PPI": {
+        "src": "fred", "symbol": "WPU101",
+        "direction": "up_is_tight",
+        "themes": ["SLX", "PICK"],
+        "description": "Metals & metal-products PPI — steel pricing power",
+        "category": "commodity_steel",
+    },
+    "NATGAS_SPOT": {
+        "src": "fred", "symbol": "PNGASUSUSDM",
+        "direction": "up_is_tight",
+        "themes": ["XLE", "AMLP"],
+        "description": "Henry Hub natural-gas spot (IMF/global)",
+        "category": "commodity_energy",
+    },
     # ── COMMODITIES (proxied via ETFs/spot tickers Polygon supports) ──
     "OIL_WTI": {
         "src": "polygon", "symbol": "USO",
