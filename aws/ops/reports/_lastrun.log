@@ -1,26 +1,16 @@
-=== NEW TRUE-LEADING SIGNALS (score, flag) ===
-  COPPER_SPOT          score=None flag=None
-  URANIUM_SPOT         score=None flag=None
-  ALUMINUM_SPOT        score=None flag=None
-  NICKEL_SPOT          score=None flag=None
-  IRON_ORE_SPOT        score=None flag=None
-  PPI_SEMIS            score=None flag=None
-  PPI_GRID_EQUIPMENT   score=None flag=None
-  DELIVERY_TIME_NY     score=None flag=None
-  PRICES_PAID_PHILLY   score=None flag=None
-  PRICES_PAID_NY       score=None flag=None
+signal keys in output (18): ['OIL_WTI', 'NATGAS', 'RARE_EARTH', 'GOLD', 'LITHIUM', 'OIL_BRENT', 'COPPER', 'STEEL_BASKET', 'URANIUM', 'SILVER', 'AI_INFRA_PROXY', 'MEMORY_DEMAND', 'DEFENSE_DEMAND', 'LUMBER', 'AI_POWER_PROXY', 'DOLLAR_INDEX', 'TREASURY_10Y', 'REAL_RATES']
+new signals present in output: False
+-> deploy no-op'd; force-updating code via boto3
+   repo source has COPPER_SPOT: True | PCOPPUSDM: True
 
-summary: scored 18 strong_tighten 1 tighten 1
-top tightening: [('MEMORY_DEMAND', 84.9, 'STRONG_TIGHTENING'), ('NATGAS', 46.4, 'NEUTRAL'), ('AI_POWER_PROXY', 42.8, 'NEUTRAL'), ('TREASURY_10Y', 37.9, 'NEUTRAL'), ('LITHIUM', 24.3, 'EASING'), ('STEEL_BASKET', 24.2, 'EASING'), ('AI_INFRA_PROXY', 23.1, 'EASING'), ('OIL_WTI', 21.4, 'EASING')]
-
-=== SCARCITY-RADAR after upgrade: vertical tightness ===
-  SOXX  tight 84.9  phase=EXTENDED signals=['MEMORY_DEMAND']
-  AIQ   tight 72.5  phase=PEAKING signals=['MEMORY_DEMAND', 'AI_INFRA_PROXY']
-  BOTZ  tight 72.5  phase=COOLING signals=['MEMORY_DEMAND', 'AI_INFRA_PROXY']
-  SMH   tight 72.5  phase=EXTENDED signals=['MEMORY_DEMAND', 'AI_INFRA_PROXY']
-  XLU   tight 42.8  phase=None signals=['AI_POWER_PROXY']
-  AMLP  tight 41.4  phase=COOLING signals=['NATGAS', 'OIL_WTI']
-  XLE   tight 39.7  phase=COOLING signals=['NATGAS', 'OIL_WTI', 'OIL_BRENT']
-  XLRE  tight 37.9  phase=PEAKING signals=['TREASURY_10Y']
-headline: 0
-DONE 2229
+AFTER force-update — new signals:
+  COPPER_SPOT          score=None flag=None latest=None chg90=None pctl365=None
+  URANIUM_SPOT         score=None flag=None latest=None chg90=None pctl365=None
+  NICKEL_SPOT          score=None flag=None latest=None chg90=None pctl365=None
+  IRON_ORE_SPOT        score=None flag=None latest=None chg90=None pctl365=None
+  PPI_SEMIS            score=None flag=None latest=None chg90=None pctl365=None
+  PPI_GRID_EQUIPMENT   score=None flag=None latest=None chg90=None pctl365=None
+  DELIVERY_TIME_NY     score=None flag=None latest=None chg90=None pctl365=None
+  PRICES_PAID_PHILLY   score=None flag=None latest=None chg90=None pctl365=None
+n_scored: 18
+DONE 2230
