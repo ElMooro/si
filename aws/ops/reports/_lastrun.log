@@ -1,9 +1,80 @@
-MR feed loaded: True | counts in feed: {'names': 136, 'prime': 0, 'candidates': 1, 'verticals_tightening': 13}
-MR index names carrying scarcity_radar: 1
-   TSM: tier=CANDIDATE comp=51.6 vertical=Semiconductors / memory | total_systems_on_name=2
+=== SEARCHES (inventory-to-sales by sector) ===
 
-CONVICTION setups: ['Crypto', 'US macro / housing cycle', 'US equity — positioning', 'Broad risk / equity beta', 'US equity — value tilt', 'Cross-asset relative value', 'Supply shortage / scarcity']
-scarcity subject: [('Supply shortage / scarcity', 'NEUTRAL / MIXED', 'None')]
-single_names from scarcity-radar: [('TSM', 'SHORTAGE CANDIDATE', 51.6)]
-Scarcity Radar engine read: []
-DONE 2235
+'inventories to sales ratio':
+    ('MSACSR', 'Monthly Supply of New Houses in the United States', 'M', '2026-05-01')
+    ('ISRATIO', 'Total Business: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('RETAILIRSA', 'Retailers: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('AISRSA', 'Auto Inventory/Sales Ratio', 'M', '2026-05-01')
+    ('MNFCTRIRSA', 'Manufacturers: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('WHLSLRIRSA', 'Merchant Wholesalers: Inventories to Sales Ratio', 'M', '2026-04-01')
+
+'manufacturers inventories sales ratio':
+    ('ISRATIO', 'Total Business: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('RETAILIRSA', 'Retailers: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('MNFCTRIRSA', 'Manufacturers: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('WHLSLRIRSA', 'Merchant Wholesalers: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('TOTBUSIRNSA', 'Total Business: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('MNFCTRIRNSA', 'Manufacturers: Inventories to Sales Ratio', 'M', '2026-04-01')
+
+'retailers inventories sales ratio':
+    ('RETAILIRSA', 'Retailers: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('MRTSIR448USS', 'Retail Inventories/Sales Ratio: Clothing and Clothin', 'M', '2026-04-01')
+    ('MRTSIR4400AUSS', 'Retail Inventories/Sales Ratio: Retail Trade, Exclud', 'M', '2026-04-01')
+    ('MRTSIR441USS', 'Retail Inventories/Sales Ratio: Motor Vehicle and Pa', 'M', '2026-04-01')
+    ('MRTSIR452USS', 'Retail Inventories/Sales Ratio: General Merchandise ', 'M', '2026-04-01')
+    ('MRTSIR444USS', 'Retail Inventories/Sales Ratio: Building Materials a', 'M', '2026-04-01')
+
+'merchant wholesalers inventories sales':
+    ('WHLSLRIRSA', 'Merchant Wholesalers: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('WHLSLRIMSA', 'Merchant Wholesalers Inventories', 'M', '2026-04-01')
+    ('WHLSLRSMSA', 'Merchant Wholesalers Sales', 'M', '2026-04-01')
+    ('I4248IM144SCEN', "Merchant Wholesalers, Except Manufacturers' Sales Br", 'M', '2026-04-01')
+    ('I4232IM144SCEN', "Merchant Wholesalers, Except Manufacturers' Sales Br", 'M', '2026-04-01')
+    ('WHLSLRIRNSA', 'Merchant Wholesalers: Inventories to Sales Ratio', 'M', '2026-04-01')
+
+'auto inventory sales ratio':
+    ('AISRSA', 'Auto Inventory/Sales Ratio', 'M', '2026-05-01')
+    ('MRTSIR4400AUSS', 'Retail Inventories/Sales Ratio: Retail Trade, Exclud', 'M', '2026-04-01')
+    ('MRTSIR441USS', 'Retail Inventories/Sales Ratio: Motor Vehicle and Pa', 'M', '2026-04-01')
+    ('MRTSIR441USN', 'Retail Inventories/Sales Ratio: Motor Vehicle and Pa', 'M', '2026-04-01')
+    ('MRTSIR4400AUSN', 'Retail Inventories/Sales Ratio: Retail Trade, Exclud', 'M', '2026-04-01')
+
+'total business inventories':
+    ('ETOTALUSQ176N', 'Housing Inventory Estimate: Total Housing Units in t', 'Q', '2026-01-01')
+    ('BUSINV', 'Total Business Inventories', 'M', '2026-04-01')
+    ('ISRATIO', 'Total Business: Inventories to Sales Ratio', 'M', '2026-04-01')
+    ('TOTBUSSMSA', 'Total Business Sales', 'M', '2026-04-01')
+    ('TOTBUSIMNSA', 'Total Business Inventories', 'M', '2026-04-01')
+    ('M05F3AUSM387NNBR', 'Crude Petroleum Stocks for United States', 'M', '1941-07-01')
+
+'manufacturing inventories durable':
+    ('DGORDER', "Manufacturers' New Orders: Durable Goods", 'M', '2026-05-01')
+    ('A34SNO', "Manufacturers' New Orders: Computers and Electronic ", 'M', '2026-05-01')
+    ('ADXTNO', "Manufacturers' New Orders: Durable Goods Excluding T", 'M', '2026-05-01')
+    ('A33SNO', "Manufacturers' New Orders: Machinery", 'M', '2026-05-01')
+    ('A35SNO', "Manufacturers' New Orders: Electrical Equipment, App", 'M', '2026-05-01')
+    ('ADXDNO', "Manufacturers' New Orders: Durable Goods Excluding D", 'M', '2026-05-01')
+
+'semiconductor inventories':
+    ('AMTMNO', "Manufacturers' New Orders: Total Manufacturing", 'M', '2026-04-01')
+    ('A34SNO', "Manufacturers' New Orders: Computers and Electronic ", 'M', '2026-05-01')
+    ('AMTMVS', "Manufacturers' Value of Shipments: Total Manufacturi", 'M', '2026-04-01')
+    ('AMTMTI', "Manufacturers' Total Inventories: Total Manufacturin", 'M', '2026-04-01')
+    ('A34SVS', "Manufacturers' Value of Shipments: Computers and Ele", 'M', '2026-05-01')
+    ('UMTMNO', "Manufacturers' New Orders: Total Manufacturing", 'M', '2026-04-01')
+
+=== TEST likely inventory/sales ratio ids ===
+  ISRATIO: ('2026-04-01', '1.31')
+  RETAILIRSA: ('2026-04-01', '1.26')
+  MNFCTRIRSA: ('2026-04-01', '1.50')
+  WHLSLRIRSA: ('2026-04-01', '1.19')
+  AISRSA: ('2026-05-01', '1.45')
+  BUSINV: ('2026-04-01', '2726588.0')
+  TOTBUSIMNSA: ('2026-04-01', '2739264.0')
+  MRTSIR44000USS: ('2026-04-01', '1.26')
+  RETAILIMSA: ('2026-04-01', '827169.0')
+  AISRSANT: ERRHTTP Error 400: Ba
+  DGORDER: ('2026-05-01', '332050.0')
+  MNFCTRIMSA: ('2026-04-01', '959125.0')
+  WHLSLRIMSA: ('2026-04-01', '940294.0')
+DONE 2236
