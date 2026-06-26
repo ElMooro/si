@@ -106,6 +106,8 @@ CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
+FALLBACK_BUDGET_S = 100     # hard cap on the GLM/Sonnet fallback so a slow LLM never
+                            # runs the Lambda into its 300s timeout before the doc writes
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -136,9 +138,11 @@ def fmp_get(endpoint: str, **params) -> Optional[Any]:
 
 def claude_call(system, user: str, max_tokens: int = 6000, use_cache: bool = True) -> str:
     """Anthropic Haiku primary; GLM-5.1 (Z.ai, via the shared llm_router) fallback when the
-    direct Anthropic call fails — e.g. credits exhausted returns HTTP 400. This keeps the
-    research synthesis (executive summary, thesis, risks, devil's advocate, verdict) working
-    off-Anthropic instead of degrading the whole report to 'manual review'."""
+    direct Anthropic call fails — e.g. credits exhausted returns HTTP 400. The fallback is
+    time-bounded: if neither model returns within the budget, we raise so the handler still
+    writes the full quantitative report (valuation, business mix, price history, peers…) with
+    the AI prose marked unavailable, rather than letting a slow LLM chain run the Lambda into
+    its timeout and write nothing at all."""
     try:
         return _anthropic_call(system, user, max_tokens, use_cache)
     except Exception as e:
@@ -150,8 +154,16 @@ def claude_call(system, user: str, max_tokens: int = 6000, use_cache: bool = Tru
             raise e
         sys_text = system if isinstance(system, str) else \
             "\n".join(b.get("text", "") for b in (system or []) if isinstance(b, dict))
-        return complete(user, tier="reason", max_tokens=max(max_tokens, 2000),
-                        system=(sys_text or None))
+        import concurrent.futures as _cf
+        with _cf.ThreadPoolExecutor(max_workers=1) as _ex:
+            fut = _ex.submit(complete, user, tier="reason",
+                             max_tokens=max(max_tokens, 2000), system=(sys_text or None))
+            try:
+                return fut.result(timeout=FALLBACK_BUDGET_S)
+            except _cf.TimeoutError:
+                print(f"[claude_call] llm_router fallback exceeded {FALLBACK_BUDGET_S}s; "
+                      f"giving up so the doc still writes with quant data")
+                raise RuntimeError("LLM fallback timed out — quant report still produced")
 
 
 def _anthropic_call(system, user: str, max_tokens: int = 6000, use_cache: bool = True) -> str:
