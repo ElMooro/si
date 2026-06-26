@@ -1,19 +1,14 @@
-TIC release id: 3 Treasury International Capital: Continuous Securit
+have FRED key: True
+exists via deploy
+schedule FAIL: An error occurred (LimitExceededException) when calling the PutRule op
 
-Net-transaction grand-total series (12):
-    ('FORLTAGCYNET99996', 'Foreign Net Transactions of U.S. Long-Term Agency Bonds: Grand Total', '2026-04-01')
-    ('FORLTCORPNET99996', 'Foreign Net Transactions of U.S. Long-Term Corporate Bonds: Grand Total', '2026-04-01')
-    ('FORLTEQTYNET99996', 'Foreign Net Transactions of U.S. Equity Securities: Grand Total', '2026-04-01')
-    ('FORLTTOTALNET99996', 'Foreign Net Transactions of All U.S. Long-Term Securities: Grand Total', '2026-04-01')
-    ('FORLTTREASNET99996', 'Foreign Net Transactions of U.S. Long-Term Treasury Securities: Grand Total', '2026-04-01')
-    ('FORSTTREASNET99996', 'Foreign Net Transactions of U.S. Short-Term Treasury Securities: Grand Tota', '2026-04-01')
-    ('FORTREASNET99996', 'Foreign Net Transactions of U.S. Long-Term and Short-Term Treasury Securiti', '2026-04-01')
-    ('USLTBONDNET99996', 'U.S. Net Transactions of Foreign Long-Term Corporate and Government Bonds: ', '2026-04-01')
-    ('USLTCORPBONDNET99996', 'U.S. Net Transactions of Foreign Long-Term Corporate Bonds: Grand Total', '2026-04-01')
-    ('USLTEQTYNET99996', 'U.S. Net Transactions of Foreign Equity Securities: Grand Total', '2026-04-01')
-    ('USLTGOVTBONDNET99996', 'U.S. Net Transactions of Foreign Long-Term Government Bonds: Grand Total', '2026-04-01')
-    ('USLTTOTALNET99996', 'U.S. Net Transactions of All Foreign Long-Term Securities: Grand Total', '2026-04-01')
-
-FORTREASNET99996 latest (Treasury net, $M): [('2026-04-01', 36919.0), ('2026-03-01', -3300.0), ('2026-02-01', 94111.0), ('2026-01-01', 37977.0)]
-  12mo rolling sum ($B): 466.3
-DONE 2220
+=== US CAPITAL INFLOWS (data as of 2026-04-01) ===
+  Foreign net into US LT securities, 12mo: $1824.9B
+  NET cross-border LT flow, 12mo:          $1349.4B
+  Latest month:                            $206.0B
+  3mo annualized run-rate:                 $1611.1B
+  YoY change in 12mo sum:                  $676.5B
+  Short-term Treasury 12mo:                $93.8B
+  By asset class (12mo $B): {'treasuries': 372.5, 'agency_bonds': 132.5, 'corporate_bonds': 435.9, 'equities': 883.9}
+  REGIME: STEADY_INFLOW — Healthy foreign funding of US assets — a tailwind, not a flag.
+DONE 2221
