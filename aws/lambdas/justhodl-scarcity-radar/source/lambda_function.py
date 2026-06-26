@@ -166,18 +166,25 @@ def lambda_handler(event=None, context=None):
         a["notes"].append("quiet accumulation (low buzz, smart money in)")
 
     # inventory drawdown — DIO falling into rising demand = the cupboard emptying (capture,
-    # one layer earlier than spot/PPI). Pull boom setups + the broader stock drawdown board.
+    # one layer earlier than spot/PPI). Credit ONLY demand-confirmed draws: DIO falling while
+    # revenue rises = a sellout. DIO falling while revenue is flat/down is destocking (weak
+    # demand) — the exact misread we're avoiding — so it earns no capture.
     for r in ((idr.get("boom_setups") or []) + (idr.get("stock_drawdown_board") or [])):
         tk = r.get("ticker")
         dio_chg = r.get("dio_chg_pct")
         if not tk or not isinstance(dio_chg, (int, float)) or dio_chg >= 0:
             continue
+        rev = r.get("rev_growth_yoy")
+        is_boom = str(r.get("classification", "")).upper() == "BOOM_SETUP"
+        if not is_boom and not (isinstance(rev, (int, float)) and rev > 0):
+            continue   # destocking, not a shortage — skip
         a = rec(tk); a["engines"].add("inventory-drawdown")
         a["industry"] = a["industry"] or r.get("industry"); a["sector"] = a["sector"] or r.get("sector")
         boom = r.get("boom_score")
         cap = boom if isinstance(boom, (int, float)) and boom > 0 else clamp((-dio_chg) * 3.0)
         a["capture"] = clamp(max(a["capture"], cap))
-        a["notes"].append(f"DIO {round(dio_chg,1)}% (drawing down)")
+        rev_note = f", rev +{round(rev,1)}%" if isinstance(rev, (int, float)) else ""
+        a["notes"].append(f"DIO {round(dio_chg,1)}% drawing down{rev_note}")
 
     book = []
     for tk, a in names.items():
