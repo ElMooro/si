@@ -1,13 +1,6 @@
-total signals: 18
-new real-data signals present + their tightness:
-  SEMI_PPI           MISSING
-  MEMORY_STORAGE_PPI MISSING
-  COPPER_SPOT        MISSING
-  URANIUM_SPOT       MISSING
-  NICKEL_SPOT        MISSING
-  ALUMINUM_SPOT      MISSING
-  IRON_ORE_SPOT      MISSING
-  STEEL_PPI          MISSING
-  NATGAS_SPOT        MISSING
-top tightening themes: [('XLE', None), ('XOP', None), ('OIH', None), ('AMLP', None), ('URA', None), ('URNM', None), ('NLR', None), ('COPX', None)]
-DONE 2227
+deployed code has SEMI_PPI: True | has PCU33443344: True
+INFLECTION_SIGNALS count in deployed code: 44
+output signal names: ['OIL_WTI', 'OIL_BRENT', 'NATGAS', 'URANIUM', 'COPPER', 'LITHIUM', 'RARE_EARTH', 'GOLD', 'SILVER', 'STEEL_BASKET', 'MEMORY_DEMAND', 'LUMBER', 'AI_INFRA_PROXY', 'DEFENSE_DEMAND', 'AI_POWER_PROXY', 'REAL_RATES', 'TREASURY_10Y', 'DOLLAR_INDEX']
+fetch_stats: {"n_signals": 38, "n_ok": 18, "n_fail": 20, "fetch_duration_s": 0.9}
+engine env has FRED_KEY: True | FRED_API_KEY: False
+DONE 2228
