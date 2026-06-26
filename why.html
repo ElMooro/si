@@ -544,6 +544,7 @@ function renderReport(d){
   html += renderForwardModel(d);       // AI forward projections + price model
   html += renderSensitivity(d);        // fair-value heatmap: forward P/E × EPS
   html += renderAnalystRatings(d);     // ANR: consensus, ratings trend, PT momentum
+  html += renderOptions(d);            // OMON: implied move, IV, skew, P/C OI
   html += renderPeerComparison(d);
   html += renderIndustryComparison(d); // company vs real industry/sector P/E
   html += renderFinancialHealth(d);
@@ -912,6 +913,57 @@ function renderPeerComparison(d){
         ${relTile('ps',        'P/S',       (v) => fmtNum(v, 2))}
         ${relTile('ev_ebitda', 'EV/EBITDA', (v) => fmtNum(v, 2))}
       </div>
+    </section>`;
+}
+
+function renderOptions(d){
+  const o = d.options_expectations;
+  if(!o || !o.implied_move_pct) return "";
+  const cur = (d.quote || {}).price || o.spot;
+  const move = o.implied_move_pct, skew = o.put_skew_pts, pcr = o.pc_oi_ratio;
+  let skewRead = '', skewColor = 'var(--text-dim)';
+  if(skew != null){
+    if(skew >= 3){ skewRead = 'downside hedging bid'; skewColor = 'var(--red)'; }
+    else if(skew <= -2){ skewRead = 'upside-skewed (call demand)'; skewColor = 'var(--green-bright)'; }
+    else { skewRead = 'roughly symmetric'; }
+  }
+  let pcrRead = '';
+  if(pcr != null){
+    if(pcr >= 1.5) pcrRead = 'heavy put open interest';
+    else if(pcr <= 0.6) pcrRead = 'call-heavy positioning';
+    else pcrRead = 'balanced positioning';
+  }
+  const sm = o.smile || [];
+  let smileSvg = '';
+  if(sm.length >= 4){
+    const W = 340, H = 90, pad = 8;
+    const xs = sm.map(p => p.moneyness), ys = sm.map(p => p.iv_pct);
+    const xmin = Math.min(...xs), xmax = Math.max(...xs), ymin = Math.min(...ys), ymax = Math.max(...ys);
+    const X = m => pad + (m - xmin) / ((xmax - xmin) || 1) * (W - 2 * pad);
+    const Y = v => H - pad - (v - ymin) / ((ymax - ymin) || 1) * (H - 2 * pad);
+    const pts = sm.map(p => `${X(p.moneyness).toFixed(1)},${Y(p.iv_pct).toFixed(1)}`).join(' ');
+    smileSvg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:380px;height:auto">
+        <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        ${sm.map(p => `<circle cx="${X(p.moneyness).toFixed(1)}" cy="${Y(p.iv_pct).toFixed(1)}" r="2.5" fill="var(--accent)"/>`).join('')}
+        <line x1="${X(1).toFixed(1)}" y1="${pad}" x2="${X(1).toFixed(1)}" y2="${H - pad}" stroke="var(--text-muted)" stroke-dasharray="3,3" stroke-width="1"/>
+        <text x="${X(1).toFixed(1)}" y="${H - 1}" font-size="8" fill="var(--text-muted)" text-anchor="middle">ATM</text>
+      </svg>
+      <div style="font-size:10px;color:var(--text-muted)">implied-vol smile — IV (%) by moneyness (strike ÷ spot) · ${esc(o.expiry || '')}</div>`;
+  }
+  const m$ = v => v != null ? '$' + Number(v).toFixed(2) : '—';
+  return `
+    <section class="block">
+      <h3><span class="ico">⚡</span> Options-Implied Expectations <span class="pill">into ${esc(o.next_earnings || o.expiry || 'next earnings')}</span></h3>
+      <p class="lead">The options market is pricing a <strong style="color:var(--accent)">±${fmtNum(move, 1)}%</strong> move into the next report — an expected range of <strong>${m$(o.expected_low)} – ${m$(o.expected_high)}</strong> versus the current ${m$(cur)}, implied by ${fmtNum(o.atm_iv_pct, 1)}% at-the-money volatility on the ${esc(o.expiry || '')} expiry (${o.days_to_expiry}d out).</p>
+      <div class="grid" style="margin-top:8px">
+        <div class="metric"><div class="lbl">Implied move</div><div class="val" style="color:var(--accent)">±${fmtNum(move, 1)}%</div><div class="sub">into earnings</div></div>
+        <div class="metric"><div class="lbl">Expected range</div><div class="val" style="font-size:1.05rem">${m$(o.expected_low)}–${m$(o.expected_high)}</div><div class="sub">${o.days_to_expiry}d to ${esc(o.expiry || '')}</div></div>
+        <div class="metric"><div class="lbl">ATM implied vol</div><div class="val">${fmtNum(o.atm_iv_pct, 1)}%</div><div class="sub">annualized</div></div>
+        ${skew != null ? `<div class="metric"><div class="lbl">Put/Call skew</div><div class="val" style="color:${skewColor}">${skew >= 0 ? '+' : ''}${fmtNum(skew, 1)} pts</div><div class="sub">${skewRead}</div></div>` : ''}
+        ${pcr != null ? `<div class="metric"><div class="lbl">Put/Call OI</div><div class="val">${fmtNum(pcr, 2)}</div><div class="sub">${pcrRead}</div></div>` : ''}
+      </div>
+      ${smileSvg ? `<div style="margin-top:14px">${smileSvg}</div>` : ''}
+      <p class="sub" style="margin-top:8px;color:var(--text-muted)">Implied move = ATM&nbsp;IV&nbsp;×&nbsp;√(days/365), from live Polygon option IV across ${o.n_contracts} near-money contracts. Forward-looking market expectation, not a forecast.</p>
     </section>`;
 }
 
