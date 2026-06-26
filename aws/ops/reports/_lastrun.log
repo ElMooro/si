@@ -1,3 +1,6 @@
-supply-inflection rules: NONE
-signal list under a different key; top keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'fetch_stats', 'summary', 'signals', 'by_theme', 'schema']
-DONE 2227
+INPUT SIGNALS (n=18), by score:
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2228_signals_and_rule.py", line 6, in <module>
+    if sigs and isinstance(sigs[0],dict):
+                           ~~~~^^^
+KeyError: 0
