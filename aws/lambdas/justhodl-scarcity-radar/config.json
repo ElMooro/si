@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-scarcity-radar",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "env": {},
+  "schedule": {
+    "rule_name": "justhodl-scarcity-radar-daily",
+    "cron": "cron(45 22 ? * MON-FRI *)",
+    "description": "Next-shortage radar: fuses 8 supply/scarcity engines into a scarcity x stealth board + per-vertical tightness"
+  }
+}
