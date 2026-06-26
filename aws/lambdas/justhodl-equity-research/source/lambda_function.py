@@ -1461,8 +1461,49 @@ def build_claude_prompt(payload: dict) -> str:
     )
 
 
+def _repair_truncated_json(text: str) -> dict:
+    """Salvage a JSON object that was cut off when the model hit max_tokens.
+    Walk to the last clean boundary (a completed value: closing brace/bracket or
+    comma, outside any string), drop a trailing comma, then close the still-open
+    containers. Recovers every complete field before the truncation point."""
+    i = text.find("{")
+    if i < 0:
+        raise ValueError("no JSON object found")
+    s = text[i:]
+    stack = []
+    in_str = False
+    esc = False
+    clean_idx = -1
+    clean_stack = None
+    for idx, ch in enumerate(s):
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+            continue
+        if ch in "{[":
+            stack.append("}" if ch == "{" else "]")
+        elif ch in "}]":
+            if stack:
+                stack.pop()
+            clean_idx, clean_stack = idx, list(stack)
+        elif ch == ",":
+            clean_idx, clean_stack = idx, list(stack)
+    if clean_idx < 0:
+        raise ValueError("cannot repair truncated JSON")
+    frag = s[:clean_idx + 1].rstrip().rstrip(",")
+    frag += "".join(reversed(clean_stack or []))
+    return json.loads(frag)
+
+
 def parse_claude(text: str) -> dict:
-    """Strip ```json fences and parse."""
+    """Strip ```json fences and parse; salvage if the response was truncated."""
     import re
     text = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
     text = re.sub(r"\s*```\s*$", "", text.strip(), flags=re.MULTILINE)
@@ -1479,7 +1520,11 @@ def parse_claude(text: str) -> dict:
                     return json.loads(text[start:i+1])
                 except json.JSONDecodeError:
                     continue
-    return json.loads(text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # Model hit the token cap mid-object — salvage the complete fields.
+        return _repair_truncated_json(text)
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -1830,7 +1875,7 @@ def lambda_handler(event, context):
     try:
         t_claude = time.time()
         user_prompt = build_claude_prompt(payload)
-        response_text = claude_call(CLAUDE_SYSTEM, user_prompt, max_tokens=10000)
+        response_text = claude_call(CLAUDE_SYSTEM, user_prompt, max_tokens=16000)
         claude_elapsed = round(time.time() - t_claude, 2)
         claude_diag["raw_chars"] = len(response_text)
         claude_diag["raw_head"] = response_text[:400]
