@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scarcity Radar · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;
+--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8;--vio:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 90px}
+.hd{border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:16px}
+h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font-size:12.5px}.meta{color:var(--fg3);font-size:11.5px;margin-top:3px}
+.thesis{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--cyan);border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--fg2);line-height:1.5;margin-bottom:14px}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:5px 10px;font-size:11.5px;color:var(--fg2)}
+.chip b{color:var(--fg);font-size:13px}
+.sec{margin:22px 0 9px;font-size:13px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+.sec .n{color:var(--fg3);font-weight:400;font-size:11.5px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:14px 16px}
+.bar{display:flex;align-items:center;gap:10px;margin:9px 0}
+.bar .nm{width:160px;font-size:12px;color:var(--fg);flex-shrink:0}
+.bar .nm .ph{font-size:9px;text-transform:uppercase;letter-spacing:.4px;border-radius:4px;padding:1px 5px;margin-left:5px}
+.bar .nm .sg{display:block;font-size:9.5px;color:var(--fg3);margin-top:1px}
+.bar .track{flex:1;background:#0a0e14;border:1px solid var(--bd);border-radius:5px;height:18px;overflow:hidden}
+.bar .fill{height:100%;border-radius:4px}
+.bar .val{width:42px;text-align:right;font-size:12px;font-weight:700;flex-shrink:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:9px}
+.scard{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:10px 12px}
+.r1{display:flex;justify-content:space-between;align-items:baseline}
+.tk{font-weight:700;font-size:15.5px}.badge{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-radius:5px;padding:2px 7px}
+.mx{display:flex;gap:6px;margin-top:6px}
+.mx .m{flex:1;text-align:center;background:#0a0e14;border:1px solid var(--bd);border-radius:6px;padding:4px 2px}
+.mx .m .l{font-size:8.5px;color:var(--fg3);text-transform:uppercase;letter-spacing:.3px}.mx .m .v{font-size:14px;font-weight:700}
+.vt{font-size:10.5px;color:var(--fg3);margin-top:6px}.why{font-size:10.5px;color:var(--cyan);margin-top:4px;line-height:1.4}
+.foot{color:var(--fg3);font-size:11px;margin-top:22px;line-height:1.5}.loading{color:var(--fg3);padding:40px 0}
+</style></head><body><div class="wrap" id="w"><div class="loading">Loading scarcity radar…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+// phase → colour. Early-phase + tight is the alpha (green); extended is priced (red)
+const PH={EMERGING:['var(--grn)','rgba(52,211,153,.16)'],NASCENT:['var(--grn)','rgba(52,211,153,.16)'],
+EARLY:['var(--grn)','rgba(52,211,153,.16)'],ACCELERATING:['var(--cyan)','rgba(56,189,248,.14)'],
+PEAKING:['var(--amb)','rgba(251,191,36,.14)'],COOLING:['var(--amb)','rgba(251,191,36,.12)'],
+EXTENDED:['var(--red)','rgba(248,113,113,.14)']};
+const TIER={PRIME:['var(--grn)','rgba(52,211,153,.16)'],CANDIDATE:['var(--cyan)','rgba(56,189,248,.13)'],WATCH:['var(--fg3)','rgba(154,165,177,.08)']};
+function vbar(v){const[c,bg]=PH[v.phase]||['var(--fg3)','rgba(154,165,177,.10)'];const w=Math.max(3,Math.min(100,v.tightness));
+  const ph=v.phase?`<span class="ph" style="color:${c};background:${bg}">${esc(v.phase)}</span>`:'';
+  const sg=(v.top_signals&&v.top_signals.length)?`<span class="sg">${v.top_signals.filter(Boolean).map(esc).join(' · ')}</span>`:'';
+  return `<div class="bar"><span class="nm">${esc(v.vertical)}${ph}${sg}</span><div class="track"><div class="fill" style="width:${w}%;background:${c}"></div></div><span class="val" style="color:${c}">${v.tightness}</span></div>`;}
+function scard(r){const[c,bg]=TIER[r.tier]||TIER.WATCH;
+  return `<div class="scard"><div class="r1"><span class="tk">${esc(r.ticker)}</span><span class="badge" style="color:${c};background:${bg}">${esc(r.tier)}</span></div>`
+    +`<div class="mx"><div class="m"><div class="l">Scarcity</div><div class="v" style="color:var(--amb)">${r.scarcity}</div></div>`
+    +`<div class="m"><div class="l">Stealth</div><div class="v" style="color:var(--cyan)">${r.stealth}</div></div>`
+    +`<div class="m"><div class="l">Comp</div><div class="v" style="color:${c}">${r.composite}</div></div></div>`
+    +`<div class="vt">${r.vertical?esc(r.vertical)+' · tight '+r.vertical_tightness:'vertical unmapped'}${r.phase?' · '+esc(r.phase):''}</div>`
+    +(r.why?`<div class="why">${esc(r.why)}</div>`:'')+`</div>`;}
+(async function(){
+  const d=await gj('data/scarcity-radar.json');const w=document.getElementById('w');
+  if(!d||!d.stealth_shortage_board){w.innerHTML='<div class="hd"><h1>Scarcity Radar</h1></div><div class="loading">No data yet — runs daily.</div>';return;}
+  const c=d.counts||{};
+  let h=`<div class="hd"><h1>🔎 Scarcity Radar</h1><div class="sub">The next shortage before it's obvious — real spot/PPI tightness × company capture × oligopoly pricing power, scored against how cheap, un-moved and ignored the equity still is.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}</div></div>`;
+  h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="counts"><span class="chip" style="color:var(--grn)"><b>${c.prime||0}</b> PRIME setups</span><span class="chip" style="color:var(--cyan)"><b>${c.candidates||0}</b> candidates</span><span class="chip"><b>${c.verticals_tightening||0}</b> verticals tightening</span><span class="chip"><b>${c.names||0}</b> names scanned</span></div>`;
+  const vt=d.vertical_tightness||[];
+  if(vt.length){h+=`<div class="sec">Which shortage is building <span class="n">— real spot/PPI tightness by vertical; green = early phase (the alpha), red = extended/priced</span></div><div class="card">${vt.map(vbar).join('')}</div>`;}
+  const board=d.stealth_shortage_board||[];
+  if(board.length){h+=`<div class="sec">Stealth-shortage board <span class="n">— scarcity × stealth; PRIME = tightening hard AND still ignored</span></div><div class="grid">${board.map(scard).join('')}</div>`;}
+  h+=`<div class="foot">${esc(d.method||'')} · ${esc(d.disclaimer||'')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>

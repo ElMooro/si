@@ -51,6 +51,10 @@ IND_MAP = [
     ("electric", "GRID"), ("power", "GRID"), ("transport", "IYT"), ("rail", "IYT"),
     ("trucking", "IYT"), ("chemical", "XLB"), ("timber", "WOOD"), ("forest", "WOOD"),
     ("construction", "PAVE"), ("machinery", "PAVE"),
+    # AI-infra adjacent (networking/storage/optical for datacenters)
+    ("communication equipment", "AIQ"), ("networking", "AIQ"), ("optical", "AIQ"),
+    ("connector", "AIQ"), ("computer hardware", "SMH"), ("data storage", "SMH"),
+    ("storage", "SMH"), ("electronic component", "SMH"), ("instruments & controls", "SMH"),
 ]
 
 
