@@ -1,5 +1,7 @@
-  PCOPPUSDM: 19 obs, latest={'realtime_start': '2026-06-25', 'realtime_end': '2026-06-25', 'date': '2026-05-01', 'value': '13483.75153846154'}
-  DFII10: 408 obs, latest={'realtime_start': '2026-06-25', 'realtime_end': '2026-06-25', 'date': '2026-06-24', 'value': '2.23'}
-  DTCDISA066MSFRBNY: 20 obs, latest={'realtime_start': '2026-06-25', 'realtime_end': '2026-06-25', 'date': '2026-06-01', 'value': '11.9'}
-  PCU33443344: 19 obs, latest={'realtime_start': '2026-06-25', 'realtime_end': '2026-06-25', 'date': '2026-05-01', 'value': '73.083'}
-DONE 2231
+deployed code has COPPER_SPOT: True
+deployed code has PCOPPUSDM: True
+  LOOP: for sig_name, sig_data in signal_results.items():
+  LOOP: for theme_etf, signals in by_theme.items():
+  LOOP: futures = {pool.submit(fetch_signal, name, spec): name for name, spec in INFLECTION_SIGNALS.items()}
+  LOOP: for name, bars in raw_bars.items():
+DONE 2232
