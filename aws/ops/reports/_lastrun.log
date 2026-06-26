@@ -1,11 +1,28 @@
-counts: {"candidates": 136, "headline": 0}
-full_board n: 0
+counts: {"names": 136, "prime": 0, "candidates": 1, "verticals_tightening": 13}
 
-TOP 8 by SCARCITY:
+VERTICAL TIGHTNESS (which shortage is building):
+  Robotics / automation      tight=72.5 phase=COOLING signals=['MEMORY_DEMAND', 'AI_INFRA_PROXY']
+  AI compute                 tight=68.7 phase=PEAKING signals=['MEMORY_DEMAND', 'SEMI_PPI', 'AI_INFRA_PROXY']
+  Semiconductors             tight=67.1 phase=EXTENDED signals=['MEMORY_DEMAND', 'SEMI_PPI', 'MEMORY_STORAGE_PPI']
+  Semiconductors / memory    tight=65.7 phase=EXTENDED signals=['MEMORY_DEMAND', 'SEMI_PPI', 'MEMORY_STORAGE_PPI']
+  Materials                  tight=64.4 phase=None signals=['PRICES_PAID_PHILLY', 'PRICES_PAID_NY']
+  Base / industrial metals   tight=63.5 phase=COOLING signals=['PRICES_PAID_PHILLY', 'NICKEL_SPOT', 'COPPER_SPOT']
+  Lithium / battery          tight=61.2 phase=COOLING signals=['NICKEL_SPOT', 'LITHIUM']
+  Transports / logistics     tight=60.1 phase=EMERGING signals=['TRUCK_TONNAGE']
 
-TOP 8 by STEALTH:
+TOP STEALTH-SHORTAGE BOARD (scarcity x stealth):
+  TSM    [CANDIDATE] scar=47.4 steal=56.2 comp=51.6 | Semiconductors / memory (tight 65.7) | rev accel +0.7pp; 95% below fair; 95% below f
+  NVDA   [WATCH] scar=51.6 steal=32.2 comp=40.8 | Semiconductors / memory (tight 65.7) | rev accel +0.3pp; supplies DELL, lags 55%
+  MPWR   [WATCH] scar=46.7 steal=32.2 comp=38.8 | Semiconductors / memory (tight 65.7) | supplies DELL, lags 57%
+  NTAP   [WATCH] scar=39.6 steal=37.5 comp=38.5 | None (tight 50.0) | 64% below fair; 64% below fair
+  JNPR   [WATCH] scar=37.4 steal=37.5 comp=37.4 | None (tight 50.0) | 79% below fair
+  EXTR   [WATCH] scar=36.0 steal=37.5 comp=36.7 | None (tight 50.0) | 71% below fair
+  DGII   [WATCH] scar=35.1 steal=37.5 comp=36.3 | None (tight 50.0) | 52% below fair
+  ACLS   [WATCH] scar=42.3 steal=29.5 comp=35.3 | Semiconductors / memory (tight 65.7) | 45% below fair; 45% below fair
+  ASML   [WATCH] scar=48.0 steal=26.0 comp=35.3 | Semiconductors / memory (tight 65.7) | supplies MU, lags 32%
+  MKSI   [WATCH] scar=35.4 steal=34.2 comp=34.8 | None (tight 50.0) | 44% below fair
+  PSTG   [WATCH] scar=38.3 steal=30.4 comp=34.1 | None (tight 50.0) | 38% below fair
+  HUBB   [WATCH] scar=25.2 steal=43.0 comp=32.9 | Grid / electrification (tight 56.0) | rev accel +2.3pp
 
-TOP 8 by COMPOSITE:
-
-vertical tightness top: [(None, 72.5), (None, 68.7), (None, 67.1), (None, 65.7), (None, 64.4), (None, 63.5), (None, 61.2), (None, 60.1)]
-DONE 2231
+signals_logged: None
+DONE 2232
