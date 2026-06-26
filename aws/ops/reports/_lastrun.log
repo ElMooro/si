@@ -1,40 +1,19 @@
-FRED key from: justhodl-global-liquidity | have: True
+TIC release id: 3 Treasury International Capital: Continuous Securit
 
-SEARCH 'net foreign purchases long-term securities':
-    ('FORTREASPOS41408', 'Foreign Portfolio Holdings of U.S. Long-Term and Short-Term Tr', 'M', 'Mil. of $', '2026-04-01')
-    ('FORTREASNET99996', 'Foreign Net Transactions of U.S. Long-Term and Short-Term Trea', 'M', 'Mil. of $', '2026-04-01')
-    ('FORTREASPOS42609', 'Foreign Portfolio Holdings of U.S. Long-Term and Short-Term Tr', 'M', 'Mil. of $', '2026-04-01')
-    ('FORTREASPOS69995', 'Foreign Portfolio Holdings of U.S. Long-Term and Short-Term Tr', 'M', 'Mil. of $', '2026-04-01')
-    ('FORLTTREASPOS42609', 'Foreign Portfolio Holdings of U.S. Long-Term Treasury Securiti', 'M', 'Mil. of $', '2026-04-01')
-    ('FORTREASPOS29998', 'Foreign Portfolio Holdings of U.S. Long-Term and Short-Term Tr', 'M', 'Mil. of $', '2026-04-01')
+Net-transaction grand-total series (12):
+    ('FORLTAGCYNET99996', 'Foreign Net Transactions of U.S. Long-Term Agency Bonds: Grand Total', '2026-04-01')
+    ('FORLTCORPNET99996', 'Foreign Net Transactions of U.S. Long-Term Corporate Bonds: Grand Total', '2026-04-01')
+    ('FORLTEQTYNET99996', 'Foreign Net Transactions of U.S. Equity Securities: Grand Total', '2026-04-01')
+    ('FORLTTOTALNET99996', 'Foreign Net Transactions of All U.S. Long-Term Securities: Grand Total', '2026-04-01')
+    ('FORLTTREASNET99996', 'Foreign Net Transactions of U.S. Long-Term Treasury Securities: Grand Total', '2026-04-01')
+    ('FORSTTREASNET99996', 'Foreign Net Transactions of U.S. Short-Term Treasury Securities: Grand Tota', '2026-04-01')
+    ('FORTREASNET99996', 'Foreign Net Transactions of U.S. Long-Term and Short-Term Treasury Securiti', '2026-04-01')
+    ('USLTBONDNET99996', 'U.S. Net Transactions of Foreign Long-Term Corporate and Government Bonds: ', '2026-04-01')
+    ('USLTCORPBONDNET99996', 'U.S. Net Transactions of Foreign Long-Term Corporate Bonds: Grand Total', '2026-04-01')
+    ('USLTEQTYNET99996', 'U.S. Net Transactions of Foreign Equity Securities: Grand Total', '2026-04-01')
+    ('USLTGOVTBONDNET99996', 'U.S. Net Transactions of Foreign Long-Term Government Bonds: Grand Total', '2026-04-01')
+    ('USLTTOTALNET99996', 'U.S. Net Transactions of All Foreign Long-Term Securities: Grand Total', '2026-04-01')
 
-SEARCH 'treasury international capital':
-    ('BAMLH0A0HYM2', 'ICE BofA US High Yield Index Option-Adjusted Spread', 'D', '%', '2026-06-24')
-    ('BAMLC0A0CM', 'ICE BofA US Corporate Index Option-Adjusted Spread', 'D', '%', '2026-06-24')
-    ('BAMLC0A4CBBB', 'ICE BofA BBB US Corporate Index Option-Adjusted Spread', 'D', '%', '2026-06-24')
-    ('BAMLH0A3HYC', 'ICE BofA CCC & Lower US High Yield Index Option-Adjusted Sprea', 'D', '%', '2026-06-24')
-    ('BAMLH0A1HYBB', 'ICE BofA BB US High Yield Index Option-Adjusted Spread', 'D', '%', '2026-06-24')
-    ('BAMLHE00EHYIOAS', 'ICE BofA Euro High Yield Index Option-Adjusted Spread', 'D', '%', '2026-06-24')
-
-SEARCH 'net foreign acquisition US securities':
-
-SEARCH 'foreign purchases US treasury securities':
-    ('FORTREASPOS41408', 'Foreign Portfolio Holdings of U.S. Long-Term and Short-Term Tr', 'M', 'Mil. of $', '2026-04-01')
-    ('FORTREASNET99996', 'Foreign Net Transactions of U.S. Long-Term and Short-Term Trea', 'M', 'Mil. of $', '2026-04-01')
-    ('FORTREASPOS42609', 'Foreign Portfolio Holdings of U.S. Long-Term and Short-Term Tr', 'M', 'Mil. of $', '2026-04-01')
-    ('FORTREASPOS69995', 'Foreign Portfolio Holdings of U.S. Long-Term and Short-Term Tr', 'M', 'Mil. of $', '2026-04-01')
-    ('FORLTTREASPOS42609', 'Foreign Portfolio Holdings of U.S. Long-Term Treasury Securiti', 'M', 'Mil. of $', '2026-04-01')
-    ('FORTREASPOS29998', 'Foreign Portfolio Holdings of U.S. Long-Term and Short-Term Tr', 'M', 'Mil. of $', '2026-04-01')
-
-SEARCH 'net capital inflows United States':
-    ('BOPI', 'Foreign Assets in the U.S.: Net, Capital Inflow {+} (DISCONTIN', 'Q', 'Bil. of $', '2014-01-01')
-
-SEARCH 'US net acquisition long-term securities TIC':
-
-=== TREASURY ticdata files ===
-  https://ticdata.treasury.gov/Publish/slt3a.txt -> ERR HTTP Error 404: Not Found
-  https://ticdata.treasury.gov/Publish/slt1d_globl.csv -> 200 len 1365694 | head: b'""\r\n""\r\n""\r\n"","",""\r\n"","TABLE 1D:  U.","S. Long-Term Se","curities Held b","y '
-  https://ticdata.treasury.gov/Publish/s1.csv -> ERR HTTP Error 404: Not Found
-  https://ticdata.treasury.gov/Publish/ -> ERR HTTP Error 404: Not Found
-  https://ticdata.treasury.gov/Publish/mfhhis01.txt -> 200 len 98124 | head: b'\t\tMAJOR FOREIGN HOLDERS OF TREASURY SECURITIES\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t    (in billions o'
-DONE 2219
+FORTREASNET99996 latest (Treasury net, $M): [('2026-04-01', 36919.0), ('2026-03-01', -3300.0), ('2026-02-01', 94111.0), ('2026-01-01', 37977.0)]
+  12mo rolling sum ($B): 466.3
+DONE 2220
