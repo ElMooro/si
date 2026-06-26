@@ -1,9 +1,26 @@
-page status: 200
-  contains 'US Capital Inflows': True
-  contains 'regime': True
-  contains 'by_asset_class': True
-  contains 'rolling trend': True
-  contains 'Where the money goes': True
-proxy data status: 200 | asof: 2026-04-01 | regime: STEADY_INFLOW | foreign_into_us_12mo: $1824.9B | equities leg: $883.9B
-PAGE+DATA FULLY LIVE
-DONE 2223
+supply-inflection-scanner: ERR An error occurred (NoSuchKey) when calling th
+
+bottleneck-boom (gen 2026-06-25): keys=['engine', 'version', 'generated_at', 'duration_s', 'industry_pressure', 'fred_used', 'fred_failed', 'universe_source', 'universe_n', 'scored_n', 'signals_logged', 'regime_at_log']
+    'ranks' n=40 id=['ticker', 'name'] fields=['rev_accel_pp', 'z_rev_growth_yoy', 'z_rev_accel_pp', 'z_rev_to_mcap_pct', 'z_inv_turnover', 'boom_score']
+
+chokepoint (gen 2026-06-23): keys=['engine', 'version', 'generated_at', 'duration_s', 'mode', 'scope', 'thesis', 'scoring', 'stats', 'highest_conviction_book', 'structural_names', 'confirmed_chokepoint_book']
+    'highest_conviction_book' n=3 id=['ticker', 'name'] fields=[]
+    'confirmed_chokepoint_book' n=5 id=['ticker', 'name'] fields=[]
+    'discovered_chokepoint_book' n=30 id=['ticker', 'name'] fields=[]
+    'rejected_high_margin_sample' n=15 id=['ticker', 'name'] fields=[]
+    'cheap_chokepoint_book' n=11 id=['ticker', 'name'] fields=[]
+    'hidden_chokepoint_book' n=25 id=['ticker', 'name'] fields=[]
+    'industry_leaders' n=29 id=['ticker', 'name'] fields=[]
+    'all_chokepoints' n=80 id=['ticker', 'name'] fields=[]
+    'top_picks' n=11 id=['ticker'] fields=['score']
+
+narrative-vs-tape (gen 2026-06-25): keys=['engine', 'version', 'generated_at', 'duration_s', 'crowded_fading', 'quiet_accumulation', 'n_buzz_tracked', 'note']
+    'quiet_accumulation' n=15 id=['ticker'] fields=['buzz']
+
+ai-infra-stack (gen 2026-06-25): keys=['engine', 'version', 'generated_at', 'thesis', 'summary', 'stack', 'methodology', 'sources', 'disclaimer', 'elapsed_s']
+    'stack' n=12 id=['n_names', 'names'] fields=[]
+
+revenue-acceleration (gen 2026-06-25): keys=['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
+    'all_qualifying' n=3 id=['symbol'] fields=['score', 'consec_accel_quarters', 'acceleration_history']
+sig ERR An error occurred (NoSuchKey) when calli
+DONE 2224
