@@ -135,6 +135,26 @@ def fmp_get(endpoint: str, **params) -> Optional[Any]:
 
 
 def claude_call(system, user: str, max_tokens: int = 6000, use_cache: bool = True) -> str:
+    """Anthropic Haiku primary; GLM-5.1 (Z.ai, via the shared llm_router) fallback when the
+    direct Anthropic call fails — e.g. credits exhausted returns HTTP 400. This keeps the
+    research synthesis (executive summary, thesis, risks, devil's advocate, verdict) working
+    off-Anthropic instead of degrading the whole report to 'manual review'."""
+    try:
+        return _anthropic_call(system, user, max_tokens, use_cache)
+    except Exception as e:
+        print(f"[claude_call] Anthropic failed ({str(e)[:120]}); routing via llm_router (GLM-5.1)")
+        try:
+            from llm_router import complete
+        except Exception as ie:
+            print(f"[claude_call] llm_router import failed: {ie}")
+            raise e
+        sys_text = system if isinstance(system, str) else \
+            "\n".join(b.get("text", "") for b in (system or []) if isinstance(b, dict))
+        return complete(user, tier="reason", max_tokens=max(max_tokens, 2000),
+                        system=(sys_text or None))
+
+
+def _anthropic_call(system, user: str, max_tokens: int = 6000, use_cache: bool = True) -> str:
     """Single-message call to Anthropic API with prompt caching.
 
     system: either a plain str (legacy) or a list of typed content blocks
@@ -1254,6 +1274,15 @@ Schema:
       {"risk": "...", "evidence": "specific data e.g. 'debt/equity 2.4x vs sector 0.8x'"},
       ... (4-5 risks)
     ]
+  },
+  "devils_advocate": {
+    "title": "The short-seller's pitch (punchy, 5-9 words)",
+    "short_thesis": "120-180 words making the SINGLE most compelling bear/short case — the argument a skeptical PM or an activist short-seller would actually present at a partners' meeting. Steelman it hard: turn the report's own data against the stock (stretched valuation, decelerating or low-quality growth, margin/accounting red flags, leverage, competitive erosion, capital-allocation that flatters EPS, beat-magnitude shrinking, insider/institutional exits). Do NOT hedge, do NOT 'on the other hand' — this section's entire job is to argue the other side as forcefully as the data honestly allows.",
+    "kill_points": [
+      {"point": "the sharpest, most specific argument against owning this here", "evidence": "the exact number that supports it"},
+      ... (3-4 points, each falsifiable and tied to a figure)
+    ],
+    "what_bulls_underestimate": "40-60 words on the single risk the bull case is most likely waving away, and why it could matter more than consensus thinks."
   },
   "valuation_assessment": "150 words on whether the stock is cheap/fair/expensive given P/E vs 5yr avg, DCF gap, peer multiples, and FCF yield. Be specific.",
   "peer_comparison_assessment": "100 words on how the subject's valuation multiples compare to the peer-median (which functions as the industry P/E benchmark). Reference SPECIFIC peer ticker(s) where helpful. Frame as: 'trading at X% premium/discount to peer median P/E of Y'.",
