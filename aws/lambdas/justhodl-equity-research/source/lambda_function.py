@@ -1398,6 +1398,19 @@ Schema:
   "peer_comparison_assessment": "100 words on how the subject's valuation multiples compare to the peer-median (which functions as the industry P/E benchmark). Reference SPECIFIC peer ticker(s) where helpful. Frame as: 'trading at X% premium/discount to peer median P/E of Y'.",
   "industry_comparison_assessment": "90 words using the REAL industry_comparison block (FMP industry & sector P/E snapshot). State the company P/E vs the industry P/E and sector P/E explicitly with the percentages, then judge whether that premium/discount is JUSTIFIED by the company's fundamentals (growth, margins, ROE, leverage) or whether it signals mispricing. A discount is only cheap if the business isn't structurally inferior; a premium is only warranted by superior growth/returns. Be decisive.",
   "business_mix_assessment": "90 words on the revenue composition in the business_mix block: which segment(s) and geograph(ies) drive revenue and how concentrated that is, whether the mix is shifting over the trend, and — importantly for customer concentration — who the key customers are IF that is evident from the company description, segments, or earnings-call excerpt (e.g. a single dominant government/enterprise customer). If customer detail isn't in the provided data, say 'specific customer concentration not disclosed in the provided data' rather than guessing. Frame the concentration as a risk or a strength.",
+  "relationships": {
+    "_INSTRUCTIONS_": "Build a grounded customer/partner/supplier map. HARD RULES: (1) Include ONLY entities EXPLICITLY named in the provided company.description, business_mix segments, or earnings_call_excerpt. (2) DO NOT use any outside or trained knowledge — if you are recalling a relationship rather than reading it in the provided text, OMIT it. Fabricated edges are a critical failure. (3) If a customer/partner is referenced but not named (e.g. 'a large customer paused projects'), you MAY include it as name 'Undisclosed customer' with the detail given. (4) Suppliers are rarely disclosed — include only if a supplier/vendor is explicitly named; otherwise return []. (5) Every entry MUST carry a 'source' field naming where it came from.",
+    "summary": "30-60 words describing the customer/partner picture, grounded only in the provided text.",
+    "customers": [
+      {"name": "exact name/label as it appears in the provided text", "detail": "10-15 words on the relationship", "concentration": "stated % or qualitative ('primary customer','majority of revenue') if given, else null", "source": "description | earnings_call | segments"}
+    ],
+    "partners": [
+      {"name": "...", "detail": "...", "source": "description | earnings_call"}
+    ],
+    "suppliers": [
+      {"name": "...", "detail": "...", "source": "description | earnings_call"}
+    ]
+  },
   "earnings_track_record_assessment": "80 words on the company's earnings consistency. Cite the EPS beat rate, current streak, magnitude trend, and revenue surprise. Hedge fund framing: 'beats 7 of 8 quarters but with shrinking magnitude = deteriorating quality' is more useful than just 'beats consensus regularly'.",
   "capital_allocation_assessment": "80 words on management's capital allocation. Cite total capital returned 10y, shareholder yield, dividend vs buyback mix, payout ratio sustainability, and capex intensity trend. Frame as 'cash-cow returning $X to shareholders' vs 'reinvesting heavily into capex' — both can be good, depends on ROIC.",
   "institutional_activity_assessment": "60 words on recent SEC 13D/13G beneficial-ownership filings (institutional positions crossing 5% threshold). If filings are stale (>24mo old) or absent, say so plainly. If recent clustering by notable institutions (Berkshire, Vanguard, Blackrock, Wellington), call it out as 'smart money accumulation'.",
@@ -2095,6 +2108,7 @@ def lambda_handler(event, context):
         "peer_comparison_assessment": claude_synthesis.get("peer_comparison_assessment"),
         "industry_comparison_assessment": claude_synthesis.get("industry_comparison_assessment"),
         "business_mix_assessment": claude_synthesis.get("business_mix_assessment"),
+        "relationships":       claude_synthesis.get("relationships"),
         "earnings_track_record_assessment": claude_synthesis.get("earnings_track_record_assessment"),
         "capital_allocation_assessment": claude_synthesis.get("capital_allocation_assessment"),
         "institutional_activity_assessment": claude_synthesis.get("institutional_activity_assessment"),

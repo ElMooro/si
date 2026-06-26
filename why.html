@@ -539,6 +539,7 @@ function renderReport(d){
   html += renderExecSummary(d);
   html += renderBullBear(d);
   html += renderBusinessMix(d);         // revenue by segment + geography
+  html += renderRelationships(d);       // grounded customer/partner map
   html += renderValuation(d);
   html += renderForwardModel(d);       // AI forward projections + price model
   html += renderSensitivity(d);        // fair-value heatmap: forward P/E × EPS
@@ -910,6 +911,55 @@ function renderPeerComparison(d){
         ${relTile('ps',        'P/S',       (v) => fmtNum(v, 2))}
         ${relTile('ev_ebitda', 'EV/EBITDA', (v) => fmtNum(v, 2))}
       </div>
+    </section>`;
+}
+
+function renderRelationships(d){
+  const rel = d.relationships || {};
+  const mk = (arr, kind, color) => (Array.isArray(arr) ? arr : [])
+    .filter(x => x && x.name).map(x => ({ ...x, kind, color }));
+  let nodes = [
+    ...mk(rel.customers, 'customer', 'var(--cyan)'),
+    ...mk(rel.partners,  'partner',  'var(--violet)'),
+    ...mk(rel.suppliers, 'supplier', 'var(--amber)'),
+  ];
+  if(!nodes.length) return "";
+  nodes = nodes.slice(0, 12);
+  const W = 720, R = 200, n = nodes.length;
+  const cx = W / 2, H = Math.max(380, R * 2 + 110), cy = H / 2;
+  const ang = i => (-90 + (360 / n) * i) * Math.PI / 180;
+  const e2 = s => esc(String(s || ''));
+  const trunc = (s, m = 26) => s.length > m ? s.slice(0, m - 1) + '…' : s;
+  const pos = nodes.map((nd, i) => ({ nd, x: cx + R * Math.cos(ang(i)), y: cy + R * Math.sin(ang(i)) }));
+  const edges = pos.map(p =>
+    `<line x1="${cx}" y1="${cy}" x2="${p.x.toFixed(0)}" y2="${p.y.toFixed(0)}" stroke="${p.nd.color}" stroke-width="1.2" opacity="0.4"/>`).join('');
+  const nodeEls = pos.map(p => {
+    const label = trunc(p.nd.name);
+    const wpx = Math.max(70, label.length * 6.6 + 18);
+    const tip = e2(p.nd.name) + (p.nd.detail ? ' — ' + e2(p.nd.detail) : '') + (p.nd.concentration ? ' (' + e2(p.nd.concentration) + ')' : '');
+    return `<g>
+      <rect x="${(p.x - wpx / 2).toFixed(0)}" y="${(p.y - 13).toFixed(0)}" width="${wpx.toFixed(0)}" height="26" rx="13" fill="rgba(18,20,28,.94)" stroke="${p.nd.color}" stroke-width="1.2"/>
+      <text x="${p.x.toFixed(0)}" y="${(p.y + 4).toFixed(0)}" fill="var(--text)" font-size="11" text-anchor="middle"><title>${tip}</title>${e2(label)}</text>
+    </g>`;
+  }).join('');
+  const center = `<circle cx="${cx}" cy="${cy}" r="34" fill="var(--accent)" opacity="0.18" stroke="var(--accent)" stroke-width="1.5"/>
+    <text x="${cx}" y="${(cy + 5)}" fill="var(--text)" font-size="14" font-weight="700" text-anchor="middle">${e2(d.ticker)}</text>`;
+  const legend = (c, l, arr) => (Array.isArray(arr) && arr.length)
+    ? `<span style="display:inline-flex; align-items:center; gap:5px; margin-right:14px"><span style="width:9px;height:9px;border-radius:50%;background:${c};display:inline-block"></span>${l} (${arr.length})</span>` : '';
+  return `
+    <section class="block">
+      <h3><span class="ico">🕸️</span> Customer &amp; Partner Map <span class="pill">named in description &amp; earnings call</span></h3>
+      ${rel.summary ? `<p class="lead">${esc(rel.summary)}</p>` : ''}
+      <div style="font-size:11px; color:var(--text-muted); margin:4px 0 8px">
+        ${legend('var(--cyan)', 'Customers', rel.customers)}
+        ${legend('var(--violet)', 'Partners', rel.partners)}
+        ${legend('var(--amber)', 'Suppliers', rel.suppliers)}
+      </div>
+      <div style="overflow-x:auto">
+      <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%; min-width:480px; height:auto">
+        ${edges}${center}${nodeEls}
+      </svg></div>
+      <p style="font-size:10.5px; color:var(--text-muted); margin-top:4px">Grounded only in the company's own description and latest earnings call — not a third-party supply-chain feed. Hover a node for detail; anonymized disclosures show as "Undisclosed customer."</p>
     </section>`;
 }
 
