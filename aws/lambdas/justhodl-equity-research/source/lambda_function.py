@@ -106,8 +106,9 @@ CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
-FALLBACK_BUDGET_S = 100     # hard cap on the GLM/Sonnet fallback so a slow LLM never
+FALLBACK_BUDGET_S = 70      # hard cap on the GLM/Sonnet fallback so a slow LLM never
                             # runs the Lambda into its 300s timeout before the doc writes
+                            # (worst case: 150s Anthropic read-timeout + 70s fallback = 220s)
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -155,7 +156,8 @@ def claude_call(system, user: str, max_tokens: int = 6000, use_cache: bool = Tru
         sys_text = system if isinstance(system, str) else \
             "\n".join(b.get("text", "") for b in (system or []) if isinstance(b, dict))
         import concurrent.futures as _cf
-        with _cf.ThreadPoolExecutor(max_workers=1) as _ex:
+        _ex = _cf.ThreadPoolExecutor(max_workers=1)
+        try:
             fut = _ex.submit(complete, user, tier="reason",
                              max_tokens=max(max_tokens, 2000), system=(sys_text or None))
             try:
@@ -164,6 +166,10 @@ def claude_call(system, user: str, max_tokens: int = 6000, use_cache: bool = Tru
                 print(f"[claude_call] llm_router fallback exceeded {FALLBACK_BUDGET_S}s; "
                       f"giving up so the doc still writes with quant data")
                 raise RuntimeError("LLM fallback timed out — quant report still produced")
+        finally:
+            # wait=False is critical: do NOT block on the still-hung LLM thread, or
+            # the handler can't reach the S3 write before the Lambda times out.
+            _ex.shutdown(wait=False)
 
 
 def _anthropic_call(system, user: str, max_tokens: int = 6000, use_cache: bool = True) -> str:
