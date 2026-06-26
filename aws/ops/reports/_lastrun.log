@@ -1,18 +1,19 @@
-=== ANALYST RECOMMENDATIONS / RATINGS MOMENTUM (Bloomberg ANR) ===
-OK grades                   {"symbol": "AAPL", "date": "2026-06-22", "gradingCompany": "KGI Securities", "previousGrade": "Outperform", "newGrade": "Hold", "action": "downgrade"}
-OK grades-consensus         {"symbol": "AAPL", "strongBuy": 1, "buy": 69, "hold": 34, "sell": 7, "strongSell": 0, "consensus": "Buy"}
-OK grades-historical        {"symbol": "AAPL", "date": "2026-06-01", "analystRatingsStrongBuy": 7, "analystRatingsBuy": 23, "analystRatingsHold": 15, "analystRatingsSell": 1, "an
-OK price-target-news        {"symbol": "AAPL", "publishedDate": "2026-06-22T10:54:16.000Z", "newsURL": "https://thefly.com/ajax/news_get.php?id=4373254", "newsTitle": "Apple down
-OK price-target-summary     {"symbol": "AAPL", "lastMonthCount": 4, "lastMonthAvgPriceTarget": 337.5, "lastQuarterCount": 14, "lastQuarterAvgPriceTarget": 326.86, "lastYearCount"
+grades-consensus -> {"symbol": "LDOS", "strongBuy": 0, "buy": 16, "hold": 11, "sell": 0, "strongSell": 0, "consensus": "Buy"}
+price-target-summary -> {"symbol": "LDOS", "lastMonthCount": 3, "lastMonthAvgPriceTarget": 143.33, "lastQuarterCount": 4, "lastQuarterAvgPriceTarget": 153.75, "lastYearCount": 16, "lastYearAvgPriceTarget": 197.81, "allTimeCount": 40, "allTimeAvgPriceTarget": 166, "publishers": "[\"StreetInsider\",\"TheFly\",\"Benzinga\",\"
 
-=== OPTIONS-IMPLIED EXPECTATIONS (Bloomberg OMON) — Polygon ===
-OK options-snapshot   {"day": {"change": 0, "change_percent": 0, "close": 189.64, "high": 189.64, "last_updated": 1782187200000000000, "low": 189.64, "open": 189.64, "previous_close": 189.64, "volume": 1, "vwap": 189.64}, 
-OK contracts          {"cfi": "OCASPS", "contract_type": "call", "exercise_style": "american", "expiration_date": "2026-06-26", "primary_exchange": "BATO", "shares_per_contract": 100, "strike_price": 110, "ticker": "O:AAPL
+grades (recent actions) LDOS:
+   {"symbol": "LDOS", "date": "2026-06-17", "gradingCompany": "B of A Securities", "previousGrade": "Buy", "newGrade": "Neutral", "action": "downgrade"}
+   {"symbol": "LDOS", "date": "2026-06-03", "gradingCompany": "Jefferies", "previousGrade": "Buy", "newGrade": "Hold", "action": "downgrade"}
+   {"symbol": "LDOS", "date": "2026-05-07", "gradingCompany": "Citigroup", "previousGrade": "Buy", "newGrade": "Buy", "action": "maintain"}
+   {"symbol": "LDOS", "date": "2026-05-06", "gradingCompany": "Stifel", "previousGrade": "Hold", "newGrade": "Hold", "action": "maintain"}
+   {"symbol": "LDOS", "date": "2026-05-06", "gradingCompany": "RBC Capital", "previousGrade": "Outperform", "newGrade": "Outperform", "action": "maintain"}
+   {"symbol": "LDOS", "date": "2026-04-21", "gradingCompany": "B of A Securities", "previousGrade": "Buy", "newGrade": "Buy", "action": "maintain"}
 
-=== EVENTS CALENDAR (Bloomberg EVTS) ===
-OK earnings     {"symbol": "AAPL", "date": "2026-07-30", "epsActual": null, "epsEstimated": 1.88, "revenueActual": null, "revenueEstimated": 108856200000, "
-OK dividends    {"symbol": "AAPL", "date": "2026-05-11", "recordDate": "2026-05-11", "paymentDate": "2026-05-14", "declarationDate": "2026-04-30", "adjDivid
-
-=== ESG (Refinitiv/Bloomberg ESG) ===
-esg-disclosures: {"date": "2026-03-28", "acceptedDate": "2026-04-30", "symbol": "AAPL", "cik": "0000320193", "companyName": "Apple Inc.", "formType": "8-K", 
-DONE 2271
+grades-historical (ratings trend) LDOS:
+   {"symbol": "LDOS", "date": "2026-06-01", "analystRatingsStrongBuy": 3, "analystRatingsBuy": 6, "analystRatingsHold": 10, "analystRatingsSell": 0, "analystRatingsStrongSell": 0}
+   {"symbol": "LDOS", "date": "2026-05-01", "analystRatingsStrongBuy": 3, "analystRatingsBuy": 6, "analystRatingsHold": 8, "analystRatingsSell": 0, "analystRatingsStrongSell": 0}
+   {"symbol": "LDOS", "date": "2026-04-01", "analystRatingsStrongBuy": 2, "analystRatingsBuy": 6, "analystRatingsHold": 8, "analystRatingsSell": 0, "analystRatingsStrongSell": 0}
+   {"symbol": "LDOS", "date": "2026-03-01", "analystRatingsStrongBuy": 2, "analystRatingsBuy": 6, "analystRatingsHold": 8, "analystRatingsSell": 0, "analystRatingsStrongSell": 0}
+   {"symbol": "LDOS", "date": "2026-02-01", "analystRatingsStrongBuy": 2, "analystRatingsBuy": 6, "analystRatingsHold": 7, "analystRatingsSell": 0, "analystRatingsStrongSell": 0}
+   {"symbol": "LDOS", "date": "2026-01-01", "analystRatingsStrongBuy": 2, "analystRatingsBuy": 7, "analystRatingsHold": 7, "analystRatingsSell": 0, "analystRatingsStrongSell": 0}
+DONE 2272
