@@ -538,7 +538,9 @@ function renderReport(d){
   html += renderExecSummary(d);
   html += renderBullBear(d);
   html += renderValuation(d);
+  html += renderForwardModel(d);       // AI forward projections + price model
   html += renderPeerComparison(d);
+  html += renderIndustryComparison(d); // company vs real industry/sector P/E
   html += renderFinancialHealth(d);
   html += renderGrowth(d);
   html += renderEarningsTrack(d);
@@ -904,6 +906,101 @@ function renderPeerComparison(d){
         ${relTile('pb',        'P/B',       (v) => fmtNum(v, 2))}
         ${relTile('ps',        'P/S',       (v) => fmtNum(v, 2))}
         ${relTile('ev_ebitda', 'EV/EBITDA', (v) => fmtNum(v, 2))}
+      </div>
+    </section>`;
+}
+
+function renderForwardModel(d){
+  const fm = d.forward_model || {};
+  if(!fm) return "";
+  const rp = Array.isArray(fm.revenue_projections) ? fm.revenue_projections : [];
+  const ep = Array.isArray(fm.eps_projections) ? fm.eps_projections : [];
+  const pm = fm.price_model || {};
+  if(!rp.length && !pm.fair_value_base) return "";
+  const curPx = (d.quote || {}).price;
+  const confShort = fm.confidence ? String(fm.confidence).split('.')[0].trim() : '';
+
+  const maxRev = Math.max(...rp.map(p => p.revenue_est || 0), 1);
+  const revBars = rp.map(p => `
+    <div style="text-align:center; flex:1; min-width:0">
+      <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px">${esc(p.year || '')}</div>
+      <div style="height:96px; display:flex; align-items:flex-end; justify-content:center">
+        <div title="${esc(p.basis || '')}" style="width:70%; background:linear-gradient(180deg,var(--accent),rgba(99,102,241,.35)); border-radius:4px 4px 0 0; height:${Math.max(8, (p.revenue_est / maxRev) * 96)}px"></div>
+      </div>
+      <div style="font-size:12px; font-weight:600; margin-top:5px">${fmt$(p.revenue_est, 1)}</div>
+      <div style="font-size:10.5px; color:${(p.growth_pct||0) >= 0 ? 'var(--green-bright)' : 'var(--red)'}">${p.growth_pct != null ? fmtPct(p.growth_pct, 1) : ''}</div>
+    </div>`).join('');
+
+  const epsRows = ep.map(p => `
+    <tr><td>${esc(p.year || '')}</td>
+      <td style="text-align:right">${p.eps_est != null ? '$' + fmtNum(p.eps_est, 2) : '—'}</td>
+      <td style="text-align:right; color:${(p.growth_pct||0) >= 0 ? 'var(--green-bright)' : 'var(--red)'}">${p.growth_pct != null ? fmtPct(p.growth_pct, 1) : ''}</td></tr>`).join('');
+
+  const fvCard = (label, val, cls) => val ? `<div class="metric">
+      <div class="lbl">${label}</div>
+      <div class="val ${cls || ''}">${fmtPrice(val)}</div>
+      ${curPx ? `<div class="sub">${fmtPct((val / curPx - 1) * 100, 1)} vs price</div>` : ''}
+    </div>` : '';
+
+  return `
+    <section class="block">
+      <h3><span class="ico">🔮</span> AI Forward Model
+        <span class="pill">projected revenue · EPS · price${confShort ? ' · ' + esc(confShort) + ' conf' : ''}</span></h3>
+      ${fm.summary ? `<p class="lead">${esc(fm.summary)}</p>` : ""}
+      ${rp.length ? `<div style="display:flex; gap:8px; align-items:flex-end; margin:16px 0; padding:12px 10px; background:rgba(255,255,255,.02); border-radius:8px">${revBars}</div>
+        <div style="font-size:10.5px; color:var(--text-muted); text-align:center; margin-top:-6px">Projected revenue (hover a bar for the basis)</div>` : ""}
+      ${ep.length ? `<div class="table-wrap" style="margin:14px 0"><table>
+        <thead><tr><th style="text-align:left">Year</th><th style="text-align:right">EPS est</th><th style="text-align:right">YoY growth</th></tr></thead>
+        <tbody>${epsRows}</tbody></table></div>` : ""}
+      ${(fm.margin_path && fm.margin_path.projected_pct != null) ? `<p style="font-size:12px; color:var(--text-dim)"><b>Margin path:</b> ${esc(fm.margin_path.metric || 'margin')} ${fmtNum(fm.margin_path.current_pct,1)}% → ${fmtNum(fm.margin_path.projected_pct,1)}% — ${esc(fm.margin_path.rationale || '')}</p>` : ""}
+      <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin:16px 0 8px">Price model — ${esc(pm.method || 'forward P/E × projected EPS')}</div>
+      <div class="grid">
+        ${fvCard('Fair Value · base', pm.fair_value_base, (pm.upside_to_base_pct||0) >= 0 ? 'up' : 'down')}
+        ${fvCard('Bull case', pm.fair_value_bull, 'up')}
+        ${fvCard('Bear case', pm.fair_value_bear, 'down')}
+        ${pm.forward_pe_applied ? `<div class="metric"><div class="lbl">Forward P/E applied</div><div class="val">${fmtNum(pm.forward_pe_applied, 1)}x</div><div class="sub">${pm.target_eps_year ? 'on ' + esc(pm.target_eps_year) + ' EPS' : ''}</div></div>` : ''}
+      </div>
+      ${pm.forward_pe_rationale ? `<p style="font-size:12px; color:var(--text-dim); margin-top:12px"><b>Multiple rationale:</b> ${esc(pm.forward_pe_rationale)}</p>` : ''}
+      ${pm.dcf_cross_check ? `<p style="font-size:12px; color:var(--text-dim)"><b>DCF cross-check:</b> ${esc(pm.dcf_cross_check)}</p>` : ''}
+      ${(Array.isArray(fm.key_assumptions) && fm.key_assumptions.length) ? `<div style="margin-top:12px">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:6px">Key assumptions</div>
+        <ul style="margin:0; padding-left:18px; font-size:12px; color:var(--text-dim)">${fm.key_assumptions.map(a => `<li style="margin-bottom:4px">${esc(a)}</li>`).join('')}</ul></div>` : ''}
+      ${fm.confidence ? `<p style="font-size:11.5px; color:var(--text-muted); margin-top:12px; border-left:3px solid var(--accent); padding-left:10px"><b>Confidence:</b> ${esc(fm.confidence)}</p>` : ''}
+    </section>`;
+}
+
+function renderIndustryComparison(d){
+  const ic = d.industry_comparison || {};
+  if(!ic.industry_pe && !ic.sector_pe) return "";
+  const co = ic.company || {};
+  // For P/E, BELOW the benchmark = cheaper = green ('up'); above = red ('down').
+  const relCls = (p) => p == null ? '' : (p < 0 ? 'up' : 'down');
+  const relTxt = (p) => p == null ? '' : (p < 0 ? `${fmtNum(Math.abs(p), 1)}% below` : `${fmtNum(p, 1)}% above`);
+  const maxPe = Math.max(co.pe || 0, ic.industry_pe || 0, ic.sector_pe || 0, 1);
+  const bar = (label, val, color) => val ? `
+    <div style="margin-bottom:11px">
+      <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px">
+        <span style="color:var(--text-dim)">${label}</span><span style="font-weight:600">${fmtNum(val, 1)}x</span>
+      </div>
+      <div style="height:10px; background:rgba(255,255,255,.05); border-radius:5px; overflow:hidden">
+        <div style="height:100%; width:${Math.min(100, val / maxPe * 100)}%; background:${color}; border-radius:5px"></div>
+      </div>
+    </div>` : '';
+  return `
+    <section class="block">
+      <h3><span class="ico">🏭</span> Industry Comparison
+        <span class="pill">${esc(ic.industry || '')}${ic.as_of ? ' · ' + esc(ic.as_of) : ''}</span></h3>
+      ${d.industry_comparison_assessment ? `<p class="lead">${esc(d.industry_comparison_assessment)}</p>` : ""}
+      <div style="margin-top:14px; max-width:560px">
+        ${bar(`${esc(d.ticker)} — company P/E`, co.pe, 'var(--accent)')}
+        ${bar(`${esc(ic.industry || 'Industry')} — industry P/E`, ic.industry_pe, '#3b82f6')}
+        ${bar(`${esc(ic.sector || 'Sector')} — sector P/E`, ic.sector_pe, '#8b5cf6')}
+      </div>
+      <div class="grid" style="margin-top:14px">
+        ${ic.pe_vs_industry_pct != null ? `<div class="metric"><div class="lbl">P/E vs industry</div><div class="val ${relCls(ic.pe_vs_industry_pct)}">${relTxt(ic.pe_vs_industry_pct)}</div><div class="sub">industry ${fmtNum(ic.industry_pe, 1)}x</div></div>` : ''}
+        ${ic.pe_vs_sector_pct != null ? `<div class="metric"><div class="lbl">P/E vs sector</div><div class="val ${relCls(ic.pe_vs_sector_pct)}">${relTxt(ic.pe_vs_sector_pct)}</div><div class="sub">sector ${fmtNum(ic.sector_pe, 1)}x</div></div>` : ''}
+        ${co.pe_5yr_avg ? `<div class="metric"><div class="lbl">vs own 5y avg</div><div class="val">${fmtNum(co.pe_5yr_avg, 1)}x</div><div class="sub">company 5-year average</div></div>` : ''}
+        ${co.peg ? `<div class="metric"><div class="lbl">PEG</div><div class="val">${fmtNum(co.peg, 2)}</div><div class="sub">P/E to growth</div></div>` : ''}
       </div>
     </section>`;
 }
