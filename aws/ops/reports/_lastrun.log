@@ -1,14 +1,5 @@
-have FRED key: True
-exists via deploy
-schedule FAIL: An error occurred (LimitExceededException) when calling the PutRule op
-
-=== US CAPITAL INFLOWS (data as of 2026-04-01) ===
-  Foreign net into US LT securities, 12mo: $1824.9B
-  NET cross-border LT flow, 12mo:          $1349.4B
-  Latest month:                            $206.0B
-  3mo annualized run-rate:                 $1611.1B
-  YoY change in 12mo sum:                  $676.5B
-  Short-term Treasury 12mo:                $93.8B
-  By asset class (12mo $B): {'treasuries': 372.5, 'agency_bonds': 132.5, 'corporate_bonds': 435.9, 'equities': 883.9}
-  REGIME: STEADY_INFLOW — Healthy foreign funding of US assets — a tailwind, not a flag.
-DONE 2221
+regime: NEUTRAL score 0.2
+CAPITAL-INFLOWS OVERLAY: regime=STEADY_INFLOW confirmation=ALIGNED into12=$1824.9B
+  note: Foreign funding steady inflow.
+all macro overlays now: ['cross_border', 'systemic_stress', 'liquidity', 'capital_inflows']
+DONE 2222
