@@ -1,11 +1,30 @@
-=== key_assumptions structure (the [object Object] bug) ===
-count: 5 | type of [0]: dict
-sample: [{"assumption": "Entrust contributes $200-$500M annualized revenue starting FY2026; integration completes without material margin dilution", "number": "$300M avg contribution = +1.7% of total FY2027 revenue"}, {"assumption": "Defense Tech revenue grows 3-6% annually (vs. company 6% 5yr CAGR); AGM-19
-
-=== price series in doc? (for chart) ===
-top-level keys with price/return/eod: ['returns']
-returns: {"ytd_pct": -45.12, "1yr_pct": -34.6, "3yr_cagr_pct": 5.21, "5yr_cagr_pct": -0.54, "10yr_cagr_pct": 8.12, "max_drawdown_pct": 50.35}
-
-=== margins in doc (the blank Margin Trend) ===
-margins: {"gross_trend": [{"date": "2026-01-02", "value": null}, {"date": "2025-01-03", "value": null}, {"date": "2023-12-29", "value": null}, {"date": "2022-12-30", "value": null}, {"date": "2021-12-31", "value": null}, {"date": "2021-01-01", "value": null}, {"date": "2019-12-31", "value": null}, {"date": "
-DONE 2261
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2262_verify_mix.py", line 10, in <module>
+    with urllib.request.urlopen(req,timeout=270) as r: d=json.loads(r.read().decode())
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 215, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 515, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 532, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 492, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 1392, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 1348, in do_open
+    r = h.getresponse()
+        ^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 1450, in getresponse
+    response.begin()
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 305, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+http.client.RemoteDisconnected: Remote end closed connection without response
