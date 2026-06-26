@@ -1,6 +1,13 @@
-deployed code has SEMI_PPI: True | has PCU33443344: True
-INFLECTION_SIGNALS count in deployed code: 44
-output signal names: ['OIL_WTI', 'OIL_BRENT', 'NATGAS', 'URANIUM', 'COPPER', 'LITHIUM', 'RARE_EARTH', 'GOLD', 'SILVER', 'STEEL_BASKET', 'MEMORY_DEMAND', 'LUMBER', 'AI_INFRA_PROXY', 'DEFENSE_DEMAND', 'AI_POWER_PROXY', 'REAL_RATES', 'TREASURY_10Y', 'DOLLAR_INDEX']
-fetch_stats: {"n_signals": 38, "n_ok": 18, "n_fail": 20, "fetch_duration_s": 0.9}
-engine env has FRED_KEY: True | FRED_API_KEY: False
-DONE 2228
+fetch_stats: {"n_signals": 38, "n_ok": 38, "n_fail": 0, "fetch_duration_s": 1.0}
+new real-data signals now scoring:
+  SEMI_PPI           score=25.4 flag=EASING
+  MEMORY_STORAGE_PPI score=25.4 flag=EASING
+  COPPER_SPOT        score=68.0 flag=TIGHTENING
+  URANIUM_SPOT       score=20.8 flag=EASING
+  NICKEL_SPOT        score=70.4 flag=TIGHTENING
+  ALUMINUM_SPOT      score=56.0 flag=TIGHTENING
+  IRON_ORE_SPOT      score=58.2 flag=TIGHTENING
+  STEEL_PPI          score=55.4 flag=TIGHTENING
+  NATGAS_SPOT        score=43.1 flag=NEUTRAL
+top tightening themes: [('BOTZ', 72.5), ('AIQ', 68.7), ('SOXX', 67.1), ('SMH', 65.7), ('XLB', 64.4), ('PICK', 63.5), ('LIT', 61.2), ('IYT', 60.1)]
+DONE 2229
