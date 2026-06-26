@@ -1,8 +1,5 @@
-PAGE why.html -> 200
-   contains 'renderCritique': True
-   contains 'd.devils_advocate': True
-   contains 'Kill points': True
-   contains 'what_bulls_underestimate': True
-   contains "Devil's Advocate Review": True
-LDOS doc devils_advocate present: True | title: The Stalled Growth Story With Leverage Anchor
-DONE 2254
+why.html -> 200 | renders devils_advocate: True | kill points: True | bulls underestimate: True | non-destructive 502: True
+LDOS via proxy -> 200 | verdict: BUY A- | devils_advocate: True | title: The Stalled Growth Story With Leverage Anchor
+  kill_points: 4 | has bulls-underestimate: True
+  core sections present: {'executive_summary': True, 'investment_thesis': True, 'risk_factors': True, 'devils_advocate': True, 'valuation_assessment': True, 'scenarios': True, 'verdict': True}
+DONE 2256
