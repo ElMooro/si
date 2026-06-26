@@ -372,8 +372,10 @@ def fetch_polygon_aggs(ticker, days_back=400):
         return []
 
 
-def fetch_fred(series_id, days_back=600, retries=4):
-    """Fetch FRED series with retry/backoff on 5xx and 429."""
+def fetch_fred(series_id, days_back=1600, retries=4):
+    """Fetch FRED series with retry/backoff on 5xx and 429.
+    1600d ≈ 52 monthly obs, so monthly PPI/spot series clear the 30-bar minimum
+    (date-based pct_change/percentile are unaffected by the longer window)."""
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=days_back)
     url = (
