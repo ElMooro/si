@@ -1,17 +1,4 @@
-snapshot status: OK
-ONE CONTRACT keys: ['day', 'details', 'greeks', 'implied_volatility', 'open_interest', 'underlying_asset']
-  details: {"contract_type": "call", "exercise_style": "american", "expiration_date": "2026-06-26", "shares_per_contract": 100, "strike_price": 110, "ticker": "O:AAPL260626C00110000"}
-  implied_volatility: 7.31392269620137e-05
-  greeks: {"delta": 0.9999994709765729, "gamma": 2.0373247110748808e-05, "theta": -0.008093095349236926, "vega": 0}
-  open_interest: 4
-  day: {"change": 0, "change_percent": 0, "close": 189.64, "high": 189.64, "last_updated": 1782187200000000000, "low": 189.64, "open": 189.64, "previous_close": 189.64
-  last_quote: null
-  last_trade: null
-  underlying_asset: {"ticker": "AAPL"}
-
-filtered (calls 180-200, exp>=jul): 5
-  2026-07-02 180 IV=1.6766063485902336 bid/ask=None/None OI=0
-  2026-07-02 185 IV=1.7002771486355275 bid/ask=None/None OI=3
-  2026-07-02 190 IV=1.2214693651703503 bid/ask=None/None OI=1
-  2026-07-02 195 IV=1.4184047842044487 bid/ask=None/None OI=1
-DONE 2277
+AAPL -> {"spot": 283.78, "next_earnings": "2026-07-30", "expiry": "2026-07-31", "days": 35, "atm_iv_pct": 29.6, "implied_move_pct": 9.2, "expected_low": 257.73, "expected_high": 309.83, "put_skew_pts": 1.9, "pc_oi_ratio": 0.59, "n_contracts": 250}
+LDOS -> {"spot": 101.76, "next_earnings": "2026-08-04", "expiry": "2026-08-21", "days": 56, "atm_iv_pct": 41.3, "implied_move_pct": 16.2, "expected_low": 85.29, "expected_high": 118.23, "put_skew_pts": -0.2, "pc_oi_ratio": 3.1, "n_contracts": 96}
+NVDA -> {"spot": 192.53, "next_earnings": "2026-08-26", "expiry": "2026-09-18", "days": 84, "atm_iv_pct": 41.2, "implied_move_pct": 19.7, "expected_low": 154.52, "expected_high": 230.54, "put_skew_pts": 0.8, "pc_oi_ratio": 0.8, "n_contracts": 250}
+DONE 2278
