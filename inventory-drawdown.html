@@ -1,0 +1,109 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inventory Drawdown · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;
+--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8;--vio:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 90px}
+.hd{border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:16px}
+h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font-size:12.5px}.meta{color:var(--fg3);font-size:11.5px;margin-top:3px}
+.thesis{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--cyan);border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--fg2);line-height:1.5;margin-bottom:14px}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:5px 10px;font-size:11.5px;color:var(--fg2)}
+.chip b{color:var(--fg);font-size:13px}
+.sec{margin:22px 0 9px;font-size:13px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+.sec .n{color:var(--fg3);font-weight:400;font-size:11.5px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:14px 16px}
+.bar{display:flex;align-items:center;gap:10px;margin:9px 0}
+.bar .nm{width:190px;font-size:12px;color:var(--fg);flex-shrink:0}
+.bar .nm .et{font-size:9px;text-transform:uppercase;letter-spacing:.4px;border-radius:4px;padding:1px 5px;margin-left:5px;color:var(--cyan);background:rgba(56,189,248,.12)}
+.bar .nm .sg{display:block;font-size:9.5px;color:var(--fg3);margin-top:1px}
+.bar .track{flex:1;background:#0a0e14;border:1px solid var(--bd);border-radius:5px;height:18px;overflow:hidden;position:relative}
+.bar .fill{height:100%;border-radius:4px}
+.bar .val{width:62px;text-align:right;font-size:12px;font-weight:700;flex-shrink:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:9px}
+.scard{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:11px 13px}
+.r1{display:flex;justify-content:space-between;align-items:baseline}
+.tk{font-weight:700;font-size:15.5px}.tk .ind{font-size:10px;color:var(--fg3);font-weight:400;margin-left:6px}
+.badge{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-radius:5px;padding:2px 7px}
+.split{display:flex;gap:7px;margin-top:9px}
+.split .s{flex:1;background:#0a0e14;border:1px solid var(--bd);border-radius:7px;padding:7px 6px;text-align:center}
+.split .s .l{font-size:8.5px;color:var(--fg3);text-transform:uppercase;letter-spacing:.3px}
+.split .s .v{font-size:16px;font-weight:700;margin-top:1px}.split .s .d{font-size:10px;margin-top:1px}
+.split .arrow{display:flex;align-items:center;color:var(--fg3);font-size:15px}
+.boomrow{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:10.5px;color:var(--fg3)}
+.boomrow b{color:var(--grn);font-size:13px}
+.destock{display:flex;flex-wrap:wrap;gap:7px}
+.dchip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;font-size:11px;color:var(--fg3)}
+.dchip b{color:var(--red)}.dchip .rv{color:var(--red)}
+.foot{color:var(--fg3);font-size:11px;margin-top:22px;line-height:1.5}.loading{color:var(--fg3);padding:40px 0}
+</style></head><body><div class="wrap" id="w"><div class="loading">Loading inventory drawdown…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function sign(n,suffix){if(n==null||isNaN(n))return '—';return (n>0?'+':'')+(Math.round(n*10)/10)+(suffix||'');}
+
+// SECTOR BAR — drawing down (I/S falling) = green/bullish; building (rising) = red/bearish
+function sbar(s){
+  const chg=(s.chg_6m!=null?s.chg_6m:s.chg_3m)||0;
+  const drawing=chg<0;
+  const c=drawing?'var(--grn)':'var(--red)';
+  const w=Math.max(3,Math.min(100, drawing?(s.drawdown_score||Math.min(100,Math.abs(chg)*9)):Math.min(100,Math.abs(chg)*9)));
+  const et=s.theme_etf?`<span class="et">${esc(s.theme_etf)}</span>`:'';
+  const pct=(s.percentile_5y!=null)?`<span class="sg">I/S ${s.latest_ratio} · ${Math.round(s.percentile_5y)}th pctile of 5y${s.percentile_5y<=20?' (historically lean)':''}</span>`:'';
+  return `<div class="bar"><span class="nm">${esc(s.sector)}${et}${pct}</span>`
+    +`<div class="track"><div class="fill" style="width:${w}%;background:${c}"></div></div>`
+    +`<span class="val" style="color:${c}">${sign(chg,'%')}</span></div>`;
+}
+
+// BOOM CARD — the DIO↓ vs Revenue↑ split is the whole signal
+function bcard(r){
+  const dioFall=(r.dio_chg_pct!=null&&r.dio_chg_pct<0);
+  const revRise=(r.rev_growth_yoy!=null&&r.rev_growth_yoy>0);
+  const dioC=dioFall?'var(--grn)':'var(--red)';      // falling inventory = bullish drawdown
+  const revC=revRise?'var(--grn)':'var(--red)';
+  const ind=r.industry?`<span class="ind">${esc(r.industry)}</span>`:'';
+  return `<div class="scard"><div class="r1"><span class="tk">${esc(r.ticker)}${ind}</span>`
+    +`<span class="badge" style="color:var(--grn);background:rgba(52,211,153,.15)">BOOM SETUP</span></div>`
+    +`<div class="split">`
+      +`<div class="s"><div class="l">Inventory days</div><div class="v">${r.dio_latest!=null?r.dio_latest:'—'}</div>`
+        +`<div class="d" style="color:${dioC}">↓ ${sign(r.dio_chg_pct,'%')} YoY</div></div>`
+      +`<div class="arrow">→</div>`
+      +`<div class="s"><div class="l">Revenue YoY</div><div class="v" style="color:${revC}">${sign(r.rev_growth_yoy,'%')}</div>`
+        +`<div class="d" style="color:var(--fg3)">demand</div></div>`
+    +`</div>`
+    +`<div class="boomrow"><span>${esc(r.sector||'')}</span><span>boom <b>${r.boom_score}</b></span></div></div>`;
+}
+
+(async function(){
+  const d=await gj('data/inventory-drawdown.json');const w=document.getElementById('w');
+  if(!d||!d.sector_drawdown){w.innerHTML='<div class="hd"><h1>Inventory Drawdown</h1></div><div class="loading">No data yet — runs weekly.</div>';return;}
+  const c=d.counts||{};
+  let h=`<div class="hd"><h1>📦 Inventory Drawdown</h1><div class="sub">The pre-shortage tell that's widely misregarded: days-of-inventory falling into <i>rising</i> demand = the cupboard emptying before the price spike. A falling I/S ratio with flat/down sales is just destocking — and is filtered out.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}</div></div>`;
+  h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
+  h+=`<div class="counts">`
+    +`<span class="chip" style="color:var(--grn)"><b>${c.sectors_drawing||0}</b> sectors drawing down</span>`
+    +`<span class="chip" style="color:var(--grn)"><b>${c.boom_setups||0}</b> demand-confirmed boom setups</span>`
+    +`<span class="chip"><b>${c.names_with_inventory||0}</b> inventory names scanned</span>`
+    +`<span class="chip" style="color:var(--red)"><b>${c.building_inventory||0}</b> building (bearish)</span></div>`;
+
+  // SECTOR LAYER
+  const secs=(d.sector_drawdown||[]).slice().sort((a,b)=>((a.chg_6m!=null?a.chg_6m:a.chg_3m)||0)-((b.chg_6m!=null?b.chg_6m:b.chg_3m)||0));
+  if(secs.length){h+=`<div class="sec">Which sectors are drawing down <span class="n">— inventories-to-sales ratio, 6-month change · green = drawing down (bullish), red = building (bearish)</span></div><div class="card">${secs.map(sbar).join('')}</div>`;}
+
+  // STOCK LAYER — demand-confirmed boom board
+  const boom=(d.boom_setups||[]).slice().sort((a,b)=>(b.boom_score||0)-(a.boom_score||0));
+  if(boom.length){h+=`<div class="sec">Demand-confirmed boom board <span class="n">— DIO falling AND revenue rising = a genuine sellout, not destocking</span></div><div class="grid">${boom.map(bcard).join('')}</div>`;}
+  else{h+=`<div class="sec">Demand-confirmed boom board <span class="n">— none firing today</span></div><div class="card" style="color:var(--fg3);font-size:12px">No name currently shows DIO falling into rising demand. Correct silence — the setup is rare.</div>`;}
+
+  // the filtered destockers — show the misread being caught
+  const destock=(d.stock_drawdown_board||[]).filter(r=>r.classification!=='BOOM_SETUP' && r.dio_chg_pct!=null && r.dio_chg_pct<0 && r.rev_growth_yoy!=null && r.rev_growth_yoy<=0)
+    .sort((a,b)=>(a.dio_chg_pct||0)-(b.dio_chg_pct||0));
+  if(destock.length){h+=`<div class="sec">Destocking — filtered out <span class="n">— inventory days falling but demand flat/down; the trap a naive screen would buy</span></div>`
+    +`<div class="destock">${destock.slice(0,12).map(r=>`<span class="dchip"><b>${esc(r.ticker)}</b> DIO ${sign(r.dio_chg_pct,'%')} · <span class="rv">rev ${sign(r.rev_growth_yoy,'%')}</span></span>`).join('')}</div>`;}
+
+  h+=`<div class="foot">${esc(d.method||'')} · ${esc(d.disclaimer||'')}</div>`;
+  w.innerHTML=h;
+})();
+</script></body></html>
