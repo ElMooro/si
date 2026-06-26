@@ -1,17 +1,11 @@
-=== Revenue composition (the 'who pays them' / customer-mix visual) ===
-OK  revenue-product-segmentation           14 periods; latest sample: {"symbol": "LDOS", "fiscalYear": 2025, "period": "FY", "reportedCurrency": "USD", "date": "2026-01-02", "data": {"National Security Solutions": 9875000000, "Defense Solution Segment": 2179000000, "Civil Segment": 5053000000}}
-OK  revenue-geographic-segmentation        8 periods; latest sample: {"symbol": "LDOS", "fiscalYear": 2025, "period": "FY", "reportedCurrency": "USD", "date": "2026-01-02", "data": {"Non-US": 1404000000}}
+=== key_assumptions structure (the [object Object] bug) ===
+count: 5 | type of [0]: dict
+sample: [{"assumption": "Entrust contributes $200-$500M annualized revenue starting FY2026; integration completes without material margin dilution", "number": "$300M avg contribution = +1.7% of total FY2027 revenue"}, {"assumption": "Defense Tech revenue grows 3-6% annually (vs. company 6% 5yr CAGR); AGM-19
 
-=== Supplier/customer graph endpoints (Bloomberg SPLC equivalent) ===
---  supply-chain                   {"_http": 404}
-OK  stock-peers                    {"symbol": "BR", "companyName": "Broadridge Financial Solutions, Inc.", "price": 137.93, "mktCap": 15952748905}
---  company-customers              {"_http": 404}
---  company-suppliers              {"_http": 404}
+=== price series in doc? (for chart) ===
+top-level keys with price/return/eod: ['returns']
+returns: {"ytd_pct": -45.12, "1yr_pct": -34.6, "3yr_cagr_pct": 5.21, "5yr_cagr_pct": -0.54, "10yr_cagr_pct": 8.12, "max_drawdown_pct": 50.35}
 
-=== Ownership depth (Bloomberg HDS / 13F holders) ===
---  institutional-ownership/symbol                   {"_http": 404}
---  institutional-ownership-extract-analytics/holder {"_http": 404}
-
-=== Debt maturity (Bloomberg DDIS) — is it in balance-sheet detail? ===
-debt-related BS fields: ['shortTermInvestments', 'cashAndShortTermInvestments', 'longTermInvestments', 'shortTermDebt', 'capitalLeaseObligationsCurrent', 'longTermDebt', 'capitalLeaseObligationsNonCurrent', 'capitalLeaseObligations', 'totalDebt', 'netDebt']
-DONE 2260
+=== margins in doc (the blank Margin Trend) ===
+margins: {"gross_trend": [{"date": "2026-01-02", "value": null}, {"date": "2025-01-03", "value": null}, {"date": "2023-12-29", "value": null}, {"date": "2022-12-30", "value": null}, {"date": "2021-12-31", "value": null}, {"date": "2021-01-01", "value": null}, {"date": "2019-12-31", "value": null}, {"date": "
+DONE 2261
