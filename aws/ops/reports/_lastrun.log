@@ -1,3 +1,17 @@
-why.html -> 200 | renderForwardModel: True | renderIndustryComparison: True | AI Forward Model: True | Industry Comparison hdr: True
-LDOS data -> 200 | forward_model: True | industry_pe: 11.5 | pe_vs_industry: -20.6
-DONE 2259
+=== Revenue composition (the 'who pays them' / customer-mix visual) ===
+OK  revenue-product-segmentation           14 periods; latest sample: {"symbol": "LDOS", "fiscalYear": 2025, "period": "FY", "reportedCurrency": "USD", "date": "2026-01-02", "data": {"National Security Solutions": 9875000000, "Defense Solution Segment": 2179000000, "Civil Segment": 5053000000}}
+OK  revenue-geographic-segmentation        8 periods; latest sample: {"symbol": "LDOS", "fiscalYear": 2025, "period": "FY", "reportedCurrency": "USD", "date": "2026-01-02", "data": {"Non-US": 1404000000}}
+
+=== Supplier/customer graph endpoints (Bloomberg SPLC equivalent) ===
+--  supply-chain                   {"_http": 404}
+OK  stock-peers                    {"symbol": "BR", "companyName": "Broadridge Financial Solutions, Inc.", "price": 137.93, "mktCap": 15952748905}
+--  company-customers              {"_http": 404}
+--  company-suppliers              {"_http": 404}
+
+=== Ownership depth (Bloomberg HDS / 13F holders) ===
+--  institutional-ownership/symbol                   {"_http": 404}
+--  institutional-ownership-extract-analytics/holder {"_http": 404}
+
+=== Debt maturity (Bloomberg DDIS) — is it in balance-sheet detail? ===
+debt-related BS fields: ['shortTermInvestments', 'cashAndShortTermInvestments', 'longTermInvestments', 'shortTermDebt', 'capitalLeaseObligationsCurrent', 'longTermDebt', 'capitalLeaseObligationsNonCurrent', 'capitalLeaseObligations', 'totalDebt', 'netDebt']
+DONE 2260
