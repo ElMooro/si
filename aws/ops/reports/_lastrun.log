@@ -1,23 +1,82 @@
-exists via deploy
-schedule FAIL: An error occurred (LimitExceededException) when calling the PutRule op
 
-inputs_live: {"supply-inflection": true, "bottleneck-boom": true, "chokepoint": true, "supply-chain-graph": true, "narrative-vs-tape": true, "themes-detected": true}
-counts: {"candidates": 136, "headline": 0}
+copper_spot ('global price copper'):
+    ('PCOPPUSDM', 'Global price of Copper', 'M', '2026-05-01')
+    ('PCOPPUSDQ', 'Global price of Copper', 'Q', '2026-01-01')
+    ('PCOPPUSDA', 'Global price of Copper', 'A', '2025-01-01')
 
-=== VERTICAL TIGHTNESS (which shortage is building) ===
-  SOXX  tightness 84.9  phase=EXTENDED strong=1 signals=['MEMORY_DEMAND'] names=[]
-  SMH   tightness 72.5  phase=EXTENDED strong=1 signals=['MEMORY_DEMAND', 'AI_INFRA_PROXY'] names=['TSM', 'NVDA', 'KLAC', 'ARM', 'LRCX', 'AMAT']
-  AIQ   tightness 72.5  phase=PEAKING strong=1 signals=['MEMORY_DEMAND', 'AI_INFRA_PROXY'] names=[]
-  BOTZ  tightness 72.5  phase=COOLING strong=1 signals=['MEMORY_DEMAND', 'AI_INFRA_PROXY'] names=[]
-  XLU   tightness 42.8  phase=None strong=0 signals=['AI_POWER_PROXY'] names=[]
-  AMLP  tightness 41.4  phase=COOLING strong=0 signals=['NATGAS', 'OIL_WTI'] names=[]
+uranium_spot ('global price uranium'):
+    ('PURANUSDM', 'Global price of Uranium', 'M', '2026-05-01')
+    ('PURANUSDA', 'Global price of Uranium', 'A', '2025-01-01')
+    ('PURANUSDQ', 'Global price of Uranium', 'Q', '2026-01-01')
 
-=== HEADLINE BOARD (shortage building + nobody looking) ===
-  (none cleared both thresholds — showing scarcity leaders)
-  NVDA   scarcity 66.7 stealth 22.7 vert=SMH
-  KLAC   scarcity 63.4 stealth 2.7 vert=SMH
-  ARM    scarcity 63.0 stealth 2.7 vert=SMH
-  LRCX   scarcity 62.8 stealth 2.7 vert=SMH
-  TSM    scarcity 62.1 stealth 42.7 vert=SMH
-  AMAT   scarcity 61.5 stealth 2.7 vert=SMH
-DONE 2227
+aluminum_spot ('global price aluminum'):
+    ('PALUMUSDM', 'Global price of Aluminum', 'M', '2026-05-01')
+    ('PALUMUSDQ', 'Global price of Aluminum', 'Q', '2026-01-01')
+    ('PALUMUSDA', 'Global price of Aluminum', 'A', '2025-01-01')
+    ('CP0561EU27M086NEST', 'Harmonized Index of Consumer Prices: Nondurable Household ', 'M', '2015-12-01')
+    ('CP0561EU28M086NEST', 'Harmonized Index of Consumer Prices: Non-Durable Household', 'M', '2020-01-01')
+
+nickel_spot ('global price nickel'):
+    ('PNICKUSDM', 'Global price of Nickel', 'M', '2026-05-01')
+    ('PNICKUSDA', 'Global price of Nickel', 'A', '2025-01-01')
+    ('PNICKUSDQ', 'Global price of Nickel', 'Q', '2026-01-01')
+
+iron_ore_spot ('global price iron ore'):
+    ('PIORECRUSDM', 'Global price of Iron Ore', 'M', '2026-05-01')
+    ('PIORECRUSDQ', 'Global price of Iron Ore', 'Q', '2026-01-01')
+    ('PIORECRUSDA', 'Global price of Iron Ore', 'A', '2025-01-01')
+
+cobalt_spot ('global price cobalt'):
+
+ppi_semis ('PPI semiconductor'):
+    ('PCU33443344', 'Producer Price Index by Industry: Semiconductor and Other ', 'M', '2026-05-01')
+    ('PCU334413334413A', 'Producer Price Index by Industry: Semiconductor and Relate', 'M', '2026-05-01')
+    ('PCU3344133441', 'Producer Price Index by Industry: Semiconductor and Other ', 'M', '2026-05-01')
+    ('PCU334413334413', 'Producer Price Index by Industry: Semiconductor and Relate', 'M', '2026-05-01')
+    ('PCU333242333242', 'Producer Price Index by Industry: Semiconductor Machinery ', 'M', '2026-05-01')
+
+ppi_steel ('PPI iron steel'):
+    ('WPU101', 'Producer Price Index by Commodity: Metals and Metal Produc', 'M', '2026-05-01')
+    ('WPU1012', 'Producer Price Index by Commodity: Metals and Metal Produc', 'M', '2026-05-01')
+    ('WPS101', 'Producer Price Index by Commodity: Metals and Metal Produc', 'M', '2026-05-01')
+    ('PCU3312103312100', 'Producer Price Index by Industry: Iron and Steel Pipe and ', 'M', '2026-05-01')
+    ('PCU33121033121002', 'Producer Price Index by Industry: Iron and Steel Pipe and ', 'M', '2026-02-01')
+
+ppi_electrical ('PPI power distribution transformer'):
+    ('WPU117409', 'Producer Price Index by Commodity: Machinery and Equipment', 'M', '2026-05-01')
+    ('PCU3353113353111', 'Producer Price Index by Industry: Electric Power and Speci', 'M', '2023-02-01')
+    ('WPU11740999', 'Producer Price Index by Commodity: Machinery and Equipment', 'M', '2026-05-01')
+
+supplier_deliveries ('ISM supplier deliveries manufacturing'):
+
+prices_paid_philly ('Philadelphia Fed prices paid'):
+    ('PPCDFSA066MSFRBPHI', 'Current Prices Paid; Diffusion Index for Federal Reserve D', 'M', '2026-06-01')
+    ('PPBNDIF066MSFRBPHI', 'Current Prices Paid; Diffusion Index for Federal Reserve D', 'M', '2026-06-01')
+    ('PPFDFSA066MSFRBPHI', 'Future Prices Paid; Diffusion Index for Federal Reserve Di', 'M', '2026-06-01')
+    ('PPFDFNA066MNFRBPHI', 'Future Prices Paid; Diffusion Index for Federal Reserve Di', 'M', '2026-06-01')
+    ('PPCDFNA066MNFRBPHI', 'Current Prices Paid; Diffusion Index for Federal Reserve D', 'M', '2026-06-01')
+
+delivery_time_ny ('Empire State delivery time'):
+    ('DTCDISA066MSFRBNY', 'Current Delivery Time; Diffusion Index for New York', 'M', '2026-06-01')
+    ('DTFDISA066MSFRBNY', 'Future Delivery Time; Diffusion Index for New York', 'M', '2026-06-01')
+    ('DTCDINA066MNFRBNY', 'Current Delivery Time; Diffusion Index for New York', 'M', '2026-06-01')
+    ('DTCNNA156MNFRBNY', 'Current Delivery Time; Percent Reporting No Change for New', 'M', '2026-06-01')
+    ('DTCISA156MSFRBNY', 'Current Delivery Time; Percent Reporting Increases for New', 'M', '2026-06-01')
+
+prices_paid_ny ('Empire State prices paid'):
+    ('PPCDISA066MSFRBNY', 'Current Prices Paid; Diffusion Index for New York', 'M', '2026-06-01')
+    ('PPFDISA066MSFRBNY', 'Future Prices Paid; Diffusion Index for New York', 'M', '2026-06-01')
+    ('PPFDINA066MNEMFRBNY', 'Future Prices Paid; Diffusion Index for New York', 'M', '2026-06-01')
+    ('PPCDINA066MNEMFRBNY', 'Current Prices Paid; Diffusion Index for New York', 'M', '2026-06-01')
+    ('PPFISA156MSFRBNY', 'Future Prices Paid; Percent Expecting Increases for New Yo', 'M', '2026-06-01')
+
+lead_times_richmond ('Richmond Fed vendor lead time'):
+
+natgas_spot ('Henry Hub natural gas spot'):
+    ('DHHNGSP', 'Henry Hub Natural Gas Spot Price', 'D', '2026-06-22')
+    ('MHHNGSP', 'Henry Hub Natural Gas Spot Price', 'M', '2026-05-01')
+    ('WHHNGSP', 'Henry Hub Natural Gas Spot Price', 'W', '2026-06-19')
+    ('AHHNGSP', 'Henry Hub Natural Gas Spot Price', 'A', '2025-01-01')
+    ('GASPRICE', 'Natural Gas Price: Henry Hub, LA (DISCONTINUED)', 'M', '2014-02-01')
+
+DONE 2228
