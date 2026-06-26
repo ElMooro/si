@@ -1,24 +1,4 @@
-counts: {"names": 136, "prime": 0, "candidates": 1, "verticals_tightening": 13}
-
-names on board carrying inventory-drawdown: 13
-  TSM    [CANDIDATE] scar=50.4 steal=56.2 comp=53.2 eng=['bottleneck-boom', 'chokepoint', 'inventory-drawdown', 'supply-chain-laggard'] | rev accel +0.7pp; 95% below fair; 95% below fair; 95% b
-  EXTR   [WATCH] scar=74.4 steal=37.5 comp=52.8 eng=['chokepoint', 'inventory-drawdown'] | 71% below fair; DIO -40.5% (drawing down)
-  JNPR   [WATCH] scar=66.8 steal=37.5 comp=50.0 eng=['chokepoint', 'inventory-drawdown'] | 79% below fair; DIO -23.3% (drawing down)
-  MKSI   [WATCH] scar=51.2 steal=34.2 comp=41.8 eng=['chokepoint', 'inventory-drawdown'] | 44% below fair; DIO -17.6% (drawing down)
-  HPE    [WATCH] scar=39.7 steal=37.3 comp=38.5 eng=['bottleneck-boom', 'inventory-drawdown'] | rev accel +18.9pp; DIO -9.5% (drawing down); DIO -9.5% 
-  ASML   [WATCH] scar=55.2 steal=26.0 comp=37.9 eng=['chokepoint', 'inventory-drawdown', 'supply-chain-laggard'] | supplies MU, lags 32%; DIO -8.0% (drawing down)
-  ACMR   [WATCH] scar=53.4 steal=24.9 comp=36.5 eng=['chokepoint', 'inventory-drawdown'] | 38% below fair; DIO -12.3% (drawing down)
-  NDSN   [WATCH] scar=32.8 steal=40.4 comp=36.4 eng=['bottleneck-boom', 'inventory-drawdown'] | rev accel +21.6pp; DIO -9.4% (drawing down); DIO -9.4% 
-  LDOS   [WATCH] scar=28.5 steal=44.7 comp=35.7 eng=['bottleneck-boom', 'inventory-drawdown'] | rev accel +10.5pp; DIO -7.2% (drawing down)
-  ETN    [WATCH] scar=28.8 steal=40.8 comp=34.3 eng=['bottleneck-boom', 'inventory-drawdown'] | rev accel +4.7pp; DIO -4.0% (drawing down)
-
-MU on board: []
-
-TOP 6 board:
-  TSM    [CANDIDATE] comp=53.2 scar=50.4 steal=56.2 Semiconductors / memory eng=['bottleneck-boom', 'chokepoint', 'inventory-drawdown', 'supply-chain-laggard']
-  EXTR   [WATCH] comp=52.8 scar=74.4 steal=37.5 AI compute eng=['chokepoint', 'inventory-drawdown']
-  JNPR   [WATCH] comp=50.0 scar=66.8 steal=37.5 AI compute eng=['chokepoint', 'inventory-drawdown']
-  MKSI   [WATCH] comp=41.8 scar=51.2 steal=34.2 None eng=['chokepoint', 'inventory-drawdown']
-  NVDA   [WATCH] comp=40.8 scar=51.6 steal=32.2 Semiconductors / memory eng=['bottleneck-boom', 'chokepoint', 'supply-chain-laggard']
-  DGII   [WATCH] comp=40.4 scar=43.6 steal=37.5 AI compute eng=['chokepoint']
-DONE 2239
+  File "/home/runner/work/si/si/aws/ops/pending/2240_verify_demandgate.py", line 21
+    print(f"\nexcluded destockers (DIO falling but revenue flat/down): {len(destock)} e.g.",[(r.get('ticker'),f\"dio{r.get('dio_chg_pct')}\",f\"rev{r.get('rev_growth_yoy')}\") for r in destock[:5]])
+                                                                                                                ^
+SyntaxError: unexpected character after line continuation character
