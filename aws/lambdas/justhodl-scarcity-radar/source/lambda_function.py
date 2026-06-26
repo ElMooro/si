@@ -87,10 +87,22 @@ def lambda_handler(event=None, context=None):
     scg = _read("data/supply-chain-graph.json") or {}
     nvt = _read("data/narrative-vs-tape.json") or {}
     themes = _read("data/themes-detected.json") or {}
+    idr = _read("data/inventory-drawdown.json") or {}
 
     by_theme = si.get("by_theme") or {}
     tight = {etf.upper(): (v.get("composite_inflection_score") or 0)
              for etf, v in by_theme.items() if isinstance(v, dict)}
+    # inventory-drawdown sector overlay: a falling inventories-to-sales ratio in a vertical is
+    # tightening one layer earlier than spot/PPI — boost that vertical's tightness.
+    inv_sector_tight = {}
+    for s in (idr.get("sector_drawdown") or []):
+        etf = (s.get("theme_etf") or "").upper()
+        if not etf:
+            continue
+        bump = clamp((-(s.get("chg_6m") or 0)) * 7.0)   # -8% 6m I/S ≈ 56 tightness
+        inv_sector_tight[etf] = max(inv_sector_tight.get(etf, 0), bump)
+    for etf, bump in inv_sector_tight.items():
+        tight[etf] = max(tight.get(etf, 0), 0.6 * tight.get(etf, 0) + 0.4 * bump) if etf in tight else bump
     phase_by_etf = {str(th.get("etf", "")).upper(): th.get("phase") for th in (themes.get("themes") or [])}
     PHASE_STEALTH = {"DORMANT": 60, "NASCENT": 90, "EMERGING": 100, "EARLY": 90,
                      "ACCELERATING": 70, "EXTENDED": 15, None: 50}
@@ -153,6 +165,20 @@ def lambda_handler(event=None, context=None):
         a = rec(tk); a["engines"].add("quiet-accumulation"); a["quiet"] = 80.0
         a["notes"].append("quiet accumulation (low buzz, smart money in)")
 
+    # inventory drawdown — DIO falling into rising demand = the cupboard emptying (capture,
+    # one layer earlier than spot/PPI). Pull boom setups + the broader stock drawdown board.
+    for r in ((idr.get("boom_setups") or []) + (idr.get("stock_drawdown_board") or [])):
+        tk = r.get("ticker")
+        dio_chg = r.get("dio_chg_pct")
+        if not tk or not isinstance(dio_chg, (int, float)) or dio_chg >= 0:
+            continue
+        a = rec(tk); a["engines"].add("inventory-drawdown")
+        a["industry"] = a["industry"] or r.get("industry"); a["sector"] = a["sector"] or r.get("sector")
+        boom = r.get("boom_score")
+        cap = boom if isinstance(boom, (int, float)) and boom > 0 else clamp((-dio_chg) * 3.0)
+        a["capture"] = clamp(max(a["capture"], cap))
+        a["notes"].append(f"DIO {round(dio_chg,1)}% (drawing down)")
+
     book = []
     for tk, a in names.items():
         etf = map_vertical(a["industry"], a["sector"], a["theme"])
@@ -187,8 +213,8 @@ def lambda_handler(event=None, context=None):
                    "verticals_tightening": sum(1 for v in verticals if v["tightness"] >= 55)},
         "legend": {"PRIME": "shortage building AND still ignored (scarcity>=60 & stealth>=55)",
                    "CANDIDATE": "building but not yet extreme", "WATCH": "one axis only"},
-        "sources": ["supply-inflection (real spot/PPI)", "bottleneck-boom", "chokepoint",
-                    "supply-chain-graph", "narrative-vs-tape", "themes-detected"],
+        "sources": ["supply-inflection (real spot/PPI)", "inventory-drawdown (DIO + sector I/S)",
+                    "bottleneck-boom", "chokepoint", "supply-chain-graph", "narrative-vs-tape", "themes-detected"],
         "disclaimer": "Synthesis of the platform's own engines — research, not advice.",
     }
     try:
