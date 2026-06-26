@@ -1,4 +1,14 @@
-  File "/home/runner/work/si/si/aws/ops/pending/2240_verify_demandgate.py", line 21
-    print(f"\nexcluded destockers (DIO falling but revenue flat/down): {len(destock)} e.g.",[(r.get('ticker'),f\"dio{r.get('dio_chg_pct')}\",f\"rev{r.get('rev_growth_yoy')}\") for r in destock[:5]])
-                                                                                                                ^
-SyntaxError: unexpected character after line continuation character
+counts: {"names": 136, "prime": 0, "candidates": 1, "verticals_tightening": 13}
+demand-CONFIRMED inventory-drawdown names on board: 7
+   TSM [CANDIDATE] comp=53.2 scar=50.4 steal=56.2 :: rev accel +0.7pp; 95% below fair; 95% below fair; 95% below 
+   HPE [WATCH] comp=38.5 scar=39.7 steal=37.3 :: rev accel +18.9pp; DIO -9.5% drawing down, rev +14.8%; DIO -
+   NDSN [WATCH] comp=36.4 scar=32.8 steal=40.4 :: rev accel +21.6pp; DIO -9.4% drawing down, rev +10.7%; DIO -
+   LDOS [WATCH] comp=35.7 scar=28.5 steal=44.7 :: rev accel +10.5pp; DIO -7.2% drawing down, rev +4.6%
+   ETN [WATCH] comp=34.3 scar=28.8 steal=40.8 :: rev accel +4.7pp; DIO -4.0% drawing down, rev +5.6%
+   MOD [WATCH] comp=31.6 scar=28.1 steal=35.5 :: rev accel +9.6pp; DIO -3.7% drawing down, rev +18.6%
+   FLEX [WATCH] comp=31.2 scar=23.3 steal=41.7 :: rev accel +2.2pp; DIO -0.3% drawing down, rev +5.9%
+excluded destockers (DIO falling, demand NOT rising): 3
+   - BWXT (dio -28.4%, rev -2.8%)
+   - CAMT (dio -26.0%, rev -5.0%)
+   - AMD (dio -4.0%, rev -0.2%)
+DONE 2241
