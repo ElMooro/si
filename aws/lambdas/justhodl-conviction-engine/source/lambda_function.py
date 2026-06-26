@@ -187,6 +187,24 @@ def n_best_setups(d):
     return sig, f"{up} strong-buy / {buy} buy of {len(ts)} top setups"
 
 
+def n_crypto_confluence(d):
+    """Fused crypto synthesizer -> -2..+2 from multi-dimension breadth on the market backdrop."""
+    cnt = d.get("counts") or {}
+    multi = cnt.get("bullish_multi") or 0
+    bull = cnt.get("bullish_any") or 0
+    bear = cnt.get("bearish_any") or 0
+    reg = (d.get("market_context") or {}).get("regime")
+    if reg == "RISK_OFF" or bear > bull:
+        sig = -1
+    elif multi >= 3 and reg == "RISK_ON":
+        sig = 2
+    elif multi >= 1 or reg == "RISK_ON":
+        sig = 1
+    else:
+        sig = 0
+    return sig, f"crypto confluence: {multi} multi-dim coins, backdrop {reg}"
+
+
 # (engine, subject, family, s3_key, normaliser)
 FEEDS = [
     ("PM Decision",        "Broad risk / equity beta", "desk-posture",
@@ -211,6 +229,8 @@ FEEDS = [
      "data/short-pressure.json",       n_short_pressure),
     ("Crypto Narratives",  "Crypto",                   "crypto",
      "data/crypto-narratives.json",    n_crypto_narratives),
+    ("Crypto Confluence",  "Crypto",                   "crypto-synth",
+     "data/crypto-confluence.json",    n_crypto_confluence),
     ("Risk Regime",        "Broad risk / equity beta", "roro-synth",
      "data/risk-regime.json",          n_risk_regime),
     ("Best Setups",        "US equity — value tilt",   "setups-synth",
