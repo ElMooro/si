@@ -433,6 +433,32 @@ def lambda_handler(event, context):
         liquidity = {"state": liq_state, "confirmation": lconf, "net_tilt": net_liq, "readings": lr, "note": lnote}
         all_tells.append(f"Liquidity: {liq_state} ({lconf})")
 
+    # ── capital-inflows overlay (foreign funding of US assets — the dollar/RORO tap) ──
+    capital_inflows = None
+    _ci = _read("data/capital-inflows.json") or {}
+    if _ci.get("ok"):
+        ci_reg = _ci.get("regime")
+        into12 = (_ci.get("headline") or {}).get("foreign_net_into_us_lt_12mo_b")
+        risk_on = score >= 12; risk_off = score <= -12
+        supportive = ci_reg in ("ACCELERATING_INFLOW", "STEADY_INFLOW")
+        draining = ci_reg in ("SUDDEN_STOP", "PERSISTENT_OUTFLOW")
+        if risk_on and draining:
+            cconf = "DIVERGENT"
+            cnote = "Risk-on tape while foreign capital is leaving US assets — advances without foreign funding are fragile; trimming."
+            posture = dict(posture); posture["size_mult"] = round(posture["size_mult"] * 0.96, 3)
+            posture["capital_flow_warning"] = str(ci_reg).lower()
+        elif risk_off and draining:
+            cconf = "CONFIRMED"; cnote = "Risk-off reinforced by foreign capital draining out of US assets."
+        elif risk_on and supportive:
+            cconf = "CONFIRMED"; cnote = "Risk-on funded by steady foreign inflows — the durable kind of advance."
+        elif draining:
+            cconf = "WARNING"; cnote = "Foreign funding of US assets is draining — a building headwind even if the tape hasn't turned."
+        else:
+            cconf = "ALIGNED"; cnote = f"Foreign funding {str(ci_reg).replace('_', ' ').lower()}."
+        capital_inflows = {"regime": ci_reg, "foreign_net_into_us_lt_12mo_b": into12,
+                           "confirmation": cconf, "note": cnote}
+        all_tells.append(f"Capital inflows: {ci_reg} ({cconf})")
+
     # ── secondary risk overlay: aggregate the vol-structure / credit / stress engines
     #    (these alpha-graded islands fed nothing; they now corroborate the RORO read) ──
     RISK_CHECKS = [
@@ -491,6 +517,7 @@ def lambda_handler(event, context):
         "cross_border": cross_border,
         "systemic_stress": systemic_stress,
         "liquidity": liquidity,
+        "capital_inflows": capital_inflows,
         "secondary_risk": secondary_risk,
         "blocks_used": [{"block": b, "weight": w, "score": round(s, 3)} for b, w, s in blocks],
         "components": results,
