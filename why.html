@@ -561,7 +561,7 @@ function renderReport(d){
   if(d.ticker){
     fetchInsiderData(d.ticker);
     fetchSectorFlow(d);
-    fetchCritique(d.ticker);
+    fetchCritique(d.ticker, d);
   }
 }
 
@@ -1661,22 +1661,40 @@ function fmtUSD(v){
 
 function renderCritique(d){
   const ticker = d.ticker;
+  const da = d.devils_advocate || {};
+  let inner;
+  if(da.short_thesis || (da.kill_points && da.kill_points.length)){
+    const kp = (da.kill_points || []).map(k =>
+      `<li style="margin-bottom:8px"><b style="color:var(--text)">${esc(k.point||'')}</b>`
+      + (k.evidence ? `<div style="color:var(--text-muted); font-size:11.5px; margin-top:2px">${esc(k.evidence)}</div>` : '')
+      + `</li>`).join('');
+    inner =
+      (da.title ? `<div style="font-weight:700; color:#f59e0b; font-size:13px; margin-bottom:8px">${esc(da.title)}</div>` : '')
+      + (da.short_thesis ? `<p style="color:var(--text); line-height:1.6; margin:0 0 12px">${esc(da.short_thesis)}</p>` : '')
+      + (kp ? `<div style="color:var(--text-muted); font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px">Kill points</div><ul style="margin:0 0 12px; padding-left:18px; color:var(--text)">${kp}</ul>` : '')
+      + (da.what_bulls_underestimate ? `<div style="background:rgba(245,158,11,.08); border-left:3px solid #f59e0b; border-radius:4px; padding:9px 12px; font-size:12px; color:var(--text-dim)"><b style="color:#f59e0b">What bulls underestimate:</b> ${esc(da.what_bulls_underestimate)}</div>` : '');
+  } else {
+    inner = `<span style="opacity:0.6">Pressure-testing the analyst's verdict…</span>`;
+  }
+  const pillTxt = da.title ? 'the short-seller\u2019s pitch' : 'loading second opinion…';
   return `
     <section class="block" id="critique-section" data-ticker="${esc(ticker)}">
       <h3><span class="ico">🎭</span> Devil's Advocate Review
-        <span class="pill" id="critique-pill">loading second opinion…</span>
+        <span class="pill" id="critique-pill">${pillTxt}</span>
       </h3>
-      <div id="critique-body" style="padding:14px 0; color:var(--text-muted); font-size:12px">
-        <span style="opacity:0.6">Fetching adversarial critique from second model — pressure-testing the analyst's verdict…</span>
-      </div>
+      <div id="critique-body" style="padding:14px 0; font-size:12.5px">${inner}</div>
     </section>`;
 }
 
-async function fetchCritique(ticker){
+async function fetchCritique(ticker, doc){
   const section = document.getElementById('critique-section');
   if(!section) return;
   const pill = document.getElementById('critique-pill');
   const body = document.getElementById('critique-body');
+  // The main research doc now carries a full devils_advocate section, rendered already.
+  // The separate second-model critique is a bonus: enhance on success, stay silent on failure.
+  const hasDA = !!(doc && doc.devils_advocate &&
+    (doc.devils_advocate.short_thesis || (doc.devils_advocate.kill_points||[]).length));
 
   // Try CDN first (cached 10min critique)
   try {
@@ -1684,13 +1702,14 @@ async function fetchCritique(ticker){
     const r = await fetchWithTimeout(cdnUrl, 6000);
     if(r && r.ok){
       const data = await r.json();
-      paintCritiqueBlock(data);
-      return;
+      if(data && data.critique){ paintCritiqueBlock(data); return; }
+      if(hasDA){ if(pill) pill.textContent = 'the short-seller\u2019s pitch'; return; }
     }
   } catch(e){ /* fall through */ }
 
   // Fall back to Lambda (URL patched post-deploy)
   if(!CRITIQUE_LAMBDA_URL){
+    if(hasDA){ if(pill) pill.textContent = 'the short-seller\u2019s pitch'; return; }
     body.innerHTML = `<span style="color:var(--text-muted); font-size:11.5px">
       No cached critique for ${esc(ticker)} yet. Critique runs in background after research
       pre-warm completes (~30-60s). Refresh the page in a moment.
@@ -1702,6 +1721,7 @@ async function fetchCritique(ticker){
   try {
     const r = await fetchWithTimeout(`${CRITIQUE_LAMBDA_URL}?ticker=${encodeURIComponent(ticker)}`, 120000);
     if(!r.ok){
+      if(hasDA){ if(pill) pill.textContent = 'the short-seller\u2019s pitch'; return; }
       body.innerHTML = `<span style="color:var(--text-muted); font-size:11.5px">Critique unavailable (HTTP ${r.status}).</span>`;
       pill.textContent = 'unavailable';
       return;
@@ -1709,6 +1729,7 @@ async function fetchCritique(ticker){
     const data = await r.json();
     paintCritiqueBlock(data);
   } catch(e){
+    if(hasDA){ if(pill) pill.textContent = 'the short-seller\u2019s pitch'; return; }
     body.innerHTML = `<span style="color:var(--text-muted); font-size:11.5px">Critique fetch failed: ${esc(e.message || 'unknown')}.</span>`;
     pill.textContent = 'error';
   }
