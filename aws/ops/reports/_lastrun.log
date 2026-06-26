@@ -1,11 +1,3 @@
-schedule FAIL: An error occurred (LimitExceededException) when calling the PutRule operation: T
-
-supply-inflection.json keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'fetch_stats', 'summary', 'signals', 'by_theme', 'schema']
-
-bottleneck-boom keys: ['engine', 'version', 'generated_at', 'duration_s', 'industry_pressure', 'fred_used', 'fred_failed', 'universe_source', 'universe_n', 'scored_n', 'signals_logged', 'regime_at_log', 'top_calls', 'ranks', 'methodology']
-  candidate list 'ranks' n=40 keys=['ticker', 'name', 'sector', 'industry', 'mkt_cap', 'rev_growth_yoy', 'rev_accel_pp', 'ps_ttm']
-     VST {'name': 'Vistra Corp.', 'sector': 'Utilities', 'industry': 'Independent Power Producers', 'mkt_cap': 54916908563}
-     LDOS {'name': 'Leidos Holdings, Inc.', 'sector': 'Technology', 'industry': 'Information Technology Services', 'mkt_cap': 13121939813}
-     CEG {'name': 'Constellation Energy Corporation', 'sector': 'Utilities', 'industry': 'Renewable Utilities', 'mkt_cap': 96228568299}
-     NRG {'name': 'NRG Energy, Inc.', 'sector': 'Utilities', 'industry': 'Independent Power Producers', 'mkt_cap': 30004385899}
-DONE 2226
+supply-inflection rules: NONE
+signal list under a different key; top keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'fetch_stats', 'summary', 'signals', 'by_theme', 'schema']
+DONE 2227
