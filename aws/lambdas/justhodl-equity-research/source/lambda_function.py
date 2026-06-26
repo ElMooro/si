@@ -562,6 +562,33 @@ def compute_valuation(profile: dict, ratios_ttm: dict, key_ttm: dict,
     }
 
 
+def fetch_industry_benchmarks(industry, sector):
+    """Real industry & sector P/E from FMP's daily snapshot — the true 'vs industry'
+    benchmark (averaged across exchanges), not just a 5-peer median. Walks back up to a
+    week to land on a trading day that has data."""
+    import datetime
+    out = {"industry": industry, "sector": sector, "industry_pe": None,
+           "sector_pe": None, "as_of": None}
+
+    def _avg_pe(rows, field, name):
+        if not isinstance(rows, list) or not name:
+            return None
+        pes = [_safe_num(r, "pe") for r in rows
+               if str(r.get(field, "")).strip().lower() == str(name).strip().lower()]
+        pes = [p for p in pes if p and 0 < p < 250]      # drop nulls + absurd outliers
+        return round(sum(pes) / len(pes), 1) if pes else None
+
+    for back in range(0, 7):
+        d = (datetime.date.today() - datetime.timedelta(days=back)).isoformat()
+        ind = fmp_get("industry-pe-snapshot", date=d)
+        if isinstance(ind, list) and ind:
+            out["industry_pe"] = _avg_pe(ind, "industry", industry)
+            out["sector_pe"] = _avg_pe(fmp_get("sector-pe-snapshot", date=d), "sector", sector)
+            out["as_of"] = d
+            break
+    return out
+
+
 def compute_financial_health(scores: list, ratios_ttm: dict, key_ttm: dict,
                               balance_qual: dict, cf_qual: dict,
                               growth: dict) -> dict:
@@ -1286,6 +1313,7 @@ Schema:
   },
   "valuation_assessment": "150 words on whether the stock is cheap/fair/expensive given P/E vs 5yr avg, DCF gap, peer multiples, and FCF yield. Be specific.",
   "peer_comparison_assessment": "100 words on how the subject's valuation multiples compare to the peer-median (which functions as the industry P/E benchmark). Reference SPECIFIC peer ticker(s) where helpful. Frame as: 'trading at X% premium/discount to peer median P/E of Y'.",
+  "industry_comparison_assessment": "90 words using the REAL industry_comparison block (FMP industry & sector P/E snapshot). State the company P/E vs the industry P/E and sector P/E explicitly with the percentages, then judge whether that premium/discount is JUSTIFIED by the company's fundamentals (growth, margins, ROE, leverage) or whether it signals mispricing. A discount is only cheap if the business isn't structurally inferior; a premium is only warranted by superior growth/returns. Be decisive.",
   "earnings_track_record_assessment": "80 words on the company's earnings consistency. Cite the EPS beat rate, current streak, magnitude trend, and revenue surprise. Hedge fund framing: 'beats 7 of 8 quarters but with shrinking magnitude = deteriorating quality' is more useful than just 'beats consensus regularly'.",
   "capital_allocation_assessment": "80 words on management's capital allocation. Cite total capital returned 10y, shareholder yield, dividend vs buyback mix, payout ratio sustainability, and capex intensity trend. Frame as 'cash-cow returning $X to shareholders' vs 'reinvesting heavily into capex' — both can be good, depends on ROIC.",
   "institutional_activity_assessment": "60 words on recent SEC 13D/13G beneficial-ownership filings (institutional positions crossing 5% threshold). If filings are stale (>24mo old) or absent, say so plainly. If recent clustering by notable institutions (Berkshire, Vanguard, Blackrock, Wellington), call it out as 'smart money accumulation'.",
@@ -1330,6 +1358,33 @@ Schema:
       "thesis_1liner":     "...",
       "drivers":           ["..."]
     }
+  },
+  "forward_model": {
+    "summary": "120-160 words walking through your forward model: the revenue trajectory you assume and WHY (anchor to analyst_estimates consensus where present, then adjust up/down with your own view of the growth drivers and risks), the margin path, the resulting EPS, and the multiple you apply to reach a fair value. State plainly whether the model implies upside or downside vs the current price.",
+    "revenue_projections": [
+      {"year": "FY2026", "revenue_est": <number USD>, "growth_pct": <number>, "basis": "analyst consensus | your adjustment + why"},
+      {"year": "FY2027", "revenue_est": <number USD>, "growth_pct": <number>, "basis": "..."},
+      {"year": "FY2028", "revenue_est": <number USD>, "growth_pct": <number>, "basis": "..."}
+    ],
+    "margin_path": {"metric": "operating | net margin", "current_pct": <number>, "projected_pct": <number>, "rationale": "20-40 words"},
+    "eps_projections": [
+      {"year": "FY2026", "eps_est": <number>, "growth_pct": <number>},
+      {"year": "FY2027", "eps_est": <number>, "growth_pct": <number>},
+      {"year": "FY2028", "eps_est": <number>, "growth_pct": <number>}
+    ],
+    "price_model": {
+      "method": "forward P/E × projected EPS, cross-checked against the company's own 5yr-avg multiple, the industry P/E, and a DCF view",
+      "forward_pe_applied": <number>,
+      "forward_pe_rationale": "20-40 words on why this multiple — vs the company's 5yr avg and the industry P/E from industry_comparison",
+      "target_eps_year": "FY2027",
+      "fair_value_base": <number USD — projected EPS for target year × forward_pe_applied>,
+      "fair_value_bull": <number USD>,
+      "fair_value_bear": <number USD>,
+      "upside_to_base_pct": <number — vs current price>,
+      "dcf_cross_check": "1-2 sentences: does a DCF (cite the dcf_estimate in valuation) corroborate or contradict the multiple-based value?"
+    },
+    "key_assumptions": ["3-5 falsifiable assumptions the model rests on, each with the number"],
+    "confidence": "HIGH | MEDIUM | LOW — with a 10-word reason tied to analyst coverage + visibility"
   },
   "verdict": {
     "rating":              "STRONG_BUY | BUY | HOLD | SELL | STRONG_SELL",
@@ -1834,20 +1889,55 @@ def lambda_handler(event, context):
     # Forward estimates (next 2 years)
     est_block = []
     if isinstance(estimates, list):
-        for e in estimates[:3]:
+        # /stable/ returns newest-first with v-stable field names (revenueAvg, epsAvg…).
+        # Sort ascending so the nearest forward years lead — the forward model needs them.
+        _rows = sorted([e for e in estimates if e.get("date")], key=lambda e: e.get("date"))
+        for e in _rows[:5]:
             est_block.append({
                 "date":            e.get("date"),
-                "revenue_avg":     _safe_num(e, "estimatedRevenueAvg"),
-                "eps_avg":         _safe_num(e, "estimatedEpsAvg"),
-                "num_analysts_rev":_safe_num(e, "numberAnalystsEstimatedRevenue"),
-                "num_analysts_eps":_safe_num(e, "numberAnalystsEstimatedEps"),
+                "revenue_avg":     _safe_num(e, "revenueAvg"),
+                "revenue_low":     _safe_num(e, "revenueLow"),
+                "revenue_high":    _safe_num(e, "revenueHigh"),
+                "eps_avg":         _safe_num(e, "epsAvg"),
+                "eps_low":         _safe_num(e, "epsLow"),
+                "eps_high":        _safe_num(e, "epsHigh"),
+                "ebitda_avg":      _safe_num(e, "ebitdaAvg"),
+                "net_income_avg":  _safe_num(e, "netIncomeAvg"),
+                "num_analysts_rev":_safe_num(e, "numAnalystsRevenue"),
+                "num_analysts_eps":_safe_num(e, "numAnalystsEps"),
             })
+
+    # ── Industry / sector P/E benchmark (real, from FMP snapshot) + company-vs-industry
+    ind_bench = fetch_industry_benchmarks(company_block.get("industry"), company_block.get("sector"))
+
+    def _rel_pct(co, bench):
+        return round((co / bench - 1) * 100, 1) if (co and bench and bench > 0) else None
+
+    industry_comparison = {
+        "industry":     company_block.get("industry"),
+        "sector":       company_block.get("sector"),
+        "as_of":        ind_bench.get("as_of"),
+        "industry_pe":  ind_bench.get("industry_pe"),
+        "sector_pe":    ind_bench.get("sector_pe"),
+        "company": {
+            "pe":        valuation.get("pe_ttm"),
+            "ps":        valuation.get("ps_ttm"),
+            "pb":        valuation.get("pb_ttm"),
+            "ev_ebitda": valuation.get("ev_ebitda"),
+            "peg":       valuation.get("peg_ratio"),
+            "roe_pct":   valuation.get("roe_ttm_pct"),
+            "pe_5yr_avg": valuation.get("pe_5yr_avg"),
+        },
+        "pe_vs_industry_pct": _rel_pct(valuation.get("pe_ttm"), ind_bench.get("industry_pe")),
+        "pe_vs_sector_pct":   _rel_pct(valuation.get("pe_ttm"), ind_bench.get("sector_pe")),
+    }
 
     payload = {
         "ticker":          ticker,
         "company":         company_block,
         "quote":           quote_block,
         "valuation":       valuation,
+        "industry_comparison": industry_comparison,
         "growth":          {**growth_metrics, **fcf_metrics, **qty_consistency},
         "margins":         margin_trend,
         "balance_quality": balance_qual,
@@ -1913,6 +2003,7 @@ def lambda_handler(event, context):
         "devils_advocate":     claude_synthesis.get("devils_advocate"),
         "valuation_assessment":claude_synthesis.get("valuation_assessment"),
         "peer_comparison_assessment": claude_synthesis.get("peer_comparison_assessment"),
+        "industry_comparison_assessment": claude_synthesis.get("industry_comparison_assessment"),
         "earnings_track_record_assessment": claude_synthesis.get("earnings_track_record_assessment"),
         "capital_allocation_assessment": claude_synthesis.get("capital_allocation_assessment"),
         "institutional_activity_assessment": claude_synthesis.get("institutional_activity_assessment"),
@@ -1921,6 +2012,8 @@ def lambda_handler(event, context):
         "competitive_position":claude_synthesis.get("competitive_position"),
         "catalysts_12m":       claude_synthesis.get("catalysts_12m") or [],
         "invalidation_triggers": claude_synthesis.get("invalidation_triggers") or [],
+        "forward_model":       claude_synthesis.get("forward_model"),
+        "industry_comparison": industry_comparison,
         "scenarios":           _enrich_scenarios(
             claude_synthesis.get("scenarios"), current_price
         ),
