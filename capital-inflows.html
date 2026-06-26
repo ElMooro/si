@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>US Capital Inflows · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;
+--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8;--vio:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 90px}
+.hd{border-bottom:1px solid var(--bd);padding-bottom:12px;margin-bottom:16px}
+h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font-size:12.5px}.meta{color:var(--fg3);font-size:11.5px;margin-top:3px}
+.thesis{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--cyan);border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--fg2);line-height:1.5;margin-bottom:14px}
+.banner{border-radius:9px;padding:13px 16px;margin-bottom:16px;border:1px solid var(--bd)}
+.banner .rg{font-size:15px;font-weight:800;letter-spacing:.3px}
+.banner .it{font-size:12.5px;color:var(--fg2);margin-top:4px;line-height:1.5}
+.banner .fl{font-size:11.5px;color:var(--fg3);margin-top:6px}
+.hero{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.big{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:12px 15px;flex:1;min-width:150px}
+.big .l{font-size:11px;color:var(--fg3);letter-spacing:.2px}.big .v{font-size:22px;font-weight:800;margin-top:2px;letter-spacing:-.5px}
+.big .s{font-size:10.5px;color:var(--fg3);margin-top:1px}
+.sec{margin:22px 0 9px;font-size:13px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+.sec .n{color:var(--fg3);font-weight:400;font-size:11.5px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:14px 16px}
+.bar{display:flex;align-items:center;gap:10px;margin:7px 0}
+.bar .nm{width:120px;font-size:12px;color:var(--fg2);flex-shrink:0}
+.bar .track{flex:1;background:#0a0e14;border:1px solid var(--bd);border-radius:5px;height:20px;overflow:hidden}
+.bar .fill{height:100%;border-radius:4px}
+.bar .val{width:74px;text-align:right;font-size:12px;font-weight:700;flex-shrink:0}
+.foot{color:var(--fg3);font-size:11px;margin-top:22px;line-height:1.5}.loading{color:var(--fg3);padding:40px 0}
+</style></head><body><div class="wrap" id="w"><div class="loading">Loading US capital inflows…</div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function fb(n){if(n==null)return'—';return (n<0?'-':'+')+'$'+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:1})+'B';}
+const REG={ACCELERATING_INFLOW:['var(--grn)','rgba(52,211,153,.13)','⚡ Accelerating inflow'],
+STEADY_INFLOW:['var(--grn)','rgba(52,211,153,.10)','✓ Steady inflow'],
+DECELERATING:['var(--amb)','rgba(251,191,36,.13)','⚠ Decelerating'],
+SUDDEN_STOP:['var(--red)','rgba(248,113,113,.15)','🛑 Sudden stop'],
+PERSISTENT_OUTFLOW:['var(--red)','rgba(248,113,113,.15)','📉 Persistent outflow']};
+const ACOL={treasuries:'var(--cyan)',agency_bonds:'var(--vio)',corporate_bonds:'var(--amb)',equities:'var(--grn)'};
+const ANAME={treasuries:'Treasuries',agency_bonds:'Agency bonds',corporate_bonds:'Corporate bonds',equities:'Equities'};
+function assetBars(ba){
+  const items=Object.keys(ANAME).map(k=>[k,(ba[k]||{}).rolling_12mo_b]).filter(x=>x[1]!=null);
+  const mx=Math.max(1,...items.map(x=>Math.abs(x[1])));
+  return items.map(([k,v])=>{const w=Math.max(2,Math.abs(v)/mx*100);const c=v<0?'var(--red)':ACOL[k];
+    return `<div class="bar"><span class="nm">${ANAME[k]}</span><div class="track"><div class="fill" style="width:${w}%;background:${c}"></div></div><span class="val" style="color:${c}">${fb(v)}</span></div>`;}).join('');
+}
+function trend(hist){
+  if(!hist||!hist.length)return'';const h=hist.slice().reverse();// chronological
+  const vals=h.map(x=>x.rolling_12mo_b);const mx=Math.max(...vals),mn=Math.min(0,...vals);
+  const W=920,H=120,pad=4,bw=W/h.length;
+  const bars=h.map((x,i)=>{const v=x.rolling_12mo_b;const y0=H*(1-(0-mn)/(mx-mn||1));
+    const yv=H*(1-(v-mn)/(mx-mn||1));const top=Math.min(y0,yv),hh=Math.max(1,Math.abs(y0-yv));
+    const last=i===h.length-1;const c=v<0?'var(--red)':(last?'var(--grn)':'#2a3340');
+    return `<rect x="${(i*bw+pad).toFixed(1)}" y="${top.toFixed(1)}" width="${(bw-pad*2).toFixed(1)}" height="${hh.toFixed(1)}" fill="${c}" rx="1.5"/>`;}).join('');
+  return `<div class="card"><svg viewBox="0 0 ${W} ${H}" width="100%" height="120" preserveAspectRatio="none">${bars}</svg>`
+    +`<div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--fg3);margin-top:4px"><span>${esc(h[0].asof)}</span><span>12-month rolling total · latest highlighted</span><span>${esc(h[h.length-1].asof)}</span></div></div>`;
+}
+(async function(){
+  const d=await gj('data/capital-inflows.json');const w=document.getElementById('w');
+  if(!d||!d.headline){w.innerHTML='<div class="hd"><h1>US Capital Inflows</h1></div><div class="loading">No data yet — runs weekly.</div>';return;}
+  const h=d.headline,ba=d.by_asset_class||{};
+  const[rc,rbg,rlbl]=REG[d.regime]||['var(--fg3)','rgba(154,165,177,.08)',d.regime||'—'];
+  let o=`<div class="hd"><h1>🌊 US Capital Inflows</h1><div class="sub">How hard the rest of the world is funding US assets — net foreign purchases of US securities (TIC). Bull-run fuel on the way in; a sudden stop is the crisis tell.</div><div class="meta">TIC data as of ${esc(d.data_asof||'')} · generated ${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}</div></div>`;
+  o+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
+  o+=`<div class="banner" style="border-left:3px solid ${rc};background:${rbg}"><div class="rg" style="color:${rc}">${rlbl}</div><div class="it">${esc(d.regime_interpretation||'')}</div>`+((d.flags&&d.flags.length)?`<div class="fl">${d.flags.map(esc).join(' · ')}</div>`:'')+`</div>`;
+  o+=`<div class="hero"><div class="big"><div class="l">Foreign net into US long-term securities · 12mo</div><div class="v" style="color:var(--grn)">${fb(h.foreign_net_into_us_lt_12mo_b)}</div><div class="s">all asset classes</div></div>`
+    +`<div class="big"><div class="l">Net cross-border flow · 12mo</div><div class="v">${fb(h.net_cross_border_lt_12mo_b)}</div><div class="s">foreign-in minus US-out</div></div>`
+    +`<div class="big"><div class="l">3-month run-rate · annualized</div><div class="v" style="color:${(h.run_rate_3mo_annualized_b||0)>=(h.foreign_net_into_us_lt_12mo_b||0)?'var(--grn)':'var(--amb)'}">${fb(h.run_rate_3mo_annualized_b)}</div><div class="s">vs 12mo trend = accel/decel</div></div></div>`;
+  o+=`<div class="hero"><div class="big"><div class="l">Latest month</div><div class="v" style="font-size:18px">${fb(h.latest_month_b)}</div></div>`
+    +`<div class="big"><div class="l">Year-over-year change in 12mo total</div><div class="v" style="font-size:18px;color:${(h.yoy_change_12mo_b||0)>=0?'var(--grn)':'var(--red)'}">${fb(h.yoy_change_12mo_b)}</div></div>`
+    +`<div class="big"><div class="l">Short-term T-bills · 12mo</div><div class="v" style="font-size:18px">${fb(h.short_term_treasury_12mo_b)}</div><div class="s">risk-off parking</div></div></div>`;
+  o+=`<div class="sec">Where the money goes <span class="n">— net foreign purchases by asset class, 12-month total</span></div><div class="card">${assetBars(ba)}</div>`;
+  o+=`<div class="sec">12-month rolling trend <span class="n">— the rate-of-change that signals acceleration vs a stop</span></div>${trend(d.history_12mo_rolling_b)}`;
+  o+=`<div class="foot">${esc((d.sources||{}).release||'')} · ${esc(d.disclaimer||'')}</div>`;
+  w.innerHTML=o;
+})();
+</script></body></html>
