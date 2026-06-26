@@ -1,21 +1,17 @@
-Lambda LastModified: 2026-06-26T20:54:31.000+0000 | timeout: 300
-invoked TXN (cold) to capture a clean full run
-INIT_START Runtime Version: python:3.12.mainlinev2.v11	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:0eb6fb00a97c1a17d2e3014b04c79bfc9bea4301466439e3458f985dc75cadcc
-START RequestId: c11ef98f-ed15-42de-ad3e-b59bf73b31ec Version: $LATEST
-[research] fetching TXN
-[research] 23/23 endpoints returned data
-[peers] fetched detail for 5 peers
-[transcript] TXN Q1 2026 (2026-04-22) — 41830 chars full, 16042 sent to Claude
-[claude] usage: input=16425 cache_create=0 cache_read=5844 output=12448
-[claude] 41199 chars in 137.49s · parsed 19 top-level keys
-[cache] WROTE equity-research/TXN.json
-[history] WROTE equity-research-history/2026-06-26/TXN.json
-END RequestId: c11ef98f-ed15-42de-ad3e-b59bf73b31ec
-REPORT RequestId: c11ef98f-ed15-42de-ad3e-b59bf73b31ec	Duration: 139480.37 ms	Billed Duration: 140155 ms	Memory Size: 1024 MB	Max Memory Used: 113 MB	Init Duration: 673.70 ms	
-XRAY TraceId: 1-6a3ee861-0f008d571841eae7432e1a98	SegmentId: 79ce46e2edf7de11	Sample
-[claude_call] Anthropic failed (The read operation timed out); routing via llm_router (GLM-5.1)
-[llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Sonnet
-[claude_call] llm_router fallback exceeded 100s; giving up so the doc still writes with quant data
-
-TXN written? gen= 2026-06-26T21:02:37.678244+00:00 | business_mix segs: {'Analog': 14006000000, 'Embedded Processing': 2697000000} | price pts: 161 | margins op: [{'date': '2025-12-31', 'value': 34.06}]
-DONE 2266
+why.html -> 200 | renderPriceChart: True | renderBusinessMix: True | renderSensitivity: True | key-assum fix: True
+LDOS regen kicked (before=2026-06-26T19:39:58.306139+00:00)
+t+13s not yet
+t+26s not yet
+t+39s not yet
+t+52s not yet
+t+65s not yet
+t+78s not yet
+t+91s not yet
+t+104s not yet
+t+117s not yet
+t+130s not yet
+t+143s not yet
+t+156s not yet
+t+169s not yet
+t+182s not yet
+DONE 2267
