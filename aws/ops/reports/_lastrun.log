@@ -1,5 +1,9 @@
-regime: NEUTRAL score 0.2
-CAPITAL-INFLOWS OVERLAY: regime=STEADY_INFLOW confirmation=ALIGNED into12=$1824.9B
-  note: Foreign funding steady inflow.
-all macro overlays now: ['cross_border', 'systemic_stress', 'liquidity', 'capital_inflows']
-DONE 2222
+page status: 200
+  contains 'US Capital Inflows': True
+  contains 'regime': True
+  contains 'by_asset_class': True
+  contains 'rolling trend': True
+  contains 'Where the money goes': True
+proxy data status: 200 | asof: 2026-04-01 | regime: STEADY_INFLOW | foreign_into_us_12mo: $1824.9B | equities leg: $883.9B
+PAGE+DATA FULLY LIVE
+DONE 2223
