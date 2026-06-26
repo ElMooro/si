@@ -1,9 +1,11 @@
-PAGE justhodl.ai/inventory-drawdown.html -> 200
-  has title: True
-  reads json key: True
-  has sector bars: True
-  has boom split: True
-  has destock strip: True
-PROXY data/inventory-drawdown.json -> 200
-  valid json · sectors: 9 · boom: 4
-DONE 2243
+1) CDN cache for LDOS (expect miss):
+    status=200 time=0.7s ACAO='*' body[:120]='{"schema_version": "1.1", "ticker": "LDOS", "generated_at": "2026-06-26T17:28:57.596302+00:00", "from_cache": false, "re'
+2) CDN cache for AAPL (expect hit — the working path):
+    status=200 time=0.6s ACAO='*' body[:120]='{"schema_version": "1.1", "ticker": "AAPL", "generated_at": "2026-06-26T08:00:28.204653+00:00", "from_cache": false, "re'
+3) Lambda function URL GET for LDOS (the failing path) — CORS header + timing + result:
+    status=200 time=0.4s ACAO='*' body[:120]='{"schema_version": "1.1", "ticker": "LDOS", "generated_at": "2026-06-26T17:28:57.596302+00:00", "from_cache": true, "reg'
+4) Lambda function URL OPTIONS preflight (CORS):
+    status=200 time=0.3s ACAO='*' body[:120]='{"schema_version": "1.1", "ticker": "LDOS", "generated_at": "2026-06-26T17:28:57.596302+00:00", "from_cache": true, "reg'
+5) Lambda justhodl-equity-research: state=Active timeout=180s mem=1024 lastmod=2026-06-02T16:20:31.000+0000
+   function URL: https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/ | authType= NONE | CORS= {"AllowCredentials": false, "AllowHeaders": ["*"], "AllowMethods": ["*"], "AllowOrigins": ["*"], "ExposeHeaders": ["*"], "MaxAge": 86400}
+DONE 2244
