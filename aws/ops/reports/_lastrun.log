@@ -1,35 +1,9 @@
 
-bottleneck-boom: age=13.2h  keys=['engine', 'version', 'generated_at', 'duration_s', 'industry_pressure', 'fred_used', 'fred_failed', 'universe_source', 'universe_n', 'scored_n', 'signals_logged']
-    dict 'industry_pressure' subkeys=['TOTAL_MFG', 'COMPUTERS_ELECTRONICS', 'SEMIS_IP_STRAIN']
-    'ranks' n=40 id=['ticker', 'name'] fields=['ticker', 'name', 'sector', 'industry', 'mkt_cap', 'rev_growth_yoy', 'rev_accel_pp', 'ps_ttm']
+supply-inflection.json: age=0.3h keys=['schema_version', 'method', 'generated_at', 'duration_s', 'fetch_stats', 'summary', 'signals', 'by_theme', 'schema']
+   dict 'signals': [('LITHIUM', '{"name": "LITHIUM", "src": "polygon", "symbol": "LIT", "cate'), ('RARE_EARTH', '{"name": "RARE_EARTH", "src": "polygon", "symbol": "REMX", "'), ('URANIUM', '{"name": "URANIUM", "src": "polygon", "symbol": "URA", "cate'), ('OIL_WTI', '{"name": "OIL_WTI", "src": "polygon", "symbol": "USO", "cate'), ('COPPER', '{"name": "COPPER", "src": "polygon", "symbol": "COPX", "cate'), ('OIL_BRENT', '{"name": "OIL_BRENT", "src": "polygon", "symbol": "BNO", "ca')]
 
-supply-inflection-scanner: ERR An error occurred (NoSuchKey) when calling the Get
+supply-inflection-scanner.json: ERR An error occurred (NoSuchKey) when calling the GetObjec
 
-chokepoint: age=72.9h  keys=['engine', 'version', 'generated_at', 'duration_s', 'mode', 'scope', 'thesis', 'scoring', 'stats', 'highest_conviction_book', 'structural_names']
-    dict 'stats' subkeys=['pool', 'evaluated', 'chokepoints', 'hidden', 'cheap', 'discovered', 'verified', 'confirmed']
-    'highest_conviction_book' n=3 id=['ticker', 'name'] fields=['ticker', 'name', 'criticality', 'setup_type', 'confirmed', 'curated', 'discount_to_fair_pct', 'trough']
-    'confirmed_chokepoint_book' n=5 id=['ticker', 'name'] fields=['ticker', 'name', 'sector', 'industry', 'criticality', 'is_chokepoint', 'cap_bucket', 'market_cap']
-    'discovered_chokepoint_book' n=30 id=['ticker', 'name'] fields=['ticker', 'name', 'sector', 'industry', 'criticality', 'is_chokepoint', 'cap_bucket', 'market_cap']
-    'rejected_high_margin_sample' n=15 id=['ticker', 'name'] fields=['ticker', 'name', 'criticality', 'reason']
-    'cheap_chokepoint_book' n=11 id=['ticker', 'name'] fields=['ticker', 'name', 'sector', 'industry', 'criticality', 'is_chokepoint', 'cap_bucket', 'market_cap']
-    'hidden_chokepoint_book' n=25 id=['ticker', 'name'] fields=['ticker', 'name', 'sector', 'industry', 'criticality', 'is_chokepoint', 'cap_bucket', 'market_cap']
-    'industry_leaders' n=29 id=['ticker', 'name'] fields=['ticker', 'name', 'criticality', 'gm_level', 'gm_stability']
-    'all_chokepoints' n=80 id=['ticker', 'name'] fields=['ticker', 'name', 'sector', 'industry', 'criticality', 'is_chokepoint', 'cap_bucket', 'market_cap']
-    'top_picks' n=11 id=['ticker'] fields=['ticker', 'score', 'cheap', 'discount_pct']
-
-commodity-curves: age=4.0h  keys=['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'source', 'spy_20d', 'fred_metrics', 'etf_metrics', 'n_fred', 'n_etf', 'n_fred_with_data']
-    'fred_metrics' n=4 id=['name'] fields=['series_id', 'name', 'unit', 'category', 'current', 'date', 'ret_5d', 'ret_20d']
-    'etf_metrics' n=10 id=['name'] fields=['sym', 'name', 'category', 'current', 'change_1d_pct', 'ret_5d', 'ret_20d', 'ret_60d']
-
-supply-chain-graph: age=12.2h  keys=['engine', 'version', 'ok', 'generated_at', 'thesis', 'n_nodes', 'n_edges', 'n_themes', 'themes', 'booming_hubs', 'nodes']
-    'nodes' n=134 id=['ticker', 'theme'] fields=['ticker', 'theme', 'perf_30d', 'perf_5d', 'price', 'is_boom', 'degree', 'n_suppliers']
-    'supply_chain_laggards' n=4 id=['ticker', 'theme'] fields=['ticker', 'theme', 'supplies_to', 'relationship', 'customer_perf_30d', 'own_perf_30d', 'lag_gap_pct']
-    'top_picks' n=4 id=['ticker'] fields=['ticker', 'direction', 'score', 'supplies_to', 'own_perf_30d', 'customer_perf_30d', 'lag_gap_pct']
-
-ai-infra-stack: age=12.2h  keys=['engine', 'version', 'generated_at', 'thesis', 'summary', 'stack', 'methodology', 'sources', 'disclaimer', 'elapsed_s']
-    dict 'summary' subkeys=['n_layers', 'n_names', 'n_small_cap', 'hottest_layers', 'top_picks', 'top_small_cap_picks']
-
-narrative-vs-tape: age=4.6h  keys=['engine', 'version', 'generated_at', 'duration_s', 'crowded_fading', 'quiet_accumulation', 'n_buzz_tracked', 'note']
-    'quiet_accumulation' n=15 id=['ticker'] fields=['ticker', 'buzz', 'sentiment', 'tape', 'edge']
-
-DONE 2224
+themes-detected.json: age=20.0h keys=['v', 'generated_at', 'duration_s', 'method', 'method_description', 'fetch_stats', 'summary', 'themes']
+   'themes' n=79 sample={"etf": "SMH", "name": "Semiconductors", "category": "tech_semis", "phase": "EXTENDED", "phase_score": 100, "phase_confidence": "high", "phase_scores"
+DONE 2225
