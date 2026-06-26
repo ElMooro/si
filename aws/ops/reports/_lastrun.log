@@ -1,9 +1,8 @@
-attempt 1: TimeoutError (check S3)
-attempt 2: TimeoutError (check S3)
-
-LDOS gen: 2026-06-26T21:22:59.028978+00:00
-distribution: None
-pt_momentum: None
-recent_actions: []
-ratings_trend pts: 0 | first/last: {} {}
-DONE 2274
+fired GD; waiting 175s for the run to log...
+START RequestId: c18a6502-3752-43d6-baef-e13beafe8a30 Version: $LATEST
+[research] fetching GD
+[research] 27/27 endpoints returned data
+[peers] fetched detail for 5 peers
+[transcript] GD Q1 2026 (2026-04-29) — 37131 chars full, 16042 sent to Claude
+[claude_call] Anthropic failed (The read operation timed out); routing via llm_router (GLM-5.1)
+DONE 2275
