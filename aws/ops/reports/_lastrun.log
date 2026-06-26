@@ -1,16 +1,5 @@
-signal keys in output (18): ['OIL_WTI', 'NATGAS', 'RARE_EARTH', 'GOLD', 'LITHIUM', 'OIL_BRENT', 'COPPER', 'STEEL_BASKET', 'URANIUM', 'SILVER', 'AI_INFRA_PROXY', 'MEMORY_DEMAND', 'DEFENSE_DEMAND', 'LUMBER', 'AI_POWER_PROXY', 'DOLLAR_INDEX', 'TREASURY_10Y', 'REAL_RATES']
-new signals present in output: False
--> deploy no-op'd; force-updating code via boto3
-   repo source has COPPER_SPOT: True | PCOPPUSDM: True
-
-AFTER force-update — new signals:
-  COPPER_SPOT          score=None flag=None latest=None chg90=None pctl365=None
-  URANIUM_SPOT         score=None flag=None latest=None chg90=None pctl365=None
-  NICKEL_SPOT          score=None flag=None latest=None chg90=None pctl365=None
-  IRON_ORE_SPOT        score=None flag=None latest=None chg90=None pctl365=None
-  PPI_SEMIS            score=None flag=None latest=None chg90=None pctl365=None
-  PPI_GRID_EQUIPMENT   score=None flag=None latest=None chg90=None pctl365=None
-  DELIVERY_TIME_NY     score=None flag=None latest=None chg90=None pctl365=None
-  PRICES_PAID_PHILLY   score=None flag=None latest=None chg90=None pctl365=None
-n_scored: 18
-DONE 2230
+  PCOPPUSDM: 19 obs, latest={'realtime_start': '2026-06-25', 'realtime_end': '2026-06-25', 'date': '2026-05-01', 'value': '13483.75153846154'}
+  DFII10: 408 obs, latest={'realtime_start': '2026-06-25', 'realtime_end': '2026-06-25', 'date': '2026-06-24', 'value': '2.23'}
+  DTCDISA066MSFRBNY: 20 obs, latest={'realtime_start': '2026-06-25', 'realtime_end': '2026-06-25', 'date': '2026-06-01', 'value': '11.9'}
+  PCU33443344: 19 obs, latest={'realtime_start': '2026-06-25', 'realtime_end': '2026-06-25', 'date': '2026-05-01', 'value': '73.083'}
+DONE 2231
