@@ -1,15 +1,23 @@
-supply-inflection by_theme keys: ['LIT', 'REMX', 'ITA', 'URA', 'URNM', 'NLR', 'XLE', 'XOP', 'OIH', 'AMLP', 'COPX', 'PICK', 'GRID', 'XLRE', 'REZ', 'REM', 'INDS', 'XHB', 'XBI', 'ARKK']
-  sample by_theme['LIT']: {"composite_inflection_score": 24.3, "max_signal_score": 24.3, "avg_signal_score": 24.3, "n_signals": 1, "n_strong_tightening": 0, "n_tightening": 0, "top_signals": [{"signal": "LITHIUM", "score": 24.
-  summary: {"n_signals_scored": 18, "n_strong_tightening": 1, "n_tightening": 1, "n_easing": 14, "top_signals": [{"name": "MEMORY_DEMAND", "symbol": "MU", "score": 84.9, "flag": "STRONG_TIGHTENING", "themes": ["
-  signal sample: {"name": "LITHIUM", "src": "polygon", "symbol": "LIT", "category": "commodity_battery", "direction": "up_is_tight", "themes": ["LIT", "REMX"], "description": "Lithium / battery proxy via LIT ETF", "metrics": {"latest_val
+exists via deploy
+schedule FAIL: An error occurred (LimitExceededException) when calling the PutRule op
 
-bottleneck-boom ranks[0]: {"ticker": "VST", "name": "Vistra Corp.", "sector": "Utilities", "industry": "Independent Power Producers", "mkt_cap": 54916908563, "rev_growth_yoy": 99.1, "rev_accel_pp": 152.0, "ps_ttm": 3.39, "rev_to_mcap_pct": 29.5, "inv_turnover": 13.74, "z_rev_growth_yoy": 3, "z_rev_accel_pp": 3, "z_rev_to_mca
+inputs_live: {"supply-inflection": true, "bottleneck-boom": true, "chokepoint": true, "supply-chain-graph": true, "narrative-vs-tape": true, "themes-detected": true}
+counts: {"candidates": 136, "headline": 0}
 
-chokepoint scoring: {"formula": "0.30*margin_level + 0.22*margin_STABILITY + 0.20*ROIC + 0.13*R&D + 0.15*centrality", "calibration": {"chokepoints_avg": 64.9, "commodity_avg": 21.9
-chokepoint cheap_chokepoint_book[0]: {"ticker": "TSM", "name": "Taiwan Semiconductor Manufacturing Company Limited", "sector": "Technology", "industry": "Semiconductors", "criticality": 71.4, "is_chokepoint": true, "cap_bucket": "mega", "market_cap": 2425561101600.0, "gm_level": 53.0, "
-chokepoint all_chokepoints[0]: {"ticker": "NVDA", "name": "NVIDIA Corporation", "sector": "Technology", "industry": "Semiconductors", "criticality": 88.2, "is_chokepoint": true, "cap_bucket": "mega", "market_cap": 5053711650000.0, 
+=== VERTICAL TIGHTNESS (which shortage is building) ===
+  SOXX  tightness 84.9  phase=EXTENDED strong=1 signals=['MEMORY_DEMAND'] names=[]
+  SMH   tightness 72.5  phase=EXTENDED strong=1 signals=['MEMORY_DEMAND', 'AI_INFRA_PROXY'] names=['TSM', 'NVDA', 'KLAC', 'ARM', 'LRCX', 'AMAT']
+  AIQ   tightness 72.5  phase=PEAKING strong=1 signals=['MEMORY_DEMAND', 'AI_INFRA_PROXY'] names=[]
+  BOTZ  tightness 72.5  phase=COOLING strong=1 signals=['MEMORY_DEMAND', 'AI_INFRA_PROXY'] names=[]
+  XLU   tightness 42.8  phase=None strong=0 signals=['AI_POWER_PROXY'] names=[]
+  AMLP  tightness 41.4  phase=COOLING strong=0 signals=['NATGAS', 'OIL_WTI'] names=[]
 
-narrative quiet_accumulation[0]: {"ticker": "LMT", "buzz": 0, "sentiment": 0, "tape": "institutions accumulating", "edge": "Unloved by the narrative but smart money is buying \u2014 contrarian setup."}
-
-themes-detected[0]: {"etf": "SMH", "name": "Semiconductors", "category": "tech_semis", "phase": "EXTENDED", "phase_score": 100, "phase_confidence": "high", "phase_scores": {"DORMANT": 0, "EMERGING": 70, "ACCELERATING": 55, "EXTENDED": 100, 
-DONE 2226
+=== HEADLINE BOARD (shortage building + nobody looking) ===
+  (none cleared both thresholds — showing scarcity leaders)
+  NVDA   scarcity 66.7 stealth 22.7 vert=SMH
+  KLAC   scarcity 63.4 stealth 2.7 vert=SMH
+  ARM    scarcity 63.0 stealth 2.7 vert=SMH
+  LRCX   scarcity 62.8 stealth 2.7 vert=SMH
+  TSM    scarcity 62.1 stealth 42.7 vert=SMH
+  AMAT   scarcity 61.5 stealth 2.7 vert=SMH
+DONE 2227
