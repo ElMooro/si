@@ -543,6 +543,7 @@ function renderReport(d){
   html += renderValuation(d);
   html += renderForwardModel(d);       // AI forward projections + price model
   html += renderSensitivity(d);        // fair-value heatmap: forward P/E × EPS
+  html += renderAnalystRatings(d);     // ANR: consensus, ratings trend, PT momentum
   html += renderPeerComparison(d);
   html += renderIndustryComparison(d); // company vs real industry/sector P/E
   html += renderFinancialHealth(d);
@@ -911,6 +912,74 @@ function renderPeerComparison(d){
         ${relTile('ps',        'P/S',       (v) => fmtNum(v, 2))}
         ${relTile('ev_ebitda', 'EV/EBITDA', (v) => fmtNum(v, 2))}
       </div>
+    </section>`;
+}
+
+function renderAnalystRatings(d){
+  const ar = d.analyst_ratings || {};
+  const dist = ar.distribution || {};
+  const pt = ar.pt_momentum || {};
+  const total = dist.total || 0;
+  const acts = ar.recent_actions || [];
+  if(!(total > 0 || acts.length || pt.last_month_avg)) return "";
+  const cur = (d.quote || {}).price;
+  const segs = [
+    ['Strong Buy', dist.strong_buy, 'var(--green-bright)'],
+    ['Buy', dist.buy, 'var(--green)'],
+    ['Hold', dist.hold, 'var(--amber)'],
+    ['Sell', dist.sell, 'var(--red)'],
+    ['Strong Sell', dist.strong_sell, '#b91c1c'],
+  ].filter(s => s[1] > 0);
+  const distBar = total ? `<div style="display:flex; height:22px; border-radius:5px; overflow:hidden; margin:6px 0">
+      ${segs.map(([l, v, c]) => `<div title="${l}: ${v}" style="width:${(v / total * 100).toFixed(1)}%; background:${c}"></div>`).join('')}
+    </div>
+    <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--text-muted)">
+      ${segs.map(([l, v, c]) => `<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${c};margin-right:4px"></span>${l} ${v}</span>`).join('')}
+    </div>` : '';
+  const tr = ar.ratings_trend || [];
+  let trendSvg = '';
+  if(tr.length >= 3){
+    const W = 340, H = 70, bw = W / tr.length;
+    const order = [['strong_buy', 'var(--green-bright)'], ['buy', 'var(--green)'], ['hold', 'var(--amber)'], ['sell', 'var(--red)'], ['strong_sell', '#b91c1c']];
+    const maxT = Math.max(...tr.map(t => order.reduce((s, [k]) => s + (t[k] || 0), 0)), 1);
+    const bars = tr.map((t, i) => {
+      let y = H;
+      return order.map(([k, c]) => { const h = (t[k] || 0) / maxT * (H - 4); y -= h; return h > 0 ? `<rect x="${(i * bw + 1).toFixed(1)}" y="${y.toFixed(1)}" width="${(bw - 2).toFixed(1)}" height="${h.toFixed(1)}" fill="${c}"/>` : ''; }).join('');
+    }).join('');
+    trendSvg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:360px;height:auto">${bars}</svg>
+      <div style="font-size:10px;color:var(--text-muted)">ratings by month — ${esc((tr[0].date || '').slice(0, 7))} → ${esc((tr[tr.length - 1].date || '').slice(0, 7))}</div>`;
+  }
+  const actColor = a => a === 'upgrade' ? 'var(--green-bright)' : a === 'downgrade' ? 'var(--red)' : 'var(--text-muted)';
+  const actSym = a => a === 'upgrade' ? '▲' : a === 'downgrade' ? '▼' : '＝';
+  const actions = acts.slice(0, 8).map(a => `
+    <tr>
+      <td style="color:var(--text-muted); font-size:11px; white-space:nowrap; padding:3px 8px 3px 0">${esc(a.date || '')}</td>
+      <td style="font-size:12px; padding:3px 8px 3px 0">${esc(a.firm || '')}</td>
+      <td style="font-size:11px; color:var(--text-dim); padding:3px 8px 3px 0">${a.from ? esc(a.from) + ' → ' : ''}${esc(a.to || '')}</td>
+      <td style="text-align:right; color:${actColor(a.action)}; font-size:11px; white-space:nowrap; padding:3px 0">${actSym(a.action)} ${esc(a.action || '')}</td>
+    </tr>`).join('');
+  const ptCard = (label, val, nq) => val ? `<div class="metric"><div class="lbl">${label}</div><div class="val">${fmtPrice(val)}</div><div class="sub">${nq ? nq + ' targets' : ''}${cur && val ? ' · ' + fmtPct((val / cur - 1) * 100, 0) + ' vs px' : ''}</div></div>` : '';
+  const mom = pt.momentum_pct;
+  return `
+    <section class="block">
+      <h3><span class="ico">🎓</span> Analyst Ratings &amp; PT Momentum <span class="pill">${dist.consensus ? esc(dist.consensus) + ' · ' : ''}${total} analysts</span></h3>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; margin-top:10px">
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:4px">Consensus distribution</div>
+          ${distBar}
+          ${trendSvg ? `<div style="margin-top:14px">${trendSvg}</div>` : ''}
+        </div>
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:6px">Price-target momentum ${mom != null ? `<span style="color:${mom >= 0 ? 'var(--green-bright)' : 'var(--red)'}">(${mom >= 0 ? '+' : ''}${fmtNum(mom, 0)}% 1m vs 1y)</span>` : ''}</div>
+          <div class="grid">
+            ${ptCard('Last month', pt.last_month_avg, pt.last_month_n)}
+            ${ptCard('Last quarter', pt.last_quarter_avg, pt.last_quarter_n)}
+            ${ptCard('Last year', pt.last_year_avg, pt.last_year_n)}
+          </div>
+        </div>
+      </div>
+      ${actions ? `<div style="margin-top:14px"><div style="font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:4px">Recent rating actions</div>
+        <div class="table-wrap"><table style="width:100%; border-collapse:collapse">${actions}</table></div></div>` : ''}
     </section>`;
 }
 

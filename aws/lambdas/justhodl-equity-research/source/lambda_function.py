@@ -253,6 +253,10 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
         "estimates":        ("analyst-estimates", {"symbol": ticker, "period": "annual", "limit": 5}),
         "rev_product_seg":  ("revenue-product-segmentation", {"symbol": ticker, "period": "annual"}),
         "rev_geo_seg":      ("revenue-geographic-segmentation", {"symbol": ticker, "period": "annual"}),
+        "grades_consensus": ("grades-consensus", {"symbol": ticker}),
+        "pt_summary":       ("price-target-summary", {"symbol": ticker}),
+        "grades_actions":   ("grades", {"symbol": ticker, "limit": 12}),
+        "grades_hist":      ("grades-historical", {"symbol": ticker, "limit": 14}),
         "pt_consensus":     ("price-target-consensus", {"symbol": ticker}),
         "dcf":              ("discounted-cash-flow", {"symbol": ticker}),
         "scores":           ("financial-scores", {"symbol": ticker}),
@@ -444,6 +448,71 @@ def build_business_mix(prod_seg: list, geo_seg: list, latest_revenue) -> dict:
         "geography":        geo,
         "geography_as_of":  geo_date,
         "segment_trend":    trend,
+    }
+
+
+def build_analyst_ratings(consensus, pt_summary, actions, hist) -> dict:
+    """Bloomberg-ANR-style analyst layer: live buy/hold/sell consensus, ratings trend,
+    recent upgrade/downgrade actions, and price-target momentum. All from FMP."""
+    c = _first(consensus) or {}
+    pt = _first(pt_summary) or {}
+
+    def n(d, k): 
+        v = _safe_num(d, k)
+        return int(v) if v is not None else 0
+
+    dist = {
+        "strong_buy":  n(c, "strongBuy"),
+        "buy":         n(c, "buy"),
+        "hold":        n(c, "hold"),
+        "sell":        n(c, "sell"),
+        "strong_sell": n(c, "strongSell"),
+        "consensus":   c.get("consensus"),
+    }
+    dist["total"] = dist["strong_buy"] + dist["buy"] + dist["hold"] + dist["sell"] + dist["strong_sell"]
+
+    pt_block = {
+        "last_month_avg":   _safe_num(pt, "lastMonthAvgPriceTarget"),
+        "last_month_n":     _safe_num(pt, "lastMonthCount"),
+        "last_quarter_avg": _safe_num(pt, "lastQuarterAvgPriceTarget"),
+        "last_quarter_n":   _safe_num(pt, "lastQuarterCount"),
+        "last_year_avg":    _safe_num(pt, "lastYearAvgPriceTarget"),
+        "last_year_n":      _safe_num(pt, "lastYearCount"),
+        "all_time_avg":     _safe_num(pt, "allTimeAvgPriceTarget"),
+    }
+    # momentum direction: last-month vs last-year average target
+    lm, ly = pt_block["last_month_avg"], pt_block["last_year_avg"]
+    if lm and ly and ly > 0:
+        pt_block["momentum_pct"] = round((lm / ly - 1) * 100, 1)
+
+    recent = []
+    if isinstance(actions, list):
+        for a in actions[:10]:
+            recent.append({
+                "date":   a.get("date"),
+                "firm":   a.get("gradingCompany"),
+                "from":   a.get("previousGrade"),
+                "to":     a.get("newGrade"),
+                "action": a.get("action"),
+            })
+
+    trend = []
+    if isinstance(hist, list):
+        for h in sorted([x for x in hist if x.get("date")], key=lambda x: x.get("date"))[-12:]:
+            trend.append({
+                "date":        h.get("date"),
+                "strong_buy":  n(h, "analystRatingsStrongBuy"),
+                "buy":         n(h, "analystRatingsBuy"),
+                "hold":        n(h, "analystRatingsHold"),
+                "sell":        n(h, "analystRatingsSell"),
+                "strong_sell": n(h, "analystRatingsStrongSell"),
+            })
+
+    return {
+        "distribution":   dist,
+        "pt_momentum":    pt_block,
+        "recent_actions": recent,
+        "ratings_trend":  trend,
     }
 
 
@@ -2033,6 +2102,8 @@ def lambda_handler(event, context):
     _latest_rev = _safe_num(income_annual[0], "revenue") if income_annual else None
     business_mix = build_business_mix(raw.get("rev_product_seg"), raw.get("rev_geo_seg"), _latest_rev)
     price_history = compact_price_series(prices_eod)
+    analyst_ratings = build_analyst_ratings(raw.get("grades_consensus"), raw.get("pt_summary"),
+                                            raw.get("grades_actions"), raw.get("grades_hist"))
 
     payload = {
         "ticker":          ticker,
@@ -2041,6 +2112,7 @@ def lambda_handler(event, context):
         "valuation":       valuation,
         "industry_comparison": industry_comparison,
         "business_mix":    business_mix,
+        "analyst_ratings": analyst_ratings,
         "growth":          {**growth_metrics, **fcf_metrics, **qty_consistency},
         "margins":         margin_trend,
         "balance_quality": balance_qual,
@@ -2120,6 +2192,7 @@ def lambda_handler(event, context):
         "forward_model":       claude_synthesis.get("forward_model"),
         "industry_comparison": industry_comparison,
         "business_mix":        business_mix,
+        "analyst_ratings":     analyst_ratings,
         "price_history":       price_history,
         "scenarios":           _enrich_scenarios(
             claude_synthesis.get("scenarios"), current_price
