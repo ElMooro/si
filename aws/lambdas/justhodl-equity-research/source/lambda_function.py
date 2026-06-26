@@ -99,6 +99,8 @@ import boto3
 
 FMP_KEY      = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 FMP_BASE     = "https://financialmodelingprep.com/stable"
+POLYGON_KEY  = os.environ.get("POLYGON_API_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLYGON_BASE = "https://api.polygon.io"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_KEY", "")
 MODEL        = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 S3_BUCKET    = "justhodl-dashboard-live"
@@ -135,6 +137,104 @@ def fmp_get(endpoint: str, **params) -> Optional[Any]:
     except Exception as e:
         print(f"[fmp_get] {endpoint} → {type(e).__name__}: {str(e)[:120]}")
     return None
+
+
+def polygon_get(path: str, **params) -> Optional[Any]:
+    """Call api.polygon.io/{path} with apiKey + params. Used for options data (OMON)."""
+    q = dict(params)
+    q["apiKey"] = POLYGON_KEY
+    url = f"{POLYGON_BASE}/{path}?{urllib.parse.urlencode(q)}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodlEquityResearch/1.0"})
+        with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as r:
+            return json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        print(f"[polygon_get] {path} → HTTP {e.code}")
+    except Exception as e:
+        print(f"[polygon_get] {path} → {type(e).__name__}: {str(e)[:120]}")
+    return None
+
+
+def build_options_expectations(ticker: str, spot, next_earnings) -> Optional[dict]:
+    """Bloomberg-OMON-style forward market expectations from Polygon options.
+    Our tier exposes implied_volatility, greeks and open_interest per contract (no live
+    bid/ask quotes, no IV history) — so we use the IV-based expected move rather than a
+    straddle price, and omit IV-rank (no history). All values are real, market-derived.
+
+      implied_move% = ATM_IV × √(days_to_expiry / 365)
+    where the target expiry is the first listed expiry on/after the next earnings date."""
+    import math, datetime
+    if not spot or spot <= 0:
+        return None
+    lo, hi = round(spot * 0.80), round(spot * 1.20)
+    params = {"strike_price.gte": lo, "strike_price.lte": hi, "limit": 250}
+    if next_earnings:
+        params["expiration_date.gte"] = next_earnings
+    snap = polygon_get(f"v3/snapshot/options/{ticker}", **params)
+    res = snap.get("results") if isinstance(snap, dict) else None
+    if not res:
+        return None
+
+    def strike(c): return (c.get("details") or {}).get("strike_price")
+    def ctype(c):  return (c.get("details") or {}).get("contract_type")
+
+    exps: Dict[str, list] = {}
+    for c in res:
+        e = (c.get("details") or {}).get("expiration_date")
+        if e and c.get("implied_volatility"):
+            exps.setdefault(e, []).append(c)
+    if not exps:
+        return None
+
+    today = datetime.date.today()
+    target = sorted(exps.keys())[0]            # first expiry on/after earnings
+    chain = exps[target]
+    strikes = {strike(c) for c in chain if strike(c)}
+    if not strikes:
+        return None
+    atm_k = min(strikes, key=lambda k: abs(k - spot))
+    atm_ivs = [c["implied_volatility"] for c in chain if strike(c) == atm_k]
+    atm_iv = sum(atm_ivs) / len(atm_ivs)
+    try:
+        days = max((datetime.date.fromisoformat(target) - today).days, 1)
+    except Exception:
+        days = 30
+    move_pct = atm_iv * math.sqrt(days / 365.0) * 100
+
+    # 25-delta-ish skew proxy: ~0.95×spot put IV minus ~1.05×spot call IV
+    puts  = [c for c in chain if ctype(c) == "put"]
+    calls = [c for c in chain if ctype(c) == "call"]
+    pskew = min(puts,  key=lambda c: abs(strike(c) - spot * 0.95))["implied_volatility"] if puts else None
+    cskew = min(calls, key=lambda c: abs(strike(c) - spot * 1.05))["implied_volatility"] if calls else None
+    skew = (pskew - cskew) if (pskew is not None and cskew is not None) else None
+
+    poi = sum((c.get("open_interest") or 0) for c in res if ctype(c) == "put")
+    coi = sum((c.get("open_interest") or 0) for c in res if ctype(c) == "call")
+
+    # vol smile: ATM-relative IV by strike for the target expiry (for a mini-chart)
+    smile = []
+    for k in sorted(strikes):
+        ivs = [c["implied_volatility"] for c in chain if strike(c) == k]
+        if ivs:
+            smile.append({"strike": k, "iv_pct": round(sum(ivs) / len(ivs) * 100, 1),
+                          "moneyness": round(k / spot, 3)})
+
+    return {
+        "spot":             round(spot, 2),
+        "next_earnings":    next_earnings,
+        "expiry":           target,
+        "days_to_expiry":   days,
+        "atm_iv_pct":       round(atm_iv * 100, 1),
+        "implied_move_pct": round(move_pct, 1),
+        "expected_low":     round(spot * (1 - move_pct / 100), 2),
+        "expected_high":    round(spot * (1 + move_pct / 100), 2),
+        "put_skew_pts":     round(skew * 100, 1) if skew is not None else None,
+        "pc_oi_ratio":      round(poi / coi, 2) if coi else None,
+        "put_oi":           poi,
+        "call_oi":          coi,
+        "n_contracts":      len(res),
+        "smile":            smile[:40],
+    }
 
 
 def claude_call(system, user: str, max_tokens: int = 6000, use_cache: bool = True) -> str:
@@ -263,6 +363,8 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
         "pt_summary":       ("price-target-summary", {"symbol": ticker}),
         "grades_actions":   ("grades", {"symbol": ticker, "limit": 12}),
         "grades_hist":      ("grades-historical", {"symbol": ticker, "limit": 14}),
+        "earnings_cal":     ("earnings", {"symbol": ticker, "limit": 12}),
+        "dividends_cal":    ("dividends", {"symbol": ticker, "limit": 8}),
         "pt_consensus":     ("price-target-consensus", {"symbol": ticker}),
         "dcf":              ("discounted-cash-flow", {"symbol": ticker}),
         "scores":           ("financial-scores", {"symbol": ticker}),
@@ -2111,6 +2213,22 @@ def lambda_handler(event, context):
     analyst_ratings = build_analyst_ratings(raw.get("grades_consensus"), raw.get("pt_summary"),
                                             raw.get("grades_actions"), raw.get("grades_hist"))
 
+    # ── Next earnings date (drives options expiry selection + events calendar)
+    import datetime as _dt
+    _today_str = _dt.date.today().isoformat()
+    _ecal = raw.get("earnings_cal") or []
+    _future_earn = sorted([e for e in _ecal if e.get("date") and e["date"] >= _today_str],
+                          key=lambda e: e["date"]) if isinstance(_ecal, list) else []
+    next_earnings_date = _future_earn[0]["date"] if _future_earn else None
+
+    # ── Options-implied expectations (OMON): implied move into earnings, IV, skew, P/C OI
+    _spot = quote_block.get("price")
+    try:
+        options_expectations = build_options_expectations(ticker, _spot, next_earnings_date)
+    except Exception as _e:
+        print(f"[options] build failed: {type(_e).__name__}: {str(_e)[:120]}")
+        options_expectations = None
+
     payload = {
         "ticker":          ticker,
         "company":         company_block,
@@ -2119,6 +2237,7 @@ def lambda_handler(event, context):
         "industry_comparison": industry_comparison,
         "business_mix":    business_mix,
         "analyst_ratings": analyst_ratings,
+        "options_expectations": options_expectations,
         "growth":          {**growth_metrics, **fcf_metrics, **qty_consistency},
         "margins":         margin_trend,
         "balance_quality": balance_qual,
@@ -2199,6 +2318,7 @@ def lambda_handler(event, context):
         "industry_comparison": industry_comparison,
         "business_mix":        business_mix,
         "analyst_ratings":     analyst_ratings,
+        "options_expectations": options_expectations,
         "price_history":       price_history,
         "scenarios":           _enrich_scenarios(
             claude_synthesis.get("scenarios"), current_price
