@@ -1288,6 +1288,25 @@ export default {
         } catch (_) { /* keep original status */ }
       }
 
+      // Equity-research cold-ticker fallback: on an S3 miss for equity-research/<TICKER>.json,
+      // generate the report by calling the research Lambda SERVER-SIDE (worker -> Lambda).
+      // This keeps the browser on the justhodl.ai/Cloudflare domain only — the raw
+      // *.lambda-url.on.aws domain is routinely blocked by ad-blockers / privacy extensions /
+      // corporate firewalls, which surfaced as "Failed to fetch" for any non-pre-cached ticker.
+      if (!upstream.ok && (upstream.status === 404 || upstream.status === 403) &&
+          safePath.startsWith("equity-research/") && safePath.endsWith(".json")) {
+        const tkr = safePath.slice("equity-research/".length, -5)
+                            .toUpperCase().replace(/[^A-Z0-9.\-]/g, "");
+        if (tkr) {
+          const RESEARCH_LAMBDA = "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/";
+          try {
+            const gen = await fetch(`${RESEARCH_LAMBDA}?ticker=${encodeURIComponent(tkr)}`,
+              { headers: { "User-Agent": "justhodl-data-proxy" } });
+            if (gen.ok) { upstream = gen; upstreamUrl = `lambda:equity-research/${tkr}`; }
+          } catch (_) { /* fall through to the not-ok error below */ }
+        }
+      }
+
       if (!upstream.ok) {
         return new Response(
           JSON.stringify({ error: "upstream not ok", status: upstream.status, path: safePath }),
