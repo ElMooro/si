@@ -1,19 +1,21 @@
-===== INDUSTRY / SECTOR P/E endpoints (/stable) =====
-OK  sector-pe-snapshot?date=2026-06-25&excha   -> 11 rows; sample: {"date": "2026-06-25", "sector": "Basic Materials", "exchange": "NYSE", "pe": 24.422173097321494}
-OK  industry-pe-snapshot?date=2026-06-25&exc   -> 135 rows; sample: {"date": "2026-06-25", "industry": "Advertising Agencies", "exchange": "NYSE", "pe": 7.2200745116476055}
-OK  sector-pe-snapshot?date=2026-06-25         -> 11 rows; sample: {"date": "2026-06-25", "sector": "Basic Materials", "exchange": "NASDAQ", "pe": 30.826643921023326}
-OK  industry-pe-snapshot?date=2026-06-25       -> 131 rows; sample: {"date": "2026-06-25", "industry": "Advertising Agencies", "exchange": "NASDAQ", "pe": 24.966371900695652}
-OK  historical-sector-pe?sector=Technology     -> 21 rows; sample: {"date": "2024-03-01", "sector": "Technology", "exchange": "NASDAQ", "pe": 0.7743098908040464}
-OK  historical-industry-pe?industry=Informat   -> 21 rows; sample: {"date": "2024-03-01", "industry": "Information Technology Services", "exchange": "NASDAQ", "pe": 0.03286456574613236}
+generated 141s
 
-===== ANALYST ESTIMATES (forward projection raw material) =====
-5 rows; fields: ['symbol', 'date', 'revenueLow', 'revenueHigh', 'revenueAvg', 'ebitdaLow', 'ebitdaHigh', 'ebitdaAvg', 'ebitLow', 'ebitHigh', 'ebitAvg', 'netIncomeLow', 'netIncomeHigh', 'netIncomeAvg', 'sgaExpenseLow', 'sgaExpenseHigh', 'sgaExpenseAvg', 'epsAvg', 'epsHigh', 'epsLow', 'numAnalystsRevenue', 'numAnalystsEps']
-   {'date': '2029-01-02', 'revenueAvg': 20024874623, 'revenueLow': 20024860911, 'revenueHigh': 20024888334, 'epsAvg': 14.51367, 'ebitdaAvg': 3702928726, 'netIncomeAvg': 1885364784, 'numAnalystsRevenue': 9}
-   {'date': '2028-01-02', 'revenueAvg': 19102629050, 'revenueLow': 18656495462, 'revenueHigh': 19396671641, 'epsAvg': 13.13637, 'ebitdaAvg': 3532390348, 'netIncomeAvg': 1734688933, 'numAnalystsRevenue': 11}
-   {'date': '2027-01-02', 'revenueAvg': 18233492111, 'revenueLow': 17949544514, 'revenueHigh': 18456593794, 'epsAvg': 12.33148, 'ebitdaAvg': 3371672631, 'netIncomeAvg': 1628825622, 'numAnalystsRevenue': 11}
-   {'date': '2026-01-02', 'revenueAvg': 17277360577, 'revenueLow': 17247260645, 'revenueHigh': 17327527129, 'epsAvg': 11.84143, 'ebitdaAvg': 3194868182, 'netIncomeAvg': 1562603536.5, 'numAnalystsRevenue': 9}
+ANALYST ESTIMATES (was null):
+   2025-01-02 rev_avg= 16429599999.0 eps_avg= 10.11113
+   2026-01-02 rev_avg= 17277360577.0 eps_avg= 11.84143
+   2027-01-02 rev_avg= 18233492111.0 eps_avg= 12.33148
+   2028-01-02 rev_avg= 19102629050.0 eps_avg= 13.13637
 
-===== what the LDOS doc already stores for analyst_estimates + peer_comparison =====
-analyst_estimates: [{"date": "2029-01-02", "revenue_avg": null, "eps_avg": null, "num_analysts_rev": null, "num_analysts_eps": null}, {"date": "2028-01-02", "revenue_avg": null, "eps_avg": null, "num_analysts_rev": null, "num_analysts_eps": null}, {"date": "2027-01-02", "revenue_avg": null, "eps_avg": null, "num_analysts_rev": null, "num_analysts_eps": null}]
-peer_comparison keys: ['sector', 'industry', 'rows', 'summary', 'relative'] | median: null
-DONE 2257
+INDUSTRY COMPARISON:
+  industry: Information Technology Services | industry_pe: 11.5 | sector_pe: 50.2 | as_of: 2026-06-26
+  company pe: 9.13 | pe_vs_industry: -20.6 % | pe_vs_sector: -81.8 %
+  industry_comparison_assessment: Within the Information Technology Services industry (FMP industry P/E 11.5x), LDOS at 9.1x P/E trades at a 20.6% discount. Against the broader Technology sector (P/E 50.2x), LDOS is 81.8% cheaper, which is appropriate given that sector incl
+
+FORWARD MODEL present: True
+  summary: The forward model anchors to analyst consensus ($17.3B FY2026 revenue, $11.84 EPS) and assumes 4-5% organic revenue growth for FY2027-2028 (consensus range $17.8-$19.1B), plus $200-$300M annual Entrust contribution starting 2026 (2-3% of to
+  revenue_projections: [('FY2026', 17275000000, 5.2), ('FY2027', 18096000000, 4.8), ('FY2028', 18954000000, 4.7)]
+  eps_projections: [('FY2026', 11.84, 28.4), ('FY2027', 12.45, 5.2), ('FY2028', 13.24, 6.3)]
+  price_model: fwd_pe= 12.0 fair_base= 149.4 bull= 261.0 bear= 92.0 upside= 48.3 %
+  dcf_cross_check: DCF estimate of $656 (551.8% upside) is almost certainly too high and reflects either aggressive terminal margin (15%+) or perpetual 5%+ growth assumptions. Aud
+  confidence: MEDIUM. The model relies on 12-month analyst consensus (high visibility) but extends 24-36 months where visibility deteriorates. Entrust integration risk is material; Defense Tech ramps are speculative (AGM-190A LRIP not yet awarded, ALPS production pace uncertain). DHMSM recompete outcome is binary. Budget forecasting (IC 4-5% growth) assumes no major political/appropriations shifts. The model is most confident in FY2026 (consensus-driven); progressively less confident in FY2027-2028. Recommend revisiting at each earnings release to calibrate Entrust ramp and Defense Tech awards.
+DONE 2258
